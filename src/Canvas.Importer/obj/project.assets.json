@@ -1,11 +1,66 @@
 {
   "version": 3,
   "targets": {
-    "net10.0": {}
+    "net10.0": {
+      "Canvas.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Core.dll": {}
+        }
+      },
+      "Canvas.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/Canvas.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Domain.dll": {}
+        }
+      },
+      "Canvas.Infrastructure.Pdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Infrastructure.Pdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Infrastructure.Pdf.dll": {}
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "Canvas.Core/1.0.0": {
+      "type": "project",
+      "path": "../Canvas.Core/Canvas.Core.csproj",
+      "msbuildProject": "../Canvas.Core/Canvas.Core.csproj"
+    },
+    "Canvas.Domain/1.0.0": {
+      "type": "project",
+      "path": "../../Canvas.Domain/Canvas.Domain.csproj",
+      "msbuildProject": "../../Canvas.Domain/Canvas.Domain.csproj"
+    },
+    "Canvas.Infrastructure.Pdf/1.0.0": {
+      "type": "project",
+      "path": "../Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj",
+      "msbuildProject": "../Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj"
+    }
+  },
   "projectFileDependencyGroups": {
-    "net10.0": []
+    "net10.0": [
+      "Canvas.Infrastructure.Pdf >= 1.0.0"
+    ]
   },
   "packageFolders": {
     "/Users/mannheimer/.nuget/packages/": {}
@@ -32,7 +87,11 @@
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj": {
+              "projectPath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

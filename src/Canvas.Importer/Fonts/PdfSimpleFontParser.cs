@@ -18,17 +18,42 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
             _ => PdfFontKind.Unknown
         };
 
+        var widthSource = GetWidthSourceDictionary(fontDictionary, subtype, resolver);
+
         return new PdfFontResource
         {
             ResourceName = resourceName,
             Kind = kind,
             Dictionary = fontDictionary,
-            Widths = ReadWidths(fontDictionary, resolver),
-            MissingWidth = ReadMissingWidth(fontDictionary, resolver)
+            Widths = ReadWidths(widthSource, subtype, resolver),
+            MissingWidth = ReadMissingWidth(widthSource, resolver),
+            CodeByteLength = subtype == "Type0" ? 2 : 1
         };
     }
 
-    private static IReadOnlyDictionary<int, double> ReadWidths(PdfDictionary fontDictionary, IPdfObjectResolver resolver)
+    private static PdfDictionary GetWidthSourceDictionary(PdfDictionary fontDictionary, string subtype, IPdfObjectResolver resolver)
+    {
+        if (subtype != "Type0")
+        {
+            return fontDictionary;
+        }
+
+        if (fontDictionary["DescendantFonts"] is not { } descendantFontsValue || resolver.Resolve(descendantFontsValue) is not PdfArray descendantFonts)
+        {
+            return fontDictionary;
+        }
+
+        return descendantFonts.Items.FirstOrDefault() is { } descendant && resolver.Resolve(descendant) is PdfDictionary descendantDictionary
+            ? descendantDictionary
+            : fontDictionary;
+    }
+
+    private static IReadOnlyDictionary<int, double> ReadWidths(PdfDictionary fontDictionary, string subtype, IPdfObjectResolver resolver)
+    {
+        return subtype == "Type0" ? ReadCidWidths(fontDictionary, resolver) : ReadSimpleWidths(fontDictionary, resolver);
+    }
+
+    private static IReadOnlyDictionary<int, double> ReadSimpleWidths(PdfDictionary fontDictionary, IPdfObjectResolver resolver)
     {
         var firstChar = ResolveInteger(fontDictionary["FirstChar"], resolver) ?? 0;
         if (fontDictionary["Widths"] is not { } widthsValue || resolver.Resolve(widthsValue) is not PdfArray widthsArray)
@@ -50,8 +75,65 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
         return widths;
     }
 
+    private static IReadOnlyDictionary<int, double> ReadCidWidths(PdfDictionary fontDictionary, IPdfObjectResolver resolver)
+    {
+        if (fontDictionary["W"] is not { } widthsValue || resolver.Resolve(widthsValue) is not PdfArray widthsArray)
+        {
+            return new Dictionary<int, double>();
+        }
+
+        var widths = new Dictionary<int, double>();
+        var index = 0;
+        while (index < widthsArray.Items.Count)
+        {
+            var startCode = ResolveInteger(widthsArray.Items[index++], resolver);
+            if (startCode is null || index >= widthsArray.Items.Count)
+            {
+                break;
+            }
+
+            if (resolver.Resolve(widthsArray.Items[index]) is PdfArray explicitWidths)
+            {
+                index++;
+                for (var offset = 0; offset < explicitWidths.Items.Count; offset++)
+                {
+                    if (ResolveNumber(explicitWidths.Items[offset], resolver) is { } width)
+                    {
+                        widths[startCode.Value + offset] = width;
+                    }
+                }
+
+                continue;
+            }
+
+            var endCode = ResolveInteger(widthsArray.Items[index++], resolver);
+            if (endCode is null || index >= widthsArray.Items.Count)
+            {
+                break;
+            }
+
+            var rangeWidth = ResolveNumber(widthsArray.Items[index++], resolver);
+            if (rangeWidth is null)
+            {
+                continue;
+            }
+
+            for (var code = startCode.Value; code <= endCode.Value; code++)
+            {
+                widths[code] = rangeWidth.Value;
+            }
+        }
+
+        return widths;
+    }
+
     private static double ReadMissingWidth(PdfDictionary fontDictionary, IPdfObjectResolver resolver)
     {
+        if (ResolveNumber(fontDictionary["DW"], resolver) is { } cidDefaultWidth)
+        {
+            return cidDefaultWidth;
+        }
+
         if (fontDictionary["FontDescriptor"] is not { } descriptorValue || resolver.Resolve(descriptorValue) is not PdfDictionary descriptor)
         {
             return 0;

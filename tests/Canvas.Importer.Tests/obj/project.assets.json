@@ -394,14 +394,53 @@
           "build/net8.0/xunit.runner.visualstudio.props": {}
         }
       },
+      "Canvas.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Core.dll": {}
+        }
+      },
+      "Canvas.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/Canvas.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Domain.dll": {}
+        }
+      },
       "Canvas.Importer/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Infrastructure.Pdf": "1.0.0"
+        },
         "compile": {
           "bin/placeholder/Canvas.Importer.dll": {}
         },
         "runtime": {
           "bin/placeholder/Canvas.Importer.dll": {}
+        }
+      },
+      "Canvas.Infrastructure.Pdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Infrastructure.Pdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Infrastructure.Pdf.dll": {}
         }
       }
     }
@@ -914,10 +953,25 @@
         "xunit.runner.visualstudio.nuspec"
       ]
     },
+    "Canvas.Core/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Core/Canvas.Core.csproj",
+      "msbuildProject": "../../src/Canvas.Core/Canvas.Core.csproj"
+    },
+    "Canvas.Domain/1.0.0": {
+      "type": "project",
+      "path": "../../Canvas.Domain/Canvas.Domain.csproj",
+      "msbuildProject": "../../Canvas.Domain/Canvas.Domain.csproj"
+    },
     "Canvas.Importer/1.0.0": {
       "type": "project",
       "path": "../../src/Canvas.Importer/Canvas.Importer.csproj",
       "msbuildProject": "../../src/Canvas.Importer/Canvas.Importer.csproj"
+    },
+    "Canvas.Infrastructure.Pdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj",
+      "msbuildProject": "../../src/Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj"
     }
   },
   "projectFileDependencyGroups": {

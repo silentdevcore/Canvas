@@ -282,7 +282,7 @@ public sealed class PdfGraphicsInterpreter
     {
         return operand switch
         {
-            PdfString text => ComputeStringAdvance(text.Bytes.Span, state),
+            PdfString text => ComputeStringAdvance(text.GetDecodedBytes().Span, state),
             PdfArray array => ComputeArrayAdvance(array, state),
             _ => 0
         };
@@ -296,7 +296,7 @@ public sealed class PdfGraphicsInterpreter
             switch (item)
             {
                 case PdfString text:
-                    advance += ComputeStringAdvance(text.Bytes.Span, state);
+                    advance += ComputeStringAdvance(text.GetDecodedBytes().Span, state);
                     break;
                 case PdfInteger integer:
                     advance -= (integer.Value / 1000d) * state.FontSize * state.HorizontalScaling;
@@ -318,9 +318,10 @@ public sealed class PdfGraphicsInterpreter
         }
 
         var glyphAdvance = 0d;
-        foreach (var glyph in glyphBytes)
+        var font = state.CurrentFont;
+        foreach (var glyph in font?.GetGlyphCodes(glyphBytes) ?? glyphBytes.ToArray().Select(static value => (int)value))
         {
-            glyphAdvance += state.CurrentFont?.GetGlyphWidth(glyph) ?? 0;
+            glyphAdvance += font?.GetGlyphWidth(glyph) ?? 0;
             glyphAdvance += state.CharacterSpacing * 1000d / Math.Max(state.FontSize, 1);
             if (glyph == (byte)' ')
             {
@@ -522,7 +523,7 @@ public sealed class PdfGraphicsInterpreter
 
     private static string Text(PdfObject operand, PdfFontResource? font)
     {
-        return operand is PdfString text ? (font?.Decode(text.Bytes.Span) ?? text.ToLatin1String()) : string.Empty;
+        return operand is PdfString text ? (font?.Decode(text.GetDecodedBytes().Span) ?? text.ToLatin1String()) : string.Empty;
     }
 
     private static string TextArray(PdfObject? operand, PdfFontResource? font)
@@ -532,6 +533,6 @@ public sealed class PdfGraphicsInterpreter
             return string.Empty;
         }
 
-        return string.Concat(array.Items.OfType<PdfString>().Select(item => font?.Decode(item.Bytes.Span) ?? item.ToLatin1String()));
+        return string.Concat(array.Items.OfType<PdfString>().Select(item => font?.Decode(item.GetDecodedBytes().Span) ?? item.ToLatin1String()));
     }
 }

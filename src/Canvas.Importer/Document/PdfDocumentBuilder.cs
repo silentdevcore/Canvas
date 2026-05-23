@@ -128,6 +128,7 @@ public sealed class PdfDocumentBuilder
         var dictionary = (PdfDictionary)pageObject.Value;
         var resources = ResolveDictionary(dictionary["Resources"], graph) ?? inherited.Resources ?? new PdfDictionary();
         var fontResources = ResolveFontResources(resources, graph);
+        var imageResources = ResolveImageResources(resources, graph);
         var page = new PdfPageModel(pageObject.Id, dictionary)
         {
             Resources = resources,
@@ -145,7 +146,9 @@ public sealed class PdfDocumentBuilder
             page.ContentStreams.Add(stream);
             DecodeIfPossible(stream);
             var commands = _contentParser.Parse(stream.IsDecoded ? stream.DecodedBytes : stream.EncodedBytes);
-            page.GraphicsObjects.AddRange(_graphicsInterpreter.Interpret(commands, fontResources));
+            var graphicsObjects = _graphicsInterpreter.Interpret(commands, fontResources);
+            AttachImageResources(graphicsObjects, imageResources);
+            page.GraphicsObjects.AddRange(graphicsObjects);
         }
 
         return page;
@@ -286,6 +289,105 @@ public sealed class PdfDocumentBuilder
         return fonts;
     }
 
+    private IReadOnlyDictionary<string, ReadOnlyMemory<byte>> ResolveImageResources(PdfDictionary resources, PdfObjectGraph graph)
+    {
+        if (ResolveObject(resources["XObject"], graph) is not PdfDictionary xObjectDictionary)
+        {
+            return new Dictionary<string, ReadOnlyMemory<byte>>();
+        }
+
+        var images = new Dictionary<string, ReadOnlyMemory<byte>>(StringComparer.Ordinal);
+        foreach (var entry in xObjectDictionary.Values)
+        {
+            if (ResolveObject(entry.Value, graph) is not PdfStreamObject stream)
+            {
+                continue;
+            }
+
+            if (ResolveObject(stream.Dictionary["Subtype"], graph) is not PdfName { Value: "Image" })
+            {
+                continue;
+            }
+
+            DecodeIfPossible(stream);
+            var imageBytes = GetRegenerableImageBytes(stream);
+            if (!imageBytes.IsEmpty)
+            {
+                images[entry.Key] = imageBytes;
+            }
+        }
+
+        return images;
+    }
+
+    private static void AttachImageResources(IReadOnlyList<PdfGraphicsElement> elements, IReadOnlyDictionary<string, ReadOnlyMemory<byte>> imageResources)
+    {
+        foreach (var element in elements)
+        {
+            switch (element)
+            {
+                case PdfImageElement image when image.ImageBytes.IsEmpty && imageResources.TryGetValue(image.ResourceName, out var imageBytes):
+                    image.ImageBytes = imageBytes;
+                    break;
+                case PdfGroupElement group:
+                    AttachImageResources(group.Children, imageResources);
+                    break;
+            }
+        }
+    }
+
+    private static ReadOnlyMemory<byte> GetRegenerableImageBytes(PdfStreamObject stream)
+    {
+        if (HasSingleSupportedImageFilter(stream.Dictionary["Filter"]))
+        {
+            return stream.EncodedBytes;
+        }
+
+        if (LooksLikeSupportedImage(stream.EncodedBytes.Span))
+        {
+            return stream.EncodedBytes;
+        }
+
+        if (stream.IsDecoded && LooksLikeSupportedImage(stream.DecodedBytes.Span))
+        {
+            return stream.DecodedBytes;
+        }
+
+        return ReadOnlyMemory<byte>.Empty;
+    }
+
+    private static bool HasSingleSupportedImageFilter(PdfObject? filter)
+    {
+        return filter is PdfName { Value: "DCTDecode" or "FlateDecode" };
+    }
+
+    private static bool LooksLikeSupportedImage(ReadOnlySpan<byte> bytes)
+    {
+        return LooksLikePng(bytes) || LooksLikeJpeg(bytes);
+    }
+
+    private static bool LooksLikePng(ReadOnlySpan<byte> bytes)
+    {
+        return bytes.Length >= 8
+            && bytes[0] == 0x89
+            && bytes[1] == 0x50
+            && bytes[2] == 0x4E
+            && bytes[3] == 0x47
+            && bytes[4] == 0x0D
+            && bytes[5] == 0x0A
+            && bytes[6] == 0x1A
+            && bytes[7] == 0x0A;
+    }
+
+    private static bool LooksLikeJpeg(ReadOnlySpan<byte> bytes)
+    {
+        return bytes.Length >= 4
+            && bytes[0] == 0xFF
+            && bytes[1] == 0xD8
+            && bytes[^2] == 0xFF
+            && bytes[^1] == 0xD9;
+    }
+
     private PdfFontResource AttachToUnicode(PdfFontResource font, PdfDictionary fontDictionary, PdfObjectResolver resolver)
     {
         if (fontDictionary["ToUnicode"] is not { } toUnicodeValue || resolver.Resolve(toUnicodeValue) is not PdfStreamObject stream)
@@ -295,6 +397,7 @@ public sealed class PdfDocumentBuilder
 
         DecodeIfPossible(stream);
         var bytes = stream.IsDecoded ? stream.DecodedBytes : stream.EncodedBytes;
+        var toUnicode = new PdfToUnicodeCMapParser().Parse(bytes);
         return new PdfFontResource
         {
             ResourceName = font.ResourceName,
@@ -303,7 +406,8 @@ public sealed class PdfDocumentBuilder
             Encoding = font.Encoding,
             Widths = font.Widths,
             MissingWidth = font.MissingWidth,
-            ToUnicode = new PdfToUnicodeCMapParser().Parse(bytes)
+            CodeByteLength = Math.Max(font.CodeByteLength, toUnicode.MaxCodeLength),
+            ToUnicode = toUnicode
         };
     }
 

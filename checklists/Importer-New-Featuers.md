@@ -44,15 +44,24 @@ Scope: this checklist tracks core Canvas.Importer PDF parsing, interpretation, e
 - [x] Add Flate, ASCIIHex, ASCII85, and baseline LZW stream decoders.
 - [x] Add PNG predictor handling for Flate/LZW streams.
 - [x] Add ToUnicode CMap parser.
-- [ ] Add Type1, TrueType, Type3, Type0, and CIDFont resource parsers.
-- [ ] Evaluate deferred decoder roadmap items such as JBIG2, CCITT, and JPEG2000 support.
+- [x] Add Type1, TrueType, Type3, Type0, and CIDFont resource parsers.
+- [x] Evaluate deferred decoder roadmap items such as JBIG2, CCITT, and JPEG2000 support.
 
 ## Editing And Regeneration
 
 - [x] Add editing session primitives for replace, move, delete, and metadata update.
 - [x] Add insertion editing primitives.
 - [x] Add `IPdfGeneratorBridge` contract.
-- [ ] Add generator bridge sample adapter once the existing generator DLL API is selected.
-- [ ] Add round-trip content stream rewrite model.
+- [x] Add generator bridge sample adapter against `Canvas.Infrastructure.Pdf` / `Canvas.Pdf`.
+- [x] Add round-trip content stream rewrite model.
 - [x] Add focused fixture tests for tokenizer, objects, xref, page tree, and content parsing.
-- [ ] Add focused fixture tests for marked content, color operators, extended page boxes, and regeneration/editing edge cases.
+- [x] Add focused fixture tests for marked content, color operators, extended page boxes, and regeneration/editing edge cases.
+
+## Next Phase
+
+- [x] Expand the sample generator bridge to support fill-only vector path regeneration.
+- [x] Expand the sample generator bridge to round-trip JPEG-backed XObject image resources.
+- [x] Expand the sample generator bridge to round-trip simple Flate-backed XObject image resources.
+- [ ] Expand the sample generator bridge beyond the current subset for shading regeneration and broader image/resource fidelity.
+- [ ] Add broader import-edit-regenerate end-to-end fixtures against real sample PDFs.
+- [ ] Implement actual deferred decoders for JBIG2, CCITT Fax, and JPEG2000.

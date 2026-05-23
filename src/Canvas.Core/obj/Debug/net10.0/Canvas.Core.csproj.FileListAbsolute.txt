@@ -24,3 +24,4 @@ C:/Users/mabar/source/repos/Canvas/src/Canvas.Core/obj/Debug/net10.0/ref/Canvas.
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Core/bin/Debug/net10.0/Canvas.Domain.dll
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Core/bin/Debug/net10.0/Canvas.Domain.pdb
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Core/obj/Debug/net10.0/Canvas.C.018D753D.Up2Date
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Core/obj/Debug/net10.0/Canvas.Core.sourcelink.json

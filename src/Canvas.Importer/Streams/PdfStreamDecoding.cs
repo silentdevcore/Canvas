@@ -10,8 +10,24 @@ public interface IPdfStreamDecoder
     ReadOnlyMemory<byte> Decode(ReadOnlyMemory<byte> encodedBytes, PdfDictionary streamDictionary);
 }
 
+public enum PdfStreamDecoderSupportStatus
+{
+    Supported,
+    Deferred,
+    Unknown
+}
+
+public sealed record PdfStreamDecoderSupport(string FilterName, PdfStreamDecoderSupportStatus Status, string? Notes = null);
+
 public sealed class PdfStreamDecoderRegistry
 {
+    private static readonly IReadOnlyDictionary<string, string> DeferredFilters = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["JBIG2Decode"] = "Deferred until an external JBIG2 decoder dependency is selected.",
+        ["CCITTFaxDecode"] = "Deferred pending bilevel image pipeline and fax parameter coverage.",
+        ["JPXDecode"] = "Deferred until a JPEG2000 decoder dependency is selected."
+    };
+
     private readonly List<IPdfStreamDecoder> _decoders =
     [
         new FlateDecodeStreamDecoder(),
@@ -21,6 +37,16 @@ public sealed class PdfStreamDecoderRegistry
     ];
 
     public void Add(IPdfStreamDecoder decoder) => _decoders.Add(decoder);
+
+    public IReadOnlyList<PdfStreamDecoderSupport> Evaluate(PdfObject? filter)
+    {
+        return filter switch
+        {
+            PdfName name => [EvaluateOne(name)],
+            PdfArray array => array.Items.OfType<PdfName>().Select(EvaluateOne).ToArray(),
+            _ => []
+        };
+    }
 
     public ReadOnlyMemory<byte> Decode(PdfStreamObject stream)
     {
@@ -49,7 +75,30 @@ public sealed class PdfStreamDecoderRegistry
     private ReadOnlyMemory<byte> DecodeOne(PdfName filterName, ReadOnlyMemory<byte> encodedBytes, PdfDictionary dictionary, int filterIndex)
     {
         var decoder = _decoders.FirstOrDefault(candidate => candidate.CanDecode(filterName));
-        return decoder is null ? encodedBytes : decoder.Decode(encodedBytes, CreateFilterDictionary(dictionary, filterIndex));
+        if (decoder is not null)
+        {
+            return decoder.Decode(encodedBytes, CreateFilterDictionary(dictionary, filterIndex));
+        }
+
+        var support = EvaluateOne(filterName);
+        if (support.Status == PdfStreamDecoderSupportStatus.Deferred)
+        {
+            throw new NotSupportedException($"Stream filter '{support.FilterName}' is deferred. {support.Notes}");
+        }
+
+        return encodedBytes;
+    }
+
+    private PdfStreamDecoderSupport EvaluateOne(PdfName filterName)
+    {
+        if (_decoders.Any(candidate => candidate.CanDecode(filterName)))
+        {
+            return new PdfStreamDecoderSupport(filterName.Value, PdfStreamDecoderSupportStatus.Supported);
+        }
+
+        return DeferredFilters.TryGetValue(filterName.Value, out var notes)
+            ? new PdfStreamDecoderSupport(filterName.Value, PdfStreamDecoderSupportStatus.Deferred, notes)
+            : new PdfStreamDecoderSupport(filterName.Value, PdfStreamDecoderSupportStatus.Unknown);
     }
 
     private static PdfDictionary CreateFilterDictionary(PdfDictionary dictionary, int filterIndex)

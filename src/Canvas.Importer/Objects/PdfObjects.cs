@@ -16,7 +16,43 @@ public sealed record PdfName(string Value) : PdfObject;
 
 public sealed record PdfString(ReadOnlyMemory<byte> Bytes, bool IsHex) : PdfObject
 {
-    public string ToLatin1String() => System.Text.Encoding.Latin1.GetString(Bytes.Span);
+    public ReadOnlyMemory<byte> GetDecodedBytes()
+    {
+        if (!IsHex)
+        {
+            return Bytes;
+        }
+
+        var source = Bytes.Span;
+        var hexLength = source.Length + source.Length % 2;
+        var decoded = new byte[hexLength / 2];
+        for (var index = 0; index < decoded.Length; index++)
+        {
+            var high = HexValue(source, index * 2);
+            var low = HexValue(source, index * 2 + 1);
+            decoded[index] = (byte)((high << 4) | low);
+        }
+
+        return decoded;
+    }
+
+    public string ToLatin1String() => System.Text.Encoding.Latin1.GetString(GetDecodedBytes().Span);
+
+    private static int HexValue(ReadOnlySpan<byte> source, int index)
+    {
+        if (index >= source.Length)
+        {
+            return 0;
+        }
+
+        return source[index] switch
+        {
+            >= (byte)'0' and <= (byte)'9' => source[index] - (byte)'0',
+            >= (byte)'A' and <= (byte)'F' => source[index] - (byte)'A' + 10,
+            >= (byte)'a' and <= (byte)'f' => source[index] - (byte)'a' + 10,
+            _ => 0
+        };
+    }
 }
 
 public sealed record PdfNumber(double Value) : PdfObject;

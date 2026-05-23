@@ -23,6 +23,7 @@ public sealed class PdfFontResource
     public PdfToUnicodeMap? ToUnicode { get; init; }
     public IReadOnlyDictionary<int, double> Widths { get; init; } = new Dictionary<int, double>();
     public double MissingWidth { get; init; }
+    public int CodeByteLength { get; init; } = 1;
 
     public string Decode(ReadOnlySpan<byte> glyphBytes)
     {
@@ -32,6 +33,25 @@ public sealed class PdfFontResource
     public double GetGlyphWidth(int code)
     {
         return Widths.TryGetValue(code, out var width) ? width : MissingWidth;
+    }
+
+    public IReadOnlyList<int> GetGlyphCodes(ReadOnlySpan<byte> glyphBytes)
+    {
+        var byteLength = Math.Max(1, CodeByteLength);
+        var codes = new List<int>((glyphBytes.Length + byteLength - 1) / byteLength);
+        for (var index = 0; index < glyphBytes.Length; index += byteLength)
+        {
+            var remaining = Math.Min(byteLength, glyphBytes.Length - index);
+            var code = 0;
+            for (var offset = 0; offset < remaining; offset++)
+            {
+                code = (code << 8) | glyphBytes[index + offset];
+            }
+
+            codes.Add(code);
+        }
+
+        return codes;
     }
 }
 
@@ -49,9 +69,15 @@ public sealed class PdfToUnicodeMap : PdfEncodingMap
 {
     private readonly Dictionary<(int Code, int ByteLength), string> _glyphs = [];
 
+    public int MaxCodeLength { get; private set; } = 1;
+
     public void Add(int code, string unicodeText) => Add(code, 1, unicodeText);
 
-    public void Add(int code, int byteLength, string unicodeText) => _glyphs[(code, byteLength)] = unicodeText;
+    public void Add(int code, int byteLength, string unicodeText)
+    {
+        _glyphs[(code, byteLength)] = unicodeText;
+        MaxCodeLength = Math.Max(MaxCodeLength, byteLength);
+    }
 
     public override string Decode(ReadOnlySpan<byte> glyphBytes)
     {

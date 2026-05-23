@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Canvas.Importer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0b698c233997fe578dbf2d301a9eca64cceac4f8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+98af4926045a76bb4e225ec854870dd616842b87")]
 [assembly: System.Reflection.AssemblyProductAttribute("Canvas.Importer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Canvas.Importer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -10,3 +10,11 @@
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/Canvas.Importer.pdb
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/ref/Canvas.Importer.dll
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/Canvas.Importer.sourcelink.json
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/bin/Debug/net10.0/Canvas.Core.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/bin/Debug/net10.0/Canvas.Domain.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/bin/Debug/net10.0/Canvas.Infrastructure.Pdf.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/bin/Debug/net10.0/Canvas.Infrastructure.Pdf.pdb
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/bin/Debug/net10.0/Canvas.Core.pdb
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/bin/Debug/net10.0/Canvas.Domain.pdb
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/Canvas.Importer.csproj.AssemblyReference.cache
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/Canvas.I.59003C22.Up2Date

@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj" />
+  </ItemGroup>
+
 </Project>
