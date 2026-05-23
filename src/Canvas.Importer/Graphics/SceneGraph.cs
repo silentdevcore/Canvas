@@ -17,6 +17,7 @@ public abstract class PdfGraphicsElement
     public PdfRectangle? Bounds { get; set; }
     public PdfContentCommand SourceCommand { get; }
     public bool IsDeleted { get; set; }
+    public PdfClippingPath? ClippingPath { get; set; }
 }
 
 public sealed class PdfTextElement : PdfGraphicsElement
@@ -60,6 +61,17 @@ public sealed class PdfImageElement : PdfGraphicsElement
     public ReadOnlyMemory<byte> ImageBytes { get; set; }
 }
 
+public sealed class PdfShadingElement : PdfGraphicsElement
+{
+    public PdfShadingElement(int zOrder, PdfMatrix transform, PdfContentCommand sourceCommand, string resourceName)
+        : base(zOrder, transform, sourceCommand)
+    {
+        ResourceName = resourceName;
+    }
+
+    public string ResourceName { get; set; }
+}
+
 public sealed class PdfGroupElement : PdfGraphicsElement
 {
     public PdfGroupElement(int zOrder, PdfMatrix transform, PdfContentCommand sourceCommand)
@@ -67,12 +79,15 @@ public sealed class PdfGroupElement : PdfGraphicsElement
     {
     }
 
+    public bool IsCompatibilitySection { get; set; }
     public string? MarkedContentTag { get; set; }
     public PdfObject? Properties { get; set; }
     public List<PdfGraphicsElement> Children { get; } = [];
 }
 
 public abstract record PdfPathSegment;
+
+public sealed record PdfClippingPath(IReadOnlyList<PdfPathSegment> Segments, bool UsesEvenOddRule);
 
 public sealed record MoveToSegment(PdfPoint Point) : PdfPathSegment;
 

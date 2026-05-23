@@ -1,4 +1,5 @@
 using Canvas.Importer.Content;
+using Canvas.Importer.Fonts;
 using Canvas.Importer.Objects;
 
 namespace Canvas.Importer.Graphics;
@@ -6,6 +7,11 @@ namespace Canvas.Importer.Graphics;
 public sealed class PdfGraphicsInterpreter
 {
     public IReadOnlyList<PdfGraphicsElement> Interpret(IReadOnlyList<PdfContentCommand> commands)
+    {
+        return Interpret(commands, null);
+    }
+
+    public IReadOnlyList<PdfGraphicsElement> Interpret(IReadOnlyList<PdfContentCommand> commands, IReadOnlyDictionary<string, PdfFontResource>? fontResources)
     {
         var state = new GraphicsStateStack();
         var elements = new List<PdfGraphicsElement>();
@@ -65,7 +71,10 @@ public sealed class PdfGraphicsInterpreter
                     state.Update(s => s with { FillColorSpace = PdfColorSpace.DeviceCmyk, FillColor = CmykColor(command.Operands) });
                     break;
                 case "Tf":
-                    state.Update(s => s with { FontSize = Number(command.Operands, 1) });
+                    var fontName = Name(command.Operands, 0);
+                    fontResources ??= new Dictionary<string, PdfFontResource>();
+                    fontResources.TryGetValue(fontName, out var font);
+                    state.Update(s => s with { CurrentFont = font, CurrentFontResourceName = fontName, FontSize = Number(command.Operands, 1) });
                     break;
                 case "Tc":
                     state.Update(s => s with { CharacterSpacing = Number(command.Operands, 0) });
@@ -73,11 +82,30 @@ public sealed class PdfGraphicsInterpreter
                 case "Tw":
                     state.Update(s => s with { WordSpacing = Number(command.Operands, 0) });
                     break;
+                case "Tz":
+                    state.Update(s => s with { HorizontalScaling = Number(command.Operands, 0) / 100d });
+                    break;
+                case "BT":
+                    state.Update(s => s with { TextMatrix = PdfMatrix.Identity, TextLineMatrix = PdfMatrix.Identity });
+                    break;
+                case "ET":
+                    state.Update(s => s with { TextMatrix = PdfMatrix.Identity, TextLineMatrix = PdfMatrix.Identity });
+                    break;
                 case "TL":
                     state.Update(s => s with { TextLeading = Number(command.Operands, 0) });
                     break;
+                case "Td":
+                    UpdateTextPosition(state, Number(command.Operands, 0), Number(command.Operands, 1));
+                    break;
+                case "TD":
+                    state.Update(s => s with { TextLeading = -Number(command.Operands, 1) });
+                    UpdateTextPosition(state, Number(command.Operands, 0), Number(command.Operands, 1));
+                    break;
                 case "Tm":
                     state.Update(s => s with { TextMatrix = ReadMatrix(command.Operands), TextLineMatrix = ReadMatrix(command.Operands) });
+                    break;
+                case "T*":
+                    MoveToNextTextLine(state);
                     break;
                 case "BMC":
                     BeginMarkedContentGroup(command, state.Current.Transform, groups, elements, hasProperties: false);
@@ -93,6 +121,16 @@ public sealed class PdfGraphicsInterpreter
                     break;
                 case "EMC":
                     if (groups.Count > 0)
+                    {
+                        groups.Pop();
+                    }
+
+                    break;
+                case "BX":
+                    BeginCompatibilityGroup(command, state.Current, groups, elements);
+                    break;
+                case "EX":
+                    if (groups.Count > 0 && groups.Peek().IsCompatibilitySection)
                     {
                         groups.Pop();
                     }
@@ -116,46 +154,72 @@ public sealed class PdfGraphicsInterpreter
                 case "re":
                     path.Add(new RectangleSegment(new PdfRectangle(Number(command.Operands, 0), Number(command.Operands, 1), Number(command.Operands, 2), Number(command.Operands, 3))));
                     break;
+                case "W":
+                    state.Update(s => s with { PendingClippingPath = CreateClippingPath(path, usesEvenOddRule: false) });
+                    break;
+                case "W*":
+                    state.Update(s => s with { PendingClippingPath = CreateClippingPath(path, usesEvenOddRule: true) });
+                    break;
                 case "S" or "s" or "f" or "F" or "f*" or "B" or "B*" or "b" or "b*":
+                    CommitPendingClippingPath(state);
                     AddElement(groups, elements, new PdfPathElement(command.Sequence, state.Current.Transform, command, path)
                     {
                         FillColor = state.Current.FillColor,
                         StrokeColor = state.Current.StrokeColor,
-                        LineWidth = state.Current.LineWidth
+                        LineWidth = state.Current.LineWidth,
+                        ClippingPath = state.Current.ClippingPath
                     });
                     path = [];
                     break;
                 case "n":
+                    CommitPendingClippingPath(state);
                     path = [];
                     break;
-                case "Tj" or "'" or "\"":
-                    AddElement(groups, elements, new PdfTextElement(command.Sequence, state.Current.TextMatrix.Multiply(state.Current.Transform), command, Text(command.Operands[^1]))
-                    {
-                        FontSize = state.Current.FontSize,
-                        FillColor = state.Current.FillColor,
-                        StrokeColor = state.Current.StrokeColor
-                    });
+                case "Tj":
+                    var textOperand = command.Operands[^1];
+                    AddTextElement(command, Text(textOperand, state.Current.CurrentFont), state.Current, groups, elements);
+                    AdvanceTextMatrix(state, ComputeTextAdvance(textOperand, state.Current));
+                    break;
+                case "'":
+                    MoveToNextTextLine(state);
+                    var nextLineTextOperand = command.Operands[^1];
+                    AddTextElement(command, Text(nextLineTextOperand, state.Current.CurrentFont), state.Current, groups, elements);
+                    AdvanceTextMatrix(state, ComputeTextAdvance(nextLineTextOperand, state.Current));
+                    break;
+                case "\"":
+                    state.Update(s => s with { WordSpacing = Number(command.Operands, 0), CharacterSpacing = Number(command.Operands, 1) });
+                    MoveToNextTextLine(state);
+                    var quoteTextOperand = command.Operands[^1];
+                    AddTextElement(command, Text(quoteTextOperand, state.Current.CurrentFont), state.Current, groups, elements);
+                    AdvanceTextMatrix(state, ComputeTextAdvance(quoteTextOperand, state.Current));
                     break;
                 case "TJ":
-                    AddElement(groups, elements, new PdfTextElement(command.Sequence, state.Current.TextMatrix.Multiply(state.Current.Transform), command, TextArray(command.Operands.FirstOrDefault()))
-                    {
-                        FontSize = state.Current.FontSize,
-                        FillColor = state.Current.FillColor,
-                        StrokeColor = state.Current.StrokeColor
-                    });
+                    var arrayOperand = command.Operands.FirstOrDefault();
+                    AddTextElement(command, TextArray(arrayOperand, state.Current.CurrentFont), state.Current, groups, elements);
+                    AdvanceTextMatrix(state, ComputeTextAdvance(arrayOperand, state.Current));
                     break;
                 case "Do":
-                    AddElement(groups, elements, new PdfImageElement(command.Sequence, state.Current.Transform, command, Name(command.Operands, 0)));
+                    AddElement(groups, elements, new PdfImageElement(command.Sequence, state.Current.Transform, command, Name(command.Operands, 0))
+                    {
+                        ClippingPath = state.Current.ClippingPath
+                    });
                     break;
                 case "BI":
                     if (command.Operands.FirstOrDefault() is PdfStreamObject inlineImage)
                     {
                         AddElement(groups, elements, new PdfImageElement(command.Sequence, state.Current.Transform, command, string.Empty)
                         {
-                            ImageBytes = inlineImage.EncodedBytes
+                            ImageBytes = inlineImage.EncodedBytes,
+                            ClippingPath = state.Current.ClippingPath
                         });
                     }
 
+                    break;
+                case "sh":
+                    AddElement(groups, elements, new PdfShadingElement(command.Sequence, state.Current.Transform, command, Name(command.Operands, 0))
+                    {
+                        ClippingPath = state.Current.ClippingPath
+                    });
                     break;
             }
         }
@@ -166,6 +230,124 @@ public sealed class PdfGraphicsInterpreter
     private static PdfMatrix ReadMatrix(IReadOnlyList<PdfObject> operands)
     {
         return new PdfMatrix(Number(operands, 0), Number(operands, 1), Number(operands, 2), Number(operands, 3), Number(operands, 4), Number(operands, 5));
+    }
+
+    private static void AddTextElement(
+        PdfContentCommand command,
+        string text,
+        GraphicsState state,
+        Stack<PdfGroupElement> groups,
+        List<PdfGraphicsElement> elements)
+    {
+        AddElement(groups, elements, new PdfTextElement(command.Sequence, state.TextMatrix.Multiply(state.Transform), command, text)
+        {
+            FontSize = state.FontSize,
+            FontResourceName = state.CurrentFontResourceName,
+            FillColor = state.FillColor,
+            StrokeColor = state.StrokeColor,
+            ClippingPath = state.ClippingPath
+        });
+    }
+
+    private static void AdvanceTextMatrix(GraphicsStateStack state, double tx)
+    {
+        if (tx == 0)
+        {
+            return;
+        }
+
+        state.Update(s => s with { TextMatrix = s.TextMatrix.Multiply(new PdfMatrix(1, 0, 0, 1, tx, 0)) });
+    }
+
+    private static void UpdateTextPosition(GraphicsStateStack state, double tx, double ty)
+    {
+        var translate = new PdfMatrix(1, 0, 0, 1, tx, ty);
+        state.Update(s =>
+        {
+            var nextLineMatrix = s.TextLineMatrix.Multiply(translate);
+            return s with
+            {
+                TextLineMatrix = nextLineMatrix,
+                TextMatrix = nextLineMatrix
+            };
+        });
+    }
+
+    private static void MoveToNextTextLine(GraphicsStateStack state)
+    {
+        UpdateTextPosition(state, 0, -state.Current.TextLeading);
+    }
+
+    private static double ComputeTextAdvance(PdfObject? operand, GraphicsState state)
+    {
+        return operand switch
+        {
+            PdfString text => ComputeStringAdvance(text.Bytes.Span, state),
+            PdfArray array => ComputeArrayAdvance(array, state),
+            _ => 0
+        };
+    }
+
+    private static double ComputeArrayAdvance(PdfArray array, GraphicsState state)
+    {
+        var advance = 0d;
+        foreach (var item in array.Items)
+        {
+            switch (item)
+            {
+                case PdfString text:
+                    advance += ComputeStringAdvance(text.Bytes.Span, state);
+                    break;
+                case PdfInteger integer:
+                    advance -= (integer.Value / 1000d) * state.FontSize * state.HorizontalScaling;
+                    break;
+                case PdfNumber number:
+                    advance -= (number.Value / 1000d) * state.FontSize * state.HorizontalScaling;
+                    break;
+            }
+        }
+
+        return advance;
+    }
+
+    private static double ComputeStringAdvance(ReadOnlySpan<byte> glyphBytes, GraphicsState state)
+    {
+        if (glyphBytes.Length == 0)
+        {
+            return 0;
+        }
+
+        var glyphAdvance = 0d;
+        foreach (var glyph in glyphBytes)
+        {
+            glyphAdvance += state.CurrentFont?.GetGlyphWidth(glyph) ?? 0;
+            glyphAdvance += state.CharacterSpacing * 1000d / Math.Max(state.FontSize, 1);
+            if (glyph == (byte)' ')
+            {
+                glyphAdvance += state.WordSpacing * 1000d / Math.Max(state.FontSize, 1);
+            }
+        }
+
+        return (glyphAdvance / 1000d) * state.FontSize * state.HorizontalScaling;
+    }
+
+    private static PdfClippingPath? CreateClippingPath(IReadOnlyList<PdfPathSegment> path, bool usesEvenOddRule)
+    {
+        return path.Count == 0 ? null : new PdfClippingPath([.. path], usesEvenOddRule);
+    }
+
+    private static void CommitPendingClippingPath(GraphicsStateStack state)
+    {
+        if (state.Current.PendingClippingPath is null)
+        {
+            return;
+        }
+
+        state.Update(s => s with
+        {
+            ClippingPath = s.PendingClippingPath,
+            PendingClippingPath = null
+        });
     }
 
     private static void BeginMarkedContentGroup(
@@ -179,6 +361,22 @@ public sealed class PdfGraphicsInterpreter
         {
             MarkedContentTag = Name(command.Operands, 0),
             Properties = hasProperties && command.Operands.Count > 1 ? command.Operands[1] : null
+        };
+
+        AddElement(groups, elements, group);
+        groups.Push(group);
+    }
+
+    private static void BeginCompatibilityGroup(
+        PdfContentCommand command,
+        GraphicsState state,
+        Stack<PdfGroupElement> groups,
+        List<PdfGraphicsElement> elements)
+    {
+        var group = new PdfGroupElement(command.Sequence, state.Transform, command)
+        {
+            IsCompatibilitySection = true,
+            ClippingPath = state.ClippingPath
         };
 
         AddElement(groups, elements, group);
@@ -322,18 +520,18 @@ public sealed class PdfGraphicsInterpreter
         return index < operands.Count && operands[index] is PdfName name ? name.Value : string.Empty;
     }
 
-    private static string Text(PdfObject operand)
+    private static string Text(PdfObject operand, PdfFontResource? font)
     {
-        return operand is PdfString text ? text.ToLatin1String() : string.Empty;
+        return operand is PdfString text ? (font?.Decode(text.Bytes.Span) ?? text.ToLatin1String()) : string.Empty;
     }
 
-    private static string TextArray(PdfObject? operand)
+    private static string TextArray(PdfObject? operand, PdfFontResource? font)
     {
         if (operand is not PdfArray array)
         {
             return string.Empty;
         }
 
-        return string.Concat(array.Items.OfType<PdfString>().Select(item => item.ToLatin1String()));
+        return string.Concat(array.Items.OfType<PdfString>().Select(item => font?.Decode(item.Bytes.Span) ?? item.ToLatin1String()));
     }
 }

@@ -1,4 +1,5 @@
 using Canvas.Importer.Graphics;
+using Canvas.Importer.Fonts;
 using Canvas.Importer.Objects;
 
 namespace Canvas.Importer.Document;
@@ -36,6 +37,7 @@ public sealed class PdfPageModel
     public PdfRectangle? TrimBox { get; init; }
     public PdfRectangle? ArtBox { get; init; }
     public int Rotate { get; init; }
+    public IReadOnlyDictionary<string, PdfFontResource> FontResources { get; init; } = new Dictionary<string, PdfFontResource>();
     public List<PdfStreamObject> ContentStreams { get; } = [];
     public List<PdfGraphicsElement> GraphicsObjects { get; } = [];
     public IEnumerable<PdfTextElement> TextObjects => GraphicsObjects.OfType<PdfTextElement>();

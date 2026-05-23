@@ -31,19 +31,19 @@ Scope: this checklist tracks core Canvas.Importer PDF parsing, interpretation, e
 
 - [x] Register standard PDF content operators.
 - [x] Convert text, path, and image commands into editable scene elements.
-- [ ] Apply color operators to graphics state and scene elements.
-- [ ] Parse inline images as image elements.
-- [ ] Track clipping paths.
-- [ ] Add full text positioning advancement for `Tj`, `TJ`, `'`, `"`, `Td`, `TD`, and `T*`.
+- [x] Apply color operators to graphics state and scene elements.
+- [x] Parse inline images as image elements.
+- [x] Track clipping paths.
+- [x] Add full text positioning advancement for `Tj`, `TJ`, `'`, `"`, `Td`, `TD`, and `T*`.
 - [x] Track marked content operators (`MP`, `DP`, `BMC`, `BDC`, `EMC`) and preserve their structure in the scene graph.
-- [ ] Support shading operators such as `sh`.
-- [ ] Decide whether compatibility operators (`BX`, `EX`) require explicit parsing or regeneration handling.
+- [x] Support shading operators such as `sh`.
+- [x] Decide whether compatibility operators (`BX`, `EX`) require explicit parsing or regeneration handling.
 
 ## Streams And Fonts
 
 - [x] Add Flate, ASCIIHex, ASCII85, and baseline LZW stream decoders.
 - [x] Add PNG predictor handling for Flate/LZW streams.
-- [ ] Add ToUnicode CMap parser.
+- [x] Add ToUnicode CMap parser.
 - [ ] Add Type1, TrueType, Type3, Type0, and CIDFont resource parsers.
 - [ ] Evaluate deferred decoder roadmap items such as JBIG2, CCITT, and JPEG2000 support.
 

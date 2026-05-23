@@ -1,6 +1,8 @@
 using Canvas.Importer.Content;
+using Canvas.Importer.Fonts;
 using Canvas.Importer.Graphics;
 using Canvas.Importer.Objects;
+using Canvas.Importer.Parsing;
 using Canvas.Importer.Streams;
 
 namespace Canvas.Importer.Document;
@@ -10,12 +12,14 @@ public sealed class PdfDocumentBuilder
     private readonly PdfContentStreamParser _contentParser;
     private readonly PdfGraphicsInterpreter _graphicsInterpreter;
     private readonly PdfStreamDecoderRegistry _streamDecoders;
+    private readonly IPdfFontParser _fontParser;
 
-    public PdfDocumentBuilder(PdfContentStreamParser contentParser, PdfGraphicsInterpreter graphicsInterpreter, PdfStreamDecoderRegistry? streamDecoders = null)
+    public PdfDocumentBuilder(PdfContentStreamParser contentParser, PdfGraphicsInterpreter graphicsInterpreter, PdfStreamDecoderRegistry? streamDecoders = null, IPdfFontParser? fontParser = null)
     {
         _contentParser = contentParser;
         _graphicsInterpreter = graphicsInterpreter;
         _streamDecoders = streamDecoders ?? new PdfStreamDecoderRegistry();
+        _fontParser = fontParser ?? new PdfSimpleFontParser();
     }
 
     public PdfDocumentModel Build(PdfObjectGraph graph)
@@ -122,15 +126,18 @@ public sealed class PdfDocumentBuilder
     private PdfPageModel BuildPage(PdfIndirectObject pageObject, PdfObjectGraph graph, PdfInheritedPageAttributes inherited)
     {
         var dictionary = (PdfDictionary)pageObject.Value;
+        var resources = ResolveDictionary(dictionary["Resources"], graph) ?? inherited.Resources ?? new PdfDictionary();
+        var fontResources = ResolveFontResources(resources, graph);
         var page = new PdfPageModel(pageObject.Id, dictionary)
         {
-            Resources = ResolveDictionary(dictionary["Resources"], graph) ?? inherited.Resources ?? new PdfDictionary(),
+            Resources = resources,
             MediaBox = ResolveRectangle(dictionary["MediaBox"], graph) ?? inherited.MediaBox,
             CropBox = ResolveRectangle(dictionary["CropBox"], graph) ?? inherited.CropBox,
             BleedBox = ResolveRectangle(dictionary["BleedBox"], graph) ?? inherited.BleedBox,
             TrimBox = ResolveRectangle(dictionary["TrimBox"], graph) ?? inherited.TrimBox,
             ArtBox = ResolveRectangle(dictionary["ArtBox"], graph) ?? inherited.ArtBox,
-            Rotate = ResolveInteger(dictionary["Rotate"], graph) ?? inherited.Rotate
+            Rotate = ResolveInteger(dictionary["Rotate"], graph) ?? inherited.Rotate,
+            FontResources = fontResources
         };
 
         foreach (var stream in ResolveContentStreams(dictionary["Contents"], graph))
@@ -138,7 +145,7 @@ public sealed class PdfDocumentBuilder
             page.ContentStreams.Add(stream);
             DecodeIfPossible(stream);
             var commands = _contentParser.Parse(stream.IsDecoded ? stream.DecodedBytes : stream.EncodedBytes);
-            page.GraphicsObjects.AddRange(_graphicsInterpreter.Interpret(commands));
+            page.GraphicsObjects.AddRange(_graphicsInterpreter.Interpret(commands, fontResources));
         }
 
         return page;
@@ -254,6 +261,50 @@ public sealed class PdfDocumentBuilder
         {
             // Malformed streams should not prevent object graph construction.
         }
+    }
+
+    private IReadOnlyDictionary<string, PdfFontResource> ResolveFontResources(PdfDictionary resources, PdfObjectGraph graph)
+    {
+        if (ResolveObject(resources["Font"], graph) is not PdfDictionary fontDictionary)
+        {
+            return new Dictionary<string, PdfFontResource>();
+        }
+
+        var resolver = new PdfObjectResolver(graph);
+        var fonts = new Dictionary<string, PdfFontResource>(StringComparer.Ordinal);
+        foreach (var entry in fontDictionary.Values)
+        {
+            if (ResolveObject(entry.Value, graph) is not PdfDictionary resolvedFont)
+            {
+                continue;
+            }
+
+            var font = _fontParser.Parse(entry.Key, resolvedFont, resolver);
+            fonts[entry.Key] = AttachToUnicode(font, resolvedFont, resolver);
+        }
+
+        return fonts;
+    }
+
+    private PdfFontResource AttachToUnicode(PdfFontResource font, PdfDictionary fontDictionary, PdfObjectResolver resolver)
+    {
+        if (fontDictionary["ToUnicode"] is not { } toUnicodeValue || resolver.Resolve(toUnicodeValue) is not PdfStreamObject stream)
+        {
+            return font;
+        }
+
+        DecodeIfPossible(stream);
+        var bytes = stream.IsDecoded ? stream.DecodedBytes : stream.EncodedBytes;
+        return new PdfFontResource
+        {
+            ResourceName = font.ResourceName,
+            Kind = font.Kind,
+            Dictionary = font.Dictionary,
+            Encoding = font.Encoding,
+            Widths = font.Widths,
+            MissingWidth = font.MissingWidth,
+            ToUnicode = new PdfToUnicodeCMapParser().Parse(bytes)
+        };
     }
 
     private sealed record PdfInheritedPageAttributes(

@@ -182,7 +182,7 @@ public sealed class PdfContentStreamParser
             }
 
             resumePosition = trailingIndex;
-            return index;
+            return TrimInlineImageDataEnd(bytes, dataStart, index);
         }
 
         resumePosition = bytes.Length;
@@ -190,6 +190,16 @@ public sealed class PdfContentStreamParser
     }
 
     private static bool IsInlineImageBoundary(byte value) => value is 0 or 9 or 10 or 12 or 13 or 32;
+
+    private static int TrimInlineImageDataEnd(ReadOnlySpan<byte> bytes, int dataStart, int dataEnd)
+    {
+        while (dataEnd > dataStart && IsInlineImageBoundary(bytes[dataEnd - 1]))
+        {
+            dataEnd--;
+        }
+
+        return dataEnd;
+    }
 
     private static PdfSourceSpan Span(PdfToken token) => new(token.Offset, token.Length);
 }
