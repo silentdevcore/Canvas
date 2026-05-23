@@ -1,0 +1,111 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Title (Links and Note) /Subject (fidelity) /Creator (Canvas PDF Renderer) >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 666 >>
+stream
+q
+BT
+/F1 18 Tf
+0.067 0.094 0.153 rg
+0 Tw
+0 Tc
+100 Tz
+52 777.04 Td
+(Release Checklist) Tj
+ET
+Q
+q
+0.984 0.749 0.141 RG
+0.996 0.976 0.765 rg
+1 w
+0 J
+0 j
+52 546 460 120 re
+B
+Q
+q
+BT
+/F1 11 Tf
+0.471 0.208 0.059 rg
+0 Tw
+0 Tc
+100 Tz
+60 654.08 Td
+(Risk) Tj
+ET
+Q
+q
+BT
+/F1 10 Tf
+0.573 0.251 0.055 rg
+0 Tw
+0 Tc
+100 Tz
+60 638.8 Td
+(Validate rollback package before final approval.) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+52 514.08 Td
+(? Backup complete) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+52 495.38 Td
+(? Smoke test passed) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+52 476.68 Td
+(? Stakeholder sign-off) Tj
+ET
+Q
+
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000211 00000 n 
+0000000281 00000 n 
+0000000407 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R /Info 3 0 R >>
+startxref
+1124
+%%EOF

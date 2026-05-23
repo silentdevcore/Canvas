@@ -1,0 +1,49 @@
+{
+  "id": "sample-010",
+  "name": "Dense Table Ledger",
+  "category": "fidelity",
+  "pages": [
+    {
+      "id": "p1",
+      "elements": [
+        {
+          "id": "t1",
+          "type": "text",
+          "x": 36,
+          "y": 32,
+          "width": 530,
+          "height": 24,
+          "content": "Transaction Ledger",
+          "style": { "fontSize": 16, "fontWeight": "bold", "color": "#111827" }
+        },
+        {
+          "id": "ledger",
+          "type": "table",
+          "x": 36,
+          "y": 72,
+          "width": 530,
+          "height": 600,
+          "headerRow": true,
+          "headerBgColor": "#e5e7eb",
+          "zebraEnabled": true,
+          "zebraColor": "#f9fafb",
+          "columnWidths": [90, 170, 90, 90, 90],
+          "columnAlignments": ["left", "left", "right", "right", "right"],
+          "cellData": [
+            ["Date", "Description", "Debit", "Credit", "Balance"],
+            ["2026-05-01", "Opening Balance", "0.00", "0.00", "10000.00"],
+            ["2026-05-02", "Office Supplies", "240.00", "0.00", "9760.00"],
+            ["2026-05-05", "Consulting Revenue", "0.00", "1800.00", "11560.00"],
+            ["2026-05-08", "Cloud Services", "320.00", "0.00", "11240.00"],
+            ["2026-05-12", "Payroll", "4200.00", "0.00", "7040.00"],
+            ["2026-05-15", "Maintenance Revenue", "0.00", "2400.00", "9440.00"],
+            ["2026-05-19", "Closing Balance", "0.00", "0.00", "9440.00"]
+          ],
+          "style": { "borderWidth": 1, "borderColor": "#374151" }
+        }
+      ]
+    }
+  ],
+  "sharedElements": [],
+  "pageSettings": { "width": 595, "height": 842, "orientation": "portrait" }
+}

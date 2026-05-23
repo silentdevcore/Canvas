@@ -1,0 +1,76 @@
+﻿using Canvas.Application.Queries;
+using Canvas.Application.UseCases;
+
+namespace Canvas.Infrastructure.Pdf;
+
+public sealed class PdfFacade
+{
+    private readonly GenerateDocumentUseCase _generateDocument;
+    private readonly ApplyPageNumberingUseCase _applyPageNumbering;
+    private readonly ApplyHeaderFooterUseCase _applyHeaderFooter;
+    private readonly ApplyWatermarkUseCase _applyWatermark;
+    private readonly ApplyTableOfContentsUseCase _applyTableOfContents;
+    private readonly CollectDiagnosticsUseCase _collectDiagnostics;
+    private readonly PageCoverageQueryService _pageCoverage;
+
+    public PdfFacade()
+    {
+        _generateDocument = new GenerateDocumentUseCase(new PdfDocumentRenderer(), new FileOutputWriter());
+        _applyPageNumbering = new ApplyPageNumberingUseCase(new PdfPageNumberingService());
+        _applyHeaderFooter = new ApplyHeaderFooterUseCase(new PdfHeaderFooterService());
+        _applyWatermark = new ApplyWatermarkUseCase(new PdfWatermarkService());
+        _applyTableOfContents = new ApplyTableOfContentsUseCase(new PdfTableOfContentsService());
+        _collectDiagnostics = new CollectDiagnosticsUseCase(new PdfDiagnosticsReader());
+        _pageCoverage = new PageCoverageQueryService(new PdfPageCoverageQueryService());
+    }
+
+    public void GenerateToFile(object documentModel, string outputPath)
+    {
+        _generateDocument.Execute(new GenerateDocumentRequest(documentModel, outputPath));
+    }
+
+    public void ApplyPageNumbering(object documentModel, object? options = null)
+    {
+        _applyPageNumbering.Execute(documentModel, options);
+    }
+
+    public void ApplyHeaderFooter(object documentModel, object? options = null)
+    {
+        _applyHeaderFooter.Execute(documentModel, options);
+    }
+
+    public void ApplyWatermark(object documentModel, string text, object? options = null)
+    {
+        _applyWatermark.Execute(documentModel, text, options);
+    }
+
+    public void ApplyTableOfContents(object documentModel, object? options = null)
+    {
+        _applyTableOfContents.Execute(documentModel, options);
+    }
+
+    public object? ReadDiagnostics(object documentModel)
+    {
+        return _collectDiagnostics.Execute(documentModel);
+    }
+
+    public IReadOnlyList<int> GetPagesWithText(object documentModel)
+    {
+        return _pageCoverage.GetPagesWithText(documentModel);
+    }
+
+    public IReadOnlyList<int> GetPagesWithImages(object documentModel)
+    {
+        return _pageCoverage.GetPagesWithImages(documentModel);
+    }
+
+    public IReadOnlyList<int> GetPagesWithLinks(object documentModel)
+    {
+        return _pageCoverage.GetPagesWithLinks(documentModel);
+    }
+
+    public IReadOnlyList<int> GetPagesWithShapes(object documentModel)
+    {
+        return _pageCoverage.GetPagesWithShapes(documentModel);
+    }
+}

@@ -1,0 +1,83 @@
+{
+  "id": "sample-004",
+  "name": "Form Elements",
+  "category": "fidelity",
+  "pages": [
+    {
+      "id": "p1",
+      "elements": [
+        {
+          "id": "title",
+          "type": "text",
+          "x": 48,
+          "y": 42,
+          "width": 500,
+          "height": 30,
+          "content": "Onboarding Form",
+          "style": {
+            "fontSize": 20,
+            "fontWeight": "bold",
+            "color": "#0f172a"
+          }
+        },
+        {
+          "id": "f1",
+          "type": "field",
+          "x": 48,
+          "y": 95,
+          "width": 240,
+          "height": 56,
+          "fieldLabel": "First Name",
+          "required": true,
+          "style": {
+            "backgroundColor": "#f8fafc",
+            "borderColor": "#94a3b8"
+          }
+        },
+        {
+          "id": "f2",
+          "type": "field",
+          "x": 308,
+          "y": 95,
+          "width": 240,
+          "height": 56,
+          "fieldLabel": "Last Name",
+          "required": true,
+          "style": {
+            "backgroundColor": "#f8fafc",
+            "borderColor": "#94a3b8"
+          }
+        },
+        {
+          "id": "cb1",
+          "type": "checkbox",
+          "x": 48,
+          "y": 180,
+          "width": 220,
+          "height": 24,
+          "fieldLabel": "Accept Terms",
+          "checkState": "checked",
+          "style": {
+            "fontSize": 12,
+            "borderColor": "#1e293b"
+          }
+        },
+        {
+          "id": "sign",
+          "type": "signature",
+          "x": 48,
+          "y": 230,
+          "width": 320,
+          "height": 40,
+          "signatureLabel": "Applicant Signature"
+        }
+      ]
+    }
+  ],
+  "sharedElements": [],
+  "pageSettings": {
+    "width": 595,
+    "height": 842,
+    "orientation": "portrait"
+  }
+}

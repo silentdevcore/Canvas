@@ -1,0 +1,627 @@
+﻿using System.Globalization;
+using System.IO.Compression;
+using System.Text;
+using Canvas.Pdf.Layout;
+using Canvas.Pdf.Rendering;
+
+namespace Canvas.Pdf.Serialization;
+
+internal sealed class PdfWriter
+{
+    internal sealed class PdfWriteResult
+    {
+        public required byte[] Bytes { get; init; }
+
+        public PdfGenerationDiagnostics? Diagnostics { get; init; }
+    }
+
+    public PdfWriteResult Write(PdfDocument document, PdfSaveOptions? options = null)
+    {
+        options ??= PdfSaveOptions.Default;
+
+        if (document.Pages.Count == 0)
+        {
+            document.AddPage();
+        }
+
+        var nextObjectId = 1;
+        var catalogObjectId = nextObjectId++;
+        var pagesObjectId = nextObjectId++;
+        var infoObjectId = document.Info.HasValues ? nextObjectId++ : (int?)null;
+
+        var usedFonts = document.Pages
+            .SelectMany(static page => page.Elements)
+            .OfType<TextElement>()
+            .Select(static element => element.Font)
+            .Distinct()
+            .ToList();
+
+        var imagesByKey = document.Pages
+            .SelectMany(static page => page.Elements)
+            .OfType<ImageElement>()
+            .GroupBy(static image => image.CacheKey, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(static group => group.Key, static group => group.First().Image, StringComparer.OrdinalIgnoreCase);
+
+        if (usedFonts.Count == 0)
+        {
+            usedFonts.Add(document.DefaultFont);
+        }
+
+        var fontObjects = new Dictionary<PdfStandardFont, (string ResourceName, int ObjectId)>();
+
+        for (var i = 0; i < usedFonts.Count; i++)
+        {
+            var font = usedFonts[i];
+            var objectId = nextObjectId++;
+            var resourceName = $"F{i + 1}";
+            fontObjects[font] = (resourceName, objectId);
+        }
+
+        var imageObjects = new Dictionary<string, (string ResourceName, int ObjectId, int? SoftMaskObjectId)>();
+        var imageIndex = 1;
+
+        foreach (var image in imagesByKey)
+        {
+            var objectId = nextObjectId++;
+            var softMaskObjectId = image.Value.SoftMask is not null ? nextObjectId++ : (int?)null;
+            imageObjects[image.Key] = ($"Im{imageIndex++}", objectId, softMaskObjectId);
+        }
+
+        var usedOpacities = document.Pages
+            .SelectMany(static page => page.Elements)
+            .OfType<ImageElement>()
+            .Select(static image => image.Opacity)
+            .Where(static opacity => opacity is > 0 and < 1)
+            .Distinct()
+            .OrderBy(static opacity => opacity)
+            .ToList();
+
+        var opacityObjects = new Dictionary<double, (string ResourceName, int ObjectId)>();
+
+        for (var i = 0; i < usedOpacities.Count; i++)
+        {
+            var opacity = usedOpacities[i];
+            opacityObjects[opacity] = ($"Gs{i + 1}", nextObjectId++);
+        }
+
+        var pageObjects = new List<int>();
+        var objects = new List<PdfIndirectObject>();
+
+        foreach (var fontObject in fontObjects)
+        {
+            objects.Add(new PdfIndirectObject(
+                fontObject.Value.ObjectId,
+                $"<< /Type /Font /Subtype /Type1 /BaseFont /{GetBaseFontName(fontObject.Key)} >>\n"));
+        }
+
+        foreach (var image in imagesByKey)
+        {
+            var imageObject = imageObjects[image.Key];
+            objects.Add(new PdfIndirectObject(imageObject.ObjectId, BuildImageObject(image.Value, imageObject.SoftMaskObjectId)));
+
+            if (imageObject.SoftMaskObjectId is { } softMaskObjectId && image.Value.SoftMask is { } softMaskImage)
+            {
+                objects.Add(new PdfIndirectObject(softMaskObjectId, BuildImageObject(softMaskImage)));
+            }
+        }
+
+        foreach (var opacityObject in opacityObjects)
+        {
+            var opacityValue = opacityObject.Key.ToString("0.###", CultureInfo.InvariantCulture);
+            objects.Add(new PdfIndirectObject(opacityObject.Value.ObjectId, $"<< /Type /ExtGState /ca {opacityValue} /CA {opacityValue} >>\n"));
+        }
+
+        var pageCount = document.Pages.Count;
+        var pageObjectIds = new int[pageCount];
+        var contentObjectIds = new int[pageCount];
+        var pageAnnotationObjectIds = new List<int>[pageCount];
+        var namedDestinationMap = document.NamedDestinations
+            .GroupBy(destination => destination.Name, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.Last(), StringComparer.OrdinalIgnoreCase);
+
+        for (var i = 0; i < pageCount; i++)
+        {
+            pageObjectIds[i] = nextObjectId++;
+            contentObjectIds[i] = nextObjectId++;
+
+            var annotationIds = new List<int>();
+            foreach (var _ in document.Pages[i].LinkAnnotations)
+            {
+                annotationIds.Add(nextObjectId++);
+            }
+
+            pageAnnotationObjectIds[i] = annotationIds;
+            pageObjects.Add(pageObjectIds[i]);
+        }
+
+        var outlinesRootObjectId = document.Bookmarks.Count > 0 ? nextObjectId++ : (int?)null;
+        var bookmarkObjectIds = new List<int>();
+
+        if (outlinesRootObjectId is not null)
+        {
+            for (var i = 0; i < document.Bookmarks.Count; i++)
+            {
+                bookmarkObjectIds.Add(nextObjectId++);
+            }
+        }
+
+        for (var pageIndex = 0; pageIndex < pageCount; pageIndex++)
+        {
+            var page = document.Pages[pageIndex];
+            var pageObjectId = pageObjectIds[pageIndex];
+            var contentObjectId = contentObjectIds[pageIndex];
+            var pageLinkAnnotationIds = pageAnnotationObjectIds[pageIndex];
+
+            var pageFonts = page.Elements
+                .OfType<TextElement>()
+                .Select(static element => element.Font)
+                .Distinct()
+                .ToList();
+
+            if (pageFonts.Count == 0)
+            {
+                pageFonts.Add(page.DefaultFont);
+            }
+
+            var pageFontResources = pageFonts.ToDictionary(
+                static font => font,
+                font => fontObjects[font].ResourceName);
+
+            var pageImages = page.Elements
+                .OfType<ImageElement>()
+                .Select(static image => image.CacheKey)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var pageImageResources = pageImages.ToDictionary(
+                static key => key,
+                key => imageObjects[key].ResourceName,
+                StringComparer.OrdinalIgnoreCase);
+
+            var pageOpacities = page.Elements
+                .OfType<ImageElement>()
+                .Select(static image => image.Opacity)
+                .Where(static opacity => opacity is > 0 and < 1)
+                .Distinct()
+                .ToList();
+
+            var pageOpacityResources = pageOpacities.ToDictionary(
+                static opacity => opacity,
+                opacity => opacityObjects[opacity].ResourceName);
+
+            var contentStream = PdfCanvasRenderer.RenderPage(page, pageFontResources, pageImageResources, pageOpacityResources);
+            var contentBytes = Encoding.ASCII.GetBytes(contentStream);
+
+            if (options.CompressContentStreams)
+            {
+                contentBytes = CompressZlib(contentBytes);
+            }
+
+            objects.Add(new PdfIndirectObject(contentObjectId, BuildContentStreamObject(contentBytes, options.CompressContentStreams)));
+
+            for (var i = 0; i < page.LinkAnnotations.Count; i++)
+            {
+                var link = page.LinkAnnotations[i];
+                var annotationObjectId = pageLinkAnnotationIds[i];
+                var rect = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[{0} {1} {2} {3}]",
+                    FormatNumber(link.X),
+                    FormatNumber(link.Y),
+                    FormatNumber(link.X + link.Width),
+                    FormatNumber(link.Y + link.Height));
+
+                string annotationObject;
+
+                if (link.Url is { Length: > 0 } url)
+                {
+                    annotationObject = $"<< /Type /Annot /Subtype /Link /Rect {rect} /Border [0 0 0] /A << /S /URI /URI ({EscapeLiteralString(url)}) >> >>\n";
+                }
+                else if (link.TargetPageNumber is { } targetPageNumber)
+                {
+                    if (targetPageNumber < 1 || targetPageNumber > pageCount)
+                    {
+                        throw new InvalidOperationException($"Page link target {targetPageNumber} is out of range for this document.");
+                    }
+
+                    var targetPageObjectId = pageObjectIds[targetPageNumber - 1];
+                    annotationObject = $"<< /Type /Annot /Subtype /Link /Rect {rect} /Border [0 0 0] /Dest [{targetPageObjectId} 0 R /Fit] >>\n";
+                }
+                else if (link.NamedDestination is { Length: > 0 } destinationName)
+                {
+                    if (!namedDestinationMap.TryGetValue(destinationName, out var destination))
+                    {
+                        throw new InvalidOperationException($"Named destination '{destinationName}' was not found in the document.");
+                    }
+
+                    var destinationPageNumber = destination.PageNumber;
+
+                    if (destinationPageNumber < 1 || destinationPageNumber > pageCount)
+                    {
+                        throw new InvalidOperationException($"Named destination '{destinationName}' points to out-of-range page {destinationPageNumber}.");
+                    }
+
+                    var targetPageObjectId = pageObjectIds[destinationPageNumber - 1];
+                    annotationObject = destination.Y is { } y
+                        ? $"<< /Type /Annot /Subtype /Link /Rect {rect} /Border [0 0 0] /Dest [{targetPageObjectId} 0 R /XYZ null {FormatNumber(y)} null] >>\n"
+                        : $"<< /Type /Annot /Subtype /Link /Rect {rect} /Border [0 0 0] /Dest [{targetPageObjectId} 0 R /Fit] >>\n";
+                }
+                else
+                {
+                    throw new InvalidOperationException("Link annotation must define Url, TargetPageNumber, or NamedDestination.");
+                }
+
+                objects.Add(new PdfIndirectObject(annotationObjectId, annotationObject));
+            }
+
+            var fontDictionary = string.Join(
+                " ",
+                pageFonts.Select(font => $"/{fontObjects[font].ResourceName} {fontObjects[font].ObjectId} 0 R"));
+
+            var xObjectDictionary = string.Join(
+                " ",
+                pageImages.Select(key => $"/{imageObjects[key].ResourceName} {imageObjects[key].ObjectId} 0 R"));
+
+            var extGStateDictionary = string.Join(
+                " ",
+                pageOpacities.Select(opacity => $"/{opacityObjects[opacity].ResourceName} {opacityObjects[opacity].ObjectId} 0 R"));
+
+            var resourcesDictionary = BuildResourcesDictionary(fontDictionary, xObjectDictionary, extGStateDictionary);
+
+            var annotsSegment = pageLinkAnnotationIds.Count > 0
+                ? $" /Annots [{string.Join(" ", pageLinkAnnotationIds.Select(id => $"{id} 0 R"))}]"
+                : string.Empty;
+
+            var rotateSegment = page.RotationDegrees != 0 ? $" /Rotate {page.RotationDegrees}" : string.Empty;
+
+            var pageObject = string.Format(
+                CultureInfo.InvariantCulture,
+                "<< /Type /Page /Parent {0} 0 R /MediaBox [0 0 {1} {2}] /Resources {3} /Contents {4} 0 R{5}{6} >>\n",
+                pagesObjectId,
+                FormatNumber(page.Width),
+                FormatNumber(page.Height),
+                resourcesDictionary,
+                contentObjectId,
+                annotsSegment,
+                rotateSegment);
+
+            objects.Add(new PdfIndirectObject(pageObjectId, pageObject));
+        }
+
+        var kids = string.Join(" ", pageObjects.Select(id => $"{id} 0 R"));
+
+        objects.Add(new PdfIndirectObject(pagesObjectId,
+            $"<< /Type /Pages /Kids [{kids}] /Count {pageObjects.Count} >>\n"));
+
+        if (outlinesRootObjectId is { } outlinesId)
+        {
+            for (var i = 0; i < document.Bookmarks.Count; i++)
+            {
+                var bookmark = document.Bookmarks[i];
+
+                if (bookmark.PageNumber > pageCount)
+                {
+                    throw new InvalidOperationException($"Bookmark target page {bookmark.PageNumber} is out of range for this document.");
+                }
+
+                var destinationPageObjectId = pageObjectIds[bookmark.PageNumber - 1];
+                var prev = i > 0 ? $" /Prev {bookmarkObjectIds[i - 1]} 0 R" : string.Empty;
+                var next = i < document.Bookmarks.Count - 1 ? $" /Next {bookmarkObjectIds[i + 1]} 0 R" : string.Empty;
+
+                var bookmarkObject = $"<< /Title ({EscapeLiteralString(bookmark.Title)}) /Parent {outlinesId} 0 R /Dest [{destinationPageObjectId} 0 R /Fit]{prev}{next} >>\n";
+                objects.Add(new PdfIndirectObject(bookmarkObjectIds[i], bookmarkObject));
+            }
+
+            var firstBookmark = bookmarkObjectIds[0];
+            var lastBookmark = bookmarkObjectIds[^1];
+            objects.Add(new PdfIndirectObject(
+                outlinesId,
+                $"<< /Type /Outlines /First {firstBookmark} 0 R /Last {lastBookmark} 0 R /Count {bookmarkObjectIds.Count} >>\n"));
+        }
+
+        var viewerPreferences = BuildViewerPreferences(document.ViewerPreferences);
+        var pageMode = BuildPageMode(document.ViewerPreferences.PageMode);
+        var pageLayout = BuildPageLayout(document.ViewerPreferences.PageLayout);
+
+        var catalogObject = outlinesRootObjectId is { } outlinesRootId
+            ? $"<< /Type /Catalog /Pages {pagesObjectId} 0 R /Outlines {outlinesRootId} 0 R{pageMode}{pageLayout}{viewerPreferences} >>\n"
+            : $"<< /Type /Catalog /Pages {pagesObjectId} 0 R{pageMode}{pageLayout}{viewerPreferences} >>\n";
+
+        objects.Add(new PdfIndirectObject(catalogObjectId, catalogObject));
+
+        if (infoObjectId is { } actualInfoObjectId)
+        {
+            objects.Add(new PdfIndirectObject(actualInfoObjectId, BuildInfoObject(document.Info)));
+        }
+
+        var bytes = Serialize(objects, catalogObjectId, infoObjectId);
+        var diagnostics = options.CollectDiagnostics
+            ? new PdfGenerationDiagnostics
+            {
+                PageCount = document.Pages.Count,
+                ObjectCount = objects.Count,
+                ByteSize = bytes.Length,
+                ContentStreamsCompressed = options.CompressContentStreams,
+                BookmarkCount = document.Bookmarks.Count,
+                TableOfContentsPageCount = document.TableOfContentsPageCount,
+                NamedDestinationCount = document.NamedDestinations.Count,
+                LinkAnnotationCount = document.Pages.Sum(static page => page.LinkAnnotations.Count),
+                SectionCount = document.Sections.Count
+            }
+            : null;
+
+        return new PdfWriteResult
+        {
+            Bytes = bytes,
+            Diagnostics = diagnostics
+        };
+    }
+
+    private static byte[] Serialize(List<PdfIndirectObject> objects, int rootObjectId, int? infoObjectId)
+    {
+        objects.Sort(static (x, y) => x.Id.CompareTo(y.Id));
+
+        using var stream = new MemoryStream();
+
+        static void WriteAscii(MemoryStream destination, string text)
+        {
+            var bytes = Encoding.ASCII.GetBytes(text);
+            destination.Write(bytes, 0, bytes.Length);
+        }
+
+        WriteAscii(stream, "%PDF-1.4\n");
+
+        var offsets = new Dictionary<int, long>();
+
+        foreach (var obj in objects)
+        {
+            offsets[obj.Id] = stream.Position;
+
+            WriteAscii(stream, $"{obj.Id} 0 obj\n");
+            stream.Write(obj.ContentBytes, 0, obj.ContentBytes.Length);
+
+            if (obj.ContentBytes.Length == 0 || obj.ContentBytes[^1] != (byte)'\n')
+            {
+                WriteAscii(stream, "\n");
+            }
+
+            WriteAscii(stream, "endobj\n");
+        }
+
+        var maxObjectId = objects[^1].Id;
+        var xrefOffset = stream.Position;
+
+        WriteAscii(stream, "xref\n");
+        WriteAscii(stream, $"0 {maxObjectId + 1}\n");
+        WriteAscii(stream, "0000000000 65535 f \n");
+
+        for (var id = 1; id <= maxObjectId; id++)
+        {
+            if (offsets.TryGetValue(id, out var offset))
+            {
+                WriteAscii(stream, $"{offset:D10} 00000 n \n");
+            }
+            else
+            {
+                WriteAscii(stream, "0000000000 00000 f \n");
+            }
+        }
+
+        WriteAscii(stream, "trailer\n");
+
+        if (infoObjectId is { } actualInfoObjectId)
+        {
+            WriteAscii(stream, $"<< /Size {maxObjectId + 1} /Root {rootObjectId} 0 R /Info {actualInfoObjectId} 0 R >>\n");
+        }
+        else
+        {
+            WriteAscii(stream, $"<< /Size {maxObjectId + 1} /Root {rootObjectId} 0 R >>\n");
+        }
+
+        WriteAscii(stream, "startxref\n");
+        WriteAscii(stream, $"{xrefOffset}\n");
+        WriteAscii(stream, "%%EOF\n");
+
+        return stream.ToArray();
+    }
+
+    private static string FormatNumber(double value)
+    {
+        return value.ToString("0.###", CultureInfo.InvariantCulture);
+    }
+
+    private static string GetBaseFontName(PdfStandardFont font)
+    {
+        return font switch
+        {
+            PdfStandardFont.Helvetica => "Helvetica",
+            PdfStandardFont.HelveticaBold => "Helvetica-Bold",
+            PdfStandardFont.HelveticaOblique => "Helvetica-Oblique",
+            PdfStandardFont.HelveticaBoldOblique => "Helvetica-BoldOblique",
+            PdfStandardFont.TimesRoman => "Times-Roman",
+            PdfStandardFont.TimesBold => "Times-Bold",
+            PdfStandardFont.TimesItalic => "Times-Italic",
+            PdfStandardFont.TimesBoldItalic => "Times-BoldItalic",
+            PdfStandardFont.Courier => "Courier",
+            PdfStandardFont.CourierBold => "Courier-Bold",
+            PdfStandardFont.CourierOblique => "Courier-Oblique",
+            PdfStandardFont.CourierBoldOblique => "Courier-BoldOblique",
+            _ => throw new ArgumentOutOfRangeException(nameof(font), font, "Unsupported standard font.")
+        };
+    }
+
+    private static string BuildInfoObject(PdfDocumentInfo info)
+    {
+        var entries = new List<string>();
+
+        AppendIfValue(entries, "Title", info.Title);
+        AppendIfValue(entries, "Author", info.Author);
+        AppendIfValue(entries, "Subject", info.Subject);
+        AppendIfValue(entries, "Keywords", info.Keywords);
+        AppendIfValue(entries, "Creator", info.Creator);
+        AppendIfValue(entries, "Producer", info.Producer);
+        AppendIfDate(entries, "CreationDate", info.CreationDate);
+        AppendIfDate(entries, "ModDate", info.ModificationDate);
+
+        return $"<< {string.Join(" ", entries)} >>\n";
+    }
+
+    private static void AppendIfValue(List<string> entries, string key, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            entries.Add($"/{key} ({EscapeLiteralString(value)})");
+        }
+    }
+
+    private static void AppendIfDate(List<string> entries, string key, DateTimeOffset? value)
+    {
+        if (value is { } date)
+        {
+            entries.Add($"/{key} ({FormatPdfDate(date)})");
+        }
+    }
+
+    private static string FormatPdfDate(DateTimeOffset value)
+    {
+        var offset = value.Offset;
+        var sign = offset >= TimeSpan.Zero ? "+" : "-";
+        var absolute = offset.Duration();
+        return $"D:{value:yyyyMMddHHmmss}{sign}{absolute.Hours:00}'{absolute.Minutes:00}'";
+    }
+
+    private static string BuildViewerPreferences(PdfViewerPreferencesOptions options)
+    {
+        var entries = new List<string>();
+
+        if (options.HideToolbar)
+        {
+            entries.Add("/HideToolbar true");
+        }
+
+        if (options.HideMenubar)
+        {
+            entries.Add("/HideMenubar true");
+        }
+
+        if (options.HideWindowUI)
+        {
+            entries.Add("/HideWindowUI true");
+        }
+
+        if (options.FitWindow)
+        {
+            entries.Add("/FitWindow true");
+        }
+
+        if (options.CenterWindow)
+        {
+            entries.Add("/CenterWindow true");
+        }
+
+        if (options.DisplayDocTitle)
+        {
+            entries.Add("/DisplayDocTitle true");
+        }
+
+        return entries.Count > 0 ? $" /ViewerPreferences << {string.Join(" ", entries)} >>" : string.Empty;
+    }
+
+    private static string BuildPageMode(PdfPageMode? mode)
+    {
+        return mode switch
+        {
+            PdfPageMode.UseNone => " /PageMode /UseNone",
+            PdfPageMode.UseOutlines => " /PageMode /UseOutlines",
+            PdfPageMode.UseThumbs => " /PageMode /UseThumbs",
+            PdfPageMode.FullScreen => " /PageMode /FullScreen",
+            _ => string.Empty
+        };
+    }
+
+    private static string BuildPageLayout(PdfPageLayoutMode? layout)
+    {
+        return layout switch
+        {
+            PdfPageLayoutMode.SinglePage => " /PageLayout /SinglePage",
+            PdfPageLayoutMode.OneColumn => " /PageLayout /OneColumn",
+            PdfPageLayoutMode.TwoColumnLeft => " /PageLayout /TwoColumnLeft",
+            PdfPageLayoutMode.TwoColumnRight => " /PageLayout /TwoColumnRight",
+            _ => string.Empty
+        };
+    }
+
+    private static string EscapeLiteralString(string value)
+    {
+        return value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("(", "\\(", StringComparison.Ordinal)
+            .Replace(")", "\\)", StringComparison.Ordinal);
+    }
+
+    private static byte[] BuildImageObject(PdfImageData image, int? softMaskObjectId = null)
+    {
+        using var memory = new MemoryStream();
+        using var writer = new BinaryWriter(memory, Encoding.ASCII, leaveOpen: true);
+
+        var softMaskSegment = softMaskObjectId is { } id ? $" /SMask {id} 0 R" : string.Empty;
+        var header = image.DecodeParameters is { Length: > 0 }
+            ? $"<< /Type /XObject /Subtype /Image /Width {image.Width} /Height {image.Height} /ColorSpace /{image.ColorSpaceName} /BitsPerComponent {image.BitsPerComponent} /Filter /{image.FilterName} /DecodeParms << {image.DecodeParameters} >>{softMaskSegment} /Length {image.Data.Length} >>\nstream\n"
+            : $"<< /Type /XObject /Subtype /Image /Width {image.Width} /Height {image.Height} /ColorSpace /{image.ColorSpaceName} /BitsPerComponent {image.BitsPerComponent} /Filter /{image.FilterName}{softMaskSegment} /Length {image.Data.Length} >>\nstream\n";
+
+        writer.Write(Encoding.ASCII.GetBytes(header));
+        writer.Write(image.Data);
+        writer.Write(Encoding.ASCII.GetBytes("\nendstream\n"));
+        writer.Flush();
+
+        return memory.ToArray();
+    }
+
+    private static string BuildResourcesDictionary(string fontDictionary, string xObjectDictionary, string extGStateDictionary)
+    {
+        var parts = new List<string>
+        {
+            $"/Font << {fontDictionary} >>"
+        };
+
+        if (!string.IsNullOrWhiteSpace(xObjectDictionary))
+        {
+            parts.Add($"/XObject << {xObjectDictionary} >>");
+        }
+
+        if (!string.IsNullOrWhiteSpace(extGStateDictionary))
+        {
+            parts.Add($"/ExtGState << {extGStateDictionary} >>");
+        }
+
+        return $"<< {string.Join(" ", parts)} >>";
+    }
+
+    private static byte[] BuildContentStreamObject(byte[] contentData, bool compressed)
+    {
+        using var memory = new MemoryStream();
+        using var writer = new BinaryWriter(memory, Encoding.ASCII, leaveOpen: true);
+
+        var header = compressed
+            ? $"<< /Length {contentData.Length} /Filter /FlateDecode >>\nstream\n"
+            : $"<< /Length {contentData.Length} >>\nstream\n";
+
+        writer.Write(Encoding.ASCII.GetBytes(header));
+        writer.Write(contentData);
+        writer.Write(Encoding.ASCII.GetBytes("\nendstream\n"));
+        writer.Flush();
+
+        return memory.ToArray();
+    }
+
+    private static byte[] CompressZlib(byte[] data)
+    {
+        using var destination = new MemoryStream();
+        using (var zlib = new ZLibStream(destination, CompressionLevel.Optimal, leaveOpen: true))
+        {
+            zlib.Write(data, 0, data.Length);
+        }
+
+        return destination.ToArray();
+    }
+}

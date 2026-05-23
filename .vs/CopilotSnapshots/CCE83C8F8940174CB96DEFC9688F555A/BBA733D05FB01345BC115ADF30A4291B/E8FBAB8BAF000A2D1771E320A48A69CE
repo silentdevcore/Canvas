@@ -1,0 +1,69 @@
+﻿namespace Canvas.Pdf;
+
+public sealed class PdfTableOptions
+{
+    public static PdfTableOptions Default { get; } = new();
+
+    public double RowHeight { get; init; } = 24;
+
+    public bool AutoRowHeight { get; init; }
+
+    public double CellPadding { get; init; } = 4;
+
+    public bool WrapCellText { get; init; } = true;
+
+    public bool HasHeaderRow { get; init; } = true;
+
+    // Relative column weights. Example for 3 columns: [2,1,1]
+    public IReadOnlyList<double>? ColumnWidths { get; init; }
+
+    // Optional per-column alignment overrides. Example for 3 columns: [Left, Right, Right]
+    public IReadOnlyList<PdfTextAlignment>? ColumnAlignments { get; init; }
+
+    public IReadOnlyList<PdfVerticalAlignment>? ColumnVerticalAlignments { get; init; }
+
+    // Optional per-column value formatters applied before wrapping/alignment.
+    public IReadOnlyList<Func<string, string>?>? ColumnValueFormatters { get; init; }
+
+    public PdfTextAlignment CellAlignment { get; init; } = PdfTextAlignment.Left;
+
+    public PdfVerticalAlignment CellVerticalAlignment { get; init; } = PdfVerticalAlignment.Middle;
+
+    public double FontSize { get; init; } = 10;
+
+    public PdfStandardFont? Font { get; init; }
+
+    public PdfFontFamily? FontFamily { get; init; }
+
+    public bool Bold { get; init; }
+
+    public bool Italic { get; init; }
+
+    public IPdfColor? TextColor { get; init; }
+
+    public IPdfColor? HeaderFillColor { get; init; } = new PdfGrayColor(0.92);
+
+    public IPdfColor? AlternateRowFillColor { get; init; }
+
+    public IPdfColor? BorderColor { get; init; } = PdfColor.Black;
+
+    public double BorderLineWidth { get; init; } = 0.8;
+
+    public bool DrawOuterBorder { get; init; } = true;
+
+    public bool DrawInnerVerticalBorders { get; init; } = true;
+
+    public bool DrawInnerHorizontalBorders { get; init; } = true;
+
+    public IPdfColor? OuterBorderColor { get; init; }
+
+    public IPdfColor? InnerBorderColor { get; init; }
+
+    public double? OuterBorderLineWidth { get; init; }
+
+    public double? InnerBorderLineWidth { get; init; }
+
+    public PdfStrokeStyle? OuterBorderStrokeStyle { get; init; }
+
+    public PdfStrokeStyle? InnerBorderStrokeStyle { get; init; }
+}

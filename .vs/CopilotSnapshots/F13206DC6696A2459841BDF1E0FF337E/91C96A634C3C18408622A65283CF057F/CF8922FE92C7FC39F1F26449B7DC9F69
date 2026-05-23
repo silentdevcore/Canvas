@@ -1,0 +1,57 @@
+﻿import React from 'react';
+import { useDesignerStore } from './store';
+
+const ElementRenderer: React.FC<{ elementId: string }> = ({ elementId }) => {
+  const { elements, selectElement, selectedId } = useDesignerStore();
+  const element = elements[elementId];
+  if (!element) return null;
+
+  const isSelected = selectedId === elementId;
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    selectElement(elementId);
+  };
+
+  let content = null;
+  if (element.type === 'Text') {
+    content = <span style={{ fontSize: element.props.fontSize }}>{element.props.text}</span>;
+  } else if (element.type === 'Column') {
+    content = (
+      <div style={{ border: '1px dashed #bbb', padding: 8, minHeight: 32 }}>
+        {(element.children || []).map((childId) => (
+          <ElementRenderer key={childId} elementId={childId} />
+        ))}
+      </div>
+    );
+  } else if (element.type === 'Table') {
+    const { rows, columns, data } = element.props;
+    content = (
+      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+        <tbody>
+          {Array.from({ length: rows }).map((_, rowIdx) => (
+            <tr key={rowIdx}>
+              {Array.from({ length: columns }).map((_, colIdx) => (
+                <td key={colIdx} style={{ border: '1px solid #bbb', padding: 4 }}>
+                  {data && data[rowIdx] && data[rowIdx][colIdx] ? data[rowIdx][colIdx] : ''}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  }
+
+  return (
+    <div
+      className={`canvas-element${isSelected ? ' selected' : ''}`}
+      onClick={handleClick}
+      style={{ outline: isSelected ? '2px solid #2563eb' : undefined }}
+    >
+      {content}
+    </div>
+  );
+};
+
+export default ElementRenderer;

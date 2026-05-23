@@ -1,0 +1,40 @@
+﻿using System.Globalization;
+using System.Text;
+
+namespace Canvas.Pdf.Rendering;
+
+internal static class PdfCanvasRenderer
+{
+    public static string RenderPage(PdfPage page, IReadOnlyDictionary<PdfStandardFont, string> fontResourceNames)
+    {
+        var sb = new StringBuilder();
+
+        foreach (var element in page.Elements)
+        {
+            var fontResourceName = fontResourceNames[element.Font];
+
+            sb.Append("BT\n");
+            sb.AppendFormat(CultureInfo.InvariantCulture, "/{0} {1} Tf\n", fontResourceName, FormatNumber(element.FontSize));
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} {1} Td\n", FormatNumber(element.X), FormatNumber(element.Y));
+            sb.Append('(');
+            sb.Append(EscapeLiteralString(element.Text));
+            sb.Append(") Tj\n");
+            sb.Append("ET\n");
+        }
+
+        return sb.ToString();
+    }
+
+    private static string EscapeLiteralString(string value)
+    {
+        return value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("(", "\\(", StringComparison.Ordinal)
+            .Replace(")", "\\)", StringComparison.Ordinal);
+    }
+
+    private static string FormatNumber(double value)
+    {
+        return value.ToString("0.###", CultureInfo.InvariantCulture);
+    }
+}

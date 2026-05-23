@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "WTd5TYPNQkk=",
+  "success": true,
+  "projectFilePath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj",
+  "expectedPackageFiles": [
+    "/Users/mannheimer/.nuget/packages/bcrypt.net-next/4.0.3/bcrypt.net-next.4.0.3.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/documentformat.openxml/3.5.1/documentformat.openxml.3.5.1.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/documentformat.openxml.framework/3.5.1/documentformat.openxml.framework.3.5.1.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/system.io.packaging/10.0.2/system.io.packaging.10.0.2.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/system.security.cryptography.pkcs/10.0.8/system.security.cryptography.pkcs.10.0.8.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/system.security.cryptography.xml/10.0.8/system.security.cryptography.xml.10.0.8.nupkg.sha512"
+  ],
+  "logs": []
+}

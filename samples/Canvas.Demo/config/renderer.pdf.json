@@ -1,0 +1,13 @@
+{
+  "renderer": "Pdf",
+  "enabled": true,
+  "output": {
+    "defaultFile": "demo-facade-output.pdf"
+  },
+  "features": {
+    "pageNumbering": true,
+    "headerFooter": true,
+    "watermark": true,
+    "tableOfContents": true
+  }
+}

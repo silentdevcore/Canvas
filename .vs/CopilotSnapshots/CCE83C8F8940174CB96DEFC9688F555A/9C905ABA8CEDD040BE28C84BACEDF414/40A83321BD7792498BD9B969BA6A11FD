@@ -1,0 +1,9 @@
+﻿namespace Canvas.Pdf.Layout;
+
+internal sealed record ImageElement(
+    PdfImageData Image,
+    string CacheKey,
+    double X,
+    double Y,
+    double Width,
+    double Height) : PdfPageElement;

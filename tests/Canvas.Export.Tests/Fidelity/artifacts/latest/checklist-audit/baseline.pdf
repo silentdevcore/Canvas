@@ -1,0 +1,185 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Title (Checklist Audit) /Subject (fidelity) /Creator (Canvas PDF Renderer) >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 1179 >>
+stream
+q
+BT
+/F1 20 Tf
+0.059 0.09 0.165 rg
+0 Tw
+0 Tc
+100 Tz
+50 787.6 Td
+(Security Audit Checklist) Tj
+ET
+Q
+q
+0.216 0.255 0.318 RG
+1 1 1 rg
+1.5 w
+0 J
+0 j
+50 727 14 14 re
+B
+Q
+q
+0.216 0.255 0.318 RG
+1.5 w
+0 J
+0 j
+52.5 733.5 m
+55.5 737 l
+S
+Q
+q
+0.216 0.255 0.318 RG
+1.5 w
+0 J
+0 j
+55.5 737 m
+61.5 730 l
+S
+Q
+q
+BT
+/F1 12 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+72 731.36 Td
+(MFA enabled) Tj
+ET
+Q
+q
+0.216 0.255 0.318 RG
+1 1 1 rg
+1.5 w
+0 J
+0 j
+50 697 14 14 re
+B
+Q
+q
+0.216 0.255 0.318 RG
+1.5 w
+0 J
+0 j
+52.5 703.5 m
+55.5 707 l
+S
+Q
+q
+0.216 0.255 0.318 RG
+1.5 w
+0 J
+0 j
+55.5 707 m
+61.5 700 l
+S
+Q
+q
+BT
+/F1 12 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+72 701.36 Td
+(Backups verified) Tj
+ET
+Q
+q
+0.216 0.255 0.318 RG
+1 1 1 rg
+1.5 w
+0 J
+0 j
+50 667 14 14 re
+B
+Q
+q
+BT
+/F1 12 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+72 671.36 Td
+(Pen test completed) Tj
+ET
+Q
+q
+0.984 0.749 0.141 RG
+0.996 0.953 0.78 rg
+1 w
+0 J
+0 j
+50 516 500 120 re
+B
+Q
+q
+BT
+/F1 11 Tf
+0.471 0.208 0.059 rg
+0 Tw
+0 Tc
+100 Tz
+58 624.08 Td
+(Open Item) Tj
+ET
+Q
+q
+BT
+/F1 10 Tf
+0.573 0.251 0.055 rg
+0 Tw
+0 Tc
+100 Tz
+58 608.8 Td
+(Pen test evidence upload pending.) Tj
+ET
+Q
+q
+BT
+/F1 12 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+280 41.36 Td
+(1) Tj
+ET
+Q
+
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000212 00000 n 
+0000000282 00000 n 
+0000000408 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R /Info 3 0 R >>
+startxref
+1639
+%%EOF

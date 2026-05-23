@@ -1,0 +1,116 @@
+﻿# Clean Architecture Migration Checklist (Canvas)
+
+Status legend:
+- [ ] Not started
+- [~] In progress
+- [x] Done
+
+## Phase 0 — Planning & Baseline
+- [x] Confirm migration scope (Core, Application, Infrastructure.Pdf, Demo split)
+- [x] Freeze new feature work during migration windows
+- [x] Capture baseline build + sample PDF output artifacts
+- [x] Capture baseline diagnostics output for regression comparison
+- [x] Define acceptance criteria for "migration complete"
+
+## Phase 1 — Solution & Project Structure
+- [x] Create solution folders: `src`, `tests`, `samples`
+- [ ] Create projects:
+  - [x] `Canvas.Core`
+  - [x] `Canvas.Application`
+  - [x] `Canvas.Infrastructure.Pdf`
+  - [x] `Canvas.Demo` (console sample)
+- [ ] Move existing `Canvas` code into target projects incrementally
+- [~] Move existing `Canvas` code into target projects incrementally
+- [ ] Configure project references:
+  - [x] `Application -> Core`
+  - [x] `Infrastructure.Pdf -> Core, Application (if needed)`
+  - [x] `Demo -> Application, Infrastructure.Pdf`
+- [x] Keep full solution build green after each move
+
+### Phase 1.1 — First incremental extraction (primitives)
+- [x] Extract first shared primitives into `Canvas.Core` (`PdfPoint`, alignments)
+- [x] Keep compatibility by referencing `Canvas.Core` from legacy `Canvas` project
+- [ ] Switch legacy code to consume extracted Core primitives
+- [ ] Remove duplicated primitive definitions from legacy project after cutover
+
+## Phase 2 — Core Layer Extraction
+- [ ] Define domain-first document model in `Canvas.Core`
+- [ ] Move reusable primitives/contracts into Core (color, point, alignment enums where format-agnostic)
+- [ ] Remove PDF-specific names from Core public contracts
+- [ ] Add extension points/interfaces in Core:
+  - [ ] `IDocumentRenderer`
+  - [ ] `IImageReader`
+  - [ ] `ITextMeasurer`
+  - [ ] `IOutputWriter` (file/stream abstraction)
+- [ ] Add Core validation policies (shared option validation)
+
+## Phase 3 — Application Layer (Use Cases)
+- [ ] Create use-case orchestration services in `Canvas.Application`
+- [ ] Extract feature orchestrators:
+  - [ ] Numbering
+  - [ ] Header/Footer
+  - [ ] Watermark
+  - [ ] TOC
+  - [ ] Table flow/pagination orchestration
+- [ ] Move diagnostics composition into Application service (not serializer)
+- [ ] Move page-inspection/query APIs into dedicated query service
+- [ ] Ensure Application depends only on Core abstractions
+
+## Phase 4 — PDF Infrastructure Isolation
+- [ ] Move PDF serialization/rendering classes to `Canvas.Infrastructure.Pdf`
+- [ ] Adapt current `PdfWriter` to implement renderer abstraction
+- [ ] Replace direct static dependencies with injected adapters where practical
+- [ ] Keep PDF output byte-compatible where feasible (or documented deltas)
+- [ ] Validate links, TOC, outlines, transparency, page boxes still render correctly
+
+## Phase 5 — Public API Stabilization
+- [ ] Define stable façade API (entry point for callers)
+- [ ] Mark legacy API paths (if any) as compatibility shims
+- [ ] Ensure existing sample usage still works via façade
+- [ ] Add migration notes for consumers (old API -> new API mapping)
+
+## Phase 6 — Testing Strategy
+- [ ] Create test projects:
+  - [ ] `Canvas.Core.Tests`
+  - [ ] `Canvas.Application.Tests`
+  - [ ] `Canvas.Infrastructure.Pdf.Tests`
+- [ ] Add unit tests for use-case services
+- [ ] Add serializer integration tests (PDF structure checks)
+- [ ] Add golden/snapshot tests for representative documents
+- [ ] Add regression tests for diagnostics counters
+
+## Phase 7 — Demo/Sample & Tooling
+- [ ] Move current `Program.cs` into `Canvas.Demo`
+- [ ] Keep demo focused on usage scenarios (not internal diagnostics dumping only)
+- [ ] Add sample configs for future renderer swap (`Pdf`, `Word`, `Sheet` placeholders)
+- [ ] Add CI build/test pipeline for multi-project solution
+
+## Phase 8 — Future Expansion Hooks
+- [ ] Add placeholder infrastructure projects:
+  - [ ] `Canvas.Infrastructure.Word` (stub)
+  - [ ] `Canvas.Infrastructure.Sheet` (stub)
+  - [ ] `Canvas.Infrastructure.Converters` (stub)
+- [ ] Define capability model per renderer (supported/unsupported features)
+- [ ] Add graceful fallback strategy for unsupported features
+
+## Phase 9 — Documentation
+- [ ] Update root README with architecture diagram and project responsibilities
+- [ ] Add `ARCHITECTURE.md` with dependency rules
+- [ ] Add contributor guide for adding new renderer modules
+- [ ] Document testing approach and golden-file update workflow
+
+## Phase 10 — Completion Criteria
+- [ ] Build passes for all projects
+- [ ] Tests green (unit + integration + snapshots)
+- [ ] Demo generates expected output
+- [ ] Architecture boundaries validated (no forbidden references)
+- [ ] Migration marked complete
+
+---
+
+## Progress Log
+- [x] Checklist created
+- [x] Migration started
+- [x] Phase 0 completed
+- [~] Phase 1 in progress
+- [x] Phase 1.1 extraction scaffold completed

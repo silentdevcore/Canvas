@@ -1,0 +1,14 @@
+﻿namespace Canvas.Application.UseCases;
+
+public sealed class CollectDiagnosticsUseCase
+{
+    public object? Execute(object documentModel)
+    {
+        if (documentModel is not Canvas.Pdf.PdfDocument pdfDocument)
+        {
+            throw new ArgumentException("Document model must be Canvas.Pdf.PdfDocument.", nameof(documentModel));
+        }
+
+        return pdfDocument.LastDiagnostics;
+    }
+}

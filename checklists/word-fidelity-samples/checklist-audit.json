@@ -1,0 +1,46 @@
+{
+  "id": "sample-009",
+  "name": "Checklist Audit",
+  "category": "fidelity",
+  "pages": [
+    {
+      "id": "p1",
+      "elements": [
+        {
+          "id": "h",
+          "type": "text",
+          "x": 50,
+          "y": 40,
+          "width": 500,
+          "height": 30,
+          "content": "Security Audit Checklist",
+          "style": { "fontSize": 20, "fontWeight": "700", "color": "#0f172a" }
+        },
+        { "id": "c1", "type": "checkbox", "x": 50, "y": 96, "width": 500, "height": 24, "fieldLabel": "MFA enabled", "checkState": "checked" },
+        { "id": "c2", "type": "checkbox", "x": 50, "y": 126, "width": 500, "height": 24, "fieldLabel": "Backups verified", "checkState": "checked" },
+        { "id": "c3", "type": "checkbox", "x": 50, "y": 156, "width": 500, "height": 24, "fieldLabel": "Pen test completed", "checkState": "empty" },
+        {
+          "id": "note",
+          "type": "note",
+          "x": 50,
+          "y": 206,
+          "width": 500,
+          "height": 120,
+          "noteTitle": "Open Item",
+          "noteBody": "Pen test evidence upload pending.",
+          "style": { "backgroundColor": "#fef3c7", "color": "#78350f" }
+        },
+        {
+          "id": "pn",
+          "type": "pagenumber",
+          "x": 280,
+          "y": 792,
+          "width": 40,
+          "height": 16
+        }
+      ]
+    }
+  ],
+  "sharedElements": [],
+  "pageSettings": { "width": 595, "height": 842, "orientation": "portrait" }
+}

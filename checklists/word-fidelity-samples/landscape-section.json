@@ -1,0 +1,56 @@
+{
+  "id": "sample-012",
+  "name": "Landscape Section",
+  "category": "fidelity",
+  "pages": [
+    {
+      "id": "p1",
+      "elements": [
+        {
+          "id": "header",
+          "type": "text",
+          "x": 40,
+          "y": 36,
+          "width": 760,
+          "height": 30,
+          "content": "Landscape Planning Board",
+          "style": { "fontSize": 20, "fontWeight": "bold", "color": "#0f172a" }
+        },
+        {
+          "id": "tab",
+          "type": "table",
+          "x": 40,
+          "y": 86,
+          "width": 760,
+          "height": 260,
+          "headerRow": true,
+          "headerBgColor": "#dbeafe",
+          "columnWidths": [190, 190, 190, 190],
+          "columnAlignments": ["left", "left", "left", "left"],
+          "cellData": [
+            ["Q1", "Q2", "Q3", "Q4"],
+            ["Discovery", "Build", "Pilot", "Launch"],
+            ["Research", "Integration", "Validation", "Scale"]
+          ],
+          "style": { "borderWidth": 1, "borderColor": "#334155" }
+        },
+        {
+          "id": "link",
+          "type": "link",
+          "x": 40,
+          "y": 370,
+          "width": 500,
+          "height": 20,
+          "content": "Project Tracker",
+          "href": "https://example.com/tracker"
+        }
+      ]
+    }
+  ],
+  "sharedElements": [],
+  "pageSettings": {
+    "width": 842,
+    "height": 595,
+    "orientation": "landscape"
+  }
+}

@@ -1,0 +1,928 @@
+﻿using Canvas.Pdf.Serialization;
+
+namespace Canvas.Pdf;
+
+public sealed class PdfDocument
+{
+    private readonly List<PdfPage> _pages = new();
+    private readonly List<PdfBookmark> _bookmarks = new();
+    private readonly List<PdfNamedDestination> _namedDestinations = new();
+    private readonly HashSet<PdfPage> _tableOfContentsPages = new();
+    private PdfGenerationDiagnostics? _lastDiagnostics;
+
+    public PdfDocument(PdfStandardFont defaultFont = PdfStandardFont.Helvetica)
+    {
+        DefaultFont = defaultFont;
+    }
+
+    public IReadOnlyList<PdfPage> Pages => _pages;
+
+    public PdfStandardFont DefaultFont { get; set; }
+
+    public PdfDocumentInfo Info { get; } = new();
+
+    public PdfGenerationDiagnostics? LastDiagnostics => _lastDiagnostics;
+
+    internal IReadOnlyList<PdfBookmark> Bookmarks => _bookmarks;
+
+    internal IReadOnlyList<PdfNamedDestination> NamedDestinations => _namedDestinations;
+
+    internal int TableOfContentsPageCount => _tableOfContentsPages.Count;
+
+    public PdfPage AddPage(double width = PdfPageSizes.A4Width, double height = PdfPageSizes.A4Height)
+    {
+        var page = new PdfPage(width, height, DefaultFont);
+        _pages.Add(page);
+        return page;
+    }
+
+    public void AddBookmark(string title, int pageNumber)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+        {
+            throw new ArgumentException("Bookmark title cannot be null or empty.", nameof(title));
+        }
+
+        if (pageNumber <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be greater than zero.");
+        }
+
+        _bookmarks.Add(new PdfBookmark(title, pageNumber));
+    }
+
+    public void AddNamedDestination(string name, int pageNumber)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Destination name cannot be null or empty.", nameof(name));
+        }
+
+        if (pageNumber <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be greater than zero.");
+        }
+
+        var existing = _namedDestinations.FirstOrDefault(destination =>
+            destination.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+        if (existing is not null)
+        {
+            existing.PageNumber = pageNumber;
+            return;
+        }
+
+        _namedDestinations.Add(new PdfNamedDestination(name, pageNumber));
+    }
+
+    public IReadOnlyList<PdfPage> AddTableOfContents(PdfTableOfContentsOptions? options = null)
+    {
+        options ??= PdfTableOfContentsOptions.Default;
+
+        if (options.PageWidth <= 0 || options.PageHeight <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Page dimensions must be greater than zero.");
+        }
+
+        if (options.TitleFontSize <= 0 || options.EntryFontSize <= 0 || options.EntryLineHeight <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Font sizes and line height must be greater than zero.");
+        }
+
+        if (options.MarginLeft < 0 || options.MarginRight < 0 || options.MarginTop < 0 || options.MarginBottom < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Margins cannot be negative.");
+        }
+
+        if (_bookmarks.Count == 0)
+        {
+            return Array.Empty<PdfPage>();
+        }
+
+        if (options.MarginLeft + options.MarginRight >= options.PageWidth)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Horizontal margins exceed TOC page width.");
+        }
+
+        if (options.MarginTop + options.MarginBottom >= options.PageHeight)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Vertical margins exceed TOC page height.");
+        }
+
+        var tocPages = new List<PdfPage>();
+        var font = ResolveTableOfContentsFont(options);
+        var textColor = options.TextColor ?? PdfColor.Black;
+        var validBookmarks = _bookmarks
+            .Where(bookmark => bookmark.PageNumber > 0 && bookmark.PageNumber <= _pages.Count)
+            .ToList();
+
+        if (validBookmarks.Count == 0)
+        {
+            return Array.Empty<PdfPage>();
+        }
+
+        var pageOffset = options.Placement == PdfTableOfContentsPlacement.Beginning
+            ? CalculateTocPageCount(options, validBookmarks.Count)
+            : 0;
+
+        var currentPage = AddPage(options.PageWidth, options.PageHeight);
+        tocPages.Add(currentPage);
+
+        var currentY = currentPage.Height - options.MarginTop;
+        currentPage.DrawText(options.Title, options.MarginLeft, currentY, new PdfDrawTextOptions
+        {
+            Font = font,
+            FontSize = options.TitleFontSize,
+            FillColor = textColor
+        });
+
+        currentY -= options.TitleFontSize + options.EntryLineHeight;
+
+        foreach (var bookmark in validBookmarks)
+        {
+            if (currentY - options.EntryFontSize < options.MarginBottom)
+            {
+                currentPage = AddPage(options.PageWidth, options.PageHeight);
+                tocPages.Add(currentPage);
+                currentY = currentPage.Height - options.MarginTop;
+            }
+
+            var destinationPage = bookmark.PageNumber + pageOffset;
+            var pageNumberText = destinationPage.ToString();
+            var pageNumberWidth = EstimateTextWidth(pageNumberText, options.EntryFontSize, font);
+            var pageNumberX = currentPage.Width - options.MarginRight - pageNumberWidth;
+            var titleX = options.MarginLeft;
+            var availableTitleWidth = pageNumberX - titleX - 12;
+
+            var displayTitle = FitTextToWidth(bookmark.Title, availableTitleWidth, options.EntryFontSize, font);
+
+            currentPage.DrawText(displayTitle, titleX, currentY, new PdfDrawTextOptions
+            {
+                Font = font,
+                FontSize = options.EntryFontSize,
+                FillColor = textColor
+            });
+
+            currentPage.DrawText(pageNumberText, pageNumberX, currentY, new PdfDrawTextOptions
+            {
+                Font = font,
+                FontSize = options.EntryFontSize,
+                FillColor = textColor
+            });
+
+            var linkWidth = currentPage.Width - options.MarginLeft - options.MarginRight;
+            currentPage.AddPageLink(options.MarginLeft, currentY - 2, linkWidth, options.EntryLineHeight, destinationPage);
+
+            currentY -= options.EntryLineHeight;
+        }
+
+        if (options.Placement == PdfTableOfContentsPlacement.Beginning)
+        {
+            foreach (var bookmark in _bookmarks)
+            {
+                bookmark.PageNumber += pageOffset;
+            }
+
+            _pages.RemoveAll(page => tocPages.Contains(page));
+            _pages.InsertRange(0, tocPages);
+        }
+
+        foreach (var tocPage in tocPages)
+        {
+            _tableOfContentsPages.Add(tocPage);
+        }
+
+        return tocPages;
+    }
+
+    public PdfFlowContext CreateFlow(PdfFlowOptions? options = null)
+    {
+        options ??= PdfFlowOptions.Default;
+
+        if (options.PageWidth <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "PageWidth must be greater than zero.");
+        }
+
+        if (options.PageHeight <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "PageHeight must be greater than zero.");
+        }
+
+        if (options.MarginLeft < 0 || options.MarginRight < 0 || options.MarginTop < 0 || options.MarginBottom < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Margins cannot be negative.");
+        }
+
+        if (options.MarginLeft + options.MarginRight >= options.PageWidth)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Horizontal margins exceed page width.");
+        }
+
+        if (options.MarginTop + options.MarginBottom >= options.PageHeight)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Vertical margins exceed page height.");
+        }
+
+        return new PdfFlowContext(this, options);
+    }
+
+    public void AddPageNumbers(PdfPageNumberOptions? options = null)
+    {
+        options ??= PdfPageNumberOptions.Default;
+
+        if (options.FontSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Font size must be greater than zero.");
+        }
+
+        if (options.MarginX < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "MarginX cannot be negative.");
+        }
+
+        if (options.UseSectionNumbering && options.ShowTotalPages)
+        {
+            throw new ArgumentException("Section numbering cannot be combined with ShowTotalPages.", nameof(options));
+        }
+
+        if (_pages.Count == 0)
+        {
+            return;
+        }
+
+        ValidatePageNumberFilters(options);
+        ValidateSectionNumberingOptions(options);
+
+        var filteredPageNumbers = GetFilteredPageNumbers(options);
+
+        if (filteredPageNumbers.Count == 0)
+        {
+            return;
+        }
+
+        var endNumber = options.UseFilteredPageSequence
+            ? options.StartNumber + filteredPageNumbers.Count - 1
+            : options.StartNumber + _pages.Count - 1;
+
+        var sectionStarts = options.UseSectionNumbering
+            ? ResolveSectionStarts(filteredPageNumbers, options)
+            : null;
+
+        for (var index = 0; index < _pages.Count; index++)
+        {
+            var page = _pages[index];
+            var pageNumber = index + 1;
+
+            var filteredIndex = filteredPageNumbers.IndexOf(pageNumber);
+            if (filteredIndex < 0)
+            {
+                continue;
+            }
+
+            var number = options.UseSectionNumbering
+                ? ResolveSectionNumber(pageNumber, filteredPageNumbers, sectionStarts!, options)
+                : options.UseFilteredPageSequence
+                    ? options.StartNumber + filteredIndex
+                    : options.StartNumber + index;
+            var text = options.ShowTotalPages
+                ? $"{options.Prefix}{number}{options.Separator}{endNumber}{options.Suffix}"
+                : $"{options.Prefix}{number}{options.Suffix}";
+
+            var font = ResolvePageNumberFont(page, options);
+            var textWidth = EstimateTextWidth(text, options.FontSize, font);
+            var x = ResolveAlignedX(page.Width, options.MarginX, textWidth, options.Alignment);
+
+            page.DrawText(text, x, options.Y, new PdfDrawTextOptions
+            {
+                FontSize = options.FontSize,
+                Font = font,
+                FillColor = options.FillColor
+            });
+        }
+
+    private static void ValidateSectionNumberingOptions(PdfPageNumberOptions options)
+    {
+        if (!options.UseSectionNumbering)
+        {
+            return;
+        }
+
+        if (options.SectionStartPages is null || options.SectionStartPages.Count == 0)
+        {
+            throw new ArgumentException("SectionStartPages must contain at least one page when UseSectionNumbering is enabled.", nameof(options));
+        }
+
+        foreach (var page in options.SectionStartPages)
+        {
+            if (page <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(options), "SectionStartPages values must be greater than zero.");
+            }
+        }
+    }
+
+    private static List<int> ResolveSectionStarts(List<int> filteredPages, PdfPageNumberOptions options)
+    {
+        var starts = options.SectionStartPages!
+            .Where(filteredPages.Contains)
+            .Distinct()
+            .OrderBy(static page => page)
+            .ToList();
+
+        if (starts.Count == 0)
+        {
+            starts.Add(filteredPages[0]);
+        }
+
+        return starts;
+    }
+
+    private static int ResolveSectionNumber(int pageNumber, List<int> filteredPages, List<int> sectionStarts, PdfPageNumberOptions options)
+    {
+        var sectionStart = sectionStarts[0];
+
+        for (var i = 1; i < sectionStarts.Count; i++)
+        {
+            if (sectionStarts[i] <= pageNumber)
+            {
+                sectionStart = sectionStarts[i];
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        var sectionStartIndex = filteredPages.IndexOf(sectionStart);
+        var pageIndex = filteredPages.IndexOf(pageNumber);
+
+        if (sectionStartIndex < 0 || pageIndex < 0)
+        {
+            return options.StartNumber;
+        }
+
+        return options.StartNumber + (pageIndex - sectionStartIndex);
+    }
+    }
+
+    public void AddTextWatermark(string text, PdfWatermarkOptions? options = null)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            throw new ArgumentException("Watermark text cannot be null or empty.", nameof(text));
+        }
+
+        options ??= PdfWatermarkOptions.Default;
+
+        if (options.FontSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "FontSize must be greater than zero.");
+        }
+
+        if (_pages.Count == 0)
+        {
+            return;
+        }
+
+        ValidateWatermarkPageFilters(options);
+
+        for (var i = 0; i < _pages.Count; i++)
+        {
+            var page = _pages[i];
+            var pageNumber = i + 1;
+
+            if (!ShouldRenderWatermarkForPage(page, pageNumber, options))
+            {
+                continue;
+            }
+
+            var font = ResolveWatermarkFont(page, options);
+            var textWidth = EstimateTextWidth(text, options.FontSize, font);
+            var x = ((page.Width - textWidth) / 2) + options.OffsetX;
+            var y = (page.Height / 2) + options.OffsetY;
+
+            page.DrawText(text, x, y, new PdfDrawTextOptions
+            {
+                FontSize = options.FontSize,
+                Font = font,
+                FillColor = options.FillColor,
+                RotationDegrees = options.RotationDegrees
+            });
+        }
+    }
+
+    public void AddHeadersAndFooters(PdfHeaderFooterOptions? options = null)
+    {
+        options ??= PdfHeaderFooterOptions.Default;
+
+        if (options.FontSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Font size must be greater than zero.");
+        }
+
+        if (options.MarginX < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "MarginX cannot be negative.");
+        }
+
+        if (options.HeaderTopMargin < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "HeaderTopMargin cannot be negative.");
+        }
+
+        if (options.FooterY < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "FooterY cannot be negative.");
+        }
+
+        if (_pages.Count == 0)
+        {
+            return;
+        }
+
+        ValidateHeaderFooterPageFilters(options);
+
+        var filteredPageNumbers = GetFilteredHeaderFooterPages(options);
+
+        if (filteredPageNumbers.Count == 0)
+        {
+            return;
+        }
+
+        var endNumber = options.UseFilteredPageSequence
+            ? options.StartNumber + filteredPageNumbers.Count - 1
+            : options.StartNumber + _pages.Count - 1;
+
+        for (var index = 0; index < _pages.Count; index++)
+        {
+            var page = _pages[index];
+            var pageNumber = index + 1;
+
+            var filteredIndex = filteredPageNumbers.IndexOf(pageNumber);
+
+            if (filteredIndex < 0)
+            {
+                continue;
+            }
+
+            var number = options.UseFilteredPageSequence
+                ? options.StartNumber + filteredIndex
+                : options.StartNumber + index;
+            var font = ResolveHeaderFooterFont(page, options);
+
+            if (!string.IsNullOrWhiteSpace(options.HeaderTemplate))
+            {
+                var headerText = ResolveTemplate(options.HeaderTemplate, number, endNumber);
+                var headerTextWidth = EstimateTextWidth(headerText, options.FontSize, font);
+                var headerX = ResolveAlignedX(page.Width, options.MarginX, headerTextWidth, options.HeaderAlignment);
+                var headerY = page.Height - options.HeaderTopMargin;
+
+                page.DrawText(headerText, headerX, headerY, new PdfDrawTextOptions
+                {
+                    FontSize = options.FontSize,
+                    Font = font,
+                    FillColor = options.FillColor
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.FooterTemplate))
+            {
+                var footerText = ResolveTemplate(options.FooterTemplate, number, endNumber);
+                var footerTextWidth = EstimateTextWidth(footerText, options.FontSize, font);
+                var footerX = ResolveAlignedX(page.Width, options.MarginX, footerTextWidth, options.FooterAlignment);
+
+                page.DrawText(footerText, footerX, options.FooterY, new PdfDrawTextOptions
+                {
+                    FontSize = options.FontSize,
+                    Font = font,
+                    FillColor = options.FillColor
+                });
+            }
+        }
+    }
+
+    public void Save(string filePath)
+    {
+        Save(filePath, PdfSaveOptions.Default);
+    }
+
+    public void Save(string filePath, PdfSaveOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        File.WriteAllBytes(filePath, ToBytes(options));
+    }
+
+    public void Save(Stream stream, PdfSaveOptions? options = null)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+
+        if (!stream.CanWrite)
+        {
+            throw new ArgumentException("Target stream must be writable.", nameof(stream));
+        }
+
+        var bytes = ToBytes(options);
+        stream.Write(bytes, 0, bytes.Length);
+    }
+
+    public byte[] ToBytes(PdfSaveOptions? options = null)
+    {
+        options ??= PdfSaveOptions.Default;
+        var writer = new PdfWriter();
+        var result = writer.Write(this, options);
+
+        _lastDiagnostics = options.CollectDiagnostics
+            ? result.Diagnostics
+            : null;
+
+        return result.Bytes;
+    }
+
+    private static double ResolveAlignedX(double pageWidth, double marginX, double textWidth, PdfTextAlignment alignment)
+    {
+        var x = alignment switch
+        {
+            PdfTextAlignment.Left or PdfTextAlignment.Justify => marginX,
+            PdfTextAlignment.Center => (pageWidth - textWidth) / 2,
+            PdfTextAlignment.Right => pageWidth - marginX - textWidth,
+            _ => throw new ArgumentOutOfRangeException(nameof(alignment), "Unsupported text alignment.")
+        };
+
+        return x < 0 ? 0 : x;
+    }
+
+    private static PdfStandardFont ResolvePageNumberFont(PdfPage page, PdfPageNumberOptions options)
+    {
+        return options.Font
+            ?? (options.FontFamily is { } family
+                ? PdfStandardFonts.FromStyle(family, options.Bold, options.Italic)
+                : page.DefaultFont);
+    }
+
+    private static void ValidateWatermarkPageFilters(PdfWatermarkOptions options)
+    {
+        if (options.StartPageNumber is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "StartPageNumber must be greater than zero when provided.");
+        }
+
+        if (options.EndPageNumber is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "EndPageNumber must be greater than zero when provided.");
+        }
+
+        if (options.StartPageNumber is { } start && options.EndPageNumber is { } end && start > end)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "StartPageNumber cannot be greater than EndPageNumber.");
+        }
+
+        if (options.IncludePageNumbers is { } includes)
+        {
+            foreach (var page in includes)
+            {
+                if (page <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(options), "IncludePageNumbers values must be greater than zero.");
+                }
+            }
+        }
+
+        if (options.ExcludePageNumbers is { } excludes)
+        {
+            foreach (var page in excludes)
+            {
+                if (page <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(options), "ExcludePageNumbers values must be greater than zero.");
+                }
+            }
+        }
+    }
+
+    private bool ShouldRenderWatermarkForPage(PdfPage page, int pageNumber, PdfWatermarkOptions options)
+    {
+        if (options.SkipFirstPage && pageNumber == 1)
+        {
+            return false;
+        }
+
+        if (options.SkipLastPage && pageNumber == _pages.Count)
+        {
+            return false;
+        }
+
+        if (options.ExcludeTableOfContentsPages && _tableOfContentsPages.Contains(page))
+        {
+            return false;
+        }
+
+        if (options.StartPageNumber is { } start && pageNumber < start)
+        {
+            return false;
+        }
+
+        if (options.EndPageNumber is { } end && pageNumber > end)
+        {
+            return false;
+        }
+
+        if (options.IncludePageNumbers is { Count: > 0 } includes && !includes.Contains(pageNumber))
+        {
+            return false;
+        }
+
+        if (options.ExcludePageNumbers is { Count: > 0 } excludes && excludes.Contains(pageNumber))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void ValidatePageNumberFilters(PdfPageNumberOptions options)
+    {
+        if (options.StartPageNumber is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "StartPageNumber must be greater than zero when provided.");
+        }
+
+        if (options.EndPageNumber is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "EndPageNumber must be greater than zero when provided.");
+        }
+
+        if (options.StartPageNumber is { } start && options.EndPageNumber is { } end && start > end)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "StartPageNumber cannot be greater than EndPageNumber.");
+        }
+
+        if (options.IncludePageNumbers is { } includes)
+        {
+            foreach (var page in includes)
+            {
+                if (page <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(options), "IncludePageNumbers values must be greater than zero.");
+                }
+            }
+        }
+
+        if (options.ExcludePageNumbers is { } excludes)
+        {
+            foreach (var page in excludes)
+            {
+                if (page <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(options), "ExcludePageNumbers values must be greater than zero.");
+                }
+            }
+        }
+    }
+
+    private bool ShouldRenderPageNumber(PdfPage page, int pageNumber, PdfPageNumberOptions options)
+    {
+        if (options.SkipFirstPage && pageNumber == 1)
+        {
+            return false;
+        }
+
+        if (options.SkipLastPage && pageNumber == _pages.Count)
+        {
+            return false;
+        }
+
+        if (options.ExcludeTableOfContentsPages && _tableOfContentsPages.Contains(page))
+        {
+            return false;
+        }
+
+        if (options.StartPageNumber is { } start && pageNumber < start)
+        {
+            return false;
+        }
+
+        if (options.EndPageNumber is { } end && pageNumber > end)
+        {
+            return false;
+        }
+
+        if (options.IncludePageNumbers is { Count: > 0 } includes && !includes.Contains(pageNumber))
+        {
+            return false;
+        }
+
+        if (options.ExcludePageNumbers is { Count: > 0 } excludes && excludes.Contains(pageNumber))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private List<int> GetFilteredHeaderFooterPages(PdfHeaderFooterOptions options)
+    {
+        var pages = new List<int>();
+
+        for (var i = 0; i < _pages.Count; i++)
+        {
+            var pageNumber = i + 1;
+            if (ShouldRenderForPage(_pages[i], pageNumber, options))
+            {
+                pages.Add(pageNumber);
+            }
+        }
+
+        return pages;
+    }
+
+    private List<int> GetFilteredPageNumbers(PdfPageNumberOptions options)
+    {
+        var pages = new List<int>();
+
+        for (var i = 0; i < _pages.Count; i++)
+        {
+            var pageNumber = i + 1;
+            if (ShouldRenderPageNumber(_pages[i], pageNumber, options))
+            {
+                pages.Add(pageNumber);
+            }
+        }
+
+        return pages;
+    }
+
+    private static void ValidateHeaderFooterPageFilters(PdfHeaderFooterOptions options)
+    {
+        if (options.StartPageNumber is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "StartPageNumber must be greater than zero when provided.");
+        }
+
+        if (options.EndPageNumber is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "EndPageNumber must be greater than zero when provided.");
+        }
+
+        if (options.StartPageNumber is { } start && options.EndPageNumber is { } end && start > end)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "StartPageNumber cannot be greater than EndPageNumber.");
+        }
+
+        if (options.IncludePageNumbers is { } includes)
+        {
+            foreach (var page in includes)
+            {
+                if (page <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(options), "IncludePageNumbers values must be greater than zero.");
+                }
+            }
+        }
+
+        if (options.ExcludePageNumbers is { } excludes)
+        {
+            foreach (var page in excludes)
+            {
+                if (page <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(options), "ExcludePageNumbers values must be greater than zero.");
+                }
+            }
+        }
+    }
+
+    private bool ShouldRenderForPage(PdfPage page, int pageNumber, PdfHeaderFooterOptions options)
+    {
+        if (options.SkipFirstPage && pageNumber == 1)
+        {
+            return false;
+        }
+
+        if (options.SkipLastPage && pageNumber == _pages.Count)
+        {
+            return false;
+        }
+
+        if (options.ExcludeTableOfContentsPages && _tableOfContentsPages.Contains(page))
+        {
+            return false;
+        }
+
+        if (options.StartPageNumber is { } start && pageNumber < start)
+        {
+            return false;
+        }
+
+        if (options.EndPageNumber is { } end && pageNumber > end)
+        {
+            return false;
+        }
+
+        if (options.IncludePageNumbers is { Count: > 0 } includes && !includes.Contains(pageNumber))
+        {
+            return false;
+        }
+
+        if (options.ExcludePageNumbers is { Count: > 0 } excludes && excludes.Contains(pageNumber))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static PdfStandardFont ResolveWatermarkFont(PdfPage page, PdfWatermarkOptions options)
+    {
+        return options.Font
+            ?? (options.FontFamily is { } family
+                ? PdfStandardFonts.FromStyle(family, options.Bold, options.Italic)
+                : page.DefaultFont);
+    }
+
+    private static PdfStandardFont ResolveHeaderFooterFont(PdfPage page, PdfHeaderFooterOptions options)
+    {
+        return options.Font
+            ?? (options.FontFamily is { } family
+                ? PdfStandardFonts.FromStyle(family, options.Bold, options.Italic)
+                : page.DefaultFont);
+    }
+
+    private static string ResolveTemplate(string template, int number, int total)
+    {
+        return template
+            .Replace("{page}", number.ToString(), StringComparison.Ordinal)
+            .Replace("{total}", total.ToString(), StringComparison.Ordinal);
+    }
+
+    private PdfStandardFont ResolveTableOfContentsFont(PdfTableOfContentsOptions options)
+    {
+        return options.Font
+            ?? (options.FontFamily is { } family
+                ? PdfStandardFonts.FromStyle(family, options.Bold, options.Italic)
+                : DefaultFont);
+    }
+
+    private static string FitTextToWidth(string text, double width, double fontSize, PdfStandardFont font)
+    {
+        if (width <= 0)
+        {
+            return string.Empty;
+        }
+
+        if (EstimateTextWidth(text, fontSize, font) <= width)
+        {
+            return text;
+        }
+
+        const string ellipsis = "...";
+        var ellipsisWidth = EstimateTextWidth(ellipsis, fontSize, font);
+
+        if (ellipsisWidth > width)
+        {
+            return string.Empty;
+        }
+
+        var chars = text.ToCharArray();
+        var length = chars.Length;
+
+        while (length > 0)
+        {
+            var candidate = new string(chars, 0, length) + ellipsis;
+            if (EstimateTextWidth(candidate, fontSize, font) <= width)
+            {
+                return candidate;
+            }
+
+            length--;
+        }
+
+        return ellipsis;
+    }
+
+    private static double EstimateTextWidth(string text, double fontSize, PdfStandardFont font)
+    {
+        var avgCharacterWidthFactor = font switch
+        {
+            PdfStandardFont.Courier or PdfStandardFont.CourierBold or PdfStandardFont.CourierOblique or PdfStandardFont.CourierBoldOblique => 0.6,
+            PdfStandardFont.TimesRoman or PdfStandardFont.TimesBold or PdfStandardFont.TimesItalic or PdfStandardFont.TimesBoldItalic => 0.5,
+            _ => 0.52
+        };
+
+        return text.Length * fontSize * avgCharacterWidthFactor;
+    }
+
+    private static int CalculateTocPageCount(PdfTableOfContentsOptions options, int bookmarkCount)
+    {
+        var usableHeight = options.PageHeight - options.MarginTop - options.MarginBottom - options.TitleFontSize - options.EntryLineHeight;
+
+        if (usableHeight <= 0)
+        {
+            return 1;
+        }
+
+        var rowsPerPage = Math.Max(1, (int)Math.Floor(usableHeight / options.EntryLineHeight));
+        return Math.Max(1, (int)Math.Ceiling(bookmarkCount / (double)rowsPerPage));
+    }
+}

@@ -1,0 +1,102 @@
+{
+  "id": "sample-003",
+  "name": "Multipage Shared Elements",
+  "category": "fidelity",
+  "pages": [
+    {
+      "id": "p1",
+      "elements": [
+        {
+          "id": "p1-title",
+          "type": "text",
+          "x": 60,
+          "y": 80,
+          "width": 450,
+          "height": 32,
+          "content": "Page 1: Contract Summary",
+          "style": {
+            "fontSize": 18,
+            "fontWeight": "bold",
+            "color": "#111827"
+          }
+        },
+        {
+          "id": "p1-field",
+          "type": "field",
+          "x": 60,
+          "y": 140,
+          "width": 320,
+          "height": 56,
+          "fieldLabel": "Client Name",
+          "required": true,
+          "style": {
+            "borderColor": "#94a3b8",
+            "backgroundColor": "#f8fafc"
+          }
+        }
+      ]
+    },
+    {
+      "id": "p2",
+      "elements": [
+        {
+          "id": "p2-title",
+          "type": "text",
+          "x": 60,
+          "y": 80,
+          "width": 450,
+          "height": 32,
+          "content": "Page 2: Approval",
+          "style": {
+            "fontSize": 18,
+            "fontWeight": "bold",
+            "color": "#111827"
+          }
+        },
+        {
+          "id": "p2-sign",
+          "type": "signature",
+          "x": 60,
+          "y": 160,
+          "width": 340,
+          "height": 60,
+          "signatureLabel": "Authorized Signature"
+        },
+        {
+          "id": "p2-page-num",
+          "type": "pagenumber",
+          "x": 260,
+          "y": 790,
+          "width": 80,
+          "height": 20
+        }
+      ]
+    }
+  ],
+  "sharedElements": [
+    {
+      "id": "shared-footer",
+      "type": "text",
+      "x": 60,
+      "y": 810,
+      "width": 480,
+      "height": 20,
+      "content": "CONFIDENTIAL",
+      "style": {
+        "fontSize": 10,
+        "textAlign": "center",
+        "color": "#64748b"
+      }
+    }
+  ],
+  "pageSettings": {
+    "width": 595,
+    "height": 842,
+    "orientation": "portrait",
+    "metadata": {
+      "title": "Multipage Shared Elements",
+      "author": "Canvas",
+      "subject": "Word PDF fidelity sample"
+    }
+  }
+}

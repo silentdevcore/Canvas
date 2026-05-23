@@ -1,0 +1,11 @@
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/Canvas.Importer.GeneratedMSBuildEditorConfig.editorconfig
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/Canvas.Importer.AssemblyInfoInputs.cache
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/Canvas.Importer.AssemblyInfo.cs
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/Canvas.Importer.csproj.CoreCompileInputs.cache
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/bin/Debug/net10.0/Canvas.Importer.deps.json
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/bin/Debug/net10.0/Canvas.Importer.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/bin/Debug/net10.0/Canvas.Importer.pdb
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/Canvas.Importer.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/refint/Canvas.Importer.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/Canvas.Importer.pdb
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/ref/Canvas.Importer.dll

@@ -1,0 +1,10 @@
+/* UI Designer — stylesheet aggregator
+   Each file is self-contained; order matters for the cascade. */
+
+@import './variables.css';
+@import './base.css';
+@import './home.css';
+@import './editor.css';
+@import './gallery.css';
+@import './docs.css';
+@import './modals.css';

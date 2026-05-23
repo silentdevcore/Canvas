@@ -1,0 +1,22 @@
+﻿namespace Canvas.Pdf;
+
+public sealed class PdfFlowOptions
+{
+    public static PdfFlowOptions Default { get; } = new();
+
+    public double MarginLeft { get; init; } = 40;
+
+    public double MarginRight { get; init; } = 40;
+
+    public double MarginTop { get; init; } = 40;
+
+    public double MarginBottom { get; init; } = 40;
+
+    public double ParagraphSpacing { get; init; } = 12;
+
+    public double LineSpacing { get; init; } = 6;
+
+    public double PageWidth { get; init; } = PdfPageSizes.A4Width;
+
+    public double PageHeight { get; init; } = PdfPageSizes.A4Height;
+}

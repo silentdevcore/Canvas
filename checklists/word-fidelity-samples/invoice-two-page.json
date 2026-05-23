@@ -1,0 +1,108 @@
+{
+  "id": "sample-007",
+  "name": "Invoice Two Page",
+  "category": "fidelity",
+  "pages": [
+    {
+      "id": "p1",
+      "elements": [
+        {
+          "id": "inv-title",
+          "type": "text",
+          "x": 44,
+          "y": 34,
+          "width": 520,
+          "height": 34,
+          "content": "Invoice 2026-0519",
+          "style": { "fontSize": 24, "fontWeight": "700", "color": "#0f172a" }
+        },
+        {
+          "id": "inv-meta",
+          "type": "text",
+          "x": 44,
+          "y": 78,
+          "width": 520,
+          "height": 24,
+          "content": "Customer: Acme GmbH",
+          "style": { "fontSize": 12, "color": "#334155" }
+        },
+        {
+          "id": "inv-table",
+          "type": "table",
+          "x": 44,
+          "y": 128,
+          "width": 520,
+          "height": 300,
+          "headerRow": true,
+          "headerBgColor": "#e2e8f0",
+          "zebraEnabled": true,
+          "zebraColor": "#f8fafc",
+          "columnWidths": [260, 80, 80, 100],
+          "columnAlignments": ["left", "center", "right", "right"],
+          "cellData": [
+            ["Description", "Qty", "Unit", "Total"],
+            ["Consulting", "12", "120.00", "1440.00"],
+            ["Implementation", "8", "140.00", "1120.00"],
+            ["Support", "5", "95.00", "475.00"],
+            ["Subtotal", "-", "-", "3035.00"],
+            ["VAT 19%", "-", "-", "576.65"],
+            ["Grand Total", "-", "-", "3611.65"]
+          ],
+          "style": { "borderWidth": 1, "borderColor": "#334155" }
+        }
+      ]
+    },
+    {
+      "id": "p2",
+      "elements": [
+        {
+          "id": "terms-title",
+          "type": "text",
+          "x": 44,
+          "y": 44,
+          "width": 520,
+          "height": 28,
+          "content": "Terms and Notes",
+          "style": { "fontSize": 18, "fontWeight": "700", "color": "#0f172a" }
+        },
+        {
+          "id": "terms-rich",
+          "type": "richtext",
+          "x": 44,
+          "y": 88,
+          "width": 520,
+          "height": 220,
+          "htmlContent": "<p>Payment due within <strong>14 days</strong>.</p><p>Bank transfer only.</p><p>Thank you for your business.</p>",
+          "style": { "fontSize": 12, "lineHeight": 1.4, "color": "#1f2937" }
+        },
+        {
+          "id": "inv-sign",
+          "type": "signature",
+          "x": 44,
+          "y": 370,
+          "width": 300,
+          "height": 50,
+          "signatureLabel": "Authorized by"
+        }
+      ]
+    }
+  ],
+  "sharedElements": [
+    {
+      "id": "invoice-footer",
+      "type": "text",
+      "x": 44,
+      "y": 812,
+      "width": 520,
+      "height": 16,
+      "content": "Acme GmbH - Berlin",
+      "style": { "fontSize": 9, "textAlign": "center", "color": "#64748b" }
+    }
+  ],
+  "pageSettings": {
+    "width": 595,
+    "height": 842,
+    "orientation": "portrait",
+    "metadata": { "title": "Invoice Two Page", "author": "Canvas" }
+  }
+}

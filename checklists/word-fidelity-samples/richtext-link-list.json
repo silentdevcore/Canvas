@@ -1,0 +1,95 @@
+{
+  "id": "sample-002",
+  "name": "Richtext Link List",
+  "category": "fidelity",
+  "pages": [
+    {
+      "id": "p1",
+      "elements": [
+        {
+          "id": "hero",
+          "type": "richtext",
+          "x": 50,
+          "y": 44,
+          "width": 500,
+          "height": 100,
+          "htmlContent": "<h2>Quarterly Notes</h2><p><strong>Status:</strong> On Track</p><p><em>Owner:</em> Platform Team</p>",
+          "style": {
+            "fontSize": 14,
+            "color": "#0f172a",
+            "lineHeight": 1.35
+          }
+        },
+        {
+          "id": "link1",
+          "type": "link",
+          "x": 50,
+          "y": 160,
+          "width": 300,
+          "height": 24,
+          "content": "Open Release Plan",
+          "href": "https://example.com/releases/q2",
+          "style": {
+            "fontSize": 12,
+            "textAlign": "left",
+            "fontFamily": "Calibri"
+          }
+        },
+        {
+          "id": "link2",
+          "type": "link",
+          "x": 50,
+          "y": 190,
+          "width": 300,
+          "height": 24,
+          "content": "Internal Board",
+          "href": "/internal/board",
+          "style": {
+            "fontSize": 12,
+            "textAlign": "left"
+          }
+        },
+        {
+          "id": "opts",
+          "type": "optionlist",
+          "x": 50,
+          "y": 240,
+          "width": 300,
+          "height": 120,
+          "ordered": true,
+          "listStyle": "decimal",
+          "options": ["Finalize scope", "Review budget", "Publish update"],
+          "style": {
+            "fontSize": 12,
+            "color": "#111827"
+          }
+        },
+        {
+          "id": "note",
+          "type": "note",
+          "x": 370,
+          "y": 160,
+          "width": 180,
+          "height": 200,
+          "noteTitle": "Reminder",
+          "noteBody": "Confirm legal review before customer release.",
+          "style": {
+            "backgroundColor": "#fef3c7",
+            "color": "#78350f"
+          }
+        }
+      ]
+    }
+  ],
+  "sharedElements": [],
+  "pageSettings": {
+    "width": 595,
+    "height": 842,
+    "orientation": "portrait",
+    "metadata": {
+      "title": "Richtext Link List",
+      "author": "Canvas",
+      "subject": "Word PDF fidelity sample"
+    }
+  }
+}

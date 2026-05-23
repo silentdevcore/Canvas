@@ -1,0 +1,3 @@
+﻿global using PdfPoint = Canvas.Core.Primitives.PdfPoint;
+global using PdfTextAlignment = Canvas.Core.Primitives.PdfTextAlignment;
+global using PdfVerticalAlignment = Canvas.Core.Primitives.PdfVerticalAlignment;

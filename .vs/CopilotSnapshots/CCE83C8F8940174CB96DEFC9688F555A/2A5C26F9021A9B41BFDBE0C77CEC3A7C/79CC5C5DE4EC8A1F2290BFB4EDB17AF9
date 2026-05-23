@@ -1,0 +1,76 @@
+﻿# Canvas.Pdf
+
+A minimal, extensible PDF generation engine built in C# (.NET 10), without external PDF libraries.
+
+## Features
+
+- Create PDF documents and multiple pages
+- Draw text with standard fonts
+- Add document-level page numbers (`AddPageNumbers`)
+- Add document-level headers/footers (`AddHeadersAndFooters`)
+- Filter header/footer application by page range or include/exclude lists
+- Use flow layout with margins and cursor (`CreateFlow`) including flow bookmarks and image helpers
+- Draw simple tables (`DrawSimpleTable`) with flow-mode auto pagination, weighted columns, alternating fills, and wrapped cells/auto row height
+- Configure per-column table text alignment (`ColumnAlignments`)
+- Configure per-column table value formatting (`ColumnValueFormatters`)
+- Customize table border rendering (outer/inner lines, color, width)
+- Paragraph rendering with wrapping and alignment (`Left`, `Center`, `Right`, `Justify`)
+- Draw vector primitives (`Line`, `Rectangle`, `RoundedRectangle`, `Circle`, `Polygon`, `BezierCurve`)
+- Configure stroke style (`PdfStrokeStyle`) for dashed lines, line caps, and line joins
+- Draw images (`PNG`, `JPEG`) including PNG transparency (alpha)
+- Preserve aspect ratio with image layout helpers (`DrawImageScaledToWidth`, `DrawImageScaledToHeight`, `DrawImageFit`, `DrawImageFitCenter`)
+- Add clickable links (`AddWebLink`, `AddPageLink`)
+- Add named destinations/anchor links (`AddNamedDestination`, `AddNamedDestinationLink`)
+- Add document bookmarks/outlines (`AddBookmark`)
+- Generate linked table of contents pages (`AddTableOfContents`)
+- Insert TOC at end or beginning (`PdfTableOfContentsPlacement`)
+- Optional content stream compression on save (`PdfSaveOptions`)
+- Export to file, stream, or byte array (`Save`, `Save(Stream, ...)`, `ToBytes`)
+- Add document-wide text watermarks (`AddTextWatermark`)
+- Color support:
+  - RGB (`PdfColor`)
+  - Grayscale (`PdfGrayColor`)
+  - CMYK (`PdfCmykColor`)
+- Document metadata (`Title`, `Author`, `Subject`, etc.)
+
+## Quick Start
+
+```csharp
+using Canvas.Pdf;
+
+var doc = new PdfDocument(defaultFont: PdfStandardFonts.FromStyle(PdfFontFamily.Times));
+doc.Info.Title = "Hello Canvas.Pdf";
+
+var page = doc.AddPage();
+page.DrawText("Hello World", x: 100, y: 700, fontSize: 14);
+page.DrawImage("logo.png", x: 100, y: 620, width: 120, height: 80);
+
+doc.Save("output.pdf");
+```
+
+## Demo
+
+Run the included console demo:
+
+```powershell
+dotnet run --project Canvas/Canvas.csproj
+```
+
+The output file is generated at:
+`Canvas/bin/Debug/net10.0/output.pdf`
+
+## Documentation
+
+See full technical documentation:
+
+- [TECHNICAL_DOCUMENTATION.md](TECHNICAL_DOCUMENTATION.md)
+
+## Project Structure
+
+- `Pdf/` → public API + core model + renderer + serializer
+- `Program.cs` → usage demo
+- `TECHNICAL_DOCUMENTATION.md` → full usage and API guide
+
+## Notes
+
+This project is a foundation for a reusable PDF DLL. It currently focuses on minimal correctness and extensibility.

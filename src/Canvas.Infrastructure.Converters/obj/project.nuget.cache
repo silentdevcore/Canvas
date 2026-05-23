@@ -1,0 +1,58 @@
+{
+  "version": 2,
+  "dgSpecHash": "pn9vBHRVERU=",
+  "success": true,
+  "projectFilePath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj",
+  "expectedPackageFiles": [
+    "/Users/mannheimer/.nuget/packages/bcrypt.net-next/4.0.3/bcrypt.net-next.4.0.3.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/bouncycastle.cryptography/2.6.2/bouncycastle.cryptography.2.6.2.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/enums.net/5.0.0/enums.net.5.0.0.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/extendednumerics.bigdecimal/2025.1001.2.129/extendednumerics.bigdecimal.2025.1001.2.129.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/mathnet.numerics.signed/5.0.0/mathnet.numerics.signed.5.0.0.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/microsoft.build.tasks.git/8.0.0/microsoft.build.tasks.git.8.0.0.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/microsoft.io.recyclablememorystream/3.0.1/microsoft.io.recyclablememorystream.3.0.1.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/microsoft.sourcelink.common/8.0.0/microsoft.sourcelink.common.8.0.0.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/microsoft.sourcelink.github/8.0.0/microsoft.sourcelink.github.8.0.0.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/npoi/2.8.0/npoi.2.8.0.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/pdftosvg.net/1.8.0/pdftosvg.net.1.8.0.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/sharpziplib/1.4.2/sharpziplib.1.4.2.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/skiasharp/3.119.2/skiasharp.3.119.2.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/skiasharp.nativeassets.linux.nodependencies/3.119.2/skiasharp.nativeassets.linux.nodependencies.3.119.2.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/skiasharp.nativeassets.macos/3.119.2/skiasharp.nativeassets.macos.3.119.2.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/skiasharp.nativeassets.win32/3.119.2/skiasharp.nativeassets.win32.3.119.2.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/system.security.cryptography.pkcs/8.0.1/system.security.cryptography.pkcs.8.0.1.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/system.security.cryptography.xml/8.0.2/system.security.cryptography.xml.8.0.2.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/uglytoad.pdfpig/1.7.0-custom-5/uglytoad.pdfpig.1.7.0-custom-5.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/uglytoad.pdfpig.core/1.7.0-custom-5/uglytoad.pdfpig.core.1.7.0-custom-5.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/uglytoad.pdfpig.fonts/1.7.0-custom-5/uglytoad.pdfpig.fonts.1.7.0-custom-5.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/uglytoad.pdfpig.tokenization/1.7.0-custom-5/uglytoad.pdfpig.tokenization.1.7.0-custom-5.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/uglytoad.pdfpig.tokens/1.7.0-custom-5/uglytoad.pdfpig.tokens.1.7.0-custom-5.nupkg.sha512",
+    "/Users/mannheimer/.nuget/packages/zstring/2.6.0/zstring.2.6.0.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'System.Security.Cryptography.Xml' 8.0.2 has a known high severity vulnerability, https://github.com/advisories/GHSA-37gx-xxp4-5rgx",
+      "projectPath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj",
+      "warningLevel": 1,
+      "filePath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj",
+      "libraryId": "System.Security.Cryptography.Xml",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'System.Security.Cryptography.Xml' 8.0.2 has a known high severity vulnerability, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf",
+      "projectPath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj",
+      "warningLevel": 1,
+      "filePath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj",
+      "libraryId": "System.Security.Cryptography.Xml",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
+}

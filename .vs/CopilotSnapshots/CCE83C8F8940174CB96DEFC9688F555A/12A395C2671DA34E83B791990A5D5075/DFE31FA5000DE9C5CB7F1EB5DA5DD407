@@ -1,0 +1,288 @@
+﻿# Canvas.Pdf Technical Documentation
+
+## 1. Overview
+`Canvas.Pdf` is a lightweight PDF generation API for .NET 10.
+
+It supports:
+- Multi-page documents
+- Text rendering (standard Type1 fonts)
+- Paragraph layout (wrap + alignment + justify)
+- Vector primitives (line, rectangle)
+- Image rendering (`PNG`, `JPEG`)
+- Document metadata (`Title`, `Author`, etc.)
+- Multiple color spaces (RGB, Gray, CMYK)
+
+Output is written as a valid PDF file directly (no external PDF library).
+
+---
+
+## 2. Quick Start
+
+```csharp
+using Canvas.Pdf;
+
+var document = new PdfDocument(defaultFont: PdfStandardFonts.FromStyle(PdfFontFamily.Times));
+var page = document.AddPage();
+
+page.DrawText("Hello PDF", x: 100, y: 700, fontSize: 14);
+
+document.Save("output.pdf");
+```
+
+---
+
+## 3. Core Concepts
+
+### 3.1 Document
+Use `PdfDocument` as the root object.
+
+```csharp
+var document = new PdfDocument();
+document.Info.Title = "My Document";
+```
+
+Key members:
+- `DefaultFont` – default font for newly added pages
+- `Info` – metadata container (`Title`, `Author`, `Subject`, `Keywords`, `Creator`, `Producer`)
+- `AddPage(width, height)` – creates page (defaults to A4)
+- `Save(filePath)` – writes PDF bytes to disk
+
+### 3.2 Page
+Use `PdfPage` to draw content.
+
+Coordinates are in PDF points (1/72 inch).
+- Origin is bottom-left
+- X increases rightward
+- Y increases upward
+
+---
+
+## 4. Page Size
+
+A4 constants are available in `PdfPageSizes`:
+- `PdfPageSizes.A4Width = 595`
+- `PdfPageSizes.A4Height = 842`
+
+Example custom page:
+
+```csharp
+var page = document.AddPage(width: 612, height: 792); // Letter size
+```
+
+---
+
+## 5. Text Rendering
+
+### 5.1 Basic text
+
+```csharp
+page.DrawText("Hello", x: 100, y: 700, fontSize: 12);
+```
+
+### 5.2 Font by family + style
+
+```csharp
+page.DrawText("Header", x: 100, y: 740, fontSize: 18, fontFamily: PdfFontFamily.Helvetica, bold: true);
+```
+
+### 5.3 Advanced text options
+
+```csharp
+page.DrawText("Colored text", x: 100, y: 680, new PdfDrawTextOptions
+{
+    FontSize = 12,
+    FontFamily = PdfFontFamily.Times,
+    Italic = true,
+    FillColor = new PdfGrayColor(0.2)
+});
+```
+
+`PdfDrawTextOptions`:
+- `FontSize`
+- `Font` (explicit `PdfStandardFont`)
+- `FontFamily` + `Bold` + `Italic`
+- `FillColor` (`IPdfColor`)
+
+Font resolution order:
+1. `Font`
+2. `FontFamily` + style flags
+3. `PdfPage.DefaultFont`
+
+---
+
+## 6. Paragraph Layout
+
+Use `DrawParagraph` for wrapping/alignment inside a width box.
+
+```csharp
+var result = page.DrawParagraph(
+    "This text wraps automatically within maxWidth.",
+    x: 100,
+    y: 620,
+    maxWidth: 360,
+    new PdfParagraphOptions
+    {
+        FontSize = 12,
+        Alignment = PdfTextAlignment.Justify,
+        LineHeight = 16,
+        FillColor = new PdfColor(0.1, 0.1, 0.1)
+    });
+```
+
+`PdfParagraphOptions`:
+- `FontSize`
+- `LineHeight` (optional, default = `FontSize * 1.2`)
+- `Alignment`: `Left`, `Center`, `Right`, `Justify`
+- `Font`, `FontFamily`, `Bold`, `Italic`
+- `FillColor`
+
+`DrawParagraph` returns `PdfParagraphLayoutResult`:
+- `TopY`, `BottomY`, `Height`, `Width`, `LineCount`
+
+This is useful for stacking layout blocks.
+
+---
+
+## 7. Vector Drawing
+
+### 7.1 Line
+
+```csharp
+page.DrawLine(80, 680, 500, 680, lineWidth: 1.2, strokeColor: new PdfColor(0.1, 0.2, 0.5));
+```
+
+### 7.2 Rectangle
+
+```csharp
+page.DrawRectangle(
+    x: 80,
+    y: 620,
+    width: 420,
+    height: 80,
+    lineWidth: 1,
+    fill: true,
+    strokeColor: PdfColor.Gray,
+    fillColor: new PdfCmykColor(0.2, 0, 0, 0));
+```
+
+---
+
+## 8. Color System
+
+All colors use `IPdfColor`.
+
+Implementations:
+- `PdfColor` (RGB, components 0..1)
+- `PdfGrayColor` (grayscale, 0..1)
+- `PdfCmykColor` (CMYK, each 0..1)
+
+Examples:
+
+```csharp
+IPdfColor rgb = new PdfColor(0.1, 0.2, 0.5);
+IPdfColor gray = new PdfGrayColor(0.35);
+IPdfColor cmyk = new PdfCmykColor(0.2, 0.1, 0, 0.05);
+```
+
+---
+
+## 9. Images
+
+Use `DrawImage` to place PNG or JPEG images.
+
+```csharp
+page.DrawImage("assets/logo.png", x: 100, y: 500);
+page.DrawImage("assets/photo.jpg", x: 260, y: 500, width: 180, height: 120);
+
+var fit = page.DrawImageFit("assets/hero.png", x: 100, y: 320, maxWidth: 240, maxHeight: 140);
+var centered = page.DrawImageFitCenter("assets/icon.png", x: 360, y: 320, maxWidth: 120, maxHeight: 120);
+page.DrawImageScaledToWidth("assets/banner.png", x: 360, y: 320, width: 180);
+```
+
+Behavior:
+- If `width`/`height` are omitted, intrinsic pixel dimensions are used as PDF points.
+- Aspect helpers preserve ratio:
+  - `DrawImageScaledToWidth(...)`
+  - `DrawImageScaledToHeight(...)`
+  - `DrawImageFit(...)`
+  - `DrawImageFitCenter(...)` (fit + centered in bounding box)
+- Supported formats:
+  - JPEG (`DCTDecode`)
+  - PNG, non-interlaced, 8-bit grayscale/RGB, with optional alpha (`FlateDecode` + PNG predictor)
+- PNG alpha is mapped to PDF soft mask (`/SMask`).
+- Unsupported PNG variants (palette/interlaced) throw `NotSupportedException`.
+
+---
+
+## 10. Metadata
+
+Set document info through `PdfDocument.Info`:
+
+```csharp
+document.Info.Title = "Invoice 2026-001";
+document.Info.Author = "Accounting Service";
+document.Info.Subject = "Invoice";
+document.Info.Keywords = "invoice,billing";
+document.Info.Creator = "Canvas.Pdf";
+document.Info.Producer = ".NET 10 PDF Engine";
+```
+
+---
+
+## 11. End-to-End Example
+
+```csharp
+using Canvas.Pdf;
+
+var doc = new PdfDocument(defaultFont: PdfStandardFonts.FromStyle(PdfFontFamily.Times));
+doc.Info.Title = "Canvas.Pdf Example";
+
+var page = doc.AddPage();
+page.DrawRectangle(80, 640, 430, 90, fill: true, strokeColor: new PdfColor(0.1, 0.2, 0.5), fillColor: new PdfColor(0.92, 0.95, 1));
+page.DrawText("Hello World", 100, 700, new PdfDrawTextOptions
+{
+    FontSize = 18,
+    FontFamily = PdfFontFamily.Helvetica,
+    Bold = true,
+    FillColor = new PdfColor(0.1, 0.2, 0.5)
+});
+page.DrawImage("assets/logo.png", x: 100, y: 640, width: 120, height: 80);
+
+var p = page.DrawParagraph(
+    "This is wrapped and justified paragraph text generated directly by Canvas.Pdf.",
+    x: 100,
+    y: 620,
+    maxWidth: 360,
+    new PdfParagraphOptions
+    {
+        FontSize = 12,
+        Alignment = PdfTextAlignment.Justify,
+        LineHeight = 16
+    });
+
+page.DrawText($"Lines: {p.LineCount}", 100, p.BottomY - 20, fontSize: 10, fontFamily: PdfFontFamily.Courier);
+
+doc.Save("output.pdf");
+```
+
+---
+
+## 12. Validation & Error Notes
+
+Common validations:
+- Empty text throws `ArgumentException`
+- Invalid sizes (font size, line width, width/height, maxWidth) throw `ArgumentOutOfRangeException`
+- Color components outside `[0,1]` throw `ArgumentOutOfRangeException`
+
+---
+
+## 13. Current Scope / Limitations
+
+Current API does not yet include:
+- Embedded custom fonts
+- PNG limitations: palette/interlaced images are currently unsupported
+- Bezier paths / complex vector primitives
+- Table/grid layout engine
+- Text measurement by real font metrics (current paragraph width estimate is heuristic)
+
+This is a minimal, extensible foundation intended for iterative expansion.

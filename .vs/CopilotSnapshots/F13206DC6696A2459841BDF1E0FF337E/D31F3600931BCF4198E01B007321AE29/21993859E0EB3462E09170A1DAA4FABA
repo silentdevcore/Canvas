@@ -1,0 +1,12 @@
+﻿import React from 'react';
+
+const Sidebar: React.FC = () => {
+  return (
+    <aside className="sidebar">
+      <h2>Elements</h2>
+      {/* Elements will be listed here */}
+    </aside>
+  );
+};
+
+export default Sidebar;

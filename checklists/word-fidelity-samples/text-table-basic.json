@@ -1,0 +1,78 @@
+{
+  "id": "sample-001",
+  "name": "Text Table Basic",
+  "category": "fidelity",
+  "pages": [
+    {
+      "id": "p1",
+      "elements": [
+        {
+          "id": "title",
+          "type": "text",
+          "x": 48,
+          "y": 40,
+          "width": 500,
+          "height": 40,
+          "content": "Invoice Summary",
+          "style": {
+            "fontSize": 24,
+            "fontWeight": "700",
+            "color": "#111827",
+            "textAlign": "left"
+          }
+        },
+        {
+          "id": "subtitle",
+          "type": "text",
+          "x": 48,
+          "y": 88,
+          "width": 500,
+          "height": 24,
+          "content": "Q2 Services",
+          "style": {
+            "fontSize": 14,
+            "fontStyle": "italic",
+            "color": "#4b5563"
+          }
+        },
+        {
+          "id": "tbl1",
+          "type": "table",
+          "x": 48,
+          "y": 140,
+          "width": 500,
+          "height": 220,
+          "headerRow": true,
+          "headerBgColor": "#e2e8f0",
+          "zebraEnabled": true,
+          "zebraColor": "#f8fafc",
+          "columnWidths": [180, 160, 160],
+          "columnAlignments": ["left", "center", "right"],
+          "cellData": [
+            ["Item", "Hours", "Amount"],
+            ["Design", "14", "$1,400.00"],
+            ["Development", "38", "$5,700.00"],
+            ["QA", "11", "$1,210.00"],
+            ["Total", "63", "$8,310.00"]
+          ],
+          "style": {
+            "borderWidth": 1,
+            "borderColor": "#334155"
+          }
+        }
+      ]
+    }
+  ],
+  "sharedElements": [],
+  "pageSettings": {
+    "width": 595,
+    "height": 842,
+    "orientation": "portrait",
+    "backgroundColor": "#ffffff",
+    "metadata": {
+      "title": "Text Table Basic",
+      "author": "Canvas",
+      "subject": "Word PDF fidelity sample"
+    }
+  }
+}

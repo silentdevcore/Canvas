@@ -1,0 +1,24 @@
+﻿using Canvas.Pdf.Serialization;
+
+namespace Canvas.Pdf;
+
+public sealed class PdfDocument
+{
+    private readonly List<PdfPage> _pages = new();
+
+    public IReadOnlyList<PdfPage> Pages => _pages;
+
+    public PdfPage AddPage(double width = PdfPageSizes.A4Width, double height = PdfPageSizes.A4Height)
+    {
+        var page = new PdfPage(width, height);
+        _pages.Add(page);
+        return page;
+    }
+
+    public void Save(string filePath)
+    {
+        var writer = new PdfWriter();
+        var bytes = writer.Write(this);
+        File.WriteAllBytes(filePath, bytes);
+    }
+}

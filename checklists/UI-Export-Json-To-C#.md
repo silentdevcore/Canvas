@@ -1,0 +1,181 @@
+# UI Export: JSON ↔ C# Code Round-Trip Analysis
+
+## Problem
+
+When you export a design from the UI as JSON, convert it to C# Code (`jsonToCode`), then convert that C# Code back to JSON (`csharp-code-to-json`), the resulting JSON does not match the original.
+
+This checklist documents every identified mismatch and the fix plan.
+
+---
+
+## Root Cause Analysis
+
+### Bug 1 — Y Coordinate Factor Mismatch ⚠️ HIGH PRIORITY
+
+**Where:** `TemplatesController.cs` → `CsharpCodeToJson` → `TextElement` mapping (line ~560)
+
+**Forward direction (JSON → C# code):**
+```typescript
+// jsonToCode.ts
+function textY(pageH, cssTop, fontSize) {
+  return pageH - cssTop - fontSize * 0.72;
+}
+```
+
+**Backward direction (C# code → JSON):**
+```csharp
+// TemplatesController.cs — WRONG
+y = pageH - D("Y") - D("FontSize") * 1.2,
+```
+
+**Error per element:** `fontSize × (1.2 − 0.72) = fontSize × 0.48`
+
+- fontSize=16pt → **7.68pt error** per text element
+- fontSize=12pt → **5.76pt error** per text element
+
+**Fix:** Change `* 1.2` → `* 0.72` in `CsharpCodeToJson` TextElement mapping.
+
+```csharp
+// CORRECT
+y = pageH - D("Y") - D("FontSize") * 0.72,
+```
+
+- [x] Fix Y formula in `TemplatesController.cs` → `TextElement` case
+
+---
+
+### Bug 2 — Color Channel Truncation ⚠️ HIGH PRIORITY
+
+**Where:** `TemplatesController.cs` → `ColorToHex` helper (line ~673)
+
+**Problem:** `(int)(value * 255)` truncates instead of rounding.
+
+**Example:** Color `#111827` (R=17, G=24, B=39)
+- G=24 → stored as `24/255 = 0.09411...` → `(int)(0.09411 * 255) = (int)(23.999...) = 23 = 0x17`
+- Result: `#111727` ← G channel corrupted!
+
+**Fix:** Use `Math.Round` instead of truncation cast.
+
+```csharp
+// WRONG
+return $"#{(int)(r.Value * 255):X2}{(int)(g.Value * 255):X2}{(int)(b.Value * 255):X2}";
+
+// CORRECT
+return $"#{(int)Math.Round(r.Value * 255):X2}{(int)Math.Round(g.Value * 255):X2}{(int)Math.Round(b.Value * 255):X2}";
+```
+
+Same fix needed for the `Gray` branch.
+
+- [x] Fix `(int)(r * 255)` → `(int)Math.Round(r * 255)` in `ColorToHex` (RGB branch)
+- [x] Fix `(int)(gray * 255)` → `(int)Math.Round(gray * 255)` in `ColorToHex` (gray branch)
+
+---
+
+### Bug 3 — TextElement Width/Height Not Preserved ⚠️ MEDIUM PRIORITY
+
+**Where:** `TemplatesController.cs` → `CsharpCodeToJson` → `TextElement` mapping
+
+**Problem:** `Canvas.Pdf.TextElement` does not store element width/height (it draws unbounded text). The backend guesses:
+```csharp
+width  = 200.0,          // hardcoded — always wrong
+height = D("FontSize") * 1.5,  // rough estimate
+```
+
+**Fix options (best to worst):**
+
+1. **Embed metadata as a comment in generated code** (best — lossless):
+   ```csharp
+   // @canvas:meta x=50 y=100 width=300 height=24 type=text
+   page.DrawText("Hello", ...);
+   ```
+   Backend parses the comment before executing script.
+
+2. **Character-count heuristic** (better than 200):
+   ```csharp
+   width = text.Length * fontSize * 0.55,  // approximate char width
+   height = fontSize * 1.4,
+   ```
+
+3. **Accept the limitation** — document it and keep current estimates.
+
+- [x] Decide approach for width/height recovery — character-count heuristic chosen
+- [x] Implement chosen approach — `width = max(text.length * fontSize * 0.55, 50)`, `height = fontSize * 1.4`
+
+---
+
+### Bug 4 — Semantic Type Loss (Fundamental Limitation) ℹ️ KNOWN
+
+**Affected types:** `field`, `checkbox`, `button`, `dropdown`, `optionlist`, `radio`, `signature`
+
+**What happens:** `jsonToCode` decomposes semantic elements into primitive Canvas.Pdf calls:
+- `field` → `DrawRoundedRectangle + DrawText (label) + DrawText (placeholder)`
+- `checkbox` → `DrawRectangle + DrawText (checkmark)`
+- `button` → `DrawRoundedRectangle + DrawText`
+- `dropdown` → `DrawRoundedRectangle + DrawText + DrawText (arrow)`
+- `radio` → `DrawCircle + DrawText`
+- `signature` → `DrawRectangle + DrawLine`
+
+When round-tripped back to JSON, these become multiple separate `rect`/`text`/`circle`/`line` elements — **the original semantic type is permanently lost**.
+
+**This cannot be fixed by improving the backend alone.** Recovery requires the generated code to carry metadata.
+
+**Mitigation plan:**
+
+Option A — **Comment metadata** (recommended):
+```csharp
+// @canvas:type=field id=el-1 label=Name placeholder=Enter name
+page.DrawRoundedRectangle(50, 100, 200, 36, ...);
+page.DrawText("Name", ...);
+page.DrawText("Enter name", ...);
+```
+
+Option B — **Accept limitation, document it** — useful for visual-only preview, not for re-editing.
+
+- [x] Decide on metadata strategy — **accepted as known limitation** (Code mode is for developers; semantic types decompose to drawing primitives by design)
+- [ ] ~~If chosen: update `jsonToCode.ts` to emit `// @canvas:type=...` comments~~
+- [ ] ~~If chosen: update `CsharpCodeToJson` endpoint to parse metadata comments~~
+
+---
+
+### Bug 5 — Missing Element Types in Round-Trip ⚠️ MEDIUM PRIORITY
+
+**Currently mapped in `CsharpCodeToJson`:**
+- ✅ TextElement
+- ✅ RectangleElement
+- ✅ RoundedRectangleElement
+- ✅ LineElement
+- ✅ CircleElement
+
+**Missing (generated by `jsonToCode.ts` but not reverse-mapped):**
+- ❌ ImageElement → type=image
+- ❌ TableElement → type=table
+- ❌ ParagraphElement / RichTextElement → type=richtext
+
+- [x] Add `ImageElement` → `type=image` reverse mapping in `CsharpCodeToJson`
+- [x] `TableElement` does not exist — `DrawSimpleTable` decomposes to `RectangleElement`+`TextElement`s (same semantic-type-loss limitation as Bug 4)
+
+---
+
+## Implementation Order
+
+| Priority | Task | File | Effort |
+|----------|------|------|--------|
+| 1 | Fix Y formula (`* 1.2` → `* 0.72`) | `TemplatesController.cs` | 1 line |
+| 2 | Fix color truncation (Math.Round) | `TemplatesController.cs` | 2 lines |
+| 3 | Add missing element type mappings (Image, Table) | `TemplatesController.cs` | ~30 lines |
+| 4 | Improve TextElement width estimation | `TemplatesController.cs` | ~5 lines |
+| 5 | Decide & implement metadata strategy for semantic types | `jsonToCode.ts` + `TemplatesController.cs` | Large |
+
+---
+
+## Test Plan
+
+After fixes 1–2:
+- Export any text-heavy design from UI → C# Code → JSON → compare Y positions and colors
+- Expected: Y positions match within ±0.5pt, all hex colors identical
+
+After fix 3:
+- Create a design with image elements → round-trip → verify `type=image` in output JSON
+
+After fix 5 (if metadata chosen):
+- Create a design with field+checkbox+button → round-trip → verify semantic types preserved

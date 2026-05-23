@@ -1,0 +1,1 @@
+var t=t=>{let e;const n=new Set,s=(t,s)=>{const a="function"==typeof t?t(e):t;if(!Object.is(a,e)){const t=e;e=(null!=s?s:"object"!=typeof a||null===a)?a:Object.assign({},e,a),n.forEach(n=>n(e,t))}},a=()=>e,c={setState:s,getState:a,getInitialState:()=>o,subscribe:t=>(n.add(t),()=>n.delete(t))},o=e=t(s,a,c);return c},e=e=>e?t(e):t;export{e as t};

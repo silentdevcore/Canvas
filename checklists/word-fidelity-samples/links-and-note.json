@@ -1,0 +1,77 @@
+{
+  "id": "sample-005",
+  "name": "Links and Note",
+  "category": "fidelity",
+  "pages": [
+    {
+      "id": "p1",
+      "elements": [
+        {
+          "id": "headline",
+          "type": "text",
+          "x": 52,
+          "y": 52,
+          "width": 460,
+          "height": 32,
+          "content": "Release Checklist",
+          "style": {
+            "fontSize": 18,
+            "fontWeight": "700",
+            "color": "#111827"
+          }
+        },
+        {
+          "id": "l1",
+          "type": "link",
+          "x": 52,
+          "y": 108,
+          "width": 420,
+          "height": 20,
+          "content": "Deployment runbook",
+          "href": "https://example.com/runbook"
+        },
+        {
+          "id": "l2",
+          "type": "link",
+          "x": 52,
+          "y": 136,
+          "width": 420,
+          "height": 20,
+          "content": "Incident board",
+          "href": "https://example.com/incidents"
+        },
+        {
+          "id": "note1",
+          "type": "note",
+          "x": 52,
+          "y": 176,
+          "width": 460,
+          "height": 120,
+          "noteTitle": "Risk",
+          "noteBody": "Validate rollback package before final approval.",
+          "style": {
+            "backgroundColor": "#fef9c3",
+            "color": "#78350f"
+          }
+        },
+        {
+          "id": "list1",
+          "type": "optionlist",
+          "x": 52,
+          "y": 320,
+          "width": 460,
+          "height": 120,
+          "ordered": false,
+          "listStyle": "disc",
+          "options": ["Backup complete", "Smoke test passed", "Stakeholder sign-off"]
+        }
+      ]
+    }
+  ],
+  "sharedElements": [],
+  "pageSettings": {
+    "width": 595,
+    "height": 842,
+    "orientation": "portrait"
+  }
+}

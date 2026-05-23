@@ -1,0 +1,16 @@
+﻿using Canvas.Pdf;
+
+var document = new PdfDocument(defaultFont: PdfStandardFont.TimesRoman);
+var firstPage = document.AddPage();
+var secondPage = document.AddPage();
+
+firstPage.DrawText("Hello World from a minimal PDF engine", x: 100, y: 700, fontSize: 18, font: PdfStandardFont.HelveticaBold);
+firstPage.DrawText("This line uses the document default font (Times-Roman).", x: 100, y: 670, fontSize: 12);
+
+secondPage.DrawText("Second page", x: 100, y: 700, fontSize: 16, font: PdfStandardFont.CourierBold);
+secondPage.DrawText("Italic sample", x: 100, y: 670, new PdfDrawTextOptions { FontSize = 12, Font = PdfStandardFont.TimesItalic });
+
+var outputPath = Path.Combine(AppContext.BaseDirectory, "output.pdf");
+document.Save(outputPath);
+
+Console.WriteLine($"PDF generated at: {outputPath}");

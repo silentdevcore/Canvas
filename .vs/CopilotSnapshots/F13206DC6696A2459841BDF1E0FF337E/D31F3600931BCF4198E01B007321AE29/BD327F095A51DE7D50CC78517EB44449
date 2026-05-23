@@ -1,0 +1,8 @@
+﻿import React from 'react';
+
+const ElementRenderer: React.FC<{ element: any }> = ({ element }) => {
+  // Render logic will be implemented later
+  return <div>{element.type}</div>;
+};
+
+export default ElementRenderer;

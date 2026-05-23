@@ -1,0 +1,13 @@
+{
+  "test": "Word_Profile_LargeDocument_50Pages_WritesPerfArtifact",
+  "timestampUtc": "2026-05-20T19:41:56.638021Z",
+  "pages": 50,
+  "elapsedMs": 23,
+  "docxBytes": 4703,
+  "managedMemoryBeforeBytes": 7643792,
+  "managedMemoryAfterBytes": 7529384,
+  "managedMemoryDeltaBytes": -114408,
+  "processWorkingSetBeforeBytes": 212328448,
+  "processWorkingSetAfterBytes": 212414464,
+  "processWorkingSetDeltaBytes": 86016
+}

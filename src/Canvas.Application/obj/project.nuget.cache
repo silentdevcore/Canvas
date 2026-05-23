@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "5Lf/04+a8ZA=",
+  "success": true,
+  "projectFilePath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Application/Canvas.Application.csproj",
+  "expectedPackageFiles": [
+    "/Users/mannheimer/.nuget/packages/bcrypt.net-next/4.0.3/bcrypt.net-next.4.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

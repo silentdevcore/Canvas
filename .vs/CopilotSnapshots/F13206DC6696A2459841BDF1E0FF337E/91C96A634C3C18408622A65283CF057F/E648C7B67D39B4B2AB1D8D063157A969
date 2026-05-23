@@ -1,0 +1,29 @@
+﻿export function generateCSharp(elements: Record<string, any>, rootIds: string[]): string {
+  function renderElement(id: string, indent = 2): string {
+    const el = elements[id];
+    if (!el) return '';
+    const pad = ' '.repeat(indent);
+    if (el.type === 'Text') {
+      return `${pad}new TextBlock { Text = \"${el.props.text}\", FontSize = ${el.props.fontSize} }`;
+    }
+    if (el.type === 'Column') {
+      const children = (el.children || []).map((cid: string) => renderElement(cid, indent + 2)).join(',\n');
+      return `${pad}new StackPanel { Orientation = Orientation.Vertical, Children = {\n${children}\n${pad}} }`;
+    }
+    if (el.type === 'Table') {
+      const rows = el.props.rows;
+      const columns = el.props.columns;
+      const data = el.props.data || [];
+      let cells = [];
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < columns; c++) {
+          const value = data[r] && data[r][c] ? data[r][c] : '';
+          cells.push(`${pad}    new TableCell { Content = \"${value}\" }`);
+        }
+      }
+      return `${pad}new Table { Rows = ${rows}, Columns = ${columns}, Cells = {\n${cells.join(',\n')}\n${pad}} }`;
+    }
+    return '';
+  }
+  return `// Generated C# (WPF style)\nvar layout = new StackPanel {\n  Orientation = Orientation.Vertical,\n  Children = {\n${rootIds.map((id) => renderElement(id, 4)).join(',\n')}\n  }\n};`;
+}

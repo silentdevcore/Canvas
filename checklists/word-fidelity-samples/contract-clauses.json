@@ -1,0 +1,61 @@
+{
+  "id": "sample-008",
+  "name": "Contract Clauses",
+  "category": "fidelity",
+  "pages": [
+    {
+      "id": "p1",
+      "elements": [
+        {
+          "id": "title",
+          "type": "text",
+          "x": 56,
+          "y": 44,
+          "width": 480,
+          "height": 34,
+          "content": "Service Agreement",
+          "style": { "fontSize": 22, "fontWeight": "bold", "textAlign": "center", "color": "#111827" }
+        },
+        {
+          "id": "intro",
+          "type": "richtext",
+          "x": 56,
+          "y": 96,
+          "width": 480,
+          "height": 200,
+          "htmlContent": "<p>This agreement is entered between <strong>Client</strong> and <strong>Provider</strong>.</p><p><em>Effective date:</em> 19.05.2026</p><p>Scope includes implementation and maintenance services.</p>",
+          "style": { "fontSize": 12, "lineHeight": 1.5, "color": "#1f2937" }
+        },
+        {
+          "id": "clauses",
+          "type": "optionlist",
+          "x": 56,
+          "y": 320,
+          "width": 480,
+          "height": 180,
+          "ordered": true,
+          "listStyle": "decimal",
+          "options": [
+            "Payment within 14 days of invoice date.",
+            "All deliverables remain confidential.",
+            "Changes require written approval.",
+            "Either party may terminate with 30 days notice."
+          ],
+          "style": { "fontSize": 12, "color": "#111827" }
+        },
+        {
+          "id": "link",
+          "type": "link",
+          "x": 56,
+          "y": 536,
+          "width": 480,
+          "height": 22,
+          "content": "Annex A - Security Requirements",
+          "href": "https://example.com/annex-a"
+        }
+      ]
+    }
+  ],
+  "sharedElements": [],
+  "pageSettings": { "width": 595, "height": 842, "orientation": "portrait" }
+}

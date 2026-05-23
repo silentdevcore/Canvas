@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.3.0" />
+    <PackageReference Include="QRCoder" Version="1.6.0" />
+    <PackageReference Include="ZXing.Net" Version="0.16.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../src/Canvas.Application/Canvas.Application.csproj" />
+    <ProjectReference Include="../src/Canvas.Core/Canvas.Core.csproj" />
+    <ProjectReference Include="../Canvas.Domain/Canvas.Domain.csproj" />
+    <ProjectReference Include="../src/Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj" />
+    <ProjectReference Include="../src/Canvas.Infrastructure.Sheet/Canvas.Infrastructure.Sheet.csproj" />
+    <ProjectReference Include="../src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj" />
+  </ItemGroup>
+
+</Project>

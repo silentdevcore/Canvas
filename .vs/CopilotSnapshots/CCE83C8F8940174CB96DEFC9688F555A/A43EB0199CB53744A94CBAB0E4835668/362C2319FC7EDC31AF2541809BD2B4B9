@@ -1,0 +1,28 @@
+﻿namespace Canvas.Pdf;
+
+public sealed class PdfListOptions
+{
+    public static PdfListOptions Default { get; } = new();
+
+    public bool Ordered { get; init; }
+
+    public string Bullet { get; init; } = "•";
+
+    public double FontSize { get; init; } = 11;
+
+    public double? LineHeight { get; init; }
+
+    public double Indent { get; init; } = 16;
+
+    public double ItemSpacing { get; init; } = 4;
+
+    public PdfStandardFont? Font { get; init; }
+
+    public PdfFontFamily? FontFamily { get; init; }
+
+    public bool Bold { get; init; }
+
+    public bool Italic { get; init; }
+
+    public IPdfColor? FillColor { get; init; }
+}

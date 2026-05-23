@@ -1,0 +1,65 @@
+﻿using Canvas.Pdf.Layout;
+
+namespace Canvas.Pdf;
+
+public sealed class PdfPage
+{
+    private readonly List<TextElement> _elements = new();
+
+    internal PdfPage(double width, double height, PdfStandardFont defaultFont)
+    {
+        Width = width;
+        Height = height;
+        DefaultFont = defaultFont;
+    }
+
+    public double Width { get; }
+
+    public double Height { get; }
+
+    public PdfStandardFont DefaultFont { get; set; }
+
+    internal IReadOnlyList<TextElement> Elements => _elements;
+
+    public void DrawText(string text, double x, double y, double fontSize = 12, PdfStandardFont? font = null)
+    {
+        DrawText(text, x, y, new PdfDrawTextOptions
+        {
+            FontSize = fontSize,
+            Font = font
+        });
+    }
+
+    public void DrawText(string text, double x, double y, double fontSize, PdfFontFamily fontFamily, bool bold = false, bool italic = false)
+    {
+        DrawText(text, x, y, new PdfDrawTextOptions
+        {
+            FontSize = fontSize,
+            FontFamily = fontFamily,
+            Bold = bold,
+            Italic = italic
+        });
+    }
+
+    public void DrawText(string text, double x, double y, PdfDrawTextOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            throw new ArgumentException("Text cannot be null or empty.", nameof(text));
+        }
+
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (options.FontSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Font size must be greater than zero.");
+        }
+
+        var resolvedFont = options.Font
+            ?? (options.FontFamily is { } family
+                ? PdfStandardFonts.FromStyle(family, options.Bold, options.Italic)
+                : DefaultFont);
+
+        _elements.Add(new TextElement(text, x, y, options.FontSize, resolvedFont));
+    }
+}

@@ -1,0 +1,23 @@
+﻿import React from 'react';
+import Sidebar from './Sidebar';
+import Canvas from './Canvas';
+import PropertiesPanel from './PropertiesPanel';
+import JSONPanel from './JSONPanel';
+import CodePanel from './CodePanel';
+import './App.css';
+
+const App: React.FC = () => {
+  return (
+    <div className="ui-designer-layout">
+      <Sidebar />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Canvas />
+        <JSONPanel />
+        <CodePanel />
+      </div>
+      <PropertiesPanel />
+    </div>
+  );
+};
+
+export default App;

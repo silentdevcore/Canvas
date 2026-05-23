@@ -1,0 +1,57 @@
+﻿import create from 'zustand';
+
+export type ElementType = 'Text' | 'Column';
+
+export interface DesignerElement {
+  id: string;
+  type: ElementType;
+  props: Record<string, any>;
+  children?: string[];
+}
+
+interface DesignerState {
+  elements: Record<string, DesignerElement>;
+  rootIds: string[];
+  selectedId: string | null;
+  addElement: (type: ElementType, parentId?: string) => void;
+  selectElement: (id: string | null) => void;
+  updateElementProps: (id: string, props: Record<string, any>) => void;
+}
+
+export const useDesignerStore = create<DesignerState>((set) => ({
+  elements: {},
+  rootIds: [],
+  selectedId: null,
+  addElement: (type, parentId) =>
+    set((state) => {
+      const id = Date.now().toString();
+      const newElement: DesignerElement = {
+        id,
+        type,
+        props: type === 'Text' ? { text: 'Text', fontSize: 16 } : {},
+        children: type === 'Column' ? [] : undefined,
+      };
+      const elements = { ...state.elements, [id]: newElement };
+      let rootIds = state.rootIds;
+      if (parentId && elements[parentId]) {
+        elements[parentId] = {
+          ...elements[parentId],
+          children: [...(elements[parentId].children || []), id],
+        };
+      } else {
+        rootIds = [...state.rootIds, id];
+      }
+      return { elements, rootIds };
+    }),
+  selectElement: (id) => set({ selectedId: id }),
+  updateElementProps: (id, props) =>
+    set((state) => ({
+      elements: {
+        ...state.elements,
+        [id]: {
+          ...state.elements[id],
+          props: { ...state.elements[id].props, ...props },
+        },
+      },
+    })),
+}));

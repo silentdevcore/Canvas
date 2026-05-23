@@ -1,0 +1,12 @@
+﻿using Canvas.Pdf;
+
+var document = new PdfDocument();
+var page = document.AddPage();
+
+page.DrawText("Hello World from a minimal PDF engine", x: 100, y: 700, fontSize: 18);
+page.DrawText("This PDF was generated without external PDF libraries.", x: 100, y: 670, fontSize: 12);
+
+var outputPath = Path.Combine(AppContext.BaseDirectory, "output.pdf");
+document.Save(outputPath);
+
+Console.WriteLine($"PDF generated at: {outputPath}");

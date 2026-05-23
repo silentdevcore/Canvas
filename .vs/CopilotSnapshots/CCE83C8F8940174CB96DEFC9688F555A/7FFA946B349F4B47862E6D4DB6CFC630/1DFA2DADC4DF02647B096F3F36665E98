@@ -1,0 +1,134 @@
+﻿using Canvas.Pdf;
+
+var document = new PdfDocument(defaultFont: PdfStandardFonts.FromStyle(PdfFontFamily.Times));
+document.Info.Title = "Canvas Minimal PDF Demo";
+document.Info.Author = "Canvas.Pdf";
+document.Info.Subject = "Vector drawing and text rendering";
+document.Info.Creator = "Console Demo";
+document.Info.Producer = ".NET 10 Minimal PDF Engine";
+
+var firstPage = document.AddPage();
+var secondPage = document.AddPage();
+
+firstPage.DrawRectangle(x: 80, y: 640, width: 430, height: 90, lineWidth: 1.5, fill: true, strokeColor: new PdfColor(0.1, 0.2, 0.5), fillColor: new PdfColor(0.92, 0.95, 1));
+firstPage.DrawRoundedRectangle(x: 80, y: 590, width: 200, height: 40, cornerRadius: 10, fill: true, strokeColor: new PdfColor(0.1, 0.2, 0.5), fillColor: new PdfGrayColor(0.95));
+firstPage.DrawCircle(centerX: 340, centerY: 610, radius: 20, fill: true, strokeColor: PdfColor.Gray, fillColor: new PdfCmykColor(0.2, 0, 0, 0));
+firstPage.DrawPolygon(
+    new[]
+    {
+        new PdfPoint(420, 630),
+        new PdfPoint(500, 610),
+        new PdfPoint(480, 560),
+        new PdfPoint(410, 570)
+    },
+    fill: true,
+    strokeColor: new PdfColor(0.1, 0.2, 0.5),
+    fillColor: new PdfGrayColor(0.9),
+    strokeStyle: new PdfStrokeStyle { LineWidth = 1.1, DashArray = new[] { 4d, 2d } });
+firstPage.DrawBezierCurve(
+    start: new PdfPoint(90, 560),
+    control1: new PdfPoint(180, 630),
+    control2: new PdfPoint(280, 500),
+    end: new PdfPoint(370, 560),
+    strokeColor: new PdfColor(0.1, 0.2, 0.5),
+    strokeStyle: new PdfStrokeStyle { LineWidth = 1.2, DashArray = new[] { 8d, 3d } });
+firstPage.DrawLine(x1: 80, y1: 684, x2: 510, y2: 684, lineWidth: 0.8, strokeColor: new PdfColor(0.1, 0.2, 0.5));
+firstPage.DrawLine(
+    x1: 80,
+    y1: 640,
+    x2: 510,
+    y2: 640,
+    strokeColor: new PdfGrayColor(0.35),
+    strokeStyle: new PdfStrokeStyle
+    {
+        LineWidth = 1.2,
+        LineCap = PdfLineCapStyle.Round,
+        LineJoin = PdfLineJoinStyle.Round,
+        DashArray = new[] { 6d, 3d }
+    });
+
+firstPage.DrawText("Hello World from a minimal PDF engine", x: 100, y: 700, new PdfDrawTextOptions { FontSize = 18, FontFamily = PdfFontFamily.Helvetica, Bold = true, FillColor = new PdfColor(0.1, 0.2, 0.5) });
+firstPage.AddWebLink(x: 100, y: 696, width: 260, height: 20, url: "https://learn.microsoft.com/dotnet/");
+firstPage.DrawText("This line uses grayscale color.", x: 100, y: 670, new PdfDrawTextOptions { FontSize = 12, FillColor = new PdfGrayColor(0.2) });
+
+secondPage.DrawText("Second page", x: 100, y: 700, fontSize: 16, fontFamily: PdfFontFamily.Courier, bold: true);
+secondPage.DrawText("Italic sample", x: 100, y: 670, new PdfDrawTextOptions { FontSize = 12, FontFamily = PdfFontFamily.Times, Italic = true });
+secondPage.DrawParagraph(
+    "This is a wrapped paragraph rendered by the minimal layout layer. It demonstrates left alignment and line breaking inside a fixed width box.",
+    x: 100,
+    y: 630,
+    maxWidth: 380,
+    new PdfParagraphOptions
+    {
+        FontSize = 12,
+        FontFamily = PdfFontFamily.Helvetica,
+        Alignment = PdfTextAlignment.Left,
+        LineHeight = 16
+    });
+var centeredParagraphLayout = secondPage.DrawParagraph(
+    "Centered paragraph sample for the same PDF page.",
+    x: 100,
+    y: 530,
+    maxWidth: 380,
+    new PdfParagraphOptions
+    {
+        FontSize = 12,
+        FontFamily = PdfFontFamily.Times,
+        Italic = true,
+        Alignment = PdfTextAlignment.Center,
+        FillColor = new PdfColor(0.25, 0.25, 0.25)
+    });
+var justifiedParagraphLayout = secondPage.DrawParagraph(
+    "Justified paragraph sample. The first lines are stretched using extra word spacing so both left and right edges align to the same width.",
+    x: 100,
+    y: centeredParagraphLayout.BottomY - 28,
+    maxWidth: 380,
+    new PdfParagraphOptions
+    {
+        FontSize = 12,
+        FontFamily = PdfFontFamily.Helvetica,
+        Alignment = PdfTextAlignment.Justify,
+        LineHeight = 16
+    });
+
+secondPage.DrawText($"Paragraph lines: {justifiedParagraphLayout.LineCount}", x: 100, y: justifiedParagraphLayout.BottomY - 24, fontSize: 10, fontFamily: PdfFontFamily.Courier);
+secondPage.DrawRectangle(
+    x: 95,
+    y: justifiedParagraphLayout.BottomY - 32,
+    width: 250,
+    height: 18,
+    lineWidth: 0.8,
+    strokeColor: PdfColor.Gray,
+    fill: true,
+    fillColor: new PdfCmykColor(0.2, 0, 0, 0),
+    strokeStyle: new PdfStrokeStyle
+    {
+        LineWidth = 0.8,
+        DashArray = new[] { 4d, 2d }
+    });
+
+document.AddPageNumbers(new PdfPageNumberOptions
+{
+    Y = 18,
+    Alignment = PdfTextAlignment.Center,
+    FontFamily = PdfFontFamily.Helvetica,
+    FontSize = 10,
+    FillColor = new PdfGrayColor(0.35)
+});
+
+document.AddHeadersAndFooters(new PdfHeaderFooterOptions
+{
+    HeaderTemplate = "Canvas.Pdf Demo",
+    FooterTemplate = "",
+    HeaderAlignment = PdfTextAlignment.Left,
+    HeaderTopMargin = 20,
+    MarginX = 40,
+    FontFamily = PdfFontFamily.Helvetica,
+    FontSize = 10,
+    FillColor = new PdfGrayColor(0.45)
+});
+
+var outputPath = Path.Combine(AppContext.BaseDirectory, "output.pdf");
+document.Save(outputPath);
+
+Console.WriteLine($"PDF generated at: {outputPath}");

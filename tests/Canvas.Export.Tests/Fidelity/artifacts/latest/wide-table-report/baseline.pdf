@@ -1,0 +1,616 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [6 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Title (Wide Table Report) /Subject (fidelity) /Creator (Canvas PDF Renderer) >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 4358 >>
+stream
+q
+BT
+/F1 17 Tf
+0.059 0.09 0.165 rg
+0 Tw
+0 Tc
+100 Tz
+40 793.76 Td
+(Weekly Operations Report) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+1 w
+0 J
+0 j
+40 394 520 360 re
+S
+Q
+q
+0.2 0.255 0.333 RG
+1 w
+0 J
+0 j
+40 694 m
+560 694 l
+S
+Q
+q
+0.2 0.255 0.333 RG
+1 w
+0 J
+0 j
+40 634 m
+560 634 l
+S
+Q
+q
+0.2 0.255 0.333 RG
+1 w
+0 J
+0 j
+40 574 m
+560 574 l
+S
+Q
+q
+0.2 0.255 0.333 RG
+1 w
+0 J
+0 j
+40 514 m
+560 514 l
+S
+Q
+q
+0.2 0.255 0.333 RG
+1 w
+0 J
+0 j
+40 454 m
+560 454 l
+S
+Q
+q
+0.2 0.255 0.333 RG
+1 w
+0 J
+0 j
+130 394 m
+130 754 l
+S
+Q
+q
+0.2 0.255 0.333 RG
+1 w
+0 J
+0 j
+230 394 m
+230 754 l
+S
+Q
+q
+0.2 0.255 0.333 RG
+1 w
+0 J
+0 j
+340 394 m
+340 754 l
+S
+Q
+q
+0.2 0.255 0.333 RG
+1 w
+0 J
+0 j
+450 394 m
+450 754 l
+S
+Q
+q
+0.2 0.255 0.333 RG
+0.859 0.918 0.996 rg
+1 w
+0 J
+0 j
+40 694 90 60 re
+f
+Q
+q
+BT
+/F2 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+44 717.4 Td
+(Region) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.859 0.918 0.996 rg
+1 w
+0 J
+0 j
+130 694 100 60 re
+f
+Q
+q
+BT
+/F2 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+134 717.4 Td
+(Owner) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.859 0.918 0.996 rg
+1 w
+0 J
+0 j
+230 694 110 60 re
+f
+Q
+q
+BT
+/F2 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+264.98 717.4 Td
+(Tickets) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.859 0.918 0.996 rg
+1 w
+0 J
+0 j
+340 694 110 60 re
+f
+Q
+q
+BT
+/F2 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+400.24 717.4 Td
+(Resolved) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.859 0.918 0.996 rg
+1 w
+0 J
+0 j
+450 694 110 60 re
+f
+Q
+q
+BT
+/F2 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+527.4 717.4 Td
+(SLA %) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+44 657.4 Td
+(North) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+134 657.4 Td
+(Liam) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+279.28 657.4 Td
+(84) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+434.56 657.4 Td
+(79) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+533.12 657.4 Td
+(94.0) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.973 0.98 0.988 rg
+1 w
+0 J
+0 j
+40 574 90 60 re
+f
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+44 597.4 Td
+(West) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.973 0.98 0.988 rg
+1 w
+0 J
+0 j
+130 574 100 60 re
+f
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+134 597.4 Td
+(Maya) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.973 0.98 0.988 rg
+1 w
+0 J
+0 j
+230 574 110 60 re
+f
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+279.28 597.4 Td
+(91) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.973 0.98 0.988 rg
+1 w
+0 J
+0 j
+340 574 110 60 re
+f
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+434.56 597.4 Td
+(88) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.973 0.98 0.988 rg
+1 w
+0 J
+0 j
+450 574 110 60 re
+f
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+533.12 597.4 Td
+(96.7) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+44 537.4 Td
+(South) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+134 537.4 Td
+(Noah) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+279.28 537.4 Td
+(72) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+434.56 537.4 Td
+(68) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+533.12 537.4 Td
+(94.4) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.973 0.98 0.988 rg
+1 w
+0 J
+0 j
+40 454 90 60 re
+f
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+44 477.4 Td
+(East) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.973 0.98 0.988 rg
+1 w
+0 J
+0 j
+130 454 100 60 re
+f
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+134 477.4 Td
+(Emma) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.973 0.98 0.988 rg
+1 w
+0 J
+0 j
+230 454 110 60 re
+f
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+279.28 477.4 Td
+(88) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.973 0.98 0.988 rg
+1 w
+0 J
+0 j
+340 454 110 60 re
+f
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+434.56 477.4 Td
+(81) Tj
+ET
+Q
+q
+0.2 0.255 0.333 RG
+0.973 0.98 0.988 rg
+1 w
+0 J
+0 j
+450 454 110 60 re
+f
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+533.12 477.4 Td
+(92.0) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+44 417.4 Td
+(Central) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+134 417.4 Td
+(Olivia) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+279.28 417.4 Td
+(95) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+434.56 417.4 Td
+(90) Tj
+ET
+Q
+q
+BT
+/F1 11 Tf
+0.063 0.094 0.157 rg
+0 Tw
+0 Tc
+100 Tz
+533.12 417.4 Td
+(94.7) Tj
+ET
+Q
+q
+BT
+/F1 9 Tf
+0.392 0.455 0.545 rg
+0 Tw
+0 Tc
+100 Tz
+480.44 23.52 Td
+(Internal use only) Tj
+ET
+Q
+
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000214 00000 n 
+0000000284 00000 n 
+0000000359 00000 n 
+0000000495 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R /Info 3 0 R >>
+startxref
+4905
+%%EOF

@@ -1,0 +1,13 @@
+multipage-shared-elements: score=94,73, diff=0,0527
+image-and-caption: score=93,92, diff=0,0608
+form-elements: score=93,46, diff=0,0654
+links-and-note: score=91,08, diff=0,0892
+checklist-audit: score=90,93, diff=0,0907
+richtext-link-list: score=90,47, diff=0,0953
+text-table-basic: score=90,03, diff=0,0997
+contract-clauses: score=89,75, diff=0,1025
+landscape-section: score=89,44, diff=0,1056
+wide-table-report: score=88,87, diff=0,1113
+invoice-two-page: score=88,3, diff=0,117
+positioned-overlap-complex: score=86,96, diff=0,1304
+dense-table-ledger: score=85,54, diff=0,1446

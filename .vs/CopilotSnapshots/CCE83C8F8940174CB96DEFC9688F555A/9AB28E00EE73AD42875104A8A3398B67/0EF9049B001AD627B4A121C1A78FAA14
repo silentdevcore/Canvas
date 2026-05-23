@@ -1,0 +1,54 @@
+﻿namespace Canvas.Pdf;
+
+public sealed class PdfHeaderFooterOptions
+{
+    public static PdfHeaderFooterOptions Default { get; } = new();
+
+    public string? HeaderTemplate { get; init; } = "Canvas.Pdf";
+
+    public string? FooterTemplate { get; init; } = "Page {page} of {total}";
+
+    public int StartNumber { get; init; } = 1;
+
+    public double HeaderTopMargin { get; init; } = 20;
+
+    public double FooterY { get; init; } = 20;
+
+    public double MarginX { get; init; } = 40;
+
+    public PdfTextAlignment HeaderAlignment { get; init; } = PdfTextAlignment.Left;
+
+    public PdfTextAlignment FooterAlignment { get; init; } = PdfTextAlignment.Center;
+
+    public double FontSize { get; init; } = 10;
+
+    public double? HeaderLineSpacing { get; init; }
+
+    public double? FooterLineSpacing { get; init; }
+
+    public PdfStandardFont? Font { get; init; }
+
+    public PdfFontFamily? FontFamily { get; init; }
+
+    public bool Bold { get; init; }
+
+    public bool Italic { get; init; }
+
+    public IPdfColor? FillColor { get; init; }
+
+    public int? StartPageNumber { get; init; }
+
+    public int? EndPageNumber { get; init; }
+
+    public IReadOnlyList<int>? IncludePageNumbers { get; init; }
+
+    public IReadOnlyList<int>? ExcludePageNumbers { get; init; }
+
+    public bool ExcludeTableOfContentsPages { get; init; }
+
+    public bool UseFilteredPageSequence { get; init; }
+
+    public bool SkipFirstPage { get; init; }
+
+    public bool SkipLastPage { get; init; }
+}

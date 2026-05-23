@@ -1,0 +1,127 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import SimpleCanvas from '@/components/Editor/SimpleCanvas';
+import LivePreview from '@/components/Preview/LivePreview';
+import LiveCodeEditor from '@/components/CodeEditor/LiveCodeEditor';
+import { useEditorStore } from '@/store';
+import { ExportService } from '@/services/ExportService';
+
+type SubView = 'editor' | 'preview' | 'code';
+
+const CreatePage: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialMode = searchParams.get('mode') === 'code' ? 'code' : 'editor';
+  const [subView, setSubView] = useState<SubView>(initialMode);
+
+  const {
+    currentTemplate,
+    currentPageIndex,
+    setCurrentTemplate,
+    addElement,
+    updateElement,
+    deleteElement,
+    reorderElement,
+    pageSettings,
+    markExported,
+    addPage,
+    deletePage,
+    duplicatePage,
+    setCurrentPage,
+    addSharedElement,
+    updateSharedElement,
+    deleteSharedElement,
+    movePageTo,
+  } = useEditorStore();
+
+  useEffect(() => {
+    if (!currentTemplate) {
+      navigate('/', { replace: true });
+    }
+  }, [currentTemplate, navigate]);
+
+  if (!currentTemplate) return null;
+
+  const pages = currentTemplate.pages ?? [];
+  const elements = pages[currentPageIndex]?.elements ?? [];
+  const sharedElements = currentTemplate.sharedElements ?? [];
+
+  const handleBack = () => {
+    setCurrentTemplate(null);
+    navigate('/template');
+  };
+
+  return (
+    <AnimatePresence mode="wait">
+      {subView === 'editor' && (
+        <motion.div
+          key="editor"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.3 }}
+        >
+          <SimpleCanvas
+            template={currentTemplate}
+            elements={elements}
+            pages={pages}
+            currentPageIndex={currentPageIndex}
+            sharedElements={sharedElements}
+            onElementAdd={addElement}
+            onElementUpdate={updateElement}
+            onElementDelete={deleteElement}
+            onElementReorder={reorderElement}
+            onPreview={() => setSubView('preview')}
+            onBack={handleBack}
+            onPageAdd={addPage}
+            onPageDelete={deletePage}
+            onPageDuplicate={duplicatePage}
+            onPageSelect={setCurrentPage}
+            onSharedElementAdd={addSharedElement}
+            onSharedElementUpdate={updateSharedElement}
+            onSharedElementDelete={deleteSharedElement}
+            onPageMove={movePageTo}
+          />
+        </motion.div>
+      )}
+
+      {subView === 'preview' && (
+        <motion.div
+          key="preview"
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -100 }}
+          transition={{ duration: 0.3 }}
+        >
+          <LivePreview
+            template={currentTemplate}
+            pages={pages}
+            sharedElements={sharedElements}
+            pageSettings={pageSettings}
+            onBack={() => setSubView('editor')}
+            onExport={() => {
+              ExportService.exportToJSON(currentTemplate, pages, sharedElements, pageSettings);
+              markExported();
+            }}
+          />
+        </motion.div>
+      )}
+
+      {subView === 'code' && (
+        <motion.div
+          key="code"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.25 }}
+          style={{ height: '100vh' }}
+        >
+          <LiveCodeEditor onBack={() => setSubView('editor')} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export default CreatePage;

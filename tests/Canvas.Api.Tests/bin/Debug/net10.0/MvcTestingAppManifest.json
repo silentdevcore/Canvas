@@ -1,0 +1,11 @@
+{
+  "Canvas.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Application",
+  "Canvas.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Core",
+  "Canvas, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/Canvas",
+  "Canvas.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/Canvas.Domain",
+  "Canvas.Infrastructure.Converters, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Infrastructure.Converters",
+  "Canvas.Infrastructure.Pdf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Infrastructure.Pdf",
+  "Canvas.Infrastructure.Sheet, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Infrastructure.Sheet",
+  "Canvas.Infrastructure.Word, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Infrastructure.Word",
+  "Canvas.WebApi, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/Canvas.WebApi"
+}

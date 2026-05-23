@@ -1,0 +1,35 @@
+﻿namespace Canvas.Pdf;
+
+public sealed class PdfTableOptions
+{
+    public static PdfTableOptions Default { get; } = new();
+
+    public double RowHeight { get; init; } = 24;
+
+    public double CellPadding { get; init; } = 4;
+
+    public bool HasHeaderRow { get; init; } = true;
+
+    // Relative column weights. Example for 3 columns: [2,1,1]
+    public IReadOnlyList<double>? ColumnWidths { get; init; }
+
+    public PdfTextAlignment CellAlignment { get; init; } = PdfTextAlignment.Left;
+
+    public double FontSize { get; init; } = 10;
+
+    public PdfStandardFont? Font { get; init; }
+
+    public PdfFontFamily? FontFamily { get; init; }
+
+    public bool Bold { get; init; }
+
+    public bool Italic { get; init; }
+
+    public IPdfColor? TextColor { get; init; }
+
+    public IPdfColor? HeaderFillColor { get; init; } = new PdfGrayColor(0.92);
+
+    public IPdfColor? BorderColor { get; init; } = PdfColor.Black;
+
+    public double BorderLineWidth { get; init; } = 0.8;
+}

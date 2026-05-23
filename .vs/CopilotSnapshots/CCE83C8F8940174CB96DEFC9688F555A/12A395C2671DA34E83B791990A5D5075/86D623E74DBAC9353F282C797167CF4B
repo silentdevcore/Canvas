@@ -1,0 +1,59 @@
+﻿# Canvas.Pdf
+
+A minimal, extensible PDF generation engine built in C# (.NET 10), without external PDF libraries.
+
+## Features
+
+- Create PDF documents and multiple pages
+- Draw text with standard fonts
+- Paragraph rendering with wrapping and alignment (`Left`, `Center`, `Right`, `Justify`)
+- Draw vector primitives (`Line`, `Rectangle`)
+- Draw images (`PNG`, `JPEG`) including PNG transparency (alpha)
+- Preserve aspect ratio with image layout helpers (`DrawImageScaledToWidth`, `DrawImageScaledToHeight`, `DrawImageFit`, `DrawImageFitCenter`)
+- Color support:
+  - RGB (`PdfColor`)
+  - Grayscale (`PdfGrayColor`)
+  - CMYK (`PdfCmykColor`)
+- Document metadata (`Title`, `Author`, `Subject`, etc.)
+
+## Quick Start
+
+```csharp
+using Canvas.Pdf;
+
+var doc = new PdfDocument(defaultFont: PdfStandardFonts.FromStyle(PdfFontFamily.Times));
+doc.Info.Title = "Hello Canvas.Pdf";
+
+var page = doc.AddPage();
+page.DrawText("Hello World", x: 100, y: 700, fontSize: 14);
+page.DrawImage("logo.png", x: 100, y: 620, width: 120, height: 80);
+
+doc.Save("output.pdf");
+```
+
+## Demo
+
+Run the included console demo:
+
+```powershell
+dotnet run --project Canvas/Canvas.csproj
+```
+
+The output file is generated at:
+`Canvas/bin/Debug/net10.0/output.pdf`
+
+## Documentation
+
+See full technical documentation:
+
+- [TECHNICAL_DOCUMENTATION.md](TECHNICAL_DOCUMENTATION.md)
+
+## Project Structure
+
+- `Pdf/` → public API + core model + renderer + serializer
+- `Program.cs` → usage demo
+- `TECHNICAL_DOCUMENTATION.md` → full usage and API guide
+
+## Notes
+
+This project is a foundation for a reusable PDF DLL. It currently focuses on minimal correctness and extensibility.

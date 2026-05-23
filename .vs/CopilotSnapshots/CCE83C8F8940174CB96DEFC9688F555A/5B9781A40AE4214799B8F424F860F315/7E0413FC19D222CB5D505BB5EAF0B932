@@ -1,0 +1,92 @@
+﻿namespace Canvas.Pdf;
+
+public sealed class PdfGenerationDiagnostics
+{
+    public required int PageCount { get; init; }
+
+    public required int ObjectCount { get; init; }
+
+    public required int ByteSize { get; init; }
+
+    public required bool ContentStreamsCompressed { get; init; }
+
+    public required int BookmarkCount { get; init; }
+
+    public required int TableOfContentsPageCount { get; init; }
+
+    public required int NamedDestinationCount { get; init; }
+
+    public required int LinkAnnotationCount { get; init; }
+
+    public required int SectionCount { get; init; }
+
+    public required int NestedBookmarkCount { get; init; }
+
+    public required int ImageResourceCount { get; init; }
+
+    public required int ImageOpacityResourceCount { get; init; }
+
+    public required int ImageDrawCallCount { get; init; }
+
+    public required int ImageCacheHitCount { get; init; }
+
+    public required int WatermarkPageCount { get; init; }
+
+    public required int EmptyPageCount { get; init; }
+
+    public required int RotatedPageCount { get; init; }
+
+    public required int HeaderRenderedPageCount { get; init; }
+
+    public required int FooterRenderedPageCount { get; init; }
+
+    public required int PageNumberRenderedPageCount { get; init; }
+
+    public required int TocEntryCount { get; init; }
+
+    public required int TocPageLinkCount { get; init; }
+
+    public required int WebLinkAnnotationCount { get; init; }
+
+    public required int PageLinkAnnotationCount { get; init; }
+
+    public required int NamedDestinationLinkAnnotationCount { get; init; }
+
+    public required int PagesWithTextCount { get; init; }
+
+    public required int PagesWithImageCount { get; init; }
+
+    public required int PagesWithLinkCount { get; init; }
+
+    public required int PagesWithBookmarkTargetCount { get; init; }
+
+    public required int PagesWithNamedDestinationCount { get; init; }
+
+    public required int PagesWithShapeCount { get; init; }
+
+    public required int WatermarkedUniquePageCount { get; init; }
+
+    public required int HeaderRenderedUniquePageCount { get; init; }
+
+    public required int FooterRenderedUniquePageCount { get; init; }
+
+    public required int PageNumberRenderedUniquePageCount { get; init; }
+
+    public required int PagesWithCropBoxCount { get; init; }
+
+    public required int PagesWithBleedBoxCount { get; init; }
+
+    public required int PagesWithTrimBoxCount { get; init; }
+
+    public required int PagesWithArtBoxCount { get; init; }
+
+    public required int PagesWithAnyBoundaryBoxCount { get; init; }
+
+    public required int PagesWithAnyTransparencyCount { get; init; }
+
+    public required int PagesWithImageTransparencyCount { get; init; }
+
+    public required int PagesWithTextDecorationsCount { get; init; }
+
+    public required int PagesWithFlowContentCount { get; init; }
+}

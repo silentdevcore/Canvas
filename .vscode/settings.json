@@ -1,0 +1,11 @@
+{
+  "dotnet.defaultSolution": "Canvas.sln",
+  "dotnet.server.useOmnisharp": false,
+  "dotnet.projects.enableFileBasedPrograms": false,
+  "dotnet.server.environmentVariables": {
+    "DOTNET_ROOT": "/opt/homebrew/opt/dotnet/libexec"
+  },
+  "chat.tools.terminal.autoApprove": {
+    "dotnet test": true
+  }
+}

@@ -1,0 +1,145 @@
+[
+  {
+    "Sample": "checklist-audit",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.3039370078739694,
+    "HeightDriftPt": 0.11023622047196113,
+    "PixelDiffRatio": 0.0906797,
+    "FidelityScore": 90.93203,
+    "Notes": "High visual diff ratio: 0,0907"
+  },
+  {
+    "Sample": "contract-clauses",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.3039370078739694,
+    "HeightDriftPt": 0.11023622047196113,
+    "PixelDiffRatio": 0.102536,
+    "FidelityScore": 89.74640000000001,
+    "Notes": "High visual diff ratio: 0,1025"
+  },
+  {
+    "Sample": "dense-table-ledger",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.3039370078739694,
+    "HeightDriftPt": 0.11023622047196113,
+    "PixelDiffRatio": 0.144568,
+    "FidelityScore": 85.5432,
+    "Notes": "High visual diff ratio: 0,1446"
+  },
+  {
+    "Sample": "form-elements",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.3039370078739694,
+    "HeightDriftPt": 0.11023622047196113,
+    "PixelDiffRatio": 0.0654333,
+    "FidelityScore": 93.45667,
+    "Notes": "Visual diff ratio: 0,0654"
+  },
+  {
+    "Sample": "image-and-caption",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.3039370078739694,
+    "HeightDriftPt": 0.11023622047196113,
+    "PixelDiffRatio": 0.0607877,
+    "FidelityScore": 93.92123,
+    "Notes": "Visual diff ratio: 0,0608"
+  },
+  {
+    "Sample": "invoice-two-page",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.3039370078739694,
+    "HeightDriftPt": 0.11023622047196113,
+    "PixelDiffRatio": 0.116965,
+    "FidelityScore": 88.3035,
+    "Notes": "High visual diff ratio: 0,117"
+  },
+  {
+    "Sample": "landscape-section",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.11023622047196113,
+    "HeightDriftPt": 0.3039370078739694,
+    "PixelDiffRatio": 0.105551,
+    "FidelityScore": 89.4449,
+    "Notes": "High visual diff ratio: 0,1056"
+  },
+  {
+    "Sample": "links-and-note",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.3039370078739694,
+    "HeightDriftPt": 0.11023622047196113,
+    "PixelDiffRatio": 0.0891716,
+    "FidelityScore": 91.08284,
+    "Notes": "High visual diff ratio: 0,0892"
+  },
+  {
+    "Sample": "multipage-shared-elements",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.3039370078739694,
+    "HeightDriftPt": 0.11023622047196113,
+    "PixelDiffRatio": 0.052742,
+    "FidelityScore": 94.7258,
+    "Notes": "Visual diff ratio: 0,0527"
+  },
+  {
+    "Sample": "positioned-overlap-complex",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.3039370078739694,
+    "HeightDriftPt": 0.11023622047196113,
+    "PixelDiffRatio": 0.1304,
+    "FidelityScore": 86.96000000000001,
+    "Notes": "High visual diff ratio: 0,1304"
+  },
+  {
+    "Sample": "richtext-link-list",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.3039370078739694,
+    "HeightDriftPt": 0.11023622047196113,
+    "PixelDiffRatio": 0.0952843,
+    "FidelityScore": 90.47157,
+    "Notes": "High visual diff ratio: 0,0953"
+  },
+  {
+    "Sample": "text-table-basic",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.3039370078739694,
+    "HeightDriftPt": 0.11023622047196113,
+    "PixelDiffRatio": 0.0996662,
+    "FidelityScore": 90.03338,
+    "Notes": "High visual diff ratio: 0,0997"
+  },
+  {
+    "Sample": "wide-table-report",
+    "BaselineGenerated": true,
+    "WordGenerated": true,
+    "ConvertedPdfGenerated": true,
+    "WidthDriftPt": 0.3039370078739694,
+    "HeightDriftPt": 0.11023622047196113,
+    "PixelDiffRatio": 0.111296,
+    "FidelityScore": 88.87039999999999,
+    "Notes": "High visual diff ratio: 0,1113"
+  }
+]

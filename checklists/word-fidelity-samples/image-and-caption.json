@@ -1,0 +1,54 @@
+{
+  "id": "sample-011",
+  "name": "Image and Caption",
+  "category": "fidelity",
+  "pages": [
+    {
+      "id": "p1",
+      "elements": [
+        {
+          "id": "title",
+          "type": "text",
+          "x": 60,
+          "y": 46,
+          "width": 470,
+          "height": 30,
+          "content": "Product Snapshot",
+          "style": { "fontSize": 19, "fontWeight": "bold", "color": "#0f172a" }
+        },
+        {
+          "id": "img",
+          "type": "image",
+          "x": 60,
+          "y": 100,
+          "width": 280,
+          "height": 180,
+          "content": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO2F6bkAAAAASUVORK5CYII=",
+          "fitMode": "contain"
+        },
+        {
+          "id": "cap",
+          "type": "text",
+          "x": 60,
+          "y": 292,
+          "width": 280,
+          "height": 22,
+          "content": "Figure 1: Minimal sample image",
+          "style": { "fontSize": 10, "color": "#64748b" }
+        },
+        {
+          "id": "body",
+          "type": "richtext",
+          "x": 360,
+          "y": 100,
+          "width": 170,
+          "height": 210,
+          "htmlContent": "<p><strong>Notes</strong></p><p>The image should preserve dimensions and placement.</p><p>Caption should remain directly below image.</p>",
+          "style": { "fontSize": 11, "lineHeight": 1.4, "color": "#1f2937" }
+        }
+      ]
+    }
+  ],
+  "sharedElements": [],
+  "pageSettings": { "width": 595, "height": 842, "orientation": "portrait" }
+}

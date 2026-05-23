@@ -1,0 +1,17 @@
+﻿import React from 'react';
+import Sidebar from './Sidebar';
+import Canvas from './Canvas';
+import PropertiesPanel from './PropertiesPanel';
+import './App.css';
+
+const App: React.FC = () => {
+  return (
+    <div className="ui-designer-layout">
+      <Sidebar />
+      <Canvas />
+      <PropertiesPanel />
+    </div>
+  );
+};
+
+export default App;

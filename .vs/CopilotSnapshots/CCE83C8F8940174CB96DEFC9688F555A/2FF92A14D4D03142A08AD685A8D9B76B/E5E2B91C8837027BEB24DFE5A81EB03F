@@ -1,0 +1,296 @@
+﻿using System.Globalization;
+using System.Text;
+using Canvas.Pdf.Layout;
+
+namespace Canvas.Pdf.Rendering;
+
+internal static class PdfCanvasRenderer
+{
+    public static string RenderPage(
+        PdfPage page,
+        IReadOnlyDictionary<PdfStandardFont, string> fontResourceNames,
+        IReadOnlyDictionary<string, string> imageResourceNames)
+    {
+        var sb = new StringBuilder();
+
+        foreach (var element in page.Elements)
+        {
+            sb.Append("q\n");
+
+            switch (element)
+            {
+                case TextElement textElement:
+                    RenderText(sb, textElement, fontResourceNames);
+                    break;
+
+                case LineElement lineElement:
+                    RenderLine(sb, lineElement);
+                    break;
+
+                case RectangleElement rectangleElement:
+                    RenderRectangle(sb, rectangleElement);
+                    break;
+
+                case RoundedRectangleElement roundedRectangleElement:
+                    RenderRoundedRectangle(sb, roundedRectangleElement);
+                    break;
+
+                case CircleElement circleElement:
+                    RenderCircle(sb, circleElement);
+                    break;
+
+                case ImageElement imageElement:
+                    RenderImage(sb, imageElement, imageResourceNames);
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unsupported page element: {element.GetType().Name}");
+            }
+
+            sb.Append("Q\n");
+        }
+
+        return sb.ToString();
+    }
+
+    private static void RenderText(StringBuilder sb, TextElement element, IReadOnlyDictionary<PdfStandardFont, string> fontResourceNames)
+    {
+        var fontResourceName = fontResourceNames[element.Font];
+
+        sb.Append("BT\n");
+        sb.AppendFormat(CultureInfo.InvariantCulture, "/{0} {1} Tf\n", fontResourceName, FormatNumber(element.FontSize));
+        sb.Append((element.FillColor ?? PdfColor.Black).ToFillColorOperator());
+        sb.Append('\n');
+        sb.AppendFormat(CultureInfo.InvariantCulture, "{0} Tw\n", FormatNumber(element.WordSpacing));
+        sb.AppendFormat(CultureInfo.InvariantCulture, "{0} {1} Td\n", FormatNumber(element.X), FormatNumber(element.Y));
+        sb.Append('(');
+        sb.Append(EscapeLiteralString(element.Text));
+        sb.Append(") Tj\n");
+        sb.Append("ET\n");
+    }
+
+    private static void RenderImage(StringBuilder sb, ImageElement element, IReadOnlyDictionary<string, string> imageResourceNames)
+    {
+        var imageName = imageResourceNames[element.CacheKey];
+        sb.AppendFormat(
+            CultureInfo.InvariantCulture,
+            "{0} 0 0 {1} {2} {3} cm\n",
+            FormatNumber(element.Width),
+            FormatNumber(element.Height),
+            FormatNumber(element.X),
+            FormatNumber(element.Y));
+        sb.Append('/');
+        sb.Append(imageName);
+        sb.Append(" Do\n");
+    }
+
+    private static void RenderLine(StringBuilder sb, LineElement element)
+    {
+        sb.Append(element.StrokeColor.ToStrokeColorOperator());
+        sb.Append('\n');
+        AppendStrokeStyle(sb, element.StrokeStyle);
+        sb.AppendFormat(CultureInfo.InvariantCulture, "{0} {1} m\n", FormatNumber(element.X1), FormatNumber(element.Y1));
+        sb.AppendFormat(CultureInfo.InvariantCulture, "{0} {1} l\n", FormatNumber(element.X2), FormatNumber(element.Y2));
+        sb.Append("S\n");
+    }
+
+    private static void RenderRectangle(StringBuilder sb, RectangleElement element)
+    {
+        sb.Append(element.StrokeColor.ToStrokeColorOperator());
+        sb.Append('\n');
+
+        if (element.Fill)
+        {
+            sb.Append(element.FillColor.ToFillColorOperator());
+            sb.Append('\n');
+        }
+
+        AppendStrokeStyle(sb, element.StrokeStyle);
+        sb.AppendFormat(
+            CultureInfo.InvariantCulture,
+            "{0} {1} {2} {3} re\n",
+            FormatNumber(element.X),
+            FormatNumber(element.Y),
+            FormatNumber(element.Width),
+            FormatNumber(element.Height));
+
+        var paintOperator = element switch
+        {
+            { Stroke: true, Fill: true } => "B",
+            { Stroke: true, Fill: false } => "S",
+            { Stroke: false, Fill: true } => "f",
+            _ => "n"
+        };
+
+        sb.Append(paintOperator);
+        sb.Append('\n');
+    }
+
+    private static void RenderRoundedRectangle(StringBuilder sb, RoundedRectangleElement element)
+    {
+        sb.Append(element.StrokeColor.ToStrokeColorOperator());
+        sb.Append('\n');
+
+        if (element.Fill)
+        {
+            sb.Append(element.FillColor.ToFillColorOperator());
+            sb.Append('\n');
+        }
+
+        AppendStrokeStyle(sb, element.StrokeStyle);
+
+        if (element.CornerRadius == 0)
+        {
+            sb.AppendFormat(
+                CultureInfo.InvariantCulture,
+                "{0} {1} {2} {3} re\n",
+                FormatNumber(element.X),
+                FormatNumber(element.Y),
+                FormatNumber(element.Width),
+                FormatNumber(element.Height));
+        }
+        else
+        {
+            var kappa = 0.552284749831;
+            var r = element.CornerRadius;
+            var c = r * kappa;
+            var x = element.X;
+            var y = element.Y;
+            var w = element.Width;
+            var h = element.Height;
+
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} {1} m\n", FormatNumber(x + r), FormatNumber(y));
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} {1} l\n", FormatNumber(x + w - r), FormatNumber(y));
+            sb.AppendFormat(
+                CultureInfo.InvariantCulture,
+                "{0} {1} {2} {3} {4} {5} c\n",
+                FormatNumber(x + w - r + c), FormatNumber(y),
+                FormatNumber(x + w), FormatNumber(y + r - c),
+                FormatNumber(x + w), FormatNumber(y + r));
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} {1} l\n", FormatNumber(x + w), FormatNumber(y + h - r));
+            sb.AppendFormat(
+                CultureInfo.InvariantCulture,
+                "{0} {1} {2} {3} {4} {5} c\n",
+                FormatNumber(x + w), FormatNumber(y + h - r + c),
+                FormatNumber(x + w - r + c), FormatNumber(y + h),
+                FormatNumber(x + w - r), FormatNumber(y + h));
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} {1} l\n", FormatNumber(x + r), FormatNumber(y + h));
+            sb.AppendFormat(
+                CultureInfo.InvariantCulture,
+                "{0} {1} {2} {3} {4} {5} c\n",
+                FormatNumber(x + r - c), FormatNumber(y + h),
+                FormatNumber(x), FormatNumber(y + h - r + c),
+                FormatNumber(x), FormatNumber(y + h - r));
+            sb.AppendFormat(CultureInfo.InvariantCulture, "{0} {1} l\n", FormatNumber(x), FormatNumber(y + r));
+            sb.AppendFormat(
+                CultureInfo.InvariantCulture,
+                "{0} {1} {2} {3} {4} {5} c\n",
+                FormatNumber(x), FormatNumber(y + r - c),
+                FormatNumber(x + r - c), FormatNumber(y),
+                FormatNumber(x + r), FormatNumber(y));
+        }
+
+        AppendPaintOperator(sb, element.Stroke, element.Fill);
+    }
+
+    private static void RenderCircle(StringBuilder sb, CircleElement element)
+    {
+        sb.Append(element.StrokeColor.ToStrokeColorOperator());
+        sb.Append('\n');
+
+        if (element.Fill)
+        {
+            sb.Append(element.FillColor.ToFillColorOperator());
+            sb.Append('\n');
+        }
+
+        AppendStrokeStyle(sb, element.StrokeStyle);
+
+        var kappa = 0.552284749831;
+        var r = element.Radius;
+        var c = r * kappa;
+        var cx = element.CenterX;
+        var cy = element.CenterY;
+
+        sb.AppendFormat(CultureInfo.InvariantCulture, "{0} {1} m\n", FormatNumber(cx + r), FormatNumber(cy));
+        sb.AppendFormat(
+            CultureInfo.InvariantCulture,
+            "{0} {1} {2} {3} {4} {5} c\n",
+            FormatNumber(cx + r), FormatNumber(cy + c),
+            FormatNumber(cx + c), FormatNumber(cy + r),
+            FormatNumber(cx), FormatNumber(cy + r));
+        sb.AppendFormat(
+            CultureInfo.InvariantCulture,
+            "{0} {1} {2} {3} {4} {5} c\n",
+            FormatNumber(cx - c), FormatNumber(cy + r),
+            FormatNumber(cx - r), FormatNumber(cy + c),
+            FormatNumber(cx - r), FormatNumber(cy));
+        sb.AppendFormat(
+            CultureInfo.InvariantCulture,
+            "{0} {1} {2} {3} {4} {5} c\n",
+            FormatNumber(cx - r), FormatNumber(cy - c),
+            FormatNumber(cx - c), FormatNumber(cy - r),
+            FormatNumber(cx), FormatNumber(cy - r));
+        sb.AppendFormat(
+            CultureInfo.InvariantCulture,
+            "{0} {1} {2} {3} {4} {5} c\n",
+            FormatNumber(cx + c), FormatNumber(cy - r),
+            FormatNumber(cx + r), FormatNumber(cy - c),
+            FormatNumber(cx + r), FormatNumber(cy));
+
+        AppendPaintOperator(sb, element.Stroke, element.Fill);
+    }
+
+    private static void AppendStrokeStyle(StringBuilder sb, PdfStrokeStyle strokeStyle)
+    {
+        sb.AppendFormat(CultureInfo.InvariantCulture, "{0} w\n", FormatNumber(strokeStyle.LineWidth));
+        sb.AppendFormat(CultureInfo.InvariantCulture, "{0} J\n", (int)strokeStyle.LineCap);
+        sb.AppendFormat(CultureInfo.InvariantCulture, "{0} j\n", (int)strokeStyle.LineJoin);
+
+        if (strokeStyle.DashArray is { Count: > 0 })
+        {
+            sb.Append('[');
+
+            for (var i = 0; i < strokeStyle.DashArray.Count; i++)
+            {
+                if (i > 0)
+                {
+                    sb.Append(' ');
+                }
+
+                sb.Append(FormatNumber(strokeStyle.DashArray[i]));
+            }
+
+            sb.Append("] ");
+            sb.Append(FormatNumber(strokeStyle.DashPhase));
+            sb.Append(" d\n");
+        }
+    }
+
+    private static void AppendPaintOperator(StringBuilder sb, bool stroke, bool fill)
+    {
+        var paintOperator = (stroke, fill) switch
+        {
+            (true, true) => "B",
+            (true, false) => "S",
+            (false, true) => "f",
+            _ => "n"
+        };
+
+        sb.Append(paintOperator);
+        sb.Append('\n');
+    }
+
+    private static string EscapeLiteralString(string value)
+    {
+        return value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("(", "\\(", StringComparison.Ordinal)
+            .Replace(")", "\\)", StringComparison.Ordinal);
+    }
+
+    private static string FormatNumber(double value)
+    {
+        return value.ToString("0.###", CultureInfo.InvariantCulture);
+    }
+}

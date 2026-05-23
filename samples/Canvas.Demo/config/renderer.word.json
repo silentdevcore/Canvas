@@ -1,0 +1,6 @@
+{
+  "renderer": "Word",
+  "enabled": false,
+  "status": "placeholder",
+  "notes": "Reserved for future Canvas.Infrastructure.Word integration"
+}
