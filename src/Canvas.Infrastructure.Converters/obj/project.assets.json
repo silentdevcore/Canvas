@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 3,
   "targets": {
     "net10.0": {
       "BCrypt.Net-Next/4.0.3": {
@@ -499,6 +499,19 @@
         },
         "runtime": {
           "bin/placeholder/Canvas.Domain.dll": {}
+        }
+      },
+      "Canvas.Importer/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Infrastructure.Pdf": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Importer.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Importer.dll": {}
         }
       },
       "Canvas.Infrastructure.Pdf/1.0.0": {
@@ -1321,6 +1334,11 @@
       "path": "../../Canvas.Domain/Canvas.Domain.csproj",
       "msbuildProject": "../../Canvas.Domain/Canvas.Domain.csproj"
     },
+    "Canvas.Importer/1.0.0": {
+      "type": "project",
+      "path": "../Canvas.Importer/Canvas.Importer.csproj",
+      "msbuildProject": "../Canvas.Importer/Canvas.Importer.csproj"
+    },
     "Canvas.Infrastructure.Pdf/1.0.0": {
       "type": "project",
       "path": "../Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj",
@@ -1331,6 +1349,7 @@
     "net10.0": [
       "Canvas.Application >= 1.0.0",
       "Canvas.Core >= 1.0.0",
+      "Canvas.Importer >= 1.0.0",
       "NPOI >= 2.8.0",
       "PdfToSvg.NET >= 1.8.0",
       "SkiaSharp >= 3.119.2",
@@ -1356,11 +1375,11 @@
         "net10.0"
       ],
       "sources": {
+        "/usr/local/Cellar/dotnet/10.0.105/libexec/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net10.0": {
-          "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {
             "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Application/Canvas.Application.csproj": {
@@ -1368,6 +1387,9 @@
             },
             "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Core/Canvas.Core.csproj": {
               "projectPath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Core/Canvas.Core.csproj"
+            },
+            "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/Canvas.Importer.csproj": {
+              "projectPath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/Canvas.Importer.csproj"
             }
           }
         }
@@ -1382,11 +1404,10 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.300"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net10.0": {
-        "framework": "net10.0",
         "targetAlias": "net10.0",
         "dependencies": {
           "NPOI": {
@@ -1422,7 +1443,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.300/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "/usr/local/Cellar/dotnet/10.0.105/libexec/sdk/10.0.105/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -1705,7 +1726,7 @@
       "code": "NU1903",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Package 'System.Security.Cryptography.Xml' 8.0.2 has a known high severity vulnerability, https://github.com/advisories/GHSA-37gx-xxp4-5rgx",
+      "message": "Das Paket \"System.Security.Cryptography.Xml\" 8.0.2 weist eine bekannte Hoch Schweregrad-Sicherheitsanfälligkeit auf, https://github.com/advisories/GHSA-37gx-xxp4-5rgx.",
       "libraryId": "System.Security.Cryptography.Xml",
       "targetGraphs": [
         "net10.0"
@@ -1715,7 +1736,7 @@
       "code": "NU1903",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Package 'System.Security.Cryptography.Xml' 8.0.2 has a known high severity vulnerability, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf",
+      "message": "Das Paket \"System.Security.Cryptography.Xml\" 8.0.2 weist eine bekannte Hoch Schweregrad-Sicherheitsanfälligkeit auf, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf.",
       "libraryId": "System.Security.Cryptography.Xml",
       "targetGraphs": [
         "net10.0"

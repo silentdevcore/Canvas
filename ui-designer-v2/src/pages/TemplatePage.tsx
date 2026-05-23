@@ -87,10 +87,11 @@ const TemplateDetailPanel: React.FC<DetailPanelProps> = ({ template, onClose, on
 const TemplatePage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { loadTemplate, loadBlank, loadFromFile, loadFromFileSvg } = useTemplateLoader();
-  const importInputRef    = useRef<HTMLInputElement>(null);
-  const importSvgInputRef = useRef<HTMLInputElement>(null);
-  const debugSvgInputRef  = useRef<HTMLInputElement>(null);
+  const { loadTemplate, loadBlank, loadFromFile, loadFromFileSvg, loadFromFilePdfEngine } = useTemplateLoader();
+  const importInputRef       = useRef<HTMLInputElement>(null);
+  const importSvgInputRef    = useRef<HTMLInputElement>(null);
+  const importEngineInputRef = useRef<HTMLInputElement>(null);
+  const debugSvgInputRef     = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState('');
 
@@ -110,6 +111,17 @@ const TemplatePage: React.FC = () => {
     setImportError('');
     try {
       await loadFromFileSvg(file);
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : 'Import failed');
+      setImporting(false);
+    }
+  };
+
+  const handleFileEngine = async (file: File) => {
+    setImporting(true);
+    setImportError('');
+    try {
+      await loadFromFilePdfEngine(file);
     } catch (err) {
       setImportError(err instanceof Error ? err.message : 'Import failed');
       setImporting(false);
@@ -210,6 +222,13 @@ const TemplatePage: React.FC = () => {
               onChange={e => { const f = e.target.files?.[0]; if (f) handleFileSvg(f); e.target.value = ''; }}
             />
             <input
+              ref={importEngineInputRef}
+              type="file"
+              accept=".pdf,application/pdf"
+              style={{ display: 'none' }}
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleFileEngine(f); e.target.value = ''; }}
+            />
+            <input
               ref={debugSvgInputRef}
               type="file"
               accept=".pdf,application/pdf"
@@ -235,6 +254,16 @@ const TemplatePage: React.FC = () => {
             >
               <FiUpload size={14} />
               {importing ? 'Importing…' : 'Import PDF (SVG)'}
+            </button>
+            <button
+              className="pdf-link-button"
+              onClick={() => importEngineInputRef.current?.click()}
+              disabled={importing}
+              title="Import a PDF using the Canvas.Importer low-level engine (own tokenizer, object graph, content stream interpreter)"
+              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <FiUpload size={14} />
+              {importing ? 'Importing…' : 'Import PDF (Engine)'}
             </button>
             <button
               className="pdf-link-button"

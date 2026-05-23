@@ -174,6 +174,91 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
+    /// Imports a PDF using the Canvas.Importer low-level engine (own tokenizer, object graph,
+    /// and content stream interpreter). Returns a Canvas design with text, shape, and image
+    /// elements derived from the PDF's raw graphics scene graph.
+    /// Route: POST /api/document/import-pdf-engine
+    /// </summary>
+    [HttpPost("import-pdf-engine")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(DesignExportDto), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> ImportPdfEngine(IFormFile? file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "A PDF file is required." });
+
+        if (!file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase) &&
+            !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "Only PDF files are accepted." });
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var design = await CanvasImporterPdfImporter.ImportAsync(
+                stream, Path.GetFileNameWithoutExtension(file.FileName));
+            return Ok(design);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = $"Could not parse PDF (Engine): {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// Debug: returns element statistics from the Canvas.Importer scene graph for one page.
+    /// Query param: page=1 (1-based).
+    /// </summary>
+    [HttpPost("debug-pdf-engine")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> DebugPdfEngine(IFormFile? file, [FromQuery] int page = 1)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "A PDF file is required." });
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var doc = await new Canvas.Importer.PdfImporter().LoadAsync(stream);
+            var p   = doc.Pages.ElementAtOrDefault(page - 1);
+            if (p is null)
+                return NotFound(new { error = $"Page {page} not found.", pageCount = doc.Pages.Count });
+
+            // Flatten scene graph to count all elements recursively
+            IEnumerable<Canvas.Importer.Graphics.PdfGraphicsElement> Flatten(
+                IEnumerable<Canvas.Importer.Graphics.PdfGraphicsElement> els)
+                => els.SelectMany(e => e is Canvas.Importer.Graphics.PdfGroupElement g
+                    ? Flatten(g.Children).Prepend(e) : new[] { e });
+
+            var all   = Flatten(p.GraphicsObjects).ToList();
+            var texts = all.OfType<Canvas.Importer.Graphics.PdfTextElement>().Take(30).Select(t => new {
+                text = t.Text,
+                fontSize = t.FontSize,
+                font = t.FontResourceName,
+                x = Math.Round(t.Transform.E, 1),
+                y = Math.Round(t.Transform.F, 1),
+            }).ToList();
+
+            return Ok(new {
+                pageCount  = doc.Pages.Count,
+                mediaBox   = p.MediaBox,
+                totalElements = all.Count,
+                byType = new {
+                    text    = all.OfType<Canvas.Importer.Graphics.PdfTextElement>().Count(),
+                    path    = all.OfType<Canvas.Importer.Graphics.PdfPathElement>().Count(),
+                    image   = all.OfType<Canvas.Importer.Graphics.PdfImageElement>().Count(),
+                    shading = all.OfType<Canvas.Importer.Graphics.PdfShadingElement>().Count(),
+                    group   = all.OfType<Canvas.Importer.Graphics.PdfGroupElement>().Count(),
+                },
+                sampleTexts = texts,
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message, type = ex.GetType().Name });
+        }
+    }
+
+    /// <summary>
     /// Returns the raw SVG string for one page of a PDF (via PdfToSvg.NET).
     /// Use this to inspect the SVG structure when debugging the SVG importer.
     /// Query param: page=1 (1-based).

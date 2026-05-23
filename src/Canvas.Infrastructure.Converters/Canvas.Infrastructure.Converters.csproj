@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="../Canvas.Core/Canvas.Core.csproj" />
     <ProjectReference Include="../Canvas.Application/Canvas.Application.csproj" />
+    <ProjectReference Include="../Canvas.Importer/Canvas.Importer.csproj" />
   </ItemGroup>
 
   <ItemGroup>

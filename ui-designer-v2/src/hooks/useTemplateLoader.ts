@@ -154,5 +154,21 @@ export function useTemplateLoader() {
     navigate('/create');
   };
 
-  return { loadTemplate, loadBlank, loadFromFile, loadFromFileSvg };
+  const loadFromFilePdfEngine = async (file: File): Promise<void> => {
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+    if (ext !== 'pdf') throw new Error('Canvas.Importer engine only supports PDF files.');
+    const design: any = await ExportService.importPdfEngine(file);
+    setCurrentTemplate({
+      id: design.id ?? `import-${Date.now()}`,
+      name: (design.name ?? file.name.replace(/\.[^.]+$/, '')) + ' (Engine)',
+      category: 'imported',
+      description: 'Imported from PDF via Canvas.Importer engine',
+      pages: design.pages ?? [{ id: 'page-1', elements: [] }],
+      sharedElements: design.sharedElements ?? [],
+      data: {},
+    });
+    navigate('/create');
+  };
+
+  return { loadTemplate, loadBlank, loadFromFile, loadFromFileSvg, loadFromFilePdfEngine };
 }

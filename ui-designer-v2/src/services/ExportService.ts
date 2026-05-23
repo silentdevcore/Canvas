@@ -679,6 +679,10 @@ export class ExportService {
     return this._importFile(file, 'import-pdf-svg');
   }
 
+  static async importPdfEngine(file: File): Promise<object> {
+    return this._importFile(file, 'import-pdf-engine');
+  }
+
   static async debugPdfSvg(file: File, page = 1): Promise<{ svgLength: number; elementStats: Record<string, number>; svg: string; pageCount: number }> {
     const form = new FormData();
     form.append('file', file);

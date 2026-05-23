@@ -41,3 +41,4 @@ C:/Users/mabar/source/repos/Canvas/src/Canvas.Infrastructure.Sheet/obj/Debug/net
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Sheet/bin/Debug/net10.0/Canvas.pdb
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Sheet/bin/Debug/net10.0/Canvas.Domain.pdb
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Sheet/bin/Debug/net10.0/Canvas.Infrastructure.Pdf.pdb
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Sheet/obj/Debug/net10.0/Canvas.Infrastructure.Sheet.sourcelink.json

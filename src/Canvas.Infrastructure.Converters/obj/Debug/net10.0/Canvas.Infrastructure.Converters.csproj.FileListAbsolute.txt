@@ -41,3 +41,5 @@ C:/Users/mabar/source/repos/Canvas/src/Canvas.Infrastructure.Converters/obj/Debu
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/bin/Debug/net10.0/Canvas.pdb
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/bin/Debug/net10.0/Canvas.Domain.pdb
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/bin/Debug/net10.0/Canvas.Infrastructure.Pdf.pdb
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/bin/Debug/net10.0/Canvas.Importer.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/bin/Debug/net10.0/Canvas.Importer.pdb
