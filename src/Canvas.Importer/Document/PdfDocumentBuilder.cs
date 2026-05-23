@@ -310,7 +310,7 @@ public sealed class PdfDocumentBuilder
             }
 
             DecodeIfPossible(stream);
-            var imageBytes = GetRegenerableImageBytes(stream);
+            var imageBytes = GetRegenerableImageBytes(stream, graph);
             if (!imageBytes.IsEmpty)
             {
                 images[entry.Key] = imageBytes;
@@ -336,9 +336,9 @@ public sealed class PdfDocumentBuilder
         }
     }
 
-    private static ReadOnlyMemory<byte> GetRegenerableImageBytes(PdfStreamObject stream)
+    private static ReadOnlyMemory<byte> GetRegenerableImageBytes(PdfStreamObject stream, PdfObjectGraph graph)
     {
-        if (HasSingleSupportedImageFilter(stream.Dictionary["Filter"]))
+        if (HasSingleSupportedImageFilter(stream.Dictionary["Filter"], graph))
         {
             return stream.EncodedBytes;
         }
@@ -356,9 +356,15 @@ public sealed class PdfDocumentBuilder
         return ReadOnlyMemory<byte>.Empty;
     }
 
-    private static bool HasSingleSupportedImageFilter(PdfObject? filter)
+    private static bool HasSingleSupportedImageFilter(PdfObject? filter, PdfObjectGraph graph)
     {
-        return filter is PdfName { Value: "DCTDecode" or "FlateDecode" };
+        var resolvedFilter = ResolveObject(filter, graph) ?? filter;
+        return resolvedFilter switch
+        {
+            PdfName { Value: "DCTDecode" or "FlateDecode" } => true,
+            PdfArray { Items.Count: 1 } array => HasSingleSupportedImageFilter(array.Items[0], graph),
+            _ => false
+        };
     }
 
     private static bool LooksLikeSupportedImage(ReadOnlySpan<byte> bytes)

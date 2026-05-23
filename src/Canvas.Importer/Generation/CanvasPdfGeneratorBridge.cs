@@ -854,13 +854,13 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
             ResolveNumber(stream.Dictionary["Height"]) is not { } height ||
             ResolveNumber(stream.Dictionary["BitsPerComponent"]) is not { } bitsPerComponent ||
             ResolveColorSpaceName(stream.Dictionary["ColorSpace"], resources, graph) is not { } colorSpaceName ||
-            ResolveSingleSupportedFilterName(stream.Dictionary["Filter"]) is not { } filterName)
+            ResolveSingleSupportedFilterName(stream.Dictionary["Filter"], graph) is not { } filterName)
         {
             return false;
         }
 
         var data = stream.EncodedBytes;
-        var decodeParameters = ResolveDecodeParameters(stream.Dictionary["DecodeParms"]);
+        var decodeParameters = ResolveDecodeParameters(stream.Dictionary["DecodeParms"], graph);
         object? softMask = null;
         if (ResolveObject(stream.Dictionary["SMask"], graph) is PdfStreamObject softMaskStream)
         {
@@ -920,18 +920,26 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
             : null;
     }
 
-    private static string? ResolveSingleSupportedFilterName(PdfObject? filter)
+    private static string? ResolveSingleSupportedFilterName(PdfObject? filter, PdfObjectGraph graph)
     {
-        return filter switch
+        var resolvedFilter = ResolveObject(filter, graph) ?? filter;
+        return resolvedFilter switch
         {
             PdfName name when name.Value is "DCTDecode" or "FlateDecode" => name.Value,
+            PdfArray { Items.Count: 1 } array => ResolveSingleSupportedFilterName(array.Items[0], graph),
             _ => null
         };
     }
 
-    private static string? ResolveDecodeParameters(PdfObject? decodeParms)
+    private static string? ResolveDecodeParameters(PdfObject? decodeParms, PdfObjectGraph graph)
     {
-        if (decodeParms is not PdfDictionary dictionary)
+        var resolvedDecodeParms = ResolveObject(decodeParms, graph) ?? decodeParms;
+        if (resolvedDecodeParms is PdfArray { Items.Count: 1 } array)
+        {
+            resolvedDecodeParms = ResolveObject(array.Items[0], graph) ?? array.Items[0];
+        }
+
+        if (resolvedDecodeParms is not PdfDictionary dictionary)
         {
             return null;
         }

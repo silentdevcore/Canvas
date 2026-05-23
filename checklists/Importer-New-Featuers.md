@@ -73,6 +73,9 @@ Scope: this checklist tracks core Canvas.Importer PDF parsing, interpretation, e
 	- Covered so far: Flate XObject images can resolve named page `/ColorSpace` resources during regeneration.
 	- Covered so far: ICCBased XObject images map back to the correct device color space based on the profile component count, including gray and CMYK cases.
 	- Covered so far: named and indirect ICCBased image color-space resource definitions resolve correctly during regeneration.
+	- Covered so far: Flate XObject images preserve indirect `/DecodeParms` metadata during regeneration.
+	- Covered so far: single-entry `/Filter` and `/DecodeParms` arrays for Flate XObject images regenerate correctly.
+	- Covered so far: Flate XObject images preserve indirect `/Filter` objects during regeneration.
 	- Remaining likely slices: named ICCBased color-space resources, indirect ICCBased resource definitions, and other resource dependencies adjacent to shading/image regeneration.
 	- Remaining likely slices: broader unsupported bridge cases where `Canvas.Pdf` still needs compatibility preservation instead of native emission.
 - [ ] Add broader import-edit-regenerate end-to-end fixtures against real sample PDFs.

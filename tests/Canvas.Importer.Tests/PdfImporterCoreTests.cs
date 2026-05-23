@@ -1158,6 +1158,240 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
+    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldPreserveIndirectDecodeParametersForFlateImages()
+    {
+        var graph = new PdfObjectGraph();
+
+        var catalog = new PdfDictionary();
+        catalog["Type"] = new PdfName("Catalog");
+        catalog["Pages"] = new PdfReference(new PdfObjectId(2, 0));
+
+        var pages = new PdfDictionary();
+        pages["Type"] = new PdfName("Pages");
+        pages["Count"] = new PdfInteger(1);
+        pages["Kids"] = new PdfArray([new PdfReference(new PdfObjectId(3, 0))]);
+
+        var xObjectResources = new PdfDictionary();
+        xObjectResources["Im1"] = new PdfReference(new PdfObjectId(5, 0));
+
+        var resources = new PdfDictionary();
+        resources["XObject"] = xObjectResources;
+
+        var page = new PdfDictionary();
+        page["Type"] = new PdfName("Page");
+        page["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page["Resources"] = resources;
+        page["MediaBox"] = Array(0, 0, 200, 120);
+        page["Contents"] = new PdfReference(new PdfObjectId(4, 0));
+
+        var contentBytes = Encoding.ASCII.GetBytes("q 40 0 0 20 30 40 cm /Im1 Do Q");
+        var contentStream = new PdfStreamObject(new PdfDictionary(), contentBytes);
+
+        var decodeParms = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["Predictor"] = new PdfInteger(12),
+            ["Colors"] = new PdfInteger(3),
+            ["BitsPerComponent"] = new PdfInteger(8),
+            ["Columns"] = new PdfInteger(1)
+        });
+
+        var imageDictionary = new PdfDictionary();
+        imageDictionary["Type"] = new PdfName("XObject");
+        imageDictionary["Subtype"] = new PdfName("Image");
+        imageDictionary["Width"] = new PdfInteger(1);
+        imageDictionary["Height"] = new PdfInteger(1);
+        imageDictionary["ColorSpace"] = new PdfName("DeviceRGB");
+        imageDictionary["BitsPerComponent"] = new PdfInteger(8);
+        imageDictionary["Filter"] = new PdfName("FlateDecode");
+        imageDictionary["DecodeParms"] = new PdfReference(new PdfObjectId(6, 0));
+        var encodedImageBytes = Compress([0x12, 0x34, 0x56]);
+        var imageStream = new PdfStreamObject(imageDictionary, encodedImageBytes);
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(1, 0), catalog, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(2, 0), pages, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(3, 0), page, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(4, 0), contentStream, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(5, 0), imageStream, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(6, 0), decodeParms, new PdfSourceSpan(0, 1)));
+
+        var builder = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter());
+        var document = builder.Build(graph);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var regeneratedImageObject = Assert.Single(
+            reimported.ObjectGraph.Objects.Values
+                .Select(static indirect => indirect.Value)
+                .OfType<PdfStreamObject>(),
+            static stream => stream.Dictionary["Subtype"] is PdfName { Value: "Image" });
+
+        var importedDecodeParms = Assert.IsType<PdfDictionary>(regeneratedImageObject.Dictionary["DecodeParms"]);
+        Assert.Equal(12, Assert.IsType<PdfInteger>(importedDecodeParms["Predictor"]).Value);
+        Assert.Equal(3, Assert.IsType<PdfInteger>(importedDecodeParms["Colors"]).Value);
+    }
+
+    [Fact]
+    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldPreserveSingleEntryFilterArraysForFlateImages()
+    {
+        var graph = new PdfObjectGraph();
+
+        var catalog = new PdfDictionary();
+        catalog["Type"] = new PdfName("Catalog");
+        catalog["Pages"] = new PdfReference(new PdfObjectId(2, 0));
+
+        var pages = new PdfDictionary();
+        pages["Type"] = new PdfName("Pages");
+        pages["Count"] = new PdfInteger(1);
+        pages["Kids"] = new PdfArray([new PdfReference(new PdfObjectId(3, 0))]);
+
+        var xObjectResources = new PdfDictionary();
+        xObjectResources["Im1"] = new PdfReference(new PdfObjectId(5, 0));
+
+        var resources = new PdfDictionary();
+        resources["XObject"] = xObjectResources;
+
+        var page = new PdfDictionary();
+        page["Type"] = new PdfName("Page");
+        page["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page["Resources"] = resources;
+        page["MediaBox"] = Array(0, 0, 200, 120);
+        page["Contents"] = new PdfReference(new PdfObjectId(4, 0));
+
+        var contentBytes = Encoding.ASCII.GetBytes("q 40 0 0 20 30 40 cm /Im1 Do Q");
+        var contentStream = new PdfStreamObject(new PdfDictionary(), contentBytes);
+
+        var decodeParms = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["Predictor"] = new PdfInteger(12),
+            ["Colors"] = new PdfInteger(3),
+            ["BitsPerComponent"] = new PdfInteger(8),
+            ["Columns"] = new PdfInteger(1)
+        });
+
+        var imageDictionary = new PdfDictionary();
+        imageDictionary["Type"] = new PdfName("XObject");
+        imageDictionary["Subtype"] = new PdfName("Image");
+        imageDictionary["Width"] = new PdfInteger(1);
+        imageDictionary["Height"] = new PdfInteger(1);
+        imageDictionary["ColorSpace"] = new PdfName("DeviceRGB");
+        imageDictionary["BitsPerComponent"] = new PdfInteger(8);
+        imageDictionary["Filter"] = new PdfArray([new PdfName("FlateDecode")]);
+        imageDictionary["DecodeParms"] = new PdfArray([decodeParms]);
+        var encodedImageBytes = Compress([0x12, 0x34, 0x56]);
+        var imageStream = new PdfStreamObject(imageDictionary, encodedImageBytes);
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(1, 0), catalog, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(2, 0), pages, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(3, 0), page, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(4, 0), contentStream, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(5, 0), imageStream, new PdfSourceSpan(0, 1)));
+
+        var builder = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter());
+        var document = builder.Build(graph);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var regeneratedImageObject = Assert.Single(
+            reimported.ObjectGraph.Objects.Values
+                .Select(static indirect => indirect.Value)
+                .OfType<PdfStreamObject>(),
+            static stream => stream.Dictionary["Subtype"] is PdfName { Value: "Image" });
+
+        Assert.Equal("FlateDecode", Assert.IsType<PdfName>(regeneratedImageObject.Dictionary["Filter"]).Value);
+        var importedDecodeParms = Assert.IsType<PdfDictionary>(regeneratedImageObject.Dictionary["DecodeParms"]);
+        Assert.Equal(12, Assert.IsType<PdfInteger>(importedDecodeParms["Predictor"]).Value);
+        Assert.Equal(3, Assert.IsType<PdfInteger>(importedDecodeParms["Colors"]).Value);
+    }
+
+    [Fact]
+    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldPreserveIndirectFilterForFlateImages()
+    {
+        var graph = new PdfObjectGraph();
+
+        var catalog = new PdfDictionary();
+        catalog["Type"] = new PdfName("Catalog");
+        catalog["Pages"] = new PdfReference(new PdfObjectId(2, 0));
+
+        var pages = new PdfDictionary();
+        pages["Type"] = new PdfName("Pages");
+        pages["Count"] = new PdfInteger(1);
+        pages["Kids"] = new PdfArray([new PdfReference(new PdfObjectId(3, 0))]);
+
+        var xObjectResources = new PdfDictionary();
+        xObjectResources["Im1"] = new PdfReference(new PdfObjectId(5, 0));
+
+        var resources = new PdfDictionary();
+        resources["XObject"] = xObjectResources;
+
+        var page = new PdfDictionary();
+        page["Type"] = new PdfName("Page");
+        page["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page["Resources"] = resources;
+        page["MediaBox"] = Array(0, 0, 200, 120);
+        page["Contents"] = new PdfReference(new PdfObjectId(4, 0));
+
+        var contentBytes = Encoding.ASCII.GetBytes("q 40 0 0 20 30 40 cm /Im1 Do Q");
+        var contentStream = new PdfStreamObject(new PdfDictionary(), contentBytes);
+
+        var decodeParms = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["Predictor"] = new PdfInteger(12),
+            ["Colors"] = new PdfInteger(3),
+            ["BitsPerComponent"] = new PdfInteger(8),
+            ["Columns"] = new PdfInteger(1)
+        });
+
+        var imageDictionary = new PdfDictionary();
+        imageDictionary["Type"] = new PdfName("XObject");
+        imageDictionary["Subtype"] = new PdfName("Image");
+        imageDictionary["Width"] = new PdfInteger(1);
+        imageDictionary["Height"] = new PdfInteger(1);
+        imageDictionary["ColorSpace"] = new PdfName("DeviceRGB");
+        imageDictionary["BitsPerComponent"] = new PdfInteger(8);
+        imageDictionary["Filter"] = new PdfReference(new PdfObjectId(6, 0));
+        imageDictionary["DecodeParms"] = decodeParms;
+        var encodedImageBytes = Compress([0x12, 0x34, 0x56]);
+        var imageStream = new PdfStreamObject(imageDictionary, encodedImageBytes);
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(1, 0), catalog, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(2, 0), pages, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(3, 0), page, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(4, 0), contentStream, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(5, 0), imageStream, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(6, 0), new PdfName("FlateDecode"), new PdfSourceSpan(0, 1)));
+
+        var builder = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter());
+        var document = builder.Build(graph);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var regeneratedImageObject = Assert.Single(
+            reimported.ObjectGraph.Objects.Values
+                .Select(static indirect => indirect.Value)
+                .OfType<PdfStreamObject>(),
+            static stream => stream.Dictionary["Subtype"] is PdfName { Value: "Image" });
+
+        Assert.Equal("FlateDecode", Assert.IsType<PdfName>(regeneratedImageObject.Dictionary["Filter"]).Value);
+        var importedDecodeParms = Assert.IsType<PdfDictionary>(regeneratedImageObject.Dictionary["DecodeParms"]);
+        Assert.Equal(12, Assert.IsType<PdfInteger>(importedDecodeParms["Predictor"]).Value);
+    }
+
+    [Fact]
     public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripFlateXObjectImagesWithIccBasedGrayColorSpace()
     {
         var graph = new PdfObjectGraph();

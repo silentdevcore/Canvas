@@ -35,7 +35,7 @@ A production-ready document automation platform with a visual template designer,
 ### Import Formats
 | Format | Notes |
 |--------|-------|
-| PDF | UglyToad.PdfPig — words grouped into Text elements, images as base64 |
+| PDF | `Canvas.Importer` editable PDF model — page tree, text, paths, inline images, XObject images, marked content, clipping, colors, fonts, shading operators; bridge regeneration currently covers text, vector paths, JPEG/Flate XObject images, soft masks, and compatibility-preserved shading/resource cases |
 | DOCX | OpenXML SDK — paragraphs, tables, inline images, typography |
 | DOC | Pure C# CFBF parser — reads WordDocument stream via FIB offsets |
 | ODT | System.IO.Compression + LINQ to XML — paragraphs, styles, draw:frame images |
@@ -132,6 +132,7 @@ Canvas.Application             ← Use-case orchestration (FindAndReplace, Clone
 Canvas.Core                    ← Contracts, DTOs, abstractions (IDocumentRenderer, etc.)
   ↑ (all infrastructure projects implement Canvas.Core contracts)
 Canvas.Infrastructure.Pdf      ← Custom PDF renderer (no external PDF library)
+Canvas.Importer                ← Editable PDF parsing/model/rewrite/regeneration bridge contracts and importer pipeline
 Canvas.Infrastructure.Word     ← DOCX exporter, DocxImporter, DigitalSigningService, style/footnote/comment services
 Canvas.Infrastructure.Sheet    ← XLSX exporter via ClosedXML
 Canvas.Infrastructure.Converters ← ODT, HTML, CSV, Markdown, Image, TIFF exporters; PDF/DOC/ODT importers
@@ -160,10 +161,11 @@ src/
 | Frontend | React 18, TypeScript, Vite, Zustand, react-icons |
 | Backend | .NET 10, ASP.NET Core |
 | PDF export | Custom .NET renderer (no iTextSharp/PDFsharp) |
+| PDF edit/regenerate | `Canvas.Importer` + `Canvas.Infrastructure.Pdf` bridge |
 | DOCX export/import | DocumentFormat.OpenXml 3.5.1 |
 | DOCX signing | System.Security.Cryptography.Xml 10.0.8 (RSA-SHA256 XML-DSig) |
 | Excel | ClosedXML |
-| PDF import | UglyToad.PdfPig 1.7.0-custom-5 |
+| PDF import | `Canvas.Importer` low-level parser/object graph/editor pipeline |
 | DOC import | Pure C# CFBF parser |
 | ODT import/export | System.IO.Compression + LINQ to XML (ODF 1.3) |
 | Image export | System.Drawing / SkiaSharp |
