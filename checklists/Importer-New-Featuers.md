@@ -65,5 +65,19 @@ Scope: this checklist tracks core Canvas.Importer PDF parsing, interpretation, e
 - [x] Expand the sample generator bridge to preserve XObject image soft masks.
 - [x] Expand the sample generator bridge to preserve direct page shading resources via compatibility regeneration.
 - [ ] Expand the sample generator bridge beyond the current subset for shading regeneration and broader image/resource fidelity.
+	- Covered so far: mixed group filtering so non-shading content is not duplicated during shading compatibility regeneration.
+	- Covered so far: indirect shading resource graphs and inherited page-tree shading resources.
+	- Covered so far: shading pages that also contain text and XObject image resources.
+	- Covered so far: deleted shading elements no longer trigger compatibility regeneration.
+	- Covered so far: shading-adjacent `/ColorSpace` resources are preserved with the shading resource bundle.
+	- Covered so far: Flate XObject images can resolve named page `/ColorSpace` resources during regeneration.
+	- Covered so far: ICCBased XObject images map back to the correct device color space based on the profile component count, including gray and CMYK cases.
+	- Covered so far: named and indirect ICCBased image color-space resource definitions resolve correctly during regeneration.
+	- Remaining likely slices: named ICCBased color-space resources, indirect ICCBased resource definitions, and other resource dependencies adjacent to shading/image regeneration.
+	- Remaining likely slices: broader unsupported bridge cases where `Canvas.Pdf` still needs compatibility preservation instead of native emission.
 - [ ] Add broader import-edit-regenerate end-to-end fixtures against real sample PDFs.
+	- Target coverage: real PDFs that combine text, vector paths, images, inherited resources, incremental updates, and shading resources.
+	- Goal: verify importer -> editable model -> bridge regeneration against less synthetic inputs than the focused unit-style object-graph tests.
 - [ ] Implement actual deferred decoders for JBIG2, CCITT Fax, and JPEG2000.
+	- This is a larger implementation item than the current bridge-fidelity slices.
+	- Likely approach: add decoder implementations or vetted library-backed adapters, then extend `PdfStreamDecoderRegistry` coverage and focused decoder tests.

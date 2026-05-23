@@ -686,7 +686,7 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
     {
         if (!string.IsNullOrEmpty(image.ResourceName) &&
             TryResolveImageXObject(sourcePage.Resources, graph, image.ResourceName, out var imageStream) &&
-            TryCreateCanvasImageData(imageStream, graph, out var imageData))
+            TryCreateCanvasImageData(imageStream, sourcePage.Resources, graph, out var imageData))
         {
             AddInternalPageElement(
                 page,
@@ -846,14 +846,14 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
         return true;
     }
 
-    private static bool TryCreateCanvasImageData(PdfStreamObject stream, PdfObjectGraph graph, out object imageData)
+    private static bool TryCreateCanvasImageData(PdfStreamObject stream, PdfDictionary resources, PdfObjectGraph graph, out object imageData)
     {
         imageData = null!;
 
         if (ResolveNumber(stream.Dictionary["Width"]) is not { } width ||
             ResolveNumber(stream.Dictionary["Height"]) is not { } height ||
             ResolveNumber(stream.Dictionary["BitsPerComponent"]) is not { } bitsPerComponent ||
-            ResolveColorSpaceName(stream.Dictionary["ColorSpace"]) is not { } colorSpaceName ||
+            ResolveColorSpaceName(stream.Dictionary["ColorSpace"], resources, graph) is not { } colorSpaceName ||
             ResolveSingleSupportedFilterName(stream.Dictionary["Filter"]) is not { } filterName)
         {
             return false;
@@ -864,7 +864,7 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
         object? softMask = null;
         if (ResolveObject(stream.Dictionary["SMask"], graph) is PdfStreamObject softMaskStream)
         {
-            if (!TryCreateCanvasImageData(softMaskStream, graph, out softMask))
+            if (!TryCreateCanvasImageData(softMaskStream, resources, graph, out softMask))
             {
                 return false;
             }
@@ -885,14 +885,39 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
         return true;
     }
 
-    private static string? ResolveColorSpaceName(PdfObject? colorSpace)
+    private static string? ResolveColorSpaceName(PdfObject? colorSpace, PdfDictionary resources, PdfObjectGraph graph)
     {
-        return colorSpace switch
+        var resolvedColorSpace = ResolveObject(colorSpace, graph) ?? colorSpace;
+        return resolvedColorSpace switch
         {
             PdfName name when name.Value is "DeviceGray" or "DeviceRGB" or "DeviceCMYK" => name.Value,
-            PdfArray { Items.Count: > 0 } array when array.Items[0] is PdfName { Value: "ICCBased" } => "DeviceRGB",
+            PdfName name when ResolveNamedColorSpace(name.Value, resources, graph) is { } namedColorSpace => ResolveColorSpaceName(namedColorSpace, resources, graph),
+            PdfArray { Items.Count: > 1 } array when ResolveObject(array.Items[0], graph) is PdfName { Value: "ICCBased" } => ResolveIccBasedColorSpaceName(array.Items[1], graph),
             _ => null
         };
+    }
+
+    private static string? ResolveIccBasedColorSpaceName(PdfObject profileReference, PdfObjectGraph graph)
+    {
+        return ResolveObject(profileReference, graph) switch
+        {
+            PdfStreamObject profileStream when ResolveNumber(profileStream.Dictionary["N"]) is 1 => "DeviceGray",
+            PdfStreamObject profileStream when ResolveNumber(profileStream.Dictionary["N"]) is 3 => "DeviceRGB",
+            PdfStreamObject profileStream when ResolveNumber(profileStream.Dictionary["N"]) is 4 => "DeviceCMYK",
+            _ => null
+        };
+    }
+
+    private static PdfObject? ResolveNamedColorSpace(string resourceName, PdfDictionary resources, PdfObjectGraph graph)
+    {
+        if (ResolveObject(resources["ColorSpace"], graph) is not PdfDictionary colorSpaces)
+        {
+            return null;
+        }
+
+        return colorSpaces.Values.TryGetValue(resourceName, out var colorSpace)
+            ? ResolveObject(colorSpace, graph) ?? colorSpace
+            : null;
     }
 
     private static string? ResolveSingleSupportedFilterName(PdfObject? filter)
