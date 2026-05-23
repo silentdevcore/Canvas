@@ -9,3 +9,4 @@
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/refint/Canvas.Importer.dll
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/Canvas.Importer.pdb
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/ref/Canvas.Importer.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Importer/obj/Debug/net10.0/Canvas.Importer.sourcelink.json

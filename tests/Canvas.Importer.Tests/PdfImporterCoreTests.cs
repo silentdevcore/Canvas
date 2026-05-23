@@ -178,6 +178,26 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
+    public void GraphicsInterpreter_ShouldApplyColorSpacesToScnAndScnOperators()
+    {
+        var interpreter = new PdfGraphicsInterpreter();
+        var commands = new PdfContentCommand[]
+        {
+            Command("cs", 1, new PdfName("DeviceCMYK")),
+            Command("CS", 2, new PdfName("DeviceRGB")),
+            Command("scn", 3, new PdfNumber(0.1), new PdfNumber(0.2), new PdfNumber(0.3), new PdfNumber(0.4)),
+            Command("SCN", 4, new PdfNumber(0.8), new PdfNumber(0.6), new PdfNumber(0.4)),
+            Command("Tm", 5, new PdfInteger(1), new PdfInteger(0), new PdfInteger(0), new PdfInteger(1), new PdfInteger(0), new PdfInteger(0)),
+            Command("Tj", 6, new PdfString(Encoding.ASCII.GetBytes("Spaces"), IsHex: false))
+        };
+
+        var text = Assert.IsType<PdfTextElement>(Assert.Single(interpreter.Interpret(commands)));
+
+        Assert.Equal(new PdfColor(0.1, 0.2, 0.3, 0.4, PdfColorSpace.DeviceCmyk), text.FillColor);
+        Assert.Equal(new PdfColor(0.8, 0.6, 0.4, 1, PdfColorSpace.DeviceRgb), text.StrokeColor);
+    }
+
+    [Fact]
     public void GraphicsInterpreter_ShouldPreserveMarkedContentGroups()
     {
         var interpreter = new PdfGraphicsInterpreter();
@@ -255,6 +275,39 @@ public sealed class PdfImporterCoreTests
         Assert.Equal("Span", propertyMarker.MarkedContentTag);
         Assert.Same(properties, propertyMarker.Properties);
         Assert.Empty(propertyMarker.Children);
+    }
+
+    [Fact]
+    public void ContentParser_AndGraphicsInterpreter_ShouldEmitInlineImageElements()
+    {
+        var parser = new PdfContentStreamParser();
+        var interpreter = new PdfGraphicsInterpreter();
+        var bytes = new byte[]
+        {
+            (byte)'q', (byte)' ',
+            (byte)'1', (byte)' ', (byte)'0', (byte)' ', (byte)'0', (byte)' ', (byte)'1', (byte)' ', (byte)'1', (byte)'0', (byte)' ', (byte)'2', (byte)'0', (byte)' ', (byte)'c', (byte)'m', (byte)' ',
+            (byte)'B', (byte)'I', (byte)' ',
+            (byte)'/', (byte)'W', (byte)' ', (byte)'1', (byte)' ',
+            (byte)'/', (byte)'H', (byte)' ', (byte)'1', (byte)' ',
+            (byte)'/', (byte)'B', (byte)'P', (byte)'C', (byte)' ', (byte)'8', (byte)' ',
+            (byte)'/', (byte)'C', (byte)'S', (byte)' ', (byte)'/', (byte)'D', (byte)'e', (byte)'v', (byte)'i', (byte)'c', (byte)'e', (byte)'G', (byte)'r', (byte)'a', (byte)'y', (byte)' ',
+            (byte)'I', (byte)'D', (byte)' ',
+            0x7f,
+            (byte)' ', (byte)'E', (byte)'I', (byte)' ',
+            (byte)'Q'
+        };
+
+        var commands = parser.Parse(bytes);
+
+        var inlineImageCommand = Assert.Single(commands.Where(command => command.Operator.Name == "BI"));
+        var inlineStream = Assert.IsType<PdfStreamObject>(Assert.Single(inlineImageCommand.Operands));
+        Assert.Equal(1, Assert.IsType<PdfInteger>(inlineStream.Dictionary["W"]).Value);
+        Assert.Equal(1, Assert.IsType<PdfInteger>(inlineStream.Dictionary["H"]).Value);
+        Assert.Equal(new byte[] { 0x7f }, inlineStream.EncodedBytes.ToArray());
+
+        var image = Assert.IsType<PdfImageElement>(Assert.Single(interpreter.Interpret(commands)));
+        Assert.Equal(new byte[] { 0x7f }, image.ImageBytes.ToArray());
+        Assert.Equal(PdfMatrix.Identity.Multiply(new PdfMatrix(1, 0, 0, 1, 10, 20)), image.Transform);
     }
 
     [Fact]

@@ -29,28 +29,40 @@ public sealed class PdfGraphicsInterpreter
                     state.Update(s => s with { LineWidth = Number(command.Operands, 0) });
                     break;
                 case "G":
-                    state.Update(s => s with { StrokeColor = GrayColor(command.Operands) });
+                    state.Update(s => s with { StrokeColorSpace = PdfColorSpace.DeviceGray, StrokeColor = GrayColor(command.Operands) });
                     break;
                 case "g":
-                    state.Update(s => s with { FillColor = GrayColor(command.Operands) });
+                    state.Update(s => s with { FillColorSpace = PdfColorSpace.DeviceGray, FillColor = GrayColor(command.Operands) });
                     break;
                 case "RG":
-                    state.Update(s => s with { StrokeColor = RgbColor(command.Operands) });
+                    state.Update(s => s with { StrokeColorSpace = PdfColorSpace.DeviceRgb, StrokeColor = RgbColor(command.Operands) });
                     break;
                 case "rg":
-                    state.Update(s => s with { FillColor = RgbColor(command.Operands) });
+                    state.Update(s => s with { FillColorSpace = PdfColorSpace.DeviceRgb, FillColor = RgbColor(command.Operands) });
+                    break;
+                case "CS":
+                    state.Update(s => s with { StrokeColorSpace = ReadColorSpace(command.Operands) });
+                    break;
+                case "cs":
+                    state.Update(s => s with { FillColorSpace = ReadColorSpace(command.Operands) });
                     break;
                 case "SC":
-                    state.Update(s => s with { StrokeColor = GeneralColor(command.Operands, s.StrokeColor) });
+                    state.Update(s => s with { StrokeColor = GeneralColor(command.Operands, s.StrokeColorSpace, s.StrokeColor) });
+                    break;
+                case "SCN":
+                    state.Update(s => s with { StrokeColor = GeneralColor(command.Operands, s.StrokeColorSpace, s.StrokeColor) });
                     break;
                 case "sc":
-                    state.Update(s => s with { FillColor = GeneralColor(command.Operands, s.FillColor) });
+                    state.Update(s => s with { FillColor = GeneralColor(command.Operands, s.FillColorSpace, s.FillColor) });
+                    break;
+                case "scn":
+                    state.Update(s => s with { FillColor = GeneralColor(command.Operands, s.FillColorSpace, s.FillColor) });
                     break;
                 case "K":
-                    state.Update(s => s with { StrokeColor = CmykColor(command.Operands) });
+                    state.Update(s => s with { StrokeColorSpace = PdfColorSpace.DeviceCmyk, StrokeColor = CmykColor(command.Operands) });
                     break;
                 case "k":
-                    state.Update(s => s with { FillColor = CmykColor(command.Operands) });
+                    state.Update(s => s with { FillColorSpace = PdfColorSpace.DeviceCmyk, FillColor = CmykColor(command.Operands) });
                     break;
                 case "Tf":
                     state.Update(s => s with { FontSize = Number(command.Operands, 1) });
@@ -135,6 +147,16 @@ public sealed class PdfGraphicsInterpreter
                 case "Do":
                     AddElement(groups, elements, new PdfImageElement(command.Sequence, state.Current.Transform, command, Name(command.Operands, 0)));
                     break;
+                case "BI":
+                    if (command.Operands.FirstOrDefault() is PdfStreamObject inlineImage)
+                    {
+                        AddElement(groups, elements, new PdfImageElement(command.Sequence, state.Current.Transform, command, string.Empty)
+                        {
+                            ImageBytes = inlineImage.EncodedBytes
+                        });
+                    }
+
+                    break;
             }
         }
 
@@ -203,31 +225,81 @@ public sealed class PdfGraphicsInterpreter
         return new PdfColor(Number(operands, 0), Number(operands, 1), Number(operands, 2), Number(operands, 3), PdfColorSpace.DeviceCmyk);
     }
 
-    private static PdfColor GeneralColor(IReadOnlyList<PdfObject> operands, PdfColor current)
+    private static PdfColorSpace ReadColorSpace(IReadOnlyList<PdfObject> operands)
     {
-        return NumericComponentCount(operands) switch
+        return Name(operands, 0) switch
         {
-            1 => GrayColor(operands),
-            3 => RgbColor(operands),
-            4 => CmykColor(operands),
+            "DeviceGray" or "G" => PdfColorSpace.DeviceGray,
+            "DeviceRGB" or "RGB" => PdfColorSpace.DeviceRgb,
+            "DeviceCMYK" or "CMYK" => PdfColorSpace.DeviceCmyk,
+            "Pattern" => PdfColorSpace.Pattern,
+            "Indexed" => PdfColorSpace.Indexed,
+            "ICCBased" => PdfColorSpace.IccBased,
+            "Separation" => PdfColorSpace.Separation,
+            "DeviceN" => PdfColorSpace.DeviceN,
+            _ => PdfColorSpace.DeviceGray
+        };
+    }
+
+    private static PdfColor GeneralColor(IReadOnlyList<PdfObject> operands, PdfColorSpace colorSpace, PdfColor current)
+    {
+        var components = NumericComponents(operands);
+        if (components.Count == 0)
+        {
+            return current;
+        }
+
+        colorSpace = ResolveDeviceColorSpace(colorSpace, components.Count);
+
+        return colorSpace switch
+        {
+            PdfColorSpace.DeviceGray => new PdfColor(components[0], 0, 0, 1, PdfColorSpace.DeviceGray),
+            PdfColorSpace.DeviceRgb => new PdfColor(Component(components, 0), Component(components, 1), Component(components, 2), 1, PdfColorSpace.DeviceRgb),
+            PdfColorSpace.DeviceCmyk => new PdfColor(Component(components, 0), Component(components, 1), Component(components, 2), Component(components, 3), PdfColorSpace.DeviceCmyk),
+            PdfColorSpace.Pattern => new PdfColor(Component(components, 0), Component(components, 1), Component(components, 2), Component(components, 3), PdfColorSpace.Pattern),
+            PdfColorSpace.Indexed => new PdfColor(Component(components, 0), 0, 0, 1, PdfColorSpace.Indexed),
+            PdfColorSpace.IccBased => new PdfColor(Component(components, 0), Component(components, 1), Component(components, 2), Component(components, 3), PdfColorSpace.IccBased),
+            PdfColorSpace.Separation => new PdfColor(Component(components, 0), 0, 0, 1, PdfColorSpace.Separation),
+            PdfColorSpace.DeviceN => new PdfColor(Component(components, 0), Component(components, 1), Component(components, 2), Component(components, 3), PdfColorSpace.DeviceN),
             _ => current
         };
     }
 
-    private static int NumericComponentCount(IReadOnlyList<PdfObject> operands)
+    private static PdfColorSpace ResolveDeviceColorSpace(PdfColorSpace colorSpace, int componentCount)
     {
-        var count = 0;
+        return componentCount switch
+        {
+            1 when colorSpace is PdfColorSpace.DeviceGray or PdfColorSpace.DeviceRgb or PdfColorSpace.DeviceCmyk => PdfColorSpace.DeviceGray,
+            3 when colorSpace is PdfColorSpace.DeviceGray or PdfColorSpace.DeviceRgb or PdfColorSpace.DeviceCmyk => PdfColorSpace.DeviceRgb,
+            4 when colorSpace is PdfColorSpace.DeviceGray or PdfColorSpace.DeviceRgb or PdfColorSpace.DeviceCmyk => PdfColorSpace.DeviceCmyk,
+            _ => colorSpace
+        };
+    }
+
+    private static List<double> NumericComponents(IReadOnlyList<PdfObject> operands)
+    {
+        var components = new List<double>();
         foreach (var operand in operands)
         {
-            if (operand is not (PdfInteger or PdfNumber))
+            switch (operand)
             {
-                break;
+                case PdfInteger integer:
+                    components.Add(integer.Value);
+                    break;
+                case PdfNumber number:
+                    components.Add(number.Value);
+                    break;
+                default:
+                    return components;
             }
-
-            count++;
         }
 
-        return count;
+        return components;
+    }
+
+    private static double Component(IReadOnlyList<double> components, int index)
+    {
+        return index < components.Count ? components[index] : 0;
     }
 
     private static double Number(IReadOnlyList<PdfObject> operands, int index)

@@ -7,6 +7,8 @@ public sealed record GraphicsState
     public PdfMatrix Transform { get; init; } = PdfMatrix.Identity;
     public PdfFontResource? CurrentFont { get; init; }
     public double FontSize { get; init; }
+    public PdfColorSpace FillColorSpace { get; init; } = PdfColorSpace.DeviceGray;
+    public PdfColorSpace StrokeColorSpace { get; init; } = PdfColorSpace.DeviceGray;
     public PdfColor FillColor { get; init; } = PdfColor.Black;
     public PdfColor StrokeColor { get; init; } = PdfColor.Black;
     public double LineWidth { get; init; } = 1;

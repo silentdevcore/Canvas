@@ -97,3 +97,4 @@
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/obj/Debug/net10.0/Canvas.Importer.Tests.pdb
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/obj/Debug/net10.0/Canvas.Importer.Tests.genruntimeconfig.cache
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/obj/Debug/net10.0/ref/Canvas.Importer.Tests.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/obj/Debug/net10.0/Canvas.Importer.Tests.sourcelink.json
