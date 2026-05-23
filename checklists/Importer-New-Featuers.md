@@ -62,6 +62,8 @@ Scope: this checklist tracks core Canvas.Importer PDF parsing, interpretation, e
 - [x] Expand the sample generator bridge to support fill-only vector path regeneration.
 - [x] Expand the sample generator bridge to round-trip JPEG-backed XObject image resources.
 - [x] Expand the sample generator bridge to round-trip simple Flate-backed XObject image resources.
+- [x] Expand the sample generator bridge to preserve XObject image soft masks.
+- [x] Expand the sample generator bridge to preserve direct page shading resources via compatibility regeneration.
 - [ ] Expand the sample generator bridge beyond the current subset for shading regeneration and broader image/resource fidelity.
 - [ ] Add broader import-edit-regenerate end-to-end fixtures against real sample PDFs.
 - [ ] Implement actual deferred decoders for JBIG2, CCITT Fax, and JPEG2000.

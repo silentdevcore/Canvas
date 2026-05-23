@@ -111,6 +111,9 @@ Items marked ✅ have been implemented. Items still open remain unchecked.
 
 ## Still Open
 
+- [ ] Native PDF shading/resource emission in `Canvas.Pdf` for importer round-trips
+  - Expose page-level shading/resource registration and shading drawing so `Canvas.Importer` does not need incremental compatibility patching for grouped or more complex shading preservation.
+
 - [x] **[high]** Read PDF (import existing PDFs as template base)
   - `PdfImporter.cs` — UglyToad.PdfPig; groups words by baseline Y into Text elements, extracts images as base64 data URIs
   - `POST /api/document/import-pdf` — multipart/form-data upload endpoint in `DocumentOpsController.cs`
