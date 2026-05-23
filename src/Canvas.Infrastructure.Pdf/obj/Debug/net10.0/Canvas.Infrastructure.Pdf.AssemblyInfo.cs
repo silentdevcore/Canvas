@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Canvas.Infrastructure.Pdf")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca032dda91f8e67e49aac48039bc1421b8d0d505")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fe67f25733ef8c1ccb8f9dd1a757c705660d7ab5")]
 [assembly: System.Reflection.AssemblyProductAttribute("Canvas.Infrastructure.Pdf")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Canvas.Infrastructure.Pdf")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -221,8 +221,8 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
                 ?? throw new InvalidOperationException($"Generated page object {pageObjectId.Number} {pageObjectId.Generation} was not found.");
             var generatedPageDictionary = (PdfDictionary)generatedPageObject.Value;
 
-            var shadingResources = CloneShadingResources(sourcePage.Resources, sourceDocument.ObjectGraph, ref nextObjectNumber, appendedObjects);
-            if (shadingResources is null)
+            var shadingResources = CloneShadingResourceBundle(sourcePage.Resources, sourceDocument.ObjectGraph, ref nextObjectNumber, appendedObjects);
+            if (shadingResources.Count == 0)
             {
                 throw new NotSupportedException("Shading elements require a source page /Shading resource dictionary for compatibility regeneration.");
             }
@@ -313,15 +313,24 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
         return shadingGroup;
     }
 
-    private static PdfObject? CloneShadingResources(PdfDictionary resources, PdfObjectGraph sourceGraph, ref int nextObjectNumber, List<(PdfObjectId Id, PdfObject Value)> appendedObjects)
+    private static Dictionary<string, PdfObject> CloneShadingResourceBundle(PdfDictionary resources, PdfObjectGraph sourceGraph, ref int nextObjectNumber, List<(PdfObjectId Id, PdfObject Value)> appendedObjects)
     {
+        var clonedResources = new Dictionary<string, PdfObject>(StringComparer.Ordinal);
+
         if (resources["Shading"] is not { } shadingResources)
         {
-            return null;
+            return clonedResources;
         }
 
         var clonedReferences = new Dictionary<PdfObjectId, PdfObjectId>();
-        return CloneForIncrementalUpdate(shadingResources, sourceGraph, ref nextObjectNumber, appendedObjects, clonedReferences);
+        clonedResources["Shading"] = CloneForIncrementalUpdate(shadingResources, sourceGraph, ref nextObjectNumber, appendedObjects, clonedReferences);
+
+        if (resources["ColorSpace"] is { } colorSpaceResources)
+        {
+            clonedResources["ColorSpace"] = CloneForIncrementalUpdate(colorSpaceResources, sourceGraph, ref nextObjectNumber, appendedObjects, clonedReferences);
+        }
+
+        return clonedResources;
     }
 
     private static PdfObject CloneForIncrementalUpdate(PdfObject value, PdfObjectGraph sourceGraph, ref int nextObjectNumber, List<(PdfObjectId Id, PdfObject Value)> appendedObjects, Dictionary<PdfObjectId, PdfObjectId> clonedReferences)
@@ -396,7 +405,7 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
         return cloned;
     }
 
-    private static PdfObject MergePageResources(PdfObject? existingResources, PdfObject shadingResources)
+    private static PdfObject MergePageResources(PdfObject? existingResources, IReadOnlyDictionary<string, PdfObject> shadingResources)
     {
         var resourceDictionary = existingResources switch
         {
@@ -404,7 +413,11 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
             _ => new PdfDictionary()
         };
 
-        resourceDictionary["Shading"] = shadingResources;
+        foreach (var resourceEntry in shadingResources)
+        {
+            resourceDictionary[resourceEntry.Key] = resourceEntry.Value;
+        }
+
         return resourceDictionary;
     }
 

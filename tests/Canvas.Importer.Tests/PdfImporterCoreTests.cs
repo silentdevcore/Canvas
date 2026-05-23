@@ -1357,6 +1357,207 @@ public sealed class PdfImporterCoreTests
         Assert.False(importedPage.Resources.Values.ContainsKey("Shading"));
     }
 
+    [Fact]
+    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldPreserveImagesWhenShadingIsPresent()
+    {
+        var graph = new PdfObjectGraph();
+
+        var catalog = new PdfDictionary();
+        catalog["Type"] = new PdfName("Catalog");
+        catalog["Pages"] = new PdfReference(new PdfObjectId(2, 0));
+
+        var pages = new PdfDictionary();
+        pages["Type"] = new PdfName("Pages");
+        pages["Count"] = new PdfInteger(1);
+        pages["Kids"] = new PdfArray([new PdfReference(new PdfObjectId(3, 0))]);
+
+        var xObjectResources = new PdfDictionary();
+        xObjectResources["Im1"] = new PdfReference(new PdfObjectId(5, 0));
+
+        var shadingDictionary = new PdfDictionary();
+        shadingDictionary["ShadingType"] = new PdfInteger(2);
+        shadingDictionary["ColorSpace"] = new PdfName("DeviceRGB");
+        shadingDictionary["Coords"] = new PdfArray([new PdfInteger(0), new PdfInteger(0), new PdfInteger(100), new PdfInteger(0)]);
+        shadingDictionary["Function"] = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["FunctionType"] = new PdfInteger(2),
+            ["Domain"] = new PdfArray([new PdfInteger(0), new PdfInteger(1)]),
+            ["C0"] = new PdfArray([new PdfInteger(1), new PdfInteger(0), new PdfInteger(0)]),
+            ["C1"] = new PdfArray([new PdfInteger(0), new PdfInteger(0), new PdfInteger(1)]),
+            ["N"] = new PdfInteger(1)
+        });
+        shadingDictionary["Extend"] = new PdfArray([new PdfBoolean(true), new PdfBoolean(true)]);
+
+        var shadingResources = new PdfDictionary();
+        shadingResources["Sh1"] = shadingDictionary;
+
+        var resources = new PdfDictionary();
+        resources["XObject"] = xObjectResources;
+        resources["Shading"] = shadingResources;
+
+        var page = new PdfDictionary();
+        page["Type"] = new PdfName("Page");
+        page["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page["Resources"] = resources;
+        page["MediaBox"] = Array(0, 0, 200, 120);
+        page["Contents"] = new PdfReference(new PdfObjectId(4, 0));
+
+        var contentBytes = Encoding.ASCII.GetBytes("q 40 0 0 20 30 40 cm /Im1 Do Q /Sh1 sh");
+        var contentStream = new PdfStreamObject(new PdfDictionary(), contentBytes);
+
+        var imageDictionary = new PdfDictionary();
+        imageDictionary["Type"] = new PdfName("XObject");
+        imageDictionary["Subtype"] = new PdfName("Image");
+        imageDictionary["Width"] = new PdfInteger(1);
+        imageDictionary["Height"] = new PdfInteger(1);
+        imageDictionary["ColorSpace"] = new PdfName("DeviceRGB");
+        imageDictionary["BitsPerComponent"] = new PdfInteger(8);
+        imageDictionary["Filter"] = new PdfName("DCTDecode");
+        var imageStream = new PdfStreamObject(imageDictionary, TinyJpegBytes());
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(1, 0), catalog, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(2, 0), pages, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(3, 0), page, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(4, 0), contentStream, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(5, 0), imageStream, new PdfSourceSpan(0, 1)));
+
+        var builder = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter());
+        var document = builder.Build(graph);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var importedPage = Assert.Single(reimported.Pages);
+        var importedImage = Assert.Single(importedPage.GraphicsObjects.OfType<PdfImageElement>());
+        Assert.Equal(TinyJpegBytes(), importedImage.ImageBytes.ToArray());
+        var importedShading = Assert.Single(importedPage.GraphicsObjects.OfType<PdfShadingElement>());
+        Assert.Equal("Sh1", importedShading.ResourceName);
+    }
+
+    [Fact]
+    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldPreserveInheritedShadingResources()
+    {
+        var graph = new PdfObjectGraph();
+
+        var catalog = new PdfDictionary();
+        catalog["Type"] = new PdfName("Catalog");
+        catalog["Pages"] = new PdfReference(new PdfObjectId(2, 0));
+
+        var shadingDictionary = new PdfDictionary();
+        shadingDictionary["ShadingType"] = new PdfInteger(2);
+        shadingDictionary["ColorSpace"] = new PdfName("DeviceRGB");
+        shadingDictionary["Coords"] = new PdfArray([new PdfInteger(0), new PdfInteger(0), new PdfInteger(100), new PdfInteger(0)]);
+        shadingDictionary["Function"] = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["FunctionType"] = new PdfInteger(2),
+            ["Domain"] = new PdfArray([new PdfInteger(0), new PdfInteger(1)]),
+            ["C0"] = new PdfArray([new PdfInteger(1), new PdfInteger(0), new PdfInteger(0)]),
+            ["C1"] = new PdfArray([new PdfInteger(0), new PdfInteger(0), new PdfInteger(1)]),
+            ["N"] = new PdfInteger(1)
+        });
+        shadingDictionary["Extend"] = new PdfArray([new PdfBoolean(true), new PdfBoolean(true)]);
+
+        var inheritedResources = new PdfDictionary();
+        inheritedResources["Shading"] = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["Sh1"] = shadingDictionary
+        });
+
+        var pages = new PdfDictionary();
+        pages["Type"] = new PdfName("Pages");
+        pages["Count"] = new PdfInteger(1);
+        pages["Kids"] = new PdfArray([new PdfReference(new PdfObjectId(3, 0))]);
+        pages["Resources"] = inheritedResources;
+
+        var page = new PdfDictionary();
+        page["Type"] = new PdfName("Page");
+        page["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page["MediaBox"] = Array(0, 0, 200, 120);
+        page["Contents"] = new PdfReference(new PdfObjectId(4, 0));
+
+        var contentBytes = Encoding.ASCII.GetBytes("/Sh1 sh");
+        var contentStream = new PdfStreamObject(new PdfDictionary(), contentBytes);
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(1, 0), catalog, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(2, 0), pages, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(3, 0), page, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(4, 0), contentStream, new PdfSourceSpan(0, 1)));
+
+        var builder = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter());
+        var document = builder.Build(graph);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var importedPage = Assert.Single(reimported.Pages);
+        var importedShading = Assert.Single(importedPage.GraphicsObjects.OfType<PdfShadingElement>());
+        Assert.Equal("Sh1", importedShading.ResourceName);
+        var importedResources = Assert.IsType<PdfDictionary>(importedPage.Resources["Shading"]);
+        Assert.IsType<PdfDictionary>(importedResources["Sh1"]);
+    }
+
+    [Fact]
+    public async Task CanvasPdfGeneratorBridge_ShouldPreserveColorSpaceResourcesRequiredByShading()
+    {
+        var document = new PdfDocumentModel();
+
+        var colorSpaces = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["CS1"] = new PdfName("DeviceRGB")
+        });
+
+        var shadingDictionary = new PdfDictionary();
+        shadingDictionary["ShadingType"] = new PdfInteger(2);
+        shadingDictionary["ColorSpace"] = new PdfName("CS1");
+        shadingDictionary["Coords"] = new PdfArray([new PdfInteger(0), new PdfInteger(0), new PdfInteger(100), new PdfInteger(0)]);
+        shadingDictionary["Function"] = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["FunctionType"] = new PdfInteger(2),
+            ["Domain"] = new PdfArray([new PdfInteger(0), new PdfInteger(1)]),
+            ["C0"] = new PdfArray([new PdfInteger(1), new PdfInteger(0), new PdfInteger(0)]),
+            ["C1"] = new PdfArray([new PdfInteger(0), new PdfInteger(0), new PdfInteger(1)]),
+            ["N"] = new PdfInteger(1)
+        });
+        shadingDictionary["Extend"] = new PdfArray([new PdfBoolean(true), new PdfBoolean(true)]);
+
+        var pageResources = new PdfDictionary();
+        pageResources["ColorSpace"] = colorSpaces;
+        pageResources["Shading"] = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["Sh1"] = shadingDictionary
+        });
+
+        var page = new PdfPageModel(null, new PdfDictionary())
+        {
+            MediaBox = new PdfRectangle(0, 0, 200, 120),
+            Resources = pageResources
+        };
+
+        page.Insert(new PdfShadingElement(1, PdfMatrix.Identity, Command("sh", 1, new PdfName("Sh1")), "Sh1"));
+        document.AddPage(page);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var importedPage = Assert.Single(reimported.Pages);
+        var importedColorSpaces = Assert.IsType<PdfDictionary>(importedPage.Resources["ColorSpace"]);
+        Assert.Equal("DeviceRGB", Assert.IsType<PdfName>(importedColorSpaces["CS1"]).Value);
+        var importedShading = Assert.Single(importedPage.GraphicsObjects.OfType<PdfShadingElement>());
+        Assert.Equal("Sh1", importedShading.ResourceName);
+    }
+
     private static PdfArray Array(params long[] values)
     {
         return new PdfArray(values.Select(value => new PdfInteger(value)));
