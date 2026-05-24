@@ -81,6 +81,8 @@ public sealed class PrimitiveText : PrimitiveObject
         FontName = source.FontName;
         FontResourceName = source.FontResourceName;
         FontSize = source.FontSize;
+        Bold = source.Bold;
+        Italic = source.Italic;
         Classification = PrimitiveClassification.Text;
     }
 
@@ -89,6 +91,8 @@ public sealed class PrimitiveText : PrimitiveObject
     public string? FontName { get; }
     public string? FontResourceName { get; }
     public double FontSize { get; }
+    public bool Bold { get; }
+    public bool Italic { get; }
 }
 
 public sealed class PrimitivePath : PrimitiveObject

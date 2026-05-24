@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "fXe5LDy3hTo=",
+  "dgSpecHash": "QZkCIcLH1BE=",
   "success": true,
   "projectFilePath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj",
   "expectedPackageFiles": [
@@ -33,7 +33,7 @@
     {
       "code": "NU1903",
       "level": "Warning",
-      "message": "Package 'System.Security.Cryptography.Xml' 8.0.2 has a known high severity vulnerability, https://github.com/advisories/GHSA-37gx-xxp4-5rgx",
+      "message": "Das Paket \"System.Security.Cryptography.Xml\" 8.0.2 weist eine bekannte Hoch Schweregrad-Sicherheitsanfälligkeit auf, https://github.com/advisories/GHSA-37gx-xxp4-5rgx.",
       "projectPath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj",
       "warningLevel": 1,
       "filePath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj",
@@ -45,7 +45,7 @@
     {
       "code": "NU1903",
       "level": "Warning",
-      "message": "Package 'System.Security.Cryptography.Xml' 8.0.2 has a known high severity vulnerability, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf",
+      "message": "Das Paket \"System.Security.Cryptography.Xml\" 8.0.2 weist eine bekannte Hoch Schweregrad-Sicherheitsanfälligkeit auf, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf.",
       "projectPath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj",
       "warningLevel": 1,
       "filePath": "/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj",

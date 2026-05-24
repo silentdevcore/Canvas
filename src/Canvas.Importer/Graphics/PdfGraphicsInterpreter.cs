@@ -544,11 +544,16 @@ public sealed class PdfGraphicsInterpreter
     private static bool IsBold(string? baseFontName) =>
         baseFontName is not null &&
         (baseFontName.Contains("Bold", StringComparison.OrdinalIgnoreCase) ||
+         baseFontName.Contains("-Bd", StringComparison.OrdinalIgnoreCase) ||
+         baseFontName.Contains("SemiBold", StringComparison.OrdinalIgnoreCase) ||
+         baseFontName.Contains("Semibold", StringComparison.OrdinalIgnoreCase) ||
+         baseFontName.Contains("Demi", StringComparison.OrdinalIgnoreCase) ||
          baseFontName.Contains("Heavy", StringComparison.OrdinalIgnoreCase) ||
          baseFontName.Contains("Black", StringComparison.OrdinalIgnoreCase));
 
     private static bool IsItalic(string? baseFontName) =>
         baseFontName is not null &&
         (baseFontName.Contains("Italic", StringComparison.OrdinalIgnoreCase) ||
+         baseFontName.Contains("-It", StringComparison.OrdinalIgnoreCase) ||
          baseFontName.Contains("Oblique", StringComparison.OrdinalIgnoreCase));
 }

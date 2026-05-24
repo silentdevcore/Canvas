@@ -18,10 +18,21 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
             _ => PdfFontKind.Unknown
         };
 
-        var rawBaseFontName = ResolveName(fontDictionary["BaseFont"], resolver);
-        var baseFontName = StripSubsetPrefix(rawBaseFontName.Length > 0 ? rawBaseFontName : null);
-
         var widthSource = GetWidthSourceDictionary(fontDictionary, subtype, resolver);
+        var rawBaseFontName = ResolveName(fontDictionary["BaseFont"], resolver);
+        if (rawBaseFontName.Length == 0)
+        {
+            rawBaseFontName = ResolveName(widthSource["BaseFont"], resolver);
+        }
+
+        if (rawBaseFontName.Length == 0)
+        {
+            rawBaseFontName = ResolveFontDescriptorName(widthSource, resolver) ??
+                ResolveFontDescriptorName(fontDictionary, resolver) ??
+                string.Empty;
+        }
+
+        var baseFontName = StripSubsetPrefix(rawBaseFontName.Length > 0 ? rawBaseFontName : null);
 
         return new PdfFontResource
         {
@@ -144,6 +155,17 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
         }
 
         return ResolveNumber(descriptor["MissingWidth"], resolver) ?? 0;
+    }
+
+    private static string? ResolveFontDescriptorName(PdfDictionary fontDictionary, IPdfObjectResolver resolver)
+    {
+        if (fontDictionary["FontDescriptor"] is not { } descriptorValue || resolver.Resolve(descriptorValue) is not PdfDictionary descriptor)
+        {
+            return null;
+        }
+
+        var fontName = ResolveName(descriptor["FontName"], resolver);
+        return fontName.Length > 0 ? fontName : null;
     }
 
     private static string ResolveName(PdfObject? value, IPdfObjectResolver resolver)

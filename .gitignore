@@ -1,6 +1,9 @@
 ## .NET
 
 # Build results
+*.dll
+*.pdb
+*.cache
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/

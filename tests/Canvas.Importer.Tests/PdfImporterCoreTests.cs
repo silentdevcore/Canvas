@@ -2959,6 +2959,38 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldNormalizePdfFontFamilyAndStyle()
+    {
+        const string resources = "<< /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /ABCDEF+TimesNewRomanPS-BoldItalicMT >> >> >>";
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "BT /F1 12 Tf 1 0 0 1 20 120 Tm (Styled) Tj ET",
+            resources);
+
+        var text = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "text");
+
+        Assert.Equal("Times New Roman", StyleValue<string>(text, "fontFamily"));
+        Assert.Equal("bold", StyleValue<string>(text, "fontWeight"));
+        Assert.Equal("italic", StyleValue<string>(text, "fontStyle"));
+        Assert.Equal("TimesNewRomanPS-BoldItalicMT", StyleValue<string>(text, "pdfFontName"));
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldUseFontDescriptorNameWhenBaseFontIsMissing()
+    {
+        const string resources = "<< /Font << /F1 << /Type /Font /Subtype /Type1 /FontDescriptor << /FontName /ABCDEF+Arial-BoldMT >> >> >> >>";
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "BT /F1 12 Tf 1 0 0 1 20 120 Tm (Descriptor) Tj ET",
+            resources);
+
+        var text = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "text");
+
+        Assert.Equal("Arial", StyleValue<string>(text, "fontFamily"));
+        Assert.Equal("bold", StyleValue<string>(text, "fontWeight"));
+        Assert.Equal("normal", StyleValue<string>(text, "fontStyle"));
+        Assert.Equal("Arial-BoldMT", StyleValue<string>(text, "pdfFontName"));
+    }
+
+    [Fact]
     public async Task CanvasImporterPdfImporter_ShouldMapVectorRectanglesThroughPrimitiveShapes()
     {
         var design = await ImportDesignFromSinglePageContentAsync("0 0 0 rg 20 30 60 40 re f");

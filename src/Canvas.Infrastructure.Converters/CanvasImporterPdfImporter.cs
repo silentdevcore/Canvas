@@ -151,6 +151,10 @@ public static class CanvasImporterPdfImporter
             h = fs * 1.5 + 4;
         }
 
+        var font = ResolveCssFont(el.FontName ?? el.FontResourceName);
+        var isBold = el.Bold || font.Bold;
+        var isItalic = el.Italic || font.Italic;
+
         return new ElementDto
         {
             Id      = $"txt-{pg}-{seq++}", Type = "text",
@@ -160,9 +164,12 @@ public static class CanvasImporterPdfImporter
             Style   = new Dictionary<string, object>
             {
                 ["fontSize"]   = Math.Round(fs, 1),
-                ["fontFamily"] = CleanFont(el.FontName ?? el.FontResourceName),
+                ["fontFamily"] = font.Family,
+                ["fontWeight"] = isBold ? "bold" : "normal",
+                ["fontStyle"]  = isItalic ? "italic" : "normal",
                 ["color"]      = ColorToHex(el.GraphicsState.FillColor),
                 ["rotation"]   = Math.Round(ToCanvasRotation(el.Geometry.RotationDegrees), 2),
+                ["pdfFontName"] = font.PdfName,
                 ["pdfClassification"] = el.Classification.ToString(),
             },
         };
@@ -349,11 +356,148 @@ public static class CanvasImporterPdfImporter
 
     private static int ToByte(double v) => Math.Clamp((int)Math.Round(v * 255), 0, 255);
 
-    private static string CleanFont(string? name)
+    private static CssFontInfo ResolveCssFont(string? name)
+    {
+        var pdfName = CleanPdfFontName(name);
+        if (string.IsNullOrWhiteSpace(pdfName))
+        {
+            return new CssFontInfo("Arial", "Arial", Bold: false, Italic: false);
+        }
+
+        var bold = IsBoldFontName(pdfName);
+        var italic = IsItalicFontName(pdfName);
+        return new CssFontInfo(NormalizeCssFontFamily(pdfName), pdfName, bold, italic);
+    }
+
+    private static string CleanPdfFontName(string? name)
     {
         if (string.IsNullOrWhiteSpace(name)) return "Arial";
-        var idx = name.IndexOf('+');
-        return idx >= 0 ? name[(idx + 1)..] : name;
+        var clean = name.Trim('\'', '"').Replace('_', ' ');
+        var plus = clean.IndexOf('+');
+        return plus == 6 ? clean[(plus + 1)..] : clean;
+    }
+
+    private static string NormalizeCssFontFamily(string pdfName)
+    {
+        var family = pdfName;
+        var comma = family.IndexOf(',');
+        if (comma > 0)
+        {
+            family = family[..comma];
+        }
+
+        var dash = family.IndexOf('-');
+        if (dash > 0)
+        {
+            family = family[..dash];
+        }
+
+        var compact = family.Replace(" ", string.Empty, StringComparison.Ordinal);
+        var lower = compact.ToLowerInvariant();
+
+        if (lower.StartsWith("timesnewroman", StringComparison.Ordinal) ||
+            lower is "times" or "timesroman")
+        {
+            return "Times New Roman";
+        }
+
+        if (lower.StartsWith("helveticaneue", StringComparison.Ordinal))
+        {
+            return "Helvetica Neue";
+        }
+
+        if (lower.StartsWith("helvetica", StringComparison.Ordinal))
+        {
+            return "Helvetica";
+        }
+
+        if (lower.StartsWith("arial", StringComparison.Ordinal))
+        {
+            return "Arial";
+        }
+
+        if (lower.StartsWith("couriernew", StringComparison.Ordinal) ||
+            lower.StartsWith("courier", StringComparison.Ordinal))
+        {
+            return "Courier New";
+        }
+
+        if (lower.StartsWith("segoeui", StringComparison.Ordinal))
+        {
+            return "Segoe UI";
+        }
+
+        if (lower.StartsWith("myriadpro", StringComparison.Ordinal))
+        {
+            return "Myriad Pro";
+        }
+
+        if (lower.StartsWith("minionpro", StringComparison.Ordinal))
+        {
+            return "Minion Pro";
+        }
+
+        if (lower.StartsWith("symbol", StringComparison.Ordinal))
+        {
+            return "Symbol";
+        }
+
+        if (lower.StartsWith("zapfdingbats", StringComparison.Ordinal))
+        {
+            return "Zapf Dingbats";
+        }
+
+        family = StripFontVendorSuffix(family);
+        compact = family.Replace(" ", string.Empty, StringComparison.Ordinal);
+        lower = compact.ToLowerInvariant();
+
+        return family.Length == 0 ? "Arial" : family;
+    }
+
+    private static string StripFontVendorSuffix(string family)
+    {
+        var suffixes = new[]
+        {
+            "PSMT", "PS", "MT", "MS", "LTStd", "LTPro", "Std", "Pro",
+            "Regular", "Roman", "Book", "Medium", "Normal"
+        };
+
+        var clean = family.Trim();
+        var changed = true;
+        while (changed)
+        {
+            changed = false;
+            foreach (var suffix in suffixes)
+            {
+                if (clean.Length > suffix.Length &&
+                    clean.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+                {
+                    clean = clean[..^suffix.Length].Trim('-', ' ');
+                    changed = true;
+                    break;
+                }
+            }
+        }
+
+        return clean;
+    }
+
+    private static bool IsBoldFontName(string name)
+    {
+        return name.Contains("Bold", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("-Bd", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("SemiBold", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("Semibold", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("Demi", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("Heavy", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("Black", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsItalicFontName(string name)
+    {
+        return name.Contains("Italic", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("-It", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("Oblique", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string ImageBytesToDataUri(ReadOnlyMemory<byte> bytes)
@@ -364,4 +508,6 @@ public static class CanvasImporterPdfImporter
             mime = "image/jpeg";
         return $"data:{mime};base64,{Convert.ToBase64String(bytes.ToArray())}";
     }
+
+    private sealed record CssFontInfo(string Family, string PdfName, bool Bold, bool Italic);
 }
