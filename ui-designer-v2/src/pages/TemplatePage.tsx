@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiChevronRight,
@@ -85,9 +85,8 @@ const TemplateDetailPanel: React.FC<DetailPanelProps> = ({ template, onClose, on
 // ─── Template Page ────────────────────────────────────────────────────────────
 
 const TemplatePage: React.FC = () => {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { loadTemplate, loadBlank, loadFromFile, loadFromFileSvg, loadFromFilePdfEngine } = useTemplateLoader();
+  const { loadTemplate, loadFromFile, loadFromFileSvg, loadFromFilePdfEngine } = useTemplateLoader();
   const importInputRef       = useRef<HTMLInputElement>(null);
   const importSvgInputRef    = useRef<HTMLInputElement>(null);
   const importEngineInputRef = useRef<HTMLInputElement>(null);

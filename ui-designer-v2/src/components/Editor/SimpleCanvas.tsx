@@ -3,6 +3,7 @@ import type { Template, SimpleElement, LayerDirection, PageSettings, Page } from
 import { useEditorStore, DEFAULT_PAGE_SETTINGS } from '@/store';
 import { toDisplay, fromDisplay } from '@/utils/units';
 import { getPageSettingsWarnings } from '@/utils/pageValidation';
+import { installImportedFontFaces } from '@/utils/importedFonts';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import JsBarcode from 'jsbarcode';
@@ -302,6 +303,13 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     setTopbarToast(msg);
     setTimeout(() => setTopbarToast(''), 3000);
   };
+
+  useEffect(() => {
+    installImportedFontFaces(
+      'canvas-imported-font-faces-editor',
+      [...pages.flatMap(page => page.elements), ...sharedElements]
+    );
+  }, [pages, sharedElements]);
 
   const buildDesign = () => ({
     id: template.id,

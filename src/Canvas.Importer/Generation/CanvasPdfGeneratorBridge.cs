@@ -113,14 +113,7 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
                 ["FillColor"] = DescribeColor(path.FillColor),
                 ["Segments"] = path.Segments.Select(DescribePathSegment).ToArray()
             },
-            PdfImageElement image => new Dictionary<string, object?>(StringComparer.Ordinal)
-            {
-                ["Kind"] = nameof(PdfImageElement),
-                ["ResourceName"] = image.ResourceName,
-                ["Width"] = ResolveImageWidth(image),
-                ["Height"] = ResolveImageHeight(image),
-                ["ByteLength"] = image.ImageBytes.Length
-            },
+            PdfImageElement image => DescribeImage(image),
             PdfShadingElement shading => new Dictionary<string, object?>(StringComparer.Ordinal)
             {
                 ["Kind"] = nameof(PdfShadingElement),
@@ -703,6 +696,8 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
 
     private static void RenderImage(CanvasPdfPage page, PdfPageModel sourcePage, PdfObjectGraph graph, PdfImageElement image)
     {
+        var imageBounds = image.Bounds ?? MatrixEngine.TransformBounds(new ImporterPdfRectangle(0, 0, 1, 1), image.Transform);
+
         if (!string.IsNullOrEmpty(image.ResourceName) &&
             TryResolveImageXObject(sourcePage.Resources, graph, image.ResourceName, out var imageStream) &&
             TryCreateCanvasImageData(imageStream, sourcePage.Resources, graph, out var imageData))
@@ -712,10 +707,10 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
                 "Canvas.Pdf.Layout.ImageElement",
                 imageData,
                 image.ResourceName,
-                image.Transform.E,
-                image.Transform.F,
-                ResolveImageWidth(image),
-                ResolveImageHeight(image),
+                imageBounds.X,
+                imageBounds.Y,
+                imageBounds.Width,
+                imageBounds.Height,
                 1d,
                 false,
                 null,
@@ -734,7 +729,7 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
         try
         {
             File.WriteAllBytes(imagePath, image.ImageBytes.ToArray());
-            page.DrawImage(imagePath, image.Transform.E, image.Transform.F, ResolveImageWidth(image), ResolveImageHeight(image));
+            page.DrawImage(imagePath, imageBounds.X, imageBounds.Y, imageBounds.Width, imageBounds.Height);
         }
         finally
         {
@@ -1033,15 +1028,69 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
 
     private static List<PdfPathSegment> TranslateSegments(IReadOnlyList<PdfPathSegment> segments, ImporterPdfMatrix transform)
     {
-        return segments.Select(segment => segment switch
+        var translated = new List<PdfPathSegment>(segments.Count);
+
+        foreach (var segment in segments)
         {
-            MoveToSegment move => (PdfPathSegment)new MoveToSegment(ApplyTransform(move.Point, transform)),
-            LineToSegment line => new LineToSegment(ApplyTransform(line.Point, transform)),
-            CurveToSegment curve => new CurveToSegment(ApplyTransform(curve.Control1, transform), ApplyTransform(curve.Control2, transform), ApplyTransform(curve.End, transform)),
-            RectangleSegment rectangle => new RectangleSegment(new ImporterPdfRectangle(rectangle.Rectangle.X + transform.E, rectangle.Rectangle.Y + transform.F, rectangle.Rectangle.Width, rectangle.Rectangle.Height)),
-            ClosePathSegment close => close,
-            _ => throw new NotSupportedException($"Path segment type '{segment.GetType().Name}' is not supported by the Canvas.Pdf sample bridge.")
-        }).ToList();
+            switch (segment)
+            {
+                case MoveToSegment move:
+                    translated.Add(new MoveToSegment(ApplyTransform(move.Point, transform)));
+                    break;
+                case LineToSegment line:
+                    translated.Add(new LineToSegment(ApplyTransform(line.Point, transform)));
+                    break;
+                case CurveToSegment curve:
+                    translated.Add(new CurveToSegment(ApplyTransform(curve.Control1, transform), ApplyTransform(curve.Control2, transform), ApplyTransform(curve.End, transform)));
+                    break;
+                case RectangleSegment rectangle:
+                    translated.AddRange(TranslateRectangleSegment(rectangle.Rectangle, transform));
+                    break;
+                case ClosePathSegment close:
+                    translated.Add(close);
+                    break;
+                default:
+                    throw new NotSupportedException($"Path segment type '{segment.GetType().Name}' is not supported by the Canvas.Pdf sample bridge.");
+            }
+        }
+
+        return translated;
+    }
+
+    private static IEnumerable<PdfPathSegment> TranslateRectangleSegment(ImporterPdfRectangle rectangle, ImporterPdfMatrix transform)
+    {
+        var lowerLeft = ApplyTransform(new ImporterPdfPoint(rectangle.X, rectangle.Y), transform);
+        var lowerRight = ApplyTransform(new ImporterPdfPoint(rectangle.X + rectangle.Width, rectangle.Y), transform);
+        var upperRight = ApplyTransform(new ImporterPdfPoint(rectangle.X + rectangle.Width, rectangle.Y + rectangle.Height), transform);
+        var upperLeft = ApplyTransform(new ImporterPdfPoint(rectangle.X, rectangle.Y + rectangle.Height), transform);
+
+        if (IsAxisAlignedRectangle(lowerLeft, lowerRight, upperRight, upperLeft))
+        {
+            var left = Math.Min(Math.Min(lowerLeft.X, lowerRight.X), Math.Min(upperRight.X, upperLeft.X));
+            var bottom = Math.Min(Math.Min(lowerLeft.Y, lowerRight.Y), Math.Min(upperRight.Y, upperLeft.Y));
+            var right = Math.Max(Math.Max(lowerLeft.X, lowerRight.X), Math.Max(upperRight.X, upperLeft.X));
+            var top = Math.Max(Math.Max(lowerLeft.Y, lowerRight.Y), Math.Max(upperRight.Y, upperLeft.Y));
+            yield return new RectangleSegment(new ImporterPdfRectangle(left, bottom, right - left, top - bottom));
+            yield break;
+        }
+
+        yield return new MoveToSegment(lowerLeft);
+        yield return new LineToSegment(lowerRight);
+        yield return new LineToSegment(upperRight);
+        yield return new LineToSegment(upperLeft);
+        yield return new ClosePathSegment();
+    }
+
+    private static bool IsAxisAlignedRectangle(ImporterPdfPoint lowerLeft, ImporterPdfPoint lowerRight, ImporterPdfPoint upperRight, ImporterPdfPoint upperLeft)
+    {
+        const double tolerance = 0.0001;
+
+        var bottomHorizontal = Math.Abs(lowerLeft.Y - lowerRight.Y) < tolerance;
+        var topHorizontal = Math.Abs(upperLeft.Y - upperRight.Y) < tolerance;
+        var leftVertical = Math.Abs(lowerLeft.X - upperLeft.X) < tolerance;
+        var rightVertical = Math.Abs(lowerRight.X - upperRight.X) < tolerance;
+
+        return bottomHorizontal && topHorizontal && leftVertical && rightVertical;
     }
 
     private static ImporterPdfPoint ApplyTransform(ImporterPdfPoint point, ImporterPdfMatrix transform)
@@ -1094,6 +1143,20 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
         };
     }
 
+    private static Dictionary<string, object?> DescribeImage(PdfImageElement image)
+    {
+        var imageBounds = image.Bounds ?? MatrixEngine.TransformBounds(new ImporterPdfRectangle(0, 0, 1, 1), image.Transform);
+
+        return new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["Kind"] = nameof(PdfImageElement),
+            ["ResourceName"] = image.ResourceName,
+            ["Width"] = imageBounds.Width,
+            ["Height"] = imageBounds.Height,
+            ["ByteLength"] = image.ImageBytes.Length
+        };
+    }
+
     private static IPdfColor MapColor(ImporterPdfColor color)
     {
         return color.ColorSpace switch
@@ -1120,26 +1183,6 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
 
     private static bool IsFillOperator(string operatorName)
         => operatorName is "f" or "F" or "f*" or "B" or "B*" or "b" or "b*";
-
-    private static double ResolveImageWidth(PdfImageElement image)
-    {
-        if (image.Bounds is { Width: > 0 } bounds)
-        {
-            return bounds.Width;
-        }
-
-        return Math.Abs(image.Transform.A) > 0.0001 ? Math.Abs(image.Transform.A) : 1;
-    }
-
-    private static double ResolveImageHeight(PdfImageElement image)
-    {
-        if (image.Bounds is { Height: > 0 } bounds)
-        {
-            return bounds.Height;
-        }
-
-        return Math.Abs(image.Transform.D) > 0.0001 ? Math.Abs(image.Transform.D) : 1;
-    }
 
     private static void ApplyPageBoundary(CanvasPdfPage page, PdfPageBoundary boundary, ImporterPdfRectangle? rectangle)
     {

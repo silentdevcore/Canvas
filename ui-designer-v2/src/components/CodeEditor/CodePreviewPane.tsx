@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import LivePreview from '@/components/Preview/LivePreview';
 import type { Page, SimpleElement, Template, PageSettings } from '@/types';
 

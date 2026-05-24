@@ -9,6 +9,7 @@ import { FiCheck, FiChevronDown, FiDownload, FiEdit3, FiCheckSquare, FiFileText,
 import ExportService from '../../services/ExportService';
 import ExportModal from '../Editor/ExportModal';
 import type { Template, SimpleElement, PageSettings, Page } from '@/types';
+import { installImportedFontFaces } from '@/utils/importedFonts';
 
 interface LivePreviewProps {
   template: Template;
@@ -28,6 +29,13 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
   const pageWidth  = pageSettings?.width  ?? 595;
   const pageHeight = pageSettings?.height ?? 842;
   const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null);
+
+  useEffect(() => {
+    installImportedFontFaces(
+      'canvas-imported-font-faces-preview',
+      [...pages.flatMap(page => page.elements), ...sharedElements]
+    );
+  }, [pages, sharedElements]);
   const [exportDone, setExportDone] = useState<ExportFormat | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);

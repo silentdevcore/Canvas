@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Canvas.Infrastructure.Word")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+359b98c5bfffd8d25b33cbe98e4edf56c39257b7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2016d71696525a3fbed9170012de6c78cd8e0763")]
 [assembly: System.Reflection.AssemblyProductAttribute("Canvas.Infrastructure.Word")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Canvas.Infrastructure.Word")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

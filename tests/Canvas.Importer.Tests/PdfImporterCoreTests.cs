@@ -1025,6 +1025,71 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
+    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldNormalizeFlippedImageBounds()
+    {
+        var graph = new PdfObjectGraph();
+
+        var catalog = new PdfDictionary();
+        catalog["Type"] = new PdfName("Catalog");
+        catalog["Pages"] = new PdfReference(new PdfObjectId(2, 0));
+
+        var pages = new PdfDictionary();
+        pages["Type"] = new PdfName("Pages");
+        pages["Count"] = new PdfInteger(1);
+        pages["Kids"] = new PdfArray([new PdfReference(new PdfObjectId(3, 0))]);
+
+        var xObjectResources = new PdfDictionary();
+        xObjectResources["Im1"] = new PdfReference(new PdfObjectId(5, 0));
+
+        var resources = new PdfDictionary();
+        resources["XObject"] = xObjectResources;
+
+        var page = new PdfDictionary();
+        page["Type"] = new PdfName("Page");
+        page["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page["Resources"] = resources;
+        page["MediaBox"] = Array(0, 0, 200, 120);
+        page["Contents"] = new PdfReference(new PdfObjectId(4, 0));
+
+        var contentBytes = Encoding.ASCII.GetBytes("q 40 0 0 -20 30 60 cm /Im1 Do Q");
+        var contentStream = new PdfStreamObject(new PdfDictionary(), contentBytes);
+
+        var imageDictionary = new PdfDictionary();
+        imageDictionary["Type"] = new PdfName("XObject");
+        imageDictionary["Subtype"] = new PdfName("Image");
+        imageDictionary["Width"] = new PdfInteger(1);
+        imageDictionary["Height"] = new PdfInteger(1);
+        imageDictionary["ColorSpace"] = new PdfName("DeviceRGB");
+        imageDictionary["BitsPerComponent"] = new PdfInteger(8);
+        imageDictionary["Filter"] = new PdfName("DCTDecode");
+        var imageStream = new PdfStreamObject(imageDictionary, TinyJpegBytes());
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(1, 0), catalog, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(2, 0), pages, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(3, 0), page, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(4, 0), contentStream, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(5, 0), imageStream, new PdfSourceSpan(0, 1)));
+
+        var builder = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter());
+        var document = builder.Build(graph);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var importedImage = Assert.IsType<PdfImageElement>(Assert.Single(Assert.Single(reimported.Pages).GraphicsObjects));
+        Assert.Equal(40, importedImage.Transform.A, 3);
+        Assert.Equal(0, importedImage.Transform.B, 3);
+        Assert.Equal(0, importedImage.Transform.C, 3);
+        Assert.Equal(20, importedImage.Transform.D, 3);
+        Assert.Equal(30, importedImage.Transform.E, 3);
+        Assert.Equal(40, importedImage.Transform.F, 3);
+    }
+
+    [Fact]
     public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripFlateXObjectImagesWithNamedColorSpace()
     {
         var graph = new PdfObjectGraph();
@@ -2991,6 +3056,41 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldUseFontDescriptorStyleMetadata()
+    {
+        const string resources = "<< /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /ABCDEF+MinionPro /FontDescriptor << /FontName /ABCDEF+MinionPro /FontWeight 700 /ItalicAngle -12 >> >> >> >>";
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "BT /F1 12 Tf 1 0 0 1 20 120 Tm (Descriptor style) Tj ET",
+            resources);
+
+        var text = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "text");
+
+        Assert.Equal("Minion Pro", StyleValue<string>(text, "fontFamily"));
+        Assert.Equal("bold", StyleValue<string>(text, "fontWeight"));
+        Assert.Equal("italic", StyleValue<string>(text, "fontStyle"));
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldExposeEmbeddedTrueTypeFontAsset()
+    {
+        var fontBytes = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x41, 0x42, 0x43, 0x44 };
+        var fontFile = new SyntheticPdfObject(5, BuildStreamObjectBody(string.Empty, fontBytes));
+        const string resources = "<< /Font << /F1 << /Type /Font /Subtype /TrueType /BaseFont /ABCDEF+ArialMT /FontDescriptor << /FontName /ABCDEF+ArialMT /FontFile2 5 0 R >> >> >> >>";
+
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "BT /F1 12 Tf 1 0 0 1 20 120 Tm (Embedded) Tj ET",
+            resources,
+            [fontFile]);
+
+        var text = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "text");
+
+        Assert.StartsWith("CanvasPdf_ArialMT", StyleValue<string>(text, "fontFamily"));
+        Assert.Equal("Arial", StyleValue<string>(text, "fontDisplayName"));
+        Assert.Equal("truetype", StyleValue<string>(text, "fontFormat"));
+        Assert.Equal($"data:font/ttf;base64,{Convert.ToBase64String(fontBytes)}", StyleValue<string>(text, "fontDataUri"));
+    }
+
+    [Fact]
     public async Task CanvasImporterPdfImporter_ShouldMapVectorRectanglesThroughPrimitiveShapes()
     {
         var design = await ImportDesignFromSinglePageContentAsync("0 0 0 rg 20 30 60 40 re f");
@@ -3554,6 +3654,41 @@ public sealed class PdfImporterCoreTests
         Assert.Equal(90, MatrixEngine.ExtractRotationDegrees(matrix), precision: 6);
         Assert.Equal(20, bounds.Width, precision: 6);
         Assert.Equal(10, bounds.Height, precision: 6);
+    }
+
+    [Fact]
+    public async Task CanvasPdfGeneratorBridge_ShouldNormalizeFlippedRectangleBounds()
+    {
+        var document = new PdfDocumentModel();
+        var page = new PdfPageModel(null, new PdfDictionary())
+        {
+            MediaBox = new PdfRectangle(0, 0, 200, 120)
+        };
+
+        page.Insert(new PdfPathElement(1, new PdfMatrix(1, 0, 0, -1, 12, 38), Command("f", 1),
+        [
+            new RectangleSegment(new PdfRectangle(0, 0, 40, 20))
+        ])
+        {
+            FillColor = new PdfColor(0.2, 0.4, 0.6, 1, PdfColorSpace.DeviceRgb),
+            StrokeColor = new PdfColor(0, 0, 0, 1, PdfColorSpace.DeviceGray),
+            LineWidth = 2
+        });
+
+        document.AddPage(page);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var importedPath = Assert.IsType<PdfPathElement>(Assert.Single(Assert.Single(reimported.Pages).GraphicsObjects));
+        var rectangle = Assert.IsType<RectangleSegment>(Assert.Single(importedPath.Segments));
+
+        Assert.Equal(new PdfRectangle(12, 18, 40, 20), rectangle.Rectangle);
     }
 
     [Fact]

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Editor, { type Monaco, type OnMount } from '@monaco-editor/react';
 import { STARTER_TEMPLATES, STARTER_LABELS, type StarterKey } from './starterTemplates';
 import type { EditorLanguage } from './LiveCodeEditor';

@@ -26,6 +26,7 @@ public static class CanvasImporterPdfImporter
 
         var pages           = new List<PageDto>();
         var sharedByContent = new Dictionary<string, ElementDto>(StringComparer.Ordinal);
+        var emittedFontFaces = new HashSet<string>(StringComparer.Ordinal);
         bool multiPage      = doc.Pages.Count > 1;
 
         double canvasW = 595, canvasH = 842;
@@ -50,7 +51,7 @@ public static class CanvasImporterPdfImporter
             foreach (var primitive in orderedPrimitives)
             {
                 EmitPrimitive(primitive, originX, pageH, canvasH, pageNum, ref seq,
-                    elements, multiPage, sharedByContent);
+                    elements, multiPage, sharedByContent, emittedFontFaces);
             }
 
             pages.Add(new PageDto { Id = $"page-{pageNum}", Elements = elements });
@@ -80,13 +81,14 @@ public static class CanvasImporterPdfImporter
         int pg, ref int seq,
         List<ElementDto> elements,
         bool multiPage,
-        Dictionary<string, ElementDto> sharedByContent)
+        Dictionary<string, ElementDto> sharedByContent,
+        HashSet<string> emittedFontFaces)
     {
         switch (primitive)
         {
             case PrimitiveText txt:
             {
-                var dto = MapText(txt, originX, pageH, pg, ref seq);
+                var dto = MapText(txt, originX, pageH, pg, ref seq, emittedFontFaces);
                 if (dto is null) return;
 
                 if (multiPage)
@@ -133,7 +135,7 @@ public static class CanvasImporterPdfImporter
                 foreach (var child in OrderChildrenForImport(grp.Children))
                 {
                     EmitPrimitive(child, originX, pageH, canvasH, pg, ref seq,
-                        elements, multiPage, sharedByContent);
+                        elements, multiPage, sharedByContent, emittedFontFaces);
                 }
                 break;
         }
@@ -141,7 +143,13 @@ public static class CanvasImporterPdfImporter
 
     // ── Element mappers ───────────────────────────────────────────────────────
 
-    private static ElementDto? MapText(PrimitiveText el, double originX, double pageH, int pg, ref int seq)
+    private static ElementDto? MapText(
+        PrimitiveText el,
+        double originX,
+        double pageH,
+        int pg,
+        ref int seq,
+        HashSet<string> emittedFontFaces)
     {
         if (string.IsNullOrWhiteSpace(el.Text)) return null;
 
@@ -156,9 +164,28 @@ public static class CanvasImporterPdfImporter
             h = fs * 1.5 + 4;
         }
 
-        var font = ResolveCssFont(el.FontName ?? el.FontResourceName);
+        var font = ResolveCssFont(el, emittedFontFaces);
         var isBold = el.Bold || font.Bold;
         var isItalic = el.Italic || font.Italic;
+
+        var style = new Dictionary<string, object>
+        {
+            ["fontSize"]   = Math.Round(fs, 1),
+            ["fontFamily"] = font.Family,
+            ["fontWeight"] = isBold ? "bold" : "normal",
+            ["fontStyle"]  = isItalic ? "italic" : "normal",
+            ["color"]      = ColorToHex(el.GraphicsState.FillColor),
+            ["rotation"]   = Math.Round(ToCanvasRotation(el.Geometry.RotationDegrees), 2),
+            ["pdfFontName"] = font.PdfName,
+            ["pdfClassification"] = el.Classification.ToString(),
+        };
+
+        if (!string.IsNullOrWhiteSpace(font.DataUri) && !string.IsNullOrWhiteSpace(font.Format))
+        {
+            style["fontDataUri"] = font.DataUri;
+            style["fontFormat"] = font.Format;
+            style["fontDisplayName"] = font.DisplayName ?? font.Family;
+        }
 
         return new ElementDto
         {
@@ -166,17 +193,7 @@ public static class CanvasImporterPdfImporter
             X       = Math.Round(x, 1),   Y    = Math.Round(y, 1),
             Width   = Math.Round(w, 1),   Height = Math.Round(h, 1),
             Content = el.Text,
-            Style   = new Dictionary<string, object>
-            {
-                ["fontSize"]   = Math.Round(fs, 1),
-                ["fontFamily"] = font.Family,
-                ["fontWeight"] = isBold ? "bold" : "normal",
-                ["fontStyle"]  = isItalic ? "italic" : "normal",
-                ["color"]      = ColorToHex(el.GraphicsState.FillColor),
-                ["rotation"]   = Math.Round(ToCanvasRotation(el.Geometry.RotationDegrees), 2),
-                ["pdfFontName"] = font.PdfName,
-                ["pdfClassification"] = el.Classification.ToString(),
-            },
+            Style = style,
         };
     }
 
@@ -576,8 +593,9 @@ public static class CanvasImporterPdfImporter
 
     private static int ToByte(double v) => Math.Clamp((int)Math.Round(v * 255), 0, 255);
 
-    private static CssFontInfo ResolveCssFont(string? name)
+    private static CssFontInfo ResolveCssFont(PrimitiveText text, HashSet<string> emittedFontFaces)
     {
+        var name = text.FontName ?? text.FontResourceName;
         var pdfName = CleanPdfFontName(name);
         if (string.IsNullOrWhiteSpace(pdfName))
         {
@@ -586,7 +604,26 @@ public static class CanvasImporterPdfImporter
 
         var bold = IsBoldFontName(pdfName);
         var italic = IsItalicFontName(pdfName);
-        return new CssFontInfo(NormalizeCssFontFamily(pdfName), pdfName, bold, italic);
+        var family = NormalizeCssFontFamily(pdfName);
+        string? dataUri = null;
+        string? format = null;
+        string? displayName = null;
+
+        if (!text.EmbeddedFontBytes.IsEmpty &&
+            !string.IsNullOrWhiteSpace(text.EmbeddedFontFormat) &&
+            !string.IsNullOrWhiteSpace(text.EmbeddedFontMimeType))
+        {
+            family = CreateImportedFontFamily(pdfName);
+            displayName = NormalizeCssFontFamily(pdfName);
+            var key = $"{family}:{text.EmbeddedFontFormat}:{text.EmbeddedFontBytes.Length}";
+            if (emittedFontFaces.Add(key))
+            {
+                dataUri = CreateFontDataUri(text.EmbeddedFontBytes, text.EmbeddedFontMimeType);
+                format = text.EmbeddedFontFormat;
+            }
+        }
+
+        return new CssFontInfo(family, pdfName, bold, italic, dataUri, format, displayName);
     }
 
     private static string CleanPdfFontName(string? name)
@@ -720,6 +757,21 @@ public static class CanvasImporterPdfImporter
             name.Contains("Oblique", StringComparison.OrdinalIgnoreCase);
     }
 
+    private static string CreateImportedFontFamily(string pdfName)
+    {
+        var cleaned = CleanPdfFontName(pdfName);
+        var chars = cleaned
+            .Select(static ch => char.IsLetterOrDigit(ch) ? ch : '_')
+            .ToArray();
+        var safe = new string(chars).Trim('_');
+        return $"CanvasPdf_{(safe.Length == 0 ? "Font" : safe)}";
+    }
+
+    private static string CreateFontDataUri(ReadOnlyMemory<byte> bytes, string mimeType)
+    {
+        return $"data:{mimeType};base64,{Convert.ToBase64String(bytes.ToArray())}";
+    }
+
     private static string ImageBytesToDataUri(ReadOnlyMemory<byte> bytes)
     {
         var span = bytes.Span;
@@ -738,5 +790,12 @@ public static class CanvasImporterPdfImporter
         return $"data:{mime};base64,{Convert.ToBase64String(bytes.ToArray())}";
     }
 
-    private sealed record CssFontInfo(string Family, string PdfName, bool Bold, bool Italic);
+    private sealed record CssFontInfo(
+        string Family,
+        string PdfName,
+        bool Bold,
+        bool Italic,
+        string? DataUri = null,
+        string? Format = null,
+        string? DisplayName = null);
 }

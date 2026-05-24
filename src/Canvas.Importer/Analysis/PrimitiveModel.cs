@@ -83,6 +83,9 @@ public sealed class PrimitiveText : PrimitiveObject
         FontSize = source.FontSize;
         Bold = source.Bold;
         Italic = source.Italic;
+        EmbeddedFontBytes = source.EmbeddedFontBytes;
+        EmbeddedFontFormat = source.EmbeddedFontFormat;
+        EmbeddedFontMimeType = source.EmbeddedFontMimeType;
         Classification = PrimitiveClassification.Text;
     }
 
@@ -93,6 +96,9 @@ public sealed class PrimitiveText : PrimitiveObject
     public double FontSize { get; }
     public bool Bold { get; }
     public bool Italic { get; }
+    public ReadOnlyMemory<byte> EmbeddedFontBytes { get; }
+    public string? EmbeddedFontFormat { get; }
+    public string? EmbeddedFontMimeType { get; }
 }
 
 public sealed class PrimitivePath : PrimitiveObject

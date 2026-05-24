@@ -246,8 +246,11 @@ public sealed class PdfGraphicsInterpreter
             FontSize = state.FontSize,
             FontResourceName = state.CurrentFontResourceName,
             FontName = baseFontName,
-            Bold = IsBold(baseFontName),
-            Italic = IsItalic(baseFontName),
+            Bold = state.CurrentFont?.Bold ?? IsBold(baseFontName),
+            Italic = state.CurrentFont?.Italic ?? IsItalic(baseFontName),
+            EmbeddedFontBytes = state.CurrentFont?.EmbeddedFontBytes ?? ReadOnlyMemory<byte>.Empty,
+            EmbeddedFontFormat = state.CurrentFont?.EmbeddedFontFormat,
+            EmbeddedFontMimeType = state.CurrentFont?.EmbeddedFontMimeType,
             FillColor = state.FillColor,
             StrokeColor = state.StrokeColor,
             ClippingPath = state.ClippingPath

@@ -25,6 +25,14 @@ public sealed class PdfFontResource
     public IReadOnlyDictionary<int, double> Widths { get; init; } = new Dictionary<int, double>();
     public double MissingWidth { get; init; }
     public int CodeByteLength { get; init; } = 1;
+    public bool Bold { get; init; }
+    public bool Italic { get; init; }
+    public int? FontDescriptorFlags { get; init; }
+    public double? FontWeight { get; init; }
+    public double? ItalicAngle { get; init; }
+    public ReadOnlyMemory<byte> EmbeddedFontBytes { get; init; }
+    public string? EmbeddedFontFormat { get; init; }
+    public string? EmbeddedFontMimeType { get; init; }
 
     public string Decode(ReadOnlySpan<byte> glyphBytes)
     {

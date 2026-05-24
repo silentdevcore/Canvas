@@ -19,7 +19,7 @@ public sealed class PdfDocumentBuilder
         _contentParser = contentParser;
         _graphicsInterpreter = graphicsInterpreter;
         _streamDecoders = streamDecoders ?? new PdfStreamDecoderRegistry();
-        _fontParser = fontParser ?? new PdfSimpleFontParser();
+        _fontParser = fontParser ?? new PdfSimpleFontParser(_streamDecoders);
     }
 
     public PdfDocumentModel Build(PdfObjectGraph graph)

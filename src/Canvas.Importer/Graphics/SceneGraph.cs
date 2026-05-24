@@ -33,6 +33,9 @@ public sealed class PdfTextElement : PdfGraphicsElement
     public string? FontName { get; set; }
     public bool Bold { get; set; }
     public bool Italic { get; set; }
+    public ReadOnlyMemory<byte> EmbeddedFontBytes { get; set; }
+    public string? EmbeddedFontFormat { get; set; }
+    public string? EmbeddedFontMimeType { get; set; }
     public double FontSize { get; set; }
     public PdfColor FillColor { get; set; }
     public PdfColor StrokeColor { get; set; }
