@@ -2,6 +2,8 @@ using Canvas.Application.UseCases;
 using Canvas.Core.Contracts;
 using Canvas.Infrastructure.Converters;
 using Canvas.Infrastructure.Word;
+using Canvas.Importer.Analysis;
+using Canvas.Importer.Debugging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 
@@ -230,6 +232,8 @@ public class DocumentOpsController : ControllerBase
                     ? Flatten(g.Children).Prepend(e) : new[] { e });
 
             var all   = Flatten(p.GraphicsObjects).ToList();
+            var scenePage = new SceneGraphEngine().BuildPage(page - 1, p);
+            var overlays = new PdfDebugOverlayBuilder().Build(scenePage);
             var texts = all.OfType<Canvas.Importer.Graphics.PdfTextElement>().Take(30).Select(t => new {
                 text = t.Text,
                 fontSize = t.FontSize,
@@ -249,6 +253,32 @@ public class DocumentOpsController : ControllerBase
                     shading = all.OfType<Canvas.Importer.Graphics.PdfShadingElement>().Count(),
                     group   = all.OfType<Canvas.Importer.Graphics.PdfGroupElement>().Count(),
                 },
+                sceneGraph = new {
+                    layerCount = scenePage.Layers.Count,
+                    primitiveCount = scenePage.Layers.SelectMany(l => l.Objects).Count(),
+                    visualGroupCount = scenePage.VisualGroups.Count,
+                    lineCount = scenePage.ReadingOrder?.Lines.Count ?? 0,
+                    paragraphCount = scenePage.ReadingOrder?.Paragraphs.Count ?? 0,
+                    columnCount = scenePage.ReadingOrder?.Columns.Count ?? 0,
+                    layoutNodeCount = CountLayoutNodes(scenePage.Layout),
+                    debugOverlayCount = overlays.Count,
+                    classifications = scenePage.Layers
+                        .SelectMany(l => l.Objects)
+                        .SelectMany(FlattenPrimitive)
+                        .GroupBy(o => o.Classification.ToString())
+                        .ToDictionary(g => g.Key, g => g.Count()),
+                    groups = scenePage.VisualGroups.Take(20).Select(g => new {
+                        g.Kind,
+                        g.Confidence,
+                        g.Bounds,
+                        objectCount = g.Objects.Count,
+                    }),
+                    readingOrderSample = scenePage.ReadingOrder?.Lines.Take(20).Select(l => new {
+                        l.Order,
+                        l.Text,
+                        l.Bounds,
+                    }),
+                },
                 sampleTexts = texts,
             });
         }
@@ -256,6 +286,20 @@ public class DocumentOpsController : ControllerBase
         {
             return BadRequest(new { error = ex.Message, type = ex.GetType().Name });
         }
+    }
+
+    private static IEnumerable<PrimitiveObject> FlattenPrimitive(PrimitiveObject primitive)
+    {
+        yield return primitive;
+        foreach (var child in primitive.Children.SelectMany(FlattenPrimitive))
+        {
+            yield return child;
+        }
+    }
+
+    private static int CountLayoutNodes(SemanticLayoutNode? node)
+    {
+        return node is null ? 0 : 1 + node.Children.Sum(CountLayoutNodes);
     }
 
     /// <summary>
