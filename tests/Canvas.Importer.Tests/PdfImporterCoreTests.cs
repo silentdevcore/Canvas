@@ -1,4 +1,5 @@
 using System.IO.Compression;
+using System.Globalization;
 using System.Text;
 using Canvas.Core.Contracts;
 using Canvas.Infrastructure.Converters;
@@ -3135,7 +3136,7 @@ public sealed class PdfImporterCoreTests
     public async Task CanvasImporterPdfImporter_ShouldPreserveFillOnlyCurvePathsWithoutDefaultStroke()
     {
         var design = await ImportDesignFromSinglePageContentAsync(
-            "0.7 0 0.25 rg 10 10 m 30 10 30 30 10 30 c f");
+            "0.7 0 0.25 rg 10.25 10.5 m 30.75 10.5 30.75 30.25 10.25 30.25 c f");
 
         var image = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "image");
         var svg = DecodeDataUriText(image.Content);
@@ -3143,7 +3144,25 @@ public sealed class PdfImporterCoreTests
         Assert.Equal("fill", image.FitMode);
         Assert.Contains("fill=\"#B20040\"", svg, StringComparison.Ordinal);
         Assert.Contains("stroke=\"none\"", svg, StringComparison.Ordinal);
+        Assert.Contains("M 0 19.75", svg, StringComparison.Ordinal);
+        Assert.Contains("fill-rule=\"nonzero\"", svg, StringComparison.Ordinal);
         Assert.Contains("preserveAspectRatio=\"none\"", svg, StringComparison.Ordinal);
+        Assert.Equal("svg-vector-path", StyleValue<string>(image, "pdfVisualFallback"));
+        Assert.Equal(1, StyleValue<int>(image, "pdfPrimitiveCount"));
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldPreserveVCurveAndYCurveOperatorsInSvg()
+    {
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "0.7 0 0.25 rg 10 10 m 30 10 30 30 v 10 30 10 10 y f");
+
+        var image = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "image");
+        var svg = DecodeDataUriText(image.Content);
+
+        Assert.Contains("C", svg, StringComparison.Ordinal);
+        Assert.Contains("fill-rule=\"nonzero\"", svg, StringComparison.Ordinal);
+        Assert.DoesNotContain("stroke=\"#000000\"", svg, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -3158,6 +3177,90 @@ public sealed class PdfImporterCoreTests
         Assert.Equal("fill", image.FitMode);
         Assert.Contains("L", svg, StringComparison.Ordinal);
         Assert.Contains("stroke=\"none\"", svg, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldGroupAdjacentVectorGlyphOutlinesIntoOneSvg()
+    {
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "0.7 0 0.25 rg " +
+            "10 10 m 24 10 l 24 30 l 16 22 l 10 30 l h f " +
+            "28 10 m 42 10 l 42 30 l 34 22 l 28 30 l h f");
+
+        var image = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "image");
+        var svg = DecodeDataUriText(image.Content);
+
+        Assert.Equal("fill", image.FitMode);
+        Assert.Equal("VectorArtworkGroup", StyleValue<string>(image, "pdfClassification"));
+        Assert.Equal("svg-vector-cluster", StyleValue<string>(image, "pdfVisualFallback"));
+        Assert.Equal(2, StyleValue<int>(image, "pdfPrimitiveCount"));
+        Assert.Equal(2, CountOccurrences(svg, "<path "));
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldUseInvariantSvgNumbersUnderGermanCulture()
+    {
+        var previousCulture = CultureInfo.CurrentCulture;
+        var previousUiCulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            var german = CultureInfo.GetCultureInfo("de-DE");
+            CultureInfo.CurrentCulture = german;
+            CultureInfo.CurrentUICulture = german;
+
+            var design = await ImportDesignFromSinglePageContentAsync(
+                "0.7 0 0.25 rg 10.25 10.5 m 24.75 10.5 l 24.75 30.125 l 16.5 22.25 l 10.25 30.125 l h f");
+
+            var image = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "image");
+            var svg = DecodeDataUriText(image.Content);
+
+            Assert.Equal("fill", image.FitMode);
+            Assert.Contains("viewBox=\"0 0 14.5 19.625\"", svg, StringComparison.Ordinal);
+            Assert.Contains("M 0 19.625", svg, StringComparison.Ordinal);
+            Assert.Contains("L 14.5 19.625", svg, StringComparison.Ordinal);
+            Assert.DoesNotContain("14,5", svg, StringComparison.Ordinal);
+            Assert.DoesNotContain("19,625", svg, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previousCulture;
+            CultureInfo.CurrentUICulture = previousUiCulture;
+        }
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldUseInvariantSvgNumbersForVectorClustersUnderGermanCulture()
+    {
+        var previousCulture = CultureInfo.CurrentCulture;
+        var previousUiCulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            var german = CultureInfo.GetCultureInfo("de-DE");
+            CultureInfo.CurrentCulture = german;
+            CultureInfo.CurrentUICulture = german;
+
+            var design = await ImportDesignFromSinglePageContentAsync(
+                "0.7 0 0.25 rg " +
+                "10.25 10.5 m 24.75 10.5 l 24.75 30.125 l 16.5 22.25 l 10.25 30.125 l h f " +
+                "28.5 10.5 m 42.75 10.5 l 42.75 30.125 l 34.25 22.25 l 28.5 30.125 l h f");
+
+            var image = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "image");
+            var svg = DecodeDataUriText(image.Content);
+
+            Assert.Equal("fill", image.FitMode);
+            Assert.Equal("svg-vector-cluster", StyleValue<string>(image, "pdfVisualFallback"));
+            Assert.Equal(2, CountOccurrences(svg, "<path "));
+            Assert.Contains("viewBox=\"0 0 32.5 19.625\"", svg, StringComparison.Ordinal);
+            Assert.Contains("M 0 19.625", svg, StringComparison.Ordinal);
+            Assert.Contains("M 18.25 19.625", svg, StringComparison.Ordinal);
+            Assert.DoesNotContain("32,5", svg, StringComparison.Ordinal);
+            Assert.DoesNotContain("18,25", svg, StringComparison.Ordinal);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previousCulture;
+            CultureInfo.CurrentUICulture = previousUiCulture;
+        }
     }
 
     [Fact]
@@ -3347,6 +3450,19 @@ public sealed class PdfImporterCoreTests
         var comma = dataUri.IndexOf(',');
         Assert.True(comma > 0, "Expected a data URI with base64 payload.");
         return Encoding.UTF8.GetString(Convert.FromBase64String(dataUri[(comma + 1)..]));
+    }
+
+    private static int CountOccurrences(string value, string pattern)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = value.IndexOf(pattern, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += pattern.Length;
+        }
+
+        return count;
     }
 
     private sealed record SyntheticPdfObject(int Number, ReadOnlyMemory<byte> Body);

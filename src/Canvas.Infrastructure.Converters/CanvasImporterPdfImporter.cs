@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using Canvas.Core.Contracts;
 using Canvas.Importer.Analysis;
@@ -51,8 +52,16 @@ public static class CanvasImporterPdfImporter
             var orderedPrimitives = OrderForImport(scenePage).ToList();
             var elements = new List<ElementDto>();
 
-            foreach (var primitive in orderedPrimitives)
+            for (var index = 0; index < orderedPrimitives.Count; index++)
             {
+                if (TryCollectSvgCluster(orderedPrimitives, index, out var cluster, out var consumed) &&
+                    EmitSvgPathCluster(cluster, originX, pageH, pageNum, ref seq, elements))
+                {
+                    index += consumed - 1;
+                    continue;
+                }
+
+                var primitive = orderedPrimitives[index];
                 EmitPrimitive(primitive, originX, pageH, canvasH, pageNum, ref seq,
                     elements, multiPage, sharedByContent, emittedFontFaces);
             }
@@ -428,51 +437,16 @@ public static class CanvasImporterPdfImporter
         var (ex, ey, ew, eh) = ToCanvasBounds(el.Bounds, originX, pageH);
         if (ew < 0.5 || eh < 0.5) return false;
 
-        // Build SVG path d — segment coordinates are in local (pre-CTM) space;
-        // we transform each point to canvas space and offset by the element origin.
-        var sb = new StringBuilder();
-        foreach (var seg in el.Segments)
-        {
-            switch (seg)
-            {
-                case MoveToSegment mt:
-                    var (mx, my) = LocalToSvg(mt.Point, el.Transform, originX, pageH, ex, ey);
-                    sb.Append($"M {mx:F2} {my:F2} ");
-                    break;
-                case LineToSegment lt:
-                    var (lx, ly) = LocalToSvg(lt.Point, el.Transform, originX, pageH, ex, ey);
-                    sb.Append($"L {lx:F2} {ly:F2} ");
-                    break;
-                case CurveToSegment ct:
-                    var (c1x, c1y) = LocalToSvg(ct.Control1, el.Transform, originX, pageH, ex, ey);
-                    var (c2x, c2y) = LocalToSvg(ct.Control2, el.Transform, originX, pageH, ex, ey);
-                    var (cex, cey) = LocalToSvg(ct.End,      el.Transform, originX, pageH, ex, ey);
-                    sb.Append($"C {c1x:F2} {c1y:F2} {c2x:F2} {c2y:F2} {cex:F2} {cey:F2} ");
-                    break;
-                case RectangleSegment rs:
-                    // Expand re into M/L/Z so SVG handles it
-                    var r = rs.Rectangle;
-                    var (rx0, ry0) = LocalToSvg(new PdfPoint(r.Left,  r.Bottom), el.Transform, originX, pageH, ex, ey);
-                    var (rx1, ry1) = LocalToSvg(new PdfPoint(r.Right, r.Bottom), el.Transform, originX, pageH, ex, ey);
-                    var (rx2, ry2) = LocalToSvg(new PdfPoint(r.Right, r.Top),    el.Transform, originX, pageH, ex, ey);
-                    var (rx3, ry3) = LocalToSvg(new PdfPoint(r.Left,  r.Top),    el.Transform, originX, pageH, ex, ey);
-                    sb.Append($"M {rx0:F2} {ry0:F2} L {rx1:F2} {ry1:F2} L {rx2:F2} {ry2:F2} L {rx3:F2} {ry3:F2} Z ");
-                    break;
-                case ClosePathSegment:
-                    sb.Append("Z ");
-                    break;
-            }
-        }
-
-        var d = sb.ToString().Trim();
+        var d = BuildSvgPathData(el, originX, pageH, ex, ey);
         if (d.Length == 0) return false;
 
         string fill   = hasFill   ? ColorToHex(el.GraphicsState.FillColor)   : "none";
         string stroke = hasStroke ? ColorToHex(el.GraphicsState.StrokeColor) : "none";
         double sw     = hasStroke ? el.GraphicsState.LineWidth : 0;
 
-        var svg = $"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {ew:F2} {eh:F2}\" preserveAspectRatio=\"none\">" +
-                  $"<path d=\"{d}\" fill=\"{fill}\" stroke=\"{stroke}\" stroke-width=\"{sw:F2}\" fill-rule=\"evenodd\"/>" +
+        var fillRule = GetSvgFillRule(el);
+        var svg = $"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {SvgNum(ew)} {SvgNum(eh)}\" preserveAspectRatio=\"none\">" +
+                  $"<path d=\"{d}\" fill=\"{fill}\" stroke=\"{stroke}\" stroke-width=\"{SvgNum(sw)}\" fill-rule=\"{fillRule}\"/>" +
                   "</svg>";
 
         var dataUri = "data:image/svg+xml;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(svg));
@@ -490,9 +464,120 @@ public static class CanvasImporterPdfImporter
             {
                 ["rotation"]          = Math.Round(rotation, 2),
                 ["pdfClassification"] = el.Classification.ToString(),
+                ["pdfVisualFallback"] = "svg-vector-path",
+                ["pdfPrimitiveCount"] = 1,
+                ["pdfVectorBounds"] = BoundsMetadata(el.Bounds),
             },
         });
         return true;
+    }
+
+    private static bool EmitSvgPathCluster(
+        IReadOnlyList<PrimitivePath> paths,
+        double originX, double pageH,
+        int pg, ref int seq,
+        List<ElementDto> elements)
+    {
+        if (paths.Count <= 1) return false;
+
+        var bounds = paths[0].Bounds;
+        for (var i = 1; i < paths.Count; i++)
+        {
+            bounds = bounds.Union(paths[i].Bounds);
+        }
+
+        var (ex, ey, ew, eh) = ToCanvasBounds(bounds, originX, pageH);
+        if (ew < 0.5 || eh < 0.5) return false;
+
+        var sb = new StringBuilder();
+        foreach (var path in paths)
+        {
+            var paint = GetPathPaintIntent(path);
+            bool hasFill = paint.Fill;
+            bool hasStroke = paint.Stroke && path.GraphicsState.LineWidth > 0;
+            if (!hasFill && !hasStroke) continue;
+
+            var d = BuildSvgPathData(path, originX, pageH, ex, ey);
+            if (d.Length == 0) continue;
+
+            string fill = hasFill ? ColorToHex(path.GraphicsState.FillColor) : "none";
+            string stroke = hasStroke ? ColorToHex(path.GraphicsState.StrokeColor) : "none";
+            double sw = hasStroke ? path.GraphicsState.LineWidth : 0;
+            var fillRule = GetSvgFillRule(path);
+            sb.Append($"<path d=\"{d}\" fill=\"{fill}\" stroke=\"{stroke}\" stroke-width=\"{SvgNum(sw)}\" fill-rule=\"{fillRule}\"/>");
+        }
+
+        if (sb.Length == 0) return false;
+
+        var svg = $"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {SvgNum(ew)} {SvgNum(eh)}\" preserveAspectRatio=\"none\">" +
+                  sb +
+                  "</svg>";
+
+        var dataUri = "data:image/svg+xml;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(svg));
+
+        elements.Add(new ElementDto
+        {
+            Id      = $"svggrp-{pg}-{seq++}",
+            Type    = "image",
+            X       = Math.Round(ex, 1),
+            Y       = Math.Round(ey, 1),
+            Width   = Math.Round(ew, 1),
+            Height  = Math.Round(eh, 1),
+            Content = dataUri,
+            FitMode = "fill",
+            Style = new Dictionary<string, object>
+            {
+                ["rotation"] = 0,
+                ["pdfClassification"] = "VectorArtworkGroup",
+                ["pdfPrimitiveCount"] = paths.Count,
+                ["pdfVisualFallback"] = "svg-vector-cluster",
+                ["pdfVectorBounds"] = BoundsMetadata(bounds),
+            },
+        });
+        return true;
+    }
+
+    private static string BuildSvgPathData(
+        PrimitivePath path,
+        double originX,
+        double pageH,
+        double elementX,
+        double elementY)
+    {
+        var sb = new StringBuilder();
+        foreach (var seg in path.Segments)
+        {
+            switch (seg)
+            {
+                case MoveToSegment mt:
+                    var (mx, my) = LocalToSvg(mt.Point, path.Transform, originX, pageH, elementX, elementY);
+                    sb.Append($"M {SvgNum(mx)} {SvgNum(my)} ");
+                    break;
+                case LineToSegment lt:
+                    var (lx, ly) = LocalToSvg(lt.Point, path.Transform, originX, pageH, elementX, elementY);
+                    sb.Append($"L {SvgNum(lx)} {SvgNum(ly)} ");
+                    break;
+                case CurveToSegment ct:
+                    var (c1x, c1y) = LocalToSvg(ct.Control1, path.Transform, originX, pageH, elementX, elementY);
+                    var (c2x, c2y) = LocalToSvg(ct.Control2, path.Transform, originX, pageH, elementX, elementY);
+                    var (cex, cey) = LocalToSvg(ct.End,      path.Transform, originX, pageH, elementX, elementY);
+                    sb.Append($"C {SvgNum(c1x)} {SvgNum(c1y)} {SvgNum(c2x)} {SvgNum(c2y)} {SvgNum(cex)} {SvgNum(cey)} ");
+                    break;
+                case RectangleSegment rs:
+                    var r = rs.Rectangle;
+                    var (rx0, ry0) = LocalToSvg(new PdfPoint(r.Left,  r.Bottom), path.Transform, originX, pageH, elementX, elementY);
+                    var (rx1, ry1) = LocalToSvg(new PdfPoint(r.Right, r.Bottom), path.Transform, originX, pageH, elementX, elementY);
+                    var (rx2, ry2) = LocalToSvg(new PdfPoint(r.Right, r.Top),    path.Transform, originX, pageH, elementX, elementY);
+                    var (rx3, ry3) = LocalToSvg(new PdfPoint(r.Left,  r.Top),    path.Transform, originX, pageH, elementX, elementY);
+                    sb.Append($"M {SvgNum(rx0)} {SvgNum(ry0)} L {SvgNum(rx1)} {SvgNum(ry1)} L {SvgNum(rx2)} {SvgNum(ry2)} L {SvgNum(rx3)} {SvgNum(ry3)} Z ");
+                    break;
+                case ClosePathSegment:
+                    sb.Append("Z ");
+                    break;
+            }
+        }
+
+        return sb.ToString().Trim();
     }
 
     private static bool IsComplexSvgPath(PrimitivePath path)
@@ -508,6 +593,112 @@ public static class CanvasImporterPdfImporter
         }
 
         return path.Segments.Any(static segment => segment is ClosePathSegment);
+    }
+
+    private static bool TryCollectSvgCluster(
+        IReadOnlyList<PrimitiveObject> primitives,
+        int start,
+        out IReadOnlyList<PrimitivePath> cluster,
+        out int consumed)
+    {
+        cluster = [];
+        consumed = 0;
+
+        if (start >= primitives.Count ||
+            primitives[start] is not PrimitivePath first ||
+            !CanClusterSvgPath(first))
+        {
+            return false;
+        }
+
+        var paths = new List<PrimitivePath> { first };
+        var clusterBounds = first.Bounds;
+        consumed = 1;
+
+        for (var index = start + 1; index < primitives.Count; index++)
+        {
+            if (primitives[index] is not PrimitivePath next || !CanClusterSvgPath(next))
+            {
+                break;
+            }
+
+            if (!CanJoinSvgCluster(clusterBounds, next.Bounds) ||
+                !HasCompatiblePaint(first, next))
+            {
+                break;
+            }
+
+            paths.Add(next);
+            clusterBounds = clusterBounds.Union(next.Bounds);
+            consumed++;
+        }
+
+        if (paths.Count < 2)
+        {
+            cluster = [];
+            consumed = 0;
+            return false;
+        }
+
+        cluster = paths;
+        return true;
+    }
+
+    private static bool CanClusterSvgPath(PrimitivePath path)
+    {
+        if (!IsComplexSvgPath(path)) return false;
+
+        var bounds = path.Bounds;
+        if (bounds.Width <= 0 || bounds.Height <= 0) return false;
+
+        // Logos and glyph outlines are usually small/medium vector fragments. Very large
+        // artwork stays as individual SVGs to avoid accidentally merging page decorations.
+        return bounds.Width <= 240d && bounds.Height <= 120d;
+    }
+
+    private static bool CanJoinSvgCluster(PdfRectangle cluster, PdfRectangle next)
+    {
+        var verticalOverlap = Math.Min(cluster.Top, next.Top) - Math.Max(cluster.Bottom, next.Bottom);
+        var minHeight = Math.Max(1d, Math.Min(cluster.Height, next.Height));
+        if (verticalOverlap < minHeight * 0.15d)
+        {
+            return false;
+        }
+
+        var horizontalGap = next.Left > cluster.Right
+            ? next.Left - cluster.Right
+            : cluster.Left > next.Right
+                ? cluster.Left - next.Right
+                : 0d;
+
+        return horizontalGap <= Math.Max(12d, Math.Max(cluster.Height, next.Height) * 1.75d);
+    }
+
+    private static bool HasCompatiblePaint(PrimitivePath left, PrimitivePath right)
+    {
+        var leftPaint = GetPathPaintIntent(left);
+        var rightPaint = GetPathPaintIntent(right);
+        return leftPaint == rightPaint &&
+            left.GraphicsState.FillColor == right.GraphicsState.FillColor &&
+            left.GraphicsState.StrokeColor == right.GraphicsState.StrokeColor &&
+            Math.Abs(left.GraphicsState.LineWidth - right.GraphicsState.LineWidth) < 0.001d;
+    }
+
+    private static string SvgNum(double value)
+    {
+        var normalized = Math.Abs(value) < 0.00005d ? 0d : value;
+        return normalized.ToString("0.####", CultureInfo.InvariantCulture);
+    }
+
+    private static Dictionary<string, object> BoundsMetadata(PdfRectangle bounds)
+    {
+        return new Dictionary<string, object>
+        {
+            ["x"] = Math.Round(bounds.X, 4),
+            ["y"] = Math.Round(bounds.Y, 4),
+            ["width"] = Math.Round(bounds.Width, 4),
+            ["height"] = Math.Round(bounds.Height, 4),
+        };
     }
 
     private static (double x, double y) LocalToSvg(
@@ -651,6 +842,11 @@ public static class CanvasImporterPdfImporter
                 Fill: primitive.GraphicsState.FillColor != default,
                 Stroke: primitive.GraphicsState.StrokeColor != default)
         };
+    }
+
+    private static string GetSvgFillRule(PrimitiveObject primitive)
+    {
+        return primitive.SourceOperator.Operator.Name.EndsWith('*') ? "evenodd" : "nonzero";
     }
 
     private static CssFontInfo ResolveCssFont(PrimitiveText text, HashSet<string> emittedFontFaces)

@@ -17,6 +17,8 @@ public sealed class PdfGraphicsInterpreter
         var elements = new List<PdfGraphicsElement>();
         var groups = new Stack<PdfGroupElement>();
         var path = new List<PdfPathSegment>();
+        var currentPoint = new PdfPoint(0, 0);
+        var subpathStart = new PdfPoint(0, 0);
 
         foreach (var command in commands)
         {
@@ -137,19 +139,40 @@ public sealed class PdfGraphicsInterpreter
 
                     break;
                 case "m":
-                    path.Add(new MoveToSegment(new PdfPoint(Number(command.Operands, 0), Number(command.Operands, 1))));
+                    currentPoint = new PdfPoint(Number(command.Operands, 0), Number(command.Operands, 1));
+                    subpathStart = currentPoint;
+                    path.Add(new MoveToSegment(currentPoint));
                     break;
                 case "l":
-                    path.Add(new LineToSegment(new PdfPoint(Number(command.Operands, 0), Number(command.Operands, 1))));
+                    currentPoint = new PdfPoint(Number(command.Operands, 0), Number(command.Operands, 1));
+                    path.Add(new LineToSegment(currentPoint));
                     break;
                 case "c":
+                    currentPoint = new PdfPoint(Number(command.Operands, 4), Number(command.Operands, 5));
                     path.Add(new CurveToSegment(
                         new PdfPoint(Number(command.Operands, 0), Number(command.Operands, 1)),
                         new PdfPoint(Number(command.Operands, 2), Number(command.Operands, 3)),
-                        new PdfPoint(Number(command.Operands, 4), Number(command.Operands, 5))));
+                        currentPoint));
+                    break;
+                case "v":
+                    var vEnd = new PdfPoint(Number(command.Operands, 2), Number(command.Operands, 3));
+                    path.Add(new CurveToSegment(
+                        currentPoint,
+                        new PdfPoint(Number(command.Operands, 0), Number(command.Operands, 1)),
+                        vEnd));
+                    currentPoint = vEnd;
+                    break;
+                case "y":
+                    var yEnd = new PdfPoint(Number(command.Operands, 2), Number(command.Operands, 3));
+                    path.Add(new CurveToSegment(
+                        new PdfPoint(Number(command.Operands, 0), Number(command.Operands, 1)),
+                        yEnd,
+                        yEnd));
+                    currentPoint = yEnd;
                     break;
                 case "h":
                     path.Add(new ClosePathSegment());
+                    currentPoint = subpathStart;
                     break;
                 case "re":
                     path.Add(new RectangleSegment(new PdfRectangle(Number(command.Operands, 0), Number(command.Operands, 1), Number(command.Operands, 2), Number(command.Operands, 3))));
@@ -162,6 +185,11 @@ public sealed class PdfGraphicsInterpreter
                     break;
                 case "S" or "s" or "f" or "F" or "f*" or "B" or "B*" or "b" or "b*":
                     CommitPendingClippingPath(state);
+                    if (command.Operator.Name is "s" or "b" or "b*")
+                    {
+                        path.Add(new ClosePathSegment());
+                    }
+
                     AddElement(groups, elements, new PdfPathElement(command.Sequence, state.Current.Transform, command, path)
                     {
                         FillColor = state.Current.FillColor,
@@ -170,10 +198,14 @@ public sealed class PdfGraphicsInterpreter
                         ClippingPath = state.Current.ClippingPath
                     });
                     path = [];
+                    currentPoint = new PdfPoint(0, 0);
+                    subpathStart = currentPoint;
                     break;
                 case "n":
                     CommitPendingClippingPath(state);
                     path = [];
+                    currentPoint = new PdfPoint(0, 0);
+                    subpathStart = currentPoint;
                     break;
                 case "Tj":
                     var textOperand = command.Operands[^1];
