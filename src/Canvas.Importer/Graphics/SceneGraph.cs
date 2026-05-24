@@ -36,6 +36,8 @@ public sealed class PdfTextElement : PdfGraphicsElement
     public ReadOnlyMemory<byte> EmbeddedFontBytes { get; set; }
     public string? EmbeddedFontFormat { get; set; }
     public string? EmbeddedFontMimeType { get; set; }
+    public bool UsesToUnicodeMap { get; set; }
+    public bool IsSubsetFont { get; set; }
     public double FontSize { get; set; }
     public PdfColor FillColor { get; set; }
     public PdfColor StrokeColor { get; set; }

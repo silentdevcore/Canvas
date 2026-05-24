@@ -30,6 +30,7 @@ public sealed class PdfFontResource
     public int? FontDescriptorFlags { get; init; }
     public double? FontWeight { get; init; }
     public double? ItalicAngle { get; init; }
+    public bool IsSubset { get; init; }
     public ReadOnlyMemory<byte> EmbeddedFontBytes { get; init; }
     public string? EmbeddedFontFormat { get; init; }
     public string? EmbeddedFontMimeType { get; init; }

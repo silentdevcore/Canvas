@@ -558,11 +558,21 @@ public sealed class PdfDocumentBuilder
         {
             ResourceName = font.ResourceName,
             Kind = font.Kind,
+            BaseFontName = font.BaseFontName,
             Dictionary = font.Dictionary,
             Encoding = font.Encoding,
             Widths = font.Widths,
             MissingWidth = font.MissingWidth,
             CodeByteLength = Math.Max(font.CodeByteLength, toUnicode.MaxCodeLength),
+            Bold = font.Bold,
+            Italic = font.Italic,
+            FontDescriptorFlags = font.FontDescriptorFlags,
+            FontWeight = font.FontWeight,
+            ItalicAngle = font.ItalicAngle,
+            IsSubset = font.IsSubset,
+            EmbeddedFontBytes = font.EmbeddedFontBytes,
+            EmbeddedFontFormat = font.EmbeddedFontFormat,
+            EmbeddedFontMimeType = font.EmbeddedFontMimeType,
             ToUnicode = toUnicode
         };
     }

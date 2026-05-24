@@ -3002,10 +3002,13 @@ public sealed class PdfImporterCoreTests
         var text = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "text");
 
         Assert.Equal("Scaled", text.Content);
-        Assert.InRange(text.X, 19d, 21d);
+        Assert.InRange(text.X, 18d, 21d);
         Assert.InRange(text.Y, 69d, 72d);
-        Assert.InRange(text.Width, 35d, 37d);
-        Assert.InRange(text.Height, 11d, 13d);
+        Assert.InRange(text.Width, 37d, 39d);
+        Assert.InRange(text.Height, 13d, 15d);
+        Assert.Equal(1.05d, StyleValue<double>(text, "lineHeight"));
+        Assert.Equal("pre", StyleValue<string>(text, "whiteSpace"));
+        Assert.True(text.Height >= StyleValue<double>(text, "fontSize") * 1.1d);
     }
 
     [Fact]
@@ -3071,11 +3074,11 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldExposeEmbeddedTrueTypeFontAsset()
+    public async Task CanvasImporterPdfImporter_ShouldExposeEmbeddedTrueTypeFontAssetForNonSubsetFont()
     {
         var fontBytes = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x41, 0x42, 0x43, 0x44 };
         var fontFile = new SyntheticPdfObject(5, BuildStreamObjectBody(string.Empty, fontBytes));
-        const string resources = "<< /Font << /F1 << /Type /Font /Subtype /TrueType /BaseFont /ABCDEF+ArialMT /FontDescriptor << /FontName /ABCDEF+ArialMT /FontFile2 5 0 R >> >> >> >>";
+        const string resources = "<< /Font << /F1 << /Type /Font /Subtype /TrueType /BaseFont /ArialMT /FontDescriptor << /FontName /ArialMT /FontFile2 5 0 R >> >> >> >>";
 
         var design = await ImportDesignFromSinglePageContentAsync(
             "BT /F1 12 Tf 1 0 0 1 20 120 Tm (Embedded) Tj ET",
@@ -3091,6 +3094,31 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldNotUseEmbeddedSubsetFontForEditableText()
+    {
+        var fontBytes = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x41, 0x42, 0x43, 0x44 };
+        var fontFile = new SyntheticPdfObject(5, BuildStreamObjectBody(string.Empty, fontBytes));
+        var toUnicode = new SyntheticPdfObject(6, BuildStreamObjectBody(string.Empty, Ascii("""
+        1 beginbfchar
+        <41> <0048>
+        endbfchar
+        """)));
+        const string resources = "<< /Font << /F1 << /Type /Font /Subtype /TrueType /BaseFont /ABCDEF+ArialMT /ToUnicode 6 0 R /FontDescriptor << /FontName /ABCDEF+ArialMT /FontFile2 5 0 R >> >> >> >>";
+
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "BT /F1 12 Tf 1 0 0 1 20 120 Tm (A) Tj ET",
+            resources,
+            [fontFile, toUnicode]);
+
+        var text = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "text");
+
+        Assert.Equal("H", text.Content);
+        Assert.Equal("Arial", StyleValue<string>(text, "fontFamily"));
+        Assert.DoesNotContain("fontDataUri", text.Style!.Keys);
+        Assert.Contains("subset", StyleValue<string>(text, "pdfEmbeddedFontSkippedReason"), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task CanvasImporterPdfImporter_ShouldMapVectorRectanglesThroughPrimitiveShapes()
     {
         var design = await ImportDesignFromSinglePageContentAsync("0 0 0 rg 20 30 60 40 re f");
@@ -3101,6 +3129,21 @@ public sealed class PdfImporterCoreTests
         Assert.Equal(60, shape.Width, precision: 1);
         Assert.Equal(40, shape.Height, precision: 1);
         Assert.Equal("Unknown", StyleValue<string>(shape, "pdfClassification"));
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldPreserveFillOnlyCurvePathsWithoutDefaultStroke()
+    {
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "0.7 0 0.25 rg 10 10 m 30 10 30 30 10 30 c f");
+
+        var image = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "image");
+        var svg = DecodeDataUriText(image.Content);
+
+        Assert.Equal("fill", image.FitMode);
+        Assert.Contains("fill=\"#B20040\"", svg, StringComparison.Ordinal);
+        Assert.Contains("stroke=\"none\"", svg, StringComparison.Ordinal);
+        Assert.Contains("preserveAspectRatio=\"none\"", svg, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -3282,6 +3325,14 @@ public sealed class PdfImporterCoreTests
         Assert.NotNull(element.Style);
         Assert.True(element.Style.TryGetValue(key, out var value), $"Missing style key '{key}'.");
         return Assert.IsType<T>(value);
+    }
+
+    private static string DecodeDataUriText(string? dataUri)
+    {
+        Assert.NotNull(dataUri);
+        var comma = dataUri.IndexOf(',');
+        Assert.True(comma > 0, "Expected a data URI with base64 payload.");
+        return Encoding.UTF8.GetString(Convert.FromBase64String(dataUri[(comma + 1)..]));
     }
 
     private sealed record SyntheticPdfObject(int Number, ReadOnlyMemory<byte> Body);

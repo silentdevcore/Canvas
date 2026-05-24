@@ -192,6 +192,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
           textAlign:      (s.textAlign     || 'left') as React.CSSProperties['textAlign'],
           lineHeight:      s.lineHeight    ?? 1.4,
           letterSpacing:   s.letterSpacing ? `${s.letterSpacing}px` : undefined,
+          whiteSpace:      s.whiteSpace    as React.CSSProperties['whiteSpace'] | undefined,
           display: 'block',
           overflow: 'hidden',
         }}>

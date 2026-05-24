@@ -1709,6 +1709,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             textAlign:      (s.textAlign    || 'left') as React.CSSProperties['textAlign'],
             lineHeight:     s.lineHeight    ?? 1.4,
             letterSpacing:  s.letterSpacing != null ? `${s.letterSpacing}px` : undefined,
+            whiteSpace:     s.whiteSpace    as React.CSSProperties['whiteSpace'] | undefined,
             backgroundColor:s.backgroundColor && s.backgroundColor !== 'transparent' ? s.backgroundColor : undefined,
             opacity:        s.backgroundOpacity != null ? s.backgroundOpacity : undefined,
             border:         s.borderWidth ? `${s.borderWidth}px ${s.borderStyle || 'solid'} ${s.borderColor || '#000'}` : undefined,

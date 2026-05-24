@@ -16,6 +16,9 @@ public static class CanvasImporterPdfImporter
 {
     private const double HeaderZone = 0.08;
     private const double FooterZone = 0.92;
+    private const double ImportedTextLineHeight = 1.05;
+    private const double ImportedTextHeightFactor = 1.18;
+    private const double ImportedTextHorizontalBleed = 2d;
 
     // ── Entry point ───────────────────────────────────────────────────────────
 
@@ -164,6 +167,8 @@ public static class CanvasImporterPdfImporter
             h = fs * 1.5 + 4;
         }
 
+        (x, y, w, h) = ExpandTextFrameForBrowserMetrics(x, y, w, h, fs);
+
         var font = ResolveCssFont(el, emittedFontFaces);
         var isBold = el.Bold || font.Bold;
         var isItalic = el.Italic || font.Italic;
@@ -175,6 +180,8 @@ public static class CanvasImporterPdfImporter
             ["fontWeight"] = isBold ? "bold" : "normal",
             ["fontStyle"]  = isItalic ? "italic" : "normal",
             ["color"]      = ColorToHex(el.GraphicsState.FillColor),
+            ["lineHeight"]  = ImportedTextLineHeight,
+            ["whiteSpace"]  = "pre",
             ["rotation"]   = Math.Round(ToCanvasRotation(el.Geometry.RotationDegrees), 2),
             ["pdfFontName"] = font.PdfName,
             ["pdfClassification"] = el.Classification.ToString(),
@@ -185,6 +192,11 @@ public static class CanvasImporterPdfImporter
             style["fontDataUri"] = font.DataUri;
             style["fontFormat"] = font.Format;
             style["fontDisplayName"] = font.DisplayName ?? font.Family;
+        }
+
+        if (!string.IsNullOrWhiteSpace(font.EmbeddedFontSkippedReason))
+        {
+            style["pdfEmbeddedFontSkippedReason"] = font.EmbeddedFontSkippedReason;
         }
 
         return new ElementDto
@@ -199,8 +211,9 @@ public static class CanvasImporterPdfImporter
 
     private static ElementDto? MapPath(PrimitiveObject el, double originX, double pageH, int pg, ref int seq)
     {
-        bool hasFill   = el.GraphicsState.FillColor != default;
-        bool hasStroke = el.GraphicsState.StrokeColor != default && el.GraphicsState.LineWidth > 0;
+        var paint = GetPathPaintIntent(el);
+        bool hasFill   = paint.Fill;
+        bool hasStroke = paint.Stroke && el.GraphicsState.LineWidth > 0;
         if (!hasFill && !hasStroke) return null;
 
         var (x, y, w, h) = ToCanvasBounds(el.Bounds, originX, pageH);
@@ -244,7 +257,7 @@ public static class CanvasImporterPdfImporter
             {
                 ["backgroundColor"] = fill,
                 ["borderColor"]     = stroke,
-                ["borderWidth"]     = (int)Math.Max(0, Math.Round(el.GraphicsState.LineWidth)),
+                ["borderWidth"]     = hasStroke ? (int)Math.Max(0, Math.Round(el.GraphicsState.LineWidth)) : 0,
                 ["borderStyle"]     = "solid",
                 ["pdfClassification"] = el.Classification.ToString(),
             },
@@ -286,9 +299,9 @@ public static class CanvasImporterPdfImporter
             Width   = Math.Round(imgW, 1),
             Height  = Math.Round(imgH, 1),
             Content = ImageBytesToDataUri(el.ImageBytes),
+            FitMode = "contain",
             Style   = new Dictionary<string, object>
             {
-                ["fitMode"]           = "contain",
                 ["rotation"]          = Math.Round(rotation, 2),
                 ["pdfClassification"] = el.Classification.ToString(),
             },
@@ -343,8 +356,9 @@ public static class CanvasImporterPdfImporter
 
         if (localRects.Count <= 1) return false;
 
-        bool hasFill   = el.GraphicsState.FillColor   != default;
-        bool hasStroke = el.GraphicsState.StrokeColor != default && el.GraphicsState.LineWidth > 0;
+        var paint = GetPathPaintIntent(el);
+        bool hasFill   = paint.Fill;
+        bool hasStroke = paint.Stroke && el.GraphicsState.LineWidth > 0;
         if (!hasFill && !hasStroke) return false;
 
         string fill   = hasFill   ? ColorToHex(el.GraphicsState.FillColor)   : "transparent";
@@ -367,7 +381,7 @@ public static class CanvasImporterPdfImporter
                 {
                     ["backgroundColor"]   = fill,
                     ["borderColor"]       = stroke,
-                    ["borderWidth"]       = (int)Math.Max(0, Math.Round(el.GraphicsState.LineWidth)),
+                    ["borderWidth"]       = hasStroke ? (int)Math.Max(0, Math.Round(el.GraphicsState.LineWidth)) : 0,
                     ["borderStyle"]       = "solid",
                     ["pdfClassification"] = el.Classification.ToString(),
                 },
@@ -405,8 +419,9 @@ public static class CanvasImporterPdfImporter
     {
         if (!el.Segments.Any(static s => s is CurveToSegment)) return false;
 
-        bool hasFill   = el.GraphicsState.FillColor   != default;
-        bool hasStroke = el.GraphicsState.StrokeColor != default && el.GraphicsState.LineWidth > 0;
+        var paint = GetPathPaintIntent(el);
+        bool hasFill   = paint.Fill;
+        bool hasStroke = paint.Stroke && el.GraphicsState.LineWidth > 0;
         if (!hasFill && !hasStroke) return false;
 
         var (ex, ey, ew, eh) = ToCanvasBounds(el.Bounds, originX, pageH);
@@ -455,7 +470,7 @@ public static class CanvasImporterPdfImporter
         string stroke = hasStroke ? ColorToHex(el.GraphicsState.StrokeColor) : "none";
         double sw     = hasStroke ? el.GraphicsState.LineWidth : 0;
 
-        var svg = $"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {ew:F2} {eh:F2}\">" +
+        var svg = $"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {ew:F2} {eh:F2}\" preserveAspectRatio=\"none\">" +
                   $"<path d=\"{d}\" fill=\"{fill}\" stroke=\"{stroke}\" stroke-width=\"{sw:F2}\" fill-rule=\"evenodd\"/>" +
                   "</svg>";
 
@@ -469,9 +484,9 @@ public static class CanvasImporterPdfImporter
             X       = Math.Round(ex, 1),   Y    = Math.Round(ey, 1),
             Width   = Math.Round(ew, 1),   Height = Math.Round(eh, 1),
             Content = dataUri,
+            FitMode = "fill",
             Style   = new Dictionary<string, object>
             {
-                ["fitMode"]           = "fill",
                 ["rotation"]          = Math.Round(rotation, 2),
                 ["pdfClassification"] = el.Classification.ToString(),
             },
@@ -552,6 +567,22 @@ public static class CanvasImporterPdfImporter
         return (x, y, width, height);
     }
 
+    private static (double x, double y, double width, double height) ExpandTextFrameForBrowserMetrics(
+        double x,
+        double y,
+        double width,
+        double height,
+        double fontSize)
+    {
+        var targetWidth = Math.Max(width + ImportedTextHorizontalBleed, width * 1.04d);
+        var targetHeight = Math.Max(height, fontSize * ImportedTextHeightFactor);
+
+        x -= (targetWidth - width) / 2d;
+        y -= (targetHeight - height) / 2d;
+
+        return (x, y, targetWidth, targetHeight);
+    }
+
     private static (double x, double y, double width, double height, double rotation) TransformedCanvasFrame(
         PdfRectangle localBounds,
         PdfMatrix transform,
@@ -593,6 +624,19 @@ public static class CanvasImporterPdfImporter
 
     private static int ToByte(double v) => Math.Clamp((int)Math.Round(v * 255), 0, 255);
 
+    private static PathPaintIntent GetPathPaintIntent(PrimitiveObject primitive)
+    {
+        return primitive.SourceOperator.Operator.Name switch
+        {
+            "S" or "s" => new PathPaintIntent(Fill: false, Stroke: true),
+            "f" or "F" or "f*" => new PathPaintIntent(Fill: true, Stroke: false),
+            "B" or "B*" or "b" or "b*" => new PathPaintIntent(Fill: true, Stroke: true),
+            _ => new PathPaintIntent(
+                Fill: primitive.GraphicsState.FillColor != default,
+                Stroke: primitive.GraphicsState.StrokeColor != default)
+        };
+    }
+
     private static CssFontInfo ResolveCssFont(PrimitiveText text, HashSet<string> emittedFontFaces)
     {
         var name = text.FontName ?? text.FontResourceName;
@@ -609,7 +653,19 @@ public static class CanvasImporterPdfImporter
         string? format = null;
         string? displayName = null;
 
-        if (!text.EmbeddedFontBytes.IsEmpty &&
+        string? skippedReason = null;
+        if (text.IsSubsetFont && !text.EmbeddedFontBytes.IsEmpty)
+        {
+            skippedReason = "Embedded PDF subset font is unsafe for browser Unicode text rendering.";
+        }
+        else if (text.UsesToUnicodeMap && !text.EmbeddedFontBytes.IsEmpty)
+        {
+            skippedReason = "ToUnicode remaps PDF glyph codes to Unicode; embedded subset font is unsafe for browser text rendering.";
+        }
+
+        if (!text.IsSubsetFont &&
+            !text.UsesToUnicodeMap &&
+            !text.EmbeddedFontBytes.IsEmpty &&
             !string.IsNullOrWhiteSpace(text.EmbeddedFontFormat) &&
             !string.IsNullOrWhiteSpace(text.EmbeddedFontMimeType))
         {
@@ -623,7 +679,7 @@ public static class CanvasImporterPdfImporter
             }
         }
 
-        return new CssFontInfo(family, pdfName, bold, italic, dataUri, format, displayName);
+        return new CssFontInfo(family, pdfName, bold, italic, dataUri, format, displayName, skippedReason);
     }
 
     private static string CleanPdfFontName(string? name)
@@ -797,5 +853,8 @@ public static class CanvasImporterPdfImporter
         bool Italic,
         string? DataUri = null,
         string? Format = null,
-        string? DisplayName = null);
+        string? DisplayName = null,
+        string? EmbeddedFontSkippedReason = null);
+
+    private readonly record struct PathPaintIntent(bool Fill, bool Stroke);
 }

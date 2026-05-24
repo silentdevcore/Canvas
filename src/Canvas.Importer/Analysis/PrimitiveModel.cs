@@ -86,6 +86,8 @@ public sealed class PrimitiveText : PrimitiveObject
         EmbeddedFontBytes = source.EmbeddedFontBytes;
         EmbeddedFontFormat = source.EmbeddedFontFormat;
         EmbeddedFontMimeType = source.EmbeddedFontMimeType;
+        UsesToUnicodeMap = source.UsesToUnicodeMap;
+        IsSubsetFont = source.IsSubsetFont;
         Classification = PrimitiveClassification.Text;
     }
 
@@ -99,6 +101,8 @@ public sealed class PrimitiveText : PrimitiveObject
     public ReadOnlyMemory<byte> EmbeddedFontBytes { get; }
     public string? EmbeddedFontFormat { get; }
     public string? EmbeddedFontMimeType { get; }
+    public bool UsesToUnicodeMap { get; }
+    public bool IsSubsetFont { get; }
 }
 
 public sealed class PrimitivePath : PrimitiveObject

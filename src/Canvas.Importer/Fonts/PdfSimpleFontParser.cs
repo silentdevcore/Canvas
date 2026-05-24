@@ -40,6 +40,7 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
                 string.Empty;
         }
 
+        var isSubset = HasSubsetPrefix(rawBaseFontName);
         var baseFontName = StripSubsetPrefix(rawBaseFontName.Length > 0 ? rawBaseFontName : null);
         var embeddedFont = ResolveEmbeddedFont(widthSource, resolver) ?? ResolveEmbeddedFont(fontDictionary, resolver);
         var descriptor = ResolveFontDescriptor(widthSource, resolver) ?? ResolveFontDescriptor(fontDictionary, resolver);
@@ -61,6 +62,7 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
             FontDescriptorFlags = flags,
             FontWeight = fontWeight,
             ItalicAngle = italicAngle,
+            IsSubset = isSubset,
             EmbeddedFontBytes = embeddedFont?.Bytes ?? ReadOnlyMemory<byte>.Empty,
             EmbeddedFontFormat = embeddedFont?.Format,
             EmbeddedFontMimeType = embeddedFont?.MimeType
@@ -308,11 +310,19 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
     }
 
     // PDF embedded fonts use a 6-uppercase-letter subset tag prefix: "ABCDEF+FontName"
+    private static bool HasSubsetPrefix(string? name)
+    {
+        if (name is null) return false;
+        var plus = name.IndexOf('+');
+        if (plus != 6) return false;
+        return name[..plus].All(static ch => ch is >= 'A' and <= 'Z');
+    }
+
     private static string? StripSubsetPrefix(string? name)
     {
         if (name is null) return null;
         var plus = name.IndexOf('+');
-        return plus == 6 ? name[(plus + 1)..] : name;
+        return HasSubsetPrefix(name) ? name[(plus + 1)..] : name;
     }
 
     private sealed record EmbeddedFontAsset(ReadOnlyMemory<byte> Bytes, string Format, string MimeType);

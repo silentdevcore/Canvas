@@ -251,6 +251,8 @@ public sealed class PdfGraphicsInterpreter
             EmbeddedFontBytes = state.CurrentFont?.EmbeddedFontBytes ?? ReadOnlyMemory<byte>.Empty,
             EmbeddedFontFormat = state.CurrentFont?.EmbeddedFontFormat,
             EmbeddedFontMimeType = state.CurrentFont?.EmbeddedFontMimeType,
+            UsesToUnicodeMap = state.CurrentFont?.ToUnicode is not null,
+            IsSubsetFont = state.CurrentFont?.IsSubset ?? false,
             FillColor = state.FillColor,
             StrokeColor = state.StrokeColor,
             ClippingPath = state.ClippingPath

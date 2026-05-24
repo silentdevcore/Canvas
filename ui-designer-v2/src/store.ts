@@ -123,6 +123,25 @@ const makePage = (elements: SimpleElement[] = []): Page => ({
   elements,
 });
 
+const MAX_PERSISTED_TEMPLATE_CHARS = 1_500_000;
+
+function tryMeasureJson(value: unknown): number {
+  try {
+    return JSON.stringify(value).length;
+  } catch {
+    return Number.POSITIVE_INFINITY;
+  }
+}
+
+function persistableTemplate(template: Template | null): Template | null {
+  if (!template) return null;
+  return tryMeasureJson(template) <= MAX_PERSISTED_TEMPLATE_CHARS ? template : null;
+}
+
+function persistableTemplates(templates: Template[]): Template[] {
+  return templates.filter(template => tryMeasureJson(template) <= MAX_PERSISTED_TEMPLATE_CHARS);
+}
+
 export const useEditorStore = create<EditorState>()(
   persist(
     (set, get) => ({
@@ -368,11 +387,16 @@ export const useEditorStore = create<EditorState>()(
     }),
     {
       name: 'editor-storage',
-      version: 4,
+      version: 5,
       partialize: (state) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { undoStack, redoStack, snapshotHistory, undo, redo, ...rest } = state;
-        return rest;
+        return {
+          ...rest,
+          currentTemplate: persistableTemplate(rest.currentTemplate),
+          templates: persistableTemplates(rest.templates),
+          backgroundPdf: null,
+        };
       },
       migrate: (persisted: unknown, version: number) => {
         // v3→v4: Template.elements → Template.pages
