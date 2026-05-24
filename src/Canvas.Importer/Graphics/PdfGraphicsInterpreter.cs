@@ -240,10 +240,14 @@ public sealed class PdfGraphicsInterpreter
         List<PdfGraphicsElement> elements)
     {
         var composed = state.TextMatrix.Multiply(state.Transform);
+        var baseFontName = state.CurrentFont?.BaseFontName;
         AddElement(groups, elements, new PdfTextElement(command.Sequence, composed, command, text)
         {
             FontSize = state.FontSize,
             FontResourceName = state.CurrentFontResourceName,
+            FontName = baseFontName,
+            Bold = IsBold(baseFontName),
+            Italic = IsItalic(baseFontName),
             FillColor = state.FillColor,
             StrokeColor = state.StrokeColor,
             ClippingPath = state.ClippingPath
@@ -536,4 +540,15 @@ public sealed class PdfGraphicsInterpreter
 
         return string.Concat(array.Items.OfType<PdfString>().Select(item => font?.Decode(item.GetDecodedBytes().Span) ?? item.ToLatin1String()));
     }
+
+    private static bool IsBold(string? baseFontName) =>
+        baseFontName is not null &&
+        (baseFontName.Contains("Bold", StringComparison.OrdinalIgnoreCase) ||
+         baseFontName.Contains("Heavy", StringComparison.OrdinalIgnoreCase) ||
+         baseFontName.Contains("Black", StringComparison.OrdinalIgnoreCase));
+
+    private static bool IsItalic(string? baseFontName) =>
+        baseFontName is not null &&
+        (baseFontName.Contains("Italic", StringComparison.OrdinalIgnoreCase) ||
+         baseFontName.Contains("Oblique", StringComparison.OrdinalIgnoreCase));
 }

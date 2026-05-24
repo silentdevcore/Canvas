@@ -95,3 +95,27 @@ Scope: this checklist tracks core Canvas.Importer PDF parsing, interpretation, e
 - [x] Expand generator bridge to round-trip LZWDecode-encoded XObject images.
 - [x] Add Indexed color space support to bridge image handling (expand palette to device color space before regeneration).
 - [x] Verify barcode round-trip: vector-path barcodes, CCITT/Indexed image barcodes, and barcode-font text barcodes.
+
+## Phase 4 — Adobe / Standard Font Recognition
+
+- [x] Extract `/BaseFont` name from font dictionaries during parsing (strip embedded subset prefix `ABCDEF+`).
+- [x] Propagate `FontName`, `Bold`, and `Italic` flags from parsed font resource to `PdfTextElement`.
+- [x] Add `ResolveStandardFontFamily` mapping in bridge: Helvetica/Arial → Helvetica, Times/Garamond → Times, Courier/Mono → Courier.
+- [x] Pass `FontFamily`, `Bold`, and `Italic` to `PdfDrawTextOptions` when regenerating text elements.
+
+## Phase 5 — Graphics Scene And Semantic Reconstruction
+
+- [x] Add matrix transformation engine for translate/scale/rotate/skew, local-to-world conversion, transformed bounds, and orientation extraction.
+- [x] Add text geometry engine for rotated/arbitrary-angle text bounds, baseline vectors, and reading orientation.
+- [x] Add bounding box engine for text, paths, images, groups, clipping-aware intersections, and transformed Bézier/path geometry.
+- [x] Add primitive object model (`PrimitiveText`, `PrimitivePath`, `PrimitiveImage`, `PrimitiveShape`, `PrimitiveGroup`) preserving source operators, transforms, bounds, z-order, resources, and graphics style snapshots.
+- [x] Add XObject resolution engine for image XObjects, Form XObjects, nested XObjects, inherited transforms, and reusable graphics instances.
+- [x] Add scene graph engine with layers, groups, editable graphics nodes, resources, traversal, and export-ready structure.
+- [x] Add reading order engine for line building, paragraph reconstruction, column detection, XY-cut style block ordering, and draw-order-independent flow.
+- [x] Add text reconstruction engine for glyph/word/line/paragraph heuristics using spacing, baseline alignment, font continuity, and transform continuity.
+- [x] Add object classification engine for vector icons, symbol-font icons, images, barcodes, separators, decorations, and table lines.
+- [x] Add barcode detection heuristics for linear, QR/DataMatrix-like, PDF417-like, and high-frequency geometry regions.
+- [x] Add grouping engine for visual containment, proximity, shared transforms/colors, alignment, labels + values, icon + text, buttons, and table-cell groups.
+- [x] Add semantic layout tree for headers, footers, paragraphs, tables, figures, lists, labels, and form-like regions without OCR/AI.
+- [x] Add debug overlay model for bounds, baselines, matrices, z-order, object ids, grouping, reading order, and classifications.
+- [x] Add focused Phase 5 tests for matrix math, bounding boxes, reading order, grouping, and classification heuristics.

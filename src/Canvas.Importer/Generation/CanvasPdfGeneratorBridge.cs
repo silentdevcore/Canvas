@@ -625,8 +625,26 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
         {
             FontSize = text.FontSize > 0 ? text.FontSize : 12,
             FillColor = MapColor(text.FillColor),
-            RotationDegrees = ResolveRotationDegrees(text.Transform)
+            RotationDegrees = ResolveRotationDegrees(text.Transform),
+            FontFamily = ResolveStandardFontFamily(text.FontName),
+            Bold = text.Bold,
+            Italic = text.Italic
         });
+    }
+
+    private static PdfFontFamily? ResolveStandardFontFamily(string? fontName)
+    {
+        if (fontName is null) return null;
+        var lower = fontName.ToLowerInvariant();
+        if (lower.StartsWith("times", StringComparison.Ordinal) || lower.Contains("garamond") || lower.Contains("palatino"))
+            return PdfFontFamily.Times;
+        if (lower.StartsWith("courier", StringComparison.Ordinal) || lower.Contains("mono") || lower.Contains("typewriter"))
+            return PdfFontFamily.Courier;
+        if (lower.StartsWith("helvetica", StringComparison.Ordinal) || lower.StartsWith("arial", StringComparison.Ordinal) ||
+            lower.StartsWith("symbol", StringComparison.Ordinal) || lower.StartsWith("zapf", StringComparison.Ordinal))
+            return PdfFontFamily.Helvetica;
+        // Embedded custom fonts: fall back to null (Canvas.Pdf uses its document default)
+        return null;
     }
 
     private static void RenderPath(CanvasPdfPage page, PdfPathElement path)

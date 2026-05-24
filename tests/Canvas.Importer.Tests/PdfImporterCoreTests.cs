@@ -1,8 +1,10 @@
 using System.IO.Compression;
 using System.Text;
 using Canvas.Importer;
+using Canvas.Importer.Analysis;
 using Canvas.Importer.Document;
 using Canvas.Importer.Content;
+using Canvas.Importer.Debugging;
 using Canvas.Importer.Graphics;
 using Canvas.Importer.Editing;
 using Canvas.Importer.Fonts;
@@ -3267,5 +3269,123 @@ public sealed class PdfImporterCoreTests
         Assert.Single(importedPage.GraphicsObjects.OfType<PdfImageElement>());
         Assert.Equal("X", Assert.Single(importedPage.TextObjects).Text);
         Assert.False(importedPage.GraphicsObjects.OfType<PdfImageElement>().Single().ImageBytes.IsEmpty);
+    }
+    [Fact]
+    public void MatrixEngine_ShouldTransformRotatedBoundsAndExtractRotation()
+    {
+        var matrix = MatrixEngine.Translate(100, 50).Multiply(MatrixEngine.Rotate(90));
+
+        var point = MatrixEngine.TransformPoint(new PdfPoint(10, 0), matrix);
+        var bounds = MatrixEngine.TransformBounds(new PdfRectangle(0, 0, 10, 20), matrix);
+
+        Assert.Equal(50, point.X, precision: 6);
+        Assert.Equal(110, point.Y, precision: 6);
+        Assert.Equal(90, MatrixEngine.ExtractRotationDegrees(matrix), precision: 6);
+        Assert.Equal(20, bounds.Width, precision: 6);
+        Assert.Equal(10, bounds.Height, precision: 6);
+    }
+
+    [Fact]
+    public void PrimitiveBuilder_ShouldComputeRotatedTextGeometry()
+    {
+        var text = new PdfTextElement(
+            1,
+            MatrixEngine.Translate(100, 100).Multiply(MatrixEngine.Rotate(90)),
+            Command("Tj", 1, new PdfString(Encoding.ASCII.GetBytes("Rotated"), IsHex: false)),
+            "Rotated")
+        {
+            FontSize = 12,
+            FillColor = PdfColor.Black,
+            StrokeColor = PdfColor.Black
+        };
+
+        var primitive = Assert.IsType<PrimitiveText>(Assert.Single(new PrimitiveBuilder().Build([text])));
+
+        Assert.Equal(90, primitive.Geometry.RotationDegrees, precision: 6);
+        Assert.True(primitive.Bounds.Width > 0);
+        Assert.True(primitive.Bounds.Height > 0);
+        Assert.True(Math.Abs(primitive.Geometry.Baseline.Length - 1) < 0.0001);
+    }
+
+    [Fact]
+    public void ReadingOrderEngine_ShouldSortByGeometryInsteadOfDrawOrder()
+    {
+        var lower = BuildPrimitiveText("Second", 1, 10, 20);
+        var upper = BuildPrimitiveText("First", 2, 10, 80);
+
+        var result = new ReadingOrderEngine().Analyze([lower, upper]);
+
+        Assert.Equal(["First", "Second"], result.Lines.Select(static line => line.Text).ToArray());
+    }
+
+    [Fact]
+    public void ObjectClassifier_ShouldDetectLinearBarcodeFromRepeatedBars()
+    {
+        var bars = Enumerable.Range(0, 10)
+            .Select(i => BuildPrimitiveShape(i, i * 4, 0, 1, 50))
+            .Cast<PrimitiveObject>()
+            .ToArray();
+
+        new ObjectClassifier().Classify(bars);
+
+        Assert.All(bars, primitive => Assert.Equal(PrimitiveClassification.LinearBarcode, primitive.Classification));
+    }
+
+    [Fact]
+    public void SceneGraphEngine_ShouldBuildSemanticLayoutGroupsAndDebugOverlays()
+    {
+        var page = new PdfPageModel(null, new PdfDictionary())
+        {
+            MediaBox = new PdfRectangle(0, 0, 300, 200)
+        };
+
+        page.GraphicsObjects.Add(new PdfTextElement(1, MatrixEngine.Translate(20, 160), Command("Tj", 1, new PdfString(Encoding.ASCII.GetBytes("Name:"), false)), "Name:")
+        {
+            FontSize = 12,
+            FillColor = PdfColor.Black,
+            StrokeColor = PdfColor.Black
+        });
+        page.GraphicsObjects.Add(new PdfTextElement(2, MatrixEngine.Translate(70, 160), Command("Tj", 2, new PdfString(Encoding.ASCII.GetBytes("Ada"), false)), "Ada")
+        {
+            FontSize = 12,
+            FillColor = PdfColor.Black,
+            StrokeColor = PdfColor.Black
+        });
+
+        var scenePage = new SceneGraphEngine().BuildPage(0, page);
+        var overlays = new PdfDebugOverlayBuilder().Build(scenePage);
+
+        Assert.NotNull(scenePage.ReadingOrder);
+        Assert.Contains(scenePage.VisualGroups, group => group.Kind == "LabelValue");
+        Assert.NotNull(scenePage.Layout);
+        Assert.Contains(overlays, overlay => overlay.Kind == PdfDebugOverlayKind.Bounds);
+    }
+
+    private static PrimitiveText BuildPrimitiveText(string text, int zOrder, double x, double y)
+    {
+        var element = new PdfTextElement(zOrder, MatrixEngine.Translate(x, y), Command("Tj", zOrder, new PdfString(Encoding.ASCII.GetBytes(text), false)), text)
+        {
+            FontSize = 10,
+            FillColor = PdfColor.Black,
+            StrokeColor = PdfColor.Black
+        };
+
+        return Assert.IsType<PrimitiveText>(Assert.Single(new PrimitiveBuilder().Build([element])));
+    }
+
+    private static PrimitiveShape BuildPrimitiveShape(int zOrder, double x, double y, double width, double height)
+    {
+        var element = new PdfPathElement(
+            zOrder,
+            PdfMatrix.Identity,
+            Command("f", zOrder),
+            [new RectangleSegment(new PdfRectangle(x, y, width, height))])
+        {
+            FillColor = PdfColor.Black,
+            StrokeColor = PdfColor.Black,
+            LineWidth = 1
+        };
+
+        return Assert.IsType<PrimitiveShape>(Assert.Single(new PrimitiveBuilder().Build([element])));
     }
 }

@@ -30,6 +30,9 @@ public sealed class PdfTextElement : PdfGraphicsElement
 
     public string Text { get; set; }
     public string? FontResourceName { get; set; }
+    public string? FontName { get; set; }
+    public bool Bold { get; set; }
+    public bool Italic { get; set; }
     public double FontSize { get; set; }
     public PdfColor FillColor { get; set; }
     public PdfColor StrokeColor { get; set; }

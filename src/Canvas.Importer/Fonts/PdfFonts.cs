@@ -18,6 +18,7 @@ public sealed class PdfFontResource
 {
     public required string ResourceName { get; init; }
     public required PdfFontKind Kind { get; init; }
+    public string? BaseFontName { get; init; }
     public PdfDictionary Dictionary { get; init; } = new();
     public PdfEncodingMap Encoding { get; init; } = PdfEncodingMap.Identity;
     public PdfToUnicodeMap? ToUnicode { get; init; }

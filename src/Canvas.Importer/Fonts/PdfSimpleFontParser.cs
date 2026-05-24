@@ -18,12 +18,16 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
             _ => PdfFontKind.Unknown
         };
 
+        var rawBaseFontName = ResolveName(fontDictionary["BaseFont"], resolver);
+        var baseFontName = StripSubsetPrefix(rawBaseFontName.Length > 0 ? rawBaseFontName : null);
+
         var widthSource = GetWidthSourceDictionary(fontDictionary, subtype, resolver);
 
         return new PdfFontResource
         {
             ResourceName = resourceName,
             Kind = kind,
+            BaseFontName = baseFontName,
             Dictionary = fontDictionary,
             Widths = ReadWidths(widthSource, subtype, resolver),
             MissingWidth = ReadMissingWidth(widthSource, resolver),
@@ -160,5 +164,13 @@ public sealed class PdfSimpleFontParser : IPdfFontParser
             PdfNumber number => number.Value,
             _ => null
         };
+    }
+
+    // PDF embedded fonts use a 6-uppercase-letter subset tag prefix: "ABCDEF+FontName"
+    private static string? StripSubsetPrefix(string? name)
+    {
+        if (name is null) return null;
+        var plus = name.IndexOf('+');
+        return plus == 6 ? name[(plus + 1)..] : name;
     }
 }
