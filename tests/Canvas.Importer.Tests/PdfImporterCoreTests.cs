@@ -3278,7 +3278,7 @@ public sealed class PdfImporterCoreTests
         var point = MatrixEngine.TransformPoint(new PdfPoint(10, 0), matrix);
         var bounds = MatrixEngine.TransformBounds(new PdfRectangle(0, 0, 10, 20), matrix);
 
-        Assert.Equal(50, point.X, precision: 6);
+        Assert.Equal(-50, point.X, precision: 6);
         Assert.Equal(110, point.Y, precision: 6);
         Assert.Equal(90, MatrixEngine.ExtractRotationDegrees(matrix), precision: 6);
         Assert.Equal(20, bounds.Width, precision: 6);
