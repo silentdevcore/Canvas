@@ -1,3 +1,4 @@
+using System.Text;
 using Canvas.Core.Contracts;
 using Canvas.Importer.Analysis;
 using Canvas.Importer.Document;
@@ -112,8 +113,12 @@ public static class CanvasImporterPdfImporter
 
             case PrimitivePath path:
             {
-                var dto = MapPath(path, originX, pageH, pg, ref seq);
-                if (dto is not null) elements.Add(dto);
+                if (!EmitRectangularSubpaths(path, originX, pageH, pg, ref seq, elements) &&
+                    !EmitCurvePath(path, originX, pageH, pg, ref seq, elements))
+                {
+                    var dto = MapPath(path, originX, pageH, pg, ref seq);
+                    if (dto is not null) elements.Add(dto);
+                }
                 break;
             }
 
@@ -231,11 +236,30 @@ public static class CanvasImporterPdfImporter
 
     private static ElementDto? MapImage(PrimitiveImage el, double originX, double pageH, int pg, ref int seq)
     {
-        if (el.ImageBytes.IsEmpty) return null;
-
         var (imgX, imgY, imgW, imgH, rotation) = TransformedCanvasFrame(new PdfRectangle(0, 0, 1, 1), el.Transform, originX, pageH);
 
         if (imgW < 1 || imgH < 1) return null;
+
+        // Unsupported codec (JBIG2, JPEG2000, etc.) — emit a visible placeholder
+        if (el.ImageBytes.IsEmpty)
+        {
+            return new ElementDto
+            {
+                Id     = $"img-{pg}-{seq++}", Type   = "shape",
+                X      = Math.Max(0, Math.Round(imgX, 1)),
+                Y      = Math.Max(0, Math.Round(imgY, 1)),
+                Width  = Math.Round(imgW, 1),
+                Height = Math.Round(imgH, 1),
+                Style  = new Dictionary<string, object>
+                {
+                    ["backgroundColor"]   = "#f5f5f5",
+                    ["borderColor"]       = "#bbbbbb",
+                    ["borderWidth"]       = 1,
+                    ["borderStyle"]       = "dashed",
+                    ["pdfClassification"] = "UnsupportedImage",
+                },
+            };
+        }
 
         return new ElementDto
         {
@@ -247,11 +271,207 @@ public static class CanvasImporterPdfImporter
             Content = ImageBytesToDataUri(el.ImageBytes),
             Style   = new Dictionary<string, object>
             {
-                ["fitMode"] = "contain",
-                ["rotation"] = Math.Round(rotation, 2),
+                ["fitMode"]           = "contain",
+                ["rotation"]          = Math.Round(rotation, 2),
                 ["pdfClassification"] = el.Classification.ToString(),
             },
         };
+    }
+
+    // ── Complex path splitter ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Splits a multi-subpath PrimitivePath (e.g. a QR code drawn with many `re` ops) into
+    /// individual rect elements. Each sub-rectangle's local coordinates are converted to
+    /// global PDF space via the path's CTM before mapping to canvas coordinates.
+    /// Returns false when the path has ≤1 sub-rectangle, deferring to MapPath.
+    /// </summary>
+    private static bool EmitRectangularSubpaths(
+        PrimitivePath el,
+        double originX, double pageH,
+        int pg, ref int seq,
+        List<ElementDto> elements)
+    {
+        var localRects      = new List<PdfRectangle>();
+        var subpathPoints   = new List<PdfPoint>();
+        bool subpathHasCurve = false;
+
+        foreach (var seg in el.Segments)
+        {
+            switch (seg)
+            {
+                case RectangleSegment rs:
+                    localRects.Add(rs.Rectangle);
+                    break;
+                case MoveToSegment mt:
+                    CommitSubpath(subpathPoints, subpathHasCurve, localRects);
+                    subpathPoints.Clear();
+                    subpathHasCurve = false;
+                    subpathPoints.Add(mt.Point);
+                    break;
+                case LineToSegment lt:
+                    if (!subpathHasCurve) subpathPoints.Add(lt.Point);
+                    break;
+                case CurveToSegment:
+                    subpathHasCurve = true;
+                    break;
+                case ClosePathSegment:
+                    if (!subpathHasCurve) CommitSubpath(subpathPoints, subpathHasCurve, localRects);
+                    subpathPoints.Clear();
+                    subpathHasCurve = false;
+                    break;
+            }
+        }
+        CommitSubpath(subpathPoints, subpathHasCurve, localRects);
+
+        if (localRects.Count <= 1) return false;
+
+        bool hasFill   = el.GraphicsState.FillColor   != default;
+        bool hasStroke = el.GraphicsState.StrokeColor != default && el.GraphicsState.LineWidth > 0;
+        if (!hasFill && !hasStroke) return false;
+
+        string fill   = hasFill   ? ColorToHex(el.GraphicsState.FillColor)   : "transparent";
+        string stroke = hasStroke ? ColorToHex(el.GraphicsState.StrokeColor) : "transparent";
+
+        foreach (var localRect in localRects)
+        {
+            // localRect is in path-user space; apply CTM to get global PDF coords
+            var globalRect = MatrixEngine.TransformBounds(localRect, el.Transform);
+            var (x, y, w, h) = ToCanvasBounds(globalRect, originX, pageH);
+            if (w < 0.1 || h < 0.1) continue;
+
+            elements.Add(new ElementDto
+            {
+                Id     = $"sh-{pg}-{seq++}", Type   = "shape",
+                X      = Math.Round(x, 1),   Y      = Math.Round(y, 1),
+                Width  = Math.Max(0.5, Math.Round(w, 1)),
+                Height = Math.Max(0.5, Math.Round(h, 1)),
+                Style  = new Dictionary<string, object>
+                {
+                    ["backgroundColor"]   = fill,
+                    ["borderColor"]       = stroke,
+                    ["borderWidth"]       = (int)Math.Max(0, Math.Round(el.GraphicsState.LineWidth)),
+                    ["borderStyle"]       = "solid",
+                    ["pdfClassification"] = el.Classification.ToString(),
+                },
+            });
+        }
+        return true;
+    }
+
+    private static void CommitSubpath(List<PdfPoint> points, bool hasCurve, List<PdfRectangle> rects)
+    {
+        if (hasCurve || points.Count < 3) return;
+        var left   = points.Min(static p => p.X);
+        var right  = points.Max(static p => p.X);
+        var bottom = points.Min(static p => p.Y);
+        var top    = points.Max(static p => p.Y);
+        var w = right - left;
+        var h = top - bottom;
+        if (w >= 0.01 && h >= 0.01)
+            rects.Add(new PdfRectangle(left, bottom, w, h));
+    }
+
+    // ── Curve path → SVG data-URI image ──────────────────────────────────────
+
+    /// <summary>
+    /// Emits a PrimitivePath that contains Bézier curves as an SVG embedded in an image element.
+    /// Path segment coordinates (pre-CTM) are mapped through the full CTM and Y-flipped into
+    /// canvas space so the SVG viewBox can simply match the element's width×height.
+    /// Returns false when the path contains no curves (defer to other handlers).
+    /// </summary>
+    private static bool EmitCurvePath(
+        PrimitivePath el,
+        double originX, double pageH,
+        int pg, ref int seq,
+        List<ElementDto> elements)
+    {
+        if (!el.Segments.Any(static s => s is CurveToSegment)) return false;
+
+        bool hasFill   = el.GraphicsState.FillColor   != default;
+        bool hasStroke = el.GraphicsState.StrokeColor != default && el.GraphicsState.LineWidth > 0;
+        if (!hasFill && !hasStroke) return false;
+
+        var (ex, ey, ew, eh) = ToCanvasBounds(el.Bounds, originX, pageH);
+        if (ew < 0.5 || eh < 0.5) return false;
+
+        // Build SVG path d — segment coordinates are in local (pre-CTM) space;
+        // we transform each point to canvas space and offset by the element origin.
+        var sb = new StringBuilder();
+        foreach (var seg in el.Segments)
+        {
+            switch (seg)
+            {
+                case MoveToSegment mt:
+                    var (mx, my) = LocalToSvg(mt.Point, el.Transform, originX, pageH, ex, ey);
+                    sb.Append($"M {mx:F2} {my:F2} ");
+                    break;
+                case LineToSegment lt:
+                    var (lx, ly) = LocalToSvg(lt.Point, el.Transform, originX, pageH, ex, ey);
+                    sb.Append($"L {lx:F2} {ly:F2} ");
+                    break;
+                case CurveToSegment ct:
+                    var (c1x, c1y) = LocalToSvg(ct.Control1, el.Transform, originX, pageH, ex, ey);
+                    var (c2x, c2y) = LocalToSvg(ct.Control2, el.Transform, originX, pageH, ex, ey);
+                    var (cex, cey) = LocalToSvg(ct.End,      el.Transform, originX, pageH, ex, ey);
+                    sb.Append($"C {c1x:F2} {c1y:F2} {c2x:F2} {c2y:F2} {cex:F2} {cey:F2} ");
+                    break;
+                case RectangleSegment rs:
+                    // Expand re into M/L/Z so SVG handles it
+                    var r = rs.Rectangle;
+                    var (rx0, ry0) = LocalToSvg(new PdfPoint(r.Left,  r.Bottom), el.Transform, originX, pageH, ex, ey);
+                    var (rx1, ry1) = LocalToSvg(new PdfPoint(r.Right, r.Bottom), el.Transform, originX, pageH, ex, ey);
+                    var (rx2, ry2) = LocalToSvg(new PdfPoint(r.Right, r.Top),    el.Transform, originX, pageH, ex, ey);
+                    var (rx3, ry3) = LocalToSvg(new PdfPoint(r.Left,  r.Top),    el.Transform, originX, pageH, ex, ey);
+                    sb.Append($"M {rx0:F2} {ry0:F2} L {rx1:F2} {ry1:F2} L {rx2:F2} {ry2:F2} L {rx3:F2} {ry3:F2} Z ");
+                    break;
+                case ClosePathSegment:
+                    sb.Append("Z ");
+                    break;
+            }
+        }
+
+        var d = sb.ToString().Trim();
+        if (d.Length == 0) return false;
+
+        string fill   = hasFill   ? ColorToHex(el.GraphicsState.FillColor)   : "none";
+        string stroke = hasStroke ? ColorToHex(el.GraphicsState.StrokeColor) : "none";
+        double sw     = hasStroke ? el.GraphicsState.LineWidth : 0;
+
+        var svg = $"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {ew:F2} {eh:F2}\">" +
+                  $"<path d=\"{d}\" fill=\"{fill}\" stroke=\"{stroke}\" stroke-width=\"{sw:F2}\" fill-rule=\"evenodd\"/>" +
+                  "</svg>";
+
+        var dataUri = "data:image/svg+xml;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(svg));
+
+        var rotation = ToCanvasRotation(MatrixEngine.ExtractRotationDegrees(el.Transform));
+
+        elements.Add(new ElementDto
+        {
+            Id      = $"svg-{pg}-{seq++}", Type = "image",
+            X       = Math.Round(ex, 1),   Y    = Math.Round(ey, 1),
+            Width   = Math.Round(ew, 1),   Height = Math.Round(eh, 1),
+            Content = dataUri,
+            Style   = new Dictionary<string, object>
+            {
+                ["fitMode"]           = "fill",
+                ["rotation"]          = Math.Round(rotation, 2),
+                ["pdfClassification"] = el.Classification.ToString(),
+            },
+        });
+        return true;
+    }
+
+    private static (double x, double y) LocalToSvg(
+        PdfPoint localPt,
+        PdfMatrix ctm,
+        double originX, double pageH,
+        double elementX, double elementY)
+    {
+        var global = MatrixEngine.TransformPoint(localPt, ctm);
+        var cx = global.X - originX - elementX;
+        var cy = pageH - global.Y - elementY;
+        return (cx, cy);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -503,9 +723,18 @@ public static class CanvasImporterPdfImporter
     private static string ImageBytesToDataUri(ReadOnlyMemory<byte> bytes)
     {
         var span = bytes.Span;
-        string mime = "image/png";
+        string mime;
         if (span.Length >= 3 && span[0] == 0xFF && span[1] == 0xD8 && span[2] == 0xFF)
             mime = "image/jpeg";
+        else if (span.Length >= 8
+            && span[0] == 0x89 && span[1] == 0x50 && span[2] == 0x4E && span[3] == 0x47
+            && span[4] == 0x0D && span[5] == 0x0A && span[6] == 0x1A && span[7] == 0x0A)
+            mime = "image/png";
+        else if (span.Length >= 6
+            && span[0] == 0x47 && span[1] == 0x49 && span[2] == 0x46)
+            mime = "image/gif";
+        else
+            mime = "image/png"; // assume properly-formed PNG for all else
         return $"data:{mime};base64,{Convert.ToBase64String(bytes.ToArray())}";
     }
 

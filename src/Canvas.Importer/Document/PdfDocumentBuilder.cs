@@ -338,19 +338,23 @@ public sealed class PdfDocumentBuilder
 
     private static ReadOnlyMemory<byte> GetRegenerableImageBytes(PdfStreamObject stream, PdfObjectGraph graph)
     {
+        // DCTDecode and FlateDecode: keep encoded bytes intact (bridge needs them for re-emission)
         if (HasSingleSupportedImageFilter(stream.Dictionary["Filter"], graph))
-        {
             return stream.EncodedBytes;
-        }
 
+        // Encoded bytes already carry a recognized image header (PNG or JPEG in stream)
         if (LooksLikeSupportedImage(stream.EncodedBytes.Span))
-        {
             return stream.EncodedBytes;
-        }
 
+        // Decoded bytes carry a recognized image format
         if (stream.IsDecoded && LooksLikeSupportedImage(stream.DecodedBytes.Span))
-        {
             return stream.DecodedBytes;
+
+        // Decoded raw pixels (CCITT, LZW, RunLength) → wrap as PNG for browser display
+        if (stream.IsDecoded)
+        {
+            var png = TryWrapRawPixelsAsPng(stream.DecodedBytes.Span, stream.Dictionary);
+            if (png.HasValue) return png.Value;
         }
 
         return ReadOnlyMemory<byte>.Empty;
@@ -365,6 +369,152 @@ public sealed class PdfDocumentBuilder
             PdfArray { Items.Count: 1 } array => HasSingleSupportedImageFilter(array.Items[0], graph),
             _ => false
         };
+    }
+
+    /// <summary>
+    /// Wraps raw decoded pixel bytes in a minimal PNG so browsers can display them.
+    /// Supports 1-bit mono (CCITT output), 8-bit gray, and 8-bit RGB only.
+    /// Returns null for unsupported formats (e.g. CMYK, missing metadata).
+    /// </summary>
+    private static ReadOnlyMemory<byte>? TryWrapRawPixelsAsPng(ReadOnlySpan<byte> pixels, PdfDictionary dict)
+    {
+        if (!TryGetInteger(dict["Width"],  out var width)  || width  <= 0) return null;
+        if (!TryGetInteger(dict["Height"], out var height) || height <= 0) return null;
+        if (!TryGetInteger(dict["BitsPerComponent"], out var bpc)) bpc = 8;
+
+        var components = ResolveComponentCount(dict["ColorSpace"]);
+        if (components <= 0 || components == 4) return null; // skip CMYK
+
+        // Normalize to 8-bit per channel
+        byte[] norm;
+        if (bpc == 1 && components == 1)
+        {
+            // 1-bit packed mono → 8-bit grayscale (white=0xFF, black=0x00 in PDF convention)
+            int rowBytes = ((int)width + 7) / 8;
+            norm = new byte[(int)width * (int)height];
+            int dst = 0;
+            for (int row = 0; row < (int)height; row++)
+            {
+                int src = row * rowBytes;
+                for (int col = 0; col < (int)width; col++)
+                {
+                    int byteIdx = src + col / 8;
+                    int bit = (byteIdx < pixels.Length ? pixels[byteIdx] : 0) >> (7 - col % 8) & 1;
+                    norm[dst++] = bit == 0 ? (byte)0x00 : (byte)0xFF; // 0=black,1=white in PDF default
+                }
+            }
+        }
+        else if (bpc == 8)
+        {
+            norm = pixels.Length >= (int)width * (int)height * components
+                ? pixels[..(int)(width * height * components)].ToArray()
+                : pixels.ToArray();
+        }
+        else
+        {
+            return null; // 2/4/16-bit not handled
+        }
+
+        byte colorType = components == 1 ? (byte)0 : (byte)2; // 0=gray, 2=RGB
+        return EncodePng(norm, (int)width, (int)height, components, colorType);
+    }
+
+    private static int ResolveComponentCount(PdfObject? colorSpace)
+    {
+        return colorSpace switch
+        {
+            PdfName { Value: "DeviceGray" or "CalGray" } => 1,
+            PdfName { Value: "DeviceRGB" or "CalRGB" or "sRGB" } => 3,
+            PdfName { Value: "DeviceCMYK" } => 4,
+            PdfArray arr when arr.Items.FirstOrDefault() is PdfName { Value: "ICCBased" } => -1, // skip
+            _ => 1 // assume gray for unknown
+        };
+    }
+
+    private static ReadOnlyMemory<byte> EncodePng(byte[] pixels, int width, int height, int components, byte colorType)
+    {
+        using var idatRaw = new System.IO.MemoryStream();
+        using (var zlib = new System.IO.Compression.ZLibStream(idatRaw, System.IO.Compression.CompressionMode.Compress, leaveOpen: true))
+        {
+            int rowStride = width * components;
+            for (int y = 0; y < height; y++)
+            {
+                zlib.WriteByte(0); // filter = None
+                int rowStart = y * rowStride;
+                int rowEnd = Math.Min(rowStart + rowStride, pixels.Length);
+                if (rowEnd > rowStart)
+                    zlib.Write(pixels, rowStart, rowEnd - rowStart);
+            }
+        }
+        var idatData = idatRaw.ToArray();
+
+        using var png = new System.IO.MemoryStream();
+        // PNG signature
+        png.Write(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A });
+
+        // IHDR
+        var ihdr = new byte[]
+        {
+            (byte)(width >> 24), (byte)(width >> 16), (byte)(width >> 8), (byte)width,
+            (byte)(height >> 24), (byte)(height >> 16), (byte)(height >> 8), (byte)height,
+            8,          // bit depth
+            colorType,  // color type
+            0, 0, 0     // compression, filter, interlace
+        };
+        WritePngChunk(png, "IHDR", ihdr);
+
+        // IDAT
+        WritePngChunk(png, "IDAT", idatData);
+
+        // IEND
+        WritePngChunk(png, "IEND", Array.Empty<byte>());
+
+        return png.ToArray();
+    }
+
+    private static void WritePngChunk(System.IO.Stream output, string type, byte[] data)
+    {
+        var lenBytes = BitConverter.GetBytes(data.Length);
+        if (BitConverter.IsLittleEndian) Array.Reverse(lenBytes);
+        output.Write(lenBytes);
+
+        var typeBytes = System.Text.Encoding.ASCII.GetBytes(type);
+        output.Write(typeBytes);
+        output.Write(data);
+
+        uint crc = PngCrc32(typeBytes);
+        crc = PngCrc32Update(crc, data);
+        crc ^= 0xFFFFFFFF;
+        var crcBytes = BitConverter.GetBytes(crc);
+        if (BitConverter.IsLittleEndian) Array.Reverse(crcBytes);
+        output.Write(crcBytes);
+    }
+
+    private static uint PngCrc32(ReadOnlySpan<byte> data)
+    {
+        uint crc = 0xFFFFFFFF;
+        return PngCrc32Update(crc, data);
+    }
+
+    private static uint PngCrc32Update(uint crc, ReadOnlySpan<byte> data)
+    {
+        foreach (var b in data)
+        {
+            crc ^= b;
+            for (int i = 0; i < 8; i++)
+                crc = (crc & 1) != 0 ? (crc >> 1) ^ 0xEDB88320u : crc >> 1;
+        }
+        return crc;
+    }
+
+    private static bool TryGetInteger(PdfObject? obj, out long value)
+    {
+        switch (obj)
+        {
+            case PdfInteger i: value = i.Value; return true;
+            case PdfNumber n:  value = (long)n.Value; return true;
+            default: value = 0; return false;
+        }
     }
 
     private static bool LooksLikeSupportedImage(ReadOnlySpan<byte> bytes)
