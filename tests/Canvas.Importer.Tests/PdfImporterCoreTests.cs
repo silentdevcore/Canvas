@@ -1,5 +1,7 @@
 using System.IO.Compression;
 using System.Text;
+using Canvas.Core.Contracts;
+using Canvas.Infrastructure.Converters;
 using Canvas.Importer;
 using Canvas.Importer.Analysis;
 using Canvas.Importer.Document;
@@ -2910,10 +2912,247 @@ public sealed class PdfImporterCoreTests
         Assert.Single(importedPage.GraphicsObjects.OfType<PdfShadingElement>());
     }
 
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldUseSceneGraphBoundsAndRotationForText()
+    {
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "BT /F1 12 Tf 0 1 -1 0 120 80 Tm (Rotated) Tj ET");
+
+        var text = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "text");
+
+        Assert.Equal("Rotated", text.Content);
+        Assert.True(text.Width > 0);
+        Assert.True(text.Height > 0);
+        Assert.True(text.Width > text.Height);
+        var rotation = StyleValue<double>(text, "rotation");
+        Assert.InRange(rotation, -91d, -89d);
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldNotDoubleScaleTextMatrixBounds()
+    {
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "BT /F1 1 Tf 12 0 0 12 20 120 Tm (Scaled) Tj ET");
+
+        var text = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "text");
+
+        Assert.Equal("Scaled", text.Content);
+        Assert.InRange(text.X, 19d, 21d);
+        Assert.InRange(text.Y, 69d, 72d);
+        Assert.InRange(text.Width, 35d, 37d);
+        Assert.InRange(text.Height, 11d, 13d);
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldUseReadingOrderInsteadOfDrawOrderForText()
+    {
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "BT /F1 10 Tf 1 0 0 1 20 40 Tm (Second) Tj 1 0 0 1 20 160 Tm (First) Tj ET");
+
+        var texts = Assert.Single(design.Pages)
+            .Elements
+            .Where(static element => element.Type == "text")
+            .Select(static element => element.Content ?? string.Empty)
+            .ToArray();
+
+        Assert.Equal(["First", "Second"], texts);
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldMapVectorRectanglesThroughPrimitiveShapes()
+    {
+        var design = await ImportDesignFromSinglePageContentAsync("0 0 0 rg 20 30 60 40 re f");
+
+        var shape = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "shape");
+
+        Assert.Equal(20, shape.X, precision: 1);
+        Assert.Equal(60, shape.Width, precision: 1);
+        Assert.Equal(40, shape.Height, precision: 1);
+        Assert.Equal("Unknown", StyleValue<string>(shape, "pdfClassification"));
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldEmitNonTextElementsBeforeTextElements()
+    {
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "BT /F1 10 Tf 1 0 0 1 25 55 Tm (Inside box) Tj ET 0.9 0.9 0.9 rg 20 40 80 30 re f");
+
+        var elements = Assert.Single(design.Pages).Elements;
+
+        Assert.Equal("shape", elements[0].Type);
+        Assert.Equal("text", elements[^1].Type);
+        Assert.Equal("Inside box", elements[^1].Content);
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldMapImageXObjectsThroughPrimitiveImages()
+    {
+        var imageObject = new SyntheticPdfObject(5, BuildStreamObjectBody(
+            " /Type /XObject /Subtype /Image /Width 1 /Height 1 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode",
+            TinyJpegBytes()));
+
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "q 40 0 0 20 30 60 cm /Im1 Do Q",
+            "<< /XObject << /Im1 5 0 R >> >>",
+            [imageObject]);
+
+        var image = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "image");
+
+        Assert.Equal(30, image.X, precision: 1);
+        Assert.Equal(40, image.Width, precision: 1);
+        Assert.StartsWith("data:image/jpeg;base64,", image.Content ?? string.Empty);
+        Assert.Equal("Image", StyleValue<string>(image, "pdfClassification"));
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldClassifyBarcodeBarsAndKeepThemEditable()
+    {
+        var bars = string.Join(' ', Enumerable.Range(0, 10).Select(static i => $"{10 + i * 3} 20 1 80 re f"));
+        var design = await ImportDesignFromSinglePageContentAsync($"0 0 0 rg {bars}");
+
+        var barElements = Assert.Single(design.Pages)
+            .Elements
+            .Where(static element => element.Type is "rect" or "shape")
+            .ToArray();
+
+        Assert.True(barElements.Length >= 8);
+        Assert.Contains(barElements, element => StyleValue<string>(element, "pdfClassification") == "LinearBarcode");
+    }
+
+    [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldPromoteRepeatedHeaderTextToSharedElements()
+    {
+        var pageOne = "BT /F1 10 Tf 1 0 0 1 20 185 Tm (Header) Tj 1 0 0 1 20 90 Tm (Page one body) Tj ET";
+        var pageTwo = "BT /F1 10 Tf 1 0 0 1 20 185 Tm (Header) Tj 1 0 0 1 20 90 Tm (Page two body) Tj ET";
+
+        using var stream = new MemoryStream(BuildTwoPagePdf(pageOne, pageTwo));
+        var design = await CanvasImporterPdfImporter.ImportAsync(stream, "Shared header test");
+
+        var shared = Assert.Single(design.SharedElements);
+        Assert.Equal("Header", shared.Content);
+        Assert.Equal(2, design.Pages.Count);
+        Assert.DoesNotContain(design.Pages[0].Elements, static element => element.Content == "Header");
+        Assert.DoesNotContain(design.Pages[1].Elements, static element => element.Content == "Header");
+    }
+
     private static PdfArray Array(params long[] values)
     {
         return new PdfArray(values.Select(value => new PdfInteger(value)));
     }
+
+    private static async Task<DesignExportDto> ImportDesignFromSinglePageContentAsync(
+        string content,
+        string resources = "<< /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >>",
+        IReadOnlyList<SyntheticPdfObject>? extraObjects = null)
+    {
+        using var stream = new MemoryStream(BuildSinglePagePdf(content, resources, extraObjects));
+        return await CanvasImporterPdfImporter.ImportAsync(stream, "Scene graph import test");
+    }
+
+    private static byte[] BuildSinglePagePdf(
+        string content,
+        string resources,
+        IReadOnlyList<SyntheticPdfObject>? extraObjects)
+    {
+        var objects = new List<SyntheticPdfObject>
+        {
+            new(1, Ascii("<< /Type /Catalog /Pages 2 0 R >>")),
+            new(2, Ascii("<< /Type /Pages /Kids [3 0 R] /Count 1 >>")),
+            new(3, Ascii($"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 200] /Resources {resources} /Contents 4 0 R >>")),
+            new(4, BuildStreamObjectBody(string.Empty, Ascii(content))),
+        };
+
+        if (extraObjects is not null)
+        {
+            objects.AddRange(extraObjects);
+        }
+
+        return BuildPdf(objects);
+    }
+
+    private static byte[] BuildTwoPagePdf(string pageOneContent, string pageTwoContent)
+    {
+        const string resources = "<< /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> >> >>";
+        var objects = new List<SyntheticPdfObject>
+        {
+            new(1, Ascii("<< /Type /Catalog /Pages 2 0 R >>")),
+            new(2, Ascii("<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>")),
+            new(3, Ascii($"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 200] /Resources {resources} /Contents 4 0 R >>")),
+            new(4, BuildStreamObjectBody(string.Empty, Ascii(pageOneContent))),
+            new(5, Ascii($"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 200] /Resources {resources} /Contents 6 0 R >>")),
+            new(6, BuildStreamObjectBody(string.Empty, Ascii(pageTwoContent))),
+        };
+
+        return BuildPdf(objects);
+    }
+
+    private static byte[] BuildPdf(IReadOnlyList<SyntheticPdfObject> objects)
+    {
+        using var output = new MemoryStream();
+        AppendAscii(output, "%PDF-1.7\n");
+
+        var offsets = new Dictionary<int, long>();
+        foreach (var obj in objects.OrderBy(static obj => obj.Number))
+        {
+            offsets[obj.Number] = output.Position;
+            AppendAscii(output, $"{obj.Number} 0 obj\n");
+            output.Write(obj.Body.Span);
+            AppendAscii(output, "\nendobj\n");
+        }
+
+        var xrefOffset = output.Position;
+        var maxObjectNumber = objects.Max(static obj => obj.Number);
+        AppendAscii(output, "xref\n");
+        AppendAscii(output, $"0 {maxObjectNumber + 1}\n");
+        AppendAscii(output, "0000000000 65535 f \n");
+
+        for (var number = 1; number <= maxObjectNumber; number++)
+        {
+            if (offsets.TryGetValue(number, out var offset))
+            {
+                AppendAscii(output, $"{offset:0000000000} 00000 n \n");
+            }
+            else
+            {
+                AppendAscii(output, "0000000000 65535 f \n");
+            }
+        }
+
+        AppendAscii(output, "trailer\n");
+        AppendAscii(output, $"<< /Size {maxObjectNumber + 1} /Root 1 0 R >>\n");
+        AppendAscii(output, "startxref\n");
+        AppendAscii(output, $"{xrefOffset}\n");
+        AppendAscii(output, "%%EOF\n");
+        return output.ToArray();
+    }
+
+    private static byte[] BuildStreamObjectBody(string dictionaryEntries, ReadOnlySpan<byte> streamBytes)
+    {
+        using var output = new MemoryStream();
+        AppendAscii(output, $"<< /Length {streamBytes.Length}{dictionaryEntries} >>\nstream\n");
+        output.Write(streamBytes);
+        AppendAscii(output, "\nendstream");
+        return output.ToArray();
+    }
+
+    private static byte[] Ascii(string value)
+    {
+        return Encoding.ASCII.GetBytes(value);
+    }
+
+    private static void AppendAscii(Stream stream, string value)
+    {
+        stream.Write(Encoding.ASCII.GetBytes(value));
+    }
+
+    private static T StyleValue<T>(ElementDto element, string key)
+    {
+        Assert.NotNull(element.Style);
+        Assert.True(element.Style.TryGetValue(key, out var value), $"Missing style key '{key}'.");
+        return Assert.IsType<T>(value);
+    }
+
+    private sealed record SyntheticPdfObject(int Number, ReadOnlyMemory<byte> Body);
 
     private static byte[] TinyJpegBytes()
     {

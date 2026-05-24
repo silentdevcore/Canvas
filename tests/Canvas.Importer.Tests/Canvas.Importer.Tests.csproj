@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Canvas.Importer/Canvas.Importer.csproj" />
+    <ProjectReference Include="../../src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj" />
   </ItemGroup>
 
 </Project>

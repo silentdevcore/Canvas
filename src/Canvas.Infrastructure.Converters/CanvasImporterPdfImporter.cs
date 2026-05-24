@@ -1,4 +1,5 @@
 using Canvas.Core.Contracts;
+using Canvas.Importer.Analysis;
 using Canvas.Importer.Document;
 using Canvas.Importer.Graphics;
 
@@ -7,8 +8,8 @@ namespace Canvas.Infrastructure.Converters;
 /// <summary>
 /// Converts a PDF to a <see cref="DesignExportDto"/> using the Canvas.Importer low-level
 /// PDF engine. The engine tokenizes, parses, and interprets the raw PDF content streams
-/// into a typed scene graph (<see cref="PdfGraphicsElement"/> hierarchy) which is then
-/// mapped to Canvas element DTOs.
+/// into a typed scene graph and Phase 5 primitive analysis layer which is then mapped
+/// to Canvas element DTOs.
 /// </summary>
 public static class CanvasImporterPdfImporter
 {
@@ -20,6 +21,7 @@ public static class CanvasImporterPdfImporter
     public static async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null)
     {
         var doc = await new Canvas.Importer.PdfImporter().LoadAsync(stream);
+        var sceneGraphEngine = new SceneGraphEngine();
 
         var pages           = new List<PageDto>();
         var sharedByContent = new Dictionary<string, ElementDto>(StringComparer.Ordinal);
@@ -40,12 +42,13 @@ public static class CanvasImporterPdfImporter
             double originY = mb?.Y ?? 0;
             double pageH   = originY + canvasH; // top of page in PDF coordinate space
 
+            var scenePage = sceneGraphEngine.BuildPage(pageNum - 1, page);
+            var orderedPrimitives = OrderForImport(scenePage).ToList();
             var elements = new List<ElementDto>();
 
-            foreach (var el in page.GraphicsObjects)
+            foreach (var primitive in orderedPrimitives)
             {
-                if (el.IsDeleted) continue;
-                EmitElement(el, originX, pageH, canvasH, pageNum, ref seq,
+                EmitPrimitive(primitive, originX, pageH, canvasH, pageNum, ref seq,
                     elements, multiPage, sharedByContent);
             }
 
@@ -68,19 +71,19 @@ public static class CanvasImporterPdfImporter
         };
     }
 
-    // ── Scene-graph walker ────────────────────────────────────────────────────
+    // ── Scene-graph primitive walker ──────────────────────────────────────────
 
-    private static void EmitElement(
-        PdfGraphicsElement el,
+    private static void EmitPrimitive(
+        PrimitiveObject primitive,
         double originX, double pageH, double canvasH,
         int pg, ref int seq,
         List<ElementDto> elements,
         bool multiPage,
         Dictionary<string, ElementDto> sharedByContent)
     {
-        switch (el)
+        switch (primitive)
         {
-            case PdfTextElement txt:
+            case PrimitiveText txt:
             {
                 var dto = MapText(txt, originX, pageH, pg, ref seq);
                 if (dto is null) return;
@@ -100,57 +103,53 @@ public static class CanvasImporterPdfImporter
                 break;
             }
 
-            case PdfPathElement path:
+            case PrimitiveShape shape:
+            {
+                var dto = MapPath(shape, originX, pageH, pg, ref seq);
+                if (dto is not null) elements.Add(dto);
+                break;
+            }
+
+            case PrimitivePath path:
             {
                 var dto = MapPath(path, originX, pageH, pg, ref seq);
                 if (dto is not null) elements.Add(dto);
                 break;
             }
 
-            case PdfImageElement img:
+            case PrimitiveImage img:
             {
                 var dto = MapImage(img, originX, pageH, pg, ref seq);
                 if (dto is not null) elements.Add(dto);
                 break;
             }
 
-            case PdfGroupElement grp:
-                foreach (var child in grp.Children)
+            case PrimitiveGroup grp:
+                foreach (var child in OrderChildrenForImport(grp.Children))
                 {
-                    if (!child.IsDeleted)
-                        EmitElement(child, originX, pageH, canvasH, pg, ref seq,
-                            elements, multiPage, sharedByContent);
+                    EmitPrimitive(child, originX, pageH, canvasH, pg, ref seq,
+                        elements, multiPage, sharedByContent);
                 }
                 break;
-
-            case PdfShadingElement:
-                break; // shadings are out of scope for the initial import adapter
         }
     }
 
     // ── Element mappers ───────────────────────────────────────────────────────
 
-    private static ElementDto? MapText(PdfTextElement el, double originX, double pageH, int pg, ref int seq)
+    private static ElementDto? MapText(PrimitiveText el, double originX, double pageH, int pg, ref int seq)
     {
         if (string.IsNullOrWhiteSpace(el.Text)) return null;
 
-        // Rendered font size = Tf size × scale encoded in the transform matrix.
-        // When PDFs use `Tf /F1 1; Tm 12 0 0 12 x y`, FontSize=1 but scale=12.
-        double scale = Math.Sqrt(el.Transform.A * el.Transform.A + el.Transform.B * el.Transform.B);
-        double fs    = scale > 0.01 ? el.FontSize * scale : (el.FontSize > 0 ? el.FontSize : 10);
+        double scale = Math.Max(el.Transform.ScaleY, el.Transform.ScaleX);
+        double fs    = scale > 0.01 ? el.FontSize * scale : (el.FontSize > 0 ? el.FontSize : el.Bounds.Height);
         if (fs < 2) fs = 10; // guard against degenerate sizes
 
-        double x = el.Transform.E - originX;
-
-        // The D component of the element transform tells us the Y direction:
-        //   D > 0 → Y increases upward (normal PDF space) → flip needed
-        //   D < 0 → Y already increases downward (PDF used `cm 1 0 0 -1 0 H`) → no flip
-        double y = el.Transform.D >= 0
-            ? pageH - el.Transform.F - fs   // standard PDF Y (bottom-left origin)
-            : el.Transform.F - fs;           // already in canvas Y (top-left origin)
-
-        double w = Math.Max(el.Text.Length * fs * 0.6, 20);
-        double h = fs * 1.5 + 4;
+        var (x, y, w, h) = TextCanvasFrame(el, originX, pageH);
+        if (w < 1 || h < 1)
+        {
+            w = Math.Max(el.Text.Length * fs * 0.6, 20);
+            h = fs * 1.5 + 4;
+        }
 
         return new ElementDto
         {
@@ -161,50 +160,34 @@ public static class CanvasImporterPdfImporter
             Style   = new Dictionary<string, object>
             {
                 ["fontSize"]   = Math.Round(fs, 1),
-                ["fontFamily"] = CleanFont(el.FontResourceName),
-                ["color"]      = ColorToHex(el.FillColor),
+                ["fontFamily"] = CleanFont(el.FontName ?? el.FontResourceName),
+                ["color"]      = ColorToHex(el.GraphicsState.FillColor),
+                ["rotation"]   = Math.Round(ToCanvasRotation(el.Geometry.RotationDegrees), 2),
+                ["pdfClassification"] = el.Classification.ToString(),
             },
         };
     }
 
-    private static ElementDto? MapPath(PdfPathElement el, double originX, double pageH, int pg, ref int seq)
+    private static ElementDto? MapPath(PrimitiveObject el, double originX, double pageH, int pg, ref int seq)
     {
-        bool hasFill   = el.FillColor   != default;
-        bool hasStroke = el.StrokeColor != default && el.LineWidth > 0;
+        bool hasFill   = el.GraphicsState.FillColor != default;
+        bool hasStroke = el.GraphicsState.StrokeColor != default && el.GraphicsState.LineWidth > 0;
         if (!hasFill && !hasStroke) return null;
 
-        // Detect Y direction from the element transform (same logic as text)
-        bool yIsDown = el.Transform.D < 0; // true when PDF already uses top-left coords
-
-        double x, y, w, h;
-
-        if (el.Bounds is PdfRectangle b)
-        {
-            x = b.X - originX;
-            y = yIsDown ? b.Y : pageH - (b.Y + b.Height);
-            w = b.Width;
-            h = b.Height;
-        }
-        else
-        {
-            var (x1, y1, x2, y2) = SegmentsBounds(el.Segments);
-            if (x1 == double.MaxValue) return null;
-            x = x1 - originX;
-            y = yIsDown ? y1 : pageH - y2;
-            w = x2 - x1;
-            h = y2 - y1;
-        }
+        var (x, y, w, h) = ToCanvasBounds(el.Bounds, originX, pageH);
 
         if (w < 0.5 && h < 0.5) return null;
 
-        string fill   = hasFill   ? ColorToHex(el.FillColor)   : "transparent";
-        string stroke = hasStroke ? ColorToHex(el.StrokeColor) : "transparent";
+        string fill   = hasFill   ? ColorToHex(el.GraphicsState.FillColor)   : "transparent";
+        string stroke = hasStroke ? ColorToHex(el.GraphicsState.StrokeColor) : "transparent";
 
         // Classify as thin line vs. filled shape
         bool isHLine = h < 3 && w > 5;
         bool isVLine = w < 3 && h > 5;
+        bool isLine = isHLine || isVLine ||
+            el.Classification is PrimitiveClassification.Separator or PrimitiveClassification.TableLine;
 
-        if (isHLine || isVLine)
+        if (isLine)
         {
             string lineColor = hasFill ? fill : stroke;
             return new ElementDto
@@ -214,7 +197,11 @@ public static class CanvasImporterPdfImporter
                 Width  = Math.Max(1, Math.Round(w, 1)),
                 Height = Math.Max(1, Math.Round(h, 1)),
                 Style  = new Dictionary<string, object>
-                    { ["backgroundColor"] = lineColor, ["borderWidth"] = 0 },
+                {
+                    ["backgroundColor"] = lineColor,
+                    ["borderWidth"] = 0,
+                    ["pdfClassification"] = el.Classification.ToString(),
+                },
             };
         }
 
@@ -228,27 +215,18 @@ public static class CanvasImporterPdfImporter
             {
                 ["backgroundColor"] = fill,
                 ["borderColor"]     = stroke,
-                ["borderWidth"]     = (int)Math.Max(0, Math.Round(el.LineWidth)),
+                ["borderWidth"]     = (int)Math.Max(0, Math.Round(el.GraphicsState.LineWidth)),
                 ["borderStyle"]     = "solid",
+                ["pdfClassification"] = el.Classification.ToString(),
             },
         };
     }
 
-    private static ElementDto? MapImage(PdfImageElement el, double originX, double pageH, int pg, ref int seq)
+    private static ElementDto? MapImage(PrimitiveImage el, double originX, double pageH, int pg, ref int seq)
     {
         if (el.ImageBytes.IsEmpty) return null;
 
-        // Transform (A, B, C, D, E, F): for XObject images typically (±w, 0, 0, ±h, x, y)
-        double imgW = Math.Abs(el.Transform.A);
-        double imgH = Math.Abs(el.Transform.D);
-        double imgX = el.Transform.E - originX;
-
-        // D < 0 means the image is in a Y-flipped CTM (top-left origin already).
-        // D > 0 means standard PDF bottom-left; F is bottom of image, so flip to get top.
-        bool yIsDown = el.Transform.D < 0;
-        double imgY  = yIsDown
-            ? el.Transform.F
-            : pageH - (el.Transform.F + el.Transform.D);
+        var (imgX, imgY, imgW, imgH, rotation) = TransformedCanvasFrame(new PdfRectangle(0, 0, 1, 1), el.Transform, originX, pageH);
 
         if (imgW < 1 || imgH < 1) return null;
 
@@ -260,42 +238,102 @@ public static class CanvasImporterPdfImporter
             Width   = Math.Round(imgW, 1),
             Height  = Math.Round(imgH, 1),
             Content = ImageBytesToDataUri(el.ImageBytes),
-            Style   = new Dictionary<string, object> { ["fitMode"] = "contain" },
+            Style   = new Dictionary<string, object>
+            {
+                ["fitMode"] = "contain",
+                ["rotation"] = Math.Round(rotation, 2),
+                ["pdfClassification"] = el.Classification.ToString(),
+            },
         };
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private static (double x1, double y1, double x2, double y2) SegmentsBounds(
-        List<PdfPathSegment> segments)
+    private static IEnumerable<PrimitiveObject> OrderForImport(PdfScenePage scenePage)
     {
-        double x1 = double.MaxValue, y1 = double.MaxValue;
-        double x2 = double.MinValue, y2 = double.MinValue;
-
-        void Expand(double x, double y)
+        var textOrder = new Dictionary<PrimitiveObject, int>();
+        var order = 0;
+        foreach (var text in scenePage.ReadingOrder?.Lines.SelectMany(static line => line.Texts) ?? [])
         {
-            x1 = Math.Min(x1, x); y1 = Math.Min(y1, y);
-            x2 = Math.Max(x2, x); y2 = Math.Max(y2, y);
+            textOrder.TryAdd(text, order++);
         }
 
-        foreach (var seg in segments)
-        {
-            switch (seg)
-            {
-                case MoveToSegment  m: Expand(m.Point.X, m.Point.Y); break;
-                case LineToSegment  l: Expand(l.Point.X, l.Point.Y); break;
-                case CurveToSegment c:
-                    Expand(c.Control1.X, c.Control1.Y);
-                    Expand(c.Control2.X, c.Control2.Y);
-                    Expand(c.End.X,      c.End.Y); break;
-                case RectangleSegment r:
-                    Expand(r.Rectangle.X,                    r.Rectangle.Y);
-                    Expand(r.Rectangle.X + r.Rectangle.Width, r.Rectangle.Y + r.Rectangle.Height);
-                    break;
-            }
-        }
+        return scenePage.Layers
+            .SelectMany(static layer => layer.Objects)
+            .SelectMany(FlattenPrimitive)
+            .Where(static primitive => primitive.Kind != PrimitiveKind.Group)
+            .OrderBy(static primitive => primitive.Kind == PrimitiveKind.Text ? 1 : 0)
+            .ThenBy(primitive => textOrder.TryGetValue(primitive, out var index) ? index : primitive.ZOrder)
+            .ThenBy(static primitive => primitive.ZOrder);
+    }
 
-        return (x1, y1, x2, y2);
+    private static IEnumerable<PrimitiveObject> OrderChildrenForImport(IEnumerable<PrimitiveObject> children)
+    {
+        return children
+            .SelectMany(FlattenPrimitive)
+            .Where(static primitive => primitive.Kind != PrimitiveKind.Group)
+            .OrderBy(static primitive => primitive.ZOrder);
+    }
+
+    private static IEnumerable<PrimitiveObject> FlattenPrimitive(PrimitiveObject primitive)
+    {
+        yield return primitive;
+        foreach (var child in primitive.Children.SelectMany(FlattenPrimitive))
+        {
+            yield return child;
+        }
+    }
+
+    private static (double x, double y, double width, double height) ToCanvasBounds(
+        PdfRectangle bounds,
+        double originX,
+        double pageH)
+    {
+        var x = bounds.Left - originX;
+        var y = pageH - bounds.Top;
+        var width = bounds.Right - bounds.Left;
+        var height = bounds.Top - bounds.Bottom;
+        return (x, y, width, height);
+    }
+
+    private static (double x, double y, double width, double height) TextCanvasFrame(
+        PrimitiveText text,
+        double originX,
+        double pageH)
+    {
+        var fontSize = Math.Max(text.FontSize, 1d);
+        var localWidth = Math.Max(fontSize * 0.35d, text.Text.Length * fontSize * 0.5d);
+        var localBounds = new PdfRectangle(0, -fontSize * 0.2d, localWidth, fontSize);
+        var (x, y, width, height, _) = TransformedCanvasFrame(localBounds, text.Transform, originX, pageH);
+        return (x, y, width, height);
+    }
+
+    private static (double x, double y, double width, double height, double rotation) TransformedCanvasFrame(
+        PdfRectangle localBounds,
+        PdfMatrix transform,
+        double originX,
+        double pageH)
+    {
+        var center = MatrixEngine.TransformPoint(new PdfPoint(localBounds.CenterX, localBounds.CenterY), transform);
+        var width = Math.Abs(localBounds.Width) * Math.Max(transform.ScaleX, 0.01d);
+        var height = Math.Abs(localBounds.Height) * Math.Max(transform.ScaleY, 0.01d);
+        var canvasCenterX = center.X - originX;
+        var canvasCenterY = pageH - center.Y;
+
+        return (
+            canvasCenterX - width / 2d,
+            canvasCenterY - height / 2d,
+            width,
+            height,
+            ToCanvasRotation(MatrixEngine.ExtractRotationDegrees(transform)));
+    }
+
+    private static double ToCanvasRotation(double pdfDegrees)
+    {
+        var degrees = -pdfDegrees % 360d;
+        if (degrees <= -180d) degrees += 360d;
+        if (degrees > 180d) degrees -= 360d;
+        return Math.Abs(degrees) < 0.01d ? 0d : degrees;
     }
 
     private static string ColorToHex(PdfColor c) => c.ColorSpace switch

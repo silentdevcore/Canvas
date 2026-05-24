@@ -6,6 +6,8 @@
     "DOTNET_ROOT": "/opt/homebrew/opt/dotnet/libexec"
   },
   "chat.tools.terminal.autoApprove": {
-    "dotnet test": true
+    "dotnet test": true,
+    "git check-ignore": true,
+    "git ls-tree": true
   }
 }

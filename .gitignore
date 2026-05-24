@@ -47,6 +47,19 @@ artifacts/
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# Frontend tooling
+**/node_modules/
+**/.vite/
+**/*.tsbuildinfo
+ui-designer/dist/assets/
+ui-designer/tmp/
+ui-designer-v2/dist/assets/
+ui-designer-v2/tmp/
+
+# Local workspace state
+.claude/
+.dotnet-home/
+
 # macOS
 .DS_Store
 .AppleDouble

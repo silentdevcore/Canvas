@@ -7,9 +7,8 @@ public sealed class BoundingBoxCalculator
     public TextGeometry ComputeTextGeometry(PdfTextElement text)
     {
         var fontSize = Math.Max(text.FontSize, 1d);
-        var effectiveFontSize = fontSize * Math.Max(text.Transform.ScaleY, 0.01d);
-        var width = Math.Max(fontSize * 0.35d, text.Text.Length * fontSize * 0.5d * Math.Max(text.Transform.ScaleX, 0.01d));
-        var height = effectiveFontSize;
+        var width = Math.Max(fontSize * 0.35d, text.Text.Length * fontSize * 0.5d);
+        var height = fontSize;
         var localBounds = new PdfRectangle(0, -height * 0.2d, width, height);
         var bounds = MatrixEngine.TransformBounds(localBounds, text.Transform);
         bounds = ApplyClip(bounds, text.ClippingPath, text.Transform);

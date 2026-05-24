@@ -119,3 +119,8 @@ Scope: this checklist tracks core Canvas.Importer PDF parsing, interpretation, e
 - [x] Add semantic layout tree for headers, footers, paragraphs, tables, figures, lists, labels, and form-like regions without OCR/AI.
 - [x] Add debug overlay model for bounds, baselines, matrices, z-order, object ids, grouping, reading order, and classifications.
 - [x] Add focused Phase 5 tests for matrix math, bounding boxes, reading order, grouping, and classification heuristics.
+- [x] Wire `CanvasImporterPdfImporter` to import from `SceneGraphEngine` primitives while preserving the `DesignExportDto` API response shape.
+- [x] Map `PrimitiveText`, `PrimitiveShape`, `PrimitivePath`, `PrimitiveImage`, and nested `PrimitiveGroup` nodes into editable Canvas elements.
+- [x] Preserve repeated multi-page header/footer promotion while using Phase 5 reading order, bounds, rotation, and classification metadata.
+- [x] Extend `debug-pdf-engine` diagnostics with Phase 5 scene graph metrics, classification counts, reading order, groups, layout nodes, and debug overlays.
+- [x] Add backend importer coverage for rotated text, draw-order-independent text import, vector shapes, image XObjects, barcode-like bars, and shared headers.
