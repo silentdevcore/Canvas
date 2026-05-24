@@ -119,7 +119,7 @@ public static class CanvasImporterPdfImporter
             case PrimitivePath path:
             {
                 if (!EmitRectangularSubpaths(path, originX, pageH, pg, ref seq, elements) &&
-                    !EmitCurvePath(path, originX, pageH, pg, ref seq, elements))
+                    !EmitSvgPath(path, originX, pageH, pg, ref seq, elements))
                 {
                     var dto = MapPath(path, originX, pageH, pg, ref seq);
                     if (dto is not null) elements.Add(dto);
@@ -403,21 +403,22 @@ public static class CanvasImporterPdfImporter
             rects.Add(new PdfRectangle(left, bottom, w, h));
     }
 
-    // ── Curve path → SVG data-URI image ──────────────────────────────────────
+    // ── Complex path → SVG data-URI image ────────────────────────────────────
 
     /// <summary>
-    /// Emits a PrimitivePath that contains Bézier curves as an SVG embedded in an image element.
+    /// Emits a non-rectangular PrimitivePath as an SVG embedded in an image element.
     /// Path segment coordinates (pre-CTM) are mapped through the full CTM and Y-flipped into
     /// canvas space so the SVG viewBox can simply match the element's width×height.
-    /// Returns false when the path contains no curves (defer to other handlers).
+    /// This preserves logo glyph outlines and other vector artwork that would otherwise be
+    /// flattened to rectangular Canvas shapes.
     /// </summary>
-    private static bool EmitCurvePath(
+    private static bool EmitSvgPath(
         PrimitivePath el,
         double originX, double pageH,
         int pg, ref int seq,
         List<ElementDto> elements)
     {
-        if (!el.Segments.Any(static s => s is CurveToSegment)) return false;
+        if (!IsComplexSvgPath(el)) return false;
 
         var paint = GetPathPaintIntent(el);
         bool hasFill   = paint.Fill;
@@ -492,6 +493,21 @@ public static class CanvasImporterPdfImporter
             },
         });
         return true;
+    }
+
+    private static bool IsComplexSvgPath(PrimitivePath path)
+    {
+        if (path.Segments.Any(static segment => segment is CurveToSegment))
+        {
+            return true;
+        }
+
+        if (path.Segments.Count(segment => segment is MoveToSegment or LineToSegment) >= 3)
+        {
+            return true;
+        }
+
+        return path.Segments.Any(static segment => segment is ClosePathSegment);
     }
 
     private static (double x, double y) LocalToSvg(

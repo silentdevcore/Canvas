@@ -3147,6 +3147,20 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
+    public async Task CanvasImporterPdfImporter_ShouldPreserveLineOnlyComplexPathsAsSvg()
+    {
+        var design = await ImportDesignFromSinglePageContentAsync(
+            "0.7 0 0.25 rg 10 10 m 24 10 l 24 30 l 16 22 l 10 30 l h f");
+
+        var image = Assert.Single(Assert.Single(design.Pages).Elements, static element => element.Type == "image");
+        var svg = DecodeDataUriText(image.Content);
+
+        Assert.Equal("fill", image.FitMode);
+        Assert.Contains("L", svg, StringComparison.Ordinal);
+        Assert.Contains("stroke=\"none\"", svg, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task CanvasImporterPdfImporter_ShouldEmitNonTextElementsBeforeTextElements()
     {
         var design = await ImportDesignFromSinglePageContentAsync(
