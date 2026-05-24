@@ -3,6 +3,7 @@
   "Canvas.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Core",
   "Canvas, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/Canvas",
   "Canvas.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/Canvas.Domain",
+  "Canvas.Importer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Importer",
   "Canvas.Infrastructure.Converters, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Infrastructure.Converters",
   "Canvas.Infrastructure.Pdf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Infrastructure.Pdf",
   "Canvas.Infrastructure.Sheet, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Infrastructure.Sheet",

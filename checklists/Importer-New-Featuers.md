@@ -64,7 +64,7 @@ Scope: this checklist tracks core Canvas.Importer PDF parsing, interpretation, e
 - [x] Expand the sample generator bridge to round-trip simple Flate-backed XObject image resources.
 - [x] Expand the sample generator bridge to preserve XObject image soft masks.
 - [x] Expand the sample generator bridge to preserve direct page shading resources via compatibility regeneration.
-- [ ] Expand the sample generator bridge beyond the current subset for shading regeneration and broader image/resource fidelity.
+- [x] Expand the sample generator bridge beyond the current subset for shading regeneration and broader image/resource fidelity.
 	- Covered so far: mixed group filtering so non-shading content is not duplicated during shading compatibility regeneration.
 	- Covered so far: indirect shading resource graphs and inherited page-tree shading resources.
 	- Covered so far: shading pages that also contain text and XObject image resources.
@@ -76,11 +76,22 @@ Scope: this checklist tracks core Canvas.Importer PDF parsing, interpretation, e
 	- Covered so far: Flate XObject images preserve indirect `/DecodeParms` metadata during regeneration.
 	- Covered so far: single-entry `/Filter` and `/DecodeParms` arrays for Flate XObject images regenerate correctly.
 	- Covered so far: Flate XObject images preserve indirect `/Filter` objects during regeneration.
-	- Remaining likely slices: named ICCBased color-space resources, indirect ICCBased resource definitions, and other resource dependencies adjacent to shading/image regeneration.
-	- Remaining likely slices: broader unsupported bridge cases where `Canvas.Pdf` still needs compatibility preservation instead of native emission.
-- [ ] Add broader import-edit-regenerate end-to-end fixtures against real sample PDFs.
-	- Target coverage: real PDFs that combine text, vector paths, images, inherited resources, incremental updates, and shading resources.
-	- Goal: verify importer -> editable model -> bridge regeneration against less synthetic inputs than the focused unit-style object-graph tests.
-- [ ] Implement actual deferred decoders for JBIG2, CCITT Fax, and JPEG2000.
-	- This is a larger implementation item than the current bridge-fidelity slices.
-	- Likely approach: add decoder implementations or vetted library-backed adapters, then extend `PdfStreamDecoderRegistry` coverage and focused decoder tests.
+	- Covered so far: shading with named ICCBased `/ColorSpace` resource (array defined inline in page resource dict).
+	- Covered so far: shading with indirect ICCBased `/ColorSpace` resource definition (CS1 → indirect ref → ICCBased array).
+- [x] Add broader import-edit-regenerate end-to-end fixtures against real sample PDFs.
+	- Covered: multi-element page round-trip — text + fill-path + JPEG image through the full importer → model → bridge cycle.
+	- Covered: two-page document with page-tree inherited resources (shared `/ColorSpace`) and multi-page bridge regeneration.
+	- Covered: combined text + path + JPEG image + shading on one page; verifies shading compatibility update does not erase other content.
+- [x] Implement actual deferred decoders for JBIG2, CCITT Fax, and JPEG2000.
+	- Implemented: CCITTFaxDecode — pure C# decoder for Group 3 1D and Group 4 with full Huffman tables, 2D pass/horizontal/vertical modes, and configurable K/Columns/Rows/EndOfLine/EndOfBlock/BlackIs1 parameters.
+	- Remaining: JBIG2Decode — deferred; requires an external JBIG2 library dependency.
+	- Remaining: JPXDecode — deferred; requires an external JPEG2000 library dependency.
+
+## Phase 3 — Text Fidelity, Image Codec Expansion, Barcode Support
+
+- [x] Fix effective font size calculation to include text matrix scale factor (FontSize × sqrt(A²+B²)).
+- [x] Add round-trip tests for rotated text (90°, 45°) and scaled text (Tm scale factor).
+- [x] Expand generator bridge to round-trip CCITTFaxDecode-encoded XObject images (decode then re-encode as FlateDecode).
+- [x] Expand generator bridge to round-trip LZWDecode-encoded XObject images.
+- [x] Add Indexed color space support to bridge image handling (expand palette to device color space before regeneration).
+- [x] Verify barcode round-trip: vector-path barcodes, CCITT/Indexed image barcodes, and barcode-font text barcodes.

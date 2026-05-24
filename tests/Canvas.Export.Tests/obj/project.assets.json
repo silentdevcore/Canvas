@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 3,
   "targets": {
     "net10.0": {
       "BCrypt.Net-Next/4.0.3": {
@@ -1310,12 +1310,26 @@
           "bin/placeholder/Canvas.Domain.dll": {}
         }
       },
+      "Canvas.Importer/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Infrastructure.Pdf": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Importer.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Importer.dll": {}
+        }
+      },
       "Canvas.Infrastructure.Converters/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
           "Canvas.Application": "1.0.0",
           "Canvas.Core": "1.0.0",
+          "Canvas.Importer": "1.0.0",
           "NPOI": "2.8.0",
           "PdfToSvg.NET": "1.8.0",
           "SkiaSharp": "3.119.2",
@@ -3427,6 +3441,11 @@
       "path": "../../Canvas.Domain/Canvas.Domain.csproj",
       "msbuildProject": "../../Canvas.Domain/Canvas.Domain.csproj"
     },
+    "Canvas.Importer/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Importer/Canvas.Importer.csproj",
+      "msbuildProject": "../../src/Canvas.Importer/Canvas.Importer.csproj"
+    },
     "Canvas.Infrastructure.Converters/1.0.0": {
       "type": "project",
       "path": "../../src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj",
@@ -3485,11 +3504,11 @@
         "net10.0"
       ],
       "sources": {
+        "/usr/local/Cellar/dotnet/10.0.105/libexec/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net10.0": {
-          "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {
             "/Users/mannheimer/Development/Codes/Canvas/Canvas.WebApi/Canvas.WebApi.csproj": {
@@ -3520,11 +3539,10 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.300"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net10.0": {
-        "framework": "net10.0",
         "targetAlias": "net10.0",
         "dependencies": {
           "Microsoft.NET.Test.Sdk": {
@@ -3560,7 +3578,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.300/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "/usr/local/Cellar/dotnet/10.0.105/libexec/sdk/10.0.105/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",

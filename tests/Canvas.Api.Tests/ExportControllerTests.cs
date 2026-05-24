@@ -162,14 +162,14 @@ public sealed class ExportControllerTests : IClassFixture<WebApplicationFactory<
     // ─── GET /api/export/formats ──────────────────────────────────────────────
 
     [Fact]
-    public async Task GetFormats_Returns200_WithAllNineFormats()
+    public async Task GetFormats_Returns200_WithAllFormats()
     {
         var response = await _client.GetAsync("/api/export/formats");
         var formats  = await response.Content.ReadFromJsonAsync<JsonElement[]>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(formats);
-        Assert.Equal(9, formats!.Length);
+        Assert.Equal(11, formats!.Length);
     }
 
     [Fact]

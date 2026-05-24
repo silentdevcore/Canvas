@@ -7,6 +7,7 @@ using Canvas.Importer.Document;
 using Canvas.Importer.Graphics;
 using Canvas.Importer.Objects;
 using Canvas.Importer.Parsing;
+using Canvas.Importer.Streams;
 using Canvas.Importer.Tokenizer;
 using Canvas.Importer.Xref;
 using Canvas.Infrastructure.Pdf;
@@ -861,6 +862,38 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
 
         var data = stream.EncodedBytes;
         var decodeParameters = ResolveDecodeParameters(stream.Dictionary["DecodeParms"], graph);
+        ReadOnlyMemory<byte>? decodedPixels = null;
+
+        if (filterName is "CCITTFaxDecode" or "CCF" or "LZWDecode" or "LZW")
+        {
+            decodedPixels = new PdfStreamDecoderRegistry().Decode(stream);
+        }
+
+        if (TryGetIndexedColorSpaceArray(stream.Dictionary["ColorSpace"], resources, graph, out var indexedArray))
+        {
+            var rawPixels = decodedPixels ?? new PdfStreamDecoderRegistry().Decode(stream);
+            if (!TryExpandIndexedPixels(indexedArray, resources, graph, rawPixels, (int)bitsPerComponent, (int)width, (int)height, out var expanded, out var componentCount))
+            {
+                return false;
+            }
+            decodedPixels = expanded;
+            bitsPerComponent = 8;
+            colorSpaceName = componentCount switch
+            {
+                1 => "DeviceGray",
+                3 => "DeviceRGB",
+                4 => "DeviceCMYK",
+                _ => colorSpaceName
+            };
+        }
+
+        if (decodedPixels.HasValue)
+        {
+            data = RecompressFlate(decodedPixels.Value);
+            filterName = "FlateDecode";
+            decodeParameters = null;
+        }
+
         object? softMask = null;
         if (ResolveObject(stream.Dictionary["SMask"], graph) is PdfStreamObject softMaskStream)
         {
@@ -893,6 +926,7 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
             PdfName name when name.Value is "DeviceGray" or "DeviceRGB" or "DeviceCMYK" => name.Value,
             PdfName name when ResolveNamedColorSpace(name.Value, resources, graph) is { } namedColorSpace => ResolveColorSpaceName(namedColorSpace, resources, graph),
             PdfArray { Items.Count: > 1 } array when ResolveObject(array.Items[0], graph) is PdfName { Value: "ICCBased" } => ResolveIccBasedColorSpaceName(array.Items[1], graph),
+            PdfArray { Items.Count: 4 } array when ResolveObject(array.Items[0], graph) is PdfName { Value: "Indexed" } => ResolveColorSpaceName(array.Items[1], resources, graph),
             _ => null
         };
     }
@@ -925,7 +959,7 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
         var resolvedFilter = ResolveObject(filter, graph) ?? filter;
         return resolvedFilter switch
         {
-            PdfName name when name.Value is "DCTDecode" or "FlateDecode" => name.Value,
+            PdfName name when name.Value is "DCTDecode" or "FlateDecode" or "CCITTFaxDecode" or "CCF" or "LZWDecode" or "LZW" => name.Value,
             PdfArray { Items.Count: 1 } array => ResolveSingleSupportedFilterName(array.Items[0], graph),
             _ => null
         };
@@ -1100,6 +1134,137 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
             boundary,
             new CanvasPdfPoint(rectangle.Value.X, rectangle.Value.Y),
             new CanvasPdfPoint(rectangle.Value.X + rectangle.Value.Width, rectangle.Value.Y + rectangle.Value.Height));
+    }
+
+    private static bool TryGetIndexedColorSpaceArray(PdfObject? colorSpace, PdfDictionary resources, PdfObjectGraph graph, out PdfArray indexedArray)
+    {
+        indexedArray = null!;
+        var resolved = ResolveObject(colorSpace, graph) ?? colorSpace;
+        if (resolved is PdfName name)
+        {
+            resolved = ResolveNamedColorSpace(name.Value, resources, graph) ?? resolved;
+        }
+        if (resolved is PdfArray { Items.Count: 4 } arr && ResolveObject(arr.Items[0], graph) is PdfName { Value: "Indexed" })
+        {
+            indexedArray = arr;
+            return true;
+        }
+        return false;
+    }
+
+    private static bool TryExpandIndexedPixels(
+        PdfArray indexedArray,
+        PdfDictionary resources,
+        PdfObjectGraph graph,
+        ReadOnlyMemory<byte> rawPixels,
+        int bitsPerComponent,
+        int width,
+        int height,
+        out ReadOnlyMemory<byte> expanded,
+        out int componentCount)
+    {
+        expanded = default;
+        componentCount = 0;
+
+        var baseCsName = ResolveColorSpaceName(indexedArray.Items[1], resources, graph);
+        componentCount = baseCsName switch
+        {
+            "DeviceGray" => 1,
+            "DeviceRGB" => 3,
+            "DeviceCMYK" => 4,
+            _ => 0
+        };
+        if (componentCount == 0) return false;
+
+        if (ResolveNumber(indexedArray.Items[2]) is not { } hivalDouble) return false;
+        var hival = (int)hivalDouble;
+
+        var tableObj = ResolveObject(indexedArray.Items[3], graph) ?? indexedArray.Items[3];
+        byte[] table;
+        if (tableObj is PdfString tableString)
+        {
+            table = tableString.IsHex ? ParseHexBytes(tableString.Bytes.Span) : tableString.Bytes.ToArray();
+        }
+        else if (tableObj is PdfStreamObject tableStream)
+        {
+            table = new PdfStreamDecoderRegistry().Decode(tableStream).ToArray();
+        }
+        else
+        {
+            return false;
+        }
+
+        if (table.Length < (hival + 1) * componentCount) return false;
+
+        var rowBytes = (width * bitsPerComponent + 7) / 8;
+        var result = new byte[width * height * componentCount];
+        var src = rawPixels.Span;
+        var dst = 0;
+
+        for (var y = 0; y < height; y++)
+        {
+            for (var x = 0; x < width; x++)
+            {
+                int index;
+                if (bitsPerComponent == 8)
+                {
+                    var pos = y * rowBytes + x;
+                    if (pos >= src.Length) break;
+                    index = src[pos];
+                }
+                else
+                {
+                    var bitIndex = y * width * bitsPerComponent + x * bitsPerComponent;
+                    var byteOffset = bitIndex / 8;
+                    var bitShift = 8 - bitsPerComponent - (bitIndex % 8);
+                    if (byteOffset >= src.Length) break;
+                    index = (src[byteOffset] >> bitShift) & ((1 << bitsPerComponent) - 1);
+                }
+
+                index = Math.Min(index, hival);
+                var tableOffset = index * componentCount;
+                for (var c = 0; c < componentCount; c++)
+                {
+                    result[dst++] = table[tableOffset + c];
+                }
+            }
+        }
+
+        expanded = result;
+        return true;
+    }
+
+    private static byte[] ParseHexBytes(ReadOnlySpan<byte> hexChars)
+    {
+        var result = new List<byte>(hexChars.Length / 2);
+        var i = 0;
+        while (i < hexChars.Length)
+        {
+            while (i < hexChars.Length && (hexChars[i] == ' ' || hexChars[i] == '\n' || hexChars[i] == '\r' || hexChars[i] == '\t')) i++;
+            if (i >= hexChars.Length) break;
+            var high = HexNibble(hexChars[i++]);
+            var low = i < hexChars.Length ? HexNibble(hexChars[i++]) : 0;
+            result.Add((byte)((high << 4) | low));
+        }
+        return [.. result];
+    }
+
+    private static int HexNibble(byte b) => b switch
+    {
+        >= (byte)'0' and <= (byte)'9' => b - '0',
+        >= (byte)'A' and <= (byte)'F' => b - 'A' + 10,
+        >= (byte)'a' and <= (byte)'f' => b - 'a' + 10,
+        _ => 0
+    };
+
+    private static ReadOnlyMemory<byte> RecompressFlate(ReadOnlyMemory<byte> data)
+    {
+        using var output = new MemoryStream();
+        using (var zlib = new ZLibStream(output, CompressionMode.Compress, leaveOpen: true))
+        {
+            zlib.Write(data.Span);
+        }
+        return output.ToArray();
     }
 
     private static void ApplyMetadata(CanvasPdfDocument document, PdfDictionary metadata)

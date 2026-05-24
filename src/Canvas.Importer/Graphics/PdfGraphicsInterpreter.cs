@@ -239,7 +239,8 @@ public sealed class PdfGraphicsInterpreter
         Stack<PdfGroupElement> groups,
         List<PdfGraphicsElement> elements)
     {
-        AddElement(groups, elements, new PdfTextElement(command.Sequence, state.TextMatrix.Multiply(state.Transform), command, text)
+        var composed = state.TextMatrix.Multiply(state.Transform);
+        AddElement(groups, elements, new PdfTextElement(command.Sequence, composed, command, text)
         {
             FontSize = state.FontSize,
             FontResourceName = state.CurrentFontResourceName,

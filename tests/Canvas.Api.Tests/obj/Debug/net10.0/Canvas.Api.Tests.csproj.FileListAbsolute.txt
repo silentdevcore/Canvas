@@ -541,3 +541,6 @@
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/System.Security.Cryptography.Pkcs.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/System.Security.Cryptography.Xml.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/runtimes/win/lib/net10.0/System.Security.Cryptography.Pkcs.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/PdfToSvg.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.Importer.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.Importer.pdb

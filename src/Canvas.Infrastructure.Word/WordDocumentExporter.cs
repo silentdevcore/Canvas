@@ -83,9 +83,9 @@ public sealed class WordDocumentExporter : IDocumentExporter
             CustomPropertiesService.Apply(doc, design.PageSettings?.CustomProperties);
 
             // Auto-hyphenation: enable at document level when any element requests it
-            var anyHyphenation = design.Pages
-                .SelectMany(p => p.Elements)
-                .Concat(design.SharedElements)
+            var anyHyphenation = (design.Pages ?? [])
+                .SelectMany(p => p.Elements ?? [])
+                .Concat(design.SharedElements ?? [])
                 .Any(e => e.AutoHyphenation == true);
             if (anyHyphenation)
                 ApplyDocumentAutoHyphenation(doc);

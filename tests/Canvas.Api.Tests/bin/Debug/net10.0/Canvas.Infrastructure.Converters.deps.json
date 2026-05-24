@@ -10,7 +10,9 @@
         "dependencies": {
           "Canvas.Application": "1.0.0",
           "Canvas.Core": "1.0.0",
+          "Canvas.Importer": "1.0.0",
           "NPOI": "2.8.0",
+          "PdfToSvg.NET": "1.8.0",
           "SkiaSharp": "3.119.2",
           "UglyToad.PdfPig": "1.7.0-custom-5"
         },
@@ -95,6 +97,14 @@
           "lib/net10.0/NPOI.OpenXmlFormats.dll": {
             "assemblyVersion": "2.8.0.0",
             "fileVersion": "2.8.0.0"
+          }
+        }
+      },
+      "PdfToSvg.NET/1.8.0": {
+        "runtime": {
+          "lib/net8.0/PdfToSvg.dll": {
+            "assemblyVersion": "1.8.0.0",
+            "fileVersion": "1.8.0.0"
           }
         }
       },
@@ -358,6 +368,17 @@
           }
         }
       },
+      "Canvas.Importer/1.0.0": {
+        "dependencies": {
+          "Canvas.Infrastructure.Pdf": "1.0.0"
+        },
+        "runtime": {
+          "Canvas.Importer.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "Canvas.Infrastructure.Pdf/1.0.0": {
         "dependencies": {
           "Canvas.Core": "1.0.0"
@@ -425,6 +446,13 @@
       "sha512": "sha512-fAAc8iUvDuRu+e+TU+Ghg4czJPT1JY/v/wJjHvFaHJo0Y6XMWvanbH1U6nPaCK36UtcIc1Y9uOXNomRhdAaGEw==",
       "path": "npoi/2.8.0",
       "hashPath": "npoi.2.8.0.nupkg.sha512"
+    },
+    "PdfToSvg.NET/1.8.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-7nvR/vN/7zoQUjBOMT/gtpoxMC4K2QSSziWWWUw9GyRcJ80Kfnf+uXcwJSSvvKZ/sF6Z8LSgislOQD39pCLguw==",
+      "path": "pdftosvg.net/1.8.0",
+      "hashPath": "pdftosvg.net.1.8.0.nupkg.sha512"
     },
     "SharpZipLib/1.4.2": {
       "type": "package",
@@ -533,6 +561,11 @@
       "sha512": ""
     },
     "Canvas.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Canvas.Importer/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

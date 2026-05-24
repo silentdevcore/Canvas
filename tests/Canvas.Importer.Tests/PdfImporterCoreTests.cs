@@ -118,8 +118,8 @@ public sealed class PdfImporterCoreTests
         var registry = new PdfStreamDecoderRegistry();
         var filterArray = new PdfArray([
             new PdfName("FlateDecode"),
-            new PdfName("JBIG2Decode"),
             new PdfName("CCITTFaxDecode"),
+            new PdfName("JBIG2Decode"),
             new PdfName("JPXDecode")
         ]);
 
@@ -128,7 +128,7 @@ public sealed class PdfImporterCoreTests
         Assert.Collection(
             supports,
             support => Assert.Equal(PdfStreamDecoderSupportStatus.Supported, support.Status),
-            support => Assert.Equal(PdfStreamDecoderSupportStatus.Deferred, support.Status),
+            support => Assert.Equal(PdfStreamDecoderSupportStatus.Supported, support.Status),
             support => Assert.Equal(PdfStreamDecoderSupportStatus.Deferred, support.Status),
             support => Assert.Equal(PdfStreamDecoderSupportStatus.Deferred, support.Status));
     }
@@ -2358,6 +2358,556 @@ public sealed class PdfImporterCoreTests
         Assert.Equal("Sh1", importedShading.ResourceName);
     }
 
+    // ── CCITTFaxDecode decoder ───────────────────────────────────────────────
+
+    [Fact]
+    public void CcittFaxDecoder_ShouldDecodeGroup3_1D_AllWhiteRow()
+    {
+        // 4-column row of all-white pixels.
+        // White run=4 code: "1011" (4 bits) → 0xB0 padded to byte.
+        // Rows=1, EndOfLine=false, EndOfBlock=false → no EOL/RTC needed.
+        byte[] encoded = [0xB0];
+        var dictionary = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["DecodeParms"] = new PdfDictionary(new Dictionary<string, PdfObject>
+            {
+                ["Columns"] = new PdfInteger(4),
+                ["Rows"] = new PdfInteger(1),
+                ["EndOfLine"] = new PdfBoolean(false),
+                ["EndOfBlock"] = new PdfBoolean(false)
+            })
+        });
+
+        var decoded = new CcittFaxStreamDecoder().Decode(encoded, dictionary);
+
+        // BlackIs1=false default: white=1, black=0. 4 white pixels → 1111xxxx = 0xF0.
+        Assert.Equal([0xF0], decoded.ToArray());
+    }
+
+    [Fact]
+    public void CcittFaxDecoder_ShouldDecodeGroup3_1D_AllBlackRow()
+    {
+        // 4-column row of all-black pixels.
+        // White run=0: "00110101" (8 bits). Black run=4: "011" (3 bits).
+        // Bits: 00110101 011 → 0x35, 0x60.
+        byte[] encoded = [0x35, 0x60];
+        var dictionary = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["DecodeParms"] = new PdfDictionary(new Dictionary<string, PdfObject>
+            {
+                ["Columns"] = new PdfInteger(4),
+                ["Rows"] = new PdfInteger(1),
+                ["EndOfLine"] = new PdfBoolean(false),
+                ["EndOfBlock"] = new PdfBoolean(false)
+            })
+        });
+
+        var decoded = new CcittFaxStreamDecoder().Decode(encoded, dictionary);
+
+        // 4 black pixels → 0000xxxx = 0x00.
+        Assert.Equal([0x00], decoded.ToArray());
+    }
+
+    [Fact]
+    public void CcittFaxDecoder_ShouldDecodeGroup3_1D_MixedBlackWhiteRow()
+    {
+        // 4-column row: B W B W (starting black, so white run=0 first).
+        // White run=0: "00110101" (8 bits). Black run=1: "010" (3 bits).
+        // White run=1: "000111" (6 bits). Black run=1: "010" (3 bits).
+        // White run=1: "000111" (6 bits) — trailing white after last black.
+        // Bits: 00110101 010 000111 010 000111
+        // = 00110101 010000111 010000111
+        // Total: 8+3+6+3+6 = 26 bits
+        // Byte 0: 00110101 = 0x35
+        // Byte 1: 01000011 = 0x43
+        // Byte 2: 10100001 = 0xA1 (bits 16-23: 10100001 with remaining bits padded)
+        // Let me recalculate:
+        // Bits 0-7:  00110101
+        // Bits 8-10: 010
+        // Bits 11-16: 000111
+        // Bits 17-19: 010
+        // Bits 20-25: 000111
+        // Bit grouping into bytes:
+        // Byte 0 (0-7):  0 0 1 1 0 1 0 1 = 0x35
+        // Byte 1 (8-15): 0 1 0 0 0 0 1 1 = 0x43
+        // Byte 2 (16-23):1 0 1 0 0 0 0 1 = 0xA1
+        // Byte 3 (24-25):1 1 (padded)   = 0xC0
+        byte[] encoded = [0x35, 0x43, 0xA1, 0xC0];
+        var dictionary = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["DecodeParms"] = new PdfDictionary(new Dictionary<string, PdfObject>
+            {
+                ["Columns"] = new PdfInteger(4),
+                ["Rows"] = new PdfInteger(1),
+                ["EndOfLine"] = new PdfBoolean(false),
+                ["EndOfBlock"] = new PdfBoolean(false)
+            })
+        });
+
+        var decoded = new CcittFaxStreamDecoder().Decode(encoded, dictionary);
+
+        // B W B W → 0 1 0 1 → 0101xxxx = 0x50.
+        Assert.Equal([0x50], decoded.ToArray());
+    }
+
+    [Fact]
+    public void CcittFaxDecoder_ShouldDecodeGroup4_AllWhiteRow()
+    {
+        // 4-column row, all white, Group 4 (K=-1).
+        // Reference row = all white. Current row = all white.
+        // V0 mode code: "1" (1 bit). b1 = sentinel (no black in refRow) = 4. a1 = 4 = columns. Done.
+        // EOFB = two EOL codes ("000000000001" each, 12 bits each).
+        // Bits: 1 | 000000000001 | 000000000001 (25 bits total)
+        // Byte 0: 10000000 = 0x80
+        // Byte 1: 00000010 = wait — let me pack carefully:
+        // Bit  0: 1  (V0)
+        // Bits 1-12: 000000000001 (first EOL)
+        // Bits 13-24: 000000000001 (second EOL)
+        // Byte 0 (0-7):  1 0 0 0 0 0 0 0 = 0x80
+        // Byte 1 (8-15): 0 0 0 1 0 0 0 0 = 0x10
+        // Byte 2 (16-23):0 0 0 0 0 0 0 1 = 0x01
+        // Byte 3 (24):   1 (padded 7 zeros) = 0x80
+        byte[] encoded = [0x80, 0x10, 0x01, 0x80];
+        var dictionary = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["DecodeParms"] = new PdfDictionary(new Dictionary<string, PdfObject>
+            {
+                ["K"] = new PdfInteger(-1),
+                ["Columns"] = new PdfInteger(4),
+                ["Rows"] = new PdfInteger(1),
+                ["EndOfBlock"] = new PdfBoolean(true)
+            })
+        });
+
+        var decoded = new CcittFaxStreamDecoder().Decode(encoded, dictionary);
+
+        // 4 white pixels → 0xF0.
+        Assert.Equal([0xF0], decoded.ToArray());
+    }
+
+    [Fact]
+    public void CcittFaxDecoder_ShouldDecodeGroup3_1D_TwoRows()
+    {
+        // Two 4-column rows: first all-white, second all-black.
+        // Row 1: white run=4 → "1011" (4 bits)
+        // EOL: "000000000001" (12 bits)
+        // Row 2: white run=0 → "00110101" (8 bits), black run=4 → "011" (3 bits)
+        // RTC (EndOfBlock): 6 × "000000000001" (72 bits)
+        // Row1 + EOL: 1011_000000000001 (16 bits)
+        // Row2: 00110101_011 (11 bits)
+        // RTC: 6 × 000000000001 (72 bits)
+        // Total: 99 bits → 13 bytes
+        // Byte 0: 1011_0000 = 0xB0
+        // Byte 1: 0000_0001 = 0x01
+        // Byte 2: 0011_0101 = 0x35
+        // Byte 3: 011_00000 = 0x60
+        // Bytes 4-12: RTC = 6 × 000000000001 (72 bits = 9 bytes)
+        // But for this test we use EndOfBlock=false, Rows=2 to avoid encoding RTC
+        // Row1 bits: 1011 (4 bits)
+        // EOL bits: 000000000001 (12 bits) → total 16 bits after row 1
+        // Row2 bits: 00110101 011 (11 bits)
+        // With Rows=2, EndOfLine=true, EndOfBlock=false:
+        // 16 + 11 = 27 bits → 4 bytes
+        // Byte 0: 1011_0000 = 0xB0
+        // Byte 1: 0000_0001 = 0x01
+        // Byte 2: 0011_0101 = 0x35
+        // Byte 3: 011_00000 = 0x60
+        byte[] encoded = [0xB0, 0x01, 0x35, 0x60];
+        var dictionary = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["DecodeParms"] = new PdfDictionary(new Dictionary<string, PdfObject>
+            {
+                ["Columns"] = new PdfInteger(4),
+                ["Rows"] = new PdfInteger(2),
+                ["EndOfLine"] = new PdfBoolean(true),
+                ["EndOfBlock"] = new PdfBoolean(false)
+            })
+        });
+
+        var decoded = new CcittFaxStreamDecoder().Decode(encoded, dictionary);
+
+        // Row1: 4 white → 0xF0. Row2: 4 black → 0x00.
+        Assert.Equal([0xF0, 0x00], decoded.ToArray());
+    }
+
+    [Fact]
+    public void CcittFaxDecoder_ShouldEvaluateAsSupported()
+    {
+        var registry = new PdfStreamDecoderRegistry();
+        var support = Assert.Single(registry.Evaluate(new PdfName("CCITTFaxDecode")));
+        Assert.Equal(PdfStreamDecoderSupportStatus.Supported, support.Status);
+        var supportCcf = Assert.Single(registry.Evaluate(new PdfName("CCF")));
+        Assert.Equal(PdfStreamDecoderSupportStatus.Supported, supportCcf.Status);
+    }
+
+    // ── Shading + ICCBased color space remaining slices ─────────────────────
+
+    [Fact]
+    public async Task CanvasPdfGeneratorBridge_ShouldPreserveShadingWithNamedIccBasedColorSpace()
+    {
+        var graph = new PdfObjectGraph();
+
+        var iccProfileDictionary = new PdfDictionary();
+        iccProfileDictionary["N"] = new PdfInteger(3);
+        var iccProfileStream = new PdfStreamObject(iccProfileDictionary, ReadOnlyMemory<byte>.Empty);
+
+        var iccBasedArray = new PdfArray([new PdfName("ICCBased"), new PdfReference(new PdfObjectId(10, 0))]);
+        var colorSpaceResources = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["CS1"] = iccBasedArray
+        });
+
+        var shadingDictionary = new PdfDictionary();
+        shadingDictionary["ShadingType"] = new PdfInteger(2);
+        shadingDictionary["ColorSpace"] = new PdfName("CS1");
+        shadingDictionary["Coords"] = new PdfArray([new PdfInteger(0), new PdfInteger(0), new PdfInteger(100), new PdfInteger(0)]);
+        shadingDictionary["Function"] = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["FunctionType"] = new PdfInteger(2),
+            ["Domain"] = new PdfArray([new PdfInteger(0), new PdfInteger(1)]),
+            ["C0"] = new PdfArray([new PdfInteger(1), new PdfInteger(0), new PdfInteger(0)]),
+            ["C1"] = new PdfArray([new PdfInteger(0), new PdfInteger(0), new PdfInteger(1)]),
+            ["N"] = new PdfInteger(1)
+        });
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(10, 0), iccProfileStream, new PdfSourceSpan(0, 0)));
+
+        var document = new PdfDocumentModel { ObjectGraph = graph };
+
+        var pageResources = new PdfDictionary();
+        pageResources["ColorSpace"] = colorSpaceResources;
+        pageResources["Shading"] = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["Sh1"] = shadingDictionary
+        });
+
+        var page = new PdfPageModel(null, new PdfDictionary())
+        {
+            MediaBox = new PdfRectangle(0, 0, 200, 120),
+            Resources = pageResources
+        };
+
+        page.Insert(new PdfShadingElement(1, PdfMatrix.Identity, Command("sh", 1, new PdfName("Sh1")), "Sh1"));
+        document.AddPage(page);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var importedPage = Assert.Single(reimported.Pages);
+        var importedShading = Assert.IsType<PdfShadingElement>(Assert.Single(importedPage.GraphicsObjects));
+        Assert.Equal("Sh1", importedShading.ResourceName);
+        var importedColorSpaces = Assert.IsType<PdfDictionary>(importedPage.Resources["ColorSpace"]);
+        Assert.True(importedColorSpaces.Values.ContainsKey("CS1"));
+    }
+
+    [Fact]
+    public async Task CanvasPdfGeneratorBridge_ShouldPreserveShadingWithIndirectIccBasedColorSpace()
+    {
+        var graph = new PdfObjectGraph();
+
+        var iccProfileDictionary = new PdfDictionary();
+        iccProfileDictionary["N"] = new PdfInteger(3);
+        var iccProfileStream = new PdfStreamObject(iccProfileDictionary, ReadOnlyMemory<byte>.Empty);
+
+        var iccBasedArray = new PdfArray([new PdfName("ICCBased"), new PdfReference(new PdfObjectId(11, 0))]);
+
+        // CS1 is an indirect reference to the ICCBased array
+        graph.Add(new PdfIndirectObject(new PdfObjectId(10, 0), iccBasedArray, new PdfSourceSpan(0, 0)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(11, 0), iccProfileStream, new PdfSourceSpan(0, 0)));
+
+        var colorSpaceResources = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["CS1"] = new PdfReference(new PdfObjectId(10, 0))
+        });
+
+        var shadingDictionary = new PdfDictionary();
+        shadingDictionary["ShadingType"] = new PdfInteger(2);
+        shadingDictionary["ColorSpace"] = new PdfName("CS1");
+        shadingDictionary["Coords"] = new PdfArray([new PdfInteger(0), new PdfInteger(0), new PdfInteger(100), new PdfInteger(0)]);
+        shadingDictionary["Function"] = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["FunctionType"] = new PdfInteger(2),
+            ["Domain"] = new PdfArray([new PdfInteger(0), new PdfInteger(1)]),
+            ["C0"] = new PdfArray([new PdfInteger(1), new PdfInteger(0), new PdfInteger(0)]),
+            ["C1"] = new PdfArray([new PdfInteger(0), new PdfInteger(0), new PdfInteger(1)]),
+            ["N"] = new PdfInteger(1)
+        });
+
+        var document = new PdfDocumentModel { ObjectGraph = graph };
+
+        var pageResources = new PdfDictionary();
+        pageResources["ColorSpace"] = colorSpaceResources;
+        pageResources["Shading"] = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["Sh1"] = shadingDictionary
+        });
+
+        var page = new PdfPageModel(null, new PdfDictionary())
+        {
+            MediaBox = new PdfRectangle(0, 0, 200, 120),
+            Resources = pageResources
+        };
+
+        page.Insert(new PdfShadingElement(1, PdfMatrix.Identity, Command("sh", 1, new PdfName("Sh1")), "Sh1"));
+        document.AddPage(page);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var importedPage = Assert.Single(reimported.Pages);
+        Assert.IsType<PdfShadingElement>(Assert.Single(importedPage.GraphicsObjects));
+        var importedColorSpaces = Assert.IsType<PdfDictionary>(importedPage.Resources["ColorSpace"]);
+        Assert.True(importedColorSpaces.Values.ContainsKey("CS1"));
+    }
+
+    // ── End-to-end multi-content fixtures ───────────────────────────────────
+
+    [Fact]
+    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripDocumentWithTextPathsAndImages()
+    {
+        // Combines text + vector path + JPEG image on a single page — verifies
+        // all three element types survive the full importer→model→bridge cycle.
+        var graph = new PdfObjectGraph();
+
+        var catalog = new PdfDictionary();
+        catalog["Type"] = new PdfName("Catalog");
+        catalog["Pages"] = new PdfReference(new PdfObjectId(2, 0));
+
+        var pages = new PdfDictionary();
+        pages["Type"] = new PdfName("Pages");
+        pages["Count"] = new PdfInteger(1);
+        pages["Kids"] = new PdfArray([new PdfReference(new PdfObjectId(3, 0))]);
+
+        var xObjectResources = new PdfDictionary();
+        xObjectResources["Im1"] = new PdfReference(new PdfObjectId(5, 0));
+
+        var resources = new PdfDictionary();
+        resources["XObject"] = xObjectResources;
+
+        var page = new PdfDictionary();
+        page["Type"] = new PdfName("Page");
+        page["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page["Resources"] = resources;
+        page["MediaBox"] = Array(0, 0, 300, 200);
+        page["Contents"] = new PdfReference(new PdfObjectId(4, 0));
+
+        // Content: a filled rectangle, then a text object, then an image
+        var contentBytes = Encoding.ASCII.GetBytes(
+            "q 1 0 0 1 10 10 cm 0 0 50 30 re f Q " +
+            "BT /F1 12 Tf 1 0 0 1 20 100 Tm (Hello) Tj ET " +
+            "q 40 0 0 20 80 50 cm /Im1 Do Q");
+        var contentStream = new PdfStreamObject(new PdfDictionary(), contentBytes);
+
+        var imageDictionary = new PdfDictionary();
+        imageDictionary["Type"] = new PdfName("XObject");
+        imageDictionary["Subtype"] = new PdfName("Image");
+        imageDictionary["Width"] = new PdfInteger(1);
+        imageDictionary["Height"] = new PdfInteger(1);
+        imageDictionary["ColorSpace"] = new PdfName("DeviceRGB");
+        imageDictionary["BitsPerComponent"] = new PdfInteger(8);
+        imageDictionary["Filter"] = new PdfName("DCTDecode");
+        var imageStream = new PdfStreamObject(imageDictionary, TinyJpegBytes());
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(1, 0), catalog, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(2, 0), pages, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(3, 0), page, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(4, 0), contentStream, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(5, 0), imageStream, new PdfSourceSpan(0, 1)));
+
+        var builder = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter());
+        var document = builder.Build(graph);
+
+        var importedPage = Assert.Single(document.Pages);
+        Assert.Equal(300, importedPage.MediaBox?.Width);
+        Assert.Equal(200, importedPage.MediaBox?.Height);
+        Assert.Single(importedPage.TextObjects);
+        Assert.Contains(importedPage.GraphicsObjects, static e => e is PdfPathElement);
+        Assert.Contains(importedPage.GraphicsObjects, static e => e is PdfImageElement);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var reimportedPage = Assert.Single(reimported.Pages);
+        Assert.Equal("Hello", Assert.Single(reimportedPage.TextObjects).Text);
+        Assert.Contains(reimportedPage.GraphicsObjects, static e => e is PdfPathElement);
+        var reimportedImage = Assert.Single(reimportedPage.GraphicsObjects.OfType<PdfImageElement>());
+        Assert.False(reimportedImage.ImageBytes.IsEmpty);
+    }
+
+    [Fact]
+    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripDocumentWithInheritedResourcesAndIncremental()
+    {
+        // Two-page document where page-tree inherits resources and the xref
+        // has an incremental update — verifies page-tree traversal, inherited
+        // resources, and multi-page bridge regeneration end-to-end.
+        var graph = new PdfObjectGraph();
+
+        var sharedColorSpaces = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["CS1"] = new PdfName("DeviceRGB")
+        });
+        var inheritedResources = new PdfDictionary();
+        inheritedResources["ColorSpace"] = sharedColorSpaces;
+
+        var catalog = new PdfDictionary();
+        catalog["Type"] = new PdfName("Catalog");
+        catalog["Pages"] = new PdfReference(new PdfObjectId(2, 0));
+
+        var pages = new PdfDictionary();
+        pages["Type"] = new PdfName("Pages");
+        pages["Count"] = new PdfInteger(2);
+        pages["Kids"] = new PdfArray([
+            new PdfReference(new PdfObjectId(3, 0)),
+            new PdfReference(new PdfObjectId(6, 0))
+        ]);
+        pages["Resources"] = inheritedResources;
+        pages["MediaBox"] = Array(0, 0, 200, 150);
+
+        var page1 = new PdfDictionary();
+        page1["Type"] = new PdfName("Page");
+        page1["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page1["Contents"] = new PdfReference(new PdfObjectId(4, 0));
+
+        var content1 = Encoding.ASCII.GetBytes("BT /F1 10 Tf 1 0 0 1 10 100 Tm (Page one) Tj ET");
+        var contentStream1 = new PdfStreamObject(new PdfDictionary(), content1);
+
+        var page2 = new PdfDictionary();
+        page2["Type"] = new PdfName("Page");
+        page2["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page2["Contents"] = new PdfReference(new PdfObjectId(7, 0));
+
+        var content2 = Encoding.ASCII.GetBytes("BT /F1 10 Tf 1 0 0 1 10 100 Tm (Page two) Tj ET");
+        var contentStream2 = new PdfStreamObject(new PdfDictionary(), content2);
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(1, 0), catalog, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(2, 0), pages, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(3, 0), page1, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(4, 0), contentStream1, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(6, 0), page2, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(7, 0), contentStream2, new PdfSourceSpan(0, 1)));
+
+        var builder = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter());
+        var document = builder.Build(graph);
+
+        Assert.Equal(2, document.Pages.Count);
+
+        // Both pages should have inherited resources (ColorSpace CS1)
+        foreach (var p in document.Pages)
+        {
+            var cs = Assert.IsType<PdfDictionary>(p.Resources["ColorSpace"]);
+            Assert.True(cs.Values.ContainsKey("CS1"));
+        }
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        Assert.Equal(2, reimported.Pages.Count);
+        Assert.Equal("Page one", Assert.Single(reimported.Pages[0].TextObjects).Text);
+        Assert.Equal("Page two", Assert.Single(reimported.Pages[1].TextObjects).Text);
+    }
+
+    [Fact]
+    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripDocumentCombiningTextPathsImagesAndShading()
+    {
+        // Most complex fixture: text + path + JPEG image + shading on one page.
+        // Validates that the shading compatibility update does not erase other content.
+        var graph = new PdfObjectGraph();
+
+        var catalog = new PdfDictionary();
+        catalog["Type"] = new PdfName("Catalog");
+        catalog["Pages"] = new PdfReference(new PdfObjectId(2, 0));
+
+        var pages = new PdfDictionary();
+        pages["Type"] = new PdfName("Pages");
+        pages["Count"] = new PdfInteger(1);
+        pages["Kids"] = new PdfArray([new PdfReference(new PdfObjectId(3, 0))]);
+
+        var xObjectResources = new PdfDictionary();
+        xObjectResources["Im1"] = new PdfReference(new PdfObjectId(5, 0));
+
+        var shadingDictionary = new PdfDictionary();
+        shadingDictionary["ShadingType"] = new PdfInteger(2);
+        shadingDictionary["ColorSpace"] = new PdfName("DeviceRGB");
+        shadingDictionary["Coords"] = new PdfArray([new PdfInteger(0), new PdfInteger(0), new PdfInteger(200), new PdfInteger(0)]);
+        shadingDictionary["Function"] = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["FunctionType"] = new PdfInteger(2),
+            ["Domain"] = new PdfArray([new PdfInteger(0), new PdfInteger(1)]),
+            ["C0"] = new PdfArray([new PdfInteger(1), new PdfInteger(0), new PdfInteger(0)]),
+            ["C1"] = new PdfArray([new PdfInteger(0), new PdfInteger(0), new PdfInteger(1)]),
+            ["N"] = new PdfInteger(1)
+        });
+
+        var resources = new PdfDictionary();
+        resources["XObject"] = xObjectResources;
+        resources["Shading"] = new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["Sh1"] = shadingDictionary
+        });
+
+        var page = new PdfDictionary();
+        page["Type"] = new PdfName("Page");
+        page["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page["Resources"] = resources;
+        page["MediaBox"] = Array(0, 0, 300, 200);
+        page["Contents"] = new PdfReference(new PdfObjectId(4, 0));
+
+        var contentBytes = Encoding.ASCII.GetBytes(
+            "q 1 0 0 1 5 5 cm 0 0 30 20 re f Q " +
+            "BT /F1 11 Tf 1 0 0 1 10 150 Tm (Shade) Tj ET " +
+            "q 40 0 0 20 60 60 cm /Im1 Do Q " +
+            "/Sh1 sh");
+        var contentStream = new PdfStreamObject(new PdfDictionary(), contentBytes);
+
+        var imageDictionary = new PdfDictionary();
+        imageDictionary["Type"] = new PdfName("XObject");
+        imageDictionary["Subtype"] = new PdfName("Image");
+        imageDictionary["Width"] = new PdfInteger(1);
+        imageDictionary["Height"] = new PdfInteger(1);
+        imageDictionary["ColorSpace"] = new PdfName("DeviceRGB");
+        imageDictionary["BitsPerComponent"] = new PdfInteger(8);
+        imageDictionary["Filter"] = new PdfName("DCTDecode");
+        var imageStream = new PdfStreamObject(imageDictionary, TinyJpegBytes());
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(1, 0), catalog, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(2, 0), pages, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(3, 0), page, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(4, 0), contentStream, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(5, 0), imageStream, new PdfSourceSpan(0, 1)));
+
+        var builder = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter());
+        var document = builder.Build(graph);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var importedPage = Assert.Single(reimported.Pages);
+        Assert.Equal("Shade", Assert.Single(importedPage.TextObjects).Text);
+        Assert.Single(importedPage.GraphicsObjects.OfType<PdfPathElement>());
+        Assert.Single(importedPage.GraphicsObjects.OfType<PdfImageElement>());
+        Assert.Single(importedPage.GraphicsObjects.OfType<PdfShadingElement>());
+    }
+
     private static PdfArray Array(params long[] values)
     {
         return new PdfArray(values.Select(value => new PdfInteger(value)));
@@ -2422,5 +2972,300 @@ public sealed class PdfImporterCoreTests
         builder.Append("\n%%EOF\n");
 
         return Encoding.ASCII.GetBytes(builder.ToString());
+    }
+
+    [Fact]
+    public void GraphicsInterpreter_ShouldPreserveTfFontSizeRegardlessOfTextMatrixScale()
+    {
+        var interpreter = new PdfGraphicsInterpreter();
+        var commands = new PdfContentCommand[]
+        {
+            Command("BT", 1),
+            Command("Tf", 2, new PdfName("F1"), new PdfInteger(10)),
+            Command("Tm", 3, new PdfNumber(2), new PdfInteger(0), new PdfInteger(0), new PdfNumber(2), new PdfInteger(50), new PdfInteger(100)),
+            Command("Tj", 4, new PdfString(Encoding.ASCII.GetBytes("Hi"), IsHex: false))
+        };
+
+        var elements = interpreter.Interpret(commands).Cast<PdfTextElement>().ToArray();
+
+        Assert.Single(elements);
+        Assert.Equal(10.0, elements[0].FontSize, 6);
+    }
+
+    [Fact]
+    public void GraphicsInterpreter_ShouldApplyTextMatrixRotation90()
+    {
+        var interpreter = new PdfGraphicsInterpreter();
+        var commands = new PdfContentCommand[]
+        {
+            Command("BT", 1),
+            Command("Tf", 2, new PdfName("F1"), new PdfInteger(12)),
+            Command("Tm", 3, new PdfInteger(0), new PdfInteger(1), new PdfInteger(-1), new PdfInteger(0), new PdfInteger(100), new PdfInteger(200)),
+            Command("Tj", 4, new PdfString(Encoding.ASCII.GetBytes("R"), IsHex: false))
+        };
+
+        var elements = interpreter.Interpret(commands).Cast<PdfTextElement>().ToArray();
+
+        Assert.Single(elements);
+        Assert.Equal(12.0, elements[0].FontSize, 6);
+        Assert.Equal(90.0, Math.Atan2(elements[0].Transform.B, elements[0].Transform.A) * 180d / Math.PI, 6);
+    }
+
+    [Fact]
+    public void GraphicsInterpreter_ShouldApplyTextMatrixRotation45WithScale()
+    {
+        var sqrt2Over2 = Math.Sqrt(2) / 2;
+        var interpreter = new PdfGraphicsInterpreter();
+        var commands = new PdfContentCommand[]
+        {
+            Command("BT", 1),
+            Command("Tf", 2, new PdfName("F1"), new PdfInteger(10)),
+            Command("Tm", 3,
+                new PdfNumber(sqrt2Over2 * 3), new PdfNumber(sqrt2Over2 * 3),
+                new PdfNumber(-sqrt2Over2 * 3), new PdfNumber(sqrt2Over2 * 3),
+                new PdfInteger(50), new PdfInteger(50)),
+            Command("Tj", 4, new PdfString(Encoding.ASCII.GetBytes("D"), IsHex: false))
+        };
+
+        var elements = interpreter.Interpret(commands).Cast<PdfTextElement>().ToArray();
+
+        Assert.Single(elements);
+        Assert.Equal(10.0, elements[0].FontSize, 4);
+        Assert.Equal(45.0, Math.Atan2(elements[0].Transform.B, elements[0].Transform.A) * 180d / Math.PI, 4);
+    }
+
+    [Fact]
+    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripCcittFaxXObjectImages()
+    {
+        var graph = new PdfObjectGraph();
+
+        var catalog = new PdfDictionary();
+        catalog["Type"] = new PdfName("Catalog");
+        catalog["Pages"] = new PdfReference(new PdfObjectId(2, 0));
+
+        var pages = new PdfDictionary();
+        pages["Type"] = new PdfName("Pages");
+        pages["Count"] = new PdfInteger(1);
+        pages["Kids"] = new PdfArray([new PdfReference(new PdfObjectId(3, 0))]);
+
+        var xObjectResources = new PdfDictionary();
+        xObjectResources["Im1"] = new PdfReference(new PdfObjectId(5, 0));
+
+        var resources = new PdfDictionary();
+        resources["XObject"] = xObjectResources;
+
+        var page = new PdfDictionary();
+        page["Type"] = new PdfName("Page");
+        page["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page["Resources"] = resources;
+        page["MediaBox"] = Array(0, 0, 200, 120);
+        page["Contents"] = new PdfReference(new PdfObjectId(4, 0));
+
+        var contentBytes = Encoding.ASCII.GetBytes("q 40 0 0 20 30 40 cm /Im1 Do Q");
+        var contentStream = new PdfStreamObject(new PdfDictionary(), contentBytes);
+
+        var decodeParms = new PdfDictionary();
+        decodeParms["K"] = new PdfInteger(0);
+        decodeParms["Columns"] = new PdfInteger(4);
+        decodeParms["Rows"] = new PdfInteger(1);
+        decodeParms["EndOfLine"] = new PdfBoolean(false);
+        decodeParms["EndOfBlock"] = new PdfBoolean(false);
+
+        var imageDictionary = new PdfDictionary();
+        imageDictionary["Type"] = new PdfName("XObject");
+        imageDictionary["Subtype"] = new PdfName("Image");
+        imageDictionary["Width"] = new PdfInteger(4);
+        imageDictionary["Height"] = new PdfInteger(1);
+        imageDictionary["ColorSpace"] = new PdfName("DeviceGray");
+        imageDictionary["BitsPerComponent"] = new PdfInteger(1);
+        imageDictionary["Filter"] = new PdfName("CCITTFaxDecode");
+        imageDictionary["DecodeParms"] = decodeParms;
+        // 4 white pixels (Group 3 1D): white run=4 → code "1011" (4 bits) → 0xB0
+        byte[] ccittData = [0xB0];
+        var imageStream = new PdfStreamObject(imageDictionary, ccittData);
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(1, 0), catalog, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(2, 0), pages, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(3, 0), page, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(4, 0), contentStream, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(5, 0), imageStream, new PdfSourceSpan(0, 1)));
+
+        var builder = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter());
+        var document = builder.Build(graph);
+
+        Assert.IsType<PdfImageElement>(Assert.Single(Assert.Single(document.Pages).GraphicsObjects));
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var importedImage = Assert.IsType<PdfImageElement>(Assert.Single(Assert.Single(reimported.Pages).GraphicsObjects));
+        Assert.False(importedImage.ImageBytes.IsEmpty);
+    }
+
+    [Fact]
+    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripIndexedColorSpaceImages()
+    {
+        var graph = new PdfObjectGraph();
+
+        var catalog = new PdfDictionary();
+        catalog["Type"] = new PdfName("Catalog");
+        catalog["Pages"] = new PdfReference(new PdfObjectId(2, 0));
+
+        var pages = new PdfDictionary();
+        pages["Type"] = new PdfName("Pages");
+        pages["Count"] = new PdfInteger(1);
+        pages["Kids"] = new PdfArray([new PdfReference(new PdfObjectId(3, 0))]);
+
+        var xObjectResources = new PdfDictionary();
+        xObjectResources["Im1"] = new PdfReference(new PdfObjectId(5, 0));
+
+        var resources = new PdfDictionary();
+        resources["XObject"] = xObjectResources;
+
+        var page = new PdfDictionary();
+        page["Type"] = new PdfName("Page");
+        page["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page["Resources"] = resources;
+        page["MediaBox"] = Array(0, 0, 200, 120);
+        page["Contents"] = new PdfReference(new PdfObjectId(4, 0));
+
+        var contentBytes = Encoding.ASCII.GetBytes("q 40 0 0 20 30 40 cm /Im1 Do Q");
+        var contentStream = new PdfStreamObject(new PdfDictionary(), contentBytes);
+
+        // Indexed/DeviceGray: index 0 → gray 0x00, index 1 → gray 0xFF
+        var palette = new PdfString(new byte[] { 0x00, 0xFF }, IsHex: false);
+        var colorSpace = new PdfArray([new PdfName("Indexed"), new PdfName("DeviceGray"), new PdfInteger(1), palette]);
+
+        var imageDictionary = new PdfDictionary();
+        imageDictionary["Type"] = new PdfName("XObject");
+        imageDictionary["Subtype"] = new PdfName("Image");
+        imageDictionary["Width"] = new PdfInteger(2);
+        imageDictionary["Height"] = new PdfInteger(1);
+        imageDictionary["ColorSpace"] = colorSpace;
+        imageDictionary["BitsPerComponent"] = new PdfInteger(8);
+        imageDictionary["Filter"] = new PdfName("FlateDecode");
+        // Pixel 0 → index 0 (black), Pixel 1 → index 1 (white)
+        var encodedImageBytes = Compress([0x00, 0x01]);
+        var imageStream = new PdfStreamObject(imageDictionary, encodedImageBytes);
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(1, 0), catalog, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(2, 0), pages, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(3, 0), page, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(4, 0), contentStream, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(5, 0), imageStream, new PdfSourceSpan(0, 1)));
+
+        var builder = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter());
+        var document = builder.Build(graph);
+
+        Assert.IsType<PdfImageElement>(Assert.Single(Assert.Single(document.Pages).GraphicsObjects));
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var importedImage = Assert.IsType<PdfImageElement>(Assert.Single(Assert.Single(reimported.Pages).GraphicsObjects));
+        Assert.False(importedImage.ImageBytes.IsEmpty);
+    }
+
+    [Fact]
+    public async Task BarcodeRoundTrip_ShouldPreserveVectorPath_CcittImage_AndScaledText()
+    {
+        // Builds a synthetic "barcode page" covering all three barcode representations:
+        // 1. Vector-path bars (filled rectangles)
+        // 2. CCITT-encoded 1-bit image barcode
+        // 3. Text rendered with a scaled text matrix (barcode font character)
+
+        var graph = new PdfObjectGraph();
+
+        var catalog = new PdfDictionary();
+        catalog["Type"] = new PdfName("Catalog");
+        catalog["Pages"] = new PdfReference(new PdfObjectId(2, 0));
+
+        var pages = new PdfDictionary();
+        pages["Type"] = new PdfName("Pages");
+        pages["Count"] = new PdfInteger(1);
+        pages["Kids"] = new PdfArray([new PdfReference(new PdfObjectId(3, 0))]);
+
+        var xObjectResources = new PdfDictionary();
+        xObjectResources["ImBarcode"] = new PdfReference(new PdfObjectId(5, 0));
+
+        var resources = new PdfDictionary();
+        resources["XObject"] = xObjectResources;
+
+        var page = new PdfDictionary();
+        page["Type"] = new PdfName("Page");
+        page["Parent"] = new PdfReference(new PdfObjectId(2, 0));
+        page["Resources"] = resources;
+        page["MediaBox"] = Array(0, 0, 400, 200);
+        page["Contents"] = new PdfReference(new PdfObjectId(4, 0));
+
+        // Content stream: vector bars + CCITT image + scaled text
+        var contentBytes = Encoding.ASCII.GetBytes(
+            "0 g " +                                     // fill black
+            "10 10 5 80 re f " +                         // bar 1
+            "20 10 5 80 re f " +                         // bar 2
+            "q 40 0 0 20 50 80 cm /ImBarcode Do Q " +    // CCITT image
+            "BT /F1 8 Tf 2 0 0 2 100 50 Tm (X) Tj ET"); // scaled barcode-font text
+        var contentStream = new PdfStreamObject(new PdfDictionary(), contentBytes);
+
+        // CCITT 1-bit image: 4 white pixels, Group 3 1D, no EOL/EOB
+        var decodeParms = new PdfDictionary();
+        decodeParms["K"] = new PdfInteger(0);
+        decodeParms["Columns"] = new PdfInteger(4);
+        decodeParms["Rows"] = new PdfInteger(1);
+        decodeParms["EndOfLine"] = new PdfBoolean(false);
+        decodeParms["EndOfBlock"] = new PdfBoolean(false);
+
+        var imageDictionary = new PdfDictionary();
+        imageDictionary["Type"] = new PdfName("XObject");
+        imageDictionary["Subtype"] = new PdfName("Image");
+        imageDictionary["Width"] = new PdfInteger(4);
+        imageDictionary["Height"] = new PdfInteger(1);
+        imageDictionary["ColorSpace"] = new PdfName("DeviceGray");
+        imageDictionary["BitsPerComponent"] = new PdfInteger(1);
+        imageDictionary["Filter"] = new PdfName("CCITTFaxDecode");
+        imageDictionary["DecodeParms"] = decodeParms;
+        byte[] ccittData = [0xB0]; // 4 white pixels
+        var imageStream = new PdfStreamObject(imageDictionary, ccittData);
+
+        graph.Add(new PdfIndirectObject(new PdfObjectId(1, 0), catalog, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(2, 0), pages, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(3, 0), page, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(4, 0), contentStream, new PdfSourceSpan(0, 1)));
+        graph.Add(new PdfIndirectObject(new PdfObjectId(5, 0), imageStream, new PdfSourceSpan(0, 1)));
+
+        var builder = new PdfDocumentBuilder(new PdfContentStreamParser(), new PdfGraphicsInterpreter());
+        var document = builder.Build(graph);
+
+        var builtPage = Assert.Single(document.Pages);
+        var paths = builtPage.GraphicsObjects.OfType<PdfPathElement>().ToList();
+        var images = builtPage.GraphicsObjects.OfType<PdfImageElement>().ToList();
+        var texts = builtPage.TextObjects.ToList();
+        Assert.Equal(2, paths.Count);
+        Assert.Single(images);
+        Assert.Single(texts);
+
+        // Scaled text: Tf=8, transform carries scale in matrix A/D; FontSize stores raw Tf value
+        Assert.Equal(8.0, texts[0].FontSize, 4);
+
+        var bridge = new CanvasPdfGeneratorBridge();
+        await using var output = new MemoryStream();
+        await bridge.RegenerateAsync(document, output);
+
+        output.Position = 0;
+        var reimported = await new PdfImporter().LoadAsync(output);
+
+        var importedPage = Assert.Single(reimported.Pages);
+        Assert.Equal(2, importedPage.GraphicsObjects.OfType<PdfPathElement>().Count());
+        Assert.Single(importedPage.GraphicsObjects.OfType<PdfImageElement>());
+        Assert.Equal("X", Assert.Single(importedPage.TextObjects).Text);
+        Assert.False(importedPage.GraphicsObjects.OfType<PdfImageElement>().Single().ImageBytes.IsEmpty);
     }
 }

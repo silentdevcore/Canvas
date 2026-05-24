@@ -199,3 +199,4 @@ C:/Users/mabar/source/repos/Canvas/tests/Canvas.Core.Tests/obj/Debug/net10.0/ref
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Core.Tests/obj/Debug/net10.0/ref/Canvas.Core.Tests.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Core.Tests/bin/Debug/net10.0/Canvas.Domain.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Core.Tests/bin/Debug/net10.0/Canvas.Domain.pdb
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Core.Tests/obj/Debug/net10.0/Canvas.Core.Tests.sourcelink.json
