@@ -16,6 +16,9 @@ public static class DesignJsonMapper
         PdfFontLoader? fontLoader = null,
         string? targetLanguage = null)
     {
+        // Query-param language > JSON body targetLanguage > systemLanguage
+        targetLanguage ??= design.PageSettings?.TargetLanguage;
+
         // Resolve localized property values and apply them as content substitutions.
         var resolvedProps = LocalizedPropertyResolver.Resolve(
             design.PageSettings?.LocalizedProperties,
@@ -112,13 +115,13 @@ public static class DesignJsonMapper
                     LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
                     LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
                     StringComparison.OrdinalIgnoreCase))))
-                RenderElement(page, el, ps.Height, pageNumber, totalPages);
+                RenderElement(page, el, ps.Height, pageNumber, totalPages, effectiveLang);
 
             // Scoped elements: draw on each page that satisfies the scope condition
             foreach (var el in scopedElements)
             {
                 if (!MatchesPageScope(el.PageScope, el.PageRange, pageNumber, totalPages)) continue;
-                RenderElement(page, el, ps.Height, pageNumber, totalPages);
+                RenderElement(page, el, ps.Height, pageNumber, totalPages, effectiveLang);
             }
 
             // Global watermark from page settings
@@ -184,17 +187,33 @@ public static class DesignJsonMapper
 
     private static void RenderElement(
         PdfPage page, ElementDto el, double pageH,
-        int pageIndex, int totalPages)
+        int pageIndex, int totalPages,
+        string? effectiveLang = null)
     {
-        var w = el.Width;
-        var h = el.Height;
-        if (w <= 0 || h <= 0) return;
-
-        // Element coordinates are page-absolute — use directly, no margin offset.
-        var elX = el.X;
-        var elY = el.Y;
-
+        var w    = el.Width;
+        var h    = el.Height;
+        var elX  = el.X;
+        var elY  = el.Y;
         var style = el.Style ?? [];
+
+        // Apply per-language position/rotation override when a target language is active.
+        if (effectiveLang != null && el.LangOverrides?.Count > 0)
+        {
+            var key = el.LangOverrides.ContainsKey(effectiveLang)
+                ? effectiveLang
+                : LocalizedPropertyResolver.NormalizeTag(effectiveLang);
+            if (el.LangOverrides.TryGetValue(key, out var ov))
+            {
+                if (ov.X.HasValue)        elX   = ov.X.Value;
+                if (ov.Y.HasValue)        elY   = ov.Y.Value;
+                if (ov.Width.HasValue)    w     = ov.Width.Value;
+                if (ov.Height.HasValue)   h     = ov.Height.Value;
+                if (ov.Rotation.HasValue)
+                    style = new Dictionary<string, object>(style) { ["rotation"] = ov.Rotation.Value };
+            }
+        }
+
+        if (w <= 0 || h <= 0) return;
 
         switch (el.Type)
         {
@@ -1069,10 +1088,24 @@ public static class DesignJsonMapper
 
     private static void SubstituteElement(ElementDto el, Dictionary<string, string> props)
     {
-        if (string.IsNullOrEmpty(el.Content) || !el.Content.Contains("{{", StringComparison.Ordinal))
-            return;
+        el.Content      = Substitute(el.Content,      props);
+        el.HtmlContent  = Substitute(el.HtmlContent,  props);
+        el.FieldLabel   = Substitute(el.FieldLabel,    props);
+        el.QrValue      = Substitute(el.QrValue,       props);
+        el.BarcodeValue = Substitute(el.BarcodeValue,  props);
+        el.NoteTitle    = Substitute(el.NoteTitle,     props);
+        el.NoteBody     = Substitute(el.NoteBody,      props);
+        el.FootnoteText = Substitute(el.FootnoteText,  props);
+        el.ButtonAction = Substitute(el.ButtonAction,  props);
+    }
+
+    private static string? Substitute(string? text, Dictionary<string, string> props)
+    {
+        if (string.IsNullOrEmpty(text) || !text.Contains("{{", StringComparison.Ordinal))
+            return text;
         foreach (var (key, value) in props)
-            el.Content = el.Content.Replace("{{" + key + "}}", value, StringComparison.OrdinalIgnoreCase);
+            text = text.Replace("{{" + key + "}}", value, StringComparison.OrdinalIgnoreCase);
+        return text;
     }
 
     private static string HtmlToText(string html)

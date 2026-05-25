@@ -22,6 +22,7 @@ public sealed class PageSettingsDto
     public double Width { get; set; } = 595;
     public double Height { get; set; } = 842;
     public string Orientation { get; set; } = "portrait";
+    public string? Unit { get; set; }  // "px" | "pt" | "mm" | "cm" | "in"
     public string? BackgroundColor { get; set; }
     public string? BackgroundImage { get; set; }
     public string? BackgroundImageFit { get; set; }
@@ -37,6 +38,8 @@ public sealed class PageSettingsDto
     public string? SystemLanguage { get; set; }
     public List<string>? ActiveLanguages { get; set; }
     public List<LocalizedPropertyDto>? LocalizedProperties { get; set; }
+    /// <summary>When set in the exported JSON, overrides the API query-param language for this export.</summary>
+    public string? TargetLanguage { get; set; }
 }
 
 public sealed class MarginsDto
@@ -192,6 +195,9 @@ public sealed class ElementDto
     public string? Language { get; set; }         // BCP-47 tag: "ar", "zh", "en", etc.
     public string? TextDirection { get; set; }    // "ltr" | "rtl"
     public string? ElementLanguage { get; set; }  // undefined = all language tabs; set = own element for that language only
+    public string? ElementGroup { get; set; }     // shared ID across language siblings (UI only)
+    /// <summary>Per-language position/rotation overrides. Key = BCP-47 tag (e.g. "de", "ar").</summary>
+    public Dictionary<string, LangOverrideDto>? LangOverrides { get; set; }
 
     // Date
     public string? DateMode { get; set; }
@@ -270,4 +276,30 @@ public sealed class ElementDto
 
     // Auto-hyphenation
     public bool? AutoHyphenation { get; set; }
+
+    // Data binding / template engine
+    public string? Binding    { get; set; }
+    public string? Expression { get; set; }
+    public string? Formatter  { get; set; }
+    public RepeatDto? Repeat  { get; set; }
+
+    // Image
+    public bool? PreserveAspectRatio { get; set; }
+}
+
+/// <summary>Repeat configuration — iterates a data path and stamps a template element.</summary>
+public sealed class RepeatDto
+{
+    public string? DataPath   { get; set; }
+    public string? TemplateId { get; set; }
+}
+
+/// <summary>Per-language position and rotation override for a canvas element.</summary>
+public sealed class LangOverrideDto
+{
+    public double? X        { get; set; }
+    public double? Y        { get; set; }
+    public double? Width    { get; set; }
+    public double? Height   { get; set; }
+    public double? Rotation { get; set; }
 }

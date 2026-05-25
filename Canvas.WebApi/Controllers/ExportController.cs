@@ -42,13 +42,14 @@ public class ExportController : ControllerBase
         if (design is null)
             return BadRequest(new { error = "Request body is required." });
 
-        // For PDF with an explicit language: resolve localized properties and render directly.
-        if (format.Equals("pdf", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(language))
+        // For PDF: query-param language takes precedence; fall back to targetLanguage in the JSON body.
+        var effectiveLang = language ?? design.PageSettings?.TargetLanguage;
+        if (format.Equals("pdf", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(effectiveLang))
         {
-            var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, language);
+            var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, effectiveLang);
             var bytes = doc.ToBytes();
             var safeName = SanitizeFileName(design.Name);
-            return File(bytes, "application/pdf", $"{safeName}-{language}.pdf");
+            return File(bytes, "application/pdf", $"{safeName}-{effectiveLang}.pdf");
         }
 
         var options = (dpi.HasValue || quality.HasValue) ? new ExportOptions(dpi, quality) : null;

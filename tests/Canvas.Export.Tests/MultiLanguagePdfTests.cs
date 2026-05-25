@@ -200,4 +200,99 @@ public sealed class MultiLanguagePdfTests
         Assert.True(bytes.Length > 0);
         Assert.Equal("%PDF"u8.ToArray(), bytes[..4]);
     }
+
+    // ── langOverrides ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void ApplyPropertySubstitutions_ReplacesInHtmlContent()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "t", Name = "Sub Test",
+            PageSettings = new PageSettingsDto
+            {
+                Width = 595, Height = 842,
+                SystemLanguage = "de",
+                ActiveLanguages = ["de", "en"],
+                LocalizedProperties =
+                [
+                    new LocalizedPropertyDto
+                    {
+                        Key = "GREETING", Scope = "global",
+                        LocalizedValues = new() { ["de"] = "Hallo", ["en"] = "Hello" }
+                    }
+                ]
+            },
+            Pages = [new PageDto
+            {
+                Id = "p1",
+                Elements = [new ElementDto
+                {
+                    Id = "e1", Type = "richtext",
+                    X = 50, Y = 50, Width = 200, Height = 50,
+                    HtmlContent = "<p>{{GREETING}} Welt</p>"
+                }]
+            }]
+        };
+
+        var doc   = Canvas.WebApi.Infrastructure.DesignJsonMapper.MapToPdfDocument(design, targetLanguage: "de");
+        var bytes = doc.ToBytes();
+
+        Assert.True(bytes.Length > 0);
+        Assert.Equal("%PDF"u8.ToArray(), bytes[..4]);
+    }
+
+    [Fact]
+    public void ElementDto_LangOverrides_RoundTripJson()
+    {
+        var original = new ElementDto
+        {
+            Id = "1", Type = "text", X = 10, Y = 10, Width = 100, Height = 30,
+            LangOverrides = new Dictionary<string, LangOverrideDto>
+            {
+                ["ar"] = new() { X = 400, Y = 50, Rotation = 0 },
+                ["de"] = new() { X = 20,  Y = 60 }
+            }
+        };
+        var opts = new System.Text.Json.JsonSerializerOptions
+            { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+        var json = System.Text.Json.JsonSerializer.Serialize(original, opts);
+        var back = System.Text.Json.JsonSerializer.Deserialize<ElementDto>(json, opts);
+
+        Assert.Equal(400, back?.LangOverrides?["ar"].X);
+        Assert.Equal(50,  back?.LangOverrides?["ar"].Y);
+        Assert.Equal(20,  back?.LangOverrides?["de"].X);
+        Assert.Equal(60,  back?.LangOverrides?["de"].Y);
+    }
+
+    [Fact]
+    public void DesignJsonMapper_AppliesLangOverride_Position()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "test", Name = "Override Test",
+            PageSettings = new PageSettingsDto { Width = 595, Height = 842 },
+            Pages = [new PageDto
+            {
+                Id = "p1",
+                Elements = [new ElementDto
+                {
+                    Id = "e1", Type = "rect",
+                    X = 10, Y = 10, Width = 100, Height = 50,
+                    LangOverrides = new Dictionary<string, LangOverrideDto>
+                    {
+                        ["ar"] = new() { X = 300, Y = 200, Width = 150, Height = 60 }
+                    },
+                    Style = new Dictionary<string, object>
+                        { ["backgroundColor"] = "#ff0000", ["borderColor"] = "#000000", ["borderWidth"] = 1.0 }
+                }]
+            }]
+        };
+
+        var doc   = Canvas.WebApi.Infrastructure.DesignJsonMapper.MapToPdfDocument(design, targetLanguage: "ar");
+        var bytes = doc.ToBytes();
+
+        Assert.True(bytes.Length > 0);
+        Assert.Equal("%PDF"u8.ToArray(), bytes[..4]);
+    }
 }

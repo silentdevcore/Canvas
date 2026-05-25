@@ -68,9 +68,15 @@ public static class LocalizedPropertyResolver
         var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var page in design.Pages)
             foreach (var el in page.Elements)
-                ScanContent(el.Content, keys);
+            {
+                ScanContent(el.Content,     keys);
+                ScanContent(el.HtmlContent, keys);
+            }
         foreach (var el in design.SharedElements)
-            ScanContent(el.Content, keys);
+        {
+            ScanContent(el.Content,     keys);
+            ScanContent(el.HtmlContent, keys);
+        }
         return [.. keys.OrderBy(k => k)];
     }
 
