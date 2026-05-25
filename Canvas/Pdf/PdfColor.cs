@@ -33,6 +33,15 @@ public readonly struct PdfColor : IPdfColor
 
     public static PdfColor BlueColor { get; } = new(0, 0, 1);
 
+    public static PdfColor FromRgb(int red, int green, int blue)
+    {
+        ValidateRgbByte(red, nameof(red));
+        ValidateRgbByte(green, nameof(green));
+        ValidateRgbByte(blue, nameof(blue));
+
+        return new PdfColor(red / 255d, green / 255d, blue / 255d);
+    }
+
     public string ToFillColorOperator()
     {
         return string.Format(CultureInfo.InvariantCulture, "{0} {1} {2} rg", Format(Red), Format(Green), Format(Blue));
@@ -48,6 +57,14 @@ public readonly struct PdfColor : IPdfColor
         if (value is < 0 or > 1)
         {
             throw new ArgumentOutOfRangeException(name, "Color components must be in the range [0, 1].");
+        }
+    }
+
+    private static void ValidateRgbByte(int value, string name)
+    {
+        if (value is < 0 or > 255)
+        {
+            throw new ArgumentOutOfRangeException(name, "RGB byte components must be in the range [0, 255].");
         }
     }
 

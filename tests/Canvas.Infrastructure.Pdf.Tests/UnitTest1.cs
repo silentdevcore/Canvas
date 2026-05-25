@@ -95,6 +95,265 @@ public class PdfSerializationIntegrationTests
     }
 }
 
+public class PdfColorTests
+{
+    [Fact]
+    public void FromRgb_ShouldNormalizeByteComponents()
+    {
+        var color = PdfColor.FromRgb(128, 64, 32);
+
+        Assert.Equal(128 / 255d, color.Red);
+        Assert.Equal(64 / 255d, color.Green);
+        Assert.Equal(32 / 255d, color.Blue);
+    }
+
+    [Fact]
+    public void FromRgb_ShouldThrow_WhenComponentIsOutsideByteRange()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => PdfColor.FromRgb(256, 0, 0));
+    }
+}
+
+public class PdfTopLeftMigrationTests
+{
+    [Fact]
+    public void DrawTextFromTop_ShouldMatchManualBaselineConversion()
+    {
+        var fromTop = new PdfDocument();
+        var fromTopPage = fromTop.AddPage();
+        fromTopPage.DrawTextFromTop("syncfusion", 40, 40, 12, PdfFontFamily.Helvetica);
+
+        var manual = new PdfDocument();
+        var manualPage = manual.AddPage();
+        manualPage.DrawText("syncfusion", 40, manualPage.Height - 40 - 12, 12, PdfFontFamily.Helvetica);
+
+        var fromTopHash = Convert.ToHexStringLower(SHA256.HashData(fromTop.ToBytes(new PdfSaveOptions { CompressContentStreams = false })));
+        var manualHash = Convert.ToHexStringLower(SHA256.HashData(manual.ToBytes(new PdfSaveOptions { CompressContentStreams = false })));
+
+        Assert.Equal(manualHash, fromTopHash);
+    }
+
+    [Fact]
+    public void DrawParagraphFromTop_ShouldMatchManualBaselineConversion()
+    {
+        var options = new PdfParagraphOptions
+        {
+            FontSize = 12,
+            FontFamily = PdfFontFamily.Helvetica,
+            FillColor = PdfColor.BlueColor
+        };
+
+        var fromTop = new PdfDocument();
+        var fromTopPage = fromTop.AddPage();
+        var fromTopResult = fromTopPage.DrawParagraphFromTop("hello paragraph", 40, 40, 200, options);
+
+        var manual = new PdfDocument();
+        var manualPage = manual.AddPage();
+        var manualResult = manualPage.DrawParagraph("hello paragraph", 40, manualPage.Height - 40 - 12, 200, options);
+
+        Assert.Equal(manualResult.TopY, fromTopResult.TopY);
+        Assert.Equal(manualResult.BottomY, fromTopResult.BottomY);
+        Assert.Equal(manualResult.LineCount, fromTopResult.LineCount);
+    }
+
+    [Fact]
+    public void DrawTextFromTop_ShouldThrow_WhenTopYIsNegative()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => page.DrawTextFromTop("invalid", 40, -1));
+    }
+
+    [Fact]
+    public void DrawTextBoxFromTop_ShouldTopAlignTextByDefault()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+
+        var result = page.DrawTextBoxFromTop("boxed", 40, 40, 200, 80);
+
+        Assert.Equal(page.Height - 40 - 12, result.TopY);
+        Assert.Equal(1, result.LineCount);
+    }
+
+    [Fact]
+    public void DrawTextBoxFromTop_ShouldMiddleAlignText()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var options = new PdfTextBoxOptions
+        {
+            FontSize = 12,
+            VerticalAlignment = PdfVerticalAlignment.Middle
+        };
+
+        var result = page.DrawTextBoxFromTop("boxed", 40, 40, 200, 80, options);
+        var expectedTopY = page.Height - 40 - 80 + ((80 - 12) / 2) + 12;
+
+        Assert.Equal(expectedTopY, result.TopY);
+    }
+
+    [Fact]
+    public void DrawTextBoxFromTop_ShouldBottomAlignText()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        var options = new PdfTextBoxOptions
+        {
+            FontSize = 12,
+            VerticalAlignment = PdfVerticalAlignment.Bottom
+        };
+
+        var result = page.DrawTextBoxFromTop("boxed", 40, 40, 200, 80, options);
+        var expectedTopY = page.Height - 40 - 80 + 12;
+
+        Assert.Equal(expectedTopY, result.TopY);
+    }
+
+    [Fact]
+    public void DrawTextBoxFromTop_ShouldThrow_WhenHeightIsInvalid()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => page.DrawTextBoxFromTop("invalid", 40, 40, 200, 0));
+    }
+
+    [Fact]
+    public void DrawLineFromTop_ShouldMatchManualCoordinateConversion()
+    {
+        var fromTop = new PdfDocument();
+        var fromTopPage = fromTop.AddPage();
+        fromTopPage.DrawLineFromTop(40, 40, 120, 60, 2, PdfColor.RedColor);
+
+        var manual = new PdfDocument();
+        var manualPage = manual.AddPage();
+        manualPage.DrawLine(40, manualPage.Height - 40, 120, manualPage.Height - 60, 2, PdfColor.RedColor);
+
+        Assert.Equal(HashPdf(manual), HashPdf(fromTop));
+    }
+
+    [Fact]
+    public void DrawRectangleFromTop_ShouldMatchManualCoordinateConversion()
+    {
+        var fromTop = new PdfDocument();
+        var fromTopPage = fromTop.AddPage();
+        fromTopPage.DrawRectangleFromTop(40, 40, 120, 60, 2, fill: true, fillColor: PdfColor.BlueColor);
+
+        var manual = new PdfDocument();
+        var manualPage = manual.AddPage();
+        manualPage.DrawRectangle(40, manualPage.Height - 40 - 60, 120, 60, 2, fill: true, fillColor: PdfColor.BlueColor);
+
+        Assert.Equal(HashPdf(manual), HashPdf(fromTop));
+    }
+
+    [Fact]
+    public void DrawImageFromTop_ShouldMatchManualCoordinateConversion()
+    {
+        var imagePath = CreateOnePixelPng();
+
+        try
+        {
+            var fromTop = new PdfDocument();
+            var fromTopPage = fromTop.AddPage();
+            fromTopPage.DrawImageFromTop(imagePath, 40, 40, 20, 20);
+
+            var manual = new PdfDocument();
+            var manualPage = manual.AddPage();
+            manualPage.DrawImage(imagePath, 40, manualPage.Height - 40 - 20, 20, 20);
+
+            Assert.Equal(HashPdf(manual), HashPdf(fromTop));
+        }
+        finally
+        {
+            File.Delete(imagePath);
+        }
+    }
+
+    [Fact]
+    public void DrawImageFromTop_WithoutSize_ShouldMatchManualInferredSizeConversion()
+    {
+        var imagePath = CreateOnePixelPng();
+
+        try
+        {
+            var fromTop = new PdfDocument();
+            var fromTopPage = fromTop.AddPage();
+            fromTopPage.DrawImageFromTop(imagePath, 40, 40);
+
+            var manual = new PdfDocument();
+            var manualPage = manual.AddPage();
+            manualPage.DrawImage(imagePath, 40, manualPage.Height - 40 - 1);
+
+            Assert.Equal(HashPdf(manual), HashPdf(fromTop));
+        }
+        finally
+        {
+            File.Delete(imagePath);
+        }
+    }
+
+    [Fact]
+    public void DrawImageFromTop_WithBytes_ShouldMatchPathBasedImage()
+    {
+        var imageBytes = CreateOnePixelPngBytes();
+
+        var fromBytes = new PdfDocument();
+        var fromBytesPage = fromBytes.AddPage();
+        fromBytesPage.DrawImageFromTop(imageBytes, 40, 40, 20, 20);
+
+        var imagePath = CreateOnePixelPng();
+
+        try
+        {
+            var fromPath = new PdfDocument();
+            var fromPathPage = fromPath.AddPage();
+            fromPathPage.DrawImageFromTop(imagePath, 40, 40, 20, 20);
+
+            Assert.Equal(HashPdf(fromPath), HashPdf(fromBytes));
+        }
+        finally
+        {
+            File.Delete(imagePath);
+        }
+    }
+
+    [Fact]
+    public void DrawImageFromTop_WithStream_ShouldMatchByteBasedImage()
+    {
+        var imageBytes = CreateOnePixelPngBytes();
+
+        var fromStream = new PdfDocument();
+        var fromStreamPage = fromStream.AddPage();
+        using var stream = new MemoryStream(imageBytes);
+        fromStreamPage.DrawImageFromTop(stream, 40, 40, 20, 20);
+
+        var fromBytes = new PdfDocument();
+        var fromBytesPage = fromBytes.AddPage();
+        fromBytesPage.DrawImageFromTop(imageBytes, 40, 40, 20, 20);
+
+        Assert.Equal(HashPdf(fromBytes), HashPdf(fromStream));
+    }
+
+    private static string HashPdf(PdfDocument document)
+    {
+        return Convert.ToHexStringLower(SHA256.HashData(document.ToBytes(new PdfSaveOptions { CompressContentStreams = false })));
+    }
+
+    private static string CreateOnePixelPng()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"canvas-one-pixel-{Guid.NewGuid():N}.png");
+        File.WriteAllBytes(path, CreateOnePixelPngBytes());
+        return path;
+    }
+
+    private static byte[] CreateOnePixelPngBytes()
+    {
+        return Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADUlEQVR42mP8z8BQDwAFgwJ/l4p6GAAAAABJRU5ErkJggg==");
+    }
+}
+
 public class PdfFacadeTests
 {
     [Fact]

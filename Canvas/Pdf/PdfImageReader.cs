@@ -19,6 +19,29 @@ internal static class PdfImageReader
 
         var data = File.ReadAllBytes(imagePath);
 
+        return Read(data);
+    }
+
+    public static PdfImageData Read(Stream stream)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+
+        using var memory = new MemoryStream();
+        stream.CopyTo(memory);
+        return Read(memory.ToArray());
+    }
+
+    public static PdfImageData Read(byte[] data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+
+        if (data.Length == 0)
+        {
+            throw new ArgumentException("Image data cannot be empty.", nameof(data));
+        }
+
+        data = data.ToArray();
+
         if (IsPng(data))
         {
             return ReadPng(data);
