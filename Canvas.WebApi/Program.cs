@@ -60,6 +60,9 @@ builder.Services.AddScoped<IDocumentExporter, OdtDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, WordDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, ExcelDocumentExporter>();
 
+// Register migration service
+builder.Services.AddSingleton<Canvas.WebApi.Services.MigrationService>();
+
 // Register use cases
 builder.Services.AddScoped<ExportDocumentUseCase>();
 builder.Services.AddScoped<RenderTemplateUseCase>();
