@@ -60,6 +60,7 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
         private readonly HashSet<string> _removableGraphicsVariables;
         private readonly Dictionary<string, PdfStringFormatMigrationInfo> _stringFormatsByVariable;
         private readonly HashSet<string> _removableStringFormatVariables;
+        private readonly HashSet<string> _savedDocumentVariables;
 
         public SyncfusionPdfSyntaxRewriter(CompilationUnitSyntax root)
         {
@@ -67,12 +68,21 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
             _stringFormatsByVariable = FindStringFormatVariables(root);
             _removableGraphicsVariables = FindRemovableGraphicsVariables(root, _graphicsPageByVariable, _stringFormatsByVariable);
             _removableStringFormatVariables = FindRemovableStringFormatVariables(root, _graphicsPageByVariable, _stringFormatsByVariable);
+            _savedDocumentVariables = FindSavedDocumentVariables(root, FindDocumentVariables(root));
+            AddUnsupportedFeatureDiagnostics(root);
         }
 
         public IReadOnlyList<MigrationDiagnostic> Diagnostics => _diagnostics;
 
         public override SyntaxNode? VisitGlobalStatement(GlobalStatementSyntax node)
         {
+            if (node.Statement is ExpressionStatementSyntax expressionStatement
+                && TryRemoveDocumentClose(expressionStatement, out var closeDiagnostic))
+            {
+                _diagnostics.Add(closeDiagnostic);
+                return null;
+            }
+
             if (node.Statement is LocalDeclarationStatementSyntax localDeclaration
                 && localDeclaration.Declaration.Variables.Count == 1
                 && TryGetRemovalDiagnostic(localDeclaration.Declaration.Variables[0].Identifier.ValueText, out var diagnostic))
@@ -82,6 +92,20 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
             }
 
             return base.VisitGlobalStatement(node);
+        }
+
+        public override SyntaxNode? VisitExpressionStatement(ExpressionStatementSyntax node)
+        {
+            var visited = (ExpressionStatementSyntax)base.VisitExpressionStatement(node)!;
+
+            if (visited.Parent is not GlobalStatementSyntax
+                && TryRemoveDocumentClose(visited, out var diagnostic))
+            {
+                _diagnostics.Add(diagnostic);
+                return null;
+            }
+
+            return visited;
         }
 
         public override SyntaxNode? VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
@@ -136,11 +160,47 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
 
             if (!TryMigrateGraphicsInvocation(visited, _graphicsPageByVariable, _stringFormatsByVariable, out var migrated, out var diagnosticId, out var diagnosticMessage))
             {
+                if (TryCreateUnsupportedGraphicsDiagnostic(visited, _graphicsPageByVariable, out var diagnostic))
+                {
+                    _diagnostics.Add(diagnostic);
+                }
+
                 return visited;
             }
 
             _diagnostics.Add(Info(diagnosticId, diagnosticMessage));
             return migrated;
+        }
+
+        private void AddUnsupportedFeatureDiagnostics(CompilationUnitSyntax root)
+        {
+            var identifierNames = root.DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Select(static identifier => identifier.Identifier.ValueText)
+                .ToHashSet(StringComparer.Ordinal);
+
+            if (identifierNames.Contains("PdfGrid"))
+            {
+                _diagnostics.Add(Warning("CANMIGSYNC005", "Syncfusion PdfGrid/table usage requires manual Canvas table migration."));
+            }
+
+            if (identifierNames.Overlaps(new[]
+                {
+                    "PdfLoadedDocument",
+                    "PdfForm",
+                    "PdfField",
+                    "PdfSignature",
+                    "PdfCertificate",
+                    "PdfSecurity",
+                    "PdfDocumentSecurity",
+                    "PdfPageTemplateElement",
+                    "PdfDocumentTemplate",
+                    "PdfConformanceLevel",
+                    "PdfPortfolio"
+                }))
+            {
+                _diagnostics.Add(Warning("CANMIGSYNC006", "Syncfusion forms, security, PDF/A, template, or existing-PDF processing is outside the v1 migration scope."));
+            }
         }
 
         private static bool TryMigrateGraphicsInvocation(
@@ -209,6 +269,103 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
 
             diagnostic = Info("CANMIGSYNC000", "No migration was applied.");
             return false;
+        }
+
+        private bool TryRemoveDocumentClose(ExpressionStatementSyntax statement, out MigrationDiagnostic diagnostic)
+        {
+            diagnostic = Info("CANMIGSYNC000", "No migration was applied.");
+
+            if (statement.Expression is not InvocationExpressionSyntax invocation
+                || invocation.Expression is not MemberAccessExpressionSyntax memberAccess
+                || memberAccess.Name.Identifier.ValueText != "Close"
+                || memberAccess.Expression is not IdentifierNameSyntax documentIdentifier
+                || !_savedDocumentVariables.Contains(documentIdentifier.Identifier.ValueText)
+                || invocation.ArgumentList.Arguments.Count != 1
+                || !invocation.ArgumentList.Arguments[0].Expression.IsKind(SyntaxKind.TrueLiteralExpression))
+            {
+                return false;
+            }
+
+            diagnostic = Info("CANMIGSYNC015", "Syncfusion document.Close(true) was removed after the saved document was migrated.");
+            return true;
+        }
+
+        private static bool TryCreateUnsupportedGraphicsDiagnostic(
+            InvocationExpressionSyntax invocation,
+            IReadOnlyDictionary<string, ExpressionSyntax> graphicsPageByVariable,
+            out MigrationDiagnostic diagnostic)
+        {
+            if (IsRectangleOrFormattedDrawString(invocation, graphicsPageByVariable))
+            {
+                diagnostic = Warning("CANMIGSYNC004", "Syncfusion DrawString uses rectangle layout or string format options that need manual layout review.");
+                return true;
+            }
+
+            if (IsUnresolvedSimpleDrawString(invocation, graphicsPageByVariable))
+            {
+                diagnostic = Warning("CANMIGSYNC007", "Syncfusion DrawString could not be migrated because the font size or coordinate conversion inputs were not resolved.");
+                return true;
+            }
+
+            if (IsUnresolvedDrawImage(invocation, graphicsPageByVariable))
+            {
+                diagnostic = Warning("CANMIGSYNC008", "Syncfusion DrawImage could not be migrated because the source image path, stream, or bytes were not resolved.");
+                return true;
+            }
+
+            diagnostic = Info("CANMIGSYNC000", "No migration was applied.");
+            return false;
+        }
+
+        private static bool IsRectangleOrFormattedDrawString(
+            InvocationExpressionSyntax invocation,
+            IReadOnlyDictionary<string, ExpressionSyntax> graphicsPageByVariable)
+        {
+            if (!TryGetGraphicsMethodInvocation(invocation, graphicsPageByVariable, "DrawString", out var arguments))
+            {
+                return false;
+            }
+
+            return arguments.Count >= 4 && IsRectangleCreation(arguments[3].Expression)
+                || arguments.Count >= 5 && IsPdfStringFormatExpression(arguments[4].Expression);
+        }
+
+        private static bool IsUnresolvedSimpleDrawString(
+            InvocationExpressionSyntax invocation,
+            IReadOnlyDictionary<string, ExpressionSyntax> graphicsPageByVariable)
+        {
+            return TryGetGraphicsMethodInvocation(invocation, graphicsPageByVariable, "DrawString", out var arguments)
+                && arguments.Count == 5
+                && !IsRectangleCreation(arguments[3].Expression)
+                && !TryMapStandardFont(arguments[1].Expression, out _, out _);
+        }
+
+        private static bool IsUnresolvedDrawImage(
+            InvocationExpressionSyntax invocation,
+            IReadOnlyDictionary<string, ExpressionSyntax> graphicsPageByVariable)
+        {
+            return TryGetGraphicsMethodInvocation(invocation, graphicsPageByVariable, "DrawImage", out var arguments)
+                && arguments.Count is 3 or 5
+                && !TryMapImageSource(arguments[0].Expression, out _);
+        }
+
+        private static bool TryGetGraphicsMethodInvocation(
+            InvocationExpressionSyntax invocation,
+            IReadOnlyDictionary<string, ExpressionSyntax> graphicsPageByVariable,
+            string methodName,
+            out SeparatedSyntaxList<ArgumentSyntax> arguments)
+        {
+            arguments = default;
+
+            if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess
+                || memberAccess.Name.Identifier.ValueText != methodName
+                || !TryResolveGraphicsPageExpression(memberAccess.Expression, graphicsPageByVariable, out _))
+            {
+                return false;
+            }
+
+            arguments = invocation.ArgumentList.Arguments;
+            return true;
         }
 
         private static bool TryMigrateDrawTextBox(
@@ -286,6 +443,12 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
                 return false;
             }
 
+            if (IsRectangleCreation(arguments[3].Expression)
+                || IsPdfStringFormatExpression(arguments[4].Expression))
+            {
+                return false;
+            }
+
             if (!TryMapStandardFont(arguments[1].Expression, out var fontSizeExpression, out var fontFamilyExpression))
             {
                 return false;
@@ -331,7 +494,7 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
                 return false;
             }
 
-            if (!TryMapPdfPenColor(arguments[0].Expression, out var strokeColorExpression))
+            if (!TryMapPdfPen(arguments[0].Expression, out var pen))
             {
                 return false;
             }
@@ -342,8 +505,8 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
                 arguments[2],
                 arguments[3],
                 arguments[4],
-                SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1))),
-                SyntaxFactory.Argument(strokeColorExpression)
+                SyntaxFactory.Argument(pen.LineWidth),
+                SyntaxFactory.Argument(pen.Color)
             }));
 
             migrated = invocation
@@ -379,7 +542,7 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
 
             var firstArgumentExpression = arguments[0].Expression;
 
-            if (TryMapPdfPenColor(firstArgumentExpression, out var strokeColorExpression))
+            if (TryMapPdfPen(firstArgumentExpression, out var pen))
             {
                 migrated = invocation
                     .WithExpression(SyntaxFactory.MemberAccessExpression(
@@ -392,9 +555,9 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
                         arguments[2],
                         arguments[3],
                         arguments[4],
-                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1))),
+                        SyntaxFactory.Argument(pen.LineWidth),
                         SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)),
-                        SyntaxFactory.Argument(strokeColorExpression)
+                        SyntaxFactory.Argument(pen.Color)
                     })));
 
                 return true;
@@ -514,6 +677,49 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
                     && graphicsAccess.Name.Identifier.ValueText == "Graphics")
                 {
                     result[variable.Identifier.ValueText] = graphicsAccess.Expression;
+                }
+            }
+
+            return result;
+        }
+
+        private static HashSet<string> FindDocumentVariables(CompilationUnitSyntax root)
+        {
+            var result = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (var declaration in root.DescendantNodes().OfType<LocalDeclarationStatementSyntax>())
+            {
+                if (declaration.Declaration.Variables.Count != 1)
+                {
+                    continue;
+                }
+
+                var variable = declaration.Declaration.Variables[0];
+
+                if (variable.Initializer?.Value is ObjectCreationExpressionSyntax creation
+                    && creation.Type.ToString() == "PdfDocument")
+                {
+                    result.Add(variable.Identifier.ValueText);
+                }
+            }
+
+            return result;
+        }
+
+        private static HashSet<string> FindSavedDocumentVariables(
+            CompilationUnitSyntax root,
+            IReadOnlySet<string> documentVariables)
+        {
+            var result = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (var invocation in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
+            {
+                if (invocation.Expression is MemberAccessExpressionSyntax memberAccess
+                    && memberAccess.Name.Identifier.ValueText == "Save"
+                    && memberAccess.Expression is IdentifierNameSyntax documentIdentifier
+                    && documentVariables.Contains(documentIdentifier.Identifier.ValueText))
+                {
+                    result.Add(documentIdentifier.Identifier.ValueText);
                 }
             }
 
@@ -642,14 +848,49 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
             return true;
         }
 
-        private static bool TryMapPdfPenColor(ExpressionSyntax expression, out ExpressionSyntax colorExpression)
+        private static bool TryMapPdfPen(ExpressionSyntax expression, out PdfPenMigrationInfo pen)
         {
-            return TryMapStaticColor(expression, "PdfPens", out colorExpression);
+            pen = new PdfPenMigrationInfo(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("PdfColor"),
+                    SyntaxFactory.IdentifierName("Black")),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
+
+            if (TryMapStaticColor(expression, "PdfPens", out var staticPenColor))
+            {
+                pen = pen with { Color = staticPenColor };
+                return true;
+            }
+
+            if (expression is ObjectCreationExpressionSyntax creation
+                && creation.Type.ToString() == "PdfPen"
+                && creation.ArgumentList?.Arguments.Count == 2
+                && TryMapColorFromArgb(creation.ArgumentList.Arguments[0].Expression, out var colorExpression))
+            {
+                pen = new PdfPenMigrationInfo(colorExpression, creation.ArgumentList.Arguments[1].Expression);
+                return true;
+            }
+
+            return false;
         }
 
         private static bool TryMapPdfBrushColor(ExpressionSyntax expression, out ExpressionSyntax colorExpression)
         {
-            return TryMapStaticColor(expression, "PdfBrushes", out colorExpression);
+            if (TryMapStaticColor(expression, "PdfBrushes", out colorExpression))
+            {
+                return true;
+            }
+
+            if (expression is ObjectCreationExpressionSyntax creation
+                && creation.Type.ToString() == "PdfSolidBrush"
+                && creation.ArgumentList?.Arguments.Count == 1
+                && TryMapColorFromArgb(creation.ArgumentList.Arguments[0].Expression, out colorExpression))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static bool TryMapStaticColor(ExpressionSyntax expression, string ownerTypeName, out ExpressionSyntax colorExpression)
@@ -685,6 +926,31 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxFactory.IdentifierName("PdfColor"),
                 SyntaxFactory.IdentifierName(colorName));
+            return true;
+        }
+
+        private static bool TryMapColorFromArgb(ExpressionSyntax expression, out ExpressionSyntax colorExpression)
+        {
+            colorExpression = SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                SyntaxFactory.IdentifierName("PdfColor"),
+                SyntaxFactory.IdentifierName("Black"));
+
+            if (expression is not InvocationExpressionSyntax invocation
+                || invocation.Expression is not MemberAccessExpressionSyntax memberAccess
+                || memberAccess.Expression.ToString() != "Color"
+                || memberAccess.Name.Identifier.ValueText != "FromArgb"
+                || invocation.ArgumentList.Arguments.Count != 3)
+            {
+                return false;
+            }
+
+            colorExpression = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("PdfColor"),
+                    SyntaxFactory.IdentifierName("FromRgb")),
+                SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(invocation.ArgumentList.Arguments)));
             return true;
         }
 
@@ -734,6 +1000,19 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
                 creation.ArgumentList.Arguments[2].Expression,
                 creation.ArgumentList.Arguments[3].Expression);
             return true;
+        }
+
+        private static bool IsRectangleCreation(ExpressionSyntax expression)
+        {
+            return expression is ObjectCreationExpressionSyntax creation
+                && creation.Type.ToString() == "RectangleF"
+                && creation.ArgumentList?.Arguments.Count == 4;
+        }
+
+        private static bool IsPdfStringFormatExpression(ExpressionSyntax expression)
+        {
+            return expression is ObjectCreationExpressionSyntax { Type: { } type }
+                && type.ToString() == "PdfStringFormat";
         }
 
         private static bool TryResolveStringFormat(
@@ -904,11 +1183,25 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
             };
         }
 
+        private static MigrationDiagnostic Warning(string id, string message)
+        {
+            return new MigrationDiagnostic
+            {
+                Id = id,
+                Message = message,
+                Severity = MigrationDiagnosticSeverity.Warning
+            };
+        }
+
         private sealed record RectangleArguments(
             ExpressionSyntax X,
             ExpressionSyntax Y,
             ExpressionSyntax Width,
             ExpressionSyntax Height);
+
+        private sealed record PdfPenMigrationInfo(
+            ExpressionSyntax Color,
+            ExpressionSyntax LineWidth);
 
         private sealed record PdfStringFormatMigrationInfo(
             ExpressionSyntax? Alignment,

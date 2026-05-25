@@ -46,6 +46,13 @@ public class MigrationController : ControllerBase
             return Ok(new
             {
                 canvasCode = result.CanvasCode,
+                summary = new
+                {
+                    convertedCount = result.Summary.ConvertedCount,
+                    warningCount = result.Summary.WarningCount,
+                    errorCount = result.Summary.ErrorCount,
+                    totalDiagnostics = result.Summary.TotalDiagnostics
+                },
                 diagnostics = result.Diagnostics.Select(d => new
                 {
                     code = d.Code,

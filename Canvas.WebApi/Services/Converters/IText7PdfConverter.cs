@@ -1,21 +1,32 @@
+using Canvas.Migration.iText7;
+
 namespace Canvas.WebApi.Services.Converters;
 
 public sealed class IText7PdfConverter : BasePdfConverter
 {
     public override string FrameworkId => "iText7";
+
     public override string FrameworkName => "iText7";
-    public override string Description => "PdfWriter+PdfDocument+Document triple → new PdfDocument(); doc.Add(new Paragraph) → page.DrawTextFromTop(...)";
 
-    public override string ConvertCode(string sourceCode) =>
-        SkeletonCanvasCode(FrameworkName) + $"""
+    public override string Status => "pilot";
 
-        // --- iText7 key mappings ---
-        // using iText.Kernel.Pdf; using iText.Layout; → using Canvas.Pdf;
-        // new PdfWriter(path) + new PdfDocument(writer) + new Document(pdf)
-        //   → var document = new Canvas.Pdf.PdfDocument();
-        //      var page = document.AddPage();
-        // document.Add(new Paragraph("text")) → page.DrawTextFromTop("text", x, y)
-        // document.Add(new Table(...))        → page.DrawTable(...) [review manually]
-        // document.Close()                    → document.Save(path)
-        """;
+    public override string Description =>
+        "Roslyn-based pilot conversion for PdfWriter + PdfDocument + Document + simple Paragraph flows.";
+
+    public override string ConvertCode(string sourceCode)
+    {
+        return new IText7Migration().Migrate(sourceCode).MigratedCode;
+    }
+
+    public override IReadOnlyList<MigrationDiagnostic> GetDiagnostics(string sourceCode)
+    {
+        return new IText7Migration()
+            .Migrate(sourceCode)
+            .Diagnostics
+            .Select(static diagnostic => new MigrationDiagnostic(
+                diagnostic.Id,
+                diagnostic.Severity.ToString(),
+                diagnostic.Message))
+            .ToArray();
+    }
 }

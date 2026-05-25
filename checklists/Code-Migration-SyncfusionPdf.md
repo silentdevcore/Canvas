@@ -1,5 +1,20 @@
 # Canvas Migration: Syncfusion PDF
 
+## V1 Pilot Analysis
+
+- [x] V1 pilot status: ready for simple generation migrations.
+- [x] Deterministic code fixes are implemented for document/page creation, simple text, text boxes, lines, rectangles, images, save, and `Close(true)` cleanup.
+- [x] Manual follow-up features are reported through warnings instead of being silently changed.
+- [x] WebApi conversion uses the same Roslyn migration engine as the tests.
+- [x] WebApi conversion returns summary counts for converted, warning, error, and total diagnostics.
+- [x] Realistic invoice-style fixture validates the end-to-end migration shape.
+- [x] Verified with `dotnet test tests/Canvas.Migration.SyncfusionPdf.Tests/Canvas.Migration.SyncfusionPdf.Tests.csproj --no-restore --no-build`: `20/20` passed.
+- [x] Verified with `dotnet build Canvas.WebApi/Canvas.WebApi.csproj --no-restore`.
+- [ ] Semantic symbol matching remains a post-v1 hardening task.
+- [ ] Real analyzer/codefix packaging remains a post-v1 IDE integration task.
+- [ ] Visual PDF fixture comparison remains a post-v1 quality gate.
+- [ ] Full table/forms/security/PDF-A migration remains out of v1 scope.
+
 ## Package / API Identification
 
 - [x] NuGet packages:
@@ -46,6 +61,9 @@
 - [x] Emit `CANMIGSYNC001`, `CANMIGSYNC002`, and `CANMIGSYNC003` diagnostics
 - [x] Emit `CANMIGSYNC009` when a supported `PdfGraphics` variable is removed
 - [x] Add snapshot-style before/after test for the first migration slice
+- [x] Add realistic end-to-end before/after fixture for v1 pilot readiness
+- [x] Connect WebApi Syncfusion converter to the Roslyn migration engine
+- [x] Return migration summary counts from WebApi convert endpoint
 - [ ] Replace syntax-only matching with semantic matching before broad provider rollout
 - [ ] Add real analyzer/codefix packaging if IDE integration is required
 
@@ -111,14 +129,15 @@
 | `CANMIGSYNC012` | Info | `RectangleF` `DrawString` was migrated to `DrawTextBoxFromTop` | Yes |
 | `CANMIGSYNC013` | Info | Supported `PdfStringFormat` variable was removed after all usages were migrated | Yes |
 | `CANMIGSYNC014` | Info | Simple `DrawImage` was migrated to `DrawImageFromTop` | Yes |
+| `CANMIGSYNC015` | Info | `document.Close(true)` was removed after a saved document migration | Yes |
 
 ## Future Abstractions Proven By This Pilot
 
 - [ ] `ProviderMigrationProfile`: provider id, namespaces, package names, diagnostics
 - [ ] `MigrationRule`: semantic matcher plus replacement strategy
-- [ ] `MigrationDiagnostic`: provider diagnostic id, severity, message, manual guidance
+- [x] `MigrationDiagnostic`: provider diagnostic id, severity, message, manual guidance
 - [ ] `CodeFixStrategy`: deterministic syntax rewrite
-- [ ] `MigrationReport`: converted nodes, unsupported nodes, manual follow-up notes
+- [x] `MigrationReport`: converted nodes, unsupported nodes, manual follow-up notes
 - [ ] `CoordinateTransform`: provider coordinate system to Canvas coordinate system
 - [ ] `SymbolMap`: vendor type/member symbol to Canvas target symbol
 
@@ -284,6 +303,8 @@ document.Save(path);
 - [x] Map basic `PdfStringFormat.LineAlignment`
 - [x] Replace `PdfImage.FromFile(...)` image draw calls
 - [x] Replace `new PdfBitmap(stream)` image draw calls
+- [x] Replace `PdfSolidBrush(Color.FromArgb(...))` in simple fill calls
+- [x] Replace `PdfPen(Color.FromArgb(...), width)` in simple stroke calls
 - [x] Add `using Canvas.Pdf`
 - [x] Convert obvious colors/fonts
 - [x] Remove `document.Close(true)` after save when the target is migrated
@@ -297,6 +318,7 @@ document.Save(path);
 - [x] Font/brush sample
 - [x] Unsupported grid diagnostic sample
 - [x] Snapshot before/after migration sample
+- [x] Realistic invoice-style end-to-end fixture
 - [x] `using var PdfDocument` becomes non-disposable Canvas document
 - [x] `page.Graphics.DrawString(...)` migrates without explicit graphics variable
 - [x] `PdfGraphics graphics = page.Graphics` migrates when all graphics calls are supported
@@ -306,10 +328,11 @@ document.Save(path);
 - [x] Simple `DrawLine` maps to `DrawLineFromTop`
 - [x] Simple `DrawRectangle` maps to `DrawRectangleFromTop`
 - [x] Simple image drawing maps to `DrawImageFromTop` when image path or stream is known
-- [ ] Simple image drawing maps to `DrawImageFromTop` when byte source is known
+- [x] Simple image drawing maps to `DrawImageFromTop` when byte source is known
 - [ ] `PdfBrushes.Black/Red/Green/Blue` map to Canvas colors
-- [ ] `PdfSolidBrush(Color.FromArgb(...))` maps to `PdfColor.FromRgb(...)` for integer RGB
-- [ ] Simple `PdfPen(Color.FromArgb(...), width)` maps to `PdfColor.FromRgb(...)` plus line width
-- [ ] Rectangle/string-format `DrawString` emits `CANMIGSYNC004`
-- [ ] `PdfGrid` emits `CANMIGSYNC005`
-- [ ] `document.Close(true)` is removed only after save/document migration
+- [x] `PdfSolidBrush(Color.FromArgb(...))` maps to `PdfColor.FromRgb(...)` for integer RGB
+- [x] Simple `PdfPen(Color.FromArgb(...), width)` maps to `PdfColor.FromRgb(...)` plus line width
+- [x] Rectangle/string-format `DrawString` emits `CANMIGSYNC004`
+- [x] `PdfGrid` emits `CANMIGSYNC005`
+- [x] Forms/security/existing-PDF flows emit `CANMIGSYNC006`
+- [x] `document.Close(true)` is removed only after save/document migration

@@ -4,15 +4,16 @@
 
 Build a `Canvas.Migration.*` feature family for migrating existing C# PDF-generation code from third-party vendors to `Canvas.Pdf`.
 
-This first milestone is checklist and architecture scaffolding only. It does not add migration projects, analyzers, code fixes, CLI tools, package references, or solution entries yet.
+The first milestone started with checklist and architecture scaffolding. Syncfusion PDF and iText7 now have Roslyn-backed pilot implementations; the remaining providers are still planned as separate follow-up slices.
 
 ## Current Pilot
 
 - [x] Use `SyncfusionPdf` as the first provider pilot
+- [x] Use `iText7` as the second provider pilot
 - [x] Start with deterministic C# PDF-generation patterns, not existing-PDF editing
 - [x] Treat `PdfDocument`, `Pages.Add`, `PdfGraphics.DrawString`, simple fonts, simple brushes, and `Save` as the first conversion slice
 - [x] Use the Syncfusion pilot to validate shared abstraction names before adding all provider projects
-- [ ] Promote repeated Syncfusion rules into provider-neutral abstractions after the first prototype
+- [ ] Promote repeated Syncfusion/iText7 rules into provider-neutral abstractions after the second prototype
 
 ## Architecture Checklist
 
@@ -23,16 +24,16 @@ This first milestone is checklist and architecture scaffolding only. It does not
 - [x] Add shared abstractions under `src/Canvas.Migration.Abstractions`
 - [x] Add Roslyn migration infrastructure under `src/Canvas.Migration.Roslyn`
 - [ ] Add one provider project per vendor under future `src/Canvas.Migration.<Provider>`
-- [ ] Define provider-neutral migration diagnostics
+- [x] Define provider-neutral migration diagnostics
 - [ ] Define provider-neutral mapping result model
-- [ ] Define migration report output for unsupported or manual follow-up work
+- [x] Define migration report output for unsupported or manual follow-up work
 - [ ] Document dependency direction in `ARCHITECTURE.md` when projects are added
 
 ## Future Project Layout
 
 - [x] `src/Canvas.Migration.Abstractions`
 - [x] `src/Canvas.Migration.Roslyn`
-- [ ] `src/Canvas.Migration.iText7`
+- [x] `src/Canvas.Migration.iText7`
 - [ ] `src/Canvas.Migration.AsposePdf`
 - [ ] `src/Canvas.Migration.IronPdf`
 - [ ] `src/Canvas.Migration.Apryse`
@@ -61,7 +62,7 @@ This first milestone is checklist and architecture scaffolding only. It does not
 - [ ] Preserve user formatting where practical
 - [ ] Add `using Canvas.Pdf` when code fixes introduce Canvas APIs
 - [ ] Remove obsolete vendor `using` directives only when safe
-- [ ] Emit a migration report with converted, skipped, and manual items
+- [x] Emit a migration report with converted, skipped, and manual items
 
 ## Common Mapping Categories
 
@@ -85,7 +86,7 @@ This first milestone is checklist and architecture scaffolding only. It does not
 
 | Provider | Checklist | Package/API identified | Namespaces/classes listed | Mapping placeholders | Samples | Tests planned | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| iText7 | `Code-Migration-iText7.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
+| iText7 | `Code-Migration-iText7.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
 | Aspose.PDF | `Code-Migration-AsposePdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
 | IronPDF | `Code-Migration-IronPdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
 | Apryse SDK | `Code-Migration-Apryse.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |

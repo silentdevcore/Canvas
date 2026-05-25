@@ -35,7 +35,7 @@ public sealed class MigrationService
         var converter = GetConverter(frameworkId);
         var canvasCode = converter.ConvertCode(sourceCode);
         var diagnostics = converter.GetDiagnostics(sourceCode);
-        return new MigrationResult(canvasCode, diagnostics);
+        return new MigrationResult(canvasCode, diagnostics, CreateSummary(diagnostics));
     }
 
     public byte[] GeneratePreview(string frameworkId, string sourceCode)
@@ -49,6 +49,20 @@ public sealed class MigrationService
         if (!_converters.TryGetValue(frameworkId, out var converter))
             throw new ArgumentException($"Unknown framework '{frameworkId}'. Supported: {string.Join(", ", _converters.Keys)}");
         return converter;
+    }
+
+    private static MigrationSummary CreateSummary(IReadOnlyList<MigrationDiagnostic> diagnostics)
+    {
+        var warningCount = diagnostics.Count(static diagnostic =>
+            string.Equals(diagnostic.Severity, "Warning", StringComparison.OrdinalIgnoreCase));
+        var errorCount = diagnostics.Count(static diagnostic =>
+            string.Equals(diagnostic.Severity, "Error", StringComparison.OrdinalIgnoreCase));
+
+        return new MigrationSummary(
+            ConvertedCount: diagnostics.Count - warningCount - errorCount,
+            WarningCount: warningCount,
+            ErrorCount: errorCount,
+            TotalDiagnostics: diagnostics.Count);
     }
 }
 
