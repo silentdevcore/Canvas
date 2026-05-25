@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiCheck, FiCode, FiCopy, FiDownload, FiX } from 'react-icons/fi';
-import type { Page, PageSettings, SimpleElement, LocalizedProperty } from '@/types';
+import type { Page, PageSettings, SimpleElement } from '@/types';
 import type { Template } from '../../store';
 import { generateJSONExport } from '../../services/CodeGenerator';
 import { jsonToCode } from '@/utils/jsonToCode';
@@ -20,40 +20,6 @@ interface Props {
 type Tab = 'json' | 'csharp';
 type ExportState = 'idle' | 'loading' | 'error';
 
-function resolvePropertyMap(
-  props: LocalizedProperty[],
-  targetLang: string,
-  sysLang: string,
-): Record<string, string> {
-  const map: Record<string, string> = {};
-  for (const p of props) {
-    if (p.scope === 'own') {
-      if (p.ownerLanguage === targetLang) {
-        map[p.key] = p.localizedValues[p.ownerLanguage] ?? '';
-      }
-    } else {
-      map[p.key] = p.localizedValues[targetLang]
-        ?? p.localizedValues[sysLang]
-        ?? '';
-    }
-  }
-  return map;
-}
-
-function applyProps(content: string | undefined, map: Record<string, string>): string {
-  if (!content || !content.includes('{{')) return content ?? '';
-  return content.replace(/\{\{(\w+)\}\}/g, (_, key) => map[key] ?? `{{${key}}}`);
-}
-
-function resolveElements(elements: SimpleElement[], map: Record<string, string>): SimpleElement[] {
-  if (Object.keys(map).length === 0) return elements;
-  return elements.map(el => ({
-    ...el,
-    content: applyProps(el.content, map),
-    htmlContent: applyProps(el.htmlContent, map),
-  }));
-}
-
 const CodeViewer: React.FC<Props> = ({
   isOpen,
   onClose,
@@ -70,10 +36,6 @@ const CodeViewer: React.FC<Props> = ({
 
   const sysLang = navigator.language.split('-')[0];
   const targetLang = currentPreviewLanguage || sysLang;
-  const propMap = useMemo(
-    () => resolvePropertyMap(pageSettings.localizedProperties ?? [], targetLang, sysLang),
-    [pageSettings.localizedProperties, targetLang, sysLang],
-  );
 
   const jsonCode = useMemo(
     () => generateJSONExport(template, pages, sharedElements, pageSettings, targetLang),
@@ -81,19 +43,16 @@ const CodeViewer: React.FC<Props> = ({
   );
 
   const csharpCode = useMemo(() => {
-    const resolvedPages = pages.map(p => ({
-      id: p.id,
-      elements: resolveElements(p.elements, propMap),
-    }));
-    const resolvedShared = resolveElements(sharedElements, propMap);
     return jsonToCode({
       id: template.id,
       name: template.name,
-      pages: resolvedPages,
-      sharedElements: resolvedShared,
-      pageSettings: { width: pageSettings.width, height: pageSettings.height },
+      category: template.category,
+      description: template.description,
+      pages,
+      sharedElements,
+      pageSettings: { ...pageSettings, systemLanguage: (pageSettings as any).systemLanguage ?? sysLang, targetLanguage: targetLang } as any,
     });
-  }, [template, pages, sharedElements, pageSettings, propMap]);
+  }, [template, pages, sharedElements, pageSettings, sysLang, targetLang]);
 
   const code = activeTab === 'json' ? jsonCode : csharpCode;
 

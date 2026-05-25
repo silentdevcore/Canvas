@@ -290,6 +290,8 @@ export interface PageSettings {
   // Track changes
   trackChanges?: boolean;
   // Multi-language localization
+  systemLanguage?: string;                // source/default language for fallback resolution
   activeLanguages?: string[];           // user-selected active BCP-47 language tags
   localizedProperties?: LocalizedProperty[];
+  targetLanguage?: string;                // selected export/preview language
 }

@@ -63,6 +63,98 @@ function esc(s: string): string {
   return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '').replace(/\t/g, '\\t');
 }
 
+function normalizeTag(tag: string | undefined | null): string {
+  return (tag ?? '').trim().split('-')[0].toLowerCase();
+}
+
+function resolveTargetLanguage(design: ParsedDesign): string | undefined {
+  const ps = design.pageSettings as any;
+  return ps?.targetLanguage ?? ps?.systemLanguage;
+}
+
+function applyLangOverride(el: SimpleElement, targetLanguage: string | undefined): SimpleElement {
+  if (!targetLanguage || !el.langOverrides) return el;
+  const override = el.langOverrides[targetLanguage] ?? el.langOverrides[normalizeTag(targetLanguage)];
+  if (!override) return el;
+  return {
+    ...el,
+    x: override.x ?? el.x,
+    y: override.y ?? el.y,
+    width: override.width ?? el.width,
+    height: override.height ?? el.height,
+    style: override.rotation != null
+      ? { ...(el.style ?? {}), rotation: override.rotation }
+      : el.style,
+  };
+}
+
+function shouldRenderForLanguage(el: SimpleElement, targetLanguage: string | undefined): boolean {
+  if (!targetLanguage || !el.elementLanguage) return true;
+  return normalizeTag(el.elementLanguage) === normalizeTag(targetLanguage);
+}
+
+function textLanguageOptions(el: SimpleElement): string[] {
+  return [
+    ...(el.language ? [`Language = "${esc(el.language)}"`] : []),
+    ...(el.textDirection ? [`TextDirection = "${esc(el.textDirection)}"`] : []),
+  ];
+}
+
+function textExpr(text: string): string {
+  return text.includes('{{') ? `Resolve("${esc(text)}")` : `"${esc(text)}"`;
+}
+
+function renderMetadataBlock(design: ParsedDesign, pageW: number, pageH: number, targetLanguage: string | undefined): string[] {
+  const ps = design.pageSettings as any;
+  const systemLanguage = ps?.systemLanguage ?? '';
+  const activeLanguages = Array.isArray(ps?.activeLanguages) ? ps.activeLanguages as string[] : [];
+  const localizedProperties = Array.isArray(ps?.localizedProperties) ? ps.localizedProperties as any[] : [];
+  const margins = ps?.margins ?? {};
+  const lines: string[] = [
+    `var designId = "${esc(design.id ?? '')}";`,
+    `var designCategory = "${esc((design as any).category ?? '')}";`,
+    `var designDescription = "${esc((design as any).description ?? '')}";`,
+    `var systemLanguage = "${esc(systemLanguage)}";`,
+    `var targetLanguage = "${esc(targetLanguage ?? systemLanguage)}";`,
+    `var activeLanguages = new List<string> { ${activeLanguages.map(lang => `"${esc(lang)}"`).join(', ')} };`,
+    `var pageSettings = new`,
+    `{`,
+    `    Width = ${f(pageW)},`,
+    `    Height = ${f(pageH)},`,
+    `    Orientation = "${esc(ps?.orientation ?? 'portrait')}",`,
+    `    Unit = "${esc(ps?.unit ?? 'px')}",`,
+    `    Margins = new { Top = ${f(margins.top ?? 0)}, Right = ${f(margins.right ?? 0)}, Bottom = ${f(margins.bottom ?? 0)}, Left = ${f(margins.left ?? 0)} }`,
+    `};`,
+    `var localizedProperties = new Dictionary<string, Dictionary<string, string>>`,
+    `{`,
+  ];
+
+  localizedProperties.forEach(prop => {
+    const values = prop?.localizedValues ?? {};
+    lines.push(`    ["${esc(prop?.key ?? '')}"] = new Dictionary<string, string>`);
+    lines.push(`    {`);
+    Object.entries(values).forEach(([lang, value]) => {
+      lines.push(`        ["${esc(lang)}"] = "${esc(String(value))}",`);
+    });
+    lines.push(`    }, // scope: ${esc(prop?.scope ?? 'global')}${prop?.ownerLanguage ? `, ownerLanguage: ${esc(prop.ownerLanguage)}` : ''}`);
+  });
+
+  lines.push(`};`);
+  lines.push(`string Resolve(string value)`);
+  lines.push(`{`);
+  lines.push(`    if (string.IsNullOrEmpty(value) || !value.Contains("{{")) return value;`);
+  lines.push(`    return System.Text.RegularExpressions.Regex.Replace(value, @"\\{\\{(\\w+)\\}\\}", match =>`);
+  lines.push(`    {`);
+  lines.push(`        var key = match.Groups[1].Value;`);
+  lines.push(`        if (!localizedProperties.TryGetValue(key, out var values)) return match.Value;`);
+  lines.push(`        if (!string.IsNullOrWhiteSpace(targetLanguage) && values.TryGetValue(targetLanguage, out var targetValue)) return targetValue;`);
+  lines.push(`        if (!string.IsNullOrWhiteSpace(systemLanguage) && values.TryGetValue(systemLanguage, out var systemValue)) return systemValue;`);
+  lines.push(`        return match.Value;`);
+  lines.push(`    });`);
+  lines.push(`}`);
+  return lines;
+}
+
 
 interface TextRun {
   text: string;
@@ -121,7 +213,7 @@ function parseHtmlRuns(html: string): TextRun[][] {
   });
 }
 
-function paraOpts(s: Record<string, any> | undefined, fs: number): string {
+function paraOpts(s: Record<string, any> | undefined, fs: number, el?: SimpleElement): string {
   const bold   = ['bold', '700', '600'].includes(getStr(s, 'fontWeight') ?? '');
   const italic = getStr(s, 'fontStyle') === 'italic';
   const deco   = getStr(s, 'textDecoration') ?? '';
@@ -137,6 +229,7 @@ function paraOpts(s: Record<string, any> | undefined, fs: number): string {
     ...(lineHPx ? [`LineHeight = ${lineHPx.toFixed(2)}`] : []),
     ...(deco.includes('underline')    ? ['Underline = true']    : []),
     ...(deco.includes('line-through') ? ['Strikethrough = true'] : []),
+    ...(el ? textLanguageOptions(el) : []),
   ];
   return opts.join(', ');
 }
@@ -154,7 +247,7 @@ function renderText(p: string, el: SimpleElement, pageH: number): string {
   const x    = el.x + padL;
   const y    = textY(pageH, el.y + padT, fs);
   const w    = Math.max(el.width - padL - padR, 1);
-  return `${p}.DrawParagraph("${esc(text)}", x: ${f(x)}, y: ${f(y)}, maxWidth: ${f(w)}, new PdfParagraphOptions { ${paraOpts(s, fs)} });`;
+  return `${p}.DrawParagraph(${textExpr(text)}, x: ${f(x)}, y: ${f(y)}, maxWidth: ${f(w)}, new PdfParagraphOptions { ${paraOpts(s, fs, el)} });`;
 }
 
 function renderRichText(p: string, el: SimpleElement, pageH: number): string {
@@ -178,12 +271,12 @@ function renderRichText(p: string, el: SimpleElement, pageH: number): string {
     let x = startX;
     runs.forEach(run => {
       const color = hexToColor(run.color ?? baseColor);
-      const opts: string[] = [`FontSize = ${fs}`, `FillColor = ${color}`];
+      const opts: string[] = [`FontSize = ${fs}`, `FillColor = ${color}`, ...textLanguageOptions(el)];
       if (run.bold)      opts.push('Bold = true');
       if (run.italic)    opts.push('Italic = true');
       if (run.underline) opts.push('Underline = true');
       if (run.strike)    opts.push('Strikethrough = true');
-      output.push(`${p}.DrawText("${esc(run.text)}", x: ${f(x)}, y: ${f(y)}, new PdfDrawTextOptions { ${opts.join(', ')} });`);
+      output.push(`${p}.DrawText(${textExpr(run.text)}, x: ${f(x)}, y: ${f(y)}, new PdfDrawTextOptions { ${opts.join(', ')} });`);
       x += run.text.length * (run.bold ? fs * 0.62 : fs * 0.55);
     });
   });
@@ -599,9 +692,13 @@ function renderElement(p: string, el: SimpleElement, pageH: number): string {
 export function jsonToCode(design: ParsedDesign): string {
   const pageH = design.pageSettings?.height ?? 842;
   const pageW = design.pageSettings?.width  ?? 595;
+  const targetLanguage = resolveTargetLanguage(design);
 
   const lines: string[] = [
     '// Canvas.Pdf Code Editor — generated from JSON design',
+    '// Rendering script for the selected language view; use C# DTO for lossless round-trip editing.',
+    '',
+    ...renderMetadataBlock(design, pageW, pageH, targetLanguage),
     '',
     'var document = new PdfDocument();',
     ...(design.name ? [`document.Info.Title = "${esc(design.name)}";`] : []),
@@ -614,8 +711,12 @@ export function jsonToCode(design: ParsedDesign): string {
     const v = multiPage ? `page${pi + 1}` : 'page';
     lines.push(`var ${v} = document.AddPage(${pageW}, ${pageH});`);
     lines.push('');
-    const shared = (design.sharedElements ?? []).map(el => renderElement(v, el, pageH)).filter(Boolean);
-    const own    = page.elements.map(el => renderElement(v, el, pageH)).filter(Boolean);
+    const renderable = (el: SimpleElement) =>
+      shouldRenderForLanguage(el, targetLanguage)
+        ? renderElement(v, applyLangOverride(el, targetLanguage), pageH)
+        : '';
+    const shared = (design.sharedElements ?? []).map(renderable).filter(Boolean);
+    const own    = page.elements.map(renderable).filter(Boolean);
     [...shared, ...own].forEach(code => { lines.push(code); lines.push(''); });
   });
 
