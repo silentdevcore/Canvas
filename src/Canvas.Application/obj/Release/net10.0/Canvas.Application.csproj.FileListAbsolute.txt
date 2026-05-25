@@ -37,3 +37,4 @@ C:/Users/mabar/source/repos/Canvas/src/Canvas.Application/obj/Release/net10.0/re
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Application/obj/Release/net10.0/refint/Canvas.Application.dll
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Application/obj/Release/net10.0/Canvas.Application.pdb
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Application/obj/Release/net10.0/ref/Canvas.Application.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Application/obj/Release/net10.0/Canvas.Application.sourcelink.json

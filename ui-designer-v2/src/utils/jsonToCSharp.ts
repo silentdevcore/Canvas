@@ -83,8 +83,38 @@ function renderPage(page: { id: string; elements: any[] }, depth: number): strin
   ].join('\n');
 }
 
+function renderLocalizedProperties(props: any[]): string[] {
+  if (!props || props.length === 0) return [];
+  const lines: string[] = [
+    `        LocalizedProperties = new List<LocalizedPropertyDto>`,
+    `        {`,
+  ];
+  for (const p of props) {
+    lines.push(`            new LocalizedPropertyDto`);
+    lines.push(`            {`);
+    lines.push(`                Key = ${str(p.key)},`);
+    lines.push(`                Scope = ${str(p.scope ?? 'global')},`);
+    if (p.ownerLanguage) lines.push(`                OwnerLanguage = ${str(p.ownerLanguage)},`);
+    if (p.localizedValues && Object.keys(p.localizedValues).length > 0) {
+      lines.push(`                LocalizedValues = new Dictionary<string, string>`);
+      lines.push(`                {`);
+      for (const [lang, val] of Object.entries(p.localizedValues)) {
+        lines.push(`                    [${str(lang)}] = ${str(val as string)},`);
+      }
+      lines.push(`                },`);
+    }
+    lines.push(`            },`);
+  }
+  lines.push(`        },`);
+  return lines;
+}
+
 export function jsonToCSharp(design: ParsedDesign): string {
   const ps = design.pageSettings;
+  const localizedProps = (ps as any)?.localizedProperties as any[] | undefined;
+  const activeLanguages = (ps as any)?.activeLanguages as string[] | undefined;
+  const systemLanguage = (ps as any)?.systemLanguage as string | undefined;
+
   const lines: string[] = [
     '// DesignExportDto — paste this in the C# editor and edit freely.',
     '// The expression must return a DesignExportDto instance.',
@@ -100,6 +130,12 @@ export function jsonToCSharp(design: ParsedDesign): string {
     if (ps.height != null) lines.push(`        Height = ${num(ps.height)},`);
     if ((ps as any).orientation) lines.push(`        Orientation = ${str((ps as any).orientation)},`);
     if ((ps as any).backgroundColor) lines.push(`        BackgroundColor = ${str((ps as any).backgroundColor)},`);
+    if (systemLanguage) lines.push(`        SystemLanguage = ${str(systemLanguage)},`);
+    if (activeLanguages && activeLanguages.length > 0) {
+      const langs = activeLanguages.map(l => str(l)).join(', ');
+      lines.push(`        ActiveLanguages = new List<string> { ${langs} },`);
+    }
+    lines.push(...renderLocalizedProperties(localizedProps ?? []));
     lines.push(`    },`);
   }
 

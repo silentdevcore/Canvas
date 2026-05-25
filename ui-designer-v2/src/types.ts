@@ -112,6 +112,11 @@ export interface SimpleElement {
   endMarker?: 'none' | 'filled' | 'open' | 'dot' | 'diamond' | 'square' | 'circle' | 'arrow';
   drawTool?: 'pen' | 'highlighter' | 'eraser';
   pathData?: string;
+  language?: string;          // BCP-47 tag: "ar", "zh", "en", "he", etc.
+  textDirection?: 'ltr' | 'rtl';
+  elementLanguage?: string;   // undefined = visible in all language tabs; set to BCP-47 tag = own element for that language only
+  elementGroup?: string;      // shared ID between an element and its language mirrors — used to find/delete all siblings
+  langOverrides?: Record<string, { x?: number; y?: number; width?: number; height?: number; rotation?: number }>; // per-language position/rotation overrides
   dateMode?: 'static' | 'render' | 'binding';
   dateFormat?: string;
   locale?: string;
@@ -205,6 +210,17 @@ export interface CustomDocumentProperty {
   type: 'text' | 'number' | 'boolean' | 'date';
 }
 
+// ── Localized Properties ─────────────────────────────────────────────────────
+
+export interface LocalizedProperty {
+  key: string;           // template variable name without {{ }}, e.g. "SUBJECT"
+  scope: 'global' | 'own';
+  // 'global': placeholder appears in ALL language PDFs; each language fills its own value via localizedValues
+  // 'own':    placeholder exists ONLY in the language identified by ownerLanguage
+  ownerLanguage?: string;                   // set only when scope === 'own'
+  localizedValues: Record<string, string>;  // { de: "Hallo Welt", ar: "مرحبا" }
+}
+
 export interface PageSettings {
   width: number;
   height: number;
@@ -273,4 +289,7 @@ export interface PageSettings {
   customProperties?: CustomDocumentProperty[];
   // Track changes
   trackChanges?: boolean;
+  // Multi-language localization
+  activeLanguages?: string[];           // user-selected active BCP-47 language tags
+  localizedProperties?: LocalizedProperty[];
 }

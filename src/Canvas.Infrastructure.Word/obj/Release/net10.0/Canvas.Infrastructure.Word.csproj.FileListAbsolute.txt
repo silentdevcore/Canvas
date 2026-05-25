@@ -24,3 +24,4 @@
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Word/obj/Release/net10.0/refint/Canvas.Infrastructure.Word.dll
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Word/obj/Release/net10.0/Canvas.Infrastructure.Word.pdb
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Word/obj/Release/net10.0/ref/Canvas.Infrastructure.Word.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Word/obj/Release/net10.0/Canvas.Infrastructure.Word.sourcelink.json

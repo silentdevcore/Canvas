@@ -33,6 +33,10 @@ public sealed class PageSettingsDto
     public DocumentProtectionDto? Protection { get; set; }
     public List<CustomDocumentPropertyDto>? CustomProperties { get; set; }
     public bool TrackChanges { get; set; }
+    // Multi-language localization
+    public string? SystemLanguage { get; set; }
+    public List<string>? ActiveLanguages { get; set; }
+    public List<LocalizedPropertyDto>? LocalizedProperties { get; set; }
 }
 
 public sealed class MarginsDto
@@ -95,6 +99,16 @@ public sealed class CustomDocumentPropertyDto
     public string Name { get; set; } = "";
     public string Value { get; set; } = "";
     public string Type { get; set; } = "text"; // text | number | boolean | date
+}
+
+public sealed class LocalizedPropertyDto
+{
+    public string Key { get; set; } = "";
+    /// <summary>"global" = exists in all languages (each fills its own value); "own" = exists only for OwnerLanguage.</summary>
+    public string Scope { get; set; } = "global";
+    /// <summary>Set only when Scope == "own". Identifies the single language that owns this property.</summary>
+    public string? OwnerLanguage { get; set; }
+    public Dictionary<string, string> LocalizedValues { get; set; } = [];
 }
 
 /// <summary>Maps directly to the frontend SimpleElement type.</summary>
@@ -173,6 +187,11 @@ public sealed class ElementDto
     // Draw / freehand
     public string? DrawTool { get; set; }
     public string? PathData { get; set; }
+
+    // Language / text direction
+    public string? Language { get; set; }         // BCP-47 tag: "ar", "zh", "en", etc.
+    public string? TextDirection { get; set; }    // "ltr" | "rtl"
+    public string? ElementLanguage { get; set; }  // undefined = all language tabs; set = own element for that language only
 
     // Date
     public string? DateMode { get; set; }

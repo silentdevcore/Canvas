@@ -663,10 +663,22 @@
           }
         }
       },
+      "Canvas.Importer/1.0.0": {
+        "dependencies": {
+          "Canvas.Infrastructure.Pdf": "1.0.0"
+        },
+        "runtime": {
+          "Canvas.Importer.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "Canvas.Infrastructure.Converters/1.0.0": {
         "dependencies": {
           "Canvas.Application": "1.0.0",
           "Canvas.Core": "1.0.0",
+          "Canvas.Importer": "1.0.0",
           "NPOI": "2.8.0",
           "PdfToSvg.NET": "1.8.0",
           "SkiaSharp": "3.119.2",
@@ -985,6 +997,11 @@
       "sha512": ""
     },
     "Canvas.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Canvas.Importer/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

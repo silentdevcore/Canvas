@@ -74,10 +74,13 @@ import {
   FiSearch,
   FiMoreVertical,
   FiScissors,
+  FiGlobe,
 } from 'react-icons/fi';
 import CodeViewer from './CodeViewer';
 import FindReplaceModal from './FindReplaceModal';
 import ExportService from '@/services/ExportService';
+import { LanguageTabBar } from './LanguageTabBar';
+import { LocalizedPropertiesPanel } from './LocalizedPropertiesPanel';
 
 
 interface SimpleCanvasProps {
@@ -124,6 +127,8 @@ type DragState = {
   startPointerY: number;
   // present when dragging a multi-selection
   multi?: { id: string; startX: number; startY: number }[];
+  isRtlCanvas?: boolean;
+  langKey?: string; // write to langOverrides[langKey] instead of root x/y when set
 };
 
 type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
@@ -137,10 +142,21 @@ type ResizeState = {
   startY: number;
   startWidth: number;
   startHeight: number;
+  langKey?: string; // write to langOverrides[langKey] instead of root x/y/w/h when set
+};
+
+type RotateState = {
+  id: string;
+  centerX: number;
+  centerY: number;
+  startAngle: number;
+  initialPointerAngle: number;
+  langKey?: string;
 };
 
 const createElementId = (type: string) => `${type}-${Date.now()}`;
 const MIN_ELEMENT_SIZE = 16;
+const RTL_LANGS = new Set(['ar', 'he', 'fa', 'ur', 'yi', 'dv']);
 
 const ELEMENT_TYPE_LABELS: Record<string, string> = {
   text:         'Text Block',
@@ -212,12 +228,35 @@ const FONT_FAMILIES = [
   'Fira Sans', 'Fira Code', 'Space Grotesk', 'Space Mono',
   'Sora', 'Lexend', 'Red Hat Display', 'Red Hat Text',
   'Dancing Script', 'Pacifico', 'Lobster', 'Comfortaa', 'Righteous',
+  // Noto — multi-script coverage
+  'Noto Sans Arabic', 'Noto Sans Hebrew', 'Noto Sans SC', 'Noto Sans TC',
+  'Noto Sans JP', 'Noto Sans KR', 'Noto Sans Devanagari', 'Noto Sans Thai',
 ];
 
 const TYPOGRAPHY_TYPES = new Set<string>([
   'text', 'richtext', 'button', 'field', 'checkbox', 'dropdown', 'optionlist',
   'radio', 'date', 'pagenumber', 'watermark', 'note', 'checkmark', 'arrow',
 ]);
+
+const LOCALIZATION_LANGUAGES: { tag: string; label: string; rtl?: boolean }[] = [
+  { tag: 'en', label: '🇬🇧 English' },
+  { tag: 'de', label: '🇩🇪 Deutsch' },
+  { tag: 'fr', label: '🇫🇷 Français' },
+  { tag: 'es', label: '🇪🇸 Español' },
+  { tag: 'it', label: '🇮🇹 Italiano' },
+  { tag: 'pt', label: '🇧🇷 Português' },
+  { tag: 'ru', label: '🇷🇺 Русский' },
+  { tag: 'el', label: '🇬🇷 Ελληνικά' },
+  { tag: 'ar', label: '🇸🇦 العربية', rtl: true },
+  { tag: 'he', label: '🇮🇱 עברית', rtl: true },
+  { tag: 'fa', label: '🇮🇷 فارسی', rtl: true },
+  { tag: 'zh', label: '🇨🇳 中文' },
+  { tag: 'ja', label: '🇯🇵 日本語' },
+  { tag: 'ko', label: '🇰🇷 한국어' },
+  { tag: 'hi', label: '🇮🇳 हिन्दी' },
+  { tag: 'th', label: '🇹🇭 ภาษาไทย' },
+];
+
 
 const BACKGROUND_TYPES = new Set<string>([
   'text', 'richtext', 'image', 'shape', 'rect', 'circle', 'table', 'button',
@@ -281,6 +320,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   const [selectedElementIds, setSelectedElementIds] = useState<Set<string>>(new Set());
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
+  const [rotateState, setRotateState] = useState<RotateState | null>(null);
   const [draggingPageIndex, setDraggingPageIndex] = useState<number | null>(null);
   const [dragOverPageIndex, setDragOverPageIndex] = useState<number | null>(null);
   const [isDragOverCanvas, setIsDragOverCanvas] = useState(false);
@@ -288,7 +328,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   const [zoomLevel, setZoomLevel] = useState(1);
   const [linkedMargins, setLinkedMargins] = useState(true);
   const [linkedPadding, setLinkedPadding] = useState(true);
-  const [inspectorTab, setInspectorTab] = useState<'inspector' | 'layers'>('inspector');
+  const [inspectorTab, setInspectorTab] = useState<'inspector' | 'layers' | 'properties'>('inspector');
   const [clipboard, setClipboard] = useState<SimpleElement | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; elementId: string | null } | null>(null);
   const [marqueeState, setMarqueeState] = useState<{ startX: number; startY: number; currentX: number; currentY: number; additive: boolean } | null>(null);
@@ -297,7 +337,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   const [topbarMenuOpen, setTopbarMenuOpen] = useState(false);
   const [topbarToast, setTopbarToast] = useState('');
   const [extractingPage, setExtractingPage] = useState<number | null>(null);
+  // Language Scope UI selection: 'lang' = current tab selected, 'all' = All selected
+  const [scopeShowAll, setScopeShowAll] = useState(false);
   const pageContentRef = useRef<HTMLDivElement | null>(null);
+  const contentInputRef = useRef<HTMLInputElement>(null);
 
   const showTopbarToast = (msg: string) => {
     setTopbarToast(msg);
@@ -310,6 +353,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       [...pages.flatMap(page => page.elements), ...sharedElements]
     );
   }, [pages, sharedElements]);
+
 
   const buildDesign = () => ({
     id: template.id,
@@ -354,9 +398,77 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     }
   };
 
-  const { pageSettings, updatePageSettings, settingsModifiedSinceExport, snapshotHistory, undo, redo, bulkReplaceContent } = useEditorStore();
+  const { pageSettings, updatePageSettings, settingsModifiedSinceExport, snapshotHistory, undo, redo, bulkReplaceContent, currentPreviewLanguage, setCurrentPreviewLanguage } = useEditorStore();
   const pageWidth = pageSettings.width;
   const pageHeight = pageSettings.height;
+  const isCurrentRtl = RTL_LANGS.has((currentPreviewLanguage || '').split('-')[0]);
+
+  // Returns the effective position/size for an element, applying lang override if one exists.
+  const getEffectivePos = (el: SimpleElement) => {
+    const ov = currentPreviewLanguage ? el.langOverrides?.[currentPreviewLanguage] : undefined;
+    return {
+      x: ov?.x ?? el.x,
+      y: ov?.y ?? el.y,
+      width: ov?.width ?? el.width,
+      height: ov?.height ?? el.height,
+    };
+  };
+
+  const getEffectiveRotation = (el: SimpleElement): number => {
+    const ov = currentPreviewLanguage ? el.langOverrides?.[currentPreviewLanguage] : undefined;
+    return ov?.rotation ?? el.style?.rotation ?? 0;
+  };
+
+  // When not in "All" mode, writes go to langOverrides[currentPreviewLanguage].
+  const applyPosUpdate = (id: string, patch: { x?: number; y?: number; width?: number; height?: number; rotation?: number }, langKey?: string) => {
+    if (langKey) {
+      const el = [...elements, ...sharedElements].find(e => e.id === id);
+      if (!el) return;
+      updateElementById(id, {
+        langOverrides: {
+          ...(el.langOverrides ?? {}),
+          [langKey]: { ...(el.langOverrides?.[langKey] ?? {}), ...patch },
+        },
+      });
+    } else {
+      updateElementById(id, patch);
+    }
+  };
+
+  // When the selected element changes, reset to language mode (user clicks All explicitly to override)
+  useEffect(() => {
+    setScopeShowAll(false);
+  }, [selectedElementId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // When the language tab changes, always switch back to the language button (override All)
+  useEffect(() => {
+    setScopeShowAll(false);
+  }, [currentPreviewLanguage]);
+
+  // Resolve {{KEY}} in content using localized property values for the current preview language.
+  const resolveContent = useMemo(() => {
+    const props = pageSettings.localizedProperties ?? [];
+    const sysLang = navigator.language.split('-')[0];
+    const target = currentPreviewLanguage || sysLang;
+    const map: Record<string, string> = {};
+    for (const p of props) {
+      if (p.scope === 'own') {
+        // Own properties are only visible when the current preview language matches the owner
+        if (p.ownerLanguage === target) {
+          map[p.key] = p.localizedValues[p.ownerLanguage] ?? '';
+        }
+      } else {
+        // Global: each language fills its own value; fall back to system language value
+        map[p.key] = p.localizedValues[target]
+          ?? p.localizedValues[sysLang]
+          ?? '';
+      }
+    }
+    return (content: string | undefined): string => {
+      if (!content || !content.includes('{{')) return content ?? '';
+      return content.replace(/\{\{(\w+)\}\}/g, (_, key) => map[key] ?? `{{${key}}}`);
+    };
+  }, [pageSettings.localizedProperties, currentPreviewLanguage]);
 
   const updateMargin = (side: keyof PageSettings['margins'], displayVal: number) => {
     const px = fromDisplay(displayVal, pageSettings.unit);
@@ -1087,21 +1199,28 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       if (dragState.multi && dragState.multi.length > 1) {
         const dx = point.x - dragState.startPointerX;
         const dy = point.y - dragState.startPointerY;
+        const dxStored = dragState.isRtlCanvas ? -dx : dx;
         dragState.multi.forEach(({ id, startX, startY }) => {
           const el = [...elements, ...sharedElements].find(e => e.id === id);
           if (!el) return;
-          updateElementById(id, {
-            x: Math.round(clamp(startX + dx, 0, pageWidth - el.width)),
+          const patch = {
+            x: Math.round(clamp(startX + dxStored, 0, pageWidth - el.width)),
             y: Math.round(clamp(startY + dy, 0, pageHeight - el.height)),
-          });
+          };
+          applyPosUpdate(id, patch, dragState.langKey);
         });
       } else {
         const element = [...elements, ...sharedElements].find(item => item.id === dragState.id);
         if (!element) return;
-        updateElementById(
-          element.id,
-          positionElement(element, point.x - dragState.pointerOffsetX, point.y - dragState.pointerOffsetY)
-        );
+        let patch: { x: number; y: number };
+        if (dragState.isRtlCanvas) {
+          const displayX = point.x - dragState.pointerOffsetX;
+          const storedX = pageWidth - displayX - element.width;
+          patch = positionElement(element, storedX, point.y - dragState.pointerOffsetY);
+        } else {
+          patch = positionElement(element, point.x - dragState.pointerOffsetX, point.y - dragState.pointerOffsetY);
+        }
+        applyPosUpdate(element.id, patch, dragState.langKey);
       }
     };
 
@@ -1146,10 +1265,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       width = Math.min(width, pageWidth - x);
       height = Math.min(height, pageHeight - y);
 
-      updateElementById(resizeState.id, {
+      applyPosUpdate(resizeState.id, {
         x: Math.round(x), y: Math.round(y),
-        width: Math.round(width), height: Math.round(height)
-      });
+        width: Math.round(width), height: Math.round(height),
+      }, resizeState.langKey);
     };
 
     const handlePointerUp = () => setResizeState(null);
@@ -1161,6 +1280,32 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       window.removeEventListener('pointerup', handlePointerUp);
     };
   }, [resizeState, elements, sharedElements, updateElementById]);
+
+  // Rotation drag
+  useEffect(() => {
+    if (!rotateState) return;
+    const handlePointerMove = (event: PointerEvent) => {
+      const point = getCanvasPoint(event.clientX, event.clientY);
+      const angle = Math.atan2(point.y - rotateState.centerY, point.x - rotateState.centerX) * (180 / Math.PI);
+      const delta = angle - rotateState.initialPointerAngle;
+      let newRotation = Math.round((rotateState.startAngle + delta) % 360);
+      if (newRotation < 0) newRotation += 360;
+      const element = [...elements, ...sharedElements].find(el => el.id === rotateState.id);
+      if (!element) return;
+      if (rotateState.langKey) {
+        applyPosUpdate(rotateState.id, { rotation: newRotation }, rotateState.langKey);
+      } else {
+        updateElementById(rotateState.id, { style: { ...element.style, rotation: newRotation } });
+      }
+    };
+    const handlePointerUp = () => setRotateState(null);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [rotateState, elements, sharedElements, updateElementById]);
 
   // Marquee selection
   useEffect(() => {
@@ -1212,15 +1357,40 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     if (element.locked) return;
     snapshotHistory();
     const point = getCanvasPoint(event.clientX, event.clientY);
+    const effPos = getEffectivePos(element);
+    const langKey = !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
     setResizeState({
       id: element.id,
       handle,
       startPointerX: point.x,
       startPointerY: point.y,
-      startX: element.x,
-      startY: element.y,
-      startWidth: element.width,
-      startHeight: element.height
+      startX: effPos.x,
+      startY: effPos.y,
+      startWidth: effPos.width,
+      startHeight: effPos.height,
+      langKey,
+    });
+  };
+
+  const handleRotatePointerDown = (event: React.PointerEvent, element: SimpleElement) => {
+    event.stopPropagation();
+    if (event.button !== 0) return;
+    if (element.locked) return;
+    snapshotHistory();
+    const effPos = getEffectivePos(element);
+    const displayX = isCurrentRtl ? pageWidth - effPos.x - effPos.width : effPos.x;
+    const centerX = displayX + effPos.width / 2;
+    const centerY = effPos.y + effPos.height / 2;
+    const point = getCanvasPoint(event.clientX, event.clientY);
+    const initialPointerAngle = Math.atan2(point.y - centerY, point.x - centerX) * (180 / Math.PI);
+    const langKey = !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+    setRotateState({
+      id: element.id,
+      centerX,
+      centerY,
+      startAngle: getEffectiveRotation(element),
+      initialPointerAngle,
+      langKey,
     });
   };
 
@@ -1349,9 +1519,9 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   };
 
   const addElement = (tool: Tool) => {
-    const element = nameElement(tool.create());
-    onElementAdd(element);
-    setSelectedElementId(element.id);
+    const el = nameElement(tool.create());
+    onElementAdd(el);
+    setSelectedElementId(el.id);
   };
 
   const insertIntoZone = (zone: 'header' | 'footer', type: 'text' | 'pagenumber' | 'date' | 'image') => {
@@ -1422,13 +1592,13 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   };
 
   const addElementAtPoint = (tool: Tool, clientX: number, clientY: number) => {
-    const element = tool.create();
+    const raw = tool.create();
     const point = getCanvasPoint(clientX, clientY);
-    const nextPosition = positionElement(element, point.x - element.width / 2, point.y - element.height / 2);
-    const placedElement = nameElement({ ...element, ...nextPosition });
-
-    onElementAdd(placedElement);
-    setSelectedElementId(placedElement.id);
+    // On RTL canvas the drop point is mirrored: convert display x back to stored x
+    const canvasX = isCurrentRtl ? pageWidth - point.x - raw.width / 2 : point.x - raw.width / 2;
+    const el = nameElement({ ...raw, ...positionElement(raw, canvasX, point.y - raw.height / 2) });
+    onElementAdd(el);
+    setSelectedElementId(el.id);
   };
 
   const handleToolDragStart = (event: React.DragEvent, tool: Tool) => {
@@ -1482,25 +1652,33 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     snapshotHistory();
     const point = getCanvasPoint(event.clientX, event.clientY);
 
+    const langKey = !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+
     // Build multi-drag payload when this element is part of an existing multi-selection
     const isInMultiSel = selectedElementIds.size > 1 && selectedElementIds.has(element.id);
     const allEls = [...elements, ...sharedElements];
     const multi = isInMultiSel
       ? [...selectedElementIds].map(id => {
           const el = allEls.find(e => e.id === id);
-          return el ? { id, startX: el.x, startY: el.y } : null;
+          if (!el) return null;
+          const pos = getEffectivePos(el);
+          return { id, startX: pos.x, startY: pos.y };
         }).filter(Boolean) as { id: string; startX: number; startY: number }[]
       : undefined;
 
     if (!isInMultiSel) selectOne(element.id);
 
+    const pos = getEffectivePos(element);
+    const displayX = isCurrentRtl ? pageWidth - pos.x - pos.width : pos.x;
     setDragState({
       id: element.id,
-      pointerOffsetX: point.x - element.x,
-      pointerOffsetY: point.y - element.y,
+      pointerOffsetX: point.x - displayX,
+      pointerOffsetY: point.y - pos.y,
       startPointerX: point.x,
       startPointerY: point.y,
       multi,
+      isRtlCanvas: isCurrentRtl,
+      langKey,
     });
   };
 
@@ -1621,7 +1799,13 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   };
 
   const updateLayoutValue = (key: 'x' | 'y' | 'width' | 'height', value: string) => {
-    updateSelectedElement({ [key]: Number(value) || 0 });
+    const num = Number(value) || 0;
+    const langKey = !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+    if (langKey && selectedElementId) {
+      applyPosUpdate(selectedElementId, { [key]: num }, langKey);
+    } else {
+      updateSelectedElement({ [key]: num });
+    }
   };
 
   const duplicateElement = (element: SimpleElement) => {
@@ -1699,6 +1883,8 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       return (
         <div
           className="editor-element-text"
+          dir={element.textDirection || 'ltr'}
+          lang={element.language || undefined}
           style={{
             fontSize:       s.fontSize      || 16,
             fontFamily:     s.fontFamily    || 'Arial',
@@ -1717,7 +1903,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             padding:        [s.paddingTop ?? 0, s.paddingRight ?? 0, s.paddingBottom ?? 0, s.paddingLeft ?? 0].join('px ') + 'px',
           }}
         >
-          {element.content}
+          {resolveContent(element.content)}
         </div>
       );
     }
@@ -2802,6 +2988,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
         </aside>
 
         <section className="editor-stage" aria-label="Document canvas">
+          <LanguageTabBar />
           <div className="editor-stage-header">
             <div>
               <span>Page {currentPageIndex + 1} / {pages.length}</span>
@@ -2987,19 +3174,19 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   )}
                 </div>
               )}
-              {elements.map((element, index) => (
+              {elements
+                .filter(el => !el.elementLanguage || el.elementLanguage === currentPreviewLanguage)
+                .map((element, index) => (
                 <motion.div
                   key={element.id}
                   initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                  animate={{ opacity: 1, scale: 1, y: 0, rotate: element.style?.rotation ?? 0 }}
+                  animate={{ opacity: 1, scale: 1, y: 0, rotate: getEffectiveRotation(element) }}
                   transition={{ duration: 0.24, delay: index * 0.04, rotate: { duration: 0 } }}
                   className={`editor-canvas-element ${selectedElementId === element.id ? 'is-selected' : selectedElementIds.has(element.id) ? 'is-multi-selected' : ''} ${element.locked ? 'is-locked' : ''}`}
-                  style={{
-                    left: element.x,
-                    top: element.y,
-                    width: element.width,
-                    height: element.height,
-                  }}
+                  style={(() => { const ep = getEffectivePos(element); return {
+                    left: isCurrentRtl ? pageWidth - ep.x - ep.width : ep.x,
+                    top: ep.y, width: ep.width, height: ep.height,
+                  }; })()}
                   onPointerDown={(event) => handleElementPointerDown(event, element)}
                   onContextMenu={(event) => handleElementContextMenu(event, element)}
                   onClick={(event) => {
@@ -3027,6 +3214,11 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                           onPointerDown={(event) => handleResizePointerDown(event, element, handle)}
                         />
                       ))}
+                      <div style={{ position: 'absolute', top: -28, left: 'calc(50% - 1px)', width: 1, height: 24, background: 'var(--editor-accent, #6366f1)', opacity: 0.5, pointerEvents: 'none' }} />
+                      <div
+                        style={{ position: 'absolute', top: -40, left: 'calc(50% - 7px)', width: 14, height: 14, borderRadius: '50%', background: 'var(--editor-accent, #6366f1)', border: '2px solid white', cursor: 'crosshair', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
+                        onPointerDown={(event) => handleRotatePointerDown(event, element)}
+                      />
                     </>
                   )}
                 </motion.div>
@@ -3037,10 +3229,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 <motion.div
                   key={element.id}
                   initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                  animate={{ opacity: 1, scale: 1, y: 0, rotate: element.style?.rotation ?? 0 }}
+                  animate={{ opacity: 1, scale: 1, y: 0, rotate: getEffectiveRotation(element) }}
                   transition={{ duration: 0.24, delay: index * 0.04, rotate: { duration: 0 } }}
                   className={`editor-canvas-element is-shared ${selectedElementId === element.id ? 'is-selected' : ''} ${element.locked ? 'is-locked' : ''}`}
-                  style={{ left: element.x, top: element.y, width: element.width, height: element.height }}
+                  style={(() => { const ep = getEffectivePos(element); return { left: isCurrentRtl ? pageWidth - ep.x - ep.width : ep.x, top: ep.y, width: ep.width, height: ep.height }; })()}
                   onPointerDown={(event) => handleElementPointerDown(event, element)}
                   onContextMenu={(event) => handleElementContextMenu(event, element)}
                   onClick={(event) => { event.stopPropagation(); setSelectedElementId(element.id); }}
@@ -3061,6 +3253,11 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                         <div key={handle} className="editor-resize-handle" style={style}
                           onPointerDown={(event) => handleResizePointerDown(event, element, handle)} />
                       ))}
+                      <div style={{ position: 'absolute', top: -28, left: 'calc(50% - 1px)', width: 1, height: 24, background: 'var(--editor-accent, #6366f1)', opacity: 0.5, pointerEvents: 'none' }} />
+                      <div
+                        style={{ position: 'absolute', top: -40, left: 'calc(50% - 7px)', width: 14, height: 14, borderRadius: '50%', background: 'var(--editor-accent, #6366f1)', border: '2px solid white', cursor: 'crosshair', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
+                        onPointerDown={(event) => handleRotatePointerDown(event, element)}
+                      />
                     </>
                   )}
                 </motion.div>
@@ -3165,6 +3362,17 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
               <FiLayers size={12} /> Layers
               {elements.length > 0 && <span className="editor-layer-count">{elements.length}</span>}
             </button>
+            {(pageSettings.activeLanguages ?? []).length >= 1 && (
+              <button
+                className={`editor-inspector-tab${inspectorTab === 'properties' ? ' active' : ''}`}
+                onClick={() => setInspectorTab('properties')}
+              >
+                <FiGlobe size={12} /> Properties
+                {(pageSettings.localizedProperties ?? []).length > 0 && (
+                  <span className="editor-layer-count">{(pageSettings.localizedProperties ?? []).length}</span>
+                )}
+              </button>
+            )}
           </div>
 
           {/* ── Layers tab ── */}
@@ -3222,6 +3430,14 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     <span className="editor-layer-row-index">{elements.length - i}</span>
                     <span className="editor-layer-row-name">
                       {el.name || ELEMENT_TYPE_LABELS[el.type] || el.type}
+                      {el.elementLanguage && (
+                        <span style={{
+                          marginLeft: 4, fontSize: 9, padding: '1px 4px', borderRadius: 3,
+                          background: '#ede9fe', color: '#4c1d95', fontFamily: 'monospace',
+                        }}>
+                          {el.elementLanguage.toUpperCase()}
+                        </span>
+                      )}
                     </span>
                     <div className="editor-layer-row-actions">
                       <button
@@ -3238,6 +3454,13 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* ── Properties tab (localized document properties) ── */}
+          {inspectorTab === 'properties' && (
+            <div className="editor-inspector-content">
+              <LocalizedPropertiesPanel />
             </div>
           )}
 
@@ -4165,6 +4388,46 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   </div>
                 </div>
 
+                {/* Languages */}
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading">
+                    <FiGlobe />
+                    <span>Languages</span>
+                  </div>
+                  <div className="editor-form-stack" style={{ padding: 12 }}>
+                    <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>
+                      System language: <strong>{navigator.language}</strong> (auto-detected, used as fallback)
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {LOCALIZATION_LANGUAGES.map(({ tag, label }) => {
+                        const active = (pageSettings.activeLanguages ?? []).includes(tag);
+                        return (
+                          <label key={tag} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer' }}>
+                            <input
+                              type="checkbox"
+                              checked={active}
+                              onChange={(e) => {
+                                const current = pageSettings.activeLanguages ?? [];
+                                if (e.target.checked) {
+                                  updatePageSettings({ activeLanguages: [...current, tag] });
+                                  if (!currentPreviewLanguage || currentPreviewLanguage === navigator.language.split('-')[0])
+                                    setCurrentPreviewLanguage(tag);
+                                } else {
+                                  const next = current.filter(l => l !== tag);
+                                  updatePageSettings({ activeLanguages: next });
+                                  if (currentPreviewLanguage === tag)
+                                    setCurrentPreviewLanguage(next[0] ?? navigator.language.split('-')[0]);
+                                }
+                              }}
+                            />
+                            {label}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
                 {/* Named Styles */}
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
@@ -4339,12 +4602,55 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 </div>
               </div>
 
+              {(pageSettings.activeLanguages ?? []).length >= 1 && currentPreviewLanguage && (
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading">
+                    <FiGlobe />
+                    <span>Language Scope</span>
+                  </div>
+                  <div className="editor-form-stack" style={{ padding: 12 }}>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {/* Current tab language — selected when scopeShowAll is false */}
+                      <button
+                        style={{
+                          padding: '4px 10px', fontSize: 11, borderRadius: 4, fontWeight: 600,
+                          border: `2px solid ${!scopeShowAll ? 'var(--editor-accent, #6366f1)' : 'var(--editor-border, #e2e8f0)'}`,
+                          background: !scopeShowAll ? 'var(--editor-accent, #6366f1)' : '#f1f5f9',
+                          color: !scopeShowAll ? 'white' : '#374151',
+                          cursor: !scopeShowAll ? 'default' : 'pointer',
+                        }}
+                        onClick={() => setScopeShowAll(false)}
+                        title={!scopeShowAll
+                          ? `Position edits apply to ${currentPreviewLanguage.toUpperCase()} only`
+                          : `Switch to ${currentPreviewLanguage.toUpperCase()}-only editing`}
+                      >
+                        {currentPreviewLanguage.toUpperCase()}
+                      </button>
+                      {/* "All" — selected when scopeShowAll is true */}
+                      <button
+                        style={{
+                          padding: '4px 10px', fontSize: 11, borderRadius: 4,
+                          border: `2px solid ${scopeShowAll ? 'var(--editor-accent, #6366f1)' : 'var(--editor-border, #e2e8f0)'}`,
+                          background: scopeShowAll ? 'var(--editor-accent, #6366f1)' : '#f1f5f9',
+                          color: scopeShowAll ? 'white' : '#374151',
+                          cursor: scopeShowAll ? 'default' : 'pointer',
+                        }}
+                        onClick={() => setScopeShowAll(true)}
+                        title={scopeShowAll ? 'Position edits apply to all language tabs' : 'Switch to all-languages editing'}
+                      >
+                        All
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="editor-form-grid">
                 <label>
                   <span>X</span>
                   <input
                     type="number"
-                    value={selectedElement.x}
+                    value={getEffectivePos(selectedElement).x}
                     onChange={(event) => updateLayoutValue('x', event.target.value)}
                   />
                 </label>
@@ -4352,7 +4658,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   <span>Y</span>
                   <input
                     type="number"
-                    value={selectedElement.y}
+                    value={getEffectivePos(selectedElement).y}
                     onChange={(event) => updateLayoutValue('y', event.target.value)}
                   />
                 </label>
@@ -4360,7 +4666,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   <span>Width</span>
                   <input
                     type="number"
-                    value={selectedElement.width}
+                    value={getEffectivePos(selectedElement).width}
                     onChange={(event) => updateLayoutValue('width', event.target.value)}
                   />
                 </label>
@@ -4368,7 +4674,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   <span>Height</span>
                   <input
                     type="number"
-                    value={selectedElement.height}
+                    value={getEffectivePos(selectedElement).height}
                     onChange={(event) => updateLayoutValue('height', event.target.value)}
                   />
                 </label>
@@ -4376,8 +4682,16 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   <span>Rotation °</span>
                   <input
                     type="number"
-                    value={selectedElement.style?.rotation ?? 0}
-                    onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, rotation: Number(e.target.value) } })}
+                    value={getEffectiveRotation(selectedElement)}
+                    onChange={(e) => {
+                      const num = Number(e.target.value);
+                      const langKey = !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+                      if (langKey) {
+                        applyPosUpdate(selectedElement.id, { rotation: num }, langKey);
+                      } else {
+                        updateSelectedElement({ style: { ...selectedElement.style, rotation: num } });
+                      }
+                    }}
                   />
                 </label>
                 <label style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
@@ -4385,7 +4699,14 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   <button
                     className="editor-secondary-button"
                     title="Reset rotation"
-                    onClick={() => updateSelectedElement({ style: { ...selectedElement.style, rotation: 0 } })}
+                    onClick={() => {
+                      const langKey = !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+                      if (langKey) {
+                        applyPosUpdate(selectedElement.id, { rotation: 0 }, langKey);
+                      } else {
+                        updateSelectedElement({ style: { ...selectedElement.style, rotation: 0 } });
+                      }
+                    }}
                   >
                     <FiRotateCw size={13} /> Reset
                   </button>
@@ -4414,6 +4735,90 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 )}
               </div>
 
+              {/* ── Content (text element) — before Typography ── */}
+              {selectedElement.type === 'text' && (() => {
+                const allProps = pageSettings.localizedProperties ?? [];
+                const sysLang = navigator.language.split('-')[0];
+                const curLang = currentPreviewLanguage || sysLang;
+                const globalProps = allProps.filter(p => p.scope === 'global');
+                const ownProps = allProps.filter(p => p.scope === 'own' && p.ownerLanguage === curLang);
+                const insertProperty = (key: string) => {
+                  const input = contentInputRef.current;
+                  const tag = `{{${key}}}`;
+                  if (input) {
+                    const start = input.selectionStart ?? (selectedElement.content || '').length;
+                    const end = input.selectionEnd ?? start;
+                    const cur = selectedElement.content || '';
+                    updateSelectedElement({ content: cur.slice(0, start) + tag + cur.slice(end) });
+                    setTimeout(() => { input.selectionStart = input.selectionEnd = start + tag.length; input.focus(); }, 0);
+                  } else {
+                    updateSelectedElement({ content: (selectedElement.content || '') + tag });
+                  }
+                };
+                return (
+                  <div className="editor-settings-section">
+                    <div className="editor-settings-heading"><FiType /><span>Content</span></div>
+                    <div className="editor-form-stack" style={{ padding: 12 }}>
+                      <input
+                        ref={contentInputRef}
+                        type="text"
+                        placeholder="Text content or {{KEY}}"
+                        value={selectedElement.content || ''}
+                        onChange={(e) => updateSelectedElement({ content: e.target.value })}
+                      />
+                      {(globalProps.length > 0 || ownProps.length > 0) && (
+                        <div style={{ marginTop: 6 }}>
+                          {globalProps.length > 0 && (
+                            <div style={{ marginBottom: 4 }}>
+                              <div style={{ fontSize: 10, color: '#64748b', marginBottom: 3, fontWeight: 600, letterSpacing: '0.04em' }}>GLOBAL</div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                {globalProps.map(p => (
+                                  <button
+                                    key={p.key}
+                                    onClick={() => insertProperty(p.key)}
+                                    title={`Insert {{${p.key}}} — global property`}
+                                    style={{
+                                      fontSize: 11, padding: '2px 7px', borderRadius: 4, cursor: 'pointer',
+                                      border: '1px solid #c7d2fe', background: '#ede9fe', color: '#4c1d95',
+                                      fontFamily: 'monospace',
+                                    }}
+                                  >
+                                    {`{{${p.key}}}`}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {ownProps.length > 0 && (
+                            <div>
+                              <div style={{ fontSize: 10, color: '#64748b', marginBottom: 3, fontWeight: 600, letterSpacing: '0.04em' }}>
+                                OWN · {curLang.toUpperCase()}
+                              </div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                {ownProps.map(p => (
+                                  <button
+                                    key={p.key}
+                                    onClick={() => insertProperty(p.key)}
+                                    title={`Insert {{${p.key}}} — own property for ${curLang}`}
+                                    style={{
+                                      fontSize: 11, padding: '2px 7px', borderRadius: 4, cursor: 'pointer',
+                                      border: '1px solid #fde68a', background: '#fef3c7', color: '#92400e',
+                                      fontFamily: 'monospace',
+                                    }}
+                                  >
+                                    {`{{${p.key}}}`}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* ── Shared: Typography ── */}
               {TYPOGRAPHY_TYPES.has(selectedElement.type) && (
                 <div className="editor-settings-section">
@@ -4428,6 +4833,52 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                         {FONT_FAMILIES.map(f => <option key={f} value={f}>{f}</option>)}
                       </select>
                     </label>
+                    <label>
+                      <span>Language</span>
+                      <select
+                        value={selectedElement.language || ''}
+                        onChange={(e) => {
+                          const lang = e.target.value;
+                          const rtlLangs = new Set(['ar', 'he', 'fa', 'ur', 'yi', 'dv']);
+                          const dir = rtlLangs.has(lang.split('-')[0]) ? 'rtl' : 'ltr';
+                          updateSelectedElement({
+                            language: lang || undefined,
+                            textDirection: lang ? dir : undefined,
+                          });
+                        }}
+                      >
+                        <option value="">(none)</option>
+                        <option value="en">English</option>
+                        <option value="de">German</option>
+                        <option value="fr">French</option>
+                        <option value="es">Spanish</option>
+                        <option value="it">Italian</option>
+                        <option value="pt">Portuguese</option>
+                        <option value="ru">Russian</option>
+                        <option value="el">Greek</option>
+                        <option value="ar">Arabic (RTL)</option>
+                        <option value="he">Hebrew (RTL)</option>
+                        <option value="fa">Persian (RTL)</option>
+                        <option value="zh-CN">Chinese (Simplified)</option>
+                        <option value="zh-TW">Chinese (Traditional)</option>
+                        <option value="ja">Japanese</option>
+                        <option value="ko">Korean</option>
+                        <option value="hi">Hindi</option>
+                        <option value="th">Thai</option>
+                      </select>
+                    </label>
+                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, color: '#64748b', minWidth: 72 }}>Direction</span>
+                      {(['ltr', 'rtl'] as const).map(dir => (
+                        <button
+                          key={dir}
+                          className={`editor-toggle-btn${(selectedElement.textDirection || 'ltr') === dir ? ' active' : ''}`}
+                          style={{ flex: 1, fontFamily: 'monospace', fontSize: 11 }}
+                          title={dir === 'ltr' ? 'Left to right' : 'Right to left'}
+                          onClick={() => updateSelectedElement({ textDirection: dir })}
+                        >{dir.toUpperCase()}</button>
+                      ))}
+                    </div>
                     <div className="editor-form-grid">
                       <label>
                         <span>Font size</span>
@@ -4725,41 +5176,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   )}
                 </div>
               </div>
-
-              {selectedElement.type === 'text' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Content</span>
-                    <input
-                      type="text"
-                      value={selectedElement.content || ''}
-                      onChange={(event) => updateSelectedElement({ content: event.target.value })}
-                    />
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Font size</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.fontSize || 16}
-                        onChange={(event) => updateSelectedElement({
-                          style: { ...selectedElement.style, fontSize: Number(event.target.value) || 16 }
-                        })}
-                      />
-                    </label>
-                    <label>
-                      <span>Color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#111827'}
-                        onChange={(event) => updateSelectedElement({
-                          style: { ...selectedElement.style, color: event.target.value }
-                        })}
-                      />
-                    </label>
-                  </div>
-                </div>
-              )}
 
               {selectedElement.type === 'qrcode' && (
                 <div className="editor-form-stack">
@@ -6095,6 +6511,26 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     Send to Back
                   </button>
                   <div className="editor-context-menu-separator" />
+                  {(pageSettings.activeLanguages ?? []).length >= 1 && (
+                    <button
+                      className="editor-context-menu-item danger"
+                      onClick={() => {
+                        if (!el) { closeContextMenu(); return; }
+                        // Also delete any elementGroup siblings (language mirrors)
+                        if (el.elementGroup) {
+                          const allEls = [...elements, ...sharedElements];
+                          allEls.filter(other => other.elementGroup === el.elementGroup)
+                            .forEach(sib => deleteElementById(sib.id));
+                        } else {
+                          deleteElementById(el.id);
+                        }
+                        closeContextMenu();
+                      }}
+                      title="Delete this element from all language tabs"
+                    >
+                      Delete from all languages<span className="editor-context-menu-shortcut">Del</span>
+                    </button>
+                  )}
                   <button className="editor-context-menu-item danger" onClick={() => contextMenuAction('delete')}>
                     Delete<span className="editor-context-menu-shortcut">Del</span>
                   </button>
@@ -6124,6 +6560,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
         pages={pages}
         sharedElements={sharedElements}
         pageSettings={pageSettings}
+        currentPreviewLanguage={currentPreviewLanguage}
       />
 
       {findReplaceOpen && (

@@ -36,6 +36,15 @@ internal sealed class PdfWriter
             .Distinct()
             .ToList();
 
+        var usedEmbeddedFonts = document.Pages
+            .SelectMany(static page => page.Elements)
+            .OfType<TextElement>()
+            .Where(static el => el.EmbeddedFont is not null)
+            .Select(static el => el.EmbeddedFont!)
+            .Distinct(ReferenceEqualityComparer.Instance)
+            .Cast<PdfEmbeddedFont>()
+            .ToList();
+
         var imagesByKey = document.Pages
             .SelectMany(static page => page.Elements)
             .OfType<ImageElement>()
@@ -60,6 +69,20 @@ internal sealed class PdfWriter
             var objectId = nextObjectId++;
             var resourceName = $"F{i + 1}";
             fontObjects[font] = (resourceName, objectId);
+        }
+
+        // 5 PDF objects per embedded font: FontStream, FontDescriptor, ToUnicode, CIDFont, Type0
+        var embeddedFontObjects = new Dictionary<PdfEmbeddedFont, EmbeddedFontIds>(ReferenceEqualityComparer.Instance);
+        for (var i = 0; i < usedEmbeddedFonts.Count; i++)
+        {
+            var ef = usedEmbeddedFonts[i];
+            embeddedFontObjects[ef] = new EmbeddedFontIds(
+                ResourceName: $"EF{i + 1}",
+                FontStreamId: nextObjectId++,
+                DescriptorId: nextObjectId++,
+                ToUnicodeId: nextObjectId++,
+                CidFontId: nextObjectId++,
+                Type0Id: nextObjectId++);
         }
 
         var imageObjects = new Dictionary<string, (string ResourceName, int ObjectId, int? SoftMaskObjectId)>();
@@ -97,6 +120,48 @@ internal sealed class PdfWriter
             objects.Add(new PdfIndirectObject(
                 fontObject.Value.ObjectId,
                 $"<< /Type /Font /Subtype /Type1 /BaseFont /{GetBaseFontName(fontObject.Key)} >>\n"));
+        }
+
+        // Emit 5-object chain for each embedded TrueType/OpenType font
+        foreach (var (ef, ids) in embeddedFontObjects)
+        {
+            // Collect all code points used by this font across all pages
+            var usedCodePoints = document.Pages
+                .SelectMany(static p => p.Elements)
+                .OfType<TextElement>()
+                .Where(el => ReferenceEquals(el.EmbeddedFont, ef))
+                .SelectMany(static el => el.Text.EnumerateRunes().Select(static r => r.Value))
+                .Distinct()
+                .OrderBy(static cp => cp)
+                .ToList();
+
+            // 1. Font file stream (FlateDecode compressed)
+            var fontBytes = ef.FontBytes.ToArray();
+            var compressedFont = CompressZlib(fontBytes);
+            objects.Add(new PdfIndirectObject(ids.FontStreamId, BuildFontStreamObject(compressedFont, fontBytes.Length)));
+
+            // 2. FontDescriptor
+            objects.Add(new PdfIndirectObject(ids.DescriptorId,
+                $"<< /Type /FontDescriptor /FontName /{ef.BaseFontName} /Flags 32 " +
+                $"/FontBBox [0 -200 1000 800] /ItalicAngle 0 /Ascent 800 /Descent -200 " +
+                $"/CapHeight 700 /StemV 80 /FontFile2 {ids.FontStreamId} 0 R >>\n"));
+
+            // 3. ToUnicode CMap stream (maps CID = Unicode code point back to Unicode for text extraction)
+            var cMapBytes = Encoding.ASCII.GetBytes(BuildToUnicodeCMap(usedCodePoints));
+            objects.Add(new PdfIndirectObject(ids.ToUnicodeId, BuildContentStreamObject(cMapBytes, compressed: false)));
+
+            // 4. CIDFont with /W widths array
+            var widthsArray = BuildCidFontWidthsArray(ef, usedCodePoints);
+            objects.Add(new PdfIndirectObject(ids.CidFontId,
+                $"<< /Type /Font /Subtype /CIDFontType2 /BaseFont /{ef.BaseFontName} " +
+                $"/CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >> " +
+                $"/DW 1000 /W {widthsArray} /FontDescriptor {ids.DescriptorId} 0 R >>\n"));
+
+            // 5. Type0 composite font
+            objects.Add(new PdfIndirectObject(ids.Type0Id,
+                $"<< /Type /Font /Subtype /Type0 /BaseFont /{ef.BaseFontName} " +
+                $"/Encoding /Identity-H /DescendantFonts [{ids.CidFontId} 0 R] " +
+                $"/ToUnicode {ids.ToUnicodeId} 0 R >>\n"));
         }
 
         foreach (var image in imagesByKey)
@@ -172,6 +237,19 @@ internal sealed class PdfWriter
                 static font => font,
                 font => fontObjects[font].ResourceName);
 
+            var pageEmbeddedFonts = page.Elements
+                .OfType<TextElement>()
+                .Where(static el => el.EmbeddedFont is not null)
+                .Select(static el => el.EmbeddedFont!)
+                .Distinct(ReferenceEqualityComparer.Instance)
+                .Cast<PdfEmbeddedFont>()
+                .ToList();
+
+            var pageEmbeddedFontResources = pageEmbeddedFonts.ToDictionary(
+                static ef => ef,
+                ef => embeddedFontObjects[ef].ResourceName,
+                (IEqualityComparer<PdfEmbeddedFont>)ReferenceEqualityComparer.Instance);
+
             var pageImages = page.Elements
                 .OfType<ImageElement>()
                 .Select(static image => image.CacheKey)
@@ -194,7 +272,8 @@ internal sealed class PdfWriter
                 static opacity => opacity,
                 opacity => opacityObjects[opacity].ResourceName);
 
-            var contentStream = PdfCanvasRenderer.RenderPage(page, pageFontResources, pageImageResources, pageOpacityResources);
+            var contentStream = PdfCanvasRenderer.RenderPage(
+                page, pageFontResources, pageImageResources, pageOpacityResources, pageEmbeddedFontResources);
             var contentBytes = Encoding.ASCII.GetBytes(contentStream);
 
             if (options.CompressContentStreams)
@@ -261,7 +340,8 @@ internal sealed class PdfWriter
 
             var fontDictionary = string.Join(
                 " ",
-                pageFonts.Select(font => $"/{fontObjects[font].ResourceName} {fontObjects[font].ObjectId} 0 R"));
+                pageFonts.Select(font => $"/{fontObjects[font].ResourceName} {fontObjects[font].ObjectId} 0 R")
+                .Concat(pageEmbeddedFonts.Select(ef => $"/{embeddedFontObjects[ef].ResourceName} {embeddedFontObjects[ef].Type0Id} 0 R")));
 
             var xObjectDictionary = string.Join(
                 " ",
@@ -943,4 +1023,70 @@ internal sealed class PdfWriter
 
         return destination.ToArray();
     }
+
+    private static byte[] BuildFontStreamObject(byte[] compressedFontData, int originalLength)
+    {
+        using var memory = new MemoryStream();
+        var header = $"<< /Length {compressedFontData.Length} /Length1 {originalLength} /Filter /FlateDecode >>\nstream\n";
+        memory.Write(Encoding.ASCII.GetBytes(header));
+        memory.Write(compressedFontData);
+        memory.Write(Encoding.ASCII.GetBytes("\nendstream\n"));
+        return memory.ToArray();
+    }
+
+    private static string BuildToUnicodeCMap(IReadOnlyList<int> codePoints)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("/CIDInit /ProcSet findresource begin");
+        sb.AppendLine("12 dict begin");
+        sb.AppendLine("begincmap");
+        sb.AppendLine("/CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >> def");
+        sb.AppendLine("/CMapName /Adobe-Identity-H def");
+        sb.AppendLine("/CMapType 1 def");
+        sb.AppendLine("1 begincodespacerange");
+        sb.AppendLine("<0000> <FFFF>");
+        sb.AppendLine("endcodespacerange");
+
+        const int chunkSize = 100;
+        for (var i = 0; i < codePoints.Count; i += chunkSize)
+        {
+            var chunk = codePoints.Skip(i).Take(chunkSize).ToList();
+            sb.AppendLine($"{chunk.Count} beginbfchar");
+            foreach (var cp in chunk)
+            {
+                var cidHex = cp.ToString("X4", CultureInfo.InvariantCulture);
+                var unicodeHex = cp.ToString("X4", CultureInfo.InvariantCulture);
+                sb.AppendLine($"<{cidHex}> <{unicodeHex}>");
+            }
+            sb.AppendLine("endbfchar");
+        }
+
+        sb.AppendLine("endcmap");
+        sb.AppendLine("CMapName currentdict /CMap defineresource pop");
+        sb.AppendLine("end");
+        sb.AppendLine("end");
+        return sb.ToString();
+    }
+
+    private static string BuildCidFontWidthsArray(PdfEmbeddedFont font, IReadOnlyList<int> codePoints)
+    {
+        if (codePoints.Count == 0) return "[]";
+
+        var sb = new StringBuilder("[");
+        foreach (var cp in codePoints)
+        {
+            var w = font.GetPdfAdvanceWidth(cp);
+            sb.Append(CultureInfo.InvariantCulture, $"{cp} [{w}] ");
+        }
+        sb.Append(']');
+        return sb.ToString();
+    }
+
+    private sealed record EmbeddedFontIds(
+        string ResourceName,
+        int FontStreamId,
+        int DescriptorId,
+        int ToUnicodeId,
+        int CidFontId,
+        int Type0Id);
 }

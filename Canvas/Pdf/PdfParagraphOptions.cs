@@ -29,4 +29,8 @@ public sealed class PdfParagraphOptions
     public double CharacterSpacing { get; init; }
 
     public double HorizontalScalingPercent { get; init; } = 100;
+
+    public string? Language { get; init; }
+
+    public string? TextDirection { get; init; }
 }

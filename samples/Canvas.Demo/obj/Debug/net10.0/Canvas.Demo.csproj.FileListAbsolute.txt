@@ -50,3 +50,4 @@ C:/Users/mabar/source/repos/Canvas/samples/Canvas.Demo/obj/Debug/net10.0/ref/Can
 /Users/mannheimer/Development/Codes/Canvas/samples/Canvas.Demo/bin/Debug/net10.0/Canvas.Domain.dll
 /Users/mannheimer/Development/Codes/Canvas/samples/Canvas.Demo/bin/Debug/net10.0/Canvas.pdb
 /Users/mannheimer/Development/Codes/Canvas/samples/Canvas.Demo/bin/Debug/net10.0/Canvas.Domain.pdb
+/Users/mannheimer/Development/Codes/Canvas/samples/Canvas.Demo/obj/Debug/net10.0/Canvas.Demo.sourcelink.json

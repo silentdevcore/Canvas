@@ -30,3 +30,4 @@ C:/Users/mabar/source/repos/Canvas/src/Canvas.Infrastructure.Pdf/obj/Release/net
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Pdf/obj/Release/net10.0/refint/Canvas.Infrastructure.Pdf.dll
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Pdf/obj/Release/net10.0/Canvas.Infrastructure.Pdf.pdb
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Pdf/obj/Release/net10.0/ref/Canvas.Infrastructure.Pdf.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Pdf/obj/Release/net10.0/Canvas.Infrastructure.Pdf.sourcelink.json

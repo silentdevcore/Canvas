@@ -31,6 +31,12 @@ public sealed class PdfDocument
 
     public PdfStandardFont DefaultFont { get; set; }
 
+    /// <summary>
+    /// Optional font loader used to resolve embedded TrueType fonts for multi-language text.
+    /// When set, DrawText calls that include a Language option will embed the appropriate font.
+    /// </summary>
+    public PdfFontLoader? FontLoader { get; set; }
+
     public PdfDocumentInfo Info { get; } = new();
 
     public PdfGenerationDiagnostics? LastDiagnostics => _lastDiagnostics;
@@ -899,7 +905,7 @@ public sealed class PdfDocument
 
     public PdfPage AddPage(double width = PdfPageSizes.A4Width, double height = PdfPageSizes.A4Height)
     {
-        var page = new PdfPage(width, height, DefaultFont);
+        var page = new PdfPage(width, height, DefaultFont, FontLoader);
         _pages.Add(page);
         return page;
     }

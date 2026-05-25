@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   FiX, FiDownload, FiLoader, FiCheck, FiAlertCircle,
-  FiCode, FiFileText, FiImage, FiGrid, FiHash, FiShield,
+  FiCode, FiFileText, FiImage, FiGrid, FiHash, FiShield, FiGlobe,
 } from 'react-icons/fi';
 import ExportService, { type ExportFormat } from '@/services/ExportService';
 import type { Template, Page, SimpleElement, PageSettings } from '@/types';
@@ -60,6 +60,11 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
   );
   const [signOpen, setSignOpen] = useState(false);
 
+  const activeLangs = pageSettings?.activeLanguages ?? [];
+  const hasMultiLang = activeLangs.length > 1;
+  const [multiLangState, setMultiLangState] = useState<ExportState>('idle');
+  const [multiLangError, setMultiLangError] = useState('');
+
   const handleExport = useCallback(async (card: FormatCard) => {
     setStates(s => ({ ...s, [card.format]: 'loading' }));
     setErrors(e => ({ ...e, [card.format]: '' }));
@@ -87,6 +92,19 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
     }
   }, [template, pages, sharedElements, pageSettings]);
 
+  const handleExportAllLanguages = useCallback(async () => {
+    setMultiLangState('loading');
+    setMultiLangError('');
+    try {
+      await ExportService.exportMultiLanguage(template, pages, sharedElements, pageSettings);
+      setMultiLangState('done');
+      setTimeout(() => setMultiLangState('idle'), 2500);
+    } catch (err) {
+      setMultiLangError(err instanceof Error ? err.message : 'Export failed');
+      setMultiLangState('error');
+    }
+  }, [template, pages, sharedElements, pageSettings]);
+
   return (
     <div className="export-modal-backdrop" onClick={onClose}>
       <div className="export-modal" onClick={e => e.stopPropagation()} role="dialog" aria-label="Export design">
@@ -97,6 +115,39 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
 
         <div className="export-modal-body">
           {signOpen && <SignDocxModal onClose={() => setSignOpen(false)} />}
+
+          {/* Multi-language export section */}
+          {hasMultiLang && (
+            <div className="export-group">
+              <h3 className="export-group-label">Multi-Language</h3>
+              <div className="export-cards">
+                <div className={`export-card ${multiLangState === 'error' ? 'export-card--error' : ''}`}>
+                  <div className="export-card-icon"><FiGlobe /></div>
+                  <div className="export-card-info">
+                    <span className="export-card-label">All Languages (ZIP)</span>
+                    <span className="export-card-desc">
+                      {multiLangState === 'error' && multiLangError
+                        ? multiLangError
+                        : `Export one PDF per language: ${activeLangs.join(', ')}`}
+                    </span>
+                  </div>
+                  <button
+                    className={`export-card-btn export-card-btn--${multiLangState}`}
+                    onClick={handleExportAllLanguages}
+                    disabled={multiLangState === 'loading'}
+                    aria-label="Export all languages as ZIP"
+                  >
+                    {multiLangState === 'loading' ? <FiLoader className="spin" size={15} />
+                     : multiLangState === 'done'  ? <FiCheck size={15} />
+                     : multiLangState === 'error' ? <FiAlertCircle size={15} />
+                     : <FiDownload size={15} />}
+                    <span>{multiLangState === 'done' ? 'Done!' : multiLangState === 'error' ? 'Retry' : 'Export ZIP'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {GROUPS.map(group => {
             const cards = FORMAT_CARDS.filter(c => c.group === group);
             return (

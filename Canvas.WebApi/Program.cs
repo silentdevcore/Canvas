@@ -39,6 +39,14 @@ builder.Services.AddScoped<IRepeatExpander, RepeatExpander>();
 builder.Services.AddScoped<IDocumentRenderer, PdfDocumentRenderer>();
 builder.Services.AddScoped<IOutputWriter, FileOutputWriter>();
 
+// Register font loader for multi-language PDF support (optional: gracefully absent if fonts dir missing)
+builder.Services.AddSingleton<PdfFontLoader>(sp =>
+{
+    var fontsDir = builder.Configuration["Pdf:FontsDirectory"]
+        ?? Path.Combine(AppContext.BaseDirectory, "fonts");
+    return new PdfFontLoader(fontsDir);
+});
+
 // Register export format exporters
 builder.Services.AddScoped<IDocumentExporter, HtmlDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, XmlDocumentExporter>();

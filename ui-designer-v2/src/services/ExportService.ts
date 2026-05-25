@@ -506,6 +506,9 @@ export class ExportService {
             protection: pageSettings.protection ?? null,
             customProperties: pageSettings.customProperties ?? [],
             trackChanges: pageSettings.trackChanges ?? false,
+            systemLanguage: navigator.language.split('-')[0],
+            activeLanguages: pageSettings.activeLanguages ?? [],
+            localizedProperties: pageSettings.localizedProperties ?? [],
           }
         : { width: 595, height: 842, orientation: 'portrait' },
     };
@@ -550,6 +553,56 @@ export class ExportService {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     onProgress?.('Done!');
+  }
+
+  static async exportMultiLanguage(
+    template: Template,
+    pages: Page[],
+    sharedElements: SimpleElement[] = [],
+    pageSettings?: PageSettings,
+  ): Promise<void> {
+    const payload = {
+      id: template.id,
+      name: template.name,
+      category: template.category,
+      description: template.description,
+      pages: pages.map(p => ({ id: p.id, elements: p.elements })),
+      sharedElements,
+      pageSettings: pageSettings
+        ? {
+            width: pageSettings.width,
+            height: pageSettings.height,
+            orientation: pageSettings.orientation,
+            margins: pageSettings.margins,
+            backgroundColor: pageSettings.backgroundColor,
+            metadata: pageSettings.metadata,
+            systemLanguage: navigator.language.split('-')[0],
+            activeLanguages: pageSettings.activeLanguages ?? [],
+            localizedProperties: pageSettings.localizedProperties ?? [],
+          }
+        : { width: 595, height: 842, orientation: 'portrait' },
+    };
+
+    const response = await fetch(`${this.API_BASE_URL}/export/multilanguage?format=pdf`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: response.statusText }));
+      throw new Error(err.error || `HTTP ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${template.name.replace(/\s+/g, '-').toLowerCase()}-multilanguage.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   static exportToJSON(template: Template, pages: Page[], sharedElements: SimpleElement[] = [], pageSettings?: PageSettings): void {

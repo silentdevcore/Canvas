@@ -64,7 +64,9 @@ public class DesignerElement
                     Italic = Props.GetValueOrDefault("Italic") as bool?,
                     Underline = Props.GetValueOrDefault("Underline") as bool?,
                     LineHeight = Props.GetValueOrDefault("LineHeight") as double?,
-                    MaxLines = Props.GetValueOrDefault("MaxLines") as int?
+                    MaxLines = Props.GetValueOrDefault("MaxLines") as int?,
+                    Language = Props.GetValueOrDefault("Language") as string,
+                    TextDirection = Props.GetValueOrDefault("TextDirection") as string
                 };
                 break;
             case ElementType.RichText:
@@ -75,7 +77,9 @@ public class DesignerElement
                     BaseFontSize = Props.GetValueOrDefault("BaseFontSize") as double?,
                     Color = Props.GetValueOrDefault("Color") as string,
                     Alignment = Props.GetValueOrDefault("Alignment") as string,
-                    AllowedTags = Props.GetValueOrDefault("AllowedTags") as List<string>
+                    AllowedTags = Props.GetValueOrDefault("AllowedTags") as List<string>,
+                    Language = Props.GetValueOrDefault("Language") as string,
+                    TextDirection = Props.GetValueOrDefault("TextDirection") as string
                 };
                 break;
             case ElementType.TextField:
@@ -90,7 +94,9 @@ public class DesignerElement
                     ValidationPattern = Props.GetValueOrDefault("ValidationPattern") as string,
                     FontFamily = Props.GetValueOrDefault("FontFamily") as string,
                     FontSize = Props.GetValueOrDefault("FontSize") as double?,
-                    Color = Props.GetValueOrDefault("Color") as string
+                    Color = Props.GetValueOrDefault("Color") as string,
+                    Language = Props.GetValueOrDefault("Language") as string,
+                    TextDirection = Props.GetValueOrDefault("TextDirection") as string
                 };
                 break;
             case ElementType.Dropdown:
@@ -389,6 +395,8 @@ public class TextConfig
     public bool? Underline { get; set; }
     public double? LineHeight { get; set; }
     public int? MaxLines { get; set; }
+    public string? Language { get; set; }       // BCP-47 tag: "ar", "zh", "en", etc.
+    public string? TextDirection { get; set; }  // "ltr" | "rtl"
 }
 
 public class RichTextConfig
@@ -399,6 +407,8 @@ public class RichTextConfig
     public string? Color { get; set; }
     public string? Alignment { get; set; } // left, center, right, justify
     public List<string>? AllowedTags { get; set; }
+    public string? Language { get; set; }
+    public string? TextDirection { get; set; }
 }
 
 public class TextFieldConfig
@@ -413,6 +423,8 @@ public class TextFieldConfig
     public string? FontFamily { get; set; }
     public double? FontSize { get; set; }
     public string? Color { get; set; }
+    public string? Language { get; set; }
+    public string? TextDirection { get; set; }
 }
 
 public class DropdownConfig

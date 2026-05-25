@@ -238,7 +238,9 @@ export function generateJSONExport(
   pages: Page[],
   sharedElements: SimpleElement[],
   pageSettings: PageSettings,
+  targetLanguage?: string,
 ): string {
+  const hasLanguages = (pageSettings.activeLanguages?.length ?? 0) > 0;
   const payload = {
     id: template.id,
     name: template.name,
@@ -250,12 +252,22 @@ export function generateJSONExport(
       orientation: pageSettings.orientation,
       unit: pageSettings.unit,
       margins: pageSettings.margins,
+      ...(hasLanguages && {
+        systemLanguage: navigator.language.split('-')[0],
+        activeLanguages: pageSettings.activeLanguages,
+        localizedProperties: pageSettings.localizedProperties,
+        ...(targetLanguage ? { targetLanguage } : {}),
+      }),
     },
     pages: pages.map(p => ({
       id: p.id,
-      elements: p.elements,
+      elements: hasLanguages && targetLanguage
+        ? p.elements.filter(el => !el.elementLanguage || el.elementLanguage === targetLanguage)
+        : p.elements,
     })),
-    sharedElements,
+    sharedElements: hasLanguages && targetLanguage
+      ? sharedElements.filter(el => !el.elementLanguage || el.elementLanguage === targetLanguage)
+      : sharedElements,
   };
   return JSON.stringify(payload, null, 2);
 }

@@ -19,19 +19,22 @@ public class TemplatesController : ControllerBase
     private readonly UpdateTemplateUseCase _updateTemplateUseCase;
     private readonly GetTemplateUseCase _getTemplateUseCase;
     private readonly ValidateTemplateUseCase _validateTemplateUseCase;
+    private readonly Canvas.Pdf.PdfFontLoader? _fontLoader;
 
     public TemplatesController(
         RenderTemplateUseCase renderTemplateUseCase,
         CreateTemplateUseCase createTemplateUseCase,
         UpdateTemplateUseCase updateTemplateUseCase,
         GetTemplateUseCase getTemplateUseCase,
-        ValidateTemplateUseCase validateTemplateUseCase)
+        ValidateTemplateUseCase validateTemplateUseCase,
+        Canvas.Pdf.PdfFontLoader? fontLoader = null)
     {
         _renderTemplateUseCase = renderTemplateUseCase;
         _createTemplateUseCase = createTemplateUseCase;
         _updateTemplateUseCase = updateTemplateUseCase;
         _getTemplateUseCase = getTemplateUseCase;
         _validateTemplateUseCase = validateTemplateUseCase;
+        _fontLoader = fontLoader;
     }
 
     /// <summary>
@@ -316,7 +319,7 @@ public class TemplatesController : ControllerBase
 
         try
         {
-            var document = DesignJsonMapper.MapToPdfDocument(design);
+            var document = DesignJsonMapper.MapToPdfDocument(design, _fontLoader);
             var bytes = document.ToBytes();
             var filename = (design.Name ?? "document").ToLowerInvariant()
                 .Replace(" ", "-")

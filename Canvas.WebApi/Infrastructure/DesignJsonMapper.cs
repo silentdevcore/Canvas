@@ -11,9 +11,22 @@ namespace Canvas.WebApi.Infrastructure;
 
 public static class DesignJsonMapper
 {
-    public static PdfDocument MapToPdfDocument(DesignExportDto design)
+    public static PdfDocument MapToPdfDocument(
+        DesignExportDto design,
+        PdfFontLoader? fontLoader = null,
+        string? targetLanguage = null)
     {
+        // Resolve localized property values and apply them as content substitutions.
+        var resolvedProps = LocalizedPropertyResolver.Resolve(
+            design.PageSettings?.LocalizedProperties,
+            targetLanguage ?? design.PageSettings?.SystemLanguage,
+            design.PageSettings?.SystemLanguage);
+
+        if (resolvedProps.Count > 0)
+            design = ApplyPropertySubstitutions(design, resolvedProps);
+
         var document = new PdfDocument();
+        document.FontLoader = fontLoader;
         document.Info.Title   = design.PageSettings?.Metadata?.Title   ?? design.Name;
         document.Info.Author  = design.PageSettings?.Metadata?.Author  ?? "";
         document.Info.Subject = design.PageSettings?.Metadata?.Subject ?? design.Category ?? "";
@@ -30,9 +43,14 @@ public static class DesignJsonMapper
         // Collect elements with a cross-page scope (watermarks, page-number overlays, etc.)
         // These must be rendered on every page that matches their scope, regardless of which
         // page they were originally placed on.
+        var effectiveLang = targetLanguage ?? design.PageSettings?.SystemLanguage;
         var scopedElements = sourcePages
             .SelectMany(p => p.Elements ?? [])
-            .Where(e => e.Hidden != true && e.PageScope is not (null or "current"))
+            .Where(e => e.Hidden != true && e.PageScope is not (null or "current") &&
+                (e.ElementLanguage is null || string.Equals(
+                    LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
+                    LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
+                    StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
         for (var pi = 0; pi < plannedPages.Count; pi++)
@@ -87,7 +105,13 @@ public static class DesignJsonMapper
 
             // Element coordinates from the frontend are page-absolute (origin = page top-left).
             // Margins are visual guides only and must NOT be added to element positions.
-            foreach (var el in plannedPage.Elements.Where(e => e.PageScope is null or "current"))
+            // ElementLanguage: if set, only render this element when the target language matches.
+            foreach (var el in plannedPage.Elements.Where(e =>
+                e.PageScope is null or "current" &&
+                (e.ElementLanguage is null || string.Equals(
+                    LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
+                    LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
+                    StringComparison.OrdinalIgnoreCase))))
                 RenderElement(page, el, ps.Height, pageNumber, totalPages);
 
             // Scoped elements: draw on each page that satisfies the scope condition
@@ -182,7 +206,7 @@ public static class DesignJsonMapper
                 var padL = GetDouble(style, "paddingLeft",  pad);
                 var padT = GetDouble(style, "paddingTop",   pad);
                 var padR = GetDouble(style, "paddingRight", pad);
-                var opts = BuildParaOptions(style);
+                var opts = BuildParaOptions(style, el.Language, el.TextDirection);
 
                 // Background fill behind text element
                 var bgStr = GetString(style, "backgroundColor");
@@ -256,7 +280,7 @@ public static class DesignJsonMapper
                     dateText = el.Content ?? el.FallbackText ?? "";
                 }
                 if (string.IsNullOrWhiteSpace(dateText)) return;
-                var opts = BuildParaOptions(style);
+                var opts = BuildParaOptions(style, el.Language, el.TextDirection);
                 page.DrawParagraph(dateText, elX, TextY(pageH, elY, opts.FontSize), w, opts);
                 break;
             }
@@ -276,7 +300,7 @@ public static class DesignJsonMapper
                 };
                 var full = $"{el.Prefix ?? ""}{numText}{el.Suffix ?? ""}";
                 if (string.IsNullOrWhiteSpace(full)) return;
-                var opts = BuildParaOptions(style);
+                var opts = BuildParaOptions(style, el.Language, el.TextDirection);
                 page.DrawParagraph(full, elX, TextY(pageH, elY, opts.FontSize), w, opts);
                 break;
             }
@@ -985,7 +1009,10 @@ public static class DesignJsonMapper
         }
     }
 
-    private static PdfParagraphOptions BuildParaOptions(Dictionary<string, object> style)
+    private static PdfParagraphOptions BuildParaOptions(
+        Dictionary<string, object> style,
+        string? language = null,
+        string? textDirection = null)
     {
         var fontSize = GetDouble(style, "fontSize", 12);
         var bold = GetString(style, "fontWeight") is "bold" or "700" or "600";
@@ -1017,8 +1044,35 @@ public static class DesignJsonMapper
             Underline = deco.Contains("underline", StringComparison.OrdinalIgnoreCase),
             Strikethrough = deco.Contains("line-through", StringComparison.OrdinalIgnoreCase),
             CharacterSpacing = letterSpacing,
-            RotationDegrees = rotation
+            RotationDegrees = rotation,
+            Language = language,
+            TextDirection = textDirection
         };
+    }
+
+    /// <summary>
+    /// Mutates element content in-place, replacing {{KEY}} placeholders with the resolved
+    /// property values for the target language. Operates on a cloned element list to avoid
+    /// modifying the caller's design object.
+    /// </summary>
+    private static DesignExportDto ApplyPropertySubstitutions(
+        DesignExportDto design,
+        Dictionary<string, string> props)
+    {
+        foreach (var page in design.Pages)
+            foreach (var el in page.Elements)
+                SubstituteElement(el, props);
+        foreach (var el in design.SharedElements)
+            SubstituteElement(el, props);
+        return design;
+    }
+
+    private static void SubstituteElement(ElementDto el, Dictionary<string, string> props)
+    {
+        if (string.IsNullOrEmpty(el.Content) || !el.Content.Contains("{{", StringComparison.Ordinal))
+            return;
+        foreach (var (key, value) in props)
+            el.Content = el.Content.Replace("{{" + key + "}}", value, StringComparison.OrdinalIgnoreCase);
     }
 
     private static string HtmlToText(string html)

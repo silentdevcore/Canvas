@@ -24,3 +24,5 @@
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/obj/Release/net10.0/refint/Canvas.Infrastructure.Converters.dll
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/obj/Release/net10.0/Canvas.Infrastructure.Converters.pdb
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/obj/Release/net10.0/ref/Canvas.Infrastructure.Converters.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/bin/Release/net10.0/Canvas.Importer.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Converters/bin/Release/net10.0/Canvas.Importer.pdb

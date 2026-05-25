@@ -19,7 +19,6 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property._SupportedPlatformList = Linux,macOS,Windows
-build_property.EntryPointFilePath = 
 build_property.RootNamespace = Canvas.Api.Tests
 build_property.ProjectDir = /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/
 build_property.EnableComHosting = 

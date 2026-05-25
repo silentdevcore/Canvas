@@ -24,3 +24,4 @@
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Sheet/obj/Release/net10.0/refint/Canvas.Infrastructure.Sheet.dll
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Sheet/obj/Release/net10.0/Canvas.Infrastructure.Sheet.pdb
 /Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Sheet/obj/Release/net10.0/ref/Canvas.Infrastructure.Sheet.dll
+/Users/mannheimer/Development/Codes/Canvas/src/Canvas.Infrastructure.Sheet/obj/Release/net10.0/Canvas.Infrastructure.Sheet.sourcelink.json

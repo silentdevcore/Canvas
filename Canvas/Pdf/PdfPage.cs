@@ -7,11 +7,14 @@ public sealed class PdfPage
     private readonly List<PdfPageElement> _elements = new();
     private readonly List<PdfLinkAnnotation> _linkAnnotations = new();
 
-    internal PdfPage(double width, double height, PdfStandardFont defaultFont)
+    private readonly PdfFontLoader? _fontLoader;
+
+    internal PdfPage(double width, double height, PdfStandardFont defaultFont, PdfFontLoader? fontLoader = null)
     {
         Width = width;
         Height = height;
         DefaultFont = defaultFont;
+        _fontLoader = fontLoader;
     }
 
     public double Width { get; }
@@ -116,12 +119,18 @@ public sealed class PdfPage
         var resolvedFont = ResolveFont(options.Font, options.FontFamily, options.Bold, options.Italic);
         var fillColor = options.FillColor ?? PdfColor.Black;
 
+        PdfEmbeddedFont? embeddedFont = null;
+        _fontLoader?.TryLoad(options.Language, out embeddedFont);
+
         _elements.Add(new TextElement(
             text,
             x,
             y,
             options.FontSize,
             resolvedFont,
+            EmbeddedFont: embeddedFont,
+            Language: options.Language,
+            TextDirection: options.TextDirection,
             FillColor: fillColor,
             RotationDegrees: options.RotationDegrees,
             Underline: options.Underline,
@@ -501,6 +510,8 @@ public sealed class PdfPage
         }
 
         var resolvedFont = ResolveFont(options.Font, options.FontFamily, options.Bold, options.Italic);
+        PdfEmbeddedFont? embeddedFont = null;
+        _fontLoader?.TryLoad(options.Language, out embeddedFont);
         var lines = WrapText(text, maxWidth, options.FontSize, resolvedFont);
         var widestLine = 0d;
 
@@ -514,7 +525,9 @@ public sealed class PdfPage
                 continue;
             }
 
-            var lineWidth = EstimateTextWidth(line, options.FontSize, resolvedFont);
+            var lineWidth = embeddedFont is not null
+                ? embeddedFont.MeasureWidth(line, options.FontSize)
+                : EstimateTextWidth(line, options.FontSize, resolvedFont);
             var isLastLine = i == lines.Count - 1;
             var (lineX, wordSpacing) = ResolveLineLayout(x, maxWidth, lineWidth, line, options.Alignment, isLastLine);
 
@@ -526,13 +539,16 @@ public sealed class PdfPage
                 lineY,
                 options.FontSize,
                 resolvedFont,
-                wordSpacing,
-                options.FillColor ?? PdfColor.Black,
-                options.RotationDegrees,
-                options.Underline,
-                options.Strikethrough,
-                options.CharacterSpacing,
-                options.HorizontalScalingPercent));
+                EmbeddedFont: embeddedFont,
+                Language: options.Language,
+                TextDirection: options.TextDirection,
+                WordSpacing: wordSpacing,
+                FillColor: options.FillColor ?? PdfColor.Black,
+                RotationDegrees: options.RotationDegrees,
+                Underline: options.Underline,
+                Strikethrough: options.Strikethrough,
+                CharacterSpacing: options.CharacterSpacing,
+                HorizontalScalingPercent: options.HorizontalScalingPercent));
         }
 
         var lineCount = lines.Count;
