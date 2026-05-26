@@ -166,18 +166,18 @@ Each skeleton converter returns a Canvas.Pdf "Hello World" code string based on 
 
 | Framework | Key mapping note |
 |-----------|-----------------|
-| Apryse | `new PDFDoc()` → `new PdfDocument()`; `doc.PageCreate()` + `doc.PagePushBack()` → `document.AddPage()` |
+| Apryse | Roslyn-backed reporting pilot: PDFNet/PDFDoc/page/ElementBuilder/ElementWriter/save flows are preserved and reported for manual Canvas.Pdf rewrite |
 | Aspose | Roslyn-backed pilot: `new Document()` → `new PdfDocument()`; `document.Pages.Add()` → `document.AddPage()`; simple `TextFragment`/`TextBuilder` flows supported |
-| DsPdf | `new GcPdfDocument()` → `new PdfDocument()`; `page.Graphics.DrawString(...)` → `page.DrawText(...)` |
+| DsPdf | Roslyn-backed reporting pilot: GcPdfDocument/page/graphics/save flows are preserved and reported for manual Canvas.Pdf rewrite |
 | Spire | `new PdfDocument()` → alias; `page.Canvas.DrawString(...)` → `page.DrawText(...)` |
 | GemBox | `document.Pages.Add()` → `document.AddPage()` |
 | iText7 | Roslyn-backed pilot: `new PdfWriter + PdfDocument + Document` → `new PdfDocument()`; `doc.Add(new Paragraph)` → `page.DrawTextFromTop(...)`; simple `ShowTextAligned` and `PdfCanvas` shapes/text supported |
-| IronPDF | HTML-to-PDF: out of scope for v1; returns informational note |
+| IronPDF | Roslyn-backed reporting pilot: HTML/URL/Razor-to-PDF flows are preserved and reported for manual Canvas.Pdf rewrite |
 | ActivePDF | API not yet confirmed; returns placeholder |
 | LEADTOOLS | Raster/OCR pipelines out of scope; returns informational note |
 | PDFKit.NET | API identity unconfirmed; returns placeholder |
-| Foxit | `new PDFDoc()` → `new PdfDocument()` |
-| DevExpress | Processor vs. generator APIs TBD; returns placeholder |
+| Foxit | Roslyn-backed reporting pilot: PDFDoc/page/graphics/save flows are preserved and reported for manual Canvas.Pdf rewrite |
+| DevExpress | Roslyn-backed reporting pilot: processor/drawing/report export flows are preserved and reported for manual Canvas.Pdf rewrite |
 
 ---
 
@@ -191,6 +191,11 @@ Each skeleton converter returns a Canvas.Pdf "Hello World" code string based on 
 | `SyncfusionPdfConverter` (Roslyn-backed full pilot) | ✅ Done |
 | `IText7PdfConverter` (Roslyn-backed v1 pilot) | ✅ Done |
 | `AsposePdfConverter` (Roslyn-backed v1 pilot) | ✅ Done |
+| `IronPdfConverter` (Roslyn-backed reporting pilot) | ✅ Done |
+| `DevExpressPdfConverter` (Roslyn-backed reporting pilot) | ✅ Done |
+| `AprysePdfConverter` (Roslyn-backed reporting pilot) | ✅ Done |
+| `FoxitPdfConverter` (Roslyn-backed reporting pilot) | ✅ Done |
+| `DsPdfConverter` (Roslyn-backed reporting pilot) | ✅ Done |
 | Convert response summary counts | ✅ Done |
 | `MigrationService.cs` | ✅ Done |
 | `MigrationController.cs` | ✅ Done |

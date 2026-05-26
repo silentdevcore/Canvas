@@ -1,20 +1,32 @@
-using System.Text.RegularExpressions;
+using Canvas.Migration.Apryse;
 
 namespace Canvas.WebApi.Services.Converters;
 
 public sealed class AprysePdfConverter : BasePdfConverter
 {
     public override string FrameworkId => "Apryse";
+
     public override string FrameworkName => "Apryse (PDFTron)";
-    public override string Description => "Basic document/page/save mapping. new PDFDoc() → new PdfDocument(); PageCreate+PagePushBack → AddPage()";
 
-    public override string ConvertCode(string sourceCode) =>
-        SkeletonCanvasCode(FrameworkName) + $"""
+    public override string Status => "pilot";
 
-        // --- Apryse key mappings ---
-        // new PDFDoc()                          → new Canvas.Pdf.PdfDocument()
-        // doc.PageCreate() + doc.PagePushBack() → document.AddPage()
-        // ElementBuilder.CreateText(...)        → page.DrawTextFromTop(...)
-        // doc.Save(path, ...)                   → document.Save(path)
-        """;
+    public override string Description =>
+        "Roslyn-based reporting pilot for Apryse/PDFNet document, page, ElementBuilder, ElementWriter, and save workflows.";
+
+    public override string ConvertCode(string sourceCode)
+    {
+        return new ApryseMigration().Migrate(sourceCode).MigratedCode;
+    }
+
+    public override IReadOnlyList<MigrationDiagnostic> GetDiagnostics(string sourceCode)
+    {
+        return new ApryseMigration()
+            .Migrate(sourceCode)
+            .Diagnostics
+            .Select(static diagnostic => new MigrationDiagnostic(
+                diagnostic.Id,
+                diagnostic.Severity.ToString(),
+                diagnostic.Message))
+            .ToArray();
+    }
 }

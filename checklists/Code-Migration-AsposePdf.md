@@ -51,9 +51,10 @@
 - [x] Convert simple `TextBuilder(page).AppendText(...)`
 - [x] Warn for `TextFragment.TextState` styling that needs manual font/color review
 - [x] Warn for table/forms/security/stamp/annotation/redaction/optimization APIs
+- [x] Add final combined v1 fixture covering document, page, text fragments, positioned text, text builder, styling warning, table warning, and save
 - [x] Connect WebApi Aspose converter to the Roslyn migration engine
 - [x] Add WebApi migration-service smoke test for Aspose summary/diagnostics
-- [x] Verified with `dotnet test tests/Canvas.Migration.AsposePdf.Tests/Canvas.Migration.AsposePdf.Tests.csproj --no-restore --no-build`: `7/7` passed
+- [x] Verified with `dotnet test tests/Canvas.Migration.AsposePdf.Tests/Canvas.Migration.AsposePdf.Tests.csproj --no-restore --no-build`: `8/8` passed
 - [x] Verified with `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --no-build`: `17/17` passed
 - [ ] Replace syntax-only matching with semantic matching before broad rollout
 
@@ -154,6 +155,7 @@ document.Save(path);
 - [x] Text state warning sample
 - [x] Unsupported text fragment usage sample
 - [x] Unsupported table/security diagnostic sample
+- [x] Final combined v1 fixture
 - [x] Save sample
 - [x] WebApi migration-service smoke test
 - [ ] Snapshot before/after migration sample

@@ -1,19 +1,32 @@
+using Canvas.Migration.FoxitPdf;
+
 namespace Canvas.WebApi.Services.Converters;
 
 public sealed class FoxitPdfConverter : BasePdfConverter
 {
     public override string FrameworkId => "Foxit";
+
     public override string FrameworkName => "Foxit PDF SDK";
-    public override string Description => "new PDFDoc() → new PdfDocument(); page content drawing via Graphics object.";
 
-    public override string ConvertCode(string sourceCode) =>
-        SkeletonCanvasCode(FrameworkName) + $"""
+    public override string Status => "pilot";
 
-        // --- Foxit PDF SDK key mappings ---
-        // using foxit.pdf → using Canvas.Pdf
-        // new PDFDoc()             → new Canvas.Pdf.PdfDocument()
-        // doc.InsertPage(...)      → document.AddPage()
-        // Graphics text/line/rect  → page.DrawTextFromTop / DrawLineFromTop / DrawRectangleFromTop
-        // doc.Save(path, ...)      → document.Save(path)
-        """;
+    public override string Description =>
+        "Roslyn-based reporting pilot for Foxit PDFDoc, page insertion, graphics/content drawing, and save workflows.";
+
+    public override string ConvertCode(string sourceCode)
+    {
+        return new FoxitPdfMigration().Migrate(sourceCode).MigratedCode;
+    }
+
+    public override IReadOnlyList<MigrationDiagnostic> GetDiagnostics(string sourceCode)
+    {
+        return new FoxitPdfMigration()
+            .Migrate(sourceCode)
+            .Diagnostics
+            .Select(static diagnostic => new MigrationDiagnostic(
+                diagnostic.Id,
+                diagnostic.Severity.ToString(),
+                diagnostic.Message))
+            .ToArray();
+    }
 }

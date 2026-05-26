@@ -4,17 +4,22 @@
 
 Build a `Canvas.Migration.*` feature family for migrating existing C# PDF-generation code from third-party vendors to `Canvas.Pdf`.
 
-The first milestone started with checklist and architecture scaffolding. Syncfusion PDF and iText7 now have Roslyn-backed pilot implementations; the remaining providers are still planned as separate follow-up slices.
+The first milestone started with checklist and architecture scaffolding. Syncfusion PDF, iText7, Aspose.PDF, IronPDF, DevExpress PDF, Apryse, Foxit PDF SDK, and DsPdf now have Roslyn-backed pilot implementations; the remaining providers are still planned as separate follow-up slices.
 
 ## Current Pilot
 
 - [x] Use `SyncfusionPdf` as the first provider pilot
 - [x] Use `iText7` as the second provider pilot
 - [x] Use `AsposePdf` as the third provider pilot
+- [x] Use `IronPdf` as the fourth provider pilot
+- [x] Use `DevExpressPdf` as the fifth provider pilot
+- [x] Use `Apryse` as the sixth provider pilot
+- [x] Use `FoxitPdf` as the seventh provider pilot
+- [x] Use `DsPdf` as the eighth provider pilot
 - [x] Start with deterministic C# PDF-generation patterns, not existing-PDF editing
 - [x] Treat `PdfDocument`, `Pages.Add`, `PdfGraphics.DrawString`, simple fonts, simple brushes, and `Save` as the first conversion slice
 - [x] Use the Syncfusion pilot to validate shared abstraction names before adding all provider projects
-- [ ] Promote repeated Syncfusion/iText7/Aspose rules into provider-neutral abstractions after the third prototype
+- [ ] Promote repeated Syncfusion/iText7/Aspose/IronPDF/DevExpress/Apryse/Foxit/DsPdf report rules into provider-neutral abstractions after the eighth prototype
 
 ## Architecture Checklist
 
@@ -36,16 +41,16 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 - [x] `src/Canvas.Migration.Roslyn`
 - [x] `src/Canvas.Migration.iText7`
 - [x] `src/Canvas.Migration.AsposePdf`
-- [ ] `src/Canvas.Migration.IronPdf`
-- [ ] `src/Canvas.Migration.Apryse`
+- [x] `src/Canvas.Migration.IronPdf`
+- [x] `src/Canvas.Migration.Apryse`
 - [x] `src/Canvas.Migration.SyncfusionPdf`
-- [ ] `src/Canvas.Migration.DsPdf`
+- [x] `src/Canvas.Migration.DsPdf`
 - [ ] `src/Canvas.Migration.GemBoxPdf`
 - [ ] `src/Canvas.Migration.SpirePdf`
 - [ ] `src/Canvas.Migration.PdfKitNet`
 - [ ] `src/Canvas.Migration.LeadtoolsPdf`
-- [ ] `src/Canvas.Migration.FoxitPdf`
-- [ ] `src/Canvas.Migration.DevExpressPdf`
+- [x] `src/Canvas.Migration.FoxitPdf`
+- [x] `src/Canvas.Migration.DevExpressPdf`
 - [ ] `src/Canvas.Migration.ActivePdf`
 
 ## Shared Roslyn Analyzer And Code Fix Tasks
@@ -89,16 +94,16 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | iText7 | `Code-Migration-iText7.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
 | Aspose.PDF | `Code-Migration-AsposePdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
-| IronPDF | `Code-Migration-IronPdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
-| Apryse SDK | `Code-Migration-Apryse.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
+| IronPDF | `Code-Migration-IronPdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
+| Apryse SDK | `Code-Migration-Apryse.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
 | Syncfusion PDF | `Code-Migration-SyncfusionPdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
-| DsPdf / Document Solutions | `Code-Migration-DsPdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
+| DsPdf / Document Solutions | `Code-Migration-DsPdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
 | GemBox.Pdf | `Code-Migration-GemBoxPdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
 | Spire.PDF | `Code-Migration-SpirePdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
 | PDFKit.NET | `Code-Migration-PdfKitNet.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
 | LEADTOOLS PDF | `Code-Migration-LeadtoolsPdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
-| Foxit PDF SDK | `Code-Migration-FoxitPdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
-| DevExpress PDF | `Code-Migration-DevExpressPdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
+| Foxit PDF SDK | `Code-Migration-FoxitPdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
+| DevExpress PDF | `Code-Migration-DevExpressPdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
 | ActivePDF | `Code-Migration-ActivePdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
 
 ## Provider Migration-Ready Acceptance Criteria
