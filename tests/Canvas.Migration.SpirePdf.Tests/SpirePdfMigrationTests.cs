@@ -77,6 +77,69 @@ public sealed class SpirePdfMigrationTests
     }
 
     [Fact]
+    public void Migrate_ShouldConvertFillRectangle()
+    {
+        var source = """
+            using Spire.Pdf;
+            using Spire.Pdf.Graphics;
+
+            var doc = new PdfDocument();
+            var page = doc.Pages.Add();
+            page.Canvas.FillRectangle(brush, 40, 300, 200, 80);
+            doc.SaveToFile(path);
+            """;
+        var sut = new SpirePdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains("page.DrawRectangleFromTop(40, 300, 200, 80);", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, diagnostic =>
+            diagnostic.Id == "CANMIGSPIRE009"
+            && diagnostic.Severity == MigrationDiagnosticSeverity.Info);
+    }
+
+    [Fact]
+    public void Migrate_ShouldConvertFillRectangleWithRectangleF()
+    {
+        var source = """
+            using Spire.Pdf;
+            using Spire.Pdf.Graphics;
+
+            var doc = new PdfDocument();
+            var page = doc.Pages.Add();
+            page.Canvas.FillRectangle(brush, new RectangleF(40, 300, 200, 80));
+            doc.SaveToFile(path);
+            """;
+        var sut = new SpirePdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains("page.DrawRectangleFromTop(40, 300, 200, 80);", result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_ShouldWarnForEllipses()
+    {
+        var source = """
+            using Spire.Pdf;
+            using Spire.Pdf.Graphics;
+
+            var doc = new PdfDocument();
+            var page = doc.Pages.Add();
+            page.Canvas.DrawEllipse(pen, 100, 100, 150, 80);
+            page.Canvas.FillEllipse(brush, 100, 200, 150, 80);
+            doc.SaveToFile(path);
+            """;
+        var sut = new SpirePdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains(result.Diagnostics, diagnostic =>
+            diagnostic.Id == "CANMIGSPIRE008"
+            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
     public void Migrate_ShouldWarnForImages()
     {
         var source = """

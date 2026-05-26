@@ -1,7 +1,7 @@
 {
   "name": "ui-designer-v2",
   "version": "1.0.0",
-  "description": "CraftMyPDF-style UI Designer - User-friendly document template designer",
+  "description": "Canvas UI Designer - User-friendly document template designer",
   "main": "src/main.tsx",
   "scripts": {
     "dev": "vite",
@@ -61,7 +61,7 @@
     "ui-designer",
     "document-templates",
     "pdf-generator",
-    "craftmypdf",
+    "canvas-pdf",
     "react",
     "typescript"
   ],

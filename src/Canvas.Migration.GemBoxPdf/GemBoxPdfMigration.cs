@@ -240,6 +240,12 @@ public sealed class GemBoxPdfMigration : CSharpSourceMigration
             if (TryConvertDrawText(statement, out var drawText))
                 return [MakeGlobal(drawText!, statement)];
 
+            if (TryConvertDrawLine(statement, out var drawLine))
+                return [MakeGlobal(drawLine!, statement)];
+
+            if (TryConvertDrawRectangle(statement, out var drawRect))
+                return [MakeGlobal(drawRect!, statement)];
+
             if (IsContentCall(statement, "DrawImage"))
             {
                 _diagnostics.Add(Warning("CANMIGGEMBOX005",
@@ -247,12 +253,10 @@ public sealed class GemBoxPdfMigration : CSharpSourceMigration
                 return [statement];
             }
 
-            if (IsContentCall(statement, "DrawLine")
-                || IsContentCall(statement, "DrawRectangle")
-                || IsContentCall(statement, "DrawPath"))
+            if (IsContentCall(statement, "DrawPath"))
             {
                 _diagnostics.Add(Warning("CANMIGGEMBOX006",
-                    "GemBox shape/path content operations require manual migration outside v1."));
+                    "GemBox path content operations require manual migration outside v1."));
                 return [statement];
             }
 
@@ -302,6 +306,85 @@ public sealed class GemBoxPdfMigration : CSharpSourceMigration
                 .Any(invocation => invocation.Expression is MemberAccessExpressionSyntax access
                     && access.Name.Identifier.ValueText == "Save"
                     && access.Expression.ToString() == _documentVariable);
+        }
+
+        private bool TryConvertDrawLine(GlobalStatementSyntax statement, out string? converted)
+        {
+            foreach (var invocation in FindContentCalls(statement, "DrawLine"))
+            {
+                var arguments = invocation.ArgumentList.Arguments;
+                if (arguments.Count >= 5)
+                {
+                    _diagnostics.Add(Info("CANMIGGEMBOX004", "page.Content.DrawLine(...) -> page.DrawLineFromTop(...)"));
+                    converted = $"{_pageVariable}.DrawLineFromTop({arguments[1].Expression}, {arguments[2].Expression}, {arguments[3].Expression}, {arguments[4].Expression});";
+                    return true;
+                }
+
+                if (arguments.Count >= 3)
+                {
+                    var (x1, y1) = ExtractPointOrCoord(arguments[1].Expression);
+                    var (x2, y2) = ExtractPointOrCoord(arguments[2].Expression);
+                    if (x1 != null && y1 != null && x2 != null && y2 != null)
+                    {
+                        _diagnostics.Add(Info("CANMIGGEMBOX004", "page.Content.DrawLine(...) -> page.DrawLineFromTop(...)"));
+                        converted = $"{_pageVariable}.DrawLineFromTop({x1}, {y1}, {x2}, {y2});";
+                        return true;
+                    }
+                }
+            }
+
+            converted = null;
+            return false;
+        }
+
+        private bool TryConvertDrawRectangle(GlobalStatementSyntax statement, out string? converted)
+        {
+            foreach (var invocation in FindContentCalls(statement, "DrawRectangle"))
+            {
+                var arguments = invocation.ArgumentList.Arguments;
+                if (arguments.Count >= 5)
+                {
+                    _diagnostics.Add(Info("CANMIGGEMBOX004", "page.Content.DrawRectangle(...) -> page.DrawRectangleFromTop(...)"));
+                    converted = $"{_pageVariable}.DrawRectangleFromTop({arguments[1].Expression}, {arguments[2].Expression}, {arguments[3].Expression}, {arguments[4].Expression});";
+                    return true;
+                }
+
+                var rect = arguments
+                    .Select(static arg => arg.Expression as ObjectCreationExpressionSyntax)
+                    .FirstOrDefault(static creation => creation != null
+                        && GetSimpleName(creation.Type) is "PdfRect" or "RectangleF" or "Rectangle");
+                if (rect?.ArgumentList?.Arguments.Count >= 4)
+                {
+                    var ra = rect.ArgumentList.Arguments;
+                    _diagnostics.Add(Info("CANMIGGEMBOX004", "page.Content.DrawRectangle(...) -> page.DrawRectangleFromTop(...)"));
+                    converted = $"{_pageVariable}.DrawRectangleFromTop({ra[0].Expression}, {ra[1].Expression}, {ra[2].Expression}, {ra[3].Expression});";
+                    return true;
+                }
+            }
+
+            converted = null;
+            return false;
+        }
+
+        private static (string? A, string? B) ExtractPointOrCoord(ExpressionSyntax expression)
+        {
+            if (expression is ObjectCreationExpressionSyntax creation
+                && GetSimpleName(creation.Type) is "PdfPoint" or "PointF" or "Point"
+                && creation.ArgumentList?.Arguments.Count >= 2)
+            {
+                return (creation.ArgumentList.Arguments[0].Expression.ToString(),
+                        creation.ArgumentList.Arguments[1].Expression.ToString());
+            }
+
+            return (null, null);
+        }
+
+        private static IEnumerable<InvocationExpressionSyntax> FindContentCalls(GlobalStatementSyntax statement, string methodName)
+        {
+            return statement.Statement.DescendantNodes().OfType<InvocationExpressionSyntax>()
+                .Where(invocation => invocation.Expression is MemberAccessExpressionSyntax access
+                    && access.Name.Identifier.ValueText == methodName
+                    && access.Expression.ToString().Contains(".Content", StringComparison.Ordinal));
         }
 
         private bool TryConvertDrawText(GlobalStatementSyntax statement, out string? converted)
@@ -374,10 +457,7 @@ public sealed class GemBoxPdfMigration : CSharpSourceMigration
 
         private bool IsContentCall(GlobalStatementSyntax statement, string methodName)
         {
-            return statement.Statement.DescendantNodes().OfType<InvocationExpressionSyntax>()
-                .Any(invocation => invocation.Expression is MemberAccessExpressionSyntax access
-                    && access.Name.Identifier.ValueText == methodName
-                    && access.Expression.ToString().Contains(".Content", StringComparison.Ordinal));
+            return FindContentCalls(statement, methodName).Any();
         }
 
         private bool IsExistingPdfEditingCall(GlobalStatementSyntax statement)

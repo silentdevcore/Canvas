@@ -8,10 +8,10 @@ public sealed class SpirePdfConverter : BasePdfConverter
 
     public override string FrameworkName => "Spire.PDF";
 
-    public override string Status => "pilot";
+    public override string Status => "full";
 
     public override string Description =>
-        "Roslyn-backed pilot for Spire.PDF document, page, canvas text/shape, and SaveToFile workflows.";
+        "Roslyn-based full conversion: PdfDocument + Pages.Add → AddPage; Canvas.DrawString → DrawTextFromTop; Canvas.DrawLine → DrawLineFromTop; Canvas.DrawRectangle/FillRectangle → DrawRectangleFromTop; SaveToFile → Save; tables/forms/annotations produce warnings.";
 
     public override string ConvertCode(string sourceCode)
     {

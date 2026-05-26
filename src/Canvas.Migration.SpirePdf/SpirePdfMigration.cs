@@ -220,6 +220,16 @@ public sealed class SpirePdfMigration : CSharpSourceMigration
             if (TryConvertDrawRectangle(statement, out var drawRectangle))
                 return [MakeGlobal(drawRectangle!, statement)];
 
+            if (TryConvertFillRectangle(statement, out var fillRectangle))
+                return [MakeGlobal(fillRectangle!, statement)];
+
+            if (IsCanvasCall(statement, "DrawEllipse") || IsCanvasCall(statement, "FillEllipse"))
+            {
+                _diagnostics.Add(Warning("CANMIGSPIRE008",
+                    "Spire DrawEllipse/FillEllipse has no direct Canvas.Pdf equivalent; replace with DrawRectangleFromTop to approximate bounding box or use a path."));
+                return [statement];
+            }
+
             if (IsCanvasCall(statement, "DrawImage"))
             {
                 _diagnostics.Add(Warning("CANMIGSPIRE005",
@@ -337,6 +347,35 @@ public sealed class SpirePdfMigration : CSharpSourceMigration
                     var rectArgs = rectangle.ArgumentList.Arguments;
                     _diagnostics.Add(Info("CANMIGSPIRE006", "page.Canvas.DrawRectangle(...) -> page.DrawRectangleFromTop(...)"));
                     converted = $"{_pageVariable}.DrawRectangleFromTop({rectArgs[0].Expression}, {rectArgs[1].Expression}, {rectArgs[2].Expression}, {rectArgs[3].Expression});";
+                    return true;
+                }
+            }
+
+            converted = null;
+            return false;
+        }
+
+        private bool TryConvertFillRectangle(GlobalStatementSyntax statement, out string? converted)
+        {
+            foreach (var invocation in FindCanvasCalls(statement, "FillRectangle"))
+            {
+                var arguments = invocation.ArgumentList.Arguments;
+                if (arguments.Count >= 5)
+                {
+                    _diagnostics.Add(Info("CANMIGSPIRE009", "page.Canvas.FillRectangle(...) -> page.DrawRectangleFromTop(...)"));
+                    converted = $"{_pageVariable}.DrawRectangleFromTop({arguments[1].Expression}, {arguments[2].Expression}, {arguments[3].Expression}, {arguments[4].Expression});";
+                    return true;
+                }
+
+                var rect = arguments
+                    .Select(static arg => arg.Expression as ObjectCreationExpressionSyntax)
+                    .FirstOrDefault(static creation => creation != null
+                        && GetSimpleName(creation.Type) is "RectangleF" or "Rectangle");
+                if (rect?.ArgumentList?.Arguments.Count >= 4)
+                {
+                    var ra = rect.ArgumentList.Arguments;
+                    _diagnostics.Add(Info("CANMIGSPIRE009", "page.Canvas.FillRectangle(...) -> page.DrawRectangleFromTop(...)"));
+                    converted = $"{_pageVariable}.DrawRectangleFromTop({ra[0].Expression}, {ra[1].Expression}, {ra[2].Expression}, {ra[3].Expression});";
                     return true;
                 }
             }

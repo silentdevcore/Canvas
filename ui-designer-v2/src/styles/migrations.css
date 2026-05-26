@@ -149,10 +149,40 @@
 
 /* Split pane */
 .mgr-split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
+  display: flex;
+  flex-direction: row;
+  gap: 0;
   height: 420px;
+  overflow: hidden;
+}
+
+.mgr-drag-handle {
+  width: 8px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background: var(--color-gray-200);
+  transition: background var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mgr-drag-handle::after {
+  content: '';
+  width: 2px;
+  height: 24px;
+  border-radius: 1px;
+  background: var(--color-gray-400);
+}
+
+.mgr-drag-handle:hover,
+.mgr-drag-handle:active {
+  background: var(--color-primary-light);
+}
+
+.mgr-drag-handle:hover::after,
+.mgr-drag-handle:active::after {
+  background: var(--color-primary);
 }
 
 .mgr-pane {
@@ -261,6 +291,17 @@
 .mgr-icon-btn:hover:not(:disabled) {
   background: var(--color-gray-100);
   color: var(--color-gray-900);
+}
+
+.mgr-icon-btn-active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-color: var(--color-primary-light);
+}
+
+.mgr-icon-btn-active:hover:not(:disabled) {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
 .mgr-arrow {
@@ -405,7 +446,17 @@
 /* Responsive */
 @media (max-width: 900px) {
   .mgr-split {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    height: auto;
+  }
+
+  .mgr-pane {
+    width: 100% !important;
+    height: 360px;
+  }
+
+  .mgr-drag-handle {
+    display: none;
   }
 
   .mgr-framework-desc {

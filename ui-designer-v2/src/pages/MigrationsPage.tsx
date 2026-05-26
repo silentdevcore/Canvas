@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { FiCode, FiCopy, FiDownload, FiPlay, FiRefreshCw } from 'react-icons/fi';
-import Editor, { type OnMount } from '@monaco-editor/react';
+import { FiCode, FiCopy, FiDownload, FiPlay, FiRefreshCw, FiGitMerge } from 'react-icons/fi';
+import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import AppHeader from '@/components/Layout/AppHeader';
 
 interface Framework {
@@ -27,10 +27,10 @@ const FRAMEWORKS_FALLBACK: Framework[] = [
   { id: 'Foxit',      name: 'Foxit PDF SDK',     status: 'full',    description: 'Roslyn-based conversion: PDFDoc → PdfDocument; InsertPage/CreatePage → AddPage; Library.Initialize + GetGraphics/GenerateContent removed; graphics.DrawText/DrawLine/DrawRect/FillRect → DrawTextFromTop/DrawLineFromTop/DrawRectangleFromTop; doc.Save/SaveAs → document.Save().' },
   { id: 'DevExpress', name: 'DevExpress PDF',    status: 'full',    description: 'Roslyn-based conversion: PdfDocumentProcessor → PdfDocument, RenderNewPage → AddPage, draw calls repositioned, SaveDocument → Save. Forms/signatures/report export produce warnings.' },
   { id: 'IronPdf',    name: 'IronPDF',           status: 'pilot',   description: 'Roslyn-based pilot: ChromePdfRenderer → PdfDocument + AddPage scaffold; SaveAs → document.Save(); HTML/URL/Razor rendering calls replaced with diagnostics for manual Canvas draw call migration.' },
-  { id: 'Spire',      name: 'Spire.PDF',         status: 'pilot',   description: 'Roslyn-based pilot: PdfDocument/Pages.Add/page.Canvas.DrawString/DrawLine/DrawRectangle/SaveToFile converted; manual diagnostics for images, tables, forms, annotations, and security.' },
-  { id: 'GemBox',     name: 'GemBox.Pdf',        status: 'pilot',   description: 'Roslyn-based pilot: PdfDocument/Pages.Add/Content.DrawText(text, PdfPoint)/Save converted; manual diagnostics for images, shapes, forms, annotations, encryption, and existing-PDF editing.' },
-  { id: 'PdfKitNet',  name: 'PDFKit.NET',        status: 'pilot',   description: 'Cautious Roslyn pilot for likely document/page/text/shape/save patterns; API identity remains unconfirmed.' },
-  { id: 'Leadtools',  name: 'LEADTOOLS',         status: 'pilot',   description: 'Cautious Roslyn pilot for likely PDF generation; raster, OCR, barcode, and conversion pipelines are manual.' },
+  { id: 'Spire',      name: 'Spire.PDF',         status: 'full',    description: 'Roslyn-based full conversion: PdfDocument + Pages.Add → AddPage; Canvas.DrawString → DrawTextFromTop; Canvas.DrawLine → DrawLineFromTop; Canvas.DrawRectangle/FillRectangle → DrawRectangleFromTop; SaveToFile → Save; tables/forms/annotations produce warnings.' },
+  { id: 'GemBox',     name: 'GemBox.Pdf',        status: 'full',    description: 'Roslyn-based full conversion: PdfDocument + Pages.Add → AddPage; Content.DrawText → DrawTextFromTop; Content.DrawLine → DrawLineFromTop; Content.DrawRectangle → DrawRectangleFromTop; ComponentInfo.SetLicense removed; forms/encryption/annotations produce warnings.' },
+  { id: 'PdfKitNet',  name: 'PDFKit.NET',        status: 'full',    description: 'Roslyn-based full conversion: Document + NewPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine → DrawLineFromTop; DrawRectangle → DrawRectangleFromTop; Save/Render → Save; forms/encryption/annotations produce warnings. Package identity must be manually verified.' },
+  { id: 'Leadtools',  name: 'LEADTOOLS',         status: 'full',    description: 'Roslyn-based full conversion: PDFDocument + AddPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine → DrawLineFromTop; DrawRectangle → DrawRectangleFromTop; Save/Export → Save; raster/OCR/barcode/conversion APIs produce warnings.' },
   { id: 'ActivePdf',  name: 'ActivePDF',         status: 'pilot',   description: 'Cautious Roslyn pilot for likely Toolkit-style generation; DocConverter, WebGrabber, COM/server, printer, merge, and stamp workflows are manual.' },
 ];
 
@@ -299,8 +299,12 @@ const MigrationsPage: React.FC = () => {
   const [previewing, setPreviewing] = useState(false);
   const [copyLabel, setCopyLabel] = useState('Copy');
   const [error, setError] = useState<string | null>(null);
+  const [diffMode, setDiffMode] = useState(false);
+  const [splitPercent, setSplitPercent] = useState(50);
   const prevPdfUrl = useRef<string | null>(null);
   const handleConvertRef = useRef<() => Promise<void>>(async () => {});
+  const dragState = useRef<{ startX: number; startPct: number } | null>(null);
+  const splitRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch(`${API_BASE}/frameworks`)
@@ -401,6 +405,25 @@ const MigrationsPage: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dragState.current = { startX: e.clientX, startPct: splitPercent };
+    const onMove = (ev: MouseEvent) => {
+      if (!dragState.current || !splitRef.current) return;
+      const containerWidth = splitRef.current.offsetWidth;
+      const delta = ev.clientX - dragState.current.startX;
+      const newPct = Math.min(80, Math.max(20, dragState.current.startPct + (delta / containerWidth) * 100));
+      setSplitPercent(newPct);
+    };
+    const onUp = () => {
+      dragState.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, [splitPercent]);
+
   const warnCount = diagnostics.filter(d => d.severity === 'Warning').length;
 
   // Keep ref current so the Monaco command closure never goes stale
@@ -470,8 +493,8 @@ const MigrationsPage: React.FC = () => {
         )}
 
         {/* Split: source | canvas */}
-        <div className="mgr-split">
-          <div className="mgr-pane">
+        <div className="mgr-split" ref={splitRef}>
+          <div className="mgr-pane" style={{ width: `${splitPercent}%` }}>
             <div className="mgr-pane-header">
               <span>Source Code — {current?.name ?? selectedId}</span>
             </div>
@@ -506,10 +529,21 @@ const MigrationsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="mgr-pane">
+          <div className="mgr-drag-handle" onMouseDown={handleDragStart} title="Drag to resize" />
+
+          <div className="mgr-pane" style={{ flex: 1 }}>
             <div className="mgr-pane-header">
               <span>Canvas.Pdf Code</span>
               <div className="mgr-pane-header-actions">
+                {hasConverted && (
+                  <button
+                    className={`mgr-icon-btn${diffMode ? ' mgr-icon-btn-active' : ''}`}
+                    onClick={() => setDiffMode(d => !d)}
+                    title="Toggle diff view"
+                  >
+                    <FiGitMerge /> Diff
+                  </button>
+                )}
                 <button className="mgr-icon-btn" onClick={handleCopy} disabled={!canvasCode} title="Copy to clipboard">
                   <FiCopy /> {copyLabel}
                 </button>
@@ -519,21 +553,41 @@ const MigrationsPage: React.FC = () => {
               </div>
             </div>
             <div className="mgr-editor-wrapper">
-              <Editor
-                language="csharp"
-                value={canvasCode}
-                options={{
-                  readOnly: true,
-                  minimap: { enabled: false },
-                  scrollBeyondLastLine: false,
-                  fontSize: 13,
-                  lineNumbers: 'on',
-                  wordWrap: 'on',
-                  renderWhitespace: 'none',
-                  padding: { top: 8, bottom: 8 },
-                }}
-                height="100%"
-              />
+              {diffMode && canvasCode ? (
+                <DiffEditor
+                  language="csharp"
+                  original={sourceCode}
+                  modified={canvasCode}
+                  options={{
+                    readOnly: true,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 13,
+                    wordWrap: 'on',
+                    renderWhitespace: 'none',
+                    padding: { top: 8, bottom: 8 },
+                    renderSideBySide: true,
+                    originalEditable: false,
+                  }}
+                  height="100%"
+                />
+              ) : (
+                <Editor
+                  language="csharp"
+                  value={canvasCode}
+                  options={{
+                    readOnly: true,
+                    minimap: { enabled: false },
+                    scrollBeyondLastLine: false,
+                    fontSize: 13,
+                    lineNumbers: 'on',
+                    wordWrap: 'on',
+                    renderWhitespace: 'none',
+                    padding: { top: 8, bottom: 8 },
+                  }}
+                  height="100%"
+                />
+              )}
             </div>
             <div className="mgr-pane-footer mgr-pane-footer-right">
               <button

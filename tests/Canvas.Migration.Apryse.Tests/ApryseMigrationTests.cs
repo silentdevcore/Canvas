@@ -6,7 +6,7 @@ namespace Canvas.Migration.Apryse.Tests;
 public sealed class ApryseMigrationTests
 {
     [Fact]
-    public void Migrate_ShouldReportBasicDocumentPageAndSaveWorkflow()
+    public void Migrate_ShouldConvertBasicDocumentPageAndSave()
     {
         var source = """
             using pdftron;
@@ -23,112 +23,94 @@ public sealed class ApryseMigrationTests
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("// Canvas.Pdf migration report: Apryse SDK", result.MigratedCode);
-        Assert.Contains("PDFNet.Initialize(...) detected", result.MigratedCode);
-        Assert.Contains("new PDFDoc(...) detected", result.MigratedCode);
-        Assert.Contains("PageCreate(...) detected", result.MigratedCode);
-        Assert.Contains("PagePushBack(page) detected", result.MigratedCode);
-        Assert.Contains("doc.Save(...) detected", result.MigratedCode);
-        Assert.Contains("using var doc = new PDFDoc();", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGAPRYSE000");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGAPRYSE001");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGAPRYSE002");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGAPRYSE003");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGAPRYSE004");
+        Assert.Contains("using Canvas.Pdf;", result.MigratedCode);
+        Assert.DoesNotContain("pdftron", result.MigratedCode);
+        Assert.Contains("var document = new PdfDocument();", result.MigratedCode);
+        Assert.DoesNotContain("PDFNet.Initialize", result.MigratedCode);
+        Assert.DoesNotContain("PageCreate", result.MigratedCode);
+        Assert.Contains("var page = document.AddPage();", result.MigratedCode);
+        Assert.Contains("document.Save(path);", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGAPRYSE000");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGAPRYSE001");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGAPRYSE002");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGAPRYSE003");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGAPRYSE004");
     }
 
     [Fact]
-    public void Migrate_ShouldReportElementBuilderAndWriterTextWorkflow()
+    public void Migrate_ShouldRemovePdfNetInitialize()
     {
         var source = """
-            using pdftron.PDF;
+            using pdftron;
 
-            var builder = new ElementBuilder();
-            var writer = new ElementWriter();
-            writer.Begin(page);
-            writer.WriteElement(builder.CreateTextBegin(font, 12));
-            writer.WriteElement(builder.CreateTextRun("Hello"));
-            writer.WriteElement(builder.CreateTextEnd());
+            PDFNet.Initialize("license-key");
+            var doc = new PDFDoc();
             """;
         var sut = new ApryseMigration();
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("ElementBuilder detected", result.MigratedCode);
-        Assert.Contains("ElementWriter detected", result.MigratedCode);
-        Assert.Contains("ElementWriter.Begin(page) detected", result.MigratedCode);
-        Assert.Contains("WriteElement(...) detected", result.MigratedCode);
-        Assert.Contains("CreateTextRun(...) detected", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGAPRYSE005");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGAPRYSE006");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGAPRYSE007");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGAPRYSE008");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGAPRYSE009");
+        Assert.DoesNotContain("PDFNet.Initialize", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGAPRYSE000" && d.Severity == MigrationDiagnosticSeverity.Info);
     }
 
     [Fact]
-    public void Migrate_ShouldReportImageAndShapeElementCandidates()
+    public void Migrate_ShouldConvertPageCreateAndPushBack()
     {
         var source = """
             using pdftron.PDF;
 
-            var image = builder.CreateImageFromFile(doc, imagePath);
-            var rect = builder.CreateRect(40, 40, 200, 80);
-            var path = builder.CreatePath(points);
+            var doc = new PDFDoc();
+            var page1 = doc.PageCreate(new Rect(0, 0, 612, 792));
+            doc.PagePushBack(page1);
             """;
         var sut = new ApryseMigration();
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("CreateImageFromFile(...) detected", result.MigratedCode);
-        Assert.Contains("CreateRect(...) detected", result.MigratedCode);
-        Assert.Contains("CreatePath(...) detected", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGAPRYSE010");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGAPRYSE011");
+        Assert.DoesNotContain("PageCreate", result.MigratedCode);
+        Assert.Contains("var page1 = document.AddPage();", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGAPRYSE002");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGAPRYSE003");
     }
 
     [Fact]
-    public void Migrate_ShouldWarnForSdfReaderAnnotationsAndFields()
+    public void Migrate_ShouldConvertSaveAndRemoveSaveFlags()
     {
         var source = """
             using pdftron.PDF;
             using pdftron.SDF;
 
-            var sdf = doc.GetSDFDoc();
-            var reader = new ElementReader();
-            var field = new Field();
-            var annot = new Annot();
+            var doc = new PDFDoc();
+            doc.Save(outputPath, SDFDoc.SaveOptions.e_linearized);
             """;
         var sut = new ApryseMigration();
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("Existing-PDF editing, SDF object manipulation, forms, annotations, redaction, OCR/conversion, or signatures require manual migration outside v1.", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Id == "CANMIGAPRYSE020"
-            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Id == "CANMIGAPRYSE021"
-            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
+        Assert.Contains("document.Save(outputPath);", result.MigratedCode);
+        Assert.DoesNotContain("e_linearized", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGAPRYSE004");
     }
 
     [Fact]
-    public void Migrate_ShouldWarnForConversionOcrAndDigitalSignatureApis()
+    public void Migrate_ShouldRemoveAprysePdfUsings()
     {
         var source = """
+            using pdftron;
             using pdftron.PDF;
+            using pdftron.SDF;
+            using System;
 
-            Convert.ToPdf(doc, inputPath);
-            OCRModule.ImageToPDF(doc, imagePath);
-            var signature = new DigitalSignatureField(field);
+            var doc = new PDFDoc();
             """;
         var sut = new ApryseMigration();
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("Existing-PDF editing, SDF object manipulation, forms, annotations, redaction, OCR/conversion, or signatures require manual migration outside v1.", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Severity == MigrationDiagnosticSeverity.Warning
-            && diagnostic.Id is "CANMIGAPRYSE020" or "CANMIGAPRYSE021");
+        Assert.DoesNotContain("using pdftron", result.MigratedCode);
+        Assert.Contains("using System;", result.MigratedCode);
+        Assert.Contains("using Canvas.Pdf;", result.MigratedCode);
     }
 }

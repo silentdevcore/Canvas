@@ -82,7 +82,48 @@ public sealed class GemBoxPdfMigrationTests
     }
 
     [Fact]
-    public void Migrate_ShouldWarnForImageAndShapeContent()
+    public void Migrate_ShouldConvertLinesAndRectangles()
+    {
+        var source = """
+            using GemBox.Pdf;
+
+            var doc = new PdfDocument();
+            var page = doc.Pages.Add();
+            page.Content.DrawLine(pen, 40, 700, 555, 700);
+            page.Content.DrawRectangle(pen, 40, 620, 200, 80);
+            doc.Save(path);
+            """;
+        var sut = new GemBoxPdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains("page.DrawLineFromTop(40, 700, 555, 700);", result.MigratedCode);
+        Assert.Contains("page.DrawRectangleFromTop(40, 620, 200, 80);", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, diagnostic =>
+            diagnostic.Id == "CANMIGGEMBOX004"
+            && diagnostic.Severity == MigrationDiagnosticSeverity.Info);
+    }
+
+    [Fact]
+    public void Migrate_ShouldConvertDrawLineWithPointArguments()
+    {
+        var source = """
+            using GemBox.Pdf;
+
+            var doc = new PdfDocument();
+            var page = doc.Pages.Add();
+            page.Content.DrawLine(pen, new PdfPoint(40, 700), new PdfPoint(555, 700));
+            doc.Save(path);
+            """;
+        var sut = new GemBoxPdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains("page.DrawLineFromTop(40, 700, 555, 700);", result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_ShouldWarnForImageAndPathContent()
     {
         var source = """
             using GemBox.Pdf;
@@ -90,8 +131,7 @@ public sealed class GemBoxPdfMigrationTests
             var doc = new PdfDocument();
             var page = doc.Pages.Add();
             page.Content.DrawImage(image, new PdfPoint(40, 120));
-            page.Content.DrawLine(pen, 40, 700, 555, 700);
-            page.Content.DrawRectangle(pen, 40, 620, 200, 80);
+            page.Content.DrawPath(path, 40, 620, 200, 80);
             doc.Save(path);
             """;
         var sut = new GemBoxPdfMigration();
