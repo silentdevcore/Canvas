@@ -266,4 +266,90 @@ public sealed class MigrationServiceTests
         Assert.True(result.Summary.ConvertedCount > 0);
         Assert.Equal(0, result.Summary.ErrorCount);
     }
+
+    [Fact]
+    public void Convert_ShouldUsePdfKitNetRoslynConverterAndReturnSummary()
+    {
+        var source = """
+            using PdfKitNet;
+
+            var doc = new Document();
+            var page = doc.NewPage();
+            page.DrawText("Smoke", 40, 40);
+            doc.Render(outputPath);
+            """;
+        var sut = new MigrationService();
+
+        var result = sut.Convert("PdfKitNet", source);
+
+        Assert.Contains("using Canvas.Pdf;", result.CanvasCode);
+        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
+        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
+        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFKIT000");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFKIT003");
+        Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
+        Assert.True(result.Summary.ConvertedCount > 0);
+        Assert.True(result.Summary.WarningCount > 0);
+        Assert.Equal(0, result.Summary.ErrorCount);
+    }
+
+    [Fact]
+    public void Convert_ShouldUseLeadtoolsRoslynConverterAndReturnSummary()
+    {
+        var source = """
+            using Leadtools.Pdf;
+
+            var doc = new PDFDocument();
+            var page = doc.AddPage();
+            page.DrawText("Smoke", 40, 40);
+            doc.Save(outputPath);
+            """;
+        var sut = new MigrationService();
+
+        var result = sut.Convert("Leadtools", source);
+
+        Assert.Contains("using Canvas.Pdf;", result.CanvasCode);
+        Assert.DoesNotContain("using Leadtools", result.CanvasCode);
+        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
+        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
+        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGLEAD000");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGLEAD003");
+        Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
+        Assert.True(result.Summary.ConvertedCount > 0);
+        Assert.True(result.Summary.WarningCount > 0);
+        Assert.Equal(0, result.Summary.ErrorCount);
+    }
+
+    [Fact]
+    public void Convert_ShouldUseActivePdfRoslynConverterAndReturnSummary()
+    {
+        var source = """
+            using activePDF.Toolkit;
+
+            var toolkit = new Toolkit();
+            var page = toolkit.AddPage();
+            toolkit.PrintText("Smoke", 40, 40);
+            toolkit.Save(outputPath);
+            """;
+        var sut = new MigrationService();
+
+        var result = sut.Convert("ActivePdf", source);
+
+        Assert.Contains("using Canvas.Pdf;", result.CanvasCode);
+        Assert.DoesNotContain("using activePDF", result.CanvasCode);
+        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
+        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
+        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGACTIVE000");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGACTIVE003");
+        Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
+        Assert.True(result.Summary.ConvertedCount > 0);
+        Assert.True(result.Summary.WarningCount > 0);
+        Assert.Equal(0, result.Summary.ErrorCount);
+    }
 }

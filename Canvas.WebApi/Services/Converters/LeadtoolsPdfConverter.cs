@@ -1,21 +1,29 @@
+using Canvas.Migration.LeadtoolsPdf;
+
 namespace Canvas.WebApi.Services.Converters;
 
 public sealed class LeadtoolsPdfConverter : BasePdfConverter
 {
     public override string FrameworkId => "Leadtools";
     public override string FrameworkName => "LEADTOOLS";
-    public override string Description => "LEADTOOLS is primarily raster/OCR/document conversion. Direct PDF generation mapping is partial.";
+    public override string Status => "pilot";
+    public override string Description =>
+        "Cautious Roslyn-backed pilot for likely LEADTOOLS PDF generation; raster, OCR, barcode, and conversion pipelines are manual.";
 
-    public override string ConvertCode(string sourceCode) =>
-        SkeletonCanvasCode(FrameworkName) + $"""
+    public override string ConvertCode(string sourceCode)
+    {
+        return new LeadtoolsPdfMigration().Migrate(sourceCode).MigratedCode;
+    }
 
-        // --- LEADTOOLS key mappings ---
-        // Leadtools.Pdf.PdfDocument            → new Canvas.Pdf.PdfDocument()
-        // document.Pages.Add(new PdfPage(...)) → document.AddPage()
-        // PdfDocumentWriter text drawing        → page.DrawTextFromTop(text, x, y)
-        // document.Save(path)                  → document.Save(path)
-        //
-        // NOTE: LEADTOOLS raster/OCR/document conversion pipelines are out of scope.
-        // Only vector PDF generation operations are mapped above.
-        """;
+    public override IReadOnlyList<MigrationDiagnostic> GetDiagnostics(string sourceCode)
+    {
+        return new LeadtoolsPdfMigration()
+            .Migrate(sourceCode)
+            .Diagnostics
+            .Select(static diagnostic => new MigrationDiagnostic(
+                diagnostic.Id,
+                diagnostic.Severity.ToString(),
+                diagnostic.Message))
+            .ToArray();
+    }
 }

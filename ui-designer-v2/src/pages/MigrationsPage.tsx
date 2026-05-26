@@ -29,9 +29,9 @@ const FRAMEWORKS_FALLBACK: Framework[] = [
   { id: 'IronPdf',    name: 'IronPDF',           status: 'pilot',   description: 'Roslyn-based pilot: ChromePdfRenderer → PdfDocument + AddPage scaffold; SaveAs → document.Save(); HTML/URL/Razor rendering calls replaced with diagnostics for manual Canvas draw call migration.' },
   { id: 'Spire',      name: 'Spire.PDF',         status: 'pilot',   description: 'Roslyn-based pilot: PdfDocument/Pages.Add/page.Canvas.DrawString/DrawLine/DrawRectangle/SaveToFile converted; manual diagnostics for images, tables, forms, annotations, and security.' },
   { id: 'GemBox',     name: 'GemBox.Pdf',        status: 'pilot',   description: 'Roslyn-based pilot: PdfDocument/Pages.Add/Content.DrawText(text, PdfPoint)/Save converted; manual diagnostics for images, shapes, forms, annotations, encryption, and existing-PDF editing.' },
-  { id: 'ActivePdf',  name: 'ActivePDF',         status: 'skeleton', description: 'API to be confirmed' },
-  { id: 'Leadtools',  name: 'LEADTOOLS',         status: 'skeleton', description: 'Raster/OCR pipelines out of scope' },
-  { id: 'PdfKitNet',  name: 'PDFKit.NET',        status: 'skeleton', description: 'API identity unconfirmed' },
+  { id: 'PdfKitNet',  name: 'PDFKit.NET',        status: 'pilot',   description: 'Cautious Roslyn pilot for likely document/page/text/shape/save patterns; API identity remains unconfirmed.' },
+  { id: 'Leadtools',  name: 'LEADTOOLS',         status: 'pilot',   description: 'Cautious Roslyn pilot for likely PDF generation; raster, OCR, barcode, and conversion pipelines are manual.' },
+  { id: 'ActivePdf',  name: 'ActivePDF',         status: 'pilot',   description: 'Cautious Roslyn pilot for likely Toolkit-style generation; DocConverter, WebGrabber, COM/server, printer, merge, and stamp workflows are manual.' },
 ];
 
 const SYNCFUSION_EXAMPLE = `using Syncfusion.Pdf;
@@ -214,6 +214,42 @@ page.Canvas.DrawRectangle(pen, new RectangleF(72, 200, 468, 24));
 
 doc.SaveToFile(outputPath);`;
 
+const PDFKITNET_EXAMPLE = `using PdfKitNet;
+
+var doc = new Document();
+var page = doc.NewPage();
+
+page.DrawText("Invoice #2024", 72, 72);
+page.DrawLine(72, 110, 540, 110);
+page.DrawString("Thank you for your order.", 72, 140);
+page.DrawRectangle(72, 200, 468, 200);
+
+doc.Render(outputPath);`;
+
+const LEADTOOLS_EXAMPLE = `using Leadtools.Pdf;
+
+var doc = new PDFDocument();
+var page = doc.AddPage();
+
+page.DrawText("Invoice #2024", 72, 72);
+page.DrawLine(72, 110, 540, 110);
+page.DrawString("Thank you for your order.", 72, 140);
+page.DrawRectangle(72, 200, 468, 200);
+
+doc.Save(outputPath);`;
+
+const ACTIVEPDF_EXAMPLE = `using activePDF.Toolkit;
+
+var toolkit = new Toolkit();
+var page = toolkit.AddPage();
+
+toolkit.PrintText("Invoice #2024", 72, 72);
+toolkit.DrawLine(72, 110, 540, 110);
+toolkit.PrintText("Thank you for your order.", 72, 140);
+toolkit.DrawRectangle(72, 200, 468, 200);
+
+toolkit.Save(outputPath);`;
+
 const IRONPDF_EXAMPLE = `using IronPdf;
 
 var renderer = new ChromePdfRenderer();
@@ -237,6 +273,9 @@ const EXAMPLES: Record<string, string> = {
   IronPdf: IRONPDF_EXAMPLE,
   Spire: SPIRE_EXAMPLE,
   GemBox: GEMBOX_EXAMPLE,
+  PdfKitNet: PDFKITNET_EXAMPLE,
+  Leadtools: LEADTOOLS_EXAMPLE,
+  ActivePdf: ACTIVEPDF_EXAMPLE,
 };
 
 interface ConversionSummary {

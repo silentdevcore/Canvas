@@ -21,6 +21,7 @@
     <ProjectReference Include="../src/Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj" />
     <ProjectReference Include="../src/Canvas.Infrastructure.Sheet/Canvas.Infrastructure.Sheet.csproj" />
     <ProjectReference Include="../src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.ActivePdf/Canvas.Migration.ActivePdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.Apryse/Canvas.Migration.Apryse.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.AsposePdf/Canvas.Migration.AsposePdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.DevExpressPdf/Canvas.Migration.DevExpressPdf.csproj" />
@@ -29,6 +30,8 @@
     <ProjectReference Include="../src/Canvas.Migration.GemBoxPdf/Canvas.Migration.GemBoxPdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.iText7/Canvas.Migration.iText7.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.IronPdf/Canvas.Migration.IronPdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.LeadtoolsPdf/Canvas.Migration.LeadtoolsPdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.PdfKitNet/Canvas.Migration.PdfKitNet.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.SpirePdf/Canvas.Migration.SpirePdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.SyncfusionPdf/Canvas.Migration.SyncfusionPdf.csproj" />
   </ItemGroup>

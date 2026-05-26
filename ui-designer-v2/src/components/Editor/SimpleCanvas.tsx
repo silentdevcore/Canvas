@@ -4819,6 +4819,608 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 );
               })()}
 
+              {/* ── Type-specific primary content (before Typography) ── */}
+              {selectedElement.type === 'richtext' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>HTML content</span>
+                    <textarea
+                      rows={5}
+                      value={selectedElement.htmlContent || ''}
+                      onChange={(event) => updateSelectedElement({ htmlContent: event.target.value })}
+                      placeholder="<p>Your <strong>rich</strong> text here</p>"
+                    />
+                  </label>
+                </div>
+              )}
+
+              {selectedElement.type === 'field' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Field label</span>
+                    <input
+                      type="text"
+                      value={selectedElement.fieldLabel || ''}
+                      onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    <span>Field name</span>
+                    <input
+                      type="text"
+                      value={selectedElement.fieldName || ''}
+                      onChange={(event) => updateSelectedElement({ fieldName: event.target.value })}
+                    />
+                  </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedElement.required)}
+                      onChange={(event) => updateSelectedElement({ required: event.target.checked })}
+                    />
+                    <span>Required field</span>
+                  </label>
+                </div>
+              )}
+
+              {selectedElement.type === 'checkbox' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Checkbox label</span>
+                    <input
+                      type="text"
+                      value={selectedElement.fieldLabel || ''}
+                      onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    <span>Field name</span>
+                    <input
+                      type="text"
+                      value={selectedElement.fieldName || ''}
+                      onChange={(event) => updateSelectedElement({ fieldName: event.target.value })}
+                    />
+                  </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedElement.required)}
+                      onChange={(event) => updateSelectedElement({ required: event.target.checked })}
+                    />
+                    <span>Required field</span>
+                  </label>
+                </div>
+              )}
+
+              {selectedElement.type === 'button' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Label</span>
+                    <input
+                      type="text"
+                      value={selectedElement.content || ''}
+                      onChange={(event) => updateSelectedElement({ content: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    <span>Action URL</span>
+                    <input
+                      type="text"
+                      value={selectedElement.buttonAction || ''}
+                      onChange={(event) => updateSelectedElement({ buttonAction: event.target.value })}
+                      placeholder="https://example.com"
+                    />
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Background</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.backgroundColor || '#3b82f6'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.value } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Text color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.color || '#ffffff'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
+                      />
+                    </label>
+                  </div>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Font size</span>
+                      <input
+                        type="number"
+                        value={selectedElement.style?.fontSize || 14}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Radius</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={selectedElement.style?.borderRadius || 4}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, borderRadius: Number(event.target.value) } })}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'dropdown' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Options (one per line)</span>
+                    <textarea
+                      rows={4}
+                      value={(selectedElement.options || []).join('\n')}
+                      onChange={(event) => updateSelectedElement({ options: event.target.value.split('\n').filter(Boolean) })}
+                      placeholder={'Option 1\nOption 2\nOption 3'}
+                    />
+                  </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedElement.multiSelect)}
+                      onChange={(event) => updateSelectedElement({ multiSelect: event.target.checked })}
+                    />
+                    <span>Multi-select</span>
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Font size</span>
+                      <input
+                        type="number"
+                        value={selectedElement.style?.fontSize || 14}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Text color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.color || '#000000'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'optionlist' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>List style</span>
+                    <select
+                      value={selectedElement.listStyle || (selectedElement.ordered ? 'decimal' : 'disc')}
+                      onChange={(e) => updateSelectedElement({
+                        listStyle: e.target.value,
+                        ordered: ['decimal', 'lower-alpha', 'upper-alpha', 'lower-roman', 'upper-roman'].includes(e.target.value),
+                      })}
+                    >
+                      <option value="disc">• Bullet (disc)</option>
+                      <option value="circle">○ Circle</option>
+                      <option value="square">▪ Square</option>
+                      <option value="dash">– Dash</option>
+                      <option value="asterisk">* Asterisk</option>
+                      <option value="none">No marker</option>
+                      <option value="decimal">1. Decimal</option>
+                      <option value="lower-alpha">a. Lowercase alpha</option>
+                      <option value="upper-alpha">A. Uppercase alpha</option>
+                      <option value="lower-roman">i. Lowercase roman</option>
+                      <option value="upper-roman">I. Uppercase roman</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Items (one per line)</span>
+                    <textarea
+                      rows={4}
+                      value={(selectedElement.options || []).join('\n')}
+                      onChange={(event) => updateSelectedElement({ options: event.target.value.split('\n').filter(Boolean) })}
+                      placeholder={'Item 1\nItem 2\nItem 3'}
+                    />
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Font size</span>
+                      <input
+                        type="number"
+                        value={selectedElement.style?.fontSize || 14}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Text color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.color || '#000000'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'radio' && (
+                <div className="editor-form-stack">
+                  <span className="editor-form-label">Options</span>
+                  {(selectedElement.options || ['Yes', 'No']).map((opt, idx) => (
+                    <div key={idx} className="editor-option-row">
+                      <input
+                        type="text"
+                        value={opt}
+                        onChange={(e) => {
+                          const next = [...(selectedElement.options || [])];
+                          next[idx] = e.target.value;
+                          updateSelectedElement({ options: next });
+                        }}
+                        placeholder={`Option ${idx + 1}`}
+                      />
+                      <button
+                        className="editor-option-remove"
+                        title="Remove option"
+                        onClick={() => {
+                          const next = (selectedElement.options || []).filter((_, i) => i !== idx);
+                          if (next.length < 1) return;
+                          updateSelectedElement({ options: next });
+                        }}
+                      >×</button>
+                    </div>
+                  ))}
+                  <button
+                    className="editor-option-add"
+                    onClick={() => updateSelectedElement({
+                      options: [...(selectedElement.options || []), `Option ${(selectedElement.options || []).length + 1}`]
+                    })}
+                  >
+                    + Add option
+                  </button>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Font size</span>
+                      <input
+                        type="number"
+                        value={selectedElement.style?.fontSize || 14}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Text color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.color || '#000000'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'checkmark' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Label</span>
+                    <input type="text" value={selectedElement.fieldLabel || ''} onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })} />
+                  </label>
+                  <label>
+                    <span>State</span>
+                    <select value={selectedElement.checkState || 'checked'} onChange={(event) => updateSelectedElement({ checkState: event.target.value as SimpleElement['checkState'] })}>
+                      <option value="checked">Checked</option>
+                      <option value="cross">Cross</option>
+                      <option value="dot">Dot</option>
+                      <option value="empty">Empty</option>
+                    </select>
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Mark color</span>
+                      <input type="color" value={selectedElement.style?.color || '#16a34a'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
+                    </label>
+                    <label>
+                      <span>Stroke</span>
+                      <input type="number" min="1" value={selectedElement.style?.strokeWidth || 3} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, strokeWidth: Number(event.target.value) } })} />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'watermark' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Mode</span>
+                    <select
+                      value={selectedElement.watermarkMode || 'text'}
+                      onChange={(event) => updateSelectedElement({ watermarkMode: event.target.value as 'text' | 'image' })}
+                    >
+                      <option value="text">Text</option>
+                      <option value="image">Image</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>{selectedElement.watermarkMode === 'image' ? 'Image URL' : 'Text'}</span>
+                    <input
+                      type="text"
+                      value={selectedElement.content || ''}
+                      onChange={(event) => updateSelectedElement({ content: event.target.value })}
+                    />
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.color || '#64748b'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Opacity</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={selectedElement.style?.opacity ?? 0.18}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, opacity: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Rotation</span>
+                      <input
+                        type="number"
+                        value={selectedElement.style?.rotation ?? -24}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, rotation: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Scale</span>
+                      <input
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        value={selectedElement.style?.scale ?? 1}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, scale: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Font size</span>
+                      <input
+                        type="number"
+                        value={selectedElement.style?.fontSize || 42}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
+                      />
+                    </label>
+                  </div>
+                  <label>
+                    <span>Page scope</span>
+                    <select
+                      value={selectedElement.pageScope || 'all'}
+                      onChange={(event) => updateSelectedElement({ pageScope: event.target.value as SimpleElement['pageScope'] })}
+                    >
+                      <option value="all">All pages</option>
+                      <option value="current">Current page</option>
+                      <option value="first">First page only</option>
+                      <option value="range">Selected range</option>
+                    </select>
+                  </label>
+                  {selectedElement.pageScope === 'range' && (
+                    <label>
+                      <span>Page range</span>
+                      <input
+                        type="text"
+                        value={selectedElement.pageRange || ''}
+                        onChange={(event) => updateSelectedElement({ pageRange: event.target.value })}
+                        placeholder="1-3, 5"
+                      />
+                    </label>
+                  )}
+                </div>
+              )}
+
+              {selectedElement.type === 'note' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Title</span>
+                    <input type="text" value={selectedElement.noteTitle || ''} onChange={(event) => updateSelectedElement({ noteTitle: event.target.value })} />
+                  </label>
+                  <label>
+                    <span>Body</span>
+                    <textarea rows={4} value={selectedElement.noteBody || ''} onChange={(event) => updateSelectedElement({ noteBody: event.target.value })} />
+                  </label>
+                  <label>
+                    <span>Author</span>
+                    <input type="text" value={selectedElement.noteAuthor || ''} onChange={(event) => updateSelectedElement({ noteAuthor: event.target.value })} />
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Note color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.backgroundColor || '#fef3c7'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.value } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Text color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.color || '#78350f'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
+                      />
+                    </label>
+                  </div>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedElement.noteCollapsed)}
+                      onChange={(event) => updateSelectedElement({ noteCollapsed: event.target.checked })}
+                    />
+                    <span>Collapsed note</span>
+                  </label>
+                </div>
+              )}
+
+              {selectedElement.type === 'date' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Mode</span>
+                    <select value={selectedElement.dateMode || 'static'} onChange={(event) => updateSelectedElement({ dateMode: event.target.value as SimpleElement['dateMode'] })}>
+                      <option value="static">Static date</option>
+                      <option value="render">Render date</option>
+                      <option value="binding">Data binding</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Static value / fallback</span>
+                    <input type="text" value={selectedElement.content || ''} onChange={(event) => updateSelectedElement({ content: event.target.value })} />
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Locale</span>
+                      <input type="text" value={selectedElement.locale || 'de-DE'} onChange={(event) => updateSelectedElement({ locale: event.target.value })} />
+                    </label>
+                    <label>
+                      <span>Timezone</span>
+                      <input type="text" value={selectedElement.timezone || 'Europe/Berlin'} onChange={(event) => updateSelectedElement({ timezone: event.target.value })} />
+                    </label>
+                    <label>
+                      <span>Format</span>
+                      <input type="text" value={selectedElement.dateFormat || 'yyyy-MM-dd'} onChange={(event) => updateSelectedElement({ dateFormat: event.target.value })} />
+                    </label>
+                    <label>
+                      <span>Color</span>
+                      <input type="color" value={selectedElement.style?.color || '#111827'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'pagenumber' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Format</span>
+                    <select value={selectedElement.numberingFormat || 'pageOfTotal'} onChange={(event) => updateSelectedElement({ numberingFormat: event.target.value as SimpleElement['numberingFormat'] })}>
+                      <option value="current">Current page</option>
+                      <option value="total">Total pages</option>
+                      <option value="pageOfTotal">Page X of Y</option>
+                      <option value="roman">Roman</option>
+                      <option value="alphabetic">Alphabetic</option>
+                    </select>
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Start</span>
+                      <input type="number" min="1" value={selectedElement.startNumber || 1} onChange={(event) => updateSelectedElement({ startNumber: Number(event.target.value) || 1 })} />
+                    </label>
+                    <label>
+                      <span>Page scope</span>
+                      <select value={selectedElement.pageScope || 'all'} onChange={(event) => updateSelectedElement({ pageScope: event.target.value as SimpleElement['pageScope'] })}>
+                        <option value="all">All</option>
+                        <option value="current">Current</option>
+                        <option value="first">First</option>
+                        <option value="odd">Odd</option>
+                        <option value="even">Even</option>
+                        <option value="range">Range</option>
+                      </select>
+                    </label>
+                    {selectedElement.pageScope === 'range' && (
+                      <label>
+                        <span>Page range</span>
+                        <input type="text" value={selectedElement.pageRange || ''} onChange={(event) => updateSelectedElement({ pageRange: event.target.value })} placeholder="1-3, 5" />
+                      </label>
+                    )}
+                    <label>
+                      <span>Prefix</span>
+                      <input type="text" value={selectedElement.prefix || ''} onChange={(event) => updateSelectedElement({ prefix: event.target.value })} />
+                    </label>
+                    <label>
+                      <span>Suffix</span>
+                      <input type="text" value={selectedElement.suffix || ''} onChange={(event) => updateSelectedElement({ suffix: event.target.value })} />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'arrow' && (
+                <div className="editor-form-stack">
+                  <span className="editor-form-label">Direction</span>
+                  <div className="editor-arrow-direction-grid">
+                    {(['up', 'left', 'right', 'down'] as const).map(dir => (
+                      <button
+                        key={dir}
+                        className={`editor-arrow-dir-btn${(selectedElement.arrowDirection || 'right') === dir ? ' is-active' : ''}`}
+                        onClick={() => updateSelectedElement({ arrowDirection: dir })}
+                        title={dir.charAt(0).toUpperCase() + dir.slice(1)}
+                      >
+                        {dir === 'up' ? '↑' : dir === 'down' ? '↓' : dir === 'left' ? '←' : '→'}
+                      </button>
+                    ))}
+                  </div>
+                  <label>
+                    <span>Rotation (°)</span>
+                    <input
+                      type="number"
+                      value={selectedElement.arrowRotation ?? 0}
+                      onChange={(e) => updateSelectedElement({ arrowRotation: Number(e.target.value) })}
+                    />
+                  </label>
+                  <label>
+                    <span>Arrow mode</span>
+                    <select value={selectedElement.arrowMode || 'straight'} onChange={(event) => updateSelectedElement({ arrowMode: event.target.value as SimpleElement['arrowMode'] })}>
+                      <option value="straight">Straight</option>
+                      <option value="elbow">Elbow</option>
+                      <option value="curved">Curved</option>
+                    </select>
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Start head</span>
+                      <select value={selectedElement.startMarker || 'none'} onChange={(event) => updateSelectedElement({ startMarker: event.target.value as SimpleElement['startMarker'] })}>
+                        <option value="none">None</option>
+                        <option value="filled">▶ Filled</option>
+                        <option value="open">▷ Open</option>
+                        <option value="dot">● Dot</option>
+                        <option value="diamond">◆ Diamond</option>
+                        <option value="square">■ Square</option>
+                        <option value="circle">○ Circle</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span>End head</span>
+                      <select value={selectedElement.endMarker || 'filled'} onChange={(event) => updateSelectedElement({ endMarker: event.target.value as SimpleElement['endMarker'] })}>
+                        <option value="none">None</option>
+                        <option value="filled">▶ Filled</option>
+                        <option value="open">▷ Open</option>
+                        <option value="dot">● Dot</option>
+                        <option value="diamond">◆ Diamond</option>
+                        <option value="square">■ Square</option>
+                        <option value="circle">○ Circle</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span>Color</span>
+                      <input type="color" value={selectedElement.style?.color || '#dc2626'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
+                    </label>
+                    <label>
+                      <span>Stroke</span>
+                      <input type="number" min="1" value={selectedElement.style?.strokeWidth || 4} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, strokeWidth: Number(event.target.value) } })} />
+                    </label>
+                  </div>
+                  <label>
+                    <span>Dash style</span>
+                    <select value={selectedElement.style?.dashStyle || 'solid'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, dashStyle: event.target.value } })}>
+                      <option value="solid">Solid</option>
+                      <option value="dashed">Dashed</option>
+                      <option value="dotted">Dotted</option>
+                    </select>
+                  </label>
+                </div>
+              )}
+
               {/* ── Shared: Typography ── */}
               {TYPOGRAPHY_TYPES.has(selectedElement.type) && (
                 <div className="editor-settings-section">
@@ -5094,89 +5696,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 </div>
               )}
 
-              {/* Word / DOCX metadata — applies to any element */}
-              <div className="editor-settings-section">
-                <div className="editor-settings-heading">
-                  <FiFileText />
-                  <span>Word / DOCX</span>
-                </div>
-                <div className="editor-form-stack" style={{ padding: 12 }}>
-                  <label>
-                    <span>Paragraph style</span>
-                    <select
-                      value={selectedElement.styleName ?? ''}
-                      onChange={(e) => updateSelectedElement({ styleName: e.target.value || undefined })}
-                    >
-                      <option value="">— None —</option>
-                      {(pageSettings.namedStyles ?? [])
-                        .filter(s => s.type === 'paragraph' || s.type === 'list')
-                        .map(s => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
-                    </select>
-                  </label>
-                  <label>
-                    <span>Character style</span>
-                    <select
-                      value={selectedElement.characterStyle ?? ''}
-                      onChange={(e) => updateSelectedElement({ characterStyle: e.target.value || undefined })}
-                    >
-                      <option value="">— None —</option>
-                      {(pageSettings.namedStyles ?? [])
-                        .filter(s => s.type === 'character')
-                        .map(s => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
-                    </select>
-                  </label>
-                  <label className="editor-checkbox-control">
-                    <input
-                      type="checkbox"
-                      checked={selectedElement.autoHyphenation ?? true}
-                      onChange={(e) => updateSelectedElement({ autoHyphenation: e.target.checked })}
-                    />
-                    <span>Auto-hyphenation</span>
-                  </label>
-                  <label>
-                    <span>Revision type</span>
-                    <select
-                      value={selectedElement.revisionType ?? ''}
-                      onChange={(e) => updateSelectedElement({ revisionType: e.target.value as any || undefined })}
-                    >
-                      <option value="">— None —</option>
-                      <option value="insert">Insert</option>
-                      <option value="delete">Delete</option>
-                      <option value="format">Format change</option>
-                    </select>
-                  </label>
-                  {selectedElement.revisionType && (
-                    <>
-                      <label>
-                        <span>Revision author</span>
-                        <input
-                          type="text"
-                          value={selectedElement.revisionAuthor ?? ''}
-                          onChange={(e) => updateSelectedElement({ revisionAuthor: e.target.value })}
-                        />
-                      </label>
-                      <label>
-                        <span>Revision date</span>
-                        <input
-                          type="date"
-                          value={selectedElement.revisionDate ?? ''}
-                          onChange={(e) => updateSelectedElement({ revisionDate: e.target.value })}
-                        />
-                      </label>
-                      <label>
-                        <span>Revision ID</span>
-                        <input
-                          type="text"
-                          value={selectedElement.revisionId ?? ''}
-                          onChange={(e) => updateSelectedElement({ revisionId: e.target.value })}
-                          placeholder="Auto-generated if blank"
-                        />
-                      </label>
-                    </>
-                  )}
-                </div>
-              </div>
-
               {selectedElement.type === 'qrcode' && (
                 <div className="editor-form-stack">
                   <label>
@@ -5235,49 +5754,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       onChange={(event) => updateSelectedElement({ signatureLabel: event.target.value })}
                       placeholder="Signature"
                     />
-                  </label>
-                </div>
-              )}
-
-              {selectedElement.type === 'richtext' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>HTML content</span>
-                    <textarea
-                      rows={5}
-                      value={selectedElement.htmlContent || ''}
-                      onChange={(event) => updateSelectedElement({ htmlContent: event.target.value })}
-                      placeholder="<p>Your <strong>rich</strong> text here</p>"
-                    />
-                  </label>
-                </div>
-              )}
-
-              {selectedElement.type === 'field' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Field label</span>
-                    <input
-                      type="text"
-                      value={selectedElement.fieldLabel || ''}
-                      onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
-                    />
-                  </label>
-                  <label>
-                    <span>Field name</span>
-                    <input
-                      type="text"
-                      value={selectedElement.fieldName || ''}
-                      onChange={(event) => updateSelectedElement({ fieldName: event.target.value })}
-                    />
-                  </label>
-                  <label className="editor-checkbox-control">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(selectedElement.required)}
-                      onChange={(event) => updateSelectedElement({ required: event.target.checked })}
-                    />
-                    <span>Required field</span>
                   </label>
                 </div>
               )}
@@ -5564,35 +6040,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 </div>
               )}
 
-              {selectedElement.type === 'checkbox' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Checkbox label</span>
-                    <input
-                      type="text"
-                      value={selectedElement.fieldLabel || ''}
-                      onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
-                    />
-                  </label>
-                  <label>
-                    <span>Field name</span>
-                    <input
-                      type="text"
-                      value={selectedElement.fieldName || ''}
-                      onChange={(event) => updateSelectedElement({ fieldName: event.target.value })}
-                    />
-                  </label>
-                  <label className="editor-checkbox-control">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(selectedElement.required)}
-                      onChange={(event) => updateSelectedElement({ required: event.target.checked })}
-                    />
-                    <span>Required field</span>
-                  </label>
-                </div>
-              )}
-
               {selectedElement.type === 'line' && (
                 <div className="editor-form-stack">
                   <label>
@@ -5611,426 +6058,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       value={selectedElement.height}
                       onChange={(event) => updateSelectedElement({ height: Math.max(1, Number(event.target.value)) })}
                     />
-                  </label>
-                </div>
-              )}
-
-              {selectedElement.type === 'button' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Label</span>
-                    <input
-                      type="text"
-                      value={selectedElement.content || ''}
-                      onChange={(event) => updateSelectedElement({ content: event.target.value })}
-                    />
-                  </label>
-                  <label>
-                    <span>Action URL</span>
-                    <input
-                      type="text"
-                      value={selectedElement.buttonAction || ''}
-                      onChange={(event) => updateSelectedElement({ buttonAction: event.target.value })}
-                      placeholder="https://example.com"
-                    />
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Background</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.backgroundColor || '#3b82f6'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.value } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Text color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#ffffff'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
-                      />
-                    </label>
-                  </div>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Font size</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.fontSize || 14}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Radius</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={selectedElement.style?.borderRadius || 4}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, borderRadius: Number(event.target.value) } })}
-                      />
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {selectedElement.type === 'dropdown' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Options (one per line)</span>
-                    <textarea
-                      rows={4}
-                      value={(selectedElement.options || []).join('\n')}
-                      onChange={(event) => updateSelectedElement({ options: event.target.value.split('\n').filter(Boolean) })}
-                      placeholder={'Option 1\nOption 2\nOption 3'}
-                    />
-                  </label>
-                  <label className="editor-checkbox-control">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(selectedElement.multiSelect)}
-                      onChange={(event) => updateSelectedElement({ multiSelect: event.target.checked })}
-                    />
-                    <span>Multi-select</span>
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Font size</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.fontSize || 14}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Text color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#000000'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
-                      />
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {selectedElement.type === 'optionlist' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>List style</span>
-                    <select
-                      value={selectedElement.listStyle || (selectedElement.ordered ? 'decimal' : 'disc')}
-                      onChange={(e) => updateSelectedElement({
-                        listStyle: e.target.value,
-                        ordered: ['decimal', 'lower-alpha', 'upper-alpha', 'lower-roman', 'upper-roman'].includes(e.target.value),
-                      })}
-                    >
-                      <option value="disc">• Bullet (disc)</option>
-                      <option value="circle">○ Circle</option>
-                      <option value="square">▪ Square</option>
-                      <option value="dash">– Dash</option>
-                      <option value="asterisk">* Asterisk</option>
-                      <option value="none">No marker</option>
-                      <option value="decimal">1. Decimal</option>
-                      <option value="lower-alpha">a. Lowercase alpha</option>
-                      <option value="upper-alpha">A. Uppercase alpha</option>
-                      <option value="lower-roman">i. Lowercase roman</option>
-                      <option value="upper-roman">I. Uppercase roman</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span>Items (one per line)</span>
-                    <textarea
-                      rows={4}
-                      value={(selectedElement.options || []).join('\n')}
-                      onChange={(event) => updateSelectedElement({ options: event.target.value.split('\n').filter(Boolean) })}
-                      placeholder={'Item 1\nItem 2\nItem 3'}
-                    />
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Font size</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.fontSize || 14}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Text color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#000000'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
-                      />
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {selectedElement.type === 'radio' && (
-                <div className="editor-form-stack">
-                  <span className="editor-form-label">Options</span>
-                  {(selectedElement.options || ['Yes', 'No']).map((opt, idx) => (
-                    <div key={idx} className="editor-option-row">
-                      <input
-                        type="text"
-                        value={opt}
-                        onChange={(e) => {
-                          const next = [...(selectedElement.options || [])];
-                          next[idx] = e.target.value;
-                          updateSelectedElement({ options: next });
-                        }}
-                        placeholder={`Option ${idx + 1}`}
-                      />
-                      <button
-                        className="editor-option-remove"
-                        title="Remove option"
-                        onClick={() => {
-                          const next = (selectedElement.options || []).filter((_, i) => i !== idx);
-                          if (next.length < 1) return;
-                          updateSelectedElement({ options: next });
-                        }}
-                      >×</button>
-                    </div>
-                  ))}
-                  <button
-                    className="editor-option-add"
-                    onClick={() => updateSelectedElement({
-                      options: [...(selectedElement.options || []), `Option ${(selectedElement.options || []).length + 1}`]
-                    })}
-                  >
-                    + Add option
-                  </button>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Font size</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.fontSize || 14}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Text color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#000000'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
-                      />
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {selectedElement.type === 'watermark' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Mode</span>
-                    <select
-                      value={selectedElement.watermarkMode || 'text'}
-                      onChange={(event) => updateSelectedElement({ watermarkMode: event.target.value as 'text' | 'image' })}
-                    >
-                      <option value="text">Text</option>
-                      <option value="image">Image</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span>{selectedElement.watermarkMode === 'image' ? 'Image URL' : 'Text'}</span>
-                    <input
-                      type="text"
-                      value={selectedElement.content || ''}
-                      onChange={(event) => updateSelectedElement({ content: event.target.value })}
-                    />
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#64748b'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Opacity</span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="1"
-                        step="0.05"
-                        value={selectedElement.style?.opacity ?? 0.18}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, opacity: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Rotation</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.rotation ?? -24}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, rotation: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Scale</span>
-                      <input
-                        type="number"
-                        min="0.1"
-                        step="0.1"
-                        value={selectedElement.style?.scale ?? 1}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, scale: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Font size</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.fontSize || 42}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
-                      />
-                    </label>
-                  </div>
-                  <label>
-                    <span>Page scope</span>
-                    <select
-                      value={selectedElement.pageScope || 'all'}
-                      onChange={(event) => updateSelectedElement({ pageScope: event.target.value as SimpleElement['pageScope'] })}
-                    >
-                      <option value="all">All pages</option>
-                      <option value="current">Current page</option>
-                      <option value="first">First page only</option>
-                      <option value="range">Selected range</option>
-                    </select>
-                  </label>
-                  {selectedElement.pageScope === 'range' && (
-                    <label>
-                      <span>Page range</span>
-                      <input
-                        type="text"
-                        value={selectedElement.pageRange || ''}
-                        onChange={(event) => updateSelectedElement({ pageRange: event.target.value })}
-                        placeholder="1-3, 5"
-                      />
-                    </label>
-                  )}
-                </div>
-              )}
-
-              {selectedElement.type === 'note' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Title</span>
-                    <input type="text" value={selectedElement.noteTitle || ''} onChange={(event) => updateSelectedElement({ noteTitle: event.target.value })} />
-                  </label>
-                  <label>
-                    <span>Body</span>
-                    <textarea rows={4} value={selectedElement.noteBody || ''} onChange={(event) => updateSelectedElement({ noteBody: event.target.value })} />
-                  </label>
-                  <label>
-                    <span>Author</span>
-                    <input type="text" value={selectedElement.noteAuthor || ''} onChange={(event) => updateSelectedElement({ noteAuthor: event.target.value })} />
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Note color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.backgroundColor || '#fef3c7'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.value } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Text color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#78350f'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
-                      />
-                    </label>
-                  </div>
-                  <label className="editor-checkbox-control">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(selectedElement.noteCollapsed)}
-                      onChange={(event) => updateSelectedElement({ noteCollapsed: event.target.checked })}
-                    />
-                    <span>Collapsed note</span>
-                  </label>
-                </div>
-              )}
-
-              {selectedElement.type === 'arrow' && (
-                <div className="editor-form-stack">
-                  <span className="editor-form-label">Direction</span>
-                  <div className="editor-arrow-direction-grid">
-                    {(['up', 'left', 'right', 'down'] as const).map(dir => (
-                      <button
-                        key={dir}
-                        className={`editor-arrow-dir-btn${(selectedElement.arrowDirection || 'right') === dir ? ' is-active' : ''}`}
-                        onClick={() => updateSelectedElement({ arrowDirection: dir })}
-                        title={dir.charAt(0).toUpperCase() + dir.slice(1)}
-                      >
-                        {dir === 'up' ? '↑' : dir === 'down' ? '↓' : dir === 'left' ? '←' : '→'}
-                      </button>
-                    ))}
-                  </div>
-                  <label>
-                    <span>Rotation (°)</span>
-                    <input
-                      type="number"
-                      value={selectedElement.arrowRotation ?? 0}
-                      onChange={(e) => updateSelectedElement({ arrowRotation: Number(e.target.value) })}
-                    />
-                  </label>
-                  <label>
-                    <span>Arrow mode</span>
-                    <select value={selectedElement.arrowMode || 'straight'} onChange={(event) => updateSelectedElement({ arrowMode: event.target.value as SimpleElement['arrowMode'] })}>
-                      <option value="straight">Straight</option>
-                      <option value="elbow">Elbow</option>
-                      <option value="curved">Curved</option>
-                    </select>
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Start head</span>
-                      <select value={selectedElement.startMarker || 'none'} onChange={(event) => updateSelectedElement({ startMarker: event.target.value as SimpleElement['startMarker'] })}>
-                        <option value="none">None</option>
-                        <option value="filled">▶ Filled</option>
-                        <option value="open">▷ Open</option>
-                        <option value="dot">● Dot</option>
-                        <option value="diamond">◆ Diamond</option>
-                        <option value="square">■ Square</option>
-                        <option value="circle">○ Circle</option>
-                      </select>
-                    </label>
-                    <label>
-                      <span>End head</span>
-                      <select value={selectedElement.endMarker || 'filled'} onChange={(event) => updateSelectedElement({ endMarker: event.target.value as SimpleElement['endMarker'] })}>
-                        <option value="none">None</option>
-                        <option value="filled">▶ Filled</option>
-                        <option value="open">▷ Open</option>
-                        <option value="dot">● Dot</option>
-                        <option value="diamond">◆ Diamond</option>
-                        <option value="square">■ Square</option>
-                        <option value="circle">○ Circle</option>
-                      </select>
-                    </label>
-                    <label>
-                      <span>Color</span>
-                      <input type="color" value={selectedElement.style?.color || '#dc2626'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
-                    </label>
-                    <label>
-                      <span>Stroke</span>
-                      <input type="number" min="1" value={selectedElement.style?.strokeWidth || 4} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, strokeWidth: Number(event.target.value) } })} />
-                    </label>
-                  </div>
-                  <label>
-                    <span>Dash style</span>
-                    <select value={selectedElement.style?.dashStyle || 'solid'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, dashStyle: event.target.value } })}>
-                      <option value="solid">Solid</option>
-                      <option value="dashed">Dashed</option>
-                      <option value="dotted">Dotted</option>
-                    </select>
                   </label>
                 </div>
               )}
@@ -6170,41 +6197,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 </div>
               )}
 
-              {selectedElement.type === 'date' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Mode</span>
-                    <select value={selectedElement.dateMode || 'static'} onChange={(event) => updateSelectedElement({ dateMode: event.target.value as SimpleElement['dateMode'] })}>
-                      <option value="static">Static date</option>
-                      <option value="render">Render date</option>
-                      <option value="binding">Data binding</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span>Static value / fallback</span>
-                    <input type="text" value={selectedElement.content || ''} onChange={(event) => updateSelectedElement({ content: event.target.value })} />
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Locale</span>
-                      <input type="text" value={selectedElement.locale || 'de-DE'} onChange={(event) => updateSelectedElement({ locale: event.target.value })} />
-                    </label>
-                    <label>
-                      <span>Timezone</span>
-                      <input type="text" value={selectedElement.timezone || 'Europe/Berlin'} onChange={(event) => updateSelectedElement({ timezone: event.target.value })} />
-                    </label>
-                    <label>
-                      <span>Format</span>
-                      <input type="text" value={selectedElement.dateFormat || 'yyyy-MM-dd'} onChange={(event) => updateSelectedElement({ dateFormat: event.target.value })} />
-                    </label>
-                    <label>
-                      <span>Color</span>
-                      <input type="color" value={selectedElement.style?.color || '#111827'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
-                    </label>
-                  </div>
-                </div>
-              )}
-
               {selectedElement.type === 'highlight' && (
                 <div className="editor-form-stack">
                   <label>
@@ -6231,34 +6223,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 </div>
               )}
 
-              {selectedElement.type === 'checkmark' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Label</span>
-                    <input type="text" value={selectedElement.fieldLabel || ''} onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })} />
-                  </label>
-                  <label>
-                    <span>State</span>
-                    <select value={selectedElement.checkState || 'checked'} onChange={(event) => updateSelectedElement({ checkState: event.target.value as SimpleElement['checkState'] })}>
-                      <option value="checked">Checked</option>
-                      <option value="cross">Cross</option>
-                      <option value="dot">Dot</option>
-                      <option value="empty">Empty</option>
-                    </select>
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Mark color</span>
-                      <input type="color" value={selectedElement.style?.color || '#16a34a'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
-                    </label>
-                    <label>
-                      <span>Stroke</span>
-                      <input type="number" min="1" value={selectedElement.style?.strokeWidth || 3} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, strokeWidth: Number(event.target.value) } })} />
-                    </label>
-                  </div>
-                </div>
-              )}
-
               {selectedElement.type === 'pageboundary' && (
                 <div className="editor-form-stack">
                   <label>
@@ -6276,52 +6240,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     <span>Color</span>
                     <input type="color" value={selectedElement.style?.color || '#7c3aed'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
                   </label>
-                </div>
-              )}
-
-              {selectedElement.type === 'pagenumber' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Format</span>
-                    <select value={selectedElement.numberingFormat || 'pageOfTotal'} onChange={(event) => updateSelectedElement({ numberingFormat: event.target.value as SimpleElement['numberingFormat'] })}>
-                      <option value="current">Current page</option>
-                      <option value="total">Total pages</option>
-                      <option value="pageOfTotal">Page X of Y</option>
-                      <option value="roman">Roman</option>
-                      <option value="alphabetic">Alphabetic</option>
-                    </select>
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Start</span>
-                      <input type="number" min="1" value={selectedElement.startNumber || 1} onChange={(event) => updateSelectedElement({ startNumber: Number(event.target.value) || 1 })} />
-                    </label>
-                    <label>
-                      <span>Page scope</span>
-                      <select value={selectedElement.pageScope || 'all'} onChange={(event) => updateSelectedElement({ pageScope: event.target.value as SimpleElement['pageScope'] })}>
-                        <option value="all">All</option>
-                        <option value="current">Current</option>
-                        <option value="first">First</option>
-                        <option value="odd">Odd</option>
-                        <option value="even">Even</option>
-                        <option value="range">Range</option>
-                      </select>
-                    </label>
-                    {selectedElement.pageScope === 'range' && (
-                      <label>
-                        <span>Page range</span>
-                        <input type="text" value={selectedElement.pageRange || ''} onChange={(event) => updateSelectedElement({ pageRange: event.target.value })} placeholder="1-3, 5" />
-                      </label>
-                    )}
-                    <label>
-                      <span>Prefix</span>
-                      <input type="text" value={selectedElement.prefix || ''} onChange={(event) => updateSelectedElement({ prefix: event.target.value })} />
-                    </label>
-                    <label>
-                      <span>Suffix</span>
-                      <input type="text" value={selectedElement.suffix || ''} onChange={(event) => updateSelectedElement({ suffix: event.target.value })} />
-                    </label>
-                  </div>
                 </div>
               )}
 
@@ -6450,6 +6368,89 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   </label>
                 </div>
               )}
+
+              {/* ── Word / DOCX metadata — always last ── */}
+              <div className="editor-settings-section">
+                <div className="editor-settings-heading">
+                  <FiFileText />
+                  <span>Word / DOCX</span>
+                </div>
+                <div className="editor-form-stack" style={{ padding: 12 }}>
+                  <label>
+                    <span>Paragraph style</span>
+                    <select
+                      value={selectedElement.styleName ?? ''}
+                      onChange={(e) => updateSelectedElement({ styleName: e.target.value || undefined })}
+                    >
+                      <option value="">— None —</option>
+                      {(pageSettings.namedStyles ?? [])
+                        .filter(s => s.type === 'paragraph' || s.type === 'list')
+                        .map(s => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Character style</span>
+                    <select
+                      value={selectedElement.characterStyle ?? ''}
+                      onChange={(e) => updateSelectedElement({ characterStyle: e.target.value || undefined })}
+                    >
+                      <option value="">— None —</option>
+                      {(pageSettings.namedStyles ?? [])
+                        .filter(s => s.type === 'character')
+                        .map(s => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
+                    </select>
+                  </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={selectedElement.autoHyphenation ?? true}
+                      onChange={(e) => updateSelectedElement({ autoHyphenation: e.target.checked })}
+                    />
+                    <span>Auto-hyphenation</span>
+                  </label>
+                  <label>
+                    <span>Revision type</span>
+                    <select
+                      value={selectedElement.revisionType ?? ''}
+                      onChange={(e) => updateSelectedElement({ revisionType: e.target.value as any || undefined })}
+                    >
+                      <option value="">— None —</option>
+                      <option value="insert">Insert</option>
+                      <option value="delete">Delete</option>
+                      <option value="format">Format change</option>
+                    </select>
+                  </label>
+                  {selectedElement.revisionType && (
+                    <>
+                      <label>
+                        <span>Revision author</span>
+                        <input
+                          type="text"
+                          value={selectedElement.revisionAuthor ?? ''}
+                          onChange={(e) => updateSelectedElement({ revisionAuthor: e.target.value })}
+                        />
+                      </label>
+                      <label>
+                        <span>Revision date</span>
+                        <input
+                          type="date"
+                          value={selectedElement.revisionDate ?? ''}
+                          onChange={(e) => updateSelectedElement({ revisionDate: e.target.value })}
+                        />
+                      </label>
+                      <label>
+                        <span>Revision ID</span>
+                        <input
+                          type="text"
+                          value={selectedElement.revisionId ?? ''}
+                          onChange={(e) => updateSelectedElement({ revisionId: e.target.value })}
+                          placeholder="Auto-generated if blank"
+                        />
+                      </label>
+                    </>
+                  )}
+                </div>
+              </div>
 
               <button
                 className="editor-danger-button"
