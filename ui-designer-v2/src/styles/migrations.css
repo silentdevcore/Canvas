@@ -152,7 +152,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
-  min-height: 380px;
+  height: 420px;
 }
 
 .mgr-pane {
@@ -183,37 +183,10 @@
   gap: var(--space-2);
 }
 
-.mgr-source {
+.mgr-editor-wrapper {
   flex: 1;
-  padding: var(--space-3) var(--space-4);
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-sm);
-  border: none;
-  resize: none;
-  outline: none;
-  background: var(--color-white);
-  color: var(--color-gray-900);
-  line-height: 1.6;
-}
-
-.mgr-output {
-  flex: 1;
-  padding: var(--space-3) var(--space-4);
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-sm);
-  margin: 0;
-  overflow: auto;
-  background: var(--color-gray-50);
-  color: var(--color-gray-900);
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-.mgr-placeholder {
-  color: var(--color-gray-400);
-  font-style: italic;
-  font-family: var(--font-family-sans);
+  overflow: hidden;
+  min-height: 0;
 }
 
 .mgr-pane-footer {
@@ -328,14 +301,35 @@
   border-radius: 999px;
 }
 
-.mgr-diag-chip-info {
-  background: var(--color-primary-light);
-  color: var(--color-primary-hover);
+.mgr-diag-chip-converted {
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.mgr-diag-chip-ok {
+  background: var(--color-gray-100);
+  color: var(--color-gray-500);
 }
 
 .mgr-diag-chip-warn {
   background: var(--color-warning-light);
   color: #92400e;
+}
+
+.mgr-diag-toggle {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.mgr-diag-toggle:hover {
+  color: var(--color-gray-900);
 }
 
 .mgr-diag-list {

@@ -4,7 +4,7 @@
 
 Build a `Canvas.Migration.*` feature family for migrating existing C# PDF-generation code from third-party vendors to `Canvas.Pdf`.
 
-The first milestone started with checklist and architecture scaffolding. Syncfusion PDF, iText7, Aspose.PDF, IronPDF, DevExpress PDF, Apryse, Foxit PDF SDK, and DsPdf now have Roslyn-backed pilot implementations; the remaining providers are still planned as separate follow-up slices.
+The first milestone started with checklist and architecture scaffolding. Syncfusion PDF, iText7, Aspose.PDF, IronPDF, DevExpress PDF, Apryse, Foxit PDF SDK, DsPdf, GemBox.Pdf, and Spire.PDF now have Roslyn-backed pilot implementations; the remaining providers are still planned as separate follow-up slices.
 
 ## Current Pilot
 
@@ -16,10 +16,12 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 - [x] Use `Apryse` as the sixth provider pilot
 - [x] Use `FoxitPdf` as the seventh provider pilot
 - [x] Use `DsPdf` as the eighth provider pilot
+- [x] Use `GemBoxPdf` as the ninth provider pilot
+- [x] Use `SpirePdf` as the tenth provider pilot
 - [x] Start with deterministic C# PDF-generation patterns, not existing-PDF editing
 - [x] Treat `PdfDocument`, `Pages.Add`, `PdfGraphics.DrawString`, simple fonts, simple brushes, and `Save` as the first conversion slice
 - [x] Use the Syncfusion pilot to validate shared abstraction names before adding all provider projects
-- [ ] Promote repeated Syncfusion/iText7/Aspose/IronPDF/DevExpress/Apryse/Foxit/DsPdf report rules into provider-neutral abstractions after the eighth prototype
+- [ ] Promote repeated Syncfusion/iText7/Aspose/IronPDF/DevExpress/Apryse/Foxit/DsPdf/GemBox/Spire rules into provider-neutral abstractions after the tenth prototype
 
 ## Architecture Checklist
 
@@ -45,8 +47,8 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 - [x] `src/Canvas.Migration.Apryse`
 - [x] `src/Canvas.Migration.SyncfusionPdf`
 - [x] `src/Canvas.Migration.DsPdf`
-- [ ] `src/Canvas.Migration.GemBoxPdf`
-- [ ] `src/Canvas.Migration.SpirePdf`
+- [x] `src/Canvas.Migration.GemBoxPdf`
+- [x] `src/Canvas.Migration.SpirePdf`
 - [ ] `src/Canvas.Migration.PdfKitNet`
 - [ ] `src/Canvas.Migration.LeadtoolsPdf`
 - [x] `src/Canvas.Migration.FoxitPdf`
@@ -98,8 +100,8 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 | Apryse SDK | `Code-Migration-Apryse.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
 | Syncfusion PDF | `Code-Migration-SyncfusionPdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
 | DsPdf / Document Solutions | `Code-Migration-DsPdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
-| GemBox.Pdf | `Code-Migration-GemBoxPdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
-| Spire.PDF | `Code-Migration-SpirePdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
+| GemBox.Pdf | `Code-Migration-GemBoxPdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
+| Spire.PDF | `Code-Migration-SpirePdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
 | PDFKit.NET | `Code-Migration-PdfKitNet.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
 | LEADTOOLS PDF | `Code-Migration-LeadtoolsPdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
 | Foxit PDF SDK | `Code-Migration-FoxitPdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |

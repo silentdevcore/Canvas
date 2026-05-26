@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FiCode, FiCopy, FiDownload, FiPlay, FiRefreshCw } from 'react-icons/fi';
+import Editor, { type OnMount } from '@monaco-editor/react';
 import AppHeader from '@/components/Layout/AppHeader';
 
 interface Framework {
@@ -26,8 +27,8 @@ const FRAMEWORKS_FALLBACK: Framework[] = [
   { id: 'Foxit',      name: 'Foxit PDF SDK',     status: 'full',    description: 'Roslyn-based conversion: PDFDoc → PdfDocument; InsertPage/CreatePage → AddPage; Library.Initialize + GetGraphics/GenerateContent removed; graphics.DrawText/DrawLine/DrawRect/FillRect → DrawTextFromTop/DrawLineFromTop/DrawRectangleFromTop; doc.Save/SaveAs → document.Save().' },
   { id: 'DevExpress', name: 'DevExpress PDF',    status: 'full',    description: 'Roslyn-based conversion: PdfDocumentProcessor → PdfDocument, RenderNewPage → AddPage, draw calls repositioned, SaveDocument → Save. Forms/signatures/report export produce warnings.' },
   { id: 'IronPdf',    name: 'IronPDF',           status: 'pilot',   description: 'Roslyn-based pilot: ChromePdfRenderer → PdfDocument + AddPage scaffold; SaveAs → document.Save(); HTML/URL/Razor rendering calls replaced with diagnostics for manual Canvas draw call migration.' },
-  { id: 'Spire',      name: 'Spire.PDF',         status: 'skeleton', description: 'page.Canvas.DrawString → DrawTextFromTop(); SaveToFile → Save()' },
-  { id: 'GemBox',     name: 'GemBox.Pdf',        status: 'skeleton', description: 'document.Pages.Add() → document.AddPage()' },
+  { id: 'Spire',      name: 'Spire.PDF',         status: 'pilot',   description: 'Roslyn-based pilot: PdfDocument/Pages.Add/page.Canvas.DrawString/DrawLine/DrawRectangle/SaveToFile converted; manual diagnostics for images, tables, forms, annotations, and security.' },
+  { id: 'GemBox',     name: 'GemBox.Pdf',        status: 'pilot',   description: 'Roslyn-based pilot: PdfDocument/Pages.Add/Content.DrawText(text, PdfPoint)/Save converted; manual diagnostics for images, shapes, forms, annotations, encryption, and existing-PDF editing.' },
   { id: 'ActivePdf',  name: 'ActivePDF',         status: 'skeleton', description: 'API to be confirmed' },
   { id: 'Leadtools',  name: 'LEADTOOLS',         status: 'skeleton', description: 'Raster/OCR pipelines out of scope' },
   { id: 'PdfKitNet',  name: 'PDFKit.NET',        status: 'skeleton', description: 'API identity unconfirmed' },
@@ -170,6 +171,49 @@ graphics.DrawRectangle(DXPens.Black, 40, 620, 200, 60);
 processor.RenderNewPage(PdfPaperSize.A4, graphics);
 processor.SaveDocument(outputPath);`;
 
+const GEMBOX_EXAMPLE = `using GemBox.Pdf;
+using GemBox.Pdf.Content;
+
+ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
+var doc = new PdfDocument();
+var page = doc.Pages.Add();
+
+page.Content.DrawText("Invoice #2024", new PdfPoint(72, 72));
+page.Content.DrawText("Thank you for your order.", new PdfPoint(72, 130));
+page.Content.DrawText("Total: $150.00", new PdfPoint(72, 160));
+
+doc.Save(outputPath);`;
+
+const SPIRE_EXAMPLE = `using Spire.Pdf;
+using Spire.Pdf.Graphics;
+
+var doc = new PdfDocument();
+var page = doc.Pages.Add();
+
+// Heading
+page.Canvas.DrawString(
+    "Invoice #2024",
+    new PdfFont(PdfFontFamily.Helvetica, 18),
+    PdfBrushes.Black,
+    new PointF(72, 72));
+
+// Separator line
+page.Canvas.DrawLine(pen, 72, 110, 540, 110);
+
+// Body text
+page.Canvas.DrawString(
+    "Thank you for your order.",
+    new PdfFont(PdfFontFamily.Helvetica, 12),
+    PdfBrushes.Black,
+    new PointF(72, 140));
+
+// Table outline and header fill
+page.Canvas.DrawRectangle(pen, 72, 200, 468, 200);
+page.Canvas.DrawRectangle(pen, new RectangleF(72, 200, 468, 24));
+
+doc.SaveToFile(outputPath);`;
+
 const IRONPDF_EXAMPLE = `using IronPdf;
 
 var renderer = new ChromePdfRenderer();
@@ -191,7 +235,16 @@ const EXAMPLES: Record<string, string> = {
   Foxit: FOXIT_EXAMPLE,
   DevExpress: DEVEXPRESS_EXAMPLE,
   IronPdf: IRONPDF_EXAMPLE,
+  Spire: SPIRE_EXAMPLE,
+  GemBox: GEMBOX_EXAMPLE,
 };
+
+interface ConversionSummary {
+  convertedCount: number;
+  warningCount: number;
+  errorCount: number;
+  totalDiagnostics: number;
+}
 
 const MigrationsPage: React.FC = () => {
   const [frameworks, setFrameworks] = useState<Framework[]>(FRAMEWORKS_FALLBACK);
@@ -199,12 +252,16 @@ const MigrationsPage: React.FC = () => {
   const [sourceCode, setSourceCode] = useState('');
   const [canvasCode, setCanvasCode] = useState('');
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
+  const [summary, setSummary] = useState<ConversionSummary | null>(null);
+  const [hasConverted, setHasConverted] = useState(false);
+  const [diagOpen, setDiagOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [converting, setConverting] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [copyLabel, setCopyLabel] = useState('Copy');
   const [error, setError] = useState<string | null>(null);
   const prevPdfUrl = useRef<string | null>(null);
+  const handleConvertRef = useRef<() => Promise<void>>(async () => {});
 
   useEffect(() => {
     fetch(`${API_BASE}/frameworks`)
@@ -221,8 +278,20 @@ const MigrationsPage: React.FC = () => {
     setSourceCode('');
     setCanvasCode('');
     setDiagnostics([]);
+    setSummary(null);
+    setHasConverted(false);
+    setDiagOpen(false);
     setPdfUrl(null);
     setError(null);
+  };
+
+  const applyConvertResult = (data: { canvasCode?: string; diagnostics?: Diagnostic[]; summary?: ConversionSummary }) => {
+    const diags = data.diagnostics ?? [];
+    setCanvasCode(data.canvasCode ?? '');
+    setDiagnostics(diags);
+    setSummary(data.summary ?? null);
+    setHasConverted(true);
+    setDiagOpen(diags.some(d => d.severity === 'Warning'));
   };
 
   const handleConvert = async () => {
@@ -236,11 +305,9 @@ const MigrationsPage: React.FC = () => {
         body: JSON.stringify({ framework: selectedId, sourceCode }),
       });
       if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? `HTTP ${res.status}`); }
-      const data = await res.json();
-      setCanvasCode(data.canvasCode ?? '');
-      setDiagnostics(data.diagnostics ?? []);
+      applyConvertResult(await res.json());
     } catch (e: any) {
-      setError(e.message ?? 'Conversion failed — is the Canvas.WebApi backend running on port 5000?');
+      setError(e.message ?? 'Conversion failed — is the Canvas.WebApi backend running on port 5086?');
     } finally {
       setConverting(false);
     }
@@ -251,6 +318,14 @@ const MigrationsPage: React.FC = () => {
     setPreviewing(true);
     setError(null);
     try {
+      // Sync the output panel first so the user sees the converted code
+      const convertRes = await fetch(`${API_BASE}/convert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ framework: selectedId, sourceCode }),
+      });
+      if (convertRes.ok) applyConvertResult(await convertRes.json());
+
       const res = await fetch(`${API_BASE}/preview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -263,7 +338,7 @@ const MigrationsPage: React.FC = () => {
       prevPdfUrl.current = url;
       setPdfUrl(url);
     } catch (e: any) {
-      setError(e.message ?? 'Preview failed — is the Canvas.WebApi backend running on port 5000?');
+      setError(e.message ?? 'Preview failed — is the Canvas.WebApi backend running on port 5086?');
     } finally {
       setPreviewing(false);
     }
@@ -287,8 +362,16 @@ const MigrationsPage: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const infoCount = diagnostics.filter(d => d.severity === 'Info').length;
   const warnCount = diagnostics.filter(d => d.severity === 'Warning').length;
+
+  // Keep ref current so the Monaco command closure never goes stale
+  handleConvertRef.current = handleConvert;
+
+  const handleSourceMount: OnMount = useCallback((editor, monaco) => {
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+      void handleConvertRef.current();
+    });
+  }, []);
 
   return (
     <div className="mgr-page">
@@ -353,13 +436,24 @@ const MigrationsPage: React.FC = () => {
             <div className="mgr-pane-header">
               <span>Source Code — {current?.name ?? selectedId}</span>
             </div>
-            <textarea
-              className="mgr-source"
-              value={sourceCode}
-              onChange={e => setSourceCode(e.target.value)}
-              placeholder={`Paste your ${current?.name ?? selectedId} code here…`}
-              spellCheck={false}
-            />
+            <div className="mgr-editor-wrapper">
+              <Editor
+                language="csharp"
+                value={sourceCode}
+                onChange={v => setSourceCode(v ?? '')}
+                onMount={handleSourceMount}
+                options={{
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 13,
+                  lineNumbers: 'on',
+                  wordWrap: 'on',
+                  renderWhitespace: 'none',
+                  padding: { top: 8, bottom: 8 },
+                }}
+                height="100%"
+              />
+            </div>
             <div className="mgr-pane-footer">
               <button
                 className="mgr-btn mgr-btn-primary"
@@ -385,12 +479,23 @@ const MigrationsPage: React.FC = () => {
                 </button>
               </div>
             </div>
-            <pre className="mgr-output">
-              {canvasCode
-                ? canvasCode
-                : <span className="mgr-placeholder">Converted Canvas.Pdf C# code will appear here</span>
-              }
-            </pre>
+            <div className="mgr-editor-wrapper">
+              <Editor
+                language="csharp"
+                value={canvasCode}
+                options={{
+                  readOnly: true,
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 13,
+                  lineNumbers: 'on',
+                  wordWrap: 'on',
+                  renderWhitespace: 'none',
+                  padding: { top: 8, bottom: 8 },
+                }}
+                height="100%"
+              />
+            </div>
             <div className="mgr-pane-footer mgr-pane-footer-right">
               <button
                 className="mgr-btn mgr-btn-secondary"
@@ -405,22 +510,40 @@ const MigrationsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Diagnostics */}
-        {diagnostics.length > 0 && (
+        {/* Diagnostics — always visible after a conversion */}
+        {hasConverted && (
           <div className="mgr-diagnostics">
             <div className="mgr-diag-summary">
               <strong>Diagnostics</strong>
-              {infoCount > 0 && <span className="mgr-diag-chip mgr-diag-chip-info">● {infoCount} info</span>}
-              {warnCount > 0 && <span className="mgr-diag-chip mgr-diag-chip-warn">⚠ {warnCount} warning{warnCount > 1 ? 's' : ''}</span>}
+              {summary && summary.convertedCount > 0 && (
+                <span className="mgr-diag-chip mgr-diag-chip-converted">✓ {summary.convertedCount} converted</span>
+              )}
+              {warnCount > 0 && (
+                <span className="mgr-diag-chip mgr-diag-chip-warn">⚠ {warnCount} warning{warnCount > 1 ? 's' : ''}</span>
+              )}
+              {diagnostics.length === 0 && (
+                <span className="mgr-diag-chip mgr-diag-chip-ok">No issues</span>
+              )}
+              {diagnostics.length > 0 && (
+                <button
+                  className="mgr-diag-toggle"
+                  onClick={() => setDiagOpen(o => !o)}
+                  aria-expanded={diagOpen}
+                >
+                  {diagOpen ? '▲ Hide' : '▼ Show'} details
+                </button>
+              )}
             </div>
-            <ul className="mgr-diag-list">
-              {diagnostics.map((d, i) => (
-                <li key={i} className={`mgr-diag-item mgr-diag-${d.severity.toLowerCase()}`}>
-                  <code className="mgr-diag-code">{d.code}</code>
-                  <span>{d.message}</span>
-                </li>
-              ))}
-            </ul>
+            {diagOpen && (
+              <ul className="mgr-diag-list">
+                {diagnostics.map((d, i) => (
+                  <li key={i} className={`mgr-diag-item mgr-diag-${d.severity.toLowerCase()}`}>
+                    <code className="mgr-diag-code">{d.code}</code>
+                    <span>{d.message}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 

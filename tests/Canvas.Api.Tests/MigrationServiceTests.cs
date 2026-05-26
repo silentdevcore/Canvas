@@ -204,4 +204,66 @@ public sealed class MigrationServiceTests
         Assert.True(result.Summary.ConvertedCount > 0);
         Assert.Equal(0, result.Summary.ErrorCount);
     }
+
+    [Fact]
+    public void Convert_ShouldUseGemBoxRoslynConverterAndReturnSummary()
+    {
+        var source = """
+            using GemBox.Pdf;
+            using GemBox.Pdf.Content;
+
+            ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+            var doc = new PdfDocument();
+            var page = doc.Pages.Add();
+            page.Content.DrawText("Smoke", new PdfPoint(40, 40));
+            doc.Save(outputPath);
+            """;
+        var sut = new MigrationService();
+
+        var result = sut.Convert("GemBox", source);
+
+        Assert.Contains("using Canvas.Pdf;", result.CanvasCode);
+        Assert.DoesNotContain("GemBox.Pdf", result.CanvasCode);
+        Assert.DoesNotContain("ComponentInfo.SetLicense", result.CanvasCode);
+        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
+        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
+        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGGEMBOX001");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGGEMBOX003");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGGEMBOX007");
+        Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
+        Assert.True(result.Summary.ConvertedCount > 0);
+        Assert.Equal(0, result.Summary.ErrorCount);
+    }
+
+    [Fact]
+    public void Convert_ShouldUseSpireRoslynConverterAndReturnSummary()
+    {
+        var source = """
+            using Spire.Pdf;
+            using Spire.Pdf.Graphics;
+
+            var doc = new PdfDocument();
+            var page = doc.Pages.Add();
+            page.Canvas.DrawString("Smoke", new PdfFont(PdfFontFamily.Helvetica, 12), PdfBrushes.Black, 40, 40);
+            doc.SaveToFile(outputPath);
+            """;
+        var sut = new MigrationService();
+
+        var result = sut.Convert("Spire", source);
+
+        Assert.Contains("using Canvas.Pdf;", result.CanvasCode);
+        Assert.DoesNotContain("Spire.Pdf", result.CanvasCode);
+        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
+        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
+        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGSPIRE001");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGSPIRE003");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGSPIRE007");
+        Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
+        Assert.True(result.Summary.ConvertedCount > 0);
+        Assert.Equal(0, result.Summary.ErrorCount);
+    }
 }

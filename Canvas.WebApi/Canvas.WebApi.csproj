@@ -26,8 +26,10 @@
     <ProjectReference Include="../src/Canvas.Migration.DevExpressPdf/Canvas.Migration.DevExpressPdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.DsPdf/Canvas.Migration.DsPdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.FoxitPdf/Canvas.Migration.FoxitPdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.GemBoxPdf/Canvas.Migration.GemBoxPdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.iText7/Canvas.Migration.iText7.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.IronPdf/Canvas.Migration.IronPdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.SpirePdf/Canvas.Migration.SpirePdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.SyncfusionPdf/Canvas.Migration.SyncfusionPdf.csproj" />
   </ItemGroup>
 
