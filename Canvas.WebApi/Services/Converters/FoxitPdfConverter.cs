@@ -8,10 +8,10 @@ public sealed class FoxitPdfConverter : BasePdfConverter
 
     public override string FrameworkName => "Foxit PDF SDK";
 
-    public override string Status => "pilot";
+    public override string Status => "full";
 
     public override string Description =>
-        "Roslyn-based reporting pilot for Foxit PDFDoc, page insertion, graphics/content drawing, and save workflows.";
+        "Roslyn-based conversion: PDFDoc → PdfDocument; InsertPage/CreatePage → AddPage; Library.Initialize + GetGraphics/GenerateContent removed; graphics.DrawText/DrawLine/DrawRect/FillRect → DrawTextFromTop/DrawLineFromTop/DrawRectangleFromTop; doc.Save/SaveAs → document.Save().";
 
     public override string ConvertCode(string sourceCode)
     {

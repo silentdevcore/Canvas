@@ -468,4 +468,173 @@ public sealed class IText7MigrationTests
         Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGITEXT015");
         Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGITEXT013");
     }
+
+    [Fact]
+    public void Migrate_ShouldRemoveDocumentClose()
+    {
+        var source = """
+            using iText.Kernel.Pdf;
+            using iText.Layout;
+
+            using var writer = new PdfWriter(path);
+            using var pdf = new PdfDocument(writer);
+            using var document = new Document(pdf);
+            document.Add(new Paragraph("Hello"));
+            document.Close();
+            """;
+        var expected = """
+            using Canvas.Pdf;
+
+            var document = new PdfDocument();
+            var page = document.AddPage();
+            page.DrawTextFromTop("Hello", 40, 40, 12);
+            document.Save(path);
+            """;
+        var sut = new IText7Migration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Equal(expected, result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGITEXT016");
+    }
+
+    [Fact]
+    public void Migrate_ShouldRemoveDocumentSetMargins()
+    {
+        var source = """
+            using iText.Kernel.Pdf;
+            using iText.Layout;
+
+            using var writer = new PdfWriter(path);
+            using var pdf = new PdfDocument(writer);
+            using var document = new Document(pdf);
+            document.SetMargins(72, 72, 72, 72);
+            document.Add(new Paragraph("Hello"));
+            """;
+        var expected = """
+            using Canvas.Pdf;
+
+            var document = new PdfDocument();
+            var page = document.AddPage();
+            page.DrawTextFromTop("Hello", 40, 40, 12);
+            document.Save(path);
+            """;
+        var sut = new IText7Migration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Equal(expected, result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGITEXT017");
+    }
+
+    [Fact]
+    public void Migrate_ShouldPreserveFontSizeFromParagraphSetFontSize()
+    {
+        var source = """
+            using iText.Kernel.Pdf;
+            using iText.Layout;
+            using iText.Layout.Element;
+
+            using var writer = new PdfWriter(path);
+            using var pdf = new PdfDocument(writer);
+            using var document = new Document(pdf);
+            document.Add(new Paragraph("Invoice").SetFontSize(18));
+            document.Add(new Paragraph("Details").SetFontSize(10));
+            document.Add(new Paragraph("Footer"));
+            """;
+        var expected = """
+            using Canvas.Pdf;
+
+            var document = new PdfDocument();
+            var page = document.AddPage();
+            page.DrawTextFromTop("Invoice", 40, 40, 18);
+            page.DrawTextFromTop("Details", 40, 40, 10);
+            page.DrawTextFromTop("Footer", 40, 40, 12);
+            document.Save(path);
+            """;
+        var sut = new IText7Migration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Equal(expected, result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGITEXT018");
+    }
+
+    [Fact]
+    public void Migrate_ShouldIgnoreOtherParagraphStylingAndExtractText()
+    {
+        var source = """
+            using iText.Kernel.Pdf;
+            using iText.Layout;
+            using iText.Layout.Element;
+
+            using var writer = new PdfWriter(path);
+            using var pdf = new PdfDocument(writer);
+            using var document = new Document(pdf);
+            document.Add(new Paragraph("Bold heading").SetFontSize(16).SetBold());
+            """;
+        var expected = """
+            using Canvas.Pdf;
+
+            var document = new PdfDocument();
+            var page = document.AddPage();
+            page.DrawTextFromTop("Bold heading", 40, 40, 16);
+            document.Save(path);
+            """;
+        var sut = new IText7Migration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Equal(expected, result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGITEXT018");
+    }
+
+    [Fact]
+    public void Migrate_ShouldConvertFullInvoiceWithAllNewFeatures()
+    {
+        var source = """
+            using iText.Kernel.Geom;
+            using iText.Kernel.Pdf;
+            using iText.Kernel.Pdf.Canvas;
+            using iText.Layout;
+            using iText.Layout.Element;
+            using iText.Layout.Properties;
+
+            using var writer = new PdfWriter(outputPath);
+            using var pdf = new PdfDocument(writer);
+            using var document = new Document(pdf, PageSize.A4);
+            document.SetMargins(72, 72, 72, 72);
+            document.Add(new Paragraph("Invoice #2024").SetFontSize(18));
+            document.Add(new Paragraph("Thank you for your order."));
+            document.ShowTextAligned(new Paragraph("Total: $150.00"), 400, 100, TextAlignment.LEFT);
+            var canvas = new PdfCanvas(pdf.GetFirstPage());
+            canvas.MoveTo(72, 700).LineTo(524, 700).Stroke();
+            canvas.BeginText();
+            canvas.MoveText(80, 620);
+            canvas.ShowText("Item Details");
+            canvas.EndText();
+            document.Close();
+            """;
+        var expected = """
+            using Canvas.Pdf;
+
+            var document = new PdfDocument();
+            var page = document.AddPage(PdfPagePreset.A4, false);
+            page.DrawTextFromTop("Invoice #2024", 40, 40, 18);
+            page.DrawTextFromTop("Thank you for your order.", 40, 40, 12);
+            page.DrawText("Total: $150.00", 400, 100, 12);
+            page.DrawLine(72, 700, 524, 700, 1);
+            page.DrawText("Item Details", 80, 620, 12);
+            document.Save(outputPath);
+            """;
+        var sut = new IText7Migration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Equal(expected, result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGITEXT008");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGITEXT016");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGITEXT017");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGITEXT018");
+    }
 }

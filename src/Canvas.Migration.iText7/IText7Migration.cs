@@ -132,6 +132,25 @@ public sealed class IText7Migration : CSharpSourceMigration
                 }
             }
 
+            if (node.Statement is ExpressionStatementSyntax exprStmt &&
+                exprStmt.Expression is InvocationExpressionSyntax exprInv &&
+                exprInv.Expression is MemberAccessExpressionSyntax exprMa &&
+                exprMa.Expression is IdentifierNameSyntax docIdent &&
+                _documentInfoByVariable.ContainsKey(docIdent.Identifier.ValueText))
+            {
+                var method = exprMa.Name.Identifier.ValueText;
+                if (method == "Close")
+                {
+                    _diagnostics.Add(Info("CANMIGITEXT016", "document.Close() removed — Canvas.Pdf document does not require explicit closing."));
+                    return null;
+                }
+                if (method == "SetMargins")
+                {
+                    _diagnostics.Add(Info("CANMIGITEXT017", "document.SetMargins() removed — configure page margins via Canvas.Pdf page layout options."));
+                    return null;
+                }
+            }
+
             return base.VisitGlobalStatement(node);
         }
 
@@ -292,12 +311,14 @@ public sealed class IText7Migration : CSharpSourceMigration
                 || memberAccess.Expression is not IdentifierNameSyntax documentIdentifier
                 || !_documentInfoByVariable.TryGetValue(documentIdentifier.Identifier.ValueText, out var documentInfo)
                 || invocation.ArgumentList.Arguments.Count != 1
-                || invocation.ArgumentList.Arguments[0].Expression is not ObjectCreationExpressionSyntax paragraphCreation
-                || paragraphCreation.Type.ToString() != "Paragraph"
-                || paragraphCreation.ArgumentList?.Arguments.Count != 1)
+                || !TryExtractParagraphInfo(invocation.ArgumentList.Arguments[0].Expression,
+                    out var textExpression, out var fontSizeExpression, out var hasFontSize))
             {
                 return false;
             }
+
+            if (hasFontSize)
+                _diagnostics.Add(Info("CANMIGITEXT018", "Paragraph.SetFontSize(N) mapped to DrawTextFromTop fontSize argument."));
 
             migrated = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -306,10 +327,10 @@ public sealed class IText7Migration : CSharpSourceMigration
                     SyntaxFactory.IdentifierName("DrawTextFromTop")),
                 SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new[]
                 {
-                    SyntaxFactory.Argument(paragraphCreation.ArgumentList.Arguments[0].Expression),
+                    SyntaxFactory.Argument(textExpression),
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(40))),
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(40))),
-                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(12)))
+                    SyntaxFactory.Argument(fontSizeExpression)
                 })));
             return true;
         }
@@ -325,11 +346,15 @@ public sealed class IText7Migration : CSharpSourceMigration
                 || memberAccess.Expression is not IdentifierNameSyntax documentIdentifier
                 || !_documentInfoByVariable.TryGetValue(documentIdentifier.Identifier.ValueText, out var documentInfo)
                 || invocation.ArgumentList.Arguments.Count < 4
-                || !TryMapParagraphText(invocation.ArgumentList.Arguments[0].Expression, out var textExpression)
+                || !TryExtractParagraphInfo(invocation.ArgumentList.Arguments[0].Expression,
+                    out var textExpression, out var fontSizeExpression, out var hasFontSize)
                 || !IsLeftTextAlignment(invocation.ArgumentList.Arguments[3].Expression))
             {
                 return false;
             }
+
+            if (hasFontSize)
+                _diagnostics.Add(Info("CANMIGITEXT018", "Paragraph.SetFontSize(N) mapped to DrawText fontSize argument."));
 
             migrated = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -341,7 +366,7 @@ public sealed class IText7Migration : CSharpSourceMigration
                     SyntaxFactory.Argument(textExpression),
                     invocation.ArgumentList.Arguments[1],
                     invocation.ArgumentList.Arguments[2],
-                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(12)))
+                    SyntaxFactory.Argument(fontSizeExpression)
                 })));
             return true;
         }
@@ -683,11 +708,32 @@ public sealed class IText7Migration : CSharpSourceMigration
             return false;
         }
 
-        private static bool TryMapParagraphText(ExpressionSyntax expression, out ExpressionSyntax textExpression)
+        private static bool TryExtractParagraphInfo(
+            ExpressionSyntax expression,
+            out ExpressionSyntax textExpression,
+            out ExpressionSyntax fontSizeExpression,
+            out bool hasFontSize)
         {
             textExpression = expression;
+            fontSizeExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(12));
+            hasFontSize = false;
 
-            if (expression is not ObjectCreationExpressionSyntax paragraphCreation
+            // Unwrap fluent chain: new Paragraph("text").SetFontSize(N).SetBold()...
+            var current = expression;
+            ExpressionSyntax? extractedFontSize = null;
+
+            while (current is InvocationExpressionSyntax chainInv &&
+                   chainInv.Expression is MemberAccessExpressionSyntax chainAccess)
+            {
+                if (chainAccess.Name.Identifier.ValueText == "SetFontSize" &&
+                    chainInv.ArgumentList.Arguments.Count == 1)
+                {
+                    extractedFontSize = chainInv.ArgumentList.Arguments[0].Expression;
+                }
+                current = chainAccess.Expression;
+            }
+
+            if (current is not ObjectCreationExpressionSyntax paragraphCreation
                 || paragraphCreation.Type.ToString() != "Paragraph"
                 || paragraphCreation.ArgumentList?.Arguments.Count != 1)
             {
@@ -695,6 +741,11 @@ public sealed class IText7Migration : CSharpSourceMigration
             }
 
             textExpression = paragraphCreation.ArgumentList.Arguments[0].Expression;
+            if (extractedFontSize is not null)
+            {
+                fontSizeExpression = extractedFontSize;
+                hasFontSize = true;
+            }
             return true;
         }
 

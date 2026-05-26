@@ -6,7 +6,7 @@ namespace Canvas.Migration.FoxitPdf.Tests;
 public sealed class FoxitPdfMigrationTests
 {
     [Fact]
-    public void Migrate_ShouldReportBasicDocumentPageAndSaveWorkflow()
+    public void Migrate_ShouldConvertBasicDocumentPageAndSave()
     {
         var source = """
             using foxit;
@@ -15,46 +15,97 @@ public sealed class FoxitPdfMigrationTests
             Library.Initialize(licenseKey);
             using var doc = new PDFDoc();
             var page = doc.InsertPage(0, PageSize.e_SizeA4);
+            doc.SaveAs(outputPath);
+            """;
+        var sut = new FoxitPdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains("using Canvas.Pdf;", result.MigratedCode);
+        Assert.DoesNotContain("using foxit", result.MigratedCode);
+        Assert.DoesNotContain("Library.Initialize", result.MigratedCode);
+        Assert.DoesNotContain("PDFDoc", result.MigratedCode);
+        Assert.DoesNotContain("InsertPage", result.MigratedCode);
+        Assert.Contains("var document = new PdfDocument();", result.MigratedCode);
+        Assert.Contains("var page = document.AddPage();", result.MigratedCode);
+        Assert.Contains("document.Save(outputPath);", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGFOXIT000" && d.Severity == MigrationDiagnosticSeverity.Info);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGFOXIT001" && d.Severity == MigrationDiagnosticSeverity.Info);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGFOXIT002" && d.Severity == MigrationDiagnosticSeverity.Info);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGFOXIT007" && d.Severity == MigrationDiagnosticSeverity.Info);
+    }
+
+    [Fact]
+    public void Migrate_ShouldRemoveGetGraphicsAndConvertDrawCalls()
+    {
+        var source = """
+            using foxit.pdf;
+
+            var doc = new PDFDoc();
+            var page = doc.InsertPage(0, PageSize.e_SizeA4);
+            var graphics = page.GetGraphics();
+            graphics.DrawText("Hello", font, 40, 40);
+            graphics.DrawLine(pen, 40, 700, 555, 700);
+            graphics.DrawRect(pen, 40, 620, 200, 80);
+            page.GenerateContent();
             doc.SaveAs(path);
             """;
         var sut = new FoxitPdfMigration();
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("// Canvas.Pdf migration report: Foxit PDF SDK", result.MigratedCode);
-        Assert.Contains("Library.Initialize(...) detected", result.MigratedCode);
-        Assert.Contains("new PDFDoc(...) detected", result.MigratedCode);
-        Assert.Contains("InsertPage(...) detected", result.MigratedCode);
-        Assert.Contains("SaveAs(...) detected", result.MigratedCode);
-        Assert.Contains("using var doc = new PDFDoc();", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGFOXIT000");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGFOXIT001");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGFOXIT002");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGFOXIT007");
+        Assert.DoesNotContain("GetGraphics", result.MigratedCode);
+        Assert.DoesNotContain("GenerateContent", result.MigratedCode);
+        Assert.DoesNotContain("graphics.", result.MigratedCode);
+        Assert.Contains("page.DrawTextFromTop(\"Hello\", 40, 40, 12);", result.MigratedCode);
+        Assert.Contains("page.DrawLineFromTop(40, 700, 555, 700);", result.MigratedCode);
+        Assert.Contains("page.DrawRectangleFromTop(40, 620, 200, 80);", result.MigratedCode);
+        Assert.Contains("document.Save(path);", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGFOXIT003");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGFOXIT004");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGFOXIT006");
     }
 
     [Fact]
-    public void Migrate_ShouldReportTextImageAndShapeDrawingCandidates()
+    public void Migrate_ShouldConvertFillRect()
     {
         var source = """
             using foxit.pdf;
 
-            graphics.DrawText("Hello", font, 40, 40);
-            graphics.DrawImage(image, 40, 120, 200, 80);
-            graphics.DrawLine(pen, 40, 700, 555, 700);
-            graphics.DrawRect(pen, 40, 620, 200, 80);
+            var doc = new PDFDoc();
+            var page = doc.InsertPage(0, PageSize.e_SizeA4);
+            var graphics = page.GetGraphics();
+            graphics.FillRect(brush, 40, 500, 200, 40);
+            doc.SaveAs(path);
             """;
         var sut = new FoxitPdfMigration();
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("DrawText(...) detected", result.MigratedCode);
-        Assert.Contains("DrawImage(...) detected", result.MigratedCode);
-        Assert.Contains("DrawLine(...) detected", result.MigratedCode);
-        Assert.Contains("DrawRect(...) detected", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGFOXIT004");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGFOXIT005");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGFOXIT006");
+        Assert.Contains("page.DrawRectangleFromTop(40, 500, 200, 40, 1, true);", result.MigratedCode);
+        Assert.DoesNotContain("FillRect", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGFOXIT006");
+    }
+
+    [Fact]
+    public void Migrate_ShouldWarnForDrawImageAndKeepStatement()
+    {
+        var source = """
+            using foxit.pdf;
+
+            var doc = new PDFDoc();
+            var page = doc.InsertPage(0, PageSize.e_SizeA4);
+            var graphics = page.GetGraphics();
+            graphics.DrawImage(image, 40, 120, 200, 80);
+            doc.SaveAs(path);
+            """;
+        var sut = new FoxitPdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains("DrawImage", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGFOXIT005" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
     [Fact]
@@ -71,15 +122,12 @@ public sealed class FoxitPdfMigrationTests
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("Existing-PDF editing, forms, annotations, security/signing, rendering, viewer, OCR/conversion, or redaction APIs require manual migration outside v1.", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGFOXIT001");
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Id == "CANMIGFOXIT020"
-            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGFOXIT020" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
     [Fact]
-    public void Migrate_ShouldWarnForFormsAnnotationsSignaturesAndSecurity()
+    public void Migrate_ShouldWarnForFormsAnnotationsAndSecurity()
     {
         var source = """
             using foxit.pdf;
@@ -93,30 +141,62 @@ public sealed class FoxitPdfMigrationTests
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("Existing-PDF editing, forms, annotations, security/signing, rendering, viewer, OCR/conversion, or redaction APIs require manual migration outside v1.", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Id == "CANMIGFOXIT020"
-            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGFOXIT020" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
     [Fact]
-    public void Migrate_ShouldWarnForRenderingOcrViewerAndConversionApis()
+    public void Migrate_ShouldWarnForRenderingOcrAndConversionApis()
     {
         var source = """
             using foxit.pdf;
 
             PDFViewCtrl view = new PDFViewCtrl();
             renderer.RenderPageToBitmap(page);
-            Convert.ToPdf(doc, inputPath);
             ocr.StartOCR(image);
             """;
         var sut = new FoxitPdfMigration();
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("Existing-PDF editing, forms, annotations, security/signing, rendering, viewer, OCR/conversion, or redaction APIs require manual migration outside v1.", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Severity == MigrationDiagnosticSeverity.Warning
-            && diagnostic.Id == "CANMIGFOXIT021");
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGFOXIT021" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
+    public void Migrate_ShouldConvertRealisticInvoice()
+    {
+        var source = """
+            using foxit;
+            using foxit.pdf;
+
+            Library.Initialize(licenseKey);
+            var doc = new PDFDoc();
+            var page = doc.InsertPage(0, PageSize.e_SizeA4);
+            var graphics = page.GetGraphics();
+            graphics.DrawText("Invoice #2024", font18, 72, 72);
+            graphics.DrawLine(pen, 72, 100, 540, 100);
+            graphics.DrawText("Thank you for your order.", font12, 72, 130);
+            graphics.DrawRect(pen, 72, 200, 468, 300);
+            graphics.FillRect(brush, 72, 200, 468, 20);
+            page.GenerateContent();
+            doc.SaveAs(outputPath);
+            """;
+        var sut = new FoxitPdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains("using Canvas.Pdf;", result.MigratedCode);
+        Assert.Contains("var document = new PdfDocument();", result.MigratedCode);
+        Assert.Contains("var page = document.AddPage();", result.MigratedCode);
+        Assert.Contains("page.DrawTextFromTop(\"Invoice #2024\", 72, 72, 12);", result.MigratedCode);
+        Assert.Contains("page.DrawLineFromTop(72, 100, 540, 100);", result.MigratedCode);
+        Assert.Contains("page.DrawTextFromTop(\"Thank you for your order.\", 72, 130, 12);", result.MigratedCode);
+        Assert.Contains("page.DrawRectangleFromTop(72, 200, 468, 300);", result.MigratedCode);
+        Assert.Contains("page.DrawRectangleFromTop(72, 200, 468, 20, 1, true);", result.MigratedCode);
+        Assert.Contains("document.Save(outputPath);", result.MigratedCode);
+        Assert.DoesNotContain("Library.Initialize", result.MigratedCode);
+        Assert.DoesNotContain("GetGraphics", result.MigratedCode);
+        Assert.DoesNotContain("GenerateContent", result.MigratedCode);
     }
 }

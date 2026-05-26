@@ -11,7 +11,7 @@ public sealed class IronPdfConverter : BasePdfConverter
     public override string Status => "pilot";
 
     public override string Description =>
-        "Roslyn-based reporting pilot for IronPDF HTML/URL/Razor rendering flows that require manual Canvas.Pdf rewrite.";
+        "Roslyn-based pilot: ChromePdfRenderer/HtmlToPdf → PdfDocument + AddPage scaffold; SaveAs → document.Save(); HTML/URL/Razor rendering calls replaced with diagnostics for manual Canvas draw call migration.";
 
     public override string ConvertCode(string sourceCode)
     {

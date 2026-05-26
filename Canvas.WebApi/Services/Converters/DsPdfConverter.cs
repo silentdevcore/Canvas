@@ -8,10 +8,10 @@ public sealed class DsPdfConverter : BasePdfConverter
 
     public override string FrameworkName => "DsPdf (GrapeCity)";
 
-    public override string Status => "pilot";
+    public override string Status => "full";
 
     public override string Description =>
-        "Roslyn-based reporting pilot for DsPdf/GcPdf document, page, graphics drawing, and save workflows.";
+        "Roslyn-based conversion: GcPdfDocument → PdfDocument; doc.NewPage() → AddPage(); page.Graphics.DrawString/DrawLine/DrawRectangle/FillRectangle → DrawTextFromTop/DrawLineFromTop/DrawRectangleFromTop; doc.Save() preserved.";
 
     public override string ConvertCode(string sourceCode)
     {

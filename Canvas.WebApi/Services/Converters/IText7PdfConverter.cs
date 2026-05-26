@@ -8,10 +8,10 @@ public sealed class IText7PdfConverter : BasePdfConverter
 
     public override string FrameworkName => "iText7";
 
-    public override string Status => "pilot";
+    public override string Status => "full";
 
     public override string Description =>
-        "Roslyn-based pilot conversion for PdfWriter + PdfDocument + Document + simple Paragraph flows.";
+        "Roslyn-based conversion: PdfWriter+PdfDocument+Document → PdfDocument; Paragraph (with SetFontSize) → DrawTextFromTop; ShowTextAligned → DrawText; PdfCanvas line/rect/text → Draw*; document.Close/SetMargins removed.";
 
     public override string ConvertCode(string sourceCode)
     {

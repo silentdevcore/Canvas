@@ -6,7 +6,7 @@ namespace Canvas.Migration.DevExpressPdf.Tests;
 public sealed class DevExpressPdfMigrationTests
 {
     [Fact]
-    public void Migrate_ShouldReportGeneratedDocumentDrawingWorkflow()
+    public void Migrate_BasicGenerationWorkflow_ProducesCanvasCode()
     {
         var source = """
             using DevExpress.Pdf;
@@ -23,43 +23,77 @@ public sealed class DevExpressPdfMigrationTests
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("// Canvas.Pdf migration report: DevExpress PDF", result.MigratedCode);
-        Assert.Contains("Detected PdfDocumentProcessor", result.MigratedCode);
-        Assert.Contains("CreateEmptyDocument(...) detected", result.MigratedCode);
-        Assert.Contains("CreateGraphics(...) detected", result.MigratedCode);
-        Assert.Contains("DrawString(...) detected for `\"Hello\"`", result.MigratedCode);
-        Assert.Contains("RenderNewPage(...) detected", result.MigratedCode);
-        Assert.Contains("SaveDocument(...) detected", result.MigratedCode);
-        Assert.Contains("graphics.DrawString(\"Hello\"", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDEVEXP001");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDEVEXP002");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDEVEXP003");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDEVEXP004");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDEVEXP005");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDEVEXP008");
+        Assert.Contains("using Canvas.Pdf;", result.MigratedCode);
+        Assert.Contains("var document = new PdfDocument();", result.MigratedCode);
+        Assert.Contains("var page = document.AddPage();", result.MigratedCode);
+        Assert.Contains("page.DrawTextFromTop(\"Hello\", 40, 40, 12);", result.MigratedCode);
+        Assert.Contains("document.Save(path);", result.MigratedCode);
+        Assert.DoesNotContain("using DevExpress", result.MigratedCode);
+        Assert.DoesNotContain("PdfDocumentProcessor", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVEXP001");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVEXP002");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVEXP003");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVEXP004");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVEXP005");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVEXP008");
     }
 
     [Fact]
-    public void Migrate_ShouldReportLineAndRectangleDrawingCandidates()
+    public void Migrate_LineAndRectangleDrawing_ProducesCanvasDrawCalls()
     {
         var source = """
             using DevExpress.Pdf;
 
+            using var processor = new PdfDocumentProcessor();
+            processor.CreateEmptyDocument();
+            using var graphics = processor.CreateGraphics();
             graphics.DrawLine(pen, 40, 700, 555, 700);
             graphics.DrawRectangle(pen, 40, 620, 200, 80);
+            processor.RenderNewPage(PdfPaperSize.A4, graphics);
+            processor.SaveDocument(outputPath);
             """;
         var sut = new DevExpressPdfMigration();
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("DrawLine(...) detected", result.MigratedCode);
-        Assert.Contains("DrawRectangle(...) detected", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDEVEXP006");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDEVEXP007");
+        Assert.Contains("page.DrawLine(40, 700, 555, 700);", result.MigratedCode);
+        Assert.Contains("page.DrawRectangle(40, 620, 200, 80);", result.MigratedCode);
+        Assert.Contains("document.Save(outputPath);", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVEXP006");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVEXP007");
     }
 
     [Fact]
-    public void Migrate_ShouldWarnForExistingPdfProcessing()
+    public void Migrate_DrawCallsRepositionedAfterAddPage()
+    {
+        var source = """
+            using DevExpress.Pdf;
+
+            using var processor = new PdfDocumentProcessor();
+            processor.CreateEmptyDocument();
+            using var graphics = processor.CreateGraphics();
+            graphics.DrawString("Title", new DXFont("Arial", 18), DXBrushes.Black, 40, 750);
+            graphics.DrawString("Body", new DXFont("Arial", 12), DXBrushes.Black, 40, 700);
+            processor.RenderNewPage(PdfPaperSize.A4, graphics);
+            processor.SaveDocument(path);
+            """;
+        var sut = new DevExpressPdfMigration();
+
+        var result = sut.Migrate(source);
+
+        var addPageIndex = result.MigratedCode.IndexOf("document.AddPage()", StringComparison.Ordinal);
+        var drawTitleIndex = result.MigratedCode.IndexOf("DrawTextFromTop(\"Title\"", StringComparison.Ordinal);
+        var drawBodyIndex = result.MigratedCode.IndexOf("DrawTextFromTop(\"Body\"", StringComparison.Ordinal);
+
+        Assert.True(addPageIndex >= 0, "AddPage() not found");
+        Assert.True(drawTitleIndex > addPageIndex, "Title draw call should come after AddPage");
+        Assert.True(drawBodyIndex > addPageIndex, "Body draw call should come after AddPage");
+        Assert.Contains("page.DrawTextFromTop(\"Title\", 40, 750, 18);", result.MigratedCode);
+        Assert.Contains("page.DrawTextFromTop(\"Body\", 40, 700, 12);", result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_ExistingPdfProcessing_EmitsWarning()
     {
         var source = """
             using DevExpress.Pdf;
@@ -73,14 +107,12 @@ public sealed class DevExpressPdfMigrationTests
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("Existing-PDF editing, forms, signatures, encryption, or document operations require manual migration outside v1.", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Id == "CANMIGDEVEXP021"
-            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGDEVEXP021" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
     [Fact]
-    public void Migrate_ShouldWarnForFormsSignaturesAndEncryption()
+    public void Migrate_FormsAndSignatures_EmitsWarning()
     {
         var source = """
             using DevExpress.Pdf;
@@ -93,14 +125,12 @@ public sealed class DevExpressPdfMigrationTests
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("Existing-PDF editing, forms, signatures, encryption, or document operations require manual migration outside v1.", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Id == "CANMIGDEVEXP022"
-            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGDEVEXP022" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
     [Fact]
-    public void Migrate_ShouldWarnForReportExportWorkflows()
+    public void Migrate_ReportExportWorkflow_EmitsWarning()
     {
         var source = """
             using DevExpress.XtraReports.UI;
@@ -112,9 +142,7 @@ public sealed class DevExpressPdfMigrationTests
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("DevExpress reporting/export APIs require report template review before Canvas.Pdf rewrite.", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Id == "CANMIGDEVEXP020"
-            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGDEVEXP020" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 }

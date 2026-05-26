@@ -1,20 +1,30 @@
 # Canvas Migration: iText7
 
-## V1 Pilot Analysis
+## V1 Implementation Status
 
-- [x] V1 scope is limited to deterministic C# source-to-source migration for simple generated PDFs.
-- [x] Roslyn-backed migration is connected through `Canvas.WebApi` via framework id `iText7`.
-- [x] Basic document lifecycle is covered: `PdfWriter` + kernel `PdfDocument` + layout `Document` becomes `Canvas.Pdf.PdfDocument`.
-- [x] Save targets are preserved for simple path/stream writer variables.
-- [x] First-page creation is covered, including `PageSize.A4`, `PageSize.A3`, `PageSize.LETTER`, and `.Rotate()`.
-- [x] Simple flowing text is migrated from `document.Add(new Paragraph(...))` to `DrawTextFromTop`.
-- [x] Simple coordinate text is migrated from left-aligned `ShowTextAligned(...)` to `DrawText`.
-- [x] Simple `PdfCanvas` line, rectangle, filled rectangle, chain text, and separated text-state statements are migrated.
-- [x] Unsupported table/layout/security/form/signature usage produces diagnostics for manual follow-up.
+- [x] V1 scope: deterministic C# source-to-source migration for simple generated PDFs using iText7.
+- [x] Roslyn-backed migration connected through `Canvas.WebApi` via framework id `iText7`.
+- [x] Status upgraded from pilot to **full** converter.
+- [x] Basic document lifecycle: `PdfWriter` + kernel `PdfDocument` + layout `Document` → `Canvas.Pdf.PdfDocument`.
+- [x] Save targets preserved for simple path/stream writer variables.
+- [x] First-page creation including `PageSize.A4`, `PageSize.A3`, `PageSize.LETTER`, and `.Rotate()`.
+- [x] `document.Add(new Paragraph(text))` → `page.DrawTextFromTop(text, 40, 40, 12)`.
+- [x] `document.Add(new Paragraph(text).SetFontSize(N))` → `page.DrawTextFromTop(text, 40, 40, N)` — font size preserved.
+- [x] Fluent Paragraph chains (`.SetBold()`, `.SetFont()`, etc.) unwrapped; text and font size extracted; other styling silently dropped.
+- [x] Left-aligned `ShowTextAligned(new Paragraph(text), x, y, LEFT)` → `page.DrawText(text, x, y, 12)`.
+- [x] `ShowTextAligned(new Paragraph(text).SetFontSize(N), ...)` → font size preserved.
+- [x] `PdfCanvas.MoveTo(...).LineTo(...).Stroke()` → `page.DrawLine(...)`.
+- [x] `PdfCanvas.Rectangle(...).Stroke()` → `page.DrawRectangle(..., false)`.
+- [x] `PdfCanvas.Rectangle(...).Fill()` → `page.DrawRectangle(..., true)`.
+- [x] `PdfCanvas.BeginText().MoveText(...).ShowText(...).EndText()` chain → `page.DrawText(...)`.
+- [x] Separated `BeginText; MoveText; ShowText; EndText` sequence → `page.DrawText(...)`.
+- [x] `document.Close()` → removed (Canvas.Pdf does not require explicit close).
+- [x] `document.SetMargins(...)` → removed (Canvas.Pdf margins configured differently).
+- [x] `PdfCanvas` variable removed when all usages are supported.
+- [x] Table, signatures, forms, encryption → warnings for manual migration.
 - [x] WebApi conversion response includes migrated code, diagnostics, and summary counts.
-- [ ] V1 does not preserve iText font, color, stroke width, opacity, margins, leading, or alignment state.
-- [ ] V1 does not compile-check output when unsupported iText statements intentionally remain for manual migration.
-- [ ] Future hardening: preserve vendor usings when unsupported vendor statements remain, or wrap unsupported remnants in a report-only block.
+- [ ] V1 does not preserve font family, color, stroke width, opacity, leading, or alignment state.
+- [ ] V1 does not compile-check output when unsupported iText statements intentionally remain.
 - [ ] Future hardening: replace syntax-only matching with semantic matching before broad rollout.
 
 ## Package / API Identification
@@ -70,27 +80,38 @@
 - [x] Add support for simple separated-statement kernel `PdfCanvas` text APIs
 - [x] Add WebApi migration-service smoke test for iText7 summary/diagnostics
 - [x] Add final combined v1 fixture covering page size, positioned text, canvas shapes/text, save, and table warning
-- [x] Verified with `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --no-build`: `16/16` passed
+- [x] `document.Close()` removal + `CANMIGITEXT016` diagnostic
+- [x] `document.SetMargins(...)` removal + `CANMIGITEXT017` diagnostic
+- [x] `Paragraph.SetFontSize(N)` font size extraction → `CANMIGITEXT018` diagnostic
+- [x] Paragraph fluent chain unwrapping (`.SetBold()`, `.SetFont()`, etc. ignored, text and size extracted)
+- [x] `ShowTextAligned` with `SetFontSize` chaining
+- [x] Verified with `dotnet test tests/Canvas.Migration.iText7.Tests`: `20/20` passed
+- [x] Verified with `dotnet test tests/Canvas.Api.Tests`: `22/22` passed
 - [ ] Replace syntax-only matching with semantic matching before broad rollout
 
 ## Mapping Table Placeholders
 
 | iText7 API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `new PdfWriter(pathOrStream)` | `document.Save(pathOrStream)` | Code fix candidate | Implemented for simple writer variable chain |
-| `new PdfDocument(writer)` | `new Canvas.Pdf.PdfDocument()` | Code fix candidate | Implemented when `writer` is a simple local variable |
-| `new Document(pdf)` | `var document = new PdfDocument(); var page = document.AddPage();` | Code fix candidate | Implemented for simple local variable chain |
-| `new Document(pdf, PageSize.A4)` | `document.AddPage(PdfPagePreset.A4, false)` | Code fix candidate | Supports A4, A3, and Letter |
-| `new Document(pdf, PageSize.A4.Rotate())` | `document.AddPage(PdfPagePreset.A4, true)` | Code fix candidate | Landscape flag maps rotated page sizes |
-| `document.Add(new Paragraph(text))` | `page.DrawTextFromTop(text, 40, 40, 12)` | Code fix candidate | Uses starter fixed position until flow layout exists |
-| `document.ShowTextAligned(new Paragraph(text), x, y, TextAlignment.LEFT)` | `page.DrawText(text, x, y, 12)` | Code fix candidate | iText explicit coordinates use PDF bottom-left coordinates |
-| `document.ShowTextAligned(..., TextAlignment.CENTER/RIGHT)` | Keep and warn | Manual | Anchor-aligned text needs width-aware positioning review |
-| `canvas.MoveTo(x1, y1).LineTo(x2, y2).Stroke()` | `page.DrawLine(x1, y1, x2, y2, 1)` | Code fix candidate | Requires simple local `PdfCanvas` variable |
-| `canvas.Rectangle(x, y, w, h).Stroke()` | `page.DrawRectangle(x, y, w, h, 1, false)` | Code fix candidate | Uses iText bottom-left coordinates directly |
-| `canvas.Rectangle(x, y, w, h).Fill()` | `page.DrawRectangle(x, y, w, h, 1, true)` | Code fix candidate | Fill color defaults to Canvas black until color state mapping exists |
-| `canvas.BeginText().MoveText(x, y).ShowText(text).EndText()` | `page.DrawText(text, x, y, 12)` | Code fix candidate | Supports chain-style text state only |
-| `canvas.BeginText(); canvas.MoveText(x, y); canvas.ShowText(text); canvas.EndText();` | `page.DrawText(text, x, y, 12)` | Code fix candidate | Supports exact four-statement sequence only |
-| `document.Add(new Table(...))` | Canvas table API | Manual | Map after table API review |
+| `new PdfWriter(pathOrStream)` | `document.Save(pathOrStream)` | Automatic | Implemented for simple writer variable chain |
+| `new PdfDocument(writer)` | `new Canvas.Pdf.PdfDocument()` | Automatic | Implemented when `writer` is a simple local variable |
+| `new Document(pdf)` | `var document = new PdfDocument(); var page = document.AddPage();` | Automatic | |
+| `new Document(pdf, PageSize.A4)` | `document.AddPage(PdfPagePreset.A4, false)` | Automatic | Supports A4, A3, and Letter |
+| `new Document(pdf, PageSize.A4.Rotate())` | `document.AddPage(PdfPagePreset.A4, true)` | Automatic | Landscape flag maps rotated page sizes |
+| `document.Close()` | *(removed)* | Automatic | Canvas.Pdf does not require explicit close |
+| `document.SetMargins(...)` | *(removed)* | Automatic | Configure margins via Canvas.Pdf page options |
+| `document.Add(new Paragraph(text))` | `page.DrawTextFromTop(text, 40, 40, 12)` | Automatic | Starter fixed position |
+| `document.Add(new Paragraph(text).SetFontSize(N))` | `page.DrawTextFromTop(text, 40, 40, N)` | Automatic | Font size extracted from SetFontSize chain |
+| `document.Add(new Paragraph(text).SetBold().SetFontSize(N)...)` | `page.DrawTextFromTop(text, 40, 40, N)` | Automatic | Fluent chain unwrapped; SetFontSize preserved; other styling dropped |
+| `document.ShowTextAligned(new Paragraph(text), x, y, TextAlignment.LEFT)` | `page.DrawText(text, x, y, 12)` | Automatic | iText explicit coordinates use PDF bottom-left |
+| `document.ShowTextAligned(new Paragraph(text).SetFontSize(N), x, y, LEFT)` | `page.DrawText(text, x, y, N)` | Automatic | Font size extracted |
+| `document.ShowTextAligned(..., TextAlignment.CENTER/RIGHT)` | Kept + warning | Manual | Anchor-aligned text needs width-aware positioning |
+| `canvas.MoveTo(x1, y1).LineTo(x2, y2).Stroke()` | `page.DrawLine(x1, y1, x2, y2, 1)` | Automatic | Requires simple local `PdfCanvas` variable |
+| `canvas.Rectangle(x, y, w, h).Stroke()` | `page.DrawRectangle(x, y, w, h, 1, false)` | Automatic | |
+| `canvas.Rectangle(x, y, w, h).Fill()` | `page.DrawRectangle(x, y, w, h, 1, true)` | Automatic | |
+| `canvas.BeginText().MoveText(x, y).ShowText(text).EndText()` | `page.DrawText(text, x, y, 12)` | Automatic | Chain-style |
+| `canvas.BeginText(); canvas.MoveText(x, y); canvas.ShowText(text); canvas.EndText();` | `page.DrawText(text, x, y, 12)` | Automatic | Exact 4-statement sequence |
+| `document.Add(new Table(...))` | Kept + warning | Manual | Map after Canvas table API review |
 
 ## Diagnostic IDs
 
@@ -111,6 +132,9 @@
 | `CANMIGITEXT013` | Info | Supported `PdfCanvas` variable was removed after all usages were migrated | Yes |
 | `CANMIGITEXT014` | Info | Simple `PdfCanvas` text chain was migrated to Canvas `DrawText` | Yes |
 | `CANMIGITEXT015` | Info | Separated `PdfCanvas` text state statements were migrated to Canvas `DrawText` | Yes |
+| `CANMIGITEXT016` | Info | `document.Close()` removed — Canvas.Pdf does not require explicit closing | Yes |
+| `CANMIGITEXT017` | Info | `document.SetMargins(...)` removed — configure margins via Canvas.Pdf page options | Yes |
+| `CANMIGITEXT018` | Info | `Paragraph.SetFontSize(N)` mapped to `fontSize` argument in draw call | Yes |
 
 ## Unsupported / Manual Follow-Up
 
@@ -170,6 +194,10 @@ document.Save(path);
 - [x] Add `using Canvas.Pdf`
 - [x] Preserve writer save target for `document.Save(...)`
 - [x] Map simple page size presets
+- [x] Remove `document.Close()`
+- [x] Remove `document.SetMargins(...)`
+- [x] Preserve `Paragraph.SetFontSize(N)` in `DrawTextFromTop` and `DrawText` calls
+- [x] Unwrap fluent Paragraph chains to extract text and font size
 - [ ] Preserve comments and surrounding code
 
 ## Tests Checklist
@@ -191,4 +219,9 @@ document.Save(path);
 - [x] Realistic invoice-style end-to-end fixture
 - [x] Final combined v1 fixture
 - [x] WebApi migration-service smoke test
+- [x] `document.Close()` removal test
+- [x] `document.SetMargins()` removal test
+- [x] `Paragraph.SetFontSize(N)` font size extraction test
+- [x] Fluent Paragraph chain with mixed styling (SetBold + SetFontSize) test
+- [x] Full invoice fixture with all new features combined
 - [x] Snapshot before/after migration sample

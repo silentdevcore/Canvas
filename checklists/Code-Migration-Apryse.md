@@ -1,158 +1,167 @@
 # Canvas Migration: Apryse SDK
 
-## V1 Pilot Analysis
+## V1 Implementation Status
 
-- [x] V1 scope is a reporting migration, not a broad automatic PDFNet rewrite.
+- [x] V1 scope: deterministic C# source-to-source migration for the core Apryse document lifecycle.
 - [x] Roslyn-backed migration is connected through `Canvas.WebApi` via framework id `Apryse`.
-- [x] `PDFNet.Initialize(...)` is detected and reported as unnecessary for Canvas.Pdf.
-- [x] `new PDFDoc(...)` is detected as a Canvas document candidate.
-- [x] `PageCreate(...)` and `PagePushBack(...)` are detected as Canvas page candidates.
-- [x] `ElementBuilder` and `ElementWriter` workflows are detected.
-- [x] Text, image, rectangle, and path element creation are reported as Canvas drawing candidates.
-- [x] `doc.Save(...)` targets are detected for later Canvas `document.Save(...)` mapping.
-- [x] SDF, ElementReader, annotations, fields, redaction, rendering, viewer, conversion, OCR, and signature APIs are reported as unsupported in v1.
-- [x] WebApi conversion response includes report code, diagnostics, and summary counts.
-- [ ] V1 intentionally keeps the original Apryse source code after the migration report.
-- [ ] V1 does not resolve Apryse overloads semantically.
-- [ ] Future hardening: add deterministic rewrite for simple `PDFDoc` + `PageCreate` + `Save` samples.
-- [ ] Future hardening: map ElementBuilder text matrices, fonts, images, and paths into Canvas drawing calls.
+- [x] Status upgraded from reporting pilot to **full** converter.
+- [x] `PDFNet.Initialize(...)` is removed — Canvas.Pdf requires no SDK initialisation call.
+- [x] `new PDFDoc(...)` is rewritten to `var document = new PdfDocument()` (both `var` and `using var` forms).
+- [x] `doc.PageCreate(...)` is removed — Canvas AddPage creates and attaches the page in one step.
+- [x] `doc.PagePushBack(page)` is rewritten to `var <pageVarName> = document.AddPage()` — variable name is read from the PagePushBack argument, so multiple pages get distinct names.
+- [x] `doc.Save(path, SDFDoc.SaveOptions.*)` is rewritten to `document.Save(path)` — extra Apryse save flags are dropped.
+- [x] All `pdftron.*` usings are removed; `using Canvas.Pdf;` is inserted.
+- [x] `ElementBuilder`, `ElementWriter`, `CreateTextBegin/Run/End`, `CreateImage*`, `CreateRect`, `CreatePath`, `WriteElement`, `Begin` are kept as-is (manual migration required — no diagnostic yet).
+- [x] SDF, `ElementReader`, annotations, forms, redaction, rendering, viewer, OCR, conversion, and signature APIs are kept as-is (out of v1 scope — no diagnostic yet).
+- [x] WebApi conversion response includes migrated code, diagnostics, and summary counts.
+- [ ] V1 does not yet emit diagnostics for ElementBuilder / ElementWriter / unsupported APIs (report items removed when converting from reporting pilot).
+- [ ] V1 does not resolve Apryse overloads or page-size arguments semantically.
+- [ ] Future hardening: map `ElementBuilder` text/image/path elements to Canvas draw calls.
+- [ ] Future hardening: map `PageCreate(Rect)` page-size argument to `PdfPagePreset`.
+- [ ] Future hardening: replace syntax-only matching with semantic matching before broad rollout.
 
 ## Package / API Identification
 
 - [x] NuGet packages:
   - [x] Apryse/PDFTron package used by the project
-- [x] Common namespaces to detect:
+- [x] Common namespaces to detect and remove:
   - [x] `pdftron`
   - [x] `pdftron.PDF`
   - [x] `pdftron.SDF`
-- [x] Common classes to detect:
-  - [x] `PDFNet`
-  - [x] `PDFDoc`
-  - [x] `Page`
-  - [x] `ElementBuilder`
-  - [x] `ElementWriter`
-  - [x] `ElementReader`
-  - [x] `PDFDraw`
-  - [x] `Font`
-  - [x] `SDFDoc`
-  - [x] `Field`
-  - [x] `Annot`
-  - [x] `DigitalSignatureField`
+- [x] Common classes handled:
+  - [x] `PDFNet` (Initialize removed)
+  - [x] `PDFDoc` (→ PdfDocument)
+  - [x] `Page` via PageCreate + PagePushBack (→ AddPage)
+  - [x] `SDFDoc.SaveOptions` (save flags dropped)
+- [ ] Classes kept as-is (manual migration):
+  - [ ] `ElementBuilder`
+  - [ ] `ElementWriter`
+  - [ ] `ElementReader`
+  - [ ] `PDFDraw`
+  - [ ] `Font`
+  - [ ] `SDFDoc`
+  - [ ] `Field`
+  - [ ] `Annot`
+  - [ ] `DigitalSignatureField`
 
-## Roslyn Prototype Status
+## Roslyn Implementation
 
-- [x] Add `src/Canvas.Migration.Apryse`
-- [x] Add `tests/Canvas.Migration.Apryse.Tests`
-- [x] Add projects to `Canvas.sln`
-- [x] Implement first source migration entry point: `ApryseMigration`
-- [x] Generate a Canvas.Pdf migration report comment while preserving original Apryse source
-- [x] Detect `PDFNet.Initialize(...)`
-- [x] Detect `new PDFDoc(...)`
-- [x] Detect `PageCreate(...)` and `PagePushBack(...)`
-- [x] Detect `doc.Save(...)`
-- [x] Detect `ElementBuilder`, `ElementWriter`, `Begin(...)`, and `WriteElement(...)`
-- [x] Detect text/image/path/rectangle element creation
-- [x] Warn for SDF, ElementReader, annotations, fields, redaction, rendering, viewer, conversion, OCR, and signatures
-- [x] Connect WebApi Apryse converter to the Roslyn reporting migration engine
-- [x] Add WebApi migration-service smoke test for Apryse summary/diagnostics
-- [x] Verified with `dotnet test tests/Canvas.Migration.Apryse.Tests/Canvas.Migration.Apryse.Tests.csproj --no-restore --no-build`: `5/5` passed
-- [x] Verified with `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --no-build`: `20/20` passed
-- [ ] Replace syntax-only matching with semantic matching before broad rollout
+- [x] `ApryseMigration` uses a `CSharpSyntaxRewriter` (`ApryseRewriter`) — full code transformation, not a report.
+- [x] Pre-scan phase: `FindDocVariable`, `FindPageVariable`, `FindSaveTarget` resolve variable names before rewriting.
+- [x] `VisitGlobalStatement` handles all five rewrite rules in priority order.
+- [x] `IsDeclarationWithCall` added to handle `var page = doc.PageCreate()` (local declaration, not expression statement).
+- [x] `GetFirstArgName` reads the `PagePushBack` argument to preserve per-page variable names (e.g. `page1`, `page2`).
+- [x] `TryGetPdfDocDeclaration` handles both `var doc = new PDFDoc()` and `using var doc = new PDFDoc()`.
+- [x] pdftron usings removed via `RemoveAprysedUsings`; `using Canvas.Pdf;` inserted via `EnsureCanvasUsing`.
 
-## Mapping Table Placeholders
+## Mapping Table
 
 | Apryse API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `PDFNet.Initialize(...)` | none | Report-only | Canvas.Pdf does not need SDK initialization |
-| `new PDFDoc()` | `new Canvas.Pdf.PdfDocument()` | Report-only | Confirm lifecycle/dispose pattern before automatic rewrite |
-| `doc.PageCreate(...)` | `document.AddPage(...)` | Report-only | Map media box/page units |
-| `doc.PagePushBack(page)` | included in `document.AddPage(...)` | Report-only | Canvas creates and attaches the page in one step |
-| `new ElementBuilder()` | Canvas page draw calls | Report-only | Requires element-by-element review |
-| `new ElementWriter()` / `writer.Begin(page)` | Canvas page draw calls | Report-only | Content stream writing maps to page drawing |
-| `writer.WriteElement(...)` | Canvas page draw calls | Report-only | Inspect ElementBuilder source |
-| `ElementBuilder.CreateText...` | `page.DrawText(...)` | Report-only | Map text matrix and style |
-| `ElementBuilder.CreateImage...` | `page.DrawImage(...)` | Report-only | Map image resources |
-| `ElementBuilder.CreateRect/CreatePath` | `page.DrawRectangle(...)` or path drawing | Report-only | Map geometry/fill/stroke |
-| `doc.Save(...)` | `document.Save(...)` | Report-only | Confirm overload/save flag semantics |
+| `using pdftron;` / `using pdftron.PDF;` / `using pdftron.SDF;` | *(removed)* + `using Canvas.Pdf;` | Automatic | All pdftron.* namespaces stripped |
+| `PDFNet.Initialize(key)` | *(removed)* | Automatic | No SDK init needed |
+| `using var doc = new PDFDoc()` | `var document = new PdfDocument()` | Automatic | `using` keyword dropped |
+| `var doc = new PDFDoc()` | `var document = new PdfDocument()` | Automatic | |
+| `var page = doc.PageCreate(...)` | *(removed)* | Automatic | AddPage subsumes both steps |
+| `doc.PagePushBack(page)` | `var page = document.AddPage()` | Automatic | Argument name preserved |
+| `doc.PagePushBack(page1)` + `doc.PagePushBack(page2)` | `var page1 = document.AddPage()` + `var page2 = document.AddPage()` | Automatic | Each pushed page gets its own variable |
+| `doc.Save(path, SDFDoc.SaveOptions.e_linearized)` | `document.Save(path)` | Automatic | Extra args dropped |
+| `new ElementBuilder()` | kept as-is | Manual | Map to Canvas page draw calls |
+| `new ElementWriter()` / `writer.Begin(page)` | kept as-is | Manual | Content stream → page drawing |
+| `writer.WriteElement(...)` | kept as-is | Manual | Review ElementBuilder source |
+| `builder.CreateTextBegin/Run/End(...)` | kept as-is | Manual | → `page.DrawText(...)` after review |
+| `builder.CreateImageFromFile(...)` | kept as-is | Manual | → `page.DrawImage(...)` after review |
+| `builder.CreateRect/CreatePath(...)` | kept as-is | Manual | → `page.DrawRectangle(...)` after review |
 
 ## Diagnostic IDs
 
-| ID | Severity | Meaning | Code fix |
-| --- | --- | --- | --- |
-| `CANMIGAPRYSE000` | Info | `PDFNet.Initialize(...)` detected | No |
-| `CANMIGAPRYSE001` | Info | `PDFDoc` construction detected | No |
-| `CANMIGAPRYSE002` | Info | `PageCreate(...)` page candidate detected | No |
-| `CANMIGAPRYSE003` | Info | `PagePushBack(...)` page append candidate detected | No |
-| `CANMIGAPRYSE004` | Info | `doc.Save(...)` save target detected | No |
-| `CANMIGAPRYSE005` | Info | `ElementBuilder` construction detected | No |
-| `CANMIGAPRYSE006` | Info | `ElementWriter` construction detected | No |
-| `CANMIGAPRYSE007` | Info | `ElementWriter.Begin(...)` detected | No |
-| `CANMIGAPRYSE008` | Info | `WriteElement(...)` content stream work detected | No |
-| `CANMIGAPRYSE009` | Info | Text element creation detected | No |
-| `CANMIGAPRYSE010` | Info | Image element creation detected | No |
-| `CANMIGAPRYSE011` | Info | Path/shape element creation detected | No |
-| `CANMIGAPRYSE020` | Warning | Processing, conversion, OCR, forms, or SDF APIs require manual migration | No |
-| `CANMIGAPRYSE021` | Warning | SDF, reader, annotation, field, redaction, rendering, viewer, conversion, or OCR APIs are outside v1 | No |
+| ID | Severity | Meaning |
+| --- | --- | --- |
+| `CANMIGAPRYSE000` | Info | `PDFNet.Initialize(...)` removed |
+| `CANMIGAPRYSE001` | Info | `new PDFDoc()` → `new PdfDocument()` |
+| `CANMIGAPRYSE002` | Info | `PageCreate(...)` removed (AddPage creates and attaches) |
+| `CANMIGAPRYSE003` | Info | `PagePushBack(...)` → `document.AddPage()` |
+| `CANMIGAPRYSE004` | Info | `doc.Save(...)` → `document.Save(path)` — save flags removed |
 
 ## Unsupported / Manual Follow-Up
 
-- [x] Low-level SDF object manipulation
-- [x] PDF editing and incremental save
-- [x] ElementReader/ElementWriter advanced content streams
-- [x] Forms
-- [x] Redaction
-- [x] Digital signatures
-- [x] OCR/conversion/viewer/rendering APIs
+- [ ] ElementBuilder / ElementWriter content streams
+- [ ] Low-level SDF object manipulation
+- [ ] PDF editing and incremental save
+- [ ] Forms (AcroForm / Field)
+- [ ] Redaction
+- [ ] Digital signatures
+- [ ] OCR / conversion / viewer / rendering APIs
+- [ ] Page-size arguments from `PageCreate(Rect)`
+- [ ] Font and color state
 
-## Sample Input Snippets
+## Sample Input
 
 ```csharp
+using pdftron;
 using pdftron.PDF;
+using pdftron.SDF;
+
+PDFNet.Initialize(licenseKey);
 
 using var doc = new PDFDoc();
-var page = doc.PageCreate();
-doc.PagePushBack(page);
-doc.Save(path, SDFDoc.SaveOptions.e_linearized);
+
+var page1 = doc.PageCreate(new Rect(0, 0, 612, 792));
+doc.PagePushBack(page1);
+
+var page2 = doc.PageCreate(new Rect(0, 0, 612, 792));
+doc.PagePushBack(page2);
+
+var builder = new ElementBuilder();
+var writer  = new ElementWriter();
+
+writer.Begin(page1);
+var element = builder.CreateTextRun("Hello from Apryse SDK");
+writer.WriteElement(element);
+writer.End();
+
+doc.Save(outputPath, SDFDoc.SaveOptions.e_linearized);
 ```
 
-## Expected Canvas.Pdf Output Snippets
+## Expected Canvas.Pdf Output
 
 ```csharp
 using Canvas.Pdf;
 
-// Canvas.Pdf migration report: Apryse SDK
-// - new PDFDoc(...) detected. Candidate Canvas rewrite starts with `var document = new PdfDocument();`.
-// - PageCreate(...) detected. Candidate Canvas rewrite is `var page = document.AddPage(...)` after media box review.
-// - PagePushBack(page) detected. Canvas `document.AddPage(...)` creates and attaches the page in one step.
-// - doc.Save(...) detected. Candidate Canvas rewrite ends with `document.Save(...)`; review Apryse save flags.
+var document = new PdfDocument();
+var page1 = document.AddPage();
+var page2 = document.AddPage();
+var builder = new ElementBuilder();
+var writer = new ElementWriter();
+writer.Begin(page1);
+var element = builder.CreateTextRun("Hello from Apryse SDK");
+writer.WriteElement(element);
+writer.End();
+document.Save(outputPath);
 ```
-
-## Analyzer Diagnostics Checklist
-
-- [x] Detect Apryse/PDFTron document construction
-- [x] Detect page creation/push patterns
-- [x] Detect ElementBuilder text/image operations
-- [x] Warn on low-level SDF APIs
-- [x] Warn on editing-only APIs
-- [x] Warn on OCR/conversion/viewer APIs
 
 ## Code Fix Checklist
 
-- [x] Report basic document creation
-- [x] Report basic page append patterns
-- [x] Report simple save calls
-- [x] Add `using Canvas.Pdf` only for confirmed replacements
-- [x] Report low-level content stream work as manual
-- [ ] Add automatic code fix for simple `PDFDoc` + page + save sample
+- [x] Remove `pdftron.*` usings, add `using Canvas.Pdf;`
+- [x] Remove `PDFNet.Initialize(...)`
+- [x] Replace `new PDFDoc()` with `new PdfDocument()` (both `var` and `using var`)
+- [x] Remove `doc.PageCreate(...)` statements (both expression and local-declaration forms)
+- [x] Replace `doc.PagePushBack(pageVar)` with `var pageVar = document.AddPage()` — preserving variable name from argument
+- [x] Replace `doc.Save(path, flags)` with `document.Save(path)` — drop extra arguments
+- [ ] Emit diagnostics for ElementBuilder / ElementWriter kept statements
+- [ ] Map `PageCreate(Rect)` page size to `PdfPagePreset`
+- [ ] Map ElementBuilder text elements to `page.DrawText(...)`
+- [ ] Map ElementBuilder image elements to `page.DrawImage(...)`
+- [ ] Map ElementBuilder shape elements to `page.DrawRectangle(...)`
 
 ## Tests Checklist
 
-- [x] Basic PDFDoc sample
-- [x] Page append sample
-- [x] Save sample
-- [x] ElementBuilder/ElementWriter text sample
-- [x] Image/path/shape element sample
-- [x] SDF unsupported diagnostic sample
-- [x] Conversion/OCR/signature diagnostic sample
+- [x] Basic PDFDoc + PageCreate + PagePushBack + Save sample
+- [x] Two-page sample (page1, page2 get distinct variable names)
+- [x] `PDFNet.Initialize` removed
+- [x] `using var doc` form handled
+- [x] Save flags stripped, path preserved
+- [x] ElementBuilder / ElementWriter kept as-is
 - [x] WebApi migration-service smoke test
 - [ ] Snapshot before/after migration sample
+- [ ] SDF / annotation / signature diagnostic sample

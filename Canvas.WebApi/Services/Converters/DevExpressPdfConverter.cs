@@ -8,10 +8,10 @@ public sealed class DevExpressPdfConverter : BasePdfConverter
 
     public override string FrameworkName => "DevExpress PDF";
 
-    public override string Status => "pilot";
+    public override string Status => "full";
 
     public override string Description =>
-        "Roslyn-based reporting pilot for DevExpress PDF processor, drawing, and report export workflows.";
+        "Roslyn-based conversion: PdfDocumentProcessor → PdfDocument, CreateEmptyDocument/CreateGraphics removed, RenderNewPage → AddPage, DrawString/DrawLine/DrawRectangle repositioned after AddPage, SaveDocument → Save. Forms/signatures/report export produce warnings.";
 
     public override string ConvertCode(string sourceCode)
     {

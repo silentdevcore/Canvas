@@ -33,7 +33,7 @@ public sealed class MigrationServiceTests
     }
 
     [Fact]
-    public void Convert_ShouldUseApryseRoslynReportingPilotAndReturnSummary()
+    public void Convert_ShouldUseApryseRoslynConverterAndReturnSummary()
     {
         var source = """
             using pdftron.PDF;
@@ -47,11 +47,13 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("Apryse", source);
 
-        Assert.Contains("// Canvas.Pdf migration report: Apryse SDK", result.CanvasCode);
-        Assert.Contains("new PDFDoc(...) detected", result.CanvasCode);
-        Assert.Contains("PagePushBack(page) detected", result.CanvasCode);
-        Assert.Contains("doc.Save(outputPath", result.CanvasCode);
+        Assert.Contains("using Canvas.Pdf;", result.CanvasCode);
+        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
+        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
+        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGAPRYSE001");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGAPRYSE003");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGAPRYSE004");
         Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
         Assert.True(result.Summary.ConvertedCount > 0);
         Assert.Equal(0, result.Summary.ErrorCount);
@@ -86,7 +88,7 @@ public sealed class MigrationServiceTests
     }
 
     [Fact]
-    public void Convert_ShouldUseIronPdfRoslynReportingPilotAndReturnSummary()
+    public void Convert_ShouldUseIronPdfRoslynConverterAndReturnCanvasScaffold()
     {
         var source = """
             using IronPdf;
@@ -99,10 +101,15 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("IronPdf", source);
 
-        Assert.Contains("// Canvas.Pdf migration report: IronPDF", result.CanvasCode);
-        Assert.Contains("Literal HTML detected for manual extraction: <h1>Smoke</h1>", result.CanvasCode);
-        Assert.Contains("renderer.RenderHtmlAsPdf(\"<h1>Smoke</h1>\");", result.CanvasCode);
+        Assert.Contains("using Canvas.Pdf;", result.CanvasCode);
+        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
+        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
+        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.DoesNotContain("ChromePdfRenderer", result.CanvasCode);
+        Assert.DoesNotContain("RenderHtmlAsPdf", result.CanvasCode);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGIRONPDF001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGIRONPDF002");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGIRONPDF006");
         Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
         Assert.True(result.Summary.ConvertedCount > 0);
         Assert.True(result.Summary.WarningCount > 0);
@@ -110,7 +117,7 @@ public sealed class MigrationServiceTests
     }
 
     [Fact]
-    public void Convert_ShouldUseDevExpressRoslynReportingPilotAndReturnSummary()
+    public void Convert_ShouldUseDevExpressRoslynConverterAndReturnSummary()
     {
         var source = """
             using DevExpress.Pdf;
@@ -126,43 +133,50 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("DevExpress", source);
 
-        Assert.Contains("// Canvas.Pdf migration report: DevExpress PDF", result.CanvasCode);
-        Assert.Contains("DrawString(...) detected for `\"Smoke\"`", result.CanvasCode);
-        Assert.Contains("processor.SaveDocument(outputPath);", result.CanvasCode);
+        Assert.Contains("using Canvas.Pdf;", result.CanvasCode);
+        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
+        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
+        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGDEVEXP001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGDEVEXP005");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGDEVEXP008");
         Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
         Assert.True(result.Summary.ConvertedCount > 0);
         Assert.Equal(0, result.Summary.ErrorCount);
     }
 
     [Fact]
-    public void Convert_ShouldUseDsPdfRoslynReportingPilotAndReturnSummary()
+    public void Convert_ShouldUseDsPdfRoslynConverterAndReturnSummary()
     {
         var source = """
             using GrapeCity.Documents.Pdf;
             using GrapeCity.Documents.Drawing;
 
-            var document = new GcPdfDocument();
-            var page = document.NewPage();
+            var doc = new GcPdfDocument();
+            var page = doc.NewPage();
             page.Graphics.DrawString("Smoke", new TextFormat(), new PointF(40, 40));
-            document.Save(outputPath);
+            doc.Save(outputPath);
             """;
         var sut = new MigrationService();
 
         var result = sut.Convert("DsPdf", source);
 
-        Assert.Contains("// Canvas.Pdf migration report: DsPdf / Document Solutions", result.CanvasCode);
-        Assert.Contains("new GcPdfDocument(...) detected", result.CanvasCode);
-        Assert.Contains("DrawString(...) detected", result.CanvasCode);
+        Assert.Contains("using Canvas.Pdf;", result.CanvasCode);
+        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
+        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\",", result.CanvasCode);
         Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGDSPDF001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGDSPDF003");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGDSPDF007");
         Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
         Assert.True(result.Summary.ConvertedCount > 0);
         Assert.Equal(0, result.Summary.ErrorCount);
     }
 
     [Fact]
-    public void Convert_ShouldUseFoxitRoslynReportingPilotAndReturnSummary()
+    public void Convert_ShouldUseFoxitRoslynConverterAndReturnSummary()
     {
         var source = """
             using foxit.pdf;
@@ -176,11 +190,16 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("Foxit", source);
 
-        Assert.Contains("// Canvas.Pdf migration report: Foxit PDF SDK", result.CanvasCode);
-        Assert.Contains("new PDFDoc(...) detected", result.CanvasCode);
-        Assert.Contains("DrawText(...) detected", result.CanvasCode);
-        Assert.Contains("doc.SaveAs(outputPath);", result.CanvasCode);
+        Assert.Contains("using Canvas.Pdf;", result.CanvasCode);
+        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
+        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\",", result.CanvasCode);
+        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.DoesNotContain("PDFDoc", result.CanvasCode);
+        Assert.DoesNotContain("InsertPage", result.CanvasCode);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGFOXIT001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGFOXIT004");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGFOXIT007");
         Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
         Assert.True(result.Summary.ConvertedCount > 0);
         Assert.Equal(0, result.Summary.ErrorCount);

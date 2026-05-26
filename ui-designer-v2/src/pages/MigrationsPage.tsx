@@ -18,19 +18,19 @@ interface Diagnostic {
 const API_BASE = '/api/migration';
 
 const FRAMEWORKS_FALLBACK: Framework[] = [
-  { id: 'Syncfusion', name: 'Syncfusion PDF',    status: 'full',     description: 'Full pattern-based conversion with top-left coordinate adapter' },
-  { id: 'Apryse',     name: 'Apryse (PDFTron)',  status: 'skeleton', description: 'new PDFDoc() → new PdfDocument(); PageCreate+PagePushBack → AddPage()' },
-  { id: 'Aspose',     name: 'Aspose.PDF',         status: 'skeleton', description: 'new Document() → new PdfDocument(); Paragraphs.Add → DrawTextFromTop()' },
-  { id: 'DsPdf',      name: 'DsPdf (GrapeCity)',  status: 'skeleton', description: 'new GcPdfDocument() → new PdfDocument(); Graphics.DrawString → DrawTextFromTop()' },
-  { id: 'Spire',      name: 'Spire.PDF',          status: 'skeleton', description: 'page.Canvas.DrawString → DrawTextFromTop(); SaveToFile → Save()' },
-  { id: 'GemBox',     name: 'GemBox.Pdf',         status: 'skeleton', description: 'document.Pages.Add() → document.AddPage()' },
-  { id: 'iText7',     name: 'iText7',             status: 'pilot',    description: 'Roslyn-based pilot: PdfWriter+PdfDocument+Document → PdfDocument; Paragraph, PdfCanvas line/rect/text, ShowTextAligned, PageSize presets' },
-  { id: 'IronPdf',    name: 'IronPDF',            status: 'skeleton', description: 'HTML-to-PDF — manual rewrite required' },
-  { id: 'ActivePdf',  name: 'ActivePDF',          status: 'skeleton', description: 'API to be confirmed' },
-  { id: 'Leadtools',  name: 'LEADTOOLS',          status: 'skeleton', description: 'Raster/OCR pipelines out of scope' },
-  { id: 'PdfKitNet',  name: 'PDFKit.NET',         status: 'skeleton', description: 'API identity unconfirmed' },
-  { id: 'Foxit',      name: 'Foxit PDF SDK',      status: 'skeleton', description: 'new PDFDoc() → new PdfDocument()' },
-  { id: 'DevExpress', name: 'DevExpress PDF',     status: 'skeleton', description: 'Processor vs. generator APIs TBD' },
+  { id: 'Syncfusion', name: 'Syncfusion PDF',    status: 'full',    description: 'Full pattern-based conversion with top-left coordinate adapter. Covers document/page/text/line/rectangle/image/save.' },
+  { id: 'iText7',     name: 'iText7',            status: 'full',    description: 'Roslyn-based conversion: PdfWriter+PdfDocument+Document → PdfDocument; Paragraph (with SetFontSize) → DrawTextFromTop; ShowTextAligned → DrawText; PdfCanvas line/rect/text; Close/SetMargins removed.' },
+  { id: 'Apryse',     name: 'Apryse (PDFTron)',  status: 'full',    description: 'Roslyn-based conversion: PDFDoc → PdfDocument, PageCreate+PagePushBack → AddPage(), doc.Save() → document.Save().' },
+  { id: 'Aspose',     name: 'Aspose.PDF',        status: 'full',    description: 'Roslyn-based conversion: Document → PdfDocument, Pages.Add → AddPage, TextFragment/TextBuilder with Position → DrawText/DrawTextFromTop.' },
+  { id: 'DsPdf',      name: 'DsPdf (GrapeCity)', status: 'full',    description: 'Roslyn-based conversion: GcPdfDocument → PdfDocument; doc.NewPage() → AddPage(); page.Graphics.DrawString/DrawLine/DrawRectangle/FillRectangle → DrawTextFromTop/DrawLineFromTop/DrawRectangleFromTop; doc.Save() preserved.' },
+  { id: 'Foxit',      name: 'Foxit PDF SDK',     status: 'full',    description: 'Roslyn-based conversion: PDFDoc → PdfDocument; InsertPage/CreatePage → AddPage; Library.Initialize + GetGraphics/GenerateContent removed; graphics.DrawText/DrawLine/DrawRect/FillRect → DrawTextFromTop/DrawLineFromTop/DrawRectangleFromTop; doc.Save/SaveAs → document.Save().' },
+  { id: 'DevExpress', name: 'DevExpress PDF',    status: 'full',    description: 'Roslyn-based conversion: PdfDocumentProcessor → PdfDocument, RenderNewPage → AddPage, draw calls repositioned, SaveDocument → Save. Forms/signatures/report export produce warnings.' },
+  { id: 'IronPdf',    name: 'IronPDF',           status: 'pilot',   description: 'Roslyn-based pilot: ChromePdfRenderer → PdfDocument + AddPage scaffold; SaveAs → document.Save(); HTML/URL/Razor rendering calls replaced with diagnostics for manual Canvas draw call migration.' },
+  { id: 'Spire',      name: 'Spire.PDF',         status: 'skeleton', description: 'page.Canvas.DrawString → DrawTextFromTop(); SaveToFile → Save()' },
+  { id: 'GemBox',     name: 'GemBox.Pdf',        status: 'skeleton', description: 'document.Pages.Add() → document.AddPage()' },
+  { id: 'ActivePdf',  name: 'ActivePDF',         status: 'skeleton', description: 'API to be confirmed' },
+  { id: 'Leadtools',  name: 'LEADTOOLS',         status: 'skeleton', description: 'Raster/OCR pipelines out of scope' },
+  { id: 'PdfKitNet',  name: 'PDFKit.NET',        status: 'skeleton', description: 'API identity unconfirmed' },
 ];
 
 const SYNCFUSION_EXAMPLE = `using Syncfusion.Pdf;
@@ -45,24 +45,152 @@ page.Graphics.DrawString(
     40, 40);
 document.Save("output.pdf");`;
 
-const ITEXT7_EXAMPLE = `using iText.Kernel.Pdf;
+const ITEXT7_EXAMPLE = `using iText.Kernel.Geom;
+using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas;
 using iText.Layout;
 using iText.Layout.Element;
+using iText.Layout.Properties;
 
-using var writer = new PdfWriter("output.pdf");
+using var writer = new PdfWriter(outputPath);
 using var pdf = new PdfDocument(writer);
 using var document = new Document(pdf, PageSize.A4);
-document.Add(new Paragraph("Hello from iText7"));
-document.ShowTextAligned(new Paragraph("Positioned text"), 40, 700, TextAlignment.LEFT);
+document.SetMargins(72, 72, 72, 72);
+
+document.ShowTextAligned(new Paragraph("Invoice #2024").SetFontSize(18), 72, 760, TextAlignment.LEFT);
+document.ShowTextAligned(new Paragraph("Thank you for your order."), 72, 720, TextAlignment.LEFT);
+document.ShowTextAligned(new Paragraph("Total: $150.00"), 400, 100, TextAlignment.LEFT);
 
 var canvas = new PdfCanvas(pdf.GetFirstPage());
-canvas.MoveTo(40, 650).LineTo(555, 650).Stroke();
-canvas.Rectangle(40, 500, 515, 100).Stroke();
-canvas.BeginText().MoveText(40, 580).ShowText("Canvas text").EndText();`;
+canvas.MoveTo(72, 700).LineTo(524, 700).Stroke();
+canvas.Rectangle(72, 600, 452, 60).Fill();
+canvas.BeginText();
+canvas.MoveText(80, 630);
+canvas.ShowText("Item Details");
+canvas.EndText();
+
+document.Close();`;
+
+const APRYSE_EXAMPLE = `using pdftron;
+using pdftron.PDF;
+using pdftron.SDF;
+
+// Initialise the Apryse SDK (not required by Canvas.Pdf)
+PDFNet.Initialize(licenseKey);
+
+// Create a new PDF document with two pages
+using var doc = new PDFDoc();
+
+var page1 = doc.PageCreate(new Rect(0, 0, 612, 792));
+doc.PagePushBack(page1);
+
+var page2 = doc.PageCreate(new Rect(0, 0, 612, 792));
+doc.PagePushBack(page2);
+
+// Write text via ElementBuilder / ElementWriter
+var builder = new ElementBuilder();
+var writer  = new ElementWriter();
+
+writer.Begin(page1);
+var font = Font.Create(doc, Font.StandardType1Font.e_helvetica);
+var element = builder.CreateTextBegin(font, 14);
+writer.WriteElement(element);
+element = builder.CreateTextRun("Hello from Apryse SDK");
+element.SetTextMatrix(1, 0, 0, 1, 40, 740);
+writer.WriteElement(element);
+writer.WriteElement(builder.CreateTextEnd());
+writer.End();
+
+// Save with linearisation
+doc.Save(outputPath, SDFDoc.SaveOptions.e_linearized);`;
+
+const ASPOSE_EXAMPLE = `using Aspose.Pdf;
+using Aspose.Pdf.Text;
+
+var document = new Document();
+var page = document.Pages.Add();
+
+// Positioned heading via TextFragment + Position
+var heading = new TextFragment("Invoice #1042");
+heading.Position = new Position(40, 750);
+heading.TextState.FontSize = 18;
+page.Paragraphs.Add(heading);
+
+// Simple paragraph text (no position — uses starter coordinates)
+page.Paragraphs.Add(new TextFragment("Thank you for your order."));
+
+// TextBuilder flow
+var builder = new TextBuilder(page);
+var note = new TextFragment("Payment due within 30 days.");
+note.Position = new Position(40, 650);
+builder.AppendText(note);
+
+document.Save(outputPath);`;
+
+const DSPDF_EXAMPLE = `using GrapeCity.Documents.Pdf;
+using GrapeCity.Documents.Drawing;
+
+var doc = new GcPdfDocument();
+var page = doc.NewPage();
+page.Graphics.DrawString("Invoice #2024", new TextFormat { FontSize = 18 }, new PointF(72, 72));
+page.Graphics.DrawLine(pen, 72, 100, 540, 100);
+page.Graphics.DrawString("Thank you for your order.", new TextFormat { FontSize = 12 }, new PointF(72, 130));
+page.Graphics.DrawRectangle(pen, new RectangleF(72, 200, 468, 300));
+page.Graphics.FillRectangle(brush, new RectangleF(72, 200, 468, 20));
+doc.Save(outputPath);`;
+
+const FOXIT_EXAMPLE = `using foxit;
+using foxit.pdf;
+
+Library.Initialize(licenseKey);
+using var doc = new PDFDoc();
+var page = doc.InsertPage(0, PageSize.e_SizeA4);
+var graphics = page.GetGraphics();
+graphics.DrawText("Invoice #2024", font18, 72, 72);
+graphics.DrawLine(pen, 72, 100, 540, 100);
+graphics.DrawText("Thank you for your order.", font12, 72, 130);
+graphics.DrawRect(pen, 72, 200, 468, 300);
+graphics.FillRect(brush, 72, 200, 468, 20);
+page.GenerateContent();
+doc.SaveAs(outputPath);`;
+
+const DEVEXPRESS_EXAMPLE = `using DevExpress.Pdf;
+using DevExpress.Drawing;
+
+using var processor = new PdfDocumentProcessor();
+processor.CreateEmptyDocument();
+using var graphics = processor.CreateGraphics();
+
+// Draw calls happen before RenderNewPage in DevExpress
+graphics.DrawString("Invoice #2024", new DXFont("Arial", 18), DXBrushes.Black, 40, 750);
+graphics.DrawLine(DXPens.Black, 40, 720, 555, 720);
+graphics.DrawString("Thank you for your order.", new DXFont("Arial", 12), DXBrushes.Black, 40, 690);
+graphics.DrawRectangle(DXPens.Black, 40, 620, 200, 60);
+
+processor.RenderNewPage(PdfPaperSize.A4, graphics);
+processor.SaveDocument(outputPath);`;
+
+const IRONPDF_EXAMPLE = `using IronPdf;
+
+var renderer = new ChromePdfRenderer();
+renderer.RenderingOptions.MarginTop = 20;
+renderer.RenderingOptions.MarginBottom = 20;
+var pdf = renderer.RenderHtmlAsPdf(@"
+  <h1>Invoice #2024</h1>
+  <p>Thank you for your order.</p>
+  <p>Total: $150.00</p>
+");
+pdf.SaveAs(outputPath);`;
 
 const EXAMPLES: Record<string, string> = {
   Syncfusion: SYNCFUSION_EXAMPLE,
   iText7: ITEXT7_EXAMPLE,
+  Apryse: APRYSE_EXAMPLE,
+  Aspose: ASPOSE_EXAMPLE,
+  DsPdf: DSPDF_EXAMPLE,
+  Foxit: FOXIT_EXAMPLE,
+  DevExpress: DEVEXPRESS_EXAMPLE,
+  IronPdf: IRONPDF_EXAMPLE,
 };
 
 const MigrationsPage: React.FC = () => {
@@ -90,6 +218,7 @@ const MigrationsPage: React.FC = () => {
 
   const handleFrameworkChange = (id: string) => {
     setSelectedId(id);
+    setSourceCode('');
     setCanvasCode('');
     setDiagnostics([]);
     setPdfUrl(null);

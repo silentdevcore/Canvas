@@ -1,11 +1,28 @@
 # Canvas Migration: DsPdf / Document Solutions
 
-## V1 Pilot Analysis
+## V1 Implementation Status
 
-- [x] DsPdf / Document Solutions is close to Canvas.Pdf for simple PDF generation: document, page, graphics, text, images, shapes, and save.
-- [x] Legacy GrapeCity naming and newer Document Solutions naming must both be accepted during detection.
-- [x] Advanced layout, AcroForms, annotations, compliance, security, signatures, redaction, and existing-PDF editing should remain report-only/manual in v1.
-- [x] First implementation is a Roslyn-backed reporting pilot, not an automatic code rewrite.
+- [x] V1 scope: deterministic C# source-to-source migration for simple generated PDFs using DsPdf/GcPdf.
+- [x] Roslyn-backed migration connected through `Canvas.WebApi` via framework id `DsPdf`.
+- [x] Status upgraded from pilot to **full** converter.
+- [x] Basic document lifecycle: `new GcPdfDocument()` → `new PdfDocument()`.
+- [x] `doc.NewPage()` / `doc.AddPage()` → `document.AddPage()`.
+- [x] `doc.Save(path)` → `document.Save(path)`.
+- [x] `page.Graphics.DrawString(text, new TextFormat { FontSize = N }, new PointF(x, y))` → `page.DrawTextFromTop(text, x, y, N)`.
+- [x] `page.Graphics.DrawString(text, new TextFormat(), new PointF(x, y))` → `page.DrawTextFromTop(text, x, y, 12)` (default font size).
+- [x] `page.Graphics.DrawLine(pen, x1, y1, x2, y2)` → `page.DrawLineFromTop(x1, y1, x2, y2)`.
+- [x] `page.Graphics.DrawLine(pen, new PointF(x1,y1), new PointF(x2,y2))` → `page.DrawLineFromTop(x1, y1, x2, y2)`.
+- [x] `page.Graphics.DrawRectangle(pen, new RectangleF(x, y, w, h))` → `page.DrawRectangleFromTop(x, y, w, h)`.
+- [x] `page.Graphics.FillRectangle(brush, new RectangleF(x, y, w, h))` → `page.DrawRectangleFromTop(x, y, w, h, 1, true)`.
+- [x] All `DS.Documents.*` / `GrapeCity.Documents.*` usings removed; `using Canvas.Pdf;` added.
+- [x] `DrawImage` — kept with warning (out of v1 scope).
+- [x] `DrawEllipse`, `DrawPolygon`, `DrawPath` — kept with warnings.
+- [x] Existing-PDF editing (`Load`, `DeletePage`, `MergeWithDocument`, etc.) → warnings.
+- [x] Compliance/security APIs (`Sign`, `Encrypt`, `SaveAsPdfA`, `Redact`, etc.) → warnings.
+- [x] Advanced layout identifiers (`TableRenderer`, `LayoutHost`, `TextLayout`, `AcroForm`, etc.) → warnings.
+- [ ] V1 does not preserve font family, color, or stroke width.
+- [ ] V1 does not handle RectangleF-based DrawString layout rectangles beyond origin extraction.
+- [ ] Future hardening: replace syntax-only matching with semantic matching before broad rollout.
 
 ## Package / API Identification
 
@@ -20,10 +37,9 @@
   - [x] Legacy `GrapeCity.Documents.Layout`
 - [x] Common classes to detect:
   - [x] `GcPdfDocument`
-  - [x] `Page`
-  - [x] `Graphics`
   - [x] `TextFormat`
-  - [x] `Image`
+  - [x] `PointF`
+  - [x] `RectangleF`
   - [x] `TableRenderer`
   - [x] `LayoutHost`
   - [x] `TextLayout`
@@ -32,50 +48,70 @@
 
 - [x] Add `src/Canvas.Migration.DsPdf`
 - [x] Add `tests/Canvas.Migration.DsPdf.Tests`
-- [x] Add WebApi converter integration
-- [x] Add API service smoke test
-- [x] Report deterministic candidates while preserving original source
-- [x] Warn on unsupported/manual DsPdf feature areas
+- [x] Add projects to `Canvas.sln`
+- [x] Implement source migration entry point: `DsPdfMigration` as a real `CSharpSyntaxRewriter`
+- [x] Pre-scan phase: find document variable (from `new GcPdfDocument()`), page variables (from `doc.NewPage()/AddPage()`), save target
+- [x] Convert `GcPdfDocument` construction
+- [x] Convert `NewPage()/AddPage()` page creation
+- [x] Convert `page.Graphics.DrawString(...)` with PointF position and optional TextFormat FontSize
+- [x] Convert `page.Graphics.DrawLine(...)` — 5-arg and PointF forms
+- [x] Convert `page.Graphics.DrawRectangle(...)` — RectangleF and 5-arg forms
+- [x] Convert `page.Graphics.FillRectangle(...)` — RectangleF and 5-arg forms (fill: true)
+- [x] Warn and keep `DrawImage`
+- [x] Warn and keep `DrawEllipse/DrawPolygon/DrawPath`
+- [x] Warn and keep existing-PDF editing APIs
+- [x] Warn and keep compliance/security APIs
+- [x] Scan for unsupported identifiers (AcroForm, TableRenderer, etc.)
+- [x] Remove DS.Documents.*/GrapeCity.Documents.* usings, add `using Canvas.Pdf;`
+- [x] Connect WebApi DsPdf converter to the Roslyn migration engine
+- [x] Verified with `dotnet test tests/Canvas.Migration.DsPdf.Tests`: `10/10` passed
+- [x] Verified with `dotnet test tests/Canvas.Api.Tests`: `22/22` passed
 
 ## Mapping Table
 
 | DsPdf API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `new GcPdfDocument()` | `new Canvas.Pdf.PdfDocument()` | Report-only in v1 | Strong future code-fix candidate. |
-| `doc.NewPage()`, `doc.AddPage(...)` | `document.AddPage(...)` | Report-only in v1 | Review page size and orientation. |
-| `page.Graphics.DrawString(...)` | `page.DrawText(...)` / `page.DrawTextFromTop(...)` | Report-only in v1 | Review coordinate origin, text layout rectangle, and `TextFormat`. |
-| `new TextFormat(...)` | Canvas text parameters | Report-only in v1 | Font family, size, style, and color need mapping. |
-| `page.Graphics.DrawImage(...)` | `page.DrawImage(...)` | Report-only in v1 | Review image resource and scaling semantics. |
-| `DrawLine(...)`, `DrawRectangle(...)`, `FillRectangle(...)`, `DrawEllipse(...)`, `DrawPolygon(...)`, `DrawPath(...)` | Canvas shape/path drawing | Report-only in v1 | Geometry and stroke/fill styles need review. |
-| `doc.Save(...)` | `document.Save(...)` | Report-only in v1 | Review save options and stream/path overloads. |
+| `new GcPdfDocument()` | `new Canvas.Pdf.PdfDocument()` | Automatic | |
+| `doc.NewPage()` / `doc.AddPage()` | `document.AddPage()` | Automatic | |
+| `page.Graphics.DrawString(text, new TextFormat(), new PointF(x, y))` | `page.DrawTextFromTop(text, x, y, 12)` | Automatic | Default font size 12 |
+| `page.Graphics.DrawString(text, new TextFormat { FontSize = N }, new PointF(x, y))` | `page.DrawTextFromTop(text, x, y, N)` | Automatic | FontSize extracted from initializer |
+| `page.Graphics.DrawLine(pen, x1, y1, x2, y2)` | `page.DrawLineFromTop(x1, y1, x2, y2)` | Automatic | |
+| `page.Graphics.DrawLine(pen, new PointF(x1,y1), new PointF(x2,y2))` | `page.DrawLineFromTop(x1, y1, x2, y2)` | Automatic | |
+| `page.Graphics.DrawRectangle(pen, new RectangleF(x, y, w, h))` | `page.DrawRectangleFromTop(x, y, w, h)` | Automatic | |
+| `page.Graphics.FillRectangle(brush, new RectangleF(x, y, w, h))` | `page.DrawRectangleFromTop(x, y, w, h, 1, true)` | Automatic | |
+| `doc.Save(path)` | `document.Save(path)` | Automatic | |
+| `page.Graphics.DrawImage(...)` | Kept + warning | Manual | Out of v1 scope |
+| `DrawEllipse/DrawPolygon/DrawPath` | Kept + warning | Manual | Out of v1 scope |
+| Existing-PDF editing APIs | Kept + warning | Manual | Load, Delete, Merge, Import |
+| Compliance/security APIs | Kept + warning | Manual | Sign, Encrypt, SaveAsPdfA, Redact |
+
+## Diagnostic IDs
+
+| ID | Severity | Meaning | Code fix |
+| --- | --- | --- | --- |
+| `CANMIGDSPDF001` | Info | `GcPdfDocument` → `PdfDocument` | Yes |
+| `CANMIGDSPDF002` | Info | `doc.NewPage()/AddPage()` → `document.AddPage()` | Yes |
+| `CANMIGDSPDF003` | Info | `page.Graphics.DrawString(...)` → `page.DrawTextFromTop(...)` | Yes |
+| `CANMIGDSPDF005` | Warning | `DrawImage` requires manual migration | No |
+| `CANMIGDSPDF006` | Info/Warning | Line/rectangle/shape drawing converted or flagged | Info for supported; Warning for unsupported |
+| `CANMIGDSPDF007` | Info | `doc.Save(path)` → `document.Save(path)` | Yes |
+| `CANMIGDSPDF021` | Warning | Existing-PDF editing/page import/merge outside v1 | No |
+| `CANMIGDSPDF022` | Warning | Compliance, security, signature, or redaction outside v1 | No |
+| `CANMIGDSPDF023` | Warning | Advanced forms/layout/annotations identifiers detected | No |
 
 ## Unsupported / Manual Follow-Up
 
-- [x] Advanced text layout
-- [x] Complex table rendering
-- [x] AcroForms
-- [x] Annotations
-- [x] PDF/A and compliance options
-- [x] Redaction
-- [x] Signature APIs
-- [x] Security/encryption
-- [x] Existing PDF editing, page import, and document merge
-
-## Analyzer Diagnostics
-
-| Diagnostic | Severity | Meaning |
-| --- | --- | --- |
-| `CANMIGDSPDF001` | Info | `GcPdfDocument` construction detected. |
-| `CANMIGDSPDF002` | Info | Page creation detected. |
-| `CANMIGDSPDF003` | Info | Text drawing candidate detected. |
-| `CANMIGDSPDF004` | Info | `TextFormat` usage detected. |
-| `CANMIGDSPDF005` | Info | Image drawing candidate detected. |
-| `CANMIGDSPDF006` | Info | Shape/path drawing candidate detected. |
-| `CANMIGDSPDF007` | Info | Save/export target detected. |
-| `CANMIGDSPDF020` | Warning | Advanced layout/table APIs need manual migration. |
-| `CANMIGDSPDF021` | Warning | Existing-PDF editing, page import, or merge APIs need manual migration. |
-| `CANMIGDSPDF022` | Warning | Compliance, security, signature, or redaction APIs need manual migration. |
-| `CANMIGDSPDF023` | Warning | Forms, annotations, layout, PDF/A, signatures, security, or redaction identifiers detected. |
+- [ ] Font family and color mapping
+- [ ] Stroke width from pen/brush parameters
+- [ ] DrawImage
+- [ ] DrawEllipse, DrawPolygon, DrawPath
+- [ ] AcroForms
+- [ ] Annotations
+- [ ] PDF/A and compliance options
+- [ ] Redaction
+- [ ] Signature APIs
+- [ ] Security/encryption
+- [ ] Existing PDF editing, page import, and document merge
 
 ## Sample Input Snippets
 
@@ -83,56 +119,37 @@
 using GrapeCity.Documents.Pdf;
 using GrapeCity.Documents.Drawing;
 
-var document = new GcPdfDocument();
-var page = document.NewPage();
-page.Graphics.DrawString("Hello", new TextFormat(), new PointF(40, 40));
-page.Graphics.DrawImage(image, new RectangleF(40, 120, 200, 80));
-page.Graphics.DrawRectangle(pen, new RectangleF(40, 620, 200, 80));
-document.Save(path);
+var doc = new GcPdfDocument();
+var page = doc.NewPage();
+page.Graphics.DrawString("Invoice #2024", new TextFormat { FontSize = 18 }, new PointF(72, 72));
+page.Graphics.DrawLine(pen, 72, 100, 540, 100);
+page.Graphics.DrawRectangle(pen, new RectangleF(72, 200, 468, 300));
+doc.Save(outputPath);
 ```
 
 ## Expected Canvas.Pdf Output Snippets
 
 ```csharp
-// Canvas.Pdf migration report: DsPdf / Document Solutions
-// - new GcPdfDocument(...) detected. Candidate Canvas rewrite starts with `var document = new PdfDocument();`.
-// - NewPage(...) detected. Candidate Canvas rewrite is `var page = document.AddPage(...)` after page size/orientation review.
-// - TextFormat detected. Map font family, size, style, and color to Canvas text parameters where possible.
-// - DrawString(...) detected. Candidate Canvas rewrite is `page.DrawText(...)` or `page.DrawTextFromTop(...)` after coordinate/layout review.
-// - DrawImage(...) detected. Candidate Canvas rewrite is `page.DrawImage(...)` after image sizing/resource review.
-// - DrawRectangle(...) detected. Candidate Canvas rewrite is a Canvas shape/path drawing call after geometry review.
-// - Save(...) detected. Candidate Canvas rewrite ends with `document.Save(...)`; review DsPdf save options.
+using Canvas.Pdf;
+
+var document = new PdfDocument();
+var page = document.AddPage();
+page.DrawTextFromTop("Invoice #2024", 72, 72, 18);
+page.DrawLineFromTop(72, 100, 540, 100);
+page.DrawRectangleFromTop(72, 200, 468, 300);
+document.Save(outputPath);
 ```
-
-## Analyzer Diagnostics Checklist
-
-- [x] Detect DsPdf/GcPdf package generation
-- [x] Detect document creation
-- [x] Detect page creation
-- [x] Detect graphics text calls
-- [x] Detect graphics image calls
-- [x] Detect graphics shape calls
-- [x] Warn on compliance/security APIs
-- [x] Warn on forms/annotations APIs
-- [x] Warn on complex layout APIs
-- [x] Warn on existing-PDF editing/import/merge APIs
-
-## Code Fix Checklist
-
-- [ ] Replace basic document creation
-- [ ] Replace page creation
-- [ ] Replace simple text drawing
-- [ ] Add `using Canvas.Pdf`
-- [ ] Report coordinate-system assumptions
-- [ ] Preserve unsupported calls with diagnostics
 
 ## Tests Checklist
 
 - [x] Basic document/page/text/save sample
-- [x] Image and shape drawing sample
-- [x] Advanced layout/table diagnostic sample
-- [x] Existing-PDF editing diagnostic sample
-- [x] Forms/compliance/security/redaction diagnostic sample
-- [x] WebApi smoke test
-- [ ] Snapshot before/after migration sample
-- [ ] Real package identification sample from a customer repository
+- [x] Font size extraction from TextFormat initializer
+- [x] DrawLine — 5-arg form
+- [x] DrawLine — PointF form
+- [x] DrawRectangle and FillRectangle
+- [x] DrawImage warning
+- [x] Advanced layout/table warning
+- [x] Existing-PDF editing warning
+- [x] Forms/compliance/security warning
+- [x] Realistic invoice end-to-end fixture
+- [x] WebApi migration-service smoke test

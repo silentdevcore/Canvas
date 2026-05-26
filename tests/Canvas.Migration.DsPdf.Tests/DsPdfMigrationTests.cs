@@ -6,56 +6,133 @@ namespace Canvas.Migration.DsPdf.Tests;
 public sealed class DsPdfMigrationTests
 {
     [Fact]
-    public void Migrate_ShouldReportBasicDocumentPageTextAndSaveWorkflow()
+    public void Migrate_ShouldConvertBasicDocumentPageTextAndSave()
     {
         var source = """
             using GrapeCity.Documents.Pdf;
             using GrapeCity.Documents.Drawing;
 
-            var document = new GcPdfDocument();
-            var page = document.NewPage();
+            var doc = new GcPdfDocument();
+            var page = doc.NewPage();
             page.Graphics.DrawString("Hello", new TextFormat(), new PointF(40, 40));
-            document.Save(path);
+            doc.Save(outputPath);
             """;
         var sut = new DsPdfMigration();
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("// Canvas.Pdf migration report: DsPdf / Document Solutions", result.MigratedCode);
-        Assert.Contains("new GcPdfDocument(...) detected", result.MigratedCode);
-        Assert.Contains("NewPage(...) detected", result.MigratedCode);
-        Assert.Contains("TextFormat detected", result.MigratedCode);
-        Assert.Contains("DrawString(...) detected", result.MigratedCode);
-        Assert.Contains("Save(...) detected", result.MigratedCode);
-        Assert.Contains("var document = new GcPdfDocument();", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDSPDF001");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDSPDF002");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDSPDF003");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDSPDF004");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDSPDF007");
+        Assert.Contains("using Canvas.Pdf;", result.MigratedCode);
+        Assert.DoesNotContain("GrapeCity.Documents", result.MigratedCode);
+        Assert.Contains("var document = new PdfDocument();", result.MigratedCode);
+        Assert.Contains("var page = document.AddPage();", result.MigratedCode);
+        Assert.Contains("page.DrawTextFromTop(\"Hello\",", result.MigratedCode);
+        Assert.Contains("document.Save(outputPath);", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDSPDF001" && d.Severity == MigrationDiagnosticSeverity.Info);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDSPDF002" && d.Severity == MigrationDiagnosticSeverity.Info);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDSPDF003" && d.Severity == MigrationDiagnosticSeverity.Info);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDSPDF007" && d.Severity == MigrationDiagnosticSeverity.Info);
     }
 
     [Fact]
-    public void Migrate_ShouldReportImageAndShapeDrawingCandidates()
+    public void Migrate_ShouldExtractFontSizeFromTextFormat()
     {
         var source = """
-            using DS.Documents.Pdf;
+            using GrapeCity.Documents.Pdf;
+            using GrapeCity.Documents.Drawing;
 
-            page.Graphics.DrawImage(image, new RectangleF(40, 120, 200, 80));
-            page.Graphics.DrawLine(pen, 40, 700, 555, 700);
-            page.Graphics.DrawRectangle(pen, new RectangleF(40, 620, 200, 80));
-            page.Graphics.FillRectangle(brush, new RectangleF(40, 500, 200, 40));
+            var doc = new GcPdfDocument();
+            var page = doc.NewPage();
+            page.Graphics.DrawString("Invoice", new TextFormat { FontSize = 18 }, new PointF(72, 72));
+            doc.Save(path);
             """;
         var sut = new DsPdfMigration();
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("DrawImage(...) detected", result.MigratedCode);
-        Assert.Contains("DrawLine(...) detected", result.MigratedCode);
-        Assert.Contains("DrawRectangle(...) detected", result.MigratedCode);
-        Assert.Contains("FillRectangle(...) detected", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDSPDF005");
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDSPDF006");
+        Assert.Contains("page.DrawTextFromTop(\"Invoice\", 72, 72, 18);", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDSPDF003");
+    }
+
+    [Fact]
+    public void Migrate_ShouldConvertDrawLineWithFiveArgs()
+    {
+        var source = """
+            using GrapeCity.Documents.Pdf;
+            using GrapeCity.Documents.Drawing;
+
+            var doc = new GcPdfDocument();
+            var page = doc.NewPage();
+            page.Graphics.DrawLine(pen, 40, 700, 555, 700);
+            doc.Save(path);
+            """;
+        var sut = new DsPdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains("page.DrawLineFromTop(40, 700, 555, 700);", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDSPDF006" && d.Severity == MigrationDiagnosticSeverity.Info);
+    }
+
+    [Fact]
+    public void Migrate_ShouldConvertDrawLineWithPointFArgs()
+    {
+        var source = """
+            using DS.Documents.Pdf;
+            using DS.Documents.Drawing;
+
+            var doc = new GcPdfDocument();
+            var page = doc.NewPage();
+            page.Graphics.DrawLine(pen, new PointF(40, 700), new PointF(555, 700));
+            doc.Save(path);
+            """;
+        var sut = new DsPdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains("page.DrawLineFromTop(40, 700, 555, 700);", result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_ShouldConvertDrawRectangleAndFillRectangle()
+    {
+        var source = """
+            using GrapeCity.Documents.Pdf;
+            using GrapeCity.Documents.Drawing;
+
+            var doc = new GcPdfDocument();
+            var page = doc.NewPage();
+            page.Graphics.DrawRectangle(pen, new RectangleF(40, 620, 200, 60));
+            page.Graphics.FillRectangle(brush, new RectangleF(40, 500, 200, 40));
+            doc.Save(path);
+            """;
+        var sut = new DsPdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains("page.DrawRectangleFromTop(40, 620, 200, 60);", result.MigratedCode);
+        Assert.Contains("page.DrawRectangleFromTop(40, 500, 200, 40, 1, true);", result.MigratedCode);
+        Assert.DoesNotContain("FillRectangle", result.MigratedCode);
+        Assert.DoesNotContain("DrawRectangle(pen", result.MigratedCode);
+    }
+
+    [Fact]
+    public void Migrate_ShouldWarnForDrawImageAndKeepStatement()
+    {
+        var source = """
+            using GrapeCity.Documents.Pdf;
+
+            var doc = new GcPdfDocument();
+            var page = doc.NewPage();
+            page.Graphics.DrawImage(image, new RectangleF(40, 120, 200, 80));
+            doc.Save(path);
+            """;
+        var sut = new DsPdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains("DrawImage", result.MigratedCode);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGDSPDF005" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
     [Fact]
@@ -73,13 +150,8 @@ public sealed class DsPdfMigrationTests
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("Advanced layout, AcroForms, annotations, PDF/A/compliance, redaction, signatures, security, or existing-PDF editing require manual migration outside v1.", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Id == "CANMIGDSPDF020"
-            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Id == "CANMIGDSPDF023"
-            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGDSPDF023" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
     [Fact]
@@ -88,45 +160,66 @@ public sealed class DsPdfMigrationTests
         var source = """
             using GrapeCity.Documents.Pdf;
 
-            var document = new GcPdfDocument();
-            document.Load(inputPath);
-            document.DeletePage(1);
-            document.MergeWithDocument(otherDocument);
+            var doc = new GcPdfDocument();
+            doc.Load(inputPath);
+            doc.DeletePage(1);
+            doc.MergeWithDocument(otherDocument);
             """;
         var sut = new DsPdfMigration();
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("Advanced layout, AcroForms, annotations, PDF/A/compliance, redaction, signatures, security, or existing-PDF editing require manual migration outside v1.", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDSPDF001");
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Id == "CANMIGDSPDF021"
-            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGDSPDF021" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
     [Fact]
-    public void Migrate_ShouldWarnForFormsComplianceSecurityAndRedaction()
+    public void Migrate_ShouldWarnForFormsComplianceAndSecurity()
     {
         var source = """
             using GrapeCity.Documents.Pdf;
 
-            document.AcroForm.Fields.Add(field);
-            document.SaveAsPdfA(path);
-            document.Sign(signatureProperties);
-            document.SetSecurity(security);
-            page.Annotations.Add(annotation);
-            document.ApplyRedactions();
+            var doc = new GcPdfDocument();
+            doc.SaveAsPdfA(path);
+            doc.Sign(signatureProperties);
+            doc.ApplyRedactions();
             """;
         var sut = new DsPdfMigration();
 
         var result = sut.Migrate(source);
 
-        Assert.Contains("Advanced layout, AcroForms, annotations, PDF/A/compliance, redaction, signatures, security, or existing-PDF editing require manual migration outside v1.", result.MigratedCode);
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Id == "CANMIGDSPDF022"
-            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
-        Assert.Contains(result.Diagnostics, diagnostic =>
-            diagnostic.Id == "CANMIGDSPDF023"
-            && diagnostic.Severity == MigrationDiagnosticSeverity.Warning);
+        Assert.Contains(result.Diagnostics, d =>
+            d.Id == "CANMIGDSPDF022" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
+    public void Migrate_ShouldConvertRealisticInvoice()
+    {
+        var source = """
+            using GrapeCity.Documents.Pdf;
+            using GrapeCity.Documents.Drawing;
+
+            var doc = new GcPdfDocument();
+            var page = doc.NewPage();
+            page.Graphics.DrawString("Invoice #2024", new TextFormat { FontSize = 18 }, new PointF(72, 72));
+            page.Graphics.DrawLine(pen, 72, 100, 540, 100);
+            page.Graphics.DrawString("Thank you for your order.", new TextFormat { FontSize = 12 }, new PointF(72, 120));
+            page.Graphics.DrawRectangle(pen, new RectangleF(72, 200, 468, 300));
+            page.Graphics.FillRectangle(brush, new RectangleF(72, 200, 468, 20));
+            doc.Save(outputPath);
+            """;
+        var sut = new DsPdfMigration();
+
+        var result = sut.Migrate(source);
+
+        Assert.Contains("using Canvas.Pdf;", result.MigratedCode);
+        Assert.Contains("var document = new PdfDocument();", result.MigratedCode);
+        Assert.Contains("var page = document.AddPage();", result.MigratedCode);
+        Assert.Contains("page.DrawTextFromTop(\"Invoice #2024\", 72, 72, 18);", result.MigratedCode);
+        Assert.Contains("page.DrawLineFromTop(72, 100, 540, 100);", result.MigratedCode);
+        Assert.Contains("page.DrawTextFromTop(\"Thank you for your order.\", 72, 120, 12);", result.MigratedCode);
+        Assert.Contains("page.DrawRectangleFromTop(72, 200, 468, 300);", result.MigratedCode);
+        Assert.Contains("page.DrawRectangleFromTop(72, 200, 468, 20, 1, true);", result.MigratedCode);
+        Assert.Contains("document.Save(outputPath);", result.MigratedCode);
     }
 }

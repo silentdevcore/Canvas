@@ -8,10 +8,10 @@ public sealed class AsposePdfConverter : BasePdfConverter
 
     public override string FrameworkName => "Aspose.PDF";
 
-    public override string Status => "pilot";
+    public override string Status => "full";
 
     public override string Description =>
-        "Roslyn-based pilot conversion for Document + Pages.Add + simple TextFragment/TextBuilder flows.";
+        "Roslyn-based conversion: Document → PdfDocument, Pages.Add → AddPage, TextFragment/TextBuilder with Position → DrawText/DrawTextFromTop. Table/forms/security produce warnings.";
 
     public override string ConvertCode(string sourceCode)
     {
