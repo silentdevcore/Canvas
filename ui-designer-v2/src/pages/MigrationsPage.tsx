@@ -24,7 +24,7 @@ const FRAMEWORKS_FALLBACK: Framework[] = [
   { id: 'DsPdf',      name: 'DsPdf (GrapeCity)',  status: 'skeleton', description: 'new GcPdfDocument() → new PdfDocument(); Graphics.DrawString → DrawTextFromTop()' },
   { id: 'Spire',      name: 'Spire.PDF',          status: 'skeleton', description: 'page.Canvas.DrawString → DrawTextFromTop(); SaveToFile → Save()' },
   { id: 'GemBox',     name: 'GemBox.Pdf',         status: 'skeleton', description: 'document.Pages.Add() → document.AddPage()' },
-  { id: 'iText7',     name: 'iText7',             status: 'skeleton', description: 'PdfWriter+PdfDocument+Document triple → new PdfDocument(); doc.Add(Paragraph) → DrawTextFromTop()' },
+  { id: 'iText7',     name: 'iText7',             status: 'pilot',    description: 'Roslyn-based pilot: PdfWriter+PdfDocument+Document → PdfDocument; Paragraph, PdfCanvas line/rect/text, ShowTextAligned, PageSize presets' },
   { id: 'IronPdf',    name: 'IronPDF',            status: 'skeleton', description: 'HTML-to-PDF — manual rewrite required' },
   { id: 'ActivePdf',  name: 'ActivePDF',          status: 'skeleton', description: 'API to be confirmed' },
   { id: 'Leadtools',  name: 'LEADTOOLS',          status: 'skeleton', description: 'Raster/OCR pipelines out of scope' },
@@ -44,6 +44,26 @@ page.Graphics.DrawString(
     PdfBrushes.Black,
     40, 40);
 document.Save("output.pdf");`;
+
+const ITEXT7_EXAMPLE = `using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+
+using var writer = new PdfWriter("output.pdf");
+using var pdf = new PdfDocument(writer);
+using var document = new Document(pdf, PageSize.A4);
+document.Add(new Paragraph("Hello from iText7"));
+document.ShowTextAligned(new Paragraph("Positioned text"), 40, 700, TextAlignment.LEFT);
+
+var canvas = new PdfCanvas(pdf.GetFirstPage());
+canvas.MoveTo(40, 650).LineTo(555, 650).Stroke();
+canvas.Rectangle(40, 500, 515, 100).Stroke();
+canvas.BeginText().MoveText(40, 580).ShowText("Canvas text").EndText();`;
+
+const EXAMPLES: Record<string, string> = {
+  Syncfusion: SYNCFUSION_EXAMPLE,
+  iText7: ITEXT7_EXAMPLE,
+};
 
 const MigrationsPage: React.FC = () => {
   const [frameworks, setFrameworks] = useState<Framework[]>(FRAMEWORKS_FALLBACK);
@@ -167,7 +187,7 @@ const MigrationsPage: React.FC = () => {
           >
             {frameworks.map(f => (
               <option key={f.id} value={f.id}>
-                {f.name}{f.status !== 'full' ? ' (skeleton)' : ''}
+                {f.name}{f.status === 'skeleton' ? ' (skeleton)' : f.status === 'pilot' ? ' (pilot)' : ''}
               </option>
             ))}
           </select>
@@ -177,16 +197,21 @@ const MigrationsPage: React.FC = () => {
           {current?.status === 'full' && (
             <span className="mgr-badge mgr-badge-full">Full</span>
           )}
+          {current?.status === 'pilot' && (
+            <span className="mgr-badge mgr-badge-pilot">Pilot</span>
+          )}
           {current?.status === 'skeleton' && (
             <span className="mgr-badge mgr-badge-skeleton">Skeleton</span>
           )}
-          <button
-            className="mgr-example-btn"
-            onClick={() => setSourceCode(SYNCFUSION_EXAMPLE)}
-            title="Load Syncfusion example"
-          >
-            Load example
-          </button>
+          {EXAMPLES[selectedId] && (
+            <button
+              className="mgr-example-btn"
+              onClick={() => setSourceCode(EXAMPLES[selectedId])}
+              title={`Load ${current?.name ?? selectedId} example`}
+            >
+              Load example
+            </button>
+          )}
         </div>
 
         {error && (

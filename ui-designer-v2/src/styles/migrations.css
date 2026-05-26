@@ -115,6 +115,11 @@
   color: var(--color-gray-500);
 }
 
+.mgr-badge-pilot {
+  background: #fff7ed;
+  color: #c2610c;
+}
+
 .mgr-example-btn {
   margin-left: auto;
   font-size: var(--font-size-sm);

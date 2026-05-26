@@ -10,10 +10,11 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 
 - [x] Use `SyncfusionPdf` as the first provider pilot
 - [x] Use `iText7` as the second provider pilot
+- [x] Use `AsposePdf` as the third provider pilot
 - [x] Start with deterministic C# PDF-generation patterns, not existing-PDF editing
 - [x] Treat `PdfDocument`, `Pages.Add`, `PdfGraphics.DrawString`, simple fonts, simple brushes, and `Save` as the first conversion slice
 - [x] Use the Syncfusion pilot to validate shared abstraction names before adding all provider projects
-- [ ] Promote repeated Syncfusion/iText7 rules into provider-neutral abstractions after the second prototype
+- [ ] Promote repeated Syncfusion/iText7/Aspose rules into provider-neutral abstractions after the third prototype
 
 ## Architecture Checklist
 
@@ -34,7 +35,7 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 - [x] `src/Canvas.Migration.Abstractions`
 - [x] `src/Canvas.Migration.Roslyn`
 - [x] `src/Canvas.Migration.iText7`
-- [ ] `src/Canvas.Migration.AsposePdf`
+- [x] `src/Canvas.Migration.AsposePdf`
 - [ ] `src/Canvas.Migration.IronPdf`
 - [ ] `src/Canvas.Migration.Apryse`
 - [x] `src/Canvas.Migration.SyncfusionPdf`
@@ -87,7 +88,7 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 | Provider | Checklist | Package/API identified | Namespaces/classes listed | Mapping placeholders | Samples | Tests planned | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | iText7 | `Code-Migration-iText7.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
-| Aspose.PDF | `Code-Migration-AsposePdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
+| Aspose.PDF | `Code-Migration-AsposePdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
 | IronPDF | `Code-Migration-IronPdf.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
 | Apryse SDK | `Code-Migration-Apryse.md` | [ ] | [ ] | [ ] | [ ] | [ ] | Skeleton |
 | Syncfusion PDF | `Code-Migration-SyncfusionPdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |

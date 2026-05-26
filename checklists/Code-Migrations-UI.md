@@ -167,7 +167,7 @@ Each skeleton converter returns a Canvas.Pdf "Hello World" code string based on 
 | Framework | Key mapping note |
 |-----------|-----------------|
 | Apryse | `new PDFDoc()` → `new PdfDocument()`; `doc.PageCreate()` + `doc.PagePushBack()` → `document.AddPage()` |
-| Aspose | `new Document()` → `new PdfDocument()` (alias); `page.Paragraphs.Add(text)` → `page.DrawText(...)` |
+| Aspose | Roslyn-backed pilot: `new Document()` → `new PdfDocument()`; `document.Pages.Add()` → `document.AddPage()`; simple `TextFragment`/`TextBuilder` flows supported |
 | DsPdf | `new GcPdfDocument()` → `new PdfDocument()`; `page.Graphics.DrawString(...)` → `page.DrawText(...)` |
 | Spire | `new PdfDocument()` → alias; `page.Canvas.DrawString(...)` → `page.DrawText(...)` |
 | GemBox | `document.Pages.Add()` → `document.AddPage()` |
@@ -190,6 +190,7 @@ Each skeleton converter returns a Canvas.Pdf "Hello World" code string based on 
 | `BasePdfConverter` + 12 skeletons | ✅ Done |
 | `SyncfusionPdfConverter` (Roslyn-backed full pilot) | ✅ Done |
 | `IText7PdfConverter` (Roslyn-backed v1 pilot) | ✅ Done |
+| `AsposePdfConverter` (Roslyn-backed v1 pilot) | ✅ Done |
 | Convert response summary counts | ✅ Done |
 | `MigrationService.cs` | ✅ Done |
 | `MigrationController.cs` | ✅ Done |
@@ -208,4 +209,4 @@ Each skeleton converter returns a Canvas.Pdf "Hello World" code string based on 
 5. Click **Convert** → Canvas code appears; diagnostics bar shows codes
 6. Click **Generate Preview** → PDF renders in iframe
 7. Click **Copy** → clipboard receives canvas code
-8. Switch framework to **Aspose.PDF** → skeleton output appears
+8. Switch framework to **Aspose.PDF** → Roslyn pilot output appears with diagnostics summary
