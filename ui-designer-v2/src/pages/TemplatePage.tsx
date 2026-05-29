@@ -153,6 +153,7 @@ const TemplatePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get('category') ?? 'all'
   );
+  const [selectedFormat, setSelectedFormat] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateDefinition | null>(null);
@@ -169,8 +170,9 @@ const TemplatePage: React.FC = () => {
   const filteredTemplates = useMemo(() => {
     let list = TEMPLATES.filter(t => {
       const matchesCat = selectedCategory === 'all' || t.category === selectedCategory;
+      const matchesFmt = selectedFormat === 'all' || (t.format ?? 'portrait') === selectedFormat;
       const text = `${t.name} ${t.description} ${t.tags.join(' ')}`.toLowerCase();
-      return matchesCat && text.includes(searchQuery.toLowerCase());
+      return matchesCat && matchesFmt && text.includes(searchQuery.toLowerCase());
     });
 
     if (sortOrder === 'alpha') {
@@ -183,7 +185,7 @@ const TemplatePage: React.FC = () => {
     }
 
     return list;
-  }, [selectedCategory, searchQuery, sortOrder]);
+  }, [selectedCategory, selectedFormat, searchQuery, sortOrder]);
 
   const clearSearch = () => {
     setSearchQuery('');
@@ -287,6 +289,18 @@ const TemplatePage: React.FC = () => {
                 </button>
               )}
             </label>
+            <select
+              className="pdf-sort-select"
+              value={selectedFormat}
+              onChange={e => setSelectedFormat(e.target.value)}
+              aria-label="Filter by format"
+            >
+              <option value="all">All formats</option>
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+              <option value="square">Square</option>
+              <option value="widescreen">Widescreen</option>
+            </select>
             <select
               className="pdf-sort-select"
               value={sortOrder}

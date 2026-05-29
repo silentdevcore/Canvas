@@ -285,6 +285,20 @@ public sealed class ElementDto
 
     // Image
     public bool? PreserveAspectRatio { get; set; }
+
+    // Heading level (text / richtext elements) — used to build PDF bookmarks and TOC
+    public int? HeadingLevel { get; set; }
+
+    // Table of Contents element
+    public string? TocTitle           { get; set; }
+    public bool?   TocShowPageNumbers { get; set; }
+    public bool?   TocShowLeaderDots  { get; set; }
+    public int?    TocMinLevel        { get; set; }
+    public int?    TocMaxLevel        { get; set; }
+    /// <summary>"beginning" | "end" — only used when the TOC element controls a separate TOC page.</summary>
+    public string? TocPlacement       { get; set; }
+    /// <summary>Pre-computed TOC entries from the frontend "Update TOC" action.</summary>
+    public TocEntryDto[]? TocEntries  { get; set; }
 }
 
 /// <summary>Repeat configuration — iterates a data path and stamps a template element.</summary>
@@ -292,6 +306,14 @@ public sealed class RepeatDto
 {
     public string? DataPath   { get; set; }
     public string? TemplateId { get; set; }
+}
+
+/// <summary>A single entry in a pre-computed Table of Contents.</summary>
+public sealed class TocEntryDto
+{
+    public string Text  { get; set; } = "";
+    public int    Level { get; set; } = 1;
+    public int    Page  { get; set; } = 1;
 }
 
 /// <summary>Per-language position and rotation override for a canvas element.</summary>

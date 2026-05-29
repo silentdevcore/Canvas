@@ -30,7 +30,8 @@ export type ElementType =
   | 'pagenumber'
   | 'link'
   | 'number'
-  // New elements
+  | 'toc'
+  // Word-only elements
   | 'footnote'
   | 'endnote'
   | 'bookmark'
@@ -164,6 +165,21 @@ export interface SimpleElement {
   revisionId?: string;
   // Auto-hyphenation
   autoHyphenation?: boolean;
+  // Heading level (for TOC generation)
+  headingLevel?: 1 | 2 | 3 | null;
+  // Form accessibility / ordering
+  tabIndex?: number;
+  // Per-field validation
+  validationMin?: number;
+  validationMax?: number;
+  validationPattern?: string;
+  // Table of contents element config
+  tocEntries?: Array<{ text: string; level: 1 | 2 | 3; page: number }>;
+  tocTitle?: string;
+  tocShowPageNumbers?: boolean;
+  tocShowLeaderDots?: boolean;
+  tocMinLevel?: 1 | 2 | 3;
+  tocMaxLevel?: 1 | 2 | 3;
 }
 
 export interface Page {

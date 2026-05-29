@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useEditorStore } from '@/store';
-import { getTemplateElements } from '@/data/templateContent';
+import { getTemplateElements, getTemplatePages } from '@/data/templateContent';
 import type { TemplateDefinition } from '@/data/templates';
 import type { SimpleElement } from '@/types';
 import ExportService from '@/services/ExportService';
@@ -85,11 +85,16 @@ export function useTemplateLoader() {
   const navigate = useNavigate();
 
   const loadTemplate = (def: TemplateDefinition) => {
-    const specificElements = getTemplateElements(def.id);
-    const elements = specificElements.length > 0 ? specificElements : createStarterElements(def);
+    const multiPages = getTemplatePages(def.id);
+    const pages = multiPages
+      ?? (() => {
+           const specificElements = getTemplateElements(def.id);
+           const elements = specificElements.length > 0 ? specificElements : createStarterElements(def);
+           return [{ id: 'page-1', elements }];
+         })();
     setCurrentTemplate({
       ...def,
-      pages: [{ id: 'page-1', elements }],
+      pages,
       sharedElements: [],
       data: {}
     });

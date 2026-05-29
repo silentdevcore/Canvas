@@ -32,5 +32,6 @@ public enum ElementType
     Endnote,
     Bookmark,
     Comment,
-    ContentControl
+    ContentControl,
+    Toc
 }

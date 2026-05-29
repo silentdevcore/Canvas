@@ -328,7 +328,9 @@ public class TemplatesController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { error = "Render failed", details = ex.Message });
+            var inner = ex.InnerException?.Message;
+            var trace = ex.StackTrace?.Split('\n').Take(5).ToArray();
+            return StatusCode(500, new { error = "Render failed", details = ex.Message, inner, trace });
         }
     }
 

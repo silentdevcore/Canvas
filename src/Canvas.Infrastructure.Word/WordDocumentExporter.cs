@@ -580,6 +580,52 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 break;
             }
 
+            case "toc":
+            {
+                // Native Word TOC field — Word updates page numbers on document open / Ctrl+A → F9.
+                var tocTitle  = el.TocTitle ?? "Table of Contents";
+                var minLevel  = el.TocMinLevel ?? 1;
+                var maxLevel  = el.TocMaxLevel ?? 3;
+                var instrText = $"TOC \\o \"{minLevel}-{maxLevel}\" \\h \\z \\u";
+
+                // Optional: emit the title as a styled paragraph before the field.
+                if (!string.IsNullOrWhiteSpace(tocTitle))
+                {
+                    var titlePara = new Paragraph();
+                    var titlePpr  = new ParagraphProperties();
+                    ApplyParagraphPositioning(titlePpr, el, layout, applyTopOffset: true);
+                    titlePara.PrependChild(titlePpr);
+                    var titleRun = new Run();
+                    titleRun.AppendChild(new RunProperties(new Bold()));
+                    titleRun.AppendChild(new Text(tocTitle) { Space = SpaceProcessingModeValues.Preserve });
+                    titlePara.AppendChild(titleRun);
+                    body.AppendChild(titlePara);
+                }
+
+                // TOC field: <w:p><w:r><w:fldChar begin/><w:instrText TOC .../><w:fldChar end/></w:r></w:p>
+                var tocPara = new Paragraph();
+                var tocPpr  = new ParagraphProperties();
+                if (string.IsNullOrWhiteSpace(tocTitle))
+                    ApplyParagraphPositioning(tocPpr, el, layout, applyTopOffset: true);
+                tocPara.PrependChild(tocPpr);
+
+                var beginRun = new Run();
+                beginRun.AppendChild(new FieldChar { FieldCharType = FieldCharValues.Begin, Dirty = true });
+                tocPara.AppendChild(beginRun);
+
+                var instrRun = new Run();
+                instrRun.AppendChild(new FieldCode(instrText) { Space = SpaceProcessingModeValues.Preserve });
+                tocPara.AppendChild(instrRun);
+
+                var endRun = new Run();
+                endRun.AppendChild(new FieldChar { FieldCharType = FieldCharValues.End });
+                tocPara.AppendChild(endRun);
+
+                body.AppendChild(tocPara);
+                AdvanceCursor(layout, el);
+                break;
+            }
+
             case "contentcontrol":
             {
                 var title = el.ContentControlTitle ?? el.Name ?? "Field";

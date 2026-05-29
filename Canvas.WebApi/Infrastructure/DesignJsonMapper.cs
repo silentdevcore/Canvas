@@ -56,6 +56,20 @@ public static class DesignJsonMapper
                     StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
+        // ── Add PDF bookmarks BEFORE page rendering so case "toc" can read them ─
+        for (var bi = 0; bi < plannedPages.Count; bi++)
+        {
+            foreach (var bel in plannedPages[bi].Elements.Where(e =>
+                e.HeadingLevel is >= 1 and <= 3 &&
+                e.Hidden != true))
+            {
+                var bmTitle = Regex.Replace((bel.Content ?? bel.HtmlContent ?? "").Trim(), "<[^>]+>", "").Trim();
+                if (string.IsNullOrWhiteSpace(bmTitle))
+                    bmTitle = $"Heading {bel.HeadingLevel}";
+                document.AddBookmark(bmTitle, bi + 1, bel.HeadingLevel!.Value);
+            }
+        }
+
         for (var pi = 0; pi < plannedPages.Count; pi++)
         {
             var plannedPage = plannedPages[pi];
@@ -115,13 +129,13 @@ public static class DesignJsonMapper
                     LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
                     LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
                     StringComparison.OrdinalIgnoreCase))))
-                RenderElement(page, el, ps.Height, pageNumber, totalPages, effectiveLang);
+                RenderElement(document, page, el, ps.Height, pageNumber, totalPages, effectiveLang);
 
             // Scoped elements: draw on each page that satisfies the scope condition
             foreach (var el in scopedElements)
             {
                 if (!MatchesPageScope(el.PageScope, el.PageRange, pageNumber, totalPages)) continue;
-                RenderElement(page, el, ps.Height, pageNumber, totalPages, effectiveLang);
+                RenderElement(document, page, el, ps.Height, pageNumber, totalPages, effectiveLang);
             }
 
             // Global watermark from page settings
@@ -186,6 +200,7 @@ public static class DesignJsonMapper
     // ── Main renderer ────────────────────────────────────────────────────────
 
     private static void RenderElement(
+        PdfDocument document,
         PdfPage page, ElementDto el, double pageH,
         int pageIndex, int totalPages,
         string? effectiveLang = null)
@@ -828,6 +843,80 @@ public static class DesignJsonMapper
 
             case "pageboundary":
                 break;
+
+            case "toc":
+            {
+                var title        = string.IsNullOrWhiteSpace(el.TocTitle) ? "Table of Contents" : el.TocTitle;
+                var showPageNums = el.TocShowPageNumbers ?? true;
+                var showDots     = el.TocShowLeaderDots  ?? true;
+                var minLevel     = el.TocMinLevel ?? 1;
+                var maxLevel     = el.TocMaxLevel ?? 3;
+                var fgColor      = ParseColor(GetString(style, "color") ?? "#1f2937");
+                var fs           = GetDouble(style, "fontSize", 12);
+                var lineH        = fs * 1.6;
+                const double indentPerLevel = 12;
+                const double pageNumW       = 30;
+
+                // Prefer frontend-computed entries; fall back to live bookmarks
+                // (bookmarks are scanned before the render loop so they're always ready).
+                var rawEntries = el.TocEntries is { Length: > 0 }
+                    ? el.TocEntries
+                          .Where(e => e.Level >= minLevel && e.Level <= maxLevel)
+                          .Select(e => (e.Text, e.Level, e.Page))
+                          .ToList()
+                    : document.GetBookmarks()
+                          .Where(b => b.Level >= minLevel && b.Level <= maxLevel)
+                          .Select(b => (b.Title, b.Level, b.PageNumber))
+                          .ToList();
+
+                if (rawEntries.Count == 0) break;
+
+                // Title row
+                var titleFs   = fs * 1.4;
+                var titleOpts = new PdfParagraphOptions { FontSize = titleFs, FillColor = fgColor, Bold = true };
+                page.DrawParagraph(title, elX, TextY(pageH, elY, titleFs), w, titleOpts);
+                var cursorY = elY + titleFs + 8;
+
+                var entryOpts = new PdfParagraphOptions { FontSize = fs, FillColor = fgColor };
+
+                foreach (var (text, level, targetPage) in rawEntries)
+                {
+                    if (string.IsNullOrWhiteSpace(text)) continue;
+                    if (cursorY + lineH > elY + h) break;
+
+                    var indent   = (level - 1) * indentPerLevel;
+                    var textW    = showPageNums ? Math.Max(w - indent - pageNumW - 4, 10) : Math.Max(w - indent, 10);
+                    var textX    = elX + indent;
+                    var baseline = TextY(pageH, cursorY, fs);
+
+                    page.DrawParagraph(text, textX, baseline, textW, entryOpts);
+
+                    if (showPageNums)
+                    {
+                        if (showDots)
+                        {
+                            var dotsX = textX + textW;
+                            var dotsW = w - indent - textW - pageNumW;
+                            if (dotsW >= 4)
+                            {
+                                var dotCount = (int)(dotsW / (fs * 0.35));
+                                page.DrawParagraph(new string('.', Math.Max(dotCount, 1)),
+                                    dotsX, baseline, dotsW, entryOpts);
+                            }
+                        }
+                        page.DrawParagraph(targetPage.ToString(CultureInfo.InvariantCulture),
+                            elX + w - pageNumW, baseline, pageNumW,
+                            new PdfParagraphOptions { FontSize = fs, FillColor = fgColor, Alignment = PdfTextAlignment.Right });
+                    }
+
+                    // Clickable link spanning the full row width
+                    var linkBottomY = RectBottomY(pageH, cursorY, lineH);
+                    page.AddPageLink(elX, linkBottomY, w, lineH, targetPage);
+
+                    cursorY += lineH;
+                }
+                break;
+            }
         }
     }
 

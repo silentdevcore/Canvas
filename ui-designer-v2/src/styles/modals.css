@@ -1,3 +1,147 @@
+/* ─── Generic shared modal primitives ─────────────────────────────────────── */
+
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10000; padding: 16px;
+}
+.modal-dialog {
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+  width: 100%; display: flex; flex-direction: column; overflow: hidden;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid #f1f5f9;
+  font-size: 15px; font-weight: 700; color: #0f172a;
+}
+.modal-close {
+  width: 30px; height: 30px; border-radius: 8px; border: none;
+  background: transparent; color: #94a3b8; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.modal-close:hover { background: #f1f5f9; color: #0f172a; }
+.modal-body { padding: 16px 20px; overflow-y: auto; }
+.modal-footer {
+  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  padding: 14px 20px; border-top: 1px solid #f1f5f9;
+}
+.modal-cancel-btn {
+  padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  background: #f1f5f9; border: none; color: #64748b; cursor: pointer;
+}
+.modal-cancel-btn:hover { background: #e2e8f0; }
+.modal-confirm-btn {
+  padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 700;
+  background: #2563eb; border: none; color: #fff; cursor: pointer;
+  transition: background 0.15s;
+}
+.modal-confirm-btn:hover { background: #1d4ed8; }
+
+/* ─── Help modal ───────────────────────────────────────────────────────────── */
+
+.help-modal { max-width: 680px; max-height: 85vh; }
+
+.help-modal-tabs {
+  display: flex; gap: 2px;
+  padding: 8px 12px; border-bottom: 1px solid #f1f5f9; background: #f8fafc;
+}
+.help-modal-tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 8px; border: none;
+  background: transparent; font-size: 13px; font-weight: 500;
+  color: #64748b; cursor: pointer; transition: background 0.12s, color 0.12s;
+}
+.help-modal-tab:hover { background: #e2e8f0; color: #0f172a; }
+.help-modal-tab.is-active { background: #eff6ff; color: #2563eb; font-weight: 700; }
+
+.help-modal-body {
+  flex: 1; overflow-y: auto; padding: 20px;
+}
+
+/* Quick start steps */
+.help-steps { display: flex; flex-direction: column; gap: 16px; }
+.help-step {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 16px; border-radius: 10px; background: #f8fafc;
+  border: 1px solid #f1f5f9;
+}
+.help-step-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #2563eb; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+.help-step-title { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+.help-step-desc { font-size: 13px; color: #64748b; line-height: 1.5; margin: 0; }
+
+/* Shortcuts table */
+.help-shortcuts-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.help-shortcuts-table thead tr { background: #f8fafc; }
+.help-shortcuts-table th {
+  text-align: left; padding: 8px 12px;
+  font-size: 11px; font-weight: 700; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
+}
+.help-shortcuts-table td {
+  padding: 8px 12px; border-bottom: 1px solid #f1f5f9; color: #374151;
+}
+.help-shortcuts-table tr:last-child td { border-bottom: none; }
+.help-shortcuts-table kbd {
+  display: inline-block; padding: 2px 7px; border-radius: 5px;
+  background: #f1f5f9; border: 1px solid #e2e8f0;
+  font-family: monospace; font-size: 12px; color: #0f172a;
+  font-weight: 600; white-space: nowrap;
+}
+
+/* Elements reference table */
+.help-elements-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.help-elements-table thead tr { background: #f8fafc; }
+.help-elements-table th {
+  text-align: left; padding: 8px 12px;
+  font-size: 11px; font-weight: 700; color: #94a3b8;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  border-bottom: 1px solid #e2e8f0;
+}
+.help-elements-table td {
+  padding: 8px 12px; border-bottom: 1px solid #f1f5f9; color: #374151; vertical-align: top;
+}
+.help-elements-table tr:last-child td { border-bottom: none; }
+.help-row-highlighted { background: #eff6ff !important; }
+.help-row-highlighted td { color: #1d4ed8; }
+
+/* FAQ */
+.help-faq { display: flex; flex-direction: column; gap: 6px; }
+.help-faq-item {
+  border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;
+}
+.help-faq-q {
+  padding: 12px 16px; font-size: 13px; font-weight: 600; color: #0f172a;
+  cursor: pointer; list-style: none;
+  background: #f8fafc; transition: background 0.12s;
+}
+.help-faq-q:hover { background: #f1f5f9; }
+.help-faq-item[open] .help-faq-q { background: #eff6ff; color: #2563eb; }
+.help-faq-a {
+  padding: 12px 16px; margin: 0;
+  font-size: 13px; color: #64748b; line-height: 1.6;
+  border-top: 1px solid #e2e8f0; background: #fff;
+}
+
+/* Help docs link */
+.help-docs-link {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 13px; color: #6366f1; text-decoration: none; font-weight: 500;
+  margin-right: auto;
+}
+.help-docs-link:hover { text-decoration: underline; }
+
 /* ─── New element & inspector styles ──────────────────────────────────────── */
 
 /* Image drag-drop zone */

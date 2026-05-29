@@ -130,6 +130,7 @@ export class ExportService {
       bookmark:       'Bookmark',
       comment:        'Comment',
       contentcontrol: 'ContentControl',
+      toc:            'Toc',
     };
     return typeMapping[uiType] ?? 'Text';
   }
@@ -172,13 +173,15 @@ export class ExportService {
           textAlign:      element.style?.textAlign      || 'left',
           lineHeight:     element.style?.lineHeight     ?? 1.4,
           letterSpacing:  element.style?.letterSpacing  ?? 0,
+          headingLevel:   element.headingLevel ?? null,
         };
 
       case 'richtext':
         return {
           ...base,
-          htmlContent: element.htmlContent || '',
-          fontSize: element.style?.fontSize || 14,
+          htmlContent:  element.htmlContent || '',
+          fontSize:     element.style?.fontSize || 14,
+          headingLevel: element.headingLevel ?? null,
         };
 
       case 'image':
@@ -456,6 +459,23 @@ export class ExportService {
           content: element.content || '',
         };
 
+      case 'toc':
+        return {
+          ...base,
+          tocTitle:           element.tocTitle           ?? 'Table of Contents',
+          tocShowPageNumbers: element.tocShowPageNumbers ?? true,
+          tocShowLeaderDots:  element.tocShowLeaderDots  ?? true,
+          tocMinLevel:        element.tocMinLevel        ?? 1,
+          tocMaxLevel:        element.tocMaxLevel        ?? 3,
+          tocEntries: (element.tocEntries ?? []).map(e => ({
+            text:  e.text,
+            level: e.level,
+            page:  e.page,
+          })),
+          color:    element.style?.color    ?? '#1f2937',
+          fontSize: element.style?.fontSize ?? 12,
+        };
+
       default:
         return base;
     }
@@ -662,7 +682,8 @@ export class ExportService {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({ error: response.statusText }));
-      throw new Error(err.error || `HTTP ${response.status}`);
+      const msg = [err.error, err.details, err.inner].filter(Boolean).join(' — ');
+      throw new Error(msg || `HTTP ${response.status}`);
     }
 
     onProgress?.('Downloading…');

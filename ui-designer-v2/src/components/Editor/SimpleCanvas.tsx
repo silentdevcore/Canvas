@@ -75,9 +75,14 @@ import {
   FiMoreVertical,
   FiScissors,
   FiGlobe,
+  FiBookOpen,
+  FiHelpCircle,
+  FiGrid,
 } from 'react-icons/fi';
 import CodeViewer from './CodeViewer';
 import FindReplaceModal from './FindReplaceModal';
+import FormBlockModal from './FormBlockModal';
+import HelpModal from './HelpModal';
 import ExportService from '@/services/ExportService';
 import { LanguageTabBar } from './LanguageTabBar';
 import { LocalizedPropertiesPanel } from './LocalizedPropertiesPanel';
@@ -190,6 +195,7 @@ const ELEMENT_TYPE_LABELS: Record<string, string> = {
   pagenumber:   'Page Number',
   link:           'Link',
   number:         'Number',
+  toc:            'Table of Contents',
   footnote:       'Footnote',
   endnote:        'Endnote',
   bookmark:       'Bookmark',
@@ -276,11 +282,17 @@ const PADDING_TYPES = new Set<string>([
 ]);
 
 const PAGE_PRESETS: Record<string, { width: number; height: number }> = {
-  A4:     { width: 595,  height: 842  },
-  A5:     { width: 420,  height: 595  },
-  A3:     { width: 842,  height: 1191 },
-  Letter: { width: 612,  height: 792  },
-  Legal:  { width: 612,  height: 1008 },
+  A4:                  { width: 595,  height: 842  },
+  A5:                  { width: 420,  height: 595  },
+  A3:                  { width: 842,  height: 1191 },
+  Letter:              { width: 612,  height: 792  },
+  Legal:               { width: 612,  height: 1008 },
+  'Landscape A4':      { width: 842,  height: 595  },
+  'Landscape A3':      { width: 1191, height: 842  },
+  'Presentation 16:9': { width: 1280, height: 720  },
+  'Presentation 4:3':  { width: 1024, height: 768  },
+  'Book A5':           { width: 420,  height: 595  },
+  'Social Square':     { width: 1080, height: 1080 },
 };
 
 const createDefaultChartData = () => ({
@@ -332,8 +344,11 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   const [clipboard, setClipboard] = useState<SimpleElement | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; elementId: string | null } | null>(null);
   const [marqueeState, setMarqueeState] = useState<{ startX: number; startY: number; currentX: number; currentY: number; additive: boolean } | null>(null);
+  const [drawingMode, setDrawingMode] = useState<'line' | 'arrow' | 'draw' | null>(null);
+  const [drawGhost, setDrawGhost] = useState<{ startX: number; startY: number; currentX: number; currentY: number; pathPoints?: string } | null>(null);
   const [codeViewerOpen, setCodeViewerOpen] = useState(false);
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
+  const [formBlockModalOpen, setFormBlockModalOpen] = useState(false);
   const [topbarMenuOpen, setTopbarMenuOpen] = useState(false);
   const [topbarToast, setTopbarToast] = useState('');
   const [extractingPage, setExtractingPage] = useState<number | null>(null);
@@ -398,7 +413,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     }
   };
 
-  const { pageSettings, updatePageSettings, settingsModifiedSinceExport, snapshotHistory, undo, redo, bulkReplaceContent, currentPreviewLanguage, setCurrentPreviewLanguage } = useEditorStore();
+  const { pageSettings, updatePageSettings, settingsModifiedSinceExport, snapshotHistory, undo, redo, bulkReplaceContent, currentPreviewLanguage, setCurrentPreviewLanguage, helpModalOpen, setHelpModalOpen } = useEditorStore();
   const pageWidth = pageSettings.width;
   const pageHeight = pageSettings.height;
   const isCurrentRtl = RTL_LANGS.has((currentPreviewLanguage || '').split('-')[0]);
@@ -1000,6 +1015,22 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       })
     },
     {
+      id: 'toc',
+      label: 'Table of Contents',
+      hint: 'Auto-generated TOC from headings',
+      icon: FiBookOpen,
+      create: () => ({
+        id: createElementId('toc'),
+        type: 'toc',
+        x: 48,
+        y: 96,
+        width: 400,
+        height: 200,
+        style: { color: '#1f2937', fontSize: 13 },
+        tocEntries: [],
+      })
+    },
+    {
       id: 'link',
       label: 'Link',
       hint: 'Hyperlink element',
@@ -1153,7 +1184,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     {
       id: 'advanced',
       label: 'Advanced Document Elements',
-      toolIds: ['watermark', 'note', 'arrow', 'draw', 'date', 'highlight', 'checkmark', 'pageboundary', 'pagenumber']
+      toolIds: ['watermark', 'note', 'arrow', 'draw', 'date', 'highlight', 'checkmark', 'pageboundary', 'pagenumber', 'toc']
     },
     {
       id: 'word',
@@ -1347,6 +1378,101 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     };
   }, [marqueeState, elements, sharedElements]);
 
+  useEffect(() => {
+    if (!drawGhost || !drawingMode) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const point = getCanvasPoint(event.clientX, event.clientY);
+      setDrawGhost(prev => {
+        if (!prev) return null;
+        if (drawingMode === 'draw') {
+          return { ...prev, currentX: point.x, currentY: point.y, pathPoints: `${prev.pathPoints} L ${point.x} ${point.y}` };
+        }
+        return { ...prev, currentX: point.x, currentY: point.y };
+      });
+    };
+
+    const handlePointerUp = () => {
+      const { startX, startY, currentX, currentY, pathPoints } = drawGhost;
+      const dx = currentX - startX;
+      const dy = currentY - startY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist >= 5) {
+        if (drawingMode === 'line') {
+          const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+          const cx = (startX + currentX) / 2;
+          const cy = (startY + currentY) / 2;
+          const el = nameElement({
+            id: createElementId('line'),
+            type: 'line',
+            x: Math.round(cx - dist / 2),
+            y: Math.round(cy - 2),
+            width: Math.round(dist),
+            height: 4,
+            style: { backgroundColor: '#9ca3af', rotation: Math.round(angle * 10) / 10 },
+          });
+          onElementAdd(el);
+          setSelectedElementId(el.id);
+        } else if (drawingMode === 'arrow') {
+          const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+          const cx = (startX + currentX) / 2;
+          const cy = (startY + currentY) / 2;
+          const el = nameElement({
+            id: createElementId('arrow'),
+            type: 'arrow',
+            x: Math.round(cx - dist / 2),
+            y: Math.round(cy - 20),
+            width: Math.round(dist),
+            height: 40,
+            arrowMode: 'straight',
+            arrowDirection: 'right',
+            arrowRotation: 0,
+            startMarker: 'none',
+            endMarker: 'filled',
+            style: { color: '#dc2626', strokeWidth: 4, dashStyle: 'solid', rotation: Math.round(angle * 10) / 10 },
+          });
+          onElementAdd(el);
+          setSelectedElementId(el.id);
+        } else if (drawingMode === 'draw' && pathPoints) {
+          const matches = [...pathPoints.matchAll(/(-?[\d.]+)\s+(-?[\d.]+)/g)];
+          const xs = matches.map(m => parseFloat(m[1]));
+          const ys = matches.map(m => parseFloat(m[2]));
+          const minX = Math.min(...xs);
+          const minY = Math.min(...ys);
+          const w = Math.max(Math.max(...xs) - minX, 16);
+          const h = Math.max(Math.max(...ys) - minY, 16);
+          const localPath = pathPoints.replace(/(-?[\d.]+)\s+(-?[\d.]+)/g, (_m, px, py) =>
+            `${Math.round((parseFloat(px) - minX) * 10) / 10} ${Math.round((parseFloat(py) - minY) * 10) / 10}`
+          );
+          const el = nameElement({
+            id: createElementId('draw'),
+            type: 'draw',
+            x: Math.round(minX),
+            y: Math.round(minY),
+            width: Math.round(w),
+            height: Math.round(h),
+            drawTool: 'pen',
+            pathData: localPath,
+            style: { color: '#1d4ed8', strokeWidth: 4, opacity: 1 },
+          });
+          onElementAdd(el);
+          setSelectedElementId(el.id);
+        }
+      }
+
+      setDrawGhost(null);
+      setDrawingMode(null);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [drawGhost, drawingMode, elements, sharedElements, onElementAdd]);
+
   const handleResizePointerDown = (
     event: React.PointerEvent,
     element: SimpleElement,
@@ -1397,6 +1523,12 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const tag = (event.target as HTMLElement).tagName;
+
+      if (event.key === 'F1') {
+        event.preventDefault();
+        setHelpModalOpen(true);
+        return;
+      }
 
       // Zoom shortcuts work globally (even without a selected element)
       if (event.metaKey || event.ctrlKey) {
@@ -1476,7 +1608,12 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
           break;
 
         case 'Escape':
-          clearSelection();
+          if (drawingMode) {
+            setDrawingMode(null);
+            setDrawGhost(null);
+          } else {
+            clearSelection();
+          }
           break;
 
         case 'ArrowUp':
@@ -1499,12 +1636,31 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedElement, deleteElementById, updateElementById, onElementAdd, pageWidth, pageHeight, undo, redo, elements, sharedElements, clipboard]);
+  }, [selectedElement, deleteElementById, updateElementById, onElementAdd, pageWidth, pageHeight, undo, redo, elements, sharedElements, clipboard, drawingMode, setHelpModalOpen]);
+
+  const startDrawGhost = (clientX: number, clientY: number) => {
+    const point = getCanvasPoint(clientX, clientY);
+    setDrawGhost({
+      startX: point.x,
+      startY: point.y,
+      currentX: point.x,
+      currentY: point.y,
+      pathPoints: drawingMode === 'draw' ? `M ${point.x} ${point.y}` : undefined,
+    });
+  };
 
   const handleCanvasPointerDown = (event: React.PointerEvent) => {
     if (event.button !== 0) return;
-    if (event.target !== event.currentTarget) return;
     closeContextMenu();
+
+    if (drawingMode) {
+      event.stopPropagation();
+      startDrawGhost(event.clientX, event.clientY);
+      return;
+    }
+
+    if (event.target !== event.currentTarget) return;
+
     if (!event.shiftKey && !event.metaKey && !event.ctrlKey) clearSelection();
     const point = getCanvasPoint(event.clientX, event.clientY);
     const additive = event.shiftKey || event.metaKey || event.ctrlKey;
@@ -1638,6 +1794,13 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
 
   const handleElementPointerDown = (event: React.PointerEvent, element: SimpleElement) => {
     if (event.button !== 0) return;
+
+    if (drawingMode) {
+      event.stopPropagation();
+      startDrawGhost(event.clientX, event.clientY);
+      return;
+    }
+
     if (element.locked) {
       selectOne(element.id);
       return;
@@ -1979,7 +2142,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     if (element.type === 'field') {
       return (
         <div className="editor-form-field">
-          <span>{element.fieldLabel}</span>
+          <span>
+            {element.fieldLabel}
+            {element.required && <span className="editor-field-required-badge" title="Required field">*</span>}
+          </span>
           <strong>{element.required ? 'Required' : 'Optional'}</strong>
         </div>
       );
@@ -2802,6 +2968,34 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       );
     }
 
+    if (element.type === 'toc') {
+      const fontSize = element.style?.fontSize || 13;
+      const color = element.style?.color || '#1f2937';
+      const entries = element.tocEntries ?? [];
+      return (
+        <div style={{ width: '100%', height: '100%', overflow: 'hidden', padding: '8px 10px', border: '1px dashed #94a3b8', borderRadius: 4, background: '#f8fafc' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', marginBottom: 6, textTransform: 'uppercase' }}>
+            Table of Contents
+          </div>
+          {entries.length === 0 ? (
+            <div style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>
+              No headings found. Select a text element and set a Heading Level in the inspector.
+            </div>
+          ) : entries.map((e, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 3,
+              paddingLeft: (e.level - 1) * 12, fontSize: e.level === 1 ? fontSize : fontSize - 1,
+              fontWeight: e.level === 1 ? 600 : 400, color
+            }}>
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.text}</span>
+              <span style={{ flexShrink: 0, borderBottom: '1px dotted #cbd5e1', flex: 1, alignSelf: 'center', margin: '0 4px' }} />
+              <span style={{ flexShrink: 0 }}>{e.page}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
     return (
       <div className="editor-placeholder">
         <FiBox className="editor-placeholder-icon" />
@@ -2906,6 +3100,15 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             <FiCode />
           </motion.button>
           <motion.button
+            className="editor-icon-button"
+            title="Help (F1)"
+            onClick={() => setHelpModalOpen(true)}
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <FiHelpCircle />
+          </motion.button>
+          <motion.button
             className="editor-primary-button"
             onClick={onPreview}
             whileHover={{ y: -1 }}
@@ -2954,8 +3157,15 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                         return (
                           <motion.button
                             key={tool.id}
-                            className="editor-tool-button"
-                            onClick={() => addElement(tool)}
+                            className={`editor-tool-button${drawingMode === tool.id ? ' is-draw-active' : ''}`}
+                            onClick={() => {
+                              if (tool.id === 'line' || tool.id === 'arrow' || tool.id === 'draw') {
+                                setDrawingMode(prev => (prev === tool.id ? null : tool.id as 'line' | 'arrow' | 'draw'));
+                                clearSelection();
+                              } else {
+                                addElement(tool);
+                              }
+                            }}
                             draggable
                             onDragStartCapture={(event) => handleToolDragStart(event, tool)}
                             whileHover={{ x: 2 }}
@@ -2978,6 +3188,15 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             })}
           </div>
 
+          <button
+            className="editor-form-block-btn"
+            onClick={() => setFormBlockModalOpen(true)}
+            title="Insert a pre-built group of form fields (address, contact, etc.)"
+          >
+            <FiGrid size={14} />
+            Insert Form Block
+          </button>
+
           <div className="editor-layer-summary">
             <div>
               <FiLayers />
@@ -2993,6 +3212,15 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             <div>
               <span>Page {currentPageIndex + 1} / {pages.length}</span>
               <strong>{pageWidth} × {pageHeight} px</strong>
+              {(() => {
+                const a4 = PAGE_PRESETS['A4'];
+                const isA4 = pageWidth === a4.width && pageHeight === a4.height;
+                if (isA4) return null;
+                const preset = Object.entries(PAGE_PRESETS).find(([, p]) => p.width === pageWidth && p.height === pageHeight);
+                return (
+                  <span className="editor-page-size-badge">{preset ? preset[0] : 'Custom'}</span>
+                );
+              })()}
             </div>
             <div className="editor-stage-zoom">
               <button
@@ -3013,6 +3241,12 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             </div>
           </div>
 
+          {drawingMode && (
+            <div className="editor-draw-badge">
+              {drawingMode === 'line' ? 'Drawing line' : drawingMode === 'arrow' ? 'Drawing arrow' : 'Freehand drawing'} — click and drag on the canvas &nbsp;·&nbsp; <kbd>Esc</kbd> to cancel
+            </div>
+          )}
+
           <div style={{ display: 'flex', justifyContent: 'center', minHeight: pageHeight * zoomLevel + 48 }}>
             <div
               className={`editor-page ${isDragOverCanvas ? 'is-drag-over' : ''}`}
@@ -3032,6 +3266,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 transformOrigin: 'top center',
                 flexShrink: 0,
                 alignSelf: 'flex-start',
+                cursor: drawingMode ? 'crosshair' : undefined,
               }}
               onPointerDown={handleCanvasPointerDown}
               onContextMenu={handleCanvasContextMenu}
@@ -3284,6 +3519,39 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     height: Math.abs(marqueeState.currentY - marqueeState.startY),
                   }}
                 />
+              )}
+
+              {/* Draw ghost preview */}
+              {drawGhost && (
+                <svg
+                  style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'visible', width: '100%', height: '100%', zIndex: 30 }}
+                >
+                  {drawingMode === 'line' && (
+                    <line
+                      x1={drawGhost.startX} y1={drawGhost.startY}
+                      x2={drawGhost.currentX} y2={drawGhost.currentY}
+                      stroke="#9ca3af" strokeWidth="2" strokeDasharray="6 3"
+                    />
+                  )}
+                  {drawingMode === 'arrow' && (
+                    <>
+                      <defs>
+                        <marker id="draw-ghost-arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                          <polygon points="0 0, 8 3, 0 6" fill="#dc2626" />
+                        </marker>
+                      </defs>
+                      <line
+                        x1={drawGhost.startX} y1={drawGhost.startY}
+                        x2={drawGhost.currentX} y2={drawGhost.currentY}
+                        stroke="#dc2626" strokeWidth="2" strokeDasharray="6 3"
+                        markerEnd="url(#draw-ghost-arrowhead)"
+                      />
+                    </>
+                  )}
+                  {drawingMode === 'draw' && drawGhost.pathPoints && (
+                    <path d={drawGhost.pathPoints} stroke="#1d4ed8" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  )}
+                </svg>
               )}
             </div>
             </div>
@@ -4734,6 +5002,182 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   </>
                 )}
               </div>
+
+              {/* ── Heading Level (text / richtext) ── */}
+              {(selectedElement.type === 'text' || selectedElement.type === 'richtext') && (
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading"><FiBookOpen /><span>Heading Level</span></div>
+                  <div className="editor-form-stack" style={{ padding: '8px 12px' }}>
+                    <select
+                      value={selectedElement.headingLevel ?? ''}
+                      onChange={e => updateSelectedElement({ headingLevel: e.target.value === '' ? null : Number(e.target.value) as 1 | 2 | 3 })}
+                    >
+                      <option value="">None (body text)</option>
+                      <option value="1">Heading 1</option>
+                      <option value="2">Heading 2</option>
+                      <option value="3">Heading 3</option>
+                    </select>
+                    <small style={{ color: '#64748b', fontSize: 11 }}>Headings are included in the Table of Contents element.</small>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Form field: tab order + validation ── */}
+              {(['field', 'checkbox', 'radio', 'dropdown', 'optionlist', 'signature'] as const).includes(selectedElement.type as any) && (
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading"><FiGrid /><span>Form & Validation</span></div>
+                  <div className="editor-form-stack" style={{ padding: '8px 12px', gap: 6 }}>
+                    <label className="editor-prop-row">
+                      <span>Tab index</span>
+                      <input type="number" min={0} step={1}
+                        value={selectedElement.tabIndex ?? ''}
+                        placeholder="auto"
+                        onChange={e => updateSelectedElement({ tabIndex: e.target.value === '' ? undefined : Number(e.target.value) })}
+                      />
+                    </label>
+                    {selectedElement.type === 'field' && (
+                      <>
+                        <label className="editor-prop-row">
+                          <span>Min length</span>
+                          <input type="number" min={0} step={1}
+                            value={selectedElement.validationMin ?? ''}
+                            placeholder="—"
+                            onChange={e => updateSelectedElement({ validationMin: e.target.value === '' ? undefined : Number(e.target.value) })}
+                          />
+                        </label>
+                        <label className="editor-prop-row">
+                          <span>Max length</span>
+                          <input type="number" min={0} step={1}
+                            value={selectedElement.validationMax ?? ''}
+                            placeholder="—"
+                            onChange={e => updateSelectedElement({ validationMax: e.target.value === '' ? undefined : Number(e.target.value) })}
+                          />
+                        </label>
+                        <label className="editor-prop-row">
+                          <span>Pattern (regex)</span>
+                          <input type="text"
+                            value={selectedElement.validationPattern ?? ''}
+                            placeholder="e.g. \\d{5}"
+                            onChange={e => updateSelectedElement({ validationPattern: e.target.value || undefined })}
+                          />
+                        </label>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Table of Contents ── */}
+              {selectedElement.type === 'toc' && (() => {
+                const allHeadings = pages.flatMap((p, pi) =>
+                  p.elements
+                    .filter(el => el.headingLevel != null)
+                    .map((el, idx) => ({
+                      text: el.content || el.htmlContent?.replace(/<[^>]+>/g, '') || `Heading ${idx + 1}`,
+                      level: (el.headingLevel ?? 1) as 1 | 2 | 3,
+                      page: pi + 1,
+                    }))
+                );
+                const hasHeadings = allHeadings.length > 0;
+                const minLevel = selectedElement.tocMinLevel ?? 1;
+                const maxLevel = selectedElement.tocMaxLevel ?? 3;
+                const filteredCount = allHeadings.filter(h => h.level >= minLevel && h.level <= maxLevel).length;
+
+                const updateToc = () => {
+                  updateSelectedElement({ tocEntries: allHeadings });
+                };
+
+                return (
+                  <div className="editor-settings-section">
+                    <div className="editor-settings-heading"><FiBookOpen /><span>Table of Contents</span></div>
+                    <div className="editor-form-stack" style={{ padding: '8px 12px', gap: 10 }}>
+
+                      {/* Title */}
+                      <label className="editor-label">
+                        <span>Title</span>
+                        <input
+                          className="editor-input"
+                          type="text"
+                          value={selectedElement.tocTitle ?? 'Table of Contents'}
+                          onChange={e => updateSelectedElement({ tocTitle: e.target.value })}
+                          placeholder="Table of Contents"
+                        />
+                      </label>
+
+                      {/* Heading level range */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                        <label className="editor-label">
+                          <span>Min level</span>
+                          <select className="editor-select"
+                            value={minLevel}
+                            onChange={e => updateSelectedElement({ tocMinLevel: Number(e.target.value) as 1 | 2 | 3 })}
+                          >
+                            <option value={1}>H1</option>
+                            <option value={2}>H2</option>
+                            <option value={3}>H3</option>
+                          </select>
+                        </label>
+                        <label className="editor-label">
+                          <span>Max level</span>
+                          <select className="editor-select"
+                            value={maxLevel}
+                            onChange={e => updateSelectedElement({ tocMaxLevel: Number(e.target.value) as 1 | 2 | 3 })}
+                          >
+                            <option value={1}>H1</option>
+                            <option value={2}>H2</option>
+                            <option value={3}>H3</option>
+                          </select>
+                        </label>
+                      </div>
+
+                      {/* Options */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedElement.tocShowPageNumbers ?? true}
+                            onChange={e => updateSelectedElement({ tocShowPageNumbers: e.target.checked })}
+                          />
+                          Show page numbers
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedElement.tocShowLeaderDots ?? true}
+                            onChange={e => updateSelectedElement({ tocShowLeaderDots: e.target.checked })}
+                          />
+                          Show leader dots
+                        </label>
+                      </div>
+
+                      {/* Status */}
+                      {!hasHeadings ? (
+                        <div className="editor-toc-warning">
+                          No heading-level elements found. Select a text element and set a Heading Level in the inspector.
+                        </div>
+                      ) : (
+                        <small style={{ color: '#64748b', fontSize: 11 }}>
+                          {filteredCount} entr{filteredCount !== 1 ? 'ies' : 'y'} (H{minLevel}–H{maxLevel}) across {pages.length} page{pages.length !== 1 ? 's' : ''}
+                          {(selectedElement.tocEntries?.length ?? 0) > 0 && (
+                            <> · last updated: {selectedElement.tocEntries!.length} entries</>
+                          )}
+                        </small>
+                      )}
+
+                      {/* Update button */}
+                      <button
+                        className="editor-toc-update-btn"
+                        onClick={updateToc}
+                        disabled={!hasHeadings}
+                        title={!hasHeadings ? 'Assign heading levels to text elements first' : 'Scan all pages and rebuild the TOC entry list'}
+                      >
+                        <FiBookOpen size={14} /> Update TOC
+                      </button>
+
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* ── Content (text element) — before Typography ── */}
               {selectedElement.type === 'text' && (() => {
@@ -6575,6 +7019,24 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             bulkReplaceContent(updatedPages, updatedShared);
             setFindReplaceOpen(false);
           }}
+        />
+      )}
+
+      {formBlockModalOpen && (
+        <FormBlockModal
+          onClose={() => setFormBlockModalOpen(false)}
+          onInsert={(newElements) => {
+            snapshotHistory();
+            newElements.forEach(el => onElementAdd(nameElement(el)));
+            setFormBlockModalOpen(false);
+          }}
+        />
+      )}
+
+      {helpModalOpen && (
+        <HelpModal
+          selectedElementType={selectedElement?.type ?? null}
+          onClose={() => setHelpModalOpen(false)}
         />
       )}
     </div>

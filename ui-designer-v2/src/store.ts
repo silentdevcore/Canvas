@@ -89,6 +89,8 @@ interface EditorState {
   backgroundPdf: File | null;
   pageSettings: PageSettings;
   settingsModifiedSinceExport: boolean;
+  helpModalOpen: boolean;
+  setHelpModalOpen: (open: boolean) => void;
   // Current preview language (ephemeral — not persisted)
   currentPreviewLanguage: string;
   setCurrentPreviewLanguage: (lang: string) => void;
@@ -162,10 +164,12 @@ export const useEditorStore = create<EditorState>()(
       backgroundPdf: null,
       pageSettings: DEFAULT_PAGE_SETTINGS,
       settingsModifiedSinceExport: false,
+      helpModalOpen: false,
       currentPreviewLanguage: navigator.language.split('-')[0],
       undoStack: [],
       redoStack: [],
 
+      setHelpModalOpen: (open) => set({ helpModalOpen: open }),
       setCurrentPreviewLanguage: (lang) => set({ currentPreviewLanguage: lang }),
 
       upsertLocalizedProperty: (prop) => {
@@ -416,7 +420,7 @@ export const useEditorStore = create<EditorState>()(
       version: 6,
       partialize: (state) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { undoStack, redoStack, snapshotHistory, undo, redo, currentPreviewLanguage, setCurrentPreviewLanguage, upsertLocalizedProperty, deleteLocalizedProperty, ...rest } = state;
+        const { undoStack, redoStack, snapshotHistory, undo, redo, currentPreviewLanguage, setCurrentPreviewLanguage, upsertLocalizedProperty, deleteLocalizedProperty, helpModalOpen, setHelpModalOpen, ...rest } = state;
         return {
           ...rest,
           currentTemplate: persistableTemplate(rest.currentTemplate),
