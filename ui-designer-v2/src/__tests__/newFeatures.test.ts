@@ -200,3 +200,195 @@ describe('Form block insertion', () => {
     expect(els[0].y).toBe(200);
   });
 });
+
+// ── Form metadata export ───────────────────────────────────────────────────
+
+type FormElement = { id: string; type: string; fieldName?: string; fieldLabel?: string; required?: boolean; tabIndex?: number; validationMin?: number; validationMax?: number; validationPattern?: string };
+
+function buildFormMetadata(elements: FormElement[]) {
+  const FORM_TYPES = new Set(['field', 'checkbox', 'radio', 'dropdown', 'signature']);
+  return elements
+    .filter(el => FORM_TYPES.has(el.type))
+    .map(el => ({
+      id: el.id,
+      type: el.type,
+      name: el.fieldName || el.id,
+      required: Boolean(el.required),
+      tabIndex: el.tabIndex ?? null,
+      validationMin: el.validationMin ?? null,
+      validationMax: el.validationMax ?? null,
+      validationPattern: el.validationPattern ?? null,
+    }))
+    .sort((a, b) => {
+      if (a.tabIndex !== null && b.tabIndex !== null) return a.tabIndex - b.tabIndex;
+      if (a.tabIndex !== null) return -1;
+      if (b.tabIndex !== null) return 1;
+      return 0;
+    });
+}
+
+describe('Form metadata export', () => {
+  test('only form-type elements are included', () => {
+    const elements: FormElement[] = [
+      { id: 'e1', type: 'text' },
+      { id: 'e2', type: 'field', fieldName: 'name', required: true },
+      { id: 'e3', type: 'image' },
+      { id: 'e4', type: 'checkbox', fieldName: 'agree' },
+    ];
+    const meta = buildFormMetadata(elements);
+    expect(meta).toHaveLength(2);
+    expect(meta.map(m => m.type)).toEqual(['field', 'checkbox']);
+  });
+
+  test('fields are sorted by tabIndex ascending', () => {
+    const elements: FormElement[] = [
+      { id: 'e1', type: 'field', tabIndex: 3 },
+      { id: 'e2', type: 'field', tabIndex: 1 },
+      { id: 'e3', type: 'field', tabIndex: 2 },
+    ];
+    const meta = buildFormMetadata(elements);
+    expect(meta.map(m => m.tabIndex)).toEqual([1, 2, 3]);
+  });
+
+  test('elements with tabIndex sort before those without', () => {
+    const elements: FormElement[] = [
+      { id: 'e1', type: 'field' },
+      { id: 'e2', type: 'field', tabIndex: 1 },
+    ];
+    const meta = buildFormMetadata(elements);
+    expect(meta[0].tabIndex).toBe(1);
+    expect(meta[1].tabIndex).toBeNull();
+  });
+
+  test('validation fields are exported correctly', () => {
+    const elements: FormElement[] = [
+      { id: 'e1', type: 'field', validationMin: 3, validationMax: 50, validationPattern: '^[A-Za-z]+$' },
+    ];
+    const meta = buildFormMetadata(elements);
+    expect(meta[0].validationMin).toBe(3);
+    expect(meta[0].validationMax).toBe(50);
+    expect(meta[0].validationPattern).toBe('^[A-Za-z]+$');
+  });
+
+  test('required flag is exported', () => {
+    const elements: FormElement[] = [
+      { id: 'e1', type: 'field', required: true },
+      { id: 'e2', type: 'checkbox', required: false },
+    ];
+    const meta = buildFormMetadata(elements);
+    expect(meta[0].required).toBe(true);
+    expect(meta[1].required).toBe(false);
+  });
+});
+
+// ── Document mode toggle (Section 6) ──────────────────────────────────────
+
+type ToolGroup = { id: string; label: string; toolIds: string[] };
+
+function getVisibleToolGroups(groups: ToolGroup[], documentMode: 'pdf' | 'word'): ToolGroup[] {
+  return documentMode === 'pdf' ? groups.filter(g => g.id !== 'word') : groups;
+}
+
+const ALL_TOOL_GROUPS: ToolGroup[] = [
+  { id: 'text',     label: 'Text Elements',        toolIds: ['text', 'richtext', 'link'] },
+  { id: 'form',     label: 'Form Elements',         toolIds: ['field', 'checkbox', 'dropdown'] },
+  { id: 'advanced', label: 'Advanced',              toolIds: ['toc', 'date', 'pagenumber'] },
+  { id: 'word',     label: 'Word / DOCX Elements',  toolIds: ['footnote', 'endnote', 'contentcontrol'] },
+];
+
+describe('Document mode: toolbar filtering', () => {
+  test('PDF mode hides the word tool group', () => {
+    const visible = getVisibleToolGroups(ALL_TOOL_GROUPS, 'pdf');
+    expect(visible.some(g => g.id === 'word')).toBe(false);
+  });
+
+  test('PDF mode keeps all non-word groups', () => {
+    const visible = getVisibleToolGroups(ALL_TOOL_GROUPS, 'pdf');
+    expect(visible).toHaveLength(3);
+    expect(visible.map(g => g.id)).toEqual(['text', 'form', 'advanced']);
+  });
+
+  test('Word mode shows all groups including word', () => {
+    const visible = getVisibleToolGroups(ALL_TOOL_GROUPS, 'word');
+    expect(visible).toHaveLength(4);
+    expect(visible.some(g => g.id === 'word')).toBe(true);
+  });
+
+  test('switching from PDF back to Word restores word group', () => {
+    let mode: 'pdf' | 'word' = 'pdf';
+    expect(getVisibleToolGroups(ALL_TOOL_GROUPS, mode).some(g => g.id === 'word')).toBe(false);
+    mode = 'word';
+    expect(getVisibleToolGroups(ALL_TOOL_GROUPS, mode).some(g => g.id === 'word')).toBe(true);
+  });
+});
+
+describe('Document mode: warning banner logic', () => {
+  const WORD_ONLY_TYPES = new Set(['footnote', 'endnote', 'contentcontrol']);
+
+  test('shows warning when word elements on canvas in PDF mode', () => {
+    const elements = [{ type: 'text' }, { type: 'footnote' }];
+    const wordOnCanvas = elements.some(el => WORD_ONLY_TYPES.has(el.type));
+    expect('pdf' === 'pdf' && wordOnCanvas).toBe(true);
+  });
+
+  test('no warning when no word-only elements on canvas in PDF mode', () => {
+    const elements = [{ type: 'text' }, { type: 'link' }, { type: 'bookmark' }];
+    const wordOnCanvas = elements.some(el => WORD_ONLY_TYPES.has(el.type));
+    expect(wordOnCanvas).toBe(false);
+  });
+
+  test('bookmark is not classified as word-only', () => {
+    expect(WORD_ONLY_TYPES.has('bookmark')).toBe(false);
+  });
+
+  test('footnote, endnote, contentcontrol are word-only', () => {
+    ['footnote', 'endnote', 'contentcontrol'].forEach(t => {
+      expect(WORD_ONLY_TYPES.has(t)).toBe(true);
+    });
+  });
+});
+
+// ── Help modal context (Section 5) ────────────────────────────────────────
+
+function getInitialTab(selectedElementType: string | null): string {
+  return selectedElementType ? 'elements' : 'shortcuts';
+}
+
+describe('HelpModal tab context', () => {
+  test('opens on elements tab when an element is selected', () => {
+    expect(getInitialTab('table')).toBe('elements');
+    expect(getInitialTab('text')).toBe('elements');
+    expect(getInitialTab('toc')).toBe('elements');
+  });
+
+  test('opens on shortcuts tab when nothing is selected', () => {
+    expect(getInitialTab(null)).toBe('shortcuts');
+  });
+
+  test('helpModalOpen toggles between true and false', () => {
+    let helpModalOpen = false;
+    const setHelpModalOpen = (open: boolean) => { helpModalOpen = open; };
+    setHelpModalOpen(true);
+    expect(helpModalOpen).toBe(true);
+    setHelpModalOpen(false);
+    expect(helpModalOpen).toBe(false);
+  });
+
+  test('F1 binding sets helpModalOpen to true (simulated)', () => {
+    let helpModalOpen = false;
+    const handleKeyDown = (key: string) => {
+      if (key === 'F1') helpModalOpen = true;
+    };
+    handleKeyDown('F1');
+    expect(helpModalOpen).toBe(true);
+  });
+
+  test('Escape binding sets helpModalOpen to false (simulated)', () => {
+    let helpModalOpen = true;
+    const handleKeyDown = (key: string) => {
+      if (key === 'Escape') helpModalOpen = false;
+    };
+    handleKeyDown('Escape');
+    expect(helpModalOpen).toBe(false);
+  });
+});

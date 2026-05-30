@@ -455,6 +455,51 @@
   color: #1e40af;
 }
 
+.editor-doc-mode-toggle {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.editor-doc-mode-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.editor-doc-mode-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.editor-doc-mode-btn--active {
+  background: #2563eb;
+  color: #fff;
+}
+
+.editor-doc-mode-btn--active:hover {
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.editor-doc-mode-warning {
+  margin: 8px 12px 0;
+  padding: 7px 12px;
+  background: #fef9c3;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #92400e;
+  line-height: 1.4;
+}
+
 .editor-layer-summary {
   display: flex;
   align-items: center;
@@ -713,6 +758,29 @@
   background: #ffffff;
   border: 1px solid #c7dcff;
   border-radius: 5px;
+}
+
+.editor-form-field--textarea {
+  height: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.editor-textarea-preview {
+  flex: 1;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  min-height: 48px;
+}
+
+.editor-textarea-placeholder {
+  color: #9ca3af;
+  font-size: 11px;
+  font-style: italic;
 }
 
 .editor-checkbox-field {
@@ -1545,6 +1613,43 @@
   border-top: 1px solid #e2e8f0;
   overflow-x: auto;
   flex-shrink: 0;
+}
+
+.editor-page-strip--widescreen {
+  padding: 10px 16px;
+  background: #1e293b;
+  border-top: 2px solid #334155;
+  gap: 10px;
+}
+
+.editor-page-strip--widescreen .editor-page-thumb-btn {
+  width: 80px;
+  height: 45px;
+  background: #334155;
+  border-color: #475569;
+  border-radius: 3px;
+}
+
+.editor-page-strip--widescreen .editor-page-thumb.is-active .editor-page-thumb-btn {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.35);
+}
+
+.editor-page-strip--widescreen .editor-page-thumb-num {
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.editor-page-strip--widescreen .editor-page-add-btn {
+  background: #334155;
+  border-color: #475569;
+  color: #94a3b8;
+}
+
+.editor-page-strip--widescreen .editor-page-add-btn:hover {
+  background: #475569;
+  color: #e2e8f0;
 }
 
 .editor-page-thumb {

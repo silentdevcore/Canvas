@@ -9,6 +9,7 @@ export type ElementType =
   | 'signature'
   | 'richtext'
   | 'field'
+  | 'textarea'
   | 'checkbox'
   | 'rect'
   | 'circle'
@@ -66,6 +67,7 @@ export interface SimpleElement {
   // Form fields
   fieldLabel?: string;
   fieldName?: string;
+  placeholder?: string;
   required?: boolean;
   // Chart
   chartType?: 'bar' | 'line' | 'pie';

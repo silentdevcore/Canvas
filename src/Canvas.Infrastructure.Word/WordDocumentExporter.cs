@@ -1,4 +1,8 @@
+using System.Globalization;
 using Canvas.Core.Abstractions;
+using QRCoder;
+using ZXing;
+using ZXing.Common;
 using Canvas.Core.Contracts;
 using Canvas.Core.Primitives;
 using DocumentFormat.OpenXml;
@@ -341,6 +345,40 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 break;
             }
 
+            case "textarea":
+            {
+                var label = el.FieldLabel ?? "";
+                var req   = el.Required == true ? " *" : "";
+                var para  = new Paragraph();
+                var ppr   = new ParagraphProperties();
+                ApplyParagraphPositioning(ppr, el, layout, applyTopOffset: true);
+                para.PrependChild(ppr);
+
+                if (!string.IsNullOrEmpty(label))
+                {
+                    var run = para.AppendChild(new Run());
+                    run.PrependChild(BuildRunProperties(s, "1F2937", forceBold: true));
+                    run.AppendChild(new Text($"{label}: "));
+
+                    if (!string.IsNullOrEmpty(req))
+                    {
+                        var reqRun = para.AppendChild(new Run());
+                        reqRun.PrependChild(new RunProperties(new Color { Val = "DC2626" }));
+                        reqRun.AppendChild(new Text(req + " "));
+                    }
+                }
+
+                var lineCount = Math.Max(2, (int)Math.Round(el.Height / 20.0));
+                var run2 = para.AppendChild(new Run());
+                run2.PrependChild(BuildRunProperties(s, "1F2937", forceUnderline: true));
+                run2.AppendChild(new Text(string.Join("\n", Enumerable.Repeat("_______________", lineCount)))
+                    { Space = SpaceProcessingModeValues.Preserve });
+
+                body.AppendChild(para);
+                AdvanceCursor(layout, el);
+                break;
+            }
+
             case "checkbox":
             {
                 var label = el.FieldLabel ?? "";
@@ -664,6 +702,81 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 break;
             }
 
+            case "date":
+            {
+                var fmt  = el.DateFormat ?? "yyyy-MM-dd";
+                var now  = DateTime.UtcNow;
+                if (!string.IsNullOrWhiteSpace(el.Timezone))
+                {
+                    try { now = TimeZoneInfo.ConvertTimeFromUtc(now, TimeZoneInfo.FindSystemTimeZoneById(el.Timezone)); }
+                    catch { /* unsupported TZ — stay UTC */ }
+                }
+                var text = now.ToString(fmt, CultureInfo.InvariantCulture);
+                var para = new Paragraph();
+                var ppr  = new ParagraphProperties();
+                ApplyParagraphPositioning(ppr, el, layout, applyTopOffset: true);
+                para.PrependChild(ppr);
+                para.AppendChild(new Run(new Text(text)));
+                body.AppendChild(para);
+                AdvanceCursor(layout, el);
+                break;
+            }
+
+            case "dropdown":
+            {
+                var label   = el.FieldLabel ?? el.FieldName ?? "Dropdown";
+                var items   = el.Options     ?? [];
+                var current = items.FirstOrDefault() ?? "";
+
+                var sdtProps = new SdtProperties();
+                sdtProps.AppendChild(new Tag { Val = el.FieldName ?? el.Id });
+                sdtProps.AppendChild(new SdtAlias { Val = label });
+
+                // Combo-box listing with one item per DropdownItems entry
+                var combo = new SdtContentDropDownList();
+                foreach (var item in items)
+                    combo.AppendChild(new ListItem { DisplayText = item, Value = item });
+                sdtProps.AppendChild(combo);
+
+                var sdtContent = new SdtContentBlock();
+                var innerPara  = new Paragraph();
+                var ippr       = new ParagraphProperties();
+                ApplyParagraphPositioning(ippr, el, layout, applyTopOffset: true);
+                innerPara.PrependChild(ippr);
+                innerPara.AppendChild(new Run(new Text(current)));
+                sdtContent.AppendChild(innerPara);
+
+                var sdt = new SdtBlock();
+                sdt.AppendChild(sdtProps);
+                sdt.AppendChild(sdtContent);
+                body.AppendChild(sdt);
+                AdvanceCursor(layout, el);
+                break;
+            }
+
+            case "qrcode":
+            {
+                var value = el.QrValue ?? "";
+                if (string.IsNullOrWhiteSpace(value)) { AppendUnsupportedPlaceholder(body, el, layout); break; }
+                try { EmbedPngBytes(body, mainPart, el, layout, WqrGenerateQrPng(value)); }
+                catch { AppendUnsupportedPlaceholder(body, el, layout); }
+                break;
+            }
+
+            case "barcode":
+            {
+                var value = el.BarcodeValue ?? "";
+                if (string.IsNullOrWhiteSpace(value)) { AppendUnsupportedPlaceholder(body, el, layout); break; }
+                try
+                {
+                    var w = Math.Max((int)el.Width, 100);
+                    var h = Math.Max((int)(el.Height * 0.7), 40);
+                    EmbedPngBytes(body, mainPart, el, layout, WqrGenerateBarcodePng(value, el.BarcodeType, w, h));
+                }
+                catch { AppendUnsupportedPlaceholder(body, el, layout); }
+                break;
+            }
+
             default:
             {
                 AppendUnsupportedPlaceholder(body, el, layout);
@@ -856,6 +969,122 @@ public sealed class WordDocumentExporter : IDocumentExporter
         para.AppendChild(new Run(drawing));
         body.AppendChild(para);
         AdvanceCursor(layout, el);
+    }
+
+    private static void EmbedPngBytes(Body body, MainDocumentPart mainPart, ElementDto el, LayoutContext layout, byte[] pngBytes)
+    {
+        var imagePart = mainPart.AddImagePart(ImagePartType.Png);
+        using (var ms = new MemoryStream(pngBytes))
+            imagePart.FeedData(ms);
+        var relationshipId = mainPart.GetIdOfPart(imagePart);
+        long cx = WordUnitConverter.CanvasToEmu(el.Width > 0 ? el.Width : 200);
+        long cy = WordUnitConverter.CanvasToEmu(el.Height > 0 ? el.Height : 150);
+        var drawingId = layout.NextDrawingId++;
+        var drawing = CreateInlineDrawing(relationshipId, el, cx, cy, drawingId, false);
+        var para = new Paragraph();
+        var ppr = new ParagraphProperties();
+        ApplyParagraphPositioning(ppr, el, layout, applyTopOffset: true);
+        para.PrependChild(ppr);
+        para.AppendChild(new Run(drawing));
+        body.AppendChild(para);
+        AdvanceCursor(layout, el);
+    }
+
+    private static byte[] WqrGenerateQrPng(string value)
+    {
+        var gen = new QRCodeGenerator();
+        using var data = gen.CreateQrCode(value, QRCodeGenerator.ECCLevel.M);
+        var qr = new PngByteQRCode(data);
+        return qr.GetGraphic(10);
+    }
+
+    private static byte[] WqrGenerateBarcodePng(string value, string? barcodeType, int width, int height)
+    {
+        var format = barcodeType?.ToLowerInvariant() switch
+        {
+            "code128" or "code-128" => BarcodeFormat.CODE_128,
+            "code39"  or "code-39"  => BarcodeFormat.CODE_39,
+            "ean13"   or "ean-13"   => BarcodeFormat.EAN_13,
+            "ean8"    or "ean-8"    => BarcodeFormat.EAN_8,
+            "upca"    or "upc-a"    => BarcodeFormat.UPC_A,
+            "pdf417"                => BarcodeFormat.PDF_417,
+            _                       => BarcodeFormat.CODE_128
+        };
+        var writer = new MultiFormatWriter();
+        var hints = new Dictionary<EncodeHintType, object> { [EncodeHintType.MARGIN] = 2 };
+        var matrix = writer.encode(value, format, width, height, hints);
+        var rows = matrix.Height;
+        var cols = matrix.Width;
+        var raw = new byte[rows * (1 + cols)];
+        var p = 0;
+        for (var y = 0; y < rows; y++)
+        {
+            raw[p++] = 0; // PNG filter byte
+            for (var x = 0; x < cols; x++)
+                raw[p++] = matrix[x, y] ? (byte)0 : (byte)255; // ZXing: [col,row]
+        }
+        return BuildGrayscalePng((uint)cols, (uint)rows, raw);
+    }
+
+    private static byte[] BuildGrayscalePng(uint w, uint h, byte[] raw)
+    {
+        static void Write32(byte[] buf, int off, uint v)
+        { buf[off] = (byte)(v >> 24); buf[off + 1] = (byte)(v >> 16); buf[off + 2] = (byte)(v >> 8); buf[off + 3] = (byte)v; }
+        static uint Crc32(byte[] data, int start, int len)
+        {
+            uint c = 0xffffffff;
+            for (var i = start; i < start + len; i++)
+            { c ^= data[i]; for (var k = 0; k < 8; k++) c = (c & 1) != 0 ? 0xedb88320u ^ (c >> 1) : c >> 1; }
+            return ~c;
+        }
+        // IHDR
+        var ihdr = new byte[13];
+        Write32(ihdr, 0, w); Write32(ihdr, 4, h);
+        ihdr[8] = 8; ihdr[9] = 0; ihdr[10] = 0; ihdr[11] = 0; ihdr[12] = 0;
+        // IDAT (zlib deflate)
+        var compressed = Deflate(raw);
+        using var ms2 = new MemoryStream();
+        using var bw = new BinaryWriter(ms2);
+        bw.Write(new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a }); // PNG sig
+        void WriteChunk(string name, byte[] data)
+        {
+            var nameBytes = System.Text.Encoding.ASCII.GetBytes(name);
+            bw.Write((uint)System.Net.IPAddress.HostToNetworkOrder((int)data.Length));
+            bw.Write(nameBytes);
+            bw.Write(data);
+            var crcData = new byte[4 + data.Length];
+            nameBytes.CopyTo(crcData, 0);
+            data.CopyTo(crcData, 4);
+            bw.Write((uint)System.Net.IPAddress.HostToNetworkOrder((int)Crc32(crcData, 0, crcData.Length)));
+        }
+        WriteChunk("IHDR", ihdr);
+        WriteChunk("IDAT", compressed);
+        WriteChunk("IEND", []);
+        bw.Flush();
+        return ms2.ToArray();
+    }
+
+    private static byte[] Deflate(byte[] data)
+    {
+        using var ms = new MemoryStream();
+        using (var ds = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+            ds.Write(data, 0, data.Length);
+        var deflated = ms.ToArray();
+        // wrap in zlib: 0x78 0x9C header + adler32 trailer
+        var adler = Adler32(data);
+        var result = new byte[2 + deflated.Length + 4];
+        result[0] = 0x78; result[1] = 0x9C;
+        deflated.CopyTo(result, 2);
+        result[^4] = (byte)(adler >> 24); result[^3] = (byte)(adler >> 16);
+        result[^2] = (byte)(adler >> 8);  result[^1] = (byte)adler;
+        return result;
+    }
+
+    private static uint Adler32(byte[] data)
+    {
+        uint s1 = 1, s2 = 0;
+        foreach (var b in data) { s1 = (s1 + b) % 65521; s2 = (s2 + s1) % 65521; }
+        return (s2 << 16) | s1;
     }
 
     private static void AppendImagePlaceholder(Body body, ElementDto el, LayoutContext layout, Dictionary<string, object> style)

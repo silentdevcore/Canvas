@@ -189,6 +189,16 @@ internal sealed class PdfWriter
             .GroupBy(destination => destination.Name, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.Last(), StringComparer.OrdinalIgnoreCase);
 
+        var hasAcroFields = document.Pages.Any(static p =>
+            p.ComboBoxAnnotations.Count > 0 || p.MultilineTextFields.Count > 0 || p.TextFields.Count > 0);
+        var acroFormHelvFontObjectId = hasAcroFields ? nextObjectId++ : (int?)null;
+        var pageComboAnnotObjectIds = new List<int>[pageCount];
+        var pageMultilineAnnotObjectIds = new List<int>[pageCount];
+        var pageTextFieldAnnotObjectIds = new List<int>[pageCount];
+        var allComboFieldObjectIds = new List<int>();
+        var allMultilineFieldObjectIds = new List<int>();
+        var allTextFieldObjectIds = new List<int>();
+
         for (var i = 0; i < pageCount; i++)
         {
             pageObjectIds[i] = nextObjectId++;
@@ -201,6 +211,36 @@ internal sealed class PdfWriter
             }
 
             pageAnnotationObjectIds[i] = annotationIds;
+
+            var comboIds = new List<int>();
+            foreach (var _ in document.Pages[i].ComboBoxAnnotations)
+            {
+                var comboId = nextObjectId++;
+                comboIds.Add(comboId);
+                allComboFieldObjectIds.Add(comboId);
+            }
+
+            pageComboAnnotObjectIds[i] = comboIds;
+
+            var multilineIds = new List<int>();
+            foreach (var _ in document.Pages[i].MultilineTextFields)
+            {
+                var mlId = nextObjectId++;
+                multilineIds.Add(mlId);
+                allMultilineFieldObjectIds.Add(mlId);
+            }
+
+            pageMultilineAnnotObjectIds[i] = multilineIds;
+
+            var textFieldIds = new List<int>();
+            foreach (var _ in document.Pages[i].TextFields)
+            {
+                var tfId = nextObjectId++;
+                textFieldIds.Add(tfId);
+                allTextFieldObjectIds.Add(tfId);
+            }
+
+            pageTextFieldAnnotObjectIds[i] = textFieldIds;
             pageObjects.Add(pageObjectIds[i]);
         }
 
@@ -338,6 +378,96 @@ internal sealed class PdfWriter
                 objects.Add(new PdfIndirectObject(annotationObjectId, annotationObject));
             }
 
+            var pageComboIds = pageComboAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.ComboBoxAnnotations.Count; i++)
+            {
+                var combo = page.ComboBoxAnnotations[i];
+                var comboObjectId = pageComboIds[i];
+
+                var comboRect = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[{0} {1} {2} {3}]",
+                    FormatNumber(combo.X),
+                    FormatNumber(combo.Y),
+                    FormatNumber(combo.X + combo.Width),
+                    FormatNumber(combo.Y + combo.Height));
+
+                var optArray = string.Join(" ", combo.Options.Select(o => $"({EscapeLiteralString(o)})"));
+                var selectedVal = combo.SelectedValue is { Length: > 0 } sv
+                    ? sv
+                    : (combo.Options.Count > 0 ? combo.Options[0] : string.Empty);
+
+                var widgetObject =
+                    $"<< /Type /Annot /Subtype /Widget /FT /Ch /Ff 131072 " +
+                    $"/T ({EscapeLiteralString(combo.FieldName)}) " +
+                    $"/V ({EscapeLiteralString(selectedVal)}) " +
+                    $"/Opt [{optArray}] " +
+                    $"/Rect {comboRect} " +
+                    $"/P {pageObjectId} 0 R " +
+                    $"/DA (/Helv {FormatNumber(combo.FontSize)} Tf 0 g) " +
+                    $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
+                    $"/MK << /BC [0 0 0] /BG [1 1 1] >> " +
+                    $"/BS << /W 1 /S /S >> >>\n";
+
+                objects.Add(new PdfIndirectObject(comboObjectId, widgetObject));
+            }
+
+            var pageMultilineIds = pageMultilineAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.MultilineTextFields.Count; i++)
+            {
+                var ml = page.MultilineTextFields[i];
+                var mlObjectId = pageMultilineIds[i];
+
+                var mlRect = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[{0} {1} {2} {3}]",
+                    FormatNumber(ml.X),
+                    FormatNumber(ml.Y),
+                    FormatNumber(ml.X + ml.Width),
+                    FormatNumber(ml.Y + ml.Height));
+
+                var mlWidgetObject =
+                    $"<< /Type /Annot /Subtype /Widget /FT /Tx /Ff 4096 " +
+                    $"/T ({EscapeLiteralString(ml.FieldName)}) " +
+                    $"/V ({EscapeLiteralString(ml.DefaultValue)}) " +
+                    $"/Rect {mlRect} " +
+                    $"/P {pageObjectId} 0 R " +
+                    $"/DA (/Helv {FormatNumber(ml.FontSize)} Tf 0 g) " +
+                    $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
+                    $"/MK << /BC [0 0 0] /BG [1 1 1] >> " +
+                    $"/BS << /W 1 /S /S >> >>\n";
+
+                objects.Add(new PdfIndirectObject(mlObjectId, mlWidgetObject));
+            }
+
+            var pageTextFieldIds = pageTextFieldAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.TextFields.Count; i++)
+            {
+                var tf = page.TextFields[i];
+                var tfObjectId = pageTextFieldIds[i];
+
+                var tfRect = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[{0} {1} {2} {3}]",
+                    FormatNumber(tf.X),
+                    FormatNumber(tf.Y),
+                    FormatNumber(tf.X + tf.Width),
+                    FormatNumber(tf.Y + tf.Height));
+
+                var tfWidgetObject =
+                    $"<< /Type /Annot /Subtype /Widget /FT /Tx /Ff 0 " +
+                    $"/T ({EscapeLiteralString(tf.FieldName)}) " +
+                    $"/V ({EscapeLiteralString(tf.DefaultValue)}) " +
+                    $"/Rect {tfRect} " +
+                    $"/P {pageObjectId} 0 R " +
+                    $"/DA (/Helv {FormatNumber(tf.FontSize)} Tf 0 g) " +
+                    $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
+                    $"/MK << /BC [0 0 0] /BG [1 1 1] >> " +
+                    $"/BS << /W 1 /S /S >> >>\n";
+
+                objects.Add(new PdfIndirectObject(tfObjectId, tfWidgetObject));
+            }
+
             var fontDictionary = string.Join(
                 " ",
                 pageFonts.Select(font => $"/{fontObjects[font].ResourceName} {fontObjects[font].ObjectId} 0 R")
@@ -353,8 +483,15 @@ internal sealed class PdfWriter
 
             var resourcesDictionary = BuildResourcesDictionary(fontDictionary, xObjectDictionary, extGStateDictionary);
 
+            var allAnnotIds = pageLinkAnnotationIds
+                .Concat(pageComboAnnotObjectIds[pageIndex])
+                .Concat(pageMultilineAnnotObjectIds[pageIndex])
+                .Concat(pageTextFieldAnnotObjectIds[pageIndex]);
             var annotsSegment = pageLinkAnnotationIds.Count > 0
-                ? $" /Annots [{string.Join(" ", pageLinkAnnotationIds.Select(id => $"{id} 0 R"))}]"
+                || pageComboAnnotObjectIds[pageIndex].Count > 0
+                || pageMultilineAnnotObjectIds[pageIndex].Count > 0
+                || pageTextFieldAnnotObjectIds[pageIndex].Count > 0
+                ? $" /Annots [{string.Join(" ", allAnnotIds.Select(id => $"{id} 0 R"))}]"
                 : string.Empty;
 
             var rotateSegment = page.RotationDegrees != 0 ? $" /Rotate {page.RotationDegrees}" : string.Empty;
@@ -472,14 +609,27 @@ internal sealed class PdfWriter
                 $"<< /Type /Outlines /First {firstBookmark} 0 R /Last {lastBookmark} 0 R /Count {rootChildren.Count} >>\n"));
         }
 
+        if (acroFormHelvFontObjectId is { } helvFontId)
+        {
+            objects.Add(new PdfIndirectObject(helvFontId,
+                "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>\n"));
+        }
+
         var viewerPreferences = BuildViewerPreferences(document.ViewerPreferences);
         var pageMode = BuildPageMode(document.ViewerPreferences.PageMode);
         var pageLayout = BuildPageLayout(document.ViewerPreferences.PageLayout);
 
+        var allAcroFieldIds = allComboFieldObjectIds.Concat(allMultilineFieldObjectIds).Concat(allTextFieldObjectIds).ToList();
+        var acroFormSegment = allAcroFieldIds.Count > 0
+            ? $" /AcroForm << /Fields [{string.Join(" ", allAcroFieldIds.Select(id => $"{id} 0 R"))}]" +
+              $" /DA (/Helv 0 Tf 0 g)" +
+              $" /DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> >>"
+            : string.Empty;
+
         var openAction = BuildOpenAction(document, pageObjectIds);
         var catalogObject = outlinesRootObjectId is { } outlinesRootId
-            ? $"<< /Type /Catalog /Pages {pagesObjectId} 0 R /Outlines {outlinesRootId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction} >>\n"
-            : $"<< /Type /Catalog /Pages {pagesObjectId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction} >>\n";
+            ? $"<< /Type /Catalog /Pages {pagesObjectId} 0 R /Outlines {outlinesRootId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment} >>\n"
+            : $"<< /Type /Catalog /Pages {pagesObjectId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment} >>\n";
 
         objects.Add(new PdfIndirectObject(catalogObjectId, catalogObject));
 

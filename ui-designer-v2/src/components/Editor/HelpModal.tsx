@@ -40,6 +40,7 @@ const ELEMENTS: Array<{ type: ElementType; label: string; description: string; p
   { type: 'qrcode',        label: 'QR Code',          description: 'QR code generated from a URL or data string.',                   pdf: true,  word: false },
   { type: 'barcode',       label: 'Barcode',          description: 'Code128, EAN, UPC and other formats.',                           pdf: true,  word: false },
   { type: 'field',         label: 'Text Field',       description: 'Interactive PDF form field for user input.',                     pdf: true,  word: true  },
+  { type: 'textarea',      label: 'Text Area',        description: 'Multi-line fillable text input for comments or descriptions.',    pdf: true,  word: true  },
   { type: 'checkbox',      label: 'Checkbox',         description: 'Single boolean checkbox form field.',                            pdf: true,  word: true  },
   { type: 'radio',         label: 'Radio Group',      description: 'Single-select radio buttons from a list of options.',            pdf: true,  word: true  },
   { type: 'dropdown',      label: 'Dropdown',         description: 'Select dropdown with a configurable list of options.',           pdf: true,  word: true  },
@@ -77,7 +78,7 @@ const FAQ: Array<{ q: string; a: string }> = [
 const HelpModal: React.FC<Props> = ({ selectedElementType, onClose }) => {
   const initialTab: Tab = selectedElementType ? 'elements' : 'quickstart';
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
-  const elementRef = useRef<HTMLDivElement | null>(null);
+  const elementRef = useRef<HTMLTableRowElement | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
   // Scroll to selected element type row when tab is 'elements'

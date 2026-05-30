@@ -81,7 +81,7 @@ function createStarterElements(template: TemplateDefinition): SimpleElement[] {
 }
 
 export function useTemplateLoader() {
-  const { setCurrentTemplate } = useEditorStore();
+  const { setCurrentTemplate, updatePageSettings } = useEditorStore();
   const navigate = useNavigate();
 
   const loadTemplate = (def: TemplateDefinition) => {
@@ -98,6 +98,18 @@ export function useTemplateLoader() {
       sharedElements: [],
       data: {}
     });
+    // For presentation/widescreen templates, apply pixel units and hide margin guides
+    if (def.format === 'widescreen' && def.pageWidth && def.pageHeight) {
+      updatePageSettings({
+        width: def.pageWidth,
+        height: def.pageHeight,
+        orientation: 'landscape',
+        unit: 'px',
+        showMarginGuide: false,
+      });
+    } else if (def.pageWidth && def.pageHeight) {
+      updatePageSettings({ width: def.pageWidth, height: def.pageHeight });
+    }
     const prev = parseInt(localStorage.getItem('canvas_docs_opened') ?? '0', 10);
     localStorage.setItem('canvas_docs_opened', String(prev + 1));
     localStorage.setItem('canvas_last_template', def.name);

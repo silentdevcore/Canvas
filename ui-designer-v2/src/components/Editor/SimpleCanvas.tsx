@@ -116,6 +116,7 @@ type Tool = {
   hint: string;
   icon: React.ComponentType<{ className?: string }>;
   create: () => SimpleElement;
+  supportedOutputs?: ('pdf' | 'word')[];
 };
 
 type ToolGroup = {
@@ -177,6 +178,7 @@ const ELEMENT_TYPE_LABELS: Record<string, string> = {
   barcode:      'Barcode',
   signature:    'Signature',
   field:        'Text Field',
+  textarea:     'Text Area',
   checkbox:     'Checkbox',
   button:       'Button',
   dropdown:     'Dropdown',
@@ -413,7 +415,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     }
   };
 
-  const { pageSettings, updatePageSettings, settingsModifiedSinceExport, snapshotHistory, undo, redo, bulkReplaceContent, currentPreviewLanguage, setCurrentPreviewLanguage, helpModalOpen, setHelpModalOpen } = useEditorStore();
+  const { pageSettings, updatePageSettings, settingsModifiedSinceExport, snapshotHistory, undo, redo, bulkReplaceContent, currentPreviewLanguage, setCurrentPreviewLanguage, helpModalOpen, setHelpModalOpen, documentMode, setDocumentMode } = useEditorStore();
   const pageWidth = pageSettings.width;
   const pageHeight = pageSettings.height;
   const isCurrentRtl = RTL_LANGS.has((currentPreviewLanguage || '').split('-')[0]);
@@ -531,6 +533,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Text',
       hint: 'Single line text block',
       icon: FiType,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('text'),
         type: 'text',
@@ -551,6 +554,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'QR Code',
       hint: 'Scannable link block',
       icon: FiHash,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('qrcode'),
         type: 'qrcode',
@@ -567,6 +571,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Barcode',
       hint: 'Product or order code',
       icon: FiCreditCard,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('barcode'),
         type: 'barcode',
@@ -583,6 +588,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Signature',
       hint: 'Approval line',
       icon: FiEdit3,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('signature'),
         type: 'signature',
@@ -598,6 +604,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Rich Text',
       hint: 'Formatted HTML copy',
       icon: FiFileText,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('richtext'),
         type: 'richtext',
@@ -613,6 +620,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Text Field',
       hint: 'Fillable form input',
       icon: FiFileText,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('field'),
         type: 'field',
@@ -626,10 +634,30 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       })
     },
     {
+      id: 'textarea',
+      label: 'Text Area',
+      hint: 'Multi-line fillable text input',
+      icon: FiAlignLeft,
+      supportedOutputs: ['pdf', 'word'] as const,
+      create: () => ({
+        id: createElementId('textarea'),
+        type: 'textarea' as const,
+        x: 96,
+        y: 200,
+        width: 260,
+        height: 120,
+        fieldLabel: 'Comments',
+        fieldName: 'comments',
+        placeholder: 'Enter your text here…',
+        required: false,
+      })
+    },
+    {
       id: 'checkbox',
       label: 'Checkbox',
       hint: 'Single-choice field',
       icon: FiCheckSquare,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('checkbox'),
         type: 'checkbox',
@@ -647,6 +675,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Image',
       hint: 'Image placeholder',
       icon: FiBox,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('image'),
         type: 'image',
@@ -662,6 +691,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Shape',
       hint: 'Generic shape block',
       icon: FiBox,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('shape'),
         type: 'shape',
@@ -677,6 +707,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Table',
       hint: 'Tabular content area',
       icon: FiLayers,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('table'),
         type: 'table',
@@ -698,6 +729,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Line',
       hint: 'Divider element',
       icon: FiBox,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('line'),
         type: 'line',
@@ -713,6 +745,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Rectangle',
       hint: 'Filled rectangle',
       icon: FiBox,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('rect'),
         type: 'rect',
@@ -728,6 +761,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Circle',
       hint: 'Circular shape',
       icon: FiBox,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('circle'),
         type: 'circle',
@@ -743,6 +777,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Chart',
       hint: 'Data chart block',
       icon: FiLayers,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('chart'),
         type: 'chart',
@@ -759,6 +794,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Subsection',
       hint: 'Nested content section',
       icon: FiLayers,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('subsection'),
         type: 'subsection',
@@ -773,6 +809,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Area',
       hint: 'Layout area container',
       icon: FiBox,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('area'),
         type: 'area',
@@ -787,6 +824,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Button',
       hint: 'Action button',
       icon: FiPlay,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('button'),
         type: 'button',
@@ -802,6 +840,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Dropdown',
       hint: 'Select input',
       icon: FiChevronDown,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('dropdown'),
         type: 'dropdown',
@@ -817,6 +856,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Option List',
       hint: 'List of choices',
       icon: FiList,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('optionlist'),
         type: 'optionlist',
@@ -832,6 +872,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Radio Group',
       hint: 'Single-select options',
       icon: FiCircle,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('radio'),
         type: 'radio',
@@ -847,6 +888,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Watermark',
       hint: 'Global text or image mark',
       icon: FiDroplet,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('watermark'),
         type: 'watermark',
@@ -871,6 +913,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Notiz',
       hint: 'Document annotation',
       icon: FiBookmark,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('note'),
         type: 'note',
@@ -890,6 +933,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Arrow',
       hint: 'Direction marker',
       icon: FiArrowUp,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('arrow'),
         type: 'arrow',
@@ -910,6 +954,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Draw',
       hint: 'Freehand vector stroke',
       icon: FiPenTool,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('draw'),
         type: 'draw',
@@ -927,6 +972,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Date',
       hint: 'Static or dynamic date',
       icon: FiCalendar,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('date'),
         type: 'date',
@@ -948,6 +994,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Markieren',
       hint: 'Transparent highlight',
       icon: FiEdit3,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('highlight'),
         type: 'highlight',
@@ -964,6 +1011,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Ankreuzen',
       hint: 'Check, cross or dot mark',
       icon: FiCheck,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('checkmark'),
         type: 'checkmark',
@@ -982,6 +1030,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Page Start/End',
       hint: 'Page boundary marker',
       icon: FiMaximize2,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('pageboundary'),
         type: 'pageboundary',
@@ -999,6 +1048,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Nummerierung',
       hint: 'Page number placeholder',
       icon: FiHash,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('pagenumber'),
         type: 'pagenumber',
@@ -1019,6 +1069,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Table of Contents',
       hint: 'Auto-generated TOC from headings',
       icon: FiBookOpen,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('toc'),
         type: 'toc',
@@ -1035,6 +1086,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Link',
       hint: 'Hyperlink element',
       icon: FiLink,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('link'),
         type: 'link',
@@ -1053,6 +1105,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Number',
       hint: 'Formatted number value',
       icon: FiHash,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('number'),
         type: 'number',
@@ -1075,6 +1128,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Footnote',
       hint: 'DOCX footnote reference',
       icon: FiFileText,
+      supportedOutputs: ['word'],
       create: () => ({
         id: createElementId('footnote'),
         type: 'footnote',
@@ -1091,6 +1145,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Endnote',
       hint: 'DOCX endnote reference',
       icon: FiFileText,
+      supportedOutputs: ['word'],
       create: () => ({
         id: createElementId('endnote'),
         type: 'endnote',
@@ -1107,6 +1162,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Bookmark',
       hint: 'Named anchor for cross-references',
       icon: FiBookmark,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('bookmark'),
         type: 'bookmark',
@@ -1124,6 +1180,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Comment',
       hint: 'Word-native margin comment',
       icon: FiEdit3,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('comment'),
         type: 'comment',
@@ -1143,6 +1200,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Content Control',
       hint: 'Structured Word content control (SDT)',
       icon: FiCode,
+      supportedOutputs: ['word'],
       create: () => ({
         id: createElementId('sdt'),
         type: 'contentcontrol',
@@ -1169,7 +1227,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     {
       id: 'form',
       label: 'Form Elements',
-      toolIds: ['field', 'checkbox', 'button', 'dropdown', 'optionlist', 'radio', 'signature', 'number']
+      toolIds: ['field', 'textarea', 'checkbox', 'button', 'dropdown', 'optionlist', 'radio', 'signature', 'number']
     },
     {
       id: 'visual',
@@ -1196,6 +1254,18 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   const toolsById = useMemo(
     () => Object.fromEntries(tools.map(tool => [tool.id, tool])) as Record<SimpleElement['type'], Tool>,
     [tools]
+  );
+
+  const WORD_ONLY_TYPES = new Set<SimpleElement['type']>(['footnote', 'endnote', 'contentcontrol']);
+
+  const visibleToolGroups = useMemo(
+    () => documentMode === 'pdf' ? toolGroups.filter(g => g.id !== 'word') : toolGroups,
+    [documentMode, toolGroups]
+  );
+
+  const wordElementsOnCanvas = useMemo(
+    () => elements.some(el => WORD_ONLY_TYPES.has(el.type as SimpleElement['type'])),
+    [elements]
   );
 
   const toggleGroup = (groupId: string) => {
@@ -2151,6 +2221,22 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       );
     }
 
+    if (element.type === 'textarea') {
+      return (
+        <div className="editor-form-field editor-form-field--textarea">
+          <span>
+            {element.fieldLabel}
+            {element.required && <span className="editor-field-required-badge" title="Required field">*</span>}
+          </span>
+          <div className="editor-textarea-preview">
+            {element.placeholder && (
+              <span className="editor-textarea-placeholder">{element.placeholder}</span>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     if (element.type === 'checkbox') {
       return (
         <div className="editor-checkbox-field">
@@ -3099,6 +3185,16 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
           >
             <FiCode />
           </motion.button>
+          <div className="editor-doc-mode-toggle" title="Output mode: affects which elements are shown in the toolbar">
+            <button
+              className={`editor-doc-mode-btn${documentMode === 'pdf' ? ' editor-doc-mode-btn--active' : ''}`}
+              onClick={() => setDocumentMode('pdf')}
+            >PDF</button>
+            <button
+              className={`editor-doc-mode-btn${documentMode === 'word' ? ' editor-doc-mode-btn--active' : ''}`}
+              onClick={() => setDocumentMode('word')}
+            >Word</button>
+          </div>
           <motion.button
             className="editor-icon-button"
             title="Help (F1)"
@@ -3127,8 +3223,13 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             <span>Add elements</span>
           </div>
 
+          {documentMode === 'pdf' && wordElementsOnCanvas && (
+            <div className="editor-doc-mode-warning">
+              Some elements on the canvas are Word-only and will not render in PDF export.
+            </div>
+          )}
           <div className="editor-tool-list">
-            {toolGroups.map(group => {
+            {visibleToolGroups.map(group => {
               const isExpanded = expandedGroups.includes(group.id);
 
               return (
@@ -3558,7 +3659,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
           </div>
 
           {/* Page navigation strip */}
-          <div className="editor-page-strip">
+          <div className={`editor-page-strip${pageWidth / pageHeight > 1.5 && pages.length > 1 ? ' editor-page-strip--widescreen' : ''}`}>
             {pages.map((page, index) => (
               <div
                 key={page.id}
@@ -5035,7 +5136,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                         onChange={e => updateSelectedElement({ tabIndex: e.target.value === '' ? undefined : Number(e.target.value) })}
                       />
                     </label>
-                    {selectedElement.type === 'field' && (
+                    {(selectedElement.type === 'field' || selectedElement.type === 'textarea') && (
                       <>
                         <label className="editor-prop-row">
                           <span>Min length</span>
@@ -5294,6 +5395,43 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       type="text"
                       value={selectedElement.fieldName || ''}
                       onChange={(event) => updateSelectedElement({ fieldName: event.target.value })}
+                    />
+                  </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedElement.required)}
+                      onChange={(event) => updateSelectedElement({ required: event.target.checked })}
+                    />
+                    <span>Required field</span>
+                  </label>
+                </div>
+              )}
+
+              {selectedElement.type === 'textarea' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Field label</span>
+                    <input
+                      type="text"
+                      value={selectedElement.fieldLabel || ''}
+                      onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    <span>Field name</span>
+                    <input
+                      type="text"
+                      value={selectedElement.fieldName || ''}
+                      onChange={(event) => updateSelectedElement({ fieldName: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    <span>Placeholder text</span>
+                    <input
+                      type="text"
+                      value={selectedElement.placeholder || ''}
+                      onChange={(event) => updateSelectedElement({ placeholder: event.target.value || undefined })}
                     />
                   </label>
                   <label className="editor-checkbox-control">

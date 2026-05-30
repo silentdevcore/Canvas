@@ -137,6 +137,7 @@ public sealed class ElementDto
     // Form fields
     public string? FieldLabel { get; set; }
     public string? FieldName { get; set; }
+    public string? Placeholder { get; set; }
     public bool? Required { get; set; }
 
     // Signature

@@ -91,6 +91,8 @@ export class ExportService {
         height: element.height,
         properties: this.extractElementProperties(element),
       })),
+      // Aggregated form metadata: all form fields sorted by tab order
+      formMetadata: this.buildFormMetadata(pages, sharedElements),
     };
   }
 
@@ -109,6 +111,7 @@ export class ExportService {
       barcode:    'Barcode',
       signature:  'Signature',
       field:      'FormField',
+      textarea:   'TextArea',
       checkbox:   'Checkbox',
       button:     'Button',
       dropdown:   'Dropdown',
@@ -273,6 +276,24 @@ export class ExportService {
           name: element.fieldName || element.id,
           required: Boolean(element.required),
           inputType: 'text',
+          tabIndex: element.tabIndex ?? null,
+          validationMin: element.validationMin ?? null,
+          validationMax: element.validationMax ?? null,
+          validationPattern: element.validationPattern ?? null,
+        };
+
+      case 'textarea':
+        return {
+          ...base,
+          label: element.fieldLabel || 'Text area',
+          name: element.fieldName || element.id,
+          placeholder: element.placeholder || '',
+          required: Boolean(element.required),
+          inputType: 'textarea',
+          tabIndex: element.tabIndex ?? null,
+          validationMin: element.validationMin ?? null,
+          validationMax: element.validationMax ?? null,
+          validationPattern: element.validationPattern ?? null,
         };
 
       case 'checkbox':
@@ -282,6 +303,7 @@ export class ExportService {
           name: element.fieldName || element.id,
           required: Boolean(element.required),
           checked: false,
+          tabIndex: element.tabIndex ?? null,
         };
 
       case 'button':
@@ -301,6 +323,7 @@ export class ExportService {
           multiSelect: element.multiSelect ?? false,
           fontSize: element.style?.fontSize || 14,
           color: element.style?.color || '#000000',
+          tabIndex: element.tabIndex ?? null,
         };
 
       case 'optionlist':
@@ -318,6 +341,7 @@ export class ExportService {
           options: element.options || [],
           fontSize: element.style?.fontSize || 14,
           color: element.style?.color || '#000000',
+          tabIndex: element.tabIndex ?? null,
         };
 
       case 'subsection':
@@ -908,6 +932,38 @@ export class ExportService {
     });
 
     return { isValid: errors.length === 0, errors };
+  }
+
+  private static buildFormMetadata(pages: Page[], sharedElements: SimpleElement[]) {
+    const FORM_TYPES = new Set(['field', 'textarea', 'checkbox', 'radio', 'dropdown', 'signature']);
+    const allElements = [
+      ...sharedElements,
+      ...pages.flatMap((page, i) => page.elements.map(el => ({ ...el, _pageIndex: i }))),
+    ] as (SimpleElement & { _pageIndex?: number })[];
+
+    const formFields = allElements
+      .filter(el => FORM_TYPES.has(el.type))
+      .map(el => ({
+        id: el.id,
+        type: el.type,
+        name: el.fieldName || el.id,
+        label: el.fieldLabel || el.signatureLabel || '',
+        required: Boolean(el.required),
+        tabIndex: el.tabIndex ?? null,
+        page: (el._pageIndex ?? 0) + 1,
+        validationMin: el.validationMin ?? null,
+        validationMax: el.validationMax ?? null,
+        validationPattern: el.validationPattern ?? null,
+        options: (el.type === 'dropdown' || el.type === 'radio' || el.type === 'optionlist') ? (el.options ?? []) : undefined,
+      }))
+      .sort((a, b) => {
+        if (a.tabIndex !== null && b.tabIndex !== null) return a.tabIndex - b.tabIndex;
+        if (a.tabIndex !== null) return -1;
+        if (b.tabIndex !== null) return 1;
+        return a.page - b.page;
+      });
+
+    return { fieldCount: formFields.length, fields: formFields };
   }
 }
 

@@ -7,6 +7,9 @@ public sealed class PdfPage
 {
     private readonly List<PdfPageElement> _elements = new();
     private readonly List<PdfLinkAnnotation> _linkAnnotations = new();
+    private readonly List<PdfComboBoxAnnotation> _comboBoxAnnotations = new();
+    private readonly List<PdfMultilineTextFieldAnnotation> _multilineTextFields = new();
+    private readonly List<PdfTextFieldAnnotation> _textFields = new();
 
     private readonly PdfFontLoader? _fontLoader;
 
@@ -45,6 +48,12 @@ public sealed class PdfPage
     internal IReadOnlyList<PdfPageElement> Elements => _elements;
 
     internal IReadOnlyList<PdfLinkAnnotation> LinkAnnotations => _linkAnnotations;
+
+    internal IReadOnlyList<PdfComboBoxAnnotation> ComboBoxAnnotations => _comboBoxAnnotations;
+
+    internal IReadOnlyList<PdfMultilineTextFieldAnnotation> MultilineTextFields => _multilineTextFields;
+
+    internal IReadOnlyList<PdfTextFieldAnnotation> TextFields => _textFields;
 
     public void SetPageBoundary(PdfPageBoundary boundary, PdfPoint lowerLeft, PdfPoint upperRight)
     {
@@ -1333,6 +1342,136 @@ public sealed class PdfPage
         }
 
         _linkAnnotations.Add(PdfLinkAnnotation.ForNamedDestination(x, y, width, height, destinationName));
+    }
+
+    public void AddComboBox(
+        string fieldName,
+        double x,
+        double y,
+        double width,
+        double height,
+        IReadOnlyList<string> options,
+        string? selectedValue = null,
+        double fontSize = 10)
+    {
+        if (string.IsNullOrWhiteSpace(fieldName))
+        {
+            throw new ArgumentException("Field name cannot be null or empty.", nameof(fieldName));
+        }
+
+        if (width <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width), "Width must be greater than zero.");
+        }
+
+        if (height <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Height must be greater than zero.");
+        }
+
+        if (options is null || options.Count == 0)
+        {
+            throw new ArgumentException("Options cannot be null or empty.", nameof(options));
+        }
+
+        if (fontSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fontSize), "Font size must be greater than zero.");
+        }
+
+        _comboBoxAnnotations.Add(new PdfComboBoxAnnotation
+        {
+            FieldName = fieldName,
+            X = x,
+            Y = y,
+            Width = width,
+            Height = height,
+            Options = options,
+            SelectedValue = selectedValue,
+            FontSize = fontSize
+        });
+    }
+
+    public void AddMultilineTextField(
+        string fieldName,
+        double x,
+        double y,
+        double width,
+        double height,
+        string defaultValue = "",
+        double fontSize = 10)
+    {
+        if (string.IsNullOrWhiteSpace(fieldName))
+        {
+            throw new ArgumentException("Field name cannot be null or empty.", nameof(fieldName));
+        }
+
+        if (width <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width), "Width must be greater than zero.");
+        }
+
+        if (height <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Height must be greater than zero.");
+        }
+
+        if (fontSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fontSize), "Font size must be greater than zero.");
+        }
+
+        _multilineTextFields.Add(new PdfMultilineTextFieldAnnotation
+        {
+            FieldName = fieldName,
+            X = x,
+            Y = y,
+            Width = width,
+            Height = height,
+            DefaultValue = defaultValue,
+            FontSize = fontSize
+        });
+    }
+
+    public void AddTextField(
+        string fieldName,
+        double x,
+        double y,
+        double width,
+        double height,
+        string defaultValue = "",
+        double fontSize = 10)
+    {
+        if (string.IsNullOrWhiteSpace(fieldName))
+        {
+            throw new ArgumentException("Field name cannot be null or empty.", nameof(fieldName));
+        }
+
+        if (width <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width), "Width must be greater than zero.");
+        }
+
+        if (height <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Height must be greater than zero.");
+        }
+
+        if (fontSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fontSize), "Font size must be greater than zero.");
+        }
+
+        _textFields.Add(new PdfTextFieldAnnotation
+        {
+            FieldName = fieldName,
+            X = x,
+            Y = y,
+            Width = width,
+            Height = height,
+            DefaultValue = defaultValue,
+            FontSize = fontSize
+        });
     }
 
     private static (double X, double WordSpacing) ResolveLineLayout(

@@ -91,6 +91,8 @@ interface EditorState {
   settingsModifiedSinceExport: boolean;
   helpModalOpen: boolean;
   setHelpModalOpen: (open: boolean) => void;
+  documentMode: 'pdf' | 'word';
+  setDocumentMode: (mode: 'pdf' | 'word') => void;
   // Current preview language (ephemeral — not persisted)
   currentPreviewLanguage: string;
   setCurrentPreviewLanguage: (lang: string) => void;
@@ -165,11 +167,13 @@ export const useEditorStore = create<EditorState>()(
       pageSettings: DEFAULT_PAGE_SETTINGS,
       settingsModifiedSinceExport: false,
       helpModalOpen: false,
+      documentMode: 'pdf' as const,
       currentPreviewLanguage: navigator.language.split('-')[0],
       undoStack: [],
       redoStack: [],
 
       setHelpModalOpen: (open) => set({ helpModalOpen: open }),
+      setDocumentMode: (mode) => set({ documentMode: mode }),
       setCurrentPreviewLanguage: (lang) => set({ currentPreviewLanguage: lang }),
 
       upsertLocalizedProperty: (prop) => {
