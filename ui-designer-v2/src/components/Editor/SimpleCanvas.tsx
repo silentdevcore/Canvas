@@ -5405,6 +5405,14 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     />
                     <span>Required field</span>
                   </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={(selectedElement.style?.backgroundColor ?? '#ffffff') !== 'transparent'}
+                      onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.checked ? '#ffffff' : 'transparent' } })}
+                    />
+                    <span>Fill background</span>
+                  </label>
                 </div>
               )}
 

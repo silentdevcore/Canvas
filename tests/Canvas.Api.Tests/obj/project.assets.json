@@ -2036,7 +2036,9 @@
           "Canvas.Application": "1.0.0",
           "Canvas.Core": "1.0.0",
           "DocumentFormat.OpenXml": "3.5.1",
-          "System.Security.Cryptography.Xml": "10.0.8"
+          "QRCoder": "1.6.0",
+          "System.Security.Cryptography.Xml": "10.0.8",
+          "ZXing.Net": "0.16.9"
         },
         "compile": {
           "bin/placeholder/Canvas.Infrastructure.Word.dll": {}
@@ -2053,6 +2055,21 @@
         },
         "runtime": {
           "bin/placeholder/Canvas.Migration.Abstractions.dll": {}
+        }
+      },
+      "Canvas.Migration.ActivePdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.ActivePdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.ActivePdf.dll": {}
         }
       },
       "Canvas.Migration.Apryse/1.0.0": {
@@ -2130,6 +2147,21 @@
           "bin/placeholder/Canvas.Migration.FoxitPdf.dll": {}
         }
       },
+      "Canvas.Migration.GemBoxPdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.GemBoxPdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.GemBoxPdf.dll": {}
+        }
+      },
       "Canvas.Migration.IronPdf/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -2160,6 +2192,36 @@
           "bin/placeholder/Canvas.Migration.iText7.dll": {}
         }
       },
+      "Canvas.Migration.LeadtoolsPdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.LeadtoolsPdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.LeadtoolsPdf.dll": {}
+        }
+      },
+      "Canvas.Migration.PdfKitNet/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.PdfKitNet.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.PdfKitNet.dll": {}
+        }
+      },
       "Canvas.Migration.Roslyn/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -2172,6 +2234,21 @@
         },
         "runtime": {
           "bin/placeholder/Canvas.Migration.Roslyn.dll": {}
+        }
+      },
+      "Canvas.Migration.SpirePdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.SpirePdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.SpirePdf.dll": {}
         }
       },
       "Canvas.Migration.SyncfusionPdf/1.0.0": {
@@ -2200,17 +2277,23 @@
           "Canvas.Infrastructure.Pdf": "1.0.0",
           "Canvas.Infrastructure.Sheet": "1.0.0",
           "Canvas.Infrastructure.Word": "1.0.0",
+          "Canvas.Migration.ActivePdf": "1.0.0",
           "Canvas.Migration.Apryse": "1.0.0",
           "Canvas.Migration.AsposePdf": "1.0.0",
           "Canvas.Migration.DevExpressPdf": "1.0.0",
           "Canvas.Migration.DsPdf": "1.0.0",
           "Canvas.Migration.FoxitPdf": "1.0.0",
+          "Canvas.Migration.GemBoxPdf": "1.0.0",
           "Canvas.Migration.IronPdf": "1.0.0",
+          "Canvas.Migration.LeadtoolsPdf": "1.0.0",
+          "Canvas.Migration.PdfKitNet": "1.0.0",
+          "Canvas.Migration.SpirePdf": "1.0.0",
           "Canvas.Migration.SyncfusionPdf": "1.0.0",
           "Canvas.Migration.iText7": "1.0.0",
           "Microsoft.AspNetCore.OpenApi": "10.0.5",
           "Microsoft.CodeAnalysis.CSharp.Scripting": "5.3.0",
           "QRCoder": "1.6.0",
+          "SkiaSharp": "3.119.2",
           "ZXing.Net": "0.16.9"
         },
         "compile": {
@@ -5249,6 +5332,11 @@
       "path": "../../src/Canvas.Migration.Abstractions/Canvas.Migration.Abstractions.csproj",
       "msbuildProject": "../../src/Canvas.Migration.Abstractions/Canvas.Migration.Abstractions.csproj"
     },
+    "Canvas.Migration.ActivePdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.ActivePdf/Canvas.Migration.ActivePdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.ActivePdf/Canvas.Migration.ActivePdf.csproj"
+    },
     "Canvas.Migration.Apryse/1.0.0": {
       "type": "project",
       "path": "../../src/Canvas.Migration.Apryse/Canvas.Migration.Apryse.csproj",
@@ -5274,6 +5362,11 @@
       "path": "../../src/Canvas.Migration.FoxitPdf/Canvas.Migration.FoxitPdf.csproj",
       "msbuildProject": "../../src/Canvas.Migration.FoxitPdf/Canvas.Migration.FoxitPdf.csproj"
     },
+    "Canvas.Migration.GemBoxPdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.GemBoxPdf/Canvas.Migration.GemBoxPdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.GemBoxPdf/Canvas.Migration.GemBoxPdf.csproj"
+    },
     "Canvas.Migration.IronPdf/1.0.0": {
       "type": "project",
       "path": "../../src/Canvas.Migration.IronPdf/Canvas.Migration.IronPdf.csproj",
@@ -5284,10 +5377,25 @@
       "path": "../../src/Canvas.Migration.iText7/Canvas.Migration.iText7.csproj",
       "msbuildProject": "../../src/Canvas.Migration.iText7/Canvas.Migration.iText7.csproj"
     },
+    "Canvas.Migration.LeadtoolsPdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.LeadtoolsPdf/Canvas.Migration.LeadtoolsPdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.LeadtoolsPdf/Canvas.Migration.LeadtoolsPdf.csproj"
+    },
+    "Canvas.Migration.PdfKitNet/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.PdfKitNet/Canvas.Migration.PdfKitNet.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.PdfKitNet/Canvas.Migration.PdfKitNet.csproj"
+    },
     "Canvas.Migration.Roslyn/1.0.0": {
       "type": "project",
       "path": "../../src/Canvas.Migration.Roslyn/Canvas.Migration.Roslyn.csproj",
       "msbuildProject": "../../src/Canvas.Migration.Roslyn/Canvas.Migration.Roslyn.csproj"
+    },
+    "Canvas.Migration.SpirePdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.SpirePdf/Canvas.Migration.SpirePdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.SpirePdf/Canvas.Migration.SpirePdf.csproj"
     },
     "Canvas.Migration.SyncfusionPdf/1.0.0": {
       "type": "project",
