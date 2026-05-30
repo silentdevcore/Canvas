@@ -209,9 +209,42 @@ Audit is based on the `case` handlers in `Canvas.WebApi/Infrastructure/DesignJso
 
 ---
 
+---
+
+## 7. Bug Fixes & Label Localisation — 2026-05-30
+
+Seven reported issues in the form-field rendering, canvas editor, and PDF export pipeline.
+
+### Issue Analysis
+
+| # | Area | Root Cause |
+|---|------|-----------|
+| 1 | Text fill option | `field`/`textarea` inspector had no "Fill background" toggle; PDF mapper already handles `backgroundColor: transparent` |
+| 2 | Text height | `case "field"` and `case "textarea"` in `DesignJsonMapper.cs` used hardcoded `20 px` for the label row height. CSS grid gives 26 px (8 padding + 12 label + 6 gap), causing AcroForm widget to overlap the label |
+| 3 | Position retention | `getCanvasPoint` divided raw pointer-to-rect offset by 1 (no zoom factor). `getBoundingClientRect()` returns **scaled** visual pixels; dividing by `zoomLevel` was missing, so drag/resize coordinates were `zoomLevel`× wrong at any zoom ≠ 1 |
+| 4 | Visible/Invisible | The canvas rendering loop had no `!el.hidden` check — hidden elements were rendered identically to visible ones. No visibility toggle existed in the element properties inspector |
+| 5 | Button actions | `case "button"` in `DesignJsonMapper.cs` drew the visual shape only; no link annotation was added. Inspector exposed a single URL string; no page-navigation, submit, or reset options |
+| 6 | German labels | `label: 'Markieren'`, `label: 'Ankreuzen'`, and `fieldLabel: 'Auswahl'` were hardcoded German strings in the toolbar tool definitions |
+| 7 | Label localisation | `SignatureLabel` was not substituted in `SubstituteElement` (backend). Frontend rendering used raw `element.fieldLabel` / `element.signatureLabel` instead of `resolveContent()`, so `{{KEY}}` placeholders were never expanded in canvas preview |
+
+### Implementation Checklist
+
+- [x] Add "Fill background" checkbox to `field` and `textarea` inspector blocks (`SimpleCanvas.tsx`)
+- [x] Fix label row offset: `20` → `26` in `case "field"` and `case "textarea"` (`DesignJsonMapper.cs`); use named constant `labelOffset`
+- [x] Fix `getCanvasPoint` to divide by `zoomLevel` so drag/resize coordinates are correct at all zoom levels
+- [x] Add `is-hidden` CSS class to hidden canvas elements (opacity 0.3 + amber dashed outline); add "Visible in output" checkbox to inspector
+- [x] Expand button inspector to Action-type select (`none | url | page | submit | reset`) with conditional URL / page-number input
+- [x] Add PDF link annotation in `case "button"`: `page.AddWebLink()` for URL actions, `page.AddPageLink()` for `page:N` actions
+- [x] Replace German toolbar labels: `Markieren` → `Highlight`, `Ankreuzen` → `Checkmark`, `Auswahl` → `Selection`
+- [x] Add `el.SignatureLabel = Substitute(...)` to `SubstituteElement` in `DesignJsonMapper.cs`
+- [x] Wrap `element.signatureLabel`, `element.fieldLabel` in `resolveContent()` at all rendering sites in `SimpleCanvas.tsx`
+- [x] Add `{{key}}` hint text to label inputs in inspector (field, textarea, checkbox, checkmark, signature)
+
+---
+
 ## Completion Status
 
-**All 6 sections fully implemented — 2026-05-30**
+**All 7 sections fully implemented — 2026-05-30**
 
 | Section | Items | Status |
 |---------|-------|--------|
@@ -221,6 +254,7 @@ Audit is based on the `case` handlers in `Canvas.WebApi/Infrastructure/DesignJso
 | 4. Additional Templates | 7 | ✅ Complete |
 | 5. F1 Help Modal | 8 | ✅ Complete |
 | 6. PDF Element Compatibility | 17 | ✅ Complete |
+| 7. Bug Fixes & Label Localisation | 10 | ✅ Complete |
 
 ### Notable Additions (Section 6)
 

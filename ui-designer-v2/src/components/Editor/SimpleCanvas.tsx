@@ -419,10 +419,12 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   const pageWidth = pageSettings.width;
   const pageHeight = pageSettings.height;
   const isCurrentRtl = RTL_LANGS.has((currentPreviewLanguage || '').split('-')[0]);
+  // Only route position writes to langOverrides when the document has 2+ active languages.
+  const isMultilingual = (pageSettings.activeLanguages?.length ?? 0) > 1;
 
   // Returns the effective position/size for an element, applying lang override if one exists.
   const getEffectivePos = (el: SimpleElement) => {
-    const ov = currentPreviewLanguage ? el.langOverrides?.[currentPreviewLanguage] : undefined;
+    const ov = isMultilingual && currentPreviewLanguage ? el.langOverrides?.[currentPreviewLanguage] : undefined;
     return {
       x: ov?.x ?? el.x,
       y: ov?.y ?? el.y,
@@ -432,7 +434,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   };
 
   const getEffectiveRotation = (el: SimpleElement): number => {
-    const ov = currentPreviewLanguage ? el.langOverrides?.[currentPreviewLanguage] : undefined;
+    const ov = isMultilingual && currentPreviewLanguage ? el.langOverrides?.[currentPreviewLanguage] : undefined;
     return ov?.rotation ?? el.style?.rotation ?? 0;
   };
 
@@ -991,7 +993,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     },
     {
       id: 'highlight',
-      label: 'Markieren',
+      label: 'Highlight',
       hint: 'Transparent highlight',
       icon: FiEdit3,
       supportedOutputs: ['pdf', 'word'] as const,
@@ -1008,7 +1010,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     },
     {
       id: 'checkmark',
-      label: 'Ankreuzen',
+      label: 'Checkmark',
       hint: 'Check, cross or dot mark',
       icon: FiCheck,
       supportedOutputs: ['pdf', 'word'] as const,
@@ -1019,7 +1021,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
         y: 604,
         width: 148,
         height: 42,
-        fieldLabel: 'Auswahl',
+        fieldLabel: 'Selection',
         fieldName: 'selection',
         checkState: 'checked',
         style: { color: '#16a34a', strokeWidth: 3, fontSize: 14 }
@@ -1279,10 +1281,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   const getCanvasPoint = (clientX: number, clientY: number) => {
     const rect = pageContentRef.current?.getBoundingClientRect();
     if (!rect) return { x: 0, y: 0 };
-
+    // getBoundingClientRect returns visual (scaled) pixels; divide by zoomLevel to get pt coordinates.
     return {
-      x: clientX - rect.left,
-      y: clientY - rect.top
+      x: (clientX - rect.left) / zoomLevel,
+      y: (clientY - rect.top)  / zoomLevel,
     };
   };
 
@@ -1554,7 +1556,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     snapshotHistory();
     const point = getCanvasPoint(event.clientX, event.clientY);
     const effPos = getEffectivePos(element);
-    const langKey = !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+    const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
     setResizeState({
       id: element.id,
       handle,
@@ -1579,7 +1581,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     const centerY = effPos.y + effPos.height / 2;
     const point = getCanvasPoint(event.clientX, event.clientY);
     const initialPointerAngle = Math.atan2(point.y - centerY, point.x - centerX) * (180 / Math.PI);
-    const langKey = !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+    const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
     setRotateState({
       id: element.id,
       centerX,
@@ -1885,7 +1887,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     snapshotHistory();
     const point = getCanvasPoint(event.clientX, event.clientY);
 
-    const langKey = !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+    const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
 
     // Build multi-drag payload when this element is part of an existing multi-selection
     const isInMultiSel = selectedElementIds.size > 1 && selectedElementIds.has(element.id);
@@ -2033,7 +2035,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
 
   const updateLayoutValue = (key: 'x' | 'y' | 'width' | 'height', value: string) => {
     const num = Number(value) || 0;
-    const langKey = !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+    const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
     if (langKey && selectedElementId) {
       applyPosUpdate(selectedElementId, { [key]: num }, langKey);
     } else {
@@ -2193,7 +2195,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       return (
         <div className="editor-signature">
           <FiEdit3 className="editor-placeholder-icon" />
-          <span>{element.signatureLabel}</span>
+          <span>{resolveContent(element.signatureLabel)}</span>
           <div className="editor-signature-line" />
           <small>Signature Line</small>
         </div>
@@ -2213,7 +2215,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       return (
         <div className="editor-form-field">
           <span>
-            {element.fieldLabel}
+            {resolveContent(element.fieldLabel)}
             {element.required && <span className="editor-field-required-badge" title="Required field">*</span>}
           </span>
           <strong>{element.required ? 'Required' : 'Optional'}</strong>
@@ -2225,7 +2227,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       return (
         <div className="editor-form-field editor-form-field--textarea">
           <span>
-            {element.fieldLabel}
+            {resolveContent(element.fieldLabel)}
             {element.required && <span className="editor-field-required-badge" title="Required field">*</span>}
           </span>
           <div className="editor-textarea-preview">
@@ -2241,7 +2243,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       return (
         <div className="editor-checkbox-field">
           <FiCheckSquare />
-          <span>{element.fieldLabel}</span>
+          <span>{resolveContent(element.fieldLabel)}</span>
         </div>
       );
     }
@@ -2411,7 +2413,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             justifyContent: 'center',
             gap: 6,
           }}
-          onClick={element.buttonAction ? () => window.open(element.buttonAction, '_blank', 'noopener') : undefined}
+          onClick={element.buttonAction ? () => {
+            const a = element.buttonAction!;
+            if (a.startsWith('http')) window.open(a, '_blank', 'noopener');
+          } : undefined}
           title={element.buttonAction || undefined}
         >
           {element.content || 'Button'}
@@ -2974,7 +2979,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             {state === 'dot' && <circle cx="13" cy="13" r="5" fill={color} />}
           </svg>
           <span style={{ fontSize: element.style?.fontSize || 14, color: element.style?.labelColor || '#374151' }}>
-            {element.fieldLabel || 'Auswahl'}
+            {resolveContent(element.fieldLabel) || 'Selection'}
           </span>
         </div>
       );
@@ -3518,7 +3523,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   initial={{ opacity: 0, scale: 0.96, y: 16 }}
                   animate={{ opacity: 1, scale: 1, y: 0, rotate: getEffectiveRotation(element) }}
                   transition={{ duration: 0.24, delay: index * 0.04, rotate: { duration: 0 } }}
-                  className={`editor-canvas-element ${selectedElementId === element.id ? 'is-selected' : selectedElementIds.has(element.id) ? 'is-multi-selected' : ''} ${element.locked ? 'is-locked' : ''}`}
+                  className={`editor-canvas-element ${selectedElementId === element.id ? 'is-selected' : selectedElementIds.has(element.id) ? 'is-multi-selected' : ''} ${element.locked ? 'is-locked' : ''} ${element.hidden ? 'is-hidden' : ''}`}
                   style={(() => { const ep = getEffectivePos(element); return {
                     left: isCurrentRtl ? pageWidth - ep.x - ep.width : ep.x,
                     top: ep.y, width: ep.width, height: ep.height,
@@ -3567,7 +3572,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   initial={{ opacity: 0, scale: 0.96, y: 16 }}
                   animate={{ opacity: 1, scale: 1, y: 0, rotate: getEffectiveRotation(element) }}
                   transition={{ duration: 0.24, delay: index * 0.04, rotate: { duration: 0 } }}
-                  className={`editor-canvas-element is-shared ${selectedElementId === element.id ? 'is-selected' : ''} ${element.locked ? 'is-locked' : ''}`}
+                  className={`editor-canvas-element is-shared ${selectedElementId === element.id ? 'is-selected' : ''} ${element.locked ? 'is-locked' : ''} ${element.hidden ? 'is-hidden' : ''}`}
                   style={(() => { const ep = getEffectivePos(element); return { left: isCurrentRtl ? pageWidth - ep.x - ep.width : ep.x, top: ep.y, width: ep.width, height: ep.height }; })()}
                   onPointerDown={(event) => handleElementPointerDown(event, element)}
                   onContextMenu={(event) => handleElementContextMenu(event, element)}
@@ -5054,7 +5059,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     value={getEffectiveRotation(selectedElement)}
                     onChange={(e) => {
                       const num = Number(e.target.value);
-                      const langKey = !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+                      const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
                       if (langKey) {
                         applyPosUpdate(selectedElement.id, { rotation: num }, langKey);
                       } else {
@@ -5069,7 +5074,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     className="editor-secondary-button"
                     title="Reset rotation"
                     onClick={() => {
-                      const langKey = !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+                      const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
                       if (langKey) {
                         applyPosUpdate(selectedElement.id, { rotation: 0 }, langKey);
                       } else {
@@ -5387,7 +5392,9 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       type="text"
                       value={selectedElement.fieldLabel || ''}
                       onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
+                      placeholder="Label text or {{key}}"
                     />
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
                   </label>
                   <label>
                     <span>Field name</span>
@@ -5424,7 +5431,9 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       type="text"
                       value={selectedElement.fieldLabel || ''}
                       onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
+                      placeholder="Label text or {{key}}"
                     />
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
                   </label>
                   <label>
                     <span>Field name</span>
@@ -5450,6 +5459,14 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     />
                     <span>Required field</span>
                   </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={(selectedElement.style?.backgroundColor ?? '#ffffff') !== 'transparent'}
+                      onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.checked ? '#ffffff' : 'transparent' } })}
+                    />
+                    <span>Fill background</span>
+                  </label>
                 </div>
               )}
 
@@ -5461,7 +5478,9 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       type="text"
                       value={selectedElement.fieldLabel || ''}
                       onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
+                      placeholder="Label or {{key}}"
                     />
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
                   </label>
                   <label>
                     <span>Field name</span>
@@ -5482,7 +5501,13 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 </div>
               )}
 
-              {selectedElement.type === 'button' && (
+              {selectedElement.type === 'button' && (() => {
+                const action = selectedElement.buttonAction ?? '';
+                const actionType = action.startsWith('page:') ? 'page'
+                  : action === 'submit' ? 'submit'
+                  : action === 'reset' ? 'reset'
+                  : action.length > 0 ? 'url' : 'none';
+                return (
                 <div className="editor-form-stack">
                   <label>
                     <span>Label</span>
@@ -5493,14 +5518,46 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     />
                   </label>
                   <label>
-                    <span>Action URL</span>
-                    <input
-                      type="text"
-                      value={selectedElement.buttonAction || ''}
-                      onChange={(event) => updateSelectedElement({ buttonAction: event.target.value })}
-                      placeholder="https://example.com"
-                    />
+                    <span>Action type</span>
+                    <select
+                      value={actionType}
+                      onChange={(event) => {
+                        const t = event.target.value;
+                        if (t === 'none') updateSelectedElement({ buttonAction: '' });
+                        else if (t === 'url') updateSelectedElement({ buttonAction: 'https://' });
+                        else if (t === 'page') updateSelectedElement({ buttonAction: 'page:1' });
+                        else updateSelectedElement({ buttonAction: t });
+                      }}
+                    >
+                      <option value="none">— None —</option>
+                      <option value="url">Open URL</option>
+                      <option value="page">Go to page</option>
+                      <option value="submit">Submit form</option>
+                      <option value="reset">Reset form</option>
+                    </select>
                   </label>
+                  {actionType === 'url' && (
+                    <label>
+                      <span>URL</span>
+                      <input
+                        type="text"
+                        value={selectedElement.buttonAction || ''}
+                        onChange={(event) => updateSelectedElement({ buttonAction: event.target.value })}
+                        placeholder="https://example.com"
+                      />
+                    </label>
+                  )}
+                  {actionType === 'page' && (
+                    <label>
+                      <span>Page number</span>
+                      <input
+                        type="number"
+                        min="1"
+                        value={parseInt(action.replace('page:', ''), 10) || 1}
+                        onChange={(event) => updateSelectedElement({ buttonAction: `page:${event.target.value}` })}
+                      />
+                    </label>
+                  )}
                   <div className="editor-form-grid">
                     <label>
                       <span>Background</span>
@@ -5539,7 +5596,8 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     </label>
                   </div>
                 </div>
-              )}
+                );
+              })()}
 
               {selectedElement.type === 'dropdown' && (
                 <div className="editor-form-stack">
@@ -5694,7 +5752,8 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 <div className="editor-form-stack">
                   <label>
                     <span>Label</span>
-                    <input type="text" value={selectedElement.fieldLabel || ''} onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })} />
+                    <input type="text" value={selectedElement.fieldLabel || ''} onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })} placeholder="Label or {{key}}" />
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
                   </label>
                   <label>
                     <span>State</span>
@@ -6342,8 +6401,9 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       type="text"
                       value={selectedElement.signatureLabel || ''}
                       onChange={(event) => updateSelectedElement({ signatureLabel: event.target.value })}
-                      placeholder="Signature"
+                      placeholder="Signature or {{key}}"
                     />
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
                   </label>
                 </div>
               )}
@@ -6958,6 +7018,24 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   </label>
                 </div>
               )}
+
+              {/* ── Visibility ── */}
+              <div className="editor-settings-section">
+                <div className="editor-settings-heading">
+                  <FiEye />
+                  <span>Visibility</span>
+                </div>
+                <div className="editor-form-stack" style={{ padding: 12 }}>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={!selectedElement.hidden}
+                      onChange={(e) => updateSelectedElement({ hidden: !e.target.checked })}
+                    />
+                    <span>Visible in output</span>
+                  </label>
+                </div>
+              </div>
 
               {/* ── Word / DOCX metadata — always last ── */}
               <div className="editor-settings-section">

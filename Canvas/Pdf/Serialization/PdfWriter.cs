@@ -190,14 +190,16 @@ internal sealed class PdfWriter
             .ToDictionary(group => group.Key, group => group.Last(), StringComparer.OrdinalIgnoreCase);
 
         var hasAcroFields = document.Pages.Any(static p =>
-            p.ComboBoxAnnotations.Count > 0 || p.MultilineTextFields.Count > 0 || p.TextFields.Count > 0);
+            p.ComboBoxAnnotations.Count > 0 || p.MultilineTextFields.Count > 0 || p.TextFields.Count > 0 || p.CheckBoxAnnotations.Count > 0);
         var acroFormHelvFontObjectId = hasAcroFields ? nextObjectId++ : (int?)null;
         var pageComboAnnotObjectIds = new List<int>[pageCount];
         var pageMultilineAnnotObjectIds = new List<int>[pageCount];
         var pageTextFieldAnnotObjectIds = new List<int>[pageCount];
+        var pageCheckBoxAnnotObjectIds = new List<int>[pageCount];
         var allComboFieldObjectIds = new List<int>();
         var allMultilineFieldObjectIds = new List<int>();
         var allTextFieldObjectIds = new List<int>();
+        var allCheckBoxObjectIds = new List<int>();
 
         for (var i = 0; i < pageCount; i++)
         {
@@ -241,6 +243,16 @@ internal sealed class PdfWriter
             }
 
             pageTextFieldAnnotObjectIds[i] = textFieldIds;
+
+            var checkBoxIds = new List<int>();
+            foreach (var _ in document.Pages[i].CheckBoxAnnotations)
+            {
+                var cbId = nextObjectId++;
+                checkBoxIds.Add(cbId);
+                allCheckBoxObjectIds.Add(cbId);
+            }
+
+            pageCheckBoxAnnotObjectIds[i] = checkBoxIds;
             pageObjects.Add(pageObjectIds[i]);
         }
 
@@ -468,6 +480,35 @@ internal sealed class PdfWriter
                 objects.Add(new PdfIndirectObject(tfObjectId, tfWidgetObject));
             }
 
+            var pageCheckBoxIds = pageCheckBoxAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.CheckBoxAnnotations.Count; i++)
+            {
+                var cb = page.CheckBoxAnnotations[i];
+                var cbObjectId = pageCheckBoxIds[i];
+
+                var cbRect = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[{0} {1} {2} {3}]",
+                    FormatNumber(cb.X),
+                    FormatNumber(cb.Y),
+                    FormatNumber(cb.X + cb.Width),
+                    FormatNumber(cb.Y + cb.Height));
+
+                var cbValue = cb.IsChecked ? "/Yes" : "/Off";
+                var cbWidgetObject =
+                    $"<< /Type /Annot /Subtype /Widget /FT /Btn /Ff 0 " +
+                    $"/T ({EscapeLiteralString(cb.FieldName)}) " +
+                    $"/V {cbValue} /AS {cbValue} " +
+                    $"/Rect {cbRect} " +
+                    $"/P {pageObjectId} 0 R " +
+                    $"/DA (/Helv 0 Tf 0 g) " +
+                    $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
+                    $"/MK << /BC [0 0 0] /BG [1 1 1] /CA (8) >> " +
+                    $"/BS << /W 1 /S /S >> >>\n";
+
+                objects.Add(new PdfIndirectObject(cbObjectId, cbWidgetObject));
+            }
+
             var fontDictionary = string.Join(
                 " ",
                 pageFonts.Select(font => $"/{fontObjects[font].ResourceName} {fontObjects[font].ObjectId} 0 R")
@@ -486,11 +527,13 @@ internal sealed class PdfWriter
             var allAnnotIds = pageLinkAnnotationIds
                 .Concat(pageComboAnnotObjectIds[pageIndex])
                 .Concat(pageMultilineAnnotObjectIds[pageIndex])
-                .Concat(pageTextFieldAnnotObjectIds[pageIndex]);
+                .Concat(pageTextFieldAnnotObjectIds[pageIndex])
+                .Concat(pageCheckBoxAnnotObjectIds[pageIndex]);
             var annotsSegment = pageLinkAnnotationIds.Count > 0
                 || pageComboAnnotObjectIds[pageIndex].Count > 0
                 || pageMultilineAnnotObjectIds[pageIndex].Count > 0
                 || pageTextFieldAnnotObjectIds[pageIndex].Count > 0
+                || pageCheckBoxAnnotObjectIds[pageIndex].Count > 0
                 ? $" /Annots [{string.Join(" ", allAnnotIds.Select(id => $"{id} 0 R"))}]"
                 : string.Empty;
 
@@ -619,7 +662,7 @@ internal sealed class PdfWriter
         var pageMode = BuildPageMode(document.ViewerPreferences.PageMode);
         var pageLayout = BuildPageLayout(document.ViewerPreferences.PageLayout);
 
-        var allAcroFieldIds = allComboFieldObjectIds.Concat(allMultilineFieldObjectIds).Concat(allTextFieldObjectIds).ToList();
+        var allAcroFieldIds = allComboFieldObjectIds.Concat(allMultilineFieldObjectIds).Concat(allTextFieldObjectIds).Concat(allCheckBoxObjectIds).ToList();
         var acroFormSegment = allAcroFieldIds.Count > 0
             ? $" /AcroForm << /Fields [{string.Join(" ", allAcroFieldIds.Select(id => $"{id} 0 R"))}]" +
               $" /DA (/Helv 0 Tf 0 g)" +

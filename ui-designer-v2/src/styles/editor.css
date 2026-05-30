@@ -635,6 +635,29 @@
   text-transform: uppercase;
 }
 
+.editor-canvas-element.is-hidden {
+  opacity: 0.3;
+  outline: 2px dashed #f59e0b;
+  outline-offset: -1px;
+  pointer-events: none;
+}
+
+.editor-canvas-element.is-hidden::after {
+  content: "Hidden";
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  padding: 2px 5px;
+  background: rgba(245, 158, 11, 0.85);
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
 .editor-resize-handle {
   position: absolute;
   width: 8px;

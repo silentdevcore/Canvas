@@ -350,8 +350,9 @@ public static class DesignJsonMapper
                 var hasBg = !string.IsNullOrEmpty(bgStr) && bgStr != "transparent";
                 var fontSize = GetDouble(style, "fontSize", 11);
 
-                var boxH = Math.Max(h - 20, 2);
-                var boxY = RectBottomY(pageH, elY + 20, boxH);
+                const double labelOffset = 16.0;
+                var boxH = Math.Clamp(h - labelOffset, 2, 24.0);
+                var boxY = RectBottomY(pageH, elY + labelOffset, boxH);
                 page.DrawRectangle(elX, boxY, w, boxH,
                     lineWidth: 1, fill: hasBg,
                     strokeColor: borderColor,
@@ -360,12 +361,12 @@ public static class DesignJsonMapper
                 // Placeholder text inside the input box
                 var placeholderText = el.FieldName ?? "";
                 if (!string.IsNullOrEmpty(placeholderText) && boxH > 10)
-                    page.DrawText(placeholderText, elX + 6, TextY(pageH, elY + 20 + (boxH - fontSize * 1.2) / 2, fontSize),
+                    page.DrawText(placeholderText, elX + 6, TextY(pageH, elY + labelOffset + (boxH - fontSize * 1.2) / 2, fontSize),
                         new PdfDrawTextOptions { FontSize = fontSize, FillColor = ParseColor("#9ca3af"), Italic = true });
 
                 if (!string.IsNullOrEmpty(label))
                 {
-                    var baseY = TextY(pageH, elY, fontSize);
+                    var baseY = TextY(pageH, elY + 2, fontSize);
                     page.DrawText(label, elX, baseY,
                         new PdfDrawTextOptions { FontSize = fontSize, FillColor = labelColor });
                     if (el.Required == true)
@@ -390,8 +391,9 @@ public static class DesignJsonMapper
                 var borderColor = ParseColor(GetString(style, "borderColor") ?? "#d1d5db");
                 var labelColor = ParseColor(GetString(style, "color") ?? "#374151");
                 var fontSize = GetDouble(style, "fontSize", 11);
-                var boxH = Math.Max(h - 20, 2);
-                var boxY = RectBottomY(pageH, elY + 20, boxH);
+                const double taLabelOffset = 16.0;
+                var boxH = Math.Clamp(h - taLabelOffset, 2, 20.0);
+                var boxY = RectBottomY(pageH, elY + taLabelOffset, boxH);
 
                 page.DrawRectangle(elX, boxY, w, boxH, lineWidth: 1, fill: true,
                     strokeColor: borderColor, fillColor: PdfColor.White);
@@ -399,12 +401,12 @@ public static class DesignJsonMapper
                 var placeholder = el.Placeholder ?? "";
                 if (!string.IsNullOrEmpty(placeholder) && boxH > 10)
                     page.DrawText(placeholder, elX + 6,
-                        TextY(pageH, elY + 20 + (boxH - fontSize * 1.2) / 2, fontSize),
+                        TextY(pageH, elY + taLabelOffset + (boxH - fontSize * 1.2) / 2, fontSize),
                         new PdfDrawTextOptions { FontSize = fontSize, FillColor = ParseColor("#9ca3af"), Italic = true });
 
                 if (!string.IsNullOrEmpty(label))
                 {
-                    var baseY = TextY(pageH, elY, fontSize);
+                    var baseY = TextY(pageH, elY + 2, fontSize);
                     page.DrawText(label, elX, baseY,
                         new PdfDrawTextOptions { FontSize = fontSize, FillColor = labelColor });
                     if (el.Required == true)
@@ -477,29 +479,58 @@ public static class DesignJsonMapper
             {
                 var color = ParseColor(GetString(style, "color") ?? "#374151");
                 var bw = GetDouble(style, "borderWidth", 2);
-                var boxY = RectBottomY(pageH, elY, h);
+                var fontSize = GetDouble(style, "fontSize", 12);
+                var boxSize = Math.Min(h / 2.0, 16.0);
+                var boxY = RectBottomY(pageH, elY + (h - boxSize) / 2, boxSize);
                 var state = el.CheckState ?? "checked";
 
                 if (el.MarkMode == "rectangle" || el.MarkMode is null)
                 {
-                    page.DrawRectangle(elX, boxY, w, h, lineWidth: bw, fill: false,
-                        strokeColor: color, fillColor: PdfColor.White);
-                    var cx = elX + w / 2;
-                    var cy = boxY + h / 2;
-                    if (state == "checked")
+                    if (state == "empty")
                     {
-                        page.DrawLine(elX + w * 0.2, cy, cx - w * 0.05, cy - h * 0.25, lineWidth: bw, strokeColor: color);
-                        page.DrawLine(cx - w * 0.05, cy - h * 0.25, elX + w * 0.85, cy + h * 0.3, lineWidth: bw, strokeColor: color);
+                        // Draw an empty box as a visual placeholder…
+                        page.DrawRectangle(elX, boxY, boxSize, boxSize, lineWidth: bw, fill: false,
+                            strokeColor: color, fillColor: PdfColor.White);
+                        // …and overlay an interactive AcroForm checkbox widget.
+                        var cbFieldName = !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName
+                            : !string.IsNullOrWhiteSpace(el.Id) ? el.Id
+                            : Guid.NewGuid().ToString("N");
+                        page.AddCheckBox(cbFieldName, elX, boxY, boxSize, isChecked: false);
                     }
-                    else if (state == "cross")
+                    else
                     {
-                        page.DrawLine(elX + 4, boxY + 4, elX + w - 4, boxY + h - 4, lineWidth: bw, strokeColor: color);
-                        page.DrawLine(elX + w - 4, boxY + 4, elX + 4, boxY + h - 4, lineWidth: bw, strokeColor: color);
+                        page.DrawRectangle(elX, boxY, boxSize, boxSize, lineWidth: bw, fill: false,
+                            strokeColor: color, fillColor: PdfColor.White);
+                        var cx = elX + boxSize / 2;
+                        var cy = boxY + boxSize / 2;
+                        if (state == "checked")
+                        {
+                            page.DrawLine(elX + boxSize * 0.2, cy,
+                                          cx - boxSize * 0.05, cy - boxSize * 0.25, lineWidth: bw, strokeColor: color);
+                            page.DrawLine(cx - boxSize * 0.05, cy - boxSize * 0.25,
+                                          elX + boxSize * 0.85, cy + boxSize * 0.3, lineWidth: bw, strokeColor: color);
+                        }
+                        else if (state == "cross")
+                        {
+                            page.DrawLine(elX + 4, boxY + 4, elX + boxSize - 4, boxY + boxSize - 4, lineWidth: bw, strokeColor: color);
+                            page.DrawLine(elX + boxSize - 4, boxY + 4, elX + 4, boxY + boxSize - 4, lineWidth: bw, strokeColor: color);
+                        }
+                        else if (state == "dot")
+                        {
+                            page.DrawCircle(cx, cy, boxSize * 0.25, lineWidth: 1,
+                                fill: true, strokeColor: color, fillColor: color);
+                        }
                     }
-                    else if (state == "dot")
+
+                    // Label to the right of the box
+                    var label = el.FieldLabel ?? "";
+                    if (!string.IsNullOrEmpty(label) && w > boxSize + 4)
                     {
-                        page.DrawCircle(cx, cy, Math.Min(w, h) * 0.25, lineWidth: 1,
-                            fill: true, strokeColor: color, fillColor: color);
+                        var labelX = elX + boxSize + 8;
+                        var labelY = TextY(pageH, elY + (h - fontSize) / 2, fontSize);
+                        var labelColor = ParseColor(GetString(style, "labelColor") ?? GetString(style, "color") ?? "#374151");
+                        page.DrawText(label, labelX, labelY,
+                            new PdfDrawTextOptions { FontSize = fontSize, FillColor = labelColor });
                     }
                 }
                 break;
@@ -778,6 +809,19 @@ public static class DesignJsonMapper
                     var fs = GetDouble(style, "fontSize", 12);
                     page.DrawText(text, elX + 8, TextY(pageH, elY + (h - fs * 1.4) / 2, fs),
                         new PdfDrawTextOptions { FontSize = fs, Bold = true, FillColor = textColor });
+                }
+
+                // Overlay a link annotation when a button action is configured.
+                var btnAction = el.ButtonAction ?? "";
+                if (btnAction.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                {
+                    page.AddWebLink(elX, boxY, w, h, btnAction);
+                }
+                else if (btnAction.StartsWith("page:", StringComparison.OrdinalIgnoreCase)
+                    && int.TryParse(btnAction.AsSpan(5), out var targetPage)
+                    && targetPage >= 1)
+                {
+                    page.AddPageLink(elX, boxY, w, h, targetPage);
                 }
                 break;
             }
@@ -1517,15 +1561,16 @@ public static class DesignJsonMapper
 
     private static void SubstituteElement(ElementDto el, Dictionary<string, string> props)
     {
-        el.Content      = Substitute(el.Content,      props);
-        el.HtmlContent  = Substitute(el.HtmlContent,  props);
-        el.FieldLabel   = Substitute(el.FieldLabel,    props);
-        el.QrValue      = Substitute(el.QrValue,       props);
-        el.BarcodeValue = Substitute(el.BarcodeValue,  props);
-        el.NoteTitle    = Substitute(el.NoteTitle,     props);
-        el.NoteBody     = Substitute(el.NoteBody,      props);
-        el.FootnoteText = Substitute(el.FootnoteText,  props);
-        el.ButtonAction = Substitute(el.ButtonAction,  props);
+        el.Content        = Substitute(el.Content,        props);
+        el.HtmlContent    = Substitute(el.HtmlContent,    props);
+        el.FieldLabel     = Substitute(el.FieldLabel,     props);
+        el.SignatureLabel = Substitute(el.SignatureLabel,  props);
+        el.QrValue        = Substitute(el.QrValue,        props);
+        el.BarcodeValue   = Substitute(el.BarcodeValue,   props);
+        el.NoteTitle      = Substitute(el.NoteTitle,      props);
+        el.NoteBody       = Substitute(el.NoteBody,       props);
+        el.FootnoteText   = Substitute(el.FootnoteText,   props);
+        el.ButtonAction   = Substitute(el.ButtonAction,   props);
     }
 
     private static string? Substitute(string? text, Dictionary<string, string> props)

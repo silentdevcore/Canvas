@@ -10,6 +10,7 @@ public sealed class PdfPage
     private readonly List<PdfComboBoxAnnotation> _comboBoxAnnotations = new();
     private readonly List<PdfMultilineTextFieldAnnotation> _multilineTextFields = new();
     private readonly List<PdfTextFieldAnnotation> _textFields = new();
+    private readonly List<PdfCheckBoxAnnotation> _checkBoxAnnotations = new();
 
     private readonly PdfFontLoader? _fontLoader;
 
@@ -54,6 +55,8 @@ public sealed class PdfPage
     internal IReadOnlyList<PdfMultilineTextFieldAnnotation> MultilineTextFields => _multilineTextFields;
 
     internal IReadOnlyList<PdfTextFieldAnnotation> TextFields => _textFields;
+
+    internal IReadOnlyList<PdfCheckBoxAnnotation> CheckBoxAnnotations => _checkBoxAnnotations;
 
     public void SetPageBoundary(PdfPageBoundary boundary, PdfPoint lowerLeft, PdfPoint upperRight)
     {
@@ -1471,6 +1474,24 @@ public sealed class PdfPage
             Height = height,
             DefaultValue = defaultValue,
             FontSize = fontSize
+        });
+    }
+
+    public void AddCheckBox(string fieldName, double x, double y, double size, bool isChecked = false)
+    {
+        if (string.IsNullOrWhiteSpace(fieldName))
+            throw new ArgumentException("Field name cannot be null or empty.", nameof(fieldName));
+        if (size <= 0)
+            throw new ArgumentOutOfRangeException(nameof(size), "Size must be greater than zero.");
+
+        _checkBoxAnnotations.Add(new PdfCheckBoxAnnotation
+        {
+            FieldName = fieldName,
+            X = x,
+            Y = y,
+            Width = size,
+            Height = size,
+            IsChecked = isChecked,
         });
     }
 
