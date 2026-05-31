@@ -14,7 +14,6 @@ import TemplateMiniPreview from '@/components/Gallery/TemplateMiniPreview';
 import { TEMPLATES, CATEGORIES, CATEGORY_CONFIG } from '@/data/templates';
 import type { TemplateDefinition } from '@/data/templates';
 import { useTemplateLoader } from '@/hooks/useTemplateLoader';
-import ExportService from '@/services/ExportService';
 
 type SortOrder = 'default' | 'alpha' | 'category';
 
@@ -86,11 +85,8 @@ const TemplateDetailPanel: React.FC<DetailPanelProps> = ({ template, onClose, on
 
 const TemplatePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { loadTemplate, loadFromFile, loadFromFileSvg, loadFromFilePdfEngine } = useTemplateLoader();
-  const importInputRef       = useRef<HTMLInputElement>(null);
-  const importSvgInputRef    = useRef<HTMLInputElement>(null);
-  const importEngineInputRef = useRef<HTMLInputElement>(null);
-  const debugSvgInputRef     = useRef<HTMLInputElement>(null);
+  const { loadTemplate, loadFromFile } = useTemplateLoader();
+  const importInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState('');
 
@@ -102,51 +98,6 @@ const TemplatePage: React.FC = () => {
     } catch (err) {
       setImportError(err instanceof Error ? err.message : 'Import failed');
       setImporting(false);
-    }
-  };
-
-  const handleFileSvg = async (file: File) => {
-    setImporting(true);
-    setImportError('');
-    try {
-      await loadFromFileSvg(file);
-    } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Import failed');
-      setImporting(false);
-    }
-  };
-
-  const handleFileEngine = async (file: File) => {
-    setImporting(true);
-    setImportError('');
-    try {
-      await loadFromFilePdfEngine(file);
-    } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Import failed');
-      setImporting(false);
-    }
-  };
-
-  const handleDebugSvg = async (file: File) => {
-    try {
-      const info = await ExportService.debugPdfSvg(file);
-      const stats = Object.entries(info.elementStats)
-        .filter(([, n]) => n > 0)
-        .map(([tag, n]) => `${tag}: ${n}`)
-        .join('\n');
-      const msg = [
-        `Pages: ${info.pageCount}`,
-        `SVG size: ${info.svgLength} chars`,
-        ``,
-        `Elements found:`,
-        stats || '(none)',
-        ``,
-        `First 500 chars of SVG:`,
-        info.svg.slice(0, 500),
-      ].join('\n');
-      alert(msg);
-    } catch (err) {
-      alert('Debug SVG error: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -215,27 +166,6 @@ const TemplatePage: React.FC = () => {
               style={{ display: 'none' }}
               onChange={e => { const f = e.target.files?.[0]; if (f) handleFileImport(f); e.target.value = ''; }}
             />
-            <input
-              ref={importSvgInputRef}
-              type="file"
-              accept=".pdf,application/pdf"
-              style={{ display: 'none' }}
-              onChange={e => { const f = e.target.files?.[0]; if (f) handleFileSvg(f); e.target.value = ''; }}
-            />
-            <input
-              ref={importEngineInputRef}
-              type="file"
-              accept=".pdf,application/pdf"
-              style={{ display: 'none' }}
-              onChange={e => { const f = e.target.files?.[0]; if (f) handleFileEngine(f); e.target.value = ''; }}
-            />
-            <input
-              ref={debugSvgInputRef}
-              type="file"
-              accept=".pdf,application/pdf"
-              style={{ display: 'none' }}
-              onChange={e => { const f = e.target.files?.[0]; if (f) handleDebugSvg(f); e.target.value = ''; }}
-            />
             <button
               className="pdf-link-button"
               onClick={() => importInputRef.current?.click()}
@@ -245,34 +175,6 @@ const TemplatePage: React.FC = () => {
             >
               <FiUpload size={14} />
               {importing ? 'Importing…' : 'Import file'}
-            </button>
-            <button
-              className="pdf-link-button"
-              onClick={() => importSvgInputRef.current?.click()}
-              disabled={importing}
-              title="Import a PDF using the SVG engine — compare with the standard importer"
-              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-            >
-              <FiUpload size={14} />
-              {importing ? 'Importing…' : 'Import PDF (SVG)'}
-            </button>
-            <button
-              className="pdf-link-button"
-              onClick={() => importEngineInputRef.current?.click()}
-              disabled={importing}
-              title="Import a PDF using the Canvas.Importer low-level engine (own tokenizer, object graph, content stream interpreter)"
-              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-            >
-              <FiUpload size={14} />
-              {importing ? 'Importing…' : 'Import PDF (Engine)'}
-            </button>
-            <button
-              className="pdf-link-button"
-              onClick={() => debugSvgInputRef.current?.click()}
-              title="Open the raw SVG output for a PDF page in a new tab — helps debug the SVG importer"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: 0.7 }}
-            >
-              View SVG
             </button>
             {importError && <span style={{ color: '#dc2626', fontSize: 12 }}>{importError}</span>}
             <label className="pdf-search">

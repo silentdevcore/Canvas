@@ -1766,17 +1766,9 @@
               "target": "Package",
               "version": "[2.8.0, )"
             },
-            "PdfToSvg.NET": {
-              "target": "Package",
-              "version": "[1.8.0, )"
-            },
             "SkiaSharp": {
               "target": "Package",
               "version": "[3.119.2, )"
-            },
-            "UglyToad.PdfPig": {
-              "target": "Package",
-              "version": "[1.7.0-custom-5, )"
             }
           },
           "imports": [

@@ -43,12 +43,11 @@ const TOOL_LINKS = [
 
 const IndexPage: React.FC = () => {
   const navigate = useNavigate();
-  const { loadBlank, loadFromFile, loadFromFileSvg } = useTemplateLoader();
+  const { loadBlank, loadFromFile } = useTemplateLoader();
   const [toast, setToast] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState('');
-  const importInputRef    = useRef<HTMLInputElement>(null);
-  const importSvgInputRef = useRef<HTMLInputElement>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const displayCategories = CATEGORIES.filter(c => c.id !== 'all');
 
@@ -62,17 +61,6 @@ const IndexPage: React.FC = () => {
     setImportError('');
     try {
       await loadFromFile(file);
-    } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Import failed');
-      setImporting(false);
-    }
-  };
-
-  const handleFileSvgImport = async (file: File) => {
-    setImporting(true);
-    setImportError('');
-    try {
-      await loadFromFileSvg(file);
     } catch (err) {
       setImportError(err instanceof Error ? err.message : 'Import failed');
       setImporting(false);
@@ -108,13 +96,6 @@ const IndexPage: React.FC = () => {
           accept=".pdf,.doc,.docx,.odt,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.tif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,image/png,image/jpeg,image/gif,image/webp,image/bmp,image/tiff"
           style={{ display: 'none' }}
           onChange={e => { const f = e.target.files?.[0]; if (f) handleFileImport(f); e.target.value = ''; }}
-        />
-        <input
-          ref={importSvgInputRef}
-          type="file"
-          accept=".pdf,application/pdf"
-          style={{ display: 'none' }}
-          onChange={e => { const f = e.target.files?.[0]; if (f) handleFileSvgImport(f); e.target.value = ''; }}
         />
         {importError && (
           <div className="pdf-toast" role="alert" style={{ background: '#dc2626' }}>{importError}</div>
@@ -169,19 +150,6 @@ const IndexPage: React.FC = () => {
               <strong>Import document</strong>
               <small>Open a PDF, DOCX, DOC, ODT or image as an editable design</small>
               <span className="pdf-upload-action">{importing ? 'Importing…' : 'Import file'} <FiChevronRight /></span>
-            </motion.button>
-
-            <motion.button
-              className="pdf-blank-card"
-              onClick={() => importSvgInputRef.current?.click()}
-              whileHover={{ y: -4 }}
-              whileTap={{ scale: 0.99 }}
-              disabled={importing}
-            >
-              <span className="pdf-upload-icon"><FiUpload /></span>
-              <strong>Import PDF (SVG)</strong>
-              <small>Import a PDF using the SVG engine — compare with the standard importer</small>
-              <span className="pdf-upload-action">{importing ? 'Importing…' : 'Import PDF'} <FiChevronRight /></span>
             </motion.button>
 
             <motion.button

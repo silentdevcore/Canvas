@@ -117,65 +117,6 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
-    /// Imports a PDF file and converts it into a Canvas design.
-    /// Each PDF page becomes a Canvas page; text words and images are extracted
-    /// with their approximate positions and sizes.
-    /// </summary>
-    [HttpPost("import-pdf")]
-    [Consumes("multipart/form-data")]
-    [ProducesResponseType(typeof(DesignExportDto), 200)]
-    [ProducesResponseType(400)]
-    public async Task<IActionResult> ImportPdf(IFormFile? file)
-    {
-        if (file is null || file.Length == 0)
-            return BadRequest(new { error = "A PDF file is required." });
-
-        if (!file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase) &&
-            !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { error = "Only PDF files are accepted." });
-
-        try
-        {
-            await using var stream = file.OpenReadStream();
-            var design = PdfImporter.Import(stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(design);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = $"Could not parse PDF: {ex.Message}" });
-        }
-    }
-
-    /// <summary>
-    /// Imports a PDF via PdfToSvg.NET (SVG intermediate) for comparison with the PdfPig importer.
-    /// Route: POST /api/document/import-pdf-svg
-    /// </summary>
-    [HttpPost("import-pdf-svg")]
-    [Consumes("multipart/form-data")]
-    [ProducesResponseType(typeof(DesignExportDto), 200)]
-    [ProducesResponseType(400)]
-    public async Task<IActionResult> ImportPdfSvg(IFormFile? file)
-    {
-        if (file is null || file.Length == 0)
-            return BadRequest(new { error = "A PDF file is required." });
-
-        if (!file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase) &&
-            !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { error = "Only PDF files are accepted." });
-
-        try
-        {
-            await using var stream = file.OpenReadStream();
-            var design = SvgPdfImporter.Import(stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(design);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = $"Could not parse PDF (SVG): {ex.Message}" });
-        }
-    }
-
-    /// <summary>
     /// Imports a PDF using the Canvas.Importer low-level engine (own tokenizer, object graph,
     /// and content stream interpreter). Returns a Canvas design with text, shape, and image
     /// elements derived from the PDF's raw graphics scene graph.
@@ -300,50 +241,6 @@ public class DocumentOpsController : ControllerBase
     private static int CountLayoutNodes(SemanticLayoutNode? node)
     {
         return node is null ? 0 : 1 + node.Children.Sum(CountLayoutNodes);
-    }
-
-    /// <summary>
-    /// Returns the raw SVG string for one page of a PDF (via PdfToSvg.NET).
-    /// Use this to inspect the SVG structure when debugging the SVG importer.
-    /// Query param: page=1 (1-based).
-    /// </summary>
-    [HttpPost("debug-pdf-svg")]
-    [Consumes("multipart/form-data")]
-    public async Task<IActionResult> DebugPdfSvg(IFormFile? file, [FromQuery] int page = 1)
-    {
-        if (file is null || file.Length == 0)
-            return BadRequest(new { error = "A PDF file is required." });
-        try
-        {
-            await using var stream = file.OpenReadStream();
-            using var pdf = PdfToSvg.PdfDocument.Open(stream);
-            int pageCount = pdf.Pages.Count;
-            var p = pdf.Pages.ElementAtOrDefault(page - 1);
-            if (p is null)
-                return NotFound(new { error = $"Page {page} not found.", pageCount });
-
-            string svg = p.ToSvgString();
-
-            // Count element types so we can see what PdfToSvg actually extracted
-            var doc  = System.Xml.Linq.XDocument.Parse(svg);
-            var root = doc.Root!;
-            var stats = new[] { "rect","path","line","circle","ellipse","image","text","tspan","g","use" }
-                .ToDictionary(tag => tag, tag => root.Descendants()
-                    .Count(e => e.Name.LocalName == tag));
-
-            // Return SVG + debug stats as a JSON envelope so the caller sees both
-            return Ok(new
-            {
-                pageCount,
-                svgLength   = svg.Length,
-                elementStats = stats,
-                svg          = svg,
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = ex.Message, type = ex.GetType().Name });
-        }
     }
 
     /// <summary>

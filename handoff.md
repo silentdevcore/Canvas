@@ -1,146 +1,224 @@
-# Canvas Importer — Handoff Document
+# Canvas PDF Migration Handoff
 
-**Date:** 2026-05-24  
-**Branch:** main  
-**Backend:** http://localhost:5086  
-**Frontend:** http://localhost:5174 (or 5175 if port is busy)
+Stand: 2026-05-31, Europe/Berlin
 
----
+## Ziel
 
-## What This Is
+Weiterarbeit am Feature `Canvas.Migration.*`, das C#-PDF-Code aus Drittanbieter-Bibliotheken nach `Canvas.Pdf` migriert.
 
-Canvas is a .NET 10 + React document design tool. This handoff covers the **PDF importer pipeline** — the subsystem that reads a real-world PDF and turns it into an editable `DesignExportDto` the frontend canvas can open and modify.
+Der bisherige Fokus war:
 
-The pipeline has two distinct jobs:
+- Allgemeine Architektur- und Provider-Checklisten
+- Roslyn-basierte Migration-Piloten pro Anbieter
+- WebApi-Konverter + UI-Beispiele für Migrationen
+- Provider-Tests und API-Smoke-Tests
 
-| Job | Entry point | Output |
-|---|---|---|
-| **PDF → Canvas import** | `CanvasImporterPdfImporter.ImportAsync` | `DesignExportDto` (pages + elements) |
-| **Canvas → PDF regeneration** | `CanvasPdfGeneratorBridge.RegenerateAsync` | byte stream |
+## Wichtige Arbeitsregeln
 
----
+- Bestehende User-Änderungen nicht zurücksetzen.
+- Besonders vorsichtig mit `bin/` und `obj/`: Viele Build-/Restore-Kommandos ändern getrackte Artefakte in diesem Repo.
+- Vor finaler Übergabe möglichst:
+  - `git status --short`
+  - `git diff --check`
+  - Build/Test nur, wenn Sandbox/Freigabe es zulässt.
+- `dotnet test` scheitert in der Sandbox oft mit `System.Net.Sockets.SocketException (13): Permission denied`.
+  - Dafür normalerweise `sandbox_permissions=require_escalated` verwenden.
+  - Wenn Usage-Limit greift, Tests nicht per Workaround ausführen.
+- `dotnet restore` kann auf macOS in der Sandbox mit `CSSM_ModuleLoad()` scheitern.
+  - Dann mit Eskalation wiederholen, wenn verfügbar.
 
-## Architecture
+## Achtung: Aktueller Working Tree
 
-```
-PDF bytes
-  └─ Canvas.Importer.PdfImporter          (low-level tokenizer / parser)
-       └─ PdfDocumentModel                (pages, resources, graphics objects)
-            └─ SceneGraphEngine           (Phase 5 analysis)
-                 ├─ PrimitiveBuilder      (PdfGraphicsElement → PrimitiveObject)
-                 ├─ ObjectClassifier      (barcode / separator / decoration heuristics)
-                 ├─ ReadingOrderEngine    (XY-cut text ordering)
-                 ├─ GroupingEngine        (label-value, icon-text, contained groups)
-                 └─ SemanticLayoutEngine  (header / footer / paragraph / figure)
-                      └─ CanvasImporterPdfImporter   (maps to DesignExportDto)
-```
+Beim Erstellen dieses Handoffs zeigt `git status --short` unter anderem Änderungen, die nicht aus der Migration-Arbeit stammen bzw. nicht zurückgesetzt werden sollen:
 
-Key source locations:
+- `Canvas.WebApi/Controllers/DocumentOpsController.cs`
+- `src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj`
+- Gelöschte Dateien:
+  - `src/Canvas.Infrastructure.Converters/PdfImporter.cs`
+  - `src/Canvas.Infrastructure.Converters/SvgPdfImporter.cs`
+- UI/Docs/Export-Dateien:
+  - `ui-designer-v2/src/hooks/useTemplateLoader.ts`
+  - `ui-designer-v2/src/pages/DocsPage.tsx`
+  - `ui-designer-v2/src/pages/IndexPage.tsx`
+  - `ui-designer-v2/src/pages/TemplatePage.tsx`
+  - `ui-designer-v2/src/services/ExportService.ts`
+- Untracked:
+  - `Removing-PDFImporter.md`
+- Viele getrackte `obj/`-Artefakte in `samples/` und `tests/`.
 
-| Layer | Project | Path |
-|---|---|---|
-| Tokenizer / parser | `Canvas.Importer` | `src/Canvas.Importer/` |
-| Scene graph / analysis | `Canvas.Importer` | `src/Canvas.Importer/Analysis/` |
-| PDF → Canvas import | `Canvas.Infrastructure.Converters` | `src/Canvas.Infrastructure.Converters/CanvasImporterPdfImporter.cs` |
-| Canvas → PDF regeneration | `Canvas.Infrastructure.Pdf` | `src/Canvas.Infrastructure.Pdf/CanvasPdfGeneratorBridge.cs` |
-| API endpoint | `Canvas.WebApi` | `Canvas.WebApi/Controllers/DocumentOpsController.cs` |
-| Tests | `Canvas.Importer.Tests` | `tests/Canvas.Importer.Tests/PdfImporterCoreTests.cs` |
+Diese Änderungen im nächsten Chat erst prüfen, nicht blind revertieren.
 
----
+## Migration-Provider Status
 
-## Completed Work
+Alle ursprünglich geplanten Anbieter sind inzwischen mindestens als vorsichtiger Pilot umgesetzt.
 
-### Phase 3 — Text Fidelity, Image Codec Expansion, Barcode Support
-- Font size scale fix (text matrix scale factor applied in importer)
-- CCITT Fax and LZW image round-trip in the generator bridge (decode → re-encode as FlateDecode)
-- Indexed color space palette expansion in bridge image handling
-- Barcode round-trip verification (vector-path, CCITT/Indexed image, barcode-font text)
+Provider mit Roslyn-/Pattern-Pilot:
 
-### Phase 4 — Adobe / Standard Font Recognition
-- `/BaseFont` extraction from font dictionaries, subset prefix (`ABCDEF+`) stripped
-- Bold / Italic detection from font name suffixes
-- Font family mapping to CSS names (`Helvetica`, `Times New Roman`, `Courier New`, etc.) in the importer
-- `FontFamily`, `Bold`, `Italic` passed to `PdfDrawTextOptions` in the generator bridge
+- `Canvas.Migration.SyncfusionPdf`
+- `Canvas.Migration.iText7`
+- `Canvas.Migration.AsposePdf`
+- `Canvas.Migration.IronPdf`
+- `Canvas.Migration.DevExpressPdf`
+- `Canvas.Migration.Apryse`
+- `Canvas.Migration.FoxitPdf`
+- `Canvas.Migration.DsPdf`
+- `Canvas.Migration.GemBoxPdf`
+- `Canvas.Migration.SpirePdf`
+- `Canvas.Migration.PdfKitNet`
+- `Canvas.Migration.LeadtoolsPdf`
+- `Canvas.Migration.ActivePdf`
 
-### Phase 5 — Scene Graph Wiring
-- All Phase 5 analysis engines (`SceneGraphEngine`, `ReadingOrderEngine`, `SemanticLayoutEngine`, etc.) built and tested
-- `CanvasImporterPdfImporter` rewritten to consume `SceneGraphEngine.BuildPage` output
-- Reading-order text emission (XY-cut algorithm, top-to-bottom, left-to-right)
-- Semantic header/footer detection (top/bottom 8% zone) for multi-page shared elements
-- `PrimitiveText`, `PrimitiveShape`, `PrimitivePath`, `PrimitiveImage`, nested `PrimitiveGroup` all mapped
-- Rotation, bold/italic style keys, classification metadata passed in element style dict
+Aktuell relevante neue/letzte Provider-Dateien:
 
-### Test Fixes
-- `MatrixEngine_ShouldTransformRotatedBoundsAndExtractRotation` — corrected expected `point.X` to `−50`
-- Test suite: **84 tests, all passing**
+- `src/Canvas.Migration.PdfKitNet/PdfKitNetMigration.cs`
+- `tests/Canvas.Migration.PdfKitNet.Tests/PdfKitNetMigrationTests.cs`
+- `src/Canvas.Migration.LeadtoolsPdf/LeadtoolsPdfMigration.cs`
+- `tests/Canvas.Migration.LeadtoolsPdf.Tests/LeadtoolsPdfMigrationTests.cs`
+- `src/Canvas.Migration.ActivePdf/ActivePdfMigration.cs`
+- `tests/Canvas.Migration.ActivePdf.Tests/ActivePdfMigrationTests.cs`
 
----
+WebApi-Konverter:
 
-## Known Gaps / Open Items
+- `Canvas.WebApi/Services/Converters/PdfKitNetConverter.cs`
+- `Canvas.WebApi/Services/Converters/LeadtoolsPdfConverter.cs`
+- `Canvas.WebApi/Services/Converters/ActivePdfConverter.cs`
 
-### QR Code / Complex Path Rendering (OPEN — not fixed)
-**Symptom:** A QR code (or any PDF path consisting of many small rectangle subpaths) imports as a single solid black square instead of the individual module grid.
+API-Smoke-Tests:
 
-**Root cause:** `PrimitivePath` objects (multi-segment paths) reach `MapPath`, which uses `el.Bounds` — the path's overall bounding box — so every segment collapses to one filled rectangle.
+- `tests/Canvas.Api.Tests/MigrationServiceTests.cs`
 
-**What was tried:**
-1. `EmitComplexPath` — split `RectangleSegment` subpaths into individual shape elements, fell back to SVG for curve-only paths. Did not fix the visual result.
-2. Relaxing the `onlyRects` guard from `All(s is RectangleSegment or ClosePathSegment)` to `!Any(s is CurveToSegment)` to allow `MoveToSegment` in the rect-split path. Also did not fix the visual result.
+UI:
 
-**Current state of the code:** Both attempts were reverted. `PrimitivePath` now goes through plain `MapPath` (bounding-box approach), same as `PrimitiveShape`.
+- `ui-designer-v2/src/pages/MigrationsPage.tsx`
 
-**What to investigate next:**
-- Confirm whether the QR code is actually a vector `PrimitivePath` or a raster `PrimitiveImage` XObject. If it is an image, the image codec path (CCITTFaxDecode / JBIG2) is the real bottleneck.
-- If it is a vector path, add debug logging to `EmitPrimitive` to count how many segments are in the `PrimitivePath` that covers the QR area, and verify coordinates after `TransformBounds`.
-- Check `LivePreview.tsx` shape rendering: the outer wrapper (`wrapperStyle`) sets position/size from `el.x/y/width/height`; the inner `<div>` fills 100%/100% with `backgroundColor`. Verify the element DTO fields are correct at the API boundary.
+Checklisten:
 
-### JBIG2 and JPEG2000 decoders
-Both are deferred — they require external library dependencies:
-- `JBIG2Decode` → needs a JBIG2 library (e.g., `Docnet.Core` or native wrapper)
-- `JPXDecode` (JPEG 2000) → needs `Grok`, `OpenJPEG`, or similar
+- `checklists/Code-Migrations.md`
+- `checklists/Code-Migrations-UI.md`
+- `checklists/Code-Migration-PdfKitNet.md`
+- `checklists/Code-Migration-LeadtoolsPdf.md`
+- `checklists/Code-Migration-ActivePdf.md`
 
-PDFs that use only these codecs for images will produce empty `ImageBytes` and show no image.
+## Letzte Provider-Details
 
-### Image data URI format
-`ImageBytesToDataUri` only sniffs JPEG (`FF D8 FF` header). Everything else defaults to `image/png`. Decoded bitmap pixel data (no container format) → browser cannot decode → broken image. A proper fix wraps raw pixel bytes in a lightweight PNG encoder before embedding.
+### PDFKit.NET
 
-### Complex path rendering (curves)
-Curve-only `PrimitivePath` objects (circles, arcs, complex outlines) currently use `MapPath` (bounding box), which renders them as solid-filled rectangles. SVG fallback was attempted but reverted.
+Status: `pilot cautious`
 
-### Font size scale
-The font size scale fix (Phase 3) was **reverted from the interpreter** because applying the text matrix scale to `FontSize` in `PdfGraphicsInterpreter` caused very large text on many real PDFs (the CTM can include a large scale factor). The scale is now applied only in `CanvasImporterPdfImporter.MapText` using `prim.Transform.ScaleY`.
+Wichtig:
 
-### Decorations filtered
-Primitives classified as `PrimitiveClassification.Decoration` are silently dropped during import. Intentional (decorative lines, background fills) but may occasionally drop meaningful content.
+- Package/API-Identität ist nicht bestätigt.
+- Converter gibt immer `CANMIGPDFKIT000` als Warnung aus.
+- Unterstützt einfache wahrscheinliche Patterns:
+  - `new Document()` / `new PdfDocument()` / `new PDFDocument()`
+  - `NewPage()` / `AddPage()` / `Pages.Add()`
+  - `DrawText(...)` / `DrawString(...)`
+  - `DrawLine(...)` / `DrawRectangle(...)`
+  - `Save(...)` / `Render(...)` / `Write(...)` / `SaveAs(...)`
+- Warnt bei Bildern, Forms, Security, Signaturen, Tabellen/Templates, bestehender PDF-Bearbeitung.
 
----
+Verifikation damals:
 
-## Running the Stack
+- Provider build: grün
+- Provider tests: 6/6 grün
+- API tests nach PDFKit: 25/25 grün
+
+### LEADTOOLS PDF
+
+Status: `pilot cautious`
+
+Wichtig:
+
+- LEADTOOLS ist stark Raster/OCR/Conversion-lastig.
+- Converter gibt immer `CANMIGLEAD000` als Warnung aus.
+- Unterstützt nur wahrscheinliche direkte PDF-Erzeugung:
+  - `PDFDocument` / `PdfDocument` / `PDFFile` / `PdfFile`
+  - `AddPage()` / `NewPage()` / `Pages.Add()`
+  - `DrawText(...)` / `DrawString(...)` / `TextOut(...)` / `AddText(...)`
+  - `DrawLine(...)` / `DrawRectangle(...)`
+  - `Save(...)` / `SaveToFile(...)` / `Write(...)` / `Export(...)`
+- Warnt bei OCR, Raster, Barcode, DocumentConverter/DocumentFactory, Security, bestehender PDF-Bearbeitung.
+
+Verifikation damals:
+
+- Provider build: grün
+- Provider tests: 6/6 grün
+- API tests nach LEADTOOLS: 26/26 grün
+
+### ActivePDF
+
+Status: `pilot cautious`
+
+Wichtig:
+
+- ActivePDF hat mehrere Produktlinien: Toolkit, DocConverter, WebGrabber, Server/COM/Printer-Workflows.
+- Converter gibt immer `CANMIGACTIVE000` als Warnung aus.
+- Unterstützt wahrscheinliche Toolkit-artige Erzeugung:
+  - `new Toolkit()` / `new APDoc()` / `new Document()`
+  - `AddPage()` / `BeginPage()` / `NewPage()`
+  - `PrintText(...)` / `DrawText(...)` / `AddText(...)` / `TextOut(...)`
+  - `DrawLine(...)` / `DrawRectangle(...)`
+  - `Save(...)` / `SaveAs(...)` / `SaveToFile(...)` / `CloseDocument(...)`
+- Warnt bei DocConverter/WebGrabber, COM/server automation, printer output, merge/stamp, HTML conversion, existing PDF editing, security/signatures.
+
+Verifikation:
+
+- ActivePDF provider build: grün, 0 Fehler
+- API build: grün, 0 Fehler
+- `dotnet test` konnte zuletzt nicht mit Eskalation laufen, weil Usage-Limit die Freigabe blockiert hat.
+- Sandbox-`dotnet test` scheiterte erwartungsgemäß an VSTest Socket Permission.
+
+## Aktueller Nächster Schritt
+
+Empfohlene nächste Reihenfolge:
+
+1. Working Tree bereinigen bzw. bewusst trennen:
+   - Prüfen, welche Änderungen wirklich Migration sind.
+   - Build-Artefakte unter `obj/`/`bin/` vorsichtig zurücksetzen, falls sie nur generiert sind.
+   - Nicht die PDF-Importer-Entfernungen oder UI/Docs-Dateien anfassen, bevor klar ist, ob sie vom User gewollt sind.
+2. Sobald Freigabe/Limit wieder verfügbar:
+   - `dotnet test tests/Canvas.Migration.ActivePdf.Tests/Canvas.Migration.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false`
+   - `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --no-build -nodeReuse:false`
+3. Wenn Tests grün:
+   - Checklisten final prüfen.
+   - `git diff --check` auf Quelländerungen und idealerweise gesamtem Diff nach Artefakt-Cleanup.
+4. Danach mögliche Architektur-Aufräumarbeiten:
+   - Gemeinsame Helper für wiederkehrende Migration-Muster extrahieren.
+   - Diagnostics-Konventionen vereinheitlichen.
+   - Provider-neutralen Mapping-Report ausbauen.
+   - Real-World-Samples je Anbieter sammeln und Snapshot-Tests ergänzen.
+
+## Wichtige Kommandos
+
+Provider-/API-Builds:
 
 ```bash
-# Backend
-dotnet run --project Canvas.WebApi/Canvas.WebApi.csproj --urls "http://localhost:5086"
-
-# Frontend
-cd ui-designer-v2 && npm run dev
-
-# Tests
-dotnet test tests/Canvas.Importer.Tests/Canvas.Importer.Tests.csproj
+dotnet build tests/Canvas.Migration.ActivePdf.Tests/Canvas.Migration.ActivePdf.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
+dotnet build tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
 ```
 
----
+Tests, wenn Eskalation möglich:
 
-## Key Files to Know
+```bash
+dotnet test tests/Canvas.Migration.ActivePdf.Tests/Canvas.Migration.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false
+dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --no-build -nodeReuse:false
+```
 
-| File | Why it matters |
-|---|---|
-| [CanvasImporterPdfImporter.cs](src/Canvas.Infrastructure.Converters/CanvasImporterPdfImporter.cs) | Main PDF→Canvas conversion: element mapping, coordinate flip, header/footer detection |
-| [CanvasPdfGeneratorBridge.cs](src/Canvas.Infrastructure.Pdf/CanvasPdfGeneratorBridge.cs) | Canvas→PDF regeneration: image codec handling, shading, font mapping |
-| [SceneGraphEngine.cs](src/Canvas.Importer/Analysis/SceneGraphEngine.cs) | Orchestrates all Phase 5 analysis engines per page |
-| [PrimitiveModel.cs](src/Canvas.Importer/Analysis/PrimitiveModel.cs) | `PrimitiveText`, `PrimitivePath`, `PrimitiveShape`, `PrimitiveImage`, `PrimitiveGroup` |
-| [BoundingBoxCalculator.cs](src/Canvas.Importer/Analysis/BoundingBoxCalculator.cs) | Computes global-space bounds for all primitive types by applying the CTM |
-| [ReadingOrderEngine.cs](src/Canvas.Importer/Analysis/ReadingOrderEngine.cs) | XY-cut reading order, `Flatten` helper |
-| [PdfGraphicsInterpreter.cs](src/Canvas.Importer/Graphics/PdfGraphicsInterpreter.cs) | Interprets PDF content stream operators into typed `PdfGraphicsElement` objects |
-| [LivePreview.tsx](ui-designer-v2/src/components/Preview/LivePreview.tsx) | Frontend renderer for imported PDFs — `wrapperStyle` applies `el.x/y/width/height`; shape inner div fills 100%×100% with `backgroundColor` |
-| [PdfImporterCoreTests.cs](tests/Canvas.Importer.Tests/PdfImporterCoreTests.cs) | 84 tests covering tokenizer, xref, content, text geometry, image codecs, barcodes, Phase 5 analysis |
-| [Importer-New-Featuers.md](checklists/Importer-New-Featuers.md) | Phase-by-phase feature checklist |
+Status/Checks:
+
+```bash
+git status --short
+git diff --check
+```
+
+## Hinweis für den nächsten Chat
+
+Der Kontext ist groß geworden. Bitte nicht von vorne anfangen. Erst lokale Dateien lesen, besonders:
+
+- `checklists/Code-Migrations.md`
+- `checklists/Code-Migrations-UI.md`
+- `tests/Canvas.Api.Tests/MigrationServiceTests.cs`
+- `Canvas.WebApi/Services/Converters/*PdfConverter.cs`
+- die drei letzten Provider unter `src/Canvas.Migration.*`
+
+Dann den aktuellen Working Tree sauber einordnen und erst danach weiterarbeiten.

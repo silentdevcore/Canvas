@@ -1021,7 +1021,7 @@ var output = JsonConvert.SerializeObject(template, Formatting.Indented, settings
                 { method: 'POST', path: '/api/document/clone',             desc: 'Deep-clone a design with new IDs. Body: { design, newName? }.' },
                 { method: 'POST', path: '/api/document/extract-pages',     desc: 'Extract a page subset. Body: { design, pageNumbers: number[], newName? }.' },
                 { method: 'POST', path: '/api/document/sign-docx',         desc: 'Apply X.509 digital signature to a DOCX. Multipart: docx file + certificate PFX + optional password. Returns signed DOCX.' },
-                { method: 'POST', path: '/api/document/import-pdf',        desc: 'Import PDF → DesignExportDto. Multipart file upload.' },
+                { method: 'POST', path: '/api/document/import-pdf-engine',   desc: 'Import PDF → DesignExportDto. Multipart file upload.' },
                 { method: 'POST', path: '/api/document/import-docx',       desc: 'Import DOCX → DesignExportDto. Multipart file upload.' },
                 { method: 'POST', path: '/api/document/import-doc',        desc: 'Import Word 97-2003 .doc → DesignExportDto. Multipart file upload.' },
                 { method: 'POST', path: '/api/document/import-odt',        desc: 'Import ODT → DesignExportDto. Multipart file upload.' },

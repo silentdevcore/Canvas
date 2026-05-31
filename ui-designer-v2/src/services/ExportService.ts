@@ -770,26 +770,7 @@ export class ExportService {
   }
 
   static async importPdf(file: File): Promise<object> {
-    return this._importFile(file, 'import-pdf');
-  }
-
-  static async importPdfSvg(file: File): Promise<object> {
-    return this._importFile(file, 'import-pdf-svg');
-  }
-
-  static async importPdfEngine(file: File): Promise<object> {
     return this._importFile(file, 'import-pdf-engine');
-  }
-
-  static async debugPdfSvg(file: File, page = 1): Promise<{ svgLength: number; elementStats: Record<string, number>; svg: string; pageCount: number }> {
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch(
-      `${this.API_BASE_URL}/document/debug-pdf-svg?page=${page}`,
-      { method: 'POST', body: form }
-    );
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
   }
 
   static async importDoc(file: File): Promise<object> {
