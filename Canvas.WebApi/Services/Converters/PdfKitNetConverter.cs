@@ -8,7 +8,7 @@ public sealed class PdfKitNetConverter : BasePdfConverter
     public override string FrameworkName => "PDFKit.NET";
     public override string Status => "full";
     public override string Description =>
-        "Roslyn-based full conversion: Document + NewPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine → DrawLineFromTop; DrawRectangle → DrawRectangleFromTop; Save/Render → Save; forms/encryption/annotations produce warnings. Package identity must be manually verified.";
+        "Cautious Roslyn-backed pilot: likely Document + NewPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine/DrawRectangle and Save/Render mapped; package/API identity must be manually verified.";
 
     public override string ConvertCode(string sourceCode)
     {

@@ -8,7 +8,7 @@ public sealed class LeadtoolsPdfConverter : BasePdfConverter
     public override string FrameworkName => "LEADTOOLS";
     public override string Status => "full";
     public override string Description =>
-        "Roslyn-based full conversion: PDFDocument + AddPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine → DrawLineFromTop; DrawRectangle → DrawRectangleFromTop; Save/Export → Save; raster/OCR/barcode/conversion APIs produce warnings.";
+        "Cautious Roslyn-backed pilot: likely direct PDFDocument + AddPage/Pages.Add, simple text/shape/save mappings; raster/OCR/barcode/conversion APIs require manual migration.";
 
     public override string ConvertCode(string sourceCode)
     {

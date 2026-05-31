@@ -67,6 +67,8 @@ Provider mit Roslyn-/Pattern-Pilot:
 - `Canvas.Migration.PdfKitNet`
 - `Canvas.Migration.LeadtoolsPdf`
 - `Canvas.Migration.ActivePdf`
+- `Canvas.Migration.PdfTools`
+- `Canvas.Migration.PdfToolsToolbox`
 
 Aktuell relevante neue/letzte Provider-Dateien:
 
@@ -76,12 +78,18 @@ Aktuell relevante neue/letzte Provider-Dateien:
 - `tests/Canvas.Migration.LeadtoolsPdf.Tests/LeadtoolsPdfMigrationTests.cs`
 - `src/Canvas.Migration.ActivePdf/ActivePdfMigration.cs`
 - `tests/Canvas.Migration.ActivePdf.Tests/ActivePdfMigrationTests.cs`
+- `src/Canvas.Migration.PdfTools/PdfToolsMigration.cs`
+- `tests/Canvas.Migration.PdfTools.Tests/PdfToolsMigrationTests.cs`
+- `src/Canvas.Migration.PdfToolsToolbox/PdfToolsToolboxMigration.cs`
+- `tests/Canvas.Migration.PdfToolsToolbox.Tests/PdfToolsToolboxMigrationTests.cs`
 
 WebApi-Konverter:
 
 - `Canvas.WebApi/Services/Converters/PdfKitNetConverter.cs`
 - `Canvas.WebApi/Services/Converters/LeadtoolsPdfConverter.cs`
 - `Canvas.WebApi/Services/Converters/ActivePdfConverter.cs`
+- `Canvas.WebApi/Services/Converters/PdfToolsConverter.cs`
+- `Canvas.WebApi/Services/Converters/PdfToolsToolboxConverter.cs`
 
 API-Smoke-Tests:
 
@@ -98,6 +106,8 @@ Checklisten:
 - `checklists/Code-Migration-PdfKitNet.md`
 - `checklists/Code-Migration-LeadtoolsPdf.md`
 - `checklists/Code-Migration-ActivePdf.md`
+- `checklists/Code-Migration-PdfTools.md`
+- `checklists/Code-Migration-PdfToolsToolbox.md`
 
 ## Letzte Provider-Details
 
@@ -165,8 +175,65 @@ Verifikation:
 
 - ActivePDF provider build: grün, 0 Fehler
 - API build: grün, 0 Fehler
-- `dotnet test` konnte zuletzt nicht mit Eskalation laufen, weil Usage-Limit die Freigabe blockiert hat.
-- Sandbox-`dotnet test` scheiterte erwartungsgemäß an VSTest Socket Permission.
+- ActivePDF provider tests: 6/6 grün
+- API tests: 28/28 grün
+- Sandbox-`dotnet test` scheitert weiterhin erwartungsgemäß an VSTest Socket Permission; mit Eskalation laufen die Tests.
+
+### PDFTools / Pdftools SDK
+
+Status: `pilot cautious`
+
+Wichtig:
+
+- Offizielle .NET-Doku bestätigt NuGet `PdfTools`, Docs-Version 1.17 und optionales `Sdk.Initialize(...)` für lizenzierte Ausgabe.
+- Converter gibt immer `CANMIGPDFTOOLS000` als diagnostics-first-pilot-Warnung aus.
+- `Sdk.Initialize(...)` wird entfernt und mit `CANMIGPDFTOOLS001` dokumentiert.
+- Offizielle API-Referenzen zeigen: `PdfTools.Pdf.Document` wird geöffnet oder durch Operationen erzeugt; direkte PDF-Erzeugung liegt im separaten PDF Toolbox SDK/add-on (`PdfTools.Toolbox.Pdf.Document.Create`, `Page.Create`).
+- Keine automatischen `Document/AddPage/DrawText`-Canvas-Rewrites mehr für diesen SDK-Provider.
+- Warnt bei Document.Open/Save, Conversion, Rendering/Image, Optimization, Validation/Repair, existing PDF processing, Security, Signaturen, Forms, Annotationen, Outlines/OCR.
+- Warnt mit `CANMIGPDFTOOLS022`, wenn `PdfTools.Toolbox.*` erkannt wird, damit Toolbox als eigener Sample-/Provider-Schnitt behandelt wird.
+
+Verifikation:
+
+- PDFTools provider build: grün, 0 Fehler
+- PDFTools provider tests: 5/5 grün
+- API build: grün, 0 Fehler; bestehende Warnungen in Core/Converters/Apryse/WebApi
+- API tests: 28/28 grün
+
+### PDF Toolbox SDK / Toolbox add-on
+
+Status: `pilot cautious`
+
+Wichtig:
+
+- Separat vom Pdftools SDK behandeln.
+- Offizielle Doku bestätigt die Direct-Generation-/Content-Spur:
+  - `PdfTools.Toolbox.Pdf.Document.Create(...)`
+  - `PdfTools.Toolbox.Pdf.Page.Create(...)`
+  - `ContentGenerator`
+  - `Text.Create(...)`
+  - `TextGenerator`
+  - `Font.CreateFromSystem(...)`
+- NuGet/Assembly verifiziert:
+  - NuGet: `PdfTools.Toolbox` 1.11.0
+  - Assembly: `PdfTools.Toolbox.dll`
+  - Namespace-Familie: `PdfTools.Toolbox.*`
+- Toolbox add-on braucht laut Getting-Started eigene Lizenz/Trial-Behandlung; das ist anders als Pdftools SDK.
+- Unterstützt im ersten Pilot:
+  - `Document.Create(outStream, ...)` -> `new PdfDocument()`
+  - `Page.Create(outDoc, PageSize.A4/Letter)` -> `document.AddPage(PdfPagePreset.A4/Letter, landscape)`
+  - `Page.Create(outDoc, customSize)` -> `document.AddPage()` plus `CANMIGPDFTOOLBOX009`
+  - `TextGenerator.MoveTo(...)` + `ShowLine(...)` -> `page.DrawTextFromTop(...)`
+  - `outDoc.Pages.Add(outPage)` wird entfernt, wenn PageCreate bereits migriert wurde
+  - einfache `FileStream(outPath, ...)` / `File.Create(outPath)` Output-Ziele werden erkannt und zu `document.Save(outPath)` migriert
+- Warnt mit `CANMIGPDFTOOLBOX008`, wenn ein Output-Stream nicht sicher zu einem Pfad gemappt werden kann.
+- Warnt mit `CANMIGPDFTOOLBOX010`, wenn nach teilweiser Migration Toolbox-Code übrig bleibt; Toolbox-Usings bleiben dann erhalten.
+- Warnt bei Existing-PDF Copy/Edit/Tagging, Forms, Annotations, Metadata, Outlines, Color/Paint/Transparency/Image/Barcode/Watermark Details.
+
+Verifikation:
+
+- PDF Toolbox provider build: grün, 0 Fehler; NuGet-Audit-Warnung wegen eingeschränktem Netzwerk
+- PDF Toolbox provider tests: 9/9 grün
 
 ## Aktueller Nächster Schritt
 
@@ -179,10 +246,17 @@ Empfohlene nächste Reihenfolge:
 2. Sobald Freigabe/Limit wieder verfügbar:
    - `dotnet test tests/Canvas.Migration.ActivePdf.Tests/Canvas.Migration.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false`
    - `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --no-build -nodeReuse:false`
-3. Wenn Tests grün:
+3. PDFTools gegen echte Pdftools-SDK-Samples validieren:
+   - Besonders Direct-Generation-Klassen, Koordinatenursprung, Text-/Font-API und Save/Export-Semantik prüfen.
+   - Danach Status ggf. von cautious pilot auf detaillierter Pilot anheben.
+4. PDF Toolbox SDK / Toolbox add-on weiter härten:
+   - API-Smoke-Test und UI-Beispiel final prüfen.
+   - Output-Stream/FileStream-Setup nur dann automatisch entfernen/ersetzen, wenn `outPath` sicher erkannt wurde.
+   - PageSize-Mapping und Save-Semantik für Canvas.Pdf sauber definieren.
+5. Wenn Tests grün:
    - Checklisten final prüfen.
    - `git diff --check` auf Quelländerungen und idealerweise gesamtem Diff nach Artefakt-Cleanup.
-4. Danach mögliche Architektur-Aufräumarbeiten:
+5. Danach mögliche Architektur-Aufräumarbeiten:
    - Gemeinsame Helper für wiederkehrende Migration-Muster extrahieren.
    - Diagnostics-Konventionen vereinheitlichen.
    - Provider-neutralen Mapping-Report ausbauen.

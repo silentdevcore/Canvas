@@ -124,3 +124,73 @@ Scope: this checklist tracks core Canvas.Importer PDF parsing, interpretation, e
 - [x] Preserve repeated multi-page header/footer promotion while using Phase 5 reading order, bounds, rotation, and classification metadata.
 - [x] Extend `debug-pdf-engine` diagnostics with Phase 5 scene graph metrics, classification counts, reading order, groups, layout nodes, and debug overlays.
 - [x] Add backend importer coverage for rotated text, draw-order-independent text import, vector shapes, image XObjects, barcode-like bars, and shared headers.
+
+## SVG Import
+
+Goal: convert `.svg` files into editable Canvas designs with full vector fidelity. No new NuGet dependencies — uses `System.Xml.Linq` (already used in `OdtImporter`). New static class `SvgImporter` in `Canvas.Infrastructure.Converters`.
+
+### Page dimensions
+- [ ] Read `viewBox` attribute from `<svg>` root for canvas width/height.
+- [ ] Fall back to `width`/`height` attributes; fall back to bounding box of all elements if both absent.
+
+### Transform handling
+- [ ] Parse `transform` attribute on `<g>` and individual elements: `matrix()`, `translate()`, `rotate()`, `scale()`, `skewX()`, `skewY()`.
+- [ ] Compose transforms down the element tree (multiply matrices) before emitting final canvas coordinates.
+
+### Element mapping
+- [ ] Map `<rect>` → `shape` element (fill + stroke from attributes/inline style).
+- [ ] Map `<circle>` and `<ellipse>` → inline SVG data-URI `image` element (Canvas has no circle primitive).
+- [ ] Map `<line>`, `<polyline>`, `<polygon>`, `<path>` → inline SVG data-URI `image` element (same technique as `CanvasImporterPdfImporter.EmitSvgPath`).
+- [ ] Map `<text>` / `<tspan>` → `text` element (x/y, font-size, fill color, font-family, font-weight).
+- [ ] Map `<image>` → `image` element; resolve `href` / `xlink:href`; embed referenced file as base64 data-URI if relative path.
+- [ ] Recurse into `<g>` groups, accumulating the composed transform.
+- [ ] Register `<symbol>` definitions and resolve `<use href>` by cloning the referenced subtree with the `<use>` transform applied.
+- [ ] Skip `<defs>` content during direct emit (only used for `<use>` resolution).
+
+### Color resolution
+- [ ] Parse `fill`, `stroke`, `fill-opacity`, `stroke-opacity`, `opacity` from both XML attributes and inline `style=""`.
+- [ ] Resolve `currentColor` and `inherit` keywords by walking the element ancestry.
+
+### API endpoint
+- [ ] Add `POST /api/document/import-svg` to `DocumentOpsController` — accepts `.svg` / `image/svg+xml`, delegates to `SvgImporter.Import(stream, fileName)`.
+
+### Frontend wiring
+- [ ] Add `importSvg(file)` to `ExportService.ts` calling `_importFile(file, 'import-svg')`.
+- [ ] Add `.svg` routing case in `useTemplateLoader.ts` → `loadFromFile()`.
+- [ ] Add `.svg` to the file-input `accept` attribute in `IndexPage.tsx`.
+
+---
+
+## PowerPoint Import (.pptx)
+
+Goal: convert `.pptx` files into editable Canvas designs with full slide fidelity (text, images, shapes, backgrounds, slide dimensions). Uses `DocumentFormat.OpenXml` — already a dependency of `Canvas.Infrastructure.Word` (same project as `DocxImporter`). New class `PptxImporter` in `Canvas.Infrastructure.Word`.
+
+### Slide dimensions and page settings
+- [ ] Read `PresentationPart.Presentation.SlideSize` (cx/cy in EMU); convert EMU → px (÷ 9144 × 96).
+- [ ] Set `PageSettings.Width`, `PageSettings.Height`, and `Orientation` from slide size.
+
+### Slide → page mapping
+- [ ] Iterate `PresentationPart.SlideParts` in presentation slide-id order; emit one `PageDto` per slide.
+
+### Shape tree traversal
+- [ ] For each `sp` (shape) with a `txBody`: extract text runs with font size, bold, italic, color, alignment → `text` element. Position/size from `spPr.xfrm` (EMU → px).
+- [ ] For each `sp` without `txBody`: emit `shape` element; resolve fill color from `solidFill` → `srgbClr` / `schemeClr` (walk theme for scheme colors).
+- [ ] For each `pic` (picture): extract blip relationship bytes, encode as base64 data-URI → `image` element. Position/size from `spPr.xfrm`.
+- [ ] Resolve inherited styles: walk `sp.ShapeStyle` → slide layout shape → slide master shape for unset font size, color, and fill values.
+
+### Background
+- [ ] Read slide background fill (`CSld.Background` → `BgPr.solidFill` or `gradFill`).
+- [ ] Emit as a full-page `shape` element behind all other elements, or set `PageSettings` background color if solid.
+- [ ] Fall back to slide layout / slide master background if the slide itself has no explicit background.
+
+### Theme color resolution
+- [ ] Load `ThemePart` from slide master; build a scheme-color map (`dk1`, `lt1`, `acc1`–`acc6`, etc.) for resolving `schemeClr` references.
+- [ ] Apply shade/tint/lum modifiers from `<a:lumMod>` / `<a:lumOff>` when present.
+
+### API endpoint
+- [ ] Add `POST /api/document/import-pptx` to `DocumentOpsController` — accepts `.pptx`, delegates to `PptxImporter.Import(stream, fileName)`.
+
+### Frontend wiring
+- [ ] Add `importPptx(file)` to `ExportService.ts` calling `_importFile(file, 'import-pptx')`.
+- [ ] Add `.pptx` routing case in `useTemplateLoader.ts` → `loadFromFile()`.
+- [ ] Add `.pptx` to the file-input `accept` attribute in `IndexPage.tsx`.

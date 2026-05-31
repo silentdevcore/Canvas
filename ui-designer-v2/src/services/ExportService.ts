@@ -789,6 +789,14 @@ export class ExportService {
     return this._importFile(file, 'import-image');
   }
 
+  static async importSvg(file: File): Promise<object> {
+    return this._importFile(file, 'import-svg');
+  }
+
+  static async importPptx(file: File): Promise<object> {
+    return this._importFile(file, 'import-pptx');
+  }
+
   private static async _importFile(file: File, endpoint: string): Promise<object> {
     const form = new FormData();
     form.append('file', file);

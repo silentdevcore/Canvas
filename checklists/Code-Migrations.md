@@ -4,7 +4,7 @@
 
 Build a `Canvas.Migration.*` feature family for migrating existing C# PDF-generation code from third-party vendors to `Canvas.Pdf`.
 
-The first milestone started with checklist and architecture scaffolding. Syncfusion PDF, iText7, Aspose.PDF, IronPDF, DevExpress PDF, Apryse, Foxit PDF SDK, DsPdf, GemBox.Pdf, Spire.PDF, PDFKit.NET, LEADTOOLS PDF, and ActivePDF now have Roslyn-backed pilot implementations.
+The first milestone started with checklist and architecture scaffolding. Syncfusion PDF, iText7, Aspose.PDF, IronPDF, DevExpress PDF, Apryse, Foxit PDF SDK, DsPdf, GemBox.Pdf, Spire.PDF, PDFKit.NET, LEADTOOLS PDF, ActivePDF, and PDFTools / Pdftools SDK now have Roslyn-backed pilot implementations. PDF Toolbox SDK / Toolbox add-on is queued as a separate direct-generation provider checklist.
 
 ## Current Pilot
 
@@ -21,10 +21,12 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 - [x] Use `PdfKitNet` as the eleventh provider pilot, with an explicit package/API identity warning
 - [x] Use `LeadtoolsPdf` as the twelfth provider pilot, scoped to direct PDF generation and manual diagnostics for raster/OCR/conversion flows
 - [x] Use `ActivePdf` as the thirteenth provider pilot, scoped to likely Toolkit-style generation and manual diagnostics for DocConverter/WebGrabber/COM/printer workflows
+- [x] Use `PdfTools` as the fourteenth provider pilot, scoped to likely direct generation and manual diagnostics for conversion/processing workflows
+- [x] Use `PdfToolsToolbox` as the fifteenth provider pilot, scoped to PDF Toolbox SDK direct-generation/content APIs
 - [x] Start with deterministic C# PDF-generation patterns, not existing-PDF editing
 - [x] Treat `PdfDocument`, `Pages.Add`, `PdfGraphics.DrawString`, simple fonts, simple brushes, and `Save` as the first conversion slice
 - [x] Use the Syncfusion pilot to validate shared abstraction names before adding all provider projects
-- [ ] Promote repeated Syncfusion/iText7/Aspose/IronPDF/DevExpress/Apryse/Foxit/DsPdf/GemBox/Spire/PDFKit.NET/LEADTOOLS/ActivePDF rules into provider-neutral abstractions after the thirteenth prototype
+- [ ] Promote repeated Syncfusion/iText7/Aspose/IronPDF/DevExpress/Apryse/Foxit/DsPdf/GemBox/Spire/PDFKit.NET/LEADTOOLS/ActivePDF/PDFTools/Toolbox rules into provider-neutral abstractions after the fifteenth prototype
 
 ## Architecture Checklist
 
@@ -57,6 +59,8 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 - [x] `src/Canvas.Migration.FoxitPdf`
 - [x] `src/Canvas.Migration.DevExpressPdf`
 - [x] `src/Canvas.Migration.ActivePdf`
+- [x] `src/Canvas.Migration.PdfTools`
+- [x] `src/Canvas.Migration.PdfToolsToolbox`
 
 ## Shared Roslyn Analyzer And Code Fix Tasks
 
@@ -110,6 +114,8 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 | Foxit PDF SDK | `Code-Migration-FoxitPdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
 | DevExpress PDF | `Code-Migration-DevExpressPdf.md` | [x] | [x] | [x] | [x] | [x] | Pilot detailed |
 | ActivePDF | `Code-Migration-ActivePdf.md` | [ ] | [x] | [x] | [x] | [x] | Pilot cautious |
+| PDFTools / Pdftools SDK | `Code-Migration-PdfTools.md` | [x] | [x] | [x] | [x] | [x] | Pilot cautious |
+| PDF Toolbox SDK / Toolbox add-on | `Code-Migration-PdfToolsToolbox.md` | [x] | [x] | [x] | [x] | [x] | Pilot cautious |
 
 ## Provider Migration-Ready Acceptance Criteria
 

@@ -93,7 +93,7 @@ const IndexPage: React.FC = () => {
         <input
           ref={importInputRef}
           type="file"
-          accept=".pdf,.doc,.docx,.odt,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.tif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,image/png,image/jpeg,image/gif,image/webp,image/bmp,image/tiff"
+          accept=".pdf,.doc,.docx,.odt,.svg,.pptx,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.tif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,image/svg+xml,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/png,image/jpeg,image/gif,image/webp,image/bmp,image/tiff"
           style={{ display: 'none' }}
           onChange={e => { const f = e.target.files?.[0]; if (f) handleFileImport(f); e.target.value = ''; }}
         />

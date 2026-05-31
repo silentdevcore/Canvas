@@ -11,7 +11,7 @@ public sealed class GemBoxPdfConverter : BasePdfConverter
     public override string Status => "full";
 
     public override string Description =>
-        "Roslyn-based full conversion: PdfDocument + Pages.Add → AddPage; Content.DrawText → DrawTextFromTop; Content.DrawLine → DrawLineFromTop; Content.DrawRectangle → DrawRectangleFromTop; ComponentInfo.SetLicense removed; forms/encryption/annotations produce warnings.";
+        "Roslyn-based pilot: PdfDocument + Pages.Add → AddPage; simple Content.DrawText/save mappings and license removal; complex content, forms, security, and annotations require manual review.";
 
     public override string ConvertCode(string sourceCode)
     {

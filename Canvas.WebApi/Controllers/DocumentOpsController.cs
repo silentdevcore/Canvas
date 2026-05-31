@@ -357,6 +357,71 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
+    /// Imports an SVG file and converts it into a Canvas design with full vector fidelity.
+    /// Rectangles map to shape elements; text maps to text elements; embedded images map to
+    /// image elements; all other vector primitives (path, circle, ellipse, line, etc.) are
+    /// preserved as inline SVG data-URI image elements.
+    /// Route: POST /api/document/import-svg
+    /// </summary>
+    [HttpPost("import-svg")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(DesignExportDto), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> ImportSvg(IFormFile? file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "An SVG file is required." });
+
+        if (!file.ContentType.Contains("svg", StringComparison.OrdinalIgnoreCase) &&
+            !file.FileName.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "Only SVG files are accepted." });
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var design = SvgImporter.Import(stream, Path.GetFileNameWithoutExtension(file.FileName));
+            return Ok(design);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = $"Could not parse SVG: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// Imports a PowerPoint .pptx file and converts it into a Canvas design.
+    /// Each slide becomes a page. Text boxes, shapes, and embedded images are extracted
+    /// with full fidelity including colors, fonts, and slide backgrounds.
+    /// Route: POST /api/document/import-pptx
+    /// </summary>
+    [HttpPost("import-pptx")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(DesignExportDto), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> ImportPptx(IFormFile? file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "A .pptx file is required." });
+
+        if (!file.FileName.EndsWith(".pptx", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "Only .pptx (PowerPoint Open XML) files are accepted." });
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            ms.Position = 0;
+            var design = PptxImporter.Import(ms, Path.GetFileNameWithoutExtension(file.FileName));
+            return Ok(design);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = $"Could not parse PPTX: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
     /// Applies an X.509 digital signature (OOXML XML-DSig) to a DOCX file.
     /// Accepts a multipart form with a <c>docx</c> file and a <c>certificate</c>
     /// PFX/P12 file. An optional <c>password</c> field unlocks the PFX.

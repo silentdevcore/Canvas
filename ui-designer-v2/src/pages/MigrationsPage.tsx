@@ -32,6 +32,8 @@ const FRAMEWORKS_FALLBACK: Framework[] = [
   { id: 'PdfKitNet',  name: 'PDFKit.NET',        status: 'full',    description: 'Roslyn-based full conversion: Document + NewPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine → DrawLineFromTop; DrawRectangle → DrawRectangleFromTop; Save/Render → Save; forms/encryption/annotations produce warnings. Package identity must be manually verified.' },
   { id: 'Leadtools',  name: 'LEADTOOLS',         status: 'full',    description: 'Roslyn-based full conversion: PDFDocument + AddPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine → DrawLineFromTop; DrawRectangle → DrawRectangleFromTop; Save/Export → Save; raster/OCR/barcode/conversion APIs produce warnings.' },
   { id: 'ActivePdf',  name: 'ActivePDF',         status: 'pilot',   description: 'Cautious Roslyn pilot for likely Toolkit-style generation; DocConverter, WebGrabber, COM/server, printer, merge, and stamp workflows are manual.' },
+  { id: 'PdfTools',   name: 'PDFTools / Pdftools SDK', status: 'pilot', description: 'Cautious Roslyn pilot: removes Sdk.Initialize and flags SDK conversion/processing workflows for manual Canvas.Pdf migration. Direct PDF generation belongs to the separate PDF Toolbox SDK/add-on.' },
+  { id: 'PdfToolsToolbox', name: 'PDF Toolbox SDK', status: 'pilot', description: 'Cautious Roslyn pilot for Toolbox direct-generation flows: Document.Create/Page.Create/TextGenerator.ShowLine → Canvas.Pdf; existing-PDF editing and rich styling remain manual.' },
 ];
 
 const SYNCFUSION_EXAMPLE = `using Syncfusion.Pdf;
@@ -250,6 +252,34 @@ toolkit.DrawRectangle(72, 200, 468, 200);
 
 toolkit.Save(outputPath);`;
 
+const PDFTOOLS_EXAMPLE = `using PdfTools;
+using PdfTools.Pdf;
+
+Sdk.Initialize(licenseKey);
+using var input = File.OpenRead(inputPath);
+using var document = Document.Open(input, null);
+
+document.Save(outputPath);`;
+
+const PDFTOOLS_TOOLBOX_EXAMPLE = `using PdfTools.Toolbox.Pdf;
+using PdfTools.Toolbox.Pdf.Content;
+using PdfTools.Toolbox.Pdf.Content.Text;
+
+using var outStream = new FileStream(outPath, FileMode.CreateNew, FileAccess.ReadWrite);
+using var outDoc = Document.Create(outStream, null, null);
+
+var font = Font.CreateFromSystem(outDoc, "Arial", "Italic", true);
+var outPage = Page.Create(outDoc, PageSize.A4);
+using var gen = new ContentGenerator(outPage.Content, false);
+
+var text = Text.Create(outDoc);
+using var textGenerator = new TextGenerator(text, font, 20, null);
+textGenerator.MoveTo(new Point { X = 72, Y = outPage.Size.Height - 72 });
+textGenerator.ShowLine("Invoice #2024");
+gen.PaintText(text);
+
+outDoc.Pages.Add(outPage);`;
+
 const IRONPDF_EXAMPLE = `using IronPdf;
 
 var renderer = new ChromePdfRenderer();
@@ -276,6 +306,8 @@ const EXAMPLES: Record<string, string> = {
   PdfKitNet: PDFKITNET_EXAMPLE,
   Leadtools: LEADTOOLS_EXAMPLE,
   ActivePdf: ACTIVEPDF_EXAMPLE,
+  PdfTools: PDFTOOLS_EXAMPLE,
+  PdfToolsToolbox: PDFTOOLS_TOOLBOX_EXAMPLE,
 };
 
 interface ConversionSummary {

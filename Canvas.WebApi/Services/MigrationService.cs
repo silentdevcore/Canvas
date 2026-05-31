@@ -20,6 +20,8 @@ public sealed class MigrationService
             new IronPdfConverter(),
             new ActivePdfConverter(),
             new LeadtoolsPdfConverter(),
+            new PdfToolsConverter(),
+            new PdfToolsToolboxConverter(),
             new PdfKitNetConverter(),
             new FoxitPdfConverter(),
             new DevExpressPdfConverter(),

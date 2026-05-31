@@ -352,4 +352,76 @@ public sealed class MigrationServiceTests
         Assert.True(result.Summary.WarningCount > 0);
         Assert.Equal(0, result.Summary.ErrorCount);
     }
+
+    [Fact]
+    public void Convert_ShouldUsePdfToolsRoslynConverterAndReturnSummary()
+    {
+        var source = """
+            using PdfTools;
+            using PdfTools.Pdf;
+
+            Sdk.Initialize(licenseKey);
+            using var input = File.OpenRead(inputPath);
+            using var document = Document.Open(input, null);
+            document.Save(outputPath);
+            """;
+        var sut = new MigrationService();
+
+        var result = sut.Convert("PdfTools", source);
+
+        Assert.Contains("using PdfTools;", result.CanvasCode);
+        Assert.Contains("using PdfTools.Pdf;", result.CanvasCode);
+        Assert.DoesNotContain("Sdk.Initialize", result.CanvasCode);
+        Assert.DoesNotContain("using Canvas.Pdf;", result.CanvasCode);
+        Assert.Contains("Document.Open(input, null);", result.CanvasCode);
+        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLS000");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLS001");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLS020");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLS021");
+        Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
+        Assert.True(result.Summary.ConvertedCount > 0);
+        Assert.True(result.Summary.WarningCount > 0);
+        Assert.Equal(0, result.Summary.ErrorCount);
+    }
+
+    [Fact]
+    public void Convert_ShouldUsePdfToolsToolboxRoslynConverterAndReturnSummary()
+    {
+        var source = """
+            using PdfTools.Toolbox.Pdf;
+            using PdfTools.Toolbox.Pdf.Content;
+            using PdfTools.Toolbox.Pdf.Content.Text;
+
+            using var outStream = new FileStream(outPath, FileMode.CreateNew, FileAccess.ReadWrite);
+            using var outDoc = Document.Create(outStream, null, null);
+            var font = Font.CreateFromSystem(outDoc, "Arial", "Italic", true);
+            var outPage = Page.Create(outDoc, PageSize.A4);
+            using var gen = new ContentGenerator(outPage.Content, false);
+            var text = Text.Create(outDoc);
+            using var textGenerator = new TextGenerator(text, font, 20, null);
+            textGenerator.MoveTo(new Point { X = 72, Y = outPage.Size.Height - 72 });
+            textGenerator.ShowLine("Smoke");
+            gen.PaintText(text);
+            outDoc.Pages.Add(outPage);
+            """;
+        var sut = new MigrationService();
+
+        var result = sut.Convert("PdfToolsToolbox", source);
+
+        Assert.Contains("using Canvas.Pdf;", result.CanvasCode);
+        Assert.DoesNotContain("PdfTools.Toolbox", result.CanvasCode);
+        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
+        Assert.Contains("var outPage = document.AddPage(PdfPagePreset.A4, false);", result.CanvasCode);
+        Assert.Contains("outPage.DrawTextFromTop(\"Smoke\", 72, 72, 20);", result.CanvasCode);
+        Assert.Contains("document.Save(outPath);", result.CanvasCode);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLBOX000");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLBOX001");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLBOX002");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLBOX003");
+        Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
+        Assert.True(result.Summary.ConvertedCount > 0);
+        Assert.True(result.Summary.WarningCount > 0);
+        Assert.Equal(0, result.Summary.ErrorCount);
+    }
 }

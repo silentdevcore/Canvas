@@ -33,6 +33,8 @@
     <ProjectReference Include="../src/Canvas.Migration.IronPdf/Canvas.Migration.IronPdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.LeadtoolsPdf/Canvas.Migration.LeadtoolsPdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.PdfKitNet/Canvas.Migration.PdfKitNet.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.PdfTools/Canvas.Migration.PdfTools.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.PdfToolsToolbox/Canvas.Migration.PdfToolsToolbox.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.SpirePdf/Canvas.Migration.SpirePdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.SyncfusionPdf/Canvas.Migration.SyncfusionPdf.csproj" />
   </ItemGroup>
