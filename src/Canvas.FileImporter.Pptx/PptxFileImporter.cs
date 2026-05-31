@@ -1,20 +1,26 @@
 using System.Globalization;
 using Canvas.Core.Contracts;
+using Canvas.FileImporter.Abstractions;
 using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
 using Drawing = DocumentFormat.OpenXml.Drawing;
 using P = DocumentFormat.OpenXml.Presentation;
 
-namespace Canvas.Infrastructure.Word;
+namespace Canvas.FileImporter.Pptx;
 
 /// <summary>
 /// Converts a PowerPoint .pptx file into a <see cref="DesignExportDto"/>.
 /// Each slide becomes a page; shapes, text, and pictures are mapped to Canvas elements.
 /// Slide backgrounds and theme colors are resolved through the slide → layout → master chain.
 /// </summary>
-public static class PptxImporter
+public sealed class PptxFileImporter : IFileImporter
 {
+    public IReadOnlyList<string> SupportedExtensions { get; } = ["pptx"];
+
+    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        Task.FromResult(Import(stream, name));
+
     // 1 EMU = 1/914400 inch; at 96 dpi → 1 px = 914400/96 = 9525 EMU
     private const double EmuToPx = 96.0 / 914400.0;
 

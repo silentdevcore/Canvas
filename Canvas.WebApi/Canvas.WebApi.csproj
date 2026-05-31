@@ -15,6 +15,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../src/Canvas.FileImporter.Abstractions/Canvas.FileImporter.Abstractions.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Pdf/Canvas.FileImporter.Pdf.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Docx/Canvas.FileImporter.Docx.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Pptx/Canvas.FileImporter.Pptx.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Doc/Canvas.FileImporter.Doc.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Odt/Canvas.FileImporter.Odt.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj" />
     <ProjectReference Include="../src/Canvas.Application/Canvas.Application.csproj" />
     <ProjectReference Include="../src/Canvas.Core/Canvas.Core.csproj" />
     <ProjectReference Include="../Canvas.Domain/Canvas.Domain.csproj" />

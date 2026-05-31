@@ -1,7 +1,8 @@
 using Canvas.Core.Contracts;
+using Canvas.FileImporter.Abstractions;
 using System.Text;
 
-namespace Canvas.Infrastructure.Converters;
+namespace Canvas.FileImporter.Doc;
 
 /// <summary>
 /// Converts a legacy Word 97-2003 .doc binary file into a <see cref="DesignExportDto"/>.
@@ -10,8 +11,13 @@ namespace Canvas.Infrastructure.Converters;
 /// text array using the File Information Block offsets, and stacks paragraphs
 /// as Text elements on a single Canvas page.
 /// </summary>
-public static class DocImporter
+public sealed class DocFileImporter : IFileImporter
 {
+    public IReadOnlyList<string> SupportedExtensions { get; } = ["doc"];
+
+    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        Task.FromResult(Import(stream, name));
+
     private const double PageWidth  = 595;
     private const double PageHeight = 842;
     private const double MarginX    = 48;

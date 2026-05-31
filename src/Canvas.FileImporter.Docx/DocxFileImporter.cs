@@ -1,17 +1,23 @@
 using Canvas.Core.Contracts;
+using Canvas.FileImporter.Abstractions;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text;
 
-namespace Canvas.Infrastructure.Word;
+namespace Canvas.FileImporter.Docx;
 
 /// <summary>
 /// Converts an OOXML .docx file into a <see cref="DesignExportDto"/> that Canvas
 /// can display and re-export.  Paragraphs are mapped to Text/RichText elements
 /// stacked top-to-bottom; inline images are extracted as base64 data-URIs.
 /// </summary>
-public static class DocxImporter
+public sealed class DocxFileImporter : IFileImporter
 {
+    public IReadOnlyList<string> SupportedExtensions { get; } = ["docx"];
+
+    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        Task.FromResult(Import(stream, name));
+
     private const double PageWidth  = 595;
     private const double PageHeight = 842;
     private const double MarginX    = 48;

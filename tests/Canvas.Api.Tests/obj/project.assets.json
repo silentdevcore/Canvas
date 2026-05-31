@@ -2117,6 +2117,36 @@
           "bin/placeholder/Canvas.Migration.PdfKitNet.dll": {}
         }
       },
+      "Canvas.Migration.PdfTools/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.PdfTools.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.PdfTools.dll": {}
+        }
+      },
+      "Canvas.Migration.PdfToolsToolbox/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.PdfToolsToolbox.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.PdfToolsToolbox.dll": {}
+        }
+      },
       "Canvas.Migration.Roslyn/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -2182,6 +2212,8 @@
           "Canvas.Migration.IronPdf": "1.0.0",
           "Canvas.Migration.LeadtoolsPdf": "1.0.0",
           "Canvas.Migration.PdfKitNet": "1.0.0",
+          "Canvas.Migration.PdfTools": "1.0.0",
+          "Canvas.Migration.PdfToolsToolbox": "1.0.0",
           "Canvas.Migration.SpirePdf": "1.0.0",
           "Canvas.Migration.SyncfusionPdf": "1.0.0",
           "Canvas.Migration.iText7": "1.0.0",
@@ -5111,6 +5143,16 @@
       "type": "project",
       "path": "../../src/Canvas.Migration.PdfKitNet/Canvas.Migration.PdfKitNet.csproj",
       "msbuildProject": "../../src/Canvas.Migration.PdfKitNet/Canvas.Migration.PdfKitNet.csproj"
+    },
+    "Canvas.Migration.PdfTools/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.PdfTools/Canvas.Migration.PdfTools.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.PdfTools/Canvas.Migration.PdfTools.csproj"
+    },
+    "Canvas.Migration.PdfToolsToolbox/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.PdfToolsToolbox/Canvas.Migration.PdfToolsToolbox.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.PdfToolsToolbox/Canvas.Migration.PdfToolsToolbox.csproj"
     },
     "Canvas.Migration.Roslyn/1.0.0": {
       "type": "project",

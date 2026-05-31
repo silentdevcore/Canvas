@@ -1,6 +1,6 @@
 using Canvas.Application.UseCases;
 using Canvas.Core.Contracts;
-using Canvas.Infrastructure.Converters;
+using Canvas.FileImporter.Abstractions;
 using Canvas.Infrastructure.Word;
 using Canvas.Importer.Analysis;
 using Canvas.Importer.Debugging;
@@ -17,19 +17,26 @@ namespace Canvas.WebApi.Controllers;
 [Route("api/document")]
 public class DocumentOpsController : ControllerBase
 {
-    private readonly FindAndReplaceUseCase _findReplace;
-    private readonly CloneTemplateUseCase  _clone;
-    private readonly ExtractPagesUseCase   _extractPages;
+    private readonly FindAndReplaceUseCase     _findReplace;
+    private readonly CloneTemplateUseCase      _clone;
+    private readonly ExtractPagesUseCase       _extractPages;
+    private readonly IEnumerable<IFileImporter> _importers;
 
     public DocumentOpsController(
         FindAndReplaceUseCase findReplace,
         CloneTemplateUseCase  clone,
-        ExtractPagesUseCase   extractPages)
+        ExtractPagesUseCase   extractPages,
+        IEnumerable<IFileImporter> importers)
     {
         _findReplace  = findReplace;
         _clone        = clone;
         _extractPages = extractPages;
+        _importers    = importers;
     }
+
+    private IFileImporter Importer(string ext) =>
+        _importers.FirstOrDefault(i => i.SupportedExtensions.Contains(ext))
+        ?? throw new InvalidOperationException($"No importer registered for .{ext} files.");
 
     /// <summary>
     /// Replaces all occurrences of a search string in every text-bearing element
@@ -138,7 +145,7 @@ public class DocumentOpsController : ControllerBase
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = await CanvasImporterPdfImporter.ImportAsync(
+            var design = await Importer("pdf").ImportAsync(
                 stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
@@ -262,7 +269,7 @@ public class DocumentOpsController : ControllerBase
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = DocImporter.Import(stream, Path.GetFileNameWithoutExtension(file.FileName));
+            var design = await Importer("doc").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
         catch (Exception ex)
@@ -291,7 +298,7 @@ public class DocumentOpsController : ControllerBase
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = DocxImporter.Import(stream, Path.GetFileNameWithoutExtension(file.FileName));
+            var design = await Importer("docx").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
         catch (Exception ex)
@@ -320,7 +327,7 @@ public class DocumentOpsController : ControllerBase
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = OdtImporter.Import(stream, Path.GetFileNameWithoutExtension(file.FileName));
+            var design = await Importer("odt").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
         catch (Exception ex)
@@ -347,7 +354,8 @@ public class DocumentOpsController : ControllerBase
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = ImageImporter.Import(stream, file.FileName);
+            var design = await Importer(Path.GetExtension(file.FileName).TrimStart('.').ToLowerInvariant())
+                .ImportAsync(stream, file.FileName);
             return Ok(design);
         }
         catch (Exception ex)
@@ -379,7 +387,7 @@ public class DocumentOpsController : ControllerBase
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = SvgImporter.Import(stream, Path.GetFileNameWithoutExtension(file.FileName));
+            var design = await Importer("svg").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
         catch (Exception ex)
@@ -412,7 +420,7 @@ public class DocumentOpsController : ControllerBase
             using var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
             ms.Position = 0;
-            var design = PptxImporter.Import(ms, Path.GetFileNameWithoutExtension(file.FileName));
+            var design = await Importer("pptx").ImportAsync(ms, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
         catch (Exception ex)

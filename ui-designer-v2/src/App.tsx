@@ -5,6 +5,7 @@ import TemplatePage from '@/pages/TemplatePage';
 import CreatePage from '@/pages/CreatePage';
 import DocsPage from '@/pages/DocsPage';
 import MigrationsPage from '@/pages/MigrationsPage';
+import ImporterPage from '@/pages/ImporterPage';
 
 const App: React.FC = () => (
   <Routes>
@@ -13,6 +14,7 @@ const App: React.FC = () => (
     <Route path="/create" element={<CreatePage />} />
     <Route path="/docs" element={<DocsPage />} />
     <Route path="/migrations" element={<MigrationsPage />} />
+    <Route path="/importer" element={<ImporterPage />} />
   </Routes>
 );
 

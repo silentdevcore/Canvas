@@ -3,8 +3,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Canvas.Core.Contracts;
+using Canvas.FileImporter.Abstractions;
 
-namespace Canvas.Infrastructure.Converters;
+namespace Canvas.FileImporter.Svg;
 
 /// <summary>
 /// Converts an SVG file into a <see cref="DesignExportDto"/> with full vector fidelity.
@@ -13,8 +14,13 @@ namespace Canvas.Infrastructure.Converters;
 /// ellipse, line, polyline, polygon) are emitted as inline SVG data-URI image elements,
 /// preserving their exact visual appearance with all transforms applied.
 /// </summary>
-public static class SvgImporter
+public sealed class SvgFileImporter : IFileImporter
 {
+    public IReadOnlyList<string> SupportedExtensions { get; } = ["svg"];
+
+    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        Task.FromResult(Import(stream, name));
+
     private static readonly XNamespace XlinkNs = "http://www.w3.org/1999/xlink";
 
     private const double DefaultPageWidth  = 800;

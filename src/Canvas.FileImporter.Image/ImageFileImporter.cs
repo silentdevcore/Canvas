@@ -1,15 +1,21 @@
 using Canvas.Core.Contracts;
+using Canvas.FileImporter.Abstractions;
 using SkiaSharp;
 
-namespace Canvas.Infrastructure.Converters;
+namespace Canvas.FileImporter.Image;
 
 /// <summary>
-/// Converts a raster image file (PNG, JPG, JPEG, GIF, WebP, BMP, TIFF, …)
-/// into a <see cref="DesignExportDto"/> with a single page whose dimensions
-/// match the image's native pixel size and one full-page Image element.
+/// Converts a raster image file (PNG, JPG, JPEG, GIF, WebP, BMP, TIFF)
+/// into a single-page <see cref="DesignExportDto"/> whose dimensions match the image.
 /// </summary>
-public static class ImageImporter
+public sealed class ImageFileImporter : IFileImporter
 {
+    public IReadOnlyList<string> SupportedExtensions { get; } =
+        ["png", "jpg", "jpeg", "gif", "webp", "bmp", "tiff", "tif"];
+
+    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        Task.FromResult(Import(stream, name ?? "image"));
+
     public static DesignExportDto Import(Stream stream, string originalFileName)
     {
         using var bitmap = SKBitmap.Decode(stream)

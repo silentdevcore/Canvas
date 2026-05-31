@@ -1,5 +1,13 @@
 using Canvas.Application.UseCases;
 using Canvas.Core.Abstractions;
+using Canvas.FileImporter.Abstractions;
+using Canvas.FileImporter.Doc;
+using Canvas.FileImporter.Docx;
+using Canvas.FileImporter.Image;
+using Canvas.FileImporter.Odt;
+using Canvas.FileImporter.Pdf;
+using Canvas.FileImporter.Pptx;
+using Canvas.FileImporter.Svg;
 using Canvas.Core.Primitives;
 using Canvas.Domain.Repositories;
 using Canvas.Infrastructure.Converters;
@@ -59,6 +67,15 @@ builder.Services.AddScoped<IDocumentExporter, TiffDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, OdtDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, WordDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, ExcelDocumentExporter>();
+
+// Register file importers
+builder.Services.AddTransient<IFileImporter, PdfFileImporter>();
+builder.Services.AddTransient<IFileImporter, DocxFileImporter>();
+builder.Services.AddTransient<IFileImporter, PptxFileImporter>();
+builder.Services.AddTransient<IFileImporter, DocFileImporter>();
+builder.Services.AddTransient<IFileImporter, OdtFileImporter>();
+builder.Services.AddTransient<IFileImporter, SvgFileImporter>();
+builder.Services.AddTransient<IFileImporter, ImageFileImporter>();
 
 // Register migration service
 builder.Services.AddSingleton<Canvas.WebApi.Services.MigrationService>();

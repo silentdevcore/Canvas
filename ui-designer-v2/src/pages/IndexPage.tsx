@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -14,6 +14,7 @@ import {
 } from 'react-icons/fi';
 import { CATEGORIES, CATEGORY_CONFIG, TEMPLATES } from '@/data/templates';
 import { useTemplateLoader } from '@/hooks/useTemplateLoader';
+
 import AppHeader from '@/components/Layout/AppHeader';
 
 const FEATURE_CARDS = [
@@ -43,11 +44,8 @@ const TOOL_LINKS = [
 
 const IndexPage: React.FC = () => {
   const navigate = useNavigate();
-  const { loadBlank, loadFromFile } = useTemplateLoader();
+  const { loadBlank } = useTemplateLoader();
   const [toast, setToast] = useState<string | null>(null);
-  const [importing, setImporting] = useState(false);
-  const [importError, setImportError] = useState('');
-  const importInputRef = useRef<HTMLInputElement>(null);
 
   const displayCategories = CATEGORIES.filter(c => c.id !== 'all');
 
@@ -56,24 +54,13 @@ const IndexPage: React.FC = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleFileImport = async (file: File) => {
-    setImporting(true);
-    setImportError('');
-    try {
-      await loadFromFile(file);
-    } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Import failed');
-      setImporting(false);
-    }
-  };
-
   const handleToolClick = (label: string) => {
     if (label === 'Edit PDF') {
       navigate('/template');
     } else if (label === 'Create form') {
       loadBlank();
     } else if (label === 'Import document') {
-      importInputRef.current?.click();
+      navigate('/importer');
     } else if (label === 'Sign DOCX') {
       showToast('Export your design as DOCX first, then use the Sign button in the Export modal.');
     }
@@ -90,16 +77,6 @@ const IndexPage: React.FC = () => {
       <AppHeader activePage="home" />
 
       <main>
-        <input
-          ref={importInputRef}
-          type="file"
-          accept=".pdf,.doc,.docx,.odt,.svg,.pptx,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.tif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,image/svg+xml,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/png,image/jpeg,image/gif,image/webp,image/bmp,image/tiff"
-          style={{ display: 'none' }}
-          onChange={e => { const f = e.target.files?.[0]; if (f) handleFileImport(f); e.target.value = ''; }}
-        />
-        {importError && (
-          <div className="pdf-toast" role="alert" style={{ background: '#dc2626' }}>{importError}</div>
-        )}
 
         {/* Hero */}
         <section className="pdf-hero">
@@ -137,19 +114,6 @@ const IndexPage: React.FC = () => {
               <strong>Blank canvas</strong>
               <small>Open the editor with an empty page — no starter elements</small>
               <span className="pdf-upload-action">Start blank <FiChevronRight /></span>
-            </motion.button>
-
-            <motion.button
-              className="pdf-blank-card"
-              onClick={() => importInputRef.current?.click()}
-              whileHover={{ y: -4 }}
-              whileTap={{ scale: 0.99 }}
-              disabled={importing}
-            >
-              <span className="pdf-upload-icon"><FiUpload /></span>
-              <strong>Import document</strong>
-              <small>Open a PDF, DOCX, DOC, ODT or image as an editable design</small>
-              <span className="pdf-upload-action">{importing ? 'Importing…' : 'Import file'} <FiChevronRight /></span>
             </motion.button>
 
             <motion.button
@@ -207,8 +171,8 @@ const IndexPage: React.FC = () => {
             <span>PDF, DOCX, ODT, TIFF, HTML &amp; more</span>
           </div>
           <div>
-            <strong>5 import formats</strong>
-            <span>PDF, DOCX, DOC, ODT, images — all editable</span>
+            <strong>7 import formats</strong>
+            <span>PDF, DOCX, PPTX, DOC, ODT, SVG, images</span>
           </div>
           <div>
             <strong>100% browser-based</strong>

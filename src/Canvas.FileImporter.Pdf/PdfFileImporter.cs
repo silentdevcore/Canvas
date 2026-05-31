@@ -1,11 +1,12 @@
 using System.Globalization;
 using System.Text;
 using Canvas.Core.Contracts;
+using Canvas.FileImporter.Abstractions;
 using Canvas.Importer.Analysis;
 using Canvas.Importer.Document;
 using Canvas.Importer.Graphics;
 
-namespace Canvas.Infrastructure.Converters;
+namespace Canvas.FileImporter.Pdf;
 
 /// <summary>
 /// Converts a PDF to a <see cref="DesignExportDto"/> using the Canvas.Importer low-level
@@ -13,8 +14,13 @@ namespace Canvas.Infrastructure.Converters;
 /// into a typed scene graph and Phase 5 primitive analysis layer which is then mapped
 /// to Canvas element DTOs.
 /// </summary>
-public static class CanvasImporterPdfImporter
+public sealed class PdfFileImporter : IFileImporter
 {
+    public IReadOnlyList<string> SupportedExtensions { get; } = ["pdf"];
+
+    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        DoImportAsync(stream, name);
+
     private const double HeaderZone = 0.08;
     private const double FooterZone = 0.92;
     private const double ImportedTextLineHeight = 1.05;
@@ -23,7 +29,7 @@ public static class CanvasImporterPdfImporter
 
     // ── Entry point ───────────────────────────────────────────────────────────
 
-    public static async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null)
+    private static async Task<DesignExportDto> DoImportAsync(Stream stream, string? name = null)
     {
         var doc = await new Canvas.Importer.PdfImporter().LoadAsync(stream);
         var sceneGraphEngine = new SceneGraphEngine();
