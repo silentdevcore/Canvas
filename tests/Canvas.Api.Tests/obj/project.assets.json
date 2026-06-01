@@ -1866,6 +1866,136 @@
           "bin/placeholder/Canvas.Domain.dll": {}
         }
       },
+      "Canvas.FileImporter.Abstractions/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Abstractions.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Abstractions.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Doc/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Doc.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Doc.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Docx/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0",
+          "DocumentFormat.OpenXml": "3.5.1"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Docx.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Docx.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Image/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0",
+          "SkiaSharp": "3.119.2"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Image.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Image.dll": {}
+        }
+      },
+      "Canvas.FileImporter.ImageAnalysis/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0",
+          "SkiaSharp": "3.119.2"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.ImageAnalysis.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.ImageAnalysis.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Odt/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Odt.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Odt.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Pdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0",
+          "Canvas.Importer": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Pdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Pdf.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Pptx/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0",
+          "DocumentFormat.OpenXml": "3.5.1"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Pptx.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Pptx.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Svg/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Svg.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Svg.dll": {}
+        }
+      },
       "Canvas.Importer/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -1885,7 +2015,6 @@
         "dependencies": {
           "Canvas.Application": "1.0.0",
           "Canvas.Core": "1.0.0",
-          "Canvas.Importer": "1.0.0",
           "NPOI": "2.8.0",
           "SkiaSharp": "3.119.2"
         },
@@ -2198,6 +2327,15 @@
           "Canvas.Application": "1.0.0",
           "Canvas.Core": "1.0.0",
           "Canvas.Domain": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0",
+          "Canvas.FileImporter.Doc": "1.0.0",
+          "Canvas.FileImporter.Docx": "1.0.0",
+          "Canvas.FileImporter.Image": "1.0.0",
+          "Canvas.FileImporter.ImageAnalysis": "1.0.0",
+          "Canvas.FileImporter.Odt": "1.0.0",
+          "Canvas.FileImporter.Pdf": "1.0.0",
+          "Canvas.FileImporter.Pptx": "1.0.0",
+          "Canvas.FileImporter.Svg": "1.0.0",
           "Canvas.Infrastructure.Converters": "1.0.0",
           "Canvas.Infrastructure.Pdf": "1.0.0",
           "Canvas.Infrastructure.Sheet": "1.0.0",
@@ -5058,6 +5196,51 @@
       "type": "project",
       "path": "../../Canvas.Domain/Canvas.Domain.csproj",
       "msbuildProject": "../../Canvas.Domain/Canvas.Domain.csproj"
+    },
+    "Canvas.FileImporter.Abstractions/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Abstractions/Canvas.FileImporter.Abstractions.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Abstractions/Canvas.FileImporter.Abstractions.csproj"
+    },
+    "Canvas.FileImporter.Doc/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Doc/Canvas.FileImporter.Doc.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Doc/Canvas.FileImporter.Doc.csproj"
+    },
+    "Canvas.FileImporter.Docx/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Docx/Canvas.FileImporter.Docx.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Docx/Canvas.FileImporter.Docx.csproj"
+    },
+    "Canvas.FileImporter.Image/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj"
+    },
+    "Canvas.FileImporter.ImageAnalysis/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.ImageAnalysis/Canvas.FileImporter.ImageAnalysis.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.ImageAnalysis/Canvas.FileImporter.ImageAnalysis.csproj"
+    },
+    "Canvas.FileImporter.Odt/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Odt/Canvas.FileImporter.Odt.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Odt/Canvas.FileImporter.Odt.csproj"
+    },
+    "Canvas.FileImporter.Pdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Pdf/Canvas.FileImporter.Pdf.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Pdf/Canvas.FileImporter.Pdf.csproj"
+    },
+    "Canvas.FileImporter.Pptx/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Pptx/Canvas.FileImporter.Pptx.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Pptx/Canvas.FileImporter.Pptx.csproj"
+    },
+    "Canvas.FileImporter.Svg/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj"
     },
     "Canvas.Importer/1.0.0": {
       "type": "project",

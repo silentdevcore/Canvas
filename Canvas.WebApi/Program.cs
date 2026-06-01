@@ -8,6 +8,7 @@ using Canvas.FileImporter.Odt;
 using Canvas.FileImporter.Pdf;
 using Canvas.FileImporter.Pptx;
 using Canvas.FileImporter.Svg;
+using Canvas.FileImporter.ImageAnalysis;
 using Canvas.Core.Primitives;
 using Canvas.Domain.Repositories;
 using Canvas.Infrastructure.Converters;
@@ -30,6 +31,9 @@ builder.Services.AddCors(options =>
                   "http://localhost:5173",
                   "http://localhost:5174",
                   "http://localhost:5175",
+                  "http://localhost:5176",
+                  "http://localhost:5177",
+                  "http://localhost:5178",
                   "http://localhost:3000",
                   "http://localhost:4173")
               .AllowAnyHeader()
@@ -76,6 +80,7 @@ builder.Services.AddTransient<IFileImporter, DocFileImporter>();
 builder.Services.AddTransient<IFileImporter, OdtFileImporter>();
 builder.Services.AddTransient<IFileImporter, SvgFileImporter>();
 builder.Services.AddTransient<IFileImporter, ImageFileImporter>();
+builder.Services.AddTransient<ImageAnalysisFileImporter>();
 
 // Register migration service
 builder.Services.AddSingleton<Canvas.WebApi.Services.MigrationService>();

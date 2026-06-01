@@ -12,7 +12,7 @@ export interface FormatInfo {
 let _formatsCache: FormatInfo[] | null = null;
 
 export class ExportService {
-  private static readonly API_BASE_URL = 'http://localhost:5086/api';
+  private static readonly API_BASE_URL = '/api';
 
   static convertElementsToTemplate(pages: Page[], template: Template, sharedElements: SimpleElement[] = [], pageSettings?: PageSettings) {
     return {
@@ -795,6 +795,37 @@ export class ExportService {
 
   static async importPptx(file: File): Promise<object> {
     return this._importFile(file, 'import-pptx');
+  }
+
+  static async importImageAnalysis(
+    file: File,
+    pageWidthPt?: number,
+    pageHeightPt?: number,
+    options: {
+      includeDiagnostics?: boolean;
+      includeDebugOverlay?: boolean;
+      includeFallbackImageLayer?: boolean;
+      lowConfidenceThreshold?: number;
+    } = {},
+  ): Promise<object> {
+    const form = new FormData();
+    form.append('file', file);
+    if (pageWidthPt)  form.append('pageWidthPt',  String(pageWidthPt));
+    if (pageHeightPt) form.append('pageHeightPt', String(pageHeightPt));
+    if (options.includeDiagnostics) form.append('includeDiagnostics', 'true');
+    if (options.includeDebugOverlay) form.append('includeDebugOverlay', 'true');
+    if (options.includeFallbackImageLayer) form.append('includeFallbackImageLayer', 'true');
+    if (options.lowConfidenceThreshold !== undefined)
+      form.append('lowConfidenceThreshold', String(options.lowConfidenceThreshold));
+    const response = await fetch(`${this.API_BASE_URL}/document/import-image-analysis`, {
+      method: 'POST',
+      body: form,
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: response.statusText }));
+      throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    return response.json();
   }
 
   private static async _importFile(file: File, endpoint: string): Promise<object> {

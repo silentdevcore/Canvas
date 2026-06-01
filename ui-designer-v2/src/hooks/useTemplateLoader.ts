@@ -132,11 +132,43 @@ export function useTemplateLoader() {
     navigate(mode === 'code' ? '/create?mode=code' : '/create');
   };
 
-  const loadFromFile = async (file: File): Promise<void> => {
+  const loadFromFile = async (
+    file:         File,
+    formatId?:    string,
+    pageWidthPt?: number,
+    pageHeightPt?: number,
+    options: {
+      includeImageAnalysisDiagnostics?: boolean;
+      includeImageAnalysisDebugOverlay?: boolean;
+      includeImageAnalysisFallbackLayer?: boolean;
+    } = {},
+  ): Promise<void> => {
     const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
     const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'tiff', 'tif'];
     let design: any;
-    if (ext === 'pdf')                  design = await ExportService.importPdf(file);
+    let imageAnalysisMeta: any = null;
+    if (formatId === 'image-analysis') {
+      const result: any = await ExportService.importImageAnalysis(
+        file,
+        pageWidthPt,
+        pageHeightPt,
+        {
+          includeDiagnostics: options.includeImageAnalysisDiagnostics,
+          includeDebugOverlay: options.includeImageAnalysisDebugOverlay,
+          includeFallbackImageLayer: options.includeImageAnalysisFallbackLayer,
+        },
+      );
+      if (result?.design) {
+        design = result.design;
+        imageAnalysisMeta = {
+          diagnostics: result.diagnostics,
+          debugOverlay: result.debugOverlay,
+        };
+      } else {
+        design = result;
+      }
+    }
+    else if (ext === 'pdf')             design = await ExportService.importPdf(file);
     else if (ext === 'doc')             design = await ExportService.importDoc(file);
     else if (ext === 'docx')            design = await ExportService.importDocx(file);
     else if (ext === 'odt')             design = await ExportService.importOdt(file);
@@ -145,15 +177,47 @@ export function useTemplateLoader() {
     else if (imageExts.includes(ext))   design = await ExportService.importImage(file);
     else throw new Error(`Unsupported file type: .${ext}`);
 
+    const pages = design.pages ?? [{ id: 'page-1', elements: [] }];
+    const pagesWithDebugOverlay = imageAnalysisMeta?.debugOverlay && design.pageSettings?.width && design.pageSettings?.height
+      ? [
+          ...pages,
+          {
+            id: 'image-analysis-debug-overlay',
+            elements: [
+              {
+                id: `image-analysis-debug-overlay-${Date.now()}`,
+                type: 'image',
+                x: 0,
+                y: 0,
+                width: design.pageSettings.width,
+                height: design.pageSettings.height,
+                content: imageAnalysisMeta.debugOverlay,
+                fitMode: 'fill',
+                locked: true,
+                style: { imageAnalysisType: 'debug-overlay' },
+              },
+            ],
+          },
+        ]
+      : pages;
+
     setCurrentTemplate({
       id: design.id ?? `import-${Date.now()}`,
       name: design.name ?? file.name.replace(/\.[^.]+$/, ''),
       category: 'imported',
       description: `Imported from ${ext.toUpperCase()}`,
-      pages: design.pages ?? [{ id: 'page-1', elements: [] }],
+      pages: pagesWithDebugOverlay,
       sharedElements: design.sharedElements ?? [],
-      data: {},
+      data: imageAnalysisMeta ? { imageAnalysis: imageAnalysisMeta } : {},
     });
+    // Apply page dimensions returned by the backend so the canvas matches the import
+    if (design.pageSettings?.width && design.pageSettings?.height) {
+      updatePageSettings({
+        width:       design.pageSettings.width,
+        height:      design.pageSettings.height,
+        orientation: design.pageSettings.orientation ?? 'portrait',
+      });
+    }
     navigate('/create');
   };
 

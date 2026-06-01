@@ -86,6 +86,116 @@
   background: #f0f7ff;
 }
 
+.importer-card.is-selected {
+  border-color: #1d6fff;
+  box-shadow: 0 0 0 3px rgba(29, 111, 255, 0.12);
+}
+
+/* ── Inline config panel (page size selector) ─────────────────────────────── */
+
+.importer-card-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.importer-config-panel {
+  background: #f0f7ff;
+  border: 1.5px solid #1d6fff;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  padding: 16px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.importer-card-wrap.is-configuring .importer-card {
+  border-radius: 12px 12px 0 0;
+  border-bottom-color: transparent;
+}
+
+.importer-config-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #344054;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.importer-config-select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #c8d8f8;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #101828;
+  background: #ffffff;
+  cursor: pointer;
+  outline: none;
+}
+
+.importer-config-select:focus {
+  border-color: #1d6fff;
+}
+
+.importer-config-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.importer-config-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: #1d6fff;
+}
+
+.importer-config-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.importer-config-cancel {
+  flex: 1;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1.5px solid #d0d5dd;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #344054;
+  cursor: pointer;
+}
+
+.importer-config-cancel:hover {
+  background: #f9fafb;
+}
+
+.importer-config-confirm {
+  flex: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 14px;
+  background: #1d6fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.importer-config-confirm:hover {
+  background: #1558e0;
+}
+
 .importer-card-icon {
   display: inline-flex;
   align-items: center;

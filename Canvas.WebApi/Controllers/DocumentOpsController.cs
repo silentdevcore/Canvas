@@ -1,6 +1,8 @@
 using Canvas.Application.UseCases;
 using Canvas.Core.Contracts;
 using Canvas.FileImporter.Abstractions;
+using Canvas.FileImporter.ImageAnalysis;
+using Canvas.FileImporter.ImageAnalysis.Analysis;
 using Canvas.Infrastructure.Word;
 using Canvas.Importer.Analysis;
 using Canvas.Importer.Debugging;
@@ -17,21 +19,24 @@ namespace Canvas.WebApi.Controllers;
 [Route("api/document")]
 public class DocumentOpsController : ControllerBase
 {
-    private readonly FindAndReplaceUseCase     _findReplace;
-    private readonly CloneTemplateUseCase      _clone;
-    private readonly ExtractPagesUseCase       _extractPages;
+    private readonly FindAndReplaceUseCase      _findReplace;
+    private readonly CloneTemplateUseCase       _clone;
+    private readonly ExtractPagesUseCase        _extractPages;
     private readonly IEnumerable<IFileImporter> _importers;
+    private readonly ImageAnalysisFileImporter  _imageAnalysis;
 
     public DocumentOpsController(
         FindAndReplaceUseCase findReplace,
         CloneTemplateUseCase  clone,
         ExtractPagesUseCase   extractPages,
-        IEnumerable<IFileImporter> importers)
+        IEnumerable<IFileImporter> importers,
+        ImageAnalysisFileImporter imageAnalysis)
     {
-        _findReplace  = findReplace;
-        _clone        = clone;
-        _extractPages = extractPages;
-        _importers    = importers;
+        _findReplace   = findReplace;
+        _clone         = clone;
+        _extractPages  = extractPages;
+        _importers     = importers;
+        _imageAnalysis = imageAnalysis;
     }
 
     private IFileImporter Importer(string ext) =>
@@ -430,6 +435,65 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
+    /// Imports a raster image using the custom analysis engine (Phases 1–5).
+    /// Extracts text (via NCC character recognition), geometric shapes (via Sobel edges),
+    /// and colour regions into individual editable Canvas elements.
+    /// Route: POST /api/document/import-image-analysis
+    /// </summary>
+    [HttpPost("import-image-analysis")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(DesignExportDto), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> ImportImageAnalysis(
+        IFormFile? file,
+        [FromForm] double? pageWidthPt  = null,
+        [FromForm] double? pageHeightPt = null,
+        [FromForm] bool includeDiagnostics = false,
+        [FromForm] bool includeDebugOverlay = false,
+        [FromForm] bool includeFallbackImageLayer = false,
+        [FromForm] double? lowConfidenceThreshold = null)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "An image file is required." });
+
+        var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLowerInvariant();
+        if (!ImageAnalysisFileImporter.SupportedExtensions.Contains(ext))
+            return BadRequest(new { error = $"Supported formats: {string.Join(", ", ImageAnalysisFileImporter.SupportedExtensions)}." });
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var result = await _imageAnalysis.ImportWithAnalysisAsync(
+                stream,
+                Path.GetFileNameWithoutExtension(file.FileName),
+                pageWidthPt,
+                pageHeightPt,
+                new ImageAnalysisOptions
+                {
+                    IncludeDebugOverlay = includeDebugOverlay,
+                    IncludeFallbackImageLayer = includeFallbackImageLayer,
+                    LowConfidenceThreshold = lowConfidenceThreshold ?? ImageAnalysisOptions.Default.LowConfidenceThreshold,
+                });
+
+            if (!includeDiagnostics && !includeDebugOverlay)
+                return Ok(result.Design);
+
+            return Ok(new ImageAnalysisDebugResponse
+            {
+                Design = result.Design,
+                Diagnostics = result.Diagnostics,
+                DebugOverlay = result.DebugOverlayPng is null
+                    ? null
+                    : $"data:image/png;base64,{Convert.ToBase64String(result.DebugOverlayPng)}",
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = $"Image analysis failed: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
     /// Applies an X.509 digital signature (OOXML XML-DSig) to a DOCX file.
     /// Accepts a multipart form with a <c>docx</c> file and a <c>certificate</c>
     /// PFX/P12 file. An optional <c>password</c> field unlocks the PFX.
@@ -498,4 +562,11 @@ public sealed class ExtractPagesApiRequest
     public required DesignExportDto Design { get; set; }
     public required List<int> PageNumbers { get; set; }
     public string? NewName { get; set; }
+}
+
+public sealed class ImageAnalysisDebugResponse
+{
+    public required DesignExportDto Design { get; set; }
+    public required ImageAnalysisDiagnostics Diagnostics { get; set; }
+    public string? DebugOverlay { get; set; }
 }

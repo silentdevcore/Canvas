@@ -2,7 +2,7 @@ using System.IO.Compression;
 using System.Globalization;
 using System.Text;
 using Canvas.Core.Contracts;
-using Canvas.Infrastructure.Converters;
+using Canvas.FileImporter.Pdf;
 using Canvas.Importer;
 using Canvas.Importer.Analysis;
 using Canvas.Importer.Document;
@@ -3318,7 +3318,7 @@ public sealed class PdfImporterCoreTests
         var pageTwo = "BT /F1 10 Tf 1 0 0 1 20 185 Tm (Header) Tj 1 0 0 1 20 90 Tm (Page two body) Tj ET";
 
         using var stream = new MemoryStream(BuildTwoPagePdf(pageOne, pageTwo));
-        var design = await CanvasImporterPdfImporter.ImportAsync(stream, "Shared header test");
+        var design = await PdfFileImporter.DoImportAsync(stream, "Shared header test");
 
         var shared = Assert.Single(design.SharedElements);
         Assert.Equal("Header", shared.Content);
@@ -3338,7 +3338,7 @@ public sealed class PdfImporterCoreTests
         IReadOnlyList<SyntheticPdfObject>? extraObjects = null)
     {
         using var stream = new MemoryStream(BuildSinglePagePdf(content, resources, extraObjects));
-        return await CanvasImporterPdfImporter.ImportAsync(stream, "Scene graph import test");
+        return await PdfFileImporter.DoImportAsync(stream, "Scene graph import test");
     }
 
     private static byte[] BuildSinglePagePdf(

@@ -7,9 +7,25 @@ import {
   FiPenTool,
   FiUpload,
   FiChevronRight,
+  FiZap,
 } from 'react-icons/fi';
 import AppHeader from '@/components/Layout/AppHeader';
 import { useTemplateLoader } from '@/hooks/useTemplateLoader';
+
+interface PageSizeOption {
+  id: string;
+  label: string;
+  widthPt?: number;
+  heightPt?: number;
+}
+
+const PAGE_SIZES: PageSizeOption[] = [
+  { id: 'original', label: 'Keep original' },
+  { id: 'a4',       label: 'A4 (210×297 mm)',  widthPt: 595, heightPt: 842 },
+  { id: 'a5',       label: 'A5 (148×210 mm)',  widthPt: 420, heightPt: 595 },
+  { id: 'a3',       label: 'A3 (297×420 mm)',  widthPt: 842, heightPt: 1191 },
+  { id: 'letter',   label: 'Letter (8.5×11 in)', widthPt: 612, heightPt: 792 },
+];
 
 interface FormatCard {
   id: string;
@@ -18,6 +34,7 @@ interface FormatCard {
   accept: string;
   description: string;
   Icon: React.ElementType;
+  supportsPageSize?: boolean;
 }
 
 const FORMATS: FormatCard[] = [
@@ -77,6 +94,15 @@ const FORMATS: FormatCard[] = [
     description: 'Raster image placed as a full-page Canvas design.',
     Icon: FiImage,
   },
+  {
+    id: 'image-analysis',
+    label: 'Image (Smart)',
+    extDisplay: '.png .jpg .jpeg',
+    accept: '.png,.jpg,.jpeg,image/png,image/jpeg',
+    description: 'Custom OCR engine — recognises text, shapes, and colours as individual editable elements.',
+    Icon: FiZap,
+    supportsPageSize: true,
+  },
 ];
 
 const ImporterPage: React.FC = () => {
@@ -84,14 +110,31 @@ const ImporterPage: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [accept, setAccept] = useState('');
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [configuring, setConfiguring] = useState<string | null>(null);
+  const [selectedPageSize, setSelectedPageSize] = useState<string>('a4');
+  const [includeDiagnostics, setIncludeDiagnostics] = useState(true);
+  const [includeDebugOverlay, setIncludeDebugOverlay] = useState(true);
+  const [includeFallbackLayer, setIncludeFallbackLayer] = useState(false);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState('');
 
   const handleCardClick = (fmt: FormatCard) => {
     setError('');
-    setActiveId(fmt.id);
-    setAccept(fmt.accept);
-    // Allow React to flush the accept update before triggering click
+    if (fmt.supportsPageSize) {
+      // Show inline configuration panel instead of immediately opening file picker
+      setConfiguring(fmt.id);
+      setActiveId(fmt.id);
+      setAccept(fmt.accept);
+    } else {
+      setConfiguring(null);
+      setActiveId(fmt.id);
+      setAccept(fmt.accept);
+      setTimeout(() => inputRef.current?.click(), 0);
+    }
+  };
+
+  const handleConfirmConfig = () => {
+    setConfiguring(null);
     setTimeout(() => inputRef.current?.click(), 0);
   };
 
@@ -102,7 +145,18 @@ const ImporterPage: React.FC = () => {
     setImporting(true);
     setError('');
     try {
-      await loadFromFile(file);
+      const pageOpt = PAGE_SIZES.find(p => p.id === selectedPageSize);
+      await loadFromFile(
+        file,
+        activeId ?? undefined,
+        pageOpt?.widthPt,
+        pageOpt?.heightPt,
+        {
+          includeImageAnalysisDiagnostics: activeId === 'image-analysis' && includeDiagnostics,
+          includeImageAnalysisDebugOverlay: activeId === 'image-analysis' && includeDebugOverlay,
+          includeImageAnalysisFallbackLayer: activeId === 'image-analysis' && includeFallbackLayer,
+        },
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Import failed. Please check the file and try again.');
       setImporting(false);
@@ -126,26 +180,84 @@ const ImporterPage: React.FC = () => {
 
         <div className="importer-grid">
           {FORMATS.map(fmt => {
-            const Icon = fmt.Icon;
-            const isActive = activeId === fmt.id && importing;
+            const Icon      = fmt.Icon;
+            const isActive  = activeId === fmt.id && importing;
+            const isConfig  = configuring === fmt.id;
             return (
-              <button
-                key={fmt.id}
-                className={`importer-card${isActive ? ' is-loading' : ''}`}
-                onClick={() => handleCardClick(fmt)}
-                disabled={importing}
-                aria-label={`Import ${fmt.label} file`}
-              >
-                <span className="importer-card-icon">
-                  <Icon size={24} />
-                </span>
-                <strong className="importer-card-label">{fmt.label}</strong>
-                <small className="importer-card-desc">{fmt.description}</small>
-                <span className="importer-card-ext">{fmt.extDisplay}</span>
-                <span className="importer-card-action">
-                  {isActive ? 'Importing…' : <>Choose file <FiChevronRight size={14} /></>}
-                </span>
-              </button>
+              <div key={fmt.id} className={`importer-card-wrap${isConfig ? ' is-configuring' : ''}`}>
+                <button
+                  className={`importer-card${isActive ? ' is-loading' : ''}${isConfig ? ' is-selected' : ''}`}
+                  onClick={() => handleCardClick(fmt)}
+                  disabled={importing}
+                  aria-label={`Import ${fmt.label} file`}
+                >
+                  <span className="importer-card-icon">
+                    <Icon size={24} />
+                  </span>
+                  <strong className="importer-card-label">{fmt.label}</strong>
+                  <small className="importer-card-desc">{fmt.description}</small>
+                  <span className="importer-card-ext">{fmt.extDisplay}</span>
+                  <span className="importer-card-action">
+                    {isActive ? 'Importing…' : <>Choose file <FiChevronRight size={14} /></>}
+                  </span>
+                </button>
+
+                {isConfig && (
+                  <div className="importer-config-panel">
+                    <label className="importer-config-label" htmlFor="page-size-select">
+                      Page size
+                    </label>
+                    <select
+                      id="page-size-select"
+                      className="importer-config-select"
+                      value={selectedPageSize}
+                      onChange={e => setSelectedPageSize(e.target.value)}
+                    >
+                      {PAGE_SIZES.map(p => (
+                        <option key={p.id} value={p.id}>{p.label}</option>
+                      ))}
+                    </select>
+                    <label className="importer-config-check">
+                      <input
+                        type="checkbox"
+                        checked={includeDiagnostics}
+                        onChange={e => setIncludeDiagnostics(e.target.checked)}
+                      />
+                      <span>Diagnostics</span>
+                    </label>
+                    <label className="importer-config-check">
+                      <input
+                        type="checkbox"
+                        checked={includeDebugOverlay}
+                        onChange={e => setIncludeDebugOverlay(e.target.checked)}
+                      />
+                      <span>Debug overlay page</span>
+                    </label>
+                    <label className="importer-config-check">
+                      <input
+                        type="checkbox"
+                        checked={includeFallbackLayer}
+                        onChange={e => setIncludeFallbackLayer(e.target.checked)}
+                      />
+                      <span>Fallback image layer</span>
+                    </label>
+                    <div className="importer-config-actions">
+                      <button
+                        className="importer-config-cancel"
+                        onClick={() => setConfiguring(null)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="importer-config-confirm"
+                        onClick={handleConfirmConfig}
+                      >
+                        Choose file <FiChevronRight size={13} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>

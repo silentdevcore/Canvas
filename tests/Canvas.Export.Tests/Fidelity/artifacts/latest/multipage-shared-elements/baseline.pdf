@@ -1,9 +1,9 @@
 %PDF-1.4
 1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
+<< /Type /Catalog /Pages 2 0 R /AcroForm << /Fields [8 0 R] /DA (/Helv 0 Tf 0 g) /DR << /Font << /Helv 5 0 R >> >> >> >>
 endobj
 2 0 obj
-<< /Type /Pages /Kids [5 0 R 7 0 R] /Count 2 >>
+<< /Type /Pages /Kids [6 0 R 9 0 R] /Count 2 >>
 endobj
 3 0 obj
 << /Title (Multipage Shared Elements) /Author (Canvas) /Subject (Word PDF fidelity sample) /Creator (Canvas PDF Renderer) >>
@@ -12,9 +12,12 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
 endobj
 5 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 6 0 R >>
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
 endobj
 6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 7 0 R /Annots [8 0 R] >>
+endobj
+7 0 obj
 << /Length 437 >>
 stream
 q
@@ -34,7 +37,7 @@ q
 1 w
 0 J
 0 j
-60 646 320 36 re
+60 662 320 24 re
 B
 Q
 q
@@ -44,7 +47,7 @@ BT
 0 Tw
 0 Tc
 100 Tz
-60 694.08 Td
+60 692.08 Td
 (Client Name) Tj
 ET
 Q
@@ -55,7 +58,7 @@ BT
 0 Tw
 0 Tc
 100 Tz
-122.92 694.08 Td
+122.92 692.08 Td
 ( *) Tj
 ET
 Q
@@ -73,10 +76,13 @@ Q
 
 endstream
 endobj
-7 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 8 0 R >>
-endobj
 8 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Tx /Ff 0 /T (p1-field) /V () /Rect [60 662 380 686] /P 6 0 R /DA (/Helv 11 Tf 0 g) /DR << /Font << /Helv 5 0 R >> >> /MK << /BC [0 0 0] /BG [1 1 1] >> /BS << /W 1 /S /S >> >>
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 10 0 R >>
+endobj
+10 0 obj
 << /Length 495 >>
 stream
 q
@@ -147,18 +153,20 @@ Q
 endstream
 endobj
 xref
-0 9
+0 11
 0000000000 65535 f 
 0000000009 00000 n 
-0000000058 00000 n 
-0000000121 00000 n 
-0000000261 00000 n 
-0000000331 00000 n 
-0000000457 00000 n 
-0000000945 00000 n 
-0000001071 00000 n 
+0000000145 00000 n 
+0000000208 00000 n 
+0000000348 00000 n 
+0000000418 00000 n 
+0000000515 00000 n 
+0000000657 00000 n 
+0000001145 00000 n 
+0000001373 00000 n 
+0000001500 00000 n 
 trailer
-<< /Size 9 /Root 1 0 R /Info 3 0 R >>
+<< /Size 11 /Root 1 0 R /Info 3 0 R >>
 startxref
-1617
+2047
 %%EOF

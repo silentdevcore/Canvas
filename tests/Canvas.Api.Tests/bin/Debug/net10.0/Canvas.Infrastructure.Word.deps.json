@@ -11,7 +11,9 @@
           "Canvas.Application": "1.0.0",
           "Canvas.Core": "1.0.0",
           "DocumentFormat.OpenXml": "3.5.1",
-          "System.Security.Cryptography.Xml": "10.0.8"
+          "QRCoder": "1.6.0",
+          "System.Security.Cryptography.Xml": "10.0.8",
+          "ZXing.Net": "0.16.9"
         },
         "runtime": {
           "Canvas.Infrastructure.Word.dll": {}
@@ -47,6 +49,14 @@
           }
         }
       },
+      "QRCoder/1.6.0": {
+        "runtime": {
+          "lib/net6.0/QRCoder.dll": {
+            "assemblyVersion": "1.6.0.0",
+            "fileVersion": "1.6.0.0"
+          }
+        }
+      },
       "System.IO.Packaging/10.0.2": {
         "runtime": {
           "lib/net10.0/System.IO.Packaging.dll": {
@@ -79,6 +89,14 @@
           "lib/net10.0/System.Security.Cryptography.Xml.dll": {
             "assemblyVersion": "10.0.0.0",
             "fileVersion": "10.0.826.23019"
+          }
+        }
+      },
+      "ZXing.Net/0.16.9": {
+        "runtime": {
+          "lib/net7.0/zxing.dll": {
+            "assemblyVersion": "0.16.9.0",
+            "fileVersion": "0.16.9.0"
           }
         }
       },
@@ -167,6 +185,13 @@
       "path": "documentformat.openxml.framework/3.5.1",
       "hashPath": "documentformat.openxml.framework.3.5.1.nupkg.sha512"
     },
+    "QRCoder/1.6.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-XmPA81eo+oRxBuyVdswsSkTGTE1d3thfF11Z1PdD7oB56A6HU4G4AAOdySmGRMb/cljwlFTMWUtosGEnwpS6GA==",
+      "path": "qrcoder/1.6.0",
+      "hashPath": "qrcoder.1.6.0.nupkg.sha512"
+    },
     "System.IO.Packaging/10.0.2": {
       "type": "package",
       "serviceable": true,
@@ -187,6 +212,13 @@
       "sha512": "sha512-Fb+L55vEJaf8RCOzrzN564sfyCL8SZEfce9z6XkuhHg+294SBfyS4fIoLU3EljofDCkp+EKDeleI8ug5WO2NtA==",
       "path": "system.security.cryptography.xml/10.0.8",
       "hashPath": "system.security.cryptography.xml.10.0.8.nupkg.sha512"
+    },
+    "ZXing.Net/0.16.9": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-7WaVMHklpT3Ye2ragqRIwlFRsb6kOk63BOGADV0fan3ulVfGLUYkDi5yNUsZS/7FVNkWbtHAlDLmu4WnHGfqvQ==",
+      "path": "zxing.net/0.16.9",
+      "hashPath": "zxing.net.0.16.9.nupkg.sha512"
     },
     "Canvas/1.0.0": {
       "type": "project",

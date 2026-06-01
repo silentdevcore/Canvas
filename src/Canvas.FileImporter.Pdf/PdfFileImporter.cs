@@ -29,7 +29,7 @@ public sealed class PdfFileImporter : IFileImporter
 
     // ── Entry point ───────────────────────────────────────────────────────────
 
-    private static async Task<DesignExportDto> DoImportAsync(Stream stream, string? name = null)
+    public static async Task<DesignExportDto> DoImportAsync(Stream stream, string? name = null)
     {
         var doc = await new Canvas.Importer.PdfImporter().LoadAsync(stream);
         var sceneGraphEngine = new SceneGraphEngine();
