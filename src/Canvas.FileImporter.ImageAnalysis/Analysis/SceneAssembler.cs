@@ -1,5 +1,6 @@
 using Canvas.Core.Contracts;
 using SkiaSharp;
+using System.Globalization;
 
 namespace Canvas.FileImporter.ImageAnalysis.Analysis;
 
@@ -32,7 +33,11 @@ public static class SceneAssembler
             .Where(r => (r.FillColor.Red * 77 + r.FillColor.Green * 150 + r.FillColor.Blue * 29) >> 8 < 80)
             .Select(r => r.Bounds)
             .ToList();
-        var gridLineBounds = DetectGridLineBounds(shapes.Shapes);
+        var nonTextClusterRegions = shapes.Shapes
+            .Where(s => s.AnalysisType is "icon-cluster" or "image-cluster")
+            .Select(s => s.Bounds)
+            .ToList();
+        var gridLineMetadata = DetectGridLineMetadata(shapes.Shapes);
 
         // Z-order: colour regions (bottom) → shapes → text (top)
         foreach (var region in colors.Regions)
@@ -42,6 +47,9 @@ public static class SceneAssembler
                 Bounds    = region.Bounds,
                 FillColor = region.FillColor,
                 Coverage  = region.Coverage,
+                AnalysisType = region.AnalysisType,
+                Confidence = region.Confidence,
+                SourceKind = region.SourceKind,
                 ZOrder    = z++,
             });
         }
@@ -51,13 +59,14 @@ public static class SceneAssembler
             // Suppress shapes/lines inside text regions or dark colour regions
             // (character-stroke artefacts from undetected white/coloured-on-dark text).
             if (IsTextStrokeArtifact(shape, textRegions) ||
-                OverlapsTextRegion(shape.Bounds, darkRegions)) continue;
+                IsDarkPanelTextStrokeArtifact(shape, darkRegions)) continue;
 
             if (IsDuplicateOfExistingRegion(all, shape)) continue;
 
             // Suppress colour regions fully covered by a matching-fill shape
             RemoveCoveredRegions(all, shape.Bounds);
 
+            gridLineMetadata.TryGetValue(shape.Bounds, out var gridMetadata);
             all.Add(new ImageShapePrimitive
             {
                 Bounds      = shape.Bounds,
@@ -66,13 +75,20 @@ public static class SceneAssembler
                 StrokeColor = shape.StrokeColor,
                 StrokeWidth = shape.StrokeWidth,
                 Confidence  = shape.Confidence,
-                AnalysisType = gridLineBounds.Contains(shape.Bounds) ? "grid-line" : shape.AnalysisType,
+                AnalysisType = gridMetadata is not null ? "grid-line" : shape.AnalysisType,
+                GridId = gridMetadata?.GridId,
+                GridOrientation = gridMetadata?.Orientation,
+                GridBounds = gridMetadata?.Bounds,
+                CornerRadiusPx = shape.CornerRadiusPx,
                 ZOrder      = z++,
             });
         }
 
         foreach (var line in AssignTextBlocks(texts.Lines))
         {
+            if (IsWeakTextInsideNonTextCluster(line, nonTextClusterRegions))
+                continue;
+
             all.Add(new ImageTextPrimitive
             {
                 Bounds     = line.Bounds,
@@ -93,20 +109,26 @@ public static class SceneAssembler
     {
         primitives.RemoveAll(p =>
             p is ImageRegionPrimitive r &&
+            r.AnalysisType != "image-region" &&
             IsMostlyCovered(r.Bounds, shapeBounds));
     }
 
     private static bool IsDuplicateOfExistingRegion(List<ImagePrimitive> primitives, ImageShapePrimitive shape)
     {
         if (shape.Kind != ShapeKind.Rect) return false;
+        if (shape.AnalysisType == "rounded-rect") return false;
         if (shape.FillColor == SKColors.Transparent) return false;
 
         return primitives.Any(p =>
             p is ImageRegionPrimitive region &&
+            region.AnalysisType != "image-region" &&
             IsMostlyCovered(region.Bounds, shape.Bounds) &&
             IsMostlyCovered(shape.Bounds, region.Bounds) &&
             ColorAnalyzer.ColorDistance(region.FillColor, shape.FillColor) <= ColorAnalyzer.ColorTolerance);
     }
+
+    private static bool CanSuppressInsideDarkRegion(ImageShapePrimitive shape) =>
+        shape.AnalysisType is not ("rounded-rect" or "icon-cluster" or "image-cluster" or "grid-line");
 
     private static bool IsMostlyCovered(SKRectI regionBounds, SKRectI coveringBounds)
     {
@@ -163,6 +185,58 @@ public static class SceneAssembler
         return false;
     }
 
+    private static bool IsDarkPanelTextStrokeArtifact(ImageShapePrimitive shape, List<SKRectI> darkRegions)
+    {
+        if (!CanSuppressInsideDarkRegion(shape))
+            return false;
+
+        double shapeArea = (double)shape.Bounds.Width * shape.Bounds.Height;
+        if (shapeArea <= 0)
+            return false;
+
+        foreach (var darkRegion in darkRegions)
+        {
+            var overlap = Overlap(shape.Bounds, darkRegion);
+            if (overlap.Area / shapeArea <= 0.70)
+                continue;
+
+            double darkArea = Math.Max(1, darkRegion.Width * darkRegion.Height);
+            double shapeToDarkArea = shapeArea / darkArea;
+            bool smallGlyphSized = shape.Bounds.Width <= 72 &&
+                                   shape.Bounds.Height <= 36 &&
+                                   shapeToDarkArea <= 0.08;
+            bool thinStrokeSized = shape.Kind == ShapeKind.Line &&
+                                   shape.Bounds.Width <= 96 &&
+                                   shape.Bounds.Height <= 12 &&
+                                   shapeToDarkArea <= 0.06;
+
+            if (smallGlyphSized || thinStrokeSized)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsWeakTextInsideNonTextCluster(ImageTextPrimitive line, List<SKRectI> clusterRegions)
+    {
+        if (clusterRegions.Count == 0)
+            return false;
+
+        double confidence = AverageTextConfidence(line);
+        if (confidence >= 0.50 && !line.Text.Contains('?'))
+            return false;
+
+        double lineArea = Math.Max(1, line.Bounds.Width * line.Bounds.Height);
+        foreach (var cluster in clusterRegions)
+        {
+            var overlap = Overlap(line.Bounds, cluster);
+            if (overlap.Area / lineArea >= 0.65)
+                return true;
+        }
+
+        return false;
+    }
+
     private static (int Width, int Height, int Area) Overlap(SKRectI a, SKRectI b)
     {
         int width = Math.Max(0, Math.Min(a.Right, b.Right) - Math.Max(a.Left, b.Left));
@@ -170,7 +244,22 @@ public static class SceneAssembler
         return (width, height, width * height);
     }
 
-    private static HashSet<SKRectI> DetectGridLineBounds(IReadOnlyList<ImageShapePrimitive> shapes)
+    private static SKRectI UnionBounds(IEnumerable<SKRectI> bounds)
+    {
+        var list = bounds.ToList();
+        if (list.Count == 0)
+            return SKRectI.Empty;
+
+        return new SKRectI(
+            list.Min(b => b.Left),
+            list.Min(b => b.Top),
+            list.Max(b => b.Right),
+            list.Max(b => b.Bottom));
+    }
+
+    private sealed record GridLineMetadata(int GridId, string Orientation, SKRectI Bounds);
+
+    private static Dictionary<SKRectI, GridLineMetadata> DetectGridLineMetadata(IReadOnlyList<ImageShapePrimitive> shapes)
     {
         var horizontal = shapes
             .Where(s => s.Kind == ShapeKind.Line && s.Bounds.Width >= s.Bounds.Height * 3)
@@ -194,7 +283,16 @@ public static class SceneAssembler
                 gridLines.Add(v.Bounds);
         }
 
-        return gridLines;
+        if (gridLines.Count == 0)
+            return [];
+
+        var gridBounds = UnionBounds(gridLines);
+        return gridLines.ToDictionary(
+            bounds => bounds,
+            bounds => new GridLineMetadata(
+                GridId: 1,
+                Orientation: bounds.Width >= bounds.Height ? "horizontal" : "vertical",
+                Bounds: gridBounds));
     }
 
     private static bool LinesIntersect(SKRectI a, SKRectI b)
@@ -223,33 +321,52 @@ public static class SceneAssembler
             .ToList();
         var assigned = new List<ImageTextPrimitive>(sorted.Count);
         var blockLastLine = new Dictionary<int, ImageTextPrimitive>();
+        var blockBounds = new Dictionary<int, SKRectI>();
         var blockLineCounts = new Dictionary<int, int>();
         int nextBlockId = 1;
 
         foreach (var line in sorted)
         {
-            int? blockId = FindTextBlock(line, blockLastLine);
+            int? blockId = FindTextBlock(line, blockLastLine, blockBounds);
             if (blockId is null)
             {
                 blockId = nextBlockId++;
                 blockLineCounts[blockId.Value] = 0;
+                blockBounds[blockId.Value] = line.Bounds;
             }
 
             int lineIndex = blockLineCounts[blockId.Value]++;
             var copy = CopyTextLine(line, blockId.Value, lineIndex);
             assigned.Add(copy);
             blockLastLine[blockId.Value] = copy;
+            blockBounds[blockId.Value] = Union(blockBounds[blockId.Value], copy.Bounds);
         }
 
+        var blockOrder = assigned
+            .GroupBy(l => l.TextBlockId ?? 0)
+            .Select(g => new
+            {
+                BlockId = g.Key,
+                Left = g.Min(l => l.Bounds.Left),
+                Top = g.Min(l => l.Bounds.Top),
+            })
+            .OrderBy(g => g.Left)
+            .ThenBy(g => g.Top)
+            .Select((g, index) => new { g.BlockId, Order = index })
+            .ToDictionary(g => g.BlockId, g => g.Order);
+
         return assigned
-            .OrderBy(l => l.Bounds.Top)
+            .OrderBy(l => blockOrder[l.TextBlockId ?? 0])
+            .ThenBy(l => l.TextBlockLineIndex)
+            .ThenBy(l => l.Bounds.Top)
             .ThenBy(l => l.Bounds.Left)
             .ToList();
     }
 
     private static int? FindTextBlock(
         ImageTextPrimitive line,
-        Dictionary<int, ImageTextPrimitive> blockLastLine)
+        Dictionary<int, ImageTextPrimitive> blockLastLine,
+        Dictionary<int, SKRectI> blockBounds)
     {
         int? bestId = null;
         double bestGap = double.MaxValue;
@@ -264,7 +381,7 @@ public static class SceneAssembler
             if (verticalGap > maxGap)
                 continue;
 
-            if (!LooksLikeSameTextBlock(previous, line))
+            if (!LooksLikeSameTextBlock(previous, blockBounds[blockId], line))
                 continue;
 
             if (verticalGap < bestGap)
@@ -277,17 +394,36 @@ public static class SceneAssembler
         return bestId;
     }
 
-    private static bool LooksLikeSameTextBlock(ImageTextPrimitive previous, ImageTextPrimitive current)
+    private static bool LooksLikeSameTextBlock(ImageTextPrimitive previous, SKRectI blockBounds, ImageTextPrimitive current)
     {
-        int overlap = Math.Max(0, Math.Min(previous.Bounds.Right, current.Bounds.Right) -
-                                  Math.Max(previous.Bounds.Left, current.Bounds.Left));
-        int minWidth = Math.Max(1, Math.Min(previous.Bounds.Width, current.Bounds.Width));
-        double overlapRatio = (double)overlap / minWidth;
+        int lineOverlap = HorizontalOverlap(previous.Bounds, current.Bounds);
+        int blockOverlap = HorizontalOverlap(blockBounds, current.Bounds);
+        int minLineWidth = Math.Max(1, Math.Min(previous.Bounds.Width, current.Bounds.Width));
+        int minBlockWidth = Math.Max(1, Math.Min(blockBounds.Width, current.Bounds.Width));
+        double lineOverlapRatio = (double)lineOverlap / minLineWidth;
+        double blockOverlapRatio = (double)blockOverlap / minBlockWidth;
         double leftDelta = Math.Abs(previous.Bounds.Left - current.Bounds.Left);
+        double blockLeftDelta = Math.Abs(blockBounds.Left - current.Bounds.Left);
+        double fontDelta = Math.Abs(previous.FontSizePx - current.FontSizePx);
         double tolerance = Math.Max(previous.FontSizePx, current.FontSizePx) * 2.5;
+        double paragraphIndentTolerance = Math.Max(previous.FontSizePx, current.FontSizePx) * 4.0;
+        bool similarLineHeight = fontDelta <= Math.Max(previous.FontSizePx, current.FontSizePx) * 0.45;
 
-        return overlapRatio >= 0.25 || leftDelta <= tolerance;
+        return similarLineHeight &&
+               (lineOverlapRatio >= 0.25 ||
+                blockOverlapRatio >= 0.35 ||
+                leftDelta <= tolerance ||
+                blockLeftDelta <= paragraphIndentTolerance);
     }
+
+    private static int HorizontalOverlap(SKRectI a, SKRectI b) =>
+        Math.Max(0, Math.Min(a.Right, b.Right) - Math.Max(a.Left, b.Left));
+
+    private static SKRectI Union(SKRectI a, SKRectI b) => new(
+        Math.Min(a.Left, b.Left),
+        Math.Min(a.Top, b.Top),
+        Math.Max(a.Right, b.Right),
+        Math.Max(a.Bottom, b.Bottom));
 
     private static ImageTextPrimitive CopyTextLine(
         ImageTextPrimitive line,
@@ -329,6 +465,11 @@ public static class SceneAssembler
         double srcW = imageWidthPx  / scaleFactor;
         double srcH = imageHeightPx / scaleFactor;
 
+        double? dpiX = NormalizeDpi(options.SourceDpiX);
+        double? dpiY = NormalizeDpi(options.SourceDpiY);
+        double sourcePointScaleX = dpiX is > 0 ? 72.0 / dpiX.Value : 1.0;
+        double sourcePointScaleY = dpiY is > 0 ? 72.0 / dpiY.Value : sourcePointScaleX;
+
         double pageW, pageH, s;
         if (targetWidthPt.HasValue && targetHeightPt.HasValue)
         {
@@ -339,9 +480,9 @@ public static class SceneAssembler
         }
         else
         {
-            pageW = srcW;
-            pageH = srcH;
-            s     = 1.0 / scaleFactor;
+            pageW = srcW * sourcePointScaleX;
+            pageH = srcH * sourcePointScaleY;
+            s     = Math.Min(sourcePointScaleX, sourcePointScaleY) / scaleFactor;
         }
 
         var elements = new List<ElementDto>();
@@ -369,11 +510,62 @@ public static class SceneAssembler
                 Width       = Math.Round(pageW, 1),
                 Height      = Math.Round(pageH, 1),
                 Orientation = pageW > pageH ? "landscape" : "portrait",
+                Unit       = "pt",
                 BackgroundColor = ColorToHex(background),
                 Margins     = new MarginsDto { Top = 0, Right = 0, Bottom = 0, Left = 0 },
+                CustomProperties = BuildImageAnalysisPageProperties(
+                    imageWidthPx,
+                    imageHeightPx,
+                    scaleFactor,
+                    srcW,
+                    srcH,
+                    dpiX,
+                    dpiY),
             },
         };
     }
+
+    private static double? NormalizeDpi(double? dpi) =>
+        dpi is > 0 and <= 2400 ? dpi : null;
+
+    private static List<CustomDocumentPropertyDto> BuildImageAnalysisPageProperties(
+        int workingWidthPx,
+        int workingHeightPx,
+        double scaleFactor,
+        double sourceWidthPx,
+        double sourceHeightPx,
+        double? dpiX,
+        double? dpiY)
+    {
+        var properties = new List<CustomDocumentPropertyDto>
+        {
+            NumberProperty("imageAnalysis.sourceWidthPx", sourceWidthPx),
+            NumberProperty("imageAnalysis.sourceHeightPx", sourceHeightPx),
+            NumberProperty("imageAnalysis.workingWidthPx", workingWidthPx),
+            NumberProperty("imageAnalysis.workingHeightPx", workingHeightPx),
+            NumberProperty("imageAnalysis.scaleFactor", scaleFactor),
+            new()
+            {
+                Name = "imageAnalysis.pageScaleSource",
+                Value = dpiX is > 0 || dpiY is > 0 ? "explicit-dpi" : "pixel-points",
+                Type = "text",
+            },
+        };
+
+        if (dpiX is > 0)
+            properties.Add(NumberProperty("imageAnalysis.sourceDpiX", dpiX.Value));
+        if (dpiY is > 0)
+            properties.Add(NumberProperty("imageAnalysis.sourceDpiY", dpiY.Value));
+
+        return properties;
+    }
+
+    private static CustomDocumentPropertyDto NumberProperty(string name, double value) => new()
+    {
+        Name = name,
+        Value = Math.Round(value, 4).ToString(CultureInfo.InvariantCulture),
+        Type = "number",
+    };
 
     private static ElementDto? MapPrimitive(
         ImagePrimitive primitive,
@@ -395,10 +587,11 @@ public static class SceneAssembler
                     {
                         ["backgroundColor"] = ColorToHex(region.FillColor),
                         ["borderWidth"]     = 0,
-                        ["imageAnalysisType"] = "color-region",
+                        ["imageAnalysisType"] = region.AnalysisType ?? "color-region",
+                        ["imageAnalysisSource"] = region.SourceKind ?? "color-region",
                     },
                     region.Bounds,
-                    confidence: 0.90,
+                    confidence: region.Confidence,
                     lowConfidenceThreshold),
             },
 
@@ -406,16 +599,18 @@ public static class SceneAssembler
             {
                 Id     = $"line-{seq++}", Type = "rect",
                 X      = x, Y = y, Width = Math.Max(0.5, w), Height = Math.Max(0.5, h),
-                Style  = WithAnalysisMetadata(
-                    new Dictionary<string, object>
-                    {
-                        ["backgroundColor"] = ColorToHex(shape.StrokeColor),
-                        ["borderWidth"]     = 0,
-                        ["imageAnalysisType"] = shape.AnalysisType ?? "line",
-                    },
-                    shape.Bounds,
-                    shape.Confidence,
-                    lowConfidenceThreshold),
+                Style  = WithShapeSemanticMetadata(
+                    shape,
+                    WithAnalysisMetadata(
+                        new Dictionary<string, object>
+                        {
+                            ["backgroundColor"] = ColorToHex(shape.StrokeColor),
+                            ["borderWidth"]     = 0,
+                            ["imageAnalysisType"] = shape.AnalysisType ?? "line",
+                        },
+                        shape.Bounds,
+                        shape.Confidence,
+                        lowConfidenceThreshold)),
             },
 
             ImageShapePrimitive shape => new ElementDto
@@ -429,6 +624,29 @@ public static class SceneAssembler
 
             _ => null,
         };
+    }
+
+    private static Dictionary<string, object> WithShapeSemanticMetadata(
+        ImageShapePrimitive shape,
+        Dictionary<string, object> style)
+    {
+        if (shape.GridId is not null)
+        {
+            style["imageAnalysisGridId"] = shape.GridId.Value;
+            style["imageAnalysisGridOrientation"] = shape.GridOrientation ?? "";
+            if (shape.GridBounds is SKRectI gridBounds)
+            {
+                style["imageAnalysisGridBoundsPx"] = new Dictionary<string, object>
+                {
+                    ["x"] = gridBounds.Left,
+                    ["y"] = gridBounds.Top,
+                    ["width"] = gridBounds.Width,
+                    ["height"] = gridBounds.Height,
+                };
+            }
+        }
+
+        return style;
     }
 
     private static ElementDto BuildFallbackImageElement(
@@ -469,18 +687,22 @@ public static class SceneAssembler
         ImageShapePrimitive shape,
         double lowConfidenceThreshold)
     {
-        var style = WithAnalysisMetadata(new Dictionary<string, object>
-        {
-            ["backgroundColor"]   = shape.FillColor == SKColors.Transparent
-                ? "transparent" : ColorToHex(shape.FillColor),
-            ["borderColor"]       = shape.StrokeColor == SKColors.Transparent
-                ? "transparent" : ColorToHex(shape.StrokeColor),
-            ["borderWidth"]       = shape.StrokeWidth,
-            ["borderStyle"]       = "solid",
-            ["imageAnalysisType"] = shape.AnalysisType ?? shape.Kind.ToString().ToLowerInvariant(),
-        }, shape.Bounds, shape.Confidence, lowConfidenceThreshold);
+        var style = WithShapeSemanticMetadata(
+            shape,
+            WithAnalysisMetadata(new Dictionary<string, object>
+            {
+                ["backgroundColor"]   = shape.FillColor == SKColors.Transparent
+                    ? "transparent" : ColorToHex(shape.FillColor),
+                ["borderColor"]       = shape.StrokeColor == SKColors.Transparent
+                    ? "transparent" : ColorToHex(shape.StrokeColor),
+                ["borderWidth"]       = shape.StrokeWidth,
+                ["borderStyle"]       = "solid",
+                ["imageAnalysisType"] = shape.AnalysisType ?? shape.Kind.ToString().ToLowerInvariant(),
+            }, shape.Bounds, shape.Confidence, lowConfidenceThreshold));
         if (shape.Kind == ShapeKind.Ellipse)
             style["borderRadius"] = "50%";
+        else if (shape.CornerRadiusPx is double radius && radius > 0)
+            style["borderRadius"] = Math.Round(radius, 1);
         return style;
     }
 
@@ -513,18 +735,55 @@ public static class SceneAssembler
                     ["baselineYPx"]       = Math.Round(text.BaselineY, 1),
                     ["textBlockId"]       = text.TextBlockId ?? 0,
                     ["textBlockLineIndex"] = text.TextBlockLineIndex,
+                    ["imageAnalysisGlyphs"] = BuildGlyphDiagnostics(text),
                 },
                 text.Bounds,
                 confidence,
                 lowConfidenceThreshold),
         };
     }
-
     private static double AverageTextConfidence(ImageTextPrimitive text)
     {
         var chars = text.Words.SelectMany(w => w.Chars).ToList();
         if (chars.Count == 0) return 0;
         return chars.Average(c => c.Confidence);
+    }
+
+    private static IReadOnlyList<Dictionary<string, object>> BuildGlyphDiagnostics(ImageTextPrimitive text)
+    {
+        return text.Words
+            .SelectMany(w => w.Chars)
+            .Select(c =>
+            {
+                var item = new Dictionary<string, object>
+                {
+                    ["value"] = c.Value.ToString(),
+                    ["confidence"] = Math.Round(Math.Clamp(c.Confidence, 0, 1), 3),
+                    ["boundsPx"] = new Dictionary<string, object>
+                    {
+                        ["x"] = c.Bounds.Left,
+                        ["y"] = c.Bounds.Top,
+                        ["width"] = c.Bounds.Width,
+                        ["height"] = c.Bounds.Height,
+                    },
+                };
+
+                if (c.Diagnostics is not null)
+                {
+                    item["initialCandidate"] = c.Diagnostics.InitialCandidate.ToString();
+                    item["selectedCandidate"] = c.Diagnostics.SelectedCandidate.ToString();
+                    item["method"] = c.Diagnostics.Method;
+                    item["score"] = c.Diagnostics.Score;
+                    item["enclosedWhiteRegions"] = c.Diagnostics.EnclosedWhiteRegions;
+                    item["projectionReranked"] = c.Diagnostics.ProjectionReranked;
+                    item["zoningReranked"] = c.Diagnostics.ZoningReranked;
+                    item["signals"] = c.Diagnostics.Signals.ToDictionary(kv => kv.Key, kv => (object)kv.Value);
+                    item["decisionWeights"] = c.Diagnostics.DecisionWeights.ToDictionary(kv => kv.Key, kv => (object)kv.Value);
+                }
+
+                return item;
+            })
+            .ToList();
     }
 
     private static Dictionary<string, object> WithAnalysisMetadata(

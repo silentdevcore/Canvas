@@ -58,15 +58,15 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 - [x] Build binary bitmap via global Otsu threshold.
 - [x] Add conservative local/adaptive thresholding for uneven neutral backgrounds.
 - [x] Add conservative denoise pass for isolated speckle pixels.
-- [ ] Add broader small-component removal and light morphology.
+- [x] Add broader small-component removal and light morphology.
 - [x] Recognize normal and inverted text passes with the matching binary polarity.
-- [ ] Add foreground polarity detection per region beyond text-only passes.
-- [ ] Preserve DPI/page-scale metadata where possible.
+- [x] Add foreground polarity detection per region beyond text-only passes.
+- [x] Preserve DPI/page-scale metadata where possible.
 - [ ] Add tests for:
   - [x] uneven neutral background
   - [x] isolated speckle noise
-  - [ ] anti-aliased text
-  - [ ] JPEG compression noise
+  - [x] anti-aliased text
+  - [x] JPEG compression noise
   - [x] low-contrast gray text
   - [x] white text on dark background
 
@@ -78,11 +78,11 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 - [x] Build simple dominant palette.
 - [x] Segment filled regions with seed-based flood-fill.
 - [x] Map color regions to `ElementDto` shape elements.
-- [ ] Replace fixed 20px seed grid with full connected-component color segmentation or adaptive scan seeds.
-- [ ] Merge adjacent color regions using perceptual color distance.
-- [ ] Distinguish page background, panels, images, icons, and decorative blocks.
-- [ ] Detect gradients as image/bitmap fallback regions instead of many noisy shapes.
-- [ ] Add region confidence and source classification.
+- [x] Replace fixed 20px seed grid with full connected-component color segmentation or adaptive scan seeds.
+- [x] Merge adjacent color regions using perceptual color distance.
+- [x] Distinguish page background, panels, images, icons, and decorative blocks.
+- [x] Detect gradients as image/bitmap fallback regions instead of many noisy shapes.
+- [x] Add region confidence and source classification.
 
 ---
 
@@ -93,14 +93,14 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 - [x] Rectangle assembly exists.
 - [x] Simple ellipse/circle hints exist.
 - [x] Thin line mapping exists.
-- [ ] Fix horizontal gap handling in line run detection.
-- [ ] Add connected-component based rectangular fill detection, not just edge rectangles.
+- [x] Fix horizontal gap handling in line run detection.
+- [x] Add connected-component based rectangular fill detection, not just edge rectangles.
 - [x] Add first-pass grid-line classification for intersecting H/V rules.
-- [ ] Add table/grid detection as first-class layout primitive.
-- [ ] Add rounded-rectangle detection.
-- [ ] Add icon/image fallback classification for complex vector-like clusters.
+- [x] Add table/grid detection as first-class layout primitive.
+- [x] Add rounded-rectangle detection.
+- [x] Add icon/image fallback classification for complex vector-like clusters.
 - [x] Add text-stroke suppression rules that preserve larger panels and long rules.
-- [ ] Add broader confidence and suppression rules that do not hide real shapes inside dark panels.
+- [x] Add broader confidence and suppression rules that do not hide real shapes inside dark panels.
 
 ---
 
@@ -113,14 +113,14 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 - [x] Text color sampling exists.
 - [x] Add word assembly from character gaps.
 - [x] Split distant same-baseline text runs without relying on OCR metadata.
-- [ ] Add broader column detection and reading-order handling.
+- [x] Add broader column detection and reading-order handling.
 - [x] Add baseline estimation metadata for detected text runs.
-- [ ] Improve baseline detection for mixed fonts and multi-line paragraphs.
+- [x] Improve baseline detection for mixed fonts and multi-line paragraphs.
 - [x] Add first-pass text block metadata for nearby multiline text.
-- [ ] Detect richer multiline paragraphs and preserve complex reading order.
+- [x] Detect richer multiline paragraphs and preserve complex reading order.
 - [x] Reject decorative leading/trailing symbol words such as bullets and border fragments.
-- [ ] Reject broader non-text blobs such as icons and complex UI decoration.
-- [ ] Add tests that assert bounding boxes, not only element existence.
+- [x] Reject broader non-text blobs such as icons and complex UI decoration.
+- [x] Add tests that assert bounding boxes, not only element existence.
 
 ---
 
@@ -135,16 +135,17 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
   - [ ] Times-like serif
   - [ ] bold and regular weights
   - [ ] multiple font sizes
-- [ ] Normalize glyph patches with padding, aspect ratio, baseline, and stroke thickness.
+- [x] Normalize glyph patches with padding, aspect ratio, baseline, and stroke thickness.
 - [ ] Combine multiple cheap recognizers:
-  - [ ] NCC
-  - [ ] horizontal/vertical projection profiles
-  - [ ] zoning features
-  - [ ] connected-component holes/enclosures
-  - [ ] simple structural features
+  - [x] NCC
+  - [x] horizontal/vertical projection profiles
+  - [x] zoning features
+  - [x] connected-component holes/enclosures
+  - [x] first simple structural features
 - [x] Emit `RecognizedChar` with confidence.
 - [x] Emit `?` below threshold with zero confidence for unresolved glyphs.
-- [ ] Reduce hallucination with richer ambiguity detection beyond NCC thresholding.
+- [x] Emit per-glyph recognition diagnostics for selected method and rerank influence.
+- [x] Reduce hallucination with richer ambiguity detection beyond NCC thresholding.
 - [ ] Add golden tests:
   - [x] `"Hello"` -> exact content for controlled synthetic image
   - [x] `"Hello World"` word spacing
@@ -153,6 +154,10 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
   - [x] punctuation for controlled dot, dash, slash, and colon-like cases
   - [x] ambiguous glyphs: `O/0`, `I/l/1`, `S/5`
   - [x] unknown low-confidence blob -> `?`
+  - [x] enclosed white-region detection for ring-like glyph blobs
+  - [x] projection-profile distance for nearby glyph-shape candidates
+  - [x] zoning distance for diagonal-heavy glyph candidates
+  - [x] controlled `8/0/O` ambiguity line
 
 ---
 
@@ -172,7 +177,7 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 ## Phase 7 - Verification & Quality Gates
 
 - [x] Existing ImageAnalysis tests pass as pipeline smoke tests.
-- [ ] Add recognition-quality tests with expected JSON snapshots.
+- [x] Add recognition-quality tests with expected JSON snapshots.
 - [x] Add debug overlay generation for visual review.
 - [ ] Add saved visual overlay snapshots for regression review.
 - [ ] Add benchmark cases:
@@ -230,3 +235,73 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 - [x] Run full ImageAnalysis verification after non-text symbol filtering.
 - [x] Set unresolved glyph confidence to zero and cover unknown blob recognition.
 - [x] Run full ImageAnalysis verification after glyph confidence changes.
+- [x] Add connected-component enclosed-region counting as a first structural glyph feature.
+- [x] Keep `8` vs `0/O` ambiguity correction conservative by requiring exactly one enclosed region.
+- [x] Run focused glyph-structure verification after hole/enclosure changes.
+- [x] Tighten dark-panel suppression to keep real shapes while still dropping small text-stroke artifacts.
+- [x] Add larger image-cluster classification without classifying solid panels as image clusters.
+- [x] Add gradient-like image-region detection and export metadata.
+- [x] Add adaptive color-region seed fallback for regions missed by the coarse 20px grid.
+- [x] Merge adjacent similar color regions while keeping separated/different regions distinct.
+- [x] Export region source classification metadata for color/adaptive/merged/image-like regions.
+- [x] Make text-block assignment use block-level bounds for ragged multiline paragraphs.
+- [x] Ignore descender-heavy glyph bottoms when estimating text baselines.
+- [x] Tighten glyph patches to ink bounds before resizing to reduce padding/noise sensitivity.
+- [x] Run TextEngine verification after hole/enclosure changes.
+- [x] Run full ImageAnalysis verification after hole/enclosure changes.
+- [x] Add projection-profile features for `E/F/L/T`, `M/N/W`, and narrow glyph ambiguity.
+- [x] Run focused projection-profile verification.
+- [x] Run TextEngine verification after projection-profile changes.
+- [x] Run full ImageAnalysis verification after projection-profile changes.
+- [x] Add zoning features for diagonal-heavy glyphs such as `K/X/Y/Z`.
+- [x] Keep zoning rerank scoped to supported diagonal uppercase candidates to avoid lowercase regressions.
+- [x] Add a controlled golden test that includes `8`, `0`, and `O` in one line.
+- [x] Run focused zoning and ambiguity verification.
+- [x] Run TextEngine verification after zoning changes.
+- [x] Run full ImageAnalysis verification after zoning changes.
+- [x] Add per-glyph diagnostic metadata for NCC/projection/zoning/hole decisions.
+- [x] Export glyph diagnostic metadata on text elements as `imageAnalysisGlyphs`.
+- [x] Run focused glyph diagnostic metadata verification.
+- [x] Run TextEngine verification after glyph diagnostic metadata changes.
+- [x] Run full ImageAnalysis verification after glyph diagnostic metadata changes.
+- [x] Add per-glyph recognizer signal scores for NCC, projection, zoning, holes, and structural rules.
+- [x] Add normalized per-glyph decision weights to `imageAnalysisGlyphs`.
+- [x] Run focused confidence-combination metadata verification.
+- [x] Run TextEngine verification after confidence-combination metadata changes.
+- [x] Run full ImageAnalysis verification after confidence-combination metadata changes.
+- [x] Surface glyph diagnostic weights in the frontend inspector for imported text elements.
+- [x] Run frontend build verification after glyph diagnostic UI changes.
+- [x] Add a document-level ImageAnalysis diagnostics panel for aggregate engine metrics.
+- [x] Run frontend build verification after document-level diagnostics UI changes.
+- [x] Add recognition-quality JSON snapshots for clean screenshot and invoice/table fixtures.
+- [x] Run focused recognition-quality snapshot verification.
+- [x] Run full ImageAnalysis verification after recognition-quality snapshots.
+- [x] Extend zoning or structural features to punctuation-like fragments without affecting text words.
+- [x] Improve the clean screenshot fixture from current baseline OCR toward exact `"Invoice"` and `"Total 12345"`.
+- [x] Improve the invoice/table fixture from current baseline OCR toward exact price and header text.
+- [x] Fix line-run gap bridging without reintroducing text-edge line artifacts.
+- [x] Run focused ShapeDetector verification after line-gap changes.
+- [x] Run EndToEnd snapshot verification after line-gap changes.
+- [x] Run full ImageAnalysis verification after line-gap changes.
+- [x] Add grouped-number punctuation correction for comma-like fragments.
+- [x] Run focused punctuation verification after grouped-number correction.
+- [x] Run TextEngine verification after grouped-number correction.
+- [x] Reject standalone ring-like UI icons that otherwise hallucinate as `C/O/0`.
+- [x] Add focused non-text blob hallucination tests for line strokes and ring icons.
+- [x] Run TextEngine verification after standalone icon rejection.
+- [x] Add grouped grid/table metadata for intersecting line primitives.
+- [x] Export grid id, orientation, and source bounds on detected grid lines.
+- [x] Run EndToEnd verification after grid metadata changes.
+- [x] Add connected-component filled-rectangle detection independent of closed edges.
+- [x] Add filled-rectangle and non-rectangle shape verification.
+- [x] Run EndToEnd verification after filled-rectangle detection.
+- [x] Add full-pipeline grid source-bounds and group-bounds assertions.
+- [x] Add connected-component rounded-rectangle detection with radius metadata.
+- [x] Export rounded rectangles with `borderRadius`.
+- [x] Add focused ShapeDetector and FullPipeline rounded-rectangle verification.
+- [x] Add explicit source DPI options for ImageAnalysis page-scale mapping.
+- [x] Preserve source/working image dimensions, scale factor, and page scale source in PageSettings custom properties.
+- [x] Run EndToEnd and full ImageAnalysis verification after DPI/page-scale metadata changes.
+- [x] Add conservative icon-cluster classification for irregular connected symbols.
+- [x] Keep icon/image clusters out of dark-panel shape suppression.
+- [x] Run focused and full ImageAnalysis verification after icon-cluster classification changes.

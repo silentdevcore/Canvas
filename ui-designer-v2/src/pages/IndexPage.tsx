@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -44,14 +44,26 @@ const TOOL_LINKS = [
 
 const IndexPage: React.FC = () => {
   const navigate = useNavigate();
-  const { loadBlank } = useTemplateLoader();
+  const { loadBlank, loadFromFile } = useTemplateLoader();
   const [toast, setToast] = useState<string | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
 
   const displayCategories = CATEGORIES.filter(c => c.id !== 'all');
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleFileImport = async (file: File) => {
+    setImporting(true);
+    try {
+      await loadFromFile(file);
+    } catch (err) {
+      setImporting(false);
+      showToast(err instanceof Error ? err.message : 'Import failed');
+    }
   };
 
   const handleToolClick = (label: string) => {
@@ -91,6 +103,14 @@ const IndexPage: React.FC = () => {
             </p>
           </div>
 
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx,.odt,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.tif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,image/png,image/jpeg,image/gif,image/webp,image/bmp,image/tiff"
+            style={{ display: 'none' }}
+            onChange={e => { const f = e.target.files?.[0]; if (f) handleFileImport(f); e.target.value = ''; }}
+          />
+
           <div className="pdf-hero-cards">
             <motion.button
               className="pdf-upload-card"
@@ -102,6 +122,20 @@ const IndexPage: React.FC = () => {
               <strong>Start from a template</strong>
               <small>Browse {TEMPLATES.length} ready-made document templates</small>
               <span className="pdf-upload-action">Browse templates <FiChevronRight /></span>
+            </motion.button>
+
+            <motion.button
+              className="pdf-upload-card"
+              onClick={() => importInputRef.current?.click()}
+              disabled={importing}
+              title="Import a PDF, Word .doc/.docx, ODT, or image (PNG/JPG/WebP/…) as a Canvas design"
+              whileHover={{ y: -4 }}
+              whileTap={{ scale: 0.99 }}
+            >
+              <span className="pdf-upload-icon"><FiUpload /></span>
+              <strong>{importing ? 'Importing…' : 'Import file'}</strong>
+              <small>Open a PDF, Word, ODT or image file as an editable design</small>
+              <span className="pdf-upload-action">Choose file <FiChevronRight /></span>
             </motion.button>
 
             <motion.button

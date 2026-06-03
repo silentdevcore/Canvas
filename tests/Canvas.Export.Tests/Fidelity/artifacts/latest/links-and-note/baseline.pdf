@@ -15,7 +15,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 6 0 R /Annots [7 0 R 8 0 R] >>
 endobj
 6 0 obj
-<< /Length 938 >>
+<< /Length 947 >>
 stream
 q
 BT
@@ -101,7 +101,7 @@ BT
 0 Tc
 100 Tz
 52 514.08 Td
-(? Backup complete) Tj
+(\225 Backup complete) Tj
 ET
 Q
 q
@@ -112,7 +112,7 @@ BT
 0 Tc
 100 Tz
 52 495.38 Td
-(? Smoke test passed) Tj
+(\225 Smoke test passed) Tj
 ET
 Q
 q
@@ -123,7 +123,7 @@ BT
 0 Tc
 100 Tz
 52 476.68 Td
-(? Stakeholder sign-off) Tj
+(\225 Stakeholder sign-off) Tj
 ET
 Q
 
@@ -144,10 +144,10 @@ xref
 0000000211 00000 n 
 0000000281 00000 n 
 0000000429 00000 n 
-0000001418 00000 n 
-0000001558 00000 n 
+0000001427 00000 n 
+0000001567 00000 n 
 trailer
 << /Size 9 /Root 1 0 R /Info 3 0 R >>
 startxref
-1700
+1709
 %%EOF

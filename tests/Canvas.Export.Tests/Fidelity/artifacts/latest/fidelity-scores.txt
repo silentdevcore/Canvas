@@ -2,7 +2,7 @@ image-and-caption: score=93,92, diff=0,0608
 multipage-shared-elements: score=93,69, diff=0,0631
 form-elements: score=92,15, diff=0,0785
 checklist-audit: score=90,93, diff=0,0907
-links-and-note: score=90,83, diff=0,0917
+links-and-note: score=90,85, diff=0,0915
 richtext-link-list: score=90,18, diff=0,0982
 text-table-basic: score=90,03, diff=0,0997
 contract-clauses: score=89,53, diff=0,1047

@@ -113,6 +113,44 @@ public class ShapeDetectorTests
         Assert.Empty(hSegs);
     }
 
+    [Fact]
+    public void FindHorizontalSegments_SmallGap_JoinsSingleSegment()
+    {
+        const int w = 160;
+        const int h = 40;
+        var edges = new byte[w * h];
+        int y = 20;
+        for (int x = 10; x <= 72; x++)
+            edges[y * w + x] = 255;
+        for (int x = 75; x <= 130; x++)
+            edges[y * w + x] = 255;
+
+        var hSegs = ShapeDetector.FindHorizontalSegments(edges, w, h);
+        var seg = Assert.Single(hSegs, s => s.Y == y);
+
+        Assert.True(seg.Start <= 10, $"Expected segment to start near 10, got {seg.Start}");
+        Assert.True(seg.End >= 130, $"Expected segment to bridge the gap through 130, got {seg.End}");
+    }
+
+    [Fact]
+    public void FindVerticalSegments_SmallGap_JoinsSingleSegment()
+    {
+        const int w = 60;
+        const int h = 160;
+        var edges = new byte[w * h];
+        int x = 30;
+        for (int y = 10; y <= 72; y++)
+            edges[y * w + x] = 255;
+        for (int y = 75; y <= 130; y++)
+            edges[y * w + x] = 255;
+
+        var vSegs = ShapeDetector.FindVerticalSegments(edges, w, h);
+        var seg = Assert.Single(vSegs, s => s.Y == x);
+
+        Assert.True(seg.Start <= 10, $"Expected segment to start near 10, got {seg.Start}");
+        Assert.True(seg.End >= 130, $"Expected segment to bridge the gap through 130, got {seg.End}");
+    }
+
     // ── Rectangle assembly ────────────────────────────────────────────────────
 
     [Fact]
@@ -134,6 +172,173 @@ public class ShapeDetectorTests
         Assert.NotNull(result.Shapes);
         // Should detect at least the four border edges as shapes or lines
         Assert.NotEmpty(result.Shapes);
+    }
+
+    [Fact]
+    public void FindFilledRectangles_SolidRect_DetectsBounds()
+    {
+        using var bmp = SolidBitmap(220, 160, SKColors.White);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            canvas.DrawRect(40, 36, 96, 52, paint);
+        }
+        using var prep = Prepare(bmp);
+
+        var rects = ShapeDetector.FindFilledRectangles(prep.Binary);
+        var rect = Assert.Single(rects);
+
+        Assert.Equal(new SKRectI(40, 36, 136, 88), rect);
+    }
+
+    [Fact]
+    public void FindFilledRectangles_SolidCircle_DoesNotReturnRect()
+    {
+        using var bmp = SolidBitmap(180, 140, SKColors.White);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            canvas.DrawCircle(90, 70, 28, paint);
+        }
+        using var prep = Prepare(bmp);
+
+        var rects = ShapeDetector.FindFilledRectangles(prep.Binary);
+
+        Assert.Empty(rects);
+    }
+
+    [Fact]
+    public void FindRoundedRectangles_FilledRoundRect_DetectsRadiusAndBounds()
+    {
+        using var bmp = SolidBitmap(240, 180, SKColors.White);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            canvas.DrawRoundRect(new SKRect(44, 36, 164, 104), 18, 18, paint);
+        }
+        using var prep = Prepare(bmp);
+
+        var rects = ShapeDetector.FindRoundedRectangles(prep.Binary);
+        var rect = Assert.Single(rects);
+
+        Assert.InRange(rect.Bounds.Left, 43, 45);
+        Assert.InRange(rect.Bounds.Top, 35, 37);
+        Assert.InRange(rect.Bounds.Right, 163, 165);
+        Assert.InRange(rect.Bounds.Bottom, 103, 105);
+        Assert.InRange(rect.Radius, 8, 24);
+    }
+
+    [Fact]
+    public void FindRoundedRectangles_SolidRect_DoesNotReturnRoundedRect()
+    {
+        using var bmp = SolidBitmap(220, 160, SKColors.White);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            canvas.DrawRect(40, 36, 96, 52, paint);
+        }
+        using var prep = Prepare(bmp);
+
+        var rects = ShapeDetector.FindRoundedRectangles(prep.Binary);
+
+        Assert.Empty(rects);
+    }
+
+    [Fact]
+    public void FindRoundedRectangles_SolidCircle_DoesNotReturnRoundedRect()
+    {
+        using var bmp = SolidBitmap(180, 140, SKColors.White);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            canvas.DrawCircle(90, 70, 28, paint);
+        }
+        using var prep = Prepare(bmp);
+
+        var rects = ShapeDetector.FindRoundedRectangles(prep.Binary);
+
+        Assert.Empty(rects);
+    }
+
+    [Fact]
+    public void FindIconClusters_IrregularConnectedSymbol_DetectsCluster()
+    {
+        using var bmp = SolidBitmap(180, 140, SKColors.White);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            using var path = new SKPath();
+            path.MoveTo(90, 30);
+            path.LineTo(103, 62);
+            path.LineTo(138, 62);
+            path.LineTo(110, 82);
+            path.LineTo(122, 116);
+            path.LineTo(90, 94);
+            path.LineTo(58, 116);
+            path.LineTo(70, 82);
+            path.LineTo(42, 62);
+            path.LineTo(77, 62);
+            path.Close();
+            canvas.DrawPath(path, paint);
+        }
+        using var prep = Prepare(bmp);
+
+        var clusters = ShapeDetector.FindIconClusters(prep.Binary);
+        var cluster = Assert.Single(clusters);
+
+        Assert.InRange(cluster.Left, 40, 45);
+        Assert.InRange(cluster.Top, 28, 32);
+        Assert.InRange(cluster.Right, 136, 140);
+        Assert.InRange(cluster.Bottom, 114, 118);
+    }
+
+    [Fact]
+    public void FindImageClusters_LargeIrregularConnectedRegion_DetectsCluster()
+    {
+        using var bmp = SolidBitmap(360, 240, SKColors.White);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            using var path = new SKPath();
+            path.MoveTo(72, 54);
+            path.LineTo(138, 34);
+            path.LineTo(208, 62);
+            path.LineTo(284, 48);
+            path.LineTo(308, 112);
+            path.LineTo(260, 160);
+            path.LineTo(284, 204);
+            path.LineTo(184, 184);
+            path.LineTo(112, 210);
+            path.LineTo(90, 146);
+            path.LineTo(42, 118);
+            path.Close();
+            canvas.DrawPath(path, paint);
+        }
+        using var prep = Prepare(bmp);
+
+        var clusters = ShapeDetector.FindImageClusters(prep.Binary);
+        var cluster = Assert.Single(clusters);
+
+        Assert.InRange(cluster.Left, 40, 74);
+        Assert.InRange(cluster.Top, 32, 56);
+        Assert.InRange(cluster.Right, 280, 310);
+        Assert.InRange(cluster.Bottom, 180, 212);
+    }
+
+    [Fact]
+    public void FindImageClusters_SolidPanel_DoesNotReturnImageCluster()
+    {
+        using var bmp = SolidBitmap(360, 240, SKColors.White);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            canvas.DrawRect(48, 40, 240, 128, paint);
+        }
+        using var prep = Prepare(bmp);
+
+        var clusters = ShapeDetector.FindImageClusters(prep.Binary);
+
+        Assert.Empty(clusters);
     }
 
     // ── Ellipse detection ─────────────────────────────────────────────────────

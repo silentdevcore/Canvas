@@ -247,6 +247,19 @@ public class PreprocessorTests
     }
 
     [Fact]
+    public void Denoise_RemovesTinyThinComponents()
+    {
+        using var src = WhiteBitmapWithBlackPixels(
+            80, 60,
+            (10, 10), (10, 11),
+            (42, 8), (43, 8), (44, 8));
+
+        using var result = Preprocessor.Prepare(src);
+
+        Assert.Equal(0, CountBlackPixels(result.Binary));
+    }
+
+    [Fact]
     public void Denoise_PreservesSmallPunctuationDot()
     {
         using var src = WhiteBitmapWithBlackPixels(

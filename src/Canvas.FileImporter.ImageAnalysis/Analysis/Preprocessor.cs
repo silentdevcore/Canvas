@@ -355,6 +355,69 @@ public static class Preprocessor
             int x = index % w;
             ptr[y * stride + x] = 255;
         }
+
+        RemoveTinyThinComponents(ptr, stride, w, h);
+    }
+
+    private static unsafe void RemoveTinyThinComponents(byte* ptr, int stride, int w, int h)
+    {
+        var visited = new bool[w * h];
+        var remove = new List<int>();
+        var queue = new Queue<(int x, int y)>();
+        var component = new List<(int x, int y)>();
+
+        for (int y = 0; y < h; y++)
+        {
+            byte* row = ptr + y * stride;
+            for (int x = 0; x < w; x++)
+            {
+                int startIndex = y * w + x;
+                if (visited[startIndex] || row[x] != 0)
+                    continue;
+
+                component.Clear();
+                queue.Clear();
+                queue.Enqueue((x, y));
+                visited[startIndex] = true;
+                int minX = x, maxX = x, minY = y, maxY = y;
+
+                while (queue.Count > 0)
+                {
+                    var (cx, cy) = queue.Dequeue();
+                    component.Add((cx, cy));
+                    minX = Math.Min(minX, cx);
+                    maxX = Math.Max(maxX, cx);
+                    minY = Math.Min(minY, cy);
+                    maxY = Math.Max(maxY, cy);
+
+                    for (int yy = Math.Max(0, cy - 1); yy <= Math.Min(h - 1, cy + 1); yy++)
+                    {
+                        byte* nrow = ptr + yy * stride;
+                        for (int xx = Math.Max(0, cx - 1); xx <= Math.Min(w - 1, cx + 1); xx++)
+                        {
+                            int index = yy * w + xx;
+                            if (visited[index] || nrow[xx] != 0)
+                                continue;
+
+                            visited[index] = true;
+                            queue.Enqueue((xx, yy));
+                        }
+                    }
+                }
+
+                int width = maxX - minX + 1;
+                int height = maxY - minY + 1;
+                if (component.Count <= 3 && (width == 1 || height == 1))
+                    remove.AddRange(component.Select(p => p.y * w + p.x));
+            }
+        }
+
+        foreach (int index in remove)
+        {
+            int y = index / w;
+            int x = index % w;
+            ptr[y * stride + x] = 255;
+        }
     }
 
     private static unsafe int CountBlackNeighbours(byte* ptr, int stride, int w, int h, int x, int y)

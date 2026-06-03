@@ -1,10 +1,9 @@
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiChevronRight,
   FiSearch,
-  FiUpload,
   FiX,
 } from 'react-icons/fi';
 import AppHeader from '@/components/Layout/AppHeader';
@@ -85,21 +84,7 @@ const TemplateDetailPanel: React.FC<DetailPanelProps> = ({ template, onClose, on
 
 const TemplatePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { loadTemplate, loadFromFile } = useTemplateLoader();
-  const importInputRef = useRef<HTMLInputElement>(null);
-  const [importing, setImporting] = useState(false);
-  const [importError, setImportError] = useState('');
-
-  const handleFileImport = async (file: File) => {
-    setImporting(true);
-    setImportError('');
-    try {
-      await loadFromFile(file);
-    } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Import failed');
-      setImporting(false);
-    }
-  };
+  const { loadTemplate } = useTemplateLoader();
 
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get('category') ?? 'all'
@@ -159,24 +144,6 @@ const TemplatePage: React.FC = () => {
             </span>
           </div>
           <div className="tpl-toolbar-right">
-            <input
-              ref={importInputRef}
-              type="file"
-              accept=".pdf,.doc,.docx,.odt,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.tif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,image/png,image/jpeg,image/gif,image/webp,image/bmp,image/tiff"
-              style={{ display: 'none' }}
-              onChange={e => { const f = e.target.files?.[0]; if (f) handleFileImport(f); e.target.value = ''; }}
-            />
-            <button
-              className="pdf-link-button"
-              onClick={() => importInputRef.current?.click()}
-              disabled={importing}
-              title="Import a PDF, Word .doc/.docx, ODT, or image (PNG/JPG/WebP/…) as a Canvas design"
-              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-            >
-              <FiUpload size={14} />
-              {importing ? 'Importing…' : 'Import file'}
-            </button>
-            {importError && <span style={{ color: '#dc2626', fontSize: 12 }}>{importError}</span>}
             <label className="pdf-search">
               <FiSearch />
               <input

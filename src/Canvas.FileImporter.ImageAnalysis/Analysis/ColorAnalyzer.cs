@@ -12,6 +12,9 @@ public static class ColorAnalyzer
     /// <summary>Seed grid spacing in pixels for the flood-fill pass.</summary>
     private const int SeedSpacing = 20;
 
+    /// <summary>Fine fallback scan spacing for foreground regions missed by the coarse seed grid.</summary>
+    private const int AdaptiveSeedSpacing = 4;
+
     /// <summary>
     /// Maximum per-channel delta (0–255) for two colours to be considered "the same"
     /// when merging adjacent flood-fill regions.
@@ -35,13 +38,14 @@ public static class ColorAnalyzer
     {
         SKColor background = DetectBackground(img.Original);
         var regions        = SegmentRegions(img.Original, background);
+        var imageRegions   = DetectImageLikeRegions(img.Original, background, regions);
         var palette        = BuildPalette(img.Original);
 
         return new ColorAnalysisResult
         {
             Background     = background,
             DominantColors = palette,
-            Regions        = regions,
+            Regions        = regions.Concat(imageRegions).ToList(),
         };
     }
 
@@ -130,7 +134,8 @@ public static class ColorAnalyzer
     // ── Region segmentation ───────────────────────────────────────────────────
 
     /// <summary>
-    /// Performs a scanline flood-fill from seed points placed on a regular grid.
+    /// Performs scanline flood-fill from coarse seed points, then a fine adaptive
+    /// fallback scan for foreground regions that fall between grid points.
     /// Adjacent pixels within <see cref="ColorTolerance"/> of the seed colour are
     /// merged into the same region.  Small regions (noise) and regions covering
     /// most of the image (background) are filtered out.
@@ -142,32 +147,138 @@ public static class ColorAnalyzer
         var regions = new List<ColorRegion>();
         int totalPixels = w * h;
 
+        void TryAddRegionFromSeed(int sx, int sy, bool adaptive)
+        {
+            if (visited[sx, sy]) return;
+
+            SKColor seedColor = bmp.GetPixel(sx, sy);
+
+            // Skip seeds that are the background colour
+            if (ColorDistance(seedColor, background) <= ColorTolerance) return;
+
+            var pixels = FloodFill(bmp, visited, sx, sy, seedColor);
+            if (pixels.Count < MinRegionPixels) return;
+
+            double coverage = (double)pixels.Count / totalPixels;
+            if (coverage > BackgroundCoverageThreshold) return;
+
+            var bounds = ComputeBounds(pixels);
+            double fillRatio = pixels.Count / (double)Math.Max(1, bounds.Width * bounds.Height);
+            if (adaptive && (bounds.Width < 12 || bounds.Height < 12 || fillRatio < 0.75)) return;
+
+            var avgColor = AverageColor(bmp, pixels);
+
+            regions.Add(new ColorRegion
+            {
+                Bounds = bounds,
+                FillColor = avgColor,
+                Coverage = coverage,
+                PixelCount = pixels.Count,
+                SourceKind = adaptive ? "adaptive-seed" : "coarse-seed",
+            });
+        }
+
         for (int sy = SeedSpacing / 2; sy < h; sy += SeedSpacing)
         {
             for (int sx = SeedSpacing / 2; sx < w; sx += SeedSpacing)
             {
-                if (visited[sx, sy]) continue;
+                TryAddRegionFromSeed(sx, sy, adaptive: false);
+            }
+        }
 
-                SKColor seedColor = bmp.GetPixel(sx, sy);
+        for (int sy = AdaptiveSeedSpacing / 2; sy < h; sy += AdaptiveSeedSpacing)
+        {
+            for (int sx = AdaptiveSeedSpacing / 2; sx < w; sx += AdaptiveSeedSpacing)
+            {
+                TryAddRegionFromSeed(sx, sy, adaptive: true);
+            }
+        }
 
-                // Skip seeds that are the background colour
-                if (ColorDistance(seedColor, background) <= ColorTolerance) continue;
+        return MergeAdjacentRegions(regions, totalPixels);
+    }
 
-                var pixels = FloodFill(bmp, visited, sx, sy, seedColor);
-                if (pixels.Count < MinRegionPixels) continue;
+    public static IReadOnlyList<ColorRegion> MergeAdjacentRegions(
+        IReadOnlyList<ColorRegion> regions,
+        int totalPixels)
+    {
+        var merged = regions.ToList();
+        bool changed;
 
-                double coverage = (double)pixels.Count / totalPixels;
-                if (coverage > BackgroundCoverageThreshold) continue;
+        do
+        {
+            changed = false;
+            for (int i = 0; i < merged.Count && !changed; i++)
+            {
+                for (int j = i + 1; j < merged.Count; j++)
+                {
+                    if (!ShouldMergeRegions(merged[i], merged[j]))
+                        continue;
+
+                    merged[i] = MergeRegions(merged[i], merged[j], totalPixels);
+                    merged.RemoveAt(j);
+                    changed = true;
+                    break;
+                }
+            }
+        } while (changed);
+
+        return merged;
+    }
+
+    public static IReadOnlyList<ColorRegion> DetectImageLikeRegions(
+        SKBitmap bmp,
+        SKColor background,
+        IReadOnlyList<ColorRegion>? existingRegions = null)
+    {
+        int w = bmp.Width, h = bmp.Height;
+        int totalPixels = w * h;
+        var visited = new bool[w, h];
+        var regions = new List<ColorRegion>();
+
+        for (int y = 0; y < h; y++)
+        {
+            for (int x = 0; x < w; x++)
+            {
+                if (visited[x, y])
+                    continue;
+
+                if (ColorDistance(bmp.GetPixel(x, y), background) <= ColorTolerance)
+                {
+                    visited[x, y] = true;
+                    continue;
+                }
+
+                var pixels = FloodFillForeground(bmp, visited, x, y, background);
+                if (pixels.Count < Math.Max(1200, totalPixels / 200))
+                    continue;
 
                 var bounds = ComputeBounds(pixels);
-                var avgColor = AverageColor(bmp, pixels);
+                if (bounds.Width < 40 || bounds.Height < 40)
+                    continue;
+
+                double coverage = (double)pixels.Count / totalPixels;
+                if (coverage > BackgroundCoverageThreshold)
+                    continue;
+
+                double fillRatio = pixels.Count / (double)Math.Max(1, bounds.Width * bounds.Height);
+                if (fillRatio < 0.45)
+                    continue;
+
+                if (existingRegions is not null && existingRegions.Any(r => RectMostlyCovers(r.Bounds, bounds)))
+                    continue;
+
+                if (!HasImageLikeColorVariation(bmp, pixels))
+                    continue;
 
                 regions.Add(new ColorRegion
                 {
-                    Bounds    = bounds,
-                    FillColor = avgColor,
-                    Coverage  = coverage,
+                    Bounds = bounds,
+                    FillColor = AverageColor(bmp, pixels),
+                    Coverage = coverage,
                     PixelCount = pixels.Count,
+                    AnalysisType = "image-region",
+                    Confidence = 0.58,
+                    SourceKind = "foreground-variation",
                 });
             }
         }
@@ -195,6 +306,35 @@ public static class ColorAnalyzer
             if (ColorDistance(c, seedColor) > ColorTolerance) continue;
 
             visited[cx, cy] = true;
+            pixels.Add((cx, cy));
+
+            stack.Push((cx + 1, cy));
+            stack.Push((cx - 1, cy));
+            stack.Push((cx, cy + 1));
+            stack.Push((cx, cy - 1));
+        }
+
+        return pixels;
+    }
+
+    private static List<(int x, int y)> FloodFillForeground(
+        SKBitmap bmp, bool[,] visited, int startX, int startY, SKColor background)
+    {
+        int w = bmp.Width, h = bmp.Height;
+        var pixels = new List<(int, int)>();
+        var stack = new Stack<(int x, int y)>();
+        stack.Push((startX, startY));
+
+        while (stack.Count > 0)
+        {
+            var (cx, cy) = stack.Pop();
+            if (cx < 0 || cy < 0 || cx >= w || cy >= h) continue;
+            if (visited[cx, cy]) continue;
+
+            visited[cx, cy] = true;
+            if (ColorDistance(bmp.GetPixel(cx, cy), background) <= ColorTolerance)
+                continue;
+
             pixels.Add((cx, cy));
 
             stack.Push((cx + 1, cy));
@@ -251,6 +391,85 @@ public static class ColorAnalyzer
         int n = pixels.Count;
         return new SKColor((byte)(r / n), (byte)(g / n), (byte)(b / n));
     }
+
+    private static bool HasImageLikeColorVariation(SKBitmap bmp, List<(int x, int y)> pixels)
+    {
+        byte minR = 255, minG = 255, minB = 255;
+        byte maxR = 0, maxG = 0, maxB = 0;
+        int step = Math.Max(1, pixels.Count / 2000);
+
+        for (int i = 0; i < pixels.Count; i += step)
+        {
+            var (x, y) = pixels[i];
+            var c = bmp.GetPixel(x, y);
+            minR = Math.Min(minR, c.Red);
+            minG = Math.Min(minG, c.Green);
+            minB = Math.Min(minB, c.Blue);
+            maxR = Math.Max(maxR, c.Red);
+            maxG = Math.Max(maxG, c.Green);
+            maxB = Math.Max(maxB, c.Blue);
+        }
+
+        int strongestRange = Math.Max(maxR - minR, Math.Max(maxG - minG, maxB - minB));
+        int combinedRange = (maxR - minR) + (maxG - minG) + (maxB - minB);
+        return strongestRange >= 48 && combinedRange >= 80;
+    }
+
+    private static bool RectMostlyCovers(SKRectI covering, SKRectI target)
+    {
+        double targetArea = Math.Max(1, target.Width * target.Height);
+        int ox = Math.Max(0, Math.Min(covering.Right, target.Right) - Math.Max(covering.Left, target.Left));
+        int oy = Math.Max(0, Math.Min(covering.Bottom, target.Bottom) - Math.Max(covering.Top, target.Top));
+        double overlap = ox * oy;
+        return overlap / targetArea >= 0.85;
+    }
+
+    private static bool ShouldMergeRegions(ColorRegion a, ColorRegion b)
+    {
+        if (a.AnalysisType != b.AnalysisType)
+            return false;
+        if (ColorDistance(a.FillColor, b.FillColor) > ColorTolerance)
+            return false;
+
+        return RectsTouchOrOverlap(a.Bounds, b.Bounds);
+    }
+
+    private static ColorRegion MergeRegions(ColorRegion a, ColorRegion b, int totalPixels)
+    {
+        int pixelCount = a.PixelCount + b.PixelCount;
+        var bounds = new SKRectI(
+            Math.Min(a.Bounds.Left, b.Bounds.Left),
+            Math.Min(a.Bounds.Top, b.Bounds.Top),
+            Math.Max(a.Bounds.Right, b.Bounds.Right),
+            Math.Max(a.Bounds.Bottom, b.Bounds.Bottom));
+
+        return new ColorRegion
+        {
+            Bounds = bounds,
+            FillColor = WeightedAverage(a.FillColor, a.PixelCount, b.FillColor, b.PixelCount),
+            Coverage = pixelCount / (double)Math.Max(1, totalPixels),
+            PixelCount = pixelCount,
+            AnalysisType = a.AnalysisType,
+            Confidence = Math.Min(a.Confidence, b.Confidence),
+            SourceKind = "merged-color-region",
+        };
+    }
+
+    private static bool RectsTouchOrOverlap(SKRectI a, SKRectI b)
+    {
+        bool xTouches = a.Right >= b.Left && b.Right >= a.Left;
+        bool yTouches = a.Bottom >= b.Top && b.Bottom >= a.Top;
+        return xTouches && yTouches;
+    }
+
+    private static SKColor WeightedAverage(SKColor a, int aWeight, SKColor b, int bWeight)
+    {
+        int total = Math.Max(1, aWeight + bWeight);
+        return new SKColor(
+            (byte)((a.Red * aWeight + b.Red * bWeight) / total),
+            (byte)((a.Green * aWeight + b.Green * bWeight) / total),
+            (byte)((a.Blue * aWeight + b.Blue * bWeight) / total));
+    }
 }
 
 // ── Result types ──────────────────────────────────────────────────────────────
@@ -268,4 +487,7 @@ public sealed class ColorRegion
     public required SKColor FillColor { get; init; }
     public required double  Coverage  { get; init; }
     public required int     PixelCount { get; init; }
+    public string? AnalysisType { get; init; }
+    public double Confidence { get; init; } = 0.90;
+    public string? SourceKind { get; init; }
 }

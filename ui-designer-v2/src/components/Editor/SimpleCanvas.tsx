@@ -309,6 +309,59 @@ const createDefaultChartData = () => ({
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
+type GlyphDiagnostic = {
+  value?: string;
+  confidence?: number;
+  method?: string;
+  score?: number;
+  initialCandidate?: string;
+  selectedCandidate?: string;
+  signals?: Record<string, number>;
+  decisionWeights?: Record<string, number>;
+};
+
+type ImageAnalysisDiagnostics = {
+  sourceWidthPx?: number;
+  sourceHeightPx?: number;
+  workingWidthPx?: number;
+  workingHeightPx?: number;
+  scaleFactor?: number;
+  colorRegionCount?: number;
+  shapeCount?: number;
+  textLineCount?: number;
+  wordCount?: number;
+  glyphCount?: number;
+  lowConfidenceGlyphCount?: number;
+  elementCount?: number;
+  warnings?: string[];
+};
+
+const getGlyphDiagnostics = (element: SimpleElement): GlyphDiagnostic[] => {
+  const glyphs = element.style?.imageAnalysisGlyphs;
+  return Array.isArray(glyphs) ? glyphs as GlyphDiagnostic[] : [];
+};
+
+const getImageAnalysisDiagnostics = (template: Template): ImageAnalysisDiagnostics | null => {
+  const diagnostics = template.data?.imageAnalysis?.diagnostics;
+  return diagnostics && typeof diagnostics === 'object' ? diagnostics as ImageAnalysisDiagnostics : null;
+};
+
+const formatPercent = (value: unknown) => {
+  const number = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(number) ? `${Math.round(number * 100)}%` : '0%';
+};
+
+const formatNumber = (value: unknown) => {
+  const number = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(number) ? new Intl.NumberFormat().format(number) : '0';
+};
+
+const topGlyphWeights = (weights?: Record<string, number>) =>
+  Object.entries(weights ?? {})
+    .filter(([, value]) => value > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2);
+
 const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   template,
   elements,
@@ -2322,6 +2375,11 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       const colAligns    = element.columnAlignments ?? [];
       const bodyRows     = Math.max(1, totalRows - (hasHeader ? 1 : 0) - (hasFooter ? 1 : 0));
 
+      const cellFontSize   = element.style?.cellFontSize ?? 10;
+      const cellFontFamily = element.style?.cellFontFamily ?? 'Arial';
+      const cellColor      = element.style?.cellColor as string | undefined;
+      const cellFontWeight = element.style?.cellFontWeight ?? 'normal';
+
       const tdStyle = (
         rowIdx: number,
         colIdx: number,
@@ -2330,9 +2388,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
         border: `${bw}px solid ${bc}`,
         padding: cp,
         textAlign: colAligns[colIdx] || 'left',
-        fontSize: 10,
-        fontWeight: kind === 'header' ? 700 : 'normal',
-        color: kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555',
+        fontSize: cellFontSize,
+        fontFamily: cellFontFamily,
+        fontWeight: kind === 'header' ? 700 : cellFontWeight,
+        color: cellColor ?? (kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555'),
         backgroundColor:
           kind === 'header' ? headerBg
           : kind === 'footer' ? '#f8fafc'
@@ -3842,6 +3901,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             const currentPreset = Object.entries(PAGE_PRESETS).find(
               ([, v]) => v.width === pageSettings.width && v.height === pageSettings.height
             )?.[0] ?? 'Custom';
+            const imageAnalysisDiagnostics = getImageAnalysisDiagnostics(template);
+            const lowConfidenceShare = imageAnalysisDiagnostics?.glyphCount
+              ? (imageAnalysisDiagnostics.lowConfidenceGlyphCount ?? 0) / imageAnalysisDiagnostics.glyphCount
+              : 0;
 
             return (
               <div className="editor-inspector-content">
@@ -3855,6 +3918,54 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     </div>
                   ) : null;
                 })()}
+
+                {imageAnalysisDiagnostics && (
+                  <div className="editor-settings-section">
+                    <div className="editor-settings-heading">
+                      <FiSliders />
+                      <span>Image Analysis</span>
+                    </div>
+                    <div className="editor-image-analysis-panel">
+                      <div className="editor-image-analysis-summary">
+                        <div>
+                          <strong>{formatNumber(imageAnalysisDiagnostics.elementCount)}</strong>
+                          <span>Elements</span>
+                        </div>
+                        <div>
+                          <strong>{formatNumber(imageAnalysisDiagnostics.glyphCount)}</strong>
+                          <span>Glyphs</span>
+                        </div>
+                        <div>
+                          <strong>{formatPercent(lowConfidenceShare)}</strong>
+                          <span>Low confidence</span>
+                        </div>
+                      </div>
+                      <div className="editor-image-analysis-grid">
+                        <span>Source</span>
+                        <strong>{formatNumber(imageAnalysisDiagnostics.sourceWidthPx)} x {formatNumber(imageAnalysisDiagnostics.sourceHeightPx)} px</strong>
+                        <span>Working</span>
+                        <strong>{formatNumber(imageAnalysisDiagnostics.workingWidthPx)} x {formatNumber(imageAnalysisDiagnostics.workingHeightPx)} px</strong>
+                        <span>Scale</span>
+                        <strong>{Number(imageAnalysisDiagnostics.scaleFactor ?? 1).toFixed(3)}</strong>
+                        <span>Regions</span>
+                        <strong>{formatNumber(imageAnalysisDiagnostics.colorRegionCount)}</strong>
+                        <span>Shapes</span>
+                        <strong>{formatNumber(imageAnalysisDiagnostics.shapeCount)}</strong>
+                        <span>Text lines</span>
+                        <strong>{formatNumber(imageAnalysisDiagnostics.textLineCount)}</strong>
+                        <span>Words</span>
+                        <strong>{formatNumber(imageAnalysisDiagnostics.wordCount)}</strong>
+                      </div>
+                      {(imageAnalysisDiagnostics.warnings ?? []).length > 0 && (
+                        <div className="editor-image-analysis-warnings">
+                          {imageAnalysisDiagnostics.warnings!.map((warning, index) => (
+                            <span key={`${warning}-${index}`}>{warning}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Paper */}
                 <div className="editor-settings-section">
@@ -5369,6 +5480,36 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 );
               })()}
 
+              {selectedElement.type === 'text' && getGlyphDiagnostics(selectedElement).length > 0 && (
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading"><FiSliders /><span>Image Analysis Glyphs</span></div>
+                  <div className="editor-glyph-debug-list">
+                    {getGlyphDiagnostics(selectedElement).map((glyph, index) => {
+                      const weights = topGlyphWeights(glyph.decisionWeights);
+                      return (
+                        <div className="editor-glyph-debug-row" key={`${glyph.value ?? '?'}-${index}`}>
+                          <div className="editor-glyph-debug-main">
+                            <span className="editor-glyph-debug-char">{glyph.value || '?'}</span>
+                            <div>
+                              <strong>{glyph.method || 'unknown'}</strong>
+                              <span>
+                                {glyph.initialCandidate || '?'} → {glyph.selectedCandidate || glyph.value || '?'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="editor-glyph-debug-metrics">
+                            <span>{formatPercent(glyph.confidence)}</span>
+                            {weights.map(([name, value]) => (
+                              <span key={name}>{name} {formatPercent(value)}</span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* ── Type-specific primary content (before Typography) ── */}
               {selectedElement.type === 'richtext' && (
                 <div className="editor-form-stack">
@@ -6554,6 +6695,29 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       <span>Cell Padding</span>
                       <input type="number" min="0" value={selectedElement.style?.cellPadding ?? 5}
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellPadding: Number(e.target.value) } })} />
+                    </label>
+
+                    <label>
+                      <span>Cell Font Size</span>
+                      <input type="number" min="1" value={selectedElement.style?.cellFontSize ?? 10}
+                        onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellFontSize: Number(e.target.value) } })} />
+                    </label>
+                    <label>
+                      <span>Cell Font</span>
+                      <select value={selectedElement.style?.cellFontFamily || 'Arial'}
+                        onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellFontFamily: e.target.value } })}>
+                        {FONT_FAMILIES.map(f => <option key={f} value={f}>{f}</option>)}
+                      </select>
+                    </label>
+                    <label>
+                      <span>Cell Text Color</span>
+                      <input type="color" value={selectedElement.style?.cellColor || '#555555'}
+                        onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellColor: e.target.value } })} />
+                    </label>
+                    <label style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <input type="checkbox" checked={selectedElement.style?.cellFontWeight === 'bold'}
+                        onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellFontWeight: e.target.checked ? 'bold' : 'normal' } })} />
+                      <span>Bold cell text</span>
                     </label>
 
                     <label style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

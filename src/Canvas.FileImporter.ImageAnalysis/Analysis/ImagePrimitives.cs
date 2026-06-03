@@ -25,6 +25,15 @@ public sealed class ImageRegionPrimitive : ImagePrimitive
 
     /// <summary>Fraction of total image area this region covers (0–1).</summary>
     public double Coverage { get; init; }
+
+    /// <summary>Optional semantic classification such as image-region.</summary>
+    public string? AnalysisType { get; init; }
+
+    /// <summary>Detection confidence 0–1.</summary>
+    public double Confidence { get; init; } = 0.90;
+
+    /// <summary>Source classifier that explains how the region was detected.</summary>
+    public string? SourceKind { get; init; }
 }
 
 /// <summary>
@@ -49,6 +58,18 @@ public sealed class ImageShapePrimitive : ImagePrimitive
 
     /// <summary>Optional semantic classification such as grid-line.</summary>
     public string? AnalysisType { get; init; }
+
+    /// <summary>Optional grouped grid/table id for related line primitives.</summary>
+    public int? GridId { get; init; }
+
+    /// <summary>Optional orientation for grouped grid/table line primitives.</summary>
+    public string? GridOrientation { get; init; }
+
+    /// <summary>Optional bounds of the grouped grid/table in source pixels.</summary>
+    public SKRectI? GridBounds { get; init; }
+
+    /// <summary>Optional estimated corner radius in source pixels for rounded rectangles.</summary>
+    public double? CornerRadiusPx { get; init; }
 }
 
 public enum ShapeKind
@@ -56,6 +77,7 @@ public enum ShapeKind
     Rect,
     Line,
     Ellipse,
+    Icon,
 }
 
 /// <summary>
@@ -69,6 +91,21 @@ public sealed class RecognizedChar
 
     /// <summary>NCC match score 0–1; 0 for placeholder '?' characters.</summary>
     public double Confidence { get; init; }
+
+    public GlyphRecognitionDiagnostics? Diagnostics { get; init; }
+}
+
+public sealed class GlyphRecognitionDiagnostics
+{
+    public required char InitialCandidate { get; init; }
+    public required char SelectedCandidate { get; init; }
+    public required string Method { get; init; }
+    public double Score { get; init; }
+    public int EnclosedWhiteRegions { get; init; }
+    public bool ProjectionReranked { get; init; }
+    public bool ZoningReranked { get; init; }
+    public IReadOnlyDictionary<string, double> Signals { get; init; } = new Dictionary<string, double>();
+    public IReadOnlyDictionary<string, double> DecisionWeights { get; init; } = new Dictionary<string, double>();
 }
 
 /// <summary>

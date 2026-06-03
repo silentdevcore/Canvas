@@ -15,14 +15,15 @@ public class TextEngineTests
         int width = 300,
         int height = 80,
         SKColor? textColor = null,
-        SKColor? backgroundColor = null)
+        SKColor? backgroundColor = null,
+        bool antialias = false)
     {
         var bmp = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Premul);
         using var canvas = new SKCanvas(bmp);
         canvas.Clear(backgroundColor ?? SKColors.White);
 
         using var font  = new SKFont(SKTypeface.FromFamilyName("Courier New"), fontSize);
-        using var paint = new SKPaint { Color = textColor ?? SKColors.Black, IsAntialias = false };
+        using var paint = new SKPaint { Color = textColor ?? SKColors.Black, IsAntialias = antialias };
         canvas.DrawText(text, 10, height * 0.7f, font, paint);
 
         var prep = Preprocessor.Prepare(bmp);
@@ -58,13 +59,43 @@ public class TextEngineTests
         return bmp;
     }
 
-    private static string RecognizeRenderedText(string text, float fontSize = 24f, int width = 420, int height = 100)
+    private static SKBitmap JpegRoundTrip(SKBitmap source, int quality)
     {
-        var (src, prep) = RenderText(text, fontSize, width, height);
+        using var image = SKImage.FromBitmap(source);
+        using var data = image.Encode(SKEncodedImageFormat.Jpeg, quality);
+        return SKBitmap.Decode(data);
+    }
+
+    private static string RecognizeRenderedText(
+        string text,
+        float fontSize = 24f,
+        int width = 420,
+        int height = 100,
+        bool antialias = false)
+    {
+        var (src, prep) = RenderText(text, fontSize, width, height, antialias: antialias);
         using var _s = src;
         using var _p = prep;
 
         var result = TextEngine.Analyze(prep);
+        return string.Join("\n", result.Lines.Select(line => line.Text));
+    }
+
+    private static string RecognizeJpegRenderedText(
+        string text,
+        float fontSize = 24f,
+        int width = 420,
+        int height = 100,
+        int jpegQuality = 55,
+        bool antialias = true)
+    {
+        var (src, prep) = RenderText(text, fontSize, width, height, antialias: antialias);
+        prep.Dispose();
+        using var _s = src;
+        using var jpeg = JpegRoundTrip(src, jpegQuality);
+        using var jpegPrep = Preprocessor.Prepare(jpeg);
+
+        var result = TextEngine.Analyze(jpegPrep);
         return string.Join("\n", result.Lines.Select(line => line.Text));
     }
 
@@ -248,6 +279,69 @@ public class TextEngineTests
     }
 
     [Fact]
+    public void ExtractPatch_PaddedBounds_NormalizesToTightInk()
+    {
+        using var bmp = new SKBitmap(100, 100, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            canvas.Clear(SKColors.White);
+            using var font = new SKFont(SKTypeface.FromFamilyName("Courier New"), 42f);
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            canvas.DrawText("H", 34, 66, font, paint);
+        }
+        using var prep = Preprocessor.Prepare(bmp);
+        var blob = Assert.Single(TextEngine.FilterCharCandidates(
+            TextEngine.LabelConnectedComponents(prep.Binary),
+            prep.Binary));
+
+        var tight = GlyphRecognizer.ExtractPatchForTest(prep.Binary, blob.Bounds);
+        var paddedBounds = new SKRectI(
+            blob.Bounds.Left - 12,
+            blob.Bounds.Top - 8,
+            blob.Bounds.Right + 14,
+            blob.Bounds.Bottom + 10);
+        var padded = GlyphRecognizer.ExtractPatchForTest(prep.Binary, paddedBounds);
+
+        double tightDistance = GlyphRecognizer.ProjectionProfileDistanceForTest(tight, 'H');
+        double paddedDistance = GlyphRecognizer.ProjectionProfileDistanceForTest(padded, 'H');
+        Assert.InRange(Math.Abs(paddedDistance - tightDistance), 0, 0.02);
+    }
+
+    [Theory]
+    [InlineData('E', 'F')]
+    [InlineData('L', 'T')]
+    [InlineData('M', 'N')]
+    [InlineData('W', 'N')]
+    public void ProjectionProfileDistance_TemplatePrefersSelfOverNearbyShape(char expected, char nearby)
+    {
+        Assert.True(CharacterTemplates.TryGetTemplate(expected, out var patch));
+
+        double selfDistance = GlyphRecognizer.ProjectionProfileDistanceForTest(patch, expected);
+        double nearbyDistance = GlyphRecognizer.ProjectionProfileDistanceForTest(patch, nearby);
+
+        Assert.True(
+            selfDistance < nearbyDistance,
+            $"{expected} profile should be closer to itself than {nearby}: self={selfDistance}, nearby={nearbyDistance}");
+    }
+
+    [Theory]
+    [InlineData('K', 'X')]
+    [InlineData('X', 'Y')]
+    [InlineData('Y', 'V')]
+    [InlineData('Z', 'N')]
+    public void ZoningDistance_TemplatePrefersSelfOverDiagonalNeighbor(char expected, char nearby)
+    {
+        Assert.True(CharacterTemplates.TryGetTemplate(expected, out var patch));
+
+        double selfDistance = GlyphRecognizer.ZoningDistanceForTest(patch, expected);
+        double nearbyDistance = GlyphRecognizer.ZoningDistanceForTest(patch, nearby);
+
+        Assert.True(
+            selfDistance < nearbyDistance,
+            $"{expected} zoning should be closer to itself than {nearby}: self={selfDistance}, nearby={nearbyDistance}");
+    }
+
+    [Fact]
     public unsafe void Recognize_UnknownCheckerboardBlob_ReturnsQuestionMark()
     {
         using var binary = AllWhiteBinary(64, 64);
@@ -271,6 +365,36 @@ public class TextEngineTests
 
         Assert.Equal('?', glyph.Value);
         Assert.Equal(0, glyph.Confidence);
+        Assert.NotNull(glyph.Diagnostics);
+        Assert.Equal("unresolved", glyph.Diagnostics!.Method);
+        Assert.True(glyph.Diagnostics.Signals.ContainsKey("ncc"));
+        Assert.True(glyph.Diagnostics.DecisionWeights.ContainsKey("ncc"));
+    }
+
+    [Fact]
+    public unsafe void CountEnclosedWhiteRegions_RingBlob_DetectsHole()
+    {
+        using var binary = AllWhiteBinary(64, 64);
+        byte* ptr = (byte*)binary.GetPixels().ToPointer();
+        for (int y = 18; y < 38; y++)
+        {
+            for (int x = 18; x < 38; x++)
+            {
+                bool border = x < 22 || x >= 34 || y < 22 || y >= 34;
+                if (border)
+                    ptr[y * binary.RowBytes + x] = 0;
+            }
+        }
+
+        var blob = new BlobInfo
+        {
+            Bounds = new SKRectI(18, 18, 38, 38),
+            PixelCount = 256,
+        };
+
+        int holes = GlyphRecognizer.CountEnclosedWhiteRegionsForTest(binary, blob);
+
+        Assert.True(holes >= 1, $"Expected at least one enclosed white region, got {holes}");
     }
 
     // ── Full analysis pipeline ────────────────────────────────────────────────
@@ -349,8 +473,35 @@ public class TextEngineTests
         Assert.Equal("Hello", actual);
     }
 
+    [Fact]
+    public void Analyze_MixedPolarityText_RecognizesDarkAndLightRuns()
+    {
+        using var bmp = new SKBitmap(420, 170, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            canvas.Clear(SKColors.White);
+            using var headerPaint = new SKPaint { Color = new SKColor(24, 24, 24), IsAntialias = false };
+            using var font = new SKFont(SKTypeface.FromFamilyName("Courier New"), 28f);
+            using var whitePaint = new SKPaint { Color = SKColors.White, IsAntialias = false };
+            using var blackPaint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+
+            canvas.DrawRect(0, 0, 420, 72, headerPaint);
+            canvas.DrawText("Header", 24, 48, font, whitePaint);
+            canvas.DrawText("Total", 24, 126, font, blackPaint);
+        }
+
+        using var prep = Preprocessor.Prepare(bmp);
+        var result = TextEngine.Analyze(prep);
+        var texts = result.Lines.Select(l => l.Text).ToList();
+
+        Assert.Contains("Header", texts);
+        Assert.Contains("Total", texts);
+        Assert.Equal(["Header", "Total"], texts);
+    }
+
     [Theory]
     [InlineData("O0")]
+    [InlineData("80O")]
     [InlineData("Il1")]
     [InlineData("S5")]
     public void Analyze_AmbiguousGlyphPairs_RecognizesControlledCases(string expected)
@@ -364,9 +515,44 @@ public class TextEngineTests
     [InlineData("12.50")]
     [InlineData("9:30")]
     [InlineData("A/1")]
+    [InlineData("1,234")]
     public void Analyze_Punctuation_RecognizesControlledCases(string expected)
     {
         string actual = RecognizeRenderedText(expected, fontSize: 28f, width: 280, height: 120);
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Analyze_SmallInvoiceTableLabel_RecognizesExpectedContent()
+    {
+        string actual = RecognizeRenderedText("Price", fontSize: 18f, width: 220, height: 90);
+        Assert.Equal("Price", actual);
+    }
+
+    [Theory]
+    [InlineData("12.50")]
+    [InlineData("25.00")]
+    public void Analyze_SmallInvoiceTableAmount_RecognizesFive(string expected)
+    {
+        string actual = RecognizeRenderedText(expected, fontSize: 18f, width: 220, height: 90);
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData("Invoice")]
+    [InlineData("12.50")]
+    public void Analyze_AntiAliasedCourierText_RecognizesExpectedContent(string expected)
+    {
+        string actual = RecognizeRenderedText(expected, fontSize: 28f, width: 360, height: 120, antialias: true);
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData("Invoice")]
+    [InlineData("12.50")]
+    public void Analyze_JpegCompressedCourierText_RecognizesExpectedContent(string expected)
+    {
+        string actual = RecognizeJpegRenderedText(expected, fontSize: 28f, width: 360, height: 120, jpegQuality: 55);
         Assert.Equal(expected, actual);
     }
 
@@ -412,6 +598,65 @@ public class TextEngineTests
     }
 
     [Fact]
+    public void Analyze_LoneVerticalStroke_DoesNotHallucinateText()
+    {
+        using var bmp = new SKBitmap(160, 120, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            canvas.Clear(SKColors.White);
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            canvas.DrawRect(78, 32, 3, 64, paint);
+        }
+
+        using var prep = Preprocessor.Prepare(bmp);
+        var result = TextEngine.Analyze(prep);
+
+        Assert.Empty(result.Lines);
+    }
+
+    [Fact]
+    public void Analyze_RepeatedVerticalUiStrokes_DoesNotHallucinateText()
+    {
+        using var bmp = new SKBitmap(220, 120, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            canvas.Clear(SKColors.White);
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            canvas.DrawRect(58, 30, 3, 64, paint);
+            canvas.DrawRect(92, 30, 3, 64, paint);
+            canvas.DrawRect(126, 30, 3, 64, paint);
+        }
+
+        using var prep = Preprocessor.Prepare(bmp);
+        var result = TextEngine.Analyze(prep);
+
+        Assert.Empty(result.Lines);
+    }
+
+    [Fact]
+    public void Analyze_LoneRingIcon_DoesNotHallucinateText()
+    {
+        using var bmp = new SKBitmap(180, 140, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            canvas.Clear(SKColors.White);
+            using var paint = new SKPaint
+            {
+                Color = SKColors.Black,
+                IsAntialias = false,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 4,
+            };
+            canvas.DrawCircle(90, 70, 26, paint);
+        }
+
+        using var prep = Preprocessor.Prepare(bmp);
+        var result = TextEngine.Analyze(prep);
+
+        Assert.Empty(result.Lines);
+    }
+
+    [Fact]
     public void Analyze_PositionedTextLine_ReturnsExpectedInkBounds()
     {
         var (src, prep) = RenderTextAt("Hello", x: 48, baselineY: 82, fontSize: 28);
@@ -439,6 +684,19 @@ public class TextEngineTests
         var line = Assert.Single(result.Lines);
 
         AssertApproximately(83, line.BaselineY, 5, "baseline y");
+    }
+
+    [Fact]
+    public void Analyze_DescenderHeavyTextLine_ReturnsBaselineNearNonDescenders()
+    {
+        var (src, prep) = RenderTextAt("pypy a", x: 48, baselineY: 82, fontSize: 28);
+        using var _s = src;
+        using var _p = prep;
+
+        var result = TextEngine.Analyze(prep);
+        var line = Assert.Single(result.Lines);
+
+        AssertApproximately(83, line.BaselineY, 5, "descender-heavy baseline y");
     }
 
     [Fact]

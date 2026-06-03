@@ -129,6 +129,18 @@ public class ColorAnalyzerTests
     }
 
     [Fact]
+    public void SegmentRegions_RectBetweenCoarseSeeds_DetectsRegion()
+    {
+        using var bmp = WhiteWithRect(120, 100, 12, 12, 16, 16, SKColors.Teal);
+        var bg = ColorAnalyzer.DetectBackground(bmp);
+        var regions = ColorAnalyzer.SegmentRegions(bmp, bg);
+
+        var region = Assert.Single(regions);
+        AssertRectApproximately(new SKRectI(12, 12, 28, 28), region.Bounds, 0, "adaptive region bounds");
+        Assert.Equal("adaptive-seed", region.SourceKind);
+    }
+
+    [Fact]
     public void SegmentRegions_TinyRect_IsFilteredAsNoise()
     {
         // 3×3 red square — below MinRegionPixels, should be filtered
@@ -165,6 +177,73 @@ public class ColorAnalyzerTests
         var regions = ColorAnalyzer.SegmentRegions(bmp, bg);
         Assert.True(regions.Count >= 2,
             $"Expected at least 2 regions but found {regions.Count}");
+    }
+
+    [Fact]
+    public void SegmentRegions_AdjacentSimilarRects_MergesIntoSingleRegion()
+    {
+        var regions = ColorAnalyzer.MergeAdjacentRegions(
+            [
+                new ColorRegion
+                {
+                    Bounds = new SKRectI(40, 40, 100, 90),
+                    FillColor = new SKColor(40, 120, 180),
+                    Coverage = 3000 / 30800.0,
+                    PixelCount = 3000,
+                    SourceKind = "coarse-seed",
+                },
+                new ColorRegion
+                {
+                    Bounds = new SKRectI(100, 40, 160, 90),
+                    FillColor = new SKColor(48, 126, 188),
+                    Coverage = 3000 / 30800.0,
+                    PixelCount = 3000,
+                    SourceKind = "coarse-seed",
+                },
+            ],
+            totalPixels: 220 * 140);
+
+        var region = Assert.Single(regions);
+
+        AssertRectApproximately(new SKRectI(40, 40, 160, 90), region.Bounds, 0, "merged region bounds");
+        Assert.Equal(6000, region.PixelCount);
+        Assert.Equal("merged-color-region", region.SourceKind);
+    }
+
+    [Fact]
+    public void DetectImageLikeRegions_GradientRect_DetectsImageRegion()
+    {
+        using var bmp = SolidBitmap(260, 180, SKColors.White);
+        for (int y = 40; y < 130; y++)
+        {
+            for (int x = 48; x < 208; x++)
+            {
+                byte r = (byte)(40 + (x - 48) * 120 / 159);
+                byte g = (byte)(70 + (y - 40) * 80 / 89);
+                byte b = (byte)(180 - (x - 48) * 60 / 159);
+                bmp.SetPixel(x, y, new SKColor(r, g, b));
+            }
+        }
+
+        var bg = ColorAnalyzer.DetectBackground(bmp);
+        var regions = ColorAnalyzer.DetectImageLikeRegions(bmp, bg);
+        var region = Assert.Single(regions);
+
+        Assert.Equal("image-region", region.AnalysisType);
+        Assert.Equal("foreground-variation", region.SourceKind);
+        AssertRectApproximately(new SKRectI(48, 40, 208, 130), region.Bounds, 0, "image region bounds");
+    }
+
+    [Fact]
+    public void DetectImageLikeRegions_SolidRect_DoesNotReturnImageRegion()
+    {
+        using var bmp = WhiteWithRect(260, 180, 48, 40, 160, 90, SKColors.SteelBlue);
+
+        var bg = ColorAnalyzer.DetectBackground(bmp);
+        var solidRegions = ColorAnalyzer.SegmentRegions(bmp, bg);
+        var imageRegions = ColorAnalyzer.DetectImageLikeRegions(bmp, bg, solidRegions);
+
+        Assert.Empty(imageRegions);
     }
 
     // ── Colour distance ───────────────────────────────────────────────────────

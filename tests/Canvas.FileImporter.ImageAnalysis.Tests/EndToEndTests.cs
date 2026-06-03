@@ -1,6 +1,8 @@
+using Canvas.Core.Contracts;
 using Canvas.FileImporter.ImageAnalysis;
 using Canvas.FileImporter.ImageAnalysis.Analysis;
 using SkiaSharp;
+using System.Text.Json;
 
 namespace Canvas.FileImporter.ImageAnalysis.Tests;
 
@@ -10,6 +12,11 @@ namespace Canvas.FileImporter.ImageAnalysis.Tests;
 /// </summary>
 public class EndToEndTests
 {
+    private static readonly JsonSerializerOptions SnapshotJsonOptions = new()
+    {
+        WriteIndented = true,
+    };
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>White background with a solid coloured rectangle and a line of text.</summary>
@@ -39,6 +46,110 @@ public class EndToEndTests
         Assert.True(
             Math.Abs(expected - actual) <= tolerance,
             $"{label}: expected {expected} +/- {tolerance}, got {actual}");
+    }
+
+    private static string PageProperty(IEnumerable<CustomDocumentPropertyDto> properties, string name) =>
+        Assert.Single(properties, p => p.Name == name).Value;
+
+    private static SKBitmap MakeCleanScreenshotBitmap()
+    {
+        var bmp = new SKBitmap(520, 260, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using var canvas = new SKCanvas(bmp);
+        canvas.Clear(new SKColor(248, 250, 252));
+
+        using var panelPaint = new SKPaint { Color = SKColors.White, IsAntialias = false };
+        using var accentPaint = new SKPaint { Color = new SKColor(37, 99, 235), IsAntialias = false };
+        using var linePaint = new SKPaint { Color = new SKColor(203, 213, 225), IsAntialias = false, StrokeWidth = 1 };
+        using var font = new SKFont(SKTypeface.FromFamilyName("Courier New"), 28f);
+        using var smallFont = new SKFont(SKTypeface.FromFamilyName("Courier New"), 20f);
+        using var textPaint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+
+        canvas.DrawRect(32, 32, 456, 180, panelPaint);
+        canvas.DrawRect(32, 32, 456, 8, accentPaint);
+        canvas.DrawLine(32, 96, 488, 96, linePaint);
+        canvas.DrawText("Invoice", 56, 78, font, textPaint);
+        canvas.DrawText("Total 12345", 56, 142, smallFont, textPaint);
+
+        return bmp;
+    }
+
+    private static SKBitmap MakeInvoiceTableBitmap()
+    {
+        var bmp = new SKBitmap(560, 320, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using var canvas = new SKCanvas(bmp);
+        canvas.Clear(SKColors.White);
+
+        using var gridPaint = new SKPaint { Color = SKColors.Black, IsAntialias = false, StrokeWidth = 1 };
+        using var font = new SKFont(SKTypeface.FromFamilyName("Courier New"), 24f);
+        using var smallFont = new SKFont(SKTypeface.FromFamilyName("Courier New"), 18f);
+        using var textPaint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+
+        canvas.DrawText("Invoice", 40, 52, font, textPaint);
+        for (int y = 88; y <= 208; y += 40)
+            canvas.DrawLine(40, y, 520, y, gridPaint);
+        for (int x = 40; x <= 520; x += 160)
+            canvas.DrawLine(x, 88, x, 208, gridPaint);
+
+        canvas.DrawText("Item", 56, 116, smallFont, textPaint);
+        canvas.DrawText("Qty", 220, 116, smallFont, textPaint);
+        canvas.DrawText("Price", 372, 116, smallFont, textPaint);
+        canvas.DrawText("Pen", 56, 156, smallFont, textPaint);
+        canvas.DrawText("2", 220, 156, smallFont, textPaint);
+        canvas.DrawText("12.50", 372, 156, smallFont, textPaint);
+        canvas.DrawText("Total", 56, 248, font, textPaint);
+        canvas.DrawText("25.00", 372, 248, font, textPaint);
+
+        return bmp;
+    }
+
+    private static string BuildRecognitionQualitySnapshot(ImageAnalysisImportResult result)
+    {
+        var elements = result.Design.Pages[0].Elements;
+        var textElements = elements
+            .Where(e => e.Type == "text")
+            .OrderBy(e => e.Y)
+            .ThenBy(e => e.X)
+            .Select(e => new
+            {
+                e.Content,
+                X = Math.Round(e.X, 1),
+                Y = Math.Round(e.Y, 1),
+                W = Math.Round(e.Width, 1),
+                H = Math.Round(e.Height, 1),
+                Confidence = e.Style is not null && e.Style.TryGetValue("imageAnalysisConfidence", out var confidence)
+                    ? Math.Round(Convert.ToDouble(confidence), 3)
+                    : 0,
+            })
+            .ToList();
+
+        var elementTypes = elements
+            .GroupBy(e => e.Type)
+            .OrderBy(g => g.Key)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var analysisTypes = elements
+            .Where(e => e.Style is not null && e.Style.TryGetValue("imageAnalysisType", out _))
+            .GroupBy(e => e.Style!["imageAnalysisType"]?.ToString() ?? "")
+            .OrderBy(g => g.Key)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        return JsonSerializer.Serialize(new
+        {
+            Diagnostics = new
+            {
+                result.Diagnostics.ColorRegionCount,
+                result.Diagnostics.ShapeCount,
+                result.Diagnostics.TextLineCount,
+                result.Diagnostics.WordCount,
+                result.Diagnostics.GlyphCount,
+                result.Diagnostics.LowConfidenceGlyphCount,
+                result.Diagnostics.ElementCount,
+                Warnings = result.Diagnostics.Warnings,
+            },
+            ElementTypes = elementTypes,
+            AnalysisTypes = analysisTypes,
+            Text = textElements,
+        }, SnapshotJsonOptions);
     }
 
     // ── Full pipeline ─────────────────────────────────────────────────────────
@@ -114,12 +225,41 @@ public class EndToEndTests
     {
         using var bmp  = MakeDocumentBitmap(width: 320, height: 240);
         var design     = ImageAnalysisFileImporter.Import(bmp, "test");
+        var settings   = Assert.IsType<PageSettingsDto>(design.PageSettings);
 
         // Page dimensions must match the image (scale factor = 1 for 320×240)
-        Assert.True(design.PageSettings.Width  > 0, "PageSettings.Width must be > 0");
-        Assert.True(design.PageSettings.Height > 0, "PageSettings.Height must be > 0");
-        Assert.True(Math.Abs(design.PageSettings.Width  - 320) < 2, $"Expected width ≈320, got {design.PageSettings.Width}");
-        Assert.True(Math.Abs(design.PageSettings.Height - 240) < 2, $"Expected height ≈240, got {design.PageSettings.Height}");
+        Assert.True(settings.Width  > 0, "PageSettings.Width must be > 0");
+        Assert.True(settings.Height > 0, "PageSettings.Height must be > 0");
+        Assert.True(Math.Abs(settings.Width  - 320) < 2, $"Expected width ≈320, got {settings.Width}");
+        Assert.True(Math.Abs(settings.Height - 240) < 2, $"Expected height ≈240, got {settings.Height}");
+    }
+
+    [Fact]
+    public void FullPipeline_SourceDpi_MapsImagePixelsToPagePointsAndMetadata()
+    {
+        using var bmp = MakeDocumentBitmap(width: 300, height: 150);
+        var result = ImageAnalysisFileImporter.ImportWithAnalysis(
+            bmp,
+            "dpi-test",
+            targetWidthPt: null,
+            targetHeightPt: null,
+            options: new ImageAnalysisOptions
+            {
+                SourceDpiX = 150,
+                SourceDpiY = 150,
+            });
+
+        var settings = Assert.IsType<PageSettingsDto>(result.Design.PageSettings);
+        AssertApproximately(144, settings.Width, 0.1, "page width from source dpi");
+        AssertApproximately(72, settings.Height, 0.1, "page height from source dpi");
+        Assert.Equal("pt", settings.Unit);
+
+        var properties = Assert.IsType<List<CustomDocumentPropertyDto>>(settings.CustomProperties);
+        Assert.Equal("explicit-dpi", PageProperty(properties, "imageAnalysis.pageScaleSource"));
+        Assert.Equal("150", PageProperty(properties, "imageAnalysis.sourceDpiX"));
+        Assert.Equal("150", PageProperty(properties, "imageAnalysis.sourceDpiY"));
+        Assert.Equal("300", PageProperty(properties, "imageAnalysis.sourceWidthPx"));
+        Assert.Equal("150", PageProperty(properties, "imageAnalysis.sourceHeightPx"));
     }
 
     [Fact]
@@ -175,6 +315,173 @@ public class EndToEndTests
         Assert.Equal((byte)'P', result.DebugOverlayPng[1]);
         Assert.Equal((byte)'N', result.DebugOverlayPng[2]);
         Assert.Equal((byte)'G', result.DebugOverlayPng[3]);
+    }
+
+    [Fact]
+    public void RecognitionQuality_CleanScreenshot_MatchesSnapshot()
+    {
+        using var bmp = MakeCleanScreenshotBitmap();
+
+        var result = ImageAnalysisFileImporter.ImportWithAnalysis(bmp, "quality-clean-screenshot");
+        string snapshot = BuildRecognitionQualitySnapshot(result);
+
+        const string expected = """
+        {
+          "Diagnostics": {
+            "ColorRegionCount": 2,
+            "ShapeCount": 14,
+            "TextLineCount": 2,
+            "WordCount": 3,
+            "GlyphCount": 17,
+            "LowConfidenceGlyphCount": 2,
+            "ElementCount": 9,
+            "Warnings": [
+              "Some glyphs were low-confidence or unresolved."
+            ]
+          },
+          "ElementTypes": {
+            "rect": 5,
+            "shape": 2,
+            "text": 2
+          },
+          "AnalysisTypes": {
+            "color-region": 2,
+            "line": 5,
+            "text": 2
+          },
+          "Text": [
+            {
+              "Content": "Invoice",
+              "X": 59,
+              "Y": 60,
+              "W": 113,
+              "H": 19,
+              "Confidence": 0.583
+            },
+            {
+              "Content": "Total 12345",
+              "X": 57,
+              "Y": 129,
+              "W": 129,
+              "H": 16.9,
+              "Confidence": 0.64
+            }
+          ]
+        }
+        """;
+        Assert.Equal(expected, snapshot);
+    }
+
+    [Fact]
+    public void RecognitionQuality_InvoiceTable_MatchesSnapshot()
+    {
+        using var bmp = MakeInvoiceTableBitmap();
+
+        var result = ImageAnalysisFileImporter.ImportWithAnalysis(bmp, "quality-invoice-table");
+        string snapshot = BuildRecognitionQualitySnapshot(result);
+
+        const string expected = """
+        {
+          "Diagnostics": {
+            "ColorRegionCount": 0,
+            "ShapeCount": 35,
+            "TextLineCount": 9,
+            "WordCount": 9,
+            "GlyphCount": 38,
+            "LowConfidenceGlyphCount": 5,
+            "ElementCount": 33,
+            "Warnings": [
+              "Some glyphs were low-confidence or unresolved."
+            ]
+          },
+          "ElementTypes": {
+            "rect": 18,
+            "shape": 6,
+            "text": 9
+          },
+          "AnalysisTypes": {
+            "grid-line": 16,
+            "line": 2,
+            "rect": 6,
+            "text": 9
+          },
+          "Text": [
+            {
+              "Content": "Invoice",
+              "X": 43,
+              "Y": 37,
+              "W": 96,
+              "H": 15,
+              "Confidence": 0.573
+            },
+            {
+              "Content": "Qty",
+              "X": 221,
+              "Y": 105,
+              "W": 31,
+              "H": 14,
+              "Confidence": 0.614
+            },
+            {
+              "Content": "Item",
+              "X": 58,
+              "Y": 106,
+              "W": 41,
+              "H": 10.4,
+              "Confidence": 0.647
+            },
+            {
+              "Content": "Price",
+              "X": 374,
+              "Y": 106,
+              "W": 50,
+              "H": 10.4,
+              "Confidence": 0.514
+            },
+            {
+              "Content": "2",
+              "X": 221,
+              "Y": 145,
+              "W": 8,
+              "H": 13,
+              "Confidence": 0.579
+            },
+            {
+              "Content": "12.50",
+              "X": 374,
+              "Y": 145,
+              "W": 50,
+              "H": 13,
+              "Confidence": 0.624
+            },
+            {
+              "Content": "Pen",
+              "X": 58,
+              "Y": 146,
+              "W": 30,
+              "H": 13,
+              "Confidence": 0.567
+            },
+            {
+              "Content": "Total",
+              "X": 58,
+              "Y": 233,
+              "W": 68,
+              "H": 19.5,
+              "Confidence": 0.607
+            },
+            {
+              "Content": "25.00",
+              "X": 374,
+              "Y": 233,
+              "W": 68,
+              "H": 19.5,
+              "Confidence": 0.595
+            }
+          ]
+        }
+        """;
+        Assert.Equal(expected, snapshot);
     }
 
     [Fact]
@@ -311,6 +618,32 @@ public class EndToEndTests
     }
 
     [Fact]
+    public void FullPipeline_TextElement_IncludesGlyphDiagnosticsMetadata()
+    {
+        using var bmp = MakeDocumentBitmap(text: "Hello", fontSize: 28f);
+        var design = ImageAnalysisFileImporter.Import(bmp, "glyph-diagnostics");
+        var text = Assert.Single(design.Pages[0].Elements, e => e.Type == "text" && e.Content == "Hello");
+
+        Assert.NotNull(text.Style);
+        Assert.True(text.Style!.TryGetValue("imageAnalysisGlyphs", out var glyphsObj));
+        var glyphs = Assert.IsAssignableFrom<IEnumerable<Dictionary<string, object>>>(glyphsObj).ToList();
+
+        Assert.Equal(5, glyphs.Count);
+        Assert.All(glyphs, glyph =>
+        {
+            Assert.True(glyph.ContainsKey("value"));
+            Assert.True(glyph.ContainsKey("confidence"));
+            Assert.True(glyph.ContainsKey("boundsPx"));
+            Assert.True(glyph.ContainsKey("initialCandidate"));
+            Assert.True(glyph.ContainsKey("selectedCandidate"));
+            Assert.True(glyph.ContainsKey("method"));
+            Assert.True(glyph.ContainsKey("score"));
+            Assert.True(glyph.ContainsKey("signals"));
+            Assert.True(glyph.ContainsKey("decisionWeights"));
+        });
+    }
+
+    [Fact]
     public void FullPipeline_ColorRegion_MapsExpectedBoundsToCanvasShape()
     {
         using var bmp = new SKBitmap(240, 180, SKColorType.Rgba8888, SKAlphaType.Premul);
@@ -350,6 +683,163 @@ public class EndToEndTests
     }
 
     [Fact]
+    public void FullPipeline_GradientRegion_ExportsImageRegionMetadata()
+    {
+        using var bmp = new SKBitmap(260, 180, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            canvas.Clear(SKColors.White);
+        }
+
+        for (int y = 40; y < 130; y++)
+        {
+            for (int x = 48; x < 208; x++)
+            {
+                byte r = (byte)(40 + (x - 48) * 120 / 159);
+                byte g = (byte)(70 + (y - 40) * 80 / 89);
+                byte b = (byte)(180 - (x - 48) * 60 / 159);
+                bmp.SetPixel(x, y, new SKColor(r, g, b));
+            }
+        }
+
+        var design = ImageAnalysisFileImporter.Import(bmp, "gradient-region");
+        var region = Assert.Single(design.Pages[0].Elements, e =>
+            e.Style is not null &&
+            e.Style.TryGetValue("imageAnalysisType", out var type) &&
+            Equals(type, "image-region"));
+
+        Assert.Equal("shape", region.Type);
+        Assert.Equal("foreground-variation", region.Style!["imageAnalysisSource"]);
+        AssertApproximately(48, region.X, 0.1, "region x");
+        AssertApproximately(40, region.Y, 0.1, "region y");
+        AssertApproximately(160, region.Width, 0.1, "region width");
+        AssertApproximately(90, region.Height, 0.1, "region height");
+
+        var sourceBounds = Assert.IsType<Dictionary<string, object>>(region.Style!["sourceBoundsPx"]);
+        Assert.Equal(48, Convert.ToInt32(sourceBounds["x"]));
+        Assert.Equal(40, Convert.ToInt32(sourceBounds["y"]));
+        Assert.Equal(160, Convert.ToInt32(sourceBounds["width"]));
+        Assert.Equal(90, Convert.ToInt32(sourceBounds["height"]));
+    }
+
+    [Fact]
+    public void FullPipeline_RoundedRect_ExportsBorderRadiusMetadata()
+    {
+        using var bmp = new SKBitmap(260, 180, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            canvas.Clear(SKColors.White);
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            canvas.DrawRoundRect(new SKRect(48, 42, 168, 108), 18, 18, paint);
+        }
+
+        var design = ImageAnalysisFileImporter.Import(bmp, "rounded-rect");
+        var rounded = Assert.Single(design.Pages[0].Elements.Where(e =>
+            e.Type == "shape" &&
+            e.Style is not null &&
+            e.Style.TryGetValue("imageAnalysisType", out var type) &&
+            Equals(type, "rounded-rect")));
+
+        Assert.True(rounded.Style!.ContainsKey("borderRadius"));
+        Assert.InRange(Convert.ToDouble(rounded.Style["borderRadius"]), 1, 24);
+
+        var sourceBounds = Assert.IsType<Dictionary<string, object>>(rounded.Style["sourceBoundsPx"]);
+        Assert.InRange(Convert.ToInt32(sourceBounds["x"]), 47, 49);
+        Assert.InRange(Convert.ToInt32(sourceBounds["y"]), 41, 43);
+        Assert.InRange(Convert.ToInt32(sourceBounds["width"]), 118, 122);
+        Assert.InRange(Convert.ToInt32(sourceBounds["height"]), 64, 68);
+    }
+
+    [Fact]
+    public void FullPipeline_IrregularSymbol_ExportsIconClusterMetadata()
+    {
+        using var bmp = new SKBitmap(220, 160, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            canvas.Clear(SKColors.White);
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            using var path = new SKPath();
+            path.MoveTo(110, 36);
+            path.LineTo(124, 72);
+            path.LineTo(164, 72);
+            path.LineTo(132, 94);
+            path.LineTo(146, 132);
+            path.LineTo(110, 108);
+            path.LineTo(74, 132);
+            path.LineTo(88, 94);
+            path.LineTo(56, 72);
+            path.LineTo(96, 72);
+            path.Close();
+            canvas.DrawPath(path, paint);
+        }
+
+        using var prep = Preprocessor.Prepare(bmp);
+        Assert.NotEmpty(ShapeDetector.FindIconClusters(prep.Binary));
+        var colors = ColorAnalyzer.Analyze(prep);
+        var shapes = ShapeDetector.Detect(prep, colors);
+        Assert.Contains(shapes.Shapes, s => s.AnalysisType == "icon-cluster");
+
+        var design = ImageAnalysisFileImporter.Import(bmp, "icon-cluster");
+        var icon = Assert.Single(design.Pages[0].Elements, e =>
+            e.Style is not null &&
+            e.Style.TryGetValue("imageAnalysisType", out var type) &&
+            Equals(type, "icon-cluster"));
+
+        Assert.Equal("shape", icon.Type);
+        Assert.True(icon.Style!.TryGetValue("sourceBoundsPx", out var boundsObj));
+        var sourceBounds = Assert.IsType<Dictionary<string, object>>(boundsObj);
+        Assert.InRange(Convert.ToInt32(sourceBounds["x"]), 54, 58);
+        Assert.InRange(Convert.ToInt32(sourceBounds["y"]), 34, 38);
+        Assert.InRange(Convert.ToInt32(sourceBounds["width"]), 106, 112);
+        Assert.InRange(Convert.ToInt32(sourceBounds["height"]), 94, 100);
+    }
+
+    [Fact]
+    public void FullPipeline_LargeIrregularRegion_ExportsImageClusterMetadata()
+    {
+        using var bmp = new SKBitmap(360, 240, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bmp))
+        {
+            canvas.Clear(SKColors.White);
+            using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+            using var path = new SKPath();
+            path.MoveTo(72, 54);
+            path.LineTo(138, 34);
+            path.LineTo(208, 62);
+            path.LineTo(284, 48);
+            path.LineTo(308, 112);
+            path.LineTo(260, 160);
+            path.LineTo(284, 204);
+            path.LineTo(184, 184);
+            path.LineTo(112, 210);
+            path.LineTo(90, 146);
+            path.LineTo(42, 118);
+            path.Close();
+            canvas.DrawPath(path, paint);
+        }
+
+        using var prep = Preprocessor.Prepare(bmp);
+        Assert.NotEmpty(ShapeDetector.FindImageClusters(prep.Binary));
+        var colors = ColorAnalyzer.Analyze(prep);
+        var shapes = ShapeDetector.Detect(prep, colors);
+        Assert.Contains(shapes.Shapes, s => s.AnalysisType == "image-cluster");
+
+        var design = ImageAnalysisFileImporter.Import(bmp, "image-cluster");
+        var cluster = Assert.Single(design.Pages[0].Elements, e =>
+            e.Style is not null &&
+            e.Style.TryGetValue("imageAnalysisType", out var type) &&
+            Equals(type, "image-cluster"));
+
+        Assert.Equal("shape", cluster.Type);
+        Assert.True(cluster.Style!.TryGetValue("sourceBoundsPx", out var boundsObj));
+        var sourceBounds = Assert.IsType<Dictionary<string, object>>(boundsObj);
+        Assert.InRange(Convert.ToInt32(sourceBounds["x"]), 40, 74);
+        Assert.InRange(Convert.ToInt32(sourceBounds["y"]), 32, 56);
+        Assert.InRange(Convert.ToInt32(sourceBounds["width"]), 230, 270);
+        Assert.InRange(Convert.ToInt32(sourceBounds["height"]), 150, 180);
+    }
+
+    [Fact]
     public void FullPipeline_SimpleGrid_MarksDetectedLinesAsGridLines()
     {
         using var bmp = new SKBitmap(240, 180, SKColorType.Rgba8888, SKAlphaType.Premul);
@@ -370,6 +860,21 @@ public class EndToEndTests
             Equals(type, "grid-line")).ToList();
 
         Assert.True(gridLines.Count >= 4, $"Expected grid lines, found {gridLines.Count}");
+        Assert.True(gridLines.Count(e => Equals(e.Style!["imageAnalysisGridOrientation"], "horizontal")) >= 2);
+        Assert.True(gridLines.Count(e => Equals(e.Style!["imageAnalysisGridOrientation"], "vertical")) >= 2);
+
+        Assert.All(gridLines, line =>
+        {
+            var sourceBounds = Assert.IsType<Dictionary<string, object>>(line.Style!["sourceBoundsPx"]);
+            Assert.True(Convert.ToInt32(sourceBounds["width"]) >= 1);
+            Assert.True(Convert.ToInt32(sourceBounds["height"]) >= 1);
+
+            var gridBounds = Assert.IsType<Dictionary<string, object>>(line.Style["imageAnalysisGridBoundsPx"]);
+            Assert.InRange(Convert.ToInt32(gridBounds["x"]), 35, 45);
+            Assert.InRange(Convert.ToInt32(gridBounds["y"]), 35, 45);
+            Assert.InRange(Convert.ToInt32(gridBounds["width"]), 150, 170);
+            Assert.InRange(Convert.ToInt32(gridBounds["height"]), 80, 90);
+        });
     }
 
     [Fact]
@@ -522,6 +1027,57 @@ public class EndToEndTests
     }
 
     [Fact]
+    public void SceneAssembler_DarkPanel_KeepsRealShapeButSuppressesSmallStrokeArtifact()
+    {
+        var colors = new ColorAnalysisResult
+        {
+            Background = SKColors.White,
+            DominantColors = [SKColors.Black],
+            Regions =
+            [
+                new ColorRegion
+                {
+                    Bounds = new SKRectI(10, 10, 210, 90),
+                    FillColor = new SKColor(22, 28, 38),
+                    Coverage = 0.30,
+                    PixelCount = 16000,
+                },
+            ],
+        };
+        var shapes = new ShapeDetectionResult
+        {
+            Shapes =
+            [
+                new ImageShapePrimitive
+                {
+                    Bounds = new SKRectI(34, 30, 72, 34),
+                    Kind = ShapeKind.Line,
+                    StrokeColor = SKColors.White,
+                    StrokeWidth = 2,
+                    Confidence = 0.62,
+                },
+                new ImageShapePrimitive
+                {
+                    Bounds = new SKRectI(120, 28, 196, 68),
+                    Kind = ShapeKind.Rect,
+                    FillColor = new SKColor(70, 92, 120),
+                    StrokeColor = SKColors.Transparent,
+                    StrokeWidth = 0,
+                    Confidence = 0.80,
+                    AnalysisType = "filled-rect",
+                },
+            ],
+        };
+
+        var primitives = SceneAssembler.Assemble(colors, shapes, new TextAnalysisResult { Lines = [] });
+
+        Assert.DoesNotContain(primitives, p =>
+            p is ImageShapePrimitive s && s.Bounds == new SKRectI(34, 30, 72, 34));
+        Assert.Contains(primitives, p =>
+            p is ImageShapePrimitive s && s.Bounds == new SKRectI(120, 28, 196, 68));
+    }
+
+    [Fact]
     public void SceneAssembler_IntersectingLines_MarksGridLines()
     {
         var primitives = SceneAssembler.Assemble(
@@ -547,6 +1103,21 @@ public class EndToEndTests
             Equals(type, "grid-line")).ToList();
 
         Assert.Equal(6, gridLines.Count);
+        Assert.All(gridLines, line =>
+        {
+            Assert.True(line.Style!.ContainsKey("imageAnalysisGridId"));
+            Assert.True(line.Style.ContainsKey("imageAnalysisGridOrientation"));
+            Assert.True(line.Style.ContainsKey("imageAnalysisGridBoundsPx"));
+            Assert.Equal(1, Convert.ToInt32(line.Style["imageAnalysisGridId"]));
+        });
+        Assert.Equal(3, gridLines.Count(line => Equals(line.Style!["imageAnalysisGridOrientation"], "horizontal")));
+        Assert.Equal(3, gridLines.Count(line => Equals(line.Style!["imageAnalysisGridOrientation"], "vertical")));
+
+        var gridBounds = Assert.IsType<Dictionary<string, object>>(gridLines[0].Style!["imageAnalysisGridBoundsPx"]);
+        Assert.Equal(20, Convert.ToInt32(gridBounds["x"]));
+        Assert.Equal(20, Convert.ToInt32(gridBounds["y"]));
+        Assert.Equal(162, Convert.ToInt32(gridBounds["width"]));
+        Assert.Equal(102, Convert.ToInt32(gridBounds["height"]));
     }
 
     [Fact]
@@ -617,6 +1188,61 @@ public class EndToEndTests
         Assert.NotEqual(firstStyle["textBlockId"], secondStyle["textBlockId"]);
         Assert.Equal(0, Convert.ToInt32(firstStyle["textBlockLineIndex"]));
         Assert.Equal(0, Convert.ToInt32(secondStyle["textBlockLineIndex"]));
+    }
+
+    [Fact]
+    public void SceneAssembler_RaggedParagraph_AssignsSingleTextBlockAcrossShortIndentedLine()
+    {
+        var primitives = SceneAssembler.Assemble(
+            EmptyColors(),
+            new ShapeDetectionResult { Shapes = [] },
+            new TextAnalysisResult
+            {
+                Lines =
+                [
+                    TextLine("Long first line", new SKRectI(32, 30, 260, 52)),
+                    TextLine("note", new SKRectI(210, 58, 242, 80)),
+                    TextLine("Continuation", new SKRectI(34, 86, 246, 108)),
+                ],
+            });
+
+        var design = SceneAssembler.ToDesign(primitives, SKColors.White, 320, 150, 1.0, "ragged-paragraph");
+        var texts = design.Pages[0].Elements.Where(e => e.Type == "text").ToList();
+
+        Assert.Equal(["Long first line", "note", "Continuation"], texts.Select(t => t.Content ?? "").ToArray());
+        Assert.Single(texts.Select(t => Convert.ToInt32(t.Style!["textBlockId"])).Distinct());
+        Assert.Equal([0, 1, 2], texts.Select(t => Convert.ToInt32(t.Style!["textBlockLineIndex"])).ToArray());
+    }
+
+    [Fact]
+    public void SceneAssembler_TwoColumns_AssignsColumnMajorTextBlocks()
+    {
+        var primitives = SceneAssembler.Assemble(
+            EmptyColors(),
+            new ShapeDetectionResult { Shapes = [] },
+            new TextAnalysisResult
+            {
+                Lines =
+                [
+                    TextLine("LeftA", new SKRectI(32, 30, 110, 52)),
+                    TextLine("RightA", new SKRectI(260, 30, 360, 52)),
+                    TextLine("LeftB", new SKRectI(34, 60, 112, 82)),
+                    TextLine("RightB", new SKRectI(262, 60, 362, 82)),
+                ],
+            });
+
+        var design = SceneAssembler.ToDesign(primitives, SKColors.White, 420, 120, 1.0, "columns");
+        var texts = design.Pages[0].Elements.Where(e => e.Type == "text").ToList();
+
+        Assert.Equal(["LeftA", "LeftB", "RightA", "RightB"], texts.Select(t => t.Content ?? "").ToArray());
+        Assert.Equal(1, Convert.ToInt32(texts[0].Style!["textBlockId"]));
+        Assert.Equal(0, Convert.ToInt32(texts[0].Style!["textBlockLineIndex"]));
+        Assert.Equal(1, Convert.ToInt32(texts[1].Style!["textBlockId"]));
+        Assert.Equal(1, Convert.ToInt32(texts[1].Style!["textBlockLineIndex"]));
+        Assert.Equal(2, Convert.ToInt32(texts[2].Style!["textBlockId"]));
+        Assert.Equal(0, Convert.ToInt32(texts[2].Style!["textBlockLineIndex"]));
+        Assert.Equal(2, Convert.ToInt32(texts[3].Style!["textBlockId"]));
+        Assert.Equal(1, Convert.ToInt32(texts[3].Style!["textBlockLineIndex"]));
     }
 
     private static ColorAnalysisResult EmptyColors() => new()

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using Canvas.Core.Abstractions;
 using Canvas.Core.Contracts;
@@ -17,11 +18,20 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
         var sb = new StringBuilder();
         var ps = design.PageSettings ?? new PageSettingsDto();
 
+        var plannedPages = DesignLayoutPlanner.BuildPages(design);
+
         sb.AppendLine("<!DOCTYPE html>");
         sb.AppendLine("<html lang=\"en\">");
         sb.AppendLine("<head>");
         sb.AppendLine($"  <meta charset=\"utf-8\">");
         sb.AppendLine($"  <title>{Esc(design.PageSettings?.Metadata?.Title ?? design.Name)}</title>");
+
+        // Load the same Google Fonts the editor uses so web-font text matches (otherwise it
+        // falls back to a default font and renders at the wrong size).
+        var fontUrl = GoogleFontCss.BuildUrl(plannedPages.SelectMany(p => p.Elements));
+        if (fontUrl is not null)
+            sb.AppendLine($"  <link rel=\"stylesheet\" href=\"{Esc(fontUrl)}\">");
+
         sb.AppendLine("  <style>");
         sb.AppendLine("    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }");
         sb.AppendLine("    body { font-family: Arial, Helvetica, sans-serif; background: #e5e7eb; }");
@@ -32,12 +42,10 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
         sb.AppendLine("</head>");
         sb.AppendLine("<body>");
 
-        var plannedPages = DesignLayoutPlanner.BuildPages(design);
-
         foreach (var page in plannedPages)
         {
             var bgColor = ps.BackgroundColor ?? "#ffffff";
-            sb.AppendLine($"  <div class=\"canvas-page\" style=\"width:{ps.Width}px; height:{ps.Height}px; background:{bgColor}\">");
+            sb.AppendLine($"  <div class=\"canvas-page\" style=\"width:{N(ps.Width)}px; height:{N(ps.Height)}px; background:{bgColor}\">");
 
             foreach (var el in page.Elements)
                 RenderElement(sb, el);
@@ -71,8 +79,8 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
     private static void RenderElement(StringBuilder sb, ElementDto el)
     {
         var s = el.Style ?? [];
-        var posStyle = $"position:absolute; left:{el.X}px; top:{el.Y}px; width:{el.Width}px; height:{el.Height}px; overflow:hidden;";
-        var rotation = s.TryGetValue("rotation", out var rot) && rot is not null ? $" transform:rotate({rot}deg); transform-origin:center;" : "";
+        var posStyle = $"position:absolute; left:{N(el.X)}px; top:{N(el.Y)}px; width:{N(el.Width)}px; height:{N(el.Height)}px; overflow:hidden;";
+        var rotation = s.TryGetValue("rotation", out var rot) && rot is not null ? $" transform:rotate({N(s.GetNum("rotation", 0))}deg); transform-origin:center;" : "";
 
         switch (el.Type)
         {
@@ -84,7 +92,9 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
             }
 
             case "richtext":
-                sb.AppendLine($"    <div style=\"{posStyle}{rotation} overflow:hidden;\">{el.HtmlContent ?? ""}</div>");
+                // Mirror the editor's .editor-richtext (padding/line-height/colour); the
+                // inner HTML carries its own inline formatting.
+                sb.AppendLine($"    <div style=\"{posStyle}{rotation} padding:10px; line-height:1.45; color:#111827;\">{el.HtmlContent ?? ""}</div>");
                 break;
 
             case "link":
@@ -103,7 +113,7 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
                 var color = s.GetStr("color", "#ffffff");
                 var fs   = s.GetNum("fontSize", 14);
                 var br   = s.GetNum("borderRadius", 4);
-                sb.AppendLine($"    <a href=\"{Esc(href)}\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"btn\" style=\"{posStyle}{rotation} display:flex; align-items:center; justify-content:center; background:{bg}; color:{color}; font-size:{fs}px; border-radius:{br}px; text-decoration:none;\">{Esc(el.Content ?? "Button")}</a>");
+                sb.AppendLine($"    <a href=\"{Esc(href)}\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"btn\" style=\"{posStyle}{rotation} display:flex; align-items:center; justify-content:center; background:{bg}; color:{color}; font-size:{N(fs)}px; border-radius:{N(br)}px; text-decoration:none;\">{Esc(el.Content ?? "Button")}</a>");
                 break;
             }
 
@@ -113,7 +123,7 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
                 var bg = s.GetStr("backgroundColor", s.GetStr("fill", "transparent"));
                 var br = s.GetNum("borderRadius", 0);
                 var border = BuildBorderStyle(s);
-                sb.AppendLine($"    <div style=\"{posStyle}{rotation} background:{bg}; border-radius:{br}px;{border}\"></div>");
+                sb.AppendLine($"    <div style=\"{posStyle}{rotation} background:{bg}; border-radius:{N(br)}px;{border}\"></div>");
                 break;
             }
 
@@ -197,6 +207,13 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
         var rows     = cellData.Length > 0 ? cellData.Length : (int)s.GetNum("rows", 3);
         var cols     = cellData.Length > 0 ? (cellData[0]?.Length ?? 0) : (int)s.GetNum("columns", 3);
 
+        // Defined cell text (matches the editor's tdStyle defaults).
+        var cellPad     = s.GetNum("cellPadding", 5);
+        var cellFs      = s.GetNum("cellFontSize", 10);
+        var cellFf      = s.GetStr("cellFontFamily", "Arial");
+        var cellColor   = s.TryGetValue("cellColor", out var cc) && cc is not null ? cc.ToString() : null;
+        var cellWeight  = s.GetStr("cellFontWeight", "normal");
+
         var zebraStyle = el.ZebraEnabled == true ? el.ZebraColor ?? "#f9fafb" : null;
 
         sb.AppendLine($"    <table style=\"{posStyle}{rotation} border-collapse:collapse; table-layout:fixed;\">");
@@ -206,13 +223,16 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
             var isHeader = hasHeader && r == 0;
             var rowBg    = !isHeader && zebraStyle != null && r % 2 == 1 ? $" background:{zebraStyle};" : "";
             var tag      = isHeader ? "th" : "td";
-            var hdrStyle = isHeader ? $" background:{headerBg}; font-weight:bold;" : "";
+            var weight   = isHeader ? "bold" : cellWeight;
+            var color    = cellColor ?? (isHeader ? "#1e293b" : "#555555");
+            var hdrBg    = isHeader ? $" background:{headerBg};" : "";
             sb.Append($"      <tr style=\"{rowBg}\">");
             for (int c = 0; c < cols; c++)
             {
                 var cell = cellData.Length > r ? (cellData[r]?.Length > c ? cellData[r][c] : "") : "";
                 var align = el.ColumnAlignments?.Length > c ? el.ColumnAlignments[c] : "left";
-                sb.Append($"<{tag} style=\"border:{bw}px solid {bc}; padding:4px; text-align:{align};{hdrStyle}\">{Esc(cell ?? "")}</{tag}>");
+                sb.Append($"<{tag} style=\"border:{bw}px solid {bc}; padding:{N(cellPad)}px; text-align:{align};"
+                    + $" font-size:{N(cellFs)}px; font-family:{cellFf}; color:{color}; font-weight:{weight};{hdrBg}\">{Esc(cell ?? "")}</{tag}>");
             }
             sb.AppendLine("</tr>");
         }
@@ -229,7 +249,18 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
         var td    = s.GetStr("textDecoration", "none");
         var ta    = s.GetStr("textAlign", "left");
         var lh    = s.GetNum("lineHeight", 1.4);
-        return $" font-size:{fs}px; font-family:{ff}; color:{color}; font-weight:{fw}; font-style:{fi}; text-decoration:{td}; text-align:{ta}; line-height:{lh}; white-space:pre-wrap; word-break:break-word;";
+        var pt    = s.GetNum("paddingTop", 0);
+        var pr    = s.GetNum("paddingRight", 0);
+        var pb    = s.GetNum("paddingBottom", 0);
+        var pl    = s.GetNum("paddingLeft", 0);
+        var ls    = s.GetNum("letterSpacing", 0);
+        var letterSpacing = ls != 0 ? $" letter-spacing:{N(ls)}px;" : "";
+        // Match the editor: wrap at word boundaries (white-space:normal), break only
+        // over-long words, and honour per-side padding so text sits where it does on canvas.
+        return $" font-size:{N(fs)}px; font-family:{ff}; color:{color}; font-weight:{fw}; font-style:{fi};"
+             + $" text-decoration:{td}; text-align:{ta}; line-height:{N(lh)};"
+             + $" padding:{N(pt)}px {N(pr)}px {N(pb)}px {N(pl)}px;{letterSpacing}"
+             + " white-space:normal; overflow-wrap:break-word;";
     }
 
     private static string BuildBorderStyle(Dictionary<string, object> s)
@@ -238,10 +269,14 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
         if (bw <= 0) return "";
         var bc = s.GetStr("borderColor", "#000000");
         var bs = s.GetStr("borderStyle", "solid");
-        return $" border:{bw}px {bs} {bc};";
+        return $" border:{N(bw)}px {bs} {bc};";
     }
 
     private static string Esc(string text) =>
         text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
+
+    /// <summary>Formats a number for CSS with a dot decimal separator, independent of the
+    /// server locale — otherwise "13,5px" / "1,4" would be invalid CSS and ignored.</summary>
+    private static string N(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
 }
 

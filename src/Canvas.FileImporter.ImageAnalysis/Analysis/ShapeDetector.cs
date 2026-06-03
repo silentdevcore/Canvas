@@ -33,6 +33,18 @@ public static class ShapeDetector
     /// <summary>Minimum bounding-box dimension (px) for an ellipse candidate.</summary>
     private const int MinEllipseSize = 12;
 
+    /// <summary>Minimum bounding-box dimension (px) for a filled rectangle candidate.</summary>
+    private const int MinFilledRectSize = 16;
+
+    /// <summary>Minimum bounding-box dimension (px) for complex icon-like clusters.</summary>
+    private const int MinIconClusterSize = 18;
+
+    /// <summary>Maximum bounding-box dimension (px) for complex icon-like clusters.</summary>
+    private const int MaxIconClusterSize = 180;
+
+    /// <summary>Minimum bounding-box dimension (px) for larger image-like clusters.</summary>
+    private const int MinImageClusterSize = 60;
+
     // ── Entry point ───────────────────────────────────────────────────────────
 
     public static ShapeDetectionResult Detect(PreparedImage img, ColorAnalysisResult colors)
@@ -58,6 +70,47 @@ public static class ShapeDetector
                 FillColor   = SampleFillColor(img.Original, colors, r),
                 StrokeWidth = 1,
                 Confidence  = 0.85,
+                ZOrder      = zOrder++,
+            });
+        }
+
+        // Filled rectangles from connected components, independent of edge closure.
+        var roundedRects = FindRoundedRectangles(img.Binary);
+        foreach (var rounded in roundedRects)
+        {
+            if (rects.Any(existing => RectsSimilar(existing, rounded.Bounds)))
+                continue;
+
+            shapes.Add(new ImageShapePrimitive
+            {
+                Bounds      = rounded.Bounds,
+                Kind        = ShapeKind.Rect,
+                StrokeColor = SKColors.Transparent,
+                FillColor   = SampleFillColor(img.Original, colors, rounded.Bounds),
+                StrokeWidth = 0,
+                Confidence  = 0.78,
+                AnalysisType = "rounded-rect",
+                CornerRadiusPx = rounded.Radius,
+                ZOrder      = zOrder++,
+            });
+        }
+
+        var filledRects = FindFilledRectangles(img.Binary);
+        foreach (var r in filledRects)
+        {
+            if (rects.Any(existing => RectsSimilar(existing, r)) ||
+                roundedRects.Any(existing => RectsSimilar(existing.Bounds, r)))
+                continue;
+
+            shapes.Add(new ImageShapePrimitive
+            {
+                Bounds      = r,
+                Kind        = ShapeKind.Rect,
+                StrokeColor = SKColors.Transparent,
+                FillColor   = SampleFillColor(img.Original, colors, r),
+                StrokeWidth = 0,
+                Confidence  = 0.80,
+                AnalysisType = "filled-rect",
                 ZOrder      = zOrder++,
             });
         }
@@ -102,10 +155,53 @@ public static class ShapeDetector
             });
         }
 
+        var iconClusters = FindIconClusters(img.Binary);
+        foreach (var icon in iconClusters)
+        {
+            if (shapes.Any(existing => IsMostlyCovered(icon, existing.Bounds)))
+                continue;
+
+            shapes.Add(new ImageShapePrimitive
+            {
+                Bounds      = icon,
+                Kind        = ShapeKind.Icon,
+                StrokeColor = SampleStrokeColor(img.Original, icon),
+                FillColor   = SKColors.Transparent,
+                StrokeWidth = 1,
+                Confidence  = 0.62,
+                AnalysisType = "icon-cluster",
+                ZOrder      = zOrder++,
+            });
+        }
+
+        var imageClusters = FindImageClusters(img.Binary);
+        foreach (var cluster in imageClusters)
+        {
+            if (iconClusters.Any(icon => IsMostlyCovered(cluster, icon)) ||
+                shapes.Any(existing => IsMostlyCovered(cluster, existing.Bounds)))
+                continue;
+
+            shapes.Add(new ImageShapePrimitive
+            {
+                Bounds      = cluster,
+                Kind        = ShapeKind.Icon,
+                StrokeColor = SampleStrokeColor(img.Original, cluster),
+                FillColor   = SKColors.Transparent,
+                StrokeWidth = 1,
+                Confidence  = 0.58,
+                AnalysisType = "image-cluster",
+                ZOrder      = zOrder++,
+            });
+        }
+
         // Ellipses from binary connected components
         var ellipses = FindEllipses(img.Binary);
         foreach (var e in ellipses)
         {
+            if (iconClusters.Any(icon => IsMostlyCovered(e, icon)) ||
+                imageClusters.Any(cluster => IsMostlyCovered(e, cluster)))
+                continue;
+
             shapes.Add(new ImageShapePrimitive
             {
                 Bounds      = e,
@@ -167,29 +263,45 @@ public static class ShapeDetector
         var segments = new List<LineSegment>();
         for (int y = 1; y < h - 1; y++)
         {
-            int runStart = -1, runLen = 0;
+            int runStart = -1, runLen = 0, gapLen = 0, gapRuns = 0, gapPixels = 0, lastEdge = -1;
             for (int x = 1; x < w - 1; x++)
             {
                 bool isEdge = edgeMap[y * w + x] >= EdgeThreshold;
                 if (isEdge)
                 {
-                    if (runStart < 0) runStart = x;
-                    runLen++;
-                }
-                else
-                {
-                    // Gap handling
-                    if (runStart >= 0 && runLen >= MinLineLength)
-                        segments.Add(new LineSegment { Y = y, Start = runStart, End = x - 1, Thickness = 1 });
-                    if (!isEdge && runLen > 0 && runLen < MaxLineGap)
+                    if (runStart < 0)
                     {
-                        // small gap — extend existing run
+                        runStart = x;
+                        gapRuns = 0;
+                        gapPixels = 0;
                     }
-                    else { runStart = -1; runLen = 0; }
+                    else if (gapLen > 0)
+                    {
+                        gapRuns++;
+                        gapPixels += gapLen;
+                    }
+                    runLen++;
+                    gapLen = 0;
+                    lastEdge = x;
+                }
+                else if (runStart >= 0)
+                {
+                    gapLen++;
+                    if (gapLen > MaxLineGap)
+                    {
+                        if (IsDenseLineRun(runStart, lastEdge, runLen, gapRuns, gapPixels))
+                            segments.Add(new LineSegment { Y = y, Start = runStart, End = lastEdge, Thickness = 1 });
+                        runStart = -1;
+                        runLen = 0;
+                        gapLen = 0;
+                        gapRuns = 0;
+                        gapPixels = 0;
+                        lastEdge = -1;
+                    }
                 }
             }
-            if (runStart >= 0 && runLen >= MinLineLength)
-                segments.Add(new LineSegment { Y = y, Start = runStart, End = w - 2, Thickness = 1 });
+            if (runStart >= 0 && IsDenseLineRun(runStart, lastEdge, runLen, gapRuns, gapPixels))
+                segments.Add(new LineSegment { Y = y, Start = runStart, End = lastEdge, Thickness = 1 });
         }
         return MergeAdjacentSegments(segments, horizontal: true);
     }
@@ -199,26 +311,59 @@ public static class ShapeDetector
         var segments = new List<LineSegment>();
         for (int x = 1; x < w - 1; x++)
         {
-            int runStart = -1, runLen = 0;
+            int runStart = -1, runLen = 0, gapLen = 0, gapRuns = 0, gapPixels = 0, lastEdge = -1;
             for (int y = 1; y < h - 1; y++)
             {
                 bool isEdge = edgeMap[y * w + x] >= EdgeThreshold;
                 if (isEdge)
                 {
-                    if (runStart < 0) runStart = y;
+                    if (runStart < 0)
+                    {
+                        runStart = y;
+                        gapRuns = 0;
+                        gapPixels = 0;
+                    }
+                    else if (gapLen > 0)
+                    {
+                        gapRuns++;
+                        gapPixels += gapLen;
+                    }
                     runLen++;
+                    gapLen = 0;
+                    lastEdge = y;
                 }
-                else
+                else if (runStart >= 0)
                 {
-                    if (runStart >= 0 && runLen >= MinLineLength)
-                        segments.Add(new LineSegment { Y = x, Start = runStart, End = y - 1, Thickness = 1 });
-                    runStart = -1; runLen = 0;
+                    gapLen++;
+                    if (gapLen > MaxLineGap)
+                    {
+                        if (IsDenseLineRun(runStart, lastEdge, runLen, gapRuns, gapPixels))
+                            segments.Add(new LineSegment { Y = x, Start = runStart, End = lastEdge, Thickness = 1 });
+                        runStart = -1;
+                        runLen = 0;
+                        gapLen = 0;
+                        gapRuns = 0;
+                        gapPixels = 0;
+                        lastEdge = -1;
+                    }
                 }
             }
-            if (runStart >= 0 && runLen >= MinLineLength)
-                segments.Add(new LineSegment { Y = x, Start = runStart, End = h - 2, Thickness = 1 });
+            if (runStart >= 0 && IsDenseLineRun(runStart, lastEdge, runLen, gapRuns, gapPixels))
+                segments.Add(new LineSegment { Y = x, Start = runStart, End = lastEdge, Thickness = 1 });
         }
         return MergeAdjacentSegments(segments, horizontal: false);
+    }
+
+    private static bool IsDenseLineRun(int start, int end, int edgeCount, int gapRuns, int gapPixels)
+    {
+        if (edgeCount < MinLineLength || end < start)
+            return false;
+
+        if (gapRuns > 1 || gapPixels > MaxLineGap)
+            return false;
+
+        int span = end - start + 1;
+        return edgeCount / (double)span >= 0.85;
     }
 
     /// <summary>
@@ -327,6 +472,19 @@ public static class ShapeDetector
         Math.Abs(a.Right  - b.Right)  < RectAlignTolerance * 2 &&
         Math.Abs(a.Bottom - b.Bottom) < RectAlignTolerance * 2;
 
+    private static bool IsMostlyCovered(SKRectI bounds, SKRectI coveringBounds)
+    {
+        double area = (double)bounds.Width * bounds.Height;
+        if (area <= 0) return false;
+
+        int ox = Math.Max(0, Math.Min(bounds.Right, coveringBounds.Right) -
+                             Math.Max(bounds.Left, coveringBounds.Left));
+        int oy = Math.Max(0, Math.Min(bounds.Bottom, coveringBounds.Bottom) -
+                             Math.Max(bounds.Top, coveringBounds.Top));
+
+        return (ox * oy) / area >= 0.80;
+    }
+
     private static (HashSet<LineSegment> horizontal, HashSet<LineSegment> vertical) DetectGridSegments(
         List<LineSegment> hLines,
         List<LineSegment> vLines)
@@ -358,6 +516,328 @@ public static class ShapeDetector
                vertical.Y <= horizontal.End + tolerance &&
                horizontal.Y >= vertical.Start - tolerance &&
                horizontal.Y <= vertical.End + tolerance;
+    }
+
+    // ── Filled rectangle detection ────────────────────────────────────────────
+
+    public static List<SKRectI> FindFilledRectangles(SKBitmap binary)
+    {
+        int totalPixels = binary.Width * binary.Height;
+        var rects = new List<SKRectI>();
+
+        foreach (var blob in TextEngine.LabelConnectedComponents(binary))
+        {
+            int bw = blob.Bounds.Width;
+            int bh = blob.Bounds.Height;
+            if (bw < MinFilledRectSize || bh < MinFilledRectSize)
+                continue;
+
+            int boxArea = bw * bh;
+            double imageCoverage = (double)boxArea / totalPixels;
+            if (imageCoverage > 0.50)
+                continue;
+
+            double fillRatio = (double)blob.PixelCount / boxArea;
+            if (fillRatio < 0.85)
+                continue;
+
+            double aspect = (double)Math.Max(bw, bh) / Math.Min(bw, bh);
+            if (aspect > 20)
+                continue;
+
+            if (rects.Any(existing => RectsSimilar(existing, blob.Bounds)))
+                continue;
+
+            rects.Add(blob.Bounds);
+        }
+
+        return rects;
+    }
+
+    public static List<RoundedRectCandidate> FindRoundedRectangles(SKBitmap binary)
+    {
+        int totalPixels = binary.Width * binary.Height;
+        var rects = new List<RoundedRectCandidate>();
+
+        foreach (var blob in TextEngine.LabelConnectedComponents(binary))
+        {
+            int bw = blob.Bounds.Width;
+            int bh = blob.Bounds.Height;
+            if (bw < MinFilledRectSize * 2 || bh < MinFilledRectSize * 2)
+                continue;
+
+            int boxArea = bw * bh;
+            double imageCoverage = (double)boxArea / totalPixels;
+            if (imageCoverage > 0.50)
+                continue;
+
+            double fillRatio = (double)blob.PixelCount / boxArea;
+            if (fillRatio < 0.82 || fillRatio > 0.99)
+                continue;
+
+            double aspect = (double)Math.Max(bw, bh) / Math.Min(bw, bh);
+            if (aspect > 8)
+                continue;
+
+            int corner = Math.Clamp(Math.Min(bw, bh) / 4, 8, 24);
+            if (!HasSparseCorners(binary, blob.Bounds, corner))
+                continue;
+
+            if (!HasRoundedRectEdgeProfile(binary, blob.Bounds, corner))
+                continue;
+
+            double radius = EstimateCornerRadius(binary, blob.Bounds, corner);
+            if (rects.Any(existing => RectsSimilar(existing.Bounds, blob.Bounds)))
+                continue;
+
+            rects.Add(new RoundedRectCandidate(blob.Bounds, radius));
+        }
+
+        return rects;
+    }
+
+    private static bool HasSparseCorners(SKBitmap binary, SKRectI bounds, int corner)
+    {
+        double threshold = 0.90;
+        return InkRatio(binary, bounds.Left, bounds.Top, bounds.Left + corner, bounds.Top + corner) < threshold &&
+               InkRatio(binary, bounds.Right - corner, bounds.Top, bounds.Right, bounds.Top + corner) < threshold &&
+               InkRatio(binary, bounds.Left, bounds.Bottom - corner, bounds.Left + corner, bounds.Bottom) < threshold &&
+               InkRatio(binary, bounds.Right - corner, bounds.Bottom - corner, bounds.Right, bounds.Bottom) < threshold;
+    }
+
+    private static bool HasRoundedRectEdgeProfile(SKBitmap binary, SKRectI bounds, int corner)
+    {
+        int yNearTop = Math.Min(bounds.Bottom - 1, bounds.Top + Math.Max(2, corner / 3));
+        int yMid = (bounds.Top + bounds.Bottom) / 2;
+        int xMid = (bounds.Left + bounds.Right) / 2;
+
+        double nearTopRun = LongestDarkRunRatioInRow(binary, bounds, yNearTop);
+        double midRowRun = LongestDarkRunRatioInRow(binary, bounds, yMid);
+        double midColRun = LongestDarkRunRatioInColumn(binary, bounds, xMid);
+
+        return nearTopRun >= 0.55 &&
+               midRowRun >= 0.90 &&
+               midColRun >= 0.90;
+    }
+
+    private static double EstimateCornerRadius(SKBitmap binary, SKRectI bounds, int maxRadius)
+    {
+        int y = Math.Min(bounds.Bottom - 1, bounds.Top + 1);
+        int firstDark = FirstDarkPixelInRow(binary, bounds, y);
+        if (firstDark < 0)
+            return maxRadius;
+
+        return Math.Clamp(firstDark - bounds.Left, 1, maxRadius);
+    }
+
+    private static unsafe double InkRatio(SKBitmap binary, int left, int top, int right, int bottom)
+    {
+        byte* src = (byte*)binary.GetPixels().ToPointer();
+        int stride = binary.RowBytes;
+        int ink = 0;
+        int total = 0;
+
+        for (int y = Math.Max(0, top); y < Math.Min(binary.Height, bottom); y++)
+        {
+            for (int x = Math.Max(0, left); x < Math.Min(binary.Width, right); x++)
+            {
+                if (src[y * stride + x] == 0)
+                    ink++;
+                total++;
+            }
+        }
+
+        return total == 0 ? 0 : (double)ink / total;
+    }
+
+    private static unsafe double LongestDarkRunRatioInRow(SKBitmap binary, SKRectI bounds, int y)
+    {
+        byte* src = (byte*)binary.GetPixels().ToPointer();
+        int stride = binary.RowBytes;
+        int best = 0;
+        int current = 0;
+        for (int x = bounds.Left; x < bounds.Right; x++)
+        {
+            if (src[y * stride + x] == 0)
+            {
+                current++;
+                best = Math.Max(best, current);
+            }
+            else
+            {
+                current = 0;
+            }
+        }
+
+        return best / (double)Math.Max(1, bounds.Width);
+    }
+
+    private static unsafe double LongestDarkRunRatioInColumn(SKBitmap binary, SKRectI bounds, int x)
+    {
+        byte* src = (byte*)binary.GetPixels().ToPointer();
+        int stride = binary.RowBytes;
+        int best = 0;
+        int current = 0;
+        for (int y = bounds.Top; y < bounds.Bottom; y++)
+        {
+            if (src[y * stride + x] == 0)
+            {
+                current++;
+                best = Math.Max(best, current);
+            }
+            else
+            {
+                current = 0;
+            }
+        }
+
+        return best / (double)Math.Max(1, bounds.Height);
+    }
+
+    private static unsafe int FirstDarkPixelInRow(SKBitmap binary, SKRectI bounds, int y)
+    {
+        byte* src = (byte*)binary.GetPixels().ToPointer();
+        int stride = binary.RowBytes;
+        for (int x = bounds.Left; x < bounds.Right; x++)
+        {
+            if (src[y * stride + x] == 0)
+                return x;
+        }
+
+        return -1;
+    }
+
+    // ── Complex icon cluster detection ───────────────────────────────────────
+
+    public static List<SKRectI> FindIconClusters(SKBitmap binary)
+    {
+        int totalPixels = binary.Width * binary.Height;
+        var clusters = new List<SKRectI>();
+
+        foreach (var blob in TextEngine.LabelConnectedComponents(binary))
+        {
+            int bw = blob.Bounds.Width;
+            int bh = blob.Bounds.Height;
+            if (bw < MinIconClusterSize || bh < MinIconClusterSize)
+                continue;
+            if (bw > MaxIconClusterSize || bh > MaxIconClusterSize)
+                continue;
+
+            int boxArea = bw * bh;
+            double inkCoverage = (double)blob.PixelCount / totalPixels;
+            if (inkCoverage > 0.25)
+                continue;
+
+            double fillRatio = (double)blob.PixelCount / boxArea;
+            if (fillRatio < 0.10 || fillRatio > 0.74)
+                continue;
+
+            double aspect = (double)Math.Max(bw, bh) / Math.Min(bw, bh);
+            if (aspect > 4.0)
+                continue;
+
+            if (LooksLikeLineOrTextGlyph(blob, fillRatio))
+                continue;
+
+            clusters.Add(blob.Bounds);
+        }
+
+        return clusters;
+    }
+
+    public static List<SKRectI> FindImageClusters(SKBitmap binary)
+    {
+        int totalPixels = binary.Width * binary.Height;
+        var clusters = new List<SKRectI>();
+
+        foreach (var blob in TextEngine.LabelConnectedComponents(binary))
+        {
+            int bw = blob.Bounds.Width;
+            int bh = blob.Bounds.Height;
+            if (bw < MinImageClusterSize || bh < MinImageClusterSize)
+                continue;
+            if (bw <= MaxIconClusterSize && bh <= MaxIconClusterSize)
+                continue;
+
+            int boxArea = bw * bh;
+            double inkCoverage = (double)blob.PixelCount / totalPixels;
+            if (inkCoverage > 0.35)
+                continue;
+
+            double fillRatio = (double)blob.PixelCount / boxArea;
+            if (fillRatio < 0.08 || fillRatio > 0.72)
+                continue;
+            if (LooksLikeFilledPanel(binary, blob.Bounds, fillRatio))
+                continue;
+            if (LooksLikeRectangularComponent(binary, blob.Bounds))
+                continue;
+
+            double aspect = (double)Math.Max(bw, bh) / Math.Min(bw, bh);
+            if (aspect > 6.0)
+                continue;
+
+            if (LooksLikeLineOrTextGlyph(blob, fillRatio))
+                continue;
+
+            clusters.Add(blob.Bounds);
+        }
+
+        return clusters;
+    }
+
+    private static bool LooksLikeFilledPanel(SKBitmap binary, SKRectI bounds, double fillRatio)
+    {
+        if (fillRatio < 0.60)
+            return false;
+
+        int yMid = (bounds.Top + bounds.Bottom) / 2;
+        int xMid = (bounds.Left + bounds.Right) / 2;
+        double midRowRun = LongestDarkRunRatioInRow(binary, bounds, yMid);
+        double midColRun = LongestDarkRunRatioInColumn(binary, bounds, xMid);
+
+        int corner = Math.Clamp(Math.Min(bounds.Width, bounds.Height) / 5, 8, 28);
+        double cornerInk =
+            InkRatio(binary, bounds.Left, bounds.Top, bounds.Left + corner, bounds.Top + corner) +
+            InkRatio(binary, bounds.Right - corner, bounds.Top, bounds.Right, bounds.Top + corner) +
+            InkRatio(binary, bounds.Left, bounds.Bottom - corner, bounds.Left + corner, bounds.Bottom) +
+            InkRatio(binary, bounds.Right - corner, bounds.Bottom - corner, bounds.Right, bounds.Bottom);
+
+        return midRowRun >= 0.85 &&
+               midColRun >= 0.85 &&
+               cornerInk / 4.0 >= 0.65;
+    }
+
+    private static bool LooksLikeRectangularComponent(SKBitmap binary, SKRectI bounds)
+    {
+        int inset = Math.Clamp(Math.Min(bounds.Width, bounds.Height) / 24, 1, 6);
+        int topY = Math.Min(bounds.Bottom - 1, bounds.Top + inset);
+        int bottomY = Math.Max(bounds.Top, bounds.Bottom - 1 - inset);
+        int leftX = Math.Min(bounds.Right - 1, bounds.Left + inset);
+        int rightX = Math.Max(bounds.Left, bounds.Right - 1 - inset);
+
+        double topRun = LongestDarkRunRatioInRow(binary, bounds, topY);
+        double bottomRun = LongestDarkRunRatioInRow(binary, bounds, bottomY);
+        double leftRun = LongestDarkRunRatioInColumn(binary, bounds, leftX);
+        double rightRun = LongestDarkRunRatioInColumn(binary, bounds, rightX);
+
+        return topRun >= 0.80 &&
+               bottomRun >= 0.80 &&
+               leftRun >= 0.80 &&
+               rightRun >= 0.80;
+    }
+
+    private static bool LooksLikeLineOrTextGlyph(BlobInfo blob, double fillRatio)
+    {
+        int bw = blob.Bounds.Width;
+        int bh = blob.Bounds.Height;
+        double aspect = (double)Math.Max(bw, bh) / Math.Min(bw, bh);
+
+        if (aspect > 3.0)
+            return true;
+        if (Math.Min(bw, bh) <= 22 && fillRatio < 0.30)
+            return true;
+
+        return false;
     }
 
     // ── Ellipse detection ─────────────────────────────────────────────────────
@@ -479,3 +959,5 @@ public sealed class ShapeDetectionResult
 {
     public IReadOnlyList<ImageShapePrimitive> Shapes { get; init; } = [];
 }
+
+public sealed record RoundedRectCandidate(SKRectI Bounds, double Radius);

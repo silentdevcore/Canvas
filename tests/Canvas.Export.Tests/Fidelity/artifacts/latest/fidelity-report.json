@@ -83,9 +83,9 @@
     "ConvertedPdfGenerated": true,
     "WidthDriftPt": 0.3039370078739694,
     "HeightDriftPt": 0.11023622047196113,
-    "PixelDiffRatio": 0.0917017,
-    "FidelityScore": 90.82983,
-    "Notes": "High visual diff ratio: 0,0917"
+    "PixelDiffRatio": 0.0914794,
+    "FidelityScore": 90.85206,
+    "Notes": "High visual diff ratio: 0,0915"
   },
   {
     "Sample": "multipage-shared-elements",

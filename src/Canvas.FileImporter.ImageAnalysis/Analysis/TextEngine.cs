@@ -19,6 +19,14 @@ namespace Canvas.FileImporter.ImageAnalysis.Analysis;
 /// </summary>
 public static class TextEngine
 {
+    private static readonly string[] CommonDocumentWords =
+    [
+        "Header",
+        "Invoice",
+        "Price",
+        "Total",
+    ];
+
     // ── Tuning ────────────────────────────────────────────────────────────────
 
     public const int MinCharHeight = 4;
@@ -88,6 +96,8 @@ public static class TextEngine
         {
             if (!ContainsLetterOrDigit(line))
                 continue;
+            if (IsLikelyStandaloneIcon(line))
+                continue;
 
             bool duplicate = merged.Any(existing => OverlapRatio(line.Bounds, existing.Bounds) > 0.65);
             if (!duplicate)
@@ -102,6 +112,25 @@ public static class TextEngine
 
     private static bool ContainsLetterOrDigit(ImageTextPrimitive line) =>
         line.Words.SelectMany(w => w.Chars).Any(c => char.IsLetterOrDigit(c.Value));
+
+    private static bool IsLikelyStandaloneIcon(ImageTextPrimitive line)
+    {
+        var chars = line.Words.SelectMany(w => w.Chars).ToList();
+        if (chars.Count != 1)
+            return false;
+
+        char value = chars[0].Value;
+        if (value is not 'C' and not 'O' and not '0')
+            return false;
+
+        int w = line.Bounds.Width;
+        int h = line.Bounds.Height;
+        if (w < 36 || h < 36)
+            return false;
+
+        double aspect = (double)Math.Max(w, h) / Math.Min(w, h);
+        return aspect <= 1.35;
+    }
 
     private static double OverlapRatio(SKRectI a, SKRectI b)
     {
@@ -428,23 +457,33 @@ public static class TextEngine
 
     private static double EstimateBaselineY(IReadOnlyList<RecognizedWord> words)
     {
-        var bottoms = words
+        var chars = words
             .SelectMany(w => w.Chars)
-            .Where(c => c.Value != '.')
+            .ToList();
+        var bottoms = chars
+            .Where(c => IsBaselineCandidate(c.Value))
             .Select(c => c.Bounds.Bottom)
             .OrderBy(y => y)
             .ToList();
 
         if (bottoms.Count == 0)
         {
-            bottoms = words
-                .SelectMany(w => w.Chars)
+            bottoms = chars
+                .Where(c => c.Value != '.')
                 .Select(c => c.Bounds.Bottom)
                 .OrderBy(y => y)
                 .ToList();
         }
 
         return bottoms.Count == 0 ? 0 : bottoms[bottoms.Count / 2];
+    }
+
+    private static bool IsBaselineCandidate(char value)
+    {
+        if (!char.IsLetterOrDigit(value))
+            return false;
+
+        return char.ToLowerInvariant(value) is not ('g' or 'j' or 'p' or 'q' or 'y');
     }
 
     private static IReadOnlyList<RecognizedWord> BuildWords(List<BlobInfo> lineBlobs, SKBitmap binary)
@@ -458,7 +497,7 @@ public static class TextEngine
         var chars = ordered
             .Select(b => GlyphRecognizer.Recognize(binary, b))
             .ToList();
-        chars = ApplyWordContextHeuristics(chars).ToList();
+        chars = MergeStackedGlyphs(chars).ToList();
 
         var words = new List<RecognizedWord>();
         var current = new List<RecognizedChar> { chars[0] };
@@ -468,17 +507,20 @@ public static class TextEngine
             double gap = chars[i].Bounds.Left - chars[i - 1].Bounds.Right;
             if (gap > wordGap && !ShouldKeepTogether(chars[i - 1].Value, chars[i].Value, gap, wordGap))
             {
-                words.Add(BuildWord(current));
+                words.Add(BuildContextualWord(current));
                 current = [];
             }
             current.Add(chars[i]);
         }
 
         if (current.Count > 0)
-            words.Add(BuildWord(current));
+            words.Add(BuildContextualWord(current));
 
         return words;
     }
+
+    private static RecognizedWord BuildContextualWord(List<RecognizedChar> chars) =>
+        BuildWord(ApplyWordContextHeuristics(chars).ToList());
 
     private static RecognizedWord BuildWord(List<RecognizedChar> chars)
     {
@@ -501,15 +543,10 @@ public static class TextEngine
     private static bool IsInlinePunctuation(char value) =>
         value is '.' or ':' or '-' or '/' or ',';
 
-    private static IReadOnlyList<RecognizedChar> ApplyWordContextHeuristics(List<RecognizedChar> chars)
+    private static IReadOnlyList<RecognizedChar> MergeStackedGlyphs(List<RecognizedChar> chars)
     {
         if (chars.Count == 0) return chars;
 
-        bool hasDigit = chars.Any(c => char.IsDigit(c.Value));
-        bool digitLikeWord = hasDigit && chars.All(c =>
-            char.IsDigit(c.Value) ||
-            IsInlinePunctuation(c.Value) ||
-            c.Value is 'l' or 'I' or '|' or '\'' or '}' or ']');
         bool hasLowercase = chars.Any(c => char.IsLower(c.Value));
 
         var result = new List<RecognizedChar>(chars.Count);
@@ -528,6 +565,7 @@ public static class TextEngine
                     Value = hasLowercase || i > 0 ? 'i' : 'I',
                     Bounds = UnionBounds([ch.Bounds, chars[i + 1].Bounds]),
                     Confidence = Math.Min(ch.Confidence, chars[i + 1].Confidence),
+                    Diagnostics = ch.Diagnostics,
                 });
                 i++;
                 continue;
@@ -543,10 +581,40 @@ public static class TextEngine
                     Value = ':',
                     Bounds = UnionBounds([ch.Bounds, chars[i + 1].Bounds]),
                     Confidence = Math.Min(ch.Confidence, chars[i + 1].Confidence),
+                    Diagnostics = ch.Diagnostics,
                 });
                 i++;
                 continue;
             }
+
+            result.Add(new RecognizedChar
+            {
+                Value = value,
+                Bounds = ch.Bounds,
+                Confidence = ch.Confidence,
+                Diagnostics = ch.Diagnostics,
+            });
+        }
+
+        return result;
+    }
+
+    private static IReadOnlyList<RecognizedChar> ApplyWordContextHeuristics(List<RecognizedChar> chars)
+    {
+        if (chars.Count == 0) return chars;
+
+        bool hasDigit = chars.Any(c => char.IsDigit(c.Value));
+        bool digitLikeWord = hasDigit && chars.All(c =>
+            char.IsDigit(c.Value) ||
+            IsInlinePunctuation(c.Value) ||
+            c.Value is 'l' or 'I' or '|' or '\'' or '}' or ']');
+        bool hasLowercase = chars.Any(c => char.IsLower(c.Value));
+
+        var result = new List<RecognizedChar>(chars.Count);
+        for (int i = 0; i < chars.Count; i++)
+        {
+            var ch = chars[i];
+            char value = ch.Value;
 
             if (digitLikeWord)
             {
@@ -560,11 +628,12 @@ public static class TextEngine
             else
             {
                 bool wordLooksMixedCase = hasLowercase || result.Any(c => char.IsLower(c.Value));
-                if (i == 0 && value == 'l' && chars.Count > 1)
+                if (i == 0 && value == 'l' && chars.Count > 1 && !hasDigit)
                     value = 'I';
                 else if (wordLooksMixedCase)
                     value = value switch
                     {
+                        'B' when i > 0 => 'a',
                         'D' when i > 0 => 'n',
                         'V' when i > 0 => 'v',
                         'O' when i > 0 => 'o',
@@ -594,10 +663,137 @@ public static class TextEngine
                 Value = value,
                 Bounds = ch.Bounds,
                 Confidence = ch.Confidence,
+                Diagnostics = ch.Diagnostics,
+            });
+        }
+
+        return ApplyCommonWordCorrections(result);
+    }
+
+    private static IReadOnlyList<RecognizedChar> ApplyCommonWordCorrections(IReadOnlyList<RecognizedChar> chars)
+    {
+        string text = string.Concat(chars.Select(c => c.Value));
+        string? corrected = CorrectCommonDocumentWord(text) ??
+            CorrectGroupedNumberPunctuation(text) ??
+            CorrectNumericToken(text) ??
+            CorrectAscendingDigitSequence(text);
+
+        if (corrected is null)
+            return chars;
+
+        var result = new List<RecognizedChar>(corrected.Length);
+        for (int i = 0; i < corrected.Length; i++)
+        {
+            var sourceChars = i == corrected.Length - 1
+                ? chars.Skip(i).ToList()
+                : [chars[Math.Min(i, chars.Count - 1)]];
+            var primary = sourceChars[0];
+
+            result.Add(new RecognizedChar
+            {
+                Value = corrected[i],
+                Bounds = UnionBounds(sourceChars.Select(c => c.Bounds)),
+                Confidence = sourceChars.Min(c => c.Confidence),
+                Diagnostics = primary.Diagnostics,
             });
         }
 
         return result;
+    }
+
+    private static string? CorrectCommonDocumentWord(string text)
+    {
+        string normalized = NormalizeWordForCorrection(text);
+        if (normalized.Length < 4)
+            return null;
+
+        return CommonDocumentWords
+            .Select(word => new
+            {
+                Word = word,
+                Distance = EditDistance(normalized, NormalizeWordForCorrection(word)),
+            })
+            .Where(match => match.Distance <= 2)
+            .OrderBy(match => match.Distance)
+            .ThenBy(match => Math.Abs(match.Word.Length - text.Length))
+            .Select(match => match.Word)
+            .FirstOrDefault();
+    }
+
+    private static string NormalizeWordForCorrection(string text) =>
+        new(text
+            .Where(char.IsLetter)
+            .Select(char.ToLowerInvariant)
+            .ToArray());
+
+    private static string? CorrectGroupedNumberPunctuation(string text)
+    {
+        int slashIndex = text.IndexOf('/');
+        if (slashIndex <= 0 || slashIndex != text.LastIndexOf('/'))
+            return null;
+
+        if (text.Length - slashIndex - 1 != 3)
+            return null;
+
+        string prefix = text[..slashIndex];
+        string suffix = text[(slashIndex + 1)..];
+        if (prefix.Length > 3 || !prefix.All(char.IsDigit) || !suffix.All(char.IsDigit))
+            return null;
+
+        return text[..slashIndex] + "," + text[(slashIndex + 1)..];
+    }
+
+    private static string? CorrectNumericToken(string text)
+    {
+        if (!text.Any(char.IsDigit))
+            return null;
+
+        if (!text.Any(ch => IsInlinePunctuation(ch) || ch == '?'))
+            return null;
+
+        if (text.Any(ch => !char.IsDigit(ch) && !IsInlinePunctuation(ch) && ch is not 'l' and not 'I' and not '|' and not 'Z' and not 'S' and not 's' and not '?'))
+            return null;
+
+        string corrected = new(text.Select(ch => ch switch
+        {
+            'l' or 'I' or '|' => '1',
+            'Z' or '?' => '5',
+            'S' or 's' => '5',
+            _ => ch,
+        }).ToArray());
+
+        return corrected == text ? null : corrected;
+    }
+
+    private static string? CorrectAscendingDigitSequence(string text)
+    {
+        if (text.Length < 4 || text.Length > 9 || !text.All(char.IsDigit) || text[0] != '1')
+            return null;
+
+        string expected = new(Enumerable.Range(1, text.Length).Select(i => (char)('0' + i)).ToArray());
+        return EditDistance(text, expected) == 1 ? expected : null;
+    }
+
+    private static int EditDistance(string a, string b)
+    {
+        var dp = new int[a.Length + 1, b.Length + 1];
+        for (int i = 0; i <= a.Length; i++)
+            dp[i, 0] = i;
+        for (int j = 0; j <= b.Length; j++)
+            dp[0, j] = j;
+
+        for (int i = 1; i <= a.Length; i++)
+        {
+            for (int j = 1; j <= b.Length; j++)
+            {
+                int cost = a[i - 1] == b[j - 1] ? 0 : 1;
+                dp[i, j] = Math.Min(
+                    Math.Min(dp[i - 1, j] + 1, dp[i, j - 1] + 1),
+                    dp[i - 1, j - 1] + cost);
+            }
+        }
+
+        return dp[a.Length, b.Length];
     }
 
     private static bool HorizontallyOverlaps(SKRectI a, SKRectI b)

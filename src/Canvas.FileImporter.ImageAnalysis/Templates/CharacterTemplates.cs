@@ -42,6 +42,9 @@ public static class CharacterTemplates
             .ToList();
     }
 
+    public static bool TryGetTemplate(char ch, out float[] template) =>
+        _atlas.Value.TryGetValue(ch, out template!);
+
     // ── Atlas generation ──────────────────────────────────────────────────────
 
     private static Dictionary<char, float[]> BuildAtlas()
