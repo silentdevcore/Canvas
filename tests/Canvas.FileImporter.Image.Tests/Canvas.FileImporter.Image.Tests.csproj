@@ -18,4 +18,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../../src/Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj" />
+    <PackageReference Include="SkiaSharp" Version="3.119.2" />
+  </ItemGroup>
+
 </Project>
