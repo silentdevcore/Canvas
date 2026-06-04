@@ -102,15 +102,62 @@ public sealed class WordPositioningTests
             ]
         };
 
+        // V2 (default): the table floats at absolute page coordinates, matching anchored text/shapes.
         var bytes = new WordDocumentExporter().Export(design);
 
         using var ms = new MemoryStream(bytes);
         using var doc = WordprocessingDocument.Open(ms, false);
         var table = doc.MainDocumentPart!.Document!.Body!.Elements<Table>().First();
-        var indentation = table.TableProperties?.GetFirstChild<TableIndentation>();
+        var pos = table.TableProperties?.GetFirstChild<TablePositionProperties>();
 
+        Assert.NotNull(pos);
+        Assert.Equal(HorizontalAnchorValues.Page, pos!.HorizontalAnchor!.Value);
+        Assert.Equal(VerticalAnchorValues.Page, pos.VerticalAnchor!.Value);
+        Assert.Equal(1200, pos.TablePositionX!.Value); // x=60 => 1200 twips
+        Assert.Equal(2400, pos.TablePositionY!.Value); // y=120 => 2400 twips
+        Assert.Null(table.TableProperties?.GetFirstChild<TableIndentation>()); // no flow indentation in V2
+    }
+
+    [Fact]
+    public void Word_Export_LegacyMode_UsesTableIndentation_FromElementX()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "pos-2b",
+            Name = "TablePosLegacy",
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "tbl",
+                            Type = "table",
+                            X = 60,
+                            Y = 120,
+                            Width = 300,
+                            Height = 120,
+                            HeaderRow = true,
+                            CellData = [["H1", "H2"], ["A", "B"]],
+                        },
+                    ],
+                },
+            ],
+        };
+
+        var bytes = new WordDocumentExporter().Export(design, new ExportOptions(WordFidelityV2: false));
+
+        using var ms = new MemoryStream(bytes);
+        using var doc = WordprocessingDocument.Open(ms, false);
+        var table = doc.MainDocumentPart!.Document!.Body!.Elements<Table>().First();
+
+        var indentation = table.TableProperties?.GetFirstChild<TableIndentation>();
         Assert.NotNull(indentation);
         Assert.Equal(1200, indentation!.Width!.Value); // x=60 => 1200 twips
+        Assert.Null(table.TableProperties?.GetFirstChild<TablePositionProperties>()); // no floating in legacy mode
     }
 
     [Fact]

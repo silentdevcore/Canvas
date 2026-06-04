@@ -16,13 +16,17 @@ public class TextEngineTests
         int height = 80,
         SKColor? textColor = null,
         SKColor? backgroundColor = null,
-        bool antialias = false)
+        bool antialias = false,
+        string fontFamily = "Courier New",
+        SKFontStyleWeight fontWeight = SKFontStyleWeight.Normal)
     {
         var bmp = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Premul);
         using var canvas = new SKCanvas(bmp);
         canvas.Clear(backgroundColor ?? SKColors.White);
 
-        using var font  = new SKFont(SKTypeface.FromFamilyName("Courier New"), fontSize);
+        using var font = new SKFont(
+            SKTypeface.FromFamilyName(fontFamily, fontWeight, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright),
+            fontSize);
         using var paint = new SKPaint { Color = textColor ?? SKColors.Black, IsAntialias = antialias };
         canvas.DrawText(text, 10, height * 0.7f, font, paint);
 
@@ -71,9 +75,18 @@ public class TextEngineTests
         float fontSize = 24f,
         int width = 420,
         int height = 100,
-        bool antialias = false)
+        bool antialias = false,
+        string fontFamily = "Courier New",
+        SKFontStyleWeight fontWeight = SKFontStyleWeight.Normal)
     {
-        var (src, prep) = RenderText(text, fontSize, width, height, antialias: antialias);
+        var (src, prep) = RenderText(
+            text,
+            fontSize,
+            width,
+            height,
+            antialias: antialias,
+            fontFamily: fontFamily,
+            fontWeight: fontWeight);
         using var _s = src;
         using var _p = prep;
 
@@ -87,9 +100,18 @@ public class TextEngineTests
         int width = 420,
         int height = 100,
         int jpegQuality = 55,
-        bool antialias = true)
+        bool antialias = true,
+        string fontFamily = "Courier New",
+        SKFontStyleWeight fontWeight = SKFontStyleWeight.Normal)
     {
-        var (src, prep) = RenderText(text, fontSize, width, height, antialias: antialias);
+        var (src, prep) = RenderText(
+            text,
+            fontSize,
+            width,
+            height,
+            antialias: antialias,
+            fontFamily: fontFamily,
+            fontWeight: fontWeight);
         prep.Dispose();
         using var _s = src;
         using var jpeg = JpegRoundTrip(src, jpegQuality);
@@ -120,6 +142,20 @@ public class TextEngineTests
         Assert.True(
             Math.Abs(expected - actual) <= tolerance,
             $"{label}: expected {expected} +/- {tolerance}, got {actual}");
+    }
+
+    public static IEnumerable<object[]> BroadSyntheticOcrCases()
+    {
+        yield return ["Header", "Courier New", SKFontStyleWeight.Normal, 28f, false, false];
+        yield return ["Invoice", "Arial", SKFontStyleWeight.Normal, 28f, false, false];
+        yield return ["Total", "Times New Roman", SKFontStyleWeight.Normal, 28f, false, false];
+        yield return ["Price", "Arial", SKFontStyleWeight.Bold, 24f, false, false];
+        yield return ["Qty", "Courier New", SKFontStyleWeight.Normal, 18f, false, false];
+        yield return ["Item", "Times New Roman", SKFontStyleWeight.Bold, 22f, false, false];
+        yield return ["Pen", "Arial", SKFontStyleWeight.Normal, 18f, false, false];
+        yield return ["12.50", "Courier New", SKFontStyleWeight.Normal, 18f, true, false];
+        yield return ["25.00", "Courier New", SKFontStyleWeight.Bold, 24f, false, false];
+        yield return ["Hello World", "Courier New", SKFontStyleWeight.Normal, 28f, false, true];
     }
 
     // ── Connected component labelling ─────────────────────────────────────────
@@ -442,6 +478,87 @@ public class TextEngineTests
     public void Analyze_CleanCourierText_RecognizesExpectedContent(string expected)
     {
         string actual = RecognizeRenderedText(expected, fontSize: 28f, width: 520, height: 120);
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData("Invoice")]
+    [InlineData("Price")]
+    [InlineData("12345")]
+    public void Analyze_CleanArialText_RecognizesExpectedContent(string expected)
+    {
+        string actual = RecognizeRenderedText(
+            expected,
+            fontSize: 28f,
+            width: 520,
+            height: 120,
+            fontFamily: "Arial");
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData("Invoice")]
+    [InlineData("Total")]
+    [InlineData("12345")]
+    public void Analyze_CleanSerifText_RecognizesExpectedContent(string expected)
+    {
+        string actual = RecognizeRenderedText(
+            expected,
+            fontSize: 28f,
+            width: 520,
+            height: 120,
+            fontFamily: "Times New Roman");
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData("Invoice", "Arial")]
+    [InlineData("Total", "Times New Roman")]
+    [InlineData("12345", "Courier New")]
+    public void Analyze_CleanBoldText_RecognizesExpectedContent(string expected, string fontFamily)
+    {
+        string actual = RecognizeRenderedText(
+            expected,
+            fontSize: 28f,
+            width: 520,
+            height: 120,
+            fontFamily: fontFamily,
+            fontWeight: SKFontStyleWeight.Bold);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [MemberData(nameof(BroadSyntheticOcrCases))]
+    public void Analyze_BroadSyntheticOcrMatrix_RecognizesExpectedContent(
+        string expected,
+        string fontFamily,
+        SKFontStyleWeight fontWeight,
+        float fontSize,
+        bool antialias,
+        bool jpeg)
+    {
+        string actual = jpeg
+            ? RecognizeJpegRenderedText(
+                expected,
+                fontSize: fontSize,
+                width: 560,
+                height: 130,
+                jpegQuality: 60,
+                antialias: true,
+                fontFamily: fontFamily,
+                fontWeight: fontWeight)
+            : RecognizeRenderedText(
+                expected,
+                fontSize: fontSize,
+                width: 560,
+                height: 130,
+                antialias: antialias,
+                fontFamily: fontFamily,
+                fontWeight: fontWeight);
+
         Assert.Equal(expected, actual);
     }
 

@@ -22,6 +22,12 @@ public sealed class ImageAnalysisDiagnostics
     public required int WordCount { get; init; }
     public required int GlyphCount { get; init; }
     public required int LowConfidenceGlyphCount { get; init; }
+    public required double LowConfidenceGlyphRate { get; init; }
     public required int ElementCount { get; init; }
+    public required double RuntimeMs { get; init; }
+    public required long MemoryDeltaBytes { get; init; }
+    public required string GlyphTemplateProfile { get; init; }
+    public required string RecognitionReadiness { get; init; }
+    public required string RecognitionFidelityScope { get; init; }
     public required IReadOnlyList<string> Warnings { get; init; }
 }

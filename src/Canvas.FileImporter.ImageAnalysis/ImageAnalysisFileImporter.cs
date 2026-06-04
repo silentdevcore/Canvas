@@ -1,7 +1,9 @@
 using Canvas.Core.Contracts;
 using Canvas.FileImporter.Abstractions;
 using Canvas.FileImporter.ImageAnalysis.Analysis;
+using Canvas.FileImporter.ImageAnalysis.Templates;
 using SkiaSharp;
+using System.Diagnostics;
 
 namespace Canvas.FileImporter.ImageAnalysis;
 
@@ -113,6 +115,9 @@ public sealed class ImageAnalysisFileImporter
         double?  targetHeightPt,
         ImageAnalysisOptions options)
     {
+        long memoryBefore = GC.GetTotalMemory(false);
+        var stopwatch = Stopwatch.StartNew();
+
         using var prepared = Preprocessor.Prepare(source);
         var colors     = ColorAnalyzer.Analyze(prepared);
         var shapes     = ShapeDetector.Detect(prepared, colors);
@@ -133,10 +138,22 @@ public sealed class ImageAnalysisFileImporter
                 ? EncodeSourceImageDataUri(prepared.Original)
                 : null);
 
+        stopwatch.Stop();
+        long memoryAfter = GC.GetTotalMemory(false);
+
         return new ImageAnalysisImportResult
         {
             Design = design,
-            Diagnostics = BuildDiagnostics(source, prepared, colors, shapes, texts, design, options),
+            Diagnostics = BuildDiagnostics(
+                source,
+                prepared,
+                colors,
+                shapes,
+                texts,
+                design,
+                options,
+                stopwatch.Elapsed.TotalMilliseconds,
+                memoryAfter - memoryBefore),
             DebugOverlayPng = options.IncludeDebugOverlay
                 ? DebugOverlayRenderer.RenderPng(prepared, colors, shapes, texts)
                 : null,
@@ -150,7 +167,9 @@ public sealed class ImageAnalysisFileImporter
         ShapeDetectionResult shapes,
         TextAnalysisResult texts,
         DesignExportDto design,
-        ImageAnalysisOptions options)
+        ImageAnalysisOptions options,
+        double runtimeMs,
+        long memoryDeltaBytes)
     {
         int wordCount = texts.Lines.Sum(l => l.Words.Count);
         int glyphCount = texts.Lines.Sum(l => l.Words.Sum(w => w.Chars.Count));
@@ -185,7 +204,15 @@ public sealed class ImageAnalysisFileImporter
             WordCount = wordCount,
             GlyphCount = glyphCount,
             LowConfidenceGlyphCount = lowConfidenceGlyphCount,
+            LowConfidenceGlyphRate = glyphCount == 0
+                ? 0
+                : Math.Round(lowConfidenceGlyphCount / (double)glyphCount, 4),
             ElementCount = elementCount,
+            RuntimeMs = Math.Round(runtimeMs, 3),
+            MemoryDeltaBytes = memoryDeltaBytes,
+            GlyphTemplateProfile = CharacterTemplates.ProfileId,
+            RecognitionReadiness = "benchmark-gated",
+            RecognitionFidelityScope = "synthetic-business-documents-v1",
             Warnings = warnings,
         };
     }

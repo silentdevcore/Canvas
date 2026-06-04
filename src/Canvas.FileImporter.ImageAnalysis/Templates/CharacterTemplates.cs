@@ -6,11 +6,13 @@ namespace Canvas.FileImporter.ImageAnalysis.Templates;
 /// Built-in character template atlas for NCC-based character recognition.
 /// Templates are 32×32 normalised float arrays (0=black, 1=white).
 /// They are generated at first access by rendering printable ASCII characters
-/// with SkiaSharp using the system's default monospace fallback font.
+/// with SkiaSharp across a small set of system sans/serif/monospace font families.
 /// </summary>
 public static class CharacterTemplates
 {
     private const int TemplateSize = 32;
+    private const double NonPrimaryVariantScorePenalty = 0.05;
+    public const string ProfileId = "builtin-basic-latin-font-atlas-v1";
 
     // Printable ASCII range 32–126 (space through tilde)
     private static readonly char[] Chars = Enumerable
@@ -18,8 +20,10 @@ public static class CharacterTemplates
         .Select(i => (char)i)
         .ToArray();
 
-    private static readonly Lazy<Dictionary<char, float[]>> _atlas =
+    private static readonly Lazy<Dictionary<char, IReadOnlyList<float[]>>> _atlas =
         new(BuildAtlas, isThreadSafe: true);
+
+    private sealed record FontSpec(string Family, SKFontStyleWeight Weight);
 
     /// <summary>
     /// Finds the best matching character for the given 32×32 normalised float patch.
@@ -36,27 +40,74 @@ public static class CharacterTemplates
         var atlas = _atlas.Value;
 
         return atlas
-            .Select(kv => (ch: kv.Key, score: NormalizedCrossCorrelation(patch, kv.Value)))
+            .Select(kv => (
+                ch: kv.Key,
+                score: BestAdjustedScore(kv.Key, patch, kv.Value)))
             .OrderByDescending(m => m.score)
             .Take(Math.Max(1, count))
             .ToList();
     }
 
-    public static bool TryGetTemplate(char ch, out float[] template) =>
-        _atlas.Value.TryGetValue(ch, out template!);
+    public static bool TryGetTemplate(char ch, out float[] template)
+    {
+        if (_atlas.Value.TryGetValue(ch, out var templates) && templates.Count > 0)
+        {
+            template = templates[0];
+            return true;
+        }
+
+        template = [];
+        return false;
+    }
+
+    public static bool TryGetBestTemplate(char ch, float[] patch, out float[] template, out double score)
+    {
+        template = [];
+        score = 0;
+
+        if (!_atlas.Value.TryGetValue(ch, out var templates) || templates.Count == 0)
+            return false;
+
+        foreach (var candidate in templates)
+        {
+            double candidateScore = NormalizedCrossCorrelation(patch, candidate);
+            if (candidateScore <= score)
+                continue;
+
+            template = candidate;
+            score = candidateScore;
+        }
+
+        return template.Length > 0;
+    }
 
     // ── Atlas generation ──────────────────────────────────────────────────────
 
-    private static Dictionary<char, float[]> BuildAtlas()
+    private static Dictionary<char, IReadOnlyList<float[]>> BuildAtlas()
     {
-        var atlas = new Dictionary<char, float[]>(Chars.Length);
+        var atlas = new Dictionary<char, IReadOnlyList<float[]>>(Chars.Length);
 
         // Use SkiaSharp to render each character at multiple font sizes and take
         // the one that fills the 32×32 template best.
         float[] fontSizes  = [12f, 16f, 20f, 24f];
-        string[] fontNames = ["Courier New", "Monospace", "Arial", "Helvetica", "sans-serif"];
-
-        string fontFamily = fontNames[0]; // prefer monospace for consistent widths
+        FontSpec[] fontSpecs =
+        [
+            new("Courier New", SKFontStyleWeight.Normal),
+            new("Monospace", SKFontStyleWeight.Normal),
+            new("Arial", SKFontStyleWeight.Normal),
+            new("Helvetica", SKFontStyleWeight.Normal),
+            new("sans-serif", SKFontStyleWeight.Normal),
+            new("Times New Roman", SKFontStyleWeight.Normal),
+            new("Times", SKFontStyleWeight.Normal),
+            new("Georgia", SKFontStyleWeight.Normal),
+            new("serif", SKFontStyleWeight.Normal),
+            new("Courier New", SKFontStyleWeight.Bold),
+            new("Arial", SKFontStyleWeight.Bold),
+            new("Helvetica", SKFontStyleWeight.Bold),
+            new("Times New Roman", SKFontStyleWeight.Bold),
+            new("Times", SKFontStyleWeight.Bold),
+            new("Georgia", SKFontStyleWeight.Bold),
+        ];
 
         foreach (char ch in Chars)
         {
@@ -65,32 +116,58 @@ public static class CharacterTemplates
                 // Space → all-white template
                 var space = new float[TemplateSize * TemplateSize];
                 Array.Fill(space, 1f);
-                atlas[ch] = space;
+                atlas[ch] = [space];
                 continue;
             }
 
-            float[] best     = RenderChar(ch, fontFamily, fontSizes[^1]);
-            double  bestFill = FillRatio(best);
+            var variants = new List<float[]>();
 
-            foreach (float sz in fontSizes)
+            foreach (var fontSpec in fontSpecs)
             {
-                float[] candidate = RenderChar(ch, fontFamily, sz);
-                double  fill      = FillRatio(candidate);
-                // Prefer the size that has the most ink without clipping
-                if (fill > bestFill && fill < 0.95)
+                float[] best = RenderChar(ch, fontSpec, fontSizes[^1]);
+                double bestFill = FillRatio(best);
+
+                foreach (float sz in fontSizes)
                 {
-                    best     = candidate;
-                    bestFill = fill;
+                    float[] candidate = RenderChar(ch, fontSpec, sz);
+                    double fill = FillRatio(candidate);
+                    // Prefer the size that has the most ink without clipping
+                    if (fill > bestFill && fill < 0.95)
+                    {
+                        best = candidate;
+                        bestFill = fill;
+                    }
                 }
+
+                if (!variants.Any(existing => NormalizedCrossCorrelation(existing, best) > 0.995))
+                    variants.Add(best);
             }
 
-            atlas[ch] = best;
+            atlas[ch] = variants;
         }
 
         return atlas;
     }
 
-    private static float[] RenderChar(char ch, string fontFamily, float fontSize)
+    private static double BestAdjustedScore(char ch, float[] patch, IReadOnlyList<float[]> templates)
+    {
+        double best = double.NegativeInfinity;
+        for (int i = 0; i < templates.Count; i++)
+        {
+            double score = NormalizedCrossCorrelation(patch, templates[i]);
+            if (i > 0)
+                score -= VariantScorePenalty(ch);
+
+            best = Math.Max(best, score);
+        }
+
+        return best;
+    }
+
+    private static double VariantScorePenalty(char ch) =>
+        "lI1|Tt".Contains(ch) ? 0.10 : NonPrimaryVariantScorePenalty;
+
+    private static float[] RenderChar(char ch, FontSpec fontSpec, float fontSize)
     {
         const int scratchSize = 64;
         var info   = new SKImageInfo(scratchSize, scratchSize,
@@ -99,7 +176,9 @@ public static class CharacterTemplates
         using var canvas = new SKCanvas(bmp);
         canvas.Clear(SKColors.White);
 
-        using var font = new SKFont(SKTypeface.FromFamilyName(fontFamily), fontSize);
+        using var font = new SKFont(
+            SKTypeface.FromFamilyName(fontSpec.Family, fontSpec.Weight, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright),
+            fontSize);
         using var paint = new SKPaint
         {
             Color        = SKColors.Black,

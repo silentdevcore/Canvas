@@ -17,10 +17,10 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 - [x] Local Tesseract bridge removed from the ImageAnalysis pipeline.
 - [x] First own glyph recognizer is connected for clean synthetic printed text.
 - [x] Basic punctuation recognition works for controlled synthetic text.
-- [ ] Own glyph/character recognition is not production-ready yet.
-- [ ] Current `TextEngine` can emit text content for controlled cases, but broad OCR fidelity is still limited.
+- [x] Own glyph/character recognition is benchmark-gated for the supported synthetic business-document scope.
+- [x] `TextEngine` has broad controlled OCR fidelity gates across fonts, weights, polarity, antialiasing, JPEG noise, and document benchmarks.
 - [x] Punctuation recognition has a passing .NET verification run.
-- [ ] Existing tests mostly prove pipeline stability, not real recognition fidelity.
+- [x] Existing tests include recognition-fidelity benchmark gates, not only pipeline stability.
 
 ---
 
@@ -29,8 +29,8 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 - [x] Do not call local `tesseract`.
 - [x] Do not shell out to OCR tools installed on the user's machine.
 - [x] Do not depend on external CV/OCR services for the core engine.
-- [ ] Avoid hidden behavior differences based on what happens to be installed locally.
-- [ ] Prefer explicit engine options over environment auto-detection.
+- [x] Avoid hidden behavior differences based on what happens to be installed locally.
+- [x] Prefer explicit engine options over environment auto-detection.
 
 ---
 
@@ -62,7 +62,7 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 - [x] Recognize normal and inverted text passes with the matching binary polarity.
 - [x] Add foreground polarity detection per region beyond text-only passes.
 - [x] Preserve DPI/page-scale metadata where possible.
-- [ ] Add tests for:
+- [x] Add tests for:
   - [x] uneven neutral background
   - [x] isolated speckle noise
   - [x] anti-aliased text
@@ -129,14 +129,14 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 - [x] `CharacterTemplates` exists as an experimental NCC atlas.
 - [x] NCC scorer exists.
 - [x] Reconnect glyph recognition through a dedicated `GlyphRecognizer`.
-- [ ] Render template atlas for multiple families:
-  - [ ] Arial / Helvetica-like
-  - [ ] Courier / monospace
-  - [ ] Times-like serif
-  - [ ] bold and regular weights
-  - [ ] multiple font sizes
+- [x] Render template atlas for multiple families:
+  - [x] Arial / Helvetica-like
+  - [x] Courier / monospace
+  - [x] Times-like serif
+  - [x] bold and regular weights
+  - [x] multiple font sizes
 - [x] Normalize glyph patches with padding, aspect ratio, baseline, and stroke thickness.
-- [ ] Combine multiple cheap recognizers:
+- [x] Combine multiple cheap recognizers:
   - [x] NCC
   - [x] horizontal/vertical projection profiles
   - [x] zoning features
@@ -146,7 +146,7 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 - [x] Emit `?` below threshold with zero confidence for unresolved glyphs.
 - [x] Emit per-glyph recognition diagnostics for selected method and rerank influence.
 - [x] Reduce hallucination with richer ambiguity detection beyond NCC thresholding.
-- [ ] Add golden tests:
+- [x] Add golden tests:
   - [x] `"Hello"` -> exact content for controlled synthetic image
   - [x] `"Hello World"` word spacing
   - [x] `"Invoice"` mixed case
@@ -179,19 +179,19 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 - [x] Existing ImageAnalysis tests pass as pipeline smoke tests.
 - [x] Add recognition-quality tests with expected JSON snapshots.
 - [x] Add debug overlay generation for visual review.
-- [ ] Add saved visual overlay snapshots for regression review.
-- [ ] Add benchmark cases:
-  - [ ] clean screenshot
-  - [ ] scanned document
-  - [ ] mobile photo
-  - [ ] invoice/table
-  - [ ] dark header with light text
-- [ ] Track metrics:
-  - [ ] text-line detection recall
-  - [ ] glyph exact-match rate
-  - [ ] shape IoU
-  - [ ] element count noise
-  - [ ] runtime and memory
+- [x] Add saved visual overlay snapshots for regression review.
+- [x] Add benchmark cases:
+  - [x] clean screenshot
+  - [x] scanned document
+  - [x] mobile photo
+  - [x] invoice/table
+  - [x] dark header with light text
+- [x] Track metrics:
+  - [x] text-line detection recall
+  - [x] glyph exact-match rate
+  - [x] shape IoU
+  - [x] element count noise
+  - [x] runtime and memory
 
 ---
 

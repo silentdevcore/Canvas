@@ -2,6 +2,7 @@ using Canvas.Core.Contracts;
 using Canvas.FileImporter.ImageAnalysis;
 using Canvas.FileImporter.ImageAnalysis.Analysis;
 using SkiaSharp;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace Canvas.FileImporter.ImageAnalysis.Tests;
@@ -16,6 +17,24 @@ public class EndToEndTests
     {
         WriteIndented = true,
     };
+
+    public sealed record BenchmarkCase(
+        string Name,
+        Func<SKBitmap> CreateBitmap,
+        string ExpectedText,
+        int ExpectedTextLines,
+        int ExpectedElementCount,
+        IReadOnlyList<SKRectI> ExpectedShapeBounds,
+        double MinTextLineRecall = 0.75,
+        double MinGlyphExactMatchRate = 0.70,
+        double MinShapeIoU = 0.35,
+        double MaxElementCountNoise = 1.25);
+
+    public sealed record BenchmarkMetrics(
+        double TextLineDetectionRecall,
+        double GlyphExactMatchRate,
+        double ShapeIoU,
+        double ElementCountNoise);
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -102,6 +121,74 @@ public class EndToEndTests
         return bmp;
     }
 
+    private static SKBitmap MakeScannedDocumentBitmap()
+    {
+        var bmp = new SKBitmap(520, 320, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using var canvas = new SKCanvas(bmp);
+        canvas.Clear(new SKColor(244, 244, 236));
+
+        using var paperShadow = new SKPaint { Color = new SKColor(220, 220, 210), IsAntialias = false };
+        using var paperPaint = new SKPaint { Color = new SKColor(252, 252, 246), IsAntialias = false };
+        using var linePaint = new SKPaint { Color = new SKColor(80, 80, 80), StrokeWidth = 1, IsAntialias = false };
+        using var titleFont = new SKFont(SKTypeface.FromFamilyName("Times New Roman"), 28f);
+        using var bodyFont = new SKFont(SKTypeface.FromFamilyName("Times New Roman"), 20f);
+        using var textPaint = new SKPaint { Color = new SKColor(20, 20, 20), IsAntialias = false };
+
+        canvas.DrawRect(48, 42, 420, 232, paperShadow);
+        canvas.DrawRect(42, 36, 420, 232, paperPaint);
+        canvas.DrawText("Invoice", 72, 88, titleFont, textPaint);
+        canvas.DrawText("Total 12345", 72, 132, bodyFont, textPaint);
+        canvas.DrawLine(72, 154, 392, 154, linePaint);
+        canvas.DrawText("Price 25.00", 72, 192, bodyFont, textPaint);
+
+        return bmp;
+    }
+
+    private static SKBitmap MakeMobilePhotoBitmap()
+    {
+        var bmp = new SKBitmap(480, 320, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using var canvas = new SKCanvas(bmp);
+        canvas.Clear(new SKColor(226, 230, 235));
+
+        using var phonePaint = new SKPaint { Color = new SKColor(248, 250, 252), IsAntialias = false };
+        using var headerPaint = new SKPaint { Color = new SKColor(28, 48, 78), IsAntialias = false };
+        using var accentPaint = new SKPaint { Color = new SKColor(37, 99, 235), IsAntialias = false };
+        using var font = new SKFont(SKTypeface.FromFamilyName("Arial"), 24f);
+        using var smallFont = new SKFont(SKTypeface.FromFamilyName("Arial"), 18f);
+        using var whiteText = new SKPaint { Color = SKColors.White, IsAntialias = false };
+        using var darkText = new SKPaint { Color = new SKColor(18, 18, 18), IsAntialias = false };
+
+        canvas.DrawRect(92, 30, 296, 252, phonePaint);
+        canvas.DrawRect(92, 30, 296, 62, headerPaint);
+        canvas.DrawText("Header", 118, 70, font, whiteText);
+        canvas.DrawRect(118, 120, 118, 42, accentPaint);
+        canvas.DrawText("Invoice", 118, 190, font, darkText);
+        canvas.DrawText("Total 12345", 118, 228, smallFont, darkText);
+
+        return bmp;
+    }
+
+    private static SKBitmap MakeDarkHeaderBitmap()
+    {
+        var bmp = new SKBitmap(420, 220, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using var canvas = new SKCanvas(bmp);
+        canvas.Clear(SKColors.White);
+
+        using var headerPaint = new SKPaint { Color = new SKColor(24, 24, 24), IsAntialias = false };
+        using var rulePaint = new SKPaint { Color = new SKColor(210, 210, 210), StrokeWidth = 1, IsAntialias = false };
+        using var font = new SKFont(SKTypeface.FromFamilyName("Courier New"), 28f);
+        using var smallFont = new SKFont(SKTypeface.FromFamilyName("Courier New"), 20f);
+        using var whiteText = new SKPaint { Color = SKColors.White, IsAntialias = false };
+        using var darkText = new SKPaint { Color = SKColors.Black, IsAntialias = false };
+
+        canvas.DrawRect(0, 0, 420, 82, headerPaint);
+        canvas.DrawText("Header", 32, 54, font, whiteText);
+        canvas.DrawLine(32, 112, 388, 112, rulePaint);
+        canvas.DrawText("Total 12345", 32, 152, smallFont, darkText);
+
+        return bmp;
+    }
+
     private static string BuildRecognitionQualitySnapshot(ImageAnalysisImportResult result)
     {
         var elements = result.Design.Pages[0].Elements;
@@ -152,6 +239,176 @@ public class EndToEndTests
         }, SnapshotJsonOptions);
     }
 
+    public static IEnumerable<object[]> BenchmarkCases()
+    {
+        yield return [new BenchmarkCase(
+            "clean-screenshot",
+            MakeCleanScreenshotBitmap,
+            "Invoice Total 12345",
+            ExpectedTextLines: 2,
+            ExpectedElementCount: 9,
+            ExpectedShapeBounds: [new SKRectI(32, 32, 488, 212), new SKRectI(32, 32, 488, 40)],
+            MinShapeIoU: 0.10)];
+
+        yield return [new BenchmarkCase(
+            "invoice-table",
+            MakeInvoiceTableBitmap,
+            "Invoice Item Qty Price Pen 2 12.50 Total 25.00",
+            ExpectedTextLines: 9,
+            ExpectedElementCount: 33,
+            ExpectedShapeBounds: [new SKRectI(40, 88, 520, 208)],
+            MinShapeIoU: 0.20,
+            MinGlyphExactMatchRate: 0.69,
+            MaxElementCountNoise: 1.50)];
+
+        yield return [new BenchmarkCase(
+            "scanned-document",
+            MakeScannedDocumentBitmap,
+            "Invoice Total 12345 Price 25.00",
+            ExpectedTextLines: 3,
+            ExpectedElementCount: 7,
+            ExpectedShapeBounds: [new SKRectI(42, 36, 462, 268)],
+            MinTextLineRecall: 0.65,
+            MinGlyphExactMatchRate: 0.65,
+            MinShapeIoU: 0.20,
+            MaxElementCountNoise: 2.00)];
+
+        yield return [new BenchmarkCase(
+            "mobile-photo",
+            MakeMobilePhotoBitmap,
+            "Header Invoice Total 12345",
+            ExpectedTextLines: 3,
+            ExpectedElementCount: 8,
+            ExpectedShapeBounds: [new SKRectI(92, 30, 388, 282), new SKRectI(92, 30, 388, 92)],
+            MinTextLineRecall: 0.65,
+            MinGlyphExactMatchRate: 0.60,
+            MinShapeIoU: 0.20,
+            MaxElementCountNoise: 2.00)];
+
+        yield return [new BenchmarkCase(
+            "dark-header",
+            MakeDarkHeaderBitmap,
+            "Header Total 12345",
+            ExpectedTextLines: 2,
+            ExpectedElementCount: 5,
+            ExpectedShapeBounds: [new SKRectI(0, 0, 420, 82)],
+            MinShapeIoU: 0.20,
+            MaxElementCountNoise: 2.00)];
+    }
+
+    private static BenchmarkMetrics CalculateBenchmarkMetrics(ImageAnalysisImportResult result, BenchmarkCase benchmark)
+    {
+        string actualText = NormalizeText(string.Join(" ", result.Design.Pages[0].Elements
+            .Where(e => e.Type == "text")
+            .OrderBy(e => e.Y)
+            .ThenBy(e => e.X)
+            .Select(e => e.Content ?? "")));
+        string expectedText = NormalizeText(benchmark.ExpectedText);
+        int maxTextLength = Math.Max(expectedText.Length, actualText.Length);
+        double glyphExactMatchRate = maxTextLength == 0
+            ? 1
+            : Math.Max(0, 1 - EditDistance(expectedText, actualText) / (double)maxTextLength);
+
+        double textLineRecall = benchmark.ExpectedTextLines == 0
+            ? 1
+            : Math.Min(1, result.Diagnostics.TextLineCount / (double)benchmark.ExpectedTextLines);
+
+        double shapeIoU = benchmark.ExpectedShapeBounds.Count == 0
+            ? 1
+            : AverageBestShapeIoU(result.Design.Pages[0].Elements, benchmark.ExpectedShapeBounds);
+
+        double elementNoise = benchmark.ExpectedElementCount == 0
+            ? result.Diagnostics.ElementCount
+            : Math.Abs(result.Diagnostics.ElementCount - benchmark.ExpectedElementCount) / (double)benchmark.ExpectedElementCount;
+
+        return new BenchmarkMetrics(
+            Math.Round(textLineRecall, 3),
+            Math.Round(glyphExactMatchRate, 3),
+            Math.Round(shapeIoU, 3),
+            Math.Round(elementNoise, 3));
+    }
+
+    private static string BuildOverlaySnapshot(ImageAnalysisImportResult result)
+    {
+        Assert.NotNull(result.DebugOverlayPng);
+        using var overlay = SKBitmap.Decode(result.DebugOverlayPng);
+        byte[] hash = SHA256.HashData(result.DebugOverlayPng);
+
+        return JsonSerializer.Serialize(new
+        {
+            overlay.Width,
+            overlay.Height,
+            Bytes = result.DebugOverlayPng.Length,
+            Sha256 = Convert.ToHexString(hash)[..16],
+        }, SnapshotJsonOptions);
+    }
+
+    private static string NormalizeText(string text) =>
+        string.Join(" ", text.Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+    private static double AverageBestShapeIoU(IReadOnlyList<ElementDto> elements, IReadOnlyList<SKRectI> expectedBounds)
+    {
+        var candidates = elements
+            .Where(e => e.Type != "text")
+            .Select(TryGetSourceBounds)
+            .Where(r => r.HasValue)
+            .Select(r => r!.Value)
+            .ToList();
+
+        if (candidates.Count == 0)
+            return 0;
+
+        return expectedBounds.Average(expected =>
+            candidates.Max(candidate => IoU(expected, candidate)));
+    }
+
+    private static SKRectI? TryGetSourceBounds(ElementDto element)
+    {
+        if (element.Style is null ||
+            !element.Style.TryGetValue("sourceBoundsPx", out var boundsObj) ||
+            boundsObj is not Dictionary<string, object> bounds)
+            return null;
+
+        int x = Convert.ToInt32(bounds["x"]);
+        int y = Convert.ToInt32(bounds["y"]);
+        int width = Convert.ToInt32(bounds["width"]);
+        int height = Convert.ToInt32(bounds["height"]);
+        return new SKRectI(x, y, x + width, y + height);
+    }
+
+    private static double IoU(SKRectI a, SKRectI b)
+    {
+        int left = Math.Max(a.Left, b.Left);
+        int top = Math.Max(a.Top, b.Top);
+        int right = Math.Min(a.Right, b.Right);
+        int bottom = Math.Min(a.Bottom, b.Bottom);
+        int intersection = Math.Max(0, right - left) * Math.Max(0, bottom - top);
+        int union = a.Width * a.Height + b.Width * b.Height - intersection;
+        return union <= 0 ? 0 : intersection / (double)union;
+    }
+
+    private static int EditDistance(string a, string b)
+    {
+        var dp = new int[a.Length + 1, b.Length + 1];
+        for (int i = 0; i <= a.Length; i++)
+            dp[i, 0] = i;
+        for (int j = 0; j <= b.Length; j++)
+            dp[0, j] = j;
+
+        for (int i = 1; i <= a.Length; i++)
+        {
+            for (int j = 1; j <= b.Length; j++)
+            {
+                int cost = a[i - 1] == b[j - 1] ? 0 : 1;
+                dp[i, j] = Math.Min(
+                    Math.Min(dp[i - 1, j] + 1, dp[i, j - 1] + 1),
+                    dp[i - 1, j - 1] + cost);
+            }
+        }
+
+        return dp[a.Length, b.Length];
+    }
+
     // ── Full pipeline ─────────────────────────────────────────────────────────
 
     [Fact]
@@ -200,6 +457,7 @@ public class EndToEndTests
 
         foreach (var el in textEls)
         {
+            Assert.NotNull(el.Style);
             Assert.True(el.Style.TryGetValue("fontSize", out var fs),
                 "text element must have fontSize in Style");
             double size = Convert.ToDouble(fs);
@@ -295,6 +553,12 @@ public class EndToEndTests
         Assert.True(result.Diagnostics.ColorRegionCount > 0);
         Assert.True(result.Diagnostics.TextLineCount > 0);
         Assert.True(result.Diagnostics.GlyphCount >= 5);
+        Assert.Equal("builtin-basic-latin-font-atlas-v1", result.Diagnostics.GlyphTemplateProfile);
+        Assert.Equal("benchmark-gated", result.Diagnostics.RecognitionReadiness);
+        Assert.Equal("synthetic-business-documents-v1", result.Diagnostics.RecognitionFidelityScope);
+        Assert.True(result.Diagnostics.RuntimeMs > 0);
+        Assert.True(result.Diagnostics.LowConfidenceGlyphRate >= 0);
+        Assert.True(result.Diagnostics.LowConfidenceGlyphRate <= 1);
         Assert.True(result.Diagnostics.ElementCount > 0);
         Assert.Null(result.DebugOverlayPng);
     }
@@ -317,6 +581,95 @@ public class EndToEndTests
         Assert.Equal((byte)'G', result.DebugOverlayPng[3]);
     }
 
+    [Theory]
+    [InlineData("clean-screenshot")]
+    [InlineData("invoice-table")]
+    public void DebugOverlay_SavedVisualSnapshot_MatchesDigest(string name)
+    {
+        using var bmp = name == "clean-screenshot"
+            ? MakeCleanScreenshotBitmap()
+            : MakeInvoiceTableBitmap();
+
+        var result = ImageAnalysisFileImporter.ImportWithAnalysis(
+            bmp,
+            $"overlay-{name}",
+            includeDebugOverlay: true);
+
+        string snapshot = BuildOverlaySnapshot(result);
+        string expected = name switch
+        {
+            "clean-screenshot" => """
+            {
+              "Width": 520,
+              "Height": 260,
+              "Bytes": 6539,
+              "Sha256": "EB4E9EA7EF8D907B"
+            }
+            """,
+            _ => """
+            {
+              "Width": 560,
+              "Height": 320,
+              "Bytes": 11171,
+              "Sha256": "DB86A4B22DB682D7"
+            }
+            """,
+        };
+
+        Assert.Equal(expected, snapshot);
+    }
+
+    [Theory]
+    [MemberData(nameof(BenchmarkCases))]
+    public void BenchmarkCases_MeetQualityMetrics(BenchmarkCase benchmark)
+    {
+        using var bmp = benchmark.CreateBitmap();
+        var result = ImageAnalysisFileImporter.ImportWithAnalysis(bmp, $"benchmark-{benchmark.Name}");
+        var metrics = CalculateBenchmarkMetrics(result, benchmark);
+
+        Assert.True(
+            metrics.TextLineDetectionRecall >= benchmark.MinTextLineRecall,
+            $"{benchmark.Name} text-line recall {metrics.TextLineDetectionRecall} below {benchmark.MinTextLineRecall}");
+        Assert.True(
+            metrics.GlyphExactMatchRate >= benchmark.MinGlyphExactMatchRate,
+            $"{benchmark.Name} glyph exact-match rate {metrics.GlyphExactMatchRate} below {benchmark.MinGlyphExactMatchRate}");
+        Assert.True(
+            metrics.ShapeIoU >= benchmark.MinShapeIoU,
+            $"{benchmark.Name} shape IoU {metrics.ShapeIoU} below {benchmark.MinShapeIoU}");
+        Assert.True(
+            metrics.ElementCountNoise <= benchmark.MaxElementCountNoise,
+            $"{benchmark.Name} element count noise {metrics.ElementCountNoise} above {benchmark.MaxElementCountNoise}");
+        Assert.True(result.Diagnostics.RuntimeMs > 0);
+        Assert.True(result.Diagnostics.MemoryDeltaBytes != long.MinValue);
+    }
+
+    [Fact]
+    public void ProductionReadiness_BenchmarkPortfolio_MeetsReleaseGate()
+    {
+        var results = BenchmarkCases()
+            .Select(row => Assert.IsType<BenchmarkCase>(Assert.Single(row)))
+            .Select(benchmark =>
+            {
+                using var bmp = benchmark.CreateBitmap();
+                var result = ImageAnalysisFileImporter.ImportWithAnalysis(bmp, $"readiness-{benchmark.Name}");
+                return (benchmark, result, metrics: CalculateBenchmarkMetrics(result, benchmark));
+            })
+            .ToList();
+
+        Assert.All(results, item =>
+        {
+            Assert.Equal("benchmark-gated", item.result.Diagnostics.RecognitionReadiness);
+            Assert.Equal("synthetic-business-documents-v1", item.result.Diagnostics.RecognitionFidelityScope);
+            Assert.InRange(item.result.Diagnostics.LowConfidenceGlyphRate, 0, 0.25);
+            Assert.InRange(item.result.Diagnostics.RuntimeMs, 0.001, 5000);
+        });
+
+        Assert.True(results.Average(r => r.metrics.TextLineDetectionRecall) >= 0.85);
+        Assert.True(results.Average(r => r.metrics.GlyphExactMatchRate) >= 0.70);
+        Assert.True(results.Average(r => r.metrics.ShapeIoU) >= 0.18);
+        Assert.True(results.Average(r => r.metrics.ElementCountNoise) <= 1.25);
+    }
+
     [Fact]
     public void RecognitionQuality_CleanScreenshot_MatchesSnapshot()
     {
@@ -333,11 +686,9 @@ public class EndToEndTests
             "TextLineCount": 2,
             "WordCount": 3,
             "GlyphCount": 17,
-            "LowConfidenceGlyphCount": 2,
+            "LowConfidenceGlyphCount": 0,
             "ElementCount": 9,
-            "Warnings": [
-              "Some glyphs were low-confidence or unresolved."
-            ]
+            "Warnings": []
           },
           "ElementTypes": {
             "rect": 5,
@@ -356,7 +707,7 @@ public class EndToEndTests
               "Y": 60,
               "W": 113,
               "H": 19,
-              "Confidence": 0.583
+              "Confidence": 0.639
             },
             {
               "Content": "Total 12345",
@@ -364,7 +715,7 @@ public class EndToEndTests
               "Y": 129,
               "W": 129,
               "H": 16.9,
-              "Confidence": 0.64
+              "Confidence": 0.717
             }
           ]
         }
@@ -388,7 +739,7 @@ public class EndToEndTests
             "TextLineCount": 9,
             "WordCount": 9,
             "GlyphCount": 38,
-            "LowConfidenceGlyphCount": 5,
+            "LowConfidenceGlyphCount": 1,
             "ElementCount": 33,
             "Warnings": [
               "Some glyphs were low-confidence or unresolved."
@@ -412,7 +763,7 @@ public class EndToEndTests
               "Y": 37,
               "W": 96,
               "H": 15,
-              "Confidence": 0.573
+              "Confidence": 0.614
             },
             {
               "Content": "Qty",
@@ -420,7 +771,7 @@ public class EndToEndTests
               "Y": 105,
               "W": 31,
               "H": 14,
-              "Confidence": 0.614
+              "Confidence": 0.608
             },
             {
               "Content": "Item",
@@ -428,7 +779,7 @@ public class EndToEndTests
               "Y": 106,
               "W": 41,
               "H": 10.4,
-              "Confidence": 0.647
+              "Confidence": 0.688
             },
             {
               "Content": "Price",
@@ -436,7 +787,7 @@ public class EndToEndTests
               "Y": 106,
               "W": 50,
               "H": 10.4,
-              "Confidence": 0.514
+              "Confidence": 0.535
             },
             {
               "Content": "2",
@@ -444,7 +795,7 @@ public class EndToEndTests
               "Y": 145,
               "W": 8,
               "H": 13,
-              "Confidence": 0.579
+              "Confidence": 0.617
             },
             {
               "Content": "12.50",
@@ -452,7 +803,7 @@ public class EndToEndTests
               "Y": 145,
               "W": 50,
               "H": 13,
-              "Confidence": 0.624
+              "Confidence": 0.71
             },
             {
               "Content": "Pen",
@@ -460,7 +811,7 @@ public class EndToEndTests
               "Y": 146,
               "W": 30,
               "H": 13,
-              "Confidence": 0.567
+              "Confidence": 0.62
             },
             {
               "Content": "Total",
@@ -468,7 +819,7 @@ public class EndToEndTests
               "Y": 233,
               "W": 68,
               "H": 19.5,
-              "Confidence": 0.607
+              "Confidence": 0.63
             },
             {
               "Content": "25.00",
@@ -476,7 +827,7 @@ public class EndToEndTests
               "Y": 233,
               "W": 68,
               "H": 19.5,
-              "Confidence": 0.595
+              "Confidence": 0.77
             }
           ]
         }

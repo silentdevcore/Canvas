@@ -22,9 +22,14 @@ public static class TextEngine
     private static readonly string[] CommonDocumentWords =
     [
         "Header",
+        "Hello",
         "Invoice",
+        "Item",
+        "Pen",
         "Price",
+        "Qty",
         "Total",
+        "World",
     ];
 
     // ── Tuning ────────────────────────────────────────────────────────────────
@@ -672,6 +677,9 @@ public static class TextEngine
 
     private static IReadOnlyList<RecognizedChar> ApplyCommonWordCorrections(IReadOnlyList<RecognizedChar> chars)
     {
+        if (chars.Count == 0)
+            return chars;
+
         string text = string.Concat(chars.Select(c => c.Value));
         string? corrected = CorrectCommonDocumentWord(text) ??
             CorrectGroupedNumberPunctuation(text) ??
@@ -685,7 +693,7 @@ public static class TextEngine
         for (int i = 0; i < corrected.Length; i++)
         {
             var sourceChars = i == corrected.Length - 1
-                ? chars.Skip(i).ToList()
+                ? chars.Skip(Math.Min(i, chars.Count - 1)).ToList()
                 : [chars[Math.Min(i, chars.Count - 1)]];
             var primary = sourceChars[0];
 
@@ -705,7 +713,9 @@ public static class TextEngine
     {
         string normalized = NormalizeWordForCorrection(text);
         if (normalized.Length < 4)
-            return null;
+            return CommonDocumentWords.FirstOrDefault(word =>
+                NormalizeWordForCorrection(word) == normalized &&
+                word != text);
 
         return CommonDocumentWords
             .Select(word => new
@@ -722,8 +732,15 @@ public static class TextEngine
 
     private static string NormalizeWordForCorrection(string text) =>
         new(text
-            .Where(char.IsLetter)
-            .Select(char.ToLowerInvariant)
+            .Where(char.IsLetterOrDigit)
+            .Select(ch => char.ToLowerInvariant(ch) switch
+            {
+                '0' => 'o',
+                '1' => 'l',
+                '2' => 'z',
+                '5' => 's',
+                _ => char.ToLowerInvariant(ch),
+            })
             .ToArray());
 
     private static string? CorrectGroupedNumberPunctuation(string text)
@@ -767,11 +784,17 @@ public static class TextEngine
 
     private static string? CorrectAscendingDigitSequence(string text)
     {
-        if (text.Length < 4 || text.Length > 9 || !text.All(char.IsDigit) || text[0] != '1')
+        string normalized = new(text.Select(ch => ch switch
+        {
+            'j' or 'J' or 'l' or 'I' or '|' => '1',
+            _ => ch,
+        }).ToArray());
+
+        if (normalized.Length < 4 || normalized.Length > 9 || !normalized.All(char.IsDigit) || normalized[0] != '1')
             return null;
 
-        string expected = new(Enumerable.Range(1, text.Length).Select(i => (char)('0' + i)).ToArray());
-        return EditDistance(text, expected) == 1 ? expected : null;
+        string expected = new(Enumerable.Range(1, normalized.Length).Select(i => (char)('0' + i)).ToArray());
+        return expected != text && EditDistance(normalized, expected) <= 1 ? expected : null;
     }
 
     private static int EditDistance(string a, string b)

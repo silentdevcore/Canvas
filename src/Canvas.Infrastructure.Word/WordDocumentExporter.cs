@@ -806,14 +806,20 @@ public sealed class WordDocumentExporter : IDocumentExporter
         var cellData = el.CellData;
         if (cellData is null || cellData.Length == 0) return;
 
-        var topOffset = Math.Max(0, el.Y - layout.CursorY);
-        if (topOffset > 0)
+        // Legacy flow mode positions the table with a vertical spacer paragraph. V2 floats the
+        // table at absolute page coordinates instead (see the tblpPr block below), so the spacer
+        // would only push it off-position.
+        if (!layout.FidelityV2)
         {
-            var spacer = new Paragraph();
-            var ppr = new ParagraphProperties();
-            ppr.AppendChild(new SpacingBetweenLines { Before = WordUnitConverter.CanvasToTwips(topOffset).ToString() });
-            spacer.PrependChild(ppr);
-            body.AppendChild(spacer);
+            var topOffset = Math.Max(0, el.Y - layout.CursorY);
+            if (topOffset > 0)
+            {
+                var spacer = new Paragraph();
+                var ppr = new ParagraphProperties();
+                ppr.AppendChild(new SpacingBetweenLines { Before = WordUnitConverter.CanvasToTwips(topOffset).ToString() });
+                spacer.PrependChild(ppr);
+                body.AppendChild(spacer);
+            }
         }
 
         var cols       = cellData[0]?.Length ?? 0;
@@ -844,9 +850,26 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 new RightBorder  { Val = BorderValues.Single, Size = bw, Color = bc },
                 new InsideHorizontalBorder { Val = BorderValues.Single, Size = bw, Color = bc },
                 new InsideVerticalBorder   { Val = BorderValues.Single, Size = bw, Color = bc }));
-        var leftTwips = WordUnitConverter.CanvasToTwips(Math.Max(0, el.X));
-        if (leftTwips > 0)
-            tblPr.AppendChild(new TableIndentation { Width = leftTwips, Type = TableWidthUnitValues.Dxa });
+        if (layout.FidelityV2)
+        {
+            // Float the table at the element's absolute page coordinates so it lines up with the
+            // anchored text boxes / shapes/ images rather than flowing from the document cursor.
+            // In CT_TblPrBase, w:tblpPr must precede w:tblW — hence PrependChild.
+            tblPr.PrependChild(new TablePositionProperties
+            {
+                LeftFromText = 0, RightFromText = 0, TopFromText = 0, BottomFromText = 0,
+                HorizontalAnchor = HorizontalAnchorValues.Page,
+                VerticalAnchor   = VerticalAnchorValues.Page,
+                TablePositionX   = WordUnitConverter.CanvasToTwips(Math.Max(0, el.X)),
+                TablePositionY   = WordUnitConverter.CanvasToTwips(Math.Max(0, el.Y)),
+            });
+        }
+        else
+        {
+            var leftTwips = WordUnitConverter.CanvasToTwips(Math.Max(0, el.X));
+            if (leftTwips > 0)
+                tblPr.AppendChild(new TableIndentation { Width = leftTwips, Type = TableWidthUnitValues.Dxa });
+        }
         table.AppendChild(tblPr);
 
         // TableGrid defines column widths
@@ -1103,31 +1126,134 @@ public sealed class WordDocumentExporter : IDocumentExporter
         AdvanceCursor(layout, el);
     }
 
+    // Reused across calls to avoid socket exhaustion; per-request timeouts come from a linked CTS.
+    private static readonly System.Net.Http.HttpClient RemoteImageClient = new()
+    {
+        Timeout = System.Threading.Timeout.InfiniteTimeSpan,
+    };
+
+    // Hard cap on a fetched remote image to bound memory use (8 MiB).
+    private const long MaxRemoteImageBytes = 8L * 1024 * 1024;
+
     private static byte[]? FetchRemoteImageWithRetry(string url, int maxAttempts, int timeoutSeconds, CancellationToken cancellationToken)
     {
+        if (!IsSafeRemoteImageUrl(url))
+            return null;
+
         for (var attempt = 1; attempt <= Math.Max(1, maxAttempts); attempt++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(Math.Max(1, timeoutSeconds)) };
-                var bytes = http.GetByteArrayAsync(url, cancellationToken).GetAwaiter().GetResult();
-                if (bytes.Length > 0)
+                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutCts.CancelAfter(TimeSpan.FromSeconds(Math.Max(1, timeoutSeconds)));
+
+                var bytes = ReadCappedResponse(url, timeoutCts.Token);
+                if (bytes is { Length: > 0 })
                     return bytes;
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                throw;
+                throw; // caller cancelled — propagate
             }
             catch
             {
+                // per-request timeout or transport error — retry until attempts exhausted
                 if (attempt == maxAttempts)
                     break;
             }
         }
 
         return null;
+    }
+
+    private static byte[]? ReadCappedResponse(string url, CancellationToken cancellationToken)
+    {
+        using var response = RemoteImageClient
+            .GetAsync(url, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .GetAwaiter().GetResult();
+        response.EnsureSuccessStatusCode();
+
+        if (response.Content.Headers.ContentLength is long declared && declared > MaxRemoteImageBytes)
+            return null;
+
+        using var stream = response.Content.ReadAsStreamAsync(cancellationToken).GetAwaiter().GetResult();
+        using var ms = new MemoryStream();
+        var buffer = new byte[81920];
+        int read;
+        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ms.Write(buffer, 0, read);
+            if (ms.Length > MaxRemoteImageBytes)
+                return null; // exceeded cap mid-stream
+        }
+        return ms.ToArray();
+    }
+
+    /// <summary>
+    /// Guards remote image fetches against SSRF: only http/https on default-ish hosts whose
+    /// resolved addresses are publicly routable (no loopback, private, link-local, or multicast).
+    /// </summary>
+    private static bool IsSafeRemoteImageUrl(string url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            return false;
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+            return false;
+
+        try
+        {
+            System.Net.IPAddress[] addresses = System.Net.IPAddress.TryParse(uri.Host, out var literal)
+                ? [literal]
+                : System.Net.Dns.GetHostAddresses(uri.Host);
+
+            if (addresses.Length == 0)
+                return false;
+
+            // Reject if ANY resolved address is non-public — defends against DNS that
+            // returns a mix of public and internal targets.
+            return addresses.All(IsPubliclyRoutable);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsPubliclyRoutable(System.Net.IPAddress ip)
+    {
+        if (System.Net.IPAddress.IsLoopback(ip))
+            return false;
+
+        var bytes = ip.GetAddressBytes();
+
+        if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            // IPv4 private / link-local / metadata ranges
+            if (bytes[0] == 10) return false;                                  // 10.0.0.0/8
+            if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) return false; // 172.16.0.0/12
+            if (bytes[0] == 192 && bytes[1] == 168) return false;              // 192.168.0.0/16
+            if (bytes[0] == 169 && bytes[1] == 254) return false;              // 169.254.0.0/16 (link-local / cloud metadata)
+            if (bytes[0] == 127) return false;                                 // loopback
+            if (bytes[0] == 0) return false;                                   // 0.0.0.0/8
+            if (bytes[0] >= 224) return false;                                 // multicast / reserved
+            return true;
+        }
+
+        if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+        {
+            if (ip.IsIPv6LinkLocal || ip.IsIPv6Multicast || ip.IsIPv6SiteLocal)
+                return false;
+            if ((bytes[0] & 0xFE) == 0xFC) return false; // fc00::/7 unique local
+            // Map IPv4-mapped IPv6 back to IPv4 rules.
+            if (ip.IsIPv4MappedToIPv6)
+                return IsPubliclyRoutable(ip.MapToIPv4());
+            return true;
+        }
+
+        return false;
     }
 
     private static void AddWarning(LayoutContext layout, string warning)

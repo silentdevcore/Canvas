@@ -45,7 +45,7 @@ public static class GlyphRecognizer
 
     public static double ProjectionProfileDistanceForTest(float[] patch, char candidate)
     {
-        if (!CharacterTemplates.TryGetTemplate(candidate, out var template))
+        if (!CharacterTemplates.TryGetBestTemplate(candidate, patch, out var template, out _))
             return double.PositiveInfinity;
 
         return ProjectionProfileDistance(patch, template);
@@ -53,7 +53,7 @@ public static class GlyphRecognizer
 
     public static double ZoningDistanceForTest(float[] patch, char candidate)
     {
-        if (!CharacterTemplates.TryGetTemplate(candidate, out var template))
+        if (!CharacterTemplates.TryGetBestTemplate(candidate, patch, out var template, out _))
             return double.PositiveInfinity;
 
         return ZoningDistance(patch, template);
@@ -114,6 +114,17 @@ public static class GlyphRecognizer
                 return CreateSelection('O', upperO.score, initialCandidate, "holes", holes, false, false, upperO.score, 0, 0);
         }
 
+        if (holes == 1 && best.ch == 'Q' && !LooksLikeQTail(patch))
+        {
+            var lowerO = matches.FirstOrDefault(m => m.ch == 'o');
+            if (lowerO != default && lowerO.score >= best.score - 0.10 && LooksLikeLowercaseRoundGlyph(bounds))
+                return CreateSelection('o', lowerO.score, initialCandidate, "holes", holes, false, false, lowerO.score, 0, 0);
+
+            var upperO = matches.FirstOrDefault(m => m.ch == 'O');
+            if (upperO != default && upperO.score >= best.score - 0.08)
+                return CreateSelection('O', upperO.score, initialCandidate, "holes", holes, false, false, upperO.score, 0, 0);
+        }
+
         var beforeProjection = best;
         var afterProjection = SelectByProjectionProfile(matches, patch, beforeProjection);
         if (afterProjection.ch != best.ch)
@@ -125,6 +136,23 @@ public static class GlyphRecognizer
         if (afterZoning.ch != best.ch)
             method = "zoning";
         best = afterZoning;
+
+        if (best.ch == 'T' && LooksLikeUpperI(patch))
+        {
+            var upperI = matches.FirstOrDefault(m => m.ch == 'I');
+            if (upperI != default && upperI.score >= best.score - 0.10)
+                return CreateSelection(
+                    'I',
+                    upperI.score,
+                    initialCandidate,
+                    "structural",
+                    holes,
+                    afterProjection.ch != beforeProjection.ch,
+                    afterZoning.ch != beforeZoning.ch,
+                    upperI.score,
+                    ProjectionSignal(patch, 'I'),
+                    ZoningSignal(patch, 'I'));
+        }
 
         if ((best.ch == '0' || best.ch == '3' || best.ch == '6') && LooksLikeFive(patch))
             return CreateSelection(
@@ -222,7 +250,7 @@ public static class GlyphRecognizer
 
     private static double ProjectionSignal(float[] patch, char ch)
     {
-        if (!CharacterTemplates.TryGetTemplate(ch, out var template))
+        if (!CharacterTemplates.TryGetBestTemplate(ch, patch, out var template, out _))
             return 0;
 
         return 1 - Math.Clamp(ProjectionProfileDistance(patch, template), 0, 1);
@@ -230,7 +258,7 @@ public static class GlyphRecognizer
 
     private static double ZoningSignal(float[] patch, char ch)
     {
-        if (!CharacterTemplates.TryGetTemplate(ch, out var template))
+        if (!CharacterTemplates.TryGetBestTemplate(ch, patch, out var template, out _))
             return 0;
 
         return 1 - Math.Clamp(ZoningDistance(patch, template), 0, 1);
@@ -244,7 +272,7 @@ public static class GlyphRecognizer
         float[] patch,
         (char ch, double score) best)
     {
-        if (!CharacterTemplates.TryGetTemplate(best.ch, out var bestTemplate))
+        if (!CharacterTemplates.TryGetBestTemplate(best.ch, patch, out var bestTemplate, out _))
             return best;
 
         double bestDistance = ProjectionProfileDistance(patch, bestTemplate);
@@ -255,7 +283,7 @@ public static class GlyphRecognizer
             if (candidate.ch == best.ch ||
                 !char.IsLetterOrDigit(candidate.ch) ||
                 candidate.score < best.score - 0.04 ||
-                !CharacterTemplates.TryGetTemplate(candidate.ch, out var template))
+                !CharacterTemplates.TryGetBestTemplate(candidate.ch, patch, out var template, out _))
                 continue;
 
             double distance = ProjectionProfileDistance(patch, template);
@@ -274,7 +302,7 @@ public static class GlyphRecognizer
         float[] patch,
         (char ch, double score) best)
     {
-        if (!CharacterTemplates.TryGetTemplate(best.ch, out var bestTemplate))
+        if (!CharacterTemplates.TryGetBestTemplate(best.ch, patch, out var bestTemplate, out _))
             return best;
 
         double bestDistance = ZoningDistance(patch, bestTemplate);
@@ -285,7 +313,7 @@ public static class GlyphRecognizer
             if (candidate.ch == best.ch ||
                 !CanUseZoningRerank(best.ch, candidate.ch) ||
                 candidate.score < best.score - 0.035 ||
-                !CharacterTemplates.TryGetTemplate(candidate.ch, out var template))
+                !CharacterTemplates.TryGetBestTemplate(candidate.ch, patch, out var template, out _))
                 continue;
 
             double distance = ZoningDistance(patch, template);
@@ -417,6 +445,43 @@ public static class GlyphRecognizer
         double lowerRight = InkDensity(patch, 19, 17, 32, 29);
 
         return upperLeft > upperRight * 1.25 && lowerRight >= lowerLeft;
+    }
+
+    private static bool LooksLikeUpperI(float[] patch)
+    {
+        double topBar = InkDensity(patch, 4, 2, 28, 8);
+        double bottomBar = InkDensity(patch, 4, 24, 28, 30);
+        double centerStem = InkDensity(patch, 13, 8, 19, 24);
+        double sideMiddle = InkDensity(patch, 4, 8, 11, 24) + InkDensity(patch, 21, 8, 28, 24);
+
+        return topBar > 0.08 &&
+               bottomBar > 0.06 &&
+               centerStem > 0.12 &&
+               centerStem > sideMiddle * 0.9;
+    }
+
+    private static bool LooksLikeLowercaseRoundGlyph(SKRectI bounds) =>
+        bounds.Height <= 24 && bounds.Width <= bounds.Height + 8;
+
+    private static bool LooksLikeQTail(float[] patch)
+    {
+        int tailInk = 0;
+        int nearbyInk = 0;
+
+        for (int y = 18; y < PatchSize; y++)
+        {
+            for (int x = 17; x < PatchSize; x++)
+            {
+                if (patch[y * PatchSize + x] >= 0.5f)
+                    continue;
+
+                nearbyInk++;
+                if (Math.Abs(x - y) <= 3 || Math.Abs(x - y - 4) <= 3)
+                    tailInk++;
+            }
+        }
+
+        return nearbyInk >= 5 && tailInk / (double)nearbyInk > 0.55;
     }
 
     private static double InkDensity(float[] patch, int x0, int y0, int x1, int y1)

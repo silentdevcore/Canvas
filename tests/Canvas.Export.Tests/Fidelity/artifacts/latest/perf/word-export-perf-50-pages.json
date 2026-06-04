@@ -1,13 +1,13 @@
 {
   "test": "Word_Profile_LargeDocument_50Pages_WritesPerfArtifact",
-  "timestampUtc": "2026-06-03T04:03:20.458022Z",
+  "timestampUtc": "2026-06-04T03:52:46.94565Z",
   "pages": 50,
   "elapsedMs": 24,
-  "docxBytes": 5101,
-  "managedMemoryBeforeBytes": 8765488,
-  "managedMemoryAfterBytes": 8740904,
-  "managedMemoryDeltaBytes": -24584,
-  "processWorkingSetBeforeBytes": 223969280,
-  "processWorkingSetAfterBytes": 222777344,
-  "processWorkingSetDeltaBytes": -1191936
+  "docxBytes": 5149,
+  "managedMemoryBeforeBytes": 9768888,
+  "managedMemoryAfterBytes": 9835384,
+  "managedMemoryDeltaBytes": 66496,
+  "processWorkingSetBeforeBytes": 230821888,
+  "processWorkingSetAfterBytes": 233533440,
+  "processWorkingSetDeltaBytes": 2711552
 }
