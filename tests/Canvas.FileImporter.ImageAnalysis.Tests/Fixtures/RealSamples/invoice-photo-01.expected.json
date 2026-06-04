@@ -1,0 +1,6 @@
+{
+  "expectedTextFragments": ["Invoice", "Pen", "Qty", "Price", "Total", "25.00"],
+  "minTextLineCount": 4,
+  "maxLowConfidenceGlyphRate": 0.3,
+  "maxRuntimeMs": 5000
+}
