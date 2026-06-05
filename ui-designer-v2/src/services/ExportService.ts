@@ -837,6 +837,7 @@ export class ExportService {
       includeBackgroundImage?: boolean;
       includeDiagnostics?: boolean;
       includeDebugOverlay?: boolean;
+      enablePreprocessing?: boolean;
       lowConfidenceThreshold?: number;
     } = {},
   ): Promise<object> {
@@ -848,6 +849,7 @@ export class ExportService {
     form.append('includeBackgroundImage', options.includeBackgroundImage === false ? 'false' : 'true');
     if (options.includeDiagnostics) form.append('includeDiagnostics', 'true');
     if (options.includeDebugOverlay) form.append('includeDebugOverlay', 'true');
+    if (options.enablePreprocessing) form.append('enablePreprocessing', 'true');
     if (options.lowConfidenceThreshold !== undefined)
       form.append('lowConfidenceThreshold', String(options.lowConfidenceThreshold));
 
@@ -869,6 +871,7 @@ export class ExportService {
     options: {
       languages?: string;
       includeBackgroundImage?: boolean;
+      enablePreprocessing?: boolean;
       lowConfidenceThreshold?: number;
     } = {},
   ): Promise<void> {
@@ -878,6 +881,7 @@ export class ExportService {
     if (pageWidthPt)  form.append('pageWidthPt',  String(pageWidthPt));
     if (pageHeightPt) form.append('pageHeightPt', String(pageHeightPt));
     form.append('includeBackgroundImage', options.includeBackgroundImage === false ? 'false' : 'true');
+    if (options.enablePreprocessing) form.append('enablePreprocessing', 'true');
     if (options.lowConfidenceThreshold !== undefined)
       form.append('lowConfidenceThreshold', String(options.lowConfidenceThreshold));
 

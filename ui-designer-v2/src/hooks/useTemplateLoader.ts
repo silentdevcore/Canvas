@@ -145,6 +145,7 @@ export function useTemplateLoader() {
       includeImageOcrBackgroundImage?: boolean;
       includeImageOcrDiagnostics?: boolean;
       includeImageOcrDebugOverlay?: boolean;
+      enableImageOcrPreprocessing?: boolean;
       imageOcrLowConfidenceThreshold?: number;
     } = {},
   ): Promise<void> => {
@@ -184,6 +185,7 @@ export function useTemplateLoader() {
           includeBackgroundImage: options.includeImageOcrBackgroundImage,
           includeDiagnostics: options.includeImageOcrDiagnostics,
           includeDebugOverlay: options.includeImageOcrDebugOverlay,
+          enablePreprocessing: options.enableImageOcrPreprocessing,
           lowConfidenceThreshold: options.imageOcrLowConfidenceThreshold,
         },
       );

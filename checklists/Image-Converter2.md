@@ -74,12 +74,12 @@
 
 - [x] Decode images with SkiaSharp or the existing image decoding path.
 - [x] Apply EXIF orientation before OCR and layout mapping.
-- [ ] Read DPI metadata when available.
+- [x] Read DPI metadata when available.
 - [x] Default to 300 DPI when metadata is missing or invalid.
 - [ ] Normalize image scale for OCR while preserving original pixels for output.
-- [ ] Add grayscale conversion.
-- [ ] Add contrast normalization.
-- [ ] Add adaptive binarization.
+- [x] Add grayscale conversion.
+- [x] Add contrast normalization.
+- [x] Add adaptive binarization.
 - [ ] Add conservative denoising.
 - [ ] Add deskew detection and correction.
 - [ ] Track every preprocessing transform so OCR coordinates can be mapped back to original image coordinates.
@@ -104,9 +104,16 @@
 
 - [x] Convert OCR pixel coordinates into Canvas/PDF points.
 - [ ] Account for DPI, target page size, scaling, EXIF orientation, and deskew transforms.
+  - [x] Account for DPI, target page size, and proportional scaling.
+  - [x] Account for EXIF orientation in decoded image mapping.
+  - [ ] Account for deskew transforms.
 - [x] Keep both source pixel bounds and final page bounds in diagnostics.
 - [x] Round final coordinates consistently to avoid layout jitter.
 - [ ] Add mapping tests for portrait, landscape, rotated, and deskewed images.
+  - [x] Add portrait mapping coverage.
+  - [x] Add landscape mapping coverage.
+  - [x] Add rotated mapping coverage.
+  - [ ] Add deskewed mapping coverage.
 
 ## Layout Reconstruction
 
@@ -115,6 +122,8 @@
 - [ ] Preserve reading order.
 - [ ] Detect simple columns from line alignment.
 - [ ] Detect simple tables from aligned word groups and horizontal/vertical rules.
+  - [x] Detect simple tables from aligned OCR word groups.
+  - [x] Use horizontal/vertical rule detection for table boundaries.
 - [x] Emit recognized text as Canvas `text` elements.
 - [x] Estimate font size from OCR word/line box height.
 - [ ] Estimate text color from the original image near the OCR bounds.
@@ -170,7 +179,7 @@
 - [x] Report page count.
 - [x] Report OCR languages.
 - [x] Report OCR engine version.
-- [ ] Report preprocessing scale factor.
+- [x] Report preprocessing scale factor.
 - [ ] Report deskew angle.
 - [x] Report word count.
 - [x] Report line count.
@@ -204,14 +213,14 @@
 
 ## Test Plan
 
-- [ ] Unit-test EXIF orientation handling.
-- [ ] Unit-test DPI detection and fallback.
+- [x] Unit-test EXIF orientation handling.
+- [x] Unit-test DPI detection and fallback.
 - [ ] Unit-test deskew transform tracking.
 - [x] Unit-test OCR coordinate mapping from pixels to PDF points.
-- [ ] Unit-test rotated image mapping.
+- [x] Unit-test rotated image mapping.
 - [ ] Unit-test multi-page TIFF handling.
 - [x] Integration-test PNG to `DesignExportDto`.
-- [ ] Integration-test JPEG to `DesignExportDto`.
+- [x] Integration-test JPEG to `DesignExportDto`.
 - [ ] Integration-test TIFF to multi-page `DesignExportDto`.
 - [x] Integration-test image to PDF bytes.
 - [x] Integration-test API image upload to debug JSON.

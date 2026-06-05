@@ -133,6 +133,7 @@ const ImporterPage: React.FC = () => {
   const [includeOcrBackgroundImage, setIncludeOcrBackgroundImage] = useState(true);
   const [includeOcrDiagnostics, setIncludeOcrDiagnostics] = useState(true);
   const [includeOcrDebugOverlay, setIncludeOcrDebugOverlay] = useState(false);
+  const [enableOcrPreprocessing, setEnableOcrPreprocessing] = useState(false);
   const [ocrLowConfidenceThreshold, setOcrLowConfidenceThreshold] = useState(0.5);
   const [pendingAction, setPendingAction] = useState<'open' | 'download'>('open');
   const [importing, setImporting] = useState(false);
@@ -178,6 +179,7 @@ const ImporterPage: React.FC = () => {
           {
             languages: ocrLanguages,
             includeBackgroundImage: includeOcrBackgroundImage,
+            enablePreprocessing: enableOcrPreprocessing,
             lowConfidenceThreshold: ocrLowConfidenceThreshold,
           },
         );
@@ -201,6 +203,7 @@ const ImporterPage: React.FC = () => {
           includeImageOcrBackgroundImage: activeId === 'image-ocr' ? includeOcrBackgroundImage : undefined,
           includeImageOcrDiagnostics: activeId === 'image-ocr' && includeOcrDiagnostics,
           includeImageOcrDebugOverlay: activeId === 'image-ocr' && includeOcrDebugOverlay,
+          enableImageOcrPreprocessing: activeId === 'image-ocr' && enableOcrPreprocessing,
           imageOcrLowConfidenceThreshold: activeId === 'image-ocr' ? ocrLowConfidenceThreshold : undefined,
         },
       );
@@ -308,6 +311,14 @@ const ImporterPage: React.FC = () => {
                             onChange={e => setIncludeOcrDebugOverlay(e.target.checked)}
                           />
                           <span>Debug overlay page</span>
+                        </label>
+                        <label className="importer-config-check">
+                          <input
+                            type="checkbox"
+                            checked={enableOcrPreprocessing}
+                            onChange={e => setEnableOcrPreprocessing(e.target.checked)}
+                          />
+                          <span>Preprocess image</span>
                         </label>
                         <div className="importer-config-field">
                           <label className="importer-config-label" htmlFor="ocr-confidence-input">

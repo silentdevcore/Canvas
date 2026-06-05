@@ -19,6 +19,9 @@ public sealed class ImageToPdfDiagnostics
     public double EffectiveDpiY { get; init; }
     public double PageWidthPt { get; init; }
     public double PageHeightPt { get; init; }
+    public bool PreprocessingApplied { get; init; }
+    public double PreprocessingScaleFactor { get; init; } = 1;
+    public IReadOnlyList<string> PreprocessingSteps { get; init; } = [];
     public int PageCount { get; init; } = 1;
     public string OcrEngine { get; init; } = "";
     public string OcrEngineVersion { get; init; } = "";

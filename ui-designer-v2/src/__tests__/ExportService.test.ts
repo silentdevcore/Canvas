@@ -265,6 +265,7 @@ describe('image OCR import service', () => {
       includeBackgroundImage: false,
       includeDiagnostics: true,
       includeDebugOverlay: true,
+      enablePreprocessing: true,
       lowConfidenceThreshold: 0.45,
     }) as any;
 
@@ -281,6 +282,7 @@ describe('image OCR import service', () => {
     expect(form.get('includeBackgroundImage')).toBe('false');
     expect(form.get('includeDiagnostics')).toBe('true');
     expect(form.get('includeDebugOverlay')).toBe('true');
+    expect(form.get('enablePreprocessing')).toBe('true');
     expect(form.get('lowConfidenceThreshold')).toBe('0.45');
     expect(result.design.id).toBe('ocr-design');
   });
@@ -311,6 +313,7 @@ describe('image OCR import service', () => {
     await ExportService.downloadImageOcrPdf(file, undefined, undefined, {
       languages: 'deu+eng',
       includeBackgroundImage: true,
+      enablePreprocessing: true,
       lowConfidenceThreshold: 0.5,
     });
 
@@ -320,6 +323,8 @@ describe('image OCR import service', () => {
     }));
     expect(anchor.href).toBe('blob:ocr-pdf');
     expect(anchor.download).toBe('invoice-scan.pdf');
+    const form = fetchMock.mock.calls[0][1].body as FormData;
+    expect(form.get('enablePreprocessing')).toBe('true');
     expect(appendChild).toHaveBeenCalledWith(anchor);
     expect(click).toHaveBeenCalledTimes(1);
     expect(removeChild).toHaveBeenCalledWith(anchor);

@@ -43,6 +43,10 @@ public sealed class ImageConversionController : ControllerBase
         [FromForm] bool includeBackgroundImage = true,
         [FromForm] bool includeDiagnostics = false,
         [FromForm] bool includeDebugOverlay = false,
+        [FromForm] bool enablePreprocessing = false,
+        [FromForm] bool preprocessGrayscale = true,
+        [FromForm] bool preprocessContrast = true,
+        [FromForm] bool preprocessBinarize = false,
         [FromForm] double? lowConfidenceThreshold = null,
         CancellationToken cancellationToken = default)
     {
@@ -73,6 +77,10 @@ public sealed class ImageConversionController : ControllerBase
                     IncludeBackgroundImage = includeBackgroundImage,
                     IncludeDiagnostics = includeDiagnostics || debug,
                     IncludeDebugOverlay = includeDebugOverlay || debug,
+                    EnablePreprocessing = enablePreprocessing,
+                    PreprocessGrayscale = preprocessGrayscale,
+                    PreprocessContrast = preprocessContrast,
+                    PreprocessBinarize = preprocessBinarize,
                     LowConfidenceThreshold = lowConfidenceThreshold ?? 0.50,
                 },
                 cancellationToken);
