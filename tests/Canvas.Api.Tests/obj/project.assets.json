@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 3,
   "targets": {
     "net10.0": {
       "BCrypt.Net-Next/4.0.3": {
@@ -1691,6 +1691,22 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
+      "Tesseract/5.2.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Tesseract.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Tesseract.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "build/_._": {}
+        }
+      },
       "xunit/2.9.3": {
         "type": "package",
         "dependencies": {
@@ -1936,6 +1952,21 @@
         },
         "runtime": {
           "bin/placeholder/Canvas.FileImporter.ImageAnalysis.dll": {}
+        }
+      },
+      "Canvas.FileImporter.ImageOcr/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "SkiaSharp": "3.119.2",
+          "Tesseract": "5.2.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.ImageOcr.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.ImageOcr.dll": {}
         }
       },
       "Canvas.FileImporter.Odt/1.0.0": {
@@ -2332,6 +2363,7 @@
           "Canvas.FileImporter.Docx": "1.0.0",
           "Canvas.FileImporter.Image": "1.0.0",
           "Canvas.FileImporter.ImageAnalysis": "1.0.0",
+          "Canvas.FileImporter.ImageOcr": "1.0.0",
           "Canvas.FileImporter.Odt": "1.0.0",
           "Canvas.FileImporter.Pdf": "1.0.0",
           "Canvas.FileImporter.Pptx": "1.0.0",
@@ -4934,6 +4966,26 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "Tesseract/5.2.0": {
+      "sha512": "YB7feJlrTWSXtK8+WaCcseGSPK/1r2d2FWeKGyndlrPwYClrzTlCoHD4/oQEUjKafmpkWlhTZZ7pxiRJYZgj6w==",
+      "type": "package",
+      "path": "tesseract/5.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "build/Tesseract.targets",
+        "lib/net47/Tesseract.dll",
+        "lib/net48/Tesseract.dll",
+        "lib/netstandard2.0/Tesseract.dll",
+        "lib/netstandard2.0/Tesseract.xml",
+        "tesseract.5.2.0.nupkg.sha512",
+        "tesseract.nuspec",
+        "x64/leptonica-1.82.0.dll",
+        "x64/tesseract50.dll",
+        "x86/leptonica-1.82.0.dll",
+        "x86/tesseract50.dll"
+      ]
+    },
     "xunit/2.9.3": {
       "sha512": "TlXQBinK35LpOPKHAqbLY4xlEen9TBafjs0V5KnA4wZsoQLQJiirCR4CbIXvOH8NzkW4YeJKP5P/Bnrodm0h9Q==",
       "type": "package",
@@ -5222,6 +5274,11 @@
       "path": "../../src/Canvas.FileImporter.ImageAnalysis/Canvas.FileImporter.ImageAnalysis.csproj",
       "msbuildProject": "../../src/Canvas.FileImporter.ImageAnalysis/Canvas.FileImporter.ImageAnalysis.csproj"
     },
+    "Canvas.FileImporter.ImageOcr/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.ImageOcr/Canvas.FileImporter.ImageOcr.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.ImageOcr/Canvas.FileImporter.ImageOcr.csproj"
+    },
     "Canvas.FileImporter.Odt/1.0.0": {
       "type": "project",
       "path": "../../src/Canvas.FileImporter.Odt/Canvas.FileImporter.Odt.csproj",
@@ -5363,6 +5420,7 @@
       "Canvas.WebApi >= 1.0.0",
       "Microsoft.AspNetCore.Mvc.Testing >= 10.0.5",
       "Microsoft.NET.Test.Sdk >= 17.14.1",
+      "SkiaSharp >= 3.119.2",
       "coverlet.collector >= 6.0.4",
       "xunit >= 2.9.3",
       "xunit.runner.visualstudio >= 3.1.4"
@@ -5387,11 +5445,11 @@
         "net10.0"
       ],
       "sources": {
+        "/usr/local/Cellar/dotnet/10.0.105/libexec/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net10.0": {
-          "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {
             "/Users/mannheimer/Development/Codes/Canvas/Canvas.WebApi/Canvas.WebApi.csproj": {
@@ -5410,11 +5468,10 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.300"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net10.0": {
-        "framework": "net10.0",
         "targetAlias": "net10.0",
         "dependencies": {
           "Microsoft.AspNetCore.Mvc.Testing": {
@@ -5424,6 +5481,10 @@
           "Microsoft.NET.Test.Sdk": {
             "target": "Package",
             "version": "[17.14.1, )"
+          },
+          "SkiaSharp": {
+            "target": "Package",
+            "version": "[3.119.2, )"
           },
           "coverlet.collector": {
             "target": "Package",
@@ -5454,7 +5515,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.300/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "/usr/local/Cellar/dotnet/10.0.105/libexec/sdk/10.0.105/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",

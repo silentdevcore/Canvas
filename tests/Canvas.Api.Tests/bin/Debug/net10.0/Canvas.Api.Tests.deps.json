@@ -41,6 +41,7 @@
           "Canvas.WebApi": "1.0.0",
           "Microsoft.AspNetCore.Mvc.Testing": "10.0.5",
           "Microsoft.NET.Test.Sdk": "17.14.1",
+          "SkiaSharp": "3.119.2",
           "coverlet.collector": "6.0.4",
           "xunit": "2.9.3",
           "xunit.runner.visualstudio": "3.1.4",
@@ -1320,6 +1321,17 @@
           "lib/net10.0/System.Security.Cryptography.Xml.dll": {}
         }
       },
+      "Tesseract/5.2.0": {
+        "runtime": {
+          "lib/netstandard2.0/Tesseract.dll": {
+            "assemblyVersion": "5.2.0.0",
+            "fileVersion": "5.2.0.0"
+          }
+        },
+        "compile": {
+          "lib/netstandard2.0/Tesseract.dll": {}
+        }
+      },
       "xunit/2.9.3": {
         "dependencies": {
           "xunit.analyzers": "1.18.0",
@@ -1537,6 +1549,22 @@
         },
         "compile": {
           "Canvas.FileImporter.ImageAnalysis.dll": {}
+        }
+      },
+      "Canvas.FileImporter.ImageOcr/1.0.0": {
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "SkiaSharp": "3.119.2",
+          "Tesseract": "5.2.0"
+        },
+        "runtime": {
+          "Canvas.FileImporter.ImageOcr.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        },
+        "compile": {
+          "Canvas.FileImporter.ImageOcr.dll": {}
         }
       },
       "Canvas.FileImporter.Odt/1.0.0": {
@@ -1957,6 +1985,7 @@
           "Canvas.FileImporter.Docx": "1.0.0",
           "Canvas.FileImporter.Image": "1.0.0",
           "Canvas.FileImporter.ImageAnalysis": "1.0.0",
+          "Canvas.FileImporter.ImageOcr": "1.0.0",
           "Canvas.FileImporter.Odt": "1.0.0",
           "Canvas.FileImporter.Pdf": "1.0.0",
           "Canvas.FileImporter.Pptx": "1.0.0",
@@ -4356,6 +4385,13 @@
       "path": "system.security.cryptography.xml/10.0.8",
       "hashPath": "system.security.cryptography.xml.10.0.8.nupkg.sha512"
     },
+    "Tesseract/5.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-YB7feJlrTWSXtK8+WaCcseGSPK/1r2d2FWeKGyndlrPwYClrzTlCoHD4/oQEUjKafmpkWlhTZZ7pxiRJYZgj6w==",
+      "path": "tesseract/5.2.0",
+      "hashPath": "tesseract.5.2.0.nupkg.sha512"
+    },
     "xunit/2.9.3": {
       "type": "package",
       "serviceable": true,
@@ -4453,6 +4489,11 @@
       "sha512": ""
     },
     "Canvas.FileImporter.ImageAnalysis/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Canvas.FileImporter.ImageOcr/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

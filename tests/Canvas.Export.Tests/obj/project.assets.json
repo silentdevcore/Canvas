@@ -1032,6 +1032,22 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
+      "Tesseract/5.2.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Tesseract.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Tesseract.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "build/_._": {}
+        }
+      },
       "xunit/2.9.3": {
         "type": "package",
         "dependencies": {
@@ -1277,6 +1293,21 @@
         },
         "runtime": {
           "bin/placeholder/Canvas.FileImporter.ImageAnalysis.dll": {}
+        }
+      },
+      "Canvas.FileImporter.ImageOcr/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "SkiaSharp": "3.119.2",
+          "Tesseract": "5.2.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.ImageOcr.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.ImageOcr.dll": {}
         }
       },
       "Canvas.FileImporter.Odt/1.0.0": {
@@ -1673,6 +1704,7 @@
           "Canvas.FileImporter.Docx": "1.0.0",
           "Canvas.FileImporter.Image": "1.0.0",
           "Canvas.FileImporter.ImageAnalysis": "1.0.0",
+          "Canvas.FileImporter.ImageOcr": "1.0.0",
           "Canvas.FileImporter.Odt": "1.0.0",
           "Canvas.FileImporter.Pdf": "1.0.0",
           "Canvas.FileImporter.Pptx": "1.0.0",
@@ -3308,6 +3340,26 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "Tesseract/5.2.0": {
+      "sha512": "YB7feJlrTWSXtK8+WaCcseGSPK/1r2d2FWeKGyndlrPwYClrzTlCoHD4/oQEUjKafmpkWlhTZZ7pxiRJYZgj6w==",
+      "type": "package",
+      "path": "tesseract/5.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "build/Tesseract.targets",
+        "lib/net47/Tesseract.dll",
+        "lib/net48/Tesseract.dll",
+        "lib/netstandard2.0/Tesseract.dll",
+        "lib/netstandard2.0/Tesseract.xml",
+        "tesseract.5.2.0.nupkg.sha512",
+        "tesseract.nuspec",
+        "x64/leptonica-1.82.0.dll",
+        "x64/tesseract50.dll",
+        "x86/leptonica-1.82.0.dll",
+        "x86/tesseract50.dll"
+      ]
+    },
     "xunit/2.9.3": {
       "sha512": "TlXQBinK35LpOPKHAqbLY4xlEen9TBafjs0V5KnA4wZsoQLQJiirCR4CbIXvOH8NzkW4YeJKP5P/Bnrodm0h9Q==",
       "type": "package",
@@ -3595,6 +3647,11 @@
       "type": "project",
       "path": "../../src/Canvas.FileImporter.ImageAnalysis/Canvas.FileImporter.ImageAnalysis.csproj",
       "msbuildProject": "../../src/Canvas.FileImporter.ImageAnalysis/Canvas.FileImporter.ImageAnalysis.csproj"
+    },
+    "Canvas.FileImporter.ImageOcr/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.ImageOcr/Canvas.FileImporter.ImageOcr.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.ImageOcr/Canvas.FileImporter.ImageOcr.csproj"
     },
     "Canvas.FileImporter.Odt/1.0.0": {
       "type": "project",
