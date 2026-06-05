@@ -9,6 +9,7 @@ using Canvas.FileImporter.Pdf;
 using Canvas.FileImporter.Pptx;
 using Canvas.FileImporter.Svg;
 using Canvas.FileImporter.ImageAnalysis;
+using Canvas.FileImporter.ImageOcr;
 using Canvas.Core.Primitives;
 using Canvas.Domain.Repositories;
 using Canvas.Infrastructure.Converters;
@@ -81,6 +82,13 @@ builder.Services.AddTransient<IFileImporter, OdtFileImporter>();
 builder.Services.AddTransient<IFileImporter, SvgFileImporter>();
 builder.Services.AddTransient<IFileImporter, ImageFileImporter>();
 builder.Services.AddTransient<ImageAnalysisFileImporter>();
+builder.Services.AddSingleton<IOcrEngine>(sp =>
+{
+    var tessDataPath = builder.Configuration["Ocr:TessDataPath"];
+    var nativeLibraryPath = builder.Configuration["Ocr:NativeLibraryPath"];
+    return new EmbeddedTesseractOcrEngine(tessDataPath, nativeLibraryPath);
+});
+builder.Services.AddTransient<ImageToPdfConverter>();
 
 // Register migration service
 builder.Services.AddSingleton<Canvas.WebApi.Services.MigrationService>();

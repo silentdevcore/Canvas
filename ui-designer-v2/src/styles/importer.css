@@ -110,6 +110,12 @@
   gap: 10px;
 }
 
+.importer-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .importer-card-wrap.is-configuring .importer-card {
   border-radius: 12px 12px 0 0;
   border-bottom-color: transparent;
@@ -133,6 +139,21 @@
   background: #ffffff;
   cursor: pointer;
   outline: none;
+}
+
+.importer-config-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #c8d8f8;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #101828;
+  background: #ffffff;
+  outline: none;
+}
+
+.importer-config-input:focus {
+  border-color: #1d6fff;
 }
 
 .importer-config-select:focus {
@@ -194,6 +215,26 @@
 
 .importer-config-confirm:hover {
   background: #1558e0;
+}
+
+.importer-config-download {
+  flex: 1.1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 12px;
+  background: #101828;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.importer-config-download:hover {
+  background: #344054;
 }
 
 .importer-card-icon {
@@ -258,6 +299,43 @@
   font-size: 14px;
   font-weight: 500;
   text-align: center;
+}
+
+.importer-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 24px auto 0;
+  padding: 10px 14px;
+  background: #f0f7ff;
+  border: 1px solid #b8d7ff;
+  border-radius: 8px;
+  color: #1558e0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.importer-status-spinner,
+.importer-status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.importer-status-spinner {
+  border: 2px solid #b8d7ff;
+  border-top-color: #1558e0;
+  animation: importer-spin 0.8s linear infinite;
+}
+
+.importer-status-dot {
+  background: #16a34a;
+}
+
+@keyframes importer-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Responsive */

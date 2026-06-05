@@ -141,12 +141,18 @@ export function useTemplateLoader() {
       includeImageAnalysisDiagnostics?: boolean;
       includeImageAnalysisDebugOverlay?: boolean;
       includeImageAnalysisFallbackLayer?: boolean;
+      imageOcrLanguages?: string;
+      includeImageOcrBackgroundImage?: boolean;
+      includeImageOcrDiagnostics?: boolean;
+      includeImageOcrDebugOverlay?: boolean;
+      imageOcrLowConfidenceThreshold?: number;
     } = {},
   ): Promise<void> => {
     const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
     const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'tiff', 'tif'];
     let design: any;
     let imageAnalysisMeta: any = null;
+    let imageOcrMeta: any = null;
     if (formatId === 'image-analysis') {
       const result: any = await ExportService.importImageAnalysis(
         file,
@@ -163,6 +169,32 @@ export function useTemplateLoader() {
         imageAnalysisMeta = {
           diagnostics: result.diagnostics,
           debugOverlay: result.debugOverlay,
+        };
+      } else {
+        design = result;
+      }
+    }
+    else if (formatId === 'image-ocr') {
+      const result: any = await ExportService.importImageOcr(
+        file,
+        pageWidthPt,
+        pageHeightPt,
+        {
+          languages: options.imageOcrLanguages,
+          includeBackgroundImage: options.includeImageOcrBackgroundImage,
+          includeDiagnostics: options.includeImageOcrDiagnostics,
+          includeDebugOverlay: options.includeImageOcrDebugOverlay,
+          lowConfidenceThreshold: options.imageOcrLowConfidenceThreshold,
+        },
+      );
+      if (result?.design) {
+        design = result.design;
+        imageOcrMeta = {
+          diagnostics: result.diagnostics,
+          warnings: result.warnings,
+          ocrPages: result.ocrPages,
+          debugOverlay: result.debugOverlay,
+          importedAt: new Date().toISOString(),
         };
       } else {
         design = result;
@@ -200,15 +232,40 @@ export function useTemplateLoader() {
           },
         ]
       : pages;
+    const pagesWithOcrDebugOverlay = imageOcrMeta?.debugOverlay && design.pageSettings?.width && design.pageSettings?.height
+      ? [
+          ...pagesWithDebugOverlay,
+          {
+            id: 'image-ocr-debug-overlay',
+            elements: [
+              {
+                id: `image-ocr-debug-overlay-${Date.now()}`,
+                type: 'image',
+                x: 0,
+                y: 0,
+                width: design.pageSettings.width,
+                height: design.pageSettings.height,
+                content: imageOcrMeta.debugOverlay,
+                fitMode: 'fill',
+                locked: true,
+                style: { imageOcrType: 'debug-overlay' },
+              },
+            ],
+          },
+        ]
+      : pagesWithDebugOverlay;
 
     setCurrentTemplate({
       id: design.id ?? `import-${Date.now()}`,
       name: design.name ?? file.name.replace(/\.[^.]+$/, ''),
       category: 'imported',
       description: `Imported from ${ext.toUpperCase()}`,
-      pages: pagesWithDebugOverlay,
+      pages: pagesWithOcrDebugOverlay,
       sharedElements: design.sharedElements ?? [],
-      data: imageAnalysisMeta ? { imageAnalysis: imageAnalysisMeta } : {},
+      data: {
+        ...(imageAnalysisMeta ? { imageAnalysis: imageAnalysisMeta } : {}),
+        ...(imageOcrMeta ? { imageOcr: imageOcrMeta } : {}),
+      },
     });
     // Apply page dimensions returned by the backend so the canvas matches the import
     if (design.pageSettings?.width && design.pageSettings?.height) {

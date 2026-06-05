@@ -195,6 +195,7 @@ export interface Template {
   category: string;
   thumbnail?: string;
   description: string;
+  data?: Record<string, any>;
 }
 
 export type LayerDirection = 'front' | 'forward' | 'backward' | 'back';

@@ -232,3 +232,97 @@ describe('validateForExport', () => {
     expect(result.errors).toHaveLength(2);
   });
 });
+
+describe('image OCR import service', () => {
+  const originalFetch = global.fetch;
+  const originalDocument = global.document;
+  const originalCreateObjectURL = URL.createObjectURL;
+  const originalRevokeObjectURL = URL.revokeObjectURL;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    global.document = originalDocument;
+    URL.createObjectURL = originalCreateObjectURL;
+    URL.revokeObjectURL = originalRevokeObjectURL;
+    jest.restoreAllMocks();
+  });
+
+  test('posts image OCR import to debug endpoint with options', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        design: { id: 'ocr-design', pages: [] },
+        diagnostics: { wordCount: 2 },
+        warnings: ['Low confidence OCR'],
+        debugOverlay: 'data:image/png;base64,abc',
+      }),
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const file = new File(['png'], 'scan.png', { type: 'image/png' });
+    const result = await ExportService.importImageOcr(file, 595, 842, {
+      languages: 'eng',
+      includeBackgroundImage: false,
+      includeDiagnostics: true,
+      includeDebugOverlay: true,
+      lowConfidenceThreshold: 0.45,
+    }) as any;
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/document/convert-image-to-pdf?debug=true', expect.objectContaining({
+      method: 'POST',
+      body: expect.any(FormData),
+    }));
+
+    const form = fetchMock.mock.calls[0][1].body as FormData;
+    expect(form.get('file')).toBe(file);
+    expect(form.get('languages')).toBe('eng');
+    expect(form.get('pageWidthPt')).toBe('595');
+    expect(form.get('pageHeightPt')).toBe('842');
+    expect(form.get('includeBackgroundImage')).toBe('false');
+    expect(form.get('includeDiagnostics')).toBe('true');
+    expect(form.get('includeDebugOverlay')).toBe('true');
+    expect(form.get('lowConfidenceThreshold')).toBe('0.45');
+    expect(result.design.id).toBe('ocr-design');
+  });
+
+  test('downloads image OCR PDF from non-debug endpoint', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      blob: async () => new Blob(['%PDF'], { type: 'application/pdf' }),
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const appendChild = jest.fn((node: Node) => node);
+    const removeChild = jest.fn((node: Node) => node);
+    const click = jest.fn();
+    const anchor = {
+      href: '',
+      download: '',
+      click,
+    } as unknown as HTMLAnchorElement;
+    global.document = {
+      body: { appendChild, removeChild },
+      createElement: jest.fn(() => anchor),
+    } as unknown as Document;
+    URL.createObjectURL = jest.fn(() => 'blob:ocr-pdf');
+    URL.revokeObjectURL = jest.fn();
+
+    const file = new File(['png'], 'Invoice Scan.png', { type: 'image/png' });
+    await ExportService.downloadImageOcrPdf(file, undefined, undefined, {
+      languages: 'deu+eng',
+      includeBackgroundImage: true,
+      lowConfidenceThreshold: 0.5,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/document/convert-image-to-pdf', expect.objectContaining({
+      method: 'POST',
+      body: expect.any(FormData),
+    }));
+    expect(anchor.href).toBe('blob:ocr-pdf');
+    expect(anchor.download).toBe('invoice-scan.pdf');
+    expect(appendChild).toHaveBeenCalledWith(anchor);
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(removeChild).toHaveBeenCalledWith(anchor);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:ocr-pdf');
+  });
+});

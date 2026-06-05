@@ -336,6 +336,21 @@ type ImageAnalysisDiagnostics = {
   warnings?: string[];
 };
 
+type ImageOcrDiagnostics = {
+  sourceWidthPx?: number;
+  sourceHeightPx?: number;
+  pageCount?: number;
+  languages?: string;
+  ocrEngine?: string;
+  ocrEngineVersion?: string;
+  wordCount?: number;
+  lineCount?: number;
+  averageConfidence?: number;
+  lowConfidenceWordCount?: number;
+  elapsedMs?: number;
+  managedMemoryBytes?: number;
+};
+
 const getGlyphDiagnostics = (element: SimpleElement): GlyphDiagnostic[] => {
   const glyphs = element.style?.imageAnalysisGlyphs;
   return Array.isArray(glyphs) ? glyphs as GlyphDiagnostic[] : [];
@@ -344,6 +359,16 @@ const getGlyphDiagnostics = (element: SimpleElement): GlyphDiagnostic[] => {
 const getImageAnalysisDiagnostics = (template: Template): ImageAnalysisDiagnostics | null => {
   const diagnostics = template.data?.imageAnalysis?.diagnostics;
   return diagnostics && typeof diagnostics === 'object' ? diagnostics as ImageAnalysisDiagnostics : null;
+};
+
+const getImageOcrDiagnostics = (template: Template): ImageOcrDiagnostics | null => {
+  const diagnostics = template.data?.imageOcr?.diagnostics;
+  return diagnostics && typeof diagnostics === 'object' ? diagnostics as ImageOcrDiagnostics : null;
+};
+
+const getImageOcrWarnings = (template: Template): string[] => {
+  const warnings = template.data?.imageOcr?.warnings;
+  return Array.isArray(warnings) ? warnings.filter((w): w is string => typeof w === 'string') : [];
 };
 
 const formatPercent = (value: unknown) => {
@@ -3902,8 +3927,13 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
               ([, v]) => v.width === pageSettings.width && v.height === pageSettings.height
             )?.[0] ?? 'Custom';
             const imageAnalysisDiagnostics = getImageAnalysisDiagnostics(template);
+            const imageOcrDiagnostics = getImageOcrDiagnostics(template);
+            const imageOcrWarnings = getImageOcrWarnings(template);
             const lowConfidenceShare = imageAnalysisDiagnostics?.glyphCount
               ? (imageAnalysisDiagnostics.lowConfidenceGlyphCount ?? 0) / imageAnalysisDiagnostics.glyphCount
+              : 0;
+            const lowConfidenceWordShare = imageOcrDiagnostics?.wordCount
+              ? (imageOcrDiagnostics.lowConfidenceWordCount ?? 0) / imageOcrDiagnostics.wordCount
               : 0;
 
             return (
@@ -3959,6 +3989,52 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       {(imageAnalysisDiagnostics.warnings ?? []).length > 0 && (
                         <div className="editor-image-analysis-warnings">
                           {imageAnalysisDiagnostics.warnings!.map((warning, index) => (
+                            <span key={`${warning}-${index}`}>{warning}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {imageOcrDiagnostics && (
+                  <div className="editor-settings-section">
+                    <div className="editor-settings-heading">
+                      <FiEye />
+                      <span>Image OCR</span>
+                    </div>
+                    <div className="editor-image-analysis-panel">
+                      <div className="editor-image-analysis-summary">
+                        <div>
+                          <strong>{formatNumber(imageOcrDiagnostics.wordCount)}</strong>
+                          <span>Words</span>
+                        </div>
+                        <div>
+                          <strong>{formatNumber(imageOcrDiagnostics.lineCount)}</strong>
+                          <span>Lines</span>
+                        </div>
+                        <div>
+                          <strong>{formatPercent(imageOcrDiagnostics.averageConfidence)}</strong>
+                          <span>Confidence</span>
+                        </div>
+                      </div>
+                      <div className="editor-image-analysis-grid">
+                        <span>Source</span>
+                        <strong>{formatNumber(imageOcrDiagnostics.sourceWidthPx)} x {formatNumber(imageOcrDiagnostics.sourceHeightPx)} px</strong>
+                        <span>Pages</span>
+                        <strong>{formatNumber(imageOcrDiagnostics.pageCount)}</strong>
+                        <span>Languages</span>
+                        <strong>{imageOcrDiagnostics.languages ?? 'deu+eng'}</strong>
+                        <span>Engine</span>
+                        <strong>{imageOcrDiagnostics.ocrEngine ?? 'OCR'} {imageOcrDiagnostics.ocrEngineVersion ?? ''}</strong>
+                        <span>Low confidence</span>
+                        <strong>{formatPercent(lowConfidenceWordShare)}</strong>
+                        <span>Runtime</span>
+                        <strong>{formatNumber(imageOcrDiagnostics.elapsedMs)} ms</strong>
+                      </div>
+                      {imageOcrWarnings.length > 0 && (
+                        <div className="editor-image-analysis-warnings">
+                          {imageOcrWarnings.map((warning, index) => (
                             <span key={`${warning}-${index}`}>{warning}</span>
                           ))}
                         </div>

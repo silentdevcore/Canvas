@@ -828,6 +828,79 @@ export class ExportService {
     return response.json();
   }
 
+  static async importImageOcr(
+    file: File,
+    pageWidthPt?: number,
+    pageHeightPt?: number,
+    options: {
+      languages?: string;
+      includeBackgroundImage?: boolean;
+      includeDiagnostics?: boolean;
+      includeDebugOverlay?: boolean;
+      lowConfidenceThreshold?: number;
+    } = {},
+  ): Promise<object> {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('languages', options.languages || 'deu+eng');
+    if (pageWidthPt)  form.append('pageWidthPt',  String(pageWidthPt));
+    if (pageHeightPt) form.append('pageHeightPt', String(pageHeightPt));
+    form.append('includeBackgroundImage', options.includeBackgroundImage === false ? 'false' : 'true');
+    if (options.includeDiagnostics) form.append('includeDiagnostics', 'true');
+    if (options.includeDebugOverlay) form.append('includeDebugOverlay', 'true');
+    if (options.lowConfidenceThreshold !== undefined)
+      form.append('lowConfidenceThreshold', String(options.lowConfidenceThreshold));
+
+    const response = await fetch(`${this.API_BASE_URL}/document/convert-image-to-pdf?debug=true`, {
+      method: 'POST',
+      body: form,
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: response.statusText }));
+      throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  }
+
+  static async downloadImageOcrPdf(
+    file: File,
+    pageWidthPt?: number,
+    pageHeightPt?: number,
+    options: {
+      languages?: string;
+      includeBackgroundImage?: boolean;
+      lowConfidenceThreshold?: number;
+    } = {},
+  ): Promise<void> {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('languages', options.languages || 'deu+eng');
+    if (pageWidthPt)  form.append('pageWidthPt',  String(pageWidthPt));
+    if (pageHeightPt) form.append('pageHeightPt', String(pageHeightPt));
+    form.append('includeBackgroundImage', options.includeBackgroundImage === false ? 'false' : 'true');
+    if (options.lowConfidenceThreshold !== undefined)
+      form.append('lowConfidenceThreshold', String(options.lowConfidenceThreshold));
+
+    const response = await fetch(`${this.API_BASE_URL}/document/convert-image-to-pdf`, {
+      method: 'POST',
+      body: form,
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: response.statusText }));
+      throw new Error(err.error || `HTTP ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${file.name.replace(/\.[^.]+$/, '').replace(/\s+/g, '-').toLowerCase()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   private static async _importFile(file: File, endpoint: string): Promise<object> {
     const form = new FormData();
     form.append('file', file);

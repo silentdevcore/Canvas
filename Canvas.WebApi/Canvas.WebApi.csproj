@@ -24,6 +24,7 @@
     <ProjectReference Include="../src/Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj" />
     <ProjectReference Include="../src/Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj" />
     <ProjectReference Include="../src/Canvas.FileImporter.ImageAnalysis/Canvas.FileImporter.ImageAnalysis.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.ImageOcr/Canvas.FileImporter.ImageOcr.csproj" />
     <ProjectReference Include="../src/Canvas.Application/Canvas.Application.csproj" />
     <ProjectReference Include="../src/Canvas.Core/Canvas.Core.csproj" />
     <ProjectReference Include="../Canvas.Domain/Canvas.Domain.csproj" />
