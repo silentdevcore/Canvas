@@ -499,6 +499,54 @@ public sealed class ImageToPdfConverterTests
         Assert.Equal(2, result.Design.Pages[0].Elements.Count(e => e.Type == "text"));
     }
 
+    [Fact]
+    public async Task ConvertAsync_EstimatesBlackTextColorFromOriginalImage()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("Black", 10, 10, [
+                new OcrWord { Text = "Black", Bounds = new OcrBoundingBox(10, 10, 30, 12), Confidence = 0.95 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeColorSampleImage(SKColors.White, SKColors.Black, new SKRect(10, 10, 40, 22)));
+        var result = await converter.ConvertAsync(stream, "black.png", new ImageToPdfConversionOptions());
+
+        var text = Assert.Single(result.Design.Pages[0].Elements, e => e.Type == "text");
+        Assert.Equal("#000000", text.Style!["color"]);
+    }
+
+    [Fact]
+    public async Task ConvertAsync_EstimatesSaturatedTextColorFromOriginalImage()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("Red", 10, 10, [
+                new OcrWord { Text = "Red", Bounds = new OcrBoundingBox(10, 10, 30, 12), Confidence = 0.95 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeColorSampleImage(SKColors.White, SKColors.Red, new SKRect(10, 10, 40, 22)));
+        var result = await converter.ConvertAsync(stream, "red.png", new ImageToPdfConversionOptions());
+
+        var text = Assert.Single(result.Design.Pages[0].Elements, e => e.Type == "text");
+        Assert.Equal("#FF0000", text.Style!["color"]);
+    }
+
+    [Fact]
+    public async Task ConvertAsync_UsesFallbackTextColorWhenOnlyBackgroundIsSampled()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("Background", 10, 10, [
+                new OcrWord { Text = "Background", Bounds = new OcrBoundingBox(10, 10, 70, 12), Confidence = 0.95 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeColorSampleImage(SKColors.White, SKColors.White, new SKRect(10, 10, 80, 22)));
+        var result = await converter.ConvertAsync(stream, "background.png", new ImageToPdfConversionOptions());
+
+        var text = Assert.Single(result.Design.Pages[0].Elements, e => e.Type == "text");
+        Assert.Equal("#111827", text.Style!["color"]);
+    }
+
     private static byte[] MakeImage(int width, int height) =>
         MakeImage(width, height, SKEncodedImageFormat.Png);
 
@@ -514,6 +562,21 @@ public sealed class ImageToPdfConverterTests
 
         using var image = SKImage.FromBitmap(bitmap);
         using var data = image.Encode(format, format == SKEncodedImageFormat.Jpeg ? 90 : 100);
+        return data.ToArray();
+    }
+
+    private static byte[] MakeColorSampleImage(SKColor background, SKColor sample, SKRect sampleRect)
+    {
+        using var bitmap = new SKBitmap(100, 60, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bitmap))
+        {
+            canvas.Clear(background);
+            using var paint = new SKPaint { Color = sample };
+            canvas.DrawRect(sampleRect, paint);
+        }
+
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
         return data.ToArray();
     }
 

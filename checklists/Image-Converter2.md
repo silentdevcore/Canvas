@@ -126,7 +126,7 @@
   - [x] Use horizontal/vertical rule detection for table boundaries.
 - [x] Emit recognized text as Canvas `text` elements.
 - [x] Estimate font size from OCR word/line box height.
-- [ ] Estimate text color from the original image near the OCR bounds.
+- [x] Estimate text color from the original image near the OCR bounds.
 - [x] Use standard fallback fonts unless reliable font recognition is added later.
 - [x] Add the original image as an optional locked background `image` element.
 - [ ] Reuse shape detection only where it is stable enough to improve editability.

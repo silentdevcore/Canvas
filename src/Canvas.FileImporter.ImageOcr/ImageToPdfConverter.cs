@@ -179,7 +179,7 @@ public sealed class ImageToPdfConverter
         }
 
         foreach (var table in tableCandidates)
-            elements.Add(BuildTableElement(table, placement));
+            elements.Add(BuildTableElement(table, placement, bitmap));
 
         foreach (var line in lines)
         {
@@ -191,6 +191,7 @@ public sealed class ImageToPdfConverter
             var width = Math.Max(1, line.Bounds.Width * placement.Scale);
             var height = Math.Max(1, line.Bounds.Height * placement.Scale);
             var fontSize = Math.Clamp(height * 0.78, 6, 72);
+            var textColor = EstimateTextColor(bitmap, line.Bounds);
 
             elements.Add(new ElementDto
             {
@@ -205,7 +206,7 @@ public sealed class ImageToPdfConverter
                 Style = new Dictionary<string, object>
                 {
                     ["fontSize"] = Math.Round(fontSize, 2),
-                    ["color"] = "#111827",
+                    ["color"] = textColor,
                     ["imageOcrConfidence"] = line.Confidence,
                     ["sourceBoundsPx"] = $"{line.Bounds.X},{line.Bounds.Y},{line.Bounds.Width},{line.Bounds.Height}",
                 },
@@ -239,7 +240,7 @@ public sealed class ImageToPdfConverter
         };
     }
 
-    private static ElementDto BuildTableElement(OcrTableCandidate table, ImagePlacement placement)
+    private static ElementDto BuildTableElement(OcrTableCandidate table, ImagePlacement placement, SKBitmap bitmap)
     {
         var wordBounds = UnionBounds(table.Lines.SelectMany(l => l.Words.Select(w => w.Bounds)));
         var bounds = table.RuleBounds ?? wordBounds;
@@ -261,6 +262,7 @@ public sealed class ImageToPdfConverter
                 .Select(line => line.Words.OrderBy(w => w.Bounds.X).ElementAt(column).Bounds.Width)
                 .Average())
             .ToArray();
+        var textColor = EstimateTextColor(bitmap, UnionBounds(table.Lines.SelectMany(l => l.Words.Select(w => w.Bounds))));
 
         return new ElementDto
         {
@@ -281,7 +283,7 @@ public sealed class ImageToPdfConverter
                 ["rows"] = cellData.Length,
                 ["columns"] = table.ColumnCount,
                 ["fontSize"] = Math.Round(Math.Clamp(table.Lines.Average(l => l.Bounds.Height) * placement.Scale * 0.68, 6, 18), 2),
-                ["color"] = "#111827",
+                ["color"] = textColor,
                 ["borderColor"] = "#9ca3af",
                 ["borderWidth"] = 0.75,
                 ["cellPadding"] = 3,
@@ -374,6 +376,53 @@ public sealed class ImageToPdfConverter
         var right = list.Max(b => b.X + b.Width);
         var bottom = list.Max(b => b.Y + b.Height);
         return new OcrBoundingBox(left, top, Math.Max(1, right - left), Math.Max(1, bottom - top));
+    }
+
+    private static string EstimateTextColor(SKBitmap bitmap, OcrBoundingBox bounds)
+    {
+        var left = Math.Clamp(bounds.X - 1, 0, Math.Max(0, bitmap.Width - 1));
+        var top = Math.Clamp(bounds.Y - 1, 0, Math.Max(0, bitmap.Height - 1));
+        var right = Math.Clamp(bounds.X + bounds.Width + 1, 0, bitmap.Width);
+        var bottom = Math.Clamp(bounds.Y + bounds.Height + 1, 0, bitmap.Height);
+        if (right <= left || bottom <= top)
+            return "#111827";
+
+        var samples = new List<SKColor>();
+        for (var y = top; y < bottom; y++)
+        {
+            for (var x = left; x < right; x++)
+            {
+                var color = bitmap.GetPixel(x, y);
+                if (IsLikelyTextPixel(color))
+                    samples.Add(color);
+            }
+        }
+
+        if (samples.Count < 3)
+            return "#111827";
+
+        var red = Median(samples.Select(c => c.Red));
+        var green = Median(samples.Select(c => c.Green));
+        var blue = Median(samples.Select(c => c.Blue));
+        return $"#{red:X2}{green:X2}{blue:X2}";
+    }
+
+    private static bool IsLikelyTextPixel(SKColor color)
+    {
+        if (color.Alpha < 180)
+            return false;
+
+        var luma = 0.299 * color.Red + 0.587 * color.Green + 0.114 * color.Blue;
+        var saturation = (Math.Max(color.Red, Math.Max(color.Green, color.Blue)) -
+                          Math.Min(color.Red, Math.Min(color.Green, color.Blue))) / 255.0;
+
+        return luma < 130 || (luma < 210 && saturation > 0.35);
+    }
+
+    private static byte Median(IEnumerable<byte> values)
+    {
+        var sorted = values.Order().ToArray();
+        return sorted[sorted.Length / 2];
     }
 
     private static bool HasLikelyHeaderRow(string[][] cellData)
