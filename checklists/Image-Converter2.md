@@ -129,7 +129,7 @@
 - [x] Estimate text color from the original image near the OCR bounds.
 - [x] Use standard fallback fonts unless reliable font recognition is added later.
 - [x] Add the original image as an optional locked background `image` element.
-- [ ] Reuse shape detection only where it is stable enough to improve editability.
+- [x] Reuse shape detection only where it is stable enough to improve editability.
 - [x] Do not reuse the current custom glyph recognizer as the main OCR strategy.
 
 ## PDF Generation

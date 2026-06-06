@@ -156,6 +156,15 @@ public sealed class ImageToPdfConverter
         var tableLines = tableCandidates
             .SelectMany(t => t.Lines)
             .ToHashSet();
+        var tableRuleBounds = tableCandidates
+            .Select(t => t.RuleBounds)
+            .Where(b => b is not null)
+            .Cast<OcrBoundingBox>()
+            .ToList();
+        var shapeSegments = ShouldDetectShapes(options)
+            ? ruleSegments.Where(s => !IsSegmentInsideAnyBounds(s, tableRuleBounds)).ToList()
+            : [];
+        var shapeCandidates = DetectShapes(shapeSegments);
 
         if (options.IncludeBackgroundImage)
         {
@@ -180,6 +189,9 @@ public sealed class ImageToPdfConverter
 
         foreach (var table in tableCandidates)
             elements.Add(BuildTableElement(table, placement, bitmap));
+
+        foreach (var shape in shapeCandidates)
+            elements.Add(BuildShapeElement(shape, placement));
 
         foreach (var line in lines)
         {
@@ -236,6 +248,57 @@ public sealed class ImageToPdfConverter
                     Title = name,
                     Subject = "Converted with Canvas Image OCR Converter",
                 },
+            },
+        };
+    }
+
+    private static ElementDto BuildShapeElement(OcrShapeCandidate shape, ImagePlacement placement)
+    {
+        var x = placement.X + shape.Bounds.X * placement.Scale;
+        var y = placement.Y + shape.Bounds.Y * placement.Scale;
+        var width = Math.Max(1, shape.Bounds.Width * placement.Scale);
+        var height = Math.Max(1, shape.Bounds.Height * placement.Scale);
+        var strokeWidth = Math.Max(0.75, Math.Min(width, height));
+
+        if (shape.Kind == OcrShapeKind.Rectangle)
+        {
+            return new ElementDto
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Type = "rect",
+                Name = "OCR rectangle",
+                X = Math.Round(x, 2),
+                Y = Math.Round(y, 2),
+                Width = Math.Round(width, 2),
+                Height = Math.Round(height, 2),
+                Style = new Dictionary<string, object>
+                {
+                    ["backgroundColor"] = "transparent",
+                    ["borderColor"] = "#111827",
+                    ["borderWidth"] = 0.75,
+                    ["imageOcrRole"] = "shape",
+                    ["imageOcrShapeKind"] = "rectangle",
+                    ["sourceBoundsPx"] = $"{shape.Bounds.X},{shape.Bounds.Y},{shape.Bounds.Width},{shape.Bounds.Height}",
+                },
+            };
+        }
+
+        return new ElementDto
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Type = "line",
+            Name = "OCR line",
+            X = Math.Round(x, 2),
+            Y = Math.Round(y, 2),
+            Width = Math.Round(width, 2),
+            Height = Math.Round(height, 2),
+            Style = new Dictionary<string, object>
+            {
+                ["color"] = "#111827",
+                ["strokeWidth"] = Math.Round(strokeWidth, 2),
+                ["imageOcrRole"] = "shape",
+                ["imageOcrShapeKind"] = shape.Kind == OcrShapeKind.HorizontalLine ? "horizontal-line" : "vertical-line",
+                ["sourceBoundsPx"] = $"{shape.Bounds.X},{shape.Bounds.Y},{shape.Bounds.Width},{shape.Bounds.Height}",
             },
         };
     }
@@ -339,6 +402,122 @@ public sealed class ImageToPdfConverter
         }
 
         return result;
+    }
+
+    private static bool ShouldDetectShapes(ImageToPdfConversionOptions options) =>
+        string.Equals(options.LayoutMode, "structured", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(options.LayoutMode, "shapes", StringComparison.OrdinalIgnoreCase);
+
+    private static IReadOnlyList<OcrShapeCandidate> DetectShapes(IReadOnlyList<RuleSegment> segments)
+    {
+        if (segments.Count == 0)
+            return [];
+
+        var used = new HashSet<RuleSegment>();
+        var rectangles = DetectRectangles(segments, used);
+        var lines = segments
+            .Where(s => !used.Contains(s))
+            .Select(s =>
+            {
+                var bounds = s.Orientation == RuleOrientation.Horizontal
+                    ? new OcrBoundingBox(s.X, s.Y, s.Length, 1)
+                    : new OcrBoundingBox(s.X, s.Y, 1, s.Length);
+                var kind = s.Orientation == RuleOrientation.Horizontal
+                    ? OcrShapeKind.HorizontalLine
+                    : OcrShapeKind.VerticalLine;
+                return new OcrShapeCandidate(kind, bounds);
+            });
+
+        return rectangles.Concat(lines).ToList();
+    }
+
+    private static IReadOnlyList<OcrShapeCandidate> DetectRectangles(
+        IReadOnlyList<RuleSegment> segments,
+        HashSet<RuleSegment> used)
+    {
+        var rectangles = new List<OcrShapeCandidate>();
+        var horizontal = segments
+            .Where(s => s.Orientation == RuleOrientation.Horizontal)
+            .OrderBy(s => s.Y)
+            .ThenBy(s => s.X)
+            .ToList();
+        var vertical = segments
+            .Where(s => s.Orientation == RuleOrientation.Vertical)
+            .OrderBy(s => s.X)
+            .ThenBy(s => s.Y)
+            .ToList();
+
+        foreach (var top in horizontal)
+        {
+            if (used.Contains(top))
+                continue;
+
+            foreach (var bottom in horizontal.Where(s => s.Y > top.Y + 8))
+            {
+                if (used.Contains(bottom))
+                    continue;
+
+                var leftX = Math.Max(top.X, bottom.X);
+                var rightX = Math.Min(top.X + top.Length, bottom.X + bottom.Length);
+                if (rightX - leftX < 12)
+                    continue;
+
+                foreach (var left in vertical.Where(s => !used.Contains(s) && s.X >= leftX - 1 && s.X <= rightX + 1))
+                {
+                    foreach (var right in vertical.Where(s => !used.Contains(s) && s.X > left.X + 8 && s.X >= leftX - 1 && s.X <= rightX + 1))
+                    {
+                        if (!VerticalCovers(left, top.Y, bottom.Y) ||
+                            !VerticalCovers(right, top.Y, bottom.Y) ||
+                            !HorizontalCovers(top, left.X, right.X) ||
+                            !HorizontalCovers(bottom, left.X, right.X))
+                            continue;
+
+                        var bounds = new OcrBoundingBox(
+                            left.X,
+                            top.Y,
+                            Math.Max(1, right.X - left.X),
+                            Math.Max(1, bottom.Y - top.Y));
+                        rectangles.Add(new OcrShapeCandidate(OcrShapeKind.Rectangle, bounds));
+                        used.Add(top);
+                        used.Add(bottom);
+                        used.Add(left);
+                        used.Add(right);
+                        break;
+                    }
+
+                    if (used.Contains(top))
+                        break;
+                }
+
+                if (used.Contains(top))
+                    break;
+            }
+        }
+
+        return rectangles;
+    }
+
+    private static bool HorizontalCovers(RuleSegment segment, int left, int right) =>
+        segment.X <= left + 1 && segment.X + segment.Length >= right - 1;
+
+    private static bool VerticalCovers(RuleSegment segment, int top, int bottom) =>
+        segment.Y <= top + 1 && segment.Y + segment.Length >= bottom - 1;
+
+    private static bool IsSegmentInsideAnyBounds(RuleSegment segment, IReadOnlyList<OcrBoundingBox> bounds) =>
+        bounds.Any(bound => IsSegmentInsideBounds(segment, bound));
+
+    private static bool IsSegmentInsideBounds(RuleSegment segment, OcrBoundingBox bounds)
+    {
+        const int tolerance = 1;
+        return segment.Orientation == RuleOrientation.Horizontal
+            ? segment.Y >= bounds.Y - tolerance &&
+              segment.Y <= bounds.Y + bounds.Height + tolerance &&
+              segment.X >= bounds.X - tolerance &&
+              segment.X + segment.Length <= bounds.X + bounds.Width + tolerance
+            : segment.X >= bounds.X - tolerance &&
+              segment.X <= bounds.X + bounds.Width + tolerance &&
+              segment.Y >= bounds.Y - tolerance &&
+              segment.Y + segment.Length <= bounds.Y + bounds.Height + tolerance;
     }
 
     private static int CountUsableWords(OcrLine line) =>
@@ -538,6 +717,15 @@ public sealed class ImageToPdfConverter
     }
 
     private sealed record RuleSegment(RuleOrientation Orientation, int X, int Y, int Length);
+
+    private enum OcrShapeKind
+    {
+        HorizontalLine,
+        VerticalLine,
+        Rectangle,
+    }
+
+    private sealed record OcrShapeCandidate(OcrShapeKind Kind, OcrBoundingBox Bounds);
 
     private sealed record OcrTableCandidate(
         IReadOnlyList<OcrLine> Lines,

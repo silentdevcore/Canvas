@@ -500,6 +500,101 @@ public sealed class ImageToPdfConverterTests
     }
 
     [Fact]
+    public async Task ConvertAsync_DetectsIsolatedHorizontalRuleAsLineShape()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([]));
+
+        using var stream = new MemoryStream(MakeShapeImage(canvas =>
+        {
+            using var paint = new SKPaint { Color = SKColors.Black };
+            canvas.DrawRect(20, 30, 120, 1, paint);
+        }));
+        var result = await converter.ConvertAsync(stream, "line.png", new ImageToPdfConversionOptions
+        {
+            SourceDpiX = 100,
+            SourceDpiY = 100,
+        });
+
+        var line = Assert.Single(result.Design.Pages[0].Elements, e => e.Type == "line");
+        Assert.Equal(14.4, line.X, 1);
+        Assert.Equal(21.6, line.Y, 1);
+        Assert.Equal(86.4, line.Width, 1);
+        Assert.Equal("horizontal-line", line.Style!["imageOcrShapeKind"]);
+    }
+
+    [Fact]
+    public async Task ConvertAsync_DetectsIsolatedVerticalRuleAsLineShape()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([]));
+
+        using var stream = new MemoryStream(MakeShapeImage(canvas =>
+        {
+            using var paint = new SKPaint { Color = SKColors.Black };
+            canvas.DrawRect(40, 20, 1, 80, paint);
+        }));
+        var result = await converter.ConvertAsync(stream, "line.png", new ImageToPdfConversionOptions
+        {
+            SourceDpiX = 100,
+            SourceDpiY = 100,
+        });
+
+        var line = Assert.Single(result.Design.Pages[0].Elements, e => e.Type == "line");
+        Assert.Equal(28.8, line.X, 1);
+        Assert.Equal(14.4, line.Y, 1);
+        Assert.Equal(57.6, line.Height, 1);
+        Assert.Equal("vertical-line", line.Style!["imageOcrShapeKind"]);
+    }
+
+    [Fact]
+    public async Task ConvertAsync_DetectsIsolatedClosedBoxAsRectangleShape()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([]));
+
+        using var stream = new MemoryStream(MakeShapeImage(canvas =>
+        {
+            using var paint = new SKPaint { Color = SKColors.Black };
+            canvas.DrawRect(20, 20, 101, 1, paint);
+            canvas.DrawRect(20, 80, 101, 1, paint);
+            canvas.DrawRect(20, 20, 1, 61, paint);
+            canvas.DrawRect(120, 20, 1, 61, paint);
+        }));
+        var result = await converter.ConvertAsync(stream, "box.png", new ImageToPdfConversionOptions
+        {
+            SourceDpiX = 100,
+            SourceDpiY = 100,
+        });
+
+        var rect = Assert.Single(result.Design.Pages[0].Elements, e => e.Type == "rect");
+        Assert.Equal(14.4, rect.X, 1);
+        Assert.Equal(14.4, rect.Y, 1);
+        Assert.Equal(72, rect.Width, 1);
+        Assert.Equal(43.2, rect.Height, 1);
+        Assert.Equal("rectangle", rect.Style!["imageOcrShapeKind"]);
+        Assert.DoesNotContain(result.Design.Pages[0].Elements, e => e.Type == "line");
+    }
+
+    [Fact]
+    public async Task ConvertAsync_DoesNotEmitTableRulesAsDuplicateShapeElements()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("Item Price", 35, 35, [
+                new OcrWord { Text = "Item", Bounds = new OcrBoundingBox(35, 35, 40, 12), Confidence = 0.95 },
+                new OcrWord { Text = "Price", Bounds = new OcrBoundingBox(125, 35, 45, 12), Confidence = 0.95 },
+            ]),
+            MakeOcrLine("Coffee 3.50", 35, 65, [
+                new OcrWord { Text = "Coffee", Bounds = new OcrBoundingBox(35, 65, 54, 12), Confidence = 0.95 },
+                new OcrWord { Text = "3.50", Bounds = new OcrBoundingBox(127, 65, 36, 12), Confidence = 0.95 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeTableGridImage());
+        var result = await converter.ConvertAsync(stream, "grid.png", new ImageToPdfConversionOptions());
+
+        Assert.Single(result.Design.Pages[0].Elements, e => e.Type == "table");
+        Assert.DoesNotContain(result.Design.Pages[0].Elements, e => e.Type is "line" or "rect");
+    }
+
+    [Fact]
     public async Task ConvertAsync_EstimatesBlackTextColorFromOriginalImage()
     {
         var converter = new ImageToPdfConverter(new FakeOcrEngine([
@@ -573,6 +668,20 @@ public sealed class ImageToPdfConverterTests
             canvas.Clear(background);
             using var paint = new SKPaint { Color = sample };
             canvas.DrawRect(sampleRect, paint);
+        }
+
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        return data.ToArray();
+    }
+
+    private static byte[] MakeShapeImage(Action<SKCanvas> draw)
+    {
+        using var bitmap = new SKBitmap(200, 120, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bitmap))
+        {
+            canvas.Clear(SKColors.White);
+            draw(canvas);
         }
 
         using var image = SKImage.FromBitmap(bitmap);
