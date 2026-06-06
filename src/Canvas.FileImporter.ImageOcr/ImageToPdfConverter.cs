@@ -193,37 +193,9 @@ public sealed class ImageToPdfConverter
         foreach (var shape in shapeCandidates)
             elements.Add(BuildShapeElement(shape, placement));
 
-        foreach (var line in lines)
-        {
-            if (tableLines.Contains(line))
-                continue;
-
-            var x = placement.X + line.Bounds.X * placement.Scale;
-            var y = placement.Y + line.Bounds.Y * placement.Scale;
-            var width = Math.Max(1, line.Bounds.Width * placement.Scale);
-            var height = Math.Max(1, line.Bounds.Height * placement.Scale);
-            var fontSize = Math.Clamp(height * 0.78, 6, 72);
-            var textColor = EstimateTextColor(bitmap, line.Bounds);
-
-            elements.Add(new ElementDto
-            {
-                Id = Guid.NewGuid().ToString("N"),
-                Type = "text",
-                Name = "OCR text",
-                X = Math.Round(x, 2),
-                Y = Math.Round(y, 2),
-                Width = Math.Round(width, 2),
-                Height = Math.Round(height, 2),
-                Content = line.Text,
-                Style = new Dictionary<string, object>
-                {
-                    ["fontSize"] = Math.Round(fontSize, 2),
-                    ["color"] = textColor,
-                    ["imageOcrConfidence"] = line.Confidence,
-                    ["sourceBoundsPx"] = $"{line.Bounds.X},{line.Bounds.Y},{line.Bounds.Width},{line.Bounds.Height}",
-                },
-            });
-        }
+        var textGroups = BuildTextGroups(lines.Where(l => !tableLines.Contains(l)).ToList(), options);
+        foreach (var textGroup in textGroups)
+            elements.AddRange(BuildTextElements(textGroup, placement, bitmap));
 
         return new DesignExportDto
         {
@@ -250,6 +222,234 @@ public sealed class ImageToPdfConverter
                 },
             },
         };
+    }
+
+    private static IReadOnlyList<ElementDto> BuildTextElements(OcrTextGroup textGroup, ImagePlacement placement, SKBitmap bitmap)
+    {
+        var runs = BuildTextRuns(textGroup, placement, bitmap);
+        if (runs.Count <= 1)
+            return [BuildTextElement(textGroup, placement, bitmap)];
+
+        return runs.Select(run => BuildTextRunElement(run, textGroup)).ToList();
+    }
+
+    private static ElementDto BuildTextElement(OcrTextGroup textGroup, ImagePlacement placement, SKBitmap bitmap)
+    {
+        var bounds = UnionBounds(textGroup.Lines.Select(l => l.Bounds));
+        var x = placement.X + bounds.X * placement.Scale;
+        var y = placement.Y + bounds.Y * placement.Scale;
+        var width = Math.Max(1, bounds.Width * placement.Scale);
+        var height = Math.Max(1, bounds.Height * placement.Scale);
+        var averageLineHeight = textGroup.Lines.Average(l => l.Bounds.Height) * placement.Scale;
+        var fontSize = Math.Clamp(averageLineHeight * 0.78, 6, 72);
+        var textColor = EstimateTextColor(bitmap, bounds);
+        var role = ToTextRoleName(textGroup.Role);
+        var fontWeight = textGroup.Role == OcrTextRole.Heading ? "700" : "normal";
+
+        return new ElementDto
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Type = "text",
+            Name = textGroup.Role == OcrTextRole.Heading
+                ? "OCR heading"
+                : textGroup.Lines.Count > 1 ? "OCR paragraph" : "OCR text",
+            X = Math.Round(x, 2),
+            Y = Math.Round(y, 2),
+            Width = Math.Round(width, 2),
+            Height = Math.Round(height, 2),
+            Content = string.Join("\n", textGroup.Lines.Select(l => l.Text)),
+            Style = new Dictionary<string, object>
+            {
+                ["fontSize"] = Math.Round(fontSize, 2),
+                ["lineHeight"] = 1.2,
+                ["color"] = textColor,
+                ["fontWeight"] = fontWeight,
+                ["imageOcrConfidence"] = Math.Round(textGroup.Lines.Average(l => l.Confidence), 4),
+                ["imageOcrRole"] = textGroup.Lines.Count > 1 ? "paragraph" : "text",
+                ["imageOcrTextRole"] = role,
+                ["sourceLineCount"] = textGroup.Lines.Count,
+                ["sourceColumnIndex"] = textGroup.ColumnIndex,
+                ["sourceColumnCount"] = textGroup.ColumnCount,
+                ["sourceBoundsPx"] = $"{bounds.X},{bounds.Y},{bounds.Width},{bounds.Height}",
+            },
+        };
+    }
+
+    private static ElementDto BuildTextRunElement(OcrTextRun run, OcrTextGroup textGroup)
+    {
+        var role = ToTextRoleName(textGroup.Role);
+        var fontWeight = textGroup.Role == OcrTextRole.Heading ? "700" : "normal";
+
+        return new ElementDto
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Type = "text",
+            Name = "OCR text run",
+            X = Math.Round(run.X, 2),
+            Y = Math.Round(run.Y, 2),
+            Width = Math.Round(run.Width, 2),
+            Height = Math.Round(run.Height, 2),
+            Content = run.Text,
+            Style = new Dictionary<string, object>
+            {
+                ["fontSize"] = Math.Round(run.FontSize, 2),
+                ["lineHeight"] = 1.2,
+                ["color"] = run.Color,
+                ["fontWeight"] = fontWeight,
+                ["imageOcrConfidence"] = Math.Round(run.Confidence, 4),
+                ["imageOcrRole"] = "text-run",
+                ["imageOcrTextRole"] = role,
+                ["imageOcrRunSplit"] = true,
+                ["sourceLineCount"] = 1,
+                ["sourceColumnIndex"] = textGroup.ColumnIndex,
+                ["sourceColumnCount"] = textGroup.ColumnCount,
+                ["sourceBoundsPx"] = $"{run.SourceBounds.X},{run.SourceBounds.Y},{run.SourceBounds.Width},{run.SourceBounds.Height}",
+            },
+        };
+    }
+
+    private static IReadOnlyList<OcrTextRun> BuildTextRuns(
+        OcrTextGroup textGroup,
+        ImagePlacement placement,
+        SKBitmap bitmap)
+    {
+        var allRuns = new List<OcrTextRun>();
+        var anyLineSplit = false;
+
+        foreach (var line in textGroup.Lines)
+        {
+            var words = line.Words
+                .Where(w => !string.IsNullOrWhiteSpace(w.Text))
+                .OrderBy(w => w.Bounds.X)
+                .ToList();
+            if (words.Count == 0)
+                continue;
+            if (words.Count == 1)
+            {
+                allRuns.Add(BuildTextRun(line, words, placement, bitmap));
+                continue;
+            }
+
+            var lineRuns = BuildLineTextRuns(line, words, placement, bitmap);
+            if (lineRuns.Count > 1)
+                anyLineSplit = true;
+            allRuns.AddRange(lineRuns);
+        }
+
+        return anyLineSplit ? allRuns : [];
+    }
+
+    private static IReadOnlyList<OcrTextRun> BuildLineTextRuns(
+        OcrLine line,
+        IReadOnlyList<OcrWord> words,
+        ImagePlacement placement,
+        SKBitmap bitmap)
+    {
+        var runs = new List<List<OcrWord>>();
+        var current = new List<OcrWord> { words[0] };
+        var currentColor = EstimateTextColor(bitmap, words[0].Bounds);
+        var currentHeight = (double)Math.Max(1, words[0].Bounds.Height);
+
+        for (var i = 1; i < words.Count; i++)
+        {
+            var word = words[i];
+            var wordColor = EstimateTextColor(bitmap, word.Bounds);
+            var wordHeight = Math.Max(1, word.Bounds.Height);
+
+            if (IsDifferentTextRun(currentColor, currentHeight, wordColor, wordHeight))
+            {
+                runs.Add(current);
+                current = [word];
+                currentColor = wordColor;
+                currentHeight = wordHeight;
+                continue;
+            }
+
+            current.Add(word);
+            currentColor = EstimateRunColor(current.Select(w => EstimateTextColor(bitmap, w.Bounds)));
+            currentHeight = current.Average(w => Math.Max(1, w.Bounds.Height));
+        }
+
+        runs.Add(current);
+        return runs.Select(runWords => BuildTextRun(line, runWords, placement, bitmap)).ToList();
+    }
+
+    private static OcrTextRun BuildTextRun(
+        OcrLine line,
+        IReadOnlyList<OcrWord> words,
+        ImagePlacement placement,
+        SKBitmap bitmap)
+    {
+        var bounds = UnionBounds(words.Select(w => w.Bounds));
+        var x = placement.X + bounds.X * placement.Scale;
+        var y = placement.Y + bounds.Y * placement.Scale;
+        var width = Math.Max(1, bounds.Width * placement.Scale);
+        var height = Math.Max(1, bounds.Height * placement.Scale);
+        var averageWordHeight = words.Average(w => Math.Max(1, w.Bounds.Height)) * placement.Scale;
+        var fontSize = Math.Clamp(averageWordHeight * 0.78, 6, 72);
+        var color = EstimateRunColor(words.Select(w => EstimateTextColor(bitmap, w.Bounds)));
+        var text = RebuildRunText(line, words);
+
+        return new OcrTextRun(
+            text,
+            x,
+            y,
+            width,
+            height,
+            fontSize,
+            color,
+            words.Average(w => w.Confidence),
+            bounds);
+    }
+
+    private static string RebuildRunText(OcrLine line, IReadOnlyList<OcrWord> words)
+    {
+        if (words.Count == line.Words.Count)
+            return line.Text;
+
+        return string.Join(" ", words.Select(w => w.Text));
+    }
+
+    private static bool IsDifferentTextRun(string currentColor, double currentHeight, string wordColor, double wordHeight)
+    {
+        var heightRatio = Math.Min(currentHeight, wordHeight) / Math.Max(currentHeight, wordHeight);
+        if (heightRatio < 0.80)
+            return true;
+
+        return ColorDistance(currentColor, wordColor) >= 90;
+    }
+
+    private static string EstimateRunColor(IEnumerable<string> colors)
+    {
+        var grouped = colors
+            .GroupBy(c => c)
+            .OrderByDescending(g => g.Count())
+            .ThenBy(g => g.Key, StringComparer.Ordinal)
+            .FirstOrDefault();
+        return grouped?.Key ?? "#111827";
+    }
+
+    private static int ColorDistance(string a, string b)
+    {
+        if (!TryParseHexColor(a, out var ar, out var ag, out var ab) ||
+            !TryParseHexColor(b, out var br, out var bg, out var bb))
+            return 0;
+
+        return Math.Abs(ar - br) + Math.Abs(ag - bg) + Math.Abs(ab - bb);
+    }
+
+    private static bool TryParseHexColor(string value, out int red, out int green, out int blue)
+    {
+        red = 0;
+        green = 0;
+        blue = 0;
+        if (value.Length != 7 || value[0] != '#')
+            return false;
+
+        red = Convert.ToInt32(value[1..3], 16);
+        green = Convert.ToInt32(value[3..5], 16);
+        blue = Convert.ToInt32(value[5..7], 16);
+        return true;
     }
 
     private static ElementDto BuildShapeElement(OcrShapeCandidate shape, ImagePlacement placement)
@@ -314,17 +514,8 @@ public sealed class ImageToPdfConverter
         var width = (bounds.Width + (useRuleBounds ? 0 : paddingPx * 2)) * placement.Scale;
         var height = (bounds.Height + (useRuleBounds ? 0 : paddingPx * 2)) * placement.Scale;
 
-        var cellData = table.Lines
-            .Select(line => line.Words
-                .OrderBy(w => w.Bounds.X)
-                .Select(w => w.Text)
-                .ToArray())
-            .ToArray();
-        var columnWidths = Enumerable.Range(0, table.ColumnCount)
-            .Select(column => table.Lines
-                .Select(line => line.Words.OrderBy(w => w.Bounds.X).ElementAt(column).Bounds.Width)
-                .Average())
-            .ToArray();
+        var cellData = BuildTableCellData(table);
+        var columnWidths = BuildTableColumnWidths(table);
         var textColor = EstimateTextColor(bitmap, UnionBounds(table.Lines.SelectMany(l => l.Words.Select(w => w.Bounds))));
 
         return new ElementDto
@@ -344,7 +535,7 @@ public sealed class ImageToPdfConverter
             Style = new Dictionary<string, object>
             {
                 ["rows"] = cellData.Length,
-                ["columns"] = table.ColumnCount,
+                ["columns"] = table.ColumnAnchors.Count,
                 ["fontSize"] = Math.Round(Math.Clamp(table.Lines.Average(l => l.Bounds.Height) * placement.Scale * 0.68, 6, 18), 2),
                 ["color"] = textColor,
                 ["borderColor"] = "#9ca3af",
@@ -355,6 +546,165 @@ public sealed class ImageToPdfConverter
                 ["sourceBoundsPx"] = $"{bounds.X},{bounds.Y},{bounds.Width},{bounds.Height}",
             },
         };
+    }
+
+    private static IReadOnlyList<OcrTextGroup> BuildTextGroups(
+        IReadOnlyList<OcrLine> lines,
+        ImageToPdfConversionOptions options)
+    {
+        if (lines.Count == 0)
+            return [];
+
+        var ordered = lines
+            .OrderBy(l => l.Bounds.Y)
+            .ThenBy(l => l.Bounds.X)
+            .ToList();
+        var typicalLineHeight = EstimateTypicalLineHeight(ordered);
+        var roles = ordered.ToDictionary(l => l, l => ClassifyTextRole(l, typicalLineHeight));
+
+        if (!ShouldGroupParagraphs(options))
+            return ordered.Select(l => new OcrTextGroup([l], roles[l], 0, 1)).ToList();
+
+        var groups = new List<OcrTextGroup>();
+        foreach (var column in DetectTextColumns(ordered))
+            groups.AddRange(GroupParagraphLines(column.Lines, roles, column.Index, column.Count));
+
+        return groups;
+    }
+
+    private static IReadOnlyList<OcrTextGroup> GroupParagraphLines(
+        IReadOnlyList<OcrLine> lines,
+        IReadOnlyDictionary<OcrLine, OcrTextRole> roles,
+        int columnIndex,
+        int columnCount)
+    {
+        var groups = new List<OcrTextGroup>();
+        var current = new List<OcrLine> { lines[0] };
+        for (var i = 1; i < lines.Count; i++)
+        {
+            var previous = current[^1];
+            var line = lines[i];
+            if (roles[previous] == roles[line] && CanJoinParagraphLine(previous, line))
+            {
+                current.Add(line);
+                continue;
+            }
+
+            groups.Add(new OcrTextGroup(current.ToList(), roles[current[0]], columnIndex, columnCount));
+            current = [line];
+        }
+
+        groups.Add(new OcrTextGroup(current.ToList(), roles[current[0]], columnIndex, columnCount));
+        return groups;
+    }
+
+    private static double EstimateTypicalLineHeight(IReadOnlyList<OcrLine> lines)
+    {
+        var heights = lines
+            .Where(l => CountUsableWords(l) > 0)
+            .Select(l => Math.Max(1, l.Words.Count > 0 ? l.Words.Average(w => w.Bounds.Height) : l.Bounds.Height))
+            .Order()
+            .ToArray();
+        if (heights.Length == 0)
+            return 1;
+
+        return heights[(heights.Length - 1) / 2];
+    }
+
+    private static OcrTextRole ClassifyTextRole(OcrLine line, double typicalLineHeight)
+    {
+        var lineHeight = Math.Max(1, line.Words.Count > 0 ? line.Words.Average(w => w.Bounds.Height) : line.Bounds.Height);
+        var wordCount = CountUsableWords(line);
+        if (typicalLineHeight > 0 && lineHeight >= typicalLineHeight * 1.35 && wordCount <= 10)
+            return OcrTextRole.Heading;
+        if (typicalLineHeight > 0 && lineHeight <= typicalLineHeight * 0.78)
+            return OcrTextRole.Caption;
+
+        return OcrTextRole.Body;
+    }
+
+    private static string ToTextRoleName(OcrTextRole role) =>
+        role switch
+        {
+            OcrTextRole.Heading => "heading",
+            OcrTextRole.Caption => "caption",
+            _ => "body",
+        };
+
+    private static IReadOnlyList<OcrTextColumn> DetectTextColumns(IReadOnlyList<OcrLine> lines)
+    {
+        if (lines.Count < 4)
+            return [new OcrTextColumn(lines, 0, 1)];
+
+        var averageHeight = lines.Average(l => Math.Max(1, l.Bounds.Height));
+        var tolerance = Math.Max(12, averageHeight * 1.5);
+        var clusters = new List<List<OcrLine>>();
+
+        foreach (var line in lines.OrderBy(l => l.Bounds.X).ThenBy(l => l.Bounds.Y))
+        {
+            var match = clusters
+                .Select((cluster, index) => new
+                {
+                    Cluster = cluster,
+                    Index = index,
+                    Distance = Math.Abs(cluster.Average(l => l.Bounds.X) - line.Bounds.X),
+                })
+                .Where(x => x.Distance <= tolerance)
+                .OrderBy(x => x.Distance)
+                .FirstOrDefault();
+
+            if (match is null)
+                clusters.Add([line]);
+            else
+                clusters[match.Index].Add(line);
+        }
+
+        if (clusters.Count < 2 || clusters.Any(c => c.Count < 2))
+            return [new OcrTextColumn(lines, 0, 1)];
+
+        var sorted = clusters
+            .Select(c => c.OrderBy(l => l.Bounds.Y).ThenBy(l => l.Bounds.X).ToList())
+            .OrderBy(c => c.Min(l => l.Bounds.X))
+            .ToList();
+        for (var i = 1; i < sorted.Count; i++)
+        {
+            var previousRight = sorted[i - 1].Max(l => l.Bounds.X + l.Bounds.Width);
+            var currentLeft = sorted[i].Min(l => l.Bounds.X);
+            if (currentLeft - previousRight < Math.Max(24, averageHeight * 3))
+                return [new OcrTextColumn(lines, 0, 1)];
+        }
+
+        return sorted
+            .Select((columnLines, index) => new OcrTextColumn(columnLines, index, sorted.Count))
+            .ToList();
+    }
+
+    private static bool ShouldGroupParagraphs(ImageToPdfConversionOptions options) =>
+        string.Equals(options.LayoutMode, "structured", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(options.LayoutMode, "paragraphs", StringComparison.OrdinalIgnoreCase);
+
+    private static bool CanJoinParagraphLine(OcrLine previous, OcrLine current)
+    {
+        if (CountUsableWords(previous) == 0 || CountUsableWords(current) == 0)
+            return false;
+
+        var previousHeight = Math.Max(1, previous.Bounds.Height);
+        var currentHeight = Math.Max(1, current.Bounds.Height);
+        var averageHeight = (previousHeight + currentHeight) / 2.0;
+        var heightSimilarity = Math.Min(previousHeight, currentHeight) / (double)Math.Max(previousHeight, currentHeight);
+        if (heightSimilarity < 0.65)
+            return false;
+
+        var verticalGap = current.Bounds.Y - (previous.Bounds.Y + previous.Bounds.Height);
+        if (verticalGap < 0 || verticalGap > Math.Max(8, averageHeight * 0.9))
+            return false;
+
+        var leftDelta = Math.Abs(current.Bounds.X - previous.Bounds.X);
+        if (leftDelta > Math.Max(8, averageHeight * 0.8))
+            return false;
+
+        var widthRatio = Math.Min(previous.Bounds.Width, current.Bounds.Width) / (double)Math.Max(previous.Bounds.Width, current.Bounds.Width);
+        return widthRatio >= 0.35;
     }
 
     private static IReadOnlyList<OcrTableCandidate> DetectTables(
@@ -383,16 +733,17 @@ public sealed class ImageToPdfConverter
             var next = index + 1;
 
             while (next < lines.Count &&
-                   CountUsableWords(lines[next]) == columnCount &&
-                   HasSimilarColumns(anchors, GetWordAnchors(lines[next]), tolerance))
+                   TryMergeTableAnchors(anchors, GetWordAnchors(lines[next]), tolerance, out var mergedAnchors))
             {
                 group.Add(lines[next]);
+                anchors = mergedAnchors;
+                columnCount = anchors.Length;
                 next++;
             }
 
             if (group.Count >= 2)
             {
-                result.Add(new OcrTableCandidate(group, columnCount, null));
+                result.Add(new OcrTableCandidate(group, anchors, null));
                 index = next;
             }
             else
@@ -402,6 +753,63 @@ public sealed class ImageToPdfConverter
         }
 
         return result;
+    }
+
+    private static string[][] BuildTableCellData(OcrTableCandidate table)
+    {
+        var tolerance = EstimateTableColumnTolerance(table);
+        return table.Lines
+            .Select(line =>
+            {
+                var cells = Enumerable.Repeat(string.Empty, table.ColumnAnchors.Count).ToArray();
+                foreach (var word in line.Words.Where(w => !string.IsNullOrWhiteSpace(w.Text)).OrderBy(w => w.Bounds.X))
+                {
+                    var column = FindNearestColumn(word.Bounds.X + word.Bounds.Width / 2.0, table.ColumnAnchors, tolerance);
+                    if (column < 0)
+                        continue;
+
+                    cells[column] = string.IsNullOrWhiteSpace(cells[column])
+                        ? word.Text
+                        : $"{cells[column]} {word.Text}";
+                }
+
+                return cells;
+            })
+            .ToArray();
+    }
+
+    private static double[] BuildTableColumnWidths(OcrTableCandidate table)
+    {
+        var widths = new double[table.ColumnAnchors.Count];
+        for (var column = 0; column < widths.Length; column++)
+        {
+            var wordWidths = table.Lines
+                .SelectMany(line => line.Words)
+                .Where(w => !string.IsNullOrWhiteSpace(w.Text))
+                .Where(w => FindNearestColumn(w.Bounds.X + w.Bounds.Width / 2.0, table.ColumnAnchors, EstimateTableColumnTolerance(table)) == column)
+                .Select(w => (double)w.Bounds.Width)
+                .ToArray();
+
+            if (wordWidths.Length > 0)
+                widths[column] = wordWidths.Average();
+            else if (column < table.ColumnAnchors.Count - 1)
+                widths[column] = Math.Max(1, table.ColumnAnchors[column + 1] - table.ColumnAnchors[column]);
+            else if (column > 0)
+                widths[column] = Math.Max(1, table.ColumnAnchors[column] - table.ColumnAnchors[column - 1]);
+            else
+                widths[column] = 1;
+        }
+
+        return widths;
+    }
+
+    private static double EstimateTableColumnTolerance(OcrTableCandidate table)
+    {
+        var lineHeight = table.Lines.Average(l => Math.Max(1, l.Bounds.Height));
+        var anchorGap = table.ColumnAnchors.Count < 2
+            ? lineHeight * 2
+            : table.ColumnAnchors.Zip(table.ColumnAnchors.Skip(1), (a, b) => b - a).Min();
+        return Math.Max(12, Math.Min(anchorGap * 0.45, lineHeight * 2.25));
     }
 
     private static bool ShouldDetectShapes(ImageToPdfConversionOptions options) =>
@@ -530,18 +938,57 @@ public sealed class ImageToPdfConverter
             .Select(w => w.Bounds.X + w.Bounds.Width / 2.0)
             .ToArray();
 
-    private static bool HasSimilarColumns(double[] expected, double[] actual, double tolerance)
+    private static bool TryMergeTableAnchors(
+        double[] expected,
+        double[] actual,
+        double tolerance,
+        out double[] merged)
     {
-        if (expected.Length != actual.Length)
+        merged = expected;
+        if (expected.Length < 2 || actual.Length == 0 || actual.Length > expected.Length + 1)
             return false;
 
-        for (var i = 0; i < expected.Length; i++)
+        if (actual.Length >= 2 && expected.Length == actual.Length)
         {
-            if (Math.Abs(expected[i] - actual[i]) > tolerance)
+            var directMatches = expected
+                .Zip(actual, (e, a) => Math.Abs(e - a) <= tolerance)
+                .Count(matches => matches);
+            if (directMatches == expected.Length)
+            {
+                merged = expected.Zip(actual, (e, a) => (e + a) / 2.0).ToArray();
+                return true;
+            }
+        }
+
+        var assignments = new HashSet<int>();
+        foreach (var anchor in actual)
+        {
+            var column = FindNearestColumn(anchor, expected, tolerance);
+            if (column < 0 || !assignments.Add(column))
                 return false;
         }
 
+        if (assignments.Count < Math.Min(2, expected.Length))
+            return false;
+
         return true;
+    }
+
+    private static int FindNearestColumn(double anchor, IReadOnlyList<double> columns, double tolerance)
+    {
+        var bestIndex = -1;
+        var bestDistance = double.MaxValue;
+        for (var i = 0; i < columns.Count; i++)
+        {
+            var distance = Math.Abs(columns[i] - anchor);
+            if (distance < bestDistance)
+            {
+                bestIndex = i;
+                bestDistance = distance;
+            }
+        }
+
+        return bestDistance <= tolerance ? bestIndex : -1;
     }
 
     private static OcrBoundingBox UnionBounds(IEnumerable<OcrBoundingBox> boxes)
@@ -638,22 +1085,70 @@ public sealed class ImageToPdfConverter
                         s.X <= wordBounds.X + wordBounds.Width + margin)
             .ToList();
 
-        if (horizontal.Count < 2 || vertical.Count < 2)
+        if (horizontal.Count < 2)
             return null;
 
-        var left = vertical.Min(s => s.X);
-        var right = vertical.Max(s => s.X);
         var top = horizontal.Min(s => s.Y);
         var bottom = horizontal.Max(s => s.Y);
+        var horizontalLeft = horizontal.Min(s => s.X);
+        var horizontalRight = horizontal.Max(s => s.X + s.Length);
+        var left = vertical.Count >= 2 ? vertical.Min(s => s.X) : horizontalLeft;
+        var right = vertical.Count >= 2 ? vertical.Max(s => s.X) : horizontalRight;
         if (right <= left || bottom <= top)
             return null;
 
-        if (wordBounds.X < left || wordBounds.Y < top ||
-            wordBounds.X + wordBounds.Width > right ||
-            wordBounds.Y + wordBounds.Height > bottom)
+        if (wordBounds.X < left - 1 || wordBounds.Y < top - 1 ||
+            wordBounds.X + wordBounds.Width > right + 1 ||
+            wordBounds.Y + wordBounds.Height > bottom + 1)
+            return null;
+
+        if (!HasEnoughHorizontalTableCoverage(horizontal, left, right, top, bottom))
             return null;
 
         return new OcrBoundingBox(left, top, Math.Max(1, right - left), Math.Max(1, bottom - top));
+    }
+
+    private static bool HasEnoughHorizontalTableCoverage(
+        IReadOnlyList<RuleSegment> horizontal,
+        int left,
+        int right,
+        int top,
+        int bottom)
+    {
+        var requiredWidth = Math.Max(1, right - left);
+        var topCoverage = MeasureHorizontalCoverage(horizontal.Where(s => Math.Abs(s.Y - top) <= 1), left, right);
+        var bottomCoverage = MeasureHorizontalCoverage(horizontal.Where(s => Math.Abs(s.Y - bottom) <= 1), left, right);
+        return topCoverage >= requiredWidth * 0.55 && bottomCoverage >= requiredWidth * 0.55;
+    }
+
+    private static int MeasureHorizontalCoverage(IEnumerable<RuleSegment> segments, int left, int right)
+    {
+        var intervals = segments
+            .Select(s => (Start: Math.Max(left, s.X), End: Math.Min(right, s.X + s.Length)))
+            .Where(i => i.End > i.Start)
+            .OrderBy(i => i.Start)
+            .ToList();
+        if (intervals.Count == 0)
+            return 0;
+
+        var coverage = 0;
+        var currentStart = intervals[0].Start;
+        var currentEnd = intervals[0].End;
+        foreach (var interval in intervals.Skip(1))
+        {
+            if (interval.Start <= currentEnd + 2)
+            {
+                currentEnd = Math.Max(currentEnd, interval.End);
+                continue;
+            }
+
+            coverage += currentEnd - currentStart;
+            currentStart = interval.Start;
+            currentEnd = interval.End;
+        }
+
+        coverage += currentEnd - currentStart;
+        return coverage;
     }
 
     private static IReadOnlyList<RuleSegment> DetectRuleSegments(SKBitmap bitmap)
@@ -727,9 +1222,35 @@ public sealed class ImageToPdfConverter
 
     private sealed record OcrShapeCandidate(OcrShapeKind Kind, OcrBoundingBox Bounds);
 
+    private enum OcrTextRole
+    {
+        Body,
+        Heading,
+        Caption,
+    }
+
+    private sealed record OcrTextGroup(
+        IReadOnlyList<OcrLine> Lines,
+        OcrTextRole Role,
+        int ColumnIndex,
+        int ColumnCount);
+
+    private sealed record OcrTextColumn(IReadOnlyList<OcrLine> Lines, int Index, int Count);
+
+    private sealed record OcrTextRun(
+        string Text,
+        double X,
+        double Y,
+        double Width,
+        double Height,
+        double FontSize,
+        string Color,
+        double Confidence,
+        OcrBoundingBox SourceBounds);
+
     private sealed record OcrTableCandidate(
         IReadOnlyList<OcrLine> Lines,
-        int ColumnCount,
+        IReadOnlyList<double> ColumnAnchors,
         OcrBoundingBox? RuleBounds);
 
     private static ImagePlacement ResolveImagePlacement(

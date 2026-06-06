@@ -451,6 +451,146 @@ public sealed class ImageToPdfConverterTests
     }
 
     [Fact]
+    public async Task ConvertAsync_StructuredLayoutGroupsNearbyLinesIntoParagraph()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("First line", 10, 10, [
+                new OcrWord { Text = "First line", Bounds = new OcrBoundingBox(10, 10, 70, 12), Confidence = 0.92 },
+            ]),
+            MakeOcrLine("Second line", 11, 25, [
+                new OcrWord { Text = "Second line", Bounds = new OcrBoundingBox(11, 25, 82, 12), Confidence = 0.93 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeImage(200, 100));
+        var result = await converter.ConvertAsync(stream, "paragraph.png", new ImageToPdfConversionOptions
+        {
+            SourceDpiX = 100,
+            SourceDpiY = 100,
+        });
+
+        var text = Assert.Single(result.Design.Pages[0].Elements, e => e.Type == "text");
+        Assert.Equal("First line\nSecond line", text.Content);
+        Assert.Equal("paragraph", text.Style!["imageOcrRole"]);
+        Assert.Equal(2, text.Style["sourceLineCount"]);
+        Assert.Equal("10,10,83,27", text.Style["sourceBoundsPx"]);
+    }
+
+    [Fact]
+    public async Task ConvertAsync_StructuredLayoutKeepsDistantLinesSeparate()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("Top line", 10, 10, [
+                new OcrWord { Text = "Top line", Bounds = new OcrBoundingBox(10, 10, 62, 12), Confidence = 0.92 },
+            ]),
+            MakeOcrLine("Bottom line", 10, 70, [
+                new OcrWord { Text = "Bottom line", Bounds = new OcrBoundingBox(10, 70, 84, 12), Confidence = 0.93 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeImage(200, 100));
+        var result = await converter.ConvertAsync(stream, "paragraph.png", new ImageToPdfConversionOptions());
+
+        var texts = result.Design.Pages[0].Elements.Where(e => e.Type == "text").ToList();
+        Assert.Equal(2, texts.Count);
+        Assert.Equal(["Top line", "Bottom line"], texts.Select(t => t.Content!).ToArray());
+        Assert.All(texts, text => Assert.Equal("text", text.Style!["imageOcrRole"]));
+    }
+
+    [Fact]
+    public async Task ConvertAsync_EditableLayoutKeepsNearbyLinesSeparate()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("First line", 10, 10, [
+                new OcrWord { Text = "First line", Bounds = new OcrBoundingBox(10, 10, 70, 12), Confidence = 0.92 },
+            ]),
+            MakeOcrLine("Second line", 10, 25, [
+                new OcrWord { Text = "Second line", Bounds = new OcrBoundingBox(10, 25, 82, 12), Confidence = 0.93 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeImage(200, 100));
+        var result = await converter.ConvertAsync(stream, "paragraph.png", new ImageToPdfConversionOptions
+        {
+            LayoutMode = "editable",
+        });
+
+        var texts = result.Design.Pages[0].Elements.Where(e => e.Type == "text").ToList();
+        Assert.Equal(2, texts.Count);
+        Assert.Equal(["First line", "Second line"], texts.Select(t => t.Content!).ToArray());
+    }
+
+    [Fact]
+    public async Task ConvertAsync_StructuredLayoutReadsStableColumnsBeforeRows()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("Left one", 10, 10, [
+                new OcrWord { Text = "Left one", Bounds = new OcrBoundingBox(10, 10, 62, 12), Confidence = 0.92 },
+            ]),
+            MakeOcrLine("Right one", 130, 10, [
+                new OcrWord { Text = "Right one", Bounds = new OcrBoundingBox(130, 10, 68, 12), Confidence = 0.93 },
+            ]),
+            MakeOcrLine("Left two", 10, 25, [
+                new OcrWord { Text = "Left two", Bounds = new OcrBoundingBox(10, 25, 62, 12), Confidence = 0.91 },
+            ]),
+            MakeOcrLine("Right two", 130, 25, [
+                new OcrWord { Text = "Right two", Bounds = new OcrBoundingBox(130, 25, 68, 12), Confidence = 0.94 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeImage(240, 100));
+        var result = await converter.ConvertAsync(stream, "columns.png", new ImageToPdfConversionOptions
+        {
+            SourceDpiX = 100,
+            SourceDpiY = 100,
+        });
+
+        var texts = result.Design.Pages[0].Elements.Where(e => e.Type == "text").ToList();
+        Assert.Equal(2, texts.Count);
+        Assert.Equal(["Left one\nLeft two", "Right one\nRight two"], texts.Select(t => t.Content!).ToArray());
+        Assert.All(texts, text => Assert.Equal("paragraph", text.Style!["imageOcrRole"]));
+        Assert.All(texts, text => Assert.Equal(2, text.Style!["sourceColumnCount"]));
+        Assert.Equal(0, texts[0].Style!["sourceColumnIndex"]);
+        Assert.Equal(1, texts[1].Style!["sourceColumnIndex"]);
+    }
+
+    [Fact]
+    public async Task ConvertAsync_StructuredLayoutKeepsHeadingSeparateFromBodyText()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("Invoice Summary", 10, 8, [
+                new OcrWord { Text = "Invoice Summary", Bounds = new OcrBoundingBox(10, 8, 150, 22), Confidence = 0.94 },
+            ]),
+            MakeOcrLine("First body line", 10, 40, [
+                new OcrWord { Text = "First body line", Bounds = new OcrBoundingBox(10, 40, 92, 12), Confidence = 0.92 },
+            ]),
+            MakeOcrLine("Second body line", 10, 55, [
+                new OcrWord { Text = "Second body line", Bounds = new OcrBoundingBox(10, 55, 104, 12), Confidence = 0.93 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeImage(240, 120));
+        var result = await converter.ConvertAsync(stream, "rich-text.png", new ImageToPdfConversionOptions
+        {
+            SourceDpiX = 100,
+            SourceDpiY = 100,
+        });
+
+        var texts = result.Design.Pages[0].Elements.Where(e => e.Type == "text").ToList();
+        Assert.Equal(2, texts.Count);
+
+        Assert.Equal("Invoice Summary", texts[0].Content);
+        var headingStyle = texts[0].Style!;
+        Assert.Equal("heading", headingStyle["imageOcrTextRole"]);
+        Assert.Equal("700", headingStyle["fontWeight"]);
+
+        Assert.Equal("First body line\nSecond body line", texts[1].Content);
+        var bodyStyle = texts[1].Style!;
+        Assert.Equal("body", bodyStyle["imageOcrTextRole"]);
+        Assert.Equal("normal", bodyStyle["fontWeight"]);
+    }
+
+    [Fact]
     public async Task ConvertAsync_TableRulesRefineTableBounds()
     {
         var converter = new ImageToPdfConverter(new FakeOcrEngine([
@@ -478,6 +618,62 @@ public sealed class ImageToPdfConverterTests
         Assert.Equal(57.6, table.Height, 1);
         Assert.Equal(true, table.Style!["imageOcrRuleBounded"]);
         Assert.Equal("20,20,160,80", table.Style["sourceBoundsPx"]);
+    }
+
+    [Fact]
+    public async Task ConvertAsync_StructuredLayoutSupportsEmptyTableCells()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("Item Qty Price", 10, 10, [
+                new OcrWord { Text = "Item", Bounds = new OcrBoundingBox(10, 10, 40, 12), Confidence = 0.95 },
+                new OcrWord { Text = "Qty", Bounds = new OcrBoundingBox(108, 10, 32, 12), Confidence = 0.95 },
+                new OcrWord { Text = "Price", Bounds = new OcrBoundingBox(168, 10, 45, 12), Confidence = 0.95 },
+            ]),
+            MakeOcrLine("Coffee 3.50", 10, 32, [
+                new OcrWord { Text = "Coffee", Bounds = new OcrBoundingBox(10, 32, 54, 12), Confidence = 0.95 },
+                new OcrWord { Text = "3.50", Bounds = new OcrBoundingBox(170, 32, 36, 12), Confidence = 0.95 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeImage(240, 100));
+        var result = await converter.ConvertAsync(stream, "empty-cell-table.png", new ImageToPdfConversionOptions
+        {
+            SourceDpiX = 100,
+            SourceDpiY = 100,
+        });
+
+        var table = Assert.Single(result.Design.Pages[0].Elements, e => e.Type == "table");
+        Assert.Equal(new[] { new[] { "Item", "Qty", "Price" }, new[] { "Coffee", "", "3.50" } }, table.CellData);
+        Assert.Equal(2, table.Style!["rows"]);
+        Assert.Equal(3, table.Style["columns"]);
+        Assert.DoesNotContain(result.Design.Pages[0].Elements, e => e.Type == "text");
+    }
+
+    [Fact]
+    public async Task ConvertAsync_TableRulesTolerateIncompleteLines()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("Item Price", 35, 35, [
+                new OcrWord { Text = "Item", Bounds = new OcrBoundingBox(35, 35, 40, 12), Confidence = 0.95 },
+                new OcrWord { Text = "Price", Bounds = new OcrBoundingBox(125, 35, 45, 12), Confidence = 0.95 },
+            ]),
+            MakeOcrLine("Coffee 3.50", 35, 65, [
+                new OcrWord { Text = "Coffee", Bounds = new OcrBoundingBox(35, 65, 54, 12), Confidence = 0.95 },
+                new OcrWord { Text = "3.50", Bounds = new OcrBoundingBox(127, 65, 36, 12), Confidence = 0.95 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeIncompleteTableGridImage());
+        var result = await converter.ConvertAsync(stream, "incomplete-grid.png", new ImageToPdfConversionOptions
+        {
+            SourceDpiX = 100,
+            SourceDpiY = 100,
+        });
+
+        var table = Assert.Single(result.Design.Pages[0].Elements, e => e.Type == "table");
+        Assert.Equal(true, table.Style!["imageOcrRuleBounded"]);
+        Assert.Equal("20,20,160,80", table.Style["sourceBoundsPx"]);
+        Assert.DoesNotContain(result.Design.Pages[0].Elements, e => e.Type is "line" or "rect");
     }
 
     [Fact]
@@ -642,6 +838,56 @@ public sealed class ImageToPdfConverterTests
         Assert.Equal("#111827", text.Style!["color"]);
     }
 
+    [Fact]
+    public async Task ConvertAsync_SplitsColoredWordRunInsideLine()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("Black Red Black", 10, 10, [
+                new OcrWord { Text = "Black", Bounds = new OcrBoundingBox(10, 10, 30, 12), Confidence = 0.95 },
+                new OcrWord { Text = "Red", Bounds = new OcrBoundingBox(48, 10, 24, 12), Confidence = 0.94 },
+                new OcrWord { Text = "Black", Bounds = new OcrBoundingBox(82, 10, 30, 12), Confidence = 0.96 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeColorRunImage());
+        var result = await converter.ConvertAsync(stream, "colored-run.png", new ImageToPdfConversionOptions
+        {
+            SourceDpiX = 100,
+            SourceDpiY = 100,
+        });
+
+        var texts = result.Design.Pages[0].Elements.Where(e => e.Type == "text").ToList();
+        Assert.Equal(["Black", "Red", "Black"], texts.Select(t => t.Content!).ToArray());
+        Assert.Equal(["#000000", "#FF0000", "#000000"], texts.Select(t => (string)t.Style!["color"]).ToArray());
+        Assert.All(texts, text => Assert.Equal("text-run", text.Style!["imageOcrRole"]));
+        Assert.All(texts, text => Assert.Equal(true, text.Style!["imageOcrRunSplit"]));
+    }
+
+    [Fact]
+    public async Task ConvertAsync_SplitsDifferentlySizedWordRunInsideLine()
+    {
+        var converter = new ImageToPdfConverter(new FakeOcrEngine([
+            MakeOcrLine("Small Large", 10, 10, [
+                new OcrWord { Text = "Small", Bounds = new OcrBoundingBox(10, 18, 32, 12), Confidence = 0.95 },
+                new OcrWord { Text = "Large", Bounds = new OcrBoundingBox(52, 10, 52, 22), Confidence = 0.94 },
+            ]),
+        ]));
+
+        using var stream = new MemoryStream(MakeSizeRunImage());
+        var result = await converter.ConvertAsync(stream, "sized-run.png", new ImageToPdfConversionOptions
+        {
+            SourceDpiX = 100,
+            SourceDpiY = 100,
+        });
+
+        var texts = result.Design.Pages[0].Elements.Where(e => e.Type == "text").ToList();
+        Assert.Equal(["Small", "Large"], texts.Select(t => t.Content!).ToArray());
+        Assert.All(texts, text => Assert.Equal("text-run", text.Style!["imageOcrRole"]));
+        Assert.True((double)texts[1].Style!["fontSize"] > (double)texts[0].Style!["fontSize"]);
+        Assert.Equal("10,18,32,12", texts[0].Style!["sourceBoundsPx"]);
+        Assert.Equal("52,10,52,22", texts[1].Style!["sourceBoundsPx"]);
+    }
+
     private static byte[] MakeImage(int width, int height) =>
         MakeImage(width, height, SKEncodedImageFormat.Png);
 
@@ -668,6 +914,40 @@ public sealed class ImageToPdfConverterTests
             canvas.Clear(background);
             using var paint = new SKPaint { Color = sample };
             canvas.DrawRect(sampleRect, paint);
+        }
+
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        return data.ToArray();
+    }
+
+    private static byte[] MakeColorRunImage()
+    {
+        using var bitmap = new SKBitmap(140, 60, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bitmap))
+        {
+            canvas.Clear(SKColors.White);
+            using var black = new SKPaint { Color = SKColors.Black };
+            using var red = new SKPaint { Color = SKColors.Red };
+            canvas.DrawRect(new SKRect(10, 10, 40, 22), black);
+            canvas.DrawRect(new SKRect(48, 10, 72, 22), red);
+            canvas.DrawRect(new SKRect(82, 10, 112, 22), black);
+        }
+
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        return data.ToArray();
+    }
+
+    private static byte[] MakeSizeRunImage()
+    {
+        using var bitmap = new SKBitmap(140, 60, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bitmap))
+        {
+            canvas.Clear(SKColors.White);
+            using var black = new SKPaint { Color = SKColors.Black };
+            canvas.DrawRect(new SKRect(10, 18, 42, 30), black);
+            canvas.DrawRect(new SKRect(52, 10, 104, 32), black);
         }
 
         using var image = SKImage.FromBitmap(bitmap);
@@ -702,6 +982,28 @@ public sealed class ImageToPdfConverterTests
             canvas.DrawRect(20, 100, 161, 1, paint);
             canvas.DrawRect(20, 20, 1, 81, paint);
             canvas.DrawRect(100, 20, 1, 81, paint);
+            canvas.DrawRect(180, 20, 1, 81, paint);
+        }
+
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        return data.ToArray();
+    }
+
+    private static byte[] MakeIncompleteTableGridImage()
+    {
+        using var bitmap = new SKBitmap(200, 120, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using (var canvas = new SKCanvas(bitmap))
+        {
+            canvas.Clear(SKColors.White);
+            using var paint = new SKPaint { Color = SKColors.Black };
+
+            canvas.DrawRect(20, 20, 70, 1, paint);
+            canvas.DrawRect(105, 20, 75, 1, paint);
+            canvas.DrawRect(20, 60, 160, 1, paint);
+            canvas.DrawRect(20, 100, 72, 1, paint);
+            canvas.DrawRect(106, 100, 74, 1, paint);
+            canvas.DrawRect(20, 20, 1, 81, paint);
             canvas.DrawRect(180, 20, 1, 81, paint);
         }
 

@@ -118,14 +118,19 @@
 ## Layout Reconstruction
 
 - [x] Group OCR words into lines.
-- [ ] Group lines into paragraphs.
-- [ ] Preserve reading order.
-- [ ] Detect simple columns from line alignment.
+- [x] Group lines into paragraphs.
+- [x] Preserve reading order.
+- [x] Detect simple columns from line alignment.
 - [ ] Detect simple tables from aligned word groups and horizontal/vertical rules.
   - [x] Detect simple tables from aligned OCR word groups.
   - [x] Use horizontal/vertical rule detection for table boundaries.
+  - [x] Support empty table cells when rows align to known column anchors.
+  - [x] Tolerate incomplete table rule lines conservatively.
+  - [x] Ignore row/column spans unless OCR evidence is unambiguous.
 - [x] Emit recognized text as Canvas `text` elements.
 - [x] Estimate font size from OCR word/line box height.
+- [x] Split colored or differently sized OCR word runs within a line into separate text elements.
+- [x] Classify conservative OCR text roles such as heading, body, and caption.
 - [x] Estimate text color from the original image near the OCR bounds.
 - [x] Use standard fallback fonts unless reliable font recognition is added later.
 - [x] Add the original image as an optional locked background `image` element.
