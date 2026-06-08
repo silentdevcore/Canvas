@@ -641,6 +641,13 @@ public sealed class ImageToPdfConverter
         var bitmap = new SKBitmap(source.Width, source.Height, SKColorType.Rgba8888, SKAlphaType.Premul);
         var contrastFactor = contrast ? 1.25 : 1.0;
 
+        // Pivot the contrast stretch around the image's mean luminance rather than a fixed 128.
+        // A fixed midpoint pushes any text lighter than mid-grey (e.g. light-grey footer text on a
+        // white page) further toward white, washing it out before OCR. Pivoting around the page's
+        // actual mean keeps text that is darker than its background getting darker (more legible)
+        // regardless of the text's absolute tone, so light footer text survives.
+        var pivot = contrast ? Math.Clamp(ComputeMeanLuma(source), 80, 200) : 128.0;
+
         for (var y = 0; y < source.Height; y++)
         {
             for (var x = 0; x < source.Width; x++)
@@ -648,7 +655,7 @@ public sealed class ImageToPdfConverter
                 var color = source.GetPixel(x, y);
                 var luma = 0.299 * color.Red + 0.587 * color.Green + 0.114 * color.Blue;
                 var value = contrast
-                    ? Math.Clamp((luma - 128) * contrastFactor + 128, 0, 255)
+                    ? Math.Clamp((luma - pivot) * contrastFactor + pivot, 0, 255)
                     : luma;
 
                 if (binarize)
@@ -671,6 +678,24 @@ public sealed class ImageToPdfConverter
 
         steps = applied;
         return bitmap;
+    }
+
+    /// <summary>Mean perceptual luminance of the image, sampled for speed on large bitmaps.</summary>
+    private static double ComputeMeanLuma(SKBitmap source)
+    {
+        double sum = 0;
+        long count = 0;
+        var step = Math.Max(1, Math.Max(source.Width, source.Height) / 400);
+        for (var y = 0; y < source.Height; y += step)
+        {
+            for (var x = 0; x < source.Width; x += step)
+            {
+                var c = source.GetPixel(x, y);
+                sum += 0.299 * c.Red + 0.587 * c.Green + 0.114 * c.Blue;
+                count++;
+            }
+        }
+        return count == 0 ? 128 : sum / count;
     }
 
     private static SKBitmap ResizeForOcr(
