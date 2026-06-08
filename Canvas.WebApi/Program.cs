@@ -86,7 +86,12 @@ builder.Services.AddSingleton<IOcrEngine>(sp =>
 {
     var tessDataPath = builder.Configuration["Ocr:TessDataPath"];
     var nativeLibraryPath = builder.Configuration["Ocr:NativeLibraryPath"];
-    return new EmbeddedTesseractOcrEngine(tessDataPath, nativeLibraryPath);
+    var useIsolatedWorker = builder.Configuration.GetValue("Ocr:UseIsolatedWorker", true);
+    if (!useIsolatedWorker)
+        return new EmbeddedTesseractOcrEngine(tessDataPath, nativeLibraryPath);
+
+    var workerPath = builder.Configuration["Ocr:WorkerPath"];
+    return new ProcessIsolatedTesseractOcrEngine(workerPath, tessDataPath, nativeLibraryPath);
 });
 builder.Services.AddTransient<ImageToPdfConverter>();
 

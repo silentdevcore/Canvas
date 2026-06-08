@@ -130,11 +130,11 @@ const ImporterPage: React.FC = () => {
   const [includeDebugOverlay, setIncludeDebugOverlay] = useState(true);
   const [includeFallbackLayer, setIncludeFallbackLayer] = useState(false);
   const [ocrLanguages, setOcrLanguages] = useState('deu+eng');
-  const [includeOcrBackgroundImage, setIncludeOcrBackgroundImage] = useState(true);
   const [includeOcrDiagnostics, setIncludeOcrDiagnostics] = useState(true);
   const [includeOcrDebugOverlay, setIncludeOcrDebugOverlay] = useState(false);
-  const [enableOcrPreprocessing, setEnableOcrPreprocessing] = useState(false);
+  const [enableOcrPreprocessing, setEnableOcrPreprocessing] = useState(true);
   const [ocrLowConfidenceThreshold, setOcrLowConfidenceThreshold] = useState(0.5);
+  const [ocrLayoutMode, setOcrLayoutMode] = useState<'text-background' | 'text-only'>('text-background');
   const [pendingAction, setPendingAction] = useState<'open' | 'download'>('open');
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState('');
@@ -178,9 +178,10 @@ const ImporterPage: React.FC = () => {
           pageOpt?.heightPt,
           {
             languages: ocrLanguages,
-            includeBackgroundImage: includeOcrBackgroundImage,
+            includeBackgroundImage: false,
             enablePreprocessing: enableOcrPreprocessing,
             lowConfidenceThreshold: ocrLowConfidenceThreshold,
+            layoutMode: ocrLayoutMode,
           },
         );
         setImporting(false);
@@ -200,11 +201,12 @@ const ImporterPage: React.FC = () => {
           includeImageAnalysisDebugOverlay: activeId === 'image-analysis' && includeDebugOverlay,
           includeImageAnalysisFallbackLayer: activeId === 'image-analysis' && includeFallbackLayer,
           imageOcrLanguages: activeId === 'image-ocr' ? ocrLanguages : undefined,
-          includeImageOcrBackgroundImage: activeId === 'image-ocr' ? includeOcrBackgroundImage : undefined,
+          includeImageOcrBackgroundImage: activeId === 'image-ocr' ? false : undefined,
           includeImageOcrDiagnostics: activeId === 'image-ocr' && includeOcrDiagnostics,
           includeImageOcrDebugOverlay: activeId === 'image-ocr' && includeOcrDebugOverlay,
           enableImageOcrPreprocessing: activeId === 'image-ocr' && enableOcrPreprocessing,
           imageOcrLowConfidenceThreshold: activeId === 'image-ocr' ? ocrLowConfidenceThreshold : undefined,
+          imageOcrLayoutMode: activeId === 'image-ocr' ? ocrLayoutMode : undefined,
         },
       );
     } catch (err) {
@@ -274,6 +276,20 @@ const ImporterPage: React.FC = () => {
                     {fmt.id === 'image-ocr' ? (
                       <>
                         <div className="importer-config-field">
+                          <label className="importer-config-label" htmlFor="ocr-layout-select">
+                            Layout
+                          </label>
+                          <select
+                            id="ocr-layout-select"
+                            className="importer-config-select"
+                            value={ocrLayoutMode}
+                            onChange={e => setOcrLayoutMode(e.target.value as 'text-background' | 'text-only')}
+                          >
+                            <option value="text-background">Full layout (text + background colors)</option>
+                            <option value="text-only">Text only</option>
+                          </select>
+                        </div>
+                        <div className="importer-config-field">
                           <label className="importer-config-label" htmlFor="ocr-language-select">
                             OCR language
                           </label>
@@ -288,14 +304,6 @@ const ImporterPage: React.FC = () => {
                             <option value="eng">English</option>
                           </select>
                         </div>
-                        <label className="importer-config-check">
-                          <input
-                            type="checkbox"
-                            checked={includeOcrBackgroundImage}
-                            onChange={e => setIncludeOcrBackgroundImage(e.target.checked)}
-                          />
-                          <span>Original image layer</span>
-                        </label>
                         <label className="importer-config-check">
                           <input
                             type="checkbox"

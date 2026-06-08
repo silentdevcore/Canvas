@@ -145,6 +145,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.FileImporter.ImageOc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.FileImporter.ImageOcr.Tests", "tests\Canvas.FileImporter.ImageOcr.Tests\Canvas.FileImporter.ImageOcr.Tests.csproj", "{3FD37DE2-6048-49DC-A00F-A227F50290AB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.FileImporter.ImageOcr.Worker", "src\Canvas.FileImporter.ImageOcr.Worker\Canvas.FileImporter.ImageOcr.Worker.csproj", "{2648A4BA-5CAD-4650-8995-95EAD59ADD11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -971,6 +973,18 @@ Global
 		{3FD37DE2-6048-49DC-A00F-A227F50290AB}.Release|x64.Build.0 = Release|Any CPU
 		{3FD37DE2-6048-49DC-A00F-A227F50290AB}.Release|x86.ActiveCfg = Release|Any CPU
 		{3FD37DE2-6048-49DC-A00F-A227F50290AB}.Release|x86.Build.0 = Release|Any CPU
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11}.Debug|x64.Build.0 = Debug|Any CPU
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11}.Debug|x86.Build.0 = Debug|Any CPU
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11}.Release|x64.ActiveCfg = Release|Any CPU
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11}.Release|x64.Build.0 = Release|Any CPU
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11}.Release|x86.ActiveCfg = Release|Any CPU
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1041,5 +1055,6 @@ Global
 		{89F71AA8-AFB0-4D15-942E-498C0B69781D} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{D26F1BBE-A500-44F6-8F7E-88A8E5F2EF14} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{3FD37DE2-6048-49DC-A00F-A227F50290AB} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{2648A4BA-5CAD-4650-8995-95EAD59ADD11} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

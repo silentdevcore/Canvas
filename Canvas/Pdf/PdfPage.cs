@@ -1242,6 +1242,9 @@ public sealed class PdfPage
                 for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
                 {
                     var line = lines[lineIndex];
+                    if (string.IsNullOrEmpty(line))
+                        continue;
+
                     var textWidth = EstimateTextWidth(line, options.FontSize, cellFont);
                     var alignment = columnAlignments[columnIndex];
                     var textX = alignment switch

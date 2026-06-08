@@ -147,6 +147,7 @@ export function useTemplateLoader() {
       includeImageOcrDebugOverlay?: boolean;
       enableImageOcrPreprocessing?: boolean;
       imageOcrLowConfidenceThreshold?: number;
+      imageOcrLayoutMode?: string;
     } = {},
   ): Promise<void> => {
     const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
@@ -187,6 +188,7 @@ export function useTemplateLoader() {
           includeDebugOverlay: options.includeImageOcrDebugOverlay,
           enablePreprocessing: options.enableImageOcrPreprocessing,
           lowConfidenceThreshold: options.imageOcrLowConfidenceThreshold,
+          layoutMode: options.imageOcrLayoutMode,
         },
       );
       if (result?.design) {

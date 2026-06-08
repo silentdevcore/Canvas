@@ -31,6 +31,44 @@ public sealed class EmbeddedTesseractOcrEngine : IOcrEngine
         ArgumentNullException.ThrowIfNull(options);
         EnsureLanguageDataExists(options.Languages);
 
+        var timeout = TimeSpan.FromSeconds(Math.Clamp(options.MaxOcrRuntimeSeconds, 5, 180));
+        return RecognizeCoreAsync(pages, options, timeout, cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<OcrPage>> RecognizeCoreAsync(
+        IReadOnlyList<OcrImagePage> pages,
+        ImageToPdfConversionOptions options,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(timeout);
+
+        try
+        {
+            return await Task
+                .Run(() => RecognizeSync(pages, options, timeoutCts.Token), CancellationToken.None)
+                .WaitAsync(timeout, cancellationToken);
+        }
+        catch (TimeoutException ex)
+        {
+            throw new InvalidOperationException(
+                $"OCR did not finish within {Math.Round(timeout.TotalSeconds)} seconds. Try enabling preprocessing, using a smaller scan, or selecting fewer OCR languages.",
+                ex);
+        }
+        catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new InvalidOperationException(
+                $"OCR did not finish within {Math.Round(timeout.TotalSeconds)} seconds. Try enabling preprocessing, using a smaller scan, or selecting fewer OCR languages.",
+                ex);
+        }
+    }
+
+    private IReadOnlyList<OcrPage> RecognizeSync(
+        IReadOnlyList<OcrImagePage> pages,
+        ImageToPdfConversionOptions options,
+        CancellationToken cancellationToken)
+    {
         var result = new List<OcrPage>();
         var nativePath = options.NativeLibraryPath ?? _nativeLibraryPath;
 
@@ -58,7 +96,7 @@ public sealed class EmbeddedTesseractOcrEngine : IOcrEngine
             throw BuildNativeDependencyException(dllEx);
         }
 
-        return Task.FromResult<IReadOnlyList<OcrPage>>(result);
+        return result;
     }
 
     private static OcrNativeDependencyMissingException BuildNativeDependencyException(Exception ex)

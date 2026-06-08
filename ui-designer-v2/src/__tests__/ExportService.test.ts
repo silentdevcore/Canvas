@@ -267,6 +267,7 @@ describe('image OCR import service', () => {
       includeDebugOverlay: true,
       enablePreprocessing: true,
       lowConfidenceThreshold: 0.45,
+      layoutMode: 'text-only',
     }) as any;
 
     expect(fetchMock).toHaveBeenCalledWith('/api/document/convert-image-to-pdf?debug=true', expect.objectContaining({
@@ -280,10 +281,12 @@ describe('image OCR import service', () => {
     expect(form.get('pageWidthPt')).toBe('595');
     expect(form.get('pageHeightPt')).toBe('842');
     expect(form.get('includeBackgroundImage')).toBe('false');
+    expect(form.get('includeOcrPages')).toBe('false');
     expect(form.get('includeDiagnostics')).toBe('true');
     expect(form.get('includeDebugOverlay')).toBe('true');
     expect(form.get('enablePreprocessing')).toBe('true');
     expect(form.get('lowConfidenceThreshold')).toBe('0.45');
+    expect(form.get('layoutMode')).toBe('text-only');
     expect(result.design.id).toBe('ocr-design');
   });
 
@@ -325,6 +328,7 @@ describe('image OCR import service', () => {
     expect(anchor.download).toBe('invoice-scan.pdf');
     const form = fetchMock.mock.calls[0][1].body as FormData;
     expect(form.get('enablePreprocessing')).toBe('true');
+    expect(form.get('layoutMode')).toBe('structured');
     expect(appendChild).toHaveBeenCalledWith(anchor);
     expect(click).toHaveBeenCalledTimes(1);
     expect(removeChild).toHaveBeenCalledWith(anchor);

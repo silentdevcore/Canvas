@@ -616,3 +616,6 @@
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Tesseract.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.FileImporter.ImageOcr.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.FileImporter.ImageOcr.pdb
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.FileImporter.ImageOcr.Worker.deps.json
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.FileImporter.ImageOcr.Worker.runtimeconfig.json
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.FileImporter.ImageOcr.Worker

@@ -1,16 +1,21 @@
 using System.Net;
 using System.Text.Json;
+using Canvas.FileImporter.ImageOcr;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SkiaSharp;
 
 namespace Canvas.Api.Tests;
 
 public sealed class ImageConversionControllerTests : IClassFixture<WebApplicationFactory<Program>>
 {
+    private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
 
     public ImageConversionControllerTests(WebApplicationFactory<Program> factory)
     {
+        _factory = factory;
         _client = factory.CreateClient();
     }
 
@@ -46,6 +51,33 @@ public sealed class ImageConversionControllerTests : IClassFixture<WebApplicatio
     }
 
     [Fact]
+    public async Task ConvertImageToPdf_TextOnlyMode_ReturnsOnlyTextElements()
+    {
+        using var form = CreateImageForm("HELLO 123");
+        form.Add(new StringContent("eng"), "languages");
+        form.Add(new StringContent("text-only"), "layoutMode");
+        // Request the background image; text-only mode should still omit it.
+        form.Add(new StringContent("true"), "includeBackgroundImage");
+
+        var response = await _client.PostAsync("/api/document/convert-image-to-pdf?debug=true", form);
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var json = JsonDocument.Parse(body);
+        var elements = json.RootElement
+            .GetProperty("design")
+            .GetProperty("pages")[0]
+            .GetProperty("elements")
+            .EnumerateArray()
+            .ToList();
+
+        Assert.NotEmpty(elements);
+        Assert.All(elements, e => Assert.Equal("text", e.GetProperty("type").GetString()));
+        Assert.DoesNotContain(elements, e => e.GetProperty("type").GetString() == "image");
+    }
+
+    [Fact]
     public async Task ConvertImageToPdf_Default_ReturnsPdfBytes()
     {
         using var form = CreateImageForm("PDF TEST");
@@ -68,6 +100,30 @@ public sealed class ImageConversionControllerTests : IClassFixture<WebApplicatio
         var response = await _client.PostAsync("/api/document/convert-image-to-pdf", form);
 
         Assert.Equal(HttpStatusCode.UnsupportedMediaType, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ConvertImageToPdf_OcrTimeout_ReturnsBadRequestWithMessage()
+    {
+        using var factory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IOcrEngine>();
+                services.AddSingleton<IOcrEngine>(new TimeoutOcrEngine());
+            });
+        });
+        using var client = factory.CreateClient();
+        using var form = CreateImageForm("TIMEOUT");
+        form.Add(new StringContent("eng"), "languages");
+        form.Add(new StringContent("5"), "maxOcrRuntimeSeconds");
+
+        var response = await client.PostAsync("/api/document/convert-image-to-pdf?debug=true", form);
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var json = JsonDocument.Parse(body);
+        Assert.Contains("OCR did not finish", json.RootElement.GetProperty("error").GetString());
     }
 
     private static MultipartFormDataContent CreateImageForm(string text)
@@ -97,5 +153,19 @@ public sealed class ImageConversionControllerTests : IClassFixture<WebApplicatio
         using var skImage = SKImage.FromBitmap(bitmap);
         using var data = skImage.Encode(SKEncodedImageFormat.Png, 100);
         return data.ToArray();
+    }
+
+    private sealed class TimeoutOcrEngine : IOcrEngine
+    {
+        public string Name => "TimeoutOCR";
+        public string Version => "test";
+
+        public Task<IReadOnlyList<OcrPage>> RecognizeAsync(
+            IReadOnlyList<OcrImagePage> pages,
+            ImageToPdfConversionOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            throw new InvalidOperationException("OCR did not finish within 5 seconds. The isolated OCR worker was terminated.");
+        }
     }
 }

@@ -35,6 +35,19 @@
 
   <ItemGroup>
     <ProjectReference Include="../../Canvas.WebApi/Canvas.WebApi.csproj" />
+    <ProjectReference Include="../../src/Canvas.FileImporter.ImageOcr.Worker/Canvas.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />
   </ItemGroup>
+
+  <Target Name="CopyImageOcrWorker" AfterTargets="Build">
+    <MSBuild Projects="../../src/Canvas.FileImporter.ImageOcr.Worker/Canvas.FileImporter.ImageOcr.Worker.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
+    <ItemGroup>
+      <ImageOcrWorkerFiles Include="../../src/Canvas.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ImageOcrWorkerFiles)"
+          DestinationFiles="@(ImageOcrWorkerFiles->'$(OutputPath)ocr-worker/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

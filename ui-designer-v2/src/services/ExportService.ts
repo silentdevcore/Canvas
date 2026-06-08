@@ -839,6 +839,7 @@ export class ExportService {
       includeDebugOverlay?: boolean;
       enablePreprocessing?: boolean;
       lowConfidenceThreshold?: number;
+      layoutMode?: string;
     } = {},
   ): Promise<object> {
     const form = new FormData();
@@ -847,6 +848,8 @@ export class ExportService {
     if (pageWidthPt)  form.append('pageWidthPt',  String(pageWidthPt));
     if (pageHeightPt) form.append('pageHeightPt', String(pageHeightPt));
     form.append('includeBackgroundImage', options.includeBackgroundImage === false ? 'false' : 'true');
+    form.append('includeOcrPages', 'false');
+    form.append('layoutMode', options.layoutMode || 'structured');
     if (options.includeDiagnostics) form.append('includeDiagnostics', 'true');
     if (options.includeDebugOverlay) form.append('includeDebugOverlay', 'true');
     if (options.enablePreprocessing) form.append('enablePreprocessing', 'true');
@@ -873,6 +876,7 @@ export class ExportService {
       includeBackgroundImage?: boolean;
       enablePreprocessing?: boolean;
       lowConfidenceThreshold?: number;
+      layoutMode?: string;
     } = {},
   ): Promise<void> {
     const form = new FormData();
@@ -881,6 +885,7 @@ export class ExportService {
     if (pageWidthPt)  form.append('pageWidthPt',  String(pageWidthPt));
     if (pageHeightPt) form.append('pageHeightPt', String(pageHeightPt));
     form.append('includeBackgroundImage', options.includeBackgroundImage === false ? 'false' : 'true');
+    form.append('layoutMode', options.layoutMode || 'structured');
     if (options.enablePreprocessing) form.append('enablePreprocessing', 'true');
     if (options.lowConfidenceThreshold !== undefined)
       form.append('lowConfidenceThreshold', String(options.lowConfidenceThreshold));

@@ -2,6 +2,7 @@ using Canvas.FileImporter.ImageOcr;
 using Canvas.Pdf;
 using Canvas.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace Canvas.WebApi.Controllers;
 
@@ -22,11 +23,16 @@ public sealed class ImageConversionController : ControllerBase
 
     private readonly ImageToPdfConverter _converter;
     private readonly PdfFontLoader? _fontLoader;
+    private readonly ILogger<ImageConversionController>? _logger;
 
-    public ImageConversionController(ImageToPdfConverter converter, PdfFontLoader? fontLoader = null)
+    public ImageConversionController(
+        ImageToPdfConverter converter,
+        PdfFontLoader? fontLoader = null,
+        ILogger<ImageConversionController>? logger = null)
     {
         _converter = converter;
         _fontLoader = fontLoader;
+        _logger = logger;
     }
 
     [HttpPost("convert-image-to-pdf")]
@@ -43,11 +49,14 @@ public sealed class ImageConversionController : ControllerBase
         [FromForm] bool includeBackgroundImage = true,
         [FromForm] bool includeDiagnostics = false,
         [FromForm] bool includeDebugOverlay = false,
+        [FromForm] bool includeOcrPages = false,
         [FromForm] bool enablePreprocessing = false,
         [FromForm] bool preprocessGrayscale = true,
         [FromForm] bool preprocessContrast = true,
         [FromForm] bool preprocessBinarize = false,
         [FromForm] double? lowConfidenceThreshold = null,
+        [FromForm] int? maxOcrRuntimeSeconds = null,
+        [FromForm] string? layoutMode = null,
         CancellationToken cancellationToken = default)
     {
         if (file is null || file.Length == 0)
@@ -65,6 +74,16 @@ public sealed class ImageConversionController : ControllerBase
 
         try
         {
+            var stopwatch = Stopwatch.StartNew();
+            _logger?.LogInformation(
+                "Starting image OCR import for {FileName} ({FileLength} bytes), debug={Debug}, diagnostics={Diagnostics}, overlay={Overlay}, ocrPages={OcrPages}",
+                file.FileName,
+                file.Length,
+                debug,
+                includeDiagnostics,
+                includeDebugOverlay,
+                includeOcrPages);
+
             await using var stream = file.OpenReadStream();
             var result = await _converter.ConvertAsync(
                 stream,
@@ -76,14 +95,23 @@ public sealed class ImageConversionController : ControllerBase
                     PageHeightPt = pageHeightPt,
                     IncludeBackgroundImage = includeBackgroundImage,
                     IncludeDiagnostics = includeDiagnostics || debug,
-                    IncludeDebugOverlay = includeDebugOverlay || debug,
+                    IncludeDebugOverlay = includeDebugOverlay,
                     EnablePreprocessing = enablePreprocessing,
                     PreprocessGrayscale = preprocessGrayscale,
                     PreprocessContrast = preprocessContrast,
                     PreprocessBinarize = preprocessBinarize,
                     LowConfidenceThreshold = lowConfidenceThreshold ?? 0.50,
+                    MaxOcrRuntimeSeconds = Math.Clamp(maxOcrRuntimeSeconds ?? 45, 5, 180),
+                    LayoutMode = string.IsNullOrWhiteSpace(layoutMode) ? "structured" : layoutMode,
                 },
                 cancellationToken);
+            stopwatch.Stop();
+            _logger?.LogInformation(
+                "Finished image OCR import for {FileName} in {ElapsedMs} ms with {WordCount} words and {ElementCount} elements",
+                file.FileName,
+                Math.Round(stopwatch.Elapsed.TotalMilliseconds, 0),
+                result.Diagnostics.WordCount,
+                result.Design.Pages.Sum(page => page.Elements.Count));
 
             if (debug)
             {
@@ -92,7 +120,7 @@ public sealed class ImageConversionController : ControllerBase
                     result.Design,
                     result.Diagnostics,
                     result.Warnings,
-                    result.OcrPages,
+                    OcrPages = includeOcrPages ? result.OcrPages : null,
                     DebugOverlay = result.DebugOverlayPng is null
                         ? null
                         : $"data:image/png;base64,{Convert.ToBase64String(result.DebugOverlayPng)}",

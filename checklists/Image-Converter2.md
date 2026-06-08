@@ -121,8 +121,9 @@
 - [x] Group lines into paragraphs.
 - [x] Preserve reading order.
 - [x] Detect simple columns from line alignment.
-- [ ] Detect simple tables from aligned word groups and horizontal/vertical rules.
+- [x] Detect simple tables from aligned word groups and horizontal/vertical rules.
   - [x] Detect simple tables from aligned OCR word groups.
+  - [x] Detect simple tables from split aligned OCR cell lines without visible rules.
   - [x] Use horizontal/vertical rule detection for table boundaries.
   - [x] Support empty table cells when rows align to known column anchors.
   - [x] Tolerate incomplete table rule lines conservatively.
@@ -136,6 +137,55 @@
 - [x] Add the original image as an optional locked background `image` element.
 - [x] Reuse shape detection only where it is stable enough to improve editability.
 - [x] Do not reuse the current custom glyph recognizer as the main OCR strategy.
+
+## Canvas Element Mapping From Images
+
+- [x] Add a conservative form/document element mapper after OCR layout detection.
+- [x] Keep the original image as a locked background while placing editable detected elements above it.
+- [x] Use shared exclusion zones so OCR text, table regions, and table rules are not duplicated as shapes.
+- [x] Resolve overlapping detections by priority: table, checkbox, signature, field, image region, shape, text.
+- [x] Map detected objects to supported Canvas element types.
+  - [x] Map OCR text, text runs, paragraphs, headings, and captions to `text`.
+  - [x] Map simple tables with empty cells to `table`.
+  - [x] Map simple horizontal and vertical separators to `line`.
+  - [x] Map conservative outlined rectangles to `rect`.
+  - [x] Map empty square boxes to `checkbox`.
+  - [x] Map checked, crossed, and dotted square boxes to `checkbox` with state.
+  - [x] Map labeled empty rectangular boxes to `field`.
+  - [x] Map long signature/date/name lines to `signature` when label context supports it.
+  - [x] Map filled rectangles to `rect` with `backgroundColor`.
+  - [x] Map clear circles and ellipses to `circle`.
+  - [x] Map larger non-text bitmap regions such as logos, stamps, or icons to cropped `image` elements.
+- [x] Add source diagnostics to every mapped element.
+  - [x] Add `imageOcrRole` values such as `form-field`, `checkbox`, `signature`, `shape`, and `image-region`.
+    - [x] Add `imageOcrRole` for checkbox elements.
+    - [x] Add `imageOcrRole` for form field elements.
+    - [x] Add `imageOcrRole` for signature elements.
+    - [x] Add `imageOcrRole` for image region elements.
+  - [x] Add `imageOcrConfidence`.
+    - [x] Add `imageOcrConfidence` for checkbox elements.
+    - [x] Add `imageOcrConfidence` for form field elements.
+    - [x] Add `imageOcrConfidence` for signature elements.
+    - [x] Add `imageOcrConfidence` for image region elements.
+  - [x] Add `imageOcrDetector`.
+    - [x] Add `imageOcrDetector` for checkbox elements.
+    - [x] Add `imageOcrDetector` for form field elements.
+    - [x] Add `imageOcrDetector` for signature elements.
+    - [x] Add `imageOcrDetector` for filled rectangle elements.
+    - [x] Add `imageOcrDetector` for circle and ellipse elements.
+    - [x] Add `imageOcrDetector` for image region elements.
+  - [x] Add `sourceBoundsPx`.
+- [x] Keep uncertain candidates out of the design instead of guessing.
+- [x] Add tests for Canvas element mapping.
+  - [x] Checkbox empty, checked, crossed, and dotted.
+  - [x] Label plus empty input field.
+  - [x] Signature line with label.
+  - [x] Logo/stamp/icon image region.
+  - [x] Filled rectangle.
+  - [x] Circle and ellipse.
+  - [x] Mixed form with text, checkbox, field, signature, and table.
+  - [x] Negative coverage: text pixels do not create shapes.
+  - [x] Negative coverage: table rules are not duplicated as shape elements.
 
 ## PDF Generation
 
@@ -215,6 +265,132 @@
   - [x] Reuse existing text rendering.
   - [x] Reuse existing image rendering.
   - [x] Reuse existing PDF serialization.
+
+## Planned Improvement: Light Background Table And Rule Detection
+
+- [x] Improve table mapping for light/low-contrast backgrounds.
+  - [x] Replace absolute dark-only rule detection with contrast-aware rule detection.
+  - [x] Detect dark lines on light backgrounds.
+  - [x] Detect light lines on dark table/header backgrounds.
+  - [x] Detect conservative gray table/grid lines on white or light gray backgrounds.
+  - [x] Use local neighboring pixels to estimate rule/background contrast.
+  - [x] Keep existing minimum-run and OCR text exclusion safeguards so text pixels are not mapped as rules.
+  - [x] Keep table fallback behavior: use `rule-bounded-table` only when rules are sufficiently reliable, otherwise keep `aligned-text-table`.
+  - [x] Add tests for light gray table lines on light backgrounds.
+  - [x] Add tests for light table/header rules on dark backgrounds.
+  - [x] Add tests for low-contrast line, rectangle, checkbox, field, and signature rules on light backgrounds.
+  - [x] Keep regression coverage for black table lines, text-pixel negative coverage, checkboxes, fields, signatures, and mixed forms.
+
+## Planned Improvement: Real-Image Table Robustness And Diagnostics
+
+- [x] Add table and rule diagnostics to the OCR conversion result.
+  - [x] Report detected horizontal and vertical rule segment counts.
+  - [x] Report sampled line/background contrast for table-like rule candidates.
+  - [x] Report table candidate bounds, row anchors, column anchors, detector name, acceptance status, and rejection reason.
+- [ ] Add the actual failing table image as an OCR fixture.
+  - [x] Store the fixture under the OCR test project.
+  - [x] Add captured OCR-line data support to keep the test deterministic.
+  - [x] Assert that diagnostics expose rule segments, table candidates, bounds, and anchors for the fixture when present.
+  - [x] Assert that structured conversion produces a `table` element for the fixture when present.
+  - [ ] Add `failing-table-01.png` and `failing-table-01.ocr.json`.
+- [x] Improve rule detection for real-world table lines.
+  - [x] Detect local line/background contrast beyond dark-only pixels.
+  - [x] Support thin antialiased light gray rules on light backgrounds.
+  - [x] Continue rejecting OCR text pixels as rule segments.
+- [x] Merge fragmented table rule segments.
+  - [x] Merge collinear short horizontal and vertical fragments.
+  - [x] Tolerate small gaps in horizontal and vertical rules.
+  - [x] Use merged coverage when evaluating table bounds.
+- [x] Improve table detection when visible rules are missing or weak.
+  - [x] Cluster OCR words into row candidates from word centers.
+  - [x] Stabilize repeated column anchors across multiple rows.
+  - [x] Use repeated X positions and numeric columns as table evidence.
+- [x] Tolerate missing OCR cells in detected tables.
+  - [x] Preserve empty cells when surrounding rows establish stable column anchors.
+  - [x] Avoid falling back to normal paragraph text when enough table evidence remains.
+- [x] Detect light table backgrounds and fills.
+  - [x] Recognize light cell fills or alternating row backgrounds.
+  - [x] Infer table regions from text-grid structure when borders are weak.
+- [ ] Add regression and stress coverage.
+  - [x] Test antialiased light gray 1px rules on light backgrounds.
+  - [x] Test broken and gapped horizontal and vertical rules.
+  - [x] Test OCR jitter, shifted anchors, missing cells, and numeric columns.
+  - [x] Keep existing clean table, checkbox, field, signature, shape, and text fallback tests passing.
+
+## Planned Improvement: Split OCR Text Recognition From Visual Element Detection
+
+- [ ] Split the image OCR converter into three explicit pipeline stages: text recognition, visual element detection, and element/text fusion.
+- [ ] Keep Tesseract responsible only for text extraction: pages, blocks, lines, words, bounds, confidence, language, and OCR diagnostics.
+- [x] Add an immutable intermediate OCR document model that stores raw OCR output mapped back to original source pixels.
+- [ ] Add a separate visual element detection stage that works from image pixels and detects rules, tables, fields, checkboxes, signatures, rectangles, filled areas, circles, and image regions.
+  - [x] Add initial pixel-only visual detection for rule segments, table regions, rectangles, and checkbox-like boxes.
+- [ ] Add a separate fusion stage that maps OCR text onto detected visual elements only when needed.
+  - [x] Add initial `OcrVisualFusionEngine` for checkbox labels, field labels, rejected mappings, consumed OCR lines, and standalone OCR text.
+- [ ] Map OCR words/lines into table cells when a visual or text-grid table candidate exists.
+  - [x] Map OCR words into table cells when a visual table-region candidate exists.
+- [ ] Map nearby OCR labels to form fields, checkboxes, and signature lines without consuming unrelated paragraph text.
+  - [x] Map nearby OCR labels to field and checkbox candidates without consuming unrelated paragraph text.
+- [x] Keep normal paragraph/body text outside detected visual element regions and emit it as standalone Canvas text elements.
+- [ ] Add diagnostics for every stage: OCR extraction, visual detection, fusion decisions, rejected candidates, and final Canvas element output.
+- [ ] Add debug overlays for each stage: OCR text bounds, visual candidates, fusion/mapping results, and final element bounds.
+- [x] Add tests proving that OCR text recognition can succeed independently of element detection.
+- [ ] Add tests proving that visual line/table/field detection can run from image pixels without OCR text.
+  - [x] Add visual-only tests for rule/table-region and checkbox candidates without OCR text.
+- [ ] Add tests proving that fusion correctly maps text into tables and fields while leaving normal text independent.
+  - [x] Add fusion tests for table cells, field labels, checkbox labels, and paragraph text that must remain standalone.
+
+### Implementation Plan
+
+- [ ] Introduce explicit intermediate pipeline models instead of passing raw `OcrLine` lists directly into all layout logic.
+  - [x] Add `OcrTextDocument` with source image size, pages, blocks, lines, words, bounds in original pixels, confidence, language, and preprocessing metadata.
+  - [x] Add `VisualLayoutDocument` with detected rule segments, table regions, fields, checkboxes, signature lines, shapes, image regions, and confidence/rejection diagnostics.
+  - [x] Add `FusedLayoutDocument` with final semantic candidates: tables with cell text, fields with labels, checkboxes with labels/state, signatures with labels, standalone text groups, shapes, and image regions.
+  - [x] Keep these models internal to `Canvas.FileImporter.ImageOcr` unless API consumers need them later.
+- [ ] Refactor `ImageToPdfConverter.ConvertAsync` into an orchestrator that decodes the image, applies orientation/preprocessing/scale mapping, runs OCR extraction, runs visual detection, runs OCR/visual fusion, builds `DesignExportDto`, builds diagnostics/debug overlays, and returns the result.
+  - [x] Add `OcrTextExtractor` that calls `IOcrEngine`, handles OCR bitmap scaling, maps OCR coordinates back to source pixels, and produces `OcrTextDocument`.
+  - [ ] Add `VisualElementDetector` that receives original `SKBitmap`, source dimensions, and options; detects visual candidates from pixels/rules/edges/fills; avoids final text-placement decisions; and produces `VisualLayoutDocument`.
+    - [x] Add initial `VisualElementDetector` for pixel-only rules, table regions, rectangles, and checkbox candidates.
+  - [ ] Add `OcrVisualFusionEngine` that receives `OcrTextDocument` and `VisualLayoutDocument`, assigns text to tables/fields/signatures/checkboxes, marks consumed OCR text, and produces standalone text groups for unconsumed text.
+    - [x] Add initial `OcrVisualFusionEngine` for fields, checkboxes, consumed OCR lines, rejected mappings, and standalone text.
+  - [ ] Add `CanvasElementBuilder` that converts fused semantic candidates into `ElementDto`, applies page placement/scaling, and adds source diagnostics to element styles.
+- [ ] Implement deterministic fusion rules.
+  - [ ] Prefer visual table bounds from detected rules/backgrounds, and allow OCR text-grid table candidates when no visual table exists.
+    - [x] Prefer visual table-region bounds from detected rules.
+  - [x] Assign words to table cells by source pixel bounds and row/column anchors while tolerating missing cells and shifted OCR words.
+  - [x] Map the nearest left/above OCR line as a field label only when distance and alignment thresholds match.
+  - [x] Avoid consuming OCR text inside unrelated paragraphs during field mapping.
+  - [x] Map nearest right-side or same-row checkbox labels only when confidence is high.
+  - [ ] Preserve checked, crossed, and dotted checkbox state from the visual detector.
+  - [ ] Map signature labels such as signature, date, or name using proximity and keyword hints.
+  - [x] Emit all OCR lines not consumed by table/field/checkbox/signature mapping as normal text groups.
+  - [x] Exclude OCR text inside visual element bounds only after fusion has assigned it.
+- [ ] Add diagnostics that clearly show where a failure happened.
+  - [ ] Add OCR diagnostics for runtime, page count, word/line count, confidence, preprocessing scale, language, and engine version.
+  - [ ] Add visual diagnostics for rule segment count, table candidates, field candidates, checkbox candidates, signature candidates, and rejection reasons.
+  - [ ] Add fusion diagnostics for OCR words assigned to tables, OCR lines consumed by fields/signatures/checkbox labels, OCR lines left as standalone text, and rejected mappings with reasons.
+    - [x] Add initial fusion diagnostics for consumed OCR lines, standalone OCR lines, and rejected mappings with reasons.
+  - [ ] Add OCR-only, visual-candidates, fusion, and final Canvas element debug overlays.
+- [ ] Add focused tests around stage separation.
+  - [x] Add OCR-only tests where a fake OCR engine returns words/lines and `OcrTextDocument` preserves text, confidence, and bounds.
+  - [ ] Add visual-only tests with synthetic images containing lines, tables, fields, and checkboxes, verifying visual candidates without OCR dependency.
+    - [x] Add synthetic rule/table-region and checkbox coverage without OCR dependency.
+  - [x] Add fusion tests for table bounds plus OCR words mapping into table cells.
+  - [x] Add fusion tests for field rectangles plus nearby labels.
+  - [ ] Add fusion tests for checkboxes plus nearby labels and state.
+    - [x] Add fusion test for checkbox plus nearby label.
+  - [x] Add fusion tests proving normal paragraph text near shapes remains standalone when it should not be consumed.
+  - [ ] Add end-to-end tests proving existing image OCR conversion still returns `DesignExportDto`.
+  - [ ] Add end-to-end tests proving debug JSON includes separate OCR, visual, and fusion diagnostics.
+  - [ ] Add end-to-end tests proving the large image path still avoids full expensive global scans where appropriate.
+
+### Assumptions
+
+- [ ] Do not replace Tesseract in this plan.
+- [ ] Do not change the public endpoint: keep `POST /api/document/convert-image-to-pdf`.
+- [ ] Keep the original image background layer behavior.
+- [ ] Keep current Canvas element types.
+- [ ] Prioritize architectural separation and debuggability first; table/field quality improvements should happen inside the new stages after the split.
+- [ ] Treat this as appended unchecked checklist work and do not mark existing items complete.
 
 ## Test Plan
 
