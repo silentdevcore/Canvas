@@ -129,6 +129,12 @@
   letter-spacing: 0.05em;
 }
 
+.importer-config-hint {
+  font-size: 11px;
+  color: #667085;
+  margin-top: 4px;
+}
+
 .importer-config-select {
   width: 100%;
   padding: 8px 10px;

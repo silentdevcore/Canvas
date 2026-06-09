@@ -200,7 +200,13 @@ public sealed class ImageToPdfConverter
         // run splitting) so words stay together. Returns before any visual-detection stages run.
         if (string.Equals(options.LayoutMode, "text-only", StringComparison.OrdinalIgnoreCase))
         {
-            var textOnlyGroups = OcrVisualFusionEngine.BuildTextGroups(lines, options);
+            var toTables = OcrVisualFusionEngine.DetectColumnAlignedTables(lines);
+            var toTableLines = toTables.SelectMany(t => t.Lines).ToHashSet();
+            foreach (var table in toTables)
+                elements.Add(CanvasElementBuilder.BuildTableElement(table, placement, pixels));
+
+            var textOnlyGroups = OcrVisualFusionEngine.BuildTextGroups(
+                lines.Where(l => !toTableLines.Contains(l)).ToList(), options);
             foreach (var textGroup in textOnlyGroups)
                 elements.AddRange(CanvasElementBuilder.BuildTextElements(textGroup, placement, pixels, baselineHeightPx, splitRuns: false));
 
@@ -231,7 +237,16 @@ public sealed class ImageToPdfConverter
                 ownedBitmap?.Dispose();
             }
 
-            var bgTextGroups = OcrVisualFusionEngine.BuildTextGroups(lines, options);
+            // Reconstruct borderless, column-aligned tables (e.g. invoice line-item tables with a
+            // light header and no cell borders) from text alignment, then keep the consumed lines
+            // out of the loose text groups.
+            var bgTables = OcrVisualFusionEngine.DetectColumnAlignedTables(lines);
+            var bgTableLines = bgTables.SelectMany(t => t.Lines).ToHashSet();
+            foreach (var table in bgTables)
+                elements.Add(CanvasElementBuilder.BuildTableElement(table, placement, pixels));
+
+            var bgTextGroups = OcrVisualFusionEngine.BuildTextGroups(
+                lines.Where(l => !bgTableLines.Contains(l)).ToList(), options);
             foreach (var textGroup in bgTextGroups)
                 elements.AddRange(CanvasElementBuilder.BuildTextElements(textGroup, placement, pixels, baselineHeightPx, splitRuns: false));
 

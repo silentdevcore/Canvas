@@ -30,6 +30,31 @@ const PAGE_SIZES: PageSizeOption[] = [
   { id: 'letter',   label: 'Letter (8.5×11 in)', widthPt: 612, heightPt: 792 },
 ];
 
+// OCR languages whose Tesseract data files (tessdata_fast) ship with the app. The codes are
+// combinable — selecting several joins them with '+', e.g. 'deu+eng+fra'.
+const OCR_LANGUAGES: { code: string; label: string }[] = [
+  { code: 'eng',     label: 'English' },
+  { code: 'deu',     label: 'German' },
+  { code: 'fra',     label: 'French' },
+  { code: 'spa',     label: 'Spanish' },
+  { code: 'ita',     label: 'Italian' },
+  { code: 'por',     label: 'Portuguese' },
+  { code: 'nld',     label: 'Dutch' },
+  { code: 'pol',     label: 'Polish' },
+  { code: 'swe',     label: 'Swedish' },
+  { code: 'dan',     label: 'Danish' },
+  { code: 'nor',     label: 'Norwegian' },
+  { code: 'fin',     label: 'Finnish' },
+  { code: 'ces',     label: 'Czech' },
+  { code: 'rus',     label: 'Russian' },
+  { code: 'ukr',     label: 'Ukrainian' },
+  { code: 'ell',     label: 'Greek' },
+  { code: 'chi_sim', label: 'Chinese (Simplified)' },
+  { code: 'jpn',     label: 'Japanese' },
+  { code: 'kor',     label: 'Korean' },
+  { code: 'ara',     label: 'Arabic' },
+];
+
 interface FormatCard {
   id: string;
   label: string;
@@ -291,18 +316,26 @@ const ImporterPage: React.FC = () => {
                         </div>
                         <div className="importer-config-field">
                           <label className="importer-config-label" htmlFor="ocr-language-select">
-                            OCR language
+                            OCR language(s)
                           </label>
                           <select
                             id="ocr-language-select"
                             className="importer-config-select"
-                            value={ocrLanguages}
-                            onChange={e => setOcrLanguages(e.target.value)}
+                            multiple
+                            size={6}
+                            value={ocrLanguages.split('+').filter(Boolean)}
+                            onChange={e => {
+                              const codes = Array.from(e.target.selectedOptions, o => o.value);
+                              setOcrLanguages(codes.join('+') || 'eng');
+                            }}
                           >
-                            <option value="deu+eng">German + English</option>
-                            <option value="deu">German</option>
-                            <option value="eng">English</option>
+                            {OCR_LANGUAGES.map(l => (
+                              <option key={l.code} value={l.code}>{l.label}</option>
+                            ))}
                           </select>
+                          <span className="importer-config-hint">
+                            Hold ⌘/Ctrl to select several — they’re combined (e.g. German + English).
+                          </span>
                         </div>
                         <label className="importer-config-check">
                           <input

@@ -76,6 +76,173 @@ internal static class OcrVisualFusionEngine
         return result;
     }
 
+    // ----- Column-aligned (borderless) table detection -----
+    //
+    // Reconstructs tables from text alignment alone — no rule lines or shaded cells required —
+    // for the text-background / text-only layout modes where invoices and reports commonly use
+    // borderless, light-header tables. OCR frequently emits each cell as a separate line at the
+    // same baseline, so lines are first merged into visual rows; a wide row with >=3 well-separated
+    // word groups seeds the column anchors (typically the header), and following rows that fall into
+    // those columns are absorbed. Requiring >=3 columns excludes 2-column layouts such as the
+    // FROM/BILL-TO block and the totals summary, which previously caused false-positive tables.
+    private sealed record VisualRow(IReadOnlyList<OcrLine> Lines, int Top, int Bottom, int Height, IReadOnlyList<double> WordCenters);
+
+    public static IReadOnlyList<OcrTableCandidate> DetectColumnAlignedTables(IReadOnlyList<OcrLine> lines)
+    {
+        var usable = lines.Where(l => l.Words.Any(w => !string.IsNullOrWhiteSpace(w.Text))).ToList();
+        var words = usable.SelectMany(l => l.Words).Where(w => !string.IsNullOrWhiteSpace(w.Text)).ToList();
+        if (usable.Count < 3 || words.Count == 0)
+            return [];
+
+        var contentLeft = words.Min(w => w.Bounds.X);
+        var contentRight = words.Max(w => w.Bounds.X + w.Bounds.Width);
+        var contentWidth = Math.Max(1, contentRight - contentLeft);
+        var medianHeight = Math.Max(1, usable.OrderBy(l => l.Bounds.Height).ElementAt(usable.Count / 2).Bounds.Height);
+        var columnTolerance = Math.Max(30.0, medianHeight * 1.2);
+
+        var rows = BuildVisualRows(usable);
+        if (rows.Count < 3)
+            return [];
+
+        var result = new List<OcrTableCandidate>();
+        var consumed = new bool[rows.Count];
+
+        for (var i = 0; i < rows.Count; i++)
+        {
+            if (consumed[i])
+                continue;
+
+            var anchors = ClusterCenters(rows[i].WordCenters, columnTolerance);
+            if (anchors.Count < 3 || anchors[^1] - anchors[0] < contentWidth * 0.35)
+                continue;
+
+            var minGap = MinAdjacentGap(anchors);
+            if (minGap < 30)
+                continue;
+            var tolerance = minGap * 0.5;
+            var requiredHits = Math.Max(2, anchors.Count - 1);
+
+            var run = new List<VisualRow> { rows[i] };
+            var j = i + 1;
+            while (j < rows.Count && !consumed[j])
+            {
+                var gap = rows[j].Top - run[^1].Bottom;
+                if (gap > Math.Max(run[^1].Height, rows[j].Height) * 2.2)
+                    break;
+                if (DistinctColumnsHit(rows[j], anchors, tolerance) < requiredHits)
+                    break;
+                run.Add(rows[j]);
+                j++;
+            }
+
+            if (run.Count < 3) // header + at least two body rows
+                continue;
+
+            var candidateLines = run.SelectMany(r => r.Lines).ToList();
+            var rowGroups = run.Select(r => (IReadOnlyList<OcrLine>)r.Lines).ToList();
+            result.Add(new OcrTableCandidate(candidateLines, anchors, null, null, rowGroups, "column-aligned-text-table", null));
+
+            for (var k = i; k < j; k++)
+                consumed[k] = true;
+            i = j - 1;
+        }
+
+        return result;
+    }
+
+    private static IReadOnlyList<VisualRow> BuildVisualRows(IReadOnlyList<OcrLine> lines)
+    {
+        var rows = new List<VisualRow>();
+        foreach (var line in lines.OrderBy(l => l.Bounds.Y).ThenBy(l => l.Bounds.X))
+        {
+            var centerY = line.Bounds.Y + line.Bounds.Height / 2.0;
+            var attached = false;
+            for (var r = 0; r < rows.Count; r++)
+            {
+                var row = rows[r];
+                var rowCenter = (row.Top + row.Bottom) / 2.0;
+                // Same visual row when vertical centers are close relative to text height.
+                if (Math.Abs(centerY - rowCenter) <= Math.Max(row.Height, line.Bounds.Height) * 0.6)
+                {
+                    var merged = row.Lines.Append(line).ToList();
+                    var top = Math.Min(row.Top, line.Bounds.Y);
+                    var bottom = Math.Max(row.Bottom, line.Bounds.Y + line.Bounds.Height);
+                    var centers = merged
+                        .SelectMany(l => l.Words)
+                        .Where(w => !string.IsNullOrWhiteSpace(w.Text))
+                        .Select(w => w.Bounds.X + w.Bounds.Width / 2.0)
+                        .OrderBy(c => c)
+                        .ToList();
+                    rows[r] = new VisualRow(merged, top, bottom, bottom - top, centers);
+                    attached = true;
+                    break;
+                }
+            }
+
+            if (!attached)
+            {
+                var centers = line.Words
+                    .Where(w => !string.IsNullOrWhiteSpace(w.Text))
+                    .Select(w => w.Bounds.X + w.Bounds.Width / 2.0)
+                    .OrderBy(c => c)
+                    .ToList();
+                rows.Add(new VisualRow([line], line.Bounds.Y, line.Bounds.Y + line.Bounds.Height, line.Bounds.Height, centers));
+            }
+        }
+
+        return rows.OrderBy(r => r.Top).ToList();
+    }
+
+    // Collapses word centers into column anchors: centers within <paramref name="tolerance"/> of the
+    // running cluster mean are merged, so multi-word cells (e.g. "Visual identity & logo system")
+    // contribute a single column rather than several spurious ones.
+    private static List<double> ClusterCenters(IReadOnlyList<double> centers, double tolerance)
+    {
+        var anchors = new List<double>();
+        if (centers.Count == 0)
+            return anchors;
+
+        var clusterSum = centers[0];
+        var clusterCount = 1;
+        for (var i = 1; i < centers.Count; i++)
+        {
+            var mean = clusterSum / clusterCount;
+            if (centers[i] - mean <= tolerance)
+            {
+                clusterSum += centers[i];
+                clusterCount++;
+            }
+            else
+            {
+                anchors.Add(clusterSum / clusterCount);
+                clusterSum = centers[i];
+                clusterCount = 1;
+            }
+        }
+        anchors.Add(clusterSum / clusterCount);
+        return anchors;
+    }
+
+    private static double MinAdjacentGap(IReadOnlyList<double> anchors)
+    {
+        var min = double.MaxValue;
+        for (var i = 1; i < anchors.Count; i++)
+            min = Math.Min(min, anchors[i] - anchors[i - 1]);
+        return min == double.MaxValue ? 0 : min;
+    }
+
+    private static int DistinctColumnsHit(VisualRow row, IReadOnlyList<double> anchors, double tolerance)
+    {
+        var hit = new HashSet<int>();
+        foreach (var center in row.WordCenters)
+        {
+            var col = OcrLayoutHelpers.FindNearestColumn(center, anchors, tolerance);
+            if (col >= 0)
+                hit.Add(col);
+        }
+        return hit.Count;
+    }
+
     private static IReadOnlyList<OcrTableCandidate> DetectWordGridTables(IReadOnlyList<OcrLine> lines)
     {
         var rows = BuildWordGridRows(lines)
