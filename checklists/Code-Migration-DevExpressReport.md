@@ -12,96 +12,104 @@ manual migration" warning emitted by the code converter
 - **Output**: a `DesignExportDto` (pages + `ElementDto[]`) loaded into the visual designer — **not** a
   C# code string (this is distinct from the other `Code-Migration-*` providers).
 
-## V1 Scope
+## Status
 
-- [ ] V1 handles **static-content reports** (literal `Text`, fixed positions/sizes, fonts, colours).
-- [ ] Input is **C# source** only; `.repx` XML input is deferred to a later version.
-- [ ] Deferred → emit a diagnostic + keep static value/placeholder: data bindings / `ExpressionBindings`,
-      calculated fields, sub-reports, scripts, grouping/sorting, anchored/auto sizing.
+**V1 shipped.** C#-source XtraReports convert end-to-end and open in the designer: band flattening, unit
+conversion, real page size, repeating page headers/footers, tables, and data bindings. **V2** below is
+the next, unstarted milestone.
 
-## Two structural problems
+---
 
-- [ ] **Unit conversion.** XtraReports default `ReportUnit = HundredthsOfAnInch`; `LocationF`/`SizeF` are
-      in report units. Canvas uses points (1/72"). Convert `pt = value × 0.72` (hundredths-of-inch).
-      Detect `report.ReportUnit` (`Pixels`, `TenthsOfAMillimeter`, …) and scale accordingly; default to
-      hundredths-of-inch when unspecified.
-- [ ] **Band flattening.** Controls live in bands (`TopMarginBand`, `ReportHeaderBand`, `PageHeaderBand`,
-      `DetailBand`, `GroupHeaderBand`, `PageFooterBand`, …) with `LocationF.Y` relative to their band.
-      Compute absolute page Y by accumulating each preceding band's `HeightF` (margin bands fold into the
-      page margin). This is the core of the converter.
+# V1 — Shipped ✅
 
-## Architecture
+### Scope
+- [x] Static-content reports (literal `Text`, fixed positions/sizes, fonts, colours).
+- [x] Input is **C# source** (Roslyn). `.repx` XML input is a V2 item.
 
-- [ ] New isolated project `src/Canvas.Migration.DevExpressReport` (refs `Canvas.Core` for
-      `Canvas.Core.Contracts.DesignExportDto` + `Microsoft.CodeAnalysis.CSharp`). Mirrors the
-      `Canvas.Migration.*` separation but returns a `DesignExportDto`, not a code string.
-- [ ] `XtraReportToDesignConverter.Convert(string csharpSource)` →
-      `{ DesignExportDto Design, List<MigrationDiagnostic> Diagnostics }`.
-- [ ] Roslyn pre-scan: locate the `: XtraReport` declaration; collect control **field declarations**
-      (type → variable name); read `InitializeComponent()` assignments into a per-control property bag
-      (`.Text`, `.LocationF = new PointF(x,y)`, `.SizeF = new SizeF(w,h)`, `.Font = new Font(...)`,
-      `.ForeColor`, `.TextAlignment`, `.BackColor`, `.Borders`).
-- [ ] Band membership from `band.Controls.AddRange(new[] { ... })` / `band.Controls.Add(...)`; read each
-      band's `HeightF` + band type to compute the vertical offset.
-- [ ] Build `ElementDto` ([DesignExportDto.cs:140](../src/Canvas.Core/Contracts/DesignExportDto.cs#L140))
-      into `PageDto.Elements`.
-- [x] Set `PageSettingsDto` from `PaperKind` (A4/A3/A5/Letter/Legal/Tabloid), or `PageWidth`/`PageHeight`
-      (report units) when `Custom`; `Landscape` swaps the dimensions; defaults to A4.
-- [x] `PageHeaderBand`/`PageFooterBand` controls → `DesignExportDto.SharedElements` so they repeat on
-      every page; the footer is anchored to the page bottom (`pageHeight − bottomMargin − footerHeight`).
+### Core conversion
+- [x] **Unit conversion** — `ReportUnit` default `HundredthsOfAnInch` (×0.72); `Pixels` (×0.75, 96 DPI);
+      `TenthsOfAMillimeter`; defaults to hundredths-of-inch.
+- [x] **Band flattening** — accumulate each band's `HeightF` (canonical order) to turn band-relative
+      `LocationF.Y` into absolute page coordinates.
+- [x] **Page size** — from `PaperKind` (A4/A3/A5/Letter/Legal/Tabloid), or `PageWidth`/`PageHeight`
+      (report units) when `Custom`; `Landscape` swaps dimensions; defaults to A4.
+- [x] **Page header/footer** → `DesignExportDto.SharedElements` (repeat on every page); footer anchored
+      to the page bottom (`pageHeight − bottomMargin − footerHeight`).
 
-## Mapping Table
+### Architecture
+- [x] Isolated project `src/Canvas.Migration.DevExpressReport` (refs `Canvas.Core` + Roslyn); returns a
+      `DesignExportDto`, not a code string.
+- [x] `XtraReportToDesignConverter.Convert(string)` → `{ DesignExportDto Design, IReadOnlyList<MigrationDiagnostic> Diagnostics }`.
+- [x] Roslyn pre-scan: locate `: XtraReport`; collect control field declarations; read
+      `InitializeComponent()` assignments into per-control property bags; band membership + table
+      rows/cells from `*.Controls/Rows/Cells.Add(Range)`.
 
-| XtraReport control | Canvas `ElementDto.Type` | Key fields |
+### Control mapping
+| XtraReport control | Canvas `ElementDto.Type` | Status |
 | --- | --- | --- |
-| `XRLabel` / `XRPageInfo` | `text` | `Content` ← `.Text`; `Style` ← `{ fontSize, color, fontFamily, fontWeight, textAlign }` |
-| `XRLine` | `line` | x/y/w/h; `Style.color` ← `.ForeColor` |
-| `XRShape` / `XRPanel` (rectangle) | `rect` | border/fill ← `.Borders`/`.BackColor` |
-| `XRPictureBox` | `image` | `FitMode`; image data deferred → placeholder |
-| `XRTable`/`XRTableRow`/`XRTableCell` | `table` | `CellData` from row/cell `.Text`, equal `ColumnWidths`; rows/cells folded into the table |
-| `XRBarCode` | `barcode` | `BarcodeValue`/`BarcodeType` |
-| `XRRichText` | `richtext` | `HtmlContent` from static text |
-| Unsupported control | *(skipped)* | `CANMIGDEVREP011` warning with the control type |
+| `XRLabel` / `XRPageInfo` | `text` (+ font/colour/align style) | [x] |
+| `XRLine` | `line` | [x] |
+| `XRShape` / `XRPanel` | `rect` | [x] |
+| `XRPictureBox` | `image` (placeholder, `CANMIGDEVREP013`) | [x] |
+| `XRTable`/`XRTableRow`/`XRTableCell` | `table` (CellData from cell `.Text`) | [x] |
+| `XRBarCode` | `barcode` | [x] |
+| `XRRichText` | `richtext` | [x] |
+| Data binding (`ExpressionBindings`/`DataBindings`) | `binding` for `[Field]`, `expression` otherwise | [x] |
 
-All elements: `X/Y/Width/Height` = unit-converted, band-flattened absolute points.
+### Delivery
+- [x] Backend `POST /api/migration/report-to-design` → `{ design, diagnostics }`
+      ([MigrationController.cs](../Canvas.WebApi/Controllers/MigrationController.cs)).
+- [x] Frontend **"DevExpress Reports"** entry + **Open in Designer** (loads via `bulkReplaceContent`,
+      navigates to the editor) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
 
-## Delivery (endpoint + designer)
+### Tests (17 passing)
+- [x] Band-flattened + unit-converted coordinates; label style mapping; line/rect/image.
+- [x] `ReportUnit = Pixels` scaling; PaperKind/Custom/Landscape page sizes.
+- [x] XRTable rows/cells; single-field binding + complex expression; page header/footer → shared.
+- [x] Unsupported control → `CANMIGDEVREP011`.
 
-- [ ] Backend: `POST /api/migration/report-to-design` (`{ sourceCode }`) →
-      `{ design: DesignExportDto, diagnostics: [...] }`. Reference the new project from
-      `Canvas.WebApi.csproj`; wire near the existing converters
-      ([Services/Converters/](../Canvas.WebApi/Services/Converters/)).
-- [ ] Frontend: a **"DevExpress Reports"** entry on the Migrations page
-      ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)) — calls the endpoint, then
-      loads the design via `bulkReplaceContent(pages, sharedElements)`
-      ([store.ts:130](../ui-designer-v2/src/store.ts#L130)) (same hop the Importer's `loadFromFile`
-      uses) and navigates to the editor; shows a diagnostics summary.
-- [ ] `ExportService.convertReportToDesign(sourceCode)` helper mirroring existing fetch methods.
-
-## Diagnostic IDs
-
+### Diagnostics (implemented)
 | ID | Severity | Meaning |
 | --- | --- | --- |
 | `CANMIGDEVREP001` | Info | XtraReport + bands detected (N bands, M controls) |
-| `CANMIGDEVREP002` | Info | Control mapped to a Canvas element |
-| `CANMIGDEVREP010` | Info / Warning | Text binding mapped — single field `[X]` → Canvas `binding` (Info); complex expression → Canvas `expression`, review syntax (Warning) |
+| `CANMIGDEVREP010` | Info / Warning | Text binding mapped — `[X]` → `binding` (Info); complex expression → `expression` (Warning) |
 | `CANMIGDEVREP011` | Warning | Unsupported control skipped |
-| `CANMIGDEVREP012` | Warning | Sub-report / script requires manual migration |
 | `CANMIGDEVREP013` | Warning | Picture data not embeddable — placeholder inserted |
 
-## Tests Checklist
+---
 
-- [ ] `ReportHeaderBand` (title `XRLabel`) + `DetailBand` (`XRLabel` + `XRLine`) → `DesignExportDto` with
-      correct **band-flattened** absolute Y and **unit-converted** coordinates.
-- [ ] `XRLabel` style maps font size/family/weight/colour/alignment.
-- [ ] `XRLine` → `line`; `XRShape` → `rect`; `XRPictureBox` → `image` placeholder (`CANMIGDEVREP013`).
-- [ ] `ReportUnit = Pixels` vs default hundredths-of-inch scale correctly.
-- [ ] Data-bound label emits `CANMIGDEVREP010` and keeps any static text.
-- [ ] Unsupported control emits `CANMIGDEVREP011`.
-- [ ] Endpoint returns design JSON; `dotnet build Canvas.sln` succeeds.
+# V2 — Next 🔜
+
+Pick from these, roughly in value order:
+
+### 1. `.repx` XML input  *(biggest, most-requested)*
+- [ ] Parse the serialized DevExpress report XML (`.repx`) instead of only C# source — a separate XML
+      parser path reusing the same band-flatten / unit / mapping core. Lets users import designed
+      reports without the generated C#.
+
+### 2. Richer controls & styling
+- [ ] `XRPictureBox` real image embedding (base64 `ImageSource`/`Image` data → Canvas image), replacing
+      the `CANMIGDEVREP013` placeholder.
+- [ ] Per-cell table styling (cell `.Font`/`.ForeColor`/`.BackColor` → Canvas table style).
+- [ ] Additional controls: `XRChart` → `chart`, `XRCheckBox` → `checkbox`/`checkmark`, `XRGauge`,
+      `XRPivotGrid` (currently skipped with `CANMIGDEVREP011`).
+- [ ] `XRShape` shape kinds (ellipse/line/arrow) and `.Borders` → border style/width.
+
+### 3. Data & layout fidelity
+- [ ] Translate DevExpress expression syntax (`[Qty] * [Price]`, `Sum()`, `Iif()`, formatting) to the
+      Canvas expression DSL instead of preserving the raw string (emit `CANMIGDEVREP002` on success).
+- [ ] Detect sub-reports/scripts and emit `CANMIGDEVREP012` (currently silent).
+- [ ] Grouping/sorting bands (`GroupHeaderBand`/`GroupFooterBand`) — map to repeat/section semantics
+      rather than flat page elements.
+- [ ] `AnchorVertical`/`AnchorHorizontal` and `CanGrow`/`CanShrink` auto-sizing.
+- [ ] `ReportFooterBand` once-at-end semantics (currently a normal page element).
+
+### 4. Polish
+- [ ] Emit `CANMIGDEVREP002` per mapped control (currently only the `001` summary).
+- [ ] Map non-text data bindings instead of the generic warning.
+- [ ] Multi-`DetailReportBand` (sub-detail) handling.
 
 ## Assumptions
-
-- [ ] Use `Canvas.Migration.DevExpressReport`, separate from `Canvas.Migration.DevExpressPdf`.
-- [ ] Output target is Canvas design JSON (designer), not Canvas.Pdf C# code.
-- [ ] Default page size A4 when the report declares none.
+- [x] Use `Canvas.Migration.DevExpressReport`, separate from `Canvas.Migration.DevExpressPdf`.
+- [x] Output target is Canvas design JSON (designer), not Canvas.Pdf C# code.
+- [x] Default page size A4 when the report declares none.
