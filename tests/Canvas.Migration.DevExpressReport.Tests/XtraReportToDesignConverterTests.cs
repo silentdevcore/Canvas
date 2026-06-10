@@ -195,6 +195,63 @@ public sealed class XtraReportToDesignConverterTests
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP011");
     }
 
+    private static string ReportWithPageSetup(string setup) => $$"""
+        using DevExpress.XtraReports.UI;
+        using System.Drawing;
+        using System.Drawing.Printing;
+        public partial class R : XtraReport
+        {
+            private DetailBand Detail;
+            private XRLabel xrA;
+            private void InitializeComponent()
+            {
+                {{setup}}
+                this.Detail = new DetailBand();
+                this.xrA = new XRLabel();
+                this.xrA.Text = "X";
+                this.xrA.LocationF = new PointF(0F, 0F);
+                this.xrA.SizeF = new SizeF(50F, 20F);
+                this.Detail.Controls.AddRange(new XRControl[] { this.xrA });
+            }
+        }
+        """;
+
+    [Theory]
+    [InlineData("this.PaperKind = PaperKind.A4;", 595, 842)]
+    [InlineData("this.PaperKind = PaperKind.Letter;", 612, 792)]
+    [InlineData("this.PaperKind = PaperKind.Legal;", 612, 1008)]
+    [InlineData("this.PaperKind = PaperKind.A3;", 842, 1191)]
+    public void Convert_PaperKind_SetsPageSize(string setup, double width, double height)
+    {
+        var design = new XtraReportToDesignConverter().Convert(ReportWithPageSetup(setup)).Design;
+
+        Assert.Equal(width, design.PageSettings!.Width, 1);
+        Assert.Equal(height, design.PageSettings.Height, 1);
+    }
+
+    [Fact]
+    public void Convert_CustomPaperSize_UsesPageWidthHeightInReportUnits()
+    {
+        // 850 × 1100 hundredths-of-inch × 0.72 = 612 × 792 pt (US Letter).
+        var design = new XtraReportToDesignConverter()
+            .Convert(ReportWithPageSetup("this.PaperKind = PaperKind.Custom; this.PageWidth = 850; this.PageHeight = 1100;"))
+            .Design;
+
+        Assert.Equal(612d, design.PageSettings!.Width, 1);
+        Assert.Equal(792d, design.PageSettings.Height, 1);
+    }
+
+    [Fact]
+    public void Convert_Landscape_SwapsWidthAndHeight()
+    {
+        var design = new XtraReportToDesignConverter()
+            .Convert(ReportWithPageSetup("this.PaperKind = PaperKind.A4; this.Landscape = true;"))
+            .Design;
+
+        Assert.Equal(842d, design.PageSettings!.Width, 1);
+        Assert.Equal(595d, design.PageSettings.Height, 1);
+    }
+
     [Fact]
     public void Convert_PageHeaderAndFooter_BecomeSharedElements()
     {

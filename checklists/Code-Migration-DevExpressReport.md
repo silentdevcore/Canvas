@@ -44,7 +44,9 @@ manual migration" warning emitted by the code converter
 - [ ] Band membership from `band.Controls.AddRange(new[] { ... })` / `band.Controls.Add(...)`; read each
       band's `HeightF` + band type to compute the vertical offset.
 - [ ] Build `ElementDto` ([DesignExportDto.cs:140](../src/Canvas.Core/Contracts/DesignExportDto.cs#L140))
-      into `PageDto.Elements`; set `PageSettingsDto` from `report.PageWidth/PageHeight` or default A4.
+      into `PageDto.Elements`.
+- [x] Set `PageSettingsDto` from `PaperKind` (A4/A3/A5/Letter/Legal/Tabloid), or `PageWidth`/`PageHeight`
+      (report units) when `Custom`; `Landscape` swaps the dimensions; defaults to A4.
 - [x] `PageHeaderBand`/`PageFooterBand` controls → `DesignExportDto.SharedElements` so they repeat on
       every page; the footer is anchored to the page bottom (`pageHeight − bottomMargin − footerHeight`).
 

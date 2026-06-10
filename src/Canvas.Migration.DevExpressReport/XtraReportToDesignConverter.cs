@@ -108,6 +108,7 @@ public sealed class XtraReportToDesignConverter
 
         var unitScale = ResolveUnitScale(GetProp(props, "this", "ReportUnit"));
         var (marginLeft, marginTop, marginBottom) = ResolveMargins(GetProp(props, "this", "Margins"));
+        var (pageWidthPt, pageHeightPt) = ResolvePageSize(props, unitScale);
 
         // --- Band flattening: absolute top (report units) per band -----------------------------------
         var bands = fieldTypes.Where(kv => kv.Value.EndsWith("Band", StringComparison.Ordinal))
@@ -127,7 +128,7 @@ public sealed class XtraReportToDesignConverter
         // --- Build elements ---------------------------------------------------------------------------
         var elements = new List<ElementDto>();
         var sharedElements = new List<ElementDto>();  // PageHeader/PageFooter → repeat on every page
-        var pageHeightUnits = A4HeightPt / unitScale;
+        var pageHeightUnits = pageHeightPt / unitScale;
         var controlCount = 0;
         foreach (var (name, type) in fieldTypes)
         {
@@ -185,7 +186,7 @@ public sealed class XtraReportToDesignConverter
             Name = reportName,
             Category = "imported",
             Description = "Imported from a DevExpress XtraReport.",
-            PageSettings = new PageSettingsDto { Width = A4WidthPt, Height = A4HeightPt, Unit = "pt" },
+            PageSettings = new PageSettingsDto { Width = pageWidthPt, Height = pageHeightPt, Unit = "pt" },
             Pages = [new PageDto { Id = "page-1", Elements = elements }],
             SharedElements = sharedElements
         };
@@ -485,6 +486,39 @@ public sealed class XtraReportToDesignConverter
             "HundredthsOfAnInch" => 0.72,
             _ => 0.72                            // default report unit
         };
+    }
+
+    // Resolve the page size (points) from PaperKind, or PageWidth/PageHeight (report units) when Custom.
+    // Landscape swaps the dimensions. Defaults to A4.
+    private static (double Width, double Height) ResolvePageSize(
+        Dictionary<string, Dictionary<string, ExpressionSyntax>> props, double unitScale)
+    {
+        var kind = GetProp(props, "this", "PaperKind") is MemberAccessExpressionSyntax ma
+            ? ma.Name.Identifier.ValueText
+            : "";
+
+        (double W, double H) size = kind switch
+        {
+            "A3" => (842, 1191),
+            "A4" => (595, 842),
+            "A5" => (420, 595),
+            "Letter" => (612, 792),
+            "Legal" => (612, 1008),
+            "Tabloid" or "Ledger" => (792, 1224),
+            _ => (0, 0)
+        };
+
+        if (size.W <= 0) // Custom / unspecified → PageWidth/PageHeight in report units.
+        {
+            var w = ToNumber(GetProp(props, "this", "PageWidth"));
+            var h = ToNumber(GetProp(props, "this", "PageHeight"));
+            size = w > 0 && h > 0 ? (w * unitScale, h * unitScale) : (A4WidthPt, A4HeightPt);
+        }
+
+        if (GetProp(props, "this", "Landscape") is LiteralExpressionSyntax { Token.Value: true })
+            size = (size.H, size.W);
+
+        return size;
     }
 
     private static (double Left, double Top, double Bottom) ResolveMargins(ExpressionSyntax? margins)
