@@ -251,7 +251,7 @@ public sealed class XtraReportToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_DataBoundControl_EmitsBindingWarning()
+    public void Convert_SingleFieldBinding_MapsToCanvasBinding()
     {
         var source = """
             using DevExpress.XtraReports.UI;
@@ -267,15 +267,46 @@ public sealed class XtraReportToDesignConverterTests
                     this.xrTotal.Text = "0.00";
                     this.xrTotal.LocationF = new PointF(0F, 0F);
                     this.xrTotal.SizeF = new SizeF(100F, 20F);
-                    this.xrTotal.ExpressionBindings.AddRange(new ExpressionBinding[] { new ExpressionBinding("Text", "[Total]") });
+                    this.xrTotal.ExpressionBindings.AddRange(new ExpressionBinding[] { new ExpressionBinding("BeforePrint", "Text", "[Total]") });
                     this.Detail.Controls.AddRange(new XRControl[] { this.xrTotal });
                 }
             }
             """;
 
         var result = new XtraReportToDesignConverter().Convert(source);
+        var el = Element(result.Design, "xrTotal");
 
-        Assert.Equal("0.00", Element(result.Design, "xrTotal").Content);
+        Assert.Equal("Total", el.Binding);
+        Assert.Equal("{{Total}}", el.Content);
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP010");
+    }
+
+    [Fact]
+    public void Convert_ComplexExpression_MapsToExpressionField()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRLabel xrAmount;
+                private void InitializeComponent()
+                {
+                    this.Detail = new DetailBand();
+                    this.xrAmount = new XRLabel();
+                    this.xrAmount.LocationF = new PointF(0F, 0F);
+                    this.xrAmount.SizeF = new SizeF(100F, 20F);
+                    this.xrAmount.ExpressionBindings.AddRange(new ExpressionBinding[] { new ExpressionBinding("BeforePrint", "Text", "[Qty] * [Price]") });
+                    this.Detail.Controls.AddRange(new XRControl[] { this.xrAmount });
+                }
+            }
+            """;
+
+        var result = new XtraReportToDesignConverter().Convert(source);
+        var el = Element(result.Design, "xrAmount");
+
+        Assert.Equal("[Qty] * [Price]", el.Expression);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP010" && d.Severity == Canvas.Migration.Abstractions.MigrationDiagnosticSeverity.Warning);
     }
 }

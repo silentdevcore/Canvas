@@ -80,7 +80,7 @@ All elements: `X/Y/Width/Height` = unit-converted, band-flattened absolute point
 | --- | --- | --- |
 | `CANMIGDEVREP001` | Info | XtraReport + bands detected (N bands, M controls) |
 | `CANMIGDEVREP002` | Info | Control mapped to a Canvas element |
-| `CANMIGDEVREP010` | Warning | Data binding / expression dropped — static value kept |
+| `CANMIGDEVREP010` | Info / Warning | Text binding mapped — single field `[X]` → Canvas `binding` (Info); complex expression → Canvas `expression`, review syntax (Warning) |
 | `CANMIGDEVREP011` | Warning | Unsupported control skipped |
 | `CANMIGDEVREP012` | Warning | Sub-report / script requires manual migration |
 | `CANMIGDEVREP013` | Warning | Picture data not embeddable — placeholder inserted |

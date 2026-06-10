@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Canvas.Core.Contracts;
 using Canvas.Migration.Abstractions;
 using Microsoft.CodeAnalysis;
@@ -59,7 +60,9 @@ public sealed class XtraReportToDesignConverter
         // bandName → [controlName...], and controls that carry data bindings.
         var bandControls = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         var controlBand = new Dictionary<string, string>(StringComparer.Ordinal);
-        var boundControls = new HashSet<string>(StringComparer.Ordinal);
+        // control → the expression bound to its Text property (DevExpress ExpressionBinding/DataBinding).
+        var controlTextExpr = new Dictionary<string, string>(StringComparer.Ordinal);
+        var boundOther = new HashSet<string>(StringComparer.Ordinal);
         // XRTable structure: tableName → [rowName...], rowName → [cellName...].
         var tableRows = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         var rowCells = new Dictionary<string, List<string>>(StringComparer.Ordinal);
@@ -98,7 +101,7 @@ public sealed class XtraReportToDesignConverter
                     break;
                 }
                 case "ExpressionBindings" or "DataBindings":
-                    boundControls.Add(owner);
+                    CaptureBindings(owner, inv.ArgumentList, controlTextExpr, boundOther);
                     break;
             }
         }
@@ -149,11 +152,11 @@ public sealed class XtraReportToDesignConverter
                 : MapControl(name, type, bag, x, y, w, h, diagnostics);
             if (element is null) continue;
 
-            if (boundControls.Contains(name))
-            {
+            if (controlTextExpr.TryGetValue(name, out var boundExpr))
+                ApplyBinding(element, boundExpr, diagnostics);
+            else if (boundOther.Contains(name))
                 diagnostics.Add(Warn("CANMIGDEVREP010",
-                    $"'{name}' has a data binding/expression — the bound value was dropped; static text kept. Re-bind in Canvas."));
-            }
+                    $"'{name}' has a non-text data binding that wasn't mapped — re-bind it in Canvas."));
 
             elements.Add(element);
             controlCount++;
@@ -305,6 +308,70 @@ public sealed class XtraReportToDesignConverter
 
         style["textAlign"] = ParseAlignment(bag.GetValueOrDefault("TextAlignment"));
         return style;
+    }
+
+    // ── Data binding ───────────────────────────────────────────────────────────────────────────────
+
+    // Parse the binding objects inside an ExpressionBindings/DataBindings Add(Range) call and record
+    // the expression bound to each control's Text property.
+    private static void CaptureBindings(
+        string owner, ArgumentListSyntax args,
+        Dictionary<string, string> controlTextExpr, HashSet<string> boundOther)
+    {
+        var captured = false;
+        foreach (var creation in args.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
+        {
+            var typeName = SimpleName(creation.Type);
+            var a = creation.ArgumentList?.Arguments;
+            if (a is not { Count: >= 2 }) continue;
+
+            string? property = null, expression = null;
+            if (typeName == "ExpressionBinding")
+            {
+                // ExpressionBinding(event, property, expression) or ExpressionBinding(property, expression)
+                var hasEvent = a.Value.Count >= 3;
+                property = ParseString(a.Value[hasEvent ? 1 : 0].Expression);
+                expression = ParseString(a.Value[hasEvent ? 2 : 1].Expression);
+            }
+            else if (typeName == "Binding")
+            {
+                // new Binding(propertyName, dataSource, dataMember) → treat the member as a field ref.
+                property = ParseString(a.Value[0].Expression);
+                var field = a.Value.Count >= 3 ? ParseString(a.Value[2].Expression) : null;
+                if (field is not null) expression = $"[{field}]";
+            }
+
+            if (property is null || expression is null) continue;
+            if (string.Equals(property, "Text", StringComparison.Ordinal))
+            {
+                controlTextExpr[owner] = expression;
+                captured = true;
+            }
+        }
+
+        if (!captured) boundOther.Add(owner);
+    }
+
+    // Map a DevExpress Text expression to a Canvas binding/expression on the element.
+    private static void ApplyBinding(ElementDto element, string expression, List<MigrationDiagnostic> diagnostics)
+    {
+        var single = Regex.Match(expression, @"^\s*\[(\w+)\]\s*$");
+        if (single.Success)
+        {
+            var field = single.Groups[1].Value;
+            element.Binding = field;
+            element.Content = $"{{{{{field}}}}}";  // {{field}} placeholder for the designer
+            diagnostics.Add(Info("CANMIGDEVREP010",
+                $"'{element.Name}' Text bound to field [{field}] → Canvas binding '{field}'."));
+        }
+        else
+        {
+            // Preserve the original expression; DevExpress syntax may need adjusting in Canvas.
+            element.Expression = expression;
+            if (string.IsNullOrEmpty(element.Content)) element.Content = expression;
+            diagnostics.Add(Warn("CANMIGDEVREP010",
+                $"'{element.Name}' Text expression '{expression}' mapped to Canvas expression — review the syntax."));
+        }
     }
 
     // ── Value parsing ────────────────────────────────────────────────────────────────────────────
