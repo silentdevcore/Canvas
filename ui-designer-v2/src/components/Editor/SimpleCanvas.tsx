@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type { Template, SimpleElement, LayerDirection, PageSettings, Page } from '@/types';
+import type { Template, SimpleElement, LayerDirection, PageSettings, Page, PdfEncryption, PdfEncryptionPermissions } from '@/types';
 import { useEditorStore, DEFAULT_PAGE_SETTINGS } from '@/store';
 import { toDisplay, fromDisplay } from '@/utils/units';
 import { getPageSettingsWarnings } from '@/utils/pageValidation';
@@ -4879,6 +4879,100 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                             })}
                           />
                         </label>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* PDF Encryption */}
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading">
+                    <FiLock />
+                    <span>PDF Encryption</span>
+                  </div>
+                  <div className="editor-form-stack" style={{ padding: 12 }}>
+                    <label className="editor-checkbox-control">
+                      <input
+                        type="checkbox"
+                        checked={pageSettings.encryption?.enabled ?? false}
+                        onChange={(e) => updatePageSettings({
+                          encryption: e.target.checked
+                            ? {
+                                enabled: true,
+                                userPassword: '',
+                                ownerPassword: '',
+                                algorithm: 'Rc4_128',
+                                permissions: {
+                                  print: true, modify: true, copy: true, annotate: true,
+                                  fillForms: true, extractAccessibility: true, assemble: true, printHighResolution: true,
+                                },
+                              }
+                            : undefined,
+                        })}
+                      />
+                      <span>Encrypt PDF with a password</span>
+                    </label>
+                    {pageSettings.encryption?.enabled && (
+                      <>
+                        <label>
+                          <span>User password (to open)</span>
+                          <input
+                            type="password"
+                            placeholder="Leave blank to open without a prompt"
+                            value={pageSettings.encryption.userPassword}
+                            onChange={(e) => updatePageSettings({
+                              encryption: { ...pageSettings.encryption!, userPassword: e.target.value },
+                            })}
+                          />
+                        </label>
+                        <label>
+                          <span>Owner password (permissions)</span>
+                          <input
+                            type="password"
+                            placeholder="Defaults to the user password"
+                            value={pageSettings.encryption.ownerPassword}
+                            onChange={(e) => updatePageSettings({
+                              encryption: { ...pageSettings.encryption!, ownerPassword: e.target.value },
+                            })}
+                          />
+                        </label>
+                        <label>
+                          <span>Algorithm</span>
+                          <select
+                            value={pageSettings.encryption.algorithm}
+                            onChange={(e) => updatePageSettings({
+                              encryption: { ...pageSettings.encryption!, algorithm: e.target.value as PdfEncryption['algorithm'] },
+                            })}
+                          >
+                            <option value="Rc4_128">RC4 128-bit</option>
+                            <option value="Aes128" disabled>AES 128-bit (coming soon)</option>
+                          </select>
+                        </label>
+                        <div className="editor-settings-subheading" style={{ marginTop: 4 }}>Permissions</div>
+                        {([
+                          ['print', 'Printing'],
+                          ['copy', 'Copy / extract text'],
+                          ['modify', 'Modify contents'],
+                          ['annotate', 'Annotate & fill forms'],
+                          ['fillForms', 'Fill form fields only'],
+                          ['extractAccessibility', 'Extract for accessibility'],
+                          ['assemble', 'Assemble (insert/rotate/delete pages)'],
+                          ['printHighResolution', 'High-resolution printing'],
+                        ] as [keyof PdfEncryptionPermissions, string][]).map(([key, label]) => (
+                          <label key={key} className="editor-checkbox-control">
+                            <input
+                              type="checkbox"
+                              checked={pageSettings.encryption!.permissions[key]}
+                              onChange={(e) => updatePageSettings({
+                                encryption: {
+                                  ...pageSettings.encryption!,
+                                  permissions: { ...pageSettings.encryption!.permissions, [key]: e.target.checked },
+                                },
+                              })}
+                            />
+                            <span>{label}</span>
+                          </label>
+                        ))}
                       </>
                     )}
                   </div>

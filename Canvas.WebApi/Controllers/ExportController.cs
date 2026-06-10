@@ -47,7 +47,7 @@ public class ExportController : ControllerBase
         if (format.Equals("pdf", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(effectiveLang))
         {
             var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, effectiveLang);
-            var bytes = doc.ToBytes();
+            var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
             var safeName = SanitizeFileName(design.Name);
             return File(bytes, "application/pdf", $"{safeName}-{effectiveLang}.pdf");
         }
@@ -96,7 +96,7 @@ public class ExportController : ControllerBase
             foreach (var lang in langs)
             {
                 var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, lang);
-                var pdfBytes = doc.ToBytes();
+                var pdfBytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
                 var entry = archive.CreateEntry($"{safeName}-{lang}.pdf", CompressionLevel.Fastest);
                 using var entryStream = entry.Open();
                 entryStream.Write(pdfBytes);

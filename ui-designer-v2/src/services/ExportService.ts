@@ -548,6 +548,7 @@ export class ExportService {
             metadata: pageSettings.metadata,
             namedStyles: pageSettings.namedStyles ?? [],
             protection: pageSettings.protection ?? null,
+            encryption: pageSettings.encryption?.enabled ? pageSettings.encryption : null,
             customProperties: pageSettings.customProperties ?? [],
             trackChanges: pageSettings.trackChanges ?? false,
             systemLanguage: navigator.language.split('-')[0],
@@ -692,6 +693,7 @@ export class ExportService {
             metadata: pageSettings.metadata,
             namedStyles: pageSettings.namedStyles ?? [],
             protection: pageSettings.protection ?? null,
+            encryption: pageSettings.encryption?.enabled ? pageSettings.encryption : null,
             customProperties: pageSettings.customProperties ?? [],
             trackChanges: pageSettings.trackChanges ?? false,
           }

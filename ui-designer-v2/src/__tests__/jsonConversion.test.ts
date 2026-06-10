@@ -143,4 +143,56 @@ describe('jsonToCode', () => {
 
     expect(code).not.toContain('English only');
   });
+
+  it('emits PDF encryption setup when encryption is enabled', () => {
+    const code = jsonToCode({
+      ...sampleDesign,
+      pageSettings: {
+        ...sampleDesign.pageSettings,
+        encryption: {
+          enabled: true,
+          userPassword: 'open-sesame',
+          ownerPassword: 'admin',
+          algorithm: 'Rc4_128',
+          permissions: {
+            print: true, modify: false, copy: true, annotate: false,
+            fillForms: false, extractAccessibility: false, assemble: false, printHighResolution: false,
+          },
+        },
+      },
+    } as any);
+
+    expect(code).toContain('Encryption = new PdfEncryptionOptions');
+    expect(code).toContain('UserPassword = "open-sesame"');
+    expect(code).toContain('OwnerPassword = "admin"');
+    expect(code).toContain('Permissions = PdfPermissions.Print | PdfPermissions.Copy');
+    expect(code).toContain('document.Save("output.pdf", saveOptions);');
+  });
+
+  it('omits encryption setup when encryption is disabled or absent', () => {
+    const code = jsonToCode(sampleDesign);
+    expect(code).not.toContain('PdfEncryptionOptions');
+  });
+
+  it('uses PdfPermissions.All when every permission is granted', () => {
+    const code = jsonToCode({
+      ...sampleDesign,
+      pageSettings: {
+        ...sampleDesign.pageSettings,
+        encryption: {
+          enabled: true,
+          userPassword: 'pw',
+          ownerPassword: '',
+          algorithm: 'Rc4_128',
+          permissions: {
+            print: true, modify: true, copy: true, annotate: true,
+            fillForms: true, extractAccessibility: true, assemble: true, printHighResolution: true,
+          },
+        },
+      },
+    } as any);
+
+    expect(code).toContain('Permissions = PdfPermissions.All');
+    expect(code).not.toContain('OwnerPassword');
+  });
 });

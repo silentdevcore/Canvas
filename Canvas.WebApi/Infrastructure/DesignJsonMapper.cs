@@ -13,6 +13,43 @@ namespace Canvas.WebApi.Infrastructure;
 
 public static class DesignJsonMapper
 {
+    /// <summary>
+    /// Builds the <see cref="PdfSaveOptions"/> for a design — currently the PDF encryption settings —
+    /// or null when the design requests no encryption. Pass the result to <c>document.ToBytes(options)</c>.
+    /// </summary>
+    public static PdfSaveOptions? BuildSaveOptions(DesignExportDto design)
+    {
+        var enc = design.PageSettings?.Encryption;
+        if (enc is null || !enc.Enabled)
+            return null;
+
+        var p = enc.Permissions ?? new PdfEncryptionPermissionsDto();
+        var permissions = PdfPermissions.None;
+        if (p.Print) permissions |= PdfPermissions.Print;
+        if (p.Modify) permissions |= PdfPermissions.Modify;
+        if (p.Copy) permissions |= PdfPermissions.Copy;
+        if (p.Annotate) permissions |= PdfPermissions.AnnotateAndFillForms;
+        if (p.FillForms) permissions |= PdfPermissions.FillForms;
+        if (p.ExtractAccessibility) permissions |= PdfPermissions.ExtractForAccessibility;
+        if (p.Assemble) permissions |= PdfPermissions.Assemble;
+        if (p.PrintHighResolution) permissions |= PdfPermissions.PrintHighResolution;
+
+        var algorithm = string.Equals(enc.Algorithm, "Aes128", StringComparison.OrdinalIgnoreCase)
+            ? PdfEncryptionAlgorithm.Aes128
+            : PdfEncryptionAlgorithm.Rc4_128;
+
+        return new PdfSaveOptions
+        {
+            Encryption = new PdfEncryptionOptions
+            {
+                UserPassword = enc.UserPassword,
+                OwnerPassword = enc.OwnerPassword,
+                Permissions = permissions,
+                Algorithm = algorithm
+            }
+        };
+    }
+
     public static PdfDocument MapToPdfDocument(
         DesignExportDto design,
         PdfFontLoader? fontLoader = null,

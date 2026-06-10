@@ -681,7 +681,17 @@ internal sealed class PdfWriter
             objects.Add(new PdfIndirectObject(actualInfoObjectId, BuildInfoObject(document.Info)));
         }
 
-        var bytes = Serialize(objects, catalogObjectId, infoObjectId);
+        Security.StandardSecurityHandler? security = null;
+        int? encryptObjectId = null;
+        if (options.Encryption is { } encryptionOptions)
+        {
+            var documentId = Security.StandardSecurityHandler.GenerateDocumentId(document);
+            security = Security.StandardSecurityHandler.Create(encryptionOptions, documentId);
+            encryptObjectId = objects.Max(static o => o.Id) + 1;
+            objects.Add(new PdfIndirectObject(encryptObjectId.Value, security.BuildEncryptDictionary()));
+        }
+
+        var bytes = Serialize(objects, catalogObjectId, infoObjectId, security, encryptObjectId);
         var webLinkCount = document.Pages
             .SelectMany(static page => page.LinkAnnotations)
             .Count(static link => link.Url is { Length: > 0 });
@@ -930,7 +940,12 @@ internal sealed class PdfWriter
         return $" /OpenAction [{pageObjectId} 0 R /Fit]";
     }
 
-    private static byte[] Serialize(List<PdfIndirectObject> objects, int rootObjectId, int? infoObjectId)
+    private static byte[] Serialize(
+        List<PdfIndirectObject> objects,
+        int rootObjectId,
+        int? infoObjectId,
+        Security.StandardSecurityHandler? security = null,
+        int? encryptObjectId = null)
     {
         objects.Sort(static (x, y) => x.Id.CompareTo(y.Id));
 
@@ -950,10 +965,15 @@ internal sealed class PdfWriter
         {
             offsets[obj.Id] = stream.Position;
 
-            WriteAscii(stream, $"{obj.Id} 0 obj\n");
-            stream.Write(obj.ContentBytes, 0, obj.ContentBytes.Length);
+            // Encrypt every object except the /Encrypt dictionary itself.
+            var contentBytes = security is not null && obj.Id != encryptObjectId
+                ? security.EncryptObjectBody(obj.Id, 0, obj.ContentBytes)
+                : obj.ContentBytes;
 
-            if (obj.ContentBytes.Length == 0 || obj.ContentBytes[^1] != (byte)'\n')
+            WriteAscii(stream, $"{obj.Id} 0 obj\n");
+            stream.Write(contentBytes, 0, contentBytes.Length);
+
+            if (contentBytes.Length == 0 || contentBytes[^1] != (byte)'\n')
             {
                 WriteAscii(stream, "\n");
             }
@@ -982,13 +1002,20 @@ internal sealed class PdfWriter
 
         WriteAscii(stream, "trailer\n");
 
-        if (infoObjectId is { } actualInfoObjectId)
+        var infoSegment = infoObjectId is { } actualInfoObjectId
+            ? $" /Info {actualInfoObjectId} 0 R"
+            : string.Empty;
+
+        if (security is not null && encryptObjectId is { } encryptId)
         {
-            WriteAscii(stream, $"<< /Size {maxObjectId + 1} /Root {rootObjectId} 0 R /Info {actualInfoObjectId} 0 R >>\n");
+            // /ID is required for encrypted documents (its first element feeds key derivation).
+            var idHex = Convert.ToHexString(security.DocumentId);
+            WriteAscii(stream,
+                $"<< /Size {maxObjectId + 1} /Root {rootObjectId} 0 R{infoSegment} /Encrypt {encryptId} 0 R /ID [<{idHex}> <{idHex}>] >>\n");
         }
         else
         {
-            WriteAscii(stream, $"<< /Size {maxObjectId + 1} /Root {rootObjectId} 0 R >>\n");
+            WriteAscii(stream, $"<< /Size {maxObjectId + 1} /Root {rootObjectId} 0 R{infoSegment} >>\n");
         }
 
         WriteAscii(stream, "startxref\n");

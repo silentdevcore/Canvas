@@ -221,6 +221,27 @@ export interface DocumentProtection {
   passwordHash?: string;
 }
 
+// ── PDF Encryption (Canvas.Pdf Standard Security Handler) ────────────────────
+
+export interface PdfEncryptionPermissions {
+  print: boolean;
+  modify: boolean;
+  copy: boolean;
+  annotate: boolean;
+  fillForms: boolean;
+  extractAccessibility: boolean;
+  assemble: boolean;
+  printHighResolution: boolean;
+}
+
+export interface PdfEncryption {
+  enabled: boolean;
+  userPassword: string;   // open-document password (empty = opens without a prompt)
+  ownerPassword: string;  // permissions password (empty = uses the user password)
+  algorithm: 'Rc4_128' | 'Aes128';
+  permissions: PdfEncryptionPermissions;
+}
+
 // ── Custom Document Properties ───────────────────────────────────────────────
 
 export interface CustomDocumentProperty {
@@ -304,6 +325,8 @@ export interface PageSettings {
   namedStyles?: NamedStyle[];
   // Document protection
   protection?: DocumentProtection;
+  // PDF encryption (password protection + permissions)
+  encryption?: PdfEncryption;
   // Custom document properties
   customProperties?: CustomDocumentProperty[];
   // Track changes

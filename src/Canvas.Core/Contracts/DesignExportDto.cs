@@ -32,6 +32,7 @@ public sealed class PageSettingsDto
     public PdfMetadataDto? Metadata { get; set; }
     public List<NamedStyleDto>? NamedStyles { get; set; }
     public DocumentProtectionDto? Protection { get; set; }
+    public PdfEncryptionDto? Encryption { get; set; }
     public List<CustomDocumentPropertyDto>? CustomProperties { get; set; }
     public bool TrackChanges { get; set; }
     // Multi-language localization
@@ -95,6 +96,27 @@ public sealed class DocumentProtectionDto
     public bool Enabled { get; set; }
     public string Mode { get; set; } = "readOnly"; // readOnly | comments | trackedChanges | formFields
     public string? PasswordHash { get; set; }
+}
+
+public sealed class PdfEncryptionDto
+{
+    public bool Enabled { get; set; }
+    public string? UserPassword { get; set; }
+    public string? OwnerPassword { get; set; }
+    public string Algorithm { get; set; } = "Rc4_128"; // Rc4_128 | Aes128
+    public PdfEncryptionPermissionsDto? Permissions { get; set; }
+}
+
+public sealed class PdfEncryptionPermissionsDto
+{
+    public bool Print { get; set; } = true;
+    public bool Modify { get; set; } = true;
+    public bool Copy { get; set; } = true;
+    public bool Annotate { get; set; } = true;
+    public bool FillForms { get; set; } = true;
+    public bool ExtractAccessibility { get; set; } = true;
+    public bool Assemble { get; set; } = true;
+    public bool PrintHighResolution { get; set; } = true;
 }
 
 public sealed class CustomDocumentPropertyDto

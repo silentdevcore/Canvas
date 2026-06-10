@@ -720,6 +720,57 @@ export function jsonToCode(design: ParsedDesign): string {
     [...shared, ...own].forEach(code => { lines.push(code); lines.push(''); });
   });
 
+  const encryptionLines = renderEncryptionBlock(design.pageSettings as any);
+  if (encryptionLines.length) {
+    lines.push('');
+    encryptionLines.forEach(l => lines.push(l));
+    lines.push('');
+  }
+
   lines.push('document');
   return lines.join('\n');
+}
+
+// Emit the Canvas.Pdf encryption setup when the design enables PDF encryption.
+function renderEncryptionBlock(ps: any): string[] {
+  const enc = ps?.encryption;
+  if (!enc || !enc.enabled) return [];
+
+  const order: [string, string][] = [
+    ['print', 'Print'],
+    ['modify', 'Modify'],
+    ['copy', 'Copy'],
+    ['annotate', 'AnnotateAndFillForms'],
+    ['fillForms', 'FillForms'],
+    ['extractAccessibility', 'ExtractForAccessibility'],
+    ['assemble', 'Assemble'],
+    ['printHighResolution', 'PrintHighResolution'],
+  ];
+  const perms = enc.permissions ?? {};
+  const granted = order.filter(([key]) => perms[key]);
+  const permExpr = granted.length === order.length
+    ? 'PdfPermissions.All'
+    : granted.length === 0
+      ? 'PdfPermissions.None'
+      : granted.map(([, name]) => `PdfPermissions.${name}`).join(' | ');
+
+  const inner: string[] = [];
+  if (enc.userPassword)  inner.push(`        UserPassword = "${esc(enc.userPassword)}",`);
+  if (enc.ownerPassword) inner.push(`        OwnerPassword = "${esc(enc.ownerPassword)}",`);
+  inner.push(`        Permissions = ${permExpr},`);
+  if (enc.algorithm && enc.algorithm !== 'Rc4_128') {
+    inner.push(`        Algorithm = PdfEncryptionAlgorithm.${enc.algorithm},`);
+  }
+
+  return [
+    '// PDF encryption (Canvas.Pdf Standard Security Handler)',
+    'var saveOptions = new PdfSaveOptions',
+    '{',
+    '    Encryption = new PdfEncryptionOptions',
+    '    {',
+    ...inner,
+    '    },',
+    '};',
+    '// document.Save("output.pdf", saveOptions);',
+  ];
 }
