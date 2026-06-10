@@ -204,3 +204,8 @@ C:/Users/mabar/source/repos/Canvas/tests/Canvas.Infrastructure.Pdf.Tests/obj/Deb
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Infrastructure.Pdf.Tests/bin/Debug/net10.0/Canvas.Domain.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Infrastructure.Pdf.Tests/bin/Debug/net10.0/Canvas.Domain.pdb
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Infrastructure.Pdf.Tests/obj/Debug/net10.0/Canvas.Infrastructure.Pdf.Tests.sourcelink.json
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Infrastructure.Pdf.Tests/bin/Debug/net10.0/UglyToad.PdfPig.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Infrastructure.Pdf.Tests/bin/Debug/net10.0/UglyToad.PdfPig.Core.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Infrastructure.Pdf.Tests/bin/Debug/net10.0/UglyToad.PdfPig.Fonts.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Infrastructure.Pdf.Tests/bin/Debug/net10.0/UglyToad.PdfPig.Tokenization.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Infrastructure.Pdf.Tests/bin/Debug/net10.0/UglyToad.PdfPig.Tokens.dll
