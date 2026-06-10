@@ -1,3 +1,4 @@
+using Canvas.Migration.DevExpressReport;
 using Canvas.WebApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -67,6 +68,38 @@ public class MigrationController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Converts a C# DevExpress XtraReport class into a Canvas design (DesignExportDto) that the
+    /// visual designer can open. Returns the design plus migration diagnostics.
+    /// </summary>
+    [HttpPost("report-to-design")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400)]
+    public IActionResult ReportToDesign([FromBody] ReportToDesignRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.SourceCode))
+            return BadRequest(new { error = "Field 'sourceCode' is required." });
+
+        try
+        {
+            var result = new XtraReportToDesignConverter().Convert(request.SourceCode);
+            return Ok(new
+            {
+                design = result.Design,
+                diagnostics = result.Diagnostics.Select(d => new
+                {
+                    code = d.Id,
+                    severity = d.Severity.ToString(),
+                    message = d.Message
+                })
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     /// <summary>Converts source code and returns a rendered PDF preview as binary.</summary>
     [HttpPost("preview")]
     [ProducesResponseType(200)]
@@ -91,3 +124,5 @@ public class MigrationController : ControllerBase
 }
 
 public sealed record MigrationRequest(string Framework, string SourceCode);
+
+public sealed record ReportToDesignRequest(string SourceCode);

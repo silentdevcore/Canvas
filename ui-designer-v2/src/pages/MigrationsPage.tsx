@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { FiCode, FiCopy, FiDownload, FiPlay, FiRefreshCw, FiGitMerge } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { FiCode, FiCopy, FiDownload, FiPlay, FiRefreshCw, FiGitMerge, FiLayout } from 'react-icons/fi';
 import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import AppHeader from '@/components/Layout/AppHeader';
+import { useEditorStore } from '@/store';
+
+// Framework id for the XtraReport → Canvas Designer flow (output is a design, not C# code).
+const REPORT_ID = 'DevExpressReport';
 
 interface Framework {
   id: string;
@@ -164,14 +169,38 @@ using var processor = new PdfDocumentProcessor();
 processor.CreateEmptyDocument();
 using var graphics = processor.CreateGraphics();
 
-// Draw calls happen before RenderNewPage in DevExpress
-graphics.DrawString("Invoice #2024", new DXFont("Arial", 18), DXBrushes.Black, 40, 750);
-graphics.DrawLine(DXPens.Black, 40, 720, 555, 720);
-graphics.DrawString("Thank you for your order.", new DXFont("Arial", 12), DXBrushes.Black, 40, 690);
-graphics.DrawRectangle(DXPens.Black, 40, 620, 200, 60);
+// Reusable fonts — the font size is recovered from the variable declaration.
+var titleFont = new DXFont("Arial", 24);
+var labelFont = new DXFont("Arial", 12);
+
+// ---- Page 1: cover ----
+// In DevExpress, draw calls come *before* RenderNewPage; the converter repositions
+// them after AddPage() automatically.
+graphics.DrawString("ACME Corporation", titleFont, DXBrushes.Black, 40, 760);
+graphics.DrawString("Annual Invoice 2024", labelFont, DXBrushes.Blue, 40, 730);
+graphics.DrawLine(new DXPen(DXColor.FromArgb(0, 102, 204), 2), 40, 715, 555, 715);
+graphics.DrawString("Prepared for: Wile E. Coyote", labelFont, DXBrushes.Black, 40, 690);
+graphics.DrawRectangle(DXPens.Red, 40, 600, 250, 70);
+graphics.DrawRectangle(DXPens.Black, new RectangleF(320, 600, 200, 70));
 
 processor.RenderNewPage(PdfPaperSize.A4, graphics);
-processor.SaveDocument(outputPath);`;
+
+// ---- Page 2: line items (second RenderNewPage reuses the page variable) ----
+graphics.DrawString("Line Items", titleFont, DXBrushes.Black, 40, 760);
+graphics.DrawLine(DXPens.Gray, 40, 740, 555, 740);
+graphics.DrawString("1x Rocket Skates", labelFont, DXBrushes.Black, 40, 715);
+graphics.DrawString("$199.00", labelFont, DXBrushes.Black, 460, 715);
+graphics.DrawLine(DXPens.Gray, 40, 700, 555, 700);
+graphics.DrawString("Total Due", titleFont, DXBrushes.Green, 40, 660);
+
+processor.RenderNewPage(PdfPaperSize.A4, graphics);
+
+// ---- Encrypt and save (maps to Canvas PdfSaveOptions.Encryption — see diagnostics) ----
+var encryptionOptions = new PdfEncryptionOptions();
+encryptionOptions.UserPasswordString = "open-sesame";
+encryptionOptions.OwnerPasswordString = "admin";
+var saveOptions = new PdfSaveOptions { EncryptionOptions = encryptionOptions };
+processor.SaveDocument(outputPath, saveOptions);`;
 
 const GEMBOX_EXAMPLE = `using GemBox.Pdf;
 using GemBox.Pdf.Content;
@@ -292,7 +321,59 @@ var pdf = renderer.RenderHtmlAsPdf(@"
 ");
 pdf.SaveAs(outputPath);`;
 
+const DEVEXPRESS_REPORT_EXAMPLE = `using DevExpress.XtraReports.UI;
+using System.Drawing;
+
+public partial class InvoiceReport : XtraReport
+{
+    private ReportHeaderBand ReportHeader;
+    private DetailBand Detail;
+    private XRLabel xrTitle;
+    private XRLine xrRule;
+    private XRLabel xrBody;
+
+    private void InitializeComponent()
+    {
+        this.ReportHeader = new ReportHeaderBand();
+        this.Detail = new DetailBand();
+        this.xrTitle = new XRLabel();
+        this.xrRule = new XRLine();
+        this.xrBody = new XRLabel();
+
+        this.ReportHeader.HeightF = 120F;
+        this.Detail.HeightF = 400F;
+
+        this.xrTitle.Text = "Invoice #2024-117";
+        this.xrTitle.LocationF = new PointF(50F, 25F);
+        this.xrTitle.SizeF = new SizeF(500F, 45F);
+        this.xrTitle.Font = new Font("Tahoma", 22F, FontStyle.Bold);
+        this.xrTitle.ForeColor = Color.FromArgb(0, 102, 204);
+        this.xrTitle.TextAlignment = TextAlignment.MiddleLeft;
+
+        this.xrRule.LocationF = new PointF(50F, 90F);
+        this.xrRule.SizeF = new SizeF(500F, 3F);
+        this.xrRule.ForeColor = Color.Gray;
+
+        this.xrBody.Text = "Thank you for your business. Payment is due within 30 days.";
+        this.xrBody.LocationF = new PointF(50F, 40F);
+        this.xrBody.SizeF = new SizeF(500F, 30F);
+        this.xrBody.Font = new Font("Tahoma", 11F);
+
+        this.ReportHeader.Controls.AddRange(new XRControl[] { this.xrTitle, this.xrRule });
+        this.Detail.Controls.AddRange(new XRControl[] { this.xrBody });
+        this.Bands.AddRange(new Band[] { this.ReportHeader, this.Detail });
+    }
+}`;
+
+const REPORT_FRAMEWORK: Framework = {
+  id: REPORT_ID,
+  name: 'DevExpress Reports',
+  status: 'designer',
+  description: 'Converts a C# XtraReport class into an editable Canvas design (bands flattened, report units → points). Open the result in the visual designer.',
+};
+
 const EXAMPLES: Record<string, string> = {
+  [REPORT_ID]: DEVEXPRESS_REPORT_EXAMPLE,
   Syncfusion: SYNCFUSION_EXAMPLE,
   iText7: ITEXT7_EXAMPLE,
   Apryse: APRYSE_EXAMPLE,
@@ -318,8 +399,11 @@ interface ConversionSummary {
 }
 
 const MigrationsPage: React.FC = () => {
-  const [frameworks, setFrameworks] = useState<Framework[]>(FRAMEWORKS_FALLBACK);
+  const [frameworks, setFrameworks] = useState<Framework[]>([...FRAMEWORKS_FALLBACK, REPORT_FRAMEWORK]);
   const [selectedId, setSelectedId] = useState('Syncfusion');
+  const [reportDesign, setReportDesign] = useState<any | null>(null);
+  const navigate = useNavigate();
+  const bulkReplaceContent = useEditorStore(s => s.bulkReplaceContent);
   const [sourceCode, setSourceCode] = useState('');
   const [canvasCode, setCanvasCode] = useState('');
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
@@ -341,7 +425,7 @@ const MigrationsPage: React.FC = () => {
   useEffect(() => {
     fetch(`${API_BASE}/frameworks`)
       .then(r => r.json())
-      .then((data: Framework[]) => setFrameworks(data))
+      .then((data: Framework[]) => setFrameworks([...data, REPORT_FRAMEWORK]))
       .catch(() => { /* use fallback */ });
     return () => { if (prevPdfUrl.current) URL.revokeObjectURL(prevPdfUrl.current); };
   }, []);
@@ -358,6 +442,7 @@ const MigrationsPage: React.FC = () => {
     setDiagOpen(false);
     setPdfUrl(null);
     setError(null);
+    setReportDesign(null);
   };
 
   const applyConvertResult = (data: { canvasCode?: string; diagnostics?: Diagnostic[]; summary?: ConversionSummary }) => {
@@ -374,6 +459,31 @@ const MigrationsPage: React.FC = () => {
     setConverting(true);
     setError(null);
     try {
+      // XtraReport → Canvas design (JSON), opened in the visual designer.
+      if (selectedId === REPORT_ID) {
+        const res = await fetch(`${API_BASE}/report-to-design`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sourceCode }),
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? `HTTP ${res.status}`); }
+        const data = await res.json();
+        const diags: Diagnostic[] = data.diagnostics ?? [];
+        const elementCount = data.design?.pages?.[0]?.elements?.length ?? 0;
+        setReportDesign(data.design);
+        setCanvasCode(JSON.stringify(data.design, null, 2));
+        setDiagnostics(diags);
+        setSummary({
+          convertedCount: elementCount,
+          warningCount: diags.filter(d => d.severity === 'Warning').length,
+          errorCount: diags.filter(d => d.severity === 'Error').length,
+          totalDiagnostics: diags.length,
+        });
+        setHasConverted(true);
+        setDiagOpen(diags.some(d => d.severity === 'Warning'));
+        return;
+      }
+
       const res = await fetch(`${API_BASE}/convert`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -386,6 +496,13 @@ const MigrationsPage: React.FC = () => {
     } finally {
       setConverting(false);
     }
+  };
+
+  const handleOpenInDesigner = () => {
+    if (!reportDesign) return;
+    const pages = (reportDesign.pages ?? []).map((p: any) => ({ id: p.id, elements: p.elements ?? [] }));
+    bulkReplaceContent(pages.length ? pages : [{ id: 'page-1', elements: [] }], reportDesign.sharedElements ?? []);
+    navigate('/create');
   };
 
   const handlePreview = async () => {
@@ -565,7 +682,7 @@ const MigrationsPage: React.FC = () => {
 
           <div className="mgr-pane" style={{ flex: 1 }}>
             <div className="mgr-pane-header">
-              <span>Canvas.Pdf Code</span>
+              <span>{selectedId === REPORT_ID ? 'Canvas Design (JSON)' : 'Canvas.Pdf Code'}</span>
               <div className="mgr-pane-header-actions">
                 {hasConverted && (
                   <button
@@ -605,7 +722,7 @@ const MigrationsPage: React.FC = () => {
                 />
               ) : (
                 <Editor
-                  language="csharp"
+                  language={selectedId === REPORT_ID ? 'json' : 'csharp'}
                   value={canvasCode}
                   options={{
                     readOnly: true,
@@ -622,15 +739,26 @@ const MigrationsPage: React.FC = () => {
               )}
             </div>
             <div className="mgr-pane-footer mgr-pane-footer-right">
-              <button
-                className="mgr-btn mgr-btn-secondary"
-                onClick={handlePreview}
-                disabled={previewing || !sourceCode.trim()}
-              >
-                {previewing
-                  ? <><FiRefreshCw className="mgr-spin" /> Generating…</>
-                  : <><FiPlay /> Generate Preview</>}
-              </button>
+              {selectedId === REPORT_ID ? (
+                <button
+                  className="mgr-btn mgr-btn-primary"
+                  onClick={handleOpenInDesigner}
+                  disabled={!reportDesign}
+                  title="Load the converted report into the visual designer"
+                >
+                  <FiLayout /> Open in Designer
+                </button>
+              ) : (
+                <button
+                  className="mgr-btn mgr-btn-secondary"
+                  onClick={handlePreview}
+                  disabled={previewing || !sourceCode.trim()}
+                >
+                  {previewing
+                    ? <><FiRefreshCw className="mgr-spin" /> Generating…</>
+                    : <><FiPlay /> Generate Preview</>}
+                </button>
+              )}
             </div>
           </div>
         </div>

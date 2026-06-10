@@ -15,14 +15,61 @@
 - [x] `processor.SaveDocument(path)` → `document.Save(path)`.
 - [x] All `DevExpress.*` usings removed; `using Canvas.Pdf;` inserted.
 - [x] Existing-PDF processing (`LoadDocument`, `AppendDocument`, `DeletePage`, `InsertPage`) kept with `CANMIGDEVEXP021` warning.
-- [x] Forms, signatures, encryption, annotations, bookmarks emit `CANMIGDEVEXP022` warning.
+- [x] Forms, signatures, annotations, bookmarks emit `CANMIGDEVEXP022` warning.
+- [x] Encryption (`PdfEncryptionOptions`) emits dedicated `CANMIGDEVEXP024` guidance (Canvas now supports it via `PdfSaveOptions.Encryption`).
 - [x] Report export (`XtraReport`, `ExportToPdf`) emit `CANMIGDEVEXP020` warning.
 - [x] WebApi conversion response includes migrated code, diagnostics, and summary counts.
-- [ ] V1 does not preserve font size from `DXFont` when the font is passed as an identifier (defaults to 12).
-- [ ] V1 does not preserve pen colour or brush colour.
-- [ ] V1 does not handle `DrawRectangle(pen, RectangleF)` (2-arg form); only the 5-arg `(pen, x, y, w, h)` form.
-- [ ] Future hardening: extract font size from `new DXFont("family", size)` constructors.
-- [ ] Future hardening: replace syntax-only matching with semantic matching before broad rollout.
+- [x] V2 preserves font size from `DXFont` when the font is passed as an identifier (pre-scan recovery; defaults to 12 only when unknown).
+- [x] V2 preserves pen colour and brush colour (mapped to Canvas `strokeColor`/`FillColor`).
+- [x] V2 handles `DrawRectangle(pen, RectangleF)` (2-arg form) when the rectangle is constructed inline.
+- [x] V2 extracts font size from `new DXFont("family", size)` constructors and font-variable declarations.
+- [x] V2 uses hybrid semantic matching (local-symbol tracking) with syntactic vendor-name fallback.
+
+## V2 Hardening Plan
+
+Moves the provider from "deterministic single-page V1" to a more robust V2. Work is isolated to
+`src/Canvas.Migration.DevExpressPdf/DevExpressPdfMigration.cs` and its test project.
+
+### 1. Multi-page fix (correctness bug)
+
+- [x] `RenderNewPage` always emitted `var page = document.AddPage();`, so two `RenderNewPage` calls
+      produced two `var page` declarations → duplicate-local compile error.
+- [x] Fix: add `_pageDeclared` flag — first page emits `var page = document.AddPage();`, subsequent
+      pages emit `page = document.AddPage();`. Per-page deferred-draw accumulation already correct.
+- [x] Test `Migrate_MultiplePages_ReusesPageVariable`: exactly one `var page`, a second
+      `page = document.AddPage();`, each page's draws follow its own `AddPage()`.
+
+### 2. Preserve pen / brush colour
+
+Canvas.Pdf supports colour: `DrawLine(..., strokeColor)`, `DrawRectangle(..., strokeColor, fillColor)`,
+text colour via `DrawTextFromTop(text, x, topY, PdfDrawTextOptions { FillColor })`.
+
+- [x] New helper `MapDxColor(ExpressionSyntax) -> string?` (returns `null` for default black / unknown):
+  - [x] Named `DXBrushes.X` / `DXPens.X` / `DXColor.X` → `Black`→`PdfColor.Black` (null), `White`→`PdfColor.White`,
+        `Gray`/`Grey`→`PdfColor.Gray`, `Red`→`PdfColor.RedColor`, `Green`→`PdfColor.GreenColor`, `Blue`→`PdfColor.BlueColor`.
+  - [x] `DXColor.FromArgb(r,g,b)` / `FromArgb(a,r,g,b)` → `PdfColor.FromRgb(r,g,b)` (drop alpha).
+  - [x] `new DXPen(color, width)` → recurse colour arg + surface width as `lineWidth`.
+  - [x] `new DXSolidBrush(color)` → recurse colour arg.
+- [x] `DrawLine`: pen `args[0]` → strokeColor/width; longer overload only when non-default.
+- [x] `DrawRectangle` (5-arg): pen `args[0]` → strokeColor.
+- [x] `DrawString`: brush `args[2]` → `new PdfDrawTextOptions { FontSize = N, FillColor = color }`; keep
+      short 4-arg form when colour is default.
+- [x] Emit Info `CANMIGDEVEXP009` when a colour is applied.
+
+### 3. Rectangle 2-arg form + font-size from variable
+
+- [x] `DrawRectangle(pen, RectangleF)` (2-arg): inline `new RectangleF(x,y,w,h)` → decompose to normal
+      `DrawRectangle(x,y,w,h)`; variable rect → keep + Warning `CANMIGDEVEXP023`.
+- [x] Font size from variable: pre-scan `Dictionary<string,string>` of font-local → `DXFont` ctor size;
+      `TryExtractDxFontSize` falls back to it when the font arg is an identifier. Default `"12"` when unknown.
+
+### 4. Semantic symbol matching (hybrid)
+
+- [x] Build a `CSharpCompilation` (tree + core references) and obtain a `SemanticModel` in `Migrate`.
+- [x] Resolve processor / graphics / page locals to `ISymbol`s; match member-access receivers by
+      `SymbolEqualityComparer` instead of by string name. Vendor type/method names stay syntactic.
+- [x] Fall back to string-name matching when the symbol is unresolved (never worse than V1).
+- [x] Test: reassigned processor variable / `this.`-qualified access still migrates correctly.
 
 ## Package / API Identification
 
@@ -89,10 +136,11 @@ The rewriter handles this by deferring draw calls to a list, then emitting them 
 | `new PdfDocumentProcessor()` | `new PdfDocument()` | `using var` keyword also handled |
 | `processor.CreateEmptyDocument()` | *(removed)* | Document created by constructor |
 | `using var graphics = processor.CreateGraphics()` | *(removed)* | Canvas uses PdfPage surface directly |
-| `graphics.DrawString(text, font, brush, x, y)` | `page.DrawTextFromTop(text, x, y, 12)` | Deferred; placed after AddPage; font size from DXFont ctor if available |
-| `graphics.DrawLine(pen, x1, y1, x2, y2)` | `page.DrawLine(x1, y1, x2, y2)` | Deferred; placed after AddPage |
-| `graphics.DrawRectangle(pen, x, y, w, h)` | `page.DrawRectangle(x, y, w, h)` | Deferred; placed after AddPage |
-| `processor.RenderNewPage(paperSize, graphics)` | `var page = document.AddPage();` + draw calls | Draw calls emitted immediately after |
+| `graphics.DrawString(text, font, brush, x, y)` | `page.DrawTextFromTop(text, x, y, fontSize)` | Deferred; font size from DXFont ctor or font variable; non-black brush → `PdfDrawTextOptions { FillColor }` |
+| `graphics.DrawLine(pen, x1, y1, x2, y2)` | `page.DrawLine(x1, y1, x2, y2)` | Deferred; non-default pen → `(.., lineWidth, strokeColor)` |
+| `graphics.DrawRectangle(pen, x, y, w, h)` | `page.DrawRectangle(x, y, w, h)` | Deferred; non-default pen → `(.., lineWidth, false, strokeColor)` |
+| `graphics.DrawRectangle(pen, RectangleF)` | `page.DrawRectangle(x, y, w, h)` | Inline `new RectangleF(...)` decomposed; variable → CANMIGDEVEXP023 |
+| `processor.RenderNewPage(paperSize, graphics)` | `var page = document.AddPage(<size>);` + draw calls | A4→default, A3/Letter→`PdfPagePreset`, Legal/A5→explicit pts, `(w,h,graphics)`→`AddPage(w,h)`; unmapped→A4 + `CANMIGDEVEXP026` |
 | `processor.SaveDocument(path)` | `document.Save(path)` | Path arg preserved |
 
 ## Diagnostic IDs
@@ -107,18 +155,24 @@ The rewriter handles this by deferring draw calls to a list, then emitting them 
 | `CANMIGDEVEXP006` | Info | `DrawLine(...)` → `page.DrawLine(...)` |
 | `CANMIGDEVEXP007` | Info | `DrawRectangle(...)` → `page.DrawRectangle(...)` |
 | `CANMIGDEVEXP008` | Info | `SaveDocument(...)` → `document.Save(...)` |
+| `CANMIGDEVEXP009` | Info | Pen/brush colour mapped to Canvas colour argument |
+| `CANMIGDEVEXP010` | Info | DevExpress encryption mapped to `PdfSaveOptions.Encryption` |
 | `CANMIGDEVEXP020` | Warning | Report export workflow requires manual migration |
 | `CANMIGDEVEXP021` | Warning | Existing-PDF processing/page editing APIs are outside v1 |
-| `CANMIGDEVEXP022` | Warning | Forms, signatures, encryption, annotations, or bookmarks are outside v1 |
+| `CANMIGDEVEXP022` | Warning | Forms, signatures, annotations, or bookmarks are outside v1 |
+| `CANMIGDEVEXP023` | Warning | `DrawRectangle(pen, RectangleF)` bounds could not be decomposed |
+| `CANMIGDEVEXP024` | Warning | Encryption present but not auto-mappable (no 2-arg `SaveDocument`) — apply `PdfSaveOptions.Encryption` manually |
+| `CANMIGDEVEXP025` | Info | `DXFont` declaration removed — font size inlined into `DrawTextFromTop` |
+| `CANMIGDEVEXP026` | Warning | `PdfPaperSize.X` has no Canvas preset — defaulted to A4 (use `AddPage(width, height)`) |
 
 ## Unsupported / Manual Follow-Up
 
-- [ ] Font family/colour from `DXFont` / `DXBrush`
-- [ ] Pen colour and stroke width
-- [ ] `DrawRectangle(pen, RectangleF)` (2-arg form)
+- [ ] Font family from `DXFont` (colour now mapped in V2)
+- [x] Pen/brush colour and stroke width (V2)
+- [x] `DrawRectangle(pen, RectangleF)` (2-arg form, inline rectangle — V2)
 - [ ] AcroForms, document merge/split
 - [ ] Digital signatures
-- [ ] Encryption
+- [x] Encryption — Canvas.Pdf now supports it (`PdfSaveOptions.Encryption`); migration emits `CANMIGDEVEXP024` guidance
 - [ ] Printing/rendering workflows
 - [ ] Report export (XtraReport → Canvas generation)
 
@@ -156,7 +210,9 @@ page.DrawRectangle(40, 620, 200, 60);
 document.Save(outputPath);
 ```
 
-> **Note:** `DXPens.Black` pen argument is dropped — Canvas.Pdf uses default black stroke colour.
+> **Note:** `DXPens.Black` maps to the Canvas default stroke colour, so the short-form call is emitted.
+> Non-black pens/brushes (e.g. `DXPens.Red`, `DXColor.FromArgb(...)`) are mapped to explicit Canvas
+> colour arguments in V2.
 
 ## Code Fix Checklist
 
@@ -169,8 +225,8 @@ document.Save(outputPath);
 - [x] Convert `graphics.DrawRectangle(pen, x, y, w, h)` → `page.DrawRectangle(x, y, w, h)`
 - [x] Replace `processor.RenderNewPage(...)` with `var page = document.AddPage();` + deferred draw calls
 - [x] Replace `processor.SaveDocument(path)` with `document.Save(path)`
-- [ ] Extract font size from `new DXFont("family", size)` → `fontSize` argument
-- [ ] Map pen colour to `strokeColor` argument
+- [x] Extract font size from `new DXFont("family", size)` → `fontSize` argument (inline + font-variable pre-scan)
+- [x] Map pen colour to `strokeColor` argument
 
 ## Tests Checklist
 
@@ -181,5 +237,11 @@ document.Save(outputPath);
 - [x] Forms/signatures/encryption → CANMIGDEVEXP022 warning
 - [x] Report export workflow → CANMIGDEVEXP020 warning
 - [x] WebApi migration-service smoke test
+- [x] Multi-page sample (multiple RenderNewPage calls)
+- [x] Named pen colour → Canvas colour argument + CANMIGDEVEXP009
+- [x] Default black colour keeps short-form call (regression guard)
+- [x] `DXColor.FromArgb(...)` → `PdfColor.FromRgb(...)`
+- [x] Brush on `DrawString` → `PdfDrawTextOptions { FillColor }`
+- [x] Inline `RectangleF` decomposed; variable `RectangleF` → CANMIGDEVEXP023
+- [x] Font passed as variable recovers font size
 - [ ] Snapshot before/after migration sample
-- [ ] Multi-page sample (multiple RenderNewPage calls)
