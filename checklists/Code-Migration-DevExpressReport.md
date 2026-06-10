@@ -54,7 +54,7 @@ manual migration" warning emitted by the code converter
 | `XRLine` | `line` | x/y/w/h; `Style.color` ← `.ForeColor` |
 | `XRShape` / `XRPanel` (rectangle) | `rect` | border/fill ← `.Borders`/`.BackColor` |
 | `XRPictureBox` | `image` | `FitMode`; image data deferred → placeholder |
-| `XRTable`/`XRTableRow`/`XRTableCell` | `table` | `CellData`/`ColumnWidths` (basic) |
+| `XRTable`/`XRTableRow`/`XRTableCell` | `table` | `CellData` from row/cell `.Text`, equal `ColumnWidths`; rows/cells folded into the table |
 | `XRBarCode` | `barcode` | `BarcodeValue`/`BarcodeType` |
 | `XRRichText` | `richtext` | `HtmlContent` from static text |
 | Unsupported control | *(skipped)* | `CANMIGDEVREP011` warning with the control type |

@@ -60,33 +60,46 @@ public sealed class XtraReportToDesignConverter
         var bandControls = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         var controlBand = new Dictionary<string, string>(StringComparer.Ordinal);
         var boundControls = new HashSet<string>(StringComparer.Ordinal);
+        // XRTable structure: tableName → [rowName...], rowName → [cellName...].
+        var tableRows = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var rowCells = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         foreach (var inv in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
             if (inv.Expression is not MemberAccessExpressionSyntax call) continue;
             var method = call.Name.Identifier.ValueText;
+            if (method is not ("Add" or "AddRange")) continue;
+            if (call.Expression is not MemberAccessExpressionSyntax collection) continue;
+            var collectionName = collection.Name.Identifier.ValueText;
+            var owner = ReceiverName(collection.Expression);
+            if (owner is null) continue;
 
-            // band.Controls.Add / AddRange( ... )
-            if ((method is "Add" or "AddRange") &&
-                call.Expression is MemberAccessExpressionSyntax collection &&
-                collection.Name.Identifier.ValueText == "Controls")
+            switch (collectionName)
             {
-                var band = ReceiverName(collection.Expression);
-                if (band is null) continue;
-                var list = bandControls.TryGetValue(band, out var l) ? l : (bandControls[band] = []);
-                foreach (var ctrl in ExtractControlNames(inv.ArgumentList))
+                case "Controls": // band.Controls.Add(...) / AddRange(...)
                 {
-                    list.Add(ctrl);
-                    controlBand[ctrl] = band;
+                    var list = bandControls.TryGetValue(owner, out var l) ? l : (bandControls[owner] = []);
+                    foreach (var ctrl in ExtractControlNames(inv.ArgumentList))
+                    {
+                        list.Add(ctrl);
+                        controlBand[ctrl] = owner;
+                    }
+                    break;
                 }
-            }
-
-            // control.ExpressionBindings.AddRange(...) / control.DataBindings.Add(...)
-            if (method is "Add" or "AddRange" &&
-                call.Expression is MemberAccessExpressionSyntax bindings &&
-                bindings.Name.Identifier.ValueText is "ExpressionBindings" or "DataBindings")
-            {
-                var ctrl = ReceiverName(bindings.Expression);
-                if (ctrl is not null) boundControls.Add(ctrl);
+                case "Rows": // xrTable.Rows.AddRange(...)
+                {
+                    var list = tableRows.TryGetValue(owner, out var l) ? l : (tableRows[owner] = []);
+                    list.AddRange(ExtractControlNames(inv.ArgumentList));
+                    break;
+                }
+                case "Cells": // xrTableRow.Cells.AddRange(...)
+                {
+                    var list = rowCells.TryGetValue(owner, out var l) ? l : (rowCells[owner] = []);
+                    list.AddRange(ExtractControlNames(inv.ArgumentList));
+                    break;
+                }
+                case "ExpressionBindings" or "DataBindings":
+                    boundControls.Add(owner);
+                    break;
             }
         }
 
@@ -114,6 +127,8 @@ public sealed class XtraReportToDesignConverter
         foreach (var (name, type) in fieldTypes)
         {
             if (type.EndsWith("Band", StringComparison.Ordinal)) continue;
+            // Table rows/cells are consumed by their XRTable, not emitted as standalone elements.
+            if (type is "XRTableRow" or "XRTableCell") continue;
             if (!IsKnownControl(type) && !IsUnsupportedControl(type)) continue;
 
             var bag = props.TryGetValue(name, out var b) ? b : new Dictionary<string, ExpressionSyntax>();
@@ -129,7 +144,9 @@ public sealed class XtraReportToDesignConverter
             var w = sizeW * unitScale;
             var h = sizeH * unitScale;
 
-            var element = MapControl(name, type, bag, x, y, w, h, diagnostics);
+            var element = type == "XRTable"
+                ? BuildTable(name, x, y, w, h, tableRows, rowCells, props, diagnostics)
+                : MapControl(name, type, bag, x, y, w, h, diagnostics);
             if (element is null) continue;
 
             if (boundControls.Contains(name))
@@ -217,6 +234,57 @@ public sealed class XtraReportToDesignConverter
                     $"'{name}' is a {type} — not supported by Canvas yet; skipped."));
                 return null;
         }
+    }
+
+    // Build a Canvas table element from an XRTable's row/cell structure (cell .Text → cell content).
+    private static ElementDto? BuildTable(
+        string name, double x, double y, double w, double h,
+        Dictionary<string, List<string>> tableRows,
+        Dictionary<string, List<string>> rowCells,
+        Dictionary<string, Dictionary<string, ExpressionSyntax>> props,
+        List<MigrationDiagnostic> diagnostics)
+    {
+        if (!tableRows.TryGetValue(name, out var rows) || rows.Count == 0)
+        {
+            diagnostics.Add(Warn("CANMIGDEVREP011", $"'{name}' XRTable has no parseable rows — skipped."));
+            return null;
+        }
+
+        var grid = new List<string[]>();
+        foreach (var row in rows)
+        {
+            var cells = rowCells.TryGetValue(row, out var c) ? c : [];
+            grid.Add(cells.Select(cell =>
+                props.TryGetValue(cell, out var bag) && bag.TryGetValue("Text", out var text)
+                    ? ParseString(text) ?? ""
+                    : "").ToArray());
+        }
+
+        var columns = grid.Max(r => r.Length);
+        if (columns == 0)
+        {
+            diagnostics.Add(Warn("CANMIGDEVREP011", $"'{name}' XRTable has no parseable cells — skipped."));
+            return null;
+        }
+
+        // Pad ragged rows so every row has the same column count.
+        var cellData = grid
+            .Select(r => r.Length == columns ? r : r.Concat(Enumerable.Repeat("", columns - r.Length)).ToArray())
+            .ToArray();
+
+        return new ElementDto
+        {
+            Id = $"xr-{name}",
+            Name = name,
+            Type = "table",
+            X = x,
+            Y = y,
+            Width = w,
+            Height = h,
+            CellData = cellData,
+            ColumnWidths = Enumerable.Repeat(w / columns, columns).ToArray(),
+            HeaderRow = true
+        };
     }
 
     private static Dictionary<string, object> BuildTextStyle(Dictionary<string, ExpressionSyntax> bag)

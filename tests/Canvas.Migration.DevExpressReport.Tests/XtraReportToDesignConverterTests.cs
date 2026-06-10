@@ -196,6 +196,61 @@ public sealed class XtraReportToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_XRTable_MapsRowsAndCellsToTableElement()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRTable xrTable;
+                private XRTableRow xrRow1;
+                private XRTableRow xrRow2;
+                private XRTableCell xrCellName;
+                private XRTableCell xrCellPrice;
+                private XRTableCell xrCellA;
+                private XRTableCell xrCellB;
+                private void InitializeComponent()
+                {
+                    this.Detail = new DetailBand();
+                    this.xrTable = new XRTable();
+                    this.xrRow1 = new XRTableRow();
+                    this.xrRow2 = new XRTableRow();
+                    this.xrCellName = new XRTableCell();
+                    this.xrCellPrice = new XRTableCell();
+                    this.xrCellA = new XRTableCell();
+                    this.xrCellB = new XRTableCell();
+
+                    this.xrTable.LocationF = new PointF(0F, 0F);
+                    this.xrTable.SizeF = new SizeF(400F, 50F);
+                    this.xrCellName.Text = "Name";
+                    this.xrCellPrice.Text = "Price";
+                    this.xrCellA.Text = "Widget";
+                    this.xrCellB.Text = "9.99";
+
+                    this.xrRow1.Cells.AddRange(new XRTableCell[] { this.xrCellName, this.xrCellPrice });
+                    this.xrRow2.Cells.AddRange(new XRTableCell[] { this.xrCellA, this.xrCellB });
+                    this.xrTable.Rows.AddRange(new XRTableRow[] { this.xrRow1, this.xrRow2 });
+                    this.Detail.Controls.AddRange(new XRControl[] { this.xrTable });
+                }
+            }
+            """;
+
+        var design = new XtraReportToDesignConverter().Convert(source).Design;
+
+        // Rows/cells are folded into one table element, not emitted standalone.
+        Assert.Single(design.Pages[0].Elements);
+        var table = Element(design, "xrTable");
+        Assert.Equal("table", table.Type);
+        Assert.NotNull(table.CellData);
+        Assert.Equal(2, table.CellData!.Length);
+        Assert.Equal(new[] { "Name", "Price" }, table.CellData[0]);
+        Assert.Equal(new[] { "Widget", "9.99" }, table.CellData[1]);
+        Assert.Equal(2, table.ColumnWidths!.Length);
+    }
+
+    [Fact]
     public void Convert_DataBoundControl_EmitsBindingWarning()
     {
         var source = """
