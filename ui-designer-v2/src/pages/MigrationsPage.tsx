@@ -369,7 +369,7 @@ const REPORT_FRAMEWORK: Framework = {
   id: REPORT_ID,
   name: 'DevExpress Reports',
   status: 'designer',
-  description: 'Converts a C# XtraReport class into an editable Canvas design (bands flattened, report units → points). Open the result in the visual designer.',
+  description: 'Converts a DevExpress XtraReport — a C# class or a .repx XML layout — into an editable Canvas design (bands flattened, report units → points). Open the result in the visual designer.',
 };
 
 const EXAMPLES: Record<string, string> = {

@@ -82,10 +82,11 @@ the next, unstarted milestone.
 
 Pick from these, roughly in value order:
 
-### 1. `.repx` XML input  *(biggest, most-requested)*
-- [ ] Parse the serialized DevExpress report XML (`.repx`) instead of only C# source — a separate XML
-      parser path reusing the same band-flatten / unit / mapping core. Lets users import designed
-      reports without the generated C#.
+### 1. `.repx` XML input  ✅ *(done)*
+- [x] Parse the serialized DevExpress report XML (`.repx`) — shares the band-flatten / unit / page-size /
+      mapping / binding core via a neutral `RawReport` model. `ConvertAuto` detects XML vs C#; the
+      `report-to-design` endpoint accepts either. Covers page size, bands, label/line/shape/table
+      controls, fonts/colours, alignment, expression bindings, and page header/footer → shared elements.
 
 ### 2. Richer controls & styling
 - [ ] `XRPictureBox` real image embedding (base64 `ImageSource`/`Image` data → Canvas image), replacing

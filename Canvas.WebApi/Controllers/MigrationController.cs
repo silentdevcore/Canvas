@@ -69,8 +69,9 @@ public class MigrationController : ControllerBase
     }
 
     /// <summary>
-    /// Converts a C# DevExpress XtraReport class into a Canvas design (DesignExportDto) that the
-    /// visual designer can open. Returns the design plus migration diagnostics.
+    /// Converts a DevExpress XtraReport — a C# Report Designer class or a serialized <c>.repx</c> XML
+    /// layout — into a Canvas design (DesignExportDto) that the visual designer can open. Returns the
+    /// design plus migration diagnostics.
     /// </summary>
     [HttpPost("report-to-design")]
     [ProducesResponseType(200)]
@@ -82,7 +83,7 @@ public class MigrationController : ControllerBase
 
         try
         {
-            var result = new XtraReportToDesignConverter().Convert(request.SourceCode);
+            var result = new XtraReportToDesignConverter().ConvertAuto(request.SourceCode);
             return Ok(new
             {
                 design = result.Design,
