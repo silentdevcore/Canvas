@@ -196,6 +196,65 @@ public sealed class XtraReportToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_PageHeaderAndFooter_BecomeSharedElements()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private PageHeaderBand PageHeader;
+                private PageFooterBand PageFooter;
+                private DetailBand Detail;
+                private XRLabel xrHeader;
+                private XRLabel xrFooter;
+                private XRLabel xrBody;
+                private void InitializeComponent()
+                {
+                    this.Margins = new System.Drawing.Printing.Margins(0, 0, 0, 0);
+                    this.PageHeader = new PageHeaderBand();
+                    this.PageFooter = new PageFooterBand();
+                    this.Detail = new DetailBand();
+                    this.xrHeader = new XRLabel();
+                    this.xrFooter = new XRLabel();
+                    this.xrBody = new XRLabel();
+
+                    this.PageHeader.HeightF = 50F;
+                    this.PageFooter.HeightF = 40F;
+                    this.Detail.HeightF = 200F;
+
+                    this.xrHeader.Text = "Header";
+                    this.xrHeader.LocationF = new PointF(0F, 10F);
+                    this.xrHeader.SizeF = new SizeF(200F, 20F);
+                    this.xrFooter.Text = "Footer";
+                    this.xrFooter.LocationF = new PointF(0F, 5F);
+                    this.xrFooter.SizeF = new SizeF(200F, 20F);
+                    this.xrBody.Text = "Body";
+                    this.xrBody.LocationF = new PointF(0F, 10F);
+                    this.xrBody.SizeF = new SizeF(200F, 20F);
+
+                    this.PageHeader.Controls.AddRange(new XRControl[] { this.xrHeader });
+                    this.PageFooter.Controls.AddRange(new XRControl[] { this.xrFooter });
+                    this.Detail.Controls.AddRange(new XRControl[] { this.xrBody });
+                }
+            }
+            """;
+
+        var design = new XtraReportToDesignConverter().Convert(source).Design;
+
+        // Header + footer repeat → shared; body stays on the page.
+        Assert.Equal(2, design.SharedElements.Count);
+        Assert.Single(design.Pages[0].Elements);
+        Assert.Equal("xrBody", design.Pages[0].Elements[0].Name);
+
+        var header = design.SharedElements.Single(e => e.Name == "xrHeader");
+        Assert.Equal(7.2d, header.Y, 1); // near the top
+
+        var footer = design.SharedElements.Single(e => e.Name == "xrFooter");
+        Assert.True(footer.Y > 800, $"footer should be anchored near the A4 bottom, was {footer.Y}");
+    }
+
+    [Fact]
     public void Convert_XRTable_MapsRowsAndCellsToTableElement()
     {
         var source = """

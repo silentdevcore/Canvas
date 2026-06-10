@@ -107,7 +107,7 @@ public sealed class XtraReportToDesignConverter
         }
 
         var unitScale = ResolveUnitScale(GetProp(props, "this", "ReportUnit"));
-        var (marginLeft, marginTop) = ResolveMargins(GetProp(props, "this", "Margins"));
+        var (marginLeft, marginTop, marginBottom) = ResolveMargins(GetProp(props, "this", "Margins"));
 
         // --- Band flattening: absolute top (report units) per band -----------------------------------
         var bands = fieldTypes.Where(kv => kv.Value.EndsWith("Band", StringComparison.Ordinal))
@@ -126,6 +126,8 @@ public sealed class XtraReportToDesignConverter
 
         // --- Build elements ---------------------------------------------------------------------------
         var elements = new List<ElementDto>();
+        var sharedElements = new List<ElementDto>();  // PageHeader/PageFooter → repeat on every page
+        var pageHeightUnits = A4HeightPt / unitScale;
         var controlCount = 0;
         foreach (var (name, type) in fieldTypes)
         {
@@ -138,12 +140,20 @@ public sealed class XtraReportToDesignConverter
             var (locX, locY) = ParsePoint(bag.GetValueOrDefault("LocationF"));
             var (sizeW, sizeH) = ParseSize(bag.GetValueOrDefault("SizeF"));
 
-            var bandOffset = controlBand.TryGetValue(name, out var bandName) && bandTop.TryGetValue(bandName, out var t)
-                ? t
-                : offset;
+            controlBand.TryGetValue(name, out var bandName);
+            var bandType = bandName is not null ? fieldTypes.GetValueOrDefault(bandName, "") : "";
+
+            // Page header/footer repeat on every page; the footer is anchored to the page bottom.
+            double yUnits;
+            if (bandType == "PageHeaderBand")
+                yUnits = marginTop + locY;
+            else if (bandType == "PageFooterBand")
+                yUnits = pageHeightUnits - marginBottom - ToNumber(GetProp(props, bandName!, "HeightF")) + locY;
+            else
+                yUnits = (bandName is not null && bandTop.TryGetValue(bandName, out var t) ? t : offset) + locY;
 
             var x = (marginLeft + locX) * unitScale;
-            var y = (bandOffset + locY) * unitScale;
+            var y = yUnits * unitScale;
             var w = sizeW * unitScale;
             var h = sizeH * unitScale;
 
@@ -158,11 +168,12 @@ public sealed class XtraReportToDesignConverter
                 diagnostics.Add(Warn("CANMIGDEVREP010",
                     $"'{name}' has a non-text data binding that wasn't mapped — re-bind it in Canvas."));
 
-            elements.Add(element);
+            (bandType is "PageHeaderBand" or "PageFooterBand" ? sharedElements : elements).Add(element);
             controlCount++;
         }
 
         elements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
+        sharedElements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
 
         var reportName = reportClass?.Identifier.ValueText ?? "DevExpress Report";
         diagnostics.Insert(0, Info("CANMIGDEVREP001",
@@ -175,7 +186,8 @@ public sealed class XtraReportToDesignConverter
             Category = "imported",
             Description = "Imported from a DevExpress XtraReport.",
             PageSettings = new PageSettingsDto { Width = A4WidthPt, Height = A4HeightPt, Unit = "pt" },
-            Pages = [new PageDto { Id = "page-1", Elements = elements }]
+            Pages = [new PageDto { Id = "page-1", Elements = elements }],
+            SharedElements = sharedElements
         };
 
         return new XtraReportConvertResult { Design = design, Diagnostics = diagnostics };
@@ -475,12 +487,12 @@ public sealed class XtraReportToDesignConverter
         };
     }
 
-    private static (double Left, double Top) ResolveMargins(ExpressionSyntax? margins)
+    private static (double Left, double Top, double Bottom) ResolveMargins(ExpressionSyntax? margins)
     {
         // new Margins(left, right, top, bottom) / new DXMargins(...)
         if (margins is ObjectCreationExpressionSyntax c && c.ArgumentList is { Arguments.Count: >= 4 } a)
-            return (ToNumber(a.Arguments[0].Expression), ToNumber(a.Arguments[2].Expression));
-        return (100, 100); // DevExpress default 1-inch margins (hundredths-of-inch units)
+            return (ToNumber(a.Arguments[0].Expression), ToNumber(a.Arguments[2].Expression), ToNumber(a.Arguments[3].Expression));
+        return (100, 100, 100); // DevExpress default 1-inch margins (hundredths-of-inch units)
     }
 
     private static int BandOrder(string bandType) => bandType switch

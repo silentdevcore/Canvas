@@ -45,6 +45,8 @@ manual migration" warning emitted by the code converter
       band's `HeightF` + band type to compute the vertical offset.
 - [ ] Build `ElementDto` ([DesignExportDto.cs:140](../src/Canvas.Core/Contracts/DesignExportDto.cs#L140))
       into `PageDto.Elements`; set `PageSettingsDto` from `report.PageWidth/PageHeight` or default A4.
+- [x] `PageHeaderBand`/`PageFooterBand` controls → `DesignExportDto.SharedElements` so they repeat on
+      every page; the footer is anchored to the page bottom (`pageHeight − bottomMargin − footerHeight`).
 
 ## Mapping Table
 
