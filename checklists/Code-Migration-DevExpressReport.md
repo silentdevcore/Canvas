@@ -88,13 +88,14 @@ Pick from these, roughly in value order:
       `report-to-design` endpoint accepts either. Covers page size, bands, label/line/shape/table
       controls, fonts/colours, alignment, expression bindings, and page header/footer → shared elements.
 
-### 2. Richer controls & styling
-- [ ] `XRPictureBox` real image embedding (base64 `ImageSource`/`Image` data → Canvas image), replacing
-      the `CANMIGDEVREP013` placeholder.
+### 2. Richer controls & styling  *(partly done)*
+- [x] `XRPictureBox` embedded image (`.repx` base64 `ImageSource`/`Image` → Canvas image `Content` data
+      URL), replacing the `CANMIGDEVREP013` placeholder when image data is present.
+- [x] `XRCheckBox` → `checkmark` with `CheckState` (from `CheckBoxState`/`Checked`).
+- [x] `XRShape` ellipse → `circle`, line → `line`, otherwise `rect`.
 - [ ] Per-cell table styling (cell `.Font`/`.ForeColor`/`.BackColor` → Canvas table style).
-- [ ] Additional controls: `XRChart` → `chart`, `XRCheckBox` → `checkbox`/`checkmark`, `XRGauge`,
-      `XRPivotGrid` (currently skipped with `CANMIGDEVREP011`).
-- [ ] `XRShape` shape kinds (ellipse/line/arrow) and `.Borders` → border style/width.
+- [ ] More controls: `XRChart` → `chart`, `XRGauge`, `XRPivotGrid` (currently skipped, `CANMIGDEVREP011`).
+- [ ] `XRShape` arrow kinds and `.Borders` → border style/width.
 
 ### 3. Data & layout fidelity
 - [ ] Translate DevExpress expression syntax (`[Qty] * [Price]`, `Sum()`, `Iif()`, formatting) to the

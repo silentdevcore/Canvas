@@ -147,6 +147,8 @@ public sealed class XtraReportToDesignConverter
             };
             ApplyFontCSharp(el, bag.GetValueOrDefault("Font"));
             if (type == "XRTable") el.TableCells = BuildTableCellsCSharp(name, tableRows, rowCells, props);
+            if (type == "XRShape") el.ShapeKind = ShapeKindFromName(CreationTypeName(bag.GetValueOrDefault("Shape")));
+            if (type == "XRCheckBox") el.CheckState = CheckStateCSharp(bag);
             report.Elements.Add(el);
         }
 
@@ -231,6 +233,10 @@ public sealed class XtraReportToDesignConverter
             else
                 raw.HasUnmappedBinding = true;
         }
+
+        if (type == "XRShape") raw.ShapeKind = ShapeKindFromName(ShapeTypeXml(el));
+        if (type == "XRCheckBox") raw.CheckState = CheckStateXml(el);
+        if (type == "XRPictureBox") raw.ImageDataUrl = ExtractImageDataUrl(el);
 
         // XRTable: <Rows><ItemN ControlType="XRTableRow"><Cells><ItemN ControlType="XRTableCell" Text="..."/></Cells></ItemN></Rows>
         if (type == "XRTable")
@@ -330,10 +336,16 @@ public sealed class XtraReportToDesignConverter
 
         switch (raw.Type)
         {
-            case "XRLabel" or "XRPageInfo" or "XRCheckBox":
+            case "XRLabel" or "XRPageInfo":
                 element.Type = "text";
                 element.Content = raw.Text ?? "";
                 element.Style = BuildTextStyle(raw);
+                return element;
+
+            case "XRCheckBox":
+                element.Type = "checkmark";
+                element.CheckState = raw.CheckState ?? "empty";
+                element.Content = raw.Text ?? "";
                 return element;
 
             case "XRLine":
@@ -342,15 +354,23 @@ public sealed class XtraReportToDesignConverter
                 return element;
 
             case "XRShape" or "XRPanel":
-                element.Type = "rect";
+                // XRShape carries a shape kind: ellipse → circle, line → line, otherwise a rectangle.
+                element.Type = raw.ShapeKind switch { "ellipse" => "circle", "line" => "line", _ => "rect" };
                 element.Style = new Dictionary<string, object> { ["borderColor"] = raw.ForeColor, ["backgroundColor"] = raw.BackColor };
                 return element;
 
             case "XRPictureBox":
                 element.Type = "image";
                 element.FitMode = "contain";
-                diagnostics.Add(Warn("CANMIGDEVREP013",
-                    $"'{raw.Name}' picture data isn't embeddable from source — inserted an empty image placeholder."));
+                if (raw.ImageDataUrl is { } dataUrl)
+                {
+                    element.Content = dataUrl;  // embedded image survives the import
+                }
+                else
+                {
+                    diagnostics.Add(Warn("CANMIGDEVREP013",
+                        $"'{raw.Name}' picture data isn't embeddable from source — inserted an empty image placeholder."));
+                }
                 return element;
 
             case "XRBarCode":
@@ -576,6 +596,59 @@ public sealed class XtraReportToDesignConverter
         return "left";
     }
 
+    private static string ShapeKindFromName(string shapeType)
+    {
+        if (shapeType.Contains("Ellipse", StringComparison.Ordinal)) return "ellipse";
+        if (shapeType.Contains("Line", StringComparison.Ordinal)) return "line";
+        return "rect";
+    }
+
+    private static string CreationTypeName(ExpressionSyntax? expr) =>
+        expr is ObjectCreationExpressionSyntax c ? SimpleName(c.Type) : "";
+
+    private static string? CheckStateCSharp(Dictionary<string, ExpressionSyntax> bag)
+    {
+        if (NameOf(bag.GetValueOrDefault("CheckBoxState")) == "Checked") return "checked";
+        if (bag.GetValueOrDefault("Checked") is LiteralExpressionSyntax { Token.Value: true }) return "checked";
+        return "empty";
+    }
+
+    private static string ShapeTypeXml(XElement el)
+    {
+        var shape = el.Elements().FirstOrDefault(e => e.Name.LocalName == "Shape");
+        if (shape is null) return "";
+        return SimpleTypeOf(Attr(shape, "ControlType")
+            ?? shape.Elements().Select(c => Attr(c, "ControlType")).FirstOrDefault(v => v is not null));
+    }
+
+    private static string? CheckStateXml(XElement el)
+    {
+        if (string.Equals(Attr(el, "CheckBoxState"), "Checked", StringComparison.OrdinalIgnoreCase)) return "checked";
+        if (string.Equals(Attr(el, "Checked"), "true", StringComparison.OrdinalIgnoreCase)) return "checked";
+        return "empty";
+    }
+
+    // Best-effort extraction of an embedded picture's base64 payload from a .repx XRPictureBox.
+    private static string? ExtractImageDataUrl(XElement el)
+    {
+        var candidate = Attr(el, "ImageSource") ?? Attr(el, "ImageData") ?? Attr(el, "Image");
+        if (candidate is null)
+        {
+            var child = el.Elements().FirstOrDefault(e => e.Name.LocalName is "ImageSource" or "Image");
+            candidate = child is null ? null : (Attr(child, "ImageData") ?? Attr(child, "Base64") ?? child.Value);
+        }
+        if (string.IsNullOrWhiteSpace(candidate)) return null;
+        if (candidate.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) return candidate;
+
+        // DevExpress sometimes prefixes the payload, e.g. "Image|<base64>".
+        var pipe = candidate.LastIndexOf('|');
+        var b64 = (pipe >= 0 ? candidate[(pipe + 1)..] : candidate).Trim();
+        return IsLikelyBase64(b64) ? $"data:image/png;base64,{b64}" : null;
+    }
+
+    private static bool IsLikelyBase64(string value) =>
+        value.Length >= 64 && value.Length % 4 == 0 && Regex.IsMatch(value, @"^[A-Za-z0-9+/]+={0,2}$");
+
     private static (double W, double H) PaperKindSize(string kind) => kind switch
     {
         "A3" => (842, 1191),
@@ -791,5 +864,8 @@ public sealed class XtraReportToDesignConverter
         public string? TextExpression;
         public bool HasUnmappedBinding;
         public List<List<string>>? TableCells;
+        public string? ShapeKind;     // "ellipse" | "line" | "rect" (XRShape)
+        public string? CheckState;    // "checked" | "empty" (XRCheckBox)
+        public string? ImageDataUrl;  // data: URL for an embedded XRPictureBox image
     }
 }

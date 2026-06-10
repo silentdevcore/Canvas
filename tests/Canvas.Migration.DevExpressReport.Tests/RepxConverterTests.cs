@@ -168,4 +168,52 @@ public sealed class RepxConverterTests
     {
         Assert.Throws<ArgumentException>(() => new XtraReportToDesignConverter().ConvertRepx("<not valid"));
     }
+
+    private static string SingleControlRepx(string controlXml) => $"""
+        <XtraReportsLayoutSerializer ControlType="DevExpress.XtraReports.UI.XtraReport, X" Name="R" PaperKind="A4">
+          <Bands>
+            <Item1 ControlType="DevExpress.XtraReports.UI.DetailBand, X" Name="Detail" HeightF="100">
+              <Controls>{controlXml}</Controls>
+            </Item1>
+          </Bands>
+        </XtraReportsLayoutSerializer>
+        """;
+
+    [Fact]
+    public void ConvertRepx_XRCheckBox_BecomesCheckmark()
+    {
+        var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """<Item1 ControlType="DevExpress.XtraReports.UI.XRCheckBox, X" Name="chk" Text="Agree" SizeF="100,20" LocationFloat="0,0" CheckBoxState="Checked" />"""))
+            .Design;
+
+        var el = Page(design, "chk");
+        Assert.Equal("checkmark", el.Type);
+        Assert.Equal("checked", el.CheckState);
+    }
+
+    [Fact]
+    public void ConvertRepx_XRShapeEllipse_BecomesCircle()
+    {
+        var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """
+            <Item1 ControlType="DevExpress.XtraReports.UI.XRShape, X" Name="shp" SizeF="60,60" LocationFloat="0,0">
+              <Shape ControlType="DevExpress.XtraPrinting.Shape.ShapeEllipse, X" />
+            </Item1>
+            """)).Design;
+
+        Assert.Equal("circle", Page(design, "shp").Type);
+    }
+
+    [Fact]
+    public void ConvertRepx_XRPictureBox_WithEmbeddedImage_KeepsDataUrl()
+    {
+        const string pngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+        var result = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            $"""<Item1 ControlType="DevExpress.XtraReports.UI.XRPictureBox, X" Name="pic" SizeF="100,100" LocationFloat="0,0" ImageSource="{pngBase64}" />"""));
+
+        var el = Page(result.Design, "pic");
+        Assert.Equal("image", el.Type);
+        Assert.StartsWith("data:image/png;base64,", el.Content);
+        Assert.DoesNotContain(result.Diagnostics, d => d.Id == "CANMIGDEVREP013");
+    }
 }

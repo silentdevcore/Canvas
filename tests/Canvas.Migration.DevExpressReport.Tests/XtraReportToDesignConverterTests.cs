@@ -312,6 +312,44 @@ public sealed class XtraReportToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_XRCheckBoxAndXRShape_MapToCheckmarkAndCircle()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using DevExpress.XtraPrinting.Shape;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRCheckBox chk;
+                private XRShape shp;
+                private void InitializeComponent()
+                {
+                    this.Detail = new DetailBand();
+                    this.chk = new XRCheckBox();
+                    this.shp = new XRShape();
+                    this.chk.Text = "Agree";
+                    this.chk.CheckBoxState = CheckBoxState.Checked;
+                    this.chk.LocationF = new PointF(0F, 0F);
+                    this.chk.SizeF = new SizeF(100F, 20F);
+                    this.shp.Shape = new ShapeEllipse();
+                    this.shp.LocationF = new PointF(0F, 40F);
+                    this.shp.SizeF = new SizeF(60F, 60F);
+                    this.Detail.Controls.AddRange(new XRControl[] { this.chk, this.shp });
+                }
+            }
+            """;
+
+        var design = new XtraReportToDesignConverter().Convert(source).Design;
+
+        var chk = Element(design, "chk");
+        Assert.Equal("checkmark", chk.Type);
+        Assert.Equal("checked", chk.CheckState);
+
+        Assert.Equal("circle", Element(design, "shp").Type);
+    }
+
+    [Fact]
     public void Convert_XRTable_MapsRowsAndCellsToTableElement()
     {
         var source = """
