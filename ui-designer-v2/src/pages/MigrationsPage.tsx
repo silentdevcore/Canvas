@@ -5,8 +5,11 @@ import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import AppHeader from '@/components/Layout/AppHeader';
 import { useEditorStore } from '@/store';
 
-// Framework id for the XtraReport → Canvas Designer flow (output is a design, not C# code).
+// Framework ids for the report → Canvas Designer flows (output is a design, not C# code).
 const REPORT_ID = 'DevExpressReport';
+const RDL_REPORT_ID = 'RdlReport';
+// Both report flows post to the same /report-to-design endpoint (the backend auto-detects the format).
+const isReportDesign = (id: string) => id === REPORT_ID || id === RDL_REPORT_ID;
 
 interface Framework {
   id: string;
@@ -372,8 +375,64 @@ const REPORT_FRAMEWORK: Framework = {
   description: 'Converts a DevExpress XtraReport — a C# class or a .repx XML layout — into an editable Canvas design (bands flattened, report units → points). Open the result in the visual designer.',
 };
 
+const RDL_REPORT_EXAMPLE = `<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" Name="Invoice">
+  <Body>
+    <ReportItems>
+      <Textbox Name="customer">
+        <Top>0in</Top><Left>1in</Left><Height>0.3in</Height><Width>3in</Width>
+        <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!CustomerName.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs>
+      </Textbox>
+      <Tablix Name="items">
+        <Top>0.6in</Top><Left>1in</Left><Height>1in</Height><Width>4in</Width>
+        <TablixBody>
+          <TablixColumns>
+            <TablixColumn><Width>2in</Width></TablixColumn>
+            <TablixColumn><Width>2in</Width></TablixColumn>
+          </TablixColumns>
+          <TablixRows>
+            <TablixRow><TablixCells>
+              <TablixCell><CellContents><Textbox Name="h1"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Item</Value></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+              <TablixCell><CellContents><Textbox Name="h2"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Total</Value></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+            </TablixCells></TablixRow>
+          </TablixRows>
+        </TablixBody>
+      </Tablix>
+    </ReportItems>
+    <Height>5in</Height>
+  </Body>
+  <Page>
+    <PageHeader><Height>1in</Height><ReportItems>
+      <Textbox Name="title">
+        <Top>0.1in</Top><Left>1in</Left><Height>0.4in</Height><Width>5in</Width>
+        <Paragraphs><Paragraph><Style><TextAlign>Center</TextAlign></Style><TextRuns><TextRun><Value>Invoice 2024</Value><Style><FontFamily>Arial</FontFamily><FontSize>20pt</FontSize><FontWeight>Bold</FontWeight><Color>#0066CC</Color></Style></TextRun></TextRuns></Paragraph></Paragraphs>
+      </Textbox>
+    </ReportItems></PageHeader>
+    <PageFooter><Height>0.5in</Height><ReportItems>
+      <Textbox Name="pageinfo">
+        <Top>0.1in</Top><Left>4in</Left><Height>0.3in</Height><Width>1in</Width>
+        <Paragraphs><Paragraph><TextRuns><TextRun><Value>Page 1</Value></TextRun></TextRuns></Paragraph></Paragraphs>
+      </Textbox>
+    </ReportItems></PageFooter>
+    <PageHeight>11in</PageHeight>
+    <PageWidth>8.5in</PageWidth>
+    <LeftMargin>1in</LeftMargin>
+    <RightMargin>1in</RightMargin>
+    <TopMargin>1in</TopMargin>
+    <BottomMargin>1in</BottomMargin>
+  </Page>
+</Report>`;
+
+const RDL_REPORT_FRAMEWORK: Framework = {
+  id: RDL_REPORT_ID,
+  name: 'Syncfusion / RDL Reports',
+  status: 'designer',
+  description: 'Converts an RDL/RDLC report (SSRS, Syncfusion) into an editable Canvas design — items positioned absolutely, CSS lengths → points, tablix → table, page header/footer → shared elements. Open the result in the visual designer.',
+};
+
 const EXAMPLES: Record<string, string> = {
   [REPORT_ID]: DEVEXPRESS_REPORT_EXAMPLE,
+  [RDL_REPORT_ID]: RDL_REPORT_EXAMPLE,
   Syncfusion: SYNCFUSION_EXAMPLE,
   iText7: ITEXT7_EXAMPLE,
   Apryse: APRYSE_EXAMPLE,
@@ -399,7 +458,7 @@ interface ConversionSummary {
 }
 
 const MigrationsPage: React.FC = () => {
-  const [frameworks, setFrameworks] = useState<Framework[]>([...FRAMEWORKS_FALLBACK, REPORT_FRAMEWORK]);
+  const [frameworks, setFrameworks] = useState<Framework[]>([...FRAMEWORKS_FALLBACK, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK]);
   const [selectedId, setSelectedId] = useState('Syncfusion');
   const [reportDesign, setReportDesign] = useState<any | null>(null);
   const navigate = useNavigate();
@@ -425,7 +484,7 @@ const MigrationsPage: React.FC = () => {
   useEffect(() => {
     fetch(`${API_BASE}/frameworks`)
       .then(r => r.json())
-      .then((data: Framework[]) => setFrameworks([...data, REPORT_FRAMEWORK]))
+      .then((data: Framework[]) => setFrameworks([...data, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK]))
       .catch(() => { /* use fallback */ });
     return () => { if (prevPdfUrl.current) URL.revokeObjectURL(prevPdfUrl.current); };
   }, []);
@@ -459,8 +518,8 @@ const MigrationsPage: React.FC = () => {
     setConverting(true);
     setError(null);
     try {
-      // XtraReport → Canvas design (JSON), opened in the visual designer.
-      if (selectedId === REPORT_ID) {
+      // Report (DevExpress XtraReport or RDL/RDLC) → Canvas design (JSON), opened in the visual designer.
+      if (isReportDesign(selectedId)) {
         const res = await fetch(`${API_BASE}/report-to-design`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -682,7 +741,7 @@ const MigrationsPage: React.FC = () => {
 
           <div className="mgr-pane" style={{ flex: 1 }}>
             <div className="mgr-pane-header">
-              <span>{selectedId === REPORT_ID ? 'Canvas Design (JSON)' : 'Canvas.Pdf Code'}</span>
+              <span>{isReportDesign(selectedId) ? 'Canvas Design (JSON)' : 'Canvas.Pdf Code'}</span>
               <div className="mgr-pane-header-actions">
                 {hasConverted && (
                   <button
@@ -722,7 +781,7 @@ const MigrationsPage: React.FC = () => {
                 />
               ) : (
                 <Editor
-                  language={selectedId === REPORT_ID ? 'json' : 'csharp'}
+                  language={isReportDesign(selectedId) ? 'json' : 'csharp'}
                   value={canvasCode}
                   options={{
                     readOnly: true,
@@ -739,7 +798,7 @@ const MigrationsPage: React.FC = () => {
               )}
             </div>
             <div className="mgr-pane-footer mgr-pane-footer-right">
-              {selectedId === REPORT_ID ? (
+              {isReportDesign(selectedId) ? (
                 <button
                   className="mgr-btn mgr-btn-primary"
                   onClick={handleOpenInDesigner}

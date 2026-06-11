@@ -1,4 +1,6 @@
+using Canvas.Core.Contracts;
 using Canvas.Migration.DevExpressReport;
+using Canvas.Migration.Rdl;
 using Canvas.WebApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -69,9 +71,10 @@ public class MigrationController : ControllerBase
     }
 
     /// <summary>
-    /// Converts a DevExpress XtraReport — a C# Report Designer class or a serialized <c>.repx</c> XML
-    /// layout — into a Canvas design (DesignExportDto) that the visual designer can open. Returns the
-    /// design plus migration diagnostics.
+    /// Converts a report-designer layout into a Canvas design (DesignExportDto) the visual designer can
+    /// open. Auto-detects the format: an RDL/RDLC report (SSRS, Syncfusion — root <c>&lt;Report&gt;</c> in
+    /// an RDL namespace), otherwise a DevExpress XtraReport (a C# Report Designer class or a serialized
+    /// <c>.repx</c> XML layout). Returns the design plus migration diagnostics.
     /// </summary>
     [HttpPost("report-to-design")]
     [ProducesResponseType(200)]
@@ -83,11 +86,25 @@ public class MigrationController : ControllerBase
 
         try
         {
-            var result = new XtraReportToDesignConverter().ConvertAuto(request.SourceCode);
+            DesignExportDto design;
+            IReadOnlyList<Canvas.Migration.Abstractions.MigrationDiagnostic> diagnostics;
+            if (RdlToDesignConverter.LooksLikeRdl(request.SourceCode))
+            {
+                var result = new RdlToDesignConverter().Convert(request.SourceCode);
+                design = result.Design;
+                diagnostics = result.Diagnostics;
+            }
+            else
+            {
+                var result = new XtraReportToDesignConverter().ConvertAuto(request.SourceCode);
+                design = result.Design;
+                diagnostics = result.Diagnostics;
+            }
+
             return Ok(new
             {
-                design = result.Design,
-                diagnostics = result.Diagnostics.Select(d => new
+                design,
+                diagnostics = diagnostics.Select(d => new
                 {
                     code = d.Id,
                     severity = d.Severity.ToString(),
