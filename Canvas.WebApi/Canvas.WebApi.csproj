@@ -48,6 +48,7 @@
     <ProjectReference Include="../src/Canvas.Migration.PdfTools/Canvas.Migration.PdfTools.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.PdfToolsToolbox/Canvas.Migration.PdfToolsToolbox.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.Rdl/Canvas.Migration.Rdl.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.Rpx/Canvas.Migration.Rpx.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.SpirePdf/Canvas.Migration.SpirePdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.SyncfusionPdf/Canvas.Migration.SyncfusionPdf.csproj" />
   </ItemGroup>

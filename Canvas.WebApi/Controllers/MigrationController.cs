@@ -1,6 +1,7 @@
 using Canvas.Core.Contracts;
 using Canvas.Migration.DevExpressReport;
 using Canvas.Migration.Rdl;
+using Canvas.Migration.Rpx;
 using Canvas.WebApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -73,8 +74,9 @@ public class MigrationController : ControllerBase
     /// <summary>
     /// Converts a report-designer layout into a Canvas design (DesignExportDto) the visual designer can
     /// open. Auto-detects the format: an RDL/RDLC report (SSRS, Syncfusion — root <c>&lt;Report&gt;</c> in
-    /// an RDL namespace), otherwise a DevExpress XtraReport (a C# Report Designer class or a serialized
-    /// <c>.repx</c> XML layout). Returns the design plus migration diagnostics.
+    /// an RDL namespace), an ActiveReports <c>.rpx</c> section report (root <c>&lt;Report&gt;</c> with
+    /// <c>&lt;Sections&gt;</c>), otherwise a DevExpress XtraReport (a C# Report Designer class or a
+    /// serialized <c>.repx</c> XML layout). Returns the design plus migration diagnostics.
     /// </summary>
     [HttpPost("report-to-design")]
     [ProducesResponseType(200)]
@@ -91,6 +93,12 @@ public class MigrationController : ControllerBase
             if (RdlToDesignConverter.LooksLikeRdl(request.SourceCode))
             {
                 var result = new RdlToDesignConverter().Convert(request.SourceCode);
+                design = result.Design;
+                diagnostics = result.Diagnostics;
+            }
+            else if (RpxToDesignConverter.LooksLikeRpx(request.SourceCode))
+            {
+                var result = new RpxToDesignConverter().Convert(request.SourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }

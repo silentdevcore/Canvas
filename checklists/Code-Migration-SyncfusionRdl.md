@@ -102,9 +102,9 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 - [ ] If a *packaged* `.rdlx` (OPC/zip with embedded resources) is ever encountered, unzip and locate
       the `<Report>` part — needs a binary upload path (the endpoint is currently text/JSON).
 
-### 2. GrapeCity Section Reports `.rpx`
-- [ ] Banded format closer to XtraReports — map sections (PageHeader/Detail/PageFooter) like the
-      DevExpress band converter does.
+### 2. GrapeCity Section Reports `.rpx`  ✅ *(shipped — separate converter)*
+- [x] Banded format closer to XtraReports — handled by `Canvas.Migration.Rpx` (sections flattened like
+      the DevExpress band converter). See [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md).
 
 ### 3. Richer RDL fidelity
 - [ ] Tablix row/column-group header extraction (`<TablixColumnHierarchy>`/`<TablixMember>`) instead of

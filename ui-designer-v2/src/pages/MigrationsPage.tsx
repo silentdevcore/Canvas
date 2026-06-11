@@ -8,8 +8,9 @@ import { useEditorStore } from '@/store';
 // Framework ids for the report → Canvas Designer flows (output is a design, not C# code).
 const REPORT_ID = 'DevExpressReport';
 const RDL_REPORT_ID = 'RdlReport';
-// Both report flows post to the same /report-to-design endpoint (the backend auto-detects the format).
-const isReportDesign = (id: string) => id === REPORT_ID || id === RDL_REPORT_ID;
+const RPX_REPORT_ID = 'RpxReport';
+// All report flows post to the same /report-to-design endpoint (the backend auto-detects the format).
+const isReportDesign = (id: string) => id === REPORT_ID || id === RDL_REPORT_ID || id === RPX_REPORT_ID;
 
 interface Framework {
   id: string;
@@ -430,9 +431,40 @@ const RDL_REPORT_FRAMEWORK: Framework = {
   description: 'Converts an RDL/RDLC report (SSRS, Syncfusion) into an editable Canvas design — items positioned absolutely, CSS lengths → points, tablix → table, page header/footer → shared elements. Open the result in the visual designer.',
 };
 
+const RPX_REPORT_EXAMPLE = `<?xml version="1.0" encoding="utf-8"?>
+<Report Name="Invoice">
+  <Sections>
+    <PageHeader Name="PageHeader1" Height="1">
+      <Controls>
+        <Label Name="title" Left="1" Top="0.1" Width="5" Height="0.4" Text="Invoice 2024" Font-FamilyName="Arial" Font-Size="20" Font-Bold="True" Alignment="Center" ForeColor="0, 102, 204" />
+      </Controls>
+    </PageHeader>
+    <Detail Name="Detail1" Height="2">
+      <Controls>
+        <TextBox Name="customer" Left="1" Top="0" Width="3" Height="0.3" DataField="CustomerName" />
+        <Line Name="rule" X1="1" Y1="0.5" X2="6" Y2="0.5" LineWeight="2" LineColor="Gray" />
+        <Barcode Name="sku" Left="1" Top="1" Width="2" Height="0.5" DataField="Sku" Style="Code128" />
+      </Controls>
+    </Detail>
+    <PageFooter Name="PageFooter1" Height="0.5">
+      <Controls>
+        <Label Name="pageinfo" Left="5" Top="0.1" Width="1" Height="0.2" Text="Page 1" />
+      </Controls>
+    </PageFooter>
+  </Sections>
+</Report>`;
+
+const RPX_REPORT_FRAMEWORK: Framework = {
+  id: RPX_REPORT_ID,
+  name: 'ActiveReports (.rpx)',
+  status: 'designer',
+  description: 'Converts a GrapeCity/MESCIUS ActiveReports section report (.rpx) into an editable Canvas design — banded sections flattened to absolute positions (inches → points), page header/footer → shared elements, DataField → binding. Open the result in the visual designer.',
+};
+
 const EXAMPLES: Record<string, string> = {
   [REPORT_ID]: DEVEXPRESS_REPORT_EXAMPLE,
   [RDL_REPORT_ID]: RDL_REPORT_EXAMPLE,
+  [RPX_REPORT_ID]: RPX_REPORT_EXAMPLE,
   Syncfusion: SYNCFUSION_EXAMPLE,
   iText7: ITEXT7_EXAMPLE,
   Apryse: APRYSE_EXAMPLE,
@@ -458,7 +490,7 @@ interface ConversionSummary {
 }
 
 const MigrationsPage: React.FC = () => {
-  const [frameworks, setFrameworks] = useState<Framework[]>([...FRAMEWORKS_FALLBACK, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK]);
+  const [frameworks, setFrameworks] = useState<Framework[]>([...FRAMEWORKS_FALLBACK, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK]);
   const [selectedId, setSelectedId] = useState('Syncfusion');
   const [reportDesign, setReportDesign] = useState<any | null>(null);
   const navigate = useNavigate();
@@ -484,7 +516,7 @@ const MigrationsPage: React.FC = () => {
   useEffect(() => {
     fetch(`${API_BASE}/frameworks`)
       .then(r => r.json())
-      .then((data: Framework[]) => setFrameworks([...data, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK]))
+      .then((data: Framework[]) => setFrameworks([...data, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK]))
       .catch(() => { /* use fallback */ });
     return () => { if (prevPdfUrl.current) URL.revokeObjectURL(prevPdfUrl.current); };
   }, []);

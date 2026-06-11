@@ -1,0 +1,504 @@
+using System.Globalization;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using Canvas.Core.Contracts;
+using Canvas.Migration.Abstractions;
+
+namespace Canvas.Migration.Rpx;
+
+public sealed class RpxConvertResult
+{
+    public required DesignExportDto Design { get; init; }
+    public required IReadOnlyList<MigrationDiagnostic> Diagnostics { get; init; }
+}
+
+/// <summary>
+/// Converts a GrapeCity / MESCIUS ActiveReports <c>.rpx</c> "Section Report" — a <b>banded</b> XML layout
+/// (root <c>&lt;Report&gt;</c> with a <c>&lt;Sections&gt;</c> collection of ReportHeader/PageHeader/Detail/
+/// PageFooter/… bands, each holding <c>&lt;Controls&gt;</c>) — into a Canvas <see cref="DesignExportDto"/>.
+/// Unlike RDL this is band-relative, so it mirrors the DevExpress XtraReport band-flatten approach:
+/// section heights stack into absolute page coordinates; PageHeader/PageFooter become repeating shared
+/// elements. Positions are inches. Elements are matched by <see cref="XName.LocalName"/> (namespace-agnostic).
+/// </summary>
+public sealed class RpxToDesignConverter
+{
+    private const double InchToPt = 72.0;
+    private const double LetterWidthPt = 612;   // ActiveReports section reports default to Letter
+    private const double LetterHeightPt = 792;
+
+    /// <summary>Detects an ActiveReports <c>.rpx</c> Section Report: root <c>&lt;Report&gt;</c> with a
+    /// <c>&lt;Sections&gt;</c> collection and not an RDL (<c>reportdefinition</c>) namespace.</summary>
+    public static bool LooksLikeRpx(string source)
+    {
+        if (string.IsNullOrWhiteSpace(source)) return false;
+        var trimmed = source.TrimStart();
+        if (!trimmed.StartsWith("<?xml", StringComparison.Ordinal) && !trimmed.StartsWith("<Report", StringComparison.Ordinal))
+            return false;
+        try
+        {
+            var root = XDocument.Parse(source).Root;
+            return root is not null
+                && root.Name.LocalName == "Report"
+                && !root.Name.NamespaceName.Contains("reportdefinition", StringComparison.OrdinalIgnoreCase)
+                && root.DescendantsAndSelf().Any(e => e.Name.LocalName == "Sections");
+        }
+        catch (System.Xml.XmlException)
+        {
+            return false;
+        }
+    }
+
+    public RpxConvertResult ConvertAuto(string source)
+    {
+        if (string.IsNullOrWhiteSpace(source))
+            throw new ArgumentException("Source cannot be null or empty.", nameof(source));
+        return Convert(source);
+    }
+
+    public RpxConvertResult Convert(string rpxXml)
+    {
+        if (string.IsNullOrWhiteSpace(rpxXml))
+            throw new ArgumentException("Source cannot be null or empty.", nameof(rpxXml));
+
+        XElement root;
+        try { root = XDocument.Parse(rpxXml).Root ?? throw new ArgumentException("Empty RPX document."); }
+        catch (System.Xml.XmlException ex) { throw new ArgumentException($"Invalid RPX XML: {ex.Message}", nameof(rpxXml)); }
+
+        if (root.Name.LocalName != "Report")
+            throw new ArgumentException("Not an ActiveReports RPX report — expected a root <Report> element.", nameof(rpxXml));
+
+        var report = new RawReport
+        {
+            Name = Attr(root, "Name") ?? "ActiveReports Section Report",
+            HasScript = Descendant(root, "Script") is { } s && !string.IsNullOrWhiteSpace(s.Value)
+        };
+        ResolvePageSettings(root, report);
+
+        var sections = Descendant(root, "Sections");
+        foreach (var sectionEl in sections?.Elements() ?? Enumerable.Empty<XElement>())
+        {
+            var type = sectionEl.Name.LocalName;        // ReportHeader, PageHeader, Detail, …
+            var name = Attr(sectionEl, "Name") ?? type;
+            report.Bands.Add(new RawBand { Name = name, Type = type, Height = ToInchPt(Attr(sectionEl, "Height")) });
+
+            var controls = sectionEl.Elements().FirstOrDefault(e => e.Name.LocalName == "Controls");
+            foreach (var ctrl in controls?.Elements() ?? Enumerable.Empty<XElement>())
+            {
+                var raw = ParseControl(ctrl, name);
+                if (raw is not null) report.Elements.Add(raw);
+            }
+        }
+
+        return BuildDesign(report);
+    }
+
+    private static void ResolvePageSettings(XElement root, RawReport report)
+    {
+        var ps = Descendant(root, "PageSettings");
+        var size = PaperKindSize(Attr(ps, "PaperKind") ?? Attr(root, "PaperKind") ?? "");
+        report.PageWidthPt = size.W > 0 ? size.W : LetterWidthPt;
+        report.PageHeightPt = size.H > 0 ? size.H : LetterHeightPt;
+
+        // Margins "Left, Right, Top, Bottom" in inches.
+        var m = SplitNumbers(Attr(ps, "Margins"));
+        if (m.Length >= 4)
+        {
+            report.MarginLeftPt = m[0] * InchToPt;
+            report.MarginTopPt = m[2] * InchToPt;
+            report.MarginBottomPt = m[3] * InchToPt;
+        }
+
+        if (string.Equals(Attr(ps, "Orientation"), "Landscape", StringComparison.OrdinalIgnoreCase))
+            (report.PageWidthPt, report.PageHeightPt) = (report.PageHeightPt, report.PageWidthPt);
+    }
+
+    private static RawElement? ParseControl(XElement el, string bandName)
+    {
+        var type = el.Name.LocalName;
+
+        // Geometry: Left/Top/Width/Height (inches); a Line uses X1,Y1,X2,Y2 instead.
+        double x, y, w, h;
+        if (type == "Line" && Attr(el, "X1") is not null)
+        {
+            var x1 = ToInchPt(Attr(el, "X1")); var y1 = ToInchPt(Attr(el, "Y1"));
+            var x2 = ToInchPt(Attr(el, "X2")); var y2 = ToInchPt(Attr(el, "Y2"));
+            x = Math.Min(x1, x2); y = Math.Min(y1, y2);
+            w = Math.Abs(x2 - x1); h = Math.Abs(y2 - y1);
+        }
+        else
+        {
+            x = ToInchPt(Attr(el, "Left")); y = ToInchPt(Attr(el, "Top"));
+            w = ToInchPt(Attr(el, "Width")); h = ToInchPt(Attr(el, "Height"));
+        }
+
+        var raw = new RawElement
+        {
+            Name = Attr(el, "Name") ?? type,
+            Type = type,
+            Band = bandName,
+            X = x, Y = y, W = w, H = h,
+            Text = Attr(el, "Text") ?? Attr(el, "Caption"),
+            DataField = Attr(el, "DataField"),
+            ForeColor = ParseColor(Attr(el, "ForeColor")) ?? "#000000",
+            BackColor = ParseColor(Attr(el, "BackColor")),
+            TextAlign = ParseAlignment(Attr(el, "Alignment")),
+            LineWidth = Attr(el, "LineWeight") is { } lw ? ToDouble(lw) : null,
+            LineStyle = Attr(el, "LineStyle")
+        };
+        ApplyFont(raw, el);
+
+        if (type == "Line" && ParseColor(Attr(el, "LineColor")) is { } lc) raw.ForeColor = lc;
+        if (type == "Shape") raw.ShapeKind = ShapeKindFromName(Attr(el, "Style") ?? Attr(el, "ShapeType"));
+        if (type == "Picture") raw.ImageDataUrl = ExtractImageDataUrl(el);
+        if (type == "Barcode") raw.Symbology = Attr(el, "Style") ?? Attr(el, "Symbology") ?? Attr(el, "BarCodeStyle");
+        if (type is "CheckBox") raw.Checked = string.Equals(Attr(el, "Checked"), "True", StringComparison.OrdinalIgnoreCase);
+
+        return raw;
+    }
+
+    // ── Band-flatten build (mirrors the DevExpress report converter) ────────────────────────────────
+
+    private static RpxConvertResult BuildDesign(RawReport report)
+    {
+        var diagnostics = new List<MigrationDiagnostic>();
+
+        var bandByName = report.Bands.ToDictionary(b => b.Name, StringComparer.Ordinal);
+        var orderedBands = report.Bands.OrderBy(b => BandOrder(b.Type)).ToList();
+        var bandTop = new Dictionary<string, double>(StringComparer.Ordinal);
+        var offset = report.MarginTopPt;
+        foreach (var band in orderedBands)
+        {
+            bandTop[band.Name] = offset;
+            offset += band.Height;
+        }
+
+        var elements = new List<ElementDto>();
+        var sharedElements = new List<ElementDto>();
+        var mapped = 0;
+
+        foreach (var raw in report.Elements)
+        {
+            var bandType = raw.Band is not null && bandByName.TryGetValue(raw.Band, out var b) ? b.Type : "";
+
+            double yPt;
+            if (bandType == "PageHeader")
+                yPt = report.MarginTopPt + raw.Y;
+            else if (bandType == "PageFooter")
+                yPt = report.PageHeightPt - report.MarginBottomPt
+                      - (raw.Band is not null && bandByName.TryGetValue(raw.Band, out var fb) ? fb.Height : 0) + raw.Y;
+            else
+                yPt = (raw.Band is not null && bandTop.TryGetValue(raw.Band, out var t) ? t : offset) + raw.Y;
+
+            var x = report.MarginLeftPt + raw.X;
+
+            var element = MapControl(raw, x, yPt, diagnostics);
+            if (element is null) continue;
+
+            diagnostics.Add(Info("CANMIGRPX002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
+
+            if (raw.DataField is { Length: > 0 } field)
+            {
+                element.Binding = field;
+                if (element.Type == "text") element.Content = $"{{{{{field}}}}}";
+                diagnostics.Add(Info("CANMIGRPX010", $"'{raw.Name}' bound to field {field} → Canvas binding '{field}'."));
+            }
+
+            (bandType is "PageHeader" or "PageFooter" ? sharedElements : elements).Add(element);
+            mapped++;
+        }
+
+        elements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
+        sharedElements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
+
+        if (report.HasScript)
+            diagnostics.Add(Warn("CANMIGRPX011",
+                "Report contains embedded script — Canvas has no scripting; migrate that logic manually."));
+
+        diagnostics.Insert(0, Info("CANMIGRPX001",
+            $"ActiveReports section report '{report.Name}' detected — {report.Bands.Count} section(s), {mapped} control(s) mapped."));
+
+        var design = new DesignExportDto
+        {
+            Id = $"rpx-report-{Guid.NewGuid():N}",
+            Name = report.Name,
+            Category = "imported",
+            Description = "Imported from an ActiveReports section report (.rpx).",
+            PageSettings = new PageSettingsDto { Width = report.PageWidthPt, Height = report.PageHeightPt, Unit = "pt" },
+            Pages = [new PageDto { Id = "page-1", Elements = elements }],
+            SharedElements = sharedElements
+        };
+
+        return new RpxConvertResult { Design = design, Diagnostics = diagnostics };
+    }
+
+    private static ElementDto? MapControl(RawElement raw, double x, double y, List<MigrationDiagnostic> diagnostics)
+    {
+        var element = new ElementDto { Id = $"rpx-{raw.Name}", Name = raw.Name, X = x, Y = y, Width = raw.W, Height = raw.H };
+
+        switch (raw.Type)
+        {
+            case "Label":
+            case "TextBox":
+                element.Type = "text";
+                element.Content = raw.Text ?? "";
+                element.Style = BuildTextStyle(raw);
+                return element;
+
+            case "Line":
+                element.Type = "line";
+                element.Style = new Dictionary<string, object> { ["color"] = raw.ForeColor };
+                if (raw.LineWidth is { } lineW) element.Style["strokeWidth"] = lineW;
+                if (DashStyleFromName(raw.LineStyle) is { } dash) element.Style["dashStyle"] = dash;
+                return element;
+
+            case "Shape":
+                element.Type = raw.ShapeKind switch { "ellipse" => "circle", _ => "rect" };
+                element.Style = new Dictionary<string, object> { ["borderColor"] = raw.ForeColor };
+                if (raw.BackColor is { } bg) element.Style["backgroundColor"] = bg;
+                if (raw.LineWidth is { } borderW) element.Style["borderWidth"] = borderW;
+                return element;
+
+            case "Picture":
+                element.Type = "image";
+                element.FitMode = "contain";
+                if (raw.ImageDataUrl is { } dataUrl)
+                    element.Content = dataUrl;
+                else
+                    diagnostics.Add(Warn("CANMIGRPX012",
+                        $"'{raw.Name}' picture data isn't embeddable from source — inserted an empty image placeholder."));
+                return element;
+
+            case "RichTextBox":
+                element.Type = "richtext";
+                element.HtmlContent = $"<p>{raw.Text ?? ""}</p>";
+                return element;
+
+            case "Barcode":
+                element.Type = "barcode";
+                element.BarcodeValue = raw.DataField is { Length: > 0 } f ? $"{{{{{f}}}}}" : raw.Text ?? "";
+                element.BarcodeType = BarcodeTypeFromSymbology(raw.Symbology);
+                return element;
+
+            case "CheckBox":
+                element.Type = "checkmark";
+                element.CheckState = raw.Checked ? "checked" : "empty";
+                element.Content = raw.Text ?? "";
+                return element;
+
+            case "SubReport":
+                diagnostics.Add(Warn("CANMIGRPX011",
+                    $"'{raw.Name}' is a sub-report — requires manual migration; skipped."));
+                return null;
+
+            default:
+                diagnostics.Add(Warn("CANMIGRPX011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; skipped."));
+                return null;
+        }
+    }
+
+    private static Dictionary<string, object> BuildTextStyle(RawElement raw)
+    {
+        var style = new Dictionary<string, object> { ["color"] = raw.ForeColor };
+        if (raw.FontFamily is not null) style["fontFamily"] = raw.FontFamily;
+        if (raw.FontSize is { } size) style["fontSize"] = size;
+        if (raw.Bold) style["fontWeight"] = "bold";
+        if (raw.Italic) style["fontStyle"] = "italic";
+        var decoration = string.Join(" ", new[] { raw.Underline ? "underline" : null, raw.Strikeout ? "line-through" : null }.Where(s => s is not null));
+        if (decoration.Length > 0) style["textDecoration"] = decoration;
+        if (raw.BackColor is { } bg) style["backgroundColor"] = bg;
+        style["textAlign"] = raw.TextAlign;
+        return style;
+    }
+
+    private static void ApplyFont(RawElement raw, XElement el)
+    {
+        // ActiveReports serializes font sub-properties as hyphenated attributes: Font-FamilyName, Font-Size, …
+        if (Attr(el, "Font-FamilyName") is { Length: > 0 } family) raw.FontFamily = family;
+        if (Attr(el, "Font-Size") is { } size && double.TryParse(size, NumberStyles.Any, CultureInfo.InvariantCulture, out var fs)) raw.FontSize = fs;
+        raw.Bold = IsTrue(Attr(el, "Font-Bold"));
+        raw.Italic = IsTrue(Attr(el, "Font-Italic"));
+        raw.Underline = IsTrue(Attr(el, "Font-Underline"));
+        raw.Strikeout = IsTrue(Attr(el, "Font-Strikeout")) || IsTrue(Attr(el, "Font-Strikethrough"));
+    }
+
+    // ── Value helpers ──────────────────────────────────────────────────────────────────────────────
+
+    private static string ParseAlignment(string? text)
+    {
+        text ??= "";
+        if (text.Contains("Center", StringComparison.OrdinalIgnoreCase)) return "center";
+        if (text.Contains("Right", StringComparison.OrdinalIgnoreCase) || text.Contains("Far", StringComparison.OrdinalIgnoreCase)) return "right";
+        if (text.Contains("Justify", StringComparison.OrdinalIgnoreCase)) return "justify";
+        return "left";  // Left / Near / General / empty
+    }
+
+    private static string? DashStyleFromName(string? lineStyle)
+    {
+        if (string.IsNullOrEmpty(lineStyle) || lineStyle.Equals("Solid", StringComparison.OrdinalIgnoreCase)) return null;
+        if (lineStyle.Contains("Dash", StringComparison.OrdinalIgnoreCase)) return "dashed";
+        if (lineStyle.Contains("Dot", StringComparison.OrdinalIgnoreCase)) return "dotted";
+        return null;
+    }
+
+    private static string ShapeKindFromName(string? style)
+    {
+        style ??= "";
+        if (style.Contains("Ellipse", StringComparison.OrdinalIgnoreCase) || style.Contains("Circle", StringComparison.OrdinalIgnoreCase)) return "ellipse";
+        return "rect";
+    }
+
+    private static string BarcodeTypeFromSymbology(string? symbology)
+    {
+        var s = (symbology ?? "").Replace("-", "").Replace("_", "");
+        if (s.Contains("Code39", StringComparison.OrdinalIgnoreCase)) return "code39";
+        if (s.Contains("EAN13", StringComparison.OrdinalIgnoreCase)) return "ean13";
+        if (s.Contains("EAN8", StringComparison.OrdinalIgnoreCase)) return "ean8";
+        if (s.Contains("UPCA", StringComparison.OrdinalIgnoreCase)) return "upca";
+        if (s.Contains("PDF417", StringComparison.OrdinalIgnoreCase)) return "pdf417";
+        return "code128";
+    }
+
+    private static string? ExtractImageDataUrl(XElement el)
+    {
+        var candidate = Attr(el, "Image") ?? Attr(el, "ImageData")
+            ?? el.Elements().FirstOrDefault(e => e.Name.LocalName is "Image" or "ImageData")?.Value;
+        if (string.IsNullOrWhiteSpace(candidate)) return null;
+        if (candidate.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) return candidate;
+        var b64 = Regex.Replace(candidate, @"\s+", "");
+        return b64.Length >= 16 && b64.Length % 4 == 0 && Regex.IsMatch(b64, @"^[A-Za-z0-9+/]+={0,2}$")
+            ? $"data:image/png;base64,{b64}" : null;
+    }
+
+    // Colour: named, "#RRGGBB"/"#RGB", "0xAARRGGBB"/"0xRRGGBB", or "R, G, B".
+    private static string? ParseColor(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var v = value.Trim();
+        if (v.Equals("Transparent", StringComparison.OrdinalIgnoreCase)) return null;
+        if (v.StartsWith('#'))
+            return v.Length == 4 ? $"#{v[1]}{v[1]}{v[2]}{v[2]}{v[3]}{v[3]}".ToUpperInvariant() : v.ToUpperInvariant();
+        if (v.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+        {
+            var hex = v[2..];
+            if (hex.Length == 8) hex = hex[2..];        // drop alpha from AARRGGBB
+            return hex.Length == 6 ? $"#{hex.ToUpperInvariant()}" : null;
+        }
+        var nums = SplitNumbers(v);
+        if (nums.Length >= 3)
+        {
+            var o = nums.Length >= 4 ? 1 : 0;           // A, R, G, B → skip alpha
+            return $"#{(int)nums[o]:X2}{(int)nums[o + 1]:X2}{(int)nums[o + 2]:X2}";
+        }
+        return NamedColor(v);
+    }
+
+    private static (double W, double H) PaperKindSize(string kind) => kind switch
+    {
+        "A3" => (842, 1191),
+        "A4" => (595, 842),
+        "A5" => (420, 595),
+        "Letter" => (612, 792),
+        "Legal" => (612, 1008),
+        "Tabloid" or "Ledger" => (792, 1224),
+        _ => (0, 0)
+    };
+
+    private static string NamedColor(string name) => name switch
+    {
+        "White" => "#FFFFFF",
+        "Black" => "#000000",
+        "Red" => "#FF0000",
+        "Green" => "#008000",
+        "Blue" => "#0000FF",
+        "Gray" or "Grey" => "#808080",
+        "DarkGray" or "DarkGrey" => "#A9A9A9",
+        "LightGray" or "LightGrey" => "#D3D3D3",
+        "Silver" => "#C0C0C0",
+        "Yellow" => "#FFFF00",
+        "Orange" => "#FFA500",
+        "Navy" => "#000080",
+        "Maroon" => "#800000",
+        "Teal" => "#008080",
+        "Purple" => "#800080",
+        _ => "#000000"
+    };
+
+    private static int BandOrder(string bandType) => bandType switch
+    {
+        "ReportHeader" => 0,
+        "PageHeader" => 1,
+        "GroupHeader" => 2,
+        "Detail" => 3,
+        "GroupFooter" => 4,
+        "ReportFooter" => 5,
+        "PageFooter" => 6,
+        _ => 100
+    };
+
+    private static double ToInchPt(string? value) => ToDouble(value) * InchToPt;
+
+    private static double ToDouble(string? value) =>
+        double.TryParse((value ?? "").Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : 0;
+
+    private static double[] SplitNumbers(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? []
+            : value.Split([',', ' '], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                   .Select(p => double.TryParse(p, NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : double.NaN)
+                   .Where(d => !double.IsNaN(d))
+                   .ToArray();
+
+    private static bool IsTrue(string? value) => string.Equals(value, "True", StringComparison.OrdinalIgnoreCase);
+
+    private static string? Attr(XElement? el, string name) => el?.Attribute(name)?.Value;
+
+    private static XElement? Descendant(XElement? el, string name) =>
+        el?.DescendantsAndSelf().FirstOrDefault(e => e.Name.LocalName == name);
+
+    private static MigrationDiagnostic Info(string id, string message) =>
+        new() { Id = id, Message = message, Severity = MigrationDiagnosticSeverity.Info };
+
+    private static MigrationDiagnostic Warn(string id, string message) =>
+        new() { Id = id, Message = message, Severity = MigrationDiagnosticSeverity.Warning };
+
+    // ── Neutral intermediate model (band-based) ────────────────────────────────────────────────────
+
+    private sealed class RawReport
+    {
+        public string Name = "ActiveReports Section Report";
+        public double PageWidthPt = LetterWidthPt, PageHeightPt = LetterHeightPt;
+        public double MarginLeftPt, MarginTopPt, MarginBottomPt;
+        public bool HasScript;
+        public List<RawBand> Bands = [];
+        public List<RawElement> Elements = [];
+    }
+
+    private sealed class RawBand
+    {
+        public required string Name;
+        public required string Type;
+        public double Height;   // points
+    }
+
+    private sealed class RawElement
+    {
+        public required string Name;
+        public required string Type;
+        public string? Band;
+        public double X, Y, W, H;   // band-relative, points
+        public string? Text;
+        public string? DataField;
+        public string? FontFamily;
+        public double? FontSize;
+        public bool Bold, Italic, Underline, Strikeout;
+        public string ForeColor = "#000000";
+        public string? BackColor;
+        public string TextAlign = "left";
+        public string? ShapeKind;
+        public string? ImageDataUrl;
+        public string? Symbology;
+        public bool Checked;
+        public double? LineWidth;
+        public string? LineStyle;
+    }
+}
