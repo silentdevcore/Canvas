@@ -146,7 +146,11 @@ public sealed class XtraReportToDesignConverter
                 HasUnmappedBinding = boundOther.Contains(name)
             };
             ApplyFontCSharp(el, bag.GetValueOrDefault("Font"));
-            if (type == "XRTable") el.TableCells = BuildTableCellsCSharp(name, tableRows, rowCells, props);
+            if (type == "XRTable")
+            {
+                el.TableCells = BuildTableCellsCSharp(name, tableRows, rowCells, props);
+                el.ColumnAlignments = HeaderAlignmentsCSharp(name, tableRows, rowCells, props);
+            }
             if (type == "XRShape") el.ShapeKind = ShapeKindFromName(CreationTypeName(bag.GetValueOrDefault("Shape")));
             if (type == "XRCheckBox") el.CheckState = CheckStateCSharp(bag);
             report.Elements.Add(el);
@@ -251,6 +255,10 @@ public sealed class XtraReportToDesignConverter
                 grid.Add(cells);
             }
             raw.TableCells = grid.Count > 0 ? grid : null;
+
+            var headerCells = rowsEl?.Elements().FirstOrDefault()
+                ?.Elements().FirstOrDefault(e => e.Name.LocalName == "Cells")?.Elements();
+            raw.ColumnAlignments = headerCells?.Select(c => ParseAlignment(Attr(c, "TextAlignment"))).ToArray();
         }
 
         return raw;
@@ -420,8 +428,30 @@ public sealed class XtraReportToDesignConverter
             Height = h,
             CellData = cellData,
             ColumnWidths = Enumerable.Repeat(w / columns, columns).ToArray(),
+            ColumnAlignments = FitColumns(raw.ColumnAlignments, columns),
             HeaderRow = true
         };
+    }
+
+    // Pad/truncate the captured header alignments to the table's column count (default "left").
+    private static string[]? FitColumns(string[]? aligns, int columns)
+    {
+        if (aligns is not { Length: > 0 }) return null;
+        if (aligns.Length == columns) return aligns;
+        return Enumerable.Range(0, columns).Select(i => i < aligns.Length ? aligns[i] : "left").ToArray();
+    }
+
+    private static string[]? HeaderAlignmentsCSharp(
+        string name,
+        Dictionary<string, List<string>> tableRows,
+        Dictionary<string, List<string>> rowCells,
+        Dictionary<string, Dictionary<string, ExpressionSyntax>> props)
+    {
+        if (!tableRows.TryGetValue(name, out var rows) || rows.Count == 0) return null;
+        if (!rowCells.TryGetValue(rows[0], out var cells)) return null;
+        return cells.Select(cell =>
+            props.TryGetValue(cell, out var bag) ? ParseAlignment(NameOf(bag.GetValueOrDefault("TextAlignment"))) : "left")
+            .ToArray();
     }
 
     private static Dictionary<string, object> BuildTextStyle(RawElement raw)
@@ -864,6 +894,7 @@ public sealed class XtraReportToDesignConverter
         public string? TextExpression;
         public bool HasUnmappedBinding;
         public List<List<string>>? TableCells;
+        public string[]? ColumnAlignments;  // per-column alignment from the header row (XRTable)
         public string? ShapeKind;     // "ellipse" | "line" | "rect" (XRShape)
         public string? CheckState;    // "checked" | "empty" (XRCheckBox)
         public string? ImageDataUrl;  // data: URL for an embedded XRPictureBox image

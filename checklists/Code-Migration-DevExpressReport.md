@@ -93,13 +93,18 @@ Pick from these, roughly in value order:
       URL), replacing the `CANMIGDEVREP013` placeholder when image data is present.
 - [x] `XRCheckBox` → `checkmark` with `CheckState` (from `CheckBoxState`/`Checked`).
 - [x] `XRShape` ellipse → `circle`, line → `line`, otherwise `rect`.
-- [ ] Per-cell table styling (cell `.Font`/`.ForeColor`/`.BackColor` → Canvas table style).
+- [x] Table column alignments from the header-row cell `TextAlignment` → `ColumnAlignments`.
+- [ ] Per-cell font/colour table styling — Canvas tables only support column-level alignment +
+      header/zebra colours, so arbitrary per-cell styling can't round-trip (low value).
 - [ ] More controls: `XRChart` → `chart`, `XRGauge`, `XRPivotGrid` (currently skipped, `CANMIGDEVREP011`).
 - [ ] `XRShape` arrow kinds and `.Borders` → border style/width.
 
 ### 3. Data & layout fidelity
-- [ ] Translate DevExpress expression syntax (`[Qty] * [Price]`, `Sum()`, `Iif()`, formatting) to the
-      Canvas expression DSL instead of preserving the raw string (emit `CANMIGDEVREP002` on success).
+- [~] ~~Translate DevExpress expression syntax to the Canvas expression DSL.~~ **Not worth doing** —
+      Canvas's `ExpressionEvaluator` ([src/Canvas.Core/Primitives/ExpressionEvaluator.cs](../src/Canvas.Core/Primitives/ExpressionEvaluator.cs))
+      is a stub (bare-identifier substitution + `==`/`!=` only; no arithmetic/functions), so there's no
+      richer target to translate into. Single-field `[X]` → `binding` (done); other expressions are
+      preserved verbatim on `expression` with a warning.
 - [ ] Detect sub-reports/scripts and emit `CANMIGDEVREP012` (currently silent).
 - [ ] Grouping/sorting bands (`GroupHeaderBand`/`GroupFooterBand`) — map to repeat/section semantics
       rather than flat page elements.

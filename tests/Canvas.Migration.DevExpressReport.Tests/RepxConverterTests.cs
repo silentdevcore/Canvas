@@ -205,6 +205,27 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
+    public void ConvertRepx_TableHeaderAlignments_BecomeColumnAlignments()
+    {
+        var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """
+            <Item1 ControlType="DevExpress.XtraReports.UI.XRTable, X" Name="t" SizeF="300,40" LocationFloat="0,0">
+              <Rows>
+                <Item1 ControlType="DevExpress.XtraReports.UI.XRTableRow, X" Name="r1">
+                  <Cells>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.XRTableCell, X" Name="c1" Text="Name" TextAlignment="MiddleLeft" />
+                    <Item2 ControlType="DevExpress.XtraReports.UI.XRTableCell, X" Name="c2" Text="Total" TextAlignment="MiddleRight" />
+                  </Cells>
+                </Item1>
+              </Rows>
+            </Item1>
+            """)).Design;
+
+        var table = Page(design, "t");
+        Assert.Equal(new[] { "left", "right" }, table.ColumnAlignments);
+    }
+
+    [Fact]
     public void ConvertRepx_XRPictureBox_WithEmbeddedImage_KeepsDataUrl()
     {
         const string pngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
