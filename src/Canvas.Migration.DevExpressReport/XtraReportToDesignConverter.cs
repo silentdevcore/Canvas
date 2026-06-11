@@ -312,6 +312,8 @@ public sealed class XtraReportToDesignConverter
                 : MapControl(raw, x, y, w, h, diagnostics);
             if (element is null) continue;
 
+            diagnostics.Add(Info("CANMIGDEVREP002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
+
             if (raw.TextExpression is { } expr)
                 ApplyBinding(element, expr, diagnostics);
             else if (raw.HasUnmappedBinding)

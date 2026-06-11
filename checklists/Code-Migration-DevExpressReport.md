@@ -72,6 +72,7 @@ the next, unstarted milestone.
 | ID | Severity | Meaning |
 | --- | --- | --- |
 | `CANMIGDEVREP001` | Info | XtraReport + bands detected (N bands, M controls) |
+| `CANMIGDEVREP002` | Info | Per-control mapping (`name (XRType) → Canvas type`) |
 | `CANMIGDEVREP010` | Info / Warning | Text binding mapped — `[X]` → `binding` (Info); complex expression → `expression` (Warning) |
 | `CANMIGDEVREP011` | Warning | Unsupported control skipped |
 | `CANMIGDEVREP012` | Warning | Sub-report or report scripts/event handlers — require manual migration |
@@ -113,7 +114,7 @@ Pick from these, roughly in value order:
 - [ ] `ReportFooterBand` once-at-end semantics (currently a normal page element).
 
 ### 4. Polish
-- [ ] Emit `CANMIGDEVREP002` per mapped control (currently only the `001` summary).
+- [x] Emit `CANMIGDEVREP002` per mapped control (traceability beyond the `001` summary).
 - [ ] Map non-text data bindings instead of the generic warning.
 - [ ] Multi-`DetailReportBand` (sub-detail) handling.
 
