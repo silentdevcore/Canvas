@@ -205,6 +205,18 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
+    public void ConvertRepx_LineWidthAndDashStyle_MapToStrokeStyle()
+    {
+        var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """<Item1 ControlType="DevExpress.XtraReports.UI.XRLine, X" Name="ln" SizeF="200,2" LocationFloat="0,0" LineWidth="3" LineStyle="Dash" />"""))
+            .Design;
+
+        var style = Page(design, "ln").Style!;
+        Assert.Equal(3d, System.Convert.ToDouble(style["strokeWidth"]));
+        Assert.Equal("dashed", style["dashStyle"]);
+    }
+
+    [Fact]
     public void ConvertRepx_NestedPanelControls_AreFlattenedToAbsolutePositions()
     {
         // A panel at (50,30) in the Detail band contains a label at (10,5) relative to the panel.

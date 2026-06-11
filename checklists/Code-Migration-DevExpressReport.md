@@ -100,7 +100,8 @@ Pick from these, roughly in value order:
 - [ ] Per-cell font/colour table styling — Canvas tables only support column-level alignment +
       header/zebra colours, so arbitrary per-cell styling can't round-trip (low value).
 - [ ] More controls: `XRChart` → `chart`, `XRGauge`, `XRPivotGrid` (currently skipped, `CANMIGDEVREP011`).
-- [ ] `XRShape` arrow kinds and `.Borders` → border style/width.
+- [x] `XRLine`/`XRShape` `LineWidth` → `strokeWidth`/`borderWidth`; `XRLine` `LineStyle` → `dashStyle`.
+- [ ] `XRShape` arrow kinds; per-side `.Borders` selection.
 
 ### 3. Data & layout fidelity
 - [~] ~~Translate DevExpress expression syntax to the Canvas expression DSL.~~ **Not worth doing** —

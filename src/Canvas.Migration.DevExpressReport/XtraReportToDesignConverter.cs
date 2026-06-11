@@ -145,7 +145,9 @@ public sealed class XtraReportToDesignConverter
                 BackColor = bag.ContainsKey("BackColor") ? ParseColor(bag["BackColor"]) : null,
                 TextAlign = ParseAlignment(NameOf(bag.GetValueOrDefault("TextAlignment"))),
                 TextExpression = controlTextExpr.GetValueOrDefault(name),
-                HasUnmappedBinding = boundOther.Contains(name)
+                HasUnmappedBinding = boundOther.Contains(name),
+                LineWidth = bag.ContainsKey("LineWidth") ? ToNumber(bag["LineWidth"]) : null,
+                LineStyle = NameOf(bag.GetValueOrDefault("LineStyle")) is { Length: > 0 } ls ? ls : null
             };
             ApplyFontCSharp(el, bag.GetValueOrDefault("Font"));
             if (type == "XRTable")
@@ -239,7 +241,9 @@ public sealed class XtraReportToDesignConverter
             Text = Attr(el, "Text"),
             ForeColor = ParseColorString(Attr(el, "ForeColor")),
             BackColor = Attr(el, "BackColor") is { } bc ? ParseColorString(bc) : null,
-            TextAlign = ParseAlignment(Attr(el, "TextAlignment"))
+            TextAlign = ParseAlignment(Attr(el, "TextAlignment")),
+            LineWidth = Attr(el, "LineWidth") is { } lw ? ToDouble(lw) : null,
+            LineStyle = Attr(el, "LineStyle")
         };
         ApplyFontString(raw, Attr(el, "Font"));
 
@@ -411,6 +415,8 @@ public sealed class XtraReportToDesignConverter
             case "XRLine":
                 element.Type = "line";
                 element.Style = new Dictionary<string, object> { ["color"] = raw.ForeColor };
+                if (raw.LineWidth is { } lineW) element.Style["strokeWidth"] = lineW;
+                if (DashStyleFromName(raw.LineStyle) is { } dash) element.Style["dashStyle"] = dash;
                 return element;
 
             case "XRShape" or "XRPanel":
@@ -418,6 +424,7 @@ public sealed class XtraReportToDesignConverter
                 element.Type = raw.ShapeKind switch { "ellipse" => "circle", "line" => "line", _ => "rect" };
                 element.Style = new Dictionary<string, object> { ["borderColor"] = raw.ForeColor };
                 if (raw.BackColor is { } shapeBg) element.Style["backgroundColor"] = shapeBg;
+                if (raw.LineWidth is { } borderW) element.Style["borderWidth"] = borderW;
                 return element;
 
             case "XRPictureBox":
@@ -689,6 +696,14 @@ public sealed class XtraReportToDesignConverter
         if (text.Contains("Right", StringComparison.Ordinal)) return "right";
         if (text.Contains("Justify", StringComparison.Ordinal)) return "justify";
         return "left";
+    }
+
+    private static string? DashStyleFromName(string? lineStyle)
+    {
+        if (string.IsNullOrEmpty(lineStyle) || lineStyle.Equals("Solid", StringComparison.OrdinalIgnoreCase)) return null;
+        if (lineStyle.Contains("Dash", StringComparison.OrdinalIgnoreCase)) return "dashed";
+        if (lineStyle.Contains("Dot", StringComparison.OrdinalIgnoreCase)) return "dotted";
+        return null;
     }
 
     private static string ShapeKindFromName(string shapeType)
@@ -964,5 +979,7 @@ public sealed class XtraReportToDesignConverter
         public string? ShapeKind;     // "ellipse" | "line" | "rect" (XRShape)
         public string? CheckState;    // "checked" | "empty" (XRCheckBox)
         public string? ImageDataUrl;  // data: URL for an embedded XRPictureBox image
+        public double? LineWidth;     // XRLine/XRShape stroke/border width
+        public string? LineStyle;     // XRLine dash style (Solid/Dash/Dot/...)
     }
 }
