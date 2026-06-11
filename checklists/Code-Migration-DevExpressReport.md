@@ -95,6 +95,7 @@ Pick from these, roughly in value order:
       URL), replacing the `CANMIGDEVREP013` placeholder when image data is present.
 - [x] `XRCheckBox` → `checkmark` with `CheckState` (from `CheckBoxState`/`Checked`).
 - [x] `XRShape` ellipse → `circle`, line → `line`, otherwise `rect`.
+- [x] Label `BackColor` → text `backgroundColor`; font `Underline`/`Strikeout` → `textDecoration`.
 - [x] Table column alignments from the header-row cell `TextAlignment` → `ColumnAlignments`.
 - [ ] Per-cell font/colour table styling — Canvas tables only support column-level alignment +
       header/zebra colours, so arbitrary per-cell styling can't round-trip (low value).

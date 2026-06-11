@@ -142,7 +142,7 @@ public sealed class XtraReportToDesignConverter
                 H = sizeH,
                 Text = ParseString(bag.GetValueOrDefault("Text")),
                 ForeColor = ParseColor(bag.GetValueOrDefault("ForeColor")),
-                BackColor = ParseColor(bag.GetValueOrDefault("BackColor")),
+                BackColor = bag.ContainsKey("BackColor") ? ParseColor(bag["BackColor"]) : null,
                 TextAlign = ParseAlignment(NameOf(bag.GetValueOrDefault("TextAlignment"))),
                 TextExpression = controlTextExpr.GetValueOrDefault(name),
                 HasUnmappedBinding = boundOther.Contains(name)
@@ -227,7 +227,7 @@ public sealed class XtraReportToDesignConverter
             H = sizeH,
             Text = Attr(el, "Text"),
             ForeColor = ParseColorString(Attr(el, "ForeColor")),
-            BackColor = ParseColorString(Attr(el, "BackColor")),
+            BackColor = Attr(el, "BackColor") is { } bc ? ParseColorString(bc) : null,
             TextAlign = ParseAlignment(Attr(el, "TextAlignment"))
         };
         ApplyFontString(raw, Attr(el, "Font"));
@@ -374,7 +374,8 @@ public sealed class XtraReportToDesignConverter
             case "XRShape" or "XRPanel":
                 // XRShape carries a shape kind: ellipse → circle, line → line, otherwise a rectangle.
                 element.Type = raw.ShapeKind switch { "ellipse" => "circle", "line" => "line", _ => "rect" };
-                element.Style = new Dictionary<string, object> { ["borderColor"] = raw.ForeColor, ["backgroundColor"] = raw.BackColor };
+                element.Style = new Dictionary<string, object> { ["borderColor"] = raw.ForeColor };
+                if (raw.BackColor is { } shapeBg) element.Style["backgroundColor"] = shapeBg;
                 return element;
 
             case "XRPictureBox":
@@ -476,6 +477,9 @@ public sealed class XtraReportToDesignConverter
         if (raw.FontSize is { } size) style["fontSize"] = size;
         if (raw.Bold) style["fontWeight"] = "bold";
         if (raw.Italic) style["fontStyle"] = "italic";
+        var decoration = string.Join(" ", new[] { raw.Underline ? "underline" : null, raw.Strikeout ? "line-through" : null }.Where(s => s is not null));
+        if (decoration.Length > 0) style["textDecoration"] = decoration;
+        if (raw.BackColor is { } bg) style["backgroundColor"] = bg;
         style["textAlign"] = raw.TextAlign;
         return style;
     }
@@ -540,6 +544,8 @@ public sealed class XtraReportToDesignConverter
         var text = font.ToString();
         raw.Bold = text.Contains("Bold", StringComparison.Ordinal);
         raw.Italic = text.Contains("Italic", StringComparison.Ordinal);
+        raw.Underline = text.Contains("Underline", StringComparison.Ordinal);
+        raw.Strikeout = text.Contains("Strikeout", StringComparison.Ordinal) || text.Contains("Strikethrough", StringComparison.Ordinal);
     }
 
     private static List<List<string>>? BuildTableCellsCSharp(
@@ -628,6 +634,8 @@ public sealed class XtraReportToDesignConverter
         }
         raw.Bold = value.Contains("Bold", StringComparison.OrdinalIgnoreCase);
         raw.Italic = value.Contains("Italic", StringComparison.OrdinalIgnoreCase);
+        raw.Underline = value.Contains("Underline", StringComparison.OrdinalIgnoreCase);
+        raw.Strikeout = value.Contains("Strikeout", StringComparison.OrdinalIgnoreCase) || value.Contains("Strikethrough", StringComparison.OrdinalIgnoreCase);
     }
 
     // ── Shared (input-agnostic) ────────────────────────────────────────────────────────────────────
@@ -903,9 +911,9 @@ public sealed class XtraReportToDesignConverter
         public string? Text;
         public string? FontFamily;
         public double? FontSize;
-        public bool Bold, Italic;
+        public bool Bold, Italic, Underline, Strikeout;
         public string ForeColor = "#000000";
-        public string BackColor = "#000000";
+        public string? BackColor;   // null = no explicit background
         public string TextAlign = "left";
         public string? TextExpression;
         public bool HasUnmappedBinding;

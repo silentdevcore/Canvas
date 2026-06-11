@@ -205,6 +205,28 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
+    public void ConvertRepx_LabelBackgroundAndUnderline_MapToStyle()
+    {
+        var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """<Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="lbl" Text="Hi" SizeF="100,20" LocationFloat="0,0" BackColor="255, 255, 0" Font="Tahoma, 12pt, style=Underline" />"""))
+            .Design;
+
+        var style = Page(design, "lbl").Style!;
+        Assert.Equal("#FFFF00", style["backgroundColor"]);
+        Assert.Equal("underline", style["textDecoration"]);
+    }
+
+    [Fact]
+    public void ConvertRepx_LabelWithoutBackColor_HasNoBackground()
+    {
+        var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """<Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="lbl" Text="Hi" SizeF="100,20" LocationFloat="0,0" />"""))
+            .Design;
+
+        Assert.False(Page(design, "lbl").Style!.ContainsKey("backgroundColor"));
+    }
+
+    [Fact]
     public void ConvertRepx_XRSubreport_EmitsManualMigrationDiagnostic()
     {
         var result = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
