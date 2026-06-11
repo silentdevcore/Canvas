@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 3,
   "targets": {
     "net10.0": {
       "BCrypt.Net-Next/4.0.3": {
@@ -1513,6 +1513,21 @@
           "bin/placeholder/Canvas.Migration.DevExpressPdf.dll": {}
         }
       },
+      "Canvas.Migration.DevExpressReport/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.DevExpressReport.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.DevExpressReport.dll": {}
+        }
+      },
       "Canvas.Migration.DsPdf/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -1717,6 +1732,7 @@
           "Canvas.Migration.Apryse": "1.0.0",
           "Canvas.Migration.AsposePdf": "1.0.0",
           "Canvas.Migration.DevExpressPdf": "1.0.0",
+          "Canvas.Migration.DevExpressReport": "1.0.0",
           "Canvas.Migration.DsPdf": "1.0.0",
           "Canvas.Migration.FoxitPdf": "1.0.0",
           "Canvas.Migration.GemBoxPdf": "1.0.0",
@@ -3723,6 +3739,11 @@
       "path": "../../src/Canvas.Migration.DevExpressPdf/Canvas.Migration.DevExpressPdf.csproj",
       "msbuildProject": "../../src/Canvas.Migration.DevExpressPdf/Canvas.Migration.DevExpressPdf.csproj"
     },
+    "Canvas.Migration.DevExpressReport/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.DevExpressReport/Canvas.Migration.DevExpressReport.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.DevExpressReport/Canvas.Migration.DevExpressReport.csproj"
+    },
     "Canvas.Migration.DsPdf/1.0.0": {
       "type": "project",
       "path": "../../src/Canvas.Migration.DsPdf/Canvas.Migration.DsPdf.csproj",
@@ -3821,11 +3842,11 @@
         "net10.0"
       ],
       "sources": {
+        "/usr/local/Cellar/dotnet/10.0.105/libexec/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net10.0": {
-          "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {
             "/Users/mannheimer/Development/Codes/Canvas/Canvas.WebApi/Canvas.WebApi.csproj": {
@@ -3856,11 +3877,10 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.300"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net10.0": {
-        "framework": "net10.0",
         "targetAlias": "net10.0",
         "dependencies": {
           "Microsoft.NET.Test.Sdk": {
@@ -3896,7 +3916,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.300/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "/usr/local/Cellar/dotnet/10.0.105/libexec/sdk/10.0.105/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",

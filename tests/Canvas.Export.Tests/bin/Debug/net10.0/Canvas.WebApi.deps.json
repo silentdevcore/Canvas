@@ -29,6 +29,7 @@
           "Canvas.Migration.Apryse": "1.0.0",
           "Canvas.Migration.AsposePdf": "1.0.0",
           "Canvas.Migration.DevExpressPdf": "1.0.0",
+          "Canvas.Migration.DevExpressReport": "1.0.0",
           "Canvas.Migration.DsPdf": "1.0.0",
           "Canvas.Migration.FoxitPdf": "1.0.0",
           "Canvas.Migration.GemBoxPdf": "1.0.0",
@@ -880,6 +881,19 @@
           }
         }
       },
+      "Canvas.Migration.DevExpressReport/1.0.0": {
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.3.0"
+        },
+        "runtime": {
+          "Canvas.Migration.DevExpressReport.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "Canvas.Migration.DsPdf/1.0.0": {
         "dependencies": {
           "Canvas.Migration.Abstractions": "1.0.0",
@@ -1369,6 +1383,11 @@
       "sha512": ""
     },
     "Canvas.Migration.DevExpressPdf/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Canvas.Migration.DevExpressReport/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

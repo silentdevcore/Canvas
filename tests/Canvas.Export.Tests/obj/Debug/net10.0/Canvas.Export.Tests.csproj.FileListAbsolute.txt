@@ -325,3 +325,5 @@
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Export.Tests/bin/Debug/net10.0/Tesseract.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Export.Tests/bin/Debug/net10.0/Canvas.FileImporter.ImageOcr.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Export.Tests/bin/Debug/net10.0/Canvas.FileImporter.ImageOcr.pdb
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Export.Tests/bin/Debug/net10.0/Canvas.Migration.DevExpressReport.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Export.Tests/bin/Debug/net10.0/Canvas.Migration.DevExpressReport.pdb
