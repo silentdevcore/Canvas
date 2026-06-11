@@ -112,7 +112,9 @@ public sealed class XtraReportToDesignConverter
             MarginTop = marginTop,
             MarginBottom = marginBottom,
             PageWidthPt = pageW,
-            PageHeightPt = pageH
+            PageHeightPt = pageH,
+            HasScripts = root.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                .Any(a => a.Left is MemberAccessExpressionSyntax m && m.ToString().Contains(".Scripts.", StringComparison.Ordinal))
         };
 
         foreach (var (name, type) in fieldTypes)
@@ -182,7 +184,9 @@ public sealed class XtraReportToDesignConverter
             MarginTop = marginTop,
             MarginBottom = marginBottom,
             PageWidthPt = pageW,
-            PageHeightPt = pageH
+            PageHeightPt = pageH,
+            HasScripts = root.Descendants().Any(e => e.Name.LocalName == "Scripts")
+                || root.DescendantsAndSelf().Attributes("Scripts").Any(a => !string.IsNullOrWhiteSpace(a.Value))
         };
 
         // <Bands><ItemN ControlType="...DetailBand,..." HeightF="..."><Controls>...</Controls></ItemN></Bands>
@@ -321,6 +325,10 @@ public sealed class XtraReportToDesignConverter
         elements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
         sharedElements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
 
+        if (report.HasScripts)
+            diagnostics.Add(Warn("CANMIGDEVREP012",
+                "Report contains scripts/event handlers — Canvas has no scripting; migrate that logic manually."));
+
         diagnostics.Insert(0, Info("CANMIGDEVREP001",
             $"XtraReport '{report.Name}' detected — {report.Bands.Count} band(s), {controlCount} control(s) mapped."));
 
@@ -391,6 +399,11 @@ public sealed class XtraReportToDesignConverter
                 element.Type = "richtext";
                 element.HtmlContent = $"<p>{raw.Text ?? ""}</p>";
                 return element;
+
+            case "XRSubreport":
+                diagnostics.Add(Warn("CANMIGDEVREP012",
+                    $"'{raw.Name}' is a sub-report — requires manual migration; skipped."));
+                return null;
 
             default:
                 diagnostics.Add(Warn("CANMIGDEVREP011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; skipped."));
@@ -867,6 +880,7 @@ public sealed class XtraReportToDesignConverter
         public double UnitScale = 0.72;
         public double MarginLeft = 100, MarginTop = 100, MarginBottom = 100;
         public double PageWidthPt = A4WidthPt, PageHeightPt = A4HeightPt;
+        public bool HasScripts;
         public List<RawBand> Bands = [];
         public List<RawElement> Elements = [];
     }

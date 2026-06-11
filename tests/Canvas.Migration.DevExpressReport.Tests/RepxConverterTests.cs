@@ -205,6 +205,36 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
+    public void ConvertRepx_XRSubreport_EmitsManualMigrationDiagnostic()
+    {
+        var result = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """<Item1 ControlType="DevExpress.XtraReports.UI.XRSubreport, X" Name="sub" SizeF="100,20" LocationFloat="0,0" />"""));
+
+        Assert.Empty(result.Design.Pages[0].Elements);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP012");
+    }
+
+    [Fact]
+    public void ConvertRepx_WithScripts_EmitsScriptDiagnostic()
+    {
+        var repx = """
+            <XtraReportsLayoutSerializer ControlType="DevExpress.XtraReports.UI.XtraReport, X" Name="R" PaperKind="A4" ScriptLanguage="CSharp">
+              <Bands>
+                <Item1 ControlType="DevExpress.XtraReports.UI.DetailBand, X" Name="Detail" HeightF="100">
+                  <Controls>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="a" Text="X" SizeF="50,20" LocationFloat="0,0" />
+                  </Controls>
+                </Item1>
+              </Bands>
+              <Scripts><Item1 Name="OnBeforePrint" Script="// code" /></Scripts>
+            </XtraReportsLayoutSerializer>
+            """;
+        var result = new XtraReportToDesignConverter().ConvertRepx(repx);
+
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP012");
+    }
+
+    [Fact]
     public void ConvertRepx_TableHeaderAlignments_BecomeColumnAlignments()
     {
         var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(

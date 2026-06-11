@@ -74,6 +74,7 @@ the next, unstarted milestone.
 | `CANMIGDEVREP001` | Info | XtraReport + bands detected (N bands, M controls) |
 | `CANMIGDEVREP010` | Info / Warning | Text binding mapped — `[X]` → `binding` (Info); complex expression → `expression` (Warning) |
 | `CANMIGDEVREP011` | Warning | Unsupported control skipped |
+| `CANMIGDEVREP012` | Warning | Sub-report or report scripts/event handlers — require manual migration |
 | `CANMIGDEVREP013` | Warning | Picture data not embeddable — placeholder inserted |
 
 ---
@@ -105,7 +106,7 @@ Pick from these, roughly in value order:
       is a stub (bare-identifier substitution + `==`/`!=` only; no arithmetic/functions), so there's no
       richer target to translate into. Single-field `[X]` → `binding` (done); other expressions are
       preserved verbatim on `expression` with a warning.
-- [ ] Detect sub-reports/scripts and emit `CANMIGDEVREP012` (currently silent).
+- [x] Detect sub-reports (`XRSubreport`) and report scripts/event handlers → `CANMIGDEVREP012`.
 - [ ] Grouping/sorting bands (`GroupHeaderBand`/`GroupFooterBand`) — map to repeat/section semantics
       rather than flat page elements.
 - [ ] `AnchorVertical`/`AnchorHorizontal` and `CanGrow`/`CanShrink` auto-sizing.
