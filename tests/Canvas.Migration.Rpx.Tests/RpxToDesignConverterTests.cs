@@ -202,6 +202,8 @@ public sealed class RpxToDesignConverterTests
     // 14 ──────────────────────────────────────────────────────────────────────────────────────────
     [Theory]
     [InlineData("Blue", "#0000FF")]
+    [InlineData("blue", "#0000FF")]          // case-insensitive named colour
+    [InlineData("LightGray", "#D3D3D3")]
     [InlineData("0, 128, 0", "#008000")]
     [InlineData("0xFF112233", "#112233")]
     [InlineData("#abc", "#AABBCC")]
@@ -229,5 +231,27 @@ public sealed class RpxToDesignConverterTests
         Assert.False(RpxToDesignConverter.LooksLikeRpx("""<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition"><Body /></Report>"""));
         Assert.False(RpxToDesignConverter.LooksLikeRpx("""<XtraReportsLayoutSerializer Name="x" />"""));
         Assert.False(RpxToDesignConverter.LooksLikeRpx("public class Foo {}"));
+        // A leading XML comment must not defeat detection.
+        Assert.True(RpxToDesignConverter.LooksLikeRpx("<!-- generated --><Report><Sections><Detail Height=\"1\"><Controls /></Detail></Sections></Report>"));
+    }
+
+    // 17 ──────────────────────────────────────────────────────────────────────────────────────────
+    // Multiple same-type sections without a Name attribute must not collide (they'd both fall back to
+    // the type name) — they keep unique band names and stack correctly instead of crashing.
+    [Fact]
+    public void Convert_RepeatedGroupSections_DoNotCollide()
+    {
+        var rpx = """
+            <Report Name="Grouped"><Sections>
+              <GroupHeader Height="0.5"><Controls><Label Name="g1" Left="0" Top="0" Width="2" Height="0.3" Text="G1" /></Controls></GroupHeader>
+              <GroupHeader Height="0.5"><Controls><Label Name="g2" Left="0" Top="0" Width="2" Height="0.3" Text="G2" /></Controls></GroupHeader>
+              <Detail Height="1"><Controls><Label Name="d" Left="0" Top="0" Width="2" Height="0.3" Text="D" /></Controls></Detail>
+            </Sections></Report>
+            """;
+        var d = Convert(rpx).Design;
+        Assert.Equal(3, d.Pages[0].Elements.Count);
+        Assert.Equal(0, El(d, "g1").Y, 1);     // first GroupHeader at top margin (0)
+        Assert.Equal(36, El(d, "g2").Y, 1);    // second GroupHeader stacked below (0.5in)
+        Assert.Equal(72, El(d, "d").Y, 1);     // Detail below both group headers (1in)
     }
 }

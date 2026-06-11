@@ -35,8 +35,7 @@ public sealed class RdlToDesignConverter
     {
         if (string.IsNullOrWhiteSpace(source)) return false;
         var trimmed = source.TrimStart();
-        if (!trimmed.StartsWith("<?xml", StringComparison.Ordinal) && !trimmed.StartsWith("<Report", StringComparison.Ordinal))
-            return false;
+        if (!trimmed.StartsWith('<')) return false;  // reject C#/JSON/prose; admit <?xml, <!-- comment -->, <Report
         try
         {
             var root = XDocument.Parse(source).Root;
@@ -648,31 +647,31 @@ public sealed class RdlToDesignConverter
             ? stripped : null;
     }
 
-    private static string NamedColor(string name) => name switch
+    private static string NamedColor(string name) => name.Trim().ToLowerInvariant() switch
     {
-        "White" => "#FFFFFF",
-        "Black" => "#000000",
-        "Red" => "#FF0000",
-        "Green" => "#008000",
-        "Blue" => "#0000FF",
-        "Gray" or "Grey" => "#808080",
-        "DarkGray" or "DarkGrey" => "#A9A9A9",
-        "LightGray" or "LightGrey" => "#D3D3D3",
-        "Silver" => "#C0C0C0",
-        "Yellow" => "#FFFF00",
-        "Orange" => "#FFA500",
-        "Navy" => "#000080",
-        "Maroon" => "#800000",
-        "Teal" => "#008080",
-        "Olive" => "#808000",
-        "Lime" => "#00FF00",
-        "Aqua" or "Cyan" => "#00FFFF",
-        "Fuchsia" or "Magenta" => "#FF00FF",
-        "Purple" => "#800080",
-        "Pink" => "#FFC0CB",
-        "Brown" => "#A52A2A",
-        "Gold" => "#FFD700",
-        "Transparent" => "#00000000",
+        "white" => "#FFFFFF",
+        "black" => "#000000",
+        "red" => "#FF0000",
+        "green" => "#008000",
+        "blue" => "#0000FF",
+        "gray" or "grey" => "#808080",
+        "darkgray" or "darkgrey" => "#A9A9A9",
+        "lightgray" or "lightgrey" => "#D3D3D3",
+        "silver" => "#C0C0C0",
+        "yellow" => "#FFFF00",
+        "orange" => "#FFA500",
+        "navy" => "#000080",
+        "maroon" => "#800000",
+        "teal" => "#008080",
+        "olive" => "#808000",
+        "lime" => "#00FF00",
+        "aqua" or "cyan" => "#00FFFF",
+        "fuchsia" or "magenta" => "#FF00FF",
+        "purple" => "#800080",
+        "pink" => "#FFC0CB",
+        "brown" => "#A52A2A",
+        "gold" => "#FFD700",
+        "transparent" => "#00000000",
         _ => "#000000"
     };
 

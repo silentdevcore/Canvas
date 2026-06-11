@@ -32,8 +32,7 @@ public sealed class RpxToDesignConverter
     {
         if (string.IsNullOrWhiteSpace(source)) return false;
         var trimmed = source.TrimStart();
-        if (!trimmed.StartsWith("<?xml", StringComparison.Ordinal) && !trimmed.StartsWith("<Report", StringComparison.Ordinal))
-            return false;
+        if (!trimmed.StartsWith('<')) return false;  // reject C#/JSON/prose; admit <?xml, <!-- comment -->, <Report
         try
         {
             var root = XDocument.Parse(source).Root;
@@ -74,11 +73,15 @@ public sealed class RpxToDesignConverter
         };
         ResolvePageSettings(root, report);
 
+        // A report can repeat a section type (e.g. several GroupHeader/GroupFooter bands); when the
+        // optional Name attribute is absent they would all collapse to the type name, so keep band
+        // names unique — controls reference their band by this same name.
+        var sectionNames = new HashSet<string>(StringComparer.Ordinal);
         var sections = Descendant(root, "Sections");
         foreach (var sectionEl in sections?.Elements() ?? Enumerable.Empty<XElement>())
         {
             var type = sectionEl.Name.LocalName;        // ReportHeader, PageHeader, Detail, …
-            var name = Attr(sectionEl, "Name") ?? type;
+            var name = UniqueName(Attr(sectionEl, "Name") ?? type, sectionNames);
             report.Bands.Add(new RawBand { Name = name, Type = type, Height = ToInchPt(Attr(sectionEl, "Height")) });
 
             var controls = sectionEl.Elements().FirstOrDefault(e => e.Name.LocalName == "Controls");
@@ -392,34 +395,34 @@ public sealed class RpxToDesignConverter
         return NamedColor(v);
     }
 
-    private static (double W, double H) PaperKindSize(string kind) => kind switch
+    private static (double W, double H) PaperKindSize(string kind) => kind.Trim().ToLowerInvariant() switch
     {
-        "A3" => (842, 1191),
-        "A4" => (595, 842),
-        "A5" => (420, 595),
-        "Letter" => (612, 792),
-        "Legal" => (612, 1008),
-        "Tabloid" or "Ledger" => (792, 1224),
+        "a3" => (842, 1191),
+        "a4" => (595, 842),
+        "a5" => (420, 595),
+        "letter" => (612, 792),
+        "legal" => (612, 1008),
+        "tabloid" or "ledger" => (792, 1224),
         _ => (0, 0)
     };
 
-    private static string NamedColor(string name) => name switch
+    private static string NamedColor(string name) => name.Trim().ToLowerInvariant() switch
     {
-        "White" => "#FFFFFF",
-        "Black" => "#000000",
-        "Red" => "#FF0000",
-        "Green" => "#008000",
-        "Blue" => "#0000FF",
-        "Gray" or "Grey" => "#808080",
-        "DarkGray" or "DarkGrey" => "#A9A9A9",
-        "LightGray" or "LightGrey" => "#D3D3D3",
-        "Silver" => "#C0C0C0",
-        "Yellow" => "#FFFF00",
-        "Orange" => "#FFA500",
-        "Navy" => "#000080",
-        "Maroon" => "#800000",
-        "Teal" => "#008080",
-        "Purple" => "#800080",
+        "white" => "#FFFFFF",
+        "black" => "#000000",
+        "red" => "#FF0000",
+        "green" => "#008000",
+        "blue" => "#0000FF",
+        "gray" or "grey" => "#808080",
+        "darkgray" or "darkgrey" => "#A9A9A9",
+        "lightgray" or "lightgrey" => "#D3D3D3",
+        "silver" => "#C0C0C0",
+        "yellow" => "#FFFF00",
+        "orange" => "#FFA500",
+        "navy" => "#000080",
+        "maroon" => "#800000",
+        "teal" => "#008080",
+        "purple" => "#800080",
         _ => "#000000"
     };
 
@@ -434,6 +437,16 @@ public sealed class RpxToDesignConverter
         "PageFooter" => 6,
         _ => 100
     };
+
+    private static string UniqueName(string name, HashSet<string> seen)
+    {
+        if (seen.Add(name)) return name;
+        for (var i = 2; ; i++)
+        {
+            var candidate = $"{name}_{i}";
+            if (seen.Add(candidate)) return candidate;
+        }
+    }
 
     private static double ToInchPt(string? value) => ToDouble(value) * InchToPt;
 
