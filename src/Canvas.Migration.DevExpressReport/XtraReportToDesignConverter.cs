@@ -198,14 +198,25 @@ public sealed class XtraReportToDesignConverter
             report.Bands.Add(new RawBand { Name = bandName, Type = bandType, Height = ToDouble(Attr(bandEl, "HeightF")) });
 
             var controls = bandEl.Elements().FirstOrDefault(e => e.Name.LocalName == "Controls");
-            foreach (var ctrlEl in controls?.Elements() ?? Enumerable.Empty<XElement>())
-            {
-                var raw = ParseRepxControl(ctrlEl, bandName);
-                if (raw is not null) report.Elements.Add(raw);
-            }
+            AddRepxControls(controls?.Elements() ?? Enumerable.Empty<XElement>(), bandName, report);
         }
 
         return BuildDesign(report);
+    }
+
+    // Add a level of controls, recursing into any nested <Controls> (e.g. an XRPanel's children),
+    // which reference their parent control as the container (resolved to a band in BuildDesign).
+    private static void AddRepxControls(IEnumerable<XElement> controlEls, string container, RawReport report)
+    {
+        foreach (var ctrlEl in controlEls)
+        {
+            var raw = ParseRepxControl(ctrlEl, container);
+            if (raw is not null) report.Elements.Add(raw);
+
+            var nested = ctrlEl.Elements().FirstOrDefault(e => e.Name.LocalName == "Controls");
+            if (nested is not null)
+                AddRepxControls(nested.Elements(), raw?.Name ?? container, report);
+        }
     }
 
     private static RawElement? ParseRepxControl(XElement el, string bandName)
@@ -285,6 +296,11 @@ public sealed class XtraReportToDesignConverter
             offset += band.Height;
         }
 
+        // Controls nested inside an XRPanel reference the panel (not a band) as their container;
+        // walk up to the owning band, accumulating the panel offsets, so positions stay absolute.
+        var elementByName = new Dictionary<string, RawElement>(StringComparer.Ordinal);
+        foreach (var e in report.Elements) elementByName[e.Name] = e;
+
         var pageHeightUnits = report.PageHeightPt / report.UnitScale;
         var elements = new List<ElementDto>();
         var sharedElements = new List<ElementDto>();
@@ -292,17 +308,20 @@ public sealed class XtraReportToDesignConverter
 
         foreach (var raw in report.Elements)
         {
-            var bandType = raw.Band is not null && bandByName.TryGetValue(raw.Band, out var band) ? band.Type : "";
+            var (bandName, offsetX, offsetY) = ResolveContainer(raw, bandByName, elementByName);
+            var bandType = bandName is not null && bandByName.TryGetValue(bandName, out var band) ? band.Type : "";
+            var effX = raw.X + offsetX;
+            var effY = raw.Y + offsetY;
 
             double yUnits;
             if (bandType == "PageHeaderBand")
-                yUnits = report.MarginTop + raw.Y;
+                yUnits = report.MarginTop + effY;
             else if (bandType == "PageFooterBand")
-                yUnits = pageHeightUnits - report.MarginBottom - (bandByName.TryGetValue(raw.Band!, out var fb) ? fb.Height : 0) + raw.Y;
+                yUnits = pageHeightUnits - report.MarginBottom - (bandByName.TryGetValue(bandName!, out var fb) ? fb.Height : 0) + effY;
             else
-                yUnits = (raw.Band is not null && bandTop.TryGetValue(raw.Band, out var t) ? t : offset) + raw.Y;
+                yUnits = (bandName is not null && bandTop.TryGetValue(bandName, out var t) ? t : offset) + effY;
 
-            var x = (report.MarginLeft + raw.X) * report.UnitScale;
+            var x = (report.MarginLeft + effX) * report.UnitScale;
             var y = yUnits * report.UnitScale;
             var w = raw.W * report.UnitScale;
             var h = raw.H * report.UnitScale;
@@ -346,6 +365,29 @@ public sealed class XtraReportToDesignConverter
         };
 
         return new XtraReportConvertResult { Design = design, Diagnostics = diagnostics };
+    }
+
+    // Walk a control's container chain up to the owning band, accumulating panel offsets.
+    private static (string? Band, double OffsetX, double OffsetY) ResolveContainer(
+        RawElement raw, Dictionary<string, RawBand> bandByName, Dictionary<string, RawElement> elementByName)
+    {
+        var name = raw.Band;
+        double ox = 0, oy = 0;
+        var guard = 0;
+        while (name is not null && !bandByName.ContainsKey(name) && guard++ < 32)
+        {
+            if (elementByName.TryGetValue(name, out var parent) && !ReferenceEquals(parent, raw))
+            {
+                ox += parent.X;
+                oy += parent.Y;
+                name = parent.Band;
+            }
+            else
+            {
+                name = null;
+            }
+        }
+        return (name, ox, oy);
     }
 
     private static ElementDto? MapControl(RawElement raw, double x, double y, double w, double h, List<MigrationDiagnostic> diagnostics)

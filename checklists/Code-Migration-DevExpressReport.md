@@ -116,6 +116,8 @@ Pick from these, roughly in value order:
 
 ### 4. Polish
 - [x] Emit `CANMIGDEVREP002` per mapped control (traceability beyond the `001` summary).
+- [x] Nested controls inside an `XRPanel` are flattened to absolute positions (container chain walked
+      up to the owning band, accumulating panel offsets) — both C# and `.repx`.
 - [ ] Map non-text data bindings instead of the generic warning.
 - [ ] Multi-`DetailReportBand` (sub-detail) handling.
 

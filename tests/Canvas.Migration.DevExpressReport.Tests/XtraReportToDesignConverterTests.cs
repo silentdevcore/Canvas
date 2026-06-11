@@ -312,6 +312,40 @@ public sealed class XtraReportToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_NestedPanelControls_AreFlattened()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRPanel panel;
+                private XRLabel inner;
+                private void InitializeComponent()
+                {
+                    this.Detail = new DetailBand();
+                    this.panel = new XRPanel();
+                    this.inner = new XRLabel();
+                    this.panel.LocationF = new PointF(50F, 30F);
+                    this.panel.SizeF = new SizeF(200F, 80F);
+                    this.inner.Text = "Inside";
+                    this.inner.LocationF = new PointF(10F, 5F);
+                    this.inner.SizeF = new SizeF(100F, 20F);
+                    this.panel.Controls.AddRange(new XRControl[] { this.inner });
+                    this.Detail.Controls.AddRange(new XRControl[] { this.panel });
+                }
+            }
+            """;
+
+        var design = new XtraReportToDesignConverter().Convert(source).Design;
+
+        var inner = Element(design, "inner");
+        Assert.Equal(115.2d, inner.X, 1); // (100 margin + 50 panel + 10) * 0.72
+        Assert.Equal(97.2d, inner.Y, 1);  // (100 margin + 30 panel + 5) * 0.72
+    }
+
+    [Fact]
     public void Convert_XRCheckBoxAndXRShape_MapToCheckmarkAndCircle()
     {
         var source = """

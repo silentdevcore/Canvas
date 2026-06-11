@@ -205,6 +205,30 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
+    public void ConvertRepx_NestedPanelControls_AreFlattenedToAbsolutePositions()
+    {
+        // A panel at (50,30) in the Detail band contains a label at (10,5) relative to the panel.
+        var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """
+            <Item1 ControlType="DevExpress.XtraReports.UI.XRPanel, X" Name="panel" SizeF="200,80" LocationFloat="50,30">
+              <Controls>
+                <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="inner" Text="Inside" SizeF="100,20" LocationFloat="10,5" />
+              </Controls>
+            </Item1>
+            """)).Design;
+
+        // Margins default to 100. Panel: x=(100+50)*0.72=108, y=(100+30)*0.72=93.6.
+        var panel = Page(design, "panel");
+        Assert.Equal("rect", panel.Type);
+        Assert.Equal(108d, panel.X, 1);
+
+        // Inner label absolute: x=(100 + 50 + 10)*0.72=115.2, y=(100 + 30 + 5)*0.72=97.2.
+        var inner = Page(design, "inner");
+        Assert.Equal(115.2d, inner.X, 1);
+        Assert.Equal(97.2d, inner.Y, 1);
+    }
+
+    [Fact]
     public void ConvertRepx_LabelBackgroundAndUnderline_MapToStyle()
     {
         var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
