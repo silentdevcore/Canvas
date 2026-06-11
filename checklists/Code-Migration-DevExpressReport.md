@@ -67,6 +67,8 @@ the next, unstarted milestone.
 - [x] `ReportUnit = Pixels` scaling; PaperKind/Custom/Landscape page sizes.
 - [x] XRTable rows/cells; single-field binding + complex expression; page header/footer → shared.
 - [x] Unsupported control → `CANMIGDEVREP011`.
+- [x] **End-to-end**: a converted report (C# and `.repx`) renders to a valid PDF through the real export
+      pipeline (`DesignJsonMapper` → `ToBytes`) — in `Canvas.Export.Tests`.
 
 ### Diagnostics (implemented)
 | ID | Severity | Meaning |
