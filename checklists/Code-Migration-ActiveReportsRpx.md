@@ -57,7 +57,7 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 | `Barcode` | `barcode` (DataField/Text + symbology → type) | [x] |
 | `CheckBox` | `checkmark` | [x] |
 | `RichTextBox` | `richtext` | [x] |
-| `SubReport` | skipped (`CANMIGRPX011`) | [x] |
+| `SubReport` / unsupported control | labeled placeholder (`CANMIGRPX011`) | [x] |
 
 ### Delivery
 - [x] Backend `POST /api/migration/report-to-design` auto-detects `.rpx` (after RDL, before DevExpress)

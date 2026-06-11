@@ -164,7 +164,9 @@ public sealed class RpxToDesignConverterTests
             </Controls></Detail></Sections></Report>
             """;
         var r = Convert(rpx);
-        Assert.DoesNotContain(r.Design.Pages[0].Elements, e => e.Name == "sub");
+        var sub = El(r.Design, "sub");                 // kept as a labeled placeholder, not dropped
+        Assert.Equal("text", sub.Type);
+        Assert.Contains("Sub-report", sub.Content);
         Assert.True(Has(r.Diagnostics, "CANMIGRPX011"));
     }
 

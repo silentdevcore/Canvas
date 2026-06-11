@@ -356,7 +356,9 @@ public sealed class RdlToDesignConverterTests
             </Report>
             """;
         var r = Convert(rdl);
-        Assert.DoesNotContain(r.Design.Pages[0].Elements, e => e.Name == "sub");
+        var sub = El(r.Design, "sub");                 // kept as a labeled placeholder, not dropped
+        Assert.Equal("text", sub.Type);
+        Assert.Contains("Sub-report", sub.Content);
         Assert.True(Has(r.Diagnostics, "CANMIGRDL011"));
     }
 
@@ -471,7 +473,9 @@ public sealed class RdlToDesignConverterTests
             </Report>
             """;
         var r = Convert(rdlx);
-        Assert.DoesNotContain(r.Design.Pages[0].Elements, e => e.Name == "chart");
+        var chart = El(r.Design, "chart");             // unsupported custom item → labeled placeholder
+        Assert.Equal("text", chart.Type);
+        Assert.Contains("Chart", chart.Content);
         Assert.True(Has(r.Diagnostics, "CANMIGRDL011"));
     }
 }
