@@ -20,6 +20,12 @@ public sealed class RdlReportRenderTests
                 <Style><Border><Color>Gray</Color><Width>2pt</Width></Border></Style></Line>
               <Image Name="logo"><Top>0.5in</Top><Left>1in</Left><Height>0.5in</Height><Width>0.5in</Width>
                 <Source>Embedded</Source><Value>brand</Value></Image>
+              <CustomReportItem Name="sku"><Type>Barcode</Type><Top>0.5in</Top><Left>3in</Left><Height>0.5in</Height><Width>2in</Width>
+                <CustomProperties>
+                  <CustomProperty><Name>Symbology</Name><Value>Code128</Value></CustomProperty>
+                  <CustomProperty><Name>Value</Name><Value>ABC-12345</Value></CustomProperty>
+                </CustomProperties>
+              </CustomReportItem>
               <Tablix Name="items"><Top>1.2in</Top><Left>1in</Left><Height>1in</Height><Width>4in</Width>
                 <TablixBody>
                   <TablixColumns><TablixColumn><Width>2in</Width></TablixColumn><TablixColumn><Width>2in</Width></TablixColumn></TablixColumns>

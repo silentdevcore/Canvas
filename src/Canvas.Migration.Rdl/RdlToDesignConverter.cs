@@ -174,6 +174,11 @@ public sealed class RdlToDesignConverter
                 case "Table":
                     ParseTablix(item, raw);
                     break;
+                case "CustomReportItem":
+                    // RDL-standard custom items (ActiveReports/DsReport barcodes, SSRS charts/gauges/maps).
+                    raw.CustomType = Child(item, "Type")?.Value;
+                    raw.CustomProps = ParseCustomProperties(item);
+                    break;
             }
 
             report.Elements.Add(raw);
@@ -290,6 +295,17 @@ public sealed class RdlToDesignConverter
 
         raw.TableCells = grid.Count > 0 ? grid : null;
         raw.ColumnAlignments = headerRow is null ? null : HeaderAlignments(headerRow, tablixBody is not null);
+    }
+
+    private static Dictionary<string, string> ParseCustomProperties(XElement item)
+    {
+        var props = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var cp in Children(Child(item, "CustomProperties"), "CustomProperty"))
+        {
+            var name = Child(cp, "Name")?.Value;
+            if (!string.IsNullOrEmpty(name)) props[name] = Child(cp, "Value")?.Value ?? "";
+        }
+        return props;
     }
 
     private static IEnumerable<XElement> TableRows(XElement? section) =>
@@ -412,6 +428,9 @@ public sealed class RdlToDesignConverter
                         $"'{raw.Name}' image isn't embeddable from source — inserted an empty image placeholder."));
                 return element;
 
+            case "CustomReportItem":
+                return MapCustomReportItem(raw, element, diagnostics);
+
             case "Subreport":
                 diagnostics.Add(Warn("CANMIGRDL011",
                     $"'{raw.Name}' is a sub-report — requires manual migration; skipped."));
@@ -421,6 +440,47 @@ public sealed class RdlToDesignConverter
                 diagnostics.Add(Warn("CANMIGRDL011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; skipped."));
                 return null;
         }
+    }
+
+    // RDL <CustomReportItem>: ActiveReports/DsReport serialize barcodes this way (Type + CustomProperties);
+    // SSRS uses it for Chart/Gauge/Map/Sparkline. Map barcodes to Canvas barcode/qrcode; warn on the rest.
+    private static ElementDto? MapCustomReportItem(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        var props = raw.CustomProps ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var customType = raw.CustomType ?? "";
+        var symbology = props.GetValueOrDefault("Symbology") ?? props.GetValueOrDefault("SymbologyType");
+        var isBarcode = customType.Contains("Barcode", StringComparison.OrdinalIgnoreCase) || symbology is not null;
+        if (!isBarcode)
+        {
+            diagnostics.Add(Warn("CANMIGRDL011",
+                $"'{raw.Name}' is a custom report item ({(customType.Length > 0 ? customType : "unknown")}) — not supported by Canvas yet; skipped."));
+            return null;
+        }
+
+        var value = CellDisplay(props.GetValueOrDefault("Value") ?? props.GetValueOrDefault("Text") ?? props.GetValueOrDefault("Code") ?? raw.Text ?? "");
+        if (symbology is not null && symbology.Contains("QR", StringComparison.OrdinalIgnoreCase))
+        {
+            element.Type = "qrcode";
+            element.QrValue = value;
+        }
+        else
+        {
+            element.Type = "barcode";
+            element.BarcodeValue = value;
+            element.BarcodeType = BarcodeTypeFromSymbology(symbology);
+        }
+        return element;
+    }
+
+    private static string BarcodeTypeFromSymbology(string? symbology)
+    {
+        var s = (symbology ?? "").Replace("-", "").Replace("_", "");
+        if (s.Contains("Code39", StringComparison.OrdinalIgnoreCase)) return "code39";
+        if (s.Contains("EAN13", StringComparison.OrdinalIgnoreCase)) return "ean13";
+        if (s.Contains("EAN8", StringComparison.OrdinalIgnoreCase)) return "ean8";
+        if (s.Contains("UPCA", StringComparison.OrdinalIgnoreCase)) return "upca";
+        if (s.Contains("PDF417", StringComparison.OrdinalIgnoreCase)) return "pdf417";
+        return "code128";  // Code128 and anything unrecognised
     }
 
     private static ElementDto? BuildTable(RawElement raw, double x, double y, List<MigrationDiagnostic> diagnostics)
@@ -670,5 +730,7 @@ public sealed class RdlToDesignConverter
         public string? ImageDataUrl;
         public double? LineWidth;
         public string? LineStyle;
+        public string? CustomType;                    // <CustomReportItem><Type>
+        public Dictionary<string, string>? CustomProps;  // <CustomProperties> name → value
     }
 }

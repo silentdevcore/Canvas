@@ -407,4 +407,71 @@ public sealed class RdlToDesignConverterTests
         Assert.Equal(595, ps.Width, 1);
         Assert.Equal(842, ps.Height, 1);
     }
+
+    // 23 ──────────────────────────────────────────────────────────────────────────────────────────
+    // ActiveReports / DsReport .rdlx is plain RDL XML (Microsoft RDL namespace) — it routes and
+    // converts through the same pipeline, and serializes its barcode as an RDL <CustomReportItem>.
+    [Fact]
+    public void Convert_ActiveReportsRdlxBarcode_BecomesCanvasBarcode()
+    {
+        var rdlx = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/reportdefinition" Name="ARReport">
+              <Body><ReportItems>
+                <CustomReportItem Name="code"><Type>Barcode</Type>
+                  <Top>0in</Top><Left>1in</Left><Height>0.5in</Height><Width>2in</Width>
+                  <CustomProperties>
+                    <CustomProperty><Name>Symbology</Name><Value>Code128</Value></CustomProperty>
+                    <CustomProperty><Name>Value</Name><Value>=Fields!Sku.Value</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
+              </ReportItems><Height>5in</Height></Body>
+              <Page><PageWidth>8.5in</PageWidth><PageHeight>11in</PageHeight><LeftMargin>1in</LeftMargin></Page>
+            </Report>
+            """;
+        Assert.True(RdlToDesignConverter.LooksLikeRdl(rdlx));
+        var code = El(Convert(rdlx).Design, "code");
+        Assert.Equal("barcode", code.Type);
+        Assert.Equal("code128", code.BarcodeType);
+        Assert.Equal("{{Sku}}", code.BarcodeValue);
+    }
+
+    // 24 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_QrCodeCustomItem_BecomesQrCode()
+    {
+        var rdlx = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/reportdefinition">
+              <Body><ReportItems>
+                <CustomReportItem Name="qr"><Type>Barcode</Type>
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>1in</Width>
+                  <CustomProperties>
+                    <CustomProperty><Name>Symbology</Name><Value>QRCode</Value></CustomProperty>
+                    <CustomProperty><Name>Value</Name><Value>https://example.com</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+        var qr = El(Convert(rdlx).Design, "qr");
+        Assert.Equal("qrcode", qr.Type);
+        Assert.Equal("https://example.com", qr.QrValue);
+    }
+
+    // 25 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_NonBarcodeCustomItem_EmitsUnsupportedWarning()
+    {
+        var rdlx = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <CustomReportItem Name="chart"><Type>Chart</Type>
+                  <Top>0in</Top><Left>0in</Left><Height>2in</Height><Width>3in</Width>
+                  <CustomProperties /></CustomReportItem>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+        var r = Convert(rdlx);
+        Assert.DoesNotContain(r.Design.Pages[0].Elements, e => e.Name == "chart");
+        Assert.True(Has(r.Diagnostics, "CANMIGRDL011"));
+    }
 }

@@ -28,6 +28,9 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 ### Scope
 - [x] Input is **RDL XML** (`System.Xml.Linq`); namespace-agnostic `LocalName` matching covers the
       2005/2008/2010/2016 schemas. Vendor-neutral (Syncfusion, SSRS, RDLC).
+- [x] **ActiveReports / DsReport `.rdlx`** — these are plain RDL XML using the Microsoft RDL namespaces
+      (verified against MESCIUS docs), so they detect and convert through the same pipeline. Their
+      barcode is the RDL-standard `<CustomReportItem>` (mapped below).
 
 ### Core conversion
 - [x] **Length parser** — CSS lengths → points: `in`×72, `cm`×28.3465, `mm`×2.8346, `pt`×1,
@@ -57,6 +60,8 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `Rectangle` | `rect` (+ child flatten) | [x] |
 | `Image` (Embedded) | `image` (data URL, else placeholder `CANMIGRDL012`) | [x] |
 | `Tablix` (2016) / `Table` (2008) | `table` (CellData, header row, column widths/alignments) | [x] |
+| `CustomReportItem` barcode (ActiveReports/DsReport/SSRS) | `barcode` / `qrcode` (value + symbology → type) | [x] |
+| `CustomReportItem` chart/gauge/map/etc. | skipped (`CANMIGRDL011`) | [x] |
 | `Subreport` | skipped (`CANMIGRDL011`) | [x] |
 | Value `=Fields!X.Value` / `=expr` | `binding` / `expression` | [x] |
 
@@ -67,11 +72,13 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 - [x] Frontend **"Syncfusion / RDL Reports"** entry + **Open in Designer** (loads via
       `bulkReplaceContent`) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
 
-### Tests (28 passing)
+### Tests (31 passing)
 - [x] Page size from lengths; length-unit parsing; absolute positioning; textbox style; named colours;
       `=Fields!X.Value` binding vs complex expression; literal text; Tablix-2016 + Table-2008 → table;
       column alignments/widths; page header/footer → shared; rectangle flatten; line stroke/dash;
       embedded vs external image; subreport; namespace variants; invalid XML; `LooksLikeRdl`; A4 default.
+- [x] ActiveReports `.rdlx` `<CustomReportItem>` barcode → Canvas barcode; QR symbology → qrcode;
+      non-barcode custom item (Chart) → `CANMIGRDL011`.
 - [x] **End-to-end**: a converted RDL renders to a valid PDF through the real export pipeline
       (`DesignJsonMapper` → `ToBytes`) — in `Canvas.Export.Tests`.
 
@@ -89,9 +96,11 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 
 # V2 — Next 🔜
 
-### 1. ActiveReports / DsReport `.rdlx`
-- [ ] Detect + unzip the `.rdlx` OOXML package, locate the report part, and feed the existing RDL
-      parser (it's RDL inside). Add any GrapeCity/MESCIUS schema deltas.
+### 1. ActiveReports / DsReport `.rdlx`  *(plain-XML done)*
+- [x] Plain RDL-XML `.rdlx` (the designer's native save format) detects + converts; barcode
+      `<CustomReportItem>` mapped.
+- [ ] If a *packaged* `.rdlx` (OPC/zip with embedded resources) is ever encountered, unzip and locate
+      the `<Report>` part — needs a binary upload path (the endpoint is currently text/JSON).
 
 ### 2. GrapeCity Section Reports `.rpx`
 - [ ] Banded format closer to XtraReports — map sections (PageHeader/Detail/PageFooter) like the
@@ -103,7 +112,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 - [ ] Nested Tablix / detail grouping → repeat semantics.
 - [ ] `<Code>` / custom-function expression translation (blocked on Canvas `ExpressionEvaluator` being a
       stub — same limitation as DevExpress).
-- [ ] Chart / Gauge / Map items → placeholder elements (currently `CANMIGRDL011`).
+- [ ] `CustomReportItem` Chart / Gauge / Map / Sparkline → placeholder elements (currently `CANMIGRDL011`).
 - [ ] External / database image sources (fetch or warn).
 - [ ] Percentage / relative lengths for Tablix columns.
 - [ ] Multi-run textbox per-run formatting (V1 keeps the first run's style).
