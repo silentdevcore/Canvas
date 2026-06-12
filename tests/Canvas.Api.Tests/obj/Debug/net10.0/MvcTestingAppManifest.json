@@ -23,7 +23,9 @@
   "Canvas.Migration.Apryse, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.Apryse",
   "Canvas.Migration.AsposePdf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.AsposePdf",
   "Canvas.Migration.DevExpressPdf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.DevExpressPdf",
+  "Canvas.Migration.DevExpressReport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.DevExpressReport",
   "Canvas.Migration.DsPdf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.DsPdf",
+  "Canvas.Migration.FastReport, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.FastReport",
   "Canvas.Migration.FoxitPdf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.FoxitPdf",
   "Canvas.Migration.GemBoxPdf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.GemBoxPdf",
   "Canvas.Migration.IronPdf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.IronPdf",
@@ -32,8 +34,11 @@
   "Canvas.Migration.PdfKitNet, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.PdfKitNet",
   "Canvas.Migration.PdfTools, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.PdfTools",
   "Canvas.Migration.PdfToolsToolbox, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.PdfToolsToolbox",
+  "Canvas.Migration.Rdl, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.Rdl",
   "Canvas.Migration.Roslyn, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.Roslyn",
+  "Canvas.Migration.Rpx, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.Rpx",
   "Canvas.Migration.SpirePdf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.SpirePdf",
   "Canvas.Migration.SyncfusionPdf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.SyncfusionPdf",
+  "Canvas.Migration.Telerik, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/src\/Canvas.Migration.Telerik",
   "Canvas.WebApi, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/mannheimer\/Development\/Codes\/Canvas\/Canvas.WebApi"
 }

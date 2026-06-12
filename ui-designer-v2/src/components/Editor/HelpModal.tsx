@@ -37,8 +37,8 @@ const ELEMENTS: Array<{ type: ElementType; label: string; description: string; p
   { type: 'arrow',         label: 'Arrow',            description: 'Directional arrow with customisable head markers.',               pdf: true,  word: true  },
   { type: 'draw',          label: 'Drawing',          description: 'Freehand SVG stroke drawn with the mouse.',                      pdf: true,  word: true  },
   { type: 'chart',         label: 'Chart',            description: 'Bar, line, or pie chart rendered from inline data.',             pdf: true,  word: false },
-  { type: 'qrcode',        label: 'QR Code',          description: 'QR code generated from a URL or data string.',                   pdf: true,  word: false },
-  { type: 'barcode',       label: 'Barcode',          description: 'Code128, EAN, UPC and other formats.',                           pdf: true,  word: false },
+  { type: 'qrcode',        label: 'QR Code',          description: 'QR code generated from a URL or data string.',                   pdf: true,  word: true  },
+  { type: 'barcode',       label: 'Barcode',          description: 'Code128, EAN, UPC and other formats.',                           pdf: true,  word: true  },
   { type: 'field',         label: 'Text Field',       description: 'Interactive PDF form field for user input.',                     pdf: true,  word: true  },
   { type: 'textarea',      label: 'Text Area',        description: 'Multi-line fillable text input for comments or descriptions.',    pdf: true,  word: true  },
   { type: 'checkbox',      label: 'Checkbox',         description: 'Single boolean checkbox form field.',                            pdf: true,  word: true  },
@@ -49,11 +49,11 @@ const ELEMENTS: Array<{ type: ElementType; label: string; description: string; p
   { type: 'pagenumber',    label: 'Page Number',      description: 'Auto-incremented page number placeholder.',                      pdf: true,  word: true  },
   { type: 'date',          label: 'Date',             description: 'Static or render-time date with locale formatting.',             pdf: true,  word: true  },
   { type: 'toc',           label: 'Table of Contents',description: 'Auto-generated TOC from heading-level text elements.',           pdf: true,  word: true  },
-  { type: 'footnote',      label: 'Footnote',         description: 'Inline footnote reference (Word / DOCX only).',                  pdf: false, word: true  },
-  { type: 'endnote',       label: 'Endnote',          description: 'Inline endnote reference (Word / DOCX only).',                   pdf: false, word: true  },
-  { type: 'bookmark',      label: 'Bookmark',         description: 'Named anchor for cross-references (Word / DOCX only).',          pdf: false, word: true  },
-  { type: 'comment',       label: 'Comment',          description: 'Margin review comment (Word / DOCX only).',                      pdf: false, word: true  },
-  { type: 'contentcontrol',label: 'Content Control',  description: 'Structured Word content control SDT (Word / DOCX only).',        pdf: false, word: true  },
+  { type: 'footnote',      label: 'Footnote',         description: 'Inline footnote reference; native in DOCX and fallback-rendered in PDF.', pdf: true,  word: true  },
+  { type: 'endnote',       label: 'Endnote',          description: 'Inline endnote reference; native in DOCX and fallback-rendered in PDF.',  pdf: true,  word: true  },
+  { type: 'bookmark',      label: 'Bookmark',         description: 'Named anchor for cross-references and navigation.',              pdf: true,  word: true  },
+  { type: 'comment',       label: 'Comment',          description: 'Review comment; native in DOCX and fallback-rendered in PDF.',   pdf: true,  word: true  },
+  { type: 'contentcontrol',label: 'Content Control',  description: 'Structured Word content control SDT with PDF fallback box.',     pdf: true,  word: true  },
 ];
 
 const QUICK_STEPS = [

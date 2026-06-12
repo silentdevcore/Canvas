@@ -25,6 +25,10 @@ It supports:
 
 Output is written as a valid PDF file directly (no external PDF library).
 
+Related roadmap and security notes:
+- [Canvas.Pdf Encryption](../checklists/Pdf-Encryption.md)
+- [Canvas.Pdf Provider Feature Gaps](../checklists/CanvasPdf-Provider-Feature-Gaps.md)
+
 ---
 
 ## 2. Quick Start

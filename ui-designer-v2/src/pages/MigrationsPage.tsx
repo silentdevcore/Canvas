@@ -559,9 +559,17 @@ interface ConversionSummary {
   totalDiagnostics: number;
 }
 
-const MigrationsPage: React.FC = () => {
-  const [frameworks, setFrameworks] = useState<Framework[]>([...FRAMEWORKS_FALLBACK, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK]);
-  const [selectedId, setSelectedId] = useState('Syncfusion');
+// The report-designer → Canvas design frameworks (output is an editable design, not C# code).
+const DESIGNER_FRAMEWORKS: Framework[] = [
+  REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK,
+];
+
+type MigrationMode = 'code' | 'designer';
+
+const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
+  const isDesigner = mode === 'designer';
+  const [frameworks, setFrameworks] = useState<Framework[]>(isDesigner ? DESIGNER_FRAMEWORKS : FRAMEWORKS_FALLBACK);
+  const [selectedId, setSelectedId] = useState(isDesigner ? REPORT_ID : 'Syncfusion');
   const [reportDesign, setReportDesign] = useState<any | null>(null);
   const navigate = useNavigate();
   const bulkReplaceContent = useEditorStore(s => s.bulkReplaceContent);
@@ -584,12 +592,15 @@ const MigrationsPage: React.FC = () => {
   const splitRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch(`${API_BASE}/frameworks`)
-      .then(r => r.json())
-      .then((data: Framework[]) => setFrameworks([...data, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK]))
-      .catch(() => { /* use fallback */ });
+    // The /frameworks endpoint lists the PDF code-migration providers; designer frameworks are static.
+    if (!isDesigner) {
+      fetch(`${API_BASE}/frameworks`)
+        .then(r => r.json())
+        .then((data: Framework[]) => setFrameworks(data))
+        .catch(() => { /* use fallback */ });
+    }
     return () => { if (prevPdfUrl.current) URL.revokeObjectURL(prevPdfUrl.current); };
-  }, []);
+  }, [isDesigner]);
 
   const current = frameworks.find(f => f.id === selectedId);
 
@@ -753,12 +764,19 @@ const MigrationsPage: React.FC = () => {
         {/* Page heading */}
         <div className="mgr-heading">
           <div className="mgr-heading-left">
-            <FiCode className="mgr-heading-icon" />
+            {isDesigner ? <FiLayout className="mgr-heading-icon" /> : <FiCode className="mgr-heading-icon" />}
             <div>
-              <h1>Code Migrations</h1>
-              <p>Paste code from another PDF library, convert it to Canvas.Pdf, and preview the result instantly.</p>
+              <h1>{isDesigner ? 'Designer Migrations' : 'Code Migrations'}</h1>
+              <p>
+                {isDesigner
+                  ? 'Convert a report-designer file (DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik) into an editable Canvas design, then open it in the visual designer.'
+                  : 'Paste code from another PDF library, convert it to Canvas.Pdf, and preview the result instantly.'}
+              </p>
             </div>
           </div>
+          <button className="mgr-btn" onClick={() => navigate('/migrations')} title="Back to Migrations">
+            ← Migrations
+          </button>
         </div>
 
         {/* Framework selector */}

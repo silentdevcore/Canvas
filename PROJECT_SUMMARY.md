@@ -1,132 +1,143 @@
-# Canvas — Project Summary
+# Canvas - Project Summary
 
 ## Overview
 
-Canvas is a production-ready document automation platform: a visual drag-and-drop template designer (React/TypeScript) backed by a clean-architecture .NET 10 API. It covers the full lifecycle — design → data binding → multi-format export — and rivals commercial solutions like CraftMyPDF.
+Canvas is a document automation platform with a visual template designer, data binding, multi-language output, multi-format export/import, PDF code migration, and report-to-design migration. The active stack is a .NET 10 API plus the `ui-designer-v2` React/TypeScript frontend.
 
 ---
 
 ## Technology Stack
 
 | Layer | Technology |
-|-------|-----------|
+|-------|------------|
 | Frontend | React 18, TypeScript, Vite, Zustand, react-icons |
 | Backend | .NET 10, ASP.NET Core |
-| PDF export | Custom .NET renderer (no iTextSharp/PDFsharp) |
+| PDF export | Custom `Canvas.Pdf` renderer/writer, no external PDF library |
+| PDF import/edit model | `Canvas.Importer` low-level parser, scene graph, editing model, regeneration bridge |
 | DOCX export/import | DocumentFormat.OpenXml 3.5.1 |
 | DOCX digital signing | System.Security.Cryptography.Xml 10.0.8 |
 | Excel export | ClosedXML |
-| PDF import | UglyToad.PdfPig 1.7.0-custom-5 |
-| DOC import | Pure C# CFBF parser |
-| ODT import/export | System.IO.Compression + LINQ to XML (ODF 1.3) |
-| TIFF export | System.Drawing (baseline RGB, multi-page) |
+| File importers | Dedicated `Canvas.FileImporter.*` projects |
+| Migration | `Canvas.Migration.*` provider projects, Roslyn helpers, report converters |
+| ODT import/export | System.IO.Compression + LINQ to XML |
+| Image analysis/OCR | `Canvas.FileImporter.ImageAnalysis`, `Canvas.FileImporter.ImageOcr`, isolated OCR worker |
 
 ---
 
-## Backend Projects
+## Backend Project Groups
 
-| Project | Role |
-|---------|------|
-| `Canvas.Core` | Contracts, DTOs, abstractions — no external deps |
-| `Canvas.Application` | Use-case orchestration (FindAndReplace, Clone, ExtractPages) |
-| `Canvas.Infrastructure.Pdf` | Custom PDF renderer |
-| `Canvas.Infrastructure.Word` | DOCX export + import + digital signing |
-| `Canvas.Infrastructure.Sheet` | XLSX export |
-| `Canvas.Infrastructure.Converters` | ODT/HTML/CSV/Markdown/Image/TIFF export; PDF/DOC/ODT import |
-| `Canvas.Domain` | Domain models |
-| `Canvas.WebApi` | ASP.NET Core presentation layer; composition root |
+| Group | Projects | Role |
+|-------|----------|------|
+| Core | `Canvas.Core` | Contracts, DTOs, abstractions, capabilities, primitives |
+| Application | `Canvas.Application` | Use-case orchestration |
+| PDF engine | `Canvas`, `Canvas.Infrastructure.Pdf` | Direct PDF generation API and renderer facade |
+| Other exporters | `Canvas.Infrastructure.Word`, `Canvas.Infrastructure.Sheet`, `Canvas.Infrastructure.Converters` | DOCX/XLSX/ODT/HTML/CSV/Markdown/Image/TIFF and related services |
+| File importers | `Canvas.FileImporter.Abstractions`, `Canvas.FileImporter.*` | PDF, DOCX, DOC, ODT, PPTX, SVG, Image, ImageAnalysis, OCR import paths |
+| PDF importer SDK | `Canvas.Importer` | PDF parser, editable DOM, graphics interpretation, regeneration bridge |
+| Migrations | `Canvas.Migration.Abstractions`, `Canvas.Migration.Roslyn`, `Canvas.Migration.*` | Vendor code migration and report-to-design conversion |
+| API | `Canvas.WebApi` | Presentation layer and composition root |
+| Domain compatibility | `Canvas.Domain` | Legacy/domain models used by compatibility paths |
 
 ---
 
 ## Frontend Structure (`ui-designer-v2/src/`)
 
 | Folder | Contents |
-|--------|---------|
-| `components/Editor/` | SimpleCanvas, ExportModal, FindReplaceModal, inspector panels |
-| `components/Gallery/` | TemplatePage, TemplateCard, CategoryFilter |
-| `services/ExportService.ts` | export, import, sign, find-replace, clone, extract-pages |
-| `hooks/useTemplateLoader.ts` | loadTemplate, loadBlank, loadFromFile (PDF/DOCX/DOC/ODT) |
-| `store.ts` | Zustand store: undo/redo, bulkReplaceContent |
-| `types.ts` | SimpleElement, Page, PageSettings, NamedStyle, CustomProperty, … |
+|--------|----------|
+| `components/Editor/` | Canvas editor, toolbar, inspector panels, export/code/modals |
+| `components/Gallery/` | Template gallery and cards |
+| `components/Layout/` | App shell/header |
+| `components/CodeEditor/` | JSON/C# editor and PDF preview |
+| `components/Preview/` | Live preview |
+| `pages/` | Index, docs, template, create, importer, migrations |
+| `services/` | Export/import/code-generation service calls |
+| `hooks/` | Template/file loading hooks |
+| `store.ts` | Zustand state, undo/redo, pages, shared elements |
+| `types.ts` | Frontend design and element contracts |
 
 ---
 
 ## Feature Inventory
 
-### Export formats
-PDF, DOCX, ODT, XLSX, HTML, CSV, Markdown, PNG, JPEG, TIFF
+### Export Formats
+PDF, DOCX, ODT, XLSX, HTML, CSV, Markdown, PNG, JPEG, TIFF.
 
-### Import formats
-PDF, DOCX, DOC (Word 97-2003), ODT
+### Import Formats And Conversion Inputs
+PDF engine import, DOCX, DOC, ODT, SVG, PPTX, raster images, image analysis, OCR image conversion, and image-to-PDF conversion.
 
-### Element types
-text, richtext, image, table, rect, circle, line, barcode, qrcode, signature, field, checkbox, repeater, chart, note, footnote, endnote, bookmark, comment, contentcontrol
+### PDF Code Migration Providers
+Syncfusion PDF, iText7, Aspose.PDF, IronPDF, DevExpress PDF, Apryse, Foxit PDF SDK, DsPdf, GemBox.Pdf, Spire.PDF, PDFKit.NET, LEADTOOLS PDF, ActivePDF, PDFTools / Pdftools SDK, and PDFTools Toolbox.
 
-### Document operations (API)
-Find & Replace, Clone, Extract Pages, Digital Signing (X.509/RSA-SHA256)
+### Report-To-Design Migration
+DevExpress XtraReport / REPX, RDL/RDLC/Syncfusion/Bold Reports style XML, and ActiveReports/GrapeCity `.rpx`.
 
-### Document features (DOCX)
-- Named styles (paragraph, character, list, table) with `basedOn` / `nextStyle`
-- Track Changes / Revisions (`<w:ins>` / `<w:del>` / `<w:rPrChange>`)
-- Document Protection (readOnly / comments / trackedChanges / formFields + password)
-- Footnotes & Endnotes
-- Bookmarks
-- Word-native Comments
-- Content Controls (rich text, plain text, date picker, combo box, picture)
-- Custom Document Properties (text / number / boolean / date)
-- Auto-Hyphenation
+### Element Types
+Text, rich text, image, table, rect, circle, line, barcode, QR code, signature, field, checkbox, repeater, chart, note, footnote, endnote, bookmark, comment, content control, and report/import placeholders where applicable.
 
-### Template engine
-- `{{ expression }}` data binding with JSON-path resolution
-- Safe sandboxed expression evaluation
-- Conditional show/hide
-- Repeater loops
-- Formatters: currency, date, number, text
+### Document Operations
+Find and replace, clone, extract pages, DOCX digital signing, template validation/rendering, C# code-to-PDF, C# code-to-JSON, raw design rendering, code migration, report-to-design migration, and migration preview.
 
 ---
 
 ## API Endpoints
 
-```
-POST   /api/export                        Export (all formats)
-GET    /api/export/formats                Supported formats
+```text
+POST   /api/export                         Export design
+POST   /api/export/multilanguage           Multi-language export
+GET    /api/export/formats                 Supported export formats
 
-POST   /api/document/find-replace         Find and replace
-POST   /api/document/clone                Clone design
-POST   /api/document/extract-pages        Extract pages
-POST   /api/document/sign-docx            Apply X.509 digital signature
+POST   /api/document/find-replace          Find and replace
+POST   /api/document/clone                 Clone design
+POST   /api/document/extract-pages         Extract pages
+POST   /api/document/sign-docx             Apply X.509 digital signature
+POST   /api/document/convert-image-to-pdf  Convert raster image to PDF
 
-POST   /api/document/import-pdf           Import PDF
-POST   /api/document/import-docx          Import DOCX
-POST   /api/document/import-doc           Import DOC
-POST   /api/document/import-odt           Import ODT
+POST   /api/document/import-pdf-engine     Import PDF through Canvas.Importer
+POST   /api/document/debug-pdf-engine      Debug PDF importer output
+POST   /api/document/import-docx           Import DOCX
+POST   /api/document/import-doc            Import DOC
+POST   /api/document/import-odt            Import ODT
+POST   /api/document/import-image          Import raster image
+POST   /api/document/import-svg            Import SVG
+POST   /api/document/import-pptx           Import PPTX
+POST   /api/document/import-image-analysis Import image through analysis pipeline
 
-GET    /api/templates                     List templates
-POST   /api/templates                     Create template
-GET    /api/templates/{id}                Get template
-POST   /api/templates/render              Render with data
-POST   /api/templates/render/async        Async render job
-POST   /api/templates/validate            Validate template
-POST   /api/templates/render-design       Render raw DesignExportDto
-POST   /api/templates/csharp-code-to-pdf  Compile C# → PDF
-POST   /api/templates/csharp-to-json      Compile C# → DesignExportDto
-POST   /api/templates/csharp-code-to-json Compile C# → JSON
+GET    /api/migration/frameworks           List migration frameworks
+POST   /api/migration/convert              Convert vendor PDF code to Canvas.Pdf
+POST   /api/migration/report-to-design     Convert report source to DesignExportDto
+POST   /api/migration/preview              Preview migrated Canvas.Pdf code
+
+GET    /api/templates                      List templates
+POST   /api/templates                      Create template
+GET    /api/templates/{id}                 Get template
+PUT    /api/templates/{id}                 Update template
+POST   /api/templates/render               Render with data
+POST   /api/templates/render/async         Async render job
+POST   /api/templates/validate             Validate template
+POST   /api/templates/render-design        Render raw DesignExportDto
+POST   /api/templates/csharp-code-to-pdf   Compile C# -> PDF
+POST   /api/templates/csharp-to-json       Compile C# DTO -> DesignExportDto
+POST   /api/templates/csharp-code-to-json  Compile raw C# -> JSON
 
 POST   /api/auth/login
 POST   /api/auth/logout
 GET    /api/auth/me
 ```
 
-Servers: frontend **http://localhost:5173** — API **http://localhost:5274**
+Default local servers: frontend `http://localhost:5173`; API ports depend on launch profile, commonly `http://localhost:5274` or `http://localhost:5086`.
 
 ---
 
-## Test Projects
+## Test Project Groups
 
-| Project | Scope |
-|---------|-------|
-| `Canvas.Core.Tests` | Primitives, expression engine |
-| `Canvas.Application.Tests` | Use cases with test doubles |
-| `Canvas.Infrastructure.Pdf.Tests` | PDF renderer + golden snapshot |
-| `Canvas.Export.Tests` | Export integration (all formats) |
-| `Canvas.Api.Tests` | API endpoint integration |
+| Group | Example projects |
+|-------|------------------|
+| Core/Application/API | `Canvas.Core.Tests`, `Canvas.Application.Tests`, `Canvas.Api.Tests` |
+| PDF engine/export | `Canvas.Infrastructure.Pdf.Tests`, `Canvas.Export.Tests` |
+| PDF importer SDK | `Canvas.Importer.Tests` |
+| File importers | `Canvas.FileImporter.*.Tests` |
+| Image analysis/OCR | `Canvas.FileImporter.ImageAnalysis.Tests`, `Canvas.FileImporter.ImageOcr.Tests` |
+| PDF code migrations | `Canvas.Migration.*Pdf.Tests`, `Canvas.Migration.iText7.Tests`, provider-specific tests |
+| Report migrations | `Canvas.Migration.DevExpressReport.Tests`, `Canvas.Migration.Rdl.Tests`, `Canvas.Migration.Rpx.Tests` |
+
+See `TESTING.md` for command examples and validation policy.
