@@ -37,10 +37,13 @@ A production-ready document automation platform with a visual template designer,
 ### Import Formats
 | Format | Notes |
 |--------|-------|
-| PDF | `Canvas.Importer` editable PDF model — page tree, text, paths, inline images, XObject images, marked content, clipping, colors, fonts, shading operators; bridge regeneration currently covers text, vector paths, JPEG/Flate XObject images, soft masks, and compatibility-preserved shading/resource cases |
+| PDF | `Canvas.Importer` editable PDF model - page tree, text, paths, inline images, XObject images, marked content, clipping, colors, fonts, shading operators; bridge regeneration currently covers text, vector paths, JPEG/Flate XObject images, soft masks, and compatibility-preserved shading/resource cases |
 | DOCX | OpenXML SDK — paragraphs, tables, inline images, typography |
 | DOC | Pure C# CFBF parser — reads WordDocument stream via FIB offsets |
 | ODT | System.IO.Compression + LINQ to XML — paragraphs, styles, draw:frame images |
+| SVG | Dedicated SVG importer for vector-oriented Canvas designs |
+| PPTX | PowerPoint slide import into Canvas pages/elements |
+| Images | Raster image import plus image-analysis/OCR conversion paths |
 
 ### Document Operations (API)
 - **Find & Replace** — plain-text, case-sensitive, whole-word, regex modes
@@ -95,10 +98,24 @@ POST /api/document/clone          # Deep-clone a design with a new ID
 POST /api/document/extract-pages  # Extract a page subset into a new design
 POST /api/document/sign-docx      # Apply X.509 digital signature to a DOCX
 
-POST /api/document/import-pdf     # Import PDF → DesignExportDto
+POST /api/document/import-pdf-engine      # Import PDF -> DesignExportDto through Canvas.Importer
+POST /api/document/debug-pdf-engine       # Debug PDF importer output
 POST /api/document/import-docx    # Import DOCX → DesignExportDto
 POST /api/document/import-doc     # Import DOC (Word 97-2003) → DesignExportDto
 POST /api/document/import-odt     # Import ODT → DesignExportDto
+POST /api/document/import-svg     # Import SVG -> DesignExportDto
+POST /api/document/import-pptx    # Import PPTX -> DesignExportDto
+POST /api/document/import-image   # Import raster image -> DesignExportDto
+POST /api/document/import-image-analysis  # Import raster image through analysis pipeline
+POST /api/document/convert-image-to-pdf   # Convert raster image to PDF
+```
+
+### Migrations
+```
+GET  /api/migration/frameworks        # List supported code migration frameworks
+POST /api/migration/convert           # Convert vendor PDF code to Canvas.Pdf C#
+POST /api/migration/report-to-design  # Convert report source (XtraReport/REPX/RDL/RPX) to DesignExportDto
+POST /api/migration/preview           # Render migrated Canvas.Pdf code as PDF preview
 ```
 
 ### Templates
@@ -214,8 +231,26 @@ To enable non-Latin PDF export, place Noto font files in the `fonts/` directory 
 | Document | Description |
 |---|---|
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Project layer diagram and responsibilities |
+| [`PROJECT_SUMMARY.md`](PROJECT_SUMMARY.md) | Compact project inventory, endpoints, project groups, and test groups |
 | [`Canvas/TECHNICAL_DOCUMENTATION.md`](Canvas/TECHNICAL_DOCUMENTATION.md) | Full API reference for the PDF engine (per-element multi-language § 25; document localization § 26) |
 | [`ui-designer-v2/MULTILANGUAGE.md`](ui-designer-v2/MULTILANGUAGE.md) | UI guide for per-element language and RTL controls |
 | [`fonts/README.md`](fonts/README.md) | Noto font download and deployment instructions |
-| [`CONTRIBUTING_RENDERERS.md`](CONTRIBUTING_RENDERERS.md) | How to add a new export format |
+| [`CONTRIBUTING_RENDERERS.md`](CONTRIBUTING_RENDERERS.md) | How to add renderers, importers, migrations, and report converters |
 | [`TESTING.md`](TESTING.md) | Test structure and conventions |
+| [`checklists/Documentation-Audit.md`](checklists/Documentation-Audit.md) | Documentation ownership map and update tracker |
+| [`checklists/CanvasPdf-Provider-Feature-Gaps.md`](checklists/CanvasPdf-Provider-Feature-Gaps.md) | Canvas.Pdf feature gaps compared with major PDF providers |
+
+### Documentation Map
+
+| Topic | Start here |
+|---|---|
+| Architecture and boundaries | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
+| Product/project inventory | [`PROJECT_SUMMARY.md`](PROJECT_SUMMARY.md) |
+| PDF engine API | [`Canvas/TECHNICAL_DOCUMENTATION.md`](Canvas/TECHNICAL_DOCUMENTATION.md) and [`Canvas/README.md`](Canvas/README.md) |
+| Renderer/importer/migration contributions | [`CONTRIBUTING_RENDERERS.md`](CONTRIBUTING_RENDERERS.md) |
+| Test commands and project groups | [`TESTING.md`](TESTING.md) |
+| PDF provider migration status | [`checklists/Code-Migrations.md`](checklists/Code-Migrations.md) |
+| Report migration status | [`checklists/Code-Migration-DevExpressReport.md`](checklists/Code-Migration-DevExpressReport.md), [`checklists/Code-Migration-SyncfusionRdl.md`](checklists/Code-Migration-SyncfusionRdl.md), [`checklists/Code-Migration-ActiveReportsRpx.md`](checklists/Code-Migration-ActiveReportsRpx.md) |
+| PDF encryption | [`checklists/Pdf-Encryption.md`](checklists/Pdf-Encryption.md) |
+| Importer roadmap | [`checklists/UI-Importer-Features.md`](checklists/UI-Importer-Features.md), [`checklists/Importer-New-Featuers.md`](checklists/Importer-New-Featuers.md), [`checklists/PDF-Importer.md`](checklists/PDF-Importer.md) |
+| UI and localization | [`ui-designer-v2/MULTILANGUAGE.md`](ui-designer-v2/MULTILANGUAGE.md), [`checklists/UI-Improvements-2026.md`](checklists/UI-Improvements-2026.md), [`checklists/multi-languages.md`](checklists/multi-languages.md) |

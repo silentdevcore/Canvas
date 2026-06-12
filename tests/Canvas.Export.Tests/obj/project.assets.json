@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "targets": {
     "net10.0": {
       "BCrypt.Net-Next/4.0.3": {
@@ -1543,6 +1543,20 @@
           "bin/placeholder/Canvas.Migration.DsPdf.dll": {}
         }
       },
+      "Canvas.Migration.FastReport/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.Migration.Abstractions": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.FastReport.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.FastReport.dll": {}
+        }
+      },
       "Canvas.Migration.FoxitPdf/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -1663,6 +1677,20 @@
           "bin/placeholder/Canvas.Migration.PdfToolsToolbox.dll": {}
         }
       },
+      "Canvas.Migration.Rdl/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.Migration.Abstractions": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.Rdl.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.Rdl.dll": {}
+        }
+      },
       "Canvas.Migration.Roslyn/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -1675,6 +1703,20 @@
         },
         "runtime": {
           "bin/placeholder/Canvas.Migration.Roslyn.dll": {}
+        }
+      },
+      "Canvas.Migration.Rpx/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.Migration.Abstractions": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.Rpx.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.Rpx.dll": {}
         }
       },
       "Canvas.Migration.SpirePdf/1.0.0": {
@@ -1707,6 +1749,20 @@
           "bin/placeholder/Canvas.Migration.SyncfusionPdf.dll": {}
         }
       },
+      "Canvas.Migration.Telerik/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.Migration.Abstractions": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.Telerik.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.Telerik.dll": {}
+        }
+      },
       "Canvas.WebApi/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -1734,6 +1790,7 @@
           "Canvas.Migration.DevExpressPdf": "1.0.0",
           "Canvas.Migration.DevExpressReport": "1.0.0",
           "Canvas.Migration.DsPdf": "1.0.0",
+          "Canvas.Migration.FastReport": "1.0.0",
           "Canvas.Migration.FoxitPdf": "1.0.0",
           "Canvas.Migration.GemBoxPdf": "1.0.0",
           "Canvas.Migration.IronPdf": "1.0.0",
@@ -1741,8 +1798,11 @@
           "Canvas.Migration.PdfKitNet": "1.0.0",
           "Canvas.Migration.PdfTools": "1.0.0",
           "Canvas.Migration.PdfToolsToolbox": "1.0.0",
+          "Canvas.Migration.Rdl": "1.0.0",
+          "Canvas.Migration.Rpx": "1.0.0",
           "Canvas.Migration.SpirePdf": "1.0.0",
           "Canvas.Migration.SyncfusionPdf": "1.0.0",
+          "Canvas.Migration.Telerik": "1.0.0",
           "Canvas.Migration.iText7": "1.0.0",
           "Microsoft.AspNetCore.OpenApi": "10.0.5",
           "Microsoft.CodeAnalysis.CSharp.Scripting": "5.3.0",
@@ -3749,6 +3809,11 @@
       "path": "../../src/Canvas.Migration.DsPdf/Canvas.Migration.DsPdf.csproj",
       "msbuildProject": "../../src/Canvas.Migration.DsPdf/Canvas.Migration.DsPdf.csproj"
     },
+    "Canvas.Migration.FastReport/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.FastReport/Canvas.Migration.FastReport.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.FastReport/Canvas.Migration.FastReport.csproj"
+    },
     "Canvas.Migration.FoxitPdf/1.0.0": {
       "type": "project",
       "path": "../../src/Canvas.Migration.FoxitPdf/Canvas.Migration.FoxitPdf.csproj",
@@ -3789,10 +3854,20 @@
       "path": "../../src/Canvas.Migration.PdfToolsToolbox/Canvas.Migration.PdfToolsToolbox.csproj",
       "msbuildProject": "../../src/Canvas.Migration.PdfToolsToolbox/Canvas.Migration.PdfToolsToolbox.csproj"
     },
+    "Canvas.Migration.Rdl/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.Rdl/Canvas.Migration.Rdl.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.Rdl/Canvas.Migration.Rdl.csproj"
+    },
     "Canvas.Migration.Roslyn/1.0.0": {
       "type": "project",
       "path": "../../src/Canvas.Migration.Roslyn/Canvas.Migration.Roslyn.csproj",
       "msbuildProject": "../../src/Canvas.Migration.Roslyn/Canvas.Migration.Roslyn.csproj"
+    },
+    "Canvas.Migration.Rpx/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.Rpx/Canvas.Migration.Rpx.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.Rpx/Canvas.Migration.Rpx.csproj"
     },
     "Canvas.Migration.SpirePdf/1.0.0": {
       "type": "project",
@@ -3803,6 +3878,11 @@
       "type": "project",
       "path": "../../src/Canvas.Migration.SyncfusionPdf/Canvas.Migration.SyncfusionPdf.csproj",
       "msbuildProject": "../../src/Canvas.Migration.SyncfusionPdf/Canvas.Migration.SyncfusionPdf.csproj"
+    },
+    "Canvas.Migration.Telerik/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.Telerik/Canvas.Migration.Telerik.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.Telerik/Canvas.Migration.Telerik.csproj"
     },
     "Canvas.WebApi/1.0.0": {
       "type": "project",
@@ -3842,11 +3922,11 @@
         "net10.0"
       ],
       "sources": {
-        "/usr/local/Cellar/dotnet/10.0.105/libexec/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net10.0": {
+          "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {
             "/Users/mannheimer/Development/Codes/Canvas/Canvas.WebApi/Canvas.WebApi.csproj": {
@@ -3877,10 +3957,11 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.100"
+      "SdkAnalysisLevel": "10.0.300"
     },
     "frameworks": {
       "net10.0": {
+        "framework": "net10.0",
         "targetAlias": "net10.0",
         "dependencies": {
           "Microsoft.NET.Test.Sdk": {
@@ -3916,7 +3997,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/Cellar/dotnet/10.0.105/libexec/sdk/10.0.105/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.300/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",
