@@ -39,6 +39,7 @@
     <ProjectReference Include="../src/Canvas.Migration.DevExpressPdf/Canvas.Migration.DevExpressPdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.DevExpressReport/Canvas.Migration.DevExpressReport.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.FastReport/Canvas.Migration.FastReport.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.JasperReports/Canvas.Migration.JasperReports.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.DsPdf/Canvas.Migration.DsPdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.FoxitPdf/Canvas.Migration.FoxitPdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.GemBoxPdf/Canvas.Migration.GemBoxPdf.csproj" />

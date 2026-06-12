@@ -1,6 +1,7 @@
 using Canvas.Core.Contracts;
 using Canvas.Migration.DevExpressReport;
 using Canvas.Migration.FastReport;
+using Canvas.Migration.JasperReports;
 using Canvas.Migration.Rdl;
 using Canvas.Migration.Rpx;
 using Canvas.Migration.Telerik;
@@ -113,6 +114,12 @@ public class MigrationController : ControllerBase
             else if (TrdxToDesignConverter.LooksLikeTrdx(request.SourceCode))
             {
                 var result = new TrdxToDesignConverter().Convert(request.SourceCode);
+                design = result.Design;
+                diagnostics = result.Diagnostics;
+            }
+            else if (JrxmlToDesignConverter.LooksLikeJrxml(request.SourceCode))
+            {
+                var result = new JrxmlToDesignConverter().Convert(request.SourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }

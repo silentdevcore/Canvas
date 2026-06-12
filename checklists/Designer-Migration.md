@@ -37,7 +37,7 @@ Legend — **Done?**: ✅ shipped · 🔜 recommended next · ❌ not started ·
 | FastReport .NET | Fast Reports Inc. | `.frx` (plain XML, banded) | ReportTitle/PageHeader/DataBand/…/PageFooter; TextObject/Line/Shape/Picture/Barcode/CheckBox; `[Source.Column]` bindings | ✅ `Canvas.Migration.FastReport` — see [Designer-Migration-FastReport.md](Designer-Migration-FastReport.md) |
 | Telerik Reporting | Progress (Telerik) | `.trdx` (XML) / `.trdp` (zip) | Sections; TextBox/HtmlTextBox/PictureBox/Shape/Barcode/Panel; StyleSheet styles; `=Fields.X` bindings | ✅ `Canvas.Migration.Telerik` — see [Designer-Migration-Telerik.md](Designer-Migration-Telerik.md) |
 | Stimulsoft Reports | Stimulsoft | `.mrt` (XML or JSON, banded) | Bands + components; tables/charts/barcodes | ❌ |
-| JasperReports | Cloud Software Group (Jaspersoft) | `.jrxml` (XML, banded) | title/pageHeader/detail/…; staticText/textField/image/table/chart | ❌ |
+| JasperReports | Cloud Software Group (Jaspersoft) | `.jrxml` (XML, banded) | title/pageHeader/detail/…; staticText/textField/line/rectangle/ellipse/image/frame; named styles; `$F{}` bindings | ✅ `Canvas.Migration.JasperReports` — see [Designer-Migration-JasperReports.md](Designer-Migration-JasperReports.md) |
 | Crystal Reports | SAP | `.rpt` (binary, proprietary) | Banded; binary format — hard to parse, low priority | ❌ |
 | List & Label | combit | `.lst` / `.lsr` | Banded report container | ❌ |
 | ActiveReports JS | MESCIUS | JSON report model | Web/JS designer (distinct from `.rdlx`/`.rpx`) | ❌ |

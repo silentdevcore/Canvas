@@ -11,9 +11,11 @@ const RDL_REPORT_ID = 'RdlReport';
 const RPX_REPORT_ID = 'RpxReport';
 const FRX_REPORT_ID = 'FrxReport';
 const TRDX_REPORT_ID = 'TrdxReport';
+const JRXML_REPORT_ID = 'JrxmlReport';
 // All report flows post to the same /report-to-design endpoint (the backend auto-detects the format).
 const isReportDesign = (id: string) =>
-  id === REPORT_ID || id === RDL_REPORT_ID || id === RPX_REPORT_ID || id === FRX_REPORT_ID || id === TRDX_REPORT_ID;
+  id === REPORT_ID || id === RDL_REPORT_ID || id === RPX_REPORT_ID || id === FRX_REPORT_ID
+  || id === TRDX_REPORT_ID || id === JRXML_REPORT_ID;
 
 interface Framework {
   id: string;
@@ -529,12 +531,54 @@ const TRDX_REPORT_FRAMEWORK: Framework = {
   description: 'Converts a Telerik Reporting report (.trdx) into an editable Canvas design — sections flattened to absolute positions (Unit strings → points), named StyleSheet styles resolved, page header/footer → shared elements, =Fields.X → binding. Open the result in the visual designer.',
 };
 
+const JRXML_REPORT_EXAMPLE = `<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Invoice"
+    pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+  <style name="Header" forecolor="#0066CC"><font fontName="Arial" size="20" isBold="true"/></style>
+  <field name="customerName" class="java.lang.String"/>
+  <title>
+    <band height="40">
+      <staticText>
+        <reportElement key="title" x="0" y="0" width="555" height="30" style="Header"/>
+        <textElement textAlignment="Center"/>
+        <text><![CDATA[INVOICE]]></text>
+      </staticText>
+    </band>
+  </title>
+  <detail>
+    <band height="40">
+      <textField>
+        <reportElement key="customer" x="0" y="0" width="200" height="20"/>
+        <textElement/>
+        <textFieldExpression><![CDATA[$F{customerName}]]></textFieldExpression>
+      </textField>
+      <line>
+        <reportElement key="rule" x="0" y="25" width="555" height="1" forecolor="#808080"/>
+        <graphicElement><pen lineWidth="2"/></graphicElement>
+      </line>
+    </band>
+  </detail>
+  <pageFooter>
+    <band height="20">
+      <staticText><reportElement key="pageinfo" x="500" y="0" width="55" height="20"/><text><![CDATA[Page 1]]></text></staticText>
+    </band>
+  </pageFooter>
+</jasperReport>`;
+
+const JRXML_REPORT_FRAMEWORK: Framework = {
+  id: JRXML_REPORT_ID,
+  name: 'JasperReports (.jrxml)',
+  status: 'designer',
+  description: 'Converts a JasperReports / Jaspersoft Studio report (.jrxml) into an editable Canvas design — bands flattened to absolute positions (points, no scaling), named styles resolved, page header/footer → shared elements, $F{field} → binding. Open the result in the visual designer.',
+};
+
 const EXAMPLES: Record<string, string> = {
   [REPORT_ID]: DEVEXPRESS_REPORT_EXAMPLE,
   [RDL_REPORT_ID]: RDL_REPORT_EXAMPLE,
   [RPX_REPORT_ID]: RPX_REPORT_EXAMPLE,
   [FRX_REPORT_ID]: FRX_REPORT_EXAMPLE,
   [TRDX_REPORT_ID]: TRDX_REPORT_EXAMPLE,
+  [JRXML_REPORT_ID]: JRXML_REPORT_EXAMPLE,
   Syncfusion: SYNCFUSION_EXAMPLE,
   iText7: ITEXT7_EXAMPLE,
   Apryse: APRYSE_EXAMPLE,
@@ -561,7 +605,7 @@ interface ConversionSummary {
 
 // The report-designer → Canvas design frameworks (output is an editable design, not C# code).
 const DESIGNER_FRAMEWORKS: Framework[] = [
-  REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK,
+  REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK, JRXML_REPORT_FRAMEWORK,
 ];
 
 type MigrationMode = 'code' | 'designer';
