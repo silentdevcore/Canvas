@@ -305,9 +305,13 @@ public sealed class RpxToDesignConverter
     {
         element.Type = "text";
         element.Content = label;
+        // All keys below are consumed by the PDF text renderer (background fill, dashed border, italic caption).
         element.Style = new Dictionary<string, object>
         {
             ["backgroundColor"] = "#F0F0F0",
+            ["borderColor"] = "#BBBBBB",
+            ["borderWidth"] = 1.0,
+            ["borderStyle"] = "dashed",
             ["color"] = "#888888",
             ["textAlign"] = "center",
             ["fontStyle"] = "italic"

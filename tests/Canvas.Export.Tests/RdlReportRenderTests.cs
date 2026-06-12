@@ -26,6 +26,7 @@ public sealed class RdlReportRenderTests
                   <CustomProperty><Name>Value</Name><Value>ABC-12345</Value></CustomProperty>
                 </CustomProperties>
               </CustomReportItem>
+              <Subreport Name="detail"><Top>2.4in</Top><Left>1in</Left><Height>0.5in</Height><Width>4in</Width><ReportName>Detail</ReportName></Subreport>
               <Tablix Name="items"><Top>1.2in</Top><Left>1in</Left><Height>1in</Height><Width>4in</Width>
                 <TablixBody>
                   <TablixColumns><TablixColumn><Width>2in</Width></TablixColumn><TablixColumn><Width>2in</Width></TablixColumn></TablixColumns>
