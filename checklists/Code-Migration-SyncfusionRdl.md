@@ -61,8 +61,8 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `Image` (Embedded) | `image` (data URL, else placeholder `CANMIGRDL012`) | [x] |
 | `Tablix` (2016) / `Table` (2008) | `table` (CellData, header row, column widths/alignments) | [x] |
 | `CustomReportItem` barcode (ActiveReports/DsReport/SSRS) | `barcode` / `qrcode` (value + symbology → type) | [x] |
-| `CustomReportItem` chart/gauge/map/etc. | skipped (`CANMIGRDL011`) | [x] |
-| `Subreport` | skipped (`CANMIGRDL011`) | [x] |
+| `CustomReportItem` chart/gauge/map/etc. | labeled placeholder (`CANMIGRDL011`) | [x] |
+| `Subreport` | labeled placeholder (`CANMIGRDL011`) | [x] |
 | Value `=Fields!X.Value` / `=expr` | `binding` / `expression` | [x] |
 
 ### Delivery
@@ -112,7 +112,8 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 - [ ] Nested Tablix / detail grouping → repeat semantics.
 - [ ] `<Code>` / custom-function expression translation (blocked on Canvas `ExpressionEvaluator` being a
       stub — same limitation as DevExpress).
-- [ ] `CustomReportItem` Chart / Gauge / Map / Sparkline → placeholder elements (currently `CANMIGRDL011`).
+- [x] `CustomReportItem` Chart / Gauge / Map / Sparkline + `Subreport` → labeled placeholder elements
+      (kept at original position/size so the layout isn't silently holed; still `CANMIGRDL011`).
 - [ ] External / database image sources (fetch or warn).
 - [ ] Percentage / relative lengths for Tablix columns.
 - [ ] Multi-run textbox per-run formatting (V1 keeps the first run's style).

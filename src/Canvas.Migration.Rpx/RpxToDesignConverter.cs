@@ -290,13 +290,33 @@ public sealed class RpxToDesignConverter
 
             case "SubReport":
                 diagnostics.Add(Warn("CANMIGRPX011",
-                    $"'{raw.Name}' is a sub-report — requires manual migration; skipped."));
-                return null;
+                    $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
+                return Placeholder(element, $"[Sub-report: {raw.Name} — migrate manually]");
 
             default:
-                diagnostics.Add(Warn("CANMIGRPX011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; skipped."));
-                return null;
+                diagnostics.Add(Warn("CANMIGRPX011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
+                return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
+    }
+
+    // Keeps an unsupported control visible at its original position/size so the layout isn't silently
+    // holed — a muted, captioned block the user can replace in the designer.
+    private static ElementDto Placeholder(ElementDto element, string label)
+    {
+        element.Type = "text";
+        element.Content = label;
+        // All keys below are consumed by the PDF text renderer (background fill, dashed border, italic caption).
+        element.Style = new Dictionary<string, object>
+        {
+            ["backgroundColor"] = "#F0F0F0",
+            ["borderColor"] = "#BBBBBB",
+            ["borderWidth"] = 1.0,
+            ["borderStyle"] = "dashed",
+            ["color"] = "#888888",
+            ["textAlign"] = "center",
+            ["fontStyle"] = "italic"
+        };
+        return element;
     }
 
     private static Dictionary<string, object> BuildTextStyle(RawElement raw)

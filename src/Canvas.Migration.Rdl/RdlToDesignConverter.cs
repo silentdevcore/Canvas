@@ -432,13 +432,34 @@ public sealed class RdlToDesignConverter
 
             case "Subreport":
                 diagnostics.Add(Warn("CANMIGRDL011",
-                    $"'{raw.Name}' is a sub-report — requires manual migration; skipped."));
-                return null;
+                    $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
+                return Placeholder(element, $"[Sub-report: {raw.Name} — migrate manually]");
 
             default:
-                diagnostics.Add(Warn("CANMIGRDL011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; skipped."));
-                return null;
+                diagnostics.Add(Warn("CANMIGRDL011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
+                return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
+    }
+
+    // Keeps an unsupported item visible at its original position/size so the layout isn't silently
+    // holed — a muted, captioned block the user can replace in the designer.
+    private static ElementDto Placeholder(ElementDto element, string label)
+    {
+        element.Type = "text";
+        element.Content = label;
+        element.Binding = null;
+        // All keys below are consumed by the PDF text renderer (background fill, dashed border, italic caption).
+        element.Style = new Dictionary<string, object>
+        {
+            ["backgroundColor"] = "#F0F0F0",
+            ["borderColor"] = "#BBBBBB",
+            ["borderWidth"] = 1.0,
+            ["borderStyle"] = "dashed",
+            ["color"] = "#888888",
+            ["textAlign"] = "center",
+            ["fontStyle"] = "italic"
+        };
+        return element;
     }
 
     // RDL <CustomReportItem>: ActiveReports/DsReport serialize barcodes this way (Type + CustomProperties);
@@ -451,9 +472,10 @@ public sealed class RdlToDesignConverter
         var isBarcode = customType.Contains("Barcode", StringComparison.OrdinalIgnoreCase) || symbology is not null;
         if (!isBarcode)
         {
+            var what = customType.Length > 0 ? customType : "Custom item";
             diagnostics.Add(Warn("CANMIGRDL011",
-                $"'{raw.Name}' is a custom report item ({(customType.Length > 0 ? customType : "unknown")}) — not supported by Canvas yet; skipped."));
-            return null;
+                $"'{raw.Name}' is a custom report item ({what}) — not supported by Canvas yet; inserted a placeholder."));
+            return Placeholder(element, $"[{what}: migrate manually]");
         }
 
         var value = CellDisplay(props.GetValueOrDefault("Value") ?? props.GetValueOrDefault("Text") ?? props.GetValueOrDefault("Code") ?? raw.Text ?? "");
