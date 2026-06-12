@@ -6,7 +6,8 @@ diagnostics, status).
 
 - **Designer:** FastReport .NET · **Manufacturer:** Fast Reports Inc.
 - **Format:** `.frx` — plain, namespace-free **XML**, **banded** report.
-- **Status:** 🔜 Planned (recommended next). Architecture mirrors `Canvas.Migration.Rpx` (band-flatten).
+- **Status:** ✅ **Shipped** (`Canvas.Migration.FastReport`) — band-flatten mirroring `Canvas.Migration.Rpx`;
+  schema confirmed against real `FastReports/FastReport` `Demos/Reports/*.frx`. 14 unit tests + render test.
 
 ---
 
@@ -102,10 +103,18 @@ namespace does **not** contain `reportdefinition`, and no `<Sections>` (RPX). Ac
 
 ## V1 checklist
 
-- [ ] `FrxToDesignConverter` + project + sln + WebApi ref
-- [ ] Detection + ordered routing
-- [ ] Page size (mm) + band-flatten (px) + header/footer → shared
-- [ ] TextObject/Line/Shape/Picture/Table/Barcode/CheckBox/Rich/Subreport mapping
-- [ ] `[Source.Col]` bindings; font-string + colour/border parsing
-- [ ] Unit + end-to-end render tests; validate against a real `.frx`
-- [ ] Frontend entry; update [`Designer-Migration.md`](Designer-Migration.md) row to ✅
+- [x] `FrxToDesignConverter` + project + sln + WebApi ref
+- [x] Detection + ordered routing (RDL → RPX → FRX → DevExpress)
+- [x] Page size (mm) + band-flatten (px) + header/footer → shared
+- [x] TextObject/Line/Shape/Picture/Barcode/CheckBox/Rich/Subreport mapping (Subreport/unknown → placeholder)
+- [x] `[Source.Column]` bindings; `"Family, 9pt, style=Bold"` font + named/ARGB colour parsing
+- [x] 14 unit tests (schema derived from real samples) + end-to-end render test
+- [x] Frontend "FastReport (.frx)" entry; `Designer-Migration.md` row → ✅
+
+## V2 — next
+
+- [ ] `TableObject` → Canvas table (grid extraction from TableColumn/TableRow/TableCell)
+- [ ] Multi-`ReportPage` (currently first page); `ChildBand` join semantics; `GroupHeader/Footer` repeat
+- [ ] Per-side `Border.Lines` rendering; `Padding`; `Columns.*` multi-column bands
+- [ ] `PictureObject` non-PNG MIME sniffing; richer `RichObject` RTF→HTML
+- [ ] Validate against more `Demos/Reports/*.frx` (charts/matrix/gauge → placeholder)

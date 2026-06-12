@@ -34,8 +34,8 @@ Legend — **Done?**: ✅ shipped · 🔜 recommended next · ❌ not started ·
 
 | Designer | Manufacturer | Tech (format) | Features | Done? |
 | --- | --- | --- | --- | --- |
-| FastReport .NET | Fast Reports Inc. | `.frx` (plain XML, banded) | ReportTitle/PageHeader/DataBand/…/PageFooter; TextObject/Line/Shape/Picture/Table/Barcode; `[Data.Field]` expressions; **public real `.frx` samples on GitHub** | 🔜 Recommended next |
-| Telerik Reporting | Progress (Telerik) | `.trdx` (XML) / `.trdp` (zip) | Sections; TextBox/Table/Crosstab/Chart/Barcode; bindings | ❌ |
+| FastReport .NET | Fast Reports Inc. | `.frx` (plain XML, banded) | ReportTitle/PageHeader/DataBand/…/PageFooter; TextObject/Line/Shape/Picture/Barcode/CheckBox; `[Source.Column]` bindings | ✅ `Canvas.Migration.FastReport` — see [Designer-Migration-FastReport.md](Designer-Migration-FastReport.md) |
+| Telerik Reporting | Progress (Telerik) | `.trdx` (XML) / `.trdp` (zip) | Sections; TextBox/HtmlTextBox/PictureBox/Shape/Barcode/Panel; StyleSheet styles; `=Fields.X` bindings | ✅ `Canvas.Migration.Telerik` — see [Designer-Migration-Telerik.md](Designer-Migration-Telerik.md) |
 | Stimulsoft Reports | Stimulsoft | `.mrt` (XML or JSON, banded) | Bands + components; tables/charts/barcodes | ❌ |
 | JasperReports | Cloud Software Group (Jaspersoft) | `.jrxml` (XML, banded) | title/pageHeader/detail/…; staticText/textField/image/table/chart | ❌ |
 | Crystal Reports | SAP | `.rpt` (binary, proprietary) | Banded; binary format — hard to parse, low priority | ❌ |

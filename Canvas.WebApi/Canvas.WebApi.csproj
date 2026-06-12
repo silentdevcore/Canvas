@@ -38,6 +38,7 @@
     <ProjectReference Include="../src/Canvas.Migration.AsposePdf/Canvas.Migration.AsposePdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.DevExpressPdf/Canvas.Migration.DevExpressPdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.DevExpressReport/Canvas.Migration.DevExpressReport.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.FastReport/Canvas.Migration.FastReport.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.DsPdf/Canvas.Migration.DsPdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.FoxitPdf/Canvas.Migration.FoxitPdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.GemBoxPdf/Canvas.Migration.GemBoxPdf.csproj" />
@@ -51,6 +52,7 @@
     <ProjectReference Include="../src/Canvas.Migration.Rpx/Canvas.Migration.Rpx.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.SpirePdf/Canvas.Migration.SpirePdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.SyncfusionPdf/Canvas.Migration.SyncfusionPdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.Telerik/Canvas.Migration.Telerik.csproj" />
   </ItemGroup>
 
   <Target Name="CopyImageOcrWorker" AfterTargets="Build">

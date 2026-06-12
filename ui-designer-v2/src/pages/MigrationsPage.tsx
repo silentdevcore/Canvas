@@ -9,8 +9,11 @@ import { useEditorStore } from '@/store';
 const REPORT_ID = 'DevExpressReport';
 const RDL_REPORT_ID = 'RdlReport';
 const RPX_REPORT_ID = 'RpxReport';
+const FRX_REPORT_ID = 'FrxReport';
+const TRDX_REPORT_ID = 'TrdxReport';
 // All report flows post to the same /report-to-design endpoint (the backend auto-detects the format).
-const isReportDesign = (id: string) => id === REPORT_ID || id === RDL_REPORT_ID || id === RPX_REPORT_ID;
+const isReportDesign = (id: string) =>
+  id === REPORT_ID || id === RDL_REPORT_ID || id === RPX_REPORT_ID || id === FRX_REPORT_ID || id === TRDX_REPORT_ID;
 
 interface Framework {
   id: string;
@@ -461,10 +464,77 @@ const RPX_REPORT_FRAMEWORK: Framework = {
   description: 'Converts a GrapeCity/MESCIUS ActiveReports section report (.rpx) into an editable Canvas design — banded sections flattened to absolute positions (inches → points), page header/footer → shared elements, DataField → binding. Open the result in the visual designer.',
 };
 
+const FRX_REPORT_EXAMPLE = `<?xml version="1.0" encoding="utf-8"?>
+<Report ScriptLanguage="CSharp" ReportInfo.Name="Invoice">
+  <Dictionary>
+    <TableDataSource Name="Items"><Column Name="Name" DataType="System.String"/></TableDataSource>
+  </Dictionary>
+  <ReportPage Name="Page1">
+    <ReportTitleBand Name="ReportTitle1" Top="0" Width="718.2" Height="37.8">
+      <TextObject Name="title" Left="0" Top="0" Width="718.2" Height="37.8" Text="INVOICE" HorzAlign="Center" Font="Tahoma, 14pt, style=Bold" TextFill.Color="Blue" Fill.Color="WhiteSmoke"/>
+    </ReportTitleBand>
+    <DataBand Name="Data1" Top="64" Width="718.2" Height="40" DataSource="Items">
+      <TextObject Name="name" Left="0" Top="0" Width="200" Height="20" Text="[Items.Name]" Font="Tahoma, 9pt"/>
+      <LineObject Name="rule" Left="0" Top="22" Width="718.2" Height="0" Border.Color="Gray" Border.Width="2"/>
+      <BarcodeObject Name="bc" Left="500" Top="0" Width="150" Height="40" Text="ABC-12345" Barcode="Code128"/>
+    </DataBand>
+    <PageFooterBand Name="PageFooter1" Top="120" Width="718.2" Height="20">
+      <TextObject Name="pageinfo" Left="600" Top="0" Width="100" Height="20" Text="Page 1"/>
+    </PageFooterBand>
+  </ReportPage>
+</Report>`;
+
+const FRX_REPORT_FRAMEWORK: Framework = {
+  id: FRX_REPORT_ID,
+  name: 'FastReport (.frx)',
+  status: 'designer',
+  description: 'Converts a FastReport .NET report (.frx) into an editable Canvas design — banded layout flattened to absolute positions (pixels → points, page size in mm), page header/footer → shared elements, [Source.Column] → binding. Open the result in the visual designer.',
+};
+
+const TRDX_REPORT_EXAMPLE = `<?xml version="1.0" encoding="utf-8"?>
+<Report Width="8.1in" Name="Invoice" xmlns="http://schemas.telerik.com/reporting/2012/3.6">
+  <PageSettings><PaperKind>Letter</PaperKind><Margins Left="1in" Right="1in" Top="1in" Bottom="1in"/></PageSettings>
+  <Items>
+    <PageHeaderSection Height="0.5in" Name="pageHeaderSection1">
+      <Items>
+        <TextBox Width="3.5in" Height="0.3in" Left="0in" Top="0.1in" Value="INVOICE" Name="title" StyleName="Header">
+          <Style TextAlign="Center" Color="0, 102, 204"/>
+        </TextBox>
+      </Items>
+    </PageHeaderSection>
+    <DetailSection Height="1in" Name="detailSection1">
+      <Items>
+        <TextBox Width="3in" Height="0.3in" Left="0in" Top="0in" Value="=Fields.CustomerName" Name="customer"/>
+        <Barcode Width="2in" Height="0.5in" Left="0in" Top="0.4in" Value="ABC-12345" Type="Code128" Name="bc"/>
+      </Items>
+    </DetailSection>
+    <PageFooterSection Height="0.4in" Name="pageFooterSection1">
+      <Items>
+        <TextBox Width="1in" Height="0.2in" Left="6in" Top="0in" Value="Page 1" Name="pageinfo"/>
+      </Items>
+    </PageFooterSection>
+  </Items>
+  <StyleSheet>
+    <StyleRule>
+      <Style><Font Name="Segoe UI" Size="20pt" Bold="True"/></Style>
+      <Selectors><StyleSelector Type="ReportItemBase" StyleName="Header"/></Selectors>
+    </StyleRule>
+  </StyleSheet>
+</Report>`;
+
+const TRDX_REPORT_FRAMEWORK: Framework = {
+  id: TRDX_REPORT_ID,
+  name: 'Telerik Reporting (.trdx)',
+  status: 'designer',
+  description: 'Converts a Telerik Reporting report (.trdx) into an editable Canvas design — sections flattened to absolute positions (Unit strings → points), named StyleSheet styles resolved, page header/footer → shared elements, =Fields.X → binding. Open the result in the visual designer.',
+};
+
 const EXAMPLES: Record<string, string> = {
   [REPORT_ID]: DEVEXPRESS_REPORT_EXAMPLE,
   [RDL_REPORT_ID]: RDL_REPORT_EXAMPLE,
   [RPX_REPORT_ID]: RPX_REPORT_EXAMPLE,
+  [FRX_REPORT_ID]: FRX_REPORT_EXAMPLE,
+  [TRDX_REPORT_ID]: TRDX_REPORT_EXAMPLE,
   Syncfusion: SYNCFUSION_EXAMPLE,
   iText7: ITEXT7_EXAMPLE,
   Apryse: APRYSE_EXAMPLE,
@@ -490,7 +560,7 @@ interface ConversionSummary {
 }
 
 const MigrationsPage: React.FC = () => {
-  const [frameworks, setFrameworks] = useState<Framework[]>([...FRAMEWORKS_FALLBACK, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK]);
+  const [frameworks, setFrameworks] = useState<Framework[]>([...FRAMEWORKS_FALLBACK, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK]);
   const [selectedId, setSelectedId] = useState('Syncfusion');
   const [reportDesign, setReportDesign] = useState<any | null>(null);
   const navigate = useNavigate();
@@ -516,7 +586,7 @@ const MigrationsPage: React.FC = () => {
   useEffect(() => {
     fetch(`${API_BASE}/frameworks`)
       .then(r => r.json())
-      .then((data: Framework[]) => setFrameworks([...data, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK]))
+      .then((data: Framework[]) => setFrameworks([...data, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK]))
       .catch(() => { /* use fallback */ });
     return () => { if (prevPdfUrl.current) URL.revokeObjectURL(prevPdfUrl.current); };
   }, []);
