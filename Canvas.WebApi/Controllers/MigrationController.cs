@@ -3,6 +3,7 @@ using Canvas.Migration.DevExpressReport;
 using Canvas.Migration.FastReport;
 using Canvas.Migration.Rdl;
 using Canvas.Migration.Rpx;
+using Canvas.Migration.Telerik;
 using Canvas.WebApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -106,6 +107,12 @@ public class MigrationController : ControllerBase
             else if (FrxToDesignConverter.LooksLikeFrx(request.SourceCode))
             {
                 var result = new FrxToDesignConverter().Convert(request.SourceCode);
+                design = result.Design;
+                diagnostics = result.Diagnostics;
+            }
+            else if (TrdxToDesignConverter.LooksLikeTrdx(request.SourceCode))
+            {
+                var result = new TrdxToDesignConverter().Convert(request.SourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
