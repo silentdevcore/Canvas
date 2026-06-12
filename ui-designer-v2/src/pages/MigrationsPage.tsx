@@ -12,10 +12,11 @@ const RPX_REPORT_ID = 'RpxReport';
 const FRX_REPORT_ID = 'FrxReport';
 const TRDX_REPORT_ID = 'TrdxReport';
 const JRXML_REPORT_ID = 'JrxmlReport';
+const MRT_REPORT_ID = 'MrtReport';
 // All report flows post to the same /report-to-design endpoint (the backend auto-detects the format).
 const isReportDesign = (id: string) =>
   id === REPORT_ID || id === RDL_REPORT_ID || id === RPX_REPORT_ID || id === FRX_REPORT_ID
-  || id === TRDX_REPORT_ID || id === JRXML_REPORT_ID;
+  || id === TRDX_REPORT_ID || id === JRXML_REPORT_ID || id === MRT_REPORT_ID;
 
 interface Framework {
   id: string;
@@ -572,6 +573,41 @@ const JRXML_REPORT_FRAMEWORK: Framework = {
   description: 'Converts a JasperReports / Jaspersoft Studio report (.jrxml) into an editable Canvas design — bands flattened to absolute positions (points, no scaling), named styles resolved, page header/footer → shared elements, $F{field} → binding. Open the result in the visual designer.',
 };
 
+const MRT_REPORT_EXAMPLE = `<?xml version="1.0" encoding="utf-8"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+  <ReportName>Invoice</ReportName>
+  <Pages isList="true" count="1">
+    <Page1 type="Page"><PaperSize>A4</PaperSize>
+      <Components isList="true">
+        <ReportTitleBand1 type="ReportTitleBand"><ClientRectangle>0,20,749,40</ClientRectangle>
+          <Components isList="true">
+            <Text1 type="Text"><ClientRectangle>0,0,749,40</ClientRectangle><Font>Arial,20,Bold,Point,False,0</Font>
+              <HorAlignment>Center</HorAlignment><Text>INVOICE</Text><TextBrush>[0:102:204]</TextBrush><Name>Text1</Name></Text1>
+          </Components><Name>ReportTitleBand1</Name>
+        </ReportTitleBand1>
+        <DataBand1 type="DataBand"><ClientRectangle>0,80,749,40</ClientRectangle>
+          <Components isList="true">
+            <Text2 type="Text"><ClientRectangle>0,0,300,20</ClientRectangle><Text>{Customers.CompanyName}</Text><Name>Text2</Name></Text2>
+            <Line1 type="HorizontalLinePrimitive"><ClientRectangle>0,30,749,1</ClientRectangle><Color>[128:128:128]</Color><Name>Line1</Name></Line1>
+          </Components><Name>DataBand1</Name>
+        </DataBand1>
+        <PageFooterBand1 type="PageFooterBand"><ClientRectangle>0,1071,749,20</ClientRectangle>
+          <Components isList="true">
+            <Text3 type="Text"><ClientRectangle>600,0,149,20</ClientRectangle><Text>{PageNofM}</Text><Name>Text3</Name></Text3>
+          </Components><Name>PageFooterBand1</Name>
+        </PageFooterBand1>
+      </Components><Name>Page1</Name>
+    </Page1>
+  </Pages>
+</StiSerializer>`;
+
+const MRT_REPORT_FRAMEWORK: Framework = {
+  id: MRT_REPORT_ID,
+  name: 'Stimulsoft (.mrt)',
+  status: 'designer',
+  description: 'Converts a Stimulsoft Reports report (.mrt, StiSerializer XML) into an editable Canvas design — bands with explicit positions flattened (hundredths-inch → points), page header/footer → shared elements, {Source.Field} → binding. Open the result in the visual designer.',
+};
+
 const EXAMPLES: Record<string, string> = {
   [REPORT_ID]: DEVEXPRESS_REPORT_EXAMPLE,
   [RDL_REPORT_ID]: RDL_REPORT_EXAMPLE,
@@ -579,6 +615,7 @@ const EXAMPLES: Record<string, string> = {
   [FRX_REPORT_ID]: FRX_REPORT_EXAMPLE,
   [TRDX_REPORT_ID]: TRDX_REPORT_EXAMPLE,
   [JRXML_REPORT_ID]: JRXML_REPORT_EXAMPLE,
+  [MRT_REPORT_ID]: MRT_REPORT_EXAMPLE,
   Syncfusion: SYNCFUSION_EXAMPLE,
   iText7: ITEXT7_EXAMPLE,
   Apryse: APRYSE_EXAMPLE,
@@ -605,7 +642,7 @@ interface ConversionSummary {
 
 // The report-designer → Canvas design frameworks (output is an editable design, not C# code).
 const DESIGNER_FRAMEWORKS: Framework[] = [
-  REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK, JRXML_REPORT_FRAMEWORK,
+  REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK, JRXML_REPORT_FRAMEWORK, MRT_REPORT_FRAMEWORK,
 ];
 
 type MigrationMode = 'code' | 'designer';

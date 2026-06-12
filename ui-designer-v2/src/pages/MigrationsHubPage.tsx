@@ -29,7 +29,7 @@ const MigrationsHubPage: React.FC = () => {
       blurb: 'Convert a report-designer file — DevExpress XtraReports, RDL/RDLC (SSRS, Syncfusion), '
         + 'ActiveReports (.rdlx/.rpx), FastReport (.frx), Telerik (.trdx) — into an editable Canvas '
         + 'design you can open in the visual designer.',
-      tag: '6 report designers',
+      tag: '7 report designers',
     },
   ];
 
