@@ -36,6 +36,15 @@ internal sealed class PdfWriter
             .Distinct()
             .ToList();
 
+        var usedEmbeddedFonts = document.Pages
+            .SelectMany(static page => page.Elements)
+            .OfType<TextElement>()
+            .Where(static el => el.EmbeddedFont is not null)
+            .Select(static el => el.EmbeddedFont!)
+            .Distinct(ReferenceEqualityComparer.Instance)
+            .Cast<PdfEmbeddedFont>()
+            .ToList();
+
         var imagesByKey = document.Pages
             .SelectMany(static page => page.Elements)
             .OfType<ImageElement>()
@@ -60,6 +69,20 @@ internal sealed class PdfWriter
             var objectId = nextObjectId++;
             var resourceName = $"F{i + 1}";
             fontObjects[font] = (resourceName, objectId);
+        }
+
+        // 5 PDF objects per embedded font: FontStream, FontDescriptor, ToUnicode, CIDFont, Type0
+        var embeddedFontObjects = new Dictionary<PdfEmbeddedFont, EmbeddedFontIds>(ReferenceEqualityComparer.Instance);
+        for (var i = 0; i < usedEmbeddedFonts.Count; i++)
+        {
+            var ef = usedEmbeddedFonts[i];
+            embeddedFontObjects[ef] = new EmbeddedFontIds(
+                ResourceName: $"EF{i + 1}",
+                FontStreamId: nextObjectId++,
+                DescriptorId: nextObjectId++,
+                ToUnicodeId: nextObjectId++,
+                CidFontId: nextObjectId++,
+                Type0Id: nextObjectId++);
         }
 
         var imageObjects = new Dictionary<string, (string ResourceName, int ObjectId, int? SoftMaskObjectId)>();
@@ -99,6 +122,48 @@ internal sealed class PdfWriter
                 $"<< /Type /Font /Subtype /Type1 /BaseFont /{GetBaseFontName(fontObject.Key)} >>\n"));
         }
 
+        // Emit 5-object chain for each embedded TrueType/OpenType font
+        foreach (var (ef, ids) in embeddedFontObjects)
+        {
+            // Collect all code points used by this font across all pages
+            var usedCodePoints = document.Pages
+                .SelectMany(static p => p.Elements)
+                .OfType<TextElement>()
+                .Where(el => ReferenceEquals(el.EmbeddedFont, ef))
+                .SelectMany(static el => el.Text.EnumerateRunes().Select(static r => r.Value))
+                .Distinct()
+                .OrderBy(static cp => cp)
+                .ToList();
+
+            // 1. Font file stream (FlateDecode compressed)
+            var fontBytes = ef.FontBytes.ToArray();
+            var compressedFont = CompressZlib(fontBytes);
+            objects.Add(new PdfIndirectObject(ids.FontStreamId, BuildFontStreamObject(compressedFont, fontBytes.Length)));
+
+            // 2. FontDescriptor
+            objects.Add(new PdfIndirectObject(ids.DescriptorId,
+                $"<< /Type /FontDescriptor /FontName /{ef.BaseFontName} /Flags 32 " +
+                $"/FontBBox [0 -200 1000 800] /ItalicAngle 0 /Ascent 800 /Descent -200 " +
+                $"/CapHeight 700 /StemV 80 /FontFile2 {ids.FontStreamId} 0 R >>\n"));
+
+            // 3. ToUnicode CMap stream (maps CID = Unicode code point back to Unicode for text extraction)
+            var cMapBytes = Encoding.ASCII.GetBytes(BuildToUnicodeCMap(usedCodePoints));
+            objects.Add(new PdfIndirectObject(ids.ToUnicodeId, BuildContentStreamObject(cMapBytes, compressed: false)));
+
+            // 4. CIDFont with /W widths array
+            var widthsArray = BuildCidFontWidthsArray(ef, usedCodePoints);
+            objects.Add(new PdfIndirectObject(ids.CidFontId,
+                $"<< /Type /Font /Subtype /CIDFontType2 /BaseFont /{ef.BaseFontName} " +
+                $"/CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >> " +
+                $"/DW 1000 /W {widthsArray} /FontDescriptor {ids.DescriptorId} 0 R >>\n"));
+
+            // 5. Type0 composite font
+            objects.Add(new PdfIndirectObject(ids.Type0Id,
+                $"<< /Type /Font /Subtype /Type0 /BaseFont /{ef.BaseFontName} " +
+                $"/Encoding /Identity-H /DescendantFonts [{ids.CidFontId} 0 R] " +
+                $"/ToUnicode {ids.ToUnicodeId} 0 R >>\n"));
+        }
+
         foreach (var image in imagesByKey)
         {
             var imageObject = imageObjects[image.Key];
@@ -124,6 +189,18 @@ internal sealed class PdfWriter
             .GroupBy(destination => destination.Name, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.Last(), StringComparer.OrdinalIgnoreCase);
 
+        var hasAcroFields = document.Pages.Any(static p =>
+            p.ComboBoxAnnotations.Count > 0 || p.MultilineTextFields.Count > 0 || p.TextFields.Count > 0 || p.CheckBoxAnnotations.Count > 0);
+        var acroFormHelvFontObjectId = hasAcroFields ? nextObjectId++ : (int?)null;
+        var pageComboAnnotObjectIds = new List<int>[pageCount];
+        var pageMultilineAnnotObjectIds = new List<int>[pageCount];
+        var pageTextFieldAnnotObjectIds = new List<int>[pageCount];
+        var pageCheckBoxAnnotObjectIds = new List<int>[pageCount];
+        var allComboFieldObjectIds = new List<int>();
+        var allMultilineFieldObjectIds = new List<int>();
+        var allTextFieldObjectIds = new List<int>();
+        var allCheckBoxObjectIds = new List<int>();
+
         for (var i = 0; i < pageCount; i++)
         {
             pageObjectIds[i] = nextObjectId++;
@@ -136,6 +213,46 @@ internal sealed class PdfWriter
             }
 
             pageAnnotationObjectIds[i] = annotationIds;
+
+            var comboIds = new List<int>();
+            foreach (var _ in document.Pages[i].ComboBoxAnnotations)
+            {
+                var comboId = nextObjectId++;
+                comboIds.Add(comboId);
+                allComboFieldObjectIds.Add(comboId);
+            }
+
+            pageComboAnnotObjectIds[i] = comboIds;
+
+            var multilineIds = new List<int>();
+            foreach (var _ in document.Pages[i].MultilineTextFields)
+            {
+                var mlId = nextObjectId++;
+                multilineIds.Add(mlId);
+                allMultilineFieldObjectIds.Add(mlId);
+            }
+
+            pageMultilineAnnotObjectIds[i] = multilineIds;
+
+            var textFieldIds = new List<int>();
+            foreach (var _ in document.Pages[i].TextFields)
+            {
+                var tfId = nextObjectId++;
+                textFieldIds.Add(tfId);
+                allTextFieldObjectIds.Add(tfId);
+            }
+
+            pageTextFieldAnnotObjectIds[i] = textFieldIds;
+
+            var checkBoxIds = new List<int>();
+            foreach (var _ in document.Pages[i].CheckBoxAnnotations)
+            {
+                var cbId = nextObjectId++;
+                checkBoxIds.Add(cbId);
+                allCheckBoxObjectIds.Add(cbId);
+            }
+
+            pageCheckBoxAnnotObjectIds[i] = checkBoxIds;
             pageObjects.Add(pageObjectIds[i]);
         }
 
@@ -172,6 +289,19 @@ internal sealed class PdfWriter
                 static font => font,
                 font => fontObjects[font].ResourceName);
 
+            var pageEmbeddedFonts = page.Elements
+                .OfType<TextElement>()
+                .Where(static el => el.EmbeddedFont is not null)
+                .Select(static el => el.EmbeddedFont!)
+                .Distinct(ReferenceEqualityComparer.Instance)
+                .Cast<PdfEmbeddedFont>()
+                .ToList();
+
+            var pageEmbeddedFontResources = pageEmbeddedFonts.ToDictionary(
+                static ef => ef,
+                ef => embeddedFontObjects[ef].ResourceName,
+                (IEqualityComparer<PdfEmbeddedFont>)ReferenceEqualityComparer.Instance);
+
             var pageImages = page.Elements
                 .OfType<ImageElement>()
                 .Select(static image => image.CacheKey)
@@ -194,7 +324,8 @@ internal sealed class PdfWriter
                 static opacity => opacity,
                 opacity => opacityObjects[opacity].ResourceName);
 
-            var contentStream = PdfCanvasRenderer.RenderPage(page, pageFontResources, pageImageResources, pageOpacityResources);
+            var contentStream = PdfCanvasRenderer.RenderPage(
+                page, pageFontResources, pageImageResources, pageOpacityResources, pageEmbeddedFontResources);
             var contentBytes = Encoding.ASCII.GetBytes(contentStream);
 
             if (options.CompressContentStreams)
@@ -259,9 +390,129 @@ internal sealed class PdfWriter
                 objects.Add(new PdfIndirectObject(annotationObjectId, annotationObject));
             }
 
+            var pageComboIds = pageComboAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.ComboBoxAnnotations.Count; i++)
+            {
+                var combo = page.ComboBoxAnnotations[i];
+                var comboObjectId = pageComboIds[i];
+
+                var comboRect = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[{0} {1} {2} {3}]",
+                    FormatNumber(combo.X),
+                    FormatNumber(combo.Y),
+                    FormatNumber(combo.X + combo.Width),
+                    FormatNumber(combo.Y + combo.Height));
+
+                var optArray = string.Join(" ", combo.Options.Select(o => $"({EscapeLiteralString(o)})"));
+                var selectedVal = combo.SelectedValue is { Length: > 0 } sv
+                    ? sv
+                    : (combo.Options.Count > 0 ? combo.Options[0] : string.Empty);
+
+                var widgetObject =
+                    $"<< /Type /Annot /Subtype /Widget /FT /Ch /Ff 131072 " +
+                    $"/T ({EscapeLiteralString(combo.FieldName)}) " +
+                    $"/V ({EscapeLiteralString(selectedVal)}) " +
+                    $"/Opt [{optArray}] " +
+                    $"/Rect {comboRect} " +
+                    $"/P {pageObjectId} 0 R " +
+                    $"/DA (/Helv {FormatNumber(combo.FontSize)} Tf 0 g) " +
+                    $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
+                    $"/MK << /BC [0 0 0] /BG [1 1 1] >> " +
+                    $"/BS << /W 1 /S /S >> >>\n";
+
+                objects.Add(new PdfIndirectObject(comboObjectId, widgetObject));
+            }
+
+            var pageMultilineIds = pageMultilineAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.MultilineTextFields.Count; i++)
+            {
+                var ml = page.MultilineTextFields[i];
+                var mlObjectId = pageMultilineIds[i];
+
+                var mlRect = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[{0} {1} {2} {3}]",
+                    FormatNumber(ml.X),
+                    FormatNumber(ml.Y),
+                    FormatNumber(ml.X + ml.Width),
+                    FormatNumber(ml.Y + ml.Height));
+
+                var mlWidgetObject =
+                    $"<< /Type /Annot /Subtype /Widget /FT /Tx /Ff 4096 " +
+                    $"/T ({EscapeLiteralString(ml.FieldName)}) " +
+                    $"/V ({EscapeLiteralString(ml.DefaultValue)}) " +
+                    $"/Rect {mlRect} " +
+                    $"/P {pageObjectId} 0 R " +
+                    $"/DA (/Helv {FormatNumber(ml.FontSize)} Tf 0 g) " +
+                    $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
+                    $"/MK << /BC [0 0 0] /BG [1 1 1] >> " +
+                    $"/BS << /W 1 /S /S >> >>\n";
+
+                objects.Add(new PdfIndirectObject(mlObjectId, mlWidgetObject));
+            }
+
+            var pageTextFieldIds = pageTextFieldAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.TextFields.Count; i++)
+            {
+                var tf = page.TextFields[i];
+                var tfObjectId = pageTextFieldIds[i];
+
+                var tfRect = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[{0} {1} {2} {3}]",
+                    FormatNumber(tf.X),
+                    FormatNumber(tf.Y),
+                    FormatNumber(tf.X + tf.Width),
+                    FormatNumber(tf.Y + tf.Height));
+
+                var tfWidgetObject =
+                    $"<< /Type /Annot /Subtype /Widget /FT /Tx /Ff 0 " +
+                    $"/T ({EscapeLiteralString(tf.FieldName)}) " +
+                    $"/V ({EscapeLiteralString(tf.DefaultValue)}) " +
+                    $"/Rect {tfRect} " +
+                    $"/P {pageObjectId} 0 R " +
+                    $"/DA (/Helv {FormatNumber(tf.FontSize)} Tf 0 g) " +
+                    $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
+                    $"/MK << /BC [0 0 0] /BG [1 1 1] >> " +
+                    $"/BS << /W 1 /S /S >> >>\n";
+
+                objects.Add(new PdfIndirectObject(tfObjectId, tfWidgetObject));
+            }
+
+            var pageCheckBoxIds = pageCheckBoxAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.CheckBoxAnnotations.Count; i++)
+            {
+                var cb = page.CheckBoxAnnotations[i];
+                var cbObjectId = pageCheckBoxIds[i];
+
+                var cbRect = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "[{0} {1} {2} {3}]",
+                    FormatNumber(cb.X),
+                    FormatNumber(cb.Y),
+                    FormatNumber(cb.X + cb.Width),
+                    FormatNumber(cb.Y + cb.Height));
+
+                var cbValue = cb.IsChecked ? "/Yes" : "/Off";
+                var cbWidgetObject =
+                    $"<< /Type /Annot /Subtype /Widget /FT /Btn /Ff 0 " +
+                    $"/T ({EscapeLiteralString(cb.FieldName)}) " +
+                    $"/V {cbValue} /AS {cbValue} " +
+                    $"/Rect {cbRect} " +
+                    $"/P {pageObjectId} 0 R " +
+                    $"/DA (/Helv 0 Tf 0 g) " +
+                    $"/DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> " +
+                    $"/MK << /BC [0 0 0] /BG [1 1 1] /CA (8) >> " +
+                    $"/BS << /W 1 /S /S >> >>\n";
+
+                objects.Add(new PdfIndirectObject(cbObjectId, cbWidgetObject));
+            }
+
             var fontDictionary = string.Join(
                 " ",
-                pageFonts.Select(font => $"/{fontObjects[font].ResourceName} {fontObjects[font].ObjectId} 0 R"));
+                pageFonts.Select(font => $"/{fontObjects[font].ResourceName} {fontObjects[font].ObjectId} 0 R")
+                .Concat(pageEmbeddedFonts.Select(ef => $"/{embeddedFontObjects[ef].ResourceName} {embeddedFontObjects[ef].Type0Id} 0 R")));
 
             var xObjectDictionary = string.Join(
                 " ",
@@ -273,8 +524,17 @@ internal sealed class PdfWriter
 
             var resourcesDictionary = BuildResourcesDictionary(fontDictionary, xObjectDictionary, extGStateDictionary);
 
+            var allAnnotIds = pageLinkAnnotationIds
+                .Concat(pageComboAnnotObjectIds[pageIndex])
+                .Concat(pageMultilineAnnotObjectIds[pageIndex])
+                .Concat(pageTextFieldAnnotObjectIds[pageIndex])
+                .Concat(pageCheckBoxAnnotObjectIds[pageIndex]);
             var annotsSegment = pageLinkAnnotationIds.Count > 0
-                ? $" /Annots [{string.Join(" ", pageLinkAnnotationIds.Select(id => $"{id} 0 R"))}]"
+                || pageComboAnnotObjectIds[pageIndex].Count > 0
+                || pageMultilineAnnotObjectIds[pageIndex].Count > 0
+                || pageTextFieldAnnotObjectIds[pageIndex].Count > 0
+                || pageCheckBoxAnnotObjectIds[pageIndex].Count > 0
+                ? $" /Annots [{string.Join(" ", allAnnotIds.Select(id => $"{id} 0 R"))}]"
                 : string.Empty;
 
             var rotateSegment = page.RotationDegrees != 0 ? $" /Rotate {page.RotationDegrees}" : string.Empty;
@@ -392,14 +652,27 @@ internal sealed class PdfWriter
                 $"<< /Type /Outlines /First {firstBookmark} 0 R /Last {lastBookmark} 0 R /Count {rootChildren.Count} >>\n"));
         }
 
+        if (acroFormHelvFontObjectId is { } helvFontId)
+        {
+            objects.Add(new PdfIndirectObject(helvFontId,
+                "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>\n"));
+        }
+
         var viewerPreferences = BuildViewerPreferences(document.ViewerPreferences);
         var pageMode = BuildPageMode(document.ViewerPreferences.PageMode);
         var pageLayout = BuildPageLayout(document.ViewerPreferences.PageLayout);
 
+        var allAcroFieldIds = allComboFieldObjectIds.Concat(allMultilineFieldObjectIds).Concat(allTextFieldObjectIds).Concat(allCheckBoxObjectIds).ToList();
+        var acroFormSegment = allAcroFieldIds.Count > 0
+            ? $" /AcroForm << /Fields [{string.Join(" ", allAcroFieldIds.Select(id => $"{id} 0 R"))}]" +
+              $" /DA (/Helv 0 Tf 0 g)" +
+              $" /DR << /Font << /Helv {acroFormHelvFontObjectId!.Value} 0 R >> >> >>"
+            : string.Empty;
+
         var openAction = BuildOpenAction(document, pageObjectIds);
         var catalogObject = outlinesRootObjectId is { } outlinesRootId
-            ? $"<< /Type /Catalog /Pages {pagesObjectId} 0 R /Outlines {outlinesRootId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction} >>\n"
-            : $"<< /Type /Catalog /Pages {pagesObjectId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction} >>\n";
+            ? $"<< /Type /Catalog /Pages {pagesObjectId} 0 R /Outlines {outlinesRootId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment} >>\n"
+            : $"<< /Type /Catalog /Pages {pagesObjectId} 0 R{pageMode}{pageLayout}{viewerPreferences}{openAction}{acroFormSegment} >>\n";
 
         objects.Add(new PdfIndirectObject(catalogObjectId, catalogObject));
 
@@ -408,7 +681,17 @@ internal sealed class PdfWriter
             objects.Add(new PdfIndirectObject(actualInfoObjectId, BuildInfoObject(document.Info)));
         }
 
-        var bytes = Serialize(objects, catalogObjectId, infoObjectId);
+        Security.StandardSecurityHandler? security = null;
+        int? encryptObjectId = null;
+        if (options.Encryption is { } encryptionOptions)
+        {
+            var documentId = Security.StandardSecurityHandler.GenerateDocumentId(document);
+            security = Security.StandardSecurityHandler.Create(encryptionOptions, documentId);
+            encryptObjectId = objects.Max(static o => o.Id) + 1;
+            objects.Add(new PdfIndirectObject(encryptObjectId.Value, security.BuildEncryptDictionary()));
+        }
+
+        var bytes = Serialize(objects, catalogObjectId, infoObjectId, security, encryptObjectId);
         var webLinkCount = document.Pages
             .SelectMany(static page => page.LinkAnnotations)
             .Count(static link => link.Url is { Length: > 0 });
@@ -657,7 +940,12 @@ internal sealed class PdfWriter
         return $" /OpenAction [{pageObjectId} 0 R /Fit]";
     }
 
-    private static byte[] Serialize(List<PdfIndirectObject> objects, int rootObjectId, int? infoObjectId)
+    private static byte[] Serialize(
+        List<PdfIndirectObject> objects,
+        int rootObjectId,
+        int? infoObjectId,
+        Security.StandardSecurityHandler? security = null,
+        int? encryptObjectId = null)
     {
         objects.Sort(static (x, y) => x.Id.CompareTo(y.Id));
 
@@ -677,10 +965,15 @@ internal sealed class PdfWriter
         {
             offsets[obj.Id] = stream.Position;
 
-            WriteAscii(stream, $"{obj.Id} 0 obj\n");
-            stream.Write(obj.ContentBytes, 0, obj.ContentBytes.Length);
+            // Encrypt every object except the /Encrypt dictionary itself.
+            var contentBytes = security is not null && obj.Id != encryptObjectId
+                ? security.EncryptObjectBody(obj.Id, 0, obj.ContentBytes)
+                : obj.ContentBytes;
 
-            if (obj.ContentBytes.Length == 0 || obj.ContentBytes[^1] != (byte)'\n')
+            WriteAscii(stream, $"{obj.Id} 0 obj\n");
+            stream.Write(contentBytes, 0, contentBytes.Length);
+
+            if (contentBytes.Length == 0 || contentBytes[^1] != (byte)'\n')
             {
                 WriteAscii(stream, "\n");
             }
@@ -709,13 +1002,20 @@ internal sealed class PdfWriter
 
         WriteAscii(stream, "trailer\n");
 
-        if (infoObjectId is { } actualInfoObjectId)
+        var infoSegment = infoObjectId is { } actualInfoObjectId
+            ? $" /Info {actualInfoObjectId} 0 R"
+            : string.Empty;
+
+        if (security is not null && encryptObjectId is { } encryptId)
         {
-            WriteAscii(stream, $"<< /Size {maxObjectId + 1} /Root {rootObjectId} 0 R /Info {actualInfoObjectId} 0 R >>\n");
+            // /ID is required for encrypted documents (its first element feeds key derivation).
+            var idHex = Convert.ToHexString(security.DocumentId);
+            WriteAscii(stream,
+                $"<< /Size {maxObjectId + 1} /Root {rootObjectId} 0 R{infoSegment} /Encrypt {encryptId} 0 R /ID [<{idHex}> <{idHex}>] >>\n");
         }
         else
         {
-            WriteAscii(stream, $"<< /Size {maxObjectId + 1} /Root {rootObjectId} 0 R >>\n");
+            WriteAscii(stream, $"<< /Size {maxObjectId + 1} /Root {rootObjectId} 0 R{infoSegment} >>\n");
         }
 
         WriteAscii(stream, "startxref\n");
@@ -943,4 +1243,70 @@ internal sealed class PdfWriter
 
         return destination.ToArray();
     }
+
+    private static byte[] BuildFontStreamObject(byte[] compressedFontData, int originalLength)
+    {
+        using var memory = new MemoryStream();
+        var header = $"<< /Length {compressedFontData.Length} /Length1 {originalLength} /Filter /FlateDecode >>\nstream\n";
+        memory.Write(Encoding.ASCII.GetBytes(header));
+        memory.Write(compressedFontData);
+        memory.Write(Encoding.ASCII.GetBytes("\nendstream\n"));
+        return memory.ToArray();
+    }
+
+    private static string BuildToUnicodeCMap(IReadOnlyList<int> codePoints)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("/CIDInit /ProcSet findresource begin");
+        sb.AppendLine("12 dict begin");
+        sb.AppendLine("begincmap");
+        sb.AppendLine("/CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >> def");
+        sb.AppendLine("/CMapName /Adobe-Identity-H def");
+        sb.AppendLine("/CMapType 1 def");
+        sb.AppendLine("1 begincodespacerange");
+        sb.AppendLine("<0000> <FFFF>");
+        sb.AppendLine("endcodespacerange");
+
+        const int chunkSize = 100;
+        for (var i = 0; i < codePoints.Count; i += chunkSize)
+        {
+            var chunk = codePoints.Skip(i).Take(chunkSize).ToList();
+            sb.AppendLine($"{chunk.Count} beginbfchar");
+            foreach (var cp in chunk)
+            {
+                var cidHex = cp.ToString("X4", CultureInfo.InvariantCulture);
+                var unicodeHex = cp.ToString("X4", CultureInfo.InvariantCulture);
+                sb.AppendLine($"<{cidHex}> <{unicodeHex}>");
+            }
+            sb.AppendLine("endbfchar");
+        }
+
+        sb.AppendLine("endcmap");
+        sb.AppendLine("CMapName currentdict /CMap defineresource pop");
+        sb.AppendLine("end");
+        sb.AppendLine("end");
+        return sb.ToString();
+    }
+
+    private static string BuildCidFontWidthsArray(PdfEmbeddedFont font, IReadOnlyList<int> codePoints)
+    {
+        if (codePoints.Count == 0) return "[]";
+
+        var sb = new StringBuilder("[");
+        foreach (var cp in codePoints)
+        {
+            var w = font.GetPdfAdvanceWidth(cp);
+            sb.Append(CultureInfo.InvariantCulture, $"{cp} [{w}] ");
+        }
+        sb.Append(']');
+        return sb.ToString();
+    }
+
+    private sealed record EmbeddedFontIds(
+        string ResourceName,
+        int FontStreamId,
+        int DescriptorId,
+        int ToUnicodeId,
+        int CidFontId,
+        int Type0Id);
 }

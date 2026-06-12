@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 3,
   "targets": {
     "net10.0": {
       "BCrypt.Net-Next/4.0.3": {
@@ -807,19 +807,6 @@
           "build/_._": {}
         }
       },
-      "PdfToSvg.NET/1.8.0": {
-        "type": "package",
-        "compile": {
-          "lib/net8.0/PdfToSvg.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net8.0/PdfToSvg.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "QRCoder/1.6.0": {
         "type": "package",
         "compile": {
@@ -1045,94 +1032,20 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
-      "UglyToad.PdfPig/1.7.0-custom-5": {
+      "Tesseract/5.2.0": {
         "type": "package",
-        "dependencies": {
-          "UglyToad.PdfPig.Core": "1.7.0-custom-5",
-          "UglyToad.PdfPig.Fonts": "1.7.0-custom-5",
-          "UglyToad.PdfPig.Tokenization": "1.7.0-custom-5",
-          "UglyToad.PdfPig.Tokens": "1.7.0-custom-5"
-        },
         "compile": {
-          "lib/net6.0/UglyToad.PdfPig.dll": {
+          "lib/netstandard2.0/Tesseract.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/UglyToad.PdfPig.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "UglyToad.PdfPig.Core/1.7.0-custom-5": {
-        "type": "package",
-        "compile": {
-          "lib/net6.0/UglyToad.PdfPig.Core.dll": {
+          "lib/netstandard2.0/Tesseract.dll": {
             "related": ".xml"
           }
         },
-        "runtime": {
-          "lib/net6.0/UglyToad.PdfPig.Core.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "UglyToad.PdfPig.Fonts/1.7.0-custom-5": {
-        "type": "package",
-        "dependencies": {
-          "UglyToad.PdfPig.Core": "1.7.0-custom-5",
-          "UglyToad.PdfPig.Tokenization": "1.7.0-custom-5",
-          "UglyToad.PdfPig.Tokens": "1.7.0-custom-5"
-        },
-        "compile": {
-          "lib/net6.0/UglyToad.PdfPig.Fonts.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net6.0/UglyToad.PdfPig.Fonts.dll": {
-            "related": ".xml"
-          }
-        },
-        "contentFiles": {
-          "contentFiles/any/any/_._": {
-            "buildAction": "None",
-            "codeLanguage": "any",
-            "copyToOutput": false
-          }
-        }
-      },
-      "UglyToad.PdfPig.Tokenization/1.7.0-custom-5": {
-        "type": "package",
-        "dependencies": {
-          "UglyToad.PdfPig.Core": "1.7.0-custom-5",
-          "UglyToad.PdfPig.Tokens": "1.7.0-custom-5"
-        },
-        "compile": {
-          "lib/net6.0/UglyToad.PdfPig.Tokenization.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net6.0/UglyToad.PdfPig.Tokenization.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "UglyToad.PdfPig.Tokens/1.7.0-custom-5": {
-        "type": "package",
-        "dependencies": {
-          "UglyToad.PdfPig.Core": "1.7.0-custom-5"
-        },
-        "compile": {
-          "lib/net6.0/UglyToad.PdfPig.Tokens.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/net6.0/UglyToad.PdfPig.Tokens.dll": {
-            "related": ".xml"
-          }
+        "build": {
+          "build/_._": {}
         }
       },
       "xunit/2.9.3": {
@@ -1310,6 +1223,151 @@
           "bin/placeholder/Canvas.Domain.dll": {}
         }
       },
+      "Canvas.FileImporter.Abstractions/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Abstractions.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Abstractions.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Doc/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Doc.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Doc.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Docx/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0",
+          "DocumentFormat.OpenXml": "3.5.1"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Docx.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Docx.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Image/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0",
+          "SkiaSharp": "3.119.2"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Image.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Image.dll": {}
+        }
+      },
+      "Canvas.FileImporter.ImageAnalysis/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0",
+          "SkiaSharp": "3.119.2"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.ImageAnalysis.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.ImageAnalysis.dll": {}
+        }
+      },
+      "Canvas.FileImporter.ImageOcr/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "SkiaSharp": "3.119.2",
+          "Tesseract": "5.2.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.ImageOcr.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.ImageOcr.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Odt/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Odt.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Odt.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Pdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0",
+          "Canvas.Importer": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Pdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Pdf.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Pptx/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0",
+          "DocumentFormat.OpenXml": "3.5.1"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Pptx.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Pptx.dll": {}
+        }
+      },
+      "Canvas.FileImporter.Svg/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.FileImporter.Svg.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.FileImporter.Svg.dll": {}
+        }
+      },
       "Canvas.Importer/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
@@ -1329,11 +1387,8 @@
         "dependencies": {
           "Canvas.Application": "1.0.0",
           "Canvas.Core": "1.0.0",
-          "Canvas.Importer": "1.0.0",
           "NPOI": "2.8.0",
-          "PdfToSvg.NET": "1.8.0",
-          "SkiaSharp": "3.119.2",
-          "UglyToad.PdfPig": "1.7.0-custom-5"
+          "SkiaSharp": "3.119.2"
         },
         "compile": {
           "bin/placeholder/Canvas.Infrastructure.Converters.dll": {}
@@ -1377,13 +1432,279 @@
           "Canvas.Application": "1.0.0",
           "Canvas.Core": "1.0.0",
           "DocumentFormat.OpenXml": "3.5.1",
-          "System.Security.Cryptography.Xml": "10.0.8"
+          "QRCoder": "1.6.0",
+          "System.Security.Cryptography.Xml": "10.0.8",
+          "ZXing.Net": "0.16.9"
         },
         "compile": {
           "bin/placeholder/Canvas.Infrastructure.Word.dll": {}
         },
         "runtime": {
           "bin/placeholder/Canvas.Infrastructure.Word.dll": {}
+        }
+      },
+      "Canvas.Migration.Abstractions/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/Canvas.Migration.Abstractions.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.Abstractions.dll": {}
+        }
+      },
+      "Canvas.Migration.ActivePdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.ActivePdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.ActivePdf.dll": {}
+        }
+      },
+      "Canvas.Migration.Apryse/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.Apryse.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.Apryse.dll": {}
+        }
+      },
+      "Canvas.Migration.AsposePdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.AsposePdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.AsposePdf.dll": {}
+        }
+      },
+      "Canvas.Migration.DevExpressPdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.DevExpressPdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.DevExpressPdf.dll": {}
+        }
+      },
+      "Canvas.Migration.DevExpressReport/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.DevExpressReport.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.DevExpressReport.dll": {}
+        }
+      },
+      "Canvas.Migration.DsPdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.DsPdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.DsPdf.dll": {}
+        }
+      },
+      "Canvas.Migration.FoxitPdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.FoxitPdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.FoxitPdf.dll": {}
+        }
+      },
+      "Canvas.Migration.GemBoxPdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.GemBoxPdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.GemBoxPdf.dll": {}
+        }
+      },
+      "Canvas.Migration.IronPdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.IronPdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.IronPdf.dll": {}
+        }
+      },
+      "Canvas.Migration.iText7/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.iText7.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.iText7.dll": {}
+        }
+      },
+      "Canvas.Migration.LeadtoolsPdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.LeadtoolsPdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.LeadtoolsPdf.dll": {}
+        }
+      },
+      "Canvas.Migration.PdfKitNet/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.PdfKitNet.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.PdfKitNet.dll": {}
+        }
+      },
+      "Canvas.Migration.PdfTools/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.PdfTools.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.PdfTools.dll": {}
+        }
+      },
+      "Canvas.Migration.PdfToolsToolbox/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.PdfToolsToolbox.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.PdfToolsToolbox.dll": {}
+        }
+      },
+      "Canvas.Migration.Roslyn/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.Roslyn.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.Roslyn.dll": {}
+        }
+      },
+      "Canvas.Migration.SpirePdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.SpirePdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.SpirePdf.dll": {}
+        }
+      },
+      "Canvas.Migration.SyncfusionPdf/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Canvas.Migration.Roslyn": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.0.0"
+        },
+        "compile": {
+          "bin/placeholder/Canvas.Migration.SyncfusionPdf.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Canvas.Migration.SyncfusionPdf.dll": {}
         }
       },
       "Canvas.WebApi/1.0.0": {
@@ -1393,13 +1714,40 @@
           "Canvas.Application": "1.0.0",
           "Canvas.Core": "1.0.0",
           "Canvas.Domain": "1.0.0",
+          "Canvas.FileImporter.Abstractions": "1.0.0",
+          "Canvas.FileImporter.Doc": "1.0.0",
+          "Canvas.FileImporter.Docx": "1.0.0",
+          "Canvas.FileImporter.Image": "1.0.0",
+          "Canvas.FileImporter.ImageAnalysis": "1.0.0",
+          "Canvas.FileImporter.ImageOcr": "1.0.0",
+          "Canvas.FileImporter.Odt": "1.0.0",
+          "Canvas.FileImporter.Pdf": "1.0.0",
+          "Canvas.FileImporter.Pptx": "1.0.0",
+          "Canvas.FileImporter.Svg": "1.0.0",
           "Canvas.Infrastructure.Converters": "1.0.0",
           "Canvas.Infrastructure.Pdf": "1.0.0",
           "Canvas.Infrastructure.Sheet": "1.0.0",
           "Canvas.Infrastructure.Word": "1.0.0",
+          "Canvas.Migration.ActivePdf": "1.0.0",
+          "Canvas.Migration.Apryse": "1.0.0",
+          "Canvas.Migration.AsposePdf": "1.0.0",
+          "Canvas.Migration.DevExpressPdf": "1.0.0",
+          "Canvas.Migration.DevExpressReport": "1.0.0",
+          "Canvas.Migration.DsPdf": "1.0.0",
+          "Canvas.Migration.FoxitPdf": "1.0.0",
+          "Canvas.Migration.GemBoxPdf": "1.0.0",
+          "Canvas.Migration.IronPdf": "1.0.0",
+          "Canvas.Migration.LeadtoolsPdf": "1.0.0",
+          "Canvas.Migration.PdfKitNet": "1.0.0",
+          "Canvas.Migration.PdfTools": "1.0.0",
+          "Canvas.Migration.PdfToolsToolbox": "1.0.0",
+          "Canvas.Migration.SpirePdf": "1.0.0",
+          "Canvas.Migration.SyncfusionPdf": "1.0.0",
+          "Canvas.Migration.iText7": "1.0.0",
           "Microsoft.AspNetCore.OpenApi": "10.0.5",
           "Microsoft.CodeAnalysis.CSharp.Scripting": "5.3.0",
           "QRCoder": "1.6.0",
+          "SkiaSharp": "3.119.2",
           "ZXing.Net": "0.16.9"
         },
         "compile": {
@@ -2698,32 +3046,6 @@
         "npoi.nuspec"
       ]
     },
-    "PdfToSvg.NET/1.8.0": {
-      "sha512": "7nvR/vN/7zoQUjBOMT/gtpoxMC4K2QSSziWWWUw9GyRcJ80Kfnf+uXcwJSSvvKZ/sF6Z8LSgislOQD39pCLguw==",
-      "type": "package",
-      "path": "pdftosvg.net/1.8.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "LICENSE",
-        "PdfToSvg.logo.png",
-        "README.md",
-        "lib/net40/PdfToSvg.dll",
-        "lib/net40/PdfToSvg.xml",
-        "lib/net45/PdfToSvg.dll",
-        "lib/net45/PdfToSvg.xml",
-        "lib/net5.0/PdfToSvg.dll",
-        "lib/net5.0/PdfToSvg.xml",
-        "lib/net8.0/PdfToSvg.dll",
-        "lib/net8.0/PdfToSvg.xml",
-        "lib/netstandard1.6/PdfToSvg.dll",
-        "lib/netstandard1.6/PdfToSvg.xml",
-        "lib/netstandard2.0/PdfToSvg.dll",
-        "lib/netstandard2.0/PdfToSvg.xml",
-        "pdftosvg.net.1.8.0.nupkg.sha512",
-        "pdftosvg.net.nuspec"
-      ]
-    },
     "QRCoder/1.6.0": {
       "sha512": "XmPA81eo+oRxBuyVdswsSkTGTE1d3thfF11Z1PdD7oB56A6HU4G4AAOdySmGRMb/cljwlFTMWUtosGEnwpS6GA==",
       "type": "package",
@@ -3034,148 +3356,24 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "UglyToad.PdfPig/1.7.0-custom-5": {
-      "sha512": "mddnoBg+XV5YZJg+lp/LlXQ9NY9/oV/MoNjLbbLHw0uTymfyuinVePQB4ff/ELRv3s6n0G7h8q3Ycb3KYg+hgQ==",
+    "Tesseract/5.2.0": {
+      "sha512": "YB7feJlrTWSXtK8+WaCcseGSPK/1r2d2FWeKGyndlrPwYClrzTlCoHD4/oQEUjKafmpkWlhTZZ7pxiRJYZgj6w==",
       "type": "package",
-      "path": "uglytoad.pdfpig/1.7.0-custom-5",
+      "path": "tesseract/5.2.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "lib/net451/UglyToad.PdfPig.dll",
-        "lib/net451/UglyToad.PdfPig.xml",
-        "lib/net452/UglyToad.PdfPig.dll",
-        "lib/net452/UglyToad.PdfPig.xml",
-        "lib/net46/UglyToad.PdfPig.dll",
-        "lib/net46/UglyToad.PdfPig.xml",
-        "lib/net461/UglyToad.PdfPig.dll",
-        "lib/net461/UglyToad.PdfPig.xml",
-        "lib/net462/UglyToad.PdfPig.dll",
-        "lib/net462/UglyToad.PdfPig.xml",
-        "lib/net47/UglyToad.PdfPig.dll",
-        "lib/net47/UglyToad.PdfPig.xml",
-        "lib/net6.0/UglyToad.PdfPig.dll",
-        "lib/net6.0/UglyToad.PdfPig.xml",
-        "lib/netstandard2.0/UglyToad.PdfPig.dll",
-        "lib/netstandard2.0/UglyToad.PdfPig.xml",
-        "uglytoad.pdfpig.1.7.0-custom-5.nupkg.sha512",
-        "uglytoad.pdfpig.nuspec"
-      ]
-    },
-    "UglyToad.PdfPig.Core/1.7.0-custom-5": {
-      "sha512": "bChQUAYApM6/vgBis0+fBTZyAVqjXdqshjZDCgI3dgwUplfLJxXRrnkCOdNj0a6JNcF32R4aLpnGpTc9QmmVmg==",
-      "type": "package",
-      "path": "uglytoad.pdfpig.core/1.7.0-custom-5",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "lib/net451/UglyToad.PdfPig.Core.dll",
-        "lib/net451/UglyToad.PdfPig.Core.xml",
-        "lib/net452/UglyToad.PdfPig.Core.dll",
-        "lib/net452/UglyToad.PdfPig.Core.xml",
-        "lib/net46/UglyToad.PdfPig.Core.dll",
-        "lib/net46/UglyToad.PdfPig.Core.xml",
-        "lib/net461/UglyToad.PdfPig.Core.dll",
-        "lib/net461/UglyToad.PdfPig.Core.xml",
-        "lib/net462/UglyToad.PdfPig.Core.dll",
-        "lib/net462/UglyToad.PdfPig.Core.xml",
-        "lib/net47/UglyToad.PdfPig.Core.dll",
-        "lib/net47/UglyToad.PdfPig.Core.xml",
-        "lib/net6.0/UglyToad.PdfPig.Core.dll",
-        "lib/net6.0/UglyToad.PdfPig.Core.xml",
-        "lib/netstandard2.0/UglyToad.PdfPig.Core.dll",
-        "lib/netstandard2.0/UglyToad.PdfPig.Core.xml",
-        "uglytoad.pdfpig.core.1.7.0-custom-5.nupkg.sha512",
-        "uglytoad.pdfpig.core.nuspec"
-      ]
-    },
-    "UglyToad.PdfPig.Fonts/1.7.0-custom-5": {
-      "sha512": "Z6SBBAIL8wRkJNhXGYaz0CrHnNrNeuNtmwRbBtQUA1b3TDhRQppOmHCIuhjb6Vu/Rirp6FIOtzAU1lXsGik90w==",
-      "type": "package",
-      "path": "uglytoad.pdfpig.fonts/1.7.0-custom-5",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "content/Resources/AdobeFontMetrics/MustRead.html",
-        "contentFiles/any/net451/Resources/AdobeFontMetrics/MustRead.html",
-        "contentFiles/any/net452/Resources/AdobeFontMetrics/MustRead.html",
-        "contentFiles/any/net46/Resources/AdobeFontMetrics/MustRead.html",
-        "contentFiles/any/net461/Resources/AdobeFontMetrics/MustRead.html",
-        "contentFiles/any/net462/Resources/AdobeFontMetrics/MustRead.html",
-        "contentFiles/any/net47/Resources/AdobeFontMetrics/MustRead.html",
-        "contentFiles/any/net6.0/Resources/AdobeFontMetrics/MustRead.html",
-        "contentFiles/any/netstandard2.0/Resources/AdobeFontMetrics/MustRead.html",
-        "lib/net451/UglyToad.PdfPig.Fonts.dll",
-        "lib/net451/UglyToad.PdfPig.Fonts.xml",
-        "lib/net452/UglyToad.PdfPig.Fonts.dll",
-        "lib/net452/UglyToad.PdfPig.Fonts.xml",
-        "lib/net46/UglyToad.PdfPig.Fonts.dll",
-        "lib/net46/UglyToad.PdfPig.Fonts.xml",
-        "lib/net461/UglyToad.PdfPig.Fonts.dll",
-        "lib/net461/UglyToad.PdfPig.Fonts.xml",
-        "lib/net462/UglyToad.PdfPig.Fonts.dll",
-        "lib/net462/UglyToad.PdfPig.Fonts.xml",
-        "lib/net47/UglyToad.PdfPig.Fonts.dll",
-        "lib/net47/UglyToad.PdfPig.Fonts.xml",
-        "lib/net6.0/UglyToad.PdfPig.Fonts.dll",
-        "lib/net6.0/UglyToad.PdfPig.Fonts.xml",
-        "lib/netstandard2.0/UglyToad.PdfPig.Fonts.dll",
-        "lib/netstandard2.0/UglyToad.PdfPig.Fonts.xml",
-        "uglytoad.pdfpig.fonts.1.7.0-custom-5.nupkg.sha512",
-        "uglytoad.pdfpig.fonts.nuspec"
-      ]
-    },
-    "UglyToad.PdfPig.Tokenization/1.7.0-custom-5": {
-      "sha512": "U8VVH7VJjv6czP7qWyzDq6CRaiJQe7/sESUCL8H3kiEa3zi0l9TonIKlD/YidQ5DlgTumracii6zjLyKPEFKwA==",
-      "type": "package",
-      "path": "uglytoad.pdfpig.tokenization/1.7.0-custom-5",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "lib/net451/UglyToad.PdfPig.Tokenization.dll",
-        "lib/net451/UglyToad.PdfPig.Tokenization.xml",
-        "lib/net452/UglyToad.PdfPig.Tokenization.dll",
-        "lib/net452/UglyToad.PdfPig.Tokenization.xml",
-        "lib/net46/UglyToad.PdfPig.Tokenization.dll",
-        "lib/net46/UglyToad.PdfPig.Tokenization.xml",
-        "lib/net461/UglyToad.PdfPig.Tokenization.dll",
-        "lib/net461/UglyToad.PdfPig.Tokenization.xml",
-        "lib/net462/UglyToad.PdfPig.Tokenization.dll",
-        "lib/net462/UglyToad.PdfPig.Tokenization.xml",
-        "lib/net47/UglyToad.PdfPig.Tokenization.dll",
-        "lib/net47/UglyToad.PdfPig.Tokenization.xml",
-        "lib/net6.0/UglyToad.PdfPig.Tokenization.dll",
-        "lib/net6.0/UglyToad.PdfPig.Tokenization.xml",
-        "lib/netstandard2.0/UglyToad.PdfPig.Tokenization.dll",
-        "lib/netstandard2.0/UglyToad.PdfPig.Tokenization.xml",
-        "uglytoad.pdfpig.tokenization.1.7.0-custom-5.nupkg.sha512",
-        "uglytoad.pdfpig.tokenization.nuspec"
-      ]
-    },
-    "UglyToad.PdfPig.Tokens/1.7.0-custom-5": {
-      "sha512": "m/j5RVfL4eF/OwX6ASprzK+yzD3l7xdgQ7zQPgENhjxfuXD+hj6FSeZlmxSTt9ywvWcTCjGKAILl9XTK9iQgCQ==",
-      "type": "package",
-      "path": "uglytoad.pdfpig.tokens/1.7.0-custom-5",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "lib/net451/UglyToad.PdfPig.Tokens.dll",
-        "lib/net451/UglyToad.PdfPig.Tokens.xml",
-        "lib/net452/UglyToad.PdfPig.Tokens.dll",
-        "lib/net452/UglyToad.PdfPig.Tokens.xml",
-        "lib/net46/UglyToad.PdfPig.Tokens.dll",
-        "lib/net46/UglyToad.PdfPig.Tokens.xml",
-        "lib/net461/UglyToad.PdfPig.Tokens.dll",
-        "lib/net461/UglyToad.PdfPig.Tokens.xml",
-        "lib/net462/UglyToad.PdfPig.Tokens.dll",
-        "lib/net462/UglyToad.PdfPig.Tokens.xml",
-        "lib/net47/UglyToad.PdfPig.Tokens.dll",
-        "lib/net47/UglyToad.PdfPig.Tokens.xml",
-        "lib/net6.0/UglyToad.PdfPig.Tokens.dll",
-        "lib/net6.0/UglyToad.PdfPig.Tokens.xml",
-        "lib/netstandard2.0/UglyToad.PdfPig.Tokens.dll",
-        "lib/netstandard2.0/UglyToad.PdfPig.Tokens.xml",
-        "uglytoad.pdfpig.tokens.1.7.0-custom-5.nupkg.sha512",
-        "uglytoad.pdfpig.tokens.nuspec"
+        "build/Tesseract.targets",
+        "lib/net47/Tesseract.dll",
+        "lib/net48/Tesseract.dll",
+        "lib/netstandard2.0/Tesseract.dll",
+        "lib/netstandard2.0/Tesseract.xml",
+        "tesseract.5.2.0.nupkg.sha512",
+        "tesseract.nuspec",
+        "x64/leptonica-1.82.0.dll",
+        "x64/tesseract50.dll",
+        "x86/leptonica-1.82.0.dll",
+        "x86/tesseract50.dll"
       ]
     },
     "xunit/2.9.3": {
@@ -3441,6 +3639,56 @@
       "path": "../../Canvas.Domain/Canvas.Domain.csproj",
       "msbuildProject": "../../Canvas.Domain/Canvas.Domain.csproj"
     },
+    "Canvas.FileImporter.Abstractions/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Abstractions/Canvas.FileImporter.Abstractions.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Abstractions/Canvas.FileImporter.Abstractions.csproj"
+    },
+    "Canvas.FileImporter.Doc/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Doc/Canvas.FileImporter.Doc.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Doc/Canvas.FileImporter.Doc.csproj"
+    },
+    "Canvas.FileImporter.Docx/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Docx/Canvas.FileImporter.Docx.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Docx/Canvas.FileImporter.Docx.csproj"
+    },
+    "Canvas.FileImporter.Image/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj"
+    },
+    "Canvas.FileImporter.ImageAnalysis/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.ImageAnalysis/Canvas.FileImporter.ImageAnalysis.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.ImageAnalysis/Canvas.FileImporter.ImageAnalysis.csproj"
+    },
+    "Canvas.FileImporter.ImageOcr/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.ImageOcr/Canvas.FileImporter.ImageOcr.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.ImageOcr/Canvas.FileImporter.ImageOcr.csproj"
+    },
+    "Canvas.FileImporter.Odt/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Odt/Canvas.FileImporter.Odt.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Odt/Canvas.FileImporter.Odt.csproj"
+    },
+    "Canvas.FileImporter.Pdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Pdf/Canvas.FileImporter.Pdf.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Pdf/Canvas.FileImporter.Pdf.csproj"
+    },
+    "Canvas.FileImporter.Pptx/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Pptx/Canvas.FileImporter.Pptx.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Pptx/Canvas.FileImporter.Pptx.csproj"
+    },
+    "Canvas.FileImporter.Svg/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj",
+      "msbuildProject": "../../src/Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj"
+    },
     "Canvas.Importer/1.0.0": {
       "type": "project",
       "path": "../../src/Canvas.Importer/Canvas.Importer.csproj",
@@ -3465,6 +3713,96 @@
       "type": "project",
       "path": "../../src/Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj",
       "msbuildProject": "../../src/Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj"
+    },
+    "Canvas.Migration.Abstractions/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.Abstractions/Canvas.Migration.Abstractions.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.Abstractions/Canvas.Migration.Abstractions.csproj"
+    },
+    "Canvas.Migration.ActivePdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.ActivePdf/Canvas.Migration.ActivePdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.ActivePdf/Canvas.Migration.ActivePdf.csproj"
+    },
+    "Canvas.Migration.Apryse/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.Apryse/Canvas.Migration.Apryse.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.Apryse/Canvas.Migration.Apryse.csproj"
+    },
+    "Canvas.Migration.AsposePdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.AsposePdf/Canvas.Migration.AsposePdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.AsposePdf/Canvas.Migration.AsposePdf.csproj"
+    },
+    "Canvas.Migration.DevExpressPdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.DevExpressPdf/Canvas.Migration.DevExpressPdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.DevExpressPdf/Canvas.Migration.DevExpressPdf.csproj"
+    },
+    "Canvas.Migration.DevExpressReport/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.DevExpressReport/Canvas.Migration.DevExpressReport.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.DevExpressReport/Canvas.Migration.DevExpressReport.csproj"
+    },
+    "Canvas.Migration.DsPdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.DsPdf/Canvas.Migration.DsPdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.DsPdf/Canvas.Migration.DsPdf.csproj"
+    },
+    "Canvas.Migration.FoxitPdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.FoxitPdf/Canvas.Migration.FoxitPdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.FoxitPdf/Canvas.Migration.FoxitPdf.csproj"
+    },
+    "Canvas.Migration.GemBoxPdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.GemBoxPdf/Canvas.Migration.GemBoxPdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.GemBoxPdf/Canvas.Migration.GemBoxPdf.csproj"
+    },
+    "Canvas.Migration.IronPdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.IronPdf/Canvas.Migration.IronPdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.IronPdf/Canvas.Migration.IronPdf.csproj"
+    },
+    "Canvas.Migration.iText7/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.iText7/Canvas.Migration.iText7.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.iText7/Canvas.Migration.iText7.csproj"
+    },
+    "Canvas.Migration.LeadtoolsPdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.LeadtoolsPdf/Canvas.Migration.LeadtoolsPdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.LeadtoolsPdf/Canvas.Migration.LeadtoolsPdf.csproj"
+    },
+    "Canvas.Migration.PdfKitNet/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.PdfKitNet/Canvas.Migration.PdfKitNet.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.PdfKitNet/Canvas.Migration.PdfKitNet.csproj"
+    },
+    "Canvas.Migration.PdfTools/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.PdfTools/Canvas.Migration.PdfTools.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.PdfTools/Canvas.Migration.PdfTools.csproj"
+    },
+    "Canvas.Migration.PdfToolsToolbox/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.PdfToolsToolbox/Canvas.Migration.PdfToolsToolbox.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.PdfToolsToolbox/Canvas.Migration.PdfToolsToolbox.csproj"
+    },
+    "Canvas.Migration.Roslyn/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.Roslyn/Canvas.Migration.Roslyn.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.Roslyn/Canvas.Migration.Roslyn.csproj"
+    },
+    "Canvas.Migration.SpirePdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.SpirePdf/Canvas.Migration.SpirePdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.SpirePdf/Canvas.Migration.SpirePdf.csproj"
+    },
+    "Canvas.Migration.SyncfusionPdf/1.0.0": {
+      "type": "project",
+      "path": "../../src/Canvas.Migration.SyncfusionPdf/Canvas.Migration.SyncfusionPdf.csproj",
+      "msbuildProject": "../../src/Canvas.Migration.SyncfusionPdf/Canvas.Migration.SyncfusionPdf.csproj"
     },
     "Canvas.WebApi/1.0.0": {
       "type": "project",
@@ -3504,11 +3842,11 @@
         "net10.0"
       ],
       "sources": {
+        "/usr/local/Cellar/dotnet/10.0.105/libexec/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net10.0": {
-          "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {
             "/Users/mannheimer/Development/Codes/Canvas/Canvas.WebApi/Canvas.WebApi.csproj": {
@@ -3539,11 +3877,10 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.300"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
       "net10.0": {
-        "framework": "net10.0",
         "targetAlias": "net10.0",
         "dependencies": {
           "Microsoft.NET.Test.Sdk": {
@@ -3579,7 +3916,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.300/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "/usr/local/Cellar/dotnet/10.0.105/libexec/sdk/10.0.105/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",

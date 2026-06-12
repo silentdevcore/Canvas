@@ -1,4 +1,7 @@
 using System.IO.Compression;
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
 using Canvas.Core.Abstractions;
 using Canvas.Core.Contracts;
 using SkiaSharp;
@@ -44,7 +47,7 @@ public sealed class ImageDocumentExporter : IDocumentExporter
         return zipStream.ToArray();
     }
 
-    private static byte[] RenderPage(PageDto page, List<ElementDto> shared, PageSettingsDto ps,
+    internal static byte[] RenderPage(PageDto page, List<ElementDto> shared, PageSettingsDto ps,
         SKEncodedImageFormat format, int quality, float scale)
     {
         int bmpW = (int)(ps.Width  * scale);
@@ -125,14 +128,29 @@ public sealed class ImageDocumentExporter : IDocumentExporter
                 var text  = el.Type == "number" ? el.NumberValue?.ToString() ?? "" : el.Content ?? "";
                 var color = ParseColor(s.GetStr("color", "#111827"));
                 var fs    = (float)s.GetNum("fontSize", 14) * scale;
-                var bold  = s.GetStr("fontWeight", "normal") is "bold" or "700" or "800" or "900";
+                var bold  = s.GetStr("fontWeight", "normal") is "bold" or "600" or "700" or "800" or "900";
                 using var tf = SKTypeface.FromFamilyName(
                     s.GetStr("fontFamily", "Arial"),
                     bold ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal,
                     SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
                 using var font  = new SKFont(tf, fs);
                 using var paint = new SKPaint { Color = color, IsAntialias = true };
-                canvas.DrawText(text, x, y + fs, font, paint);
+                DrawTextBlock(canvas, text, s, x, y, w, font, paint, scale);
+                break;
+            }
+
+            case "richtext":
+            {
+                var color = ParseColor(s.GetStr("color", "#111827"));
+                var fs    = (float)s.GetNum("fontSize", 13) * scale;
+                var bold  = s.GetStr("fontWeight", "normal") is "bold" or "600" or "700" or "800" or "900";
+                using var tf = SKTypeface.FromFamilyName(
+                    s.GetStr("fontFamily", "Arial"),
+                    bold ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal,
+                    SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
+                using var font  = new SKFont(tf, fs);
+                using var paint = new SKPaint { Color = color, IsAntialias = true };
+                DrawTextBlock(canvas, HtmlToText(el.HtmlContent ?? el.Content ?? ""), s, x, y, w, font, paint, scale);
                 break;
             }
 
@@ -220,13 +238,112 @@ public sealed class ImageDocumentExporter : IDocumentExporter
                 if (!string.IsNullOrEmpty(cell))
                 {
                     var fs = 9f * scale;
-                    using var font  = new SKFont(SKTypeface.Default, fs);
+                    var tf = isHdr
+                        ? SKTypeface.FromFamilyName("Arial", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)
+                        : SKTypeface.Default;
+                    using var font  = new SKFont(tf, fs);
                     using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = true };
-                    if (isHdr) font.Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
-                    canvas.DrawText(cell ?? "", cx + 4, cy + cellH / 2 + fs / 2, font, paint);
+
+                    var pad     = 4f * scale;
+                    var lines   = WrapText(cell ?? "", Math.Max(1, cellW - 2 * pad), font);
+                    var lineGap = fs * 1.25f;
+                    // Vertically centre the wrapped block within the cell.
+                    var startY  = cy + Math.Max(fs + pad, (cellH - lines.Count * lineGap) / 2 + fs);
+                    for (int li = 0; li < lines.Count; li++)
+                        canvas.DrawText(lines[li], cx + pad, startY + li * lineGap, font, paint);
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Draws word-wrapped text within an element box, honouring padding, line height and
+    /// horizontal alignment — mirroring how the editor lays text out in its element div.
+    /// Coordinates (<paramref name="x"/>, <paramref name="y"/>, <paramref name="w"/>) are
+    /// already DPI-scaled; padding values from the style are scaled here.
+    /// </summary>
+    private static void DrawTextBlock(SKCanvas canvas, string text, Dictionary<string, object> s,
+        float x, float y, float w, SKFont font, SKPaint paint, float scale)
+    {
+        var padL       = (float)s.GetNum("paddingLeft", 0) * scale;
+        var padR       = (float)s.GetNum("paddingRight", 0) * scale;
+        var padT       = (float)s.GetNum("paddingTop", 0) * scale;
+        var lineHeight = (float)s.GetNum("lineHeight", 1.4);
+        var align      = s.GetStr("textAlign", "left");
+
+        var maxW  = Math.Max(1, w - padL - padR);
+        var lines = WrapText(text, maxW, font);
+
+        var baseline = y + padT + font.Size;
+        foreach (var line in lines)
+        {
+            var drawX = align switch
+            {
+                "center"         => x + padL + (maxW - font.MeasureText(line)) / 2,
+                "right" or "end" => x + w - padR - font.MeasureText(line),
+                _                => x + padL,
+            };
+            canvas.DrawText(line, drawX, baseline, font, paint);
+            baseline += font.Size * lineHeight;
+        }
+    }
+
+    /// <summary>Word-wraps text to <paramref name="maxWidth"/> using font metrics, honouring
+    /// explicit newlines and breaking over-long words by character.</summary>
+    private static List<string> WrapText(string text, float maxWidth, SKFont font)
+    {
+        var lines = new List<string>();
+        foreach (var rawLine in (text ?? "").Replace("\r", "").Split('\n'))
+        {
+            if (rawLine.Length == 0) { lines.Add(""); continue; }
+
+            var cur = new StringBuilder();
+            foreach (var word in rawLine.Split(' '))
+            {
+                var candidate = cur.Length == 0 ? word : $"{cur} {word}";
+                if (cur.Length == 0 || font.MeasureText(candidate) <= maxWidth)
+                {
+                    cur.Clear().Append(candidate);
+                    continue;
+                }
+
+                lines.Add(cur.ToString());
+                cur.Clear();
+
+                if (font.MeasureText(word) > maxWidth)
+                {
+                    foreach (var ch in word)
+                    {
+                        if (cur.Length > 0 && font.MeasureText($"{cur}{ch}") > maxWidth)
+                        {
+                            lines.Add(cur.ToString());
+                            cur.Clear();
+                        }
+                        cur.Append(ch);
+                    }
+                }
+                else
+                {
+                    cur.Append(word);
+                }
+            }
+            if (cur.Length > 0) lines.Add(cur.ToString());
+        }
+
+        if (lines.Count == 0) lines.Add("");
+        return lines;
+    }
+
+    /// <summary>Flattens rich-text HTML to plain text, preserving block/line breaks.</summary>
+    private static string HtmlToText(string html)
+    {
+        if (string.IsNullOrEmpty(html)) return "";
+        html = Regex.Replace(html, @"<br\s*/?>", "\n", RegexOptions.IgnoreCase);
+        html = Regex.Replace(html, @"</(p|div|li|tr|h[1-6])\s*>", "\n", RegexOptions.IgnoreCase);
+        var text = WebUtility.HtmlDecode(Regex.Replace(html, "<[^>]+>", ""));
+        text = Regex.Replace(text, @"[ \t\f\v]+", " ");
+        text = Regex.Replace(text, @" *\n *", "\n");
+        return text.Trim();
     }
 
     private static void DrawBorder(SKCanvas canvas, SKRect rect, Dictionary<string, object> s, float radius, float scale)

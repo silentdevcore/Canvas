@@ -10,7 +10,8 @@ internal static class PdfCanvasRenderer
         PdfPage page,
         IReadOnlyDictionary<PdfStandardFont, string> fontResourceNames,
         IReadOnlyDictionary<string, string> imageResourceNames,
-        IReadOnlyDictionary<double, string>? opacityResourceNames = null)
+        IReadOnlyDictionary<double, string>? opacityResourceNames = null,
+        IReadOnlyDictionary<PdfEmbeddedFont, string>? embeddedFontResourceNames = null)
     {
         var sb = new StringBuilder();
 
@@ -21,7 +22,7 @@ internal static class PdfCanvasRenderer
             switch (element)
             {
                 case TextElement textElement:
-                    RenderText(sb, textElement, fontResourceNames);
+                    RenderText(sb, textElement, fontResourceNames, embeddedFontResourceNames);
                     break;
 
                 case LineElement lineElement:
@@ -62,9 +63,26 @@ internal static class PdfCanvasRenderer
         return sb.ToString();
     }
 
-    private static void RenderText(StringBuilder sb, TextElement element, IReadOnlyDictionary<PdfStandardFont, string> fontResourceNames)
+    private static void RenderText(
+        StringBuilder sb,
+        TextElement element,
+        IReadOnlyDictionary<PdfStandardFont, string> fontResourceNames,
+        IReadOnlyDictionary<PdfEmbeddedFont, string>? embeddedFontResourceNames)
     {
-        var fontResourceName = fontResourceNames[element.Font];
+        string fontResourceName;
+        bool useEmbedded;
+        if (element.EmbeddedFont is not null
+            && embeddedFontResourceNames is not null
+            && embeddedFontResourceNames.TryGetValue(element.EmbeddedFont, out var embeddedName))
+        {
+            fontResourceName = embeddedName;
+            useEmbedded = true;
+        }
+        else
+        {
+            fontResourceName = fontResourceNames[element.Font];
+            useEmbedded = false;
+        }
 
         sb.Append("BT\n");
         sb.AppendFormat(CultureInfo.InvariantCulture, "/{0} {1} Tf\n", fontResourceName, FormatNumber(element.FontSize));
@@ -94,11 +112,25 @@ internal static class PdfCanvasRenderer
                 FormatNumber(element.Y));
         }
 
-        sb.Append('(');
-        sb.Append(EscapeLiteralString(element.Text));
-        sb.Append(") Tj\n");
+        if (useEmbedded)
+        {
+            var displayText = element.TextDirection == "rtl"
+                ? ReverseForRtl(element.Text)
+                : element.Text;
+            sb.Append(EncodeAsHexUtf16Be(displayText));
+            sb.Append(" Tj\n");
+        }
+        else
+        {
+            sb.Append('(');
+            sb.Append(EscapeLiteralString(element.Text));
+            sb.Append(") Tj\n");
+        }
 
-        var textWidth = EstimateTextWidth(element.Text, element.FontSize, element.Font);
+        double textWidth = useEmbedded && element.EmbeddedFont is not null
+            ? element.EmbeddedFont.MeasureWidth(element.Text, element.FontSize)
+            : EstimateTextWidth(element.Text, element.FontSize, element.Font);
+
         var scaledTextWidth = textWidth * (element.HorizontalScalingPercent / 100.0);
 
         if (element.Underline)
@@ -398,12 +430,54 @@ internal static class PdfCanvasRenderer
         sb.Append('\n');
     }
 
+    private static string EncodeAsHexUtf16Be(string text) => PdfTextEncoding.EncodeAsHexUtf16Be(text);
+
+    private static string ReverseForRtl(string text) => PdfTextEncoding.ReverseForRtl(text);
+
+    // WinAnsi (CP1252) code points in the 0x80–0x9F range that differ from Latin-1.
+    private static readonly Dictionary<char, byte> WinAnsiHighMap = new()
+    {
+        ['€'] = 0x80, ['‚'] = 0x82, ['ƒ'] = 0x83, ['„'] = 0x84,
+        ['…'] = 0x85, ['†'] = 0x86, ['‡'] = 0x87, ['ˆ'] = 0x88,
+        ['‰'] = 0x89, ['Š'] = 0x8A, ['‹'] = 0x8B, ['Œ'] = 0x8C,
+        ['Ž'] = 0x8E, ['‘'] = 0x91, ['’'] = 0x92, ['“'] = 0x93,
+        ['”'] = 0x94, ['•'] = 0x95, ['–'] = 0x96, ['—'] = 0x97,
+        ['˜'] = 0x98, ['™'] = 0x99, ['š'] = 0x9A, ['›'] = 0x9B,
+        ['œ'] = 0x9C, ['ž'] = 0x9E, ['Ÿ'] = 0x9F,
+    };
+
+    /// <summary>
+    /// Encodes <paramref name="value"/> as the contents of a PDF literal string using
+    /// WinAnsi (CP1252) byte values. Bytes outside printable ASCII are emitted as octal
+    /// escapes (e.g. '£' → "\243"), so the content stream stays ASCII-safe while the
+    /// WinAnsi-encoded standard font renders the correct glyphs. Characters with no
+    /// WinAnsi representation fall back to '?'.
+    /// </summary>
     private static string EscapeLiteralString(string value)
     {
-        return value
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("(", "\\(", StringComparison.Ordinal)
-            .Replace(")", "\\)", StringComparison.Ordinal);
+        var sb = new StringBuilder(value.Length + 8);
+        foreach (var ch in value)
+        {
+            byte b;
+            if (ch <= '\u007F') b = (byte)ch;
+            else if (ch is >= '\u00A0' and <= '\u00FF') b = (byte)ch;
+            else if (WinAnsiHighMap.TryGetValue(ch, out var mapped)) b = mapped;
+            else b = (byte)'?';
+
+            switch (b)
+            {
+                case (byte)'\\': sb.Append("\\\\"); break;
+                case (byte)'(':  sb.Append("\\("); break;
+                case (byte)')':  sb.Append("\\)"); break;
+                default:
+                    if (b is >= 0x20 and <= 0x7E)
+                        sb.Append((char)b);
+                    else
+                        sb.Append('\\').Append(Convert.ToString(b, 8).PadLeft(3, '0'));
+                    break;
+            }
+        }
+        return sb.ToString();
     }
 
     private static double EstimateTextWidth(string text, double fontSize, PdfStandardFont font)

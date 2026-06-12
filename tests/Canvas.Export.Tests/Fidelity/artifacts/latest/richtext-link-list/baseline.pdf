@@ -12,10 +12,10 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
 endobj
 5 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 6 0 R >>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 6 0 R /Annots [7 0 R 8 0 R] >>
 endobj
 6 0 obj
-<< /Length 1318 >>
+<< /Length 1589 >>
 stream
 q
 BT
@@ -106,6 +106,23 @@ BT
 ET
 Q
 q
+BT
+/F1 12 Tf
+0.145 0.388 0.922 rg
+0 Tw
+0 Tc
+100 Tz
+50 673.36 Td
+(Open Release Plan) Tj
+ET
+0.72 w
+50 671.92 m
+156.08 671.92 l
+S
+BT
+ET
+Q
+q
 0.984 0.749 0.141 RG
 0.996 0.953 0.78 rg
 1 w
@@ -150,6 +167,23 @@ Q
 q
 BT
 /F1 12 Tf
+0.145 0.388 0.922 rg
+0 Tw
+0 Tc
+100 Tz
+50 643.36 Td
+(Internal Board) Tj
+ET
+0.72 w
+50 641.92 m
+137.36 641.92 l
+S
+BT
+ET
+Q
+q
+BT
+/F1 12 Tf
 0.067 0.094 0.153 rg
 0 Tw
 0 Tc
@@ -183,17 +217,25 @@ Q
 
 endstream
 endobj
+7 0 obj
+<< /Type /Annot /Subtype /Link /Rect [50 658 350 682] /Border [0 0 0] /A << /S /URI /URI (https://example.com/releases/q2) >> >>
+endobj
+8 0 obj
+<< /Type /Annot /Subtype /Link /Rect [50 628 350 652] /Border [0 0 0] /A << /S /URI /URI (/internal/board) >> >>
+endobj
 xref
-0 7
+0 9
 0000000000 65535 f 
 0000000009 00000 n 
 0000000058 00000 n 
 0000000115 00000 n 
 0000000248 00000 n 
 0000000318 00000 n 
-0000000444 00000 n 
+0000000466 00000 n 
+0000002107 00000 n 
+0000002251 00000 n 
 trailer
-<< /Size 7 /Root 1 0 R /Info 3 0 R >>
+<< /Size 9 /Root 1 0 R /Info 3 0 R >>
 startxref
-1814
+2379
 %%EOF

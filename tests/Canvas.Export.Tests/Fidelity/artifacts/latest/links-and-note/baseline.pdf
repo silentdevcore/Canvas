@@ -12,10 +12,10 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
 endobj
 5 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 6 0 R >>
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 6 0 R /Annots [7 0 R 8 0 R] >>
 endobj
 6 0 obj
-<< /Length 666 >>
+<< /Length 947 >>
 stream
 q
 BT
@@ -26,6 +26,40 @@ BT
 100 Tz
 52 777.04 Td
 (Release Checklist) Tj
+ET
+Q
+q
+BT
+/F1 12 Tf
+0.145 0.388 0.922 rg
+0 Tw
+0 Tc
+100 Tz
+52 725.36 Td
+(Deployment runbook) Tj
+ET
+0.72 w
+52 723.92 m
+164.32 723.92 l
+S
+BT
+ET
+Q
+q
+BT
+/F1 12 Tf
+0.145 0.388 0.922 rg
+0 Tw
+0 Tc
+100 Tz
+52 697.36 Td
+(Incident board) Tj
+ET
+0.72 w
+52 695.92 m
+139.36 695.92 l
+S
+BT
 ET
 Q
 q
@@ -67,7 +101,7 @@ BT
 0 Tc
 100 Tz
 52 514.08 Td
-(? Backup complete) Tj
+(\225 Backup complete) Tj
 ET
 Q
 q
@@ -78,7 +112,7 @@ BT
 0 Tc
 100 Tz
 52 495.38 Td
-(? Smoke test passed) Tj
+(\225 Smoke test passed) Tj
 ET
 Q
 q
@@ -89,23 +123,31 @@ BT
 0 Tc
 100 Tz
 52 476.68 Td
-(? Stakeholder sign-off) Tj
+(\225 Stakeholder sign-off) Tj
 ET
 Q
 
 endstream
 endobj
+7 0 obj
+<< /Type /Annot /Subtype /Link /Rect [52 714 472 734] /Border [0 0 0] /A << /S /URI /URI (https://example.com/runbook) >> >>
+endobj
+8 0 obj
+<< /Type /Annot /Subtype /Link /Rect [52 686 472 706] /Border [0 0 0] /A << /S /URI /URI (https://example.com/incidents) >> >>
+endobj
 xref
-0 7
+0 9
 0000000000 65535 f 
 0000000009 00000 n 
 0000000058 00000 n 
 0000000115 00000 n 
 0000000211 00000 n 
 0000000281 00000 n 
-0000000407 00000 n 
+0000000429 00000 n 
+0000001427 00000 n 
+0000001567 00000 n 
 trailer
-<< /Size 7 /Root 1 0 R /Info 3 0 R >>
+<< /Size 9 /Root 1 0 R /Info 3 0 R >>
 startxref
-1124
+1709
 %%EOF

@@ -5,7 +5,9 @@
 
 It supports:
 - Multi-page documents
-- Text rendering (standard Type1 fonts)
+- Text rendering (standard Type1 fonts and embedded TrueType/OpenType fonts)
+- Multi-language text with Unicode support (Arabic, Hebrew, CJK, Devanagari, Thai, Cyrillic, Greek)
+- RTL text direction (Arabic, Hebrew, Farsi, Urdu)
 - Document-level page numbering
 - Document-level headers/footers
 - Flow layout helper with margins/cursor
@@ -955,8 +957,335 @@ Common validations:
 ## 24. Current Scope / Limitations
 
 Current API does not yet include:
-- Embedded custom fonts
 - PNG limitations: palette/interlaced images are currently unsupported
-- Text measurement by real font metrics (current paragraph width estimate is heuristic)
+- Arabic cursive shaping (ligatures, contextual glyph forms) — requires HarfBuzz.NET
+- Mixed-direction paragraphs (BiDi algorithm UAX #9)
+- Vertical CJK text
+- Font subsetting (full Noto font files are embedded — can be 5–15 MB for CJK)
 
-This is a minimal, extensible foundation intended for iterative expansion.
+---
+
+## 25. Multi-Language Text (Embedded Fonts)
+
+As of 2026-05-24, the PDF engine supports multi-language text rendering via embedded TrueType/OpenType fonts.
+
+### 25.1 Overview
+
+Each text element can declare:
+- `Language` — a BCP-47 language tag (`"ar"`, `"zh-CN"`, `"ja"`, `"he"`, etc.)
+- `TextDirection` — `"ltr"` or `"rtl"`
+
+When a language is specified, `PdfFontLoader` resolves the appropriate Noto font file and embeds it as a PDF Type0/CIDFontType2 composite font with Identity-H encoding. Text is encoded as UTF-16BE hex strings (`<FEFF...>`). RTL text is reordered by grapheme cluster before encoding. If no font file is found, the system falls back silently to the Type1 path — no exception is thrown.
+
+### 25.2 Quick Start
+
+```csharp
+// Set up font loader (points to directory containing Noto .ttf/.otf files)
+var loader = new PdfFontLoader("/path/to/fonts");
+
+var doc = new PdfDocument { FontLoader = loader };
+var page = doc.AddPage();
+
+// Arabic (RTL)
+page.DrawText("مرحبا بالعالم", x: 50, y: 700, new PdfDrawTextOptions
+{
+    FontSize = 14,
+    Language = "ar",
+    TextDirection = "rtl"
+});
+
+// Japanese
+page.DrawText("こんにちは世界", x: 50, y: 660, new PdfDrawTextOptions
+{
+    FontSize = 14,
+    Language = "ja"
+});
+
+// Cyrillic / Russian
+page.DrawText("Привет мир", x: 50, y: 620, new PdfDrawTextOptions
+{
+    FontSize = 14,
+    Language = "ru"
+});
+
+doc.Save("multilang.pdf");
+```
+
+### 25.3 Key Components
+
+#### `PdfFontLoader` (`Canvas/Pdf/PdfFontLoader.cs`)
+
+Singleton service that maps BCP-47 language tags to Noto font files and caches loaded fonts in memory.
+
+```csharp
+var loader = new PdfFontLoader(fontsDirectory: "/opt/app/fonts");
+
+// Resolve font for a language tag
+bool found = loader.TryLoad("ar", out PdfEmbeddedFont? font);
+
+// Check RTL
+bool isRtl = PdfFontLoader.IsRtl("ar");   // true
+bool isRtl = PdfFontLoader.IsRtl("en");   // false
+```
+
+Language-to-font mapping:
+
+| Language(s) | Font File | Script |
+|---|---|---|
+| `ar`, `ur`, `fa` | NotoSansArabic-Regular.ttf | Arabic / RTL |
+| `he`, `yi` | NotoSansHebrew-Regular.ttf | Hebrew / RTL |
+| `zh`, `zh-CN`, `zh-TW` | NotoSansSC-Regular.otf | Chinese Simplified |
+| `ja` | NotoSansJP-Regular.otf | Japanese |
+| `ko` | NotoSansKR-Regular.otf | Korean |
+| `hi`, `mr`, `ne` | NotoSansDevanagari-Regular.ttf | Devanagari |
+| `th` | NotoSansThai-Regular.ttf | Thai |
+| all others / default | NotoSans-Regular.ttf | Latin / Greek / Cyrillic |
+
+RTL languages: `ar`, `he`, `fa`, `ur`, `yi`, `dv`.
+
+#### `PdfEmbeddedFont` (`Canvas/Pdf/PdfEmbeddedFont.cs`)
+
+Parses TTF binary to expose glyph metrics:
+
+```csharp
+font.GetGlyphId('A')                  // → ushort glyph ID
+font.GetGlyphId(0x0645)              // → glyph ID by Unicode code point
+font.MeasureWidth("Hello", fontSize: 12)  // → width in PDF points
+font.GetPdfAdvanceWidth(codePoint)   // → 1/1000 text space units (for /W array)
+font.BaseFontName                    // → e.g. "NotoSansArabic-Regular"
+font.IsRtlCapable                    // → true for Arabic/Hebrew fonts
+font.FontBytes                       // → raw TTF/OTF bytes (ReadOnlyMemory<byte>)
+```
+
+Supports:
+- TTF `cmap` table format 4 (BMP Unicode coverage)
+- TTF `hmtx` table (advance widths)
+- OTF files with TrueType outlines (`sfntVersion = 0x00010000`)
+
+#### `PdfTextEncoding` (`Canvas/Pdf/PdfTextEncoding.cs`)
+
+Public utility for the two encoding operations used in PDF content streams:
+
+```csharp
+// UTF-16BE hex string with BOM — used in PDF content stream as: <FEFF0041> Tj
+string hex = PdfTextEncoding.EncodeAsHexUtf16Be("A");
+// → "<FEFF0041>"
+
+// Grapheme-cluster reversal for RTL visual order
+string reversed = PdfTextEncoding.ReverseForRtl("مرحبا");
+// → "ابحرم"
+```
+
+### 25.4 PDF Object Chain
+
+For each distinct embedded font, `PdfWriter` emits 5 PDF objects:
+
+```
+FontStream   (raw TTF bytes, /Filter /FlateDecode)
+FontDescriptor (/FontFile2, /Ascent, /Descent, /CapHeight, /Flags 32)
+ToUnicode CMap stream  (beginbfchar / beginbfrange format)
+CIDFont  (/Subtype /CIDFontType2, /Encoding /Identity-H, /W glyph widths)
+Type0    (/Subtype /Type0, /DescendantFonts [CIDFont], /Encoding /Identity-H)
+```
+
+The Type0 object is registered in the page `/Resources /Font` dictionary as `EF1`, `EF2`, etc. (alongside Type1 resources `F1`, `F2`, …).
+
+### 25.5 Content Stream Encoding
+
+When an embedded font is used, the text operator in the PDF content stream changes:
+
+```
+% Type1 (standard)
+(Hello) Tj
+
+% Embedded / composite font (UTF-16BE hex)
+<FEFF00480065006C006C006F> Tj
+
+% RTL — reversed grapheme clusters, then hex-encoded
+<FEFF06270628062D063106450000> Tj
+```
+
+### 25.6 Dependency Injection (ASP.NET Core)
+
+`PdfFontLoader` is registered as a singleton in `Program.cs`:
+
+```csharp
+builder.Services.AddSingleton<PdfFontLoader>(sp =>
+{
+    var dir = builder.Configuration["Pdf:FontsDirectory"]
+        ?? Path.Combine(AppContext.BaseDirectory, "fonts");
+    return new PdfFontLoader(dir);
+});
+```
+
+Configure the fonts directory in `appsettings.json`:
+
+```json
+"Pdf": {
+  "FontsDirectory": "fonts"
+}
+```
+
+Controllers receive `PdfFontLoader` via constructor injection and pass it to `DesignJsonMapper.MapToPdfDocument(design, fontLoader)`.
+
+### 25.7 Paragraph Layout with Embedded Fonts
+
+`DrawParagraph` also respects the `Language` and `TextDirection` options:
+
+```csharp
+page.DrawParagraph(
+    "مرحبا بالعالم — Arabic paragraph",
+    x: 50, y: 700, maxWidth: 400,
+    new PdfParagraphOptions
+    {
+        FontSize = 14,
+        Language = "ar",
+        TextDirection = "rtl",
+        Alignment = PdfTextAlignment.Right
+    });
+```
+
+When an embedded font is resolved, `MeasureWidth()` from the font metrics replaces the Type1 heuristic estimator for accurate line breaking.
+
+### 25.8 Graceful Fallback
+
+If the Noto font file for a requested language is not present on disk:
+- `PdfFontLoader.TryLoad` returns `false`
+- `PdfPage.DrawText` proceeds with the Type1 font path
+- The PDF is generated normally; non-Latin characters will appear as missing glyphs (blank or substituted by the viewer) but the file is structurally valid
+
+No exception is thrown. This allows deploying without font files and adding them later.
+
+### 25.9 Frontend Integration
+
+The canvas UI exposes language and direction controls for each text element:
+
+- **Language selector** — dropdown in the Typography inspector panel (14 languages). Auto-sets `textDirection: 'rtl'` for Arabic, Hebrew, Farsi, Urdu, Yiddish, Divehi.
+- **LTR / RTL toggle** — two buttons below the selector for manual override.
+- **Noto font entries** — `Noto Sans Arabic`, `Noto Sans Hebrew`, `Noto Sans SC`, `Noto Sans JP`, `Noto Sans KR`, `Noto Sans Devanagari`, `Noto Sans Thai` available in the font family list.
+- **`dir` / `lang` attributes** — applied to rendered text divs for native browser RTL preview.
+
+Canvas element data shape:
+
+```typescript
+interface SimpleElement {
+  // ... existing fields ...
+  language?: string;           // BCP-47: "ar", "zh-CN", "ja", "he", etc.
+  textDirection?: 'ltr' | 'rtl';
+}
+```
+
+### 25.10 Known Limitations
+
+| Limitation | Reason | Planned fix |
+|---|---|---|
+| No Arabic cursive shaping | Ligatures require an OTF GSUB shaping engine | HarfBuzz.NET integration |
+| No BiDi mixed-direction paragraphs | Each element is a single-direction run | UAX #9 implementation |
+| No vertical CJK text | Requires `/WMode 1` in CIDFont | Future enhancement |
+| No font subsetting | Full font file embedded | Glyph-subset writer |
+| OTF CFF outlines not parsed | `GetGlyphId` returns 0 for non-TTF CFF fonts | CFF cmap parser |
+
+---
+
+## 26. Document Localization System
+
+Added 2026-05-25. Solves **document-level multi-language export**: one template, multiple language versions, each with its own property values. Phases 1–25 solve *how non-Latin text renders in a PDF*; Section 26 solves *what text appears in each language's PDF*.
+
+---
+
+### 26.1 Concepts
+
+A document can declare **active languages** (e.g. `["de", "en", "ar"]`). For each active language, a separate PDF is generated. Template variables (`{{KEY}}`) in element content are substituted with language-specific values before rendering.
+
+The **system language** is detected automatically from the browser (`navigator.language`). It is never stored and is used as the fallback when a property has no value for the requested language.
+
+---
+
+### 26.2 Property Scopes
+
+Each localized property has one of two scopes:
+
+| Scope | Meaning | Export behavior |
+|---|---|---|
+| `"global"` | `{{KEY}}` appears in **all** language PDFs. Each language provides its own value via `LocalizedValues`. | Included in every language's export; value = `LocalizedValues[target]` → `LocalizedValues[system]` → `""`. |
+| `"own"` | `{{KEY}}` belongs to **one specific language** (`OwnerLanguage`). Other languages are unaware of it. | Included **only** in the owner language's export; excluded (not substituted, not listed) for all others. |
+
+---
+
+### 26.3 C# Data Model
+
+```csharp
+// In PageSettingsDto:
+public string? SystemLanguage { get; set; }      // sent by client from navigator.language
+public List<string>? ActiveLanguages { get; set; }
+public List<LocalizedPropertyDto>? LocalizedProperties { get; set; }
+
+public sealed class LocalizedPropertyDto
+{
+    public string Key { get; set; } = "";
+    // "global" = present in all languages; "own" = present only for OwnerLanguage
+    public string Scope { get; set; } = "global";
+    public string? OwnerLanguage { get; set; }   // only set when Scope == "own"
+    public Dictionary<string, string> LocalizedValues { get; set; } = [];
+}
+```
+
+---
+
+### 26.4 Resolution Logic (`LocalizedPropertyResolver`)
+
+```csharp
+// Global property:
+//   value = LocalizedValues[target] ?? LocalizedValues[system] ?? ""
+//   Always included in result (even if value is empty string).
+//
+// Own property:
+//   If NormalizeTag(OwnerLanguage) != target → SKIP (key not added to result dict)
+//   If match → value = LocalizedValues[ownerLanguage]
+```
+
+Language tags are normalized to base tag before comparison (`"de-DE"` → `"de"`).
+
+---
+
+### 26.5 Export Endpoints
+
+| Endpoint | Behavior |
+|---|---|
+| `POST /api/export?format=pdf&language=de` | Single-language PDF. Resolves properties for `de`. Own properties for other languages are excluded. |
+| `POST /api/export/multilanguage?format=pdf` | ZIP archive. Iterates `ActiveLanguages`, generates one PDF per language, names them `{name}-{lang}.pdf`. |
+
+---
+
+### 26.6 TypeScript / Frontend Data Model
+
+```typescript
+interface LocalizedProperty {
+  key: string;
+  scope: 'global' | 'own';
+  ownerLanguage?: string;                   // set only when scope === 'own'
+  localizedValues: Record<string, string>;
+}
+
+// In PageSettings:
+activeLanguages?: string[];
+localizedProperties?: LocalizedProperty[];
+```
+
+The `currentPreviewLanguage` (ephemeral store field, never persisted) drives which language tab is active. `resolveContent()` in the canvas preview uses it to substitute `{{KEY}}` placeholders in real time.
+
+---
+
+### 26.7 Export Code / JSON Integration
+
+When the user opens **Export Code** from the canvas editor and has active languages:
+
+- **JSON tab**: includes `targetLanguage` (current tab), `systemLanguage`, `activeLanguages`, and `localizedProperties` in `pageSettings`.
+- **C# Code tab**: `{{KEY}}` placeholders in element content are resolved to the current language's values before code generation. Own properties for other languages are not included.
+- The **Export PDF** button in the code panel downloads `{name}-{lang}.pdf` using the active language.
+
+---
+
+### 26.8 Backward Compatibility
+
+The Zustand store (version 6) includes a migration that converts persisted data from the old model (`global: boolean` + `globalValue`) to the new model (`scope: 'global'`) on next page load.

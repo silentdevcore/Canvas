@@ -1,6 +1,6 @@
 import { ExportService } from '../services/ExportService';
 import { DEFAULT_PAGE_SETTINGS } from '../store';
-import type { SimpleElement, Template, PageSettings } from '../types';
+import type { SimpleElement, Template, PageSettings, Page } from '../types';
 
 const mockTemplate: Template = {
   id: 'tpl-1',
@@ -21,6 +21,8 @@ const makeEl = (overrides: Partial<SimpleElement> = {}): SimpleElement => ({
   ...overrides,
 });
 
+const makePage = (elements: SimpleElement[] = []): Page => ({ id: 'page-1', elements });
+
 // J: Test save/load round-trip — export payload structure
 describe('convertElementsToTemplate', () => {
   test('includes template metadata fields', () => {
@@ -32,7 +34,7 @@ describe('convertElementsToTemplate', () => {
   });
 
   test('maps elements correctly', () => {
-    const out = ExportService.convertElementsToTemplate([makeEl()], mockTemplate);
+    const out = ExportService.convertElementsToTemplate([makePage([makeEl()])], mockTemplate);
     expect(out.elements).toHaveLength(1);
     expect(out.elements[0].type).toBe('Text');
     expect(out.elements[0].id).toBe('el-1');
@@ -41,7 +43,7 @@ describe('convertElementsToTemplate', () => {
   // J: Test page presets and custom sizes
   test('pageSettings width/height are included in payload', () => {
     const ps: PageSettings = { ...DEFAULT_PAGE_SETTINGS, width: 612, height: 792 };
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, ps);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], ps);
     expect(out.pageSettings.width).toBe(612);
     expect(out.pageSettings.height).toBe(792);
   });
@@ -49,7 +51,7 @@ describe('convertElementsToTemplate', () => {
   // J: Test orientation switching
   test('landscape orientation is preserved', () => {
     const ps: PageSettings = { ...DEFAULT_PAGE_SETTINGS, orientation: 'landscape', width: 842, height: 595 };
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, ps);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], ps);
     expect(out.pageSettings.orientation).toBe('landscape');
     expect(out.pageSettings.width).toBe(842);
     expect(out.pageSettings.height).toBe(595);
@@ -58,19 +60,19 @@ describe('convertElementsToTemplate', () => {
   // J: Test header/footer rendering in export
   test('header is included when enabled', () => {
     const ps: PageSettings = { ...DEFAULT_PAGE_SETTINGS, headerEnabled: true, headerHeight: 80 };
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, ps);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], ps);
     expect(out.pageSettings.header).toEqual({ height: 80 });
   });
 
   test('header is null when disabled', () => {
     const ps: PageSettings = { ...DEFAULT_PAGE_SETTINGS, headerEnabled: false };
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, ps);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], ps);
     expect(out.pageSettings.header).toBeNull();
   });
 
   test('footer is included when enabled', () => {
     const ps: PageSettings = { ...DEFAULT_PAGE_SETTINGS, footerEnabled: true, footerHeight: 50 };
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, ps);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], ps);
     expect(out.pageSettings.footer).toEqual({ height: 50 });
   });
 
@@ -80,31 +82,31 @@ describe('convertElementsToTemplate', () => {
       ...DEFAULT_PAGE_SETTINGS,
       globalWatermark: { ...DEFAULT_PAGE_SETTINGS.globalWatermark, enabled: true, content: 'DRAFT', mode: 'text' }
     };
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, ps);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], ps);
     expect(out.pageSettings.watermark).not.toBeNull();
     expect((out.pageSettings.watermark as PageSettings['globalWatermark']).content).toBe('DRAFT');
   });
 
   test('watermark is null when disabled', () => {
     const ps: PageSettings = { ...DEFAULT_PAGE_SETTINGS, globalWatermark: { ...DEFAULT_PAGE_SETTINGS.globalWatermark, enabled: false } };
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, ps);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], ps);
     expect(out.pageSettings.watermark).toBeNull();
   });
 
   test('backgroundColor is included', () => {
     const ps: PageSettings = { ...DEFAULT_PAGE_SETTINGS, backgroundColor: '#f0f0f0' };
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, ps);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], ps);
     expect(out.pageSettings.backgroundColor).toBe('#f0f0f0');
   });
 
   test('guides.previewOnly is always true', () => {
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, DEFAULT_PAGE_SETTINGS);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], DEFAULT_PAGE_SETTINGS);
     expect((out.pageSettings as Record<string, unknown>).guides).toEqual({ previewOnly: true });
   });
 
   // J: Test save/load round-trip — exportDefaults in payload
   test('exportDefaults included in payload', () => {
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, DEFAULT_PAGE_SETTINGS);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], DEFAULT_PAGE_SETTINGS);
     expect(out.exportDefaults).toMatchObject({
       quality: 'printer',
       embedFonts: true,
@@ -118,7 +120,7 @@ describe('convertElementsToTemplate', () => {
       ...DEFAULT_PAGE_SETTINGS,
       pageNumbering: { ...DEFAULT_PAGE_SETTINGS.pageNumbering, enabled: true, format: 'roman', startNumber: 3 }
     };
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, ps);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], ps);
     expect(out.pageSettings.pageNumbering).not.toBeNull();
     expect((out.pageSettings.pageNumbering as PageSettings['pageNumbering']).format).toBe('roman');
     expect((out.pageSettings.pageNumbering as PageSettings['pageNumbering']).startNumber).toBe(3);
@@ -126,14 +128,14 @@ describe('convertElementsToTemplate', () => {
 
   test('pageNumbering is null when disabled', () => {
     const ps: PageSettings = { ...DEFAULT_PAGE_SETTINGS, pageNumbering: { ...DEFAULT_PAGE_SETTINGS.pageNumbering, enabled: false } };
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, ps);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], ps);
     expect(out.pageSettings.pageNumbering).toBeNull();
   });
 
   // J: Test margin safe-zone — margins are in payload
   test('margins are preserved in export', () => {
     const ps: PageSettings = { ...DEFAULT_PAGE_SETTINGS, margins: { top: 10, right: 20, bottom: 30, left: 40 } };
-    const out = ExportService.convertElementsToTemplate([], mockTemplate, ps);
+    const out = ExportService.convertElementsToTemplate([], mockTemplate, [], ps);
     expect(out.pageSettings.margins).toEqual({ top: 10, right: 20, bottom: 30, left: 40 });
   });
 });
@@ -159,7 +161,7 @@ describe('element type mapping', () => {
 
   test.each(types)('"%s" maps to "%s"', (uiType, expectedType) => {
     const el = makeEl({ id: `el-${uiType}`, type: uiType });
-    const out = ExportService.convertElementsToTemplate([el], mockTemplate);
+    const out = ExportService.convertElementsToTemplate([makePage([el])], mockTemplate);
     expect(out.elements[0].type).toBe(expectedType);
   });
 });
@@ -228,5 +230,108 @@ describe('validateForExport', () => {
     const result = ExportService.validateForExport(els);
     expect(result.isValid).toBe(false);
     expect(result.errors).toHaveLength(2);
+  });
+});
+
+describe('image OCR import service', () => {
+  const originalFetch = global.fetch;
+  const originalDocument = global.document;
+  const originalCreateObjectURL = URL.createObjectURL;
+  const originalRevokeObjectURL = URL.revokeObjectURL;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    global.document = originalDocument;
+    URL.createObjectURL = originalCreateObjectURL;
+    URL.revokeObjectURL = originalRevokeObjectURL;
+    jest.restoreAllMocks();
+  });
+
+  test('posts image OCR import to debug endpoint with options', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        design: { id: 'ocr-design', pages: [] },
+        diagnostics: { wordCount: 2 },
+        warnings: ['Low confidence OCR'],
+        debugOverlay: 'data:image/png;base64,abc',
+      }),
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const file = new File(['png'], 'scan.png', { type: 'image/png' });
+    const result = await ExportService.importImageOcr(file, 595, 842, {
+      languages: 'eng',
+      includeBackgroundImage: false,
+      includeDiagnostics: true,
+      includeDebugOverlay: true,
+      enablePreprocessing: true,
+      lowConfidenceThreshold: 0.45,
+      layoutMode: 'text-only',
+    }) as any;
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/document/convert-image-to-pdf?debug=true', expect.objectContaining({
+      method: 'POST',
+      body: expect.any(FormData),
+    }));
+
+    const form = fetchMock.mock.calls[0][1].body as FormData;
+    expect(form.get('file')).toBe(file);
+    expect(form.get('languages')).toBe('eng');
+    expect(form.get('pageWidthPt')).toBe('595');
+    expect(form.get('pageHeightPt')).toBe('842');
+    expect(form.get('includeBackgroundImage')).toBe('false');
+    expect(form.get('includeOcrPages')).toBe('false');
+    expect(form.get('includeDiagnostics')).toBe('true');
+    expect(form.get('includeDebugOverlay')).toBe('true');
+    expect(form.get('enablePreprocessing')).toBe('true');
+    expect(form.get('lowConfidenceThreshold')).toBe('0.45');
+    expect(form.get('layoutMode')).toBe('text-only');
+    expect(result.design.id).toBe('ocr-design');
+  });
+
+  test('downloads image OCR PDF from non-debug endpoint', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      blob: async () => new Blob(['%PDF'], { type: 'application/pdf' }),
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    const appendChild = jest.fn((node: Node) => node);
+    const removeChild = jest.fn((node: Node) => node);
+    const click = jest.fn();
+    const anchor = {
+      href: '',
+      download: '',
+      click,
+    } as unknown as HTMLAnchorElement;
+    global.document = {
+      body: { appendChild, removeChild },
+      createElement: jest.fn(() => anchor),
+    } as unknown as Document;
+    URL.createObjectURL = jest.fn(() => 'blob:ocr-pdf');
+    URL.revokeObjectURL = jest.fn();
+
+    const file = new File(['png'], 'Invoice Scan.png', { type: 'image/png' });
+    await ExportService.downloadImageOcrPdf(file, undefined, undefined, {
+      languages: 'deu+eng',
+      includeBackgroundImage: true,
+      enablePreprocessing: true,
+      lowConfidenceThreshold: 0.5,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/document/convert-image-to-pdf', expect.objectContaining({
+      method: 'POST',
+      body: expect.any(FormData),
+    }));
+    expect(anchor.href).toBe('blob:ocr-pdf');
+    expect(anchor.download).toBe('invoice-scan.pdf');
+    const form = fetchMock.mock.calls[0][1].body as FormData;
+    expect(form.get('enablePreprocessing')).toBe('true');
+    expect(form.get('layoutMode')).toBe('structured');
+    expect(appendChild).toHaveBeenCalledWith(anchor);
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(removeChild).toHaveBeenCalledWith(anchor);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:ocr-pdf');
   });
 });

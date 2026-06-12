@@ -15,6 +15,8 @@ import {
   FiCalendar,
   FiBook,
   FiTruck,
+  FiMonitor,
+  FiBookOpen,
 } from 'react-icons/fi';
 
 export interface TemplateDefinition {
@@ -23,6 +25,9 @@ export interface TemplateDefinition {
   category: string;
   description: string;
   tags: string[];
+  format?: 'portrait' | 'landscape' | 'square' | 'widescreen';
+  pageWidth?: number;
+  pageHeight?: number;
 }
 
 export interface CategoryConfig {
@@ -49,7 +54,9 @@ export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
   'id-card':   { accent: '#0369a1', bg: '#f0f9ff', text: '#0c4a6e', icon: FiCreditCard,   description: 'Employee badges, visitor passes and access cards' },
   delivery:    { accent: '#16a34a', bg: '#f0fdf4', text: '#14532d', icon: FiTruck,        description: 'Packing slips, delivery notes and customs forms' },
   meeting:     { accent: '#9333ea', bg: '#faf5ff', text: '#581c87', icon: FiCalendar,     description: 'Agendas, minutes and stand-up logs' },
-  blank:       { accent: '#6b7280', bg: '#f9fafb', text: '#374151', icon: FiPackage,      description: '' },
+  blank:        { accent: '#6b7280', bg: '#f9fafb', text: '#374151', icon: FiPackage,    description: '' },
+  presentation: { accent: '#0ea5e9', bg: '#f0f9ff', text: '#0c4a6e', icon: FiMonitor,    description: 'Slide decks for presentations, pitches and talks' },
+  book:         { accent: '#a855f7', bg: '#faf5ff', text: '#6b21a8', icon: FiBookOpen,   description: 'Book chapters, manuals and long-form documents' },
 };
 
 export const TEMPLATES: TemplateDefinition[] = [
@@ -514,6 +521,37 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'meeting-townhall',      name: 'Town Hall / All-Hands Notes',  category: 'meeting',
     description: 'Speaker topic summaries, Q&A captured, follow-up commitments list',
     tags: ['town hall', 'all-hands', 'company'] },
+
+  // ── Presentations ────────────────────────────────────────────────────────────
+  { id: 'presentation-title',   name: 'Title Slide',          category: 'presentation', format: 'widescreen', pageWidth: 1280, pageHeight: 720,
+    description: 'Bold full-bleed title slide with subtitle and presenter name',
+    tags: ['slide', 'title', 'cover', 'presentation'] },
+  { id: 'presentation-content', name: 'Content Slide',        category: 'presentation', format: 'widescreen', pageWidth: 1280, pageHeight: 720,
+    description: 'Two-column layout with heading, body text and image placeholder',
+    tags: ['slide', 'content', 'layout', 'two-column'] },
+  { id: 'presentation-agenda',  name: 'Agenda Slide',         category: 'presentation', format: 'widescreen', pageWidth: 1280, pageHeight: 720,
+    description: 'Numbered agenda list with icon accents and section timings',
+    tags: ['slide', 'agenda', 'overview', 'schedule'] },
+  { id: 'presentation-divider', name: 'Section Divider',      category: 'presentation', format: 'widescreen', pageWidth: 1280, pageHeight: 720,
+    description: 'Full-bleed colour section divider with large section number',
+    tags: ['slide', 'divider', 'section', 'chapter'] },
+  { id: 'presentation-closing', name: 'Thank You Slide',      category: 'presentation', format: 'widescreen', pageWidth: 1280, pageHeight: 720,
+    description: 'Closing slide with contact details, QR code and social handles',
+    tags: ['slide', 'closing', 'thank-you', 'contact'] },
+
+  // ── Books / Chapters ─────────────────────────────────────────────────────────
+  { id: 'book-chapter-cover',   name: 'Chapter Cover',        category: 'book', format: 'portrait', pageWidth: 420, pageHeight: 595,
+    description: 'A5 chapter opener with large chapter number, title and decorative rule',
+    tags: ['book', 'chapter', 'cover', 'a5'] },
+  { id: 'book-body-text',       name: 'Body Text Page',       category: 'book', format: 'portrait', pageWidth: 420, pageHeight: 595,
+    description: 'A5 body page with running header, footer page number and two-column text area',
+    tags: ['book', 'body', 'text', 'a5', 'columns'] },
+  { id: 'book-bibliography',    name: 'Bibliography',         category: 'book', format: 'portrait', pageWidth: 420, pageHeight: 595,
+    description: 'A5 bibliography page with numbered reference list and section heading',
+    tags: ['book', 'bibliography', 'references', 'a5'] },
+  { id: 'book-10page',          name: '10-Page Book',         category: 'book', format: 'portrait', pageWidth: 420, pageHeight: 595,
+    description: '10-page A5 book with title page, linked table of contents, three chapters, conclusion and bibliography',
+    tags: ['book', 'multi-page', 'toc', 'chapters', 'a5', 'complete'] },
 ];
 
 export interface CategoryItem {
@@ -538,7 +576,9 @@ export const CATEGORIES: CategoryItem[] = [
   { id: 'newsletter',  name: 'Newsletter & Flyers',count: TEMPLATES.filter(t => t.category === 'newsletter').length },
   { id: 'id-card',     name: 'ID Cards',           count: TEMPLATES.filter(t => t.category === 'id-card').length },
   { id: 'delivery',    name: 'Delivery Notes',     count: TEMPLATES.filter(t => t.category === 'delivery').length },
-  { id: 'meeting',     name: 'Meetings',           count: TEMPLATES.filter(t => t.category === 'meeting').length },
+  { id: 'meeting',      name: 'Meetings',           count: TEMPLATES.filter(t => t.category === 'meeting').length },
+  { id: 'presentation', name: 'Presentations',      count: TEMPLATES.filter(t => t.category === 'presentation').length },
+  { id: 'book',         name: 'Books / Chapters',   count: TEMPLATES.filter(t => t.category === 'book').length },
 ];
 
 export function getTemplatesByCategory(cat: string): TemplateDefinition[] {

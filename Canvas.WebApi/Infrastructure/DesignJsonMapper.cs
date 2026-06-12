@@ -1,8 +1,10 @@
 using System.Globalization;
 using System.IO.Compression;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Canvas.Pdf;
 using QRCoder;
+using SkiaSharp;
 using ZXing;
 using ZXing.Common;
 using DesignLayoutPlanner = Canvas.Core.Primitives.DesignLayoutPlanner;
@@ -11,9 +13,62 @@ namespace Canvas.WebApi.Infrastructure;
 
 public static class DesignJsonMapper
 {
-    public static PdfDocument MapToPdfDocument(DesignExportDto design)
+    /// <summary>
+    /// Builds the <see cref="PdfSaveOptions"/> for a design — currently the PDF encryption settings —
+    /// or null when the design requests no encryption. Pass the result to <c>document.ToBytes(options)</c>.
+    /// </summary>
+    public static PdfSaveOptions? BuildSaveOptions(DesignExportDto design)
     {
+        var enc = design.PageSettings?.Encryption;
+        if (enc is null || !enc.Enabled)
+            return null;
+
+        var p = enc.Permissions ?? new PdfEncryptionPermissionsDto();
+        var permissions = PdfPermissions.None;
+        if (p.Print) permissions |= PdfPermissions.Print;
+        if (p.Modify) permissions |= PdfPermissions.Modify;
+        if (p.Copy) permissions |= PdfPermissions.Copy;
+        if (p.Annotate) permissions |= PdfPermissions.AnnotateAndFillForms;
+        if (p.FillForms) permissions |= PdfPermissions.FillForms;
+        if (p.ExtractAccessibility) permissions |= PdfPermissions.ExtractForAccessibility;
+        if (p.Assemble) permissions |= PdfPermissions.Assemble;
+        if (p.PrintHighResolution) permissions |= PdfPermissions.PrintHighResolution;
+
+        var algorithm = string.Equals(enc.Algorithm, "Aes128", StringComparison.OrdinalIgnoreCase)
+            ? PdfEncryptionAlgorithm.Aes128
+            : PdfEncryptionAlgorithm.Rc4_128;
+
+        return new PdfSaveOptions
+        {
+            Encryption = new PdfEncryptionOptions
+            {
+                UserPassword = enc.UserPassword,
+                OwnerPassword = enc.OwnerPassword,
+                Permissions = permissions,
+                Algorithm = algorithm
+            }
+        };
+    }
+
+    public static PdfDocument MapToPdfDocument(
+        DesignExportDto design,
+        PdfFontLoader? fontLoader = null,
+        string? targetLanguage = null)
+    {
+        // Query-param language > JSON body targetLanguage > systemLanguage
+        targetLanguage ??= design.PageSettings?.TargetLanguage;
+
+        // Resolve localized property values and apply them as content substitutions.
+        var resolvedProps = LocalizedPropertyResolver.Resolve(
+            design.PageSettings?.LocalizedProperties,
+            targetLanguage ?? design.PageSettings?.SystemLanguage,
+            design.PageSettings?.SystemLanguage);
+
+        if (resolvedProps.Count > 0)
+            design = ApplyPropertySubstitutions(design, resolvedProps);
+
         var document = new PdfDocument();
+        document.FontLoader = fontLoader;
         document.Info.Title   = design.PageSettings?.Metadata?.Title   ?? design.Name;
         document.Info.Author  = design.PageSettings?.Metadata?.Author  ?? "";
         document.Info.Subject = design.PageSettings?.Metadata?.Subject ?? design.Category ?? "";
@@ -30,10 +85,29 @@ public static class DesignJsonMapper
         // Collect elements with a cross-page scope (watermarks, page-number overlays, etc.)
         // These must be rendered on every page that matches their scope, regardless of which
         // page they were originally placed on.
+        var effectiveLang = targetLanguage ?? design.PageSettings?.SystemLanguage;
         var scopedElements = sourcePages
             .SelectMany(p => p.Elements ?? [])
-            .Where(e => e.Hidden != true && e.PageScope is not (null or "current"))
+            .Where(e => e.Hidden != true && e.PageScope is not (null or "current") &&
+                (e.ElementLanguage is null || string.Equals(
+                    LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
+                    LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
+                    StringComparison.OrdinalIgnoreCase)))
             .ToList();
+
+        // ── Add PDF bookmarks BEFORE page rendering so case "toc" can read them ─
+        for (var bi = 0; bi < plannedPages.Count; bi++)
+        {
+            foreach (var bel in plannedPages[bi].Elements.Where(e =>
+                e.HeadingLevel is >= 1 and <= 3 &&
+                e.Hidden != true))
+            {
+                var bmTitle = Regex.Replace((bel.Content ?? bel.HtmlContent ?? "").Trim(), "<[^>]+>", "").Trim();
+                if (string.IsNullOrWhiteSpace(bmTitle))
+                    bmTitle = $"Heading {bel.HeadingLevel}";
+                document.AddBookmark(bmTitle, bi + 1, bel.HeadingLevel!.Value);
+            }
+        }
 
         for (var pi = 0; pi < plannedPages.Count; pi++)
         {
@@ -87,14 +161,20 @@ public static class DesignJsonMapper
 
             // Element coordinates from the frontend are page-absolute (origin = page top-left).
             // Margins are visual guides only and must NOT be added to element positions.
-            foreach (var el in plannedPage.Elements.Where(e => e.PageScope is null or "current"))
-                RenderElement(page, el, ps.Height, pageNumber, totalPages);
+            // ElementLanguage: if set, only render this element when the target language matches.
+            foreach (var el in plannedPage.Elements.Where(e =>
+                e.PageScope is null or "current" &&
+                (e.ElementLanguage is null || string.Equals(
+                    LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
+                    LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
+                    StringComparison.OrdinalIgnoreCase))))
+                RenderElement(document, page, el, ps.Height, pageNumber, totalPages, effectiveLang);
 
             // Scoped elements: draw on each page that satisfies the scope condition
             foreach (var el in scopedElements)
             {
                 if (!MatchesPageScope(el.PageScope, el.PageRange, pageNumber, totalPages)) continue;
-                RenderElement(page, el, ps.Height, pageNumber, totalPages);
+                RenderElement(document, page, el, ps.Height, pageNumber, totalPages, effectiveLang);
             }
 
             // Global watermark from page settings
@@ -159,18 +239,35 @@ public static class DesignJsonMapper
     // ── Main renderer ────────────────────────────────────────────────────────
 
     private static void RenderElement(
+        PdfDocument document,
         PdfPage page, ElementDto el, double pageH,
-        int pageIndex, int totalPages)
+        int pageIndex, int totalPages,
+        string? effectiveLang = null)
     {
-        var w = el.Width;
-        var h = el.Height;
-        if (w <= 0 || h <= 0) return;
-
-        // Element coordinates are page-absolute — use directly, no margin offset.
-        var elX = el.X;
-        var elY = el.Y;
-
+        var w    = el.Width;
+        var h    = el.Height;
+        var elX  = el.X;
+        var elY  = el.Y;
         var style = el.Style ?? [];
+
+        // Apply per-language position/rotation override when a target language is active.
+        if (effectiveLang != null && el.LangOverrides?.Count > 0)
+        {
+            var key = el.LangOverrides.ContainsKey(effectiveLang)
+                ? effectiveLang
+                : LocalizedPropertyResolver.NormalizeTag(effectiveLang);
+            if (el.LangOverrides.TryGetValue(key, out var ov))
+            {
+                if (ov.X.HasValue)        elX   = ov.X.Value;
+                if (ov.Y.HasValue)        elY   = ov.Y.Value;
+                if (ov.Width.HasValue)    w     = ov.Width.Value;
+                if (ov.Height.HasValue)   h     = ov.Height.Value;
+                if (ov.Rotation.HasValue)
+                    style = new Dictionary<string, object>(style) { ["rotation"] = ov.Rotation.Value };
+            }
+        }
+
+        if (w <= 0 || h <= 0) return;
 
         switch (el.Type)
         {
@@ -182,7 +279,7 @@ public static class DesignJsonMapper
                 var padL = GetDouble(style, "paddingLeft",  pad);
                 var padT = GetDouble(style, "paddingTop",   pad);
                 var padR = GetDouble(style, "paddingRight", pad);
-                var opts = BuildParaOptions(style);
+                var opts = BuildParaOptions(style, el.Language, el.TextDirection);
 
                 // Background fill behind text element
                 var bgStr = GetString(style, "backgroundColor");
@@ -256,7 +353,7 @@ public static class DesignJsonMapper
                     dateText = el.Content ?? el.FallbackText ?? "";
                 }
                 if (string.IsNullOrWhiteSpace(dateText)) return;
-                var opts = BuildParaOptions(style);
+                var opts = BuildParaOptions(style, el.Language, el.TextDirection);
                 page.DrawParagraph(dateText, elX, TextY(pageH, elY, opts.FontSize), w, opts);
                 break;
             }
@@ -276,7 +373,7 @@ public static class DesignJsonMapper
                 };
                 var full = $"{el.Prefix ?? ""}{numText}{el.Suffix ?? ""}";
                 if (string.IsNullOrWhiteSpace(full)) return;
-                var opts = BuildParaOptions(style);
+                var opts = BuildParaOptions(style, el.Language, el.TextDirection);
                 page.DrawParagraph(full, elX, TextY(pageH, elY, opts.FontSize), w, opts);
                 break;
             }
@@ -290,8 +387,9 @@ public static class DesignJsonMapper
                 var hasBg = !string.IsNullOrEmpty(bgStr) && bgStr != "transparent";
                 var fontSize = GetDouble(style, "fontSize", 11);
 
-                var boxH = Math.Max(h - 20, 2);
-                var boxY = RectBottomY(pageH, elY + 20, boxH);
+                const double labelOffset = 16.0;
+                var boxH = Math.Clamp(h - labelOffset, 2, 24.0);
+                var boxY = RectBottomY(pageH, elY + labelOffset, boxH);
                 page.DrawRectangle(elX, boxY, w, boxH,
                     lineWidth: 1, fill: hasBg,
                     strokeColor: borderColor,
@@ -300,12 +398,12 @@ public static class DesignJsonMapper
                 // Placeholder text inside the input box
                 var placeholderText = el.FieldName ?? "";
                 if (!string.IsNullOrEmpty(placeholderText) && boxH > 10)
-                    page.DrawText(placeholderText, elX + 6, TextY(pageH, elY + 20 + (boxH - fontSize * 1.2) / 2, fontSize),
+                    page.DrawText(placeholderText, elX + 6, TextY(pageH, elY + labelOffset + (boxH - fontSize * 1.2) / 2, fontSize),
                         new PdfDrawTextOptions { FontSize = fontSize, FillColor = ParseColor("#9ca3af"), Italic = true });
 
                 if (!string.IsNullOrEmpty(label))
                 {
-                    var baseY = TextY(pageH, elY, fontSize);
+                    var baseY = TextY(pageH, elY + 2, fontSize);
                     page.DrawText(label, elX, baseY,
                         new PdfDrawTextOptions { FontSize = fontSize, FillColor = labelColor });
                     if (el.Required == true)
@@ -315,6 +413,52 @@ public static class DesignJsonMapper
                             new PdfDrawTextOptions { FontSize = fontSize, FillColor = ParseColor("#ef4444") });
                     }
                 }
+
+                var fieldFieldName = !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName
+                    : !string.IsNullOrWhiteSpace(el.Id) ? el.Id
+                    : Guid.NewGuid().ToString("N");
+                page.AddTextField(fieldFieldName, elX, boxY, w, boxH,
+                    defaultValue: "", fontSize: Math.Max(6, fontSize));
+                break;
+            }
+
+            case "textarea":
+            {
+                var label = el.FieldLabel ?? el.FieldName ?? "";
+                var borderColor = ParseColor(GetString(style, "borderColor") ?? "#d1d5db");
+                var labelColor = ParseColor(GetString(style, "color") ?? "#374151");
+                var fontSize = GetDouble(style, "fontSize", 11);
+                const double taLabelOffset = 16.0;
+                var boxH = Math.Clamp(h - taLabelOffset, 2, 20.0);
+                var boxY = RectBottomY(pageH, elY + taLabelOffset, boxH);
+
+                page.DrawRectangle(elX, boxY, w, boxH, lineWidth: 1, fill: true,
+                    strokeColor: borderColor, fillColor: PdfColor.White);
+
+                var placeholder = el.Placeholder ?? "";
+                if (!string.IsNullOrEmpty(placeholder) && boxH > 10)
+                    page.DrawText(placeholder, elX + 6,
+                        TextY(pageH, elY + taLabelOffset + (boxH - fontSize * 1.2) / 2, fontSize),
+                        new PdfDrawTextOptions { FontSize = fontSize, FillColor = ParseColor("#9ca3af"), Italic = true });
+
+                if (!string.IsNullOrEmpty(label))
+                {
+                    var baseY = TextY(pageH, elY + 2, fontSize);
+                    page.DrawText(label, elX, baseY,
+                        new PdfDrawTextOptions { FontSize = fontSize, FillColor = labelColor });
+                    if (el.Required == true)
+                    {
+                        var lw = label.Length * fontSize * 0.52;
+                        page.DrawText(" *", elX + lw, baseY,
+                            new PdfDrawTextOptions { FontSize = fontSize, FillColor = ParseColor("#ef4444") });
+                    }
+                }
+
+                var fieldName = !string.IsNullOrWhiteSpace(el.Id) ? el.Id
+                    : !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName
+                    : Guid.NewGuid().ToString("N");
+                page.AddMultilineTextField(fieldName, elX, boxY, w, boxH,
+                    defaultValue: "", fontSize: Math.Max(6, fontSize));
                 break;
             }
 
@@ -372,29 +516,58 @@ public static class DesignJsonMapper
             {
                 var color = ParseColor(GetString(style, "color") ?? "#374151");
                 var bw = GetDouble(style, "borderWidth", 2);
-                var boxY = RectBottomY(pageH, elY, h);
+                var fontSize = GetDouble(style, "fontSize", 12);
+                var boxSize = Math.Min(h / 2.0, 16.0);
+                var boxY = RectBottomY(pageH, elY + (h - boxSize) / 2, boxSize);
                 var state = el.CheckState ?? "checked";
 
                 if (el.MarkMode == "rectangle" || el.MarkMode is null)
                 {
-                    page.DrawRectangle(elX, boxY, w, h, lineWidth: bw, fill: false,
-                        strokeColor: color, fillColor: PdfColor.White);
-                    var cx = elX + w / 2;
-                    var cy = boxY + h / 2;
-                    if (state == "checked")
+                    if (state == "empty")
                     {
-                        page.DrawLine(elX + w * 0.2, cy, cx - w * 0.05, cy - h * 0.25, lineWidth: bw, strokeColor: color);
-                        page.DrawLine(cx - w * 0.05, cy - h * 0.25, elX + w * 0.85, cy + h * 0.3, lineWidth: bw, strokeColor: color);
+                        // Draw an empty box as a visual placeholder…
+                        page.DrawRectangle(elX, boxY, boxSize, boxSize, lineWidth: bw, fill: false,
+                            strokeColor: color, fillColor: PdfColor.White);
+                        // …and overlay an interactive AcroForm checkbox widget.
+                        var cbFieldName = !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName
+                            : !string.IsNullOrWhiteSpace(el.Id) ? el.Id
+                            : Guid.NewGuid().ToString("N");
+                        page.AddCheckBox(cbFieldName, elX, boxY, boxSize, isChecked: false);
                     }
-                    else if (state == "cross")
+                    else
                     {
-                        page.DrawLine(elX + 4, boxY + 4, elX + w - 4, boxY + h - 4, lineWidth: bw, strokeColor: color);
-                        page.DrawLine(elX + w - 4, boxY + 4, elX + 4, boxY + h - 4, lineWidth: bw, strokeColor: color);
+                        page.DrawRectangle(elX, boxY, boxSize, boxSize, lineWidth: bw, fill: false,
+                            strokeColor: color, fillColor: PdfColor.White);
+                        var cx = elX + boxSize / 2;
+                        var cy = boxY + boxSize / 2;
+                        if (state == "checked")
+                        {
+                            page.DrawLine(elX + boxSize * 0.2, cy,
+                                          cx - boxSize * 0.05, cy - boxSize * 0.25, lineWidth: bw, strokeColor: color);
+                            page.DrawLine(cx - boxSize * 0.05, cy - boxSize * 0.25,
+                                          elX + boxSize * 0.85, cy + boxSize * 0.3, lineWidth: bw, strokeColor: color);
+                        }
+                        else if (state == "cross")
+                        {
+                            page.DrawLine(elX + 4, boxY + 4, elX + boxSize - 4, boxY + boxSize - 4, lineWidth: bw, strokeColor: color);
+                            page.DrawLine(elX + boxSize - 4, boxY + 4, elX + 4, boxY + boxSize - 4, lineWidth: bw, strokeColor: color);
+                        }
+                        else if (state == "dot")
+                        {
+                            page.DrawCircle(cx, cy, boxSize * 0.25, lineWidth: 1,
+                                fill: true, strokeColor: color, fillColor: color);
+                        }
                     }
-                    else if (state == "dot")
+
+                    // Label to the right of the box
+                    var label = el.FieldLabel ?? "";
+                    if (!string.IsNullOrEmpty(label) && w > boxSize + 4)
                     {
-                        page.DrawCircle(cx, cy, Math.Min(w, h) * 0.25, lineWidth: 1,
-                            fill: true, strokeColor: color, fillColor: color);
+                        var labelX = elX + boxSize + 8;
+                        var labelY = TextY(pageH, elY + (h - fontSize) / 2, fontSize);
+                        var labelColor = ParseColor(GetString(style, "labelColor") ?? GetString(style, "color") ?? "#374151");
+                        page.DrawText(label, labelX, labelY,
+                            new PdfDrawTextOptions { FontSize = fontSize, FillColor = labelColor });
                     }
                 }
                 break;
@@ -674,6 +847,19 @@ public static class DesignJsonMapper
                     page.DrawText(text, elX + 8, TextY(pageH, elY + (h - fs * 1.4) / 2, fs),
                         new PdfDrawTextOptions { FontSize = fs, Bold = true, FillColor = textColor });
                 }
+
+                // Overlay a link annotation when a button action is configured.
+                var btnAction = el.ButtonAction ?? "";
+                if (btnAction.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                {
+                    page.AddWebLink(elX, boxY, w, h, btnAction);
+                }
+                else if (btnAction.StartsWith("page:", StringComparison.OrdinalIgnoreCase)
+                    && int.TryParse(btnAction.AsSpan(5), out var targetPage)
+                    && targetPage >= 1)
+                {
+                    page.AddPageLink(elX, boxY, w, h, targetPage);
+                }
                 break;
             }
 
@@ -688,12 +874,23 @@ public static class DesignJsonMapper
                 page.DrawRectangle(elX, boxY, w, h, lineWidth: 1, fill: true,
                     strokeColor: borderColor, fillColor: PdfColor.White);
 
-                if (!string.IsNullOrEmpty(label))
-                    page.DrawText(label, elX + 6, TextY(pageH, elY + (h - fs * 1.4) / 2, fs),
-                        new PdfDrawTextOptions { FontSize = fs, FillColor = textColor });
+                var dropdownOptions = el.Options is { Length: > 0 } opts ? opts : null;
+                if (dropdownOptions is not null)
+                {
+                    var fieldName = !string.IsNullOrWhiteSpace(el.Id) ? el.Id
+                        : !string.IsNullOrWhiteSpace(el.FieldName) ? el.FieldName
+                        : System.Guid.NewGuid().ToString("N");
+                    page.AddComboBox(fieldName, elX, boxY, w, h, dropdownOptions, el.SelectedValue, Math.Max(6, fs));
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(label))
+                        page.DrawText(label, elX + 6, TextY(pageH, elY + (h - fs * 1.4) / 2, fs),
+                            new PdfDrawTextOptions { FontSize = fs, FillColor = textColor });
 
-                page.DrawText("v", elX + w - 14, TextY(pageH, elY + (h - fs * 1.4) / 2, fs),
-                    new PdfDrawTextOptions { FontSize = fs, FillColor = ParseColor("#9ca3af") });
+                    page.DrawText("v", elX + w - 14, TextY(pageH, elY + (h - fs * 1.4) / 2, fs),
+                        new PdfDrawTextOptions { FontSize = fs, FillColor = ParseColor("#9ca3af") });
+                }
                 break;
             }
 
@@ -776,15 +973,229 @@ public static class DesignJsonMapper
             }
 
             case "chart":
-                DrawPlaceholder(page, el, pageH, $"Chart ({el.ChartType ?? "bar"})");
+            {
+                try
+                {
+                    var pngBytes = GenerateChartPng(el, (int)Math.Max(w, 80), (int)Math.Max(h, 60));
+                    var tempPath = Path.ChangeExtension(Path.GetTempFileName(), ".png");
+                    File.WriteAllBytes(tempPath, pngBytes);
+                    try { page.DrawImage(tempPath, elX, RectBottomY(pageH, elY, h), w, h); }
+                    finally { TryDelete(tempPath); }
+                }
+                catch { DrawPlaceholder(page, el, pageH, $"Chart ({el.ChartType ?? "bar"})"); }
                 break;
+            }
 
             case "draw":
-                DrawPlaceholder(page, el, pageH, "[Drawing]");
+            {
+                var path = el.PathData;
+                if (string.IsNullOrWhiteSpace(path)) { DrawPlaceholder(page, el, pageH, "[Drawing]"); break; }
+                var strokeColor = ParseColor(GetString(style, "color") ?? "#1d4ed8");
+                var lineW       = GetDouble(style, "strokeWidth", 2);
+                RenderSvgPath(page, path, elX, elY, pageH, lineW, strokeColor);
                 break;
+            }
+
+            case "link":
+            {
+                var text  = el.Content ?? el.Href ?? "";
+                var href  = el.Href ?? "";
+                if (string.IsNullOrWhiteSpace(text)) text = href;
+                if (string.IsNullOrWhiteSpace(text)) break;
+                var fs       = GetDouble(style, "fontSize", 12);
+                var fgColor  = ParseColor(GetString(style, "color") ?? "#2563eb");
+                page.DrawText(text, elX, TextY(pageH, elY, fs),
+                    new PdfDrawTextOptions { FontSize = fs, FillColor = fgColor, Underline = true });
+                if (!string.IsNullOrWhiteSpace(href))
+                    page.AddWebLink(elX, RectBottomY(pageH, elY, h), w, h, href);
+                break;
+            }
+
+            case "number":
+            {
+                var val      = el.NumberValue ?? 0;
+                var numStyle = (el.NumberStyle ?? "decimal").ToLowerInvariant();
+                var decimals = el.NumberDecimals ?? 2;
+                var currency = el.NumberCurrency ?? "USD";
+                CultureInfo culture;
+                try   { culture = CultureInfo.CreateSpecificCulture(el.NumberLocale ?? "en-US"); }
+                catch { culture = CultureInfo.InvariantCulture; }
+
+                var text = numStyle switch
+                {
+                    "currency"   => val.ToString($"C{decimals}", culture),
+                    "percent"    => val.ToString($"P{decimals}", culture),
+                    "scientific" => val.ToString($"E{decimals}", CultureInfo.InvariantCulture),
+                    "ordinal"    => FormatOrdinal((long)Math.Round(val), culture),
+                    _            => val.ToString($"N{decimals}", culture),
+                };
+
+                var fs      = GetDouble(style, "fontSize", 16);
+                var fgColor = ParseColor(GetString(style, "color") ?? "#000000");
+                var align   = ParseAlignment(GetString(style, "textAlign"));
+                page.DrawParagraph(text, elX, TextY(pageH, elY, fs), w, new PdfParagraphOptions
+                {
+                    FontSize = fs, FillColor = fgColor, Alignment = align
+                });
+                break;
+            }
+
+            case "bookmark":
+            {
+                var name = el.BookmarkName ?? el.Id;
+                if (!string.IsNullOrWhiteSpace(name))
+                    document.AddNamedDestination(name, pageIndex, pageH - elY);
+                break;
+            }
+
+            case "footnote":
+            case "endnote":
+            {
+                // Superscript reference marker at the element position
+                var refText = el.FootnoteRef ?? "*";
+                var markerFs = GetDouble(style, "fontSize", 9);
+                var fgColor  = ParseColor(GetString(style, "color") ?? "#374151");
+                page.DrawText(refText, elX, TextY(pageH, elY, markerFs),
+                    new PdfDrawTextOptions { FontSize = markerFs, FillColor = fgColor });
+
+                // Footnote text block at the bottom of the page
+                var fnText = el.FootnoteText ?? el.Content ?? "";
+                if (!string.IsNullOrWhiteSpace(fnText))
+                {
+                    var fnFs  = markerFs * 0.9;
+                    var fnX   = elX;
+                    var fnY   = 32.0; // bottom margin area in PDF units
+                    var fnColor = ParseColor("#6b7280");
+                    var fullNote = $"{refText} {fnText}";
+                    page.DrawParagraph(fullNote, fnX, fnY, w, new PdfParagraphOptions { FontSize = fnFs, FillColor = fnColor });
+                }
+                break;
+            }
+
+            case "comment":
+            {
+                var text   = el.CommentText ?? el.Content ?? "";
+                var author = el.CommentAuthor ?? "";
+                var date   = el.CommentDate ?? "";
+                if (string.IsNullOrWhiteSpace(text)) break;
+
+                var bgColor  = ParseColor("#fef9c3");
+                var bdColor  = ParseColor("#ca8a04");
+                var txColor  = ParseColor("#1c1917");
+                var metaColor = ParseColor("#78716c");
+                var fs       = GetDouble(style, "fontSize", 10);
+
+                page.DrawRectangle(elX, RectBottomY(pageH, elY, h), w, h,
+                    lineWidth: 0.5, fill: true, strokeColor: bdColor, fillColor: bgColor);
+
+                var metaLine = string.Join("  ", new[] { author, date }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                var curY = elY + 4;
+                if (!string.IsNullOrWhiteSpace(metaLine))
+                {
+                    page.DrawParagraph(metaLine, elX + 4, TextY(pageH, curY, fs * 0.85), w - 8,
+                        new PdfParagraphOptions { FontSize = fs * 0.85, FillColor = metaColor, Bold = true });
+                    curY += fs * 1.4;
+                }
+                page.DrawParagraph(text, elX + 4, TextY(pageH, curY, fs), w - 8,
+                    new PdfParagraphOptions { FontSize = fs, FillColor = txColor });
+                break;
+            }
+
+            case "contentcontrol":
+            {
+                var label   = el.ContentControlTitle ?? el.ContentControlTag ?? el.Type;
+                var content = el.Content ?? el.ContentControlPlaceholder ?? "";
+                var fs      = GetDouble(style, "fontSize", 11);
+                var fgColor = ParseColor(GetString(style, "color") ?? "#111827");
+                var bdColor = ParseColor("#6b7280");
+
+                page.DrawRectangle(elX, RectBottomY(pageH, elY, h), w, h,
+                    lineWidth: 0.7, fill: false, strokeColor: bdColor);
+                if (!string.IsNullOrWhiteSpace(label))
+                    page.DrawText(label, elX + 3, TextY(pageH, elY, fs * 0.75) + fs * 0.75,
+                        new PdfDrawTextOptions { FontSize = fs * 0.75, FillColor = bdColor });
+                if (!string.IsNullOrWhiteSpace(content))
+                    page.DrawParagraph(content, elX + 4, TextY(pageH, elY + fs, fs), w - 8,
+                        new PdfParagraphOptions { FontSize = fs, FillColor = fgColor });
+                break;
+            }
 
             case "pageboundary":
                 break;
+
+            case "toc":
+            {
+                var title        = string.IsNullOrWhiteSpace(el.TocTitle) ? "Table of Contents" : el.TocTitle;
+                var showPageNums = el.TocShowPageNumbers ?? true;
+                var showDots     = el.TocShowLeaderDots  ?? true;
+                var minLevel     = el.TocMinLevel ?? 1;
+                var maxLevel     = el.TocMaxLevel ?? 3;
+                var fgColor      = ParseColor(GetString(style, "color") ?? "#1f2937");
+                var fs           = GetDouble(style, "fontSize", 12);
+                var lineH        = fs * 1.6;
+                const double indentPerLevel = 12;
+                const double pageNumW       = 30;
+
+                // Prefer frontend-computed entries; fall back to live bookmarks
+                // (bookmarks are scanned before the render loop so they're always ready).
+                var rawEntries = el.TocEntries is { Length: > 0 }
+                    ? el.TocEntries
+                          .Where(e => e.Level >= minLevel && e.Level <= maxLevel)
+                          .Select(e => (e.Text, e.Level, e.Page))
+                          .ToList()
+                    : document.GetBookmarks()
+                          .Where(b => b.Level >= minLevel && b.Level <= maxLevel)
+                          .Select(b => (b.Title, b.Level, b.PageNumber))
+                          .ToList();
+
+                if (rawEntries.Count == 0) break;
+
+                // Title row
+                var titleFs   = fs * 1.4;
+                var titleOpts = new PdfParagraphOptions { FontSize = titleFs, FillColor = fgColor, Bold = true };
+                page.DrawParagraph(title, elX, TextY(pageH, elY, titleFs), w, titleOpts);
+                var cursorY = elY + titleFs + 8;
+
+                var entryOpts = new PdfParagraphOptions { FontSize = fs, FillColor = fgColor };
+
+                foreach (var (text, level, targetPage) in rawEntries)
+                {
+                    if (string.IsNullOrWhiteSpace(text)) continue;
+                    if (cursorY + lineH > elY + h) break;
+
+                    var indent   = (level - 1) * indentPerLevel;
+                    var textW    = showPageNums ? Math.Max(w - indent - pageNumW - 4, 10) : Math.Max(w - indent, 10);
+                    var textX    = elX + indent;
+                    var baseline = TextY(pageH, cursorY, fs);
+
+                    page.DrawParagraph(text, textX, baseline, textW, entryOpts);
+
+                    if (showPageNums)
+                    {
+                        if (showDots)
+                        {
+                            var dotsX = textX + textW;
+                            var dotsW = w - indent - textW - pageNumW;
+                            if (dotsW >= 4)
+                            {
+                                var dotCount = (int)(dotsW / (fs * 0.35));
+                                page.DrawParagraph(new string('.', Math.Max(dotCount, 1)),
+                                    dotsX, baseline, dotsW, entryOpts);
+                            }
+                        }
+                        page.DrawParagraph(targetPage.ToString(CultureInfo.InvariantCulture),
+                            elX + w - pageNumW, baseline, pageNumW,
+                            new PdfParagraphOptions { FontSize = fs, FillColor = fgColor, Alignment = PdfTextAlignment.Right });
+                    }
+
+                    // Clickable link spanning the full row width
+                    var linkBottomY = RectBottomY(pageH, cursorY, lineH);
+                    page.AddPageLink(elX, linkBottomY, w, lineH, targetPage);
+
+                    cursorY += lineH;
+                }
+                break;
+            }
         }
     }
 
@@ -822,6 +1233,148 @@ public static class DesignJsonMapper
             finally { TryDelete(tempPath); }
         }
         catch { DrawPlaceholder(page, el, pageH, "[Image]"); }
+    }
+
+    private static byte[] GenerateChartPng(ElementDto el, int width, int height)
+    {
+        var chartType = (el.ChartType ?? "bar").ToLowerInvariant();
+        var data = el.ChartData ?? new Dictionary<string, object>();
+
+        // Extract labels and datasets from ChartData
+        string[] labels = [];
+        if (data.TryGetValue("labels", out var labObj) && labObj is JsonElement labEl && labEl.ValueKind == JsonValueKind.Array)
+            labels = labEl.EnumerateArray().Select(e => e.GetString() ?? "").ToArray();
+
+        var series = new List<(string label, double[] values, SKColor color)>();
+        SKColor[] palette = [
+            SKColor.Parse("#3b82f6"), SKColor.Parse("#10b981"), SKColor.Parse("#f59e0b"),
+            SKColor.Parse("#ef4444"), SKColor.Parse("#8b5cf6"), SKColor.Parse("#06b6d4")
+        ];
+        if (data.TryGetValue("datasets", out var dsObj) && dsObj is JsonElement dsEl && dsEl.ValueKind == JsonValueKind.Array)
+        {
+            var idx = 0;
+            foreach (var ds in dsEl.EnumerateArray())
+            {
+                var sLabel = ds.TryGetProperty("label", out var lp) ? lp.GetString() ?? "" : $"Series {idx + 1}";
+                double[] vals = [];
+                if (ds.TryGetProperty("data", out var dp) && dp.ValueKind == JsonValueKind.Array)
+                    vals = dp.EnumerateArray().Select(e => e.TryGetDouble(out var d) ? d : 0).ToArray();
+                var colorStr = ds.TryGetProperty("backgroundColor", out var cp) ? cp.GetString()
+                             : ds.TryGetProperty("color", out var cp2) ? cp2.GetString() : null;
+                var color = !string.IsNullOrEmpty(colorStr) ? SKColor.Parse(colorStr) : palette[idx % palette.Length];
+                series.Add((sLabel, vals, color));
+                idx++;
+            }
+        }
+
+        if (series.Count == 0 || (labels.Length == 0 && series.All(s => s.values.Length == 0)))
+        {
+            // Fallback: simple demo data
+            labels = ["A", "B", "C", "D"];
+            series = [("Data", [40, 70, 50, 90], SKColor.Parse("#3b82f6"))];
+        }
+
+        using var bitmap = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Premul);
+        using var canvas = new SKCanvas(bitmap);
+        canvas.Clear(SKColors.White);
+
+        const float padL = 32, padR = 12, padT = 12, padB = 28;
+        float chartW = width - padL - padR;
+        float chartH = height - padT - padB;
+
+        double allMax = series.SelectMany(s => s.values).DefaultIfEmpty(1).Max();
+        if (allMax <= 0) allMax = 1;
+
+        using var axisPaint = new SKPaint { Color = SKColor.Parse("#9ca3af"), StrokeWidth = 1, IsAntialias = true, Style = SKPaintStyle.Stroke };
+        using var textPaint = new SKPaint { Color = SKColor.Parse("#374151"), IsAntialias = true };
+        var typeface = SKTypeface.Default;
+        using var tf = new SKFont(typeface, 9);
+
+        if (chartType == "pie")
+        {
+            // Pie chart
+            float cx = padL + chartW / 2, cy = padT + chartH / 2;
+            float r = Math.Min(chartW, chartH) / 2f - 4;
+            var allVals = series.SelectMany(s => s.values).ToArray();
+            var pieLabels = labels.Length > 0 ? labels : series.Select(s => s.label).ToArray();
+            double total = allVals.Sum(); if (total <= 0) total = 1;
+            float startAngle = -90;
+            for (var i = 0; i < allVals.Length; i++)
+            {
+                float sweep = (float)(allVals[i] / total * 360.0);
+                var sliceColor = palette[i % palette.Length];
+                using var slicePaint = new SKPaint { Color = sliceColor, Style = SKPaintStyle.Fill, IsAntialias = true };
+                using var path = new SKPath();
+                path.MoveTo(cx, cy);
+                path.ArcTo(new SKRect(cx - r, cy - r, cx + r, cy + r), startAngle, sweep, false);
+                path.LineTo(cx, cy);
+                canvas.DrawPath(path, slicePaint);
+                startAngle += sweep;
+            }
+        }
+        else if (chartType == "line")
+        {
+            // Line chart
+            int nLabels = Math.Max(labels.Length, series.Select(s => s.values.Length).DefaultIfEmpty(0).Max());
+            if (nLabels == 0) nLabels = 1;
+            float xStep = nLabels > 1 ? chartW / (nLabels - 1) : chartW;
+
+            canvas.DrawLine(padL, padT, padL, padT + chartH, axisPaint);
+            canvas.DrawLine(padL, padT + chartH, padL + chartW, padT + chartH, axisPaint);
+
+            foreach (var (_, vals, color) in series)
+            {
+                using var linePaint = new SKPaint { Color = color, StrokeWidth = 2, IsAntialias = true, Style = SKPaintStyle.Stroke };
+                using var dotPaint  = new SKPaint { Color = color, IsAntialias = true, Style = SKPaintStyle.Fill };
+                using var path = new SKPath();
+                for (var i = 0; i < vals.Length; i++)
+                {
+                    float x = padL + i * xStep;
+                    float y = padT + chartH - (float)(vals[i] / allMax * chartH);
+                    if (i == 0) path.MoveTo(x, y); else path.LineTo(x, y);
+                    canvas.DrawCircle(x, y, 3, dotPaint);
+                }
+                canvas.DrawPath(path, linePaint);
+            }
+            // X labels
+            for (var i = 0; i < labels.Length; i++)
+            {
+                float x = padL + i * xStep;
+                canvas.DrawText(labels[i], x - 6, padT + chartH + 16, tf, textPaint);
+            }
+        }
+        else // bar
+        {
+            int nGroups = Math.Max(labels.Length, series.Select(s => s.values.Length).DefaultIfEmpty(0).Max());
+            if (nGroups == 0) nGroups = 1;
+            float groupW = chartW / nGroups;
+            float barW = Math.Max(2, groupW / (series.Count + 1));
+
+            canvas.DrawLine(padL, padT, padL, padT + chartH, axisPaint);
+            canvas.DrawLine(padL, padT + chartH, padL + chartW, padT + chartH, axisPaint);
+
+            for (var gi = 0; gi < nGroups; gi++)
+            {
+                float groupX = padL + gi * groupW + barW * 0.5f;
+                for (var si = 0; si < series.Count; si++)
+                {
+                    var (_, vals, color) = series[si];
+                    if (gi >= vals.Length) continue;
+                    float barH = (float)(vals[gi] / allMax * chartH);
+                    float barX = groupX + si * barW;
+                    float barY = padT + chartH - barH;
+                    using var barPaint = new SKPaint { Color = color, Style = SKPaintStyle.Fill, IsAntialias = true };
+                    canvas.DrawRect(barX, barY, barW - 1, barH, barPaint);
+                }
+                // X label
+                if (gi < labels.Length)
+                    canvas.DrawText(labels[gi], padL + gi * groupW + groupW / 2 - 6, padT + chartH + 16, tf, textPaint);
+            }
+        }
+
+        using var img  = SKImage.FromBitmap(bitmap);
+        using var enc  = img.Encode(SKEncodedImageFormat.Png, 100);
+        return enc.ToArray();
     }
 
     private static byte[] GenerateQrPng(string value)
@@ -985,7 +1538,10 @@ public static class DesignJsonMapper
         }
     }
 
-    private static PdfParagraphOptions BuildParaOptions(Dictionary<string, object> style)
+    private static PdfParagraphOptions BuildParaOptions(
+        Dictionary<string, object> style,
+        string? language = null,
+        string? textDirection = null)
     {
         var fontSize = GetDouble(style, "fontSize", 12);
         var bold = GetString(style, "fontWeight") is "bold" or "700" or "600";
@@ -1017,8 +1573,50 @@ public static class DesignJsonMapper
             Underline = deco.Contains("underline", StringComparison.OrdinalIgnoreCase),
             Strikethrough = deco.Contains("line-through", StringComparison.OrdinalIgnoreCase),
             CharacterSpacing = letterSpacing,
-            RotationDegrees = rotation
+            RotationDegrees = rotation,
+            Language = language,
+            TextDirection = textDirection
         };
+    }
+
+    /// <summary>
+    /// Mutates element content in-place, replacing {{KEY}} placeholders with the resolved
+    /// property values for the target language. Operates on a cloned element list to avoid
+    /// modifying the caller's design object.
+    /// </summary>
+    private static DesignExportDto ApplyPropertySubstitutions(
+        DesignExportDto design,
+        Dictionary<string, string> props)
+    {
+        foreach (var page in design.Pages)
+            foreach (var el in page.Elements)
+                SubstituteElement(el, props);
+        foreach (var el in design.SharedElements)
+            SubstituteElement(el, props);
+        return design;
+    }
+
+    private static void SubstituteElement(ElementDto el, Dictionary<string, string> props)
+    {
+        el.Content        = Substitute(el.Content,        props);
+        el.HtmlContent    = Substitute(el.HtmlContent,    props);
+        el.FieldLabel     = Substitute(el.FieldLabel,     props);
+        el.SignatureLabel = Substitute(el.SignatureLabel,  props);
+        el.QrValue        = Substitute(el.QrValue,        props);
+        el.BarcodeValue   = Substitute(el.BarcodeValue,   props);
+        el.NoteTitle      = Substitute(el.NoteTitle,      props);
+        el.NoteBody       = Substitute(el.NoteBody,       props);
+        el.FootnoteText   = Substitute(el.FootnoteText,   props);
+        el.ButtonAction   = Substitute(el.ButtonAction,   props);
+    }
+
+    private static string? Substitute(string? text, Dictionary<string, string> props)
+    {
+        if (string.IsNullOrEmpty(text) || !text.Contains("{{", StringComparison.Ordinal))
+            return text;
+        foreach (var (key, value) in props)
+            text = text.Replace("{{" + key + "}}", value, StringComparison.OrdinalIgnoreCase);
+        return text;
     }
 
     private static string HtmlToText(string html)
@@ -1138,5 +1736,130 @@ public static class DesignJsonMapper
     private static void TryDelete(string path)
     {
         try { File.Delete(path); } catch { /* best-effort cleanup */ }
+    }
+
+    private static string FormatOrdinal(long n, CultureInfo culture)
+    {
+        var abs = Math.Abs(n);
+        var suffix = (abs % 100) switch
+        {
+            11 or 12 or 13 => "th",
+            _ => (abs % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" }
+        };
+        return n.ToString(culture) + suffix;
+    }
+
+    // ── SVG path → PDF primitives ─────────────────────────────────────────────
+    // pathData coordinates are element-local (0,0 = element top-left, Y down).
+    // Transforms: pdfX = offsetX + svgX,  pdfY = pageH - offsetY - svgY
+
+    private static void RenderSvgPath(
+        PdfPage page, string pathData,
+        double offsetX, double offsetY, double pageH,
+        double lineWidth, IPdfColor color)
+    {
+        // Split on SVG command letters, keeping the letter with the following numbers
+        var segments = Regex.Split(pathData.Trim(), @"(?=[MmLlCcSsHhVvZz])");
+        double cx = 0, cy = 0, startX = 0, startY = 0, prevCx2 = 0, prevCy2 = 0;
+
+        double PdfX(double x) => offsetX + x;
+        double PdfY(double y) => pageH - offsetY - y;
+        double[] Nums(string s) => Regex.Matches(s, @"-?[\d.]+(?:[eE][+-]?\d+)?")
+            .Select(m => double.Parse(m.Value, CultureInfo.InvariantCulture)).ToArray();
+
+        foreach (var seg in segments)
+        {
+            if (string.IsNullOrWhiteSpace(seg)) continue;
+            var cmd  = seg[0];
+            var nums = Nums(seg[1..]);
+            var rel  = char.IsLower(cmd);
+
+            switch (char.ToUpperInvariant(cmd))
+            {
+                case 'M':
+                    for (var i = 0; i + 1 < nums.Length; i += 2)
+                    {
+                        var nx = rel ? cx + nums[i] : nums[i];
+                        var ny = rel ? cy + nums[i + 1] : nums[i + 1];
+                        if (i > 0) // subsequent coords in M are implicit L
+                            page.DrawLine(PdfX(cx), PdfY(cy), PdfX(nx), PdfY(ny), lineWidth, color);
+                        else { startX = nx; startY = ny; }
+                        cx = nx; cy = ny;
+                    }
+                    prevCx2 = cx; prevCy2 = cy;
+                    break;
+
+                case 'L':
+                    for (var i = 0; i + 1 < nums.Length; i += 2)
+                    {
+                        var nx = rel ? cx + nums[i] : nums[i];
+                        var ny = rel ? cy + nums[i + 1] : nums[i + 1];
+                        page.DrawLine(PdfX(cx), PdfY(cy), PdfX(nx), PdfY(ny), lineWidth, color);
+                        cx = nx; cy = ny;
+                    }
+                    prevCx2 = cx; prevCy2 = cy;
+                    break;
+
+                case 'H':
+                    foreach (var x in nums)
+                    {
+                        var nx = rel ? cx + x : x;
+                        page.DrawLine(PdfX(cx), PdfY(cy), PdfX(nx), PdfY(cy), lineWidth, color);
+                        cx = nx;
+                    }
+                    prevCx2 = cx; prevCy2 = cy;
+                    break;
+
+                case 'V':
+                    foreach (var y in nums)
+                    {
+                        var ny = rel ? cy + y : y;
+                        page.DrawLine(PdfX(cx), PdfY(cy), PdfX(cx), PdfY(ny), lineWidth, color);
+                        cy = ny;
+                    }
+                    prevCx2 = cx; prevCy2 = cy;
+                    break;
+
+                case 'C':
+                    for (var i = 0; i + 5 < nums.Length; i += 6)
+                    {
+                        var x1 = rel ? cx + nums[i]     : nums[i];
+                        var y1 = rel ? cy + nums[i + 1] : nums[i + 1];
+                        var x2 = rel ? cx + nums[i + 2] : nums[i + 2];
+                        var y2 = rel ? cy + nums[i + 3] : nums[i + 3];
+                        var ex = rel ? cx + nums[i + 4] : nums[i + 4];
+                        var ey = rel ? cy + nums[i + 5] : nums[i + 5];
+                        page.DrawBezierCurve(
+                            new(PdfX(cx), PdfY(cy)), new(PdfX(x1), PdfY(y1)),
+                            new(PdfX(x2), PdfY(y2)), new(PdfX(ex), PdfY(ey)),
+                            lineWidth, color);
+                        prevCx2 = x2; prevCy2 = y2; cx = ex; cy = ey;
+                    }
+                    break;
+
+                case 'S': // smooth cubic — reflect previous control point 2
+                    for (var i = 0; i + 3 < nums.Length; i += 4)
+                    {
+                        var x1 = 2 * cx - prevCx2;
+                        var y1 = 2 * cy - prevCy2;
+                        var x2 = rel ? cx + nums[i]     : nums[i];
+                        var y2 = rel ? cy + nums[i + 1] : nums[i + 1];
+                        var ex = rel ? cx + nums[i + 2] : nums[i + 2];
+                        var ey = rel ? cy + nums[i + 3] : nums[i + 3];
+                        page.DrawBezierCurve(
+                            new(PdfX(cx), PdfY(cy)), new(PdfX(x1), PdfY(y1)),
+                            new(PdfX(x2), PdfY(y2)), new(PdfX(ex), PdfY(ey)),
+                            lineWidth, color);
+                        prevCx2 = x2; prevCy2 = y2; cx = ex; cy = ey;
+                    }
+                    break;
+
+                case 'Z':
+                    page.DrawLine(PdfX(cx), PdfY(cy), PdfX(startX), PdfY(startY), lineWidth, color);
+                    cx = startX; cy = startY;
+                    prevCx2 = cx; prevCy2 = cy;
+                    break;
+            }
+        }
     }
 }

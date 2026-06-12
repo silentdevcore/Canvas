@@ -116,16 +116,10 @@
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/NPOI.OOXML.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/NPOI.OpenXml4Net.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/NPOI.OpenXmlFormats.dll
-/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/PdfToSvg.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/ICSharpCode.SharpZipLib.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/SkiaSharp.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/System.Security.Cryptography.Pkcs.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/System.Security.Cryptography.Xml.dll
-/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/UglyToad.PdfPig.dll
-/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/UglyToad.PdfPig.Core.dll
-/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/UglyToad.PdfPig.Fonts.dll
-/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/UglyToad.PdfPig.Tokenization.dll
-/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/UglyToad.PdfPig.Tokens.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/ZString.dll
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/runtimes/linux-arm/native/libSkiaSharp.so
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/runtimes/linux-arm64/native/libSkiaSharp.so
@@ -152,3 +146,7 @@
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/Canvas.Infrastructure.Converters.pdb
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/Canvas.pdb
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/Canvas.Application.pdb
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/Canvas.FileImporter.Abstractions.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/Canvas.FileImporter.Pdf.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/Canvas.FileImporter.Pdf.pdb
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/bin/Debug/net10.0/Canvas.FileImporter.Abstractions.pdb

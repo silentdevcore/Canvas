@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { SimpleElement, ElementType, LayerDirection, PageSettings, Page, Template as BaseTemplate } from '@/types';
+import type { SimpleElement, ElementType, LayerDirection, PageSettings, Page, Template as BaseTemplate, LocalizedProperty } from '@/types';
 
 export type { ElementType, SimpleElement };
 
@@ -75,6 +75,8 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
   namedStyles: [],
   customProperties: [],
   trackChanges: false,
+  activeLanguages: [],
+  localizedProperties: [],
 };
 
 interface EditorState {
@@ -87,6 +89,16 @@ interface EditorState {
   backgroundPdf: File | null;
   pageSettings: PageSettings;
   settingsModifiedSinceExport: boolean;
+  helpModalOpen: boolean;
+  setHelpModalOpen: (open: boolean) => void;
+  documentMode: 'pdf' | 'word';
+  setDocumentMode: (mode: 'pdf' | 'word') => void;
+  // Current preview language (ephemeral — not persisted)
+  currentPreviewLanguage: string;
+  setCurrentPreviewLanguage: (lang: string) => void;
+  // Localized property helpers
+  upsertLocalizedProperty: (prop: LocalizedProperty) => void;
+  deleteLocalizedProperty: (key: string) => void;
   // Undo/redo (not persisted)
   undoStack: Template[];
   redoStack: Template[];
@@ -154,8 +166,30 @@ export const useEditorStore = create<EditorState>()(
       backgroundPdf: null,
       pageSettings: DEFAULT_PAGE_SETTINGS,
       settingsModifiedSinceExport: false,
+      helpModalOpen: false,
+      documentMode: 'pdf' as const,
+      currentPreviewLanguage: navigator.language.split('-')[0],
       undoStack: [],
       redoStack: [],
+
+      setHelpModalOpen: (open) => set({ helpModalOpen: open }),
+      setDocumentMode: (mode) => set({ documentMode: mode }),
+      setCurrentPreviewLanguage: (lang) => set({ currentPreviewLanguage: lang }),
+
+      upsertLocalizedProperty: (prop) => {
+        const ps = get().pageSettings;
+        const existing = ps.localizedProperties ?? [];
+        const idx = existing.findIndex(p => p.key === prop.key);
+        const updated = idx >= 0
+          ? existing.map((p, i) => i === idx ? prop : p)
+          : [...existing, prop];
+        set({ pageSettings: { ...ps, localizedProperties: updated } });
+      },
+
+      deleteLocalizedProperty: (key) => {
+        const ps = get().pageSettings;
+        set({ pageSettings: { ...ps, localizedProperties: (ps.localizedProperties ?? []).filter(p => p.key !== key) } });
+      },
 
       snapshotHistory: () => {
         const { currentTemplate, undoStack } = get();
@@ -387,10 +421,10 @@ export const useEditorStore = create<EditorState>()(
     }),
     {
       name: 'editor-storage',
-      version: 5,
+      version: 6,
       partialize: (state) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { undoStack, redoStack, snapshotHistory, undo, redo, ...rest } = state;
+        const { undoStack, redoStack, snapshotHistory, undo, redo, currentPreviewLanguage, setCurrentPreviewLanguage, upsertLocalizedProperty, deleteLocalizedProperty, helpModalOpen, setHelpModalOpen, ...rest } = state;
         return {
           ...rest,
           currentTemplate: persistableTemplate(rest.currentTemplate),
@@ -399,8 +433,16 @@ export const useEditorStore = create<EditorState>()(
         };
       },
       migrate: (persisted: unknown, version: number) => {
-        // v3→v4: Template.elements → Template.pages
+        // v5→v6: LocalizedProperty shape: global+globalValue → scope+ownerLanguage
         const state = persisted as any;
+        if (version < 6 && state?.pageSettings?.localizedProperties) {
+          state.pageSettings.localizedProperties = (state.pageSettings.localizedProperties as any[]).map((p: any) => {
+            if ('scope' in p) return p; // already migrated
+            const { global: _g, globalValue: _gv, ...rest } = p;
+            return { ...rest, scope: 'global' };
+          });
+        }
+        // v3→v4: Template.elements → Template.pages
         if (version < 4 && state?.currentTemplate) {
           const t = state.currentTemplate;
           if (t.elements && !t.pages) {

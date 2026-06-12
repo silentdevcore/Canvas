@@ -1,0 +1,6 @@
+{
+  "expectedTextFragments": ["Dash", "234", "5678"],
+  "minTextLineCount": 2,
+  "maxLowConfidenceGlyphRate": 0.3,
+  "maxRuntimeMs": 5000
+}

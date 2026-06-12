@@ -1,0 +1,6 @@
+{
+  "expectedTextFragments": ["Report", "Total", "12345", "Price", "25.00"],
+  "minTextLineCount": 3,
+  "maxLowConfidenceGlyphRate": 0.3,
+  "maxRuntimeMs": 5000
+}

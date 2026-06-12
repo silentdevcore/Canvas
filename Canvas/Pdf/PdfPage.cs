@@ -1,4 +1,5 @@
 using Canvas.Pdf.Layout;
+using System.Security.Cryptography;
 
 namespace Canvas.Pdf;
 
@@ -6,12 +7,19 @@ public sealed class PdfPage
 {
     private readonly List<PdfPageElement> _elements = new();
     private readonly List<PdfLinkAnnotation> _linkAnnotations = new();
+    private readonly List<PdfComboBoxAnnotation> _comboBoxAnnotations = new();
+    private readonly List<PdfMultilineTextFieldAnnotation> _multilineTextFields = new();
+    private readonly List<PdfTextFieldAnnotation> _textFields = new();
+    private readonly List<PdfCheckBoxAnnotation> _checkBoxAnnotations = new();
 
-    internal PdfPage(double width, double height, PdfStandardFont defaultFont)
+    private readonly PdfFontLoader? _fontLoader;
+
+    internal PdfPage(double width, double height, PdfStandardFont defaultFont, PdfFontLoader? fontLoader = null)
     {
         Width = width;
         Height = height;
         DefaultFont = defaultFont;
+        _fontLoader = fontLoader;
     }
 
     public double Width { get; }
@@ -41,6 +49,14 @@ public sealed class PdfPage
     internal IReadOnlyList<PdfPageElement> Elements => _elements;
 
     internal IReadOnlyList<PdfLinkAnnotation> LinkAnnotations => _linkAnnotations;
+
+    internal IReadOnlyList<PdfComboBoxAnnotation> ComboBoxAnnotations => _comboBoxAnnotations;
+
+    internal IReadOnlyList<PdfMultilineTextFieldAnnotation> MultilineTextFields => _multilineTextFields;
+
+    internal IReadOnlyList<PdfTextFieldAnnotation> TextFields => _textFields;
+
+    internal IReadOnlyList<PdfCheckBoxAnnotation> CheckBoxAnnotations => _checkBoxAnnotations;
 
     public void SetPageBoundary(PdfPageBoundary boundary, PdfPoint lowerLeft, PdfPoint upperRight)
     {
@@ -116,18 +132,41 @@ public sealed class PdfPage
         var resolvedFont = ResolveFont(options.Font, options.FontFamily, options.Bold, options.Italic);
         var fillColor = options.FillColor ?? PdfColor.Black;
 
+        PdfEmbeddedFont? embeddedFont = null;
+        _fontLoader?.TryLoad(options.Language, out embeddedFont);
+
         _elements.Add(new TextElement(
             text,
             x,
             y,
             options.FontSize,
             resolvedFont,
+            EmbeddedFont: embeddedFont,
+            Language: options.Language,
+            TextDirection: options.TextDirection,
             FillColor: fillColor,
             RotationDegrees: options.RotationDegrees,
             Underline: options.Underline,
             Strikethrough: options.Strikethrough,
             CharacterSpacing: options.CharacterSpacing,
             HorizontalScalingPercent: options.HorizontalScalingPercent));
+    }
+
+    public void DrawTextFromTop(string text, double x, double topY, double fontSize = 12, PdfStandardFont? font = null)
+    {
+        DrawText(text, x, ToBaselineYFromTop(topY, fontSize), fontSize, font);
+    }
+
+    public void DrawTextFromTop(string text, double x, double topY, double fontSize, PdfFontFamily fontFamily, bool bold = false, bool italic = false)
+    {
+        DrawText(text, x, ToBaselineYFromTop(topY, fontSize), fontSize, fontFamily, bold, italic);
+    }
+
+    public void DrawTextFromTop(string text, double x, double topY, PdfDrawTextOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        DrawText(text, x, ToBaselineYFromTop(topY, options.FontSize), options);
     }
 
     public void DrawLine(
@@ -142,6 +181,18 @@ public sealed class PdfPage
         var resolvedStrokeStyle = ResolveStrokeStyle(lineWidth, strokeStyle);
 
         _elements.Add(new LineElement(x1, y1, x2, y2, resolvedStrokeStyle, strokeColor ?? PdfColor.Black));
+    }
+
+    public void DrawLineFromTop(
+        double x1,
+        double topY1,
+        double x2,
+        double topY2,
+        double lineWidth = 1,
+        IPdfColor? strokeColor = null,
+        PdfStrokeStyle? strokeStyle = null)
+    {
+        DrawLine(x1, ToYFromTop(topY1), x2, ToYFromTop(topY2), lineWidth, strokeColor, strokeStyle);
     }
 
     public void DrawRectangle(
@@ -177,6 +228,20 @@ public sealed class PdfPage
             Fill: fill,
             StrokeColor: strokeColor ?? PdfColor.Black,
             FillColor: fillColor ?? PdfColor.Black));
+    }
+
+    public void DrawRectangleFromTop(
+        double x,
+        double topY,
+        double width,
+        double height,
+        double lineWidth = 1,
+        bool fill = false,
+        IPdfColor? strokeColor = null,
+        IPdfColor? fillColor = null,
+        PdfStrokeStyle? strokeStyle = null)
+    {
+        DrawRectangle(x, ToBottomYFromTop(topY, height), width, height, lineWidth, fill, strokeColor, fillColor, strokeStyle);
     }
 
     public void DrawBezierCurve(
@@ -273,6 +338,21 @@ public sealed class PdfPage
             FillColor: fillColor ?? PdfColor.Black));
     }
 
+    public void DrawRoundedRectangleFromTop(
+        double x,
+        double topY,
+        double width,
+        double height,
+        double cornerRadius,
+        double lineWidth = 1,
+        bool fill = false,
+        IPdfColor? strokeColor = null,
+        IPdfColor? fillColor = null,
+        PdfStrokeStyle? strokeStyle = null)
+    {
+        DrawRoundedRectangle(x, ToBottomYFromTop(topY, height), width, height, cornerRadius, lineWidth, fill, strokeColor, fillColor, strokeStyle);
+    }
+
     public void DrawCircle(
         double centerX,
         double centerY,
@@ -301,6 +381,19 @@ public sealed class PdfPage
             FillColor: fillColor ?? PdfColor.Black));
     }
 
+    public void DrawCircleFromTop(
+        double centerX,
+        double topCenterY,
+        double radius,
+        double lineWidth = 1,
+        bool fill = false,
+        IPdfColor? strokeColor = null,
+        IPdfColor? fillColor = null,
+        PdfStrokeStyle? strokeStyle = null)
+    {
+        DrawCircle(centerX, ToYFromTop(topCenterY), radius, lineWidth, fill, strokeColor, fillColor, strokeStyle);
+    }
+
     public void DrawImage(string imagePath, double x, double y, double? width = null, double? height = null)
     {
         var image = PdfImageReader.Read(imagePath);
@@ -318,6 +411,74 @@ public sealed class PdfPage
         }
 
         AddImageElement(imagePath, image, x, y, resolvedWidth, resolvedHeight, 1);
+    }
+
+    public void DrawImage(byte[] imageBytes, double x, double y, double? width = null, double? height = null)
+    {
+        var image = PdfImageReader.Read(imageBytes);
+        var resolvedWidth = width ?? image.Width;
+        var resolvedHeight = height ?? image.Height;
+
+        if (resolvedWidth <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width), "Image width must be greater than zero.");
+        }
+
+        if (resolvedHeight <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Image height must be greater than zero.");
+        }
+
+        AddImageElementWithCacheKey(GetImageBytesCacheKey(imageBytes), image, x, y, resolvedWidth, resolvedHeight, 1);
+    }
+
+    public void DrawImage(Stream imageStream, double x, double y, double? width = null, double? height = null)
+    {
+        ArgumentNullException.ThrowIfNull(imageStream);
+
+        using var memory = new MemoryStream();
+        imageStream.CopyTo(memory);
+        DrawImage(memory.ToArray(), x, y, width, height);
+    }
+
+    public void DrawImageFromTop(string imagePath, double x, double topY)
+    {
+        var image = PdfImageReader.Read(imagePath);
+        AddImageElement(imagePath, image, x, ToBottomYFromTop(topY, image.Height), image.Width, image.Height, 1);
+    }
+
+    public void DrawImageFromTop(byte[] imageBytes, double x, double topY)
+    {
+        var image = PdfImageReader.Read(imageBytes);
+        AddImageElementWithCacheKey(GetImageBytesCacheKey(imageBytes), image, x, ToBottomYFromTop(topY, image.Height), image.Width, image.Height, 1);
+    }
+
+    public void DrawImageFromTop(Stream imageStream, double x, double topY)
+    {
+        ArgumentNullException.ThrowIfNull(imageStream);
+
+        using var memory = new MemoryStream();
+        imageStream.CopyTo(memory);
+        DrawImageFromTop(memory.ToArray(), x, topY);
+    }
+
+    public void DrawImageFromTop(string imagePath, double x, double topY, double width, double height)
+    {
+        DrawImage(imagePath, x, ToBottomYFromTop(topY, height), width, height);
+    }
+
+    public void DrawImageFromTop(byte[] imageBytes, double x, double topY, double width, double height)
+    {
+        DrawImage(imageBytes, x, ToBottomYFromTop(topY, height), width, height);
+    }
+
+    public void DrawImageFromTop(Stream imageStream, double x, double topY, double width, double height)
+    {
+        ArgumentNullException.ThrowIfNull(imageStream);
+
+        using var memory = new MemoryStream();
+        imageStream.CopyTo(memory);
+        DrawImageFromTop(memory.ToArray(), x, topY, width, height);
     }
 
     public void DrawImage(string imagePath, double x, double y, double width, double height, double opacity)
@@ -339,6 +500,86 @@ public sealed class PdfPage
 
         var image = PdfImageReader.Read(imagePath);
         AddImageElement(imagePath, image, x, y, width, height, opacity);
+    }
+
+    public void DrawImage(byte[] imageBytes, double x, double y, double width, double height, double opacity)
+    {
+        if (width <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width), "Image width must be greater than zero.");
+        }
+
+        if (height <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Image height must be greater than zero.");
+        }
+
+        if (opacity < 0 || opacity > 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(opacity), "Opacity must be between 0 and 1.");
+        }
+
+        var image = PdfImageReader.Read(imageBytes);
+        AddImageElementWithCacheKey(GetImageBytesCacheKey(imageBytes), image, x, y, width, height, opacity);
+    }
+
+    public void DrawImage(Stream imageStream, double x, double y, double width, double height, double opacity)
+    {
+        ArgumentNullException.ThrowIfNull(imageStream);
+
+        using var memory = new MemoryStream();
+        imageStream.CopyTo(memory);
+        DrawImage(memory.ToArray(), x, y, width, height, opacity);
+    }
+
+    public void DrawImageFromTop(string imagePath, double x, double topY, double opacity)
+    {
+        if (opacity < 0 || opacity > 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(opacity), "Opacity must be between 0 and 1.");
+        }
+
+        var image = PdfImageReader.Read(imagePath);
+        AddImageElement(imagePath, image, x, ToBottomYFromTop(topY, image.Height), image.Width, image.Height, opacity);
+    }
+
+    public void DrawImageFromTop(byte[] imageBytes, double x, double topY, double opacity)
+    {
+        if (opacity < 0 || opacity > 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(opacity), "Opacity must be between 0 and 1.");
+        }
+
+        var image = PdfImageReader.Read(imageBytes);
+        AddImageElementWithCacheKey(GetImageBytesCacheKey(imageBytes), image, x, ToBottomYFromTop(topY, image.Height), image.Width, image.Height, opacity);
+    }
+
+    public void DrawImageFromTop(Stream imageStream, double x, double topY, double opacity)
+    {
+        ArgumentNullException.ThrowIfNull(imageStream);
+
+        using var memory = new MemoryStream();
+        imageStream.CopyTo(memory);
+        DrawImageFromTop(memory.ToArray(), x, topY, opacity);
+    }
+
+    public void DrawImageFromTop(string imagePath, double x, double topY, double width, double height, double opacity)
+    {
+        DrawImage(imagePath, x, ToBottomYFromTop(topY, height), width, height, opacity);
+    }
+
+    public void DrawImageFromTop(byte[] imageBytes, double x, double topY, double width, double height, double opacity)
+    {
+        DrawImage(imageBytes, x, ToBottomYFromTop(topY, height), width, height, opacity);
+    }
+
+    public void DrawImageFromTop(Stream imageStream, double x, double topY, double width, double height, double opacity)
+    {
+        ArgumentNullException.ThrowIfNull(imageStream);
+
+        using var memory = new MemoryStream();
+        imageStream.CopyTo(memory);
+        DrawImageFromTop(memory.ToArray(), x, topY, width, height, opacity);
     }
 
     public void DrawImageClipped(string imagePath, double x, double y, double width, double height, double clipX, double clipY, double clipWidth, double clipHeight, double opacity = 1)
@@ -501,6 +742,8 @@ public sealed class PdfPage
         }
 
         var resolvedFont = ResolveFont(options.Font, options.FontFamily, options.Bold, options.Italic);
+        PdfEmbeddedFont? embeddedFont = null;
+        _fontLoader?.TryLoad(options.Language, out embeddedFont);
         var lines = WrapText(text, maxWidth, options.FontSize, resolvedFont);
         var widestLine = 0d;
 
@@ -514,7 +757,9 @@ public sealed class PdfPage
                 continue;
             }
 
-            var lineWidth = EstimateTextWidth(line, options.FontSize, resolvedFont);
+            var lineWidth = embeddedFont is not null
+                ? embeddedFont.MeasureWidth(line, options.FontSize)
+                : EstimateTextWidth(line, options.FontSize, resolvedFont);
             var isLastLine = i == lines.Count - 1;
             var (lineX, wordSpacing) = ResolveLineLayout(x, maxWidth, lineWidth, line, options.Alignment, isLastLine);
 
@@ -526,13 +771,16 @@ public sealed class PdfPage
                 lineY,
                 options.FontSize,
                 resolvedFont,
-                wordSpacing,
-                options.FillColor ?? PdfColor.Black,
-                options.RotationDegrees,
-                options.Underline,
-                options.Strikethrough,
-                options.CharacterSpacing,
-                options.HorizontalScalingPercent));
+                EmbeddedFont: embeddedFont,
+                Language: options.Language,
+                TextDirection: options.TextDirection,
+                WordSpacing: wordSpacing,
+                FillColor: options.FillColor ?? PdfColor.Black,
+                RotationDegrees: options.RotationDegrees,
+                Underline: options.Underline,
+                Strikethrough: options.Strikethrough,
+                CharacterSpacing: options.CharacterSpacing,
+                HorizontalScalingPercent: options.HorizontalScalingPercent));
         }
 
         var lineCount = lines.Count;
@@ -548,6 +796,179 @@ public sealed class PdfPage
             BottomY = bottomY,
             LineCount = lineCount
         };
+    }
+
+    public PdfParagraphLayoutResult DrawParagraphFromTop(string text, double x, double topY, double maxWidth, PdfParagraphOptions? options = null)
+    {
+        options ??= PdfParagraphOptions.Default;
+
+        return DrawParagraph(text, x, ToBaselineYFromTop(topY, options.FontSize), maxWidth, options);
+    }
+
+    public PdfParagraphLayoutResult DrawTextBoxFromTop(
+        string text,
+        double x,
+        double topY,
+        double width,
+        double height,
+        PdfTextBoxOptions? options = null)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            throw new ArgumentException("Text cannot be null or empty.", nameof(text));
+        }
+
+        if (width <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width), "Width must be greater than zero.");
+        }
+
+        if (height <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Height must be greater than zero.");
+        }
+
+        options ??= PdfTextBoxOptions.Default;
+
+        if (options.FontSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Font size must be greater than zero.");
+        }
+
+        if (options.HorizontalScalingPercent <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Horizontal scaling must be greater than zero.");
+        }
+
+        var lineHeight = options.LineHeight ?? options.FontSize * 1.2;
+
+        if (lineHeight <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(options), "Line height must be greater than zero.");
+        }
+
+        var resolvedFont = ResolveFont(options.Font, options.FontFamily, options.Bold, options.Italic);
+        PdfEmbeddedFont? embeddedFont = null;
+        _fontLoader?.TryLoad(options.Language, out embeddedFont);
+        var lines = WrapText(text, width, options.FontSize, resolvedFont);
+        var contentHeight = lines.Count > 0 ? ((lines.Count - 1) * lineHeight) + options.FontSize : 0;
+        var topBaselineY = ResolveTextBoxTopBaselineY(topY, height, contentHeight, options.FontSize, options.VerticalAlignment);
+        var widestLine = 0d;
+
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var line = lines[i];
+            var lineY = topBaselineY - (i * lineHeight);
+
+            if (line.Length == 0)
+            {
+                continue;
+            }
+
+            var lineWidth = embeddedFont is not null
+                ? embeddedFont.MeasureWidth(line, options.FontSize)
+                : EstimateTextWidth(line, options.FontSize, resolvedFont);
+            var isLastLine = i == lines.Count - 1;
+            var (lineX, wordSpacing) = ResolveLineLayout(x, width, lineWidth, line, options.Alignment, isLastLine);
+
+            widestLine = Math.Max(widestLine, lineWidth + GetJustificationWidthContribution(line, wordSpacing));
+
+            _elements.Add(new TextElement(
+                line,
+                lineX,
+                lineY,
+                options.FontSize,
+                resolvedFont,
+                EmbeddedFont: embeddedFont,
+                Language: options.Language,
+                TextDirection: options.TextDirection,
+                WordSpacing: wordSpacing,
+                FillColor: options.FillColor ?? PdfColor.Black,
+                RotationDegrees: options.RotationDegrees,
+                Underline: options.Underline,
+                Strikethrough: options.Strikethrough,
+                CharacterSpacing: options.CharacterSpacing,
+                HorizontalScalingPercent: options.HorizontalScalingPercent));
+        }
+
+        return new PdfParagraphLayoutResult
+        {
+            X = x,
+            TopY = topBaselineY,
+            Width = Math.Min(width, widestLine),
+            Height = contentHeight,
+            BottomY = topBaselineY - contentHeight,
+            LineCount = lines.Count
+        };
+    }
+
+    private double ResolveTextBoxTopBaselineY(
+        double topY,
+        double height,
+        double contentHeight,
+        double fontSize,
+        PdfVerticalAlignment verticalAlignment)
+    {
+        if (topY < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(topY), "Top Y cannot be negative.");
+        }
+
+        var boxTopY = Height - topY;
+        var boxBottomY = boxTopY - height;
+
+        if (contentHeight >= height)
+        {
+            return boxTopY - fontSize;
+        }
+
+        return verticalAlignment switch
+        {
+            PdfVerticalAlignment.Top => boxTopY - fontSize,
+            PdfVerticalAlignment.Middle => boxBottomY + ((height - contentHeight) / 2) + contentHeight,
+            PdfVerticalAlignment.Bottom => boxBottomY + contentHeight,
+            _ => throw new ArgumentOutOfRangeException(nameof(verticalAlignment), verticalAlignment, "Unsupported vertical alignment.")
+        };
+    }
+
+    private double ToBaselineYFromTop(double topY, double fontSize)
+    {
+        if (topY < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(topY), "Top Y cannot be negative.");
+        }
+
+        if (fontSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fontSize), "Font size must be greater than zero.");
+        }
+
+        return Height - topY - fontSize;
+    }
+
+    private double ToBottomYFromTop(double topY, double height)
+    {
+        if (topY < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(topY), "Top Y cannot be negative.");
+        }
+
+        if (height <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Height must be greater than zero.");
+        }
+
+        return Height - topY - height;
+    }
+
+    private double ToYFromTop(double topY)
+    {
+        if (topY < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(topY), "Top Y cannot be negative.");
+        }
+
+        return Height - topY;
     }
 
     public PdfTableLayoutResult DrawSimpleTable(double x, double y, double width, IReadOnlyList<IReadOnlyList<string>> rows, PdfTableOptions? options = null)
@@ -821,6 +1242,9 @@ public sealed class PdfPage
                 for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
                 {
                     var line = lines[lineIndex];
+                    if (string.IsNullOrEmpty(line))
+                        continue;
+
                     var textWidth = EstimateTextWidth(line, options.FontSize, cellFont);
                     var alignment = columnAlignments[columnIndex];
                     var textX = alignment switch
@@ -924,6 +1348,154 @@ public sealed class PdfPage
         }
 
         _linkAnnotations.Add(PdfLinkAnnotation.ForNamedDestination(x, y, width, height, destinationName));
+    }
+
+    public void AddComboBox(
+        string fieldName,
+        double x,
+        double y,
+        double width,
+        double height,
+        IReadOnlyList<string> options,
+        string? selectedValue = null,
+        double fontSize = 10)
+    {
+        if (string.IsNullOrWhiteSpace(fieldName))
+        {
+            throw new ArgumentException("Field name cannot be null or empty.", nameof(fieldName));
+        }
+
+        if (width <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width), "Width must be greater than zero.");
+        }
+
+        if (height <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Height must be greater than zero.");
+        }
+
+        if (options is null || options.Count == 0)
+        {
+            throw new ArgumentException("Options cannot be null or empty.", nameof(options));
+        }
+
+        if (fontSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fontSize), "Font size must be greater than zero.");
+        }
+
+        _comboBoxAnnotations.Add(new PdfComboBoxAnnotation
+        {
+            FieldName = fieldName,
+            X = x,
+            Y = y,
+            Width = width,
+            Height = height,
+            Options = options,
+            SelectedValue = selectedValue,
+            FontSize = fontSize
+        });
+    }
+
+    public void AddMultilineTextField(
+        string fieldName,
+        double x,
+        double y,
+        double width,
+        double height,
+        string defaultValue = "",
+        double fontSize = 10)
+    {
+        if (string.IsNullOrWhiteSpace(fieldName))
+        {
+            throw new ArgumentException("Field name cannot be null or empty.", nameof(fieldName));
+        }
+
+        if (width <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width), "Width must be greater than zero.");
+        }
+
+        if (height <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Height must be greater than zero.");
+        }
+
+        if (fontSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fontSize), "Font size must be greater than zero.");
+        }
+
+        _multilineTextFields.Add(new PdfMultilineTextFieldAnnotation
+        {
+            FieldName = fieldName,
+            X = x,
+            Y = y,
+            Width = width,
+            Height = height,
+            DefaultValue = defaultValue,
+            FontSize = fontSize
+        });
+    }
+
+    public void AddTextField(
+        string fieldName,
+        double x,
+        double y,
+        double width,
+        double height,
+        string defaultValue = "",
+        double fontSize = 10)
+    {
+        if (string.IsNullOrWhiteSpace(fieldName))
+        {
+            throw new ArgumentException("Field name cannot be null or empty.", nameof(fieldName));
+        }
+
+        if (width <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width), "Width must be greater than zero.");
+        }
+
+        if (height <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(height), "Height must be greater than zero.");
+        }
+
+        if (fontSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fontSize), "Font size must be greater than zero.");
+        }
+
+        _textFields.Add(new PdfTextFieldAnnotation
+        {
+            FieldName = fieldName,
+            X = x,
+            Y = y,
+            Width = width,
+            Height = height,
+            DefaultValue = defaultValue,
+            FontSize = fontSize
+        });
+    }
+
+    public void AddCheckBox(string fieldName, double x, double y, double size, bool isChecked = false)
+    {
+        if (string.IsNullOrWhiteSpace(fieldName))
+            throw new ArgumentException("Field name cannot be null or empty.", nameof(fieldName));
+        if (size <= 0)
+            throw new ArgumentOutOfRangeException(nameof(size), "Size must be greater than zero.");
+
+        _checkBoxAnnotations.Add(new PdfCheckBoxAnnotation
+        {
+            FieldName = fieldName,
+            X = x,
+            Y = y,
+            Width = size,
+            Height = size,
+            IsChecked = isChecked,
+        });
     }
 
     private static (double X, double WordSpacing) ResolveLineLayout(
@@ -1389,6 +1961,18 @@ public sealed class PdfPage
     private void AddImageElement(string imagePath, PdfImageData image, double x, double y, double width, double height, double opacity)
     {
         var cacheKey = Path.GetFullPath(imagePath);
+        AddImageElementWithCacheKey(cacheKey, image, x, y, width, height, opacity);
+    }
+
+    private void AddImageElementWithCacheKey(string cacheKey, PdfImageData image, double x, double y, double width, double height, double opacity)
+    {
         _elements.Add(new ImageElement(image, cacheKey, x, y, width, height, opacity));
+    }
+
+    private static string GetImageBytesCacheKey(byte[] imageBytes)
+    {
+        ArgumentNullException.ThrowIfNull(imageBytes);
+
+        return $"bytes:{Convert.ToHexString(SHA256.HashData(imageBytes))}";
     }
 }

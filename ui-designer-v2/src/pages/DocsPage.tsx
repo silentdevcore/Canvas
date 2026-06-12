@@ -52,30 +52,47 @@ interface ElemRow {
   name: string;
   desc: string;
   props: string;
+  pdf: '✅' | '⚠️' | '❌';
+  word: '✅' | '⚠️' | '❌';
 }
 
 const ELEMENTS: ElemRow[] = [
-  { type: 'text',       name: 'Text',             desc: 'Static single-style text block.',                                   props: 'content, style.fontSize, style.color, style.fontWeight, style.textAlign, style.fontFamily' },
-  { type: 'richtext',   name: 'Rich Text',         desc: 'HTML-formatted content — bold, italic, lists, inline colours.',     props: 'htmlContent' },
-  { type: 'table',      name: 'Table',             desc: 'Data grid with optional header/footer rows and zebra striping.',    props: 'style.rows, style.columns, headerRow, footerRow, headerBgColor, zebraEnabled, zebraColor, cellData[][], columnAlignments[], columnWidths[]' },
-  { type: 'image',      name: 'Image',             desc: 'Embedded image from URL or data URI.',                              props: 'content (URL), fitMode (contain|cover|fill), focalX, focalY' },
-  { type: 'qrcode',     name: 'QR Code',           desc: 'Scannable QR code.',                                               props: 'qrValue, qrSize, style.color, style.backgroundColor' },
-  { type: 'barcode',    name: 'Barcode',           desc: '1-D barcode in CODE128, EAN13, UPC-A and other formats.',          props: 'barcodeValue, barcodeType' },
-  { type: 'signature',  name: 'Signature Line',    desc: 'Printable signature block with label and underline.',              props: 'signatureLabel' },
-  { type: 'field',      name: 'Form Field',        desc: 'Labelled text-input placeholder for fillable PDFs.',               props: 'fieldLabel, fieldName, required, placeholder' },
-  { type: 'checkbox',   name: 'Checkbox',          desc: 'Checkbox with an inline label.',                                   props: 'fieldLabel, fieldName, required' },
-  { type: 'rect',       name: 'Rectangle',         desc: 'Filled or stroked rectangle, optionally rounded.',                 props: 'style.backgroundColor, style.borderColor, style.borderWidth, style.borderRadius' },
-  { type: 'circle',     name: 'Circle / Ellipse',  desc: 'Circle or ellipse shape.',                                         props: 'style.backgroundColor, style.borderColor, style.borderWidth' },
-  { type: 'line',       name: 'Line',              desc: 'Thin horizontal or vertical rule.',                                props: 'style.backgroundColor, height (1–4 for thin lines)' },
-  { type: 'chart',      name: 'Chart',             desc: 'Bar, line or pie chart with custom data.',                         props: 'chartType (bar|line|pie), chartData.labels[], chartData.datasets[]' },
-  { type: 'watermark',  name: 'Watermark',         desc: 'Diagonal text overlay — e.g. DRAFT, CONFIDENTIAL.',               props: 'content, style.color, style.fontSize, style.rotation' },
-  { type: 'date',       name: 'Auto Date',         desc: 'Inserts today\'s date or a static date at render time.',           props: 'dateMode (auto|static|binding), locale, content (static value)' },
-  { type: 'pageNumber',     name: 'Page Number',       desc: 'Inserts the current page number, total, or a custom format.',                                          props: 'numberingFormat (pageOfTotal|current|total|roman|alphabetic), prefix, suffix, startNumber' },
-  { type: 'footnote',       name: 'Footnote',          desc: 'DOCX footnote reference. Renders as a numbered anchor in the editor; exports to Word footnotes.xml.',   props: 'footnoteText' },
-  { type: 'endnote',        name: 'Endnote',           desc: 'DOCX endnote reference. Like footnote but collected at document end.',                                   props: 'footnoteText (reused field)' },
-  { type: 'bookmark',       name: 'Bookmark',          desc: 'Named in-document anchor for cross-references, TOC links, and deep links.',                              props: 'bookmarkName, bookmarkTarget' },
-  { type: 'comment',        name: 'Word Comment',      desc: 'Margin annotation with author and date metadata. Exports to Word comments.xml.',                         props: 'commentText, commentAuthor, commentDate, commentId' },
-  { type: 'contentcontrol', name: 'Content Control',   desc: 'OOXML structured content control — rich text, plain text, date picker, combo box, or picture.',          props: 'contentControlType, contentControlTitle, contentControlTag, contentControlPlaceholder' },
+  { type: 'text',          name: 'Text',             desc: 'Static single-style text block.',                                                                           props: 'content, style.fontSize, style.color, style.fontWeight, style.textAlign, style.fontFamily',  pdf: '✅', word: '✅' },
+  { type: 'richtext',      name: 'Rich Text',         desc: 'HTML-formatted content — bold, italic, lists, inline colours.',                                             props: 'htmlContent',                                                                               pdf: '✅', word: '✅' },
+  { type: 'link',          name: 'Hyperlink',         desc: 'Clickable text link with optional href URL.',                                                               props: 'content, href, style.color',                                                                pdf: '✅', word: '✅' },
+  { type: 'table',         name: 'Table',             desc: 'Data grid with optional header/footer rows and zebra striping.',                                            props: 'style.rows, style.columns, headerRow, footerRow, headerBgColor, zebraEnabled, cellData[][]',  pdf: '✅', word: '✅' },
+  { type: 'image',         name: 'Image',             desc: 'Embedded image from URL or data URI. PDF supports data: URIs only; http/https images require Word export.', props: 'content (URL), fitMode (contain|cover|fill), focalX, focalY',                               pdf: '⚠️', word: '✅' },
+  { type: 'qrcode',        name: 'QR Code',           desc: 'Scannable QR code generated server-side.',                                                                  props: 'qrValue, qrSize, style.color, style.backgroundColor',                                        pdf: '✅', word: '✅' },
+  { type: 'barcode',       name: 'Barcode',           desc: '1-D barcode in CODE128, EAN-13, UPC-A and other formats.',                                                  props: 'barcodeValue, barcodeType',                                                                 pdf: '✅', word: '✅' },
+  { type: 'chart',         name: 'Chart',             desc: 'Bar, line or pie chart with custom data. Renders as a placeholder in export.',                               props: 'chartType (bar|line|pie), chartData.labels[], chartData.datasets[]',                         pdf: '⚠️', word: '❌' },
+  { type: 'field',         name: 'Form Field',        desc: 'Labelled text-input placeholder for fillable PDFs.',                                                        props: 'fieldLabel, fieldName, required, placeholder',                                               pdf: '✅', word: '✅' },
+  { type: 'checkbox',      name: 'Checkbox',          desc: 'Checkbox with an inline label.',                                                                            props: 'fieldLabel, fieldName, required',                                                            pdf: '✅', word: '✅' },
+  { type: 'radio',         name: 'Radio / List',      desc: 'Bullet or numbered list with selectable items.',                                                            props: 'fieldLabel, options[]',                                                                     pdf: '✅', word: '✅' },
+  { type: 'dropdown',      name: 'Dropdown',          desc: 'Select box with a list of options.',                                                                        props: 'fieldLabel, fieldName, options[]',                                                           pdf: '✅', word: '✅' },
+  { type: 'optionlist',    name: 'Option List',       desc: 'Numbered or bulleted list of items.',                                                                       props: 'options[], style.listStyle',                                                                pdf: '✅', word: '✅' },
+  { type: 'button',        name: 'Button',            desc: 'Styled action button — rendered as a rounded rectangle in PDF.',                                            props: 'content, style.backgroundColor, style.color, style.borderRadius',                           pdf: '✅', word: '✅' },
+  { type: 'signature',     name: 'Signature Line',    desc: 'Printable signature block with label and underline.',                                                       props: 'signatureLabel',                                                                            pdf: '✅', word: '✅' },
+  { type: 'number',        name: 'Number',            desc: 'Formatted numeric value — decimal, currency, percent, ordinal, or scientific.',                             props: 'numberValue, numberStyle, numberDecimals, numberLocale',                                    pdf: '✅', word: '✅' },
+  { type: 'shape',         name: 'Shape / Rect',      desc: 'Filled or stroked rectangle, optionally rounded.',                                                          props: 'style.backgroundColor, style.borderColor, style.borderWidth, style.borderRadius',            pdf: '✅', word: '⚠️' },
+  { type: 'circle',        name: 'Circle / Ellipse',  desc: 'Circle or ellipse shape.',                                                                                  props: 'style.backgroundColor, style.borderColor, style.borderWidth',                               pdf: '✅', word: '⚠️' },
+  { type: 'line',          name: 'Line',              desc: 'Horizontal, vertical, or diagonal rule with optional dash styles.',                                          props: 'style.backgroundColor, style.strokeDashArray, height',                                     pdf: '✅', word: '⚠️' },
+  { type: 'arrow',         name: 'Arrow',             desc: 'Line with configurable start/end arrowhead markers.',                                                       props: 'arrowDirection, style.color, style.strokeWidth',                                            pdf: '✅', word: '⚠️' },
+  { type: 'draw',          name: 'Freehand Draw',     desc: 'SVG path drawn with the mouse. Rendered via Bézier curves in PDF.',                                         props: 'pathData, style.color, style.strokeWidth',                                                  pdf: '✅', word: '⚠️' },
+  { type: 'watermark',     name: 'Watermark',         desc: 'Diagonal text overlay — e.g. DRAFT, CONFIDENTIAL. Skipped in Word.',                                        props: 'content, style.color, style.fontSize, style.rotation',                                      pdf: '✅', word: '⚠️' },
+  { type: 'highlight',     name: 'Highlight',         desc: 'Translucent colour overlay. Skipped in Word.',                                                              props: 'style.backgroundColor, style.opacity',                                                      pdf: '✅', word: '⚠️' },
+  { type: 'checkmark',     name: 'Checkmark',         desc: 'Stand-alone check/cross/tick icon. Skipped in Word.',                                                       props: 'style.color, style.fontSize',                                                               pdf: '✅', word: '⚠️' },
+  { type: 'note',          name: 'Callout Note',      desc: 'Highlighted info/warning box with title and body text.',                                                    props: 'content, noteTitle, noteType (info|warning|error|success)',                                  pdf: '✅', word: '✅' },
+  { type: 'date',          name: 'Auto Date',         desc: 'Inserts today\'s date at render time with timezone and locale support.',                                    props: 'dateMode (auto|static), timezone, locale, dateFormat',                                      pdf: '✅', word: '✅' },
+  { type: 'pagenumber',    name: 'Page Number',       desc: 'Inserts the current page number, total, or a custom format.',                                               props: 'numberingFormat, prefix, suffix, startNumber',                                              pdf: '✅', word: '✅' },
+  { type: 'toc',           name: 'Table of Contents', desc: 'Auto-generated TOC with clickable page links. Scans heading-level text elements across all pages.',         props: 'tocTitle, tocMinLevel, tocMaxLevel, tocEntries[]',                                          pdf: '✅', word: '✅' },
+  { type: 'pageboundary',  name: 'Page Boundary',     desc: 'Explicit page-break marker. Acts as a layout hint — no visible output.',                                   props: '(none)',                                                                                    pdf: '⚠️', word: '⚠️' },
+  { type: 'subsection',    name: 'Subsection',        desc: 'Layout container with a dashed outline in PDF. Acts as a visual grouping aid.',                             props: 'style.borderColor',                                                                         pdf: '⚠️', word: '⚠️' },
+  { type: 'area',          name: 'Area',              desc: 'Non-printing layout area. Renders a dashed outline in PDF for design guidance only.',                       props: 'style.borderColor',                                                                         pdf: '⚠️', word: '⚠️' },
+  { type: 'footnote',      name: 'Footnote',          desc: 'DOCX footnote reference. PDF: superscript marker + text at page bottom. Word: native footnotes.xml.',      props: 'footnoteText',                                                                              pdf: '⚠️', word: '✅' },
+  { type: 'endnote',       name: 'Endnote',           desc: 'DOCX endnote reference. PDF: superscript marker. Word: native endnotes.xml.',                              props: 'footnoteText',                                                                              pdf: '⚠️', word: '✅' },
+  { type: 'bookmark',      name: 'Bookmark',          desc: 'Named anchor. PDF: named destination. Word: native bookmark.',                                              props: 'bookmarkName, bookmarkTarget',                                                              pdf: '✅', word: '✅' },
+  { type: 'comment',       name: 'Word Comment',      desc: 'Margin annotation. PDF: yellow box with author. Word: native comments.xml.',                               props: 'commentText, commentAuthor, commentDate, commentId',                                        pdf: '✅', word: '✅' },
+  { type: 'contentcontrol',name: 'Content Control',   desc: 'OOXML structured content control. PDF: bordered box with label. Word: native SDT.',                        props: 'contentControlType, contentControlTitle, contentControlTag, contentControlPlaceholder',     pdf: '⚠️', word: '✅' },
 ];
 
 // ─── Nav sections ─────────────────────────────────────────────────────────────
@@ -233,6 +250,8 @@ const DocsPage: React.FC = () => {
                     <th>Type ID</th>
                     <th>Name</th>
                     <th>Description</th>
+                    <th style={{ textAlign: 'center' }}>PDF</th>
+                    <th style={{ textAlign: 'center' }}>Word</th>
                     <th>Key Properties</th>
                   </tr>
                 </thead>
@@ -242,11 +261,14 @@ const DocsPage: React.FC = () => {
                       <td><code className="docs-inline-code">{el.type}</code></td>
                       <td style={{ whiteSpace: 'nowrap' }}>{el.name}</td>
                       <td>{el.desc}</td>
+                      <td style={{ textAlign: 'center', fontSize: 16 }}>{el.pdf}</td>
+                      <td style={{ textAlign: 'center', fontSize: 16 }}>{el.word}</td>
                       <td className="docs-props-cell">{el.props}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              <p style={{ fontSize: 12, color: '#6b7280', marginTop: 8 }}>✅ Full support &nbsp;⚠️ Partial / placeholder &nbsp;❌ No handler</p>
             </div>
 
             <H3>Common element properties</H3>
@@ -999,7 +1021,7 @@ var output = JsonConvert.SerializeObject(template, Formatting.Indented, settings
                 { method: 'POST', path: '/api/document/clone',             desc: 'Deep-clone a design with new IDs. Body: { design, newName? }.' },
                 { method: 'POST', path: '/api/document/extract-pages',     desc: 'Extract a page subset. Body: { design, pageNumbers: number[], newName? }.' },
                 { method: 'POST', path: '/api/document/sign-docx',         desc: 'Apply X.509 digital signature to a DOCX. Multipart: docx file + certificate PFX + optional password. Returns signed DOCX.' },
-                { method: 'POST', path: '/api/document/import-pdf',        desc: 'Import PDF → DesignExportDto. Multipart file upload.' },
+                { method: 'POST', path: '/api/document/import-pdf-engine',   desc: 'Import PDF → DesignExportDto. Multipart file upload.' },
                 { method: 'POST', path: '/api/document/import-docx',       desc: 'Import DOCX → DesignExportDto. Multipart file upload.' },
                 { method: 'POST', path: '/api/document/import-doc',        desc: 'Import Word 97-2003 .doc → DesignExportDto. Multipart file upload.' },
                 { method: 'POST', path: '/api/document/import-odt',        desc: 'Import ODT → DesignExportDto. Multipart file upload.' },

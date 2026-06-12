@@ -12,6 +12,8 @@ A production-ready document automation platform with a visual template designer,
 - Word/DOCX-specific elements: Footnote, Endnote, Bookmark, Comment, Content Control
 - Inspector panels per element type; layer ordering; multi-select
 - Real-time data-binding preview with JSON payloads
+- **Multi-language text** — per-element language tag (BCP-47) and LTR/RTL direction; canvas preview uses native browser shaping; PDF export embeds Noto fonts
+- **Document localization** — active language tabs per document; `{{KEY}}` template variables with Global (all languages, each fills own value) or Own (single-language) scope; Export Code panel shows language-specific JSON and C# code; multi-language ZIP export
 
 ### Template Engine
 - `{{ expression }}` data binding with JSON-path resolution and fallbacks
@@ -23,7 +25,7 @@ A production-ready document automation platform with a visual template designer,
 ### Export Formats
 | Format | Notes |
 |--------|-------|
-| PDF | Custom .NET renderer, no external library |
+| PDF | Custom .NET renderer, no external library. Per-element: embedded Noto fonts (Arabic, Hebrew, CJK, Devanagari, Thai, Cyrillic), UTF-16BE encoding, RTL visual order. Document-level: `{{KEY}}` substitution with Global/Own property scopes; single-language or multi-language ZIP export |
 | DOCX | Full OOXML: styles, footnotes, endnotes, bookmarks, comments, content controls, track changes, protection, digital signature |
 | ODT | ODF 1.3 ZIP with draw frames for pixel-accurate layout |
 | XLSX | Excel via ClosedXML |
@@ -200,3 +202,20 @@ docker build -t canvas-api ./Canvas.WebApi
 docker build -t canvas-ui ./ui-designer-v2
 docker-compose up -d
 ```
+
+### Multi-Language PDF — Font Files
+
+To enable non-Latin PDF export, place Noto font files in the `fonts/` directory next to the published assembly (or configure `Pdf:FontsDirectory` in `appsettings.json`). See [`fonts/README.md`](fonts/README.md) for the full list and download instructions.
+
+---
+
+## Further Documentation
+
+| Document | Description |
+|---|---|
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Project layer diagram and responsibilities |
+| [`Canvas/TECHNICAL_DOCUMENTATION.md`](Canvas/TECHNICAL_DOCUMENTATION.md) | Full API reference for the PDF engine (per-element multi-language § 25; document localization § 26) |
+| [`ui-designer-v2/MULTILANGUAGE.md`](ui-designer-v2/MULTILANGUAGE.md) | UI guide for per-element language and RTL controls |
+| [`fonts/README.md`](fonts/README.md) | Noto font download and deployment instructions |
+| [`CONTRIBUTING_RENDERERS.md`](CONTRIBUTING_RENDERERS.md) | How to add a new export format |
+| [`TESTING.md`](TESTING.md) | Test structure and conventions |

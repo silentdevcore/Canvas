@@ -1,5 +1,15 @@
 using Canvas.Application.UseCases;
 using Canvas.Core.Abstractions;
+using Canvas.FileImporter.Abstractions;
+using Canvas.FileImporter.Doc;
+using Canvas.FileImporter.Docx;
+using Canvas.FileImporter.Image;
+using Canvas.FileImporter.Odt;
+using Canvas.FileImporter.Pdf;
+using Canvas.FileImporter.Pptx;
+using Canvas.FileImporter.Svg;
+using Canvas.FileImporter.ImageAnalysis;
+using Canvas.FileImporter.ImageOcr;
 using Canvas.Core.Primitives;
 using Canvas.Domain.Repositories;
 using Canvas.Infrastructure.Converters;
@@ -22,6 +32,9 @@ builder.Services.AddCors(options =>
                   "http://localhost:5173",
                   "http://localhost:5174",
                   "http://localhost:5175",
+                  "http://localhost:5176",
+                  "http://localhost:5177",
+                  "http://localhost:5178",
                   "http://localhost:3000",
                   "http://localhost:4173")
               .AllowAnyHeader()
@@ -39,6 +52,14 @@ builder.Services.AddScoped<IRepeatExpander, RepeatExpander>();
 builder.Services.AddScoped<IDocumentRenderer, PdfDocumentRenderer>();
 builder.Services.AddScoped<IOutputWriter, FileOutputWriter>();
 
+// Register font loader for multi-language PDF support (optional: gracefully absent if fonts dir missing)
+builder.Services.AddSingleton<PdfFontLoader>(sp =>
+{
+    var fontsDir = builder.Configuration["Pdf:FontsDirectory"]
+        ?? Path.Combine(AppContext.BaseDirectory, "fonts");
+    return new PdfFontLoader(fontsDir);
+});
+
 // Register export format exporters
 builder.Services.AddScoped<IDocumentExporter, HtmlDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, XmlDocumentExporter>();
@@ -51,6 +72,31 @@ builder.Services.AddScoped<IDocumentExporter, TiffDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, OdtDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, WordDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, ExcelDocumentExporter>();
+
+// Register file importers
+builder.Services.AddTransient<IFileImporter, PdfFileImporter>();
+builder.Services.AddTransient<IFileImporter, DocxFileImporter>();
+builder.Services.AddTransient<IFileImporter, PptxFileImporter>();
+builder.Services.AddTransient<IFileImporter, DocFileImporter>();
+builder.Services.AddTransient<IFileImporter, OdtFileImporter>();
+builder.Services.AddTransient<IFileImporter, SvgFileImporter>();
+builder.Services.AddTransient<IFileImporter, ImageFileImporter>();
+builder.Services.AddTransient<ImageAnalysisFileImporter>();
+builder.Services.AddSingleton<IOcrEngine>(sp =>
+{
+    var tessDataPath = builder.Configuration["Ocr:TessDataPath"];
+    var nativeLibraryPath = builder.Configuration["Ocr:NativeLibraryPath"];
+    var useIsolatedWorker = builder.Configuration.GetValue("Ocr:UseIsolatedWorker", true);
+    if (!useIsolatedWorker)
+        return new EmbeddedTesseractOcrEngine(tessDataPath, nativeLibraryPath);
+
+    var workerPath = builder.Configuration["Ocr:WorkerPath"];
+    return new ProcessIsolatedTesseractOcrEngine(workerPath, tessDataPath, nativeLibraryPath);
+});
+builder.Services.AddTransient<ImageToPdfConverter>();
+
+// Register migration service
+builder.Services.AddSingleton<Canvas.WebApi.Services.MigrationService>();
 
 // Register use cases
 builder.Services.AddScoped<ExportDocumentUseCase>();

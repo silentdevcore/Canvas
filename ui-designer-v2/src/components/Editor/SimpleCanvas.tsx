@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type { Template, SimpleElement, LayerDirection, PageSettings, Page } from '@/types';
+import type { Template, SimpleElement, LayerDirection, PageSettings, Page, PdfEncryption, PdfEncryptionPermissions } from '@/types';
 import { useEditorStore, DEFAULT_PAGE_SETTINGS } from '@/store';
 import { toDisplay, fromDisplay } from '@/utils/units';
 import { getPageSettingsWarnings } from '@/utils/pageValidation';
@@ -74,10 +74,18 @@ import {
   FiSearch,
   FiMoreVertical,
   FiScissors,
+  FiGlobe,
+  FiBookOpen,
+  FiHelpCircle,
+  FiGrid,
 } from 'react-icons/fi';
 import CodeViewer from './CodeViewer';
 import FindReplaceModal from './FindReplaceModal';
+import FormBlockModal from './FormBlockModal';
+import HelpModal from './HelpModal';
 import ExportService from '@/services/ExportService';
+import { LanguageTabBar } from './LanguageTabBar';
+import { LocalizedPropertiesPanel } from './LocalizedPropertiesPanel';
 
 
 interface SimpleCanvasProps {
@@ -108,6 +116,7 @@ type Tool = {
   hint: string;
   icon: React.ComponentType<{ className?: string }>;
   create: () => SimpleElement;
+  supportedOutputs?: ('pdf' | 'word')[];
 };
 
 type ToolGroup = {
@@ -124,6 +133,8 @@ type DragState = {
   startPointerY: number;
   // present when dragging a multi-selection
   multi?: { id: string; startX: number; startY: number }[];
+  isRtlCanvas?: boolean;
+  langKey?: string; // write to langOverrides[langKey] instead of root x/y when set
 };
 
 type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
@@ -137,10 +148,21 @@ type ResizeState = {
   startY: number;
   startWidth: number;
   startHeight: number;
+  langKey?: string; // write to langOverrides[langKey] instead of root x/y/w/h when set
+};
+
+type RotateState = {
+  id: string;
+  centerX: number;
+  centerY: number;
+  startAngle: number;
+  initialPointerAngle: number;
+  langKey?: string;
 };
 
 const createElementId = (type: string) => `${type}-${Date.now()}`;
 const MIN_ELEMENT_SIZE = 16;
+const RTL_LANGS = new Set(['ar', 'he', 'fa', 'ur', 'yi', 'dv']);
 
 const ELEMENT_TYPE_LABELS: Record<string, string> = {
   text:         'Text Block',
@@ -156,6 +178,7 @@ const ELEMENT_TYPE_LABELS: Record<string, string> = {
   barcode:      'Barcode',
   signature:    'Signature',
   field:        'Text Field',
+  textarea:     'Text Area',
   checkbox:     'Checkbox',
   button:       'Button',
   dropdown:     'Dropdown',
@@ -174,6 +197,7 @@ const ELEMENT_TYPE_LABELS: Record<string, string> = {
   pagenumber:   'Page Number',
   link:           'Link',
   number:         'Number',
+  toc:            'Table of Contents',
   footnote:       'Footnote',
   endnote:        'Endnote',
   bookmark:       'Bookmark',
@@ -212,12 +236,35 @@ const FONT_FAMILIES = [
   'Fira Sans', 'Fira Code', 'Space Grotesk', 'Space Mono',
   'Sora', 'Lexend', 'Red Hat Display', 'Red Hat Text',
   'Dancing Script', 'Pacifico', 'Lobster', 'Comfortaa', 'Righteous',
+  // Noto — multi-script coverage
+  'Noto Sans Arabic', 'Noto Sans Hebrew', 'Noto Sans SC', 'Noto Sans TC',
+  'Noto Sans JP', 'Noto Sans KR', 'Noto Sans Devanagari', 'Noto Sans Thai',
 ];
 
 const TYPOGRAPHY_TYPES = new Set<string>([
   'text', 'richtext', 'button', 'field', 'checkbox', 'dropdown', 'optionlist',
   'radio', 'date', 'pagenumber', 'watermark', 'note', 'checkmark', 'arrow',
 ]);
+
+const LOCALIZATION_LANGUAGES: { tag: string; label: string; rtl?: boolean }[] = [
+  { tag: 'en', label: '🇬🇧 English' },
+  { tag: 'de', label: '🇩🇪 Deutsch' },
+  { tag: 'fr', label: '🇫🇷 Français' },
+  { tag: 'es', label: '🇪🇸 Español' },
+  { tag: 'it', label: '🇮🇹 Italiano' },
+  { tag: 'pt', label: '🇧🇷 Português' },
+  { tag: 'ru', label: '🇷🇺 Русский' },
+  { tag: 'el', label: '🇬🇷 Ελληνικά' },
+  { tag: 'ar', label: '🇸🇦 العربية', rtl: true },
+  { tag: 'he', label: '🇮🇱 עברית', rtl: true },
+  { tag: 'fa', label: '🇮🇷 فارسی', rtl: true },
+  { tag: 'zh', label: '🇨🇳 中文' },
+  { tag: 'ja', label: '🇯🇵 日本語' },
+  { tag: 'ko', label: '🇰🇷 한국어' },
+  { tag: 'hi', label: '🇮🇳 हिन्दी' },
+  { tag: 'th', label: '🇹🇭 ภาษาไทย' },
+];
+
 
 const BACKGROUND_TYPES = new Set<string>([
   'text', 'richtext', 'image', 'shape', 'rect', 'circle', 'table', 'button',
@@ -237,11 +284,17 @@ const PADDING_TYPES = new Set<string>([
 ]);
 
 const PAGE_PRESETS: Record<string, { width: number; height: number }> = {
-  A4:     { width: 595,  height: 842  },
-  A5:     { width: 420,  height: 595  },
-  A3:     { width: 842,  height: 1191 },
-  Letter: { width: 612,  height: 792  },
-  Legal:  { width: 612,  height: 1008 },
+  A4:                  { width: 595,  height: 842  },
+  A5:                  { width: 420,  height: 595  },
+  A3:                  { width: 842,  height: 1191 },
+  Letter:              { width: 612,  height: 792  },
+  Legal:               { width: 612,  height: 1008 },
+  'Landscape A4':      { width: 842,  height: 595  },
+  'Landscape A3':      { width: 1191, height: 842  },
+  'Presentation 16:9': { width: 1280, height: 720  },
+  'Presentation 4:3':  { width: 1024, height: 768  },
+  'Book A5':           { width: 420,  height: 595  },
+  'Social Square':     { width: 1080, height: 1080 },
 };
 
 const createDefaultChartData = () => ({
@@ -255,6 +308,84 @@ const createDefaultChartData = () => ({
 });
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+type GlyphDiagnostic = {
+  value?: string;
+  confidence?: number;
+  method?: string;
+  score?: number;
+  initialCandidate?: string;
+  selectedCandidate?: string;
+  signals?: Record<string, number>;
+  decisionWeights?: Record<string, number>;
+};
+
+type ImageAnalysisDiagnostics = {
+  sourceWidthPx?: number;
+  sourceHeightPx?: number;
+  workingWidthPx?: number;
+  workingHeightPx?: number;
+  scaleFactor?: number;
+  colorRegionCount?: number;
+  shapeCount?: number;
+  textLineCount?: number;
+  wordCount?: number;
+  glyphCount?: number;
+  lowConfidenceGlyphCount?: number;
+  elementCount?: number;
+  warnings?: string[];
+};
+
+type ImageOcrDiagnostics = {
+  sourceWidthPx?: number;
+  sourceHeightPx?: number;
+  pageCount?: number;
+  languages?: string;
+  ocrEngine?: string;
+  ocrEngineVersion?: string;
+  wordCount?: number;
+  lineCount?: number;
+  averageConfidence?: number;
+  lowConfidenceWordCount?: number;
+  elapsedMs?: number;
+  managedMemoryBytes?: number;
+};
+
+const getGlyphDiagnostics = (element: SimpleElement): GlyphDiagnostic[] => {
+  const glyphs = element.style?.imageAnalysisGlyphs;
+  return Array.isArray(glyphs) ? glyphs as GlyphDiagnostic[] : [];
+};
+
+const getImageAnalysisDiagnostics = (template: Template): ImageAnalysisDiagnostics | null => {
+  const diagnostics = template.data?.imageAnalysis?.diagnostics;
+  return diagnostics && typeof diagnostics === 'object' ? diagnostics as ImageAnalysisDiagnostics : null;
+};
+
+const getImageOcrDiagnostics = (template: Template): ImageOcrDiagnostics | null => {
+  const diagnostics = template.data?.imageOcr?.diagnostics;
+  return diagnostics && typeof diagnostics === 'object' ? diagnostics as ImageOcrDiagnostics : null;
+};
+
+const getImageOcrWarnings = (template: Template): string[] => {
+  const warnings = template.data?.imageOcr?.warnings;
+  return Array.isArray(warnings) ? warnings.filter((w): w is string => typeof w === 'string') : [];
+};
+
+const formatPercent = (value: unknown) => {
+  const number = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(number) ? `${Math.round(number * 100)}%` : '0%';
+};
+
+const formatNumber = (value: unknown) => {
+  const number = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(number) ? new Intl.NumberFormat().format(number) : '0';
+};
+
+const topGlyphWeights = (weights?: Record<string, number>) =>
+  Object.entries(weights ?? {})
+    .filter(([, value]) => value > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2);
 
 const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   template,
@@ -281,6 +412,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   const [selectedElementIds, setSelectedElementIds] = useState<Set<string>>(new Set());
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
+  const [rotateState, setRotateState] = useState<RotateState | null>(null);
   const [draggingPageIndex, setDraggingPageIndex] = useState<number | null>(null);
   const [dragOverPageIndex, setDragOverPageIndex] = useState<number | null>(null);
   const [isDragOverCanvas, setIsDragOverCanvas] = useState(false);
@@ -288,16 +420,22 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   const [zoomLevel, setZoomLevel] = useState(1);
   const [linkedMargins, setLinkedMargins] = useState(true);
   const [linkedPadding, setLinkedPadding] = useState(true);
-  const [inspectorTab, setInspectorTab] = useState<'inspector' | 'layers'>('inspector');
+  const [inspectorTab, setInspectorTab] = useState<'inspector' | 'layers' | 'properties'>('inspector');
   const [clipboard, setClipboard] = useState<SimpleElement | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; elementId: string | null } | null>(null);
   const [marqueeState, setMarqueeState] = useState<{ startX: number; startY: number; currentX: number; currentY: number; additive: boolean } | null>(null);
+  const [drawingMode, setDrawingMode] = useState<'line' | 'arrow' | 'draw' | null>(null);
+  const [drawGhost, setDrawGhost] = useState<{ startX: number; startY: number; currentX: number; currentY: number; pathPoints?: string } | null>(null);
   const [codeViewerOpen, setCodeViewerOpen] = useState(false);
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
+  const [formBlockModalOpen, setFormBlockModalOpen] = useState(false);
   const [topbarMenuOpen, setTopbarMenuOpen] = useState(false);
   const [topbarToast, setTopbarToast] = useState('');
   const [extractingPage, setExtractingPage] = useState<number | null>(null);
+  // Language Scope UI selection: 'lang' = current tab selected, 'all' = All selected
+  const [scopeShowAll, setScopeShowAll] = useState(false);
   const pageContentRef = useRef<HTMLDivElement | null>(null);
+  const contentInputRef = useRef<HTMLInputElement>(null);
 
   const showTopbarToast = (msg: string) => {
     setTopbarToast(msg);
@@ -310,6 +448,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       [...pages.flatMap(page => page.elements), ...sharedElements]
     );
   }, [pages, sharedElements]);
+
 
   const buildDesign = () => ({
     id: template.id,
@@ -354,9 +493,79 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     }
   };
 
-  const { pageSettings, updatePageSettings, settingsModifiedSinceExport, snapshotHistory, undo, redo, bulkReplaceContent } = useEditorStore();
+  const { pageSettings, updatePageSettings, settingsModifiedSinceExport, snapshotHistory, undo, redo, bulkReplaceContent, currentPreviewLanguage, setCurrentPreviewLanguage, helpModalOpen, setHelpModalOpen, documentMode, setDocumentMode } = useEditorStore();
   const pageWidth = pageSettings.width;
   const pageHeight = pageSettings.height;
+  const isCurrentRtl = RTL_LANGS.has((currentPreviewLanguage || '').split('-')[0]);
+  // Only route position writes to langOverrides when the document has 2+ active languages.
+  const isMultilingual = (pageSettings.activeLanguages?.length ?? 0) > 1;
+
+  // Returns the effective position/size for an element, applying lang override if one exists.
+  const getEffectivePos = (el: SimpleElement) => {
+    const ov = isMultilingual && currentPreviewLanguage ? el.langOverrides?.[currentPreviewLanguage] : undefined;
+    return {
+      x: ov?.x ?? el.x,
+      y: ov?.y ?? el.y,
+      width: ov?.width ?? el.width,
+      height: ov?.height ?? el.height,
+    };
+  };
+
+  const getEffectiveRotation = (el: SimpleElement): number => {
+    const ov = isMultilingual && currentPreviewLanguage ? el.langOverrides?.[currentPreviewLanguage] : undefined;
+    return ov?.rotation ?? el.style?.rotation ?? 0;
+  };
+
+  // When not in "All" mode, writes go to langOverrides[currentPreviewLanguage].
+  const applyPosUpdate = (id: string, patch: { x?: number; y?: number; width?: number; height?: number; rotation?: number }, langKey?: string) => {
+    if (langKey) {
+      const el = [...elements, ...sharedElements].find(e => e.id === id);
+      if (!el) return;
+      updateElementById(id, {
+        langOverrides: {
+          ...(el.langOverrides ?? {}),
+          [langKey]: { ...(el.langOverrides?.[langKey] ?? {}), ...patch },
+        },
+      });
+    } else {
+      updateElementById(id, patch);
+    }
+  };
+
+  // When the selected element changes, reset to language mode (user clicks All explicitly to override)
+  useEffect(() => {
+    setScopeShowAll(false);
+  }, [selectedElementId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // When the language tab changes, always switch back to the language button (override All)
+  useEffect(() => {
+    setScopeShowAll(false);
+  }, [currentPreviewLanguage]);
+
+  // Resolve {{KEY}} in content using localized property values for the current preview language.
+  const resolveContent = useMemo(() => {
+    const props = pageSettings.localizedProperties ?? [];
+    const sysLang = navigator.language.split('-')[0];
+    const target = currentPreviewLanguage || sysLang;
+    const map: Record<string, string> = {};
+    for (const p of props) {
+      if (p.scope === 'own') {
+        // Own properties are only visible when the current preview language matches the owner
+        if (p.ownerLanguage === target) {
+          map[p.key] = p.localizedValues[p.ownerLanguage] ?? '';
+        }
+      } else {
+        // Global: each language fills its own value; fall back to system language value
+        map[p.key] = p.localizedValues[target]
+          ?? p.localizedValues[sysLang]
+          ?? '';
+      }
+    }
+    return (content: string | undefined): string => {
+      if (!content || !content.includes('{{')) return content ?? '';
+      return content.replace(/\{\{(\w+)\}\}/g, (_, key) => map[key] ?? `{{${key}}}`);
+    };
+  }, [pageSettings.localizedProperties, currentPreviewLanguage]);
 
   const updateMargin = (side: keyof PageSettings['margins'], displayVal: number) => {
     const px = fromDisplay(displayVal, pageSettings.unit);
@@ -404,6 +613,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Text',
       hint: 'Single line text block',
       icon: FiType,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('text'),
         type: 'text',
@@ -424,6 +634,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'QR Code',
       hint: 'Scannable link block',
       icon: FiHash,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('qrcode'),
         type: 'qrcode',
@@ -440,6 +651,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Barcode',
       hint: 'Product or order code',
       icon: FiCreditCard,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('barcode'),
         type: 'barcode',
@@ -456,6 +668,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Signature',
       hint: 'Approval line',
       icon: FiEdit3,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('signature'),
         type: 'signature',
@@ -471,6 +684,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Rich Text',
       hint: 'Formatted HTML copy',
       icon: FiFileText,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('richtext'),
         type: 'richtext',
@@ -486,6 +700,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Text Field',
       hint: 'Fillable form input',
       icon: FiFileText,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('field'),
         type: 'field',
@@ -499,10 +714,30 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       })
     },
     {
+      id: 'textarea',
+      label: 'Text Area',
+      hint: 'Multi-line fillable text input',
+      icon: FiAlignLeft,
+      supportedOutputs: ['pdf', 'word'] as const,
+      create: () => ({
+        id: createElementId('textarea'),
+        type: 'textarea' as const,
+        x: 96,
+        y: 200,
+        width: 260,
+        height: 120,
+        fieldLabel: 'Comments',
+        fieldName: 'comments',
+        placeholder: 'Enter your text here…',
+        required: false,
+      })
+    },
+    {
       id: 'checkbox',
       label: 'Checkbox',
       hint: 'Single-choice field',
       icon: FiCheckSquare,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('checkbox'),
         type: 'checkbox',
@@ -520,6 +755,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Image',
       hint: 'Image placeholder',
       icon: FiBox,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('image'),
         type: 'image',
@@ -535,6 +771,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Shape',
       hint: 'Generic shape block',
       icon: FiBox,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('shape'),
         type: 'shape',
@@ -550,6 +787,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Table',
       hint: 'Tabular content area',
       icon: FiLayers,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('table'),
         type: 'table',
@@ -571,6 +809,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Line',
       hint: 'Divider element',
       icon: FiBox,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('line'),
         type: 'line',
@@ -586,6 +825,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Rectangle',
       hint: 'Filled rectangle',
       icon: FiBox,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('rect'),
         type: 'rect',
@@ -601,6 +841,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Circle',
       hint: 'Circular shape',
       icon: FiBox,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('circle'),
         type: 'circle',
@@ -616,6 +857,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Chart',
       hint: 'Data chart block',
       icon: FiLayers,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('chart'),
         type: 'chart',
@@ -632,6 +874,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Subsection',
       hint: 'Nested content section',
       icon: FiLayers,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('subsection'),
         type: 'subsection',
@@ -646,6 +889,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Area',
       hint: 'Layout area container',
       icon: FiBox,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('area'),
         type: 'area',
@@ -660,6 +904,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Button',
       hint: 'Action button',
       icon: FiPlay,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('button'),
         type: 'button',
@@ -675,6 +920,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Dropdown',
       hint: 'Select input',
       icon: FiChevronDown,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('dropdown'),
         type: 'dropdown',
@@ -690,6 +936,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Option List',
       hint: 'List of choices',
       icon: FiList,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('optionlist'),
         type: 'optionlist',
@@ -705,6 +952,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Radio Group',
       hint: 'Single-select options',
       icon: FiCircle,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('radio'),
         type: 'radio',
@@ -720,6 +968,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Watermark',
       hint: 'Global text or image mark',
       icon: FiDroplet,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('watermark'),
         type: 'watermark',
@@ -744,6 +993,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Notiz',
       hint: 'Document annotation',
       icon: FiBookmark,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('note'),
         type: 'note',
@@ -763,6 +1013,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Arrow',
       hint: 'Direction marker',
       icon: FiArrowUp,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('arrow'),
         type: 'arrow',
@@ -783,6 +1034,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Draw',
       hint: 'Freehand vector stroke',
       icon: FiPenTool,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('draw'),
         type: 'draw',
@@ -800,6 +1052,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Date',
       hint: 'Static or dynamic date',
       icon: FiCalendar,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('date'),
         type: 'date',
@@ -818,9 +1071,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     },
     {
       id: 'highlight',
-      label: 'Markieren',
+      label: 'Highlight',
       hint: 'Transparent highlight',
       icon: FiEdit3,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('highlight'),
         type: 'highlight',
@@ -834,9 +1088,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     },
     {
       id: 'checkmark',
-      label: 'Ankreuzen',
+      label: 'Checkmark',
       hint: 'Check, cross or dot mark',
       icon: FiCheck,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('checkmark'),
         type: 'checkmark',
@@ -844,7 +1099,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
         y: 604,
         width: 148,
         height: 42,
-        fieldLabel: 'Auswahl',
+        fieldLabel: 'Selection',
         fieldName: 'selection',
         checkState: 'checked',
         style: { color: '#16a34a', strokeWidth: 3, fontSize: 14 }
@@ -855,6 +1110,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Page Start/End',
       hint: 'Page boundary marker',
       icon: FiMaximize2,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('pageboundary'),
         type: 'pageboundary',
@@ -872,6 +1128,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Nummerierung',
       hint: 'Page number placeholder',
       icon: FiHash,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('pagenumber'),
         type: 'pagenumber',
@@ -888,10 +1145,28 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       })
     },
     {
+      id: 'toc',
+      label: 'Table of Contents',
+      hint: 'Auto-generated TOC from headings',
+      icon: FiBookOpen,
+      supportedOutputs: ['pdf', 'word'] as const,
+      create: () => ({
+        id: createElementId('toc'),
+        type: 'toc',
+        x: 48,
+        y: 96,
+        width: 400,
+        height: 200,
+        style: { color: '#1f2937', fontSize: 13 },
+        tocEntries: [],
+      })
+    },
+    {
       id: 'link',
       label: 'Link',
       hint: 'Hyperlink element',
       icon: FiLink,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('link'),
         type: 'link',
@@ -910,6 +1185,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Number',
       hint: 'Formatted number value',
       icon: FiHash,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('number'),
         type: 'number',
@@ -932,6 +1208,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Footnote',
       hint: 'DOCX footnote reference',
       icon: FiFileText,
+      supportedOutputs: ['word'],
       create: () => ({
         id: createElementId('footnote'),
         type: 'footnote',
@@ -948,6 +1225,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Endnote',
       hint: 'DOCX endnote reference',
       icon: FiFileText,
+      supportedOutputs: ['word'],
       create: () => ({
         id: createElementId('endnote'),
         type: 'endnote',
@@ -964,6 +1242,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Bookmark',
       hint: 'Named anchor for cross-references',
       icon: FiBookmark,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('bookmark'),
         type: 'bookmark',
@@ -981,6 +1260,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Comment',
       hint: 'Word-native margin comment',
       icon: FiEdit3,
+      supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
         id: createElementId('comment'),
         type: 'comment',
@@ -1000,6 +1280,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       label: 'Content Control',
       hint: 'Structured Word content control (SDT)',
       icon: FiCode,
+      supportedOutputs: ['word'],
       create: () => ({
         id: createElementId('sdt'),
         type: 'contentcontrol',
@@ -1026,7 +1307,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     {
       id: 'form',
       label: 'Form Elements',
-      toolIds: ['field', 'checkbox', 'button', 'dropdown', 'optionlist', 'radio', 'signature', 'number']
+      toolIds: ['field', 'textarea', 'checkbox', 'button', 'dropdown', 'optionlist', 'radio', 'signature', 'number']
     },
     {
       id: 'visual',
@@ -1041,7 +1322,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     {
       id: 'advanced',
       label: 'Advanced Document Elements',
-      toolIds: ['watermark', 'note', 'arrow', 'draw', 'date', 'highlight', 'checkmark', 'pageboundary', 'pagenumber']
+      toolIds: ['watermark', 'note', 'arrow', 'draw', 'date', 'highlight', 'checkmark', 'pageboundary', 'pagenumber', 'toc']
     },
     {
       id: 'word',
@@ -1055,6 +1336,18 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     [tools]
   );
 
+  const WORD_ONLY_TYPES = new Set<SimpleElement['type']>(['footnote', 'endnote', 'contentcontrol']);
+
+  const visibleToolGroups = useMemo(
+    () => documentMode === 'pdf' ? toolGroups.filter(g => g.id !== 'word') : toolGroups,
+    [documentMode, toolGroups]
+  );
+
+  const wordElementsOnCanvas = useMemo(
+    () => elements.some(el => WORD_ONLY_TYPES.has(el.type as SimpleElement['type'])),
+    [elements]
+  );
+
   const toggleGroup = (groupId: string) => {
     setExpandedGroups(previous => (
       previous.includes(groupId)
@@ -1066,10 +1359,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   const getCanvasPoint = (clientX: number, clientY: number) => {
     const rect = pageContentRef.current?.getBoundingClientRect();
     if (!rect) return { x: 0, y: 0 };
-
+    // getBoundingClientRect returns visual (scaled) pixels; divide by zoomLevel to get pt coordinates.
     return {
-      x: clientX - rect.left,
-      y: clientY - rect.top
+      x: (clientX - rect.left) / zoomLevel,
+      y: (clientY - rect.top)  / zoomLevel,
     };
   };
 
@@ -1087,21 +1380,28 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       if (dragState.multi && dragState.multi.length > 1) {
         const dx = point.x - dragState.startPointerX;
         const dy = point.y - dragState.startPointerY;
+        const dxStored = dragState.isRtlCanvas ? -dx : dx;
         dragState.multi.forEach(({ id, startX, startY }) => {
           const el = [...elements, ...sharedElements].find(e => e.id === id);
           if (!el) return;
-          updateElementById(id, {
-            x: Math.round(clamp(startX + dx, 0, pageWidth - el.width)),
+          const patch = {
+            x: Math.round(clamp(startX + dxStored, 0, pageWidth - el.width)),
             y: Math.round(clamp(startY + dy, 0, pageHeight - el.height)),
-          });
+          };
+          applyPosUpdate(id, patch, dragState.langKey);
         });
       } else {
         const element = [...elements, ...sharedElements].find(item => item.id === dragState.id);
         if (!element) return;
-        updateElementById(
-          element.id,
-          positionElement(element, point.x - dragState.pointerOffsetX, point.y - dragState.pointerOffsetY)
-        );
+        let patch: { x: number; y: number };
+        if (dragState.isRtlCanvas) {
+          const displayX = point.x - dragState.pointerOffsetX;
+          const storedX = pageWidth - displayX - element.width;
+          patch = positionElement(element, storedX, point.y - dragState.pointerOffsetY);
+        } else {
+          patch = positionElement(element, point.x - dragState.pointerOffsetX, point.y - dragState.pointerOffsetY);
+        }
+        applyPosUpdate(element.id, patch, dragState.langKey);
       }
     };
 
@@ -1146,10 +1446,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       width = Math.min(width, pageWidth - x);
       height = Math.min(height, pageHeight - y);
 
-      updateElementById(resizeState.id, {
+      applyPosUpdate(resizeState.id, {
         x: Math.round(x), y: Math.round(y),
-        width: Math.round(width), height: Math.round(height)
-      });
+        width: Math.round(width), height: Math.round(height),
+      }, resizeState.langKey);
     };
 
     const handlePointerUp = () => setResizeState(null);
@@ -1161,6 +1461,32 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       window.removeEventListener('pointerup', handlePointerUp);
     };
   }, [resizeState, elements, sharedElements, updateElementById]);
+
+  // Rotation drag
+  useEffect(() => {
+    if (!rotateState) return;
+    const handlePointerMove = (event: PointerEvent) => {
+      const point = getCanvasPoint(event.clientX, event.clientY);
+      const angle = Math.atan2(point.y - rotateState.centerY, point.x - rotateState.centerX) * (180 / Math.PI);
+      const delta = angle - rotateState.initialPointerAngle;
+      let newRotation = Math.round((rotateState.startAngle + delta) % 360);
+      if (newRotation < 0) newRotation += 360;
+      const element = [...elements, ...sharedElements].find(el => el.id === rotateState.id);
+      if (!element) return;
+      if (rotateState.langKey) {
+        applyPosUpdate(rotateState.id, { rotation: newRotation }, rotateState.langKey);
+      } else {
+        updateElementById(rotateState.id, { style: { ...element.style, rotation: newRotation } });
+      }
+    };
+    const handlePointerUp = () => setRotateState(null);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [rotateState, elements, sharedElements, updateElementById]);
 
   // Marquee selection
   useEffect(() => {
@@ -1202,6 +1528,101 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     };
   }, [marqueeState, elements, sharedElements]);
 
+  useEffect(() => {
+    if (!drawGhost || !drawingMode) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const point = getCanvasPoint(event.clientX, event.clientY);
+      setDrawGhost(prev => {
+        if (!prev) return null;
+        if (drawingMode === 'draw') {
+          return { ...prev, currentX: point.x, currentY: point.y, pathPoints: `${prev.pathPoints} L ${point.x} ${point.y}` };
+        }
+        return { ...prev, currentX: point.x, currentY: point.y };
+      });
+    };
+
+    const handlePointerUp = () => {
+      const { startX, startY, currentX, currentY, pathPoints } = drawGhost;
+      const dx = currentX - startX;
+      const dy = currentY - startY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist >= 5) {
+        if (drawingMode === 'line') {
+          const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+          const cx = (startX + currentX) / 2;
+          const cy = (startY + currentY) / 2;
+          const el = nameElement({
+            id: createElementId('line'),
+            type: 'line',
+            x: Math.round(cx - dist / 2),
+            y: Math.round(cy - 2),
+            width: Math.round(dist),
+            height: 4,
+            style: { backgroundColor: '#9ca3af', rotation: Math.round(angle * 10) / 10 },
+          });
+          onElementAdd(el);
+          setSelectedElementId(el.id);
+        } else if (drawingMode === 'arrow') {
+          const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+          const cx = (startX + currentX) / 2;
+          const cy = (startY + currentY) / 2;
+          const el = nameElement({
+            id: createElementId('arrow'),
+            type: 'arrow',
+            x: Math.round(cx - dist / 2),
+            y: Math.round(cy - 20),
+            width: Math.round(dist),
+            height: 40,
+            arrowMode: 'straight',
+            arrowDirection: 'right',
+            arrowRotation: 0,
+            startMarker: 'none',
+            endMarker: 'filled',
+            style: { color: '#dc2626', strokeWidth: 4, dashStyle: 'solid', rotation: Math.round(angle * 10) / 10 },
+          });
+          onElementAdd(el);
+          setSelectedElementId(el.id);
+        } else if (drawingMode === 'draw' && pathPoints) {
+          const matches = [...pathPoints.matchAll(/(-?[\d.]+)\s+(-?[\d.]+)/g)];
+          const xs = matches.map(m => parseFloat(m[1]));
+          const ys = matches.map(m => parseFloat(m[2]));
+          const minX = Math.min(...xs);
+          const minY = Math.min(...ys);
+          const w = Math.max(Math.max(...xs) - minX, 16);
+          const h = Math.max(Math.max(...ys) - minY, 16);
+          const localPath = pathPoints.replace(/(-?[\d.]+)\s+(-?[\d.]+)/g, (_m, px, py) =>
+            `${Math.round((parseFloat(px) - minX) * 10) / 10} ${Math.round((parseFloat(py) - minY) * 10) / 10}`
+          );
+          const el = nameElement({
+            id: createElementId('draw'),
+            type: 'draw',
+            x: Math.round(minX),
+            y: Math.round(minY),
+            width: Math.round(w),
+            height: Math.round(h),
+            drawTool: 'pen',
+            pathData: localPath,
+            style: { color: '#1d4ed8', strokeWidth: 4, opacity: 1 },
+          });
+          onElementAdd(el);
+          setSelectedElementId(el.id);
+        }
+      }
+
+      setDrawGhost(null);
+      setDrawingMode(null);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [drawGhost, drawingMode, elements, sharedElements, onElementAdd]);
+
   const handleResizePointerDown = (
     event: React.PointerEvent,
     element: SimpleElement,
@@ -1212,21 +1633,52 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     if (element.locked) return;
     snapshotHistory();
     const point = getCanvasPoint(event.clientX, event.clientY);
+    const effPos = getEffectivePos(element);
+    const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
     setResizeState({
       id: element.id,
       handle,
       startPointerX: point.x,
       startPointerY: point.y,
-      startX: element.x,
-      startY: element.y,
-      startWidth: element.width,
-      startHeight: element.height
+      startX: effPos.x,
+      startY: effPos.y,
+      startWidth: effPos.width,
+      startHeight: effPos.height,
+      langKey,
+    });
+  };
+
+  const handleRotatePointerDown = (event: React.PointerEvent, element: SimpleElement) => {
+    event.stopPropagation();
+    if (event.button !== 0) return;
+    if (element.locked) return;
+    snapshotHistory();
+    const effPos = getEffectivePos(element);
+    const displayX = isCurrentRtl ? pageWidth - effPos.x - effPos.width : effPos.x;
+    const centerX = displayX + effPos.width / 2;
+    const centerY = effPos.y + effPos.height / 2;
+    const point = getCanvasPoint(event.clientX, event.clientY);
+    const initialPointerAngle = Math.atan2(point.y - centerY, point.x - centerX) * (180 / Math.PI);
+    const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+    setRotateState({
+      id: element.id,
+      centerX,
+      centerY,
+      startAngle: getEffectiveRotation(element),
+      initialPointerAngle,
+      langKey,
     });
   };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const tag = (event.target as HTMLElement).tagName;
+
+      if (event.key === 'F1') {
+        event.preventDefault();
+        setHelpModalOpen(true);
+        return;
+      }
 
       // Zoom shortcuts work globally (even without a selected element)
       if (event.metaKey || event.ctrlKey) {
@@ -1306,7 +1758,12 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
           break;
 
         case 'Escape':
-          clearSelection();
+          if (drawingMode) {
+            setDrawingMode(null);
+            setDrawGhost(null);
+          } else {
+            clearSelection();
+          }
           break;
 
         case 'ArrowUp':
@@ -1329,12 +1786,31 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedElement, deleteElementById, updateElementById, onElementAdd, pageWidth, pageHeight, undo, redo, elements, sharedElements, clipboard]);
+  }, [selectedElement, deleteElementById, updateElementById, onElementAdd, pageWidth, pageHeight, undo, redo, elements, sharedElements, clipboard, drawingMode, setHelpModalOpen]);
+
+  const startDrawGhost = (clientX: number, clientY: number) => {
+    const point = getCanvasPoint(clientX, clientY);
+    setDrawGhost({
+      startX: point.x,
+      startY: point.y,
+      currentX: point.x,
+      currentY: point.y,
+      pathPoints: drawingMode === 'draw' ? `M ${point.x} ${point.y}` : undefined,
+    });
+  };
 
   const handleCanvasPointerDown = (event: React.PointerEvent) => {
     if (event.button !== 0) return;
-    if (event.target !== event.currentTarget) return;
     closeContextMenu();
+
+    if (drawingMode) {
+      event.stopPropagation();
+      startDrawGhost(event.clientX, event.clientY);
+      return;
+    }
+
+    if (event.target !== event.currentTarget) return;
+
     if (!event.shiftKey && !event.metaKey && !event.ctrlKey) clearSelection();
     const point = getCanvasPoint(event.clientX, event.clientY);
     const additive = event.shiftKey || event.metaKey || event.ctrlKey;
@@ -1349,9 +1825,9 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   };
 
   const addElement = (tool: Tool) => {
-    const element = nameElement(tool.create());
-    onElementAdd(element);
-    setSelectedElementId(element.id);
+    const el = nameElement(tool.create());
+    onElementAdd(el);
+    setSelectedElementId(el.id);
   };
 
   const insertIntoZone = (zone: 'header' | 'footer', type: 'text' | 'pagenumber' | 'date' | 'image') => {
@@ -1422,13 +1898,13 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   };
 
   const addElementAtPoint = (tool: Tool, clientX: number, clientY: number) => {
-    const element = tool.create();
+    const raw = tool.create();
     const point = getCanvasPoint(clientX, clientY);
-    const nextPosition = positionElement(element, point.x - element.width / 2, point.y - element.height / 2);
-    const placedElement = nameElement({ ...element, ...nextPosition });
-
-    onElementAdd(placedElement);
-    setSelectedElementId(placedElement.id);
+    // On RTL canvas the drop point is mirrored: convert display x back to stored x
+    const canvasX = isCurrentRtl ? pageWidth - point.x - raw.width / 2 : point.x - raw.width / 2;
+    const el = nameElement({ ...raw, ...positionElement(raw, canvasX, point.y - raw.height / 2) });
+    onElementAdd(el);
+    setSelectedElementId(el.id);
   };
 
   const handleToolDragStart = (event: React.DragEvent, tool: Tool) => {
@@ -1468,6 +1944,13 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
 
   const handleElementPointerDown = (event: React.PointerEvent, element: SimpleElement) => {
     if (event.button !== 0) return;
+
+    if (drawingMode) {
+      event.stopPropagation();
+      startDrawGhost(event.clientX, event.clientY);
+      return;
+    }
+
     if (element.locked) {
       selectOne(element.id);
       return;
@@ -1482,25 +1965,33 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     snapshotHistory();
     const point = getCanvasPoint(event.clientX, event.clientY);
 
+    const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+
     // Build multi-drag payload when this element is part of an existing multi-selection
     const isInMultiSel = selectedElementIds.size > 1 && selectedElementIds.has(element.id);
     const allEls = [...elements, ...sharedElements];
     const multi = isInMultiSel
       ? [...selectedElementIds].map(id => {
           const el = allEls.find(e => e.id === id);
-          return el ? { id, startX: el.x, startY: el.y } : null;
+          if (!el) return null;
+          const pos = getEffectivePos(el);
+          return { id, startX: pos.x, startY: pos.y };
         }).filter(Boolean) as { id: string; startX: number; startY: number }[]
       : undefined;
 
     if (!isInMultiSel) selectOne(element.id);
 
+    const pos = getEffectivePos(element);
+    const displayX = isCurrentRtl ? pageWidth - pos.x - pos.width : pos.x;
     setDragState({
       id: element.id,
-      pointerOffsetX: point.x - element.x,
-      pointerOffsetY: point.y - element.y,
+      pointerOffsetX: point.x - displayX,
+      pointerOffsetY: point.y - pos.y,
       startPointerX: point.x,
       startPointerY: point.y,
       multi,
+      isRtlCanvas: isCurrentRtl,
+      langKey,
     });
   };
 
@@ -1621,7 +2112,13 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   };
 
   const updateLayoutValue = (key: 'x' | 'y' | 'width' | 'height', value: string) => {
-    updateSelectedElement({ [key]: Number(value) || 0 });
+    const num = Number(value) || 0;
+    const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+    if (langKey && selectedElementId) {
+      applyPosUpdate(selectedElementId, { [key]: num }, langKey);
+    } else {
+      updateSelectedElement({ [key]: num });
+    }
   };
 
   const duplicateElement = (element: SimpleElement) => {
@@ -1699,6 +2196,8 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       return (
         <div
           className="editor-element-text"
+          dir={element.textDirection || 'ltr'}
+          lang={element.language || undefined}
           style={{
             fontSize:       s.fontSize      || 16,
             fontFamily:     s.fontFamily    || 'Arial',
@@ -1717,7 +2216,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             padding:        [s.paddingTop ?? 0, s.paddingRight ?? 0, s.paddingBottom ?? 0, s.paddingLeft ?? 0].join('px ') + 'px',
           }}
         >
-          {element.content}
+          {resolveContent(element.content)}
         </div>
       );
     }
@@ -1774,7 +2273,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       return (
         <div className="editor-signature">
           <FiEdit3 className="editor-placeholder-icon" />
-          <span>{element.signatureLabel}</span>
+          <span>{resolveContent(element.signatureLabel)}</span>
           <div className="editor-signature-line" />
           <small>Signature Line</small>
         </div>
@@ -1793,8 +2292,27 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     if (element.type === 'field') {
       return (
         <div className="editor-form-field">
-          <span>{element.fieldLabel}</span>
+          <span>
+            {resolveContent(element.fieldLabel)}
+            {element.required && <span className="editor-field-required-badge" title="Required field">*</span>}
+          </span>
           <strong>{element.required ? 'Required' : 'Optional'}</strong>
+        </div>
+      );
+    }
+
+    if (element.type === 'textarea') {
+      return (
+        <div className="editor-form-field editor-form-field--textarea">
+          <span>
+            {resolveContent(element.fieldLabel)}
+            {element.required && <span className="editor-field-required-badge" title="Required field">*</span>}
+          </span>
+          <div className="editor-textarea-preview">
+            {element.placeholder && (
+              <span className="editor-textarea-placeholder">{element.placeholder}</span>
+            )}
+          </div>
         </div>
       );
     }
@@ -1803,7 +2321,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       return (
         <div className="editor-checkbox-field">
           <FiCheckSquare />
-          <span>{element.fieldLabel}</span>
+          <span>{resolveContent(element.fieldLabel)}</span>
         </div>
       );
     }
@@ -1882,6 +2400,11 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       const colAligns    = element.columnAlignments ?? [];
       const bodyRows     = Math.max(1, totalRows - (hasHeader ? 1 : 0) - (hasFooter ? 1 : 0));
 
+      const cellFontSize   = element.style?.cellFontSize ?? 10;
+      const cellFontFamily = element.style?.cellFontFamily ?? 'Arial';
+      const cellColor      = element.style?.cellColor as string | undefined;
+      const cellFontWeight = element.style?.cellFontWeight ?? 'normal';
+
       const tdStyle = (
         rowIdx: number,
         colIdx: number,
@@ -1890,9 +2413,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
         border: `${bw}px solid ${bc}`,
         padding: cp,
         textAlign: colAligns[colIdx] || 'left',
-        fontSize: 10,
-        fontWeight: kind === 'header' ? 700 : 'normal',
-        color: kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555',
+        fontSize: cellFontSize,
+        fontFamily: cellFontFamily,
+        fontWeight: kind === 'header' ? 700 : cellFontWeight,
+        color: cellColor ?? (kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555'),
         backgroundColor:
           kind === 'header' ? headerBg
           : kind === 'footer' ? '#f8fafc'
@@ -1973,7 +2497,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             justifyContent: 'center',
             gap: 6,
           }}
-          onClick={element.buttonAction ? () => window.open(element.buttonAction, '_blank', 'noopener') : undefined}
+          onClick={element.buttonAction ? () => {
+            const a = element.buttonAction!;
+            if (a.startsWith('http')) window.open(a, '_blank', 'noopener');
+          } : undefined}
           title={element.buttonAction || undefined}
         >
           {element.content || 'Button'}
@@ -2536,7 +3063,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             {state === 'dot' && <circle cx="13" cy="13" r="5" fill={color} />}
           </svg>
           <span style={{ fontSize: element.style?.fontSize || 14, color: element.style?.labelColor || '#374151' }}>
-            {element.fieldLabel || 'Auswahl'}
+            {resolveContent(element.fieldLabel) || 'Selection'}
           </span>
         </div>
       );
@@ -2612,6 +3139,34 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {element.contentControlTitle || element.contentControlTag || element.contentControlType || 'Content Control'}
           </span>
+        </div>
+      );
+    }
+
+    if (element.type === 'toc') {
+      const fontSize = element.style?.fontSize || 13;
+      const color = element.style?.color || '#1f2937';
+      const entries = element.tocEntries ?? [];
+      return (
+        <div style={{ width: '100%', height: '100%', overflow: 'hidden', padding: '8px 10px', border: '1px dashed #94a3b8', borderRadius: 4, background: '#f8fafc' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', letterSpacing: '0.06em', marginBottom: 6, textTransform: 'uppercase' }}>
+            Table of Contents
+          </div>
+          {entries.length === 0 ? (
+            <div style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>
+              No headings found. Select a text element and set a Heading Level in the inspector.
+            </div>
+          ) : entries.map((e, i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 3,
+              paddingLeft: (e.level - 1) * 12, fontSize: e.level === 1 ? fontSize : fontSize - 1,
+              fontWeight: e.level === 1 ? 600 : 400, color
+            }}>
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.text}</span>
+              <span style={{ flexShrink: 0, borderBottom: '1px dotted #cbd5e1', flex: 1, alignSelf: 'center', margin: '0 4px' }} />
+              <span style={{ flexShrink: 0 }}>{e.page}</span>
+            </div>
+          ))}
         </div>
       );
     }
@@ -2719,6 +3274,25 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
           >
             <FiCode />
           </motion.button>
+          <div className="editor-doc-mode-toggle" title="Output mode: affects which elements are shown in the toolbar">
+            <button
+              className={`editor-doc-mode-btn${documentMode === 'pdf' ? ' editor-doc-mode-btn--active' : ''}`}
+              onClick={() => setDocumentMode('pdf')}
+            >PDF</button>
+            <button
+              className={`editor-doc-mode-btn${documentMode === 'word' ? ' editor-doc-mode-btn--active' : ''}`}
+              onClick={() => setDocumentMode('word')}
+            >Word</button>
+          </div>
+          <motion.button
+            className="editor-icon-button"
+            title="Help (F1)"
+            onClick={() => setHelpModalOpen(true)}
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <FiHelpCircle />
+          </motion.button>
           <motion.button
             className="editor-primary-button"
             onClick={onPreview}
@@ -2738,8 +3312,13 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             <span>Add elements</span>
           </div>
 
+          {documentMode === 'pdf' && wordElementsOnCanvas && (
+            <div className="editor-doc-mode-warning">
+              Some elements on the canvas are Word-only and will not render in PDF export.
+            </div>
+          )}
           <div className="editor-tool-list">
-            {toolGroups.map(group => {
+            {visibleToolGroups.map(group => {
               const isExpanded = expandedGroups.includes(group.id);
 
               return (
@@ -2768,8 +3347,15 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                         return (
                           <motion.button
                             key={tool.id}
-                            className="editor-tool-button"
-                            onClick={() => addElement(tool)}
+                            className={`editor-tool-button${drawingMode === tool.id ? ' is-draw-active' : ''}`}
+                            onClick={() => {
+                              if (tool.id === 'line' || tool.id === 'arrow' || tool.id === 'draw') {
+                                setDrawingMode(prev => (prev === tool.id ? null : tool.id as 'line' | 'arrow' | 'draw'));
+                                clearSelection();
+                              } else {
+                                addElement(tool);
+                              }
+                            }}
                             draggable
                             onDragStartCapture={(event) => handleToolDragStart(event, tool)}
                             whileHover={{ x: 2 }}
@@ -2792,6 +3378,15 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             })}
           </div>
 
+          <button
+            className="editor-form-block-btn"
+            onClick={() => setFormBlockModalOpen(true)}
+            title="Insert a pre-built group of form fields (address, contact, etc.)"
+          >
+            <FiGrid size={14} />
+            Insert Form Block
+          </button>
+
           <div className="editor-layer-summary">
             <div>
               <FiLayers />
@@ -2802,10 +3397,20 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
         </aside>
 
         <section className="editor-stage" aria-label="Document canvas">
+          <LanguageTabBar />
           <div className="editor-stage-header">
             <div>
               <span>Page {currentPageIndex + 1} / {pages.length}</span>
               <strong>{pageWidth} × {pageHeight} px</strong>
+              {(() => {
+                const a4 = PAGE_PRESETS['A4'];
+                const isA4 = pageWidth === a4.width && pageHeight === a4.height;
+                if (isA4) return null;
+                const preset = Object.entries(PAGE_PRESETS).find(([, p]) => p.width === pageWidth && p.height === pageHeight);
+                return (
+                  <span className="editor-page-size-badge">{preset ? preset[0] : 'Custom'}</span>
+                );
+              })()}
             </div>
             <div className="editor-stage-zoom">
               <button
@@ -2826,6 +3431,12 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             </div>
           </div>
 
+          {drawingMode && (
+            <div className="editor-draw-badge">
+              {drawingMode === 'line' ? 'Drawing line' : drawingMode === 'arrow' ? 'Drawing arrow' : 'Freehand drawing'} — click and drag on the canvas &nbsp;·&nbsp; <kbd>Esc</kbd> to cancel
+            </div>
+          )}
+
           <div style={{ display: 'flex', justifyContent: 'center', minHeight: pageHeight * zoomLevel + 48 }}>
             <div
               className={`editor-page ${isDragOverCanvas ? 'is-drag-over' : ''}`}
@@ -2845,6 +3456,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 transformOrigin: 'top center',
                 flexShrink: 0,
                 alignSelf: 'flex-start',
+                cursor: drawingMode ? 'crosshair' : undefined,
               }}
               onPointerDown={handleCanvasPointerDown}
               onContextMenu={handleCanvasContextMenu}
@@ -2987,19 +3599,19 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   )}
                 </div>
               )}
-              {elements.map((element, index) => (
+              {elements
+                .filter(el => !el.elementLanguage || el.elementLanguage === currentPreviewLanguage)
+                .map((element, index) => (
                 <motion.div
                   key={element.id}
                   initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                  animate={{ opacity: 1, scale: 1, y: 0, rotate: element.style?.rotation ?? 0 }}
+                  animate={{ opacity: 1, scale: 1, y: 0, rotate: getEffectiveRotation(element) }}
                   transition={{ duration: 0.24, delay: index * 0.04, rotate: { duration: 0 } }}
-                  className={`editor-canvas-element ${selectedElementId === element.id ? 'is-selected' : selectedElementIds.has(element.id) ? 'is-multi-selected' : ''} ${element.locked ? 'is-locked' : ''}`}
-                  style={{
-                    left: element.x,
-                    top: element.y,
-                    width: element.width,
-                    height: element.height,
-                  }}
+                  className={`editor-canvas-element ${selectedElementId === element.id ? 'is-selected' : selectedElementIds.has(element.id) ? 'is-multi-selected' : ''} ${element.locked ? 'is-locked' : ''} ${element.hidden ? 'is-hidden' : ''}`}
+                  style={(() => { const ep = getEffectivePos(element); return {
+                    left: isCurrentRtl ? pageWidth - ep.x - ep.width : ep.x,
+                    top: ep.y, width: ep.width, height: ep.height,
+                  }; })()}
                   onPointerDown={(event) => handleElementPointerDown(event, element)}
                   onContextMenu={(event) => handleElementContextMenu(event, element)}
                   onClick={(event) => {
@@ -3027,6 +3639,11 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                           onPointerDown={(event) => handleResizePointerDown(event, element, handle)}
                         />
                       ))}
+                      <div style={{ position: 'absolute', top: -28, left: 'calc(50% - 1px)', width: 1, height: 24, background: 'var(--editor-accent, #6366f1)', opacity: 0.5, pointerEvents: 'none' }} />
+                      <div
+                        style={{ position: 'absolute', top: -40, left: 'calc(50% - 7px)', width: 14, height: 14, borderRadius: '50%', background: 'var(--editor-accent, #6366f1)', border: '2px solid white', cursor: 'crosshair', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
+                        onPointerDown={(event) => handleRotatePointerDown(event, element)}
+                      />
                     </>
                   )}
                 </motion.div>
@@ -3037,10 +3654,10 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 <motion.div
                   key={element.id}
                   initial={{ opacity: 0, scale: 0.96, y: 16 }}
-                  animate={{ opacity: 1, scale: 1, y: 0, rotate: element.style?.rotation ?? 0 }}
+                  animate={{ opacity: 1, scale: 1, y: 0, rotate: getEffectiveRotation(element) }}
                   transition={{ duration: 0.24, delay: index * 0.04, rotate: { duration: 0 } }}
-                  className={`editor-canvas-element is-shared ${selectedElementId === element.id ? 'is-selected' : ''} ${element.locked ? 'is-locked' : ''}`}
-                  style={{ left: element.x, top: element.y, width: element.width, height: element.height }}
+                  className={`editor-canvas-element is-shared ${selectedElementId === element.id ? 'is-selected' : ''} ${element.locked ? 'is-locked' : ''} ${element.hidden ? 'is-hidden' : ''}`}
+                  style={(() => { const ep = getEffectivePos(element); return { left: isCurrentRtl ? pageWidth - ep.x - ep.width : ep.x, top: ep.y, width: ep.width, height: ep.height }; })()}
                   onPointerDown={(event) => handleElementPointerDown(event, element)}
                   onContextMenu={(event) => handleElementContextMenu(event, element)}
                   onClick={(event) => { event.stopPropagation(); setSelectedElementId(element.id); }}
@@ -3061,6 +3678,11 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                         <div key={handle} className="editor-resize-handle" style={style}
                           onPointerDown={(event) => handleResizePointerDown(event, element, handle)} />
                       ))}
+                      <div style={{ position: 'absolute', top: -28, left: 'calc(50% - 1px)', width: 1, height: 24, background: 'var(--editor-accent, #6366f1)', opacity: 0.5, pointerEvents: 'none' }} />
+                      <div
+                        style={{ position: 'absolute', top: -40, left: 'calc(50% - 7px)', width: 14, height: 14, borderRadius: '50%', background: 'var(--editor-accent, #6366f1)', border: '2px solid white', cursor: 'crosshair', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
+                        onPointerDown={(event) => handleRotatePointerDown(event, element)}
+                      />
                     </>
                   )}
                 </motion.div>
@@ -3088,12 +3710,45 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   }}
                 />
               )}
+
+              {/* Draw ghost preview */}
+              {drawGhost && (
+                <svg
+                  style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'visible', width: '100%', height: '100%', zIndex: 30 }}
+                >
+                  {drawingMode === 'line' && (
+                    <line
+                      x1={drawGhost.startX} y1={drawGhost.startY}
+                      x2={drawGhost.currentX} y2={drawGhost.currentY}
+                      stroke="#9ca3af" strokeWidth="2" strokeDasharray="6 3"
+                    />
+                  )}
+                  {drawingMode === 'arrow' && (
+                    <>
+                      <defs>
+                        <marker id="draw-ghost-arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                          <polygon points="0 0, 8 3, 0 6" fill="#dc2626" />
+                        </marker>
+                      </defs>
+                      <line
+                        x1={drawGhost.startX} y1={drawGhost.startY}
+                        x2={drawGhost.currentX} y2={drawGhost.currentY}
+                        stroke="#dc2626" strokeWidth="2" strokeDasharray="6 3"
+                        markerEnd="url(#draw-ghost-arrowhead)"
+                      />
+                    </>
+                  )}
+                  {drawingMode === 'draw' && drawGhost.pathPoints && (
+                    <path d={drawGhost.pathPoints} stroke="#1d4ed8" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  )}
+                </svg>
+              )}
             </div>
             </div>
           </div>
 
           {/* Page navigation strip */}
-          <div className="editor-page-strip">
+          <div className={`editor-page-strip${pageWidth / pageHeight > 1.5 && pages.length > 1 ? ' editor-page-strip--widescreen' : ''}`}>
             {pages.map((page, index) => (
               <div
                 key={page.id}
@@ -3165,6 +3820,17 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
               <FiLayers size={12} /> Layers
               {elements.length > 0 && <span className="editor-layer-count">{elements.length}</span>}
             </button>
+            {(pageSettings.activeLanguages ?? []).length >= 1 && (
+              <button
+                className={`editor-inspector-tab${inspectorTab === 'properties' ? ' active' : ''}`}
+                onClick={() => setInspectorTab('properties')}
+              >
+                <FiGlobe size={12} /> Properties
+                {(pageSettings.localizedProperties ?? []).length > 0 && (
+                  <span className="editor-layer-count">{(pageSettings.localizedProperties ?? []).length}</span>
+                )}
+              </button>
+            )}
           </div>
 
           {/* ── Layers tab ── */}
@@ -3222,6 +3888,14 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     <span className="editor-layer-row-index">{elements.length - i}</span>
                     <span className="editor-layer-row-name">
                       {el.name || ELEMENT_TYPE_LABELS[el.type] || el.type}
+                      {el.elementLanguage && (
+                        <span style={{
+                          marginLeft: 4, fontSize: 9, padding: '1px 4px', borderRadius: 3,
+                          background: '#ede9fe', color: '#4c1d95', fontFamily: 'monospace',
+                        }}>
+                          {el.elementLanguage.toUpperCase()}
+                        </span>
+                      )}
                     </span>
                     <div className="editor-layer-row-actions">
                       <button
@@ -3241,10 +3915,26 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             </div>
           )}
 
+          {/* ── Properties tab (localized document properties) ── */}
+          {inspectorTab === 'properties' && (
+            <div className="editor-inspector-content">
+              <LocalizedPropertiesPanel />
+            </div>
+          )}
+
           {inspectorTab === 'inspector' && !selectedElement && (() => {
             const currentPreset = Object.entries(PAGE_PRESETS).find(
               ([, v]) => v.width === pageSettings.width && v.height === pageSettings.height
             )?.[0] ?? 'Custom';
+            const imageAnalysisDiagnostics = getImageAnalysisDiagnostics(template);
+            const imageOcrDiagnostics = getImageOcrDiagnostics(template);
+            const imageOcrWarnings = getImageOcrWarnings(template);
+            const lowConfidenceShare = imageAnalysisDiagnostics?.glyphCount
+              ? (imageAnalysisDiagnostics.lowConfidenceGlyphCount ?? 0) / imageAnalysisDiagnostics.glyphCount
+              : 0;
+            const lowConfidenceWordShare = imageOcrDiagnostics?.wordCount
+              ? (imageOcrDiagnostics.lowConfidenceWordCount ?? 0) / imageOcrDiagnostics.wordCount
+              : 0;
 
             return (
               <div className="editor-inspector-content">
@@ -3258,6 +3948,100 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     </div>
                   ) : null;
                 })()}
+
+                {imageAnalysisDiagnostics && (
+                  <div className="editor-settings-section">
+                    <div className="editor-settings-heading">
+                      <FiSliders />
+                      <span>Image Analysis</span>
+                    </div>
+                    <div className="editor-image-analysis-panel">
+                      <div className="editor-image-analysis-summary">
+                        <div>
+                          <strong>{formatNumber(imageAnalysisDiagnostics.elementCount)}</strong>
+                          <span>Elements</span>
+                        </div>
+                        <div>
+                          <strong>{formatNumber(imageAnalysisDiagnostics.glyphCount)}</strong>
+                          <span>Glyphs</span>
+                        </div>
+                        <div>
+                          <strong>{formatPercent(lowConfidenceShare)}</strong>
+                          <span>Low confidence</span>
+                        </div>
+                      </div>
+                      <div className="editor-image-analysis-grid">
+                        <span>Source</span>
+                        <strong>{formatNumber(imageAnalysisDiagnostics.sourceWidthPx)} x {formatNumber(imageAnalysisDiagnostics.sourceHeightPx)} px</strong>
+                        <span>Working</span>
+                        <strong>{formatNumber(imageAnalysisDiagnostics.workingWidthPx)} x {formatNumber(imageAnalysisDiagnostics.workingHeightPx)} px</strong>
+                        <span>Scale</span>
+                        <strong>{Number(imageAnalysisDiagnostics.scaleFactor ?? 1).toFixed(3)}</strong>
+                        <span>Regions</span>
+                        <strong>{formatNumber(imageAnalysisDiagnostics.colorRegionCount)}</strong>
+                        <span>Shapes</span>
+                        <strong>{formatNumber(imageAnalysisDiagnostics.shapeCount)}</strong>
+                        <span>Text lines</span>
+                        <strong>{formatNumber(imageAnalysisDiagnostics.textLineCount)}</strong>
+                        <span>Words</span>
+                        <strong>{formatNumber(imageAnalysisDiagnostics.wordCount)}</strong>
+                      </div>
+                      {(imageAnalysisDiagnostics.warnings ?? []).length > 0 && (
+                        <div className="editor-image-analysis-warnings">
+                          {imageAnalysisDiagnostics.warnings!.map((warning, index) => (
+                            <span key={`${warning}-${index}`}>{warning}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {imageOcrDiagnostics && (
+                  <div className="editor-settings-section">
+                    <div className="editor-settings-heading">
+                      <FiEye />
+                      <span>Image OCR</span>
+                    </div>
+                    <div className="editor-image-analysis-panel">
+                      <div className="editor-image-analysis-summary">
+                        <div>
+                          <strong>{formatNumber(imageOcrDiagnostics.wordCount)}</strong>
+                          <span>Words</span>
+                        </div>
+                        <div>
+                          <strong>{formatNumber(imageOcrDiagnostics.lineCount)}</strong>
+                          <span>Lines</span>
+                        </div>
+                        <div>
+                          <strong>{formatPercent(imageOcrDiagnostics.averageConfidence)}</strong>
+                          <span>Confidence</span>
+                        </div>
+                      </div>
+                      <div className="editor-image-analysis-grid">
+                        <span>Source</span>
+                        <strong>{formatNumber(imageOcrDiagnostics.sourceWidthPx)} x {formatNumber(imageOcrDiagnostics.sourceHeightPx)} px</strong>
+                        <span>Pages</span>
+                        <strong>{formatNumber(imageOcrDiagnostics.pageCount)}</strong>
+                        <span>Languages</span>
+                        <strong>{imageOcrDiagnostics.languages ?? 'deu+eng'}</strong>
+                        <span>Engine</span>
+                        <strong>{imageOcrDiagnostics.ocrEngine ?? 'OCR'} {imageOcrDiagnostics.ocrEngineVersion ?? ''}</strong>
+                        <span>Low confidence</span>
+                        <strong>{formatPercent(lowConfidenceWordShare)}</strong>
+                        <span>Runtime</span>
+                        <strong>{formatNumber(imageOcrDiagnostics.elapsedMs)} ms</strong>
+                      </div>
+                      {imageOcrWarnings.length > 0 && (
+                        <div className="editor-image-analysis-warnings">
+                          {imageOcrWarnings.map((warning, index) => (
+                            <span key={`${warning}-${index}`}>{warning}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Paper */}
                 <div className="editor-settings-section">
@@ -4100,6 +4884,100 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   </div>
                 </div>
 
+                {/* PDF Encryption */}
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading">
+                    <FiLock />
+                    <span>PDF Encryption</span>
+                  </div>
+                  <div className="editor-form-stack" style={{ padding: 12 }}>
+                    <label className="editor-checkbox-control">
+                      <input
+                        type="checkbox"
+                        checked={pageSettings.encryption?.enabled ?? false}
+                        onChange={(e) => updatePageSettings({
+                          encryption: e.target.checked
+                            ? {
+                                enabled: true,
+                                userPassword: '',
+                                ownerPassword: '',
+                                algorithm: 'Rc4_128',
+                                permissions: {
+                                  print: true, modify: true, copy: true, annotate: true,
+                                  fillForms: true, extractAccessibility: true, assemble: true, printHighResolution: true,
+                                },
+                              }
+                            : undefined,
+                        })}
+                      />
+                      <span>Encrypt PDF with a password</span>
+                    </label>
+                    {pageSettings.encryption?.enabled && (
+                      <>
+                        <label>
+                          <span>User password (to open)</span>
+                          <input
+                            type="password"
+                            placeholder="Leave blank to open without a prompt"
+                            value={pageSettings.encryption.userPassword}
+                            onChange={(e) => updatePageSettings({
+                              encryption: { ...pageSettings.encryption!, userPassword: e.target.value },
+                            })}
+                          />
+                        </label>
+                        <label>
+                          <span>Owner password (permissions)</span>
+                          <input
+                            type="password"
+                            placeholder="Defaults to the user password"
+                            value={pageSettings.encryption.ownerPassword}
+                            onChange={(e) => updatePageSettings({
+                              encryption: { ...pageSettings.encryption!, ownerPassword: e.target.value },
+                            })}
+                          />
+                        </label>
+                        <label>
+                          <span>Algorithm</span>
+                          <select
+                            value={pageSettings.encryption.algorithm}
+                            onChange={(e) => updatePageSettings({
+                              encryption: { ...pageSettings.encryption!, algorithm: e.target.value as PdfEncryption['algorithm'] },
+                            })}
+                          >
+                            <option value="Rc4_128">RC4 128-bit</option>
+                            <option value="Aes128" disabled>AES 128-bit (coming soon)</option>
+                          </select>
+                        </label>
+                        <div className="editor-settings-subheading" style={{ marginTop: 4 }}>Permissions</div>
+                        {([
+                          ['print', 'Printing'],
+                          ['copy', 'Copy / extract text'],
+                          ['modify', 'Modify contents'],
+                          ['annotate', 'Annotate & fill forms'],
+                          ['fillForms', 'Fill form fields only'],
+                          ['extractAccessibility', 'Extract for accessibility'],
+                          ['assemble', 'Assemble (insert/rotate/delete pages)'],
+                          ['printHighResolution', 'High-resolution printing'],
+                        ] as [keyof PdfEncryptionPermissions, string][]).map(([key, label]) => (
+                          <label key={key} className="editor-checkbox-control">
+                            <input
+                              type="checkbox"
+                              checked={pageSettings.encryption!.permissions[key]}
+                              onChange={(e) => updatePageSettings({
+                                encryption: {
+                                  ...pageSettings.encryption!,
+                                  permissions: { ...pageSettings.encryption!.permissions, [key]: e.target.checked },
+                                },
+                              })}
+                            />
+                            <span>{label}</span>
+                          </label>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                </div>
+
                 {/* Custom Document Properties */}
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
@@ -4162,6 +5040,46 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     >
                       <FiPlus size={13} /> Add property
                     </button>
+                  </div>
+                </div>
+
+                {/* Languages */}
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading">
+                    <FiGlobe />
+                    <span>Languages</span>
+                  </div>
+                  <div className="editor-form-stack" style={{ padding: 12 }}>
+                    <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>
+                      System language: <strong>{navigator.language}</strong> (auto-detected, used as fallback)
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {LOCALIZATION_LANGUAGES.map(({ tag, label }) => {
+                        const active = (pageSettings.activeLanguages ?? []).includes(tag);
+                        return (
+                          <label key={tag} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer' }}>
+                            <input
+                              type="checkbox"
+                              checked={active}
+                              onChange={(e) => {
+                                const current = pageSettings.activeLanguages ?? [];
+                                if (e.target.checked) {
+                                  updatePageSettings({ activeLanguages: [...current, tag] });
+                                  if (!currentPreviewLanguage || currentPreviewLanguage === navigator.language.split('-')[0])
+                                    setCurrentPreviewLanguage(tag);
+                                } else {
+                                  const next = current.filter(l => l !== tag);
+                                  updatePageSettings({ activeLanguages: next });
+                                  if (currentPreviewLanguage === tag)
+                                    setCurrentPreviewLanguage(next[0] ?? navigator.language.split('-')[0]);
+                                }
+                              }}
+                            />
+                            {label}
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
@@ -4339,12 +5257,55 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 </div>
               </div>
 
+              {(pageSettings.activeLanguages ?? []).length >= 1 && currentPreviewLanguage && (
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading">
+                    <FiGlobe />
+                    <span>Language Scope</span>
+                  </div>
+                  <div className="editor-form-stack" style={{ padding: 12 }}>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {/* Current tab language — selected when scopeShowAll is false */}
+                      <button
+                        style={{
+                          padding: '4px 10px', fontSize: 11, borderRadius: 4, fontWeight: 600,
+                          border: `2px solid ${!scopeShowAll ? 'var(--editor-accent, #6366f1)' : 'var(--editor-border, #e2e8f0)'}`,
+                          background: !scopeShowAll ? 'var(--editor-accent, #6366f1)' : '#f1f5f9',
+                          color: !scopeShowAll ? 'white' : '#374151',
+                          cursor: !scopeShowAll ? 'default' : 'pointer',
+                        }}
+                        onClick={() => setScopeShowAll(false)}
+                        title={!scopeShowAll
+                          ? `Position edits apply to ${currentPreviewLanguage.toUpperCase()} only`
+                          : `Switch to ${currentPreviewLanguage.toUpperCase()}-only editing`}
+                      >
+                        {currentPreviewLanguage.toUpperCase()}
+                      </button>
+                      {/* "All" — selected when scopeShowAll is true */}
+                      <button
+                        style={{
+                          padding: '4px 10px', fontSize: 11, borderRadius: 4,
+                          border: `2px solid ${scopeShowAll ? 'var(--editor-accent, #6366f1)' : 'var(--editor-border, #e2e8f0)'}`,
+                          background: scopeShowAll ? 'var(--editor-accent, #6366f1)' : '#f1f5f9',
+                          color: scopeShowAll ? 'white' : '#374151',
+                          cursor: scopeShowAll ? 'default' : 'pointer',
+                        }}
+                        onClick={() => setScopeShowAll(true)}
+                        title={scopeShowAll ? 'Position edits apply to all language tabs' : 'Switch to all-languages editing'}
+                      >
+                        All
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="editor-form-grid">
                 <label>
                   <span>X</span>
                   <input
                     type="number"
-                    value={selectedElement.x}
+                    value={getEffectivePos(selectedElement).x}
                     onChange={(event) => updateLayoutValue('x', event.target.value)}
                   />
                 </label>
@@ -4352,7 +5313,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   <span>Y</span>
                   <input
                     type="number"
-                    value={selectedElement.y}
+                    value={getEffectivePos(selectedElement).y}
                     onChange={(event) => updateLayoutValue('y', event.target.value)}
                   />
                 </label>
@@ -4360,7 +5321,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   <span>Width</span>
                   <input
                     type="number"
-                    value={selectedElement.width}
+                    value={getEffectivePos(selectedElement).width}
                     onChange={(event) => updateLayoutValue('width', event.target.value)}
                   />
                 </label>
@@ -4368,7 +5329,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   <span>Height</span>
                   <input
                     type="number"
-                    value={selectedElement.height}
+                    value={getEffectivePos(selectedElement).height}
                     onChange={(event) => updateLayoutValue('height', event.target.value)}
                   />
                 </label>
@@ -4376,8 +5337,16 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   <span>Rotation °</span>
                   <input
                     type="number"
-                    value={selectedElement.style?.rotation ?? 0}
-                    onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, rotation: Number(e.target.value) } })}
+                    value={getEffectiveRotation(selectedElement)}
+                    onChange={(e) => {
+                      const num = Number(e.target.value);
+                      const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+                      if (langKey) {
+                        applyPosUpdate(selectedElement.id, { rotation: num }, langKey);
+                      } else {
+                        updateSelectedElement({ style: { ...selectedElement.style, rotation: num } });
+                      }
+                    }}
                   />
                 </label>
                 <label style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
@@ -4385,7 +5354,14 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   <button
                     className="editor-secondary-button"
                     title="Reset rotation"
-                    onClick={() => updateSelectedElement({ style: { ...selectedElement.style, rotation: 0 } })}
+                    onClick={() => {
+                      const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
+                      if (langKey) {
+                        applyPosUpdate(selectedElement.id, { rotation: 0 }, langKey);
+                      } else {
+                        updateSelectedElement({ style: { ...selectedElement.style, rotation: 0 } });
+                      }
+                    }}
                   >
                     <FiRotateCw size={13} /> Reset
                   </button>
@@ -4414,6 +5390,997 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 )}
               </div>
 
+              {/* ── Heading Level (text / richtext) ── */}
+              {(selectedElement.type === 'text' || selectedElement.type === 'richtext') && (
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading"><FiBookOpen /><span>Heading Level</span></div>
+                  <div className="editor-form-stack" style={{ padding: '8px 12px' }}>
+                    <select
+                      value={selectedElement.headingLevel ?? ''}
+                      onChange={e => updateSelectedElement({ headingLevel: e.target.value === '' ? null : Number(e.target.value) as 1 | 2 | 3 })}
+                    >
+                      <option value="">None (body text)</option>
+                      <option value="1">Heading 1</option>
+                      <option value="2">Heading 2</option>
+                      <option value="3">Heading 3</option>
+                    </select>
+                    <small style={{ color: '#64748b', fontSize: 11 }}>Headings are included in the Table of Contents element.</small>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Form field: tab order + validation ── */}
+              {(['field', 'checkbox', 'radio', 'dropdown', 'optionlist', 'signature'] as const).includes(selectedElement.type as any) && (
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading"><FiGrid /><span>Form & Validation</span></div>
+                  <div className="editor-form-stack" style={{ padding: '8px 12px', gap: 6 }}>
+                    <label className="editor-prop-row">
+                      <span>Tab index</span>
+                      <input type="number" min={0} step={1}
+                        value={selectedElement.tabIndex ?? ''}
+                        placeholder="auto"
+                        onChange={e => updateSelectedElement({ tabIndex: e.target.value === '' ? undefined : Number(e.target.value) })}
+                      />
+                    </label>
+                    {(selectedElement.type === 'field' || selectedElement.type === 'textarea') && (
+                      <>
+                        <label className="editor-prop-row">
+                          <span>Min length</span>
+                          <input type="number" min={0} step={1}
+                            value={selectedElement.validationMin ?? ''}
+                            placeholder="—"
+                            onChange={e => updateSelectedElement({ validationMin: e.target.value === '' ? undefined : Number(e.target.value) })}
+                          />
+                        </label>
+                        <label className="editor-prop-row">
+                          <span>Max length</span>
+                          <input type="number" min={0} step={1}
+                            value={selectedElement.validationMax ?? ''}
+                            placeholder="—"
+                            onChange={e => updateSelectedElement({ validationMax: e.target.value === '' ? undefined : Number(e.target.value) })}
+                          />
+                        </label>
+                        <label className="editor-prop-row">
+                          <span>Pattern (regex)</span>
+                          <input type="text"
+                            value={selectedElement.validationPattern ?? ''}
+                            placeholder="e.g. \\d{5}"
+                            onChange={e => updateSelectedElement({ validationPattern: e.target.value || undefined })}
+                          />
+                        </label>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Table of Contents ── */}
+              {selectedElement.type === 'toc' && (() => {
+                const allHeadings = pages.flatMap((p, pi) =>
+                  p.elements
+                    .filter(el => el.headingLevel != null)
+                    .map((el, idx) => ({
+                      text: el.content || el.htmlContent?.replace(/<[^>]+>/g, '') || `Heading ${idx + 1}`,
+                      level: (el.headingLevel ?? 1) as 1 | 2 | 3,
+                      page: pi + 1,
+                    }))
+                );
+                const hasHeadings = allHeadings.length > 0;
+                const minLevel = selectedElement.tocMinLevel ?? 1;
+                const maxLevel = selectedElement.tocMaxLevel ?? 3;
+                const filteredCount = allHeadings.filter(h => h.level >= minLevel && h.level <= maxLevel).length;
+
+                const updateToc = () => {
+                  updateSelectedElement({ tocEntries: allHeadings });
+                };
+
+                return (
+                  <div className="editor-settings-section">
+                    <div className="editor-settings-heading"><FiBookOpen /><span>Table of Contents</span></div>
+                    <div className="editor-form-stack" style={{ padding: '8px 12px', gap: 10 }}>
+
+                      {/* Title */}
+                      <label className="editor-label">
+                        <span>Title</span>
+                        <input
+                          className="editor-input"
+                          type="text"
+                          value={selectedElement.tocTitle ?? 'Table of Contents'}
+                          onChange={e => updateSelectedElement({ tocTitle: e.target.value })}
+                          placeholder="Table of Contents"
+                        />
+                      </label>
+
+                      {/* Heading level range */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                        <label className="editor-label">
+                          <span>Min level</span>
+                          <select className="editor-select"
+                            value={minLevel}
+                            onChange={e => updateSelectedElement({ tocMinLevel: Number(e.target.value) as 1 | 2 | 3 })}
+                          >
+                            <option value={1}>H1</option>
+                            <option value={2}>H2</option>
+                            <option value={3}>H3</option>
+                          </select>
+                        </label>
+                        <label className="editor-label">
+                          <span>Max level</span>
+                          <select className="editor-select"
+                            value={maxLevel}
+                            onChange={e => updateSelectedElement({ tocMaxLevel: Number(e.target.value) as 1 | 2 | 3 })}
+                          >
+                            <option value={1}>H1</option>
+                            <option value={2}>H2</option>
+                            <option value={3}>H3</option>
+                          </select>
+                        </label>
+                      </div>
+
+                      {/* Options */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedElement.tocShowPageNumbers ?? true}
+                            onChange={e => updateSelectedElement({ tocShowPageNumbers: e.target.checked })}
+                          />
+                          Show page numbers
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedElement.tocShowLeaderDots ?? true}
+                            onChange={e => updateSelectedElement({ tocShowLeaderDots: e.target.checked })}
+                          />
+                          Show leader dots
+                        </label>
+                      </div>
+
+                      {/* Status */}
+                      {!hasHeadings ? (
+                        <div className="editor-toc-warning">
+                          No heading-level elements found. Select a text element and set a Heading Level in the inspector.
+                        </div>
+                      ) : (
+                        <small style={{ color: '#64748b', fontSize: 11 }}>
+                          {filteredCount} entr{filteredCount !== 1 ? 'ies' : 'y'} (H{minLevel}–H{maxLevel}) across {pages.length} page{pages.length !== 1 ? 's' : ''}
+                          {(selectedElement.tocEntries?.length ?? 0) > 0 && (
+                            <> · last updated: {selectedElement.tocEntries!.length} entries</>
+                          )}
+                        </small>
+                      )}
+
+                      {/* Update button */}
+                      <button
+                        className="editor-toc-update-btn"
+                        onClick={updateToc}
+                        disabled={!hasHeadings}
+                        title={!hasHeadings ? 'Assign heading levels to text elements first' : 'Scan all pages and rebuild the TOC entry list'}
+                      >
+                        <FiBookOpen size={14} /> Update TOC
+                      </button>
+
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* ── Content (text element) — before Typography ── */}
+              {selectedElement.type === 'text' && (() => {
+                const allProps = pageSettings.localizedProperties ?? [];
+                const sysLang = navigator.language.split('-')[0];
+                const curLang = currentPreviewLanguage || sysLang;
+                const globalProps = allProps.filter(p => p.scope === 'global');
+                const ownProps = allProps.filter(p => p.scope === 'own' && p.ownerLanguage === curLang);
+                const insertProperty = (key: string) => {
+                  const input = contentInputRef.current;
+                  const tag = `{{${key}}}`;
+                  if (input) {
+                    const start = input.selectionStart ?? (selectedElement.content || '').length;
+                    const end = input.selectionEnd ?? start;
+                    const cur = selectedElement.content || '';
+                    updateSelectedElement({ content: cur.slice(0, start) + tag + cur.slice(end) });
+                    setTimeout(() => { input.selectionStart = input.selectionEnd = start + tag.length; input.focus(); }, 0);
+                  } else {
+                    updateSelectedElement({ content: (selectedElement.content || '') + tag });
+                  }
+                };
+                return (
+                  <div className="editor-settings-section">
+                    <div className="editor-settings-heading"><FiType /><span>Content</span></div>
+                    <div className="editor-form-stack" style={{ padding: 12 }}>
+                      <input
+                        ref={contentInputRef}
+                        type="text"
+                        placeholder="Text content or {{KEY}}"
+                        value={selectedElement.content || ''}
+                        onChange={(e) => updateSelectedElement({ content: e.target.value })}
+                      />
+                      {(globalProps.length > 0 || ownProps.length > 0) && (
+                        <div style={{ marginTop: 6 }}>
+                          {globalProps.length > 0 && (
+                            <div style={{ marginBottom: 4 }}>
+                              <div style={{ fontSize: 10, color: '#64748b', marginBottom: 3, fontWeight: 600, letterSpacing: '0.04em' }}>GLOBAL</div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                {globalProps.map(p => (
+                                  <button
+                                    key={p.key}
+                                    onClick={() => insertProperty(p.key)}
+                                    title={`Insert {{${p.key}}} — global property`}
+                                    style={{
+                                      fontSize: 11, padding: '2px 7px', borderRadius: 4, cursor: 'pointer',
+                                      border: '1px solid #c7d2fe', background: '#ede9fe', color: '#4c1d95',
+                                      fontFamily: 'monospace',
+                                    }}
+                                  >
+                                    {`{{${p.key}}}`}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {ownProps.length > 0 && (
+                            <div>
+                              <div style={{ fontSize: 10, color: '#64748b', marginBottom: 3, fontWeight: 600, letterSpacing: '0.04em' }}>
+                                OWN · {curLang.toUpperCase()}
+                              </div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                {ownProps.map(p => (
+                                  <button
+                                    key={p.key}
+                                    onClick={() => insertProperty(p.key)}
+                                    title={`Insert {{${p.key}}} — own property for ${curLang}`}
+                                    style={{
+                                      fontSize: 11, padding: '2px 7px', borderRadius: 4, cursor: 'pointer',
+                                      border: '1px solid #fde68a', background: '#fef3c7', color: '#92400e',
+                                      fontFamily: 'monospace',
+                                    }}
+                                  >
+                                    {`{{${p.key}}}`}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {selectedElement.type === 'text' && getGlyphDiagnostics(selectedElement).length > 0 && (
+                <div className="editor-settings-section">
+                  <div className="editor-settings-heading"><FiSliders /><span>Image Analysis Glyphs</span></div>
+                  <div className="editor-glyph-debug-list">
+                    {getGlyphDiagnostics(selectedElement).map((glyph, index) => {
+                      const weights = topGlyphWeights(glyph.decisionWeights);
+                      return (
+                        <div className="editor-glyph-debug-row" key={`${glyph.value ?? '?'}-${index}`}>
+                          <div className="editor-glyph-debug-main">
+                            <span className="editor-glyph-debug-char">{glyph.value || '?'}</span>
+                            <div>
+                              <strong>{glyph.method || 'unknown'}</strong>
+                              <span>
+                                {glyph.initialCandidate || '?'} → {glyph.selectedCandidate || glyph.value || '?'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="editor-glyph-debug-metrics">
+                            <span>{formatPercent(glyph.confidence)}</span>
+                            {weights.map(([name, value]) => (
+                              <span key={name}>{name} {formatPercent(value)}</span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Type-specific primary content (before Typography) ── */}
+              {selectedElement.type === 'richtext' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>HTML content</span>
+                    <textarea
+                      rows={5}
+                      value={selectedElement.htmlContent || ''}
+                      onChange={(event) => updateSelectedElement({ htmlContent: event.target.value })}
+                      placeholder="<p>Your <strong>rich</strong> text here</p>"
+                    />
+                  </label>
+                </div>
+              )}
+
+              {selectedElement.type === 'field' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Field label</span>
+                    <input
+                      type="text"
+                      value={selectedElement.fieldLabel || ''}
+                      onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
+                      placeholder="Label text or {{key}}"
+                    />
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
+                  </label>
+                  <label>
+                    <span>Field name</span>
+                    <input
+                      type="text"
+                      value={selectedElement.fieldName || ''}
+                      onChange={(event) => updateSelectedElement({ fieldName: event.target.value })}
+                    />
+                  </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedElement.required)}
+                      onChange={(event) => updateSelectedElement({ required: event.target.checked })}
+                    />
+                    <span>Required field</span>
+                  </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={(selectedElement.style?.backgroundColor ?? '#ffffff') !== 'transparent'}
+                      onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.checked ? '#ffffff' : 'transparent' } })}
+                    />
+                    <span>Fill background</span>
+                  </label>
+                </div>
+              )}
+
+              {selectedElement.type === 'textarea' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Field label</span>
+                    <input
+                      type="text"
+                      value={selectedElement.fieldLabel || ''}
+                      onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
+                      placeholder="Label text or {{key}}"
+                    />
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
+                  </label>
+                  <label>
+                    <span>Field name</span>
+                    <input
+                      type="text"
+                      value={selectedElement.fieldName || ''}
+                      onChange={(event) => updateSelectedElement({ fieldName: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    <span>Placeholder text</span>
+                    <input
+                      type="text"
+                      value={selectedElement.placeholder || ''}
+                      onChange={(event) => updateSelectedElement({ placeholder: event.target.value || undefined })}
+                    />
+                  </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedElement.required)}
+                      onChange={(event) => updateSelectedElement({ required: event.target.checked })}
+                    />
+                    <span>Required field</span>
+                  </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={(selectedElement.style?.backgroundColor ?? '#ffffff') !== 'transparent'}
+                      onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.checked ? '#ffffff' : 'transparent' } })}
+                    />
+                    <span>Fill background</span>
+                  </label>
+                </div>
+              )}
+
+              {selectedElement.type === 'checkbox' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Checkbox label</span>
+                    <input
+                      type="text"
+                      value={selectedElement.fieldLabel || ''}
+                      onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
+                      placeholder="Label or {{key}}"
+                    />
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
+                  </label>
+                  <label>
+                    <span>Field name</span>
+                    <input
+                      type="text"
+                      value={selectedElement.fieldName || ''}
+                      onChange={(event) => updateSelectedElement({ fieldName: event.target.value })}
+                    />
+                  </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedElement.required)}
+                      onChange={(event) => updateSelectedElement({ required: event.target.checked })}
+                    />
+                    <span>Required field</span>
+                  </label>
+                </div>
+              )}
+
+              {selectedElement.type === 'button' && (() => {
+                const action = selectedElement.buttonAction ?? '';
+                const actionType = action.startsWith('page:') ? 'page'
+                  : action === 'submit' ? 'submit'
+                  : action === 'reset' ? 'reset'
+                  : action.length > 0 ? 'url' : 'none';
+                return (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Label</span>
+                    <input
+                      type="text"
+                      value={selectedElement.content || ''}
+                      onChange={(event) => updateSelectedElement({ content: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    <span>Action type</span>
+                    <select
+                      value={actionType}
+                      onChange={(event) => {
+                        const t = event.target.value;
+                        if (t === 'none') updateSelectedElement({ buttonAction: '' });
+                        else if (t === 'url') updateSelectedElement({ buttonAction: 'https://' });
+                        else if (t === 'page') updateSelectedElement({ buttonAction: 'page:1' });
+                        else updateSelectedElement({ buttonAction: t });
+                      }}
+                    >
+                      <option value="none">— None —</option>
+                      <option value="url">Open URL</option>
+                      <option value="page">Go to page</option>
+                      <option value="submit">Submit form</option>
+                      <option value="reset">Reset form</option>
+                    </select>
+                  </label>
+                  {actionType === 'url' && (
+                    <label>
+                      <span>URL</span>
+                      <input
+                        type="text"
+                        value={selectedElement.buttonAction || ''}
+                        onChange={(event) => updateSelectedElement({ buttonAction: event.target.value })}
+                        placeholder="https://example.com"
+                      />
+                    </label>
+                  )}
+                  {actionType === 'page' && (
+                    <label>
+                      <span>Page number</span>
+                      <input
+                        type="number"
+                        min="1"
+                        value={parseInt(action.replace('page:', ''), 10) || 1}
+                        onChange={(event) => updateSelectedElement({ buttonAction: `page:${event.target.value}` })}
+                      />
+                    </label>
+                  )}
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Background</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.backgroundColor || '#3b82f6'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.value } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Text color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.color || '#ffffff'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
+                      />
+                    </label>
+                  </div>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Font size</span>
+                      <input
+                        type="number"
+                        value={selectedElement.style?.fontSize || 14}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Radius</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={selectedElement.style?.borderRadius || 4}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, borderRadius: Number(event.target.value) } })}
+                      />
+                    </label>
+                  </div>
+                </div>
+                );
+              })()}
+
+              {selectedElement.type === 'dropdown' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Options (one per line)</span>
+                    <textarea
+                      rows={4}
+                      value={(selectedElement.options || []).join('\n')}
+                      onChange={(event) => updateSelectedElement({ options: event.target.value.split('\n').filter(Boolean) })}
+                      placeholder={'Option 1\nOption 2\nOption 3'}
+                    />
+                  </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedElement.multiSelect)}
+                      onChange={(event) => updateSelectedElement({ multiSelect: event.target.checked })}
+                    />
+                    <span>Multi-select</span>
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Font size</span>
+                      <input
+                        type="number"
+                        value={selectedElement.style?.fontSize || 14}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Text color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.color || '#000000'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'optionlist' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>List style</span>
+                    <select
+                      value={selectedElement.listStyle || (selectedElement.ordered ? 'decimal' : 'disc')}
+                      onChange={(e) => updateSelectedElement({
+                        listStyle: e.target.value,
+                        ordered: ['decimal', 'lower-alpha', 'upper-alpha', 'lower-roman', 'upper-roman'].includes(e.target.value),
+                      })}
+                    >
+                      <option value="disc">• Bullet (disc)</option>
+                      <option value="circle">○ Circle</option>
+                      <option value="square">▪ Square</option>
+                      <option value="dash">– Dash</option>
+                      <option value="asterisk">* Asterisk</option>
+                      <option value="none">No marker</option>
+                      <option value="decimal">1. Decimal</option>
+                      <option value="lower-alpha">a. Lowercase alpha</option>
+                      <option value="upper-alpha">A. Uppercase alpha</option>
+                      <option value="lower-roman">i. Lowercase roman</option>
+                      <option value="upper-roman">I. Uppercase roman</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Items (one per line)</span>
+                    <textarea
+                      rows={4}
+                      value={(selectedElement.options || []).join('\n')}
+                      onChange={(event) => updateSelectedElement({ options: event.target.value.split('\n').filter(Boolean) })}
+                      placeholder={'Item 1\nItem 2\nItem 3'}
+                    />
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Font size</span>
+                      <input
+                        type="number"
+                        value={selectedElement.style?.fontSize || 14}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Text color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.color || '#000000'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'radio' && (
+                <div className="editor-form-stack">
+                  <span className="editor-form-label">Options</span>
+                  {(selectedElement.options || ['Yes', 'No']).map((opt, idx) => (
+                    <div key={idx} className="editor-option-row">
+                      <input
+                        type="text"
+                        value={opt}
+                        onChange={(e) => {
+                          const next = [...(selectedElement.options || [])];
+                          next[idx] = e.target.value;
+                          updateSelectedElement({ options: next });
+                        }}
+                        placeholder={`Option ${idx + 1}`}
+                      />
+                      <button
+                        className="editor-option-remove"
+                        title="Remove option"
+                        onClick={() => {
+                          const next = (selectedElement.options || []).filter((_, i) => i !== idx);
+                          if (next.length < 1) return;
+                          updateSelectedElement({ options: next });
+                        }}
+                      >×</button>
+                    </div>
+                  ))}
+                  <button
+                    className="editor-option-add"
+                    onClick={() => updateSelectedElement({
+                      options: [...(selectedElement.options || []), `Option ${(selectedElement.options || []).length + 1}`]
+                    })}
+                  >
+                    + Add option
+                  </button>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Font size</span>
+                      <input
+                        type="number"
+                        value={selectedElement.style?.fontSize || 14}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Text color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.color || '#000000'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'checkmark' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Label</span>
+                    <input type="text" value={selectedElement.fieldLabel || ''} onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })} placeholder="Label or {{key}}" />
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
+                  </label>
+                  <label>
+                    <span>State</span>
+                    <select value={selectedElement.checkState || 'checked'} onChange={(event) => updateSelectedElement({ checkState: event.target.value as SimpleElement['checkState'] })}>
+                      <option value="checked">Checked</option>
+                      <option value="cross">Cross</option>
+                      <option value="dot">Dot</option>
+                      <option value="empty">Empty</option>
+                    </select>
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Mark color</span>
+                      <input type="color" value={selectedElement.style?.color || '#16a34a'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
+                    </label>
+                    <label>
+                      <span>Stroke</span>
+                      <input type="number" min="1" value={selectedElement.style?.strokeWidth || 3} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, strokeWidth: Number(event.target.value) } })} />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'watermark' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Mode</span>
+                    <select
+                      value={selectedElement.watermarkMode || 'text'}
+                      onChange={(event) => updateSelectedElement({ watermarkMode: event.target.value as 'text' | 'image' })}
+                    >
+                      <option value="text">Text</option>
+                      <option value="image">Image</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>{selectedElement.watermarkMode === 'image' ? 'Image URL' : 'Text'}</span>
+                    <input
+                      type="text"
+                      value={selectedElement.content || ''}
+                      onChange={(event) => updateSelectedElement({ content: event.target.value })}
+                    />
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.color || '#64748b'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Opacity</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={selectedElement.style?.opacity ?? 0.18}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, opacity: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Rotation</span>
+                      <input
+                        type="number"
+                        value={selectedElement.style?.rotation ?? -24}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, rotation: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Scale</span>
+                      <input
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        value={selectedElement.style?.scale ?? 1}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, scale: Number(event.target.value) } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Font size</span>
+                      <input
+                        type="number"
+                        value={selectedElement.style?.fontSize || 42}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
+                      />
+                    </label>
+                  </div>
+                  <label>
+                    <span>Page scope</span>
+                    <select
+                      value={selectedElement.pageScope || 'all'}
+                      onChange={(event) => updateSelectedElement({ pageScope: event.target.value as SimpleElement['pageScope'] })}
+                    >
+                      <option value="all">All pages</option>
+                      <option value="current">Current page</option>
+                      <option value="first">First page only</option>
+                      <option value="range">Selected range</option>
+                    </select>
+                  </label>
+                  {selectedElement.pageScope === 'range' && (
+                    <label>
+                      <span>Page range</span>
+                      <input
+                        type="text"
+                        value={selectedElement.pageRange || ''}
+                        onChange={(event) => updateSelectedElement({ pageRange: event.target.value })}
+                        placeholder="1-3, 5"
+                      />
+                    </label>
+                  )}
+                </div>
+              )}
+
+              {selectedElement.type === 'note' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Title</span>
+                    <input type="text" value={selectedElement.noteTitle || ''} onChange={(event) => updateSelectedElement({ noteTitle: event.target.value })} />
+                  </label>
+                  <label>
+                    <span>Body</span>
+                    <textarea rows={4} value={selectedElement.noteBody || ''} onChange={(event) => updateSelectedElement({ noteBody: event.target.value })} />
+                  </label>
+                  <label>
+                    <span>Author</span>
+                    <input type="text" value={selectedElement.noteAuthor || ''} onChange={(event) => updateSelectedElement({ noteAuthor: event.target.value })} />
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Note color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.backgroundColor || '#fef3c7'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.value } })}
+                      />
+                    </label>
+                    <label>
+                      <span>Text color</span>
+                      <input
+                        type="color"
+                        value={selectedElement.style?.color || '#78350f'}
+                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
+                      />
+                    </label>
+                  </div>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(selectedElement.noteCollapsed)}
+                      onChange={(event) => updateSelectedElement({ noteCollapsed: event.target.checked })}
+                    />
+                    <span>Collapsed note</span>
+                  </label>
+                </div>
+              )}
+
+              {selectedElement.type === 'date' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Mode</span>
+                    <select value={selectedElement.dateMode || 'static'} onChange={(event) => updateSelectedElement({ dateMode: event.target.value as SimpleElement['dateMode'] })}>
+                      <option value="static">Static date</option>
+                      <option value="render">Render date</option>
+                      <option value="binding">Data binding</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Static value / fallback</span>
+                    <input type="text" value={selectedElement.content || ''} onChange={(event) => updateSelectedElement({ content: event.target.value })} />
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Locale</span>
+                      <input type="text" value={selectedElement.locale || 'de-DE'} onChange={(event) => updateSelectedElement({ locale: event.target.value })} />
+                    </label>
+                    <label>
+                      <span>Timezone</span>
+                      <input type="text" value={selectedElement.timezone || 'Europe/Berlin'} onChange={(event) => updateSelectedElement({ timezone: event.target.value })} />
+                    </label>
+                    <label>
+                      <span>Format</span>
+                      <input type="text" value={selectedElement.dateFormat || 'yyyy-MM-dd'} onChange={(event) => updateSelectedElement({ dateFormat: event.target.value })} />
+                    </label>
+                    <label>
+                      <span>Color</span>
+                      <input type="color" value={selectedElement.style?.color || '#111827'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'pagenumber' && (
+                <div className="editor-form-stack">
+                  <label>
+                    <span>Format</span>
+                    <select value={selectedElement.numberingFormat || 'pageOfTotal'} onChange={(event) => updateSelectedElement({ numberingFormat: event.target.value as SimpleElement['numberingFormat'] })}>
+                      <option value="current">Current page</option>
+                      <option value="total">Total pages</option>
+                      <option value="pageOfTotal">Page X of Y</option>
+                      <option value="roman">Roman</option>
+                      <option value="alphabetic">Alphabetic</option>
+                    </select>
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Start</span>
+                      <input type="number" min="1" value={selectedElement.startNumber || 1} onChange={(event) => updateSelectedElement({ startNumber: Number(event.target.value) || 1 })} />
+                    </label>
+                    <label>
+                      <span>Page scope</span>
+                      <select value={selectedElement.pageScope || 'all'} onChange={(event) => updateSelectedElement({ pageScope: event.target.value as SimpleElement['pageScope'] })}>
+                        <option value="all">All</option>
+                        <option value="current">Current</option>
+                        <option value="first">First</option>
+                        <option value="odd">Odd</option>
+                        <option value="even">Even</option>
+                        <option value="range">Range</option>
+                      </select>
+                    </label>
+                    {selectedElement.pageScope === 'range' && (
+                      <label>
+                        <span>Page range</span>
+                        <input type="text" value={selectedElement.pageRange || ''} onChange={(event) => updateSelectedElement({ pageRange: event.target.value })} placeholder="1-3, 5" />
+                      </label>
+                    )}
+                    <label>
+                      <span>Prefix</span>
+                      <input type="text" value={selectedElement.prefix || ''} onChange={(event) => updateSelectedElement({ prefix: event.target.value })} />
+                    </label>
+                    <label>
+                      <span>Suffix</span>
+                      <input type="text" value={selectedElement.suffix || ''} onChange={(event) => updateSelectedElement({ suffix: event.target.value })} />
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {selectedElement.type === 'arrow' && (
+                <div className="editor-form-stack">
+                  <span className="editor-form-label">Direction</span>
+                  <div className="editor-arrow-direction-grid">
+                    {(['up', 'left', 'right', 'down'] as const).map(dir => (
+                      <button
+                        key={dir}
+                        className={`editor-arrow-dir-btn${(selectedElement.arrowDirection || 'right') === dir ? ' is-active' : ''}`}
+                        onClick={() => updateSelectedElement({ arrowDirection: dir })}
+                        title={dir.charAt(0).toUpperCase() + dir.slice(1)}
+                      >
+                        {dir === 'up' ? '↑' : dir === 'down' ? '↓' : dir === 'left' ? '←' : '→'}
+                      </button>
+                    ))}
+                  </div>
+                  <label>
+                    <span>Rotation (°)</span>
+                    <input
+                      type="number"
+                      value={selectedElement.arrowRotation ?? 0}
+                      onChange={(e) => updateSelectedElement({ arrowRotation: Number(e.target.value) })}
+                    />
+                  </label>
+                  <label>
+                    <span>Arrow mode</span>
+                    <select value={selectedElement.arrowMode || 'straight'} onChange={(event) => updateSelectedElement({ arrowMode: event.target.value as SimpleElement['arrowMode'] })}>
+                      <option value="straight">Straight</option>
+                      <option value="elbow">Elbow</option>
+                      <option value="curved">Curved</option>
+                    </select>
+                  </label>
+                  <div className="editor-form-grid">
+                    <label>
+                      <span>Start head</span>
+                      <select value={selectedElement.startMarker || 'none'} onChange={(event) => updateSelectedElement({ startMarker: event.target.value as SimpleElement['startMarker'] })}>
+                        <option value="none">None</option>
+                        <option value="filled">▶ Filled</option>
+                        <option value="open">▷ Open</option>
+                        <option value="dot">● Dot</option>
+                        <option value="diamond">◆ Diamond</option>
+                        <option value="square">■ Square</option>
+                        <option value="circle">○ Circle</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span>End head</span>
+                      <select value={selectedElement.endMarker || 'filled'} onChange={(event) => updateSelectedElement({ endMarker: event.target.value as SimpleElement['endMarker'] })}>
+                        <option value="none">None</option>
+                        <option value="filled">▶ Filled</option>
+                        <option value="open">▷ Open</option>
+                        <option value="dot">● Dot</option>
+                        <option value="diamond">◆ Diamond</option>
+                        <option value="square">■ Square</option>
+                        <option value="circle">○ Circle</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span>Color</span>
+                      <input type="color" value={selectedElement.style?.color || '#dc2626'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
+                    </label>
+                    <label>
+                      <span>Stroke</span>
+                      <input type="number" min="1" value={selectedElement.style?.strokeWidth || 4} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, strokeWidth: Number(event.target.value) } })} />
+                    </label>
+                  </div>
+                  <label>
+                    <span>Dash style</span>
+                    <select value={selectedElement.style?.dashStyle || 'solid'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, dashStyle: event.target.value } })}>
+                      <option value="solid">Solid</option>
+                      <option value="dashed">Dashed</option>
+                      <option value="dotted">Dotted</option>
+                    </select>
+                  </label>
+                </div>
+              )}
+
               {/* ── Shared: Typography ── */}
               {TYPOGRAPHY_TYPES.has(selectedElement.type) && (
                 <div className="editor-settings-section">
@@ -4428,6 +6395,52 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                         {FONT_FAMILIES.map(f => <option key={f} value={f}>{f}</option>)}
                       </select>
                     </label>
+                    <label>
+                      <span>Language</span>
+                      <select
+                        value={selectedElement.language || ''}
+                        onChange={(e) => {
+                          const lang = e.target.value;
+                          const rtlLangs = new Set(['ar', 'he', 'fa', 'ur', 'yi', 'dv']);
+                          const dir = rtlLangs.has(lang.split('-')[0]) ? 'rtl' : 'ltr';
+                          updateSelectedElement({
+                            language: lang || undefined,
+                            textDirection: lang ? dir : undefined,
+                          });
+                        }}
+                      >
+                        <option value="">(none)</option>
+                        <option value="en">English</option>
+                        <option value="de">German</option>
+                        <option value="fr">French</option>
+                        <option value="es">Spanish</option>
+                        <option value="it">Italian</option>
+                        <option value="pt">Portuguese</option>
+                        <option value="ru">Russian</option>
+                        <option value="el">Greek</option>
+                        <option value="ar">Arabic (RTL)</option>
+                        <option value="he">Hebrew (RTL)</option>
+                        <option value="fa">Persian (RTL)</option>
+                        <option value="zh-CN">Chinese (Simplified)</option>
+                        <option value="zh-TW">Chinese (Traditional)</option>
+                        <option value="ja">Japanese</option>
+                        <option value="ko">Korean</option>
+                        <option value="hi">Hindi</option>
+                        <option value="th">Thai</option>
+                      </select>
+                    </label>
+                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, color: '#64748b', minWidth: 72 }}>Direction</span>
+                      {(['ltr', 'rtl'] as const).map(dir => (
+                        <button
+                          key={dir}
+                          className={`editor-toggle-btn${(selectedElement.textDirection || 'ltr') === dir ? ' active' : ''}`}
+                          style={{ flex: 1, fontFamily: 'monospace', fontSize: 11 }}
+                          title={dir === 'ltr' ? 'Left to right' : 'Right to left'}
+                          onClick={() => updateSelectedElement({ textDirection: dir })}
+                        >{dir.toUpperCase()}</button>
+                      ))}
+                    </div>
                     <div className="editor-form-grid">
                       <label>
                         <span>Font size</span>
@@ -4643,124 +6656,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 </div>
               )}
 
-              {/* Word / DOCX metadata — applies to any element */}
-              <div className="editor-settings-section">
-                <div className="editor-settings-heading">
-                  <FiFileText />
-                  <span>Word / DOCX</span>
-                </div>
-                <div className="editor-form-stack" style={{ padding: 12 }}>
-                  <label>
-                    <span>Paragraph style</span>
-                    <select
-                      value={selectedElement.styleName ?? ''}
-                      onChange={(e) => updateSelectedElement({ styleName: e.target.value || undefined })}
-                    >
-                      <option value="">— None —</option>
-                      {(pageSettings.namedStyles ?? [])
-                        .filter(s => s.type === 'paragraph' || s.type === 'list')
-                        .map(s => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
-                    </select>
-                  </label>
-                  <label>
-                    <span>Character style</span>
-                    <select
-                      value={selectedElement.characterStyle ?? ''}
-                      onChange={(e) => updateSelectedElement({ characterStyle: e.target.value || undefined })}
-                    >
-                      <option value="">— None —</option>
-                      {(pageSettings.namedStyles ?? [])
-                        .filter(s => s.type === 'character')
-                        .map(s => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
-                    </select>
-                  </label>
-                  <label className="editor-checkbox-control">
-                    <input
-                      type="checkbox"
-                      checked={selectedElement.autoHyphenation ?? true}
-                      onChange={(e) => updateSelectedElement({ autoHyphenation: e.target.checked })}
-                    />
-                    <span>Auto-hyphenation</span>
-                  </label>
-                  <label>
-                    <span>Revision type</span>
-                    <select
-                      value={selectedElement.revisionType ?? ''}
-                      onChange={(e) => updateSelectedElement({ revisionType: e.target.value as any || undefined })}
-                    >
-                      <option value="">— None —</option>
-                      <option value="insert">Insert</option>
-                      <option value="delete">Delete</option>
-                      <option value="format">Format change</option>
-                    </select>
-                  </label>
-                  {selectedElement.revisionType && (
-                    <>
-                      <label>
-                        <span>Revision author</span>
-                        <input
-                          type="text"
-                          value={selectedElement.revisionAuthor ?? ''}
-                          onChange={(e) => updateSelectedElement({ revisionAuthor: e.target.value })}
-                        />
-                      </label>
-                      <label>
-                        <span>Revision date</span>
-                        <input
-                          type="date"
-                          value={selectedElement.revisionDate ?? ''}
-                          onChange={(e) => updateSelectedElement({ revisionDate: e.target.value })}
-                        />
-                      </label>
-                      <label>
-                        <span>Revision ID</span>
-                        <input
-                          type="text"
-                          value={selectedElement.revisionId ?? ''}
-                          onChange={(e) => updateSelectedElement({ revisionId: e.target.value })}
-                          placeholder="Auto-generated if blank"
-                        />
-                      </label>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {selectedElement.type === 'text' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Content</span>
-                    <input
-                      type="text"
-                      value={selectedElement.content || ''}
-                      onChange={(event) => updateSelectedElement({ content: event.target.value })}
-                    />
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Font size</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.fontSize || 16}
-                        onChange={(event) => updateSelectedElement({
-                          style: { ...selectedElement.style, fontSize: Number(event.target.value) || 16 }
-                        })}
-                      />
-                    </label>
-                    <label>
-                      <span>Color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#111827'}
-                        onChange={(event) => updateSelectedElement({
-                          style: { ...selectedElement.style, color: event.target.value }
-                        })}
-                      />
-                    </label>
-                  </div>
-                </div>
-              )}
-
               {selectedElement.type === 'qrcode' && (
                 <div className="editor-form-stack">
                   <label>
@@ -4817,51 +6712,9 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       type="text"
                       value={selectedElement.signatureLabel || ''}
                       onChange={(event) => updateSelectedElement({ signatureLabel: event.target.value })}
-                      placeholder="Signature"
+                      placeholder="Signature or {{key}}"
                     />
-                  </label>
-                </div>
-              )}
-
-              {selectedElement.type === 'richtext' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>HTML content</span>
-                    <textarea
-                      rows={5}
-                      value={selectedElement.htmlContent || ''}
-                      onChange={(event) => updateSelectedElement({ htmlContent: event.target.value })}
-                      placeholder="<p>Your <strong>rich</strong> text here</p>"
-                    />
-                  </label>
-                </div>
-              )}
-
-              {selectedElement.type === 'field' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Field label</span>
-                    <input
-                      type="text"
-                      value={selectedElement.fieldLabel || ''}
-                      onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
-                    />
-                  </label>
-                  <label>
-                    <span>Field name</span>
-                    <input
-                      type="text"
-                      value={selectedElement.fieldName || ''}
-                      onChange={(event) => updateSelectedElement({ fieldName: event.target.value })}
-                    />
-                  </label>
-                  <label className="editor-checkbox-control">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(selectedElement.required)}
-                      onChange={(event) => updateSelectedElement({ required: event.target.checked })}
-                    />
-                    <span>Required field</span>
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
                   </label>
                 </div>
               )}
@@ -5014,6 +6867,29 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellPadding: Number(e.target.value) } })} />
                     </label>
 
+                    <label>
+                      <span>Cell Font Size</span>
+                      <input type="number" min="1" value={selectedElement.style?.cellFontSize ?? 10}
+                        onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellFontSize: Number(e.target.value) } })} />
+                    </label>
+                    <label>
+                      <span>Cell Font</span>
+                      <select value={selectedElement.style?.cellFontFamily || 'Arial'}
+                        onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellFontFamily: e.target.value } })}>
+                        {FONT_FAMILIES.map(f => <option key={f} value={f}>{f}</option>)}
+                      </select>
+                    </label>
+                    <label>
+                      <span>Cell Text Color</span>
+                      <input type="color" value={selectedElement.style?.cellColor || '#555555'}
+                        onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellColor: e.target.value } })} />
+                    </label>
+                    <label style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <input type="checkbox" checked={selectedElement.style?.cellFontWeight === 'bold'}
+                        onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellFontWeight: e.target.checked ? 'bold' : 'normal' } })} />
+                      <span>Bold cell text</span>
+                    </label>
+
                     <label style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       <input type="checkbox" checked={selectedElement.headerRow ?? false}
                         onChange={(e) => updateSelectedElement({ headerRow: e.target.checked })} />
@@ -5148,35 +7024,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 </div>
               )}
 
-              {selectedElement.type === 'checkbox' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Checkbox label</span>
-                    <input
-                      type="text"
-                      value={selectedElement.fieldLabel || ''}
-                      onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
-                    />
-                  </label>
-                  <label>
-                    <span>Field name</span>
-                    <input
-                      type="text"
-                      value={selectedElement.fieldName || ''}
-                      onChange={(event) => updateSelectedElement({ fieldName: event.target.value })}
-                    />
-                  </label>
-                  <label className="editor-checkbox-control">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(selectedElement.required)}
-                      onChange={(event) => updateSelectedElement({ required: event.target.checked })}
-                    />
-                    <span>Required field</span>
-                  </label>
-                </div>
-              )}
-
               {selectedElement.type === 'line' && (
                 <div className="editor-form-stack">
                   <label>
@@ -5195,426 +7042,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       value={selectedElement.height}
                       onChange={(event) => updateSelectedElement({ height: Math.max(1, Number(event.target.value)) })}
                     />
-                  </label>
-                </div>
-              )}
-
-              {selectedElement.type === 'button' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Label</span>
-                    <input
-                      type="text"
-                      value={selectedElement.content || ''}
-                      onChange={(event) => updateSelectedElement({ content: event.target.value })}
-                    />
-                  </label>
-                  <label>
-                    <span>Action URL</span>
-                    <input
-                      type="text"
-                      value={selectedElement.buttonAction || ''}
-                      onChange={(event) => updateSelectedElement({ buttonAction: event.target.value })}
-                      placeholder="https://example.com"
-                    />
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Background</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.backgroundColor || '#3b82f6'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.value } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Text color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#ffffff'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
-                      />
-                    </label>
-                  </div>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Font size</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.fontSize || 14}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Radius</span>
-                      <input
-                        type="number"
-                        min="0"
-                        value={selectedElement.style?.borderRadius || 4}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, borderRadius: Number(event.target.value) } })}
-                      />
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {selectedElement.type === 'dropdown' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Options (one per line)</span>
-                    <textarea
-                      rows={4}
-                      value={(selectedElement.options || []).join('\n')}
-                      onChange={(event) => updateSelectedElement({ options: event.target.value.split('\n').filter(Boolean) })}
-                      placeholder={'Option 1\nOption 2\nOption 3'}
-                    />
-                  </label>
-                  <label className="editor-checkbox-control">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(selectedElement.multiSelect)}
-                      onChange={(event) => updateSelectedElement({ multiSelect: event.target.checked })}
-                    />
-                    <span>Multi-select</span>
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Font size</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.fontSize || 14}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Text color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#000000'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
-                      />
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {selectedElement.type === 'optionlist' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>List style</span>
-                    <select
-                      value={selectedElement.listStyle || (selectedElement.ordered ? 'decimal' : 'disc')}
-                      onChange={(e) => updateSelectedElement({
-                        listStyle: e.target.value,
-                        ordered: ['decimal', 'lower-alpha', 'upper-alpha', 'lower-roman', 'upper-roman'].includes(e.target.value),
-                      })}
-                    >
-                      <option value="disc">• Bullet (disc)</option>
-                      <option value="circle">○ Circle</option>
-                      <option value="square">▪ Square</option>
-                      <option value="dash">– Dash</option>
-                      <option value="asterisk">* Asterisk</option>
-                      <option value="none">No marker</option>
-                      <option value="decimal">1. Decimal</option>
-                      <option value="lower-alpha">a. Lowercase alpha</option>
-                      <option value="upper-alpha">A. Uppercase alpha</option>
-                      <option value="lower-roman">i. Lowercase roman</option>
-                      <option value="upper-roman">I. Uppercase roman</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span>Items (one per line)</span>
-                    <textarea
-                      rows={4}
-                      value={(selectedElement.options || []).join('\n')}
-                      onChange={(event) => updateSelectedElement({ options: event.target.value.split('\n').filter(Boolean) })}
-                      placeholder={'Item 1\nItem 2\nItem 3'}
-                    />
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Font size</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.fontSize || 14}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Text color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#000000'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
-                      />
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {selectedElement.type === 'radio' && (
-                <div className="editor-form-stack">
-                  <span className="editor-form-label">Options</span>
-                  {(selectedElement.options || ['Yes', 'No']).map((opt, idx) => (
-                    <div key={idx} className="editor-option-row">
-                      <input
-                        type="text"
-                        value={opt}
-                        onChange={(e) => {
-                          const next = [...(selectedElement.options || [])];
-                          next[idx] = e.target.value;
-                          updateSelectedElement({ options: next });
-                        }}
-                        placeholder={`Option ${idx + 1}`}
-                      />
-                      <button
-                        className="editor-option-remove"
-                        title="Remove option"
-                        onClick={() => {
-                          const next = (selectedElement.options || []).filter((_, i) => i !== idx);
-                          if (next.length < 1) return;
-                          updateSelectedElement({ options: next });
-                        }}
-                      >×</button>
-                    </div>
-                  ))}
-                  <button
-                    className="editor-option-add"
-                    onClick={() => updateSelectedElement({
-                      options: [...(selectedElement.options || []), `Option ${(selectedElement.options || []).length + 1}`]
-                    })}
-                  >
-                    + Add option
-                  </button>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Font size</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.fontSize || 14}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Text color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#000000'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
-                      />
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {selectedElement.type === 'watermark' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Mode</span>
-                    <select
-                      value={selectedElement.watermarkMode || 'text'}
-                      onChange={(event) => updateSelectedElement({ watermarkMode: event.target.value as 'text' | 'image' })}
-                    >
-                      <option value="text">Text</option>
-                      <option value="image">Image</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span>{selectedElement.watermarkMode === 'image' ? 'Image URL' : 'Text'}</span>
-                    <input
-                      type="text"
-                      value={selectedElement.content || ''}
-                      onChange={(event) => updateSelectedElement({ content: event.target.value })}
-                    />
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#64748b'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Opacity</span>
-                      <input
-                        type="number"
-                        min="0"
-                        max="1"
-                        step="0.05"
-                        value={selectedElement.style?.opacity ?? 0.18}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, opacity: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Rotation</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.rotation ?? -24}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, rotation: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Scale</span>
-                      <input
-                        type="number"
-                        min="0.1"
-                        step="0.1"
-                        value={selectedElement.style?.scale ?? 1}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, scale: Number(event.target.value) } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Font size</span>
-                      <input
-                        type="number"
-                        value={selectedElement.style?.fontSize || 42}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(event.target.value) } })}
-                      />
-                    </label>
-                  </div>
-                  <label>
-                    <span>Page scope</span>
-                    <select
-                      value={selectedElement.pageScope || 'all'}
-                      onChange={(event) => updateSelectedElement({ pageScope: event.target.value as SimpleElement['pageScope'] })}
-                    >
-                      <option value="all">All pages</option>
-                      <option value="current">Current page</option>
-                      <option value="first">First page only</option>
-                      <option value="range">Selected range</option>
-                    </select>
-                  </label>
-                  {selectedElement.pageScope === 'range' && (
-                    <label>
-                      <span>Page range</span>
-                      <input
-                        type="text"
-                        value={selectedElement.pageRange || ''}
-                        onChange={(event) => updateSelectedElement({ pageRange: event.target.value })}
-                        placeholder="1-3, 5"
-                      />
-                    </label>
-                  )}
-                </div>
-              )}
-
-              {selectedElement.type === 'note' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Title</span>
-                    <input type="text" value={selectedElement.noteTitle || ''} onChange={(event) => updateSelectedElement({ noteTitle: event.target.value })} />
-                  </label>
-                  <label>
-                    <span>Body</span>
-                    <textarea rows={4} value={selectedElement.noteBody || ''} onChange={(event) => updateSelectedElement({ noteBody: event.target.value })} />
-                  </label>
-                  <label>
-                    <span>Author</span>
-                    <input type="text" value={selectedElement.noteAuthor || ''} onChange={(event) => updateSelectedElement({ noteAuthor: event.target.value })} />
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Note color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.backgroundColor || '#fef3c7'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.value } })}
-                      />
-                    </label>
-                    <label>
-                      <span>Text color</span>
-                      <input
-                        type="color"
-                        value={selectedElement.style?.color || '#78350f'}
-                        onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })}
-                      />
-                    </label>
-                  </div>
-                  <label className="editor-checkbox-control">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(selectedElement.noteCollapsed)}
-                      onChange={(event) => updateSelectedElement({ noteCollapsed: event.target.checked })}
-                    />
-                    <span>Collapsed note</span>
-                  </label>
-                </div>
-              )}
-
-              {selectedElement.type === 'arrow' && (
-                <div className="editor-form-stack">
-                  <span className="editor-form-label">Direction</span>
-                  <div className="editor-arrow-direction-grid">
-                    {(['up', 'left', 'right', 'down'] as const).map(dir => (
-                      <button
-                        key={dir}
-                        className={`editor-arrow-dir-btn${(selectedElement.arrowDirection || 'right') === dir ? ' is-active' : ''}`}
-                        onClick={() => updateSelectedElement({ arrowDirection: dir })}
-                        title={dir.charAt(0).toUpperCase() + dir.slice(1)}
-                      >
-                        {dir === 'up' ? '↑' : dir === 'down' ? '↓' : dir === 'left' ? '←' : '→'}
-                      </button>
-                    ))}
-                  </div>
-                  <label>
-                    <span>Rotation (°)</span>
-                    <input
-                      type="number"
-                      value={selectedElement.arrowRotation ?? 0}
-                      onChange={(e) => updateSelectedElement({ arrowRotation: Number(e.target.value) })}
-                    />
-                  </label>
-                  <label>
-                    <span>Arrow mode</span>
-                    <select value={selectedElement.arrowMode || 'straight'} onChange={(event) => updateSelectedElement({ arrowMode: event.target.value as SimpleElement['arrowMode'] })}>
-                      <option value="straight">Straight</option>
-                      <option value="elbow">Elbow</option>
-                      <option value="curved">Curved</option>
-                    </select>
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Start head</span>
-                      <select value={selectedElement.startMarker || 'none'} onChange={(event) => updateSelectedElement({ startMarker: event.target.value as SimpleElement['startMarker'] })}>
-                        <option value="none">None</option>
-                        <option value="filled">▶ Filled</option>
-                        <option value="open">▷ Open</option>
-                        <option value="dot">● Dot</option>
-                        <option value="diamond">◆ Diamond</option>
-                        <option value="square">■ Square</option>
-                        <option value="circle">○ Circle</option>
-                      </select>
-                    </label>
-                    <label>
-                      <span>End head</span>
-                      <select value={selectedElement.endMarker || 'filled'} onChange={(event) => updateSelectedElement({ endMarker: event.target.value as SimpleElement['endMarker'] })}>
-                        <option value="none">None</option>
-                        <option value="filled">▶ Filled</option>
-                        <option value="open">▷ Open</option>
-                        <option value="dot">● Dot</option>
-                        <option value="diamond">◆ Diamond</option>
-                        <option value="square">■ Square</option>
-                        <option value="circle">○ Circle</option>
-                      </select>
-                    </label>
-                    <label>
-                      <span>Color</span>
-                      <input type="color" value={selectedElement.style?.color || '#dc2626'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
-                    </label>
-                    <label>
-                      <span>Stroke</span>
-                      <input type="number" min="1" value={selectedElement.style?.strokeWidth || 4} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, strokeWidth: Number(event.target.value) } })} />
-                    </label>
-                  </div>
-                  <label>
-                    <span>Dash style</span>
-                    <select value={selectedElement.style?.dashStyle || 'solid'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, dashStyle: event.target.value } })}>
-                      <option value="solid">Solid</option>
-                      <option value="dashed">Dashed</option>
-                      <option value="dotted">Dotted</option>
-                    </select>
                   </label>
                 </div>
               )}
@@ -5754,41 +7181,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 </div>
               )}
 
-              {selectedElement.type === 'date' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Mode</span>
-                    <select value={selectedElement.dateMode || 'static'} onChange={(event) => updateSelectedElement({ dateMode: event.target.value as SimpleElement['dateMode'] })}>
-                      <option value="static">Static date</option>
-                      <option value="render">Render date</option>
-                      <option value="binding">Data binding</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span>Static value / fallback</span>
-                    <input type="text" value={selectedElement.content || ''} onChange={(event) => updateSelectedElement({ content: event.target.value })} />
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Locale</span>
-                      <input type="text" value={selectedElement.locale || 'de-DE'} onChange={(event) => updateSelectedElement({ locale: event.target.value })} />
-                    </label>
-                    <label>
-                      <span>Timezone</span>
-                      <input type="text" value={selectedElement.timezone || 'Europe/Berlin'} onChange={(event) => updateSelectedElement({ timezone: event.target.value })} />
-                    </label>
-                    <label>
-                      <span>Format</span>
-                      <input type="text" value={selectedElement.dateFormat || 'yyyy-MM-dd'} onChange={(event) => updateSelectedElement({ dateFormat: event.target.value })} />
-                    </label>
-                    <label>
-                      <span>Color</span>
-                      <input type="color" value={selectedElement.style?.color || '#111827'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
-                    </label>
-                  </div>
-                </div>
-              )}
-
               {selectedElement.type === 'highlight' && (
                 <div className="editor-form-stack">
                   <label>
@@ -5815,34 +7207,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 </div>
               )}
 
-              {selectedElement.type === 'checkmark' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Label</span>
-                    <input type="text" value={selectedElement.fieldLabel || ''} onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })} />
-                  </label>
-                  <label>
-                    <span>State</span>
-                    <select value={selectedElement.checkState || 'checked'} onChange={(event) => updateSelectedElement({ checkState: event.target.value as SimpleElement['checkState'] })}>
-                      <option value="checked">Checked</option>
-                      <option value="cross">Cross</option>
-                      <option value="dot">Dot</option>
-                      <option value="empty">Empty</option>
-                    </select>
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Mark color</span>
-                      <input type="color" value={selectedElement.style?.color || '#16a34a'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
-                    </label>
-                    <label>
-                      <span>Stroke</span>
-                      <input type="number" min="1" value={selectedElement.style?.strokeWidth || 3} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, strokeWidth: Number(event.target.value) } })} />
-                    </label>
-                  </div>
-                </div>
-              )}
-
               {selectedElement.type === 'pageboundary' && (
                 <div className="editor-form-stack">
                   <label>
@@ -5860,52 +7224,6 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     <span>Color</span>
                     <input type="color" value={selectedElement.style?.color || '#7c3aed'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
                   </label>
-                </div>
-              )}
-
-              {selectedElement.type === 'pagenumber' && (
-                <div className="editor-form-stack">
-                  <label>
-                    <span>Format</span>
-                    <select value={selectedElement.numberingFormat || 'pageOfTotal'} onChange={(event) => updateSelectedElement({ numberingFormat: event.target.value as SimpleElement['numberingFormat'] })}>
-                      <option value="current">Current page</option>
-                      <option value="total">Total pages</option>
-                      <option value="pageOfTotal">Page X of Y</option>
-                      <option value="roman">Roman</option>
-                      <option value="alphabetic">Alphabetic</option>
-                    </select>
-                  </label>
-                  <div className="editor-form-grid">
-                    <label>
-                      <span>Start</span>
-                      <input type="number" min="1" value={selectedElement.startNumber || 1} onChange={(event) => updateSelectedElement({ startNumber: Number(event.target.value) || 1 })} />
-                    </label>
-                    <label>
-                      <span>Page scope</span>
-                      <select value={selectedElement.pageScope || 'all'} onChange={(event) => updateSelectedElement({ pageScope: event.target.value as SimpleElement['pageScope'] })}>
-                        <option value="all">All</option>
-                        <option value="current">Current</option>
-                        <option value="first">First</option>
-                        <option value="odd">Odd</option>
-                        <option value="even">Even</option>
-                        <option value="range">Range</option>
-                      </select>
-                    </label>
-                    {selectedElement.pageScope === 'range' && (
-                      <label>
-                        <span>Page range</span>
-                        <input type="text" value={selectedElement.pageRange || ''} onChange={(event) => updateSelectedElement({ pageRange: event.target.value })} placeholder="1-3, 5" />
-                      </label>
-                    )}
-                    <label>
-                      <span>Prefix</span>
-                      <input type="text" value={selectedElement.prefix || ''} onChange={(event) => updateSelectedElement({ prefix: event.target.value })} />
-                    </label>
-                    <label>
-                      <span>Suffix</span>
-                      <input type="text" value={selectedElement.suffix || ''} onChange={(event) => updateSelectedElement({ suffix: event.target.value })} />
-                    </label>
-                  </div>
                 </div>
               )}
 
@@ -6035,6 +7353,107 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 </div>
               )}
 
+              {/* ── Visibility ── */}
+              <div className="editor-settings-section">
+                <div className="editor-settings-heading">
+                  <FiEye />
+                  <span>Visibility</span>
+                </div>
+                <div className="editor-form-stack" style={{ padding: 12 }}>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={!selectedElement.hidden}
+                      onChange={(e) => updateSelectedElement({ hidden: !e.target.checked })}
+                    />
+                    <span>Visible in output</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* ── Word / DOCX metadata — always last ── */}
+              <div className="editor-settings-section">
+                <div className="editor-settings-heading">
+                  <FiFileText />
+                  <span>Word / DOCX</span>
+                </div>
+                <div className="editor-form-stack" style={{ padding: 12 }}>
+                  <label>
+                    <span>Paragraph style</span>
+                    <select
+                      value={selectedElement.styleName ?? ''}
+                      onChange={(e) => updateSelectedElement({ styleName: e.target.value || undefined })}
+                    >
+                      <option value="">— None —</option>
+                      {(pageSettings.namedStyles ?? [])
+                        .filter(s => s.type === 'paragraph' || s.type === 'list')
+                        .map(s => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Character style</span>
+                    <select
+                      value={selectedElement.characterStyle ?? ''}
+                      onChange={(e) => updateSelectedElement({ characterStyle: e.target.value || undefined })}
+                    >
+                      <option value="">— None —</option>
+                      {(pageSettings.namedStyles ?? [])
+                        .filter(s => s.type === 'character')
+                        .map(s => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
+                    </select>
+                  </label>
+                  <label className="editor-checkbox-control">
+                    <input
+                      type="checkbox"
+                      checked={selectedElement.autoHyphenation ?? true}
+                      onChange={(e) => updateSelectedElement({ autoHyphenation: e.target.checked })}
+                    />
+                    <span>Auto-hyphenation</span>
+                  </label>
+                  <label>
+                    <span>Revision type</span>
+                    <select
+                      value={selectedElement.revisionType ?? ''}
+                      onChange={(e) => updateSelectedElement({ revisionType: e.target.value as any || undefined })}
+                    >
+                      <option value="">— None —</option>
+                      <option value="insert">Insert</option>
+                      <option value="delete">Delete</option>
+                      <option value="format">Format change</option>
+                    </select>
+                  </label>
+                  {selectedElement.revisionType && (
+                    <>
+                      <label>
+                        <span>Revision author</span>
+                        <input
+                          type="text"
+                          value={selectedElement.revisionAuthor ?? ''}
+                          onChange={(e) => updateSelectedElement({ revisionAuthor: e.target.value })}
+                        />
+                      </label>
+                      <label>
+                        <span>Revision date</span>
+                        <input
+                          type="date"
+                          value={selectedElement.revisionDate ?? ''}
+                          onChange={(e) => updateSelectedElement({ revisionDate: e.target.value })}
+                        />
+                      </label>
+                      <label>
+                        <span>Revision ID</span>
+                        <input
+                          type="text"
+                          value={selectedElement.revisionId ?? ''}
+                          onChange={(e) => updateSelectedElement({ revisionId: e.target.value })}
+                          placeholder="Auto-generated if blank"
+                        />
+                      </label>
+                    </>
+                  )}
+                </div>
+              </div>
+
               <button
                 className="editor-danger-button"
                 onClick={() => {
@@ -6095,6 +7514,26 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     Send to Back
                   </button>
                   <div className="editor-context-menu-separator" />
+                  {(pageSettings.activeLanguages ?? []).length >= 1 && (
+                    <button
+                      className="editor-context-menu-item danger"
+                      onClick={() => {
+                        if (!el) { closeContextMenu(); return; }
+                        // Also delete any elementGroup siblings (language mirrors)
+                        if (el.elementGroup) {
+                          const allEls = [...elements, ...sharedElements];
+                          allEls.filter(other => other.elementGroup === el.elementGroup)
+                            .forEach(sib => deleteElementById(sib.id));
+                        } else {
+                          deleteElementById(el.id);
+                        }
+                        closeContextMenu();
+                      }}
+                      title="Delete this element from all language tabs"
+                    >
+                      Delete from all languages<span className="editor-context-menu-shortcut">Del</span>
+                    </button>
+                  )}
                   <button className="editor-context-menu-item danger" onClick={() => contextMenuAction('delete')}>
                     Delete<span className="editor-context-menu-shortcut">Del</span>
                   </button>
@@ -6124,6 +7563,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
         pages={pages}
         sharedElements={sharedElements}
         pageSettings={pageSettings}
+        currentPreviewLanguage={currentPreviewLanguage}
       />
 
       {findReplaceOpen && (
@@ -6137,6 +7577,24 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             bulkReplaceContent(updatedPages, updatedShared);
             setFindReplaceOpen(false);
           }}
+        />
+      )}
+
+      {formBlockModalOpen && (
+        <FormBlockModal
+          onClose={() => setFormBlockModalOpen(false)}
+          onInsert={(newElements) => {
+            snapshotHistory();
+            newElements.forEach(el => onElementAdd(nameElement(el)));
+            setFormBlockModalOpen(false);
+          }}
+        />
+      )}
+
+      {helpModalOpen && (
+        <HelpModal
+          selectedElementType={selectedElement?.type ?? null}
+          onClose={() => setHelpModalOpen(false)}
         />
       )}
     </div>

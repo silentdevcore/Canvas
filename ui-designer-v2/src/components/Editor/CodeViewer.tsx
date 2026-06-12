@@ -14,32 +14,45 @@ interface Props {
   pages: Page[];
   sharedElements: SimpleElement[];
   pageSettings: PageSettings;
+  currentPreviewLanguage?: string;
 }
 
 type Tab = 'json' | 'csharp';
 type ExportState = 'idle' | 'loading' | 'error';
 
-const CodeViewer: React.FC<Props> = ({ isOpen, onClose, template, pages, sharedElements, pageSettings }) => {
+const CodeViewer: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  template,
+  pages,
+  sharedElements,
+  pageSettings,
+  currentPreviewLanguage,
+}) => {
   const [activeTab, setActiveTab] = useState<Tab>('json');
   const [copied, setCopied] = useState(false);
   const [exportState, setExportState] = useState<ExportState>('idle');
   const [exportError, setExportError] = useState<string | null>(null);
 
+  const sysLang = navigator.language.split('-')[0];
+  const targetLang = currentPreviewLanguage || sysLang;
+
   const jsonCode = useMemo(
-    () => generateJSONExport(template, pages, sharedElements, pageSettings),
-    [template, pages, sharedElements, pageSettings],
+    () => generateJSONExport(template, pages, sharedElements, pageSettings, targetLang),
+    [template, pages, sharedElements, pageSettings, targetLang],
   );
 
-  const csharpCode = useMemo(
-    () => jsonToCode({
+  const csharpCode = useMemo(() => {
+    return jsonToCode({
       id: template.id,
       name: template.name,
-      pages: pages.map(p => ({ id: p.id, elements: p.elements })),
+      category: template.category,
+      description: template.description,
+      pages,
       sharedElements,
-      pageSettings: { width: pageSettings.width, height: pageSettings.height },
-    }),
-    [template, pages, sharedElements, pageSettings],
-  );
+      pageSettings: { ...pageSettings, systemLanguage: (pageSettings as any).systemLanguage ?? sysLang, targetLanguage: targetLang } as any,
+    });
+  }, [template, pages, sharedElements, pageSettings, sysLang, targetLang]);
 
   const code = activeTab === 'json' ? jsonCode : csharpCode;
 
@@ -53,7 +66,7 @@ const CodeViewer: React.FC<Props> = ({ isOpen, onClose, template, pages, sharedE
     setExportState('loading');
     setExportError(null);
     try {
-      const payload = generateJSONExport(template, pages, sharedElements, pageSettings);
+      const payload = generateJSONExport(template, pages, sharedElements, pageSettings, targetLang);
       const res = await fetch(`${BACKEND_URL}/api/templates/render-design`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -67,7 +80,7 @@ const CodeViewer: React.FC<Props> = ({ isOpen, onClose, template, pages, sharedE
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${template.name.toLowerCase().replace(/\s+/g, '-')}.pdf`;
+      a.download = `${template.name.toLowerCase().replace(/\s+/g, '-')}-${targetLang}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
       setExportState('idle');
@@ -75,7 +88,7 @@ const CodeViewer: React.FC<Props> = ({ isOpen, onClose, template, pages, sharedE
       setExportError(err instanceof Error ? err.message : 'Export failed');
       setExportState('error');
     }
-  }, [template, pages, sharedElements, pageSettings]);
+  }, [template, pages, sharedElements, pageSettings, targetLang]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -86,6 +99,8 @@ const CodeViewer: React.FC<Props> = ({ isOpen, onClose, template, pages, sharedE
 
   if (!isOpen) return null;
 
+  const langLabel = targetLang.toUpperCase();
+
   return (
     <>
       <div className="code-panel-backdrop" onClick={onClose} />
@@ -94,13 +109,18 @@ const CodeViewer: React.FC<Props> = ({ isOpen, onClose, template, pages, sharedE
           <div className="code-panel-title">
             <FiCode />
             <span>Export code</span>
+            {(pageSettings.activeLanguages?.length ?? 0) > 0 && (
+              <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: '#ede9fe', color: '#4c1d95', marginLeft: 6 }}>
+                {langLabel}
+              </span>
+            )}
           </div>
           <div className="code-panel-header-actions">
             <button
               className={`code-panel-export-btn${exportState === 'loading' ? ' is-loading' : ''}${exportState === 'error' ? ' is-error' : ''}`}
               onClick={handleExportPdf}
               disabled={exportState === 'loading'}
-              title="Render PDF via backend (localhost:5241)"
+              title="Render PDF via backend (localhost:5086)"
             >
               <FiDownload />
               {exportState === 'loading' ? 'Generating…' : exportState === 'error' ? 'Retry' : 'Export PDF'}
@@ -134,8 +154,8 @@ const CodeViewer: React.FC<Props> = ({ isOpen, onClose, template, pages, sharedE
 
         <div className="code-panel-description">
           {activeTab === 'json'
-            ? 'Full template data as JSON — sent to the backend when you click Export PDF.'
-            : 'C# code using Canvas.Pdf — paste into the Code Editor to run and preview.'}
+            ? `Full template data as JSON for language: ${langLabel}`
+            : `C# code using Canvas.Pdf — placeholders resolved for ${langLabel}.`}
         </div>
 
         <div className="code-panel-body">

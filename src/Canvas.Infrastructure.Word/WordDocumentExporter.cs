@@ -1,4 +1,8 @@
+using System.Globalization;
 using Canvas.Core.Abstractions;
+using QRCoder;
+using ZXing;
+using ZXing.Common;
 using Canvas.Core.Contracts;
 using Canvas.Core.Primitives;
 using DocumentFormat.OpenXml;
@@ -341,6 +345,40 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 break;
             }
 
+            case "textarea":
+            {
+                var label = el.FieldLabel ?? "";
+                var req   = el.Required == true ? " *" : "";
+                var para  = new Paragraph();
+                var ppr   = new ParagraphProperties();
+                ApplyParagraphPositioning(ppr, el, layout, applyTopOffset: true);
+                para.PrependChild(ppr);
+
+                if (!string.IsNullOrEmpty(label))
+                {
+                    var run = para.AppendChild(new Run());
+                    run.PrependChild(BuildRunProperties(s, "1F2937", forceBold: true));
+                    run.AppendChild(new Text($"{label}: "));
+
+                    if (!string.IsNullOrEmpty(req))
+                    {
+                        var reqRun = para.AppendChild(new Run());
+                        reqRun.PrependChild(new RunProperties(new Color { Val = "DC2626" }));
+                        reqRun.AppendChild(new Text(req + " "));
+                    }
+                }
+
+                var lineCount = Math.Max(2, (int)Math.Round(el.Height / 20.0));
+                var run2 = para.AppendChild(new Run());
+                run2.PrependChild(BuildRunProperties(s, "1F2937", forceUnderline: true));
+                run2.AppendChild(new Text(string.Join("\n", Enumerable.Repeat("_______________", lineCount)))
+                    { Space = SpaceProcessingModeValues.Preserve });
+
+                body.AppendChild(para);
+                AdvanceCursor(layout, el);
+                break;
+            }
+
             case "checkbox":
             {
                 var label = el.FieldLabel ?? "";
@@ -580,6 +618,52 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 break;
             }
 
+            case "toc":
+            {
+                // Native Word TOC field — Word updates page numbers on document open / Ctrl+A → F9.
+                var tocTitle  = el.TocTitle ?? "Table of Contents";
+                var minLevel  = el.TocMinLevel ?? 1;
+                var maxLevel  = el.TocMaxLevel ?? 3;
+                var instrText = $"TOC \\o \"{minLevel}-{maxLevel}\" \\h \\z \\u";
+
+                // Optional: emit the title as a styled paragraph before the field.
+                if (!string.IsNullOrWhiteSpace(tocTitle))
+                {
+                    var titlePara = new Paragraph();
+                    var titlePpr  = new ParagraphProperties();
+                    ApplyParagraphPositioning(titlePpr, el, layout, applyTopOffset: true);
+                    titlePara.PrependChild(titlePpr);
+                    var titleRun = new Run();
+                    titleRun.AppendChild(new RunProperties(new Bold()));
+                    titleRun.AppendChild(new Text(tocTitle) { Space = SpaceProcessingModeValues.Preserve });
+                    titlePara.AppendChild(titleRun);
+                    body.AppendChild(titlePara);
+                }
+
+                // TOC field: <w:p><w:r><w:fldChar begin/><w:instrText TOC .../><w:fldChar end/></w:r></w:p>
+                var tocPara = new Paragraph();
+                var tocPpr  = new ParagraphProperties();
+                if (string.IsNullOrWhiteSpace(tocTitle))
+                    ApplyParagraphPositioning(tocPpr, el, layout, applyTopOffset: true);
+                tocPara.PrependChild(tocPpr);
+
+                var beginRun = new Run();
+                beginRun.AppendChild(new FieldChar { FieldCharType = FieldCharValues.Begin, Dirty = true });
+                tocPara.AppendChild(beginRun);
+
+                var instrRun = new Run();
+                instrRun.AppendChild(new FieldCode(instrText) { Space = SpaceProcessingModeValues.Preserve });
+                tocPara.AppendChild(instrRun);
+
+                var endRun = new Run();
+                endRun.AppendChild(new FieldChar { FieldCharType = FieldCharValues.End });
+                tocPara.AppendChild(endRun);
+
+                body.AppendChild(tocPara);
+                AdvanceCursor(layout, el);
+                break;
+            }
+
             case "contentcontrol":
             {
                 var title = el.ContentControlTitle ?? el.Name ?? "Field";
@@ -618,6 +702,81 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 break;
             }
 
+            case "date":
+            {
+                var fmt  = el.DateFormat ?? "yyyy-MM-dd";
+                var now  = DateTime.UtcNow;
+                if (!string.IsNullOrWhiteSpace(el.Timezone))
+                {
+                    try { now = TimeZoneInfo.ConvertTimeFromUtc(now, TimeZoneInfo.FindSystemTimeZoneById(el.Timezone)); }
+                    catch { /* unsupported TZ — stay UTC */ }
+                }
+                var text = now.ToString(fmt, CultureInfo.InvariantCulture);
+                var para = new Paragraph();
+                var ppr  = new ParagraphProperties();
+                ApplyParagraphPositioning(ppr, el, layout, applyTopOffset: true);
+                para.PrependChild(ppr);
+                para.AppendChild(new Run(new Text(text)));
+                body.AppendChild(para);
+                AdvanceCursor(layout, el);
+                break;
+            }
+
+            case "dropdown":
+            {
+                var label   = el.FieldLabel ?? el.FieldName ?? "Dropdown";
+                var items   = el.Options     ?? [];
+                var current = items.FirstOrDefault() ?? "";
+
+                var sdtProps = new SdtProperties();
+                sdtProps.AppendChild(new Tag { Val = el.FieldName ?? el.Id });
+                sdtProps.AppendChild(new SdtAlias { Val = label });
+
+                // Combo-box listing with one item per DropdownItems entry
+                var combo = new SdtContentDropDownList();
+                foreach (var item in items)
+                    combo.AppendChild(new ListItem { DisplayText = item, Value = item });
+                sdtProps.AppendChild(combo);
+
+                var sdtContent = new SdtContentBlock();
+                var innerPara  = new Paragraph();
+                var ippr       = new ParagraphProperties();
+                ApplyParagraphPositioning(ippr, el, layout, applyTopOffset: true);
+                innerPara.PrependChild(ippr);
+                innerPara.AppendChild(new Run(new Text(current)));
+                sdtContent.AppendChild(innerPara);
+
+                var sdt = new SdtBlock();
+                sdt.AppendChild(sdtProps);
+                sdt.AppendChild(sdtContent);
+                body.AppendChild(sdt);
+                AdvanceCursor(layout, el);
+                break;
+            }
+
+            case "qrcode":
+            {
+                var value = el.QrValue ?? "";
+                if (string.IsNullOrWhiteSpace(value)) { AppendUnsupportedPlaceholder(body, el, layout); break; }
+                try { EmbedPngBytes(body, mainPart, el, layout, WqrGenerateQrPng(value)); }
+                catch { AppendUnsupportedPlaceholder(body, el, layout); }
+                break;
+            }
+
+            case "barcode":
+            {
+                var value = el.BarcodeValue ?? "";
+                if (string.IsNullOrWhiteSpace(value)) { AppendUnsupportedPlaceholder(body, el, layout); break; }
+                try
+                {
+                    var w = Math.Max((int)el.Width, 100);
+                    var h = Math.Max((int)(el.Height * 0.7), 40);
+                    EmbedPngBytes(body, mainPart, el, layout, WqrGenerateBarcodePng(value, el.BarcodeType, w, h));
+                }
+                catch { AppendUnsupportedPlaceholder(body, el, layout); }
+                break;
+            }
+
             default:
             {
                 AppendUnsupportedPlaceholder(body, el, layout);
@@ -647,14 +806,20 @@ public sealed class WordDocumentExporter : IDocumentExporter
         var cellData = el.CellData;
         if (cellData is null || cellData.Length == 0) return;
 
-        var topOffset = Math.Max(0, el.Y - layout.CursorY);
-        if (topOffset > 0)
+        // Legacy flow mode positions the table with a vertical spacer paragraph. V2 floats the
+        // table at absolute page coordinates instead (see the tblpPr block below), so the spacer
+        // would only push it off-position.
+        if (!layout.FidelityV2)
         {
-            var spacer = new Paragraph();
-            var ppr = new ParagraphProperties();
-            ppr.AppendChild(new SpacingBetweenLines { Before = WordUnitConverter.CanvasToTwips(topOffset).ToString() });
-            spacer.PrependChild(ppr);
-            body.AppendChild(spacer);
+            var topOffset = Math.Max(0, el.Y - layout.CursorY);
+            if (topOffset > 0)
+            {
+                var spacer = new Paragraph();
+                var ppr = new ParagraphProperties();
+                ppr.AppendChild(new SpacingBetweenLines { Before = WordUnitConverter.CanvasToTwips(topOffset).ToString() });
+                spacer.PrependChild(ppr);
+                body.AppendChild(spacer);
+            }
         }
 
         var cols       = cellData[0]?.Length ?? 0;
@@ -685,9 +850,26 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 new RightBorder  { Val = BorderValues.Single, Size = bw, Color = bc },
                 new InsideHorizontalBorder { Val = BorderValues.Single, Size = bw, Color = bc },
                 new InsideVerticalBorder   { Val = BorderValues.Single, Size = bw, Color = bc }));
-        var leftTwips = WordUnitConverter.CanvasToTwips(Math.Max(0, el.X));
-        if (leftTwips > 0)
-            tblPr.AppendChild(new TableIndentation { Width = leftTwips, Type = TableWidthUnitValues.Dxa });
+        if (layout.FidelityV2)
+        {
+            // Float the table at the element's absolute page coordinates so it lines up with the
+            // anchored text boxes / shapes/ images rather than flowing from the document cursor.
+            // In CT_TblPrBase, w:tblpPr must precede w:tblW — hence PrependChild.
+            tblPr.PrependChild(new TablePositionProperties
+            {
+                LeftFromText = 0, RightFromText = 0, TopFromText = 0, BottomFromText = 0,
+                HorizontalAnchor = HorizontalAnchorValues.Page,
+                VerticalAnchor   = VerticalAnchorValues.Page,
+                TablePositionX   = WordUnitConverter.CanvasToTwips(Math.Max(0, el.X)),
+                TablePositionY   = WordUnitConverter.CanvasToTwips(Math.Max(0, el.Y)),
+            });
+        }
+        else
+        {
+            var leftTwips = WordUnitConverter.CanvasToTwips(Math.Max(0, el.X));
+            if (leftTwips > 0)
+                tblPr.AppendChild(new TableIndentation { Width = leftTwips, Type = TableWidthUnitValues.Dxa });
+        }
         table.AppendChild(tblPr);
 
         // TableGrid defines column widths
@@ -812,6 +994,122 @@ public sealed class WordDocumentExporter : IDocumentExporter
         AdvanceCursor(layout, el);
     }
 
+    private static void EmbedPngBytes(Body body, MainDocumentPart mainPart, ElementDto el, LayoutContext layout, byte[] pngBytes)
+    {
+        var imagePart = mainPart.AddImagePart(ImagePartType.Png);
+        using (var ms = new MemoryStream(pngBytes))
+            imagePart.FeedData(ms);
+        var relationshipId = mainPart.GetIdOfPart(imagePart);
+        long cx = WordUnitConverter.CanvasToEmu(el.Width > 0 ? el.Width : 200);
+        long cy = WordUnitConverter.CanvasToEmu(el.Height > 0 ? el.Height : 150);
+        var drawingId = layout.NextDrawingId++;
+        var drawing = CreateInlineDrawing(relationshipId, el, cx, cy, drawingId, false);
+        var para = new Paragraph();
+        var ppr = new ParagraphProperties();
+        ApplyParagraphPositioning(ppr, el, layout, applyTopOffset: true);
+        para.PrependChild(ppr);
+        para.AppendChild(new Run(drawing));
+        body.AppendChild(para);
+        AdvanceCursor(layout, el);
+    }
+
+    private static byte[] WqrGenerateQrPng(string value)
+    {
+        var gen = new QRCodeGenerator();
+        using var data = gen.CreateQrCode(value, QRCodeGenerator.ECCLevel.M);
+        var qr = new PngByteQRCode(data);
+        return qr.GetGraphic(10);
+    }
+
+    private static byte[] WqrGenerateBarcodePng(string value, string? barcodeType, int width, int height)
+    {
+        var format = barcodeType?.ToLowerInvariant() switch
+        {
+            "code128" or "code-128" => BarcodeFormat.CODE_128,
+            "code39"  or "code-39"  => BarcodeFormat.CODE_39,
+            "ean13"   or "ean-13"   => BarcodeFormat.EAN_13,
+            "ean8"    or "ean-8"    => BarcodeFormat.EAN_8,
+            "upca"    or "upc-a"    => BarcodeFormat.UPC_A,
+            "pdf417"                => BarcodeFormat.PDF_417,
+            _                       => BarcodeFormat.CODE_128
+        };
+        var writer = new MultiFormatWriter();
+        var hints = new Dictionary<EncodeHintType, object> { [EncodeHintType.MARGIN] = 2 };
+        var matrix = writer.encode(value, format, width, height, hints);
+        var rows = matrix.Height;
+        var cols = matrix.Width;
+        var raw = new byte[rows * (1 + cols)];
+        var p = 0;
+        for (var y = 0; y < rows; y++)
+        {
+            raw[p++] = 0; // PNG filter byte
+            for (var x = 0; x < cols; x++)
+                raw[p++] = matrix[x, y] ? (byte)0 : (byte)255; // ZXing: [col,row]
+        }
+        return BuildGrayscalePng((uint)cols, (uint)rows, raw);
+    }
+
+    private static byte[] BuildGrayscalePng(uint w, uint h, byte[] raw)
+    {
+        static void Write32(byte[] buf, int off, uint v)
+        { buf[off] = (byte)(v >> 24); buf[off + 1] = (byte)(v >> 16); buf[off + 2] = (byte)(v >> 8); buf[off + 3] = (byte)v; }
+        static uint Crc32(byte[] data, int start, int len)
+        {
+            uint c = 0xffffffff;
+            for (var i = start; i < start + len; i++)
+            { c ^= data[i]; for (var k = 0; k < 8; k++) c = (c & 1) != 0 ? 0xedb88320u ^ (c >> 1) : c >> 1; }
+            return ~c;
+        }
+        // IHDR
+        var ihdr = new byte[13];
+        Write32(ihdr, 0, w); Write32(ihdr, 4, h);
+        ihdr[8] = 8; ihdr[9] = 0; ihdr[10] = 0; ihdr[11] = 0; ihdr[12] = 0;
+        // IDAT (zlib deflate)
+        var compressed = Deflate(raw);
+        using var ms2 = new MemoryStream();
+        using var bw = new BinaryWriter(ms2);
+        bw.Write(new byte[] { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a }); // PNG sig
+        void WriteChunk(string name, byte[] data)
+        {
+            var nameBytes = System.Text.Encoding.ASCII.GetBytes(name);
+            bw.Write((uint)System.Net.IPAddress.HostToNetworkOrder((int)data.Length));
+            bw.Write(nameBytes);
+            bw.Write(data);
+            var crcData = new byte[4 + data.Length];
+            nameBytes.CopyTo(crcData, 0);
+            data.CopyTo(crcData, 4);
+            bw.Write((uint)System.Net.IPAddress.HostToNetworkOrder((int)Crc32(crcData, 0, crcData.Length)));
+        }
+        WriteChunk("IHDR", ihdr);
+        WriteChunk("IDAT", compressed);
+        WriteChunk("IEND", []);
+        bw.Flush();
+        return ms2.ToArray();
+    }
+
+    private static byte[] Deflate(byte[] data)
+    {
+        using var ms = new MemoryStream();
+        using (var ds = new System.IO.Compression.DeflateStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+            ds.Write(data, 0, data.Length);
+        var deflated = ms.ToArray();
+        // wrap in zlib: 0x78 0x9C header + adler32 trailer
+        var adler = Adler32(data);
+        var result = new byte[2 + deflated.Length + 4];
+        result[0] = 0x78; result[1] = 0x9C;
+        deflated.CopyTo(result, 2);
+        result[^4] = (byte)(adler >> 24); result[^3] = (byte)(adler >> 16);
+        result[^2] = (byte)(adler >> 8);  result[^1] = (byte)adler;
+        return result;
+    }
+
+    private static uint Adler32(byte[] data)
+    {
+        uint s1 = 1, s2 = 0;
+        foreach (var b in data) { s1 = (s1 + b) % 65521; s2 = (s2 + s1) % 65521; }
+        return (s2 << 16) | s1;
+    }
+
     private static void AppendImagePlaceholder(Body body, ElementDto el, LayoutContext layout, Dictionary<string, object> style)
     {
         AddWarning(layout, $"Image fallback placeholder rendered for element '{el.Id}'.");
@@ -828,31 +1126,134 @@ public sealed class WordDocumentExporter : IDocumentExporter
         AdvanceCursor(layout, el);
     }
 
+    // Reused across calls to avoid socket exhaustion; per-request timeouts come from a linked CTS.
+    private static readonly System.Net.Http.HttpClient RemoteImageClient = new()
+    {
+        Timeout = System.Threading.Timeout.InfiniteTimeSpan,
+    };
+
+    // Hard cap on a fetched remote image to bound memory use (8 MiB).
+    private const long MaxRemoteImageBytes = 8L * 1024 * 1024;
+
     private static byte[]? FetchRemoteImageWithRetry(string url, int maxAttempts, int timeoutSeconds, CancellationToken cancellationToken)
     {
+        if (!IsSafeRemoteImageUrl(url))
+            return null;
+
         for (var attempt = 1; attempt <= Math.Max(1, maxAttempts); attempt++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(Math.Max(1, timeoutSeconds)) };
-                var bytes = http.GetByteArrayAsync(url, cancellationToken).GetAwaiter().GetResult();
-                if (bytes.Length > 0)
+                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutCts.CancelAfter(TimeSpan.FromSeconds(Math.Max(1, timeoutSeconds)));
+
+                var bytes = ReadCappedResponse(url, timeoutCts.Token);
+                if (bytes is { Length: > 0 })
                     return bytes;
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                throw;
+                throw; // caller cancelled — propagate
             }
             catch
             {
+                // per-request timeout or transport error — retry until attempts exhausted
                 if (attempt == maxAttempts)
                     break;
             }
         }
 
         return null;
+    }
+
+    private static byte[]? ReadCappedResponse(string url, CancellationToken cancellationToken)
+    {
+        using var response = RemoteImageClient
+            .GetAsync(url, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .GetAwaiter().GetResult();
+        response.EnsureSuccessStatusCode();
+
+        if (response.Content.Headers.ContentLength is long declared && declared > MaxRemoteImageBytes)
+            return null;
+
+        using var stream = response.Content.ReadAsStreamAsync(cancellationToken).GetAwaiter().GetResult();
+        using var ms = new MemoryStream();
+        var buffer = new byte[81920];
+        int read;
+        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            ms.Write(buffer, 0, read);
+            if (ms.Length > MaxRemoteImageBytes)
+                return null; // exceeded cap mid-stream
+        }
+        return ms.ToArray();
+    }
+
+    /// <summary>
+    /// Guards remote image fetches against SSRF: only http/https on default-ish hosts whose
+    /// resolved addresses are publicly routable (no loopback, private, link-local, or multicast).
+    /// </summary>
+    private static bool IsSafeRemoteImageUrl(string url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            return false;
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+            return false;
+
+        try
+        {
+            System.Net.IPAddress[] addresses = System.Net.IPAddress.TryParse(uri.Host, out var literal)
+                ? [literal]
+                : System.Net.Dns.GetHostAddresses(uri.Host);
+
+            if (addresses.Length == 0)
+                return false;
+
+            // Reject if ANY resolved address is non-public — defends against DNS that
+            // returns a mix of public and internal targets.
+            return addresses.All(IsPubliclyRoutable);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsPubliclyRoutable(System.Net.IPAddress ip)
+    {
+        if (System.Net.IPAddress.IsLoopback(ip))
+            return false;
+
+        var bytes = ip.GetAddressBytes();
+
+        if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            // IPv4 private / link-local / metadata ranges
+            if (bytes[0] == 10) return false;                                  // 10.0.0.0/8
+            if (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31) return false; // 172.16.0.0/12
+            if (bytes[0] == 192 && bytes[1] == 168) return false;              // 192.168.0.0/16
+            if (bytes[0] == 169 && bytes[1] == 254) return false;              // 169.254.0.0/16 (link-local / cloud metadata)
+            if (bytes[0] == 127) return false;                                 // loopback
+            if (bytes[0] == 0) return false;                                   // 0.0.0.0/8
+            if (bytes[0] >= 224) return false;                                 // multicast / reserved
+            return true;
+        }
+
+        if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+        {
+            if (ip.IsIPv6LinkLocal || ip.IsIPv6Multicast || ip.IsIPv6SiteLocal)
+                return false;
+            if ((bytes[0] & 0xFE) == 0xFC) return false; // fc00::/7 unique local
+            // Map IPv4-mapped IPv6 back to IPv4 rules.
+            if (ip.IsIPv4MappedToIPv6)
+                return IsPubliclyRoutable(ip.MapToIPv4());
+            return true;
+        }
+
+        return false;
     }
 
     private static void AddWarning(LayoutContext layout, string warning)

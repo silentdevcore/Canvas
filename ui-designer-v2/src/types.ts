@@ -9,6 +9,7 @@ export type ElementType =
   | 'signature'
   | 'richtext'
   | 'field'
+  | 'textarea'
   | 'checkbox'
   | 'rect'
   | 'circle'
@@ -30,7 +31,8 @@ export type ElementType =
   | 'pagenumber'
   | 'link'
   | 'number'
-  // New elements
+  | 'toc'
+  // Word-only elements
   | 'footnote'
   | 'endnote'
   | 'bookmark'
@@ -65,6 +67,7 @@ export interface SimpleElement {
   // Form fields
   fieldLabel?: string;
   fieldName?: string;
+  placeholder?: string;
   required?: boolean;
   // Chart
   chartType?: 'bar' | 'line' | 'pie';
@@ -112,6 +115,11 @@ export interface SimpleElement {
   endMarker?: 'none' | 'filled' | 'open' | 'dot' | 'diamond' | 'square' | 'circle' | 'arrow';
   drawTool?: 'pen' | 'highlighter' | 'eraser';
   pathData?: string;
+  language?: string;          // BCP-47 tag: "ar", "zh", "en", "he", etc.
+  textDirection?: 'ltr' | 'rtl';
+  elementLanguage?: string;   // undefined = visible in all language tabs; set to BCP-47 tag = own element for that language only
+  elementGroup?: string;      // shared ID between an element and its language mirrors — used to find/delete all siblings
+  langOverrides?: Record<string, { x?: number; y?: number; width?: number; height?: number; rotation?: number }>; // per-language position/rotation overrides
   dateMode?: 'static' | 'render' | 'binding';
   dateFormat?: string;
   locale?: string;
@@ -159,6 +167,21 @@ export interface SimpleElement {
   revisionId?: string;
   // Auto-hyphenation
   autoHyphenation?: boolean;
+  // Heading level (for TOC generation)
+  headingLevel?: 1 | 2 | 3 | null;
+  // Form accessibility / ordering
+  tabIndex?: number;
+  // Per-field validation
+  validationMin?: number;
+  validationMax?: number;
+  validationPattern?: string;
+  // Table of contents element config
+  tocEntries?: Array<{ text: string; level: 1 | 2 | 3; page: number }>;
+  tocTitle?: string;
+  tocShowPageNumbers?: boolean;
+  tocShowLeaderDots?: boolean;
+  tocMinLevel?: 1 | 2 | 3;
+  tocMaxLevel?: 1 | 2 | 3;
 }
 
 export interface Page {
@@ -172,6 +195,7 @@ export interface Template {
   category: string;
   thumbnail?: string;
   description: string;
+  data?: Record<string, any>;
 }
 
 export type LayerDirection = 'front' | 'forward' | 'backward' | 'back';
@@ -197,12 +221,44 @@ export interface DocumentProtection {
   passwordHash?: string;
 }
 
+// ── PDF Encryption (Canvas.Pdf Standard Security Handler) ────────────────────
+
+export interface PdfEncryptionPermissions {
+  print: boolean;
+  modify: boolean;
+  copy: boolean;
+  annotate: boolean;
+  fillForms: boolean;
+  extractAccessibility: boolean;
+  assemble: boolean;
+  printHighResolution: boolean;
+}
+
+export interface PdfEncryption {
+  enabled: boolean;
+  userPassword: string;   // open-document password (empty = opens without a prompt)
+  ownerPassword: string;  // permissions password (empty = uses the user password)
+  algorithm: 'Rc4_128' | 'Aes128';
+  permissions: PdfEncryptionPermissions;
+}
+
 // ── Custom Document Properties ───────────────────────────────────────────────
 
 export interface CustomDocumentProperty {
   name: string;
   value: string;
   type: 'text' | 'number' | 'boolean' | 'date';
+}
+
+// ── Localized Properties ─────────────────────────────────────────────────────
+
+export interface LocalizedProperty {
+  key: string;           // template variable name without {{ }}, e.g. "SUBJECT"
+  scope: 'global' | 'own';
+  // 'global': placeholder appears in ALL language PDFs; each language fills its own value via localizedValues
+  // 'own':    placeholder exists ONLY in the language identified by ownerLanguage
+  ownerLanguage?: string;                   // set only when scope === 'own'
+  localizedValues: Record<string, string>;  // { de: "Hallo Welt", ar: "مرحبا" }
 }
 
 export interface PageSettings {
@@ -269,8 +325,15 @@ export interface PageSettings {
   namedStyles?: NamedStyle[];
   // Document protection
   protection?: DocumentProtection;
+  // PDF encryption (password protection + permissions)
+  encryption?: PdfEncryption;
   // Custom document properties
   customProperties?: CustomDocumentProperty[];
   // Track changes
   trackChanges?: boolean;
+  // Multi-language localization
+  systemLanguage?: string;                // source/default language for fallback resolution
+  activeLanguages?: string[];           // user-selected active BCP-47 language tags
+  localizedProperties?: LocalizedProperty[];
+  targetLanguage?: string;                // selected export/preview language
 }

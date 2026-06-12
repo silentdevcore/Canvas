@@ -1,0 +1,352 @@
+/* ── Importer Page ─────────────────────────────────────────────────────────── */
+
+.importer-page {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.importer-main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: clamp(40px, 6vw, 80px) clamp(18px, 4vw, 40px) 80px;
+}
+
+/* Header */
+.importer-header {
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.importer-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 6px 14px;
+  color: #1d6fff;
+  background: #eef6ff;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.importer-header h1 {
+  margin: 0 0 12px;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  color: #101828;
+  line-height: 1.15;
+}
+
+.importer-header p {
+  max-width: 520px;
+  margin: 0 auto;
+  font-size: 16px;
+  color: #475467;
+  line-height: 1.6;
+}
+
+/* Grid */
+.importer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+/* Card */
+.importer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1.5px solid #e3e8ef;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.importer-card:hover:not(:disabled) {
+  border-color: #1d6fff;
+  box-shadow: 0 4px 20px rgba(29, 111, 255, 0.10);
+  transform: translateY(-3px);
+}
+
+.importer-card:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.importer-card.is-loading {
+  border-color: #1d6fff;
+  background: #f0f7ff;
+}
+
+.importer-card.is-selected {
+  border-color: #1d6fff;
+  box-shadow: 0 0 0 3px rgba(29, 111, 255, 0.12);
+}
+
+/* ── Inline config panel (page size selector) ─────────────────────────────── */
+
+.importer-card-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.importer-config-panel {
+  background: #f0f7ff;
+  border: 1.5px solid #1d6fff;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  padding: 16px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.importer-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.importer-card-wrap.is-configuring .importer-card {
+  border-radius: 12px 12px 0 0;
+  border-bottom-color: transparent;
+}
+
+.importer-config-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #344054;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.importer-config-hint {
+  font-size: 11px;
+  color: #667085;
+  margin-top: 4px;
+}
+
+.importer-config-select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #c8d8f8;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #101828;
+  background: #ffffff;
+  cursor: pointer;
+  outline: none;
+}
+
+.importer-config-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid #c8d8f8;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #101828;
+  background: #ffffff;
+  outline: none;
+}
+
+.importer-config-input:focus {
+  border-color: #1d6fff;
+}
+
+.importer-config-select:focus {
+  border-color: #1d6fff;
+}
+
+.importer-config-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.importer-config-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: #1d6fff;
+}
+
+.importer-config-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.importer-config-cancel {
+  flex: 1;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1.5px solid #d0d5dd;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #344054;
+  cursor: pointer;
+}
+
+.importer-config-cancel:hover {
+  background: #f9fafb;
+}
+
+.importer-config-confirm {
+  flex: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 14px;
+  background: #1d6fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.importer-config-confirm:hover {
+  background: #1558e0;
+}
+
+.importer-config-download {
+  flex: 1.1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 12px;
+  background: #101828;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.importer-config-download:hover {
+  background: #344054;
+}
+
+.importer-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  color: #1d6fff;
+  background: #eef6ff;
+  border-radius: 10px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.importer-card-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #101828;
+}
+
+.importer-card-desc {
+  font-size: 13px;
+  color: #667085;
+  line-height: 1.5;
+}
+
+.importer-card-ext {
+  font-size: 11px;
+  font-weight: 600;
+  color: #98a2b3;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.02em;
+  margin-top: 2px;
+}
+
+.importer-card-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: #1d6fff;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.importer-card.is-loading .importer-card-action {
+  background: #2563eb;
+}
+
+/* Error message */
+.importer-error {
+  margin-top: 32px;
+  padding: 14px 20px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.importer-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 24px auto 0;
+  padding: 10px 14px;
+  background: #f0f7ff;
+  border: 1px solid #b8d7ff;
+  border-radius: 8px;
+  color: #1558e0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.importer-status-spinner,
+.importer-status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.importer-status-spinner {
+  border: 2px solid #b8d7ff;
+  border-top-color: #1558e0;
+  animation: importer-spin 0.8s linear infinite;
+}
+
+.importer-status-dot {
+  background: #16a34a;
+}
+
+@keyframes importer-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .importer-grid {
+    grid-template-columns: 1fr;
+  }
+}

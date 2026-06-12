@@ -5,6 +5,8 @@ import type { Page, SimpleElement, Template, PageSettings } from '@/types';
 export interface ParsedDesign {
   id?: string;
   name?: string;
+  category?: string;
+  description?: string;
   pages: { id: string; elements: SimpleElement[] }[];
   sharedElements?: SimpleElement[];
   pageSettings?: Partial<PageSettings> & { width?: number; height?: number };

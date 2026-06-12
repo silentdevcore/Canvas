@@ -19,19 +19,22 @@ public class TemplatesController : ControllerBase
     private readonly UpdateTemplateUseCase _updateTemplateUseCase;
     private readonly GetTemplateUseCase _getTemplateUseCase;
     private readonly ValidateTemplateUseCase _validateTemplateUseCase;
+    private readonly Canvas.Pdf.PdfFontLoader? _fontLoader;
 
     public TemplatesController(
         RenderTemplateUseCase renderTemplateUseCase,
         CreateTemplateUseCase createTemplateUseCase,
         UpdateTemplateUseCase updateTemplateUseCase,
         GetTemplateUseCase getTemplateUseCase,
-        ValidateTemplateUseCase validateTemplateUseCase)
+        ValidateTemplateUseCase validateTemplateUseCase,
+        Canvas.Pdf.PdfFontLoader? fontLoader = null)
     {
         _renderTemplateUseCase = renderTemplateUseCase;
         _createTemplateUseCase = createTemplateUseCase;
         _updateTemplateUseCase = updateTemplateUseCase;
         _getTemplateUseCase = getTemplateUseCase;
         _validateTemplateUseCase = validateTemplateUseCase;
+        _fontLoader = fontLoader;
     }
 
     /// <summary>
@@ -316,7 +319,7 @@ public class TemplatesController : ControllerBase
 
         try
         {
-            var document = DesignJsonMapper.MapToPdfDocument(design);
+            var document = DesignJsonMapper.MapToPdfDocument(design, _fontLoader);
             var bytes = document.ToBytes();
             var filename = (design.Name ?? "document").ToLowerInvariant()
                 .Replace(" ", "-")
@@ -325,7 +328,9 @@ public class TemplatesController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { error = "Render failed", details = ex.Message });
+            var inner = ex.InnerException?.Message;
+            var trace = ex.StackTrace?.Split('\n').Take(5).ToArray();
+            return StatusCode(500, new { error = "Render failed", details = ex.Message, inner, trace });
         }
     }
 

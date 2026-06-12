@@ -12,7 +12,7 @@ export interface FormatInfo {
 let _formatsCache: FormatInfo[] | null = null;
 
 export class ExportService {
-  private static readonly API_BASE_URL = 'http://localhost:5086/api';
+  private static readonly API_BASE_URL = '/api';
 
   static convertElementsToTemplate(pages: Page[], template: Template, sharedElements: SimpleElement[] = [], pageSettings?: PageSettings) {
     return {
@@ -91,6 +91,8 @@ export class ExportService {
         height: element.height,
         properties: this.extractElementProperties(element),
       })),
+      // Aggregated form metadata: all form fields sorted by tab order
+      formMetadata: this.buildFormMetadata(pages, sharedElements),
     };
   }
 
@@ -109,6 +111,7 @@ export class ExportService {
       barcode:    'Barcode',
       signature:  'Signature',
       field:      'FormField',
+      textarea:   'TextArea',
       checkbox:   'Checkbox',
       button:     'Button',
       dropdown:   'Dropdown',
@@ -130,6 +133,7 @@ export class ExportService {
       bookmark:       'Bookmark',
       comment:        'Comment',
       contentcontrol: 'ContentControl',
+      toc:            'Toc',
     };
     return typeMapping[uiType] ?? 'Text';
   }
@@ -172,13 +176,15 @@ export class ExportService {
           textAlign:      element.style?.textAlign      || 'left',
           lineHeight:     element.style?.lineHeight     ?? 1.4,
           letterSpacing:  element.style?.letterSpacing  ?? 0,
+          headingLevel:   element.headingLevel ?? null,
         };
 
       case 'richtext':
         return {
           ...base,
-          htmlContent: element.htmlContent || '',
-          fontSize: element.style?.fontSize || 14,
+          htmlContent:  element.htmlContent || '',
+          fontSize:     element.style?.fontSize || 14,
+          headingLevel: element.headingLevel ?? null,
         };
 
       case 'image':
@@ -270,6 +276,24 @@ export class ExportService {
           name: element.fieldName || element.id,
           required: Boolean(element.required),
           inputType: 'text',
+          tabIndex: element.tabIndex ?? null,
+          validationMin: element.validationMin ?? null,
+          validationMax: element.validationMax ?? null,
+          validationPattern: element.validationPattern ?? null,
+        };
+
+      case 'textarea':
+        return {
+          ...base,
+          label: element.fieldLabel || 'Text area',
+          name: element.fieldName || element.id,
+          placeholder: element.placeholder || '',
+          required: Boolean(element.required),
+          inputType: 'textarea',
+          tabIndex: element.tabIndex ?? null,
+          validationMin: element.validationMin ?? null,
+          validationMax: element.validationMax ?? null,
+          validationPattern: element.validationPattern ?? null,
         };
 
       case 'checkbox':
@@ -279,6 +303,7 @@ export class ExportService {
           name: element.fieldName || element.id,
           required: Boolean(element.required),
           checked: false,
+          tabIndex: element.tabIndex ?? null,
         };
 
       case 'button':
@@ -298,6 +323,7 @@ export class ExportService {
           multiSelect: element.multiSelect ?? false,
           fontSize: element.style?.fontSize || 14,
           color: element.style?.color || '#000000',
+          tabIndex: element.tabIndex ?? null,
         };
 
       case 'optionlist':
@@ -315,6 +341,7 @@ export class ExportService {
           options: element.options || [],
           fontSize: element.style?.fontSize || 14,
           color: element.style?.color || '#000000',
+          tabIndex: element.tabIndex ?? null,
         };
 
       case 'subsection':
@@ -456,6 +483,23 @@ export class ExportService {
           content: element.content || '',
         };
 
+      case 'toc':
+        return {
+          ...base,
+          tocTitle:           element.tocTitle           ?? 'Table of Contents',
+          tocShowPageNumbers: element.tocShowPageNumbers ?? true,
+          tocShowLeaderDots:  element.tocShowLeaderDots  ?? true,
+          tocMinLevel:        element.tocMinLevel        ?? 1,
+          tocMaxLevel:        element.tocMaxLevel        ?? 3,
+          tocEntries: (element.tocEntries ?? []).map(e => ({
+            text:  e.text,
+            level: e.level,
+            page:  e.page,
+          })),
+          color:    element.style?.color    ?? '#1f2937',
+          fontSize: element.style?.fontSize ?? 12,
+        };
+
       default:
         return base;
     }
@@ -504,8 +548,12 @@ export class ExportService {
             metadata: pageSettings.metadata,
             namedStyles: pageSettings.namedStyles ?? [],
             protection: pageSettings.protection ?? null,
+            encryption: pageSettings.encryption?.enabled ? pageSettings.encryption : null,
             customProperties: pageSettings.customProperties ?? [],
             trackChanges: pageSettings.trackChanges ?? false,
+            systemLanguage: navigator.language.split('-')[0],
+            activeLanguages: pageSettings.activeLanguages ?? [],
+            localizedProperties: pageSettings.localizedProperties ?? [],
           }
         : { width: 595, height: 842, orientation: 'portrait' },
     };
@@ -552,6 +600,56 @@ export class ExportService {
     onProgress?.('Done!');
   }
 
+  static async exportMultiLanguage(
+    template: Template,
+    pages: Page[],
+    sharedElements: SimpleElement[] = [],
+    pageSettings?: PageSettings,
+  ): Promise<void> {
+    const payload = {
+      id: template.id,
+      name: template.name,
+      category: template.category,
+      description: template.description,
+      pages: pages.map(p => ({ id: p.id, elements: p.elements })),
+      sharedElements,
+      pageSettings: pageSettings
+        ? {
+            width: pageSettings.width,
+            height: pageSettings.height,
+            orientation: pageSettings.orientation,
+            margins: pageSettings.margins,
+            backgroundColor: pageSettings.backgroundColor,
+            metadata: pageSettings.metadata,
+            systemLanguage: navigator.language.split('-')[0],
+            activeLanguages: pageSettings.activeLanguages ?? [],
+            localizedProperties: pageSettings.localizedProperties ?? [],
+          }
+        : { width: 595, height: 842, orientation: 'portrait' },
+    };
+
+    const response = await fetch(`${this.API_BASE_URL}/export/multilanguage?format=pdf`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: response.statusText }));
+      throw new Error(err.error || `HTTP ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${template.name.replace(/\s+/g, '-').toLowerCase()}-multilanguage.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   static exportToJSON(template: Template, pages: Page[], sharedElements: SimpleElement[] = [], pageSettings?: PageSettings): void {
     const payload = this.convertElementsToTemplate(pages, template, sharedElements, pageSettings);
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -595,6 +693,7 @@ export class ExportService {
             metadata: pageSettings.metadata,
             namedStyles: pageSettings.namedStyles ?? [],
             protection: pageSettings.protection ?? null,
+            encryption: pageSettings.encryption?.enabled ? pageSettings.encryption : null,
             customProperties: pageSettings.customProperties ?? [],
             trackChanges: pageSettings.trackChanges ?? false,
           }
@@ -609,7 +708,8 @@ export class ExportService {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({ error: response.statusText }));
-      throw new Error(err.error || `HTTP ${response.status}`);
+      const msg = [err.error, err.details, err.inner].filter(Boolean).join(' — ');
+      throw new Error(msg || `HTTP ${response.status}`);
     }
 
     onProgress?.('Downloading…');
@@ -672,26 +772,7 @@ export class ExportService {
   }
 
   static async importPdf(file: File): Promise<object> {
-    return this._importFile(file, 'import-pdf');
-  }
-
-  static async importPdfSvg(file: File): Promise<object> {
-    return this._importFile(file, 'import-pdf-svg');
-  }
-
-  static async importPdfEngine(file: File): Promise<object> {
     return this._importFile(file, 'import-pdf-engine');
-  }
-
-  static async debugPdfSvg(file: File, page = 1): Promise<{ svgLength: number; elementStats: Record<string, number>; svg: string; pageCount: number }> {
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch(
-      `${this.API_BASE_URL}/document/debug-pdf-svg?page=${page}`,
-      { method: 'POST', body: form }
-    );
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
   }
 
   static async importDoc(file: File): Promise<object> {
@@ -708,6 +789,127 @@ export class ExportService {
 
   static async importImage(file: File): Promise<object> {
     return this._importFile(file, 'import-image');
+  }
+
+  static async importSvg(file: File): Promise<object> {
+    return this._importFile(file, 'import-svg');
+  }
+
+  static async importPptx(file: File): Promise<object> {
+    return this._importFile(file, 'import-pptx');
+  }
+
+  static async importImageAnalysis(
+    file: File,
+    pageWidthPt?: number,
+    pageHeightPt?: number,
+    options: {
+      includeDiagnostics?: boolean;
+      includeDebugOverlay?: boolean;
+      includeFallbackImageLayer?: boolean;
+      lowConfidenceThreshold?: number;
+    } = {},
+  ): Promise<object> {
+    const form = new FormData();
+    form.append('file', file);
+    if (pageWidthPt)  form.append('pageWidthPt',  String(pageWidthPt));
+    if (pageHeightPt) form.append('pageHeightPt', String(pageHeightPt));
+    if (options.includeDiagnostics) form.append('includeDiagnostics', 'true');
+    if (options.includeDebugOverlay) form.append('includeDebugOverlay', 'true');
+    if (options.includeFallbackImageLayer) form.append('includeFallbackImageLayer', 'true');
+    if (options.lowConfidenceThreshold !== undefined)
+      form.append('lowConfidenceThreshold', String(options.lowConfidenceThreshold));
+    const response = await fetch(`${this.API_BASE_URL}/document/import-image-analysis`, {
+      method: 'POST',
+      body: form,
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: response.statusText }));
+      throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  }
+
+  static async importImageOcr(
+    file: File,
+    pageWidthPt?: number,
+    pageHeightPt?: number,
+    options: {
+      languages?: string;
+      includeBackgroundImage?: boolean;
+      includeDiagnostics?: boolean;
+      includeDebugOverlay?: boolean;
+      enablePreprocessing?: boolean;
+      lowConfidenceThreshold?: number;
+      layoutMode?: string;
+    } = {},
+  ): Promise<object> {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('languages', options.languages || 'deu+eng');
+    if (pageWidthPt)  form.append('pageWidthPt',  String(pageWidthPt));
+    if (pageHeightPt) form.append('pageHeightPt', String(pageHeightPt));
+    form.append('includeBackgroundImage', options.includeBackgroundImage === false ? 'false' : 'true');
+    form.append('includeOcrPages', 'false');
+    form.append('layoutMode', options.layoutMode || 'structured');
+    if (options.includeDiagnostics) form.append('includeDiagnostics', 'true');
+    if (options.includeDebugOverlay) form.append('includeDebugOverlay', 'true');
+    if (options.enablePreprocessing) form.append('enablePreprocessing', 'true');
+    if (options.lowConfidenceThreshold !== undefined)
+      form.append('lowConfidenceThreshold', String(options.lowConfidenceThreshold));
+
+    const response = await fetch(`${this.API_BASE_URL}/document/convert-image-to-pdf?debug=true`, {
+      method: 'POST',
+      body: form,
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: response.statusText }));
+      throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    return response.json();
+  }
+
+  static async downloadImageOcrPdf(
+    file: File,
+    pageWidthPt?: number,
+    pageHeightPt?: number,
+    options: {
+      languages?: string;
+      includeBackgroundImage?: boolean;
+      enablePreprocessing?: boolean;
+      lowConfidenceThreshold?: number;
+      layoutMode?: string;
+    } = {},
+  ): Promise<void> {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('languages', options.languages || 'deu+eng');
+    if (pageWidthPt)  form.append('pageWidthPt',  String(pageWidthPt));
+    if (pageHeightPt) form.append('pageHeightPt', String(pageHeightPt));
+    form.append('includeBackgroundImage', options.includeBackgroundImage === false ? 'false' : 'true');
+    form.append('layoutMode', options.layoutMode || 'structured');
+    if (options.enablePreprocessing) form.append('enablePreprocessing', 'true');
+    if (options.lowConfidenceThreshold !== undefined)
+      form.append('lowConfidenceThreshold', String(options.lowConfidenceThreshold));
+
+    const response = await fetch(`${this.API_BASE_URL}/document/convert-image-to-pdf`, {
+      method: 'POST',
+      body: form,
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: response.statusText }));
+      throw new Error(err.error || `HTTP ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${file.name.replace(/\.[^.]+$/, '').replace(/\s+/g, '-').toLowerCase()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   private static async _importFile(file: File, endpoint: string): Promise<object> {
@@ -834,6 +1036,38 @@ export class ExportService {
     });
 
     return { isValid: errors.length === 0, errors };
+  }
+
+  private static buildFormMetadata(pages: Page[], sharedElements: SimpleElement[]) {
+    const FORM_TYPES = new Set(['field', 'textarea', 'checkbox', 'radio', 'dropdown', 'signature']);
+    const allElements = [
+      ...sharedElements,
+      ...pages.flatMap((page, i) => page.elements.map(el => ({ ...el, _pageIndex: i }))),
+    ] as (SimpleElement & { _pageIndex?: number })[];
+
+    const formFields = allElements
+      .filter(el => FORM_TYPES.has(el.type))
+      .map(el => ({
+        id: el.id,
+        type: el.type,
+        name: el.fieldName || el.id,
+        label: el.fieldLabel || el.signatureLabel || '',
+        required: Boolean(el.required),
+        tabIndex: el.tabIndex ?? null,
+        page: (el._pageIndex ?? 0) + 1,
+        validationMin: el.validationMin ?? null,
+        validationMax: el.validationMax ?? null,
+        validationPattern: el.validationPattern ?? null,
+        options: (el.type === 'dropdown' || el.type === 'radio' || el.type === 'optionlist') ? (el.options ?? []) : undefined,
+      }))
+      .sort((a, b) => {
+        if (a.tabIndex !== null && b.tabIndex !== null) return a.tabIndex - b.tabIndex;
+        if (a.tabIndex !== null) return -1;
+        if (b.tabIndex !== null) return 1;
+        return a.page - b.page;
+      });
+
+    return { fieldCount: formFields.length, fields: formFields };
   }
 }
 

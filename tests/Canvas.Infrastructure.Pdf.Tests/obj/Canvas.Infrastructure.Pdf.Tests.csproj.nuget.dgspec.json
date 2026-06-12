@@ -1067,6 +1067,10 @@
               "target": "Package",
               "version": "[17.14.1, )"
             },
+            "UglyToad.PdfPig": {
+              "target": "Package",
+              "version": "[1.7.0-custom-5, )"
+            },
             "coverlet.collector": {
               "target": "Package",
               "version": "[6.0.4, )"

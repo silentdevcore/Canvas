@@ -54,74 +54,12 @@ public sealed class TiffDocumentExporter : IDocumentExporter
         int bmpW = (int)(ps.Width  * scale);
         int bmpH = (int)(ps.Height * scale);
 
-        using var bitmap = new SKBitmap(bmpW, bmpH, SKColorType.Rgba8888, SKAlphaType.Premul);
-        using var canvas = new SKCanvas(bitmap);
-
-        var bgColor = ParseColor(ps.BackgroundColor ?? "#ffffff");
-        canvas.Clear(bgColor);
-
-        var elements = page.Elements
-            .Concat(shared.Where(s => !page.Elements.Any(e => e.Id == s.Id)))
-            .Where(e => e.Hidden != true)
-            .ToList();
-
-        // Re-use the ImageDocumentExporter's DrawElement via the shared pipeline.
-        // SkiaSharp does not have native TIFF encode, so we render to PNG bitmap
-        // then re-encode via the TIFF path (WBMP is the closest SkiaSharp supports).
-        // For real TIFF we write the raw bitmap as a minimal uncompressed TIFF.
-        foreach (var el in elements)
-            DrawElementSimple(canvas, el, scale);
-
-        using var img  = SKImage.FromBitmap(bitmap);
-        using var data = img.Encode(SKEncodedImageFormat.Png, 100);
-        var pngBytes   = data.ToArray();
+        // Render through the shared image pipeline so TIFF has full element fidelity
+        // (wrapped text, rich text, tables, images, borders, …). SkiaSharp has no native
+        // TIFF encoder, so we take the PNG bitmap and repackage it as a baseline TIFF.
+        var pngBytes = ImageDocumentExporter.RenderPage(page, shared, ps, SKEncodedImageFormat.Png, 100, scale);
 
         return ConvertPngToTiff(pngBytes, bmpW, bmpH);
-    }
-
-    /// <summary>
-    /// Minimal element renderer (shapes + text) — mirrors ImageDocumentExporter.
-    /// Kept local to avoid cross-assembly coupling on a private static method.
-    /// </summary>
-    private static void DrawElementSimple(SKCanvas canvas, ElementDto el, float scale)
-    {
-        var s = el.Style ?? [];
-        float x = (float)(el.X * scale);
-        float y = (float)(el.Y * scale);
-        float w = (float)(el.Width  * scale);
-        float h = (float)(el.Height * scale);
-        var rect = new SKRect(x, y, x + w, y + h);
-
-        switch (el.Type)
-        {
-            case "rect":
-            case "shape":
-            {
-                var fill   = ParseColor(s.GetStr("backgroundColor", s.GetStr("fill", "transparent")));
-                var radius = (float)s.GetNum("borderRadius", 0) * scale;
-                using var paint = new SKPaint { Color = fill, IsAntialias = true };
-                canvas.DrawRoundRect(rect, radius, radius, paint);
-                break;
-            }
-            case "circle":
-            {
-                var fill = ParseColor(s.GetStr("backgroundColor", "transparent"));
-                using var paint = new SKPaint { Color = fill, IsAntialias = true };
-                canvas.DrawOval(rect, paint);
-                break;
-            }
-            case "text":
-            case "link":
-            {
-                var text  = el.Content ?? "";
-                var color = ParseColor(s.GetStr("color", "#111827"));
-                var fs    = (float)s.GetNum("fontSize", 14) * scale;
-                using var font  = new SKFont(SKTypeface.Default, fs);
-                using var paint = new SKPaint { Color = color, IsAntialias = true };
-                canvas.DrawText(text, x, y + fs, font, paint);
-                break;
-            }
-        }
     }
 
     /// <summary>
@@ -215,12 +153,5 @@ public sealed class TiffDocumentExporter : IDocumentExporter
         w.Write(type);
         w.Write(count);
         w.Write(value);
-    }
-
-    private static SKColor ParseColor(string? hex)
-    {
-        if (string.IsNullOrWhiteSpace(hex) || hex == "transparent") return SKColors.Transparent;
-        try { return SKColor.Parse(hex); }
-        catch { return SKColors.Transparent; }
     }
 }

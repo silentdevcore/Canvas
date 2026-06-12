@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -14,6 +14,7 @@ import {
 } from 'react-icons/fi';
 import { CATEGORIES, CATEGORY_CONFIG, TEMPLATES } from '@/data/templates';
 import { useTemplateLoader } from '@/hooks/useTemplateLoader';
+
 import AppHeader from '@/components/Layout/AppHeader';
 
 const FEATURE_CARDS = [
@@ -43,12 +44,10 @@ const TOOL_LINKS = [
 
 const IndexPage: React.FC = () => {
   const navigate = useNavigate();
-  const { loadBlank, loadFromFile, loadFromFileSvg } = useTemplateLoader();
+  const { loadBlank, loadFromFile } = useTemplateLoader();
   const [toast, setToast] = useState<string | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
-  const [importError, setImportError] = useState('');
-  const importInputRef    = useRef<HTMLInputElement>(null);
-  const importSvgInputRef = useRef<HTMLInputElement>(null);
 
   const displayCategories = CATEGORIES.filter(c => c.id !== 'all');
 
@@ -59,23 +58,11 @@ const IndexPage: React.FC = () => {
 
   const handleFileImport = async (file: File) => {
     setImporting(true);
-    setImportError('');
     try {
       await loadFromFile(file);
     } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Import failed');
       setImporting(false);
-    }
-  };
-
-  const handleFileSvgImport = async (file: File) => {
-    setImporting(true);
-    setImportError('');
-    try {
-      await loadFromFileSvg(file);
-    } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Import failed');
-      setImporting(false);
+      showToast(err instanceof Error ? err.message : 'Import failed');
     }
   };
 
@@ -85,7 +72,7 @@ const IndexPage: React.FC = () => {
     } else if (label === 'Create form') {
       loadBlank();
     } else if (label === 'Import document') {
-      importInputRef.current?.click();
+      navigate('/importer');
     } else if (label === 'Sign DOCX') {
       showToast('Export your design as DOCX first, then use the Sign button in the Export modal.');
     }
@@ -102,23 +89,6 @@ const IndexPage: React.FC = () => {
       <AppHeader activePage="home" />
 
       <main>
-        <input
-          ref={importInputRef}
-          type="file"
-          accept=".pdf,.doc,.docx,.odt,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.tif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,image/png,image/jpeg,image/gif,image/webp,image/bmp,image/tiff"
-          style={{ display: 'none' }}
-          onChange={e => { const f = e.target.files?.[0]; if (f) handleFileImport(f); e.target.value = ''; }}
-        />
-        <input
-          ref={importSvgInputRef}
-          type="file"
-          accept=".pdf,application/pdf"
-          style={{ display: 'none' }}
-          onChange={e => { const f = e.target.files?.[0]; if (f) handleFileSvgImport(f); e.target.value = ''; }}
-        />
-        {importError && (
-          <div className="pdf-toast" role="alert" style={{ background: '#dc2626' }}>{importError}</div>
-        )}
 
         {/* Hero */}
         <section className="pdf-hero">
@@ -132,6 +102,14 @@ const IndexPage: React.FC = () => {
               Start from a template or import an existing PDF, Word, or ODT file. Add fields, signatures, and data bindings — then export to PDF, DOCX, ODT, TIFF and more.
             </p>
           </div>
+
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx,.odt,.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.tif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text,image/png,image/jpeg,image/gif,image/webp,image/bmp,image/tiff"
+            style={{ display: 'none' }}
+            onChange={e => { const f = e.target.files?.[0]; if (f) handleFileImport(f); e.target.value = ''; }}
+          />
 
           <div className="pdf-hero-cards">
             <motion.button
@@ -147,6 +125,20 @@ const IndexPage: React.FC = () => {
             </motion.button>
 
             <motion.button
+              className="pdf-upload-card"
+              onClick={() => importInputRef.current?.click()}
+              disabled={importing}
+              title="Import a PDF, Word .doc/.docx, ODT, or image (PNG/JPG/WebP/…) as a Canvas design"
+              whileHover={{ y: -4 }}
+              whileTap={{ scale: 0.99 }}
+            >
+              <span className="pdf-upload-icon"><FiUpload /></span>
+              <strong>{importing ? 'Importing…' : 'Import file'}</strong>
+              <small>Open a PDF, Word, ODT or image file as an editable design</small>
+              <span className="pdf-upload-action">Choose file <FiChevronRight /></span>
+            </motion.button>
+
+            <motion.button
               className="pdf-blank-card"
               onClick={() => loadBlank()}
               whileHover={{ y: -4 }}
@@ -156,32 +148,6 @@ const IndexPage: React.FC = () => {
               <strong>Blank canvas</strong>
               <small>Open the editor with an empty page — no starter elements</small>
               <span className="pdf-upload-action">Start blank <FiChevronRight /></span>
-            </motion.button>
-
-            <motion.button
-              className="pdf-blank-card"
-              onClick={() => importInputRef.current?.click()}
-              whileHover={{ y: -4 }}
-              whileTap={{ scale: 0.99 }}
-              disabled={importing}
-            >
-              <span className="pdf-upload-icon"><FiUpload /></span>
-              <strong>Import document</strong>
-              <small>Open a PDF, DOCX, DOC, ODT or image as an editable design</small>
-              <span className="pdf-upload-action">{importing ? 'Importing…' : 'Import file'} <FiChevronRight /></span>
-            </motion.button>
-
-            <motion.button
-              className="pdf-blank-card"
-              onClick={() => importSvgInputRef.current?.click()}
-              whileHover={{ y: -4 }}
-              whileTap={{ scale: 0.99 }}
-              disabled={importing}
-            >
-              <span className="pdf-upload-icon"><FiUpload /></span>
-              <strong>Import PDF (SVG)</strong>
-              <small>Import a PDF using the SVG engine — compare with the standard importer</small>
-              <span className="pdf-upload-action">{importing ? 'Importing…' : 'Import PDF'} <FiChevronRight /></span>
             </motion.button>
 
             <motion.button
@@ -239,8 +205,8 @@ const IndexPage: React.FC = () => {
             <span>PDF, DOCX, ODT, TIFF, HTML &amp; more</span>
           </div>
           <div>
-            <strong>5 import formats</strong>
-            <span>PDF, DOCX, DOC, ODT, images — all editable</span>
+            <strong>7 import formats</strong>
+            <span>PDF, DOCX, PPTX, DOC, ODT, SVG, images</span>
           </div>
           <div>
             <strong>100% browser-based</strong>

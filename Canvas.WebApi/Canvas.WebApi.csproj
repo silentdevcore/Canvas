@@ -10,10 +10,22 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.3.0" />
     <PackageReference Include="QRCoder" Version="1.6.0" />
+    <PackageReference Include="SkiaSharp" Version="3.119.2" />
     <PackageReference Include="ZXing.Net" Version="0.16.9" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../src/Canvas.FileImporter.Abstractions/Canvas.FileImporter.Abstractions.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Pdf/Canvas.FileImporter.Pdf.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Docx/Canvas.FileImporter.Docx.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Pptx/Canvas.FileImporter.Pptx.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Doc/Canvas.FileImporter.Doc.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Odt/Canvas.FileImporter.Odt.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.ImageAnalysis/Canvas.FileImporter.ImageAnalysis.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.ImageOcr/Canvas.FileImporter.ImageOcr.csproj" />
+    <ProjectReference Include="../src/Canvas.FileImporter.ImageOcr.Worker/Canvas.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />
     <ProjectReference Include="../src/Canvas.Application/Canvas.Application.csproj" />
     <ProjectReference Include="../src/Canvas.Core/Canvas.Core.csproj" />
     <ProjectReference Include="../Canvas.Domain/Canvas.Domain.csproj" />
@@ -21,6 +33,38 @@
     <ProjectReference Include="../src/Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj" />
     <ProjectReference Include="../src/Canvas.Infrastructure.Sheet/Canvas.Infrastructure.Sheet.csproj" />
     <ProjectReference Include="../src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.ActivePdf/Canvas.Migration.ActivePdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.Apryse/Canvas.Migration.Apryse.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.AsposePdf/Canvas.Migration.AsposePdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.DevExpressPdf/Canvas.Migration.DevExpressPdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.DevExpressReport/Canvas.Migration.DevExpressReport.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.FastReport/Canvas.Migration.FastReport.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.DsPdf/Canvas.Migration.DsPdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.FoxitPdf/Canvas.Migration.FoxitPdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.GemBoxPdf/Canvas.Migration.GemBoxPdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.iText7/Canvas.Migration.iText7.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.IronPdf/Canvas.Migration.IronPdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.LeadtoolsPdf/Canvas.Migration.LeadtoolsPdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.PdfKitNet/Canvas.Migration.PdfKitNet.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.PdfTools/Canvas.Migration.PdfTools.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.PdfToolsToolbox/Canvas.Migration.PdfToolsToolbox.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.Rdl/Canvas.Migration.Rdl.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.Rpx/Canvas.Migration.Rpx.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.SpirePdf/Canvas.Migration.SpirePdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.SyncfusionPdf/Canvas.Migration.SyncfusionPdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.Telerik/Canvas.Migration.Telerik.csproj" />
   </ItemGroup>
+
+  <Target Name="CopyImageOcrWorker" AfterTargets="Build">
+    <MSBuild Projects="../src/Canvas.FileImporter.ImageOcr.Worker/Canvas.FileImporter.ImageOcr.Worker.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
+    <ItemGroup>
+      <ImageOcrWorkerFiles Include="../src/Canvas.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ImageOcrWorkerFiles)"
+          DestinationFiles="@(ImageOcrWorkerFiles->'$(OutputPath)ocr-worker/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

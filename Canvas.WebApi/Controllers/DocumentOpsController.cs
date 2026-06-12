@@ -1,6 +1,8 @@
 using Canvas.Application.UseCases;
 using Canvas.Core.Contracts;
-using Canvas.Infrastructure.Converters;
+using Canvas.FileImporter.Abstractions;
+using Canvas.FileImporter.ImageAnalysis;
+using Canvas.FileImporter.ImageAnalysis.Analysis;
 using Canvas.Infrastructure.Word;
 using Canvas.Importer.Analysis;
 using Canvas.Importer.Debugging;
@@ -17,19 +19,29 @@ namespace Canvas.WebApi.Controllers;
 [Route("api/document")]
 public class DocumentOpsController : ControllerBase
 {
-    private readonly FindAndReplaceUseCase _findReplace;
-    private readonly CloneTemplateUseCase  _clone;
-    private readonly ExtractPagesUseCase   _extractPages;
+    private readonly FindAndReplaceUseCase      _findReplace;
+    private readonly CloneTemplateUseCase       _clone;
+    private readonly ExtractPagesUseCase        _extractPages;
+    private readonly IEnumerable<IFileImporter> _importers;
+    private readonly ImageAnalysisFileImporter  _imageAnalysis;
 
     public DocumentOpsController(
         FindAndReplaceUseCase findReplace,
         CloneTemplateUseCase  clone,
-        ExtractPagesUseCase   extractPages)
+        ExtractPagesUseCase   extractPages,
+        IEnumerable<IFileImporter> importers,
+        ImageAnalysisFileImporter imageAnalysis)
     {
-        _findReplace  = findReplace;
-        _clone        = clone;
-        _extractPages = extractPages;
+        _findReplace   = findReplace;
+        _clone         = clone;
+        _extractPages  = extractPages;
+        _importers     = importers;
+        _imageAnalysis = imageAnalysis;
     }
+
+    private IFileImporter Importer(string ext) =>
+        _importers.FirstOrDefault(i => i.SupportedExtensions.Contains(ext))
+        ?? throw new InvalidOperationException($"No importer registered for .{ext} files.");
 
     /// <summary>
     /// Replaces all occurrences of a search string in every text-bearing element
@@ -117,65 +129,6 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
-    /// Imports a PDF file and converts it into a Canvas design.
-    /// Each PDF page becomes a Canvas page; text words and images are extracted
-    /// with their approximate positions and sizes.
-    /// </summary>
-    [HttpPost("import-pdf")]
-    [Consumes("multipart/form-data")]
-    [ProducesResponseType(typeof(DesignExportDto), 200)]
-    [ProducesResponseType(400)]
-    public async Task<IActionResult> ImportPdf(IFormFile? file)
-    {
-        if (file is null || file.Length == 0)
-            return BadRequest(new { error = "A PDF file is required." });
-
-        if (!file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase) &&
-            !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { error = "Only PDF files are accepted." });
-
-        try
-        {
-            await using var stream = file.OpenReadStream();
-            var design = PdfImporter.Import(stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(design);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = $"Could not parse PDF: {ex.Message}" });
-        }
-    }
-
-    /// <summary>
-    /// Imports a PDF via PdfToSvg.NET (SVG intermediate) for comparison with the PdfPig importer.
-    /// Route: POST /api/document/import-pdf-svg
-    /// </summary>
-    [HttpPost("import-pdf-svg")]
-    [Consumes("multipart/form-data")]
-    [ProducesResponseType(typeof(DesignExportDto), 200)]
-    [ProducesResponseType(400)]
-    public async Task<IActionResult> ImportPdfSvg(IFormFile? file)
-    {
-        if (file is null || file.Length == 0)
-            return BadRequest(new { error = "A PDF file is required." });
-
-        if (!file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase) &&
-            !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { error = "Only PDF files are accepted." });
-
-        try
-        {
-            await using var stream = file.OpenReadStream();
-            var design = SvgPdfImporter.Import(stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(design);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = $"Could not parse PDF (SVG): {ex.Message}" });
-        }
-    }
-
-    /// <summary>
     /// Imports a PDF using the Canvas.Importer low-level engine (own tokenizer, object graph,
     /// and content stream interpreter). Returns a Canvas design with text, shape, and image
     /// elements derived from the PDF's raw graphics scene graph.
@@ -197,7 +150,7 @@ public class DocumentOpsController : ControllerBase
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = await CanvasImporterPdfImporter.ImportAsync(
+            var design = await Importer("pdf").ImportAsync(
                 stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
@@ -303,50 +256,6 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
-    /// Returns the raw SVG string for one page of a PDF (via PdfToSvg.NET).
-    /// Use this to inspect the SVG structure when debugging the SVG importer.
-    /// Query param: page=1 (1-based).
-    /// </summary>
-    [HttpPost("debug-pdf-svg")]
-    [Consumes("multipart/form-data")]
-    public async Task<IActionResult> DebugPdfSvg(IFormFile? file, [FromQuery] int page = 1)
-    {
-        if (file is null || file.Length == 0)
-            return BadRequest(new { error = "A PDF file is required." });
-        try
-        {
-            await using var stream = file.OpenReadStream();
-            using var pdf = PdfToSvg.PdfDocument.Open(stream);
-            int pageCount = pdf.Pages.Count;
-            var p = pdf.Pages.ElementAtOrDefault(page - 1);
-            if (p is null)
-                return NotFound(new { error = $"Page {page} not found.", pageCount });
-
-            string svg = p.ToSvgString();
-
-            // Count element types so we can see what PdfToSvg actually extracted
-            var doc  = System.Xml.Linq.XDocument.Parse(svg);
-            var root = doc.Root!;
-            var stats = new[] { "rect","path","line","circle","ellipse","image","text","tspan","g","use" }
-                .ToDictionary(tag => tag, tag => root.Descendants()
-                    .Count(e => e.Name.LocalName == tag));
-
-            // Return SVG + debug stats as a JSON envelope so the caller sees both
-            return Ok(new
-            {
-                pageCount,
-                svgLength   = svg.Length,
-                elementStats = stats,
-                svg          = svg,
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = ex.Message, type = ex.GetType().Name });
-        }
-    }
-
-    /// <summary>
     /// Imports a legacy Word 97-2003 .doc file and converts it into a Canvas design.
     /// Paragraphs are extracted with basic font metadata and stacked as Text elements.
     /// </summary>
@@ -365,7 +274,7 @@ public class DocumentOpsController : ControllerBase
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = DocImporter.Import(stream, Path.GetFileNameWithoutExtension(file.FileName));
+            var design = await Importer("doc").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
         catch (Exception ex)
@@ -394,7 +303,7 @@ public class DocumentOpsController : ControllerBase
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = DocxImporter.Import(stream, Path.GetFileNameWithoutExtension(file.FileName));
+            var design = await Importer("docx").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
         catch (Exception ex)
@@ -423,7 +332,7 @@ public class DocumentOpsController : ControllerBase
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = OdtImporter.Import(stream, Path.GetFileNameWithoutExtension(file.FileName));
+            var design = await Importer("odt").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
             return Ok(design);
         }
         catch (Exception ex)
@@ -450,12 +359,137 @@ public class DocumentOpsController : ControllerBase
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = ImageImporter.Import(stream, file.FileName);
+            var design = await Importer(Path.GetExtension(file.FileName).TrimStart('.').ToLowerInvariant())
+                .ImportAsync(stream, file.FileName);
             return Ok(design);
         }
         catch (Exception ex)
         {
             return BadRequest(new { error = $"Could not decode image: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// Imports an SVG file and converts it into a Canvas design with full vector fidelity.
+    /// Rectangles map to shape elements; text maps to text elements; embedded images map to
+    /// image elements; all other vector primitives (path, circle, ellipse, line, etc.) are
+    /// preserved as inline SVG data-URI image elements.
+    /// Route: POST /api/document/import-svg
+    /// </summary>
+    [HttpPost("import-svg")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(DesignExportDto), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> ImportSvg(IFormFile? file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "An SVG file is required." });
+
+        if (!file.ContentType.Contains("svg", StringComparison.OrdinalIgnoreCase) &&
+            !file.FileName.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "Only SVG files are accepted." });
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var design = await Importer("svg").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
+            return Ok(design);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = $"Could not parse SVG: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// Imports a PowerPoint .pptx file and converts it into a Canvas design.
+    /// Each slide becomes a page. Text boxes, shapes, and embedded images are extracted
+    /// with full fidelity including colors, fonts, and slide backgrounds.
+    /// Route: POST /api/document/import-pptx
+    /// </summary>
+    [HttpPost("import-pptx")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(DesignExportDto), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> ImportPptx(IFormFile? file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "A .pptx file is required." });
+
+        if (!file.FileName.EndsWith(".pptx", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "Only .pptx (PowerPoint Open XML) files are accepted." });
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            ms.Position = 0;
+            var design = await Importer("pptx").ImportAsync(ms, Path.GetFileNameWithoutExtension(file.FileName));
+            return Ok(design);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = $"Could not parse PPTX: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
+    /// Imports a raster image using the custom analysis engine (Phases 1–5).
+    /// Extracts text (via NCC character recognition), geometric shapes (via Sobel edges),
+    /// and colour regions into individual editable Canvas elements.
+    /// Route: POST /api/document/import-image-analysis
+    /// </summary>
+    [HttpPost("import-image-analysis")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(DesignExportDto), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> ImportImageAnalysis(
+        IFormFile? file,
+        [FromForm] double? pageWidthPt  = null,
+        [FromForm] double? pageHeightPt = null,
+        [FromForm] bool includeDiagnostics = false,
+        [FromForm] bool includeDebugOverlay = false,
+        [FromForm] bool includeFallbackImageLayer = false,
+        [FromForm] double? lowConfidenceThreshold = null)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "An image file is required." });
+
+        var ext = Path.GetExtension(file.FileName).TrimStart('.').ToLowerInvariant();
+        if (!ImageAnalysisFileImporter.SupportedExtensions.Contains(ext))
+            return BadRequest(new { error = $"Supported formats: {string.Join(", ", ImageAnalysisFileImporter.SupportedExtensions)}." });
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var result = await _imageAnalysis.ImportWithAnalysisAsync(
+                stream,
+                Path.GetFileNameWithoutExtension(file.FileName),
+                pageWidthPt,
+                pageHeightPt,
+                new ImageAnalysisOptions
+                {
+                    IncludeDebugOverlay = includeDebugOverlay,
+                    IncludeFallbackImageLayer = includeFallbackImageLayer,
+                    LowConfidenceThreshold = lowConfidenceThreshold ?? ImageAnalysisOptions.Default.LowConfidenceThreshold,
+                });
+
+            if (!includeDiagnostics && !includeDebugOverlay)
+                return Ok(result.Design);
+
+            return Ok(new ImageAnalysisDebugResponse
+            {
+                Design = result.Design,
+                Diagnostics = result.Diagnostics,
+                DebugOverlay = result.DebugOverlayPng is null
+                    ? null
+                    : $"data:image/png;base64,{Convert.ToBase64String(result.DebugOverlayPng)}",
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = $"Image analysis failed: {ex.Message}" });
         }
     }
 
@@ -528,4 +562,11 @@ public sealed class ExtractPagesApiRequest
     public required DesignExportDto Design { get; set; }
     public required List<int> PageNumbers { get; set; }
     public string? NewName { get; set; }
+}
+
+public sealed class ImageAnalysisDebugResponse
+{
+    public required DesignExportDto Design { get; set; }
+    public required ImageAnalysisDiagnostics Diagnostics { get; set; }
+    public string? DebugOverlay { get; set; }
 }

@@ -22,6 +22,7 @@ public sealed class PageSettingsDto
     public double Width { get; set; } = 595;
     public double Height { get; set; } = 842;
     public string Orientation { get; set; } = "portrait";
+    public string? Unit { get; set; }  // "px" | "pt" | "mm" | "cm" | "in"
     public string? BackgroundColor { get; set; }
     public string? BackgroundImage { get; set; }
     public string? BackgroundImageFit { get; set; }
@@ -31,8 +32,15 @@ public sealed class PageSettingsDto
     public PdfMetadataDto? Metadata { get; set; }
     public List<NamedStyleDto>? NamedStyles { get; set; }
     public DocumentProtectionDto? Protection { get; set; }
+    public PdfEncryptionDto? Encryption { get; set; }
     public List<CustomDocumentPropertyDto>? CustomProperties { get; set; }
     public bool TrackChanges { get; set; }
+    // Multi-language localization
+    public string? SystemLanguage { get; set; }
+    public List<string>? ActiveLanguages { get; set; }
+    public List<LocalizedPropertyDto>? LocalizedProperties { get; set; }
+    /// <summary>When set in the exported JSON, overrides the API query-param language for this export.</summary>
+    public string? TargetLanguage { get; set; }
 }
 
 public sealed class MarginsDto
@@ -90,11 +98,42 @@ public sealed class DocumentProtectionDto
     public string? PasswordHash { get; set; }
 }
 
+public sealed class PdfEncryptionDto
+{
+    public bool Enabled { get; set; }
+    public string? UserPassword { get; set; }
+    public string? OwnerPassword { get; set; }
+    public string Algorithm { get; set; } = "Rc4_128"; // Rc4_128 | Aes128
+    public PdfEncryptionPermissionsDto? Permissions { get; set; }
+}
+
+public sealed class PdfEncryptionPermissionsDto
+{
+    public bool Print { get; set; } = true;
+    public bool Modify { get; set; } = true;
+    public bool Copy { get; set; } = true;
+    public bool Annotate { get; set; } = true;
+    public bool FillForms { get; set; } = true;
+    public bool ExtractAccessibility { get; set; } = true;
+    public bool Assemble { get; set; } = true;
+    public bool PrintHighResolution { get; set; } = true;
+}
+
 public sealed class CustomDocumentPropertyDto
 {
     public string Name { get; set; } = "";
     public string Value { get; set; } = "";
     public string Type { get; set; } = "text"; // text | number | boolean | date
+}
+
+public sealed class LocalizedPropertyDto
+{
+    public string Key { get; set; } = "";
+    /// <summary>"global" = exists in all languages (each fills its own value); "own" = exists only for OwnerLanguage.</summary>
+    public string Scope { get; set; } = "global";
+    /// <summary>Set only when Scope == "own". Identifies the single language that owns this property.</summary>
+    public string? OwnerLanguage { get; set; }
+    public Dictionary<string, string> LocalizedValues { get; set; } = [];
 }
 
 /// <summary>Maps directly to the frontend SimpleElement type.</summary>
@@ -120,6 +159,7 @@ public sealed class ElementDto
     // Form fields
     public string? FieldLabel { get; set; }
     public string? FieldName { get; set; }
+    public string? Placeholder { get; set; }
     public bool? Required { get; set; }
 
     // Signature
@@ -173,6 +213,14 @@ public sealed class ElementDto
     // Draw / freehand
     public string? DrawTool { get; set; }
     public string? PathData { get; set; }
+
+    // Language / text direction
+    public string? Language { get; set; }         // BCP-47 tag: "ar", "zh", "en", etc.
+    public string? TextDirection { get; set; }    // "ltr" | "rtl"
+    public string? ElementLanguage { get; set; }  // undefined = all language tabs; set = own element for that language only
+    public string? ElementGroup { get; set; }     // shared ID across language siblings (UI only)
+    /// <summary>Per-language position/rotation overrides. Key = BCP-47 tag (e.g. "de", "ar").</summary>
+    public Dictionary<string, LangOverrideDto>? LangOverrides { get; set; }
 
     // Date
     public string? DateMode { get; set; }
@@ -251,4 +299,52 @@ public sealed class ElementDto
 
     // Auto-hyphenation
     public bool? AutoHyphenation { get; set; }
+
+    // Data binding / template engine
+    public string? Binding    { get; set; }
+    public string? Expression { get; set; }
+    public string? Formatter  { get; set; }
+    public RepeatDto? Repeat  { get; set; }
+
+    // Image
+    public bool? PreserveAspectRatio { get; set; }
+
+    // Heading level (text / richtext elements) — used to build PDF bookmarks and TOC
+    public int? HeadingLevel { get; set; }
+
+    // Table of Contents element
+    public string? TocTitle           { get; set; }
+    public bool?   TocShowPageNumbers { get; set; }
+    public bool?   TocShowLeaderDots  { get; set; }
+    public int?    TocMinLevel        { get; set; }
+    public int?    TocMaxLevel        { get; set; }
+    /// <summary>"beginning" | "end" — only used when the TOC element controls a separate TOC page.</summary>
+    public string? TocPlacement       { get; set; }
+    /// <summary>Pre-computed TOC entries from the frontend "Update TOC" action.</summary>
+    public TocEntryDto[]? TocEntries  { get; set; }
+}
+
+/// <summary>Repeat configuration — iterates a data path and stamps a template element.</summary>
+public sealed class RepeatDto
+{
+    public string? DataPath   { get; set; }
+    public string? TemplateId { get; set; }
+}
+
+/// <summary>A single entry in a pre-computed Table of Contents.</summary>
+public sealed class TocEntryDto
+{
+    public string Text  { get; set; } = "";
+    public int    Level { get; set; } = 1;
+    public int    Page  { get; set; } = 1;
+}
+
+/// <summary>Per-language position and rotation override for a canvas element.</summary>
+public sealed class LangOverrideDto
+{
+    public double? X        { get; set; }
+    public double? Y        { get; set; }
+    public double? Width    { get; set; }
+    public double? Height   { get; set; }
+    public double? Rotation { get; set; }
 }

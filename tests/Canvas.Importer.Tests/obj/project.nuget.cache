@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "AaRjo0/ar4w=",
+  "dgSpecHash": "2aQmrvntK5c=",
   "success": true,
   "projectFilePath": "/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/Canvas.Importer.Tests.csproj",
   "expectedPackageFiles": [
@@ -20,7 +20,6 @@
     "/Users/mannheimer/.nuget/packages/microsoft.testplatform.testhost/17.14.1/microsoft.testplatform.testhost.17.14.1.nupkg.sha512",
     "/Users/mannheimer/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512",
     "/Users/mannheimer/.nuget/packages/npoi/2.8.0/npoi.2.8.0.nupkg.sha512",
-    "/Users/mannheimer/.nuget/packages/pdftosvg.net/1.8.0/pdftosvg.net.1.8.0.nupkg.sha512",
     "/Users/mannheimer/.nuget/packages/sharpziplib/1.4.2/sharpziplib.1.4.2.nupkg.sha512",
     "/Users/mannheimer/.nuget/packages/skiasharp/3.119.2/skiasharp.3.119.2.nupkg.sha512",
     "/Users/mannheimer/.nuget/packages/skiasharp.nativeassets.linux.nodependencies/3.119.2/skiasharp.nativeassets.linux.nodependencies.3.119.2.nupkg.sha512",
@@ -28,11 +27,6 @@
     "/Users/mannheimer/.nuget/packages/skiasharp.nativeassets.win32/3.119.2/skiasharp.nativeassets.win32.3.119.2.nupkg.sha512",
     "/Users/mannheimer/.nuget/packages/system.security.cryptography.pkcs/8.0.1/system.security.cryptography.pkcs.8.0.1.nupkg.sha512",
     "/Users/mannheimer/.nuget/packages/system.security.cryptography.xml/8.0.2/system.security.cryptography.xml.8.0.2.nupkg.sha512",
-    "/Users/mannheimer/.nuget/packages/uglytoad.pdfpig/1.7.0-custom-5/uglytoad.pdfpig.1.7.0-custom-5.nupkg.sha512",
-    "/Users/mannheimer/.nuget/packages/uglytoad.pdfpig.core/1.7.0-custom-5/uglytoad.pdfpig.core.1.7.0-custom-5.nupkg.sha512",
-    "/Users/mannheimer/.nuget/packages/uglytoad.pdfpig.fonts/1.7.0-custom-5/uglytoad.pdfpig.fonts.1.7.0-custom-5.nupkg.sha512",
-    "/Users/mannheimer/.nuget/packages/uglytoad.pdfpig.tokenization/1.7.0-custom-5/uglytoad.pdfpig.tokenization.1.7.0-custom-5.nupkg.sha512",
-    "/Users/mannheimer/.nuget/packages/uglytoad.pdfpig.tokens/1.7.0-custom-5/uglytoad.pdfpig.tokens.1.7.0-custom-5.nupkg.sha512",
     "/Users/mannheimer/.nuget/packages/xunit/2.9.3/xunit.2.9.3.nupkg.sha512",
     "/Users/mannheimer/.nuget/packages/xunit.abstractions/2.0.3/xunit.abstractions.2.0.3.nupkg.sha512",
     "/Users/mannheimer/.nuget/packages/xunit.analyzers/1.18.0/xunit.analyzers.1.18.0.nupkg.sha512",
@@ -47,7 +41,7 @@
     {
       "code": "NU1903",
       "level": "Warning",
-      "message": "Das Paket \"System.Security.Cryptography.Xml\" 8.0.2 weist eine bekannte Hoch Schweregrad-Sicherheitsanfälligkeit auf, https://github.com/advisories/GHSA-37gx-xxp4-5rgx.",
+      "message": "Package 'System.Security.Cryptography.Xml' 8.0.2 has a known high severity vulnerability, https://github.com/advisories/GHSA-37gx-xxp4-5rgx",
       "projectPath": "/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/Canvas.Importer.Tests.csproj",
       "warningLevel": 1,
       "filePath": "/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/Canvas.Importer.Tests.csproj",
@@ -59,7 +53,7 @@
     {
       "code": "NU1903",
       "level": "Warning",
-      "message": "Das Paket \"System.Security.Cryptography.Xml\" 8.0.2 weist eine bekannte Hoch Schweregrad-Sicherheitsanfälligkeit auf, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf.",
+      "message": "Package 'System.Security.Cryptography.Xml' 8.0.2 has a known high severity vulnerability, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf",
       "projectPath": "/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/Canvas.Importer.Tests.csproj",
       "warningLevel": 1,
       "filePath": "/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Importer.Tests/Canvas.Importer.Tests.csproj",

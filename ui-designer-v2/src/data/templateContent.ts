@@ -1,4 +1,13 @@
-import type { SimpleElement } from '@/types';
+import type { SimpleElement, Page } from '@/types';
+
+// Returns multiple pages for templates that span more than one page.
+// Returns null for single-page templates (handled by getTemplateElements instead).
+export function getTemplatePages(templateId: string): Page[] | null {
+  switch (templateId) {
+    case 'book-10page': return buildBook10Pages();
+    default:            return null;
+  }
+}
 
 export function getTemplateElements(templateId: string): SimpleElement[] {
   const now = Date.now();
@@ -156,6 +165,10 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'meeting-client-status': return buildClientStatusMeeting(id);
     case 'meeting-committee':     return buildCommitteeMinutes(id);
     case 'meeting-townhall':      return buildTownHallNotes(id);
+    // ── Books / Chapters ───────────────────────────────────────
+    case 'book-chapter-cover':    return buildBookChapterCover(id);
+    case 'book-body-text':        return buildBookBodyText(id);
+    case 'book-bibliography':     return buildBookBibliography(id);
     default:                      return [];
   }
 }
@@ -8032,3 +8045,718 @@ function buildTownHallNotes(id: (k: string) => string): SimpleElement[] {
   ];
 }
 
+// ═══════════════════════════════════════════════════════════════
+// BOOKS / CHAPTERS  (A5 — 420 × 595 pt)
+// Inner margin 50 pt  ·  Outer margin 36 pt  ·  Top 40  ·  Bottom 48
+// Content column: x=50, width=334
+// ═══════════════════════════════════════════════════════════════
+
+function buildBookChapterCover(id: (k: string) => string): SimpleElement[] {
+  // A5 portrait: 420 × 595
+  return [
+    // ── Dark header zone ───────────────────────────────────────────────────────
+    { id: id('hdr-bg'), type: 'rect', x: 0, y: 0, width: 420, height: 230,
+      style: { backgroundColor: '#1e293b', borderWidth: 0 } },
+
+    // Purple accent bar (left edge of header)
+    { id: id('accent-bar'), type: 'rect', x: 0, y: 0, width: 6, height: 230,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+
+    // Chapter label
+    { id: id('ch-label'), type: 'text', x: 50, y: 44, width: 180, height: 14,
+      content: 'CHAPTER',
+      style: { fontSize: 9, color: '#a855f7', fontWeight: 'bold', letterSpacing: 4 } },
+
+    // Chapter number — large
+    { id: id('ch-num'), type: 'text', x: 50, y: 62, width: 200, height: 72,
+      content: '01',
+      style: { fontSize: 72, color: '#ffffff', fontWeight: 'bold', lineHeight: 1 } },
+
+    // Decorative rule under number
+    { id: id('ch-rule'), type: 'rect', x: 50, y: 144, width: 48, height: 3,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+
+    // Chapter title
+    { id: id('ch-title'), type: 'text', x: 50, y: 158, width: 320, height: 52,
+      content: 'The Architecture of Ideas',
+      style: { fontSize: 22, color: '#ffffff', fontWeight: 'bold', lineHeight: 1.25 } },
+
+    // Chapter subtitle
+    { id: id('ch-sub'), type: 'text', x: 50, y: 215, width: 320, height: 26,
+      content: 'Exploring the foundations of modern thought',
+      style: { fontSize: 10.5, color: '#94a3b8', fontStyle: 'italic' } },
+
+    // ── White content zone ─────────────────────────────────────────────────────
+
+    // Author & book meta
+    { id: id('author'), type: 'text', x: 50, y: 270, width: 280, height: 16,
+      content: 'Elias Hartmann',
+      style: { fontSize: 11.5, color: '#1e293b', fontWeight: 'bold' } },
+    { id: id('book-title'), type: 'text', x: 50, y: 288, width: 280, height: 14,
+      content: 'Perspectives on Design — Part II',
+      style: { fontSize: 9, color: '#64748b' } },
+
+    // Short chapter intro paragraph
+    { id: id('intro'), type: 'richtext', x: 50, y: 322, width: 334, height: 188,
+      htmlContent:
+        '<p style="font-size:11px;line-height:1.7;color:#334155">' +
+        'Every great work of design begins with a question that cannot yet be answered. ' +
+        'It is the designer\'s task — and burden — to hold that question open long enough for the right ' +
+        'answer to emerge, unforced, from the material itself.</p>' +
+        '<p style="font-size:11px;line-height:1.7;color:#334155;margin-top:10px">' +
+        'In this chapter we examine the conceptual scaffolding that supports original thinking: ' +
+        'how constraints become generative, how silence shapes a composition, and why the space ' +
+        'between elements carries as much meaning as the elements themselves.</p>' },
+
+    // ── Footer ─────────────────────────────────────────────────────────────────
+    { id: id('ft-line'), type: 'rect', x: 0, y: 578, width: 420, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('ft-book'), type: 'text', x: 50, y: 582, width: 200, height: 12,
+      content: 'Perspectives on Design',
+      style: { fontSize: 7.5, color: '#94a3b8', fontStyle: 'italic' } },
+    { id: id('ft-page'), type: 'text', x: 0, y: 582, width: 384, height: 12,
+      content: '1',
+      style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'right' } },
+  ];
+}
+
+function buildBookBodyText(id: (k: string) => string): SimpleElement[] {
+  // A5 portrait: 420 × 595
+  // Odd page (recto) layout — page number on right
+  return [
+    // ── Running header ─────────────────────────────────────────────────────────
+    { id: id('hdr-chapter'), type: 'text', x: 50, y: 22, width: 200, height: 12,
+      content: 'Chapter 1 · The Architecture of Ideas',
+      style: { fontSize: 7.5, color: '#94a3b8', fontStyle: 'italic' } },
+    { id: id('hdr-book'), type: 'text', x: 0, y: 22, width: 384, height: 12,
+      content: 'Perspectives on Design',
+      style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'right' } },
+    { id: id('hdr-line'), type: 'rect', x: 50, y: 36, width: 334, height: 0.75,
+      style: { backgroundColor: '#cbd5e1', borderWidth: 0 } },
+
+    // ── Body content ───────────────────────────────────────────────────────────
+
+    // Section heading
+    { id: id('sec-head'), type: 'text', x: 50, y: 52, width: 334, height: 18,
+      content: '1.2  Constraints as Creative Engine',
+      headingLevel: 2,
+      style: { fontSize: 13, color: '#1e293b', fontWeight: 'bold' } },
+
+    // Body paragraphs
+    { id: id('body1'), type: 'richtext', x: 50, y: 76, width: 334, height: 156,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'A blank canvas is, paradoxically, the most difficult surface to work on. ' +
+        'Without limits, the hand has no friction against which to push. ' +
+        'Every act of creation is therefore also an act of choosing what to exclude — ' +
+        'what palette to deny, which proportions to ignore, which voices to silence.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:8px">' +
+        'Experienced designers speak of the gift of constraints not as a consolation but as a ' +
+        'productive truth. The typographer who must work within a three-column grid discovers ' +
+        'relationships between type and white space that a page of unrestricted freedom would ' +
+        'never reveal. The architect who must preserve a load-bearing wall finds a passage ' +
+        'that becomes the most memorable feature of the finished building.</p>' },
+
+    // Pull quote
+    { id: id('pq-bar'), type: 'rect', x: 50, y: 244, width: 3, height: 58,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    { id: id('pq-text'), type: 'text', x: 62, y: 248, width: 322, height: 50,
+      content: '"The constraint is not the enemy of originality — it is its necessary condition."',
+      style: { fontSize: 10, color: '#4c1d95', fontStyle: 'italic', lineHeight: 1.55 } },
+
+    // Continuation paragraphs
+    { id: id('body2'), type: 'richtext', x: 50, y: 314, width: 334, height: 220,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'This is not merely a romantic observation. Cognitive science confirms what practitioners ' +
+        'have long known: the prefrontal cortex, responsible for executive function, performs ' +
+        'better when working memory is partially occupied by a stable boundary condition. ' +
+        'The jazz musician improvising within a chord changes structure is not less free ' +
+        'than the one who plays atonally; the harmonic scaffold releases rather than ' +
+        'restricts the melodic imagination.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:8px">' +
+        'For the designer, this suggests a method: before any mark is made, enumerate the ' +
+        'real constraints (budget, material, deadline, audience), then add chosen constraints ' +
+        'that intensify the challenge. The second category may feel artificial, but it is the ' +
+        'most reliable known technique for generating forms that could not have been ' +
+        'anticipated at the outset.</p>' },
+
+    // ── Footer ─────────────────────────────────────────────────────────────────
+    { id: id('ft-line'), type: 'rect', x: 50, y: 578, width: 334, height: 0.75,
+      style: { backgroundColor: '#cbd5e1', borderWidth: 0 } },
+    { id: id('ft-page'), type: 'text', x: 0, y: 582, width: 384, height: 12,
+      content: '24',
+      style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'right' } },
+  ];
+}
+
+function buildBookBibliography(id: (k: string) => string): SimpleElement[] {
+  // A5 portrait: 420 × 595
+  return [
+    // ── Running header ─────────────────────────────────────────────────────────
+    { id: id('hdr-chapter'), type: 'text', x: 50, y: 22, width: 200, height: 12,
+      content: 'Bibliography',
+      style: { fontSize: 7.5, color: '#94a3b8', fontStyle: 'italic' } },
+    { id: id('hdr-book'), type: 'text', x: 0, y: 22, width: 384, height: 12,
+      content: 'Perspectives on Design',
+      style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'right' } },
+    { id: id('hdr-line'), type: 'rect', x: 50, y: 36, width: 334, height: 0.75,
+      style: { backgroundColor: '#cbd5e1', borderWidth: 0 } },
+
+    // ── Section heading ────────────────────────────────────────────────────────
+    { id: id('heading'), type: 'text', x: 50, y: 52, width: 334, height: 22,
+      content: 'Bibliography',
+      headingLevel: 1,
+      style: { fontSize: 18, color: '#1e293b', fontWeight: 'bold' } },
+
+    // Accent rule
+    { id: id('rule'), type: 'rect', x: 50, y: 78, width: 334, height: 1.5,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+
+    // ── Reference entries (APA style, hanging indent) ──────────────────────────
+    { id: id('refs'), type: 'richtext', x: 50, y: 92, width: 334, height: 462,
+      htmlContent:
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Alexander, C., Ishikawa, S., &amp; Silverstein, M. (1977). <em>A Pattern Language: ' +
+        'Towns, Buildings, Construction</em>. Oxford University Press.</p>' +
+
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Arnheim, R. (1974). <em>Art and Visual Perception: A Psychology of the Creative Eye</em> ' +
+        '(rev. ed.). University of California Press.</p>' +
+
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Bringhurst, R. (2004). <em>The Elements of Typographic Style</em> (3rd ed.). ' +
+        'Hartley &amp; Marks.</p>' +
+
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Cross, N. (2011). <em>Design Thinking: Understanding How Designers Think and Work</em>. ' +
+        'Berg Publishers.</p>' +
+
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Csikszentmihalyi, M. (1996). <em>Creativity: Flow and the Psychology of Discovery and ' +
+        'Invention</em>. HarperCollins.</p>' +
+
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Dorst, K. (2015). <em>Frame Innovation: Create New Thinking by Design</em>. ' +
+        'MIT Press.</p>' +
+
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Kahneman, D. (2011). <em>Thinking, Fast and Slow</em>. Farrar, Straus and Giroux.</p>' +
+
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Lupton, E. (Ed.). (2011). <em>Graphic Design Thinking: Beyond Brainstorming</em>. ' +
+        'Princeton Architectural Press.</p>' +
+
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Müller-Brockmann, J. (1981). <em>Grid Systems in Graphic Design</em>. ' +
+        'Niggli Verlag.</p>' +
+
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Norman, D. A. (2013). <em>The Design of Everyday Things</em> (rev. &amp; expanded ed.). ' +
+        'Basic Books.</p>' +
+
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Schön, D. A. (1983). <em>The Reflective Practitioner: How Professionals Think in Action</em>. ' +
+        'Basic Books.</p>' +
+
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155">' +
+        'Tufte, E. R. (2001). <em>The Visual Display of Quantitative Information</em> (2nd ed.). ' +
+        'Graphics Press.</p>' },
+
+    // ── Footer ─────────────────────────────────────────────────────────────────
+    { id: id('ft-line'), type: 'rect', x: 50, y: 578, width: 334, height: 0.75,
+      style: { backgroundColor: '#cbd5e1', borderWidth: 0 } },
+    { id: id('ft-page'), type: 'text', x: 0, y: 582, width: 384, height: 12,
+      content: '187',
+      style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'right' } },
+  ];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 10-PAGE BOOK  (A5 — 420 × 595 pt)
+// Page layout:  inner=50  outer=36  top=50  bottom=48
+// Content zone: x=50  width=334  y_start=52  y_footer_line=578
+// ═══════════════════════════════════════════════════════════════
+
+function bookId(page: number, key: string): string {
+  return `book10-p${page}-${key}-${Date.now()}`;
+}
+
+/** Running header shown on pages 3-10 (chapter title left, book title right). */
+function runningHeader(page: number, chapterLabel: string): SimpleElement[] {
+  return [
+    { id: bookId(page, 'hdr-ch'), type: 'text', x: 50, y: 22, width: 200, height: 12,
+      content: chapterLabel,
+      style: { fontSize: 7.5, color: '#94a3b8', fontStyle: 'italic' } },
+    { id: bookId(page, 'hdr-bk'), type: 'text', x: 0, y: 22, width: 384, height: 12,
+      content: 'The Architecture of Ideas',
+      style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'right' } },
+    { id: bookId(page, 'hdr-ln'), type: 'rect', x: 50, y: 37, width: 334, height: 0.75,
+      style: { backgroundColor: '#cbd5e1', borderWidth: 0 } },
+  ];
+}
+
+/** Footer with page number right-aligned (left side empty for future use). */
+function pageFooter(page: number, pageNum: string): SimpleElement[] {
+  return [
+    { id: bookId(page, 'ft-ln'), type: 'rect', x: 50, y: 578, width: 334, height: 0.75,
+      style: { backgroundColor: '#cbd5e1', borderWidth: 0 } },
+    { id: bookId(page, 'ft-pg'), type: 'text', x: 0, y: 582, width: 384, height: 12,
+      content: pageNum,
+      style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'right' } },
+  ];
+}
+
+function buildBook10Pages(): Page[] {
+
+  // ── TOC entries (pre-computed — kept in sync with heading elements below) ──
+  const tocEntries: Array<{ text: string; level: 1 | 2 | 3; page: number }> = [
+    { text: 'Introduction: The Question Before the Mark',  level: 1, page: 3 },
+    { text: '1.1  Why Design Matters Now',                 level: 2, page: 3 },
+    { text: '1.2  The Shape of an Argument',               level: 2, page: 4 },
+    { text: 'Constraints as Creative Engine',              level: 1, page: 5 },
+    { text: '2.1  The Gift of Limits',                     level: 2, page: 5 },
+    { text: '2.2  Chosen vs. Imposed Constraints',         level: 2, page: 6 },
+    { text: 'Visual Language and Meaning',                 level: 1, page: 7 },
+    { text: '3.1  Reading Without Words',                  level: 2, page: 7 },
+    { text: '3.2  Typography as Thought',                  level: 2, page: 8 },
+    { text: 'Conclusion: The Mark and Its Maker',          level: 1, page: 9 },
+    { text: 'Bibliography',                                level: 1, page: 10 },
+  ];
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // PAGE 1 — Title Page
+  // ────────────────────────────────────────────────────────────────────────────
+  const page1: SimpleElement[] = [
+    // Full-page top band
+    { id: bookId(1, 'top-bg'), type: 'rect', x: 0, y: 0, width: 420, height: 260,
+      style: { backgroundColor: '#1e293b', borderWidth: 0 } },
+    // Left accent strip
+    { id: bookId(1, 'accent'), type: 'rect', x: 0, y: 0, width: 6, height: 260,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    // Book title
+    { id: bookId(1, 'title'), type: 'text', x: 50, y: 70, width: 320, height: 80,
+      content: 'The Architecture of Ideas',
+      style: { fontSize: 30, color: '#ffffff', fontWeight: 'bold', lineHeight: 1.2 } },
+    // Decorative rule
+    { id: bookId(1, 'rule'), type: 'rect', x: 50, y: 162, width: 60, height: 3,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    // Subtitle
+    { id: bookId(1, 'sub'), type: 'text', x: 50, y: 176, width: 320, height: 52,
+      content: 'A Study in Design Thinking, Constraints, and Creative Process',
+      style: { fontSize: 11, color: '#94a3b8', fontStyle: 'italic', lineHeight: 1.45 } },
+    // Author
+    { id: bookId(1, 'author'), type: 'text', x: 50, y: 310, width: 280, height: 18,
+      content: 'Elias Hartmann',
+      style: { fontSize: 14, color: '#1e293b', fontWeight: 'bold' } },
+    { id: bookId(1, 'role'), type: 'text', x: 50, y: 330, width: 280, height: 14,
+      content: 'Professor of Design Theory, Institute of Visual Arts',
+      style: { fontSize: 9, color: '#64748b' } },
+    // Publisher block
+    { id: bookId(1, 'pub-line'), type: 'rect', x: 50, y: 490, width: 334, height: 0.75,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: bookId(1, 'pub'), type: 'text', x: 50, y: 498, width: 334, height: 14,
+      content: 'HELIX PRESS',
+      style: { fontSize: 8, color: '#94a3b8', fontWeight: 'bold', letterSpacing: 3 } },
+    { id: bookId(1, 'year'), type: 'text', x: 50, y: 514, width: 334, height: 12,
+      content: 'Berlin · London · New York  ·  2026',
+      style: { fontSize: 8, color: '#94a3b8' } },
+    // Edition note
+    { id: bookId(1, 'ed'), type: 'text', x: 50, y: 556, width: 334, height: 12,
+      content: 'Second Edition  ·  ISBN 978-3-00-000000-0',
+      style: { fontSize: 7.5, color: '#cbd5e1', textAlign: 'center' } },
+  ];
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // PAGE 2 — Table of Contents
+  // ────────────────────────────────────────────────────────────────────────────
+  const page2: SimpleElement[] = [
+    // Running header
+    ...runningHeader(2, 'Contents'),
+    // Heading
+    { id: bookId(2, 'toc-head'), type: 'text', x: 50, y: 52, width: 334, height: 26,
+      content: 'Contents',
+      headingLevel: 1,
+      style: { fontSize: 20, color: '#1e293b', fontWeight: 'bold' } },
+    { id: bookId(2, 'toc-rule'), type: 'rect', x: 50, y: 82, width: 334, height: 1.5,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    // TOC element — pre-populated with all chapter/section entries
+    { id: bookId(2, 'toc-el'), type: 'toc', x: 50, y: 96, width: 334, height: 420,
+      tocTitle: '',
+      tocShowPageNumbers: true,
+      tocShowLeaderDots: true,
+      tocMinLevel: 1,
+      tocMaxLevel: 2,
+      tocEntries,
+      style: { fontSize: 11, color: '#1e293b' } },
+    ...pageFooter(2, 'ii'),
+  ];
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // PAGE 3 — Chapter 1 opening
+  // ────────────────────────────────────────────────────────────────────────────
+  const page3: SimpleElement[] = [
+    ...runningHeader(3, 'Chapter 1 · Introduction'),
+    // Chapter number label
+    { id: bookId(3, 'ch-lbl'), type: 'text', x: 50, y: 52, width: 100, height: 12,
+      content: 'CHAPTER ONE',
+      style: { fontSize: 7.5, color: '#a855f7', fontWeight: 'bold', letterSpacing: 3 } },
+    // H1 heading
+    { id: bookId(3, 'h1'), type: 'text', x: 50, y: 68, width: 334, height: 52,
+      content: 'Introduction: The Question Before the Mark',
+      headingLevel: 1,
+      style: { fontSize: 19, color: '#1e293b', fontWeight: 'bold', lineHeight: 1.25 } },
+    { id: bookId(3, 'h1-rule'), type: 'rect', x: 50, y: 124, width: 40, height: 2,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    // Opening paragraph
+    { id: bookId(3, 'body1'), type: 'richtext', x: 50, y: 136, width: 334, height: 100,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'Every act of making begins before any mark is placed. It begins with a state of heightened ' +
+        'attention — a way of holding a problem still enough to see it clearly, while remaining ' +
+        'loose enough to be surprised by the answer. This is the condition that distinguishes ' +
+        'design from mere production.</p>' },
+    // H2 heading
+    { id: bookId(3, 'h2a'), type: 'text', x: 50, y: 248, width: 334, height: 18,
+      content: '1.1  Why Design Matters Now',
+      headingLevel: 2,
+      style: { fontSize: 12.5, color: '#1e293b', fontWeight: 'bold' } },
+    { id: bookId(3, 'body2'), type: 'richtext', x: 50, y: 272, width: 334, height: 270,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'In an era of accelerating technological change, design has migrated from the edges of ' +
+        'industrial production to its very centre. The question of how an object or system is ' +
+        'shaped — not merely whether it functions — has become a primary competitive and ' +
+        'cultural concern.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'Design thinking, a methodology once confined to product studios, is now applied to ' +
+        'healthcare delivery, public policy, software architecture, and urban planning. ' +
+        'The vocabulary of design — affordance, iteration, prototype, feedback — has entered ' +
+        'the general language of problem-solving. But popularity brings its own distortions. ' +
+        'When a term is applied to everything, it risks meaning nothing.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'This book argues for a return to first principles: that design is fundamentally a ' +
+        'practice of making decisions under conditions of irreducible uncertainty, and that ' +
+        'the quality of those decisions depends on habits of mind that can be cultivated, ' +
+        'examined and improved.</p>' },
+    ...pageFooter(3, '1'),
+  ];
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // PAGE 4 — Chapter 1 continued
+  // ────────────────────────────────────────────────────────────────────────────
+  const page4: SimpleElement[] = [
+    ...runningHeader(4, 'Chapter 1 · Introduction'),
+    // H2 heading
+    { id: bookId(4, 'h2b'), type: 'text', x: 50, y: 52, width: 334, height: 18,
+      content: '1.2  The Shape of an Argument',
+      headingLevel: 2,
+      style: { fontSize: 12.5, color: '#1e293b', fontWeight: 'bold' } },
+    { id: bookId(4, 'body1'), type: 'richtext', x: 50, y: 76, width: 334, height: 168,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'Arguments, like buildings, have load-bearing elements and decorative surfaces. ' +
+        'The load-bearing elements must be placed first, and they determine what the finished ' +
+        'structure can support. This book is organised around three such load-bearing ideas: ' +
+        'that constraints are generative rather than restrictive; that visual language carries ' +
+        'meaning independently of verbal content; and that the designer\'s primary instrument ' +
+        'is attention, not skill.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'Each of the three central chapters takes one of these ideas and examines it from ' +
+        'multiple angles: historical, cognitive, practical. The intention is not to arrive at ' +
+        'a final answer but to sharpen the question.</p>' },
+    // Pull quote
+    { id: bookId(4, 'pq-bar'), type: 'rect', x: 50, y: 256, width: 3, height: 60,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    { id: bookId(4, 'pq'), type: 'text', x: 62, y: 260, width: 322, height: 52,
+      content: '"The load-bearing elements must be placed first — they determine what the finished structure can support."',
+      style: { fontSize: 10, color: '#4c1d95', fontStyle: 'italic', lineHeight: 1.5 } },
+    { id: bookId(4, 'body2'), type: 'richtext', x: 50, y: 330, width: 334, height: 210,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'The reader will notice that this book practices what it preaches. The chapter structure ' +
+        'is not a container for content — it is itself an argument about how ideas grow when ' +
+        'they are placed in productive tension with one another. No chapter can be fully ' +
+        'understood in isolation; each loops back to revise the one that preceded it.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'A note on method: the examples drawn upon here span graphic design, architecture, ' +
+        'music composition, mathematics and cognitive psychology. This promiscuity is deliberate. ' +
+        'Design thinking is not a discipline but a disposition, and dispositions are best ' +
+        'illuminated by the widest possible range of instances.</p>' },
+    ...pageFooter(4, '2'),
+  ];
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // PAGE 5 — Chapter 2 opening
+  // ────────────────────────────────────────────────────────────────────────────
+  const page5: SimpleElement[] = [
+    ...runningHeader(5, 'Chapter 2 · Constraints'),
+    { id: bookId(5, 'ch-lbl'), type: 'text', x: 50, y: 52, width: 100, height: 12,
+      content: 'CHAPTER TWO',
+      style: { fontSize: 7.5, color: '#a855f7', fontWeight: 'bold', letterSpacing: 3 } },
+    { id: bookId(5, 'h1'), type: 'text', x: 50, y: 68, width: 334, height: 36,
+      content: 'Constraints as Creative Engine',
+      headingLevel: 1,
+      style: { fontSize: 19, color: '#1e293b', fontWeight: 'bold', lineHeight: 1.25 } },
+    { id: bookId(5, 'h1-rule'), type: 'rect', x: 50, y: 108, width: 40, height: 2,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    { id: bookId(5, 'body1'), type: 'richtext', x: 50, y: 120, width: 334, height: 114,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'A blank canvas is, paradoxically, the most difficult surface to work on. Without limits, ' +
+        'the hand has no friction against which to push. Every act of creation is therefore also ' +
+        'an act of choosing what to exclude — what palette to deny, which proportions to ignore, ' +
+        'which voices to silence. Constraints are not the enemy of originality; they are its ' +
+        'necessary condition.</p>' },
+    // H2 heading
+    { id: bookId(5, 'h2a'), type: 'text', x: 50, y: 246, width: 334, height: 18,
+      content: '2.1  The Gift of Limits',
+      headingLevel: 2,
+      style: { fontSize: 12.5, color: '#1e293b', fontWeight: 'bold' } },
+    { id: bookId(5, 'body2'), type: 'richtext', x: 50, y: 270, width: 334, height: 270,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'Experienced designers speak of the gift of constraints not as a consolation but as a ' +
+        'productive truth. The typographer working within a three-column grid discovers relationships ' +
+        'between type and white space that unrestricted freedom would never reveal. The architect ' +
+        'who must preserve a load-bearing wall finds a passage that becomes the building\'s most ' +
+        'memorable feature.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'This is not merely a romantic observation. Cognitive science confirms what practitioners have ' +
+        'long known: the prefrontal cortex performs better when working memory is partially occupied ' +
+        'by a stable boundary condition. The jazz musician improvising within a chord structure is not ' +
+        'less free than the one who plays atonally — the harmonic scaffold releases rather than ' +
+        'restricts the melodic imagination.</p>' },
+    ...pageFooter(5, '3'),
+  ];
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // PAGE 6 — Chapter 2 continued
+  // ────────────────────────────────────────────────────────────────────────────
+  const page6: SimpleElement[] = [
+    ...runningHeader(6, 'Chapter 2 · Constraints'),
+    { id: bookId(6, 'h2b'), type: 'text', x: 50, y: 52, width: 334, height: 18,
+      content: '2.2  Chosen vs. Imposed Constraints',
+      headingLevel: 2,
+      style: { fontSize: 12.5, color: '#1e293b', fontWeight: 'bold' } },
+    { id: bookId(6, 'body1'), type: 'richtext', x: 50, y: 76, width: 334, height: 156,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'A crucial distinction exists between constraints that are externally imposed — by budget, ' +
+        'material properties, client requirements, or regulatory frameworks — and those that are ' +
+        'freely chosen by the designer as intensifiers of the problem. Both types are productive, ' +
+        'but they operate differently.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'Imposed constraints define the solution space; chosen constraints concentrate creative ' +
+        'energy within it. The designer who decides, without external compulsion, to use only ' +
+        'two typefaces, or to restrict a palette to three colours, is not limiting themselves — ' +
+        'they are creating a test of resourcefulness that the unconstrained version of the project ' +
+        'could never provide.</p>' },
+    // Pull quote
+    { id: bookId(6, 'pq-bar'), type: 'rect', x: 50, y: 244, width: 3, height: 60,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    { id: bookId(6, 'pq'), type: 'text', x: 62, y: 248, width: 322, height: 52,
+      content: '"Chosen constraints concentrate creative energy. They are a test of resourcefulness."',
+      style: { fontSize: 10, color: '#4c1d95', fontStyle: 'italic', lineHeight: 1.5 } },
+    { id: bookId(6, 'body2'), type: 'richtext', x: 50, y: 318, width: 334, height: 222,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'The practical implication is a method: before any mark is made, enumerate the real ' +
+        'constraints honestly, then add chosen constraints that sharpen the challenge. The second ' +
+        'category may feel artificial at first, but it is the most reliable known technique for ' +
+        'generating forms that could not have been anticipated at the outset.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'History supports this account. Oulipo, the French literary movement, produced some of the ' +
+        'twentieth century\'s most inventive writing by applying arbitrary formal constraints — ' +
+        'novels written without the letter \'e\', poems whose line lengths follow the Fibonacci sequence. ' +
+        'The constraint, in each case, was not the subject of the work but the engine that drove it.</p>' },
+    ...pageFooter(6, '4'),
+  ];
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // PAGE 7 — Chapter 3 opening
+  // ────────────────────────────────────────────────────────────────────────────
+  const page7: SimpleElement[] = [
+    ...runningHeader(7, 'Chapter 3 · Visual Language'),
+    { id: bookId(7, 'ch-lbl'), type: 'text', x: 50, y: 52, width: 100, height: 12,
+      content: 'CHAPTER THREE',
+      style: { fontSize: 7.5, color: '#a855f7', fontWeight: 'bold', letterSpacing: 3 } },
+    { id: bookId(7, 'h1'), type: 'text', x: 50, y: 68, width: 334, height: 36,
+      content: 'Visual Language and Meaning',
+      headingLevel: 1,
+      style: { fontSize: 19, color: '#1e293b', fontWeight: 'bold', lineHeight: 1.25 } },
+    { id: bookId(7, 'h1-rule'), type: 'rect', x: 50, y: 108, width: 40, height: 2,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    { id: bookId(7, 'body1'), type: 'richtext', x: 50, y: 120, width: 334, height: 114,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'Before there were alphabets there were marks: lines pressed into clay, pigment applied ' +
+        'to stone, arrangements of objects that communicated relationship and intention without ' +
+        'recourse to sound. Visual language is not a transcription of verbal language — it is an ' +
+        'independent system with its own grammar, its own syntax, its own capacity for ambiguity ' +
+        'and precision.</p>' },
+    { id: bookId(7, 'h2a'), type: 'text', x: 50, y: 246, width: 334, height: 18,
+      content: '3.1  Reading Without Words',
+      headingLevel: 2,
+      style: { fontSize: 12.5, color: '#1e293b', fontWeight: 'bold' } },
+    { id: bookId(7, 'body2'), type: 'richtext', x: 50, y: 270, width: 334, height: 270,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'We read images differently from the way we read text. The eye moves across a visual ' +
+        'field in saccades — rapid jumps — rather than the left-to-right sweep that alphabetic ' +
+        'literacy imposes. Attention is drawn first to areas of high contrast, then to faces, ' +
+        'then to motion (or its implication), and only then to regions of sustained complexity ' +
+        'that reward slower examination.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'The designer who understands this is not manipulating the viewer but collaborating with ' +
+        'the biology of vision. Every placement decision — where a headline sits on a page, ' +
+        'which colour carries the call to action, how much white space separates one element ' +
+        'from another — is a prediction about where the eye will go and what it will make ' +
+        'of what it finds there.</p>' },
+    ...pageFooter(7, '5'),
+  ];
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // PAGE 8 — Chapter 3 continued
+  // ────────────────────────────────────────────────────────────────────────────
+  const page8: SimpleElement[] = [
+    ...runningHeader(8, 'Chapter 3 · Visual Language'),
+    { id: bookId(8, 'h2b'), type: 'text', x: 50, y: 52, width: 334, height: 18,
+      content: '3.2  Typography as Thought',
+      headingLevel: 2,
+      style: { fontSize: 12.5, color: '#1e293b', fontWeight: 'bold' } },
+    { id: bookId(8, 'body1'), type: 'richtext', x: 50, y: 76, width: 334, height: 180,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'Typography is not decoration applied to language — it is language made visible. ' +
+        'The choice of typeface, size, weight, tracking, leading and measure each carries ' +
+        'semantic content that interacts with, reinforces, or contradicts the meaning of the words ' +
+        'it renders. A ransom note set in Garamond becomes sinister precisely because of the ' +
+        'mismatch between form and content.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'The finest typographers — Tschichold, Bringhurst, Müller-Brockmann — describe their ' +
+        'work not as aesthetic arrangement but as a form of thinking made visible. The grid, ' +
+        'for Müller-Brockmann, was not a cage but a set of relationships that expressed the ' +
+        'underlying logic of the content it organised.</p>' },
+    // Summary box
+    { id: bookId(8, 'box-bg'), type: 'rect', x: 50, y: 268, width: 334, height: 80,
+      style: { backgroundColor: '#faf5ff', borderWidth: 1, borderColor: '#d8b4fe', borderRadius: 4 } },
+    { id: bookId(8, 'box-head'), type: 'text', x: 62, y: 278, width: 310, height: 14,
+      content: 'Key Principles of Visual Grammar',
+      style: { fontSize: 9, color: '#6b21a8', fontWeight: 'bold' } },
+    { id: bookId(8, 'box-body'), type: 'richtext', x: 62, y: 294, width: 310, height: 48,
+      htmlContent:
+        '<p style="font-size:8.5px;line-height:1.6;color:#4c1d95">' +
+        '· Contrast directs attention · Proximity implies relationship · Alignment creates order ' +
+        '· Repetition builds coherence · White space is active, not empty</p>' },
+    { id: bookId(8, 'body2'), type: 'richtext', x: 50, y: 362, width: 334, height: 178,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'This chapter has argued that visual language is not subordinate to verbal language but ' +
+        'parallel to it — capable of expressing things that words can only approximate. ' +
+        'The designer\'s task is to become fluent in both systems and to know, for each ' +
+        'communicative situation, which system should carry the primary load.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'Fluency, in this context, means more than technical proficiency. It means having ' +
+        'internalised the grammar deeply enough to break its rules productively — to know ' +
+        'when a ransom-note typeface, or a deliberately misaligned element, or an unexpected ' +
+        'void will create exactly the meaning the situation requires.</p>' },
+    ...pageFooter(8, '6'),
+  ];
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // PAGE 9 — Conclusion
+  // ────────────────────────────────────────────────────────────────────────────
+  const page9: SimpleElement[] = [
+    ...runningHeader(9, 'Conclusion'),
+    { id: bookId(9, 'ch-lbl'), type: 'text', x: 50, y: 52, width: 100, height: 12,
+      content: 'CONCLUSION',
+      style: { fontSize: 7.5, color: '#a855f7', fontWeight: 'bold', letterSpacing: 3 } },
+    { id: bookId(9, 'h1'), type: 'text', x: 50, y: 68, width: 334, height: 52,
+      content: 'Conclusion: The Mark and Its Maker',
+      headingLevel: 1,
+      style: { fontSize: 19, color: '#1e293b', fontWeight: 'bold', lineHeight: 1.25 } },
+    { id: bookId(9, 'h1-rule'), type: 'rect', x: 50, y: 124, width: 40, height: 2,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    { id: bookId(9, 'body1'), type: 'richtext', x: 50, y: 136, width: 334, height: 400,
+      htmlContent:
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify">' +
+        'We began with a question that cannot yet be answered, and we end in the same place — ' +
+        'though the question has changed shape. What began as "what is design?" has become ' +
+        '"what kind of attention does design require?" And this, it turns out, is a question ' +
+        'that can be practised rather than merely answered.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'The three central arguments of this book — constraints as generative, visual language ' +
+        'as autonomous, attention as the primary instrument — converge on a single claim: that ' +
+        'design is a discipline of the will, not the hand. The hand executes what the will has ' +
+        'prepared. Preparing the will means cultivating the capacity to stay with a problem ' +
+        'long enough for it to become interesting, and then interesting in a different way, ' +
+        'and then interesting in a way that suggests its own solution.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'This is not a comfortable description of creative work. It implies that the designer ' +
+        'cannot simply produce on demand — that there are conditions of attention that must be ' +
+        'established before production becomes possible. It implies, further, that the education ' +
+        'of a designer must include the cultivation of those conditions, not merely the ' +
+        'transmission of technical skills.</p>' +
+        '<p style="font-size:10.5px;line-height:1.75;color:#334155;text-align:justify;margin-top:9px">' +
+        'What those conditions look like in practice will differ from person to person, ' +
+        'discipline to discipline, era to era. But their common feature, across all cases, ' +
+        'is a quality of sustained, non-grasping interest in the problem at hand — an interest ' +
+        'that is willing to be surprised, willing to be wrong, and willing to begin again ' +
+        'when the first attempt reveals what the problem actually was.</p>' },
+    ...pageFooter(9, '7'),
+  ];
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // PAGE 10 — Bibliography
+  // ────────────────────────────────────────────────────────────────────────────
+  const page10: SimpleElement[] = [
+    ...runningHeader(10, 'Bibliography'),
+    { id: bookId(10, 'h1'), type: 'text', x: 50, y: 52, width: 334, height: 26,
+      content: 'Bibliography',
+      headingLevel: 1,
+      style: { fontSize: 20, color: '#1e293b', fontWeight: 'bold' } },
+    { id: bookId(10, 'rule'), type: 'rect', x: 50, y: 82, width: 334, height: 1.5,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    { id: bookId(10, 'refs'), type: 'richtext', x: 50, y: 96, width: 334, height: 458,
+      htmlContent:
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Alexander, C., Ishikawa, S., &amp; Silverstein, M. (1977). <em>A Pattern Language</em>. Oxford University Press.</p>' +
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Arnheim, R. (1974). <em>Art and Visual Perception</em> (rev. ed.). University of California Press.</p>' +
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Bringhurst, R. (2004). <em>The Elements of Typographic Style</em> (3rd ed.). Hartley &amp; Marks.</p>' +
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Cross, N. (2011). <em>Design Thinking: Understanding How Designers Think and Work</em>. Berg Publishers.</p>' +
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Csikszentmihalyi, M. (1996). <em>Creativity: Flow and the Psychology of Discovery and Invention</em>. HarperCollins.</p>' +
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Dorst, K. (2015). <em>Frame Innovation: Create New Thinking by Design</em>. MIT Press.</p>' +
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Kahneman, D. (2011). <em>Thinking, Fast and Slow</em>. Farrar, Straus and Giroux.</p>' +
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Lupton, E. (Ed.). (2011). <em>Graphic Design Thinking: Beyond Brainstorming</em>. Princeton Architectural Press.</p>' +
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Müller-Brockmann, J. (1981). <em>Grid Systems in Graphic Design</em>. Niggli Verlag.</p>' +
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Norman, D. A. (2013). <em>The Design of Everyday Things</em> (rev. ed.). Basic Books.</p>' +
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155;margin-bottom:6px">' +
+        'Schön, D. A. (1983). <em>The Reflective Practitioner</em>. Basic Books.</p>' +
+        '<p style="font-size:9.5px;line-height:1.75;color:#334155">' +
+        'Tufte, E. R. (2001). <em>The Visual Display of Quantitative Information</em> (2nd ed.). Graphics Press.</p>' },
+    ...pageFooter(10, '8'),
+  ];
+
+  return [
+    { id: 'book10-p1',  elements: page1  },
+    { id: 'book10-p2',  elements: page2  },
+    { id: 'book10-p3',  elements: page3  },
+    { id: 'book10-p4',  elements: page4  },
+    { id: 'book10-p5',  elements: page5  },
+    { id: 'book10-p6',  elements: page6  },
+    { id: 'book10-p7',  elements: page7  },
+    { id: 'book10-p8',  elements: page8  },
+    { id: 'book10-p9',  elements: page9  },
+    { id: 'book10-p10', elements: page10 },
+  ];
+}

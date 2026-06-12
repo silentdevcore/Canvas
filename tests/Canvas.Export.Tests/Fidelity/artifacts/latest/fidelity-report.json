@@ -17,9 +17,9 @@
     "ConvertedPdfGenerated": true,
     "WidthDriftPt": 0.3039370078739694,
     "HeightDriftPt": 0.11023622047196113,
-    "PixelDiffRatio": 0.102536,
-    "FidelityScore": 89.74640000000001,
-    "Notes": "High visual diff ratio: 0,1025"
+    "PixelDiffRatio": 0.104749,
+    "FidelityScore": 89.52510000000001,
+    "Notes": "High visual diff ratio: 0,1047"
   },
   {
     "Sample": "dense-table-ledger",
@@ -28,9 +28,9 @@
     "ConvertedPdfGenerated": true,
     "WidthDriftPt": 0.3039370078739694,
     "HeightDriftPt": 0.11023622047196113,
-    "PixelDiffRatio": 0.144568,
-    "FidelityScore": 85.5432,
-    "Notes": "High visual diff ratio: 0,1446"
+    "PixelDiffRatio": 0.144123,
+    "FidelityScore": 85.5877,
+    "Notes": "High visual diff ratio: 0,1441"
   },
   {
     "Sample": "form-elements",
@@ -39,9 +39,9 @@
     "ConvertedPdfGenerated": true,
     "WidthDriftPt": 0.3039370078739694,
     "HeightDriftPt": 0.11023622047196113,
-    "PixelDiffRatio": 0.0654333,
-    "FidelityScore": 93.45667,
-    "Notes": "Visual diff ratio: 0,0654"
+    "PixelDiffRatio": 0.0784719,
+    "FidelityScore": 92.15281,
+    "Notes": "Visual diff ratio: 0,0785"
   },
   {
     "Sample": "image-and-caption",
@@ -61,9 +61,9 @@
     "ConvertedPdfGenerated": true,
     "WidthDriftPt": 0.3039370078739694,
     "HeightDriftPt": 0.11023622047196113,
-    "PixelDiffRatio": 0.116965,
-    "FidelityScore": 88.3035,
-    "Notes": "High visual diff ratio: 0,117"
+    "PixelDiffRatio": 0.114413,
+    "FidelityScore": 88.5587,
+    "Notes": "High visual diff ratio: 0,1144"
   },
   {
     "Sample": "landscape-section",
@@ -72,9 +72,9 @@
     "ConvertedPdfGenerated": true,
     "WidthDriftPt": 0.11023622047196113,
     "HeightDriftPt": 0.3039370078739694,
-    "PixelDiffRatio": 0.105551,
-    "FidelityScore": 89.4449,
-    "Notes": "High visual diff ratio: 0,1056"
+    "PixelDiffRatio": 0.10433,
+    "FidelityScore": 89.567,
+    "Notes": "High visual diff ratio: 0,1043"
   },
   {
     "Sample": "links-and-note",
@@ -83,9 +83,9 @@
     "ConvertedPdfGenerated": true,
     "WidthDriftPt": 0.3039370078739694,
     "HeightDriftPt": 0.11023622047196113,
-    "PixelDiffRatio": 0.0891716,
-    "FidelityScore": 91.08284,
-    "Notes": "High visual diff ratio: 0,0892"
+    "PixelDiffRatio": 0.0914794,
+    "FidelityScore": 90.85206,
+    "Notes": "High visual diff ratio: 0,0915"
   },
   {
     "Sample": "multipage-shared-elements",
@@ -94,9 +94,9 @@
     "ConvertedPdfGenerated": true,
     "WidthDriftPt": 0.3039370078739694,
     "HeightDriftPt": 0.11023622047196113,
-    "PixelDiffRatio": 0.052742,
-    "FidelityScore": 94.7258,
-    "Notes": "Visual diff ratio: 0,0527"
+    "PixelDiffRatio": 0.0630876,
+    "FidelityScore": 93.69124,
+    "Notes": "Visual diff ratio: 0,0631"
   },
   {
     "Sample": "positioned-overlap-complex",
@@ -105,9 +105,9 @@
     "ConvertedPdfGenerated": true,
     "WidthDriftPt": 0.3039370078739694,
     "HeightDriftPt": 0.11023622047196113,
-    "PixelDiffRatio": 0.1304,
-    "FidelityScore": 86.96000000000001,
-    "Notes": "High visual diff ratio: 0,1304"
+    "PixelDiffRatio": 0.135574,
+    "FidelityScore": 86.4426,
+    "Notes": "High visual diff ratio: 0,1356"
   },
   {
     "Sample": "richtext-link-list",
@@ -116,9 +116,9 @@
     "ConvertedPdfGenerated": true,
     "WidthDriftPt": 0.3039370078739694,
     "HeightDriftPt": 0.11023622047196113,
-    "PixelDiffRatio": 0.0952843,
-    "FidelityScore": 90.47157,
-    "Notes": "High visual diff ratio: 0,0953"
+    "PixelDiffRatio": 0.0982275,
+    "FidelityScore": 90.17725,
+    "Notes": "High visual diff ratio: 0,0982"
   },
   {
     "Sample": "text-table-basic",
@@ -127,9 +127,9 @@
     "ConvertedPdfGenerated": true,
     "WidthDriftPt": 0.3039370078739694,
     "HeightDriftPt": 0.11023622047196113,
-    "PixelDiffRatio": 0.0996662,
-    "FidelityScore": 90.03338,
-    "Notes": "High visual diff ratio: 0,0997"
+    "PixelDiffRatio": 0.0953097,
+    "FidelityScore": 90.46902999999999,
+    "Notes": "High visual diff ratio: 0,0953"
   },
   {
     "Sample": "wide-table-report",
@@ -138,8 +138,8 @@
     "ConvertedPdfGenerated": true,
     "WidthDriftPt": 0.3039370078739694,
     "HeightDriftPt": 0.11023622047196113,
-    "PixelDiffRatio": 0.111296,
-    "FidelityScore": 88.87039999999999,
-    "Notes": "High visual diff ratio: 0,1113"
+    "PixelDiffRatio": 0.109512,
+    "FidelityScore": 89.0488,
+    "Notes": "High visual diff ratio: 0,1095"
   }
 ]
