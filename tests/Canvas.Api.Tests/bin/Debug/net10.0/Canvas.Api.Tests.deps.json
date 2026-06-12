@@ -1784,6 +1784,22 @@
           "Canvas.Migration.DevExpressPdf.dll": {}
         }
       },
+      "Canvas.Migration.DevExpressReport/1.0.0": {
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.Migration.Abstractions": "1.0.0",
+          "Microsoft.CodeAnalysis.CSharp": "5.3.0"
+        },
+        "runtime": {
+          "Canvas.Migration.DevExpressReport.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        },
+        "compile": {
+          "Canvas.Migration.DevExpressReport.dll": {}
+        }
+      },
       "Canvas.Migration.DsPdf/1.0.0": {
         "dependencies": {
           "Canvas.Migration.Abstractions": "1.0.0",
@@ -1798,6 +1814,21 @@
         },
         "compile": {
           "Canvas.Migration.DsPdf.dll": {}
+        }
+      },
+      "Canvas.Migration.FastReport/1.0.0": {
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.Migration.Abstractions": "1.0.0"
+        },
+        "runtime": {
+          "Canvas.Migration.FastReport.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        },
+        "compile": {
+          "Canvas.Migration.FastReport.dll": {}
         }
       },
       "Canvas.Migration.FoxitPdf/1.0.0": {
@@ -1928,6 +1959,21 @@
           "Canvas.Migration.PdfToolsToolbox.dll": {}
         }
       },
+      "Canvas.Migration.Rdl/1.0.0": {
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.Migration.Abstractions": "1.0.0"
+        },
+        "runtime": {
+          "Canvas.Migration.Rdl.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        },
+        "compile": {
+          "Canvas.Migration.Rdl.dll": {}
+        }
+      },
       "Canvas.Migration.Roslyn/1.0.0": {
         "dependencies": {
           "Canvas.Migration.Abstractions": "1.0.0",
@@ -1941,6 +1987,21 @@
         },
         "compile": {
           "Canvas.Migration.Roslyn.dll": {}
+        }
+      },
+      "Canvas.Migration.Rpx/1.0.0": {
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.Migration.Abstractions": "1.0.0"
+        },
+        "runtime": {
+          "Canvas.Migration.Rpx.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        },
+        "compile": {
+          "Canvas.Migration.Rpx.dll": {}
         }
       },
       "Canvas.Migration.SpirePdf/1.0.0": {
@@ -1975,6 +2036,21 @@
           "Canvas.Migration.SyncfusionPdf.dll": {}
         }
       },
+      "Canvas.Migration.Telerik/1.0.0": {
+        "dependencies": {
+          "Canvas.Core": "1.0.0",
+          "Canvas.Migration.Abstractions": "1.0.0"
+        },
+        "runtime": {
+          "Canvas.Migration.Telerik.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        },
+        "compile": {
+          "Canvas.Migration.Telerik.dll": {}
+        }
+      },
       "Canvas.WebApi/1.0.0": {
         "dependencies": {
           "Canvas.Application": "1.0.0",
@@ -1998,7 +2074,9 @@
           "Canvas.Migration.Apryse": "1.0.0",
           "Canvas.Migration.AsposePdf": "1.0.0",
           "Canvas.Migration.DevExpressPdf": "1.0.0",
+          "Canvas.Migration.DevExpressReport": "1.0.0",
           "Canvas.Migration.DsPdf": "1.0.0",
+          "Canvas.Migration.FastReport": "1.0.0",
           "Canvas.Migration.FoxitPdf": "1.0.0",
           "Canvas.Migration.GemBoxPdf": "1.0.0",
           "Canvas.Migration.IronPdf": "1.0.0",
@@ -2006,8 +2084,11 @@
           "Canvas.Migration.PdfKitNet": "1.0.0",
           "Canvas.Migration.PdfTools": "1.0.0",
           "Canvas.Migration.PdfToolsToolbox": "1.0.0",
+          "Canvas.Migration.Rdl": "1.0.0",
+          "Canvas.Migration.Rpx": "1.0.0",
           "Canvas.Migration.SpirePdf": "1.0.0",
           "Canvas.Migration.SyncfusionPdf": "1.0.0",
+          "Canvas.Migration.Telerik": "1.0.0",
           "Canvas.Migration.iText7": "1.0.0",
           "Microsoft.AspNetCore.OpenApi": "10.0.5",
           "Microsoft.CodeAnalysis.CSharp.Scripting": "5.3.0",
@@ -4568,7 +4649,17 @@
       "serviceable": false,
       "sha512": ""
     },
+    "Canvas.Migration.DevExpressReport/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
     "Canvas.Migration.DsPdf/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Canvas.Migration.FastReport/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -4613,7 +4704,17 @@
       "serviceable": false,
       "sha512": ""
     },
+    "Canvas.Migration.Rdl/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
     "Canvas.Migration.Roslyn/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Canvas.Migration.Rpx/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -4624,6 +4725,11 @@
       "sha512": ""
     },
     "Canvas.Migration.SyncfusionPdf/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Canvas.Migration.Telerik/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

@@ -5,7 +5,7 @@ Tracks which report-designer / report-file formats can be opened as **editable C
 already ship (`Canvas.Migration.*Pdf`); the report-designer vendors among them are the natural
 report-to-design targets.
 
-Legend — **Done?**: ✅ shipped · 🔜 recommended next · ❌ not started · — out of scope (no report designer)
+Legend — **Done?**: ✅ shipped · 🔜 recommended next · ❌ not started · ⛔ blocked (not feasible here) · — out of scope (no report designer)
 
 ## Priority 1 — Vendors already in our migration set
 
@@ -36,9 +36,9 @@ Legend — **Done?**: ✅ shipped · 🔜 recommended next · ❌ not started ·
 | --- | --- | --- | --- | --- |
 | FastReport .NET | Fast Reports Inc. | `.frx` (plain XML, banded) | ReportTitle/PageHeader/DataBand/…/PageFooter; TextObject/Line/Shape/Picture/Barcode/CheckBox; `[Source.Column]` bindings | ✅ `Canvas.Migration.FastReport` — see [Designer-Migration-FastReport.md](Designer-Migration-FastReport.md) |
 | Telerik Reporting | Progress (Telerik) | `.trdx` (XML) / `.trdp` (zip) | Sections; TextBox/HtmlTextBox/PictureBox/Shape/Barcode/Panel; StyleSheet styles; `=Fields.X` bindings | ✅ `Canvas.Migration.Telerik` — see [Designer-Migration-Telerik.md](Designer-Migration-Telerik.md) |
-| Stimulsoft Reports | Stimulsoft | `.mrt` (XML or JSON, banded) | Bands + components; tables/charts/barcodes | ❌ |
-| JasperReports | Cloud Software Group (Jaspersoft) | `.jrxml` (XML, banded) | title/pageHeader/detail/…; staticText/textField/image/table/chart | ❌ |
-| Crystal Reports | SAP | `.rpt` (binary, proprietary) | Banded; binary format — hard to parse, low priority | ❌ |
+| Stimulsoft Reports | Stimulsoft | `.mrt` (XML `StiSerializer`; JSON is V2) | Bands + Text/Image/Line/Rect/BarCode/Panel; `{Source.Field}` bindings | ✅ `Canvas.Migration.Stimulsoft` — see [Designer-Migration-Stimulsoft.md](Designer-Migration-Stimulsoft.md) |
+| JasperReports | Cloud Software Group (Jaspersoft) | `.jrxml` (XML, banded) | title/pageHeader/detail/…; staticText/textField/line/rectangle/ellipse/image/frame; named styles; `$F{}` bindings | ✅ `Canvas.Migration.JasperReports` — see [Designer-Migration-JasperReports.md](Designer-Migration-JasperReports.md) |
+| Crystal Reports | SAP | `.rpt` (binary, proprietary) | Banded; **proprietary binary OLE format — no open parser, needs the Windows-only SAP SDK** | ⛔ Blocked — see [Designer-Migration-Crystal.md](Designer-Migration-Crystal.md) |
 | List & Label | combit | `.lst` / `.lsr` | Banded report container | ❌ |
 | ActiveReports JS | MESCIUS | JSON report model | Web/JS designer (distinct from `.rdlx`/`.rpx`) | ❌ |
 

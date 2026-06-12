@@ -11,9 +11,12 @@ const RDL_REPORT_ID = 'RdlReport';
 const RPX_REPORT_ID = 'RpxReport';
 const FRX_REPORT_ID = 'FrxReport';
 const TRDX_REPORT_ID = 'TrdxReport';
+const JRXML_REPORT_ID = 'JrxmlReport';
+const MRT_REPORT_ID = 'MrtReport';
 // All report flows post to the same /report-to-design endpoint (the backend auto-detects the format).
 const isReportDesign = (id: string) =>
-  id === REPORT_ID || id === RDL_REPORT_ID || id === RPX_REPORT_ID || id === FRX_REPORT_ID || id === TRDX_REPORT_ID;
+  id === REPORT_ID || id === RDL_REPORT_ID || id === RPX_REPORT_ID || id === FRX_REPORT_ID
+  || id === TRDX_REPORT_ID || id === JRXML_REPORT_ID || id === MRT_REPORT_ID;
 
 interface Framework {
   id: string;
@@ -529,12 +532,90 @@ const TRDX_REPORT_FRAMEWORK: Framework = {
   description: 'Converts a Telerik Reporting report (.trdx) into an editable Canvas design — sections flattened to absolute positions (Unit strings → points), named StyleSheet styles resolved, page header/footer → shared elements, =Fields.X → binding. Open the result in the visual designer.',
 };
 
+const JRXML_REPORT_EXAMPLE = `<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Invoice"
+    pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+  <style name="Header" forecolor="#0066CC"><font fontName="Arial" size="20" isBold="true"/></style>
+  <field name="customerName" class="java.lang.String"/>
+  <title>
+    <band height="40">
+      <staticText>
+        <reportElement key="title" x="0" y="0" width="555" height="30" style="Header"/>
+        <textElement textAlignment="Center"/>
+        <text><![CDATA[INVOICE]]></text>
+      </staticText>
+    </band>
+  </title>
+  <detail>
+    <band height="40">
+      <textField>
+        <reportElement key="customer" x="0" y="0" width="200" height="20"/>
+        <textElement/>
+        <textFieldExpression><![CDATA[$F{customerName}]]></textFieldExpression>
+      </textField>
+      <line>
+        <reportElement key="rule" x="0" y="25" width="555" height="1" forecolor="#808080"/>
+        <graphicElement><pen lineWidth="2"/></graphicElement>
+      </line>
+    </band>
+  </detail>
+  <pageFooter>
+    <band height="20">
+      <staticText><reportElement key="pageinfo" x="500" y="0" width="55" height="20"/><text><![CDATA[Page 1]]></text></staticText>
+    </band>
+  </pageFooter>
+</jasperReport>`;
+
+const JRXML_REPORT_FRAMEWORK: Framework = {
+  id: JRXML_REPORT_ID,
+  name: 'JasperReports (.jrxml)',
+  status: 'designer',
+  description: 'Converts a JasperReports / Jaspersoft Studio report (.jrxml) into an editable Canvas design — bands flattened to absolute positions (points, no scaling), named styles resolved, page header/footer → shared elements, $F{field} → binding. Open the result in the visual designer.',
+};
+
+const MRT_REPORT_EXAMPLE = `<?xml version="1.0" encoding="utf-8"?>
+<StiSerializer version="1.02" type="Net" application="StiReport">
+  <ReportName>Invoice</ReportName>
+  <Pages isList="true" count="1">
+    <Page1 type="Page"><PaperSize>A4</PaperSize>
+      <Components isList="true">
+        <ReportTitleBand1 type="ReportTitleBand"><ClientRectangle>0,20,749,40</ClientRectangle>
+          <Components isList="true">
+            <Text1 type="Text"><ClientRectangle>0,0,749,40</ClientRectangle><Font>Arial,20,Bold,Point,False,0</Font>
+              <HorAlignment>Center</HorAlignment><Text>INVOICE</Text><TextBrush>[0:102:204]</TextBrush><Name>Text1</Name></Text1>
+          </Components><Name>ReportTitleBand1</Name>
+        </ReportTitleBand1>
+        <DataBand1 type="DataBand"><ClientRectangle>0,80,749,40</ClientRectangle>
+          <Components isList="true">
+            <Text2 type="Text"><ClientRectangle>0,0,300,20</ClientRectangle><Text>{Customers.CompanyName}</Text><Name>Text2</Name></Text2>
+            <Line1 type="HorizontalLinePrimitive"><ClientRectangle>0,30,749,1</ClientRectangle><Color>[128:128:128]</Color><Name>Line1</Name></Line1>
+          </Components><Name>DataBand1</Name>
+        </DataBand1>
+        <PageFooterBand1 type="PageFooterBand"><ClientRectangle>0,1071,749,20</ClientRectangle>
+          <Components isList="true">
+            <Text3 type="Text"><ClientRectangle>600,0,149,20</ClientRectangle><Text>{PageNofM}</Text><Name>Text3</Name></Text3>
+          </Components><Name>PageFooterBand1</Name>
+        </PageFooterBand1>
+      </Components><Name>Page1</Name>
+    </Page1>
+  </Pages>
+</StiSerializer>`;
+
+const MRT_REPORT_FRAMEWORK: Framework = {
+  id: MRT_REPORT_ID,
+  name: 'Stimulsoft (.mrt)',
+  status: 'designer',
+  description: 'Converts a Stimulsoft Reports report (.mrt, StiSerializer XML) into an editable Canvas design — bands with explicit positions flattened (hundredths-inch → points), page header/footer → shared elements, {Source.Field} → binding. Open the result in the visual designer.',
+};
+
 const EXAMPLES: Record<string, string> = {
   [REPORT_ID]: DEVEXPRESS_REPORT_EXAMPLE,
   [RDL_REPORT_ID]: RDL_REPORT_EXAMPLE,
   [RPX_REPORT_ID]: RPX_REPORT_EXAMPLE,
   [FRX_REPORT_ID]: FRX_REPORT_EXAMPLE,
   [TRDX_REPORT_ID]: TRDX_REPORT_EXAMPLE,
+  [JRXML_REPORT_ID]: JRXML_REPORT_EXAMPLE,
+  [MRT_REPORT_ID]: MRT_REPORT_EXAMPLE,
   Syncfusion: SYNCFUSION_EXAMPLE,
   iText7: ITEXT7_EXAMPLE,
   Apryse: APRYSE_EXAMPLE,
@@ -559,9 +640,17 @@ interface ConversionSummary {
   totalDiagnostics: number;
 }
 
-const MigrationsPage: React.FC = () => {
-  const [frameworks, setFrameworks] = useState<Framework[]>([...FRAMEWORKS_FALLBACK, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK]);
-  const [selectedId, setSelectedId] = useState('Syncfusion');
+// The report-designer → Canvas design frameworks (output is an editable design, not C# code).
+const DESIGNER_FRAMEWORKS: Framework[] = [
+  REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK, JRXML_REPORT_FRAMEWORK, MRT_REPORT_FRAMEWORK,
+];
+
+type MigrationMode = 'code' | 'designer';
+
+const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
+  const isDesigner = mode === 'designer';
+  const [frameworks, setFrameworks] = useState<Framework[]>(isDesigner ? DESIGNER_FRAMEWORKS : FRAMEWORKS_FALLBACK);
+  const [selectedId, setSelectedId] = useState(isDesigner ? REPORT_ID : 'Syncfusion');
   const [reportDesign, setReportDesign] = useState<any | null>(null);
   const navigate = useNavigate();
   const bulkReplaceContent = useEditorStore(s => s.bulkReplaceContent);
@@ -584,12 +673,15 @@ const MigrationsPage: React.FC = () => {
   const splitRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch(`${API_BASE}/frameworks`)
-      .then(r => r.json())
-      .then((data: Framework[]) => setFrameworks([...data, REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK]))
-      .catch(() => { /* use fallback */ });
+    // The /frameworks endpoint lists the PDF code-migration providers; designer frameworks are static.
+    if (!isDesigner) {
+      fetch(`${API_BASE}/frameworks`)
+        .then(r => r.json())
+        .then((data: Framework[]) => setFrameworks(data))
+        .catch(() => { /* use fallback */ });
+    }
     return () => { if (prevPdfUrl.current) URL.revokeObjectURL(prevPdfUrl.current); };
-  }, []);
+  }, [isDesigner]);
 
   const current = frameworks.find(f => f.id === selectedId);
 
@@ -753,12 +845,19 @@ const MigrationsPage: React.FC = () => {
         {/* Page heading */}
         <div className="mgr-heading">
           <div className="mgr-heading-left">
-            <FiCode className="mgr-heading-icon" />
+            {isDesigner ? <FiLayout className="mgr-heading-icon" /> : <FiCode className="mgr-heading-icon" />}
             <div>
-              <h1>Code Migrations</h1>
-              <p>Paste code from another PDF library, convert it to Canvas.Pdf, and preview the result instantly.</p>
+              <h1>{isDesigner ? 'Designer Migrations' : 'Code Migrations'}</h1>
+              <p>
+                {isDesigner
+                  ? 'Convert a report-designer file (DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik) into an editable Canvas design, then open it in the visual designer.'
+                  : 'Paste code from another PDF library, convert it to Canvas.Pdf, and preview the result instantly.'}
+              </p>
             </div>
           </div>
+          <button className="mgr-btn" onClick={() => navigate('/migrations')} title="Back to Migrations">
+            ← Migrations
+          </button>
         </div>
 
         {/* Framework selector */}

@@ -637,3 +637,13 @@
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/tessdata/spa.traineddata
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/tessdata/swe.traineddata
 /Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/tessdata/ukr.traineddata
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.Migration.DevExpressReport.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.Migration.Rdl.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.Migration.DevExpressReport.pdb
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.Migration.Rdl.pdb
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.Migration.Rpx.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.Migration.Rpx.pdb
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.Migration.FastReport.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.Migration.FastReport.pdb
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.Migration.Telerik.dll
+/Users/mannheimer/Development/Codes/Canvas/tests/Canvas.Api.Tests/bin/Debug/net10.0/Canvas.Migration.Telerik.pdb

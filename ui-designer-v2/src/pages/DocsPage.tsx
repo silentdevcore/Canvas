@@ -4,6 +4,7 @@ import {
   FiCheck,
   FiChevronRight,
   FiCopy,
+  FiMenu,
 } from 'react-icons/fi';
 import AppHeader from '@/components/Layout/AppHeader';
 
@@ -103,12 +104,14 @@ const SECTIONS = [
   { id: 'elements',        label: 'Elements Reference' },
   { id: 'import-export',   label: 'Import & Export' },
   { id: 'document-ops',    label: 'Document Operations' },
+  { id: 'migrations',      label: 'Migrations' },
   { id: 'word-features',   label: 'Word / DOCX Features' },
   { id: 'json-schema',     label: 'JSON Schema' },
   { id: 'csharp-models',   label: 'C# Models' },
   { id: 'csharp-examples', label: 'C# Code Examples' },
   { id: 'json-to-csharp',  label: 'JSON → C# Mapping' },
   { id: 'rest-api',        label: 'REST API' },
+  { id: 'documentation-map', label: 'Documentation Map' },
 ];
 
 // ─── DocsPage ─────────────────────────────────────────────────────────────────
@@ -185,6 +188,14 @@ const DocsPage: React.FC = () => {
 
         {/* Main content */}
         <main className="docs-main">
+          <button
+            className="docs-mobile-nav-toggle"
+            onClick={() => setMobileNavOpen(true)}
+            aria-label="Open documentation navigation"
+          >
+            <FiMenu size={16} />
+            Sections
+          </button>
 
           {/* ── Quick Start ─────────────────────────────────────────────── */}
           <section id="quick-start" className="docs-section">
@@ -379,11 +390,13 @@ const DocsPage: React.FC = () => {
                 <thead><tr><th>Extension</th><th>Source format</th><th>What is extracted</th></tr></thead>
                 <tbody>
                   {([
-                    ['.pdf',  'PDF',                    'Words grouped by baseline Y into Text elements; embedded images as base64 data URIs'],
+                    ['.pdf',  'PDF',                    'Canvas.Importer low-level parser/editor model: page tree, text, vector paths, images, clipping, colors, fonts, and regeneration bridge'],
                     ['.docx', 'Word Open XML',          'Paragraphs → Text; tables → Table; inline images → Image; typography from RunProperties; page size from SectionProperties'],
                     ['.doc',  'Word 97-2003 binary',    'Pure C# CFBF parser: reads WordDocument stream via FIB offsets; text stacked as paragraphs'],
                     ['.odt',  'OpenDocument Text',      'Paragraphs and headings with style resolution; draw:frame images extracted as base64'],
-                    ['.png / .jpg / .jpeg / .gif / .webp / .bmp / .tiff', 'Raster image', 'Decoded via SkiaSharp; creates a single-page design whose dimensions match the image\'s native pixel size, with one full-page Image element'],
+                    ['.svg',  'SVG',                    'Dedicated SVG importer maps vector-oriented content into editable Canvas elements where possible'],
+                    ['.pptx', 'PowerPoint',             'Slides become Canvas pages; text, images, and shapes are mapped into editable elements'],
+                    ['.png / .jpg / .jpeg / .gif / .webp / .bmp / .tiff', 'Raster image', 'Direct image import creates a single-page design; ImageAnalysis/OCR paths can reconstruct editable text, shapes, and diagnostics'],
                   ] as [string,string,string][]).map(([ext, fmt, note]) => (
                     <tr key={ext}>
                       <td><code className="docs-inline-code">{ext}</code></td>
@@ -473,6 +486,62 @@ Content-Disposition: attachment; filename="contract_signed.docx"
             <div className="docs-callout docs-callout--info">
               <strong>Note:</strong> The signature embeds the certificate's public key in <code className="docs-inline-code">_xmlsignatures/sig1.xml</code> inside the DOCX ZIP. Word and LibreOffice will show a "Signed" indicator. Signature validity requires the certificate chain to be trusted on the recipient's machine.
             </div>
+          </section>
+
+          {/* ── Migrations ──────────────────────────────────────────────── */}
+          <section id="migrations" className="docs-section">
+            <H2 id="migrations">Migrations</H2>
+            <p>Canvas includes developer migration tools for moving existing PDF-generation code and report definitions into Canvas. Use the <strong>Migrations</strong> page from the top navigation for an interactive converter with diagnostics and PDF preview.</p>
+
+            <H3>PDF code migration</H3>
+            <p>Paste C# source written for a supported PDF library and convert deterministic document-generation patterns into <code className="docs-inline-code">Canvas.Pdf</code> C# code. Unsupported provider APIs stay visible through diagnostics instead of being silently rewritten.</p>
+
+            <div className="docs-elem-table-wrap">
+              <table className="docs-elem-table">
+                <thead><tr><th>Provider family</th><th>What is migrated</th><th>Manual areas</th></tr></thead>
+                <tbody>
+                  {([
+                    ['DevExpress PDF, Syncfusion PDF, iText 7, Aspose.PDF, DsPdf', 'Document/page creation, simple text, lines, rectangles, colors, save/export where deterministic', 'Existing-PDF editing, forms, signatures, advanced layout, compliance'],
+                    ['IronPDF, ActivePDF', 'Canvas.Pdf scaffold and save/export paths', 'HTML/CSS/URL/Razor rendering, printer/COM/server workflows'],
+                    ['Apryse, Foxit, GemBox, Spire, PDFKit.NET, LEADTOOLS, PDFTools', 'Provider-specific safe subsets and diagnostics', 'Rendering/viewer/OCR/conversion, attachments, redaction, low-level editing'],
+                  ] as [string,string,string][]).map(([provider, migrated, manual]) => (
+                    <tr key={provider}>
+                      <td>{provider}</td>
+                      <td>{migrated}</td>
+                      <td>{manual}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <H3>Report-to-design migration</H3>
+            <p>Report converters target editable Canvas design JSON, not raw <code className="docs-inline-code">Canvas.Pdf</code> source. Converted reports can open directly in the visual editor.</p>
+
+            <div className="docs-elem-table-wrap">
+              <table className="docs-elem-table">
+                <thead><tr><th>Input</th><th>Converter</th><th>Output</th></tr></thead>
+                <tbody>
+                  {([
+                    ['DevExpress XtraReport / REPX', 'Canvas.Migration.DevExpressReport', 'Band-flattened editable Canvas design'],
+                    ['RDL / RDLC / Syncfusion / Bold Reports', 'Canvas.Migration.Rdl', 'Page, header/footer, textbox, line, rectangle, image, tablix/table, barcode placeholders'],
+                    ['ActiveReports / GrapeCity RPX', 'Canvas.Migration.Rpx', 'Section-report bands flattened into Canvas elements'],
+                  ] as [string,string,string][]).map(([input, converter, output]) => (
+                    <tr key={input}>
+                      <td>{input}</td>
+                      <td><code className="docs-inline-code">{converter}</code></td>
+                      <td>{output}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <H3>Migration API</H3>
+            <Code lang="http">{`GET  /api/migration/frameworks
+POST /api/migration/convert
+POST /api/migration/report-to-design
+POST /api/migration/preview`}</Code>
           </section>
 
           {/* ── Word / DOCX Features ─────────────────────────────────────── */}
@@ -1016,23 +1085,36 @@ var output = JsonConvert.SerializeObject(template, Formatting.Indented, settings
             <div className="docs-endpoint-grid">
               {[
                 { method: 'POST', path: '/api/export',                     desc: 'Export a design to any format. Body: { format, design, data }. Format key: pdf | word | odt | excel | html | csv | md | png | jpeg | tiff.' },
+                { method: 'POST', path: '/api/export/multilanguage',        desc: 'Export one document per active language, usually returned as a ZIP when multiple languages are selected.' },
                 { method: 'GET',  path: '/api/export/formats',             desc: 'List supported export formats and their capabilities.' },
                 { method: 'POST', path: '/api/document/find-replace',      desc: 'Find and replace text across all elements. Body: { design, find, replace, caseSensitive, wholeWord, useRegex }.' },
                 { method: 'POST', path: '/api/document/clone',             desc: 'Deep-clone a design with new IDs. Body: { design, newName? }.' },
                 { method: 'POST', path: '/api/document/extract-pages',     desc: 'Extract a page subset. Body: { design, pageNumbers: number[], newName? }.' },
                 { method: 'POST', path: '/api/document/sign-docx',         desc: 'Apply X.509 digital signature to a DOCX. Multipart: docx file + certificate PFX + optional password. Returns signed DOCX.' },
-                { method: 'POST', path: '/api/document/import-pdf-engine',   desc: 'Import PDF → DesignExportDto. Multipart file upload.' },
+                { method: 'POST', path: '/api/document/convert-image-to-pdf', desc: 'Convert a raster image to PDF, optionally with OCR/debug parameters. Multipart file upload.' },
+                { method: 'POST', path: '/api/document/import-pdf-engine', desc: 'Import PDF through Canvas.Importer → DesignExportDto. Multipart file upload.' },
+                { method: 'POST', path: '/api/document/debug-pdf-engine',  desc: 'Return PDF importer diagnostics/debug output for a PDF upload.' },
                 { method: 'POST', path: '/api/document/import-docx',       desc: 'Import DOCX → DesignExportDto. Multipart file upload.' },
                 { method: 'POST', path: '/api/document/import-doc',        desc: 'Import Word 97-2003 .doc → DesignExportDto. Multipart file upload.' },
                 { method: 'POST', path: '/api/document/import-odt',        desc: 'Import ODT → DesignExportDto. Multipart file upload.' },
                 { method: 'POST', path: '/api/document/import-image',      desc: 'Import raster image (PNG, JPG, GIF, WebP, BMP, TIFF) → DesignExportDto. Creates a single-page design with the image filling the page.' },
+                { method: 'POST', path: '/api/document/import-svg',        desc: 'Import SVG → DesignExportDto. Multipart file upload.' },
+                { method: 'POST', path: '/api/document/import-pptx',       desc: 'Import PowerPoint .pptx → DesignExportDto. Multipart file upload.' },
+                { method: 'POST', path: '/api/document/import-image-analysis', desc: 'Import raster image through the deterministic image-analysis pipeline → DesignExportDto plus optional diagnostics.' },
+                { method: 'GET',  path: '/api/migration/frameworks',       desc: 'List supported PDF code migration frameworks and their status.' },
+                { method: 'POST', path: '/api/migration/convert',          desc: 'Convert vendor PDF-generation C# source to Canvas.Pdf C# with diagnostics.' },
+                { method: 'POST', path: '/api/migration/report-to-design', desc: 'Convert XtraReport/REPX/RDL/RPX style report sources to editable DesignExportDto.' },
+                { method: 'POST', path: '/api/migration/preview',          desc: 'Render migrated Canvas.Pdf code to a PDF preview.' },
                 { method: 'POST', path: '/api/templates/render',           desc: 'Render a template with data to PDF.' },
+                { method: 'POST', path: '/api/templates/render/async',     desc: 'Start an asynchronous render job.' },
                 { method: 'POST', path: '/api/templates/render-design',    desc: 'Render a raw DesignExportDto to PDF.' },
                 { method: 'POST', path: '/api/templates',                  desc: 'Create and persist a template.' },
                 { method: 'GET',  path: '/api/templates/{id}',             desc: 'Retrieve a template by ID.' },
+                { method: 'PUT',  path: '/api/templates/{id}',             desc: 'Update an existing template.' },
                 { method: 'POST', path: '/api/templates/validate',         desc: 'Validate a template without rendering.' },
                 { method: 'POST', path: '/api/templates/csharp-code-to-pdf',  desc: 'Compile C# code that returns a DesignExportDto and render to PDF.' },
                 { method: 'POST', path: '/api/templates/csharp-to-json',       desc: 'Compile C# class → DesignExportDto JSON.' },
+                { method: 'POST', path: '/api/templates/csharp-code-to-json',  desc: 'Compile raw C# returning a PdfDocument and convert the result to JSON.' },
               ].map(ep => (
                 <div className="docs-endpoint-card" key={ep.path + ep.method}>
                   <span className={`docs-method docs-method--${ep.method.toLowerCase()}`}>{ep.method}</span>
@@ -1161,6 +1243,38 @@ public class TemplatesController : ControllerBase
                   Go to home
                 </button>
               </div>
+            </div>
+          </section>
+
+          {/* ── Documentation Map ───────────────────────────────────────── */}
+          <section id="documentation-map" className="docs-section">
+            <H2 id="documentation-map">Documentation Map</H2>
+            <p>The in-app docs cover daily product usage. For architecture, extension points, tests, and roadmap details, use the repository documentation below.</p>
+
+            <div className="docs-elem-table-wrap">
+              <table className="docs-elem-table">
+                <thead><tr><th>Topic</th><th>Document</th><th>Use it for</th></tr></thead>
+                <tbody>
+                  {([
+                    ['Architecture', 'ARCHITECTURE.md', 'Project boundaries, dependency direction, importer/migration layers'],
+                    ['Project inventory', 'PROJECT_SUMMARY.md', 'Current project groups, endpoints, feature inventory, and test groups'],
+                    ['Extension patterns', 'CONTRIBUTING_RENDERERS.md', 'Adding renderers, file importers, migration providers, report converters, and document operations'],
+                    ['Testing', 'TESTING.md', 'Test project matrix, commands, CI expectations, and snapshot workflow'],
+                    ['PDF engine API', 'Canvas/TECHNICAL_DOCUMENTATION.md', 'Canvas.Pdf usage, options, layout helpers, encryption, forms, diagnostics'],
+                    ['PDF encryption', 'checklists/Pdf-Encryption.md', 'RC4-128 status, AES follow-ups, and security handler notes'],
+                    ['PDF provider gaps', 'checklists/CanvasPdf-Provider-Feature-Gaps.md', 'Canvas.Pdf feature gaps compared with major PDF frameworks'],
+                    ['Documentation audit', 'checklists/Documentation-Audit.md', 'Source-of-truth rules and follow-up documentation tasks'],
+                    ['Multi-language UI', 'ui-designer-v2/MULTILANGUAGE.md', 'Language tabs, localized properties, RTL, and export behavior'],
+                    ['Migration status', 'checklists/Code-Migrations.md', 'Provider progress and migration acceptance criteria'],
+                  ] as [string,string,string][]).map(([topic, doc, use]) => (
+                    <tr key={doc}>
+                      <td>{topic}</td>
+                      <td><code className="docs-inline-code">{doc}</code></td>
+                      <td>{use}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </section>
 

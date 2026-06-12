@@ -175,6 +175,8 @@ The output file is generated at:
 See full technical documentation:
 
 - [TECHNICAL_DOCUMENTATION.md](TECHNICAL_DOCUMENTATION.md)
+- [../checklists/Pdf-Encryption.md](../checklists/Pdf-Encryption.md)
+- [../checklists/CanvasPdf-Provider-Feature-Gaps.md](../checklists/CanvasPdf-Provider-Feature-Gaps.md)
 - [../ARCHITECTURE.md](../ARCHITECTURE.md)
 - [../CONTRIBUTING_RENDERERS.md](../CONTRIBUTING_RENDERERS.md)
 - [../TESTING.md](../TESTING.md)
