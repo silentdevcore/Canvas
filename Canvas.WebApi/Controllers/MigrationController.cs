@@ -1,5 +1,6 @@
 using Canvas.Core.Contracts;
 using Canvas.Migration.DevExpressReport;
+using Canvas.Migration.FastReport;
 using Canvas.Migration.Rdl;
 using Canvas.Migration.Rpx;
 using Canvas.WebApi.Services;
@@ -99,6 +100,12 @@ public class MigrationController : ControllerBase
             else if (RpxToDesignConverter.LooksLikeRpx(request.SourceCode))
             {
                 var result = new RpxToDesignConverter().Convert(request.SourceCode);
+                design = result.Design;
+                diagnostics = result.Diagnostics;
+            }
+            else if (FrxToDesignConverter.LooksLikeFrx(request.SourceCode))
+            {
+                var result = new FrxToDesignConverter().Convert(request.SourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
