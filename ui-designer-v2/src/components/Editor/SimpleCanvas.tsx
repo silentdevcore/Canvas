@@ -80,6 +80,7 @@ import {
   FiGrid,
 } from 'react-icons/fi';
 import CodeViewer from './CodeViewer';
+import { ElementBoundary } from './ElementBoundary';
 import FindReplaceModal from './FindReplaceModal';
 import FormBlockModal from './FormBlockModal';
 import HelpModal from './HelpModal';
@@ -3619,7 +3620,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     setSelectedElementId(element.id);
                   }}
                 >
-                  {renderElement(element, false)}
+                  <ElementBoundary name={element.name}>{renderElement(element, false)}</ElementBoundary>
                   {selectedElementId === element.id && !element.locked && (
                     <>
                       {([
@@ -3662,7 +3663,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   onContextMenu={(event) => handleElementContextMenu(event, element)}
                   onClick={(event) => { event.stopPropagation(); setSelectedElementId(element.id); }}
                 >
-                  {renderElement(element, false)}
+                  <ElementBoundary name={element.name}>{renderElement(element, false)}</ElementBoundary>
                   {selectedElementId === element.id && !element.locked && (
                     <>
                       {([
