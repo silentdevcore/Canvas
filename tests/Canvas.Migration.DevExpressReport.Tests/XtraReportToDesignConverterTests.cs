@@ -1099,6 +1099,39 @@ public sealed class XtraReportToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_PictureBoxResourceImageSource_PreservesResourceKeyWithDiagnostic()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using DevExpress.XtraPrinting.Drawing;
+            using System.ComponentModel;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRPictureBox logo;
+                private void InitializeComponent()
+                {
+                    ComponentResourceManager resources = new ComponentResourceManager(typeof(R));
+                    this.Detail = new DetailBand();
+                    this.logo = new XRPictureBox();
+                    this.logo.ImageSource = new ImageSource("img", resources.GetString("logo.ImageSource"));
+                    this.logo.LocationF = new PointF(0F, 0F);
+                    this.logo.SizeF = new SizeF(100F, 100F);
+                    this.Detail.Controls.AddRange(new XRControl[] { this.logo });
+                }
+            }
+            """;
+
+        var result = new XtraReportToDesignConverter().Convert(source);
+        var logo = Element(result.Design, "logo");
+
+        Assert.Equal("image", logo.Type);
+        Assert.Equal("logo.ImageSource", logo.Style!["devExpressImageResourceKey"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP021");
+    }
+
+    [Fact]
     public void Convert_XRSubreport_BecomesPositionedPlaceholderWithDiagnostic()
     {
         var source = """

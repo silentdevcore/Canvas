@@ -194,6 +194,8 @@ public sealed class XtraReportToDesignConverter
                 LineWidth = bag.ContainsKey("LineWidth") ? ToNumber(bag["LineWidth"]) : null,
                 LineStyle = NameOf(bag.GetValueOrDefault("LineStyle")) is { Length: > 0 } ls ? ls : null,
                 LineDirection = NameOf(bag.GetValueOrDefault("LineDirection")) is { Length: > 0 } ld ? ld : null,
+                ImageDataUrl = ExtractImageDataUrlCSharp(bag.GetValueOrDefault("ImageSource") ?? bag.GetValueOrDefault("Image")),
+                ImageResourceKey = ExtractResourceGetStringKey(bag.GetValueOrDefault("ImageSource") ?? bag.GetValueOrDefault("Image")),
                 Padding = ParsePadding(bag.GetValueOrDefault("Padding")) ?? controlStyle?.Padding,
                 CanGrow = BoolValue(bag.GetValueOrDefault("CanGrow")),
                 CanShrink = BoolValue(bag.GetValueOrDefault("CanShrink")),
@@ -577,9 +579,21 @@ public sealed class XtraReportToDesignConverter
             case "XRPictureBox":
                 element.Type = "image";
                 element.FitMode = "contain";
+                if (raw.ImageResourceKey is { } resourceKey)
+                {
+                    element.Style = new Dictionary<string, object>
+                    {
+                        ["devExpressImageResourceKey"] = resourceKey
+                    };
+                }
                 if (raw.ImageDataUrl is { } dataUrl)
                 {
                     element.Content = dataUrl;  // embedded image survives the import
+                }
+                else if (raw.ImageResourceKey is { } key)
+                {
+                    diagnostics.Add(Warn("CANMIGDEVREP021",
+                        $"'{raw.Name}' image is stored in designer resources as '{key}' — include the .resx/resource payload to embed it automatically."));
                 }
                 else if (!raw.HasAnyBinding("ImageSource", "Image", "ImageUrl", "Value"))
                 {
@@ -941,6 +955,19 @@ public sealed class XtraReportToDesignConverter
     private static string? ParseString(ExpressionSyntax? expr)
         => expr is LiteralExpressionSyntax { Token.Value: string s } ? s : null;
 
+    private static string? ExtractResourceGetStringKey(ExpressionSyntax? expr)
+    {
+        if (expr is InvocationExpressionSyntax invocation &&
+            invocation.Expression is MemberAccessExpressionSyntax { Name.Identifier.ValueText: "GetString" } &&
+            invocation.ArgumentList.Arguments is { Count: >= 1 } args)
+            return ParseString(args[0].Expression);
+
+        if (expr is ObjectCreationExpressionSyntax { ArgumentList.Arguments: { Count: >= 2 } imageArgs })
+            return ExtractResourceGetStringKey(imageArgs[1].Expression);
+
+        return null;
+    }
+
     private static string ParseColor(ExpressionSyntax? expr)
     {
         switch (expr)
@@ -1239,6 +1266,23 @@ public sealed class XtraReportToDesignConverter
     private static bool IsLikelyBase64(string value) =>
         value.Length >= 64 && value.Length % 4 == 0 && Regex.IsMatch(value, @"^[A-Za-z0-9+/]+={0,2}$");
 
+    private static string? ExtractImageDataUrlCSharp(ExpressionSyntax? expr)
+    {
+        string? candidate = expr switch
+        {
+            LiteralExpressionSyntax { Token.Value: string s } => s,
+            ObjectCreationExpressionSyntax { ArgumentList.Arguments: { Count: >= 2 } args } => ParseString(args[1].Expression),
+            _ => null
+        };
+
+        if (string.IsNullOrWhiteSpace(candidate)) return null;
+        if (candidate.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) return candidate;
+
+        var pipe = candidate.LastIndexOf('|');
+        var b64 = (pipe >= 0 ? candidate[(pipe + 1)..] : candidate).Trim();
+        return IsLikelyBase64(b64) ? $"data:image/png;base64,{b64}" : null;
+    }
+
     private static (double W, double H) PaperKindSize(string kind) => kind switch
     {
         "A3" => (842, 1191),
@@ -1511,6 +1555,7 @@ public sealed class XtraReportToDesignConverter
         public string? ShapeKind;     // "ellipse" | "line" | "arrow" | "rect" (XRShape)
         public string? CheckState;    // "checked" | "empty" (XRCheckBox)
         public string? ImageDataUrl;  // data: URL for an embedded XRPictureBox image
+        public string? ImageResourceKey;
         public double? LineWidth;     // XRLine/XRShape stroke/border width
         public string? LineStyle;     // XRLine dash style (Solid/Dash/Dot/...)
         public string? LineDirection; // XRLine direction (Horizontal/Vertical/Slant/BackSlant)

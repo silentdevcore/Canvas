@@ -86,6 +86,7 @@ the next, unstarted milestone.
 | `CANMIGDEVREP018` | Warning | `XRChart` imported as editable Canvas chart placeholder; `XRGauge`/`XRPivotGrid` imported as positioned placeholders |
 | `CANMIGDEVREP019` | Warning | `XRShape` arrow imported as Canvas arrow; direction/head style requires visual review |
 | `CANMIGDEVREP020` | Warning | DevExpress `Visible` expression preserved as Canvas `visibleExpression`; simple BookingReceipt-style cases are evaluated during PDF export |
+| `CANMIGDEVREP021` | Warning | C# designer image resource key preserved; `.resx`/resource payload is needed for automatic image embedding |
 
 ---
 
@@ -107,6 +108,9 @@ before lower-value table styling.
 ### 2. Richer controls & styling  *(partly done)*
 - [x] `XRPictureBox` embedded image (`.repx` base64 `ImageSource`/`Image` → Canvas image `Content` data
       URL), replacing the `CANMIGDEVREP013` placeholder when image data is present.
+- [x] C# `XRPictureBox.ImageSource = new ImageSource("img", resources.GetString("..."))` preserves the
+      resource key as `style.devExpressImageResourceKey` and emits `CANMIGDEVREP021` when the `.resx`
+      payload is not available.
 - [x] `XRCheckBox` → `checkmark` with `CheckState` (from `CheckBoxState`/`Checked`).
 - [x] `XRShape` ellipse → `circle`, line → `line`, otherwise `rect`.
 - [x] Label `BackColor` → text `backgroundColor`; font `Underline`/`Strikeout` → `textDecoration`.
