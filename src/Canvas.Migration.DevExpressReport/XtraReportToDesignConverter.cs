@@ -75,6 +75,10 @@ public sealed class XtraReportToDesignConverter
         var boundOther = new HashSet<string>(StringComparer.Ordinal);
         var tableRows = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         var rowCells = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var bandOrder = new Dictionary<string, int>(StringComparer.Ordinal);
+        var controlOrder = new Dictionary<string, int>(StringComparer.Ordinal);
+        var nextBandOrder = 0;
+        var nextControlOrder = 0;
         foreach (var inv in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
         {
             if (inv.Expression is not MemberAccessExpressionSyntax call) continue;
@@ -85,8 +89,16 @@ public sealed class XtraReportToDesignConverter
 
             switch (collection.Name.Identifier.ValueText)
             {
+                case "Bands":
+                    foreach (var band in ExtractControlNames(inv.ArgumentList))
+                        bandOrder.TryAdd(band, nextBandOrder++);
+                    break;
                 case "Controls":
-                    foreach (var ctrl in ExtractControlNames(inv.ArgumentList)) controlBand[ctrl] = owner;
+                    foreach (var ctrl in ExtractControlNames(inv.ArgumentList))
+                    {
+                        controlBand[ctrl] = owner;
+                        controlOrder.TryAdd(ctrl, nextControlOrder++);
+                    }
                     break;
                 case "Rows":
                     (tableRows.TryGetValue(owner, out var rl) ? rl : tableRows[owner] = []).AddRange(ExtractControlNames(inv.ArgumentList));
@@ -121,14 +133,20 @@ public sealed class XtraReportToDesignConverter
         {
             if (type.EndsWith("Band", StringComparison.Ordinal))
             {
-                report.Bands.Add(new RawBand { Name = name, Type = type, Height = ToNumber(GetProp(props, name, "HeightF")) });
+                report.Bands.Add(new RawBand
+                {
+                    Name = name,
+                    Type = type,
+                    Height = ToNumber(GetProp(props, name, "HeightF")),
+                    Order = bandOrder.GetValueOrDefault(name, int.MaxValue)
+                });
                 continue;
             }
             if (type is "XRTableRow" or "XRTableCell") continue;
             if (!IsKnownControl(type) && !IsUnsupportedControl(type)) continue;
 
             var bag = props.TryGetValue(name, out var b) ? b : [];
-            var (locX, locY) = ParsePoint(bag.GetValueOrDefault("LocationF"));
+            var (locX, locY) = ParsePoint(bag.GetValueOrDefault("LocationF") ?? bag.GetValueOrDefault("LocationFloat"));
             var (sizeW, sizeH) = ParseSize(bag.GetValueOrDefault("SizeF"));
 
             var el = new RawElement
@@ -147,7 +165,9 @@ public sealed class XtraReportToDesignConverter
                 TextExpression = controlTextExpr.GetValueOrDefault(name),
                 HasUnmappedBinding = boundOther.Contains(name),
                 LineWidth = bag.ContainsKey("LineWidth") ? ToNumber(bag["LineWidth"]) : null,
-                LineStyle = NameOf(bag.GetValueOrDefault("LineStyle")) is { Length: > 0 } ls ? ls : null
+                LineStyle = NameOf(bag.GetValueOrDefault("LineStyle")) is { Length: > 0 } ls ? ls : null,
+                LineDirection = NameOf(bag.GetValueOrDefault("LineDirection")) is { Length: > 0 } ld ? ld : null,
+                Order = controlOrder.GetValueOrDefault(name, int.MaxValue)
             };
             ApplyFontCSharp(el, bag.GetValueOrDefault("Font"));
             if (type == "XRTable")
@@ -243,7 +263,8 @@ public sealed class XtraReportToDesignConverter
             BackColor = Attr(el, "BackColor") is { } bc ? ParseColorString(bc) : null,
             TextAlign = ParseAlignment(Attr(el, "TextAlignment")),
             LineWidth = Attr(el, "LineWidth") is { } lw ? ToDouble(lw) : null,
-            LineStyle = Attr(el, "LineStyle")
+            LineStyle = Attr(el, "LineStyle"),
+            LineDirection = Attr(el, "LineDirection")
         };
         ApplyFontString(raw, Attr(el, "Font"));
 
@@ -290,7 +311,11 @@ public sealed class XtraReportToDesignConverter
         var diagnostics = new List<MigrationDiagnostic>();
 
         var bandByName = report.Bands.ToDictionary(b => b.Name, StringComparer.Ordinal);
-        var orderedBands = report.Bands.OrderBy(b => BandOrder(b.Type)).ToList();
+        var orderedBands = report.Bands
+            .OrderBy(b => b.Order == int.MaxValue ? 1 : 0)
+            .ThenBy(b => b.Order)
+            .ThenBy(b => BandOrder(b.Type))
+            .ToList();
         var hasTopMargin = report.Bands.Any(b => b.Type == "TopMarginBand");
         var bandTop = new Dictionary<string, double>(StringComparer.Ordinal);
         var offset = hasTopMargin ? 0 : report.MarginTop;
@@ -310,7 +335,7 @@ public sealed class XtraReportToDesignConverter
         var sharedElements = new List<ElementDto>();
         var controlCount = 0;
 
-        foreach (var raw in report.Elements)
+        foreach (var raw in report.Elements.OrderBy(e => e.Order).ThenBy(e => e.Name, StringComparer.Ordinal))
         {
             var (bandName, offsetX, offsetY) = ResolveContainer(raw, bandByName, elementByName);
             var bandType = bandName is not null && bandByName.TryGetValue(bandName, out var band) ? band.Type : "";
@@ -346,9 +371,6 @@ public sealed class XtraReportToDesignConverter
             (bandType is "PageHeaderBand" or "PageFooterBand" ? sharedElements : elements).Add(element);
             controlCount++;
         }
-
-        elements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
-        sharedElements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
 
         if (report.HasScripts)
             diagnostics.Add(Warn("CANMIGDEVREP012",
@@ -414,9 +436,14 @@ public sealed class XtraReportToDesignConverter
 
             case "XRLine":
                 element.Type = "line";
-                element.Style = new Dictionary<string, object> { ["color"] = raw.ForeColor };
+                element.Style = new Dictionary<string, object>
+                {
+                    ["color"] = raw.ForeColor,
+                    ["backgroundColor"] = raw.ForeColor
+                };
                 if (raw.LineWidth is { } lineW) element.Style["strokeWidth"] = lineW;
                 if (DashStyleFromName(raw.LineStyle) is { } dash) element.Style["dashStyle"] = dash;
+                NormalizeLineGeometry(element, raw);
                 return element;
 
             case "XRShape" or "XRPanel":
@@ -531,6 +558,57 @@ public sealed class XtraReportToDesignConverter
         if (raw.BackColor is { } bg) style["backgroundColor"] = bg;
         style["textAlign"] = raw.TextAlign;
         return style;
+    }
+
+    private static void NormalizeLineGeometry(ElementDto element, RawElement raw)
+    {
+        var strokeWidth = Math.Max(raw.LineWidth ?? 1, 0.5);
+        var hasExplicitDirection = !string.IsNullOrWhiteSpace(raw.LineDirection);
+        var direction = NormalizeLineDirection(raw.LineDirection, element.Width, element.Height);
+        element.Style ??= [];
+        element.Style["lineDirection"] = direction;
+
+        switch (direction)
+        {
+            case "vertical":
+            {
+                var centerX = element.X + element.Width / 2;
+                element.X = centerX - strokeWidth / 2;
+                element.Width = strokeWidth;
+                if (element.Height <= 0) element.Height = strokeWidth;
+                break;
+            }
+            case "horizontal" when hasExplicitDirection:
+            {
+                var centerY = element.Y + element.Height / 2;
+                element.Y = centerY - strokeWidth / 2;
+                element.Height = strokeWidth;
+                if (element.Width <= 0) element.Width = strokeWidth;
+                break;
+            }
+            case "horizontal":
+                if (element.Height <= 0) element.Height = strokeWidth;
+                if (element.Width <= 0) element.Width = strokeWidth;
+                break;
+            case "backSlant":
+            case "slant":
+                if (element.Width <= 0) element.Width = strokeWidth;
+                if (element.Height <= 0) element.Height = strokeWidth;
+                break;
+        }
+    }
+
+    private static string NormalizeLineDirection(string? direction, double width, double height)
+    {
+        if (!string.IsNullOrWhiteSpace(direction))
+        {
+            if (direction.Contains("Vertical", StringComparison.OrdinalIgnoreCase)) return "vertical";
+            if (direction.Contains("BackSlant", StringComparison.OrdinalIgnoreCase)) return "backSlant";
+            if (direction.Contains("Slant", StringComparison.OrdinalIgnoreCase)) return "slant";
+            if (direction.Contains("Horizontal", StringComparison.OrdinalIgnoreCase)) return "horizontal";
+        }
+
+        return height > width ? "vertical" : "horizontal";
     }
 
     private static void ApplyBinding(ElementDto element, string expression, List<MigrationDiagnostic> diagnostics)
@@ -957,6 +1035,7 @@ public sealed class XtraReportToDesignConverter
         public required string Name;
         public required string Type;
         public double Height;
+        public int Order = int.MaxValue;
     }
 
     private sealed class RawElement
@@ -981,5 +1060,7 @@ public sealed class XtraReportToDesignConverter
         public string? ImageDataUrl;  // data: URL for an embedded XRPictureBox image
         public double? LineWidth;     // XRLine/XRShape stroke/border width
         public string? LineStyle;     // XRLine dash style (Solid/Dash/Dot/...)
+        public string? LineDirection; // XRLine direction (Horizontal/Vertical/Slant/BackSlant)
+        public int Order = int.MaxValue;
     }
 }

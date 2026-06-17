@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiCode, FiCopy, FiDownload, FiPlay, FiRefreshCw, FiGitMerge, FiLayout } from 'react-icons/fi';
 import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import AppHeader from '@/components/Layout/AppHeader';
-import { useEditorStore } from '@/store';
+import { DEFAULT_PAGE_SETTINGS, useEditorStore, type Template } from '@/store';
 
 // Framework ids for the report → Canvas Designer flows (output is a design, not C# code).
 const REPORT_ID = 'DevExpressReport';
@@ -653,7 +653,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const [selectedId, setSelectedId] = useState(isDesigner ? REPORT_ID : 'Syncfusion');
   const [reportDesign, setReportDesign] = useState<any | null>(null);
   const navigate = useNavigate();
-  const bulkReplaceContent = useEditorStore(s => s.bulkReplaceContent);
+  const setCurrentTemplate = useEditorStore(s => s.setCurrentTemplate);
+  const updatePageSettings = useEditorStore(s => s.updatePageSettings);
   const [sourceCode, setSourceCode] = useState('');
   const [canvasCode, setCanvasCode] = useState('');
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
@@ -754,7 +755,29 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const handleOpenInDesigner = () => {
     if (!reportDesign) return;
     const pages = (reportDesign.pages ?? []).map((p: any) => ({ id: p.id, elements: p.elements ?? [] }));
-    bulkReplaceContent(pages.length ? pages : [{ id: 'page-1', elements: [] }], reportDesign.sharedElements ?? []);
+    const template: Template = {
+      id: reportDesign.id ?? `report-design-${Date.now()}`,
+      name: reportDesign.name ?? 'Imported report',
+      category: reportDesign.category ?? 'imported',
+      description: reportDesign.description ?? 'Imported from a report designer.',
+      pages: pages.length ? pages : [{ id: 'page-1', elements: [] }],
+      sharedElements: reportDesign.sharedElements ?? [],
+      data: reportDesign.data ?? {},
+    };
+
+    const importedPageSettings = reportDesign.pageSettings ?? {};
+    setCurrentTemplate(template);
+    updatePageSettings({
+      ...DEFAULT_PAGE_SETTINGS,
+      ...importedPageSettings,
+      width: importedPageSettings.width ?? DEFAULT_PAGE_SETTINGS.width,
+      height: importedPageSettings.height ?? DEFAULT_PAGE_SETTINGS.height,
+      orientation: importedPageSettings.orientation
+        ?? ((importedPageSettings.width ?? 0) > (importedPageSettings.height ?? 0) ? 'landscape' : 'portrait'),
+      unit: importedPageSettings.unit ?? 'pt',
+      showMarginGuide: false,
+    });
+    localStorage.setItem('canvas_last_template', template.name);
     navigate('/create');
   };
 

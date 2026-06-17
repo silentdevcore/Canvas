@@ -144,6 +144,122 @@ public sealed class XtraReportToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_LocationFloatPointFloat_IsParsed()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRLabel xrA;
+                private void InitializeComponent()
+                {
+                    this.Margins = new System.Drawing.Printing.Margins(0, 0, 0, 0);
+                    this.Detail = new DetailBand();
+                    this.xrA = new XRLabel();
+                    this.xrA.Text = "A";
+                    this.xrA.LocationFloat = new DevExpress.Utils.PointFloat(100F, 25F);
+                    this.xrA.SizeF = new System.Drawing.SizeF(80F, 20F);
+                    this.Detail.Controls.AddRange(new XRControl[] { this.xrA });
+                }
+            }
+            """;
+
+        var design = new XtraReportToDesignConverter().Convert(source).Design;
+
+        Assert.Equal(72d, Element(design, "xrA").X, 1);
+        Assert.Equal(18d, Element(design, "xrA").Y, 1);
+    }
+
+    [Fact]
+    public void Convert_ControlsAddRangeOrder_IsPreservedForOverlappingControls()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRLabel front;
+                private XRLabel back;
+                private void InitializeComponent()
+                {
+                    this.Margins = new System.Drawing.Printing.Margins(0, 0, 0, 0);
+                    this.Detail = new DetailBand();
+                    this.front = new XRLabel();
+                    this.back = new XRLabel();
+                    this.front.Text = "Front";
+                    this.front.LocationF = new PointF(0F, 0F);
+                    this.front.SizeF = new SizeF(100F, 20F);
+                    this.back.Text = "Back";
+                    this.back.LocationF = new PointF(0F, 0F);
+                    this.back.SizeF = new SizeF(100F, 20F);
+                    this.Detail.Controls.AddRange(new XRControl[] { this.back, this.front });
+                }
+            }
+            """;
+
+        var names = new XtraReportToDesignConverter()
+            .Convert(source)
+            .Design
+            .Pages[0]
+            .Elements
+            .Select(e => e.Name ?? "")
+            .ToArray();
+
+        Assert.Equal(["back", "front"], names);
+    }
+
+    [Fact]
+    public void Convert_BandsAddRangeOrder_IsUsedForRepeatedBandTypes()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private GroupHeaderBand groupHeader2;
+                private GroupHeaderBand groupHeader1;
+                private DetailBand Detail;
+                private XRLabel label1;
+                private XRLabel label2;
+                private XRLabel detail;
+                private void InitializeComponent()
+                {
+                    this.Margins = new System.Drawing.Printing.Margins(0, 0, 0, 0);
+                    this.groupHeader2 = new GroupHeaderBand();
+                    this.groupHeader1 = new GroupHeaderBand();
+                    this.Detail = new DetailBand();
+                    this.label1 = new XRLabel();
+                    this.label2 = new XRLabel();
+                    this.detail = new XRLabel();
+
+                    this.groupHeader2.HeightF = 50F;
+                    this.groupHeader1.HeightF = 60F;
+                    this.Detail.HeightF = 100F;
+                    this.label1.LocationF = new PointF(0F, 0F);
+                    this.label1.SizeF = new SizeF(100F, 20F);
+                    this.label2.LocationF = new PointF(0F, 0F);
+                    this.label2.SizeF = new SizeF(100F, 20F);
+                    this.detail.LocationF = new PointF(0F, 0F);
+                    this.detail.SizeF = new SizeF(100F, 20F);
+
+                    this.groupHeader1.Controls.AddRange(new XRControl[] { this.label1 });
+                    this.groupHeader2.Controls.AddRange(new XRControl[] { this.label2 });
+                    this.Detail.Controls.AddRange(new XRControl[] { this.detail });
+                    this.Bands.AddRange(new Band[] { this.groupHeader1, this.groupHeader2, this.Detail });
+                }
+            }
+            """;
+
+        var design = new XtraReportToDesignConverter().Convert(source).Design;
+
+        Assert.Equal(0d, Element(design, "label1").Y, 1);
+        Assert.Equal(43.2d, Element(design, "label2").Y, 1);
+        Assert.Equal(79.2d, Element(design, "detail").Y, 1);
+    }
+
+    [Fact]
     public void Convert_PictureBox_BecomesImagePlaceholderWithWarning()
     {
         var source = """
@@ -381,6 +497,77 @@ public sealed class XtraReportToDesignConverterTests
         Assert.Equal("checked", chk.CheckState);
 
         Assert.Equal("circle", Element(design, "shp").Type);
+    }
+
+    [Fact]
+    public void Convert_XRLine_MapsColorStrokeAndHorizontalGeometry()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using DevExpress.XtraPrinting;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRLine rule;
+                private void InitializeComponent()
+                {
+                    this.Margins = new System.Drawing.Printing.Margins(0, 0, 0, 0);
+                    this.Detail = new DetailBand();
+                    this.rule = new XRLine();
+                    this.rule.ForeColor = Color.Red;
+                    this.rule.LineDirection = LineDirection.Horizontal;
+                    this.rule.LineWidth = 2F;
+                    this.rule.LineStyle = DashStyle.Dash;
+                    this.rule.LocationF = new PointF(10F, 20F);
+                    this.rule.SizeF = new SizeF(200F, 10F);
+                    this.Detail.Controls.AddRange(new XRControl[] { this.rule });
+                }
+            }
+            """;
+
+        var line = Element(new XtraReportToDesignConverter().Convert(source).Design, "rule");
+
+        Assert.Equal("line", line.Type);
+        Assert.Equal(2d, System.Convert.ToDouble(line.Style!["strokeWidth"]));
+        Assert.Equal("#FF0000", line.Style["color"]);
+        Assert.Equal("#FF0000", line.Style["backgroundColor"]);
+        Assert.Equal("dashed", line.Style["dashStyle"]);
+        Assert.Equal("horizontal", line.Style["lineDirection"]);
+        Assert.Equal(2d, line.Height, 1);
+        Assert.Equal(17d, line.Y, 1);       // centered in original 10-unit-tall line box
+    }
+
+    [Fact]
+    public void Convert_XRLine_LineDirectionVertical_MapsToThinVerticalBox()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRLine rule;
+                private void InitializeComponent()
+                {
+                    this.Margins = new System.Drawing.Printing.Margins(0, 0, 0, 0);
+                    this.Detail = new DetailBand();
+                    this.rule = new XRLine();
+                    this.rule.LineDirection = LineDirection.Vertical;
+                    this.rule.LineWidth = 3F;
+                    this.rule.LocationF = new PointF(10F, 20F);
+                    this.rule.SizeF = new SizeF(30F, 120F);
+                    this.Detail.Controls.AddRange(new XRControl[] { this.rule });
+                }
+            }
+            """;
+
+        var line = Element(new XtraReportToDesignConverter().Convert(source).Design, "rule");
+
+        Assert.Equal("vertical", line.Style!["lineDirection"]);
+        Assert.Equal(3d, line.Width, 1);
+        Assert.Equal(16.5d, line.X, 1);    // centered in original 30-unit-wide line box
+        Assert.Equal(86.4d, line.Height, 1);
     }
 
     [Fact]

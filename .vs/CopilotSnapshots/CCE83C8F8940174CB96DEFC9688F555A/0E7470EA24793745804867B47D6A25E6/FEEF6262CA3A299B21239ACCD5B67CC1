@@ -1,3 +1,0 @@
-﻿namespace Canvas.Pdf;
-
-internal sealed record PdfBookmark(string Title, int PageNumber);
