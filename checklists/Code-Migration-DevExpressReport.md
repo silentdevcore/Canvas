@@ -87,6 +87,8 @@ the next, unstarted milestone.
 | `CANMIGDEVREP019` | Warning | `XRShape` arrow imported as Canvas arrow; direction/head style requires visual review |
 | `CANMIGDEVREP020` | Warning | DevExpress `Visible` expression preserved as Canvas `visibleExpression`; simple BookingReceipt-style cases are evaluated during PDF export |
 | `CANMIGDEVREP021` | Warning | C# designer image resource key preserved; `.resx`/resource payload is needed for automatic image embedding |
+| `CANMIGDEVREP022` | Warning | DevExpress `MultiColumn` band mode detected; repeated column flow requires manual review |
+| `CANMIGDEVREP023` | Warning | DevExpress `TextFitMode` / `TextTrimming` imported as metadata; text shrink/trimming requires manual review |
 
 ---
 
@@ -115,6 +117,8 @@ before lower-value table styling.
 - [x] `XRShape` ellipse → `circle`, line → `line`, otherwise `rect`.
 - [x] Label `BackColor` → text `backgroundColor`; font `Underline`/`Strikeout` → `textDecoration`.
 - [x] `XRControlStyle` / `StyleName` → inherited Canvas font/colour/border/padding style hints.
+- [x] `TextFitMode` / `TextTrimming` → `style.devExpressTextFitMode` /
+      `style.devExpressTextTrimming` with `CANMIGDEVREP023`.
 - [x] Table column alignments from the header-row cell `TextAlignment` → `ColumnAlignments`.
 - [ ] Per-cell font/colour table styling — Canvas tables only support column-level alignment +
       header/zebra colours, so arbitrary per-cell styling can't round-trip (low value).
@@ -153,6 +157,7 @@ before lower-value table styling.
 - [x] **P0** Multi-`DetailReportBand` (sub-detail) handling: nested child bands are parsed from C#
       `detailReport.Bands.AddRange(...)` and `.repx` nested `<Bands>`, flattened below their parent
       `DetailReportBand`, with `CANMIGDEVREP014` warning for repeat semantics.
+- [x] **P1** `MultiColumn.Mode` detection on bands with `CANMIGDEVREP022` diagnostic.
 
 ## Assumptions
 - [x] Use `Canvas.Migration.DevExpressReport`, separate from `Canvas.Migration.DevExpressPdf`.

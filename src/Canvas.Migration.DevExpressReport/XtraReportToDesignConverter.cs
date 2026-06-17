@@ -60,9 +60,15 @@ public sealed class XtraReportToDesignConverter
         }
 
         var props = new Dictionary<string, Dictionary<string, ExpressionSyntax>>(StringComparer.Ordinal);
+        var multiColumnModes = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var assignment in root.DescendantNodes().OfType<AssignmentExpressionSyntax>())
         {
             if (assignment.Left is not MemberAccessExpressionSyntax left) continue;
+            var leftText = left.ToString();
+            var multiColumnMatch = Regex.Match(leftText, @"(?:this\.)?(?<band>\w+)\.MultiColumn\.Mode$");
+            if (multiColumnMatch.Success)
+                multiColumnModes[multiColumnMatch.Groups["band"].Value] = NameOf(assignment.Right);
+
             var receiver = ReceiverName(left.Expression);
             if (receiver is null) continue;
             if (!props.TryGetValue(receiver, out var bag))
@@ -154,7 +160,8 @@ public sealed class XtraReportToDesignConverter
                     Order = bandOrder.GetValueOrDefault(name, int.MaxValue),
                     Parent = bandParent.GetValueOrDefault(name),
                     GroupFields = groupFields.GetValueOrDefault(name) ?? [],
-                    SortFields = sortFields.GetValueOrDefault(name) ?? []
+                    SortFields = sortFields.GetValueOrDefault(name) ?? [],
+                    MultiColumnMode = multiColumnModes.GetValueOrDefault(name)
                 });
                 continue;
             }
@@ -204,6 +211,8 @@ public sealed class XtraReportToDesignConverter
                 KeepTogether = BoolValue(bag.GetValueOrDefault("KeepTogether")),
                 AnchorHorizontal = NameOf(bag.GetValueOrDefault("AnchorHorizontal")),
                 AnchorVertical = NameOf(bag.GetValueOrDefault("AnchorVertical")),
+                TextFitMode = NameOf(bag.GetValueOrDefault("TextFitMode")),
+                TextTrimming = NameOf(bag.GetValueOrDefault("TextTrimming")),
                 Order = controlOrder.GetValueOrDefault(name, int.MaxValue)
             };
             ApplyFontCSharp(el, bag.GetValueOrDefault("Font"));
@@ -270,7 +279,8 @@ public sealed class XtraReportToDesignConverter
                 Order = order++,
                 Parent = parent,
                 GroupFields = ExtractFieldNamesXml(bandEl, "GroupFields"),
-                SortFields = ExtractFieldNamesXml(bandEl, "SortFields")
+                SortFields = ExtractFieldNamesXml(bandEl, "SortFields"),
+                MultiColumnMode = Attr(bandEl, "MultiColumn.Mode") ?? Attr(bandEl, "MultiColumnMode")
             });
 
             var controls = bandEl.Elements().FirstOrDefault(e => e.Name.LocalName == "Controls");
@@ -329,7 +339,9 @@ public sealed class XtraReportToDesignConverter
             WordWrap = ParseBool(Attr(el, "WordWrap")),
             KeepTogether = ParseBool(Attr(el, "KeepTogether")),
             AnchorHorizontal = Attr(el, "AnchorHorizontal"),
-            AnchorVertical = Attr(el, "AnchorVertical")
+            AnchorVertical = Attr(el, "AnchorVertical"),
+            TextFitMode = Attr(el, "TextFitMode"),
+            TextTrimming = Attr(el, "TextTrimming")
         };
         ApplyFontString(raw, Attr(el, "Font"));
 
@@ -450,6 +462,12 @@ public sealed class XtraReportToDesignConverter
             var sorts = FormatFields(groupBand.SortFields, "sort");
             diagnostics.Add(Warn("CANMIGDEVREP015",
                 $"'{groupBand.Name}' ({groupBand.Type}) layout was imported; {fields}; {sorts}; group repeat/sort semantics must be wired in Canvas templates."));
+        }
+
+        foreach (var multiColumnBand in report.Bands.Where(b => !string.IsNullOrWhiteSpace(b.MultiColumnMode)))
+        {
+            diagnostics.Add(Warn("CANMIGDEVREP022",
+                $"'{multiColumnBand.Name}' uses MultiColumn mode '{multiColumnBand.MultiColumnMode}' — Canvas flattens the band layout; review repeated column flow manually."));
         }
 
         diagnostics.Insert(0, Info("CANMIGDEVREP001",
@@ -750,6 +768,8 @@ public sealed class XtraReportToDesignConverter
             style["whiteSpace"] = "nowrap";
         if (raw.CanGrow == true) style["overflow"] = "visible";
         if (raw.CanShrink == true) style["devExpressCanShrink"] = true;
+        if (!string.IsNullOrWhiteSpace(raw.TextFitMode)) style["devExpressTextFitMode"] = raw.TextFitMode;
+        if (!string.IsNullOrWhiteSpace(raw.TextTrimming)) style["devExpressTextTrimming"] = raw.TextTrimming;
         if (raw.KeepTogether == true) style["devExpressKeepTogether"] = true;
         if (NormalizeAnchor(raw.AnchorHorizontal) is { } ah) style["devExpressAnchorHorizontal"] = ah;
         if (NormalizeAnchor(raw.AnchorVertical) is { } av)
@@ -809,6 +829,12 @@ public sealed class XtraReportToDesignConverter
         {
             diagnostics.Add(Warn("CANMIGDEVREP017",
                 $"'{raw.Name}' uses DevExpress anchoring ({raw.AnchorHorizontal}/{raw.AnchorVertical}) — imported as metadata; review responsive positioning in Canvas."));
+        }
+
+        if (!string.IsNullOrWhiteSpace(raw.TextFitMode) || !string.IsNullOrWhiteSpace(raw.TextTrimming))
+        {
+            diagnostics.Add(Warn("CANMIGDEVREP023",
+                $"'{raw.Name}' uses TextFitMode/TextTrimming — imported as metadata; review text overflow/shrink behaviour manually."));
         }
     }
 
@@ -1513,6 +1539,7 @@ public sealed class XtraReportToDesignConverter
         public string? Parent;
         public List<string> GroupFields = [];
         public List<string> SortFields = [];
+        public string? MultiColumnMode;
     }
 
     private sealed class RawStyle
@@ -1566,6 +1593,8 @@ public sealed class XtraReportToDesignConverter
         public bool? KeepTogether;
         public string? AnchorHorizontal;
         public string? AnchorVertical;
+        public string? TextFitMode;
+        public string? TextTrimming;
         public int Order = int.MaxValue;
 
         public bool HasAnyBinding(params string[] properties) =>

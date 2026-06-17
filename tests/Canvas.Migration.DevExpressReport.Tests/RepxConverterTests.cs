@@ -215,6 +215,18 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
+    public void ConvertRepx_TextFitModeAndTextTrimming_MapToStyleMetadataAndDiagnostic()
+    {
+        var result = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """<Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="notes" Text="Long text" SizeF="100,20" LocationFloat="0,0" TextFitMode="ShrinkOnly" TextTrimming="Word" />"""));
+
+        var style = Page(result.Design, "notes").Style!;
+        Assert.Equal("ShrinkOnly", style["devExpressTextFitMode"]);
+        Assert.Equal("Word", style["devExpressTextTrimming"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP023");
+    }
+
+    [Fact]
     public void ConvertRepx_RgbColorString_ParsesToHex()
     {
         var repx = """

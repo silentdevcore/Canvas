@@ -356,6 +356,68 @@ public sealed class XtraReportToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_TextFitModeAndTextTrimming_MapToStyleMetadataAndDiagnostic()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using DevExpress.Drawing;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRLabel notes;
+                private void InitializeComponent()
+                {
+                    this.Detail = new DetailBand();
+                    this.notes = new XRLabel();
+                    this.notes.Text = "Long text";
+                    this.notes.LocationF = new PointF(0F, 0F);
+                    this.notes.SizeF = new SizeF(100F, 20F);
+                    this.notes.TextFitMode = TextFitMode.ShrinkOnly;
+                    this.notes.TextTrimming = DXStringTrimming.Word;
+                    this.Detail.Controls.AddRange(new XRControl[] { this.notes });
+                }
+            }
+            """;
+
+        var result = new XtraReportToDesignConverter().Convert(source);
+        var style = Element(result.Design, "notes").Style!;
+
+        Assert.Equal("ShrinkOnly", style["devExpressTextFitMode"]);
+        Assert.Equal("Word", style["devExpressTextTrimming"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP023");
+    }
+
+    [Fact]
+    public void Convert_DetailBandMultiColumn_EmitsDiagnostic()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRLabel item;
+                private void InitializeComponent()
+                {
+                    this.Detail = new DetailBand();
+                    this.item = new XRLabel();
+                    this.item.Text = "Item";
+                    this.item.LocationF = new PointF(0F, 0F);
+                    this.item.SizeF = new SizeF(100F, 20F);
+                    this.Detail.MultiColumn.Mode = MultiColumnMode.UseColumnCount;
+                    this.Detail.Controls.AddRange(new XRControl[] { this.item });
+                    this.Bands.AddRange(new Band[] { this.Detail });
+                }
+            }
+            """;
+
+        var result = new XtraReportToDesignConverter().Convert(source);
+
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP022" && d.Message.Contains("UseColumnCount", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Convert_ControlStyleName_AppliesFontColorAndPadding()
     {
         var source = """
