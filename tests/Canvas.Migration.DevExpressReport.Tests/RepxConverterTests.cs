@@ -116,6 +116,105 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
+    public void ConvertRepx_DetailReportBand_StacksNestedBands()
+    {
+        var repx = """
+            <XtraReportsLayoutSerializer ControlType="DevExpress.XtraReports.UI.XtraReport, X" Name="R" PaperKind="A4" Margins="0,0,0,0">
+              <Bands>
+                <Item1 ControlType="DevExpress.XtraReports.UI.DetailBand, X" Name="Detail" HeightF="100">
+                  <Controls>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="body" Text="Body" SizeF="100,20" LocationFloat="0,0" />
+                  </Controls>
+                </Item1>
+                <Item2 ControlType="DevExpress.XtraReports.UI.DetailReportBand, X" Name="LinesReport" HeightF="20">
+                  <Bands>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.DetailBand, X" Name="LinesDetail" HeightF="30">
+                      <Controls>
+                        <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="line" Text="Line" SizeF="100,20" LocationFloat="0,5" />
+                      </Controls>
+                    </Item1>
+                  </Bands>
+                </Item2>
+              </Bands>
+            </XtraReportsLayoutSerializer>
+            """;
+
+        var result = new XtraReportToDesignConverter().ConvertRepx(repx);
+
+        Assert.Equal(0d, Page(result.Design, "body").Y, 1);
+        Assert.Equal(90d, Page(result.Design, "line").Y, 1);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP014");
+    }
+
+    [Fact]
+    public void ConvertRepx_GroupBands_EmitGroupSemanticsDiagnostic()
+    {
+        var repx = """
+            <XtraReportsLayoutSerializer ControlType="DevExpress.XtraReports.UI.XtraReport, X" Name="R" PaperKind="A4" Margins="0,0,0,0">
+              <Bands>
+                <Item1 ControlType="DevExpress.XtraReports.UI.GroupHeaderBand, X" Name="CustomerHeader" HeightF="40">
+                  <GroupFields>
+                    <Item1 FieldName="CustomerId" SortOrder="Ascending" />
+                  </GroupFields>
+                  <Controls>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="header" Text="Customer" SizeF="100,20" LocationFloat="0,0" />
+                  </Controls>
+                </Item1>
+                <Item2 ControlType="DevExpress.XtraReports.UI.DetailBand, X" Name="Detail" HeightF="100">
+                  <Controls>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="detail" Text="Line" SizeF="100,20" LocationFloat="0,0" />
+                  </Controls>
+                </Item2>
+                <Item3 ControlType="DevExpress.XtraReports.UI.GroupFooterBand, X" Name="CustomerFooter" HeightF="30">
+                  <Controls>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="footer" Text="Subtotal" SizeF="100,20" LocationFloat="0,0" />
+                  </Controls>
+                </Item3>
+              </Bands>
+            </XtraReportsLayoutSerializer>
+            """;
+
+        var result = new XtraReportToDesignConverter().ConvertRepx(repx);
+
+        Assert.Equal(0d, Page(result.Design, "header").Y, 1);
+        Assert.Equal(28.8d, Page(result.Design, "detail").Y, 1);
+        Assert.Equal(100.8d, Page(result.Design, "footer").Y, 1);
+        var diagnostic = Assert.Single(result.Diagnostics, d => d.Id == "CANMIGDEVREP015" && d.Message.Contains("CustomerHeader", StringComparison.Ordinal));
+        Assert.Contains("CustomerId", diagnostic.Message);
+    }
+
+    [Fact]
+    public void ConvertRepx_TextLayoutHints_MapToStyleAndDiagnostics()
+    {
+        var result = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """
+            <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X"
+                   Name="notes"
+                   Text="Line 1&#xA;Line 2"
+                   SizeF="200,40"
+                   LocationFloat="0,0"
+                   Multiline="true"
+                   WordWrap="true"
+                   CanGrow="true"
+                   CanShrink="true"
+                   KeepTogether="true"
+                   AnchorHorizontal="Both"
+                   AnchorVertical="Bottom" />
+            """));
+
+        var notes = Page(result.Design, "notes");
+
+        Assert.Equal("pre-wrap", notes.Style!["whiteSpace"]);
+        Assert.Equal("visible", notes.Style["overflow"]);
+        Assert.Equal(true, notes.Style["devExpressCanShrink"]);
+        Assert.Equal(true, notes.Style["devExpressKeepTogether"]);
+        Assert.Equal("Both", notes.Style["devExpressAnchorHorizontal"]);
+        Assert.Equal("Bottom", notes.Style["devExpressAnchorVertical"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP016");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP017");
+    }
+
+    [Fact]
     public void ConvertRepx_RgbColorString_ParsesToHex()
     {
         var repx = """
@@ -205,6 +304,39 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
+    public void ConvertRepx_XRShapeArrow_BecomesCanvasArrowWithDiagnostic()
+    {
+        var result = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """
+            <Item1 ControlType="DevExpress.XtraReports.UI.XRShape, X" Name="arrow" SizeF="120,20" LocationFloat="0,0" BorderColor="Red" BorderWidth="2">
+              <Shape ControlType="DevExpress.XtraPrinting.Shape.ShapeArrow, X" />
+            </Item1>
+            """));
+
+        var arrow = Page(result.Design, "arrow");
+        Assert.Equal("arrow", arrow.Type);
+        Assert.Equal("arrow", arrow.EndMarker);
+        Assert.Equal("#FF0000", arrow.Style!["color"]);
+        Assert.Equal(2d, System.Convert.ToDouble(arrow.Style["strokeWidth"]));
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP019");
+    }
+
+    [Fact]
+    public void ConvertRepx_Borders_MapPerSideBorderStyle()
+    {
+        var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """<Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="box" Text="Bordered" SizeF="100,20" LocationFloat="0,0" Borders="Left, Top" BorderColor="Blue" BorderWidth="2" />"""))
+            .Design;
+
+        var style = Page(design, "box").Style!;
+        Assert.Equal(2d, System.Convert.ToDouble(style["borderLeftWidth"]));
+        Assert.Equal(2d, System.Convert.ToDouble(style["borderTopWidth"]));
+        Assert.Equal("#0000FF", style["borderLeftColor"]);
+        Assert.Equal("#0000FF", style["borderTopColor"]);
+        Assert.False(style.ContainsKey("borderRightWidth"));
+    }
+
+    [Fact]
     public void ConvertRepx_LineWidthAndDashStyle_MapToStrokeStyle()
     {
         var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
@@ -263,13 +395,72 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
-    public void ConvertRepx_XRSubreport_EmitsManualMigrationDiagnostic()
+    public void ConvertRepx_XRSubreport_BecomesPositionedPlaceholderWithDiagnostic()
     {
         var result = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
             """<Item1 ControlType="DevExpress.XtraReports.UI.XRSubreport, X" Name="sub" SizeF="100,20" LocationFloat="0,0" />"""));
 
-        Assert.Empty(result.Design.Pages[0].Elements);
+        var sub = Page(result.Design, "sub");
+        Assert.Equal("subsection", sub.Type);
+        Assert.Contains("Subreport", sub.Content);
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP012");
+    }
+
+    [Fact]
+    public void ConvertRepx_VisibleExpressionBinding_MapsToVisibleExpression()
+    {
+        var result = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """
+            <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="comment" Text="Comment" SizeF="100,20" LocationFloat="0,0">
+              <ExpressionBindings>
+                <Item1 PropertyName="Visible" Expression="Len([Comment]) &gt; 0" />
+              </ExpressionBindings>
+            </Item1>
+            """));
+
+        var comment = Page(result.Design, "comment");
+        Assert.Equal("Len([Comment]) > 0", comment.VisibleExpression);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP020");
+        Assert.DoesNotContain(result.Diagnostics, d => d.Id == "CANMIGDEVREP010" && d.Message.Contains("Visible", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ConvertRepx_XRChart_BecomesCanvasChartPlaceholder()
+    {
+        var result = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """<Item1 ControlType="DevExpress.XtraReports.UI.XRChart, X" Name="sales" SizeF="300,160" LocationFloat="10,20" />"""));
+
+        var chart = Page(result.Design, "sales");
+
+        Assert.Equal("chart", chart.Type);
+        Assert.Equal("bar", chart.ChartType);
+        Assert.NotNull(chart.ChartData);
+        Assert.Equal(86.4d, chart.Y, 1); // default top margin 100 + detail band 0 + local 20, then ×0.72
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP018");
+    }
+
+    [Fact]
+    public void ConvertRepx_XRGaugeAndXRPivotGrid_BecomePositionedPlaceholders()
+    {
+        var repx = """
+            <XtraReportsLayoutSerializer ControlType="DevExpress.XtraReports.UI.XtraReport, X" Name="R" PaperKind="A4" Margins="0,0,0,0">
+              <Bands>
+                <Item1 ControlType="DevExpress.XtraReports.UI.DetailBand, X" Name="Detail" HeightF="240">
+                  <Controls>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.XRGauge, X" Name="gauge" SizeF="120,80" LocationFloat="0,0" />
+                    <Item2 ControlType="DevExpress.XtraReports.UI.XRPivotGrid, X" Name="pivot" SizeF="240,120" LocationFloat="0,100" />
+                  </Controls>
+                </Item1>
+              </Bands>
+            </XtraReportsLayoutSerializer>
+            """;
+
+        var result = new XtraReportToDesignConverter().ConvertRepx(repx);
+
+        Assert.Contains("Gauge", Page(result.Design, "gauge").Content);
+        Assert.Contains("PivotGrid", Page(result.Design, "pivot").Content);
+        Assert.Equal(72d, Page(result.Design, "pivot").Y, 1);
+        Assert.Equal(2, result.Diagnostics.Count(d => d.Id == "CANMIGDEVREP018"));
     }
 
     [Fact]

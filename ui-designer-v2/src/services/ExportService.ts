@@ -147,6 +147,18 @@ export class ExportService {
       borderWidth:       s.borderWidth       ?? 0,
       borderColor:       s.borderColor       ?? null,
       borderStyle:       s.borderStyle       ?? 'none',
+      borderTopWidth:    s.borderTopWidth    ?? null,
+      borderTopColor:    s.borderTopColor    ?? null,
+      borderTopStyle:    s.borderTopStyle    ?? null,
+      borderRightWidth:  s.borderRightWidth  ?? null,
+      borderRightColor:  s.borderRightColor  ?? null,
+      borderRightStyle:  s.borderRightStyle  ?? null,
+      borderBottomWidth: s.borderBottomWidth ?? null,
+      borderBottomColor: s.borderBottomColor ?? null,
+      borderBottomStyle: s.borderBottomStyle ?? null,
+      borderLeftWidth:   s.borderLeftWidth   ?? null,
+      borderLeftColor:   s.borderLeftColor   ?? null,
+      borderLeftStyle:   s.borderLeftStyle   ?? null,
       borderRadius:      s.borderRadius      ?? 0,
       paddingTop:        s.paddingTop        ?? 0,
       paddingRight:      s.paddingRight      ?? 0,
@@ -159,6 +171,7 @@ export class ExportService {
     const base = {
       name: element.name ?? null,
       x: element.x, y: element.y, width: element.width, height: element.height,
+      visibleExpression: element.visibleExpression ?? null,
       ...this.sharedStyle(element),
     };
 

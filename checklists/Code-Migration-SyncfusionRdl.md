@@ -96,10 +96,13 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 
 # V2 — Next 🔜
 
+**Current recommendation:** make RDL the second fidelity pass after DevExpress. The biggest user-visible
+gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, and mixed text runs.
+
 ### 1. ActiveReports / DsReport `.rdlx`  *(plain-XML done)*
 - [x] Plain RDL-XML `.rdlx` (the designer's native save format) detects + converts; barcode
       `<CustomReportItem>` mapped.
-- [ ] If a *packaged* `.rdlx` (OPC/zip with embedded resources) is ever encountered, unzip and locate
+- [ ] **P2** If a *packaged* `.rdlx` (OPC/zip with embedded resources) is ever encountered, unzip and locate
       the `<Report>` part — needs a binary upload path (the endpoint is currently text/JSON).
 
 ### 2. GrapeCity Section Reports `.rpx`  ✅ *(shipped — separate converter)*
@@ -107,16 +110,16 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
       the DevExpress band converter). See [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md).
 
 ### 3. Richer RDL fidelity
-- [ ] Tablix row/column-group header extraction (`<TablixColumnHierarchy>`/`<TablixMember>`) instead of
+- [ ] **P0** Tablix row/column-group header extraction (`<TablixColumnHierarchy>`/`<TablixMember>`) instead of
       treating the first row as header.
-- [ ] Nested Tablix / detail grouping → repeat semantics.
+- [ ] **P0** Nested Tablix / detail grouping → repeat semantics.
 - [ ] `<Code>` / custom-function expression translation (blocked on Canvas `ExpressionEvaluator` being a
       stub — same limitation as DevExpress).
 - [x] `CustomReportItem` Chart / Gauge / Map / Sparkline + `Subreport` → labeled placeholder elements
       (kept at original position/size so the layout isn't silently holed; still `CANMIGRDL011`).
-- [ ] External / database image sources (fetch or warn).
-- [ ] Percentage / relative lengths for Tablix columns.
-- [ ] Multi-run textbox per-run formatting (V1 keeps the first run's style).
+- [ ] **P0** External / database image sources (fetch or warn).
+- [ ] **P0** Percentage / relative lengths for Tablix columns.
+- [ ] **P0** Multi-run textbox per-run formatting (V1 keeps the first run's style).
 
 ## Assumptions
 - [x] Use `Canvas.Migration.Rdl`, separate from the DevExpress converters; self-contained model + build.

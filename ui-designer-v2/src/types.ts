@@ -100,8 +100,9 @@ export interface SimpleElement {
   preserveAspectRatio?: boolean;
   // Advanced document elements
   watermarkMode?: 'text' | 'image';
-  pageScope?: 'current' | 'all' | 'first' | 'range' | 'odd' | 'even';
+  pageScope?: 'current' | 'all' | 'first' | 'last' | 'range' | 'odd' | 'even';
   pageRange?: string;
+  visibleExpression?: string;
   locked?: boolean;
   hidden?: boolean;
   noteTitle?: string;
@@ -309,7 +310,7 @@ export interface PageSettings {
     opacity: number;
     rotation: number;
     scale: number;
-    pageScope: 'all' | 'first' | 'range' | 'odd' | 'even';
+    pageScope: 'all' | 'first' | 'last' | 'range' | 'odd' | 'even';
     pageRange: string;
     color: string;
     fontSize: number;

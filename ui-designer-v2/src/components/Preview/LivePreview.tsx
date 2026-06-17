@@ -23,6 +23,34 @@ interface LivePreviewProps {
 }
 
 type ExportFormat = 'pdf' | 'json' | 'image' | 'print';
+const BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
+
+const borderStyleForZoom = (s: Record<string, any>, zoom: number): React.CSSProperties => {
+  const sideStyle: React.CSSProperties = {};
+  let hasSideBorder = false;
+
+  BORDER_SIDES.forEach((side) => {
+    const width = s[`border${side}Width`];
+    if (width == null) return;
+
+    hasSideBorder = true;
+    const key = `border${side}` as keyof React.CSSProperties;
+    sideStyle[key] = `${(Number(width) || 0) * zoom}px ${s[`border${side}Style`] || s.borderStyle || 'solid'} ${s[`border${side}Color`] || s.borderColor || '#000'}` as never;
+  });
+
+  if (hasSideBorder) {
+    return {
+      ...sideStyle,
+      borderRadius: s.borderRadius ? s.borderRadius * zoom : undefined,
+    };
+  }
+
+  const bw = s.borderWidth ?? 0;
+  return {
+    border: bw > 0 ? `${bw * zoom}px ${s.borderStyle ?? 'solid'} ${s.borderColor ?? '#000'}` : undefined,
+    borderRadius: s.borderRadius ? s.borderRadius * zoom : undefined,
+  };
+};
 
 const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElements = [], pageSettings, onBack, onExport, hideBackButton, exportLabel }) => {
   const [zoom, setZoom] = useState(1);
@@ -148,7 +176,6 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
 
   const wrapperStyle = (el: SimpleElement): React.CSSProperties => {
     const s = el.style ?? {};
-    const bw = s.borderWidth ?? 0;
 
     let bgColor: string | undefined;
     const rawBg = s.backgroundColor ?? s.fill;
@@ -166,8 +193,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       transform: s.rotation ? `rotate(${s.rotation}deg)` : undefined,
       transformOrigin: 'center center',
       backgroundColor: bgColor,
-      border: bw > 0 ? `${bw}px ${s.borderStyle ?? 'solid'} ${s.borderColor ?? '#000'}` : undefined,
-      borderRadius: s.borderRadius ? s.borderRadius : undefined,
+      ...borderStyleForZoom(s, zoom),
       paddingTop:    s.paddingTop    ? s.paddingTop    * zoom : undefined,
       paddingRight:  s.paddingRight  ? s.paddingRight  * zoom : undefined,
       paddingBottom: s.paddingBottom ? s.paddingBottom * zoom : undefined,
@@ -611,6 +637,31 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
           borderRadius: element.style?.borderRadius ?? 4,
           mixBlendMode: element.style?.blendMode || 'multiply'
         }} />
+      );
+    }
+
+    if (element.type === 'subsection' || element.type === 'area') {
+      const color = element.style?.color || element.style?.borderColor || '#475569';
+      return (
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 8 * zoom,
+          color,
+          fontSize: (element.style?.fontSize || 12) * zoom,
+          background: element.style?.backgroundColor || '#f8fafc',
+          border: `${(element.style?.borderWidth || 1) * zoom}px ${element.style?.borderStyle || 'dashed'} ${color}`,
+          borderRadius: (element.style?.borderRadius ?? 4) * zoom,
+          overflow: 'hidden',
+          textAlign: 'center',
+        }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {element.content || (element.type === 'subsection' ? 'Subsection' : 'Area')}
+          </span>
+        </div>
       );
     }
 

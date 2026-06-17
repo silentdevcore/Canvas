@@ -63,6 +63,7 @@ public static class DesignJsonMapper
             design.PageSettings?.LocalizedProperties,
             targetLanguage ?? design.PageSettings?.SystemLanguage,
             design.PageSettings?.SystemLanguage);
+        var evaluationProps = BuildEvaluationProperties(design, resolvedProps);
 
         if (resolvedProps.Count > 0)
             design = ApplyPropertySubstitutions(design, resolvedProps);
@@ -89,6 +90,7 @@ public static class DesignJsonMapper
         var scopedElements = sourcePages
             .SelectMany(p => p.Elements ?? [])
             .Where(e => e.Hidden != true && e.PageScope is not (null or "current") &&
+                VisibleExpressionAllows(e, evaluationProps) &&
                 (e.ElementLanguage is null || string.Equals(
                     LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
                     LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
@@ -100,7 +102,8 @@ public static class DesignJsonMapper
         {
             foreach (var bel in plannedPages[bi].Elements.Where(e =>
                 e.HeadingLevel is >= 1 and <= 3 &&
-                e.Hidden != true))
+                e.Hidden != true &&
+                VisibleExpressionAllows(e, evaluationProps)))
             {
                 var bmTitle = Regex.Replace((bel.Content ?? bel.HtmlContent ?? "").Trim(), "<[^>]+>", "").Trim();
                 if (string.IsNullOrWhiteSpace(bmTitle))
@@ -164,6 +167,7 @@ public static class DesignJsonMapper
             // ElementLanguage: if set, only render this element when the target language matches.
             foreach (var el in plannedPage.Elements.Where(e =>
                 e.PageScope is null or "current" &&
+                VisibleExpressionAllows(e, evaluationProps) &&
                 (e.ElementLanguage is null || string.Equals(
                     LocalizedPropertyResolver.NormalizeTag(e.ElementLanguage),
                     LocalizedPropertyResolver.NormalizeTag(effectiveLang ?? ""),
@@ -290,21 +294,8 @@ public static class DesignJsonMapper
                         lineWidth: 0.01, fill: true, strokeColor: bgC, fillColor: bgC);
                 }
 
-                // Border around text element
-                var borderStr = GetString(style, "borderColor") ?? "";
-                var bw = GetDouble(style, "borderWidth", 0);
-                if (!string.IsNullOrEmpty(borderStr) && bw > 0)
-                {
-                    var radius = ClampRadius(ParseRadius(GetString(style, "borderRadius")), w, h);
-                    var strokeStyle = BorderStyleToStroke(GetString(style, "borderStyle"), bw);
-                    var bColor = ParseColor(borderStr);
-                    if (radius > 0)
-                        page.DrawRoundedRectangle(elX, RectBottomY(pageH, elY, h), w, h, radius,
-                            lineWidth: bw, fill: false, strokeColor: bColor, strokeStyle: strokeStyle);
-                    else
-                        page.DrawRectangle(elX, RectBottomY(pageH, elY, h), w, h,
-                            lineWidth: bw, fill: false, strokeColor: bColor, strokeStyle: strokeStyle);
-                }
+                // Border around text element, including DevExpress-style per-side borders.
+                DrawElementBorder(page, style, elX, RectBottomY(pageH, elY, h), w, h);
 
                 var availW = Math.Max(w - padL - padR, 1);
                 page.DrawParagraph(text, elX + padL, TextY(pageH, elY + padT, opts.FontSize), availW, opts);
@@ -599,25 +590,21 @@ public static class DesignJsonMapper
             case "shape":
             {
                 var fillStr = GetString(style, "backgroundColor") ?? GetString(style, "fill") ?? "";
-                var borderStr = GetString(style, "borderColor") ?? "";
-                var bw = GetDouble(style, "borderWidth", 0);
                 var hasFill = !string.IsNullOrEmpty(fillStr) && fillStr != "transparent";
-                var hasBorder = !string.IsNullOrEmpty(borderStr) && bw > 0;
                 var radius = ClampRadius(ParseRadius(GetString(style, "borderRadius")), w, h);
-                var strokeColor = hasBorder ? ParseColor(borderStr) : (hasFill ? ParseColor(fillStr) : ParseColor("#d1d5db"));
                 var fillColor = hasFill ? ParseColor(fillStr) : PdfColor.White;
-                var lineW = hasBorder ? Math.Max(bw, 0.5) : 0.01;
                 var boxY = RectBottomY(pageH, elY, h);
-                var strokeStyle = BorderStyleToStroke(GetString(style, "borderStyle"), lineW);
 
-                if (radius > 0)
+                if (hasFill && radius > 0)
                     page.DrawRoundedRectangle(elX, boxY, w, h, radius,
-                        lineWidth: lineW, fill: hasFill,
-                        strokeColor: strokeColor, fillColor: fillColor, strokeStyle: strokeStyle);
-                else
+                        lineWidth: 0.01, fill: true,
+                        strokeColor: fillColor, fillColor: fillColor);
+                else if (hasFill)
                     page.DrawRectangle(elX, boxY, w, h,
-                        lineWidth: lineW, fill: hasFill,
-                        strokeColor: strokeColor, fillColor: fillColor, strokeStyle: strokeStyle);
+                        lineWidth: 0.01, fill: true,
+                        strokeColor: fillColor, fillColor: fillColor);
+
+                DrawElementBorder(page, style, elX, boxY, w, h);
                 break;
             }
 
@@ -1240,28 +1227,23 @@ public static class DesignJsonMapper
         var chartType = (el.ChartType ?? "bar").ToLowerInvariant();
         var data = el.ChartData ?? new Dictionary<string, object>();
 
-        // Extract labels and datasets from ChartData
-        string[] labels = [];
-        if (data.TryGetValue("labels", out var labObj) && labObj is JsonElement labEl && labEl.ValueKind == JsonValueKind.Array)
-            labels = labEl.EnumerateArray().Select(e => e.GetString() ?? "").ToArray();
+        var labels = ReadStringArray(data.GetValueOrDefault("labels"));
 
         var series = new List<(string label, double[] values, SKColor color)>();
         SKColor[] palette = [
             SKColor.Parse("#3b82f6"), SKColor.Parse("#10b981"), SKColor.Parse("#f59e0b"),
             SKColor.Parse("#ef4444"), SKColor.Parse("#8b5cf6"), SKColor.Parse("#06b6d4")
         ];
-        if (data.TryGetValue("datasets", out var dsObj) && dsObj is JsonElement dsEl && dsEl.ValueKind == JsonValueKind.Array)
+        var datasetItems = ReadObjectArray(data.GetValueOrDefault("datasets"));
+        if (datasetItems.Count > 0)
         {
             var idx = 0;
-            foreach (var ds in dsEl.EnumerateArray())
+            foreach (var ds in datasetItems)
             {
-                var sLabel = ds.TryGetProperty("label", out var lp) ? lp.GetString() ?? "" : $"Series {idx + 1}";
-                double[] vals = [];
-                if (ds.TryGetProperty("data", out var dp) && dp.ValueKind == JsonValueKind.Array)
-                    vals = dp.EnumerateArray().Select(e => e.TryGetDouble(out var d) ? d : 0).ToArray();
-                var colorStr = ds.TryGetProperty("backgroundColor", out var cp) ? cp.GetString()
-                             : ds.TryGetProperty("color", out var cp2) ? cp2.GetString() : null;
-                var color = !string.IsNullOrEmpty(colorStr) ? SKColor.Parse(colorStr) : palette[idx % palette.Length];
+                var sLabel = ReadString(GetProperty(ds, "label")) ?? $"Series {idx + 1}";
+                var vals = ReadDoubleArray(GetProperty(ds, "data"));
+                var colorStr = ReadString(GetProperty(ds, "backgroundColor")) ?? ReadString(GetProperty(ds, "color"));
+                var color = TryParseSkColor(colorStr) ?? palette[idx % palette.Length];
                 series.Add((sLabel, vals, color));
                 idx++;
             }
@@ -1375,6 +1357,67 @@ public static class DesignJsonMapper
         using var img  = SKImage.FromBitmap(bitmap);
         using var enc  = img.Encode(SKEncodedImageFormat.Png, 100);
         return enc.ToArray();
+    }
+
+    private static object? GetProperty(object? source, string name)
+    {
+        if (source is JsonElement json && json.ValueKind == JsonValueKind.Object &&
+            json.TryGetProperty(name, out var prop))
+            return prop;
+        if (source is IDictionary<string, object> dict && dict.TryGetValue(name, out var value))
+            return value;
+        if (source is IReadOnlyDictionary<string, object> roDict && roDict.TryGetValue(name, out var roValue))
+            return roValue;
+        return null;
+    }
+
+    private static List<object?> ReadObjectArray(object? value)
+    {
+        if (value is JsonElement json && json.ValueKind == JsonValueKind.Array)
+            return json.EnumerateArray().Cast<object?>().ToList();
+        if (value is System.Collections.IEnumerable seq && value is not string)
+            return seq.Cast<object?>().ToList();
+        return [];
+    }
+
+    private static string[] ReadStringArray(object? value)
+    {
+        if (value is JsonElement json && json.ValueKind == JsonValueKind.Array)
+            return json.EnumerateArray().Select(e => e.GetString() ?? "").ToArray();
+        if (value is System.Collections.IEnumerable seq && value is not string)
+            return seq.Cast<object?>().Select(v => Convert.ToString(v, CultureInfo.InvariantCulture) ?? "").ToArray();
+        return [];
+    }
+
+    private static double[] ReadDoubleArray(object? value)
+    {
+        if (value is JsonElement json && json.ValueKind == JsonValueKind.Array)
+            return json.EnumerateArray().Select(e => e.TryGetDouble(out var d) ? d : 0).ToArray();
+        if (value is System.Collections.IEnumerable seq && value is not string)
+            return seq.Cast<object?>().Select(ReadDouble).ToArray();
+        return [];
+    }
+
+    private static string? ReadString(object? value) => value switch
+    {
+        null => null,
+        JsonElement { ValueKind: JsonValueKind.String } json => json.GetString(),
+        JsonElement json => json.ToString(),
+        _ => Convert.ToString(value, CultureInfo.InvariantCulture)
+    };
+
+    private static double ReadDouble(object? value)
+    {
+        if (value is JsonElement json) return json.TryGetDouble(out var d) ? d : 0;
+        try { return Convert.ToDouble(value, CultureInfo.InvariantCulture); }
+        catch { return 0; }
+    }
+
+    private static SKColor? TryParseSkColor(string? color)
+    {
+        if (string.IsNullOrWhiteSpace(color)) return null;
+        try { return SKColor.Parse(color); }
+        catch { return null; }
     }
 
     private static byte[] GenerateQrPng(string value)
@@ -1494,11 +1537,61 @@ public static class DesignJsonMapper
             _ => null
         };
 
+    private static void DrawElementBorder(
+        PdfPage page,
+        Dictionary<string, object> style,
+        double x,
+        double y,
+        double w,
+        double h)
+    {
+        var sideBorders = new[]
+        {
+            ("Top", x, y + h, x + w, y + h),
+            ("Right", x + w, y, x + w, y + h),
+            ("Bottom", x, y, x + w, y),
+            ("Left", x, y, x, y + h)
+        };
+
+        var hasSideBorder = sideBorders.Any(side => HasStyleKey(style, $"border{side.Item1}Width"));
+        if (!hasSideBorder)
+        {
+            var borderStr = GetString(style, "borderColor") ?? "";
+            var bw = GetDouble(style, "borderWidth", 0);
+            if (string.IsNullOrEmpty(borderStr) || bw <= 0) return;
+
+            var radius = ClampRadius(ParseRadius(GetString(style, "borderRadius")), w, h);
+            var strokeStyle = BorderStyleToStroke(GetString(style, "borderStyle"), bw);
+            var color = ParseColor(borderStr);
+            if (radius > 0)
+                page.DrawRoundedRectangle(x, y, w, h, radius,
+                    lineWidth: bw, fill: false, strokeColor: color, strokeStyle: strokeStyle);
+            else
+                page.DrawRectangle(x, y, w, h,
+                    lineWidth: bw, fill: false, strokeColor: color, strokeStyle: strokeStyle);
+            return;
+        }
+
+        foreach (var (side, x1, y1, x2, y2) in sideBorders)
+        {
+            var bw = GetDouble(style, $"border{side}Width", 0);
+            if (bw <= 0) continue;
+
+            var color = ParseColor(GetString(style, $"border{side}Color") ?? GetString(style, "borderColor") ?? "#000000");
+            var strokeStyle = BorderStyleToStroke(GetString(style, $"border{side}Style") ?? GetString(style, "borderStyle"), bw);
+            page.DrawLine(x1, y1, x2, y2, lineWidth: bw, strokeColor: color, strokeStyle: strokeStyle);
+        }
+    }
+
+    private static bool HasStyleKey(Dictionary<string, object> style, string key) =>
+        style.TryGetValue(key, out var value) && value is not null;
+
     private static bool MatchesPageScope(string? scope, string? range, int pageNumber, int totalPages) =>
         scope switch
         {
             "all"   => true,
             "first" => pageNumber == 1,
+            "last"  => pageNumber == totalPages,
             "odd"   => pageNumber % 2 == 1,
             "even"  => pageNumber % 2 == 0,
             "range" => MatchesPageRange(range, pageNumber, totalPages),
@@ -1595,6 +1688,148 @@ public static class DesignJsonMapper
             SubstituteElement(el, props);
         return design;
     }
+
+    private static Dictionary<string, string> BuildEvaluationProperties(
+        DesignExportDto design,
+        Dictionary<string, string> resolvedProps)
+    {
+        var result = new Dictionary<string, string>(resolvedProps, StringComparer.OrdinalIgnoreCase);
+        foreach (var prop in design.PageSettings?.CustomProperties ?? [])
+        {
+            if (!string.IsNullOrWhiteSpace(prop.Name))
+                result[prop.Name] = prop.Value ?? "";
+        }
+        return result;
+    }
+
+    private static bool VisibleExpressionAllows(ElementDto el, Dictionary<string, string> props)
+    {
+        if (string.IsNullOrWhiteSpace(el.VisibleExpression)) return true;
+        var result = TryEvaluateVisibleExpression(el.VisibleExpression, props);
+        return result ?? true;
+    }
+
+    private static bool? TryEvaluateVisibleExpression(string expression, Dictionary<string, string> props)
+    {
+        var expr = expression.Trim();
+        if (expr.Length == 0) return true;
+
+        if (TryParseBoolLiteral(expr, out var literal))
+            return literal;
+
+        var iif = Regex.Match(expr, @"^IIF?\((.*),\s*(True|False)\s*,\s*(True|False)\s*\)$",
+            RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+        if (iif.Success)
+        {
+            var condition = iif.Groups[1].Value;
+            var whenTrue = bool.Parse(iif.Groups[2].Value);
+            var whenFalse = bool.Parse(iif.Groups[3].Value);
+            var conditionResult = TryEvaluateVisibleExpression(condition, props);
+            return conditionResult is null ? null : conditionResult.Value ? whenTrue : whenFalse;
+        }
+
+        var lenCompare = Regex.Match(expr,
+            @"^Len\(\s*(?<field>\[[^\]]+\](?:\.\[[^\]]+\])*)\s*\)\s*(?<op>>=|<=|==|=|!=|>|<)\s*(?<num>-?\d+(?:\.\d+)?)$",
+            RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+        if (lenCompare.Success)
+        {
+            if (!TryGetProp(props, lenCompare.Groups["field"].Value, out var value)) return null;
+            var length = value?.Length ?? 0;
+            var number = double.Parse(lenCompare.Groups["num"].Value, CultureInfo.InvariantCulture);
+            return Compare(length, lenCompare.Groups["op"].Value, number);
+        }
+
+        var countCompare = Regex.Match(expr,
+            @"^(?<field>\[[^\]]+\](?:\.\[[^\]]+\])*)\.Count\s*(?<op>>=|<=|==|=|!=|>|<)\s*(?<num>-?\d+(?:\.\d+)?)$",
+            RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+        if (countCompare.Success)
+        {
+            if (!TryGetProp(props, $"{countCompare.Groups["field"].Value}.Count", out var countValue) &&
+                !TryGetProp(props, countCompare.Groups["field"].Value, out countValue))
+                return null;
+
+            var count = ParseCount(countValue);
+            var number = double.Parse(countCompare.Groups["num"].Value, CultureInfo.InvariantCulture);
+            return Compare(count, countCompare.Groups["op"].Value, number);
+        }
+
+        var stringCompare = Regex.Match(expr,
+            @"^(?<field>\[[^\]]+\](?:\.\[[^\]]+\])*)\s*(?<op>==|=|!=)\s*'(?<value>.*)'$",
+            RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+        if (stringCompare.Success)
+        {
+            if (!TryGetProp(props, stringCompare.Groups["field"].Value, out var value)) return null;
+            var expected = stringCompare.Groups["value"].Value;
+            var equal = string.Equals(value ?? "", expected, StringComparison.OrdinalIgnoreCase);
+            return stringCompare.Groups["op"].Value == "!=" ? !equal : equal;
+        }
+
+        var boolField = Regex.Match(expr, @"^(?<field>\[[^\]]+\](?:\.\[[^\]]+\])*)$", RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+        if (boolField.Success && TryGetProp(props, boolField.Groups["field"].Value, out var boolValue) &&
+            TryParseBoolLiteral(boolValue, out var parsed))
+            return parsed;
+
+        return null;
+    }
+
+    private static bool TryGetProp(Dictionary<string, string> props, string key, out string? value)
+    {
+        value = null;
+        var normalized = NormalizeExpressionKey(key);
+        foreach (var candidate in new[] { key, normalized, normalized.Replace(".", "_", StringComparison.Ordinal) })
+        {
+            if (props.TryGetValue(candidate, out var found))
+            {
+                value = found;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static string NormalizeExpressionKey(string key) =>
+        key.Replace("].[", ".", StringComparison.Ordinal)
+           .Replace("[", "", StringComparison.Ordinal)
+           .Replace("]", "", StringComparison.Ordinal)
+           .Trim();
+
+    private static bool TryParseBoolLiteral(string? value, out bool result)
+    {
+        result = false;
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        if (bool.TryParse(value.Trim(), out result)) return true;
+        if (value.Trim() == "1") { result = true; return true; }
+        if (value.Trim() == "0") { result = false; return true; }
+        return false;
+    }
+
+    private static double ParseCount(string? value)
+    {
+        if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var numeric))
+            return numeric;
+        if (string.IsNullOrWhiteSpace(value)) return 0;
+        if (value.TrimStart().StartsWith("[", StringComparison.Ordinal))
+        {
+            try
+            {
+                var json = JsonDocument.Parse(value);
+                return json.RootElement.ValueKind == JsonValueKind.Array ? json.RootElement.GetArrayLength() : 1;
+            }
+            catch { return 1; }
+        }
+        return 1;
+    }
+
+    private static bool Compare(double left, string op, double right) => op switch
+    {
+        ">" => left > right,
+        ">=" => left >= right,
+        "<" => left < right,
+        "<=" => left <= right,
+        "!=" => Math.Abs(left - right) > double.Epsilon,
+        "=" or "==" => Math.Abs(left - right) <= double.Epsilon,
+        _ => false
+    };
 
     private static void SubstituteElement(ElementDto el, Dictionary<string, string> props)
     {

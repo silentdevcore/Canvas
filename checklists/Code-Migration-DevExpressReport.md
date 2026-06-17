@@ -77,14 +77,26 @@ the next, unstarted milestone.
 | `CANMIGDEVREP002` | Info | Per-control mapping (`name (XRType) → Canvas type`) |
 | `CANMIGDEVREP010` | Info / Warning | Text binding mapped — `[X]` → `binding` (Info); complex expression → `expression` (Warning) |
 | `CANMIGDEVREP011` | Warning | Unsupported control skipped |
-| `CANMIGDEVREP012` | Warning | Sub-report or report scripts/event handlers — require manual migration |
+| `CANMIGDEVREP012` | Warning | Sub-report placeholder inserted, or report scripts/event handlers require manual migration |
 | `CANMIGDEVREP013` | Warning | Picture data not embeddable — placeholder inserted |
+| `CANMIGDEVREP014` | Warning | `DetailReportBand` / sub-detail layout flattened; data-repeat semantics require Canvas template wiring |
+| `CANMIGDEVREP015` | Warning | `GroupHeaderBand` / `GroupFooterBand` layout flattened; group/sort repeat semantics require Canvas template wiring |
+| `CANMIGDEVREP016` | Warning | `CanGrow` / `CanShrink` imported as Canvas text wrapping/overflow hints; dynamic band reflow requires review |
+| `CANMIGDEVREP017` | Warning | DevExpress anchoring imported as metadata; responsive positioning requires review |
+| `CANMIGDEVREP018` | Warning | `XRChart` imported as editable Canvas chart placeholder; `XRGauge`/`XRPivotGrid` imported as positioned placeholders |
+| `CANMIGDEVREP019` | Warning | `XRShape` arrow imported as Canvas arrow; direction/head style requires visual review |
+| `CANMIGDEVREP020` | Warning | DevExpress `Visible` expression preserved as Canvas `visibleExpression`; simple BookingReceipt-style cases are evaluated during PDF export |
 
 ---
 
 # V2 — Next 🔜
 
 Pick from these, roughly in value order:
+
+**Current recommendation:** make DevExpress the first fidelity pass because it is a core customer path
+and the gaps show up immediately in real designer files. Prioritize group/repeat semantics, once-at-end
+report footers, auto-sizing/anchoring, sub-detail bands, non-text bindings, and high-use visual controls
+before lower-value table styling.
 
 ### 1. `.repx` XML input  ✅ *(done)*
 - [x] Parse the serialized DevExpress report XML (`.repx`) — shares the band-flatten / unit / page-size /
@@ -98,12 +110,14 @@ Pick from these, roughly in value order:
 - [x] `XRCheckBox` → `checkmark` with `CheckState` (from `CheckBoxState`/`Checked`).
 - [x] `XRShape` ellipse → `circle`, line → `line`, otherwise `rect`.
 - [x] Label `BackColor` → text `backgroundColor`; font `Underline`/`Strikeout` → `textDecoration`.
+- [x] `XRControlStyle` / `StyleName` → inherited Canvas font/colour/border/padding style hints.
 - [x] Table column alignments from the header-row cell `TextAlignment` → `ColumnAlignments`.
 - [ ] Per-cell font/colour table styling — Canvas tables only support column-level alignment +
       header/zebra colours, so arbitrary per-cell styling can't round-trip (low value).
-- [ ] More controls: `XRChart` → `chart`, `XRGauge`, `XRPivotGrid` (currently skipped, `CANMIGDEVREP011`).
+- [x] **P0** More controls: `XRChart` → editable Canvas `chart`; `XRGauge`/`XRPivotGrid` →
+      positioned placeholders with `CANMIGDEVREP018` diagnostics instead of layout holes.
 - [x] `XRLine`/`XRShape` `LineWidth` → `strokeWidth`/`borderWidth`; `XRLine` `LineStyle` → `dashStyle`.
-- [ ] `XRShape` arrow kinds; per-side `.Borders` selection.
+- [x] **P1** `XRShape` arrow kinds; per-side `.Borders` selection.
 
 ### 3. Data & layout fidelity
 - [~] ~~Translate DevExpress expression syntax to the Canvas expression DSL.~~ **Not worth doing** —
@@ -111,18 +125,30 @@ Pick from these, roughly in value order:
       is a stub (bare-identifier substitution + `==`/`!=` only; no arithmetic/functions), so there's no
       richer target to translate into. Single-field `[X]` → `binding` (done); other expressions are
       preserved verbatim on `expression` with a warning.
-- [x] Detect sub-reports (`XRSubreport`) and report scripts/event handlers → `CANMIGDEVREP012`.
-- [ ] Grouping/sorting bands (`GroupHeaderBand`/`GroupFooterBand`) — map to repeat/section semantics
-      rather than flat page elements.
-- [ ] `AnchorVertical`/`AnchorHorizontal` and `CanGrow`/`CanShrink` auto-sizing.
-- [ ] `ReportFooterBand` once-at-end semantics (currently a normal page element).
+- [x] Detect sub-reports (`XRSubreport`) and insert positioned placeholders; report scripts/event handlers → `CANMIGDEVREP012`.
+- [x] **P0** Grouping/sorting bands (`GroupHeaderBand`/`GroupFooterBand`) — group/footer layout is
+      imported and stacked in band order; C# `GroupFields`/`SortFields` and `.repx` `<GroupFields>`/
+      `<SortFields>` are captured in `CANMIGDEVREP015` diagnostics. True repeat/sort execution still
+      requires Canvas template wiring.
+- [x] **P0** `AnchorVertical`/`AnchorHorizontal` and `CanGrow`/`CanShrink` auto-sizing: imported as
+      Canvas style hints (`whiteSpace`, `overflow`, `verticalAlign`) plus DevExpress metadata, with
+      `CANMIGDEVREP016/017` diagnostics for dynamic reflow/anchoring review.
+- [x] **P0** `ReportFooterBand` once-at-end semantics: report-footer elements are imported as
+      `PageScope = "last"` so export renders them only on the final page while single-page designs
+      still show them.
 
 ### 4. Polish
 - [x] Emit `CANMIGDEVREP002` per mapped control (traceability beyond the `001` summary).
 - [x] Nested controls inside an `XRPanel` are flattened to absolute positions (container chain walked
       up to the owning band, accumulating panel offsets) — both C# and `.repx`.
-- [ ] Map non-text data bindings instead of the generic warning.
-- [ ] Multi-`DetailReportBand` (sub-detail) handling.
+- [x] **P0** Map non-text data bindings instead of the generic warning: `XRBarCode` text/value
+      bindings now update `BarcodeValue`, and `XRPictureBox` image bindings now update image `Content`.
+- [x] **P0** Preserve `Visible` expression bindings as `visibleExpression` metadata with
+      `CANMIGDEVREP020` diagnostics; PDF export evaluates simple cases such as `Len([X]) > 0`,
+      `[A].[B] == 'Value'`, `[Collection].Count > 0`, and `IIF(condition, True, False)`.
+- [x] **P0** Multi-`DetailReportBand` (sub-detail) handling: nested child bands are parsed from C#
+      `detailReport.Bands.AddRange(...)` and `.repx` nested `<Bands>`, flattened below their parent
+      `DetailReportBand`, with `CANMIGDEVREP014` warning for repeat semantics.
 
 ## Assumptions
 - [x] Use `Canvas.Migration.DevExpressReport`, separate from `Canvas.Migration.DevExpressPdf`.

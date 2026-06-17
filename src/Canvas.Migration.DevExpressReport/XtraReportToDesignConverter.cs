@@ -71,11 +71,14 @@ public sealed class XtraReportToDesignConverter
         }
 
         var controlBand = new Dictionary<string, string>(StringComparer.Ordinal);
-        var controlTextExpr = new Dictionary<string, string>(StringComparer.Ordinal);
-        var boundOther = new HashSet<string>(StringComparer.Ordinal);
+        var controlBindings = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
+        var boundOther = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
         var tableRows = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         var rowCells = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         var bandOrder = new Dictionary<string, int>(StringComparer.Ordinal);
+        var bandParent = new Dictionary<string, string>(StringComparer.Ordinal);
+        var groupFields = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var sortFields = new Dictionary<string, List<string>>(StringComparer.Ordinal);
         var controlOrder = new Dictionary<string, int>(StringComparer.Ordinal);
         var nextBandOrder = 0;
         var nextControlOrder = 0;
@@ -91,7 +94,10 @@ public sealed class XtraReportToDesignConverter
             {
                 case "Bands":
                     foreach (var band in ExtractControlNames(inv.ArgumentList))
+                    {
                         bandOrder.TryAdd(band, nextBandOrder++);
+                        if (owner != "this") bandParent[band] = owner;
+                    }
                     break;
                 case "Controls":
                     foreach (var ctrl in ExtractControlNames(inv.ArgumentList))
@@ -107,7 +113,13 @@ public sealed class XtraReportToDesignConverter
                     (rowCells.TryGetValue(owner, out var cl) ? cl : rowCells[owner] = []).AddRange(ExtractControlNames(inv.ArgumentList));
                     break;
                 case "ExpressionBindings" or "DataBindings":
-                    CaptureBindings(owner, inv.ArgumentList, controlTextExpr, boundOther);
+                    CaptureBindings(owner, inv.ArgumentList, controlBindings, boundOther);
+                    break;
+                case "GroupFields":
+                    (groupFields.TryGetValue(owner, out var gl) ? gl : groupFields[owner] = []).AddRange(ExtractFieldNames(inv.ArgumentList));
+                    break;
+                case "SortFields":
+                    (sortFields.TryGetValue(owner, out var sl) ? sl : sortFields[owner] = []).AddRange(ExtractFieldNames(inv.ArgumentList));
                     break;
             }
         }
@@ -115,6 +127,7 @@ public sealed class XtraReportToDesignConverter
         var unitScale = ResolveUnitScale(NameOf(GetProp(props, "this", "ReportUnit")));
         var (marginLeft, marginTop, marginBottom) = ResolveMarginsCSharp(GetProp(props, "this", "Margins"));
         var (pageW, pageH) = ResolvePageSizeCSharp(props, unitScale);
+        var styles = BuildControlStylesCSharp(fieldTypes, props);
 
         var report = new RawReport
         {
@@ -138,7 +151,10 @@ public sealed class XtraReportToDesignConverter
                     Name = name,
                     Type = type,
                     Height = ToNumber(GetProp(props, name, "HeightF")),
-                    Order = bandOrder.GetValueOrDefault(name, int.MaxValue)
+                    Order = bandOrder.GetValueOrDefault(name, int.MaxValue),
+                    Parent = bandParent.GetValueOrDefault(name),
+                    GroupFields = groupFields.GetValueOrDefault(name) ?? [],
+                    SortFields = sortFields.GetValueOrDefault(name) ?? []
                 });
                 continue;
             }
@@ -148,6 +164,8 @@ public sealed class XtraReportToDesignConverter
             var bag = props.TryGetValue(name, out var b) ? b : [];
             var (locX, locY) = ParsePoint(bag.GetValueOrDefault("LocationF") ?? bag.GetValueOrDefault("LocationFloat"));
             var (sizeW, sizeH) = ParseSize(bag.GetValueOrDefault("SizeF"));
+            var styleName = ParseString(bag.GetValueOrDefault("StyleName"));
+            styles.TryGetValue(styleName ?? "", out var controlStyle);
 
             var el = new RawElement
             {
@@ -159,14 +177,31 @@ public sealed class XtraReportToDesignConverter
                 W = sizeW,
                 H = sizeH,
                 Text = ParseString(bag.GetValueOrDefault("Text")),
-                ForeColor = ParseColor(bag.GetValueOrDefault("ForeColor")),
-                BackColor = bag.ContainsKey("BackColor") ? ParseColor(bag["BackColor"]) : null,
-                TextAlign = ParseAlignment(NameOf(bag.GetValueOrDefault("TextAlignment"))),
-                TextExpression = controlTextExpr.GetValueOrDefault(name),
-                HasUnmappedBinding = boundOther.Contains(name),
+                FontFamily = controlStyle?.FontFamily,
+                FontSize = controlStyle?.FontSize,
+                Bold = controlStyle?.Bold ?? false,
+                Italic = controlStyle?.Italic ?? false,
+                Underline = controlStyle?.Underline ?? false,
+                Strikeout = controlStyle?.Strikeout ?? false,
+                ForeColor = bag.ContainsKey("ForeColor") ? ParseColor(bag["ForeColor"]) : controlStyle?.ForeColor ?? "#000000",
+                BackColor = bag.ContainsKey("BackColor") ? ParseColor(bag["BackColor"]) : controlStyle?.BackColor,
+                BorderColor = bag.ContainsKey("BorderColor") ? ParseColor(bag["BorderColor"]) : controlStyle?.BorderColor,
+                Borders = ParseBorders(bag.GetValueOrDefault("Borders")) ?? controlStyle?.Borders,
+                BorderWidth = bag.ContainsKey("BorderWidth") ? ToNumber(bag["BorderWidth"]) : controlStyle?.BorderWidth,
+                TextAlign = bag.ContainsKey("TextAlignment") ? ParseAlignment(NameOf(bag["TextAlignment"])) : controlStyle?.TextAlign ?? "left",
+                BindingExpressions = controlBindings.GetValueOrDefault(name),
+                UnmappedBindingProperties = boundOther.GetValueOrDefault(name),
                 LineWidth = bag.ContainsKey("LineWidth") ? ToNumber(bag["LineWidth"]) : null,
                 LineStyle = NameOf(bag.GetValueOrDefault("LineStyle")) is { Length: > 0 } ls ? ls : null,
                 LineDirection = NameOf(bag.GetValueOrDefault("LineDirection")) is { Length: > 0 } ld ? ld : null,
+                Padding = ParsePadding(bag.GetValueOrDefault("Padding")) ?? controlStyle?.Padding,
+                CanGrow = BoolValue(bag.GetValueOrDefault("CanGrow")),
+                CanShrink = BoolValue(bag.GetValueOrDefault("CanShrink")),
+                Multiline = BoolValue(bag.GetValueOrDefault("Multiline")),
+                WordWrap = BoolValue(bag.GetValueOrDefault("WordWrap")),
+                KeepTogether = BoolValue(bag.GetValueOrDefault("KeepTogether")),
+                AnchorHorizontal = NameOf(bag.GetValueOrDefault("AnchorHorizontal")),
+                AnchorVertical = NameOf(bag.GetValueOrDefault("AnchorVertical")),
                 Order = controlOrder.GetValueOrDefault(name, int.MaxValue)
             };
             ApplyFontCSharp(el, bag.GetValueOrDefault("Font"));
@@ -213,17 +248,35 @@ public sealed class XtraReportToDesignConverter
 
         // <Bands><ItemN ControlType="...DetailBand,..." HeightF="..."><Controls>...</Controls></ItemN></Bands>
         var bandsContainer = root.Elements().FirstOrDefault(e => e.Name.LocalName == "Bands");
-        foreach (var bandEl in bandsContainer?.Elements() ?? Enumerable.Empty<XElement>())
+        AddRepxBands(bandsContainer?.Elements() ?? Enumerable.Empty<XElement>(), parent: null, report);
+
+        return BuildDesign(report);
+    }
+
+    private static void AddRepxBands(IEnumerable<XElement> bandEls, string? parent, RawReport report)
+    {
+        var order = report.Bands.Count;
+        foreach (var bandEl in bandEls)
         {
             var bandType = SimpleTypeOf(Attr(bandEl, "ControlType"));
-            var bandName = Attr(bandEl, "Name") ?? bandType;
-            report.Bands.Add(new RawBand { Name = bandName, Type = bandType, Height = ToDouble(Attr(bandEl, "HeightF")) });
+            var bandName = Attr(bandEl, "Name") ?? $"{bandType}{order + 1}";
+            report.Bands.Add(new RawBand
+            {
+                Name = bandName,
+                Type = bandType,
+                Height = ToDouble(Attr(bandEl, "HeightF")),
+                Order = order++,
+                Parent = parent,
+                GroupFields = ExtractFieldNamesXml(bandEl, "GroupFields"),
+                SortFields = ExtractFieldNamesXml(bandEl, "SortFields")
+            });
 
             var controls = bandEl.Elements().FirstOrDefault(e => e.Name.LocalName == "Controls");
             AddRepxControls(controls?.Elements() ?? Enumerable.Empty<XElement>(), bandName, report);
-        }
 
-        return BuildDesign(report);
+            var nestedBands = bandEl.Elements().FirstOrDefault(e => e.Name.LocalName == "Bands");
+            AddRepxBands(nestedBands?.Elements() ?? Enumerable.Empty<XElement>(), bandName, report);
+        }
     }
 
     // Add a level of controls, recursing into any nested <Controls> (e.g. an XRPanel's children),
@@ -261,21 +314,39 @@ public sealed class XtraReportToDesignConverter
             Text = Attr(el, "Text"),
             ForeColor = ParseColorString(Attr(el, "ForeColor")),
             BackColor = Attr(el, "BackColor") is { } bc ? ParseColorString(bc) : null,
+            BorderColor = Attr(el, "BorderColor") is { } borderColor ? ParseColorString(borderColor) : null,
+            Borders = ParseBorders(Attr(el, "Borders")),
             TextAlign = ParseAlignment(Attr(el, "TextAlignment")),
             LineWidth = Attr(el, "LineWidth") is { } lw ? ToDouble(lw) : null,
+            BorderWidth = Attr(el, "BorderWidth") is { } borderWidth ? ToDouble(borderWidth) : null,
             LineStyle = Attr(el, "LineStyle"),
-            LineDirection = Attr(el, "LineDirection")
+            LineDirection = Attr(el, "LineDirection"),
+            CanGrow = ParseBool(Attr(el, "CanGrow")),
+            CanShrink = ParseBool(Attr(el, "CanShrink")),
+            Multiline = ParseBool(Attr(el, "Multiline")),
+            WordWrap = ParseBool(Attr(el, "WordWrap")),
+            KeepTogether = ParseBool(Attr(el, "KeepTogether")),
+            AnchorHorizontal = Attr(el, "AnchorHorizontal"),
+            AnchorVertical = Attr(el, "AnchorVertical")
         };
         ApplyFontString(raw, Attr(el, "Font"));
 
         // <ExpressionBindings><ItemN PropertyName="Text" Expression="[X]" /></ExpressionBindings>
-        var bindings = el.Elements().FirstOrDefault(e => e.Name.LocalName == "ExpressionBindings");
-        foreach (var bindEl in bindings?.Elements() ?? Enumerable.Empty<XElement>())
+        foreach (var bindEl in BindingElements(el))
         {
-            if (string.Equals(Attr(bindEl, "PropertyName"), "Text", StringComparison.Ordinal))
-                raw.TextExpression = Attr(bindEl, "Expression");
+            var property = Attr(bindEl, "PropertyName") ?? Attr(bindEl, "Property") ?? Attr(bindEl, "Name");
+            var expression = Attr(bindEl, "Expression") ?? Attr(bindEl, "DataMember") ?? Attr(bindEl, "DataField");
+            if (string.IsNullOrWhiteSpace(property) || string.IsNullOrWhiteSpace(expression)) continue;
+            if (CanMapBindingProperty(type, property))
+            {
+                raw.BindingExpressions ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                raw.BindingExpressions[property] = expression;
+            }
             else
-                raw.HasUnmappedBinding = true;
+            {
+                raw.UnmappedBindingProperties ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                raw.UnmappedBindingProperties.Add(property);
+            }
         }
 
         if (type == "XRShape") raw.ShapeKind = ShapeKindFromName(ShapeTypeXml(el));
@@ -311,19 +382,10 @@ public sealed class XtraReportToDesignConverter
         var diagnostics = new List<MigrationDiagnostic>();
 
         var bandByName = report.Bands.ToDictionary(b => b.Name, StringComparer.Ordinal);
-        var orderedBands = report.Bands
-            .OrderBy(b => b.Order == int.MaxValue ? 1 : 0)
-            .ThenBy(b => b.Order)
-            .ThenBy(b => BandOrder(b.Type))
-            .ToList();
-        var hasTopMargin = report.Bands.Any(b => b.Type == "TopMarginBand");
-        var bandTop = new Dictionary<string, double>(StringComparer.Ordinal);
-        var offset = hasTopMargin ? 0 : report.MarginTop;
-        foreach (var band in orderedBands)
-        {
-            bandTop[band.Name] = offset;
-            offset += band.Height;
-        }
+        var bandTop = BuildBandTops(report);
+        var offset = bandTop.Count > 0
+            ? report.Bands.Max(b => bandTop.GetValueOrDefault(b.Name) + b.Height)
+            : report.MarginTop;
 
         // Controls nested inside an XRPanel reference the panel (not a band) as their container;
         // walk up to the owning band, accumulating the panel offsets, so positions stay absolute.
@@ -360,13 +422,13 @@ public sealed class XtraReportToDesignConverter
                 : MapControl(raw, x, y, w, h, diagnostics);
             if (element is null) continue;
 
+            if (bandType == "ReportFooterBand")
+                element.PageScope = "last";
+
             diagnostics.Add(Info("CANMIGDEVREP002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
 
-            if (raw.TextExpression is { } expr)
-                ApplyBinding(element, expr, diagnostics);
-            else if (raw.HasUnmappedBinding)
-                diagnostics.Add(Warn("CANMIGDEVREP010",
-                    $"'{raw.Name}' has a non-text data binding that wasn't mapped — re-bind it in Canvas."));
+            ApplyBindings(element, raw, diagnostics);
+            AddLayoutDiagnostics(raw, diagnostics);
 
             (bandType is "PageHeaderBand" or "PageFooterBand" ? sharedElements : elements).Add(element);
             controlCount++;
@@ -375,6 +437,18 @@ public sealed class XtraReportToDesignConverter
         if (report.HasScripts)
             diagnostics.Add(Warn("CANMIGDEVREP012",
                 "Report contains scripts/event handlers — Canvas has no scripting; migrate that logic manually."));
+
+        if (report.Bands.Any(b => b.Type == "DetailReportBand"))
+            diagnostics.Add(Warn("CANMIGDEVREP014",
+                "Report contains DetailReportBand/sub-detail bands — layout is flattened, but data-repeat semantics must be wired in Canvas templates."));
+
+        foreach (var groupBand in report.Bands.Where(b => b.Type is "GroupHeaderBand" or "GroupFooterBand"))
+        {
+            var fields = FormatFields(groupBand.GroupFields, "group");
+            var sorts = FormatFields(groupBand.SortFields, "sort");
+            diagnostics.Add(Warn("CANMIGDEVREP015",
+                $"'{groupBand.Name}' ({groupBand.Type}) layout was imported; {fields}; {sorts}; group repeat/sort semantics must be wired in Canvas templates."));
+        }
 
         diagnostics.Insert(0, Info("CANMIGDEVREP001",
             $"XtraReport '{report.Name}' detected — {report.Bands.Count} band(s), {controlCount} control(s) mapped."));
@@ -391,6 +465,42 @@ public sealed class XtraReportToDesignConverter
         };
 
         return new XtraReportConvertResult { Design = design, Diagnostics = diagnostics };
+    }
+
+    private static string FormatFields(IReadOnlyList<string> fields, string label) =>
+        fields.Count > 0 ? $"{label} field(s): {string.Join(", ", fields)}" : $"no {label} fields detected";
+
+    private static Dictionary<string, double> BuildBandTops(RawReport report)
+    {
+        var result = new Dictionary<string, double>(StringComparer.Ordinal);
+        var rootBands = OrderedBands(report.Bands.Where(b => b.Parent is null)).ToList();
+        var childrenByParent = report.Bands
+            .Where(b => b.Parent is not null)
+            .GroupBy(b => b.Parent!, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => OrderedBands(g).ToList(), StringComparer.Ordinal);
+
+        var hasTopMargin = report.Bands.Any(b => b.Parent is null && b.Type == "TopMarginBand");
+        var rootStart = hasTopMargin ? 0 : report.MarginTop;
+        StackBands(rootBands, rootStart);
+        return result;
+
+        double StackBands(IReadOnlyList<RawBand> bands, double start)
+        {
+            var cursor = start;
+            foreach (var band in bands)
+            {
+                result[band.Name] = cursor;
+                var childStart = cursor + band.Height;
+                var childEnd = StackBands(childrenByParent.GetValueOrDefault(band.Name) ?? [], childStart);
+                cursor = Math.Max(childEnd, childStart);
+            }
+            return cursor;
+        }
+
+        static IOrderedEnumerable<RawBand> OrderedBands(IEnumerable<RawBand> bands) => bands
+            .OrderBy(b => b.Order == int.MaxValue ? 1 : 0)
+            .ThenBy(b => b.Order)
+            .ThenBy(b => BandOrder(b.Type));
     }
 
     // Walk a control's container chain up to the owning band, accumulating panel offsets.
@@ -448,10 +558,20 @@ public sealed class XtraReportToDesignConverter
 
             case "XRShape" or "XRPanel":
                 // XRShape carries a shape kind: ellipse → circle, line → line, otherwise a rectangle.
-                element.Type = raw.ShapeKind switch { "ellipse" => "circle", "line" => "line", _ => "rect" };
-                element.Style = new Dictionary<string, object> { ["borderColor"] = raw.ForeColor };
+                element.Type = raw.ShapeKind switch { "ellipse" => "circle", "line" => "line", "arrow" => "arrow", _ => "rect" };
+                element.Style = new Dictionary<string, object> { ["borderColor"] = raw.BorderColor ?? raw.ForeColor };
                 if (raw.BackColor is { } shapeBg) element.Style["backgroundColor"] = shapeBg;
-                if (raw.LineWidth is { } borderW) element.Style["borderWidth"] = borderW;
+                if ((raw.LineWidth ?? raw.BorderWidth) is { } borderW) element.Style["borderWidth"] = borderW;
+                ApplyBorderStyle(element.Style, raw);
+                if (element.Type == "arrow")
+                {
+                    element.Style["color"] = raw.BorderColor ?? raw.ForeColor;
+                    element.Style["strokeWidth"] = raw.LineWidth ?? raw.BorderWidth ?? 1.0;
+                    element.ArrowDirection = "right";
+                    element.EndMarker = "arrow";
+                    diagnostics.Add(Warn("CANMIGDEVREP019",
+                        $"'{raw.Name}' XRShape arrow was imported as a Canvas arrow; review direction/head style."));
+                }
                 return element;
 
             case "XRPictureBox":
@@ -461,7 +581,7 @@ public sealed class XtraReportToDesignConverter
                 {
                     element.Content = dataUrl;  // embedded image survives the import
                 }
-                else
+                else if (!raw.HasAnyBinding("ImageSource", "Image", "ImageUrl", "Value"))
                 {
                     diagnostics.Add(Warn("CANMIGDEVREP013",
                         $"'{raw.Name}' picture data isn't embeddable from source — inserted an empty image placeholder."));
@@ -479,16 +599,61 @@ public sealed class XtraReportToDesignConverter
                 element.HtmlContent = $"<p>{raw.Text ?? ""}</p>";
                 return element;
 
+            case "XRChart":
+                element.Type = "chart";
+                element.ChartType = "bar";
+                element.ChartData = CreatePlaceholderChartData(raw.Name);
+                element.Style = PlaceholderStyle("#1d4ed8");
+                diagnostics.Add(Warn("CANMIGDEVREP018",
+                    $"'{raw.Name}' is an XRChart — inserted an editable Canvas chart placeholder; wire the original series/data manually."));
+                return element;
+
+            case "XRGauge" or "XRPivotGrid":
+                element.Type = "text";
+                element.Content = $"{raw.Type[2..]}: {raw.Name}";
+                element.Style = PlaceholderStyle(raw.Type == "XRGauge" ? "#7c3aed" : "#0f766e");
+                diagnostics.Add(Warn("CANMIGDEVREP018",
+                    $"'{raw.Name}' is a {raw.Type} — inserted a positioned placeholder; native mapping is still manual."));
+                return element;
+
             case "XRSubreport":
+                element.Type = "subsection";
+                element.Content = $"Subreport: {raw.Name}";
+                element.Style = PlaceholderStyle("#475569");
                 diagnostics.Add(Warn("CANMIGDEVREP012",
-                    $"'{raw.Name}' is a sub-report — requires manual migration; skipped."));
-                return null;
+                    $"'{raw.Name}' is a sub-report — inserted a positioned placeholder; migrate the nested report content manually."));
+                return element;
 
             default:
                 diagnostics.Add(Warn("CANMIGDEVREP011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; skipped."));
                 return null;
         }
     }
+
+    private static Dictionary<string, object> CreatePlaceholderChartData(string name) => new()
+    {
+        ["labels"] = new[] { "Series A", "Series B", "Series C" },
+        ["datasets"] = new object[]
+        {
+            new Dictionary<string, object>
+            {
+                ["label"] = name,
+                ["data"] = new[] { 35, 68, 52 },
+                ["backgroundColor"] = "#2563eb"
+            }
+        }
+    };
+
+    private static Dictionary<string, object> PlaceholderStyle(string color) => new()
+    {
+        ["color"] = color,
+        ["backgroundColor"] = "#f8fafc",
+        ["borderColor"] = color,
+        ["borderWidth"] = 1.0,
+        ["borderStyle"] = "dashed",
+        ["textAlign"] = "center",
+        ["whiteSpace"] = "pre-wrap"
+    };
 
     private static ElementDto? BuildTable(RawElement raw, double x, double y, double w, double h, List<MigrationDiagnostic> diagnostics)
     {
@@ -556,9 +721,85 @@ public sealed class XtraReportToDesignConverter
         var decoration = string.Join(" ", new[] { raw.Underline ? "underline" : null, raw.Strikeout ? "line-through" : null }.Where(s => s is not null));
         if (decoration.Length > 0) style["textDecoration"] = decoration;
         if (raw.BackColor is { } bg) style["backgroundColor"] = bg;
+        if (raw.Padding is { } padding)
+        {
+            style["paddingLeft"] = padding.Left;
+            style["paddingRight"] = padding.Right;
+            style["paddingTop"] = padding.Top;
+            style["paddingBottom"] = padding.Bottom;
+        }
         style["textAlign"] = raw.TextAlign;
+        ApplyBorderStyle(style, raw);
+        if (raw.Multiline == true || raw.WordWrap == true)
+            style["whiteSpace"] = "pre-wrap";
+        else if (raw.WordWrap == false)
+            style["whiteSpace"] = "nowrap";
+        if (raw.CanGrow == true) style["overflow"] = "visible";
+        if (raw.CanShrink == true) style["devExpressCanShrink"] = true;
+        if (raw.KeepTogether == true) style["devExpressKeepTogether"] = true;
+        if (NormalizeAnchor(raw.AnchorHorizontal) is { } ah) style["devExpressAnchorHorizontal"] = ah;
+        if (NormalizeAnchor(raw.AnchorVertical) is { } av)
+        {
+            style["devExpressAnchorVertical"] = av;
+            if (av.Contains("Bottom", StringComparison.OrdinalIgnoreCase)) style["verticalAlign"] = "bottom";
+        }
         return style;
     }
+
+    private static void ApplyBorderStyle(Dictionary<string, object> style, RawElement raw)
+    {
+        if (raw.BorderColor is { } color)
+            style["borderColor"] = color;
+
+        if (raw.Borders is not { Count: > 0 } borders)
+        {
+            if (raw.BorderWidth is { } width)
+                style["borderWidth"] = width;
+            return;
+        }
+
+        style["devExpressBorders"] = string.Join(", ", borders.OrderBy(side => side, StringComparer.OrdinalIgnoreCase));
+
+        if (borders.Contains("None"))
+        {
+            style["borderWidth"] = 0d;
+            return;
+        }
+
+        var borderWidth = raw.BorderWidth ?? raw.LineWidth ?? 1d;
+        var borderColor = raw.BorderColor ?? raw.ForeColor;
+
+        if (borders.Contains("All"))
+        {
+            style["borderWidth"] = borderWidth;
+            style["borderColor"] = borderColor;
+            return;
+        }
+
+        foreach (var side in borders)
+        {
+            style[$"border{side}Width"] = borderWidth;
+            style[$"border{side}Color"] = borderColor;
+        }
+    }
+
+    private static void AddLayoutDiagnostics(RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.CanGrow == true || raw.CanShrink == true)
+        {
+            diagnostics.Add(Warn("CANMIGDEVREP016",
+                $"'{raw.Name}' uses CanGrow/CanShrink — Canvas imports wrapping/overflow hints, but dynamic band reflow must be reviewed."));
+        }
+
+        if (!string.IsNullOrWhiteSpace(raw.AnchorHorizontal) || !string.IsNullOrWhiteSpace(raw.AnchorVertical))
+        {
+            diagnostics.Add(Warn("CANMIGDEVREP017",
+                $"'{raw.Name}' uses DevExpress anchoring ({raw.AnchorHorizontal}/{raw.AnchorVertical}) — imported as metadata; review responsive positioning in Canvas."));
+        }
+    }
+
+    private static string? NormalizeAnchor(string? value) =>
+        string.IsNullOrWhiteSpace(value) || value.Equals("None", StringComparison.OrdinalIgnoreCase) ? null : value;
 
     private static void NormalizeLineGeometry(ElementDto element, RawElement raw)
     {
@@ -611,21 +852,70 @@ public sealed class XtraReportToDesignConverter
         return height > width ? "vertical" : "horizontal";
     }
 
-    private static void ApplyBinding(ElementDto element, string expression, List<MigrationDiagnostic> diagnostics)
+    private static void ApplyBindings(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.BindingExpressions is not null)
+        {
+            if (raw.BindingExpressions.TryGetValue("Visible", out var visibleExpression))
+            {
+                element.VisibleExpression = visibleExpression;
+                diagnostics.Add(Warn("CANMIGDEVREP020",
+                    $"'{raw.Name}' Visible expression '{visibleExpression}' was preserved on Canvas visibleExpression; wire runtime evaluation if needed."));
+            }
+
+            foreach (var property in BindingPriority(element.Type))
+            {
+                if (raw.BindingExpressions.TryGetValue(property, out var expression))
+                    ApplyBinding(element, property, expression, diagnostics);
+            }
+        }
+
+        if (raw.UnmappedBindingProperties is { Count: > 0 })
+        {
+            var props = string.Join(", ", raw.UnmappedBindingProperties.Order(StringComparer.OrdinalIgnoreCase));
+            diagnostics.Add(Warn("CANMIGDEVREP010",
+                $"'{raw.Name}' has unmapped data binding(s) for {props} — re-bind them in Canvas."));
+        }
+    }
+
+    private static IEnumerable<string> BindingPriority(string elementType) => elementType switch
+    {
+        "barcode" => ["Text", "Value", "BarcodeValue"],
+        "image" => ["ImageSource", "Image", "ImageUrl", "Value"],
+        "checkmark" => ["CheckState", "Checked", "Value", "Text"],
+        _ => ["Text", "Value"]
+    };
+
+    private static void ApplyBinding(ElementDto element, string property, string expression, List<MigrationDiagnostic> diagnostics)
     {
         var single = Regex.Match(expression, @"^\s*\[(\w+)\]\s*$");
         if (single.Success)
         {
             var field = single.Groups[1].Value;
             element.Binding = field;
-            element.Content = $"{{{{{field}}}}}";
-            diagnostics.Add(Info("CANMIGDEVREP010", $"'{element.Name}' Text bound to field [{field}] → Canvas binding '{field}'."));
+            var placeholder = $"{{{{{field}}}}}";
+            switch (element.Type)
+            {
+                case "text" or "richtext":
+                    element.Content = placeholder;
+                    break;
+                case "barcode":
+                    element.BarcodeValue = placeholder;
+                    break;
+                case "image":
+                    element.Content = placeholder;
+                    break;
+                case "checkmark":
+                    element.FieldName ??= field;
+                    break;
+            }
+            diagnostics.Add(Info("CANMIGDEVREP010", $"'{element.Name}' {property} bound to field [{field}] → Canvas binding '{field}'."));
         }
         else
         {
             element.Expression = expression;
             if (string.IsNullOrEmpty(element.Content)) element.Content = expression;
-            diagnostics.Add(Warn("CANMIGDEVREP010", $"'{element.Name}' Text expression '{expression}' mapped to Canvas expression — review the syntax."));
+            diagnostics.Add(Warn("CANMIGDEVREP010", $"'{element.Name}' {property} expression '{expression}' mapped to Canvas expression — review the syntax."));
         }
     }
 
@@ -638,6 +928,15 @@ public sealed class XtraReportToDesignConverter
     private static (double W, double H) ParseSize(ExpressionSyntax? expr)
         => expr is ObjectCreationExpressionSyntax { ArgumentList.Arguments: { Count: >= 2 } a }
             ? (ToNumber(a[0].Expression), ToNumber(a[1].Expression)) : (0, 0);
+
+    private static RawPadding? ParsePadding(ExpressionSyntax? expr)
+        => expr is ObjectCreationExpressionSyntax { ArgumentList.Arguments: { Count: >= 4 } a }
+            ? new RawPadding(
+                ToNumber(a[0].Expression),
+                ToNumber(a[1].Expression),
+                ToNumber(a[2].Expression),
+                ToNumber(a[3].Expression))
+            : null;
 
     private static string? ParseString(ExpressionSyntax? expr)
         => expr is LiteralExpressionSyntax { Token.Value: string s } ? s : null;
@@ -673,6 +972,48 @@ public sealed class XtraReportToDesignConverter
         raw.Italic = text.Contains("Italic", StringComparison.Ordinal);
         raw.Underline = text.Contains("Underline", StringComparison.Ordinal);
         raw.Strikeout = text.Contains("Strikeout", StringComparison.Ordinal) || text.Contains("Strikethrough", StringComparison.Ordinal);
+    }
+
+    private static void ApplyFontCSharp(RawStyle raw, ExpressionSyntax? fontExpr)
+    {
+        if (fontExpr is not ObjectCreationExpressionSyntax font) return;
+        var args = font.ArgumentList?.Arguments;
+        if (args is { Count: >= 1 } && ParseString(args.Value[0].Expression) is { } family) raw.FontFamily = family;
+        if (args is { Count: >= 2 }) raw.FontSize = ToNumber(args.Value[1].Expression);
+        var text = font.ToString();
+        raw.Bold = text.Contains("Bold", StringComparison.Ordinal);
+        raw.Italic = text.Contains("Italic", StringComparison.Ordinal);
+        raw.Underline = text.Contains("Underline", StringComparison.Ordinal);
+        raw.Strikeout = text.Contains("Strikeout", StringComparison.Ordinal) || text.Contains("Strikethrough", StringComparison.Ordinal);
+    }
+
+    private static Dictionary<string, RawStyle> BuildControlStylesCSharp(
+        Dictionary<string, string> fieldTypes,
+        Dictionary<string, Dictionary<string, ExpressionSyntax>> props)
+    {
+        var styles = new Dictionary<string, RawStyle>(StringComparer.Ordinal);
+        foreach (var (fieldName, type) in fieldTypes)
+        {
+            if (type != "XRControlStyle" || !props.TryGetValue(fieldName, out var bag)) continue;
+
+            var style = new RawStyle
+            {
+                ForeColor = bag.ContainsKey("ForeColor") ? ParseColor(bag["ForeColor"]) : null,
+                BackColor = bag.ContainsKey("BackColor") ? ParseColor(bag["BackColor"]) : null,
+                BorderColor = bag.ContainsKey("BorderColor") ? ParseColor(bag["BorderColor"]) : null,
+                Borders = ParseBorders(bag.GetValueOrDefault("Borders")),
+                BorderWidth = bag.ContainsKey("BorderWidth") ? ToNumber(bag["BorderWidth"]) : null,
+                TextAlign = bag.ContainsKey("TextAlignment") ? ParseAlignment(NameOf(bag["TextAlignment"])) : null,
+                Padding = ParsePadding(bag.GetValueOrDefault("Padding"))
+            };
+            ApplyFontCSharp(style, bag.GetValueOrDefault("Font"));
+
+            styles[fieldName] = style;
+            if (ParseString(bag.GetValueOrDefault("Name")) is { Length: > 0 } styleName)
+                styles[styleName] = style;
+        }
+
+        return styles;
     }
 
     private static List<List<string>>? BuildTableCellsCSharp(
@@ -786,9 +1127,26 @@ public sealed class XtraReportToDesignConverter
 
     private static string ShapeKindFromName(string shapeType)
     {
-        if (shapeType.Contains("Ellipse", StringComparison.Ordinal)) return "ellipse";
-        if (shapeType.Contains("Line", StringComparison.Ordinal)) return "line";
+        if (shapeType.Contains("Ellipse", StringComparison.OrdinalIgnoreCase)) return "ellipse";
+        if (shapeType.Contains("Arrow", StringComparison.OrdinalIgnoreCase)) return "arrow";
+        if (shapeType.Contains("Line", StringComparison.OrdinalIgnoreCase)) return "line";
         return "rect";
+    }
+
+    private static HashSet<string>? ParseBorders(ExpressionSyntax? expr) => ParseBorders(expr?.ToString());
+
+    private static HashSet<string>? ParseBorders(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+
+        var borders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var side in new[] { "None", "All", "Left", "Top", "Right", "Bottom" })
+        {
+            if (value.Contains(side, StringComparison.OrdinalIgnoreCase))
+                borders.Add(side);
+        }
+
+        return borders.Count > 0 ? borders : null;
     }
 
     private static string CreationTypeName(ExpressionSyntax? expr) =>
@@ -800,6 +1158,9 @@ public sealed class XtraReportToDesignConverter
         if (bag.GetValueOrDefault("Checked") is LiteralExpressionSyntax { Token.Value: true }) return "checked";
         return "empty";
     }
+
+    private static bool? BoolValue(ExpressionSyntax? expr) =>
+        expr is LiteralExpressionSyntax { Token.Value: bool b } ? b : null;
 
     private static string ShapeTypeXml(XElement el)
     {
@@ -815,6 +1176,47 @@ public sealed class XtraReportToDesignConverter
         if (string.Equals(Attr(el, "Checked"), "true", StringComparison.OrdinalIgnoreCase)) return "checked";
         return "empty";
     }
+
+    private static bool? ParseBool(string? value)
+    {
+        if (bool.TryParse(value, out var b)) return b;
+        return null;
+    }
+
+    private static List<string> ExtractFieldNamesXml(XElement bandEl, string containerName)
+    {
+        var fieldsEl = bandEl.Elements().FirstOrDefault(e => e.Name.LocalName == containerName);
+        var fields = new List<string>();
+        foreach (var item in fieldsEl?.Elements() ?? Enumerable.Empty<XElement>())
+        {
+            var name = Attr(item, "FieldName") ?? Attr(item, "Name") ?? Attr(item, "Field");
+            var order = Attr(item, "SortOrder") ?? Attr(item, "Order") ?? Attr(item, "SortDirection");
+            if (!string.IsNullOrWhiteSpace(name))
+                fields.Add(string.IsNullOrWhiteSpace(order) ? name : $"{name} ({order})");
+        }
+        return fields;
+    }
+
+    private static IEnumerable<XElement> BindingElements(XElement el)
+    {
+        foreach (var containerName in new[] { "ExpressionBindings", "DataBindings" })
+        {
+            var container = el.Elements().FirstOrDefault(e => e.Name.LocalName == containerName);
+            foreach (var item in container?.Elements() ?? Enumerable.Empty<XElement>())
+                yield return item;
+        }
+    }
+
+    private static bool CanMapBindingProperty(string controlType, string property) =>
+        property switch
+        {
+            "Visible" => true,
+            "Text" => controlType is "XRLabel" or "XRPageInfo" or "XRRichText" or "XRBarCode" or "XRCheckBox",
+            "Value" or "BarcodeValue" => controlType == "XRBarCode",
+            "ImageSource" or "Image" or "ImageUrl" => controlType == "XRPictureBox",
+            "CheckState" or "Checked" => controlType == "XRCheckBox",
+            _ => false
+        };
 
     // Best-effort extraction of an embedded picture's base64 payload from a .repx XRPictureBox.
     private static string? ExtractImageDataUrl(XElement el)
@@ -892,7 +1294,8 @@ public sealed class XtraReportToDesignConverter
 
     private static bool IsKnownControl(string type) => type is
         "XRLabel" or "XRPageInfo" or "XRCheckBox" or "XRLine" or "XRShape" or
-        "XRPanel" or "XRPictureBox" or "XRBarCode" or "XRRichText" or "XRTable";
+        "XRPanel" or "XRPictureBox" or "XRBarCode" or "XRRichText" or "XRTable" or
+        "XRChart" or "XRGauge" or "XRPivotGrid";
 
     private static bool IsUnsupportedControl(string type) =>
         type.StartsWith("XR", StringComparison.Ordinal) && !type.EndsWith("Band", StringComparison.Ordinal);
@@ -937,9 +1340,9 @@ public sealed class XtraReportToDesignConverter
 
     private static void CaptureBindings(
         string owner, ArgumentListSyntax args,
-        Dictionary<string, string> controlTextExpr, HashSet<string> boundOther)
+        Dictionary<string, Dictionary<string, string>> controlBindings,
+        Dictionary<string, HashSet<string>> boundOther)
     {
-        var captured = false;
         foreach (var creation in args.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
         {
             var typeName = SimpleName(creation.Type);
@@ -961,10 +1364,37 @@ public sealed class XtraReportToDesignConverter
             }
 
             if (property is null || expression is null) continue;
-            if (string.Equals(property, "Text", StringComparison.Ordinal)) { controlTextExpr[owner] = expression; captured = true; }
+            if (KnownBindableProperty(property))
+            {
+                if (!controlBindings.TryGetValue(owner, out var bag))
+                    controlBindings[owner] = bag = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                bag[property] = expression;
+            }
+            else
+            {
+                if (!boundOther.TryGetValue(owner, out var props))
+                    boundOther[owner] = props = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                props.Add(property);
+            }
         }
+    }
 
-        if (!captured) boundOther.Add(owner);
+    private static bool KnownBindableProperty(string property) =>
+        property is "Text" or "Value" or "BarcodeValue" or "ImageSource" or "Image" or "ImageUrl" or "CheckState" or "Checked" or "Visible";
+
+    private static IEnumerable<string> ExtractFieldNames(ArgumentListSyntax args)
+    {
+        foreach (var creation in args.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
+        {
+            var typeName = SimpleName(creation.Type);
+            if (typeName is not ("GroupField" or "GroupFieldInfo" or "SortField")) continue;
+            var a = creation.ArgumentList?.Arguments;
+            if (a is not { Count: >= 1 }) continue;
+            var field = ParseString(a.Value[0].Expression);
+            if (string.IsNullOrWhiteSpace(field)) continue;
+            var order = a.Value.Count >= 2 ? NameOf(a.Value[1].Expression) : "";
+            yield return string.IsNullOrWhiteSpace(order) ? field : $"{field} ({order})";
+        }
     }
 
     private static IEnumerable<string> ExtractControlNames(ArgumentListSyntax args)
@@ -1036,7 +1466,26 @@ public sealed class XtraReportToDesignConverter
         public required string Type;
         public double Height;
         public int Order = int.MaxValue;
+        public string? Parent;
+        public List<string> GroupFields = [];
+        public List<string> SortFields = [];
     }
+
+    private sealed class RawStyle
+    {
+        public string? FontFamily;
+        public double? FontSize;
+        public bool Bold, Italic, Underline, Strikeout;
+        public string? ForeColor;
+        public string? BackColor;
+        public string? BorderColor;
+        public HashSet<string>? Borders;
+        public double? BorderWidth;
+        public string? TextAlign;
+        public RawPadding? Padding;
+    }
+
+    private sealed record RawPadding(double Left, double Right, double Top, double Bottom);
 
     private sealed class RawElement
     {
@@ -1050,17 +1499,31 @@ public sealed class XtraReportToDesignConverter
         public bool Bold, Italic, Underline, Strikeout;
         public string ForeColor = "#000000";
         public string? BackColor;   // null = no explicit background
+        public string? BorderColor;
+        public HashSet<string>? Borders;
+        public double? BorderWidth;
+        public RawPadding? Padding;
         public string TextAlign = "left";
-        public string? TextExpression;
-        public bool HasUnmappedBinding;
+        public Dictionary<string, string>? BindingExpressions;
+        public HashSet<string>? UnmappedBindingProperties;
         public List<List<string>>? TableCells;
         public string[]? ColumnAlignments;  // per-column alignment from the header row (XRTable)
-        public string? ShapeKind;     // "ellipse" | "line" | "rect" (XRShape)
+        public string? ShapeKind;     // "ellipse" | "line" | "arrow" | "rect" (XRShape)
         public string? CheckState;    // "checked" | "empty" (XRCheckBox)
         public string? ImageDataUrl;  // data: URL for an embedded XRPictureBox image
         public double? LineWidth;     // XRLine/XRShape stroke/border width
         public string? LineStyle;     // XRLine dash style (Solid/Dash/Dot/...)
         public string? LineDirection; // XRLine direction (Horizontal/Vertical/Slant/BackSlant)
+        public bool? CanGrow;
+        public bool? CanShrink;
+        public bool? Multiline;
+        public bool? WordWrap;
+        public bool? KeepTogether;
+        public string? AnchorHorizontal;
+        public string? AnchorVertical;
         public int Order = int.MaxValue;
+
+        public bool HasAnyBinding(params string[] properties) =>
+            BindingExpressions is not null && properties.Any(p => BindingExpressions.ContainsKey(p));
     }
 }

@@ -113,8 +113,11 @@ namespace does **not** contain `reportdefinition`, and no `<Sections>` (RPX). Ac
 
 ## V2 — next
 
-- [ ] `TableObject` → Canvas table (grid extraction from TableColumn/TableRow/TableCell)
-- [ ] Multi-`ReportPage` (currently first page); `ChildBand` join semantics; `GroupHeader/Footer` repeat
-- [ ] Per-side `Border.Lines` rendering; `Padding`; `Columns.*` multi-column bands
-- [ ] `PictureObject` non-PNG MIME sniffing; richer `RichObject` RTF→HTML
-- [ ] Validate against more `Demos/Reports/*.frx` (charts/matrix/gauge → placeholder)
+**Current recommendation:** keep FastReport in the shared P1 fidelity pass. It should benefit from the
+same group/repeat model as DevExpress/RPX before provider-specific polish.
+
+- [ ] **P1** `TableObject` → Canvas table (grid extraction from TableColumn/TableRow/TableCell)
+- [ ] **P1** Multi-`ReportPage` (currently first page); `ChildBand` join semantics; `GroupHeader/Footer` repeat
+- [ ] **P1** Per-side `Border.Lines` rendering; `Padding`; `Columns.*` multi-column bands
+- [ ] **P1** `PictureObject` non-PNG MIME sniffing; richer `RichObject` RTF→HTML
+- [ ] **P1** Validate against more `Demos/Reports/*.frx` (charts/matrix/gauge → placeholder)
