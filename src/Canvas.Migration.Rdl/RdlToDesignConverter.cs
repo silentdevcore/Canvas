@@ -179,6 +179,9 @@ public sealed class RdlToDesignConverter
                 case "Chart":
                     ParseNativeChart(item, raw);
                     break;
+                case "Map":
+                    ParseMap(item, raw);
+                    break;
                 case "GaugePanel":
                     ParseGaugePanel(item, raw);
                     break;
@@ -384,6 +387,142 @@ public sealed class RdlToDesignConverter
             metadata["Labels"] = labels;
 
         raw.GaugePanelMetadata = metadata;
+    }
+
+    private void ParseMap(XElement el, RawElement raw)
+    {
+        ApplyStyle(raw, Child(el, "Style"));
+
+        var metadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(metadata, "ToolTip", Child(el, "ToolTip")?.Value);
+
+        var layers = Children(Child(el, "MapLayers"), "MapPolygonLayer")
+            .Concat(Children(Child(el, "MapLayers"), "MapPointLayer"))
+            .Concat(Children(Child(el, "MapLayers"), "MapLineLayer"))
+            .Select(ParseMapLayerSummary)
+            .ToArray();
+        if (layers.Length > 0)
+            metadata["Layers"] = layers;
+
+        var dataRegions = Children(Child(el, "MapDataRegions"), "MapDataRegion")
+            .Select(region =>
+            {
+                var r = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Name"] = Attr(region, "Name") ?? "MapDataRegion"
+                };
+                AddText(r, "DataSetName", Child(region, "DataSetName")?.Value);
+                var group = Descendant(region, "Group");
+                AddText(r, "GroupName", group is null ? null : Attr(group, "Name"));
+                return r;
+            })
+            .ToArray();
+        if (dataRegions.Length > 0)
+            metadata["DataRegions"] = dataRegions;
+
+        if (Child(el, "MapViewport") is { } viewport)
+            metadata["Viewport"] = ParseMapViewportSummary(viewport);
+
+        var legends = Children(Child(el, "MapLegends"), "MapLegend")
+            .Select(legend => Attr(legend, "Name") ?? "MapLegend")
+            .ToArray();
+        if (legends.Length > 0)
+            metadata["Legends"] = legends;
+
+        var titles = Children(Child(el, "MapTitles"), "MapTitle")
+            .Select(title =>
+            {
+                var t = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Name"] = Attr(title, "Name") ?? "MapTitle"
+                };
+                AddText(t, "Text", Child(title, "Text")?.Value);
+                return t;
+            })
+            .ToArray();
+        if (titles.Length > 0)
+            metadata["Titles"] = titles;
+
+        if (Child(el, "MapDistanceScale") is not null)
+            metadata["HasDistanceScale"] = true;
+        if (Child(el, "MapColorScale") is not null)
+            metadata["HasColorScale"] = true;
+
+        raw.MapMetadata = metadata;
+    }
+
+    private static Dictionary<string, object> ParseMapLayerSummary(XElement layer)
+    {
+        var summary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Name"] = Attr(layer, "Name") ?? layer.Name.LocalName,
+            ["Kind"] = layer.Name.LocalName
+        };
+        AddText(summary, "MapDataRegionName", Child(layer, "MapDataRegionName")?.Value);
+
+        var bindings = Children(Child(layer, "MapBindingFieldPairs"), "MapBindingFieldPair")
+            .Select(pair =>
+            {
+                var b = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                AddText(b, "FieldName", Child(pair, "FieldName")?.Value);
+                AddText(b, "BindingExpression", Child(pair, "BindingExpression")?.Value);
+                return b;
+            })
+            .Where(b => b.Count > 0)
+            .ToArray();
+        if (bindings.Length > 0)
+            summary["BindingFieldPairs"] = bindings;
+
+        var fields = Children(Child(layer, "MapFieldDefinitions"), "MapFieldDefinition")
+            .Select(field =>
+            {
+                var f = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                AddText(f, "Name", Child(field, "Name")?.Value);
+                AddText(f, "DataType", Child(field, "DataType")?.Value);
+                return f;
+            })
+            .Where(f => f.Count > 0)
+            .ToArray();
+        if (fields.Length > 0)
+            summary["FieldDefinitions"] = fields;
+
+        var ruleKinds = layer.Descendants()
+            .Where(e => e.Name.LocalName.StartsWith("Map", StringComparison.Ordinal)
+                && e.Name.LocalName.EndsWith("Rule", StringComparison.Ordinal))
+            .Select(e => e.Name.LocalName)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        if (ruleKinds.Length > 0)
+            summary["RuleKinds"] = ruleKinds;
+
+        var spatialElementCount =
+            Children(Child(layer, "MapPolygons"), "MapPolygon").Count()
+            + Children(Child(layer, "MapPoints"), "MapPoint").Count()
+            + Children(Child(layer, "MapLines"), "MapLine").Count();
+        if (spatialElementCount > 0)
+            summary["SpatialElementCount"] = spatialElementCount;
+
+        return summary;
+    }
+
+    private static Dictionary<string, object> ParseMapViewportSummary(XElement viewport)
+    {
+        var summary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(summary, "CoordinateSystem", Child(viewport, "MapCoordinateSystem")?.Value);
+        AddText(summary, "Projection", Child(viewport, "MapProjection")?.Value);
+        AddText(summary, "MaximumZoom", Child(viewport, "MaximumZoom")?.Value);
+
+        if (Child(viewport, "MapCustomView") is { } customView)
+        {
+            var view = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            AddText(view, "CenterX", Child(customView, "CenterX")?.Value);
+            AddText(view, "CenterY", Child(customView, "CenterY")?.Value);
+            AddText(view, "Zoom", Child(customView, "Zoom")?.Value);
+            if (view.Count > 0)
+                summary["CustomView"] = view;
+        }
+
+        return summary;
     }
 
     private static Dictionary<string, object> ParseGaugeSummary(XElement gauge)
@@ -755,6 +894,9 @@ public sealed class RdlToDesignConverter
             case "Chart":
                 return MapRdlChart(raw, element, diagnostics);
 
+            case "Map":
+                return MapNativeMap(raw, element, diagnostics);
+
             case "GaugePanel":
                 return MapGaugePanel(raw, element, diagnostics);
 
@@ -767,6 +909,29 @@ public sealed class RdlToDesignConverter
                 diagnostics.Add(Warn("CANMIGRDL011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
+    }
+
+    private static ElementDto MapNativeMap(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        element.Type = "text";
+        element.Content = $"[Map: {raw.Name} — migrate manually]";
+        element.Style = new Dictionary<string, object>
+        {
+            ["color"] = "#0F172A",
+            ["backgroundColor"] = raw.BackColor ?? "#EFF6FF",
+            ["borderColor"] = raw.ForeColor,
+            ["borderStyle"] = "dashed",
+            ["fontStyle"] = "italic",
+            ["rdlCustomItemType"] = "Map"
+        };
+        if (raw.LineWidth is { } borderW)
+            element.Style["borderWidth"] = borderW;
+        if (raw.MapMetadata is { Count: > 0 })
+            element.Style["rdlMap"] = raw.MapMetadata;
+
+        diagnostics.Add(Warn("CANMIGRDL022",
+            $"'{raw.Name}' native RDL Map metadata was preserved on a positioned placeholder; Canvas has no native map element yet."));
+        return element;
     }
 
     private static ElementDto MapGaugePanel(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
@@ -1399,6 +1564,7 @@ public sealed class RdlToDesignConverter
         public string? CustomType;                    // <CustomReportItem><Type>
         public Dictionary<string, string>? CustomProps;  // <CustomProperties> name → value
         public Dictionary<string, object>? GaugePanelMetadata;
+        public Dictionary<string, object>? MapMetadata;
     }
 
     private sealed record RdlTablixGroup(string Name, string[] Expressions);

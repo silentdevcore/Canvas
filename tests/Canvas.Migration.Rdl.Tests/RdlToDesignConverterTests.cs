@@ -662,6 +662,81 @@ public sealed class RdlToDesignConverterTests
 
     // 30 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
+    public void Convert_NativeMap_PreservesMapMetadataOnPlaceholder()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Map Name="WorldMap">
+                  <Top>0in</Top><Left>0in</Left><Height>3in</Height><Width>5in</Width>
+                  <ToolTip>World Population Map</ToolTip>
+                  <Style><BackgroundColor>White</BackgroundColor><Border><Color>LightGrey</Color><Width>1pt</Width></Border></Style>
+                  <MapLayers>
+                    <MapPolygonLayer Name="PolygonLayer1">
+                      <MapDataRegionName>DataRegion</MapDataRegionName>
+                      <MapBindingFieldPairs><MapBindingFieldPair>
+                        <FieldName>name</FieldName>
+                        <BindingExpression>=Fields!Country.Value</BindingExpression>
+                      </MapBindingFieldPair></MapBindingFieldPairs>
+                      <MapFieldDefinitions><MapFieldDefinition>
+                        <Name>name</Name><DataType>String</DataType>
+                      </MapFieldDefinition></MapFieldDefinitions>
+                      <MapPolygonRules><MapColorRangeRule>
+                        <DataValue>=Sum(Fields!Population.Value)</DataValue>
+                      </MapColorRangeRule></MapPolygonRules>
+                      <MapPolygons>
+                        <MapPolygon><VectorData>abc</VectorData></MapPolygon>
+                        <MapPolygon><VectorData>def</VectorData></MapPolygon>
+                      </MapPolygons>
+                    </MapPolygonLayer>
+                  </MapLayers>
+                  <MapDataRegions><MapDataRegion Name="DataRegion">
+                    <DataSetName>PopulationDataset</DataSetName>
+                    <MapMember><Group Name="CountryGroup" /></MapMember>
+                  </MapDataRegion></MapDataRegions>
+                  <MapViewport>
+                    <MapCoordinateSystem>Geographic</MapCoordinateSystem>
+                    <MapProjection>Mercator</MapProjection>
+                    <MaximumZoom>4000000</MaximumZoom>
+                    <MapCustomView><CenterX>50</CenterX><CenterY>50</CenterY><Zoom>125</Zoom></MapCustomView>
+                  </MapViewport>
+                  <MapLegends><MapLegend Name="Legend1" /></MapLegends>
+                  <MapTitles><MapTitle Name="Title1"><Text>Population</Text></MapTitle></MapTitles>
+                  <MapDistanceScale />
+                  <MapColorScale />
+                </Map>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var map = El(result.Design, "WorldMap");
+
+        Assert.Equal("text", map.Type);
+        Assert.Equal("Map", map.Style!["rdlCustomItemType"]);
+        var metadata = Assert.IsType<Dictionary<string, object>>(map.Style["rdlMap"]);
+        Assert.Equal("World Population Map", metadata["ToolTip"]);
+        Assert.True((bool)metadata["HasDistanceScale"]);
+        Assert.True((bool)metadata["HasColorScale"]);
+
+        var layers = Assert.IsType<Dictionary<string, object>[]>(metadata["Layers"]);
+        Assert.Equal("MapPolygonLayer", layers[0]["Kind"]);
+        Assert.Equal(2, layers[0]["SpatialElementCount"]);
+        Assert.Contains("MapColorRangeRule", Assert.IsType<string[]>(layers[0]["RuleKinds"]));
+        var bindings = Assert.IsType<Dictionary<string, object>[]>(layers[0]["BindingFieldPairs"]);
+        Assert.Equal("=Fields!Country.Value", bindings[0]["BindingExpression"]);
+
+        var regions = Assert.IsType<Dictionary<string, object>[]>(metadata["DataRegions"]);
+        Assert.Equal("PopulationDataset", regions[0]["DataSetName"]);
+        Assert.Equal("CountryGroup", regions[0]["GroupName"]);
+        var viewport = Assert.IsType<Dictionary<string, object>>(metadata["Viewport"]);
+        Assert.Equal("Geographic", viewport["CoordinateSystem"]);
+        Assert.Equal("Mercator", viewport["Projection"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL022" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 31 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
     public void Convert_ComprehensiveSyncfusionFixture_MapsCoreLayoutAndKnownPlaceholders()
     {
         var r = Convert(Fixture("ComprehensiveSyncfusionReport.rdl"));
