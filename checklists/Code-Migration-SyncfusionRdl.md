@@ -156,6 +156,9 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       stub — same limitation as DevExpress).
 - [x] Native `Chart` and `CustomReportItem` Chart → Canvas `chart` placeholder with `ChartData` and RDL metadata
       (`rdlCategoryExpression`, `rdlValueExpression`, `style.rdlCustomProperties`) plus `CANMIGRDL017`.
+- [x] Native `Chart` fidelity pass: multiple series, `DataSetName`, title, original RDL series type, X/Y/Size
+      expressions, and advanced chart types (`Area`, `Scatter`, `Range`, `Polar`, `Shape` families) are preserved
+      in `chartData.rdlSeries` while mapped to the nearest Canvas `bar`/`line`/`pie` rendering type.
 - [x] `CustomReportItem` Shape → Canvas `rect` / `circle` / `arrow` with fill/line style, rotation metadata,
       `style.rdlShapeType`, and preserved custom properties plus `CANMIGRDL020`.
 - [x] Native `GaugePanel` → positioned placeholder with `style.rdlGaugePanel` metadata (`DataSetName`, radial/linear
@@ -188,8 +191,8 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [ ] **P0** Percentage / relative lengths for Tablix columns.
 - [x] **P0** Multi-run textbox per-run formatting: multiple/styled `TextRun`s import as Canvas
       `richtext` with inline HTML spans; simple single-run textboxes keep the old `text`/binding path.
-- [ ] **P1** Promote Chart placeholder data from metadata-only expressions to real sample/series extraction
-      once Canvas chart data-series modeling is stable enough for RDL category/value expressions.
+- [ ] **P1** Promote preserved RDL chart expressions to real data evaluation/sample extraction once Canvas chart
+      data-series modeling is stable enough for RDL category/value expressions.
 
 ## Assumptions
 - [x] Use `Canvas.Migration.Rdl`, separate from the DevExpress converters; self-contained model + build.

@@ -346,12 +346,19 @@ public sealed class RdlToDesignConverter
         raw.CustomType = "Chart";
         raw.CustomProps = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-        if (ChartSeries(el) is { } series)
+        var seriesList = ChartSeriesItems(el).ToList();
+        if (seriesList.Count > 0)
         {
-            AddText(raw.CustomProps, "SeriesName", Attr(series, "Name"));
-            AddText(raw.CustomProps, "ChartType", Child(series, "Type")?.Value);
-            AddText(raw.CustomProps, "Value", series.Descendants()
-                .FirstOrDefault(e => e.Name.LocalName == "Y")?.Value);
+            var first = seriesList[0];
+            AddText(raw.CustomProps, "SeriesName", Attr(first, "Name"));
+            AddText(raw.CustomProps, "ChartType", Child(first, "Type")?.Value);
+            AddText(raw.CustomProps, "Value", ChartSeriesY(first));
+            raw.ChartSeries = seriesList.Select(series => new RdlChartSeries(
+                Attr(series, "Name") ?? "Series",
+                Child(series, "Type")?.Value ?? "",
+                ChartSeriesY(series),
+                ChartSeriesX(series),
+                ChartSeriesSize(series))).ToList();
         }
 
         AddText(raw.CustomProps, "Category", el.Descendants()
@@ -1037,8 +1044,17 @@ public sealed class RdlToDesignConverter
     private static XElement? TableCellTextbox(XElement cell) =>
         Children(Child(cell, "ReportItems"), "Textbox").FirstOrDefault();
 
-    private static XElement? ChartSeries(XElement chart) =>
-        chart.Descendants().FirstOrDefault(e => e.Name.LocalName == "ChartSeries");
+    private static IEnumerable<XElement> ChartSeriesItems(XElement chart) =>
+        chart.Descendants().Where(e => e.Name.LocalName == "ChartSeries");
+
+    private static string? ChartSeriesY(XElement series) =>
+        series.Descendants().FirstOrDefault(e => e.Name.LocalName == "Y")?.Value;
+
+    private static string? ChartSeriesX(XElement series) =>
+        series.Descendants().FirstOrDefault(e => e.Name.LocalName == "X")?.Value;
+
+    private static string? ChartSeriesSize(XElement series) =>
+        series.Descendants().FirstOrDefault(e => e.Name.LocalName == "Size")?.Value;
 
     private static string[] HeaderAlignments(XElement headerRow, bool tablix)
     {
@@ -1417,7 +1433,7 @@ public sealed class RdlToDesignConverter
         var props = raw.CustomProps ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         element.Type = "chart";
         element.ChartType = ChartTypeFromRdl(props.GetValueOrDefault("ChartType"));
-        element.ChartData = CreateRdlChartData(raw.Name, props);
+        element.ChartData = CreateRdlChartData(raw.Name, props, raw.ChartSeries);
         element.Style = RdlCustomItemStyle("Chart", props);
         diagnostics.Add(Warn("CANMIGRDL017",
             $"'{raw.Name}' RDL chart was imported as an editable Canvas chart placeholder; review series/category/value bindings."));
@@ -1520,35 +1536,62 @@ public sealed class RdlToDesignConverter
         return element;
     }
 
-    private static Dictionary<string, object> CreateRdlChartData(string name, IReadOnlyDictionary<string, string> props)
+    private static Dictionary<string, object> CreateRdlChartData(string name, IReadOnlyDictionary<string, string> props, IReadOnlyList<RdlChartSeries>? series)
     {
         var category = props.GetValueOrDefault("Category") ?? props.GetValueOrDefault("CategoryExpression") ?? "Category";
         var value = props.GetValueOrDefault("Value") ?? props.GetValueOrDefault("ValueExpression") ?? "Value";
-        var label = props.GetValueOrDefault("SeriesName") ?? name;
-        return new Dictionary<string, object>
+        var chartSeries = series is { Count: > 0 }
+            ? series
+            : [new RdlChartSeries(props.GetValueOrDefault("SeriesName") ?? name, props.GetValueOrDefault("ChartType") ?? "", value, null, null)];
+        var data = new Dictionary<string, object>
         {
             ["labels"] = new[] { CellDisplay(category) },
-            ["datasets"] = new object[]
-            {
-                new Dictionary<string, object>
+            ["datasets"] = chartSeries
+                .Select((s, i) => new Dictionary<string, object>
                 {
-                    ["label"] = label,
+                    ["label"] = string.IsNullOrWhiteSpace(s.Name) ? $"{name} {i + 1}" : s.Name,
                     ["data"] = new[] { 1 },
-                    ["backgroundColor"] = "#2563eb"
-                }
-            },
+                    ["backgroundColor"] = ChartColor(i)
+                })
+                .ToArray(),
             ["rdlCategoryExpression"] = category,
-            ["rdlValueExpression"] = value
+            ["rdlValueExpression"] = value,
+            ["rdlSeries"] = chartSeries
+                .Select(s => new Dictionary<string, object>
+                {
+                    ["name"] = s.Name,
+                    ["type"] = s.Type,
+                    ["x"] = s.XExpression ?? "",
+                    ["y"] = s.YExpression ?? "",
+                    ["size"] = s.SizeExpression ?? ""
+                })
+                .ToArray()
         };
+        if (props.GetValueOrDefault("Title") is { Length: > 0 } title)
+            data["rdlTitle"] = title;
+        if (props.GetValueOrDefault("DataSetName") is { Length: > 0 } dataSetName)
+            data["rdlDataSetName"] = dataSetName;
+        return data;
     }
 
     private static string ChartTypeFromRdl(string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return "bar";
         if (value.Contains("Line", StringComparison.OrdinalIgnoreCase)) return "line";
+        if (value.Contains("Area", StringComparison.OrdinalIgnoreCase)) return "line";
+        if (value.Contains("Scatter", StringComparison.OrdinalIgnoreCase) || value.Contains("Bubble", StringComparison.OrdinalIgnoreCase)) return "line";
+        if (value.Contains("Polar", StringComparison.OrdinalIgnoreCase) || value.Contains("Radar", StringComparison.OrdinalIgnoreCase)) return "line";
         if (value.Contains("Pie", StringComparison.OrdinalIgnoreCase) || value.Contains("Doughnut", StringComparison.OrdinalIgnoreCase)) return "pie";
+        if (value.Contains("Shape", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("Funnel", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("Pyramid", StringComparison.OrdinalIgnoreCase))
+            return "pie";
+        if (value.Contains("Range", StringComparison.OrdinalIgnoreCase)) return "bar";
         return "bar";
     }
+
+    private static string ChartColor(int index) =>
+        new[] { "#2563eb", "#16a34a", "#dc2626", "#9333ea", "#ea580c", "#0891b2" }[index % 6];
 
     private static Dictionary<string, object> RdlCustomItemStyle(string itemType, IReadOnlyDictionary<string, string> props)
     {
@@ -1953,6 +1996,7 @@ public sealed class RdlToDesignConverter
         public string? LineStyle;
         public string? CustomType;                    // <CustomReportItem><Type>
         public Dictionary<string, string>? CustomProps;  // <CustomProperties> name → value
+        public List<RdlChartSeries>? ChartSeries;
         public Dictionary<string, object>? GaugePanelMetadata;
         public Dictionary<string, object>? MapMetadata;
         public string? ParentTablixName;
@@ -1961,4 +2005,5 @@ public sealed class RdlToDesignConverter
     }
 
     private sealed record RdlTablixGroup(string Name, string[] Expressions);
+    private sealed record RdlChartSeries(string Name, string Type, string? YExpression, string? XExpression, string? SizeExpression);
 }

@@ -546,6 +546,79 @@ public sealed class RdlToDesignConverterTests
 
     // 27 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
+    public void Convert_NativeChart_PreservesMultipleSeriesAndAdvancedChartTypes()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Chart Name="AreaChart">
+                  <Top>0in</Top><Left>0in</Left><Height>2in</Height><Width>4in</Width>
+                  <DataSetName>SalesData</DataSetName>
+                  <ChartCategoryHierarchy><ChartMembers><ChartMember><Label>=Fields!Month.Value</Label></ChartMember></ChartMembers></ChartCategoryHierarchy>
+                  <ChartTitles><ChartTitle Name="Title"><Caption>Monthly Sales</Caption></ChartTitle></ChartTitles>
+                  <ChartData><ChartSeriesCollection>
+                    <ChartSeries Name="Sales"><ChartDataPoints><ChartDataPoint><ChartDataPointValues><Y>=Sum(Fields!Sales.Value)</Y></ChartDataPointValues></ChartDataPoint></ChartDataPoints><Type>Area</Type></ChartSeries>
+                    <ChartSeries Name="Forecast"><ChartDataPoints><ChartDataPoint><ChartDataPointValues><Y>=Sum(Fields!Forecast.Value)</Y></ChartDataPointValues></ChartDataPoint></ChartDataPoints><Type>Line</Type></ChartSeries>
+                  </ChartSeriesCollection></ChartData>
+                </Chart>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var chart = El(result.Design, "AreaChart");
+
+        Assert.Equal("chart", chart.Type);
+        Assert.Equal("line", chart.ChartType);
+        var datasets = Assert.IsType<Dictionary<string, object>[]>(chart.ChartData!["datasets"]);
+        Assert.Equal(2, datasets.Length);
+        Assert.Equal("Sales", datasets[0]["label"]);
+        Assert.Equal("Forecast", datasets[1]["label"]);
+        var series = Assert.IsType<Dictionary<string, object>[]>(chart.ChartData["rdlSeries"]);
+        Assert.Equal("Area", series[0]["type"]);
+        Assert.Equal("=Sum(Fields!Sales.Value)", series[0]["y"]);
+        Assert.Equal("Line", series[1]["type"]);
+        Assert.Equal("=Fields!Month.Value", chart.ChartData["rdlCategoryExpression"]);
+        Assert.Equal("SalesData", chart.ChartData["rdlDataSetName"]);
+        Assert.Equal("Monthly Sales", chart.ChartData["rdlTitle"]);
+    }
+
+    // 28 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_NativeScatterChart_PreservesXAndSizeExpressions()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Chart Name="BubbleChart">
+                  <Top>0in</Top><Left>0in</Left><Height>2in</Height><Width>4in</Width>
+                  <ChartData><ChartSeriesCollection>
+                    <ChartSeries Name="Growth">
+                      <ChartDataPoints><ChartDataPoint><ChartDataPointValues>
+                        <X>=Fields!Margin.Value</X>
+                        <Y>=Fields!Growth.Value</Y>
+                        <Size>=Fields!Revenue.Value</Size>
+                      </ChartDataPointValues></ChartDataPoint></ChartDataPoints>
+                      <Type>Scatter</Type>
+                    </ChartSeries>
+                  </ChartSeriesCollection></ChartData>
+                </Chart>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var chart = El(Convert(rdl).Design, "BubbleChart");
+
+        Assert.Equal("line", chart.ChartType);
+        var series = Assert.IsType<Dictionary<string, object>[]>(chart.ChartData!["rdlSeries"]);
+        Assert.Equal("Scatter", series[0]["type"]);
+        Assert.Equal("=Fields!Margin.Value", series[0]["x"]);
+        Assert.Equal("=Fields!Growth.Value", series[0]["y"]);
+        Assert.Equal("=Fields!Revenue.Value", series[0]["size"]);
+    }
+
+    // 29 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
     public void Convert_ShapeCustomItem_BecomesCanvasShape()
     {
         var rdl = """
