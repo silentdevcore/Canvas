@@ -69,6 +69,8 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `Subreport` | labeled placeholder (`CANMIGRDL011`) | [x] |
 | Value `=Fields!X.Value` / `=expr` | `binding` / `expression` | [x] |
 | `Visibility.Hidden` | `Hidden` / inverted `VisibleExpression` | [x] |
+| `ReportParameters` / `ReportParametersLayout` | `PageSettings.CustomProperties` JSON metadata (`CANMIGRDL024`) | [x] |
+| `Filters` | element/table/map metadata (`CANMIGRDL025`) | [x] |
 
 ### Delivery
 - [x] Backend `POST /api/migration/report-to-design` auto-detects RDL (`<Report>` in an RDL namespace)
@@ -114,6 +116,8 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL021` | Warning | Native RDL GaugePanel metadata preserved on positioned placeholder; Canvas has no native gauge element yet |
 | `CANMIGRDL022` | Warning | Native RDL Map metadata preserved on positioned placeholder; Canvas has no native map element yet |
 | `CANMIGRDL023` | Warning | Non-text Tablix cell item extracted as separate positioned Canvas element; repeat semantics need review |
+| `CANMIGRDL024` | Warning | RDL report parameters preserved in `PageSettings.CustomProperties`; Canvas has no native report-parameter UI yet |
+| `CANMIGRDL025` | Warning | RDL filters preserved as metadata; Canvas does not evaluate report filters yet |
 
 ---
 
@@ -163,6 +167,11 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       plus `CANMIGRDL023`.
 - [ ] **P1** Richer Table cell-content modeling: extracted nested items preserve visibility, but repeated data-row
       semantics still need a Canvas-native model instead of absolute overlay elements.
+- [x] `ReportParameters` / `ReportParametersLayout` → `PageSettings.CustomProperties` JSON metadata
+      (`rdlReportParameters`, `rdlReportParametersLayout`) plus `CANMIGRDL024`.
+- [x] Element/DataRegion/Tablix group `Filters` → `style.rdlFilters`, `style.rdlTablixGroupFilters`, or nested
+      map data-region metadata plus `CANMIGRDL025`.
+- [ ] **P1** Native report-parameter UI and filter evaluation: preserved metadata is not executed by Canvas yet.
 - [x] `CustomReportItem` Gauge → positioned placeholder with `style.rdlCustomItemType = "Gauge"` and
       custom properties preserved, plus `CANMIGRDL018`.
 - [x] `CustomReportItem` Map / Sparkline + `Subreport` → labeled placeholder elements

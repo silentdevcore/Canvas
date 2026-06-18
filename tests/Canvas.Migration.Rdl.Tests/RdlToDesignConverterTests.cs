@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Canvas.Core.Contracts;
 using Canvas.Migration.Abstractions;
 using Canvas.Migration.Rdl;
@@ -792,6 +793,75 @@ public sealed class RdlToDesignConverterTests
     }
 
     // 32 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_ReportParameters_ArePreservedAsCustomProperties()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems /><Height>5in</Height></Body>
+              <ReportParameters>
+                <ReportParameter Name="ProductCategory">
+                  <DataType>String</DataType>
+                  <Prompt>Category</Prompt>
+                  <MultiValue>true</MultiValue>
+                  <DefaultValue><Values><Value>Bikes</Value></Values></DefaultValue>
+                  <ValidValues><DataSetReference><DataSetName>Categories</DataSetName><ValueField>CategoryID</ValueField><LabelField>Name</LabelField></DataSetReference></ValidValues>
+                </ReportParameter>
+              </ReportParameters>
+              <ReportParametersLayout>
+                <GridLayoutDefinition><NumberOfColumns>1</NumberOfColumns><NumberOfRows>1</NumberOfRows><CellDefinitions><CellDefinition><ColumnIndex>0</ColumnIndex><RowIndex>0</RowIndex><ParameterName>ProductCategory</ParameterName></CellDefinition></CellDefinitions></GridLayoutDefinition>
+              </ReportParametersLayout>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var props = result.Design.PageSettings!.CustomProperties!;
+        var parametersJson = Assert.Single(props, p => p.Name == "rdlReportParameters").Value;
+        using var doc = JsonDocument.Parse(parametersJson);
+        var parameter = doc.RootElement[0];
+
+        Assert.Equal("ProductCategory", parameter.GetProperty("Name").GetString());
+        Assert.Equal("String", parameter.GetProperty("DataType").GetString());
+        Assert.Equal("true", parameter.GetProperty("MultiValue").GetString());
+        Assert.Equal("Bikes", parameter.GetProperty("DefaultValue").GetString());
+        Assert.Contains("DataSetReference:Categories|CategoryID|Name", parameter.GetProperty("ValidValues").GetString());
+        Assert.Contains(props, p => p.Name == "rdlReportParametersLayout");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL024" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 33 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_TablixFilters_ArePreservedOnTableStyle()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Tablix Name="filtered">
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>2in</Width>
+                  <Filters><Filter><FilterExpression>=Fields!Year.Value</FilterExpression><Operator>Equal</Operator><FilterValues><FilterValue>=Parameters!OrderYear.Value</FilterValue></FilterValues></Filter></Filters>
+                  <TablixBody>
+                    <TablixColumns><TablixColumn><Width>2in</Width></TablixColumn></TablixColumns>
+                    <TablixRows><TablixRow><Height>0.5in</Height><TablixCells><TablixCell><CellContents><Textbox Name="cell"><Value>Item</Value></Textbox></CellContents></TablixCell></TablixCells></TablixRow></TablixRows>
+                  </TablixBody>
+                  <TablixRowHierarchy><TablixMembers><TablixMember><Group Name="YearGroup"><Filters><Filter><FilterExpression>=Fields!Category.Value</FilterExpression><Operator>Like</Operator><FilterValues><FilterValue>A*</FilterValue></FilterValues></Filter></Filters></Group></TablixMember></TablixMembers></TablixRowHierarchy>
+                </Tablix>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var table = El(result.Design, "filtered");
+        var filters = Assert.IsType<Dictionary<string, object>[]>(table.Style!["rdlFilters"]);
+        Assert.Equal("=Fields!Year.Value", filters[0]["FilterExpression"]);
+        Assert.Equal("Equal", filters[0]["Operator"]);
+        Assert.Contains("=Parameters!OrderYear.Value", Assert.IsType<string[]>(filters[0]["FilterValues"]));
+
+        var groupFilters = Assert.IsType<Dictionary<string, object>[]>(table.Style["rdlTablixGroupFilters"]);
+        Assert.Equal("YearGroup", groupFilters[0]["GroupName"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL025" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 34 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_ComprehensiveSyncfusionFixture_MapsCoreLayoutAndKnownPlaceholders()
     {

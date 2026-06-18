@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Net;
@@ -81,6 +82,8 @@ public sealed class RdlToDesignConverter
             HasCode = Descendant(root, "Code") is not null || Descendant(root, "CodeModules") is not null
         };
         ResolvePage(root, report);
+        report.ReportParameters = ParseReportParameters(root);
+        report.ReportParametersLayout = ParseReportParametersLayout(root);
 
         var body = Descendant(root, "Body");
         if (body is not null)
@@ -159,6 +162,7 @@ public sealed class RdlToDesignConverter
             };
             ParseVisibility(item, raw);
             ParsePaginationMetadata(item, raw);
+            raw.Filters = ParseFilters(item);
 
             switch (type)
             {
@@ -414,6 +418,9 @@ public sealed class RdlToDesignConverter
                 AddText(r, "DataSetName", Child(region, "DataSetName")?.Value);
                 var group = Descendant(region, "Group");
                 AddText(r, "GroupName", group is null ? null : Attr(group, "Name"));
+                var filters = ParseFilters(region);
+                if (filters.Count > 0)
+                    r["Filters"] = filters.ToArray();
                 return r;
             })
             .ToArray();
@@ -662,6 +669,7 @@ public sealed class RdlToDesignConverter
         raw.TablixGroups = ParseTablixGroups(el);
         raw.TablixSorts = ParseTablixSorts(el);
         raw.TablixKeepWithGroups = ParseTablixKeepWithGroups(el);
+        raw.TablixGroupFilters = ParseTablixGroupFilters(el);
         raw.PaginationMetadata["TablixMemberRepeatOnNewPage"] = ParseTablixMemberValues(el, "RepeatOnNewPage");
         raw.PaginationMetadata["TablixMemberKeepTogether"] = ParseTablixMemberValues(el, "KeepTogether");
         raw.PaginationMetadata["TablixMemberFixedData"] = ParseTablixMemberValues(el, "FixedData");
@@ -723,6 +731,7 @@ public sealed class RdlToDesignConverter
         };
         ParseVisibility(item, raw);
         ParsePaginationMetadata(item, raw);
+        raw.Filters = ParseFilters(item);
 
         switch (type)
         {
@@ -782,6 +791,87 @@ public sealed class RdlToDesignConverter
         }
     }
 
+    private static List<Dictionary<string, object>> ParseReportParameters(XElement root)
+    {
+        var parameters = new List<Dictionary<string, object>>();
+        foreach (var parameter in Children(Child(root, "ReportParameters"), "ReportParameter"))
+        {
+            var p = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Name"] = Attr(parameter, "Name") ?? "Parameter"
+            };
+            AddText(p, "DataType", Child(parameter, "DataType")?.Value);
+            AddText(p, "Prompt", Child(parameter, "Prompt")?.Value);
+            AddText(p, "Nullable", Child(parameter, "Nullable")?.Value);
+            AddText(p, "AllowBlank", Child(parameter, "AllowBlank")?.Value);
+            AddText(p, "MultiValue", Child(parameter, "MultiValue")?.Value);
+            AddText(p, "Hidden", Child(parameter, "Hidden")?.Value);
+            AddText(p, "UsedInQuery", Child(parameter, "UsedInQuery")?.Value);
+            AddText(p, "DefaultValue", ParameterValueSummary(Child(parameter, "DefaultValue")));
+            AddText(p, "ValidValues", ParameterValueSummary(Child(parameter, "ValidValues")));
+            parameters.Add(p);
+        }
+        return parameters;
+    }
+
+    private static List<Dictionary<string, object>> ParseReportParametersLayout(XElement root)
+    {
+        var layout = new List<Dictionary<string, object>>();
+        foreach (var item in Descendant(root, "ReportParametersLayout")?.Descendants()
+            .Where(e => e.Name.LocalName == "ParameterName") ?? Enumerable.Empty<XElement>())
+        {
+            var entry = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["ParameterName"] = item.Value.Trim()
+            };
+            layout.Add(entry);
+        }
+        return layout;
+    }
+
+    private static string? ParameterValueSummary(XElement? container)
+    {
+        if (container is null) return null;
+        var dataSetRef = Descendant(container, "DataSetReference");
+        if (dataSetRef is not null)
+        {
+            var parts = new[]
+            {
+                Child(dataSetRef, "DataSetName")?.Value,
+                Child(dataSetRef, "ValueField")?.Value,
+                Child(dataSetRef, "LabelField")?.Value
+            }.Where(v => !string.IsNullOrWhiteSpace(v));
+            return $"DataSetReference:{string.Join("|", parts)}";
+        }
+
+        var values = container.Descendants()
+            .Where(e => e.Name.LocalName == "Value")
+            .Select(e => e.Value.Trim())
+            .Where(v => v.Length > 0)
+            .ToArray();
+        return values.Length > 0 ? string.Join("; ", values) : null;
+    }
+
+    private static List<Dictionary<string, object>> ParseFilters(XElement el)
+    {
+        var filters = new List<Dictionary<string, object>>();
+        foreach (var filter in Children(Child(el, "Filters"), "Filter"))
+        {
+            var f = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            AddText(f, "FilterExpression", Child(filter, "FilterExpression")?.Value);
+            AddText(f, "Operator", Child(filter, "Operator")?.Value);
+            var values = Children(Child(filter, "FilterValues"), "FilterValue")
+                .Select(v => v.Value.Trim())
+                .Where(v => v.Length > 0)
+                .ToArray();
+            if (values.Length > 0)
+                f["FilterValues"] = values;
+            if (f.Count > 0)
+                filters.Add(f);
+        }
+        return filters;
+    }
+
     private static string[] ParseTablixMemberValues(XElement tablix, string name) =>
         tablix.Descendants()
             .Where(e => e.Name.LocalName == "TablixMember")
@@ -832,6 +922,22 @@ public sealed class RdlToDesignConverter
             .Where(v => v.Length > 0)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
+
+    private static List<Dictionary<string, object>> ParseTablixGroupFilters(XElement tablix)
+    {
+        var result = new List<Dictionary<string, object>>();
+        foreach (var group in tablix.Descendants().Where(e => e.Name.LocalName == "Group"))
+        {
+            var filters = ParseFilters(group);
+            if (filters.Count == 0) continue;
+            result.Add(new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["GroupName"] = Attr(group, "Name") ?? "",
+                ["Filters"] = filters.ToArray()
+            });
+        }
+        return result;
+    }
 
     private static Dictionary<string, string> ParseCustomProperties(XElement item)
     {
@@ -902,6 +1008,7 @@ public sealed class RdlToDesignConverter
             ApplyVisibility(element, raw, diagnostics);
             ApplyPaginationMetadata(element, raw, diagnostics);
             ApplyNestedTablixMetadata(element, raw, diagnostics);
+            ApplyFilterMetadata(element, raw, diagnostics);
 
             (raw.Region is RawRegion.PageHeader or RawRegion.PageFooter ? sharedElements : elements).Add(element);
             mapped++;
@@ -920,18 +1027,49 @@ public sealed class RdlToDesignConverter
         diagnostics.Insert(0, Info("CANMIGRDL001",
             $"RDL report '{report.Name}' detected — {mapped} item(s) mapped."));
 
-        var design = new DesignExportDto
-        {
-            Id = $"rdl-report-{Guid.NewGuid():N}",
-            Name = report.Name,
-            Category = "imported",
-            Description = "Imported from an RDL (SSRS/RDLC) report.",
-            PageSettings = new PageSettingsDto { Width = report.PageWidthPt, Height = report.PageHeightPt, Unit = "pt" },
+            var design = new DesignExportDto
+            {
+                Id = $"rdl-report-{Guid.NewGuid():N}",
+                Name = report.Name,
+                Category = "imported",
+                Description = "Imported from an RDL (SSRS/RDLC) report.",
+            PageSettings = BuildPageSettings(report, diagnostics),
             Pages = [new PageDto { Id = "page-1", Elements = elements }],
             SharedElements = sharedElements
         };
 
         return new RdlConvertResult { Design = design, Diagnostics = diagnostics };
+    }
+
+    private static PageSettingsDto BuildPageSettings(RawReport report, List<MigrationDiagnostic> diagnostics)
+    {
+        var settings = new PageSettingsDto { Width = report.PageWidthPt, Height = report.PageHeightPt, Unit = "pt" };
+        var customProperties = new List<CustomDocumentPropertyDto>();
+
+        if (report.ReportParameters.Count > 0)
+        {
+            customProperties.Add(new CustomDocumentPropertyDto
+            {
+                Name = "rdlReportParameters",
+                Type = "text",
+                Value = JsonSerializer.Serialize(report.ReportParameters)
+            });
+            diagnostics.Add(Warn("CANMIGRDL024",
+                "RDL report parameters were preserved in PageSettings.CustomProperties['rdlReportParameters']; Canvas has no native report-parameter UI yet."));
+        }
+
+        if (report.ReportParametersLayout.Count > 0)
+        {
+            customProperties.Add(new CustomDocumentPropertyDto
+            {
+                Name = "rdlReportParametersLayout",
+                Type = "text",
+                Value = JsonSerializer.Serialize(report.ReportParametersLayout)
+            });
+        }
+
+        settings.CustomProperties = customProperties.Count > 0 ? customProperties : null;
+        return settings;
     }
 
     private static ElementDto? MapControl(RawElement raw, double x, double y, List<MigrationDiagnostic> diagnostics)
@@ -1033,7 +1171,19 @@ public sealed class RdlToDesignConverter
 
         diagnostics.Add(Warn("CANMIGRDL022",
             $"'{raw.Name}' native RDL Map metadata was preserved on a positioned placeholder; Canvas has no native map element yet."));
+        if (MapMetadataHasFilters(raw.MapMetadata))
+            diagnostics.Add(Warn("CANMIGRDL025",
+                $"'{raw.Name}' MapDataRegion filters were preserved as metadata; Canvas does not evaluate report filters yet."));
         return element;
+    }
+
+    private static bool MapMetadataHasFilters(IReadOnlyDictionary<string, object>? metadata)
+    {
+        if (metadata is null || !metadata.TryGetValue("DataRegions", out var regionsObj)
+            || regionsObj is not Dictionary<string, object>[] regions)
+            return false;
+
+        return regions.Any(region => region.ContainsKey("Filters"));
     }
 
     private static ElementDto MapGaugePanel(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
@@ -1161,6 +1311,16 @@ public sealed class RdlToDesignConverter
         element.Style["rdlParentTablixColumn"] = raw.ParentTablixColumn ?? 0;
         diagnostics.Add(Warn("CANMIGRDL023",
             $"'{raw.Name}' was extracted from Tablix '{parent}' cell [{raw.ParentTablixRow},{raw.ParentTablixColumn}] as a separate positioned element; review repeat semantics."));
+    }
+
+    private static void ApplyFilterMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.Filters.Count == 0) return;
+
+        element.Style ??= [];
+        element.Style["rdlFilters"] = raw.Filters.ToArray();
+        diagnostics.Add(Warn("CANMIGRDL025",
+            $"'{raw.Name}' RDL filters were preserved as metadata; Canvas does not evaluate report filters yet."));
     }
 
     private static ElementDto MapRdlChart(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
@@ -1371,7 +1531,8 @@ public sealed class RdlToDesignConverter
     {
         if (raw.TablixGroups is not { Count: > 0 }
             && raw.TablixSorts is not { Count: > 0 }
-            && raw.TablixKeepWithGroups is not { Count: > 0 })
+            && raw.TablixKeepWithGroups is not { Count: > 0 }
+            && raw.TablixGroupFilters is not { Count: > 0 })
             return;
 
         element.Style ??= [];
@@ -1389,9 +1550,14 @@ public sealed class RdlToDesignConverter
             element.Style["rdlTablixSorts"] = raw.TablixSorts.ToArray();
         if (raw.TablixKeepWithGroups is { Count: > 0 })
             element.Style["rdlTablixKeepWithGroup"] = raw.TablixKeepWithGroups.ToArray();
+        if (raw.TablixGroupFilters is { Count: > 0 })
+            element.Style["rdlTablixGroupFilters"] = raw.TablixGroupFilters.ToArray();
 
         diagnostics.Add(Warn("CANMIGRDL014",
             $"'{raw.Name}' Tablix grouping/sorting metadata was preserved; Canvas repeat/group semantics still require review."));
+        if (raw.TablixGroupFilters is { Count: > 0 })
+            diagnostics.Add(Warn("CANMIGRDL025",
+                $"'{raw.Name}' Tablix group filters were preserved as metadata; Canvas does not evaluate report filters yet."));
     }
 
     private static double[] FitWidths(double[]? widths, int columns, double totalWidth)
@@ -1650,6 +1816,8 @@ public sealed class RdlToDesignConverter
         public double BodyHeightPt, PageHeaderHeightPt, PageFooterHeightPt;
         public bool HasCode;
         public bool DeepNesting;
+        public List<Dictionary<string, object>> ReportParameters = [];
+        public List<Dictionary<string, object>> ReportParametersLayout = [];
         public List<RawElement> Elements = [];
     }
 
@@ -1671,12 +1839,14 @@ public sealed class RdlToDesignConverter
         public bool? Hidden;
         public string? HiddenExpression;
         public Dictionary<string, object> PaginationMetadata = new(StringComparer.Ordinal);
+        public List<Dictionary<string, object>> Filters = [];
         public List<List<string>>? TableCells;
         public string[]? ColumnAlignments;
         public double[]? ColumnWidthsPt;
         public List<RdlTablixGroup>? TablixGroups;
         public List<string>? TablixSorts;
         public List<string>? TablixKeepWithGroups;
+        public List<Dictionary<string, object>>? TablixGroupFilters;
         public List<string> TablixNestedItemNames = [];
         public string? ImageDataUrl;
         public string? ImageSource;

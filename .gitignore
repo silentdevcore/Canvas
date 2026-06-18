@@ -66,6 +66,7 @@ ui-designer-v2/tmp/
 .claude/
 .dotnet-home/
 BookingReceipt.Designer.cs
+designer-simples/
 
 # macOS
 .DS_Store
