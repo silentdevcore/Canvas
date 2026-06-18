@@ -174,7 +174,7 @@ public sealed class RdlToDesignConverter
                     break;
                 case "Tablix":
                 case "Table":
-                    ParseTablix(item, raw);
+                    ParseTablix(item, raw, report);
                     break;
                 case "Chart":
                     ParseNativeChart(item, raw);
@@ -622,7 +622,7 @@ public sealed class RdlToDesignConverter
         }
     }
 
-    private void ParseTablix(XElement el, RawElement raw)
+    private void ParseTablix(XElement el, RawElement raw, RawReport report)
     {
         var grid = new List<List<string>>();
         var tablixBody = Child(el, "TablixBody");
@@ -639,6 +639,8 @@ public sealed class RdlToDesignConverter
             foreach (var row in rows)
                 grid.Add(Children(Child(row, "TablixCells"), "TablixCell")
                     .Select(cell => CellDisplay(ExtractTextboxValue(TablixCellTextbox(cell)))).ToList());
+
+            ExtractNestedTablixItems(raw, report, rows, true);
         }
         else
         {
@@ -651,6 +653,8 @@ public sealed class RdlToDesignConverter
             foreach (var row in rows)
                 grid.Add(Children(Child(row, "TableCells"), "TableCell")
                     .Select(cell => CellDisplay(ExtractTextboxValue(TableCellTextbox(cell)))).ToList());
+
+            ExtractNestedTablixItems(raw, report, rows, false);
         }
 
         raw.TableCells = grid.Count > 0 ? grid : null;
@@ -661,6 +665,103 @@ public sealed class RdlToDesignConverter
         raw.PaginationMetadata["TablixMemberRepeatOnNewPage"] = ParseTablixMemberValues(el, "RepeatOnNewPage");
         raw.PaginationMetadata["TablixMemberKeepTogether"] = ParseTablixMemberValues(el, "KeepTogether");
         raw.PaginationMetadata["TablixMemberFixedData"] = ParseTablixMemberValues(el, "FixedData");
+    }
+
+    private void ExtractNestedTablixItems(RawElement table, RawReport report, IReadOnlyList<XElement> rows, bool tablix)
+    {
+        if (rows.Count == 0) return;
+
+        var columnCount = rows
+            .Select(row => tablix ? Children(Child(row, "TablixCells"), "TablixCell").Count() : Children(Child(row, "TableCells"), "TableCell").Count())
+            .DefaultIfEmpty(0)
+            .Max();
+        if (columnCount == 0) return;
+
+        var widths = FitWidths(table.ColumnWidthsPt, columnCount, table.W);
+        var rowHeights = rows.Select(row => LengthToPt(Child(row, "Height")?.Value)).ToArray();
+
+        var y = 0.0;
+        for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+        {
+            var cells = (tablix ? Children(Child(rows[rowIndex], "TablixCells"), "TablixCell") : Children(Child(rows[rowIndex], "TableCells"), "TableCell")).ToList();
+            var x = 0.0;
+            for (var columnIndex = 0; columnIndex < cells.Count; columnIndex++)
+            {
+                var cellItems = NestedCellItems(cells[columnIndex], tablix)
+                    .Where(item => item.Name.LocalName != "Textbox")
+                    .ToList();
+                foreach (var item in cellItems)
+                {
+                    var nested = ParseNestedCellItem(item, table, rowIndex, columnIndex, x, y);
+                    if (nested is null) continue;
+                    report.Elements.Add(nested);
+                    table.TablixNestedItemNames.Add(nested.Name);
+                }
+
+                x += columnIndex < widths.Length ? widths[columnIndex] : 0;
+            }
+
+            y += rowIndex < rowHeights.Length && rowHeights[rowIndex] > 0 ? rowHeights[rowIndex] : 0;
+        }
+    }
+
+    private RawElement? ParseNestedCellItem(XElement item, RawElement table, int rowIndex, int columnIndex, double cellX, double cellY)
+    {
+        var type = item.Name.LocalName;
+        var raw = new RawElement
+        {
+            Name = Attr(item, "Name") ?? $"{table.Name}_r{rowIndex}_c{columnIndex}_{type}",
+            Type = type,
+            Region = table.Region,
+            X = table.X + cellX + LengthToPt(Child(item, "Left")?.Value),
+            Y = table.Y + cellY + LengthToPt(Child(item, "Top")?.Value),
+            W = LengthToPt(Child(item, "Width")?.Value),
+            H = LengthToPt(Child(item, "Height")?.Value),
+            ParentTablixName = table.Name,
+            ParentTablixRow = rowIndex,
+            ParentTablixColumn = columnIndex
+        };
+        ParseVisibility(item, raw);
+        ParsePaginationMetadata(item, raw);
+
+        switch (type)
+        {
+            case "Line":
+            case "Rectangle":
+                ApplyStyle(raw, Child(item, "Style"));
+                break;
+            case "Image":
+                ParseImage(item, raw);
+                break;
+            case "Chart":
+                ParseNativeChart(item, raw);
+                break;
+            case "Map":
+                ParseMap(item, raw);
+                break;
+            case "GaugePanel":
+                ParseGaugePanel(item, raw);
+                break;
+            case "CustomReportItem":
+                raw.CustomType = Child(item, "Type")?.Value;
+                raw.CustomProps = ParseCustomProperties(item);
+                break;
+            default:
+                return null;
+        }
+
+        return raw;
+    }
+
+    private static IEnumerable<XElement> NestedCellItems(XElement cell, bool tablix)
+    {
+        if (tablix)
+        {
+            var contents = Child(cell, "CellContents");
+            return contents is null ? Enumerable.Empty<XElement>() : contents.Elements();
+        }
+
+        return Child(cell, "ReportItems")?.Elements() ?? Enumerable.Empty<XElement>();
     }
 
     private static void ParsePaginationMetadata(XElement item, RawElement raw)
@@ -800,6 +901,7 @@ public sealed class RdlToDesignConverter
                 ApplyBinding(element, expr, diagnostics);
             ApplyVisibility(element, raw, diagnostics);
             ApplyPaginationMetadata(element, raw, diagnostics);
+            ApplyNestedTablixMetadata(element, raw, diagnostics);
 
             (raw.Region is RawRegion.PageHeader or RawRegion.PageFooter ? sharedElements : elements).Add(element);
             mapped++;
@@ -1049,6 +1151,18 @@ public sealed class RdlToDesignConverter
         return false;
     }
 
+    private static void ApplyNestedTablixMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.ParentTablixName is not { Length: > 0 } parent) return;
+
+        element.Style ??= [];
+        element.Style["rdlParentTablix"] = parent;
+        element.Style["rdlParentTablixRow"] = raw.ParentTablixRow ?? 0;
+        element.Style["rdlParentTablixColumn"] = raw.ParentTablixColumn ?? 0;
+        diagnostics.Add(Warn("CANMIGRDL023",
+            $"'{raw.Name}' was extracted from Tablix '{parent}' cell [{raw.ParentTablixRow},{raw.ParentTablixColumn}] as a separate positioned element; review repeat semantics."));
+    }
+
     private static ElementDto MapRdlChart(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
     {
         var props = raw.CustomProps ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -1243,6 +1357,13 @@ public sealed class RdlToDesignConverter
             HeaderRow = true
         };
         ApplyTablixMetadata(element, raw, diagnostics);
+        if (raw.TablixNestedItemNames.Count > 0)
+        {
+            element.Style ??= [];
+            element.Style["rdlExtractedCellItems"] = raw.TablixNestedItemNames.ToArray();
+            diagnostics.Add(Warn("CANMIGRDL023",
+                $"'{raw.Name}' contains non-text Tablix cell items that were extracted as separate positioned elements; review row repeat semantics."));
+        }
         return element;
     }
 
@@ -1556,6 +1677,7 @@ public sealed class RdlToDesignConverter
         public List<RdlTablixGroup>? TablixGroups;
         public List<string>? TablixSorts;
         public List<string>? TablixKeepWithGroups;
+        public List<string> TablixNestedItemNames = [];
         public string? ImageDataUrl;
         public string? ImageSource;
         public string? ImageValue;
@@ -1565,6 +1687,9 @@ public sealed class RdlToDesignConverter
         public Dictionary<string, string>? CustomProps;  // <CustomProperties> name → value
         public Dictionary<string, object>? GaugePanelMetadata;
         public Dictionary<string, object>? MapMetadata;
+        public string? ParentTablixName;
+        public int? ParentTablixRow;
+        public int? ParentTablixColumn;
     }
 
     private sealed record RdlTablixGroup(string Name, string[] Expressions);

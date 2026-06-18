@@ -113,6 +113,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL020` | Warning | RDL Shape custom item imported as Canvas rect/circle/arrow; geometry/rotation needs review |
 | `CANMIGRDL021` | Warning | Native RDL GaugePanel metadata preserved on positioned placeholder; Canvas has no native gauge element yet |
 | `CANMIGRDL022` | Warning | Native RDL Map metadata preserved on positioned placeholder; Canvas has no native map element yet |
+| `CANMIGRDL023` | Warning | Non-text Tablix cell item extracted as separate positioned Canvas element; repeat semantics need review |
 
 ---
 
@@ -156,8 +157,12 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [x] Native `Map` → positioned placeholder with `style.rdlMap` metadata (layers, binding field pairs,
       field definitions, rule kinds, spatial element counts, data regions, viewport, legends/titles/scales)
       plus `CANMIGRDL022`.
-- [ ] **P0** Nested report items inside Tablix cells (for example Syncfusion GaugePanel-in-Tablix samples) need
-      explicit extraction or richer table-cell content modeling; direct body-level `GaugePanel` is preserved today.
+- [x] **P0** Nested non-text report items inside Tablix/Table cells (for example Syncfusion GaugePanel-in-Tablix
+      samples) are extracted as separate positioned Canvas elements with `style.rdlParentTablix`,
+      `style.rdlParentTablixRow`, `style.rdlParentTablixColumn`, and table-level `style.rdlExtractedCellItems`
+      plus `CANMIGRDL023`.
+- [ ] **P1** Richer Table cell-content modeling: extracted nested items preserve visibility, but repeated data-row
+      semantics still need a Canvas-native model instead of absolute overlay elements.
 - [x] `CustomReportItem` Gauge → positioned placeholder with `style.rdlCustomItemType = "Gauge"` and
       custom properties preserved, plus `CANMIGRDL018`.
 - [x] `CustomReportItem` Map / Sparkline + `Subreport` → labeled placeholder elements

@@ -737,6 +737,62 @@ public sealed class RdlToDesignConverterTests
 
     // 31 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
+    public void Convert_TablixCellNestedGaugePanel_ExtractsPositionedElement()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Tablix Name="metrics">
+                  <Top>1in</Top><Left>0.5in</Left><Height>2in</Height><Width>4in</Width>
+                  <TablixBody>
+                    <TablixColumns><TablixColumn><Width>2in</Width></TablixColumn><TablixColumn><Width>2in</Width></TablixColumn></TablixColumns>
+                    <TablixRows>
+                      <TablixRow><Height>0.5in</Height><TablixCells>
+                        <TablixCell><CellContents><Textbox Name="h1"><Value>Name</Value></Textbox></CellContents></TablixCell>
+                        <TablixCell><CellContents><Textbox Name="h2"><Value>Gauge</Value></Textbox></CellContents></TablixCell>
+                      </TablixCells></TablixRow>
+                      <TablixRow><Height>1in</Height><TablixCells>
+                        <TablixCell><CellContents><Textbox Name="name"><Value>=Fields!Name.Value</Value></Textbox></CellContents></TablixCell>
+                        <TablixCell><CellContents>
+                          <GaugePanel Name="cellGauge">
+                            <Top>0.1in</Top><Left>0.2in</Left><Height>0.8in</Height><Width>1.5in</Width>
+                            <DataSetName>Metrics</DataSetName>
+                            <LinearGauges><LinearGauge Name="LinearGaugeSet">
+                              <GaugeScales><LinearScale Name="LinearScale">
+                                <GaugePointers><LinearPointer Name="ScorePointer">
+                                  <Type>Marker</Type>
+                                  <GaugeInputValue><Value>=Fields!Score.Value</Value></GaugeInputValue>
+                                </LinearPointer></GaugePointers>
+                              </LinearScale></GaugeScales>
+                            </LinearGauge></LinearGauges>
+                          </GaugePanel>
+                        </CellContents></TablixCell>
+                      </TablixCells></TablixRow>
+                    </TablixRows>
+                  </TablixBody>
+                </Tablix>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var table = El(result.Design, "metrics");
+        var gauge = El(result.Design, "cellGauge");
+
+        Assert.Equal("table", table.Type);
+        Assert.Contains("cellGauge", Assert.IsType<string[]>(table.Style!["rdlExtractedCellItems"]));
+        Assert.Equal("text", gauge.Type);
+        Assert.Contains("{{Score}}", gauge.Content);
+        Assert.Equal(0.5 * 72 + 2 * 72 + 0.2 * 72, gauge.X, 1);
+        Assert.Equal(1 * 72 + 0.5 * 72 + 0.1 * 72, gauge.Y, 1);
+        Assert.Equal("metrics", gauge.Style!["rdlParentTablix"]);
+        Assert.Equal(1, gauge.Style["rdlParentTablixRow"]);
+        Assert.Equal(1, gauge.Style["rdlParentTablixColumn"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL023" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 32 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
     public void Convert_ComprehensiveSyncfusionFixture_MapsCoreLayoutAndKnownPlaceholders()
     {
         var r = Convert(Fixture("ComprehensiveSyncfusionReport.rdl"));
