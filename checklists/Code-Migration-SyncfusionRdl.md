@@ -61,7 +61,8 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `Image` (Embedded / External / Database) | `image` (data URL / preserved reference / binding) | [x] |
 | `Tablix` (2016) / `Table` (2008) | `table` (CellData, header row, column widths/alignments) | [x] |
 | `CustomReportItem` barcode (ActiveReports/DsReport/SSRS) | `barcode` / `qrcode` (value + symbology → type) | [x] |
-| `CustomReportItem` chart/gauge/map/etc. | labeled placeholder (`CANMIGRDL011`) | [x] |
+| `CustomReportItem` chart | editable `chart` placeholder + RDL metadata (`CANMIGRDL017`) | [x] |
+| `CustomReportItem` gauge/map/etc. | labeled placeholder + RDL metadata (`CANMIGRDL018` for gauge) | [x] |
 | `Subreport` | labeled placeholder (`CANMIGRDL011`) | [x] |
 | Value `=Fields!X.Value` / `=expr` | `binding` / `expression` | [x] |
 | `Visibility.Hidden` | `Hidden` / inverted `VisibleExpression` | [x] |
@@ -101,6 +102,8 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL014` | Warning | Tablix grouping/sorting metadata preserved; Canvas repeat/group semantics still require review |
 | `CANMIGRDL015` | Warning | RDL `Visibility.Hidden` expression mapped to inverted Canvas `visibleExpression`; runtime semantics need review |
 | `CANMIGRDL016` | Warning | Multi-run/styled RDL textbox imported as Canvas richtext; inline formatting needs review |
+| `CANMIGRDL017` | Warning | RDL Chart imported as editable Canvas chart placeholder; series/category/value bindings need review |
+| `CANMIGRDL018` | Warning | RDL Gauge metadata preserved on a positioned placeholder; Canvas has no native gauge element yet |
 
 ---
 
@@ -132,16 +135,20 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [ ] **P0** Nested Tablix / detail grouping → repeat semantics.
 - [ ] `<Code>` / custom-function expression translation (blocked on Canvas `ExpressionEvaluator` being a
       stub — same limitation as DevExpress).
-- [x] `CustomReportItem` Chart / Gauge / Map / Sparkline + `Subreport` → labeled placeholder elements
-      (kept at original position/size so the layout isn't silently holed; still `CANMIGRDL011`).
+- [x] `CustomReportItem` Chart → Canvas `chart` placeholder with `ChartData` and RDL metadata
+      (`rdlCategoryExpression`, `rdlValueExpression`, `style.rdlCustomProperties`) plus `CANMIGRDL017`.
+- [x] `CustomReportItem` Gauge → positioned placeholder with `style.rdlCustomItemType = "Gauge"` and
+      custom properties preserved, plus `CANMIGRDL018`.
+- [x] `CustomReportItem` Map / Sparkline + `Subreport` → labeled placeholder elements
+      (kept at original position/size so the layout isn't silently holed; still `CANMIGRDL011` for generic unsupported items).
 - [x] **P0** External / database image sources: external image references are preserved as image
       `Content` plus `style.rdlImageSource = "External"`; database image field expressions map to
       image binding/content placeholders plus `style.rdlImageSource = "Database"` (`CANMIGRDL012`).
 - [ ] **P0** Percentage / relative lengths for Tablix columns.
 - [x] **P0** Multi-run textbox per-run formatting: multiple/styled `TextRun`s import as Canvas
       `richtext` with inline HTML spans; simple single-run textboxes keep the old `text`/binding path.
-- [ ] **P1** Promote Chart/Gauge placeholders to native Canvas chart/gauge mappings once Canvas chart
-      data-series modeling is stable enough for RDL category/value expressions.
+- [ ] **P1** Promote Chart placeholder data from metadata-only expressions to real sample/series extraction
+      once Canvas chart data-series modeling is stable enough for RDL category/value expressions.
 
 ## Assumptions
 - [x] Use `Canvas.Migration.Rdl`, separate from the DevExpress converters; self-contained model + build.

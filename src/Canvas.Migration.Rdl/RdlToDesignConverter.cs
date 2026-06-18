@@ -652,7 +652,8 @@ public sealed class RdlToDesignConverter
     }
 
     // RDL <CustomReportItem>: ActiveReports/DsReport serialize barcodes this way (Type + CustomProperties);
-    // SSRS uses it for Chart/Gauge/Map/Sparkline. Map barcodes to Canvas barcode/qrcode; warn on the rest.
+    // SSRS uses it for Chart/Gauge/Map/Sparkline. Map barcodes and charts where possible; keep the
+    // rest visible with metadata so users can finish the migration in the designer.
     private static ElementDto? MapCustomReportItem(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
     {
         var props = raw.CustomProps ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -661,6 +662,28 @@ public sealed class RdlToDesignConverter
         var isBarcode = customType.Contains("Barcode", StringComparison.OrdinalIgnoreCase) || symbology is not null;
         if (!isBarcode)
         {
+            if (customType.Contains("Chart", StringComparison.OrdinalIgnoreCase))
+            {
+                element.Type = "chart";
+                element.ChartType = "bar";
+                element.ChartData = CreateRdlChartData(raw.Name, props);
+                element.Style = RdlCustomItemStyle("Chart", props);
+                diagnostics.Add(Warn("CANMIGRDL017",
+                    $"'{raw.Name}' RDL chart was imported as an editable Canvas chart placeholder; review series/category/value bindings."));
+                return element;
+            }
+
+            if (customType.Contains("Gauge", StringComparison.OrdinalIgnoreCase))
+            {
+                var gauge = Placeholder(element, $"[Gauge: {raw.Name} — migrate manually]");
+                gauge.Style ??= [];
+                foreach (var (key, styleValue) in RdlCustomItemStyle("Gauge", props))
+                    gauge.Style[key] = styleValue;
+                diagnostics.Add(Warn("CANMIGRDL018",
+                    $"'{raw.Name}' RDL gauge metadata was preserved on a positioned placeholder; Canvas has no native gauge element yet."));
+                return gauge;
+            }
+
             var what = customType.Length > 0 ? customType : "Custom item";
             diagnostics.Add(Warn("CANMIGRDL011",
                 $"'{raw.Name}' is a custom report item ({what}) — not supported by Canvas yet; inserted a placeholder."));
@@ -680,6 +703,38 @@ public sealed class RdlToDesignConverter
             element.BarcodeType = BarcodeTypeFromSymbology(symbology);
         }
         return element;
+    }
+
+    private static Dictionary<string, object> CreateRdlChartData(string name, IReadOnlyDictionary<string, string> props)
+    {
+        var category = props.GetValueOrDefault("Category") ?? props.GetValueOrDefault("CategoryExpression") ?? "Category";
+        var value = props.GetValueOrDefault("Value") ?? props.GetValueOrDefault("ValueExpression") ?? "Value";
+        return new Dictionary<string, object>
+        {
+            ["labels"] = new[] { CellDisplay(category) },
+            ["datasets"] = new object[]
+            {
+                new Dictionary<string, object>
+                {
+                    ["label"] = name,
+                    ["data"] = new[] { 1 },
+                    ["backgroundColor"] = "#2563eb"
+                }
+            },
+            ["rdlCategoryExpression"] = category,
+            ["rdlValueExpression"] = value
+        };
+    }
+
+    private static Dictionary<string, object> RdlCustomItemStyle(string itemType, IReadOnlyDictionary<string, string> props)
+    {
+        var style = new Dictionary<string, object>
+        {
+            ["rdlCustomItemType"] = itemType
+        };
+        if (props.Count > 0)
+            style["rdlCustomProperties"] = props.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value, StringComparer.OrdinalIgnoreCase);
+        return style;
     }
 
     private static string BarcodeTypeFromSymbology(string? symbology)

@@ -489,22 +489,28 @@ public sealed class RdlToDesignConverterTests
 
     // 25 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
-    public void Convert_NonBarcodeCustomItem_EmitsUnsupportedWarning()
+    public void Convert_ChartCustomItem_BecomesCanvasChartPlaceholder()
     {
         var rdlx = """
             <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
               <Body><ReportItems>
                 <CustomReportItem Name="chart"><Type>Chart</Type>
                   <Top>0in</Top><Left>0in</Left><Height>2in</Height><Width>3in</Width>
-                  <CustomProperties /></CustomReportItem>
+                  <CustomProperties>
+                    <CustomProperty><Name>Category</Name><Value>=Fields!Region.Value</Value></CustomProperty>
+                    <CustomProperty><Name>Value</Name><Value>=Sum(Fields!Total.Value)</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
               </ReportItems><Height>5in</Height></Body>
             </Report>
             """;
         var r = Convert(rdlx);
-        var chart = El(r.Design, "chart");             // unsupported custom item → labeled placeholder
-        Assert.Equal("text", chart.Type);
-        Assert.Contains("Chart", chart.Content);
-        Assert.True(Has(r.Diagnostics, "CANMIGRDL011"));
+        var chart = El(r.Design, "chart");
+        Assert.Equal("chart", chart.Type);
+        Assert.Equal("bar", chart.ChartType);
+        Assert.NotNull(chart.ChartData);
+        Assert.Equal("Chart", chart.Style!["rdlCustomItemType"]);
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL017" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
     // 26 ──────────────────────────────────────────────────────────────────────────────────────────
@@ -566,13 +572,18 @@ public sealed class RdlToDesignConverterTests
         var chart = El(d, "salesChart");
         var gauge = El(d, "deliveryGauge");
         var subreport = El(d, "detailSubreport");
-        Assert.Equal("text", chart.Type);
-        Assert.Contains("Chart", chart.Content);
+        Assert.Equal("chart", chart.Type);
+        Assert.Equal("bar", chart.ChartType);
+        Assert.Equal("Chart", chart.Style!["rdlCustomItemType"]);
+        Assert.NotNull(chart.ChartData);
         Assert.Equal("text", gauge.Type);
         Assert.Contains("Gauge", gauge.Content);
+        Assert.Equal("Gauge", gauge.Style!["rdlCustomItemType"]);
         Assert.Equal("text", subreport.Type);
         Assert.Contains("Sub-report", subreport.Content);
         Assert.True(Has(r.Diagnostics, "CANMIGRDL011"));
+        Assert.True(Has(r.Diagnostics, "CANMIGRDL017"));
+        Assert.True(Has(r.Diagnostics, "CANMIGRDL018"));
     }
 
     // 27 ──────────────────────────────────────────────────────────────────────────────────────────
