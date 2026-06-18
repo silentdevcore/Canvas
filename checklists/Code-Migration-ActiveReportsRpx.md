@@ -85,11 +85,14 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 
 # V2 — Next 🔜
 
-- [ ] **GroupHeader/GroupFooter** repeat/section semantics (currently flat page elements).
-- [ ] `CanGrow`/`CanShrink` auto-sizing; `OutputFormat` → Canvas formatter.
-- [ ] Per-control `.rpx` subreport inlining; `OleObject`, `PageBreak`, `CrossSectionLine`.
-- [ ] Validate + tune against real designer-saved `.rpx` files (measurement units, colour/format edge cases).
-- [ ] Embedded-script → no-op (currently a warning only).
+**Current recommendation:** treat RPX as the third core fidelity pass because it shares the same banded
+problems as DevExpress and gives us a second implementation target for common group/repeat semantics.
+
+- [ ] **P0** `GroupHeader`/`GroupFooter` repeat/section semantics (currently flat page elements).
+- [ ] **P0** `CanGrow`/`CanShrink` auto-sizing; `OutputFormat` → Canvas formatter.
+- [ ] **P0** Validate + tune against real designer-saved `.rpx` files (measurement units, colour/format edge cases).
+- [ ] **P1** Per-control `.rpx` subreport inlining; `OleObject`, `PageBreak`, `CrossSectionLine`.
+- [ ] **P1** Embedded-script → no-op (currently a warning only).
 
 ## Assumptions
 - [x] `.rpx` is a banded section report (distinct from RDL); self-contained band model + flatten.

@@ -42,10 +42,41 @@ Legend — **Done?**: ✅ shipped · 🔜 recommended next · ❌ not started ·
 | List & Label | combit | `.lst` / `.lsr` | Banded report container | ❌ |
 | ActiveReports JS | MESCIUS | JSON report model | Web/JS designer (distinct from `.rdlx`/`.rpx`) | ❌ |
 
-## Recommended next: FastReport .NET (`.frx`)
+## Recommended next work — provider fidelity
 
-- **Plain namespace-free XML, banded** → reuses the `Canvas.Migration.Rpx` band-flatten model and the
-  `.repx` "Family, 9pt, style=Bold" font-string parser; routes after RDL/RPX in `MigrationController`
-  (detect root `<Report>` with a `<ReportPage>` child, no `reportdefinition` namespace, no `<Sections>`).
-- **Real-sample validation**: the open-source FastReports/FastReport repo ships a `Demos/Reports/*.frx`
-  corpus — lets us validate against genuine designer output, closing the gap noted for `.rpx`.
+Most major text/XML report-designer formats now have a V1 converter. The highest-value work is no
+longer adding another XML parser; it is improving layout fidelity in the converters that are already
+openable in `ui-designer-v2`.
+
+### P0 — make common business reports round-trip better
+
+1. **DevExpress XtraReports fidelity** — finish the features most visible in real designer files:
+   `GroupHeaderBand`/`GroupFooterBand` repeat semantics, `ReportFooterBand` once-at-end behaviour,
+   `CanGrow`/`CanShrink`, anchoring, multi-`DetailReportBand`, non-text data bindings, and high-use
+   controls such as `XRChart`, `XRGauge`, and `XRPivotGrid`.
+2. **RDL / Syncfusion / SSRS table fidelity** — improve `Tablix` extraction by reading row/column-group
+   headers, nested/detail groups, percentage column widths, external/database images, and multi-run
+   textbox formatting.
+3. **ActiveReports RPX section fidelity** — implement `GroupHeader`/`GroupFooter` repeat semantics,
+   `CanGrow`/`CanShrink`, `OutputFormat`, `PageBreak`, `CrossSectionLine`, and tune against real
+   designer-saved `.rpx` files.
+
+### P1 — normalize fidelity across shipped non-core providers
+
+4. **Shared group/repeat model** — define a common internal representation for group headers, group
+   footers, detail repeats, report footers, and child/sub-detail bands, then apply it to DevExpress,
+   RPX, FastReport, JasperReports, Telerik, and Stimulsoft instead of each converter flattening those
+   concepts differently.
+5. **Tables and complex regions** — add full cell extraction for FastReport `TableObject`, Telerik
+   `Table`/`CrossTab`, and richer JasperReports `componentElement` handling. Keep charts, maps, gauges,
+   and crosstabs as positioned placeholders with captions until Canvas has native equivalents.
+6. **Styles and borders** — support per-side borders/pens, style inheritance, conditional styles where
+   practical, and keep unsupported per-cell styling documented when Canvas has no target model.
+
+### P2 — package and binary inputs
+
+7. **Binary/package upload path** — add a file/binary upload route before implementing packaged
+   `.trdp`, packaged `.rdlx`, or any Crystal `.rpt` workaround. The current endpoint is string/JSON
+   oriented and is a poor fit for ZIP/OLE inputs.
+8. **New provider candidates** — only after P0/P1: List & Label (`.lst`/`.lsr`) and ActiveReports JS
+   JSON. Crystal Reports remains blocked unless a Windows + SAP SDK conversion path is introduced.

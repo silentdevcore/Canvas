@@ -148,6 +148,7 @@ public sealed class ElementDto
     public double Height { get; set; }
     public bool? Hidden { get; set; }
     public bool? Locked { get; set; }
+    public string? VisibleExpression { get; set; }
 
     // Text / content
     public string? Content { get; set; }

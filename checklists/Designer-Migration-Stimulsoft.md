@@ -91,7 +91,11 @@ Root LocalName `StiSerializer` is unique → `LooksLikeMrt` = root `<StiSerializ
 
 ## V2 — next
 
-- [ ] **JSON `.mrt`** variant (modern Reports.JS) — detect `{` vs `<` and parse with System.Text.Json
-- [ ] Named `<ComponentStyle>` / report `<Styles>` resolution; `<Border>` per-side
-- [ ] Page `PaperSize`/`PageWidth` units; group bands repeat semantics; cross-tab/chart placeholders
-- [ ] Stimulsoft expression dialect beyond single-field `{Source.Field}`
+**Current recommendation:** keep XML `.mrt` fidelity ahead of the JSON variant unless a real customer
+sample requires Reports.JS JSON. The shared group/repeat model and style/border support should carry
+more value than another parser path.
+
+- [ ] **P2** JSON `.mrt` variant (modern Reports.JS) — detect `{` vs `<` and parse with System.Text.Json
+- [ ] **P1** Named `<ComponentStyle>` / report `<Styles>` resolution; `<Border>` per-side
+- [ ] **P1** Page `PaperSize`/`PageWidth` units; group bands repeat semantics; cross-tab/chart placeholders
+- [ ] **P1** Stimulsoft expression dialect beyond single-field `{Source.Field}`

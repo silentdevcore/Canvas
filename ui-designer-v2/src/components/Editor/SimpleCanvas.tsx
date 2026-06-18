@@ -80,6 +80,7 @@ import {
   FiGrid,
 } from 'react-icons/fi';
 import CodeViewer from './CodeViewer';
+import { ElementBoundary } from './ElementBoundary';
 import FindReplaceModal from './FindReplaceModal';
 import FormBlockModal from './FormBlockModal';
 import HelpModal from './HelpModal';
@@ -163,6 +164,7 @@ type RotateState = {
 const createElementId = (type: string) => `${type}-${Date.now()}`;
 const MIN_ELEMENT_SIZE = 16;
 const RTL_LANGS = new Set(['ar', 'he', 'fa', 'ur', 'yi', 'dv']);
+const BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
 
 const ELEMENT_TYPE_LABELS: Record<string, string> = {
   text:         'Text Block',
@@ -240,6 +242,32 @@ const FONT_FAMILIES = [
   'Noto Sans Arabic', 'Noto Sans Hebrew', 'Noto Sans SC', 'Noto Sans TC',
   'Noto Sans JP', 'Noto Sans KR', 'Noto Sans Devanagari', 'Noto Sans Thai',
 ];
+
+const elementBorderStyle = (s: Record<string, any>): React.CSSProperties => {
+  const sideStyle: React.CSSProperties = {};
+  let hasSideBorder = false;
+
+  BORDER_SIDES.forEach((side) => {
+    const width = s[`border${side}Width`];
+    if (width == null) return;
+
+    hasSideBorder = true;
+    const key = `border${side}` as keyof React.CSSProperties;
+    sideStyle[key] = `${Number(width) || 0}px ${s[`border${side}Style`] || s.borderStyle || 'solid'} ${s[`border${side}Color`] || s.borderColor || '#000000'}` as never;
+  });
+
+  if (hasSideBorder) {
+    return {
+      ...sideStyle,
+      borderRadius: s.borderRadius ?? undefined,
+    };
+  }
+
+  return {
+    border: s.borderWidth ? `${s.borderWidth}px ${s.borderStyle || 'solid'} ${s.borderColor || '#000000'}` : undefined,
+    borderRadius: s.borderRadius ?? undefined,
+  };
+};
 
 const TYPOGRAPHY_TYPES = new Set<string>([
   'text', 'richtext', 'button', 'field', 'checkbox', 'dropdown', 'optionlist',
@@ -2211,8 +2239,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             whiteSpace:     s.whiteSpace    as React.CSSProperties['whiteSpace'] | undefined,
             backgroundColor:s.backgroundColor && s.backgroundColor !== 'transparent' ? s.backgroundColor : undefined,
             opacity:        s.backgroundOpacity != null ? s.backgroundOpacity : undefined,
-            border:         s.borderWidth ? `${s.borderWidth}px ${s.borderStyle || 'solid'} ${s.borderColor || '#000'}` : undefined,
-            borderRadius:   s.borderRadius  ?? undefined,
+            ...elementBorderStyle(s),
             padding:        [s.paddingTop ?? 0, s.paddingRight ?? 0, s.paddingBottom ?? 0, s.paddingLeft ?? 0].join('px ') + 'px',
           }}
         >
@@ -2364,8 +2391,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
         <div style={{
           width: '100%', height: '100%',
           backgroundColor: bg,
-          border: bw > 0 ? `${bw}px ${bs} ${bc}` : 'none',
-          borderRadius: s.borderRadius ?? 0,
+          ...elementBorderStyle({ borderWidth: bw, borderStyle: bs, borderColor: bc, ...s }),
         }} />
       );
     }
@@ -3051,6 +3077,31 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       );
     }
 
+    if (element.type === 'subsection' || element.type === 'area') {
+      const color = element.style?.color || element.style?.borderColor || '#475569';
+      return (
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 8,
+          color,
+          fontSize: element.style?.fontSize || 12,
+          background: element.style?.backgroundColor || '#f8fafc',
+          border: `${element.style?.borderWidth || 1}px ${element.style?.borderStyle || 'dashed'} ${color}`,
+          borderRadius: element.style?.borderRadius ?? 4,
+          overflow: 'hidden',
+          textAlign: 'center',
+        }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {element.content || ELEMENT_TYPE_LABELS[element.type] || element.type}
+          </span>
+        </div>
+      );
+    }
+
     if (element.type === 'checkmark') {
       const color = element.style?.color || '#16a34a';
       const state = element.checkState || 'checked';
@@ -3619,7 +3670,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     setSelectedElementId(element.id);
                   }}
                 >
-                  {renderElement(element, false)}
+                  <ElementBoundary name={element.name}>{renderElement(element, false)}</ElementBoundary>
                   {selectedElementId === element.id && !element.locked && (
                     <>
                       {([
@@ -3662,7 +3713,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   onContextMenu={(event) => handleElementContextMenu(event, element)}
                   onClick={(event) => { event.stopPropagation(); setSelectedElementId(element.id); }}
                 >
-                  {renderElement(element, false)}
+                  <ElementBoundary name={element.name}>{renderElement(element, false)}</ElementBoundary>
                   {selectedElementId === element.id && !element.locked && (
                     <>
                       {([
@@ -6164,6 +6215,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       <option value="all">All pages</option>
                       <option value="current">Current page</option>
                       <option value="first">First page only</option>
+                      <option value="last">Last page only</option>
                       <option value="range">Selected range</option>
                     </select>
                   </label>
@@ -6282,6 +6334,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                         <option value="all">All</option>
                         <option value="current">Current</option>
                         <option value="first">First</option>
+                        <option value="last">Last</option>
                         <option value="odd">Odd</option>
                         <option value="even">Even</option>
                         <option value="range">Range</option>
@@ -7367,6 +7420,14 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       onChange={(e) => updateSelectedElement({ hidden: !e.target.checked })}
                     />
                     <span>Visible in output</span>
+                  </label>
+                  <label>
+                    <span>Visible expression</span>
+                    <textarea
+                      rows={2}
+                      value={selectedElement.visibleExpression || ''}
+                      onChange={(e) => updateSelectedElement({ visibleExpression: e.target.value || undefined })}
+                    />
                   </label>
                 </div>
               </div>

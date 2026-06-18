@@ -103,7 +103,10 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 
 ## V2 — next
 
-- [ ] `groupHeader`/`groupFooter` repeat semantics; multiple `detail` bands
-- [ ] `<box>`/per-side pens; `<style>` inheritance (`style` chains); conditional styles
-- [ ] `componentElement` barcodes → Canvas barcode; charts/crosstab placeholders with captions
-- [ ] `subreport` inlining; `$P{}`/`$V{}` expression dialect
+**Current recommendation:** align JasperReports with the shared P1 fidelity pass: group/repeat
+semantics first, then styles/borders and better component placeholders.
+
+- [ ] **P1** `groupHeader`/`groupFooter` repeat semantics; multiple `detail` bands
+- [ ] **P1** `<box>`/per-side pens; `<style>` inheritance (`style` chains); conditional styles
+- [ ] **P1** `componentElement` barcodes → Canvas barcode; charts/crosstab placeholders with captions
+- [ ] **P1** `subreport` inlining; `$P{}`/`$V{}` expression dialect

@@ -4,6 +4,8 @@
 *.dll
 *.pdb
 *.cache
+**/[Bb]in/
+**/[Oo]bj/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -56,12 +58,14 @@ artifacts/
 **/*.tsbuildinfo
 ui-designer/dist/assets/
 ui-designer/tmp/
+ui-designer-v2/dist/
 ui-designer-v2/dist/assets/
 ui-designer-v2/tmp/
 
 # Local workspace state
 .claude/
 .dotnet-home/
+BookingReceipt.Designer.cs
 
 # macOS
 .DS_Store

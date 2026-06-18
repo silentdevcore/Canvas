@@ -82,6 +82,9 @@ public sealed class RdlToDesignConverterTests
 
     private static RdlConvertResult Convert(string rdl) => new RdlToDesignConverter().Convert(rdl);
 
+    private static string Fixture(string name) =>
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", name));
+
     private static ElementDto El(DesignExportDto d, string name) =>
         d.Pages[0].Elements.Concat(d.SharedElements).First(e => e.Name == name);
 
@@ -328,7 +331,7 @@ public sealed class RdlToDesignConverterTests
 
     // 17 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
-    public void Convert_ExternalImage_EmitsPlaceholderWarning()
+    public void Convert_ExternalImage_PreservesReferenceWithWarning()
     {
         var rdl = """
             <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
@@ -339,11 +342,36 @@ public sealed class RdlToDesignConverterTests
             </Report>
             """;
         var r = Convert(rdl);
-        Assert.Equal("image", El(r.Design, "ext").Type);
+        var ext = El(r.Design, "ext");
+        Assert.Equal("image", ext.Type);
+        Assert.Equal("http://example.com/a.png", ext.Content);
+        Assert.Equal("External", ext.Style!["rdlImageSource"]);
         Assert.True(Has(r.Diagnostics, "CANMIGRDL012"));
     }
 
     // 18 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_DatabaseImage_MapsFieldBindingWithWarning()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Image Name="photo"><Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>1in</Width>
+                  <Source>Database</Source><Value>=Fields!ProductImage.Value</Value></Image>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var r = Convert(rdl);
+        var photo = El(r.Design, "photo");
+        Assert.Equal("image", photo.Type);
+        Assert.Equal("ProductImage", photo.Binding);
+        Assert.Equal("{{ProductImage}}", photo.Content);
+        Assert.Equal("Database", photo.Style!["rdlImageSource"]);
+        Assert.True(Has(r.Diagnostics, "CANMIGRDL012"));
+    }
+
+    // 19 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_Subreport_EmitsManualMigrationDiagnostic()
     {
@@ -461,21 +489,513 @@ public sealed class RdlToDesignConverterTests
 
     // 25 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
-    public void Convert_NonBarcodeCustomItem_EmitsUnsupportedWarning()
+    public void Convert_ChartCustomItem_BecomesCanvasChartPlaceholder()
     {
         var rdlx = """
             <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
               <Body><ReportItems>
                 <CustomReportItem Name="chart"><Type>Chart</Type>
                   <Top>0in</Top><Left>0in</Left><Height>2in</Height><Width>3in</Width>
-                  <CustomProperties /></CustomReportItem>
+                  <CustomProperties>
+                    <CustomProperty><Name>Category</Name><Value>=Fields!Region.Value</Value></CustomProperty>
+                    <CustomProperty><Name>Value</Name><Value>=Sum(Fields!Total.Value)</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
               </ReportItems><Height>5in</Height></Body>
             </Report>
             """;
         var r = Convert(rdlx);
-        var chart = El(r.Design, "chart");             // unsupported custom item → labeled placeholder
-        Assert.Equal("text", chart.Type);
-        Assert.Contains("Chart", chart.Content);
+        var chart = El(r.Design, "chart");
+        Assert.Equal("chart", chart.Type);
+        Assert.Equal("bar", chart.ChartType);
+        Assert.NotNull(chart.ChartData);
+        Assert.Equal("Chart", chart.Style!["rdlCustomItemType"]);
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL017" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 26 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_NativeChart_BecomesCanvasChartPlaceholder()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Chart Name="TopEmployeesChart">
+                  <Top>0in</Top><Left>0in</Left><Height>2in</Height><Width>4in</Width>
+                  <DataSetName>TopEmployees</DataSetName>
+                  <ChartCategoryHierarchy><ChartMembers><ChartMember><Label>=Fields!FullName.Value</Label></ChartMember></ChartMembers></ChartCategoryHierarchy>
+                  <ChartData><ChartSeriesCollection><ChartSeries Name="Series1">
+                    <ChartDataPoints><ChartDataPoint><ChartDataPointValues><Y>=Round(Sum(Fields!SaleAmount.Value)/1000)</Y></ChartDataPointValues></ChartDataPoint></ChartDataPoints>
+                    <Type>Bar</Type>
+                  </ChartSeries></ChartSeriesCollection></ChartData>
+                </Chart>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var chart = El(result.Design, "TopEmployeesChart");
+
+        Assert.Equal("chart", chart.Type);
+        Assert.Equal("bar", chart.ChartType);
+        Assert.NotNull(chart.ChartData);
+        Assert.Equal("Chart", chart.Style!["rdlCustomItemType"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL017" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 27 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_ShapeCustomItem_BecomesCanvasShape()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <CustomReportItem Name="badge"><Type>Shape</Type>
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>2in</Width>
+                  <CustomProperties>
+                    <CustomProperty><Name>ShapeType</Name><Value>Ellipse</Value></CustomProperty>
+                    <CustomProperty><Name>FillColor</Name><Value>LightGray</Value></CustomProperty>
+                    <CustomProperty><Name>LineColor</Name><Value>#336699</Value></CustomProperty>
+                    <CustomProperty><Name>LineWidth</Name><Value>2pt</Value></CustomProperty>
+                    <CustomProperty><Name>LineStyle</Name><Value>Dash</Value></CustomProperty>
+                    <CustomProperty><Name>RotationAngle</Name><Value>15</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var badge = El(result.Design, "badge");
+
+        Assert.Equal("circle", badge.Type);
+        Assert.Equal("Shape", badge.Style!["rdlCustomItemType"]);
+        Assert.Equal("Ellipse", badge.Style["rdlShapeType"]);
+        Assert.Equal("#D3D3D3", badge.Style["backgroundColor"]);
+        Assert.Equal("#336699", badge.Style["borderColor"]);
+        Assert.Equal(2.0, badge.Style["borderWidth"]);
+        Assert.Equal("dashed", badge.Style["dashStyle"]);
+        Assert.Equal(15.0, badge.Style["rotation"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL020" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 28 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_ArrowShapeCustomItem_BecomesCanvasArrow()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <CustomReportItem Name="nextArrow"><Type>Shape</Type>
+                  <Top>0in</Top><Left>0in</Left><Height>0.5in</Height><Width>1in</Width>
+                  <CustomProperties>
+                    <CustomProperty><Name>ShapeType</Name><Value>RightArrow</Value></CustomProperty>
+                    <CustomProperty><Name>LineColor</Name><Value>Blue</Value></CustomProperty>
+                    <CustomProperty><Name>LineWidth</Name><Value>3</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var arrow = El(result.Design, "nextArrow");
+
+        Assert.Equal("arrow", arrow.Type);
+        Assert.Equal("right", arrow.ArrowDirection);
+        Assert.Equal("arrow", arrow.EndMarker);
+        Assert.Equal("#0000FF", arrow.Style!["color"]);
+        Assert.Equal(3.0, arrow.Style["strokeWidth"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL020");
+    }
+
+    // 29 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_NativeGaugePanel_PreservesGaugeMetadataOnPlaceholder()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <GaugePanel Name="RevenueGauge">
+                  <Top>0.5in</Top><Left>0.25in</Left><Height>2in</Height><Width>3in</Width>
+                  <Style><BackgroundColor>White</BackgroundColor><Border><Color>LightGrey</Color><Style>Solid</Style></Border></Style>
+                  <DataSetName>RevenueDataset</DataSetName>
+                  <RadialGauges>
+                    <RadialGauge Name="RadialGaugeSet">
+                      <GaugeScales><RadialScale Name="RadialScale">
+                        <MinimumValue><Value>0</Value></MinimumValue>
+                        <MaximumValue><Value>=Fields!EstimatedRevenue.Value</Value></MaximumValue>
+                        <Interval>=Fields!EstimatedRevenue.Value*0.5</Interval>
+                        <GaugePointers><RadialPointer Name="ActualRevenue">
+                          <Type>Needle</Type>
+                          <GaugeInputValue><Value>=Fields!ActualRevenue.Value</Value></GaugeInputValue>
+                        </RadialPointer></GaugePointers>
+                        <ScaleRanges><ScaleRange Name="GoodRange">
+                          <StartValue><Value>75</Value></StartValue><EndValue><Value>100</Value></EndValue>
+                          <Style><BackgroundColor>Green</BackgroundColor></Style>
+                        </ScaleRange></ScaleRanges>
+                      </RadialScale></GaugeScales>
+                    </RadialGauge>
+                  </RadialGauges>
+                </GaugePanel>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var gauge = El(result.Design, "RevenueGauge");
+
+        Assert.Equal("text", gauge.Type);
+        Assert.Contains("{{ActualRevenue}}", gauge.Content);
+        Assert.Equal("GaugePanel", gauge.Style!["rdlCustomItemType"]);
+        var metadata = Assert.IsType<Dictionary<string, object>>(gauge.Style["rdlGaugePanel"]);
+        Assert.Equal("RevenueDataset", metadata["DataSetName"]);
+        Assert.Equal("Radial", metadata["GaugeType"]);
+        var gauges = Assert.IsType<Dictionary<string, object>[]>(metadata["Gauges"]);
+        var scales = Assert.IsType<Dictionary<string, object>[]>(gauges[0]["Scales"]);
+        var pointers = Assert.IsType<Dictionary<string, object>[]>(scales[0]["Pointers"]);
+        Assert.Equal("=Fields!ActualRevenue.Value", pointers[0]["Value"]);
+        var ranges = Assert.IsType<Dictionary<string, object>[]>(scales[0]["Ranges"]);
+        Assert.Equal("Green", ranges[0]["BackgroundColor"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL021" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 30 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_NativeMap_PreservesMapMetadataOnPlaceholder()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Map Name="WorldMap">
+                  <Top>0in</Top><Left>0in</Left><Height>3in</Height><Width>5in</Width>
+                  <ToolTip>World Population Map</ToolTip>
+                  <Style><BackgroundColor>White</BackgroundColor><Border><Color>LightGrey</Color><Width>1pt</Width></Border></Style>
+                  <MapLayers>
+                    <MapPolygonLayer Name="PolygonLayer1">
+                      <MapDataRegionName>DataRegion</MapDataRegionName>
+                      <MapBindingFieldPairs><MapBindingFieldPair>
+                        <FieldName>name</FieldName>
+                        <BindingExpression>=Fields!Country.Value</BindingExpression>
+                      </MapBindingFieldPair></MapBindingFieldPairs>
+                      <MapFieldDefinitions><MapFieldDefinition>
+                        <Name>name</Name><DataType>String</DataType>
+                      </MapFieldDefinition></MapFieldDefinitions>
+                      <MapPolygonRules><MapColorRangeRule>
+                        <DataValue>=Sum(Fields!Population.Value)</DataValue>
+                      </MapColorRangeRule></MapPolygonRules>
+                      <MapPolygons>
+                        <MapPolygon><VectorData>abc</VectorData></MapPolygon>
+                        <MapPolygon><VectorData>def</VectorData></MapPolygon>
+                      </MapPolygons>
+                    </MapPolygonLayer>
+                  </MapLayers>
+                  <MapDataRegions><MapDataRegion Name="DataRegion">
+                    <DataSetName>PopulationDataset</DataSetName>
+                    <MapMember><Group Name="CountryGroup" /></MapMember>
+                  </MapDataRegion></MapDataRegions>
+                  <MapViewport>
+                    <MapCoordinateSystem>Geographic</MapCoordinateSystem>
+                    <MapProjection>Mercator</MapProjection>
+                    <MaximumZoom>4000000</MaximumZoom>
+                    <MapCustomView><CenterX>50</CenterX><CenterY>50</CenterY><Zoom>125</Zoom></MapCustomView>
+                  </MapViewport>
+                  <MapLegends><MapLegend Name="Legend1" /></MapLegends>
+                  <MapTitles><MapTitle Name="Title1"><Text>Population</Text></MapTitle></MapTitles>
+                  <MapDistanceScale />
+                  <MapColorScale />
+                </Map>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var map = El(result.Design, "WorldMap");
+
+        Assert.Equal("text", map.Type);
+        Assert.Equal("Map", map.Style!["rdlCustomItemType"]);
+        var metadata = Assert.IsType<Dictionary<string, object>>(map.Style["rdlMap"]);
+        Assert.Equal("World Population Map", metadata["ToolTip"]);
+        Assert.True((bool)metadata["HasDistanceScale"]);
+        Assert.True((bool)metadata["HasColorScale"]);
+
+        var layers = Assert.IsType<Dictionary<string, object>[]>(metadata["Layers"]);
+        Assert.Equal("MapPolygonLayer", layers[0]["Kind"]);
+        Assert.Equal(2, layers[0]["SpatialElementCount"]);
+        Assert.Contains("MapColorRangeRule", Assert.IsType<string[]>(layers[0]["RuleKinds"]));
+        var bindings = Assert.IsType<Dictionary<string, object>[]>(layers[0]["BindingFieldPairs"]);
+        Assert.Equal("=Fields!Country.Value", bindings[0]["BindingExpression"]);
+
+        var regions = Assert.IsType<Dictionary<string, object>[]>(metadata["DataRegions"]);
+        Assert.Equal("PopulationDataset", regions[0]["DataSetName"]);
+        Assert.Equal("CountryGroup", regions[0]["GroupName"]);
+        var viewport = Assert.IsType<Dictionary<string, object>>(metadata["Viewport"]);
+        Assert.Equal("Geographic", viewport["CoordinateSystem"]);
+        Assert.Equal("Mercator", viewport["Projection"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL022" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 31 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_TablixCellNestedGaugePanel_ExtractsPositionedElement()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Tablix Name="metrics">
+                  <Top>1in</Top><Left>0.5in</Left><Height>2in</Height><Width>4in</Width>
+                  <TablixBody>
+                    <TablixColumns><TablixColumn><Width>2in</Width></TablixColumn><TablixColumn><Width>2in</Width></TablixColumn></TablixColumns>
+                    <TablixRows>
+                      <TablixRow><Height>0.5in</Height><TablixCells>
+                        <TablixCell><CellContents><Textbox Name="h1"><Value>Name</Value></Textbox></CellContents></TablixCell>
+                        <TablixCell><CellContents><Textbox Name="h2"><Value>Gauge</Value></Textbox></CellContents></TablixCell>
+                      </TablixCells></TablixRow>
+                      <TablixRow><Height>1in</Height><TablixCells>
+                        <TablixCell><CellContents><Textbox Name="name"><Value>=Fields!Name.Value</Value></Textbox></CellContents></TablixCell>
+                        <TablixCell><CellContents>
+                          <GaugePanel Name="cellGauge">
+                            <Top>0.1in</Top><Left>0.2in</Left><Height>0.8in</Height><Width>1.5in</Width>
+                            <DataSetName>Metrics</DataSetName>
+                            <LinearGauges><LinearGauge Name="LinearGaugeSet">
+                              <GaugeScales><LinearScale Name="LinearScale">
+                                <GaugePointers><LinearPointer Name="ScorePointer">
+                                  <Type>Marker</Type>
+                                  <GaugeInputValue><Value>=Fields!Score.Value</Value></GaugeInputValue>
+                                </LinearPointer></GaugePointers>
+                              </LinearScale></GaugeScales>
+                            </LinearGauge></LinearGauges>
+                          </GaugePanel>
+                        </CellContents></TablixCell>
+                      </TablixCells></TablixRow>
+                    </TablixRows>
+                  </TablixBody>
+                </Tablix>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var table = El(result.Design, "metrics");
+        var gauge = El(result.Design, "cellGauge");
+
+        Assert.Equal("table", table.Type);
+        Assert.Contains("cellGauge", Assert.IsType<string[]>(table.Style!["rdlExtractedCellItems"]));
+        Assert.Equal("text", gauge.Type);
+        Assert.Contains("{{Score}}", gauge.Content);
+        Assert.Equal(0.5 * 72 + 2 * 72 + 0.2 * 72, gauge.X, 1);
+        Assert.Equal(1 * 72 + 0.5 * 72 + 0.1 * 72, gauge.Y, 1);
+        Assert.Equal("metrics", gauge.Style!["rdlParentTablix"]);
+        Assert.Equal(1, gauge.Style["rdlParentTablixRow"]);
+        Assert.Equal(1, gauge.Style["rdlParentTablixColumn"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL023" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 32 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_ComprehensiveSyncfusionFixture_MapsCoreLayoutAndKnownPlaceholders()
+    {
+        var r = Convert(Fixture("ComprehensiveSyncfusionReport.rdl"));
+        var d = r.Design;
+
+        Assert.Equal("Comprehensive Syncfusion Sales Report", d.Name);
+        Assert.Equal(595.28, d.PageSettings!.Width, 1);   // 21cm
+        Assert.Equal(841.89, d.PageSettings!.Height, 1);  // 29.7cm
+        Assert.Contains(d.SharedElements, e => e.Name == "brandLogo");
+        Assert.Contains(d.SharedElements, e => e.Name == "reportTitle");
+        Assert.Contains(d.SharedElements, e => e.Name == "pageNumber");
+
+        var title = El(d, "reportTitle");
+        Assert.Equal("text", title.Type);
+        Assert.Equal("Arial", title.Style!["fontFamily"]);
+        Assert.Equal("center", title.Style!["textAlign"]);
+        Assert.Equal("underline", title.Style!["textDecoration"]);
+        Assert.False(El(d, "confidentialNotice").Hidden);
+
+        var customer = El(d, "customerName");
+        Assert.Equal("CustomerName", customer.Binding);
+        Assert.Equal("{{CustomerName}}", customer.Content);
+        var invoiceNo = El(d, "invoiceNo");
+        Assert.Equal("richtext", invoiceNo.Type);
+        Assert.Contains("<span style=\"font-weight:bold\">Invoice: </span>", invoiceNo.HtmlContent);
+        Assert.Contains("{{InvoiceNo}}", invoiceNo.HtmlContent);
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL016" && d.Severity == MigrationDiagnosticSeverity.Warning);
+
+        var grandTotal = El(d, "grandTotal");
+        Assert.Equal("=Sum(Fields!LineTotal.Value)", grandTotal.Expression);
+        Assert.Equal("IIF([LineTotal] = 0, False, True)", grandTotal.VisibleExpression);
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL015" && d.Severity == MigrationDiagnosticSeverity.Warning);
+
+        var panel = El(d, "summaryPanel");
+        Assert.Equal("rect", panel.Type);
+        Assert.Equal("#F8FAFC", panel.Style!["backgroundColor"]);
+
+        var line = El(d, "summaryRule");
+        Assert.Equal("line", line.Type);
+        Assert.Equal("dashed", line.Style!["dashStyle"]);
+
+        var detailPhoto = El(d, "detailPhoto");
+        Assert.Equal("image", detailPhoto.Type);
+        Assert.StartsWith("data:image/png;base64,", detailPhoto.Content);
+        var productPhoto = El(d, "productPhoto");
+        Assert.Equal("image", productPhoto.Type);
+        Assert.Equal("ProductImage", productPhoto.Binding);
+        Assert.Equal("Database", productPhoto.Style!["rdlImageSource"]);
+
+        var barcode = El(d, "shipmentBarcode");
+        Assert.Equal("barcode", barcode.Type);
+        Assert.Equal("code128", barcode.BarcodeType);
+        Assert.Equal("{{Sku}}", barcode.BarcodeValue);
+
+        var chart = El(d, "salesChart");
+        var gauge = El(d, "deliveryGauge");
+        var subreport = El(d, "detailSubreport");
+        Assert.Equal("chart", chart.Type);
+        Assert.Equal("bar", chart.ChartType);
+        Assert.Equal("Chart", chart.Style!["rdlCustomItemType"]);
+        Assert.NotNull(chart.ChartData);
+        Assert.Equal("text", gauge.Type);
+        Assert.Contains("Gauge", gauge.Content);
+        Assert.Equal("Gauge", gauge.Style!["rdlCustomItemType"]);
+        Assert.Equal("text", subreport.Type);
+        Assert.Contains("Sub-report", subreport.Content);
+        var subreportPagination = Assert.IsType<Dictionary<string, object>>(subreport.Style!["rdlPagination"]);
+        Assert.Equal("End", subreportPagination["PageBreak.BreakLocation"]);
         Assert.True(Has(r.Diagnostics, "CANMIGRDL011"));
+        Assert.True(Has(r.Diagnostics, "CANMIGRDL017"));
+        Assert.True(Has(r.Diagnostics, "CANMIGRDL018"));
+        Assert.True(Has(r.Diagnostics, "CANMIGRDL019"));
+    }
+
+    // 28 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_ComprehensiveSyncfusionFixture_MapsTablixTableShape()
+    {
+        var result = Convert(Fixture("ComprehensiveSyncfusionReport.rdl"));
+        var table = El(result.Design, "salesMatrix");
+
+        Assert.Equal("table", table.Type);
+        Assert.True(table.HeaderRow);
+        Assert.Equal(3, table.CellData!.Length);
+        Assert.Equal(new[] { "SKU", "Product", "Qty", "Total" }, table.CellData[0]);
+        Assert.Equal(new[] { "{{Sku}}", "{{Product}}", "{{Quantity}}", "{{LineTotal}}" }, table.CellData[1]);
+        Assert.Equal(new[] { "Total", "", "=Sum(Fields!Quantity.Value)", "=Sum(Fields!LineTotal.Value)" }, table.CellData[2]);
+        Assert.Equal(new[] { 90.0, 244.8, 79.2, 115.2 }, table.ColumnWidths!.Select(w => Math.Round(w, 1)).ToArray());
+        Assert.Equal(new[] { "left", "left", "right", "right" }, table.ColumnAlignments);
+        Assert.True(table.Style!.ContainsKey("rdlTablixGroups"));
+        var groups = Assert.IsType<Dictionary<string, object>[]>(table.Style["rdlTablixGroups"]);
+        var group = Assert.Single(groups);
+        Assert.Equal("RegionGroup", group["name"]);
+        Assert.Equal(new[] { "=Fields!Region.Value" }, Assert.IsType<string[]>(group["expressions"]));
+        Assert.Contains("=Fields!Product.Value", (string[])table.Style["rdlTablixSorts"]);
+        Assert.Equal(new[] { "After", "Before" }, (string[])table.Style["rdlTablixKeepWithGroup"]);
+        var pagination = Assert.IsType<Dictionary<string, object>>(table.Style["rdlPagination"]);
+        Assert.Equal("Sales Matrix", pagination["PageName"]);
+        Assert.Equal("true", pagination["KeepTogether"]);
+        Assert.Equal(new[] { "true" }, Assert.IsType<string[]>(pagination["TablixMemberRepeatOnNewPage"]));
+        Assert.Equal(new[] { "true" }, Assert.IsType<string[]>(pagination["TablixMemberFixedData"]));
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL014" && d.Severity == MigrationDiagnosticSeverity.Warning);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL019" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 29 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_StaticVisibilityHidden_MapsToHidden()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Textbox Name="secret"><Top>0in</Top><Left>0in</Left><Height>0.3in</Height><Width>2in</Width>
+                  <Visibility><Hidden>true</Hidden></Visibility>
+                  <Paragraphs><Paragraph><TextRuns><TextRun><Value>Secret</Value></TextRun></TextRuns></Paragraph></Paragraphs>
+                </Textbox>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var secret = El(Convert(rdl).Design, "secret");
+
+        Assert.True(secret.Hidden);
+        Assert.Null(secret.VisibleExpression);
+    }
+
+    // 30 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_DynamicVisibilityHidden_MapsToInvertedVisibleExpression()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Textbox Name="conditional"><Top>0in</Top><Left>0in</Left><Height>0.3in</Height><Width>2in</Width>
+                  <Visibility><Hidden>=Fields!Quantity.Value = 0</Hidden></Visibility>
+                  <Paragraphs><Paragraph><TextRuns><TextRun><Value>Conditional</Value></TextRun></TextRuns></Paragraph></Paragraphs>
+                </Textbox>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var conditional = El(result.Design, "conditional");
+
+        Assert.Null(conditional.Hidden);
+        Assert.Equal("IIF([Quantity] = 0, False, True)", conditional.VisibleExpression);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL015" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 31 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_MultiRunTextbox_BecomesRichTextWithInlineStyles()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Textbox Name="mixed"><Top>0in</Top><Left>0in</Left><Height>0.4in</Height><Width>3in</Width>
+                  <Paragraphs><Paragraph><Style><TextAlign>Center</TextAlign></Style><TextRuns>
+                    <TextRun><Value>Total: </Value><Style><FontWeight>Bold</FontWeight></Style></TextRun>
+                    <TextRun><Value>=Fields!Total.Value</Value><Style><Color>Green</Color><TextDecoration>Underline</TextDecoration></Style></TextRun>
+                  </TextRuns></Paragraph></Paragraphs>
+                </Textbox>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var mixed = El(result.Design, "mixed");
+
+        Assert.Equal("richtext", mixed.Type);
+        Assert.Equal("Total: {{Total}}", mixed.Content);
+        Assert.Contains("""<p style="text-align:center">""", mixed.HtmlContent);
+        Assert.Contains("""<span style="font-weight:bold">Total: </span>""", mixed.HtmlContent);
+        Assert.Contains("""<span style="color:#008000;text-decoration:underline">{{Total}}</span>""", mixed.HtmlContent);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL016" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 32 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_PageBreakAndRepeatMetadata_IsPreservedOnStyle()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Rectangle Name="section"><Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>2in</Width>
+                  <PageName>Section One</PageName>
+                  <KeepTogether>true</KeepTogether>
+                  <RepeatOnNewPage>true</RepeatOnNewPage>
+                  <PageBreak><BreakLocation>StartAndEnd</BreakLocation><ResetPageNumber>true</ResetPageNumber></PageBreak>
+                </Rectangle>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var section = El(result.Design, "section");
+        var pagination = Assert.IsType<Dictionary<string, object>>(section.Style!["rdlPagination"]);
+
+        Assert.Equal("Section One", pagination["PageName"]);
+        Assert.Equal("true", pagination["KeepTogether"]);
+        Assert.Equal("true", pagination["RepeatOnNewPage"]);
+        Assert.Equal("StartAndEnd", pagination["PageBreak.BreakLocation"]);
+        Assert.Equal("true", pagination["PageBreak.ResetPageNumber"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL019" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 }

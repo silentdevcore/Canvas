@@ -107,6 +107,7 @@ function renderElement(el: any, depth: number): string {
   if (el.barcodeType != null)  lines.push(`${i1}BarcodeType = ${str(el.barcodeType)},`);
   if (el.hidden != null)       lines.push(`${i1}Hidden = ${bool(el.hidden)},`);
   if (el.locked != null)       lines.push(`${i1}Locked = ${bool(el.locked)},`);
+  if (el.visibleExpression != null) lines.push(`${i1}VisibleExpression = ${str(el.visibleExpression)},`);
   if (el.pageScope != null)    lines.push(`${i1}PageScope = ${str(el.pageScope)},`);
   if (el.pageRange != null)    lines.push(`${i1}PageRange = ${str(el.pageRange)},`);
 

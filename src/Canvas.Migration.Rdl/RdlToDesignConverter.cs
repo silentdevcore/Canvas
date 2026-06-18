@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using System.Net;
 using Canvas.Core.Contracts;
 using Canvas.Migration.Abstractions;
 
@@ -156,6 +157,8 @@ public sealed class RdlToDesignConverter
                 W = LengthToPt(Child(item, "Width")?.Value),
                 H = LengthToPt(Child(item, "Height")?.Value)
             };
+            ParseVisibility(item, raw);
+            ParsePaginationMetadata(item, raw);
 
             switch (type)
             {
@@ -171,7 +174,16 @@ public sealed class RdlToDesignConverter
                     break;
                 case "Tablix":
                 case "Table":
-                    ParseTablix(item, raw);
+                    ParseTablix(item, raw, report);
+                    break;
+                case "Chart":
+                    ParseNativeChart(item, raw);
+                    break;
+                case "Map":
+                    ParseMap(item, raw);
+                    break;
+                case "GaugePanel":
+                    ParseGaugePanel(item, raw);
                     break;
                 case "CustomReportItem":
                     // RDL-standard custom items (ActiveReports/DsReport barcodes, SSRS charts/gauges/maps).
@@ -200,10 +212,79 @@ public sealed class RdlToDesignConverter
             ApplyStyle(raw, firstParagraph is null ? null : Child(firstParagraph, "Style"));
             var firstRun = paragraphs.Descendants().FirstOrDefault(e => e.Name.LocalName == "TextRun");
             ApplyStyle(raw, firstRun is null ? null : Child(firstRun, "Style"));
+            raw.RichTextHtml = BuildRichTextHtml(paragraphs);
         }
 
         ClassifyValue(raw, ExtractTextboxValue(el));
     }
+
+    private static string? BuildRichTextHtml(XElement paragraphs)
+    {
+        var paragraphParts = new List<string>();
+        var hasMultipleRuns = false;
+
+        foreach (var paragraph in Children(paragraphs, "Paragraph"))
+        {
+            var runs = paragraph.Descendants().Where(e => e.Name.LocalName == "TextRun").ToList();
+            if (runs.Count > 1) hasMultipleRuns = true;
+            if (runs.Count == 0) continue;
+
+            var spans = new List<string>();
+            foreach (var run in runs)
+            {
+                var display = CellDisplay(Child(run, "Value")?.Value);
+                var encoded = WebUtility.HtmlEncode(display);
+                var style = RichTextRunStyle(Child(run, "Style"));
+                if (style.Length > 0)
+                {
+                    spans.Add($"""<span style="{style}">{encoded}</span>""");
+                }
+                else
+                {
+                    spans.Add(encoded);
+                }
+            }
+
+            var paragraphStyle = RichTextParagraphStyle(Child(paragraph, "Style"));
+            paragraphParts.Add(paragraphStyle.Length > 0
+                ? $"""<p style="{paragraphStyle}">{string.Concat(spans)}</p>"""
+                : $"<p>{string.Concat(spans)}</p>");
+        }
+
+        return hasMultipleRuns ? string.Concat(paragraphParts) : null;
+    }
+
+    private static string RichTextParagraphStyle(XElement? style)
+    {
+        if (Child(style, "TextAlign")?.Value is not { Length: > 0 } align) return "";
+        return $"text-align:{ParseAlignment(align)}";
+    }
+
+    private static string RichTextRunStyle(XElement? style)
+    {
+        var parts = new List<string>();
+        if (Child(style, "FontFamily")?.Value is { Length: > 0 } family)
+            parts.Add($"font-family:{CssValue(family)}");
+        if (LengthToPt(Child(style, "FontSize")?.Value) is var size and > 0)
+            parts.Add($"font-size:{size.ToString("0.###", CultureInfo.InvariantCulture)}pt");
+        if (Child(style, "FontWeight")?.Value is { } weight && IsBoldWeight(weight))
+            parts.Add("font-weight:bold");
+        if (Child(style, "FontStyle")?.Value is { } fontStyle && fontStyle.Contains("Italic", StringComparison.OrdinalIgnoreCase))
+            parts.Add("font-style:italic");
+        if (Child(style, "Color")?.Value is { Length: > 0 } color)
+            parts.Add($"color:{NormalizeColor(color)}");
+        if (Child(style, "TextDecoration")?.Value is { } deco)
+        {
+            var decorations = string.Join(" ", new[] {
+                deco.Contains("Underline", StringComparison.OrdinalIgnoreCase) ? "underline" : null,
+                deco.Contains("LineThrough", StringComparison.OrdinalIgnoreCase) ? "line-through" : null
+            }.Where(v => v is not null));
+            if (decorations.Length > 0) parts.Add($"text-decoration:{decorations}");
+        }
+        return string.Join(";", parts);
+    }
+
+    private static string CssValue(string value) => value.Contains(' ') ? $"'{value.Replace("'", "\\'", StringComparison.Ordinal)}'" : value;
 
     // The display value of a Textbox: 2016 concatenates <TextRun><Value>s; 2008 uses a direct <Value>.
     private static string? ExtractTextboxValue(XElement? textbox)
@@ -212,9 +293,15 @@ public sealed class RdlToDesignConverter
         var paragraphs = textbox.Elements().FirstOrDefault(e => e.Name.LocalName == "Paragraphs");
         if (paragraphs is not null)
         {
-            var runValues = paragraphs.Descendants()
+            var runs = paragraphs.Descendants()
                 .Where(e => e.Name.LocalName == "TextRun")
-                .Select(r => r.Elements().FirstOrDefault(e => e.Name.LocalName == "Value")?.Value ?? "");
+                .ToList();
+            var runValues = runs
+                .Select(r =>
+                {
+                    var value = r.Elements().FirstOrDefault(e => e.Name.LocalName == "Value")?.Value ?? "";
+                    return runs.Count > 1 ? CellDisplay(value) : value;
+                });
             var joined = string.Concat(runValues);
             return joined.Length > 0 ? joined : null;
         }
@@ -225,12 +312,286 @@ public sealed class RdlToDesignConverter
     {
         var source = Child(el, "Source")?.Value;
         var value = Child(el, "Value")?.Value;
+        raw.ImageSource = source;
+        raw.ImageValue = value;
         if (string.Equals(source, "Embedded", StringComparison.OrdinalIgnoreCase)
             && value is not null && _embedded.TryGetValue(value, out var dataUrl))
         {
             raw.ImageDataUrl = dataUrl;
         }
         // External/Database/unresolved embedded → null → placeholder warning in BuildDesign.
+    }
+
+    private static void ParseVisibility(XElement el, RawElement raw)
+    {
+        var hidden = Child(Child(el, "Visibility"), "Hidden")?.Value.Trim();
+        if (string.IsNullOrWhiteSpace(hidden)) return;
+
+        if (bool.TryParse(hidden, out var hiddenValue))
+        {
+            raw.Hidden = hiddenValue;
+            return;
+        }
+
+        raw.HiddenExpression = NormalizeRdlExpression(hidden);
+    }
+
+    private static void ParseNativeChart(XElement el, RawElement raw)
+    {
+        raw.CustomType = "Chart";
+        raw.CustomProps = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        if (ChartSeries(el) is { } series)
+        {
+            AddText(raw.CustomProps, "SeriesName", Attr(series, "Name"));
+            AddText(raw.CustomProps, "ChartType", Child(series, "Type")?.Value);
+            AddText(raw.CustomProps, "Value", series.Descendants()
+                .FirstOrDefault(e => e.Name.LocalName == "Y")?.Value);
+        }
+
+        AddText(raw.CustomProps, "Category", el.Descendants()
+            .FirstOrDefault(e => e.Name.LocalName == "ChartCategoryHierarchy")?
+            .Descendants().FirstOrDefault(e => e.Name.LocalName == "Label")?.Value);
+        AddText(raw.CustomProps, "Title", el.Descendants()
+            .FirstOrDefault(e => e.Name.LocalName == "ChartTitle")?
+            .Descendants().FirstOrDefault(e => e.Name.LocalName == "Caption")?.Value);
+        AddText(raw.CustomProps, "DataSetName", Child(el, "DataSetName")?.Value);
+    }
+
+    private void ParseGaugePanel(XElement el, RawElement raw)
+    {
+        ApplyStyle(raw, Child(el, "Style"));
+
+        var metadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(metadata, "DataSetName", Child(el, "DataSetName")?.Value);
+
+        var radialGauges = Children(Child(el, "RadialGauges"), "RadialGauge").ToList();
+        var linearGauges = Children(Child(el, "LinearGauges"), "LinearGauge").ToList();
+        if (radialGauges.Count > 0) metadata["GaugeType"] = "Radial";
+        else if (linearGauges.Count > 0) metadata["GaugeType"] = "Linear";
+
+        var gauges = radialGauges.Concat(linearGauges).Select(ParseGaugeSummary).ToArray();
+        if (gauges.Length > 0)
+            metadata["Gauges"] = gauges;
+
+        var labels = Children(Child(el, "GaugeLabels"), "GaugeLabel")
+            .Select(label => new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Name"] = Attr(label, "Name") ?? "GaugeLabel",
+                ["Text"] = Child(label, "Text")?.Value ?? "",
+                ["ParentItem"] = Child(label, "ParentItem")?.Value ?? ""
+            })
+            .Where(label => ((string)label["Text"]).Length > 0 || ((string)label["ParentItem"]).Length > 0)
+            .ToArray();
+        if (labels.Length > 0)
+            metadata["Labels"] = labels;
+
+        raw.GaugePanelMetadata = metadata;
+    }
+
+    private void ParseMap(XElement el, RawElement raw)
+    {
+        ApplyStyle(raw, Child(el, "Style"));
+
+        var metadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(metadata, "ToolTip", Child(el, "ToolTip")?.Value);
+
+        var layers = Children(Child(el, "MapLayers"), "MapPolygonLayer")
+            .Concat(Children(Child(el, "MapLayers"), "MapPointLayer"))
+            .Concat(Children(Child(el, "MapLayers"), "MapLineLayer"))
+            .Select(ParseMapLayerSummary)
+            .ToArray();
+        if (layers.Length > 0)
+            metadata["Layers"] = layers;
+
+        var dataRegions = Children(Child(el, "MapDataRegions"), "MapDataRegion")
+            .Select(region =>
+            {
+                var r = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Name"] = Attr(region, "Name") ?? "MapDataRegion"
+                };
+                AddText(r, "DataSetName", Child(region, "DataSetName")?.Value);
+                var group = Descendant(region, "Group");
+                AddText(r, "GroupName", group is null ? null : Attr(group, "Name"));
+                return r;
+            })
+            .ToArray();
+        if (dataRegions.Length > 0)
+            metadata["DataRegions"] = dataRegions;
+
+        if (Child(el, "MapViewport") is { } viewport)
+            metadata["Viewport"] = ParseMapViewportSummary(viewport);
+
+        var legends = Children(Child(el, "MapLegends"), "MapLegend")
+            .Select(legend => Attr(legend, "Name") ?? "MapLegend")
+            .ToArray();
+        if (legends.Length > 0)
+            metadata["Legends"] = legends;
+
+        var titles = Children(Child(el, "MapTitles"), "MapTitle")
+            .Select(title =>
+            {
+                var t = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Name"] = Attr(title, "Name") ?? "MapTitle"
+                };
+                AddText(t, "Text", Child(title, "Text")?.Value);
+                return t;
+            })
+            .ToArray();
+        if (titles.Length > 0)
+            metadata["Titles"] = titles;
+
+        if (Child(el, "MapDistanceScale") is not null)
+            metadata["HasDistanceScale"] = true;
+        if (Child(el, "MapColorScale") is not null)
+            metadata["HasColorScale"] = true;
+
+        raw.MapMetadata = metadata;
+    }
+
+    private static Dictionary<string, object> ParseMapLayerSummary(XElement layer)
+    {
+        var summary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Name"] = Attr(layer, "Name") ?? layer.Name.LocalName,
+            ["Kind"] = layer.Name.LocalName
+        };
+        AddText(summary, "MapDataRegionName", Child(layer, "MapDataRegionName")?.Value);
+
+        var bindings = Children(Child(layer, "MapBindingFieldPairs"), "MapBindingFieldPair")
+            .Select(pair =>
+            {
+                var b = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                AddText(b, "FieldName", Child(pair, "FieldName")?.Value);
+                AddText(b, "BindingExpression", Child(pair, "BindingExpression")?.Value);
+                return b;
+            })
+            .Where(b => b.Count > 0)
+            .ToArray();
+        if (bindings.Length > 0)
+            summary["BindingFieldPairs"] = bindings;
+
+        var fields = Children(Child(layer, "MapFieldDefinitions"), "MapFieldDefinition")
+            .Select(field =>
+            {
+                var f = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                AddText(f, "Name", Child(field, "Name")?.Value);
+                AddText(f, "DataType", Child(field, "DataType")?.Value);
+                return f;
+            })
+            .Where(f => f.Count > 0)
+            .ToArray();
+        if (fields.Length > 0)
+            summary["FieldDefinitions"] = fields;
+
+        var ruleKinds = layer.Descendants()
+            .Where(e => e.Name.LocalName.StartsWith("Map", StringComparison.Ordinal)
+                && e.Name.LocalName.EndsWith("Rule", StringComparison.Ordinal))
+            .Select(e => e.Name.LocalName)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        if (ruleKinds.Length > 0)
+            summary["RuleKinds"] = ruleKinds;
+
+        var spatialElementCount =
+            Children(Child(layer, "MapPolygons"), "MapPolygon").Count()
+            + Children(Child(layer, "MapPoints"), "MapPoint").Count()
+            + Children(Child(layer, "MapLines"), "MapLine").Count();
+        if (spatialElementCount > 0)
+            summary["SpatialElementCount"] = spatialElementCount;
+
+        return summary;
+    }
+
+    private static Dictionary<string, object> ParseMapViewportSummary(XElement viewport)
+    {
+        var summary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(summary, "CoordinateSystem", Child(viewport, "MapCoordinateSystem")?.Value);
+        AddText(summary, "Projection", Child(viewport, "MapProjection")?.Value);
+        AddText(summary, "MaximumZoom", Child(viewport, "MaximumZoom")?.Value);
+
+        if (Child(viewport, "MapCustomView") is { } customView)
+        {
+            var view = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            AddText(view, "CenterX", Child(customView, "CenterX")?.Value);
+            AddText(view, "CenterY", Child(customView, "CenterY")?.Value);
+            AddText(view, "Zoom", Child(customView, "Zoom")?.Value);
+            if (view.Count > 0)
+                summary["CustomView"] = view;
+        }
+
+        return summary;
+    }
+
+    private static Dictionary<string, object> ParseGaugeSummary(XElement gauge)
+    {
+        var summary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Name"] = Attr(gauge, "Name") ?? gauge.Name.LocalName,
+            ["Kind"] = gauge.Name.LocalName
+        };
+
+        var scales = gauge.Descendants()
+            .Where(e => e.Name.LocalName is "RadialScale" or "LinearScale")
+            .Select(ParseGaugeScaleSummary)
+            .ToArray();
+        if (scales.Length > 0)
+            summary["Scales"] = scales;
+
+        return summary;
+    }
+
+    private static Dictionary<string, object> ParseGaugeScaleSummary(XElement scale)
+    {
+        var summary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Name"] = Attr(scale, "Name") ?? scale.Name.LocalName,
+            ["Kind"] = scale.Name.LocalName
+        };
+        AddText(summary, "MinimumValue", Child(Child(scale, "MinimumValue"), "Value")?.Value);
+        AddText(summary, "MaximumValue", Child(Child(scale, "MaximumValue"), "Value")?.Value);
+        AddText(summary, "Interval", Child(scale, "Interval")?.Value);
+
+        var pointers = scale.Descendants()
+            .Where(e => e.Name.LocalName is "RadialPointer" or "LinearPointer")
+            .Select(pointer =>
+            {
+                var p = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Name"] = Attr(pointer, "Name") ?? pointer.Name.LocalName,
+                    ["Kind"] = pointer.Name.LocalName
+                };
+                AddText(p, "Type", Child(pointer, "Type")?.Value);
+                AddText(p, "MarkerStyle", Child(pointer, "MarkerStyle")?.Value);
+                AddText(p, "Value", Child(Child(pointer, "GaugeInputValue"), "Value")?.Value);
+                if (Descendant(Child(pointer, "Style"), "BackgroundColor")?.Value is { Length: > 0 } color)
+                    p["BackgroundColor"] = color.Trim();
+                return p;
+            })
+            .ToArray();
+        if (pointers.Length > 0)
+            summary["Pointers"] = pointers;
+
+        var ranges = Children(Child(scale, "ScaleRanges"), "ScaleRange")
+            .Select(range =>
+            {
+                var r = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Name"] = Attr(range, "Name") ?? "ScaleRange"
+                };
+                AddText(r, "StartValue", Child(Child(range, "StartValue"), "Value")?.Value);
+                AddText(r, "EndValue", Child(Child(range, "EndValue"), "Value")?.Value);
+                if (Descendant(Child(range, "Style"), "BackgroundColor")?.Value is { Length: > 0 } color)
+                    r["BackgroundColor"] = color.Trim();
+                return r;
+            })
+            .ToArray();
+        if (ranges.Length > 0)
+            summary["Ranges"] = ranges;
+
+        return summary;
     }
 
     private void ApplyStyle(RawElement raw, XElement? style)
@@ -261,7 +622,7 @@ public sealed class RdlToDesignConverter
         }
     }
 
-    private void ParseTablix(XElement el, RawElement raw)
+    private void ParseTablix(XElement el, RawElement raw, RawReport report)
     {
         var grid = new List<List<string>>();
         var tablixBody = Child(el, "TablixBody");
@@ -278,6 +639,8 @@ public sealed class RdlToDesignConverter
             foreach (var row in rows)
                 grid.Add(Children(Child(row, "TablixCells"), "TablixCell")
                     .Select(cell => CellDisplay(ExtractTextboxValue(TablixCellTextbox(cell)))).ToList());
+
+            ExtractNestedTablixItems(raw, report, rows, true);
         }
         else
         {
@@ -290,11 +653,185 @@ public sealed class RdlToDesignConverter
             foreach (var row in rows)
                 grid.Add(Children(Child(row, "TableCells"), "TableCell")
                     .Select(cell => CellDisplay(ExtractTextboxValue(TableCellTextbox(cell)))).ToList());
+
+            ExtractNestedTablixItems(raw, report, rows, false);
         }
 
         raw.TableCells = grid.Count > 0 ? grid : null;
         raw.ColumnAlignments = headerRow is null ? null : HeaderAlignments(headerRow, tablixBody is not null);
+        raw.TablixGroups = ParseTablixGroups(el);
+        raw.TablixSorts = ParseTablixSorts(el);
+        raw.TablixKeepWithGroups = ParseTablixKeepWithGroups(el);
+        raw.PaginationMetadata["TablixMemberRepeatOnNewPage"] = ParseTablixMemberValues(el, "RepeatOnNewPage");
+        raw.PaginationMetadata["TablixMemberKeepTogether"] = ParseTablixMemberValues(el, "KeepTogether");
+        raw.PaginationMetadata["TablixMemberFixedData"] = ParseTablixMemberValues(el, "FixedData");
     }
+
+    private void ExtractNestedTablixItems(RawElement table, RawReport report, IReadOnlyList<XElement> rows, bool tablix)
+    {
+        if (rows.Count == 0) return;
+
+        var columnCount = rows
+            .Select(row => tablix ? Children(Child(row, "TablixCells"), "TablixCell").Count() : Children(Child(row, "TableCells"), "TableCell").Count())
+            .DefaultIfEmpty(0)
+            .Max();
+        if (columnCount == 0) return;
+
+        var widths = FitWidths(table.ColumnWidthsPt, columnCount, table.W);
+        var rowHeights = rows.Select(row => LengthToPt(Child(row, "Height")?.Value)).ToArray();
+
+        var y = 0.0;
+        for (var rowIndex = 0; rowIndex < rows.Count; rowIndex++)
+        {
+            var cells = (tablix ? Children(Child(rows[rowIndex], "TablixCells"), "TablixCell") : Children(Child(rows[rowIndex], "TableCells"), "TableCell")).ToList();
+            var x = 0.0;
+            for (var columnIndex = 0; columnIndex < cells.Count; columnIndex++)
+            {
+                var cellItems = NestedCellItems(cells[columnIndex], tablix)
+                    .Where(item => item.Name.LocalName != "Textbox")
+                    .ToList();
+                foreach (var item in cellItems)
+                {
+                    var nested = ParseNestedCellItem(item, table, rowIndex, columnIndex, x, y);
+                    if (nested is null) continue;
+                    report.Elements.Add(nested);
+                    table.TablixNestedItemNames.Add(nested.Name);
+                }
+
+                x += columnIndex < widths.Length ? widths[columnIndex] : 0;
+            }
+
+            y += rowIndex < rowHeights.Length && rowHeights[rowIndex] > 0 ? rowHeights[rowIndex] : 0;
+        }
+    }
+
+    private RawElement? ParseNestedCellItem(XElement item, RawElement table, int rowIndex, int columnIndex, double cellX, double cellY)
+    {
+        var type = item.Name.LocalName;
+        var raw = new RawElement
+        {
+            Name = Attr(item, "Name") ?? $"{table.Name}_r{rowIndex}_c{columnIndex}_{type}",
+            Type = type,
+            Region = table.Region,
+            X = table.X + cellX + LengthToPt(Child(item, "Left")?.Value),
+            Y = table.Y + cellY + LengthToPt(Child(item, "Top")?.Value),
+            W = LengthToPt(Child(item, "Width")?.Value),
+            H = LengthToPt(Child(item, "Height")?.Value),
+            ParentTablixName = table.Name,
+            ParentTablixRow = rowIndex,
+            ParentTablixColumn = columnIndex
+        };
+        ParseVisibility(item, raw);
+        ParsePaginationMetadata(item, raw);
+
+        switch (type)
+        {
+            case "Line":
+            case "Rectangle":
+                ApplyStyle(raw, Child(item, "Style"));
+                break;
+            case "Image":
+                ParseImage(item, raw);
+                break;
+            case "Chart":
+                ParseNativeChart(item, raw);
+                break;
+            case "Map":
+                ParseMap(item, raw);
+                break;
+            case "GaugePanel":
+                ParseGaugePanel(item, raw);
+                break;
+            case "CustomReportItem":
+                raw.CustomType = Child(item, "Type")?.Value;
+                raw.CustomProps = ParseCustomProperties(item);
+                break;
+            default:
+                return null;
+        }
+
+        return raw;
+    }
+
+    private static IEnumerable<XElement> NestedCellItems(XElement cell, bool tablix)
+    {
+        if (tablix)
+        {
+            var contents = Child(cell, "CellContents");
+            return contents is null ? Enumerable.Empty<XElement>() : contents.Elements();
+        }
+
+        return Child(cell, "ReportItems")?.Elements() ?? Enumerable.Empty<XElement>();
+    }
+
+    private static void ParsePaginationMetadata(XElement item, RawElement raw)
+    {
+        var metadata = raw.PaginationMetadata;
+        AddText(metadata, "PageName", Child(item, "PageName")?.Value);
+        AddText(metadata, "KeepTogether", Child(item, "KeepTogether")?.Value);
+        AddText(metadata, "RepeatWith", Child(item, "RepeatWith")?.Value);
+        AddText(metadata, "RepeatOnNewPage", Child(item, "RepeatOnNewPage")?.Value);
+        AddText(metadata, "FixedData", Child(item, "FixedData")?.Value);
+
+        var pageBreak = Child(item, "PageBreak");
+        if (pageBreak is not null)
+        {
+            AddText(metadata, "PageBreak.BreakLocation", Child(pageBreak, "BreakLocation")?.Value);
+            AddText(metadata, "PageBreak.Disabled", Child(pageBreak, "Disabled")?.Value);
+            AddText(metadata, "PageBreak.ResetPageNumber", Child(pageBreak, "ResetPageNumber")?.Value);
+        }
+    }
+
+    private static string[] ParseTablixMemberValues(XElement tablix, string name) =>
+        tablix.Descendants()
+            .Where(e => e.Name.LocalName == "TablixMember")
+            .Select(m => Child(m, name)?.Value.Trim())
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Cast<string>()
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+    private static void AddText(Dictionary<string, object> target, string key, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            target[key] = value.Trim();
+    }
+
+    private static void AddText(Dictionary<string, string> target, string key, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            target[key] = value.Trim();
+    }
+
+    private static List<RdlTablixGroup> ParseTablixGroups(XElement tablix)
+    {
+        var groups = new List<RdlTablixGroup>();
+        foreach (var group in tablix.Descendants().Where(e => e.Name.LocalName == "Group"))
+        {
+            var expressions = Children(Child(group, "GroupExpressions"), "GroupExpression")
+                .Select(e => e.Value.Trim())
+                .Where(v => v.Length > 0)
+                .ToArray();
+            groups.Add(new RdlTablixGroup(Attr(group, "Name") ?? "", expressions));
+        }
+        return groups;
+    }
+
+    private static List<string> ParseTablixSorts(XElement tablix) =>
+        tablix.Descendants()
+            .Where(e => e.Name.LocalName == "SortExpression")
+            .Select(e => Child(e, "Value")?.Value.Trim())
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Cast<string>()
+            .ToList();
+
+    private static List<string> ParseTablixKeepWithGroups(XElement tablix) =>
+        tablix.Descendants()
+            .Where(e => e.Name.LocalName == "KeepWithGroup")
+            .Select(e => e.Value.Trim())
+            .Where(v => v.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
     private static Dictionary<string, string> ParseCustomProperties(XElement item)
     {
@@ -315,6 +852,9 @@ public sealed class RdlToDesignConverter
 
     private static XElement? TableCellTextbox(XElement cell) =>
         Children(Child(cell, "ReportItems"), "Textbox").FirstOrDefault();
+
+    private static XElement? ChartSeries(XElement chart) =>
+        chart.Descendants().FirstOrDefault(e => e.Name.LocalName == "ChartSeries");
 
     private static string[] HeaderAlignments(XElement headerRow, bool tablix)
     {
@@ -359,6 +899,9 @@ public sealed class RdlToDesignConverter
 
             if (raw.TextExpression is { } expr)
                 ApplyBinding(element, expr, diagnostics);
+            ApplyVisibility(element, raw, diagnostics);
+            ApplyPaginationMetadata(element, raw, diagnostics);
+            ApplyNestedTablixMetadata(element, raw, diagnostics);
 
             (raw.Region is RawRegion.PageHeader or RawRegion.PageFooter ? sharedElements : elements).Add(element);
             mapped++;
@@ -398,9 +941,21 @@ public sealed class RdlToDesignConverter
         switch (raw.Type)
         {
             case "Textbox":
-                element.Type = "text";
-                element.Content = raw.Text ?? "";
-                element.Style = BuildTextStyle(raw);
+                if (raw.RichTextHtml is { Length: > 0 } html)
+                {
+                    element.Type = "richtext";
+                    element.HtmlContent = html;
+                    element.Content = raw.Text ?? "";
+                    element.Style = BuildTextStyle(raw);
+                    diagnostics.Add(Warn("CANMIGRDL016",
+                        $"'{raw.Name}' contains multiple/styled text runs — imported as Canvas richtext; review inline formatting."));
+                }
+                else
+                {
+                    element.Type = "text";
+                    element.Content = raw.Text ?? "";
+                    element.Style = BuildTextStyle(raw);
+                }
                 return element;
 
             case "Line":
@@ -421,14 +976,31 @@ public sealed class RdlToDesignConverter
                 element.Type = "image";
                 element.FitMode = "contain";
                 if (raw.ImageDataUrl is { } dataUrl)
+                {
                     element.Content = dataUrl;
+                }
+                else if (MapImageReference(element, raw, diagnostics))
+                {
+                    return element;
+                }
                 else
+                {
                     diagnostics.Add(Warn("CANMIGRDL012",
                         $"'{raw.Name}' image isn't embeddable from source — inserted an empty image placeholder."));
+                }
                 return element;
 
             case "CustomReportItem":
                 return MapCustomReportItem(raw, element, diagnostics);
+
+            case "Chart":
+                return MapRdlChart(raw, element, diagnostics);
+
+            case "Map":
+                return MapNativeMap(raw, element, diagnostics);
+
+            case "GaugePanel":
+                return MapGaugePanel(raw, element, diagnostics);
 
             case "Subreport":
                 diagnostics.Add(Warn("CANMIGRDL011",
@@ -439,6 +1011,81 @@ public sealed class RdlToDesignConverter
                 diagnostics.Add(Warn("CANMIGRDL011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
+    }
+
+    private static ElementDto MapNativeMap(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        element.Type = "text";
+        element.Content = $"[Map: {raw.Name} — migrate manually]";
+        element.Style = new Dictionary<string, object>
+        {
+            ["color"] = "#0F172A",
+            ["backgroundColor"] = raw.BackColor ?? "#EFF6FF",
+            ["borderColor"] = raw.ForeColor,
+            ["borderStyle"] = "dashed",
+            ["fontStyle"] = "italic",
+            ["rdlCustomItemType"] = "Map"
+        };
+        if (raw.LineWidth is { } borderW)
+            element.Style["borderWidth"] = borderW;
+        if (raw.MapMetadata is { Count: > 0 })
+            element.Style["rdlMap"] = raw.MapMetadata;
+
+        diagnostics.Add(Warn("CANMIGRDL022",
+            $"'{raw.Name}' native RDL Map metadata was preserved on a positioned placeholder; Canvas has no native map element yet."));
+        return element;
+    }
+
+    private static ElementDto MapGaugePanel(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        var gaugeType = raw.GaugePanelMetadata?.GetValueOrDefault("GaugeType")?.ToString() ?? "Gauge";
+        var value = FirstGaugePointerValue(raw.GaugePanelMetadata);
+
+        element.Type = "text";
+        element.Content = string.IsNullOrWhiteSpace(value)
+            ? $"[{gaugeType} Gauge: {raw.Name} — migrate manually]"
+            : $"[{gaugeType} Gauge: {CellDisplay(value)}]";
+        element.Style = new Dictionary<string, object>
+        {
+            ["color"] = "#0F172A",
+            ["backgroundColor"] = raw.BackColor ?? "#F8FAFC",
+            ["borderColor"] = raw.ForeColor,
+            ["borderStyle"] = "dashed",
+            ["fontStyle"] = "italic",
+            ["rdlCustomItemType"] = "GaugePanel"
+        };
+        if (raw.LineWidth is { } borderW)
+            element.Style["borderWidth"] = borderW;
+        if (raw.GaugePanelMetadata is { Count: > 0 })
+            element.Style["rdlGaugePanel"] = raw.GaugePanelMetadata;
+
+        diagnostics.Add(Warn("CANMIGRDL021",
+            $"'{raw.Name}' native RDL GaugePanel metadata was preserved on a positioned placeholder; Canvas has no native gauge element yet."));
+        return element;
+    }
+
+    private static string? FirstGaugePointerValue(IReadOnlyDictionary<string, object>? metadata)
+    {
+        if (metadata is null || !metadata.TryGetValue("Gauges", out var gaugesObj) || gaugesObj is not Dictionary<string, object>[] gauges)
+            return null;
+
+        foreach (var gauge in gauges)
+        {
+            if (!gauge.TryGetValue("Scales", out var scalesObj) || scalesObj is not Dictionary<string, object>[] scales)
+                continue;
+            foreach (var scale in scales)
+            {
+                if (!scale.TryGetValue("Pointers", out var pointersObj) || pointersObj is not Dictionary<string, object>[] pointers)
+                    continue;
+                foreach (var pointer in pointers)
+                {
+                    if (pointer.TryGetValue("Value", out var value) && value?.ToString() is { Length: > 0 } text)
+                        return text;
+                }
+            }
+        }
+
+        return null;
     }
 
     // Keeps an unsupported item visible at its original position/size so the layout isn't silently
@@ -462,8 +1109,75 @@ public sealed class RdlToDesignConverter
         return element;
     }
 
+    private static bool MapImageReference(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (string.IsNullOrWhiteSpace(raw.ImageValue)) return false;
+
+        if (string.Equals(raw.ImageSource, "External", StringComparison.OrdinalIgnoreCase))
+        {
+            element.Content = raw.ImageValue;
+            element.Style = new Dictionary<string, object>
+            {
+                ["rdlImageSource"] = "External"
+            };
+            diagnostics.Add(Warn("CANMIGRDL012",
+                $"'{raw.Name}' external image reference was preserved; verify fetch/security behaviour in Canvas."));
+            return true;
+        }
+
+        if (string.Equals(raw.ImageSource, "Database", StringComparison.OrdinalIgnoreCase))
+        {
+            var field = SingleFieldMatch(raw.ImageValue);
+            if (field is not null)
+            {
+                element.Binding = field;
+                element.Content = $"{{{{{field}}}}}";
+            }
+            else
+            {
+                element.Expression = raw.ImageValue;
+                element.Content = raw.ImageValue;
+            }
+
+            element.Style = new Dictionary<string, object>
+            {
+                ["rdlImageSource"] = "Database"
+            };
+            diagnostics.Add(Warn("CANMIGRDL012",
+                $"'{raw.Name}' database image source was preserved as binding/expression; verify runtime image data mapping."));
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void ApplyNestedTablixMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.ParentTablixName is not { Length: > 0 } parent) return;
+
+        element.Style ??= [];
+        element.Style["rdlParentTablix"] = parent;
+        element.Style["rdlParentTablixRow"] = raw.ParentTablixRow ?? 0;
+        element.Style["rdlParentTablixColumn"] = raw.ParentTablixColumn ?? 0;
+        diagnostics.Add(Warn("CANMIGRDL023",
+            $"'{raw.Name}' was extracted from Tablix '{parent}' cell [{raw.ParentTablixRow},{raw.ParentTablixColumn}] as a separate positioned element; review repeat semantics."));
+    }
+
+    private static ElementDto MapRdlChart(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        var props = raw.CustomProps ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        element.Type = "chart";
+        element.ChartType = ChartTypeFromRdl(props.GetValueOrDefault("ChartType"));
+        element.ChartData = CreateRdlChartData(raw.Name, props);
+        element.Style = RdlCustomItemStyle("Chart", props);
+        diagnostics.Add(Warn("CANMIGRDL017",
+            $"'{raw.Name}' RDL chart was imported as an editable Canvas chart placeholder; review series/category/value bindings."));
+        return element;
+    }
+
     // RDL <CustomReportItem>: ActiveReports/DsReport serialize barcodes this way (Type + CustomProperties);
-    // SSRS uses it for Chart/Gauge/Map/Sparkline. Map barcodes to Canvas barcode/qrcode; warn on the rest.
+    // SSRS uses it for Chart/Gauge/Map/Sparkline. Map barcodes and charts where possible; keep the
+    // rest visible with metadata so users can finish the migration in the designer.
     private static ElementDto? MapCustomReportItem(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
     {
         var props = raw.CustomProps ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -472,6 +1186,23 @@ public sealed class RdlToDesignConverter
         var isBarcode = customType.Contains("Barcode", StringComparison.OrdinalIgnoreCase) || symbology is not null;
         if (!isBarcode)
         {
+            if (customType.Contains("Chart", StringComparison.OrdinalIgnoreCase))
+                return MapRdlChart(raw, element, diagnostics);
+
+            if (customType.Contains("Gauge", StringComparison.OrdinalIgnoreCase))
+            {
+                var gauge = Placeholder(element, $"[Gauge: {raw.Name} — migrate manually]");
+                gauge.Style ??= [];
+                foreach (var (key, styleValue) in RdlCustomItemStyle("Gauge", props))
+                    gauge.Style[key] = styleValue;
+                diagnostics.Add(Warn("CANMIGRDL018",
+                    $"'{raw.Name}' RDL gauge metadata was preserved on a positioned placeholder; Canvas has no native gauge element yet."));
+                return gauge;
+            }
+
+            if (customType.Contains("Shape", StringComparison.OrdinalIgnoreCase) || props.ContainsKey("ShapeType"))
+                return MapRdlShape(raw, element, props, diagnostics);
+
             var what = customType.Length > 0 ? customType : "Custom item";
             diagnostics.Add(Warn("CANMIGRDL011",
                 $"'{raw.Name}' is a custom report item ({what}) — not supported by Canvas yet; inserted a placeholder."));
@@ -491,6 +1222,94 @@ public sealed class RdlToDesignConverter
             element.BarcodeType = BarcodeTypeFromSymbology(symbology);
         }
         return element;
+    }
+
+    private static ElementDto MapRdlShape(
+        RawElement raw,
+        ElementDto element,
+        IReadOnlyDictionary<string, string> props,
+        List<MigrationDiagnostic> diagnostics)
+    {
+        var shapeType = props.GetValueOrDefault("ShapeType") ?? props.GetValueOrDefault("Shape") ?? "Rectangle";
+        var normalizedShape = shapeType.Trim();
+
+        element.Type = normalizedShape switch
+        {
+            var s when s.Contains("Ellipse", StringComparison.OrdinalIgnoreCase) => "circle",
+            var s when s.Contains("Arrow", StringComparison.OrdinalIgnoreCase) => "arrow",
+            _ => "rect"
+        };
+
+        element.Style = RdlCustomItemStyle("Shape", props);
+        element.Style["rdlShapeType"] = normalizedShape;
+
+        if (ColorProp(props, "FillColor") is { } fill)
+            element.Style["backgroundColor"] = fill;
+        if (ColorProp(props, "LineColor") is { } line)
+        {
+            element.Style["borderColor"] = line;
+            element.Style["color"] = line;
+        }
+        if (NumberProp(props, "LineWidth") is { } lineWidth)
+        {
+            element.Style["borderWidth"] = lineWidth;
+            element.Style["strokeWidth"] = lineWidth;
+        }
+        if (DashStyleFromName(props.GetValueOrDefault("LineStyle")) is { } dash)
+            element.Style["dashStyle"] = dash;
+        if (NumberProp(props, "RotationAngle") is { } rotation)
+            element.Style["rotation"] = rotation;
+
+        if (element.Type == "arrow")
+        {
+            element.ArrowDirection = ArrowDirectionFromShape(normalizedShape);
+            element.EndMarker = "arrow";
+        }
+
+        diagnostics.Add(Warn("CANMIGRDL020",
+            $"'{raw.Name}' RDL shape custom item was imported as a Canvas {element.Type}; review geometry and rotation."));
+        return element;
+    }
+
+    private static Dictionary<string, object> CreateRdlChartData(string name, IReadOnlyDictionary<string, string> props)
+    {
+        var category = props.GetValueOrDefault("Category") ?? props.GetValueOrDefault("CategoryExpression") ?? "Category";
+        var value = props.GetValueOrDefault("Value") ?? props.GetValueOrDefault("ValueExpression") ?? "Value";
+        var label = props.GetValueOrDefault("SeriesName") ?? name;
+        return new Dictionary<string, object>
+        {
+            ["labels"] = new[] { CellDisplay(category) },
+            ["datasets"] = new object[]
+            {
+                new Dictionary<string, object>
+                {
+                    ["label"] = label,
+                    ["data"] = new[] { 1 },
+                    ["backgroundColor"] = "#2563eb"
+                }
+            },
+            ["rdlCategoryExpression"] = category,
+            ["rdlValueExpression"] = value
+        };
+    }
+
+    private static string ChartTypeFromRdl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "bar";
+        if (value.Contains("Line", StringComparison.OrdinalIgnoreCase)) return "line";
+        if (value.Contains("Pie", StringComparison.OrdinalIgnoreCase) || value.Contains("Doughnut", StringComparison.OrdinalIgnoreCase)) return "pie";
+        return "bar";
+    }
+
+    private static Dictionary<string, object> RdlCustomItemStyle(string itemType, IReadOnlyDictionary<string, string> props)
+    {
+        var style = new Dictionary<string, object>
+        {
+            ["rdlCustomItemType"] = itemType
+        };
+        if (props.Count > 0)
+            style["rdlCustomProperties"] = props.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value, StringComparer.OrdinalIgnoreCase);
+        return style;
     }
 
     private static string BarcodeTypeFromSymbology(string? symbology)
@@ -523,7 +1342,7 @@ public sealed class RdlToDesignConverter
             .Select(r => r.Count == columns ? r.ToArray() : r.Concat(Enumerable.Repeat("", columns - r.Count)).ToArray())
             .ToArray();
 
-        return new ElementDto
+        var element = new ElementDto
         {
             Id = $"rdl-{raw.Name}",
             Name = raw.Name,
@@ -537,6 +1356,42 @@ public sealed class RdlToDesignConverter
             ColumnAlignments = FitColumns(raw.ColumnAlignments, columns),
             HeaderRow = true
         };
+        ApplyTablixMetadata(element, raw, diagnostics);
+        if (raw.TablixNestedItemNames.Count > 0)
+        {
+            element.Style ??= [];
+            element.Style["rdlExtractedCellItems"] = raw.TablixNestedItemNames.ToArray();
+            diagnostics.Add(Warn("CANMIGRDL023",
+                $"'{raw.Name}' contains non-text Tablix cell items that were extracted as separate positioned elements; review row repeat semantics."));
+        }
+        return element;
+    }
+
+    private static void ApplyTablixMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.TablixGroups is not { Count: > 0 }
+            && raw.TablixSorts is not { Count: > 0 }
+            && raw.TablixKeepWithGroups is not { Count: > 0 })
+            return;
+
+        element.Style ??= [];
+        if (raw.TablixGroups is { Count: > 0 })
+        {
+            element.Style["rdlTablixGroups"] = raw.TablixGroups
+                .Select(g => new Dictionary<string, object>
+                {
+                    ["name"] = g.Name,
+                    ["expressions"] = g.Expressions
+                })
+                .ToArray();
+        }
+        if (raw.TablixSorts is { Count: > 0 })
+            element.Style["rdlTablixSorts"] = raw.TablixSorts.ToArray();
+        if (raw.TablixKeepWithGroups is { Count: > 0 })
+            element.Style["rdlTablixKeepWithGroup"] = raw.TablixKeepWithGroups.ToArray();
+
+        diagnostics.Add(Warn("CANMIGRDL014",
+            $"'{raw.Name}' Tablix grouping/sorting metadata was preserved; Canvas repeat/group semantics still require review."));
     }
 
     private static double[] FitWidths(double[]? widths, int columns, double totalWidth)
@@ -599,6 +1454,48 @@ public sealed class RdlToDesignConverter
         }
     }
 
+    private static void ApplyVisibility(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.Hidden is { } hidden)
+            element.Hidden = hidden;
+
+        if (raw.HiddenExpression is not { Length: > 0 } hiddenExpression) return;
+
+        element.VisibleExpression = InvertHiddenExpression(hiddenExpression);
+        diagnostics.Add(Warn("CANMIGRDL015",
+            $"'{raw.Name}' RDL Hidden expression '{hiddenExpression}' was mapped to Canvas visibleExpression; review runtime semantics."));
+    }
+
+    private static void ApplyPaginationMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        var metadata = raw.PaginationMetadata
+            .Where(kvp => kvp.Value switch
+            {
+                string[] arr => arr.Length > 0,
+                string s => s.Length > 0,
+                _ => true
+            })
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value, StringComparer.Ordinal);
+
+        if (metadata.Count == 0) return;
+
+        element.Style ??= [];
+        element.Style["rdlPagination"] = metadata;
+        diagnostics.Add(Warn("CANMIGRDL019",
+            $"'{raw.Name}' RDL pagination/repeat metadata was preserved; Canvas pagination behaviour requires review."));
+    }
+
+    private static string InvertHiddenExpression(string hiddenExpression) =>
+        $"IIF({hiddenExpression}, False, True)";
+
+    private static string NormalizeRdlExpression(string expression)
+    {
+        var normalized = expression.Trim();
+        if (normalized.StartsWith('='))
+            normalized = normalized[1..].Trim();
+        return Regex.Replace(normalized, @"Fields!(\w+)\.Value", "[$1]", RegexOptions.IgnoreCase);
+    }
+
     private static string? SingleFieldMatch(string expression)
     {
         var m = Regex.Match(expression, @"^\s*=\s*Fields!(\w+)\.Value\s*$");
@@ -647,6 +1544,31 @@ public sealed class RdlToDesignConverter
         if (lineStyle.Contains("Dash", StringComparison.OrdinalIgnoreCase)) return "dashed";
         if (lineStyle.Contains("Dot", StringComparison.OrdinalIgnoreCase)) return "dotted";
         return null;
+    }
+
+    private static string ArrowDirectionFromShape(string shapeType)
+    {
+        if (shapeType.Contains("Left", StringComparison.OrdinalIgnoreCase)) return "left";
+        if (shapeType.Contains("Up", StringComparison.OrdinalIgnoreCase)) return "up";
+        if (shapeType.Contains("Down", StringComparison.OrdinalIgnoreCase)) return "down";
+        return "right";
+    }
+
+    private static string? ColorProp(IReadOnlyDictionary<string, string> props, string key)
+    {
+        if (!props.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value)) return null;
+        if (value.Equals("Transparent", StringComparison.OrdinalIgnoreCase)) return "transparent";
+        return NormalizeColor(value);
+    }
+
+    private static double? NumberProp(IReadOnlyDictionary<string, string> props, string key)
+    {
+        if (!props.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value)) return null;
+        var length = LengthToPt(value);
+        if (length > 0) return length;
+        return double.TryParse(value.Trim().TrimEnd('F', 'f', 'D', 'd'), NumberStyles.Any, CultureInfo.InvariantCulture, out var n)
+            ? n
+            : null;
     }
 
     private static string NormalizeColor(string value)
@@ -745,13 +1667,30 @@ public sealed class RdlToDesignConverter
         public string? BackColor;
         public string TextAlign = "left";
         public string? TextExpression;        // captured "=..." value
+        public string? RichTextHtml;
+        public bool? Hidden;
+        public string? HiddenExpression;
+        public Dictionary<string, object> PaginationMetadata = new(StringComparer.Ordinal);
         public List<List<string>>? TableCells;
         public string[]? ColumnAlignments;
         public double[]? ColumnWidthsPt;
+        public List<RdlTablixGroup>? TablixGroups;
+        public List<string>? TablixSorts;
+        public List<string>? TablixKeepWithGroups;
+        public List<string> TablixNestedItemNames = [];
         public string? ImageDataUrl;
+        public string? ImageSource;
+        public string? ImageValue;
         public double? LineWidth;
         public string? LineStyle;
         public string? CustomType;                    // <CustomReportItem><Type>
         public Dictionary<string, string>? CustomProps;  // <CustomProperties> name → value
+        public Dictionary<string, object>? GaugePanelMetadata;
+        public Dictionary<string, object>? MapMetadata;
+        public string? ParentTablixName;
+        public int? ParentTablixRow;
+        public int? ParentTablixColumn;
     }
+
+    private sealed record RdlTablixGroup(string Name, string[] Expressions);
 }

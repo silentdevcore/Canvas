@@ -22,4 +22,8 @@
     <ProjectReference Include="../../src/Canvas.Migration.Rdl/Canvas.Migration.Rdl.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Fixtures/**/*.rdl" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

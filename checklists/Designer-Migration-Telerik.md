@@ -107,7 +107,11 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 
 ## V2 — next
 
-- [ ] `.trdp` (zipped package) — unzip + feed the same parser (needs a binary upload path)
-- [ ] `TypeSelector` stylesheet rules; `Panel` nesting depth; group sections repeat semantics
-- [ ] `Table`/`CrossTab` full cell extraction; `Chart`/`Graph`/`Map` placeholders with captions
-- [ ] Telerik expression dialect (`=Fields.X + …`, functions) beyond single-field bindings
+**Current recommendation:** defer packaged `.trdp` until a binary upload path exists. Before that, focus
+on XML `.trdx` fidelity: tables, crosstabs, captions for unsupported visual regions, and shared
+group/repeat semantics.
+
+- [ ] **P2** `.trdp` (zipped package) — unzip + feed the same parser (needs a binary upload path)
+- [ ] **P1** `TypeSelector` stylesheet rules; `Panel` nesting depth; group sections repeat semantics
+- [ ] **P1** `Table`/`CrossTab` full cell extraction; `Chart`/`Graph`/`Map` placeholders with captions
+- [ ] **P1** Telerik expression dialect (`=Fields.X + …`, functions) beyond single-field bindings
