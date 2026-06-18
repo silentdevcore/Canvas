@@ -545,6 +545,72 @@ public sealed class RdlToDesignConverterTests
 
     // 27 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
+    public void Convert_ShapeCustomItem_BecomesCanvasShape()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <CustomReportItem Name="badge"><Type>Shape</Type>
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>2in</Width>
+                  <CustomProperties>
+                    <CustomProperty><Name>ShapeType</Name><Value>Ellipse</Value></CustomProperty>
+                    <CustomProperty><Name>FillColor</Name><Value>LightGray</Value></CustomProperty>
+                    <CustomProperty><Name>LineColor</Name><Value>#336699</Value></CustomProperty>
+                    <CustomProperty><Name>LineWidth</Name><Value>2pt</Value></CustomProperty>
+                    <CustomProperty><Name>LineStyle</Name><Value>Dash</Value></CustomProperty>
+                    <CustomProperty><Name>RotationAngle</Name><Value>15</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var badge = El(result.Design, "badge");
+
+        Assert.Equal("circle", badge.Type);
+        Assert.Equal("Shape", badge.Style!["rdlCustomItemType"]);
+        Assert.Equal("Ellipse", badge.Style["rdlShapeType"]);
+        Assert.Equal("#D3D3D3", badge.Style["backgroundColor"]);
+        Assert.Equal("#336699", badge.Style["borderColor"]);
+        Assert.Equal(2.0, badge.Style["borderWidth"]);
+        Assert.Equal("dashed", badge.Style["dashStyle"]);
+        Assert.Equal(15.0, badge.Style["rotation"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL020" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 28 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_ArrowShapeCustomItem_BecomesCanvasArrow()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <CustomReportItem Name="nextArrow"><Type>Shape</Type>
+                  <Top>0in</Top><Left>0in</Left><Height>0.5in</Height><Width>1in</Width>
+                  <CustomProperties>
+                    <CustomProperty><Name>ShapeType</Name><Value>RightArrow</Value></CustomProperty>
+                    <CustomProperty><Name>LineColor</Name><Value>Blue</Value></CustomProperty>
+                    <CustomProperty><Name>LineWidth</Name><Value>3</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var arrow = El(result.Design, "nextArrow");
+
+        Assert.Equal("arrow", arrow.Type);
+        Assert.Equal("right", arrow.ArrowDirection);
+        Assert.Equal("arrow", arrow.EndMarker);
+        Assert.Equal("#0000FF", arrow.Style!["color"]);
+        Assert.Equal(3.0, arrow.Style["strokeWidth"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL020");
+    }
+
+    // 29 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
     public void Convert_ComprehensiveSyncfusionFixture_MapsCoreLayoutAndKnownPlaceholders()
     {
         var r = Convert(Fixture("ComprehensiveSyncfusionReport.rdl"));

@@ -763,6 +763,9 @@ public sealed class RdlToDesignConverter
                 return gauge;
             }
 
+            if (customType.Contains("Shape", StringComparison.OrdinalIgnoreCase) || props.ContainsKey("ShapeType"))
+                return MapRdlShape(raw, element, props, diagnostics);
+
             var what = customType.Length > 0 ? customType : "Custom item";
             diagnostics.Add(Warn("CANMIGRDL011",
                 $"'{raw.Name}' is a custom report item ({what}) — not supported by Canvas yet; inserted a placeholder."));
@@ -781,6 +784,53 @@ public sealed class RdlToDesignConverter
             element.BarcodeValue = value;
             element.BarcodeType = BarcodeTypeFromSymbology(symbology);
         }
+        return element;
+    }
+
+    private static ElementDto MapRdlShape(
+        RawElement raw,
+        ElementDto element,
+        IReadOnlyDictionary<string, string> props,
+        List<MigrationDiagnostic> diagnostics)
+    {
+        var shapeType = props.GetValueOrDefault("ShapeType") ?? props.GetValueOrDefault("Shape") ?? "Rectangle";
+        var normalizedShape = shapeType.Trim();
+
+        element.Type = normalizedShape switch
+        {
+            var s when s.Contains("Ellipse", StringComparison.OrdinalIgnoreCase) => "circle",
+            var s when s.Contains("Arrow", StringComparison.OrdinalIgnoreCase) => "arrow",
+            _ => "rect"
+        };
+
+        element.Style = RdlCustomItemStyle("Shape", props);
+        element.Style["rdlShapeType"] = normalizedShape;
+
+        if (ColorProp(props, "FillColor") is { } fill)
+            element.Style["backgroundColor"] = fill;
+        if (ColorProp(props, "LineColor") is { } line)
+        {
+            element.Style["borderColor"] = line;
+            element.Style["color"] = line;
+        }
+        if (NumberProp(props, "LineWidth") is { } lineWidth)
+        {
+            element.Style["borderWidth"] = lineWidth;
+            element.Style["strokeWidth"] = lineWidth;
+        }
+        if (DashStyleFromName(props.GetValueOrDefault("LineStyle")) is { } dash)
+            element.Style["dashStyle"] = dash;
+        if (NumberProp(props, "RotationAngle") is { } rotation)
+            element.Style["rotation"] = rotation;
+
+        if (element.Type == "arrow")
+        {
+            element.ArrowDirection = ArrowDirectionFromShape(normalizedShape);
+            element.EndMarker = "arrow";
+        }
+
+        diagnostics.Add(Warn("CANMIGRDL020",
+            $"'{raw.Name}' RDL shape custom item was imported as a Canvas {element.Type}; review geometry and rotation."));
         return element;
     }
 
@@ -1050,6 +1100,31 @@ public sealed class RdlToDesignConverter
         if (lineStyle.Contains("Dash", StringComparison.OrdinalIgnoreCase)) return "dashed";
         if (lineStyle.Contains("Dot", StringComparison.OrdinalIgnoreCase)) return "dotted";
         return null;
+    }
+
+    private static string ArrowDirectionFromShape(string shapeType)
+    {
+        if (shapeType.Contains("Left", StringComparison.OrdinalIgnoreCase)) return "left";
+        if (shapeType.Contains("Up", StringComparison.OrdinalIgnoreCase)) return "up";
+        if (shapeType.Contains("Down", StringComparison.OrdinalIgnoreCase)) return "down";
+        return "right";
+    }
+
+    private static string? ColorProp(IReadOnlyDictionary<string, string> props, string key)
+    {
+        if (!props.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value)) return null;
+        if (value.Equals("Transparent", StringComparison.OrdinalIgnoreCase)) return "transparent";
+        return NormalizeColor(value);
+    }
+
+    private static double? NumberProp(IReadOnlyDictionary<string, string> props, string key)
+    {
+        if (!props.TryGetValue(key, out var value) || string.IsNullOrWhiteSpace(value)) return null;
+        var length = LengthToPt(value);
+        if (length > 0) return length;
+        return double.TryParse(value.Trim().TrimEnd('F', 'f', 'D', 'd'), NumberStyles.Any, CultureInfo.InvariantCulture, out var n)
+            ? n
+            : null;
     }
 
     private static string NormalizeColor(string value)
