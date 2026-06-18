@@ -176,6 +176,9 @@ public sealed class RdlToDesignConverter
                 case "Table":
                     ParseTablix(item, raw);
                     break;
+                case "Chart":
+                    ParseNativeChart(item, raw);
+                    break;
                 case "CustomReportItem":
                     // RDL-standard custom items (ActiveReports/DsReport barcodes, SSRS charts/gauges/maps).
                     raw.CustomType = Child(item, "Type")?.Value;
@@ -327,6 +330,28 @@ public sealed class RdlToDesignConverter
         raw.HiddenExpression = NormalizeRdlExpression(hidden);
     }
 
+    private static void ParseNativeChart(XElement el, RawElement raw)
+    {
+        raw.CustomType = "Chart";
+        raw.CustomProps = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        if (ChartSeries(el) is { } series)
+        {
+            AddText(raw.CustomProps, "SeriesName", Attr(series, "Name"));
+            AddText(raw.CustomProps, "ChartType", Child(series, "Type")?.Value);
+            AddText(raw.CustomProps, "Value", series.Descendants()
+                .FirstOrDefault(e => e.Name.LocalName == "Y")?.Value);
+        }
+
+        AddText(raw.CustomProps, "Category", el.Descendants()
+            .FirstOrDefault(e => e.Name.LocalName == "ChartCategoryHierarchy")?
+            .Descendants().FirstOrDefault(e => e.Name.LocalName == "Label")?.Value);
+        AddText(raw.CustomProps, "Title", el.Descendants()
+            .FirstOrDefault(e => e.Name.LocalName == "ChartTitle")?
+            .Descendants().FirstOrDefault(e => e.Name.LocalName == "Caption")?.Value);
+        AddText(raw.CustomProps, "DataSetName", Child(el, "DataSetName")?.Value);
+    }
+
     private void ApplyStyle(RawElement raw, XElement? style)
     {
         if (style is null) return;
@@ -429,6 +454,12 @@ public sealed class RdlToDesignConverter
             target[key] = value.Trim();
     }
 
+    private static void AddText(Dictionary<string, string> target, string key, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            target[key] = value.Trim();
+    }
+
     private static List<RdlTablixGroup> ParseTablixGroups(XElement tablix)
     {
         var groups = new List<RdlTablixGroup>();
@@ -478,6 +509,9 @@ public sealed class RdlToDesignConverter
 
     private static XElement? TableCellTextbox(XElement cell) =>
         Children(Child(cell, "ReportItems"), "Textbox").FirstOrDefault();
+
+    private static XElement? ChartSeries(XElement chart) =>
+        chart.Descendants().FirstOrDefault(e => e.Name.LocalName == "ChartSeries");
 
     private static string[] HeaderAlignments(XElement headerRow, bool tablix)
     {
@@ -615,6 +649,9 @@ public sealed class RdlToDesignConverter
             case "CustomReportItem":
                 return MapCustomReportItem(raw, element, diagnostics);
 
+            case "Chart":
+                return MapRdlChart(raw, element, diagnostics);
+
             case "Subreport":
                 diagnostics.Add(Warn("CANMIGRDL011",
                     $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
@@ -689,6 +726,18 @@ public sealed class RdlToDesignConverter
         return false;
     }
 
+    private static ElementDto MapRdlChart(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        var props = raw.CustomProps ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        element.Type = "chart";
+        element.ChartType = ChartTypeFromRdl(props.GetValueOrDefault("ChartType"));
+        element.ChartData = CreateRdlChartData(raw.Name, props);
+        element.Style = RdlCustomItemStyle("Chart", props);
+        diagnostics.Add(Warn("CANMIGRDL017",
+            $"'{raw.Name}' RDL chart was imported as an editable Canvas chart placeholder; review series/category/value bindings."));
+        return element;
+    }
+
     // RDL <CustomReportItem>: ActiveReports/DsReport serialize barcodes this way (Type + CustomProperties);
     // SSRS uses it for Chart/Gauge/Map/Sparkline. Map barcodes and charts where possible; keep the
     // rest visible with metadata so users can finish the migration in the designer.
@@ -701,15 +750,7 @@ public sealed class RdlToDesignConverter
         if (!isBarcode)
         {
             if (customType.Contains("Chart", StringComparison.OrdinalIgnoreCase))
-            {
-                element.Type = "chart";
-                element.ChartType = "bar";
-                element.ChartData = CreateRdlChartData(raw.Name, props);
-                element.Style = RdlCustomItemStyle("Chart", props);
-                diagnostics.Add(Warn("CANMIGRDL017",
-                    $"'{raw.Name}' RDL chart was imported as an editable Canvas chart placeholder; review series/category/value bindings."));
-                return element;
-            }
+                return MapRdlChart(raw, element, diagnostics);
 
             if (customType.Contains("Gauge", StringComparison.OrdinalIgnoreCase))
             {
@@ -747,6 +788,7 @@ public sealed class RdlToDesignConverter
     {
         var category = props.GetValueOrDefault("Category") ?? props.GetValueOrDefault("CategoryExpression") ?? "Category";
         var value = props.GetValueOrDefault("Value") ?? props.GetValueOrDefault("ValueExpression") ?? "Value";
+        var label = props.GetValueOrDefault("SeriesName") ?? name;
         return new Dictionary<string, object>
         {
             ["labels"] = new[] { CellDisplay(category) },
@@ -754,7 +796,7 @@ public sealed class RdlToDesignConverter
             {
                 new Dictionary<string, object>
                 {
-                    ["label"] = name,
+                    ["label"] = label,
                     ["data"] = new[] { 1 },
                     ["backgroundColor"] = "#2563eb"
                 }
@@ -762,6 +804,14 @@ public sealed class RdlToDesignConverter
             ["rdlCategoryExpression"] = category,
             ["rdlValueExpression"] = value
         };
+    }
+
+    private static string ChartTypeFromRdl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "bar";
+        if (value.Contains("Line", StringComparison.OrdinalIgnoreCase)) return "line";
+        if (value.Contains("Pie", StringComparison.OrdinalIgnoreCase) || value.Contains("Doughnut", StringComparison.OrdinalIgnoreCase)) return "pie";
+        return "bar";
     }
 
     private static Dictionary<string, object> RdlCustomItemStyle(string itemType, IReadOnlyDictionary<string, string> props)

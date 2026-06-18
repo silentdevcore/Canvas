@@ -515,6 +515,36 @@ public sealed class RdlToDesignConverterTests
 
     // 26 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
+    public void Convert_NativeChart_BecomesCanvasChartPlaceholder()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Chart Name="TopEmployeesChart">
+                  <Top>0in</Top><Left>0in</Left><Height>2in</Height><Width>4in</Width>
+                  <DataSetName>TopEmployees</DataSetName>
+                  <ChartCategoryHierarchy><ChartMembers><ChartMember><Label>=Fields!FullName.Value</Label></ChartMember></ChartMembers></ChartCategoryHierarchy>
+                  <ChartData><ChartSeriesCollection><ChartSeries Name="Series1">
+                    <ChartDataPoints><ChartDataPoint><ChartDataPointValues><Y>=Round(Sum(Fields!SaleAmount.Value)/1000)</Y></ChartDataPointValues></ChartDataPoint></ChartDataPoints>
+                    <Type>Bar</Type>
+                  </ChartSeries></ChartSeriesCollection></ChartData>
+                </Chart>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var chart = El(result.Design, "TopEmployeesChart");
+
+        Assert.Equal("chart", chart.Type);
+        Assert.Equal("bar", chart.ChartType);
+        Assert.NotNull(chart.ChartData);
+        Assert.Equal("Chart", chart.Style!["rdlCustomItemType"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL017" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 27 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
     public void Convert_ComprehensiveSyncfusionFixture_MapsCoreLayoutAndKnownPlaceholders()
     {
         var r = Convert(Fixture("ComprehensiveSyncfusionReport.rdl"));
@@ -589,7 +619,7 @@ public sealed class RdlToDesignConverterTests
         Assert.True(Has(r.Diagnostics, "CANMIGRDL019"));
     }
 
-    // 27 ──────────────────────────────────────────────────────────────────────────────────────────
+    // 28 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_ComprehensiveSyncfusionFixture_MapsTablixTableShape()
     {
@@ -620,7 +650,7 @@ public sealed class RdlToDesignConverterTests
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL019" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
-    // 28 ──────────────────────────────────────────────────────────────────────────────────────────
+    // 29 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_StaticVisibilityHidden_MapsToHidden()
     {
@@ -641,7 +671,7 @@ public sealed class RdlToDesignConverterTests
         Assert.Null(secret.VisibleExpression);
     }
 
-    // 29 ──────────────────────────────────────────────────────────────────────────────────────────
+    // 30 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_DynamicVisibilityHidden_MapsToInvertedVisibleExpression()
     {
@@ -664,7 +694,7 @@ public sealed class RdlToDesignConverterTests
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL015" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
-    // 30 ──────────────────────────────────────────────────────────────────────────────────────────
+    // 31 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_MultiRunTextbox_BecomesRichTextWithInlineStyles()
     {
@@ -692,7 +722,7 @@ public sealed class RdlToDesignConverterTests
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL016" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
-    // 31 ──────────────────────────────────────────────────────────────────────────────────────────
+    // 32 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_PageBreakAndRepeatMetadata_IsPreservedOnStyle()
     {

@@ -61,7 +61,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `Image` (Embedded / External / Database) | `image` (data URL / preserved reference / binding) | [x] |
 | `Tablix` (2016) / `Table` (2008) | `table` (CellData, header row, column widths/alignments) | [x] |
 | `CustomReportItem` barcode (ActiveReports/DsReport/SSRS) | `barcode` / `qrcode` (value + symbology → type) | [x] |
-| `CustomReportItem` chart | editable `chart` placeholder + RDL metadata (`CANMIGRDL017`) | [x] |
+| `Chart` / `CustomReportItem` chart | editable `chart` placeholder + RDL metadata (`CANMIGRDL017`) | [x] |
 | `CustomReportItem` gauge/map/etc. | labeled placeholder + RDL metadata (`CANMIGRDL018` for gauge) | [x] |
 | `Subreport` | labeled placeholder (`CANMIGRDL011`) | [x] |
 | Value `=Fields!X.Value` / `=expr` | `binding` / `expression` | [x] |
@@ -74,13 +74,15 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 - [x] Frontend **"Syncfusion / RDL Reports"** entry + **Open in Designer** (loads via
       `bulkReplaceContent`) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
 
-### Tests (38 passing)
+### Tests (39 passing)
 - [x] Page size from lengths; length-unit parsing; absolute positioning; textbox style; named colours;
       `=Fields!X.Value` binding vs complex expression; literal text; Tablix-2016 + Table-2008 → table;
       column alignments/widths; page header/footer → shared; rectangle flatten; line stroke/dash;
       embedded vs external image; subreport; namespace variants; invalid XML; `LooksLikeRdl`; A4 default.
 - [x] ActiveReports `.rdlx` `<CustomReportItem>` barcode → Canvas barcode; QR symbology → qrcode;
-      non-barcode custom item (Chart) → `CANMIGRDL011`.
+      non-barcode custom item Chart → Canvas chart placeholder.
+- [x] Native RDL `<Chart>` items, such as Syncfusion/Bold Reports chart output, map to Canvas `chart`
+      placeholders with series/category/value metadata.
 - [x] Comprehensive Syncfusion/Bold Reports style fixture:
       `tests/Canvas.Migration.Rdl.Tests/Fixtures/ComprehensiveSyncfusionReport.rdl`.
       Covers page header/footer, embedded images, nested rectangles, mixed units (`cm`, `mm`, `in`, `pt`),
@@ -139,7 +141,7 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [ ] **P0** Nested Tablix / detail grouping → repeat semantics.
 - [ ] `<Code>` / custom-function expression translation (blocked on Canvas `ExpressionEvaluator` being a
       stub — same limitation as DevExpress).
-- [x] `CustomReportItem` Chart → Canvas `chart` placeholder with `ChartData` and RDL metadata
+- [x] Native `Chart` and `CustomReportItem` Chart → Canvas `chart` placeholder with `ChartData` and RDL metadata
       (`rdlCategoryExpression`, `rdlValueExpression`, `style.rdlCustomProperties`) plus `CANMIGRDL017`.
 - [x] `CustomReportItem` Gauge → positioned placeholder with `style.rdlCustomItemType = "Gauge"` and
       custom properties preserved, plus `CANMIGRDL018`.
