@@ -656,6 +656,9 @@ public sealed class RdlToDesignConverter
                     .Select(cell => CellDisplay(ExtractTextboxValue(TablixCellTextbox(cell)))).ToList());
 
             ExtractNestedTablixItems(raw, report, rows, true);
+            raw.TablixColumnHierarchy = ParseTablixHierarchy(el, "TablixColumnHierarchy");
+            raw.TablixRowHierarchy = ParseTablixHierarchy(el, "TablixRowHierarchy");
+            raw.TableHeaderRow = DetermineTablixHeaderRow(raw.TablixRowHierarchy);
         }
         else
         {
@@ -670,6 +673,7 @@ public sealed class RdlToDesignConverter
                     .Select(cell => CellDisplay(ExtractTextboxValue(TableCellTextbox(cell)))).ToList());
 
             ExtractNestedTablixItems(raw, report, rows, false);
+            raw.TableHeaderRow = Child(el, "Header") is not null;
         }
 
         raw.TableCells = grid.Count > 0 ? grid : null;
@@ -966,6 +970,75 @@ public sealed class RdlToDesignConverter
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
+    private static List<RdlTablixMemberMetadata> ParseTablixHierarchy(XElement tablix, string hierarchyName)
+    {
+        var hierarchy = Child(tablix, hierarchyName);
+        var rootMembers = Child(hierarchy, "TablixMembers");
+        var members = new List<RdlTablixMemberMetadata>();
+        AddTablixMembers(rootMembers, members, level: 0, parentPath: "");
+        return members;
+    }
+
+    private static void AddTablixMembers(
+        XElement? membersElement,
+        List<RdlTablixMemberMetadata> result,
+        int level,
+        string parentPath)
+    {
+        if (membersElement is null) return;
+
+        var members = Children(membersElement, "TablixMember").ToList();
+        for (var index = 0; index < members.Count; index++)
+        {
+            var member = members[index];
+            var group = Child(member, "Group");
+            var groupExpressions = Children(Child(group, "GroupExpressions"), "GroupExpression")
+                .Select(e => e.Value.Trim())
+                .Where(v => v.Length > 0)
+                .ToArray();
+            var sortExpressions = member.Descendants()
+                .Where(e => e.Name.LocalName == "SortExpression")
+                .Select(e => Child(e, "Value")?.Value.Trim())
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Cast<string>()
+                .ToArray();
+            var header = Child(member, "TablixHeader");
+            var path = string.IsNullOrEmpty(parentPath) ? index.ToString(CultureInfo.InvariantCulture) : $"{parentPath}.{index}";
+            result.Add(new RdlTablixMemberMetadata(
+                Level: level,
+                Index: index,
+                Path: path,
+                IsStatic: group is null,
+                GroupName: group is null ? null : Attr(group, "Name"),
+                GroupExpressions: groupExpressions,
+                SortExpressions: sortExpressions,
+                KeepWithGroup: Child(member, "KeepWithGroup")?.Value.Trim(),
+                RepeatOnNewPage: Child(member, "RepeatOnNewPage")?.Value.Trim(),
+                FixedData: Child(member, "FixedData")?.Value.Trim(),
+                HeaderText: CellDisplay(ExtractTextboxValue(TablixHeaderTextbox(header))),
+                HeaderSizePt: LengthToPt(Child(header, "Size")?.Value)));
+
+            AddTablixMembers(Child(member, "TablixMembers"), result, level + 1, path);
+        }
+    }
+
+    private static bool? DetermineTablixHeaderRow(IReadOnlyList<RdlTablixMemberMetadata>? rowHierarchy)
+    {
+        if (rowHierarchy is not { Count: > 0 }) return null;
+
+        var topLevel = rowHierarchy.Where(m => m.Level == 0).OrderBy(m => m.Index).ToList();
+        if (topLevel.Count == 0) return null;
+
+        var firstGroupIndex = topLevel.FindIndex(m => !m.IsStatic);
+        var candidates = firstGroupIndex >= 0
+            ? topLevel.Where(m => m.IsStatic && m.Index < firstGroupIndex)
+            : topLevel.Where(m => m.IsStatic);
+
+        return candidates.Any(m =>
+            string.Equals(m.KeepWithGroup, "After", StringComparison.OrdinalIgnoreCase)
+            || !string.IsNullOrWhiteSpace(m.HeaderText));
+    }
+
     private static void AddText(Dictionary<string, object> target, string key, string? value)
     {
         if (!string.IsNullOrWhiteSpace(value))
@@ -1040,6 +1113,9 @@ public sealed class RdlToDesignConverter
 
     private static XElement? TablixCellTextbox(XElement cell) =>
         Child(Child(cell, "CellContents"), "Textbox");
+
+    private static XElement? TablixHeaderTextbox(XElement? header) =>
+        Child(Child(header, "CellContents"), "Textbox");
 
     private static XElement? TableCellTextbox(XElement cell) =>
         Children(Child(cell, "ReportItems"), "Textbox").FirstOrDefault();
@@ -1719,7 +1795,7 @@ public sealed class RdlToDesignConverter
             CellData = cellData,
             ColumnWidths = FitWidths(raw.ColumnWidthsPt, columns, raw.W),
             ColumnAlignments = FitColumns(raw.ColumnAlignments, columns),
-            HeaderRow = true
+            HeaderRow = raw.TableHeaderRow ?? true
         };
         ApplyTablixMetadata(element, raw, diagnostics);
         if (raw.TablixNestedItemNames.Count > 0)
@@ -1744,7 +1820,9 @@ public sealed class RdlToDesignConverter
         if (raw.TablixGroups is not { Count: > 0 }
             && raw.TablixSorts is not { Count: > 0 }
             && raw.TablixKeepWithGroups is not { Count: > 0 }
-            && raw.TablixGroupFilters is not { Count: > 0 })
+            && raw.TablixGroupFilters is not { Count: > 0 }
+            && raw.TablixRowHierarchy is not { Count: > 0 }
+            && raw.TablixColumnHierarchy is not { Count: > 0 })
             return;
 
         element.Style ??= [];
@@ -1764,12 +1842,44 @@ public sealed class RdlToDesignConverter
             element.Style["rdlTablixKeepWithGroup"] = raw.TablixKeepWithGroups.ToArray();
         if (raw.TablixGroupFilters is { Count: > 0 })
             element.Style["rdlTablixGroupFilters"] = raw.TablixGroupFilters.ToArray();
+        if (raw.TablixRowHierarchy is { Count: > 0 })
+            element.Style["rdlTablixRowHierarchy"] = raw.TablixRowHierarchy.Select(TablixMemberMetadataStyle).ToArray();
+        if (raw.TablixColumnHierarchy is { Count: > 0 })
+            element.Style["rdlTablixColumnHierarchy"] = raw.TablixColumnHierarchy.Select(TablixMemberMetadataStyle).ToArray();
+        if (raw.TableHeaderRow is not null)
+            element.Style["rdlHeaderRowFromHierarchy"] = raw.TableHeaderRow.Value;
 
         diagnostics.Add(Warn("CANMIGRDL014",
             $"'{raw.Name}' Tablix grouping/sorting metadata was preserved; Canvas repeat/group semantics still require review."));
         if (raw.TablixGroupFilters is { Count: > 0 })
             diagnostics.Add(Warn("CANMIGRDL025",
                 $"'{raw.Name}' Tablix group filters were preserved as metadata; Canvas does not evaluate report filters yet."));
+        if (raw.TablixRowHierarchy is { Count: > 0 } || raw.TablixColumnHierarchy is { Count: > 0 })
+            diagnostics.Add(Warn("CANMIGRDL029",
+                $"'{raw.Name}' Tablix row/column hierarchy headers were preserved as metadata; Canvas has limited native matrix/group header rendering."));
+    }
+
+    private static Dictionary<string, object> TablixMemberMetadataStyle(RdlTablixMemberMetadata member)
+    {
+        var item = new Dictionary<string, object>
+        {
+            ["level"] = member.Level,
+            ["index"] = member.Index,
+            ["path"] = member.Path,
+            ["isStatic"] = member.IsStatic
+        };
+        AddText(item, "groupName", member.GroupName);
+        if (member.GroupExpressions.Length > 0)
+            item["groupExpressions"] = member.GroupExpressions;
+        if (member.SortExpressions.Length > 0)
+            item["sortExpressions"] = member.SortExpressions;
+        AddText(item, "keepWithGroup", member.KeepWithGroup);
+        AddText(item, "repeatOnNewPage", member.RepeatOnNewPage);
+        AddText(item, "fixedData", member.FixedData);
+        AddText(item, "headerText", member.HeaderText);
+        if (member.HeaderSizePt is > 0)
+            item["headerSizePt"] = member.HeaderSizePt.Value;
+        return item;
     }
 
     private static double[] FitWidths(double[]? widths, int columns, double totalWidth)
@@ -2061,7 +2171,10 @@ public sealed class RdlToDesignConverter
         public List<string>? TablixKeepWithGroups;
         public List<Dictionary<string, object>>? TablixGroupFilters;
         public List<Dictionary<string, object>>? TablixNavigationMetadata;
+        public List<RdlTablixMemberMetadata>? TablixRowHierarchy;
+        public List<RdlTablixMemberMetadata>? TablixColumnHierarchy;
         public List<string> TablixNestedItemNames = [];
+        public bool? TableHeaderRow;
         public string? ImageDataUrl;
         public string? ImageSource;
         public string? ImageValue;
@@ -2078,5 +2191,18 @@ public sealed class RdlToDesignConverter
     }
 
     private sealed record RdlTablixGroup(string Name, string[] Expressions);
+    private sealed record RdlTablixMemberMetadata(
+        int Level,
+        int Index,
+        string Path,
+        bool IsStatic,
+        string? GroupName,
+        string[] GroupExpressions,
+        string[] SortExpressions,
+        string? KeepWithGroup,
+        string? RepeatOnNewPage,
+        string? FixedData,
+        string? HeaderText,
+        double? HeaderSizePt);
     private sealed record RdlChartSeries(string Name, string Type, string? YExpression, string? XExpression, string? SizeExpression);
 }

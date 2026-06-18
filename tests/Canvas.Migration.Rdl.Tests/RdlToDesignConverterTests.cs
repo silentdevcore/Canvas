@@ -252,6 +252,99 @@ public sealed class RdlToDesignConverterTests
         Assert.Equal(new[] { 144.0, 144.0 }, items.ColumnWidths);  // 2in each
     }
 
+    [Fact]
+    public void Convert_TablixDetailOnlyHierarchy_DoesNotTreatFirstDataRowAsHeader()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Tablix Name="details">
+                  <Top>0in</Top><Left>0in</Left><Height>0.5in</Height><Width>3in</Width>
+                  <TablixBody>
+                    <TablixColumns><TablixColumn><Width>3in</Width></TablixColumn></TablixColumns>
+                    <TablixRows><TablixRow><Height>0.25in</Height><TablixCells>
+                      <TablixCell><CellContents><Textbox Name="product"><Value>=Fields!Product.Value</Value></Textbox></CellContents></TablixCell>
+                    </TablixCells></TablixRow></TablixRows>
+                  </TablixBody>
+                  <TablixColumnHierarchy><TablixMembers><TablixMember /></TablixMembers></TablixColumnHierarchy>
+                  <TablixRowHierarchy><TablixMembers><TablixMember><Group Name="Details" /></TablixMember></TablixMembers></TablixRowHierarchy>
+                </Tablix>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var table = El(result.Design, "details");
+
+        Assert.False(table.HeaderRow);
+        Assert.Equal(new[] { "{{Product}}" }, table.CellData![0]);
+        Assert.Equal(false, table.Style!["rdlHeaderRowFromHierarchy"]);
+        var rowHierarchy = Assert.IsType<Dictionary<string, object>[]>(table.Style["rdlTablixRowHierarchy"]);
+        Assert.Equal("Details", rowHierarchy[0]["groupName"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL029" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
+    public void Convert_TablixHierarchyHeaders_ArePreservedOnTableStyle()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Tablix Name="matrix">
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>4in</Width>
+                  <TablixBody>
+                    <TablixColumns><TablixColumn><Width>2in</Width></TablixColumn><TablixColumn><Width>2in</Width></TablixColumn></TablixColumns>
+                    <TablixRows>
+                      <TablixRow><Height>0.25in</Height><TablixCells>
+                        <TablixCell><CellContents><Textbox Name="h1"><Value>Product</Value></Textbox></CellContents></TablixCell>
+                        <TablixCell><CellContents><Textbox Name="h2"><Value>Total</Value></Textbox></CellContents></TablixCell>
+                      </TablixCells></TablixRow>
+                      <TablixRow><Height>0.25in</Height><TablixCells>
+                        <TablixCell><CellContents><Textbox Name="p"><Value>=Fields!Product.Value</Value></Textbox></CellContents></TablixCell>
+                        <TablixCell><CellContents><Textbox Name="t"><Value>=Sum(Fields!Total.Value)</Value></Textbox></CellContents></TablixCell>
+                      </TablixCells></TablixRow>
+                    </TablixRows>
+                  </TablixBody>
+                  <TablixColumnHierarchy><TablixMembers>
+                    <TablixMember>
+                      <Group Name="YearGroup"><GroupExpressions><GroupExpression>=Fields!Year.Value</GroupExpression></GroupExpressions></Group>
+                      <SortExpressions><SortExpression><Value>=Fields!Year.Value</Value></SortExpression></SortExpressions>
+                      <TablixHeader><Size>18pt</Size><CellContents><Textbox Name="yearHeader"><Value>=Fields!Year.Value</Value></Textbox></CellContents></TablixHeader>
+                    </TablixMember>
+                    <TablixMember />
+                  </TablixMembers></TablixColumnHierarchy>
+                  <TablixRowHierarchy><TablixMembers>
+                    <TablixMember><KeepWithGroup>After</KeepWithGroup><RepeatOnNewPage>true</RepeatOnNewPage></TablixMember>
+                    <TablixMember>
+                      <Group Name="ProductGroup"><GroupExpressions><GroupExpression>=Fields!Product.Value</GroupExpression></GroupExpressions></Group>
+                      <TablixHeader><Size>1in</Size><CellContents><Textbox Name="productHeader"><Value>=Fields!Product.Value</Value></Textbox></CellContents></TablixHeader>
+                    </TablixMember>
+                  </TablixMembers></TablixRowHierarchy>
+                </Tablix>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var table = El(result.Design, "matrix");
+
+        Assert.True(table.HeaderRow);
+        Assert.Equal(true, table.Style!["rdlHeaderRowFromHierarchy"]);
+        var rowHierarchy = Assert.IsType<Dictionary<string, object>[]>(table.Style["rdlTablixRowHierarchy"]);
+        Assert.Equal(2, rowHierarchy.Length);
+        Assert.Equal("After", rowHierarchy[0]["keepWithGroup"]);
+        Assert.Equal("ProductGroup", rowHierarchy[1]["groupName"]);
+        Assert.Equal("{{Product}}", rowHierarchy[1]["headerText"]);
+        Assert.Equal(72.0, rowHierarchy[1]["headerSizePt"]);
+
+        var columnHierarchy = Assert.IsType<Dictionary<string, object>[]>(table.Style["rdlTablixColumnHierarchy"]);
+        Assert.Equal("YearGroup", columnHierarchy[0]["groupName"]);
+        Assert.Equal(new[] { "=Fields!Year.Value" }, Assert.IsType<string[]>(columnHierarchy[0]["groupExpressions"]));
+        Assert.Equal(new[] { "=Fields!Year.Value" }, Assert.IsType<string[]>(columnHierarchy[0]["sortExpressions"]));
+        Assert.Equal("{{Year}}", columnHierarchy[0]["headerText"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL029" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
     // 13 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_PageHeaderAndFooter_BecomeSharedElements()

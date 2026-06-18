@@ -74,6 +74,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `ReportParameters` / `ReportParametersLayout` | `PageSettings.CustomProperties` JSON metadata (`CANMIGRDL024`) | [x] |
 | `Filters` | element/table/map metadata (`CANMIGRDL025`) | [x] |
 | `ActionInfo` / `Drillthrough` / `Bookmark` / `DocumentMapLabel` / `ToggleItem` | element/table navigation metadata (`CANMIGRDL026`) | [x] |
+| `TablixRowHierarchy` / `TablixColumnHierarchy` headers | table header-row detection + hierarchy/header metadata (`CANMIGRDL029`) | [x] |
 
 ### Delivery
 - [x] Backend `POST /api/migration/report-to-design` auto-detects RDL (`<Report>` in an RDL namespace)
@@ -124,6 +125,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL026` | Warning | RDL navigation/action metadata preserved; Canvas does not execute drillthrough/bookmark/drilldown behaviour yet |
 | `CANMIGRDL027` | Warning | RDL HTML/PDF document custom item preserved as positioned placeholder; Canvas has no native embedded document item yet |
 | `CANMIGRDL028` | Warning | RDL signature custom item mapped to Canvas signature placeholder; signing/certificate semantics need review |
+| `CANMIGRDL029` | Warning | RDL Tablix row/column hierarchy headers preserved as metadata; Canvas has limited native matrix/group header rendering |
 
 ---
 
@@ -152,9 +154,11 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [x] **P0** `Visibility.Hidden` mapping: static `true/false` maps to `ElementDto.Hidden`; dynamic
       expressions map to inverted `VisibleExpression` via `IIF(hiddenExpr, False, True)`, with
       `CANMIGRDL015`.
-- [ ] **P0** Tablix row/column-group header extraction (`<TablixColumnHierarchy>`/`<TablixMember>`) instead of
-      treating the first row as header. The comprehensive fixture includes hierarchy metadata and
-      acts as the regression target for this work.
+- [x] **P0** Tablix row/column-group header extraction (`<TablixColumnHierarchy>`/`<TablixMember>`) now preserves
+      row/column hierarchy members, `TablixHeader` text/size, group/sort expressions, and repeat/keep flags as
+      `style.rdlTablixRowHierarchy` / `style.rdlTablixColumnHierarchy`; `HeaderRow` is derived from static
+      row-hierarchy headers when present instead of blindly treating the first row as a header (`CANMIGRDL029`).
+- [ ] **P1** Canvas-native rendering for multi-level Matrix/group headers from preserved Tablix hierarchy metadata.
 - [ ] **P0** Nested Tablix / detail grouping → repeat semantics.
 - [ ] `<Code>` / custom-function expression translation (blocked on Canvas `ExpressionEvaluator` being a
       stub — same limitation as DevExpress).
