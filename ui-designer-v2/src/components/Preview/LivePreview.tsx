@@ -356,6 +356,17 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       const colAligns  = element.columnAlignments ?? [];
       const cellData   = element.cellData ?? [];
       const bodyRows   = Math.max(1, totalRows - (hasHeader ? 1 : 0) - (hasFooter ? 1 : 0));
+      const rdlColumnHeaders = Array.isArray(s.rdlTablixColumnHierarchy)
+        ? s.rdlTablixColumnHierarchy
+            .map((member: any) => member?.headerText || member?.groupName)
+            .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
+        : [];
+      const rdlRowHeaders = Array.isArray(s.rdlTablixRowHierarchy)
+        ? s.rdlTablixRowHierarchy
+            .map((member: any) => member?.headerText || member?.groupName)
+            .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
+        : [];
+      const rdlMatrixHeaders = [...rdlColumnHeaders, ...rdlRowHeaders];
 
       const tdSt = (r: number, c: number, kind: 'header' | 'body' | 'footer'): React.CSSProperties => ({
         border: `${bw}px solid ${bc}`,
@@ -371,6 +382,21 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
         <table style={{ width: '100%', height: '100%', borderCollapse: 'collapse', border: `${bw}px solid ${bc}` }}>
           {hasHeader && (
             <thead>
+              {rdlMatrixHeaders.map((header, index) => (
+                <tr key={`rdl-matrix-header-${index}`}>
+                  <th
+                    colSpan={columns}
+                    style={{
+                      ...tdSt(index, 0, 'header'),
+                      textAlign: 'left',
+                      backgroundColor: '#e0f2fe',
+                      color: '#075985'
+                    }}
+                  >
+                    {header}
+                  </th>
+                </tr>
+              ))}
               <tr>{Array.from({ length: columns }).map((_, c) => (
                 <th key={c} style={tdSt(0, c, 'header')}>{cellData[0]?.[c] || `Header ${c + 1}`}</th>
               ))}</tr>

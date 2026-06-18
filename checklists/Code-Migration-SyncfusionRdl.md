@@ -158,7 +158,9 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       row/column hierarchy members, `TablixHeader` text/size, group/sort expressions, and repeat/keep flags as
       `style.rdlTablixRowHierarchy` / `style.rdlTablixColumnHierarchy`; `HeaderRow` is derived from static
       row-hierarchy headers when present instead of blindly treating the first row as a header (`CANMIGRDL029`).
-- [ ] **P1** Canvas-native rendering for multi-level Matrix/group headers from preserved Tablix hierarchy metadata.
+- [x] **P1** Designer/Preview rendering for preserved Matrix/group headers: `rdlTablixRowHierarchy` and
+      `rdlTablixColumnHierarchy` header/group labels render as additional Canvas table header rows.
+- [ ] **P1** Export rendering for multi-level Matrix/group headers from preserved Tablix hierarchy metadata.
 - [x] **P0** Nested Tablix/Table inside Tablix cells are extracted as positioned Canvas `table` elements with
       `rdlParentTablix`, cell row/column, row/column span, and `rdlParentTablixRepeatScope` metadata that preserves
       the parent row/column hierarchy and group expressions (`CANMIGRDL023`).

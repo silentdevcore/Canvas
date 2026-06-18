@@ -2425,6 +2425,17 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       const cellData     = element.cellData ?? [];
       const colAligns    = element.columnAlignments ?? [];
       const bodyRows     = Math.max(1, totalRows - (hasHeader ? 1 : 0) - (hasFooter ? 1 : 0));
+      const rdlColumnHeaders = Array.isArray(element.style?.rdlTablixColumnHierarchy)
+        ? element.style.rdlTablixColumnHierarchy
+            .map((member: any) => member?.headerText || member?.groupName)
+            .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
+        : [];
+      const rdlRowHeaders = Array.isArray(element.style?.rdlTablixRowHierarchy)
+        ? element.style.rdlTablixRowHierarchy
+            .map((member: any) => member?.headerText || member?.groupName)
+            .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
+        : [];
+      const rdlMatrixHeaders = [...rdlColumnHeaders, ...rdlRowHeaders];
 
       const cellFontSize   = element.style?.cellFontSize ?? 10;
       const cellFontFamily = element.style?.cellFontFamily ?? 'Arial';
@@ -2468,6 +2479,21 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
           )}
           {hasHeader && (
             <thead>
+              {rdlMatrixHeaders.map((header, index) => (
+                <tr key={`rdl-matrix-header-${index}`}>
+                  <th
+                    colSpan={columns}
+                    style={{
+                      ...tdStyle(index, 0, 'header'),
+                      textAlign: 'left',
+                      backgroundColor: '#e0f2fe',
+                      color: '#075985'
+                    }}
+                  >
+                    {header}
+                  </th>
+                </tr>
+              ))}
               <tr>
                 {Array.from({ length: columns }).map((_, c) => (
                   <th key={c} style={tdStyle(0, c, 'header')}>
