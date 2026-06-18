@@ -163,6 +163,7 @@ public sealed class RdlToDesignConverter
             ParseVisibility(item, raw);
             ParsePaginationMetadata(item, raw);
             raw.Filters = ParseFilters(item);
+            raw.NavigationMetadata = ParseNavigationMetadata(item);
 
             switch (type)
             {
@@ -670,6 +671,7 @@ public sealed class RdlToDesignConverter
         raw.TablixSorts = ParseTablixSorts(el);
         raw.TablixKeepWithGroups = ParseTablixKeepWithGroups(el);
         raw.TablixGroupFilters = ParseTablixGroupFilters(el);
+        raw.TablixNavigationMetadata = ParseTablixNavigationMetadata(el);
         raw.PaginationMetadata["TablixMemberRepeatOnNewPage"] = ParseTablixMemberValues(el, "RepeatOnNewPage");
         raw.PaginationMetadata["TablixMemberKeepTogether"] = ParseTablixMemberValues(el, "KeepTogether");
         raw.PaginationMetadata["TablixMemberFixedData"] = ParseTablixMemberValues(el, "FixedData");
@@ -732,6 +734,7 @@ public sealed class RdlToDesignConverter
         ParseVisibility(item, raw);
         ParsePaginationMetadata(item, raw);
         raw.Filters = ParseFilters(item);
+        raw.NavigationMetadata = ParseNavigationMetadata(item);
 
         switch (type)
         {
@@ -872,6 +875,81 @@ public sealed class RdlToDesignConverter
         return filters;
     }
 
+    private static Dictionary<string, object>? ParseNavigationMetadata(XElement item)
+    {
+        var metadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(metadata, "Bookmark", Child(item, "Bookmark")?.Value);
+        AddText(metadata, "DocumentMapLabel", Child(item, "DocumentMapLabel")?.Value);
+
+        var actions = ParseActions(Child(item, "ActionInfo"));
+        if (actions.Count > 0)
+            metadata["Actions"] = actions.ToArray();
+
+        return metadata.Count > 0 ? metadata : null;
+    }
+
+    private static List<Dictionary<string, object>> ParseActions(XElement? actionInfo)
+    {
+        var actions = new List<Dictionary<string, object>>();
+        foreach (var action in Children(Child(actionInfo, "Actions"), "Action"))
+        {
+            var a = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            AddText(a, "Hyperlink", Child(action, "Hyperlink")?.Value);
+            AddText(a, "BookmarkLink", Child(action, "BookmarkLink")?.Value);
+
+            if (Child(action, "Drillthrough") is { } drillthrough)
+            {
+                var drill = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                AddText(drill, "ReportName", Child(drillthrough, "ReportName")?.Value);
+                var parameters = Children(Child(drillthrough, "Parameters"), "Parameter")
+                    .Select(parameter =>
+                    {
+                        var p = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                        {
+                            ["Name"] = Attr(parameter, "Name") ?? ""
+                        };
+                        AddText(p, "Value", Child(parameter, "Value")?.Value);
+                        return p;
+                    })
+                    .ToArray();
+                if (parameters.Length > 0)
+                    drill["Parameters"] = parameters;
+                if (drill.Count > 0)
+                    a["Drillthrough"] = drill;
+            }
+
+            if (a.Count > 0)
+                actions.Add(a);
+        }
+        return actions;
+    }
+
+    private static List<Dictionary<string, object>> ParseTablixNavigationMetadata(XElement tablix)
+    {
+        var result = new List<Dictionary<string, object>>();
+        foreach (var group in tablix.Descendants().Where(e => e.Name.LocalName == "Group"))
+        {
+            var item = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            AddText(item, "GroupName", Attr(group, "Name"));
+            AddText(item, "DocumentMapLabel", Child(group, "DocumentMapLabel")?.Value);
+            AddText(item, "Bookmark", Child(group, "Bookmark")?.Value);
+            if (item.Count > 1)
+                result.Add(item);
+        }
+
+        foreach (var visibility in tablix.Descendants().Where(e => e.Name.LocalName == "Visibility"))
+        {
+            if (Child(visibility, "ToggleItem")?.Value is not { Length: > 0 } toggleItem)
+                continue;
+            result.Add(new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["ToggleItem"] = toggleItem.Trim()
+            });
+        }
+
+        return result;
+    }
+
     private static string[] ParseTablixMemberValues(XElement tablix, string name) =>
         tablix.Descendants()
             .Where(e => e.Name.LocalName == "TablixMember")
@@ -1009,6 +1087,7 @@ public sealed class RdlToDesignConverter
             ApplyPaginationMetadata(element, raw, diagnostics);
             ApplyNestedTablixMetadata(element, raw, diagnostics);
             ApplyFilterMetadata(element, raw, diagnostics);
+            ApplyNavigationMetadata(element, raw, diagnostics);
 
             (raw.Region is RawRegion.PageHeader or RawRegion.PageFooter ? sharedElements : elements).Add(element);
             mapped++;
@@ -1323,6 +1402,16 @@ public sealed class RdlToDesignConverter
             $"'{raw.Name}' RDL filters were preserved as metadata; Canvas does not evaluate report filters yet."));
     }
 
+    private static void ApplyNavigationMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.NavigationMetadata is not { Count: > 0 }) return;
+
+        element.Style ??= [];
+        element.Style["rdlNavigation"] = raw.NavigationMetadata;
+        diagnostics.Add(Warn("CANMIGRDL026",
+            $"'{raw.Name}' RDL navigation/action metadata was preserved; Canvas does not execute drillthrough/bookmark actions yet."));
+    }
+
     private static ElementDto MapRdlChart(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
     {
         var props = raw.CustomProps ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -1523,6 +1612,13 @@ public sealed class RdlToDesignConverter
             element.Style["rdlExtractedCellItems"] = raw.TablixNestedItemNames.ToArray();
             diagnostics.Add(Warn("CANMIGRDL023",
                 $"'{raw.Name}' contains non-text Tablix cell items that were extracted as separate positioned elements; review row repeat semantics."));
+        }
+        if (raw.TablixNavigationMetadata is { Count: > 0 })
+        {
+            element.Style ??= [];
+            element.Style["rdlTablixNavigation"] = raw.TablixNavigationMetadata.ToArray();
+            diagnostics.Add(Warn("CANMIGRDL026",
+                $"'{raw.Name}' Tablix navigation/document-map metadata was preserved; Canvas does not execute drilldown/document-map behaviour yet."));
         }
         return element;
     }
@@ -1840,6 +1936,7 @@ public sealed class RdlToDesignConverter
         public string? HiddenExpression;
         public Dictionary<string, object> PaginationMetadata = new(StringComparer.Ordinal);
         public List<Dictionary<string, object>> Filters = [];
+        public Dictionary<string, object>? NavigationMetadata;
         public List<List<string>>? TableCells;
         public string[]? ColumnAlignments;
         public double[]? ColumnWidthsPt;
@@ -1847,6 +1944,7 @@ public sealed class RdlToDesignConverter
         public List<string>? TablixSorts;
         public List<string>? TablixKeepWithGroups;
         public List<Dictionary<string, object>>? TablixGroupFilters;
+        public List<Dictionary<string, object>>? TablixNavigationMetadata;
         public List<string> TablixNestedItemNames = [];
         public string? ImageDataUrl;
         public string? ImageSource;

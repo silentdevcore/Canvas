@@ -71,6 +71,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `Visibility.Hidden` | `Hidden` / inverted `VisibleExpression` | [x] |
 | `ReportParameters` / `ReportParametersLayout` | `PageSettings.CustomProperties` JSON metadata (`CANMIGRDL024`) | [x] |
 | `Filters` | element/table/map metadata (`CANMIGRDL025`) | [x] |
+| `ActionInfo` / `Drillthrough` / `Bookmark` / `DocumentMapLabel` / `ToggleItem` | element/table navigation metadata (`CANMIGRDL026`) | [x] |
 
 ### Delivery
 - [x] Backend `POST /api/migration/report-to-design` auto-detects RDL (`<Report>` in an RDL namespace)
@@ -118,6 +119,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL023` | Warning | Non-text Tablix cell item extracted as separate positioned Canvas element; repeat semantics need review |
 | `CANMIGRDL024` | Warning | RDL report parameters preserved in `PageSettings.CustomProperties`; Canvas has no native report-parameter UI yet |
 | `CANMIGRDL025` | Warning | RDL filters preserved as metadata; Canvas does not evaluate report filters yet |
+| `CANMIGRDL026` | Warning | RDL navigation/action metadata preserved; Canvas does not execute drillthrough/bookmark/drilldown behaviour yet |
 
 ---
 
@@ -172,6 +174,10 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [x] Element/DataRegion/Tablix group `Filters` → `style.rdlFilters`, `style.rdlTablixGroupFilters`, or nested
       map data-region metadata plus `CANMIGRDL025`.
 - [ ] **P1** Native report-parameter UI and filter evaluation: preserved metadata is not executed by Canvas yet.
+- [x] Element `ActionInfo` (`Hyperlink`, `BookmarkLink`, `Drillthrough` with parameters), `Bookmark`,
+      `DocumentMapLabel`, and Tablix `ToggleItem`/group document-map metadata → `style.rdlNavigation` or
+      `style.rdlTablixNavigation` plus `CANMIGRDL026`.
+- [ ] **P1** Execute/preview navigation semantics in Canvas: preserved metadata is not interactive yet.
 - [x] `CustomReportItem` Gauge → positioned placeholder with `style.rdlCustomItemType = "Gauge"` and
       custom properties preserved, plus `CANMIGRDL018`.
 - [x] `CustomReportItem` Map / Sparkline + `Subreport` → labeled placeholder elements

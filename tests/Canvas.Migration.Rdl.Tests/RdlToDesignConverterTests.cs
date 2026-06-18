@@ -863,6 +863,71 @@ public sealed class RdlToDesignConverterTests
 
     // 34 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
+    public void Convert_ActionInfoAndBookmark_ArePreservedOnElementStyle()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Textbox Name="link"><Top>0in</Top><Left>0in</Left><Height>0.3in</Height><Width>2in</Width>
+                  <Bookmark>HomePage</Bookmark>
+                  <ActionInfo><Actions><Action>
+                    <Drillthrough><ReportName>/Reports/Detail</ReportName><Parameters><Parameter Name="ProductName"><Value>=Fields!Name.Value</Value></Parameter></Parameters></Drillthrough>
+                  </Action><Action><BookmarkLink>HomePage</BookmarkLink></Action></Actions></ActionInfo>
+                  <Paragraphs><Paragraph><TextRuns><TextRun><Value>Open detail</Value></TextRun></TextRuns></Paragraph></Paragraphs>
+                </Textbox>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var link = El(result.Design, "link");
+        var navigation = Assert.IsType<Dictionary<string, object>>(link.Style!["rdlNavigation"]);
+
+        Assert.Equal("HomePage", navigation["Bookmark"]);
+        var actions = Assert.IsType<Dictionary<string, object>[]>(navigation["Actions"]);
+        var drill = Assert.IsType<Dictionary<string, object>>(actions[0]["Drillthrough"]);
+        Assert.Equal("/Reports/Detail", drill["ReportName"]);
+        var parameters = Assert.IsType<Dictionary<string, object>[]>(drill["Parameters"]);
+        Assert.Equal("ProductName", parameters[0]["Name"]);
+        Assert.Equal("=Fields!Name.Value", parameters[0]["Value"]);
+        Assert.Equal("HomePage", actions[1]["BookmarkLink"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL026" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 35 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_TablixDocumentMapAndToggle_ArePreservedOnTableStyle()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Tablix Name="navTable">
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>2in</Width>
+                  <TablixBody>
+                    <TablixColumns><TablixColumn><Width>2in</Width></TablixColumn></TablixColumns>
+                    <TablixRows><TablixRow><Height>0.5in</Height><TablixCells><TablixCell><CellContents><Textbox Name="cell"><Value>Item</Value></Textbox></CellContents></TablixCell></TablixCells></TablixRow></TablixRows>
+                  </TablixBody>
+                  <TablixRowHierarchy><TablixMembers><TablixMember>
+                    <Visibility><Hidden>true</Hidden><ToggleItem>CategoryToggle</ToggleItem></Visibility>
+                    <Group Name="Category"><DocumentMapLabel>=Fields!Category.Value</DocumentMapLabel></Group>
+                  </TablixMember></TablixMembers></TablixRowHierarchy>
+                </Tablix>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var table = El(result.Design, "navTable");
+        var navigation = Assert.IsType<Dictionary<string, object>[]>(table.Style!["rdlTablixNavigation"]);
+
+        Assert.Contains(navigation, item => item.TryGetValue("GroupName", out var name) && (string)name == "Category"
+            && item.TryGetValue("DocumentMapLabel", out var label) && (string)label == "=Fields!Category.Value");
+        Assert.Contains(navigation, item => item.TryGetValue("ToggleItem", out var toggle) && (string)toggle == "CategoryToggle");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL026" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 36 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
     public void Convert_ComprehensiveSyncfusionFixture_MapsCoreLayoutAndKnownPlaceholders()
     {
         var r = Convert(Fixture("ComprehensiveSyncfusionReport.rdl"));
