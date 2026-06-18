@@ -1468,6 +1468,12 @@ public sealed class RdlToDesignConverter
             if (customType.Contains("Shape", StringComparison.OrdinalIgnoreCase) || props.ContainsKey("ShapeType"))
                 return MapRdlShape(raw, element, props, diagnostics);
 
+            if (IsDocumentCustomItem(customType))
+                return MapRdlDocumentCustomItem(raw, element, customType, props, diagnostics);
+
+            if (IsSignatureCustomItem(customType))
+                return MapRdlSignatureCustomItem(raw, element, customType, props, diagnostics);
+
             var what = customType.Length > 0 ? customType : "Custom item";
             diagnostics.Add(Warn("CANMIGRDL011",
                 $"'{raw.Name}' is a custom report item ({what}) — not supported by Canvas yet; inserted a placeholder."));
@@ -1486,6 +1492,58 @@ public sealed class RdlToDesignConverter
             element.BarcodeValue = value;
             element.BarcodeType = BarcodeTypeFromSymbology(symbology);
         }
+        return element;
+    }
+
+    private static bool IsDocumentCustomItem(string customType) =>
+        customType.Contains("htmldocument", StringComparison.OrdinalIgnoreCase)
+        || customType.Contains("pdfdocument", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsSignatureCustomItem(string customType) =>
+        customType.Contains("ESignature", StringComparison.OrdinalIgnoreCase)
+        || customType.Contains("PDFSignature", StringComparison.OrdinalIgnoreCase)
+        || customType.Contains("Signature", StringComparison.OrdinalIgnoreCase);
+
+    private static ElementDto MapRdlDocumentCustomItem(
+        RawElement raw,
+        ElementDto element,
+        string customType,
+        IReadOnlyDictionary<string, string> props,
+        List<MigrationDiagnostic> diagnostics)
+    {
+        var isPdf = customType.Contains("pdf", StringComparison.OrdinalIgnoreCase);
+        var itemType = isPdf ? "PdfDocument" : "HtmlDocument";
+        var label = isPdf ? "PDF document" : "HTML document";
+        var document = Placeholder(element, $"[{label}: {raw.Name} - migrate manually]");
+        document.Style ??= [];
+        foreach (var (key, styleValue) in RdlCustomItemStyle(itemType, props, truncateLargeValues: true))
+            document.Style[key] = styleValue;
+        document.Style["rdlDocumentKind"] = isPdf ? "pdf" : "html";
+        if (props.GetValueOrDefault("Source") is { Length: > 0 } source)
+            document.Style["rdlDocumentSource"] = source;
+        if (props.GetValueOrDefault("Sizing") is { Length: > 0 } sizing)
+            document.Style["rdlDocumentSizing"] = sizing;
+
+        diagnostics.Add(Warn("CANMIGRDL027",
+            $"'{raw.Name}' RDL document custom item was preserved as a positioned placeholder; Canvas has no native embedded document item yet."));
+        return document;
+    }
+
+    private static ElementDto MapRdlSignatureCustomItem(
+        RawElement raw,
+        ElementDto element,
+        string customType,
+        IReadOnlyDictionary<string, string> props,
+        List<MigrationDiagnostic> diagnostics)
+    {
+        var isPdfSignature = customType.Contains("PDF", StringComparison.OrdinalIgnoreCase);
+        element.Type = "signature";
+        element.SignatureLabel = isPdfSignature ? "PDF Signature" : "Electronic Signature";
+        element.Style = RdlCustomItemStyle(isPdfSignature ? "PDFSignature" : "ESignature", props, truncateLargeValues: true);
+        element.Style["rdlSignatureKind"] = isPdfSignature ? "pdf" : "electronic";
+
+        diagnostics.Add(Warn("CANMIGRDL028",
+            $"'{raw.Name}' RDL signature custom item was mapped to a Canvas signature placeholder; review signing/certificate semantics."));
         return element;
     }
 
@@ -1593,15 +1651,30 @@ public sealed class RdlToDesignConverter
     private static string ChartColor(int index) =>
         new[] { "#2563eb", "#16a34a", "#dc2626", "#9333ea", "#ea580c", "#0891b2" }[index % 6];
 
-    private static Dictionary<string, object> RdlCustomItemStyle(string itemType, IReadOnlyDictionary<string, string> props)
+    private static Dictionary<string, object> RdlCustomItemStyle(
+        string itemType,
+        IReadOnlyDictionary<string, string> props,
+        bool truncateLargeValues = false)
     {
         var style = new Dictionary<string, object>
         {
             ["rdlCustomItemType"] = itemType
         };
         if (props.Count > 0)
-            style["rdlCustomProperties"] = props.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value, StringComparer.OrdinalIgnoreCase);
+            style["rdlCustomProperties"] = props.ToDictionary(
+                kvp => kvp.Key,
+                kvp => RdlCustomPropertyValue(kvp.Value, truncateLargeValues),
+                StringComparer.OrdinalIgnoreCase);
         return style;
+    }
+
+    private static object RdlCustomPropertyValue(string value, bool truncateLargeValues)
+    {
+        const int maxLength = 512;
+        if (!truncateLargeValues || value.Length <= maxLength)
+            return value;
+
+        return $"{value[..maxLength]}...[truncated {value.Length - maxLength} chars]";
     }
 
     private static string BarcodeTypeFromSymbology(string? symbology)

@@ -683,6 +683,81 @@ public sealed class RdlToDesignConverterTests
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL020");
     }
 
+    [Fact]
+    public void Convert_DocumentCustomItems_BecomePositionedPlaceholdersWithMetadata()
+    {
+        var embeddedPdf = new string('A', 600);
+        var rdl = $$"""
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <CustomReportItem Name="htmlDoc"><Type>htmldocument</Type>
+                  <Top>0.25in</Top><Left>0.5in</Left><Height>1in</Height><Width>2in</Width>
+                  <CustomProperties>
+                    <CustomProperty><Name>Source</Name><Value>URL</Value></CustomProperty>
+                    <CustomProperty><Name>Sizing</Name><Value>AutoSize</Value></CustomProperty>
+                    <CustomProperty><Name>DocumentValue</Name><Value>https://example.com/report</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
+                <CustomReportItem Name="pdfDoc"><Type>pdfdocument</Type>
+                  <Top>1.5in</Top><Left>0.5in</Left><Height>2in</Height><Width>3in</Width>
+                  <CustomProperties>
+                    <CustomProperty><Name>Source</Name><Value>Embedded</Value></CustomProperty>
+                    <CustomProperty><Name>DocumentValue</Name><Value>{{embeddedPdf}}</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var html = El(result.Design, "htmlDoc");
+        var pdf = El(result.Design, "pdfDoc");
+
+        Assert.Equal("text", html.Type);
+        Assert.Equal("HtmlDocument", html.Style!["rdlCustomItemType"]);
+        Assert.Equal("html", html.Style["rdlDocumentKind"]);
+        Assert.Equal("URL", html.Style["rdlDocumentSource"]);
+
+        Assert.Equal("text", pdf.Type);
+        Assert.Equal("PdfDocument", pdf.Style!["rdlCustomItemType"]);
+        Assert.Equal("pdf", pdf.Style["rdlDocumentKind"]);
+        var pdfProps = Assert.IsType<Dictionary<string, object>>(pdf.Style["rdlCustomProperties"]);
+        Assert.Contains("[truncated 88 chars]", Assert.IsType<string>(pdfProps["DocumentValue"]));
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL027" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
+    public void Convert_SignatureCustomItem_BecomesCanvasSignatureWithMetadata()
+    {
+        var signatureValue = new string('B', 540);
+        var rdl = $$"""
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <CustomReportItem Name="signedBy"><Type>PDFSignature</Type>
+                  <Top>0.25in</Top><Left>0.5in</Left><Height>0.75in</Height><Width>2in</Width>
+                  <CustomProperties>
+                    <CustomProperty><Name>SignatureValue</Name><Value>{{signatureValue}}</Value></CustomProperty>
+                    <CustomProperty><Name>CertificateFileName</Name><Value>/PDFSign.pfx</Value></CustomProperty>
+                    <CustomProperty><Name>SignedName</Name><Value>false</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var signature = El(result.Design, "signedBy");
+
+        Assert.Equal("signature", signature.Type);
+        Assert.Equal("PDF Signature", signature.SignatureLabel);
+        Assert.Equal("PDFSignature", signature.Style!["rdlCustomItemType"]);
+        Assert.Equal("pdf", signature.Style["rdlSignatureKind"]);
+        var props = Assert.IsType<Dictionary<string, object>>(signature.Style["rdlCustomProperties"]);
+        Assert.Equal("/PDFSign.pfx", props["CertificateFileName"]);
+        Assert.Contains("[truncated 28 chars]", Assert.IsType<string>(props["SignatureValue"]));
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL028" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
     // 29 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_NativeGaugePanel_PreservesGaugeMetadataOnPlaceholder()

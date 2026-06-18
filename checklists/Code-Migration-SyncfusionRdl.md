@@ -63,6 +63,8 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CustomReportItem` barcode (ActiveReports/DsReport/SSRS) | `barcode` / `qrcode` (value + symbology → type) | [x] |
 | `Chart` / `CustomReportItem` chart | editable `chart` placeholder + RDL metadata (`CANMIGRDL017`) | [x] |
 | `CustomReportItem` shape | `rect` / `circle` / `arrow` + style + RDL metadata (`CANMIGRDL020`) | [x] |
+| `CustomReportItem` html/pdf document | positioned placeholder + preserved/truncated document metadata (`CANMIGRDL027`) | [x] |
+| `CustomReportItem` ESignature/PDFSignature | `signature` placeholder + preserved/truncated signing metadata (`CANMIGRDL028`) | [x] |
 | native `GaugePanel` | positioned placeholder + structured gauge metadata (`CANMIGRDL021`) | [x] |
 | native `Map` | positioned placeholder + structured map metadata (`CANMIGRDL022`) | [x] |
 | `CustomReportItem` gauge/map/etc. | labeled placeholder + RDL metadata (`CANMIGRDL018` for gauge) | [x] |
@@ -120,6 +122,8 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL024` | Warning | RDL report parameters preserved in `PageSettings.CustomProperties`; Canvas has no native report-parameter UI yet |
 | `CANMIGRDL025` | Warning | RDL filters preserved as metadata; Canvas does not evaluate report filters yet |
 | `CANMIGRDL026` | Warning | RDL navigation/action metadata preserved; Canvas does not execute drillthrough/bookmark/drilldown behaviour yet |
+| `CANMIGRDL027` | Warning | RDL HTML/PDF document custom item preserved as positioned placeholder; Canvas has no native embedded document item yet |
+| `CANMIGRDL028` | Warning | RDL signature custom item mapped to Canvas signature placeholder; signing/certificate semantics need review |
 
 ---
 
@@ -161,6 +165,10 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       in `chartData.rdlSeries` while mapped to the nearest Canvas `bar`/`line`/`pie` rendering type.
 - [x] `CustomReportItem` Shape → Canvas `rect` / `circle` / `arrow` with fill/line style, rotation metadata,
       `style.rdlShapeType`, and preserved custom properties plus `CANMIGRDL020`.
+- [x] `CustomReportItem` HTML/PDF document (`htmldocument`, `pdfdocument`) → positioned Canvas placeholder with
+      document source/sizing metadata and truncated large embedded values plus `CANMIGRDL027`.
+- [x] `CustomReportItem` signature (`ESignature`, `PDFSignature`) → Canvas `signature` placeholder with
+      electronic/PDF signature kind, certificate metadata, and truncated large signature payloads plus `CANMIGRDL028`.
 - [x] Native `GaugePanel` → positioned placeholder with `style.rdlGaugePanel` metadata (`DataSetName`, radial/linear
       gauge kind, scales, pointers, ranges, labels) plus `CANMIGRDL021`.
 - [x] Native `Map` → positioned placeholder with `style.rdlMap` metadata (layers, binding field pairs,
