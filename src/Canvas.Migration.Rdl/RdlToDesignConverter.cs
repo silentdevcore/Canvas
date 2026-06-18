@@ -226,6 +226,8 @@ public sealed class RdlToDesignConverter
     {
         var source = Child(el, "Source")?.Value;
         var value = Child(el, "Value")?.Value;
+        raw.ImageSource = source;
+        raw.ImageValue = value;
         if (string.Equals(source, "Embedded", StringComparison.OrdinalIgnoreCase)
             && value is not null && _embedded.TryGetValue(value, out var dataUrl))
         {
@@ -470,10 +472,18 @@ public sealed class RdlToDesignConverter
                 element.Type = "image";
                 element.FitMode = "contain";
                 if (raw.ImageDataUrl is { } dataUrl)
+                {
                     element.Content = dataUrl;
+                }
+                else if (MapImageReference(element, raw, diagnostics))
+                {
+                    return element;
+                }
                 else
+                {
                     diagnostics.Add(Warn("CANMIGRDL012",
                         $"'{raw.Name}' image isn't embeddable from source — inserted an empty image placeholder."));
+                }
                 return element;
 
             case "CustomReportItem":
@@ -509,6 +519,48 @@ public sealed class RdlToDesignConverter
             ["fontStyle"] = "italic"
         };
         return element;
+    }
+
+    private static bool MapImageReference(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (string.IsNullOrWhiteSpace(raw.ImageValue)) return false;
+
+        if (string.Equals(raw.ImageSource, "External", StringComparison.OrdinalIgnoreCase))
+        {
+            element.Content = raw.ImageValue;
+            element.Style = new Dictionary<string, object>
+            {
+                ["rdlImageSource"] = "External"
+            };
+            diagnostics.Add(Warn("CANMIGRDL012",
+                $"'{raw.Name}' external image reference was preserved; verify fetch/security behaviour in Canvas."));
+            return true;
+        }
+
+        if (string.Equals(raw.ImageSource, "Database", StringComparison.OrdinalIgnoreCase))
+        {
+            var field = SingleFieldMatch(raw.ImageValue);
+            if (field is not null)
+            {
+                element.Binding = field;
+                element.Content = $"{{{{{field}}}}}";
+            }
+            else
+            {
+                element.Expression = raw.ImageValue;
+                element.Content = raw.ImageValue;
+            }
+
+            element.Style = new Dictionary<string, object>
+            {
+                ["rdlImageSource"] = "Database"
+            };
+            diagnostics.Add(Warn("CANMIGRDL012",
+                $"'{raw.Name}' database image source was preserved as binding/expression; verify runtime image data mapping."));
+            return true;
+        }
+
+        return false;
     }
 
     // RDL <CustomReportItem>: ActiveReports/DsReport serialize barcodes this way (Type + CustomProperties);
@@ -855,6 +907,8 @@ public sealed class RdlToDesignConverter
         public List<string>? TablixSorts;
         public List<string>? TablixKeepWithGroups;
         public string? ImageDataUrl;
+        public string? ImageSource;
+        public string? ImageValue;
         public double? LineWidth;
         public string? LineStyle;
         public string? CustomType;                    // <CustomReportItem><Type>

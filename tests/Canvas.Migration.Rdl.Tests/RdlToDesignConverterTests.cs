@@ -331,7 +331,7 @@ public sealed class RdlToDesignConverterTests
 
     // 17 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
-    public void Convert_ExternalImage_EmitsPlaceholderWarning()
+    public void Convert_ExternalImage_PreservesReferenceWithWarning()
     {
         var rdl = """
             <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
@@ -342,11 +342,36 @@ public sealed class RdlToDesignConverterTests
             </Report>
             """;
         var r = Convert(rdl);
-        Assert.Equal("image", El(r.Design, "ext").Type);
+        var ext = El(r.Design, "ext");
+        Assert.Equal("image", ext.Type);
+        Assert.Equal("http://example.com/a.png", ext.Content);
+        Assert.Equal("External", ext.Style!["rdlImageSource"]);
         Assert.True(Has(r.Diagnostics, "CANMIGRDL012"));
     }
 
     // 18 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_DatabaseImage_MapsFieldBindingWithWarning()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Image Name="photo"><Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>1in</Width>
+                  <Source>Database</Source><Value>=Fields!ProductImage.Value</Value></Image>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var r = Convert(rdl);
+        var photo = El(r.Design, "photo");
+        Assert.Equal("image", photo.Type);
+        Assert.Equal("ProductImage", photo.Binding);
+        Assert.Equal("{{ProductImage}}", photo.Content);
+        Assert.Equal("Database", photo.Style!["rdlImageSource"]);
+        Assert.True(Has(r.Diagnostics, "CANMIGRDL012"));
+    }
+
+    // 19 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_Subreport_EmitsManualMigrationDiagnostic()
     {
@@ -523,6 +548,10 @@ public sealed class RdlToDesignConverterTests
         var detailPhoto = El(d, "detailPhoto");
         Assert.Equal("image", detailPhoto.Type);
         Assert.StartsWith("data:image/png;base64,", detailPhoto.Content);
+        var productPhoto = El(d, "productPhoto");
+        Assert.Equal("image", productPhoto.Type);
+        Assert.Equal("ProductImage", productPhoto.Binding);
+        Assert.Equal("Database", productPhoto.Style!["rdlImageSource"]);
 
         var barcode = El(d, "shipmentBarcode");
         Assert.Equal("barcode", barcode.Type);

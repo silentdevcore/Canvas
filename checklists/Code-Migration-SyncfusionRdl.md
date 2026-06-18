@@ -58,7 +58,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `Textbox` (Paragraphs/TextRuns or `<Value>`) | `text` (+ font/colour/align style) | [x] |
 | `Line` | `line` (stroke width + dash style) | [x] |
 | `Rectangle` | `rect` (+ child flatten) | [x] |
-| `Image` (Embedded) | `image` (data URL, else placeholder `CANMIGRDL012`) | [x] |
+| `Image` (Embedded / External / Database) | `image` (data URL / preserved reference / binding) | [x] |
 | `Tablix` (2016) / `Table` (2008) | `table` (CellData, header row, column widths/alignments) | [x] |
 | `CustomReportItem` barcode (ActiveReports/DsReport/SSRS) | `barcode` / `qrcode` (value + symbology → type) | [x] |
 | `CustomReportItem` chart/gauge/map/etc. | labeled placeholder (`CANMIGRDL011`) | [x] |
@@ -73,7 +73,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 - [x] Frontend **"Syncfusion / RDL Reports"** entry + **Open in Designer** (loads via
       `bulkReplaceContent`) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
 
-### Tests (35 passing)
+### Tests (36 passing)
 - [x] Page size from lengths; length-unit parsing; absolute positioning; textbox style; named colours;
       `=Fields!X.Value` binding vs complex expression; literal text; Tablix-2016 + Table-2008 → table;
       column alignments/widths; page header/footer → shared; rectangle flatten; line stroke/dash;
@@ -84,7 +84,8 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
       `tests/Canvas.Migration.Rdl.Tests/Fixtures/ComprehensiveSyncfusionReport.rdl`.
       Covers page header/footer, embedded images, nested rectangles, mixed units (`cm`, `mm`, `in`, `pt`),
       field bindings, complex expressions, dashed lines, a multi-column Tablix with hierarchy metadata,
-      visibility rules, barcode custom item, Chart/Gauge placeholders, and Subreport placeholder.
+      visibility rules, database image binding, barcode custom item, Chart/Gauge placeholders, and
+      Subreport placeholder.
 - [x] **End-to-end**: a converted RDL renders to a valid PDF through the real export pipeline
       (`DesignJsonMapper` → `ToBytes`) — in `Canvas.Export.Tests`.
 
@@ -95,7 +96,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL002` | Info | Per-item mapping (`name (rdlType) → Canvas type`) |
 | `CANMIGRDL010` | Info / Warning | `=Fields!X.Value` → binding (Info); complex `=expr` → expression (Warning) |
 | `CANMIGRDL011` | Warning | Unsupported item / Subreport / unparseable Tablix / `<Code>` — skipped |
-| `CANMIGRDL012` | Warning | Image not embeddable — placeholder inserted |
+| `CANMIGRDL012` | Warning | Image not embedded; external/database reference preserved or placeholder inserted |
 | `CANMIGRDL013` | Warning | Container nesting too deep — flatten stopped at guard depth |
 | `CANMIGRDL014` | Warning | Tablix grouping/sorting metadata preserved; Canvas repeat/group semantics still require review |
 | `CANMIGRDL015` | Warning | RDL `Visibility.Hidden` expression mapped to inverted Canvas `visibleExpression`; runtime semantics need review |
@@ -132,7 +133,9 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       stub — same limitation as DevExpress).
 - [x] `CustomReportItem` Chart / Gauge / Map / Sparkline + `Subreport` → labeled placeholder elements
       (kept at original position/size so the layout isn't silently holed; still `CANMIGRDL011`).
-- [ ] **P0** External / database image sources (fetch or warn).
+- [x] **P0** External / database image sources: external image references are preserved as image
+      `Content` plus `style.rdlImageSource = "External"`; database image field expressions map to
+      image binding/content placeholders plus `style.rdlImageSource = "Database"` (`CANMIGRDL012`).
 - [ ] **P0** Percentage / relative lengths for Tablix columns.
 - [ ] **P0** Multi-run textbox per-run formatting (V1 keeps the first run's style).
 - [ ] **P1** Promote Chart/Gauge placeholders to native Canvas chart/gauge mappings once Canvas chart

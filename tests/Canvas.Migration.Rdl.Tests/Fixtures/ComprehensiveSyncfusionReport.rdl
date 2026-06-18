@@ -173,6 +173,15 @@
         <Value>brandLogo</Value>
       </Image>
 
+      <Image Name="productPhoto">
+        <Top>4.05in</Top>
+        <Left>5.9in</Left>
+        <Height>0.8in</Height>
+        <Width>1.1in</Width>
+        <Source>Database</Source>
+        <Value>=Fields!ProductImage.Value</Value>
+      </Image>
+
       <CustomReportItem Name="shipmentBarcode">
         <Type>Barcode</Type>
         <Top>4.05in</Top>
