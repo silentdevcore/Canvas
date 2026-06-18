@@ -64,6 +64,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CustomReportItem` chart/gauge/map/etc. | labeled placeholder (`CANMIGRDL011`) | [x] |
 | `Subreport` | labeled placeholder (`CANMIGRDL011`) | [x] |
 | Value `=Fields!X.Value` / `=expr` | `binding` / `expression` | [x] |
+| `Visibility.Hidden` | `Hidden` / inverted `VisibleExpression` | [x] |
 
 ### Delivery
 - [x] Backend `POST /api/migration/report-to-design` auto-detects RDL (`<Report>` in an RDL namespace)
@@ -72,7 +73,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 - [x] Frontend **"Syncfusion / RDL Reports"** entry + **Open in Designer** (loads via
       `bulkReplaceContent`) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
 
-### Tests (33 passing)
+### Tests (35 passing)
 - [x] Page size from lengths; length-unit parsing; absolute positioning; textbox style; named colours;
       `=Fields!X.Value` binding vs complex expression; literal text; Tablix-2016 + Table-2008 → table;
       column alignments/widths; page header/footer → shared; rectangle flatten; line stroke/dash;
@@ -83,7 +84,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
       `tests/Canvas.Migration.Rdl.Tests/Fixtures/ComprehensiveSyncfusionReport.rdl`.
       Covers page header/footer, embedded images, nested rectangles, mixed units (`cm`, `mm`, `in`, `pt`),
       field bindings, complex expressions, dashed lines, a multi-column Tablix with hierarchy metadata,
-      barcode custom item, Chart/Gauge placeholders, and Subreport placeholder.
+      visibility rules, barcode custom item, Chart/Gauge placeholders, and Subreport placeholder.
 - [x] **End-to-end**: a converted RDL renders to a valid PDF through the real export pipeline
       (`DesignJsonMapper` → `ToBytes`) — in `Canvas.Export.Tests`.
 
@@ -97,6 +98,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL012` | Warning | Image not embeddable — placeholder inserted |
 | `CANMIGRDL013` | Warning | Container nesting too deep — flatten stopped at guard depth |
 | `CANMIGRDL014` | Warning | Tablix grouping/sorting metadata preserved; Canvas repeat/group semantics still require review |
+| `CANMIGRDL015` | Warning | RDL `Visibility.Hidden` expression mapped to inverted Canvas `visibleExpression`; runtime semantics need review |
 
 ---
 
@@ -119,6 +121,9 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [x] **P0** Preserve Tablix hierarchy metadata (`Group`, `GroupExpressions`, `SortExpressions`,
       `KeepWithGroup`) on the Canvas table style as `rdlTablixGroups`, `rdlTablixSorts`, and
       `rdlTablixKeepWithGroup`, with `CANMIGRDL014`.
+- [x] **P0** `Visibility.Hidden` mapping: static `true/false` maps to `ElementDto.Hidden`; dynamic
+      expressions map to inverted `VisibleExpression` via `IIF(hiddenExpr, False, True)`, with
+      `CANMIGRDL015`.
 - [ ] **P0** Tablix row/column-group header extraction (`<TablixColumnHierarchy>`/`<TablixMember>`) instead of
       treating the first row as header. The comprehensive fixture includes hierarchy metadata and
       acts as the regression target for this work.

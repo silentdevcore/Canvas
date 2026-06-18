@@ -80,6 +80,9 @@
             <Left>4.2in</Left>
             <Height>0.35in</Height>
             <Width>2.7in</Width>
+            <Visibility>
+              <Hidden>=Fields!LineTotal.Value = 0</Hidden>
+            </Visibility>
             <Paragraphs>
               <Paragraph>
                 <Style><TextAlign>Right</TextAlign></Style>
@@ -261,6 +264,7 @@
           <Left>0.25in</Left>
           <Height>0.25in</Height>
           <Width>3.8in</Width>
+          <Visibility><Hidden>false</Hidden></Visibility>
           <Paragraphs><Paragraph><TextRuns><TextRun><Value>Internal use only</Value><Style><FontSize>8pt</FontSize><Color>Gray</Color></Style></TextRun></TextRuns></Paragraph></Paragraphs>
         </Textbox>
         <Textbox Name="pageNumber">

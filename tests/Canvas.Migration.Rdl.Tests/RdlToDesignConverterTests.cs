@@ -501,6 +501,7 @@ public sealed class RdlToDesignConverterTests
         Assert.Equal("Arial", title.Style!["fontFamily"]);
         Assert.Equal("center", title.Style!["textAlign"]);
         Assert.Equal("underline", title.Style!["textDecoration"]);
+        Assert.False(El(d, "confidentialNotice").Hidden);
 
         var customer = El(d, "customerName");
         Assert.Equal("CustomerName", customer.Binding);
@@ -508,6 +509,8 @@ public sealed class RdlToDesignConverterTests
 
         var grandTotal = El(d, "grandTotal");
         Assert.Equal("=Sum(Fields!LineTotal.Value)", grandTotal.Expression);
+        Assert.Equal("IIF([LineTotal] = 0, False, True)", grandTotal.VisibleExpression);
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL015" && d.Severity == MigrationDiagnosticSeverity.Warning);
 
         var panel = El(d, "summaryPanel");
         Assert.Equal("rect", panel.Type);
@@ -561,5 +564,49 @@ public sealed class RdlToDesignConverterTests
         Assert.Contains("=Fields!Product.Value", (string[])table.Style["rdlTablixSorts"]);
         Assert.Equal(new[] { "After", "Before" }, (string[])table.Style["rdlTablixKeepWithGroup"]);
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL014" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 28 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_StaticVisibilityHidden_MapsToHidden()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Textbox Name="secret"><Top>0in</Top><Left>0in</Left><Height>0.3in</Height><Width>2in</Width>
+                  <Visibility><Hidden>true</Hidden></Visibility>
+                  <Paragraphs><Paragraph><TextRuns><TextRun><Value>Secret</Value></TextRun></TextRuns></Paragraph></Paragraphs>
+                </Textbox>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var secret = El(Convert(rdl).Design, "secret");
+
+        Assert.True(secret.Hidden);
+        Assert.Null(secret.VisibleExpression);
+    }
+
+    // 29 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_DynamicVisibilityHidden_MapsToInvertedVisibleExpression()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Textbox Name="conditional"><Top>0in</Top><Left>0in</Left><Height>0.3in</Height><Width>2in</Width>
+                  <Visibility><Hidden>=Fields!Quantity.Value = 0</Hidden></Visibility>
+                  <Paragraphs><Paragraph><TextRuns><TextRun><Value>Conditional</Value></TextRun></TextRuns></Paragraph></Paragraphs>
+                </Textbox>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var conditional = El(result.Design, "conditional");
+
+        Assert.Null(conditional.Hidden);
+        Assert.Equal("IIF([Quantity] = 0, False, True)", conditional.VisibleExpression);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL015" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 }

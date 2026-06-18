@@ -156,6 +156,7 @@ public sealed class RdlToDesignConverter
                 W = LengthToPt(Child(item, "Width")?.Value),
                 H = LengthToPt(Child(item, "Height")?.Value)
             };
+            ParseVisibility(item, raw);
 
             switch (type)
             {
@@ -231,6 +232,20 @@ public sealed class RdlToDesignConverter
             raw.ImageDataUrl = dataUrl;
         }
         // External/Database/unresolved embedded → null → placeholder warning in BuildDesign.
+    }
+
+    private static void ParseVisibility(XElement el, RawElement raw)
+    {
+        var hidden = Child(Child(el, "Visibility"), "Hidden")?.Value.Trim();
+        if (string.IsNullOrWhiteSpace(hidden)) return;
+
+        if (bool.TryParse(hidden, out var hiddenValue))
+        {
+            raw.Hidden = hiddenValue;
+            return;
+        }
+
+        raw.HiddenExpression = NormalizeRdlExpression(hidden);
     }
 
     private void ApplyStyle(RawElement raw, XElement? style)
@@ -392,6 +407,7 @@ public sealed class RdlToDesignConverter
 
             if (raw.TextExpression is { } expr)
                 ApplyBinding(element, expr, diagnostics);
+            ApplyVisibility(element, raw, diagnostics);
 
             (raw.Region is RawRegion.PageHeader or RawRegion.PageFooter ? sharedElements : elements).Add(element);
             mapped++;
@@ -661,6 +677,29 @@ public sealed class RdlToDesignConverter
         }
     }
 
+    private static void ApplyVisibility(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.Hidden is { } hidden)
+            element.Hidden = hidden;
+
+        if (raw.HiddenExpression is not { Length: > 0 } hiddenExpression) return;
+
+        element.VisibleExpression = InvertHiddenExpression(hiddenExpression);
+        diagnostics.Add(Warn("CANMIGRDL015",
+            $"'{raw.Name}' RDL Hidden expression '{hiddenExpression}' was mapped to Canvas visibleExpression; review runtime semantics."));
+    }
+
+    private static string InvertHiddenExpression(string hiddenExpression) =>
+        $"IIF({hiddenExpression}, False, True)";
+
+    private static string NormalizeRdlExpression(string expression)
+    {
+        var normalized = expression.Trim();
+        if (normalized.StartsWith('='))
+            normalized = normalized[1..].Trim();
+        return Regex.Replace(normalized, @"Fields!(\w+)\.Value", "[$1]", RegexOptions.IgnoreCase);
+    }
+
     private static string? SingleFieldMatch(string expression)
     {
         var m = Regex.Match(expression, @"^\s*=\s*Fields!(\w+)\.Value\s*$");
@@ -807,6 +846,8 @@ public sealed class RdlToDesignConverter
         public string? BackColor;
         public string TextAlign = "left";
         public string? TextExpression;        // captured "=..." value
+        public bool? Hidden;
+        public string? HiddenExpression;
         public List<List<string>>? TableCells;
         public string[]? ColumnAlignments;
         public double[]? ColumnWidthsPt;
