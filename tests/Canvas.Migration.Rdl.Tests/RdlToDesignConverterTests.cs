@@ -253,6 +253,64 @@ public sealed class RdlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_TablixPercentColumnWidths_AreResolvedAgainstTableWidth()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Tablix Name="percentTable">
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>400pt</Width>
+                  <TablixBody>
+                    <TablixColumns>
+                      <TablixColumn><Width>25%</Width></TablixColumn>
+                      <TablixColumn><Width>75%</Width></TablixColumn>
+                    </TablixColumns>
+                    <TablixRows><TablixRow><Height>0.25in</Height><TablixCells>
+                      <TablixCell><CellContents><Textbox Name="a"><Value>A</Value></Textbox></CellContents></TablixCell>
+                      <TablixCell><CellContents><Textbox Name="b"><Value>B</Value></Textbox></CellContents></TablixCell>
+                    </TablixCells></TablixRow></TablixRows>
+                  </TablixBody>
+                </Tablix>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var table = El(Convert(rdl).Design, "percentTable");
+
+        Assert.Equal(new[] { 100.0, 300.0 }, table.ColumnWidths);
+    }
+
+    [Fact]
+    public void Convert_TablixRelativeColumnWidths_ShareRemainingWidth()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Tablix Name="relativeTable">
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>360pt</Width>
+                  <TablixBody>
+                    <TablixColumns>
+                      <TablixColumn><Width>60pt</Width></TablixColumn>
+                      <TablixColumn><Width>1*</Width></TablixColumn>
+                      <TablixColumn><Width>2*</Width></TablixColumn>
+                    </TablixColumns>
+                    <TablixRows><TablixRow><Height>0.25in</Height><TablixCells>
+                      <TablixCell><CellContents><Textbox Name="a"><Value>A</Value></Textbox></CellContents></TablixCell>
+                      <TablixCell><CellContents><Textbox Name="b"><Value>B</Value></Textbox></CellContents></TablixCell>
+                      <TablixCell><CellContents><Textbox Name="c"><Value>C</Value></Textbox></CellContents></TablixCell>
+                    </TablixCells></TablixRow></TablixRows>
+                  </TablixBody>
+                </Tablix>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var table = El(Convert(rdl).Design, "relativeTable");
+
+        Assert.Equal(new[] { 60.0, 100.0, 200.0 }, table.ColumnWidths);
+    }
+
+    [Fact]
     public void Convert_TablixDetailOnlyHierarchy_DoesNotTreatFirstDataRowAsHeader()
     {
         var rdl = """
@@ -1030,6 +1088,82 @@ public sealed class RdlToDesignConverterTests
         Assert.Equal("metrics", gauge.Style!["rdlParentTablix"]);
         Assert.Equal(1, gauge.Style["rdlParentTablixRow"]);
         Assert.Equal(1, gauge.Style["rdlParentTablixColumn"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL023" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
+    public void Convert_NestedTablixInGroupedCell_ExtractsTableWithRepeatScope()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Tablix Name="master">
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>4in</Width>
+                  <TablixBody>
+                    <TablixColumns>
+                      <TablixColumn><Width>2in</Width></TablixColumn>
+                      <TablixColumn><Width>2in</Width></TablixColumn>
+                    </TablixColumns>
+                    <TablixRows>
+                      <TablixRow><Height>0.25in</Height><TablixCells>
+                        <TablixCell><CellContents><Textbox Name="category"><Value>=Fields!Category.Value</Value></Textbox></CellContents></TablixCell>
+                        <TablixCell><CellContents><Textbox Name="summary"><Value>=Sum(Fields!Total.Value)</Value></Textbox></CellContents></TablixCell>
+                      </TablixCells></TablixRow>
+                      <TablixRow><Height>0.75in</Height><TablixCells>
+                        <TablixCell><CellContents>
+                          <Tablix Name="detail">
+                            <Top>0.05in</Top><Left>0.1in</Left><Height>0.5in</Height><Width>3.5in</Width>
+                            <TablixBody>
+                              <TablixColumns><TablixColumn><Width>2in</Width></TablixColumn><TablixColumn><Width>1.5in</Width></TablixColumn></TablixColumns>
+                              <TablixRows>
+                                <TablixRow><Height>0.2in</Height><TablixCells>
+                                  <TablixCell><CellContents><Textbox Name="hProduct"><Value>Product</Value></Textbox></CellContents></TablixCell>
+                                  <TablixCell><CellContents><Textbox Name="hQty"><Value>Qty</Value></Textbox></CellContents></TablixCell>
+                                </TablixCells></TablixRow>
+                                <TablixRow><Height>0.3in</Height><TablixCells>
+                                  <TablixCell><CellContents><Textbox Name="dProduct"><Value>=Fields!Product.Value</Value></Textbox></CellContents></TablixCell>
+                                  <TablixCell><CellContents><Textbox Name="dQty"><Value>=Fields!Quantity.Value</Value></Textbox></CellContents></TablixCell>
+                                </TablixCells></TablixRow>
+                              </TablixRows>
+                            </TablixBody>
+                            <TablixColumnHierarchy><TablixMembers><TablixMember /><TablixMember /></TablixMembers></TablixColumnHierarchy>
+                            <TablixRowHierarchy><TablixMembers><TablixMember><KeepWithGroup>After</KeepWithGroup></TablixMember><TablixMember><Group Name="DetailRows" /></TablixMember></TablixMembers></TablixRowHierarchy>
+                          </Tablix>
+                          <ColSpan>2</ColSpan>
+                        </CellContents></TablixCell>
+                        <TablixCell />
+                      </TablixCells></TablixRow>
+                    </TablixRows>
+                  </TablixBody>
+                  <TablixColumnHierarchy><TablixMembers><TablixMember /><TablixMember /></TablixMembers></TablixColumnHierarchy>
+                  <TablixRowHierarchy><TablixMembers>
+                    <TablixMember>
+                      <Group Name="CategoryGroup"><GroupExpressions><GroupExpression>=Fields!Category.Value</GroupExpression></GroupExpressions></Group>
+                      <TablixMembers><TablixMember /><TablixMember /></TablixMembers>
+                    </TablixMember>
+                  </TablixMembers></TablixRowHierarchy>
+                </Tablix>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var master = El(result.Design, "master");
+        var detail = El(result.Design, "detail");
+
+        Assert.Equal("table", detail.Type);
+        Assert.Contains("detail", Assert.IsType<string[]>(master.Style!["rdlExtractedCellItems"]));
+        Assert.Equal(new[] { "Product", "Qty" }, detail.CellData![0]);
+        Assert.Equal(new[] { "{{Product}}", "{{Quantity}}" }, detail.CellData![1]);
+        Assert.Equal("master", detail.Style!["rdlParentTablix"]);
+        Assert.Equal(1, detail.Style["rdlParentTablixRow"]);
+        Assert.Equal(0, detail.Style["rdlParentTablixColumn"]);
+        Assert.Equal(2, detail.Style["rdlParentTablixColumnSpan"]);
+
+        var scope = Assert.IsType<Dictionary<string, object>>(detail.Style["rdlParentTablixRepeatScope"]);
+        var groups = Assert.IsType<Dictionary<string, object>[]>(scope["groups"]);
+        Assert.Equal("CategoryGroup", groups[0]["name"]);
+        Assert.Equal(new[] { "=Fields!Category.Value" }, Assert.IsType<string[]>(groups[0]["expressions"]));
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL023" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 

@@ -159,7 +159,11 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       `style.rdlTablixRowHierarchy` / `style.rdlTablixColumnHierarchy`; `HeaderRow` is derived from static
       row-hierarchy headers when present instead of blindly treating the first row as a header (`CANMIGRDL029`).
 - [ ] **P1** Canvas-native rendering for multi-level Matrix/group headers from preserved Tablix hierarchy metadata.
-- [ ] **P0** Nested Tablix / detail grouping → repeat semantics.
+- [x] **P0** Nested Tablix/Table inside Tablix cells are extracted as positioned Canvas `table` elements with
+      `rdlParentTablix`, cell row/column, row/column span, and `rdlParentTablixRepeatScope` metadata that preserves
+      the parent row/column hierarchy and group expressions (`CANMIGRDL023`).
+- [ ] **P1** Canvas-native repeat execution for extracted nested Tablix/detail rows; metadata is preserved, but the
+      current Canvas table model still renders the nested table as an absolute child overlay.
 - [ ] `<Code>` / custom-function expression translation (blocked on Canvas `ExpressionEvaluator` being a
       stub — same limitation as DevExpress).
 - [x] Native `Chart` and `CustomReportItem` Chart → Canvas `chart` placeholder with `ChartData` and RDL metadata
@@ -182,8 +186,8 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       samples) are extracted as separate positioned Canvas elements with `style.rdlParentTablix`,
       `style.rdlParentTablixRow`, `style.rdlParentTablixColumn`, and table-level `style.rdlExtractedCellItems`
       plus `CANMIGRDL023`.
-- [ ] **P1** Richer Table cell-content modeling: extracted nested items preserve visibility, but repeated data-row
-      semantics still need a Canvas-native model instead of absolute overlay elements.
+- [ ] **P1** Richer Table cell-content modeling: extracted nested items preserve visibility and repeat scope, but
+      repeated data-row semantics still need a Canvas-native model instead of absolute overlay elements.
 - [x] `ReportParameters` / `ReportParametersLayout` → `PageSettings.CustomProperties` JSON metadata
       (`rdlReportParameters`, `rdlReportParametersLayout`) plus `CANMIGRDL024`.
 - [x] Element/DataRegion/Tablix group `Filters` → `style.rdlFilters`, `style.rdlTablixGroupFilters`, or nested
@@ -200,7 +204,8 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [x] **P0** External / database image sources: external image references are preserved as image
       `Content` plus `style.rdlImageSource = "External"`; database image field expressions map to
       image binding/content placeholders plus `style.rdlImageSource = "Database"` (`CANMIGRDL012`).
-- [ ] **P0** Percentage / relative lengths for Tablix columns.
+- [x] **P0** Percentage / relative lengths for Tablix columns: `%` widths are resolved against the Tablix/Table
+      width, and simple relative weights such as `*`, `1*`, `2*` share remaining width after absolute columns.
 - [x] **P0** Multi-run textbox per-run formatting: multiple/styled `TextRun`s import as Canvas
       `richtext` with inline HTML spans; simple single-run textboxes keep the old `text`/binding path.
 - [ ] **P1** Promote preserved RDL chart expressions to real data evaluation/sample extraction once Canvas chart

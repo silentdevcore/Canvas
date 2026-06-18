@@ -646,8 +646,7 @@ public sealed class RdlToDesignConverter
         if (tablixBody is not null)
         {
             // 2016 Tablix
-            raw.ColumnWidthsPt = Children(Child(tablixBody, "TablixColumns"), "TablixColumn")
-                .Select(c => LengthToPt(Child(c, "Width")?.Value)).Where(w => w > 0).ToArray() is { Length: > 0 } cw ? cw : null;
+            raw.ColumnWidthsPt = ParseColumnWidths(Children(Child(tablixBody, "TablixColumns"), "TablixColumn"), raw.W);
 
             var rows = Children(Child(tablixBody, "TablixRows"), "TablixRow").ToList();
             headerRow = rows.FirstOrDefault();
@@ -655,16 +654,20 @@ public sealed class RdlToDesignConverter
                 grid.Add(Children(Child(row, "TablixCells"), "TablixCell")
                     .Select(cell => CellDisplay(ExtractTextboxValue(TablixCellTextbox(cell)))).ToList());
 
-            ExtractNestedTablixItems(raw, report, rows, true);
             raw.TablixColumnHierarchy = ParseTablixHierarchy(el, "TablixColumnHierarchy");
             raw.TablixRowHierarchy = ParseTablixHierarchy(el, "TablixRowHierarchy");
             raw.TableHeaderRow = DetermineTablixHeaderRow(raw.TablixRowHierarchy);
+            raw.TablixGroups = ParseTablixGroups(el);
+            raw.TablixSorts = ParseTablixSorts(el);
+            raw.TablixKeepWithGroups = ParseTablixKeepWithGroups(el);
+            raw.TablixGroupFilters = ParseTablixGroupFilters(el);
+            raw.TablixNavigationMetadata = ParseTablixNavigationMetadata(el);
+            ExtractNestedTablixItems(raw, report, rows, true);
         }
         else
         {
             // 2008 Table
-            raw.ColumnWidthsPt = Children(Child(el, "TableColumns"), "TableColumn")
-                .Select(c => LengthToPt(Child(c, "Width")?.Value)).Where(w => w > 0).ToArray() is { Length: > 0 } cw ? cw : null;
+            raw.ColumnWidthsPt = ParseColumnWidths(Children(Child(el, "TableColumns"), "TableColumn"), raw.W);
 
             var rows = TableRows(Child(el, "Header")).Concat(TableRows(Child(el, "Details"))).ToList();
             headerRow = rows.FirstOrDefault();
@@ -672,17 +675,17 @@ public sealed class RdlToDesignConverter
                 grid.Add(Children(Child(row, "TableCells"), "TableCell")
                     .Select(cell => CellDisplay(ExtractTextboxValue(TableCellTextbox(cell)))).ToList());
 
-            ExtractNestedTablixItems(raw, report, rows, false);
             raw.TableHeaderRow = Child(el, "Header") is not null;
+            raw.TablixGroups = ParseTablixGroups(el);
+            raw.TablixSorts = ParseTablixSorts(el);
+            raw.TablixKeepWithGroups = ParseTablixKeepWithGroups(el);
+            raw.TablixGroupFilters = ParseTablixGroupFilters(el);
+            raw.TablixNavigationMetadata = ParseTablixNavigationMetadata(el);
+            ExtractNestedTablixItems(raw, report, rows, false);
         }
 
         raw.TableCells = grid.Count > 0 ? grid : null;
         raw.ColumnAlignments = headerRow is null ? null : HeaderAlignments(headerRow, tablixBody is not null);
-        raw.TablixGroups = ParseTablixGroups(el);
-        raw.TablixSorts = ParseTablixSorts(el);
-        raw.TablixKeepWithGroups = ParseTablixKeepWithGroups(el);
-        raw.TablixGroupFilters = ParseTablixGroupFilters(el);
-        raw.TablixNavigationMetadata = ParseTablixNavigationMetadata(el);
         raw.PaginationMetadata["TablixMemberRepeatOnNewPage"] = ParseTablixMemberValues(el, "RepeatOnNewPage");
         raw.PaginationMetadata["TablixMemberKeepTogether"] = ParseTablixMemberValues(el, "KeepTogether");
         raw.PaginationMetadata["TablixMemberFixedData"] = ParseTablixMemberValues(el, "FixedData");
@@ -713,7 +716,7 @@ public sealed class RdlToDesignConverter
                     .ToList();
                 foreach (var item in cellItems)
                 {
-                    var nested = ParseNestedCellItem(item, table, rowIndex, columnIndex, x, y);
+                    var nested = ParseNestedCellItem(item, table, report, cells[columnIndex], rowIndex, columnIndex, x, y);
                     if (nested is null) continue;
                     report.Elements.Add(nested);
                     table.TablixNestedItemNames.Add(nested.Name);
@@ -726,9 +729,18 @@ public sealed class RdlToDesignConverter
         }
     }
 
-    private RawElement? ParseNestedCellItem(XElement item, RawElement table, int rowIndex, int columnIndex, double cellX, double cellY)
+    private RawElement? ParseNestedCellItem(
+        XElement item,
+        RawElement table,
+        RawReport report,
+        XElement cell,
+        int rowIndex,
+        int columnIndex,
+        double cellX,
+        double cellY)
     {
         var type = item.Name.LocalName;
+        var cellContents = Child(cell, "CellContents");
         var raw = new RawElement
         {
             Name = Attr(item, "Name") ?? $"{table.Name}_r{rowIndex}_c{columnIndex}_{type}",
@@ -740,7 +752,10 @@ public sealed class RdlToDesignConverter
             H = LengthToPt(Child(item, "Height")?.Value),
             ParentTablixName = table.Name,
             ParentTablixRow = rowIndex,
-            ParentTablixColumn = columnIndex
+            ParentTablixColumn = columnIndex,
+            ParentTablixRowSpan = IntValue(Child(cellContents, "RowSpan")?.Value),
+            ParentTablixColumnSpan = IntValue(Child(cellContents, "ColSpan")?.Value),
+            ParentTablixRepeatScope = ParentTablixRepeatScope(table, rowIndex, columnIndex)
         };
         ParseVisibility(item, raw);
         ParsePaginationMetadata(item, raw);
@@ -765,6 +780,10 @@ public sealed class RdlToDesignConverter
             case "GaugePanel":
                 ParseGaugePanel(item, raw);
                 break;
+            case "Tablix":
+            case "Table":
+                ParseTablix(item, raw, report);
+                break;
             case "CustomReportItem":
                 raw.CustomType = Child(item, "Type")?.Value;
                 raw.CustomProps = ParseCustomProperties(item);
@@ -775,6 +794,51 @@ public sealed class RdlToDesignConverter
 
         return raw;
     }
+
+    private static Dictionary<string, object> ParentTablixRepeatScope(RawElement table, int rowIndex, int columnIndex)
+    {
+        var scope = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["parent"] = table.Name,
+            ["row"] = rowIndex,
+            ["column"] = columnIndex
+        };
+
+        if (table.TablixRowHierarchy is { Count: > 0 })
+            scope["rowHierarchy"] = table.TablixRowHierarchy.Select(TablixMemberMetadataStyle).ToArray();
+        if (table.TablixColumnHierarchy is { Count: > 0 })
+            scope["columnHierarchy"] = table.TablixColumnHierarchy.Select(TablixMemberMetadataStyle).ToArray();
+        var groups = RepeatScopeGroups(table).ToArray();
+        if (groups.Length > 0)
+            scope["groups"] = groups;
+
+        return scope;
+    }
+
+    private static IEnumerable<Dictionary<string, object>> RepeatScopeGroups(RawElement table)
+    {
+        var members = (table.TablixRowHierarchy ?? [])
+            .Concat(table.TablixColumnHierarchy ?? [])
+            .Where(m => !m.IsStatic && !string.IsNullOrWhiteSpace(m.GroupName));
+
+        foreach (var member in members)
+        {
+            var item = new Dictionary<string, object>
+            {
+                ["name"] = member.GroupName!
+            };
+            if (member.GroupExpressions.Length > 0)
+                item["expressions"] = member.GroupExpressions;
+            if (member.SortExpressions.Length > 0)
+                item["sortExpressions"] = member.SortExpressions;
+            yield return item;
+        }
+    }
+
+    private static int? IntValue(string? value) =>
+        int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) && parsed > 0
+            ? parsed
+            : null;
 
     private static IEnumerable<XElement> NestedCellItems(XElement cell, bool tablix)
     {
@@ -1480,6 +1544,12 @@ public sealed class RdlToDesignConverter
         element.Style["rdlParentTablix"] = parent;
         element.Style["rdlParentTablixRow"] = raw.ParentTablixRow ?? 0;
         element.Style["rdlParentTablixColumn"] = raw.ParentTablixColumn ?? 0;
+        if (raw.ParentTablixRowSpan is { } rowSpan)
+            element.Style["rdlParentTablixRowSpan"] = rowSpan;
+        if (raw.ParentTablixColumnSpan is { } columnSpan)
+            element.Style["rdlParentTablixColumnSpan"] = columnSpan;
+        if (raw.ParentTablixRepeatScope is { Count: > 0 })
+            element.Style["rdlParentTablixRepeatScope"] = raw.ParentTablixRepeatScope;
         diagnostics.Add(Warn("CANMIGRDL023",
             $"'{raw.Name}' was extracted from Tablix '{parent}' cell [{raw.ParentTablixRow},{raw.ParentTablixColumn}] as a separate positioned element; review repeat semantics."));
     }
@@ -1888,6 +1958,101 @@ public sealed class RdlToDesignConverter
         return Enumerable.Repeat(totalWidth / columns, columns).ToArray();
     }
 
+    private static double[]? ParseColumnWidths(IEnumerable<XElement> columns, double totalWidth)
+    {
+        var specs = columns.Select(c => Child(c, "Width")?.Value).ToList();
+        if (specs.Count == 0) return null;
+
+        var widths = new double[specs.Count];
+        var relativeWeights = new double[specs.Count];
+        var unresolved = new List<int>();
+        var fixedWidth = 0.0;
+        var totalWeight = 0.0;
+
+        for (var i = 0; i < specs.Count; i++)
+        {
+            var spec = specs[i]?.Trim();
+            if (string.IsNullOrWhiteSpace(spec))
+            {
+                unresolved.Add(i);
+                continue;
+            }
+
+            if (TryParsePercent(spec, out var percent))
+            {
+                widths[i] = totalWidth * percent / 100.0;
+                fixedWidth += widths[i];
+                continue;
+            }
+
+            if (TryParseRelativeWeight(spec, out var weight))
+            {
+                relativeWeights[i] = weight;
+                totalWeight += weight;
+                continue;
+            }
+
+            var absolute = LengthToPt(spec);
+            if (absolute > 0)
+            {
+                widths[i] = absolute;
+                fixedWidth += absolute;
+            }
+            else
+            {
+                unresolved.Add(i);
+            }
+        }
+
+        var remaining = Math.Max(totalWidth - fixedWidth, 0);
+        if (totalWeight > 0)
+        {
+            for (var i = 0; i < relativeWeights.Length; i++)
+            {
+                if (relativeWeights[i] <= 0) continue;
+                widths[i] = remaining * relativeWeights[i] / totalWeight;
+            }
+        }
+
+        if (unresolved.Count > 0)
+        {
+            var used = widths.Sum();
+            var unresolvedWidth = Math.Max(totalWidth - used, 0);
+            var fallback = unresolvedWidth > 0 ? unresolvedWidth / unresolved.Count : totalWidth / specs.Count;
+            foreach (var index in unresolved)
+                widths[index] = fallback;
+        }
+
+        return widths.All(w => w > 0) ? widths : null;
+    }
+
+    private static bool TryParsePercent(string value, out double percent)
+    {
+        percent = 0;
+        var trimmed = value.Trim();
+        if (!trimmed.EndsWith('%')) return false;
+
+        return double.TryParse(trimmed[..^1].Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out percent)
+            && percent > 0;
+    }
+
+    private static bool TryParseRelativeWeight(string value, out double weight)
+    {
+        weight = 0;
+        var trimmed = value.Trim();
+        if (!trimmed.EndsWith('*')) return false;
+
+        var number = trimmed[..^1].Trim();
+        if (number.Length == 0)
+        {
+            weight = 1;
+            return true;
+        }
+
+        return double.TryParse(number, NumberStyles.Any, CultureInfo.InvariantCulture, out weight)
+            && weight > 0;
+    }
+
     private static string[]? FitColumns(string[]? aligns, int columns)
     {
         if (aligns is not { Length: > 0 }) return null;
@@ -2188,6 +2353,9 @@ public sealed class RdlToDesignConverter
         public string? ParentTablixName;
         public int? ParentTablixRow;
         public int? ParentTablixColumn;
+        public int? ParentTablixRowSpan;
+        public int? ParentTablixColumnSpan;
+        public Dictionary<string, object>? ParentTablixRepeatScope;
     }
 
     private sealed record RdlTablixGroup(string Name, string[] Expressions);
