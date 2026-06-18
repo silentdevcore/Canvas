@@ -581,9 +581,12 @@ public sealed class RdlToDesignConverterTests
         Assert.Equal("Gauge", gauge.Style!["rdlCustomItemType"]);
         Assert.Equal("text", subreport.Type);
         Assert.Contains("Sub-report", subreport.Content);
+        var subreportPagination = Assert.IsType<Dictionary<string, object>>(subreport.Style!["rdlPagination"]);
+        Assert.Equal("End", subreportPagination["PageBreak.BreakLocation"]);
         Assert.True(Has(r.Diagnostics, "CANMIGRDL011"));
         Assert.True(Has(r.Diagnostics, "CANMIGRDL017"));
         Assert.True(Has(r.Diagnostics, "CANMIGRDL018"));
+        Assert.True(Has(r.Diagnostics, "CANMIGRDL019"));
     }
 
     // 27 ──────────────────────────────────────────────────────────────────────────────────────────
@@ -608,7 +611,13 @@ public sealed class RdlToDesignConverterTests
         Assert.Equal(new[] { "=Fields!Region.Value" }, Assert.IsType<string[]>(group["expressions"]));
         Assert.Contains("=Fields!Product.Value", (string[])table.Style["rdlTablixSorts"]);
         Assert.Equal(new[] { "After", "Before" }, (string[])table.Style["rdlTablixKeepWithGroup"]);
+        var pagination = Assert.IsType<Dictionary<string, object>>(table.Style["rdlPagination"]);
+        Assert.Equal("Sales Matrix", pagination["PageName"]);
+        Assert.Equal("true", pagination["KeepTogether"]);
+        Assert.Equal(new[] { "true" }, Assert.IsType<string[]>(pagination["TablixMemberRepeatOnNewPage"]));
+        Assert.Equal(new[] { "true" }, Assert.IsType<string[]>(pagination["TablixMemberFixedData"]));
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL014" && d.Severity == MigrationDiagnosticSeverity.Warning);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL019" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
     // 28 ──────────────────────────────────────────────────────────────────────────────────────────
@@ -681,5 +690,34 @@ public sealed class RdlToDesignConverterTests
         Assert.Contains("""<span style="font-weight:bold">Total: </span>""", mixed.HtmlContent);
         Assert.Contains("""<span style="color:#008000;text-decoration:underline">{{Total}}</span>""", mixed.HtmlContent);
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL016" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 31 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_PageBreakAndRepeatMetadata_IsPreservedOnStyle()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Rectangle Name="section"><Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>2in</Width>
+                  <PageName>Section One</PageName>
+                  <KeepTogether>true</KeepTogether>
+                  <RepeatOnNewPage>true</RepeatOnNewPage>
+                  <PageBreak><BreakLocation>StartAndEnd</BreakLocation><ResetPageNumber>true</ResetPageNumber></PageBreak>
+                </Rectangle>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var section = El(result.Design, "section");
+        var pagination = Assert.IsType<Dictionary<string, object>>(section.Style!["rdlPagination"]);
+
+        Assert.Equal("Section One", pagination["PageName"]);
+        Assert.Equal("true", pagination["KeepTogether"]);
+        Assert.Equal("true", pagination["RepeatOnNewPage"]);
+        Assert.Equal("StartAndEnd", pagination["PageBreak.BreakLocation"]);
+        Assert.Equal("true", pagination["PageBreak.ResetPageNumber"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL019" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 }

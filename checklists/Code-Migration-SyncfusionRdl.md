@@ -74,7 +74,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 - [x] Frontend **"Syncfusion / RDL Reports"** entry + **Open in Designer** (loads via
       `bulkReplaceContent`) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
 
-### Tests (37 passing)
+### Tests (38 passing)
 - [x] Page size from lengths; length-unit parsing; absolute positioning; textbox style; named colours;
       `=Fields!X.Value` binding vs complex expression; literal text; Tablix-2016 + Table-2008 → table;
       column alignments/widths; page header/footer → shared; rectangle flatten; line stroke/dash;
@@ -85,8 +85,8 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
       `tests/Canvas.Migration.Rdl.Tests/Fixtures/ComprehensiveSyncfusionReport.rdl`.
       Covers page header/footer, embedded images, nested rectangles, mixed units (`cm`, `mm`, `in`, `pt`),
       field bindings, complex expressions, multi-run rich text, dashed lines, a multi-column Tablix with
-      hierarchy metadata, visibility rules, database image binding, barcode custom item, Chart/Gauge
-      placeholders, and Subreport placeholder.
+      hierarchy/pagination metadata, visibility rules, database image binding, barcode custom item,
+      Chart/Gauge placeholders, and Subreport placeholder.
 - [x] **End-to-end**: a converted RDL renders to a valid PDF through the real export pipeline
       (`DesignJsonMapper` → `ToBytes`) — in `Canvas.Export.Tests`.
 
@@ -104,6 +104,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL016` | Warning | Multi-run/styled RDL textbox imported as Canvas richtext; inline formatting needs review |
 | `CANMIGRDL017` | Warning | RDL Chart imported as editable Canvas chart placeholder; series/category/value bindings need review |
 | `CANMIGRDL018` | Warning | RDL Gauge metadata preserved on a positioned placeholder; Canvas has no native gauge element yet |
+| `CANMIGRDL019` | Warning | RDL pagination/repeat metadata preserved; Canvas pagination behaviour needs review |
 
 ---
 
@@ -126,6 +127,9 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [x] **P0** Preserve Tablix hierarchy metadata (`Group`, `GroupExpressions`, `SortExpressions`,
       `KeepWithGroup`) on the Canvas table style as `rdlTablixGroups`, `rdlTablixSorts`, and
       `rdlTablixKeepWithGroup`, with `CANMIGRDL014`.
+- [x] **P0** Preserve pagination/repeat metadata (`PageBreak`, `PageName`, `KeepTogether`,
+      `RepeatOnNewPage`, `FixedData`, and TablixMember repeat flags) on `style.rdlPagination`, with
+      `CANMIGRDL019`.
 - [x] **P0** `Visibility.Hidden` mapping: static `true/false` maps to `ElementDto.Hidden`; dynamic
       expressions map to inverted `VisibleExpression` via `IIF(hiddenExpr, False, True)`, with
       `CANMIGRDL015`.

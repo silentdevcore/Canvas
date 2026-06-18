@@ -158,6 +158,7 @@ public sealed class RdlToDesignConverter
                 H = LengthToPt(Child(item, "Height")?.Value)
             };
             ParseVisibility(item, raw);
+            ParsePaginationMetadata(item, raw);
 
             switch (type)
             {
@@ -390,6 +391,42 @@ public sealed class RdlToDesignConverter
         raw.TablixGroups = ParseTablixGroups(el);
         raw.TablixSorts = ParseTablixSorts(el);
         raw.TablixKeepWithGroups = ParseTablixKeepWithGroups(el);
+        raw.PaginationMetadata["TablixMemberRepeatOnNewPage"] = ParseTablixMemberValues(el, "RepeatOnNewPage");
+        raw.PaginationMetadata["TablixMemberKeepTogether"] = ParseTablixMemberValues(el, "KeepTogether");
+        raw.PaginationMetadata["TablixMemberFixedData"] = ParseTablixMemberValues(el, "FixedData");
+    }
+
+    private static void ParsePaginationMetadata(XElement item, RawElement raw)
+    {
+        var metadata = raw.PaginationMetadata;
+        AddText(metadata, "PageName", Child(item, "PageName")?.Value);
+        AddText(metadata, "KeepTogether", Child(item, "KeepTogether")?.Value);
+        AddText(metadata, "RepeatWith", Child(item, "RepeatWith")?.Value);
+        AddText(metadata, "RepeatOnNewPage", Child(item, "RepeatOnNewPage")?.Value);
+        AddText(metadata, "FixedData", Child(item, "FixedData")?.Value);
+
+        var pageBreak = Child(item, "PageBreak");
+        if (pageBreak is not null)
+        {
+            AddText(metadata, "PageBreak.BreakLocation", Child(pageBreak, "BreakLocation")?.Value);
+            AddText(metadata, "PageBreak.Disabled", Child(pageBreak, "Disabled")?.Value);
+            AddText(metadata, "PageBreak.ResetPageNumber", Child(pageBreak, "ResetPageNumber")?.Value);
+        }
+    }
+
+    private static string[] ParseTablixMemberValues(XElement tablix, string name) =>
+        tablix.Descendants()
+            .Where(e => e.Name.LocalName == "TablixMember")
+            .Select(m => Child(m, name)?.Value.Trim())
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Cast<string>()
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+    private static void AddText(Dictionary<string, object> target, string key, string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            target[key] = value.Trim();
     }
 
     private static List<RdlTablixGroup> ParseTablixGroups(XElement tablix)
@@ -486,6 +523,7 @@ public sealed class RdlToDesignConverter
             if (raw.TextExpression is { } expr)
                 ApplyBinding(element, expr, diagnostics);
             ApplyVisibility(element, raw, diagnostics);
+            ApplyPaginationMetadata(element, raw, diagnostics);
 
             (raw.Region is RawRegion.PageHeader or RawRegion.PageFooter ? sharedElements : elements).Add(element);
             mapped++;
@@ -884,6 +922,25 @@ public sealed class RdlToDesignConverter
             $"'{raw.Name}' RDL Hidden expression '{hiddenExpression}' was mapped to Canvas visibleExpression; review runtime semantics."));
     }
 
+    private static void ApplyPaginationMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        var metadata = raw.PaginationMetadata
+            .Where(kvp => kvp.Value switch
+            {
+                string[] arr => arr.Length > 0,
+                string s => s.Length > 0,
+                _ => true
+            })
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value, StringComparer.Ordinal);
+
+        if (metadata.Count == 0) return;
+
+        element.Style ??= [];
+        element.Style["rdlPagination"] = metadata;
+        diagnostics.Add(Warn("CANMIGRDL019",
+            $"'{raw.Name}' RDL pagination/repeat metadata was preserved; Canvas pagination behaviour requires review."));
+    }
+
     private static string InvertHiddenExpression(string hiddenExpression) =>
         $"IIF({hiddenExpression}, False, True)";
 
@@ -1044,6 +1101,7 @@ public sealed class RdlToDesignConverter
         public string? RichTextHtml;
         public bool? Hidden;
         public string? HiddenExpression;
+        public Dictionary<string, object> PaginationMetadata = new(StringComparer.Ordinal);
         public List<List<string>>? TableCells;
         public string[]? ColumnAlignments;
         public double[]? ColumnWidthsPt;

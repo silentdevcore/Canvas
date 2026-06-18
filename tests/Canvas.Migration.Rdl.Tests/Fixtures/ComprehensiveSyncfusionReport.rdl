@@ -110,6 +110,8 @@
         <Height>2.1in</Height>
         <Width>7.35in</Width>
         <DataSetName>Sales</DataSetName>
+        <KeepTogether>true</KeepTogether>
+        <PageName>Sales Matrix</PageName>
         <TablixBody>
           <TablixColumns>
             <TablixColumn><Width>1.25in</Width></TablixColumn>
@@ -157,12 +159,12 @@
         </TablixColumnHierarchy>
         <TablixRowHierarchy>
           <TablixMembers>
-            <TablixMember><KeepWithGroup>After</KeepWithGroup></TablixMember>
+            <TablixMember><KeepWithGroup>After</KeepWithGroup><RepeatOnNewPage>true</RepeatOnNewPage><FixedData>true</FixedData></TablixMember>
             <TablixMember>
               <Group Name="RegionGroup"><GroupExpressions><GroupExpression>=Fields!Region.Value</GroupExpression></GroupExpressions></Group>
               <SortExpressions><SortExpression><Value>=Fields!Product.Value</Value></SortExpression></SortExpressions>
             </TablixMember>
-            <TablixMember><KeepWithGroup>Before</KeepWithGroup></TablixMember>
+            <TablixMember><KeepWithGroup>Before</KeepWithGroup><KeepTogether>true</KeepTogether></TablixMember>
           </TablixMembers>
         </TablixRowHierarchy>
       </Tablix>
@@ -225,6 +227,7 @@
         <Left>0.25in</Left>
         <Height>0.5in</Height>
         <Width>7.35in</Width>
+        <PageBreak><BreakLocation>End</BreakLocation><ResetPageNumber>false</ResetPageNumber></PageBreak>
         <ReportName>RegionalDetail</ReportName>
       </Subreport>
     </ReportItems>
