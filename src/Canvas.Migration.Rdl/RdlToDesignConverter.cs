@@ -294,7 +294,40 @@ public sealed class RdlToDesignConverter
 
         raw.TableCells = grid.Count > 0 ? grid : null;
         raw.ColumnAlignments = headerRow is null ? null : HeaderAlignments(headerRow, tablixBody is not null);
+        raw.TablixGroups = ParseTablixGroups(el);
+        raw.TablixSorts = ParseTablixSorts(el);
+        raw.TablixKeepWithGroups = ParseTablixKeepWithGroups(el);
     }
+
+    private static List<RdlTablixGroup> ParseTablixGroups(XElement tablix)
+    {
+        var groups = new List<RdlTablixGroup>();
+        foreach (var group in tablix.Descendants().Where(e => e.Name.LocalName == "Group"))
+        {
+            var expressions = Children(Child(group, "GroupExpressions"), "GroupExpression")
+                .Select(e => e.Value.Trim())
+                .Where(v => v.Length > 0)
+                .ToArray();
+            groups.Add(new RdlTablixGroup(Attr(group, "Name") ?? "", expressions));
+        }
+        return groups;
+    }
+
+    private static List<string> ParseTablixSorts(XElement tablix) =>
+        tablix.Descendants()
+            .Where(e => e.Name.LocalName == "SortExpression")
+            .Select(e => Child(e, "Value")?.Value.Trim())
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Cast<string>()
+            .ToList();
+
+    private static List<string> ParseTablixKeepWithGroups(XElement tablix) =>
+        tablix.Descendants()
+            .Where(e => e.Name.LocalName == "KeepWithGroup")
+            .Select(e => e.Value.Trim())
+            .Where(v => v.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
     private static Dictionary<string, string> ParseCustomProperties(XElement item)
     {
@@ -523,7 +556,7 @@ public sealed class RdlToDesignConverter
             .Select(r => r.Count == columns ? r.ToArray() : r.Concat(Enumerable.Repeat("", columns - r.Count)).ToArray())
             .ToArray();
 
-        return new ElementDto
+        var element = new ElementDto
         {
             Id = $"rdl-{raw.Name}",
             Name = raw.Name,
@@ -537,6 +570,35 @@ public sealed class RdlToDesignConverter
             ColumnAlignments = FitColumns(raw.ColumnAlignments, columns),
             HeaderRow = true
         };
+        ApplyTablixMetadata(element, raw, diagnostics);
+        return element;
+    }
+
+    private static void ApplyTablixMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.TablixGroups is not { Count: > 0 }
+            && raw.TablixSorts is not { Count: > 0 }
+            && raw.TablixKeepWithGroups is not { Count: > 0 })
+            return;
+
+        element.Style ??= [];
+        if (raw.TablixGroups is { Count: > 0 })
+        {
+            element.Style["rdlTablixGroups"] = raw.TablixGroups
+                .Select(g => new Dictionary<string, object>
+                {
+                    ["name"] = g.Name,
+                    ["expressions"] = g.Expressions
+                })
+                .ToArray();
+        }
+        if (raw.TablixSorts is { Count: > 0 })
+            element.Style["rdlTablixSorts"] = raw.TablixSorts.ToArray();
+        if (raw.TablixKeepWithGroups is { Count: > 0 })
+            element.Style["rdlTablixKeepWithGroup"] = raw.TablixKeepWithGroups.ToArray();
+
+        diagnostics.Add(Warn("CANMIGRDL014",
+            $"'{raw.Name}' Tablix grouping/sorting metadata was preserved; Canvas repeat/group semantics still require review."));
     }
 
     private static double[] FitWidths(double[]? widths, int columns, double totalWidth)
@@ -748,10 +810,15 @@ public sealed class RdlToDesignConverter
         public List<List<string>>? TableCells;
         public string[]? ColumnAlignments;
         public double[]? ColumnWidthsPt;
+        public List<RdlTablixGroup>? TablixGroups;
+        public List<string>? TablixSorts;
+        public List<string>? TablixKeepWithGroups;
         public string? ImageDataUrl;
         public double? LineWidth;
         public string? LineStyle;
         public string? CustomType;                    // <CustomReportItem><Type>
         public Dictionary<string, string>? CustomProps;  // <CustomProperties> name → value
     }
+
+    private sealed record RdlTablixGroup(string Name, string[] Expressions);
 }

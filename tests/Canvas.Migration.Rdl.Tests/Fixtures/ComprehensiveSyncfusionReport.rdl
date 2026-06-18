@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" Name="Comprehensive Syncfusion Sales Report">
+  <Description>Large Syncfusion/Bold Reports style RDL fixture for Canvas designer migration fidelity.</Description>
+  <Author>Canvas Migration Tests</Author>
+  <DataSources>
+    <DataSource Name="SalesData">
+      <ConnectionProperties>
+        <DataProvider>SQL</DataProvider>
+        <ConnectString>Data Source=(local);Initial Catalog=Sales</ConnectString>
+      </ConnectionProperties>
+    </DataSource>
+  </DataSources>
+  <DataSets>
+    <DataSet Name="Sales">
+      <Fields>
+        <Field Name="CustomerName"><DataField>CustomerName</DataField></Field>
+        <Field Name="InvoiceNo"><DataField>InvoiceNo</DataField></Field>
+        <Field Name="Region"><DataField>Region</DataField></Field>
+        <Field Name="Sku"><DataField>Sku</DataField></Field>
+        <Field Name="Product"><DataField>Product</DataField></Field>
+        <Field Name="Quantity"><DataField>Quantity</DataField></Field>
+        <Field Name="LineTotal"><DataField>LineTotal</DataField></Field>
+        <Field Name="DeliveryScore"><DataField>DeliveryScore</DataField></Field>
+      </Fields>
+      <Query>
+        <DataSourceName>SalesData</DataSourceName>
+        <CommandText>select * from Sales</CommandText>
+      </Query>
+    </DataSet>
+  </DataSets>
+  <Body>
+    <ReportItems>
+      <Rectangle Name="summaryPanel">
+        <Top>0.15in</Top>
+        <Left>0.25in</Left>
+        <Height>1.15in</Height>
+        <Width>7.35in</Width>
+        <Style>
+          <Border><Color>#94A3B8</Color><Width>1pt</Width><Style>Solid</Style></Border>
+          <BackgroundColor>#F8FAFC</BackgroundColor>
+        </Style>
+        <ReportItems>
+          <Textbox Name="customerName">
+            <Top>0.12in</Top>
+            <Left>0.18in</Left>
+            <Height>0.28in</Height>
+            <Width>3.2in</Width>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>=Fields!CustomerName.Value</Value>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>12pt</FontSize><FontWeight>Bold</FontWeight><Color>#0F172A</Color></Style>
+                  </TextRun>
+                </TextRuns>
+              </Paragraph>
+            </Paragraphs>
+          </Textbox>
+          <Textbox Name="invoiceNo">
+            <Top>0.48in</Top>
+            <Left>0.18in</Left>
+            <Height>0.25in</Height>
+            <Width>2.4in</Width>
+            <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!InvoiceNo.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs>
+          </Textbox>
+          <Textbox Name="regionalSummary">
+            <Top>0.12in</Top>
+            <Left>4.2in</Left>
+            <Height>0.3in</Height>
+            <Width>2.7in</Width>
+            <Paragraphs>
+              <Paragraph>
+                <Style><TextAlign>Right</TextAlign></Style>
+                <TextRuns><TextRun><Value>=&quot;Region: &quot; &amp; Fields!Region.Value</Value><Style><Color>Navy</Color></Style></TextRun></TextRuns>
+              </Paragraph>
+            </Paragraphs>
+          </Textbox>
+          <Textbox Name="grandTotal">
+            <Top>0.55in</Top>
+            <Left>4.2in</Left>
+            <Height>0.35in</Height>
+            <Width>2.7in</Width>
+            <Paragraphs>
+              <Paragraph>
+                <Style><TextAlign>Right</TextAlign></Style>
+                <TextRuns><TextRun><Value>=Sum(Fields!LineTotal.Value)</Value><Style><FontSize>16pt</FontSize><FontWeight>700</FontWeight><Color>#166534</Color></Style></TextRun></TextRuns>
+              </Paragraph>
+            </Paragraphs>
+          </Textbox>
+        </ReportItems>
+      </Rectangle>
+
+      <Line Name="summaryRule">
+        <Top>1.45in</Top>
+        <Left>0.25in</Left>
+        <Height>0in</Height>
+        <Width>7.35in</Width>
+        <Style><Border><Color>Gray</Color><Width>2pt</Width><Style>Dashed</Style></Border></Style>
+      </Line>
+
+      <Tablix Name="salesMatrix">
+        <Top>1.7in</Top>
+        <Left>0.25in</Left>
+        <Height>2.1in</Height>
+        <Width>7.35in</Width>
+        <DataSetName>Sales</DataSetName>
+        <TablixBody>
+          <TablixColumns>
+            <TablixColumn><Width>1.25in</Width></TablixColumn>
+            <TablixColumn><Width>3.4in</Width></TablixColumn>
+            <TablixColumn><Width>1.1in</Width></TablixColumn>
+            <TablixColumn><Width>1.6in</Width></TablixColumn>
+          </TablixColumns>
+          <TablixRows>
+            <TablixRow>
+              <Height>0.32in</Height>
+              <TablixCells>
+                <TablixCell><CellContents><Textbox Name="hSku"><Paragraphs><Paragraph><TextRuns><TextRun><Value>SKU</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+                <TablixCell><CellContents><Textbox Name="hProduct"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Product</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+                <TablixCell><CellContents><Textbox Name="hQty"><Paragraphs><Paragraph><Style><TextAlign>Right</TextAlign></Style><TextRuns><TextRun><Value>Qty</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+                <TablixCell><CellContents><Textbox Name="hLineTotal"><Paragraphs><Paragraph><Style><TextAlign>Right</TextAlign></Style><TextRuns><TextRun><Value>Total</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+              </TablixCells>
+            </TablixRow>
+            <TablixRow>
+              <Height>0.28in</Height>
+              <TablixCells>
+                <TablixCell><CellContents><Textbox Name="dSku"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!Sku.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+                <TablixCell><CellContents><Textbox Name="dProduct"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!Product.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+                <TablixCell><CellContents><Textbox Name="dQty"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!Quantity.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+                <TablixCell><CellContents><Textbox Name="dLineTotal"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!LineTotal.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+              </TablixCells>
+            </TablixRow>
+            <TablixRow>
+              <Height>0.3in</Height>
+              <TablixCells>
+                <TablixCell><CellContents><Textbox Name="fLabel"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Total</Value></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+                <TablixCell><CellContents><Textbox Name="fSpacer"><Paragraphs><Paragraph><TextRuns><TextRun><Value /></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+                <TablixCell><CellContents><Textbox Name="fQty"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Sum(Fields!Quantity.Value)</Value></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+                <TablixCell><CellContents><Textbox Name="fLineTotal"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Sum(Fields!LineTotal.Value)</Value></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell>
+              </TablixCells>
+            </TablixRow>
+          </TablixRows>
+        </TablixBody>
+        <TablixColumnHierarchy>
+          <TablixMembers>
+            <TablixMember />
+            <TablixMember />
+            <TablixMember />
+            <TablixMember />
+          </TablixMembers>
+        </TablixColumnHierarchy>
+        <TablixRowHierarchy>
+          <TablixMembers>
+            <TablixMember><KeepWithGroup>After</KeepWithGroup></TablixMember>
+            <TablixMember>
+              <Group Name="RegionGroup"><GroupExpressions><GroupExpression>=Fields!Region.Value</GroupExpression></GroupExpressions></Group>
+              <SortExpressions><SortExpression><Value>=Fields!Product.Value</Value></SortExpression></SortExpressions>
+            </TablixMember>
+            <TablixMember><KeepWithGroup>Before</KeepWithGroup></TablixMember>
+          </TablixMembers>
+        </TablixRowHierarchy>
+      </Tablix>
+
+      <Image Name="detailPhoto">
+        <Top>4.05in</Top>
+        <Left>0.25in</Left>
+        <Height>0.8in</Height>
+        <Width>1.1in</Width>
+        <Source>Embedded</Source>
+        <Value>brandLogo</Value>
+      </Image>
+
+      <CustomReportItem Name="shipmentBarcode">
+        <Type>Barcode</Type>
+        <Top>4.05in</Top>
+        <Left>1.55in</Left>
+        <Height>0.55in</Height>
+        <Width>2in</Width>
+        <CustomProperties>
+          <CustomProperty><Name>Symbology</Name><Value>Code128</Value></CustomProperty>
+          <CustomProperty><Name>Value</Name><Value>=Fields!Sku.Value</Value></CustomProperty>
+        </CustomProperties>
+      </CustomReportItem>
+
+      <CustomReportItem Name="salesChart">
+        <Type>Chart</Type>
+        <Top>4.95in</Top>
+        <Left>0.25in</Left>
+        <Height>1.55in</Height>
+        <Width>3.4in</Width>
+        <CustomProperties>
+          <CustomProperty><Name>Category</Name><Value>=Fields!Region.Value</Value></CustomProperty>
+          <CustomProperty><Name>Value</Name><Value>=Sum(Fields!LineTotal.Value)</Value></CustomProperty>
+        </CustomProperties>
+      </CustomReportItem>
+
+      <CustomReportItem Name="deliveryGauge">
+        <Type>Gauge</Type>
+        <Top>4.95in</Top>
+        <Left>3.9in</Left>
+        <Height>1.55in</Height>
+        <Width>1.7in</Width>
+        <CustomProperties>
+          <CustomProperty><Name>Value</Name><Value>=Fields!DeliveryScore.Value</Value></CustomProperty>
+        </CustomProperties>
+      </CustomReportItem>
+
+      <Subreport Name="detailSubreport">
+        <Top>6.75in</Top>
+        <Left>0.25in</Left>
+        <Height>0.5in</Height>
+        <Width>7.35in</Width>
+        <ReportName>RegionalDetail</ReportName>
+      </Subreport>
+    </ReportItems>
+    <Height>7.45in</Height>
+  </Body>
+  <Page>
+    <PageHeader>
+      <Height>0.95in</Height>
+      <ReportItems>
+        <Image Name="brandLogo">
+          <Top>0.12in</Top>
+          <Left>0.2in</Left>
+          <Height>0.5in</Height>
+          <Width>0.5in</Width>
+          <Source>Embedded</Source>
+          <Value>brandLogo</Value>
+        </Image>
+        <Textbox Name="reportTitle">
+          <Top>0.1in</Top>
+          <Left>0.9in</Left>
+          <Height>0.38in</Height>
+          <Width>5.4in</Width>
+          <Paragraphs>
+            <Paragraph>
+              <Style><TextAlign>Center</TextAlign></Style>
+              <TextRuns>
+                <TextRun>
+                  <Value>Comprehensive Sales Report</Value>
+                  <Style><FontFamily>Arial</FontFamily><FontSize>20pt</FontSize><FontWeight>Bold</FontWeight><Color>#0B5394</Color><TextDecoration>Underline</TextDecoration></Style>
+                </TextRun>
+              </TextRuns>
+            </Paragraph>
+          </Paragraphs>
+        </Textbox>
+        <Textbox Name="generatedOn">
+          <Top>0.55in</Top>
+          <Left>4.85in</Left>
+          <Height>0.25in</Height>
+          <Width>2.6in</Width>
+          <Paragraphs><Paragraph><Style><TextAlign>Right</TextAlign></Style><TextRuns><TextRun><Value>=Now()</Value><Style><FontSize>8pt</FontSize><Color>Gray</Color></Style></TextRun></TextRuns></Paragraph></Paragraphs>
+        </Textbox>
+      </ReportItems>
+    </PageHeader>
+    <PageFooter>
+      <Height>0.45in</Height>
+      <ReportItems>
+        <Textbox Name="confidentialNotice">
+          <Top>0.08in</Top>
+          <Left>0.25in</Left>
+          <Height>0.25in</Height>
+          <Width>3.8in</Width>
+          <Paragraphs><Paragraph><TextRuns><TextRun><Value>Internal use only</Value><Style><FontSize>8pt</FontSize><Color>Gray</Color></Style></TextRun></TextRuns></Paragraph></Paragraphs>
+        </Textbox>
+        <Textbox Name="pageNumber">
+          <Top>0.08in</Top>
+          <Left>5.6in</Left>
+          <Height>0.25in</Height>
+          <Width>1.8in</Width>
+          <Paragraphs><Paragraph><Style><TextAlign>Right</TextAlign></Style><TextRuns><TextRun><Value>=&quot;Page &quot; &amp; Globals!PageNumber &amp; &quot; of &quot; &amp; Globals!TotalPages</Value><Style><FontSize>8pt</FontSize><Color>Gray</Color></Style></TextRun></TextRuns></Paragraph></Paragraphs>
+        </Textbox>
+      </ReportItems>
+    </PageFooter>
+    <PageHeight>29.7cm</PageHeight>
+    <PageWidth>21cm</PageWidth>
+    <LeftMargin>12mm</LeftMargin>
+    <RightMargin>12mm</RightMargin>
+    <TopMargin>10mm</TopMargin>
+    <BottomMargin>10mm</BottomMargin>
+  </Page>
+  <EmbeddedImages>
+    <EmbeddedImage Name="brandLogo">
+      <MIMEType>image/png</MIMEType>
+      <ImageData>iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=</ImageData>
+    </EmbeddedImage>
+  </EmbeddedImages>
+</Report>

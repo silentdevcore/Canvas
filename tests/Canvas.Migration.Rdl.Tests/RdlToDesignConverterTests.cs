@@ -82,6 +82,9 @@ public sealed class RdlToDesignConverterTests
 
     private static RdlConvertResult Convert(string rdl) => new RdlToDesignConverter().Convert(rdl);
 
+    private static string Fixture(string name) =>
+        File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", name));
+
     private static ElementDto El(DesignExportDto d, string name) =>
         d.Pages[0].Elements.Concat(d.SharedElements).First(e => e.Name == name);
 
@@ -477,5 +480,86 @@ public sealed class RdlToDesignConverterTests
         Assert.Equal("text", chart.Type);
         Assert.Contains("Chart", chart.Content);
         Assert.True(Has(r.Diagnostics, "CANMIGRDL011"));
+    }
+
+    // 26 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_ComprehensiveSyncfusionFixture_MapsCoreLayoutAndKnownPlaceholders()
+    {
+        var r = Convert(Fixture("ComprehensiveSyncfusionReport.rdl"));
+        var d = r.Design;
+
+        Assert.Equal("Comprehensive Syncfusion Sales Report", d.Name);
+        Assert.Equal(595.28, d.PageSettings!.Width, 1);   // 21cm
+        Assert.Equal(841.89, d.PageSettings!.Height, 1);  // 29.7cm
+        Assert.Contains(d.SharedElements, e => e.Name == "brandLogo");
+        Assert.Contains(d.SharedElements, e => e.Name == "reportTitle");
+        Assert.Contains(d.SharedElements, e => e.Name == "pageNumber");
+
+        var title = El(d, "reportTitle");
+        Assert.Equal("text", title.Type);
+        Assert.Equal("Arial", title.Style!["fontFamily"]);
+        Assert.Equal("center", title.Style!["textAlign"]);
+        Assert.Equal("underline", title.Style!["textDecoration"]);
+
+        var customer = El(d, "customerName");
+        Assert.Equal("CustomerName", customer.Binding);
+        Assert.Equal("{{CustomerName}}", customer.Content);
+
+        var grandTotal = El(d, "grandTotal");
+        Assert.Equal("=Sum(Fields!LineTotal.Value)", grandTotal.Expression);
+
+        var panel = El(d, "summaryPanel");
+        Assert.Equal("rect", panel.Type);
+        Assert.Equal("#F8FAFC", panel.Style!["backgroundColor"]);
+
+        var line = El(d, "summaryRule");
+        Assert.Equal("line", line.Type);
+        Assert.Equal("dashed", line.Style!["dashStyle"]);
+
+        var detailPhoto = El(d, "detailPhoto");
+        Assert.Equal("image", detailPhoto.Type);
+        Assert.StartsWith("data:image/png;base64,", detailPhoto.Content);
+
+        var barcode = El(d, "shipmentBarcode");
+        Assert.Equal("barcode", barcode.Type);
+        Assert.Equal("code128", barcode.BarcodeType);
+        Assert.Equal("{{Sku}}", barcode.BarcodeValue);
+
+        var chart = El(d, "salesChart");
+        var gauge = El(d, "deliveryGauge");
+        var subreport = El(d, "detailSubreport");
+        Assert.Equal("text", chart.Type);
+        Assert.Contains("Chart", chart.Content);
+        Assert.Equal("text", gauge.Type);
+        Assert.Contains("Gauge", gauge.Content);
+        Assert.Equal("text", subreport.Type);
+        Assert.Contains("Sub-report", subreport.Content);
+        Assert.True(Has(r.Diagnostics, "CANMIGRDL011"));
+    }
+
+    // 27 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_ComprehensiveSyncfusionFixture_MapsTablixTableShape()
+    {
+        var result = Convert(Fixture("ComprehensiveSyncfusionReport.rdl"));
+        var table = El(result.Design, "salesMatrix");
+
+        Assert.Equal("table", table.Type);
+        Assert.True(table.HeaderRow);
+        Assert.Equal(3, table.CellData!.Length);
+        Assert.Equal(new[] { "SKU", "Product", "Qty", "Total" }, table.CellData[0]);
+        Assert.Equal(new[] { "{{Sku}}", "{{Product}}", "{{Quantity}}", "{{LineTotal}}" }, table.CellData[1]);
+        Assert.Equal(new[] { "Total", "", "=Sum(Fields!Quantity.Value)", "=Sum(Fields!LineTotal.Value)" }, table.CellData[2]);
+        Assert.Equal(new[] { 90.0, 244.8, 79.2, 115.2 }, table.ColumnWidths!.Select(w => Math.Round(w, 1)).ToArray());
+        Assert.Equal(new[] { "left", "left", "right", "right" }, table.ColumnAlignments);
+        Assert.True(table.Style!.ContainsKey("rdlTablixGroups"));
+        var groups = Assert.IsType<Dictionary<string, object>[]>(table.Style["rdlTablixGroups"]);
+        var group = Assert.Single(groups);
+        Assert.Equal("RegionGroup", group["name"]);
+        Assert.Equal(new[] { "=Fields!Region.Value" }, Assert.IsType<string[]>(group["expressions"]));
+        Assert.Contains("=Fields!Product.Value", (string[])table.Style["rdlTablixSorts"]);
+        Assert.Equal(new[] { "After", "Before" }, (string[])table.Style["rdlTablixKeepWithGroup"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL014" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 }

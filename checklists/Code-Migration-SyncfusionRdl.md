@@ -72,13 +72,18 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 - [x] Frontend **"Syncfusion / RDL Reports"** entry + **Open in Designer** (loads via
       `bulkReplaceContent`) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
 
-### Tests (31 passing)
+### Tests (33 passing)
 - [x] Page size from lengths; length-unit parsing; absolute positioning; textbox style; named colours;
       `=Fields!X.Value` binding vs complex expression; literal text; Tablix-2016 + Table-2008 → table;
       column alignments/widths; page header/footer → shared; rectangle flatten; line stroke/dash;
       embedded vs external image; subreport; namespace variants; invalid XML; `LooksLikeRdl`; A4 default.
 - [x] ActiveReports `.rdlx` `<CustomReportItem>` barcode → Canvas barcode; QR symbology → qrcode;
       non-barcode custom item (Chart) → `CANMIGRDL011`.
+- [x] Comprehensive Syncfusion/Bold Reports style fixture:
+      `tests/Canvas.Migration.Rdl.Tests/Fixtures/ComprehensiveSyncfusionReport.rdl`.
+      Covers page header/footer, embedded images, nested rectangles, mixed units (`cm`, `mm`, `in`, `pt`),
+      field bindings, complex expressions, dashed lines, a multi-column Tablix with hierarchy metadata,
+      barcode custom item, Chart/Gauge placeholders, and Subreport placeholder.
 - [x] **End-to-end**: a converted RDL renders to a valid PDF through the real export pipeline
       (`DesignJsonMapper` → `ToBytes`) — in `Canvas.Export.Tests`.
 
@@ -91,6 +96,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL011` | Warning | Unsupported item / Subreport / unparseable Tablix / `<Code>` — skipped |
 | `CANMIGRDL012` | Warning | Image not embeddable — placeholder inserted |
 | `CANMIGRDL013` | Warning | Container nesting too deep — flatten stopped at guard depth |
+| `CANMIGRDL014` | Warning | Tablix grouping/sorting metadata preserved; Canvas repeat/group semantics still require review |
 
 ---
 
@@ -110,8 +116,12 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       the DevExpress band converter). See [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md).
 
 ### 3. Richer RDL fidelity
+- [x] **P0** Preserve Tablix hierarchy metadata (`Group`, `GroupExpressions`, `SortExpressions`,
+      `KeepWithGroup`) on the Canvas table style as `rdlTablixGroups`, `rdlTablixSorts`, and
+      `rdlTablixKeepWithGroup`, with `CANMIGRDL014`.
 - [ ] **P0** Tablix row/column-group header extraction (`<TablixColumnHierarchy>`/`<TablixMember>`) instead of
-      treating the first row as header.
+      treating the first row as header. The comprehensive fixture includes hierarchy metadata and
+      acts as the regression target for this work.
 - [ ] **P0** Nested Tablix / detail grouping → repeat semantics.
 - [ ] `<Code>` / custom-function expression translation (blocked on Canvas `ExpressionEvaluator` being a
       stub — same limitation as DevExpress).
@@ -120,6 +130,8 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [ ] **P0** External / database image sources (fetch or warn).
 - [ ] **P0** Percentage / relative lengths for Tablix columns.
 - [ ] **P0** Multi-run textbox per-run formatting (V1 keeps the first run's style).
+- [ ] **P1** Promote Chart/Gauge placeholders to native Canvas chart/gauge mappings once Canvas chart
+      data-series modeling is stable enough for RDL category/value expressions.
 
 ## Assumptions
 - [x] Use `Canvas.Migration.Rdl`, separate from the DevExpress converters; self-contained model + build.
