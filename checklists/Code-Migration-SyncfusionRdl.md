@@ -63,6 +63,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CustomReportItem` barcode (ActiveReports/DsReport/SSRS) | `barcode` / `qrcode` (value + symbology → type) | [x] |
 | `Chart` / `CustomReportItem` chart | editable `chart` placeholder + RDL metadata (`CANMIGRDL017`) | [x] |
 | `CustomReportItem` shape | `rect` / `circle` / `arrow` + style + RDL metadata (`CANMIGRDL020`) | [x] |
+| native `GaugePanel` | positioned placeholder + structured gauge metadata (`CANMIGRDL021`) | [x] |
 | `CustomReportItem` gauge/map/etc. | labeled placeholder + RDL metadata (`CANMIGRDL018` for gauge) | [x] |
 | `Subreport` | labeled placeholder (`CANMIGRDL011`) | [x] |
 | Value `=Fields!X.Value` / `=expr` | `binding` / `expression` | [x] |
@@ -109,6 +110,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL018` | Warning | RDL Gauge metadata preserved on a positioned placeholder; Canvas has no native gauge element yet |
 | `CANMIGRDL019` | Warning | RDL pagination/repeat metadata preserved; Canvas pagination behaviour needs review |
 | `CANMIGRDL020` | Warning | RDL Shape custom item imported as Canvas rect/circle/arrow; geometry/rotation needs review |
+| `CANMIGRDL021` | Warning | Native RDL GaugePanel metadata preserved on positioned placeholder; Canvas has no native gauge element yet |
 
 ---
 
@@ -147,6 +149,10 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       (`rdlCategoryExpression`, `rdlValueExpression`, `style.rdlCustomProperties`) plus `CANMIGRDL017`.
 - [x] `CustomReportItem` Shape → Canvas `rect` / `circle` / `arrow` with fill/line style, rotation metadata,
       `style.rdlShapeType`, and preserved custom properties plus `CANMIGRDL020`.
+- [x] Native `GaugePanel` → positioned placeholder with `style.rdlGaugePanel` metadata (`DataSetName`, radial/linear
+      gauge kind, scales, pointers, ranges, labels) plus `CANMIGRDL021`.
+- [ ] **P0** Nested report items inside Tablix cells (for example Syncfusion GaugePanel-in-Tablix samples) need
+      explicit extraction or richer table-cell content modeling; direct body-level `GaugePanel` is preserved today.
 - [x] `CustomReportItem` Gauge → positioned placeholder with `style.rdlCustomItemType = "Gauge"` and
       custom properties preserved, plus `CANMIGRDL018`.
 - [x] `CustomReportItem` Map / Sparkline + `Subreport` → labeled placeholder elements

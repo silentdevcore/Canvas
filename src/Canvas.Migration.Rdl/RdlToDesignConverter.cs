@@ -179,6 +179,9 @@ public sealed class RdlToDesignConverter
                 case "Chart":
                     ParseNativeChart(item, raw);
                     break;
+                case "GaugePanel":
+                    ParseGaugePanel(item, raw);
+                    break;
                 case "CustomReportItem":
                     // RDL-standard custom items (ActiveReports/DsReport barcodes, SSRS charts/gauges/maps).
                     raw.CustomType = Child(item, "Type")?.Value;
@@ -350,6 +353,106 @@ public sealed class RdlToDesignConverter
             .FirstOrDefault(e => e.Name.LocalName == "ChartTitle")?
             .Descendants().FirstOrDefault(e => e.Name.LocalName == "Caption")?.Value);
         AddText(raw.CustomProps, "DataSetName", Child(el, "DataSetName")?.Value);
+    }
+
+    private void ParseGaugePanel(XElement el, RawElement raw)
+    {
+        ApplyStyle(raw, Child(el, "Style"));
+
+        var metadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(metadata, "DataSetName", Child(el, "DataSetName")?.Value);
+
+        var radialGauges = Children(Child(el, "RadialGauges"), "RadialGauge").ToList();
+        var linearGauges = Children(Child(el, "LinearGauges"), "LinearGauge").ToList();
+        if (radialGauges.Count > 0) metadata["GaugeType"] = "Radial";
+        else if (linearGauges.Count > 0) metadata["GaugeType"] = "Linear";
+
+        var gauges = radialGauges.Concat(linearGauges).Select(ParseGaugeSummary).ToArray();
+        if (gauges.Length > 0)
+            metadata["Gauges"] = gauges;
+
+        var labels = Children(Child(el, "GaugeLabels"), "GaugeLabel")
+            .Select(label => new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Name"] = Attr(label, "Name") ?? "GaugeLabel",
+                ["Text"] = Child(label, "Text")?.Value ?? "",
+                ["ParentItem"] = Child(label, "ParentItem")?.Value ?? ""
+            })
+            .Where(label => ((string)label["Text"]).Length > 0 || ((string)label["ParentItem"]).Length > 0)
+            .ToArray();
+        if (labels.Length > 0)
+            metadata["Labels"] = labels;
+
+        raw.GaugePanelMetadata = metadata;
+    }
+
+    private static Dictionary<string, object> ParseGaugeSummary(XElement gauge)
+    {
+        var summary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Name"] = Attr(gauge, "Name") ?? gauge.Name.LocalName,
+            ["Kind"] = gauge.Name.LocalName
+        };
+
+        var scales = gauge.Descendants()
+            .Where(e => e.Name.LocalName is "RadialScale" or "LinearScale")
+            .Select(ParseGaugeScaleSummary)
+            .ToArray();
+        if (scales.Length > 0)
+            summary["Scales"] = scales;
+
+        return summary;
+    }
+
+    private static Dictionary<string, object> ParseGaugeScaleSummary(XElement scale)
+    {
+        var summary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Name"] = Attr(scale, "Name") ?? scale.Name.LocalName,
+            ["Kind"] = scale.Name.LocalName
+        };
+        AddText(summary, "MinimumValue", Child(Child(scale, "MinimumValue"), "Value")?.Value);
+        AddText(summary, "MaximumValue", Child(Child(scale, "MaximumValue"), "Value")?.Value);
+        AddText(summary, "Interval", Child(scale, "Interval")?.Value);
+
+        var pointers = scale.Descendants()
+            .Where(e => e.Name.LocalName is "RadialPointer" or "LinearPointer")
+            .Select(pointer =>
+            {
+                var p = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Name"] = Attr(pointer, "Name") ?? pointer.Name.LocalName,
+                    ["Kind"] = pointer.Name.LocalName
+                };
+                AddText(p, "Type", Child(pointer, "Type")?.Value);
+                AddText(p, "MarkerStyle", Child(pointer, "MarkerStyle")?.Value);
+                AddText(p, "Value", Child(Child(pointer, "GaugeInputValue"), "Value")?.Value);
+                if (Descendant(Child(pointer, "Style"), "BackgroundColor")?.Value is { Length: > 0 } color)
+                    p["BackgroundColor"] = color.Trim();
+                return p;
+            })
+            .ToArray();
+        if (pointers.Length > 0)
+            summary["Pointers"] = pointers;
+
+        var ranges = Children(Child(scale, "ScaleRanges"), "ScaleRange")
+            .Select(range =>
+            {
+                var r = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Name"] = Attr(range, "Name") ?? "ScaleRange"
+                };
+                AddText(r, "StartValue", Child(Child(range, "StartValue"), "Value")?.Value);
+                AddText(r, "EndValue", Child(Child(range, "EndValue"), "Value")?.Value);
+                if (Descendant(Child(range, "Style"), "BackgroundColor")?.Value is { Length: > 0 } color)
+                    r["BackgroundColor"] = color.Trim();
+                return r;
+            })
+            .ToArray();
+        if (ranges.Length > 0)
+            summary["Ranges"] = ranges;
+
+        return summary;
     }
 
     private void ApplyStyle(RawElement raw, XElement? style)
@@ -652,6 +755,9 @@ public sealed class RdlToDesignConverter
             case "Chart":
                 return MapRdlChart(raw, element, diagnostics);
 
+            case "GaugePanel":
+                return MapGaugePanel(raw, element, diagnostics);
+
             case "Subreport":
                 diagnostics.Add(Warn("CANMIGRDL011",
                     $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
@@ -661,6 +767,58 @@ public sealed class RdlToDesignConverter
                 diagnostics.Add(Warn("CANMIGRDL011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
+    }
+
+    private static ElementDto MapGaugePanel(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        var gaugeType = raw.GaugePanelMetadata?.GetValueOrDefault("GaugeType")?.ToString() ?? "Gauge";
+        var value = FirstGaugePointerValue(raw.GaugePanelMetadata);
+
+        element.Type = "text";
+        element.Content = string.IsNullOrWhiteSpace(value)
+            ? $"[{gaugeType} Gauge: {raw.Name} — migrate manually]"
+            : $"[{gaugeType} Gauge: {CellDisplay(value)}]";
+        element.Style = new Dictionary<string, object>
+        {
+            ["color"] = "#0F172A",
+            ["backgroundColor"] = raw.BackColor ?? "#F8FAFC",
+            ["borderColor"] = raw.ForeColor,
+            ["borderStyle"] = "dashed",
+            ["fontStyle"] = "italic",
+            ["rdlCustomItemType"] = "GaugePanel"
+        };
+        if (raw.LineWidth is { } borderW)
+            element.Style["borderWidth"] = borderW;
+        if (raw.GaugePanelMetadata is { Count: > 0 })
+            element.Style["rdlGaugePanel"] = raw.GaugePanelMetadata;
+
+        diagnostics.Add(Warn("CANMIGRDL021",
+            $"'{raw.Name}' native RDL GaugePanel metadata was preserved on a positioned placeholder; Canvas has no native gauge element yet."));
+        return element;
+    }
+
+    private static string? FirstGaugePointerValue(IReadOnlyDictionary<string, object>? metadata)
+    {
+        if (metadata is null || !metadata.TryGetValue("Gauges", out var gaugesObj) || gaugesObj is not Dictionary<string, object>[] gauges)
+            return null;
+
+        foreach (var gauge in gauges)
+        {
+            if (!gauge.TryGetValue("Scales", out var scalesObj) || scalesObj is not Dictionary<string, object>[] scales)
+                continue;
+            foreach (var scale in scales)
+            {
+                if (!scale.TryGetValue("Pointers", out var pointersObj) || pointersObj is not Dictionary<string, object>[] pointers)
+                    continue;
+                foreach (var pointer in pointers)
+                {
+                    if (pointer.TryGetValue("Value", out var value) && value?.ToString() is { Length: > 0 } text)
+                        return text;
+                }
+            }
+        }
+
+        return null;
     }
 
     // Keeps an unsupported item visible at its original position/size so the layout isn't silently
@@ -1240,6 +1398,7 @@ public sealed class RdlToDesignConverter
         public string? LineStyle;
         public string? CustomType;                    // <CustomReportItem><Type>
         public Dictionary<string, string>? CustomProps;  // <CustomProperties> name → value
+        public Dictionary<string, object>? GaugePanelMetadata;
     }
 
     private sealed record RdlTablixGroup(string Name, string[] Expressions);

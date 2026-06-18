@@ -611,6 +611,57 @@ public sealed class RdlToDesignConverterTests
 
     // 29 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
+    public void Convert_NativeGaugePanel_PreservesGaugeMetadataOnPlaceholder()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <GaugePanel Name="RevenueGauge">
+                  <Top>0.5in</Top><Left>0.25in</Left><Height>2in</Height><Width>3in</Width>
+                  <Style><BackgroundColor>White</BackgroundColor><Border><Color>LightGrey</Color><Style>Solid</Style></Border></Style>
+                  <DataSetName>RevenueDataset</DataSetName>
+                  <RadialGauges>
+                    <RadialGauge Name="RadialGaugeSet">
+                      <GaugeScales><RadialScale Name="RadialScale">
+                        <MinimumValue><Value>0</Value></MinimumValue>
+                        <MaximumValue><Value>=Fields!EstimatedRevenue.Value</Value></MaximumValue>
+                        <Interval>=Fields!EstimatedRevenue.Value*0.5</Interval>
+                        <GaugePointers><RadialPointer Name="ActualRevenue">
+                          <Type>Needle</Type>
+                          <GaugeInputValue><Value>=Fields!ActualRevenue.Value</Value></GaugeInputValue>
+                        </RadialPointer></GaugePointers>
+                        <ScaleRanges><ScaleRange Name="GoodRange">
+                          <StartValue><Value>75</Value></StartValue><EndValue><Value>100</Value></EndValue>
+                          <Style><BackgroundColor>Green</BackgroundColor></Style>
+                        </ScaleRange></ScaleRanges>
+                      </RadialScale></GaugeScales>
+                    </RadialGauge>
+                  </RadialGauges>
+                </GaugePanel>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var gauge = El(result.Design, "RevenueGauge");
+
+        Assert.Equal("text", gauge.Type);
+        Assert.Contains("{{ActualRevenue}}", gauge.Content);
+        Assert.Equal("GaugePanel", gauge.Style!["rdlCustomItemType"]);
+        var metadata = Assert.IsType<Dictionary<string, object>>(gauge.Style["rdlGaugePanel"]);
+        Assert.Equal("RevenueDataset", metadata["DataSetName"]);
+        Assert.Equal("Radial", metadata["GaugeType"]);
+        var gauges = Assert.IsType<Dictionary<string, object>[]>(metadata["Gauges"]);
+        var scales = Assert.IsType<Dictionary<string, object>[]>(gauges[0]["Scales"]);
+        var pointers = Assert.IsType<Dictionary<string, object>[]>(scales[0]["Pointers"]);
+        Assert.Equal("=Fields!ActualRevenue.Value", pointers[0]["Value"]);
+        var ranges = Assert.IsType<Dictionary<string, object>[]>(scales[0]["Ranges"]);
+        Assert.Equal("Green", ranges[0]["BackgroundColor"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL021" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 30 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
     public void Convert_ComprehensiveSyncfusionFixture_MapsCoreLayoutAndKnownPlaceholders()
     {
         var r = Convert(Fixture("ComprehensiveSyncfusionReport.rdl"));
