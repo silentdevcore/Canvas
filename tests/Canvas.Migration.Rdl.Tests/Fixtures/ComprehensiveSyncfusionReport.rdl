@@ -61,7 +61,10 @@
             <Left>0.18in</Left>
             <Height>0.25in</Height>
             <Width>2.4in</Width>
-            <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!InvoiceNo.Value</Value></TextRun></TextRuns></Paragraph></Paragraphs>
+            <Paragraphs><Paragraph><TextRuns>
+              <TextRun><Value>Invoice: </Value><Style><FontWeight>Bold</FontWeight></Style></TextRun>
+              <TextRun><Value>=Fields!InvoiceNo.Value</Value><Style><Color>#1D4ED8</Color></Style></TextRun>
+            </TextRuns></Paragraph></Paragraphs>
           </Textbox>
           <Textbox Name="regionalSummary">
             <Top>0.12in</Top>

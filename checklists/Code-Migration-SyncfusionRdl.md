@@ -55,7 +55,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 ### Control mapping
 | RDL item | Canvas `ElementDto.Type` | Status |
 | --- | --- | --- |
-| `Textbox` (Paragraphs/TextRuns or `<Value>`) | `text` (+ font/colour/align style) | [x] |
+| `Textbox` (Paragraphs/TextRuns or `<Value>`) | `text` / `richtext` (+ font/colour/align style) | [x] |
 | `Line` | `line` (stroke width + dash style) | [x] |
 | `Rectangle` | `rect` (+ child flatten) | [x] |
 | `Image` (Embedded / External / Database) | `image` (data URL / preserved reference / binding) | [x] |
@@ -73,7 +73,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 - [x] Frontend **"Syncfusion / RDL Reports"** entry + **Open in Designer** (loads via
       `bulkReplaceContent`) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
 
-### Tests (36 passing)
+### Tests (37 passing)
 - [x] Page size from lengths; length-unit parsing; absolute positioning; textbox style; named colours;
       `=Fields!X.Value` binding vs complex expression; literal text; Tablix-2016 + Table-2008 → table;
       column alignments/widths; page header/footer → shared; rectangle flatten; line stroke/dash;
@@ -83,9 +83,9 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 - [x] Comprehensive Syncfusion/Bold Reports style fixture:
       `tests/Canvas.Migration.Rdl.Tests/Fixtures/ComprehensiveSyncfusionReport.rdl`.
       Covers page header/footer, embedded images, nested rectangles, mixed units (`cm`, `mm`, `in`, `pt`),
-      field bindings, complex expressions, dashed lines, a multi-column Tablix with hierarchy metadata,
-      visibility rules, database image binding, barcode custom item, Chart/Gauge placeholders, and
-      Subreport placeholder.
+      field bindings, complex expressions, multi-run rich text, dashed lines, a multi-column Tablix with
+      hierarchy metadata, visibility rules, database image binding, barcode custom item, Chart/Gauge
+      placeholders, and Subreport placeholder.
 - [x] **End-to-end**: a converted RDL renders to a valid PDF through the real export pipeline
       (`DesignJsonMapper` → `ToBytes`) — in `Canvas.Export.Tests`.
 
@@ -100,6 +100,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL013` | Warning | Container nesting too deep — flatten stopped at guard depth |
 | `CANMIGRDL014` | Warning | Tablix grouping/sorting metadata preserved; Canvas repeat/group semantics still require review |
 | `CANMIGRDL015` | Warning | RDL `Visibility.Hidden` expression mapped to inverted Canvas `visibleExpression`; runtime semantics need review |
+| `CANMIGRDL016` | Warning | Multi-run/styled RDL textbox imported as Canvas richtext; inline formatting needs review |
 
 ---
 
@@ -137,7 +138,8 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       `Content` plus `style.rdlImageSource = "External"`; database image field expressions map to
       image binding/content placeholders plus `style.rdlImageSource = "Database"` (`CANMIGRDL012`).
 - [ ] **P0** Percentage / relative lengths for Tablix columns.
-- [ ] **P0** Multi-run textbox per-run formatting (V1 keeps the first run's style).
+- [x] **P0** Multi-run textbox per-run formatting: multiple/styled `TextRun`s import as Canvas
+      `richtext` with inline HTML spans; simple single-run textboxes keep the old `text`/binding path.
 - [ ] **P1** Promote Chart/Gauge placeholders to native Canvas chart/gauge mappings once Canvas chart
       data-series modeling is stable enough for RDL category/value expressions.
 

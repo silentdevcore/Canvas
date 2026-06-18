@@ -531,6 +531,11 @@ public sealed class RdlToDesignConverterTests
         var customer = El(d, "customerName");
         Assert.Equal("CustomerName", customer.Binding);
         Assert.Equal("{{CustomerName}}", customer.Content);
+        var invoiceNo = El(d, "invoiceNo");
+        Assert.Equal("richtext", invoiceNo.Type);
+        Assert.Contains("<span style=\"font-weight:bold\">Invoice: </span>", invoiceNo.HtmlContent);
+        Assert.Contains("{{InvoiceNo}}", invoiceNo.HtmlContent);
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL016" && d.Severity == MigrationDiagnosticSeverity.Warning);
 
         var grandTotal = El(d, "grandTotal");
         Assert.Equal("=Sum(Fields!LineTotal.Value)", grandTotal.Expression);
@@ -637,5 +642,33 @@ public sealed class RdlToDesignConverterTests
         Assert.Null(conditional.Hidden);
         Assert.Equal("IIF([Quantity] = 0, False, True)", conditional.VisibleExpression);
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL015" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 30 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_MultiRunTextbox_BecomesRichTextWithInlineStyles()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <Textbox Name="mixed"><Top>0in</Top><Left>0in</Left><Height>0.4in</Height><Width>3in</Width>
+                  <Paragraphs><Paragraph><Style><TextAlign>Center</TextAlign></Style><TextRuns>
+                    <TextRun><Value>Total: </Value><Style><FontWeight>Bold</FontWeight></Style></TextRun>
+                    <TextRun><Value>=Fields!Total.Value</Value><Style><Color>Green</Color><TextDecoration>Underline</TextDecoration></Style></TextRun>
+                  </TextRuns></Paragraph></Paragraphs>
+                </Textbox>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var mixed = El(result.Design, "mixed");
+
+        Assert.Equal("richtext", mixed.Type);
+        Assert.Equal("Total: {{Total}}", mixed.Content);
+        Assert.Contains("""<p style="text-align:center">""", mixed.HtmlContent);
+        Assert.Contains("""<span style="font-weight:bold">Total: </span>""", mixed.HtmlContent);
+        Assert.Contains("""<span style="color:#008000;text-decoration:underline">{{Total}}</span>""", mixed.HtmlContent);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL016" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 }

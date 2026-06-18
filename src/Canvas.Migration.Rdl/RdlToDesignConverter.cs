@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using System.Net;
 using Canvas.Core.Contracts;
 using Canvas.Migration.Abstractions;
 
@@ -201,10 +202,79 @@ public sealed class RdlToDesignConverter
             ApplyStyle(raw, firstParagraph is null ? null : Child(firstParagraph, "Style"));
             var firstRun = paragraphs.Descendants().FirstOrDefault(e => e.Name.LocalName == "TextRun");
             ApplyStyle(raw, firstRun is null ? null : Child(firstRun, "Style"));
+            raw.RichTextHtml = BuildRichTextHtml(paragraphs);
         }
 
         ClassifyValue(raw, ExtractTextboxValue(el));
     }
+
+    private static string? BuildRichTextHtml(XElement paragraphs)
+    {
+        var paragraphParts = new List<string>();
+        var hasMultipleRuns = false;
+
+        foreach (var paragraph in Children(paragraphs, "Paragraph"))
+        {
+            var runs = paragraph.Descendants().Where(e => e.Name.LocalName == "TextRun").ToList();
+            if (runs.Count > 1) hasMultipleRuns = true;
+            if (runs.Count == 0) continue;
+
+            var spans = new List<string>();
+            foreach (var run in runs)
+            {
+                var display = CellDisplay(Child(run, "Value")?.Value);
+                var encoded = WebUtility.HtmlEncode(display);
+                var style = RichTextRunStyle(Child(run, "Style"));
+                if (style.Length > 0)
+                {
+                    spans.Add($"""<span style="{style}">{encoded}</span>""");
+                }
+                else
+                {
+                    spans.Add(encoded);
+                }
+            }
+
+            var paragraphStyle = RichTextParagraphStyle(Child(paragraph, "Style"));
+            paragraphParts.Add(paragraphStyle.Length > 0
+                ? $"""<p style="{paragraphStyle}">{string.Concat(spans)}</p>"""
+                : $"<p>{string.Concat(spans)}</p>");
+        }
+
+        return hasMultipleRuns ? string.Concat(paragraphParts) : null;
+    }
+
+    private static string RichTextParagraphStyle(XElement? style)
+    {
+        if (Child(style, "TextAlign")?.Value is not { Length: > 0 } align) return "";
+        return $"text-align:{ParseAlignment(align)}";
+    }
+
+    private static string RichTextRunStyle(XElement? style)
+    {
+        var parts = new List<string>();
+        if (Child(style, "FontFamily")?.Value is { Length: > 0 } family)
+            parts.Add($"font-family:{CssValue(family)}");
+        if (LengthToPt(Child(style, "FontSize")?.Value) is var size and > 0)
+            parts.Add($"font-size:{size.ToString("0.###", CultureInfo.InvariantCulture)}pt");
+        if (Child(style, "FontWeight")?.Value is { } weight && IsBoldWeight(weight))
+            parts.Add("font-weight:bold");
+        if (Child(style, "FontStyle")?.Value is { } fontStyle && fontStyle.Contains("Italic", StringComparison.OrdinalIgnoreCase))
+            parts.Add("font-style:italic");
+        if (Child(style, "Color")?.Value is { Length: > 0 } color)
+            parts.Add($"color:{NormalizeColor(color)}");
+        if (Child(style, "TextDecoration")?.Value is { } deco)
+        {
+            var decorations = string.Join(" ", new[] {
+                deco.Contains("Underline", StringComparison.OrdinalIgnoreCase) ? "underline" : null,
+                deco.Contains("LineThrough", StringComparison.OrdinalIgnoreCase) ? "line-through" : null
+            }.Where(v => v is not null));
+            if (decorations.Length > 0) parts.Add($"text-decoration:{decorations}");
+        }
+        return string.Join(";", parts);
+    }
+
+    private static string CssValue(string value) => value.Contains(' ') ? $"'{value.Replace("'", "\\'", StringComparison.Ordinal)}'" : value;
 
     // The display value of a Textbox: 2016 concatenates <TextRun><Value>s; 2008 uses a direct <Value>.
     private static string? ExtractTextboxValue(XElement? textbox)
@@ -213,9 +283,15 @@ public sealed class RdlToDesignConverter
         var paragraphs = textbox.Elements().FirstOrDefault(e => e.Name.LocalName == "Paragraphs");
         if (paragraphs is not null)
         {
-            var runValues = paragraphs.Descendants()
+            var runs = paragraphs.Descendants()
                 .Where(e => e.Name.LocalName == "TextRun")
-                .Select(r => r.Elements().FirstOrDefault(e => e.Name.LocalName == "Value")?.Value ?? "");
+                .ToList();
+            var runValues = runs
+                .Select(r =>
+                {
+                    var value = r.Elements().FirstOrDefault(e => e.Name.LocalName == "Value")?.Value ?? "";
+                    return runs.Count > 1 ? CellDisplay(value) : value;
+                });
             var joined = string.Concat(runValues);
             return joined.Length > 0 ? joined : null;
         }
@@ -449,9 +525,21 @@ public sealed class RdlToDesignConverter
         switch (raw.Type)
         {
             case "Textbox":
-                element.Type = "text";
-                element.Content = raw.Text ?? "";
-                element.Style = BuildTextStyle(raw);
+                if (raw.RichTextHtml is { Length: > 0 } html)
+                {
+                    element.Type = "richtext";
+                    element.HtmlContent = html;
+                    element.Content = raw.Text ?? "";
+                    element.Style = BuildTextStyle(raw);
+                    diagnostics.Add(Warn("CANMIGRDL016",
+                        $"'{raw.Name}' contains multiple/styled text runs — imported as Canvas richtext; review inline formatting."));
+                }
+                else
+                {
+                    element.Type = "text";
+                    element.Content = raw.Text ?? "";
+                    element.Style = BuildTextStyle(raw);
+                }
                 return element;
 
             case "Line":
@@ -898,6 +986,7 @@ public sealed class RdlToDesignConverter
         public string? BackColor;
         public string TextAlign = "left";
         public string? TextExpression;        // captured "=..." value
+        public string? RichTextHtml;
         public bool? Hidden;
         public string? HiddenExpression;
         public List<List<string>>? TableCells;
