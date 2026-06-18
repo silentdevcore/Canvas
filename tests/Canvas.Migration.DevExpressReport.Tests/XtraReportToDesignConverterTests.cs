@@ -1194,6 +1194,152 @@ public sealed class XtraReportToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_PictureBoxResourceImageSource_WithResourceMap_EmbedsDataUrl()
+    {
+        const string pngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using DevExpress.XtraPrinting.Drawing;
+            using System.ComponentModel;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRPictureBox logo;
+                private void InitializeComponent()
+                {
+                    ComponentResourceManager resources = new ComponentResourceManager(typeof(R));
+                    this.Detail = new DetailBand();
+                    this.logo = new XRPictureBox();
+                    this.logo.ImageSource = new ImageSource("img", resources.GetString("logo.ImageSource"));
+                    this.logo.LocationF = new PointF(0F, 0F);
+                    this.logo.SizeF = new SizeF(100F, 100F);
+                    this.Detail.Controls.AddRange(new XRControl[] { this.logo });
+                }
+            }
+            """;
+
+        var result = new XtraReportToDesignConverter().Convert(
+            source,
+            new Dictionary<string, string> { ["logo.ImageSource"] = pngBase64 });
+        var logo = Element(result.Design, "logo");
+
+        Assert.Equal("image", logo.Type);
+        Assert.Equal($"data:image/png;base64,{pngBase64}", logo.Content);
+        Assert.Equal("logo.ImageSource", logo.Style!["devExpressImageResourceKey"]);
+        Assert.DoesNotContain(result.Diagnostics, d => d.Id == "CANMIGDEVREP021");
+    }
+
+    [Fact]
+    public void Convert_ResourceExpressionBinding_ResolvesTextExpression()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using System.ComponentModel;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRLabel customer;
+                private void InitializeComponent()
+                {
+                    ComponentResourceManager resources = new ComponentResourceManager(typeof(R));
+                    this.Detail = new DetailBand();
+                    this.customer = new XRLabel();
+                    this.customer.LocationF = new PointF(0F, 0F);
+                    this.customer.SizeF = new SizeF(100F, 20F);
+                    this.customer.ExpressionBindings.AddRange(new ExpressionBinding[] {
+                        new ExpressionBinding("BeforePrint", "Text", resources.GetString("customer.ExpressionBindings")) });
+                    this.Detail.Controls.AddRange(new XRControl[] { this.customer });
+                }
+            }
+            """;
+
+        var result = new XtraReportToDesignConverter().Convert(
+            source,
+            new Dictionary<string, string> { ["customer.ExpressionBindings"] = "[CustomerName]" });
+        var customer = Element(result.Design, "customer");
+
+        Assert.Equal("text", customer.Type);
+        Assert.Equal("CustomerName", customer.Binding);
+        Assert.Equal("{{CustomerName}}", customer.Content);
+    }
+
+    [Fact]
+    public void ParseResx_ReturnsNamedValues()
+    {
+        var resx = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <root>
+              <data name="logo.ImageSource" xml:space="preserve">
+                <value>img|iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=</value>
+              </data>
+              <data name="customer.ExpressionBindings" xml:space="preserve">
+                <value>[CustomerName]</value>
+              </data>
+            </root>
+            """;
+
+        var resources = DevExpressReportResourceParser.ParseResx(resx);
+
+        Assert.Equal("img|iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=", resources["logo.ImageSource"]);
+        Assert.Equal("[CustomerName]", resources["customer.ExpressionBindings"]);
+    }
+
+    [Fact]
+    public void Convert_WithParsedResx_EmbedsImageAndResolvesBinding()
+    {
+        var source = """
+            using DevExpress.XtraReports.UI;
+            using DevExpress.XtraPrinting.Drawing;
+            using System.ComponentModel;
+            using System.Drawing;
+            public partial class R : XtraReport
+            {
+                private DetailBand Detail;
+                private XRPictureBox logo;
+                private XRLabel customer;
+                private void InitializeComponent()
+                {
+                    ComponentResourceManager resources = new ComponentResourceManager(typeof(R));
+                    this.Detail = new DetailBand();
+                    this.logo = new XRPictureBox();
+                    this.customer = new XRLabel();
+                    this.logo.ImageSource = new ImageSource("img", resources.GetString("logo.ImageSource"));
+                    this.logo.LocationF = new PointF(0F, 0F);
+                    this.logo.SizeF = new SizeF(100F, 100F);
+                    this.customer.LocationF = new PointF(0F, 110F);
+                    this.customer.SizeF = new SizeF(100F, 20F);
+                    this.customer.ExpressionBindings.AddRange(new ExpressionBinding[] {
+                        new ExpressionBinding("BeforePrint", "Text", resources.GetString("customer.ExpressionBindings")) });
+                    this.Detail.Controls.AddRange(new XRControl[] { this.logo, this.customer });
+                }
+            }
+            """;
+        var resx = """
+            <root>
+              <data name="logo.ImageSource" xml:space="preserve">
+                <value>img|iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=</value>
+              </data>
+              <data name="customer.ExpressionBindings" xml:space="preserve">
+                <value>[CustomerName]</value>
+              </data>
+            </root>
+            """;
+
+        var result = new XtraReportToDesignConverter().Convert(
+            source,
+            DevExpressReportResourceParser.ParseResx(resx));
+
+        var logo = Element(result.Design, "logo");
+        var customer = Element(result.Design, "customer");
+        Assert.StartsWith("data:image/png;base64,", logo.Content);
+        Assert.Equal("CustomerName", customer.Binding);
+        Assert.Equal("{{CustomerName}}", customer.Content);
+        Assert.DoesNotContain(result.Diagnostics, d => d.Id == "CANMIGDEVREP021");
+    }
+
+    [Fact]
     public void Convert_XRSubreport_BecomesPositionedPlaceholderWithDiagnostic()
     {
         var source = """

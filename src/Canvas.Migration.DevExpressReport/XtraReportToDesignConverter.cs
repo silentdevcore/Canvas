@@ -28,10 +28,14 @@ public sealed class XtraReportToDesignConverter
 
     /// <summary>Detects whether the source is a <c>.repx</c> XML layout (vs a C# class) and converts it.</summary>
     public XtraReportConvertResult ConvertAuto(string source)
+        => ConvertAuto(source, resources: null);
+
+    /// <summary>Detects whether the source is a <c>.repx</c> XML layout (vs a C# class) and converts it.</summary>
+    public XtraReportConvertResult ConvertAuto(string source, IReadOnlyDictionary<string, string>? resources)
     {
         if (string.IsNullOrWhiteSpace(source))
             throw new ArgumentException("Source cannot be null or empty.", nameof(source));
-        return LooksLikeRepx(source) ? ConvertRepx(source) : Convert(source);
+        return LooksLikeRepx(source) ? ConvertRepx(source) : Convert(source, resources);
     }
 
     private static bool LooksLikeRepx(string source)
@@ -44,6 +48,9 @@ public sealed class XtraReportToDesignConverter
     // ── C# Report Designer class → RawReport ───────────────────────────────────────────────────────
 
     public XtraReportConvertResult Convert(string sourceCode)
+        => Convert(sourceCode, resources: null);
+
+    public XtraReportConvertResult Convert(string sourceCode, IReadOnlyDictionary<string, string>? resources)
     {
         if (string.IsNullOrWhiteSpace(sourceCode))
             throw new ArgumentException("Source code cannot be null or empty.", nameof(sourceCode));
@@ -119,7 +126,7 @@ public sealed class XtraReportToDesignConverter
                     (rowCells.TryGetValue(owner, out var cl) ? cl : rowCells[owner] = []).AddRange(ExtractControlNames(inv.ArgumentList));
                     break;
                 case "ExpressionBindings" or "DataBindings":
-                    CaptureBindings(owner, inv.ArgumentList, controlBindings, boundOther);
+                    CaptureBindings(owner, inv.ArgumentList, controlBindings, boundOther, resources);
                     break;
                 case "GroupFields":
                     (groupFields.TryGetValue(owner, out var gl) ? gl : groupFields[owner] = []).AddRange(ExtractFieldNames(inv.ArgumentList));
@@ -173,6 +180,7 @@ public sealed class XtraReportToDesignConverter
             var (sizeW, sizeH) = ParseSize(bag.GetValueOrDefault("SizeF"));
             var styleName = ParseString(bag.GetValueOrDefault("StyleName"));
             styles.TryGetValue(styleName ?? "", out var controlStyle);
+            var imageExpr = bag.GetValueOrDefault("ImageSource") ?? bag.GetValueOrDefault("Image");
 
             var el = new RawElement
             {
@@ -201,8 +209,8 @@ public sealed class XtraReportToDesignConverter
                 LineWidth = bag.ContainsKey("LineWidth") ? ToNumber(bag["LineWidth"]) : null,
                 LineStyle = NameOf(bag.GetValueOrDefault("LineStyle")) is { Length: > 0 } ls ? ls : null,
                 LineDirection = NameOf(bag.GetValueOrDefault("LineDirection")) is { Length: > 0 } ld ? ld : null,
-                ImageDataUrl = ExtractImageDataUrlCSharp(bag.GetValueOrDefault("ImageSource") ?? bag.GetValueOrDefault("Image")),
-                ImageResourceKey = ExtractResourceGetStringKey(bag.GetValueOrDefault("ImageSource") ?? bag.GetValueOrDefault("Image")),
+                ImageDataUrl = ExtractImageDataUrlCSharp(imageExpr, resources),
+                ImageResourceKey = ExtractResourceGetStringKey(imageExpr),
                 Padding = ParsePadding(bag.GetValueOrDefault("Padding")) ?? controlStyle?.Padding,
                 CanGrow = BoolValue(bag.GetValueOrDefault("CanGrow")),
                 CanShrink = BoolValue(bag.GetValueOrDefault("CanShrink")),
@@ -981,6 +989,13 @@ public sealed class XtraReportToDesignConverter
     private static string? ParseString(ExpressionSyntax? expr)
         => expr is LiteralExpressionSyntax { Token.Value: string s } ? s : null;
 
+    private static string? ParseString(ExpressionSyntax? expr, IReadOnlyDictionary<string, string>? resources)
+    {
+        if (ParseString(expr) is { } literal) return literal;
+        var key = ExtractResourceGetStringKey(expr);
+        return key is not null && resources?.TryGetValue(key, out var value) == true ? value : null;
+    }
+
     private static string? ExtractResourceGetStringKey(ExpressionSyntax? expr)
     {
         if (expr is InvocationExpressionSyntax invocation &&
@@ -1280,27 +1295,33 @@ public sealed class XtraReportToDesignConverter
             var child = el.Elements().FirstOrDefault(e => e.Name.LocalName is "ImageSource" or "Image");
             candidate = child is null ? null : (Attr(child, "ImageData") ?? Attr(child, "Base64") ?? child.Value);
         }
-        if (string.IsNullOrWhiteSpace(candidate)) return null;
-        if (candidate.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) return candidate;
-
-        // DevExpress sometimes prefixes the payload, e.g. "Image|<base64>".
-        var pipe = candidate.LastIndexOf('|');
-        var b64 = (pipe >= 0 ? candidate[(pipe + 1)..] : candidate).Trim();
-        return IsLikelyBase64(b64) ? $"data:image/png;base64,{b64}" : null;
+        return ImageDataUrlFromCandidate(candidate);
     }
 
     private static bool IsLikelyBase64(string value) =>
         value.Length >= 64 && value.Length % 4 == 0 && Regex.IsMatch(value, @"^[A-Za-z0-9+/]+={0,2}$");
 
-    private static string? ExtractImageDataUrlCSharp(ExpressionSyntax? expr)
+    private static string? ExtractImageDataUrlCSharp(ExpressionSyntax? expr, IReadOnlyDictionary<string, string>? resources)
     {
         string? candidate = expr switch
         {
             LiteralExpressionSyntax { Token.Value: string s } => s,
-            ObjectCreationExpressionSyntax { ArgumentList.Arguments: { Count: >= 2 } args } => ParseString(args[1].Expression),
+            ObjectCreationExpressionSyntax { ArgumentList.Arguments: { Count: >= 2 } args } => ParseString(args[1].Expression, resources),
             _ => null
         };
 
+        if (candidate is null
+            && ExtractResourceGetStringKey(expr) is { } key
+            && resources?.TryGetValue(key, out var resourceValue) == true)
+        {
+            candidate = resourceValue;
+        }
+
+        return ImageDataUrlFromCandidate(candidate);
+    }
+
+    private static string? ImageDataUrlFromCandidate(string? candidate)
+    {
         if (string.IsNullOrWhiteSpace(candidate)) return null;
         if (candidate.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) return candidate;
 
@@ -1411,7 +1432,8 @@ public sealed class XtraReportToDesignConverter
     private static void CaptureBindings(
         string owner, ArgumentListSyntax args,
         Dictionary<string, Dictionary<string, string>> controlBindings,
-        Dictionary<string, HashSet<string>> boundOther)
+        Dictionary<string, HashSet<string>> boundOther,
+        IReadOnlyDictionary<string, string>? resources)
     {
         foreach (var creation in args.DescendantNodes().OfType<ObjectCreationExpressionSyntax>())
         {
@@ -1423,13 +1445,13 @@ public sealed class XtraReportToDesignConverter
             if (typeName == "ExpressionBinding")
             {
                 var hasEvent = a.Value.Count >= 3;
-                property = ParseString(a.Value[hasEvent ? 1 : 0].Expression);
-                expression = ParseString(a.Value[hasEvent ? 2 : 1].Expression);
+                property = ParseString(a.Value[hasEvent ? 1 : 0].Expression, resources);
+                expression = ParseString(a.Value[hasEvent ? 2 : 1].Expression, resources);
             }
             else if (typeName == "Binding")
             {
-                property = ParseString(a.Value[0].Expression);
-                var field = a.Value.Count >= 3 ? ParseString(a.Value[2].Expression) : null;
+                property = ParseString(a.Value[0].Expression, resources);
+                var field = a.Value.Count >= 3 ? ParseString(a.Value[2].Expression, resources) : null;
                 if (field is not null) expression = $"[{field}]";
             }
 

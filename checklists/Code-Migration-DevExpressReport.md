@@ -113,6 +113,12 @@ before lower-value table styling.
 - [x] C# `XRPictureBox.ImageSource = new ImageSource("img", resources.GetString("..."))` preserves the
       resource key as `style.devExpressImageResourceKey` and emits `CANMIGDEVREP021` when the `.resx`
       payload is not available.
+- [x] Optional `resources` payload on `POST /api/migration/report-to-design` resolves
+      `resources.GetString(...)` for C# designer image payloads and expression bindings, so `.resx`
+      image base64 and binding strings can be embedded/mapped automatically.
+- [x] Direct `.resx` workflow: `POST /api/migration/report-to-design` accepts optional `resourceXml`,
+      parses `<data name="..."><value>...</value></data>` entries, and the Designer Migration UI can
+      load a matching `.resx` file while still allowing JSON overrides.
 - [x] `XRCheckBox` → `checkmark` with `CheckState` (from `CheckBoxState`/`Checked`).
 - [x] `XRShape` ellipse → `circle`, line → `line`, otherwise `rect`.
 - [x] Label `BackColor` → text `backgroundColor`; font `Underline`/`Strikeout` → `textDecoration`.

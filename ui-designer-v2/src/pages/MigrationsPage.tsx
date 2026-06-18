@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCode, FiCopy, FiDownload, FiPlay, FiRefreshCw, FiGitMerge, FiLayout } from 'react-icons/fi';
+import { FiCode, FiCopy, FiDownload, FiPlay, FiRefreshCw, FiGitMerge, FiLayout, FiUpload } from 'react-icons/fi';
 import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import AppHeader from '@/components/Layout/AppHeader';
 import { DEFAULT_PAGE_SETTINGS, useEditorStore, type Template } from '@/store';
@@ -656,6 +656,9 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const setCurrentTemplate = useEditorStore(s => s.setCurrentTemplate);
   const updatePageSettings = useEditorStore(s => s.updatePageSettings);
   const [sourceCode, setSourceCode] = useState('');
+  const [resourceJson, setResourceJson] = useState('');
+  const [resourceXml, setResourceXml] = useState('');
+  const [resourceFileName, setResourceFileName] = useState('');
   const [canvasCode, setCanvasCode] = useState('');
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
   const [summary, setSummary] = useState<ConversionSummary | null>(null);
@@ -689,6 +692,9 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const handleFrameworkChange = (id: string) => {
     setSelectedId(id);
     setSourceCode('');
+    setResourceJson('');
+    setResourceXml('');
+    setResourceFileName('');
     setCanvasCode('');
     setDiagnostics([]);
     setSummary(null);
@@ -708,6 +714,20 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     setDiagOpen(diags.some(d => d.severity === 'Warning'));
   };
 
+  const handleResourceFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    try {
+      setResourceXml(await file.text());
+      setResourceFileName(file.name);
+      setError(null);
+    } catch {
+      setError(`Could not read ${file.name}.`);
+    }
+  };
+
   const handleConvert = async () => {
     if (!sourceCode.trim()) return;
     setConverting(true);
@@ -715,10 +735,24 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     try {
       // Report (DevExpress XtraReport or RDL/RDLC) → Canvas design (JSON), opened in the visual designer.
       if (isReportDesign(selectedId)) {
+        let resources: Record<string, string> | undefined;
+        if (resourceJson.trim()) {
+          const parsed = JSON.parse(resourceJson);
+          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            throw new Error('Resource JSON must be an object like { "logo.ImageSource": "..." }.');
+          }
+          resources = Object.fromEntries(
+            Object.entries(parsed).map(([key, value]) => [key, String(value ?? '')])
+          );
+        }
         const res = await fetch(`${API_BASE}/report-to-design`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sourceCode }),
+          body: JSON.stringify({
+            sourceCode,
+            resources,
+            resourceXml: resourceXml.trim() ? resourceXml : undefined,
+          }),
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? `HTTP ${res.status}`); }
         const data = await res.json();
@@ -948,6 +982,45 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
                 height="100%"
               />
             </div>
+            {isReportDesign(selectedId) && (
+              <div className="mgr-resource-panel">
+                <div className="mgr-resource-header">
+                  <label htmlFor="mgr-resource-file">Resources</label>
+                  <span>{resourceFileName || 'No .resx loaded'}</span>
+                </div>
+                <div className="mgr-resource-actions">
+                  <label className="mgr-file-btn" htmlFor="mgr-resource-file">
+                    <FiUpload /> Load .resx
+                  </label>
+                  <input
+                    id="mgr-resource-file"
+                    type="file"
+                    accept=".resx,.xml"
+                    onChange={handleResourceFileChange}
+                  />
+                  {(resourceXml || resourceFileName) && (
+                    <button
+                      type="button"
+                      className="mgr-link-btn"
+                      onClick={() => {
+                        setResourceXml('');
+                        setResourceFileName('');
+                      }}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <label htmlFor="mgr-resource-json">Resource JSON overrides</label>
+                <textarea
+                  id="mgr-resource-json"
+                  value={resourceJson}
+                  onChange={e => setResourceJson(e.target.value)}
+                  spellCheck={false}
+                  placeholder='{ "logo.ImageSource": "iVBORw0KGgo..." }'
+                />
+              </div>
+            )}
             <div className="mgr-pane-footer">
               <button
                 className="mgr-btn mgr-btn-primary"
