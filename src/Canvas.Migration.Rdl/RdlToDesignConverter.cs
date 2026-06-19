@@ -1789,6 +1789,9 @@ public sealed class RdlToDesignConverter
             if (customType.Contains("Gauge", StringComparison.OrdinalIgnoreCase))
                 return MapRdlGaugeCustomItem(raw, element, props, diagnostics);
 
+            if (customType.Contains("Sparkline", StringComparison.OrdinalIgnoreCase))
+                return MapRdlSparklineCustomItem(raw, element, props, diagnostics);
+
             if (customType.Contains("Shape", StringComparison.OrdinalIgnoreCase) || props.ContainsKey("ShapeType"))
                 return MapRdlShape(raw, element, props, diagnostics);
 
@@ -1844,6 +1847,22 @@ public sealed class RdlToDesignConverter
         diagnostics.Add(Warn("CANMIGRDL018",
             $"'{raw.Name}' RDL gauge metadata was preserved on a positioned placeholder; Canvas has no native gauge element yet."));
         return gauge;
+    }
+
+    private static ElementDto MapRdlSparklineCustomItem(
+        RawElement raw,
+        ElementDto element,
+        IReadOnlyDictionary<string, string> props,
+        List<MigrationDiagnostic> diagnostics)
+    {
+        element.Type = "chart";
+        element.ChartType = ChartTypeFromRdl(props.GetValueOrDefault("SparklineType") ?? props.GetValueOrDefault("ChartType") ?? "Line");
+        element.ChartData = CreateRdlChartData(raw.Name, props, raw.ChartSeries);
+        element.ChartData["rdlSparkline"] = true;
+        element.Style = RdlCustomItemStyle("Sparkline", props);
+        diagnostics.Add(Warn("CANMIGRDL017",
+            $"'{raw.Name}' RDL sparkline was imported as a compact Canvas chart; review series/category/value bindings."));
+        return element;
     }
 
     private static bool IsDocumentCustomItem(string customType) =>

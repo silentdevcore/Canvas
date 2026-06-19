@@ -702,6 +702,39 @@ public sealed class RdlToDesignConverterTests
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL018" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
+    [Fact]
+    public void Convert_SparklineCustomItem_BecomesCompactCanvasChart()
+    {
+        var rdlx = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <CustomReportItem Name="trend"><Type>Sparkline</Type>
+                  <Top>0in</Top><Left>0in</Left><Height>0.35in</Height><Width>1.75in</Width>
+                  <CustomProperties>
+                    <CustomProperty><Name>SparklineType</Name><Value>Line</Value></CustomProperty>
+                    <CustomProperty><Name>Category</Name><Value>=Fields!Month.Value</Value></CustomProperty>
+                    <CustomProperty><Name>Value</Name><Value>=Sum(Fields!Revenue.Value)</Value></CustomProperty>
+                    <CustomProperty><Name>DataSetName</Name><Value>RevenueTrend</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdlx);
+        var sparkline = El(result.Design, "trend");
+
+        Assert.Equal("chart", sparkline.Type);
+        Assert.Equal("line", sparkline.ChartType);
+        Assert.Equal("Sparkline", sparkline.Style!["rdlCustomItemType"]);
+        Assert.NotNull(sparkline.ChartData);
+        Assert.True(Assert.IsType<bool>(sparkline.ChartData["rdlSparkline"]));
+        Assert.Equal("=Fields!Month.Value", sparkline.ChartData["rdlCategoryExpression"]);
+        Assert.Equal("=Sum(Fields!Revenue.Value)", sparkline.ChartData["rdlValueExpression"]);
+        Assert.Equal("RevenueTrend", sparkline.ChartData["rdlDataSetName"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL017" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
     // 26 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_NativeChart_BecomesCanvasChartPlaceholder()
