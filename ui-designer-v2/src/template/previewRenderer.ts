@@ -13,7 +13,7 @@ export function renderPreview(template: Template, data: Record<string, any>): Si
     if (element.repeat) {
       const repeatResult = expandRepeat(element.repeat as RepeatConfig, context);
       repeatResult.instances.forEach((instance) => {
-        const repeatedElement = { ...element, ...instance.context.element }; // Merge context
+        const repeatedElement = applyRepeatInstance(element, instance.item, instance.index);
         const rendered = applyBindingAndExpression(repeatedElement, instance.context);
         if (rendered) renderedElements.push(rendered);
       });
@@ -24,6 +24,36 @@ export function renderPreview(template: Template, data: Record<string, any>): Si
   });
 
   return renderedElements;
+}
+
+function applyRepeatInstance(element: SimpleElement, item: any, index: number): SimpleElement {
+  const repeatedElement: SimpleElement = {
+    ...element,
+    id: `${element.id}__repeat_${index}`,
+    name: element.name ? `${element.name} ${index + 1}` : element.name,
+    y: element.y + element.height * index,
+    repeat: undefined
+  };
+  const values = item && typeof item === 'object' && !Array.isArray(item)
+    ? { ...item, index }
+    : { value: item, index };
+
+  repeatedElement.content = substituteTokens(repeatedElement.content, values);
+  repeatedElement.htmlContent = substituteTokens(repeatedElement.htmlContent, values);
+  if ((repeatedElement as any).cellData) {
+    (repeatedElement as any).cellData = (repeatedElement as any).cellData.map((row: string[]) =>
+      row.map((cell) => substituteTokens(cell, values) ?? '')
+    );
+  }
+  return repeatedElement;
+}
+
+function substituteTokens(value: string | undefined, values: Record<string, any>): string | undefined {
+  if (!value) return value;
+  return value.replace(/\{\{\s*([A-Za-z_][A-Za-z0-9_.]*)\s*\}\}/g, (match, key) => {
+    const resolved = key.split('.').reduce((current: any, part: string) => current?.[part], values);
+    return resolved == null ? match : String(resolved);
+  });
 }
 
 function applyBindingAndExpression(element: SimpleElement, context: ExpressionContext): SimpleElement | null {
