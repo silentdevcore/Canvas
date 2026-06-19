@@ -4,9 +4,10 @@
 
 Convert an **RDL report** (`.rdl` / `.rdlc`) — the XML standard emitted by Microsoft SSRS/RDLC and by
 the **Syncfusion / Bold Reports** designer — into a **Canvas design** that opens and is editable in
-`ui-designer-v2`. One generic RDL converter serves every RDL-emitting vendor (Syncfusion now;
-ActiveReports/DsReport `.rdlx` and `.rpx` are V2), mirroring the DevExpress XtraReport → Canvas
-converter ([Code-Migration-DevExpressReport.md](Code-Migration-DevExpressReport.md)).
+`ui-designer-v2`. One generic RDL converter serves every RDL-emitting vendor (Syncfusion, SSRS/RDLC,
+ActiveReports/DsReport plain-XML `.rdlx`), mirroring the DevExpress XtraReport → Canvas converter
+([Code-Migration-DevExpressReport.md](Code-Migration-DevExpressReport.md)). GrapeCity Section Reports
+`.rpx` are covered by the separate RPX converter.
 
 - **Input**: RDL XML — `<Report>` in a `…/reportdefinition` namespace, with `<Page>`, `<Body>`,
   `<PageHeader>`/`<PageFooter>`, and report items (`Textbox`, `Line`, `Rectangle`, `Image`,
@@ -19,7 +20,7 @@ converter ([Code-Migration-DevExpressReport.md](Code-Migration-DevExpressReport.
 **V1 shipped.** Syncfusion/SSRS `.rdl`/`.rdlc` convert end-to-end and open in the designer: page
 size/margins from CSS lengths, absolute item positioning, page header/footer → repeating shared
 elements, textbox style + field bindings, tablix/table, rectangle flattening, embedded images.
-**V2** below is the next milestone.
+The remaining roadmap is limited to optional P2/native-product features and expression-engine work.
 
 ---
 
@@ -69,7 +70,6 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CustomReportItem` map | positioned placeholder + structured map custom-property metadata (`CANMIGRDL022`) | [x] |
 | native `GaugePanel` | positioned placeholder + structured gauge metadata (`CANMIGRDL021`) | [x] |
 | native `Map` | positioned placeholder + structured map metadata (`CANMIGRDL022`) | [x] |
-| `CustomReportItem` gauge/map/etc. | labeled placeholder + RDL metadata (`CANMIGRDL018` for gauge) | [x] |
 | `Subreport` | labeled placeholder + report/parameter metadata (`CANMIGRDL011`) | [x] |
 | Value `=Fields!X.Value` / `=expr` | `binding` / `expression` | [x] |
 | `Visibility.Hidden` | `Hidden` / inverted `VisibleExpression` | [x] |
@@ -85,7 +85,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 - [x] Frontend **"Syncfusion / RDL Reports"** entry + **Open in Designer** (loads via
       `bulkReplaceContent`) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
 
-### Tests (39 passing)
+### Tests (60 passing)
 - [x] Page size from lengths; length-unit parsing; absolute positioning; textbox style; named colours;
       `=Fields!X.Value` binding vs complex expression; literal text; Tablix-2016 + Table-2008 → table;
       column alignments/widths; page header/footer → shared; rectangle flatten; line stroke/dash;
@@ -99,7 +99,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
       Covers page header/footer, embedded images, nested rectangles, mixed units (`cm`, `mm`, `in`, `pt`),
       field bindings, complex expressions, multi-run rich text, dashed lines, a multi-column Tablix with
       hierarchy/pagination metadata, visibility rules, database image binding, barcode custom item,
-      Chart/Gauge placeholders, and Subreport placeholder.
+      Chart/Gauge/Map/Sparkline metadata, and Subreport metadata placeholders.
 - [x] **End-to-end**: a converted RDL renders to a valid PDF through the real export pipeline
       (`DesignJsonMapper` → `ToBytes`) — in `Canvas.Export.Tests`.
 
@@ -109,7 +109,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL001` | Info | RDL report detected — N item(s) mapped |
 | `CANMIGRDL002` | Info | Per-item mapping (`name (rdlType) → Canvas type`) |
 | `CANMIGRDL010` | Info / Warning | `=Fields!X.Value` → binding (Info); complex `=expr` → expression (Warning) |
-| `CANMIGRDL011` | Warning | Unsupported item / Subreport / unparseable Tablix / `<Code>` — skipped |
+| `CANMIGRDL011` | Warning | Unsupported item / Subreport / unparseable Tablix / `<Code>` — manual review needed; placeholders/metadata are kept where possible |
 | `CANMIGRDL012` | Warning | Image not embedded; external/database reference preserved or placeholder inserted |
 | `CANMIGRDL013` | Warning | Container nesting too deep — flatten stopped at guard depth |
 | `CANMIGRDL014` | Warning | Tablix grouping/sorting metadata preserved; Canvas repeat/group semantics still require review |
@@ -120,7 +120,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CANMIGRDL019` | Warning | RDL pagination/repeat metadata preserved; Canvas pagination behaviour needs review |
 | `CANMIGRDL020` | Warning | RDL Shape custom item imported as Canvas rect/circle/arrow; geometry/rotation needs review |
 | `CANMIGRDL021` | Warning | Native RDL GaugePanel metadata preserved on positioned placeholder; Canvas has no native gauge element yet |
-| `CANMIGRDL022` | Warning | Native RDL Map metadata preserved on positioned placeholder; Canvas has no native map element yet |
+| `CANMIGRDL022` | Warning | Native/custom RDL Map metadata preserved on positioned placeholder; Canvas has no native map element yet |
 | `CANMIGRDL023` | Warning | Non-text Tablix cell item extracted as separate positioned Canvas element; repeat semantics need review |
 | `CANMIGRDL024` | Warning | RDL report parameters preserved in `PageSettings.CustomProperties`; Canvas has no native report-parameter UI yet |
 | `CANMIGRDL025` | Warning | RDL filters preserved as metadata; Canvas does not evaluate report filters yet |
@@ -131,10 +131,10 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 
 ---
 
-# V2 — Next 🔜
+# Remaining Roadmap
 
-**Current recommendation:** make RDL the second fidelity pass after DevExpress. The biggest user-visible
-gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, and mixed text runs.
+**Current recommendation:** treat the RDL/Syncfusion converter as functionally complete for P0/P1 parity.
+The remaining items are optional native Canvas capabilities or blocked expression-engine work.
 
 ### 1. ActiveReports / DsReport `.rdlx`  *(plain-XML done)*
 - [x] Plain RDL-XML `.rdlx` (the designer's native save format) detects + converts; barcode
