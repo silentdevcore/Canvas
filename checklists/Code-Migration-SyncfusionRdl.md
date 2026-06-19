@@ -162,7 +162,8 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       `rdlTablixColumnHierarchy` header/group labels render as additional Canvas table header rows.
 - [x] **P1** Export rendering for multi-level Matrix/group headers in HTML, Word, and Excel from preserved
       Tablix hierarchy metadata.
-- [ ] **P1** Extend Matrix/group-header rendering to remaining visual export paths where needed (native PDF/SVG/image).
+- [x] **P1** Extend Matrix/group-header rendering to remaining visual export paths: native PDF mapping,
+      SVG, and image exports now prepend preserved RDL hierarchy labels as table header rows.
 - [x] **P0** Nested Tablix/Table inside Tablix cells are extracted as positioned Canvas `table` elements with
       `rdlParentTablix`, cell row/column, row/column span, and `rdlParentTablixRepeatScope` metadata that preserves
       the parent row/column hierarchy and group expressions (`CANMIGRDL023`).

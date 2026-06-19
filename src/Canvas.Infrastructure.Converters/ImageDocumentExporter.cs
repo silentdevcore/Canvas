@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Canvas.Core.Abstractions;
 using Canvas.Core.Contracts;
@@ -206,15 +207,41 @@ public sealed class ImageDocumentExporter : IDocumentExporter
         var cellData = el.CellData ?? [];
         if (cellData.Length == 0) return;
 
-        var cols  = cellData[0]?.Length ?? 1;
-        var rows  = cellData.Length;
-        var cellW = w / cols;
-        var cellH = h / rows;
-        var bw    = (float)s.GetNum("borderWidth", 1);
-        var bc    = ParseColor(s.GetStr("borderColor", "#000000"));
+        var cols          = cellData[0]?.Length ?? 1;
+        var rows          = cellData.Length;
+        var matrixHeaders = RdlMatrixHeaders(s);
+        var visualRows    = rows + matrixHeaders.Count;
+        var cellW         = w / cols;
+        var cellH         = h / Math.Max(visualRows, 1);
+        var bw            = (float)s.GetNum("borderWidth", 1);
+        var bc            = ParseColor(s.GetStr("borderColor", "#000000"));
 
         var hasHdr = el.HeaderRow == true;
         var hdrBg  = ParseColor(el.HeaderBgColor ?? "#f1f5f9");
+        var matrixHeaderBg = ParseColor("#e0f2fe");
+        var matrixHeaderText = ParseColor("#075985");
+
+        using (var headerTf = SKTypeface.FromFamilyName(
+            "Arial", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright))
+        using (var headerFont = new SKFont(headerTf, 10f * scale))
+        using (var headerPaint = new SKPaint { Color = matrixHeaderText, IsAntialias = true })
+        {
+            for (var hIndex = 0; hIndex < matrixHeaders.Count; hIndex++)
+            {
+                var cy = y + hIndex * cellH;
+                using var bgPaint = new SKPaint { Color = matrixHeaderBg };
+                using var borderPaint = new SKPaint { Color = bc, StrokeWidth = bw, IsStroke = true };
+                canvas.DrawRect(x, cy, w, cellH, bgPaint);
+                canvas.DrawRect(x, cy, w, cellH, borderPaint);
+
+                var pad     = 4f * scale;
+                var lines   = WrapText(matrixHeaders[hIndex], Math.Max(1, w - 2 * pad), headerFont);
+                var lineGap = headerFont.Size * 1.25f;
+                var startY  = cy + Math.Max(headerFont.Size + pad, (cellH - lines.Count * lineGap) / 2 + headerFont.Size);
+                for (int li = 0; li < lines.Count; li++)
+                    canvas.DrawText(lines[li], x + pad, startY + li * lineGap, headerFont, headerPaint);
+            }
+        }
 
         for (int r = 0; r < rows; r++)
         {
@@ -222,7 +249,7 @@ public sealed class ImageDocumentExporter : IDocumentExporter
             for (int c = 0; c < cols; c++)
             {
                 var cx   = x + c * cellW;
-                var cy   = y + r * cellH;
+                var cy   = y + (r + matrixHeaders.Count) * cellH;
                 var cell = row.Length > c ? row[c] : "";
                 var isHdr = hasHdr && r == 0;
 
@@ -255,6 +282,55 @@ public sealed class ImageDocumentExporter : IDocumentExporter
             }
         }
     }
+
+    private static List<string> RdlMatrixHeaders(Dictionary<string, object> style)
+    {
+        var headers = new List<string>();
+        AddRdlMatrixHeaders(style, "rdlTablixColumnHierarchy", headers);
+        AddRdlMatrixHeaders(style, "rdlTablixRowHierarchy", headers);
+        return headers;
+    }
+
+    private static void AddRdlMatrixHeaders(Dictionary<string, object> style, string key, List<string> headers)
+    {
+        if (!style.TryGetValue(key, out var value) || value is null) return;
+
+        if (value is JsonElement { ValueKind: JsonValueKind.Array } jsonArray)
+        {
+            foreach (var item in jsonArray.EnumerateArray())
+                AddRdlMatrixHeader(item, headers);
+            return;
+        }
+
+        if (value is IEnumerable<object> items)
+        {
+            foreach (var item in items)
+                AddRdlMatrixHeader(item, headers);
+        }
+    }
+
+    private static void AddRdlMatrixHeader(object item, List<string> headers)
+    {
+        switch (item)
+        {
+            case JsonElement { ValueKind: JsonValueKind.Object } json:
+                var text = JsonProp(json, "headerText") ?? JsonProp(json, "groupName");
+                if (!string.IsNullOrWhiteSpace(text)) headers.Add(text);
+                break;
+            case IReadOnlyDictionary<string, object> dict:
+                if ((HeaderValue(dict, "headerText") ?? HeaderValue(dict, "groupName")) is { Length: > 0 } value)
+                    headers.Add(value);
+                break;
+        }
+    }
+
+    private static string? JsonProp(JsonElement json, string name) =>
+        json.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
+            ? prop.GetString()
+            : null;
+
+    private static string? HeaderValue(IReadOnlyDictionary<string, object> dict, string key) =>
+        dict.TryGetValue(key, out var value) ? value?.ToString() : null;
 
     /// <summary>
     /// Draws word-wrapped text within an element box, honouring padding, line height and

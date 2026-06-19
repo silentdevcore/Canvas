@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Canvas.Core.Abstractions;
@@ -309,16 +310,36 @@ public sealed class SvgDocumentExporter : IDocumentExporter
         var bc       = s.GetStr("borderColor", "#000000");
         var hasHdr   = el.HeaderRow == true;
         var hdrBg    = el.HeaderBgColor ?? "#f1f5f9";
+        var matrixHeaders = RdlMatrixHeaders(s);
         var cellW    = cols > 0 ? el.Width / cols : el.Width;
-        var cellH    = rows > 0 ? el.Height / rows : el.Height;
+        var visualRows = rows + matrixHeaders.Count;
+        var cellH    = visualRows > 0 ? el.Height / visualRows : el.Height;
 
         var g = new XElement("g");
+        for (var h = 0; h < matrixHeaders.Count; h++)
+        {
+            var cy = el.Y + h * cellH;
+            g.Add(new XElement("rect",
+                new XAttribute("x", el.X), new XAttribute("y", cy),
+                new XAttribute("width", el.Width), new XAttribute("height", cellH),
+                new XAttribute("fill", "#e0f2fe"),
+                new XAttribute("stroke", bc), new XAttribute("stroke-width", bw)));
+            g.Add(new XElement("text",
+                new XAttribute("x", Num(el.X + 4)),
+                new XAttribute("y", Num(cy + Math.Max(10 + 2, (cellH - 10 * 1.3) / 2 + 10))),
+                new XAttribute("font-size", 10),
+                new XAttribute("font-family", "Arial"),
+                new XAttribute("fill", "#075985"),
+                new XAttribute("font-weight", "bold"),
+                matrixHeaders[h]));
+        }
+
         for (int r = 0; r < rows; r++)
         {
             for (int c = 0; c < cols; c++)
             {
                 var cx   = el.X + c * cellW;
-                var cy   = el.Y + r * cellH;
+                var cy   = el.Y + (r + matrixHeaders.Count) * cellH;
                 var fill = hasHdr && r == 0 ? hdrBg : "none";
                 var cell = cellData[r]?.Length > c ? cellData[r][c] : "";
 
@@ -352,6 +373,55 @@ public sealed class SvgDocumentExporter : IDocumentExporter
         }
         return g;
     }
+
+    private static List<string> RdlMatrixHeaders(Dictionary<string, object> style)
+    {
+        var headers = new List<string>();
+        AddRdlMatrixHeaders(style, "rdlTablixColumnHierarchy", headers);
+        AddRdlMatrixHeaders(style, "rdlTablixRowHierarchy", headers);
+        return headers;
+    }
+
+    private static void AddRdlMatrixHeaders(Dictionary<string, object> style, string key, List<string> headers)
+    {
+        if (!style.TryGetValue(key, out var value) || value is null) return;
+
+        if (value is JsonElement { ValueKind: JsonValueKind.Array } jsonArray)
+        {
+            foreach (var item in jsonArray.EnumerateArray())
+                AddRdlMatrixHeader(item, headers);
+            return;
+        }
+
+        if (value is IEnumerable<object> items)
+        {
+            foreach (var item in items)
+                AddRdlMatrixHeader(item, headers);
+        }
+    }
+
+    private static void AddRdlMatrixHeader(object item, List<string> headers)
+    {
+        switch (item)
+        {
+            case JsonElement { ValueKind: JsonValueKind.Object } json:
+                var text = JsonProp(json, "headerText") ?? JsonProp(json, "groupName");
+                if (!string.IsNullOrWhiteSpace(text)) headers.Add(text);
+                break;
+            case IReadOnlyDictionary<string, object> dict:
+                if ((HeaderValue(dict, "headerText") ?? HeaderValue(dict, "groupName")) is { Length: > 0 } value)
+                    headers.Add(value);
+                break;
+        }
+    }
+
+    private static string? JsonProp(JsonElement json, string name) =>
+        json.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
+            ? prop.GetString()
+            : null;
+
+    private static string? HeaderValue(IReadOnlyDictionary<string, object> dict, string key) =>
+        dict.TryGetValue(key, out var value) ? value?.ToString() : null;
 
     private static XAttribute? SvgStroke(Dictionary<string, object> s)
     {

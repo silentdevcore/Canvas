@@ -729,7 +729,9 @@ public static class DesignJsonMapper
                     ? new PdfColor(0.94, 0.97, 1.0)
                     : (IPdfColor)ParseColor(el.HeaderBgColor);
                 var bw = GetDouble(style, "borderWidth", 0.75);
-                var rowH = rows.Length > 0 ? h / rows.Length : 24;
+                var matrixHeaders = RdlMatrixHeaders(style);
+                var visualRowCount = rows.Length + matrixHeaders.Count;
+                var rowH = visualRowCount > 0 ? h / visualRowCount : 24;
                 var cellPad = GetDouble(style, "cellPadding", 4);
                 var footerBgStr = GetString(style, "footerBgColor");
                 IPdfColor footerBg = string.IsNullOrEmpty(footerBgStr)
@@ -763,11 +765,14 @@ public static class DesignJsonMapper
                     ? cw.ToList()
                     : null;
 
-                var typedRows = rows.Select(r => (IReadOnlyList<string>)r.Select(c => c ?? "").ToList()).ToList();
+                var typedRows = new List<IReadOnlyList<string>>();
+                foreach (var header in matrixHeaders)
+                    typedRows.Add([header, .. Enumerable.Repeat("", Math.Max(colCount - 1, 0))]);
+                typedRows.AddRange(rows.Select(r => (IReadOnlyList<string>)r.Select(c => c ?? "").ToList()).ToList());
 
                 page.DrawSimpleTable(elX, pageH - elY, w, typedRows, new PdfTableOptions
                 {
-                    HasHeaderRow = el.HeaderRow ?? false,
+                    HasHeaderRow = (el.HeaderRow ?? false) || matrixHeaders.Count > 0,
                     HasFooterRow = el.FooterRow ?? false,
                     AutoRowHeight = true,
                     RowHeight = Math.Max(rowH, 16),
@@ -1405,6 +1410,27 @@ public static class DesignJsonMapper
         JsonElement json => json.ToString(),
         _ => Convert.ToString(value, CultureInfo.InvariantCulture)
     };
+
+    private static List<string> RdlMatrixHeaders(Dictionary<string, object> style)
+    {
+        var headers = new List<string>();
+        AddRdlMatrixHeaders(style, "rdlTablixColumnHierarchy", headers);
+        AddRdlMatrixHeaders(style, "rdlTablixRowHierarchy", headers);
+        return headers;
+    }
+
+    private static void AddRdlMatrixHeaders(Dictionary<string, object> style, string key, List<string> headers)
+    {
+        if (!style.TryGetValue(key, out var value) || value is null) return;
+
+        foreach (var item in ReadObjectArray(value))
+        {
+            var header = ReadString(GetProperty(item, "headerText"))
+                ?? ReadString(GetProperty(item, "groupName"));
+            if (!string.IsNullOrWhiteSpace(header))
+                headers.Add(header);
+        }
+    }
 
     private static double ReadDouble(object? value)
     {

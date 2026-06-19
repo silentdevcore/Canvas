@@ -176,6 +176,15 @@ public class ExporterTests
         Assert.Contains("<svg", svg);
     }
 
+    [Fact]
+    public void Svg_Export_RendersRdlMatrixHeaders()
+    {
+        var svg = Encoding.UTF8.GetString(new SvgDocumentExporter().Export(MatrixHeaderDesign()));
+        Assert.Contains("{{Year}}", svg);
+        Assert.Contains("ProductGroup", svg);
+        Assert.Contains("#e0f2fe", svg);
+    }
+
     // ─── CSV ──────────────────────────────────────────────────────────────────
 
     [Fact]
@@ -937,6 +946,24 @@ public class ExporterTests
         // PNG signature: 89 50 4E 47
         Assert.True(bytes.Length >= 4 && bytes[0] == 0x89 && bytes[1] == 0x50,
             "PNG output should start with PNG magic bytes");
+    }
+
+    [Fact]
+    public void Png_Export_WithRdlMatrixHeaders_ProducesValidPng()
+    {
+        var bytes = new ImageDocumentExporter().Export(MatrixHeaderDesign());
+        Assert.True(bytes.Length >= 4 && bytes[0] == 0x89 && bytes[1] == 0x50,
+            "PNG output should start with PNG magic bytes");
+    }
+
+    [Fact]
+    public void NativePdf_Export_WithRdlMatrixHeaders_ProducesValidPdf()
+    {
+        var bytes = Canvas.WebApi.Infrastructure.DesignJsonMapper
+            .MapToPdfDocument(MatrixHeaderDesign())
+            .ToBytes();
+
+        Assert.Equal("%PDF"u8.ToArray(), bytes[..4]);
     }
 
     // ─── JPEG ─────────────────────────────────────────────────────────────────
