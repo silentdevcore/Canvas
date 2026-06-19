@@ -51,7 +51,7 @@ public static class DesignLayoutPlanner
                 continue;
             }
 
-            var items = ToEnumerable(data).ToList();
+            var items = ApplyRdlFilters(ToEnumerable(data), element.Style, payload).ToList();
             if (items.Count == 0)
                 continue;
 
@@ -84,7 +84,30 @@ public static class DesignLayoutPlanner
                     payload.TryAdd(pair.Key, pair.Value);
             }
         }
+        AddRdlReportParameterDefaults(payload);
         return payload;
+    }
+
+    private static void AddRdlReportParameterDefaults(Dictionary<string, object?> payload)
+    {
+        if (!payload.TryGetValue("rdlReportParameters", out var value) || value is not List<object?> parameters)
+            return;
+
+        foreach (var item in parameters)
+        {
+            if (item is not IReadOnlyDictionary<string, object?> parameter
+                || !parameter.TryGetValue("Name", out var nameValue)
+                || nameValue?.ToString() is not { Length: > 0 } name)
+                continue;
+
+            if (!parameter.TryGetValue("DefaultValue", out var defaultValue) || defaultValue is null)
+                continue;
+
+            var text = defaultValue.ToString();
+            payload.TryAdd(name, text);
+            payload.TryAdd($"Parameters.{name}", text);
+            payload.TryAdd($"Parameters!{name}.Value", text);
+        }
     }
 
     private static object? ParsePayloadValue(string? value)
@@ -144,6 +167,114 @@ public static class DesignLayoutPlanner
             yield break;
         }
         yield return data;
+    }
+
+    private static IEnumerable<object?> ApplyRdlFilters(
+        IEnumerable<object?> items,
+        Dictionary<string, object>? style,
+        IReadOnlyDictionary<string, object?> payload)
+    {
+        var filters = ReadDictionaryArray(style, "rdlFilters").ToList();
+        if (filters.Count == 0)
+            return items;
+
+        return items.Where(item => filters.All(filter => MatchesRdlFilter(item, filter, payload)));
+    }
+
+    private static IEnumerable<IReadOnlyDictionary<string, object?>> ReadDictionaryArray(
+        Dictionary<string, object>? style,
+        string key)
+    {
+        if (style is null || !style.TryGetValue(key, out var value) || value is null)
+            yield break;
+
+        if (value is JsonElement { ValueKind: JsonValueKind.Array } jsonArray)
+        {
+            foreach (var item in jsonArray.EnumerateArray())
+            {
+                if (FromJson(item) is IReadOnlyDictionary<string, object?> dict)
+                    yield return dict;
+            }
+            yield break;
+        }
+
+        if (value is System.Collections.IEnumerable enumerable and not string)
+        {
+            foreach (var item in enumerable)
+            {
+                if (item is IReadOnlyDictionary<string, object?> nullableDict)
+                    yield return nullableDict;
+                else if (item is IReadOnlyDictionary<string, object> dict)
+                    yield return dict.ToDictionary(k => k.Key, v => (object?)v.Value, StringComparer.OrdinalIgnoreCase);
+            }
+        }
+    }
+
+    private static bool MatchesRdlFilter(
+        object? item,
+        IReadOnlyDictionary<string, object?> filter,
+        IReadOnlyDictionary<string, object?> payload)
+    {
+        var expression = DictString(filter, "FilterExpression");
+        var op = DictString(filter, "Operator") ?? "Equal";
+        var values = DictValues(filter, "FilterValues")
+            .Select(value => ResolveRdlValue(value, payload)?.ToString() ?? value)
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .ToList();
+
+        if (string.IsNullOrWhiteSpace(expression) || values.Count == 0)
+            return true;
+
+        var actual = ResolveRdlValue(expression, item)?.ToString();
+        return op switch
+        {
+            "Equal" => values.Any(value => string.Equals(actual ?? "", value, StringComparison.OrdinalIgnoreCase)),
+            "Like" => values.Any(value => Like(actual ?? "", value)),
+            "NotEqual" => values.All(value => !string.Equals(actual ?? "", value, StringComparison.OrdinalIgnoreCase)),
+            _ => true
+        };
+    }
+
+    private static string? DictString(IReadOnlyDictionary<string, object?> dict, string key) =>
+        dict.TryGetValue(key, out var value) ? value?.ToString() : null;
+
+    private static IEnumerable<string> DictValues(IReadOnlyDictionary<string, object?> dict, string key)
+    {
+        if (!dict.TryGetValue(key, out var value) || value is null)
+            yield break;
+
+        if (value is string text)
+        {
+            yield return text;
+            yield break;
+        }
+
+        if (value is System.Collections.IEnumerable enumerable)
+        {
+            foreach (var item in enumerable)
+                if (item?.ToString() is { Length: > 0 } itemText)
+                    yield return itemText;
+        }
+    }
+
+    private static object? ResolveRdlValue(string expression, object? source)
+    {
+        var field = Regex.Match(expression, @"^\s*=?\s*Fields!(?<name>\w+)\.Value\s*$", RegexOptions.IgnoreCase);
+        if (field.Success)
+            return ResolveToken(ItemValues(source), field.Groups["name"].Value);
+
+        var parameter = Regex.Match(expression, @"^\s*=?\s*Parameters!(?<name>\w+)\.Value\s*$", RegexOptions.IgnoreCase);
+        if (parameter.Success && source is IReadOnlyDictionary<string, object?> payload)
+            return ResolveToken(payload, parameter.Groups["name"].Value)
+                ?? ResolveToken(payload, $"Parameters.{parameter.Groups["name"].Value}");
+
+        return expression.TrimStart('=');
+    }
+
+    private static bool Like(string value, string pattern)
+    {
+        var regex = "^" + Regex.Escape(pattern).Replace("\\*", ".*", StringComparison.Ordinal) + "$";
+        return Regex.IsMatch(value, regex, RegexOptions.IgnoreCase);
     }
 
     private static ElementDto CloneElement(ElementDto element) =>

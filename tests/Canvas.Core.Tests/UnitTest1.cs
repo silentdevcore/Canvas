@@ -256,6 +256,72 @@ public class DesignLayoutPlannerTests
         Assert.Equal("{{Product}}", element.Content);
         Assert.NotNull(element.Repeat);
     }
+
+    [Fact]
+    public void BuildPages_ShouldFilterRepeatElements_WithRdlParameterDefault()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "d6",
+            Name = "Repeat Filter",
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "detail",
+                            Type = "table",
+                            X = 10,
+                            Y = 20,
+                            Width = 200,
+                            Height = 40,
+                            Repeat = new RepeatDto { DataPath = "Rows", TemplateId = "detail" },
+                            CellData = [["Year", "Product"], ["{{Year}}", "{{Product}}"]],
+                            Style = new()
+                            {
+                                ["rdlFilters"] = new object[]
+                                {
+                                    new Dictionary<string, object>
+                                    {
+                                        ["FilterExpression"] = "=Fields!Year.Value",
+                                        ["Operator"] = "Equal",
+                                        ["FilterValues"] = new[] { "=Parameters!OrderYear.Value" }
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            PageSettings = new PageSettingsDto
+            {
+                CustomProperties =
+                [
+                    new CustomDocumentPropertyDto
+                    {
+                        Name = "Rows",
+                        Value = """[{"Year":"2025","Product":"Tea"},{"Year":"2026","Product":"Coffee"}]"""
+                    },
+                    new CustomDocumentPropertyDto
+                    {
+                        Name = "rdlReportParameters",
+                        Value = """[{"Name":"OrderYear","DefaultValue":"2026"}]"""
+                    }
+                ]
+            }
+        };
+
+        var planned = DesignLayoutPlanner.BuildPages(design);
+
+        var element = Assert.Single(planned[0].Elements);
+        Assert.Equal("detail__repeat_0", element.Id);
+        Assert.Equal("2026", element.CellData![1][0]);
+        Assert.Equal("Coffee", element.CellData![1][1]);
+    }
 }
 
 file sealed class TestCapabilities : IRendererCapabilities

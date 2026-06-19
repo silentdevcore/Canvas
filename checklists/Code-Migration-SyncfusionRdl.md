@@ -203,7 +203,11 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       (`rdlReportParameters`, `rdlReportParametersLayout`) plus `CANMIGRDL024`.
 - [x] Element/DataRegion/Tablix group `Filters` → `style.rdlFilters`, `style.rdlTablixGroupFilters`, or nested
       map data-region metadata plus `CANMIGRDL025`.
-- [ ] **P1** Native report-parameter UI and filter evaluation: preserved metadata is not executed by Canvas yet.
+- [x] **P1** Report-parameter defaults and filter evaluation in runtime exports: `rdlReportParameters`
+      default values become substitution/evaluation properties, and `style.rdlFilters` filters repeated rows
+      against payload fields and parameter values.
+- [ ] **P2** Native report-parameter UI/editor controls; runtime defaults and repeat-filter evaluation exist,
+      but users still need a Canvas-native parameter input surface.
 - [x] Element `ActionInfo` (`Hyperlink`, `BookmarkLink`, `Drillthrough` with parameters), `Bookmark`,
       `DocumentMapLabel`, and Tablix `ToggleItem`/group document-map metadata → `style.rdlNavigation` or
       `style.rdlTablixNavigation` plus `CANMIGRDL026`.

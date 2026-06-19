@@ -65,8 +65,8 @@ public static class DesignJsonMapper
             design.PageSettings?.SystemLanguage);
         var evaluationProps = BuildEvaluationProperties(design, resolvedProps);
 
-        if (resolvedProps.Count > 0)
-            design = ApplyPropertySubstitutions(design, resolvedProps);
+        if (evaluationProps.Count > 0)
+            design = ApplyPropertySubstitutions(design, evaluationProps);
 
         var document = new PdfDocument();
         document.FontLoader = fontLoader;
@@ -1725,7 +1725,43 @@ public static class DesignJsonMapper
             if (!string.IsNullOrWhiteSpace(prop.Name))
                 result[prop.Name] = prop.Value ?? "";
         }
+        AddRdlReportParameterDefaults(result);
         return result;
+    }
+
+    private static void AddRdlReportParameterDefaults(Dictionary<string, string> props)
+    {
+        if (!props.TryGetValue("rdlReportParameters", out var json) || string.IsNullOrWhiteSpace(json))
+            return;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+                return;
+
+            foreach (var parameter in doc.RootElement.EnumerateArray())
+            {
+                if (parameter.ValueKind != JsonValueKind.Object
+                    || !parameter.TryGetProperty("Name", out var nameProp)
+                    || nameProp.GetString() is not { Length: > 0 } name)
+                    continue;
+
+                var value = parameter.TryGetProperty("DefaultValue", out var defaultProp)
+                    ? defaultProp.GetString()
+                    : null;
+                if (string.IsNullOrWhiteSpace(value))
+                    continue;
+
+                props.TryAdd(name, value);
+                props.TryAdd($"Parameters.{name}", value);
+                props.TryAdd($"Parameters!{name}.Value", value);
+            }
+        }
+        catch (JsonException)
+        {
+            // Invalid metadata should not break export; callers still have raw custom properties.
+        }
     }
 
     private static bool VisibleExpressionAllows(ElementDto el, Dictionary<string, string> props)

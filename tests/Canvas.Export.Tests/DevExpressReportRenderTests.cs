@@ -293,6 +293,28 @@ public sealed class DevExpressReportRenderTests
         Assert.DoesNotContain("External file", pdf, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void RdlReportParameterDefault_SubstitutesAsCustomProperty()
+    {
+        var design = VisibleExpressionDesign("true", "Year {{OrderYear}}");
+        design.PageSettings!.CustomProperties =
+        [
+            new CustomDocumentPropertyDto
+            {
+                Name = "rdlReportParameters",
+                Value = """[{"Name":"OrderYear","DefaultValue":"2026"}]"""
+            }
+        ];
+
+        var bytes = DesignJsonMapper.MapToPdfDocument(design).ToBytes(new PdfSaveOptions
+        {
+            CompressContentStreams = false
+        });
+        var pdf = Encoding.ASCII.GetString(bytes);
+
+        Assert.Contains("Year 2026", pdf, StringComparison.Ordinal);
+    }
+
     private static int CountOccurrences(string text, string value)
     {
         var count = 0;
