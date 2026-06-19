@@ -194,8 +194,11 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       samples) are extracted as separate positioned Canvas elements with `style.rdlParentTablix`,
       `style.rdlParentTablixRow`, `style.rdlParentTablixColumn`, and table-level `style.rdlExtractedCellItems`
       plus `CANMIGRDL023`.
-- [ ] **P1** Richer Table cell-content modeling: extracted nested items preserve visibility and repeat scope, but
-      repeated data-row semantics still need a Canvas-native model instead of absolute overlay elements.
+- [x] **P1** Richer Table cell-content modeling: parent tables now preserve structured
+      `style.rdlExtractedCellItemLayouts` for extracted nested cell items, including row/column, spans,
+      table-relative bounds, visibility, repeat scope, and repeat metadata.
+- [ ] **P2** Canvas-native compound table-cell rendering for extracted nested items, instead of positioned
+      overlay elements, if/when the Canvas table model supports mixed cell content.
 - [x] `ReportParameters` / `ReportParametersLayout` → `PageSettings.CustomProperties` JSON metadata
       (`rdlReportParameters`, `rdlReportParametersLayout`) plus `CANMIGRDL024`.
 - [x] Element/DataRegion/Tablix group `Filters` → `style.rdlFilters`, `style.rdlTablixGroupFilters`, or nested

@@ -721,6 +721,7 @@ public sealed class RdlToDesignConverter
                     if (nested is null) continue;
                     report.Elements.Add(nested);
                     table.TablixNestedItemNames.Add(nested.Name);
+                    table.TablixNestedItemLayouts.Add(NestedCellItemLayout(table, nested));
                 }
 
                 x += columnIndex < widths.Length ? widths[columnIndex] : 0;
@@ -1592,6 +1593,34 @@ public sealed class RdlToDesignConverter
         return repeat;
     }
 
+    private static Dictionary<string, object> NestedCellItemLayout(RawElement table, RawElement nested)
+    {
+        var layout = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["name"] = nested.Name,
+            ["type"] = nested.Type,
+            ["row"] = nested.ParentTablixRow ?? 0,
+            ["column"] = nested.ParentTablixColumn ?? 0,
+            ["x"] = nested.X - table.X,
+            ["y"] = nested.Y - table.Y,
+            ["width"] = nested.W,
+            ["height"] = nested.H
+        };
+        if (nested.ParentTablixRowSpan is { } rowSpan)
+            layout["rowSpan"] = rowSpan;
+        if (nested.ParentTablixColumnSpan is { } columnSpan)
+            layout["columnSpan"] = columnSpan;
+        if (nested.Hidden is { } hidden)
+            layout["hidden"] = hidden;
+        if (!string.IsNullOrWhiteSpace(nested.HiddenExpression))
+            layout["hiddenExpression"] = nested.HiddenExpression!;
+        if (nested.ParentTablixRepeatScope is { Count: > 0 })
+            layout["repeatScope"] = nested.ParentTablixRepeatScope;
+        if (RdlRepeatMetadata(nested) is { } repeat)
+            layout["repeat"] = repeat;
+        return layout;
+    }
+
     private static IEnumerable<Dictionary<string, object>> RepeatScopeGroups(Dictionary<string, object> scope)
     {
         if (!scope.TryGetValue("groups", out var value) || value is null)
@@ -1955,8 +1984,10 @@ public sealed class RdlToDesignConverter
         {
             element.Style ??= [];
             element.Style["rdlExtractedCellItems"] = raw.TablixNestedItemNames.ToArray();
+            if (raw.TablixNestedItemLayouts.Count > 0)
+                element.Style["rdlExtractedCellItemLayouts"] = raw.TablixNestedItemLayouts.ToArray();
             diagnostics.Add(Warn("CANMIGRDL023",
-                $"'{raw.Name}' contains non-text Tablix cell items that were extracted as separate positioned elements; review row repeat semantics."));
+                $"'{raw.Name}' contains non-text Tablix cell items that were extracted as separate positioned elements with structured cell-layout metadata."));
         }
         if (raw.TablixNavigationMetadata is { Count: > 0 })
         {
@@ -2422,6 +2453,7 @@ public sealed class RdlToDesignConverter
         public List<RdlTablixMemberMetadata>? TablixRowHierarchy;
         public List<RdlTablixMemberMetadata>? TablixColumnHierarchy;
         public List<string> TablixNestedItemNames = [];
+        public List<Dictionary<string, object>> TablixNestedItemLayouts = [];
         public string? DataSetName;
         public bool? TableHeaderRow;
         public string? ImageDataUrl;

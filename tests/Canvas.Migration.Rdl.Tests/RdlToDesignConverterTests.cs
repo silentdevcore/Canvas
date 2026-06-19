@@ -1081,6 +1081,16 @@ public sealed class RdlToDesignConverterTests
 
         Assert.Equal("table", table.Type);
         Assert.Contains("cellGauge", Assert.IsType<string[]>(table.Style!["rdlExtractedCellItems"]));
+        var layouts = Assert.IsType<Dictionary<string, object>[]>(table.Style["rdlExtractedCellItemLayouts"]);
+        var layout = Assert.Single(layouts);
+        Assert.Equal("cellGauge", layout["name"]);
+        Assert.Equal("GaugePanel", layout["type"]);
+        Assert.Equal(1, layout["row"]);
+        Assert.Equal(1, layout["column"]);
+        Assert.Equal(2 * 72 + 0.2 * 72, layout["x"]);
+        Assert.Equal(0.5 * 72 + 0.1 * 72, layout["y"]);
+        Assert.Equal(1.5 * 72, layout["width"]);
+        Assert.Equal(0.8 * 72, layout["height"]);
         Assert.Equal("text", gauge.Type);
         Assert.Contains("{{Score}}", gauge.Content);
         Assert.Equal(0.5 * 72 + 2 * 72 + 0.2 * 72, gauge.X, 1);
@@ -1153,6 +1163,15 @@ public sealed class RdlToDesignConverterTests
 
         Assert.Equal("table", detail.Type);
         Assert.Contains("detail", Assert.IsType<string[]>(master.Style!["rdlExtractedCellItems"]));
+        var layouts = Assert.IsType<Dictionary<string, object>[]>(master.Style["rdlExtractedCellItemLayouts"]);
+        var layout = Assert.Single(layouts);
+        Assert.Equal("detail", layout["name"]);
+        Assert.Equal("Tablix", layout["type"]);
+        Assert.Equal(1, layout["row"]);
+        Assert.Equal(0, layout["column"]);
+        Assert.Equal(2, layout["columnSpan"]);
+        Assert.True(layout.ContainsKey("repeatScope"));
+        Assert.True(layout.ContainsKey("repeat"));
         Assert.Equal(new[] { "Product", "Qty" }, detail.CellData![0]);
         Assert.Equal(new[] { "{{Product}}", "{{Quantity}}" }, detail.CellData![1]);
         Assert.Equal("master", detail.Style!["rdlParentTablix"]);
