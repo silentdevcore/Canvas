@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Canvas.Core.Contracts;
@@ -47,7 +48,7 @@ public static class DesignLayoutPlanner
             var dataPath = element.Repeat?.DataPath;
             if (string.IsNullOrWhiteSpace(dataPath) || ResolveDataPath(payload, dataPath) is not { } data)
             {
-                yield return element;
+                yield return ApplyDynamicData(element, payload);
                 continue;
             }
 
@@ -63,9 +64,52 @@ public static class DesignLayoutPlanner
                 clone.Y = element.Y + element.Height * index;
                 clone.Repeat = null;
                 ApplyRepeatItem(clone, items[index], index);
-                yield return clone;
+                yield return ApplyDynamicData(clone, payload);
             }
         }
+    }
+
+    private static ElementDto ApplyDynamicData(ElementDto element, Dictionary<string, object?> payload)
+    {
+        if (element.Type != "chart" || element.ChartData is null)
+            return element;
+
+        if (ReadChartString(element.ChartData, "rdlDataSetName") is not { Length: > 0 } dataSetName
+            || ResolveDataPath(payload, dataSetName) is not { } data
+            || ToEnumerable(data).ToList() is not { Count: > 0 } rows)
+            return element;
+
+        var categoryExpression = ReadChartString(element.ChartData, "rdlCategoryExpression");
+        var categoryField = RdlFieldName(categoryExpression);
+        var labels = categoryField is null
+            ? Enumerable.Range(1, rows.Count).Select(i => i.ToString()).ToArray()
+            : rows.Select(row => ResolveToken(ItemValues(row), categoryField)?.ToString() ?? "").ToArray();
+
+        var series = ReadChartSeries(element.ChartData).ToList();
+        if (series.Count == 0 && ReadChartString(element.ChartData, "rdlValueExpression") is { Length: > 0 } valueExpression)
+            series.Add(new Dictionary<string, object?> { ["name"] = "Data", ["y"] = valueExpression });
+
+        if (series.Count == 0)
+            return element;
+
+        var clone = CloneElement(element);
+        clone.ChartData ??= [];
+        clone.ChartData["labels"] = labels;
+        clone.ChartData["datasets"] = series.Select((seriesItem, index) =>
+        {
+            var field = RdlFieldName(DictString(seriesItem, "y"));
+            var values = field is null
+                ? Enumerable.Repeat(0d, rows.Count).ToArray()
+                : rows.Select(row => NumericValue(ResolveToken(ItemValues(row), field))).ToArray();
+            return new Dictionary<string, object>
+            {
+                ["label"] = DictString(seriesItem, "name") ?? $"Series {index + 1}",
+                ["data"] = values,
+                ["backgroundColor"] = ChartColor(index)
+            };
+        }).ToArray();
+        clone.ChartData["rdlSampleDataSource"] = dataSetName;
+        return clone;
     }
 
     private static Dictionary<string, object?> BuildPayload(DesignExportDto design)
@@ -210,6 +254,36 @@ public static class DesignLayoutPlanner
         }
     }
 
+    private static string? ReadChartString(Dictionary<string, object> chartData, string key) =>
+        chartData.TryGetValue(key, out var value) ? value?.ToString() : null;
+
+    private static IEnumerable<IReadOnlyDictionary<string, object?>> ReadChartSeries(Dictionary<string, object> chartData)
+    {
+        if (!chartData.TryGetValue("rdlSeries", out var value) || value is null)
+            yield break;
+
+        if (value is JsonElement { ValueKind: JsonValueKind.Array } jsonArray)
+        {
+            foreach (var item in jsonArray.EnumerateArray())
+            {
+                if (FromJson(item) is IReadOnlyDictionary<string, object?> dict)
+                    yield return dict;
+            }
+            yield break;
+        }
+
+        if (value is System.Collections.IEnumerable enumerable and not string)
+        {
+            foreach (var item in enumerable)
+            {
+                if (item is IReadOnlyDictionary<string, object?> nullableDict)
+                    yield return nullableDict;
+                else if (item is IReadOnlyDictionary<string, object> dict)
+                    yield return dict.ToDictionary(k => k.Key, v => (object?)v.Value, StringComparer.OrdinalIgnoreCase);
+            }
+        }
+    }
+
     private static bool MatchesRdlFilter(
         object? item,
         IReadOnlyDictionary<string, object?> filter,
@@ -237,6 +311,32 @@ public static class DesignLayoutPlanner
 
     private static string? DictString(IReadOnlyDictionary<string, object?> dict, string key) =>
         dict.TryGetValue(key, out var value) ? value?.ToString() : null;
+
+    private static string? RdlFieldName(string? expression)
+    {
+        if (string.IsNullOrWhiteSpace(expression))
+            return null;
+        var match = Regex.Match(expression, @"Fields!(?<name>\w+)\.Value", RegexOptions.IgnoreCase);
+        return match.Success ? match.Groups["name"].Value : null;
+    }
+
+    private static double NumericValue(object? value)
+    {
+        if (value is null)
+            return 0;
+        if (value is double d)
+            return d;
+        if (value is float f)
+            return f;
+        if (value is int i)
+            return i;
+        if (value is long l)
+            return l;
+        return double.TryParse(value.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed) ? parsed : 0;
+    }
+
+    private static string ChartColor(int index) =>
+        new[] { "#2563eb", "#16a34a", "#dc2626", "#9333ea", "#ea580c", "#0891b2" }[index % 6];
 
     private static IEnumerable<string> DictValues(IReadOnlyDictionary<string, object?> dict, string key)
     {

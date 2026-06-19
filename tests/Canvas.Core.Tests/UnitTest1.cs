@@ -322,6 +322,77 @@ public class DesignLayoutPlannerTests
         Assert.Equal("2026", element.CellData![1][0]);
         Assert.Equal("Coffee", element.CellData![1][1]);
     }
+
+    [Fact]
+    public void BuildPages_ShouldPopulateRdlChartSampleData_FromDataSetCustomProperty()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "d7",
+            Name = "Chart Sample Data",
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "chart",
+                            Type = "chart",
+                            ChartType = "line",
+                            Width = 240,
+                            Height = 120,
+                            ChartData = new()
+                            {
+                                ["rdlDataSetName"] = "SalesData",
+                                ["rdlCategoryExpression"] = "=Fields!Month.Value",
+                                ["rdlSeries"] = new object[]
+                                {
+                                    new Dictionary<string, object>
+                                    {
+                                        ["name"] = "Sales",
+                                        ["y"] = "=Sum(Fields!Sales.Value)"
+                                    },
+                                    new Dictionary<string, object>
+                                    {
+                                        ["name"] = "Forecast",
+                                        ["y"] = "=Fields!Forecast.Value"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            PageSettings = new PageSettingsDto
+            {
+                CustomProperties =
+                [
+                    new CustomDocumentPropertyDto
+                    {
+                        Name = "SalesData",
+                        Value = """[{"Month":"Jan","Sales":10,"Forecast":12.5},{"Month":"Feb","Sales":20,"Forecast":18}]"""
+                    }
+                ]
+            }
+        };
+
+        var planned = DesignLayoutPlanner.BuildPages(design);
+
+        var chart = Assert.Single(planned[0].Elements);
+        Assert.NotSame(design.Pages[0].Elements[0], chart);
+        Assert.Equal(["Jan", "Feb"], Assert.IsType<string[]>(chart.ChartData!["labels"]));
+        Assert.Equal("SalesData", chart.ChartData["rdlSampleDataSource"]);
+
+        var datasets = Assert.IsType<Dictionary<string, object>[]>(chart.ChartData["datasets"]);
+        Assert.Equal(2, datasets.Length);
+        Assert.Equal("Sales", datasets[0]["label"]);
+        Assert.Equal([10d, 20d], Assert.IsType<double[]>(datasets[0]["data"]));
+        Assert.Equal("Forecast", datasets[1]["label"]);
+        Assert.Equal([12.5d, 18d], Assert.IsType<double[]>(datasets[1]["data"]));
+    }
 }
 
 file sealed class TestCapabilities : IRendererCapabilities

@@ -225,8 +225,9 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       width, and simple relative weights such as `*`, `1*`, `2*` share remaining width after absolute columns.
 - [x] **P0** Multi-run textbox per-run formatting: multiple/styled `TextRun`s import as Canvas
       `richtext` with inline HTML spans; simple single-run textboxes keep the old `text`/binding path.
-- [ ] **P1** Promote preserved RDL chart expressions to real data evaluation/sample extraction once Canvas chart
-      data-series modeling is stable enough for RDL category/value expressions.
+- [x] **P1** Promote preserved RDL chart expressions to sample extraction: backend layout planning fills Canvas
+      chart `labels`/`datasets` from `rdlDataSetName` payload rows for preserved category/value field expressions,
+      while keeping the original RDL chart metadata for review.
 
 ## Assumptions
 - [x] Use `Canvas.Migration.Rdl`, separate from the DevExpress converters; self-contained model + build.
