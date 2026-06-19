@@ -66,6 +66,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | `CustomReportItem` html/pdf document | positioned placeholder + preserved/truncated document metadata (`CANMIGRDL027`) | [x] |
 | `CustomReportItem` ESignature/PDFSignature | `signature` placeholder + preserved/truncated signing metadata (`CANMIGRDL028`) | [x] |
 | `CustomReportItem` sparkline | compact editable `chart` with RDL category/value/data metadata (`CANMIGRDL017`) | [x] |
+| `CustomReportItem` map | positioned placeholder + structured map custom-property metadata (`CANMIGRDL022`) | [x] |
 | native `GaugePanel` | positioned placeholder + structured gauge metadata (`CANMIGRDL021`) | [x] |
 | native `Map` | positioned placeholder + structured map metadata (`CANMIGRDL022`) | [x] |
 | `CustomReportItem` gauge/map/etc. | labeled placeholder + RDL metadata (`CANMIGRDL018` for gauge) | [x] |
@@ -188,6 +189,9 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
       electronic/PDF signature kind, certificate metadata, and truncated large signature payloads plus `CANMIGRDL028`.
 - [x] `CustomReportItem` Sparkline → compact editable Canvas `chart` with `line`/nearest chart type,
       `chartData.rdlSparkline`, and preserved category/value/dataset metadata plus `CANMIGRDL017`.
+- [x] `CustomReportItem` Map → positioned placeholder with structured `style.rdlMap` metadata
+      (`MapType`, `DataSetName`, binding field pairs, value/label expressions, viewport hints) and preserved
+      custom properties plus `CANMIGRDL022`.
 - [x] Native `GaugePanel` → positioned placeholder with `style.rdlGaugePanel` metadata (`DataSetName`, radial/linear
       gauge kind, scales, pointers, ranges, labels) plus `CANMIGRDL021`.
 - [x] Native `Map` → positioned placeholder with `style.rdlMap` metadata (layers, binding field pairs,
@@ -220,7 +224,7 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [x] `CustomReportItem` Gauge → positioned placeholder with field/range preview, structured `style.rdlGauge`
       metadata (`Value`, `MinimumValue`, `MaximumValue`, `TargetValue`, `DataSetName`) and preserved custom
       properties, plus `CANMIGRDL018`.
-- [x] `CustomReportItem` Map + `Subreport` → labeled placeholder elements
+- [x] `Subreport` → labeled placeholder element
       (kept at original position/size so the layout isn't silently holed; still `CANMIGRDL011` for generic unsupported items).
 - [x] **P0** External / database image sources: external image references are preserved as image
       `Content` plus `style.rdlImageSource = "External"`; database image field expressions map to

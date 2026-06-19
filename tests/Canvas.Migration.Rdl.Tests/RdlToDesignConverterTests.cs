@@ -1105,6 +1105,49 @@ public sealed class RdlToDesignConverterTests
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL022" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
+    [Fact]
+    public void Convert_MapCustomItem_PreservesMapMetadataOnPlaceholder()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <CustomReportItem Name="customMap"><Type>Map</Type>
+                  <Top>0in</Top><Left>0in</Left><Height>2in</Height><Width>3in</Width>
+                  <CustomProperties>
+                    <CustomProperty><Name>MapType</Name><Value>Polygon</Value></CustomProperty>
+                    <CustomProperty><Name>DataSetName</Name><Value>PopulationDataset</Value></CustomProperty>
+                    <CustomProperty><Name>FieldName</Name><Value>name</Value></CustomProperty>
+                    <CustomProperty><Name>BindingExpression</Name><Value>=Fields!Country.Value</Value></CustomProperty>
+                    <CustomProperty><Name>ValueExpression</Name><Value>=Sum(Fields!Population.Value)</Value></CustomProperty>
+                    <CustomProperty><Name>LabelExpression</Name><Value>=Fields!CountryLabel.Value</Value></CustomProperty>
+                    <CustomProperty><Name>Projection</Name><Value>Mercator</Value></CustomProperty>
+                    <CustomProperty><Name>CoordinateSystem</Name><Value>Geographic</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var map = El(result.Design, "customMap");
+
+        Assert.Equal("text", map.Type);
+        Assert.Contains("[Map: Polygon]", map.Content);
+        Assert.Equal("Map", map.Style!["rdlCustomItemType"]);
+        var metadata = Assert.IsType<Dictionary<string, object>>(map.Style["rdlMap"]);
+        Assert.Equal("Polygon", metadata["MapType"]);
+        Assert.Equal("PopulationDataset", metadata["DataSetName"]);
+        Assert.Equal("=Sum(Fields!Population.Value)", metadata["ValueExpression"]);
+        Assert.Equal("=Fields!CountryLabel.Value", metadata["LabelExpression"]);
+        var bindings = Assert.IsType<Dictionary<string, object>[]>(metadata["BindingFieldPairs"]);
+        Assert.Equal("name", bindings[0]["FieldName"]);
+        Assert.Equal("=Fields!Country.Value", bindings[0]["BindingExpression"]);
+        var viewport = Assert.IsType<Dictionary<string, object>>(metadata["Viewport"]);
+        Assert.Equal("Geographic", viewport["CoordinateSystem"]);
+        Assert.Equal("Mercator", viewport["Projection"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL022" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
     // 31 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_TablixCellNestedGaugePanel_ExtractsPositionedElement()

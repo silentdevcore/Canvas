@@ -1792,6 +1792,9 @@ public sealed class RdlToDesignConverter
             if (customType.Contains("Sparkline", StringComparison.OrdinalIgnoreCase))
                 return MapRdlSparklineCustomItem(raw, element, props, diagnostics);
 
+            if (customType.Contains("Map", StringComparison.OrdinalIgnoreCase))
+                return MapRdlMapCustomItem(raw, element, props, diagnostics);
+
             if (customType.Contains("Shape", StringComparison.OrdinalIgnoreCase) || props.ContainsKey("ShapeType"))
                 return MapRdlShape(raw, element, props, diagnostics);
 
@@ -1863,6 +1866,28 @@ public sealed class RdlToDesignConverter
         diagnostics.Add(Warn("CANMIGRDL017",
             $"'{raw.Name}' RDL sparkline was imported as a compact Canvas chart; review series/category/value bindings."));
         return element;
+    }
+
+    private static ElementDto MapRdlMapCustomItem(
+        RawElement raw,
+        ElementDto element,
+        IReadOnlyDictionary<string, string> props,
+        List<MigrationDiagnostic> diagnostics)
+    {
+        var metadata = CreateRdlMapCustomItemMetadata(raw.Name, props);
+        var label = metadata.GetValueOrDefault("MapType")?.ToString()
+            ?? metadata.GetValueOrDefault("ShapeField")?.ToString()
+            ?? raw.Name;
+        var map = Placeholder(element, $"[Map: {CellDisplay(label)}]");
+        map.Style ??= [];
+        foreach (var (key, styleValue) in RdlCustomItemStyle("Map", props))
+            map.Style[key] = styleValue;
+        if (metadata.Count > 0)
+            map.Style["rdlMap"] = metadata;
+
+        diagnostics.Add(Warn("CANMIGRDL022",
+            $"'{raw.Name}' RDL map custom item metadata was preserved on a positioned placeholder; Canvas has no native map element yet."));
+        return map;
     }
 
     private static bool IsDocumentCustomItem(string customType) =>
@@ -2016,6 +2041,47 @@ public sealed class RdlToDesignConverter
         AddText(metadata, "DataSetName", props.GetValueOrDefault("DataSetName"));
         AddText(metadata, "Label", props.GetValueOrDefault("Label") ?? props.GetValueOrDefault("Caption"));
         return metadata;
+    }
+
+    private static Dictionary<string, object> CreateRdlMapCustomItemMetadata(string name, IReadOnlyDictionary<string, string> props)
+    {
+        var metadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Name"] = name
+        };
+        AddText(metadata, "MapType", props.GetValueOrDefault("MapType") ?? props.GetValueOrDefault("LayerType"));
+        AddText(metadata, "DataSetName", props.GetValueOrDefault("DataSetName"));
+        AddText(metadata, "ShapeField", props.GetValueOrDefault("ShapeField") ?? props.GetValueOrDefault("SpatialField"));
+        AddText(metadata, "ValueExpression", props.GetValueOrDefault("Value") ?? props.GetValueOrDefault("ValueExpression"));
+        AddText(metadata, "LabelExpression", props.GetValueOrDefault("Label") ?? props.GetValueOrDefault("LabelExpression"));
+        AddText(metadata, "ColorRule", props.GetValueOrDefault("ColorRule") ?? props.GetValueOrDefault("MapColorRule"));
+
+        var bindings = new List<Dictionary<string, object>>();
+        AddMapBinding(bindings, props.GetValueOrDefault("FieldName") ?? props.GetValueOrDefault("BindingField"),
+            props.GetValueOrDefault("BindingExpression") ?? props.GetValueOrDefault("ShapeBindingExpression"));
+        AddMapBinding(bindings, props.GetValueOrDefault("ShapeField"), props.GetValueOrDefault("ShapeFieldExpression"));
+        if (bindings.Count > 0)
+            metadata["BindingFieldPairs"] = bindings.ToArray();
+
+        var viewport = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(viewport, "CoordinateSystem", props.GetValueOrDefault("CoordinateSystem"));
+        AddText(viewport, "Projection", props.GetValueOrDefault("Projection"));
+        AddText(viewport, "Zoom", props.GetValueOrDefault("Zoom"));
+        AddText(viewport, "CenterX", props.GetValueOrDefault("CenterX"));
+        AddText(viewport, "CenterY", props.GetValueOrDefault("CenterY"));
+        if (viewport.Count > 0)
+            metadata["Viewport"] = viewport;
+
+        return metadata;
+    }
+
+    private static void AddMapBinding(List<Dictionary<string, object>> bindings, string? fieldName, string? expression)
+    {
+        var binding = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(binding, "FieldName", fieldName);
+        AddText(binding, "BindingExpression", expression);
+        if (binding.Count > 0)
+            bindings.Add(binding);
     }
 
     private static string ChartTypeFromRdl(string? value)
