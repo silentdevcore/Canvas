@@ -1159,11 +1159,22 @@ public sealed class RdlToDesignConverterTests
         Assert.Equal(1, detail.Style["rdlParentTablixRow"]);
         Assert.Equal(0, detail.Style["rdlParentTablixColumn"]);
         Assert.Equal(2, detail.Style["rdlParentTablixColumnSpan"]);
+        Assert.NotNull(detail.Repeat);
+        Assert.Equal("CategoryGroup", detail.Repeat!.DataPath);
+        Assert.Equal(detail.Id, detail.Repeat.TemplateId);
 
         var scope = Assert.IsType<Dictionary<string, object>>(detail.Style["rdlParentTablixRepeatScope"]);
         var groups = Assert.IsType<Dictionary<string, object>[]>(scope["groups"]);
         Assert.Equal("CategoryGroup", groups[0]["name"]);
         Assert.Equal(new[] { "=Fields!Category.Value" }, Assert.IsType<string[]>(groups[0]["expressions"]));
+
+        var repeat = Assert.IsType<Dictionary<string, object>>(detail.Style["rdlRepeat"]);
+        Assert.Equal("rdlTablix", repeat["source"]);
+        Assert.Equal("master", repeat["parent"]);
+        Assert.Equal("CategoryGroup", repeat["dataPath"]);
+        Assert.Equal("item", repeat["itemAlias"]);
+        var repeatGroups = Assert.IsType<Dictionary<string, object>[]>(repeat["groups"]);
+        Assert.Equal("CategoryGroup", repeatGroups[0]["name"]);
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL023" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 

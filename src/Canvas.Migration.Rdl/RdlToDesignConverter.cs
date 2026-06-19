@@ -642,6 +642,7 @@ public sealed class RdlToDesignConverter
         var grid = new List<List<string>>();
         var tablixBody = Child(el, "TablixBody");
         XElement? headerRow;
+        raw.DataSetName = Child(el, "DataSetName")?.Value.Trim();
 
         if (tablixBody is not null)
         {
@@ -1550,8 +1551,90 @@ public sealed class RdlToDesignConverter
             element.Style["rdlParentTablixColumnSpan"] = columnSpan;
         if (raw.ParentTablixRepeatScope is { Count: > 0 })
             element.Style["rdlParentTablixRepeatScope"] = raw.ParentTablixRepeatScope;
+        var repeat = RdlRepeatMetadata(raw);
+        if (repeat is not null)
+        {
+            element.Style["rdlRepeat"] = repeat;
+            if (repeat.TryGetValue("dataPath", out var dataPath) && dataPath is string { Length: > 0 } path)
+            {
+                element.Repeat = new RepeatDto
+                {
+                    DataPath = path,
+                    TemplateId = element.Id
+                };
+            }
+        }
         diagnostics.Add(Warn("CANMIGRDL023",
-            $"'{raw.Name}' was extracted from Tablix '{parent}' cell [{raw.ParentTablixRow},{raw.ParentTablixColumn}] as a separate positioned element; review repeat semantics."));
+            $"'{raw.Name}' was extracted from Tablix '{parent}' cell [{raw.ParentTablixRow},{raw.ParentTablixColumn}] as a separate positioned element; RDL repeat scope was mapped to Canvas repeat metadata for review."));
+    }
+
+    private static Dictionary<string, object>? RdlRepeatMetadata(RawElement raw)
+    {
+        if (raw.ParentTablixRepeatScope is not { Count: > 0 } scope)
+            return null;
+
+        var groups = RepeatScopeGroups(scope).ToArray();
+        var dataPath = RepeatDataPath(raw, groups);
+        var repeat = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["source"] = "rdlTablix",
+            ["parent"] = raw.ParentTablixName ?? "",
+            ["row"] = raw.ParentTablixRow ?? 0,
+            ["column"] = raw.ParentTablixColumn ?? 0,
+            ["dataPath"] = dataPath,
+            ["itemAlias"] = "item",
+            ["indexAlias"] = "index"
+        };
+        if (!string.IsNullOrWhiteSpace(raw.DataSetName))
+            repeat["dataSetName"] = raw.DataSetName!;
+        if (groups.Length > 0)
+            repeat["groups"] = groups;
+        return repeat;
+    }
+
+    private static IEnumerable<Dictionary<string, object>> RepeatScopeGroups(Dictionary<string, object> scope)
+    {
+        if (!scope.TryGetValue("groups", out var value) || value is null)
+            yield break;
+
+        if (value is IEnumerable<Dictionary<string, object>> typedGroups)
+        {
+            foreach (var group in typedGroups)
+                yield return group;
+            yield break;
+        }
+
+        if (value is IEnumerable<object> objectGroups)
+        {
+            foreach (var item in objectGroups)
+            {
+                if (item is Dictionary<string, object> dict)
+                    yield return dict;
+            }
+        }
+    }
+
+    private static string RepeatDataPath(RawElement raw, IReadOnlyList<Dictionary<string, object>> groups)
+    {
+        if (!string.IsNullOrWhiteSpace(raw.DataSetName))
+            return SafeRepeatPath(raw.DataSetName!);
+
+        var groupName = groups
+            .Select(g => g.TryGetValue("name", out var name) ? name?.ToString() : null)
+            .FirstOrDefault(name => !string.IsNullOrWhiteSpace(name));
+        if (!string.IsNullOrWhiteSpace(groupName))
+            return SafeRepeatPath(groupName!);
+
+        return SafeRepeatPath($"{raw.ParentTablixName ?? raw.Name}Rows");
+    }
+
+    private static string SafeRepeatPath(string value)
+    {
+        var cleaned = new string(value
+            .Select(ch => char.IsLetterOrDigit(ch) || ch is '_' or '.' ? ch : '_')
+            .ToArray())
+            .Trim('_');
+        return string.IsNullOrWhiteSpace(cleaned) ? "items" : cleaned;
     }
 
     private static void ApplyFilterMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
@@ -2339,6 +2422,7 @@ public sealed class RdlToDesignConverter
         public List<RdlTablixMemberMetadata>? TablixRowHierarchy;
         public List<RdlTablixMemberMetadata>? TablixColumnHierarchy;
         public List<string> TablixNestedItemNames = [];
+        public string? DataSetName;
         public bool? TableHeaderRow;
         public string? ImageDataUrl;
         public string? ImageSource;

@@ -167,8 +167,10 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [x] **P0** Nested Tablix/Table inside Tablix cells are extracted as positioned Canvas `table` elements with
       `rdlParentTablix`, cell row/column, row/column span, and `rdlParentTablixRepeatScope` metadata that preserves
       the parent row/column hierarchy and group expressions (`CANMIGRDL023`).
-- [ ] **P1** Canvas-native repeat execution for extracted nested Tablix/detail rows; metadata is preserved, but the
-      current Canvas table model still renders the nested table as an absolute child overlay.
+- [x] **P1** Extracted nested Tablix/detail rows now map preserved RDL repeat scope into Canvas repeat metadata:
+      `ElementDto.Repeat` plus `style.rdlRepeat` with parent, row/column, data path, aliases, dataset/group metadata.
+- [ ] **P1** Runtime execution for extracted nested Tablix/detail rows in preview/export; repeat metadata is now
+      structured, but renderers still need to expand repeated nested rows from real payload data.
 - [ ] `<Code>` / custom-function expression translation (blocked on Canvas `ExpressionEvaluator` being a
       stub — same limitation as DevExpress).
 - [x] Native `Chart` and `CustomReportItem` Chart → Canvas `chart` placeholder with `ChartData` and RDL metadata
