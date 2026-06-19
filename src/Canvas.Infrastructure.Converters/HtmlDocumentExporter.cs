@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using Canvas.Core.Abstractions;
 using Canvas.Core.Contracts;
 using Canvas.Core.Primitives;
@@ -206,6 +207,7 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
         var cellData = el.CellData ?? [];
         var rows     = cellData.Length > 0 ? cellData.Length : (int)s.GetNum("rows", 3);
         var cols     = cellData.Length > 0 ? (cellData[0]?.Length ?? 0) : (int)s.GetNum("columns", 3);
+        var matrixHeaders = RdlMatrixHeaders(s);
 
         // Defined cell text (matches the editor's tdStyle defaults).
         var cellPad     = s.GetNum("cellPadding", 5);
@@ -217,6 +219,14 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
         var zebraStyle = el.ZebraEnabled == true ? el.ZebraColor ?? "#f9fafb" : null;
 
         sb.AppendLine($"    <table style=\"{posStyle}{rotation} border-collapse:collapse; table-layout:fixed;\">");
+
+        foreach (var header in matrixHeaders)
+        {
+            sb.AppendLine("      <tr>");
+            sb.Append($"<th colspan=\"{cols}\" style=\"border:{bw}px solid {bc}; padding:{N(cellPad)}px; text-align:left;"
+                + $" font-size:{N(cellFs)}px; font-family:{cellFf}; color:#075985; font-weight:bold; background:#e0f2fe;\">{Esc(header)}</th>");
+            sb.AppendLine("</tr>");
+        }
 
         for (int r = 0; r < rows; r++)
         {
@@ -238,6 +248,55 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
         }
         sb.AppendLine("    </table>");
     }
+
+    private static List<string> RdlMatrixHeaders(Dictionary<string, object> style)
+    {
+        var headers = new List<string>();
+        AddRdlMatrixHeaders(style, "rdlTablixColumnHierarchy", headers);
+        AddRdlMatrixHeaders(style, "rdlTablixRowHierarchy", headers);
+        return headers;
+    }
+
+    private static void AddRdlMatrixHeaders(Dictionary<string, object> style, string key, List<string> headers)
+    {
+        if (!style.TryGetValue(key, out var value) || value is null) return;
+
+        if (value is JsonElement { ValueKind: JsonValueKind.Array } jsonArray)
+        {
+            foreach (var item in jsonArray.EnumerateArray())
+                AddRdlMatrixHeader(item, headers);
+            return;
+        }
+
+        if (value is IEnumerable<object> items)
+        {
+            foreach (var item in items)
+                AddRdlMatrixHeader(item, headers);
+        }
+    }
+
+    private static void AddRdlMatrixHeader(object item, List<string> headers)
+    {
+        switch (item)
+        {
+            case JsonElement { ValueKind: JsonValueKind.Object } json:
+                var text = JsonProp(json, "headerText") ?? JsonProp(json, "groupName");
+                if (!string.IsNullOrWhiteSpace(text)) headers.Add(text);
+                break;
+            case IReadOnlyDictionary<string, object> dict:
+                if ((HeaderValue(dict, "headerText") ?? HeaderValue(dict, "groupName")) is { Length: > 0 } value)
+                    headers.Add(value);
+                break;
+        }
+    }
+
+    private static string? JsonProp(JsonElement json, string name) =>
+        json.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
+            ? prop.GetString()
+            : null;
+
+    private static string? HeaderValue(IReadOnlyDictionary<string, object> dict, string key) =>
+        dict.TryGetValue(key, out var value) ? value?.ToString() : null;
 
     private static string BuildTextStyle(Dictionary<string, object> s)
     {
@@ -279,4 +338,3 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
     /// server locale — otherwise "13,5px" / "1,4" would be invalid CSS and ignored.</summary>
     private static string N(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
 }
-

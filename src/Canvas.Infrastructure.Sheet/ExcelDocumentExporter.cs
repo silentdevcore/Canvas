@@ -1,6 +1,7 @@
 using Canvas.Core.Abstractions;
 using Canvas.Core.Contracts;
 using ClosedXML.Excel;
+using System.Text.Json;
 
 namespace Canvas.Infrastructure.Sheet;
 
@@ -89,13 +90,26 @@ public sealed class ExcelDocumentExporter : IDocumentExporter
         var hdrBg    = ParseColor(el.HeaderBgColor ?? "#f1f5f9");
         var zebraClr = el.ZebraEnabled == true ? ParseColor(el.ZebraColor ?? "#f9fafb") : null;
         var border   = (int)s.GetNum("borderWidth", 1);
+        var matrixHeaders = RdlMatrixHeaders(s);
+        var rowOffset = 0;
+
+        foreach (var header in matrixHeaders)
+        {
+            var rowNumber = ++rowOffset;
+            var range = ws.Range(rowNumber, 1, rowNumber, Math.Max(cellData[0]?.Length ?? 1, 1));
+            range.Merge();
+            range.Value = header;
+            range.Style.Font.Bold = true;
+            range.Style.Font.FontColor = XLColor.FromHtml("#075985");
+            range.Style.Fill.BackgroundColor = XLColor.FromHtml("#e0f2fe");
+        }
 
         for (int r = 0; r < cellData.Length; r++)
         {
             var row = cellData[r] ?? [];
             for (int c = 0; c < row.Length; c++)
             {
-                var cell = ws.Cell(r + 1, c + 1);
+                var cell = ws.Cell(r + 1 + rowOffset, c + 1);
                 cell.Value = row[c] ?? "";
 
                 var isHdr = hasHdr && r == 0;
@@ -138,6 +152,55 @@ public sealed class ExcelDocumentExporter : IDocumentExporter
 
         ws.Columns().AdjustToContents();
     }
+
+    private static List<string> RdlMatrixHeaders(Dictionary<string, object> style)
+    {
+        var headers = new List<string>();
+        AddRdlMatrixHeaders(style, "rdlTablixColumnHierarchy", headers);
+        AddRdlMatrixHeaders(style, "rdlTablixRowHierarchy", headers);
+        return headers;
+    }
+
+    private static void AddRdlMatrixHeaders(Dictionary<string, object> style, string key, List<string> headers)
+    {
+        if (!style.TryGetValue(key, out var value) || value is null) return;
+
+        if (value is JsonElement { ValueKind: JsonValueKind.Array } jsonArray)
+        {
+            foreach (var item in jsonArray.EnumerateArray())
+                AddRdlMatrixHeader(item, headers);
+            return;
+        }
+
+        if (value is IEnumerable<object> items)
+        {
+            foreach (var item in items)
+                AddRdlMatrixHeader(item, headers);
+        }
+    }
+
+    private static void AddRdlMatrixHeader(object item, List<string> headers)
+    {
+        switch (item)
+        {
+            case JsonElement { ValueKind: JsonValueKind.Object } json:
+                var text = JsonProp(json, "headerText") ?? JsonProp(json, "groupName");
+                if (!string.IsNullOrWhiteSpace(text)) headers.Add(text);
+                break;
+            case IReadOnlyDictionary<string, object> dict:
+                if ((HeaderValue(dict, "headerText") ?? HeaderValue(dict, "groupName")) is { Length: > 0 } value)
+                    headers.Add(value);
+                break;
+        }
+    }
+
+    private static string? JsonProp(JsonElement json, string name) =>
+        json.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
+            ? prop.GetString()
+            : null;
+
+    private static string? HeaderValue(IReadOnlyDictionary<string, object> dict, string key) =>
+        dict.TryGetValue(key, out var value) ? value?.ToString() : null;
 
     private static XLColor ParseColor(string hex)
     {

@@ -2,6 +2,7 @@ using System.Text;
 using Canvas.Infrastructure.Converters;
 using Canvas.Infrastructure.Sheet;
 using Canvas.Infrastructure.Word;
+using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
@@ -45,6 +46,43 @@ public class ExporterTests
         PageSettings = new PageSettingsDto { Width = 595, Height = 842 },
     };
 
+    private static DesignExportDto MatrixHeaderDesign() => new()
+    {
+        Id = "matrix-header-id",
+        Name = "Matrix Header Design",
+        Pages =
+        [
+            new PageDto
+            {
+                Id = "p1",
+                Elements =
+                [
+                    new ElementDto
+                    {
+                        Id = "matrix", Type = "table", Name = "Matrix",
+                        X = 10, Y = 20, Width = 300, Height = 120,
+                        HeaderRow = true,
+                        CellData = [["Product", "Total"], ["Coffee", "42"]],
+                        Style = new()
+                        {
+                            ["borderWidth"] = 1,
+                            ["borderColor"] = "#000000",
+                            ["rdlTablixColumnHierarchy"] = new object[]
+                            {
+                                new Dictionary<string, object> { ["headerText"] = "{{Year}}" }
+                            },
+                            ["rdlTablixRowHierarchy"] = new object[]
+                            {
+                                new Dictionary<string, object> { ["groupName"] = "ProductGroup" }
+                            }
+                        }
+                    }
+                ],
+            },
+        ],
+        PageSettings = new PageSettingsDto { Width = 595, Height = 842 },
+    };
+
     // ─── HTML ─────────────────────────────────────────────────────────────────
 
     [Fact]
@@ -75,6 +113,15 @@ public class ExporterTests
         var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(MinimalDesign()));
         Assert.Contains("Name", html);
         Assert.Contains("<table", html);
+    }
+
+    [Fact]
+    public void Html_Export_RendersRdlMatrixHeaders()
+    {
+        var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(MatrixHeaderDesign()));
+        Assert.Contains("{{Year}}", html);
+        Assert.Contains("ProductGroup", html);
+        Assert.Contains("colspan=\"2\"", html);
     }
 
     // ─── XML ──────────────────────────────────────────────────────────────────
@@ -210,6 +257,21 @@ public class ExporterTests
         // ZIP/OOXML magic bytes: 50 4B 03 04
         Assert.True(bytes.Length >= 4 && bytes[0] == 0x50 && bytes[1] == 0x4B,
             "DOCX should start with ZIP magic bytes 50 4B");
+    }
+
+    [Fact]
+    public void Word_Export_RendersRdlMatrixHeaders()
+    {
+        var bytes = new WordDocumentExporter().Export(MatrixHeaderDesign());
+        using var ms = new MemoryStream(bytes);
+        using var doc = WordprocessingDocument.Open(ms, false);
+        var document = Assert.IsType<Document>(doc.MainDocumentPart!.Document);
+        var body = Assert.IsType<Body>(document.Body);
+
+        var text = string.Join(" ", body.Descendants<Text>().Select(t => t.Text));
+        Assert.Contains("{{Year}}", text);
+        Assert.Contains("ProductGroup", text);
+        Assert.Contains(body.Descendants<GridSpan>(), span => span.Val?.Value == 2);
     }
 
     [Fact]
@@ -839,6 +901,19 @@ public class ExporterTests
         var bytes = new ExcelDocumentExporter().Export(MinimalDesign());
         Assert.True(bytes.Length >= 4 && bytes[0] == 0x50 && bytes[1] == 0x4B,
             "XLSX should start with ZIP magic bytes 50 4B");
+    }
+
+    [Fact]
+    public void Excel_Export_RendersRdlMatrixHeaders()
+    {
+        var bytes = new ExcelDocumentExporter().Export(MatrixHeaderDesign());
+        using var ms = new MemoryStream(bytes);
+        using var wb = new XLWorkbook(ms);
+        var ws = wb.Worksheet("Matrix");
+
+        Assert.Equal("{{Year}}", ws.Cell(1, 1).GetString());
+        Assert.Equal("ProductGroup", ws.Cell(2, 1).GetString());
+        Assert.Equal("Product", ws.Cell(3, 1).GetString());
     }
 
     // ─── PNG ──────────────────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using Canvas.Core.Abstractions;
 using QRCoder;
 using ZXing;
@@ -828,6 +829,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
         var hasHdr     = el.HeaderRow == true;
         var hdrBg      = NormalizeHexColor(el.HeaderBgColor ?? "#f1f5f9", "f1f5f9");
         var zebraColor = el.ZebraEnabled == true ? NormalizeHexColor(el.ZebraColor ?? "#f9fafb", "f9fafb") : null;
+        var matrixHeaders = RdlMatrixHeaders(s);
 
         // Column widths use Canvas units converted through shared converter.
         // Fall back to equal distribution of element width across columns.
@@ -878,6 +880,9 @@ public sealed class WordDocumentExporter : IDocumentExporter
             grid.AppendChild(new GridColumn { Width = ColTwips(c).ToString() });
         table.AppendChild(grid);
 
+        foreach (var header in matrixHeaders)
+            table.AppendChild(CreateMatrixHeaderRow(header, cols, ColTwips, bw, bc));
+
         for (int r = 0; r < cellData.Length; r++)
         {
             var row     = cellData[r] ?? [];
@@ -924,6 +929,80 @@ public sealed class WordDocumentExporter : IDocumentExporter
         body.AppendChild(new Paragraph()); // spacing after table
         AdvanceCursor(layout, el);
     }
+
+    private static TableRow CreateMatrixHeaderRow(string header, int cols, Func<int, int> colTwips, uint borderWidth, string borderColor)
+    {
+        var tableRow = new TableRow(new TableRowProperties(new TableHeader()));
+        var tc = new TableCell();
+        var totalWidth = Enumerable.Range(0, Math.Max(cols, 1)).Sum(colTwips);
+        var props = new TableCellProperties(
+            new TableCellWidth { Width = totalWidth.ToString(CultureInfo.InvariantCulture), Type = TableWidthUnitValues.Dxa },
+            new GridSpan { Val = Math.Max(cols, 1) },
+            new Shading { Fill = "E0F2FE", Val = ShadingPatternValues.Clear, Color = "auto" },
+            new TableCellBorders(
+                new TopBorder { Val = BorderValues.Single, Size = borderWidth, Color = borderColor },
+                new LeftBorder { Val = BorderValues.Single, Size = borderWidth, Color = borderColor },
+                new BottomBorder { Val = BorderValues.Single, Size = borderWidth, Color = borderColor },
+                new RightBorder { Val = BorderValues.Single, Size = borderWidth, Color = borderColor }));
+        tc.AppendChild(props);
+
+        var para = new Paragraph(new ParagraphProperties(new Justification { Val = JustificationValues.Left }));
+        var run = para.AppendChild(new Run());
+        run.PrependChild(new RunProperties(new Bold(), new Color { Val = "075985" }));
+        run.AppendChild(new Text(header) { Space = SpaceProcessingModeValues.Preserve });
+        tc.AppendChild(para);
+        tableRow.AppendChild(tc);
+        return tableRow;
+    }
+
+    private static List<string> RdlMatrixHeaders(Dictionary<string, object> style)
+    {
+        var headers = new List<string>();
+        AddRdlMatrixHeaders(style, "rdlTablixColumnHierarchy", headers);
+        AddRdlMatrixHeaders(style, "rdlTablixRowHierarchy", headers);
+        return headers;
+    }
+
+    private static void AddRdlMatrixHeaders(Dictionary<string, object> style, string key, List<string> headers)
+    {
+        if (!style.TryGetValue(key, out var value) || value is null) return;
+
+        if (value is JsonElement { ValueKind: JsonValueKind.Array } jsonArray)
+        {
+            foreach (var item in jsonArray.EnumerateArray())
+                AddRdlMatrixHeader(item, headers);
+            return;
+        }
+
+        if (value is IEnumerable<object> items)
+        {
+            foreach (var item in items)
+                AddRdlMatrixHeader(item, headers);
+        }
+    }
+
+    private static void AddRdlMatrixHeader(object item, List<string> headers)
+    {
+        switch (item)
+        {
+            case JsonElement { ValueKind: JsonValueKind.Object } json:
+                var text = JsonProp(json, "headerText") ?? JsonProp(json, "groupName");
+                if (!string.IsNullOrWhiteSpace(text)) headers.Add(text);
+                break;
+            case IReadOnlyDictionary<string, object> dict:
+                if ((HeaderValue(dict, "headerText") ?? HeaderValue(dict, "groupName")) is { Length: > 0 } value)
+                    headers.Add(value);
+                break;
+        }
+    }
+
+    private static string? JsonProp(JsonElement json, string name) =>
+        json.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
+            ? prop.GetString()
+            : null;
+
+    private static string? HeaderValue(IReadOnlyDictionary<string, object> dict, string key) =>
+        dict.TryGetValue(key, out var value) ? value?.ToString() : null;
 
     private static void EmbedImage(Body body, MainDocumentPart mainPart, ElementDto el, LayoutContext layout)
     {
