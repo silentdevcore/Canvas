@@ -665,6 +665,43 @@ public sealed class RdlToDesignConverterTests
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL017" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
+    [Fact]
+    public void Convert_GaugeCustomItem_PreservesValueRangeMetadata()
+    {
+        var rdlx = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+              <Body><ReportItems>
+                <CustomReportItem Name="deliveryGauge"><Type>Gauge</Type>
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>2in</Width>
+                  <CustomProperties>
+                    <CustomProperty><Name>GaugeType</Name><Value>Linear</Value></CustomProperty>
+                    <CustomProperty><Name>Value</Name><Value>=Fields!DeliveredPercent.Value</Value></CustomProperty>
+                    <CustomProperty><Name>MinimumValue</Name><Value>0</Value></CustomProperty>
+                    <CustomProperty><Name>MaximumValue</Name><Value>100</Value></CustomProperty>
+                    <CustomProperty><Name>TargetValue</Name><Value>95</Value></CustomProperty>
+                    <CustomProperty><Name>DataSetName</Name><Value>DeliveryStats</Value></CustomProperty>
+                  </CustomProperties>
+                </CustomReportItem>
+              </ReportItems><Height>5in</Height></Body>
+            </Report>
+            """;
+
+        var result = Convert(rdlx);
+        var gauge = El(result.Design, "deliveryGauge");
+
+        Assert.Equal("text", gauge.Type);
+        Assert.Contains("{{DeliveredPercent}} / 100", gauge.Content);
+        Assert.Equal("Gauge", gauge.Style!["rdlCustomItemType"]);
+        var metadata = Assert.IsType<Dictionary<string, object>>(gauge.Style["rdlGauge"]);
+        Assert.Equal("Linear", metadata["GaugeType"]);
+        Assert.Equal("=Fields!DeliveredPercent.Value", metadata["Value"]);
+        Assert.Equal("0", metadata["MinimumValue"]);
+        Assert.Equal("100", metadata["MaximumValue"]);
+        Assert.Equal("95", metadata["TargetValue"]);
+        Assert.Equal("DeliveryStats", metadata["DataSetName"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL018" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
     // 26 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
     public void Convert_NativeChart_BecomesCanvasChartPlaceholder()

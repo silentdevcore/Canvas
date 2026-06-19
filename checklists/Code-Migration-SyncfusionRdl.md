@@ -214,8 +214,9 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [x] **P1** Execute/preview navigation semantics in Canvas where possible: RDL Hyperlink, BookmarkLink, and
       simple Drillthrough actions map to Canvas `link` elements with `Href`/`LinkTarget`, while full
       `style.rdlNavigation` metadata remains preserved.
-- [x] `CustomReportItem` Gauge → positioned placeholder with `style.rdlCustomItemType = "Gauge"` and
-      custom properties preserved, plus `CANMIGRDL018`.
+- [x] `CustomReportItem` Gauge → positioned placeholder with field/range preview, structured `style.rdlGauge`
+      metadata (`Value`, `MinimumValue`, `MaximumValue`, `TargetValue`, `DataSetName`) and preserved custom
+      properties, plus `CANMIGRDL018`.
 - [x] `CustomReportItem` Map / Sparkline + `Subreport` → labeled placeholder elements
       (kept at original position/size so the layout isn't silently holed; still `CANMIGRDL011` for generic unsupported items).
 - [x] **P0** External / database image sources: external image references are preserved as image

@@ -1787,15 +1787,7 @@ public sealed class RdlToDesignConverter
                 return MapRdlChart(raw, element, diagnostics);
 
             if (customType.Contains("Gauge", StringComparison.OrdinalIgnoreCase))
-            {
-                var gauge = Placeholder(element, $"[Gauge: {raw.Name} — migrate manually]");
-                gauge.Style ??= [];
-                foreach (var (key, styleValue) in RdlCustomItemStyle("Gauge", props))
-                    gauge.Style[key] = styleValue;
-                diagnostics.Add(Warn("CANMIGRDL018",
-                    $"'{raw.Name}' RDL gauge metadata was preserved on a positioned placeholder; Canvas has no native gauge element yet."));
-                return gauge;
-            }
+                return MapRdlGaugeCustomItem(raw, element, props, diagnostics);
 
             if (customType.Contains("Shape", StringComparison.OrdinalIgnoreCase) || props.ContainsKey("ShapeType"))
                 return MapRdlShape(raw, element, props, diagnostics);
@@ -1825,6 +1817,33 @@ public sealed class RdlToDesignConverter
             element.BarcodeType = BarcodeTypeFromSymbology(symbology);
         }
         return element;
+    }
+
+    private static ElementDto MapRdlGaugeCustomItem(
+        RawElement raw,
+        ElementDto element,
+        IReadOnlyDictionary<string, string> props,
+        List<MigrationDiagnostic> diagnostics)
+    {
+        var metadata = CreateRdlGaugeCustomItemMetadata(raw.Name, props);
+        var value = metadata.GetValueOrDefault("Value")?.ToString();
+        var maximum = metadata.GetValueOrDefault("MaximumValue")?.ToString();
+        var display = string.IsNullOrWhiteSpace(value)
+            ? raw.Name
+            : string.IsNullOrWhiteSpace(maximum)
+                ? CellDisplay(value)
+                : $"{CellDisplay(value)} / {CellDisplay(maximum)}";
+
+        var gauge = Placeholder(element, $"[Gauge: {display}]");
+        gauge.Style ??= [];
+        foreach (var (key, styleValue) in RdlCustomItemStyle("Gauge", props))
+            gauge.Style[key] = styleValue;
+        if (metadata.Count > 0)
+            gauge.Style["rdlGauge"] = metadata;
+
+        diagnostics.Add(Warn("CANMIGRDL018",
+            $"'{raw.Name}' RDL gauge metadata was preserved on a positioned placeholder; Canvas has no native gauge element yet."));
+        return gauge;
     }
 
     private static bool IsDocumentCustomItem(string customType) =>
@@ -1962,6 +1981,22 @@ public sealed class RdlToDesignConverter
         if (props.GetValueOrDefault("DataSetName") is { Length: > 0 } dataSetName)
             data["rdlDataSetName"] = dataSetName;
         return data;
+    }
+
+    private static Dictionary<string, object> CreateRdlGaugeCustomItemMetadata(string name, IReadOnlyDictionary<string, string> props)
+    {
+        var metadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Name"] = name
+        };
+        AddText(metadata, "GaugeType", props.GetValueOrDefault("GaugeType") ?? props.GetValueOrDefault("Type"));
+        AddText(metadata, "Value", props.GetValueOrDefault("Value") ?? props.GetValueOrDefault("GaugeValue"));
+        AddText(metadata, "MinimumValue", props.GetValueOrDefault("MinimumValue") ?? props.GetValueOrDefault("MinValue"));
+        AddText(metadata, "MaximumValue", props.GetValueOrDefault("MaximumValue") ?? props.GetValueOrDefault("MaxValue"));
+        AddText(metadata, "TargetValue", props.GetValueOrDefault("TargetValue"));
+        AddText(metadata, "DataSetName", props.GetValueOrDefault("DataSetName"));
+        AddText(metadata, "Label", props.GetValueOrDefault("Label") ?? props.GetValueOrDefault("Caption"));
+        return metadata;
     }
 
     private static string ChartTypeFromRdl(string? value)
