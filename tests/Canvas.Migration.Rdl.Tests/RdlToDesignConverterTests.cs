@@ -1288,6 +1288,10 @@ public sealed class RdlToDesignConverterTests
         var link = El(result.Design, "link");
         var navigation = Assert.IsType<Dictionary<string, object>>(link.Style!["rdlNavigation"]);
 
+        Assert.Equal("link", link.Type);
+        Assert.Equal("/Reports/Detail?ProductName={{Name}}", link.Href);
+        Assert.Equal("_blank", link.LinkTarget);
+        Assert.Equal(true, link.Style["rdlNavigationMappedToLink"]);
         Assert.Equal("HomePage", navigation["Bookmark"]);
         var actions = Assert.IsType<Dictionary<string, object>[]>(navigation["Actions"]);
         var drill = Assert.IsType<Dictionary<string, object>>(actions[0]["Drillthrough"]);

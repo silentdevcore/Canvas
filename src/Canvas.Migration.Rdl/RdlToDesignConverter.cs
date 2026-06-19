@@ -1682,9 +1682,83 @@ public sealed class RdlToDesignConverter
 
         element.Style ??= [];
         element.Style["rdlNavigation"] = raw.NavigationMetadata;
+        if (TryResolveNavigationHref(raw.NavigationMetadata, out var href))
+        {
+            element.Type = "link";
+            element.Href = href;
+            element.LinkTarget = href.StartsWith("#", StringComparison.Ordinal) ? "_self" : "_blank";
+            element.Style["rdlNavigationMappedToLink"] = true;
+        }
         diagnostics.Add(Warn("CANMIGRDL026",
-            $"'{raw.Name}' RDL navigation/action metadata was preserved; Canvas does not execute drillthrough/bookmark actions yet."));
+            $"'{raw.Name}' RDL navigation/action metadata was preserved and mapped to a Canvas link when possible."));
     }
+
+    private static bool TryResolveNavigationHref(Dictionary<string, object> navigation, out string href)
+    {
+        href = "";
+        if (navigation.TryGetValue("Actions", out var actionsObj) && actionsObj is IEnumerable<object> actions)
+        {
+            foreach (var action in actions)
+            {
+                if (action is not IReadOnlyDictionary<string, object> dict)
+                    continue;
+                if (HeaderValue(dict, "Hyperlink") is { Length: > 0 } hyperlink)
+                {
+                    href = hyperlink;
+                    return true;
+                }
+                if (HeaderValue(dict, "BookmarkLink") is { Length: > 0 } bookmark)
+                {
+                    href = $"#{Uri.EscapeDataString(bookmark)}";
+                    return true;
+                }
+                if (dict.TryGetValue("Drillthrough", out var drillObj)
+                    && drillObj is IReadOnlyDictionary<string, object> drill
+                    && HeaderValue(drill, "ReportName") is { Length: > 0 } reportName)
+                {
+                    href = DrillthroughHref(reportName, drill);
+                    return true;
+                }
+            }
+        }
+        if (HeaderValue(navigation, "Bookmark") is { Length: > 0 } ownBookmark)
+        {
+            href = $"#{Uri.EscapeDataString(ownBookmark)}";
+            return true;
+        }
+        return false;
+    }
+
+    private static string DrillthroughHref(string reportName, IReadOnlyDictionary<string, object> drill)
+    {
+        var href = reportName.StartsWith("/", StringComparison.Ordinal) ? reportName : $"/{reportName}";
+        var query = new List<string>();
+        if (drill.TryGetValue("Parameters", out var parametersObj) && parametersObj is IEnumerable<object> parameters)
+        {
+            foreach (var parameter in parameters)
+            {
+                if (parameter is not IReadOnlyDictionary<string, object> dict)
+                    continue;
+                var name = HeaderValue(dict, "Name");
+                var value = HeaderValue(dict, "Value");
+                if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(value))
+                    continue;
+                query.Add($"{Uri.EscapeDataString(name)}={DrillthroughParameterValue(value)}");
+            }
+        }
+        return query.Count == 0 ? href : $"{href}?{string.Join("&", query)}";
+    }
+
+    private static string DrillthroughParameterValue(string value)
+    {
+        var display = CellDisplay(value);
+        return display.StartsWith("{{", StringComparison.Ordinal) && display.EndsWith("}}", StringComparison.Ordinal)
+            ? display
+            : Uri.EscapeDataString(display);
+    }
+
+    private static string? HeaderValue(IReadOnlyDictionary<string, object> dict, string key) =>
+        dict.TryGetValue(key, out var value) ? value?.ToString() : null;
 
     private static ElementDto MapRdlChart(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
     {

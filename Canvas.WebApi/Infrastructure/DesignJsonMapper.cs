@@ -1904,6 +1904,7 @@ public static class DesignJsonMapper
         el.NoteTitle      = Substitute(el.NoteTitle,      props);
         el.NoteBody       = Substitute(el.NoteBody,       props);
         el.FootnoteText   = Substitute(el.FootnoteText,   props);
+        el.Href           = Substitute(el.Href,           props);
         el.ButtonAction   = Substitute(el.ButtonAction,   props);
     }
 
