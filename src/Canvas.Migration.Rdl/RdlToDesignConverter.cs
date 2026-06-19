@@ -190,6 +190,9 @@ public sealed class RdlToDesignConverter
                 case "GaugePanel":
                     ParseGaugePanel(item, raw);
                     break;
+                case "Subreport":
+                    ParseSubreport(item, raw);
+                    break;
                 case "CustomReportItem":
                     // RDL-standard custom items (ActiveReports/DsReport barcodes, SSRS charts/gauges/maps).
                     raw.CustomType = Child(item, "Type")?.Value;
@@ -464,6 +467,31 @@ public sealed class RdlToDesignConverter
             metadata["HasColorScale"] = true;
 
         raw.MapMetadata = metadata;
+    }
+
+    private void ParseSubreport(XElement el, RawElement raw)
+    {
+        ApplyStyle(raw, Child(el, "Style"));
+
+        var metadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(metadata, "ReportName", Child(el, "ReportName")?.Value);
+
+        var parameters = Children(Child(el, "Parameters"), "Parameter")
+            .Select(parameter =>
+            {
+                var p = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Name"] = Attr(parameter, "Name") ?? ""
+                };
+                AddText(p, "Value", Child(parameter, "Value")?.Value);
+                return p;
+            })
+            .Where(parameter => parameter.Values.Any(value => value?.ToString()?.Length > 0))
+            .ToArray();
+        if (parameters.Length > 0)
+            metadata["Parameters"] = parameters;
+
+        raw.SubreportMetadata = metadata;
     }
 
     private static Dictionary<string, object> ParseMapLayerSummary(XElement layer)
@@ -781,6 +809,9 @@ public sealed class RdlToDesignConverter
                 break;
             case "GaugePanel":
                 ParseGaugePanel(item, raw);
+                break;
+            case "Subreport":
+                ParseSubreport(item, raw);
                 break;
             case "Tablix":
             case "Table":
@@ -1378,9 +1409,7 @@ public sealed class RdlToDesignConverter
                 return MapGaugePanel(raw, element, diagnostics);
 
             case "Subreport":
-                diagnostics.Add(Warn("CANMIGRDL011",
-                    $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
-                return Placeholder(element, $"[Sub-report: {raw.Name} — migrate manually]");
+                return MapSubreport(raw, element, diagnostics);
 
             default:
                 diagnostics.Add(Warn("CANMIGRDL011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
@@ -1473,6 +1502,21 @@ public sealed class RdlToDesignConverter
         }
 
         return null;
+    }
+
+    private static ElementDto MapSubreport(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        var reportName = raw.SubreportMetadata?.GetValueOrDefault("ReportName")?.ToString();
+        var display = string.IsNullOrWhiteSpace(reportName) ? raw.Name : reportName;
+        var subreport = Placeholder(element, $"[Sub-report: {display}]");
+        subreport.Style ??= [];
+        subreport.Style["rdlCustomItemType"] = "Subreport";
+        if (raw.SubreportMetadata is { Count: > 0 })
+            subreport.Style["rdlSubreport"] = raw.SubreportMetadata;
+
+        diagnostics.Add(Warn("CANMIGRDL011",
+            $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder with preserved metadata."));
+        return subreport;
     }
 
     // Keeps an unsupported item visible at its original position/size so the layout isn't silently
@@ -2660,6 +2704,7 @@ public sealed class RdlToDesignConverter
         public List<RdlChartSeries>? ChartSeries;
         public Dictionary<string, object>? GaugePanelMetadata;
         public Dictionary<string, object>? MapMetadata;
+        public Dictionary<string, object>? SubreportMetadata;
         public string? ParentTablixName;
         public int? ParentTablixRow;
         public int? ParentTablixColumn;

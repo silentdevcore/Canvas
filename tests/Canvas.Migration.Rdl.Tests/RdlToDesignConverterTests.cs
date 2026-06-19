@@ -525,20 +525,33 @@ public sealed class RdlToDesignConverterTests
 
     // 19 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
-    public void Convert_Subreport_EmitsManualMigrationDiagnostic()
+    public void Convert_Subreport_PreservesMetadataOnPlaceholder()
     {
         var rdl = """
             <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
               <Body><ReportItems>
                 <Subreport Name="sub"><Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>1in</Width>
-                  <ReportName>Detail</ReportName></Subreport>
+                  <ReportName>Detail</ReportName>
+                  <Parameters>
+                    <Parameter Name="OrderId"><Value>=Fields!OrderId.Value</Value></Parameter>
+                    <Parameter Name="Region"><Value>=Parameters!Region.Value</Value></Parameter>
+                  </Parameters>
+                </Subreport>
               </ReportItems><Height>5in</Height></Body>
             </Report>
             """;
         var r = Convert(rdl);
         var sub = El(r.Design, "sub");                 // kept as a labeled placeholder, not dropped
         Assert.Equal("text", sub.Type);
-        Assert.Contains("Sub-report", sub.Content);
+        Assert.Contains("Sub-report: Detail", sub.Content);
+        Assert.Equal("Subreport", sub.Style!["rdlCustomItemType"]);
+        var metadata = Assert.IsType<Dictionary<string, object>>(sub.Style["rdlSubreport"]);
+        Assert.Equal("Detail", metadata["ReportName"]);
+        var parameters = Assert.IsType<Dictionary<string, object>[]>(metadata["Parameters"]);
+        Assert.Equal("OrderId", parameters[0]["Name"]);
+        Assert.Equal("=Fields!OrderId.Value", parameters[0]["Value"]);
+        Assert.Equal("Region", parameters[1]["Name"]);
+        Assert.Equal("=Parameters!Region.Value", parameters[1]["Value"]);
         Assert.True(Has(r.Diagnostics, "CANMIGRDL011"));
     }
 
@@ -1516,6 +1529,8 @@ public sealed class RdlToDesignConverterTests
         Assert.Equal("Gauge", gauge.Style!["rdlCustomItemType"]);
         Assert.Equal("text", subreport.Type);
         Assert.Contains("Sub-report", subreport.Content);
+        Assert.Equal("Subreport", subreport.Style!["rdlCustomItemType"]);
+        Assert.True(subreport.Style.ContainsKey("rdlSubreport"));
         var subreportPagination = Assert.IsType<Dictionary<string, object>>(subreport.Style!["rdlPagination"]);
         Assert.Equal("End", subreportPagination["PageBreak.BreakLocation"]);
         Assert.True(Has(r.Diagnostics, "CANMIGRDL011"));

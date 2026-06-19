@@ -70,7 +70,7 @@ elements, textbox style + field bindings, tablix/table, rectangle flattening, em
 | native `GaugePanel` | positioned placeholder + structured gauge metadata (`CANMIGRDL021`) | [x] |
 | native `Map` | positioned placeholder + structured map metadata (`CANMIGRDL022`) | [x] |
 | `CustomReportItem` gauge/map/etc. | labeled placeholder + RDL metadata (`CANMIGRDL018` for gauge) | [x] |
-| `Subreport` | labeled placeholder (`CANMIGRDL011`) | [x] |
+| `Subreport` | labeled placeholder + report/parameter metadata (`CANMIGRDL011`) | [x] |
 | Value `=Fields!X.Value` / `=expr` | `binding` / `expression` | [x] |
 | `Visibility.Hidden` | `Hidden` / inverted `VisibleExpression` | [x] |
 | `ReportParameters` / `ReportParametersLayout` | `PageSettings.CustomProperties` JSON metadata (`CANMIGRDL024`) | [x] |
@@ -224,8 +224,8 @@ gap is `Tablix` fidelity: group headers, nested/detail groups, relative widths, 
 - [x] `CustomReportItem` Gauge → positioned placeholder with field/range preview, structured `style.rdlGauge`
       metadata (`Value`, `MinimumValue`, `MaximumValue`, `TargetValue`, `DataSetName`) and preserved custom
       properties, plus `CANMIGRDL018`.
-- [x] `Subreport` → labeled placeholder element
-      (kept at original position/size so the layout isn't silently holed; still `CANMIGRDL011` for generic unsupported items).
+- [x] `Subreport` → labeled placeholder with structured `style.rdlSubreport` metadata (`ReportName`, parameters)
+      and preserved pagination/repeat metadata; still manual because Canvas has no native subreport composition.
 - [x] **P0** External / database image sources: external image references are preserved as image
       `Content` plus `style.rdlImageSource = "External"`; database image field expressions map to
       image binding/content placeholders plus `style.rdlImageSource = "Database"` (`CANMIGRDL012`).
