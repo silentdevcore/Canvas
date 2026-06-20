@@ -85,6 +85,71 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_GroupHeaderAndFooter_MapToRepeatMetadata()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Groups"
+                pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <group name="Store Group" isReprintHeaderOnEachPage="true">
+                <groupExpression><![CDATA[$F{store_id}]]></groupExpression>
+                <groupHeader>
+                  <band height="20">
+                    <textField>
+                      <reportElement key="storeHeader" x="0" y="0" width="160" height="20"/>
+                      <textFieldExpression><![CDATA[$F{store_name}]]></textFieldExpression>
+                    </textField>
+                  </band>
+                </groupHeader>
+                <groupFooter>
+                  <band height="18">
+                    <textField>
+                      <reportElement key="storeFooter" x="0" y="0" width="160" height="18"/>
+                      <textFieldExpression><![CDATA[$V{STORE_TOTAL}]]></textFieldExpression>
+                    </textField>
+                  </band>
+                </groupFooter>
+              </group>
+              <detail>
+                <band height="20">
+                  <staticText>
+                    <reportElement key="detailText" x="0" y="0" width="100" height="20"/>
+                    <text><![CDATA[Detail]]></text>
+                  </staticText>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+        var header = El(result.Design, "storeHeader");
+        var detail = El(result.Design, "detailText");
+        var footer = El(result.Design, "storeFooter");
+
+        Assert.Equal(20, header.Y, 0.5);
+        Assert.Equal(40, detail.Y, 0.5);
+        Assert.Equal(60, footer.Y, 0.5);
+        Assert.Equal("Store_Group", header.Repeat!.DataPath);
+        Assert.Equal(header.Id, header.Repeat.TemplateId);
+        Assert.Equal("Store_Group", footer.Repeat!.DataPath);
+
+        var group = Assert.IsType<Dictionary<string, object>>(header.Style!["jrxmlGroup"]);
+        Assert.Equal("Store Group", group["name"]);
+        Assert.Equal("header", group["role"]);
+        Assert.Equal("$F{store_id}", group["expression"]);
+        Assert.Equal("[store_id]", group["normalizedExpression"]);
+        var repeat = Assert.IsType<Dictionary<string, object>>(footer.Style!["jrxmlRepeat"]);
+        Assert.Equal("jrxmlGroup", repeat["source"]);
+        Assert.Equal("footer", repeat["role"]);
+
+        var groupsJson = Assert.Single(result.Design.PageSettings!.CustomProperties!, p => p.Name == "jrxmlGroups").Value;
+        var groups = JsonDocument.Parse(groupsJson).RootElement;
+        Assert.Equal("Store Group", groups[0].GetProperty("Name").GetString());
+        Assert.Equal("[store_id]", groups[0].GetProperty("NormalizedExpression").GetString());
+        Assert.True(groups[0].GetProperty("IsReprintHeaderOnEachPage").GetString() == "true");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML017" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
     public void Convert_NamedStyle_ResolvesFontAndColor()
     {
         var title = El(Convert(SampleJrxml).Design, "title");

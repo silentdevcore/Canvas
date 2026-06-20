@@ -100,6 +100,7 @@ original in metadata and normalize `$F{}`/`$P{}`/`$V{}` references to Canvas-sty
 | `CANMIGJRXML014` | Warning | JasperReports table component mapped to Canvas table; dataset/repeat semantics require review |
 | `CANMIGJRXML015` | Warning | JasperReports data declarations preserved in `PageSettings.CustomProperties`; runtime dataset/query evaluation needs review |
 | `CANMIGJRXML016` | Warning | JasperReports `printWhenExpression` mapped to Canvas visibility metadata; runtime semantics need review |
+| `CANMIGJRXML017` | Warning | JasperReports group header/footer mapped to Canvas repeat metadata; runtime group semantics need review |
 
 ## V1 checklist
 
@@ -140,7 +141,7 @@ Observed feature coverage:
 | `crosstab` | 1 crosstab, row/column groups and measures | structured placeholder metadata only | P1/P2 |
 | `subreport` | 2 direct subreports, 9 subreport expressions, 11 parameters | direct subreport metadata preserved; part subreports still need orchestration | Done/P1 parts |
 | `sectionType="Part"` / `<part>` book reports | Monthly Store Report has 7 parts | preserved in `jrxmlParts`; rendering/inlining still later | Done/P1 runtime review |
-| `groupHeader` / `groupFooter` | 2 groups | not modeled as repeat/group semantics | P1 |
+| `groupHeader` / `groupFooter` | 2 groups | header/footer bands are stacked around detail and mapped to `jrxmlGroup`/`jrxmlRepeat` + `RepeatDto` metadata | Done/P1 runtime review |
 | `subDataset`, `datasetRun`, SQL/JSON query metadata | 9 subdatasets, 8 dataset runs, 22 queries | report/subdataset/query metadata preserved; datasetRun kept on table/component styles | Done/P1 runtime review |
 | Parameters / fields / variables | 26 parameters, 136 fields, 18 variables | declarations preserved in `PageSettings.CustomProperties`; runtime expressions normalize `$P{}`/`$V{}` where consumed | Done/P1 runtime review |
 | Conditional styles | 8 conditional styles | open | P1 |
@@ -158,7 +159,10 @@ Key sample-driven conclusions:
 - `Store_Crosstab.jrxml` is the crosstab sample: row/column group and measure metadata.
 - `Json_Master.jrxml` / `Json_Sub.jrxml` prove that datasource/query metadata must not assume SQL only.
 
-- [ ] **P1** `groupHeader`/`groupFooter` repeat semantics; multiple `detail` bands
+- [x] **P1** `groupHeader`/`groupFooter` repeat semantics: group bands are flattened in Jasper order,
+      group declarations are preserved in `jrxmlGroups`, and group header/footer elements receive
+      `style.jrxmlGroup`, `style.jrxmlRepeat`, and Canvas `RepeatDto` metadata for runtime review.
+- [ ] **P1** Multiple `detail` bands with shared repeat container semantics.
 - [x] **P1** `sectionType="Part"` / `<part>` orchestration metadata: preserve part order/context,
       `partNameExpression`, `evaluationTime`, subreport expression, and parameters in `jrxmlParts` so
       book-style reports such as Monthly Store Report do not lose their structure.

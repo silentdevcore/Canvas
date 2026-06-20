@@ -86,6 +86,7 @@ public sealed class JrxmlToDesignConverter
         };
         ParseReportDataDeclarations(root, report);
         ParseReportParts(root, report);
+        ParseReportGroups(root, report);
         if (string.Equals(Attr(root, "orientation"), "Landscape", StringComparison.OrdinalIgnoreCase))
             (report.PageWidthPt, report.PageHeightPt) = (report.PageHeightPt, report.PageWidthPt);
 
@@ -93,18 +94,59 @@ public sealed class JrxmlToDesignConverter
         foreach (var sectionType in SectionOrder)
         {
             if (sectionType == "background") continue;   // watermark-style; skip
-            var section = Child(root, sectionType);
-            if (section is null) continue;
-            var bandIndex = 0;
-            foreach (var band in Children(section, "band"))
-            {
-                var name = $"{sectionType}-{bandIndex++}";
-                report.Bands.Add(new RawBand { Name = name, Type = sectionType, HeightPt = ToDouble(Attr(band, "height")) });
-                ParseElements(band, name, 0, 0, report, 0);
-            }
+            if (sectionType == "detail")
+                AddGroupBands(root, report, header: true);
+
+            AddSectionBands(root, report, sectionType);
+
+            if (sectionType == "detail")
+                AddGroupBands(root, report, header: false);
         }
 
         return BuildDesign(report);
+    }
+
+    private void AddSectionBands(XElement root, RawReport report, string sectionType)
+    {
+        var section = Child(root, sectionType);
+        if (section is null) return;
+        var bandIndex = 0;
+        foreach (var band in Children(section, "band"))
+        {
+            var name = $"{sectionType}-{bandIndex++}";
+            report.Bands.Add(new RawBand { Name = name, Type = sectionType, HeightPt = ToDouble(Attr(band, "height")) });
+            ParseElements(band, name, 0, 0, report, 0);
+        }
+    }
+
+    private void AddGroupBands(XElement root, RawReport report, bool header)
+    {
+        var groups = header ? Children(root, "group") : Children(root, "group").Reverse();
+        var sectionType = header ? "groupHeader" : "groupFooter";
+        foreach (var group in groups)
+        {
+            var groupName = Attr(group, "name") ?? "Group";
+            var groupExpression = Child(group, "groupExpression")?.Value.Trim();
+            var groupSection = Child(group, sectionType);
+            if (groupSection is null)
+                continue;
+
+            var bandIndex = 0;
+            foreach (var band in Children(groupSection, "band"))
+            {
+                var name = $"{sectionType}-{groupName}-{bandIndex++}";
+                report.Bands.Add(new RawBand
+                {
+                    Name = name,
+                    Type = sectionType,
+                    HeightPt = ToDouble(Attr(band, "height")),
+                    GroupName = groupName,
+                    GroupExpression = groupExpression,
+                    NormalizedGroupExpression = string.IsNullOrWhiteSpace(groupExpression) ? null : NormalizeJasperExpression(groupExpression)
+                });
+                ParseElements(band, name, 0, 0, report, 0);
+            }
+        }
     }
 
     // Parse a band's (or frame's) visual elements; a frame recurses with its offset so children stay absolute.
@@ -219,6 +261,7 @@ public sealed class JrxmlToDesignConverter
 
             if (raw.Type == "textField" && raw.Expression is { } expr) ApplyBinding(element, expr, diagnostics);
             ApplyVisibility(element, raw, diagnostics);
+            ApplyGroupMetadata(element, raw, band, diagnostics);
 
             (bandType is "pageHeader" or "pageFooter" or "lastPageFooter" ? sharedElements : elements).Add(element);
             mapped++;
@@ -255,6 +298,7 @@ public sealed class JrxmlToDesignConverter
         AddCustomJson(customProperties, "jrxmlSubDatasets", report.SubDatasets);
         AddCustomJson(customProperties, "jrxmlQuery", report.Query);
         AddCustomJson(customProperties, "jrxmlParts", report.Parts);
+        AddCustomJson(customProperties, "jrxmlGroups", report.Groups);
 
         if (customProperties.Count > 0)
         {
@@ -687,6 +731,25 @@ public sealed class JrxmlToDesignConverter
         report.Query = ParseQuery(Child(root, "queryString"));
     }
 
+    private static void ParseReportGroups(XElement root, RawReport report)
+    {
+        foreach (var group in Children(root, "group"))
+        {
+            var item = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Name"] = Attr(group, "name") ?? ""
+            };
+            AddExpressionText(item, "Expression", Child(group, "groupExpression")?.Value.Trim());
+            AddText(item, "IsStartNewPage", Attr(group, "isStartNewPage"));
+            AddText(item, "IsResetPageNumber", Attr(group, "isResetPageNumber"));
+            AddText(item, "IsReprintHeaderOnEachPage", Attr(group, "isReprintHeaderOnEachPage"));
+            AddText(item, "MinHeightToStartNewPage", Attr(group, "minHeightToStartNewPage"));
+            item["HeaderBandCount"] = Children(Child(group, "groupHeader"), "band").Count();
+            item["FooterBandCount"] = Children(Child(group, "groupFooter"), "band").Count();
+            report.Groups.Add(item);
+        }
+    }
+
     private static void ParseReportParts(XElement root, RawReport report)
     {
         var order = 0;
@@ -870,6 +933,48 @@ public sealed class JrxmlToDesignConverter
             $"'{raw.Name}' printWhenExpression '{expression}' was mapped to Canvas visibleExpression; review runtime semantics."));
     }
 
+    private static void ApplyGroupMetadata(ElementDto element, RawElement raw, RawBand? band, List<MigrationDiagnostic> diagnostics)
+    {
+        if (band?.GroupName is not { Length: > 0 } groupName)
+            return;
+
+        var role = band.Type == "groupFooter" ? "footer" : "header";
+        var dataPath = SafeRepeatPath(groupName);
+        var group = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["name"] = groupName,
+            ["role"] = role,
+            ["band"] = band.Name,
+            ["dataPath"] = dataPath
+        };
+        AddText(group, "expression", band.GroupExpression);
+        AddText(group, "normalizedExpression", band.NormalizedGroupExpression);
+
+        var repeat = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["source"] = "jrxmlGroup",
+            ["groupName"] = groupName,
+            ["role"] = role,
+            ["band"] = band.Name,
+            ["dataPath"] = dataPath,
+            ["itemAlias"] = "item",
+            ["indexAlias"] = "index"
+        };
+        AddText(repeat, "expression", band.GroupExpression);
+        AddText(repeat, "normalizedExpression", band.NormalizedGroupExpression);
+
+        element.Style ??= [];
+        element.Style["jrxmlGroup"] = group;
+        element.Style["jrxmlRepeat"] = repeat;
+        element.Repeat = new RepeatDto
+        {
+            DataPath = dataPath,
+            TemplateId = element.Id
+        };
+        diagnostics.Add(Warn("CANMIGJRXML017",
+            $"'{raw.Name}' in JasperReports {band.Type} '{groupName}' was mapped to Canvas repeat metadata; review group runtime semantics."));
+    }
+
     // A JasperReports textField expression that references data/params/vars/functions (vs a bare literal).
     private static bool LooksLikeExpr(string? value) =>
         value is not null && (value.Contains("$F{") || value.Contains("$P{") || value.Contains("$V{")
@@ -930,6 +1035,12 @@ public sealed class JrxmlToDesignConverter
         AddText(target, key, value);
         if (target is not null && !string.IsNullOrWhiteSpace(value) && LooksLikeExpr(value))
             target[$"Normalized{key}"] = NormalizeJasperExpression(value);
+    }
+
+    private static string SafeRepeatPath(string value)
+    {
+        var safe = Regex.Replace(value.Trim(), @"[^\w.]+", "_").Trim('_');
+        return string.IsNullOrWhiteSpace(safe) ? "GroupRows" : safe;
     }
 
     private static void AddText(Dictionary<string, object>? target, string key, string? value)
@@ -1084,6 +1195,7 @@ public sealed class JrxmlToDesignConverter
         public List<Dictionary<string, object>> Variables = [];
         public List<Dictionary<string, object>> SubDatasets = [];
         public List<Dictionary<string, object>> Parts = [];
+        public List<Dictionary<string, object>> Groups = [];
         public Dictionary<string, object> Query = [];
         public List<RawBand> Bands = [];
         public List<RawElement> Elements = [];
@@ -1094,6 +1206,9 @@ public sealed class JrxmlToDesignConverter
         public required string Name;
         public required string Type;
         public double HeightPt;
+        public string? GroupName;
+        public string? GroupExpression;
+        public string? NormalizedGroupExpression;
     }
 
     private sealed class RawElement
