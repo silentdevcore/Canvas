@@ -97,6 +97,7 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 | `CANMIGJRXML013` | Info | JasperReports barcode/QR component mapped to Canvas barcode/QR |
 | `CANMIGJRXML014` | Warning | JasperReports table component mapped to Canvas table; dataset/repeat semantics require review |
 | `CANMIGJRXML015` | Warning | JasperReports data declarations preserved in `PageSettings.CustomProperties`; runtime dataset/query evaluation needs review |
+| `CANMIGJRXML016` | Warning | JasperReports `printWhenExpression` mapped to Canvas visibility metadata; runtime semantics need review |
 
 ## V1 checklist
 
@@ -141,7 +142,7 @@ Observed feature coverage:
 | `subDataset`, `datasetRun`, SQL/JSON query metadata | 9 subdatasets, 8 dataset runs, 22 queries | report/subdataset/query metadata preserved; datasetRun kept on table/component styles | Done/P1 runtime review |
 | Parameters / fields / variables | 26 parameters, 136 fields, 18 variables | declarations preserved in `PageSettings.CustomProperties` | Done/P1 runtime review |
 | Conditional styles | 8 conditional styles | open | P1 |
-| `printWhenExpression` | 9 occurrences | open; should map to visibility metadata | P1 |
+| `printWhenExpression` | 9 occurrences | maps to `Hidden`/`VisibleExpression` + `style.jrxmlPrintWhenExpression` | Done/P1 runtime review |
 | Hyperlink / anchor expressions | 7 hyperlink anchors, 1 anchor name | open | P2 |
 | External image paths | 10 image expressions, many path-based | currently placeholder if not embedded | P2 |
 
@@ -165,7 +166,8 @@ Key sample-driven conclusions:
       SQL/JSON query language metadata in `PageSettings.CustomProperties`, plus datasetRun metadata on table/component styles.
 - [x] **P1** `<box>`/per-side pens + named style inheritance for box borders.
 - [ ] **P1** Conditional styles and full chained style inheritance.
-- [ ] **P1** `printWhenExpression` → Canvas visibility/metadata, matching the RDL hidden-expression pattern.
+- [x] **P1** `printWhenExpression` → Canvas `Hidden`/`VisibleExpression` plus preserved
+      `style.jrxmlPrintWhenExpression`, matching the RDL hidden-expression pattern.
 - [x] **P1** `componentElement` barcode/QR components → Canvas `barcode` / `qrcode` with field expression values.
 - [x] **P1** `componentElement` charts/crosstab placeholders with captions and preserved component metadata
       (`jrxmlComponentType`, `style.jrxmlComponent`, dataset hints, expressions, group/measure counts).

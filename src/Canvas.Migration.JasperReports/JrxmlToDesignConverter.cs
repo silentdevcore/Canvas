@@ -132,6 +132,8 @@ public sealed class JrxmlToDesignConverter
             ApplyStyle(raw, _namedStyles.GetValueOrDefault(Attr(re, "style") ?? ""));   // named base
             if (ParseColor(Attr(re, "forecolor")) is { } fc) raw.ForeColor = fc;        // inline overrides
             if (ParseColor(Attr(re, "backcolor")) is { } bc && !string.Equals(Attr(re, "mode"), "Transparent", StringComparison.OrdinalIgnoreCase)) raw.BackColor = bc;
+            raw.PrintWhenExpression = Child(el, "printWhenExpression")?.Value.Trim()
+                ?? Child(container, "printWhenExpression")?.Value.Trim();
 
             var textEl = Child(el, "textElement");
             if (textEl is not null)
@@ -216,6 +218,7 @@ public sealed class JrxmlToDesignConverter
             diagnostics.Add(Info("CANMIGJRXML002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
 
             if (raw.Type == "textField" && raw.Expression is { } expr) ApplyBinding(element, expr, diagnostics);
+            ApplyVisibility(element, raw, diagnostics);
 
             (bandType is "pageHeader" or "pageFooter" or "lastPageFooter" ? sharedElements : elements).Add(element);
             mapped++;
@@ -839,10 +842,37 @@ public sealed class JrxmlToDesignConverter
         }
     }
 
+    private static void ApplyVisibility(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.PrintWhenExpression is not { Length: > 0 } expression)
+            return;
+
+        if (bool.TryParse(expression, out var visible))
+        {
+            element.Hidden = !visible;
+            return;
+        }
+
+        element.VisibleExpression = NormalizeJasperExpression(expression);
+        element.Style ??= [];
+        element.Style["jrxmlPrintWhenExpression"] = expression;
+        diagnostics.Add(Warn("CANMIGJRXML016",
+            $"'{raw.Name}' printWhenExpression '{expression}' was mapped to Canvas visibleExpression; review runtime semantics."));
+    }
+
     // A JasperReports textField expression that references data/params/vars/functions (vs a bare literal).
     private static bool LooksLikeExpr(string? value) =>
         value is not null && (value.Contains("$F{") || value.Contains("$P{") || value.Contains("$V{")
             || value.Contains('+') || value.Contains('(') );
+
+    private static string NormalizeJasperExpression(string expression)
+    {
+        var normalized = expression.Trim();
+        normalized = Regex.Replace(normalized, @"\$F\{(\w+)\}", "[$1]");
+        normalized = Regex.Replace(normalized, @"\$P\{(\w+)\}", "[Parameters.$1]");
+        normalized = Regex.Replace(normalized, @"\$V\{(\w+)\}", "[Variables.$1]");
+        return normalized;
+    }
 
     private static string ExpressionDisplay(string? expression)
     {
@@ -1032,6 +1062,7 @@ public sealed class JrxmlToDesignConverter
         public string TextAlign = "left";
         public double? LineWidth;
         public string? ImageDataUrl;
+        public string? PrintWhenExpression;
         public Dictionary<string, BorderStyle> Borders = new(StringComparer.OrdinalIgnoreCase);
         public string? ComponentKind;
         public string? ComponentType;

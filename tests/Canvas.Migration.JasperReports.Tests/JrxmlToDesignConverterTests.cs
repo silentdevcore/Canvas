@@ -192,6 +192,40 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_PrintWhenExpression_MapsToVisibility()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Visibility"
+                pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <detail>
+                <band height="40">
+                  <staticText>
+                    <reportElement key="alwaysHidden" x="0" y="0" width="100" height="20"/>
+                    <printWhenExpression><![CDATA[false]]></printWhenExpression>
+                    <text><![CDATA[Hidden]]></text>
+                  </staticText>
+                  <textField>
+                    <reportElement key="levelThree" x="0" y="20" width="100" height="20"/>
+                    <printWhenExpression><![CDATA[$F{level} == 3]]></printWhenExpression>
+                    <textFieldExpression><![CDATA[$F{label}]]></textFieldExpression>
+                  </textField>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+        var hidden = El(result.Design, "alwaysHidden");
+        var conditional = El(result.Design, "levelThree");
+
+        Assert.True(hidden.Hidden);
+        Assert.Null(hidden.VisibleExpression);
+        Assert.Equal("[level] == 3", conditional.VisibleExpression);
+        Assert.Equal("$F{level} == 3", conditional.Style!["jrxmlPrintWhenExpression"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML016" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
     public void Convert_PartReport_PreservesSubreportPartMetadata()
     {
         var jrxml = """
