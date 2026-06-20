@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Canvas.Core.Contracts;
 using Canvas.Migration.Abstractions;
 using Canvas.Migration.JasperReports;
@@ -142,6 +143,52 @@ public sealed class JrxmlToDesignConverterTests
         Assert.Equal("customerName", customer.Binding);
         Assert.Equal("{{customerName}}", customer.Content);
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGJRXML010" && d.Severity == MigrationDiagnosticSeverity.Info);
+    }
+
+    [Fact]
+    public void Convert_DataDeclarations_ArePreservedAsCustomProperties()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Data"
+                pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <parameter name="CUSTOMER_ID" class="java.lang.Integer" isForPrompting="false">
+                <defaultValueExpression><![CDATA[314]]></defaultValueExpression>
+              </parameter>
+              <queryString language="SQL"><![CDATA[select * from customers where id = $P{CUSTOMER_ID}]]></queryString>
+              <field name="cust_name" class="java.lang.String"/>
+              <variable name="TOTAL_AMOUNT" class="java.math.BigDecimal" calculation="Sum">
+                <variableExpression><![CDATA[$F{price}]]></variableExpression>
+              </variable>
+              <subDataset name="Products">
+                <parameter name="CUSTOMER_ID" class="java.lang.Integer"/>
+                <queryString language="json"><![CDATA[products]]></queryString>
+                <field name="product_name" class="java.lang.String"/>
+              </subDataset>
+              <detail><band height="20"/></detail>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+        var props = result.Design.PageSettings!.CustomProperties!;
+
+        var parameters = JsonDocument.Parse(Assert.Single(props, p => p.Name == "jrxmlParameters").Value).RootElement;
+        Assert.Equal("CUSTOMER_ID", parameters[0].GetProperty("Name").GetString());
+        Assert.Equal("314", parameters[0].GetProperty("DefaultValueExpression").GetString());
+
+        var fields = JsonDocument.Parse(Assert.Single(props, p => p.Name == "jrxmlFields").Value).RootElement;
+        Assert.Equal("cust_name", fields[0].GetProperty("Name").GetString());
+
+        var variables = JsonDocument.Parse(Assert.Single(props, p => p.Name == "jrxmlVariables").Value).RootElement;
+        Assert.Equal("TOTAL_AMOUNT", variables[0].GetProperty("Name").GetString());
+        Assert.Equal("Sum", variables[0].GetProperty("Calculation").GetString());
+
+        var subDatasets = JsonDocument.Parse(Assert.Single(props, p => p.Name == "jrxmlSubDatasets").Value).RootElement;
+        Assert.Equal("Products", subDatasets[0].GetProperty("Name").GetString());
+        Assert.Equal("json", subDatasets[0].GetProperty("Query").GetProperty("Language").GetString());
+
+        var query = JsonDocument.Parse(Assert.Single(props, p => p.Name == "jrxmlQuery").Value).RootElement;
+        Assert.Equal("SQL", query.GetProperty("Language").GetString());
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML015" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
     [Fact]

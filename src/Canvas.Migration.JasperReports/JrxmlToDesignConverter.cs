@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Canvas.Core.Contracts;
@@ -83,6 +84,7 @@ public sealed class JrxmlToDesignConverter
             MarginTopPt = ToDouble(Attr(root, "topMargin")),
             MarginBottomPt = ToDouble(Attr(root, "bottomMargin")),
         };
+        ParseReportDataDeclarations(root, report);
         if (string.Equals(Attr(root, "orientation"), "Landscape", StringComparison.OrdinalIgnoreCase))
             (report.PageWidthPt, report.PageHeightPt) = (report.PageHeightPt, report.PageWidthPt);
 
@@ -227,12 +229,33 @@ public sealed class JrxmlToDesignConverter
             Name = report.Name,
             Category = "imported",
             Description = "Imported from a JasperReports report (.jrxml).",
-            PageSettings = new PageSettingsDto { Width = report.PageWidthPt, Height = report.PageHeightPt, Unit = "pt" },
+            PageSettings = BuildPageSettings(report, diagnostics),
             Pages = [new PageDto { Id = "page-1", Elements = elements }],
             SharedElements = sharedElements
         };
 
         return new JrxmlConvertResult { Design = design, Diagnostics = diagnostics };
+    }
+
+    private static PageSettingsDto BuildPageSettings(RawReport report, List<MigrationDiagnostic> diagnostics)
+    {
+        var settings = new PageSettingsDto { Width = report.PageWidthPt, Height = report.PageHeightPt, Unit = "pt" };
+        var customProperties = new List<CustomDocumentPropertyDto>();
+
+        AddCustomJson(customProperties, "jrxmlParameters", report.Parameters);
+        AddCustomJson(customProperties, "jrxmlFields", report.Fields);
+        AddCustomJson(customProperties, "jrxmlVariables", report.Variables);
+        AddCustomJson(customProperties, "jrxmlSubDatasets", report.SubDatasets);
+        AddCustomJson(customProperties, "jrxmlQuery", report.Query);
+
+        if (customProperties.Count > 0)
+        {
+            settings.CustomProperties = customProperties;
+            diagnostics.Add(Warn("CANMIGJRXML015",
+                "JasperReports data declarations were preserved in PageSettings.CustomProperties; Canvas does not evaluate JRXML datasets/queries yet."));
+        }
+
+        return settings;
     }
 
     private static ElementDto? MapControl(RawElement raw, double x, double y, List<MigrationDiagnostic> diagnostics)
@@ -597,6 +620,85 @@ public sealed class JrxmlToDesignConverter
             raw.ComponentMetadata["Expressions"] = expressions;
     }
 
+    private static void ParseReportDataDeclarations(XElement root, RawReport report)
+    {
+        report.Parameters = Children(root, "parameter").Select(ParseNamedDeclaration).ToList();
+        report.Fields = Children(root, "field").Select(ParseNamedDeclaration).ToList();
+        report.Variables = Children(root, "variable").Select(ParseVariableDeclaration).ToList();
+        report.SubDatasets = Children(root, "subDataset").Select(ParseSubDatasetDeclaration).ToList();
+        report.Query = ParseQuery(Child(root, "queryString"));
+    }
+
+    private static Dictionary<string, object> ParseNamedDeclaration(XElement element)
+    {
+        var item = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Name"] = Attr(element, "name") ?? ""
+        };
+        AddText(item, "Class", Attr(element, "class"));
+        AddText(item, "IsForPrompting", Attr(element, "isForPrompting"));
+        AddText(item, "Description", Child(element, "parameterDescription")?.Value.Trim());
+        AddText(item, "DefaultValueExpression", Child(element, "defaultValueExpression")?.Value.Trim());
+        return item;
+    }
+
+    private static Dictionary<string, object> ParseVariableDeclaration(XElement element)
+    {
+        var item = ParseNamedDeclaration(element);
+        AddText(item, "Calculation", Attr(element, "calculation"));
+        AddText(item, "VariableExpression", Child(element, "variableExpression")?.Value.Trim());
+        AddText(item, "InitialValueExpression", Child(element, "initialValueExpression")?.Value.Trim());
+        return item;
+    }
+
+    private static Dictionary<string, object> ParseSubDatasetDeclaration(XElement element)
+    {
+        var item = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Name"] = Attr(element, "name") ?? ""
+        };
+        AddText(item, "Uuid", Attr(element, "uuid"));
+        var parameters = Children(element, "parameter").Select(ParseNamedDeclaration).ToArray();
+        if (parameters.Length > 0)
+            item["Parameters"] = parameters;
+        var fields = Children(element, "field").Select(ParseNamedDeclaration).ToArray();
+        if (fields.Length > 0)
+            item["Fields"] = fields;
+        if (ParseQuery(Child(element, "queryString")) is { Count: > 0 } query)
+            item["Query"] = query;
+        return item;
+    }
+
+    private static Dictionary<string, object> ParseQuery(XElement? query)
+    {
+        var item = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        if (query is null)
+            return item;
+        AddText(item, "Language", Attr(query, "language"));
+        AddText(item, "Text", query.Value.Trim());
+        return item;
+    }
+
+    private static void AddCustomJson(List<CustomDocumentPropertyDto> properties, string name, object? value)
+    {
+        var include = value switch
+        {
+            null => false,
+            IReadOnlyCollection<Dictionary<string, object>> collection => collection.Count > 0,
+            IReadOnlyDictionary<string, object> dictionary => dictionary.Count > 0,
+            _ => true
+        };
+        if (!include)
+            return;
+
+        properties.Add(new CustomDocumentPropertyDto
+        {
+            Name = name,
+            Type = "text",
+            Value = JsonSerializer.Serialize(value)
+        });
+    }
+
     private static void ApplyFont(RawElement raw, XElement? font)
     {
         if (font is null) return;
@@ -793,6 +895,11 @@ public sealed class JrxmlToDesignConverter
         public string Name = "JasperReports Report";
         public double PageWidthPt = A4WidthPt, PageHeightPt = A4HeightPt;
         public double MarginLeftPt, MarginTopPt, MarginBottomPt;
+        public List<Dictionary<string, object>> Parameters = [];
+        public List<Dictionary<string, object>> Fields = [];
+        public List<Dictionary<string, object>> Variables = [];
+        public List<Dictionary<string, object>> SubDatasets = [];
+        public Dictionary<string, object> Query = [];
         public List<RawBand> Bands = [];
         public List<RawElement> Elements = [];
     }

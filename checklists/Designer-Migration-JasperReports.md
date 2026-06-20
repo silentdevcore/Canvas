@@ -95,6 +95,7 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 | `CANMIGJRXML012` | Warning | Image not embeddable — placeholder inserted |
 | `CANMIGJRXML013` | Info | JasperReports barcode/QR component mapped to Canvas barcode/QR |
 | `CANMIGJRXML014` | Warning | JasperReports table component mapped to Canvas table; dataset/repeat semantics require review |
+| `CANMIGJRXML015` | Warning | JasperReports data declarations preserved in `PageSettings.CustomProperties`; runtime dataset/query evaluation needs review |
 
 ## V1 checklist
 
@@ -136,8 +137,8 @@ Observed feature coverage:
 | `subreport` | 2 direct subreports, 9 subreport expressions, 11 parameters | generic placeholder today | P1 |
 | `sectionType="Part"` / `<part>` book reports | Monthly Store Report has 7 parts | not modeled; currently skipped because parts lack `reportElement` | P1 |
 | `groupHeader` / `groupFooter` | 2 groups | not modeled as repeat/group semantics | P1 |
-| `subDataset`, `datasetRun`, SQL/JSON query metadata | 9 subdatasets, 8 dataset runs, 22 queries | not preserved centrally | P1 |
-| Parameters / fields / variables | 26 parameters, 136 fields, 18 variables | expressions preserved, declarations mostly not preserved | P1 |
+| `subDataset`, `datasetRun`, SQL/JSON query metadata | 9 subdatasets, 8 dataset runs, 22 queries | report/subdataset/query metadata preserved; datasetRun kept on table/component styles | Done/P1 runtime review |
+| Parameters / fields / variables | 26 parameters, 136 fields, 18 variables | declarations preserved in `PageSettings.CustomProperties` | Done/P1 runtime review |
 | Conditional styles | 8 conditional styles | open | P1 |
 | `printWhenExpression` | 9 occurrences | open; should map to visibility metadata | P1 |
 | Hyperlink / anchor expressions | 7 hyperlink anchors, 1 anchor name | open | P2 |
@@ -158,8 +159,8 @@ Key sample-driven conclusions:
       and position/order metadata so book-style reports such as Monthly Store Report do not lose their structure.
 - [x] **P1** `jr:table` component → Canvas table with `CellData`, column widths, header/detail row extraction,
       datasetRun/parameter metadata, and expression preservation from Invoice and Store samples.
-- [ ] **P1** Preserve report-level data declarations: parameters, fields, variables, subDataset/queryString,
-      datasetRun, dataset/subreport parameters, and SQL/JSON query language metadata in `PageSettings.CustomProperties`.
+- [x] **P1** Preserve report-level data declarations: parameters, fields, variables, subDataset/queryString,
+      SQL/JSON query language metadata in `PageSettings.CustomProperties`, plus datasetRun metadata on table/component styles.
 - [x] **P1** `<box>`/per-side pens + named style inheritance for box borders.
 - [ ] **P1** Conditional styles and full chained style inheritance.
 - [ ] **P1** `printWhenExpression` → Canvas visibility/metadata, matching the RDL hidden-expression pattern.
