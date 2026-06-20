@@ -110,11 +110,36 @@ public sealed class JrxmlToDesignConverter
     {
         var section = Child(root, sectionType);
         if (section is null) return;
+        var bands = Children(section, "band").ToList();
+        if (sectionType == "detail")
+        {
+            report.DetailBandCount = bands.Count;
+            if (bands.Count > 1)
+            {
+                for (var i = 0; i < bands.Count; i++)
+                {
+                    report.DetailBands.Add(new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        ["Name"] = $"detail-{i}",
+                        ["Index"] = i,
+                        ["Height"] = ToDouble(Attr(bands[i], "height")),
+                        ["DataPath"] = "DetailRows"
+                    });
+                }
+            }
+        }
+
         var bandIndex = 0;
-        foreach (var band in Children(section, "band"))
+        foreach (var band in bands)
         {
             var name = $"{sectionType}-{bandIndex++}";
-            report.Bands.Add(new RawBand { Name = name, Type = sectionType, HeightPt = ToDouble(Attr(band, "height")) });
+            report.Bands.Add(new RawBand
+            {
+                Name = name,
+                Type = sectionType,
+                HeightPt = ToDouble(Attr(band, "height")),
+                SectionIndex = bandIndex - 1
+            });
             ParseElements(band, name, 0, 0, report, 0);
         }
     }
@@ -262,6 +287,7 @@ public sealed class JrxmlToDesignConverter
             if (raw.Type == "textField" && raw.Expression is { } expr) ApplyBinding(element, expr, diagnostics);
             ApplyVisibility(element, raw, diagnostics);
             ApplyGroupMetadata(element, raw, band, diagnostics);
+            ApplyDetailRepeatMetadata(element, raw, band, report, diagnostics);
 
             (bandType is "pageHeader" or "pageFooter" or "lastPageFooter" ? sharedElements : elements).Add(element);
             mapped++;
@@ -299,6 +325,7 @@ public sealed class JrxmlToDesignConverter
         AddCustomJson(customProperties, "jrxmlQuery", report.Query);
         AddCustomJson(customProperties, "jrxmlParts", report.Parts);
         AddCustomJson(customProperties, "jrxmlGroups", report.Groups);
+        AddCustomJson(customProperties, "jrxmlDetailBands", report.DetailBands);
 
         if (customProperties.Count > 0)
         {
@@ -975,6 +1002,38 @@ public sealed class JrxmlToDesignConverter
             $"'{raw.Name}' in JasperReports {band.Type} '{groupName}' was mapped to Canvas repeat metadata; review group runtime semantics."));
     }
 
+    private static void ApplyDetailRepeatMetadata(
+        ElementDto element,
+        RawElement raw,
+        RawBand? band,
+        RawReport report,
+        List<MigrationDiagnostic> diagnostics)
+    {
+        if (band?.Type != "detail" || report.DetailBandCount <= 1)
+            return;
+
+        var repeat = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["source"] = "jrxmlDetail",
+            ["band"] = band.Name,
+            ["bandIndex"] = band.SectionIndex,
+            ["bandCount"] = report.DetailBandCount,
+            ["dataPath"] = "DetailRows",
+            ["itemAlias"] = "item",
+            ["indexAlias"] = "index"
+        };
+
+        element.Style ??= [];
+        element.Style["jrxmlDetailRepeat"] = repeat;
+        element.Repeat = new RepeatDto
+        {
+            DataPath = "DetailRows",
+            TemplateId = element.Id
+        };
+        diagnostics.Add(Warn("CANMIGJRXML018",
+            $"'{raw.Name}' in JasperReports detail band {band.SectionIndex} was mapped to shared detail repeat metadata; review multi-band detail runtime semantics."));
+    }
+
     // A JasperReports textField expression that references data/params/vars/functions (vs a bare literal).
     private static bool LooksLikeExpr(string? value) =>
         value is not null && (value.Contains("$F{") || value.Contains("$P{") || value.Contains("$V{")
@@ -1196,7 +1255,9 @@ public sealed class JrxmlToDesignConverter
         public List<Dictionary<string, object>> SubDatasets = [];
         public List<Dictionary<string, object>> Parts = [];
         public List<Dictionary<string, object>> Groups = [];
+        public List<Dictionary<string, object>> DetailBands = [];
         public Dictionary<string, object> Query = [];
+        public int DetailBandCount;
         public List<RawBand> Bands = [];
         public List<RawElement> Elements = [];
     }
@@ -1206,6 +1267,7 @@ public sealed class JrxmlToDesignConverter
         public required string Name;
         public required string Type;
         public double HeightPt;
+        public int SectionIndex;
         public string? GroupName;
         public string? GroupExpression;
         public string? NormalizedGroupExpression;

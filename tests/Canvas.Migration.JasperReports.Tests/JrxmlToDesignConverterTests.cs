@@ -150,6 +150,54 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_MultipleDetailBands_MapToSharedRepeatMetadata()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="MultiDetail"
+                pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <detail>
+                <band height="15">
+                  <textField>
+                    <reportElement key="line1" x="0" y="0" width="160" height="15"/>
+                    <textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+                  </textField>
+                </band>
+                <band height="12">
+                  <textField>
+                    <reportElement key="line2" x="0" y="0" width="160" height="12"/>
+                    <textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+                  </textField>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+        var line1 = El(result.Design, "line1");
+        var line2 = El(result.Design, "line2");
+
+        Assert.Equal(20, line1.Y, 0.5);
+        Assert.Equal(35, line2.Y, 0.5);
+        Assert.Equal("DetailRows", line1.Repeat!.DataPath);
+        Assert.Equal(line1.Id, line1.Repeat.TemplateId);
+        Assert.Equal("DetailRows", line2.Repeat!.DataPath);
+
+        var repeat1 = Assert.IsType<Dictionary<string, object>>(line1.Style!["jrxmlDetailRepeat"]);
+        Assert.Equal("jrxmlDetail", repeat1["source"]);
+        Assert.Equal(0, repeat1["bandIndex"]);
+        Assert.Equal(2, repeat1["bandCount"]);
+        var repeat2 = Assert.IsType<Dictionary<string, object>>(line2.Style!["jrxmlDetailRepeat"]);
+        Assert.Equal(1, repeat2["bandIndex"]);
+
+        var detailsJson = Assert.Single(result.Design.PageSettings!.CustomProperties!, p => p.Name == "jrxmlDetailBands").Value;
+        var details = JsonDocument.Parse(detailsJson).RootElement;
+        Assert.Equal(2, details.GetArrayLength());
+        Assert.Equal("detail-0", details[0].GetProperty("Name").GetString());
+        Assert.Equal("DetailRows", details[1].GetProperty("DataPath").GetString());
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML018" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
     public void Convert_NamedStyle_ResolvesFontAndColor()
     {
         var title = El(Convert(SampleJrxml).Design, "title");

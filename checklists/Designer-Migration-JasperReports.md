@@ -101,6 +101,7 @@ original in metadata and normalize `$F{}`/`$P{}`/`$V{}` references to Canvas-sty
 | `CANMIGJRXML015` | Warning | JasperReports data declarations preserved in `PageSettings.CustomProperties`; runtime dataset/query evaluation needs review |
 | `CANMIGJRXML016` | Warning | JasperReports `printWhenExpression` mapped to Canvas visibility metadata; runtime semantics need review |
 | `CANMIGJRXML017` | Warning | JasperReports group header/footer mapped to Canvas repeat metadata; runtime group semantics need review |
+| `CANMIGJRXML018` | Warning | Multiple JasperReports detail bands mapped to shared Canvas repeat metadata; runtime multi-band detail semantics need review |
 
 ## V1 checklist
 
@@ -133,7 +134,7 @@ Observed feature coverage:
 
 | Feature family | Seen in samples | Current converter status | Priority |
 | --- | ---: | --- | --- |
-| Basic band layout, static text, text fields, lines, rectangles, images, frames | broad | supported | Done |
+| Basic band layout, static text, text fields, lines, rectangles, images, frames | broad | supported; multiple detail bands carry shared repeat metadata | Done/P1 runtime review |
 | `<box>` and per-side pens | 150 boxes, 125 left / 118 bottom / 112 top / 111 right pens | supported for named styles + element boxes | Done |
 | `componentElement` barcode/QR | component path present | supported as Canvas `barcode`/`qrcode` | Done |
 | `componentElement` charts / Highcharts | 5 chart components, 116 chart properties, 9 series | structured placeholder metadata only | P1/P2 |
@@ -162,7 +163,9 @@ Key sample-driven conclusions:
 - [x] **P1** `groupHeader`/`groupFooter` repeat semantics: group bands are flattened in Jasper order,
       group declarations are preserved in `jrxmlGroups`, and group header/footer elements receive
       `style.jrxmlGroup`, `style.jrxmlRepeat`, and Canvas `RepeatDto` metadata for runtime review.
-- [ ] **P1** Multiple `detail` bands with shared repeat container semantics.
+- [x] **P1** Multiple `detail` bands with shared repeat container semantics: each detail-band element now
+      receives `style.jrxmlDetailRepeat` and Canvas `RepeatDto` with shared `DetailRows` data path, while
+      band order/height metadata is preserved in `jrxmlDetailBands`.
 - [x] **P1** `sectionType="Part"` / `<part>` orchestration metadata: preserve part order/context,
       `partNameExpression`, `evaluationTime`, subreport expression, and parameters in `jrxmlParts` so
       book-style reports such as Monthly Store Report do not lose their structure.
