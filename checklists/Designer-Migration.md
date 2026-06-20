@@ -13,8 +13,8 @@ Legend — **Done?**: ✅ shipped · 🔜 recommended next · ❌ not started ·
 | --- | --- | --- | --- | --- |
 | DevExpress XtraReports | DevExpress | `.repx` XML + C# (banded) | Bands (Report/Page/Group/Detail); XRLabel/Table/Line/Shape/PictureBox/BarCode/RichText/CheckBox; expression bindings | ✅ `Canvas.Migration.DevExpressReport` |
 | Syncfusion Report Designer / Bold Reports | Syncfusion | `.rdl` / `.rdlc` (RDL XML, region) | Body + Page header/footer; Textbox/Tablix/Table/Line/Rectangle/Image; `=Fields!` bindings | ✅ `Canvas.Migration.Rdl` |
-| ActiveReports — Page / RDLX reports | MESCIUS (GrapeCity) | `.rdlx` (RDL XML) | RDL-family; report items + `CustomReportItem` barcodes | ✅ `Canvas.Migration.Rdl` |
-| ActiveReports — Section reports | MESCIUS (GrapeCity) | `.rpx` (XML, banded) | Section bands; Label/TextBox/Line/Shape/Picture/Barcode/CheckBox/RichText/SubReport; `DataField` bindings | ✅ `Canvas.Migration.Rpx` |
+| ActiveReports — Page / RDLX reports | MESCIUS (GrapeCity) | `.rdlx` (RDL XML) | RDL-family; report items + `CustomReportItem` barcodes | ✅ `Canvas.Migration.Rdl` — see [Designer-Migration-ActiveReports.md](Designer-Migration-ActiveReports.md) |
+| ActiveReports — Section reports | MESCIUS (GrapeCity) | `.rpx` (XML, banded) | Section bands; Label/TextBox/Line/Shape/Picture/Barcode/CheckBox/RichText/SubReport; `DataField` bindings | ✅ `Canvas.Migration.Rpx` — see [Designer-Migration-ActiveReports.md](Designer-Migration-ActiveReports.md) |
 | iText 7 | iText Group | C# PDF library | PDF-generation API — no visual report designer | — |
 | Apryse (PDFTron) | Apryse | C# PDF SDK | PDF SDK — no report designer | — |
 | Aspose.PDF | Aspose | C# PDF library | No banded report designer | — |

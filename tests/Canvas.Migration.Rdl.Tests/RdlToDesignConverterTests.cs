@@ -1670,4 +1670,115 @@ public sealed class RdlToDesignConverterTests
         Assert.Equal("true", pagination["PageBreak.ResetPageNumber"]);
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGRDL019" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
+
+    // ── ActiveReports .rdlx (RDL-2005) fidelity ────────────────────────────────────────────────────
+
+    [Fact]
+    public void Convert_Table2005Footer_RowsAreIncludedInGrid()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" Name="T">
+              <Body><ReportItems>
+                <Table Name="t">
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>4in</Width>
+                  <TableColumns><TableColumn><Width>2in</Width></TableColumn><TableColumn><Width>2in</Width></TableColumn></TableColumns>
+                  <Header><TableRows><TableRow><TableCells>
+                    <TableCell><ReportItems><Textbox Name="h1"><Value>Item</Value></Textbox></ReportItems></TableCell>
+                    <TableCell><ReportItems><Textbox Name="h2"><Value>Amount</Value></Textbox></ReportItems></TableCell>
+                  </TableCells></TableRow></TableRows></Header>
+                  <Details><TableRows><TableRow><TableCells>
+                    <TableCell><ReportItems><Textbox Name="d1"><Value>Widget</Value></Textbox></ReportItems></TableCell>
+                    <TableCell><ReportItems><Textbox Name="d2"><Value>10</Value></Textbox></ReportItems></TableCell>
+                  </TableCells></TableRow></TableRows></Details>
+                  <Footer><TableRows><TableRow><TableCells>
+                    <TableCell><ReportItems><Textbox Name="f1"><Value>Total</Value></Textbox></ReportItems></TableCell>
+                    <TableCell><ReportItems><Textbox Name="f2"><Value>10</Value></Textbox></ReportItems></TableCell>
+                  </TableCells></TableRow></TableRows></Footer>
+                </Table>
+              </ReportItems><Height>5in</Height></Body>
+              <PageHeight>11in</PageHeight><PageWidth>8.5in</PageWidth>
+            </Report>
+            """;
+        var result = Convert(rdl);
+        var t = El(result.Design, "t");
+        Assert.Equal("table", t.Type);
+        Assert.Equal(3, t.CellData!.Length);                       // header + detail + footer
+        Assert.Equal(new[] { "Total", "10" }, t.CellData![2]);     // footer row preserved
+        Assert.True(Has(result.Diagnostics, "CANMIGRDL030"));
+    }
+
+    [Fact]
+    public void Convert_ListRegion_ParsesNestedTableAndCarriesRepeatMetadata()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" Name="T">
+              <Body><ReportItems>
+                <List Name="list1">
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>4in</Width>
+                  <DataSetName>Results</DataSetName>
+                  <Grouping Name="list1_Group">
+                    <GroupExpressions><GroupExpression>=Fields!TestGroup.Value</GroupExpression></GroupExpressions>
+                  </Grouping>
+                  <ReportItems>
+                    <Table Name="nested">
+                      <Top>0in</Top><Left>0in</Left><Height>0.5in</Height><Width>4in</Width>
+                      <TableColumns><TableColumn><Width>4in</Width></TableColumn></TableColumns>
+                      <Details><TableRows><TableRow><TableCells>
+                        <TableCell><ReportItems><Textbox Name="c1"><Value>=Fields!Name.Value</Value></Textbox></ReportItems></TableCell>
+                      </TableCells></TableRow></TableRows></Details>
+                    </Table>
+                  </ReportItems>
+                </List>
+              </ReportItems><Height>5in</Height></Body>
+              <PageHeight>11in</PageHeight><PageWidth>8.5in</PageWidth>
+            </Report>
+            """;
+        var result = Convert(rdl);
+
+        // Nested table inside the List is parsed, not dropped.
+        var nested = El(result.Design, "nested");
+        Assert.Equal("table", nested.Type);
+        Assert.Equal(new[] { "{{Name}}" }, nested.CellData![0]);
+
+        // The List becomes a container carrying repeat/grouping metadata.
+        var list = El(result.Design, "list1");
+        Assert.Equal("rect", list.Type);
+        Assert.Equal("Results", list.Repeat!.DataPath);
+        var repeat = Assert.IsType<Dictionary<string, object>>(list.Style!["rdlList"]);
+        Assert.Equal("rdlList", repeat["source"]);
+        Assert.Equal(new[] { "=Fields!TestGroup.Value" }, Assert.IsType<string[]>(repeat["groupExpressions"]));
+        Assert.True(Has(result.Diagnostics, "CANMIGRDL031"));
+    }
+
+    [Fact]
+    public void Convert_ActiveReportsRdlxSamples_AllConvertWithoutDroppingRegions()
+    {
+        var dir = FindActiveReportsSamplesDir();
+        var files = Directory.GetFiles(dir, "*.rdlx");
+        Assert.Equal(8, files.Length);
+
+        foreach (var file in files)
+        {
+            var xml = File.ReadAllText(file);
+            Assert.True(RdlToDesignConverter.LooksLikeRdl(xml), $"{Path.GetFileName(file)} should be detected as RDL");
+
+            var result = Convert(xml);
+            var elements = result.Design.Pages[0].Elements.Concat(result.Design.SharedElements).ToList();
+            Assert.NotEmpty(elements);
+            // No top-level region should have been mapped to the unsupported-control placeholder.
+            Assert.DoesNotContain(result.Diagnostics, d => d.Id == "CANMIGRDL011" && d.Message.Contains("List"));
+        }
+    }
+
+    private static string FindActiveReportsSamplesDir()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            var candidate = Path.Combine(dir.FullName, "designer-simples", "ActiveReports", "ReportSamples-master");
+            if (Directory.Exists(candidate)) return candidate;
+            dir = dir.Parent;
+        }
+        throw new DirectoryNotFoundException("Could not locate designer-simples/ActiveReports/ReportSamples-master from the test output directory.");
+    }
 }

@@ -181,6 +181,13 @@ public sealed class RdlToDesignConverter
                 case "Table":
                     ParseTablix(item, raw, report);
                     break;
+                case "List":
+                    // RDL List: a grouped repeating region whose <ReportItems> (here a nested Table)
+                    // are recursed below; its <Grouping> becomes Canvas repeat metadata.
+                    ApplyStyle(raw, Child(item, "Style"));
+                    raw.DataSetName = Child(item, "DataSetName")?.Value.Trim();
+                    raw.TablixGroups = ParseTablixGroups(item);
+                    break;
                 case "Chart":
                     ParseNativeChart(item, raw);
                     break;
@@ -202,7 +209,7 @@ public sealed class RdlToDesignConverter
 
             report.Elements.Add(raw);
 
-            if (type == "Rectangle")
+            if (type is "Rectangle" or "List")
                 ParseReportItems(Child(item, "ReportItems"), region, left, top, report, depth + 1);
         }
     }
@@ -695,10 +702,16 @@ public sealed class RdlToDesignConverter
         }
         else
         {
-            // 2008 Table
+            // 2005/2008 Table — Header + Details + Footer rows (RDL-2005 ActiveReports Page reports
+            // carry totals/summary rows in <Footer>, which must be kept or the table loses its last rows).
             raw.ColumnWidthsPt = ParseColumnWidths(Children(Child(el, "TableColumns"), "TableColumn"), raw.W);
 
-            var rows = TableRows(Child(el, "Header")).Concat(TableRows(Child(el, "Details"))).ToList();
+            var footerRows = TableRows(Child(el, "Footer")).ToList();
+            raw.TableHasFooter = footerRows.Count > 0;
+            var rows = TableRows(Child(el, "Header"))
+                .Concat(TableRows(Child(el, "Details")))
+                .Concat(footerRows)
+                .ToList();
             headerRow = rows.FirstOrDefault();
             foreach (var row in rows)
                 grid.Add(Children(Child(row, "TableCells"), "TableCell")
@@ -1151,7 +1164,8 @@ public sealed class RdlToDesignConverter
     private static List<RdlTablixGroup> ParseTablixGroups(XElement tablix)
     {
         var groups = new List<RdlTablixGroup>();
-        foreach (var group in tablix.Descendants().Where(e => e.Name.LocalName == "Group"))
+        // 2008/2016 use <Group>; RDL-2005 Table/List use <Grouping> — both nest <GroupExpressions>.
+        foreach (var group in tablix.Descendants().Where(e => e.Name.LocalName is "Group" or "Grouping"))
         {
             var expressions = Children(Child(group, "GroupExpressions"), "GroupExpression")
                 .Select(e => e.Value.Trim())
@@ -1411,10 +1425,54 @@ public sealed class RdlToDesignConverter
             case "Subreport":
                 return MapSubreport(raw, element, diagnostics);
 
+            case "List":
+                return MapList(raw, element, diagnostics);
+
             default:
                 diagnostics.Add(Warn("CANMIGRDL011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
+    }
+
+    // RDL List → a transparent Canvas container rect carrying repeat/grouping metadata. The List's child
+    // items (e.g. a nested Table) are parsed separately as positioned elements, so the container stays
+    // borderless to avoid obscuring them.
+    private static ElementDto MapList(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        element.Type = "rect";
+        element.Style = new Dictionary<string, object>();
+        if (raw.BackColor is { } bg) element.Style["backgroundColor"] = bg;
+
+        var repeat = RdlListRepeatMetadata(raw);
+        element.Style["rdlList"] = repeat;
+        if (repeat.TryGetValue("dataPath", out var dataPath) && dataPath is string { Length: > 0 } path)
+            element.Repeat = new RepeatDto { DataPath = path, TemplateId = element.Id };
+
+        diagnostics.Add(Warn("CANMIGRDL031",
+            $"'{raw.Name}' RDL List region was mapped to a Canvas container with repeat metadata; its child items were extracted as positioned elements — review grouping/repeat semantics."));
+        return element;
+    }
+
+    private static Dictionary<string, object> RdlListRepeatMetadata(RawElement raw)
+    {
+        var groupExpressions = raw.TablixGroups?
+            .SelectMany(g => g.Expressions)
+            .Where(e => e.Length > 0)
+            .ToArray() ?? [];
+        var dataPath = !string.IsNullOrWhiteSpace(raw.DataSetName)
+            ? SafeRepeatPath(raw.DataSetName!)
+            : SafeRepeatPath(raw.TablixGroups?.FirstOrDefault()?.Name is { Length: > 0 } gn ? gn : $"{raw.Name}Rows");
+
+        var repeat = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["source"] = "rdlList",
+            ["dataPath"] = dataPath,
+            ["itemAlias"] = "item",
+            ["indexAlias"] = "index"
+        };
+        if (!string.IsNullOrWhiteSpace(raw.DataSetName)) repeat["dataSetName"] = raw.DataSetName!;
+        if (groupExpressions.Length > 0) repeat["groupExpressions"] = groupExpressions;
+        return repeat;
     }
 
     private static ElementDto MapNativeMap(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
@@ -2218,6 +2276,9 @@ public sealed class RdlToDesignConverter
             HeaderRow = raw.TableHeaderRow ?? true
         };
         ApplyTablixMetadata(element, raw, diagnostics);
+        if (raw.TableHasFooter)
+            diagnostics.Add(Info("CANMIGRDL030",
+                $"'{raw.Name}' RDL <Table> <Footer> rows were included in the Canvas table grid."));
         if (raw.TablixNestedItemNames.Count > 0)
         {
             element.Style ??= [];
@@ -2694,6 +2755,7 @@ public sealed class RdlToDesignConverter
         public List<Dictionary<string, object>> TablixNestedItemLayouts = [];
         public string? DataSetName;
         public bool? TableHeaderRow;
+        public bool TableHasFooter;
         public string? ImageDataUrl;
         public string? ImageSource;
         public string? ImageValue;
