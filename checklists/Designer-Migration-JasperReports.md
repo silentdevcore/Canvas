@@ -80,7 +80,8 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 | `componentElement` barcode / QR | `barcode` / `qrcode` | `barbecue` / barcode-like components + code expressions |
 | `componentElement` `jr:table` | `table` | header/detail rows + dataset metadata; repeat semantics require review |
 | `componentElement` chart / `crosstab` | labeled placeholder + component metadata | `CANMIGJRXML011` |
-| `subreport` / unknown | labeled placeholder | `CANMIGJRXML011` |
+| `subreport` | labeled placeholder + subreport metadata | `CANMIGJRXML011` |
+| unknown | labeled placeholder | `CANMIGJRXML011` |
 
 **Bindings:** `textFieldExpression` `$F{field}` → Canvas binding; `$P{…}`/`$V{…}`/complex → expression.
 
@@ -134,7 +135,7 @@ Observed feature coverage:
 | `componentElement` charts / Highcharts | 5 chart components, 116 chart properties, 9 series | structured placeholder metadata only | P1/P2 |
 | `componentElement` `jr:table` | 4 table components | Canvas table with header/detail rows + dataset metadata | Done/P1 review |
 | `crosstab` | 1 crosstab, row/column groups and measures | structured placeholder metadata only | P1/P2 |
-| `subreport` | 2 direct subreports, 9 subreport expressions, 11 parameters | generic placeholder today | P1 |
+| `subreport` | 2 direct subreports, 9 subreport expressions, 11 parameters | direct subreport metadata preserved; part subreports still need orchestration | Done/P1 parts |
 | `sectionType="Part"` / `<part>` book reports | Monthly Store Report has 7 parts | not modeled; currently skipped because parts lack `reportElement` | P1 |
 | `groupHeader` / `groupFooter` | 2 groups | not modeled as repeat/group semantics | P1 |
 | `subDataset`, `datasetRun`, SQL/JSON query metadata | 9 subdatasets, 8 dataset runs, 22 queries | report/subdataset/query metadata preserved; datasetRun kept on table/component styles | Done/P1 runtime review |
@@ -167,8 +168,10 @@ Key sample-driven conclusions:
 - [x] **P1** `componentElement` barcode/QR components → Canvas `barcode` / `qrcode` with field expression values.
 - [x] **P1** `componentElement` charts/crosstab placeholders with captions and preserved component metadata
       (`jrxmlComponentType`, `style.jrxmlComponent`, dataset hints, expressions, group/measure counts).
-- [ ] **P1** Subreport metadata: preserve `subreportExpression`, `subreportParameter`,
-      `connectionExpression`/`dataSourceExpression`; inlining can remain later.
+- [x] **P1** Direct subreport metadata: preserve `subreportExpression`, `subreportParameter`,
+      `connectionExpression`/`dataSourceExpression`, and return values on `style.jrxmlSubreport`.
+- [ ] **P1** Subreport inlining/part orchestration: convert `sectionType="Part"` + `subreportPart`
+      into structured Canvas/page metadata; direct placeholders already preserve subreport metadata.
 - [ ] **P1** `$P{}` / `$V{}` expression dialect: map simple parameter/variable references to Canvas-friendly
       placeholders and preserve complex expressions for review.
 - [ ] **P2** Hyperlink/anchor expressions and external image resource resolution.

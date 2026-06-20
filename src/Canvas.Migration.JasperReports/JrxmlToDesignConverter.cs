@@ -151,6 +151,9 @@ public sealed class JrxmlToDesignConverter
                 case "image":
                     raw.ImageDataUrl = ExtractImageDataUrl(el);
                     break;
+                case "subreport":
+                    ParseSubreport(el, raw);
+                    break;
                 case "componentElement":
                     ParseComponentElement(el, raw);
                     break;
@@ -304,9 +307,7 @@ public sealed class JrxmlToDesignConverter
                 return element;
 
             case "subreport":
-                diagnostics.Add(Warn("CANMIGJRXML011",
-                    $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
-                return Placeholder(element, $"[Sub-report: {raw.Name} — migrate manually]");
+                return MapSubreport(raw, element, diagnostics);
 
             case "componentElement" when raw.ComponentKind == "barcode":
                 return MapBarcodeComponent(raw, element, diagnostics);
@@ -323,6 +324,21 @@ public sealed class JrxmlToDesignConverter
                 diagnostics.Add(Warn("CANMIGJRXML011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
+    }
+
+    private static ElementDto MapSubreport(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        var reportExpression = raw.SubreportMetadata?.GetValueOrDefault("SubreportExpression")?.ToString();
+        var display = string.IsNullOrWhiteSpace(reportExpression) ? raw.Name : ExpressionDisplay(reportExpression);
+        var placeholder = Placeholder(element, $"[Sub-report: {display}]");
+        placeholder.Style ??= [];
+        placeholder.Style["jrxmlComponentType"] = "subreport";
+        if (raw.SubreportMetadata is { Count: > 0 })
+            placeholder.Style["jrxmlSubreport"] = raw.SubreportMetadata;
+
+        diagnostics.Add(Warn("CANMIGJRXML011",
+            $"'{raw.Name}' JasperReports subreport metadata was preserved on a positioned placeholder; review manually."));
+        return placeholder;
     }
 
     private static ElementDto MapBarcodeComponent(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
@@ -589,6 +605,43 @@ public sealed class JrxmlToDesignConverter
         var expressions = ComponentExpressions(table).ToArray();
         if (expressions.Length > 0)
             raw.ComponentMetadata["Expressions"] = expressions;
+    }
+
+    private static void ParseSubreport(XElement el, RawElement raw)
+    {
+        raw.SubreportMetadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(raw.SubreportMetadata, "SubreportExpression", Child(el, "subreportExpression")?.Value.Trim());
+        AddText(raw.SubreportMetadata, "ConnectionExpression", Child(el, "connectionExpression")?.Value.Trim());
+        AddText(raw.SubreportMetadata, "DataSourceExpression", Child(el, "dataSourceExpression")?.Value.Trim());
+
+        var parameters = Children(el, "subreportParameter")
+            .Select(parameter =>
+            {
+                var p = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Name"] = Attr(parameter, "name") ?? ""
+                };
+                AddText(p, "Expression", Child(parameter, "subreportParameterExpression")?.Value.Trim());
+                return p;
+            })
+            .Where(parameter => parameter.Values.Any(value => value?.ToString()?.Length > 0))
+            .ToArray();
+        if (parameters.Length > 0)
+            raw.SubreportMetadata["Parameters"] = parameters;
+
+        var returnValues = Children(el, "returnValue")
+            .Select(returnValue =>
+            {
+                var r = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                AddText(r, "SubreportVariable", Attr(returnValue, "subreportVariable"));
+                AddText(r, "ToVariable", Attr(returnValue, "toVariable"));
+                AddText(r, "Calculation", Attr(returnValue, "calculation"));
+                return r;
+            })
+            .Where(returnValue => returnValue.Count > 0)
+            .ToArray();
+        if (returnValues.Length > 0)
+            raw.SubreportMetadata["ReturnValues"] = returnValues;
     }
 
     private static string TableCellText(XElement? cell)
@@ -936,6 +989,7 @@ public sealed class JrxmlToDesignConverter
         public List<List<string>>? TableRows;
         public List<double>? TableColumnWidths;
         public bool TableHasHeader;
+        public Dictionary<string, object>? SubreportMetadata;
     }
 
     private sealed class BorderStyle

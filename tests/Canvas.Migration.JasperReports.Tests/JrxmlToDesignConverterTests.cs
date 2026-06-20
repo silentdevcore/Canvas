@@ -210,12 +210,37 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_Subreport_BecomesPlaceholder()
+    public void Convert_Subreport_PreservesMetadataOnPlaceholder()
     {
-        var r = Convert(SampleJrxml);
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Subreports"
+                pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <detail>
+                <band height="40">
+                  <subreport>
+                    <reportElement key="sub" x="0" y="0" width="200" height="30"/>
+                    <subreportParameter name="STORE_ID">
+                      <subreportParameterExpression><![CDATA[$F{store_id}]]></subreportParameterExpression>
+                    </subreportParameter>
+                    <connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+                    <subreportExpression><![CDATA["Store.jrxml"]]></subreportExpression>
+                  </subreport>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        var r = Convert(jrxml);
         var sub = El(r.Design, "sub");
         Assert.Equal("text", sub.Type);
-        Assert.Contains("Sub-report", sub.Content);
+        Assert.Contains("Store.jrxml", sub.Content);
+        Assert.Equal("subreport", sub.Style!["jrxmlComponentType"]);
+        var metadata = Assert.IsType<Dictionary<string, object>>(sub.Style["jrxmlSubreport"]);
+        Assert.Equal("\"Store.jrxml\"", metadata["SubreportExpression"]);
+        Assert.Equal("$P{REPORT_CONNECTION}", metadata["ConnectionExpression"]);
+        var parameters = Assert.IsType<Dictionary<string, object>[]>(metadata["Parameters"]);
+        Assert.Equal("STORE_ID", parameters[0]["Name"]);
+        Assert.Equal("$F{store_id}", parameters[0]["Expression"]);
         Assert.True(Has(r.Diagnostics, "CANMIGJRXML011"));
     }
 
