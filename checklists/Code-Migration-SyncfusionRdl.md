@@ -22,6 +22,13 @@ size/margins from CSS lengths, absolute item positioning, page header/footer →
 elements, textbox style + field bindings, tablix/table, rectangle flattening, embedded images.
 The remaining roadmap is limited to optional P2/native-product features and expression-engine work.
 
+**Corpus validation (2026-06-20):** all **145** real-world Syncfusion / Bold Reports `.rdl` files
+under `designer-simples/syncfustion` convert with **0 throws, 0 undetected, 0 empty designs**. The
+only unsupported-control placeholders are `Map` (no Canvas equivalent) and PDF/HTML custom items;
+every other element maps or preserves review metadata. Locked in by the `SyncfusionRdlSamplesTests`
+smoke test. Conclusion: the converter is robust against the available corpus — remaining fidelity
+gaps (per-cell table styling, native maps/charts) require **Canvas model** changes, not converter work.
+
 ---
 
 # V1 — Shipped ✅
