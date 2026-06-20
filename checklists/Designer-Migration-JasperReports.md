@@ -78,7 +78,8 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 | `image` | `image` | embedded base64 → data URL, else placeholder |
 | `frame` | `rect` + flatten children | container |
 | `componentElement` barcode / QR | `barcode` / `qrcode` | `barbecue` / barcode-like components + code expressions |
-| `subreport` / `componentElement` chart / `crosstab` / unknown | labeled placeholder | `CANMIGJRXML011` |
+| `componentElement` chart / `crosstab` | labeled placeholder + component metadata | `CANMIGJRXML011` |
+| `subreport` / unknown | labeled placeholder | `CANMIGJRXML011` |
 
 **Bindings:** `textFieldExpression` `$F{field}` → Canvas binding; `$P{…}`/`$V{…}`/complex → expression.
 
@@ -111,5 +112,6 @@ semantics first, then styles/borders and better component placeholders.
 - [ ] **P1** `groupHeader`/`groupFooter` repeat semantics; multiple `detail` bands
 - [ ] **P1** `<box>`/per-side pens; `<style>` inheritance (`style` chains); conditional styles
 - [x] **P1** `componentElement` barcode/QR components → Canvas `barcode` / `qrcode` with field expression values.
-- [ ] **P1** `componentElement` charts/crosstab placeholders with captions and preserved component metadata.
+- [x] **P1** `componentElement` charts/crosstab placeholders with captions and preserved component metadata
+      (`jrxmlComponentType`, `style.jrxmlComponent`, dataset hints, expressions, group/measure counts).
 - [ ] **P1** `subreport` inlining; `$P{}`/`$V{}` expression dialect

@@ -167,6 +167,80 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_ComponentElementChart_PreservesMetadataOnPlaceholder()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+                xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
+                name="ChartReport" pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <detail>
+                <band height="120">
+                  <componentElement>
+                    <reportElement key="salesChart" x="0" y="0" width="240" height="100"/>
+                    <jr:barChart>
+                      <jr:datasetRun subDataset="SalesData"/>
+                      <jr:titleExpression><![CDATA["Sales by Region"]]></jr:titleExpression>
+                      <jr:categoryExpression><![CDATA[$F{region}]]></jr:categoryExpression>
+                      <jr:valueExpression><![CDATA[$F{total}]]></jr:valueExpression>
+                    </jr:barChart>
+                  </componentElement>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+        var chart = El(result.Design, "salesChart");
+
+        Assert.Equal("text", chart.Type);
+        Assert.Contains("Chart", chart.Content);
+        Assert.Equal("barChart", chart.Style!["jrxmlComponentType"]);
+        var metadata = Assert.IsType<Dictionary<string, object>>(chart.Style["jrxmlComponent"]);
+        Assert.Equal("barChart", metadata["Component"]);
+        Assert.Equal("SalesData", metadata["DatasetName"]);
+        Assert.Equal("\"Sales by Region\"", metadata["Caption"]);
+        var expressions = Assert.IsType<Dictionary<string, object>[]>(metadata["Expressions"]);
+        Assert.Contains(expressions, e => (string)e["Name"] == "categoryExpression" && (string)e["Value"] == "$F{region}");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML011" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
+    public void Convert_Crosstab_PreservesMetadataOnPlaceholder()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+                name="CrosstabReport" pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <summary>
+                <band height="160">
+                  <crosstab>
+                    <reportElement key="salesCrosstab" x="0" y="0" width="300" height="140"/>
+                    <rowGroup name="RegionGroup" width="80"/>
+                    <columnGroup name="MonthGroup" height="20"/>
+                    <measure name="TotalSales" class="java.math.BigDecimal">
+                      <measureExpression><![CDATA[$F{total}]]></measureExpression>
+                    </measure>
+                  </crosstab>
+                </band>
+              </summary>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+        var crosstab = El(result.Design, "salesCrosstab");
+
+        Assert.Equal("text", crosstab.Type);
+        Assert.Contains("Crosstab", crosstab.Content);
+        Assert.Equal("crosstab", crosstab.Style!["jrxmlComponentType"]);
+        var metadata = Assert.IsType<Dictionary<string, object>>(crosstab.Style["jrxmlComponent"]);
+        Assert.Equal(1, metadata["RowGroupCount"]);
+        Assert.Equal(1, metadata["ColumnGroupCount"]);
+        Assert.Equal(1, metadata["MeasureCount"]);
+        var expressions = Assert.IsType<Dictionary<string, object>[]>(metadata["Expressions"]);
+        Assert.Contains(expressions, e => (string)e["Name"] == "measureExpression" && (string)e["Value"] == "$F{total}");
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML011" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
     public void Convert_PageHeaderAndFooter_BecomeShared()
     {
         var d = Convert(SampleJrxml).Design;

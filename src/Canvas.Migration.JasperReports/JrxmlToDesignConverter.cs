@@ -151,6 +151,9 @@ public sealed class JrxmlToDesignConverter
                 case "componentElement":
                     ParseComponentElement(el, raw);
                     break;
+                case "crosstab":
+                    ParseCrosstab(el, raw);
+                    break;
                 case "line":
                 case "rectangle":
                 case "ellipse":
@@ -282,6 +285,10 @@ public sealed class JrxmlToDesignConverter
             case "componentElement" when raw.ComponentKind == "barcode":
                 return MapBarcodeComponent(raw, element, diagnostics);
 
+            case "componentElement":
+            case "crosstab":
+                return MapComponentPlaceholder(raw, element, diagnostics);
+
             default:
                 // componentElement (barcodes/charts), crosstab, … — full fidelity is V2.
                 diagnostics.Add(Warn("CANMIGJRXML011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
@@ -315,6 +322,26 @@ public sealed class JrxmlToDesignConverter
         diagnostics.Add(Info("CANMIGJRXML013",
             $"'{raw.Name}' JasperReports barcode component mapped to Canvas {element.Type}."));
         return element;
+    }
+
+    private static ElementDto MapComponentPlaceholder(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        var label = raw.ComponentKind switch
+        {
+            "chart" => "Chart",
+            "crosstab" => "Crosstab",
+            _ => "Component"
+        };
+        var caption = raw.ComponentCaption ?? raw.ComponentType ?? raw.Name;
+        var placeholder = Placeholder(element, $"[{label}: {ExpressionDisplay(caption)}]");
+        placeholder.Style ??= [];
+        placeholder.Style["jrxmlComponentType"] = raw.ComponentType ?? raw.Type;
+        if (raw.ComponentMetadata is { Count: > 0 })
+            placeholder.Style["jrxmlComponent"] = raw.ComponentMetadata;
+
+        diagnostics.Add(Warn("CANMIGJRXML011",
+            $"'{raw.Name}' JasperReports {label.ToLowerInvariant()} component metadata was preserved on a positioned placeholder; review manually."));
+        return placeholder;
     }
 
     private static ElementDto Placeholder(ElementDto element, string label)
@@ -381,7 +408,38 @@ public sealed class JrxmlToDesignConverter
             raw.ComponentValue = component.Descendants()
                 .FirstOrDefault(desc => desc.Name.LocalName is "codeExpression" or "messageExpression" or "textExpression")
                 ?.Value.Trim();
+            AddText(raw.ComponentMetadata, "ValueExpression", raw.ComponentValue);
+            return;
         }
+
+        raw.ComponentKind = LooksLikeChartComponent(componentName, type) ? "chart" : "component";
+        raw.ComponentCaption = FirstDescendantValue(component, "titleExpression", "title", "captionExpression", "caption");
+        AddText(raw.ComponentMetadata, "Caption", raw.ComponentCaption);
+        AddText(raw.ComponentMetadata, "DatasetName", component.Descendants()
+            .Select(desc => Attr(desc, "subDataset") ?? Attr(desc, "datasetName"))
+            .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)));
+
+        var expressions = ComponentExpressions(component).ToArray();
+        if (expressions.Length > 0)
+            raw.ComponentMetadata["Expressions"] = expressions;
+    }
+
+    private static void ParseCrosstab(XElement el, RawElement raw)
+    {
+        raw.ComponentKind = "crosstab";
+        raw.ComponentType = "crosstab";
+        raw.ComponentCaption = Attr(el, "name") ?? raw.Name;
+        raw.ComponentMetadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Component"] = "crosstab",
+            ["Type"] = "crosstab",
+            ["RowGroupCount"] = el.Descendants().Count(desc => desc.Name.LocalName == "rowGroup"),
+            ["ColumnGroupCount"] = el.Descendants().Count(desc => desc.Name.LocalName == "columnGroup"),
+            ["MeasureCount"] = el.Descendants().Count(desc => desc.Name.LocalName == "measure")
+        };
+        var expressions = ComponentExpressions(el).ToArray();
+        if (expressions.Length > 0)
+            raw.ComponentMetadata["Expressions"] = expressions;
     }
 
     private static void ApplyFont(RawElement raw, XElement? font)
@@ -440,6 +498,31 @@ public sealed class JrxmlToDesignConverter
         return expression.Trim().Trim('"');
     }
 
+    private static void AddText(Dictionary<string, object>? target, string key, string? value)
+    {
+        if (target is not null && !string.IsNullOrWhiteSpace(value))
+            target[key] = value.Trim();
+    }
+
+    private static string? FirstDescendantValue(XElement el, params string[] names) =>
+        el.Descendants()
+            .FirstOrDefault(desc => names.Any(name => desc.Name.LocalName.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            ?.Value.Trim();
+
+    private static IEnumerable<Dictionary<string, object>> ComponentExpressions(XElement el)
+    {
+        foreach (var expression in el.Descendants().Where(desc =>
+            desc.Name.LocalName.EndsWith("Expression", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(desc.Value)))
+        {
+            yield return new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Name"] = expression.Name.LocalName,
+                ["Value"] = expression.Value.Trim()
+            };
+        }
+    }
+
     private static bool LooksLikeBarcodeComponent(string componentName, string? type)
     {
         var value = $"{componentName} {type}".Replace("-", "", StringComparison.Ordinal).Replace("_", "", StringComparison.Ordinal);
@@ -450,6 +533,16 @@ public sealed class JrxmlToDesignConverter
             || value.Contains("ean", StringComparison.OrdinalIgnoreCase)
             || value.Contains("upc", StringComparison.OrdinalIgnoreCase)
             || value.Contains("qr", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool LooksLikeChartComponent(string componentName, string? type)
+    {
+        var value = $"{componentName} {type}".Replace("-", "", StringComparison.Ordinal).Replace("_", "", StringComparison.Ordinal);
+        return value.Contains("chart", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("sparkline", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("pie", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("bar", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("line", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string BarcodeTypeFromSymbology(string? symbology)
@@ -575,6 +668,7 @@ public sealed class JrxmlToDesignConverter
         public string? ComponentKind;
         public string? ComponentType;
         public string? ComponentValue;
+        public string? ComponentCaption;
         public Dictionary<string, object>? ComponentMetadata;
     }
 }
