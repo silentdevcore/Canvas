@@ -145,8 +145,50 @@ public sealed class FrxToDesignConverter
         if (type == "PictureObject") raw.ImageDataUrl = ExtractImageDataUrl(el);
         if (type == "BarcodeObject") raw.Symbology = Attr(el, "Barcode") ?? Attr(el, "Symbology");
         if (type == "CheckBoxObject") raw.Checked = string.Equals(Attr(el, "Checked"), "true", StringComparison.OrdinalIgnoreCase);
+        if (type == "TableObject") ParseTable(el, raw);
 
         return raw;
+    }
+
+    // FastReport TableObject holds <TableColumn Width> then <TableRow Height> each with <TableCell Text>.
+    // Flatten to a row-major grid; honour ColSpan by padding empties so columns stay aligned.
+    private static void ParseTable(XElement el, RawElement raw)
+    {
+        var columns = el.Elements().Where(e => e.Name.LocalName == "TableColumn").ToList();
+        raw.ColumnWidthsPt = columns.Count > 0
+            ? columns.Select(c => ToPx(Attr(c, "Width")) * PxToPt).ToArray()
+            : null;
+
+        var grid = new List<List<string>>();
+        string[]? aligns = null;
+        foreach (var row in el.Elements().Where(e => e.Name.LocalName == "TableRow"))
+        {
+            var cells = new List<string>();
+            var rowAligns = new List<string>();
+            foreach (var cell in row.Elements().Where(e => e.Name.LocalName == "TableCell"))
+            {
+                cells.Add(CellDisplay(Attr(cell, "Text")));
+                rowAligns.Add(ParseAlignment(Attr(cell, "HorzAlign")));
+                var span = (int)ToDouble(Attr(cell, "ColSpan"));
+                for (var i = 1; i < span; i++) { cells.Add(""); rowAligns.Add("left"); }
+            }
+            if (cells.Count == 0) continue;
+            grid.Add(cells);
+            aligns ??= rowAligns.ToArray();
+        }
+
+        raw.TableCells = grid.Count > 0 ? grid : null;
+        raw.ColumnAlignments = aligns;
+        raw.TableHasHeader = grid.Count > 1;
+    }
+
+    // A table cell value: a single [Source.Column] becomes a Canvas binding token; anything else is literal.
+    private static string CellDisplay(string? text)
+    {
+        text = (text ?? "").Trim();
+        if (text.Length == 0) return "";
+        var m = Regex.Match(text, @"^\[([\w.]+)\]$");
+        return m.Success ? $"{{{{{LastSegment(m.Groups[1].Value)}}}}}" : text;
     }
 
     // ── Band-flatten build (mirrors Canvas.Migration.Rpx) ──────────────────────────────────────────
@@ -273,10 +315,58 @@ public sealed class FrxToDesignConverter
                     $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
                 return Placeholder(element, $"[Sub-report: {raw.Name} — migrate manually]");
 
+            case "TableObject":
+                return MapTable(raw, element, diagnostics);
+
             default:
                 diagnostics.Add(Warn("CANMIGFRX011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
+    }
+
+    private static ElementDto MapTable(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.TableCells is not { Count: > 0 } grid)
+        {
+            diagnostics.Add(Warn("CANMIGFRX011", $"'{raw.Name}' TableObject has no parseable rows — inserted a placeholder."));
+            return Placeholder(element, $"[Table: {raw.Name} — migrate manually]");
+        }
+
+        var columns = grid.Max(r => r.Count);
+        var cellData = grid
+            .Select(r => r.Count == columns ? r.ToArray() : r.Concat(Enumerable.Repeat("", columns - r.Count)).ToArray())
+            .ToArray();
+
+        element.Type = "table";
+        element.CellData = cellData;
+        element.ColumnWidths = FitWidths(raw.ColumnWidthsPt, columns, raw.W);
+        element.ColumnAlignments = FitToColumns(raw.ColumnAlignments, columns);
+        element.HeaderRow = raw.TableHasHeader;
+
+        diagnostics.Add(Info("CANMIGFRX013",
+            $"'{raw.Name}' FastReport TableObject was mapped to a Canvas table ({grid.Count} row(s) × {columns} column(s))."));
+        return element;
+    }
+
+    // Reconcile parsed column widths (pixels→pt) with the actual column count: truncate extras, and
+    // distribute the table's remaining width across any columns that lacked an explicit <TableColumn>.
+    private static double[]? FitWidths(double[]? widths, int columns, double totalPt)
+    {
+        if (widths is null || widths.Length == 0 || columns <= 0) return null;
+        if (widths.Length == columns) return widths;
+        if (widths.Length > columns) return widths.Take(columns).ToArray();
+        var pad = columns - widths.Length;
+        var remaining = Math.Max(0, totalPt - widths.Sum());
+        var each = pad > 0 ? remaining / pad : 0;
+        return widths.Concat(Enumerable.Repeat(each, pad)).ToArray();
+    }
+
+    private static string[]? FitToColumns(string[]? aligns, int columns)
+    {
+        if (aligns is null || aligns.Length == 0 || columns <= 0) return null;
+        if (aligns.Length == columns) return aligns;
+        if (aligns.Length > columns) return aligns.Take(columns).ToArray();
+        return aligns.Concat(Enumerable.Repeat("left", columns - aligns.Length)).ToArray();
     }
 
     private static ElementDto Placeholder(ElementDto element, string label)
@@ -545,5 +635,9 @@ public sealed class FrxToDesignConverter
         public string? ImageDataUrl;
         public string? Symbology;
         public bool Checked;
+        public List<List<string>>? TableCells;
+        public double[]? ColumnWidthsPt;
+        public string[]? ColumnAlignments;
+        public bool TableHasHeader;
     }
 }

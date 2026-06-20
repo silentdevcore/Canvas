@@ -90,6 +90,7 @@ namespace does **not** contain `reportdefinition`, and no `<Sections>` (RPX). Ac
 | `CANMIGFRX010` | Info / Warning | `[Source.Col]` → binding (Info); complex expression → expression (Warning) |
 | `CANMIGFRX011` | Warning | Unsupported object / Subreport / script — labeled placeholder |
 | `CANMIGFRX012` | Warning | Picture data not embeddable — placeholder inserted |
+| `CANMIGFRX013` | Info | `TableObject` mapped to a Canvas table (N rows × M columns; ColSpan padded) |
 
 ## Architecture & delivery (planned)
 
@@ -116,7 +117,9 @@ namespace does **not** contain `reportdefinition`, and no `<Sections>` (RPX). Ac
 **Current recommendation:** keep FastReport in the shared P1 fidelity pass. It should benefit from the
 same group/repeat model as DevExpress/RPX before provider-specific polish.
 
-- [ ] **P1** `TableObject` → Canvas table (grid extraction from TableColumn/TableRow/TableCell)
+- [x] **P1** `TableObject` → Canvas table: grid extraction from `TableColumn` (widths px→pt) /
+      `TableRow` / `TableCell` (text + `[Source.Col]`→binding); `ColSpan` padded to keep column alignment;
+      first row treated as header when >1 row. Diagnostic `CANMIGFRX013`.
 - [ ] **P1** Multi-`ReportPage` (currently first page); `ChildBand` join semantics; `GroupHeader/Footer` repeat
 - [ ] **P1** Per-side `Border.Lines` rendering; `Padding`; `Columns.*` multi-column bands
 - [ ] **P1** `PictureObject` non-PNG MIME sniffing; richer `RichObject` RTF→HTML
