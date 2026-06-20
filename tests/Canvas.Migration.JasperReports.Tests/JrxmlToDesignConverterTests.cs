@@ -135,6 +135,38 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_ComponentElementBarcode_BecomesCanvasBarcode()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+                xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
+                name="BarcodeReport" pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <detail>
+                <band height="50">
+                  <componentElement>
+                    <reportElement key="skuBarcode" x="0" y="0" width="200" height="40"/>
+                    <jr:barbecue type="Code128" drawText="true">
+                      <jr:codeExpression><![CDATA[$F{sku}]]></jr:codeExpression>
+                    </jr:barbecue>
+                  </componentElement>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+        var barcode = El(result.Design, "skuBarcode");
+
+        Assert.Equal("barcode", barcode.Type);
+        Assert.Equal("code128", barcode.BarcodeType);
+        Assert.Equal("{{sku}}", barcode.BarcodeValue);
+        Assert.Equal("Code128", barcode.Style!["jrxmlComponentType"]);
+        var metadata = Assert.IsType<Dictionary<string, object>>(barcode.Style["jrxmlComponent"]);
+        Assert.Equal("barbecue", metadata["Component"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML013" && d.Severity == MigrationDiagnosticSeverity.Info);
+    }
+
+    [Fact]
     public void Convert_PageHeaderAndFooter_BecomeShared()
     {
         var d = Convert(SampleJrxml).Design;

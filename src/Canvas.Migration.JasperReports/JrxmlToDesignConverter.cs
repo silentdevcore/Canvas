@@ -148,6 +148,9 @@ public sealed class JrxmlToDesignConverter
                 case "image":
                     raw.ImageDataUrl = ExtractImageDataUrl(el);
                     break;
+                case "componentElement":
+                    ParseComponentElement(el, raw);
+                    break;
                 case "line":
                 case "rectangle":
                 case "ellipse":
@@ -276,11 +279,42 @@ public sealed class JrxmlToDesignConverter
                     $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
                 return Placeholder(element, $"[Sub-report: {raw.Name} — migrate manually]");
 
+            case "componentElement" when raw.ComponentKind == "barcode":
+                return MapBarcodeComponent(raw, element, diagnostics);
+
             default:
                 // componentElement (barcodes/charts), crosstab, … — full fidelity is V2.
                 diagnostics.Add(Warn("CANMIGJRXML011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
+    }
+
+    private static ElementDto MapBarcodeComponent(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        var value = ExpressionDisplay(raw.ComponentValue);
+        var barcodeType = BarcodeTypeFromSymbology(raw.ComponentType);
+        if (barcodeType == "qrcode")
+        {
+            element.Type = "qrcode";
+            element.QrValue = value;
+        }
+        else
+        {
+            element.Type = "barcode";
+            element.BarcodeValue = value;
+            element.BarcodeType = barcodeType;
+        }
+
+        element.Style = new Dictionary<string, object>
+        {
+            ["jrxmlComponentType"] = raw.ComponentType ?? "barcode"
+        };
+        if (raw.ComponentMetadata is { Count: > 0 })
+            element.Style["jrxmlComponent"] = raw.ComponentMetadata;
+
+        diagnostics.Add(Info("CANMIGJRXML013",
+            $"'{raw.Name}' JasperReports barcode component mapped to Canvas {element.Type}."));
+        return element;
     }
 
     private static ElementDto Placeholder(ElementDto element, string label)
@@ -326,6 +360,30 @@ public sealed class JrxmlToDesignConverter
         ApplyFontAttrs(raw, style);
     }
 
+    private static void ParseComponentElement(XElement el, RawElement raw)
+    {
+        var component = el.Elements().FirstOrDefault(child => child.Name.LocalName != "reportElement");
+        if (component is null)
+            return;
+
+        var componentName = component.Name.LocalName;
+        var type = Attr(component, "type") ?? Attr(component, "barcodeType") ?? componentName;
+        raw.ComponentType = type;
+        raw.ComponentMetadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Component"] = componentName,
+            ["Type"] = type
+        };
+
+        if (LooksLikeBarcodeComponent(componentName, type))
+        {
+            raw.ComponentKind = "barcode";
+            raw.ComponentValue = component.Descendants()
+                .FirstOrDefault(desc => desc.Name.LocalName is "codeExpression" or "messageExpression" or "textExpression")
+                ?.Value.Trim();
+        }
+    }
+
     private static void ApplyFont(RawElement raw, XElement? font)
     {
         if (font is null) return;
@@ -369,6 +427,42 @@ public sealed class JrxmlToDesignConverter
     private static bool LooksLikeExpr(string? value) =>
         value is not null && (value.Contains("$F{") || value.Contains("$P{") || value.Contains("$V{")
             || value.Contains('+') || value.Contains('(') );
+
+    private static string ExpressionDisplay(string? expression)
+    {
+        if (string.IsNullOrWhiteSpace(expression))
+            return "";
+
+        var field = Regex.Match(expression, @"^\s*\$F\{(\w+)\}\s*$");
+        if (field.Success)
+            return $"{{{{{field.Groups[1].Value}}}}}";
+
+        return expression.Trim().Trim('"');
+    }
+
+    private static bool LooksLikeBarcodeComponent(string componentName, string? type)
+    {
+        var value = $"{componentName} {type}".Replace("-", "", StringComparison.Ordinal).Replace("_", "", StringComparison.Ordinal);
+        return value.Contains("barbecue", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("barcode", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("code128", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("code39", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("ean", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("upc", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("qr", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string BarcodeTypeFromSymbology(string? symbology)
+    {
+        var s = (symbology ?? "").Replace("-", "").Replace("_", "");
+        if (s.Contains("QR", StringComparison.OrdinalIgnoreCase)) return "qrcode";
+        if (s.Contains("Code39", StringComparison.OrdinalIgnoreCase)) return "code39";
+        if (s.Contains("EAN13", StringComparison.OrdinalIgnoreCase)) return "ean13";
+        if (s.Contains("EAN8", StringComparison.OrdinalIgnoreCase)) return "ean8";
+        if (s.Contains("UPCA", StringComparison.OrdinalIgnoreCase)) return "upca";
+        if (s.Contains("UPCE", StringComparison.OrdinalIgnoreCase)) return "upce";
+        return "code128";
+    }
 
     // ── helpers ────────────────────────────────────────────────────────────────────────────────────
 
@@ -478,5 +572,9 @@ public sealed class JrxmlToDesignConverter
         public string TextAlign = "left";
         public double? LineWidth;
         public string? ImageDataUrl;
+        public string? ComponentKind;
+        public string? ComponentType;
+        public string? ComponentValue;
+        public Dictionary<string, object>? ComponentMetadata;
     }
 }

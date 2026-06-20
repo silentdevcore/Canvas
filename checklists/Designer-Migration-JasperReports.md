@@ -77,7 +77,8 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 | `rectangle` / `ellipse` | `rect` / `circle` | forecolor/backcolor → border/fill |
 | `image` | `image` | embedded base64 → data URL, else placeholder |
 | `frame` | `rect` + flatten children | container |
-| `subreport` / `componentElement` / `crosstab` / unknown | labeled placeholder | `CANMIGJRXML011` |
+| `componentElement` barcode / QR | `barcode` / `qrcode` | `barbecue` / barcode-like components + code expressions |
+| `subreport` / `componentElement` chart / `crosstab` / unknown | labeled placeholder | `CANMIGJRXML011` |
 
 **Bindings:** `textFieldExpression` `$F{field}` → Canvas binding; `$P{…}`/`$V{…}`/complex → expression.
 
@@ -90,6 +91,7 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 | `CANMIGJRXML010` | Info / Warning | `$F{X}` → binding (Info); complex expression → expression (Warning) |
 | `CANMIGJRXML011` | Warning | Unsupported element / subreport / component — labeled placeholder |
 | `CANMIGJRXML012` | Warning | Image not embeddable — placeholder inserted |
+| `CANMIGJRXML013` | Info | JasperReports barcode/QR component mapped to Canvas barcode/QR |
 
 ## V1 checklist
 
@@ -108,5 +110,6 @@ semantics first, then styles/borders and better component placeholders.
 
 - [ ] **P1** `groupHeader`/`groupFooter` repeat semantics; multiple `detail` bands
 - [ ] **P1** `<box>`/per-side pens; `<style>` inheritance (`style` chains); conditional styles
-- [ ] **P1** `componentElement` barcodes → Canvas barcode; charts/crosstab placeholders with captions
+- [x] **P1** `componentElement` barcode/QR components → Canvas `barcode` / `qrcode` with field expression values.
+- [ ] **P1** `componentElement` charts/crosstab placeholders with captions and preserved component metadata.
 - [ ] **P1** `subreport` inlining; `$P{}`/`$V{}` expression dialect
