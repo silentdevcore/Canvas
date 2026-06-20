@@ -83,7 +83,9 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 | `subreport` | labeled placeholder + subreport metadata | `CANMIGJRXML011` |
 | unknown | labeled placeholder | `CANMIGJRXML011` |
 
-**Bindings:** `textFieldExpression` `$F{field}` → Canvas binding; `$P{…}`/`$V{…}`/complex → expression.
+**Bindings:** `textFieldExpression` `$F{field}` → Canvas binding; simple `$P{…}`/`$V{…}` →
+Canvas parameter/variable placeholders plus normalized expressions; complex JasperReports expressions preserve the
+original in metadata and normalize `$F{}`/`$P{}`/`$V{}` references to Canvas-style expression paths.
 
 ## Diagnostics
 
@@ -91,7 +93,7 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 | --- | --- | --- |
 | `CANMIGJRXML001` | Info | `.jrxml` detected — N band(s), M element(s) mapped |
 | `CANMIGJRXML002` | Info | Per-element mapping |
-| `CANMIGJRXML010` | Info / Warning | `$F{X}` → binding (Info); complex expression → expression (Warning) |
+| `CANMIGJRXML010` | Info / Warning | `$F{X}` → binding (Info); `$P{X}`/`$V{X}` and complex expressions → normalized Canvas expression with review warning |
 | `CANMIGJRXML011` | Warning | Unsupported element / subreport / component — labeled placeholder |
 | `CANMIGJRXML012` | Warning | Image not embeddable — placeholder inserted |
 | `CANMIGJRXML013` | Info | JasperReports barcode/QR component mapped to Canvas barcode/QR |
@@ -140,7 +142,7 @@ Observed feature coverage:
 | `sectionType="Part"` / `<part>` book reports | Monthly Store Report has 7 parts | preserved in `jrxmlParts`; rendering/inlining still later | Done/P1 runtime review |
 | `groupHeader` / `groupFooter` | 2 groups | not modeled as repeat/group semantics | P1 |
 | `subDataset`, `datasetRun`, SQL/JSON query metadata | 9 subdatasets, 8 dataset runs, 22 queries | report/subdataset/query metadata preserved; datasetRun kept on table/component styles | Done/P1 runtime review |
-| Parameters / fields / variables | 26 parameters, 136 fields, 18 variables | declarations preserved in `PageSettings.CustomProperties` | Done/P1 runtime review |
+| Parameters / fields / variables | 26 parameters, 136 fields, 18 variables | declarations preserved in `PageSettings.CustomProperties`; runtime expressions normalize `$P{}`/`$V{}` where consumed | Done/P1 runtime review |
 | Conditional styles | 8 conditional styles | open | P1 |
 | `printWhenExpression` | 9 occurrences | maps to `Hidden`/`VisibleExpression` + `style.jrxmlPrintWhenExpression` | Done/P1 runtime review |
 | Hyperlink / anchor expressions | 7 hyperlink anchors, 1 anchor name | open | P2 |
@@ -175,6 +177,7 @@ Key sample-driven conclusions:
       `connectionExpression`/`dataSourceExpression`, and return values on `style.jrxmlSubreport`.
 - [ ] **P1** Subreport inlining/part orchestration: convert `sectionType="Part"` + `subreportPart`
       into structured Canvas/page metadata; direct placeholders already preserve subreport metadata.
-- [ ] **P1** `$P{}` / `$V{}` expression dialect: map simple parameter/variable references to Canvas-friendly
-      placeholders and preserve complex expressions for review.
+- [x] **P1** `$P{}` / `$V{}` expression dialect: simple parameter/variable references map to Canvas-friendly
+      placeholders/expressions; complex expressions preserve originals and add normalized Canvas-style references
+      for review.
 - [ ] **P2** Hyperlink/anchor expressions and external image resource resolution.

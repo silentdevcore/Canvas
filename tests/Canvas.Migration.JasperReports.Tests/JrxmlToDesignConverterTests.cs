@@ -146,6 +146,47 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_ParameterAndVariableExpressions_NormalizeToCanvasDialect()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Expressions"
+                pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <detail>
+                <band height="80">
+                  <textField>
+                    <reportElement key="month" x="0" y="0" width="160" height="20"/>
+                    <textFieldExpression><![CDATA[$P{THE_MONTH}]]></textFieldExpression>
+                  </textField>
+                  <textField>
+                    <reportElement key="total" x="0" y="20" width="160" height="20"/>
+                    <textFieldExpression><![CDATA[$V{TOTAL_AMOUNT}]]></textFieldExpression>
+                  </textField>
+                  <textField>
+                    <reportElement key="summary" x="0" y="40" width="220" height="20"/>
+                    <textFieldExpression><![CDATA[$P{THE_MONTH} + " " + $V{TOTAL_AMOUNT} + " " + $F{store_name}]]></textFieldExpression>
+                  </textField>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+        var month = El(result.Design, "month");
+        var total = El(result.Design, "total");
+        var summary = El(result.Design, "summary");
+
+        Assert.Null(month.Binding);
+        Assert.Equal("{{Parameters.THE_MONTH}}", month.Content);
+        Assert.Equal("[Parameters.THE_MONTH]", month.Expression);
+        Assert.Equal("{{Variables.TOTAL_AMOUNT}}", total.Content);
+        Assert.Equal("[Variables.TOTAL_AMOUNT]", total.Expression);
+        Assert.Equal("""[Parameters.THE_MONTH] + " " + [Variables.TOTAL_AMOUNT] + " " + [store_name]""", summary.Expression);
+        Assert.Equal(summary.Expression, summary.Content);
+        Assert.Equal("""$P{THE_MONTH} + " " + $V{TOTAL_AMOUNT} + " " + $F{store_name}""", summary.Style!["jrxmlExpression"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML010" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
     public void Convert_DataDeclarations_ArePreservedAsCustomProperties()
     {
         var jrxml = """
@@ -272,6 +313,7 @@ public sealed class JrxmlToDesignConverterTests
         var parameters = parts[0].GetProperty("SubreportPart").GetProperty("Parameters");
         Assert.Equal("THE_MONTH", parameters[0].GetProperty("Name").GetString());
         Assert.Equal("$P{THE_MONTH}", parameters[0].GetProperty("Expression").GetString());
+        Assert.Equal("[Parameters.THE_MONTH]", parameters[0].GetProperty("NormalizedExpression").GetString());
 
         Assert.Equal("detail", parts[1].GetProperty("Context").GetString());
         Assert.Equal("\"Store.jrxml\"", parts[1].GetProperty("SubreportPart").GetProperty("SubreportExpression").GetString());
@@ -324,9 +366,11 @@ public sealed class JrxmlToDesignConverterTests
         var metadata = Assert.IsType<Dictionary<string, object>>(sub.Style["jrxmlSubreport"]);
         Assert.Equal("\"Store.jrxml\"", metadata["SubreportExpression"]);
         Assert.Equal("$P{REPORT_CONNECTION}", metadata["ConnectionExpression"]);
+        Assert.Equal("[Parameters.REPORT_CONNECTION]", metadata["NormalizedConnectionExpression"]);
         var parameters = Assert.IsType<Dictionary<string, object>[]>(metadata["Parameters"]);
         Assert.Equal("STORE_ID", parameters[0]["Name"]);
         Assert.Equal("$F{store_id}", parameters[0]["Expression"]);
+        Assert.Equal("[store_id]", parameters[0]["NormalizedExpression"]);
         Assert.True(Has(r.Diagnostics, "CANMIGJRXML011"));
     }
 
@@ -397,6 +441,7 @@ public sealed class JrxmlToDesignConverterTests
         Assert.Equal("\"Sales by Region\"", metadata["Caption"]);
         var expressions = Assert.IsType<Dictionary<string, object>[]>(metadata["Expressions"]);
         Assert.Contains(expressions, e => (string)e["Name"] == "categoryExpression" && (string)e["Value"] == "$F{region}");
+        Assert.Contains(expressions, e => (string)e["Name"] == "categoryExpression" && (string)e["NormalizedValue"] == "[region]");
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML011" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
@@ -450,13 +495,14 @@ public sealed class JrxmlToDesignConverterTests
         Assert.Equal("Product", table.CellData![0][0]);
         Assert.Equal("Price", table.CellData[0][1]);
         Assert.Equal("{{product_name}}", table.CellData[1][0]);
-        Assert.Equal("""TEXT($F{price}, "0.00")""", table.CellData[1][1]);
+        Assert.Equal("""TEXT([price], "0.00")""", table.CellData[1][1]);
         var metadata = Assert.IsType<Dictionary<string, object>>(table.Style!["jrxmlTable"]);
         Assert.Equal("Products", metadata["DatasetName"]);
         Assert.Equal(2, metadata["ColumnCount"]);
         var parameters = Assert.IsType<Dictionary<string, object>[]>(metadata["Parameters"]);
         Assert.Equal("CUSTOMER_ID", parameters[0]["Name"]);
         Assert.Equal("$P{CUSTOMER_ID}", parameters[0]["Expression"]);
+        Assert.Equal("[Parameters.CUSTOMER_ID]", parameters[0]["NormalizedExpression"]);
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML014" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 

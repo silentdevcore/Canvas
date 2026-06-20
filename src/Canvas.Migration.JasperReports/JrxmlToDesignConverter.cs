@@ -579,7 +579,7 @@ public sealed class JrxmlToDesignConverter
                     {
                         ["Name"] = Attr(parameter, "name") ?? ""
                     };
-                    AddText(p, "Expression", Child(parameter, "datasetParameterExpression")?.Value.Trim());
+                    AddExpressionText(p, "Expression", Child(parameter, "datasetParameterExpression")?.Value.Trim());
                     return p;
                 })
                 .Where(parameter => parameter.Values.Any(value => value?.ToString()?.Length > 0))
@@ -615,9 +615,9 @@ public sealed class JrxmlToDesignConverter
     private static void ParseSubreport(XElement el, RawElement raw)
     {
         raw.SubreportMetadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-        AddText(raw.SubreportMetadata, "SubreportExpression", Child(el, "subreportExpression")?.Value.Trim());
-        AddText(raw.SubreportMetadata, "ConnectionExpression", Child(el, "connectionExpression")?.Value.Trim());
-        AddText(raw.SubreportMetadata, "DataSourceExpression", Child(el, "dataSourceExpression")?.Value.Trim());
+        AddExpressionText(raw.SubreportMetadata, "SubreportExpression", Child(el, "subreportExpression")?.Value.Trim());
+        AddExpressionText(raw.SubreportMetadata, "ConnectionExpression", Child(el, "connectionExpression")?.Value.Trim());
+        AddExpressionText(raw.SubreportMetadata, "DataSourceExpression", Child(el, "dataSourceExpression")?.Value.Trim());
 
         var parameters = Children(el, "subreportParameter")
             .Select(parameter =>
@@ -626,7 +626,7 @@ public sealed class JrxmlToDesignConverter
                 {
                     ["Name"] = Attr(parameter, "name") ?? ""
                 };
-                AddText(p, "Expression", Child(parameter, "subreportParameterExpression")?.Value.Trim());
+                AddExpressionText(p, "Expression", Child(parameter, "subreportParameterExpression")?.Value.Trim());
                 return p;
             })
             .Where(parameter => parameter.Values.Any(value => value?.ToString()?.Length > 0))
@@ -713,9 +713,9 @@ public sealed class JrxmlToDesignConverter
         if (subreportPart is null)
             return item;
 
-        AddText(item, "SubreportExpression", Child(subreportPart, "subreportExpression")?.Value.Trim());
-        AddText(item, "ConnectionExpression", Child(subreportPart, "connectionExpression")?.Value.Trim());
-        AddText(item, "DataSourceExpression", Child(subreportPart, "dataSourceExpression")?.Value.Trim());
+        AddExpressionText(item, "SubreportExpression", Child(subreportPart, "subreportExpression")?.Value.Trim());
+        AddExpressionText(item, "ConnectionExpression", Child(subreportPart, "connectionExpression")?.Value.Trim());
+        AddExpressionText(item, "DataSourceExpression", Child(subreportPart, "dataSourceExpression")?.Value.Trim());
         var parameters = Children(subreportPart, "subreportParameter")
             .Select(parameter =>
             {
@@ -723,7 +723,7 @@ public sealed class JrxmlToDesignConverter
                 {
                     ["Name"] = Attr(parameter, "name") ?? ""
                 };
-                AddText(p, "Expression", Child(parameter, "subreportParameterExpression")?.Value.Trim());
+                AddExpressionText(p, "Expression", Child(parameter, "subreportParameterExpression")?.Value.Trim());
                 return p;
             })
             .Where(parameter => parameter.Values.Any(value => value?.ToString()?.Length > 0))
@@ -821,18 +821,28 @@ public sealed class JrxmlToDesignConverter
 
     private static void ApplyBinding(ElementDto element, string expression, List<MigrationDiagnostic> diagnostics)
     {
-        var single = Regex.Match(expression, @"^\s*\$F\{(\w+)\}\s*$");
-        if (single.Success)
+        if (TryParseJasperToken(expression, out var kind, out var name))
         {
-            var field = single.Groups[1].Value;
-            element.Binding = field;
-            element.Content = $"{{{{{field}}}}}";
-            diagnostics.Add(Info("CANMIGJRXML010", $"'{element.Name}' bound to $F{{{field}}} → Canvas binding '{field}'."));
+            element.Content = JasperTokenPlaceholder(kind, name);
+            element.Expression = JasperTokenExpression(kind, name);
+            if (kind == "F")
+            {
+                element.Binding = name;
+                element.Expression = null;
+                diagnostics.Add(Info("CANMIGJRXML010", $"'{element.Name}' bound to $F{{{name}}} → Canvas binding '{name}'."));
+            }
+            else
+            {
+                diagnostics.Add(Warn("CANMIGJRXML010",
+                    $"'{element.Name}' {JasperTokenLabel(kind)} '${kind}{{{name}}}' was normalized to Canvas expression '{element.Expression}'; review runtime semantics."));
+            }
         }
         else if (LooksLikeExpr(expression))
         {
-            element.Expression = expression;
-            if (string.IsNullOrEmpty(element.Content)) element.Content = expression;
+            element.Expression = NormalizeJasperExpression(expression);
+            if (string.IsNullOrEmpty(element.Content)) element.Content = element.Expression;
+            element.Style ??= [];
+            element.Style["jrxmlExpression"] = expression;
             diagnostics.Add(Warn("CANMIGJRXML010", $"'{element.Name}' expression '{expression}' mapped to Canvas expression — review the syntax."));
         }
         else
@@ -879,11 +889,47 @@ public sealed class JrxmlToDesignConverter
         if (string.IsNullOrWhiteSpace(expression))
             return "";
 
-        var field = Regex.Match(expression, @"^\s*\$F\{(\w+)\}\s*$");
-        if (field.Success)
-            return $"{{{{{field.Groups[1].Value}}}}}";
+        if (TryParseJasperToken(expression, out var kind, out var name))
+            return JasperTokenPlaceholder(kind, name);
 
-        return expression.Trim().Trim('"');
+        var trimmed = expression.Trim().Trim('"');
+        return LooksLikeExpr(trimmed) ? NormalizeJasperExpression(trimmed) : trimmed;
+    }
+
+    private static bool TryParseJasperToken(string expression, out string kind, out string name)
+    {
+        var token = Regex.Match(expression, @"^\s*\$(?<kind>[FPV])\{(?<name>\w+)\}\s*$");
+        kind = token.Groups["kind"].Value;
+        name = token.Groups["name"].Value;
+        return token.Success;
+    }
+
+    private static string JasperTokenPlaceholder(string kind, string name) => kind switch
+    {
+        "P" => $"{{{{Parameters.{name}}}}}",
+        "V" => $"{{{{Variables.{name}}}}}",
+        _ => $"{{{{{name}}}}}"
+    };
+
+    private static string JasperTokenExpression(string kind, string name) => kind switch
+    {
+        "P" => $"[Parameters.{name}]",
+        "V" => $"[Variables.{name}]",
+        _ => $"[{name}]"
+    };
+
+    private static string JasperTokenLabel(string kind) => kind switch
+    {
+        "P" => "parameter reference",
+        "V" => "variable reference",
+        _ => "field reference"
+    };
+
+    private static void AddExpressionText(Dictionary<string, object>? target, string key, string? value)
+    {
+        AddText(target, key, value);
+        if (target is not null && !string.IsNullOrWhiteSpace(value) && LooksLikeExpr(value))
+            target[$"Normalized{key}"] = NormalizeJasperExpression(value);
     }
 
     private static void AddText(Dictionary<string, object>? target, string key, string? value)
@@ -903,11 +949,15 @@ public sealed class JrxmlToDesignConverter
             desc.Name.LocalName.EndsWith("Expression", StringComparison.OrdinalIgnoreCase)
             && !string.IsNullOrWhiteSpace(desc.Value)))
         {
-            yield return new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+            var rawValue = expression.Value.Trim();
+            var item = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
             {
                 ["Name"] = expression.Name.LocalName,
-                ["Value"] = expression.Value.Trim()
+                ["Value"] = rawValue
             };
+            if (LooksLikeExpr(rawValue))
+                item["NormalizedValue"] = NormalizeJasperExpression(rawValue);
+            yield return item;
         }
     }
 
