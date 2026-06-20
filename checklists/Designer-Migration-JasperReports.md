@@ -136,7 +136,7 @@ Observed feature coverage:
 | `componentElement` `jr:table` | 4 table components | Canvas table with header/detail rows + dataset metadata | Done/P1 review |
 | `crosstab` | 1 crosstab, row/column groups and measures | structured placeholder metadata only | P1/P2 |
 | `subreport` | 2 direct subreports, 9 subreport expressions, 11 parameters | direct subreport metadata preserved; part subreports still need orchestration | Done/P1 parts |
-| `sectionType="Part"` / `<part>` book reports | Monthly Store Report has 7 parts | not modeled; currently skipped because parts lack `reportElement` | P1 |
+| `sectionType="Part"` / `<part>` book reports | Monthly Store Report has 7 parts | preserved in `jrxmlParts`; rendering/inlining still later | Done/P1 runtime review |
 | `groupHeader` / `groupFooter` | 2 groups | not modeled as repeat/group semantics | P1 |
 | `subDataset`, `datasetRun`, SQL/JSON query metadata | 9 subdatasets, 8 dataset runs, 22 queries | report/subdataset/query metadata preserved; datasetRun kept on table/component styles | Done/P1 runtime review |
 | Parameters / fields / variables | 26 parameters, 136 fields, 18 variables | declarations preserved in `PageSettings.CustomProperties` | Done/P1 runtime review |
@@ -156,8 +156,9 @@ Key sample-driven conclusions:
 - `Json_Master.jrxml` / `Json_Sub.jrxml` prove that datasource/query metadata must not assume SQL only.
 
 - [ ] **P1** `groupHeader`/`groupFooter` repeat semantics; multiple `detail` bands
-- [ ] **P1** `sectionType="Part"` / `<part>` orchestration: preserve part name, report expression, parameters,
-      and position/order metadata so book-style reports such as Monthly Store Report do not lose their structure.
+- [x] **P1** `sectionType="Part"` / `<part>` orchestration metadata: preserve part order/context,
+      `partNameExpression`, `evaluationTime`, subreport expression, and parameters in `jrxmlParts` so
+      book-style reports such as Monthly Store Report do not lose their structure.
 - [x] **P1** `jr:table` component → Canvas table with `CellData`, column widths, header/detail row extraction,
       datasetRun/parameter metadata, and expression preservation from Invoice and Store samples.
 - [x] **P1** Preserve report-level data declarations: parameters, fields, variables, subDataset/queryString,

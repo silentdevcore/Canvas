@@ -85,6 +85,7 @@ public sealed class JrxmlToDesignConverter
             MarginBottomPt = ToDouble(Attr(root, "bottomMargin")),
         };
         ParseReportDataDeclarations(root, report);
+        ParseReportParts(root, report);
         if (string.Equals(Attr(root, "orientation"), "Landscape", StringComparison.OrdinalIgnoreCase))
             (report.PageWidthPt, report.PageHeightPt) = (report.PageHeightPt, report.PageWidthPt);
 
@@ -250,6 +251,7 @@ public sealed class JrxmlToDesignConverter
         AddCustomJson(customProperties, "jrxmlVariables", report.Variables);
         AddCustomJson(customProperties, "jrxmlSubDatasets", report.SubDatasets);
         AddCustomJson(customProperties, "jrxmlQuery", report.Query);
+        AddCustomJson(customProperties, "jrxmlParts", report.Parts);
 
         if (customProperties.Count > 0)
         {
@@ -682,6 +684,52 @@ public sealed class JrxmlToDesignConverter
         report.Query = ParseQuery(Child(root, "queryString"));
     }
 
+    private static void ParseReportParts(XElement root, RawReport report)
+    {
+        var order = 0;
+        foreach (var part in root.Descendants().Where(element => element.Name.LocalName == "part"))
+        {
+            var parent = part.Parent;
+            var item = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Order"] = order++,
+                ["Context"] = parent?.Name.LocalName ?? "part"
+            };
+            AddText(item, "Uuid", Attr(part, "uuid"));
+            AddText(item, "EvaluationTime", Attr(part, "evaluationTime"));
+            AddText(item, "PartNameExpression", Child(part, "partNameExpression")?.Value.Trim());
+            if (ParseSubreportPart(Descendant(part, "subreportPart")) is { Count: > 0 } subreportPart)
+                item["SubreportPart"] = subreportPart;
+            report.Parts.Add(item);
+        }
+    }
+
+    private static Dictionary<string, object> ParseSubreportPart(XElement? subreportPart)
+    {
+        var item = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        if (subreportPart is null)
+            return item;
+
+        AddText(item, "SubreportExpression", Child(subreportPart, "subreportExpression")?.Value.Trim());
+        AddText(item, "ConnectionExpression", Child(subreportPart, "connectionExpression")?.Value.Trim());
+        AddText(item, "DataSourceExpression", Child(subreportPart, "dataSourceExpression")?.Value.Trim());
+        var parameters = Children(subreportPart, "subreportParameter")
+            .Select(parameter =>
+            {
+                var p = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["Name"] = Attr(parameter, "name") ?? ""
+                };
+                AddText(p, "Expression", Child(parameter, "subreportParameterExpression")?.Value.Trim());
+                return p;
+            })
+            .Where(parameter => parameter.Values.Any(value => value?.ToString()?.Length > 0))
+            .ToArray();
+        if (parameters.Length > 0)
+            item["Parameters"] = parameters;
+        return item;
+    }
+
     private static Dictionary<string, object> ParseNamedDeclaration(XElement element)
     {
         var item = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
@@ -932,6 +980,9 @@ public sealed class JrxmlToDesignConverter
     private static XElement? Child(XElement? el, string name) =>
         el?.Elements().FirstOrDefault(e => e.Name.LocalName == name);
 
+    private static XElement? Descendant(XElement? el, string name) =>
+        el?.Descendants().FirstOrDefault(e => e.Name.LocalName == name);
+
     private static IEnumerable<XElement> Children(XElement? el, string name) =>
         el is null ? Enumerable.Empty<XElement>() : el.Elements().Where(e => e.Name.LocalName == name);
 
@@ -952,6 +1003,7 @@ public sealed class JrxmlToDesignConverter
         public List<Dictionary<string, object>> Fields = [];
         public List<Dictionary<string, object>> Variables = [];
         public List<Dictionary<string, object>> SubDatasets = [];
+        public List<Dictionary<string, object>> Parts = [];
         public Dictionary<string, object> Query = [];
         public List<RawBand> Bands = [];
         public List<RawElement> Elements = [];

@@ -192,6 +192,58 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_PartReport_PreservesSubreportPartMetadata()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+                xmlns:p="http://jasperreports.sourceforge.net/jasperreports/parts"
+                name="Book" sectionType="Part" pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <field name="store_id" class="java.lang.Integer"/>
+              <group name="cover">
+                <groupHeader>
+                  <part evaluationTime="Report" uuid="part-cover">
+                    <partNameExpression><![CDATA["Overview"]]></partNameExpression>
+                    <p:subreportPart>
+                      <subreportParameter name="THE_MONTH">
+                        <subreportParameterExpression><![CDATA[$P{THE_MONTH}]]></subreportParameterExpression>
+                      </subreportParameter>
+                      <subreportExpression><![CDATA["Stores_Overview.jrxml"]]></subreportExpression>
+                    </p:subreportPart>
+                  </part>
+                </groupHeader>
+              </group>
+              <detail>
+                <part uuid="part-store">
+                  <partNameExpression><![CDATA[$F{store_name}]]></partNameExpression>
+                  <p:subreportPart>
+                    <subreportParameter name="STORE_ID">
+                      <subreportParameterExpression><![CDATA[$F{store_id}]]></subreportParameterExpression>
+                    </subreportParameter>
+                    <subreportExpression><![CDATA["Store.jrxml"]]></subreportExpression>
+                  </p:subreportPart>
+                </part>
+              </detail>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+        var partsJson = Assert.Single(result.Design.PageSettings!.CustomProperties!, p => p.Name == "jrxmlParts").Value;
+        var parts = JsonDocument.Parse(partsJson).RootElement;
+
+        Assert.Equal(2, parts.GetArrayLength());
+        Assert.Equal("groupHeader", parts[0].GetProperty("Context").GetString());
+        Assert.Equal("Report", parts[0].GetProperty("EvaluationTime").GetString());
+        Assert.Equal("\"Overview\"", parts[0].GetProperty("PartNameExpression").GetString());
+        Assert.Equal("\"Stores_Overview.jrxml\"", parts[0].GetProperty("SubreportPart").GetProperty("SubreportExpression").GetString());
+        var parameters = parts[0].GetProperty("SubreportPart").GetProperty("Parameters");
+        Assert.Equal("THE_MONTH", parameters[0].GetProperty("Name").GetString());
+        Assert.Equal("$P{THE_MONTH}", parameters[0].GetProperty("Expression").GetString());
+
+        Assert.Equal("detail", parts[1].GetProperty("Context").GetString());
+        Assert.Equal("\"Store.jrxml\"", parts[1].GetProperty("SubreportPart").GetProperty("SubreportExpression").GetString());
+    }
+
+    [Fact]
     public void Convert_Line_FromGraphicElementPen()
     {
         var rule = El(Convert(SampleJrxml).Design, "rule");
