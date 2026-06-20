@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SimpleCanvas from '@/components/Editor/SimpleCanvas';
 import LivePreview from '@/components/Preview/LivePreview';
 import LiveCodeEditor from '@/components/CodeEditor/LiveCodeEditor';
-import { useEditorStore } from '@/store';
+import { normalizePageSettings, useEditorStore } from '@/store';
 import { ExportService } from '@/services/ExportService';
 
 type SubView = 'editor' | 'preview' | 'code';
@@ -19,6 +19,7 @@ const CreatePage: React.FC = () => {
     currentTemplate,
     currentPageIndex,
     setCurrentTemplate,
+    updatePageSettings,
     addElement,
     updateElement,
     deleteElement,
@@ -37,9 +38,25 @@ const CreatePage: React.FC = () => {
 
   useEffect(() => {
     if (!currentTemplate) {
+      const handoffJson = sessionStorage.getItem('canvas_migration_designer_handoff');
+      if (handoffJson) {
+        try {
+          const handoff = JSON.parse(handoffJson);
+          if (handoff?.template?.pages) {
+            setCurrentTemplate(handoff.template);
+            if (handoff.pageSettings) {
+              updatePageSettings(normalizePageSettings(handoff.pageSettings));
+            }
+            sessionStorage.removeItem('canvas_migration_designer_handoff');
+            return;
+          }
+        } catch {
+          sessionStorage.removeItem('canvas_migration_designer_handoff');
+        }
+      }
       navigate('/', { replace: true });
     }
-  }, [currentTemplate, navigate]);
+  }, [currentTemplate, navigate, setCurrentTemplate, updatePageSettings]);
 
   if (!currentTemplate) return null;
 

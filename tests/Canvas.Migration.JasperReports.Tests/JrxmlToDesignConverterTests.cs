@@ -488,6 +488,69 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_ImageExpressions_EmbedResolvableSourcesAndPreserveUnresolvedMetadata()
+    {
+        var imagePath = Path.Combine(Path.GetTempPath(), $"canvas-jrxml-{Guid.NewGuid():N}.png");
+        File.WriteAllBytes(imagePath, System.Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="));
+        try
+        {
+            var escapedPath = imagePath.Replace("\\", "\\\\", StringComparison.Ordinal);
+            var jrxml = $$"""
+                <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Images"
+                    pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+                  <detail>
+                    <band height="80">
+                      <image>
+                        <reportElement key="embeddedDataUrl" x="0" y="0" width="20" height="20"/>
+                        <imageExpression><![CDATA["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="]]></imageExpression>
+                      </image>
+                      <image>
+                        <reportElement key="localFile" x="0" y="20" width="20" height="20"/>
+                        <imageExpression><![CDATA["{{escapedPath}}"]]></imageExpression>
+                      </image>
+                      <image>
+                        <reportElement key="missingFile" x="0" y="40" width="20" height="20"/>
+                        <imageExpression><![CDATA["missing/logo.png"]]></imageExpression>
+                      </image>
+                      <image>
+                        <reportElement key="dynamicFile" x="0" y="60" width="20" height="20"/>
+                        <imageExpression><![CDATA[$P{LogoPath}]]></imageExpression>
+                      </image>
+                    </band>
+                  </detail>
+                </jasperReport>
+                """;
+
+            var result = Convert(jrxml);
+            var dataUrl = El(result.Design, "embeddedDataUrl");
+            var localFile = El(result.Design, "localFile");
+            var missingFile = El(result.Design, "missingFile");
+            var dynamicFile = El(result.Design, "dynamicFile");
+
+            Assert.StartsWith("data:image/png;base64,", dataUrl.Content);
+            Assert.StartsWith("data:image/png;base64,", localFile.Content);
+            var localSource = Assert.IsType<Dictionary<string, object>>(localFile.Style!["jrxmlImageSource"]);
+            Assert.Equal(imagePath, localSource["Source"]);
+            Assert.Equal(Path.GetFullPath(imagePath), localSource["ResolvedPath"]);
+            Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML021" && d.Severity == MigrationDiagnosticSeverity.Info);
+
+            Assert.Null(missingFile.Content);
+            var missingSource = Assert.IsType<Dictionary<string, object>>(missingFile.Style!["jrxmlImageSource"]);
+            Assert.Equal("missing/logo.png", missingSource["Source"]);
+            Assert.Null(dynamicFile.Content);
+            var dynamicSource = Assert.IsType<Dictionary<string, object>>(dynamicFile.Style!["jrxmlImageSource"]);
+            Assert.Equal("$P{LogoPath}", dynamicSource["Expression"]);
+            Assert.Equal("[Parameters.LogoPath]", dynamicSource["NormalizedExpression"]);
+            Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML012" && d.Severity == MigrationDiagnosticSeverity.Warning);
+        }
+        finally
+        {
+            if (File.Exists(imagePath))
+                File.Delete(imagePath);
+        }
+    }
+
+    [Fact]
     public void Convert_PartReport_PreservesSubreportPartMetadata()
     {
         var jrxml = """
@@ -538,6 +601,54 @@ public sealed class JrxmlToDesignConverterTests
 
         Assert.Equal("detail", parts[1].GetProperty("Context").GetString());
         Assert.Equal("\"Store.jrxml\"", parts[1].GetProperty("SubreportPart").GetProperty("SubreportExpression").GetString());
+    }
+
+    [Fact]
+    public void Convert_SectionTypePart_CreatesVisiblePartPlaceholders()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+                xmlns:p="http://jasperreports.sourceforge.net/jasperreports/parts"
+                name="Book" sectionType="Part" pageWidth="595" pageHeight="842" leftMargin="20" topMargin="30">
+              <group name="cover">
+                <groupHeader>
+                  <part uuid="cover-part">
+                    <partNameExpression><![CDATA["Cover"]]></partNameExpression>
+                    <p:subreportPart>
+                      <subreportExpression><![CDATA["Cover.jrxml"]]></subreportExpression>
+                    </p:subreportPart>
+                  </part>
+                </groupHeader>
+              </group>
+              <detail>
+                <part uuid="store-part">
+                  <partNameExpression><![CDATA[$F{store_name}]]></partNameExpression>
+                  <p:subreportPart>
+                    <subreportParameter name="STORE_ID">
+                      <subreportParameterExpression><![CDATA[$F{store_id}]]></subreportParameterExpression>
+                    </subreportParameter>
+                    <subreportExpression><![CDATA["Store.jrxml"]]></subreportExpression>
+                  </p:subreportPart>
+                </part>
+              </detail>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+
+        Assert.Equal(2, result.Design.Pages[0].Elements.Count);
+        var cover = result.Design.Pages[0].Elements[0];
+        var store = result.Design.Pages[0].Elements[1];
+        Assert.Equal("text", cover.Type);
+        Assert.Contains("Cover", cover.Content);
+        Assert.Contains("{{store_name}}", store.Content);
+        Assert.True(store.Y > cover.Y);
+        var metadata = Assert.IsType<Dictionary<string, object>>(store.Style!["jrxmlPart"]);
+        Assert.Equal(1, metadata["Order"]);
+        Assert.Equal("detail", metadata["Context"]);
+        var subreportPart = Assert.IsType<Dictionary<string, object>>(metadata["SubreportPart"]);
+        Assert.Equal("\"Store.jrxml\"", subreportPart["SubreportExpression"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML022" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 
     [Fact]

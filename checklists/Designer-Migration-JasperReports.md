@@ -104,6 +104,8 @@ original in metadata and normalize `$F{}`/`$P{}`/`$V{}` references to Canvas-sty
 | `CANMIGJRXML018` | Warning | Multiple JasperReports detail bands mapped to shared Canvas repeat metadata; runtime multi-band detail semantics need review |
 | `CANMIGJRXML019` | Warning | JasperReports conditional styles preserved with normalized condition expressions; runtime style evaluation needs review |
 | `CANMIGJRXML020` | Warning | JasperReports hyperlink/anchor metadata preserved and mapped to Canvas link/bookmark fields where possible |
+| `CANMIGJRXML021` | Info | JasperReports external image path was resolved and embedded as a Canvas data URL |
+| `CANMIGJRXML022` | Warning | JasperReports book `<part>` mapped to a visible Canvas placeholder; subreport inlining still requires orchestration |
 
 ## V1 checklist
 
@@ -143,14 +145,14 @@ Observed feature coverage:
 | `componentElement` `jr:table` | 4 table components | Canvas table with header/detail rows + dataset metadata | Done/P1 review |
 | `crosstab` | 1 crosstab, row/column groups and measures | structured placeholder metadata only | P1/P2 |
 | `subreport` | 2 direct subreports, 9 subreport expressions, 11 parameters | direct subreport metadata preserved; part subreports still need orchestration | Done/P1 parts |
-| `sectionType="Part"` / `<part>` book reports | Monthly Store Report has 7 parts | preserved in `jrxmlParts`; rendering/inlining still later | Done/P1 runtime review |
+| `sectionType="Part"` / `<part>` book reports | Monthly Store Report has 7 parts | preserved in `jrxmlParts` and visible `jrxmlPart` placeholders; subreport inlining still later | Done/P1 runtime review |
 | `groupHeader` / `groupFooter` | 2 groups | header/footer bands are stacked around detail and mapped to `jrxmlGroup`/`jrxmlRepeat` + `RepeatDto` metadata | Done/P1 runtime review |
 | `subDataset`, `datasetRun`, SQL/JSON query metadata | 9 subdatasets, 8 dataset runs, 22 queries | report/subdataset/query metadata preserved; datasetRun kept on table/component styles | Done/P1 runtime review |
 | Parameters / fields / variables | 26 parameters, 136 fields, 18 variables | declarations preserved in `PageSettings.CustomProperties`; runtime expressions normalize `$P{}`/`$V{}` where consumed | Done/P1 runtime review |
 | Conditional styles | 8 conditional styles | chained style inheritance supported; conditional styles preserved as `jrxmlConditionalStyles` with normalized conditions | Done/P1 runtime review |
 | `printWhenExpression` | 9 occurrences | maps to `Hidden`/`VisibleExpression` + `style.jrxmlPrintWhenExpression` | Done/P1 runtime review |
 | Hyperlink / anchor expressions | 7 hyperlink anchors, 1 anchor name | external references, local anchors/pages, and anchor names map to Canvas link/bookmark fields + `jrxmlNavigation` metadata | Done/P2 runtime review |
-| External image paths | 10 image expressions, many path-based | currently placeholder if not embedded | P2 |
+| External image paths | 10 image expressions, many path-based | data URLs/base64/local files embed when resolvable; unresolved/dynamic sources preserved as `jrxmlImageSource` metadata | Done/P2 runtime review |
 
 Key sample-driven conclusions:
 - `Invoice.jrxml` is the best table-component test bed: nested `jr:table`, `datasetRun`, dataset parameters,
@@ -169,8 +171,9 @@ Key sample-driven conclusions:
       receives `style.jrxmlDetailRepeat` and Canvas `RepeatDto` with shared `DetailRows` data path, while
       band order/height metadata is preserved in `jrxmlDetailBands`.
 - [x] **P1** `sectionType="Part"` / `<part>` orchestration metadata: preserve part order/context,
-      `partNameExpression`, `evaluationTime`, subreport expression, and parameters in `jrxmlParts` so
-      book-style reports such as Monthly Store Report do not lose their structure.
+      `partNameExpression`, `evaluationTime`, subreport expression, and parameters in `jrxmlParts`, and
+      emit visible part placeholders with `style.jrxmlPart` so book-style reports such as Monthly Store
+      Report do not open as an empty designer.
 - [x] **P1** `jr:table` component → Canvas table with `CellData`, column widths, header/detail row extraction,
       datasetRun/parameter metadata, and expression preservation from Invoice and Store samples.
 - [x] **P1** Preserve report-level data declarations: parameters, fields, variables, subDataset/queryString,
@@ -194,4 +197,6 @@ Key sample-driven conclusions:
 - [x] **P2** Hyperlink/anchor expressions: preserve `anchorNameExpression`, hyperlink reference/anchor/page
       expressions and tooltip metadata as `style.jrxmlNavigation`, mapping supported cases to Canvas
       `Href`, `LinkTarget`, and `BookmarkName`.
-- [ ] **P2** External image resource resolution.
+- [x] **P2** External image resource resolution: data URLs/base64 and resolvable local file paths embed as
+      Canvas image content, while unresolved paths and dynamic expressions are preserved on
+      `style.jrxmlImageSource` with normalized expression metadata where possible.

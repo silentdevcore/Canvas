@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiCode, FiCopy, FiDownload, FiPlay, FiRefreshCw, FiGitMerge, FiLayout, FiUpload } from 'react-icons/fi';
 import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import AppHeader from '@/components/Layout/AppHeader';
-import { DEFAULT_PAGE_SETTINGS, useEditorStore, type Template } from '@/store';
+import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, useEditorStore, type Template } from '@/store';
 
 // Framework ids for the report → Canvas Designer flows (output is a design, not C# code).
 const REPORT_ID = 'DevExpressReport';
@@ -789,6 +789,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const handleOpenInDesigner = () => {
     if (!reportDesign) return;
     const pages = (reportDesign.pages ?? []).map((p: any) => ({ id: p.id, elements: p.elements ?? [] }));
+    const importedPageSettings = reportDesign.pageSettings ?? {};
     const template: Template = {
       id: reportDesign.id ?? `report-design-${Date.now()}`,
       name: reportDesign.name ?? 'Imported report',
@@ -798,11 +799,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
       sharedElements: reportDesign.sharedElements ?? [],
       data: reportDesign.data ?? {},
     };
-
-    const importedPageSettings = reportDesign.pageSettings ?? {};
-    setCurrentTemplate(template);
-    updatePageSettings({
-      ...DEFAULT_PAGE_SETTINGS,
+    const pageSettings = normalizePageSettings({
       ...importedPageSettings,
       width: importedPageSettings.width ?? DEFAULT_PAGE_SETTINGS.width,
       height: importedPageSettings.height ?? DEFAULT_PAGE_SETTINGS.height,
@@ -811,8 +808,15 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
       unit: importedPageSettings.unit ?? 'pt',
       showMarginGuide: false,
     });
+
+    sessionStorage.setItem('canvas_migration_designer_handoff', JSON.stringify({
+      template,
+      pageSettings,
+    }));
+    setCurrentTemplate(template);
+    updatePageSettings(pageSettings);
     localStorage.setItem('canvas_last_template', template.name);
-    navigate('/create');
+    navigate('/create?source=migration');
   };
 
   const handlePreview = async () => {

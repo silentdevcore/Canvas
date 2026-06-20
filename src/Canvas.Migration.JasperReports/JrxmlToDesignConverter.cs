@@ -90,6 +90,9 @@ public sealed class JrxmlToDesignConverter
         if (string.Equals(Attr(root, "orientation"), "Landscape", StringComparison.OrdinalIgnoreCase))
             (report.PageWidthPt, report.PageHeightPt) = (report.PageHeightPt, report.PageWidthPt);
 
+        if (string.Equals(Attr(root, "sectionType"), "Part", StringComparison.OrdinalIgnoreCase))
+            AddReportPartPlaceholders(root, report);
+
         // Walk sections in canonical order; each holds one or more <band>s of elements.
         foreach (var sectionType in SectionOrder)
         {
@@ -174,6 +177,54 @@ public sealed class JrxmlToDesignConverter
         }
     }
 
+    private void AddReportPartPlaceholders(XElement root, RawReport report)
+    {
+        var order = 0;
+        foreach (var part in root.Descendants().Where(element => element.Name.LocalName == "part"))
+        {
+            var parent = part.Parent;
+            var context = parent?.Name.LocalName ?? "part";
+            var bandName = $"part-{order}";
+            report.Bands.Add(new RawBand
+            {
+                Name = bandName,
+                Type = "part",
+                HeightPt = 44,
+                SectionIndex = order
+            });
+
+            var metadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Order"] = order,
+                ["Context"] = context
+            };
+            AddText(metadata, "Uuid", Attr(part, "uuid"));
+            AddText(metadata, "EvaluationTime", Attr(part, "evaluationTime"));
+            AddExpressionText(metadata, "PartNameExpression", Child(part, "partNameExpression")?.Value.Trim());
+            if (ParseSubreportPart(Descendant(part, "subreportPart")) is { Count: > 0 } subreportPart)
+                metadata["SubreportPart"] = subreportPart;
+
+            report.Elements.Add(new RawElement
+            {
+                Name = Attr(part, "uuid") is { Length: > 0 } uuid ? $"part-{order}-{uuid[..Math.Min(8, uuid.Length)]}" : $"part-{order}",
+                Type = "part",
+                Band = bandName,
+                X = 0,
+                Y = 0,
+                W = Math.Max(120, report.PageWidthPt - report.MarginLeftPt * 2),
+                H = 34,
+                ComponentKind = "part",
+                ComponentType = "part",
+                ComponentMetadata = metadata,
+                ComponentCaption = Child(part, "partNameExpression")?.Value.Trim()
+                    ?? ((metadata.GetValueOrDefault("SubreportPart") as Dictionary<string, object>)
+                        ?.GetValueOrDefault("SubreportExpression")?.ToString())
+                    ?? $"Part {order + 1}"
+            });
+            order++;
+        }
+    }
+
     // Parse a band's (or frame's) visual elements; a frame recurses with its offset so children stay absolute.
     private void ParseElements(XElement container, string bandName, double originX, double originY, RawReport report, int depth)
     {
@@ -220,7 +271,10 @@ public sealed class JrxmlToDesignConverter
                     raw.Expression = Child(el, "textFieldExpression")?.Value?.Trim();
                     break;
                 case "image":
-                    raw.ImageDataUrl = ExtractImageDataUrl(el);
+                    raw.ImageExpression = Child(el, "imageExpression")?.Value?.Trim();
+                    raw.ImageDataUrl = ExtractImageDataUrl(raw.ImageExpression, out var imageSource, out var resolvedImagePath);
+                    raw.ImageSource = imageSource;
+                    raw.ImageResolvedPath = resolvedImagePath;
                     break;
                 case "subreport":
                     ParseSubreport(el, raw);
@@ -378,11 +432,19 @@ public sealed class JrxmlToDesignConverter
             case "image":
                 element.Type = "image";
                 element.FitMode = "contain";
+                element.Style = ImageSourceMetadata(raw);
                 if (raw.ImageDataUrl is { } dataUrl)
+                {
                     element.Content = dataUrl;
+                    if (!string.IsNullOrWhiteSpace(raw.ImageResolvedPath))
+                        diagnostics.Add(Info("CANMIGJRXML021",
+                            $"'{raw.Name}' JasperReports external image '{raw.ImageSource}' was embedded as a Canvas data URL."));
+                }
                 else
+                {
                     diagnostics.Add(Warn("CANMIGJRXML012",
                         $"'{raw.Name}' image isn't embeddable from source — inserted an empty image placeholder."));
+                }
                 return element;
 
             case "subreport":
@@ -397,6 +459,9 @@ public sealed class JrxmlToDesignConverter
             case "componentElement":
             case "crosstab":
                 return MapComponentPlaceholder(raw, element, diagnostics);
+
+            case "part":
+                return MapPartPlaceholder(raw, element, diagnostics);
 
             default:
                 // componentElement (barcodes/charts), crosstab, … — full fidelity is V2.
@@ -483,6 +548,20 @@ public sealed class JrxmlToDesignConverter
 
         diagnostics.Add(Warn("CANMIGJRXML011",
             $"'{raw.Name}' JasperReports {label.ToLowerInvariant()} component metadata was preserved on a positioned placeholder; review manually."));
+        return placeholder;
+    }
+
+    private static ElementDto MapPartPlaceholder(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        var caption = raw.ComponentCaption ?? raw.Name;
+        var placeholder = Placeholder(element, $"[Part: {ExpressionDisplay(caption)}]");
+        placeholder.Style ??= [];
+        placeholder.Style["jrxmlComponentType"] = "part";
+        if (raw.ComponentMetadata is { Count: > 0 })
+            placeholder.Style["jrxmlPart"] = raw.ComponentMetadata;
+
+        diagnostics.Add(Warn("CANMIGJRXML022",
+            $"'{raw.Name}' JasperReports book part was mapped to a positioned Canvas placeholder; subreport inlining still requires orchestration."));
         return placeholder;
     }
 
@@ -1320,16 +1399,87 @@ public sealed class JrxmlToDesignConverter
         return "left";
     }
 
-    private static string? ExtractImageDataUrl(XElement el)
+    private static Dictionary<string, object> ImageSourceMetadata(RawElement raw)
     {
-        var expr = Child(el, "imageExpression")?.Value?.Trim();
-        if (string.IsNullOrWhiteSpace(expr)) return null;
-        var inner = expr.Trim('"');
-        if (inner.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) return inner;
-        var b64 = Regex.Replace(inner, @"\s+", "");
-        return b64.Length >= 64 && b64.Length % 4 == 0 && Regex.IsMatch(b64, @"^[A-Za-z0-9+/]+={0,2}$")
-            ? $"data:image/png;base64,{b64}" : null;   // a path/expression isn't embeddable → placeholder
+        var style = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        var source = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(source, "Expression", raw.ImageExpression);
+        AddText(source, "Source", raw.ImageSource);
+        AddText(source, "ResolvedPath", raw.ImageResolvedPath);
+        if (!string.IsNullOrWhiteSpace(raw.ImageExpression) && LooksLikeExpr(raw.ImageExpression))
+            source["NormalizedExpression"] = NormalizeJasperExpression(raw.ImageExpression);
+        if (source.Count > 0)
+            style["jrxmlImageSource"] = source;
+        return style;
     }
+
+    private static string? ExtractImageDataUrl(string? expression, out string? source, out string? resolvedPath)
+    {
+        source = null;
+        resolvedPath = null;
+        if (string.IsNullOrWhiteSpace(expression)) return null;
+
+        var inner = StripJasperStringLiteral(expression.Trim());
+        source = inner;
+        if (inner.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) return inner;
+
+        var b64 = Regex.Replace(inner, @"\s+", "");
+        if (IsLikelyBase64(b64))
+            return $"data:image/png;base64,{b64}";
+
+        if (LooksLikeExpr(inner) || Uri.TryCreate(inner, UriKind.Absolute, out var uri) && !uri.IsFile)
+            return null;
+
+        foreach (var candidate in ImagePathCandidates(inner))
+        {
+            try
+            {
+                if (!File.Exists(candidate))
+                    continue;
+
+                var info = new FileInfo(candidate);
+                if (info.Length <= 0 || info.Length > 20 * 1024 * 1024)
+                    return null;
+
+                resolvedPath = info.FullName;
+                var bytes = File.ReadAllBytes(info.FullName);
+                return $"data:{MimeTypeFromPath(info.FullName)};base64,{System.Convert.ToBase64String(bytes)}";
+            }
+            catch (IOException)
+            {
+                return null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private static IEnumerable<string> ImagePathCandidates(string source)
+    {
+        yield return source;
+        if (!Path.IsPathRooted(source))
+            yield return Path.Combine(Environment.CurrentDirectory, source);
+    }
+
+    private static string StripJasperStringLiteral(string value) =>
+        value.Length >= 2 && value[0] == '"' && value[^1] == '"' ? value[1..^1] : value;
+
+    private static bool IsLikelyBase64(string value) =>
+        value.Length >= 64 && value.Length % 4 == 0 && Regex.IsMatch(value, @"^[A-Za-z0-9+/]+={0,2}$");
+
+    private static string MimeTypeFromPath(string path) => Path.GetExtension(path).ToLowerInvariant() switch
+    {
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".gif" => "image/gif",
+        ".svg" => "image/svg+xml",
+        ".webp" => "image/webp",
+        ".bmp" => "image/bmp",
+        _ => "image/png"
+    };
 
     private static string? ParseColor(string? value)
     {
@@ -1433,6 +1583,9 @@ public sealed class JrxmlToDesignConverter
         public string TextAlign = "left";
         public double? LineWidth;
         public string? ImageDataUrl;
+        public string? ImageExpression;
+        public string? ImageSource;
+        public string? ImageResolvedPath;
         public string? PrintWhenExpression;
         public Dictionary<string, BorderStyle> Borders = new(StringComparer.OrdinalIgnoreCase);
         public List<Dictionary<string, object>> ConditionalStyles = [];

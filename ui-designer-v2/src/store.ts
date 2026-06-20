@@ -79,6 +79,19 @@ export const DEFAULT_PAGE_SETTINGS: PageSettings = {
   localizedProperties: [],
 };
 
+export function normalizePageSettings(settings: Partial<PageSettings> = {}): PageSettings {
+  return {
+    ...DEFAULT_PAGE_SETTINGS,
+    ...settings,
+    margins:         { ...DEFAULT_PAGE_SETTINGS.margins,         ...(settings.margins         ?? {}) },
+    metadata:        { ...DEFAULT_PAGE_SETTINGS.metadata,        ...(settings.metadata        ?? {}) },
+    pageNumbering:   { ...DEFAULT_PAGE_SETTINGS.pageNumbering,   ...(settings.pageNumbering   ?? {}) },
+    globalWatermark: { ...DEFAULT_PAGE_SETTINGS.globalWatermark, ...(settings.globalWatermark ?? {}) },
+    exportDefaults:  { ...DEFAULT_PAGE_SETTINGS.exportDefaults,  ...(settings.exportDefaults  ?? {}) },
+    pagination:      { ...DEFAULT_PAGE_SETTINGS.pagination,      ...(settings.pagination      ?? {}) },
+  };
+}
+
 interface EditorState {
   templates: Template[];
   currentTemplate: Template | null;
@@ -476,16 +489,7 @@ export const useEditorStore = create<EditorState>()(
           ...current,
           ...p,
           currentPageIndex: (p as any).currentPageIndex ?? 0,
-          pageSettings: {
-            ...DEFAULT_PAGE_SETTINGS,
-            ...ps,
-            margins:         { ...DEFAULT_PAGE_SETTINGS.margins,         ...(ps.margins         ?? {}) },
-            metadata:        { ...DEFAULT_PAGE_SETTINGS.metadata,        ...(ps.metadata        ?? {}) },
-            pageNumbering:   { ...DEFAULT_PAGE_SETTINGS.pageNumbering,   ...(ps.pageNumbering   ?? {}) },
-            globalWatermark: { ...DEFAULT_PAGE_SETTINGS.globalWatermark, ...(ps.globalWatermark ?? {}) },
-            exportDefaults:  { ...DEFAULT_PAGE_SETTINGS.exportDefaults,  ...(ps.exportDefaults  ?? {}) },
-            pagination:      { ...DEFAULT_PAGE_SETTINGS.pagination,      ...(ps.pagination      ?? {}) },
-          },
+          pageSettings: normalizePageSettings(ps),
         };
       },
     }
