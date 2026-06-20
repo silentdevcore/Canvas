@@ -148,12 +148,86 @@ public sealed class TrdxToDesignConverter
             if (type == "Shape") raw.ShapeKind = ShapeKindFromName(Attr(item, "ShapeType") ?? Attr(item, "Shape"));
             if (type == "PictureBox") raw.ImageDataUrl = ExtractImageDataUrl(item);
             if (type == "Barcode") raw.Symbology = Attr(item, "Type") ?? Attr(item, "Symbology") ?? Attr(item, "Encoder");
+            if (type is "Table" or "Crosstab" or "CrossTab") ParseTable(item, raw);
 
             report.Elements.Add(raw);
 
             if (type == "Panel")
                 ParseItems(item.Elements().FirstOrDefault(e => e.Name.LocalName == "Items"), sectionName, left, top, report, depth + 1);
         }
+    }
+
+    // Telerik Table/CrossTab: column widths from <TableBodyColumn Width>, content items from the table's
+    // own <Items>, each anchored to a cell via attached properties (e.g. Table.CellRowIndex/…). The trdx
+    // cell-anchoring serialization is not verifiable against local samples, so this reads anchors
+    // prefix-agnostically and falls back to sequential left-to-right fill when no anchors are present —
+    // worst case the data is surfaced in order rather than lost behind a placeholder.
+    private void ParseTable(XElement tableEl, RawElement raw)
+    {
+        var body = Child(tableEl, "Body") ?? tableEl;
+        var colWidths = body.Descendants().Where(e => e.Name.LocalName == "TableBodyColumn")
+            .Select(c => LengthToPt(Attr(c, "Width"))).Where(w => w > 0).ToList();
+        var declaredRows = body.Descendants().Count(e => e.Name.LocalName == "TableBodyRow");
+        var declaredCols = colWidths.Count;
+
+        var itemsEl = tableEl.Elements().FirstOrDefault(e => e.Name.LocalName == "Items");
+        var content = (itemsEl?.Elements() ?? Enumerable.Empty<XElement>())
+            .Where(e => e.Name.LocalName != "Items")
+            .Select(item => (Text: CellDisplay(ItemValue(item)), Anchor: ReadCellAnchor(item)))
+            .ToList();
+        if (content.Count == 0) return;
+
+        List<List<string>> grid;
+        if (content.Any(c => c.Anchor.HasPosition))
+        {
+            var rows = Math.Max(declaredRows, content.Where(c => c.Anchor.HasPosition).Max(c => c.Anchor.Row + 1));
+            var cols = Math.Max(declaredCols, content.Where(c => c.Anchor.HasPosition).Max(c => c.Anchor.Col + 1));
+            grid = NewGrid(rows, cols);
+            foreach (var (text, anchor) in content)
+                if (anchor.HasPosition && anchor.Row < rows && anchor.Col < cols)
+                    grid[anchor.Row][anchor.Col] = text;
+        }
+        else
+        {
+            var cols = Math.Max(1, declaredCols);
+            var rows = (int)Math.Ceiling(content.Count / (double)cols);
+            grid = NewGrid(rows, cols);
+            for (var i = 0; i < content.Count; i++) grid[i / cols][i % cols] = content[i].Text;
+        }
+
+        raw.TableCells = grid;
+        raw.TableColumnWidthsPt = colWidths.Count > 0 ? colWidths.ToArray() : null;
+        raw.TableHasHeader = grid.Count > 1;
+    }
+
+    private static List<List<string>> NewGrid(int rows, int cols) =>
+        Enumerable.Range(0, rows).Select(_ => Enumerable.Repeat("", cols).ToList()).ToList();
+
+    private string? ItemValue(XElement item) => Attr(item, "Value") ?? Child(item, "Value")?.Value;
+
+    // A cell value: a single =Fields.X expression becomes a Canvas binding token; otherwise literal text.
+    private static string CellDisplay(string? value)
+    {
+        value = (value ?? "").Trim();
+        if (value.Length == 0) return "";
+        var m = Regex.Match(value, @"^=\s*Fields\.(\w+)(?:\.Value)?$");
+        return m.Success ? $"{{{{{m.Groups[1].Value}}}}}" : value;
+    }
+
+    // Read attached cell-position properties regardless of owner prefix (Table.* / Crosstab.* / bare),
+    // whether serialized as attributes or child elements.
+    private static (int Row, int Col, bool HasPosition) ReadCellAnchor(XElement item)
+    {
+        int row = 0, col = 0; var has = false;
+        void Consume(string name, string? value)
+        {
+            if (value is null) return;
+            if (name.EndsWith("CellRowIndex", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out var r)) { row = r; has = true; }
+            else if (name.EndsWith("CellColumnIndex", StringComparison.OrdinalIgnoreCase) && int.TryParse(value, out var c)) { col = c; has = true; }
+        }
+        foreach (var a in item.Attributes()) Consume(a.Name.LocalName, a.Value);
+        foreach (var e in item.Elements()) Consume(e.Name.LocalName, e.Value);
+        return (row, col, has);
     }
 
     // ── Section-flatten build ──────────────────────────────────────────────────────────────────────
@@ -273,11 +347,49 @@ public sealed class TrdxToDesignConverter
                     $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
                 return Placeholder(element, $"[Sub-report: {raw.Name} — migrate manually]");
 
+            case "Table":
+            case "Crosstab":
+            case "CrossTab":
+                return MapTable(raw, element, diagnostics);
+
             default:
-                // Table, CrossTab, Chart, Graph, Map, … — full fidelity is V2.
+                // Chart, Graph, Map, … — full fidelity is V2.
                 diagnostics.Add(Warn("CANMIGTRDX011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
+    }
+
+    private static ElementDto MapTable(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.TableCells is not { Count: > 0 } grid)
+        {
+            diagnostics.Add(Warn("CANMIGTRDX011", $"'{raw.Name}' {raw.Type} has no parseable cells — inserted a placeholder."));
+            return Placeholder(element, $"[{raw.Type}: {raw.Name} — migrate manually]");
+        }
+
+        var columns = grid.Max(r => r.Count);
+        var cellData = grid
+            .Select(r => r.Count == columns ? r.ToArray() : r.Concat(Enumerable.Repeat("", columns - r.Count)).ToArray())
+            .ToArray();
+
+        element.Type = "table";
+        element.CellData = cellData;
+        element.ColumnWidths = FitWidths(raw.TableColumnWidthsPt, columns, raw.W);
+        element.HeaderRow = raw.TableHasHeader;
+
+        diagnostics.Add(Warn("CANMIGTRDX013",
+            $"'{raw.Name}' Telerik {raw.Type} was mapped to a Canvas table ({grid.Count} row(s) × {columns} column(s)); cell anchoring/grouping is best-effort — review."));
+        return element;
+    }
+
+    private static double[]? FitWidths(double[]? widths, int columns, double totalPt)
+    {
+        if (widths is null || widths.Length == 0 || columns <= 0) return null;
+        if (widths.Length == columns) return widths;
+        if (widths.Length > columns) return widths.Take(columns).ToArray();
+        var pad = columns - widths.Length;
+        var each = pad > 0 ? Math.Max(0, totalPt - widths.Sum()) / pad : 0;
+        return widths.Concat(Enumerable.Repeat(each, pad)).ToArray();
     }
 
     private static ElementDto Placeholder(ElementDto element, string label)
@@ -530,5 +642,8 @@ public sealed class TrdxToDesignConverter
         public string? ShapeKind;
         public string? ImageDataUrl;
         public string? Symbology;
+        public List<List<string>>? TableCells;
+        public double[]? TableColumnWidthsPt;
+        public bool TableHasHeader;
     }
 }
