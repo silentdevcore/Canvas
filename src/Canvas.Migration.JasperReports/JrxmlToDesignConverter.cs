@@ -136,6 +136,7 @@ public sealed class JrxmlToDesignConverter
                 if (Attr(textEl, "textAlignment") is { Length: > 0 } al) raw.TextAlign = ParseAlignment(al);
                 ApplyFont(raw, Child(textEl, "font"));
             }
+            ApplyBox(raw, Child(el, "box"));
 
             switch (type)
             {
@@ -259,12 +260,14 @@ public sealed class JrxmlToDesignConverter
                 element.Style = new Dictionary<string, object> { ["borderColor"] = raw.ForeColor };
                 if (raw.BackColor is { } bg) element.Style["backgroundColor"] = bg;
                 if (raw.LineWidth is { } bw) element.Style["borderWidth"] = bw;
+                ApplyBorderStyle(element.Style, raw);
                 return element;
 
             case "frame":
                 element.Type = "rect";
                 element.Style = new Dictionary<string, object> { ["borderColor"] = raw.ForeColor };
                 if (raw.BackColor is { } fbg) element.Style["backgroundColor"] = fbg;
+                ApplyBorderStyle(element.Style, raw);
                 return element;
 
             case "image":
@@ -373,6 +376,7 @@ public sealed class JrxmlToDesignConverter
         if (decoration.Length > 0) style["textDecoration"] = decoration;
         if (raw.BackColor is { } bg) style["backgroundColor"] = bg;
         style["textAlign"] = raw.TextAlign;
+        ApplyBorderStyle(style, raw);
         return style;
     }
 
@@ -383,8 +387,73 @@ public sealed class JrxmlToDesignConverter
         if (ParseColor(Attr(style, "backcolor")) is { } bc) raw.BackColor = bc;
         if (Attr(style, "hAlign") is { Length: > 0 } al) raw.TextAlign = ParseAlignment(al);
         ApplyFont(raw, Child(style, "font"));
+        ApplyBox(raw, Child(style, "box"));
         // JasperReports also exposes font attributes directly on <style>.
         ApplyFontAttrs(raw, style);
+    }
+
+    private static void ApplyBox(RawElement raw, XElement? box)
+    {
+        if (box is null)
+            return;
+
+        ApplyPen(raw, "all", Child(box, "pen"));
+        ApplyPen(raw, "top", Child(box, "topPen"));
+        ApplyPen(raw, "left", Child(box, "leftPen"));
+        ApplyPen(raw, "bottom", Child(box, "bottomPen"));
+        ApplyPen(raw, "right", Child(box, "rightPen"));
+    }
+
+    private static void ApplyPen(RawElement raw, string side, XElement? pen)
+    {
+        if (pen is null)
+            return;
+
+        var target = raw.Borders.GetValueOrDefault(side) ?? new BorderStyle();
+        if (ToDouble(Attr(pen, "lineWidth")) is var width and > 0)
+            target.Width = width;
+        if (ParseColor(Attr(pen, "lineColor")) is { } color)
+            target.Color = color;
+        if (Attr(pen, "lineStyle") is { Length: > 0 } lineStyle)
+            target.Style = lineStyle;
+        raw.Borders[side] = target;
+    }
+
+    private static void ApplyBorderStyle(Dictionary<string, object> style, RawElement raw)
+    {
+        if (raw.Borders.TryGetValue("all", out var all))
+        {
+            if (all.Width is { } width)
+                style["borderWidth"] = width;
+            if (all.Color is { } color)
+                style["borderColor"] = color;
+            if (DashStyleFromPen(all.Style) is { } dash)
+                style["borderStyle"] = dash;
+        }
+
+        foreach (var side in new[] { "top", "left", "bottom", "right" })
+        {
+            if (!raw.Borders.TryGetValue(side, out var border))
+                continue;
+            var suffix = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(side);
+            if (border.Width is { } width)
+                style[$"border{suffix}Width"] = width;
+            if (border.Color is { } color)
+                style[$"border{suffix}Color"] = color;
+            if (DashStyleFromPen(border.Style) is { } dash)
+                style[$"border{suffix}Style"] = dash;
+        }
+    }
+
+    private static string? DashStyleFromPen(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+        if (value.Contains("Dash", StringComparison.OrdinalIgnoreCase))
+            return "dashed";
+        if (value.Contains("Dot", StringComparison.OrdinalIgnoreCase))
+            return "dotted";
+        return "solid";
     }
 
     private static void ParseComponentElement(XElement el, RawElement raw)
@@ -665,10 +734,18 @@ public sealed class JrxmlToDesignConverter
         public string TextAlign = "left";
         public double? LineWidth;
         public string? ImageDataUrl;
+        public Dictionary<string, BorderStyle> Borders = new(StringComparer.OrdinalIgnoreCase);
         public string? ComponentKind;
         public string? ComponentType;
         public string? ComponentValue;
         public string? ComponentCaption;
         public Dictionary<string, object>? ComponentMetadata;
+    }
+
+    private sealed class BorderStyle
+    {
+        public double? Width;
+        public string? Color;
+        public string? Style;
     }
 }

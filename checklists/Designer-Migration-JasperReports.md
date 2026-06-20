@@ -74,7 +74,7 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 | `staticText` | `text` | `<text>` CDATA literal |
 | `textField` | `text` | `$F{field}` → binding; other expressions → expression |
 | `line` | `line` | `<graphicElement><pen lineWidth lineColor>` → stroke |
-| `rectangle` / `ellipse` | `rect` / `circle` | forecolor/backcolor → border/fill |
+| `rectangle` / `ellipse` | `rect` / `circle` | forecolor/backcolor + `<box>`/per-side pens → border/fill |
 | `image` | `image` | embedded base64 → data URL, else placeholder |
 | `frame` | `rect` + flatten children | container |
 | `componentElement` barcode / QR | `barcode` / `qrcode` | `barbecue` / barcode-like components + code expressions |
@@ -109,9 +109,63 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 **Current recommendation:** align JasperReports with the shared P1 fidelity pass: group/repeat
 semantics first, then styles/borders and better component placeholders.
 
+## Sample audit — Jaspersoft resources
+
+Local sample source:
+`designer-simples/JasperReports/jaspersoft-resources-master/Samples` (local-only test resources).
+
+Analyzed 13 `.jrxml` files:
+- `Invoice/Invoice.jrxml`
+- `Json/Json_Master.jrxml`, `Json/Json_Sub.jrxml`
+- `09. Customer Detail Report/main.jrxml`, `CustomerPurchasesReport.jrxml`
+- `Monthly Store Report/Monthly_Store_Report.jrxml`, `Cover.jrxml`, `Backcover.jrxml`, `toc.jrxml`,
+  `Store.jrxml`, `Store_Crosstab.jrxml`, `Stores_Overview.jrxml`, `Stores_Overview_Table.jrxml`
+
+Observed feature coverage:
+
+| Feature family | Seen in samples | Current converter status | Priority |
+| --- | ---: | --- | --- |
+| Basic band layout, static text, text fields, lines, rectangles, images, frames | broad | supported | Done |
+| `<box>` and per-side pens | 150 boxes, 125 left / 118 bottom / 112 top / 111 right pens | supported for named styles + element boxes | Done |
+| `componentElement` barcode/QR | component path present | supported as Canvas `barcode`/`qrcode` | Done |
+| `componentElement` charts / Highcharts | 5 chart components, 116 chart properties, 9 series | structured placeholder metadata only | P1/P2 |
+| `componentElement` `jr:table` | 4 table components | placeholder metadata only; not Canvas table yet | P1 |
+| `crosstab` | 1 crosstab, row/column groups and measures | structured placeholder metadata only | P1/P2 |
+| `subreport` | 2 direct subreports, 9 subreport expressions, 11 parameters | generic placeholder today | P1 |
+| `sectionType="Part"` / `<part>` book reports | Monthly Store Report has 7 parts | not modeled; currently skipped because parts lack `reportElement` | P1 |
+| `groupHeader` / `groupFooter` | 2 groups | not modeled as repeat/group semantics | P1 |
+| `subDataset`, `datasetRun`, SQL/JSON query metadata | 9 subdatasets, 8 dataset runs, 22 queries | not preserved centrally | P1 |
+| Parameters / fields / variables | 26 parameters, 136 fields, 18 variables | expressions preserved, declarations mostly not preserved | P1 |
+| Conditional styles | 8 conditional styles | open | P1 |
+| `printWhenExpression` | 9 occurrences | open; should map to visibility metadata | P1 |
+| Hyperlink / anchor expressions | 7 hyperlink anchors, 1 anchor name | open | P2 |
+| External image paths | 10 image expressions, many path-based | currently placeholder if not embedded | P2 |
+
+Key sample-driven conclusions:
+- `Invoice.jrxml` is the best table-component test bed: nested `jr:table`, `datasetRun`, dataset parameters,
+  table column/detail cells, variables, formatted `$P{}`/`$V{}` expressions, external images, and box styles.
+- `Monthly_Store_Report.jrxml` is the best part/subreport orchestration test bed: `sectionType="Part"`,
+  `<part>` blocks, group header/footer, subreport expressions and parameters.
+- `Store.jrxml` / `Stores_Overview*.jrxml` are chart/table fidelity samples: Highcharts components,
+  dataset runs, series, chart properties, and table columns.
+- `Store_Crosstab.jrxml` is the crosstab sample: row/column group and measure metadata.
+- `Json_Master.jrxml` / `Json_Sub.jrxml` prove that datasource/query metadata must not assume SQL only.
+
 - [ ] **P1** `groupHeader`/`groupFooter` repeat semantics; multiple `detail` bands
-- [ ] **P1** `<box>`/per-side pens; `<style>` inheritance (`style` chains); conditional styles
+- [ ] **P1** `sectionType="Part"` / `<part>` orchestration: preserve part name, report expression, parameters,
+      and position/order metadata so book-style reports such as Monthly Store Report do not lose their structure.
+- [ ] **P1** `jr:table` component → Canvas table placeholder/table model: preserve datasetRun, parameters,
+      columns, header/detail/footer cells, and cell expressions from Invoice and Store samples.
+- [ ] **P1** Preserve report-level data declarations: parameters, fields, variables, subDataset/queryString,
+      datasetRun, dataset/subreport parameters, and SQL/JSON query language metadata in `PageSettings.CustomProperties`.
+- [x] **P1** `<box>`/per-side pens + named style inheritance for box borders.
+- [ ] **P1** Conditional styles and full chained style inheritance.
+- [ ] **P1** `printWhenExpression` → Canvas visibility/metadata, matching the RDL hidden-expression pattern.
 - [x] **P1** `componentElement` barcode/QR components → Canvas `barcode` / `qrcode` with field expression values.
 - [x] **P1** `componentElement` charts/crosstab placeholders with captions and preserved component metadata
       (`jrxmlComponentType`, `style.jrxmlComponent`, dataset hints, expressions, group/measure counts).
-- [ ] **P1** `subreport` inlining; `$P{}`/`$V{}` expression dialect
+- [ ] **P1** Subreport metadata: preserve `subreportExpression`, `subreportParameter`,
+      `connectionExpression`/`dataSourceExpression`; inlining can remain later.
+- [ ] **P1** `$P{}` / `$V{}` expression dialect: map simple parameter/variable references to Canvas-friendly
+      placeholders and preserve complex expressions for review.
+- [ ] **P2** Hyperlink/anchor expressions and external image resource resolution.

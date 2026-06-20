@@ -97,6 +97,44 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_BoxPens_MapToPerSideBorderStyle()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Borders"
+                pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <style name="Boxed">
+                <box><pen lineWidth="1" lineColor="#111111" lineStyle="Solid"/></box>
+              </style>
+              <detail>
+                <band height="40">
+                  <staticText>
+                    <reportElement key="boxedText" x="0" y="0" width="160" height="30" style="Boxed"/>
+                    <box>
+                      <topPen lineWidth="2" lineColor="#FF0000" lineStyle="Dashed"/>
+                      <rightPen lineWidth="0.5" lineColor="#0000FF" lineStyle="Dotted"/>
+                    </box>
+                    <text><![CDATA[Boxed]]></text>
+                  </staticText>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        var boxed = El(Convert(jrxml).Design, "boxedText");
+
+        Assert.Equal("text", boxed.Type);
+        Assert.Equal(1d, boxed.Style!["borderWidth"]);
+        Assert.Equal("#111111", boxed.Style["borderColor"]);
+        Assert.Equal("solid", boxed.Style["borderStyle"]);
+        Assert.Equal(2d, boxed.Style["borderTopWidth"]);
+        Assert.Equal("#FF0000", boxed.Style["borderTopColor"]);
+        Assert.Equal("dashed", boxed.Style["borderTopStyle"]);
+        Assert.Equal(0.5d, boxed.Style["borderRightWidth"]);
+        Assert.Equal("#0000FF", boxed.Style["borderRightColor"]);
+        Assert.Equal("dotted", boxed.Style["borderRightStyle"]);
+    }
+
+    [Fact]
     public void Convert_TextFieldExpression_BecomesBinding()
     {
         var r = Convert(SampleJrxml);
