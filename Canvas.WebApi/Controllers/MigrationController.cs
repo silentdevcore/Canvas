@@ -120,7 +120,8 @@ public class MigrationController : ControllerBase
             }
             else if (JrxmlToDesignConverter.LooksLikeJrxml(request.SourceCode))
             {
-                var result = new JrxmlToDesignConverter().Convert(request.SourceCode);
+                var resources = MergeReportResources(request.ResourceXml, request.Resources);
+                var result = new JrxmlToDesignConverter().Convert(request.SourceCode, resources);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }

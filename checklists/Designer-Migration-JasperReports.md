@@ -106,6 +106,7 @@ original in metadata and normalize `$F{}`/`$P{}`/`$V{}` references to Canvas-sty
 | `CANMIGJRXML020` | Warning | JasperReports hyperlink/anchor metadata preserved and mapped to Canvas link/bookmark fields where possible |
 | `CANMIGJRXML021` | Info | JasperReports external image path was resolved and embedded as a Canvas data URL |
 | `CANMIGJRXML022` | Warning | JasperReports book `<part>` mapped to a visible Canvas placeholder; subreport inlining still requires orchestration |
+| `CANMIGJRXML023` | Info / Warning | JasperReports subreport resource inlined when matching `.jrxml` source is supplied; unresolved/invalid sources remain placeholders |
 
 ## V1 checklist
 
@@ -144,7 +145,7 @@ Observed feature coverage:
 | `componentElement` charts / Highcharts | 5 chart components, 116 chart properties, 9 series | structured placeholder metadata only | P1/P2 |
 | `componentElement` `jr:table` | 4 table components | Canvas table with header/detail rows + dataset metadata | Done/P1 review |
 | `crosstab` | 1 crosstab, row/column groups and measures | structured placeholder metadata only | P1/P2 |
-| `subreport` | 2 direct subreports, 9 subreport expressions, 11 parameters | direct subreport metadata preserved; part subreports still need orchestration | Done/P1 parts |
+| `subreport` | 2 direct subreports, 9 subreport expressions, 11 parameters | direct subreport metadata preserved; matching supplied `.jrxml` resources inline into positioned Canvas elements | Done/P1 parts |
 | `sectionType="Part"` / `<part>` book reports | Monthly Store Report has 7 parts | preserved in `jrxmlParts` and visible `jrxmlPart` placeholders; subreport inlining still later | Done/P1 runtime review |
 | `groupHeader` / `groupFooter` | 2 groups | header/footer bands are stacked around detail and mapped to `jrxmlGroup`/`jrxmlRepeat` + `RepeatDto` metadata | Done/P1 runtime review |
 | `subDataset`, `datasetRun`, SQL/JSON query metadata | 9 subdatasets, 8 dataset runs, 22 queries | report/subdataset/query metadata preserved; datasetRun kept on table/component styles | Done/P1 runtime review |
@@ -189,6 +190,9 @@ Key sample-driven conclusions:
       (`jrxmlComponentType`, `style.jrxmlComponent`, dataset hints, expressions, group/measure counts).
 - [x] **P1** Direct subreport metadata: preserve `subreportExpression`, `subreportParameter`,
       `connectionExpression`/`dataSourceExpression`, and return values on `style.jrxmlSubreport`.
+- [x] **P1** Direct subreport resource inlining: when `report-to-design` resources contain a matching
+      `.jrxml` source for a `.jasper`/`.jrxml` subreport reference, inline the converted subreport elements
+      at the parent subreport position while retaining `style.jrxmlParentSubreport`.
 - [ ] **P1** Subreport inlining/part orchestration: convert `sectionType="Part"` + `subreportPart`
       into structured Canvas/page metadata; direct placeholders already preserve subreport metadata.
 - [x] **P1** `$P{}` / `$V{}` expression dialect: simple parameter/variable references map to Canvas-friendly

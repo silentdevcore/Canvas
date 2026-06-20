@@ -25,6 +25,7 @@ public sealed class JrxmlConvertResult
 public sealed class JrxmlToDesignConverter
 {
     private const double A4WidthPt = 595, A4HeightPt = 842;
+    private const int MaxSubreportDepth = 8;
 
     // Section element name → canonical stacking order (smaller = higher on the page).
     private static readonly string[] SectionOrder =
@@ -35,6 +36,8 @@ public sealed class JrxmlToDesignConverter
 
     // style name → its <style> element from the report, populated per Convert call.
     private readonly Dictionary<string, XElement> _namedStyles = new(StringComparer.Ordinal);
+    private IReadOnlyDictionary<string, string> _subreportSources = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    private int _subreportDepth;
 
     /// <summary>Detects a JasperReports <c>.jrxml</c>: root LocalName is <c>jasperReport</c> (unique).</summary>
     public static bool LooksLikeJrxml(string source)
@@ -58,7 +61,25 @@ public sealed class JrxmlToDesignConverter
         return Convert(source);
     }
 
-    public JrxmlConvertResult Convert(string jrxml)
+    public JrxmlConvertResult Convert(string jrxml, IReadOnlyDictionary<string, string>? subreportSources = null)
+    {
+        var previousSources = _subreportSources;
+        var previousDepth = _subreportDepth;
+        if (subreportSources is not null)
+            _subreportSources = subreportSources;
+
+        try
+        {
+            return ConvertCore(jrxml);
+        }
+        finally
+        {
+            _subreportSources = previousSources;
+            _subreportDepth = previousDepth;
+        }
+    }
+
+    private JrxmlConvertResult ConvertCore(string jrxml)
     {
         if (string.IsNullOrWhiteSpace(jrxml))
             throw new ArgumentException("Source cannot be null or empty.", nameof(jrxml));
@@ -303,7 +324,7 @@ public sealed class JrxmlToDesignConverter
 
     // ── Section-flatten build ──────────────────────────────────────────────────────────────────────
 
-    private static JrxmlConvertResult BuildDesign(RawReport report)
+    private JrxmlConvertResult BuildDesign(RawReport report)
     {
         var diagnostics = new List<MigrationDiagnostic>();
 
@@ -345,6 +366,13 @@ public sealed class JrxmlToDesignConverter
             ApplyDetailRepeatMetadata(element, raw, band, report, diagnostics);
             ApplyConditionalStyleMetadata(element, raw, diagnostics);
             ApplyNavigationMetadata(element, raw, diagnostics);
+
+            if (raw.Type == "subreport" && TryInlineSubreport(raw, element, diagnostics) is { Count: > 0 } inlined)
+            {
+                elements.AddRange(inlined);
+                mapped += inlined.Count;
+                continue;
+            }
 
             (bandType is "pageHeader" or "pageFooter" or "lastPageFooter" ? sharedElements : elements).Add(element);
             mapped++;
@@ -483,6 +511,87 @@ public sealed class JrxmlToDesignConverter
         diagnostics.Add(Warn("CANMIGJRXML011",
             $"'{raw.Name}' JasperReports subreport metadata was preserved on a positioned placeholder; review manually."));
         return placeholder;
+    }
+
+    private List<ElementDto>? TryInlineSubreport(RawElement raw, ElementDto placeholder, List<MigrationDiagnostic> diagnostics)
+    {
+        if (_subreportDepth >= MaxSubreportDepth)
+            return null;
+        var expression = raw.SubreportMetadata?.GetValueOrDefault("SubreportExpression")?.ToString();
+        if (string.IsNullOrWhiteSpace(expression))
+            return null;
+        if (ResolveSubreportSource(expression) is not { } resolved)
+            return null;
+
+        JrxmlConvertResult result;
+        try
+        {
+            var converter = new JrxmlToDesignConverter
+            {
+                _subreportSources = _subreportSources,
+                _subreportDepth = _subreportDepth + 1
+            };
+            result = converter.ConvertCore(resolved.Source);
+        }
+        catch (ArgumentException ex)
+        {
+            diagnostics.Add(Warn("CANMIGJRXML023",
+                $"'{raw.Name}' subreport '{resolved.Key}' could not be inlined: {ex.Message}"));
+            return null;
+        }
+
+        diagnostics.AddRange(result.Diagnostics);
+        var inlined = result.Design.Pages.SelectMany(page => page.Elements)
+            .Concat(result.Design.SharedElements ?? [])
+            .Select(element => CloneInlinedSubreportElement(element, placeholder, raw, resolved.Key))
+            .ToList();
+        if (inlined.Count == 0)
+            return null;
+
+        diagnostics.Add(Info("CANMIGJRXML023",
+            $"'{raw.Name}' subreport '{resolved.Key}' was inlined with {inlined.Count} Canvas element(s)."));
+        return inlined;
+    }
+
+    private (string Key, string Source)? ResolveSubreportSource(string expression)
+    {
+        var name = StripJasperStringLiteral(expression.Trim());
+        foreach (var candidate in SubreportSourceCandidates(name))
+        {
+            if (_subreportSources.TryGetValue(candidate, out var source) && LooksLikeJrxml(source))
+                return (candidate, source);
+        }
+        return null;
+    }
+
+    private static IEnumerable<string> SubreportSourceCandidates(string name)
+    {
+        yield return name;
+        yield return Path.GetFileName(name);
+        if (name.EndsWith(".jasper", StringComparison.OrdinalIgnoreCase))
+        {
+            var jrxml = Path.ChangeExtension(name, ".jrxml");
+            yield return jrxml;
+            yield return Path.GetFileName(jrxml);
+        }
+    }
+
+    private static ElementDto CloneInlinedSubreportElement(ElementDto source, ElementDto placeholder, RawElement raw, string resourceKey)
+    {
+        var clone = JsonSerializer.Deserialize<ElementDto>(JsonSerializer.Serialize(source)) ?? new ElementDto();
+        clone.Id = $"{placeholder.Id}__{clone.Id}";
+        clone.Name = $"{raw.Name}.{clone.Name ?? clone.Id}";
+        clone.X = placeholder.X + source.X;
+        clone.Y = placeholder.Y + source.Y;
+        clone.Style ??= [];
+        clone.Style["jrxmlInlinedFromSubreport"] = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["resourceKey"] = resourceKey,
+            ["parent"] = raw.Name
+        };
+        if (raw.SubreportMetadata is { Count: > 0 })
+            clone.Style["jrxmlParentSubreport"] = raw.SubreportMetadata;
+        return clone;
     }
 
     private static ElementDto MapBarcodeComponent(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
@@ -1192,9 +1301,9 @@ public sealed class JrxmlToDesignConverter
     private static string NormalizeJasperExpression(string expression)
     {
         var normalized = expression.Trim();
-        normalized = Regex.Replace(normalized, @"\$F\{(\w+)\}", "[$1]");
-        normalized = Regex.Replace(normalized, @"\$P\{(\w+)\}", "[Parameters.$1]");
-        normalized = Regex.Replace(normalized, @"\$V\{(\w+)\}", "[Variables.$1]");
+        normalized = Regex.Replace(normalized, @"\$F\{([\w.]+)\}", "[$1]");
+        normalized = Regex.Replace(normalized, @"\$P\{([\w.]+)\}", "[Parameters.$1]");
+        normalized = Regex.Replace(normalized, @"\$V\{([\w.]+)\}", "[Variables.$1]");
         return normalized;
     }
 
@@ -1212,7 +1321,7 @@ public sealed class JrxmlToDesignConverter
 
     private static bool TryParseJasperToken(string expression, out string kind, out string name)
     {
-        var token = Regex.Match(expression, @"^\s*\$(?<kind>[FPV])\{(?<name>\w+)\}\s*$");
+        var token = Regex.Match(expression, @"^\s*\$(?<kind>[FPV])\{(?<name>[\w.]+)\}\s*$");
         kind = token.Groups["kind"].Value;
         name = token.Groups["name"].Value;
         return token.Success;

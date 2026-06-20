@@ -652,6 +652,57 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_SubreportResource_InlinesMatchingJrxml()
+    {
+        var master = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Json_Master"
+                pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <parameter name="JSON" class="java.lang.String"/>
+              <title>
+                <band height="211">
+                  <subreport>
+                    <reportElement key="sub" x="0" y="0" width="554" height="211"/>
+                    <dataSourceExpression><![CDATA[new net.sf.jasperreports.engine.data.JsonDataSource(org.apache.commons.io.IOUtils.toInputStream($P{JSON}))]]></dataSourceExpression>
+                    <subreportExpression><![CDATA["Json_Sub.jasper"]]></subreportExpression>
+                  </subreport>
+                </band>
+              </title>
+            </jasperReport>
+            """;
+        var subreport = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Json_Sub"
+                pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <field name="firstName" class="java.lang.String"/>
+              <field name="lastName" class="java.lang.String"/>
+              <field name="address.street" class="java.lang.String"/>
+              <detail>
+                <band height="50">
+                  <textField>
+                    <reportElement key="greeting" x="0" y="0" width="555" height="50"/>
+                    <textFieldExpression><![CDATA["Hello, " + $F{firstName} + " " + $F{lastName} + " of " + $F{address.street}]]></textFieldExpression>
+                  </textField>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        var result = new JrxmlToDesignConverter().Convert(master, new Dictionary<string, string>
+        {
+            ["Json_Sub.jrxml"] = subreport
+        });
+
+        var element = Assert.Single(result.Design.Pages[0].Elements);
+        Assert.Contains("sub.greeting", element.Name);
+        Assert.Equal("text", element.Type);
+        Assert.Equal(""" "Hello, " + [firstName] + " " + [lastName] + " of " + [address.street] """.Trim(), element.Content);
+        Assert.True(element.X > 20);
+        Assert.True(element.Y > 20);
+        Assert.True(element.Style!.ContainsKey("jrxmlInlinedFromSubreport"));
+        Assert.True(element.Style.ContainsKey("jrxmlParentSubreport"));
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML023" && d.Severity == MigrationDiagnosticSeverity.Info);
+    }
+
+    [Fact]
     public void Convert_Line_FromGraphicElementPen()
     {
         var rule = El(Convert(SampleJrxml).Design, "rule");
