@@ -102,6 +102,7 @@ original in metadata and normalize `$F{}`/`$P{}`/`$V{}` references to Canvas-sty
 | `CANMIGJRXML016` | Warning | JasperReports `printWhenExpression` mapped to Canvas visibility metadata; runtime semantics need review |
 | `CANMIGJRXML017` | Warning | JasperReports group header/footer mapped to Canvas repeat metadata; runtime group semantics need review |
 | `CANMIGJRXML018` | Warning | Multiple JasperReports detail bands mapped to shared Canvas repeat metadata; runtime multi-band detail semantics need review |
+| `CANMIGJRXML019` | Warning | JasperReports conditional styles preserved with normalized condition expressions; runtime style evaluation needs review |
 
 ## V1 checklist
 
@@ -145,7 +146,7 @@ Observed feature coverage:
 | `groupHeader` / `groupFooter` | 2 groups | header/footer bands are stacked around detail and mapped to `jrxmlGroup`/`jrxmlRepeat` + `RepeatDto` metadata | Done/P1 runtime review |
 | `subDataset`, `datasetRun`, SQL/JSON query metadata | 9 subdatasets, 8 dataset runs, 22 queries | report/subdataset/query metadata preserved; datasetRun kept on table/component styles | Done/P1 runtime review |
 | Parameters / fields / variables | 26 parameters, 136 fields, 18 variables | declarations preserved in `PageSettings.CustomProperties`; runtime expressions normalize `$P{}`/`$V{}` where consumed | Done/P1 runtime review |
-| Conditional styles | 8 conditional styles | open | P1 |
+| Conditional styles | 8 conditional styles | chained style inheritance supported; conditional styles preserved as `jrxmlConditionalStyles` with normalized conditions | Done/P1 runtime review |
 | `printWhenExpression` | 9 occurrences | maps to `Hidden`/`VisibleExpression` + `style.jrxmlPrintWhenExpression` | Done/P1 runtime review |
 | Hyperlink / anchor expressions | 7 hyperlink anchors, 1 anchor name | open | P2 |
 | External image paths | 10 image expressions, many path-based | currently placeholder if not embedded | P2 |
@@ -174,7 +175,9 @@ Key sample-driven conclusions:
 - [x] **P1** Preserve report-level data declarations: parameters, fields, variables, subDataset/queryString,
       SQL/JSON query language metadata in `PageSettings.CustomProperties`, plus datasetRun metadata on table/component styles.
 - [x] **P1** `<box>`/per-side pens + named style inheritance for box borders.
-- [ ] **P1** Conditional styles and full chained style inheritance.
+- [x] **P1** Conditional styles and full chained style inheritance: named styles now resolve parent `style`
+      chains, while `<conditionalStyle>` blocks preserve condition expressions, normalized Canvas-style
+      conditions, and style metadata on `style.jrxmlConditionalStyles`.
 - [x] **P1** `printWhenExpression` → Canvas `Hidden`/`VisibleExpression` plus preserved
       `style.jrxmlPrintWhenExpression`, matching the RDL hidden-expression pattern.
 - [x] **P1** `componentElement` barcode/QR components → Canvas `barcode` / `qrcode` with field expression values.

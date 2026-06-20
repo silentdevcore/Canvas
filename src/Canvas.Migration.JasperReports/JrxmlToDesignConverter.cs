@@ -196,7 +196,7 @@ public sealed class JrxmlToDesignConverter
                 W = ToDouble(Attr(re, "width")),
                 H = ToDouble(Attr(re, "height")),
             };
-            ApplyStyle(raw, _namedStyles.GetValueOrDefault(Attr(re, "style") ?? ""));   // named base
+            ApplyStyle(raw, _namedStyles.GetValueOrDefault(Attr(re, "style") ?? ""), []);   // named base
             if (ParseColor(Attr(re, "forecolor")) is { } fc) raw.ForeColor = fc;        // inline overrides
             if (ParseColor(Attr(re, "backcolor")) is { } bc && !string.Equals(Attr(re, "mode"), "Transparent", StringComparison.OrdinalIgnoreCase)) raw.BackColor = bc;
             raw.PrintWhenExpression = Child(el, "printWhenExpression")?.Value.Trim()
@@ -288,6 +288,7 @@ public sealed class JrxmlToDesignConverter
             ApplyVisibility(element, raw, diagnostics);
             ApplyGroupMetadata(element, raw, band, diagnostics);
             ApplyDetailRepeatMetadata(element, raw, band, report, diagnostics);
+            ApplyConditionalStyleMetadata(element, raw, diagnostics);
 
             (bandType is "pageHeader" or "pageFooter" or "lastPageFooter" ? sharedElements : elements).Add(element);
             mapped++;
@@ -516,9 +517,13 @@ public sealed class JrxmlToDesignConverter
         return style;
     }
 
-    private void ApplyStyle(RawElement raw, XElement? style)
+    private void ApplyStyle(RawElement raw, XElement? style, HashSet<string> visited)
     {
         if (style is null) return;
+        if (Attr(style, "name") is { Length: > 0 } styleName && !visited.Add(styleName))
+            return;
+        if (Attr(style, "style") is { Length: > 0 } parentStyle)
+            ApplyStyle(raw, _namedStyles.GetValueOrDefault(parentStyle), visited);
         if (ParseColor(Attr(style, "forecolor")) is { } fc) raw.ForeColor = fc;
         if (ParseColor(Attr(style, "backcolor")) is { } bc) raw.BackColor = bc;
         if (Attr(style, "hAlign") is { Length: > 0 } al) raw.TextAlign = ParseAlignment(al);
@@ -526,6 +531,7 @@ public sealed class JrxmlToDesignConverter
         ApplyBox(raw, Child(style, "box"));
         // JasperReports also exposes font attributes directly on <style>.
         ApplyFontAttrs(raw, style);
+        raw.ConditionalStyles.AddRange(ParseConditionalStyles(style));
     }
 
     private static void ApplyBox(RawElement raw, XElement? box)
@@ -1034,6 +1040,17 @@ public sealed class JrxmlToDesignConverter
             $"'{raw.Name}' in JasperReports detail band {band.SectionIndex} was mapped to shared detail repeat metadata; review multi-band detail runtime semantics."));
     }
 
+    private static void ApplyConditionalStyleMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.ConditionalStyles.Count == 0)
+            return;
+
+        element.Style ??= [];
+        element.Style["jrxmlConditionalStyles"] = raw.ConditionalStyles.ToArray();
+        diagnostics.Add(Warn("CANMIGJRXML019",
+            $"'{raw.Name}' has JasperReports conditional style metadata preserved; review Canvas runtime style evaluation."));
+    }
+
     // A JasperReports textField expression that references data/params/vars/functions (vs a bare literal).
     private static bool LooksLikeExpr(string? value) =>
         value is not null && (value.Contains("$F{") || value.Contains("$P{") || value.Contains("$V{")
@@ -1094,6 +1111,79 @@ public sealed class JrxmlToDesignConverter
         AddText(target, key, value);
         if (target is not null && !string.IsNullOrWhiteSpace(value) && LooksLikeExpr(value))
             target[$"Normalized{key}"] = NormalizeJasperExpression(value);
+    }
+
+    private static IEnumerable<Dictionary<string, object>> ParseConditionalStyles(XElement style)
+    {
+        foreach (var conditionalStyle in Children(style, "conditionalStyle"))
+        {
+            var item = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            AddExpressionText(item, "ConditionExpression", Child(conditionalStyle, "conditionExpression")?.Value.Trim());
+            if (Child(conditionalStyle, "style") is { } conditionalStyleBody)
+            {
+                var styleMetadata = StyleMetadata(conditionalStyleBody);
+                if (styleMetadata.Count > 0)
+                    item["Style"] = styleMetadata;
+            }
+            if (item.Count > 0)
+                yield return item;
+        }
+    }
+
+    private static Dictionary<string, object> StyleMetadata(XElement style)
+    {
+        var item = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        if (ParseColor(Attr(style, "forecolor")) is { } fc) item["color"] = fc;
+        if (ParseColor(Attr(style, "backcolor")) is { } bc) item["backgroundColor"] = bc;
+        if (Attr(style, "hAlign") is { Length: > 0 } al) item["textAlign"] = ParseAlignment(al);
+        AddFontMetadata(item, style);
+        AddFontMetadata(item, Child(style, "font"));
+        AddBoxMetadata(item, Child(style, "box"));
+        return item;
+    }
+
+    private static void AddFontMetadata(Dictionary<string, object> item, XElement? font)
+    {
+        if (font is null)
+            return;
+        AddText(item, "fontFamily", Attr(font, "fontName"));
+        if (ToDouble(Attr(font, "size") ?? Attr(font, "fontSize")) is var size and > 0)
+            item["fontSize"] = size;
+        if (IsTrue(Attr(font, "isBold"))) item["fontWeight"] = "bold";
+        if (IsTrue(Attr(font, "isItalic"))) item["fontStyle"] = "italic";
+        var decoration = string.Join(" ", new[]
+        {
+            IsTrue(Attr(font, "isUnderline")) ? "underline" : null,
+            IsTrue(Attr(font, "isStrikeThrough")) ? "line-through" : null
+        }.Where(s => s is not null));
+        if (decoration.Length > 0)
+            item["textDecoration"] = decoration;
+    }
+
+    private static void AddBoxMetadata(Dictionary<string, object> item, XElement? box)
+    {
+        if (box is null)
+            return;
+
+        AddPenMetadata(item, "", Child(box, "pen"));
+        AddPenMetadata(item, "Top", Child(box, "topPen"));
+        AddPenMetadata(item, "Left", Child(box, "leftPen"));
+        AddPenMetadata(item, "Bottom", Child(box, "bottomPen"));
+        AddPenMetadata(item, "Right", Child(box, "rightPen"));
+    }
+
+    private static void AddPenMetadata(Dictionary<string, object> item, string side, XElement? pen)
+    {
+        if (pen is null)
+            return;
+
+        var prefix = side.Length == 0 ? "border" : $"border{side}";
+        if (ToDouble(Attr(pen, "lineWidth")) is var width and > 0)
+            item[$"{prefix}Width"] = width;
+        if (ParseColor(Attr(pen, "lineColor")) is { } color)
+            item[$"{prefix}Color"] = color;
+        if (DashStyleFromPen(Attr(pen, "lineStyle")) is { } style)
+            item[$"{prefix}Style"] = style;
     }
 
     private static string SafeRepeatPath(string value)
@@ -1291,6 +1381,7 @@ public sealed class JrxmlToDesignConverter
         public string? ImageDataUrl;
         public string? PrintWhenExpression;
         public Dictionary<string, BorderStyle> Borders = new(StringComparer.OrdinalIgnoreCase);
+        public List<Dictionary<string, object>> ConditionalStyles = [];
         public string? ComponentKind;
         public string? ComponentType;
         public string? ComponentValue;

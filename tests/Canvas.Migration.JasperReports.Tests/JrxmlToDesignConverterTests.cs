@@ -211,6 +211,60 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_ChainedAndConditionalStyles_ArePreserved()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Styles"
+                pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <style name="Base" forecolor="#111111">
+                <box><pen lineWidth="1" lineColor="#222222" lineStyle="Solid"/></box>
+              </style>
+              <style name="Child" style="Base" hAlign="Right">
+                <font fontName="Arial" size="11" isBold="true"/>
+                <conditionalStyle>
+                  <conditionExpression><![CDATA[$F{amount} > 100]]></conditionExpression>
+                  <style forecolor="#FF0000" backcolor="#FFFF00">
+                    <font isItalic="true"/>
+                    <box><bottomPen lineWidth="2" lineColor="#00FF00" lineStyle="Dashed"/></box>
+                  </style>
+                </conditionalStyle>
+              </style>
+              <detail>
+                <band height="20">
+                  <textField>
+                    <reportElement key="amount" x="0" y="0" width="120" height="20" style="Child"/>
+                    <textFieldExpression><![CDATA[$F{amount}]]></textFieldExpression>
+                  </textField>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+        var amount = El(result.Design, "amount");
+
+        Assert.Equal("#111111", amount.Style!["color"]);
+        Assert.Equal(1d, amount.Style["borderWidth"]);
+        Assert.Equal("#222222", amount.Style["borderColor"]);
+        Assert.Equal("right", amount.Style["textAlign"]);
+        Assert.Equal("Arial", amount.Style["fontFamily"]);
+        Assert.Equal("bold", amount.Style["fontWeight"]);
+
+        var conditionalStyles = Assert.IsType<Dictionary<string, object>[]>(amount.Style["jrxmlConditionalStyles"]);
+        Assert.Single(conditionalStyles);
+        Assert.Equal("$F{amount} > 100", conditionalStyles[0]["ConditionExpression"]);
+        Assert.Equal("[amount] > 100", conditionalStyles[0]["NormalizedConditionExpression"]);
+        var conditionalStyle = Assert.IsType<Dictionary<string, object>>(conditionalStyles[0]["Style"]);
+        Assert.Equal("#FF0000", conditionalStyle["color"]);
+        Assert.Equal("#FFFF00", conditionalStyle["backgroundColor"]);
+        Assert.Equal("italic", conditionalStyle["fontStyle"]);
+        Assert.Equal(2d, conditionalStyle["borderBottomWidth"]);
+        Assert.Equal("#00FF00", conditionalStyle["borderBottomColor"]);
+        Assert.Equal("dashed", conditionalStyle["borderBottomStyle"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML019" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
     public void Convert_BoxPens_MapToPerSideBorderStyle()
     {
         var jrxml = """
