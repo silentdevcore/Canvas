@@ -243,6 +243,66 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_ComponentElementTable_BecomesCanvasTableWithMetadata()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+                xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components"
+                name="TableReport" pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <detail>
+                <band height="100">
+                  <componentElement>
+                    <reportElement key="productsTable" x="0" y="0" width="250" height="60"/>
+                    <jr:table>
+                      <datasetRun subDataset="Products">
+                        <datasetParameter name="CUSTOMER_ID">
+                          <datasetParameterExpression><![CDATA[$P{CUSTOMER_ID}]]></datasetParameterExpression>
+                        </datasetParameter>
+                        <connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+                      </datasetRun>
+                      <jr:column width="100">
+                        <jr:columnHeader height="20">
+                          <staticText><reportElement x="0" y="0" width="100" height="20"/><text><![CDATA[Product]]></text></staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                          <textField><reportElement x="0" y="0" width="100" height="20"/><textFieldExpression><![CDATA[$F{product_name}]]></textFieldExpression></textField>
+                        </jr:detailCell>
+                      </jr:column>
+                      <jr:column width="80">
+                        <jr:columnHeader height="20">
+                          <staticText><reportElement x="0" y="0" width="80" height="20"/><text><![CDATA[Price]]></text></staticText>
+                        </jr:columnHeader>
+                        <jr:detailCell height="20">
+                          <textField><reportElement x="0" y="0" width="80" height="20"/><textFieldExpression><![CDATA[TEXT($F{price}, "0.00")]]></textFieldExpression></textField>
+                        </jr:detailCell>
+                      </jr:column>
+                    </jr:table>
+                  </componentElement>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+        var table = El(result.Design, "productsTable");
+
+        Assert.Equal("table", table.Type);
+        Assert.True(table.HeaderRow);
+        Assert.Equal(new[] { 100d, 80d }, table.ColumnWidths);
+        Assert.Equal("Product", table.CellData![0][0]);
+        Assert.Equal("Price", table.CellData[0][1]);
+        Assert.Equal("{{product_name}}", table.CellData[1][0]);
+        Assert.Equal("""TEXT($F{price}, "0.00")""", table.CellData[1][1]);
+        var metadata = Assert.IsType<Dictionary<string, object>>(table.Style!["jrxmlTable"]);
+        Assert.Equal("Products", metadata["DatasetName"]);
+        Assert.Equal(2, metadata["ColumnCount"]);
+        var parameters = Assert.IsType<Dictionary<string, object>[]>(metadata["Parameters"]);
+        Assert.Equal("CUSTOMER_ID", parameters[0]["Name"]);
+        Assert.Equal("$P{CUSTOMER_ID}", parameters[0]["Expression"]);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML014" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
     public void Convert_Crosstab_PreservesMetadataOnPlaceholder()
     {
         var jrxml = """

@@ -78,6 +78,7 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 | `image` | `image` | embedded base64 → data URL, else placeholder |
 | `frame` | `rect` + flatten children | container |
 | `componentElement` barcode / QR | `barcode` / `qrcode` | `barbecue` / barcode-like components + code expressions |
+| `componentElement` `jr:table` | `table` | header/detail rows + dataset metadata; repeat semantics require review |
 | `componentElement` chart / `crosstab` | labeled placeholder + component metadata | `CANMIGJRXML011` |
 | `subreport` / unknown | labeled placeholder | `CANMIGJRXML011` |
 
@@ -93,6 +94,7 @@ Root LocalName is `jasperReport` — **unique** (no other format uses it), so de
 | `CANMIGJRXML011` | Warning | Unsupported element / subreport / component — labeled placeholder |
 | `CANMIGJRXML012` | Warning | Image not embeddable — placeholder inserted |
 | `CANMIGJRXML013` | Info | JasperReports barcode/QR component mapped to Canvas barcode/QR |
+| `CANMIGJRXML014` | Warning | JasperReports table component mapped to Canvas table; dataset/repeat semantics require review |
 
 ## V1 checklist
 
@@ -129,7 +131,7 @@ Observed feature coverage:
 | `<box>` and per-side pens | 150 boxes, 125 left / 118 bottom / 112 top / 111 right pens | supported for named styles + element boxes | Done |
 | `componentElement` barcode/QR | component path present | supported as Canvas `barcode`/`qrcode` | Done |
 | `componentElement` charts / Highcharts | 5 chart components, 116 chart properties, 9 series | structured placeholder metadata only | P1/P2 |
-| `componentElement` `jr:table` | 4 table components | placeholder metadata only; not Canvas table yet | P1 |
+| `componentElement` `jr:table` | 4 table components | Canvas table with header/detail rows + dataset metadata | Done/P1 review |
 | `crosstab` | 1 crosstab, row/column groups and measures | structured placeholder metadata only | P1/P2 |
 | `subreport` | 2 direct subreports, 9 subreport expressions, 11 parameters | generic placeholder today | P1 |
 | `sectionType="Part"` / `<part>` book reports | Monthly Store Report has 7 parts | not modeled; currently skipped because parts lack `reportElement` | P1 |
@@ -154,8 +156,8 @@ Key sample-driven conclusions:
 - [ ] **P1** `groupHeader`/`groupFooter` repeat semantics; multiple `detail` bands
 - [ ] **P1** `sectionType="Part"` / `<part>` orchestration: preserve part name, report expression, parameters,
       and position/order metadata so book-style reports such as Monthly Store Report do not lose their structure.
-- [ ] **P1** `jr:table` component → Canvas table placeholder/table model: preserve datasetRun, parameters,
-      columns, header/detail/footer cells, and cell expressions from Invoice and Store samples.
+- [x] **P1** `jr:table` component → Canvas table with `CellData`, column widths, header/detail row extraction,
+      datasetRun/parameter metadata, and expression preservation from Invoice and Store samples.
 - [ ] **P1** Preserve report-level data declarations: parameters, fields, variables, subDataset/queryString,
       datasetRun, dataset/subreport parameters, and SQL/JSON query language metadata in `PageSettings.CustomProperties`.
 - [x] **P1** `<box>`/per-side pens + named style inheritance for box borders.

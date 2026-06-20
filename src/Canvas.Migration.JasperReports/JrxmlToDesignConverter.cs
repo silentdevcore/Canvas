@@ -288,6 +288,9 @@ public sealed class JrxmlToDesignConverter
             case "componentElement" when raw.ComponentKind == "barcode":
                 return MapBarcodeComponent(raw, element, diagnostics);
 
+            case "componentElement" when raw.ComponentKind == "table":
+                return MapTableComponent(raw, element, diagnostics);
+
             case "componentElement":
             case "crosstab":
                 return MapComponentPlaceholder(raw, element, diagnostics);
@@ -324,6 +327,24 @@ public sealed class JrxmlToDesignConverter
 
         diagnostics.Add(Info("CANMIGJRXML013",
             $"'{raw.Name}' JasperReports barcode component mapped to Canvas {element.Type}."));
+        return element;
+    }
+
+    private static ElementDto MapTableComponent(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        element.Type = "table";
+        element.CellData = raw.TableRows?.Select(row => row.ToArray()).ToArray() ?? [];
+        element.ColumnWidths = raw.TableColumnWidths?.ToArray();
+        element.HeaderRow = raw.TableHasHeader;
+        element.Style = new Dictionary<string, object>
+        {
+            ["jrxmlComponentType"] = raw.ComponentType ?? "table"
+        };
+        if (raw.ComponentMetadata is { Count: > 0 })
+            element.Style["jrxmlTable"] = raw.ComponentMetadata;
+
+        diagnostics.Add(Warn("CANMIGJRXML014",
+            $"'{raw.Name}' JasperReports table component was mapped to a Canvas table with preserved dataset/cell metadata; review repeat/data semantics."));
         return element;
     }
 
@@ -471,6 +492,12 @@ public sealed class JrxmlToDesignConverter
             ["Type"] = type
         };
 
+        if (componentName.Equals("table", StringComparison.OrdinalIgnoreCase))
+        {
+            ParseTableComponent(component, raw);
+            return;
+        }
+
         if (LooksLikeBarcodeComponent(componentName, type))
         {
             raw.ComponentKind = "barcode";
@@ -491,6 +518,65 @@ public sealed class JrxmlToDesignConverter
         var expressions = ComponentExpressions(component).ToArray();
         if (expressions.Length > 0)
             raw.ComponentMetadata["Expressions"] = expressions;
+    }
+
+    private static void ParseTableComponent(XElement table, RawElement raw)
+    {
+        raw.ComponentKind = "table";
+        raw.ComponentType = "table";
+
+        if (Child(table, "datasetRun") is { } datasetRun)
+        {
+            AddText(raw.ComponentMetadata, "DatasetName", Attr(datasetRun, "subDataset"));
+            var parameters = Children(datasetRun, "datasetParameter")
+                .Select(parameter =>
+                {
+                    var p = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        ["Name"] = Attr(parameter, "name") ?? ""
+                    };
+                    AddText(p, "Expression", Child(parameter, "datasetParameterExpression")?.Value.Trim());
+                    return p;
+                })
+                .Where(parameter => parameter.Values.Any(value => value?.ToString()?.Length > 0))
+                .ToArray();
+            if (parameters.Length > 0)
+                raw.ComponentMetadata!["Parameters"] = parameters;
+            AddText(raw.ComponentMetadata, "ConnectionExpression", Child(datasetRun, "connectionExpression")?.Value.Trim());
+            AddText(raw.ComponentMetadata, "DataSourceExpression", Child(datasetRun, "dataSourceExpression")?.Value.Trim());
+        }
+
+        var columns = Children(table, "column").ToList();
+        raw.TableColumnWidths = columns.Select(column => ToDouble(Attr(column, "width"))).ToList();
+        raw.TableRows = [];
+
+        var headers = columns.Select(column => TableCellText(Child(column, "columnHeader"))).ToList();
+        if (headers.Any(text => !string.IsNullOrWhiteSpace(text)))
+        {
+            raw.TableRows.Add(headers);
+            raw.TableHasHeader = true;
+        }
+
+        var details = columns.Select(column => TableCellText(Child(column, "detailCell"))).ToList();
+        if (details.Any(text => !string.IsNullOrWhiteSpace(text)))
+            raw.TableRows.Add(details);
+
+        raw.ComponentMetadata!["ColumnCount"] = columns.Count;
+        raw.ComponentMetadata["HasHeader"] = raw.TableHasHeader;
+        var expressions = ComponentExpressions(table).ToArray();
+        if (expressions.Length > 0)
+            raw.ComponentMetadata["Expressions"] = expressions;
+    }
+
+    private static string TableCellText(XElement? cell)
+    {
+        if (cell is null)
+            return "";
+        if (cell.Descendants().FirstOrDefault(desc => desc.Name.LocalName == "staticText") is { } staticText)
+            return Child(staticText, "text")?.Value.Trim() ?? "";
+        if (cell.Descendants().FirstOrDefault(desc => desc.Name.LocalName == "textField") is { } textField)
+            return ExpressionDisplay(Child(textField, "textFieldExpression")?.Value.Trim());
+        return "";
     }
 
     private static void ParseCrosstab(XElement el, RawElement raw)
@@ -740,6 +826,9 @@ public sealed class JrxmlToDesignConverter
         public string? ComponentValue;
         public string? ComponentCaption;
         public Dictionary<string, object>? ComponentMetadata;
+        public List<List<string>>? TableRows;
+        public List<double>? TableColumnWidths;
+        public bool TableHasHeader;
     }
 
     private sealed class BorderStyle
