@@ -103,6 +103,7 @@ original in metadata and normalize `$F{}`/`$P{}`/`$V{}` references to Canvas-sty
 | `CANMIGJRXML017` | Warning | JasperReports group header/footer mapped to Canvas repeat metadata; runtime group semantics need review |
 | `CANMIGJRXML018` | Warning | Multiple JasperReports detail bands mapped to shared Canvas repeat metadata; runtime multi-band detail semantics need review |
 | `CANMIGJRXML019` | Warning | JasperReports conditional styles preserved with normalized condition expressions; runtime style evaluation needs review |
+| `CANMIGJRXML020` | Warning | JasperReports hyperlink/anchor metadata preserved and mapped to Canvas link/bookmark fields where possible |
 
 ## V1 checklist
 
@@ -148,7 +149,7 @@ Observed feature coverage:
 | Parameters / fields / variables | 26 parameters, 136 fields, 18 variables | declarations preserved in `PageSettings.CustomProperties`; runtime expressions normalize `$P{}`/`$V{}` where consumed | Done/P1 runtime review |
 | Conditional styles | 8 conditional styles | chained style inheritance supported; conditional styles preserved as `jrxmlConditionalStyles` with normalized conditions | Done/P1 runtime review |
 | `printWhenExpression` | 9 occurrences | maps to `Hidden`/`VisibleExpression` + `style.jrxmlPrintWhenExpression` | Done/P1 runtime review |
-| Hyperlink / anchor expressions | 7 hyperlink anchors, 1 anchor name | open | P2 |
+| Hyperlink / anchor expressions | 7 hyperlink anchors, 1 anchor name | external references, local anchors/pages, and anchor names map to Canvas link/bookmark fields + `jrxmlNavigation` metadata | Done/P2 runtime review |
 | External image paths | 10 image expressions, many path-based | currently placeholder if not embedded | P2 |
 
 Key sample-driven conclusions:
@@ -190,4 +191,7 @@ Key sample-driven conclusions:
 - [x] **P1** `$P{}` / `$V{}` expression dialect: simple parameter/variable references map to Canvas-friendly
       placeholders/expressions; complex expressions preserve originals and add normalized Canvas-style references
       for review.
-- [ ] **P2** Hyperlink/anchor expressions and external image resource resolution.
+- [x] **P2** Hyperlink/anchor expressions: preserve `anchorNameExpression`, hyperlink reference/anchor/page
+      expressions and tooltip metadata as `style.jrxmlNavigation`, mapping supported cases to Canvas
+      `Href`, `LinkTarget`, and `BookmarkName`.
+- [ ] **P2** External image resource resolution.

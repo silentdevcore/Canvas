@@ -434,6 +434,60 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_HyperlinkAndAnchorExpressions_MapToNavigationMetadata()
+    {
+        var jrxml = """
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Links"
+                pageWidth="595" pageHeight="842" leftMargin="20" topMargin="20">
+              <detail>
+                <band height="80">
+                  <textField hyperlinkType="Reference" hyperlinkTarget="Blank">
+                    <reportElement key="externalLink" x="0" y="0" width="180" height="20"/>
+                    <textFieldExpression><![CDATA["Open customer"]]></textFieldExpression>
+                    <hyperlinkReferenceExpression><![CDATA[$P{CustomerUrl}]]></hyperlinkReferenceExpression>
+                    <hyperlinkTooltipExpression><![CDATA["Customer profile"]]></hyperlinkTooltipExpression>
+                  </textField>
+                  <staticText>
+                    <reportElement key="bookmark" x="0" y="20" width="180" height="20"/>
+                    <anchorNameExpression><![CDATA["customer-section"]]></anchorNameExpression>
+                    <text><![CDATA[Customer section]]></text>
+                  </staticText>
+                  <textField hyperlinkType="LocalAnchor">
+                    <reportElement key="anchorLink" x="0" y="40" width="180" height="20"/>
+                    <textFieldExpression><![CDATA["Jump"]]></textFieldExpression>
+                    <hyperlinkAnchorExpression><![CDATA["customer-section"]]></hyperlinkAnchorExpression>
+                  </textField>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        var result = Convert(jrxml);
+        var externalLink = El(result.Design, "externalLink");
+        var bookmark = El(result.Design, "bookmark");
+        var anchorLink = El(result.Design, "anchorLink");
+
+        Assert.Equal("link", externalLink.Type);
+        Assert.Equal("Open customer", externalLink.Content);
+        Assert.Equal("{{Parameters.CustomerUrl}}", externalLink.Href);
+        Assert.Equal("_blank", externalLink.LinkTarget);
+        var externalNavigation = Assert.IsType<Dictionary<string, object>>(externalLink.Style!["jrxmlNavigation"]);
+        Assert.Equal("$P{CustomerUrl}", externalNavigation["HyperlinkReference"]);
+        Assert.Equal("[Parameters.CustomerUrl]", externalNavigation["NormalizedHyperlinkReference"]);
+        Assert.Equal("\"Customer profile\"", externalNavigation["HyperlinkTooltip"]);
+
+        Assert.Equal("Customer section", bookmark.Content);
+        Assert.Equal("customer-section", bookmark.BookmarkName);
+        var bookmarkNavigation = Assert.IsType<Dictionary<string, object>>(bookmark.Style!["jrxmlNavigation"]);
+        Assert.Equal("\"customer-section\"", bookmarkNavigation["AnchorName"]);
+
+        Assert.Equal("link", anchorLink.Type);
+        Assert.Equal("#customer-section", anchorLink.Href);
+        Assert.Equal("_self", anchorLink.LinkTarget);
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGJRXML020" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    [Fact]
     public void Convert_PartReport_PreservesSubreportPartMetadata()
     {
         var jrxml = """

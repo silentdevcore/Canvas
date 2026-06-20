@@ -201,6 +201,7 @@ public sealed class JrxmlToDesignConverter
             if (ParseColor(Attr(re, "backcolor")) is { } bc && !string.Equals(Attr(re, "mode"), "Transparent", StringComparison.OrdinalIgnoreCase)) raw.BackColor = bc;
             raw.PrintWhenExpression = Child(el, "printWhenExpression")?.Value.Trim()
                 ?? Child(container, "printWhenExpression")?.Value.Trim();
+            ParseNavigation(el, re, raw);
 
             var textEl = Child(el, "textElement");
             if (textEl is not null)
@@ -289,6 +290,7 @@ public sealed class JrxmlToDesignConverter
             ApplyGroupMetadata(element, raw, band, diagnostics);
             ApplyDetailRepeatMetadata(element, raw, band, report, diagnostics);
             ApplyConditionalStyleMetadata(element, raw, diagnostics);
+            ApplyNavigationMetadata(element, raw, diagnostics);
 
             (bandType is "pageHeader" or "pageFooter" or "lastPageFooter" ? sharedElements : elements).Add(element);
             mapped++;
@@ -689,6 +691,20 @@ public sealed class JrxmlToDesignConverter
             raw.ComponentMetadata["Expressions"] = expressions;
     }
 
+    private static void ParseNavigation(XElement el, XElement reportElement, RawElement raw)
+    {
+        var navigation = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        AddText(navigation, "HyperlinkType", Attr(el, "hyperlinkType") ?? Attr(reportElement, "hyperlinkType"));
+        AddText(navigation, "HyperlinkTarget", Attr(el, "hyperlinkTarget") ?? Attr(reportElement, "hyperlinkTarget"));
+        AddExpressionText(navigation, "AnchorName", Child(el, "anchorNameExpression")?.Value.Trim());
+        AddExpressionText(navigation, "HyperlinkReference", Child(el, "hyperlinkReferenceExpression")?.Value.Trim());
+        AddExpressionText(navigation, "HyperlinkAnchor", Child(el, "hyperlinkAnchorExpression")?.Value.Trim());
+        AddExpressionText(navigation, "HyperlinkPage", Child(el, "hyperlinkPageExpression")?.Value.Trim());
+        AddExpressionText(navigation, "HyperlinkTooltip", Child(el, "hyperlinkTooltipExpression")?.Value.Trim());
+        if (navigation.Count > 0)
+            raw.NavigationMetadata = navigation;
+    }
+
     private static void ParseSubreport(XElement el, RawElement raw)
     {
         raw.SubreportMetadata = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
@@ -1051,6 +1067,44 @@ public sealed class JrxmlToDesignConverter
             $"'{raw.Name}' has JasperReports conditional style metadata preserved; review Canvas runtime style evaluation."));
     }
 
+    private static void ApplyNavigationMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.NavigationMetadata is not { Count: > 0 } navigation)
+            return;
+
+        element.Style ??= [];
+        element.Style["jrxmlNavigation"] = navigation;
+
+        if (navigation.TryGetValue("AnchorName", out var anchorName) && anchorName is string { Length: > 0 } bookmark)
+            element.BookmarkName = ExpressionDisplay(bookmark);
+
+        if (NavigationHref(navigation) is { Length: > 0 } href)
+        {
+            element.Type = "link";
+            element.Href = href;
+            element.LinkTarget = LinkTarget(navigation.GetValueOrDefault("HyperlinkTarget")?.ToString());
+            if (string.IsNullOrWhiteSpace(element.Content))
+                element.Content = href;
+        }
+
+        diagnostics.Add(Warn("CANMIGJRXML020",
+            $"'{raw.Name}' JasperReports hyperlink/anchor metadata was preserved and mapped to Canvas navigation fields where possible."));
+    }
+
+    private static string? NavigationHref(Dictionary<string, object> navigation)
+    {
+        if (navigation.GetValueOrDefault("HyperlinkReference") is string { Length: > 0 } reference)
+            return ExpressionDisplay(reference);
+        if (navigation.GetValueOrDefault("HyperlinkAnchor") is string { Length: > 0 } anchor)
+            return $"#{Uri.EscapeDataString(ExpressionDisplay(anchor))}";
+        if (navigation.GetValueOrDefault("HyperlinkPage") is string { Length: > 0 } page)
+            return $"#page-{Uri.EscapeDataString(ExpressionDisplay(page))}";
+        return null;
+    }
+
+    private static string LinkTarget(string? target) =>
+        target is not null && target.Contains("Blank", StringComparison.OrdinalIgnoreCase) ? "_blank" : "_self";
+
     // A JasperReports textField expression that references data/params/vars/functions (vs a bare literal).
     private static bool LooksLikeExpr(string? value) =>
         value is not null && (value.Contains("$F{") || value.Contains("$P{") || value.Contains("$V{")
@@ -1382,6 +1436,7 @@ public sealed class JrxmlToDesignConverter
         public string? PrintWhenExpression;
         public Dictionary<string, BorderStyle> Borders = new(StringComparer.OrdinalIgnoreCase);
         public List<Dictionary<string, object>> ConditionalStyles = [];
+        public Dictionary<string, object>? NavigationMetadata;
         public string? ComponentKind;
         public string? ComponentType;
         public string? ComponentValue;
