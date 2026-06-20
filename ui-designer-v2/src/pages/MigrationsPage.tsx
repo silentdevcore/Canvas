@@ -659,6 +659,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const [resourceJson, setResourceJson] = useState('');
   const [resourceXml, setResourceXml] = useState('');
   const [resourceFileName, setResourceFileName] = useState('');
+  const [jrxmlResourceMap, setJrxmlResourceMap] = useState<Record<string, string>>({});
+  const [jrxmlResourceFileNames, setJrxmlResourceFileNames] = useState<string[]>([]);
   const [canvasCode, setCanvasCode] = useState('');
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
   const [summary, setSummary] = useState<ConversionSummary | null>(null);
@@ -695,6 +697,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     setResourceJson('');
     setResourceXml('');
     setResourceFileName('');
+    setJrxmlResourceMap({});
+    setJrxmlResourceFileNames([]);
     setCanvasCode('');
     setDiagnostics([]);
     setSummary(null);
@@ -728,6 +732,31 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     }
   };
 
+  const handleJrxmlResourceFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    const jrxmlFiles = files.filter(file => file.name.toLowerCase().endsWith('.jrxml'));
+    if (jrxmlFiles.length === 0) return;
+
+    try {
+      const entries = await Promise.all(
+        jrxmlFiles.map(async file => [file.name, await file.text()] as const)
+      );
+      setJrxmlResourceMap(currentResources => ({
+        ...currentResources,
+        ...Object.fromEntries(entries),
+      }));
+      setJrxmlResourceFileNames(currentNames => {
+        const names = new Set(currentNames);
+        for (const file of jrxmlFiles) names.add(file.name);
+        return Array.from(names).sort((a, b) => a.localeCompare(b));
+      });
+      setError(null);
+    } catch {
+      setError('Could not read one or more .jrxml resource files.');
+    }
+  };
+
   const handleConvert = async () => {
     if (!sourceCode.trim()) return;
     setConverting(true);
@@ -735,22 +764,25 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     try {
       // Report (DevExpress XtraReport or RDL/RDLC) → Canvas design (JSON), opened in the visual designer.
       if (isReportDesign(selectedId)) {
-        let resources: Record<string, string> | undefined;
+        let resources: Record<string, string> = selectedId === JRXML_REPORT_ID ? { ...jrxmlResourceMap } : {};
         if (resourceJson.trim()) {
           const parsed = JSON.parse(resourceJson);
           if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
             throw new Error('Resource JSON must be an object like { "logo.ImageSource": "..." }.');
           }
-          resources = Object.fromEntries(
-            Object.entries(parsed).map(([key, value]) => [key, String(value ?? '')])
-          );
+          resources = {
+            ...resources,
+            ...Object.fromEntries(
+              Object.entries(parsed).map(([key, value]) => [key, String(value ?? '')])
+            ),
+          };
         }
         const res = await fetch(`${API_BASE}/report-to-design`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             sourceCode,
-            resources,
+            resources: Object.keys(resources).length > 0 ? resources : undefined,
             resourceXml: resourceXml.trim() ? resourceXml : undefined,
           }),
         });
@@ -1015,6 +1047,43 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
                     </button>
                   )}
                 </div>
+                {selectedId === JRXML_REPORT_ID && (
+                  <>
+                    <div className="mgr-resource-header">
+                      <label htmlFor="mgr-jrxml-resource-files">JRXML subreports</label>
+                      <span>{jrxmlResourceFileNames.length ? `${jrxmlResourceFileNames.length} loaded` : 'No .jrxml resources loaded'}</span>
+                    </div>
+                    <div className="mgr-resource-actions">
+                      <label className="mgr-file-btn" htmlFor="mgr-jrxml-resource-files">
+                        <FiUpload /> Load .jrxml files
+                      </label>
+                      <input
+                        id="mgr-jrxml-resource-files"
+                        type="file"
+                        accept=".jrxml"
+                        multiple
+                        onChange={handleJrxmlResourceFilesChange}
+                      />
+                      {jrxmlResourceFileNames.length > 0 && (
+                        <button
+                          type="button"
+                          className="mgr-link-btn"
+                          onClick={() => {
+                            setJrxmlResourceMap({});
+                            setJrxmlResourceFileNames([]);
+                          }}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    {jrxmlResourceFileNames.length > 0 && (
+                      <div className="mgr-resource-list">
+                        {jrxmlResourceFileNames.map(name => <span key={name}>{name}</span>)}
+                      </div>
+                    )}
+                  </>
+                )}
                 <label htmlFor="mgr-resource-json">Resource JSON overrides</label>
                 <textarea
                   id="mgr-resource-json"

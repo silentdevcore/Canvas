@@ -193,6 +193,9 @@ Key sample-driven conclusions:
 - [x] **P1** Direct subreport resource inlining: when `report-to-design` resources contain a matching
       `.jrxml` source for a `.jasper`/`.jrxml` subreport reference, inline the converted subreport elements
       at the parent subreport position while retaining `style.jrxmlParentSubreport`.
+- [x] **P1** JasperReports UI resource upload: the migration page can load multiple `.jrxml` resource files
+      alongside the master report and sends them as `report-to-design` resources, so samples such as
+      `Json_Master.jrxml` can inline `Json_Sub.jrxml` without hand-written Resource JSON.
 - [ ] **P1** Subreport inlining/part orchestration: convert `sectionType="Part"` + `subreportPart`
       into structured Canvas/page metadata; direct placeholders already preserve subreport metadata.
 - [x] **P1** `$P{}` / `$V{}` expression dialect: simple parameter/variable references map to Canvas-friendly
