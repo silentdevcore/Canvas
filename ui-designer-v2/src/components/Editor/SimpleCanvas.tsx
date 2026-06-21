@@ -2442,25 +2442,53 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       const cellColor      = element.style?.cellColor as string | undefined;
       const cellFontWeight = element.style?.cellFontWeight ?? 'normal';
 
+      const cellStyles = element.cellStyles ?? [];
+      const sideCss = (s?: { color?: string; width?: number }) =>
+        s ? `${s.width ?? 1}px solid ${s.color ?? '#000000'}` : undefined;
+
       const tdStyle = (
         rowIdx: number,
         colIdx: number,
-        kind: 'header' | 'body' | 'footer'
-      ): React.CSSProperties => ({
-        border: `${bw}px solid ${bc}`,
-        padding: cp,
-        textAlign: colAligns[colIdx] || 'left',
-        fontSize: cellFontSize,
-        fontFamily: cellFontFamily,
-        fontWeight: kind === 'header' ? 700 : cellFontWeight,
-        color: cellColor ?? (kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555'),
-        backgroundColor:
-          kind === 'header' ? headerBg
-          : kind === 'footer' ? '#f8fafc'
-          : zebraOn && rowIdx % 2 === 1 ? zebraColor
-          : 'transparent',
-        width: colWidths[colIdx] ? colWidths[colIdx] : undefined,
-      });
+        kind: 'header' | 'body' | 'footer',
+        dataRow: number = rowIdx
+      ): React.CSSProperties => {
+        const style: React.CSSProperties = {
+          border: `${bw}px solid ${bc}`,
+          padding: cp,
+          textAlign: colAligns[colIdx] || 'left',
+          fontSize: cellFontSize,
+          fontFamily: cellFontFamily,
+          fontWeight: kind === 'header' ? 700 : cellFontWeight,
+          color: cellColor ?? (kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555'),
+          backgroundColor:
+            kind === 'header' ? headerBg
+            : kind === 'footer' ? '#f8fafc'
+            : zebraOn && rowIdx % 2 === 1 ? zebraColor
+            : 'transparent',
+          width: colWidths[colIdx] ? colWidths[colIdx] : undefined,
+        };
+
+        // Sparse per-cell override (background / alignment / borders) keyed by the absolute data row.
+        const cs = cellStyles.find((x) => x.row === dataRow && x.col === colIdx);
+        if (cs) {
+          if (cs.backgroundColor) style.backgroundColor = cs.backgroundColor;
+          if (cs.textAlign) style.textAlign = cs.textAlign;
+          const hasBorder = cs.borderColor != null || cs.borderWidth != null
+            || cs.borderTop || cs.borderRight || cs.borderBottom || cs.borderLeft;
+          if (hasBorder) {
+            // Explicit per-cell borders replace the default grid border (parity with the image exporter).
+            const uniform = (cs.borderColor != null || cs.borderWidth != null)
+              ? `${cs.borderWidth ?? 1}px solid ${cs.borderColor ?? '#000000'}`
+              : 'none';
+            style.border = undefined;
+            style.borderTop = sideCss(cs.borderTop) ?? uniform;
+            style.borderRight = sideCss(cs.borderRight) ?? uniform;
+            style.borderBottom = sideCss(cs.borderBottom) ?? uniform;
+            style.borderLeft = sideCss(cs.borderLeft) ?? uniform;
+          }
+        }
+        return style;
+      };
 
       const cell = (r: number, c: number) => cellData[r]?.[c] ?? '';
 
@@ -2509,7 +2537,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
               return (
                 <tr key={r}>
                   {Array.from({ length: columns }).map((_, c) => (
-                    <td key={c} style={tdStyle(r, c, 'body')}>
+                    <td key={c} style={tdStyle(r, c, 'body', dataRow)}>
                       {cell(dataRow, c) || 'Cell'}
                     </td>
                   ))}
@@ -2521,7 +2549,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             <tfoot>
               <tr>
                 {Array.from({ length: columns }).map((_, c) => (
-                  <td key={c} style={tdStyle(0, c, 'footer')}>
+                  <td key={c} style={tdStyle(0, c, 'footer', totalRows - 1)}>
                     {cell(totalRows - 1, c) || `Footer ${c + 1}`}
                   </td>
                 ))}

@@ -675,6 +675,7 @@ public sealed class RdlToDesignConverter
     private void ParseTablix(XElement el, RawElement raw, RawReport report)
     {
         var grid = new List<List<string>>();
+        var cellStyles = new List<CellStyleDto>();
         var tablixBody = Child(el, "TablixBody");
         XElement? headerRow;
         raw.DataSetName = Child(el, "DataSetName")?.Value.Trim();
@@ -686,9 +687,13 @@ public sealed class RdlToDesignConverter
 
             var rows = Children(Child(tablixBody, "TablixRows"), "TablixRow").ToList();
             headerRow = rows.FirstOrDefault();
-            foreach (var row in rows)
-                grid.Add(Children(Child(row, "TablixCells"), "TablixCell")
-                    .Select(cell => CellDisplay(ExtractTextboxValue(TablixCellTextbox(cell)))).ToList());
+            for (var r = 0; r < rows.Count; r++)
+            {
+                var cells = Children(Child(rows[r], "TablixCells"), "TablixCell").ToList();
+                grid.Add(cells.Select(cell => CellDisplay(ExtractTextboxValue(TablixCellTextbox(cell)))).ToList());
+                for (var c = 0; c < cells.Count; c++)
+                    if (ExtractCellStyle(TablixCellTextbox(cells[c]), r, c) is { } cs) cellStyles.Add(cs);
+            }
 
             raw.TablixColumnHierarchy = ParseTablixHierarchy(el, "TablixColumnHierarchy");
             raw.TablixRowHierarchy = ParseTablixHierarchy(el, "TablixRowHierarchy");
@@ -713,9 +718,13 @@ public sealed class RdlToDesignConverter
                 .Concat(footerRows)
                 .ToList();
             headerRow = rows.FirstOrDefault();
-            foreach (var row in rows)
-                grid.Add(Children(Child(row, "TableCells"), "TableCell")
-                    .Select(cell => CellDisplay(ExtractTextboxValue(TableCellTextbox(cell)))).ToList());
+            for (var r = 0; r < rows.Count; r++)
+            {
+                var cells = Children(Child(rows[r], "TableCells"), "TableCell").ToList();
+                grid.Add(cells.Select(cell => CellDisplay(ExtractTextboxValue(TableCellTextbox(cell)))).ToList());
+                for (var c = 0; c < cells.Count; c++)
+                    if (ExtractCellStyle(TableCellTextbox(cells[c]), r, c) is { } cs) cellStyles.Add(cs);
+            }
 
             raw.TableHeaderRow = Child(el, "Header") is not null;
             raw.TablixGroups = ParseTablixGroups(el);
@@ -727,6 +736,7 @@ public sealed class RdlToDesignConverter
         }
 
         raw.TableCells = grid.Count > 0 ? grid : null;
+        raw.CellStyles = cellStyles.Count > 0 ? cellStyles : null;
         raw.ColumnAlignments = headerRow is null ? null : HeaderAlignments(headerRow, tablixBody is not null);
         raw.PaginationMetadata["TablixMemberRepeatOnNewPage"] = ParseTablixMemberValues(el, "RepeatOnNewPage");
         raw.PaginationMetadata["TablixMemberKeepTogether"] = ParseTablixMemberValues(el, "KeepTogether");
@@ -1230,6 +1240,72 @@ public sealed class RdlToDesignConverter
 
     private static XElement? TableCellTextbox(XElement cell) =>
         Children(Child(cell, "ReportItems"), "Textbox").FirstOrDefault();
+
+    // Per-cell styling from a cell textbox's <Style>: background, alignment, and borders. Handles both
+    // RDL border shapes — 2008 <Border>/<TopBorder>… and RDL-2005 <BorderColor>/<BorderWidth>/<BorderStyle>
+    // with <Default>/<Top>/<Right>/<Bottom>/<Left> children. Returns null when nothing styleable is set.
+    private static CellStyleDto? ExtractCellStyle(XElement? textbox, int row, int col)
+    {
+        var style = Child(textbox, "Style");
+        if (style is null) return null;
+
+        var cell = new CellStyleDto { Row = row, Col = col };
+        var any = false;
+
+        if (Child(style, "BackgroundColor")?.Value is { Length: > 0 } bg
+            && !bg.Equals("Transparent", StringComparison.OrdinalIgnoreCase))
+        { cell.BackgroundColor = NormalizeColor(bg); any = true; }
+
+        if (Child(style, "TextAlign")?.Value is { Length: > 0 } al
+            && !al.Equals("General", StringComparison.OrdinalIgnoreCase))
+        { cell.TextAlign = ParseAlignment(al); any = true; }
+
+        // Uniform border (2008 <Border>, or 2005 *.Default).
+        var border = Child(style, "Border");
+        if (CellBorderSide(
+                Child(border, "Color")?.Value ?? BorderSideValue(style, "BorderColor", "Default"),
+                Child(border, "Width")?.Value ?? BorderSideValue(style, "BorderWidth", "Default"),
+                Child(border, "Style")?.Value ?? BorderSideValue(style, "BorderStyle", "Default")) is { } uniform)
+        { cell.BorderColor = uniform.Color; cell.BorderWidth = uniform.Width; any = true; }
+
+        // Per-side overrides (2008 <TopBorder>…, or 2005 *.Top/.Right/.Bottom/.Left).
+        cell.BorderTop    = CellBorderForSide(style, "Top", ref any);
+        cell.BorderRight  = CellBorderForSide(style, "Right", ref any);
+        cell.BorderBottom = CellBorderForSide(style, "Bottom", ref any);
+        cell.BorderLeft   = CellBorderForSide(style, "Left", ref any);
+
+        return any ? cell : null;
+    }
+
+    private static CellBorderSideDto? CellBorderForSide(XElement style, string side, ref bool any)
+    {
+        var sideBorder = Child(style, $"{side}Border");
+        var result = CellBorderSide(
+            Child(sideBorder, "Color")?.Value ?? BorderSideValue(style, "BorderColor", side),
+            Child(sideBorder, "Width")?.Value ?? BorderSideValue(style, "BorderWidth", side),
+            Child(sideBorder, "Style")?.Value ?? BorderSideValue(style, "BorderStyle", side));
+        if (result is not null) any = true;
+        return result;
+    }
+
+    private static string? BorderSideValue(XElement style, string group, string side) =>
+        Child(Child(style, group), side)?.Value;
+
+    // A border side exists when its line style is set to something other than "None", or when a colour/
+    // width is given without an explicit style. Width defaults to 1pt when only colour/style are present.
+    private static CellBorderSideDto? CellBorderSide(string? color, string? width, string? lineStyle)
+    {
+        var hasStyle = lineStyle is { Length: > 0 } && !lineStyle.Equals("None", StringComparison.OrdinalIgnoreCase);
+        var hasColor = color is { Length: > 0 };
+        var widthPt = LengthToPt(width);
+        if (lineStyle is { Length: > 0 } && lineStyle.Equals("None", StringComparison.OrdinalIgnoreCase)) return null;
+        if (!hasStyle && !hasColor && widthPt <= 0) return null;
+        return new CellBorderSideDto
+        {
+            Color = hasColor ? NormalizeColor(color!) : null,
+            Width = widthPt > 0 ? widthPt : 1
+        };
+    }
 
     private static IEnumerable<XElement> ChartSeriesItems(XElement chart) =>
         chart.Descendants().Where(e => e.Name.LocalName == "ChartSeries");
@@ -2273,7 +2349,8 @@ public sealed class RdlToDesignConverter
             CellData = cellData,
             ColumnWidths = FitWidths(raw.ColumnWidthsPt, columns, raw.W),
             ColumnAlignments = FitColumns(raw.ColumnAlignments, columns),
-            HeaderRow = raw.TableHeaderRow ?? true
+            HeaderRow = raw.TableHeaderRow ?? true,
+            CellStyles = raw.CellStyles is { Count: > 0 } cs ? cs.ToArray() : null
         };
         ApplyTablixMetadata(element, raw, diagnostics);
         if (raw.TableHasFooter)
@@ -2742,6 +2819,7 @@ public sealed class RdlToDesignConverter
         public List<Dictionary<string, object>> Filters = [];
         public Dictionary<string, object>? NavigationMetadata;
         public List<List<string>>? TableCells;
+        public List<CellStyleDto>? CellStyles;
         public string[]? ColumnAlignments;
         public double[]? ColumnWidthsPt;
         public List<RdlTablixGroup>? TablixGroups;

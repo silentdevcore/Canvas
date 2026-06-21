@@ -957,6 +957,30 @@ public class ExporterTests
     }
 
     [Fact]
+    public void Png_Export_WithPerCellStyles_RendersAndDiffersFromBaseline()
+    {
+        var baseline = new ImageDocumentExporter().Export(MinimalDesign());
+
+        var styled = MinimalDesign();
+        var table = styled.Pages[0].Elements.First(e => e.Type == "table");
+        table.CellStyles =
+        [
+            new CellStyleDto
+            {
+                Row = 1, Col = 0,
+                BackgroundColor = "#FFFF00",
+                TextAlign = "right",
+                BorderBottom = new CellBorderSideDto { Color = "#FF0000", Width = 2 }
+            }
+        ];
+        var withStyles = new ImageDocumentExporter().Export(styled);
+
+        // Valid PNG and visibly different from the unstyled baseline (the styled cell changed pixels).
+        Assert.True(withStyles.Length >= 4 && withStyles[0] == 0x89 && withStyles[1] == 0x50);
+        Assert.False(baseline.AsSpan().SequenceEqual(withStyles));
+    }
+
+    [Fact]
     public void NativePdf_Export_WithRdlMatrixHeaders_ProducesValidPdf()
     {
         var bytes = Canvas.WebApi.Infrastructure.DesignJsonMapper

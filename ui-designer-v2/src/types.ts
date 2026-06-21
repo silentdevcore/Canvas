@@ -39,6 +39,25 @@ export type ElementType =
   | 'comment'
   | 'contentcontrol';
 
+export interface CellBorderSide {
+  color?: string;
+  width?: number;
+}
+
+/** Per-cell table styling. Sparse: addressed by row/col; unset properties fall back to table defaults. */
+export interface CellStyle {
+  row: number;
+  col: number;
+  backgroundColor?: string;
+  textAlign?: 'left' | 'center' | 'right';
+  borderColor?: string;
+  borderWidth?: number;
+  borderTop?: CellBorderSide;
+  borderRight?: CellBorderSide;
+  borderBottom?: CellBorderSide;
+  borderLeft?: CellBorderSide;
+}
+
 export interface SimpleElement {
   id: string;
   type: ElementType;
@@ -142,6 +161,7 @@ export interface SimpleElement {
   columnWidths?: number[];
   cellData?: string[][];
   columnAlignments?: ('left' | 'center' | 'right')[];
+  cellStyles?: CellStyle[];
   // Named style reference
   styleName?: string;
   characterStyle?: string;

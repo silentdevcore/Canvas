@@ -183,6 +183,8 @@ public sealed class ElementDto
     public string? HeaderBgColor { get; set; }
     public bool? ZebraEnabled { get; set; }
     public string? ZebraColor { get; set; }
+    // Per-cell styling — sparse: only styled cells are listed; unset cells keep the table defaults.
+    public CellStyleDto[]? CellStyles { get; set; }
 
     // Note
     public string? NoteTitle { get; set; }
@@ -330,6 +332,30 @@ public sealed class RepeatDto
 {
     public string? DataPath   { get; set; }
     public string? TemplateId { get; set; }
+}
+
+/// <summary>Per-cell table styling. Sparse: addressed by <see cref="Row"/>/<see cref="Col"/>; any unset
+/// property falls back to the table-level default (header bg, zebra, column alignment).</summary>
+public sealed class CellStyleDto
+{
+    public int     Row             { get; set; }
+    public int     Col             { get; set; }
+    public string? BackgroundColor { get; set; }
+    public string? TextAlign       { get; set; }
+    /// <summary>Uniform border for all four sides; per-side overrides win when present.</summary>
+    public string? BorderColor     { get; set; }
+    public double? BorderWidth     { get; set; }
+    public CellBorderSideDto? BorderTop    { get; set; }
+    public CellBorderSideDto? BorderRight  { get; set; }
+    public CellBorderSideDto? BorderBottom { get; set; }
+    public CellBorderSideDto? BorderLeft   { get; set; }
+}
+
+/// <summary>A single cell border side (carries source designers' per-side pens, e.g. RDL/ActiveReports).</summary>
+public sealed class CellBorderSideDto
+{
+    public string? Color { get; set; }
+    public double? Width { get; set; }
 }
 
 /// <summary>A single entry in a pre-computed Table of Contents.</summary>

@@ -368,15 +368,39 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
         : [];
       const rdlMatrixHeaders = [...rdlColumnHeaders, ...rdlRowHeaders];
 
-      const tdSt = (r: number, c: number, kind: 'header' | 'body' | 'footer'): React.CSSProperties => ({
-        border: `${bw}px solid ${bc}`,
-        padding: cp,
-        textAlign: (colAligns[c] || 'left') as React.CSSProperties['textAlign'],
-        fontSize: 10 * zoom,
-        fontWeight: kind === 'header' ? 700 : 'normal',
-        color: kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555',
-        backgroundColor: kind === 'header' ? headerBg : kind === 'footer' ? '#f8fafc' : zebraOn && r % 2 === 1 ? zebraColor : 'transparent',
-      });
+      const cellStyles = element.cellStyles ?? [];
+      const sideCss = (sd?: { color?: string; width?: number }) =>
+        sd ? `${sd.width ?? 1}px solid ${sd.color ?? '#000000'}` : undefined;
+
+      const tdSt = (r: number, c: number, kind: 'header' | 'body' | 'footer', dataRow: number = r): React.CSSProperties => {
+        const st: React.CSSProperties = {
+          border: `${bw}px solid ${bc}`,
+          padding: cp,
+          textAlign: (colAligns[c] || 'left') as React.CSSProperties['textAlign'],
+          fontSize: 10 * zoom,
+          fontWeight: kind === 'header' ? 700 : 'normal',
+          color: kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555',
+          backgroundColor: kind === 'header' ? headerBg : kind === 'footer' ? '#f8fafc' : zebraOn && r % 2 === 1 ? zebraColor : 'transparent',
+        };
+        const cs = cellStyles.find((x) => x.row === dataRow && x.col === c);
+        if (cs) {
+          if (cs.backgroundColor) st.backgroundColor = cs.backgroundColor;
+          if (cs.textAlign) st.textAlign = cs.textAlign;
+          const hasBorder = cs.borderColor != null || cs.borderWidth != null
+            || cs.borderTop || cs.borderRight || cs.borderBottom || cs.borderLeft;
+          if (hasBorder) {
+            const uniform = (cs.borderColor != null || cs.borderWidth != null)
+              ? `${cs.borderWidth ?? 1}px solid ${cs.borderColor ?? '#000000'}`
+              : 'none';
+            st.border = undefined;
+            st.borderTop = sideCss(cs.borderTop) ?? uniform;
+            st.borderRight = sideCss(cs.borderRight) ?? uniform;
+            st.borderBottom = sideCss(cs.borderBottom) ?? uniform;
+            st.borderLeft = sideCss(cs.borderLeft) ?? uniform;
+          }
+        }
+        return st;
+      };
 
       return (
         <table style={{ width: '100%', height: '100%', borderCollapse: 'collapse', border: `${bw}px solid ${bc}` }}>
@@ -405,14 +429,14 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
           <tbody>
             {Array.from({ length: bodyRows }).map((_, r) => (
               <tr key={r}>{Array.from({ length: columns }).map((_, c) => (
-                <td key={c} style={tdSt(r, c, 'body')}>{cellData[r + (hasHeader ? 1 : 0)]?.[c] || 'Cell'}</td>
+                <td key={c} style={tdSt(r, c, 'body', r + (hasHeader ? 1 : 0))}>{cellData[r + (hasHeader ? 1 : 0)]?.[c] || 'Cell'}</td>
               ))}</tr>
             ))}
           </tbody>
           {hasFooter && (
             <tfoot>
               <tr>{Array.from({ length: columns }).map((_, c) => (
-                <td key={c} style={tdSt(0, c, 'footer')}>{cellData[totalRows - 1]?.[c] || `Footer ${c + 1}`}</td>
+                <td key={c} style={tdSt(0, c, 'footer', totalRows - 1)}>{cellData[totalRows - 1]?.[c] || `Footer ${c + 1}`}</td>
               ))}</tr>
             </tfoot>
           )}

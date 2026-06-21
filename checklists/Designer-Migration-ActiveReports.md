@@ -67,7 +67,7 @@ Key sample-driven conclusions:
       `<GroupExpressions>` preserved as Canvas `RepeatDto` + `style.rdlList` metadata; transparent container.
 - [x] **P0** `<Grouping>` recognized alongside `<Group>` in `ParseTablixGroups` (RDL-2005 groupings no longer ignored).
 - [x] **P0** Validate all 8 `.rdlx` samples convert with no dropped top-level regions (integration test).
-- [ ] **P1** Per-cell border/padding fidelity for table cells (Canvas tables are column-level only today).
+- [x] **P1** Per-cell border/background/alignment fidelity — see *Per-cell table styling* below (v1 vertical slice).
 - [ ] **P1** RDL-2005 `<TableGroups>`/group header-footer rows → repeat/section semantics (none present in samples).
 - [ ] **P1** Validate the `.rpx` Section-report converter against real designer-saved `.rpx` files
       (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) for its own P0 list).
@@ -80,3 +80,35 @@ Key sample-driven conclusions:
   `MapList`/`RdlListRepeatMetadata`; `ParseTablixGroups` matches `Group`|`Grouping`.
 - Tests: [`tests/Canvas.Migration.Rdl.Tests/RdlToDesignConverterTests.cs`](../tests/Canvas.Migration.Rdl.Tests/RdlToDesignConverterTests.cs)
   — footer-rows, List-with-nested-table, and an 8-sample integration check (locates `designer-simples`).
+
+## Per-cell table styling (Canvas-model track)
+
+Canvas tables historically carried only `CellData` / `ColumnWidths` / `ColumnAlignments` / `HeaderRow`
+plus table-level `HeaderBgColor` / `ZebraColor` — so per-cell borders, backgrounds, and alignment from
+real reports (ActiveReports/RDL per-side cell pens, FastReport/Telerik cell borders) were dropped. This
+adds an **additive, backward-compatible** per-cell style model and wires a **v1 vertical slice**
+(RDL converter → contract → frontend canvas/preview + server image preview). Unset = previous behaviour.
+
+**Contract:** `ElementDto.CellStyles` — a sparse `CellStyleDto[]` (only styled cells listed), each with
+`Row`, `Col`, `BackgroundColor`, `TextAlign`, uniform `BorderColor`/`BorderWidth`, and per-side
+`BorderTop/Right/Bottom/Left` (`CellBorderSideDto { Color, Width }`) for per-side pens.
+[`src/Canvas.Core/Contracts/DesignExportDto.cs`](../src/Canvas.Core/Contracts/DesignExportDto.cs)
+
+**v1 scope (done):** borders + background + text-align; render/import only (no manual cell editor yet).
+
+- [x] Contract: `CellStyleDto` / `CellBorderSideDto` + `ElementDto.CellStyles` (sparse, nullable).
+- [x] RDL converter populates `CellStyles` from each `<TableCell>`'s `<Style>` — handles both border
+      shapes (2008 `<Border>`/`<TopBorder>…`, RDL-2005 `<BorderColor>`/`<BorderWidth>`/`<BorderStyle>`
+      with `<Default>`/per-side children). `ExtractCellStyle` in `RdlToDesignConverter.cs`.
+- [x] Server image preview (`ImageDocumentExporter.DrawTable`) applies per-cell bg/borders/alignment.
+- [x] Frontend renders per-cell styles: `SimpleCanvas` `tdStyle` + `LivePreview` `tdSt`, keyed by the
+      absolute data-row index; explicit per-cell borders replace the default grid border (exporter parity).
+- [x] Frontend type mirror (`ui-designer-v2/src/types.ts`: `CellStyle` / `CellBorderSide`).
+- [x] Tests: RDL `CellStyles` extraction + null-when-unstyled (backward-compat); image-export render diff.
+
+**Follow-up phases (not in v1):**
+- [ ] Remaining exporters honour `CellStyles`: SVG / HTML / Word / Excel / ODT.
+- [ ] Codegen (`jsonToCSharp.ts` / `CodeGenerator.ts`) emit `CellStyles` + Canvas.Pdf runtime consumes it (real PDF output).
+- [ ] Other converters populate `CellStyles`: FastReport / Telerik / Jasper / DevExpress.
+- [ ] Frontend manual per-cell style editor in the inspector.
+- [ ] Per-cell padding + font (family/size/weight/color) — v1 carries borders/background/align only.

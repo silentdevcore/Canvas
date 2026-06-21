@@ -1708,6 +1708,66 @@ public sealed class RdlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_TableCellStyle_BecomesPerCellStyles()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" Name="T">
+              <Body><ReportItems>
+                <Table Name="t">
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>4in</Width>
+                  <TableColumns><TableColumn><Width>2in</Width></TableColumn><TableColumn><Width>2in</Width></TableColumn></TableColumns>
+                  <Details><TableRows><TableRow><TableCells>
+                    <TableCell><ReportItems><Textbox Name="d1"><Value>A</Value>
+                      <Style>
+                        <BackgroundColor>#FFFF00</BackgroundColor>
+                        <TextAlign>Center</TextAlign>
+                        <BorderStyle><Bottom>Solid</Bottom></BorderStyle>
+                        <BorderColor><Bottom>#FF0000</Bottom></BorderColor>
+                        <BorderWidth><Bottom>2pt</Bottom></BorderWidth>
+                      </Style>
+                    </Textbox></ReportItems></TableCell>
+                    <TableCell><ReportItems><Textbox Name="d2"><Value>B</Value></Textbox></ReportItems></TableCell>
+                  </TableCells></TableRow></TableRows></Details>
+                </Table>
+              </ReportItems><Height>5in</Height></Body>
+              <PageHeight>11in</PageHeight><PageWidth>8.5in</PageWidth>
+            </Report>
+            """;
+        var t = El(Convert(rdl).Design, "t");
+
+        Assert.NotNull(t.CellStyles);
+        var styled = Assert.Single(t.CellStyles!);                  // only the styled cell is listed (sparse)
+        Assert.Equal(0, styled.Row);
+        Assert.Equal(0, styled.Col);
+        Assert.Equal("#FFFF00", styled.BackgroundColor);
+        Assert.Equal("center", styled.TextAlign);
+        Assert.NotNull(styled.BorderBottom);
+        Assert.Equal(2, styled.BorderBottom!.Width);
+        Assert.Equal("#FF0000", styled.BorderBottom!.Color);
+        Assert.Null(styled.BorderTop);                             // unset sides stay null
+    }
+
+    [Fact]
+    public void Convert_TableWithoutCellStyles_LeavesCellStylesNull()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2008/01/reportdefinition" Name="T">
+              <Body><ReportItems>
+                <Table Name="t">
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>2in</Width>
+                  <TableColumns><TableColumn><Width>2in</Width></TableColumn></TableColumns>
+                  <Details><TableRows><TableRow><TableCells>
+                    <TableCell><ReportItems><Textbox Name="d1"><Value>A</Value></Textbox></ReportItems></TableCell>
+                  </TableCells></TableRow></TableRows></Details>
+                </Table>
+              </ReportItems><Height>5in</Height></Body>
+              <PageHeight>11in</PageHeight><PageWidth>8.5in</PageWidth>
+            </Report>
+            """;
+        Assert.Null(El(Convert(rdl).Design, "t").CellStyles);      // backward-compat: no styling → null
+    }
+
+    [Fact]
     public void Convert_ListRegion_ParsesNestedTableAndCarriesRepeatMetadata()
     {
         var rdl = """
