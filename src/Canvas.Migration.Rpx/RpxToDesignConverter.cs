@@ -267,17 +267,21 @@ public sealed class RpxToDesignConverter
 
             ApplyBandMetadata(element, raw, bandType, diagnostics);
             ApplyDynamicMetadata(element, raw, diagnostics);
+            var pageBoundaryElements = CreatePageBoundaryElements(raw, element);
 
             if (raw.Type == "SubReport"
                 && TryInlineSubreport(raw, element, resources, subreportDepth, diagnostics) is { Count: > 0 } inlined)
             {
                 elements.AddRange(inlined);
-                mapped += inlined.Count;
+                elements.AddRange(pageBoundaryElements);
+                mapped += inlined.Count + pageBoundaryElements.Count;
                 continue;
             }
 
-            (bandType is "PageHeader" or "PageFooter" ? sharedElements : elements).Add(element);
-            mapped++;
+            var target = bandType is "PageHeader" or "PageFooter" ? sharedElements : elements;
+            target.Add(element);
+            target.AddRange(pageBoundaryElements);
+            mapped += 1 + pageBoundaryElements.Count;
         }
 
         elements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
@@ -599,6 +603,61 @@ public sealed class RpxToDesignConverter
             diagnostics.Add(Warn("CANMIGRPX016",
                 $"'{raw.Name}' is a {raw.Type} — mapped visually and preserved as cross-section metadata."));
         }
+    }
+
+    private static List<ElementDto> CreatePageBoundaryElements(RawElement raw, ElementDto source)
+    {
+        var modes = PageBoundaryModes(raw.PageBreak).ToArray();
+        if (modes.Length == 0) return [];
+
+        var boundaries = new List<ElementDto>();
+        foreach (var mode in modes)
+        {
+            var y = mode == "start" ? Math.Max(0, source.Y - 10) : source.Y + source.Height + 6;
+            var boundary = new ElementDto
+            {
+                Id = $"{source.Id}-page-{mode}",
+                Name = $"{source.Name} page {mode}",
+                Type = "pageboundary",
+                X = source.X,
+                Y = y,
+                Width = Math.Max(source.Width, 144),
+                Height = 18,
+                PageBoundaryMode = mode,
+                Content = mode == "end" ? "Page end" : "Page start",
+                Style = new Dictionary<string, object>
+                {
+                    ["color"] = "#7C3AED",
+                    ["dashStyle"] = "dashed",
+                    ["rpxPageBreak"] = raw.PageBreak!,
+                    ["rpxPageBreakFor"] = raw.Name
+                }
+            };
+            boundaries.Add(boundary);
+        }
+
+        return boundaries;
+    }
+
+    private static IEnumerable<string> PageBoundaryModes(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) yield break;
+        var normalized = value.Trim().ToLowerInvariant();
+
+        if (normalized is "before" or "start" or "newpagebefore" or "true")
+            yield return "start";
+        else if (normalized is "after" or "end" or "newpageafter")
+            yield return "end";
+        else if (normalized.Contains("before") && normalized.Contains("after")
+                 || normalized.Contains("start") && normalized.Contains("end"))
+        {
+            yield return "start";
+            yield return "end";
+        }
+        else if (normalized.Contains("before") || normalized.Contains("start"))
+            yield return "start";
+        else if (normalized.Contains("after") || normalized.Contains("end"))
+            yield return "end";
     }
 
     private static void ApplyFont(RawElement raw, XElement el)

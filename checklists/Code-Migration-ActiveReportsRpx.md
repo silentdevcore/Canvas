@@ -84,7 +84,7 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 | `CANMIGRPX013` | Warning | GroupHeader/GroupFooter mapped to Canvas repeat metadata; runtime group semantics need review |
 | `CANMIGRPX014` | Warning | `CanGrow`/`CanShrink` preserved as wrapping/auto-size metadata; dynamic band reflow needs review |
 | `CANMIGRPX015` | Warning | `OutputFormat` preserved as Canvas formatter metadata; exact formatting needs review |
-| `CANMIGRPX016` | Warning | PageBreak/NewPage or CrossSectionLine/CrossSectionBox behaviour preserved as metadata/visual mapping |
+| `CANMIGRPX016` | Warning | PageBreak/NewPage mapped to Canvas `pageboundary` markers; CrossSectionLine/CrossSectionBox mapped visually |
 | `CANMIGRPX017` | Info / Warning | Matching `.rpx` subreport resource was inlined, or could not be converted |
 | `CANMIGRPX018` | Warning | Embedded script imported as no-op metadata in `PageSettings.CustomProperties["rpxScript"]` |
 
@@ -101,9 +101,10 @@ problems as DevExpress and gives us a second implementation target for common gr
 - [x] **P0** `CanGrow`/`CanShrink` auto-sizing metadata; `CanGrow` maps to visible overflow hints,
       `CanShrink` is preserved as `style.rpxCanShrink`, and both are grouped in `style.rpxAutoSize`.
 - [x] **P0** `OutputFormat` → Canvas `Formatter` + `style.rpxOutputFormat` metadata for bound controls.
-- [x] **P1** `PageBreak`/`NewPage` metadata and `CrossSectionLine`/`CrossSectionBox` visual mapping:
-      page-break behaviour is preserved on `style.rpxPageBreak`; cross-section controls map to visible
-      Canvas line/rect elements with `style.rpxCrossSection*` metadata.
+- [x] **P1** `PageBreak`/`NewPage` and `CrossSectionLine`/`CrossSectionBox` visual mapping:
+      page-break behaviour is preserved on `style.rpxPageBreak` and mapped to Canvas `pageboundary`
+      markers (`start`/`end`) where possible; cross-section controls map to visible Canvas line/rect
+      elements with `style.rpxCrossSection*` metadata.
 - [ ] **P0** Validate + tune against real designer-saved `.rpx` files (measurement units, colour/format edge cases).
 - [x] **P1** `OleObject` placeholder preservation with `style.rpxOleObject` metadata.
 - [x] **P1** Per-control `.rpx` subreport inlining: when `report-to-design` resources contain a matching
@@ -114,7 +115,9 @@ problems as DevExpress and gives us a second implementation target for common gr
       alongside the master RPX and sends them as `report-to-design` resources.
 - [x] **P1** Embedded-script → explicit no-op metadata: script language, length, SHA-256 hash, and preview
       are preserved in `PageSettings.CustomProperties` as `rpxScript` with diagnostic `CANMIGRPX018`.
-- [ ] **P1** Runtime page-break execution beyond metadata.
+- [x] **P1** Runtime-friendly page-break mapping beyond metadata: RPX page-break hints now create typed
+      Canvas `pageboundary` elements in addition to source metadata, so designer/preview/export paths
+      can see explicit page start/end markers.
 
 ## Assumptions
 - [x] `.rpx` is a banded section report (distinct from RDL); self-contained band model + flatten.

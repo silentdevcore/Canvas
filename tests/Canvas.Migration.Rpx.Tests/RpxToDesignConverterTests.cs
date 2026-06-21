@@ -321,6 +321,11 @@ public sealed class RpxToDesignConverterTests
         Assert.Equal("Currency", amount.Formatter);
         Assert.Equal("Currency", amount.Style["rpxOutputFormat"]);
         Assert.Equal("After", amount.Style["rpxPageBreak"]);
+        var pageEnd = El(r.Design, "amount page end");
+        Assert.Equal("pageboundary", pageEnd.Type);
+        Assert.Equal("end", pageEnd.PageBoundaryMode);
+        Assert.Equal("After", pageEnd.Style!["rpxPageBreak"]);
+        Assert.Equal("amount", pageEnd.Style["rpxPageBreakFor"]);
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRPX014");
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRPX015");
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRPX016");
