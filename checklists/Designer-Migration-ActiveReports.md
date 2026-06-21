@@ -76,6 +76,8 @@ Key sample-driven conclusions:
       are recursively converted and positioned at the parent `SubReport` placeholder.
 - [x] **P1** RPX UI resource upload: the migration page accepts multiple `.rpx` resource files for
       ActiveReports subreport inlining.
+- [x] **P1** RPX embedded-script no-op preservation: script language/hash/preview metadata is retained in
+      `PageSettings.CustomProperties` for manual review.
 - [ ] **P1** Validate the `.rpx` Section-report converter against real designer-saved `.rpx` files
       (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) for its own P0 list).
 - [ ] **P2** ActiveReports **JS** JSON report model (distinct web/JS designer; not yet started).

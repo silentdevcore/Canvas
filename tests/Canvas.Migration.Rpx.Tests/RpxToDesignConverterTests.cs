@@ -1,6 +1,7 @@
 using Canvas.Core.Contracts;
 using Canvas.Migration.Abstractions;
 using Canvas.Migration.Rpx;
+using System.Text.Json;
 
 namespace Canvas.Migration.Rpx.Tests;
 
@@ -183,7 +184,16 @@ public sealed class RpxToDesignConverterTests
                 <Label Name="l" Left="0" Top="0" Width="2" Height="0.3" Text="Hi" />
               </Controls></Detail></Sections></Report>
             """;
-        Assert.True(Has(Convert(rpx).Diagnostics, "CANMIGRPX011"));
+        var r = Convert(rpx);
+        Assert.True(Has(r.Diagnostics, "CANMIGRPX018"));
+
+        var prop = Assert.Single(r.Design.PageSettings!.CustomProperties!);
+        Assert.Equal("rpxScript", prop.Name);
+        using var metadata = JsonDocument.Parse(prop.Value);
+        Assert.Equal("C#", metadata.RootElement.GetProperty("language").GetString());
+        Assert.Equal("public void Detail_Format(){}", metadata.RootElement.GetProperty("preview").GetString());
+        Assert.True(metadata.RootElement.GetProperty("length").GetInt32() > 0);
+        Assert.Equal(64, metadata.RootElement.GetProperty("sha256").GetString()!.Length);
     }
 
     // 13 ──────────────────────────────────────────────────────────────────────────────────────────

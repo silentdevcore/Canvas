@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Text.Json;
 using System.Xml.Linq;
@@ -77,7 +79,7 @@ public sealed class RpxToDesignConverter
         var report = new RawReport
         {
             Name = Attr(root, "Name") ?? "ActiveReports Section Report",
-            HasScript = Descendant(root, "Script") is { } s && !string.IsNullOrWhiteSpace(s.Value)
+            Script = ParseScript(root)
         };
         ResolvePageSettings(root, report);
 
@@ -121,6 +123,45 @@ public sealed class RpxToDesignConverter
 
         if (string.Equals(Attr(ps, "Orientation"), "Landscape", StringComparison.OrdinalIgnoreCase))
             (report.PageWidthPt, report.PageHeightPt) = (report.PageHeightPt, report.PageWidthPt);
+    }
+
+    private static RpxScriptMetadata? ParseScript(XElement root)
+    {
+        var script = Descendant(root, "Script");
+        var source = script?.Value;
+        if (string.IsNullOrWhiteSpace(source)) return null;
+
+        source = source.Trim();
+        return new RpxScriptMetadata(
+            Language: Attr(script, "Language") ?? Attr(script, "ScriptLanguage") ?? Attr(root, "ScriptLanguage"),
+            Length: source.Length,
+            Sha256: System.Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source))).ToLowerInvariant(),
+            Preview: source.Length <= 400 ? source : source[..400]);
+    }
+
+    private static PageSettingsDto BuildPageSettings(RawReport report)
+    {
+        var settings = new PageSettingsDto { Width = report.PageWidthPt, Height = report.PageHeightPt, Unit = "pt" };
+        if (report.Script is not null)
+        {
+            settings.CustomProperties =
+            [
+                new CustomDocumentPropertyDto
+                {
+                    Name = "rpxScript",
+                    Type = "text",
+                    Value = JsonSerializer.Serialize(new Dictionary<string, object?>
+                    {
+                        ["language"] = report.Script.Language,
+                        ["length"] = report.Script.Length,
+                        ["sha256"] = report.Script.Sha256,
+                        ["preview"] = report.Script.Preview
+                    })
+                }
+            ];
+        }
+
+        return settings;
     }
 
     private static RawElement? ParseControl(XElement el, string bandName)
@@ -242,9 +283,9 @@ public sealed class RpxToDesignConverter
         elements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
         sharedElements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
 
-        if (report.HasScript)
-            diagnostics.Add(Warn("CANMIGRPX011",
-                "Report contains embedded script — Canvas has no scripting; migrate that logic manually."));
+        if (report.Script is not null)
+            diagnostics.Add(Warn("CANMIGRPX018",
+                "Report contains embedded script — Canvas imports script metadata as a no-op; migrate behaviour manually."));
 
         diagnostics.Insert(0, Info("CANMIGRPX001",
             $"ActiveReports section report '{report.Name}' detected — {report.Bands.Count} section(s), {mapped} control(s) mapped."));
@@ -255,7 +296,7 @@ public sealed class RpxToDesignConverter
             Name = report.Name,
             Category = "imported",
             Description = "Imported from an ActiveReports section report (.rpx).",
-            PageSettings = new PageSettingsDto { Width = report.PageWidthPt, Height = report.PageHeightPt, Unit = "pt" },
+            PageSettings = BuildPageSettings(report),
             Pages = [new PageDto { Id = "page-1", Elements = elements }],
             SharedElements = sharedElements
         };
@@ -742,10 +783,12 @@ public sealed class RpxToDesignConverter
         public string Name = "ActiveReports Section Report";
         public double PageWidthPt = LetterWidthPt, PageHeightPt = LetterHeightPt;
         public double MarginLeftPt, MarginTopPt, MarginBottomPt;
-        public bool HasScript;
+        public RpxScriptMetadata? Script;
         public List<RawBand> Bands = [];
         public List<RawElement> Elements = [];
     }
+
+    private sealed record RpxScriptMetadata(string? Language, int Length, string Sha256, string Preview);
 
     private sealed class RawBand
     {

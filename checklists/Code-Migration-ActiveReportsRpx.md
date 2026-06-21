@@ -79,13 +79,14 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 | `CANMIGRPX001` | Info | Section report detected — N section(s), M control(s) mapped |
 | `CANMIGRPX002` | Info | Per-control mapping (`name (type) → Canvas type`) |
 | `CANMIGRPX010` | Info | `DataField` → Canvas binding |
-| `CANMIGRPX011` | Warning | Unsupported control / SubReport / embedded script — skipped or manual |
+| `CANMIGRPX011` | Warning | Unsupported control / SubReport — skipped or manual |
 | `CANMIGRPX012` | Warning | Picture data not embeddable — placeholder inserted |
 | `CANMIGRPX013` | Warning | GroupHeader/GroupFooter mapped to Canvas repeat metadata; runtime group semantics need review |
 | `CANMIGRPX014` | Warning | `CanGrow`/`CanShrink` preserved as wrapping/auto-size metadata; dynamic band reflow needs review |
 | `CANMIGRPX015` | Warning | `OutputFormat` preserved as Canvas formatter metadata; exact formatting needs review |
 | `CANMIGRPX016` | Warning | PageBreak/NewPage or CrossSectionLine/CrossSectionBox behaviour preserved as metadata/visual mapping |
 | `CANMIGRPX017` | Info / Warning | Matching `.rpx` subreport resource was inlined, or could not be converted |
+| `CANMIGRPX018` | Warning | Embedded script imported as no-op metadata in `PageSettings.CustomProperties["rpxScript"]` |
 
 ---
 
@@ -111,8 +112,9 @@ problems as DevExpress and gives us a second implementation target for common gr
       `style.rpxParentSubreport`.
 - [x] **P1** ActiveReports UI resource upload: the migration page can load multiple `.rpx` subreport files
       alongside the master RPX and sends them as `report-to-design` resources.
+- [x] **P1** Embedded-script → explicit no-op metadata: script language, length, SHA-256 hash, and preview
+      are preserved in `PageSettings.CustomProperties` as `rpxScript` with diagnostic `CANMIGRPX018`.
 - [ ] **P1** Runtime page-break execution beyond metadata.
-- [ ] **P1** Embedded-script → no-op (currently a warning only).
 
 ## Assumptions
 - [x] `.rpx` is a banded section report (distinct from RDL); self-contained band model + flatten.
