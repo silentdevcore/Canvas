@@ -1,5 +1,8 @@
 using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 using System.Xml.Linq;
 using Canvas.Core.Contracts;
 using Canvas.Migration.Abstractions;
@@ -25,6 +28,7 @@ public sealed class RpxToDesignConverter
     private const double InchToPt = 72.0;
     private const double LetterWidthPt = 612;   // ActiveReports section reports default to Letter
     private const double LetterHeightPt = 792;
+    private const int MaxSubreportDepth = 4;
 
     /// <summary>Detects an ActiveReports <c>.rpx</c> Section Report: root <c>&lt;Report&gt;</c> with a
     /// <c>&lt;Sections&gt;</c> collection and not an RDL (<c>reportdefinition</c>) namespace.</summary>
@@ -54,7 +58,13 @@ public sealed class RpxToDesignConverter
         return Convert(source);
     }
 
-    public RpxConvertResult Convert(string rpxXml)
+    public RpxConvertResult Convert(string rpxXml, IReadOnlyDictionary<string, string>? resources = null)
+        => ConvertCore(rpxXml, resources, subreportDepth: 0);
+
+    private RpxConvertResult ConvertCore(
+        string rpxXml,
+        IReadOnlyDictionary<string, string>? resources,
+        int subreportDepth)
     {
         if (string.IsNullOrWhiteSpace(rpxXml))
             throw new ArgumentException("Source cannot be null or empty.", nameof(rpxXml));
@@ -69,7 +79,7 @@ public sealed class RpxToDesignConverter
         var report = new RawReport
         {
             Name = Attr(root, "Name") ?? "ActiveReports Section Report",
-            HasScript = Descendant(root, "Script") is { } s && !string.IsNullOrWhiteSpace(s.Value)
+            Script = ParseScript(root)
         };
         ResolvePageSettings(root, report);
 
@@ -92,7 +102,7 @@ public sealed class RpxToDesignConverter
             }
         }
 
-        return BuildDesign(report);
+        return BuildDesign(report, resources, subreportDepth);
     }
 
     private static void ResolvePageSettings(XElement root, RawReport report)
@@ -113,6 +123,45 @@ public sealed class RpxToDesignConverter
 
         if (string.Equals(Attr(ps, "Orientation"), "Landscape", StringComparison.OrdinalIgnoreCase))
             (report.PageWidthPt, report.PageHeightPt) = (report.PageHeightPt, report.PageWidthPt);
+    }
+
+    private static RpxScriptMetadata? ParseScript(XElement root)
+    {
+        var script = Descendant(root, "Script");
+        var source = script?.Value;
+        if (string.IsNullOrWhiteSpace(source)) return null;
+
+        source = source.Trim();
+        return new RpxScriptMetadata(
+            Language: Attr(script, "Language") ?? Attr(script, "ScriptLanguage") ?? Attr(root, "ScriptLanguage"),
+            Length: source.Length,
+            Sha256: System.Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source))).ToLowerInvariant(),
+            Preview: source.Length <= 400 ? source : source[..400]);
+    }
+
+    private static PageSettingsDto BuildPageSettings(RawReport report)
+    {
+        var settings = new PageSettingsDto { Width = report.PageWidthPt, Height = report.PageHeightPt, Unit = "pt" };
+        if (report.Script is not null)
+        {
+            settings.CustomProperties =
+            [
+                new CustomDocumentPropertyDto
+                {
+                    Name = "rpxScript",
+                    Type = "text",
+                    Value = JsonSerializer.Serialize(new Dictionary<string, object?>
+                    {
+                        ["language"] = report.Script.Language,
+                        ["length"] = report.Script.Length,
+                        ["sha256"] = report.Script.Sha256,
+                        ["preview"] = report.Script.Preview
+                    })
+                }
+            ];
+        }
+
+        return settings;
     }
 
     private static RawElement? ParseControl(XElement el, string bandName)
@@ -146,12 +195,18 @@ public sealed class RpxToDesignConverter
             BackColor = ParseColor(Attr(el, "BackColor")),
             TextAlign = ParseAlignment(Attr(el, "Alignment")),
             LineWidth = Attr(el, "LineWeight") is { } lw ? ToDouble(lw) : null,
-            LineStyle = Attr(el, "LineStyle")
+            LineStyle = Attr(el, "LineStyle"),
+            CanGrow = ParseBool(Attr(el, "CanGrow")),
+            CanShrink = ParseBool(Attr(el, "CanShrink")),
+            OutputFormat = Attr(el, "OutputFormat"),
+            PageBreak = Attr(el, "PageBreak") ?? Attr(el, "NewPage") ?? Attr(el, "NewPageBefore") ?? Attr(el, "NewPageAfter"),
+            SubreportSource = Attr(el, "ReportName") ?? Attr(el, "Report") ?? Attr(el, "FileName")
+                ?? Attr(el, "File") ?? Attr(el, "Path") ?? Attr(el, "Source")
         };
         ApplyFont(raw, el);
 
-        if (type == "Line" && ParseColor(Attr(el, "LineColor")) is { } lc) raw.ForeColor = lc;
-        if (type == "Shape") raw.ShapeKind = ShapeKindFromName(Attr(el, "Style") ?? Attr(el, "ShapeType"));
+        if (type is "Line" or "CrossSectionLine" && ParseColor(Attr(el, "LineColor")) is { } lc) raw.ForeColor = lc;
+        if (type is "Shape" or "CrossSectionBox") raw.ShapeKind = ShapeKindFromName(Attr(el, "Style") ?? Attr(el, "ShapeType"));
         if (type == "Picture") raw.ImageDataUrl = ExtractImageDataUrl(el);
         if (type == "Barcode") raw.Symbology = Attr(el, "Style") ?? Attr(el, "Symbology") ?? Attr(el, "BarCodeStyle");
         if (type is "CheckBox") raw.Checked = string.Equals(Attr(el, "Checked"), "True", StringComparison.OrdinalIgnoreCase);
@@ -161,7 +216,10 @@ public sealed class RpxToDesignConverter
 
     // ── Band-flatten build (mirrors the DevExpress report converter) ────────────────────────────────
 
-    private static RpxConvertResult BuildDesign(RawReport report)
+    private RpxConvertResult BuildDesign(
+        RawReport report,
+        IReadOnlyDictionary<string, string>? resources,
+        int subreportDepth)
     {
         var diagnostics = new List<MigrationDiagnostic>();
 
@@ -203,19 +261,35 @@ public sealed class RpxToDesignConverter
             {
                 element.Binding = field;
                 if (element.Type == "text") element.Content = $"{{{{{field}}}}}";
+                if (!string.IsNullOrWhiteSpace(raw.OutputFormat)) element.Formatter = raw.OutputFormat;
                 diagnostics.Add(Info("CANMIGRPX010", $"'{raw.Name}' bound to field {field} → Canvas binding '{field}'."));
             }
 
-            (bandType is "PageHeader" or "PageFooter" ? sharedElements : elements).Add(element);
-            mapped++;
+            ApplyBandMetadata(element, raw, bandType, diagnostics);
+            ApplyDynamicMetadata(element, raw, diagnostics);
+            var pageBoundaryElements = CreatePageBoundaryElements(raw, element);
+
+            if (raw.Type == "SubReport"
+                && TryInlineSubreport(raw, element, resources, subreportDepth, diagnostics) is { Count: > 0 } inlined)
+            {
+                elements.AddRange(inlined);
+                elements.AddRange(pageBoundaryElements);
+                mapped += inlined.Count + pageBoundaryElements.Count;
+                continue;
+            }
+
+            var target = bandType is "PageHeader" or "PageFooter" ? sharedElements : elements;
+            target.Add(element);
+            target.AddRange(pageBoundaryElements);
+            mapped += 1 + pageBoundaryElements.Count;
         }
 
         elements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
         sharedElements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
 
-        if (report.HasScript)
-            diagnostics.Add(Warn("CANMIGRPX011",
-                "Report contains embedded script — Canvas has no scripting; migrate that logic manually."));
+        if (report.Script is not null)
+            diagnostics.Add(Warn("CANMIGRPX018",
+                "Report contains embedded script — Canvas imports script metadata as a no-op; migrate behaviour manually."));
 
         diagnostics.Insert(0, Info("CANMIGRPX001",
             $"ActiveReports section report '{report.Name}' detected — {report.Bands.Count} section(s), {mapped} control(s) mapped."));
@@ -226,7 +300,7 @@ public sealed class RpxToDesignConverter
             Name = report.Name,
             Category = "imported",
             Description = "Imported from an ActiveReports section report (.rpx).",
-            PageSettings = new PageSettingsDto { Width = report.PageWidthPt, Height = report.PageHeightPt, Unit = "pt" },
+            PageSettings = BuildPageSettings(report),
             Pages = [new PageDto { Id = "page-1", Elements = elements }],
             SharedElements = sharedElements
         };
@@ -248,17 +322,23 @@ public sealed class RpxToDesignConverter
                 return element;
 
             case "Line":
+            case "CrossSectionLine":
                 element.Type = "line";
                 element.Style = new Dictionary<string, object> { ["color"] = raw.ForeColor };
                 if (raw.LineWidth is { } lineW) element.Style["strokeWidth"] = lineW;
                 if (DashStyleFromName(raw.LineStyle) is { } dash) element.Style["dashStyle"] = dash;
+                if (raw.Type == "CrossSectionLine")
+                    element.Style["rpxCrossSection"] = true;
                 return element;
 
             case "Shape":
+            case "CrossSectionBox":
                 element.Type = raw.ShapeKind switch { "ellipse" => "circle", _ => "rect" };
                 element.Style = new Dictionary<string, object> { ["borderColor"] = raw.ForeColor };
                 if (raw.BackColor is { } bg) element.Style["backgroundColor"] = bg;
                 if (raw.LineWidth is { } borderW) element.Style["borderWidth"] = borderW;
+                if (raw.Type == "CrossSectionBox")
+                    element.Style["rpxCrossSection"] = true;
                 return element;
 
             case "Picture":
@@ -293,11 +373,120 @@ public sealed class RpxToDesignConverter
                     $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
                 return Placeholder(element, $"[Sub-report: {raw.Name} — migrate manually]");
 
+            case "OleObject":
+                diagnostics.Add(Warn("CANMIGRPX011",
+                    $"'{raw.Name}' is an OLE object — Canvas has no native OLE embedding; inserted a placeholder."));
+                element = Placeholder(element, $"[OLE object: {raw.Name} — migrate manually]");
+                element.Style!["rpxOleObject"] = new Dictionary<string, object?>
+                {
+                    ["name"] = raw.Name,
+                    ["sourceType"] = "OleObject"
+                };
+                return element;
+
             default:
                 diagnostics.Add(Warn("CANMIGRPX011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
     }
+
+    private List<ElementDto>? TryInlineSubreport(
+        RawElement raw,
+        ElementDto parent,
+        IReadOnlyDictionary<string, string>? resources,
+        int subreportDepth,
+        List<MigrationDiagnostic> diagnostics)
+    {
+        if (resources is null || resources.Count == 0 || subreportDepth >= MaxSubreportDepth)
+            return null;
+
+        var sourceName = raw.SubreportSource;
+        if (string.IsNullOrWhiteSpace(sourceName))
+            return null;
+
+        if (!TryResolveSubreportSource(sourceName, resources, out var matchedKey, out var subreportXml))
+            return null;
+
+        RpxConvertResult result;
+        try
+        {
+            result = ConvertCore(subreportXml, resources, subreportDepth + 1);
+        }
+        catch (ArgumentException ex)
+        {
+            diagnostics.Add(Warn("CANMIGRPX017",
+                $"'{raw.Name}' subreport resource '{matchedKey}' could not be converted: {ex.Message}"));
+            return null;
+        }
+
+        var imported = new List<ElementDto>();
+        foreach (var child in result.Design.Pages.SelectMany(p => p.Elements).Concat(result.Design.SharedElements))
+        {
+            var clone = CloneElement(child);
+            clone.Id = $"{parent.Id}-{clone.Id}";
+            clone.X = parent.X + clone.X;
+            clone.Y = parent.Y + clone.Y;
+            clone.Style ??= [];
+            clone.Style["rpxInlinedFromSubreport"] = matchedKey;
+            clone.Style["rpxParentSubreport"] = raw.Name;
+            imported.Add(clone);
+        }
+
+        diagnostics.Add(Info("CANMIGRPX017",
+            $"'{raw.Name}' subreport resource '{matchedKey}' inlined with {imported.Count} Canvas element(s)."));
+        return imported;
+    }
+
+    private static bool TryResolveSubreportSource(
+        string sourceName,
+        IReadOnlyDictionary<string, string> resources,
+        out string matchedKey,
+        out string source)
+    {
+        foreach (var candidate in SubreportSourceCandidates(sourceName))
+        {
+            if (resources.TryGetValue(candidate, out source!))
+            {
+                matchedKey = candidate;
+                return true;
+            }
+        }
+
+        foreach (var (key, value) in resources)
+        {
+            if (SubreportSourceCandidates(sourceName).Any(candidate =>
+                    string.Equals(Path.GetFileName(key), candidate, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(Path.GetFileNameWithoutExtension(key), Path.GetFileNameWithoutExtension(candidate), StringComparison.OrdinalIgnoreCase)))
+            {
+                matchedKey = key;
+                source = value;
+                return true;
+            }
+        }
+
+        matchedKey = "";
+        source = "";
+        return false;
+    }
+
+    private static IEnumerable<string> SubreportSourceCandidates(string sourceName)
+    {
+        var trimmed = sourceName.Trim().Trim('"', '\'');
+        if (trimmed.Length == 0) yield break;
+
+        yield return trimmed;
+        yield return Path.GetFileName(trimmed);
+
+        var withoutExtension = Path.GetFileNameWithoutExtension(trimmed);
+        if (!string.IsNullOrWhiteSpace(withoutExtension))
+        {
+            yield return $"{withoutExtension}.rpx";
+            yield return withoutExtension;
+        }
+    }
+
+    private static ElementDto CloneElement(ElementDto element) =>
+        JsonSerializer.Deserialize<ElementDto>(JsonSerializer.Serialize(element))!;
 
     // Keeps an unsupported control visible at its original position/size so the layout isn't silently
     // holed — a muted, captioned block the user can replace in the designer.
@@ -330,7 +519,145 @@ public sealed class RpxToDesignConverter
         if (decoration.Length > 0) style["textDecoration"] = decoration;
         if (raw.BackColor is { } bg) style["backgroundColor"] = bg;
         style["textAlign"] = raw.TextAlign;
+        if (raw.CanGrow == true) style["overflow"] = "visible";
         return style;
+    }
+
+    private static void ApplyBandMetadata(ElementDto element, RawElement raw, string bandType, List<MigrationDiagnostic> diagnostics)
+    {
+        if (element.Style is null) element.Style = [];
+
+        element.Style["rpxBand"] = new Dictionary<string, object?>
+        {
+            ["name"] = raw.Band,
+            ["type"] = bandType
+        };
+
+        if (bandType is "GroupHeader" or "GroupFooter")
+        {
+            var dataPath = SafeRepeatPath(raw.Band is { Length: > 0 } b ? b : $"{bandType}Rows");
+            element.Style["rpxGroupRepeat"] = new Dictionary<string, object?>
+            {
+                ["band"] = raw.Band,
+                ["bandType"] = bandType,
+                ["dataPath"] = dataPath,
+                ["role"] = bandType == "GroupHeader" ? "header" : "footer"
+            };
+            element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
+            diagnostics.Add(Warn("CANMIGRPX013",
+                $"'{raw.Name}' is in {bandType} '{raw.Band}' — mapped to Canvas repeat metadata; group runtime semantics need review."));
+        }
+        else if (bandType == "Detail")
+        {
+            var dataPath = SafeRepeatPath(raw.Band is { Length: > 0 } b ? b : "DetailRows");
+            element.Style["rpxDetailRepeat"] = new Dictionary<string, object?>
+            {
+                ["band"] = raw.Band,
+                ["dataPath"] = dataPath
+            };
+            element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
+        }
+        else if (bandType == "ReportFooter")
+        {
+            element.Style["rpxReportFooter"] = new Dictionary<string, object?>
+            {
+                ["band"] = raw.Band,
+                ["scope"] = "report-end"
+            };
+        }
+    }
+
+    private static void ApplyDynamicMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (element.Style is null) element.Style = [];
+
+        if (raw.CanGrow == true || raw.CanShrink == true)
+        {
+            element.Style["rpxAutoSize"] = new Dictionary<string, object?>
+            {
+                ["canGrow"] = raw.CanGrow,
+                ["canShrink"] = raw.CanShrink
+            };
+            if (raw.CanShrink == true) element.Style["rpxCanShrink"] = true;
+            diagnostics.Add(Warn("CANMIGRPX014",
+                $"'{raw.Name}' uses CanGrow/CanShrink — Canvas imports wrapping/overflow hints, but dynamic band reflow needs review."));
+        }
+
+        if (!string.IsNullOrWhiteSpace(raw.OutputFormat))
+        {
+            element.Style["rpxOutputFormat"] = raw.OutputFormat;
+            diagnostics.Add(Warn("CANMIGRPX015",
+                $"'{raw.Name}' uses OutputFormat '{raw.OutputFormat}' — preserved as Canvas formatter metadata; exact formatting should be reviewed."));
+        }
+
+        if (!string.IsNullOrWhiteSpace(raw.PageBreak))
+        {
+            element.Style["rpxPageBreak"] = raw.PageBreak;
+            diagnostics.Add(Warn("CANMIGRPX016",
+                $"'{raw.Name}' declares page break/new-page behaviour '{raw.PageBreak}' — preserved as metadata for review."));
+        }
+
+        if (raw.Type is "CrossSectionLine" or "CrossSectionBox")
+        {
+            element.Style["rpxCrossSectionControl"] = raw.Type;
+            diagnostics.Add(Warn("CANMIGRPX016",
+                $"'{raw.Name}' is a {raw.Type} — mapped visually and preserved as cross-section metadata."));
+        }
+    }
+
+    private static List<ElementDto> CreatePageBoundaryElements(RawElement raw, ElementDto source)
+    {
+        var modes = PageBoundaryModes(raw.PageBreak).ToArray();
+        if (modes.Length == 0) return [];
+
+        var boundaries = new List<ElementDto>();
+        foreach (var mode in modes)
+        {
+            var y = mode == "start" ? Math.Max(0, source.Y - 10) : source.Y + source.Height + 6;
+            var boundary = new ElementDto
+            {
+                Id = $"{source.Id}-page-{mode}",
+                Name = $"{source.Name} page {mode}",
+                Type = "pageboundary",
+                X = source.X,
+                Y = y,
+                Width = Math.Max(source.Width, 144),
+                Height = 18,
+                PageBoundaryMode = mode,
+                Content = mode == "end" ? "Page end" : "Page start",
+                Style = new Dictionary<string, object>
+                {
+                    ["color"] = "#7C3AED",
+                    ["dashStyle"] = "dashed",
+                    ["rpxPageBreak"] = raw.PageBreak!,
+                    ["rpxPageBreakFor"] = raw.Name
+                }
+            };
+            boundaries.Add(boundary);
+        }
+
+        return boundaries;
+    }
+
+    private static IEnumerable<string> PageBoundaryModes(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) yield break;
+        var normalized = value.Trim().ToLowerInvariant();
+
+        if (normalized is "before" or "start" or "newpagebefore" or "true")
+            yield return "start";
+        else if (normalized is "after" or "end" or "newpageafter")
+            yield return "end";
+        else if (normalized.Contains("before") && normalized.Contains("after")
+                 || normalized.Contains("start") && normalized.Contains("end"))
+        {
+            yield return "start";
+            yield return "end";
+        }
+        else if (normalized.Contains("before") || normalized.Contains("start"))
+            yield return "start";
+        else if (normalized.Contains("after") || normalized.Contains("end"))
+            yield return "end";
     }
 
     private static void ApplyFont(RawElement raw, XElement el)
@@ -483,6 +810,20 @@ public sealed class RpxToDesignConverter
 
     private static bool IsTrue(string? value) => string.Equals(value, "True", StringComparison.OrdinalIgnoreCase);
 
+    private static bool? ParseBool(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        if (value.Equals("true", StringComparison.OrdinalIgnoreCase)) return true;
+        if (value.Equals("false", StringComparison.OrdinalIgnoreCase)) return false;
+        return null;
+    }
+
+    private static string SafeRepeatPath(string value)
+    {
+        var safe = Regex.Replace(value, @"[^\w.]+", "");
+        return string.IsNullOrWhiteSpace(safe) ? "Rows" : safe;
+    }
+
     private static string? Attr(XElement? el, string name) => el?.Attribute(name)?.Value;
 
     private static XElement? Descendant(XElement? el, string name) =>
@@ -501,10 +842,12 @@ public sealed class RpxToDesignConverter
         public string Name = "ActiveReports Section Report";
         public double PageWidthPt = LetterWidthPt, PageHeightPt = LetterHeightPt;
         public double MarginLeftPt, MarginTopPt, MarginBottomPt;
-        public bool HasScript;
+        public RpxScriptMetadata? Script;
         public List<RawBand> Bands = [];
         public List<RawElement> Elements = [];
     }
+
+    private sealed record RpxScriptMetadata(string? Language, int Length, string Sha256, string Preview);
 
     private sealed class RawBand
     {
@@ -533,5 +876,10 @@ public sealed class RpxToDesignConverter
         public bool Checked;
         public double? LineWidth;
         public string? LineStyle;
+        public bool? CanGrow;
+        public bool? CanShrink;
+        public string? OutputFormat;
+        public string? PageBreak;
+        public string? SubreportSource;
     }
 }

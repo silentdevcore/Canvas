@@ -34,6 +34,7 @@
     <ProjectReference Include="../src/Canvas.Infrastructure.Sheet/Canvas.Infrastructure.Sheet.csproj" />
     <ProjectReference Include="../src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.ActivePdf/Canvas.Migration.ActivePdf.csproj" />
+    <ProjectReference Include="../src/Canvas.Migration.ActiveReportsJs/Canvas.Migration.ActiveReportsJs.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.Apryse/Canvas.Migration.Apryse.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.AsposePdf/Canvas.Migration.AsposePdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.DevExpressPdf/Canvas.Migration.DevExpressPdf.csproj" />

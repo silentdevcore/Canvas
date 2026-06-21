@@ -114,13 +114,17 @@ namespace does **not** contain `reportdefinition`, and no `<Sections>` (RPX). Ac
 
 ## V2 — next
 
-**Current recommendation:** keep FastReport in the shared P1 fidelity pass. It should benefit from the
-same group/repeat model as DevExpress/RPX before provider-specific polish.
+**Current recommendation:** FastReport table fidelity is now in good shape. The next useful work is the
+band/runtime layer: multi-page reports, group/detail repeats, child-band join semantics, and validation
+against a wider set of real `Demos/Reports/*.frx` samples.
 
 - [x] **P1** `TableObject` → Canvas table: grid extraction from `TableColumn` (widths px→pt) /
       `TableRow` / `TableCell` (text + `[Source.Col]`→binding); `ColSpan` padded to keep column alignment;
       first row treated as header when >1 row. Diagnostic `CANMIGFRX013`.
+- [x] **P1** `TableCell` per-cell styles → `CellStyles`: `Fill.Color`, `TextFill.Color`, `HorzAlign`,
+      `Font`, `Padding`, and `Border.Lines`/`Border.Color`/`Border.Width` map to sparse Canvas cell style
+      metadata and are covered by converter/exporter tests.
 - [ ] **P1** Multi-`ReportPage` (currently first page); `ChildBand` join semantics; `GroupHeader/Footer` repeat
-- [ ] **P1** Per-side `Border.Lines` rendering; `Padding`; `Columns.*` multi-column bands
+- [ ] **P1** `Columns.*` multi-column bands and non-table per-side border polish
 - [ ] **P1** `PictureObject` non-PNG MIME sniffing; richer `RichObject` RTF→HTML
 - [ ] **P1** Validate against more `Demos/Reports/*.frx` (charts/matrix/gauge → placeholder)

@@ -12,11 +12,12 @@ const RPX_REPORT_ID = 'RpxReport';
 const FRX_REPORT_ID = 'FrxReport';
 const TRDX_REPORT_ID = 'TrdxReport';
 const JRXML_REPORT_ID = 'JrxmlReport';
+const ACTIVE_REPORTS_JS_ID = 'ActiveReportsJsReport';
 const MRT_REPORT_ID = 'MrtReport';
 // All report flows post to the same /report-to-design endpoint (the backend auto-detects the format).
 const isReportDesign = (id: string) =>
   id === REPORT_ID || id === RDL_REPORT_ID || id === RPX_REPORT_ID || id === FRX_REPORT_ID
-  || id === TRDX_REPORT_ID || id === JRXML_REPORT_ID || id === MRT_REPORT_ID;
+  || id === TRDX_REPORT_ID || id === JRXML_REPORT_ID || id === ACTIVE_REPORTS_JS_ID || id === MRT_REPORT_ID;
 
 interface Framework {
   id: string;
@@ -573,6 +574,45 @@ const JRXML_REPORT_FRAMEWORK: Framework = {
   description: 'Converts a JasperReports / Jaspersoft Studio report (.jrxml) into an editable Canvas design — bands flattened to absolute positions (points, no scaling), named styles resolved, page header/footer → shared elements, $F{field} → binding. Open the result in the visual designer.',
 };
 
+const ACTIVE_REPORTS_JS_EXAMPLE = `{
+  "reportType": "ActiveReportsJS",
+  "name": "Invoice JS",
+  "page": { "width": "8.5in", "height": "11in" },
+  "body": {
+    "reportItems": [
+      {
+        "type": "textbox",
+        "name": "title",
+        "left": "1in",
+        "top": "0.5in",
+        "width": "4in",
+        "height": "0.4in",
+        "value": "Invoice",
+        "style": { "fontFamily": "Arial", "fontSize": 18, "bold": true, "textAlign": "Center", "color": "#0066CC" }
+      },
+      { "type": "textbox", "name": "customer", "left": 72, "top": 90, "width": 220, "height": 20, "value": "{Customers.Name}" },
+      { "type": "line", "name": "rule", "left": 72, "top": 120, "width": 420, "height": 1, "style": { "color": "#808080", "strokeWidth": 2 } },
+      {
+        "type": "table",
+        "name": "items",
+        "left": 72,
+        "top": 150,
+        "width": 320,
+        "height": 80,
+        "columns": [{ "width": 180 }, { "width": 140 }],
+        "rows": [["Item", "Amount"], ["Widget", "{Items.Amount}"]]
+      }
+    ]
+  }
+}`;
+
+const ACTIVE_REPORTS_JS_FRAMEWORK: Framework = {
+  id: ACTIVE_REPORTS_JS_ID,
+  name: 'ActiveReports JS (.json)',
+  status: 'designer',
+  description: 'Converts marked ActiveReports JS JSON reports into editable Canvas designs — text, line, image, barcode and simple table items map directly; unknown regions become review placeholders.',
+};
+
 const MRT_REPORT_EXAMPLE = `<?xml version="1.0" encoding="utf-8"?>
 <StiSerializer version="1.02" type="Net" application="StiReport">
   <ReportName>Invoice</ReportName>
@@ -615,6 +655,7 @@ const EXAMPLES: Record<string, string> = {
   [FRX_REPORT_ID]: FRX_REPORT_EXAMPLE,
   [TRDX_REPORT_ID]: TRDX_REPORT_EXAMPLE,
   [JRXML_REPORT_ID]: JRXML_REPORT_EXAMPLE,
+  [ACTIVE_REPORTS_JS_ID]: ACTIVE_REPORTS_JS_EXAMPLE,
   [MRT_REPORT_ID]: MRT_REPORT_EXAMPLE,
   Syncfusion: SYNCFUSION_EXAMPLE,
   iText7: ITEXT7_EXAMPLE,
@@ -642,7 +683,7 @@ interface ConversionSummary {
 
 // The report-designer → Canvas design frameworks (output is an editable design, not C# code).
 const DESIGNER_FRAMEWORKS: Framework[] = [
-  REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK, JRXML_REPORT_FRAMEWORK, MRT_REPORT_FRAMEWORK,
+  REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK, JRXML_REPORT_FRAMEWORK, ACTIVE_REPORTS_JS_FRAMEWORK, MRT_REPORT_FRAMEWORK,
 ];
 
 type MigrationMode = 'code' | 'designer';
@@ -661,6 +702,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const [resourceFileName, setResourceFileName] = useState('');
   const [jrxmlResourceMap, setJrxmlResourceMap] = useState<Record<string, string>>({});
   const [jrxmlResourceFileNames, setJrxmlResourceFileNames] = useState<string[]>([]);
+  const [rpxResourceMap, setRpxResourceMap] = useState<Record<string, string>>({});
+  const [rpxResourceFileNames, setRpxResourceFileNames] = useState<string[]>([]);
   const [canvasCode, setCanvasCode] = useState('');
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
   const [summary, setSummary] = useState<ConversionSummary | null>(null);
@@ -699,6 +742,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     setResourceFileName('');
     setJrxmlResourceMap({});
     setJrxmlResourceFileNames([]);
+    setRpxResourceMap({});
+    setRpxResourceFileNames([]);
     setCanvasCode('');
     setDiagnostics([]);
     setSummary(null);
@@ -757,6 +802,31 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     }
   };
 
+  const handleRpxResourceFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    const rpxFiles = files.filter(file => file.name.toLowerCase().endsWith('.rpx'));
+    if (rpxFiles.length === 0) return;
+
+    try {
+      const entries = await Promise.all(
+        rpxFiles.map(async file => [file.name, await file.text()] as const)
+      );
+      setRpxResourceMap(currentResources => ({
+        ...currentResources,
+        ...Object.fromEntries(entries),
+      }));
+      setRpxResourceFileNames(currentNames => {
+        const names = new Set(currentNames);
+        for (const file of rpxFiles) names.add(file.name);
+        return Array.from(names).sort((a, b) => a.localeCompare(b));
+      });
+      setError(null);
+    } catch {
+      setError('Could not read one or more .rpx resource files.');
+    }
+  };
+
   const handleConvert = async () => {
     if (!sourceCode.trim()) return;
     setConverting(true);
@@ -764,7 +834,9 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     try {
       // Report (DevExpress XtraReport or RDL/RDLC) → Canvas design (JSON), opened in the visual designer.
       if (isReportDesign(selectedId)) {
-        let resources: Record<string, string> = selectedId === JRXML_REPORT_ID ? { ...jrxmlResourceMap } : {};
+        let resources: Record<string, string> = {};
+        if (selectedId === JRXML_REPORT_ID) resources = { ...resources, ...jrxmlResourceMap };
+        if (selectedId === RPX_REPORT_ID) resources = { ...resources, ...rpxResourceMap };
         if (resourceJson.trim()) {
           const parsed = JSON.parse(resourceJson);
           if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
@@ -1080,6 +1152,43 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
                     {jrxmlResourceFileNames.length > 0 && (
                       <div className="mgr-resource-list">
                         {jrxmlResourceFileNames.map(name => <span key={name}>{name}</span>)}
+                      </div>
+                    )}
+                  </>
+                )}
+                {selectedId === RPX_REPORT_ID && (
+                  <>
+                    <div className="mgr-resource-header">
+                      <label htmlFor="mgr-rpx-resource-files">RPX subreports</label>
+                      <span>{rpxResourceFileNames.length ? `${rpxResourceFileNames.length} loaded` : 'No .rpx resources loaded'}</span>
+                    </div>
+                    <div className="mgr-resource-actions">
+                      <label className="mgr-file-btn" htmlFor="mgr-rpx-resource-files">
+                        <FiUpload /> Load .rpx files
+                      </label>
+                      <input
+                        id="mgr-rpx-resource-files"
+                        type="file"
+                        accept=".rpx"
+                        multiple
+                        onChange={handleRpxResourceFilesChange}
+                      />
+                      {rpxResourceFileNames.length > 0 && (
+                        <button
+                          type="button"
+                          className="mgr-link-btn"
+                          onClick={() => {
+                            setRpxResourceMap({});
+                            setRpxResourceFileNames([]);
+                          }}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    {rpxResourceFileNames.length > 0 && (
+                      <div className="mgr-resource-list">
+                        {rpxResourceFileNames.map(name => <span key={name}>{name}</span>)}
                       </div>
                     )}
                   </>

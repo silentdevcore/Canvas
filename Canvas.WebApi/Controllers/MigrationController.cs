@@ -1,4 +1,5 @@
 using Canvas.Core.Contracts;
+using Canvas.Migration.ActiveReportsJs;
 using Canvas.Migration.DevExpressReport;
 using Canvas.Migration.FastReport;
 using Canvas.Migration.JasperReports;
@@ -102,7 +103,8 @@ public class MigrationController : ControllerBase
             }
             else if (RpxToDesignConverter.LooksLikeRpx(request.SourceCode))
             {
-                var result = new RpxToDesignConverter().Convert(request.SourceCode);
+                var resources = MergeReportResources(request.ResourceXml, request.Resources);
+                var result = new RpxToDesignConverter().Convert(request.SourceCode, resources);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
@@ -122,6 +124,12 @@ public class MigrationController : ControllerBase
             {
                 var resources = MergeReportResources(request.ResourceXml, request.Resources);
                 var result = new JrxmlToDesignConverter().Convert(request.SourceCode, resources);
+                design = result.Design;
+                diagnostics = result.Diagnostics;
+            }
+            else if (ActiveReportsJsToDesignConverter.LooksLikeActiveReportsJs(request.SourceCode))
+            {
+                var result = new ActiveReportsJsToDesignConverter().Convert(request.SourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }

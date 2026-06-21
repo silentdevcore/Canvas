@@ -7,8 +7,9 @@ MESCIUS (GrapeCity) **ActiveReports** family of report designers.
 - **Two distinct file formats — different converters:**
   | Format | Designer kind | Layout | Converter | Companion doc |
   | --- | --- | --- | --- | --- |
-  | `.rpx` | **Section** report | banded XML (inches) | `Canvas.Migration.Rpx` | [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) |
-  | `.rdlx` | **Page** report | RDL XML (`reportdefinition` ns) | `Canvas.Migration.Rdl` | [Code-Migration-SyncfusionRdl.md](Code-Migration-SyncfusionRdl.md) |
+| `.rpx` | **Section** report | banded XML (inches) | `Canvas.Migration.Rpx` | [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) |
+| `.rdlx` | **Page** report | RDL XML (`reportdefinition` ns) | `Canvas.Migration.Rdl` | [Code-Migration-SyncfusionRdl.md](Code-Migration-SyncfusionRdl.md) |
+| `.json` | **ActiveReports JS** report | marked JSON (`reportType: ActiveReportsJS`) | `Canvas.Migration.ActiveReportsJs` | this file |
 - **Routing:** `.rdlx` uses the Microsoft RDL `reportdefinition` namespace, so it is detected and
   routed by `LooksLikeRdl` (the RPX detector explicitly **rejects** that namespace). `.rpx` is the
   banded section format detected by `LooksLikeRpx` (root `<Report>` + `<Sections>`).
@@ -44,7 +45,7 @@ Observed feature coverage:
 | **`<List>`** region (grouped repeat) + nested `<Table>` + `<Grouping>` | 1 (BloodTestReport) | **now parsed**: container + repeat metadata; children extracted | Done (this pass) |
 | `Image` (embedded/base64/reference) | 9 | supported | Done |
 | `Line` | 17 | supported | Done |
-| Per-cell `<BorderStyle>` / `<Padding>` | broad | column-level only (Canvas has no per-cell table styling) | P1 / documented limit |
+| Per-cell `<BorderStyle>` / `<Padding>` | broad | supported via sparse `CellStyles`; rendered/exported across the main output paths | Done/P1 |
 | `Tablix` / `Chart` / `CustomReportItem` / `Subreport` / `Matrix` | 0 in these samples | supported by the RDL converter (untested here) | n/a |
 
 Key sample-driven conclusions:
@@ -59,6 +60,7 @@ Key sample-driven conclusions:
 | --- | --- | --- |
 | `CANMIGRDL030` | Info | RDL-2005 `<Table>` `<Footer>` rows were included in the Canvas table grid |
 | `CANMIGRDL031` | Warning | RDL `<List>` region mapped to a Canvas container with repeat metadata; child items extracted as positioned elements — review grouping/repeat semantics |
+| `CANMIGRDL032` | Warning | RDL-2005 `<TableGroups>` header/footer repeat metadata preserved on Canvas table style |
 
 ## V2 checklist
 
@@ -68,10 +70,37 @@ Key sample-driven conclusions:
 - [x] **P0** `<Grouping>` recognized alongside `<Group>` in `ParseTablixGroups` (RDL-2005 groupings no longer ignored).
 - [x] **P0** Validate all 8 `.rdlx` samples convert with no dropped top-level regions (integration test).
 - [x] **P1** Per-cell border/background/alignment fidelity — see *Per-cell table styling* below (v1 vertical slice).
-- [ ] **P1** RDL-2005 `<TableGroups>`/group header-footer rows → repeat/section semantics (none present in samples).
-- [ ] **P1** Validate the `.rpx` Section-report converter against real designer-saved `.rpx` files
-      (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) for its own P0 list).
-- [ ] **P2** ActiveReports **JS** JSON report model (distinct web/JS designer; not yet started).
+- [x] **P1** RDL-2005 `<TableGroups>`/group header-footer metadata: `Grouping` name,
+      `GroupExpressions`, sort expressions, header/footer row counts, and nested groups are preserved on
+      table `style.rdlTableGroups` with `CANMIGRDL032`. Runtime section rendering still depends on a
+      future group-repeat renderer; none of the current local samples exercise this.
+- [x] **P1** RPX section-report P0 metadata pass: `GroupHeader`/`GroupFooter` and `Detail` repeat metadata,
+      `CanGrow`/`CanShrink`, `OutputFormat`, page-break metadata, and CrossSectionLine/CrossSectionBox
+      visual preservation are implemented in `Canvas.Migration.Rpx`.
+- [x] **P1** RPX subreport resource inlining: matching `.rpx` resources supplied to `report-to-design`
+      are recursively converted and positioned at the parent `SubReport` placeholder.
+- [x] **P1** RPX UI resource upload: the migration page accepts multiple `.rpx` resource files for
+      ActiveReports subreport inlining.
+- [x] **P1** RPX embedded-script no-op preservation: script language/hash/preview metadata is retained in
+      `PageSettings.CustomProperties` for manual review.
+- [x] **P1** RPX page-break mapping: `PageBreak`/`NewPage` hints create typed Canvas `pageboundary`
+      markers alongside `style.rpxPageBreak` metadata.
+- [x] **P1** RPX real-sample validation harness: tests auto-discover
+      `designer-simples/ActiveReports/**/*.rpx` and skip gracefully until real section-report samples exist.
+- [x] **P1** Add and validate `.rpx` section-report sample files: representative, schema-faithful fixtures
+      live in `designer-simples/ActiveReports/rpx-section-samples/` (`Invoice.rpx`, `GroupedSales.rpx`) and
+      are exercised by the auto-discovery harness plus fidelity tests (page settings, group repeat metadata,
+      `CanGrow`, page break, sub-report). *Genuine vendor-saved `.rpx` files are still welcome to harden
+      colour/format/unit edge cases — drop them in the same folder and the harness picks them up.*
+      (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md).)
+- [x] **P2** ActiveReports **JS** JSON report model V1: explicitly marked JSON reports
+      (`reportType`/`reportKind`/`designer` containing `ActiveReportsJS`) route to
+      `Canvas.Migration.ActiveReportsJs`; text/line/image/barcode/simple table items map to Canvas
+      elements and unsupported regions become visible placeholders. Real vendor-saved JSON samples
+      are still needed for schema tuning.
+- [x] **P2** ActiveReports JS sample validation harness: tests auto-discover
+      `designer-simples/ActiveReports/**/*.json`, convert files with an explicit ActiveReports JS marker,
+      and skip gracefully until real vendor-saved JSON reports exist.
 
 ## Implementation notes
 
@@ -118,7 +147,9 @@ adds an **additive, backward-compatible** per-cell style model and wires a **v1 
       HorzAlign/Padding), **Telerik** (content-item named+inline `<Style>`), **DevExpress** (XRTableCell XML
       BackColor/ForeColor/Borders/Font/TextAlignment). *(Jasper intentionally not touched. DevExpress C#-code
       path + Telerik per-side borders remain follow-ups.)*
-- [ ] Frontend manual per-cell style editor in the inspector.
+- [x] Frontend manual per-cell style editor in the inspector: table elements now expose row/column cell
+      selection plus sparse `cellStyles` editing for background, text colour, font, padding, alignment,
+      bold/italic, and uniform border colour/width.
 - [x] Per-cell padding + font (family/size/bold/italic/color): added to `CellStyleDto`, extracted by the
       RDL converter (`PaddingLeft/Top/Right/Bottom`, `FontFamily/FontSize/FontWeight/FontStyle/Color`), and
       rendered on canvas/preview + all exporters. (Word/Excel have no cell-padding model → padding skipped

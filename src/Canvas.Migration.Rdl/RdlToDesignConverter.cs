@@ -731,6 +731,7 @@ public sealed class RdlToDesignConverter
             raw.TablixSorts = ParseTablixSorts(el);
             raw.TablixKeepWithGroups = ParseTablixKeepWithGroups(el);
             raw.TablixGroupFilters = ParseTablixGroupFilters(el);
+            raw.RdlTableGroups = ParseRdlTableGroups(el);
             raw.TablixNavigationMetadata = ParseTablixNavigationMetadata(el);
             ExtractNestedTablixItems(raw, report, rows, false);
         }
@@ -1184,6 +1185,54 @@ public sealed class RdlToDesignConverter
             groups.Add(new RdlTablixGroup(Attr(group, "Name") ?? "", expressions));
         }
         return groups;
+    }
+
+    private static List<Dictionary<string, object>> ParseRdlTableGroups(XElement table)
+    {
+        var groups = Children(Child(table, "TableGroups"), "TableGroup").ToList();
+        if (groups.Count == 0) return [];
+
+        return groups.Select((group, index) => ParseRdlTableGroup(group, level: 0, index)).ToList();
+    }
+
+    private static Dictionary<string, object> ParseRdlTableGroup(XElement group, int level, int index)
+    {
+        var grouping = Child(group, "Grouping");
+        var item = new Dictionary<string, object>
+        {
+            ["level"] = level,
+            ["index"] = index
+        };
+
+        AddText(item, "name", grouping is null ? Attr(group, "Name") : Attr(grouping, "Name") ?? Attr(group, "Name"));
+
+        var expressions = Children(Child(grouping, "GroupExpressions"), "GroupExpression")
+            .Select(e => e.Value.Trim())
+            .Where(v => v.Length > 0)
+            .ToArray();
+        if (expressions.Length > 0)
+            item["groupExpressions"] = expressions;
+
+        var sortExpressions = Children(Child(grouping, "Sorting"), "SortBy")
+            .Select(e => Child(e, "SortExpression")?.Value.Trim())
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Cast<string>()
+            .ToArray();
+        if (sortExpressions.Length > 0)
+            item["sortExpressions"] = sortExpressions;
+
+        var headerRows = TableRows(Child(group, "Header")).Count();
+        var footerRows = TableRows(Child(group, "Footer")).Count();
+        if (headerRows > 0) item["headerRows"] = headerRows;
+        if (footerRows > 0) item["footerRows"] = footerRows;
+
+        var children = Children(Child(group, "TableGroups"), "TableGroup")
+            .Select((child, childIndex) => ParseRdlTableGroup(child, level + 1, childIndex))
+            .ToArray();
+        if (children.Length > 0)
+            item["children"] = children;
+
+        return item;
     }
 
     private static List<string> ParseTablixSorts(XElement tablix) =>
@@ -2393,7 +2442,8 @@ public sealed class RdlToDesignConverter
             && raw.TablixKeepWithGroups is not { Count: > 0 }
             && raw.TablixGroupFilters is not { Count: > 0 }
             && raw.TablixRowHierarchy is not { Count: > 0 }
-            && raw.TablixColumnHierarchy is not { Count: > 0 })
+            && raw.TablixColumnHierarchy is not { Count: > 0 }
+            && raw.RdlTableGroups is not { Count: > 0 })
             return;
 
         element.Style ??= [];
@@ -2417,6 +2467,8 @@ public sealed class RdlToDesignConverter
             element.Style["rdlTablixRowHierarchy"] = raw.TablixRowHierarchy.Select(TablixMemberMetadataStyle).ToArray();
         if (raw.TablixColumnHierarchy is { Count: > 0 })
             element.Style["rdlTablixColumnHierarchy"] = raw.TablixColumnHierarchy.Select(TablixMemberMetadataStyle).ToArray();
+        if (raw.RdlTableGroups is { Count: > 0 })
+            element.Style["rdlTableGroups"] = raw.RdlTableGroups.ToArray();
         if (raw.TableHeaderRow is not null)
             element.Style["rdlHeaderRowFromHierarchy"] = raw.TableHeaderRow.Value;
 
@@ -2428,6 +2480,9 @@ public sealed class RdlToDesignConverter
         if (raw.TablixRowHierarchy is { Count: > 0 } || raw.TablixColumnHierarchy is { Count: > 0 })
             diagnostics.Add(Warn("CANMIGRDL029",
                 $"'{raw.Name}' Tablix row/column hierarchy headers were preserved as metadata; Canvas has limited native matrix/group header rendering."));
+        if (raw.RdlTableGroups is { Count: > 0 })
+            diagnostics.Add(Warn("CANMIGRDL032",
+                $"'{raw.Name}' RDL-2005 TableGroups header/footer repeat metadata was preserved; runtime group-section rendering needs review."));
     }
 
     private static Dictionary<string, object> TablixMemberMetadataStyle(RdlTablixMemberMetadata member)
@@ -2838,6 +2893,7 @@ public sealed class RdlToDesignConverter
         public List<string>? TablixKeepWithGroups;
         public List<Dictionary<string, object>>? TablixGroupFilters;
         public List<Dictionary<string, object>>? TablixNavigationMetadata;
+        public List<Dictionary<string, object>>? RdlTableGroups;
         public List<RdlTablixMemberMetadata>? TablixRowHierarchy;
         public List<RdlTablixMemberMetadata>? TablixColumnHierarchy;
         public List<string> TablixNestedItemNames = [];

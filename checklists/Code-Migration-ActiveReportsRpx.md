@@ -58,6 +58,7 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 | `CheckBox` | `checkmark` | [x] |
 | `RichTextBox` | `richtext` | [x] |
 | `SubReport` / unsupported control | labeled placeholder (`CANMIGRPX011`) | [x] |
+| `OleObject` | labeled placeholder + `style.rpxOleObject` metadata | [x] |
 
 ### Delivery
 - [x] Backend `POST /api/migration/report-to-design` auto-detects `.rpx` (after RDL, before DevExpress)
@@ -78,8 +79,14 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 | `CANMIGRPX001` | Info | Section report detected — N section(s), M control(s) mapped |
 | `CANMIGRPX002` | Info | Per-control mapping (`name (type) → Canvas type`) |
 | `CANMIGRPX010` | Info | `DataField` → Canvas binding |
-| `CANMIGRPX011` | Warning | Unsupported control / SubReport / embedded script — skipped or manual |
+| `CANMIGRPX011` | Warning | Unsupported control / SubReport — skipped or manual |
 | `CANMIGRPX012` | Warning | Picture data not embeddable — placeholder inserted |
+| `CANMIGRPX013` | Warning | GroupHeader/GroupFooter mapped to Canvas repeat metadata; runtime group semantics need review |
+| `CANMIGRPX014` | Warning | `CanGrow`/`CanShrink` preserved as wrapping/auto-size metadata; dynamic band reflow needs review |
+| `CANMIGRPX015` | Warning | `OutputFormat` preserved as Canvas formatter metadata; exact formatting needs review |
+| `CANMIGRPX016` | Warning | PageBreak/NewPage mapped to Canvas `pageboundary` markers; CrossSectionLine/CrossSectionBox mapped visually |
+| `CANMIGRPX017` | Info / Warning | Matching `.rpx` subreport resource was inlined, or could not be converted |
+| `CANMIGRPX018` | Warning | Embedded script imported as no-op metadata in `PageSettings.CustomProperties["rpxScript"]` |
 
 ---
 
@@ -88,11 +95,35 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 **Current recommendation:** treat RPX as the third core fidelity pass because it shares the same banded
 problems as DevExpress and gives us a second implementation target for common group/repeat semantics.
 
-- [ ] **P0** `GroupHeader`/`GroupFooter` repeat/section semantics (currently flat page elements).
-- [ ] **P0** `CanGrow`/`CanShrink` auto-sizing; `OutputFormat` → Canvas formatter.
-- [ ] **P0** Validate + tune against real designer-saved `.rpx` files (measurement units, colour/format edge cases).
-- [ ] **P1** Per-control `.rpx` subreport inlining; `OleObject`, `PageBreak`, `CrossSectionLine`.
-- [ ] **P1** Embedded-script → no-op (currently a warning only).
+- [x] **P0** `GroupHeader`/`GroupFooter` repeat/section metadata: group bands now attach
+      `ElementDto.Repeat` plus `style.rpxGroupRepeat`; `Detail` bands attach `style.rpxDetailRepeat`.
+      Runtime grouping/reflow still needs review against real data.
+- [x] **P0** `CanGrow`/`CanShrink` auto-sizing metadata; `CanGrow` maps to visible overflow hints,
+      `CanShrink` is preserved as `style.rpxCanShrink`, and both are grouped in `style.rpxAutoSize`.
+- [x] **P0** `OutputFormat` → Canvas `Formatter` + `style.rpxOutputFormat` metadata for bound controls.
+- [x] **P1** `PageBreak`/`NewPage` and `CrossSectionLine`/`CrossSectionBox` visual mapping:
+      page-break behaviour is preserved on `style.rpxPageBreak` and mapped to Canvas `pageboundary`
+      markers (`start`/`end`) where possible; cross-section controls map to visible Canvas line/rect
+      elements with `style.rpxCrossSection*` metadata.
+- [x] **P0** Real `.rpx` sample validation harness: `ActiveReportsRpxSamplesTests` discovers
+      `designer-simples/ActiveReports/**/*.rpx`, converts every sample, and skips gracefully when the
+      local-only corpus is absent or contains only `.rdlx`.
+- [x] **P0** Add/validate `.rpx` sample files: representative schema-faithful fixtures
+      (`designer-simples/ActiveReports/rpx-section-samples/`) now run through the harness + fidelity tests
+      (page settings, group repeat, `CanGrow`, page break, sub-report). *Genuine vendor-saved `.rpx` files
+      remain welcome for measurement-unit/colour/format edge cases — the harness auto-discovers them.*
+- [x] **P1** `OleObject` placeholder preservation with `style.rpxOleObject` metadata.
+- [x] **P1** Per-control `.rpx` subreport inlining: when `report-to-design` resources contain a matching
+      `.rpx` source for a `SubReport` `ReportName`/`FileName`/path reference, converted subreport elements
+      are inlined at the parent subreport position and tagged with `style.rpxInlinedFromSubreport` /
+      `style.rpxParentSubreport`.
+- [x] **P1** ActiveReports UI resource upload: the migration page can load multiple `.rpx` subreport files
+      alongside the master RPX and sends them as `report-to-design` resources.
+- [x] **P1** Embedded-script → explicit no-op metadata: script language, length, SHA-256 hash, and preview
+      are preserved in `PageSettings.CustomProperties` as `rpxScript` with diagnostic `CANMIGRPX018`.
+- [x] **P1** Runtime-friendly page-break mapping beyond metadata: RPX page-break hints now create typed
+      Canvas `pageboundary` elements in addition to source metadata, so designer/preview/export paths
+      can see explicit page start/end markers.
 
 ## Assumptions
 - [x] `.rpx` is a banded section report (distinct from RDL); self-contained band model + flatten.

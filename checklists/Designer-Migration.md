@@ -7,6 +7,23 @@ report-to-design targets.
 
 Legend — **Done?**: ✅ shipped · 🔜 recommended next · ❌ not started · ⛔ blocked (not feasible here) · — out of scope (no report designer)
 
+## Current status summary
+
+**Overall status:** most major text/XML report-designer formats now have a V1 path into editable Canvas
+designs. The remaining work is mostly fidelity, runtime semantics, and real-sample validation rather
+than adding another basic XML parser.
+
+| Status | Designers / formats | Notes |
+| --- | --- | --- |
+| ✅ Shipped | DevExpress XtraReports (`.repx`, C#), Syncfusion/Bold Reports (`.rdl`, `.rdlc`), SSRS/RDLC/Power BI Report Builder (`.rdl`, `.rdlc`), ActiveReports Page (`.rdlx`), ActiveReports Section (`.rpx`), ActiveReports JS (`.json` marked), FastReport (`.frx`), Telerik Reporting (`.trdx`), Stimulsoft (`.mrt`), JasperReports (`.jrxml`) | Openable in `ui-designer-v2` through `POST /api/migration/report-to-design`. Fidelity varies by provider; advanced regions may be preserved as metadata-rich placeholders. |
+| ❌ Not started | List & Label (`.lst`, `.lsr`) | Best next candidate if the goal is adding a new designer family. Needs format/sample audit first. |
+| ⛔ Blocked | Crystal Reports (`.rpt`) | Proprietary binary/OLE format; practical conversion needs Windows + SAP Crystal Reports SDK or an intermediate export path. |
+| — Out of scope | iText 7, Apryse/PDFTron, Aspose.PDF, Foxit PDF SDK, IronPDF, Spire.PDF, GemBox.Pdf, PDFKit.NET, LEADTOOLS, ActivePDF, PDF Tools/Toolbox | PDF SDKs/libraries, not visual report designers. They belong to PDF-code migration or Canvas.PDF feature parity, not report-designer migration. |
+
+**Recommended direction:** if we want a new designer, start **List & Label** with a format/sample audit.
+If we want product quality, continue with **DevExpress fidelity** and real-sample validation for
+**ActiveReports RPX / ActiveReports JS**.
+
 ## Priority 1 — Vendors already in our migration set
 
 | Designer | Manufacturer | Tech (format) | Features | Done? |
@@ -40,7 +57,7 @@ Legend — **Done?**: ✅ shipped · 🔜 recommended next · ❌ not started ·
 | JasperReports | Cloud Software Group (Jaspersoft) | `.jrxml` (XML, banded) | title/pageHeader/detail/…; staticText/textField/line/rectangle/ellipse/image/frame; named styles; `$F{}` bindings | ✅ `Canvas.Migration.JasperReports` — see [Designer-Migration-JasperReports.md](Designer-Migration-JasperReports.md) |
 | Crystal Reports | SAP | `.rpt` (binary, proprietary) | Banded; **proprietary binary OLE format — no open parser, needs the Windows-only SAP SDK** | ⛔ Blocked — see [Designer-Migration-Crystal.md](Designer-Migration-Crystal.md) |
 | List & Label | combit | `.lst` / `.lsr` | Banded report container | ❌ |
-| ActiveReports JS | MESCIUS | JSON report model | Web/JS designer (distinct from `.rdlx`/`.rpx`) | ❌ |
+| ActiveReports JS | MESCIUS | JSON report model | Web/JS designer (distinct from `.rdlx`/`.rpx`) | ✅ V1 `Canvas.Migration.ActiveReportsJs` — marked JSON only |
 
 ## Recommended next work — provider fidelity
 
@@ -48,18 +65,28 @@ Most major text/XML report-designer formats now have a V1 converter. The highest
 longer adding another XML parser; it is improving layout fidelity in the converters that are already
 openable in `ui-designer-v2`.
 
+**Current audit, 2026-06-21:** the shared table-fidelity pass is mostly complete. RDL/Syncfusion,
+FastReport, Telerik, DevExpress table cells, and the exporter/codegen paths now preserve and render
+`CellStyles` for per-cell background, text alignment, borders, padding, and font where the source format
+provides it. The remaining high-value work is no longer basic table extraction; it is repeat/group
+semantics, real-sample validation for RPX/FastReport/Telerik, and native editing/runtime support for
+advanced regions.
+
 ### P0 — make common business reports round-trip better
 
 1. **DevExpress XtraReports fidelity** — finish the features most visible in real designer files:
    `GroupHeaderBand`/`GroupFooterBand` repeat semantics, `ReportFooterBand` once-at-end behaviour,
    `CanGrow`/`CanShrink`, anchoring, multi-`DetailReportBand`, non-text data bindings, and high-use
    controls such as `XRChart`, `XRGauge`, and `XRPivotGrid`.
-2. **RDL / Syncfusion / SSRS table fidelity** — improve `Tablix` extraction by reading row/column-group
-   headers, nested/detail groups, percentage column widths, external/database images, and multi-run
-   textbox formatting.
-3. **ActiveReports RPX section fidelity** — implement `GroupHeader`/`GroupFooter` repeat semantics,
-   `CanGrow`/`CanShrink`, `OutputFormat`, `PageBreak`, `CrossSectionLine`, and tune against real
-   designer-saved `.rpx` files.
+2. **RDL / Syncfusion / SSRS table fidelity** — core P0/P1 fidelity is done: row/column hierarchy
+   headers, nested/detail groups, percentage/relative column widths, external/database images,
+   multi-run textbox formatting, chart metadata, report parameters, filters, navigation, and per-cell
+   styles are preserved/rendered. Remaining work is P2 native Canvas UX/runtime polish such as parameter
+   editor controls and compound table-cell rendering.
+3. **ActiveReports RPX section fidelity** — core metadata/visual preservation is implemented:
+   `GroupHeader`/`GroupFooter`, `CanGrow`/`CanShrink`, `OutputFormat`, `PageBreak`,
+   `CrossSectionLine`, `CrossSectionBox`, subreport inlining, and embedded-script metadata. Remaining
+   P0 is tuning against real designer-saved `.rpx` files.
 
 ### P1 — normalize fidelity across shipped non-core providers
 
@@ -67,16 +94,21 @@ openable in `ui-designer-v2`.
    footers, detail repeats, report footers, and child/sub-detail bands, then apply it to DevExpress,
    RPX, FastReport, JasperReports, Telerik, and Stimulsoft instead of each converter flattening those
    concepts differently.
-5. **Tables and complex regions** — add full cell extraction for FastReport `TableObject`, Telerik
-   `Table`/`CrossTab`, and richer JasperReports `componentElement` handling. Keep charts, maps, gauges,
-   and crosstabs as positioned placeholders with captions until Canvas has native equivalents.
-6. **Styles and borders** — support per-side borders/pens, style inheritance, conditional styles where
-   practical, and keep unsupported per-cell styling documented when Canvas has no target model.
+5. **Tables and complex regions** — FastReport `TableObject`, Telerik `Table`/`CrossTab`, JasperReports
+   `jr:table`, RDL/ActiveReports table cells, and DevExpress XRTableCell imports now produce editable
+   Canvas tables with preserved cell data/styles. Remaining complex regions are charts, maps, gauges,
+   crosstabs, pivot-like regions, and subreport/book-part orchestration; keep these as positioned,
+   metadata-rich placeholders until Canvas has native equivalents.
+6. **Styles and borders** — per-cell table styling is now modelled via `CellStyles` and rendered across
+   canvas/preview/export/codegen. Remaining provider-specific style work is mainly non-table style
+   inheritance/conditional styles and runtime expression evaluation.
 
 ### P2 — package and binary inputs
 
 7. **Binary/package upload path** — add a file/binary upload route before implementing packaged
    `.trdp`, packaged `.rdlx`, or any Crystal `.rpt` workaround. The current endpoint is string/JSON
    oriented and is a poor fit for ZIP/OLE inputs.
-8. **New provider candidates** — only after P0/P1: List & Label (`.lst`/`.lsr`) and ActiveReports JS
-   JSON. Crystal Reports remains blocked unless a Windows + SAP SDK conversion path is introduced.
+8. **New provider candidates** — only after P0/P1: List & Label (`.lst`/`.lsr`). ActiveReports JS JSON
+   has a conservative V1 path for explicitly marked reports; real vendor-saved samples are still needed
+   before expanding the detector/schema support. Crystal Reports remains blocked unless a Windows + SAP
+   SDK conversion path is introduced.
