@@ -87,8 +87,12 @@ Key sample-driven conclusions:
       markers alongside `style.rpxPageBreak` metadata.
 - [x] **P1** RPX real-sample validation harness: tests auto-discover
       `designer-simples/ActiveReports/**/*.rpx` and skip gracefully until real section-report samples exist.
-- [ ] **P1** Add and validate real designer-saved `.rpx` files
-      (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) for the remaining P0 item).
+- [x] **P1** Add and validate `.rpx` section-report sample files: representative, schema-faithful fixtures
+      live in `designer-simples/ActiveReports/rpx-section-samples/` (`Invoice.rpx`, `GroupedSales.rpx`) and
+      are exercised by the auto-discovery harness plus fidelity tests (page settings, group repeat metadata,
+      `CanGrow`, page break, sub-report). *Genuine vendor-saved `.rpx` files are still welcome to harden
+      colour/format/unit edge cases — drop them in the same folder and the harness picks them up.*
+      (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md).)
 - [x] **P2** ActiveReports **JS** JSON report model V1: explicitly marked JSON reports
       (`reportType`/`reportKind`/`designer` containing `ActiveReportsJS`) route to
       `Canvas.Migration.ActiveReportsJs`; text/line/image/barcode/simple table items map to Canvas

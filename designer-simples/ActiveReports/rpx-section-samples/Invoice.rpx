@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Representative ActiveReports Section Report (.rpx) for converter validation.
+     Hand-authored to the documented section-report schema (not vendor-saved). -->
+<Report Name="Invoice">
+  <PageSettings PaperKind="A4" Margins="1, 1, 1, 1" Orientation="Portrait" />
+  <Sections>
+    <ReportHeader Name="ReportHeader1" Height="1.2">
+      <Controls>
+        <Label Name="title" Left="0" Top="0.1" Width="6.5" Height="0.5" Text="INVOICE" Font-FamilyName="Arial" Font-Size="22" Font-Bold="True" Alignment="Center" ForeColor="0, 102, 204" />
+        <Label Name="subtitle" Left="0" Top="0.7" Width="6.5" Height="0.3" Text="Acme Corporation" Alignment="Center" ForeColor="Gray" />
+      </Controls>
+    </ReportHeader>
+    <PageHeader Name="PageHeader1" Height="0.4">
+      <Controls>
+        <Label Name="hdrCustomer" Left="0" Top="0.05" Width="3" Height="0.25" Text="Customer" Font-Bold="True" />
+        <Label Name="hdrAmount" Left="4.5" Top="0.05" Width="2" Height="0.25" Text="Amount" Font-Bold="True" Alignment="Right" />
+      </Controls>
+    </PageHeader>
+    <Detail Name="Detail1" Height="0.6">
+      <Controls>
+        <TextBox Name="customer" Left="0" Top="0" Width="3" Height="0.25" DataField="CustomerName" />
+        <TextBox Name="amount" Left="4.5" Top="0" Width="2" Height="0.25" DataField="Amount" Alignment="Right" OutputFormat="C2" />
+        <Line Name="rule" X1="0" Y1="0.4" X2="6.5" Y2="0.4" LineWeight="1" LineColor="LightGray" />
+        <Barcode Name="sku" Left="0" Top="0.15" Width="2" Height="0.3" DataField="Sku" Style="Code128" />
+        <Shape Name="dot" Left="6.2" Top="0.05" Width="0.2" Height="0.2" Style="Ellipse" BackColor="0, 153, 0" />
+        <CheckBox Name="paid" Left="3.2" Top="0.05" Width="1" Height="0.2" Text="Paid" Checked="True" />
+      </Controls>
+    </Detail>
+    <PageFooter Name="PageFooter1" Height="0.4">
+      <Controls>
+        <Picture Name="logo" Left="0" Top="0.05" Width="0.6" Height="0.3" Image="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" />
+        <Label Name="pageinfo" Left="5.5" Top="0.1" Width="1" Height="0.2" Text="Page 1" Alignment="Right" />
+      </Controls>
+    </PageFooter>
+  </Sections>
+</Report>

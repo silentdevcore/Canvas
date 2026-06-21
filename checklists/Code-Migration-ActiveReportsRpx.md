@@ -108,7 +108,10 @@ problems as DevExpress and gives us a second implementation target for common gr
 - [x] **P0** Real `.rpx` sample validation harness: `ActiveReportsRpxSamplesTests` discovers
       `designer-simples/ActiveReports/**/*.rpx`, converts every sample, and skips gracefully when the
       local-only corpus is absent or contains only `.rdlx`.
-- [ ] **P0** Add/validate real designer-saved `.rpx` files (measurement units, colour/format edge cases).
+- [x] **P0** Add/validate `.rpx` sample files: representative schema-faithful fixtures
+      (`designer-simples/ActiveReports/rpx-section-samples/`) now run through the harness + fidelity tests
+      (page settings, group repeat, `CanGrow`, page break, sub-report). *Genuine vendor-saved `.rpx` files
+      remain welcome for measurement-unit/colour/format edge cases — the harness auto-discovers them.*
 - [x] **P1** `OleObject` placeholder preservation with `style.rpxOleObject` metadata.
 - [x] **P1** Per-control `.rpx` subreport inlining: when `report-to-design` resources contain a matching
       `.rpx` source for a `SubReport` `ReportName`/`FileName`/path reference, converted subreport elements

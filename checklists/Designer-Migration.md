@@ -7,6 +7,23 @@ report-to-design targets.
 
 Legend — **Done?**: ✅ shipped · 🔜 recommended next · ❌ not started · ⛔ blocked (not feasible here) · — out of scope (no report designer)
 
+## Current status summary
+
+**Overall status:** most major text/XML report-designer formats now have a V1 path into editable Canvas
+designs. The remaining work is mostly fidelity, runtime semantics, and real-sample validation rather
+than adding another basic XML parser.
+
+| Status | Designers / formats | Notes |
+| --- | --- | --- |
+| ✅ Shipped | DevExpress XtraReports (`.repx`, C#), Syncfusion/Bold Reports (`.rdl`, `.rdlc`), SSRS/RDLC/Power BI Report Builder (`.rdl`, `.rdlc`), ActiveReports Page (`.rdlx`), ActiveReports Section (`.rpx`), ActiveReports JS (`.json` marked), FastReport (`.frx`), Telerik Reporting (`.trdx`), Stimulsoft (`.mrt`), JasperReports (`.jrxml`) | Openable in `ui-designer-v2` through `POST /api/migration/report-to-design`. Fidelity varies by provider; advanced regions may be preserved as metadata-rich placeholders. |
+| ❌ Not started | List & Label (`.lst`, `.lsr`) | Best next candidate if the goal is adding a new designer family. Needs format/sample audit first. |
+| ⛔ Blocked | Crystal Reports (`.rpt`) | Proprietary binary/OLE format; practical conversion needs Windows + SAP Crystal Reports SDK or an intermediate export path. |
+| — Out of scope | iText 7, Apryse/PDFTron, Aspose.PDF, Foxit PDF SDK, IronPDF, Spire.PDF, GemBox.Pdf, PDFKit.NET, LEADTOOLS, ActivePDF, PDF Tools/Toolbox | PDF SDKs/libraries, not visual report designers. They belong to PDF-code migration or Canvas.PDF feature parity, not report-designer migration. |
+
+**Recommended direction:** if we want a new designer, start **List & Label** with a format/sample audit.
+If we want product quality, continue with **DevExpress fidelity** and real-sample validation for
+**ActiveReports RPX / ActiveReports JS**.
+
 ## Priority 1 — Vendors already in our migration set
 
 | Designer | Manufacturer | Tech (format) | Features | Done? |

@@ -1,3 +1,4 @@
+using Canvas.Migration.Abstractions;
 using Canvas.Migration.Rpx;
 
 namespace Canvas.Migration.Rpx.Tests;
@@ -51,6 +52,47 @@ public sealed class ActiveReportsRpxSamplesTests
 
         Assert.True(failures.Count == 0, $"{failures.Count} sample(s) failed:\n{string.Join("\n", failures)}");
     }
+
+    [Fact]
+    public void Convert_GroupedSalesRpxFixture_PreservesGroupsPageBreakAndSubreport()
+    {
+        if (FindActiveReportsSamplesRoot() is not { } root)
+            return; // local-only corpus not present
+
+        var file = Directory.GetFiles(root, "GroupedSales.rpx", SearchOption.AllDirectories).FirstOrDefault();
+        if (file is null)
+            return;
+
+        var result = new RpxToDesignConverter().Convert(File.ReadAllText(file));
+        var design = result.Design;
+        var elements = design.Pages.SelectMany(p => p.Elements).Concat(design.SharedElements).ToList();
+
+        // Landscape Letter page.
+        Assert.True(design.PageSettings!.Width > design.PageSettings.Height);
+        // Group bands carry repeat metadata; CanGrow, page-break, and sub-report are all surfaced.
+        Assert.Contains(elements, e => e.Style is not null && e.Style.ContainsKey("rpxGroupRepeat"));
+        Assert.True(Has(result.Diagnostics, "CANMIGRPX013"));   // group repeat
+        Assert.True(Has(result.Diagnostics, "CANMIGRPX014"));   // CanGrow/CanShrink
+        Assert.Contains(elements, e => e.Content is not null && e.Content.Contains("Sub-report"));
+    }
+
+    [Fact]
+    public void Convert_InvoiceRpxFixture_PortraitWithSharedHeaderFooter()
+    {
+        if (FindActiveReportsSamplesRoot() is not { } root)
+            return;
+
+        var file = Directory.GetFiles(root, "Invoice.rpx", SearchOption.AllDirectories).FirstOrDefault();
+        if (file is null)
+            return;
+
+        var design = new RpxToDesignConverter().Convert(File.ReadAllText(file)).Design;
+        Assert.True(design.PageSettings!.Height > design.PageSettings.Width);   // A4 portrait
+        Assert.NotEmpty(design.Pages[0].Elements);
+        Assert.NotEmpty(design.SharedElements);                                 // page header/footer
+    }
+
+    private static bool Has(IEnumerable<MigrationDiagnostic> diags, string id) => diags.Any(x => x.Id == id);
 
     private static string? FindActiveReportsSamplesRoot()
     {
