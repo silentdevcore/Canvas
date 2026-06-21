@@ -146,12 +146,16 @@ public sealed class RpxToDesignConverter
             BackColor = ParseColor(Attr(el, "BackColor")),
             TextAlign = ParseAlignment(Attr(el, "Alignment")),
             LineWidth = Attr(el, "LineWeight") is { } lw ? ToDouble(lw) : null,
-            LineStyle = Attr(el, "LineStyle")
+            LineStyle = Attr(el, "LineStyle"),
+            CanGrow = ParseBool(Attr(el, "CanGrow")),
+            CanShrink = ParseBool(Attr(el, "CanShrink")),
+            OutputFormat = Attr(el, "OutputFormat"),
+            PageBreak = Attr(el, "PageBreak") ?? Attr(el, "NewPage") ?? Attr(el, "NewPageBefore") ?? Attr(el, "NewPageAfter")
         };
         ApplyFont(raw, el);
 
-        if (type == "Line" && ParseColor(Attr(el, "LineColor")) is { } lc) raw.ForeColor = lc;
-        if (type == "Shape") raw.ShapeKind = ShapeKindFromName(Attr(el, "Style") ?? Attr(el, "ShapeType"));
+        if (type is "Line" or "CrossSectionLine" && ParseColor(Attr(el, "LineColor")) is { } lc) raw.ForeColor = lc;
+        if (type is "Shape" or "CrossSectionBox") raw.ShapeKind = ShapeKindFromName(Attr(el, "Style") ?? Attr(el, "ShapeType"));
         if (type == "Picture") raw.ImageDataUrl = ExtractImageDataUrl(el);
         if (type == "Barcode") raw.Symbology = Attr(el, "Style") ?? Attr(el, "Symbology") ?? Attr(el, "BarCodeStyle");
         if (type is "CheckBox") raw.Checked = string.Equals(Attr(el, "Checked"), "True", StringComparison.OrdinalIgnoreCase);
@@ -203,8 +207,12 @@ public sealed class RpxToDesignConverter
             {
                 element.Binding = field;
                 if (element.Type == "text") element.Content = $"{{{{{field}}}}}";
+                if (!string.IsNullOrWhiteSpace(raw.OutputFormat)) element.Formatter = raw.OutputFormat;
                 diagnostics.Add(Info("CANMIGRPX010", $"'{raw.Name}' bound to field {field} → Canvas binding '{field}'."));
             }
+
+            ApplyBandMetadata(element, raw, bandType, diagnostics);
+            ApplyDynamicMetadata(element, raw, diagnostics);
 
             (bandType is "PageHeader" or "PageFooter" ? sharedElements : elements).Add(element);
             mapped++;
@@ -248,17 +256,23 @@ public sealed class RpxToDesignConverter
                 return element;
 
             case "Line":
+            case "CrossSectionLine":
                 element.Type = "line";
                 element.Style = new Dictionary<string, object> { ["color"] = raw.ForeColor };
                 if (raw.LineWidth is { } lineW) element.Style["strokeWidth"] = lineW;
                 if (DashStyleFromName(raw.LineStyle) is { } dash) element.Style["dashStyle"] = dash;
+                if (raw.Type == "CrossSectionLine")
+                    element.Style["rpxCrossSection"] = true;
                 return element;
 
             case "Shape":
+            case "CrossSectionBox":
                 element.Type = raw.ShapeKind switch { "ellipse" => "circle", _ => "rect" };
                 element.Style = new Dictionary<string, object> { ["borderColor"] = raw.ForeColor };
                 if (raw.BackColor is { } bg) element.Style["backgroundColor"] = bg;
                 if (raw.LineWidth is { } borderW) element.Style["borderWidth"] = borderW;
+                if (raw.Type == "CrossSectionBox")
+                    element.Style["rpxCrossSection"] = true;
                 return element;
 
             case "Picture":
@@ -292,6 +306,17 @@ public sealed class RpxToDesignConverter
                 diagnostics.Add(Warn("CANMIGRPX011",
                     $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
                 return Placeholder(element, $"[Sub-report: {raw.Name} — migrate manually]");
+
+            case "OleObject":
+                diagnostics.Add(Warn("CANMIGRPX011",
+                    $"'{raw.Name}' is an OLE object — Canvas has no native OLE embedding; inserted a placeholder."));
+                element = Placeholder(element, $"[OLE object: {raw.Name} — migrate manually]");
+                element.Style!["rpxOleObject"] = new Dictionary<string, object?>
+                {
+                    ["name"] = raw.Name,
+                    ["sourceType"] = "OleObject"
+                };
+                return element;
 
             default:
                 diagnostics.Add(Warn("CANMIGRPX011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
@@ -330,7 +355,90 @@ public sealed class RpxToDesignConverter
         if (decoration.Length > 0) style["textDecoration"] = decoration;
         if (raw.BackColor is { } bg) style["backgroundColor"] = bg;
         style["textAlign"] = raw.TextAlign;
+        if (raw.CanGrow == true) style["overflow"] = "visible";
         return style;
+    }
+
+    private static void ApplyBandMetadata(ElementDto element, RawElement raw, string bandType, List<MigrationDiagnostic> diagnostics)
+    {
+        if (element.Style is null) element.Style = [];
+
+        element.Style["rpxBand"] = new Dictionary<string, object?>
+        {
+            ["name"] = raw.Band,
+            ["type"] = bandType
+        };
+
+        if (bandType is "GroupHeader" or "GroupFooter")
+        {
+            var dataPath = SafeRepeatPath(raw.Band is { Length: > 0 } b ? b : $"{bandType}Rows");
+            element.Style["rpxGroupRepeat"] = new Dictionary<string, object?>
+            {
+                ["band"] = raw.Band,
+                ["bandType"] = bandType,
+                ["dataPath"] = dataPath,
+                ["role"] = bandType == "GroupHeader" ? "header" : "footer"
+            };
+            element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
+            diagnostics.Add(Warn("CANMIGRPX013",
+                $"'{raw.Name}' is in {bandType} '{raw.Band}' — mapped to Canvas repeat metadata; group runtime semantics need review."));
+        }
+        else if (bandType == "Detail")
+        {
+            var dataPath = SafeRepeatPath(raw.Band is { Length: > 0 } b ? b : "DetailRows");
+            element.Style["rpxDetailRepeat"] = new Dictionary<string, object?>
+            {
+                ["band"] = raw.Band,
+                ["dataPath"] = dataPath
+            };
+            element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
+        }
+        else if (bandType == "ReportFooter")
+        {
+            element.Style["rpxReportFooter"] = new Dictionary<string, object?>
+            {
+                ["band"] = raw.Band,
+                ["scope"] = "report-end"
+            };
+        }
+    }
+
+    private static void ApplyDynamicMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (element.Style is null) element.Style = [];
+
+        if (raw.CanGrow == true || raw.CanShrink == true)
+        {
+            element.Style["rpxAutoSize"] = new Dictionary<string, object?>
+            {
+                ["canGrow"] = raw.CanGrow,
+                ["canShrink"] = raw.CanShrink
+            };
+            if (raw.CanShrink == true) element.Style["rpxCanShrink"] = true;
+            diagnostics.Add(Warn("CANMIGRPX014",
+                $"'{raw.Name}' uses CanGrow/CanShrink — Canvas imports wrapping/overflow hints, but dynamic band reflow needs review."));
+        }
+
+        if (!string.IsNullOrWhiteSpace(raw.OutputFormat))
+        {
+            element.Style["rpxOutputFormat"] = raw.OutputFormat;
+            diagnostics.Add(Warn("CANMIGRPX015",
+                $"'{raw.Name}' uses OutputFormat '{raw.OutputFormat}' — preserved as Canvas formatter metadata; exact formatting should be reviewed."));
+        }
+
+        if (!string.IsNullOrWhiteSpace(raw.PageBreak))
+        {
+            element.Style["rpxPageBreak"] = raw.PageBreak;
+            diagnostics.Add(Warn("CANMIGRPX016",
+                $"'{raw.Name}' declares page break/new-page behaviour '{raw.PageBreak}' — preserved as metadata for review."));
+        }
+
+        if (raw.Type is "CrossSectionLine" or "CrossSectionBox")
+        {
+            element.Style["rpxCrossSectionControl"] = raw.Type;
+            diagnostics.Add(Warn("CANMIGRPX016",
+                $"'{raw.Name}' is a {raw.Type} — mapped visually and preserved as cross-section metadata."));
+        }
     }
 
     private static void ApplyFont(RawElement raw, XElement el)
@@ -483,6 +591,20 @@ public sealed class RpxToDesignConverter
 
     private static bool IsTrue(string? value) => string.Equals(value, "True", StringComparison.OrdinalIgnoreCase);
 
+    private static bool? ParseBool(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        if (value.Equals("true", StringComparison.OrdinalIgnoreCase)) return true;
+        if (value.Equals("false", StringComparison.OrdinalIgnoreCase)) return false;
+        return null;
+    }
+
+    private static string SafeRepeatPath(string value)
+    {
+        var safe = Regex.Replace(value, @"[^\w.]+", "");
+        return string.IsNullOrWhiteSpace(safe) ? "Rows" : safe;
+    }
+
     private static string? Attr(XElement? el, string name) => el?.Attribute(name)?.Value;
 
     private static XElement? Descendant(XElement? el, string name) =>
@@ -533,5 +655,9 @@ public sealed class RpxToDesignConverter
         public bool Checked;
         public double? LineWidth;
         public string? LineStyle;
+        public bool? CanGrow;
+        public bool? CanShrink;
+        public string? OutputFormat;
+        public string? PageBreak;
     }
 }

@@ -256,4 +256,104 @@ public sealed class RpxToDesignConverterTests
         Assert.Equal(36, El(d, "g2").Y, 1);    // second GroupHeader stacked below (0.5in)
         Assert.Equal(72, El(d, "d").Y, 1);     // Detail below both group headers (1in)
     }
+
+    // 18 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_GroupAndDetailSections_CarryRepeatMetadata()
+    {
+        var rpx = """
+            <Report Name="Grouped"><Sections>
+              <GroupHeader Name="CustomerGroup" Height="0.5"><Controls>
+                <Label Name="groupTitle" Left="0" Top="0" Width="2" Height="0.3" Text="Customer" />
+              </Controls></GroupHeader>
+              <Detail Name="LineItems" Height="0.4"><Controls>
+                <TextBox Name="item" Left="0" Top="0" Width="2" Height="0.3" DataField="ItemName" />
+              </Controls></Detail>
+              <GroupFooter Name="CustomerGroupFooter" Height="0.5"><Controls>
+                <Label Name="groupTotal" Left="0" Top="0" Width="2" Height="0.3" Text="Total" />
+              </Controls></GroupFooter>
+            </Sections></Report>
+            """;
+
+        var r = Convert(rpx);
+        var groupTitle = El(r.Design, "groupTitle");
+        var item = El(r.Design, "item");
+        var groupTotal = El(r.Design, "groupTotal");
+
+        Assert.Equal("CustomerGroup", groupTitle.Repeat!.DataPath);
+        Assert.Equal(groupTitle.Id, groupTitle.Repeat.TemplateId);
+        Assert.Equal("LineItems", item.Repeat!.DataPath);
+        Assert.Equal("CustomerGroupFooter", groupTotal.Repeat!.DataPath);
+        Assert.True(groupTitle.Style!.ContainsKey("rpxGroupRepeat"));
+        Assert.True(item.Style!.ContainsKey("rpxDetailRepeat"));
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRPX013");
+    }
+
+    // 19 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_TextDynamicSizingOutputFormatAndPageBreak_ArePreserved()
+    {
+        var rpx = """
+            <Report Name="R"><Sections><Detail Name="Detail1" Height="1"><Controls>
+              <TextBox Name="amount" Left="0" Top="0" Width="2" Height="0.3" DataField="Amount"
+                       CanGrow="True" CanShrink="True" OutputFormat="Currency" PageBreak="After" />
+            </Controls></Detail></Sections></Report>
+            """;
+
+        var r = Convert(rpx);
+        var amount = El(r.Design, "amount");
+
+        Assert.Equal("visible", amount.Style!["overflow"]);
+        Assert.Equal(true, amount.Style["rpxCanShrink"]);
+        Assert.Equal("Currency", amount.Formatter);
+        Assert.Equal("Currency", amount.Style["rpxOutputFormat"]);
+        Assert.Equal("After", amount.Style["rpxPageBreak"]);
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRPX014");
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRPX015");
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRPX016");
+    }
+
+    // 20 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_CrossSectionControls_MapVisuallyAndKeepMetadata()
+    {
+        var rpx = """
+            <Report Name="R"><Sections><Detail Name="Detail1" Height="1"><Controls>
+              <CrossSectionLine Name="vline" X1="0" Y1="0" X2="0" Y2="1" LineColor="Red" LineWeight="1" />
+              <CrossSectionBox Name="box" Left="0.2" Top="0.1" Width="1" Height="0.5" BackColor="Yellow" />
+            </Controls></Detail></Sections></Report>
+            """;
+
+        var r = Convert(rpx);
+        var line = El(r.Design, "vline");
+        var box = El(r.Design, "box");
+
+        Assert.Equal("line", line.Type);
+        Assert.Equal("#FF0000", line.Style!["color"]);
+        Assert.Equal(true, line.Style["rpxCrossSection"]);
+        Assert.Equal("CrossSectionLine", line.Style["rpxCrossSectionControl"]);
+        Assert.Equal("rect", box.Type);
+        Assert.Equal("#FFFF00", box.Style!["backgroundColor"]);
+        Assert.Equal(true, box.Style["rpxCrossSection"]);
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRPX016");
+    }
+
+    // 21 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_OleObject_StaysVisibleWithOleMetadata()
+    {
+        var rpx = """
+            <Report Name="R"><Sections><Detail Name="Detail1" Height="1"><Controls>
+              <OleObject Name="ole" Left="0" Top="0" Width="2" Height="1" />
+            </Controls></Detail></Sections></Report>
+            """;
+
+        var r = Convert(rpx);
+        var ole = El(r.Design, "ole");
+
+        Assert.Equal("text", ole.Type);
+        Assert.Contains("OLE object", ole.Content);
+        Assert.True(ole.Style!.ContainsKey("rpxOleObject"));
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRPX011");
+    }
 }

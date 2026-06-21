@@ -69,6 +69,9 @@ Key sample-driven conclusions:
 - [x] **P0** Validate all 8 `.rdlx` samples convert with no dropped top-level regions (integration test).
 - [x] **P1** Per-cell border/background/alignment fidelity — see *Per-cell table styling* below (v1 vertical slice).
 - [ ] **P1** RDL-2005 `<TableGroups>`/group header-footer rows → repeat/section semantics (none present in samples).
+- [x] **P1** RPX section-report P0 metadata pass: `GroupHeader`/`GroupFooter` and `Detail` repeat metadata,
+      `CanGrow`/`CanShrink`, `OutputFormat`, page-break metadata, and CrossSectionLine/CrossSectionBox
+      visual preservation are implemented in `Canvas.Migration.Rpx`.
 - [ ] **P1** Validate the `.rpx` Section-report converter against real designer-saved `.rpx` files
       (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) for its own P0 list).
 - [ ] **P2** ActiveReports **JS** JSON report model (distinct web/JS designer; not yet started).
