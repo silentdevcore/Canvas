@@ -217,6 +217,7 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
         var cellWeight  = s.GetStr("cellFontWeight", "normal");
 
         var zebraStyle = el.ZebraEnabled == true ? el.ZebraColor ?? "#f9fafb" : null;
+        var cellStyleLookup = (el.CellStyles ?? []).GroupBy(x => (x.Row, x.Col)).ToDictionary(g => g.Key, g => g.First());
 
         sb.AppendLine($"    <table style=\"{posStyle}{rotation} border-collapse:collapse; table-layout:fixed;\">");
 
@@ -240,13 +241,38 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
             for (int c = 0; c < cols; c++)
             {
                 var cell = cellData.Length > r ? (cellData[r]?.Length > c ? cellData[r][c] : "") : "";
-                var align = el.ColumnAlignments?.Length > c ? el.ColumnAlignments[c] : "left";
-                sb.Append($"<{tag} style=\"border:{bw}px solid {bc}; padding:{N(cellPad)}px; text-align:{align};"
-                    + $" font-size:{N(cellFs)}px; font-family:{cellFf}; color:{color}; font-weight:{weight};{hdrBg}\">{Esc(cell ?? "")}</{tag}>");
+                var cs = cellStyleLookup.GetValueOrDefault((r, c));
+                var align = cs?.TextAlign ?? (el.ColumnAlignments?.Length > c ? el.ColumnAlignments[c] : "left");
+                var cellBg = cs?.BackgroundColor is { } cbg ? $" background:{cbg};" : hdrBg;
+                var borderCss = CellBorderCss(cs, bw, bc);
+                var cPad    = cs?.Padding ?? cellPad;
+                var cFs     = cs?.FontSize ?? cellFs;
+                var cFf     = cs?.FontFamily ?? cellFf;
+                var cColor  = cs?.Color ?? color;
+                var cWeight = cs?.Bold == true ? "bold" : weight;
+                var cItalic = cs?.Italic == true ? " font-style:italic;" : "";
+                sb.Append($"<{tag} style=\"{borderCss} padding:{N(cPad)}px; text-align:{align};"
+                    + $" font-size:{N(cFs)}px; font-family:{cFf}; color:{cColor}; font-weight:{cWeight};{cItalic}{cellBg}\">{Esc(cell ?? "")}</{tag}>");
             }
             sb.AppendLine("</tr>");
         }
         sb.AppendLine("    </table>");
+    }
+
+    // Per-cell border CSS: uniform border by default, or explicit per-side borders when the cell carries
+    // any border styling (matching the canvas/image exporters — explicit borders replace the grid default).
+    private static string CellBorderCss(CellStyleDto? cs, int bw, string bc)
+    {
+        var hasBorder = cs is not null && (cs.BorderColor != null || cs.BorderWidth != null
+            || cs.BorderTop != null || cs.BorderRight != null || cs.BorderBottom != null || cs.BorderLeft != null);
+        if (!hasBorder) return $"border:{bw}px solid {bc};";
+
+        var uniform = (cs!.BorderColor != null || cs.BorderWidth != null)
+            ? $"{N(cs.BorderWidth ?? 1)}px solid {cs.BorderColor ?? "#000000"}"
+            : "none";
+        string Side(CellBorderSideDto? s) => s != null ? $"{N(s.Width ?? 1)}px solid {s.Color ?? "#000000"}" : uniform;
+        return $"border-top:{Side(cs.BorderTop)}; border-right:{Side(cs.BorderRight)}; "
+             + $"border-bottom:{Side(cs.BorderBottom)}; border-left:{Side(cs.BorderLeft)};";
     }
 
     private static List<string> RdlMatrixHeaders(Dictionary<string, object> style)

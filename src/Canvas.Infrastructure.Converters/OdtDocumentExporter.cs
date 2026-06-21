@@ -116,7 +116,8 @@ public sealed class OdtDocumentExporter : IDocumentExporter
     private static string BuildContent(DesignExportDto design, PageSettingsDto ps)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("""
+        var cellStyleDefs = BuildCellStyleDefs(design);
+        sb.AppendLine($$"""
             <?xml version="1.0" encoding="UTF-8"?>
             <office:document-content
                 xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
@@ -125,13 +126,17 @@ public sealed class OdtDocumentExporter : IDocumentExporter
                 xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
                 xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
                 xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
+                xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
                 xmlns:xlink="http://www.w3.org/1999/xlink"
                 office:version="1.3">
               <office:automatic-styles>
                 <style:style style:name="Standard" style:family="paragraph">
                   <style:paragraph-properties fo:margin="0cm" fo:padding="0cm"/>
                 </style:style>
-              </office:automatic-styles>
+                <style:style style:name="pAlignLeft" style:family="paragraph"><style:paragraph-properties fo:text-align="start"/></style:style>
+                <style:style style:name="pAlignCenter" style:family="paragraph"><style:paragraph-properties fo:text-align="center"/></style:style>
+                <style:style style:name="pAlignRight" style:family="paragraph"><style:paragraph-properties fo:text-align="end"/></style:style>
+            {{cellStyleDefs}}  </office:automatic-styles>
               <office:body>
                 <office:text>
             """);
@@ -306,6 +311,48 @@ public sealed class OdtDocumentExporter : IDocumentExporter
             """;
     }
 
+    private static bool HasCellBorderOrFill(CellStyleDto cs) =>
+        cs.BackgroundColor != null || cs.Padding != null || cs.BorderColor != null || cs.BorderWidth != null
+        || cs.BorderTop != null || cs.BorderRight != null || cs.BorderBottom != null || cs.BorderLeft != null;
+
+    private static string CellStyleName(string elementId, int r, int c)
+    {
+        var safe = new string((elementId ?? "t").Select(ch => char.IsLetterOrDigit(ch) ? ch : '_').ToArray());
+        return $"tc_{safe}_{r}_{c}";
+    }
+
+    // Emit one <style:style family="table-cell"> per styled cell into office:automatic-styles. ODF requires
+    // cell background/borders to be referenced by name (not inlined), so they are collected up-front.
+    private static string BuildCellStyleDefs(DesignExportDto design)
+    {
+        var sb = new StringBuilder();
+        var elements = design.Pages.SelectMany(p => p.Elements).Concat(design.SharedElements);
+        foreach (var el in elements.Where(e => e.Type == "table" && e.CellStyles is { Length: > 0 }))
+            foreach (var cs in el.CellStyles!)
+            {
+                if (!HasCellBorderOrFill(cs)) continue;
+                var props = new StringBuilder();
+                if (cs.BackgroundColor is { } bg) props.Append($" fo:background-color=\"{bg}\"");
+                if (cs.Padding is { } p) props.Append($" fo:padding=\"{p.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}pt\"");
+                AppendOdtBorder(props, "fo:border-top", cs.BorderTop, cs);
+                AppendOdtBorder(props, "fo:border-right", cs.BorderRight, cs);
+                AppendOdtBorder(props, "fo:border-bottom", cs.BorderBottom, cs);
+                AppendOdtBorder(props, "fo:border-left", cs.BorderLeft, cs);
+                sb.AppendLine($"""    <style:style style:name="{CellStyleName(el.Id, cs.Row, cs.Col)}" style:family="table-cell"><style:table-cell-properties{props}/></style:style>""");
+            }
+        return sb.ToString();
+    }
+
+    private static void AppendOdtBorder(StringBuilder props, string attr, CellBorderSideDto? side, CellStyleDto cs)
+    {
+        var hasUniform = cs.BorderColor != null || cs.BorderWidth != null;
+        if (side is null && !hasUniform) return;            // unset side stays at default (no explicit border)
+        var width = side?.Width ?? cs.BorderWidth ?? 1;
+        var color = side?.Color ?? cs.BorderColor ?? "#000000";
+        var w = width.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        props.Append($" {attr}=\"{w}pt solid {color}\"");
+    }
+
     private static string TableFrame(ElementDto el)
     {
         var cellData = el.CellData;
@@ -322,6 +369,7 @@ public sealed class OdtDocumentExporter : IDocumentExporter
         for (int c = 0; c < cols; c++)
             sb.AppendLine($"""            <table:table-column table:style-name="col{c}" style:column-width="{MmStr(colW)}"/>""");
 
+        var cellStyleLookup = (el.CellStyles ?? []).GroupBy(x => (x.Row, x.Col)).ToDictionary(gp => gp.Key, gp => gp.First());
         for (int r = 0; r < cellData.Length; r++)
         {
             var row   = cellData[r] ?? [];
@@ -330,8 +378,23 @@ public sealed class OdtDocumentExporter : IDocumentExporter
             for (int c = 0; c < cols; c++)
             {
                 var cell = row.Length > c ? Esc(row[c] ?? "") : "";
-                var bold = isHdr ? "fo:font-weight=\"bold\"" : "";
-                sb.AppendLine($"""              <table:table-cell><text:p {bold}>{cell}</text:p></table:table-cell>""");
+                var cs   = cellStyleLookup.GetValueOrDefault((r, c));
+                var font = new StringBuilder();
+                if (isHdr || cs?.Bold == true) font.Append("fo:font-weight=\"bold\" ");
+                if (cs?.Italic == true) font.Append("fo:font-style=\"italic\" ");
+                if (cs?.Color is { } fc) font.Append($"fo:color=\"{fc}\" ");
+                if (cs?.FontSize is { } fz) font.Append($"fo:font-size=\"{fz.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}pt\" ");
+                var bold = font.ToString().TrimEnd();
+                var cellAttr = cs is not null && HasCellBorderOrFill(cs)
+                    ? $" table:style-name=\"{CellStyleName(el.Id, r, c)}\"" : "";
+                var pAttr = cs?.TextAlign switch
+                {
+                    "center" => " text:style-name=\"pAlignCenter\"",
+                    "right"  => " text:style-name=\"pAlignRight\"",
+                    "left"   => " text:style-name=\"pAlignLeft\"",
+                    _        => ""
+                };
+                sb.AppendLine($"""              <table:table-cell{cellAttr}><text:p{pAttr} {bold}>{cell}</text:p></table:table-cell>""");
             }
             sb.AppendLine("            </table:table-row>");
         }

@@ -124,6 +124,49 @@ public class ExporterTests
         Assert.Contains("colspan=\"2\"", html);
     }
 
+    [Fact]
+    public void Html_Export_RendersPerCellStyles()
+    {
+        var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(StyledCellDesign()));
+        Assert.Contains("background:#FFFF00;", html);            // per-cell background
+        Assert.Contains("border-bottom:2px solid #FF0000;", html); // per-side border
+        Assert.Contains("color:#0000FF;", html);                 // per-cell font colour
+        Assert.Contains("font-family:Verdana;", html);           // per-cell font family
+    }
+
+    [Fact]
+    public void Odt_Export_DefinesAndReferencesPerCellStyle()
+    {
+        var odt = new OdtDocumentExporter().Export(StyledCellDesign());
+        // ODT is a zip; the per-cell style name should appear in content.xml (def + reference).
+        using var zip = new System.IO.Compression.ZipArchive(new System.IO.MemoryStream(odt));
+        var entry = zip.GetEntry("content.xml")!;
+        using var reader = new System.IO.StreamReader(entry.Open());
+        var content = reader.ReadToEnd();
+        Assert.Contains("style:family=\"table-cell\"", content);
+        Assert.Contains("fo:background-color=\"#FFFF00\"", content);
+        Assert.Contains("table:style-name=\"tc_", content);
+    }
+
+    // A table with one per-cell style (yellow bg, red bottom border, centered) on body cell (1,0).
+    private static DesignExportDto StyledCellDesign()
+    {
+        var d = MinimalDesign();
+        var table = d.Pages[0].Elements.First(e => e.Type == "table");
+        table.CellStyles =
+        [
+            new CellStyleDto
+            {
+                Row = 1, Col = 0,
+                BackgroundColor = "#FFFF00",
+                TextAlign = "center",
+                BorderBottom = new CellBorderSideDto { Color = "#FF0000", Width = 2 },
+                Padding = 6, FontFamily = "Verdana", FontSize = 12, Bold = true, Color = "#0000FF"
+            }
+        ];
+        return d;
+    }
+
     // ─── XML ──────────────────────────────────────────────────────────────────
 
     [Fact]

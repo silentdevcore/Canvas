@@ -1721,6 +1721,9 @@ public sealed class RdlToDesignConverterTests
                       <Style>
                         <BackgroundColor>#FFFF00</BackgroundColor>
                         <TextAlign>Center</TextAlign>
+                        <PaddingLeft>2pt</PaddingLeft><PaddingTop>3pt</PaddingTop>
+                        <FontFamily>Verdana</FontFamily><FontSize>12pt</FontSize>
+                        <FontWeight>Bold</FontWeight><Color>#0000FF</Color>
                         <BorderStyle><Bottom>Solid</Bottom></BorderStyle>
                         <BorderColor><Bottom>#FF0000</Bottom></BorderColor>
                         <BorderWidth><Bottom>2pt</Bottom></BorderWidth>
@@ -1745,6 +1748,11 @@ public sealed class RdlToDesignConverterTests
         Assert.Equal(2, styled.BorderBottom!.Width);
         Assert.Equal("#FF0000", styled.BorderBottom!.Color);
         Assert.Null(styled.BorderTop);                             // unset sides stay null
+        Assert.Equal(3, styled.Padding);                           // max of PaddingLeft(2)/PaddingTop(3)
+        Assert.Equal("Verdana", styled.FontFamily);
+        Assert.Equal(12, styled.FontSize);
+        Assert.True(styled.Bold);
+        Assert.Equal("#0000FF", styled.Color);
     }
 
     [Fact]

@@ -1260,6 +1260,17 @@ public sealed class RdlToDesignConverter
             && !al.Equals("General", StringComparison.OrdinalIgnoreCase))
         { cell.TextAlign = ParseAlignment(al); any = true; }
 
+        // Content styling: padding (max of the four RDL paddings) + font.
+        var pad = new[] { "PaddingLeft", "PaddingTop", "PaddingRight", "PaddingBottom" }
+            .Select(p => LengthToPt(Child(style, p)?.Value)).Where(v => v > 0).DefaultIfEmpty(0).Max();
+        if (pad > 0) { cell.Padding = pad; any = true; }
+        if (Child(style, "FontFamily")?.Value is { Length: > 0 } ff) { cell.FontFamily = ff; any = true; }
+        if (LengthToPt(Child(style, "FontSize")?.Value) is var fsz and > 0) { cell.FontSize = fsz; any = true; }
+        if (Child(style, "FontWeight")?.Value is { } fw && IsBoldWeight(fw)) { cell.Bold = true; any = true; }
+        if (Child(style, "FontStyle")?.Value is { } fst && fst.Contains("Italic", StringComparison.OrdinalIgnoreCase))
+        { cell.Italic = true; any = true; }
+        if (Child(style, "Color")?.Value is { Length: > 0 } clr) { cell.Color = NormalizeColor(clr); any = true; }
+
         // Uniform border (2008 <Border>, or 2005 *.Default).
         var border = Child(style, "Border");
         if (CellBorderSide(

@@ -840,6 +840,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
             colWidthsPx.Length > c ? colWidthsPx[c] : equalPx);
 
         var alignments = el.ColumnAlignments ?? [];
+        var cellStyleLookup = (el.CellStyles ?? []).GroupBy(x => (x.Row, x.Col)).ToDictionary(gp => gp.Key, gp => gp.First());
 
         var table = new Table();
         var tblPr = new TableProperties(
@@ -896,15 +897,19 @@ public sealed class WordDocumentExporter : IDocumentExporter
             for (int c = 0; c < cols; c++)
             {
                 var cell  = row.Length > c ? row[c] ?? "" : "";
-                var align = alignments.Length > c ? alignments[c] : "left";
+                var cs    = cellStyleLookup.GetValueOrDefault((r, c));
+                var align = cs?.TextAlign ?? (alignments.Length > c ? alignments[c] : "left");
                 var tc    = new TableCell();
 
                 var tcp = new TableCellProperties(
                     new TableCellWidth { Width = ColTwips(c).ToString(), Type = TableWidthUnitValues.Dxa });
-                if (isHdr)
-                    tcp.AppendChild(new Shading { Fill = hdrBg, Val = ShadingPatternValues.Clear, Color = "auto" });
-                else if (isZebra)
-                    tcp.AppendChild(new Shading { Fill = zebraColor!, Val = ShadingPatternValues.Clear, Color = "auto" });
+                // CT_TcPr order: tcW(2) → tcBorders(3) → shd(6) → vAlign(11).
+                if (cs is not null && HasCellBorder(cs))
+                    tcp.AppendChild(BuildCellBorders(cs));
+                var bgFill = cs?.BackgroundColor is { } cbg ? NormalizeHexColor(cbg, "ffffff")
+                    : isHdr ? hdrBg : isZebra ? zebraColor : null;
+                if (bgFill is not null)
+                    tcp.AppendChild(new Shading { Fill = bgFill, Val = ShadingPatternValues.Clear, Color = "auto" });
                 // CT_TcPr order: tcW(2) → shd(6) → vAlign(11)
                 var vAlignVal = el.Style?.GetStr("verticalAlign", "top") switch {
                     "middle" or "center" => TableVerticalAlignmentValues.Center,
@@ -917,7 +922,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 var para = new Paragraph(
                     new ParagraphProperties(new Justification { Val = ToJustification(align) }));
                 var run  = para.AppendChild(new Run());
-                if (isHdr) run.PrependChild(new RunProperties(new Bold()));
+                if (BuildCellRunProps(cs, isHdr) is { } rpr) run.PrependChild(rpr);
                 run.AppendChild(new Text(cell) { Space = SpaceProcessingModeValues.Preserve });
                 tc.AppendChild(para);
                 tableRow.AppendChild(tc);
@@ -928,6 +933,51 @@ public sealed class WordDocumentExporter : IDocumentExporter
         body.AppendChild(table);
         body.AppendChild(new Paragraph()); // spacing after table
         AdvanceCursor(layout, el);
+    }
+
+    private static bool HasCellBorder(CellStyleDto cs) =>
+        cs.BorderColor != null || cs.BorderWidth != null
+        || cs.BorderTop != null || cs.BorderRight != null || cs.BorderBottom != null || cs.BorderLeft != null;
+
+    // Per-cell run properties (font family/size/weight/style/colour). Bold also when it's the header row.
+    private static RunProperties? BuildCellRunProps(CellStyleDto? cs, bool isHdr)
+    {
+        var bold = isHdr || cs?.Bold == true;
+        if (!bold && cs is null) return null;
+        if (!bold && cs.Italic != true && cs.Color is null && cs.FontFamily is null && cs.FontSize is null)
+            return null;
+
+        var rpr = new RunProperties();
+        if (cs?.FontFamily is { Length: > 0 } ff) rpr.AppendChild(new RunFonts { Ascii = ff, HighAnsi = ff });
+        if (bold) rpr.AppendChild(new Bold());
+        if (cs?.Italic == true) rpr.AppendChild(new Italic());
+        if (cs?.Color is { Length: > 0 } col) rpr.AppendChild(new Color { Val = NormalizeHexColor(col, "000000") });
+        if (cs?.FontSize is { } fsz and > 0) rpr.AppendChild(new FontSize { Val = ((int)Math.Round(fsz * 2)).ToString() });
+        return rpr;
+    }
+
+    // Per-cell borders: per-side override → uniform fallback → Nil (explicit cell borders replace the
+    // table grid for that cell, matching the other exporters). Width follows the table convention (Size = pt).
+    private static TableCellBorders BuildCellBorders(CellStyleDto cs) => new()
+    {
+        TopBorder    = CellSide<TopBorder>(cs.BorderTop, cs),
+        LeftBorder   = CellSide<LeftBorder>(cs.BorderLeft, cs),
+        BottomBorder = CellSide<BottomBorder>(cs.BorderBottom, cs),
+        RightBorder  = CellSide<RightBorder>(cs.BorderRight, cs),
+    };
+
+    private static T CellSide<T>(CellBorderSideDto? side, CellStyleDto cs) where T : BorderType, new()
+    {
+        var hasUniform = cs.BorderColor != null || cs.BorderWidth != null;
+        if (side is null && !hasUniform) return new T { Val = BorderValues.Nil };
+        var width = side?.Width ?? cs.BorderWidth ?? 1;
+        var color = side?.Color ?? cs.BorderColor ?? "#000000";
+        return new T
+        {
+            Val = BorderValues.Single,
+            Size = (uint)Math.Max(1, (int)Math.Round(width)),
+            Color = NormalizeHexColor(color, "000000"),
+        };
     }
 
     private static TableRow CreateMatrixHeaderRow(string header, int cols, Func<int, int> colTwips, uint borderWidth, string borderColor)

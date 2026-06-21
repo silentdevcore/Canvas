@@ -56,6 +56,12 @@ export interface CellStyle {
   borderRight?: CellBorderSide;
   borderBottom?: CellBorderSide;
   borderLeft?: CellBorderSide;
+  padding?: number;
+  fontFamily?: string;
+  fontSize?: number;
+  bold?: boolean;
+  italic?: boolean;
+  color?: string;
 }
 
 export interface SimpleElement {

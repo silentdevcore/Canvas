@@ -2473,6 +2473,12 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
         if (cs) {
           if (cs.backgroundColor) style.backgroundColor = cs.backgroundColor;
           if (cs.textAlign) style.textAlign = cs.textAlign;
+          if (cs.padding != null) style.padding = cs.padding;
+          if (cs.fontFamily) style.fontFamily = cs.fontFamily;
+          if (cs.fontSize != null) style.fontSize = cs.fontSize;
+          if (cs.bold) style.fontWeight = 700;
+          if (cs.italic) style.fontStyle = 'italic';
+          if (cs.color) style.color = cs.color;
           const hasBorder = cs.borderColor != null || cs.borderWidth != null
             || cs.borderTop || cs.borderRight || cs.borderBottom || cs.borderLeft;
           if (hasBorder) {

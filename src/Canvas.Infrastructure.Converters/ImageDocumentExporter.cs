@@ -278,14 +278,17 @@ public sealed class ImageDocumentExporter : IDocumentExporter
 
                 if (!string.IsNullOrEmpty(cell))
                 {
-                    var fs = 9f * scale;
-                    var tf = isHdr
-                        ? SKTypeface.FromFamilyName("Arial", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)
-                        : SKTypeface.Default;
+                    var fs = (cstyle?.FontSize is { } cfs ? (float)cfs : 9f) * scale;
+                    var bold = isHdr || cstyle?.Bold == true;
+                    var tf = SKTypeface.FromFamilyName(
+                        cstyle?.FontFamily ?? (isHdr ? "Arial" : null),
+                        bold ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal,
+                        SKFontStyleWidth.Normal,
+                        cstyle?.Italic == true ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright) ?? SKTypeface.Default;
                     using var font  = new SKFont(tf, fs);
-                    using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = true };
+                    using var paint = new SKPaint { Color = ParseColor(cstyle?.Color ?? "#000000"), IsAntialias = true };
 
-                    var pad     = 4f * scale;
+                    var pad     = (cstyle?.Padding is { } cpad ? (float)cpad : 4f) * scale;
                     var lines   = WrapText(cell ?? "", Math.Max(1, cellW - 2 * pad), font);
                     var lineGap = fs * 1.25f;
                     // Vertically centre the wrapped block within the cell.

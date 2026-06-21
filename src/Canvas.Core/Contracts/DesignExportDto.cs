@@ -349,6 +349,13 @@ public sealed class CellStyleDto
     public CellBorderSideDto? BorderRight  { get; set; }
     public CellBorderSideDto? BorderBottom { get; set; }
     public CellBorderSideDto? BorderLeft   { get; set; }
+    // Content styling
+    public double? Padding         { get; set; }
+    public string? FontFamily      { get; set; }
+    public double? FontSize        { get; set; }
+    public bool?   Bold            { get; set; }
+    public bool?   Italic          { get; set; }
+    public string? Color           { get; set; }
 }
 
 /// <summary>A single cell border side (carries source designers' per-side pens, e.g. RDL/ActiveReports).</summary>

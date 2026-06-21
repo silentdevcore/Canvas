@@ -386,6 +386,12 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
         if (cs) {
           if (cs.backgroundColor) st.backgroundColor = cs.backgroundColor;
           if (cs.textAlign) st.textAlign = cs.textAlign;
+          if (cs.padding != null) st.padding = cs.padding;
+          if (cs.fontFamily) st.fontFamily = cs.fontFamily;
+          if (cs.fontSize != null) st.fontSize = cs.fontSize;
+          if (cs.bold) st.fontWeight = 700;
+          if (cs.italic) st.fontStyle = 'italic';
+          if (cs.color) st.color = cs.color;
           const hasBorder = cs.borderColor != null || cs.borderWidth != null
             || cs.borderTop || cs.borderRight || cs.borderBottom || cs.borderLeft;
           if (hasBorder) {
