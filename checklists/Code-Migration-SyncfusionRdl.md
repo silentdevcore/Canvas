@@ -135,6 +135,7 @@ gaps (per-cell table styling, native maps/charts) require **Canvas model** chang
 | `CANMIGRDL027` | Warning | RDL HTML/PDF document custom item preserved as positioned placeholder; Canvas has no native embedded document item yet |
 | `CANMIGRDL028` | Warning | RDL signature custom item mapped to Canvas signature placeholder; signing/certificate semantics need review |
 | `CANMIGRDL029` | Warning | RDL Tablix row/column hierarchy headers preserved as metadata; Canvas has limited native matrix/group header rendering |
+| `CANMIGRDL032` | Warning | RDL-2005 TableGroups header/footer repeat metadata preserved on Canvas table style; runtime group-section rendering needs review |
 
 ---
 
@@ -243,6 +244,9 @@ The remaining items are optional native Canvas capabilities or blocked expressio
 - [x] **P1** Promote preserved RDL chart expressions to sample extraction: backend layout planning fills Canvas
       chart `labels`/`datasets` from `rdlDataSetName` payload rows for preserved category/value field expressions,
       while keeping the original RDL chart metadata for review.
+- [x] **P1** RDL-2005 `<TableGroups>` metadata: group name, group/sort expressions, header/footer row
+      counts, and nested groups are preserved as `style.rdlTableGroups` for ActiveReports/DsReport-style
+      RDL-2005 tables.
 
 ## Assumptions
 - [x] Use `Canvas.Migration.Rdl`, separate from the DevExpress converters; self-contained model + build.

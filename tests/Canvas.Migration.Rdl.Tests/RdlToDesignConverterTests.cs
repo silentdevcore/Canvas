@@ -1776,6 +1776,49 @@ public sealed class RdlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_Table2005TableGroups_PreservesGroupHeaderFooterMetadata()
+    {
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" Name="T">
+              <Body><ReportItems>
+                <Table Name="t">
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>4in</Width>
+                  <TableColumns><TableColumn><Width>4in</Width></TableColumn></TableColumns>
+                  <TableGroups>
+                    <TableGroup>
+                      <Grouping Name="CategoryGroup">
+                        <GroupExpressions><GroupExpression>=Fields!Category.Value</GroupExpression></GroupExpressions>
+                      </Grouping>
+                      <Header><TableRows><TableRow><TableCells>
+                        <TableCell><ReportItems><Textbox Name="gh"><Value>=Fields!Category.Value</Value></Textbox></ReportItems></TableCell>
+                      </TableCells></TableRow></TableRows></Header>
+                      <Footer><TableRows><TableRow><TableCells>
+                        <TableCell><ReportItems><Textbox Name="gf"><Value>Subtotal</Value></Textbox></ReportItems></TableCell>
+                      </TableCells></TableRow></TableRows></Footer>
+                    </TableGroup>
+                  </TableGroups>
+                  <Details><TableRows><TableRow><TableCells>
+                    <TableCell><ReportItems><Textbox Name="d1"><Value>=Fields!Name.Value</Value></Textbox></ReportItems></TableCell>
+                  </TableCells></TableRow></TableRows></Details>
+                </Table>
+              </ReportItems><Height>5in</Height></Body>
+              <PageHeight>11in</PageHeight><PageWidth>8.5in</PageWidth>
+            </Report>
+            """;
+
+        var result = Convert(rdl);
+        var table = El(result.Design, "t");
+        var groups = Assert.IsType<Dictionary<string, object>[]>(table.Style!["rdlTableGroups"]);
+        var group = Assert.Single(groups);
+
+        Assert.Equal("CategoryGroup", group["name"]);
+        Assert.Equal(new[] { "=Fields!Category.Value" }, Assert.IsType<string[]>(group["groupExpressions"]));
+        Assert.Equal(1, group["headerRows"]);
+        Assert.Equal(1, group["footerRows"]);
+        Assert.True(Has(result.Diagnostics, "CANMIGRDL032"));
+    }
+
+    [Fact]
     public void Convert_ListRegion_ParsesNestedTableAndCarriesRepeatMetadata()
     {
         var rdl = """

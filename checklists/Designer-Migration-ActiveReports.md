@@ -59,6 +59,7 @@ Key sample-driven conclusions:
 | --- | --- | --- |
 | `CANMIGRDL030` | Info | RDL-2005 `<Table>` `<Footer>` rows were included in the Canvas table grid |
 | `CANMIGRDL031` | Warning | RDL `<List>` region mapped to a Canvas container with repeat metadata; child items extracted as positioned elements — review grouping/repeat semantics |
+| `CANMIGRDL032` | Warning | RDL-2005 `<TableGroups>` header/footer repeat metadata preserved on Canvas table style |
 
 ## V2 checklist
 
@@ -68,7 +69,10 @@ Key sample-driven conclusions:
 - [x] **P0** `<Grouping>` recognized alongside `<Group>` in `ParseTablixGroups` (RDL-2005 groupings no longer ignored).
 - [x] **P0** Validate all 8 `.rdlx` samples convert with no dropped top-level regions (integration test).
 - [x] **P1** Per-cell border/background/alignment fidelity — see *Per-cell table styling* below (v1 vertical slice).
-- [ ] **P1** RDL-2005 `<TableGroups>`/group header-footer rows → repeat/section semantics (none present in samples).
+- [x] **P1** RDL-2005 `<TableGroups>`/group header-footer metadata: `Grouping` name,
+      `GroupExpressions`, sort expressions, header/footer row counts, and nested groups are preserved on
+      table `style.rdlTableGroups` with `CANMIGRDL032`. Runtime section rendering still depends on a
+      future group-repeat renderer; none of the current local samples exercise this.
 - [x] **P1** RPX section-report P0 metadata pass: `GroupHeader`/`GroupFooter` and `Detail` repeat metadata,
       `CanGrow`/`CanShrink`, `OutputFormat`, page-break metadata, and CrossSectionLine/CrossSectionBox
       visual preservation are implemented in `Canvas.Migration.Rpx`.
