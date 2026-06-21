@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using Canvas.Core.Abstractions;
 using Canvas.Core.Contracts;
 using Canvas.Core.Primitives;
@@ -206,6 +207,7 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
         var cellData = el.CellData ?? [];
         var rows     = cellData.Length > 0 ? cellData.Length : (int)s.GetNum("rows", 3);
         var cols     = cellData.Length > 0 ? (cellData[0]?.Length ?? 0) : (int)s.GetNum("columns", 3);
+        var matrixHeaders = RdlMatrixHeaders(s);
 
         // Defined cell text (matches the editor's tdStyle defaults).
         var cellPad     = s.GetNum("cellPadding", 5);
@@ -215,8 +217,17 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
         var cellWeight  = s.GetStr("cellFontWeight", "normal");
 
         var zebraStyle = el.ZebraEnabled == true ? el.ZebraColor ?? "#f9fafb" : null;
+        var cellStyleLookup = (el.CellStyles ?? []).GroupBy(x => (x.Row, x.Col)).ToDictionary(g => g.Key, g => g.First());
 
         sb.AppendLine($"    <table style=\"{posStyle}{rotation} border-collapse:collapse; table-layout:fixed;\">");
+
+        foreach (var header in matrixHeaders)
+        {
+            sb.AppendLine("      <tr>");
+            sb.Append($"<th colspan=\"{cols}\" style=\"border:{bw}px solid {bc}; padding:{N(cellPad)}px; text-align:left;"
+                + $" font-size:{N(cellFs)}px; font-family:{cellFf}; color:#075985; font-weight:bold; background:#e0f2fe;\">{Esc(header)}</th>");
+            sb.AppendLine("</tr>");
+        }
 
         for (int r = 0; r < rows; r++)
         {
@@ -230,14 +241,88 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
             for (int c = 0; c < cols; c++)
             {
                 var cell = cellData.Length > r ? (cellData[r]?.Length > c ? cellData[r][c] : "") : "";
-                var align = el.ColumnAlignments?.Length > c ? el.ColumnAlignments[c] : "left";
-                sb.Append($"<{tag} style=\"border:{bw}px solid {bc}; padding:{N(cellPad)}px; text-align:{align};"
-                    + $" font-size:{N(cellFs)}px; font-family:{cellFf}; color:{color}; font-weight:{weight};{hdrBg}\">{Esc(cell ?? "")}</{tag}>");
+                var cs = cellStyleLookup.GetValueOrDefault((r, c));
+                var align = cs?.TextAlign ?? (el.ColumnAlignments?.Length > c ? el.ColumnAlignments[c] : "left");
+                var cellBg = cs?.BackgroundColor is { } cbg ? $" background:{cbg};" : hdrBg;
+                var borderCss = CellBorderCss(cs, bw, bc);
+                var cPad    = cs?.Padding ?? cellPad;
+                var cFs     = cs?.FontSize ?? cellFs;
+                var cFf     = cs?.FontFamily ?? cellFf;
+                var cColor  = cs?.Color ?? color;
+                var cWeight = cs?.Bold == true ? "bold" : weight;
+                var cItalic = cs?.Italic == true ? " font-style:italic;" : "";
+                sb.Append($"<{tag} style=\"{borderCss} padding:{N(cPad)}px; text-align:{align};"
+                    + $" font-size:{N(cFs)}px; font-family:{cFf}; color:{cColor}; font-weight:{cWeight};{cItalic}{cellBg}\">{Esc(cell ?? "")}</{tag}>");
             }
             sb.AppendLine("</tr>");
         }
         sb.AppendLine("    </table>");
     }
+
+    // Per-cell border CSS: uniform border by default, or explicit per-side borders when the cell carries
+    // any border styling (matching the canvas/image exporters — explicit borders replace the grid default).
+    private static string CellBorderCss(CellStyleDto? cs, int bw, string bc)
+    {
+        var hasBorder = cs is not null && (cs.BorderColor != null || cs.BorderWidth != null
+            || cs.BorderTop != null || cs.BorderRight != null || cs.BorderBottom != null || cs.BorderLeft != null);
+        if (!hasBorder) return $"border:{bw}px solid {bc};";
+
+        var uniform = (cs!.BorderColor != null || cs.BorderWidth != null)
+            ? $"{N(cs.BorderWidth ?? 1)}px solid {cs.BorderColor ?? "#000000"}"
+            : "none";
+        string Side(CellBorderSideDto? s) => s != null ? $"{N(s.Width ?? 1)}px solid {s.Color ?? "#000000"}" : uniform;
+        return $"border-top:{Side(cs.BorderTop)}; border-right:{Side(cs.BorderRight)}; "
+             + $"border-bottom:{Side(cs.BorderBottom)}; border-left:{Side(cs.BorderLeft)};";
+    }
+
+    private static List<string> RdlMatrixHeaders(Dictionary<string, object> style)
+    {
+        var headers = new List<string>();
+        AddRdlMatrixHeaders(style, "rdlTablixColumnHierarchy", headers);
+        AddRdlMatrixHeaders(style, "rdlTablixRowHierarchy", headers);
+        return headers;
+    }
+
+    private static void AddRdlMatrixHeaders(Dictionary<string, object> style, string key, List<string> headers)
+    {
+        if (!style.TryGetValue(key, out var value) || value is null) return;
+
+        if (value is JsonElement { ValueKind: JsonValueKind.Array } jsonArray)
+        {
+            foreach (var item in jsonArray.EnumerateArray())
+                AddRdlMatrixHeader(item, headers);
+            return;
+        }
+
+        if (value is IEnumerable<object> items)
+        {
+            foreach (var item in items)
+                AddRdlMatrixHeader(item, headers);
+        }
+    }
+
+    private static void AddRdlMatrixHeader(object item, List<string> headers)
+    {
+        switch (item)
+        {
+            case JsonElement { ValueKind: JsonValueKind.Object } json:
+                var text = JsonProp(json, "headerText") ?? JsonProp(json, "groupName");
+                if (!string.IsNullOrWhiteSpace(text)) headers.Add(text);
+                break;
+            case IReadOnlyDictionary<string, object> dict:
+                if ((HeaderValue(dict, "headerText") ?? HeaderValue(dict, "groupName")) is { Length: > 0 } value)
+                    headers.Add(value);
+                break;
+        }
+    }
+
+    private static string? JsonProp(JsonElement json, string name) =>
+        json.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
+            ? prop.GetString()
+            : null;
+
+    private static string? HeaderValue(IReadOnlyDictionary<string, object> dict, string key) =>
+        dict.TryGetValue(key, out var value) ? value?.ToString() : null;
 
     private static string BuildTextStyle(Dictionary<string, object> s)
     {
@@ -279,4 +364,3 @@ public sealed class HtmlDocumentExporter : IDocumentExporter
     /// server locale — otherwise "13,5px" / "1,4" would be invalid CSS and ignored.</summary>
     private static string N(double value) => value.ToString("0.###", CultureInfo.InvariantCulture);
 }
-

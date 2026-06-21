@@ -23,6 +23,34 @@ interface LivePreviewProps {
 }
 
 type ExportFormat = 'pdf' | 'json' | 'image' | 'print';
+const BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
+
+const borderStyleForZoom = (s: Record<string, any>, zoom: number): React.CSSProperties => {
+  const sideStyle: React.CSSProperties = {};
+  let hasSideBorder = false;
+
+  BORDER_SIDES.forEach((side) => {
+    const width = s[`border${side}Width`];
+    if (width == null) return;
+
+    hasSideBorder = true;
+    const key = `border${side}` as keyof React.CSSProperties;
+    sideStyle[key] = `${(Number(width) || 0) * zoom}px ${s[`border${side}Style`] || s.borderStyle || 'solid'} ${s[`border${side}Color`] || s.borderColor || '#000'}` as never;
+  });
+
+  if (hasSideBorder) {
+    return {
+      ...sideStyle,
+      borderRadius: s.borderRadius ? s.borderRadius * zoom : undefined,
+    };
+  }
+
+  const bw = s.borderWidth ?? 0;
+  return {
+    border: bw > 0 ? `${bw * zoom}px ${s.borderStyle ?? 'solid'} ${s.borderColor ?? '#000'}` : undefined,
+    borderRadius: s.borderRadius ? s.borderRadius * zoom : undefined,
+  };
+};
 
 const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElements = [], pageSettings, onBack, onExport, hideBackButton, exportLabel }) => {
   const [zoom, setZoom] = useState(1);
@@ -148,7 +176,6 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
 
   const wrapperStyle = (el: SimpleElement): React.CSSProperties => {
     const s = el.style ?? {};
-    const bw = s.borderWidth ?? 0;
 
     let bgColor: string | undefined;
     const rawBg = s.backgroundColor ?? s.fill;
@@ -166,8 +193,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       transform: s.rotation ? `rotate(${s.rotation}deg)` : undefined,
       transformOrigin: 'center center',
       backgroundColor: bgColor,
-      border: bw > 0 ? `${bw}px ${s.borderStyle ?? 'solid'} ${s.borderColor ?? '#000'}` : undefined,
-      borderRadius: s.borderRadius ? s.borderRadius : undefined,
+      ...borderStyleForZoom(s, zoom),
       paddingTop:    s.paddingTop    ? s.paddingTop    * zoom : undefined,
       paddingRight:  s.paddingRight  ? s.paddingRight  * zoom : undefined,
       paddingBottom: s.paddingBottom ? s.paddingBottom * zoom : undefined,
@@ -330,21 +356,77 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       const colAligns  = element.columnAlignments ?? [];
       const cellData   = element.cellData ?? [];
       const bodyRows   = Math.max(1, totalRows - (hasHeader ? 1 : 0) - (hasFooter ? 1 : 0));
+      const rdlColumnHeaders = Array.isArray(s.rdlTablixColumnHierarchy)
+        ? s.rdlTablixColumnHierarchy
+            .map((member: any) => member?.headerText || member?.groupName)
+            .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
+        : [];
+      const rdlRowHeaders = Array.isArray(s.rdlTablixRowHierarchy)
+        ? s.rdlTablixRowHierarchy
+            .map((member: any) => member?.headerText || member?.groupName)
+            .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
+        : [];
+      const rdlMatrixHeaders = [...rdlColumnHeaders, ...rdlRowHeaders];
 
-      const tdSt = (r: number, c: number, kind: 'header' | 'body' | 'footer'): React.CSSProperties => ({
-        border: `${bw}px solid ${bc}`,
-        padding: cp,
-        textAlign: (colAligns[c] || 'left') as React.CSSProperties['textAlign'],
-        fontSize: 10 * zoom,
-        fontWeight: kind === 'header' ? 700 : 'normal',
-        color: kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555',
-        backgroundColor: kind === 'header' ? headerBg : kind === 'footer' ? '#f8fafc' : zebraOn && r % 2 === 1 ? zebraColor : 'transparent',
-      });
+      const cellStyles = element.cellStyles ?? [];
+      const sideCss = (sd?: { color?: string; width?: number }) =>
+        sd ? `${sd.width ?? 1}px solid ${sd.color ?? '#000000'}` : undefined;
+
+      const tdSt = (r: number, c: number, kind: 'header' | 'body' | 'footer', dataRow: number = r): React.CSSProperties => {
+        const st: React.CSSProperties = {
+          border: `${bw}px solid ${bc}`,
+          padding: cp,
+          textAlign: (colAligns[c] || 'left') as React.CSSProperties['textAlign'],
+          fontSize: 10 * zoom,
+          fontWeight: kind === 'header' ? 700 : 'normal',
+          color: kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555',
+          backgroundColor: kind === 'header' ? headerBg : kind === 'footer' ? '#f8fafc' : zebraOn && r % 2 === 1 ? zebraColor : 'transparent',
+        };
+        const cs = cellStyles.find((x) => x.row === dataRow && x.col === c);
+        if (cs) {
+          if (cs.backgroundColor) st.backgroundColor = cs.backgroundColor;
+          if (cs.textAlign) st.textAlign = cs.textAlign;
+          if (cs.padding != null) st.padding = cs.padding;
+          if (cs.fontFamily) st.fontFamily = cs.fontFamily;
+          if (cs.fontSize != null) st.fontSize = cs.fontSize;
+          if (cs.bold) st.fontWeight = 700;
+          if (cs.italic) st.fontStyle = 'italic';
+          if (cs.color) st.color = cs.color;
+          const hasBorder = cs.borderColor != null || cs.borderWidth != null
+            || cs.borderTop || cs.borderRight || cs.borderBottom || cs.borderLeft;
+          if (hasBorder) {
+            const uniform = (cs.borderColor != null || cs.borderWidth != null)
+              ? `${cs.borderWidth ?? 1}px solid ${cs.borderColor ?? '#000000'}`
+              : 'none';
+            st.border = undefined;
+            st.borderTop = sideCss(cs.borderTop) ?? uniform;
+            st.borderRight = sideCss(cs.borderRight) ?? uniform;
+            st.borderBottom = sideCss(cs.borderBottom) ?? uniform;
+            st.borderLeft = sideCss(cs.borderLeft) ?? uniform;
+          }
+        }
+        return st;
+      };
 
       return (
         <table style={{ width: '100%', height: '100%', borderCollapse: 'collapse', border: `${bw}px solid ${bc}` }}>
           {hasHeader && (
             <thead>
+              {rdlMatrixHeaders.map((header, index) => (
+                <tr key={`rdl-matrix-header-${index}`}>
+                  <th
+                    colSpan={columns}
+                    style={{
+                      ...tdSt(index, 0, 'header'),
+                      textAlign: 'left',
+                      backgroundColor: '#e0f2fe',
+                      color: '#075985'
+                    }}
+                  >
+                    {header}
+                  </th>
+                </tr>
+              ))}
               <tr>{Array.from({ length: columns }).map((_, c) => (
                 <th key={c} style={tdSt(0, c, 'header')}>{cellData[0]?.[c] || `Header ${c + 1}`}</th>
               ))}</tr>
@@ -353,14 +435,14 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
           <tbody>
             {Array.from({ length: bodyRows }).map((_, r) => (
               <tr key={r}>{Array.from({ length: columns }).map((_, c) => (
-                <td key={c} style={tdSt(r, c, 'body')}>{cellData[r + (hasHeader ? 1 : 0)]?.[c] || 'Cell'}</td>
+                <td key={c} style={tdSt(r, c, 'body', r + (hasHeader ? 1 : 0))}>{cellData[r + (hasHeader ? 1 : 0)]?.[c] || 'Cell'}</td>
               ))}</tr>
             ))}
           </tbody>
           {hasFooter && (
             <tfoot>
               <tr>{Array.from({ length: columns }).map((_, c) => (
-                <td key={c} style={tdSt(0, c, 'footer')}>{cellData[totalRows - 1]?.[c] || `Footer ${c + 1}`}</td>
+                <td key={c} style={tdSt(0, c, 'footer', totalRows - 1)}>{cellData[totalRows - 1]?.[c] || `Footer ${c + 1}`}</td>
               ))}</tr>
             </tfoot>
           )}
@@ -611,6 +693,31 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
           borderRadius: element.style?.borderRadius ?? 4,
           mixBlendMode: element.style?.blendMode || 'multiply'
         }} />
+      );
+    }
+
+    if (element.type === 'subsection' || element.type === 'area') {
+      const color = element.style?.color || element.style?.borderColor || '#475569';
+      return (
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 8 * zoom,
+          color,
+          fontSize: (element.style?.fontSize || 12) * zoom,
+          background: element.style?.backgroundColor || '#f8fafc',
+          border: `${(element.style?.borderWidth || 1) * zoom}px ${element.style?.borderStyle || 'dashed'} ${color}`,
+          borderRadius: (element.style?.borderRadius ?? 4) * zoom,
+          overflow: 'hidden',
+          textAlign: 'center',
+        }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {element.content || (element.type === 'subsection' ? 'Subsection' : 'Area')}
+          </span>
+        </div>
       );
     }
 

@@ -145,8 +145,109 @@ public sealed class FrxToDesignConverter
         if (type == "PictureObject") raw.ImageDataUrl = ExtractImageDataUrl(el);
         if (type == "BarcodeObject") raw.Symbology = Attr(el, "Barcode") ?? Attr(el, "Symbology");
         if (type == "CheckBoxObject") raw.Checked = string.Equals(Attr(el, "Checked"), "true", StringComparison.OrdinalIgnoreCase);
+        if (type == "TableObject") ParseTable(el, raw);
 
         return raw;
+    }
+
+    // FastReport TableObject holds <TableColumn Width> then <TableRow Height> each with <TableCell Text>.
+    // Flatten to a row-major grid; honour ColSpan by padding empties so columns stay aligned.
+    private static void ParseTable(XElement el, RawElement raw)
+    {
+        var columns = el.Elements().Where(e => e.Name.LocalName == "TableColumn").ToList();
+        raw.ColumnWidthsPt = columns.Count > 0
+            ? columns.Select(c => ToPx(Attr(c, "Width")) * PxToPt).ToArray()
+            : null;
+
+        var grid = new List<List<string>>();
+        var cellStyles = new List<CellStyleDto>();
+        string[]? aligns = null;
+        var rowIndex = 0;
+        foreach (var row in el.Elements().Where(e => e.Name.LocalName == "TableRow"))
+        {
+            var cells = new List<string>();
+            var rowAligns = new List<string>();
+            var colIndex = 0;
+            foreach (var cell in row.Elements().Where(e => e.Name.LocalName == "TableCell"))
+            {
+                if (ExtractFrxCellStyle(cell, rowIndex, colIndex) is { } cs) cellStyles.Add(cs);
+                cells.Add(CellDisplay(Attr(cell, "Text")));
+                rowAligns.Add(ParseAlignment(Attr(cell, "HorzAlign")));
+                var span = Math.Max(1, (int)ToDouble(Attr(cell, "ColSpan")));
+                for (var i = 1; i < span; i++) { cells.Add(""); rowAligns.Add("left"); }
+                colIndex += span;
+            }
+            if (cells.Count == 0) continue;
+            grid.Add(cells);
+            aligns ??= rowAligns.ToArray();
+            rowIndex++;
+        }
+
+        raw.TableCells = grid.Count > 0 ? grid : null;
+        raw.CellStyles = cellStyles.Count > 0 ? cellStyles : null;
+        raw.ColumnAlignments = aligns;
+        raw.TableHasHeader = grid.Count > 1;
+    }
+
+    // Per-cell style from a FastReport TableCell: fill/text colour, alignment, font, and borders
+    // (Border.Lines "All" → uniform; otherwise the listed sides).
+    private static CellStyleDto? ExtractFrxCellStyle(XElement cell, int row, int col)
+    {
+        var cs = new CellStyleDto { Row = row, Col = col };
+        var any = false;
+
+        if (ParseColor(Attr(cell, "Fill.Color")) is { } bg)     { cs.BackgroundColor = bg; any = true; }
+        if (ParseColor(Attr(cell, "TextFill.Color")) is { } fc) { cs.Color = fc; any = true; }
+        if (Attr(cell, "HorzAlign") is { Length: > 0 } ha)      { cs.TextAlign = ParseAlignment(ha); any = true; }
+
+        if (Attr(cell, "Font") is { Length: > 0 } font)
+        {
+            var tmp = new RawElement { Name = "", Type = "" };
+            ApplyFont(tmp, font);
+            cs.FontFamily = tmp.FontFamily;
+            cs.FontSize = tmp.FontSize;
+            if (tmp.Bold) cs.Bold = true;
+            if (tmp.Italic) cs.Italic = true;
+            any = true;
+        }
+
+        if (SplitNumbers(Attr(cell, "Padding")).DefaultIfEmpty(0).Max() is var padPx and > 0)
+        { cs.Padding = padPx * PxToPt; any = true; }
+
+        if (Attr(cell, "Border.Lines") is { Length: > 0 } lines)
+        {
+            var color = ParseColor(Attr(cell, "Border.Color")) ?? "#000000";
+            var width = Attr(cell, "Border.Width") is { } bw ? ToDouble(bw) : 1;
+            CellBorderSideDto Side() => new() { Color = color, Width = width };
+            if (lines.Contains("All", StringComparison.OrdinalIgnoreCase))
+            { cs.BorderColor = color; cs.BorderWidth = width; }
+            else
+            {
+                if (lines.Contains("Top", StringComparison.OrdinalIgnoreCase))    cs.BorderTop = Side();
+                if (lines.Contains("Right", StringComparison.OrdinalIgnoreCase))   cs.BorderRight = Side();
+                if (lines.Contains("Bottom", StringComparison.OrdinalIgnoreCase))  cs.BorderBottom = Side();
+                if (lines.Contains("Left", StringComparison.OrdinalIgnoreCase))    cs.BorderLeft = Side();
+            }
+            any = true;
+        }
+
+        return any ? cs : null;
+    }
+
+    private static double[] SplitNumbers(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? []
+            : value.Split([',', ' '], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                   .Select(p => double.TryParse(p, NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : 0)
+                   .ToArray();
+
+    // A table cell value: a single [Source.Column] becomes a Canvas binding token; anything else is literal.
+    private static string CellDisplay(string? text)
+    {
+        text = (text ?? "").Trim();
+        if (text.Length == 0) return "";
+        var m = Regex.Match(text, @"^\[([\w.]+)\]$");
+        return m.Success ? $"{{{{{LastSegment(m.Groups[1].Value)}}}}}" : text;
     }
 
     // ── Band-flatten build (mirrors Canvas.Migration.Rpx) ──────────────────────────────────────────
@@ -273,10 +374,59 @@ public sealed class FrxToDesignConverter
                     $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
                 return Placeholder(element, $"[Sub-report: {raw.Name} — migrate manually]");
 
+            case "TableObject":
+                return MapTable(raw, element, diagnostics);
+
             default:
                 diagnostics.Add(Warn("CANMIGFRX011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
+    }
+
+    private static ElementDto MapTable(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.TableCells is not { Count: > 0 } grid)
+        {
+            diagnostics.Add(Warn("CANMIGFRX011", $"'{raw.Name}' TableObject has no parseable rows — inserted a placeholder."));
+            return Placeholder(element, $"[Table: {raw.Name} — migrate manually]");
+        }
+
+        var columns = grid.Max(r => r.Count);
+        var cellData = grid
+            .Select(r => r.Count == columns ? r.ToArray() : r.Concat(Enumerable.Repeat("", columns - r.Count)).ToArray())
+            .ToArray();
+
+        element.Type = "table";
+        element.CellData = cellData;
+        element.ColumnWidths = FitWidths(raw.ColumnWidthsPt, columns, raw.W);
+        element.ColumnAlignments = FitToColumns(raw.ColumnAlignments, columns);
+        element.HeaderRow = raw.TableHasHeader;
+        element.CellStyles = raw.CellStyles is { Count: > 0 } cs ? cs.ToArray() : null;
+
+        diagnostics.Add(Info("CANMIGFRX013",
+            $"'{raw.Name}' FastReport TableObject was mapped to a Canvas table ({grid.Count} row(s) × {columns} column(s))."));
+        return element;
+    }
+
+    // Reconcile parsed column widths (pixels→pt) with the actual column count: truncate extras, and
+    // distribute the table's remaining width across any columns that lacked an explicit <TableColumn>.
+    private static double[]? FitWidths(double[]? widths, int columns, double totalPt)
+    {
+        if (widths is null || widths.Length == 0 || columns <= 0) return null;
+        if (widths.Length == columns) return widths;
+        if (widths.Length > columns) return widths.Take(columns).ToArray();
+        var pad = columns - widths.Length;
+        var remaining = Math.Max(0, totalPt - widths.Sum());
+        var each = pad > 0 ? remaining / pad : 0;
+        return widths.Concat(Enumerable.Repeat(each, pad)).ToArray();
+    }
+
+    private static string[]? FitToColumns(string[]? aligns, int columns)
+    {
+        if (aligns is null || aligns.Length == 0 || columns <= 0) return null;
+        if (aligns.Length == columns) return aligns;
+        if (aligns.Length > columns) return aligns.Take(columns).ToArray();
+        return aligns.Concat(Enumerable.Repeat("left", columns - aligns.Length)).ToArray();
     }
 
     private static ElementDto Placeholder(ElementDto element, string label)
@@ -545,5 +695,10 @@ public sealed class FrxToDesignConverter
         public string? ImageDataUrl;
         public string? Symbology;
         public bool Checked;
+        public List<List<string>>? TableCells;
+        public List<CellStyleDto>? CellStyles;
+        public double[]? ColumnWidthsPt;
+        public string[]? ColumnAlignments;
+        public bool TableHasHeader;
     }
 }

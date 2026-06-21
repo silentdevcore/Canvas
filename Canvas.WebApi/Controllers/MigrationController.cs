@@ -120,7 +120,8 @@ public class MigrationController : ControllerBase
             }
             else if (JrxmlToDesignConverter.LooksLikeJrxml(request.SourceCode))
             {
-                var result = new JrxmlToDesignConverter().Convert(request.SourceCode);
+                var resources = MergeReportResources(request.ResourceXml, request.Resources);
+                var result = new JrxmlToDesignConverter().Convert(request.SourceCode, resources);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
@@ -132,7 +133,8 @@ public class MigrationController : ControllerBase
             }
             else
             {
-                var result = new XtraReportToDesignConverter().ConvertAuto(request.SourceCode);
+                var resources = MergeReportResources(request.ResourceXml, request.Resources);
+                var result = new XtraReportToDesignConverter().ConvertAuto(request.SourceCode, resources);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
@@ -175,8 +177,31 @@ public class MigrationController : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
+    private static IReadOnlyDictionary<string, string>? MergeReportResources(
+        string? resourceXml,
+        Dictionary<string, string>? resources)
+    {
+        if (string.IsNullOrWhiteSpace(resourceXml) && resources is null)
+            return null;
+
+        var merged = string.IsNullOrWhiteSpace(resourceXml)
+            ? new Dictionary<string, string>(StringComparer.Ordinal)
+            : DevExpressReportResourceParser.ParseResx(resourceXml);
+
+        if (resources is not null)
+        {
+            foreach (var (key, value) in resources)
+                merged[key] = value;
+        }
+
+        return merged;
+    }
 }
 
 public sealed record MigrationRequest(string Framework, string SourceCode);
 
-public sealed record ReportToDesignRequest(string SourceCode);
+public sealed record ReportToDesignRequest(
+    string SourceCode,
+    Dictionary<string, string>? Resources = null,
+    string? ResourceXml = null);

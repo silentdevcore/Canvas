@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Canvas.Core.Abstractions;
 using Canvas.Core.Contracts;
@@ -206,15 +207,44 @@ public sealed class ImageDocumentExporter : IDocumentExporter
         var cellData = el.CellData ?? [];
         if (cellData.Length == 0) return;
 
-        var cols  = cellData[0]?.Length ?? 1;
-        var rows  = cellData.Length;
-        var cellW = w / cols;
-        var cellH = h / rows;
-        var bw    = (float)s.GetNum("borderWidth", 1);
-        var bc    = ParseColor(s.GetStr("borderColor", "#000000"));
+        var cols          = cellData[0]?.Length ?? 1;
+        var rows          = cellData.Length;
+        var matrixHeaders = RdlMatrixHeaders(s);
+        var visualRows    = rows + matrixHeaders.Count;
+        var cellW         = w / cols;
+        var cellH         = h / Math.Max(visualRows, 1);
+        var bw            = (float)s.GetNum("borderWidth", 1);
+        var bc            = ParseColor(s.GetStr("borderColor", "#000000"));
 
         var hasHdr = el.HeaderRow == true;
         var hdrBg  = ParseColor(el.HeaderBgColor ?? "#f1f5f9");
+        var matrixHeaderBg = ParseColor("#e0f2fe");
+        var matrixHeaderText = ParseColor("#075985");
+
+        using (var headerTf = SKTypeface.FromFamilyName(
+            "Arial", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright))
+        using (var headerFont = new SKFont(headerTf, 10f * scale))
+        using (var headerPaint = new SKPaint { Color = matrixHeaderText, IsAntialias = true })
+        {
+            for (var hIndex = 0; hIndex < matrixHeaders.Count; hIndex++)
+            {
+                var cy = y + hIndex * cellH;
+                using var bgPaint = new SKPaint { Color = matrixHeaderBg };
+                using var borderPaint = new SKPaint { Color = bc, StrokeWidth = bw, IsStroke = true };
+                canvas.DrawRect(x, cy, w, cellH, bgPaint);
+                canvas.DrawRect(x, cy, w, cellH, borderPaint);
+
+                var pad     = 4f * scale;
+                var lines   = WrapText(matrixHeaders[hIndex], Math.Max(1, w - 2 * pad), headerFont);
+                var lineGap = headerFont.Size * 1.25f;
+                var startY  = cy + Math.Max(headerFont.Size + pad, (cellH - lines.Count * lineGap) / 2 + headerFont.Size);
+                for (int li = 0; li < lines.Count; li++)
+                    canvas.DrawText(lines[li], x + pad, startY + li * lineGap, headerFont, headerPaint);
+            }
+        }
+
+        // Sparse per-cell styling (background / borders / alignment); unset cells keep table defaults.
+        var cellStyles = (el.CellStyles ?? []).GroupBy(cs => (cs.Row, cs.Col)).ToDictionary(g => g.Key, g => g.First());
 
         for (int r = 0; r < rows; r++)
         {
@@ -222,39 +252,137 @@ public sealed class ImageDocumentExporter : IDocumentExporter
             for (int c = 0; c < cols; c++)
             {
                 var cx   = x + c * cellW;
-                var cy   = y + r * cellH;
+                var cy   = y + (r + matrixHeaders.Count) * cellH;
                 var cell = row.Length > c ? row[c] : "";
                 var isHdr = hasHdr && r == 0;
+                cellStyles.TryGetValue((r, c), out var cstyle);
 
-                if (isHdr)
+                if (cstyle?.BackgroundColor is { } cellBg)
+                {
+                    using var bgPaint = new SKPaint { Color = ParseColor(cellBg) };
+                    canvas.DrawRect(cx, cy, cellW, cellH, bgPaint);
+                }
+                else if (isHdr)
                 {
                     using var bgPaint = new SKPaint { Color = hdrBg };
                     canvas.DrawRect(cx, cy, cellW, cellH, bgPaint);
                 }
 
-                using var borderPaint = new SKPaint { Color = bc, StrokeWidth = bw, IsStroke = true };
-                canvas.DrawRect(cx, cy, cellW, cellH, borderPaint);
+                if (cstyle is not null && HasCellBorder(cstyle))
+                    DrawCellBorders(canvas, cstyle, cx, cy, cellW, cellH);
+                else
+                {
+                    using var borderPaint = new SKPaint { Color = bc, StrokeWidth = bw, IsStroke = true };
+                    canvas.DrawRect(cx, cy, cellW, cellH, borderPaint);
+                }
 
                 if (!string.IsNullOrEmpty(cell))
                 {
-                    var fs = 9f * scale;
-                    var tf = isHdr
-                        ? SKTypeface.FromFamilyName("Arial", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright)
-                        : SKTypeface.Default;
+                    var fs = (cstyle?.FontSize is { } cfs ? (float)cfs : 9f) * scale;
+                    var bold = isHdr || cstyle?.Bold == true;
+                    var tf = SKTypeface.FromFamilyName(
+                        cstyle?.FontFamily ?? (isHdr ? "Arial" : null),
+                        bold ? SKFontStyleWeight.Bold : SKFontStyleWeight.Normal,
+                        SKFontStyleWidth.Normal,
+                        cstyle?.Italic == true ? SKFontStyleSlant.Italic : SKFontStyleSlant.Upright) ?? SKTypeface.Default;
                     using var font  = new SKFont(tf, fs);
-                    using var paint = new SKPaint { Color = SKColors.Black, IsAntialias = true };
+                    using var paint = new SKPaint { Color = ParseColor(cstyle?.Color ?? "#000000"), IsAntialias = true };
 
-                    var pad     = 4f * scale;
+                    var pad     = (cstyle?.Padding is { } cpad ? (float)cpad : 4f) * scale;
                     var lines   = WrapText(cell ?? "", Math.Max(1, cellW - 2 * pad), font);
                     var lineGap = fs * 1.25f;
                     // Vertically centre the wrapped block within the cell.
                     var startY  = cy + Math.Max(fs + pad, (cellH - lines.Count * lineGap) / 2 + fs);
                     for (int li = 0; li < lines.Count; li++)
-                        canvas.DrawText(lines[li], cx + pad, startY + li * lineGap, font, paint);
+                    {
+                        var lineW = font.MeasureText(lines[li]);
+                        var tx = cstyle?.TextAlign switch
+                        {
+                            "center" => cx + (cellW - lineW) / 2,
+                            "right"  => cx + cellW - pad - lineW,
+                            _        => cx + pad
+                        };
+                        canvas.DrawText(lines[li], tx, startY + li * lineGap, font, paint);
+                    }
                 }
             }
         }
     }
+
+    private static bool HasCellBorder(CellStyleDto cs) =>
+        cs.BorderColor is not null || cs.BorderWidth is not null
+        || cs.BorderTop is not null || cs.BorderRight is not null
+        || cs.BorderBottom is not null || cs.BorderLeft is not null;
+
+    // Uniform border (full rect) first, then any per-side overrides drawn on top.
+    private static void DrawCellBorders(SKCanvas canvas, CellStyleDto cs, float cx, float cy, float cw, float ch)
+    {
+        if (cs.BorderColor is not null || cs.BorderWidth is not null)
+        {
+            using var p = new SKPaint { Color = ParseColor(cs.BorderColor ?? "#000000"), StrokeWidth = (float)(cs.BorderWidth ?? 1), IsStroke = true };
+            canvas.DrawRect(cx, cy, cw, ch, p);
+        }
+        DrawCellSide(canvas, cs.BorderTop,    cx,      cy,      cx + cw, cy);
+        DrawCellSide(canvas, cs.BorderRight,  cx + cw, cy,      cx + cw, cy + ch);
+        DrawCellSide(canvas, cs.BorderBottom, cx,      cy + ch, cx + cw, cy + ch);
+        DrawCellSide(canvas, cs.BorderLeft,   cx,      cy,      cx,      cy + ch);
+    }
+
+    private static void DrawCellSide(SKCanvas canvas, CellBorderSideDto? side, float x1, float y1, float x2, float y2)
+    {
+        if (side is null) return;
+        using var p = new SKPaint { Color = ParseColor(side.Color ?? "#000000"), StrokeWidth = (float)(side.Width ?? 1), IsStroke = true };
+        canvas.DrawLine(x1, y1, x2, y2, p);
+    }
+
+    private static List<string> RdlMatrixHeaders(Dictionary<string, object> style)
+    {
+        var headers = new List<string>();
+        AddRdlMatrixHeaders(style, "rdlTablixColumnHierarchy", headers);
+        AddRdlMatrixHeaders(style, "rdlTablixRowHierarchy", headers);
+        return headers;
+    }
+
+    private static void AddRdlMatrixHeaders(Dictionary<string, object> style, string key, List<string> headers)
+    {
+        if (!style.TryGetValue(key, out var value) || value is null) return;
+
+        if (value is JsonElement { ValueKind: JsonValueKind.Array } jsonArray)
+        {
+            foreach (var item in jsonArray.EnumerateArray())
+                AddRdlMatrixHeader(item, headers);
+            return;
+        }
+
+        if (value is IEnumerable<object> items)
+        {
+            foreach (var item in items)
+                AddRdlMatrixHeader(item, headers);
+        }
+    }
+
+    private static void AddRdlMatrixHeader(object item, List<string> headers)
+    {
+        switch (item)
+        {
+            case JsonElement { ValueKind: JsonValueKind.Object } json:
+                var text = JsonProp(json, "headerText") ?? JsonProp(json, "groupName");
+                if (!string.IsNullOrWhiteSpace(text)) headers.Add(text);
+                break;
+            case IReadOnlyDictionary<string, object> dict:
+                if ((HeaderValue(dict, "headerText") ?? HeaderValue(dict, "groupName")) is { Length: > 0 } value)
+                    headers.Add(value);
+                break;
+        }
+    }
+
+    private static string? JsonProp(JsonElement json, string name) =>
+        json.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
+            ? prop.GetString()
+            : null;
+
+    private static string? HeaderValue(IReadOnlyDictionary<string, object> dict, string key) =>
+        dict.TryGetValue(key, out var value) ? value?.ToString() : null;
 
     /// <summary>
     /// Draws word-wrapped text within an element box, honouring padding, line height and

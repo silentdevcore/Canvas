@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCode, FiCopy, FiDownload, FiPlay, FiRefreshCw, FiGitMerge, FiLayout } from 'react-icons/fi';
+import { FiCode, FiCopy, FiDownload, FiPlay, FiRefreshCw, FiGitMerge, FiLayout, FiUpload } from 'react-icons/fi';
 import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import AppHeader from '@/components/Layout/AppHeader';
-import { useEditorStore } from '@/store';
+import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, useEditorStore, type Template } from '@/store';
 
 // Framework ids for the report → Canvas Designer flows (output is a design, not C# code).
 const REPORT_ID = 'DevExpressReport';
@@ -653,8 +653,14 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const [selectedId, setSelectedId] = useState(isDesigner ? REPORT_ID : 'Syncfusion');
   const [reportDesign, setReportDesign] = useState<any | null>(null);
   const navigate = useNavigate();
-  const bulkReplaceContent = useEditorStore(s => s.bulkReplaceContent);
+  const setCurrentTemplate = useEditorStore(s => s.setCurrentTemplate);
+  const updatePageSettings = useEditorStore(s => s.updatePageSettings);
   const [sourceCode, setSourceCode] = useState('');
+  const [resourceJson, setResourceJson] = useState('');
+  const [resourceXml, setResourceXml] = useState('');
+  const [resourceFileName, setResourceFileName] = useState('');
+  const [jrxmlResourceMap, setJrxmlResourceMap] = useState<Record<string, string>>({});
+  const [jrxmlResourceFileNames, setJrxmlResourceFileNames] = useState<string[]>([]);
   const [canvasCode, setCanvasCode] = useState('');
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
   const [summary, setSummary] = useState<ConversionSummary | null>(null);
@@ -688,6 +694,11 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const handleFrameworkChange = (id: string) => {
     setSelectedId(id);
     setSourceCode('');
+    setResourceJson('');
+    setResourceXml('');
+    setResourceFileName('');
+    setJrxmlResourceMap({});
+    setJrxmlResourceFileNames([]);
     setCanvasCode('');
     setDiagnostics([]);
     setSummary(null);
@@ -707,6 +718,45 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     setDiagOpen(diags.some(d => d.severity === 'Warning'));
   };
 
+  const handleResourceFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    try {
+      setResourceXml(await file.text());
+      setResourceFileName(file.name);
+      setError(null);
+    } catch {
+      setError(`Could not read ${file.name}.`);
+    }
+  };
+
+  const handleJrxmlResourceFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    const jrxmlFiles = files.filter(file => file.name.toLowerCase().endsWith('.jrxml'));
+    if (jrxmlFiles.length === 0) return;
+
+    try {
+      const entries = await Promise.all(
+        jrxmlFiles.map(async file => [file.name, await file.text()] as const)
+      );
+      setJrxmlResourceMap(currentResources => ({
+        ...currentResources,
+        ...Object.fromEntries(entries),
+      }));
+      setJrxmlResourceFileNames(currentNames => {
+        const names = new Set(currentNames);
+        for (const file of jrxmlFiles) names.add(file.name);
+        return Array.from(names).sort((a, b) => a.localeCompare(b));
+      });
+      setError(null);
+    } catch {
+      setError('Could not read one or more .jrxml resource files.');
+    }
+  };
+
   const handleConvert = async () => {
     if (!sourceCode.trim()) return;
     setConverting(true);
@@ -714,10 +764,27 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     try {
       // Report (DevExpress XtraReport or RDL/RDLC) → Canvas design (JSON), opened in the visual designer.
       if (isReportDesign(selectedId)) {
+        let resources: Record<string, string> = selectedId === JRXML_REPORT_ID ? { ...jrxmlResourceMap } : {};
+        if (resourceJson.trim()) {
+          const parsed = JSON.parse(resourceJson);
+          if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            throw new Error('Resource JSON must be an object like { "logo.ImageSource": "..." }.');
+          }
+          resources = {
+            ...resources,
+            ...Object.fromEntries(
+              Object.entries(parsed).map(([key, value]) => [key, String(value ?? '')])
+            ),
+          };
+        }
         const res = await fetch(`${API_BASE}/report-to-design`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sourceCode }),
+          body: JSON.stringify({
+            sourceCode,
+            resources: Object.keys(resources).length > 0 ? resources : undefined,
+            resourceXml: resourceXml.trim() ? resourceXml : undefined,
+          }),
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? `HTTP ${res.status}`); }
         const data = await res.json();
@@ -754,8 +821,34 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const handleOpenInDesigner = () => {
     if (!reportDesign) return;
     const pages = (reportDesign.pages ?? []).map((p: any) => ({ id: p.id, elements: p.elements ?? [] }));
-    bulkReplaceContent(pages.length ? pages : [{ id: 'page-1', elements: [] }], reportDesign.sharedElements ?? []);
-    navigate('/create');
+    const importedPageSettings = reportDesign.pageSettings ?? {};
+    const template: Template = {
+      id: reportDesign.id ?? `report-design-${Date.now()}`,
+      name: reportDesign.name ?? 'Imported report',
+      category: reportDesign.category ?? 'imported',
+      description: reportDesign.description ?? 'Imported from a report designer.',
+      pages: pages.length ? pages : [{ id: 'page-1', elements: [] }],
+      sharedElements: reportDesign.sharedElements ?? [],
+      data: reportDesign.data ?? {},
+    };
+    const pageSettings = normalizePageSettings({
+      ...importedPageSettings,
+      width: importedPageSettings.width ?? DEFAULT_PAGE_SETTINGS.width,
+      height: importedPageSettings.height ?? DEFAULT_PAGE_SETTINGS.height,
+      orientation: importedPageSettings.orientation
+        ?? ((importedPageSettings.width ?? 0) > (importedPageSettings.height ?? 0) ? 'landscape' : 'portrait'),
+      unit: importedPageSettings.unit ?? 'pt',
+      showMarginGuide: false,
+    });
+
+    sessionStorage.setItem('canvas_migration_designer_handoff', JSON.stringify({
+      template,
+      pageSettings,
+    }));
+    setCurrentTemplate(template);
+    updatePageSettings(pageSettings);
+    localStorage.setItem('canvas_last_template', template.name);
+    navigate('/create?source=migration');
   };
 
   const handlePreview = async () => {
@@ -925,6 +1018,82 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
                 height="100%"
               />
             </div>
+            {isReportDesign(selectedId) && (
+              <div className="mgr-resource-panel">
+                <div className="mgr-resource-header">
+                  <label htmlFor="mgr-resource-file">Resources</label>
+                  <span>{resourceFileName || 'No .resx loaded'}</span>
+                </div>
+                <div className="mgr-resource-actions">
+                  <label className="mgr-file-btn" htmlFor="mgr-resource-file">
+                    <FiUpload /> Load .resx
+                  </label>
+                  <input
+                    id="mgr-resource-file"
+                    type="file"
+                    accept=".resx,.xml"
+                    onChange={handleResourceFileChange}
+                  />
+                  {(resourceXml || resourceFileName) && (
+                    <button
+                      type="button"
+                      className="mgr-link-btn"
+                      onClick={() => {
+                        setResourceXml('');
+                        setResourceFileName('');
+                      }}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                {selectedId === JRXML_REPORT_ID && (
+                  <>
+                    <div className="mgr-resource-header">
+                      <label htmlFor="mgr-jrxml-resource-files">JRXML subreports</label>
+                      <span>{jrxmlResourceFileNames.length ? `${jrxmlResourceFileNames.length} loaded` : 'No .jrxml resources loaded'}</span>
+                    </div>
+                    <div className="mgr-resource-actions">
+                      <label className="mgr-file-btn" htmlFor="mgr-jrxml-resource-files">
+                        <FiUpload /> Load .jrxml files
+                      </label>
+                      <input
+                        id="mgr-jrxml-resource-files"
+                        type="file"
+                        accept=".jrxml"
+                        multiple
+                        onChange={handleJrxmlResourceFilesChange}
+                      />
+                      {jrxmlResourceFileNames.length > 0 && (
+                        <button
+                          type="button"
+                          className="mgr-link-btn"
+                          onClick={() => {
+                            setJrxmlResourceMap({});
+                            setJrxmlResourceFileNames([]);
+                          }}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    {jrxmlResourceFileNames.length > 0 && (
+                      <div className="mgr-resource-list">
+                        {jrxmlResourceFileNames.map(name => <span key={name}>{name}</span>)}
+                      </div>
+                    )}
+                  </>
+                )}
+                <label htmlFor="mgr-resource-json">Resource JSON overrides</label>
+                <textarea
+                  id="mgr-resource-json"
+                  value={resourceJson}
+                  onChange={e => setResourceJson(e.target.value)}
+                  spellCheck={false}
+                  placeholder='{ "logo.ImageSource": "iVBORw0KGgo..." }'
+                />
+              </div>
+            )}
             <div className="mgr-pane-footer">
               <button
                 className="mgr-btn mgr-btn-primary"

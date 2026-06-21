@@ -197,4 +197,94 @@ public sealed class FrxToDesignConverterTests
         Assert.Equal("#FF0000", El(d, "a").Style!["color"]);
         Assert.Equal("#00FF00", El(d, "b").Style!["color"]);   // case-insensitive named
     }
+
+    [Fact]
+    public void Convert_TableObject_BecomesCanvasTableWithCellsWidthsAndBindings()
+    {
+        var frx = """
+            <Report ReportInfo.Name="T">
+              <ReportPage Name="Page1">
+                <DataBand Name="Data1" Top="0" Width="400" Height="80">
+                  <TableObject Name="grid" Left="0" Top="0" Width="300" Height="80">
+                    <TableColumn Name="c1" Width="96"/>
+                    <TableColumn Name="c2" Width="96"/>
+                    <TableRow Name="r1" Height="20">
+                      <TableCell Name="h1" Text="Name" HorzAlign="Center"/>
+                      <TableCell Name="h2" Text="Price" HorzAlign="Right"/>
+                    </TableRow>
+                    <TableRow Name="r2" Height="20">
+                      <TableCell Name="d1" Text="[Items.Name]"/>
+                      <TableCell Name="d2" Text="[Items.Price]"/>
+                    </TableRow>
+                  </TableObject>
+                </DataBand>
+              </ReportPage></Report>
+            """;
+        var r = Convert(frx);
+        var grid = El(r.Design, "grid");
+
+        Assert.Equal("table", grid.Type);
+        Assert.True(grid.HeaderRow);
+        Assert.Equal(new[] { "Name", "Price" }, grid.CellData![0]);
+        Assert.Equal(new[] { "{{Name}}", "{{Price}}" }, grid.CellData![1]);   // [Items.X] → binding token
+        Assert.Equal(new[] { 72.0, 72.0 }, grid.ColumnWidths);                // 96px → 72pt each
+        Assert.Equal(new[] { "center", "right" }, grid.ColumnAlignments);
+        Assert.True(Has(r.Diagnostics, "CANMIGFRX013"));
+    }
+
+    [Fact]
+    public void Convert_TableObject_ColSpanPadsColumnsToKeepAlignment()
+    {
+        var frx = """
+            <Report ReportInfo.Name="T">
+              <ReportPage Name="Page1">
+                <DataBand Name="Data1" Top="0" Width="400" Height="80">
+                  <TableObject Name="grid" Left="0" Top="0" Width="300" Height="80">
+                    <TableColumn Name="c1" Width="96"/>
+                    <TableColumn Name="c2" Width="96"/>
+                    <TableRow Name="r1" Height="20">
+                      <TableCell Name="title" Text="Summary" ColSpan="2"/>
+                    </TableRow>
+                    <TableRow Name="r2" Height="20">
+                      <TableCell Name="d1" Text="A"/>
+                      <TableCell Name="d2" Text="B"/>
+                    </TableRow>
+                  </TableObject>
+                </DataBand>
+              </ReportPage></Report>
+            """;
+        var grid = El(Convert(frx).Design, "grid");
+        Assert.Equal(new[] { "Summary", "" }, grid.CellData![0]);   // ColSpan=2 → value + 1 empty
+        Assert.Equal(new[] { "A", "B" }, grid.CellData![1]);
+    }
+
+    [Fact]
+    public void Convert_TableObject_CellStyles_FillBorderFontAlign()
+    {
+        var frx = """
+            <Report ReportInfo.Name="T">
+              <ReportPage Name="Page1">
+                <DataBand Name="Data1" Top="0" Width="400" Height="40">
+                  <TableObject Name="grid" Left="0" Top="0" Width="200" Height="40">
+                    <TableColumn Name="c1" Width="100"/>
+                    <TableRow Name="r1" Height="20">
+                      <TableCell Name="c" Text="Total" Fill.Color="Yellow" TextFill.Color="Red" HorzAlign="Center"
+                                 Font="Verdana, 12pt, style=Bold" Border.Lines="Bottom" Border.Color="Black" Border.Width="2"/>
+                    </TableRow>
+                  </TableObject>
+                </DataBand>
+              </ReportPage></Report>
+            """;
+        var grid = El(Convert(frx).Design, "grid");
+        var cs = Assert.Single(grid.CellStyles!);
+        Assert.Equal(0, cs.Row);
+        Assert.Equal("#FFFF00", cs.BackgroundColor);
+        Assert.Equal("#FF0000", cs.Color);
+        Assert.Equal("center", cs.TextAlign);
+        Assert.Equal("Verdana", cs.FontFamily);
+        Assert.True(cs.Bold);
+        Assert.NotNull(cs.BorderBottom);
+        Assert.Equal(2, cs.BorderBottom!.Width);
+        Assert.Null(cs.BorderTop);                 // only the listed side
+    }
 }

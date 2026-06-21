@@ -80,6 +80,7 @@ import {
   FiGrid,
 } from 'react-icons/fi';
 import CodeViewer from './CodeViewer';
+import { ElementBoundary } from './ElementBoundary';
 import FindReplaceModal from './FindReplaceModal';
 import FormBlockModal from './FormBlockModal';
 import HelpModal from './HelpModal';
@@ -163,6 +164,7 @@ type RotateState = {
 const createElementId = (type: string) => `${type}-${Date.now()}`;
 const MIN_ELEMENT_SIZE = 16;
 const RTL_LANGS = new Set(['ar', 'he', 'fa', 'ur', 'yi', 'dv']);
+const BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
 
 const ELEMENT_TYPE_LABELS: Record<string, string> = {
   text:         'Text Block',
@@ -240,6 +242,32 @@ const FONT_FAMILIES = [
   'Noto Sans Arabic', 'Noto Sans Hebrew', 'Noto Sans SC', 'Noto Sans TC',
   'Noto Sans JP', 'Noto Sans KR', 'Noto Sans Devanagari', 'Noto Sans Thai',
 ];
+
+const elementBorderStyle = (s: Record<string, any>): React.CSSProperties => {
+  const sideStyle: React.CSSProperties = {};
+  let hasSideBorder = false;
+
+  BORDER_SIDES.forEach((side) => {
+    const width = s[`border${side}Width`];
+    if (width == null) return;
+
+    hasSideBorder = true;
+    const key = `border${side}` as keyof React.CSSProperties;
+    sideStyle[key] = `${Number(width) || 0}px ${s[`border${side}Style`] || s.borderStyle || 'solid'} ${s[`border${side}Color`] || s.borderColor || '#000000'}` as never;
+  });
+
+  if (hasSideBorder) {
+    return {
+      ...sideStyle,
+      borderRadius: s.borderRadius ?? undefined,
+    };
+  }
+
+  return {
+    border: s.borderWidth ? `${s.borderWidth}px ${s.borderStyle || 'solid'} ${s.borderColor || '#000000'}` : undefined,
+    borderRadius: s.borderRadius ?? undefined,
+  };
+};
 
 const TYPOGRAPHY_TYPES = new Set<string>([
   'text', 'richtext', 'button', 'field', 'checkbox', 'dropdown', 'optionlist',
@@ -2211,8 +2239,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             whiteSpace:     s.whiteSpace    as React.CSSProperties['whiteSpace'] | undefined,
             backgroundColor:s.backgroundColor && s.backgroundColor !== 'transparent' ? s.backgroundColor : undefined,
             opacity:        s.backgroundOpacity != null ? s.backgroundOpacity : undefined,
-            border:         s.borderWidth ? `${s.borderWidth}px ${s.borderStyle || 'solid'} ${s.borderColor || '#000'}` : undefined,
-            borderRadius:   s.borderRadius  ?? undefined,
+            ...elementBorderStyle(s),
             padding:        [s.paddingTop ?? 0, s.paddingRight ?? 0, s.paddingBottom ?? 0, s.paddingLeft ?? 0].join('px ') + 'px',
           }}
         >
@@ -2364,8 +2391,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
         <div style={{
           width: '100%', height: '100%',
           backgroundColor: bg,
-          border: bw > 0 ? `${bw}px ${bs} ${bc}` : 'none',
-          borderRadius: s.borderRadius ?? 0,
+          ...elementBorderStyle({ borderWidth: bw, borderStyle: bs, borderColor: bc, ...s }),
         }} />
       );
     }
@@ -2399,31 +2425,76 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       const cellData     = element.cellData ?? [];
       const colAligns    = element.columnAlignments ?? [];
       const bodyRows     = Math.max(1, totalRows - (hasHeader ? 1 : 0) - (hasFooter ? 1 : 0));
+      const rdlColumnHeaders = Array.isArray(element.style?.rdlTablixColumnHierarchy)
+        ? element.style.rdlTablixColumnHierarchy
+            .map((member: any) => member?.headerText || member?.groupName)
+            .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
+        : [];
+      const rdlRowHeaders = Array.isArray(element.style?.rdlTablixRowHierarchy)
+        ? element.style.rdlTablixRowHierarchy
+            .map((member: any) => member?.headerText || member?.groupName)
+            .filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
+        : [];
+      const rdlMatrixHeaders = [...rdlColumnHeaders, ...rdlRowHeaders];
 
       const cellFontSize   = element.style?.cellFontSize ?? 10;
       const cellFontFamily = element.style?.cellFontFamily ?? 'Arial';
       const cellColor      = element.style?.cellColor as string | undefined;
       const cellFontWeight = element.style?.cellFontWeight ?? 'normal';
 
+      const cellStyles = element.cellStyles ?? [];
+      const sideCss = (s?: { color?: string; width?: number }) =>
+        s ? `${s.width ?? 1}px solid ${s.color ?? '#000000'}` : undefined;
+
       const tdStyle = (
         rowIdx: number,
         colIdx: number,
-        kind: 'header' | 'body' | 'footer'
-      ): React.CSSProperties => ({
-        border: `${bw}px solid ${bc}`,
-        padding: cp,
-        textAlign: colAligns[colIdx] || 'left',
-        fontSize: cellFontSize,
-        fontFamily: cellFontFamily,
-        fontWeight: kind === 'header' ? 700 : cellFontWeight,
-        color: cellColor ?? (kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555'),
-        backgroundColor:
-          kind === 'header' ? headerBg
-          : kind === 'footer' ? '#f8fafc'
-          : zebraOn && rowIdx % 2 === 1 ? zebraColor
-          : 'transparent',
-        width: colWidths[colIdx] ? colWidths[colIdx] : undefined,
-      });
+        kind: 'header' | 'body' | 'footer',
+        dataRow: number = rowIdx
+      ): React.CSSProperties => {
+        const style: React.CSSProperties = {
+          border: `${bw}px solid ${bc}`,
+          padding: cp,
+          textAlign: colAligns[colIdx] || 'left',
+          fontSize: cellFontSize,
+          fontFamily: cellFontFamily,
+          fontWeight: kind === 'header' ? 700 : cellFontWeight,
+          color: cellColor ?? (kind === 'header' ? '#1e293b' : kind === 'footer' ? '#374151' : '#555'),
+          backgroundColor:
+            kind === 'header' ? headerBg
+            : kind === 'footer' ? '#f8fafc'
+            : zebraOn && rowIdx % 2 === 1 ? zebraColor
+            : 'transparent',
+          width: colWidths[colIdx] ? colWidths[colIdx] : undefined,
+        };
+
+        // Sparse per-cell override (background / alignment / borders) keyed by the absolute data row.
+        const cs = cellStyles.find((x) => x.row === dataRow && x.col === colIdx);
+        if (cs) {
+          if (cs.backgroundColor) style.backgroundColor = cs.backgroundColor;
+          if (cs.textAlign) style.textAlign = cs.textAlign;
+          if (cs.padding != null) style.padding = cs.padding;
+          if (cs.fontFamily) style.fontFamily = cs.fontFamily;
+          if (cs.fontSize != null) style.fontSize = cs.fontSize;
+          if (cs.bold) style.fontWeight = 700;
+          if (cs.italic) style.fontStyle = 'italic';
+          if (cs.color) style.color = cs.color;
+          const hasBorder = cs.borderColor != null || cs.borderWidth != null
+            || cs.borderTop || cs.borderRight || cs.borderBottom || cs.borderLeft;
+          if (hasBorder) {
+            // Explicit per-cell borders replace the default grid border (parity with the image exporter).
+            const uniform = (cs.borderColor != null || cs.borderWidth != null)
+              ? `${cs.borderWidth ?? 1}px solid ${cs.borderColor ?? '#000000'}`
+              : 'none';
+            style.border = undefined;
+            style.borderTop = sideCss(cs.borderTop) ?? uniform;
+            style.borderRight = sideCss(cs.borderRight) ?? uniform;
+            style.borderBottom = sideCss(cs.borderBottom) ?? uniform;
+            style.borderLeft = sideCss(cs.borderLeft) ?? uniform;
+          }
+        }
+        return style;
+      };
 
       const cell = (r: number, c: number) => cellData[r]?.[c] ?? '';
 
@@ -2442,6 +2513,21 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
           )}
           {hasHeader && (
             <thead>
+              {rdlMatrixHeaders.map((header, index) => (
+                <tr key={`rdl-matrix-header-${index}`}>
+                  <th
+                    colSpan={columns}
+                    style={{
+                      ...tdStyle(index, 0, 'header'),
+                      textAlign: 'left',
+                      backgroundColor: '#e0f2fe',
+                      color: '#075985'
+                    }}
+                  >
+                    {header}
+                  </th>
+                </tr>
+              ))}
               <tr>
                 {Array.from({ length: columns }).map((_, c) => (
                   <th key={c} style={tdStyle(0, c, 'header')}>
@@ -2457,7 +2543,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
               return (
                 <tr key={r}>
                   {Array.from({ length: columns }).map((_, c) => (
-                    <td key={c} style={tdStyle(r, c, 'body')}>
+                    <td key={c} style={tdStyle(r, c, 'body', dataRow)}>
                       {cell(dataRow, c) || 'Cell'}
                     </td>
                   ))}
@@ -2469,7 +2555,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             <tfoot>
               <tr>
                 {Array.from({ length: columns }).map((_, c) => (
-                  <td key={c} style={tdStyle(0, c, 'footer')}>
+                  <td key={c} style={tdStyle(0, c, 'footer', totalRows - 1)}>
                     {cell(totalRows - 1, c) || `Footer ${c + 1}`}
                   </td>
                 ))}
@@ -3051,6 +3137,31 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       );
     }
 
+    if (element.type === 'subsection' || element.type === 'area') {
+      const color = element.style?.color || element.style?.borderColor || '#475569';
+      return (
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 8,
+          color,
+          fontSize: element.style?.fontSize || 12,
+          background: element.style?.backgroundColor || '#f8fafc',
+          border: `${element.style?.borderWidth || 1}px ${element.style?.borderStyle || 'dashed'} ${color}`,
+          borderRadius: element.style?.borderRadius ?? 4,
+          overflow: 'hidden',
+          textAlign: 'center',
+        }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {element.content || ELEMENT_TYPE_LABELS[element.type] || element.type}
+          </span>
+        </div>
+      );
+    }
+
     if (element.type === 'checkmark') {
       const color = element.style?.color || '#16a34a';
       const state = element.checkState || 'checked';
@@ -3619,7 +3730,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                     setSelectedElementId(element.id);
                   }}
                 >
-                  {renderElement(element, false)}
+                  <ElementBoundary name={element.name}>{renderElement(element, false)}</ElementBoundary>
                   {selectedElementId === element.id && !element.locked && (
                     <>
                       {([
@@ -3662,7 +3773,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   onContextMenu={(event) => handleElementContextMenu(event, element)}
                   onClick={(event) => { event.stopPropagation(); setSelectedElementId(element.id); }}
                 >
-                  {renderElement(element, false)}
+                  <ElementBoundary name={element.name}>{renderElement(element, false)}</ElementBoundary>
                   {selectedElementId === element.id && !element.locked && (
                     <>
                       {([
@@ -6164,6 +6275,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       <option value="all">All pages</option>
                       <option value="current">Current page</option>
                       <option value="first">First page only</option>
+                      <option value="last">Last page only</option>
                       <option value="range">Selected range</option>
                     </select>
                   </label>
@@ -6282,6 +6394,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                         <option value="all">All</option>
                         <option value="current">Current</option>
                         <option value="first">First</option>
+                        <option value="last">Last</option>
                         <option value="odd">Odd</option>
                         <option value="even">Even</option>
                         <option value="range">Range</option>
@@ -7367,6 +7480,14 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                       onChange={(e) => updateSelectedElement({ hidden: !e.target.checked })}
                     />
                     <span>Visible in output</span>
+                  </label>
+                  <label>
+                    <span>Visible expression</span>
+                    <textarea
+                      rows={2}
+                      value={selectedElement.visibleExpression || ''}
+                      onChange={(e) => updateSelectedElement({ visibleExpression: e.target.value || undefined })}
+                    />
                   </label>
                 </div>
               </div>

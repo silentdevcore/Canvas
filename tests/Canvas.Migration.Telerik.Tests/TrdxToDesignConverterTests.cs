@@ -176,4 +176,112 @@ public sealed class TrdxToDesignConverterTests
         Assert.False(TrdxToDesignConverter.LooksLikeTrdx("""<Report><ReportPage /></Report>"""));
         Assert.False(TrdxToDesignConverter.LooksLikeTrdx("public class Foo {}"));
     }
+
+    [Fact]
+    public void Convert_Table_AnchoredCells_BecomeCanvasTableGrid()
+    {
+        var trdx = """
+            <Report Width="8.1in" Name="T" xmlns="http://schemas.telerik.com/reporting/2012/3.6">
+              <Items>
+                <DetailSection Height="1in" Name="d1">
+                  <Items>
+                    <Table Name="table1" Left="0in" Top="0in" Width="4in" Height="0.6in">
+                      <Body>
+                        <TableBodyColumns>
+                          <TableBodyColumn Width="2in"/>
+                          <TableBodyColumn Width="2in"/>
+                        </TableBodyColumns>
+                        <TableBodyRows>
+                          <TableBodyRow Height="0.3in"/>
+                          <TableBodyRow Height="0.3in"/>
+                        </TableBodyRows>
+                      </Body>
+                      <Items>
+                        <TextBox Name="h1" Value="Name" Table.CellRowIndex="0" Table.CellColumnIndex="0"/>
+                        <TextBox Name="h2" Value="Price" Table.CellRowIndex="0" Table.CellColumnIndex="1"/>
+                        <TextBox Name="d1c" Value="=Fields.CustomerName" Table.CellRowIndex="1" Table.CellColumnIndex="0"/>
+                        <TextBox Name="d2c" Value="=Fields.Total" Table.CellRowIndex="1" Table.CellColumnIndex="1"/>
+                      </Items>
+                    </Table>
+                  </Items>
+                </DetailSection>
+              </Items>
+            </Report>
+            """;
+        var r = Convert(trdx);
+        var t = El(r.Design, "table1");
+
+        Assert.Equal("table", t.Type);
+        Assert.True(t.HeaderRow);
+        Assert.Equal(new[] { "Name", "Price" }, t.CellData![0]);
+        Assert.Equal(new[] { "{{CustomerName}}", "{{Total}}" }, t.CellData![1]);   // =Fields.X → binding token
+        Assert.Equal(new[] { 144.0, 144.0 }, t.ColumnWidths);                       // 2in → 144pt
+        Assert.True(Has(r.Diagnostics, "CANMIGTRDX013"));
+    }
+
+    [Fact]
+    public void Convert_Table_WithoutAnchors_FallsBackToSequentialFill()
+    {
+        var trdx = """
+            <Report Width="8.1in" Name="T" xmlns="http://schemas.telerik.com/reporting/2012/3.6">
+              <Items>
+                <DetailSection Height="1in" Name="d1">
+                  <Items>
+                    <Table Name="table1" Left="0in" Top="0in" Width="4in" Height="0.6in">
+                      <Body>
+                        <TableBodyColumns>
+                          <TableBodyColumn Width="2in"/>
+                          <TableBodyColumn Width="2in"/>
+                        </TableBodyColumns>
+                      </Body>
+                      <Items>
+                        <TextBox Name="a" Value="A"/>
+                        <TextBox Name="b" Value="B"/>
+                        <TextBox Name="c" Value="C"/>
+                        <TextBox Name="d" Value="D"/>
+                      </Items>
+                    </Table>
+                  </Items>
+                </DetailSection>
+              </Items>
+            </Report>
+            """;
+        var t = El(Convert(trdx).Design, "table1");
+        Assert.Equal("table", t.Type);
+        Assert.Equal(new[] { "A", "B" }, t.CellData![0]);   // 2 columns → sequential fill row-major
+        Assert.Equal(new[] { "C", "D" }, t.CellData![1]);
+    }
+
+    [Fact]
+    public void Convert_Table_CellStyles_FromItemStyle()
+    {
+        var trdx = """
+            <Report Width="8.1in" Name="T" xmlns="http://schemas.telerik.com/reporting/2012/3.6">
+              <Items>
+                <DetailSection Height="1in" Name="d1">
+                  <Items>
+                    <Table Name="table1" Left="0in" Top="0in" Width="4in" Height="0.6in">
+                      <Body><TableBodyColumns><TableBodyColumn Width="2in"/></TableBodyColumns></Body>
+                      <Items>
+                        <TextBox Name="h1" Value="Name" Table.CellRowIndex="0" Table.CellColumnIndex="0">
+                          <Style TextAlign="Center" BackgroundColor="#FFFF00" Color="#0000FF">
+                            <Font Name="Verdana" Size="12pt" Bold="true"/>
+                          </Style>
+                        </TextBox>
+                      </Items>
+                    </Table>
+                  </Items>
+                </DetailSection>
+              </Items>
+            </Report>
+            """;
+        var t = El(Convert(trdx).Design, "table1");
+        var cs = Assert.Single(t.CellStyles!);
+        Assert.Equal("#FFFF00", cs.BackgroundColor);
+        Assert.Equal("#0000FF", cs.Color);
+        Assert.Equal("center", cs.TextAlign);
+        Assert.Equal("Verdana", cs.FontFamily);
+        Assert.Equal(12, cs.FontSize);
+        Assert.True(cs.Bold);
+    }
 }

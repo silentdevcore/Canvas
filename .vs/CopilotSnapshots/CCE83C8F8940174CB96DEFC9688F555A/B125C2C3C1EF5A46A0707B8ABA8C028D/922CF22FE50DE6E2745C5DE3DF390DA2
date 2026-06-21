@@ -1,8 +1,0 @@
-﻿namespace Canvas.Pdf;
-
-public static class PdfPageSizes
-{
-    // A4 in PDF points (1/72 inch)
-    public const double A4Width = 595;
-    public const double A4Height = 842;
-}

@@ -133,14 +133,26 @@ function renderElementPdfSharp(el: SimpleElement, gfx: string): string[] {
       lines.push(`var font_tbl_${el.id.replace(/-/g, '_')} = new XFont("Arial", 11, XFontStyle.Regular);`);
       lines.push(`var font_tbl_hdr_${el.id.replace(/-/g, '_')} = new XFont("Arial", 11, XFontStyle.Bold);`);
       const rowH = rows.length > 0 ? Math.round(height / rows.length) : 24;
+      const cellStyleAt = (r: number, c: number) =>
+        (el.cellStyles ?? []).find((cs) => cs.row === r && cs.col === c);
       rows.forEach((row, ri) => {
         let colX = x;
         row.forEach((cell, ci) => {
           const colW = cols[ci] ?? 100;
           const isHeader = ri === 0 && el.headerRow;
-          const fnt = isHeader ? `font_tbl_hdr_${el.id.replace(/-/g, '_')}` : `font_tbl_${el.id.replace(/-/g, '_')}`;
-          lines.push(`${gfx}.DrawRectangle(${colorPen('#e5e7eb', 1)}, XBrushes.White, new XRect(${colX}, ${y + ri * rowH}, ${colW}, ${rowH}));`);
-          lines.push(`${gfx}.DrawString("${esc(String(cell))}", ${fnt}, XBrushes.Black, new XRect(${colX + 4}, ${y + ri * rowH}, ${colW - 8}, ${rowH}), XStringFormats.CenterLeft);`);
+          const cs = cellStyleAt(ri, ci);
+          const fnt = (cs?.bold ?? isHeader)
+            ? `font_tbl_hdr_${el.id.replace(/-/g, '_')}`
+            : `font_tbl_${el.id.replace(/-/g, '_')}`;
+          const fillBrush = cs?.backgroundColor ? colorBrush(cs.backgroundColor)
+            : isHeader && el.headerBgColor ? colorBrush(el.headerBgColor)
+            : 'XBrushes.White';
+          const textBrush = cs?.color ? colorBrush(cs.color) : 'XBrushes.Black';
+          const fmt = cs?.textAlign === 'center' ? 'XStringFormats.Center'
+            : cs?.textAlign === 'right' ? 'XStringFormats.CenterRight'
+            : 'XStringFormats.CenterLeft';
+          lines.push(`${gfx}.DrawRectangle(${colorPen('#e5e7eb', 1)}, ${fillBrush}, new XRect(${colX}, ${y + ri * rowH}, ${colW}, ${rowH}));`);
+          lines.push(`${gfx}.DrawString("${esc(String(cell))}", ${fnt}, ${textBrush}, new XRect(${colX + 4}, ${y + ri * rowH}, ${colW - 8}, ${rowH}), ${fmt});`);
           colX += colW;
         });
       });

@@ -42,6 +42,38 @@ function renderNumberArray(values: unknown): string | null {
   return `new[] { ${values.map(v => String(Number(v))).join(', ')} }`;
 }
 
+function renderCellSide(side: any): string | null {
+  if (!side) return null;
+  const parts: string[] = [];
+  if (side.color != null) parts.push(`Color = ${str(side.color)}`);
+  if (side.width != null) parts.push(`Width = ${String(Number(side.width))}`);
+  return parts.length ? `new() { ${parts.join(', ')} }` : null;
+}
+
+function renderCellStyles(cellStyles: any[], depth: number): string {
+  const i = indent(depth);
+  const i1 = indent(depth + 1);
+  const items = cellStyles.map((cs) => {
+    const p: string[] = [`Row = ${Number(cs.row) || 0}`, `Col = ${Number(cs.col) || 0}`];
+    if (cs.backgroundColor != null) p.push(`BackgroundColor = ${str(cs.backgroundColor)}`);
+    if (cs.textAlign != null)       p.push(`TextAlign = ${str(cs.textAlign)}`);
+    if (cs.borderColor != null)     p.push(`BorderColor = ${str(cs.borderColor)}`);
+    if (cs.borderWidth != null)     p.push(`BorderWidth = ${String(Number(cs.borderWidth))}`);
+    for (const [k, dto] of [['borderTop', 'BorderTop'], ['borderRight', 'BorderRight'], ['borderBottom', 'BorderBottom'], ['borderLeft', 'BorderLeft']] as const) {
+      const side = renderCellSide(cs[k]);
+      if (side) p.push(`${dto} = ${side}`);
+    }
+    if (cs.padding != null)    p.push(`Padding = ${String(Number(cs.padding))}`);
+    if (cs.fontFamily != null) p.push(`FontFamily = ${str(cs.fontFamily)}`);
+    if (cs.fontSize != null)   p.push(`FontSize = ${String(Number(cs.fontSize))}`);
+    if (cs.bold === true)      p.push(`Bold = true`);
+    if (cs.italic === true)    p.push(`Italic = true`);
+    if (cs.color != null)      p.push(`Color = ${str(cs.color)}`);
+    return `${i1}new() { ${p.join(', ')} }`;
+  });
+  return [`new CellStyleDto[]`, `${i}{`, items.join(',\n'), `${i}}`].join('\n');
+}
+
 function renderMargins(margins: any, depth: number): string {
   const i = indent(depth);
   const i1 = indent(depth + 1);
@@ -107,6 +139,7 @@ function renderElement(el: any, depth: number): string {
   if (el.barcodeType != null)  lines.push(`${i1}BarcodeType = ${str(el.barcodeType)},`);
   if (el.hidden != null)       lines.push(`${i1}Hidden = ${bool(el.hidden)},`);
   if (el.locked != null)       lines.push(`${i1}Locked = ${bool(el.locked)},`);
+  if (el.visibleExpression != null) lines.push(`${i1}VisibleExpression = ${str(el.visibleExpression)},`);
   if (el.pageScope != null)    lines.push(`${i1}PageScope = ${str(el.pageScope)},`);
   if (el.pageRange != null)    lines.push(`${i1}PageRange = ${str(el.pageRange)},`);
 
@@ -123,6 +156,10 @@ function renderElement(el: any, depth: number): string {
     lines.push(`${i1}{`);
     lines.push(rows.join(',\n'));
     lines.push(`${i1}},`);
+  }
+
+  if (Array.isArray(el.cellStyles) && el.cellStyles.length > 0) {
+    lines.push(`${i1}CellStyles = ${renderCellStyles(el.cellStyles, depth + 1)},`);
   }
 
   const stringArrayFields: Array<[string, string]> = [

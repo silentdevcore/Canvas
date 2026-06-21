@@ -162,6 +162,237 @@ public class DesignLayoutPlannerTests
         var ids = planned[0].Elements.Select(e => e.Id).ToList();
         Assert.Equal(["a", "b", "c"], ids);
     }
+
+    [Fact]
+    public void BuildPages_ShouldExpandRepeatElements_FromCustomPropertyJsonArray()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "d4",
+            Name = "Repeat",
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "detail",
+                            Type = "table",
+                            X = 10,
+                            Y = 20,
+                            Width = 200,
+                            Height = 40,
+                            Repeat = new RepeatDto { DataPath = "CategoryGroup", TemplateId = "detail" },
+                            CellData =
+                            [
+                                ["Product", "Qty"],
+                                ["{{Product}}", "{{Quantity}}"]
+                            ]
+                        }
+                    ]
+                }
+            ],
+            PageSettings = new PageSettingsDto
+            {
+                CustomProperties =
+                [
+                    new CustomDocumentPropertyDto
+                    {
+                        Name = "CategoryGroup",
+                        Value = """[{"Product":"Coffee","Quantity":2},{"Product":"Tea","Quantity":5}]"""
+                    }
+                ]
+            }
+        };
+
+        var planned = DesignLayoutPlanner.BuildPages(design);
+
+        var elements = planned[0].Elements.ToList();
+        Assert.Equal(2, elements.Count);
+        Assert.Equal("detail__repeat_0", elements[0].Id);
+        Assert.Equal("Coffee", elements[0].CellData![1][0]);
+        Assert.Equal("2", elements[0].CellData![1][1]);
+        Assert.Equal(20, elements[0].Y);
+        Assert.Null(elements[0].Repeat);
+        Assert.Equal("detail__repeat_1", elements[1].Id);
+        Assert.Equal("Tea", elements[1].CellData![1][0]);
+        Assert.Equal("5", elements[1].CellData![1][1]);
+        Assert.Equal(60, elements[1].Y);
+    }
+
+    [Fact]
+    public void BuildPages_ShouldKeepRepeatTemplate_WhenPayloadIsMissing()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "d5",
+            Name = "Repeat Missing Payload",
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "detail",
+                            Type = "text",
+                            Content = "{{Product}}",
+                            Repeat = new RepeatDto { DataPath = "MissingRows", TemplateId = "detail" }
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var planned = DesignLayoutPlanner.BuildPages(design);
+
+        var element = Assert.Single(planned[0].Elements);
+        Assert.Equal("detail", element.Id);
+        Assert.Equal("{{Product}}", element.Content);
+        Assert.NotNull(element.Repeat);
+    }
+
+    [Fact]
+    public void BuildPages_ShouldFilterRepeatElements_WithRdlParameterDefault()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "d6",
+            Name = "Repeat Filter",
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "detail",
+                            Type = "table",
+                            X = 10,
+                            Y = 20,
+                            Width = 200,
+                            Height = 40,
+                            Repeat = new RepeatDto { DataPath = "Rows", TemplateId = "detail" },
+                            CellData = [["Year", "Product"], ["{{Year}}", "{{Product}}"]],
+                            Style = new()
+                            {
+                                ["rdlFilters"] = new object[]
+                                {
+                                    new Dictionary<string, object>
+                                    {
+                                        ["FilterExpression"] = "=Fields!Year.Value",
+                                        ["Operator"] = "Equal",
+                                        ["FilterValues"] = new[] { "=Parameters!OrderYear.Value" }
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            PageSettings = new PageSettingsDto
+            {
+                CustomProperties =
+                [
+                    new CustomDocumentPropertyDto
+                    {
+                        Name = "Rows",
+                        Value = """[{"Year":"2025","Product":"Tea"},{"Year":"2026","Product":"Coffee"}]"""
+                    },
+                    new CustomDocumentPropertyDto
+                    {
+                        Name = "rdlReportParameters",
+                        Value = """[{"Name":"OrderYear","DefaultValue":"2026"}]"""
+                    }
+                ]
+            }
+        };
+
+        var planned = DesignLayoutPlanner.BuildPages(design);
+
+        var element = Assert.Single(planned[0].Elements);
+        Assert.Equal("detail__repeat_0", element.Id);
+        Assert.Equal("2026", element.CellData![1][0]);
+        Assert.Equal("Coffee", element.CellData![1][1]);
+    }
+
+    [Fact]
+    public void BuildPages_ShouldPopulateRdlChartSampleData_FromDataSetCustomProperty()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "d7",
+            Name = "Chart Sample Data",
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "chart",
+                            Type = "chart",
+                            ChartType = "line",
+                            Width = 240,
+                            Height = 120,
+                            ChartData = new()
+                            {
+                                ["rdlDataSetName"] = "SalesData",
+                                ["rdlCategoryExpression"] = "=Fields!Month.Value",
+                                ["rdlSeries"] = new object[]
+                                {
+                                    new Dictionary<string, object>
+                                    {
+                                        ["name"] = "Sales",
+                                        ["y"] = "=Sum(Fields!Sales.Value)"
+                                    },
+                                    new Dictionary<string, object>
+                                    {
+                                        ["name"] = "Forecast",
+                                        ["y"] = "=Fields!Forecast.Value"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            PageSettings = new PageSettingsDto
+            {
+                CustomProperties =
+                [
+                    new CustomDocumentPropertyDto
+                    {
+                        Name = "SalesData",
+                        Value = """[{"Month":"Jan","Sales":10,"Forecast":12.5},{"Month":"Feb","Sales":20,"Forecast":18}]"""
+                    }
+                ]
+            }
+        };
+
+        var planned = DesignLayoutPlanner.BuildPages(design);
+
+        var chart = Assert.Single(planned[0].Elements);
+        Assert.NotSame(design.Pages[0].Elements[0], chart);
+        Assert.Equal(["Jan", "Feb"], Assert.IsType<string[]>(chart.ChartData!["labels"]));
+        Assert.Equal("SalesData", chart.ChartData["rdlSampleDataSource"]);
+
+        var datasets = Assert.IsType<Dictionary<string, object>[]>(chart.ChartData["datasets"]);
+        Assert.Equal(2, datasets.Length);
+        Assert.Equal("Sales", datasets[0]["label"]);
+        Assert.Equal([10d, 20d], Assert.IsType<double[]>(datasets[0]["data"]));
+        Assert.Equal("Forecast", datasets[1]["label"]);
+        Assert.Equal([12.5d, 18d], Assert.IsType<double[]>(datasets[1]["data"]));
+    }
 }
 
 file sealed class TestCapabilities : IRendererCapabilities

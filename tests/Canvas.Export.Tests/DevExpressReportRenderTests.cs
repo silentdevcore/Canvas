@@ -1,4 +1,5 @@
 using System.Text;
+using Canvas.Pdf;
 using Canvas.Migration.DevExpressReport;
 using Canvas.WebApi.Infrastructure;
 
@@ -83,4 +84,274 @@ public sealed class DevExpressReportRenderTests
 
         Assert.StartsWith("%PDF", Encoding.ASCII.GetString(bytes, 0, 4));
     }
+
+    [Fact]
+    public void LastPageScopedElement_RendersOnlyOnLastPage()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "last-scope",
+            Name = "Last page scope",
+            PageSettings = new PageSettingsDto { Width = 300, Height = 300 },
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "footer",
+                            Type = "text",
+                            X = 20,
+                            Y = 20,
+                            Width = 160,
+                            Height = 20,
+                            Content = "Only last",
+                            PageScope = "last"
+                        }
+                    ]
+                },
+                new PageDto
+                {
+                    Id = "p2",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "body",
+                            Type = "text",
+                            X = 20,
+                            Y = 60,
+                            Width = 160,
+                            Height = 20,
+                            Content = "Second page"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var bytes = DesignJsonMapper.MapToPdfDocument(design).ToBytes(new PdfSaveOptions
+        {
+            CompressContentStreams = false
+        });
+        var pdf = Encoding.ASCII.GetString(bytes);
+
+        Assert.Equal(1, CountOccurrences(pdf, "Only last"));
+        Assert.Contains("Second page", pdf, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ChartElement_WithDotNetChartData_RendersToPdf()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "chart-design",
+            Name = "Chart Design",
+            PageSettings = new PageSettingsDto { Width = 360, Height = 260 },
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "chart",
+                            Type = "chart",
+                            X = 20,
+                            Y = 20,
+                            Width = 300,
+                            Height = 180,
+                            ChartType = "bar",
+                            ChartData = new Dictionary<string, object>
+                            {
+                                ["labels"] = new[] { "A", "B", "C" },
+                                ["datasets"] = new object[]
+                                {
+                                    new Dictionary<string, object>
+                                    {
+                                        ["label"] = "Revenue",
+                                        ["data"] = new[] { 10, 30, 20 },
+                                        ["backgroundColor"] = "#2563eb"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var bytes = DesignJsonMapper.MapToPdfDocument(design).ToBytes(new PdfSaveOptions
+        {
+            CompressContentStreams = false
+        });
+
+        Assert.StartsWith("%PDF", Encoding.ASCII.GetString(bytes, 0, 4));
+        Assert.True(bytes.Length > 1000, "PDF should contain a rendered chart image.");
+    }
+
+    [Fact]
+    public void TextElement_WithPerSideBorders_RendersToValidPdf()
+    {
+        var design = new DesignExportDto
+        {
+            Id = "side-borders",
+            Name = "Side borders",
+            PageSettings = new PageSettingsDto { Width = 240, Height = 180 },
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "box",
+                            Type = "text",
+                            X = 20,
+                            Y = 20,
+                            Width = 120,
+                            Height = 36,
+                            Content = "Top left",
+                            Style = new Dictionary<string, object>
+                            {
+                                ["borderTopWidth"] = 2d,
+                                ["borderTopColor"] = "#0000FF",
+                                ["borderLeftWidth"] = 2d,
+                                ["borderLeftColor"] = "#0000FF",
+                                ["backgroundColor"] = "#FFFFFF"
+                            }
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var bytes = DesignJsonMapper.MapToPdfDocument(design).ToBytes();
+
+        Assert.StartsWith("%PDF", Encoding.ASCII.GetString(bytes, 0, 4));
+        Assert.True(bytes.Length > 500, "PDF should contain rendered text and side borders.");
+    }
+
+    [Fact]
+    public void VisibleExpression_LenCondition_FiltersElementWhenFalse()
+    {
+        var design = VisibleExpressionDesign("Len([Comment]) > 0", "Conditional comment");
+        design.PageSettings!.CustomProperties =
+        [
+            new CustomDocumentPropertyDto { Name = "Comment", Value = "" }
+        ];
+
+        var bytes = DesignJsonMapper.MapToPdfDocument(design).ToBytes(new PdfSaveOptions
+        {
+            CompressContentStreams = false
+        });
+        var pdf = Encoding.ASCII.GetString(bytes);
+
+        Assert.DoesNotContain("Conditional comment", pdf, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void VisibleExpression_NestedFieldCondition_RendersElementWhenTrue()
+    {
+        var design = VisibleExpressionDesign("[RegionalCenter].[Company] == 'Galliker'", "Galliker logo");
+        design.PageSettings!.CustomProperties =
+        [
+            new CustomDocumentPropertyDto { Name = "RegionalCenter.Company", Value = "Galliker" }
+        ];
+
+        var bytes = DesignJsonMapper.MapToPdfDocument(design).ToBytes(new PdfSaveOptions
+        {
+            CompressContentStreams = false
+        });
+        var pdf = Encoding.ASCII.GetString(bytes);
+
+        Assert.Contains("Galliker logo", pdf, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void VisibleExpression_IifCountCondition_FiltersElementWhenFalse()
+    {
+        var design = VisibleExpressionDesign("IIF([ExternalBookingFiles].Count > 0, True, False)", "External file");
+        design.PageSettings!.CustomProperties =
+        [
+            new CustomDocumentPropertyDto { Name = "ExternalBookingFiles.Count", Value = "0" }
+        ];
+
+        var bytes = DesignJsonMapper.MapToPdfDocument(design).ToBytes(new PdfSaveOptions
+        {
+            CompressContentStreams = false
+        });
+        var pdf = Encoding.ASCII.GetString(bytes);
+
+        Assert.DoesNotContain("External file", pdf, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RdlReportParameterDefault_SubstitutesAsCustomProperty()
+    {
+        var design = VisibleExpressionDesign("true", "Year {{OrderYear}}");
+        design.PageSettings!.CustomProperties =
+        [
+            new CustomDocumentPropertyDto
+            {
+                Name = "rdlReportParameters",
+                Value = """[{"Name":"OrderYear","DefaultValue":"2026"}]"""
+            }
+        ];
+
+        var bytes = DesignJsonMapper.MapToPdfDocument(design).ToBytes(new PdfSaveOptions
+        {
+            CompressContentStreams = false
+        });
+        var pdf = Encoding.ASCII.GetString(bytes);
+
+        Assert.Contains("Year 2026", pdf, StringComparison.Ordinal);
+    }
+
+    private static int CountOccurrences(string text, string value)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+        return count;
+    }
+
+    private static DesignExportDto VisibleExpressionDesign(string visibleExpression, string content) => new()
+    {
+        Id = "visible-expression",
+        Name = "Visible expression",
+        PageSettings = new PageSettingsDto { Width = 240, Height = 180 },
+        Pages =
+        [
+            new PageDto
+            {
+                Id = "p1",
+                Elements =
+                [
+                    new ElementDto
+                    {
+                        Id = "conditional",
+                        Type = "text",
+                        X = 20,
+                        Y = 20,
+                        Width = 160,
+                        Height = 30,
+                        Content = content,
+                        VisibleExpression = visibleExpression
+                    }
+                ]
+            }
+        ]
+    };
 }

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO.Compression;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Canvas.Core.Abstractions;
@@ -309,41 +310,90 @@ public sealed class SvgDocumentExporter : IDocumentExporter
         var bc       = s.GetStr("borderColor", "#000000");
         var hasHdr   = el.HeaderRow == true;
         var hdrBg    = el.HeaderBgColor ?? "#f1f5f9";
+        var matrixHeaders = RdlMatrixHeaders(s);
         var cellW    = cols > 0 ? el.Width / cols : el.Width;
-        var cellH    = rows > 0 ? el.Height / rows : el.Height;
+        var visualRows = rows + matrixHeaders.Count;
+        var cellH    = visualRows > 0 ? el.Height / visualRows : el.Height;
+        var cellStyleLookup = (el.CellStyles ?? []).GroupBy(x => (x.Row, x.Col)).ToDictionary(gp => gp.Key, gp => gp.First());
 
         var g = new XElement("g");
+        for (var h = 0; h < matrixHeaders.Count; h++)
+        {
+            var cy = el.Y + h * cellH;
+            g.Add(new XElement("rect",
+                new XAttribute("x", el.X), new XAttribute("y", cy),
+                new XAttribute("width", el.Width), new XAttribute("height", cellH),
+                new XAttribute("fill", "#e0f2fe"),
+                new XAttribute("stroke", bc), new XAttribute("stroke-width", bw)));
+            g.Add(new XElement("text",
+                new XAttribute("x", Num(el.X + 4)),
+                new XAttribute("y", Num(cy + Math.Max(10 + 2, (cellH - 10 * 1.3) / 2 + 10))),
+                new XAttribute("font-size", 10),
+                new XAttribute("font-family", "Arial"),
+                new XAttribute("fill", "#075985"),
+                new XAttribute("font-weight", "bold"),
+                matrixHeaders[h]));
+        }
+
         for (int r = 0; r < rows; r++)
         {
             for (int c = 0; c < cols; c++)
             {
                 var cx   = el.X + c * cellW;
-                var cy   = el.Y + r * cellH;
-                var fill = hasHdr && r == 0 ? hdrBg : "none";
+                var cy   = el.Y + (r + matrixHeaders.Count) * cellH;
+                var cs   = cellStyleLookup.GetValueOrDefault((r, c));
+                var fill = cs?.BackgroundColor ?? (hasHdr && r == 0 ? hdrBg : "none");
                 var cell = cellData[r]?.Length > c ? cellData[r][c] : "";
 
+                var hasCellBorder = cs is not null && (cs.BorderColor != null || cs.BorderWidth != null
+                    || cs.BorderTop != null || cs.BorderRight != null || cs.BorderBottom != null || cs.BorderLeft != null);
+                // Uniform stroke on the rect; "none" when only per-side borders are specified.
+                var rectStroke = !hasCellBorder ? bc
+                    : (cs!.BorderColor != null || cs.BorderWidth != null) ? cs.BorderColor ?? "#000000" : "none";
+                var rectStrokeW = !hasCellBorder ? bw
+                    : (cs!.BorderColor != null || cs.BorderWidth != null) ? cs.BorderWidth ?? 1 : 0;
                 g.Add(new XElement("rect",
                     new XAttribute("x", cx), new XAttribute("y", cy),
                     new XAttribute("width", cellW), new XAttribute("height", cellH),
                     new XAttribute("fill", fill),
-                    new XAttribute("stroke", bc), new XAttribute("stroke-width", bw)));
+                    new XAttribute("stroke", rectStroke), new XAttribute("stroke-width", rectStrokeW)));
 
-                const double cellFs = 10;
-                var cellFw  = hasHdr && r == 0 ? "bold" : "normal";
-                var cellLns = WrapText(cell ?? "", Math.Max(1, cellW - 8), "Arial", cellFs, cellFw);
+                if (hasCellBorder)
+                {
+                    AddCellSide(g, cs!.BorderTop,    cx,         cy,         cx + cellW, cy);
+                    AddCellSide(g, cs.BorderRight,   cx + cellW, cy,         cx + cellW, cy + cellH);
+                    AddCellSide(g, cs.BorderBottom,  cx,         cy + cellH, cx + cellW, cy + cellH);
+                    AddCellSide(g, cs.BorderLeft,    cx,         cy,         cx,         cy + cellH);
+                }
 
+                var cellFs   = cs?.FontSize ?? 10;
+                var cellFf   = cs?.FontFamily ?? "Arial";
+                var cellFw   = (hasHdr && r == 0) || cs?.Bold == true ? "bold" : "normal";
+                var cellFill = cs?.Color ?? "#111827";
+                var pad      = cs?.Padding ?? 4;
+                var cellLns  = WrapText(cell ?? "", Math.Max(1, cellW - 2 * pad), cellFf, cellFs, cellFw);
+
+                var align = cs?.TextAlign;
+                var (anchor, textX) = align switch
+                {
+                    "center" => ("middle", cx + cellW / 2),
+                    "right"  => ("end", cx + cellW - pad),
+                    _        => ("start", cx + pad)
+                };
                 var cellText = new XElement("text",
                     new XAttribute("font-size", cellFs),
-                    new XAttribute("font-family", "Arial"),
-                    new XAttribute("fill", "#111827"),
+                    new XAttribute("font-family", cellFf),
+                    new XAttribute("fill", cellFill),
+                    new XAttribute("text-anchor", anchor),
                     new XAttribute("font-weight", cellFw));
+                if (cs?.Italic == true) cellText.Add(new XAttribute("font-style", "italic"));
 
                 // Vertically centre the wrapped block within the cell.
                 var blockH    = cellLns.Count * cellFs * 1.3;
                 var firstBase = cy + Math.Max(cellFs + 2, (cellH - blockH) / 2 + cellFs);
                 for (int li = 0; li < cellLns.Count; li++)
                     cellText.Add(new XElement("tspan",
-                        new XAttribute("x", Num(cx + 4)),
+                        new XAttribute("x", Num(textX)),
                         new XAttribute("y", Num(firstBase + li * cellFs * 1.3)),
                         cellLns[li]));
 
@@ -352,6 +402,65 @@ public sealed class SvgDocumentExporter : IDocumentExporter
         }
         return g;
     }
+
+    private static void AddCellSide(XElement g, CellBorderSideDto? side, double x1, double y1, double x2, double y2)
+    {
+        if (side is null) return;
+        g.Add(new XElement("line",
+            new XAttribute("x1", Num(x1)), new XAttribute("y1", Num(y1)),
+            new XAttribute("x2", Num(x2)), new XAttribute("y2", Num(y2)),
+            new XAttribute("stroke", side.Color ?? "#000000"),
+            new XAttribute("stroke-width", side.Width ?? 1)));
+    }
+
+    private static List<string> RdlMatrixHeaders(Dictionary<string, object> style)
+    {
+        var headers = new List<string>();
+        AddRdlMatrixHeaders(style, "rdlTablixColumnHierarchy", headers);
+        AddRdlMatrixHeaders(style, "rdlTablixRowHierarchy", headers);
+        return headers;
+    }
+
+    private static void AddRdlMatrixHeaders(Dictionary<string, object> style, string key, List<string> headers)
+    {
+        if (!style.TryGetValue(key, out var value) || value is null) return;
+
+        if (value is JsonElement { ValueKind: JsonValueKind.Array } jsonArray)
+        {
+            foreach (var item in jsonArray.EnumerateArray())
+                AddRdlMatrixHeader(item, headers);
+            return;
+        }
+
+        if (value is IEnumerable<object> items)
+        {
+            foreach (var item in items)
+                AddRdlMatrixHeader(item, headers);
+        }
+    }
+
+    private static void AddRdlMatrixHeader(object item, List<string> headers)
+    {
+        switch (item)
+        {
+            case JsonElement { ValueKind: JsonValueKind.Object } json:
+                var text = JsonProp(json, "headerText") ?? JsonProp(json, "groupName");
+                if (!string.IsNullOrWhiteSpace(text)) headers.Add(text);
+                break;
+            case IReadOnlyDictionary<string, object> dict:
+                if ((HeaderValue(dict, "headerText") ?? HeaderValue(dict, "groupName")) is { Length: > 0 } value)
+                    headers.Add(value);
+                break;
+        }
+    }
+
+    private static string? JsonProp(JsonElement json, string name) =>
+        json.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
+            ? prop.GetString()
+            : null;
+
+    private static string? HeaderValue(IReadOnlyDictionary<string, object> dict, string key) =>
+        dict.TryGetValue(key, out var value) ? value?.ToString() : null;
 
     private static XAttribute? SvgStroke(Dictionary<string, object> s)
     {

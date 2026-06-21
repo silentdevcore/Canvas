@@ -2,6 +2,7 @@ using System.Text;
 using Canvas.Infrastructure.Converters;
 using Canvas.Infrastructure.Sheet;
 using Canvas.Infrastructure.Word;
+using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
@@ -45,6 +46,43 @@ public class ExporterTests
         PageSettings = new PageSettingsDto { Width = 595, Height = 842 },
     };
 
+    private static DesignExportDto MatrixHeaderDesign() => new()
+    {
+        Id = "matrix-header-id",
+        Name = "Matrix Header Design",
+        Pages =
+        [
+            new PageDto
+            {
+                Id = "p1",
+                Elements =
+                [
+                    new ElementDto
+                    {
+                        Id = "matrix", Type = "table", Name = "Matrix",
+                        X = 10, Y = 20, Width = 300, Height = 120,
+                        HeaderRow = true,
+                        CellData = [["Product", "Total"], ["Coffee", "42"]],
+                        Style = new()
+                        {
+                            ["borderWidth"] = 1,
+                            ["borderColor"] = "#000000",
+                            ["rdlTablixColumnHierarchy"] = new object[]
+                            {
+                                new Dictionary<string, object> { ["headerText"] = "{{Year}}" }
+                            },
+                            ["rdlTablixRowHierarchy"] = new object[]
+                            {
+                                new Dictionary<string, object> { ["groupName"] = "ProductGroup" }
+                            }
+                        }
+                    }
+                ],
+            },
+        ],
+        PageSettings = new PageSettingsDto { Width = 595, Height = 842 },
+    };
+
     // ─── HTML ─────────────────────────────────────────────────────────────────
 
     [Fact]
@@ -75,6 +113,58 @@ public class ExporterTests
         var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(MinimalDesign()));
         Assert.Contains("Name", html);
         Assert.Contains("<table", html);
+    }
+
+    [Fact]
+    public void Html_Export_RendersRdlMatrixHeaders()
+    {
+        var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(MatrixHeaderDesign()));
+        Assert.Contains("{{Year}}", html);
+        Assert.Contains("ProductGroup", html);
+        Assert.Contains("colspan=\"2\"", html);
+    }
+
+    [Fact]
+    public void Html_Export_RendersPerCellStyles()
+    {
+        var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(StyledCellDesign()));
+        Assert.Contains("background:#FFFF00;", html);            // per-cell background
+        Assert.Contains("border-bottom:2px solid #FF0000;", html); // per-side border
+        Assert.Contains("color:#0000FF;", html);                 // per-cell font colour
+        Assert.Contains("font-family:Verdana;", html);           // per-cell font family
+    }
+
+    [Fact]
+    public void Odt_Export_DefinesAndReferencesPerCellStyle()
+    {
+        var odt = new OdtDocumentExporter().Export(StyledCellDesign());
+        // ODT is a zip; the per-cell style name should appear in content.xml (def + reference).
+        using var zip = new System.IO.Compression.ZipArchive(new System.IO.MemoryStream(odt));
+        var entry = zip.GetEntry("content.xml")!;
+        using var reader = new System.IO.StreamReader(entry.Open());
+        var content = reader.ReadToEnd();
+        Assert.Contains("style:family=\"table-cell\"", content);
+        Assert.Contains("fo:background-color=\"#FFFF00\"", content);
+        Assert.Contains("table:style-name=\"tc_", content);
+    }
+
+    // A table with one per-cell style (yellow bg, red bottom border, centered) on body cell (1,0).
+    private static DesignExportDto StyledCellDesign()
+    {
+        var d = MinimalDesign();
+        var table = d.Pages[0].Elements.First(e => e.Type == "table");
+        table.CellStyles =
+        [
+            new CellStyleDto
+            {
+                Row = 1, Col = 0,
+                BackgroundColor = "#FFFF00",
+                TextAlign = "center",
+                BorderBottom = new CellBorderSideDto { Color = "#FF0000", Width = 2 },
+                Padding = 6, FontFamily = "Verdana", FontSize = 12, Bold = true, Color = "#0000FF"
+            }
+        ];
+        return d;
     }
 
     // ─── XML ──────────────────────────────────────────────────────────────────
@@ -127,6 +217,15 @@ public class ExporterTests
         var svg = Encoding.UTF8.GetString(new SvgDocumentExporter().Export(MinimalDesign()));
         Assert.Contains("Hello Export", svg);
         Assert.Contains("<svg", svg);
+    }
+
+    [Fact]
+    public void Svg_Export_RendersRdlMatrixHeaders()
+    {
+        var svg = Encoding.UTF8.GetString(new SvgDocumentExporter().Export(MatrixHeaderDesign()));
+        Assert.Contains("{{Year}}", svg);
+        Assert.Contains("ProductGroup", svg);
+        Assert.Contains("#e0f2fe", svg);
     }
 
     // ─── CSV ──────────────────────────────────────────────────────────────────
@@ -210,6 +309,21 @@ public class ExporterTests
         // ZIP/OOXML magic bytes: 50 4B 03 04
         Assert.True(bytes.Length >= 4 && bytes[0] == 0x50 && bytes[1] == 0x4B,
             "DOCX should start with ZIP magic bytes 50 4B");
+    }
+
+    [Fact]
+    public void Word_Export_RendersRdlMatrixHeaders()
+    {
+        var bytes = new WordDocumentExporter().Export(MatrixHeaderDesign());
+        using var ms = new MemoryStream(bytes);
+        using var doc = WordprocessingDocument.Open(ms, false);
+        var document = Assert.IsType<Document>(doc.MainDocumentPart!.Document);
+        var body = Assert.IsType<Body>(document.Body);
+
+        var text = string.Join(" ", body.Descendants<Text>().Select(t => t.Text));
+        Assert.Contains("{{Year}}", text);
+        Assert.Contains("ProductGroup", text);
+        Assert.Contains(body.Descendants<GridSpan>(), span => span.Val?.Value == 2);
     }
 
     [Fact]
@@ -841,6 +955,19 @@ public class ExporterTests
             "XLSX should start with ZIP magic bytes 50 4B");
     }
 
+    [Fact]
+    public void Excel_Export_RendersRdlMatrixHeaders()
+    {
+        var bytes = new ExcelDocumentExporter().Export(MatrixHeaderDesign());
+        using var ms = new MemoryStream(bytes);
+        using var wb = new XLWorkbook(ms);
+        var ws = wb.Worksheet("Matrix");
+
+        Assert.Equal("{{Year}}", ws.Cell(1, 1).GetString());
+        Assert.Equal("ProductGroup", ws.Cell(2, 1).GetString());
+        Assert.Equal("Product", ws.Cell(3, 1).GetString());
+    }
+
     // ─── PNG ──────────────────────────────────────────────────────────────────
 
     [Fact]
@@ -862,6 +989,48 @@ public class ExporterTests
         // PNG signature: 89 50 4E 47
         Assert.True(bytes.Length >= 4 && bytes[0] == 0x89 && bytes[1] == 0x50,
             "PNG output should start with PNG magic bytes");
+    }
+
+    [Fact]
+    public void Png_Export_WithRdlMatrixHeaders_ProducesValidPng()
+    {
+        var bytes = new ImageDocumentExporter().Export(MatrixHeaderDesign());
+        Assert.True(bytes.Length >= 4 && bytes[0] == 0x89 && bytes[1] == 0x50,
+            "PNG output should start with PNG magic bytes");
+    }
+
+    [Fact]
+    public void Png_Export_WithPerCellStyles_RendersAndDiffersFromBaseline()
+    {
+        var baseline = new ImageDocumentExporter().Export(MinimalDesign());
+
+        var styled = MinimalDesign();
+        var table = styled.Pages[0].Elements.First(e => e.Type == "table");
+        table.CellStyles =
+        [
+            new CellStyleDto
+            {
+                Row = 1, Col = 0,
+                BackgroundColor = "#FFFF00",
+                TextAlign = "right",
+                BorderBottom = new CellBorderSideDto { Color = "#FF0000", Width = 2 }
+            }
+        ];
+        var withStyles = new ImageDocumentExporter().Export(styled);
+
+        // Valid PNG and visibly different from the unstyled baseline (the styled cell changed pixels).
+        Assert.True(withStyles.Length >= 4 && withStyles[0] == 0x89 && withStyles[1] == 0x50);
+        Assert.False(baseline.AsSpan().SequenceEqual(withStyles));
+    }
+
+    [Fact]
+    public void NativePdf_Export_WithRdlMatrixHeaders_ProducesValidPdf()
+    {
+        var bytes = Canvas.WebApi.Infrastructure.DesignJsonMapper
+            .MapToPdfDocument(MatrixHeaderDesign())
+            .ToBytes();
+
+        Assert.Equal("%PDF"u8.ToArray(), bytes[..4]);
     }
 
     // ─── JPEG ─────────────────────────────────────────────────────────────────

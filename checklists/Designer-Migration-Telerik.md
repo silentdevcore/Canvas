@@ -94,6 +94,7 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 | `CANMIGTRDX010` | Info / Warning | `=Fields.X` → binding (Info); complex expression → expression (Warning) |
 | `CANMIGTRDX011` | Warning | Unsupported item / SubReport / Chart — labeled placeholder |
 | `CANMIGTRDX012` | Warning | Picture not embeddable — placeholder inserted |
+| `CANMIGTRDX013` | Warning | `Table`/`CrossTab` mapped to a Canvas table (best-effort cell anchoring) — review |
 
 ## V1 checklist
 
@@ -107,7 +108,15 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 
 ## V2 — next
 
-- [ ] `.trdp` (zipped package) — unzip + feed the same parser (needs a binary upload path)
-- [ ] `TypeSelector` stylesheet rules; `Panel` nesting depth; group sections repeat semantics
-- [ ] `Table`/`CrossTab` full cell extraction; `Chart`/`Graph`/`Map` placeholders with captions
-- [ ] Telerik expression dialect (`=Fields.X + …`, functions) beyond single-field bindings
+**Current recommendation:** defer packaged `.trdp` until a binary upload path exists. Before that, focus
+on XML `.trdx` fidelity: tables, crosstabs, captions for unsupported visual regions, and shared
+group/repeat semantics.
+
+- [ ] **P2** `.trdp` (zipped package) — unzip + feed the same parser (needs a binary upload path)
+- [ ] **P1** `TypeSelector` stylesheet rules; `Panel` nesting depth; group sections repeat semantics
+- [x] **P1** `Table`/`CrossTab` cell extraction → Canvas table: column widths from `TableBodyColumn`,
+      content items placed by attached cell-anchor properties (`*.CellRowIndex`/`*.CellColumnIndex`,
+      prefix-agnostic, attribute or element), `=Fields.X`→binding tokens, sequential-fill fallback when
+      no anchors are present (`CANMIGTRDX013`). ⚠️ Unverified against real `.trdx` (no local samples) —
+      cell anchoring is best-effort. `Chart`/`Graph`/`Map` remain captioned placeholders.
+- [ ] **P1** Telerik expression dialect (`=Fields.X + …`, functions) beyond single-field bindings

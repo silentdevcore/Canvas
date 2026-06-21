@@ -39,6 +39,31 @@ export type ElementType =
   | 'comment'
   | 'contentcontrol';
 
+export interface CellBorderSide {
+  color?: string;
+  width?: number;
+}
+
+/** Per-cell table styling. Sparse: addressed by row/col; unset properties fall back to table defaults. */
+export interface CellStyle {
+  row: number;
+  col: number;
+  backgroundColor?: string;
+  textAlign?: 'left' | 'center' | 'right';
+  borderColor?: string;
+  borderWidth?: number;
+  borderTop?: CellBorderSide;
+  borderRight?: CellBorderSide;
+  borderBottom?: CellBorderSide;
+  borderLeft?: CellBorderSide;
+  padding?: number;
+  fontFamily?: string;
+  fontSize?: number;
+  bold?: boolean;
+  italic?: boolean;
+  color?: string;
+}
+
 export interface SimpleElement {
   id: string;
   type: ElementType;
@@ -100,8 +125,9 @@ export interface SimpleElement {
   preserveAspectRatio?: boolean;
   // Advanced document elements
   watermarkMode?: 'text' | 'image';
-  pageScope?: 'current' | 'all' | 'first' | 'range' | 'odd' | 'even';
+  pageScope?: 'current' | 'all' | 'first' | 'last' | 'range' | 'odd' | 'even';
   pageRange?: string;
+  visibleExpression?: string;
   locked?: boolean;
   hidden?: boolean;
   noteTitle?: string;
@@ -141,6 +167,7 @@ export interface SimpleElement {
   columnWidths?: number[];
   cellData?: string[][];
   columnAlignments?: ('left' | 'center' | 'right')[];
+  cellStyles?: CellStyle[];
   // Named style reference
   styleName?: string;
   characterStyle?: string;
@@ -309,7 +336,7 @@ export interface PageSettings {
     opacity: number;
     rotation: number;
     scale: number;
-    pageScope: 'all' | 'first' | 'range' | 'odd' | 'even';
+    pageScope: 'all' | 'first' | 'last' | 'range' | 'odd' | 'even';
     pageRange: string;
     color: string;
     fontSize: number;

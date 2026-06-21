@@ -7,6 +7,8 @@ import { evaluateExpression, ExpressionContext } from './expressionEngine';
 
 export interface RepeatConfig {
   repeatSource?: string; // Path to array data (e.g., "order.items")
+  dataPath?: string; // Backend/export DTO alias for repeatSource
+  templateId?: string; // Backend/export DTO template element id
   itemAlias?: string; // Variable name for current item (default: "item")
   indexAlias?: string; // Variable name for current index (default: "index")
   emptyBehavior?: 'hide' | 'show-placeholder' | 'keep-template'; // What to do when collection is empty
@@ -41,14 +43,16 @@ export function expandRepeat(
 ): RepeatResult {
   const {
     repeatSource,
+    dataPath,
     itemAlias = 'item',
     indexAlias = 'index',
     emptyBehavior = 'hide',
     maxItems
   } = config;
+  const source = repeatSource || dataPath;
 
   // If no repeat source, return empty result
-  if (!repeatSource) {
+  if (!source) {
     return {
       instances: [],
       isEmpty: true,
@@ -58,7 +62,7 @@ export function expandRepeat(
   }
 
   // Evaluate the repeat source to get the collection
-  const sourceResult = evaluateExpression(repeatSource, baseContext, { safeMode });
+  const sourceResult = evaluateExpression(source, baseContext, { safeMode });
 
   if (!sourceResult.isValid || !Array.isArray(sourceResult.value)) {
     // If source is invalid or not an array, handle based on empty behavior
@@ -173,7 +177,8 @@ export function expandRepeat(
 export function validateRepeatConfig(config: RepeatConfig): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
 
-  if (config.repeatSource) {
+  const source = config.repeatSource || config.dataPath;
+  if (source) {
     // Validate the repeat source expression
     const validation = { isValid: true, error: undefined }; // Would call validateExpression here
     if (!validation.isValid) {

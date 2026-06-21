@@ -103,6 +103,35 @@ describe('jsonToCSharp', () => {
     expect(code).toContain('X = 58');
     expect(code).toContain('Y = 230');
   });
+
+  test('emits per-cell CellStyles for tables', () => {
+    const design: ParsedDesign = {
+      id: 't', name: 't', category: 'blank', description: '',
+      pageSettings: { width: 595, height: 842, unit: 'px' },
+      pages: [{
+        id: 'page-1',
+        elements: [{
+          id: 'table-1', type: 'table', x: 0, y: 0, width: 200, height: 60,
+          cellData: [['A', 'B']],
+          cellStyles: [{
+            row: 0, col: 0,
+            backgroundColor: '#FFFF00', textAlign: 'center',
+            borderBottom: { color: '#FF0000', width: 2 },
+            padding: 6, fontFamily: 'Verdana', fontSize: 12, bold: true, color: '#0000FF',
+          }],
+        }],
+      }],
+      sharedElements: [],
+    } as unknown as ParsedDesign;
+
+    const code = jsonToCSharp(design);
+    expect(code).toContain('CellStyles = new CellStyleDto[]');
+    expect(code).toContain('Row = 0, Col = 0');
+    expect(code).toContain('BackgroundColor = "#FFFF00"');
+    expect(code).toContain('BorderBottom = new() { Color = "#FF0000", Width = 2 }');
+    expect(code).toContain('FontFamily = "Verdana"');
+    expect(code).toContain('Bold = true');
+  });
 });
 
 describe('jsonToCode', () => {
