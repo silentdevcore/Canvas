@@ -102,7 +102,8 @@ public class MigrationController : ControllerBase
             }
             else if (RpxToDesignConverter.LooksLikeRpx(request.SourceCode))
             {
-                var result = new RpxToDesignConverter().Convert(request.SourceCode);
+                var resources = MergeReportResources(request.ResourceXml, request.Resources);
+                var result = new RpxToDesignConverter().Convert(request.SourceCode, resources);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }

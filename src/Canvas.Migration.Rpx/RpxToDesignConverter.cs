@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Text.Json;
 using System.Xml.Linq;
 using Canvas.Core.Contracts;
 using Canvas.Migration.Abstractions;
@@ -25,6 +26,7 @@ public sealed class RpxToDesignConverter
     private const double InchToPt = 72.0;
     private const double LetterWidthPt = 612;   // ActiveReports section reports default to Letter
     private const double LetterHeightPt = 792;
+    private const int MaxSubreportDepth = 4;
 
     /// <summary>Detects an ActiveReports <c>.rpx</c> Section Report: root <c>&lt;Report&gt;</c> with a
     /// <c>&lt;Sections&gt;</c> collection and not an RDL (<c>reportdefinition</c>) namespace.</summary>
@@ -54,7 +56,13 @@ public sealed class RpxToDesignConverter
         return Convert(source);
     }
 
-    public RpxConvertResult Convert(string rpxXml)
+    public RpxConvertResult Convert(string rpxXml, IReadOnlyDictionary<string, string>? resources = null)
+        => ConvertCore(rpxXml, resources, subreportDepth: 0);
+
+    private RpxConvertResult ConvertCore(
+        string rpxXml,
+        IReadOnlyDictionary<string, string>? resources,
+        int subreportDepth)
     {
         if (string.IsNullOrWhiteSpace(rpxXml))
             throw new ArgumentException("Source cannot be null or empty.", nameof(rpxXml));
@@ -92,7 +100,7 @@ public sealed class RpxToDesignConverter
             }
         }
 
-        return BuildDesign(report);
+        return BuildDesign(report, resources, subreportDepth);
     }
 
     private static void ResolvePageSettings(XElement root, RawReport report)
@@ -150,7 +158,9 @@ public sealed class RpxToDesignConverter
             CanGrow = ParseBool(Attr(el, "CanGrow")),
             CanShrink = ParseBool(Attr(el, "CanShrink")),
             OutputFormat = Attr(el, "OutputFormat"),
-            PageBreak = Attr(el, "PageBreak") ?? Attr(el, "NewPage") ?? Attr(el, "NewPageBefore") ?? Attr(el, "NewPageAfter")
+            PageBreak = Attr(el, "PageBreak") ?? Attr(el, "NewPage") ?? Attr(el, "NewPageBefore") ?? Attr(el, "NewPageAfter"),
+            SubreportSource = Attr(el, "ReportName") ?? Attr(el, "Report") ?? Attr(el, "FileName")
+                ?? Attr(el, "File") ?? Attr(el, "Path") ?? Attr(el, "Source")
         };
         ApplyFont(raw, el);
 
@@ -165,7 +175,10 @@ public sealed class RpxToDesignConverter
 
     // ── Band-flatten build (mirrors the DevExpress report converter) ────────────────────────────────
 
-    private static RpxConvertResult BuildDesign(RawReport report)
+    private RpxConvertResult BuildDesign(
+        RawReport report,
+        IReadOnlyDictionary<string, string>? resources,
+        int subreportDepth)
     {
         var diagnostics = new List<MigrationDiagnostic>();
 
@@ -213,6 +226,14 @@ public sealed class RpxToDesignConverter
 
             ApplyBandMetadata(element, raw, bandType, diagnostics);
             ApplyDynamicMetadata(element, raw, diagnostics);
+
+            if (raw.Type == "SubReport"
+                && TryInlineSubreport(raw, element, resources, subreportDepth, diagnostics) is { Count: > 0 } inlined)
+            {
+                elements.AddRange(inlined);
+                mapped += inlined.Count;
+                continue;
+            }
 
             (bandType is "PageHeader" or "PageFooter" ? sharedElements : elements).Add(element);
             mapped++;
@@ -323,6 +344,104 @@ public sealed class RpxToDesignConverter
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
     }
+
+    private List<ElementDto>? TryInlineSubreport(
+        RawElement raw,
+        ElementDto parent,
+        IReadOnlyDictionary<string, string>? resources,
+        int subreportDepth,
+        List<MigrationDiagnostic> diagnostics)
+    {
+        if (resources is null || resources.Count == 0 || subreportDepth >= MaxSubreportDepth)
+            return null;
+
+        var sourceName = raw.SubreportSource;
+        if (string.IsNullOrWhiteSpace(sourceName))
+            return null;
+
+        if (!TryResolveSubreportSource(sourceName, resources, out var matchedKey, out var subreportXml))
+            return null;
+
+        RpxConvertResult result;
+        try
+        {
+            result = ConvertCore(subreportXml, resources, subreportDepth + 1);
+        }
+        catch (ArgumentException ex)
+        {
+            diagnostics.Add(Warn("CANMIGRPX017",
+                $"'{raw.Name}' subreport resource '{matchedKey}' could not be converted: {ex.Message}"));
+            return null;
+        }
+
+        var imported = new List<ElementDto>();
+        foreach (var child in result.Design.Pages.SelectMany(p => p.Elements).Concat(result.Design.SharedElements))
+        {
+            var clone = CloneElement(child);
+            clone.Id = $"{parent.Id}-{clone.Id}";
+            clone.X = parent.X + clone.X;
+            clone.Y = parent.Y + clone.Y;
+            clone.Style ??= [];
+            clone.Style["rpxInlinedFromSubreport"] = matchedKey;
+            clone.Style["rpxParentSubreport"] = raw.Name;
+            imported.Add(clone);
+        }
+
+        diagnostics.Add(Info("CANMIGRPX017",
+            $"'{raw.Name}' subreport resource '{matchedKey}' inlined with {imported.Count} Canvas element(s)."));
+        return imported;
+    }
+
+    private static bool TryResolveSubreportSource(
+        string sourceName,
+        IReadOnlyDictionary<string, string> resources,
+        out string matchedKey,
+        out string source)
+    {
+        foreach (var candidate in SubreportSourceCandidates(sourceName))
+        {
+            if (resources.TryGetValue(candidate, out source!))
+            {
+                matchedKey = candidate;
+                return true;
+            }
+        }
+
+        foreach (var (key, value) in resources)
+        {
+            if (SubreportSourceCandidates(sourceName).Any(candidate =>
+                    string.Equals(Path.GetFileName(key), candidate, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(Path.GetFileNameWithoutExtension(key), Path.GetFileNameWithoutExtension(candidate), StringComparison.OrdinalIgnoreCase)))
+            {
+                matchedKey = key;
+                source = value;
+                return true;
+            }
+        }
+
+        matchedKey = "";
+        source = "";
+        return false;
+    }
+
+    private static IEnumerable<string> SubreportSourceCandidates(string sourceName)
+    {
+        var trimmed = sourceName.Trim().Trim('"', '\'');
+        if (trimmed.Length == 0) yield break;
+
+        yield return trimmed;
+        yield return Path.GetFileName(trimmed);
+
+        var withoutExtension = Path.GetFileNameWithoutExtension(trimmed);
+        if (!string.IsNullOrWhiteSpace(withoutExtension))
+        {
+            yield return $"{withoutExtension}.rpx";
+            yield return withoutExtension;
+        }
+    }
+
+    private static ElementDto CloneElement(ElementDto element) =>
+        JsonSerializer.Deserialize<ElementDto>(JsonSerializer.Serialize(element))!;
 
     // Keeps an unsupported control visible at its original position/size so the layout isn't silently
     // holed — a muted, captioned block the user can replace in the designer.
@@ -659,5 +778,6 @@ public sealed class RpxToDesignConverter
         public bool? CanShrink;
         public string? OutputFormat;
         public string? PageBreak;
+        public string? SubreportSource;
     }
 }

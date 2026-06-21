@@ -85,6 +85,7 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 | `CANMIGRPX014` | Warning | `CanGrow`/`CanShrink` preserved as wrapping/auto-size metadata; dynamic band reflow needs review |
 | `CANMIGRPX015` | Warning | `OutputFormat` preserved as Canvas formatter metadata; exact formatting needs review |
 | `CANMIGRPX016` | Warning | PageBreak/NewPage or CrossSectionLine/CrossSectionBox behaviour preserved as metadata/visual mapping |
+| `CANMIGRPX017` | Info / Warning | Matching `.rpx` subreport resource was inlined, or could not be converted |
 
 ---
 
@@ -104,7 +105,13 @@ problems as DevExpress and gives us a second implementation target for common gr
       Canvas line/rect elements with `style.rpxCrossSection*` metadata.
 - [ ] **P0** Validate + tune against real designer-saved `.rpx` files (measurement units, colour/format edge cases).
 - [x] **P1** `OleObject` placeholder preservation with `style.rpxOleObject` metadata.
-- [ ] **P1** Per-control `.rpx` subreport inlining; runtime page-break execution beyond metadata.
+- [x] **P1** Per-control `.rpx` subreport inlining: when `report-to-design` resources contain a matching
+      `.rpx` source for a `SubReport` `ReportName`/`FileName`/path reference, converted subreport elements
+      are inlined at the parent subreport position and tagged with `style.rpxInlinedFromSubreport` /
+      `style.rpxParentSubreport`.
+- [x] **P1** ActiveReports UI resource upload: the migration page can load multiple `.rpx` subreport files
+      alongside the master RPX and sends them as `report-to-design` resources.
+- [ ] **P1** Runtime page-break execution beyond metadata.
 - [ ] **P1** Embedded-script → no-op (currently a warning only).
 
 ## Assumptions

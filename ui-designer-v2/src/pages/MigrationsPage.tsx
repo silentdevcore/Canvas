@@ -661,6 +661,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const [resourceFileName, setResourceFileName] = useState('');
   const [jrxmlResourceMap, setJrxmlResourceMap] = useState<Record<string, string>>({});
   const [jrxmlResourceFileNames, setJrxmlResourceFileNames] = useState<string[]>([]);
+  const [rpxResourceMap, setRpxResourceMap] = useState<Record<string, string>>({});
+  const [rpxResourceFileNames, setRpxResourceFileNames] = useState<string[]>([]);
   const [canvasCode, setCanvasCode] = useState('');
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
   const [summary, setSummary] = useState<ConversionSummary | null>(null);
@@ -699,6 +701,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     setResourceFileName('');
     setJrxmlResourceMap({});
     setJrxmlResourceFileNames([]);
+    setRpxResourceMap({});
+    setRpxResourceFileNames([]);
     setCanvasCode('');
     setDiagnostics([]);
     setSummary(null);
@@ -757,6 +761,31 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     }
   };
 
+  const handleRpxResourceFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    const rpxFiles = files.filter(file => file.name.toLowerCase().endsWith('.rpx'));
+    if (rpxFiles.length === 0) return;
+
+    try {
+      const entries = await Promise.all(
+        rpxFiles.map(async file => [file.name, await file.text()] as const)
+      );
+      setRpxResourceMap(currentResources => ({
+        ...currentResources,
+        ...Object.fromEntries(entries),
+      }));
+      setRpxResourceFileNames(currentNames => {
+        const names = new Set(currentNames);
+        for (const file of rpxFiles) names.add(file.name);
+        return Array.from(names).sort((a, b) => a.localeCompare(b));
+      });
+      setError(null);
+    } catch {
+      setError('Could not read one or more .rpx resource files.');
+    }
+  };
+
   const handleConvert = async () => {
     if (!sourceCode.trim()) return;
     setConverting(true);
@@ -764,7 +793,9 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     try {
       // Report (DevExpress XtraReport or RDL/RDLC) → Canvas design (JSON), opened in the visual designer.
       if (isReportDesign(selectedId)) {
-        let resources: Record<string, string> = selectedId === JRXML_REPORT_ID ? { ...jrxmlResourceMap } : {};
+        let resources: Record<string, string> = {};
+        if (selectedId === JRXML_REPORT_ID) resources = { ...resources, ...jrxmlResourceMap };
+        if (selectedId === RPX_REPORT_ID) resources = { ...resources, ...rpxResourceMap };
         if (resourceJson.trim()) {
           const parsed = JSON.parse(resourceJson);
           if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
@@ -1080,6 +1111,43 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
                     {jrxmlResourceFileNames.length > 0 && (
                       <div className="mgr-resource-list">
                         {jrxmlResourceFileNames.map(name => <span key={name}>{name}</span>)}
+                      </div>
+                    )}
+                  </>
+                )}
+                {selectedId === RPX_REPORT_ID && (
+                  <>
+                    <div className="mgr-resource-header">
+                      <label htmlFor="mgr-rpx-resource-files">RPX subreports</label>
+                      <span>{rpxResourceFileNames.length ? `${rpxResourceFileNames.length} loaded` : 'No .rpx resources loaded'}</span>
+                    </div>
+                    <div className="mgr-resource-actions">
+                      <label className="mgr-file-btn" htmlFor="mgr-rpx-resource-files">
+                        <FiUpload /> Load .rpx files
+                      </label>
+                      <input
+                        id="mgr-rpx-resource-files"
+                        type="file"
+                        accept=".rpx"
+                        multiple
+                        onChange={handleRpxResourceFilesChange}
+                      />
+                      {rpxResourceFileNames.length > 0 && (
+                        <button
+                          type="button"
+                          className="mgr-link-btn"
+                          onClick={() => {
+                            setRpxResourceMap({});
+                            setRpxResourceFileNames([]);
+                          }}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    {rpxResourceFileNames.length > 0 && (
+                      <div className="mgr-resource-list">
+                        {rpxResourceFileNames.map(name => <span key={name}>{name}</span>)}
                       </div>
                     )}
                   </>

@@ -38,6 +38,9 @@ public sealed class RpxToDesignConverterTests
 
     private static RpxConvertResult Convert(string rpx) => new RpxToDesignConverter().Convert(rpx);
 
+    private static RpxConvertResult Convert(string rpx, IReadOnlyDictionary<string, string> resources) =>
+        new RpxToDesignConverter().Convert(rpx, resources);
+
     private static ElementDto El(DesignExportDto d, string name) =>
         d.Pages[0].Elements.Concat(d.SharedElements).First(e => e.Name == name);
 
@@ -355,5 +358,31 @@ public sealed class RpxToDesignConverterTests
         Assert.Contains("OLE object", ole.Content);
         Assert.True(ole.Style!.ContainsKey("rpxOleObject"));
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRPX011");
+    }
+
+    // 22 ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_SubReportResource_InlinesMatchingRpx()
+    {
+        var master = """
+            <Report Name="Master"><Sections><Detail Name="Detail1" Height="1"><Controls>
+              <SubReport Name="sub" Left="1" Top="0.5" Width="3" Height="1" ReportName="InvoiceSub.rpx" />
+            </Controls></Detail></Sections></Report>
+            """;
+        var subreport = """
+            <Report Name="Sub"><Sections><Detail Name="SubDetail" Height="1"><Controls>
+              <Label Name="subTitle" Left="0.25" Top="0.25" Width="2" Height="0.3" Text="Sub title" />
+            </Controls></Detail></Sections></Report>
+            """;
+
+        var r = Convert(master, new Dictionary<string, string> { ["InvoiceSub.rpx"] = subreport });
+
+        var subTitle = El(r.Design, "subTitle");
+        Assert.DoesNotContain(r.Design.Pages[0].Elements, e => e.Name == "sub");
+        Assert.Equal(90, subTitle.X, 1); // parent 1in + child .25in
+        Assert.Equal(54, subTitle.Y, 1); // parent .5in + child .25in
+        Assert.Equal("InvoiceSub.rpx", subTitle.Style!["rpxInlinedFromSubreport"]);
+        Assert.Equal("sub", subTitle.Style["rpxParentSubreport"]);
+        Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRPX017");
     }
 }
