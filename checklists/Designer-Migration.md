@@ -40,7 +40,7 @@ Legend — **Done?**: ✅ shipped · 🔜 recommended next · ❌ not started ·
 | JasperReports | Cloud Software Group (Jaspersoft) | `.jrxml` (XML, banded) | title/pageHeader/detail/…; staticText/textField/line/rectangle/ellipse/image/frame; named styles; `$F{}` bindings | ✅ `Canvas.Migration.JasperReports` — see [Designer-Migration-JasperReports.md](Designer-Migration-JasperReports.md) |
 | Crystal Reports | SAP | `.rpt` (binary, proprietary) | Banded; **proprietary binary OLE format — no open parser, needs the Windows-only SAP SDK** | ⛔ Blocked — see [Designer-Migration-Crystal.md](Designer-Migration-Crystal.md) |
 | List & Label | combit | `.lst` / `.lsr` | Banded report container | ❌ |
-| ActiveReports JS | MESCIUS | JSON report model | Web/JS designer (distinct from `.rdlx`/`.rpx`) | ❌ |
+| ActiveReports JS | MESCIUS | JSON report model | Web/JS designer (distinct from `.rdlx`/`.rpx`) | ✅ V1 `Canvas.Migration.ActiveReportsJs` — marked JSON only |
 
 ## Recommended next work — provider fidelity
 
@@ -66,9 +66,10 @@ advanced regions.
    multi-run textbox formatting, chart metadata, report parameters, filters, navigation, and per-cell
    styles are preserved/rendered. Remaining work is P2 native Canvas UX/runtime polish such as parameter
    editor controls and compound table-cell rendering.
-3. **ActiveReports RPX section fidelity** — implement `GroupHeader`/`GroupFooter` repeat semantics,
-   `CanGrow`/`CanShrink`, `OutputFormat`, `PageBreak`, `CrossSectionLine`, and tune against real
-   designer-saved `.rpx` files.
+3. **ActiveReports RPX section fidelity** — core metadata/visual preservation is implemented:
+   `GroupHeader`/`GroupFooter`, `CanGrow`/`CanShrink`, `OutputFormat`, `PageBreak`,
+   `CrossSectionLine`, `CrossSectionBox`, subreport inlining, and embedded-script metadata. Remaining
+   P0 is tuning against real designer-saved `.rpx` files.
 
 ### P1 — normalize fidelity across shipped non-core providers
 
@@ -90,5 +91,7 @@ advanced regions.
 7. **Binary/package upload path** — add a file/binary upload route before implementing packaged
    `.trdp`, packaged `.rdlx`, or any Crystal `.rpt` workaround. The current endpoint is string/JSON
    oriented and is a poor fit for ZIP/OLE inputs.
-8. **New provider candidates** — only after P0/P1: List & Label (`.lst`/`.lsr`) and ActiveReports JS
-   JSON. Crystal Reports remains blocked unless a Windows + SAP SDK conversion path is introduced.
+8. **New provider candidates** — only after P0/P1: List & Label (`.lst`/`.lsr`). ActiveReports JS JSON
+   has a conservative V1 path for explicitly marked reports; real vendor-saved samples are still needed
+   before expanding the detector/schema support. Crystal Reports remains blocked unless a Windows + SAP
+   SDK conversion path is introduced.

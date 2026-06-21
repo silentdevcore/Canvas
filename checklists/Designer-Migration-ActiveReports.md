@@ -94,6 +94,9 @@ Key sample-driven conclusions:
       `Canvas.Migration.ActiveReportsJs`; text/line/image/barcode/simple table items map to Canvas
       elements and unsupported regions become visible placeholders. Real vendor-saved JSON samples
       are still needed for schema tuning.
+- [x] **P2** ActiveReports JS sample validation harness: tests auto-discover
+      `designer-simples/ActiveReports/**/*.json`, convert files with an explicit ActiveReports JS marker,
+      and skip gracefully until real vendor-saved JSON reports exist.
 
 ## Implementation notes
 
