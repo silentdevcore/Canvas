@@ -7,8 +7,9 @@ MESCIUS (GrapeCity) **ActiveReports** family of report designers.
 - **Two distinct file formats — different converters:**
   | Format | Designer kind | Layout | Converter | Companion doc |
   | --- | --- | --- | --- | --- |
-  | `.rpx` | **Section** report | banded XML (inches) | `Canvas.Migration.Rpx` | [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) |
-  | `.rdlx` | **Page** report | RDL XML (`reportdefinition` ns) | `Canvas.Migration.Rdl` | [Code-Migration-SyncfusionRdl.md](Code-Migration-SyncfusionRdl.md) |
+| `.rpx` | **Section** report | banded XML (inches) | `Canvas.Migration.Rpx` | [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) |
+| `.rdlx` | **Page** report | RDL XML (`reportdefinition` ns) | `Canvas.Migration.Rdl` | [Code-Migration-SyncfusionRdl.md](Code-Migration-SyncfusionRdl.md) |
+| `.json` | **ActiveReports JS** report | marked JSON (`reportType: ActiveReportsJS`) | `Canvas.Migration.ActiveReportsJs` | this file |
 - **Routing:** `.rdlx` uses the Microsoft RDL `reportdefinition` namespace, so it is detected and
   routed by `LooksLikeRdl` (the RPX detector explicitly **rejects** that namespace). `.rpx` is the
   banded section format detected by `LooksLikeRpx` (root `<Report>` + `<Sections>`).
@@ -88,7 +89,11 @@ Key sample-driven conclusions:
       `designer-simples/ActiveReports/**/*.rpx` and skip gracefully until real section-report samples exist.
 - [ ] **P1** Add and validate real designer-saved `.rpx` files
       (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) for the remaining P0 item).
-- [ ] **P2** ActiveReports **JS** JSON report model (distinct web/JS designer; not yet started).
+- [x] **P2** ActiveReports **JS** JSON report model V1: explicitly marked JSON reports
+      (`reportType`/`reportKind`/`designer` containing `ActiveReportsJS`) route to
+      `Canvas.Migration.ActiveReportsJs`; text/line/image/barcode/simple table items map to Canvas
+      elements and unsupported regions become visible placeholders. Real vendor-saved JSON samples
+      are still needed for schema tuning.
 
 ## Implementation notes
 
