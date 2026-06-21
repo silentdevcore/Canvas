@@ -109,8 +109,8 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 ## V2 — next
 
 **Current recommendation:** defer packaged `.trdp` until a binary upload path exists. Before that, focus
-on XML `.trdx` fidelity: tables, crosstabs, captions for unsupported visual regions, and shared
-group/repeat semantics.
+on XML `.trdx` fidelity: real-sample validation, group/repeat semantics, expression dialect coverage,
+and unsupported visual regions. Basic `Table`/`CrossTab` extraction and table cell styles are now done.
 
 - [ ] **P2** `.trdp` (zipped package) — unzip + feed the same parser (needs a binary upload path)
 - [ ] **P1** `TypeSelector` stylesheet rules; `Panel` nesting depth; group sections repeat semantics
@@ -119,4 +119,6 @@ group/repeat semantics.
       prefix-agnostic, attribute or element), `=Fields.X`→binding tokens, sequential-fill fallback when
       no anchors are present (`CANMIGTRDX013`). ⚠️ Unverified against real `.trdx` (no local samples) —
       cell anchoring is best-effort. `Chart`/`Graph`/`Map` remain captioned placeholders.
+- [x] **P1** Telerik table `CellStyles`: named + inline content-item `<Style>` values inside table cells
+      preserve background, text alignment, font and border metadata for Canvas table rendering/export.
 - [ ] **P1** Telerik expression dialect (`=Fields.X + …`, functions) beyond single-field bindings

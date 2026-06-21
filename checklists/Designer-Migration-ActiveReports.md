@@ -44,7 +44,7 @@ Observed feature coverage:
 | **`<List>`** region (grouped repeat) + nested `<Table>` + `<Grouping>` | 1 (BloodTestReport) | **now parsed**: container + repeat metadata; children extracted | Done (this pass) |
 | `Image` (embedded/base64/reference) | 9 | supported | Done |
 | `Line` | 17 | supported | Done |
-| Per-cell `<BorderStyle>` / `<Padding>` | broad | column-level only (Canvas has no per-cell table styling) | P1 / documented limit |
+| Per-cell `<BorderStyle>` / `<Padding>` | broad | supported via sparse `CellStyles`; rendered/exported across the main output paths | Done/P1 |
 | `Tablix` / `Chart` / `CustomReportItem` / `Subreport` / `Matrix` | 0 in these samples | supported by the RDL converter (untested here) | n/a |
 
 Key sample-driven conclusions:
