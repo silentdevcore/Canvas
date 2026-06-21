@@ -80,8 +80,10 @@ Key sample-driven conclusions:
       `PageSettings.CustomProperties` for manual review.
 - [x] **P1** RPX page-break mapping: `PageBreak`/`NewPage` hints create typed Canvas `pageboundary`
       markers alongside `style.rpxPageBreak` metadata.
-- [ ] **P1** Validate the `.rpx` Section-report converter against real designer-saved `.rpx` files
-      (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) for its own P0 list).
+- [x] **P1** RPX real-sample validation harness: tests auto-discover
+      `designer-simples/ActiveReports/**/*.rpx` and skip gracefully until real section-report samples exist.
+- [ ] **P1** Add and validate real designer-saved `.rpx` files
+      (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) for the remaining P0 item).
 - [ ] **P2** ActiveReports **JS** JSON report model (distinct web/JS designer; not yet started).
 
 ## Implementation notes
