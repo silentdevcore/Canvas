@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type { Template, SimpleElement, LayerDirection, PageSettings, Page, PdfEncryption, PdfEncryptionPermissions } from '@/types';
+import type { Template, SimpleElement, CellStyle, LayerDirection, PageSettings, Page, PdfEncryption, PdfEncryptionPermissions } from '@/types';
 import { useEditorStore, DEFAULT_PAGE_SETTINGS } from '@/store';
 import { toDisplay, fromDisplay } from '@/utils/units';
 import { getPageSettingsWarnings } from '@/utils/pageValidation';
@@ -6952,6 +6952,29 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 const rows = selectedElement.style?.rows ?? 3;
                 const colAligns = selectedElement.columnAlignments ?? Array.from({ length: cols }, () => 'left' as const);
                 const colWidths = selectedElement.columnWidths ?? Array.from({ length: cols }, () => 0);
+                const selectedCellRow = Math.min(Math.max(Number(selectedElement.style?.selectedCellRow ?? 0), 0), rows - 1);
+                const selectedCellCol = Math.min(Math.max(Number(selectedElement.style?.selectedCellCol ?? 0), 0), cols - 1);
+                const cellStyles = selectedElement.cellStyles ?? [];
+                const activeCellStyle = cellStyles.find((cs) => cs.row === selectedCellRow && cs.col === selectedCellCol);
+                const isMeaningfulCellStyle = (cs: CellStyle) =>
+                  Boolean(cs.backgroundColor || cs.color || cs.textAlign || cs.borderColor || cs.borderWidth
+                    || cs.padding || cs.fontFamily || cs.fontSize || cs.bold || cs.italic
+                    || cs.borderTop || cs.borderRight || cs.borderBottom || cs.borderLeft);
+                const setSelectedCell = (row: number, col: number) => {
+                  updateSelectedElement({
+                    style: { ...selectedElement.style, selectedCellRow: row, selectedCellCol: col }
+                  });
+                };
+                const updateCellStyle = (updates: Partial<CellStyle>) => {
+                  const next = cellStyles.filter((cs) => !(cs.row === selectedCellRow && cs.col === selectedCellCol));
+                  const merged: CellStyle = { row: selectedCellRow, col: selectedCellCol, ...(activeCellStyle ?? {}), ...updates };
+                  if (isMeaningfulCellStyle(merged)) next.push(merged);
+                  updateSelectedElement({ cellStyles: next.length ? next : undefined });
+                };
+                const clearCellStyle = () => {
+                  const next = cellStyles.filter((cs) => !(cs.row === selectedCellRow && cs.col === selectedCellCol));
+                  updateSelectedElement({ cellStyles: next.length ? next : undefined });
+                };
                 return (
                   <div className="editor-form-stack">
                     <label>
@@ -7100,6 +7123,102 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                             ))}
                           </tbody>
                         </table>
+                      </div>
+                    </div>
+
+                    <div className="editor-form-group">
+                      <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Cell Style</span>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 4 }}>
+                        <label>
+                          <span>Row</span>
+                          <input type="number" min="1" max={rows} value={selectedCellRow + 1}
+                            onChange={(e) => setSelectedCell(Math.min(Math.max(Number(e.target.value) - 1, 0), rows - 1), selectedCellCol)} />
+                        </label>
+                        <label>
+                          <span>Col</span>
+                          <input type="number" min="1" max={cols} value={selectedCellCol + 1}
+                            onChange={(e) => setSelectedCell(selectedCellRow, Math.min(Math.max(Number(e.target.value) - 1, 0), cols - 1))} />
+                        </label>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
+                        {Array.from({ length: rows }).map((_, r) => (
+                          Array.from({ length: cols }).map((__, c) => {
+                            const hasStyle = cellStyles.some((cs) => cs.row === r && cs.col === c);
+                            const active = r === selectedCellRow && c === selectedCellCol;
+                            return (
+                              <button key={`${r}-${c}`} type="button"
+                                className={`editor-toggle-btn${active ? ' active' : ''}`}
+                                title={`Cell ${r + 1}:${c + 1}${hasStyle ? ' styled' : ''}`}
+                                onClick={() => setSelectedCell(r, c)}
+                                style={{ minWidth: 28, height: 24, borderColor: hasStyle ? '#7c3aed' : undefined }}>
+                                {r + 1}:{c + 1}
+                              </button>
+                            );
+                          })
+                        ))}
+                      </div>
+                      <div className="editor-form-grid" style={{ marginTop: 8 }}>
+                        <label>
+                          <span>Background</span>
+                          <input type="color" value={activeCellStyle?.backgroundColor || '#ffffff'}
+                            onChange={(e) => updateCellStyle({ backgroundColor: e.target.value })} />
+                        </label>
+                        <label>
+                          <span>Text Color</span>
+                          <input type="color" value={activeCellStyle?.color || '#111827'}
+                            onChange={(e) => updateCellStyle({ color: e.target.value })} />
+                        </label>
+                        <label>
+                          <span>Font Size</span>
+                          <input type="number" min="1" value={activeCellStyle?.fontSize ?? ''}
+                            onChange={(e) => updateCellStyle({ fontSize: e.target.value === '' ? undefined : Number(e.target.value) })} />
+                        </label>
+                        <label>
+                          <span>Padding</span>
+                          <input type="number" min="0" value={activeCellStyle?.padding ?? ''}
+                            onChange={(e) => updateCellStyle({ padding: e.target.value === '' ? undefined : Number(e.target.value) })} />
+                        </label>
+                        <label>
+                          <span>Border Color</span>
+                          <input type="color" value={activeCellStyle?.borderColor || '#e2e8f0'}
+                            onChange={(e) => updateCellStyle({ borderColor: e.target.value })} />
+                        </label>
+                        <label>
+                          <span>Border Width</span>
+                          <input type="number" min="0" value={activeCellStyle?.borderWidth ?? ''}
+                            onChange={(e) => updateCellStyle({ borderWidth: e.target.value === '' ? undefined : Number(e.target.value) })} />
+                        </label>
+                      </div>
+                      <label style={{ marginTop: 6 }}>
+                        <span>Font Family</span>
+                        <select value={activeCellStyle?.fontFamily || ''}
+                          onChange={(e) => updateCellStyle({ fontFamily: e.target.value || undefined })}>
+                          <option value="">Default</option>
+                          {FONT_FAMILIES.map(f => <option key={f} value={f}>{f}</option>)}
+                        </select>
+                      </label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                        <div className="editor-toggle-group">
+                          {(['left', 'center', 'right'] as const).map((align) => (
+                            <button key={align} type="button"
+                              className={`editor-toggle-btn${activeCellStyle?.textAlign === align ? ' active' : ''}`}
+                              title={`Align ${align}`}
+                              onClick={() => updateCellStyle({ textAlign: activeCellStyle?.textAlign === align ? undefined : align })}>
+                              {align === 'left' ? <FiAlignLeft size={11} /> : align === 'center' ? <FiAlignCenter size={11} /> : <FiAlignRight size={11} />}
+                            </button>
+                          ))}
+                        </div>
+                        <button type="button" className={`editor-toggle-btn${activeCellStyle?.bold ? ' active' : ''}`}
+                          title="Bold" onClick={() => updateCellStyle({ bold: activeCellStyle?.bold ? undefined : true })}>
+                          <FiBold size={11} />
+                        </button>
+                        <button type="button" className={`editor-toggle-btn${activeCellStyle?.italic ? ' active' : ''}`}
+                          title="Italic" onClick={() => updateCellStyle({ italic: activeCellStyle?.italic ? undefined : true })}>
+                          <FiItalic size={11} />
+                        </button>
+                        <button type="button" className="editor-toggle-btn" title="Clear cell style" onClick={clearCellStyle}>
+                          <FiTrash2 size={11} />
+                        </button>
                       </div>
                     </div>
                   </div>

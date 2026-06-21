@@ -135,7 +135,9 @@ adds an **additive, backward-compatible** per-cell style model and wires a **v1 
       HorzAlign/Padding), **Telerik** (content-item named+inline `<Style>`), **DevExpress** (XRTableCell XML
       BackColor/ForeColor/Borders/Font/TextAlignment). *(Jasper intentionally not touched. DevExpress C#-code
       path + Telerik per-side borders remain follow-ups.)*
-- [ ] Frontend manual per-cell style editor in the inspector.
+- [x] Frontend manual per-cell style editor in the inspector: table elements now expose row/column cell
+      selection plus sparse `cellStyles` editing for background, text colour, font, padding, alignment,
+      bold/italic, and uniform border colour/width.
 - [x] Per-cell padding + font (family/size/bold/italic/color): added to `CellStyleDto`, extracted by the
       RDL converter (`PaddingLeft/Top/Right/Bottom`, `FontFamily/FontSize/FontWeight/FontStyle/Color`), and
       rendered on canvas/preview + all exporters. (Word/Excel have no cell-padding model → padding skipped
