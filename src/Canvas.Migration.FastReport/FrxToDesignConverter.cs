@@ -160,27 +160,86 @@ public sealed class FrxToDesignConverter
             : null;
 
         var grid = new List<List<string>>();
+        var cellStyles = new List<CellStyleDto>();
         string[]? aligns = null;
+        var rowIndex = 0;
         foreach (var row in el.Elements().Where(e => e.Name.LocalName == "TableRow"))
         {
             var cells = new List<string>();
             var rowAligns = new List<string>();
+            var colIndex = 0;
             foreach (var cell in row.Elements().Where(e => e.Name.LocalName == "TableCell"))
             {
+                if (ExtractFrxCellStyle(cell, rowIndex, colIndex) is { } cs) cellStyles.Add(cs);
                 cells.Add(CellDisplay(Attr(cell, "Text")));
                 rowAligns.Add(ParseAlignment(Attr(cell, "HorzAlign")));
-                var span = (int)ToDouble(Attr(cell, "ColSpan"));
+                var span = Math.Max(1, (int)ToDouble(Attr(cell, "ColSpan")));
                 for (var i = 1; i < span; i++) { cells.Add(""); rowAligns.Add("left"); }
+                colIndex += span;
             }
             if (cells.Count == 0) continue;
             grid.Add(cells);
             aligns ??= rowAligns.ToArray();
+            rowIndex++;
         }
 
         raw.TableCells = grid.Count > 0 ? grid : null;
+        raw.CellStyles = cellStyles.Count > 0 ? cellStyles : null;
         raw.ColumnAlignments = aligns;
         raw.TableHasHeader = grid.Count > 1;
     }
+
+    // Per-cell style from a FastReport TableCell: fill/text colour, alignment, font, and borders
+    // (Border.Lines "All" → uniform; otherwise the listed sides).
+    private static CellStyleDto? ExtractFrxCellStyle(XElement cell, int row, int col)
+    {
+        var cs = new CellStyleDto { Row = row, Col = col };
+        var any = false;
+
+        if (ParseColor(Attr(cell, "Fill.Color")) is { } bg)     { cs.BackgroundColor = bg; any = true; }
+        if (ParseColor(Attr(cell, "TextFill.Color")) is { } fc) { cs.Color = fc; any = true; }
+        if (Attr(cell, "HorzAlign") is { Length: > 0 } ha)      { cs.TextAlign = ParseAlignment(ha); any = true; }
+
+        if (Attr(cell, "Font") is { Length: > 0 } font)
+        {
+            var tmp = new RawElement { Name = "", Type = "" };
+            ApplyFont(tmp, font);
+            cs.FontFamily = tmp.FontFamily;
+            cs.FontSize = tmp.FontSize;
+            if (tmp.Bold) cs.Bold = true;
+            if (tmp.Italic) cs.Italic = true;
+            any = true;
+        }
+
+        if (SplitNumbers(Attr(cell, "Padding")).DefaultIfEmpty(0).Max() is var padPx and > 0)
+        { cs.Padding = padPx * PxToPt; any = true; }
+
+        if (Attr(cell, "Border.Lines") is { Length: > 0 } lines)
+        {
+            var color = ParseColor(Attr(cell, "Border.Color")) ?? "#000000";
+            var width = Attr(cell, "Border.Width") is { } bw ? ToDouble(bw) : 1;
+            CellBorderSideDto Side() => new() { Color = color, Width = width };
+            if (lines.Contains("All", StringComparison.OrdinalIgnoreCase))
+            { cs.BorderColor = color; cs.BorderWidth = width; }
+            else
+            {
+                if (lines.Contains("Top", StringComparison.OrdinalIgnoreCase))    cs.BorderTop = Side();
+                if (lines.Contains("Right", StringComparison.OrdinalIgnoreCase))   cs.BorderRight = Side();
+                if (lines.Contains("Bottom", StringComparison.OrdinalIgnoreCase))  cs.BorderBottom = Side();
+                if (lines.Contains("Left", StringComparison.OrdinalIgnoreCase))    cs.BorderLeft = Side();
+            }
+            any = true;
+        }
+
+        return any ? cs : null;
+    }
+
+    private static double[] SplitNumbers(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? []
+            : value.Split([',', ' '], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                   .Select(p => double.TryParse(p, NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : 0)
+                   .ToArray();
 
     // A table cell value: a single [Source.Column] becomes a Canvas binding token; anything else is literal.
     private static string CellDisplay(string? text)
@@ -342,6 +401,7 @@ public sealed class FrxToDesignConverter
         element.ColumnWidths = FitWidths(raw.ColumnWidthsPt, columns, raw.W);
         element.ColumnAlignments = FitToColumns(raw.ColumnAlignments, columns);
         element.HeaderRow = raw.TableHasHeader;
+        element.CellStyles = raw.CellStyles is { Count: > 0 } cs ? cs.ToArray() : null;
 
         diagnostics.Add(Info("CANMIGFRX013",
             $"'{raw.Name}' FastReport TableObject was mapped to a Canvas table ({grid.Count} row(s) × {columns} column(s))."));
@@ -636,6 +696,7 @@ public sealed class FrxToDesignConverter
         public string? Symbology;
         public bool Checked;
         public List<List<string>>? TableCells;
+        public List<CellStyleDto>? CellStyles;
         public double[]? ColumnWidthsPt;
         public string[]? ColumnAlignments;
         public bool TableHasHeader;

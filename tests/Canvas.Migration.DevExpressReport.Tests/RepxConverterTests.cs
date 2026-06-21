@@ -517,6 +517,36 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
+    public void ConvertRepx_TableCellStyles_FillBorderFontAlign()
+    {
+        var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
+            """
+            <Item1 ControlType="DevExpress.XtraReports.UI.XRTable, X" Name="t" SizeF="300,40" LocationFloat="0,0">
+              <Rows>
+                <Item1 ControlType="DevExpress.XtraReports.UI.XRTableRow, X" Name="r1">
+                  <Cells>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.XRTableCell, X" Name="c1" Text="Total"
+                           BackColor="Yellow" ForeColor="Red" TextAlignment="MiddleCenter"
+                           Font="Verdana, 12pt, style=Bold" Borders="Bottom" BorderColor="Black" BorderWidth="2" />
+                  </Cells>
+                </Item1>
+              </Rows>
+            </Item1>
+            """)).Design;
+
+        var table = Page(design, "t");
+        var cs = Assert.Single(table.CellStyles!);
+        Assert.Equal("#FFFF00", cs.BackgroundColor);
+        Assert.Equal("#FF0000", cs.Color);
+        Assert.Equal("center", cs.TextAlign);
+        Assert.Equal("Verdana", cs.FontFamily);
+        Assert.True(cs.Bold);
+        Assert.NotNull(cs.BorderBottom);
+        Assert.Equal(2, cs.BorderBottom!.Width);
+        Assert.Null(cs.BorderTop);
+    }
+
+    [Fact]
     public void ConvertRepx_XRPictureBox_WithEmbeddedImage_KeepsDataUrl()
     {
         const string pngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";

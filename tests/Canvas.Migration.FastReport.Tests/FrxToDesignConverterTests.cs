@@ -257,4 +257,34 @@ public sealed class FrxToDesignConverterTests
         Assert.Equal(new[] { "Summary", "" }, grid.CellData![0]);   // ColSpan=2 → value + 1 empty
         Assert.Equal(new[] { "A", "B" }, grid.CellData![1]);
     }
+
+    [Fact]
+    public void Convert_TableObject_CellStyles_FillBorderFontAlign()
+    {
+        var frx = """
+            <Report ReportInfo.Name="T">
+              <ReportPage Name="Page1">
+                <DataBand Name="Data1" Top="0" Width="400" Height="40">
+                  <TableObject Name="grid" Left="0" Top="0" Width="200" Height="40">
+                    <TableColumn Name="c1" Width="100"/>
+                    <TableRow Name="r1" Height="20">
+                      <TableCell Name="c" Text="Total" Fill.Color="Yellow" TextFill.Color="Red" HorzAlign="Center"
+                                 Font="Verdana, 12pt, style=Bold" Border.Lines="Bottom" Border.Color="Black" Border.Width="2"/>
+                    </TableRow>
+                  </TableObject>
+                </DataBand>
+              </ReportPage></Report>
+            """;
+        var grid = El(Convert(frx).Design, "grid");
+        var cs = Assert.Single(grid.CellStyles!);
+        Assert.Equal(0, cs.Row);
+        Assert.Equal("#FFFF00", cs.BackgroundColor);
+        Assert.Equal("#FF0000", cs.Color);
+        Assert.Equal("center", cs.TextAlign);
+        Assert.Equal("Verdana", cs.FontFamily);
+        Assert.True(cs.Bold);
+        Assert.NotNull(cs.BorderBottom);
+        Assert.Equal(2, cs.BorderBottom!.Width);
+        Assert.Null(cs.BorderTop);                 // only the listed side
+    }
 }

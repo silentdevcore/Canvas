@@ -251,4 +251,37 @@ public sealed class TrdxToDesignConverterTests
         Assert.Equal(new[] { "A", "B" }, t.CellData![0]);   // 2 columns → sequential fill row-major
         Assert.Equal(new[] { "C", "D" }, t.CellData![1]);
     }
+
+    [Fact]
+    public void Convert_Table_CellStyles_FromItemStyle()
+    {
+        var trdx = """
+            <Report Width="8.1in" Name="T" xmlns="http://schemas.telerik.com/reporting/2012/3.6">
+              <Items>
+                <DetailSection Height="1in" Name="d1">
+                  <Items>
+                    <Table Name="table1" Left="0in" Top="0in" Width="4in" Height="0.6in">
+                      <Body><TableBodyColumns><TableBodyColumn Width="2in"/></TableBodyColumns></Body>
+                      <Items>
+                        <TextBox Name="h1" Value="Name" Table.CellRowIndex="0" Table.CellColumnIndex="0">
+                          <Style TextAlign="Center" BackgroundColor="#FFFF00" Color="#0000FF">
+                            <Font Name="Verdana" Size="12pt" Bold="true"/>
+                          </Style>
+                        </TextBox>
+                      </Items>
+                    </Table>
+                  </Items>
+                </DetailSection>
+              </Items>
+            </Report>
+            """;
+        var t = El(Convert(trdx).Design, "table1");
+        var cs = Assert.Single(t.CellStyles!);
+        Assert.Equal("#FFFF00", cs.BackgroundColor);
+        Assert.Equal("#0000FF", cs.Color);
+        Assert.Equal("center", cs.TextAlign);
+        Assert.Equal("Verdana", cs.FontFamily);
+        Assert.Equal(12, cs.FontSize);
+        Assert.True(cs.Bold);
+    }
 }

@@ -106,9 +106,20 @@ adds an **additive, backward-compatible** per-cell style model and wires a **v1 
 - [x] Frontend type mirror (`ui-designer-v2/src/types.ts`: `CellStyle` / `CellBorderSide`).
 - [x] Tests: RDL `CellStyles` extraction + null-when-unstyled (backward-compat); image-export render diff.
 
-**Follow-up phases (not in v1):**
-- [ ] Remaining exporters honour `CellStyles`: SVG / HTML / Word / Excel / ODT.
-- [ ] Codegen (`jsonToCSharp.ts` / `CodeGenerator.ts`) emit `CellStyles` + Canvas.Pdf runtime consumes it (real PDF output).
-- [ ] Other converters populate `CellStyles`: FastReport / Telerik / Jasper / DevExpress.
+**Follow-up phases:**
+- [x] Remaining exporters honour `CellStyles`: HTML / SVG / Word / Excel / ODT — per-cell background,
+      text-align, and uniform + per-side borders; explicit cell borders replace the table grid (parity
+      with canvas/image). ODT emits `<style:style family="table-cell">` defs in `office:automatic-styles`.
+- [x] Codegen emits `CellStyles`: `jsonToCSharp.ts` writes the full `CellStyleDto[]` initializer (consumed
+      by the Canvas.Pdf runtime DTO renderer); `CodeGenerator.ts` (PDFsharp sample) applies per-cell
+      background/text-colour/bold/alignment. *(Canvas.Pdf runtime rendering lives outside this repo; the
+      DTO it receives now carries the styles.)*
+- [x] Other converters populate `CellStyles`: **FastReport** (`TableCell` Fill/TextFill/Border.Lines/Font/
+      HorzAlign/Padding), **Telerik** (content-item named+inline `<Style>`), **DevExpress** (XRTableCell XML
+      BackColor/ForeColor/Borders/Font/TextAlignment). *(Jasper intentionally not touched. DevExpress C#-code
+      path + Telerik per-side borders remain follow-ups.)*
 - [ ] Frontend manual per-cell style editor in the inspector.
-- [ ] Per-cell padding + font (family/size/weight/color) — v1 carries borders/background/align only.
+- [x] Per-cell padding + font (family/size/bold/italic/color): added to `CellStyleDto`, extracted by the
+      RDL converter (`PaddingLeft/Top/Right/Bottom`, `FontFamily/FontSize/FontWeight/FontStyle/Color`), and
+      rendered on canvas/preview + all exporters. (Word/Excel have no cell-padding model → padding skipped
+      there; ODT font is applied inline on `text:p`.)

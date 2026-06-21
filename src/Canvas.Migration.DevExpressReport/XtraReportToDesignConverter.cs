@@ -380,14 +380,19 @@ public sealed class XtraReportToDesignConverter
         {
             var rowsEl = el.Elements().FirstOrDefault(e => e.Name.LocalName == "Rows");
             var grid = new List<List<string>>();
+            var cellStyles = new List<CellStyleDto>();
+            var rowIndex = 0;
             foreach (var rowEl in rowsEl?.Elements() ?? Enumerable.Empty<XElement>())
             {
                 var cellsEl = rowEl.Elements().FirstOrDefault(e => e.Name.LocalName == "Cells");
-                var cells = (cellsEl?.Elements() ?? Enumerable.Empty<XElement>())
-                    .Select(c => Attr(c, "Text") ?? "").ToList();
-                grid.Add(cells);
+                var cellEls = (cellsEl?.Elements() ?? Enumerable.Empty<XElement>()).ToList();
+                grid.Add(cellEls.Select(c => Attr(c, "Text") ?? "").ToList());
+                for (var colIndex = 0; colIndex < cellEls.Count; colIndex++)
+                    if (ExtractCellStyle(cellEls[colIndex], rowIndex, colIndex) is { } cs) cellStyles.Add(cs);
+                rowIndex++;
             }
             raw.TableCells = grid.Count > 0 ? grid : null;
+            raw.CellStyles = cellStyles.Count > 0 ? cellStyles : null;
 
             var headerCells = rowsEl?.Elements().FirstOrDefault()
                 ?.Elements().FirstOrDefault(e => e.Name.LocalName == "Cells")?.Elements();
@@ -726,7 +731,8 @@ public sealed class XtraReportToDesignConverter
             CellData = cellData,
             ColumnWidths = Enumerable.Repeat(w / columns, columns).ToArray(),
             ColumnAlignments = FitColumns(raw.ColumnAlignments, columns),
-            HeaderRow = true
+            HeaderRow = true,
+            CellStyles = raw.CellStyles is { Count: > 0 } cs ? cs.ToArray() : null
         };
     }
 
@@ -1203,6 +1209,47 @@ public sealed class XtraReportToDesignConverter
 
     private static HashSet<string>? ParseBorders(ExpressionSyntax? expr) => ParseBorders(expr?.ToString());
 
+    // Per-cell style from an XRTableCell: fore/back colour, alignment, font, and borders
+    // (Borders "All" → uniform; otherwise the listed sides). Padding is XRControl-specific and skipped.
+    private static CellStyleDto? ExtractCellStyle(XElement cell, int row, int col)
+    {
+        var cs = new CellStyleDto { Row = row, Col = col };
+        var any = false;
+
+        if (Attr(cell, "BackColor") is { } bg)        { cs.BackgroundColor = ParseColorString(bg); any = true; }
+        if (Attr(cell, "ForeColor") is { } fc)        { cs.Color = ParseColorString(fc); any = true; }
+        if (Attr(cell, "TextAlignment") is { Length: > 0 } ta) { cs.TextAlign = ParseAlignment(ta); any = true; }
+
+        if (Attr(cell, "Font") is { Length: > 0 } font)
+        {
+            var tmp = new RawElement { Name = "", Type = "" };
+            ApplyFontString(tmp, font);
+            cs.FontFamily = tmp.FontFamily;
+            cs.FontSize = tmp.FontSize;
+            if (tmp.Bold) cs.Bold = true;
+            if (tmp.Italic) cs.Italic = true;
+            any = true;
+        }
+
+        if (ParseBorders(Attr(cell, "Borders")) is { Count: > 0 } borders && !(borders.Count == 1 && borders.Contains("None")))
+        {
+            var color = Attr(cell, "BorderColor") is { } bcv ? ParseColorString(bcv) : "#000000";
+            var width = double.TryParse(Attr(cell, "BorderWidth"), NumberStyles.Any, CultureInfo.InvariantCulture, out var w) && w > 0 ? w : 1;
+            CellBorderSideDto Side() => new() { Color = color, Width = width };
+            if (borders.Contains("All")) { cs.BorderColor = color; cs.BorderWidth = width; }
+            else
+            {
+                if (borders.Contains("Top"))    cs.BorderTop = Side();
+                if (borders.Contains("Right"))  cs.BorderRight = Side();
+                if (borders.Contains("Bottom")) cs.BorderBottom = Side();
+                if (borders.Contains("Left"))   cs.BorderLeft = Side();
+            }
+            any = true;
+        }
+
+        return any ? cs : null;
+    }
+
     private static HashSet<string>? ParseBorders(string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return null;
@@ -1600,6 +1647,7 @@ public sealed class XtraReportToDesignConverter
         public Dictionary<string, string>? BindingExpressions;
         public HashSet<string>? UnmappedBindingProperties;
         public List<List<string>>? TableCells;
+        public List<CellStyleDto>? CellStyles;
         public string[]? ColumnAlignments;  // per-column alignment from the header row (XRTable)
         public string? ShapeKind;     // "ellipse" | "line" | "arrow" | "rect" (XRShape)
         public string? CheckState;    // "checked" | "empty" (XRCheckBox)

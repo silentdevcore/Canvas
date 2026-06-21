@@ -173,31 +173,62 @@ public sealed class TrdxToDesignConverter
         var itemsEl = tableEl.Elements().FirstOrDefault(e => e.Name.LocalName == "Items");
         var content = (itemsEl?.Elements() ?? Enumerable.Empty<XElement>())
             .Where(e => e.Name.LocalName != "Items")
-            .Select(item => (Text: CellDisplay(ItemValue(item)), Anchor: ReadCellAnchor(item)))
+            .Select(item => (Text: CellDisplay(ItemValue(item)), Anchor: ReadCellAnchor(item), Item: item))
             .ToList();
         if (content.Count == 0) return;
 
         List<List<string>> grid;
+        var cellStyles = new List<CellStyleDto>();
         if (content.Any(c => c.Anchor.HasPosition))
         {
             var rows = Math.Max(declaredRows, content.Where(c => c.Anchor.HasPosition).Max(c => c.Anchor.Row + 1));
             var cols = Math.Max(declaredCols, content.Where(c => c.Anchor.HasPosition).Max(c => c.Anchor.Col + 1));
             grid = NewGrid(rows, cols);
-            foreach (var (text, anchor) in content)
+            foreach (var (text, anchor, item) in content)
                 if (anchor.HasPosition && anchor.Row < rows && anchor.Col < cols)
+                {
                     grid[anchor.Row][anchor.Col] = text;
+                    if (ExtractCellStyle(item, anchor.Row, anchor.Col) is { } cs) cellStyles.Add(cs);
+                }
         }
         else
         {
             var cols = Math.Max(1, declaredCols);
             var rows = (int)Math.Ceiling(content.Count / (double)cols);
             grid = NewGrid(rows, cols);
-            for (var i = 0; i < content.Count; i++) grid[i / cols][i % cols] = content[i].Text;
+            for (var i = 0; i < content.Count; i++)
+            {
+                grid[i / cols][i % cols] = content[i].Text;
+                if (ExtractCellStyle(content[i].Item, i / cols, i % cols) is { } cs) cellStyles.Add(cs);
+            }
         }
 
         raw.TableCells = grid;
+        raw.CellStyles = cellStyles.Count > 0 ? cellStyles : null;
         raw.TableColumnWidthsPt = colWidths.Count > 0 ? colWidths.ToArray() : null;
         raw.TableHasHeader = grid.Count > 1;
+    }
+
+    // Per-cell style from a Telerik content item, reusing the named+inline style resolution. Only
+    // non-default properties are emitted so CellStyles stays sparse.
+    private CellStyleDto? ExtractCellStyle(XElement item, int row, int col)
+    {
+        var tmp = new RawElement { Name = "", Type = "" };
+        ApplyStyle(tmp, _namedStyles.GetValueOrDefault(Attr(item, "StyleName") ?? ""));
+        ApplyStyle(tmp, Child(item, "Style"));
+
+        var cs = new CellStyleDto { Row = row, Col = col };
+        var any = false;
+        if (tmp.BackColor is { } bg)                 { cs.BackgroundColor = bg; any = true; }
+        if (tmp.ForeColor != "#000000")              { cs.Color = tmp.ForeColor; any = true; }
+        if (tmp.TextAlign != "left")                 { cs.TextAlign = tmp.TextAlign; any = true; }
+        if (tmp.BorderColor is not null || tmp.BorderWidth is not null)
+        { cs.BorderColor = tmp.BorderColor; cs.BorderWidth = tmp.BorderWidth; any = true; }
+        if (tmp.FontFamily is { } ff)                { cs.FontFamily = ff; any = true; }
+        if (tmp.FontSize is { } fs)                  { cs.FontSize = fs; any = true; }
+        if (tmp.Bold)                                { cs.Bold = true; any = true; }
+        if (tmp.Italic)                              { cs.Italic = true; any = true; }
+        return any ? cs : null;
     }
 
     private static List<List<string>> NewGrid(int rows, int cols) =>
@@ -376,6 +407,7 @@ public sealed class TrdxToDesignConverter
         element.CellData = cellData;
         element.ColumnWidths = FitWidths(raw.TableColumnWidthsPt, columns, raw.W);
         element.HeaderRow = raw.TableHasHeader;
+        element.CellStyles = raw.CellStyles is { Count: > 0 } cs ? cs.ToArray() : null;
 
         diagnostics.Add(Warn("CANMIGTRDX013",
             $"'{raw.Name}' Telerik {raw.Type} was mapped to a Canvas table ({grid.Count} row(s) × {columns} column(s)); cell anchoring/grouping is best-effort — review."));
@@ -643,6 +675,7 @@ public sealed class TrdxToDesignConverter
         public string? ImageDataUrl;
         public string? Symbology;
         public List<List<string>>? TableCells;
+        public List<CellStyleDto>? CellStyles;
         public double[]? TableColumnWidthsPt;
         public bool TableHasHeader;
     }
