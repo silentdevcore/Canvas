@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Representative FastReport .NET report (.frx) for converter validation.
+     Hand-authored to the documented .frx schema (not vendor-saved). Exercises bands, group
+     header/footer, a table, picture, rich text, multiple report pages, and per-side borders. -->
+<Report ScriptLanguage="CSharp" ReportInfo.Name="EmployeesByCountry">
+  <Dictionary />
+  <ReportPage Name="Page1" PaperWidth="210" PaperHeight="297" LeftMargin="10" RightMargin="10" TopMargin="10" BottomMargin="10">
+    <ReportTitleBand Name="ReportTitle1" Top="0" Width="718.2" Height="37.8">
+      <TextObject Name="title" Left="0" Top="0" Width="718.2" Height="30" Text="Employees by Country" HorzAlign="Center" Font="Tahoma, 18pt, style=Bold" TextFill.Color="Navy"/>
+    </ReportTitleBand>
+    <PageHeaderBand Name="PageHeader1" Top="40" Width="718.2" Height="20">
+      <TextObject Name="hdrName" Left="0" Top="0" Width="300" Height="18" Text="Name" Font="Tahoma, 9pt, style=Bold" Border.Lines="Bottom" Border.Color="Gray" Border.Width="1"/>
+      <TextObject Name="hdrTitle" Left="320" Top="0" Width="300" Height="18" Text="Title" Font="Tahoma, 9pt, style=Bold"/>
+    </PageHeaderBand>
+    <GroupHeaderBand Name="GroupHeader1" Top="62" Width="718.2" Height="22" Condition="[Employees.Country]">
+      <TextObject Name="country" Left="0" Top="0" Width="400" Height="20" Text="[Employees.Country]" Font="Tahoma, 11pt, style=Bold" TextFill.Color="0, 51, 102"/>
+    </GroupHeaderBand>
+    <DataBand Name="Data1" Top="86" Width="718.2" Height="20" DataSource="Employees">
+      <TextObject Name="empName" Left="0" Top="0" Width="300" Height="18" Text="[Employees.FirstName]"/>
+      <TextObject Name="empTitle" Left="320" Top="0" Width="300" Height="18" Text="[Employees.Title]"/>
+      <LineObject Name="rule" Left="0" Top="19" Width="718.2" Height="0" Border.Color="LightGray" Border.Width="1"/>
+    </DataBand>
+    <GroupFooterBand Name="GroupFooter1" Top="108" Width="718.2" Height="20">
+      <TextObject Name="countLabel" Left="0" Top="0" Width="300" Height="18" Text="Count:" HorzAlign="Right" Font="Tahoma, 9pt, style=Bold"/>
+      <TextObject Name="countValue" Left="320" Top="0" Width="100" Height="18" DataColumn="Employees.Count"/>
+    </GroupFooterBand>
+    <PageFooterBand Name="PageFooter1" Top="130" Width="718.2" Height="20">
+      <TextObject Name="pageNo" Left="600" Top="0" Width="118" Height="18" Text="[Page]" HorzAlign="Right"/>
+    </PageFooterBand>
+  </ReportPage>
+  <ReportPage Name="Page2" PaperWidth="210" PaperHeight="297" LeftMargin="10" RightMargin="10" TopMargin="10" BottomMargin="10">
+    <ReportTitleBand Name="ReportTitle2" Top="0" Width="718.2" Height="30">
+      <TextObject Name="appendixTitle" Left="0" Top="0" Width="718.2" Height="28" Text="Appendix" HorzAlign="Center" Font="Tahoma, 16pt, style=Bold"/>
+    </ReportTitleBand>
+    <DataBand Name="Data2" Top="34" Width="718.2" Height="120">
+      <TableObject Name="summary" Left="0" Top="0" Width="400" Height="60">
+        <TableColumn Name="sc1" Width="200"/>
+        <TableColumn Name="sc2" Width="200"/>
+        <TableRow Name="sr1" Height="20">
+          <TableCell Name="shc1" Text="Region" Fill.Color="WhiteSmoke" Font="Tahoma, 9pt, style=Bold" Border.Lines="All" Border.Color="Gray"/>
+          <TableCell Name="shc2" Text="Employees" Fill.Color="WhiteSmoke" Font="Tahoma, 9pt, style=Bold" Border.Lines="All" Border.Color="Gray"/>
+        </TableRow>
+        <TableRow Name="sr2" Height="20">
+          <TableCell Name="sd1" Text="[Summary.Region]"/>
+          <TableCell Name="sd2" Text="[Summary.Total]" HorzAlign="Right"/>
+        </TableRow>
+      </TableObject>
+      <RichObject Name="notes" Left="0" Top="70" Width="400" Height="40" Text="{\rtf1\ansi\deff0{\fonttbl{\f0 Arial;}}\f0\fs20 Generated report.\par Confidential.}"/>
+    </DataBand>
+  </ReportPage>
+</Report>

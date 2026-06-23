@@ -259,6 +259,132 @@ public sealed class FrxToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_MultipleReportPages_BecomeMultipleCanvasPages()
+    {
+        var frx = """
+            <Report ReportInfo.Name="T">
+              <ReportPage Name="Page1">
+                <ReportTitleBand Name="Title1" Top="0" Width="700" Height="30">
+                  <TextObject Name="onPage1" Left="0" Top="0" Width="200" Height="20" Text="Cover"/>
+                </ReportTitleBand>
+              </ReportPage>
+              <ReportPage Name="Page2">
+                <ReportTitleBand Name="Title2" Top="0" Width="700" Height="30">
+                  <TextObject Name="onPage2" Left="0" Top="0" Width="200" Height="20" Text="Content"/>
+                </ReportTitleBand>
+              </ReportPage></Report>
+            """;
+        var r = Convert(frx);
+        Assert.Equal(2, r.Design.Pages.Count);
+        Assert.Contains(r.Design.Pages[0].Elements, e => e.Name == "onPage1");
+        Assert.Contains(r.Design.Pages[1].Elements, e => e.Name == "onPage2");
+        Assert.True(Has(r.Diagnostics, "CANMIGFRX015"));
+    }
+
+    [Fact]
+    public void Convert_PictureObject_SniffsJpegMime()
+    {
+        var frx = """
+            <Report ReportInfo.Name="T">
+              <ReportPage Name="Page1">
+                <DataBand Name="Data1" Top="0" Width="700" Height="60">
+                  <PictureObject Name="pic" Left="0" Top="0" Width="40" Height="40" Image="/9j/4AAQSkZJRgABAQAA"/>
+                </DataBand>
+              </ReportPage></Report>
+            """;
+        var pic = El(Convert(frx).Design, "pic");
+        Assert.Equal("image", pic.Type);
+        Assert.StartsWith("data:image/jpeg;base64,", pic.Content);   // JPEG magic FF D8 FF
+    }
+
+    [Fact]
+    public void Convert_RichObject_ExtractsRtfText()
+    {
+        var frx = """
+            <Report ReportInfo.Name="T">
+              <ReportPage Name="Page1">
+                <DataBand Name="Data1" Top="0" Width="700" Height="60">
+                  <RichObject Name="rich" Left="0" Top="0" Width="300" Height="50" Text="{\rtf1\ansi\deff0{\fonttbl{\f0 Arial;}}\f0\fs20 Hello\par World}"/>
+                </DataBand>
+              </ReportPage></Report>
+            """;
+        var rich = El(Convert(frx).Design, "rich");
+        Assert.Equal("richtext", rich.Type);
+        Assert.Contains("<p>Hello</p>", rich.HtmlContent);
+        Assert.Contains("<p>World</p>", rich.HtmlContent);
+        Assert.DoesNotContain("Arial", rich.HtmlContent);          // font table skipped
+        Assert.DoesNotContain("rtf", rich.HtmlContent);            // control words stripped
+    }
+
+    [Fact]
+    public void Convert_TextObject_PerSideBorder()
+    {
+        var frx = """
+            <Report ReportInfo.Name="T">
+              <ReportPage Name="Page1">
+                <DataBand Name="Data1" Top="0" Width="700" Height="30">
+                  <TextObject Name="t" Left="0" Top="0" Width="200" Height="20" Text="Hi" Border.Lines="Bottom" Border.Color="Red" Border.Width="2"/>
+                </DataBand>
+              </ReportPage></Report>
+            """;
+        var t = El(Convert(frx).Design, "t");
+        Assert.Equal("#FF0000", t.Style!["borderBottomColor"]);
+        Assert.Equal(2.0, t.Style!["borderBottomWidth"]);
+        Assert.False(t.Style!.ContainsKey("borderColor"));   // only the listed side, not uniform
+    }
+
+    [Fact]
+    public void Convert_MultiColumnBand_EmitsDiagnostic()
+    {
+        var frx = """
+            <Report ReportInfo.Name="T">
+              <ReportPage Name="Page1">
+                <DataBand Name="Data1" Top="0" Width="700" Height="30" Columns.Count="3">
+                  <TextObject Name="t" Left="0" Top="0" Width="200" Height="20" Text="Hi"/>
+                </DataBand>
+              </ReportPage></Report>
+            """;
+        Assert.True(Has(Convert(frx).Diagnostics, "CANMIGFRX016"));
+    }
+
+    [Fact]
+    public void Convert_GroupBands_AddRepeatAndGroupMetadata()
+    {
+        var frx = """
+            <Report ReportInfo.Name="T">
+              <ReportPage Name="Page1">
+                <GroupHeaderBand Name="GroupHeader1" Top="0" Width="700" Height="20" Condition="[Items.Country]">
+                  <TextObject Name="countryHdr" Left="0" Top="0" Width="200" Height="20" Text="[Items.Country]"/>
+                </GroupHeaderBand>
+                <DataBand Name="Data1" Top="22" Width="700" Height="20">
+                  <TextObject Name="name" Left="0" Top="0" Width="200" Height="20" Text="[Items.Name]"/>
+                </DataBand>
+                <GroupFooterBand Name="GroupFooter1" Top="44" Width="700" Height="20">
+                  <TextObject Name="countTotal" Left="0" Top="0" Width="200" Height="20" Text="Total"/>
+                </GroupFooterBand>
+              </ReportPage></Report>
+            """;
+        var r = Convert(frx);
+
+        var hdr = El(r.Design, "countryHdr");
+        Assert.NotNull(hdr.Repeat);
+        Assert.Equal("Country", hdr.Repeat!.DataPath);           // [Items.Country] → Country
+        Assert.Equal(hdr.Id, hdr.Repeat.TemplateId);
+        var hdrGroup = Assert.IsType<Dictionary<string, object>>(hdr.Style!["frxGroup"]);
+        Assert.Equal("header", hdrGroup["role"]);
+        Assert.Equal("[Items.Country]", hdrGroup["condition"]);
+
+        var ftr = El(r.Design, "countTotal");
+        var ftrGroup = Assert.IsType<Dictionary<string, object>>(ftr.Style!["frxGroup"]);
+        Assert.Equal("footer", ftrGroup["role"]);
+        Assert.Equal("Country", ftr.Repeat!.DataPath);           // footer inherits the header's group key
+
+        // A plain DataBand control gets no group repeat metadata.
+        Assert.Null(El(r.Design, "name").Repeat);
+        Assert.True(Has(r.Diagnostics, "CANMIGFRX014"));
+    }
+
+    [Fact]
     public void Convert_TableObject_CellStyles_FillBorderFontAlign()
     {
         var frx = """

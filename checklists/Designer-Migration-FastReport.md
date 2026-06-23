@@ -91,6 +91,9 @@ namespace does **not** contain `reportdefinition`, and no `<Sections>` (RPX). Ac
 | `CANMIGFRX011` | Warning | Unsupported object / Subreport / script — labeled placeholder |
 | `CANMIGFRX012` | Warning | Picture data not embeddable — placeholder inserted |
 | `CANMIGFRX013` | Info | `TableObject` mapped to a Canvas table (N rows × M columns; ColSpan padded) |
+| `CANMIGFRX014` | Warning | `GroupHeader`/`GroupFooter` object mapped to Canvas repeat metadata; group runtime semantics need review |
+| `CANMIGFRX015` | Info | Multiple `ReportPage`s mapped to multiple Canvas pages |
+| `CANMIGFRX016` | Warning | Multi-column band flattened — Canvas has no column reflow; review manually |
 
 ## Architecture & delivery (planned)
 
@@ -124,7 +127,18 @@ against a wider set of real `Demos/Reports/*.frx` samples.
 - [x] **P1** `TableCell` per-cell styles → `CellStyles`: `Fill.Color`, `TextFill.Color`, `HorzAlign`,
       `Font`, `Padding`, and `Border.Lines`/`Border.Color`/`Border.Width` map to sparse Canvas cell style
       metadata and are covered by converter/exporter tests.
-- [ ] **P1** Multi-`ReportPage` (currently first page); `ChildBand` join semantics; `GroupHeader/Footer` repeat
-- [ ] **P1** `Columns.*` multi-column bands and non-table per-side border polish
-- [ ] **P1** `PictureObject` non-PNG MIME sniffing; richer `RichObject` RTF→HTML
-- [ ] **P1** Validate against more `Demos/Reports/*.frx` (charts/matrix/gauge → placeholder)
+- [x] **P1** `GroupHeader`/`GroupFooter` repeat: group-band objects carry Canvas `RepeatDto` (data path from
+      the `GroupHeaderBand` `Condition`, e.g. `[Items.Country]`→`Country`) + `style.frxGroup`
+      (name/role/band/condition); footers inherit the paired header's group key. Diagnostic `CANMIGFRX014`.
+- [x] **P1** Multi-`ReportPage` → one Canvas page per `ReportPage` (`CANMIGFRX015`); single-page reports
+      keep PageHeader/PageFooter as SharedElements, multi-page reports keep per-page header/footer.
+      `ChildBand` content is positioned by its absolute band `Top`, so it flattens in place.
+- [x] **P1** `Columns.*` multi-column bands → flattened with a `CANMIGFRX016` review warning (Canvas has no
+      column reflow); non-table per-side borders: `Border.Lines` on objects → uniform or per-side
+      `border{Side}Color/Width` style keys.
+- [x] **P1** `PictureObject` MIME sniffing (JPEG/GIF/BMP/WEBP/TIFF magic bytes → correct data-URL type);
+      richer `RichObject` RTF → brace-aware text extraction (skips font/colour/style tables, `\par`
+      paragraphs, `\'hh`/escaped chars) producing escaped `<p>` HTML.
+- [x] **P1** Validate against representative `.frx` samples: `designer-simples/FastReport/frx-samples/`
+      (`EmployeesByCountry.frx`) is exercised by the `FastReportSamplesTests` harness + a fidelity test
+      (multi-page, group repeat, table). Genuine vendor `Demos/Reports/*.frx` welcome — harness auto-discovers them.
