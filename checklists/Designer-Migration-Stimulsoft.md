@@ -100,7 +100,9 @@ more value than another parser path.
 - [ ] **P2** JSON `.mrt` variant (modern Reports.JS) — detect `{` vs `<` and parse with System.Text.Json
 - [x] **P1** Named `<ComponentStyle>` / report `<Styles>` resolution: a component's referenced report style
       supplies `Font`/`TextBrush`/`Brush`/`HorAlignment` defaults the element doesn't set itself.
-- [ ] **P1** Per-side `<Border>` parsing (StiBorder side/colour/width string) → element border style
+- [x] **P1** Per-side `<Border>` parsing: StiBorder `Sides;Color;Size;…` strings map to a uniform
+      `borderColor`/`borderWidth` (sides include `All`) or per-side `border{Side}Color/Width` keys, on text
+      and rectangle elements (element + named-style fallback).
 - [x] **P1** Group bands repeat semantics: `GroupHeaderBand`/`GroupFooterBand` items carry Canvas `RepeatDto`
       (data path from the band `<Condition>`, e.g. `{Customers.Country}`→`Country`) + `style.mrtGroup`
       (name/role/condition); footers inherit the paired header's group key. Diagnostic `CANMIGMRT013`.

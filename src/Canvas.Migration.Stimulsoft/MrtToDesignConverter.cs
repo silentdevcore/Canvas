@@ -154,6 +154,7 @@ public sealed class MrtToDesignConverter
             BackColor = ParseColor(Child(el, "Brush")?.Value ?? Child(style, "Brush")?.Value),
         };
         ApplyFont(raw, Child(el, "Font")?.Value ?? Child(style, "Font")?.Value);
+        ParseBorder(raw, Child(el, "Border")?.Value ?? Child(style, "Border")?.Value);
         if (type is "HorizontalLinePrimitive" or "VerticalLinePrimitive" && ParseColor(Child(el, "Color")?.Value) is { } lc) raw.ForeColor = lc;
         if (type == "Image") raw.ImageDataUrl = ExtractImageDataUrl(el);
         if (type == "BarCode") raw.Symbology = Child(el, "BarCodeType")?.Value ?? Attr(Child(el, "BarCode"), "type");
@@ -236,6 +237,7 @@ public sealed class MrtToDesignConverter
                 element.Type = "rect";
                 element.Style = new Dictionary<string, object> { ["borderColor"] = raw.ForeColor };
                 if (raw.BackColor is { } bg) element.Style["backgroundColor"] = bg;
+                ApplyBorderStyle(element.Style, raw);
                 return element;
 
             case "Panel":
@@ -295,6 +297,40 @@ public sealed class MrtToDesignConverter
         return element;
     }
 
+    // StiBorder serializes as "Sides;Color;Size;Style;…" — e.g. "Top, Bottom;[0:0:0];1;Solid;…".
+    // Parse the sides, colour, and size; "None"/empty means no border.
+    private static void ParseBorder(RawElement raw, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return;
+        var parts = value.Split(';', StringSplitOptions.TrimEntries);
+        var sides = parts.Length > 0 ? parts[0] : "";
+        if (sides.Length == 0 || sides.Equals("None", StringComparison.OrdinalIgnoreCase)) return;
+        raw.BorderSides = sides;
+        if (parts.Length > 1 && ParseColor(parts[1]) is { } c) raw.BorderColor = c;
+        if (parts.Length > 2 && double.TryParse(parts[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var w) && w > 0)
+            raw.BorderWidth = w;
+    }
+
+    // Apply a parsed border to a style dict: uniform when sides include "All", otherwise per-side keys.
+    private static void ApplyBorderStyle(Dictionary<string, object> style, RawElement raw)
+    {
+        if (raw.BorderSides is not { Length: > 0 } sides) return;
+        var color = raw.BorderColor ?? "#000000";
+        var width = raw.BorderWidth ?? 1;
+        if (sides.Contains("All", StringComparison.OrdinalIgnoreCase))
+        {
+            style["borderColor"] = color;
+            style["borderWidth"] = width;
+            return;
+        }
+        foreach (var side in new[] { "Top", "Right", "Bottom", "Left" })
+            if (sides.Contains(side, StringComparison.OrdinalIgnoreCase))
+            {
+                style[$"border{side}Color"] = color;
+                style[$"border{side}Width"] = width;
+            }
+    }
+
     private static Dictionary<string, object> BuildTextStyle(RawElement raw)
     {
         var style = new Dictionary<string, object> { ["color"] = raw.ForeColor };
@@ -306,6 +342,7 @@ public sealed class MrtToDesignConverter
         if (decoration.Length > 0) style["textDecoration"] = decoration;
         if (raw.BackColor is { } bg) style["backgroundColor"] = bg;
         style["textAlign"] = raw.TextAlign;
+        ApplyBorderStyle(style, raw);
         return style;
     }
 
@@ -536,5 +573,8 @@ public sealed class MrtToDesignConverter
         public string? GroupName;        // set when the element is inside a group header/footer band
         public string? GroupRole;        // "header" | "footer"
         public string? GroupCondition;   // grouping expression, e.g. {Customers.Country}
+        public string? BorderSides;      // StiBorder sides token (All / Top, Bottom / …)
+        public string? BorderColor;
+        public double? BorderWidth;
     }
 }

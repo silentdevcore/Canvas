@@ -250,6 +250,19 @@ public sealed class MrtToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_PerSideBorder_FromStiBorderString()
+    {
+        var perSide = El(Convert(ItemMrt("""<Text>Hi</Text><Border>Bottom;[255:0:0];2;Solid</Border>""", "b1")).Design, "b1");
+        Assert.Equal("#FF0000", perSide.Style!["borderBottomColor"]);
+        Assert.Equal(2.0, perSide.Style!["borderBottomWidth"]);
+        Assert.False(perSide.Style!.ContainsKey("borderColor"));   // only the listed side
+
+        var uniform = El(Convert(ItemMrt("""<Text>Hi</Text><Border>All;[0:0:255];1;Solid</Border>""", "b2")).Design, "b2");
+        Assert.Equal("#0000FF", uniform.Style!["borderColor"]);
+        Assert.Equal(1.0, uniform.Style!["borderWidth"]);
+    }
+
+    [Fact]
     public void Convert_Chart_BecomesPlaceholder()
     {
         var item = ItemMrt("", "myChart", type: "Chart");
