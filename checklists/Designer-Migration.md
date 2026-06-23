@@ -105,9 +105,11 @@ advanced regions.
 
 ### P2 — package and binary inputs
 
-7. **Binary/package upload path** — add a file/binary upload route before implementing packaged
-   `.trdp`, packaged `.rdlx`, or any Crystal `.rpt` workaround. The current endpoint is string/JSON
-   oriented and is a poor fit for ZIP/OLE inputs.
+7. **Binary/package upload path** — ✅ **done (backend):** `report-to-design` accepts a base64 binary
+   upload (`sourceBase64`); `ReportPackageExtractor` (Canvas.Migration.Abstractions) detects ZIP, unzips,
+   picks the inner report (first entry a detector recognizes), and feeds the existing converters, with the
+   remaining text entries passed as resources. Unblocks `.trdp` and packaged `.rdlx`. Remaining: a binary
+   file picker in the migration UI (currently a text textarea), and any Crystal `.rpt` OLE workaround.
 8. **New provider candidates** — only after P0/P1: List & Label (`.lst`/`.lsr`). ActiveReports JS JSON
    has a conservative V1 path for explicitly marked reports; real vendor-saved samples are still needed
    before expanding the detector/schema support. Crystal Reports remains blocked unless a Windows + SAP

@@ -147,8 +147,10 @@ The remaining items are optional native Canvas capabilities or blocked expressio
 ### 1. ActiveReports / DsReport `.rdlx`  *(plain-XML done)*
 - [x] Plain RDL-XML `.rdlx` (the designer's native save format) detects + converts; barcode
       `<CustomReportItem>` mapped.
-- [ ] **P2** If a *packaged* `.rdlx` (OPC/zip with embedded resources) is ever encountered, unzip and locate
-      the `<Report>` part — needs a binary upload path (the endpoint is currently text/JSON).
+- [x] **P2** Packaged `.rdlx` (OPC/zip): `report-to-design` now accepts a base64 binary upload
+      (`sourceBase64`); `ReportPackageExtractor` unzips it and picks the inner RDL `<Report>` part (first
+      entry `LooksLikeRdl` recognizes), then the existing converter runs. *(Backend path done + tested;
+      migration-UI binary file picker is the remaining frontend piece.)*
 
 ### 2. GrapeCity Section Reports `.rpx`  ✅ *(shipped — separate converter)*
 - [x] Banded format closer to XtraReports — handled by `Canvas.Migration.Rpx` (sections flattened like

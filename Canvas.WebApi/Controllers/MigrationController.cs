@@ -1,4 +1,5 @@
 using Canvas.Core.Contracts;
+using Canvas.Migration.Abstractions;
 using Canvas.Migration.ActiveReportsJs;
 using Canvas.Migration.DevExpressReport;
 using Canvas.Migration.FastReport;
@@ -88,61 +89,92 @@ public class MigrationController : ControllerBase
     [ProducesResponseType(400)]
     public IActionResult ReportToDesign([FromBody] ReportToDesignRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.SourceCode))
-            return BadRequest(new { error = "Field 'sourceCode' is required." });
+        // A binary/zip upload (sourceBase64) — e.g. Telerik .trdp or a packaged .rdlx — is unpacked to its
+        // inner report document; the remaining package entries become sub-report resources.
+        string? sourceCode = request.SourceCode;
+        Dictionary<string, string>? packageResources = null;
+        if (!string.IsNullOrWhiteSpace(request.SourceBase64))
+        {
+            byte[] bytes;
+            try { bytes = System.Convert.FromBase64String(request.SourceBase64); }
+            catch (FormatException) { return BadRequest(new { error = "Field 'sourceBase64' is not valid base64." }); }
+
+            if (ReportPackageExtractor.IsZip(bytes))
+            {
+                try
+                {
+                    var (report, resources) = ReportPackageExtractor.Extract(bytes, LooksLikeAnyReport);
+                    if (report is null)
+                        return BadRequest(new { error = "Zip package contains no recognizable report document." });
+                    sourceCode = report;
+                    packageResources = resources;
+                }
+                catch (InvalidDataException)
+                {
+                    return BadRequest(new { error = "Field 'sourceBase64' is not a valid zip package." });
+                }
+            }
+            else
+            {
+                sourceCode = System.Text.Encoding.UTF8.GetString(bytes);
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(sourceCode))
+            return BadRequest(new { error = "Field 'sourceCode' (or 'sourceBase64') is required." });
 
         try
         {
             DesignExportDto design;
             IReadOnlyList<Canvas.Migration.Abstractions.MigrationDiagnostic> diagnostics;
-            if (RdlToDesignConverter.LooksLikeRdl(request.SourceCode))
+            if (RdlToDesignConverter.LooksLikeRdl(sourceCode))
             {
-                var result = new RdlToDesignConverter().Convert(request.SourceCode);
+                var result = new RdlToDesignConverter().Convert(sourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
-            else if (RpxToDesignConverter.LooksLikeRpx(request.SourceCode))
+            else if (RpxToDesignConverter.LooksLikeRpx(sourceCode))
             {
-                var resources = MergeReportResources(request.ResourceXml, request.Resources);
-                var result = new RpxToDesignConverter().Convert(request.SourceCode, resources);
+                var resources = MergeReportResources(request.ResourceXml, request.Resources, packageResources);
+                var result = new RpxToDesignConverter().Convert(sourceCode, resources);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
-            else if (FrxToDesignConverter.LooksLikeFrx(request.SourceCode))
+            else if (FrxToDesignConverter.LooksLikeFrx(sourceCode))
             {
-                var result = new FrxToDesignConverter().Convert(request.SourceCode);
+                var result = new FrxToDesignConverter().Convert(sourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
-            else if (TrdxToDesignConverter.LooksLikeTrdx(request.SourceCode))
+            else if (TrdxToDesignConverter.LooksLikeTrdx(sourceCode))
             {
-                var result = new TrdxToDesignConverter().Convert(request.SourceCode);
+                var result = new TrdxToDesignConverter().Convert(sourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
-            else if (JrxmlToDesignConverter.LooksLikeJrxml(request.SourceCode))
+            else if (JrxmlToDesignConverter.LooksLikeJrxml(sourceCode))
             {
-                var resources = MergeReportResources(request.ResourceXml, request.Resources);
-                var result = new JrxmlToDesignConverter().Convert(request.SourceCode, resources);
+                var resources = MergeReportResources(request.ResourceXml, request.Resources, packageResources);
+                var result = new JrxmlToDesignConverter().Convert(sourceCode, resources);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
-            else if (ActiveReportsJsToDesignConverter.LooksLikeActiveReportsJs(request.SourceCode))
+            else if (ActiveReportsJsToDesignConverter.LooksLikeActiveReportsJs(sourceCode))
             {
-                var result = new ActiveReportsJsToDesignConverter().Convert(request.SourceCode);
+                var result = new ActiveReportsJsToDesignConverter().Convert(sourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
-            else if (MrtToDesignConverter.LooksLikeMrt(request.SourceCode))
+            else if (MrtToDesignConverter.LooksLikeMrt(sourceCode))
             {
-                var result = new MrtToDesignConverter().Convert(request.SourceCode);
+                var result = new MrtToDesignConverter().Convert(sourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
             else
             {
-                var resources = MergeReportResources(request.ResourceXml, request.Resources);
-                var result = new XtraReportToDesignConverter().ConvertAuto(request.SourceCode, resources);
+                var resources = MergeReportResources(request.ResourceXml, request.Resources, packageResources);
+                var result = new XtraReportToDesignConverter().ConvertAuto(sourceCode, resources);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
@@ -186,22 +218,35 @@ public class MigrationController : ControllerBase
         }
     }
 
+    // Recognized by one of the explicit detectors — used to pick the main report inside a zip package.
+    private static bool LooksLikeAnyReport(string content) =>
+        RdlToDesignConverter.LooksLikeRdl(content)
+        || RpxToDesignConverter.LooksLikeRpx(content)
+        || FrxToDesignConverter.LooksLikeFrx(content)
+        || TrdxToDesignConverter.LooksLikeTrdx(content)
+        || JrxmlToDesignConverter.LooksLikeJrxml(content)
+        || ActiveReportsJsToDesignConverter.LooksLikeActiveReportsJs(content)
+        || MrtToDesignConverter.LooksLikeMrt(content);
+
     private static IReadOnlyDictionary<string, string>? MergeReportResources(
         string? resourceXml,
-        Dictionary<string, string>? resources)
+        Dictionary<string, string>? resources,
+        IReadOnlyDictionary<string, string>? packageResources = null)
     {
-        if (string.IsNullOrWhiteSpace(resourceXml) && resources is null)
+        if (string.IsNullOrWhiteSpace(resourceXml) && resources is null && packageResources is null)
             return null;
 
         var merged = string.IsNullOrWhiteSpace(resourceXml)
             ? new Dictionary<string, string>(StringComparer.Ordinal)
             : DevExpressReportResourceParser.ParseResx(resourceXml);
 
-        if (resources is not null)
-        {
-            foreach (var (key, value) in resources)
+        if (packageResources is not null)
+            foreach (var (key, value) in packageResources)
                 merged[key] = value;
-        }
+
+        if (resources is not null)
+            foreach (var (key, value) in resources)
+                merged[key] = value;   // explicit request resources win over package entries
 
         return merged;
     }
@@ -212,4 +257,5 @@ public sealed record MigrationRequest(string Framework, string SourceCode);
 public sealed record ReportToDesignRequest(
     string SourceCode,
     Dictionary<string, string>? Resources = null,
-    string? ResourceXml = null);
+    string? ResourceXml = null,
+    string? SourceBase64 = null);

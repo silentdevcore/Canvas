@@ -113,7 +113,10 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 on XML `.trdx` fidelity: real-sample validation, group/repeat semantics, expression dialect coverage,
 and unsupported visual regions. Basic `Table`/`CrossTab` extraction and table cell styles are now done.
 
-- [ ] **P2** `.trdp` (zipped package) — unzip + feed the same parser (needs a binary upload path)
+- [x] **P2** `.trdp` (zipped package): the `report-to-design` endpoint accepts a base64 binary upload
+      (`sourceBase64`), `ReportPackageExtractor` unzips it, picks the inner `.trdx` (first entry the
+      detectors recognize), and feeds the existing parser; other text entries become sub-report resources.
+      *(Backend path done + tested; a binary file picker in the migration UI is the remaining frontend piece.)*
 - [x] **P1** Group-section repeat: `GroupHeaderSection`/`GroupFooterSection` items carry Canvas `RepeatDto`
       (data path from the `<Grouping>` expression, e.g. `=Fields.Country`→`Country`) + `style.trdxGroup`
       (name/role/band/condition); footers inherit the paired header's group key. Diagnostic `CANMIGTRDX014`.
