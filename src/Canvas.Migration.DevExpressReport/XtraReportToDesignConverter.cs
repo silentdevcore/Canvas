@@ -455,6 +455,8 @@ public sealed class XtraReportToDesignConverter
             diagnostics.Add(Info("CANMIGDEVREP002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
 
             ApplyBindings(element, raw, diagnostics);
+            if (bandName is not null && bandByName.TryGetValue(bandName, out var ownerBand))
+                ApplyGroupRepeatMetadata(element, ownerBand);
             AddLayoutDiagnostics(raw, diagnostics);
 
             (bandType is "PageHeaderBand" or "PageFooterBand" ? sharedElements : elements).Add(element);
@@ -1208,6 +1210,45 @@ public sealed class XtraReportToDesignConverter
     }
 
     private static HashSet<string>? ParseBorders(ExpressionSyntax? expr) => ParseBorders(expr?.ToString());
+
+    // Group bands repeat per group key: attach Canvas RepeatDto + group metadata so the band's controls
+    // can be wired as a repeating template (mirrors the RDL/Jasper group-repeat mapping).
+    private static void ApplyGroupRepeatMetadata(ElementDto element, RawBand band)
+    {
+        if (band.Type is not ("GroupHeaderBand" or "GroupFooterBand")) return;
+
+        var role = band.Type == "GroupFooterBand" ? "footer" : "header";
+        var dataPath = GroupDataPath(band);
+        var group = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["name"] = band.Name,
+            ["role"] = role,
+            ["band"] = band.Name,
+            ["dataPath"] = dataPath,
+        };
+        if (band.GroupFields is { Count: > 0 }) group["fields"] = band.GroupFields.ToArray();
+        if (band.SortFields is { Count: > 0 }) group["sorts"] = band.SortFields.ToArray();
+
+        element.Style ??= [];
+        element.Style["devExpressGroup"] = group;
+        element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
+    }
+
+    private static string GroupDataPath(RawBand band)
+    {
+        var field = band.GroupFields.FirstOrDefault(f => !string.IsNullOrWhiteSpace(f));
+        var basis = !string.IsNullOrWhiteSpace(field) ? field! : band.Name;
+        // GroupFields may carry a " (SortOrder)" annotation — use only the field name for the data path.
+        var paren = basis.IndexOf(" (", StringComparison.Ordinal);
+        if (paren >= 0) basis = basis[..paren];
+        return SafeDataPath(basis);
+    }
+
+    private static string SafeDataPath(string value)
+    {
+        var cleaned = new string(value.Select(ch => char.IsLetterOrDigit(ch) || ch is '_' or '.' ? ch : '_').ToArray()).Trim('_');
+        return string.IsNullOrWhiteSpace(cleaned) ? "items" : cleaned;
+    }
 
     // Per-cell style from an XRTableCell: fore/back colour, alignment, font, and borders
     // (Borders "All" → uniform; otherwise the listed sides). Padding is XRControl-specific and skipped.

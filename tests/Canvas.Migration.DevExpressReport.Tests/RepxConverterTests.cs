@@ -517,6 +517,59 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
+    public void ConvertRepx_GroupHeaderBand_AddsRepeatAndGroupMetadata()
+    {
+        var repx = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <XtraReportsLayoutSerializer ControlType="DevExpress.XtraReports.UI.XtraReport, X" Name="R" PaperKind="Letter">
+              <Bands>
+                <Item1 ControlType="DevExpress.XtraReports.UI.GroupHeaderBand, X" Name="GroupHeader1" HeightF="30">
+                  <GroupFields>
+                    <Item1 FieldName="Region" SortOrder="Ascending" />
+                  </GroupFields>
+                  <Controls>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="regionLabel" Text="Region" SizeF="200,20" LocationFloat="0,0" />
+                  </Controls>
+                </Item1>
+                <Item2 ControlType="DevExpress.XtraReports.UI.DetailBand, X" Name="Detail" HeightF="20">
+                  <Controls>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="cell" Text="x" SizeF="200,20" LocationFloat="0,0" />
+                  </Controls>
+                </Item2>
+                <Item3 ControlType="DevExpress.XtraReports.UI.GroupFooterBand, X" Name="GroupFooter1" HeightF="20">
+                  <GroupFields>
+                    <Item1 FieldName="Region" />
+                  </GroupFields>
+                  <Controls>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="regionTotal" Text="Total" SizeF="200,20" LocationFloat="0,0" />
+                  </Controls>
+                </Item3>
+              </Bands>
+            </XtraReportsLayoutSerializer>
+            """;
+        var result = new XtraReportToDesignConverter().ConvertRepx(repx);
+
+        var header = Page(result.Design, "regionLabel");
+        Assert.NotNull(header.Repeat);
+        Assert.Equal("Region", header.Repeat!.DataPath);
+        Assert.Equal(header.Id, header.Repeat.TemplateId);
+        var headerGroup = Assert.IsType<Dictionary<string, object>>(header.Style!["devExpressGroup"]);
+        Assert.Equal("header", headerGroup["role"]);
+        Assert.Equal(new[] { "Region (Ascending)" }, Assert.IsType<string[]>(headerGroup["fields"]));
+
+        var footer = Page(result.Design, "regionTotal");
+        var footerGroup = Assert.IsType<Dictionary<string, object>>(footer.Style!["devExpressGroup"]);
+        Assert.Equal("footer", footerGroup["role"]);
+        Assert.Equal("Region", footer.Repeat!.DataPath);
+
+        // A plain Detail-band control gets no group repeat metadata.
+        var detail = Page(result.Design, "cell");
+        Assert.Null(detail.Repeat);
+
+        Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP015");
+    }
+
+    [Fact]
     public void ConvertRepx_TableCellStyles_FillBorderFontAlign()
     {
         var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
