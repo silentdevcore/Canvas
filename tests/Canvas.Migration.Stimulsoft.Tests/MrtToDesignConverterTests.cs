@@ -169,4 +169,179 @@ public sealed class MrtToDesignConverterTests
         Assert.False(MrtToDesignConverter.LooksLikeMrt("{ \"ReportVersion\": \"2023\" }"));   // JSON .mrt is V2
         Assert.False(MrtToDesignConverter.LooksLikeMrt("public class Foo {}"));
     }
+
+    [Fact]
+    public void Convert_GroupBands_AddRepeatAndGroupMetadata()
+    {
+        var mrt = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <StiSerializer version="1.02" type="Net" application="StiReport">
+              <ReportName>Grouped</ReportName>
+              <Pages isList="true" count="1">
+                <Page1 Ref="1" type="Page" isKey="true">
+                  <PaperSize>A4</PaperSize>
+                  <Components isList="true" count="3">
+                    <GroupHeaderBand1 Ref="2" type="GroupHeaderBand" isKey="true">
+                      <ClientRectangle>0,0,749,20</ClientRectangle>
+                      <Condition>{Customers.Country}</Condition>
+                      <Components isList="true" count="1">
+                        <Text1 Ref="3" type="Text" isKey="true">
+                          <ClientRectangle>0,0,300,20</ClientRectangle>
+                          <Text>{Customers.Country}</Text>
+                          <Name>country</Name>
+                        </Text1>
+                      </Components>
+                      <Name>GroupHeaderBand1</Name>
+                    </GroupHeaderBand1>
+                    <DataBand1 Ref="4" type="DataBand" isKey="true">
+                      <ClientRectangle>0,30,749,20</ClientRectangle>
+                      <Components isList="true" count="1">
+                        <Text2 Ref="5" type="Text" isKey="true">
+                          <ClientRectangle>0,0,300,20</ClientRectangle>
+                          <Text>{Customers.Name}</Text>
+                          <Name>rowName</Name>
+                        </Text2>
+                      </Components>
+                      <Name>DataBand1</Name>
+                    </DataBand1>
+                    <GroupFooterBand1 Ref="6" type="GroupFooterBand" isKey="true">
+                      <ClientRectangle>0,60,749,20</ClientRectangle>
+                      <Components isList="true" count="1">
+                        <Text3 Ref="7" type="Text" isKey="true">
+                          <ClientRectangle>0,0,300,20</ClientRectangle>
+                          <Text>Total</Text>
+                          <Name>groupTotal</Name>
+                        </Text3>
+                      </Components>
+                      <Name>GroupFooterBand1</Name>
+                    </GroupFooterBand1>
+                  </Components>
+                  <Name>Page1</Name>
+                </Page1>
+              </Pages>
+            </StiSerializer>
+            """;
+        var r = Convert(mrt);
+
+        var hdr = El(r.Design, "country");
+        Assert.NotNull(hdr.Repeat);
+        Assert.Equal("Country", hdr.Repeat!.DataPath);           // {Customers.Country} → Country
+        Assert.Equal(hdr.Id, hdr.Repeat.TemplateId);
+        var hdrGroup = Assert.IsType<Dictionary<string, object>>(hdr.Style!["mrtGroup"]);
+        Assert.Equal("header", hdrGroup["role"]);
+
+        var ftr = El(r.Design, "groupTotal");
+        var ftrGroup = Assert.IsType<Dictionary<string, object>>(ftr.Style!["mrtGroup"]);
+        Assert.Equal("footer", ftrGroup["role"]);
+        Assert.Equal("Country", ftr.Repeat!.DataPath);           // footer inherits the header's group key
+
+        Assert.Null(El(r.Design, "rowName").Repeat);             // plain DataBand control: no group repeat
+        Assert.True(Has(r.Diagnostics, "CANMIGMRT013"));
+    }
+
+    [Fact]
+    public void Convert_CompoundExpression_NormalizesFieldReferences()
+    {
+        var item = ItemMrt("""<Text>{Customers.First} - {Customers.Last}</Text>""", "expr");
+        var el = El(Convert(item).Design, "expr");
+        Assert.Contains("{{First}}", el.Content);
+        Assert.Contains("{{Last}}", el.Content);
+        Assert.Equal("{Customers.First} - {Customers.Last}", el.Style!["mrtExpression"]);
+    }
+
+    [Fact]
+    public void Convert_Chart_BecomesPlaceholder()
+    {
+        var item = ItemMrt("", "myChart", type: "Chart");
+        var r = Convert(item);
+        Assert.True(Has(r.Diagnostics, "CANMIGMRT014"));
+        Assert.Contains("[Chart:", El(r.Design, "myChart").Content);
+    }
+
+    [Fact]
+    public void Convert_NamedComponentStyle_SuppliesDefaults()
+    {
+        var mrt = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <StiSerializer version="1.02" type="Net" application="StiReport">
+              <ReportName>Styled</ReportName>
+              <Styles isList="true" count="1">
+                <Style1 Ref="1" type="StiStyle" isKey="true"><Name>Accent</Name><TextBrush>[255:0:0]</TextBrush></Style1>
+              </Styles>
+              <Pages isList="true" count="1">
+                <Page1 Ref="2" type="Page" isKey="true">
+                  <PaperSize>A4</PaperSize>
+                  <Components isList="true" count="1">
+                    <DataBand1 Ref="3" type="DataBand" isKey="true">
+                      <ClientRectangle>0,0,749,20</ClientRectangle>
+                      <Components isList="true" count="1">
+                        <Text1 Ref="4" type="Text" isKey="true">
+                          <ClientRectangle>0,0,300,20</ClientRectangle>
+                          <Text>Hi</Text>
+                          <ComponentStyle>Accent</ComponentStyle>
+                          <Name>styled</Name>
+                        </Text1>
+                      </Components>
+                      <Name>DataBand1</Name>
+                    </DataBand1>
+                  </Components>
+                  <Name>Page1</Name>
+                </Page1>
+              </Pages>
+            </StiSerializer>
+            """;
+        Assert.Equal("#FF0000", El(Convert(mrt).Design, "styled").Style!["color"]);
+    }
+
+    [Fact]
+    public void Convert_ExplicitPageWidthHeight_WhenNoPaperSize()
+    {
+        var mrt = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <StiSerializer version="1.02" type="Net" application="StiReport">
+              <ReportName>Custom</ReportName>
+              <Pages isList="true" count="1">
+                <Page1 Ref="1" type="Page" isKey="true">
+                  <PageWidth>827</PageWidth><PageHeight>1169</PageHeight>
+                  <Components isList="true" count="1">
+                    <DataBand1 Ref="2" type="DataBand" isKey="true">
+                      <ClientRectangle>0,0,749,20</ClientRectangle>
+                      <Components isList="true" count="1">
+                        <Text1 Ref="3" type="Text" isKey="true"><ClientRectangle>0,0,300,20</ClientRectangle><Text>Hi</Text><Name>t</Name></Text1>
+                      </Components>
+                      <Name>DataBand1</Name>
+                    </DataBand1>
+                  </Components>
+                  <Name>Page1</Name>
+                </Page1>
+              </Pages>
+            </StiSerializer>
+            """;
+        var ps = Convert(mrt).Design.PageSettings!;
+        Assert.Equal(595, ps.Width, 0);    // 827 hundredths-inch × 0.72 ≈ 595
+        Assert.Equal(842, ps.Height, 0);   // 1169 × 0.72 ≈ 842
+    }
+
+    // Wraps a single component (default a Text) in a minimal A4 .mrt DataBand.
+    private static string ItemMrt(string body, string name, string type = "Text") => $"""
+        <?xml version="1.0" encoding="utf-8"?>
+        <StiSerializer version="1.02" type="Net" application="StiReport">
+          <ReportName>R</ReportName>
+          <Pages isList="true" count="1">
+            <Page1 Ref="1" type="Page" isKey="true">
+              <PaperSize>A4</PaperSize>
+              <Components isList="true" count="1">
+                <DataBand1 Ref="2" type="DataBand" isKey="true">
+                  <ClientRectangle>0,0,749,20</ClientRectangle>
+                  <Components isList="true" count="1">
+                    <Item1 Ref="3" type="{type}" isKey="true"><ClientRectangle>0,0,300,20</ClientRectangle>{body}<Name>{name}</Name></Item1>
+                  </Components>
+                  <Name>DataBand1</Name>
+                </DataBand1>
+              </Components>
+              <Name>Page1</Name>
+            </Page1>
+          </Pages>
+        </StiSerializer>
+        """;
 }

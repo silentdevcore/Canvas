@@ -78,6 +78,8 @@ Root LocalName `StiSerializer` is unique → `LooksLikeMrt` = root `<StiSerializ
 | `CANMIGMRT010` | Info / Warning | `{Source.Field}` → binding (Info); complex expression → expression (Warning) |
 | `CANMIGMRT011` | Warning | Unsupported item / SubReport — labeled placeholder |
 | `CANMIGMRT012` | Warning | Image not embeddable — placeholder inserted |
+| `CANMIGMRT013` | Warning | `GroupHeaderBand`/`GroupFooterBand` item mapped to Canvas repeat metadata; group runtime semantics need review |
+| `CANMIGMRT014` | Warning | `Chart`/`CrossTab` has no native Canvas equivalent — positioned placeholder inserted |
 
 ## V1 checklist
 
@@ -96,6 +98,14 @@ sample requires Reports.JS JSON. The shared group/repeat model and style/border 
 more value than another parser path.
 
 - [ ] **P2** JSON `.mrt` variant (modern Reports.JS) — detect `{` vs `<` and parse with System.Text.Json
-- [ ] **P1** Named `<ComponentStyle>` / report `<Styles>` resolution; `<Border>` per-side
-- [ ] **P1** Page `PaperSize`/`PageWidth` units; group bands repeat semantics; cross-tab/chart placeholders
-- [ ] **P1** Stimulsoft expression dialect beyond single-field `{Source.Field}`
+- [x] **P1** Named `<ComponentStyle>` / report `<Styles>` resolution: a component's referenced report style
+      supplies `Font`/`TextBrush`/`Brush`/`HorAlignment` defaults the element doesn't set itself.
+- [ ] **P1** Per-side `<Border>` parsing (StiBorder side/colour/width string) → element border style
+- [x] **P1** Group bands repeat semantics: `GroupHeaderBand`/`GroupFooterBand` items carry Canvas `RepeatDto`
+      (data path from the band `<Condition>`, e.g. `{Customers.Country}`→`Country`) + `style.mrtGroup`
+      (name/role/condition); footers inherit the paired header's group key. Diagnostic `CANMIGMRT013`.
+- [x] **P1** Page `PaperSize`/`PageWidth` units (named PaperSize, else explicit `PageWidth`/`PageHeight`
+      hundredths-inch → pt); `Chart`/`CrossTab` → positioned placeholders with `CANMIGMRT014`.
+- [x] **P1** Stimulsoft expression dialect: single `{Source.Field}` → binding; compound expressions/functions
+      preserved on `Expression` + `style.mrtExpression` with every `{Source.Field}`/`{Field}` normalized to a
+      Canvas `{{Field}}` token (system variables left intact).

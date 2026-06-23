@@ -25,6 +25,10 @@ public sealed class MrtToDesignConverter
     private const double Scale = 0.72;   // ClientRectangle units are hundredths of an inch → points
     private const double A4WidthPt = 595, A4HeightPt = 842;
 
+    // Style name → its report-level <Styles> entry (resolved per Convert call); applied as a base for
+    // components that reference it via <ComponentStyle>.
+    private readonly Dictionary<string, XElement> _namedStyles = new(StringComparer.Ordinal);
+
     /// <summary>Detects a Stimulsoft <c>.mrt</c>: root <c>&lt;StiSerializer&gt;</c> (unique).</summary>
     public static bool LooksLikeMrt(string source)
     {
@@ -61,19 +65,38 @@ public sealed class MrtToDesignConverter
 
         var report = new RawReport { Name = Child(root, "ReportName")?.Value ?? Attr(root, "Name") ?? "Stimulsoft Report" };
 
+        _namedStyles.Clear();
+        foreach (var s in Child(root, "Styles")?.Elements() ?? Enumerable.Empty<XElement>())
+            if ((Child(s, "Name")?.Value ?? Attr(s, "Name")) is { Length: > 0 } sn)
+                _namedStyles[sn] = s;
+
         var page = Child(root, "Pages")?.Elements().FirstOrDefault(e => string.Equals(Attr(e, "type"), "Page", StringComparison.Ordinal))
                    ?? Child(root, "Pages")?.Elements().FirstOrDefault();
         ResolvePage(page, report);
 
         // A page's components are bands; each band's nested components are the report items.
+        RawBand? lastGroupHeader = null;
         foreach (var comp in Child(page, "Components")?.Elements() ?? Enumerable.Empty<XElement>())
         {
             var type = Attr(comp, "type") ?? comp.Name.LocalName;
             var (bx, by, _, _) = ParseRect(Child(comp, "ClientRectangle")?.Value);
             if (type.EndsWith("Band", StringComparison.Ordinal))
             {
-                report.Bands.Add(new RawBand { Name = NameOf(comp), Type = type });
-                ParseItems(Child(comp, "Components"), type, bx, by, report, 0);
+                var band = new RawBand { Name = NameOf(comp), Type = type };
+                // GroupHeaderBand carries the grouping key in <Condition>; a GroupFooterBand pairs with it.
+                if (type == "GroupHeaderBand")
+                {
+                    band.Condition = Child(comp, "Condition")?.Value;
+                    band.GroupName = band.Name;
+                    lastGroupHeader = band;
+                }
+                else if (type == "GroupFooterBand")
+                {
+                    band.Condition = lastGroupHeader?.Condition;
+                    band.GroupName = lastGroupHeader?.GroupName ?? band.Name;
+                }
+                report.Bands.Add(band);
+                ParseItems(Child(comp, "Components"), type, bx, by, report, 0, band);
             }
             else
             {
@@ -86,21 +109,30 @@ public sealed class MrtToDesignConverter
 
     private static void ResolvePage(XElement? page, RawReport report)
     {
+        // Prefer a named PaperSize; otherwise fall back to explicit PageWidth/PageHeight (hundredths-inch).
         var size = PaperKindSize(Child(page, "PaperSize")?.Value ?? Attr(page, "PaperSize") ?? "");
-        report.PageWidthPt = size.W > 0 ? size.W : A4WidthPt;
-        report.PageHeightPt = size.H > 0 ? size.H : A4HeightPt;
+        report.PageWidthPt = size.W > 0 ? size.W : PageDimPt(page, "PageWidth", A4WidthPt);
+        report.PageHeightPt = size.H > 0 ? size.H : PageDimPt(page, "PageHeight", A4HeightPt);
         if (string.Equals(Child(page, "Orientation")?.Value, "Landscape", StringComparison.OrdinalIgnoreCase))
             (report.PageWidthPt, report.PageHeightPt) = (report.PageHeightPt, report.PageWidthPt);
     }
 
-    // Items inside a band (or Panel); a Panel recurses with its absolute origin so children stay absolute.
-    private void ParseItems(XElement? components, string region, double originX, double originY, RawReport report, int depth)
+    private static double PageDimPt(XElement? page, string key, double fallback)
     {
-        foreach (var item in components?.Elements() ?? Enumerable.Empty<XElement>())
-            ParseItem(item, region, originX, originY, report, depth);
+        var value = Child(page, key)?.Value ?? Attr(page, key);
+        return double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) && v > 0
+            ? v * Scale
+            : fallback;
     }
 
-    private void ParseItem(XElement el, string region, double originX, double originY, RawReport report, int depth)
+    // Items inside a band (or Panel); a Panel recurses with its absolute origin so children stay absolute.
+    private void ParseItems(XElement? components, string region, double originX, double originY, RawReport report, int depth, RawBand? group = null)
+    {
+        foreach (var item in components?.Elements() ?? Enumerable.Empty<XElement>())
+            ParseItem(item, region, originX, originY, report, depth, group);
+    }
+
+    private void ParseItem(XElement el, string region, double originX, double originY, RawReport report, int depth, RawBand? group = null)
     {
         if (depth > 32) return;
         var type = Attr(el, "type") ?? el.Name.LocalName;
@@ -108,6 +140,8 @@ public sealed class MrtToDesignConverter
         var absX = originX + ix;   // hundredths of an inch
         var absY = originY + iy;
 
+        // A referenced report style supplies defaults the element doesn't set itself.
+        var style = _namedStyles.GetValueOrDefault(Child(el, "ComponentStyle")?.Value ?? "");
         var raw = new RawElement
         {
             Name = NameOf(el),
@@ -115,19 +149,25 @@ public sealed class MrtToDesignConverter
             Region = region,
             X = absX * Scale, Y = absY * Scale, W = iw * Scale, H = ih * Scale,
             Text = Child(el, "Text")?.Value,
-            TextAlign = ParseAlignment(Child(el, "HorAlignment")?.Value),
-            ForeColor = ParseColor(Child(el, "TextBrush")?.Value) ?? "#000000",
-            BackColor = ParseColor(Child(el, "Brush")?.Value),
+            TextAlign = ParseAlignment(Child(el, "HorAlignment")?.Value ?? Child(style, "HorAlignment")?.Value),
+            ForeColor = ParseColor(Child(el, "TextBrush")?.Value ?? Child(style, "TextBrush")?.Value) ?? "#000000",
+            BackColor = ParseColor(Child(el, "Brush")?.Value ?? Child(style, "Brush")?.Value),
         };
-        ApplyFont(raw, Child(el, "Font")?.Value);
+        ApplyFont(raw, Child(el, "Font")?.Value ?? Child(style, "Font")?.Value);
         if (type is "HorizontalLinePrimitive" or "VerticalLinePrimitive" && ParseColor(Child(el, "Color")?.Value) is { } lc) raw.ForeColor = lc;
         if (type == "Image") raw.ImageDataUrl = ExtractImageDataUrl(el);
         if (type == "BarCode") raw.Symbology = Child(el, "BarCodeType")?.Value ?? Attr(Child(el, "BarCode"), "type");
+        if (group is { Type: "GroupHeaderBand" or "GroupFooterBand" })
+        {
+            raw.GroupName = group.GroupName;
+            raw.GroupRole = group.Type == "GroupFooterBand" ? "footer" : "header";
+            raw.GroupCondition = group.Condition;
+        }
 
         report.Elements.Add(raw);
 
         if (type == "Panel")
-            ParseItems(Child(el, "Components"), region, absX, absY, report, depth + 1);
+            ParseItems(Child(el, "Components"), region, absX, absY, report, depth + 1, group);
     }
 
     // ── Build (band positions are explicit, so no height accumulation) ─────────────────────────────
@@ -146,6 +186,7 @@ public sealed class MrtToDesignConverter
 
             diagnostics.Add(Info("CANMIGMRT002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
             if (raw.Text is { } t) ApplyBinding(element, t, diagnostics);
+            ApplyGroupRepeatMetadata(element, raw, diagnostics);
 
             (raw.Region is "PageHeaderBand" or "PageFooterBand" ? sharedElements : elements).Add(element);
             mapped++;
@@ -224,6 +265,12 @@ public sealed class MrtToDesignConverter
                     $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
                 return Placeholder(element, $"[Sub-report: {raw.Name} — migrate manually]");
 
+            case "Chart":
+            case "CrossTab":
+                diagnostics.Add(Warn("CANMIGMRT014",
+                    $"'{raw.Name}' is a {raw.Type} — Canvas has no native equivalent; inserted a positioned placeholder for review."));
+                return Placeholder(element, $"[{raw.Type}: {raw.Name} — migrate manually]");
+
             default:
                 diagnostics.Add(Warn("CANMIGMRT011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
@@ -265,6 +312,47 @@ public sealed class MrtToDesignConverter
     private static readonly HashSet<string> SystemVars = new(StringComparer.OrdinalIgnoreCase)
     { "Page", "PageNofM", "TotalPageCount", "Today", "Now", "Time", "Column", "Line", "ReportName", "ReportAlias" };
 
+    // Group bands repeat per group key: attach Canvas RepeatDto + group metadata (mirrors the
+    // RDL/Jasper/DevExpress/FastReport/Telerik group mapping).
+    private static void ApplyGroupRepeatMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.GroupName is null) return;
+
+        var dataPath = GroupDataPath(raw);
+        var group = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["name"] = raw.GroupName,
+            ["role"] = raw.GroupRole ?? "header",
+            ["dataPath"] = dataPath,
+        };
+        if (!string.IsNullOrWhiteSpace(raw.GroupCondition)) group["condition"] = raw.GroupCondition!;
+
+        element.Style ??= [];
+        element.Style["mrtGroup"] = group;
+        element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
+        diagnostics.Add(Warn("CANMIGMRT013",
+            $"'{element.Name}' is in a {raw.GroupRole ?? "group"} group band '{raw.GroupName}' — mapped to Canvas repeat metadata; group runtime semantics need review."));
+    }
+
+    // Condition like "{Customers.Country}" → "Country"; otherwise the group name.
+    private static string GroupDataPath(RawElement raw)
+    {
+        if (!string.IsNullOrWhiteSpace(raw.GroupCondition))
+        {
+            var m = Regex.Match(raw.GroupCondition!, @"\{[A-Za-z_]\w*\.([A-Za-z_]\w*)\}");
+            if (m.Success) return SafeDataPath(m.Groups[1].Value);
+            var single = Regex.Match(raw.GroupCondition!, @"\{([A-Za-z_]\w*)\}");
+            if (single.Success) return SafeDataPath(single.Groups[1].Value);
+        }
+        return SafeDataPath(raw.GroupName ?? "items");
+    }
+
+    private static string SafeDataPath(string value)
+    {
+        var cleaned = new string(value.Select(ch => char.IsLetterOrDigit(ch) || ch is '_' or '.' ? ch : '_').ToArray()).Trim('_');
+        return string.IsNullOrWhiteSpace(cleaned) ? "items" : cleaned;
+    }
+
     private static void ApplyBinding(ElementDto element, string text, List<MigrationDiagnostic> diagnostics)
     {
         if (!LooksLikeExpr(text)) return;   // literal already set as Content/value
@@ -281,9 +369,16 @@ public sealed class MrtToDesignConverter
         }
         else
         {
+            // Compound expression (multiple fields / functions): normalize every {Source.Field}/{Field}
+            // reference to a Canvas {{Field}} token (leaving system variables intact); keep the original.
+            var normalized = Regex.Replace(text, @"\{(?:[A-Za-z_]\w*\.)?([A-Za-z_]\w*)\}", m =>
+                SystemVars.Contains(m.Groups[1].Value) ? m.Value : $"{{{{{m.Groups[1].Value}}}}}");
             element.Expression = text;
-            if (string.IsNullOrEmpty(element.Content)) element.Content = text;
-            diagnostics.Add(Warn("CANMIGMRT010", $"'{element.Name}' expression '{text}' mapped to Canvas expression — review the syntax."));
+            element.Style ??= [];
+            element.Style["mrtExpression"] = text;
+            if (element.Type == "barcode") element.BarcodeValue = normalized;
+            else if (string.IsNullOrEmpty(element.Content)) element.Content = normalized;
+            diagnostics.Add(Warn("CANMIGMRT010", $"'{element.Name}' expression '{text}' mapped to a Canvas template with normalized field references — review the syntax."));
         }
     }
 
@@ -418,6 +513,8 @@ public sealed class MrtToDesignConverter
     {
         public required string Name;
         public required string Type;
+        public string? Condition;   // GroupHeaderBand grouping expression
+        public string? GroupName;   // group identity shared by a header/footer pair
     }
 
     private sealed class RawElement
@@ -436,5 +533,8 @@ public sealed class MrtToDesignConverter
         public double? LineWidth;
         public string? ImageDataUrl;
         public string? Symbology;
+        public string? GroupName;        // set when the element is inside a group header/footer band
+        public string? GroupRole;        // "header" | "footer"
+        public string? GroupCondition;   // grouping expression, e.g. {Customers.Country}
     }
 }
