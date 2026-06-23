@@ -683,6 +683,25 @@ export class ExportService {
     pageSettings?: PageSettings,
     onProgress?: (progress: string) => void
   ): Promise<void> {
+    const blob = await this.renderDesignPdfBlob(template, pages, sharedElements, pageSettings, onProgress);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${template.name.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    onProgress?.('Done!');
+  }
+
+  static async renderDesignPdfBlob(
+    template: Template,
+    pages: Page[],
+    sharedElements: SimpleElement[] = [],
+    pageSettings?: PageSettings,
+    onProgress?: (progress: string) => void
+  ): Promise<Blob> {
     onProgress?.('Connecting to PDF service…');
 
     const payload = {
@@ -726,16 +745,7 @@ export class ExportService {
     }
 
     onProgress?.('Downloading…');
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${template.name.replace(/\s+/g, '-').toLowerCase()}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    onProgress?.('Done!');
+    return response.blob();
   }
 
   static async exportJsonToPDF(payload: object, name = 'document'): Promise<void> {

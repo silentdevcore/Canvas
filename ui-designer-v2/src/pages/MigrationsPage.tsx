@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiCode, FiCopy, FiDownload, FiPlay, FiRefreshCw, FiGitMerge, FiLayout, FiUpload } from 'react-icons/fi';
+import { FiCode, FiCopy, FiDownload, FiExternalLink, FiPlay, FiRefreshCw, FiGitMerge, FiLayout, FiUpload } from 'react-icons/fi';
 import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import AppHeader from '@/components/Layout/AppHeader';
+import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, useEditorStore, type Template } from '@/store';
 
 // Framework ids for the report → Canvas Designer flows (output is a design, not C# code).
@@ -713,6 +714,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const [hasConverted, setHasConverted] = useState(false);
   const [diagOpen, setDiagOpen] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfDataUrl, setPdfDataUrl] = useState<string | null>(null);
   const [converting, setConverting] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [copyLabel, setCopyLabel] = useState('Copy');
@@ -973,6 +975,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
       const url = URL.createObjectURL(blob);
       prevPdfUrl.current = url;
       setPdfUrl(url);
+      setPdfDataUrl(await blobToDataUrl(blob));
     } catch (e: any) {
       setError(e.message ?? 'Preview failed — is the Canvas.WebApi backend running on port 5086?');
     } finally {
@@ -996,6 +999,15 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     a.download = 'migration.cs';
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleOpenPreviewInViewer = () => {
+    if (!pdfDataUrl) return;
+    writePdfViewerHandoff({
+      dataUrl: pdfDataUrl,
+      name: `${selectedId}-migration-preview.pdf`,
+    });
+    navigate('/pdf-viewer?handoff=session');
   };
 
   const handleDragStart = useCallback((e: React.MouseEvent) => {
@@ -1392,6 +1404,12 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
         <div className="mgr-preview">
           <div className="mgr-preview-header">
             <span>PDF Preview</span>
+            {pdfDataUrl && (
+              <button className="mgr-preview-action" type="button" onClick={handleOpenPreviewInViewer}>
+                <FiExternalLink />
+                Open in PDF Viewer
+              </button>
+            )}
           </div>
           {pdfUrl
             ? <iframe className="mgr-pdf-frame" src={pdfUrl} title="PDF Preview" />

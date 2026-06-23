@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiX } from 'react-icons/fi';
 
 interface AppHeaderProps {
-  activePage: 'home' | 'templates' | 'docs' | 'migrations' | 'importer';
+  activePage: 'home' | 'templates' | 'docs' | 'migrations' | 'importer' | 'viewer';
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
@@ -44,6 +44,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
               Importer
             </button>
             <button
+              className={activePage === 'viewer' ? 'is-active' : ''}
+              onClick={() => { navigate('/pdf-viewer'); setMobileMenuOpen(false); }}
+            >
+              PDF Viewer
+            </button>
+            <button
               className={activePage === 'docs' ? 'is-active' : ''}
               onClick={() => { navigate('/docs'); setMobileMenuOpen(false); }}
             >
@@ -74,6 +80,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
           </button>
           <button className={activePage === 'importer' ? 'is-active' : ''} onClick={() => navigate('/importer')}>
             Importer
+          </button>
+          <button className={activePage === 'viewer' ? 'is-active' : ''} onClick={() => navigate('/pdf-viewer')}>
+            PDF Viewer
           </button>
           <button className={activePage === 'docs' ? 'is-active' : ''} onClick={() => navigate('/docs')}>
             Docs

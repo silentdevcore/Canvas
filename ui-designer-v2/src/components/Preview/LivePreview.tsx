@@ -1,14 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import JsBarcode from 'jsbarcode';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
-import { FiCheck, FiChevronDown, FiDownload, FiEdit3, FiCheckSquare, FiFileText, FiLayers, FiPrinter } from 'react-icons/fi';
+import { FiCheck, FiChevronDown, FiDownload, FiEdit3, FiCheckSquare, FiExternalLink, FiFileText, FiLayers, FiPrinter } from 'react-icons/fi';
 import ExportService from '../../services/ExportService';
 import ExportModal from '../Editor/ExportModal';
 import type { Template, SimpleElement, PageSettings, Page } from '@/types';
+import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { installImportedFontFaces } from '@/utils/importedFonts';
 
 interface LivePreviewProps {
@@ -53,6 +55,7 @@ const borderStyleForZoom = (s: Record<string, any>, zoom: number): React.CSSProp
 };
 
 const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElements = [], pageSettings, onBack, onExport, hideBackButton, exportLabel }) => {
+  const navigate = useNavigate();
   const [zoom, setZoom] = useState(1);
   const pageWidth  = pageSettings?.width  ?? 595;
   const pageHeight = pageSettings?.height ?? 842;
@@ -66,6 +69,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
   }, [pages, sharedElements]);
   const [exportDone, setExportDone] = useState<ExportFormat | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [viewerPdfDataUrl, setViewerPdfDataUrl] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -122,7 +126,16 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
     // PDF via backend
     try {
       setExportingFormat('pdf');
-      await ExportService.exportToPDF(template, pages, sharedElements, pageSettings);
+      const blob = await ExportService.renderDesignPdfBlob(template, pages, sharedElements, pageSettings);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${template.name.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setViewerPdfDataUrl(await blobToDataUrl(blob));
       setExportingFormat(null);
       setExportDone('pdf');
       onExport();
@@ -131,6 +144,15 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       setExportingFormat(null);
       setExportError(err instanceof Error ? err.message : 'Export failed');
     }
+  };
+
+  const handleOpenPdfViewer = () => {
+    if (!viewerPdfDataUrl) return;
+    writePdfViewerHandoff({
+      dataUrl: viewerPdfDataUrl,
+      name: `${template.name.replace(/\s+/g, '-').toLowerCase()}.pdf`,
+    });
+    navigate('/pdf-viewer?handoff=session');
   };
 
   const createDefaultChartData = () => ({
@@ -987,6 +1009,20 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
               </div>
             )}
           </div>
+
+          {viewerPdfDataUrl && (
+            <button
+              onClick={handleOpenPdfViewer}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '8px 12px', borderRadius: 8, border: '1px solid #cbd5e1',
+                background: '#fff', color: '#0f172a', fontWeight: 500, fontSize: 14, cursor: 'pointer',
+              }}
+            >
+              <FiExternalLink size={15} />
+              Open in PDF Viewer
+            </button>
+          )}
 
           {exportError && (
             <span style={{ fontSize: 12, color: '#dc2626', maxWidth: 200 }}>{exportError}</span>

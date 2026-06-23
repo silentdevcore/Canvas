@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import IndexPage from '@/pages/IndexPage';
 import TemplatePage from '@/pages/TemplatePage';
@@ -7,6 +7,8 @@ import DocsPage from '@/pages/DocsPage';
 import MigrationsHubPage from '@/pages/MigrationsHubPage';
 import MigrationsPage from '@/pages/MigrationsPage';
 import ImporterPage from '@/pages/ImporterPage';
+
+const PdfViewerPage = React.lazy(() => import('@/features/pdf-viewer/PdfViewerPage'));
 
 const App: React.FC = () => (
   <Routes>
@@ -18,6 +20,14 @@ const App: React.FC = () => (
     <Route path="/migrations/code" element={<MigrationsPage mode="code" />} />
     <Route path="/migrations/designer" element={<MigrationsPage mode="designer" />} />
     <Route path="/importer" element={<ImporterPage />} />
+    <Route
+      path="/pdf-viewer"
+      element={(
+        <Suspense fallback={<div className="route-loading">Loading PDF viewer...</div>}>
+          <PdfViewerPage />
+        </Suspense>
+      )}
+    />
   </Routes>
 );
 

@@ -40,13 +40,19 @@ Observed demo/source facts:
 
 ## P0 - Viewer Foundation
 
-- [ ] **PDF viewer shell** - Dedicated viewer route/page for opening a PDF output or uploaded PDF with page navigation, zoom, fit modes, and responsive layout.
-- [ ] **Document open sources** - Open generated PDFs, uploaded local files, and backend-served PDFs through one viewer abstraction.
-- [ ] **Thumbnails/sidebar** - Page thumbnails with current-page state and click-to-navigate.
-- [ ] **Text search** - Search panel with result count, next/previous result, case-sensitive option, and page/result highlighting.
-- [ ] **Print workflow** - Print current/all/range pages with an option to include annotations once annotations exist.
+- [x] **PDF viewer shell** - Dedicated viewer route/page for opening a PDF output or uploaded PDF with page navigation, zoom, fit modes, and responsive layout.
+      Implemented in `ui-designer-v2` at `/pdf-viewer`.
+- [x] **Document open sources** - Open generated PDFs, uploaded local files, and backend-served PDFs through one viewer abstraction.
+      Implemented for uploaded local files, direct/backend URLs, `?src=` URL handoff, migration-preview generated PDF handoff, and normal Designer PDF export handoff.
+- [x] **Thumbnails/sidebar** - Page thumbnails with current-page state and click-to-navigate.
+- [x] **Text search** - Search panel with result count, next/previous result, case-sensitive option, and page/result highlighting.
+      Implemented with result navigation, case-sensitive search, page jump, and text-layer highlighting where PDF.js text spans contain the match.
+- [x] **Print workflow** - Print current/all/range pages with an option to include annotations once annotations exist.
+      Implemented all/current/range print options. Current/range print creates a temporary subset PDF with `pdf-lib`.
 - [ ] **Download/save workflow** - Download the current PDF; later include annotation/form changes when persisted editing exists.
-- [ ] **Viewer event API** - Emit events for open, page changed, zoom changed, print started/completed/failed, save/download, and search result selected.
+      Baseline download exists for uploaded files and URL PDFs. Save/persist edited PDF remains open.
+- [x] **Viewer event API** - Emit events for open, page changed, zoom changed, print started/completed/failed, save/download, and search result selected.
+      Implemented as browser `pdf-viewer:event` custom events plus a small in-view event trace.
 
 ## Canvas Viewer Adaptation Plan
 
@@ -55,17 +61,18 @@ our own implementation, UI language, and engine boundaries.
 
 ### Phase 1 - PDF Tools-like viewer baseline
 
-- [ ] Add a dedicated PDF viewer route/page in `ui-designer-v2`.
-- [ ] Add a reusable viewer component that accepts a generated PDF blob, upload file, or backend URL.
-- [ ] Add top toolbar actions: open, save/download, print, search, thumbnails, zoom out/in, fit page,
+- [x] Add a dedicated PDF viewer route/page in `ui-designer-v2`.
+- [x] Add a reusable viewer component that accepts a generated PDF blob, upload file, or backend URL.
+      Implemented as `PdfViewer` plus a thin route page. Upload, direct URL, backend URL, and session handoff are supported through `handoff.ts`.
+- [x] Add top toolbar actions: open, save/download, print, search, thumbnails, zoom out/in, fit page,
       fit width, previous page, next page.
-- [ ] Add a left thumbnails panel with current-page highlight.
-- [ ] Add page navigation state: current page, total pages, direct page number input.
-- [ ] Add zoom state and fit modes that do not disturb page navigation.
-- [ ] Add search panel with result count, next/previous match, case-sensitive option, and highlighted matches.
-- [ ] Add print modal with all/current/range pages.
-- [ ] Add download/save button for the currently opened PDF.
-- [ ] Add responsive layout for desktop/tablet/mobile.
+- [x] Add a left thumbnails panel with current-page highlight.
+- [x] Add page navigation state: current page, total pages, direct page number input.
+- [x] Add zoom state and fit modes that do not disturb page navigation.
+- [x] Add search panel with result count, next/previous match, case-sensitive option, and highlighted matches.
+- [x] Add print modal with all/current/range pages.
+- [x] Add download/save button for the currently opened PDF.
+- [x] Add responsive layout for desktop/tablet/mobile.
 
 ### Phase 2 - Review mode baseline
 
