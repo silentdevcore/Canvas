@@ -166,7 +166,8 @@ public sealed class MrtToDesignConverterTests
         Assert.True(MrtToDesignConverter.LooksLikeMrt(SampleMrt));
         Assert.False(MrtToDesignConverter.LooksLikeMrt("""<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" />"""));
         Assert.False(MrtToDesignConverter.LooksLikeMrt("""<Report><ReportPage /></Report>"""));
-        Assert.False(MrtToDesignConverter.LooksLikeMrt("{ \"ReportVersion\": \"2023\" }"));   // JSON .mrt is V2
+        Assert.True(MrtToDesignConverter.LooksLikeMrt("{ \"ReportVersion\": \"2023\", \"Pages\": {} }"));   // JSON .mrt now supported
+        Assert.False(MrtToDesignConverter.LooksLikeMrt("{ \"some\": \"object\" }"));   // plain JSON isn't a Stimulsoft report
         Assert.False(MrtToDesignConverter.LooksLikeMrt("public class Foo {}"));
     }
 
@@ -333,6 +334,55 @@ public sealed class MrtToDesignConverterTests
         var ps = Convert(mrt).Design.PageSettings!;
         Assert.Equal(595, ps.Width, 0);    // 827 hundredths-inch × 0.72 ≈ 595
         Assert.Equal(842, ps.Height, 0);   // 1169 × 0.72 ≈ 842
+    }
+
+    [Fact]
+    public void Convert_JsonMrt_ParsesPageBandsItemsWithReportUnitGeometry()
+    {
+        var json = """
+            {
+              "ReportVersion": "2023.1",
+              "ReportName": "JsonReport",
+              "ReportUnit": "Centimeters",
+              "Pages": {
+                "0": {
+                  "Ident": "StiPage",
+                  "Name": "Page1",
+                  "PageWidth": 21.0,
+                  "PageHeight": 29.7,
+                  "Components": {
+                    "0": {
+                      "Ident": "StiDataBand",
+                      "Name": "DataBand1",
+                      "ClientRectangle": "0,1,21,1",
+                      "Components": {
+                        "0": {
+                          "Ident": "StiText",
+                          "Name": "name",
+                          "ClientRectangle": "0,0,5,0.5",
+                          "Text": "{Customers.Name}",
+                          "TextBrush": "[255:0:0]",
+                          "Border": "All;[0:0:0];1;Solid"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """;
+        Assert.True(MrtToDesignConverter.LooksLikeMrt(json));
+        var r = Convert(json);
+
+        Assert.Equal("JsonReport", r.Design.Name);
+        Assert.Equal(595, r.Design.PageSettings!.Width, 0);   // 21cm × 72/2.54 ≈ 595
+
+        var name = El(r.Design, "name");
+        Assert.Equal("text", name.Type);
+        Assert.Equal("{{Name}}", name.Content);                // {Customers.Name} → binding
+        Assert.Equal("#FF0000", name.Style!["color"]);
+        Assert.Equal("#000000", name.Style!["borderColor"]);   // StiBorder All
+        Assert.Equal(28.0, name.Y, 0);                         // band y=1cm folded in (1 × 28.35 ≈ 28)
     }
 
     // Wraps a single component (default a Text) in a minimal A4 .mrt DataBand.

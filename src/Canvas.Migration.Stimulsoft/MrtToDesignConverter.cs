@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Canvas.Core.Contracts;
@@ -28,17 +29,39 @@ public sealed class MrtToDesignConverter
     // Style name → its report-level <Styles> entry (resolved per Convert call); applied as a base for
     // components that reference it via <ComponentStyle>.
     private readonly Dictionary<string, XElement> _namedStyles = new(StringComparer.Ordinal);
+    // Same, for the JSON (Reports.JS) variant: style name → its JSON style object.
+    private readonly Dictionary<string, JsonElement> _jsonStyles = new(StringComparer.Ordinal);
 
-    /// <summary>Detects a Stimulsoft <c>.mrt</c>: root <c>&lt;StiSerializer&gt;</c> (unique).</summary>
+    /// <summary>Detects a Stimulsoft <c>.mrt</c>: XML root <c>&lt;StiSerializer&gt;</c>, or the modern
+    /// Reports.JS JSON variant (a JSON object carrying Stimulsoft report markers).</summary>
     public static bool LooksLikeMrt(string source)
     {
         if (string.IsNullOrWhiteSpace(source)) return false;
-        if (!source.TrimStart().StartsWith('<')) return false;
+        var trimmed = source.TrimStart();
+        if (trimmed.StartsWith('<'))
+        {
+            try { return XDocument.Parse(source).Root?.Name.LocalName == "StiSerializer"; }
+            catch (System.Xml.XmlException) { return false; }
+        }
+        if (trimmed.StartsWith('{'))
+            return LooksLikeJsonMrt(source);
+        return false;
+    }
+
+    // JSON .mrt (Reports.JS): a JSON object with Stimulsoft report markers (ReportVersion/ReportGuid, or
+    // Pages + an "Ident" component discriminator). Conservative so arbitrary JSON isn't misrouted here.
+    private static bool LooksLikeJsonMrt(string source)
+    {
         try
         {
-            return XDocument.Parse(source).Root?.Name.LocalName == "StiSerializer";
+            using var doc = JsonDocument.Parse(source);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object) return false;
+            var root = doc.RootElement;
+            return root.TryGetProperty("ReportVersion", out _)
+                || root.TryGetProperty("ReportGuid", out _)
+                || (root.TryGetProperty("Pages", out _) && source.Contains("\"Ident\"", StringComparison.Ordinal));
         }
-        catch (System.Xml.XmlException)
+        catch (JsonException)
         {
             return false;
         }
@@ -55,6 +78,9 @@ public sealed class MrtToDesignConverter
     {
         if (string.IsNullOrWhiteSpace(mrt))
             throw new ArgumentException("Source cannot be null or empty.", nameof(mrt));
+
+        if (mrt.TrimStart().StartsWith('{'))
+            return ConvertJson(mrt);   // modern Reports.JS JSON variant
 
         XElement root;
         try { root = XDocument.Parse(mrt).Root ?? throw new ArgumentException("Empty .mrt document."); }
@@ -105,6 +131,198 @@ public sealed class MrtToDesignConverter
         }
 
         return BuildDesign(report);
+    }
+
+    // ── JSON (Reports.JS) variant ──────────────────────────────────────────────────────────────────
+    // Same logical model as the XML path (Pages → bands → items), but components are JSON objects keyed by
+    // index, types come from "Ident" (Sti-prefixed), and geometry is in ReportUnit (cm/inch/px) not
+    // hundredths-of-inch. Builds the same RawReport so the shared BuildDesign/mapping logic is reused.
+    private MrtConvertResult ConvertJson(string json)
+    {
+        JsonDocument doc;
+        try { doc = JsonDocument.Parse(json); }
+        catch (JsonException ex) { throw new ArgumentException($"Invalid .mrt JSON: {ex.Message}", nameof(json)); }
+        using (doc)
+        {
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object)
+                throw new ArgumentException("Not a Stimulsoft .mrt — expected a JSON report object.", nameof(json));
+
+            var report = new RawReport { Name = JStr(root, "ReportName") ?? "Stimulsoft Report" };
+            var unit = UnitToPt(JStr(root, "ReportUnit"));
+
+            _jsonStyles.Clear();
+            if (JObj(root, "Styles") is { } styles)
+                foreach (var s in styles.EnumerateObject())
+                    if (JStr(s.Value, "Name") is { Length: > 0 } sn) _jsonStyles[sn] = s.Value;
+
+            var page = FirstJsonPage(root);
+            ResolvePageJson(page, report, unit);
+
+            RawBand? lastGroupHeader = null;
+            foreach (var comp in JsonComponents(page))
+            {
+                var type = JsonType(comp);
+                var (bx, by, _, _) = ParseRect(JRectString(comp, "ClientRectangle"));
+                if (type.EndsWith("Band", StringComparison.Ordinal))
+                {
+                    var band = new RawBand { Name = JStr(comp, "Name") ?? type, Type = type };
+                    if (type == "GroupHeaderBand")
+                    {
+                        band.Condition = JStr(comp, "Condition");
+                        band.GroupName = band.Name;
+                        lastGroupHeader = band;
+                    }
+                    else if (type == "GroupFooterBand")
+                    {
+                        band.Condition = lastGroupHeader?.Condition;
+                        band.GroupName = lastGroupHeader?.GroupName ?? band.Name;
+                    }
+                    report.Bands.Add(band);
+                    foreach (var item in JsonComponents(comp))
+                        ParseJsonItem(item, type, bx, by, report, unit, band, 0);
+                }
+                else
+                {
+                    ParseJsonItem(comp, "", bx, by, report, unit, null, 0);
+                }
+            }
+
+            return BuildDesign(report);
+        }
+    }
+
+    private void ParseJsonItem(JsonElement el, string region, double originX, double originY, RawReport report, double unit, RawBand? group, int depth)
+    {
+        if (depth > 32) return;
+        var type = JsonType(el);
+        var (ix, iy, iw, ih) = ParseRect(JRectString(el, "ClientRectangle"));
+        var absX = originX + ix;
+        var absY = originY + iy;
+
+        var style = _jsonStyles.GetValueOrDefault(JStr(el, "ComponentStyle") ?? "");
+        var raw = new RawElement
+        {
+            Name = JStr(el, "Name") ?? type,
+            Type = type,
+            Region = region,
+            X = absX * unit, Y = absY * unit, W = iw * unit, H = ih * unit,
+            Text = JStr(el, "Text"),
+            TextAlign = ParseAlignment(JStr(el, "HorAlignment") ?? JStr(style, "HorAlignment")),
+            ForeColor = ParseColor(JStr(el, "TextBrush") ?? JStr(style, "TextBrush")) ?? "#000000",
+            BackColor = ParseColor(JStr(el, "Brush") ?? JStr(style, "Brush")),
+        };
+        ApplyFont(raw, JStr(el, "Font") ?? JStr(style, "Font"));
+        ParseBorder(raw, JStr(el, "Border") ?? JStr(style, "Border"));
+        if (type is "HorizontalLinePrimitive" or "VerticalLinePrimitive" && ParseColor(JStr(el, "Color")) is { } lc) raw.ForeColor = lc;
+        if (type == "Image") raw.ImageDataUrl = ExtractJsonImageDataUrl(el);
+        if (type == "BarCode") raw.Symbology = JStr(el, "BarCodeType");
+        if (group is { Type: "GroupHeaderBand" or "GroupFooterBand" })
+        {
+            raw.GroupName = group.GroupName;
+            raw.GroupRole = group.Type == "GroupFooterBand" ? "footer" : "header";
+            raw.GroupCondition = group.Condition;
+        }
+
+        report.Elements.Add(raw);
+
+        if (type == "Panel")
+            foreach (var child in JsonComponents(el))
+                ParseJsonItem(child, region, absX, absY, report, unit, group, depth + 1);
+    }
+
+    private static void ResolvePageJson(JsonElement? page, RawReport report, double unit)
+    {
+        if (page is not { } p) { report.PageWidthPt = A4WidthPt; report.PageHeightPt = A4HeightPt; return; }
+        var size = PaperKindSize(JStr(p, "PaperSize") ?? "");
+        var w = JNum(p, "PageWidth");
+        var h = JNum(p, "PageHeight");
+        report.PageWidthPt = size.W > 0 ? size.W : (w is > 0 ? w.Value * unit : A4WidthPt);
+        report.PageHeightPt = size.H > 0 ? size.H : (h is > 0 ? h.Value * unit : A4HeightPt);
+        if (string.Equals(JStr(p, "Orientation"), "Landscape", StringComparison.OrdinalIgnoreCase))
+            (report.PageWidthPt, report.PageHeightPt) = (report.PageHeightPt, report.PageWidthPt);
+    }
+
+    private static double UnitToPt(string? unit) => (unit ?? "").Trim().ToLowerInvariant() switch
+    {
+        "centimeters" => 72.0 / 2.54,
+        "millimeters" => 72.0 / 25.4,
+        "inches" => 72.0,
+        "pixels" => 72.0 / 96.0,
+        "hundredthsofinch" => 0.72,
+        _ => 72.0 / 2.54,   // Reports.JS default unit is centimeters
+    };
+
+    private static JsonElement? FirstJsonPage(JsonElement root)
+    {
+        if (!root.TryGetProperty("Pages", out var pages)) return null;
+        if (pages.ValueKind == JsonValueKind.Object)
+            foreach (var p in pages.EnumerateObject()) if (p.Value.ValueKind == JsonValueKind.Object) return p.Value;
+        if (pages.ValueKind == JsonValueKind.Array)
+            foreach (var p in pages.EnumerateArray()) if (p.ValueKind == JsonValueKind.Object) return p;
+        return null;
+    }
+
+    private static IEnumerable<JsonElement> JsonComponents(JsonElement? parent)
+    {
+        if (parent is not { } p || !p.TryGetProperty("Components", out var comps)) return Enumerable.Empty<JsonElement>();
+        return comps.ValueKind switch
+        {
+            JsonValueKind.Object => comps.EnumerateObject().Select(x => x.Value),
+            JsonValueKind.Array => comps.EnumerateArray(),
+            _ => Enumerable.Empty<JsonElement>(),
+        };
+    }
+
+    private static string JsonType(JsonElement el)
+    {
+        var ident = JStr(el, "Ident") ?? "";
+        return ident.StartsWith("Sti", StringComparison.Ordinal) ? ident[3..] : ident;
+    }
+
+    private static string? JStr(JsonElement el, string prop)
+    {
+        if (el.ValueKind != JsonValueKind.Object || !el.TryGetProperty(prop, out var v)) return null;
+        return v.ValueKind switch
+        {
+            JsonValueKind.String => v.GetString(),
+            JsonValueKind.Number => v.GetRawText(),
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            _ => null,
+        };
+    }
+
+    private static double? JNum(JsonElement el, string prop)
+    {
+        if (el.ValueKind != JsonValueKind.Object || !el.TryGetProperty(prop, out var v)) return null;
+        if (v.ValueKind == JsonValueKind.Number) return v.GetDouble();
+        return v.ValueKind == JsonValueKind.String && double.TryParse(v.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : null;
+    }
+
+    private static JsonElement? JObj(JsonElement el, string prop) =>
+        el.ValueKind == JsonValueKind.Object && el.TryGetProperty(prop, out var v) && v.ValueKind == JsonValueKind.Object ? v : null;
+
+    // ClientRectangle may be a "x,y,w,h" string or a [x,y,w,h] array → normalize to the comma string ParseRect expects.
+    private static string? JRectString(JsonElement el, string prop)
+    {
+        if (el.ValueKind != JsonValueKind.Object || !el.TryGetProperty(prop, out var v)) return null;
+        return v.ValueKind switch
+        {
+            JsonValueKind.String => v.GetString(),
+            JsonValueKind.Array => string.Join(",", v.EnumerateArray().Select(e => e.ToString())),
+            _ => null,
+        };
+    }
+
+    private static string? ExtractJsonImageDataUrl(JsonElement el)
+    {
+        var b64 = JStr(el, "Image") ?? JStr(el, "ImageData");
+        if (string.IsNullOrWhiteSpace(b64)) return null;
+        if (b64.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) return b64;
+        var clean = Regex.Replace(b64, @"\s+", "");
+        return clean.Length >= 16 && clean.Length % 4 == 0 && Regex.IsMatch(clean, @"^[A-Za-z0-9+/]+={0,2}$")
+            ? $"data:image/png;base64,{clean}" : null;
     }
 
     private static void ResolvePage(XElement? page, RawReport report)

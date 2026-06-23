@@ -97,7 +97,12 @@ Root LocalName `StiSerializer` is unique → `LooksLikeMrt` = root `<StiSerializ
 sample requires Reports.JS JSON. The shared group/repeat model and style/border support should carry
 more value than another parser path.
 
-- [ ] **P2** JSON `.mrt` variant (modern Reports.JS) — detect `{` vs `<` and parse with System.Text.Json
+- [x] **P2** JSON `.mrt` variant (modern Reports.JS): `LooksLikeMrt`/`Convert` detect `{` vs `<` and parse
+      with `System.Text.Json`. Walks `Pages → Components` (index-keyed objects), maps `Ident` (`StiText`→
+      `Text`, `StiGroupHeaderBand`→`GroupHeaderBand`, …), converts geometry by `ReportUnit` (cm/in/mm/px→pt),
+      and fills the same `RawReport` so the shared `BuildDesign` (group repeat, borders, expressions,
+      named styles) is reused. ⚠️ Schema-based — validated with a synthetic fixture; needs real
+      vendor-saved JSON `.mrt` for full tuning.
 - [x] **P1** Named `<ComponentStyle>` / report `<Styles>` resolution: a component's referenced report style
       supplies `Font`/`TextBrush`/`Brush`/`HorAlignment` defaults the element doesn't set itself.
 - [x] **P1** Per-side `<Border>` parsing: StiBorder `Sides;Color;Size;…` strings map to a uniform
