@@ -27,6 +27,8 @@ public sealed class TrdxToDesignConverter
 
     // StyleName → its <Style> element from the report <StyleSheet>, populated per Convert call.
     private readonly Dictionary<string, XElement> _namedStyles = new(StringComparer.Ordinal);
+    // Control-type name → <Style> from a TypeSelector StyleRule (applies to every control of that type).
+    private readonly Dictionary<string, XElement> _typeStyles = new(StringComparer.Ordinal);
 
     /// <summary>Detects a Telerik <c>.trdx</c>: root <c>&lt;Report&gt;</c> in a Telerik reporting namespace.</summary>
     public static bool LooksLikeTrdx(string source)
@@ -66,6 +68,7 @@ public sealed class TrdxToDesignConverter
             throw new ArgumentException("Not a Telerik .trdx — expected a root <Report> element.", nameof(trdxXml));
 
         _namedStyles.Clear();
+        _typeStyles.Clear();
         CollectNamedStyles(root);
 
         var report = new RawReport { Name = Attr(root, "Name") ?? "Telerik Report" };
@@ -73,16 +76,31 @@ public sealed class TrdxToDesignConverter
 
         // <Report><Items> holds the sections; each section has a Height, an optional <Style>, and <Items>.
         var sectionsContainer = root.Elements().FirstOrDefault(e => e.Name.LocalName == "Items");
+        RawBand? lastGroupHeader = null;
         foreach (var section in sectionsContainer?.Elements() ?? Enumerable.Empty<XElement>())
         {
             if (!section.Name.LocalName.EndsWith("Section", StringComparison.Ordinal)) continue;
-            var name = Attr(section, "Name") ?? section.Name.LocalName;
-            report.Bands.Add(new RawBand
+            var type = section.Name.LocalName;
+            var name = Attr(section, "Name") ?? type;
+            var band = new RawBand
             {
                 Name = name,
-                Type = section.Name.LocalName,
+                Type = type,
                 HeightPt = LengthToPt(Attr(section, "Height"))
-            });
+            };
+            // GroupHeaderSection carries the grouping expression; a following GroupFooterSection pairs with it.
+            if (type == "GroupHeaderSection")
+            {
+                band.Condition = GroupingExpression(section);
+                band.GroupName = name;
+                lastGroupHeader = band;
+            }
+            else if (type == "GroupFooterSection")
+            {
+                band.Condition = lastGroupHeader?.Condition;
+                band.GroupName = lastGroupHeader?.GroupName ?? name;
+            }
+            report.Bands.Add(band);
 
             var items = section.Elements().FirstOrDefault(e => e.Name.LocalName == "Items");
             ParseItems(items, name, 0, 0, report, 0);
@@ -100,9 +118,22 @@ public sealed class TrdxToDesignConverter
             if (style is null) continue;
             var selectors = Child(rule, "Selectors");
             foreach (var sel in Children(selectors, "StyleSelector"))
+            {
                 if (Attr(sel, "StyleName") is { Length: > 0 } sn)
                     _namedStyles[sn] = style;
+                // TypeSelector: a Type attribute applies the rule to every control of that type. Stored by
+                // the simple type name (e.g. "Telerik.Reporting.TextBox" → "TextBox").
+                else if (Attr(sel, "Type") is { Length: > 0 } type)
+                    _typeStyles[SimpleTypeName(type)] = style;
+            }
         }
+    }
+
+    private static string SimpleTypeName(string type)
+    {
+        var name = type.Split(',')[0].Trim();
+        var dot = name.LastIndexOf('.');
+        return dot >= 0 ? name[(dot + 1)..] : name;
     }
 
     private void ResolvePage(XElement root, RawReport report)
@@ -143,8 +174,9 @@ public sealed class TrdxToDesignConverter
                 H = LengthToPt(Attr(item, "Height")),
                 Value = Attr(item, "Value") ?? Child(item, "Value")?.Value
             };
-            ApplyStyle(raw, _namedStyles.GetValueOrDefault(Attr(item, "StyleName") ?? ""));  // named base
-            ApplyStyle(raw, Child(item, "Style"));                                            // inline overrides
+            ApplyStyle(raw, _typeStyles.GetValueOrDefault(type));                             // TypeSelector base
+            ApplyStyle(raw, _namedStyles.GetValueOrDefault(Attr(item, "StyleName") ?? ""));  // named override
+            ApplyStyle(raw, Child(item, "Style"));                                            // inline override
             if (type == "Shape") raw.ShapeKind = ShapeKindFromName(Attr(item, "ShapeType") ?? Attr(item, "Shape"));
             if (type == "PictureBox") raw.ImageDataUrl = ExtractImageDataUrl(item);
             if (type == "Barcode") raw.Symbology = Attr(item, "Type") ?? Attr(item, "Symbology") ?? Attr(item, "Encoder");
@@ -261,6 +293,56 @@ public sealed class TrdxToDesignConverter
         return (row, col, has);
     }
 
+    // The grouping expression on a GroupHeaderSection: <Groupings><Grouping Expression="=Fields.X"/> or
+    // a nested <Expression> element.
+    private static string? GroupingExpression(XElement section)
+    {
+        var grouping = section.Descendants().FirstOrDefault(e => e.Name.LocalName == "Grouping");
+        if (grouping is null) return null;
+        return Attr(grouping, "Expression") ?? Child(grouping, "Expression")?.Value;
+    }
+
+    // Group sections repeat per group key: attach Canvas RepeatDto + group metadata so the section's items
+    // can be wired as a repeating template (mirrors the RDL/Jasper/DevExpress/FastReport group mapping).
+    private static void ApplyGroupRepeatMetadata(ElementDto element, RawBand band, List<MigrationDiagnostic> diagnostics)
+    {
+        if (band.Type is not ("GroupHeaderSection" or "GroupFooterSection")) return;
+
+        var role = band.Type == "GroupFooterSection" ? "footer" : "header";
+        var dataPath = GroupDataPath(band);
+        var group = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["name"] = band.GroupName ?? band.Name,
+            ["role"] = role,
+            ["band"] = band.Name,
+            ["dataPath"] = dataPath,
+        };
+        if (!string.IsNullOrWhiteSpace(band.Condition)) group["condition"] = band.Condition!;
+
+        element.Style ??= [];
+        element.Style["trdxGroup"] = group;
+        element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
+        diagnostics.Add(Warn("CANMIGTRDX014",
+            $"'{element.Name}' is in {band.Type} '{band.GroupName ?? band.Name}' — mapped to Canvas repeat metadata; group runtime semantics need review."));
+    }
+
+    // Grouping expression like "=Fields.Region" → "Region"; otherwise the group/section name.
+    private static string GroupDataPath(RawBand band)
+    {
+        if (!string.IsNullOrWhiteSpace(band.Condition))
+        {
+            var m = Regex.Match(band.Condition!, @"Fields\.(\w+)");
+            if (m.Success) return SafeDataPath(m.Groups[1].Value);
+        }
+        return SafeDataPath(band.GroupName ?? band.Name);
+    }
+
+    private static string SafeDataPath(string value)
+    {
+        var cleaned = new string(value.Select(ch => char.IsLetterOrDigit(ch) || ch is '_' or '.' ? ch : '_').ToArray()).Trim('_');
+        return string.IsNullOrWhiteSpace(cleaned) ? "items" : cleaned;
+    }
+
     // ── Section-flatten build ──────────────────────────────────────────────────────────────────────
 
     private static TrdxConvertResult BuildDesign(RawReport report)
@@ -301,6 +383,7 @@ public sealed class TrdxToDesignConverter
             diagnostics.Add(Info("CANMIGTRDX002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
 
             if (raw.Value is { } v) ApplyBinding(element, v, diagnostics);
+            if (band is not null) ApplyGroupRepeatMetadata(element, band, diagnostics);
 
             (bandType is "PageHeaderSection" or "PageFooterSection" ? sharedElements : elements).Add(element);
             mapped++;
@@ -492,9 +575,16 @@ public sealed class TrdxToDesignConverter
         }
         else
         {
+            // Compound expression (multiple fields / functions): normalize every Fields.X reference to a
+            // Canvas {{X}} token so it renders as a readable template; keep the original for review.
+            var normalized = Regex.Replace(value.TrimStart().TrimStart('=').Trim(),
+                @"Fields\.(\w+)(?:\.Value)?", m => $"{{{{{m.Groups[1].Value}}}}}");
             element.Expression = value;
-            if (string.IsNullOrEmpty(element.Content)) element.Content = value;
-            diagnostics.Add(Warn("CANMIGTRDX010", $"'{element.Name}' expression '{value}' mapped to Canvas expression — review the syntax."));
+            element.Style ??= [];
+            element.Style["trdxExpression"] = value;
+            if (element.Type == "barcode") element.BarcodeValue = normalized;
+            else if (string.IsNullOrEmpty(element.Content)) element.Content = normalized;
+            diagnostics.Add(Warn("CANMIGTRDX010", $"'{element.Name}' expression '{value}' mapped to a Canvas template with normalized field references — review the syntax."));
         }
     }
 
@@ -654,6 +744,8 @@ public sealed class TrdxToDesignConverter
         public required string Name;
         public required string Type;
         public double HeightPt;
+        public string? Condition;   // GroupHeaderSection grouping expression
+        public string? GroupName;   // group identity shared by a header/footer pair
     }
 
     private sealed class RawElement
