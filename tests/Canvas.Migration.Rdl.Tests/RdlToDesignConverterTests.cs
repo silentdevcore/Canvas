@@ -183,6 +183,8 @@ public sealed class RdlToDesignConverterTests
         var r = Convert(SampleRdl);
         var total = El(r.Design, "total");
         Assert.Equal("=Sum(Fields!Total.Value)", total.Expression);
+        Assert.Equal("Sum({{Total}})", total.Content);                          // Fields!X normalized to {{X}}
+        Assert.Equal("=Sum(Fields!Total.Value)", total.Style!["rdlExpression"]); // original preserved
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL010" && d.Severity == MigrationDiagnosticSeverity.Warning);
     }
 

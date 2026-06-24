@@ -184,8 +184,11 @@ The remaining items are optional native Canvas capabilities or blocked expressio
 - [x] **P1** Runtime execution for extracted nested Tablix/detail rows in preview/export: backend export planning
       expands `ElementDto.Repeat` from JSON payload custom properties, and frontend preview accepts the same
       `repeat.dataPath` contract with token substitution.
-- [ ] `<Code>` / custom-function expression translation (blocked on Canvas `ExpressionEvaluator` being a
-      stub — same limitation as DevExpress).
+- [x] Compound-expression field normalization: multi-field/function/operator expressions preserve the
+      original on `element.Expression` + `style.rdlExpression` and render a Canvas template with every
+      `Fields!X[.Value]` normalized to `{{X}}` (consistent with the Telerik/Stimulsoft converters).
+- [ ] `<Code>` / custom-function *evaluation* (blocked on Canvas `ExpressionEvaluator` being a
+      stub — same limitation as DevExpress; expressions are preserved/normalized, not executed).
 - [x] Native `Chart` and `CustomReportItem` Chart → Canvas `chart` placeholder with `ChartData` and RDL metadata
       (`rdlCategoryExpression`, `rdlValueExpression`, `style.rdlCustomProperties`) plus `CANMIGRDL017`.
 - [x] Native `Chart` fidelity pass: multiple series, `DataSetName`, title, original RDL series type, X/Y/Size
