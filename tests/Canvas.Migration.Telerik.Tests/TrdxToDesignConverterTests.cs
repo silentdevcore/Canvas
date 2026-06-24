@@ -253,6 +253,96 @@ public sealed class TrdxToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_CompoundExpression_NormalizesFieldReferences()
+    {
+        var trdx = """
+            <Report Width="8.1in" Name="T" xmlns="http://schemas.telerik.com/reporting/2012/3.6">
+              <Items>
+                <DetailSection Height="1in" Name="d1">
+                  <Items>
+                    <TextBox Width="4in" Height="0.3in" Left="0in" Top="0in" Value="=Fields.First + ' ' + Fields.Last" Name="full" />
+                  </Items>
+                </DetailSection>
+              </Items>
+            </Report>
+            """;
+        var el = El(Convert(trdx).Design, "full");
+        Assert.Contains("{{First}}", el.Content);
+        Assert.Contains("{{Last}}", el.Content);
+        Assert.Equal("=Fields.First + ' ' + Fields.Last", el.Expression);
+        Assert.Equal("=Fields.First + ' ' + Fields.Last", el.Style!["trdxExpression"]);
+    }
+
+    [Fact]
+    public void Convert_TypeSelectorStyleRule_AppliesToAllControlsOfType()
+    {
+        var trdx = """
+            <Report Width="8.1in" Name="T" xmlns="http://schemas.telerik.com/reporting/2012/3.6">
+              <Items>
+                <DetailSection Height="1in" Name="d1">
+                  <Items>
+                    <TextBox Width="3in" Height="0.3in" Left="0in" Top="0in" Value="Hi" Name="plain" />
+                  </Items>
+                </DetailSection>
+              </Items>
+              <StyleSheet>
+                <StyleRule>
+                  <Style Color="#FF0000" />
+                  <Selectors><StyleSelector Type="Telerik.Reporting.TextBox" /></Selectors>
+                </StyleRule>
+              </StyleSheet>
+            </Report>
+            """;
+        var el = El(Convert(trdx).Design, "plain");
+        Assert.Equal("#FF0000", el.Style!["color"]);   // applied via TypeSelector even without StyleName/inline
+    }
+
+    [Fact]
+    public void Convert_GroupSections_AddRepeatAndGroupMetadata()
+    {
+        var trdx = """
+            <Report Width="8.1in" Name="T" xmlns="http://schemas.telerik.com/reporting/2012/3.6">
+              <Items>
+                <GroupHeaderSection Height="0.4in" Name="groupHeaderSection1">
+                  <Groupings>
+                    <Grouping Expression="=Fields.Country" />
+                  </Groupings>
+                  <Items>
+                    <TextBox Width="3in" Height="0.3in" Left="0in" Top="0in" Value="=Fields.Country" Name="country" />
+                  </Items>
+                </GroupHeaderSection>
+                <DetailSection Height="0.3in" Name="detailSection1">
+                  <Items>
+                    <TextBox Width="3in" Height="0.25in" Left="0in" Top="0in" Value="=Fields.Name" Name="rowName" />
+                  </Items>
+                </DetailSection>
+                <GroupFooterSection Height="0.3in" Name="groupFooterSection1">
+                  <Items>
+                    <TextBox Width="3in" Height="0.25in" Left="0in" Top="0in" Value="Total" Name="groupTotal" />
+                  </Items>
+                </GroupFooterSection>
+              </Items>
+            </Report>
+            """;
+        var r = Convert(trdx);
+
+        var hdr = El(r.Design, "country");
+        Assert.NotNull(hdr.Repeat);
+        Assert.Equal("Country", hdr.Repeat!.DataPath);           // =Fields.Country → Country
+        Assert.Equal(hdr.Id, hdr.Repeat.TemplateId);
+        var hdrGroup = Assert.IsType<Dictionary<string, object>>(hdr.Style!["trdxGroup"]);
+        Assert.Equal("header", hdrGroup["role"]);
+
+        var ftr = El(r.Design, "groupTotal");
+        var ftrGroup = Assert.IsType<Dictionary<string, object>>(ftr.Style!["trdxGroup"]);
+        Assert.Equal("footer", ftrGroup["role"]);
+        Assert.Equal("Country", ftr.Repeat!.DataPath);           // footer inherits the header's group key
+
+        Assert.Null(El(r.Design, "rowName").Repeat);             // plain detail control: no group repeat
+        Assert.True(Has(r.Diagnostics, "CANMIGTRDX014"));
+    }
+
+    [Fact]
     public void Convert_Table_CellStyles_FromItemStyle()
     {
         var trdx = """

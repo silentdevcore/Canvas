@@ -95,6 +95,7 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 | `CANMIGTRDX011` | Warning | Unsupported item / SubReport / Chart — labeled placeholder |
 | `CANMIGTRDX012` | Warning | Picture not embeddable — placeholder inserted |
 | `CANMIGTRDX013` | Warning | `Table`/`CrossTab` mapped to a Canvas table (best-effort cell anchoring) — review |
+| `CANMIGTRDX014` | Warning | `GroupHeaderSection`/`GroupFooterSection` item mapped to Canvas repeat metadata; group runtime semantics need review |
 
 ## V1 checklist
 
@@ -112,8 +113,16 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 on XML `.trdx` fidelity: real-sample validation, group/repeat semantics, expression dialect coverage,
 and unsupported visual regions. Basic `Table`/`CrossTab` extraction and table cell styles are now done.
 
-- [ ] **P2** `.trdp` (zipped package) — unzip + feed the same parser (needs a binary upload path)
-- [ ] **P1** `TypeSelector` stylesheet rules; `Panel` nesting depth; group sections repeat semantics
+- [x] **P2** `.trdp` (zipped package): the `report-to-design` endpoint accepts a base64 binary upload
+      (`sourceBase64`), `ReportPackageExtractor` unzips it, picks the inner `.trdx` (first entry the
+      detectors recognize), and feeds the existing parser; other text entries become sub-report resources.
+      *(Backend path done + tested; a binary file picker in the migration UI is the remaining frontend piece.)*
+- [x] **P1** Group-section repeat: `GroupHeaderSection`/`GroupFooterSection` items carry Canvas `RepeatDto`
+      (data path from the `<Grouping>` expression, e.g. `=Fields.Country`→`Country`) + `style.trdxGroup`
+      (name/role/band/condition); footers inherit the paired header's group key. Diagnostic `CANMIGTRDX014`.
+- [x] **P1** `TypeSelector` stylesheet rules: `<StyleSelector Type=…>` rules apply to every control of that
+      type (precedence: type → named `StyleName` → inline `<Style>`). `Panel` nesting is handled by the
+      recursive `ParseItems` (offsets folded so children stay absolute; depth-guarded).
 - [x] **P1** `Table`/`CrossTab` cell extraction → Canvas table: column widths from `TableBodyColumn`,
       content items placed by attached cell-anchor properties (`*.CellRowIndex`/`*.CellColumnIndex`,
       prefix-agnostic, attribute or element), `=Fields.X`→binding tokens, sequential-fill fallback when
@@ -121,4 +130,6 @@ and unsupported visual regions. Basic `Table`/`CrossTab` extraction and table ce
       cell anchoring is best-effort. `Chart`/`Graph`/`Map` remain captioned placeholders.
 - [x] **P1** Telerik table `CellStyles`: named + inline content-item `<Style>` values inside table cells
       preserve background, text alignment, font and border metadata for Canvas table rendering/export.
-- [ ] **P1** Telerik expression dialect (`=Fields.X + …`, functions) beyond single-field bindings
+- [x] **P1** Telerik expression dialect: single `=Fields.X` → binding; compound expressions/functions are
+      preserved on `element.Expression` + `style.trdxExpression` with every `Fields.X` reference normalized
+      to a Canvas `{{X}}` token in the rendered content.

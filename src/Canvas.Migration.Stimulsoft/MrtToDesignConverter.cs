@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Canvas.Core.Contracts;
@@ -25,16 +26,42 @@ public sealed class MrtToDesignConverter
     private const double Scale = 0.72;   // ClientRectangle units are hundredths of an inch → points
     private const double A4WidthPt = 595, A4HeightPt = 842;
 
-    /// <summary>Detects a Stimulsoft <c>.mrt</c>: root <c>&lt;StiSerializer&gt;</c> (unique).</summary>
+    // Style name → its report-level <Styles> entry (resolved per Convert call); applied as a base for
+    // components that reference it via <ComponentStyle>.
+    private readonly Dictionary<string, XElement> _namedStyles = new(StringComparer.Ordinal);
+    // Same, for the JSON (Reports.JS) variant: style name → its JSON style object.
+    private readonly Dictionary<string, JsonElement> _jsonStyles = new(StringComparer.Ordinal);
+
+    /// <summary>Detects a Stimulsoft <c>.mrt</c>: XML root <c>&lt;StiSerializer&gt;</c>, or the modern
+    /// Reports.JS JSON variant (a JSON object carrying Stimulsoft report markers).</summary>
     public static bool LooksLikeMrt(string source)
     {
         if (string.IsNullOrWhiteSpace(source)) return false;
-        if (!source.TrimStart().StartsWith('<')) return false;
+        var trimmed = source.TrimStart();
+        if (trimmed.StartsWith('<'))
+        {
+            try { return XDocument.Parse(source).Root?.Name.LocalName == "StiSerializer"; }
+            catch (System.Xml.XmlException) { return false; }
+        }
+        if (trimmed.StartsWith('{'))
+            return LooksLikeJsonMrt(source);
+        return false;
+    }
+
+    // JSON .mrt (Reports.JS): a JSON object with Stimulsoft report markers (ReportVersion/ReportGuid, or
+    // Pages + an "Ident" component discriminator). Conservative so arbitrary JSON isn't misrouted here.
+    private static bool LooksLikeJsonMrt(string source)
+    {
         try
         {
-            return XDocument.Parse(source).Root?.Name.LocalName == "StiSerializer";
+            using var doc = JsonDocument.Parse(source);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object) return false;
+            var root = doc.RootElement;
+            return root.TryGetProperty("ReportVersion", out _)
+                || root.TryGetProperty("ReportGuid", out _)
+                || (root.TryGetProperty("Pages", out _) && source.Contains("\"Ident\"", StringComparison.Ordinal));
         }
-        catch (System.Xml.XmlException)
+        catch (JsonException)
         {
             return false;
         }
@@ -52,6 +79,9 @@ public sealed class MrtToDesignConverter
         if (string.IsNullOrWhiteSpace(mrt))
             throw new ArgumentException("Source cannot be null or empty.", nameof(mrt));
 
+        if (mrt.TrimStart().StartsWith('{'))
+            return ConvertJson(mrt);   // modern Reports.JS JSON variant
+
         XElement root;
         try { root = XDocument.Parse(mrt).Root ?? throw new ArgumentException("Empty .mrt document."); }
         catch (System.Xml.XmlException ex) { throw new ArgumentException($"Invalid .mrt XML: {ex.Message}", nameof(mrt)); }
@@ -61,19 +91,38 @@ public sealed class MrtToDesignConverter
 
         var report = new RawReport { Name = Child(root, "ReportName")?.Value ?? Attr(root, "Name") ?? "Stimulsoft Report" };
 
+        _namedStyles.Clear();
+        foreach (var s in Child(root, "Styles")?.Elements() ?? Enumerable.Empty<XElement>())
+            if ((Child(s, "Name")?.Value ?? Attr(s, "Name")) is { Length: > 0 } sn)
+                _namedStyles[sn] = s;
+
         var page = Child(root, "Pages")?.Elements().FirstOrDefault(e => string.Equals(Attr(e, "type"), "Page", StringComparison.Ordinal))
                    ?? Child(root, "Pages")?.Elements().FirstOrDefault();
         ResolvePage(page, report);
 
         // A page's components are bands; each band's nested components are the report items.
+        RawBand? lastGroupHeader = null;
         foreach (var comp in Child(page, "Components")?.Elements() ?? Enumerable.Empty<XElement>())
         {
             var type = Attr(comp, "type") ?? comp.Name.LocalName;
             var (bx, by, _, _) = ParseRect(Child(comp, "ClientRectangle")?.Value);
             if (type.EndsWith("Band", StringComparison.Ordinal))
             {
-                report.Bands.Add(new RawBand { Name = NameOf(comp), Type = type });
-                ParseItems(Child(comp, "Components"), type, bx, by, report, 0);
+                var band = new RawBand { Name = NameOf(comp), Type = type };
+                // GroupHeaderBand carries the grouping key in <Condition>; a GroupFooterBand pairs with it.
+                if (type == "GroupHeaderBand")
+                {
+                    band.Condition = Child(comp, "Condition")?.Value;
+                    band.GroupName = band.Name;
+                    lastGroupHeader = band;
+                }
+                else if (type == "GroupFooterBand")
+                {
+                    band.Condition = lastGroupHeader?.Condition;
+                    band.GroupName = lastGroupHeader?.GroupName ?? band.Name;
+                }
+                report.Bands.Add(band);
+                ParseItems(Child(comp, "Components"), type, bx, by, report, 0, band);
             }
             else
             {
@@ -84,23 +133,224 @@ public sealed class MrtToDesignConverter
         return BuildDesign(report);
     }
 
+    // ── JSON (Reports.JS) variant ──────────────────────────────────────────────────────────────────
+    // Same logical model as the XML path (Pages → bands → items), but components are JSON objects keyed by
+    // index, types come from "Ident" (Sti-prefixed), and geometry is in ReportUnit (cm/inch/px) not
+    // hundredths-of-inch. Builds the same RawReport so the shared BuildDesign/mapping logic is reused.
+    private MrtConvertResult ConvertJson(string json)
+    {
+        JsonDocument doc;
+        try { doc = JsonDocument.Parse(json); }
+        catch (JsonException ex) { throw new ArgumentException($"Invalid .mrt JSON: {ex.Message}", nameof(json)); }
+        using (doc)
+        {
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object)
+                throw new ArgumentException("Not a Stimulsoft .mrt — expected a JSON report object.", nameof(json));
+
+            var report = new RawReport { Name = JStr(root, "ReportName") ?? "Stimulsoft Report" };
+            var unit = UnitToPt(JStr(root, "ReportUnit"));
+
+            _jsonStyles.Clear();
+            if (JObj(root, "Styles") is { } styles)
+                foreach (var s in styles.EnumerateObject())
+                    if (JStr(s.Value, "Name") is { Length: > 0 } sn) _jsonStyles[sn] = s.Value;
+
+            var page = FirstJsonPage(root);
+            ResolvePageJson(page, report, unit);
+
+            RawBand? lastGroupHeader = null;
+            foreach (var comp in JsonComponents(page))
+            {
+                var type = JsonType(comp);
+                var (bx, by, _, _) = ParseRect(JRectString(comp, "ClientRectangle"));
+                if (type.EndsWith("Band", StringComparison.Ordinal))
+                {
+                    var band = new RawBand { Name = JStr(comp, "Name") ?? type, Type = type };
+                    if (type == "GroupHeaderBand")
+                    {
+                        band.Condition = JStr(comp, "Condition");
+                        band.GroupName = band.Name;
+                        lastGroupHeader = band;
+                    }
+                    else if (type == "GroupFooterBand")
+                    {
+                        band.Condition = lastGroupHeader?.Condition;
+                        band.GroupName = lastGroupHeader?.GroupName ?? band.Name;
+                    }
+                    report.Bands.Add(band);
+                    foreach (var item in JsonComponents(comp))
+                        ParseJsonItem(item, type, bx, by, report, unit, band, 0);
+                }
+                else
+                {
+                    ParseJsonItem(comp, "", bx, by, report, unit, null, 0);
+                }
+            }
+
+            return BuildDesign(report);
+        }
+    }
+
+    private void ParseJsonItem(JsonElement el, string region, double originX, double originY, RawReport report, double unit, RawBand? group, int depth)
+    {
+        if (depth > 32) return;
+        var type = JsonType(el);
+        var (ix, iy, iw, ih) = ParseRect(JRectString(el, "ClientRectangle"));
+        var absX = originX + ix;
+        var absY = originY + iy;
+
+        var style = _jsonStyles.GetValueOrDefault(JStr(el, "ComponentStyle") ?? "");
+        var raw = new RawElement
+        {
+            Name = JStr(el, "Name") ?? type,
+            Type = type,
+            Region = region,
+            X = absX * unit, Y = absY * unit, W = iw * unit, H = ih * unit,
+            Text = JStr(el, "Text"),
+            TextAlign = ParseAlignment(JStr(el, "HorAlignment") ?? JStr(style, "HorAlignment")),
+            ForeColor = ParseColor(JStr(el, "TextBrush") ?? JStr(style, "TextBrush")) ?? "#000000",
+            BackColor = ParseColor(JStr(el, "Brush") ?? JStr(style, "Brush")),
+        };
+        ApplyFont(raw, JStr(el, "Font") ?? JStr(style, "Font"));
+        ParseBorder(raw, JStr(el, "Border") ?? JStr(style, "Border"));
+        if (type is "HorizontalLinePrimitive" or "VerticalLinePrimitive" && ParseColor(JStr(el, "Color")) is { } lc) raw.ForeColor = lc;
+        if (type == "Image") raw.ImageDataUrl = ExtractJsonImageDataUrl(el);
+        if (type == "BarCode") raw.Symbology = JStr(el, "BarCodeType");
+        if (group is { Type: "GroupHeaderBand" or "GroupFooterBand" })
+        {
+            raw.GroupName = group.GroupName;
+            raw.GroupRole = group.Type == "GroupFooterBand" ? "footer" : "header";
+            raw.GroupCondition = group.Condition;
+        }
+
+        report.Elements.Add(raw);
+
+        if (type == "Panel")
+            foreach (var child in JsonComponents(el))
+                ParseJsonItem(child, region, absX, absY, report, unit, group, depth + 1);
+    }
+
+    private static void ResolvePageJson(JsonElement? page, RawReport report, double unit)
+    {
+        if (page is not { } p) { report.PageWidthPt = A4WidthPt; report.PageHeightPt = A4HeightPt; return; }
+        var size = PaperKindSize(JStr(p, "PaperSize") ?? "");
+        var w = JNum(p, "PageWidth");
+        var h = JNum(p, "PageHeight");
+        report.PageWidthPt = size.W > 0 ? size.W : (w is > 0 ? w.Value * unit : A4WidthPt);
+        report.PageHeightPt = size.H > 0 ? size.H : (h is > 0 ? h.Value * unit : A4HeightPt);
+        if (string.Equals(JStr(p, "Orientation"), "Landscape", StringComparison.OrdinalIgnoreCase))
+            (report.PageWidthPt, report.PageHeightPt) = (report.PageHeightPt, report.PageWidthPt);
+    }
+
+    private static double UnitToPt(string? unit) => (unit ?? "").Trim().ToLowerInvariant() switch
+    {
+        "centimeters" => 72.0 / 2.54,
+        "millimeters" => 72.0 / 25.4,
+        "inches" => 72.0,
+        "pixels" => 72.0 / 96.0,
+        "hundredthsofinch" => 0.72,
+        _ => 72.0 / 2.54,   // Reports.JS default unit is centimeters
+    };
+
+    private static JsonElement? FirstJsonPage(JsonElement root)
+    {
+        if (!root.TryGetProperty("Pages", out var pages)) return null;
+        if (pages.ValueKind == JsonValueKind.Object)
+            foreach (var p in pages.EnumerateObject()) if (p.Value.ValueKind == JsonValueKind.Object) return p.Value;
+        if (pages.ValueKind == JsonValueKind.Array)
+            foreach (var p in pages.EnumerateArray()) if (p.ValueKind == JsonValueKind.Object) return p;
+        return null;
+    }
+
+    private static IEnumerable<JsonElement> JsonComponents(JsonElement? parent)
+    {
+        if (parent is not { } p || !p.TryGetProperty("Components", out var comps)) return Enumerable.Empty<JsonElement>();
+        return comps.ValueKind switch
+        {
+            JsonValueKind.Object => comps.EnumerateObject().Select(x => x.Value),
+            JsonValueKind.Array => comps.EnumerateArray(),
+            _ => Enumerable.Empty<JsonElement>(),
+        };
+    }
+
+    private static string JsonType(JsonElement el)
+    {
+        var ident = JStr(el, "Ident") ?? "";
+        return ident.StartsWith("Sti", StringComparison.Ordinal) ? ident[3..] : ident;
+    }
+
+    private static string? JStr(JsonElement el, string prop)
+    {
+        if (el.ValueKind != JsonValueKind.Object || !el.TryGetProperty(prop, out var v)) return null;
+        return v.ValueKind switch
+        {
+            JsonValueKind.String => v.GetString(),
+            JsonValueKind.Number => v.GetRawText(),
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            _ => null,
+        };
+    }
+
+    private static double? JNum(JsonElement el, string prop)
+    {
+        if (el.ValueKind != JsonValueKind.Object || !el.TryGetProperty(prop, out var v)) return null;
+        if (v.ValueKind == JsonValueKind.Number) return v.GetDouble();
+        return v.ValueKind == JsonValueKind.String && double.TryParse(v.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : null;
+    }
+
+    private static JsonElement? JObj(JsonElement el, string prop) =>
+        el.ValueKind == JsonValueKind.Object && el.TryGetProperty(prop, out var v) && v.ValueKind == JsonValueKind.Object ? v : null;
+
+    // ClientRectangle may be a "x,y,w,h" string or a [x,y,w,h] array → normalize to the comma string ParseRect expects.
+    private static string? JRectString(JsonElement el, string prop)
+    {
+        if (el.ValueKind != JsonValueKind.Object || !el.TryGetProperty(prop, out var v)) return null;
+        return v.ValueKind switch
+        {
+            JsonValueKind.String => v.GetString(),
+            JsonValueKind.Array => string.Join(",", v.EnumerateArray().Select(e => e.ToString())),
+            _ => null,
+        };
+    }
+
+    private static string? ExtractJsonImageDataUrl(JsonElement el)
+    {
+        var b64 = JStr(el, "Image") ?? JStr(el, "ImageData");
+        if (string.IsNullOrWhiteSpace(b64)) return null;
+        if (b64.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) return b64;
+        var clean = Regex.Replace(b64, @"\s+", "");
+        return clean.Length >= 16 && clean.Length % 4 == 0 && Regex.IsMatch(clean, @"^[A-Za-z0-9+/]+={0,2}$")
+            ? $"data:image/png;base64,{clean}" : null;
+    }
+
     private static void ResolvePage(XElement? page, RawReport report)
     {
+        // Prefer a named PaperSize; otherwise fall back to explicit PageWidth/PageHeight (hundredths-inch).
         var size = PaperKindSize(Child(page, "PaperSize")?.Value ?? Attr(page, "PaperSize") ?? "");
-        report.PageWidthPt = size.W > 0 ? size.W : A4WidthPt;
-        report.PageHeightPt = size.H > 0 ? size.H : A4HeightPt;
+        report.PageWidthPt = size.W > 0 ? size.W : PageDimPt(page, "PageWidth", A4WidthPt);
+        report.PageHeightPt = size.H > 0 ? size.H : PageDimPt(page, "PageHeight", A4HeightPt);
         if (string.Equals(Child(page, "Orientation")?.Value, "Landscape", StringComparison.OrdinalIgnoreCase))
             (report.PageWidthPt, report.PageHeightPt) = (report.PageHeightPt, report.PageWidthPt);
     }
 
-    // Items inside a band (or Panel); a Panel recurses with its absolute origin so children stay absolute.
-    private void ParseItems(XElement? components, string region, double originX, double originY, RawReport report, int depth)
+    private static double PageDimPt(XElement? page, string key, double fallback)
     {
-        foreach (var item in components?.Elements() ?? Enumerable.Empty<XElement>())
-            ParseItem(item, region, originX, originY, report, depth);
+        var value = Child(page, key)?.Value ?? Attr(page, key);
+        return double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var v) && v > 0
+            ? v * Scale
+            : fallback;
     }
 
-    private void ParseItem(XElement el, string region, double originX, double originY, RawReport report, int depth)
+    // Items inside a band (or Panel); a Panel recurses with its absolute origin so children stay absolute.
+    private void ParseItems(XElement? components, string region, double originX, double originY, RawReport report, int depth, RawBand? group = null)
+    {
+        foreach (var item in components?.Elements() ?? Enumerable.Empty<XElement>())
+            ParseItem(item, region, originX, originY, report, depth, group);
+    }
+
+    private void ParseItem(XElement el, string region, double originX, double originY, RawReport report, int depth, RawBand? group = null)
     {
         if (depth > 32) return;
         var type = Attr(el, "type") ?? el.Name.LocalName;
@@ -108,6 +358,8 @@ public sealed class MrtToDesignConverter
         var absX = originX + ix;   // hundredths of an inch
         var absY = originY + iy;
 
+        // A referenced report style supplies defaults the element doesn't set itself.
+        var style = _namedStyles.GetValueOrDefault(Child(el, "ComponentStyle")?.Value ?? "");
         var raw = new RawElement
         {
             Name = NameOf(el),
@@ -115,19 +367,26 @@ public sealed class MrtToDesignConverter
             Region = region,
             X = absX * Scale, Y = absY * Scale, W = iw * Scale, H = ih * Scale,
             Text = Child(el, "Text")?.Value,
-            TextAlign = ParseAlignment(Child(el, "HorAlignment")?.Value),
-            ForeColor = ParseColor(Child(el, "TextBrush")?.Value) ?? "#000000",
-            BackColor = ParseColor(Child(el, "Brush")?.Value),
+            TextAlign = ParseAlignment(Child(el, "HorAlignment")?.Value ?? Child(style, "HorAlignment")?.Value),
+            ForeColor = ParseColor(Child(el, "TextBrush")?.Value ?? Child(style, "TextBrush")?.Value) ?? "#000000",
+            BackColor = ParseColor(Child(el, "Brush")?.Value ?? Child(style, "Brush")?.Value),
         };
-        ApplyFont(raw, Child(el, "Font")?.Value);
+        ApplyFont(raw, Child(el, "Font")?.Value ?? Child(style, "Font")?.Value);
+        ParseBorder(raw, Child(el, "Border")?.Value ?? Child(style, "Border")?.Value);
         if (type is "HorizontalLinePrimitive" or "VerticalLinePrimitive" && ParseColor(Child(el, "Color")?.Value) is { } lc) raw.ForeColor = lc;
         if (type == "Image") raw.ImageDataUrl = ExtractImageDataUrl(el);
         if (type == "BarCode") raw.Symbology = Child(el, "BarCodeType")?.Value ?? Attr(Child(el, "BarCode"), "type");
+        if (group is { Type: "GroupHeaderBand" or "GroupFooterBand" })
+        {
+            raw.GroupName = group.GroupName;
+            raw.GroupRole = group.Type == "GroupFooterBand" ? "footer" : "header";
+            raw.GroupCondition = group.Condition;
+        }
 
         report.Elements.Add(raw);
 
         if (type == "Panel")
-            ParseItems(Child(el, "Components"), region, absX, absY, report, depth + 1);
+            ParseItems(Child(el, "Components"), region, absX, absY, report, depth + 1, group);
     }
 
     // ── Build (band positions are explicit, so no height accumulation) ─────────────────────────────
@@ -146,6 +405,7 @@ public sealed class MrtToDesignConverter
 
             diagnostics.Add(Info("CANMIGMRT002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
             if (raw.Text is { } t) ApplyBinding(element, t, diagnostics);
+            ApplyGroupRepeatMetadata(element, raw, diagnostics);
 
             (raw.Region is "PageHeaderBand" or "PageFooterBand" ? sharedElements : elements).Add(element);
             mapped++;
@@ -195,6 +455,7 @@ public sealed class MrtToDesignConverter
                 element.Type = "rect";
                 element.Style = new Dictionary<string, object> { ["borderColor"] = raw.ForeColor };
                 if (raw.BackColor is { } bg) element.Style["backgroundColor"] = bg;
+                ApplyBorderStyle(element.Style, raw);
                 return element;
 
             case "Panel":
@@ -224,6 +485,12 @@ public sealed class MrtToDesignConverter
                     $"'{raw.Name}' is a sub-report — requires manual migration; inserted a placeholder."));
                 return Placeholder(element, $"[Sub-report: {raw.Name} — migrate manually]");
 
+            case "Chart":
+            case "CrossTab":
+                diagnostics.Add(Warn("CANMIGMRT014",
+                    $"'{raw.Name}' is a {raw.Type} — Canvas has no native equivalent; inserted a positioned placeholder for review."));
+                return Placeholder(element, $"[{raw.Type}: {raw.Name} — migrate manually]");
+
             default:
                 diagnostics.Add(Warn("CANMIGMRT011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
@@ -248,6 +515,40 @@ public sealed class MrtToDesignConverter
         return element;
     }
 
+    // StiBorder serializes as "Sides;Color;Size;Style;…" — e.g. "Top, Bottom;[0:0:0];1;Solid;…".
+    // Parse the sides, colour, and size; "None"/empty means no border.
+    private static void ParseBorder(RawElement raw, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return;
+        var parts = value.Split(';', StringSplitOptions.TrimEntries);
+        var sides = parts.Length > 0 ? parts[0] : "";
+        if (sides.Length == 0 || sides.Equals("None", StringComparison.OrdinalIgnoreCase)) return;
+        raw.BorderSides = sides;
+        if (parts.Length > 1 && ParseColor(parts[1]) is { } c) raw.BorderColor = c;
+        if (parts.Length > 2 && double.TryParse(parts[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var w) && w > 0)
+            raw.BorderWidth = w;
+    }
+
+    // Apply a parsed border to a style dict: uniform when sides include "All", otherwise per-side keys.
+    private static void ApplyBorderStyle(Dictionary<string, object> style, RawElement raw)
+    {
+        if (raw.BorderSides is not { Length: > 0 } sides) return;
+        var color = raw.BorderColor ?? "#000000";
+        var width = raw.BorderWidth ?? 1;
+        if (sides.Contains("All", StringComparison.OrdinalIgnoreCase))
+        {
+            style["borderColor"] = color;
+            style["borderWidth"] = width;
+            return;
+        }
+        foreach (var side in new[] { "Top", "Right", "Bottom", "Left" })
+            if (sides.Contains(side, StringComparison.OrdinalIgnoreCase))
+            {
+                style[$"border{side}Color"] = color;
+                style[$"border{side}Width"] = width;
+            }
+    }
+
     private static Dictionary<string, object> BuildTextStyle(RawElement raw)
     {
         var style = new Dictionary<string, object> { ["color"] = raw.ForeColor };
@@ -259,11 +560,53 @@ public sealed class MrtToDesignConverter
         if (decoration.Length > 0) style["textDecoration"] = decoration;
         if (raw.BackColor is { } bg) style["backgroundColor"] = bg;
         style["textAlign"] = raw.TextAlign;
+        ApplyBorderStyle(style, raw);
         return style;
     }
 
     private static readonly HashSet<string> SystemVars = new(StringComparer.OrdinalIgnoreCase)
     { "Page", "PageNofM", "TotalPageCount", "Today", "Now", "Time", "Column", "Line", "ReportName", "ReportAlias" };
+
+    // Group bands repeat per group key: attach Canvas RepeatDto + group metadata (mirrors the
+    // RDL/Jasper/DevExpress/FastReport/Telerik group mapping).
+    private static void ApplyGroupRepeatMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    {
+        if (raw.GroupName is null) return;
+
+        var dataPath = GroupDataPath(raw);
+        var group = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["name"] = raw.GroupName,
+            ["role"] = raw.GroupRole ?? "header",
+            ["dataPath"] = dataPath,
+        };
+        if (!string.IsNullOrWhiteSpace(raw.GroupCondition)) group["condition"] = raw.GroupCondition!;
+
+        element.Style ??= [];
+        element.Style["mrtGroup"] = group;
+        element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
+        diagnostics.Add(Warn("CANMIGMRT013",
+            $"'{element.Name}' is in a {raw.GroupRole ?? "group"} group band '{raw.GroupName}' — mapped to Canvas repeat metadata; group runtime semantics need review."));
+    }
+
+    // Condition like "{Customers.Country}" → "Country"; otherwise the group name.
+    private static string GroupDataPath(RawElement raw)
+    {
+        if (!string.IsNullOrWhiteSpace(raw.GroupCondition))
+        {
+            var m = Regex.Match(raw.GroupCondition!, @"\{[A-Za-z_]\w*\.([A-Za-z_]\w*)\}");
+            if (m.Success) return SafeDataPath(m.Groups[1].Value);
+            var single = Regex.Match(raw.GroupCondition!, @"\{([A-Za-z_]\w*)\}");
+            if (single.Success) return SafeDataPath(single.Groups[1].Value);
+        }
+        return SafeDataPath(raw.GroupName ?? "items");
+    }
+
+    private static string SafeDataPath(string value)
+    {
+        var cleaned = new string(value.Select(ch => char.IsLetterOrDigit(ch) || ch is '_' or '.' ? ch : '_').ToArray()).Trim('_');
+        return string.IsNullOrWhiteSpace(cleaned) ? "items" : cleaned;
+    }
 
     private static void ApplyBinding(ElementDto element, string text, List<MigrationDiagnostic> diagnostics)
     {
@@ -281,9 +624,16 @@ public sealed class MrtToDesignConverter
         }
         else
         {
+            // Compound expression (multiple fields / functions): normalize every {Source.Field}/{Field}
+            // reference to a Canvas {{Field}} token (leaving system variables intact); keep the original.
+            var normalized = Regex.Replace(text, @"\{(?:[A-Za-z_]\w*\.)?([A-Za-z_]\w*)\}", m =>
+                SystemVars.Contains(m.Groups[1].Value) ? m.Value : $"{{{{{m.Groups[1].Value}}}}}");
             element.Expression = text;
-            if (string.IsNullOrEmpty(element.Content)) element.Content = text;
-            diagnostics.Add(Warn("CANMIGMRT010", $"'{element.Name}' expression '{text}' mapped to Canvas expression — review the syntax."));
+            element.Style ??= [];
+            element.Style["mrtExpression"] = text;
+            if (element.Type == "barcode") element.BarcodeValue = normalized;
+            else if (string.IsNullOrEmpty(element.Content)) element.Content = normalized;
+            diagnostics.Add(Warn("CANMIGMRT010", $"'{element.Name}' expression '{text}' mapped to a Canvas template with normalized field references — review the syntax."));
         }
     }
 
@@ -418,6 +768,8 @@ public sealed class MrtToDesignConverter
     {
         public required string Name;
         public required string Type;
+        public string? Condition;   // GroupHeaderBand grouping expression
+        public string? GroupName;   // group identity shared by a header/footer pair
     }
 
     private sealed class RawElement
@@ -436,5 +788,11 @@ public sealed class MrtToDesignConverter
         public double? LineWidth;
         public string? ImageDataUrl;
         public string? Symbology;
+        public string? GroupName;        // set when the element is inside a group header/footer band
+        public string? GroupRole;        // "header" | "footer"
+        public string? GroupCondition;   // grouping expression, e.g. {Customers.Country}
+        public string? BorderSides;      // StiBorder sides token (All / Top, Bottom / …)
+        public string? BorderColor;
+        public double? BorderWidth;
     }
 }

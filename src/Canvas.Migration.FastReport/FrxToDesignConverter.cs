@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Canvas.Core.Contracts;
@@ -73,29 +74,51 @@ public sealed class FrxToDesignConverter
             HasScript = HasScript(root)
         };
 
-        var page = Descendant(root, "ReportPage");
-        ResolvePage(page, report);
+        var pages = root.Descendants().Where(e => e.Name.LocalName == "ReportPage").ToList();
+        ResolvePage(pages.FirstOrDefault(), report);   // page geometry from the first ReportPage
+        report.PageCount = Math.Max(1, pages.Count);
 
         // Bands are descendants of ReportPage (a ChildBand can nest inside another band); each band's
-        // objects are its own non-band children. Band Top is the absolute design position (px).
+        // objects are its own non-band children. Band Top is the absolute design position (px). Each
+        // ReportPage becomes a separate Canvas page (tagged by PageIndex).
         var sectionNames = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var bandEl in (page?.Descendants() ?? Enumerable.Empty<XElement>())
-                     .Where(e => e.Name.LocalName.EndsWith("Band", StringComparison.Ordinal)))
+        for (var pi = 0; pi < pages.Count; pi++)
         {
-            var type = bandEl.Name.LocalName;
-            var name = UniqueName(Attr(bandEl, "Name") ?? type, sectionNames);
-            report.Bands.Add(new RawBand
+            RawBand? lastGroupHeader = null;
+            foreach (var bandEl in pages[pi].Descendants()
+                         .Where(e => e.Name.LocalName.EndsWith("Band", StringComparison.Ordinal)))
             {
-                Name = name,
-                Type = type,
-                TopPt = ToPx(Attr(bandEl, "Top")) * PxToPt,
-                HeightPt = ToPx(Attr(bandEl, "Height")) * PxToPt
-            });
+                var type = bandEl.Name.LocalName;
+                var name = UniqueName(Attr(bandEl, "Name") ?? type, sectionNames);
+                var rawBand = new RawBand
+                {
+                    Name = name,
+                    Type = type,
+                    PageIndex = pi,
+                    TopPt = ToPx(Attr(bandEl, "Top")) * PxToPt,
+                    HeightPt = ToPx(Attr(bandEl, "Height")) * PxToPt
+                };
+                // GroupHeaderBand carries the group key in Condition; a following GroupFooterBand pairs with it.
+                if (type == "GroupHeaderBand")
+                {
+                    rawBand.Condition = Attr(bandEl, "Condition");
+                    rawBand.GroupName = name;
+                    lastGroupHeader = rawBand;
+                }
+                else if (type == "GroupFooterBand")
+                {
+                    rawBand.Condition = lastGroupHeader?.Condition;
+                    rawBand.GroupName = lastGroupHeader?.GroupName ?? name;
+                }
+                report.Bands.Add(rawBand);
+                if (ToDouble(Attr(bandEl, "Columns.Count")) > 1)
+                    report.MultiColumnBands.Add(name);
 
-            foreach (var obj in bandEl.Elements().Where(e => !e.Name.LocalName.EndsWith("Band", StringComparison.Ordinal)))
-            {
-                var raw = ParseObject(obj, name);
-                if (raw is not null) report.Elements.Add(raw);
+                foreach (var obj in bandEl.Elements().Where(e => !e.Name.LocalName.EndsWith("Band", StringComparison.Ordinal)))
+                {
+                    var raw = ParseObject(obj, name);
+                    if (raw is not null) { raw.PageIndex = pi; report.Elements.Add(raw); }
+                }
             }
         }
 
@@ -234,6 +257,47 @@ public sealed class FrxToDesignConverter
         return any ? cs : null;
     }
 
+    // Group bands repeat per group key: attach Canvas RepeatDto + group metadata so the band's objects
+    // can be wired as a repeating template (mirrors the RDL/Jasper/DevExpress group-repeat mapping).
+    private static void ApplyGroupRepeatMetadata(ElementDto element, RawBand band, List<MigrationDiagnostic> diagnostics)
+    {
+        if (band.Type is not ("GroupHeaderBand" or "GroupFooterBand")) return;
+
+        var role = band.Type == "GroupFooterBand" ? "footer" : "header";
+        var dataPath = GroupDataPath(band);
+        var group = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["name"] = band.GroupName ?? band.Name,
+            ["role"] = role,
+            ["band"] = band.Name,
+            ["dataPath"] = dataPath,
+        };
+        if (!string.IsNullOrWhiteSpace(band.Condition)) group["condition"] = band.Condition!;
+
+        element.Style ??= [];
+        element.Style["frxGroup"] = group;
+        element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
+        diagnostics.Add(Warn("CANMIGFRX014",
+            $"'{element.Name}' is in {band.Type} '{band.GroupName ?? band.Name}' — mapped to Canvas repeat metadata; group runtime semantics need review."));
+    }
+
+    // Condition like "[Employees.Country]" → "Country"; otherwise the group/band name.
+    private static string GroupDataPath(RawBand band)
+    {
+        if (!string.IsNullOrWhiteSpace(band.Condition))
+        {
+            var m = Regex.Match(band.Condition!, @"\[([\w.]+)\]");
+            if (m.Success) return SafeDataPath(LastSegment(m.Groups[1].Value));
+        }
+        return SafeDataPath(band.GroupName ?? band.Name);
+    }
+
+    private static string SafeDataPath(string value)
+    {
+        var cleaned = new string(value.Select(ch => char.IsLetterOrDigit(ch) || ch is '_' or '.' ? ch : '_').ToArray()).Trim('_');
+        return string.IsNullOrWhiteSpace(cleaned) ? "items" : cleaned;
+    }
+
     private static double[] SplitNumbers(string? value) =>
         string.IsNullOrWhiteSpace(value)
             ? []
@@ -258,48 +322,67 @@ public sealed class FrxToDesignConverter
         var bandByName = new Dictionary<string, RawBand>(StringComparer.Ordinal);
         foreach (var b in report.Bands) bandByName.TryAdd(b.Name, b);
 
-        var elements = new List<ElementDto>();
+        // One Canvas page per FastReport ReportPage. For a single page, PageHeader/PageFooter bands map to
+        // SharedElements (repeat on every page); for multiple pages each page keeps its own header/footer.
+        var multiPage = report.PageCount > 1;
+        var pageIndices = Enumerable.Range(0, report.PageCount);
+        var pages = new List<PageDto>();
         var sharedElements = new List<ElementDto>();
         var mapped = 0;
 
-        foreach (var raw in report.Elements)
+        foreach (var pi in pageIndices)
         {
-            var band = raw.Band is not null && bandByName.TryGetValue(raw.Band, out var b) ? b : null;
-            var bandType = band?.Type ?? "";
-
-            double yPt = bandType switch
+            var pageElements = new List<ElementDto>();
+            foreach (var raw in report.Elements.Where(e => e.PageIndex == pi))
             {
-                "PageHeaderBand" => report.MarginTopPt + raw.Y,
-                "PageFooterBand" => report.PageHeightPt - report.MarginBottomPt - (band?.HeightPt ?? 0) + raw.Y,
-                _ => report.MarginTopPt + (band?.TopPt ?? 0) + raw.Y
-            };
-            var x = report.MarginLeftPt + raw.X;
+                var band = raw.Band is not null && bandByName.TryGetValue(raw.Band, out var b) ? b : null;
+                var bandType = band?.Type ?? "";
 
-            var element = MapControl(raw, x, yPt, diagnostics);
-            if (element is null) continue;
+                double yPt = bandType switch
+                {
+                    "PageHeaderBand" => report.MarginTopPt + raw.Y,
+                    "PageFooterBand" => report.PageHeightPt - report.MarginBottomPt - (band?.HeightPt ?? 0) + raw.Y,
+                    _ => report.MarginTopPt + (band?.TopPt ?? 0) + raw.Y
+                };
+                var x = report.MarginLeftPt + raw.X;
 
-            diagnostics.Add(Info("CANMIGFRX002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
+                var element = MapControl(raw, x, yPt, diagnostics);
+                if (element is null) continue;
 
-            if (raw.TextExpression is { } expr)
-                ApplyBinding(element, expr, diagnostics);
-            else if (raw.DataColumn is { Length: > 0 } col)
-            {
-                element.Binding = LastSegment(col);
-                if (element.Type == "barcode") element.BarcodeValue = $"{{{{{LastSegment(col)}}}}}";
-                else if (element.Type == "text") element.Content = $"{{{{{LastSegment(col)}}}}}";
-                diagnostics.Add(Info("CANMIGFRX010", $"'{raw.Name}' bound to {col} → Canvas binding '{LastSegment(col)}'."));
+                diagnostics.Add(Info("CANMIGFRX002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
+
+                if (raw.TextExpression is { } expr)
+                    ApplyBinding(element, expr, diagnostics);
+                else if (raw.DataColumn is { Length: > 0 } col)
+                {
+                    element.Binding = LastSegment(col);
+                    if (element.Type == "barcode") element.BarcodeValue = $"{{{{{LastSegment(col)}}}}}";
+                    else if (element.Type == "text") element.Content = $"{{{{{LastSegment(col)}}}}}";
+                    diagnostics.Add(Info("CANMIGFRX010", $"'{raw.Name}' bound to {col} → Canvas binding '{LastSegment(col)}'."));
+                }
+
+                if (band is not null) ApplyGroupRepeatMetadata(element, band, diagnostics);
+
+                var isShared = !multiPage && bandType is "PageHeaderBand" or "PageFooterBand";
+                (isShared ? sharedElements : pageElements).Add(element);
+                mapped++;
             }
 
-            (bandType is "PageHeaderBand" or "PageFooterBand" ? sharedElements : elements).Add(element);
-            mapped++;
+            pageElements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
+            pages.Add(new PageDto { Id = $"page-{pi + 1}", Elements = pageElements });
         }
 
-        elements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
         sharedElements.Sort((p, q) => p.Y != q.Y ? p.Y.CompareTo(q.Y) : p.X.CompareTo(q.X));
 
         if (report.HasScript)
             diagnostics.Add(Warn("CANMIGFRX011",
                 "Report contains script/event handlers — Canvas has no scripting; migrate that logic manually."));
+        if (multiPage)
+            diagnostics.Add(Info("CANMIGFRX015",
+                $"Report has {report.PageCount} ReportPages — mapped to {report.PageCount} Canvas pages; per-page header/footer kept on each page."));
+        foreach (var band in report.MultiColumnBands)
+            diagnostics.Add(Warn("CANMIGFRX016",
+                $"'{band}' is a multi-column band — Canvas flattens the layout (no column reflow); review the repeated column flow manually."));
 
         diagnostics.Insert(0, Info("CANMIGFRX001",
             $"FastReport '{report.Name}' detected — {report.Bands.Count} band(s), {mapped} object(s) mapped."));
@@ -311,7 +394,7 @@ public sealed class FrxToDesignConverter
             Category = "imported",
             Description = "Imported from a FastReport .NET report (.frx).",
             PageSettings = new PageSettingsDto { Width = report.PageWidthPt, Height = report.PageHeightPt, Unit = "pt" },
-            Pages = [new PageDto { Id = "page-1", Elements = elements }],
+            Pages = pages,
             SharedElements = sharedElements
         };
 
@@ -366,7 +449,7 @@ public sealed class FrxToDesignConverter
 
             case "RichObject":
                 element.Type = "richtext";
-                element.HtmlContent = $"<p>{raw.Text ?? ""}</p>";
+                element.HtmlContent = RichObjectHtml(raw.Text);
                 return element;
 
             case "SubreportObject":
@@ -458,7 +541,29 @@ public sealed class FrxToDesignConverter
         if (decoration.Length > 0) style["textDecoration"] = decoration;
         if (raw.BackColor is { } bg) style["backgroundColor"] = bg;
         style["textAlign"] = raw.TextAlign;
+        ApplyObjectBorders(style, raw);
         return style;
+    }
+
+    // Non-table object borders: Border.Lines "All" → uniform border; otherwise per-side keys the renderer
+    // understands (border{Side}Color/Width). FastReport objects can border any subset of sides.
+    private static void ApplyObjectBorders(Dictionary<string, object> style, RawElement raw)
+    {
+        if (string.IsNullOrEmpty(raw.BorderLines)) return;
+        var color = raw.BorderColor ?? "#000000";
+        var width = raw.BorderWidth ?? 1;
+        if (raw.BorderLines.Contains("All", StringComparison.OrdinalIgnoreCase))
+        {
+            style["borderColor"] = color;
+            style["borderWidth"] = width;
+            return;
+        }
+        foreach (var side in new[] { "Top", "Right", "Bottom", "Left" })
+            if (raw.BorderLines.Contains(side, StringComparison.OrdinalIgnoreCase))
+            {
+                style[$"border{side}Color"] = color;
+                style[$"border{side}Width"] = width;
+            }
     }
 
     // FastReport TextObject.Text is literal text, a single [Source.Column] field, or a script expression.
@@ -552,6 +657,60 @@ public sealed class FrxToDesignConverter
         return "code128";
     }
 
+    // RichObject text is usually RTF. Extract readable, paragraph-aware HTML; if it isn't RTF, treat it as
+    // plain text. Full RTF styling isn't reproduced — control tables and groups are skipped.
+    private static string RichObjectHtml(string? text)
+    {
+        var raw = text ?? "";
+        return raw.TrimStart().StartsWith(@"{\rtf", StringComparison.OrdinalIgnoreCase)
+            ? RtfToHtml(raw)
+            : $"<p>{EscapeHtml(raw)}</p>";
+    }
+
+    // Brace-aware RTF → plain-text extractor: skips font/colour/style tables and \* groups, turns \par
+    // into paragraph breaks, decodes \'hh and escaped braces, and strips remaining control words.
+    private static string RtfToHtml(string rtf)
+    {
+        var sb = new StringBuilder();
+        int i = 0, depth = 0, skipDepth = -1;
+        while (i < rtf.Length)
+        {
+            var c = rtf[i];
+            if (c == '{') { depth++; i++; continue; }
+            if (c == '}') { if (skipDepth == depth) skipDepth = -1; depth--; i++; continue; }
+            if (skipDepth >= 0) { i++; continue; }
+            if (c == '\\')
+            {
+                if (i + 1 < rtf.Length && rtf[i + 1] == '*') { skipDepth = depth; i += 2; continue; }
+                if (i + 1 < rtf.Length && rtf[i + 1] == '\'' && i + 3 < rtf.Length)
+                {
+                    if (int.TryParse(rtf.Substring(i + 2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var code))
+                        sb.Append((char)code);
+                    i += 4; continue;
+                }
+                var m = Regex.Match(rtf[i..], @"^\\([a-zA-Z]+)-?\d* ?");
+                if (m.Success)
+                {
+                    var word = m.Groups[1].Value;
+                    if (word is "fonttbl" or "colortbl" or "stylesheet" or "info" or "generator" or "themedata" or "datastore")
+                        skipDepth = depth;
+                    else if (word is "par" or "pard") sb.Append('\n');
+                    else if (word == "tab") sb.Append('\t');
+                    i += m.Length; continue;
+                }
+                if (i + 1 < rtf.Length) { sb.Append(rtf[i + 1]); i += 2; continue; }  // escaped { } \
+                i++; continue;
+            }
+            sb.Append(c); i++;
+        }
+
+        var paras = sb.ToString().Split('\n').Select(p => p.Trim()).Where(p => p.Length > 0).ToList();
+        return paras.Count == 0 ? "<p></p>" : string.Concat(paras.Select(p => $"<p>{EscapeHtml(p)}</p>"));
+    }
+
+    private static string EscapeHtml(string s) =>
+        s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+
     private static string? ExtractImageDataUrl(XElement el)
     {
         var candidate = Attr(el, "Image") ?? Attr(el, "ImageData")
@@ -560,8 +719,29 @@ public sealed class FrxToDesignConverter
         if (string.IsNullOrWhiteSpace(candidate)) return null;
         if (candidate.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) return candidate;
         var b64 = Regex.Replace(candidate, @"\s+", "");
-        return b64.Length >= 16 && b64.Length % 4 == 0 && Regex.IsMatch(b64, @"^[A-Za-z0-9+/]+={0,2}$")
-            ? $"data:image/png;base64,{b64}" : null;
+        if (b64.Length < 16 || b64.Length % 4 != 0 || !Regex.IsMatch(b64, @"^[A-Za-z0-9+/]+={0,2}$"))
+            return null;
+        return $"data:{SniffImageMime(b64)};base64,{b64}";
+    }
+
+    // Detect the image type from the decoded magic bytes so non-PNG pictures (JPEG/GIF/BMP/WEBP/TIFF)
+    // get the correct data-URL MIME instead of always claiming PNG.
+    private static string SniffImageMime(string base64)
+    {
+        try
+        {
+            var head = System.Convert.FromBase64String(base64[..16]);   // 16 base64 chars → first 12 bytes
+            if (head.Length >= 3 && head[0] == 0xFF && head[1] == 0xD8 && head[2] == 0xFF) return "image/jpeg";
+            if (head.Length >= 6 && head[0] == (byte)'G' && head[1] == (byte)'I' && head[2] == (byte)'F') return "image/gif";
+            if (head.Length >= 2 && head[0] == (byte)'B' && head[1] == (byte)'M') return "image/bmp";
+            if (head.Length >= 4 && head[0] == (byte)'R' && head[1] == (byte)'I' && head[2] == (byte)'F' && head[3] == (byte)'F') return "image/webp";
+            if (head.Length >= 2 && ((head[0] == 0x49 && head[1] == 0x49) || (head[0] == 0x4D && head[1] == 0x4D))) return "image/tiff";
+        }
+        catch (FormatException)
+        {
+            // fall through to the PNG default
+        }
+        return "image/png";
     }
 
     // Colour: .NET named (WhiteSmoke, Maroon, …), "#RRGGBB"/"#RGB", or ARGB int / "A,R,G,B".
@@ -661,6 +841,8 @@ public sealed class FrxToDesignConverter
         public double PageWidthPt = A4WidthMm * MmToPt, PageHeightPt = A4HeightMm * MmToPt;
         public double MarginLeftPt, MarginTopPt, MarginBottomPt;
         public bool HasScript;
+        public int PageCount = 1;
+        public List<string> MultiColumnBands = [];
         public List<RawBand> Bands = [];
         public List<RawElement> Elements = [];
     }
@@ -669,8 +851,11 @@ public sealed class FrxToDesignConverter
     {
         public required string Name;
         public required string Type;
+        public int PageIndex;    // which ReportPage this band belongs to
         public double TopPt;     // absolute design position (points)
         public double HeightPt;
+        public string? Condition;   // GroupHeaderBand group-key expression
+        public string? GroupName;   // group identity shared by a header/footer pair
     }
 
     private sealed class RawElement
@@ -678,6 +863,7 @@ public sealed class FrxToDesignConverter
         public required string Name;
         public required string Type;
         public string? Band;
+        public int PageIndex;       // which ReportPage this object belongs to
         public double X, Y, W, H;   // points; X/Y are object-within-band
         public string? Text;
         public string? DataColumn;

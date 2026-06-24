@@ -697,6 +697,9 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const setCurrentTemplate = useEditorStore(s => s.setCurrentTemplate);
   const updatePageSettings = useEditorStore(s => s.updatePageSettings);
   const [sourceCode, setSourceCode] = useState('');
+  // Base64 of a binary/zip report package (.trdp, packaged .rdlx); when set, sent as sourceBase64.
+  const [sourceBase64, setSourceBase64] = useState<string | null>(null);
+  const [binaryFileName, setBinaryFileName] = useState('');
   const [resourceJson, setResourceJson] = useState('');
   const [resourceXml, setResourceXml] = useState('');
   const [resourceFileName, setResourceFileName] = useState('');
@@ -827,8 +830,30 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     }
   };
 
+  // Load a binary/zip report package (.trdp, packaged .rdlx) and send it base64-encoded as sourceBase64;
+  // the backend unzips it and converts the inner report.
+  const handlePackageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      let binary = '';
+      const chunk = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunk)
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+      setSourceBase64(btoa(binary));
+      setBinaryFileName(file.name);
+      setSourceCode(`/* Binary report package loaded: ${file.name} (${bytes.length} bytes). Click Convert. */`);
+      setError(null);
+    } catch {
+      setError('Could not read the report package file.');
+    } finally {
+      e.target.value = '';
+    }
+  };
+
   const handleConvert = async () => {
-    if (!sourceCode.trim()) return;
+    if (!sourceCode.trim() && !sourceBase64) return;
     setConverting(true);
     setError(null);
     try {
@@ -854,6 +879,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             sourceCode,
+            sourceBase64: sourceBase64 ?? undefined,
             resources: Object.keys(resources).length > 0 ? resources : undefined,
             resourceXml: resourceXml.trim() ? resourceXml : undefined,
           }),
@@ -1076,7 +1102,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
               <Editor
                 language="csharp"
                 value={sourceCode}
-                onChange={v => setSourceCode(v ?? '')}
+                onChange={v => { setSourceCode(v ?? ''); if (sourceBase64) { setSourceBase64(null); setBinaryFileName(''); } }}
                 onMount={handleSourceMount}
                 options={{
                   minimap: { enabled: false },
@@ -1114,6 +1140,30 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
                         setResourceXml('');
                         setResourceFileName('');
                       }}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <div className="mgr-resource-header">
+                  <label htmlFor="mgr-package-file">Report package (zip)</label>
+                  <span>{binaryFileName || 'No .trdp / packaged .rdlx loaded'}</span>
+                </div>
+                <div className="mgr-resource-actions">
+                  <label className="mgr-file-btn" htmlFor="mgr-package-file">
+                    <FiUpload /> Load .trdp / .rdlx
+                  </label>
+                  <input
+                    id="mgr-package-file"
+                    type="file"
+                    accept=".trdp,.trdx,.rdlx,.zip"
+                    onChange={handlePackageFileChange}
+                  />
+                  {sourceBase64 && (
+                    <button
+                      type="button"
+                      className="mgr-link-btn"
+                      onClick={() => { setSourceBase64(null); setBinaryFileName(''); setSourceCode(''); }}
                     >
                       Clear
                     </button>
@@ -1207,7 +1257,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
               <button
                 className="mgr-btn mgr-btn-primary"
                 onClick={handleConvert}
-                disabled={converting || !sourceCode.trim()}
+                disabled={converting || (!sourceCode.trim() && !sourceBase64)}
               >
                 {converting
                   ? <><FiRefreshCw className="mgr-spin" /> Converting…</>

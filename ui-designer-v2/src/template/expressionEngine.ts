@@ -89,6 +89,18 @@ function createSafeContext(context: ExpressionContext): Record<string, any> {
       return String(value);
     },
 
+    // Helpers emitted by the migration ExpressionTranslator (RDL/DevExpress → Canvas grammar).
+    $iif: (cond: any, a: any, b: any) => (cond ? a : b),
+    $switch: (...args: any[]) => {
+      for (let i = 0; i + 1 < args.length; i += 2) if (args[i]) return args[i + 1];
+      return args.length % 2 === 1 ? args[args.length - 1] : undefined; // optional trailing default
+    },
+    $concat: (...parts: any[]) => parts.map(p => (p == null ? '' : String(p))).join(''),
+    $and: (...xs: any[]) => xs.every(Boolean),
+    $or: (...xs: any[]) => xs.some(Boolean),
+    $not: (x: any) => !x,
+    $coalesce: (...xs: any[]) => xs.find(x => x != null),
+
     // Math utilities
     Math: {
       abs: Math.abs,
@@ -186,20 +198,61 @@ function evaluateSafeExpression(expression: string, context: Record<string, any>
     return evaluateInstanceof(expr, context);
   }
 
-  // Handle comparisons and logical operations first
-  const comparisonResult = evaluateComparison(expr, context);
-  if (comparisonResult.isValid !== undefined) {
-    return comparisonResult;
+  // Whole-expression function call (e.g. $iif(...), $concat(...)) — must run before comparison/property
+  // access, which would otherwise swallow it and return undefined.
+  if (isWholeFunctionCall(expr)) {
+    return evaluateFunctionCall(expr, context);
   }
 
-  // Handle arithmetic operations
-  const arithmeticResult = evaluateArithmetic(expr, context);
-  if (arithmeticResult.isValid !== undefined) {
-    return arithmeticResult;
+  // Comparisons — only when a real top-level comparison operator is present.
+  if (hasTopLevelOperator(expr, ['===', '!==', '==', '!=', '<=', '>=', '<', '>'])) {
+    return evaluateComparison(expr, context);
   }
 
-  // Handle property access and function calls
+  // Arithmetic — only when a real top-level arithmetic operator is present.
+  if (hasTopLevelOperator(expr, ['+', '-', '*', '/', '%'])) {
+    return evaluateArithmetic(expr, context);
+  }
+
+  // Property access / identifier / remaining forms.
   return evaluateComplexExpression(expr, context);
+}
+
+// True when the whole expression is a single function call `name(...)` (the opening paren matches the
+// final character), respecting nested parens and quotes.
+function isWholeFunctionCall(expr: string): boolean {
+  if (!/^[A-Za-z_$][\w$]*\s*\(/.test(expr) || !expr.endsWith(')')) return false;
+  const openIdx = expr.indexOf('(');
+  let depth = 0, quote = '';
+  for (let i = openIdx; i < expr.length; i++) {
+    const c = expr[i];
+    if (quote) { if (c === quote) quote = ''; continue; }
+    if (c === '"' || c === "'") { quote = c; continue; }
+    if (c === '(') depth++;
+    else if (c === ')') { depth--; if (depth === 0) return i === expr.length - 1; }
+  }
+  return false;
+}
+
+// True when any of the operators appears at the top level (depth 0, outside quotes).
+function hasTopLevelOperator(expr: string, operators: string[]): boolean {
+  let depth = 0, quote = '';
+  for (let i = 0; i < expr.length; i++) {
+    const c = expr[i];
+    if (quote) { if (c === quote) quote = ''; continue; }
+    if (c === '"' || c === "'") { quote = c; continue; }
+    if (c === '(') { depth++; continue; }
+    if (c === ')') { depth--; continue; }
+    if (depth !== 0) continue;
+    for (const op of operators) {
+      if (expr.startsWith(op, i)) {
+        // Skip a leading unary +/- (no left operand) so "-5" isn't treated as a binary op.
+        if ((op === '-' || op === '+') && expr.slice(0, i).trim().length === 0) continue;
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /**
@@ -223,6 +276,23 @@ function evaluatePropertyAccess(expression: string, context: Record<string, any>
 /**
  * Evaluates function calls
  */
+// Split a function-call argument list on top-level commas only (respecting nested parens and quotes),
+// so nested helper calls like $iif(a, $concat(b, c), d) parse correctly.
+function splitTopLevelArgs(argsStr: string): string[] {
+  const args: string[] = [];
+  let depth = 0, start = 0, quote = '';
+  for (let i = 0; i < argsStr.length; i++) {
+    const c = argsStr[i];
+    if (quote) { if (c === quote) quote = ''; continue; }
+    if (c === '"' || c === "'") { quote = c; continue; }
+    if (c === '(') depth++;
+    else if (c === ')') depth--;
+    else if (c === ',' && depth === 0) { args.push(argsStr.slice(start, i).trim()); start = i + 1; }
+  }
+  args.push(argsStr.slice(start).trim());
+  return args;
+}
+
 function evaluateFunctionCall(expression: string, context: Record<string, any>): ExpressionResult {
   const match = expression.match(/^([^(]+)\((.*)\)$/);
   if (!match) {
@@ -230,7 +300,7 @@ function evaluateFunctionCall(expression: string, context: Record<string, any>):
   }
 
   const [, funcName, argsStr] = match;
-  const args = argsStr ? argsStr.split(',').map(arg => arg.trim()) : [];
+  const args = argsStr ? splitTopLevelArgs(argsStr) : [];
 
   // Evaluate arguments
   const evaluatedArgs: any[] = [];

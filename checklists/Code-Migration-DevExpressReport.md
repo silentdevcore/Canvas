@@ -126,8 +126,13 @@ before lower-value table styling.
 - [x] `TextFitMode` / `TextTrimming` → `style.devExpressTextFitMode` /
       `style.devExpressTextTrimming` with `CANMIGDEVREP023`.
 - [x] Table column alignments from the header-row cell `TextAlignment` → `ColumnAlignments`.
-- [ ] Per-cell font/colour table styling — Canvas tables only support column-level alignment +
-      header/zebra colours, so arbitrary per-cell styling can't round-trip (low value).
+- [x] Per-cell font/colour table styling — `XRTableCell` `BackColor`/`ForeColor`/`TextAlignment`/`Font`/
+      `Borders` are extracted into sparse Canvas `CellStyles` (uniform + per-side borders) and rendered by
+      the canvas/preview and all exporters.
+- [x] Standard expressions are **executable** in the designer/preview: non-trivial bindings emit a
+      translated Canvas-grammar `Expression` via `ExpressionTranslator.TranslateDevExpress` (raw kept on
+      `style.devExpressExpression`). See [Migration_RDL+DevExpress.md](Migration_RDL+DevExpress.md).
+      Custom functions / aggregates remain out of scope.
 - [x] **P0** More controls: `XRChart` → editable Canvas `chart`; `XRGauge`/`XRPivotGrid` →
       positioned placeholders with `CANMIGDEVREP018` diagnostics instead of layout holes.
 - [x] `XRLine`/`XRShape` `LineWidth` → `strokeWidth`/`borderWidth`; `XRLine` `LineStyle` → `dashStyle`.
@@ -142,8 +147,10 @@ before lower-value table styling.
 - [x] Detect sub-reports (`XRSubreport`) and insert positioned placeholders; report scripts/event handlers → `CANMIGDEVREP012`.
 - [x] **P0** Grouping/sorting bands (`GroupHeaderBand`/`GroupFooterBand`) — group/footer layout is
       imported and stacked in band order; C# `GroupFields`/`SortFields` and `.repx` `<GroupFields>`/
-      `<SortFields>` are captured in `CANMIGDEVREP015` diagnostics. True repeat/sort execution still
-      requires Canvas template wiring.
+      `<SortFields>` are captured in `CANMIGDEVREP015` diagnostics. **Repeat semantics:** each group-band
+      control now carries Canvas `RepeatDto` (data path from the first group field) plus
+      `style.devExpressGroup` (name/role/band/fields/sorts), mirroring the RDL/Jasper group-repeat mapping,
+      so the band can be wired as a repeating template. Runtime data-binding still needs Canvas template wiring.
 - [x] **P0** `AnchorVertical`/`AnchorHorizontal` and `CanGrow`/`CanShrink` auto-sizing: imported as
       Canvas style hints (`whiteSpace`, `overflow`, `verticalAlign`) plus DevExpress metadata, with
       `CANMIGDEVREP016/017` diagnostics for dynamic reflow/anchoring review.

@@ -1,0 +1,162 @@
+# PDF Tools Web Viewer Feature Gaps
+
+## Scope
+
+This checklist tracks ideas from the **Pdftools Web Viewer** demo (`https://viewer.pdf-tools.com/v5/`)
+as a reference for Canvas viewer/review workflows and Canvas.PDF-adjacent capabilities.
+
+This is **not** a report-designer migration checklist. Pdftools Web Viewer is a browser PDF viewer and
+annotation SDK, not a format like `.rdl`, `.repx`, `.jrxml`, or `.frx`.
+
+Observed demo/source facts:
+
+- Product/demo: `Pdftools Web Viewer`
+- Demo version observed: `5.16.0`
+- Browser packages observed in the demo bundle: `@pdftools/pdf-web-viewer` and `@pdftools/pdf-web-sdk`
+- Demo initialization uses `PdfToolsViewer.initialize(...)`
+- Demo options include `inputDocument`, `licenseKey`, and `accessibilityLayerEnabled`
+- Viewer API surface observed: `document`, `documentView`, `search`, `toolbar`, `topbar`, `dialogs`,
+  annotation APIs, localization APIs, and component visibility/override hooks
+
+## Positioning
+
+| Area | Belongs here? | Notes |
+| --- | --- | --- |
+| Report designer migration | No | No designer file format is involved. |
+| Canvas.PDF engine parity | Partly | Some features require PDF writer/model support, for example annotations, forms, redaction, accessibility. |
+| Canvas web viewer / review UX | Yes | Main value: viewing, searching, annotating, redacting, saving, printing. |
+| Existing PDF editing | Partly | Save/annotation/redaction workflows need imported/existing PDF support, not only generation. |
+| PDF Tools code migration | Adjacent | Separate from `Code-Migration-PdfTools.md` and `Code-Migration-PdfToolsToolbox.md`. |
+
+## Already Related In Canvas
+
+- [x] Canvas can generate PDFs via `Canvas.Pdf`.
+- [x] Canvas has basic document preview/export flows.
+- [x] Canvas.PDF supports links/bookmarks/outlines and viewer preferences.
+- [x] Canvas.PDF supports basic AcroForm fields: text field, multiline text field, combo box, checkbox.
+- [x] Canvas has file importer and PDF importer foundations for existing documents.
+- [x] Canvas has a broader provider feature-gap roadmap in
+      [CanvasPdf-Provider-Feature-Gaps.md](CanvasPdf-Provider-Feature-Gaps.md).
+
+## P0 - Viewer Foundation
+
+- [ ] **PDF viewer shell** - Dedicated viewer route/page for opening a PDF output or uploaded PDF with page navigation, zoom, fit modes, and responsive layout.
+- [ ] **Document open sources** - Open generated PDFs, uploaded local files, and backend-served PDFs through one viewer abstraction.
+- [ ] **Thumbnails/sidebar** - Page thumbnails with current-page state and click-to-navigate.
+- [ ] **Text search** - Search panel with result count, next/previous result, case-sensitive option, and page/result highlighting.
+- [ ] **Print workflow** - Print current/all/range pages with an option to include annotations once annotations exist.
+- [ ] **Download/save workflow** - Download the current PDF; later include annotation/form changes when persisted editing exists.
+- [ ] **Viewer event API** - Emit events for open, page changed, zoom changed, print started/completed/failed, save/download, and search result selected.
+
+## Canvas Viewer Adaptation Plan
+
+Goal: make the Canvas PDF viewing experience feel comparable to the PDF Tools Web Viewer while keeping
+our own implementation, UI language, and engine boundaries.
+
+### Phase 1 - PDF Tools-like viewer baseline
+
+- [ ] Add a dedicated PDF viewer route/page in `ui-designer-v2`.
+- [ ] Add a reusable viewer component that accepts a generated PDF blob, upload file, or backend URL.
+- [ ] Add top toolbar actions: open, save/download, print, search, thumbnails, zoom out/in, fit page,
+      fit width, previous page, next page.
+- [ ] Add a left thumbnails panel with current-page highlight.
+- [ ] Add page navigation state: current page, total pages, direct page number input.
+- [ ] Add zoom state and fit modes that do not disturb page navigation.
+- [ ] Add search panel with result count, next/previous match, case-sensitive option, and highlighted matches.
+- [ ] Add print modal with all/current/range pages.
+- [ ] Add download/save button for the currently opened PDF.
+- [ ] Add responsive layout for desktop/tablet/mobile.
+
+### Phase 2 - Review mode baseline
+
+- [ ] Add an annotation toolbar mode, separate from normal view/search mode.
+- [ ] Add text markup tools: highlight, underline, strikeout.
+- [ ] Add free-text comment tool with font size, color, background, and border.
+- [ ] Add sticky note/comment tool with author and timestamp metadata.
+- [ ] Add line, rectangle, circle, and freehand ink tools.
+- [ ] Add predefined stamps: Draft, Approved, Final, Confidential.
+- [ ] Add selection/editing for annotations: move, resize, delete, lock/unlock.
+- [ ] Store annotations initially as a sidecar JSON model if writing them into PDF is not ready.
+
+### Phase 3 - Professional PDF workflows
+
+- [ ] Show and edit existing AcroForm fields where import support exists.
+- [ ] Support save/flatten strategy for changed form values.
+- [ ] Add redaction mark mode for text/area selections.
+- [ ] Add secure backend redaction application when the PDF engine can remove underlying content.
+- [ ] Add accessibility/text layer support for generated and imported PDFs.
+- [ ] Add localization hooks for English/German UI strings.
+- [ ] Add viewer configuration API to hide/show toolbar groups and override button behavior.
+
+### Technical Decision Points
+
+- [ ] Decide whether the viewer rendering basis is PDF.js, browser-native PDF embedding, or a custom
+      Canvas rendering layer.
+- [ ] Decide how generated PDFs are passed from existing preview/export flows into the viewer route.
+- [ ] Decide whether annotations are stored first as sidecar JSON, embedded PDF annotations, or both.
+- [ ] Decide the boundary between `Canvas.Importer` existing-PDF parsing and `Canvas.Pdf` rewritten output.
+- [ ] Decide whether thumbnail rendering happens client-side, backend-side, or both.
+- [ ] Decide how tests verify viewer behavior: unit tests for state, Playwright smoke tests for UI, and
+      PDF binary tests for saved annotations/forms later.
+
+## P1 - Review And Annotation Workflow
+
+- [ ] **Annotation model** - Define Canvas-side model for PDF annotations independent from UI widgets.
+- [ ] **Text markup annotations** - Highlight, underline, squiggly, strikeout.
+- [ ] **Free text annotations** - Add/edit text boxes with font, size, color, alignment, border/background.
+- [ ] **Sticky note annotations** - Add note annotations with author/date/content metadata.
+- [ ] **Drawing annotations** - Ink/freehand drawing with color, opacity, thickness, and eraser.
+- [ ] **Line annotations** - Lines with thickness, opacity, color, and line endings.
+- [ ] **Shape annotations** - Rectangle/circle annotations with fill, stroke, opacity, and thickness.
+- [ ] **Stamp annotations** - Predefined text stamps such as approved/draft/confidential plus custom stamp extension point.
+- [ ] **Image annotations** - Place an image on a PDF page as an annotation/review mark.
+- [ ] **Annotation selection/editing** - Select, move, resize, lock/unlock, delete, and update annotations.
+- [ ] **Annotation persistence** - Save annotations back into PDF or export/import an annotation sidecar format.
+
+## P1 - Forms And Redaction
+
+- [ ] **Form field viewing/editing** - Fill text boxes, checkboxes, radio buttons, list boxes, and combo boxes in existing PDFs.
+- [ ] **Form save strategy** - Decide between saving filled fields into PDF, flattening, or sidecar persistence.
+- [ ] **Redaction marks** - Let users mark text/page areas for redaction as visible pending annotations.
+- [ ] **Apply secure redactions** - Remove underlying text/graphics/resources, not only paint black rectangles.
+- [ ] **Redaction audit metadata** - Preserve reason/user/timestamp metadata for review workflows.
+
+## P2 - Accessibility, Localization, And Customization
+
+- [ ] **Accessibility text layer** - Add/selectable/assistive text layer for generated or imported PDFs where text extraction is available.
+- [ ] **Keyboard navigation** - Viewer and annotation controls navigable by keyboard.
+- [ ] **Localization** - Built-in English/German support plus override hooks for UI labels.
+- [ ] **Custom toolbar configuration** - Hide/show viewer components and override button behavior for product-specific workflows.
+- [ ] **User identity** - Viewer-level user/author identity for annotations and review metadata.
+- [ ] **Plugin extension points** - Define extension surface for custom annotation tools or workflow buttons.
+
+## P2 - Engine/Backend Support
+
+- [ ] **Existing PDF save/edit bridge** - Decide how `Canvas.Importer` and `Canvas.Pdf` cooperate for editing existing PDFs.
+- [ ] **Annotation writer support** - Emit PDF annotations from Canvas model.
+- [ ] **Annotation reader support** - Import existing PDF annotations into Canvas model.
+- [ ] **Form reader support** - Import existing AcroForm fields and values.
+- [ ] **Form writer/flattening support** - Save field changes and optionally flatten fields.
+- [ ] **PDF-to-image/page rasterization** - Backend rasterization for thumbnails or fallback preview.
+- [ ] **Incremental update strategy** - Decide whether edited PDFs are fully rewritten or saved incrementally.
+
+## Recommendation
+
+Start with **P0 viewer foundation** only when we are ready to invest in a PDF review workflow. The first
+implementation should not try to match every PDF Tools annotation feature. A good first milestone is:
+
+1. Viewer route/page.
+2. Open generated/uploaded PDF.
+3. Navigation/zoom/thumbnails.
+4. Search.
+5. Download/print.
+
+After that, add annotations in this order: text markup, free text, notes, ink/line/shape, stamps, then
+redaction and form editing.
+
+## References
+
+- Pdftools Web Viewer demo: https://viewer.pdf-tools.com/v5/
+- Canvas.PDF provider gaps: [CanvasPdf-Provider-Feature-Gaps.md](CanvasPdf-Provider-Feature-Gaps.md)
+- PDF Tools SDK migration checklist: [Code-Migration-PdfTools.md](Code-Migration-PdfTools.md)
+- PDF Toolbox migration checklist: [Code-Migration-PdfToolsToolbox.md](Code-Migration-PdfToolsToolbox.md)

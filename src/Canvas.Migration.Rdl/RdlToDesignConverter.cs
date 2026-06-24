@@ -2657,9 +2657,16 @@ public sealed class RdlToDesignConverter
         }
         else
         {
-            element.Expression = expression;
-            if (string.IsNullOrEmpty(element.Content)) element.Content = expression;
-            diagnostics.Add(Warn("CANMIGRDL010", $"'{element.Name}' value expression '{expression}' mapped to Canvas expression — review the syntax."));
+            // Compound expression (multiple fields / functions / operators): normalize every Fields!X
+            // reference to a Canvas {{X}} token so the content reads as a template; keep the original.
+            var normalized = Regex.Replace(expression.TrimStart().TrimStart('=').Trim(),
+                @"Fields!(\w+)(?:\.Value)?", m => $"{{{{{m.Groups[1].Value}}}}}");
+            // Executable Canvas-grammar form for the preview engine; raw preserved for review.
+            element.Expression = ExpressionTranslator.TranslateRdl(expression) ?? expression;
+            element.Style ??= [];
+            element.Style["rdlExpression"] = expression;
+            if (string.IsNullOrEmpty(element.Content)) element.Content = normalized;
+            diagnostics.Add(Warn("CANMIGRDL010", $"'{element.Name}' value expression '{expression}' mapped to a Canvas template with normalized field references — review the syntax."));
         }
     }
 
