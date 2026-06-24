@@ -1,5 +1,8 @@
 # Migration: Dataset Aggregates in Migrated Expressions
 
+> **Status:** shipped — PR [#17](https://github.com/silentdevcore/Canvas/pull/17)
+> (branch `migration-dataset-aggregates`, commit `28ddb270`).
+
 Completes the expression feature for the most common real-report construct: **footer/group totals**.
 Companion to [Migration_RDL+DevExpress.md](Migration_RDL+DevExpress.md) and
 [Migration_CSharp-Expression-Eval.md](Migration_CSharp-Expression-Eval.md).
