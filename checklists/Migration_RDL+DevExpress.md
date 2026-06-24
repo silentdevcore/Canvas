@@ -53,5 +53,6 @@ single-row expressions become first-class, executable Canvas expressions. The or
 
 - [ ] Dataset **aggregates** (`Sum`/`Avg`/`Count`/`First`) — need dataset-context plumbing.
 - [ ] Custom RDL `<Code>` functions — arbitrary VB, not executable here (stay preserved).
-- [ ] **C# server-side exporter** expression evaluation (Image/HTML/Word/PDF) — current `ExpressionEvaluator` is a stub.
+- [x] **C# server-side exporter** expression evaluation (Image/HTML/Word/PDF) — done via
+      `CanvasExpressionEvaluator` in `DesignLayoutPlanner`. See [Migration_CSharp-Expression-Eval.md](Migration_CSharp-Expression-Eval.md).
 - [ ] Full operator-precedence parser in the frontend engine (multi-term arithmetic/logical chains are best-effort in v1).

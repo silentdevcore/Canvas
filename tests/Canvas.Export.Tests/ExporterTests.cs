@@ -116,6 +116,50 @@ public class ExporterTests
     }
 
     [Fact]
+    public void Html_Export_EvaluatesMigratedExpressionsPerRow()
+    {
+        // A repeating text element whose translated Expression should be computed per row at export time.
+        var design = new DesignExportDto
+        {
+            Id = "expr", Name = "Expr", Category = "imported",
+            PageSettings = new PageSettingsDto
+            {
+                Width = 595, Height = 842,
+                CustomProperties =
+                [
+                    new CustomDocumentPropertyDto
+                    {
+                        Name = "Rows",
+                        Value = """[{"First":"Ada","Last":"Lovelace"},{"First":"Alan","Last":"Turing"}]"""
+                    }
+                ]
+            },
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "name", Type = "text", X = 10, Y = 10, Width = 300, Height = 20,
+                            Content = "{{First}} {{Last}}",
+                            Expression = "$concat(First, \" \", Last)",
+                            Repeat = new RepeatDto { DataPath = "Rows" }
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(design));
+        Assert.Contains("Ada Lovelace", html);     // computed, not the literal template
+        Assert.Contains("Alan Turing", html);
+        Assert.DoesNotContain("$concat", html);
+    }
+
+    [Fact]
     public void Html_Export_RendersRdlMatrixHeaders()
     {
         var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(MatrixHeaderDesign()));

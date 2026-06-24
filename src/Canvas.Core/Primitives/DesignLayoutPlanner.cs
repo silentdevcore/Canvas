@@ -48,7 +48,7 @@ public static class DesignLayoutPlanner
             var dataPath = element.Repeat?.DataPath;
             if (string.IsNullOrWhiteSpace(dataPath) || ResolveDataPath(payload, dataPath) is not { } data)
             {
-                yield return ApplyDynamicData(element, payload);
+                yield return ApplyStaticData(ApplyDynamicData(element, payload), payload);
                 continue;
             }
 
@@ -384,7 +384,9 @@ public static class DesignLayoutPlanner
     {
         var values = ItemValues(item);
         values["index"] = index;
-        element.Content = Substitute(element.Content, values);
+        // Evaluate a translated expression against the row; only token-substitute Content when it has none.
+        if (!TryApplyExpression(element, values))
+            element.Content = Substitute(element.Content, values);
         element.HtmlContent = Substitute(element.HtmlContent, values);
         element.Binding = Substitute(element.Binding, values);
         element.Expression = Substitute(element.Expression, values);
@@ -394,6 +396,43 @@ public static class DesignLayoutPlanner
                 .Select(row => row.Select(cell => Substitute(cell, values) ?? "").ToArray())
                 .ToArray();
         }
+    }
+
+    // Compute a translated Canvas-grammar Expression against the data and write the result to the
+    // element's value, so exports show the computed value rather than the literal template. Returns false
+    // (caller falls back to token substitution) when there's no expression or it can't be evaluated.
+    private static bool TryApplyExpression(ElementDto element, IReadOnlyDictionary<string, object?> data)
+    {
+        if (string.IsNullOrWhiteSpace(element.Expression)) return false;
+        if (!CanvasExpressionEvaluator.TryEvaluate(element.Expression, data, out var value)) return false;
+
+        var text = CanvasExpressionEvaluator.FormatValue(value);
+        if (element.Type == "barcode") element.BarcodeValue = text;
+        else element.Content = text;
+        return true;
+    }
+
+    private static bool HasToken(string? value) => !string.IsNullOrEmpty(value) && BindingTokenRegex.IsMatch(value);
+
+    // Static (non-repeat) elements: evaluate a translated Expression and/or substitute {{tokens}} from the
+    // top-level payload (report-parameter defaults etc.). Clones first so the source design isn't mutated.
+    private static ElementDto ApplyStaticData(ElementDto element, IReadOnlyDictionary<string, object?> payload)
+    {
+        var hasExpr = !string.IsNullOrWhiteSpace(element.Expression);
+        var hasTokens = HasToken(element.Content) || HasToken(element.HtmlContent) || HasToken(element.Binding)
+            || (element.CellData?.Any(row => row.Any(HasToken)) ?? false);
+        if (!hasExpr && !hasTokens) return element;
+
+        var clone = CloneElement(element);
+        if (!TryApplyExpression(clone, payload))
+            clone.Content = Substitute(clone.Content, payload);
+        clone.HtmlContent = Substitute(clone.HtmlContent, payload);
+        clone.Binding = Substitute(clone.Binding, payload);
+        if (clone.CellData is not null)
+            clone.CellData = clone.CellData
+                .Select(row => row.Select(cell => Substitute(cell, payload) ?? "").ToArray())
+                .ToArray();
+        return clone;
     }
 
     private static Dictionary<string, object?> ItemValues(object? item)
