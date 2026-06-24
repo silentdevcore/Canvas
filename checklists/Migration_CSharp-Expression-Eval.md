@@ -45,4 +45,6 @@ evaluator mirroring the frontend `expressionEngine.ts` grammar — is invoked du
 - [x] Dataset aggregates (`Sum`/`Avg`/`Count`/`Min`/`Max`/`First`/`Last`) — done; `CanvasExpressionEvaluator`
       gained the aggregate helpers. See [Migration_Dataset-Aggregates.md](Migration_Dataset-Aggregates.md).
 - [ ] Custom RDL `<Code>` functions.
-- [ ] Back `IExpressionEvaluator` (stub) / `TemplateExpander` DesignerElement path with this evaluator.
+- [x] Back `IExpressionEvaluator` (stub) with this evaluator — done; `ExpressionEvaluator` now delegates
+      to `CanvasExpressionEvaluator`. See [Migration_Backed-ExpressionEvaluator.md](Migration_Backed-ExpressionEvaluator.md).
+      (Wiring an actual `ITemplateExpander` consumer remains a follow-up.)
