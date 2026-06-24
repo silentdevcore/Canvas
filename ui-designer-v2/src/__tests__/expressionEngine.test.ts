@@ -64,3 +64,40 @@ describe('expressionEngine — dataset aggregates', () => {
     expect(evaluateExpression('$count(Missing)', ctx).value).toBe(0);
   });
 });
+
+// Recursive-descent precedence parser — parity with the server CanvasExpressionEvaluator.
+describe('expressionEngine — operator precedence', () => {
+  const ctx = (data: Record<string, any>): ExpressionContext => ({ data });
+  const val = (expr: string, data: Record<string, any> = {}) => evaluateExpression(expr, ctx(data)).value;
+
+  test('arithmetic precedence and associativity', () => {
+    expect(val('2 + 3 * 4')).toBe(14);
+    expect(val('(2 + 3) * 4')).toBe(20);
+    expect(val('10 - 3 - 2')).toBe(5);          // left-associative
+    expect(val('2 * 3 + 4 * 5')).toBe(26);
+    expect(val('-5 + 2')).toBe(-3);             // unary minus
+  });
+
+  test('+ is numeric add or string concat', () => {
+    expect(val('Qty + 1', { Qty: 4 })).toBe(5);
+    expect(val('First + " " + Last', { First: 'Ada', Last: 'Lovelace' })).toBe('Ada Lovelace');
+  });
+
+  test('logical operators with correct precedence (&& over ||)', () => {
+    expect(val('A == 1 && B == 2', { A: 1, B: 2 })).toBe(true);
+    expect(val('A == 1 && B == 2', { A: 1, B: 9 })).toBe(false);
+    expect(val('A == 1 || B == 2', { A: 0, B: 2 })).toBe(true);
+    expect(val('!(A == 1)', { A: 1 })).toBe(false);
+    // && binds tighter than ||: parsed as (false && false) || true → true
+    expect(val('A == 1 && B == 2 || C == 3', { A: 0, B: 0, C: 3 })).toBe(true);
+  });
+
+  test('comparison combined with arithmetic', () => {
+    expect(val('Qty * Price > 100', { Qty: 11, Price: 10 })).toBe(true);
+    expect(val('Qty * Price > 100', { Qty: 5, Price: 10 })).toBe(false);
+  });
+
+  test('chained comparison + helper still works', () => {
+    expect(val('$iif(Qty * Price > 100, "big", "small")', { Qty: 11, Price: 10 })).toBe('big');
+  });
+});

@@ -56,4 +56,5 @@ single-row expressions become first-class, executable Canvas expressions. The or
 - [ ] Custom RDL `<Code>` functions — arbitrary VB, not executable here (stay preserved).
 - [x] **C# server-side exporter** expression evaluation (Image/HTML/Word/PDF) — done via
       `CanvasExpressionEvaluator` in `DesignLayoutPlanner`. See [Migration_CSharp-Expression-Eval.md](Migration_CSharp-Expression-Eval.md).
-- [ ] Full operator-precedence parser in the frontend engine (multi-term arithmetic/logical chains are best-effort in v1).
+- [x] Full operator-precedence parser in the frontend engine — done; recursive-descent parser mirroring
+      `CanvasExpressionEvaluator`. See [Frontend-Precedence-Parser.md](Frontend-Precedence-Parser.md).
