@@ -182,222 +182,239 @@ function createSafeContext(context: ExpressionContext): Record<string, any> {
 }
 
 /**
- * Safely evaluates an expression using a more robust parser
+ * Safely evaluates an expression. Literal/template/new/instanceof are handled as special cases; the rest
+ * goes through a recursive-descent precedence parser that mirrors the server CanvasExpressionEvaluator.
  */
 function evaluateSafeExpression(expression: string, context: Record<string, any>): ExpressionResult {
   const expr = expression.trim();
+  if (expr === '') return { value: undefined, isValid: false, error: 'Empty expression' };
 
-  // Handle literal values
-  if (expr === 'true') return { value: true, isValid: true };
-  if (expr === 'false') return { value: false, isValid: true };
-  if (expr === 'null') return { value: null, isValid: true };
-  if (expr === 'undefined') return { value: undefined, isValid: true };
+  // Preserved special forms (not part of the Canvas grammar, but supported by this engine).
+  if (expr.startsWith('`') && expr.endsWith('`')) return evaluateTemplateLiteral(expr, context);
+  if (expr.startsWith('new ')) return evaluateNewExpression(expr, context);
+  if (expr.includes(' instanceof ')) return evaluateInstanceof(expr, context);
 
-  // Handle string literals
-  if ((expr.startsWith('"') && expr.endsWith('"')) || (expr.startsWith("'") && expr.endsWith("'"))) {
-    return { value: expr.slice(1, -1), isValid: true };
+  try {
+    const parser = new ExprParser(tokenize(expr), context);
+    const value = parser.parse();
+    return { value, isValid: true };
+  } catch (error) {
+    return { value: undefined, isValid: false, error: error instanceof Error ? error.message : 'Parse error' };
   }
-
-  // Handle number literals
-  const numValue = Number(expr);
-  if (!isNaN(numValue) && expr !== '') {
-    return { value: numValue, isValid: true };
-  }
-
-  // Handle template literals (basic support)
-  if (expr.startsWith('`') && expr.endsWith('`')) {
-    return evaluateTemplateLiteral(expr, context);
-  }
-
-  // Handle new expressions (limited support)
-  if (expr.startsWith('new ')) {
-    return evaluateNewExpression(expr, context);
-  }
-
-  // Handle instanceof
-  if (expr.includes(' instanceof ')) {
-    return evaluateInstanceof(expr, context);
-  }
-
-  // Whole-expression function call (e.g. $iif(...), $concat(...)) — must run before comparison/property
-  // access, which would otherwise swallow it and return undefined.
-  if (isWholeFunctionCall(expr)) {
-    return evaluateFunctionCall(expr, context);
-  }
-
-  // Comparisons — only when a real top-level comparison operator is present.
-  if (hasTopLevelOperator(expr, ['===', '!==', '==', '!=', '<=', '>=', '<', '>'])) {
-    return evaluateComparison(expr, context);
-  }
-
-  // Arithmetic — only when a real top-level arithmetic operator is present.
-  if (hasTopLevelOperator(expr, ['+', '-', '*', '/', '%'])) {
-    return evaluateArithmetic(expr, context);
-  }
-
-  // Property access / identifier / remaining forms.
-  return evaluateComplexExpression(expr, context);
 }
 
-// True when the whole expression is a single function call `name(...)` (the opening paren matches the
-// final character), respecting nested parens and quotes.
-function isWholeFunctionCall(expr: string): boolean {
-  if (!/^[A-Za-z_$][\w$]*\s*\(/.test(expr) || !expr.endsWith(')')) return false;
-  const openIdx = expr.indexOf('(');
-  let depth = 0, quote = '';
-  for (let i = openIdx; i < expr.length; i++) {
-    const c = expr[i];
-    if (quote) { if (c === quote) quote = ''; continue; }
-    if (c === '"' || c === "'") { quote = c; continue; }
-    if (c === '(') depth++;
-    else if (c === ')') { depth--; if (depth === 0) return i === expr.length - 1; }
+// ── Tokenizer + recursive-descent parser (mirrors src/Canvas.Core/Primitives/CanvasExpressionEvaluator.cs) ──
+
+type TokKind = 'num' | 'str' | 'ident' | 'op' | 'lparen' | 'rparen' | 'comma' | 'end';
+interface Tok { kind: TokKind; text: string; num?: number; }
+
+const MULTI_OPS = ['===', '!==', '==', '!=', '<=', '>=', '&&', '||', '??'];
+
+function tokenize(s: string): Tok[] {
+  const toks: Tok[] = [];
+  let i = 0;
+  while (i < s.length) {
+    const c = s[i];
+    if (c === ' ' || c === '\t' || c === '\n' || c === '\r') { i++; continue; }
+
+    if (c === '"' || c === "'") {
+      const quote = c; let buf = ''; i++;
+      while (i < s.length && s[i] !== quote) {
+        if (s[i] === '\\' && i + 1 < s.length) { buf += s[i + 1]; i += 2; }
+        else buf += s[i++];
+      }
+      if (i >= s.length) throw new Error('Unterminated string');
+      i++; // closing quote
+      toks.push({ kind: 'str', text: buf });
+      continue;
+    }
+
+    if (/[0-9]/.test(c) || (c === '.' && i + 1 < s.length && /[0-9]/.test(s[i + 1]))) {
+      let start = i;
+      while (i < s.length && /[0-9.]/.test(s[i])) i++;
+      const text = s.slice(start, i);
+      toks.push({ kind: 'num', text, num: Number(text) });
+      continue;
+    }
+
+    // Identifiers: letters/digits/_/$ and dotted member access. Optional chaining `?.` collapses to `.`.
+    if (/[A-Za-z_$]/.test(c)) {
+      let start = i;
+      while (i < s.length && (/[A-Za-z0-9_$.]/.test(s[i]) || (s[i] === '?' && s[i + 1] === '.'))) {
+        if (s[i] === '?' ) i++; // skip the '?' of '?.'
+        i++;
+      }
+      toks.push({ kind: 'ident', text: s.slice(start, i).replace(/\?\./g, '.') });
+      continue;
+    }
+
+    if (c === '(') { toks.push({ kind: 'lparen', text: c }); i++; continue; }
+    if (c === ')') { toks.push({ kind: 'rparen', text: c }); i++; continue; }
+    if (c === ',') { toks.push({ kind: 'comma', text: c }); i++; continue; }
+
+    const three = s.substr(i, 3), two = s.substr(i, 2);
+    if (MULTI_OPS.includes(three)) { toks.push({ kind: 'op', text: three }); i += 3; continue; }
+    if (MULTI_OPS.includes(two)) { toks.push({ kind: 'op', text: two }); i += 2; continue; }
+    if ('<>+-*/%!'.includes(c)) { toks.push({ kind: 'op', text: c }); i++; continue; }
+
+    throw new Error(`Unexpected character '${c}'`);
   }
+  toks.push({ kind: 'end', text: '' });
+  return toks;
+}
+
+function isNumericVal(v: any): boolean {
+  if (typeof v === 'number') return !Number.isNaN(v);
+  if (typeof v === 'string' && v.trim() !== '') { const n = Number(v); return !Number.isNaN(n); }
   return false;
 }
+function toNum(v: any): number {
+  if (typeof v === 'number') return v;
+  if (typeof v === 'boolean') return v ? 1 : 0;
+  const n = Number(v);
+  if (Number.isNaN(n)) throw new Error('non-numeric operand');
+  return n;
+}
+function fmt(v: any): string {
+  if (v == null) return '';
+  if (typeof v === 'boolean') return v ? 'true' : 'false';
+  return String(v);
+}
+function truthy(v: any): boolean {
+  if (v == null) return false;
+  if (typeof v === 'boolean') return v;
+  if (typeof v === 'number') return v !== 0;
+  if (typeof v === 'string') return v.length > 0;
+  return true;
+}
+function looseEquals(a: any, b: any): boolean {
+  if (a == null || b == null) return a == null && b == null;
+  if (isNumericVal(a) && isNumericVal(b)) return toNum(a) === toNum(b);
+  if (typeof a === 'boolean' || typeof b === 'boolean') return truthy(a) === truthy(b);
+  return fmt(a) === fmt(b);
+}
+function compareVals(a: any, b: any): number {
+  if (isNumericVal(a) && isNumericVal(b)) { const x = toNum(a), y = toNum(b); return x < y ? -1 : x > y ? 1 : 0; }
+  const x = fmt(a), y = fmt(b); return x < y ? -1 : x > y ? 1 : 0;
+}
 
-// True when any of the operators appears at the top level (depth 0, outside quotes).
-function hasTopLevelOperator(expr: string, operators: string[]): boolean {
-  let depth = 0, quote = '';
-  for (let i = 0; i < expr.length; i++) {
-    const c = expr[i];
-    if (quote) { if (c === quote) quote = ''; continue; }
-    if (c === '"' || c === "'") { quote = c; continue; }
-    if (c === '(') { depth++; continue; }
-    if (c === ')') { depth--; continue; }
-    if (depth !== 0) continue;
-    for (const op of operators) {
-      if (expr.startsWith(op, i)) {
-        // Skip a leading unary +/- (no left operand) so "-5" isn't treated as a binary op.
-        if ((op === '-' || op === '+') && expr.slice(0, i).trim().length === 0) continue;
-        return true;
+class ExprParser {
+  private i = 0;
+  constructor(private toks: Tok[], private ctx: Record<string, any>) {}
+
+  parse(): any {
+    const v = this.parseOr();
+    if (this.cur.kind !== 'end') throw new Error('trailing tokens');
+    return v;
+  }
+
+  private get cur(): Tok { return this.toks[this.i]; }
+  private isOp(...t: string[]): boolean { return this.cur.kind === 'op' && t.includes(this.cur.text); }
+
+  private parseOr(): any {
+    let left = this.parseAnd();
+    while (this.isOp('||', '??')) {
+      const op = this.cur.text; this.i++;
+      const right = this.parseAnd();
+      left = op === '||' ? (truthy(left) || truthy(right)) : (left ?? right);
+    }
+    return left;
+  }
+  private parseAnd(): any {
+    let left = this.parseEquality();
+    while (this.isOp('&&')) { this.i++; const r = this.parseEquality(); left = truthy(left) && truthy(r); }
+    return left;
+  }
+  private parseEquality(): any {
+    let left = this.parseComparison();
+    while (this.isOp('==', '!=', '===', '!==')) {
+      const op = this.cur.text; this.i++;
+      const right = this.parseComparison();
+      const eq = op === '===' ? left === right : op === '!==' ? left !== right : looseEquals(left, right);
+      left = (op === '!=' ) ? !eq : (op === '!==') ? eq : eq;
+    }
+    return left;
+  }
+  private parseComparison(): any {
+    let left = this.parseAdditive();
+    while (this.isOp('<', '<=', '>', '>=')) {
+      const op = this.cur.text; this.i++;
+      const c = compareVals(left, this.parseAdditive());
+      left = op === '<' ? c < 0 : op === '<=' ? c <= 0 : op === '>' ? c > 0 : c >= 0;
+    }
+    return left;
+  }
+  private parseAdditive(): any {
+    let left = this.parseMultiplicative();
+    while (this.isOp('+', '-')) {
+      const op = this.cur.text; this.i++;
+      const right = this.parseMultiplicative();
+      if (op === '+') left = (isNumericVal(left) && isNumericVal(right)) ? toNum(left) + toNum(right) : fmt(left) + fmt(right);
+      else left = toNum(left) - toNum(right);
+    }
+    return left;
+  }
+  private parseMultiplicative(): any {
+    let left = this.parseUnary();
+    while (this.isOp('*', '/', '%')) {
+      const op = this.cur.text; this.i++;
+      const a = toNum(left), b = toNum(this.parseUnary());
+      left = op === '*' ? a * b : op === '/' ? a / b : a % b;
+    }
+    return left;
+  }
+  private parseUnary(): any {
+    if (this.isOp('!')) { this.i++; return !truthy(this.parseUnary()); }
+    if (this.isOp('-')) { this.i++; return -toNum(this.parseUnary()); }
+    if (this.isOp('+')) { this.i++; return toNum(this.parseUnary()); }
+    return this.parsePrimary();
+  }
+  private parsePrimary(): any {
+    const t = this.cur;
+    if (t.kind === 'num') { this.i++; return t.num; }
+    if (t.kind === 'str') { this.i++; return t.text; }
+    if (t.kind === 'lparen') {
+      this.i++;
+      const inner = this.parseOr();
+      if (this.cur.kind !== 'rparen') throw new Error('expected )');
+      this.i++;
+      return inner;
+    }
+    if (t.kind === 'ident') {
+      this.i++;
+      if (this.cur.kind === 'lparen') return this.callFunction(t.text);
+      switch (t.text) {
+        case 'true': return true;
+        case 'false': return false;
+        case 'null': return null;
+        case 'undefined': return undefined;
+        default: return this.resolve(t.text);
       }
     }
+    throw new Error(`unexpected token '${t.text}'`);
   }
-  return false;
-}
-
-/**
- * Evaluates property access expressions
- */
-function evaluatePropertyAccess(expression: string, context: Record<string, any>): ExpressionResult {
-  const parts = expression.split('.');
-
-  let current = context;
-  for (const part of parts) {
-    if (current && typeof current === 'object' && part in current) {
-      current = current[part];
-    } else {
-      return { value: undefined, isValid: true }; // Property doesn't exist, return undefined
+  private callFunction(name: string): any {
+    this.i++; // consume '('
+    const args: any[] = [];
+    if (this.cur.kind !== 'rparen') {
+      args.push(this.parseOr());
+      while (this.cur.kind === 'comma') { this.i++; args.push(this.parseOr()); }
     }
+    if (this.cur.kind !== 'rparen') throw new Error('expected )');
+    this.i++;
+    const fn = this.resolve(name);
+    if (typeof fn !== 'function') throw new Error(`Function ${name} not found`);
+    return fn(...args);
   }
-
-  return { value: current, isValid: true };
-}
-
-/**
- * Evaluates function calls
- */
-// Split a function-call argument list on top-level commas only (respecting nested parens and quotes),
-// so nested helper calls like $iif(a, $concat(b, c), d) parse correctly.
-function splitTopLevelArgs(argsStr: string): string[] {
-  const args: string[] = [];
-  let depth = 0, start = 0, quote = '';
-  for (let i = 0; i < argsStr.length; i++) {
-    const c = argsStr[i];
-    if (quote) { if (c === quote) quote = ''; continue; }
-    if (c === '"' || c === "'") { quote = c; continue; }
-    if (c === '(') depth++;
-    else if (c === ')') depth--;
-    else if (c === ',' && depth === 0) { args.push(argsStr.slice(start, i).trim()); start = i + 1; }
-  }
-  args.push(argsStr.slice(start).trim());
-  return args;
-}
-
-function evaluateFunctionCall(expression: string, context: Record<string, any>): ExpressionResult {
-  const match = expression.match(/^([^(]+)\((.*)\)$/);
-  if (!match) {
-    return { value: undefined, isValid: false, error: 'Invalid function call syntax' };
-  }
-
-  const [, funcName, argsStr] = match;
-  const args = argsStr ? splitTopLevelArgs(argsStr) : [];
-
-  // Evaluate arguments
-  const evaluatedArgs: any[] = [];
-  for (const arg of args) {
-    const result = evaluateSafeExpression(arg, context);
-    if (!result.isValid) return result;
-    evaluatedArgs.push(result.value);
-  }
-
-  // Find and call function
-  const func = context[funcName];
-  if (typeof func === 'function') {
-    try {
-      const result = func(...evaluatedArgs);
-      return { value: result, isValid: true };
-    } catch (error) {
-      return { value: undefined, isValid: false, error: `Function call error: ${error}` };
+  // Dotted resolution against the context (a.b.c, Math.round). Missing path → undefined.
+  private resolve(name: string): any {
+    let current: any = this.ctx;
+    for (const part of name.split('.')) {
+      if (current != null && (typeof current === 'object' || typeof current === 'function') && part in current) current = current[part];
+      else return undefined;
     }
+    return current;
   }
-
-  return { value: undefined, isValid: false, error: `Function ${funcName} not found` };
-}
-
-/**
- * Evaluates comparison and logical expressions
- */
-function evaluateComparison(expression: string, context: Record<string, any>): ExpressionResult {
-  // Simple comparison operators
-  const operators = ['===', '!==', '==', '!=', '<=', '>=', '<', '>'];
-
-  for (const op of operators) {
-    if (expression.includes(op)) {
-      const [left, right] = expression.split(op).map(s => s.trim());
-
-      const leftResult = evaluateSafeExpression(left, context);
-      if (!leftResult.isValid) return leftResult;
-
-      const rightResult = evaluateSafeExpression(right, context);
-      if (!rightResult.isValid) return rightResult;
-
-      let result: boolean;
-      switch (op) {
-        case '===':
-          result = leftResult.value === rightResult.value;
-          break;
-        case '!==':
-          result = leftResult.value !== rightResult.value;
-          break;
-        case '==':
-          result = leftResult.value == rightResult.value;
-          break;
-        case '!=':
-          result = leftResult.value != rightResult.value;
-          break;
-        case '<=':
-          result = leftResult.value <= rightResult.value;
-          break;
-        case '>=':
-          result = leftResult.value >= rightResult.value;
-          break;
-        case '<':
-          result = leftResult.value < rightResult.value;
-          break;
-        case '>':
-          result = leftResult.value > rightResult.value;
-          break;
-        default:
-          return { value: false, isValid: false, error: 'Unknown operator' };
-      }
-
-      return { value: result, isValid: true };
-    }
-  }
-
-  // If no operator found, try to evaluate as a property access
-  return evaluatePropertyAccess(expression, context);
 }
 
 /**
@@ -464,138 +481,6 @@ function evaluateInstanceof(expression: string, context: Record<string, any>): E
   }
 
   return { value: false, isValid: true }; // Unknown type, return false
-}
-
-/**
- * Evaluates arithmetic expressions
- */
-function evaluateArithmetic(expression: string, context: Record<string, any>): ExpressionResult {
-  // Simple arithmetic operators
-  const operators = ['+', '-', '*', '/', '%'];
-
-  for (const op of operators) {
-    if (expression.includes(op)) {
-      // Split by operator, but be careful with multiple operators
-      const parts = expression.split(op);
-      if (parts.length === 2) {
-        const [left, right] = parts.map(p => p.trim());
-
-        const leftResult = evaluateSafeExpression(left, context);
-        if (!leftResult.isValid) return leftResult;
-
-        const rightResult = evaluateSafeExpression(right, context);
-        if (!rightResult.isValid) return rightResult;
-
-        let result: number;
-        switch (op) {
-          case '+':
-            result = Number(leftResult.value) + Number(rightResult.value);
-            break;
-          case '-':
-            result = Number(leftResult.value) - Number(rightResult.value);
-            break;
-          case '*':
-            result = Number(leftResult.value) * Number(rightResult.value);
-            break;
-          case '/':
-            result = Number(leftResult.value) / Number(rightResult.value);
-            break;
-          case '%':
-            result = Number(leftResult.value) % Number(rightResult.value);
-            break;
-          default:
-            return { value: undefined, isValid: false, error: 'Unknown operator' };
-        }
-
-        return { value: result, isValid: true };
-      }
-    }
-  }
-
-  return { value: undefined, isValid: true }; // Not an arithmetic expression, continue evaluation
-}
-
-/**
- * Evaluates complex expressions (property access, function calls, etc.)
- */
-function evaluateComplexExpression(expression: string, context: Record<string, any>): ExpressionResult {
-  // Handle property access (dot notation)
-  if (expression.includes('.')) {
-    return evaluatePropertyAccess(expression, context);
-  }
-
-  // Handle function calls
-  if (expression.includes('(') && expression.endsWith(')')) {
-    return evaluateFunctionCall(expression, context);
-  }
-
-  // Handle logical operators
-  if (expression.includes(' && ')) {
-    const [left, right] = expression.split(' && ').map(p => p.trim());
-    const leftResult = evaluateSafeExpression(left, context);
-    if (!leftResult.isValid) return leftResult;
-    if (!leftResult.value) return { value: false, isValid: true };
-
-    const rightResult = evaluateSafeExpression(right, context);
-    return rightResult.isValid ? { value: rightResult.value, isValid: true } : rightResult;
-  }
-
-  if (expression.includes(' || ')) {
-    const [left, right] = expression.split(' || ').map(p => p.trim());
-    const leftResult = evaluateSafeExpression(left, context);
-    if (!leftResult.isValid) return leftResult;
-    if (leftResult.value) return { value: leftResult.value, isValid: true };
-
-    const rightResult = evaluateSafeExpression(right, context);
-    return rightResult.isValid ? { value: rightResult.value, isValid: true } : rightResult;
-  }
-
-  if (expression.startsWith('!')) {
-    const innerResult = evaluateSafeExpression(expression.slice(1), context);
-    if (!innerResult.isValid) return innerResult;
-    return { value: !innerResult.value, isValid: true };
-  }
-
-  // Handle optional chaining (basic support)
-  if (expression.includes('?.')) {
-    const parts = expression.split('?.');
-    let current = context;
-
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i].trim();
-      if (current == null) {
-        return { value: undefined, isValid: true };
-      }
-
-      if (i === parts.length - 1) {
-        // Last part
-        if (part in current) {
-          return { value: current[part], isValid: true };
-        } else {
-          return { value: undefined, isValid: true };
-        }
-      } else {
-        current = current[part];
-      }
-    }
-  }
-
-  // Handle nullish coalescing
-  if (expression.includes(' ?? ')) {
-    const [left, right] = expression.split(' ?? ').map(p => p.trim());
-    const leftResult = evaluateSafeExpression(left, context);
-    if (!leftResult.isValid) return leftResult;
-
-    if (leftResult.value != null) {
-      return { value: leftResult.value, isValid: true };
-    }
-
-    const rightResult = evaluateSafeExpression(right, context);
-    return rightResult.isValid ? { value: rightResult.value, isValid: true } : rightResult;
-  }
-
-  // Try property access as fallback
-  return evaluatePropertyAccess(expression, context);
 }
 
 /**
