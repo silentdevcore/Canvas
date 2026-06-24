@@ -182,7 +182,7 @@ public sealed class RdlToDesignConverterTests
     {
         var r = Convert(SampleRdl);
         var total = El(r.Design, "total");
-        Assert.Equal("=Sum(Fields!Total.Value)", total.Expression);
+        Assert.Equal("Sum(Total)", total.Expression);                          // translated to executable Canvas grammar
         Assert.Equal("Sum({{Total}})", total.Content);                          // Fields!X normalized to {{X}}
         Assert.Equal("=Sum(Fields!Total.Value)", total.Style!["rdlExpression"]); // original preserved
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL010" && d.Severity == MigrationDiagnosticSeverity.Warning);
@@ -1494,7 +1494,8 @@ public sealed class RdlToDesignConverterTests
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL016" && d.Severity == MigrationDiagnosticSeverity.Warning);
 
         var grandTotal = El(d, "grandTotal");
-        Assert.Equal("=Sum(Fields!LineTotal.Value)", grandTotal.Expression);
+        Assert.Equal("Sum(LineTotal)", grandTotal.Expression);                              // translated Canvas grammar
+        Assert.Equal("=Sum(Fields!LineTotal.Value)", grandTotal.Style!["rdlExpression"]);   // raw preserved
         Assert.Equal("IIF([LineTotal] = 0, False, True)", grandTotal.VisibleExpression);
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL015" && d.Severity == MigrationDiagnosticSeverity.Warning);
 

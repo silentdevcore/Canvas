@@ -187,8 +187,11 @@ The remaining items are optional native Canvas capabilities or blocked expressio
 - [x] Compound-expression field normalization: multi-field/function/operator expressions preserve the
       original on `element.Expression` + `style.rdlExpression` and render a Canvas template with every
       `Fields!X[.Value]` normalized to `{{X}}` (consistent with the Telerik/Stimulsoft converters).
+- [x] Standard expressions are now **executable** in the designer/preview: the compound-expression branch
+      emits a translated Canvas-grammar `Expression` via `ExpressionTranslator.TranslateRdl` (raw kept on
+      `style.rdlExpression`). See [Migration_RDL+DevExpress.md](Migration_RDL+DevExpress.md).
 - [ ] `<Code>` / custom-function *evaluation* (blocked on Canvas `ExpressionEvaluator` being a
-      stub — same limitation as DevExpress; expressions are preserved/normalized, not executed).
+      stub; dataset aggregates also out of scope). Standard single-row expressions are translated + executed.
 - [x] Native `Chart` and `CustomReportItem` Chart → Canvas `chart` placeholder with `ChartData` and RDL metadata
       (`rdlCategoryExpression`, `rdlValueExpression`, `style.rdlCustomProperties`) plus `CANMIGRDL017`.
 - [x] Native `Chart` fidelity pass: multiple series, `DataSetName`, title, original RDL series type, X/Y/Size

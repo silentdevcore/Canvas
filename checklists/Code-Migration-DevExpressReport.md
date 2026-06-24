@@ -129,6 +129,10 @@ before lower-value table styling.
 - [x] Per-cell font/colour table styling — `XRTableCell` `BackColor`/`ForeColor`/`TextAlignment`/`Font`/
       `Borders` are extracted into sparse Canvas `CellStyles` (uniform + per-side borders) and rendered by
       the canvas/preview and all exporters.
+- [x] Standard expressions are **executable** in the designer/preview: non-trivial bindings emit a
+      translated Canvas-grammar `Expression` via `ExpressionTranslator.TranslateDevExpress` (raw kept on
+      `style.devExpressExpression`). See [Migration_RDL+DevExpress.md](Migration_RDL+DevExpress.md).
+      Custom functions / aggregates remain out of scope.
 - [x] **P0** More controls: `XRChart` → editable Canvas `chart`; `XRGauge`/`XRPivotGrid` →
       positioned placeholders with `CANMIGDEVREP018` diagnostics instead of layout holes.
 - [x] `XRLine`/`XRShape` `LineWidth` → `strokeWidth`/`borderWidth`; `XRLine` `LineStyle` → `dashStyle`.

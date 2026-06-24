@@ -2661,7 +2661,8 @@ public sealed class RdlToDesignConverter
             // reference to a Canvas {{X}} token so the content reads as a template; keep the original.
             var normalized = Regex.Replace(expression.TrimStart().TrimStart('=').Trim(),
                 @"Fields!(\w+)(?:\.Value)?", m => $"{{{{{m.Groups[1].Value}}}}}");
-            element.Expression = expression;
+            // Executable Canvas-grammar form for the preview engine; raw preserved for review.
+            element.Expression = ExpressionTranslator.TranslateRdl(expression) ?? expression;
             element.Style ??= [];
             element.Style["rdlExpression"] = expression;
             if (string.IsNullOrEmpty(element.Content)) element.Content = normalized;

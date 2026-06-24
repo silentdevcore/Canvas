@@ -969,9 +969,19 @@ public sealed class XtraReportToDesignConverter
         }
         else
         {
-            element.Expression = expression;
-            if (string.IsNullOrEmpty(element.Content)) element.Content = expression;
-            diagnostics.Add(Warn("CANMIGDEVREP010", $"'{element.Name}' {property} expression '{expression}' mapped to Canvas expression — review the syntax."));
+            // Normalize [Field] refs to {{Field}} for readable content, and translate the expression to
+            // executable Canvas grammar for the preview engine; raw preserved for review.
+            var normalized = Regex.Replace(expression, @"\[([^\]]+)\]", m =>
+            {
+                var n = m.Groups[1].Value.Trim();
+                var dot = n.LastIndexOf('.');
+                return $"{{{{{(dot >= 0 ? n[(dot + 1)..] : n)}}}}}";
+            });
+            element.Expression = ExpressionTranslator.TranslateDevExpress(expression) ?? expression;
+            element.Style ??= [];
+            element.Style["devExpressExpression"] = expression;
+            if (string.IsNullOrEmpty(element.Content)) element.Content = normalized;
+            diagnostics.Add(Warn("CANMIGDEVREP010", $"'{element.Name}' {property} expression '{expression}' mapped to a Canvas template with normalized field references — review the syntax."));
         }
     }
 
