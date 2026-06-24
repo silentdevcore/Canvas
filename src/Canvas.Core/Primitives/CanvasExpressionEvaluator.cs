@@ -186,9 +186,46 @@ public static class CanvasExpressionEvaluator
                 "$concat" => string.Concat(args.Select(FormatValue)),
                 "$coalesce" => args.FirstOrDefault(a => a is not null),
                 "$switch" => Switch(args),
+                "$sum" or "$avg" or "$count" or "$min" or "$max" or "$first" or "$last" => Aggregate(name, args),
                 _ => throw new EvalException($"unknown function {name}")   // e.g. Sum/Format → caller falls back
             };
         }
+
+        // Dataset aggregate: arg0 = the dataset (collection of row dicts), arg1 = optional field name.
+        // $sum(DataSet, "Total"), $count(DataSet), $first(DataSet, "Name"), … Mirrors the frontend helpers.
+        private static object? Aggregate(string name, List<object?> args)
+        {
+            if (args.Count == 0 || args[0] is string || args[0] is not System.Collections.IEnumerable rowsRaw)
+                throw new EvalException("aggregate requires a dataset");
+            var field = args.Count > 1 && args[1] is not null ? FormatValue(args[1]) : null;
+            var values = new List<object?>();
+            foreach (var row in rowsRaw) values.Add(FieldValue(row, field));
+
+            switch (name)
+            {
+                case "$count": return (double)(field is null ? values.Count : values.Count(v => v is not null));
+                case "$first": return values.Count > 0 ? values[0] : null;
+                case "$last": return values.Count > 0 ? values[^1] : null;
+            }
+            var nums = values.Where(IsNumeric).Select(ToNumber).ToList();
+            return name switch
+            {
+                "$sum" => nums.Sum(),
+                "$avg" => nums.Count > 0 ? nums.Average() : 0d,
+                "$min" => nums.Count > 0 ? nums.Min() : 0d,
+                "$max" => nums.Count > 0 ? nums.Max() : 0d,
+                _ => throw new EvalException($"unknown aggregate {name}")
+            };
+        }
+
+        private static object? FieldValue(object? row, string? field) => field is null
+            ? row
+            : row switch
+            {
+                IReadOnlyDictionary<string, object?> d => d.TryGetValue(field, out var v) ? v : null,
+                IDictionary<string, object?> d => d.TryGetValue(field, out var v) ? v : null,
+                _ => null
+            };
 
         private static object? Switch(List<object?> args)
         {
@@ -232,11 +269,18 @@ public static class CanvasExpressionEvaluator
         };
 
         private static bool IsNumeric(object? v) =>
-            v is double || (v is string s && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out _));
+            v is double or float or long or int or short or byte or decimal
+            || (v is string s && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out _));
 
         private static double ToNumber(object? v) => v switch
         {
             double d => d,
+            float f => f,
+            long l => l,
+            int i => i,
+            short sh => sh,
+            byte by => by,
+            decimal m => (double)m,
             bool b => b ? 1 : 0,
             string s when double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var n) => n,
             _ => throw new EvalException("non-numeric operand")

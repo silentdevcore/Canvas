@@ -7,30 +7,40 @@ namespace Canvas.Migration.Abstractions;
 /// Translates report-designer expression dialects (RDL/SSRS, DevExpress) into the grammar the Canvas
 /// frontend expression engine evaluates: identifiers for fields, simple binary operators, and a small set
 /// of helper functions (<c>$iif</c>, <c>$switch</c>, <c>$concat</c>, <c>$and</c>, <c>$or</c>, <c>$not</c>,
-/// <c>$coalesce</c>). Single-row scope — dataset aggregates and custom <c>&lt;Code&gt;</c> are not handled.
+/// <c>$coalesce</c>). Single-row scope plus dataset aggregates (<c>Sum/Avg/Count/Min/Max/First/Last</c> →
+/// <c>$sum(DataSet, "Field")</c> …) when a dataset name is supplied; custom <c>&lt;Code&gt;</c> is not handled.
 /// The transform is precedence-aware and quote/paren-safe; it returns null when nothing useful translates.
 /// </summary>
 public static class ExpressionTranslator
 {
-    /// <summary>Translate an RDL/SSRS expression (e.g. <c>=IIf(Fields!Paid.Value, "Y", "N")</c>).</summary>
-    public static string? TranslateRdl(string? expression)
+    /// <summary>Translate an RDL/SSRS expression (e.g. <c>=IIf(Fields!Paid.Value, "Y", "N")</c>).
+    /// Pass <paramref name="dataSetName"/> (the element's owning dataset) to enable aggregate translation.</summary>
+    public static string? TranslateRdl(string? expression, string? dataSetName = null)
     {
         if (string.IsNullOrWhiteSpace(expression)) return null;
         var expr = expression.Trim();
         if (expr.StartsWith('=')) expr = expr[1..].Trim();          // RDL expression marker
         expr = RdlFieldRefs(expr);                                   // Fields!X.Value → X (quote-safe)
-        var result = Translate(expr, rdl: true).Trim();
+        var result = Translate(expr, rdl: true, dataSetName).Trim();
         return string.IsNullOrWhiteSpace(result) ? null : result;
     }
 
-    /// <summary>Translate a DevExpress expression (e.g. <c>[Qty] * [Price]</c>, <c>Iif([Ok], 1, 0)</c>).</summary>
-    public static string? TranslateDevExpress(string? expression)
+    /// <summary>Translate a DevExpress expression (e.g. <c>[Qty] * [Price]</c>, <c>Iif([Ok], 1, 0)</c>).
+    /// Pass <paramref name="dataSetName"/> (the element's owning dataset) to enable aggregate translation.</summary>
+    public static string? TranslateDevExpress(string? expression, string? dataSetName = null)
     {
         if (string.IsNullOrWhiteSpace(expression)) return null;
         var expr = DevExpressFieldRefs(expression.Trim());           // [X] / [Ds.X] → X (quote-safe)
-        var result = Translate(expr, rdl: false).Trim();
+        var result = Translate(expr, rdl: false, dataSetName).Trim();
         return string.IsNullOrWhiteSpace(result) ? null : result;
     }
+
+    // RDL/DevExpress aggregate function → Canvas helper. Single-field, whole-dataset scope (v1).
+    private static readonly Dictionary<string, string> Aggregates = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Sum"] = "$sum", ["Avg"] = "$avg", ["Average"] = "$avg", ["Count"] = "$count",
+        ["Min"] = "$min", ["Max"] = "$max", ["First"] = "$first", ["Last"] = "$last",
+    };
 
     // ── field references (applied only outside string literals) ──────────────────────────────────────
     private static string RdlFieldRefs(string expr) => OutsideStrings(expr, code =>
@@ -51,56 +61,63 @@ public static class ExpressionTranslator
 
     // ── precedence-aware recursive transform ─────────────────────────────────────────────────────────
     // Lowest precedence first so it binds last: Or → And → Not → concat(&) → comparison → IIf/Switch → leaf.
-    private static string Translate(string expr, bool rdl)
+    private static string Translate(string expr, bool rdl, string? dataSet)
     {
         expr = expr.Trim();
         if (expr.Length == 0) return expr;
 
         // Unwrap a fully-enclosing pair of parentheses.
         if (expr[0] == '(' && MatchingParen(expr, 0) == expr.Length - 1)
-            return "(" + Translate(expr[1..^1], rdl) + ")";
+            return "(" + Translate(expr[1..^1], rdl, dataSet) + ")";
 
         // Logical OR / AND (word operators in RDL; symbols too).
         if (SplitWord(expr, "OrElse", "Or", "||") is { Count: > 1 } orParts)
-            return Wrap("$or", orParts, rdl);
+            return Wrap("$or", orParts, rdl, dataSet);
         if (SplitWord(expr, "AndAlso", "And", "&&") is { Count: > 1 } andParts)
-            return Wrap("$and", andParts, rdl);
+            return Wrap("$and", andParts, rdl, dataSet);
         if (StartsWithWord(expr, "Not"))
-            return "$not(" + Translate(expr[3..].Trim(), rdl) + ")";
+            return "$not(" + Translate(expr[3..].Trim(), rdl, dataSet) + ")";
         if (expr.StartsWith('!') && expr.Length > 1 && expr[1] != '=')
-            return "$not(" + Translate(expr[1..].Trim(), rdl) + ")";
+            return "$not(" + Translate(expr[1..].Trim(), rdl, dataSet) + ")";
 
         // String concatenation (RDL '&').
         if (SplitChar(expr, '&') is { Count: > 1 } concatParts)
-            return "$concat(" + string.Join(", ", concatParts.Select(p => Translate(p, rdl))) + ")";
+            return "$concat(" + string.Join(", ", concatParts.Select(p => Translate(p, rdl, dataSet))) + ")";
 
         // Comparison (single top-level operator).
         if (FindTopLevelComparison(expr) is { } cmp)
-            return Translate(cmp.Left, rdl) + " " + cmp.Op + " " + Translate(cmp.Right, rdl);
+            return Translate(cmp.Left, rdl, dataSet) + " " + cmp.Op + " " + Translate(cmp.Right, rdl, dataSet);
 
-        // IIf / Switch → helper calls.
+        // IIf / Switch / aggregates → helper calls.
         if (FunctionCall(expr) is { } call)
         {
             var name = call.Name;
             if (name.Equals("IIf", StringComparison.OrdinalIgnoreCase) || name.Equals("Iif", StringComparison.OrdinalIgnoreCase))
-                return "$iif(" + TranslateArgs(call.Args, rdl) + ")";
+                return "$iif(" + TranslateArgs(call.Args, rdl, dataSet) + ")";
             if (name.Equals("Switch", StringComparison.OrdinalIgnoreCase))
-                return "$switch(" + TranslateArgs(call.Args, rdl) + ")";
+                return "$switch(" + TranslateArgs(call.Args, rdl, dataSet) + ")";
             if (name.Equals("IsNothing", StringComparison.OrdinalIgnoreCase) || name.Equals("IsNull", StringComparison.OrdinalIgnoreCase))
-                return "$isEmpty(" + TranslateArgs(call.Args, rdl) + ")";
+                return "$isEmpty(" + TranslateArgs(call.Args, rdl, dataSet) + ")";
+            // Dataset aggregate over a single field: Sum(Field) → $sum(DataSet, "Field"). Needs a dataset
+            // and a bare-identifier field (field refs were already normalized to identifiers upstream).
+            if (Aggregates.TryGetValue(name, out var helper)
+                && dataSet?.Trim() is { Length: > 0 } ds && Regex.IsMatch(ds, @"^[A-Za-z_]\w*$")
+                && call.Args is [var only]
+                && Regex.IsMatch(only.Trim(), @"^[A-Za-z_]\w*$"))
+                return $"{helper}({ds}, \"{only.Trim()}\")";
             // Unknown function: translate its arguments but keep the original name (engine may have/lack it).
-            return name + "(" + TranslateArgs(call.Args, rdl) + ")";
+            return name + "(" + TranslateArgs(call.Args, rdl, dataSet) + ")";
         }
 
         // Leaf: identifier / number / string literal / simple binary arithmetic — left as-is.
         return expr;
     }
 
-    private static string Wrap(string fn, List<string> parts, bool rdl) =>
-        fn + "(" + string.Join(", ", parts.Select(p => Translate(p, rdl))) + ")";
+    private static string Wrap(string fn, List<string> parts, bool rdl, string? dataSet) =>
+        fn + "(" + string.Join(", ", parts.Select(p => Translate(p, rdl, dataSet))) + ")";
 
-    private static string TranslateArgs(List<string> args, bool rdl) =>
-        string.Join(", ", args.Select(a => Translate(a, rdl)));
+    private static string TranslateArgs(List<string> args, bool rdl, string? dataSet) =>
+        string.Join(", ", args.Select(a => Translate(a, rdl, dataSet)));
 
     // ── top-level splitting (quote/paren aware) ──────────────────────────────────────────────────────
     private static List<string> SplitChar(string expr, char op)

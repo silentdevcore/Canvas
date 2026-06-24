@@ -16,6 +16,17 @@ export interface ExpressionResult {
   isValid: boolean;
 }
 
+// Dataset-aggregate helpers: read a (optional) field from a row, and collect numeric column values.
+function aggField(row: any, field?: string): any {
+  return field == null ? row : (row && typeof row === 'object' ? row[field] : undefined);
+}
+function aggNums(rows: any, field?: string): number[] {
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .map(r => Number(aggField(r, field)))
+    .filter(n => !Number.isNaN(n));
+}
+
 /**
  * Safely evaluates a JavaScript expression with controlled context
  */
@@ -100,6 +111,16 @@ function createSafeContext(context: ExpressionContext): Record<string, any> {
     $or: (...xs: any[]) => xs.some(Boolean),
     $not: (x: any) => !x,
     $coalesce: (...xs: any[]) => xs.find(x => x != null),
+
+    // Dataset aggregates (rows = the dataset array, field = optional column name).
+    // $sum(DataSet, "Total"), $count(DataSet), $first(DataSet, "Name"), … mirror CanvasExpressionEvaluator.
+    $sum: (rows: any, field?: string) => aggNums(rows, field).reduce((a, b) => a + b, 0),
+    $avg: (rows: any, field?: string) => { const n = aggNums(rows, field); return n.length ? n.reduce((a, b) => a + b, 0) / n.length : 0; },
+    $min: (rows: any, field?: string) => { const n = aggNums(rows, field); return n.length ? Math.min(...n) : 0; },
+    $max: (rows: any, field?: string) => { const n = aggNums(rows, field); return n.length ? Math.max(...n) : 0; },
+    $count: (rows: any, field?: string) => !Array.isArray(rows) ? 0 : (field == null ? rows.length : rows.filter(r => aggField(r, field) != null).length),
+    $first: (rows: any, field?: string) => Array.isArray(rows) && rows.length ? aggField(rows[0], field) : undefined,
+    $last: (rows: any, field?: string) => Array.isArray(rows) && rows.length ? aggField(rows[rows.length - 1], field) : undefined,
 
     // Math utilities
     Math: {

@@ -570,6 +570,36 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
+    public void ConvertRepx_GroupFooterAggregate_BecomesAggregateExpression()
+    {
+        // An XRLabel in a group footer bound to Sum([Total]) aggregates over that group's dataset scope.
+        var repx = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <XtraReportsLayoutSerializer ControlType="DevExpress.XtraReports.UI.XtraReport, X" Name="R" PaperKind="Letter">
+              <Bands>
+                <Item1 ControlType="DevExpress.XtraReports.UI.GroupFooterBand, X" Name="GroupFooter1" HeightF="20">
+                  <GroupFields>
+                    <Item1 FieldName="Region" />
+                  </GroupFields>
+                  <Controls>
+                    <Item1 ControlType="DevExpress.XtraReports.UI.XRLabel, X" Name="regionTotal" Text="Total" SizeF="200,20" LocationFloat="0,0">
+                      <ExpressionBindings>
+                        <Item1 PropertyName="Text" Expression="Sum([Total])" />
+                      </ExpressionBindings>
+                    </Item1>
+                  </Controls>
+                </Item1>
+              </Bands>
+            </XtraReportsLayoutSerializer>
+            """;
+        var result = new XtraReportToDesignConverter().ConvertRepx(repx);
+
+        var total = Page(result.Design, "regionTotal");
+        Assert.Equal("$sum(Region, \"Total\")", total.Expression);                  // executable aggregate
+        Assert.Equal("Sum([Total])", total.Style!["devExpressExpression"]);         // raw preserved
+    }
+
+    [Fact]
     public void ConvertRepx_TableCellStyles_FillBorderFontAlign()
     {
         var design = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
