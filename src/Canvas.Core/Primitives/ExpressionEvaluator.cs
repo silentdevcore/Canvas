@@ -3,45 +3,32 @@ using System.Text.RegularExpressions;
 
 namespace Canvas.Core.Primitives;
 
+/// <summary>
+/// <see cref="IExpressionEvaluator"/> backed by the shared <see cref="CanvasExpressionEvaluator"/> — the
+/// same recursive-descent engine the export <c>DesignLayoutPlanner</c> and the frontend
+/// <c>expressionEngine.ts</c> use. Evaluates Canvas-grammar expressions (literals, identifiers/member
+/// access, <c>* / % + - == != &lt; &lt;= &gt; &gt;=</c>, <c>&amp;&amp; || !</c>, and the helpers
+/// <c>$iif $switch $concat $and $or $not $coalesce</c> plus dataset aggregates) against the data context.
+/// A defensive dangerous-pattern guard is retained.
+/// </summary>
 public sealed class ExpressionEvaluator : IExpressionEvaluator
 {
-    public async Task<ExpressionResult> EvaluateAsync(string expression, Dictionary<string, object> data)
+    public Task<ExpressionResult> EvaluateAsync(string expression, Dictionary<string, object> data)
     {
-        try
-        {
-            // Basic security check - prevent dangerous operations
-            if (ContainsDangerousPatterns(expression))
-            {
-                return new ExpressionResult
-                {
-                    IsValid = false,
-                    Value = null,
-                    Error = "Expression contains potentially dangerous operations"
-                };
-            }
-
-            // Simple variable substitution for basic expressions
-            var processedExpression = ProcessExpression(expression, data);
-
-            // For now, implement basic evaluation - in production this would use a proper expression engine
-            var result = EvaluateSimpleExpression(processedExpression);
-
-            return new ExpressionResult
-            {
-                IsValid = true,
-                Value = result,
-                Error = null
-            };
-        }
-        catch (Exception ex)
-        {
-            return new ExpressionResult
+        // Defensive guard (the engine has no eval/IO surface, but this preserves the documented contract).
+        if (ContainsDangerousPatterns(expression))
+            return Task.FromResult(new ExpressionResult
             {
                 IsValid = false,
                 Value = null,
-                Error = $"Expression evaluation failed: {ex.Message}"
-            };
-        }
+                Error = "Expression contains potentially dangerous operations"
+            });
+
+        var result = CanvasExpressionEvaluator.TryEvaluate(expression, data!, out var value)
+            ? new ExpressionResult { IsValid = true, Value = value, Error = null }
+            : new ExpressionResult { IsValid = false, Value = null, Error = "Expression could not be evaluated" };
+
+        return Task.FromResult(result);
     }
 
     private bool ContainsDangerousPatterns(string expression)
@@ -75,83 +62,5 @@ public sealed class ExpressionEvaluator : IExpressionEvaluator
         }
 
         return false;
-    }
-
-    private string ProcessExpression(string expression, Dictionary<string, object> data)
-    {
-        // Replace variable references with actual values
-        var result = expression;
-
-        // Simple variable replacement: data.field -> actual value
-        foreach (var kvp in data)
-        {
-            var pattern = $@"\b{Regex.Escape(kvp.Key)}\b";
-            if (kvp.Value is string strValue)
-            {
-                result = Regex.Replace(result, pattern, $"\"{strValue.Replace("\"", "\\\"")}\"");
-            }
-            else if (kvp.Value is bool boolValue)
-            {
-                result = Regex.Replace(result, pattern, boolValue.ToString().ToLower());
-            }
-            else if (kvp.Value is int || kvp.Value is long || kvp.Value is double || kvp.Value is float)
-            {
-                result = Regex.Replace(result, pattern, kvp.Value.ToString()!);
-            }
-            else
-            {
-                // For complex objects, convert to string representation
-                result = Regex.Replace(result, pattern, $"\"{kvp.Value?.ToString() ?? ""}\"");
-            }
-        }
-
-        return result;
-    }
-
-    private object EvaluateSimpleExpression(string expression)
-    {
-        // Very basic expression evaluation for common cases
-        expression = expression.Trim();
-
-        // Handle boolean literals
-        if (expression.Equals("true", StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (expression.Equals("false", StringComparison.OrdinalIgnoreCase))
-            return false;
-
-        // Handle string literals
-        if (expression.StartsWith("\"") && expression.EndsWith("\""))
-        {
-            return expression.Substring(1, expression.Length - 2).Replace("\\\"", "\"");
-        }
-
-        // Handle number literals
-        if (double.TryParse(expression, out var number))
-        {
-            return number;
-        }
-
-        // Handle simple comparisons (basic implementation)
-        if (expression.Contains("=="))
-        {
-            var parts = expression.Split(new[] { "==" }, 2, StringSplitOptions.None);
-            if (parts.Length == 2)
-            {
-                return parts[0].Trim().Equals(parts[1].Trim(), StringComparison.OrdinalIgnoreCase);
-            }
-        }
-
-        if (expression.Contains("!="))
-        {
-            var parts = expression.Split(new[] { "!=" }, 2, StringSplitOptions.None);
-            if (parts.Length == 2)
-            {
-                return !parts[0].Trim().Equals(parts[1].Trim(), StringComparison.OrdinalIgnoreCase);
-            }
-        }
-
-        // For more complex expressions, return the processed string
-        // In a production system, this would use a proper expression parser
-        return expression;
     }
 }
