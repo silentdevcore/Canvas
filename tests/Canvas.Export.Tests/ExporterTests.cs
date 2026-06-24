@@ -160,6 +160,48 @@ public class ExporterTests
     }
 
     [Fact]
+    public void Html_Export_EvaluatesDatasetAggregate()
+    {
+        // A non-repeat footer element whose translated aggregate sums a dataset column at export time.
+        var design = new DesignExportDto
+        {
+            Id = "agg", Name = "Agg", Category = "imported",
+            PageSettings = new PageSettingsDto
+            {
+                Width = 595, Height = 842,
+                CustomProperties =
+                [
+                    new CustomDocumentPropertyDto
+                    {
+                        Name = "Orders",
+                        Value = """[{"Total":10},{"Total":20},{"Total":30}]"""
+                    }
+                ]
+            },
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "grand", Type = "text", X = 10, Y = 10, Width = 300, Height = 20,
+                            Content = "Sum({{Total}})",
+                            Expression = "$concat(\"Total: \", $sum(Orders, \"Total\"))"
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(design));
+        Assert.Contains("Total: 60", html);        // computed sum (10+20+30), incl. JSON integers (long)
+        Assert.DoesNotContain("$sum", html);
+    }
+
+    [Fact]
     public void Html_Export_RendersRdlMatrixHeaders()
     {
         var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(MatrixHeaderDesign()));

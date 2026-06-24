@@ -51,7 +51,8 @@ single-row expressions become first-class, executable Canvas expressions. The or
 
 ## Follow-ups (out of v1)
 
-- [ ] Dataset **aggregates** (`Sum`/`Avg`/`Count`/`First`) — need dataset-context plumbing.
+- [x] Dataset **aggregates** (`Sum`/`Avg`/`Count`/`Min`/`Max`/`First`/`Last`) — done via the dataset-as-first-arg
+      helper form. See [Migration_Dataset-Aggregates.md](Migration_Dataset-Aggregates.md).
 - [ ] Custom RDL `<Code>` functions — arbitrary VB, not executable here (stay preserved).
 - [x] **C# server-side exporter** expression evaluation (Image/HTML/Word/PDF) — done via
       `CanvasExpressionEvaluator` in `DesignLayoutPlanner`. See [Migration_CSharp-Expression-Eval.md](Migration_CSharp-Expression-Eval.md).

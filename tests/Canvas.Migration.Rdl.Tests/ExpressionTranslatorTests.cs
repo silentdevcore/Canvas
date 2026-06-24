@@ -31,4 +31,23 @@ public sealed class ExpressionTranslatorTests
         Assert.Null(ExpressionTranslator.TranslateRdl("   "));
         Assert.Null(ExpressionTranslator.TranslateDevExpress(""));
     }
+
+    [Theory]
+    [InlineData("=Sum(Fields!Total.Value)", "Orders", "$sum(Orders, \"Total\")")]
+    [InlineData("=Count(Fields!Id.Value)", "Orders", "$count(Orders, \"Id\")")]
+    [InlineData("=Avg(Fields!Price.Value)", "Orders", "$avg(Orders, \"Price\")")]
+    [InlineData("=Max(Fields!Total.Value)", "Sales", "$max(Sales, \"Total\")")]
+    public void TranslateRdl_Aggregates_WithDataset(string input, string dataSet, string expected)
+        => Assert.Equal(expected, ExpressionTranslator.TranslateRdl(input, dataSet));
+
+    [Fact]
+    public void TranslateRdl_Aggregate_WithoutDataset_StaysUntranslated()
+    {
+        // No dataset → aggregate not translatable; the bare-call form comes back (caller keeps the raw).
+        Assert.Equal("Sum(Total)", ExpressionTranslator.TranslateRdl("=Sum(Fields!Total.Value)"));
+    }
+
+    [Fact]
+    public void TranslateDevExpress_Aggregate_WithDataset()
+        => Assert.Equal("$sum(Sales, \"Qty\")", ExpressionTranslator.TranslateDevExpress("Sum([Qty])", "Sales"));
 }

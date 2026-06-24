@@ -182,10 +182,36 @@ public sealed class RdlToDesignConverterTests
     {
         var r = Convert(SampleRdl);
         var total = El(r.Design, "total");
-        Assert.Equal("Sum(Total)", total.Expression);                          // translated to executable Canvas grammar
+        Assert.Equal("Sum(Total)", total.Expression);                          // no dataset scope here → aggregate stays raw
         Assert.Equal("Sum({{Total}})", total.Content);                          // Fields!X normalized to {{X}}
         Assert.Equal("=Sum(Fields!Total.Value)", total.Style!["rdlExpression"]); // original preserved
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL010" && d.Severity == MigrationDiagnosticSeverity.Warning);
+    }
+
+    // 7b ──────────────────────────────────────────────────────────────────────────────────────────
+    [Fact]
+    public void Convert_Aggregate_WithSingleDataset_BecomesAggregateExpression()
+    {
+        // A free-standing "=Sum(Fields!Total.Value)" textbox scopes to the report's only dataset.
+        const string rdl = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" Name="R">
+              <DataSets><DataSet Name="Orders"><Query><CommandText>x</CommandText></Query></DataSet></DataSets>
+              <Body>
+                <ReportItems>
+                  <Textbox Name="grand">
+                    <Top>0in</Top><Left>0in</Left><Height>0.3in</Height><Width>2in</Width>
+                    <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Sum(Fields!Total.Value)</Value></TextRun></TextRuns></Paragraph></Paragraphs>
+                  </Textbox>
+                </ReportItems>
+                <Height>1in</Height>
+              </Body>
+              <Page><PageHeight>11in</PageHeight><PageWidth>8.5in</PageWidth></Page>
+            </Report>
+            """;
+        var grand = El(Convert(rdl).Design, "grand");
+        Assert.Equal("$sum(Orders, \"Total\")", grand.Expression);                 // executable aggregate
+        Assert.Equal("=Sum(Fields!Total.Value)", grand.Style!["rdlExpression"]);   // original preserved
     }
 
     // 8 ───────────────────────────────────────────────────────────────────────────────────────────
@@ -1494,7 +1520,7 @@ public sealed class RdlToDesignConverterTests
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL016" && d.Severity == MigrationDiagnosticSeverity.Warning);
 
         var grandTotal = El(d, "grandTotal");
-        Assert.Equal("Sum(LineTotal)", grandTotal.Expression);                              // translated Canvas grammar
+        Assert.Equal("$sum(Sales, \"LineTotal\")", grandTotal.Expression);                  // aggregate over the report's sole dataset
         Assert.Equal("=Sum(Fields!LineTotal.Value)", grandTotal.Style!["rdlExpression"]);   // raw preserved
         Assert.Equal("IIF([LineTotal] = 0, False, True)", grandTotal.VisibleExpression);
         Assert.Contains(r.Diagnostics, d => d.Id == "CANMIGRDL015" && d.Severity == MigrationDiagnosticSeverity.Warning);

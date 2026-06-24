@@ -48,6 +48,47 @@ public class CanvasExpressionEvaluatorTests
         Assert.False(CanvasExpressionEvaluator.TryEvaluate("a +", new Dictionary<string, object?>(), out _));
     }
 
+    private static Dictionary<string, object?> Dataset() => new()
+    {
+        ["Orders"] = new List<object?>
+        {
+            new Dictionary<string, object?> { ["Total"] = 10d, ["Name"] = "A" },
+            new Dictionary<string, object?> { ["Total"] = 20L, ["Name"] = "B" },   // long (JSON integer)
+            new Dictionary<string, object?> { ["Total"] = 30d, ["Name"] = "C" },
+        }
+    };
+
+    [Fact]
+    public void Aggregates_Over_Dataset()
+    {
+        var d = Dataset();
+        Assert.Equal(60d, Eval("$sum(Orders, \"Total\")", d));     // includes the long row
+        Assert.Equal(20d, Eval("$avg(Orders, \"Total\")", d));
+        Assert.Equal(3d, Eval("$count(Orders)", d));
+        Assert.Equal(3d, Eval("$count(Orders, \"Total\")", d));
+        Assert.Equal(10d, Eval("$min(Orders, \"Total\")", d));
+        Assert.Equal(30d, Eval("$max(Orders, \"Total\")", d));
+        Assert.Equal("A", Eval("$first(Orders, \"Name\")", d));
+        Assert.Equal("C", Eval("$last(Orders, \"Name\")", d));
+    }
+
+    [Fact]
+    public void Aggregate_In_Concat_And_Empty_Dataset()
+    {
+        var d = Dataset();
+        Assert.Equal("Total: 60", Eval("$concat(\"Total: \", $sum(Orders, \"Total\"))", d));
+        var empty = new Dictionary<string, object?> { ["Orders"] = new List<object?>() };
+        Assert.Equal(0d, Eval("$sum(Orders, \"Total\")", empty));
+        Assert.Equal(0d, Eval("$avg(Orders, \"Total\")", empty));
+    }
+
+    [Fact]
+    public void Aggregate_NonDataset_Arg_ReturnsFalse()
+    {
+        Assert.False(CanvasExpressionEvaluator.TryEvaluate(
+            "$sum(Total, \"x\")", new Dictionary<string, object?> { ["Total"] = 5d }, out _));
+    }
+
     [Fact]
     public void FormatValue_TrimsIntegralDoubles()
     {

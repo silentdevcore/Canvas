@@ -30,3 +30,37 @@ describe('expressionEngine — migrated expression helpers', () => {
     expect(evaluateExpression('Qty * Price', ctx({ Qty: 3, Price: 4 })).value).toBe(12);
   });
 });
+
+// Dataset aggregates emitted as $sum(DataSet, "Field") etc. — parity with CanvasExpressionEvaluator.
+describe('expressionEngine — dataset aggregates', () => {
+  const data = {
+    Orders: [
+      { Total: 10, Name: 'A' },
+      { Total: 20, Name: 'B' },
+      { Total: 30, Name: 'C' },
+    ],
+  };
+  const ctx: ExpressionContext = { data };
+
+  test('$sum / $avg / $min / $max over a field', () => {
+    expect(evaluateExpression('$sum(Orders, "Total")', ctx).value).toBe(60);
+    expect(evaluateExpression('$avg(Orders, "Total")', ctx).value).toBe(20);
+    expect(evaluateExpression('$min(Orders, "Total")', ctx).value).toBe(10);
+    expect(evaluateExpression('$max(Orders, "Total")', ctx).value).toBe(30);
+  });
+
+  test('$count, $first, $last', () => {
+    expect(evaluateExpression('$count(Orders)', ctx).value).toBe(3);
+    expect(evaluateExpression('$first(Orders, "Name")', ctx).value).toBe('A');
+    expect(evaluateExpression('$last(Orders, "Name")', ctx).value).toBe('C');
+  });
+
+  test('aggregate composes inside $concat', () => {
+    expect(evaluateExpression('$concat("Total: ", $sum(Orders, "Total"))', ctx).value).toBe('Total: 60');
+  });
+
+  test('non-array dataset yields safe defaults', () => {
+    expect(evaluateExpression('$sum(Missing, "Total")', ctx).value).toBe(0);
+    expect(evaluateExpression('$count(Missing)', ctx).value).toBe(0);
+  });
+});

@@ -454,8 +454,12 @@ public sealed class XtraReportToDesignConverter
 
             diagnostics.Add(Info("CANMIGDEVREP002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
 
-            ApplyBindings(element, raw, diagnostics);
-            if (bandName is not null && bandByName.TryGetValue(bandName, out var ownerBand))
+            var ownerBand = bandName is not null && bandByName.TryGetValue(bandName, out var ob) ? ob : null;
+            // Aggregates in a group footer/header scope to that group's dataset (same basis as the repeat).
+            var aggDataset = ownerBand?.Type is "GroupHeaderBand" or "GroupFooterBand"
+                ? GroupDataPath(ownerBand) : null;
+            ApplyBindings(element, raw, diagnostics, aggDataset);
+            if (ownerBand is not null)
                 ApplyGroupRepeatMetadata(element, ownerBand);
             AddLayoutDiagnostics(raw, diagnostics);
 
@@ -908,7 +912,8 @@ public sealed class XtraReportToDesignConverter
         return height > width ? "vertical" : "horizontal";
     }
 
-    private static void ApplyBindings(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
+    private static void ApplyBindings(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics,
+        string? dataSetPath = null)
     {
         if (raw.BindingExpressions is not null)
         {
@@ -922,7 +927,7 @@ public sealed class XtraReportToDesignConverter
             foreach (var property in BindingPriority(element.Type))
             {
                 if (raw.BindingExpressions.TryGetValue(property, out var expression))
-                    ApplyBinding(element, property, expression, diagnostics);
+                    ApplyBinding(element, property, expression, diagnostics, dataSetPath);
             }
         }
 
@@ -942,7 +947,8 @@ public sealed class XtraReportToDesignConverter
         _ => ["Text", "Value"]
     };
 
-    private static void ApplyBinding(ElementDto element, string property, string expression, List<MigrationDiagnostic> diagnostics)
+    private static void ApplyBinding(ElementDto element, string property, string expression, List<MigrationDiagnostic> diagnostics,
+        string? dataSetPath = null)
     {
         var single = Regex.Match(expression, @"^\s*\[(\w+)\]\s*$");
         if (single.Success)
@@ -977,7 +983,7 @@ public sealed class XtraReportToDesignConverter
                 var dot = n.LastIndexOf('.');
                 return $"{{{{{(dot >= 0 ? n[(dot + 1)..] : n)}}}}}";
             });
-            element.Expression = ExpressionTranslator.TranslateDevExpress(expression) ?? expression;
+            element.Expression = ExpressionTranslator.TranslateDevExpress(expression, dataSetPath) ?? expression;
             element.Style ??= [];
             element.Style["devExpressExpression"] = expression;
             if (string.IsNullOrEmpty(element.Content)) element.Content = normalized;

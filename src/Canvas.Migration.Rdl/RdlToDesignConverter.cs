@@ -84,6 +84,13 @@ public sealed class RdlToDesignConverter
         ResolvePage(root, report);
         report.ReportParameters = ParseReportParameters(root);
         report.ReportParametersLayout = ParseReportParametersLayout(root);
+        // A single-dataset report gives free-standing aggregate textboxes an unambiguous scope.
+        var dataSetNames = Descendant(root, "DataSets")?.Elements()
+            .Where(e => e.Name.LocalName == "DataSet")
+            .Select(e => Attr(e, "Name"))
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .ToList();
+        if (dataSetNames is { Count: 1 }) report.DefaultDataSetName = dataSetNames[0];
 
         var body = Descendant(root, "Body");
         if (body is not null)
@@ -1421,7 +1428,10 @@ public sealed class RdlToDesignConverter
             diagnostics.Add(Info("CANMIGRDL002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
 
             if (raw.TextExpression is { } expr)
-                ApplyBinding(element, expr, diagnostics);
+            {
+                var ds = raw.DataSetName ?? report.DefaultDataSetName;       // element scope, else the sole report dataset
+                ApplyBinding(element, expr, diagnostics, string.IsNullOrWhiteSpace(ds) ? null : SafeRepeatPath(ds!));
+            }
             ApplyVisibility(element, raw, diagnostics);
             ApplyPaginationMetadata(element, raw, diagnostics);
             ApplyNestedTablixMetadata(element, raw, diagnostics);
@@ -2646,7 +2656,8 @@ public sealed class RdlToDesignConverter
         raw.TextExpression = value;
     }
 
-    private static void ApplyBinding(ElementDto element, string expression, List<MigrationDiagnostic> diagnostics)
+    private static void ApplyBinding(ElementDto element, string expression, List<MigrationDiagnostic> diagnostics,
+        string? dataSetPath = null)
     {
         var field = SingleFieldMatch(expression);
         if (field is not null)
@@ -2662,7 +2673,7 @@ public sealed class RdlToDesignConverter
             var normalized = Regex.Replace(expression.TrimStart().TrimStart('=').Trim(),
                 @"Fields!(\w+)(?:\.Value)?", m => $"{{{{{m.Groups[1].Value}}}}}");
             // Executable Canvas-grammar form for the preview engine; raw preserved for review.
-            element.Expression = ExpressionTranslator.TranslateRdl(expression) ?? expression;
+            element.Expression = ExpressionTranslator.TranslateRdl(expression, dataSetPath) ?? expression;
             element.Style ??= [];
             element.Style["rdlExpression"] = expression;
             if (string.IsNullOrEmpty(element.Content)) element.Content = normalized;
@@ -2869,6 +2880,9 @@ public sealed class RdlToDesignConverter
         public List<Dictionary<string, object>> ReportParameters = [];
         public List<Dictionary<string, object>> ReportParametersLayout = [];
         public List<RawElement> Elements = [];
+        // The report's sole dataset, used as the aggregate scope for free-standing textboxes
+        // (e.g. a footer "=Sum(Fields!Total.Value)") that don't name a data region themselves.
+        public string? DefaultDataSetName;
     }
 
     private sealed class RawElement
