@@ -202,6 +202,56 @@ public class ExporterTests
     }
 
     [Fact]
+    public void Html_Export_GroupScopedAggregate_PerGroupTotals()
+    {
+        // A group footer (group field "Region") renders once per region with that region's own total
+        // via the $group convention — not the grand total.
+        var design = new DesignExportDto
+        {
+            Id = "grp", Name = "Grp", Category = "imported",
+            PageSettings = new PageSettingsDto
+            {
+                Width = 595, Height = 842,
+                CustomProperties =
+                [
+                    new CustomDocumentPropertyDto
+                    {
+                        Name = "Orders",
+                        Value = """
+                            [{"Region":"North","Total":10},{"Region":"North","Total":20},
+                             {"Region":"South","Total":30},{"Region":"South","Total":40}]
+                            """
+                    }
+                ]
+            },
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "regionTotal", Type = "text", X = 10, Y = 10, Width = 300, Height = 20,
+                            Content = "Region total",
+                            Expression = "$concat(Region, \": \", $sum($group, \"Total\"))",
+                            Repeat = new RepeatDto { DataPath = "Orders" },
+                            Style = new Dictionary<string, object> { ["groupField"] = "Region" }
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(design));
+        Assert.Contains("North: 30", html);        // 10 + 20, this group only
+        Assert.Contains("South: 70", html);        // 30 + 40, this group only
+        Assert.DoesNotContain("100", html);        // not the grand total
+        Assert.DoesNotContain("$sum", html);
+    }
+
+    [Fact]
     public void Html_Export_RendersRdlMatrixHeaders()
     {
         var html = Encoding.UTF8.GetString(new HtmlDocumentExporter().Export(MatrixHeaderDesign()));

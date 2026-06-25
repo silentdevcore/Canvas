@@ -66,7 +66,8 @@ reads the field per row, coerces numeric, and reduces.
 
 ## Follow-ups (out of v1)
 
-- [ ] **Group-scoped** aggregates (sum within the *current* group only, not the whole dataset).
+- [x] **Group-scoped** aggregates (sum within the *current* group only) — done (server-side v1) via the
+      `$group` convention + per-group expansion. See [Group-Scoped-Aggregates.md](Group-Scoped-Aggregates.md).
 - [ ] Other converters (FastReport / Telerik / Stimulsoft / Jasper) — wire the same dataset arg.
 - [ ] `RunningValue`, conditional aggregates (`Sum(IIf(...))`), aggregate over a *computed* per-row
       expression (`Sum(Qty * Price)`).
