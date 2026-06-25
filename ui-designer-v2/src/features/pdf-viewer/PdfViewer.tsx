@@ -29,6 +29,17 @@ import {
   FiZoomIn,
   FiZoomOut,
 } from 'react-icons/fi';
+import {
+  STAMP_LABELS,
+  annotationTypeFromTool,
+  createAnnotationSidecar,
+  parseAnnotationSidecar,
+  stampColor,
+  type InkPoint,
+  type PdfAnnotation,
+  type ReviewTool,
+  type StampLabel,
+} from './annotations';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -40,9 +51,6 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 type FitMode = 'page' | 'width' | 'custom';
 type PdfSourceKind = 'file' | 'url';
 type PrintMode = 'all' | 'current' | 'range';
-type ReviewTool = 'view' | 'note' | 'freeText' | 'stamp' | 'line' | 'rectangle' | 'circle' | 'ink' | 'highlight' | 'underline' | 'strikeout';
-type StampLabel = 'Draft' | 'Approved' | 'Final' | 'Confidential';
-type AnnotationType = 'note' | 'freeText' | 'stamp' | 'line' | 'rectangle' | 'circle' | 'ink' | 'highlight' | 'underline' | 'strikeout';
 
 export interface PdfSource {
   file: File | string;
@@ -67,27 +75,6 @@ interface ViewerEvent {
   label: string;
 }
 
-interface InkPoint {
-  xPct: number;
-  yPct: number;
-}
-
-interface PdfAnnotation {
-  id: string;
-  type: AnnotationType;
-  pageNumber: number;
-  xPct: number;
-  yPct: number;
-  widthPct: number;
-  heightPct: number;
-  text: string;
-  author: string;
-  createdAt: string;
-  color: string;
-  locked?: boolean;
-  points?: InkPoint[];
-}
-
 interface AnnotationInteraction {
   id: string;
   mode: 'move' | 'resize';
@@ -100,49 +87,6 @@ interface AnnotationInteraction {
 }
 
 const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
-
-const STAMP_LABELS: StampLabel[] = ['Draft', 'Approved', 'Final', 'Confidential'];
-
-const stampColor = (label: StampLabel): string => {
-  switch (label) {
-    case 'Approved':
-      return '#16a34a';
-    case 'Final':
-      return '#2563eb';
-    case 'Confidential':
-      return '#dc2626';
-    case 'Draft':
-    default:
-      return '#9333ea';
-  }
-};
-
-const annotationTypeFromTool = (tool: ReviewTool): AnnotationType => {
-  switch (tool) {
-    case 'stamp':
-      return 'stamp';
-    case 'note':
-      return 'note';
-    case 'line':
-      return 'line';
-    case 'rectangle':
-      return 'rectangle';
-    case 'circle':
-      return 'circle';
-    case 'ink':
-      return 'ink';
-    case 'highlight':
-      return 'highlight';
-    case 'underline':
-      return 'underline';
-    case 'strikeout':
-      return 'strikeout';
-    case 'freeText':
-    case 'view':
-    default:
-      return 'freeText';
-  }
-};
 
 const textItemToString = (item: TextItem | TextMarkedContent): string => ('str' in item ? item.str : '');
 
@@ -658,12 +602,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   };
 
   const downloadAnnotationSidecar = () => {
-    const payload = {
-      version: 1,
-      sourceName: source?.name ?? null,
-      exportedAt: new Date().toISOString(),
-      annotations,
-    };
+    const payload = createAnnotationSidecar(source?.name ?? null, annotations);
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -684,11 +623,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
 
     try {
       const raw = await file.text();
-      const parsed = JSON.parse(raw) as { annotations?: PdfAnnotation[] } | PdfAnnotation[];
-      const imported = Array.isArray(parsed) ? parsed : parsed.annotations;
-      if (!Array.isArray(imported)) {
-        throw new Error('Annotation sidecar does not contain an annotations array.');
-      }
+      const imported = parseAnnotationSidecar(raw);
 
       setAnnotations(imported);
       setSelectedAnnotationId(null);

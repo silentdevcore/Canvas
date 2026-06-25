@@ -92,6 +92,7 @@ our own implementation, UI language, and engine boundaries.
       Selection, text editing, move, resize, color, size, delete, lock, and unlock are implemented for sidecar annotations.
 - [x] Store annotations initially as a sidecar JSON model if writing them into PDF is not ready.
       Implemented import/export for annotation sidecar JSON.
+      Sidecar schema/types and parser/serializer are centralized in `ui-designer-v2/src/features/pdf-viewer/annotations.ts`.
 
 ### Phase 3 - Professional PDF workflows
 
@@ -114,6 +115,7 @@ our own implementation, UI language, and engine boundaries.
 - [ ] Decide whether thumbnail rendering happens client-side, backend-side, or both.
 - [ ] Decide how tests verify viewer behavior: unit tests for state, Playwright smoke tests for UI, and
       PDF binary tests for saved annotations/forms later.
+      Follow-up: add focused unit tests for `annotations.ts` sidecar parsing/serialization.
 
 ## P1 - Review And Annotation Workflow
 
