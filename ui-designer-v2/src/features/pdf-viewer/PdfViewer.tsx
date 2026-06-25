@@ -40,6 +40,7 @@ import {
   type ReviewTool,
   type StampLabel,
 } from './annotations';
+import { deleteSavedAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -117,6 +118,19 @@ const sourceNameFromUrl = (url: string): string => {
   }
 };
 
+const documentIdFromSource = (source: PdfSource | null): string => {
+  if (!source) {
+    return 'unsaved-document';
+  }
+
+  const identity = source.url || source.name || 'document';
+  return identity
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 120) || 'document';
+};
+
 const parsePageRange = (range: string, maxPage: number): number[] => {
   const pages = new Set<number>();
   const parts = range.split(',').map(part => part.trim()).filter(Boolean);
@@ -169,6 +183,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
   const [reviewAuthor, setReviewAuthor] = useState('Reviewer');
   const [selectedStamp, setSelectedStamp] = useState<StampLabel>('Draft');
+  const [annotationApiStatus, setAnnotationApiStatus] = useState<string | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const pageStackRef = useRef<HTMLDivElement | null>(null);
   const eventIdRef = useRef(0);
@@ -179,6 +194,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const currentPageInkAnnotations = currentPageAnnotations.filter(annotation => annotation.type === 'ink');
   const currentPageBoxAnnotations = currentPageAnnotations.filter(annotation => annotation.type !== 'ink');
   const selectedAnnotation = annotations.find(annotation => annotation.id === selectedAnnotationId) ?? null;
+  const documentId = useMemo(() => documentIdFromSource(source), [source]);
 
   const emitViewerEvent = useCallback((label: string, detail: Record<string, unknown> = {}) => {
     eventIdRef.current += 1;
@@ -616,6 +632,53 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     emitViewerEvent('annotations:exported', { count: annotations.length });
   };
 
+  const saveAnnotationSidecar = async () => {
+    setAnnotationApiStatus('Saving...');
+    try {
+      const response = await saveAnnotations(documentId, createAnnotationSidecar(source?.name ?? null, annotations));
+      setAnnotationApiStatus(`Saved ${response.annotationCount} annotation${response.annotationCount === 1 ? '' : 's'}.`);
+      emitViewerEvent('annotations:saved', { documentId, count: response.annotationCount });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Save failed.';
+      setAnnotationApiStatus(message);
+      emitViewerEvent('annotations:save-failed', { documentId, message });
+    }
+  };
+
+  const loadAnnotationSidecar = async () => {
+    setAnnotationApiStatus('Loading...');
+    try {
+      const response = await loadAnnotations(documentId);
+      if (!response) {
+        setAnnotationApiStatus('No saved annotations found.');
+        emitViewerEvent('annotations:load-empty', { documentId });
+        return;
+      }
+
+      setAnnotations(response.annotations);
+      setSelectedAnnotationId(null);
+      setAnnotationApiStatus(`Loaded ${response.annotationCount} annotation${response.annotationCount === 1 ? '' : 's'}.`);
+      emitViewerEvent('annotations:loaded', { documentId, count: response.annotationCount });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Load failed.';
+      setAnnotationApiStatus(message);
+      emitViewerEvent('annotations:load-failed', { documentId, message });
+    }
+  };
+
+  const deleteSavedAnnotationSidecar = async () => {
+    setAnnotationApiStatus('Deleting...');
+    try {
+      await deleteSavedAnnotations(documentId);
+      setAnnotationApiStatus('Saved annotations deleted.');
+      emitViewerEvent('annotations:saved-deleted', { documentId });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Delete failed.';
+      setAnnotationApiStatus(message);
+      emitViewerEvent('annotations:delete-saved-failed', { documentId, message });
+    }
+  };
+
   const importAnnotationSidecar = async (file: File | null) => {
     if (!file) {
       return;
@@ -1027,6 +1090,19 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 <FiDownload />
                 <span>Export sidecar</span>
               </button>
+              <button className="pdfv-button" type="button" onClick={() => void saveAnnotationSidecar()} disabled={annotations.length === 0}>
+                <FiDownload />
+                <span>Save</span>
+              </button>
+              <button className="pdfv-button" type="button" onClick={() => void loadAnnotationSidecar()}>
+                <FiUpload />
+                <span>Load saved</span>
+              </button>
+              <button className="pdfv-button" type="button" onClick={() => void deleteSavedAnnotationSidecar()}>
+                <FiTrash2 />
+                <span>Delete saved</span>
+              </button>
+              {annotationApiStatus && <span className="pdfv-api-status">{annotationApiStatus}</span>}
             </div>
           </section>
         )}

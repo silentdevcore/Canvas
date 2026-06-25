@@ -104,7 +104,7 @@ our own implementation, UI language, and engine boundaries.
 - [ ] Add localization hooks for English/German UI strings.
 - [ ] Add viewer configuration API to hide/show toolbar groups and override button behavior.
 - [x] Add backend sidecar storage API for viewer review state.
-      Implemented `POST/GET/DELETE /api/pdf-viewer/annotations` with in-memory version-1 sidecar storage.
+      Implemented `POST/GET/DELETE /api/pdf-viewer/annotations` with in-memory version-1 sidecar storage and wired UI Save/Load/Delete controls.
 
 ### Technical Decision Points
 
@@ -140,7 +140,7 @@ our own implementation, UI language, and engine boundaries.
 - [x] **Annotation selection/editing** - Select, move, resize, lock/unlock, delete, and update annotations.
       Implemented for sidecar annotations.
 - [ ] **Annotation persistence** - Save annotations back into PDF or export/import an annotation sidecar format.
-      Sidecar import/export exists in the UI, and backend in-memory sidecar save/get/delete API exists. Writing annotations into PDFs remains open.
+      Sidecar import/export exists in the UI, and backend in-memory sidecar save/get/delete is wired through the viewer. Writing annotations into PDFs remains open.
 
 ## P1 - Forms And Redaction
 

@@ -209,6 +209,16 @@
   font-weight: 650;
 }
 
+.pdfv-api-status {
+  color: #475467;
+  font-size: 0.86rem;
+  font-weight: 650;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .pdfv-review-tools strong {
   margin-right: 2px;
   white-space: nowrap;
