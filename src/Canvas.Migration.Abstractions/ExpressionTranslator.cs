@@ -35,7 +35,11 @@ public static class ExpressionTranslator
         return string.IsNullOrWhiteSpace(result) ? null : result;
     }
 
-    // RDL/DevExpress aggregate function → Canvas helper. Single-field, whole-dataset scope (v1).
+    /// <summary>Reserved dataset token for a group-scoped aggregate: resolves to the current group's
+    /// row subset (injected per group by <c>DesignLayoutPlanner</c>). e.g. <c>$sum($group, "Total")</c>.</summary>
+    public const string GroupScopeToken = "$group";
+
+    // RDL/DevExpress aggregate function → Canvas helper. Single-field; dataset or $group scope.
     private static readonly Dictionary<string, string> Aggregates = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Sum"] = "$sum", ["Avg"] = "$avg", ["Average"] = "$avg", ["Count"] = "$count",
@@ -101,7 +105,8 @@ public static class ExpressionTranslator
             // Dataset aggregate over a single field: Sum(Field) → $sum(DataSet, "Field"). Needs a dataset
             // and a bare-identifier field (field refs were already normalized to identifiers upstream).
             if (Aggregates.TryGetValue(name, out var helper)
-                && dataSet?.Trim() is { Length: > 0 } ds && Regex.IsMatch(ds, @"^[A-Za-z_]\w*$")
+                && dataSet?.Trim() is { Length: > 0 } ds
+                && (ds == GroupScopeToken || Regex.IsMatch(ds, @"^[A-Za-z_]\w*$"))
                 && call.Args is [var only]
                 && Regex.IsMatch(only.Trim(), @"^[A-Za-z_]\w*$"))
                 return $"{helper}({ds}, \"{only.Trim()}\")";

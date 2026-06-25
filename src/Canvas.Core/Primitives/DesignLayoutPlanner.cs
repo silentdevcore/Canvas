@@ -56,6 +56,25 @@ public static class DesignLayoutPlanner
             if (items.Count == 0)
                 continue;
 
+            // Group band: render once per distinct group key, exposing that group's row subset as $group
+            // so group-scoped aggregates ($sum($group, "Total")) compute per-group totals.
+            if (TryGetGroupField(element, out var groupField))
+            {
+                var index = 0;
+                foreach (var (key, rows) in PartitionByGroup(items, groupField))
+                {
+                    var clone = CloneElement(element);
+                    clone.Id = $"{element.Id}__group_{index}";
+                    clone.Name = string.IsNullOrWhiteSpace(element.Name) ? element.Name : $"{element.Name} {index + 1}";
+                    clone.Y = element.Y + element.Height * index;
+                    clone.Repeat = null;
+                    ApplyGroupItem(clone, groupField, key, rows, payload, index);
+                    yield return ApplyDynamicData(clone, payload);
+                    index++;
+                }
+                continue;
+            }
+
             for (var index = 0; index < items.Count; index++)
             {
                 var clone = CloneElement(element);
@@ -68,6 +87,81 @@ public static class DesignLayoutPlanner
             }
         }
     }
+
+    // A group band carries a group field (DevExpress devExpressGroup.fields, or a generic "groupField").
+    private static bool TryGetGroupField(ElementDto element, out string groupField)
+    {
+        groupField = "";
+        if (element.Style is not { } style) return false;
+
+        if (style.TryGetValue("groupField", out var direct) && direct?.ToString() is { Length: > 0 } gf)
+        {
+            groupField = gf;
+            return true;
+        }
+        if (style.TryGetValue("devExpressGroup", out var groupObj) && AsStringDictionary(groupObj) is { } group
+            && group.TryGetValue("fields", out var fieldsObj) && FirstString(fieldsObj) is { Length: > 0 } field)
+        {
+            // Strip a trailing " (SortOrder)" annotation if present.
+            var paren = field.IndexOf(" (", StringComparison.Ordinal);
+            groupField = paren >= 0 ? field[..paren] : field;
+            return true;
+        }
+        return false;
+    }
+
+    // Partition rows into ordered distinct groups by the group field value (stable first-seen order).
+    private static IEnumerable<(object? Key, List<object?> Rows)> PartitionByGroup(IEnumerable<object?> items, string groupField)
+    {
+        var order = new List<string>();
+        var groups = new Dictionary<string, (object? Key, List<object?> Rows)>();
+        foreach (var item in items)
+        {
+            var key = ResolveToken(ItemValues(item), groupField);
+            var k = key?.ToString() ?? "";
+            if (!groups.TryGetValue(k, out var g)) { g = (key, new List<object?>()); groups[k] = g; order.Add(k); }
+            g.Rows.Add(item);
+        }
+        foreach (var k in order) yield return groups[k];
+    }
+
+    // Bind the group key as a scalar and expose the group's rows as $group, then evaluate the element.
+    private static void ApplyGroupItem(ElementDto element, string groupField, object? key, List<object?> rows,
+        Dictionary<string, object?> payload, int index)
+    {
+        var values = new Dictionary<string, object?>(payload, StringComparer.OrdinalIgnoreCase)
+        {
+            [groupField] = key,
+            ["$group"] = rows,
+            ["index"] = index,
+        };
+        if (!TryApplyExpression(element, values))
+            element.Content = Substitute(element.Content, values);
+        element.HtmlContent = Substitute(element.HtmlContent, values);
+        element.Binding = Substitute(element.Binding, values);
+        element.Expression = Substitute(element.Expression, values);
+        if (element.CellData is not null)
+        {
+            element.CellData = element.CellData
+                .Select(row => row.Select(cell => Substitute(cell, values) ?? "").ToArray())
+                .ToArray();
+        }
+    }
+
+    private static IReadOnlyDictionary<string, object?>? AsStringDictionary(object? value) => value switch
+    {
+        IReadOnlyDictionary<string, object?> d => d,
+        IDictionary<string, object?> d => new Dictionary<string, object?>(d),
+        _ => null
+    };
+
+    private static string? FirstString(object? value) => value switch
+    {
+        string s => s,
+        IEnumerable<string> ss => ss.FirstOrDefault(),
+        System.Collections.IEnumerable e => e.Cast<object?>().FirstOrDefault()?.ToString(),
+        _ => value?.ToString()
+    };
 
     private static ElementDto ApplyDynamicData(ElementDto element, Dictionary<string, object?> payload)
     {

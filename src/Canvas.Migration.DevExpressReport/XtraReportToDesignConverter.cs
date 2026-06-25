@@ -455,9 +455,10 @@ public sealed class XtraReportToDesignConverter
             diagnostics.Add(Info("CANMIGDEVREP002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
 
             var ownerBand = bandName is not null && bandByName.TryGetValue(bandName, out var ob) ? ob : null;
-            // Aggregates in a group footer/header scope to that group's dataset (same basis as the repeat).
+            // Aggregates in a group footer/header scope to the current group's row subset ($group),
+            // which DesignLayoutPlanner injects per group at expansion time.
             var aggDataset = ownerBand?.Type is "GroupHeaderBand" or "GroupFooterBand"
-                ? GroupDataPath(ownerBand) : null;
+                ? ExpressionTranslator.GroupScopeToken : null;
             ApplyBindings(element, raw, diagnostics, aggDataset);
             if (ownerBand is not null)
                 ApplyGroupRepeatMetadata(element, ownerBand);

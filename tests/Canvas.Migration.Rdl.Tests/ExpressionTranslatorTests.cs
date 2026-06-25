@@ -50,4 +50,14 @@ public sealed class ExpressionTranslatorTests
     [Fact]
     public void TranslateDevExpress_Aggregate_WithDataset()
         => Assert.Equal("$sum(Sales, \"Qty\")", ExpressionTranslator.TranslateDevExpress("Sum([Qty])", "Sales"));
+
+    [Fact]
+    public void Translate_Aggregate_WithGroupScopeToken()
+    {
+        // The reserved $group token (current group's rows) is accepted as the dataset.
+        Assert.Equal("$sum($group, \"Total\")",
+            ExpressionTranslator.TranslateRdl("=Sum(Fields!Total.Value)", ExpressionTranslator.GroupScopeToken));
+        Assert.Equal("$avg($group, \"Qty\")",
+            ExpressionTranslator.TranslateDevExpress("Avg([Qty])", ExpressionTranslator.GroupScopeToken));
+    }
 }

@@ -595,7 +595,7 @@ public sealed class RepxConverterTests
         var result = new XtraReportToDesignConverter().ConvertRepx(repx);
 
         var total = Page(result.Design, "regionTotal");
-        Assert.Equal("$sum(Region, \"Total\")", total.Expression);                  // executable aggregate
+        Assert.Equal("$sum($group, \"Total\")", total.Expression);                  // group-scoped aggregate
         Assert.Equal("Sum([Total])", total.Style!["devExpressExpression"]);         // raw preserved
     }
 
