@@ -38,6 +38,33 @@ Observed demo/source facts:
 - [x] Canvas has a broader provider feature-gap roadmap in
       [CanvasPdf-Provider-Feature-Gaps.md](CanvasPdf-Provider-Feature-Gaps.md).
 
+## Current Implementation Status
+
+Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and review baseline:
+
+- [x] Frontend route: `/pdf-viewer`
+- [x] Viewer entry points: local upload, direct/backend URL, migration preview handoff, normal Designer PDF export handoff
+- [x] Viewer controls: thumbnails, page navigation, zoom, fit page/width, search, download, all/current/range print
+- [x] Review sidecar model: note, free text, stamp, line, rectangle, circle, ink, highlight, underline, strikeout
+- [x] Review editing: select, move, resize, recolor, edit text, delete, lock/unlock
+- [x] Sidecar persistence: JSON import/export plus backend save/load/delete
+- [x] Backend routes:
+      `POST /api/pdf-viewer/annotations`,
+      `GET /api/pdf-viewer/annotations/{documentId}`,
+      `DELETE /api/pdf-viewer/annotations/{documentId}`
+- [x] Tests:
+      `PdfViewerAnnotationsControllerTests`,
+      `pdfViewerAnnotations.test.ts`,
+      `pdfViewerAnnotationApi.test.ts`
+
+Intentional remaining gaps:
+
+- [ ] Sidecar backend storage is in-memory only; durable storage/user ownership is still open.
+- [ ] Sidecar annotations are not yet embedded back into PDF files.
+- [ ] Text markup is area-based, not true text-selection-bound PDF markup.
+- [ ] Advanced controls remain open for ink thickness/opacity/eraser, line endings, shape fill/stroke opacity,
+      custom stamps, image annotations, forms, redaction, localization, keyboard navigation, and Playwright smoke tests.
+
 ## P0 - Viewer Foundation
 
 - [x] **PDF viewer shell** - Dedicated viewer route/page for opening a PDF output or uploaded PDF with page navigation, zoom, fit modes, and responsive layout.
