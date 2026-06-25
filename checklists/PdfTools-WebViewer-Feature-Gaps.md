@@ -115,7 +115,7 @@ our own implementation, UI language, and engine boundaries.
 - [ ] Decide whether thumbnail rendering happens client-side, backend-side, or both.
 - [ ] Decide how tests verify viewer behavior: unit tests for state, Playwright smoke tests for UI, and
       PDF binary tests for saved annotations/forms later.
-      Follow-up: add focused unit tests for `annotations.ts` sidecar parsing/serialization.
+      Added focused Jest tests for `annotations.ts` sidecar parsing/serialization. Playwright smoke tests and PDF binary tests remain open.
 
 ## P1 - Review And Annotation Workflow
 
