@@ -21,7 +21,8 @@
 
 .pdfv-toolbar,
 .pdfv-search-panel,
-.pdfv-print-panel {
+.pdfv-print-panel,
+.pdfv-review-panel {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -38,7 +39,10 @@
 .pdfv-search-form,
 .pdfv-result-controls,
 .pdfv-print-options,
-.pdfv-print-actions {
+.pdfv-print-actions,
+.pdfv-review-tools,
+.pdfv-review-actions,
+.pdfv-annotation-controls {
   display: flex;
   min-width: 0;
   flex-wrap: wrap;
@@ -205,6 +209,104 @@
   font-weight: 650;
 }
 
+.pdfv-review-tools strong {
+  margin-right: 2px;
+  white-space: nowrap;
+}
+
+.pdfv-author-input {
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(23, 32, 51, 0.14);
+  border-radius: 8px;
+  background: #fff;
+  color: #475467;
+  font-size: 0.86rem;
+  font-weight: 650;
+  padding: 0 10px;
+}
+
+.pdfv-author-input input {
+  width: 112px;
+  border: 0;
+  background: transparent;
+  color: #1d2939;
+  font: inherit;
+  outline: 0;
+}
+
+.pdfv-stamp-select {
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(23, 32, 51, 0.14);
+  border-radius: 8px;
+  background: #fff;
+  color: #475467;
+  font-size: 0.86rem;
+  font-weight: 650;
+  padding: 0 10px;
+}
+
+.pdfv-stamp-select select {
+  border: 0;
+  background: transparent;
+  color: #1d2939;
+  font: inherit;
+  outline: 0;
+}
+
+.pdfv-annotation-controls {
+  border-left: 1px solid rgba(23, 32, 51, 0.12);
+  padding-left: 12px;
+}
+
+.pdfv-annotation-controls strong {
+  white-space: nowrap;
+}
+
+.pdfv-color-input,
+.pdfv-size-input {
+  display: inline-flex;
+  height: 36px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(23, 32, 51, 0.14);
+  border-radius: 8px;
+  background: #fff;
+  color: #475467;
+  font-size: 0.86rem;
+  font-weight: 650;
+  padding: 0 10px;
+}
+
+.pdfv-color-input input {
+  width: 28px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pdfv-color-input input:disabled,
+.pdfv-size-input input:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.pdfv-size-input input {
+  width: 54px;
+  border: 0;
+  background: transparent;
+  color: #1d2939;
+  font: inherit;
+  outline: 0;
+}
+
 .pdfv-workspace {
   position: relative;
   display: flex;
@@ -338,6 +440,20 @@
   justify-content: center;
 }
 
+.pdfv-page-stack {
+  position: relative;
+  display: inline-flex;
+  background: #fff;
+}
+
+.pdfv-page-stack.is-annotating {
+  cursor: crosshair;
+}
+
+.pdfv-page-stack.is-annotating .pdfv-ink-layer {
+  cursor: crosshair;
+}
+
 .pdfv-page-frame .react-pdf__Page {
   background: #fff;
   box-shadow: 0 18px 38px rgba(16, 24, 40, 0.18);
@@ -348,6 +464,275 @@
   background: #fde047;
   color: inherit;
   box-shadow: 0 0 0 1px rgba(202, 138, 4, 0.34);
+}
+
+.pdfv-annotation-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pdfv-ink-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.pdfv-ink-layer polyline {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 0.7;
+  pointer-events: stroke;
+  vector-effect: non-scaling-stroke;
+}
+
+.pdfv-ink-layer polyline.is-selected {
+  filter: drop-shadow(0 0 4px rgba(14, 116, 144, 0.8));
+  stroke-width: 1.1;
+}
+
+.pdfv-annotation {
+  position: absolute;
+  display: grid;
+  gap: 4px;
+  min-width: 120px;
+  border: 2px solid #facc15;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 28px rgba(16, 24, 40, 0.18);
+  padding: 8px;
+  pointer-events: auto;
+}
+
+.pdfv-annotation-drag {
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  width: 32px;
+  height: 14px;
+  border: 1px solid rgba(23, 32, 51, 0.16);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, #667085 1px, transparent 2px) 6px 5px / 8px 4px repeat-x,
+    #fff;
+  cursor: grab;
+}
+
+.pdfv-annotation-drag:active {
+  cursor: grabbing;
+}
+
+.pdfv-annotation.is-selected {
+  outline: 2px solid #0e7490;
+  outline-offset: 2px;
+}
+
+.pdfv-annotation.is-locked {
+  opacity: 0.92;
+}
+
+.pdfv-annotation.is-locked::after {
+  position: absolute;
+  top: -12px;
+  right: 8px;
+  border: 1px solid rgba(23, 32, 51, 0.12);
+  border-radius: 999px;
+  background: #fff;
+  color: #475467;
+  content: 'Locked';
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+}
+
+.pdfv-annotation-note {
+  background: rgba(254, 249, 195, 0.96);
+}
+
+.pdfv-annotation-freeText {
+  background: rgba(240, 249, 255, 0.96);
+}
+
+.pdfv-annotation-stamp {
+  align-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  transform: rotate(-7deg);
+}
+
+.pdfv-annotation-line,
+.pdfv-annotation-rectangle,
+.pdfv-annotation-circle,
+.pdfv-annotation-highlight,
+.pdfv-annotation-underline,
+.pdfv-annotation-strikeout {
+  background: transparent;
+  border-color: transparent !important;
+  box-shadow: none;
+  padding: 0;
+}
+
+.pdfv-annotation-line.is-selected,
+.pdfv-annotation-rectangle.is-selected,
+.pdfv-annotation-circle.is-selected,
+.pdfv-annotation-highlight.is-selected,
+.pdfv-annotation-underline.is-selected,
+.pdfv-annotation-strikeout.is-selected {
+  outline-offset: 6px;
+}
+
+.pdfv-shape-line,
+.pdfv-shape-rectangle,
+.pdfv-shape-circle,
+.pdfv-markup-highlight,
+.pdfv-markup-underline,
+.pdfv-markup-strikeout {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 24px;
+  color: inherit;
+  pointer-events: none;
+}
+
+.pdfv-shape-line {
+  position: relative;
+}
+
+.pdfv-shape-line::before,
+.pdfv-markup-underline::before,
+.pdfv-markup-strikeout::before {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: currentColor;
+  content: '';
+  transform: translateY(-50%);
+}
+
+.pdfv-shape-line::before {
+  top: 50%;
+}
+
+.pdfv-markup-highlight {
+  min-height: 18px;
+  background: currentColor;
+  opacity: 0.44;
+}
+
+.pdfv-markup-underline,
+.pdfv-markup-strikeout {
+  position: relative;
+  min-height: 18px;
+}
+
+.pdfv-markup-underline::before {
+  top: 82%;
+}
+
+.pdfv-markup-strikeout::before {
+  top: 50%;
+}
+
+.pdfv-shape-rectangle {
+  border: 3px solid currentColor;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pdfv-shape-circle {
+  border: 3px solid currentColor;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pdfv-stamp-label {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid currentColor;
+  border-radius: 6px;
+  color: inherit;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.pdfv-annotation textarea {
+  min-height: 54px;
+  resize: vertical;
+  border: 0;
+  background: transparent;
+  color: #1d2939;
+  font: inherit;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  outline: 0;
+}
+
+.pdfv-annotation textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.pdfv-annotation-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #667085;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.pdfv-annotation-meta button {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #667085;
+  cursor: pointer;
+}
+
+.pdfv-annotation-meta button:disabled,
+.pdfv-annotation-drag:disabled,
+.pdfv-annotation-resize:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.pdfv-annotation-meta button:hover {
+  background: #fee4e2;
+  color: #b42318;
+}
+
+.pdfv-annotation-meta button:disabled:hover {
+  background: rgba(255, 255, 255, 0.6);
+  color: #667085;
+}
+
+.pdfv-annotation-resize {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  background: #0e7490;
+  box-shadow: 0 4px 10px rgba(16, 24, 40, 0.2);
+  cursor: nwse-resize;
 }
 
 .pdfv-match-banner {
@@ -414,7 +799,8 @@
 
   .pdfv-toolbar,
   .pdfv-search-panel,
-  .pdfv-print-panel {
+  .pdfv-print-panel,
+  .pdfv-review-panel {
     align-items: stretch;
     padding: 10px 12px;
   }
@@ -424,8 +810,18 @@
   .pdfv-url-form,
   .pdfv-search-form,
   .pdfv-print-options,
-  .pdfv-print-actions {
+  .pdfv-print-actions,
+  .pdfv-review-tools,
+  .pdfv-review-actions,
+  .pdfv-annotation-controls {
     width: 100%;
+  }
+
+  .pdfv-annotation-controls {
+    border-left: 0;
+    border-top: 1px solid rgba(23, 32, 51, 0.12);
+    padding-left: 0;
+    padding-top: 10px;
   }
 
   .pdfv-url-form input,

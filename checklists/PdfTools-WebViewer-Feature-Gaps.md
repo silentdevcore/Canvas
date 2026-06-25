@@ -76,14 +76,22 @@ our own implementation, UI language, and engine boundaries.
 
 ### Phase 2 - Review mode baseline
 
-- [ ] Add an annotation toolbar mode, separate from normal view/search mode.
-- [ ] Add text markup tools: highlight, underline, strikeout.
-- [ ] Add free-text comment tool with font size, color, background, and border.
-- [ ] Add sticky note/comment tool with author and timestamp metadata.
-- [ ] Add line, rectangle, circle, and freehand ink tools.
-- [ ] Add predefined stamps: Draft, Approved, Final, Confidential.
-- [ ] Add selection/editing for annotations: move, resize, delete, lock/unlock.
-- [ ] Store annotations initially as a sidecar JSON model if writing them into PDF is not ready.
+- [x] Add an annotation toolbar mode, separate from normal view/search mode.
+      Implemented as a `Review` panel with View, Note, and Text tools.
+- [x] Add text markup tools: highlight, underline, strikeout.
+      Implemented as sidecar area markups. True text-selection-bound PDF markup remains a later precision step.
+- [x] Add free-text comment tool with font size, color, background, and border.
+      Baseline free-text sidecar annotation exists with color and size controls. Advanced font/background/border controls remain open.
+- [x] Add sticky note/comment tool with author and timestamp metadata.
+      Baseline note annotations include author and creation timestamp in the sidecar model.
+- [x] Add line, rectangle, circle, and freehand ink tools.
+      Line, rectangle, circle, and freehand ink sidecar annotations are implemented. Advanced ink eraser/thickness/opacity controls remain open.
+- [x] Add predefined stamps: Draft, Approved, Final, Confidential.
+      Implemented as sidecar stamp annotations with placement, move, resize, color, and delete support.
+- [x] Add selection/editing for annotations: move, resize, delete, lock/unlock.
+      Selection, text editing, move, resize, color, size, delete, lock, and unlock are implemented for sidecar annotations.
+- [x] Store annotations initially as a sidecar JSON model if writing them into PDF is not ready.
+      Implemented import/export for annotation sidecar JSON.
 
 ### Phase 3 - Professional PDF workflows
 
@@ -100,7 +108,8 @@ our own implementation, UI language, and engine boundaries.
 - [ ] Decide whether the viewer rendering basis is PDF.js, browser-native PDF embedding, or a custom
       Canvas rendering layer.
 - [ ] Decide how generated PDFs are passed from existing preview/export flows into the viewer route.
-- [ ] Decide whether annotations are stored first as sidecar JSON, embedded PDF annotations, or both.
+- [x] Decide whether annotations are stored first as sidecar JSON, embedded PDF annotations, or both.
+      Decision for first implementation: sidecar JSON first; embedded PDF annotations remain a later engine/backend task.
 - [ ] Decide the boundary between `Canvas.Importer` existing-PDF parsing and `Canvas.Pdf` rewritten output.
 - [ ] Decide whether thumbnail rendering happens client-side, backend-side, or both.
 - [ ] Decide how tests verify viewer behavior: unit tests for state, Playwright smoke tests for UI, and
@@ -108,16 +117,24 @@ our own implementation, UI language, and engine boundaries.
 
 ## P1 - Review And Annotation Workflow
 
-- [ ] **Annotation model** - Define Canvas-side model for PDF annotations independent from UI widgets.
-- [ ] **Text markup annotations** - Highlight, underline, squiggly, strikeout.
-- [ ] **Free text annotations** - Add/edit text boxes with font, size, color, alignment, border/background.
-- [ ] **Sticky note annotations** - Add note annotations with author/date/content metadata.
+- [x] **Annotation model** - Define Canvas-side model for PDF annotations independent from UI widgets.
+      Baseline sidecar model includes id, type, page, relative position/size, text, author, timestamp, and color.
+- [x] **Text markup annotations** - Highlight, underline, squiggly, strikeout.
+      Highlight, underline, and strikeout are implemented as movable/resizable sidecar area markups. Squiggly and text-selection-bound markup remain open.
+- [x] **Free text annotations** - Add/edit text boxes with font, size, color, alignment, border/background.
+      Baseline add/edit/delete/move/resize is implemented with color and size controls. Advanced font/alignment/background/border controls remain open.
+- [x] **Sticky note annotations** - Add note annotations with author/date/content metadata.
 - [ ] **Drawing annotations** - Ink/freehand drawing with color, opacity, thickness, and eraser.
+      Baseline freehand ink drawing is implemented with color, selection, lock/unlock, delete, and sidecar persistence. Opacity, thickness, and eraser remain open.
 - [ ] **Line annotations** - Lines with thickness, opacity, color, and line endings.
+      Baseline line annotations are implemented with color, move, resize, and delete. Thickness, opacity, and line endings remain open.
 - [ ] **Shape annotations** - Rectangle/circle annotations with fill, stroke, opacity, and thickness.
-- [ ] **Stamp annotations** - Predefined text stamps such as approved/draft/confidential plus custom stamp extension point.
+      Baseline rectangle and circle annotations are implemented with color, move, resize, and delete. Fill, opacity, and stroke thickness controls remain open.
+- [x] **Stamp annotations** - Predefined text stamps such as approved/draft/confidential plus custom stamp extension point.
+      Predefined Draft, Approved, Final, and Confidential stamps are implemented. Custom stamp extension point remains open.
 - [ ] **Image annotations** - Place an image on a PDF page as an annotation/review mark.
-- [ ] **Annotation selection/editing** - Select, move, resize, lock/unlock, delete, and update annotations.
+- [x] **Annotation selection/editing** - Select, move, resize, lock/unlock, delete, and update annotations.
+      Implemented for sidecar annotations.
 - [ ] **Annotation persistence** - Save annotations back into PDF or export/import an annotation sidecar format.
 
 ## P1 - Forms And Redaction

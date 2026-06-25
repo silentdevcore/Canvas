@@ -7,12 +7,24 @@ import {
   FiChevronRight,
   FiColumns,
   FiDownload,
+  FiEdit3,
   FiFileText,
   FiLink,
+  FiLock,
   FiMaximize2,
+  FiMessageSquare,
+  FiMinus,
+  FiPenTool,
   FiPrinter,
+  FiCircle,
   FiSearch,
   FiSidebar,
+  FiSquare,
+  FiUnderline,
+  FiTag,
+  FiTrash2,
+  FiType,
+  FiUnlock,
   FiUpload,
   FiZoomIn,
   FiZoomOut,
@@ -28,6 +40,9 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 type FitMode = 'page' | 'width' | 'custom';
 type PdfSourceKind = 'file' | 'url';
 type PrintMode = 'all' | 'current' | 'range';
+type ReviewTool = 'view' | 'note' | 'freeText' | 'stamp' | 'line' | 'rectangle' | 'circle' | 'ink' | 'highlight' | 'underline' | 'strikeout';
+type StampLabel = 'Draft' | 'Approved' | 'Final' | 'Confidential';
+type AnnotationType = 'note' | 'freeText' | 'stamp' | 'line' | 'rectangle' | 'circle' | 'ink' | 'highlight' | 'underline' | 'strikeout';
 
 export interface PdfSource {
   file: File | string;
@@ -52,7 +67,82 @@ interface ViewerEvent {
   label: string;
 }
 
+interface InkPoint {
+  xPct: number;
+  yPct: number;
+}
+
+interface PdfAnnotation {
+  id: string;
+  type: AnnotationType;
+  pageNumber: number;
+  xPct: number;
+  yPct: number;
+  widthPct: number;
+  heightPct: number;
+  text: string;
+  author: string;
+  createdAt: string;
+  color: string;
+  locked?: boolean;
+  points?: InkPoint[];
+}
+
+interface AnnotationInteraction {
+  id: string;
+  mode: 'move' | 'resize';
+  startClientX: number;
+  startClientY: number;
+  startX: number;
+  startY: number;
+  startWidth: number;
+  startHeight: number;
+}
+
 const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
+
+const STAMP_LABELS: StampLabel[] = ['Draft', 'Approved', 'Final', 'Confidential'];
+
+const stampColor = (label: StampLabel): string => {
+  switch (label) {
+    case 'Approved':
+      return '#16a34a';
+    case 'Final':
+      return '#2563eb';
+    case 'Confidential':
+      return '#dc2626';
+    case 'Draft':
+    default:
+      return '#9333ea';
+  }
+};
+
+const annotationTypeFromTool = (tool: ReviewTool): AnnotationType => {
+  switch (tool) {
+    case 'stamp':
+      return 'stamp';
+    case 'note':
+      return 'note';
+    case 'line':
+      return 'line';
+    case 'rectangle':
+      return 'rectangle';
+    case 'circle':
+      return 'circle';
+    case 'ink':
+      return 'ink';
+    case 'highlight':
+      return 'highlight';
+    case 'underline':
+      return 'underline';
+    case 'strikeout':
+      return 'strikeout';
+    case 'freeText':
+    case 'view':
+    default:
+      return 'freeText';
+  }
+};
 
 const textItemToString = (item: TextItem | TextMarkedContent): string => ('str' in item ? item.str : '');
 
@@ -129,10 +219,22 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const [printMode, setPrintMode] = useState<PrintMode>('all');
   const [printRange, setPrintRange] = useState('1');
   const [printError, setPrintError] = useState<string | null>(null);
+  const [reviewPanelOpen, setReviewPanelOpen] = useState(false);
+  const [reviewTool, setReviewTool] = useState<ReviewTool>('view');
+  const [annotations, setAnnotations] = useState<PdfAnnotation[]>([]);
+  const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
+  const [reviewAuthor, setReviewAuthor] = useState('Reviewer');
+  const [selectedStamp, setSelectedStamp] = useState<StampLabel>('Draft');
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const pageStackRef = useRef<HTMLDivElement | null>(null);
   const eventIdRef = useRef(0);
+  const annotationInteractionRef = useRef<AnnotationInteraction | null>(null);
 
   const currentResult = searchResults[selectedResultIndex] ?? null;
+  const currentPageAnnotations = annotations.filter(annotation => annotation.pageNumber === currentPage);
+  const currentPageInkAnnotations = currentPageAnnotations.filter(annotation => annotation.type === 'ink');
+  const currentPageBoxAnnotations = currentPageAnnotations.filter(annotation => annotation.type !== 'ink');
+  const selectedAnnotation = annotations.find(annotation => annotation.id === selectedAnnotationId) ?? null;
 
   const emitViewerEvent = useCallback((label: string, detail: Record<string, unknown> = {}) => {
     eventIdRef.current += 1;
@@ -200,6 +302,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     setSource({ file, kind: 'file', name: file.name || 'Local PDF' });
     setLoadError(null);
     setSearchResults([]);
+    setAnnotations([]);
+    setSelectedAnnotationId(null);
     setSelectedResultIndex(0);
     emitViewerEvent('open:file', { name: file.name });
   };
@@ -214,6 +318,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     setSource({ file: trimmedUrl, kind: 'url', name: sourceNameFromUrl(trimmedUrl), url: trimmedUrl });
     setLoadError(null);
     setSearchResults([]);
+    setAnnotations([]);
+    setSelectedAnnotationId(null);
     setSelectedResultIndex(0);
     emitViewerEvent('open:url', { url: trimmedUrl });
   };
@@ -367,6 +473,230 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     link.click();
     link.remove();
     emitViewerEvent('download:started', { name: source.name });
+  };
+
+  const addAnnotationAtPoint = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (reviewTool === 'view' || reviewTool === 'ink' || !source) {
+      return;
+    }
+
+    const bounds = pageStackRef.current?.getBoundingClientRect();
+    if (!bounds) {
+      return;
+    }
+
+    const xPct = clamp(((event.clientX - bounds.left) / bounds.width) * 100, 0, 96);
+    const yPct = clamp(((event.clientY - bounds.top) / bounds.height) * 100, 0, 96);
+    const type = annotationTypeFromTool(reviewTool);
+    const nextAnnotation: PdfAnnotation = {
+      id: `annotation-${Date.now()}-${Math.round(Math.random() * 1000)}`,
+      type,
+      pageNumber: currentPage,
+      xPct,
+      yPct,
+      widthPct: type === 'highlight' || type === 'underline' || type === 'strikeout' ? 26 : type === 'line' ? 26 : type === 'stamp' ? 24 : type === 'note' ? 18 : type === 'circle' ? 16 : type === 'rectangle' ? 22 : 28,
+      heightPct: type === 'highlight' || type === 'underline' || type === 'strikeout' ? 4 : type === 'line' ? 4 : type === 'stamp' ? 9 : type === 'note' ? 12 : type === 'circle' ? 16 : type === 'rectangle' ? 12 : 10,
+      text: type === 'stamp' ? selectedStamp : type === 'note' ? 'New note' : type === 'freeText' ? 'Text annotation' : '',
+      author: reviewAuthor.trim() || 'Reviewer',
+      createdAt: new Date().toISOString(),
+      color: type === 'highlight' ? '#fef08a' : type === 'underline' ? '#2563eb' : type === 'strikeout' ? '#dc2626' : type === 'stamp' ? stampColor(selectedStamp) : type === 'note' ? '#facc15' : type === 'freeText' ? '#38bdf8' : '#ef4444',
+      locked: false,
+    };
+
+    setAnnotations(previous => [...previous, nextAnnotation]);
+    setSelectedAnnotationId(nextAnnotation.id);
+    emitViewerEvent('annotation:created', { type: nextAnnotation.type, pageNumber: currentPage });
+  };
+
+  const updateAnnotationText = (id: string, text: string) => {
+    setAnnotations(previous => previous.map(annotation => (
+      annotation.id === id && !annotation.locked ? { ...annotation, text } : annotation
+    )));
+  };
+
+  const beginInkDrawing = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (reviewTool !== 'ink' || !source || event.button !== 0) {
+      return;
+    }
+
+    const bounds = pageStackRef.current?.getBoundingClientRect();
+    if (!bounds) {
+      return;
+    }
+
+    event.preventDefault();
+    const pointFromEvent = (pointerEvent: MouseEvent | React.MouseEvent): InkPoint => ({
+      xPct: clamp(((pointerEvent.clientX - bounds.left) / bounds.width) * 100, 0, 100),
+      yPct: clamp(((pointerEvent.clientY - bounds.top) / bounds.height) * 100, 0, 100),
+    });
+    const id = `annotation-${Date.now()}-${Math.round(Math.random() * 1000)}`;
+    const firstPoint = pointFromEvent(event);
+    const nextAnnotation: PdfAnnotation = {
+      id,
+      type: 'ink',
+      pageNumber: currentPage,
+      xPct: 0,
+      yPct: 0,
+      widthPct: 100,
+      heightPct: 100,
+      text: '',
+      author: reviewAuthor.trim() || 'Reviewer',
+      createdAt: new Date().toISOString(),
+      color: '#ef4444',
+      locked: false,
+      points: [firstPoint],
+    };
+
+    setAnnotations(previous => [...previous, nextAnnotation]);
+    setSelectedAnnotationId(id);
+
+    const handleMove = (moveEvent: MouseEvent) => {
+      const nextPoint = pointFromEvent(moveEvent);
+      setAnnotations(previous => previous.map(annotation => {
+        if (annotation.id !== id || annotation.locked) {
+          return annotation;
+        }
+
+        const points = annotation.points ?? [];
+        const lastPoint = points[points.length - 1];
+        if (lastPoint && Math.abs(lastPoint.xPct - nextPoint.xPct) < 0.2 && Math.abs(lastPoint.yPct - nextPoint.yPct) < 0.2) {
+          return annotation;
+        }
+
+        return { ...annotation, points: [...points, nextPoint] };
+      }));
+    };
+
+    const handleUp = () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+      emitViewerEvent('annotation:ink-created', { id, pageNumber: currentPage });
+    };
+
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+  };
+
+  const updateAnnotation = (id: string, updates: Partial<PdfAnnotation>) => {
+    setAnnotations(previous => previous.map(annotation => (
+      annotation.id === id && (!annotation.locked || Object.keys(updates).every(key => key === 'locked'))
+        ? { ...annotation, ...updates }
+        : annotation
+    )));
+  };
+
+  const beginAnnotationInteraction = (
+    event: React.MouseEvent,
+    annotation: PdfAnnotation,
+    mode: AnnotationInteraction['mode'],
+  ) => {
+    if (annotation.locked) {
+      return;
+    }
+
+    event.stopPropagation();
+    event.preventDefault();
+    setSelectedAnnotationId(annotation.id);
+    annotationInteractionRef.current = {
+      id: annotation.id,
+      mode,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startX: annotation.xPct,
+      startY: annotation.yPct,
+      startWidth: annotation.widthPct,
+      startHeight: annotation.heightPct,
+    };
+
+    const handleMove = (moveEvent: MouseEvent) => {
+      const interaction = annotationInteractionRef.current;
+      const bounds = pageStackRef.current?.getBoundingClientRect();
+      if (!interaction || !bounds) {
+        return;
+      }
+
+      const deltaXPct = ((moveEvent.clientX - interaction.startClientX) / bounds.width) * 100;
+      const deltaYPct = ((moveEvent.clientY - interaction.startClientY) / bounds.height) * 100;
+      if (interaction.mode === 'move') {
+        updateAnnotation(interaction.id, {
+          xPct: clamp(interaction.startX + deltaXPct, 0, 100 - interaction.startWidth),
+          yPct: clamp(interaction.startY + deltaYPct, 0, 100 - interaction.startHeight),
+        });
+        return;
+      }
+
+      updateAnnotation(interaction.id, {
+        widthPct: clamp(interaction.startWidth + deltaXPct, 8, 100 - interaction.startX),
+        heightPct: clamp(interaction.startHeight + deltaYPct, 6, 100 - interaction.startY),
+      });
+    };
+
+    const handleUp = () => {
+      const interaction = annotationInteractionRef.current;
+      annotationInteractionRef.current = null;
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+      if (interaction) {
+        emitViewerEvent(`annotation:${interaction.mode}`, { id: interaction.id });
+      }
+    };
+
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+  };
+
+  const deleteAnnotation = (id: string) => {
+    const target = annotations.find(annotation => annotation.id === id);
+    if (target?.locked) {
+      emitViewerEvent('annotation:delete-blocked', { id });
+      return;
+    }
+
+    setAnnotations(previous => previous.filter(annotation => annotation.id !== id));
+    setSelectedAnnotationId(current => (current === id ? null : current));
+    emitViewerEvent('annotation:deleted', { id });
+  };
+
+  const downloadAnnotationSidecar = () => {
+    const payload = {
+      version: 1,
+      sourceName: source?.name ?? null,
+      exportedAt: new Date().toISOString(),
+      annotations,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const sourceName = source?.name?.replace(/\.pdf$/i, '') || 'document';
+    link.href = url;
+    link.download = `${sourceName}-annotations.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    emitViewerEvent('annotations:exported', { count: annotations.length });
+  };
+
+  const importAnnotationSidecar = async (file: File | null) => {
+    if (!file) {
+      return;
+    }
+
+    try {
+      const raw = await file.text();
+      const parsed = JSON.parse(raw) as { annotations?: PdfAnnotation[] } | PdfAnnotation[];
+      const imported = Array.isArray(parsed) ? parsed : parsed.annotations;
+      if (!Array.isArray(imported)) {
+        throw new Error('Annotation sidecar does not contain an annotations array.');
+      }
+
+      setAnnotations(imported);
+      setSelectedAnnotationId(null);
+      emitViewerEvent('annotations:imported', { count: imported.length });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Annotation sidecar import failed.';
+      emitViewerEvent('annotations:import-failed', { message });
+    }
   };
 
   const printHref = (href: string, label: string, revokeAfterPrint = false) => {
@@ -527,6 +857,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
             <button className="pdfv-icon-button" type="button" onClick={() => setPrintDialogOpen(true)} disabled={!source} title="Print">
               <FiPrinter />
             </button>
+            <button className={reviewPanelOpen ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewPanelOpen(value => !value)} disabled={!source}>
+              <FiEdit3 />
+              <span>Review</span>
+            </button>
           </div>
         </section>
 
@@ -610,6 +944,158 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
           </section>
         )}
 
+        {reviewPanelOpen && (
+          <section className="pdfv-review-panel" aria-label="Review annotations">
+            <div className="pdfv-review-tools">
+              <strong>Review</strong>
+              <button className={reviewTool === 'view' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('view')}>
+                View
+              </button>
+              <button className={reviewTool === 'note' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('note')}>
+                <FiMessageSquare />
+                <span>Note</span>
+              </button>
+              <button className={reviewTool === 'freeText' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('freeText')}>
+                <FiType />
+                <span>Text</span>
+              </button>
+              <button className={reviewTool === 'stamp' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('stamp')}>
+                <FiTag />
+                <span>Stamp</span>
+              </button>
+              <button className={reviewTool === 'line' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('line')}>
+                <FiMinus />
+                <span>Line</span>
+              </button>
+              <button className={reviewTool === 'rectangle' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('rectangle')}>
+                <FiSquare />
+                <span>Rect</span>
+              </button>
+              <button className={reviewTool === 'circle' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('circle')}>
+                <FiCircle />
+                <span>Circle</span>
+              </button>
+              <button className={reviewTool === 'ink' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('ink')}>
+                <FiPenTool />
+                <span>Ink</span>
+              </button>
+              <button className={reviewTool === 'highlight' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('highlight')}>
+                <FiEdit3 />
+                <span>Highlight</span>
+              </button>
+              <button className={reviewTool === 'underline' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('underline')}>
+                <FiUnderline />
+                <span>Underline</span>
+              </button>
+              <button className={reviewTool === 'strikeout' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('strikeout')}>
+                <FiMinus />
+                <span>Strike</span>
+              </button>
+              {reviewTool === 'stamp' && (
+                <label className="pdfv-stamp-select">
+                  <span>Stamp</span>
+                  <select
+                    value={selectedStamp}
+                    onChange={event => setSelectedStamp(event.target.value as StampLabel)}
+                  >
+                    {STAMP_LABELS.map(label => (
+                      <option key={label} value={label}>{label}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <label className="pdfv-author-input">
+                <span>Author</span>
+                <input value={reviewAuthor} onChange={event => setReviewAuthor(event.target.value)} />
+              </label>
+              <span className="pdfv-result-summary">{annotations.length} annotation{annotations.length === 1 ? '' : 's'}</span>
+            </div>
+            {selectedAnnotation && (
+              <div className="pdfv-annotation-controls">
+                <strong>Selected</strong>
+                <label className="pdfv-color-input">
+                  <span>Color</span>
+                  <input
+                    type="color"
+                    value={selectedAnnotation.color}
+                    disabled={selectedAnnotation.locked}
+                    onChange={event => updateAnnotation(selectedAnnotation.id, { color: event.target.value })}
+                  />
+                </label>
+                {selectedAnnotation.type !== 'ink' && (
+                  <>
+                    <label className="pdfv-size-input">
+                      <span>Width</span>
+                      <input
+                        type="number"
+                        min={8}
+                        max={90}
+                        value={Math.round(selectedAnnotation.widthPct)}
+                        disabled={selectedAnnotation.locked}
+                        onChange={event => updateAnnotation(selectedAnnotation.id, {
+                          widthPct: clamp(Number(event.target.value), 8, 100 - selectedAnnotation.xPct),
+                        })}
+                      />
+                    </label>
+                    <label className="pdfv-size-input">
+                      <span>Height</span>
+                      <input
+                        type="number"
+                        min={6}
+                        max={90}
+                        value={Math.round(selectedAnnotation.heightPct)}
+                        disabled={selectedAnnotation.locked}
+                        onChange={event => updateAnnotation(selectedAnnotation.id, {
+                          heightPct: clamp(Number(event.target.value), 6, 100 - selectedAnnotation.yPct),
+                        })}
+                      />
+                    </label>
+                  </>
+                )}
+                <button
+                  className={selectedAnnotation.locked ? 'pdfv-button is-active' : 'pdfv-button'}
+                  type="button"
+                  onClick={() => {
+                    updateAnnotation(selectedAnnotation.id, { locked: !selectedAnnotation.locked });
+                    emitViewerEvent(selectedAnnotation.locked ? 'annotation:unlocked' : 'annotation:locked', { id: selectedAnnotation.id });
+                  }}
+                >
+                  {selectedAnnotation.locked ? <FiUnlock /> : <FiLock />}
+                  <span>{selectedAnnotation.locked ? 'Unlock' : 'Lock'}</span>
+                </button>
+                <button
+                  className="pdfv-button"
+                  type="button"
+                  disabled={selectedAnnotation.locked}
+                  onClick={() => deleteAnnotation(selectedAnnotation.id)}
+                >
+                  <FiTrash2 />
+                  <span>Delete</span>
+                </button>
+              </div>
+            )}
+            <div className="pdfv-review-actions">
+              <label className="pdfv-button">
+                <FiUpload />
+                <span>Import sidecar</span>
+                <input
+                  className="sr-only"
+                  type="file"
+                  accept="application/json,.json"
+                  onChange={event => {
+                    void importAnnotationSidecar(event.target.files?.[0] ?? null);
+                    event.target.value = '';
+                  }}
+                />
+              </label>
+              <button className="pdfv-button" type="button" onClick={downloadAnnotationSidecar} disabled={annotations.length === 0}>
+                <FiDownload />
+                <span>Export sidecar</span>
+              </button>
+            </div>
+          </section>
+        )}
+
         <section className="pdfv-workspace">
           {!source && (
             <div className="pdfv-empty">
@@ -668,6 +1154,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 )}
 
                 <div className="pdfv-page-frame">
+                  <div
+                    className={reviewTool === 'view' ? 'pdfv-page-stack' : 'pdfv-page-stack is-annotating'}
+                    ref={pageStackRef}
+                    onClick={addAnnotationAtPoint}
+                    onMouseDown={beginInkDrawing}
+                  >
                   <Page
                     pageNumber={currentPage}
                     scale={zoom}
@@ -676,6 +1168,100 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                     renderAnnotationLayer
                     loading={<div className="pdfv-state">Rendering page...</div>}
                   />
+                    <div className="pdfv-annotation-layer" aria-label="Annotation sidecar layer">
+                      {currentPageInkAnnotations.length > 0 && (
+                        <svg className="pdfv-ink-layer" viewBox="0 0 100 100" preserveAspectRatio="none">
+                          {currentPageInkAnnotations.map(annotation => (
+                            <polyline
+                              key={annotation.id}
+                              className={selectedAnnotationId === annotation.id ? 'is-selected' : ''}
+                              points={(annotation.points ?? []).map(point => `${point.xPct},${point.yPct}`).join(' ')}
+                              stroke={annotation.color}
+                              onClick={event => {
+                                event.stopPropagation();
+                                setSelectedAnnotationId(annotation.id);
+                              }}
+                            />
+                          ))}
+                        </svg>
+                      )}
+                      {currentPageBoxAnnotations.map(annotation => (
+                        <div
+                          key={annotation.id}
+                          className={[
+                            'pdfv-annotation',
+                            `pdfv-annotation-${annotation.type}`,
+                            selectedAnnotationId === annotation.id ? 'is-selected' : '',
+                            annotation.locked ? 'is-locked' : '',
+                          ].filter(Boolean).join(' ')}
+                          style={{
+                            left: `${annotation.xPct}%`,
+                            top: `${annotation.yPct}%`,
+                            width: `${annotation.widthPct}%`,
+                            minHeight: `${annotation.heightPct}%`,
+                            borderColor: annotation.color,
+                            color: annotation.type === 'stamp' ? annotation.color : undefined,
+                          }}
+                          onClick={event => {
+                            event.stopPropagation();
+                            setSelectedAnnotationId(annotation.id);
+                          }}
+                        >
+                          <button
+                            className="pdfv-annotation-drag"
+                            type="button"
+                            aria-label="Move annotation"
+                            disabled={annotation.locked}
+                            onMouseDown={event => beginAnnotationInteraction(event, annotation, 'move')}
+                          />
+                          {annotation.type === 'stamp'
+                            ? <strong className="pdfv-stamp-label">{annotation.text}</strong>
+                            : annotation.type === 'line'
+                              ? <span className="pdfv-shape-line" />
+                              : annotation.type === 'highlight'
+                                ? <span className="pdfv-markup-highlight" />
+                                : annotation.type === 'underline'
+                                  ? <span className="pdfv-markup-underline" />
+                                  : annotation.type === 'strikeout'
+                                    ? <span className="pdfv-markup-strikeout" />
+                              : annotation.type === 'rectangle'
+                                ? <span className="pdfv-shape-rectangle" />
+                                : annotation.type === 'circle'
+                                  ? <span className="pdfv-shape-circle" />
+                            : (
+                              <textarea
+                                value={annotation.text}
+                                aria-label={`${annotation.type} annotation`}
+                                disabled={annotation.locked}
+                                onChange={event => updateAnnotationText(annotation.id, event.target.value)}
+                              />
+                            )}
+                          <div className="pdfv-annotation-meta">
+                            <span>{annotation.author}</span>
+                            {annotation.locked && <FiLock aria-label="Locked annotation" />}
+                            <button
+                              type="button"
+                              aria-label="Delete annotation"
+                              disabled={annotation.locked}
+                              onClick={event => {
+                                event.stopPropagation();
+                                deleteAnnotation(annotation.id);
+                              }}
+                            >
+                              <FiTrash2 />
+                            </button>
+                          </div>
+                          <button
+                            className="pdfv-annotation-resize"
+                            type="button"
+                            aria-label="Resize annotation"
+                            disabled={annotation.locked}
+                            onMouseDown={event => beginAnnotationInteraction(event, annotation, 'resize')}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </Document>
