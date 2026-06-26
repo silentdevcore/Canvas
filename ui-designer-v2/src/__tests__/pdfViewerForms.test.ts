@@ -1,5 +1,5 @@
 import { PDFDocument } from 'pdf-lib';
-import { fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldInfo } from '../features/pdf-viewer/pdfForms';
+import { extractPdfFormFieldsFromBackend, fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldInfo } from '../features/pdf-viewer/pdfForms';
 
 const createSampleFormPdf = async (): Promise<ArrayBuffer> => {
   const pdf = await PDFDocument.create();
@@ -36,6 +36,13 @@ const createSampleFormPdf = async (): Promise<ArrayBuffer> => {
 };
 
 describe('pdf viewer form helpers', () => {
+  const fetchMock = jest.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    global.fetch = fetchMock;
+  });
+
   test('reads AcroForm field metadata and values', async () => {
     const fields = await readPdfFormFields(await createSampleFormPdf());
 
@@ -88,5 +95,31 @@ describe('pdf viewer form helpers', () => {
     expect(sameFormValue(['A', 'B'], ['A', 'B'])).toBe(true);
     expect(sameFormValue(['B', 'A'], ['A', 'B'])).toBe(false);
   });
-});
 
+  test('extractPdfFormFieldsFromBackend posts pdf file', async () => {
+    const file = new File(['%PDF form'], 'form.pdf', { type: 'application/pdf' });
+    const fields: PdfFormFieldInfo[] = [{
+      name: 'customer.name',
+      kind: 'text',
+      value: 'Ada',
+      originalValue: 'Ada',
+      options: [],
+      multiline: false,
+    }];
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ sourceName: 'form.pdf', fields }),
+    } as Response);
+
+    const response = await extractPdfFormFieldsFromBackend(file);
+
+    expect(response).toEqual(fields);
+    expect(fetchMock).toHaveBeenCalledWith('/api/pdf-viewer/forms/extract', {
+      method: 'POST',
+      body: expect.any(FormData),
+    });
+
+    const form = fetchMock.mock.calls[0][1].body as FormData;
+    expect(form.get('file')).toBe(file);
+  });
+});

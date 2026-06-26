@@ -19,6 +19,11 @@ export interface PdfFormFieldInfo {
   multiline?: boolean;
 }
 
+interface BackendFormFieldsResponse {
+  sourceName: string | null;
+  fields: PdfFormFieldInfo[];
+}
+
 const cloneFieldValue = (value: PdfFormFieldValue): PdfFormFieldValue => (
   Array.isArray(value) ? [...value] : value
 );
@@ -108,6 +113,24 @@ export const readPdfFormFields = async (bytes: ArrayBuffer): Promise<PdfFormFiel
   });
 };
 
+export const extractPdfFormFieldsFromBackend = async (pdfFile: File): Promise<PdfFormFieldInfo[]> => {
+  const form = new FormData();
+  form.append('file', pdfFile);
+
+  const response = await fetch('/api/pdf-viewer/forms/extract', {
+    method: 'POST',
+    body: form,
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.error || `HTTP ${response.status}`);
+  }
+
+  const payload = await response.json() as BackendFormFieldsResponse;
+  return payload.fields;
+};
+
 export const fillPdfFormFields = async (
   bytes: ArrayBuffer,
   fields: PdfFormFieldInfo[],
@@ -177,4 +200,3 @@ export const fillPdfFormFields = async (
 
   return pdf.save();
 };
-
