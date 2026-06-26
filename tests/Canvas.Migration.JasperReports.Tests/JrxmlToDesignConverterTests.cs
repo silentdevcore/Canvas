@@ -63,6 +63,43 @@ public sealed class JrxmlToDesignConverterTests
     private static bool Has(IEnumerable<MigrationDiagnostic> diags, string id) => diags.Any(x => x.Id == id);
 
     [Fact]
+    public void GroupResetSumVariable_TranslatesToGroupScopedAggregate()
+    {
+        var jrxml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Agg"
+                pageWidth="595" pageHeight="842" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+              <field name="amount" class="java.math.BigDecimal"/>
+              <field name="country" class="java.lang.String"/>
+              <variable name="totalAmount" class="java.math.BigDecimal" resetType="Group" resetGroup="byCountry" calculation="Sum">
+                <variableExpression><![CDATA[$F{amount}]]></variableExpression>
+              </variable>
+              <group name="byCountry">
+                <groupExpression><![CDATA[$F{country}]]></groupExpression>
+                <groupFooter>
+                  <band height="20">
+                    <textField>
+                      <reportElement key="grpTotal" x="0" y="0" width="200" height="20"/>
+                      <textFieldExpression><![CDATA[$V{totalAmount}]]></textFieldExpression>
+                    </textField>
+                  </band>
+                </groupFooter>
+              </group>
+              <detail>
+                <band height="20">
+                  <textField>
+                    <reportElement key="amt" x="0" y="0" width="200" height="20"/>
+                    <textFieldExpression><![CDATA[$F{amount}]]></textFieldExpression>
+                  </textField>
+                </band>
+              </detail>
+            </jasperReport>
+            """;
+
+        Assert.Equal("$sum($group, \"amount\")", El(Convert(jrxml).Design, "grpTotal").Expression);
+    }
+
+    [Fact]
     public void Convert_ParsesBandsAndPageInPoints()
     {
         var r = Convert(SampleJrxml);

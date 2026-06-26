@@ -342,6 +342,10 @@ public sealed class JrxmlToDesignConverter
         var sharedElements = new List<ElementDto>();
         var mapped = 0;
 
+        // Jasper aggregates are variables: a group-reset <variable calculation="Sum"> over $F{field}
+        // referenced via $V{name} → the executable Canvas helper $sum($group, "field").
+        var variableAggregates = BuildVariableAggregates(report.Variables);
+
         foreach (var raw in report.Elements)
         {
             var band = raw.Band is not null && bandByName.TryGetValue(raw.Band, out var b) ? b : null;
@@ -360,7 +364,7 @@ public sealed class JrxmlToDesignConverter
 
             diagnostics.Add(Info("CANMIGJRXML002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
 
-            if (raw.Type == "textField" && raw.Expression is { } expr) ApplyBinding(element, expr, diagnostics);
+            if (raw.Type == "textField" && raw.Expression is { } expr) ApplyBinding(element, expr, diagnostics, variableAggregates);
             ApplyVisibility(element, raw, diagnostics);
             ApplyGroupMetadata(element, raw, band, diagnostics);
             ApplyDetailRepeatMetadata(element, raw, band, report, diagnostics);
@@ -1050,6 +1054,8 @@ public sealed class JrxmlToDesignConverter
     {
         var item = ParseNamedDeclaration(element);
         AddText(item, "Calculation", Attr(element, "calculation"));
+        AddText(item, "ResetType", Attr(element, "resetType"));
+        AddText(item, "ResetGroup", Attr(element, "resetGroup"));
         AddText(item, "VariableExpression", Child(element, "variableExpression")?.Value.Trim());
         AddText(item, "InitialValueExpression", Child(element, "initialValueExpression")?.Value.Trim());
         return item;
@@ -1119,7 +1125,36 @@ public sealed class JrxmlToDesignConverter
         if (IsTrue(Attr(el, "isStrikeThrough"))) raw.Strikeout = true;
     }
 
-    private static void ApplyBinding(ElementDto element, string expression, List<MigrationDiagnostic> diagnostics)
+    // Map each group-reset aggregate variable (calculation="Sum"/… over a single $F{field}) to the Canvas
+    // helper $sum($group, "field"). Report/page-scoped variables aren't mapped (no Canvas dataset name).
+    private static Dictionary<string, string> BuildVariableAggregates(List<Dictionary<string, object>> variables)
+    {
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var v in variables)
+        {
+            if (v.GetValueOrDefault("Name")?.ToString() is not { Length: > 0 } name) continue;
+            if (AggregateHelper(v.GetValueOrDefault("Calculation")?.ToString()) is not { } helper) continue;
+            if (!string.Equals(v.GetValueOrDefault("ResetType")?.ToString(), "Group", StringComparison.OrdinalIgnoreCase)) continue;
+            var field = Regex.Match(v.GetValueOrDefault("VariableExpression")?.ToString() ?? "", @"^\s*\$F\{(\w+)\}\s*$");
+            if (!field.Success) continue;
+            map[name] = $"{helper}({ExpressionTranslator.GroupScopeToken}, \"{field.Groups[1].Value}\")";
+        }
+        return map;
+    }
+
+    private static string? AggregateHelper(string? calculation) => calculation switch
+    {
+        "Sum" => "$sum",
+        "Average" => "$avg",
+        "Count" or "DistinctCount" => "$count",
+        "Lowest" => "$min",
+        "Highest" => "$max",
+        "First" => "$first",
+        _ => null
+    };
+
+    private static void ApplyBinding(ElementDto element, string expression, List<MigrationDiagnostic> diagnostics,
+        IReadOnlyDictionary<string, string>? variableAggregates = null)
     {
         if (TryParseJasperToken(expression, out var kind, out var name))
         {
@@ -1130,6 +1165,13 @@ public sealed class JrxmlToDesignConverter
                 element.Binding = name;
                 element.Expression = null;
                 diagnostics.Add(Info("CANMIGJRXML010", $"'{element.Name}' bound to $F{{{name}}} → Canvas binding '{name}'."));
+            }
+            else if (kind == "V" && variableAggregates is not null && variableAggregates.TryGetValue(name, out var agg))
+            {
+                // $V{name} resolves to a group-scoped aggregate variable → executable Canvas helper.
+                element.Expression = agg;
+                diagnostics.Add(Info("CANMIGJRXML010",
+                    $"'{element.Name}' variable '$V{{{name}}}' → Canvas aggregate '{agg}'."));
             }
             else
             {
