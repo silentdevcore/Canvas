@@ -9,10 +9,14 @@ namespace Canvas.WebApi.Controllers;
 public sealed class PdfViewerAnnotationsController : ControllerBase
 {
     private readonly PdfViewerAnnotationStore _store;
+    private readonly PdfViewerAnnotationFlatteningService _flatteningService;
 
-    public PdfViewerAnnotationsController(PdfViewerAnnotationStore store)
+    public PdfViewerAnnotationsController(
+        PdfViewerAnnotationStore store,
+        PdfViewerAnnotationFlatteningService flatteningService)
     {
         _store = store;
+        _flatteningService = flatteningService;
     }
 
     [HttpPost]
@@ -57,6 +61,50 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
     {
         _store.Delete(documentId);
         return NoContent();
+    }
+
+    [HttpPost("flatten")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(FileContentResult), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> Flatten(
+        IFormFile? file,
+        [FromForm] string? sidecar,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "A PDF file is required." });
+        if (!file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase) &&
+            !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "Only PDF files are accepted." });
+        if (string.IsNullOrWhiteSpace(sidecar))
+            return BadRequest(new { error = "sidecar is required." });
+
+        try
+        {
+            using var sidecarDocument = JsonDocument.Parse(sidecar);
+            var annotations = sidecarDocument.RootElement.ValueKind == JsonValueKind.Array
+                ? sidecarDocument.RootElement
+                : sidecarDocument.RootElement.TryGetProperty("annotations", out var sidecarAnnotations)
+                    ? sidecarAnnotations
+                    : default;
+
+            if (annotations.ValueKind != JsonValueKind.Array)
+                return BadRequest(new { error = "sidecar must contain an annotations array." });
+
+            await using var pdfStream = file.OpenReadStream();
+            var pdfBytes = await _flatteningService.FlattenAsync(pdfStream, annotations, cancellationToken);
+            var safeName = Path.GetFileNameWithoutExtension(file.FileName);
+            return File(pdfBytes, "application/pdf", $"{safeName}-reviewed.pdf");
+        }
+        catch (JsonException)
+        {
+            return BadRequest(new { error = "sidecar must be valid JSON." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = $"Could not flatten annotations: {ex.Message}" });
+        }
     }
 
     private static PdfViewerAnnotationsResponse ToResponse(StoredPdfViewerAnnotations stored) => new()

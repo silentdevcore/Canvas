@@ -47,7 +47,8 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 - [x] Viewer controls: thumbnails, page navigation, zoom, fit page/width, search, download, all/current/range print
 - [x] Review sidecar model: note, free text, stamp, line, rectangle, circle, ink, highlight, underline, strikeout
 - [x] Review editing: select, move, resize, recolor, edit text, delete, lock/unlock
-- [x] Sidecar persistence: JSON import/export plus backend save/load/delete
+- [x] Sidecar persistence: JSON import/export plus backend save/load/delete with durable JSON file storage
+- [x] Flatten workflow: current sidecar annotations can be rendered into a reviewed PDF download
 - [x] Backend routes:
       `POST /api/pdf-viewer/annotations`,
       `GET /api/pdf-viewer/annotations/{documentId}`,
@@ -59,11 +60,11 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 
 Intentional remaining gaps:
 
-- [ ] Sidecar backend storage is in-memory only; durable storage/user ownership is still open.
-- [ ] Sidecar annotations are not yet embedded back into PDF files.
+- [ ] Sidecar backend storage is durable JSON file storage, but user ownership/access control is still open.
+- [ ] Sidecar annotations can be flattened into a reviewed PDF, but are not yet embedded as editable PDF annotation objects.
 - [ ] Text markup is area-based, not true text-selection-bound PDF markup.
-- [ ] Advanced controls remain open for ink thickness/opacity/eraser, line endings, shape fill/stroke opacity,
-      custom stamps, image annotations, forms, redaction, localization, keyboard navigation, and Playwright smoke tests.
+- [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, and image annotations.
+      Remaining gaps: forms, redaction, localization, keyboard navigation, and Playwright smoke tests.
 
 ## P0 - Viewer Foundation
 
@@ -76,8 +77,8 @@ Intentional remaining gaps:
       Implemented with result navigation, case-sensitive search, page jump, and text-layer highlighting where PDF.js text spans contain the match.
 - [x] **Print workflow** - Print current/all/range pages with an option to include annotations once annotations exist.
       Implemented all/current/range print options. Current/range print creates a temporary subset PDF with `pdf-lib`.
-- [ ] **Download/save workflow** - Download the current PDF; later include annotation/form changes when persisted editing exists.
-      Baseline download exists for uploaded files and URL PDFs. Save/persist edited PDF remains open.
+- [x] **Download/save workflow** - Download the current PDF; later include annotation/form changes when persisted editing exists.
+      Baseline download exists for uploaded files and URL PDFs. Review annotations can be downloaded as a flattened PDF.
 - [x] **Viewer event API** - Emit events for open, page changed, zoom changed, print started/completed/failed, save/download, and search result selected.
       Implemented as browser `pdf-viewer:event` custom events plus a small in-view event trace.
 
@@ -131,7 +132,9 @@ our own implementation, UI language, and engine boundaries.
 - [ ] Add localization hooks for English/German UI strings.
 - [ ] Add viewer configuration API to hide/show toolbar groups and override button behavior.
 - [x] Add backend sidecar storage API for viewer review state.
-      Implemented `POST/GET/DELETE /api/pdf-viewer/annotations` with in-memory version-1 sidecar storage and wired UI Save/Load/Delete controls.
+      Implemented `POST/GET/DELETE /api/pdf-viewer/annotations` with durable version-1 sidecar JSON storage and wired UI Save/Load/Delete controls.
+- [x] Add backend flatten API for reviewed PDF downloads.
+      Implemented `POST /api/pdf-viewer/annotations/flatten` for PDF + sidecar input and reviewed PDF output.
 
 ### Technical Decision Points
 
@@ -145,6 +148,7 @@ our own implementation, UI language, and engine boundaries.
 - [ ] Decide how tests verify viewer behavior: unit tests for state, Playwright smoke tests for UI, and
       PDF binary tests for saved annotations/forms later.
       Added focused Jest tests for `annotations.ts` sidecar parsing/serialization and `annotationApi.ts` API client behavior. Playwright smoke tests and PDF binary tests remain open.
+      Added API coverage for durable sidecar reload from disk.
 
 ## P1 - Review And Annotation Workflow
 
@@ -155,19 +159,20 @@ our own implementation, UI language, and engine boundaries.
 - [x] **Free text annotations** - Add/edit text boxes with font, size, color, alignment, border/background.
       Baseline add/edit/delete/move/resize is implemented with color and size controls. Advanced font/alignment/background/border controls remain open.
 - [x] **Sticky note annotations** - Add note annotations with author/date/content metadata.
-- [ ] **Drawing annotations** - Ink/freehand drawing with color, opacity, thickness, and eraser.
-      Baseline freehand ink drawing is implemented with color, selection, lock/unlock, delete, and sidecar persistence. Opacity, thickness, and eraser remain open.
-- [ ] **Line annotations** - Lines with thickness, opacity, color, and line endings.
-      Baseline line annotations are implemented with color, move, resize, and delete. Thickness, opacity, and line endings remain open.
-- [ ] **Shape annotations** - Rectangle/circle annotations with fill, stroke, opacity, and thickness.
-      Baseline rectangle and circle annotations are implemented with color, move, resize, and delete. Fill, opacity, and stroke thickness controls remain open.
+- [x] **Drawing annotations** - Ink/freehand drawing with color, opacity, thickness, and eraser.
+      Freehand ink drawing is implemented with color, opacity, stroke width, eraser, selection, lock/unlock, delete, sidecar persistence, and flattened PDF output.
+- [x] **Line annotations** - Lines with thickness, opacity, color, and line endings.
+      Line annotations support color, opacity, stroke width, start/end line endings, move, resize, delete, sidecar persistence, and flattened PDF output.
+- [x] **Shape annotations** - Rectangle/circle annotations with fill, stroke, opacity, and thickness.
+      Rectangle and circle annotations support stroke color, stroke width, opacity, optional fill color, move, resize, delete, sidecar persistence, and flattened PDF output.
 - [x] **Stamp annotations** - Predefined text stamps such as approved/draft/confidential plus custom stamp extension point.
-      Predefined Draft, Approved, Final, and Confidential stamps are implemented. Custom stamp extension point remains open.
-- [ ] **Image annotations** - Place an image on a PDF page as an annotation/review mark.
+      Predefined Draft, Approved, Final, and Confidential stamps are implemented, and users can place/edit custom stamp text without changing the sidecar schema.
+- [x] **Image annotations** - Place an image on a PDF page as an annotation/review mark.
+      Image annotations support upload as sidecar data URLs, page placement, move/resize/lock/delete, opacity, sidecar persistence, and flattened PDF output.
 - [x] **Annotation selection/editing** - Select, move, resize, lock/unlock, delete, and update annotations.
       Implemented for sidecar annotations.
 - [ ] **Annotation persistence** - Save annotations back into PDF or export/import an annotation sidecar format.
-      Sidecar import/export exists in the UI, and backend in-memory sidecar save/get/delete is wired through the viewer. Writing annotations into PDFs remains open.
+      Sidecar import/export exists in the UI, backend durable sidecar save/get/delete is wired through the viewer, and reviewed PDFs can be downloaded with flattened annotations. Writing editable PDF annotation objects remains open.
 
 ## P1 - Forms And Redaction
 

@@ -28,7 +28,9 @@ describe('pdf viewer annotation sidecar model', () => {
     expect(annotationTypeFromTool('view')).toBe('freeText');
     expect(annotationTypeFromTool('note')).toBe('note');
     expect(annotationTypeFromTool('stamp')).toBe('stamp');
+    expect(annotationTypeFromTool('image')).toBe('image');
     expect(annotationTypeFromTool('ink')).toBe('ink');
+    expect(annotationTypeFromTool('inkEraser')).toBe('ink');
     expect(annotationTypeFromTool('strikeout')).toBe('strikeout');
   });
 
@@ -46,7 +48,14 @@ describe('pdf viewer annotation sidecar model', () => {
       sampleAnnotation({
         id: 'annotation-ink',
         type: 'ink',
+        opacity: 72,
+        strokeWidth: 5,
         points: [{ xPct: 10, yPct: 10 }, { xPct: 20, yPct: 22 }],
+      }),
+      sampleAnnotation({
+        id: 'annotation-image',
+        type: 'image',
+        imageDataUrl: 'data:image/png;base64,iVBORw0KGgo=',
       }),
     ];
 
@@ -55,11 +64,20 @@ describe('pdf viewer annotation sidecar model', () => {
     expect(sidecar.version).toBe(1);
     expect(sidecar.sourceName).toBe('document.pdf');
     expect(sidecar.annotations).toEqual(annotations);
+    expect(sidecar.annotations[1].strokeWidth).toBe(5);
+    expect(sidecar.annotations[1].opacity).toBe(72);
+    expect(sidecar.annotations[2].imageDataUrl).toContain('data:image/png');
     expect(Date.parse(sidecar.exportedAt)).not.toBeNaN();
   });
 
   test('parses current object sidecar and legacy raw array sidecar', () => {
-    const annotations = [sampleAnnotation({ locked: true })];
+    const annotations = [sampleAnnotation({
+      locked: true,
+      fillEnabled: true,
+      fillColor: '#ffffff',
+      lineEndingStart: 'circle',
+      lineEndingEnd: 'arrow',
+    })];
     const objectPayload = JSON.stringify(createAnnotationSidecar('document.pdf', annotations));
     const arrayPayload = JSON.stringify(annotations);
 

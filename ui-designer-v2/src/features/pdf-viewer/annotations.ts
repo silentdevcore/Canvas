@@ -3,10 +3,12 @@ export type ReviewTool =
   | 'note'
   | 'freeText'
   | 'stamp'
+  | 'image'
   | 'line'
   | 'rectangle'
   | 'circle'
   | 'ink'
+  | 'inkEraser'
   | 'highlight'
   | 'underline'
   | 'strikeout';
@@ -17,6 +19,7 @@ export type AnnotationType =
   | 'note'
   | 'freeText'
   | 'stamp'
+  | 'image'
   | 'line'
   | 'rectangle'
   | 'circle'
@@ -29,6 +32,8 @@ export interface InkPoint {
   xPct: number;
   yPct: number;
 }
+
+export type LineEnding = 'none' | 'arrow' | 'circle' | 'square';
 
 export interface PdfAnnotation {
   id: string;
@@ -44,6 +49,13 @@ export interface PdfAnnotation {
   color: string;
   locked?: boolean;
   points?: InkPoint[];
+  imageDataUrl?: string;
+  opacity?: number;
+  strokeWidth?: number;
+  fillColor?: string | null;
+  fillEnabled?: boolean;
+  lineEndingStart?: LineEnding;
+  lineEndingEnd?: LineEnding;
 }
 
 export interface PdfAnnotationSidecar {
@@ -73,6 +85,8 @@ export const annotationTypeFromTool = (tool: ReviewTool): AnnotationType => {
   switch (tool) {
     case 'stamp':
       return 'stamp';
+    case 'image':
+      return 'image';
     case 'note':
       return 'note';
     case 'line':
@@ -82,6 +96,8 @@ export const annotationTypeFromTool = (tool: ReviewTool): AnnotationType => {
     case 'circle':
       return 'circle';
     case 'ink':
+      return 'ink';
+    case 'inkEraser':
       return 'ink';
     case 'highlight':
       return 'highlight';

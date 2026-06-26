@@ -65,6 +65,7 @@ ui-designer-v2/tmp/
 # Local workspace state
 .claude/
 .dotnet-home/
+Canvas.WebApi/App_Data/
 BookingReceipt.Designer.cs
 designer-simples/
 

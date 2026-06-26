@@ -1,17 +1,35 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Canvas.Importer;
+using Canvas.Pdf;
+using Canvas.WebApi.Services;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 
 namespace Canvas.Api.Tests;
 
-public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
 {
     private readonly HttpClient _client;
+    private readonly string _storageRoot;
 
     public PdfViewerAnnotationsControllerTests(WebApplicationFactory<Program> factory)
     {
-        _client = factory.CreateClient();
+        _storageRoot = Path.Combine(Path.GetTempPath(), "canvas-pdf-viewer-api-tests", Guid.NewGuid().ToString("N"));
+        _client = factory
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureAppConfiguration((_, config) =>
+                {
+                    config.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["PdfViewer:AnnotationStoragePath"] = _storageRoot,
+                    });
+                });
+            })
+            .CreateClient();
     }
 
     [Fact]
@@ -117,5 +135,101 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
 
         Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
+    }
+
+    [Fact]
+    public void AnnotationStore_ReloadsSavedSidecarFromDisk()
+    {
+        var storageRoot = Path.Combine(Path.GetTempPath(), "canvas-pdf-viewer-tests", Guid.NewGuid().ToString("N"));
+        var documentId = $"doc/{Guid.NewGuid():N}";
+
+        try
+        {
+            using var annotations = JsonDocument.Parse("""[{ "id": "note1", "type": "note", "pageNumber": 1 }]""");
+            var firstStore = new PdfViewerAnnotationStore(storageRoot);
+            firstStore.Save(
+                documentId,
+                version: 1,
+                sourceName: "review.pdf",
+                exportedAt: DateTimeOffset.Parse("2026-06-25T10:00:00Z"),
+                annotations: annotations.RootElement);
+
+            var secondStore = new PdfViewerAnnotationStore(storageRoot);
+            var found = secondStore.TryGet(documentId, out var stored);
+
+            Assert.True(found);
+            Assert.Equal(documentId, stored.DocumentId);
+            Assert.Equal("review.pdf", stored.SourceName);
+            Assert.Equal("note", stored.Annotations[0].GetProperty("type").GetString());
+        }
+        finally
+        {
+            if (Directory.Exists(storageRoot))
+                Directory.Delete(storageRoot, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task FlattenAnnotations_ReturnsReviewedPdf()
+    {
+        var inputPdf = CreateSamplePdf();
+        using var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent(inputPdf)
+        {
+            Headers =
+            {
+                ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf"),
+            },
+        }, "file", "review.pdf");
+        form.Add(new StringContent("""
+            {
+              "version": 1,
+              "sourceName": "review.pdf",
+              "exportedAt": "2026-06-25T10:00:00Z",
+              "annotations": [
+                {
+                  "id": "note1",
+                  "type": "note",
+                  "pageNumber": 1,
+                  "xPct": 10,
+                  "yPct": 10,
+                  "widthPct": 30,
+                  "heightPct": 12,
+                  "text": "Reviewed",
+                  "author": "Reviewer",
+                  "createdAt": "2026-06-25T10:00:00Z",
+                  "color": "#facc15"
+                }
+              ]
+            }
+            """), "sidecar");
+
+        var response = await _client.PostAsync("/api/pdf-viewer/annotations/flatten", form);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
+
+        await using var output = await response.Content.ReadAsStreamAsync();
+        var document = await new PdfImporter().LoadAsync(output);
+        Assert.Contains(document.Pages.SelectMany(page => page.TextObjects), text => text.Text == "Reviewed");
+    }
+
+    public void Dispose()
+    {
+        _client.Dispose();
+
+        if (Directory.Exists(_storageRoot))
+            Directory.Delete(_storageRoot, recursive: true);
+    }
+
+    private static byte[] CreateSamplePdf()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage(300, 180);
+        page.DrawTextFromTop("Source PDF", 24, 24, 12);
+
+        using var stream = new MemoryStream();
+        document.Save(stream);
+        return stream.ToArray();
     }
 }

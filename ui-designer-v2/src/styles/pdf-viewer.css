@@ -247,6 +247,10 @@
   outline: 0;
 }
 
+.pdfv-stamp-text-input input {
+  width: 164px;
+}
+
 .pdfv-stamp-select {
   display: inline-flex;
   height: 36px;
@@ -315,6 +319,17 @@
   color: #1d2939;
   font: inherit;
   outline: 0;
+}
+
+.pdfv-slider-input input {
+  width: 96px;
+}
+
+.pdfv-slider-input small {
+  min-width: 34px;
+  color: #667085;
+  font-size: 0.74rem;
+  text-align: right;
 }
 
 .pdfv-workspace {
@@ -495,14 +510,22 @@
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 0.7;
   pointer-events: stroke;
   vector-effect: non-scaling-stroke;
 }
 
 .pdfv-ink-layer polyline.is-selected {
   filter: drop-shadow(0 0 4px rgba(14, 116, 144, 0.8));
-  stroke-width: 1.1;
+}
+
+.pdfv-ink-layer polyline.is-erasable {
+  cursor: crosshair;
+  filter: drop-shadow(0 0 5px rgba(180, 35, 24, 0.55));
+}
+
+.pdfv-ink-layer polyline.is-locked {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .pdfv-annotation {
@@ -574,6 +597,11 @@
   transform: rotate(-7deg);
 }
 
+.pdfv-annotation-image {
+  overflow: hidden;
+  padding: 0;
+}
+
 .pdfv-annotation-line,
 .pdfv-annotation-rectangle,
 .pdfv-annotation-circle,
@@ -595,7 +623,6 @@
   outline-offset: 6px;
 }
 
-.pdfv-shape-line,
 .pdfv-shape-rectangle,
 .pdfv-shape-circle,
 .pdfv-markup-highlight,
@@ -610,29 +637,36 @@
 }
 
 .pdfv-shape-line {
-  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 24px;
+  color: inherit;
+  overflow: visible;
+  pointer-events: none;
 }
 
-.pdfv-shape-line::before,
+.pdfv-shape-line line {
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: var(--pdfv-stroke-width, 3px);
+  vector-effect: non-scaling-stroke;
+}
+
 .pdfv-markup-underline::before,
 .pdfv-markup-strikeout::before {
   position: absolute;
   left: 0;
   width: 100%;
-  height: 3px;
+  height: var(--pdfv-stroke-width, 3px);
   background: currentColor;
   content: '';
   transform: translateY(-50%);
 }
 
-.pdfv-shape-line::before {
-  top: 50%;
-}
-
 .pdfv-markup-highlight {
   min-height: 18px;
   background: currentColor;
-  opacity: 0.44;
 }
 
 .pdfv-markup-underline,
@@ -650,14 +684,14 @@
 }
 
 .pdfv-shape-rectangle {
-  border: 3px solid currentColor;
-  background: rgba(255, 255, 255, 0.08);
+  border: var(--pdfv-stroke-width, 3px) solid currentColor;
+  background: var(--pdfv-fill-color, transparent);
 }
 
 .pdfv-shape-circle {
-  border: 3px solid currentColor;
+  border: var(--pdfv-stroke-width, 3px) solid currentColor;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--pdfv-fill-color, transparent);
 }
 
 .pdfv-stamp-label {
@@ -673,6 +707,17 @@
   letter-spacing: 0;
   line-height: 1;
   text-transform: uppercase;
+}
+
+.pdfv-image-content {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 72px;
+  border-radius: 4px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
 }
 
 .pdfv-annotation textarea {

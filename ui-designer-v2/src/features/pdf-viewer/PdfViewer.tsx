@@ -9,6 +9,7 @@ import {
   FiDownload,
   FiEdit3,
   FiFileText,
+  FiImage,
   FiLink,
   FiLock,
   FiMaximize2,
@@ -36,11 +37,12 @@ import {
   parseAnnotationSidecar,
   stampColor,
   type InkPoint,
+  type LineEnding,
   type PdfAnnotation,
   type ReviewTool,
   type StampLabel,
 } from './annotations';
-import { deleteSavedAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
+import { deleteSavedAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -154,6 +156,30 @@ const parsePageRange = (range: string, maxPage: number): number[] => {
   return Array.from(pages).sort((a, b) => a - b);
 };
 
+const defaultStrokeWidthForType = (type: PdfAnnotation['type']): number => (
+  type === 'highlight' ? 1 : type === 'underline' || type === 'strikeout' ? 2 : type === 'ink' ? 2 : 3
+);
+
+const defaultOpacityForType = (type: PdfAnnotation['type']): number => (
+  type === 'highlight' ? 45 : type === 'note' ? 96 : 100
+);
+
+const supportsStrokeWidth = (type: PdfAnnotation['type']): boolean => (
+  ['ink', 'line', 'rectangle', 'circle', 'highlight', 'underline', 'strikeout'].includes(type)
+);
+
+const supportsOpacity = (type: PdfAnnotation['type']): boolean => (
+  ['ink', 'line', 'rectangle', 'circle', 'highlight', 'underline', 'strikeout', 'note', 'freeText', 'stamp', 'image'].includes(type)
+);
+
+const supportsFill = (type: PdfAnnotation['type']): boolean => type === 'rectangle' || type === 'circle';
+
+const supportsLineEndings = (type: PdfAnnotation['type']): boolean => type === 'line';
+
+const annotationStrokeWidth = (annotation: PdfAnnotation): number => annotation.strokeWidth ?? defaultStrokeWidthForType(annotation.type);
+
+const annotationOpacity = (annotation: PdfAnnotation): number => annotation.opacity ?? defaultOpacityForType(annotation.type);
+
 const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const [source, setSource] = useState<PdfSource | null>(initialSource);
   const [urlInput, setUrlInput] = useState(initialSource?.url ?? '');
@@ -183,6 +209,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const [selectedAnnotationId, setSelectedAnnotationId] = useState<string | null>(null);
   const [reviewAuthor, setReviewAuthor] = useState('Reviewer');
   const [selectedStamp, setSelectedStamp] = useState<StampLabel>('Draft');
+  const [customStampText, setCustomStampText] = useState('');
+  const [pendingImageDataUrl, setPendingImageDataUrl] = useState<string | null>(null);
   const [annotationApiStatus, setAnnotationApiStatus] = useState<string | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const pageStackRef = useRef<HTMLDivElement | null>(null);
@@ -263,6 +291,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     setLoadError(null);
     setSearchResults([]);
     setAnnotations([]);
+    setPendingImageDataUrl(null);
     setSelectedAnnotationId(null);
     setSelectedResultIndex(0);
     emitViewerEvent('open:file', { name: file.name });
@@ -279,6 +308,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     setLoadError(null);
     setSearchResults([]);
     setAnnotations([]);
+    setPendingImageDataUrl(null);
     setSelectedAnnotationId(null);
     setSelectedResultIndex(0);
     emitViewerEvent('open:url', { url: trimmedUrl });
@@ -435,8 +465,43 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     emitViewerEvent('download:started', { name: source.name });
   };
 
+  const eraseInkAnnotation = useCallback((id: string) => {
+    setAnnotations(previous => {
+      const target = previous.find(annotation => annotation.id === id);
+      if (!target || target.type !== 'ink' || target.locked) {
+        return previous;
+      }
+
+      emitViewerEvent('annotation:ink-erased', { id });
+      return previous.filter(annotation => annotation.id !== id);
+    });
+    setSelectedAnnotationId(current => (current === id ? null : current));
+  }, [emitViewerEvent]);
+
+  const selectImageAnnotationFile = async (file: File | null) => {
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      emitViewerEvent('annotation:image-rejected', { name: file.name });
+      return;
+    }
+
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error('Image could not be read.'));
+      reader.readAsDataURL(file);
+    });
+
+    setPendingImageDataUrl(dataUrl);
+    setReviewTool('image');
+    emitViewerEvent('annotation:image-selected', { name: file.name });
+  };
+
   const addAnnotationAtPoint = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (reviewTool === 'view' || reviewTool === 'ink' || !source) {
+    if (reviewTool === 'view' || reviewTool === 'ink' || reviewTool === 'inkEraser' || !source) {
       return;
     }
 
@@ -448,19 +513,32 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     const xPct = clamp(((event.clientX - bounds.left) / bounds.width) * 100, 0, 96);
     const yPct = clamp(((event.clientY - bounds.top) / bounds.height) * 100, 0, 96);
     const type = annotationTypeFromTool(reviewTool);
+    if (type === 'image' && !pendingImageDataUrl) {
+      return;
+    }
+    const stampText = type === 'stamp' && customStampText.trim()
+      ? customStampText.trim().slice(0, 48)
+      : selectedStamp;
     const nextAnnotation: PdfAnnotation = {
       id: `annotation-${Date.now()}-${Math.round(Math.random() * 1000)}`,
       type,
       pageNumber: currentPage,
       xPct,
       yPct,
-      widthPct: type === 'highlight' || type === 'underline' || type === 'strikeout' ? 26 : type === 'line' ? 26 : type === 'stamp' ? 24 : type === 'note' ? 18 : type === 'circle' ? 16 : type === 'rectangle' ? 22 : 28,
-      heightPct: type === 'highlight' || type === 'underline' || type === 'strikeout' ? 4 : type === 'line' ? 4 : type === 'stamp' ? 9 : type === 'note' ? 12 : type === 'circle' ? 16 : type === 'rectangle' ? 12 : 10,
-      text: type === 'stamp' ? selectedStamp : type === 'note' ? 'New note' : type === 'freeText' ? 'Text annotation' : '',
+      widthPct: type === 'highlight' || type === 'underline' || type === 'strikeout' ? 26 : type === 'line' ? 26 : type === 'stamp' ? 24 : type === 'image' ? 24 : type === 'note' ? 18 : type === 'circle' ? 16 : type === 'rectangle' ? 22 : 28,
+      heightPct: type === 'highlight' || type === 'underline' || type === 'strikeout' ? 4 : type === 'line' ? 4 : type === 'stamp' ? 9 : type === 'image' ? 16 : type === 'note' ? 12 : type === 'circle' ? 16 : type === 'rectangle' ? 12 : 10,
+      text: type === 'stamp' ? stampText : type === 'note' ? 'New note' : type === 'freeText' ? 'Text annotation' : '',
       author: reviewAuthor.trim() || 'Reviewer',
       createdAt: new Date().toISOString(),
-      color: type === 'highlight' ? '#fef08a' : type === 'underline' ? '#2563eb' : type === 'strikeout' ? '#dc2626' : type === 'stamp' ? stampColor(selectedStamp) : type === 'note' ? '#facc15' : type === 'freeText' ? '#38bdf8' : '#ef4444',
+      color: type === 'highlight' ? '#fef08a' : type === 'underline' ? '#2563eb' : type === 'strikeout' ? '#dc2626' : type === 'stamp' ? stampColor(selectedStamp) : type === 'image' ? '#0e7490' : type === 'note' ? '#facc15' : type === 'freeText' ? '#38bdf8' : '#ef4444',
       locked: false,
+      imageDataUrl: type === 'image' ? pendingImageDataUrl ?? undefined : undefined,
+      opacity: defaultOpacityForType(type),
+      strokeWidth: defaultStrokeWidthForType(type),
+      fillColor: type === 'rectangle' || type === 'circle' ? '#ffffff' : null,
+      fillEnabled: false,
+      lineEndingStart: 'none',
+      lineEndingEnd: type === 'line' ? 'arrow' : 'none',
     };
 
     setAnnotations(previous => [...previous, nextAnnotation]);
@@ -504,6 +582,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
       createdAt: new Date().toISOString(),
       color: '#ef4444',
       locked: false,
+      opacity: defaultOpacityForType('ink'),
+      strokeWidth: defaultStrokeWidthForType('ink'),
+      lineEndingStart: 'none',
+      lineEndingEnd: 'none',
       points: [firstPoint],
     };
 
@@ -630,6 +712,40 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     link.remove();
     URL.revokeObjectURL(url);
     emitViewerEvent('annotations:exported', { count: annotations.length });
+  };
+
+  const downloadFlattenedPdf = async () => {
+    if (!source || annotations.length === 0) {
+      return;
+    }
+
+    setAnnotationApiStatus('Flattening PDF...');
+    try {
+      const bytes = await getSourceBytes();
+      if (!bytes) {
+        throw new Error('No PDF source is available.');
+      }
+
+      const sourceName = source.name.toLowerCase().endsWith('.pdf') ? source.name : `${source.name}.pdf`;
+      const pdfFile = source.file instanceof File
+        ? source.file
+        : new File([bytes], sourceName, { type: 'application/pdf' });
+      const blob = await flattenAnnotations(pdfFile, createAnnotationSidecar(source?.name ?? null, annotations));
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = sourceName.replace(/\.pdf$/i, '-reviewed.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setAnnotationApiStatus(`Downloaded flattened PDF with ${annotations.length} annotation${annotations.length === 1 ? '' : 's'}.`);
+      emitViewerEvent('annotations:flattened', { count: annotations.length });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Flatten failed.';
+      setAnnotationApiStatus(message);
+      emitViewerEvent('annotations:flatten-failed', { message });
+    }
   };
 
   const saveAnnotationSidecar = async () => {
@@ -961,6 +1077,19 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 <FiTag />
                 <span>Stamp</span>
               </button>
+              <label className={reviewTool === 'image' ? 'pdfv-button is-active' : 'pdfv-button'}>
+                <FiImage />
+                <span>Image</span>
+                <input
+                  className="sr-only"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={event => {
+                    void selectImageAnnotationFile(event.target.files?.[0] ?? null);
+                    event.target.value = '';
+                  }}
+                />
+              </label>
               <button className={reviewTool === 'line' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('line')}>
                 <FiMinus />
                 <span>Line</span>
@@ -977,6 +1106,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 <FiPenTool />
                 <span>Ink</span>
               </button>
+              <button className={reviewTool === 'inkEraser' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('inkEraser')}>
+                <FiTrash2 />
+                <span>Eraser</span>
+              </button>
               <button className={reviewTool === 'highlight' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('highlight')}>
                 <FiEdit3 />
                 <span>Highlight</span>
@@ -990,17 +1123,28 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 <span>Strike</span>
               </button>
               {reviewTool === 'stamp' && (
-                <label className="pdfv-stamp-select">
-                  <span>Stamp</span>
-                  <select
-                    value={selectedStamp}
-                    onChange={event => setSelectedStamp(event.target.value as StampLabel)}
-                  >
-                    {STAMP_LABELS.map(label => (
-                      <option key={label} value={label}>{label}</option>
-                    ))}
-                  </select>
-                </label>
+                <>
+                  <label className="pdfv-stamp-select">
+                    <span>Stamp</span>
+                    <select
+                      value={selectedStamp}
+                      onChange={event => setSelectedStamp(event.target.value as StampLabel)}
+                    >
+                      {STAMP_LABELS.map(label => (
+                        <option key={label} value={label}>{label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="pdfv-author-input pdfv-stamp-text-input">
+                    <span>Custom</span>
+                    <input
+                      value={customStampText}
+                      maxLength={48}
+                      placeholder={selectedStamp}
+                      onChange={event => setCustomStampText(event.target.value)}
+                    />
+                  </label>
+                </>
               )}
               <label className="pdfv-author-input">
                 <span>Author</span>
@@ -1020,6 +1164,100 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                     onChange={event => updateAnnotation(selectedAnnotation.id, { color: event.target.value })}
                   />
                 </label>
+                {supportsOpacity(selectedAnnotation.type) && (
+                  <label className="pdfv-size-input pdfv-slider-input">
+                    <span>Opacity</span>
+                    <input
+                      type="range"
+                      min={10}
+                      max={100}
+                      value={annotationOpacity(selectedAnnotation)}
+                      disabled={selectedAnnotation.locked}
+                      onChange={event => updateAnnotation(selectedAnnotation.id, {
+                        opacity: clamp(Number(event.target.value), 10, 100),
+                      })}
+                    />
+                    <small>{annotationOpacity(selectedAnnotation)}%</small>
+                  </label>
+                )}
+                {supportsStrokeWidth(selectedAnnotation.type) && (
+                  <label className="pdfv-size-input">
+                    <span>Stroke</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={16}
+                      value={annotationStrokeWidth(selectedAnnotation)}
+                      disabled={selectedAnnotation.locked}
+                      onChange={event => updateAnnotation(selectedAnnotation.id, {
+                        strokeWidth: clamp(Number(event.target.value), 1, 16),
+                      })}
+                    />
+                  </label>
+                )}
+                {supportsFill(selectedAnnotation.type) && (
+                  <>
+                    <label className="pdfv-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(selectedAnnotation.fillEnabled)}
+                        disabled={selectedAnnotation.locked}
+                        onChange={event => updateAnnotation(selectedAnnotation.id, { fillEnabled: event.target.checked })}
+                      />
+                      <span>Fill</span>
+                    </label>
+                    <label className="pdfv-color-input">
+                      <span>Fill color</span>
+                      <input
+                        type="color"
+                        value={selectedAnnotation.fillColor ?? '#ffffff'}
+                        disabled={selectedAnnotation.locked || !selectedAnnotation.fillEnabled}
+                        onChange={event => updateAnnotation(selectedAnnotation.id, { fillColor: event.target.value })}
+                      />
+                    </label>
+                  </>
+                )}
+                {supportsLineEndings(selectedAnnotation.type) && (
+                  <>
+                    <label className="pdfv-stamp-select">
+                      <span>Start</span>
+                      <select
+                        value={selectedAnnotation.lineEndingStart ?? 'none'}
+                        disabled={selectedAnnotation.locked}
+                        onChange={event => updateAnnotation(selectedAnnotation.id, { lineEndingStart: event.target.value as LineEnding })}
+                      >
+                        <option value="none">None</option>
+                        <option value="arrow">Arrow</option>
+                        <option value="circle">Circle</option>
+                        <option value="square">Square</option>
+                      </select>
+                    </label>
+                    <label className="pdfv-stamp-select">
+                      <span>End</span>
+                      <select
+                        value={selectedAnnotation.lineEndingEnd ?? 'arrow'}
+                        disabled={selectedAnnotation.locked}
+                        onChange={event => updateAnnotation(selectedAnnotation.id, { lineEndingEnd: event.target.value as LineEnding })}
+                      >
+                        <option value="none">None</option>
+                        <option value="arrow">Arrow</option>
+                        <option value="circle">Circle</option>
+                        <option value="square">Square</option>
+                      </select>
+                    </label>
+                  </>
+                )}
+                {selectedAnnotation.type === 'stamp' && (
+                  <label className="pdfv-author-input pdfv-stamp-text-input">
+                    <span>Text</span>
+                    <input
+                      value={selectedAnnotation.text}
+                      maxLength={48}
+                      disabled={selectedAnnotation.locked}
+                      onChange={event => updateAnnotationText(selectedAnnotation.id, event.target.value)}
+                    />
+                  </label>
+                )}
                 {selectedAnnotation.type !== 'ink' && (
                   <>
                     <label className="pdfv-size-input">
@@ -1089,6 +1327,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
               <button className="pdfv-button" type="button" onClick={downloadAnnotationSidecar} disabled={annotations.length === 0}>
                 <FiDownload />
                 <span>Export sidecar</span>
+              </button>
+              <button className="pdfv-button" type="button" onClick={() => void downloadFlattenedPdf()} disabled={!source || annotations.length === 0}>
+                <FiFileText />
+                <span>Flatten PDF</span>
               </button>
               <button className="pdfv-button" type="button" onClick={() => void saveAnnotationSidecar()} disabled={annotations.length === 0}>
                 <FiDownload />
@@ -1185,12 +1427,28 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                           {currentPageInkAnnotations.map(annotation => (
                             <polyline
                               key={annotation.id}
-                              className={selectedAnnotationId === annotation.id ? 'is-selected' : ''}
+                              className={[
+                                selectedAnnotationId === annotation.id ? 'is-selected' : '',
+                                reviewTool === 'inkEraser' && !annotation.locked ? 'is-erasable' : '',
+                                annotation.locked ? 'is-locked' : '',
+                              ].filter(Boolean).join(' ')}
                               points={(annotation.points ?? []).map(point => `${point.xPct},${point.yPct}`).join(' ')}
                               stroke={annotation.color}
+                              strokeOpacity={annotationOpacity(annotation) / 100}
+                              strokeWidth={annotationStrokeWidth(annotation)}
                               onClick={event => {
                                 event.stopPropagation();
+                                if (reviewTool === 'inkEraser') {
+                                  eraseInkAnnotation(annotation.id);
+                                  return;
+                                }
+
                                 setSelectedAnnotationId(annotation.id);
+                              }}
+                              onPointerEnter={() => {
+                                if (reviewTool === 'inkEraser') {
+                                  eraseInkAnnotation(annotation.id);
+                                }
                               }}
                             />
                           ))}
@@ -1211,7 +1469,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                             width: `${annotation.widthPct}%`,
                             minHeight: `${annotation.heightPct}%`,
                             borderColor: annotation.color,
-                            color: annotation.type === 'stamp' ? annotation.color : undefined,
+                            color: annotation.color,
+                            opacity: annotationOpacity(annotation) / 100,
+                            ['--pdfv-stroke-width' as string]: `${annotationStrokeWidth(annotation)}px`,
+                            ['--pdfv-fill-color' as string]: annotation.fillEnabled ? (annotation.fillColor ?? annotation.color) : 'transparent',
                           }}
                           onClick={event => {
                             event.stopPropagation();
@@ -1225,10 +1486,42 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                             disabled={annotation.locked}
                             onMouseDown={event => beginAnnotationInteraction(event, annotation, 'move')}
                           />
-                          {annotation.type === 'stamp'
+                          {annotation.type === 'image'
+                            ? (
+                              <img
+                                className="pdfv-image-content"
+                                src={annotation.imageDataUrl}
+                                alt={annotation.text || 'Image annotation'}
+                                draggable={false}
+                              />
+                            )
+                            : annotation.type === 'stamp'
                             ? <strong className="pdfv-stamp-label">{annotation.text}</strong>
                             : annotation.type === 'line'
-                              ? <span className="pdfv-shape-line" />
+                              ? (
+                                <svg className="pdfv-shape-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                                  <defs>
+                                    <marker id={`line-start-${annotation.id}`} markerWidth="10" markerHeight="10" refX="2" refY="5" orient="auto" markerUnits="strokeWidth">
+                                      {annotation.lineEndingStart === 'arrow' && <path d="M10 0 L0 5 L10 10 z" fill="currentColor" />}
+                                      {annotation.lineEndingStart === 'circle' && <circle cx="5" cy="5" r="4" fill="currentColor" />}
+                                      {annotation.lineEndingStart === 'square' && <rect x="1.5" y="1.5" width="7" height="7" fill="currentColor" />}
+                                    </marker>
+                                    <marker id={`line-end-${annotation.id}`} markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+                                      {annotation.lineEndingEnd === 'arrow' && <path d="M0 0 L10 5 L0 10 z" fill="currentColor" />}
+                                      {annotation.lineEndingEnd === 'circle' && <circle cx="5" cy="5" r="4" fill="currentColor" />}
+                                      {annotation.lineEndingEnd === 'square' && <rect x="1.5" y="1.5" width="7" height="7" fill="currentColor" />}
+                                    </marker>
+                                  </defs>
+                                  <line
+                                    x1="2"
+                                    y1="50"
+                                    x2="98"
+                                    y2="50"
+                                    markerStart={annotation.lineEndingStart && annotation.lineEndingStart !== 'none' ? `url(#line-start-${annotation.id})` : undefined}
+                                    markerEnd={annotation.lineEndingEnd && annotation.lineEndingEnd !== 'none' ? `url(#line-end-${annotation.id})` : undefined}
+                                  />
+                                </svg>
+                              )
                               : annotation.type === 'highlight'
                                 ? <span className="pdfv-markup-highlight" />
                                 : annotation.type === 'underline'

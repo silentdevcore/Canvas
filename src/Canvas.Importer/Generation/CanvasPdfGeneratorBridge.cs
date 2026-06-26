@@ -42,7 +42,16 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
         _renderer = renderer;
     }
 
-    public async Task RegenerateAsync(PdfDocumentModel document, Stream output, CancellationToken cancellationToken = default)
+    public Task RegenerateAsync(PdfDocumentModel document, Stream output, CancellationToken cancellationToken = default)
+    {
+        return RegenerateAsync(document, output, configureDocument: null, cancellationToken);
+    }
+
+    public async Task RegenerateAsync(
+        PdfDocumentModel document,
+        Stream output,
+        Action<CanvasPdfDocument>? configureDocument,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(output);
@@ -55,7 +64,10 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
                 .ToList())
             .ToList();
 
-        var bytes = _renderer.Render(CreateDocument(document));
+        var canvasDocument = CreateDocument(document);
+        configureDocument?.Invoke(canvasDocument);
+
+        var bytes = _renderer.Render(canvasDocument);
         if (shadingPlans.Any(static plan => plan.Count > 0))
         {
             bytes = PreserveShadings(bytes, document, shadingPlans);
