@@ -45,6 +45,7 @@ import {
 } from './annotations';
 import { deleteSavedAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
 import { pdfViewerLabels, resolvePdfViewerLocale, type PdfViewerLocale } from './i18n';
+import { fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldInfo, type PdfFormFieldValue } from './pdfForms';
 import { configurePdfWorker } from './pdfWorker';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -221,6 +222,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const [pendingImageDataUrl, setPendingImageDataUrl] = useState<string | null>(null);
   const [viewerLocale, setViewerLocale] = useState<PdfViewerLocale>(() => resolvePdfViewerLocale());
   const [annotationApiStatus, setAnnotationApiStatus] = useState<string | null>(null);
+  const [formPanelOpen, setFormPanelOpen] = useState(false);
+  const [formFields, setFormFields] = useState<PdfFormFieldInfo[]>([]);
+  const [formStatus, setFormStatus] = useState<string | null>(null);
+  const [flattenFormFields, setFlattenFormFields] = useState(false);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const pageStackRef = useRef<HTMLDivElement | null>(null);
   const eventIdRef = useRef(0);
@@ -233,6 +238,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const selectedAnnotation = annotations.find(annotation => annotation.id === selectedAnnotationId) ?? null;
   const documentId = useMemo(() => documentIdFromSource(source), [source]);
   const labels = pdfViewerLabels[viewerLocale];
+  const changedFormFields = formFields.filter(field => !sameFormValue(field.value, field.originalValue));
 
   const emitViewerEvent = useCallback((label: string, detail: Record<string, unknown> = {}) => {
     eventIdRef.current += 1;
@@ -369,6 +375,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     setLoadError(null);
     setSearchResults([]);
     setAnnotations([]);
+    setFormFields([]);
+    setFormStatus(null);
     setPendingImageDataUrl(null);
     setSelectedAnnotationId(null);
     setSelectedResultIndex(0);
@@ -386,6 +394,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     setLoadError(null);
     setSearchResults([]);
     setAnnotations([]);
+    setFormFields([]);
+    setFormStatus(null);
     setPendingImageDataUrl(null);
     setSelectedAnnotationId(null);
     setSelectedResultIndex(0);
@@ -484,7 +494,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     emitViewerEvent('search:selected', { pageNumber: result.pageNumber, result: nextIndex + 1 });
   };
 
-  const getSourceBytes = async (): Promise<ArrayBuffer | null> => {
+  const getSourceBytes = useCallback(async (): Promise<ArrayBuffer | null> => {
     if (!source) {
       return null;
     }
@@ -504,7 +514,51 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     }
 
     return response.arrayBuffer();
-  };
+  }, [source]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadFormFields = async () => {
+      if (!source) {
+        setFormFields([]);
+        setFormStatus(null);
+        return;
+      }
+
+      setFormStatus(labels.formLoading);
+      try {
+        const bytes = await getSourceBytes();
+        if (!bytes || cancelled) {
+          return;
+        }
+
+        const fields = await readPdfFormFields(bytes);
+        if (cancelled) {
+          return;
+        }
+
+        setFormFields(fields);
+        setFormStatus(fields.length > 0 ? null : labels.formNone);
+        emitViewerEvent('forms:loaded', { count: fields.length });
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        const message = error instanceof Error ? error.message : labels.formLoadFailed;
+        setFormFields([]);
+        setFormStatus(message);
+        emitViewerEvent('forms:load-failed', { message });
+      }
+    };
+
+    void loadFormFields();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [emitViewerEvent, getSourceBytes, labels.formLoadFailed, labels.formLoading, labels.formNone, source]);
 
   const buildSubsetPdfUrl = async (pages: number[]): Promise<string> => {
     const bytes = await getSourceBytes();
@@ -541,6 +595,55 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     link.click();
     link.remove();
     emitViewerEvent('download:started', { name: source.name });
+  };
+
+  const updateFormFieldValue = (name: string, value: PdfFormFieldValue) => {
+    setFormFields(previous => previous.map(field => (
+      field.name === name ? { ...field, value } : field
+    )));
+  };
+
+  const resetFormFields = () => {
+    setFormFields(previous => previous.map(field => ({
+      ...field,
+      value: Array.isArray(field.originalValue) ? [...field.originalValue] : field.originalValue,
+    })));
+    setFormStatus(null);
+    emitViewerEvent('forms:reset');
+  };
+
+  const downloadFilledFormPdf = async () => {
+    if (!source || formFields.length === 0) {
+      return;
+    }
+
+    setFormStatus(labels.formSaving);
+    try {
+      const bytes = await getSourceBytes();
+      if (!bytes) {
+        throw new Error('No PDF source is available.');
+      }
+
+      const filledBytes = await fillPdfFormFields(bytes, formFields, flattenFormFields);
+      const filledBuffer = new ArrayBuffer(filledBytes.byteLength);
+      new Uint8Array(filledBuffer).set(filledBytes);
+      const blob = new Blob([filledBuffer], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const sourceName = source.name.toLowerCase().endsWith('.pdf') ? source.name : `${source.name}.pdf`;
+      link.href = url;
+      link.download = sourceName.replace(/\.pdf$/i, flattenFormFields ? '-flattened-form.pdf' : '-filled.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setFormStatus(flattenFormFields ? labels.formFlattened : labels.formDownloaded);
+      emitViewerEvent('forms:downloaded', { count: changedFormFields.length, flattened: flattenFormFields });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : labels.formSaveFailed;
+      setFormStatus(message);
+      emitViewerEvent('forms:download-failed', { message });
+    }
   };
 
   const eraseInkAnnotation = useCallback((id: string) => {
@@ -1053,6 +1156,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
               <FiEdit3 />
               <span>{labels.review}</span>
             </button>
+            <button className={formPanelOpen ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setFormPanelOpen(value => !value)} disabled={!source}>
+              <FiFileText />
+              <span>{labels.forms}</span>
+            </button>
             <label className="pdfv-stamp-select">
               <span>{labels.language}</span>
               <select value={viewerLocale} onChange={event => setViewerLocale(event.target.value as PdfViewerLocale)}>
@@ -1139,6 +1246,95 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
               {printError && <span className="pdfv-print-error">{printError}</span>}
               <button className="pdfv-button" type="button" onClick={() => setPrintDialogOpen(false)}>{labels.cancel}</button>
               <button className="pdfv-button pdfv-button-primary" type="button" onClick={() => void printCurrentPdf()}>{labels.print}</button>
+            </div>
+          </section>
+        )}
+
+        {formPanelOpen && (
+          <section className="pdfv-form-panel" aria-label={labels.formFields}>
+            <div className="pdfv-form-header">
+              <strong>{labels.formFields}</strong>
+              <span className="pdfv-result-summary">
+                {formFields.length} {formFields.length === 1 ? labels.formField : labels.formFieldsPlural}
+                {changedFormFields.length > 0 ? `, ${changedFormFields.length} ${labels.formChanged}` : ''}
+              </span>
+            </div>
+
+            {formFields.length > 0 ? (
+              <div className="pdfv-form-fields">
+                {formFields.map(field => (
+                  <label key={field.name} className="pdfv-form-field">
+                    <span>
+                      <strong>{field.name}</strong>
+                      <small>{field.kind}{field.multiline ? `, ${labels.multiline}` : ''}</small>
+                    </span>
+                    {field.kind === 'text' && field.multiline ? (
+                      <textarea
+                        value={String(field.value)}
+                        onChange={event => updateFormFieldValue(field.name, event.target.value)}
+                      />
+                    ) : field.kind === 'text' ? (
+                      <input
+                        value={String(field.value)}
+                        onChange={event => updateFormFieldValue(field.name, event.target.value)}
+                      />
+                    ) : field.kind === 'checkbox' ? (
+                      <input
+                        type="checkbox"
+                        checked={field.value === true}
+                        onChange={event => updateFormFieldValue(field.name, event.target.checked)}
+                      />
+                    ) : field.kind === 'radio' || field.kind === 'dropdown' ? (
+                      <select
+                        value={String(field.value)}
+                        onChange={event => updateFormFieldValue(field.name, event.target.value)}
+                      >
+                        <option value="">-</option>
+                        {field.options.map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    ) : field.kind === 'list' ? (
+                      <select
+                        multiple
+                        value={Array.isArray(field.value) ? field.value : []}
+                        onChange={event => updateFormFieldValue(
+                          field.name,
+                          Array.from(event.target.selectedOptions).map(option => option.value),
+                        )}
+                      >
+                        {field.options.map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <em>{labels.unsupportedField}</em>
+                    )}
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <span className="pdfv-form-empty">{formStatus || labels.formNoFields}</span>
+            )}
+
+            <div className="pdfv-form-actions">
+              <label className="pdfv-checkbox">
+                <input
+                  type="checkbox"
+                  checked={flattenFormFields}
+                  onChange={event => setFlattenFormFields(event.target.checked)}
+                  disabled={formFields.length === 0}
+                />
+                <span>{labels.flattenFields}</span>
+              </label>
+              <button className="pdfv-button" type="button" onClick={resetFormFields} disabled={formFields.length === 0 || changedFormFields.length === 0}>
+                {labels.resetForms}
+              </button>
+              <button className="pdfv-button pdfv-button-primary" type="button" onClick={() => void downloadFilledFormPdf()} disabled={formFields.length === 0}>
+                <FiDownload />
+                <span>{labels.downloadFilledPdf}</span>
+              </button>
+              {formStatus && formFields.length > 0 && <span className="pdfv-api-status">{formStatus}</span>}
             </div>
           </section>
         )}

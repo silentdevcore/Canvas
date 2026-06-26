@@ -22,6 +22,7 @@
 .pdfv-toolbar,
 .pdfv-search-panel,
 .pdfv-print-panel,
+.pdfv-form-panel,
 .pdfv-review-panel {
   display: flex;
   flex-wrap: wrap;
@@ -40,6 +41,8 @@
 .pdfv-result-controls,
 .pdfv-print-options,
 .pdfv-print-actions,
+.pdfv-form-header,
+.pdfv-form-actions,
 .pdfv-review-tools,
 .pdfv-review-actions,
 .pdfv-annotation-controls {
@@ -206,6 +209,88 @@
 .pdfv-print-error {
   color: #b42318;
   font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.pdfv-form-panel {
+  align-items: flex-start;
+}
+
+.pdfv-form-header {
+  min-height: 36px;
+}
+
+.pdfv-form-header strong {
+  white-space: nowrap;
+}
+
+.pdfv-form-fields {
+  display: grid;
+  flex: 1 1 520px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.pdfv-form-field {
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(23, 32, 51, 0.14);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+}
+
+.pdfv-form-field > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pdfv-form-field strong {
+  overflow: hidden;
+  color: #1d2939;
+  font-size: 0.88rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pdfv-form-field small,
+.pdfv-form-field em {
+  color: #667085;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 650;
+}
+
+.pdfv-form-field input:not([type='checkbox']),
+.pdfv-form-field select,
+.pdfv-form-field textarea {
+  min-height: 34px;
+  width: 100%;
+  border: 1px solid rgba(23, 32, 51, 0.14);
+  border-radius: 7px;
+  background: #f8fafc;
+  color: #1d2939;
+  font: inherit;
+  padding: 6px 8px;
+  outline: 0;
+}
+
+.pdfv-form-field textarea {
+  min-height: 74px;
+  resize: vertical;
+}
+
+.pdfv-form-field input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+}
+
+.pdfv-form-empty {
+  color: #667085;
+  font-size: 0.88rem;
   font-weight: 650;
 }
 

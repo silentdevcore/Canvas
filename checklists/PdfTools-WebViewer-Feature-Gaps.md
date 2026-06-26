@@ -49,6 +49,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 - [x] Review editing: select, move, resize, recolor, edit text, delete, lock/unlock
 - [x] Sidecar persistence: JSON import/export plus backend save/load/delete with durable JSON file storage
 - [x] Flatten workflow: current sidecar annotations can be rendered into a reviewed PDF download
+- [x] Form workflow: existing AcroForm fields can be detected, edited, downloaded as filled PDFs, and optionally flattened
 - [x] Backend routes:
       `POST /api/pdf-viewer/annotations`,
       `GET /api/pdf-viewer/annotations/{documentId}`,
@@ -56,15 +57,17 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 - [x] Tests:
       `PdfViewerAnnotationsControllerTests`,
       `pdfViewerAnnotations.test.ts`,
-      `pdfViewerAnnotationApi.test.ts`
+      `pdfViewerAnnotationApi.test.ts`,
+      `pdfViewerForms.test.ts`,
+      `pdfViewerSmoke.test.tsx`
 
 Intentional remaining gaps:
 
 - [ ] Sidecar backend storage is durable JSON file storage, but user ownership/access control is still open.
 - [ ] Sidecar annotations can be flattened into a reviewed PDF, but are not yet embedded as editable PDF annotation objects.
 - [ ] Text markup is area-based, not true text-selection-bound PDF markup.
-- [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, English/German viewer labels, keyboard shortcuts, and Jest component smoke coverage.
-      Remaining gaps: forms, secure redaction application, and optional Playwright browser smoke tests if Playwright is added to the project.
+- [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, form filling, English/German viewer labels, keyboard shortcuts, and Jest component smoke coverage.
+      Remaining gaps: secure redaction application and optional Playwright browser smoke tests if Playwright is added to the project.
 
 ## P0 - Viewer Foundation
 
@@ -78,7 +81,7 @@ Intentional remaining gaps:
 - [x] **Print workflow** - Print current/all/range pages with an option to include annotations once annotations exist.
       Implemented all/current/range print options. Current/range print creates a temporary subset PDF with `pdf-lib`.
 - [x] **Download/save workflow** - Download the current PDF; later include annotation/form changes when persisted editing exists.
-      Baseline download exists for uploaded files and URL PDFs. Review annotations can be downloaded as a flattened PDF.
+      Baseline download exists for uploaded files and URL PDFs. Review annotations can be downloaded as a flattened PDF. AcroForm changes can be downloaded as filled PDFs with optional flattening.
 - [x] **Viewer event API** - Emit events for open, page changed, zoom changed, print started/completed/failed, save/download, and search result selected.
       Implemented as browser `pdf-viewer:event` custom events plus a small in-view event trace.
 
@@ -124,8 +127,10 @@ our own implementation, UI language, and engine boundaries.
 
 ### Phase 3 - Professional PDF workflows
 
-- [ ] Show and edit existing AcroForm fields where import support exists.
-- [ ] Support save/flatten strategy for changed form values.
+- [x] Show and edit existing AcroForm fields where import support exists.
+      Implemented client-side AcroForm detection/editing for text, multiline text, checkbox, radio, dropdown, and list fields through `pdf-lib`.
+- [x] Support save/flatten strategy for changed form values.
+      Implemented download of filled PDFs plus an optional flatten-fields toggle. This is a client-side viewer workflow; backend/engine persistence remains a later bridge task.
 - [x] Add redaction mark mode for text/area selections.
       Pending redaction area marks can be placed, moved, resized, persisted in sidecar JSON, and rendered into flattened reviewed PDFs.
 - [ ] Add secure backend redaction application when the PDF engine can remove underlying content.
@@ -152,6 +157,7 @@ our own implementation, UI language, and engine boundaries.
       Added focused Jest tests for `annotations.ts` sidecar parsing/serialization and `annotationApi.ts` API client behavior. Playwright smoke tests and PDF binary tests remain open.
       Added API coverage for durable sidecar reload from disk.
       Added a Jest/jsdom PDF viewer smoke test because Playwright is not currently configured in `ui-designer-v2`.
+      Added focused Jest coverage for AcroForm read/fill helper behavior.
 
 ## P1 - Review And Annotation Workflow
 
@@ -179,8 +185,10 @@ our own implementation, UI language, and engine boundaries.
 
 ## P1 - Forms And Redaction
 
-- [ ] **Form field viewing/editing** - Fill text boxes, checkboxes, radio buttons, list boxes, and combo boxes in existing PDFs.
-- [ ] **Form save strategy** - Decide between saving filled fields into PDF, flattening, or sidecar persistence.
+- [x] **Form field viewing/editing** - Fill text boxes, checkboxes, radio buttons, list boxes, and combo boxes in existing PDFs.
+      Implemented in the PDF viewer Forms panel for pdf-lib-readable AcroForm fields.
+- [x] **Form save strategy** - Decide between saving filled fields into PDF, flattening, or sidecar persistence.
+      Decision for viewer baseline: write values into a downloaded PDF and optionally flatten fields. Durable backend-side form persistence remains open under Engine/Backend Support.
 - [x] **Redaction marks** - Let users mark text/page areas for redaction as visible pending annotations.
       Implemented as area-based pending redaction marks with sidecar persistence and flattened PDF output. These marks are visual and do not remove underlying PDF content.
 - [ ] **Apply secure redactions** - Remove underlying text/graphics/resources, not only paint black rectangles.
@@ -203,7 +211,9 @@ our own implementation, UI language, and engine boundaries.
 - [ ] **Annotation writer support** - Emit PDF annotations from Canvas model.
 - [ ] **Annotation reader support** - Import existing PDF annotations into Canvas model.
 - [ ] **Form reader support** - Import existing AcroForm fields and values.
+      Frontend viewer baseline exists through `pdf-lib`; shared backend/importer integration remains open.
 - [ ] **Form writer/flattening support** - Save field changes and optionally flatten fields.
+      Frontend viewer baseline can download filled/flattened PDFs through `pdf-lib`; shared backend/Canvas.PDF engine integration remains open.
 - [ ] **PDF-to-image/page rasterization** - Backend rasterization for thumbnails or fallback preview.
 - [ ] **Incremental update strategy** - Decide whether edited PDFs are fully rewritten or saved incrementally.
 
