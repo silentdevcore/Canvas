@@ -1891,6 +1891,39 @@ public sealed class RdlToDesignConverterTests
     }
 
     [Fact]
+    public void Convert_AggregateInListGroup_ScopesToGroupNotDataset()
+    {
+        // A textbox inside a List's group region: its Sum must scope to the current group ($group),
+        // not the whole dataset, and the element must carry groupField + a Repeat so the planner
+        // renders it once per group (a per-country subtotal, not the report grand total).
+        var rdl = """
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" Name="T">
+              <Body><ReportItems>
+                <List Name="byCountry">
+                  <Top>0in</Top><Left>0in</Left><Height>1in</Height><Width>4in</Width>
+                  <DataSetName>Sales</DataSetName>
+                  <Grouping Name="byCountry_Group">
+                    <GroupExpressions><GroupExpression>=Fields!Country.Value</GroupExpression></GroupExpressions>
+                  </Grouping>
+                  <ReportItems>
+                    <Textbox Name="subtotal">
+                      <Top>0in</Top><Left>0in</Left><Height>0.25in</Height><Width>2in</Width>
+                      <Value>=Sum(Fields!Amount.Value)</Value>
+                    </Textbox>
+                  </ReportItems>
+                </List>
+              </ReportItems><Height>5in</Height></Body>
+              <PageHeight>11in</PageHeight><PageWidth>8.5in</PageWidth>
+            </Report>
+            """;
+        var subtotal = El(Convert(rdl).Design, "subtotal");
+
+        Assert.Equal("$sum($group, \"Amount\")", subtotal.Expression);   // group-scoped, not $sum(Sales, ...)
+        Assert.Equal("Country", subtotal.Style!["groupField"]);
+        Assert.Equal("Sales", subtotal.Repeat!.DataPath);               // planner partitions this dataset by Country
+    }
+
+    [Fact]
     public void Convert_ActiveReportsRdlxSamples_AllConvertWithoutDroppingRegions()
     {
         if (FindActiveReportsSamplesDir() is not { } dir)

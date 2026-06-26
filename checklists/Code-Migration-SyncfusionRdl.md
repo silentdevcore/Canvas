@@ -190,10 +190,13 @@ The remaining items are optional native Canvas capabilities or blocked expressio
 - [x] Standard expressions are now **executable** in the designer/preview: the compound-expression branch
       emits a translated Canvas-grammar `Expression` via `ExpressionTranslator.TranslateRdl` (raw kept on
       `style.rdlExpression`). See [Migration_RDL+DevExpress.md](Migration_RDL+DevExpress.md).
-- [ ] `<Code>` / custom-function *evaluation* (blocked on Canvas `ExpressionEvaluator` being a
-      stub). Standard single-row expressions are translated + executed; **dataset aggregates
-      (`Sum`/`Avg`/`Count`/`Min`/`Max`/`First`/`Last`) now translate + execute** — see
-      [Migration_Dataset-Aggregates.md](Migration_Dataset-Aggregates.md).
+- [ ] `<Code>` / custom-function *evaluation* — arbitrary embedded VB, **not runnable** in Canvas (kept
+      preserved). Note the old "blocked on `ExpressionEvaluator` being a stub" reason is stale: the
+      evaluator now exists. Standard single-row expressions are translated + executed; **dataset aggregates
+      (`Sum`/`Avg`/`Count`/`Min`/`Max`/`First`/`Last`) translate + execute, and group-scoped aggregates
+      inside a List/group region resolve per group** — see
+      [Migration_Dataset-Aggregates.md](Migration_Dataset-Aggregates.md) and
+      [Group-Scoped-Aggregates.md](Group-Scoped-Aggregates.md).
 - [x] Native `Chart` and `CustomReportItem` Chart → Canvas `chart` placeholder with `ChartData` and RDL metadata
       (`rdlCategoryExpression`, `rdlValueExpression`, `style.rdlCustomProperties`) plus `CANMIGRDL017`.
 - [x] Native `Chart` fidelity pass: multiple series, `DataSetName`, title, original RDL series type, X/Y/Size

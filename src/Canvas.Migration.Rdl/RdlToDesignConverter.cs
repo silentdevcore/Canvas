@@ -146,7 +146,8 @@ public sealed class RdlToDesignConverter
 
     // Add a level of report items, recursing into any Rectangle's nested <ReportItems> (flattening its
     // children to absolute positions by accumulating the rectangle offset, like an XRPanel).
-    private void ParseReportItems(XElement? itemsEl, RawRegion region, double originX, double originY, RawReport report, int depth)
+    private void ParseReportItems(XElement? itemsEl, RawRegion region, double originX, double originY, RawReport report, int depth,
+        string? groupField = null, string? groupDataSet = null)
     {
         if (itemsEl is null) return;
         if (depth > NestingGuard) { report.DeepNesting = true; return; }
@@ -165,7 +166,9 @@ public sealed class RdlToDesignConverter
                 X = left,
                 Y = top,
                 W = LengthToPt(Child(item, "Width")?.Value),
-                H = LengthToPt(Child(item, "Height")?.Value)
+                H = LengthToPt(Child(item, "Height")?.Value),
+                GroupField = groupField,         // inherited from an enclosing List/group region
+                GroupDataSet = groupDataSet
             };
             ParseVisibility(item, raw);
             ParsePaginationMetadata(item, raw);
@@ -217,8 +220,23 @@ public sealed class RdlToDesignConverter
             report.Elements.Add(raw);
 
             if (type is "Rectangle" or "List")
-                ParseReportItems(Child(item, "ReportItems"), region, left, top, report, depth + 1);
+            {
+                // A List with a <Group> scopes its children to that group ($group aggregates);
+                // a Rectangle just forwards whatever group it already sits inside.
+                var childGroup = type == "List" && RdlGroupField(raw.TablixGroups) is { Length: > 0 } gf ? gf : groupField;
+                var childDataSet = type == "List" ? raw.DataSetName ?? report.DefaultDataSetName ?? groupDataSet : groupDataSet;
+                ParseReportItems(Child(item, "ReportItems"), region, left, top, report, depth + 1, childGroup, childDataSet);
+            }
         }
+    }
+
+    // The group field of an RDL group expression (e.g. "=Fields!Country.Value" → "Country"), or null.
+    private static string? RdlGroupField(List<RdlTablixGroup>? groups)
+    {
+        var expr = groups?.FirstOrDefault(g => g.Expressions.Length > 0)?.Expressions[0];
+        if (expr is null) return null;
+        var m = Regex.Match(expr, @"Fields!(\w+)");
+        return m.Success ? m.Groups[1].Value : null;
     }
 
     private void ParseTextbox(XElement el, RawElement raw)
@@ -1429,8 +1447,22 @@ public sealed class RdlToDesignConverter
 
             if (raw.TextExpression is { } expr)
             {
-                var ds = raw.DataSetName ?? report.DefaultDataSetName;       // element scope, else the sole report dataset
-                ApplyBinding(element, expr, diagnostics, string.IsNullOrWhiteSpace(ds) ? null : SafeRepeatPath(ds!));
+                if (raw.GroupField is { Length: > 0 } groupField)
+                {
+                    // Aggregate inside a List/group region scopes to the current group: translate with
+                    // $group, then tag the element with groupField + a Repeat over the region dataset so
+                    // the planner renders it once per group (a group subtotal, not the dataset grand total).
+                    ApplyBinding(element, expr, diagnostics, ExpressionTranslator.GroupScopeToken);
+                    element.Style ??= [];
+                    element.Style["groupField"] = groupField;
+                    if ((raw.GroupDataSet ?? report.DefaultDataSetName) is { Length: > 0 } gds)
+                        element.Repeat ??= new RepeatDto { DataPath = SafeRepeatPath(gds), TemplateId = element.Id };
+                }
+                else
+                {
+                    var ds = raw.DataSetName ?? report.DefaultDataSetName;       // element scope, else the sole report dataset
+                    ApplyBinding(element, expr, diagnostics, string.IsNullOrWhiteSpace(ds) ? null : SafeRepeatPath(ds!));
+                }
             }
             ApplyVisibility(element, raw, diagnostics);
             ApplyPaginationMetadata(element, raw, diagnostics);
@@ -2920,6 +2952,8 @@ public sealed class RdlToDesignConverter
         public List<string> TablixNestedItemNames = [];
         public List<Dictionary<string, object>> TablixNestedItemLayouts = [];
         public string? DataSetName;
+        public string? GroupField;            // group field inherited from an enclosing List/group region (for $group aggregates)
+        public string? GroupDataSet;          // the enclosing group region's dataset, so the planner can partition it
         public bool? TableHeaderRow;
         public bool TableHasFooter;
         public string? ImageDataUrl;

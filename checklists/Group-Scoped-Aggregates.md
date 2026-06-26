@@ -53,6 +53,13 @@ the current group's row subset, injected per group by the planner. e.g. `$sum($g
       designer preview/export render **server-side** (`/api/templates/render-design`, `/api/export` →
       `DesignLayoutPlanner`); the frontend `template/*` engine is a standalone/unit-tested implementation,
       so parity is proven by `__tests__/repeatExpander.test.ts` (`$sum($group, "Amount")` → per-group totals).
-- [ ] RDL converter: emit `$group` for textboxes inside a group region (needs group-membership tracking
-      for free-standing textboxes; today RDL aggregates scope to the whole dataset).
+- [x] **RDL converter: emit `$group` for textboxes inside a group region.** A `List`/grouped region now
+      propagates its group field + dataset to its child `ReportItems` (`ParseReportItems` carries
+      `groupField`/`groupDataSet`; `RdlGroupField` extracts the field from `=Fields!X.Value`). A free-standing
+      textbox that sits inside such a group and holds an aggregate is translated with `$group` (not the
+      dataset), and gets `style["groupField"]` + a `Repeat` over the region dataset so the planner renders it
+      once per group. Validated by `Convert_AggregateInListGroup_ScopesToGroupNotDataset`
+      (`=Sum(Fields!Amount.Value)` → `$sum($group, "Amount")`, groupField `Country`, Repeat `Sales`).
+      *Limitation:* aggregates inside Tablix group-footer **cells** (grid `CellData`) still scope to the
+      dataset — that needs compound per-group table-row rendering (tracked in Code-Migration-SyncfusionRdl P2).
 - [ ] Multi-level / nested groups; running totals (`RunningValue`).
