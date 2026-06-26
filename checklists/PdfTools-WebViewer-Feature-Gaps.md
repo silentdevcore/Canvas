@@ -51,6 +51,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 - [x] Flatten workflow: current sidecar annotations can be rendered into a reviewed PDF download
 - [x] Native annotation embed workflow: supported sidecar annotations can be written back as editable PDF annotation objects
 - [x] Native annotation import workflow: supported existing PDF annotations can be extracted into the viewer sidecar model
+- [x] Native annotation appearance baseline: exported editable annotations include normal appearance Form XObjects
 - [x] Form workflow: existing AcroForm fields can be detected, edited, downloaded as filled PDFs, and optionally flattened
 - [x] Secure redaction workflow: redaction marks can be applied through the backend to remove covered imported content and download a redacted PDF
 - [x] Backend routes:
@@ -72,7 +73,8 @@ Intentional remaining gaps:
 
 - [ ] Sidecar backend storage is durable JSON file storage, but user ownership/access control is still open.
 - [ ] Native annotation embedding is a baseline writer path for note, free text/stamp, highlight, underline, strikeout,
-      rectangle, circle, and redaction annotations. Full appearance streams and true text-selection-bound markup remain open.
+      rectangle, circle, and redaction annotations. Basic normal appearance streams exist; richer viewer-specific
+      appearance fidelity and true text-selection-bound markup remain open.
 - [ ] Native annotation import is a baseline reader path for text, free text, highlight, underline, strikeout,
       square, circle, and redaction annotations. Appearance streams, replies/threads, rich metadata, and unsupported
       annotation subtypes remain open.
@@ -233,7 +235,8 @@ our own implementation, UI language, and engine boundaries.
 - [ ] **Existing PDF save/edit bridge** - Decide how `Canvas.Importer` and `Canvas.Pdf` cooperate for editing existing PDFs.
 - [x] **Annotation writer support** - Emit PDF annotations from Canvas model.
       Baseline writer support exists for sticky note, free text, highlight, underline, strikeout, square, circle, and
-      redaction annotations, wired to the viewer sidecar embed endpoint. Appearance stream fidelity remains open.
+      redaction annotations, wired to the viewer sidecar embed endpoint. Basic normal appearance Form XObjects are
+      emitted for supported types; richer viewer-specific appearance fidelity remains open.
 - [x] **Annotation reader support** - Import existing PDF annotations into Canvas model.
       Baseline reader support extracts text, free text, highlight, underline, strikeout, square, circle, and redaction
       annotations into the viewer sidecar model. Rich annotation metadata, appearance stream fidelity, replies, and

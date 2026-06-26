@@ -92,6 +92,10 @@ public class PdfSerializationIntegrationTests
         Assert.Contains("/Subtype /FreeText", content, StringComparison.Ordinal);
         Assert.Contains("/Subtype /Highlight", content, StringComparison.Ordinal);
         Assert.Contains("/QuadPoints", content, StringComparison.Ordinal);
+        Assert.Contains("/AP << /N", content, StringComparison.Ordinal);
+        Assert.Contains("/Subtype /Form", content, StringComparison.Ordinal);
+        Assert.Contains("/BBox [0 0", content, StringComparison.Ordinal);
+        Assert.Contains("/Resources << /Font << /Helv", content, StringComparison.Ordinal);
         Assert.Contains("/Contents (Needs review)", content, StringComparison.Ordinal);
     }
 

@@ -285,6 +285,8 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
         Assert.Contains("/Subtype /Text", content, StringComparison.Ordinal);
         Assert.Contains("/Subtype /FreeText", content, StringComparison.Ordinal);
         Assert.Contains("/Subtype /Highlight", content, StringComparison.Ordinal);
+        Assert.Contains("/AP << /N", content, StringComparison.Ordinal);
+        Assert.Contains("/Subtype /Form", content, StringComparison.Ordinal);
         Assert.Contains("/QuadPoints", content, StringComparison.Ordinal);
     }
 
