@@ -4,6 +4,7 @@ const config = {
   testEnvironment: 'node',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^\\./pdfWorker$': '<rootDir>/src/__tests__/mocks/pdfWorker.ts',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   transform: {

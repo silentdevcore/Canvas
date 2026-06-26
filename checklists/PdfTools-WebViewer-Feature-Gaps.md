@@ -63,8 +63,8 @@ Intentional remaining gaps:
 - [ ] Sidecar backend storage is durable JSON file storage, but user ownership/access control is still open.
 - [ ] Sidecar annotations can be flattened into a reviewed PDF, but are not yet embedded as editable PDF annotation objects.
 - [ ] Text markup is area-based, not true text-selection-bound PDF markup.
-- [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, English/German viewer labels, and keyboard shortcuts.
-      Remaining gaps: forms, secure redaction application, and Playwright smoke tests.
+- [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, English/German viewer labels, keyboard shortcuts, and Jest component smoke coverage.
+      Remaining gaps: forms, secure redaction application, and optional Playwright browser smoke tests if Playwright is added to the project.
 
 ## P0 - Viewer Foundation
 
@@ -151,6 +151,7 @@ our own implementation, UI language, and engine boundaries.
       PDF binary tests for saved annotations/forms later.
       Added focused Jest tests for `annotations.ts` sidecar parsing/serialization and `annotationApi.ts` API client behavior. Playwright smoke tests and PDF binary tests remain open.
       Added API coverage for durable sidecar reload from disk.
+      Added a Jest/jsdom PDF viewer smoke test because Playwright is not currently configured in `ui-designer-v2`.
 
 ## P1 - Review And Annotation Workflow
 

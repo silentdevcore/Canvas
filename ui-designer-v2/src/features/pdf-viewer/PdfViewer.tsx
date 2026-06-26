@@ -1,6 +1,6 @@
 import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PDFDocument as PdfLibDocument } from 'pdf-lib';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { Document, Page } from 'react-pdf';
 import type { PDFDocumentProxy, TextItem, TextMarkedContent } from 'pdfjs-dist/types/src/display/api';
 import {
   FiChevronLeft,
@@ -45,13 +45,11 @@ import {
 } from './annotations';
 import { deleteSavedAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
 import { pdfViewerLabels, resolvePdfViewerLocale, type PdfViewerLocale } from './i18n';
+import { configurePdfWorker } from './pdfWorker';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
-).toString();
+configurePdfWorker();
 
 type FitMode = 'page' | 'width' | 'custom';
 type PdfSourceKind = 'file' | 'url';
