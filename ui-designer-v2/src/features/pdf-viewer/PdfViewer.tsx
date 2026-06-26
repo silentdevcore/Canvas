@@ -43,7 +43,7 @@ import {
   type ReviewTool,
   type StampLabel,
 } from './annotations';
-import { applyRedactions, deleteSavedAnnotations, embedAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
+import { applyRedactions, deleteSavedAnnotations, embedAnnotations, extractNativeAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
 import { pdfViewerLabels, resolvePdfViewerLocale, type PdfViewerLocale } from './i18n';
 import { fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldInfo, type PdfFormFieldValue } from './pdfForms';
 import { configurePdfWorker } from './pdfWorker';
@@ -1063,6 +1063,38 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     }
   };
 
+  const importNativeAnnotationsFromPdf = async () => {
+    if (!source) {
+      return;
+    }
+
+    setAnnotationApiStatus('Importing PDF annotations...');
+    try {
+      const bytes = await getSourceBytes();
+      if (!bytes) {
+        throw new Error('No PDF source is available.');
+      }
+
+      const sourceName = source.name.toLowerCase().endsWith('.pdf') ? source.name : `${source.name}.pdf`;
+      const pdfFile = source.file instanceof File
+        ? source.file
+        : new File([bytes], sourceName, { type: 'application/pdf' });
+      const sidecar = await extractNativeAnnotations(pdfFile);
+      const imported = sidecar.annotations;
+      setAnnotations(previous => [
+        ...previous.filter(existing => !imported.some(annotation => annotation.id === existing.id)),
+        ...imported,
+      ]);
+      setSelectedAnnotationId(null);
+      setAnnotationApiStatus(`Imported ${imported.length} PDF annotation${imported.length === 1 ? '' : 's'}.`);
+      emitViewerEvent('annotations:native-imported', { count: imported.length });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'PDF annotation import failed.';
+      setAnnotationApiStatus(message);
+      emitViewerEvent('annotations:native-import-failed', { message });
+    }
+  };
+
   const printHref = (href: string, label: string, revokeAfterPrint = false) => {
     const printWindow = window.open(href, '_blank', 'noopener,noreferrer');
     if (!printWindow) {
@@ -1678,6 +1710,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                   }}
                 />
               </label>
+              <button className="pdfv-button" type="button" onClick={() => void importNativeAnnotationsFromPdf()} disabled={!source}>
+                <FiUpload />
+                <span>{labels.importNativeAnnotations}</span>
+              </button>
               <button className="pdfv-button" type="button" onClick={downloadAnnotationSidecar} disabled={annotations.length === 0}>
                 <FiDownload />
                 <span>{labels.exportSidecar}</span>

@@ -97,6 +97,7 @@ builder.Services.AddTransient<ImageToPdfConverter>();
 builder.Services.AddSingleton<Canvas.WebApi.Services.MigrationService>();
 builder.Services.AddSingleton<Canvas.WebApi.Services.PdfViewerAnnotationStore>();
 builder.Services.AddSingleton<Canvas.WebApi.Services.PdfViewerAnnotationFlatteningService>();
+builder.Services.AddSingleton<Canvas.WebApi.Services.PdfViewerNativeAnnotationExtractionService>();
 
 // Register use cases
 builder.Services.AddScoped<ExportDocumentUseCase>();

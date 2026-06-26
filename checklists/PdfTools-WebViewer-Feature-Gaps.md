@@ -50,6 +50,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 - [x] Sidecar persistence: JSON import/export plus backend save/load/delete with durable JSON file storage
 - [x] Flatten workflow: current sidecar annotations can be rendered into a reviewed PDF download
 - [x] Native annotation embed workflow: supported sidecar annotations can be written back as editable PDF annotation objects
+- [x] Native annotation import workflow: supported existing PDF annotations can be extracted into the viewer sidecar model
 - [x] Form workflow: existing AcroForm fields can be detected, edited, downloaded as filled PDFs, and optionally flattened
 - [x] Secure redaction workflow: redaction marks can be applied through the backend to remove covered imported content and download a redacted PDF
 - [x] Backend routes:
@@ -58,6 +59,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
       `DELETE /api/pdf-viewer/annotations/{documentId}`,
       `POST /api/pdf-viewer/annotations/flatten`,
       `POST /api/pdf-viewer/annotations/embed`,
+      `POST /api/pdf-viewer/annotations/extract`,
       `POST /api/pdf-viewer/annotations/redact`
 - [x] Tests:
       `PdfViewerAnnotationsControllerTests`,
@@ -70,8 +72,10 @@ Intentional remaining gaps:
 
 - [ ] Sidecar backend storage is durable JSON file storage, but user ownership/access control is still open.
 - [ ] Native annotation embedding is a baseline writer path for note, free text/stamp, highlight, underline, strikeout,
-      rectangle, circle, and redaction annotations. Existing annotation import, full appearance streams, and true
-      text-selection-bound markup remain open.
+      rectangle, circle, and redaction annotations. Full appearance streams and true text-selection-bound markup remain open.
+- [ ] Native annotation import is a baseline reader path for text, free text, highlight, underline, strikeout,
+      square, circle, and redaction annotations. Appearance streams, replies/threads, rich metadata, and unsupported
+      annotation subtypes remain open.
 - [ ] Text markup is area-based, not true text-selection-bound PDF markup.
 - [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, form filling, English/German viewer labels, keyboard shortcuts, and Jest component smoke coverage.
 - [ ] Secure redaction removes importer-supported content under redaction rectangles during regenerated output, then draws black redaction boxes. Remaining gap: validate/extend coverage for complex PDFs, unsupported image/resource patterns, and optional Playwright browser smoke tests if Playwright is added to the project.
@@ -152,6 +156,8 @@ our own implementation, UI language, and engine boundaries.
       Implemented `POST /api/pdf-viewer/annotations/flatten` for PDF + sidecar input and reviewed PDF output.
 - [x] Add backend native annotation embed API for editable reviewed PDF downloads.
       Implemented `POST /api/pdf-viewer/annotations/embed` for PDF + sidecar input and baseline editable PDF annotation output.
+- [x] Add backend native annotation extraction API for existing reviewed PDFs.
+      Implemented `POST /api/pdf-viewer/annotations/extract` for PDF input and viewer-sidecar output.
 - [x] Add backend redaction API for reviewed PDF downloads.
       Implemented `POST /api/pdf-viewer/annotations/redact` for PDF + sidecar redaction marks.
 
@@ -228,7 +234,10 @@ our own implementation, UI language, and engine boundaries.
 - [x] **Annotation writer support** - Emit PDF annotations from Canvas model.
       Baseline writer support exists for sticky note, free text, highlight, underline, strikeout, square, circle, and
       redaction annotations, wired to the viewer sidecar embed endpoint. Appearance stream fidelity remains open.
-- [ ] **Annotation reader support** - Import existing PDF annotations into Canvas model.
+- [x] **Annotation reader support** - Import existing PDF annotations into Canvas model.
+      Baseline reader support extracts text, free text, highlight, underline, strikeout, square, circle, and redaction
+      annotations into the viewer sidecar model. Rich annotation metadata, appearance stream fidelity, replies, and
+      less common annotation subtypes remain open.
 - [ ] **Form reader support** - Import existing AcroForm fields and values.
       Frontend viewer baseline exists through `pdf-lib`; shared backend/importer integration remains open.
 - [ ] **Form writer/flattening support** - Save field changes and optionally flatten fields.

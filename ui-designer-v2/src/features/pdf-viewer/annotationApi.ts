@@ -107,3 +107,17 @@ export const embedAnnotations = async (
   await assertOk(response);
   return response.blob();
 };
+
+export const extractNativeAnnotations = async (
+  pdfFile: File,
+): Promise<PdfAnnotationSidecar> => {
+  const form = new FormData();
+  form.append('file', pdfFile);
+
+  const response = await fetch(`${API_BASE}/extract`, {
+    method: 'POST',
+    body: form,
+  });
+  await assertOk(response);
+  return response.json() as Promise<PdfAnnotationSidecar>;
+};

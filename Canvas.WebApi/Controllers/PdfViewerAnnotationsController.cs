@@ -10,13 +10,16 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
 {
     private readonly PdfViewerAnnotationStore _store;
     private readonly PdfViewerAnnotationFlatteningService _flatteningService;
+    private readonly PdfViewerNativeAnnotationExtractionService _extractionService;
 
     public PdfViewerAnnotationsController(
         PdfViewerAnnotationStore store,
-        PdfViewerAnnotationFlatteningService flatteningService)
+        PdfViewerAnnotationFlatteningService flatteningService,
+        PdfViewerNativeAnnotationExtractionService extractionService)
     {
         _store = store;
         _flatteningService = flatteningService;
+        _extractionService = extractionService;
     }
 
     [HttpPost]
@@ -180,6 +183,32 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
         catch (Exception ex)
         {
             return BadRequest(new { error = $"Could not embed annotations: {ex.Message}" });
+        }
+    }
+
+    [HttpPost("extract")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(PdfViewerAnnotationSidecarResponse), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> Extract(
+        IFormFile? file,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "A PDF file is required." });
+        if (!file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase) &&
+            !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "Only PDF files are accepted." });
+
+        try
+        {
+            await using var pdfStream = file.OpenReadStream();
+            var sidecar = await _extractionService.ExtractAsync(pdfStream, file.FileName, cancellationToken);
+            return Ok(sidecar);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = $"Could not extract annotations: {ex.Message}" });
         }
     }
 

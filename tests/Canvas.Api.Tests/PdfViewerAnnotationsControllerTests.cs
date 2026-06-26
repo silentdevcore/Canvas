@@ -289,6 +289,38 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
     }
 
     [Fact]
+    public async Task ExtractAnnotations_ReturnsNativeAnnotationsAsSidecar()
+    {
+        var inputPdf = CreateAnnotatedPdf();
+        using var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent(inputPdf)
+        {
+            Headers =
+            {
+                ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf"),
+            },
+        }, "file", "annotated.pdf");
+
+        var response = await _client.PostAsync("/api/pdf-viewer/annotations/extract", form);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var root = json.RootElement;
+        Assert.Equal(1, root.GetProperty("version").GetInt32());
+        Assert.Equal("annotated.pdf", root.GetProperty("sourceName").GetString());
+
+        var annotations = root.GetProperty("annotations");
+        Assert.Equal(3, annotations.GetArrayLength());
+        Assert.Equal("note", annotations[0].GetProperty("type").GetString());
+        Assert.Equal("Native note", annotations[0].GetProperty("text").GetString());
+        Assert.Equal(10, annotations[0].GetProperty("xPct").GetDouble());
+        Assert.Equal(20, annotations[0].GetProperty("yPct").GetDouble());
+        Assert.Equal("freeText", annotations[1].GetProperty("type").GetString());
+        Assert.Equal("highlight", annotations[2].GetProperty("type").GetString());
+    }
+
+    [Fact]
     public async Task RedactAnnotations_RemovesCoveredText()
     {
         var inputPdf = CreateSamplePdf();
@@ -346,6 +378,20 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
         var document = new PdfDocument();
         var page = document.AddPage(300, 180);
         page.DrawTextFromTop("Source PDF", 24, 24, 12);
+
+        using var stream = new MemoryStream();
+        document.Save(stream);
+        return stream.ToArray();
+    }
+
+    private static byte[] CreateAnnotatedPdf()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage(300, 180);
+        page.DrawTextFromTop("Annotated PDF", 24, 24, 12);
+        page.AddStickyNoteAnnotation(30, 126, 30, 18, "Native note", PdfColor.FromRgb(250, 204, 21));
+        page.AddFreeTextAnnotation(75, 90, 90, 18, "Native free text", PdfColor.FromRgb(37, 99, 235));
+        page.AddHighlightAnnotation(30, 54, 150, 18, "Native highlight", PdfColor.FromRgb(254, 240, 138), 0.45);
 
         using var stream = new MemoryStream();
         document.Save(stream);
