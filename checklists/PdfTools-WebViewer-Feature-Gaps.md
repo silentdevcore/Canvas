@@ -63,8 +63,8 @@ Intentional remaining gaps:
 - [ ] Sidecar backend storage is durable JSON file storage, but user ownership/access control is still open.
 - [ ] Sidecar annotations can be flattened into a reviewed PDF, but are not yet embedded as editable PDF annotation objects.
 - [ ] Text markup is area-based, not true text-selection-bound PDF markup.
-- [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, and English/German viewer labels.
-      Remaining gaps: forms, secure redaction application, keyboard navigation, and Playwright smoke tests.
+- [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, English/German viewer labels, and keyboard shortcuts.
+      Remaining gaps: forms, secure redaction application, and Playwright smoke tests.
 
 ## P0 - Viewer Foundation
 
@@ -188,7 +188,8 @@ our own implementation, UI language, and engine boundaries.
 ## P2 - Accessibility, Localization, And Customization
 
 - [ ] **Accessibility text layer** - Add/selectable/assistive text layer for generated or imported PDFs where text extraction is available.
-- [ ] **Keyboard navigation** - Viewer and annotation controls navigable by keyboard.
+- [x] **Keyboard navigation** - Viewer and annotation controls navigable by keyboard.
+      Implemented viewer-scoped shortcuts for previous/next page, zoom in/out, search focus, Escape panel/selection cleanup, and Delete/Backspace for selected unlocked annotations.
 - [x] **Localization** - Built-in English/German support plus override hooks for UI labels.
       The PDF viewer now has a localized EN/DE label map and viewer-level language selector for the main toolbar, search, print, review, annotation controls, and empty/loading states.
 - [ ] **Custom toolbar configuration** - Hide/show viewer components and override button behavior for product-specific workflows.

@@ -93,6 +93,14 @@ interface AnnotationInteraction {
 
 const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
 
+const isEditableTarget = (target: EventTarget | null): boolean => {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+};
+
 const textItemToString = (item: TextItem | TextMarkedContent): string => ('str' in item ? item.str : '');
 
 const buildSnippet = (text: string, index: number, queryLength: number): string => {
@@ -285,6 +293,74 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   useEffect(() => {
     void applyFitMode(fitMode);
   }, [applyFitMode, fitMode, numPages]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (isEditableTarget(event.target)) {
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        goToPage(currentPage - 1);
+        emitViewerEvent('keyboard:page-previous', { currentPage });
+        return;
+      }
+
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        goToPage(currentPage + 1);
+        emitViewerEvent('keyboard:page-next', { currentPage });
+        return;
+      }
+
+      if (event.key === '+' || event.key === '=') {
+        event.preventDefault();
+        changeZoom(0.1);
+        emitViewerEvent('keyboard:zoom-in');
+        return;
+      }
+
+      if (event.key === '-' || event.key === '_') {
+        event.preventDefault();
+        changeZoom(-0.1);
+        emitViewerEvent('keyboard:zoom-out');
+        return;
+      }
+
+      if (event.key === '/') {
+        event.preventDefault();
+        setSearchPanelOpen(true);
+        window.setTimeout(() => {
+          document.querySelector<HTMLInputElement>('.pdfv-search-form input')?.focus();
+        }, 0);
+        emitViewerEvent('keyboard:search-focus');
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setSelectedAnnotationId(null);
+        setPrintDialogOpen(false);
+        setSearchPanelOpen(false);
+        emitViewerEvent('keyboard:escape');
+        return;
+      }
+
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        if (!selectedAnnotationId) {
+          return;
+        }
+
+        event.preventDefault();
+        deleteAnnotation(selectedAnnotationId);
+        emitViewerEvent('keyboard:annotation-delete', { id: selectedAnnotationId });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [annotations, currentPage, emitViewerEvent, numPages, selectedAnnotationId]);
 
   const openLocalFile = (file: File | null) => {
     if (!file) {
