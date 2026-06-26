@@ -1245,6 +1245,9 @@ public sealed class JrxmlToDesignConverter
         element.Style ??= [];
         element.Style["jrxmlGroup"] = group;
         element.Style["jrxmlRepeat"] = repeat;
+        // The group field (from $F{country}) is the per-row key the planner partitions on to inject $group.
+        var groupField = Regex.Match(band.GroupExpression ?? "", @"\$F\{(\w+)\}");
+        element.Style["groupField"] = groupField.Success ? groupField.Groups[1].Value : dataPath;
         element.Repeat = new RepeatDto
         {
             DataPath = dataPath,

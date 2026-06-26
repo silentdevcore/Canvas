@@ -276,6 +276,7 @@ public sealed class FrxToDesignConverter
 
         element.Style ??= [];
         element.Style["frxGroup"] = group;
+        element.Style["groupField"] = dataPath;   // generic key the planner reads to inject $group
         element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
         diagnostics.Add(Warn("CANMIGFRX014",
             $"'{element.Name}' is in {band.Type} '{band.GroupName ?? band.Name}' — mapped to Canvas repeat metadata; group runtime semantics need review."));

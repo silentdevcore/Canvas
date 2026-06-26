@@ -587,6 +587,7 @@ public sealed class MrtToDesignConverter
 
         element.Style ??= [];
         element.Style["mrtGroup"] = group;
+        element.Style["groupField"] = dataPath;   // generic key the planner reads to inject $group
         element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
         diagnostics.Add(Warn("CANMIGMRT013",
             $"'{element.Name}' is in a {raw.GroupRole ?? "group"} group band '{raw.GroupName}' — mapped to Canvas repeat metadata; group runtime semantics need review."));

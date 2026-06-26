@@ -39,9 +39,20 @@ the current group's row subset, injected per group by the planner. e.g. `$sum($g
   to `$group` is correct, but per-group expansion only fires when a backing dataset array is supplied.
   The planner mechanism is fully exercised by the end-to-end export test via a constructed dataset.
 
-## Follow-ups (out of v1)
+## Follow-ups
 
+- [x] **Band-based converters emit the generic `style["groupField"]`** so the planner's per-group
+      expansion fires for them. FastReport/Telerik/Stimulsoft/Jasper set `frx/trdx/mrt/jrxmlGroup` metadata
+      but not the generic `groupField` the planner reads (`TryGetGroupField`), so `$group` was never
+      injected and their group aggregates rendered the grand total. Each now also sets `style["groupField"]`
+      (Jasper extracts it from the `$F{field}` group expression). Validated by
+      `DesignLayoutPlannerTests.BuildPages_ShouldRenderGroupScopedAggregate_PerGroupViaGroupField`
+      (North 30 / South 5, not the grand 35).
+- [x] **Frontend `repeatExpander.ts` per-group parity** — added `partitionByGroup(rows, groupField)`
+      (mirrors `DesignLayoutPlanner.PartitionByGroup`; stable first-seen order, dotted fields). Note the live
+      designer preview/export render **server-side** (`/api/templates/render-design`, `/api/export` →
+      `DesignLayoutPlanner`); the frontend `template/*` engine is a standalone/unit-tested implementation,
+      so parity is proven by `__tests__/repeatExpander.test.ts` (`$sum($group, "Amount")` → per-group totals).
 - [ ] RDL converter: emit `$group` for textboxes inside a group region (needs group-membership tracking
       for free-standing textboxes; today RDL aggregates scope to the whole dataset).
-- [ ] Frontend `repeatExpander.ts` per-group parity for designer/preview.
 - [ ] Multi-level / nested groups; running totals (`RunningValue`).

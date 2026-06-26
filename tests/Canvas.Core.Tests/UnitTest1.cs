@@ -224,6 +224,62 @@ public class DesignLayoutPlannerTests
     }
 
     [Fact]
+    public void BuildPages_ShouldRenderGroupScopedAggregate_PerGroupViaGroupField()
+    {
+        // A group band carries the generic style.groupField (as the report-designer converters now emit):
+        // the planner renders once per distinct group and exposes that group's rows as $group, so a
+        // group-scoped aggregate ($sum($group, "Amount")) computes each group's own total.
+        var design = new DesignExportDto
+        {
+            Id = "g1",
+            Name = "Group Aggregate",
+            Pages =
+            [
+                new PageDto
+                {
+                    Id = "p1",
+                    Elements =
+                    [
+                        new ElementDto
+                        {
+                            Id = "grpTotal",
+                            Type = "text",
+                            X = 10,
+                            Y = 20,
+                            Width = 200,
+                            Height = 40,
+                            Repeat = new RepeatDto { DataPath = "Sales", TemplateId = "grpTotal" },
+                            Style = new() { ["groupField"] = "Region" },
+                            Expression = "$sum($group, \"Amount\")",
+                            Content = "{{Region}} total"
+                        }
+                    ]
+                }
+            ],
+            PageSettings = new PageSettingsDto
+            {
+                CustomProperties =
+                [
+                    new CustomDocumentPropertyDto
+                    {
+                        Name = "Sales",
+                        Value = """[{"Region":"North","Amount":10},{"Region":"North","Amount":20},{"Region":"South","Amount":5}]"""
+                    }
+                ]
+            }
+        };
+
+        var planned = DesignLayoutPlanner.BuildPages(design);
+        var elements = planned[0].Elements.ToList();
+
+        Assert.Equal(2, elements.Count);                 // one per distinct group key
+        Assert.Equal("grpTotal__group_0", elements[0].Id);
+        Assert.Equal("30", elements[0].Content);         // North: 10 + 20 (its own total, not the grand 35)
+        Assert.Equal("grpTotal__group_1", elements[1].Id);
+        Assert.Equal("5", elements[1].Content);          // South: 5
+    }
+
+    [Fact]
     public void BuildPages_ShouldKeepRepeatTemplate_WhenPayloadIsMissing()
     {
         var design = new DesignExportDto
