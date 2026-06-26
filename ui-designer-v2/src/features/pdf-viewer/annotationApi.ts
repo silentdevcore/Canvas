@@ -75,3 +75,19 @@ export const flattenAnnotations = async (
   await assertOk(response);
   return response.blob();
 };
+
+export const applyRedactions = async (
+  pdfFile: File,
+  sidecar: PdfAnnotationSidecar,
+): Promise<Blob> => {
+  const form = new FormData();
+  form.append('file', pdfFile);
+  form.append('sidecar', JSON.stringify(sidecar));
+
+  const response = await fetch(`${API_BASE}/redact`, {
+    method: 'POST',
+    body: form,
+  });
+  await assertOk(response);
+  return response.blob();
+};

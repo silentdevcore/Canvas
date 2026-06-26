@@ -214,6 +214,51 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
         Assert.Contains(document.Pages.SelectMany(page => page.TextObjects), text => text.Text == "Reviewed");
     }
 
+    [Fact]
+    public async Task RedactAnnotations_RemovesCoveredText()
+    {
+        var inputPdf = CreateSamplePdf();
+        using var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent(inputPdf)
+        {
+            Headers =
+            {
+                ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf"),
+            },
+        }, "file", "review.pdf");
+        form.Add(new StringContent("""
+            {
+              "version": 1,
+              "sourceName": "review.pdf",
+              "exportedAt": "2026-06-25T10:00:00Z",
+              "annotations": [
+                {
+                  "id": "redaction1",
+                  "type": "redaction",
+                  "pageNumber": 1,
+                  "xPct": 0,
+                  "yPct": 0,
+                  "widthPct": 100,
+                  "heightPct": 100,
+                  "text": "Redaction mark",
+                  "author": "Reviewer",
+                  "createdAt": "2026-06-25T10:00:00Z",
+                  "color": "#111827"
+                }
+              ]
+            }
+            """), "sidecar");
+
+        var response = await _client.PostAsync("/api/pdf-viewer/annotations/redact", form);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
+
+        await using var output = await response.Content.ReadAsStreamAsync();
+        var document = await new PdfImporter().LoadAsync(output);
+        Assert.DoesNotContain(document.Pages.SelectMany(page => page.TextObjects), text => text.Text == "Source PDF");
+    }
+
     public void Dispose()
     {
         _client.Dispose();

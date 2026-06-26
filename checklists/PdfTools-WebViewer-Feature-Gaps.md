@@ -50,10 +50,13 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 - [x] Sidecar persistence: JSON import/export plus backend save/load/delete with durable JSON file storage
 - [x] Flatten workflow: current sidecar annotations can be rendered into a reviewed PDF download
 - [x] Form workflow: existing AcroForm fields can be detected, edited, downloaded as filled PDFs, and optionally flattened
+- [x] Secure redaction workflow: redaction marks can be applied through the backend to remove covered imported content and download a redacted PDF
 - [x] Backend routes:
       `POST /api/pdf-viewer/annotations`,
       `GET /api/pdf-viewer/annotations/{documentId}`,
-      `DELETE /api/pdf-viewer/annotations/{documentId}`
+      `DELETE /api/pdf-viewer/annotations/{documentId}`,
+      `POST /api/pdf-viewer/annotations/flatten`,
+      `POST /api/pdf-viewer/annotations/redact`
 - [x] Tests:
       `PdfViewerAnnotationsControllerTests`,
       `pdfViewerAnnotations.test.ts`,
@@ -67,7 +70,7 @@ Intentional remaining gaps:
 - [ ] Sidecar annotations can be flattened into a reviewed PDF, but are not yet embedded as editable PDF annotation objects.
 - [ ] Text markup is area-based, not true text-selection-bound PDF markup.
 - [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, form filling, English/German viewer labels, keyboard shortcuts, and Jest component smoke coverage.
-      Remaining gaps: secure redaction application and optional Playwright browser smoke tests if Playwright is added to the project.
+- [ ] Secure redaction removes importer-supported content under redaction rectangles during regenerated output, then draws black redaction boxes. Remaining gap: validate/extend coverage for complex PDFs, unsupported image/resource patterns, and optional Playwright browser smoke tests if Playwright is added to the project.
 
 ## P0 - Viewer Foundation
 
@@ -133,7 +136,8 @@ our own implementation, UI language, and engine boundaries.
       Implemented download of filled PDFs plus an optional flatten-fields toggle. This is a client-side viewer workflow; backend/engine persistence remains a later bridge task.
 - [x] Add redaction mark mode for text/area selections.
       Pending redaction area marks can be placed, moved, resized, persisted in sidecar JSON, and rendered into flattened reviewed PDFs.
-- [ ] Add secure backend redaction application when the PDF engine can remove underlying content.
+- [x] Add secure backend redaction application when the PDF engine can remove underlying content.
+      Implemented `POST /api/pdf-viewer/annotations/redact`, which removes imported graphics/text elements covered by redaction marks during regeneration and returns a redacted PDF.
 - [ ] Add accessibility/text layer support for generated and imported PDFs.
 - [x] Add localization hooks for English/German UI strings.
       Implemented a PDF-viewer-local EN/DE label map and visible language selector. It can later be wired to a global app locale if one is introduced.
@@ -142,6 +146,8 @@ our own implementation, UI language, and engine boundaries.
       Implemented `POST/GET/DELETE /api/pdf-viewer/annotations` with durable version-1 sidecar JSON storage and wired UI Save/Load/Delete controls.
 - [x] Add backend flatten API for reviewed PDF downloads.
       Implemented `POST /api/pdf-viewer/annotations/flatten` for PDF + sidecar input and reviewed PDF output.
+- [x] Add backend redaction API for reviewed PDF downloads.
+      Implemented `POST /api/pdf-viewer/annotations/redact` for PDF + sidecar redaction marks.
 
 ### Technical Decision Points
 
@@ -158,6 +164,7 @@ our own implementation, UI language, and engine boundaries.
       Added API coverage for durable sidecar reload from disk.
       Added a Jest/jsdom PDF viewer smoke test because Playwright is not currently configured in `ui-designer-v2`.
       Added focused Jest coverage for AcroForm read/fill helper behavior.
+      Added API coverage for applying redaction marks and verifying covered text is no longer extractable.
 
 ## P1 - Review And Annotation Workflow
 
@@ -191,7 +198,8 @@ our own implementation, UI language, and engine boundaries.
       Decision for viewer baseline: write values into a downloaded PDF and optionally flatten fields. Durable backend-side form persistence remains open under Engine/Backend Support.
 - [x] **Redaction marks** - Let users mark text/page areas for redaction as visible pending annotations.
       Implemented as area-based pending redaction marks with sidecar persistence and flattened PDF output. These marks are visual and do not remove underlying PDF content.
-- [ ] **Apply secure redactions** - Remove underlying text/graphics/resources, not only paint black rectangles.
+- [x] **Apply secure redactions** - Remove underlying text/graphics/resources, not only paint black rectangles.
+      Implemented backend redaction for importer-supported graphics elements under area marks, with viewer download action. Complex PDF/resource coverage still needs broader corpus testing.
 - [ ] **Redaction audit metadata** - Preserve reason/user/timestamp metadata for review workflows.
 
 ## P2 - Accessibility, Localization, And Customization

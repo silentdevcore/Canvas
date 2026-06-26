@@ -43,7 +43,7 @@ import {
   type ReviewTool,
   type StampLabel,
 } from './annotations';
-import { deleteSavedAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
+import { applyRedactions, deleteSavedAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
 import { pdfViewerLabels, resolvePdfViewerLocale, type PdfViewerLocale } from './i18n';
 import { fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldInfo, type PdfFormFieldValue } from './pdfForms';
 import { configurePdfWorker } from './pdfWorker';
@@ -239,6 +239,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const documentId = useMemo(() => documentIdFromSource(source), [source]);
   const labels = pdfViewerLabels[viewerLocale];
   const changedFormFields = formFields.filter(field => !sameFormValue(field.value, field.originalValue));
+  const redactionAnnotations = annotations.filter(annotation => annotation.type === 'redaction');
 
   const emitViewerEvent = useCallback((label: string, detail: Record<string, unknown> = {}) => {
     eventIdRef.current += 1;
@@ -929,6 +930,40 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     }
   };
 
+  const downloadRedactedPdf = async () => {
+    if (!source || redactionAnnotations.length === 0) {
+      return;
+    }
+
+    setAnnotationApiStatus('Applying redactions...');
+    try {
+      const bytes = await getSourceBytes();
+      if (!bytes) {
+        throw new Error('No PDF source is available.');
+      }
+
+      const sourceName = source.name.toLowerCase().endsWith('.pdf') ? source.name : `${source.name}.pdf`;
+      const pdfFile = source.file instanceof File
+        ? source.file
+        : new File([bytes], sourceName, { type: 'application/pdf' });
+      const blob = await applyRedactions(pdfFile, createAnnotationSidecar(source?.name ?? null, redactionAnnotations));
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = sourceName.replace(/\.pdf$/i, '-redacted.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setAnnotationApiStatus(`Downloaded redacted PDF with ${redactionAnnotations.length} redaction mark${redactionAnnotations.length === 1 ? '' : 's'}.`);
+      emitViewerEvent('annotations:redacted', { count: redactionAnnotations.length });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Redaction failed.';
+      setAnnotationApiStatus(message);
+      emitViewerEvent('annotations:redaction-failed', { message });
+    }
+  };
+
   const saveAnnotationSidecar = async () => {
     setAnnotationApiStatus('Saving...');
     try {
@@ -1616,6 +1651,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
               <button className="pdfv-button" type="button" onClick={() => void downloadFlattenedPdf()} disabled={!source || annotations.length === 0}>
                 <FiFileText />
                 <span>{labels.flattenPdf}</span>
+              </button>
+              <button className="pdfv-button" type="button" onClick={() => void downloadRedactedPdf()} disabled={!source || redactionAnnotations.length === 0}>
+                <FiEyeOff />
+                <span>{labels.applyRedactions}</span>
               </button>
               <button className="pdfv-button" type="button" onClick={() => void saveAnnotationSidecar()} disabled={annotations.length === 0}>
                 <FiDownload />

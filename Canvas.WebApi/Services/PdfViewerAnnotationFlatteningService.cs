@@ -1,6 +1,8 @@
 using System.Text.Json;
+using Canvas.Importer.Analysis;
 using Canvas.Importer;
 using Canvas.Importer.Generation;
+using Canvas.Importer.Graphics;
 using Canvas.Pdf;
 using CanvasPdfColor = Canvas.Pdf.PdfColor;
 using CanvasPdfDocument = Canvas.Pdf.PdfDocument;
@@ -10,6 +12,7 @@ namespace Canvas.WebApi.Services;
 public sealed class PdfViewerAnnotationFlatteningService
 {
     private readonly CanvasPdfGeneratorBridge _bridge = new();
+    private readonly BoundingBoxCalculator _bounds = new();
 
     public async Task<byte[]> FlattenAsync(
         Stream pdfStream,
@@ -35,6 +38,83 @@ public sealed class PdfViewerAnnotationFlatteningService
             cancellationToken).ConfigureAwait(false);
 
         return output.ToArray();
+    }
+
+    public async Task<byte[]> RedactAsync(
+        Stream pdfStream,
+        JsonElement annotations,
+        CancellationToken cancellationToken = default)
+    {
+        if (annotations.ValueKind != JsonValueKind.Array)
+            throw new ArgumentException("annotations must be an array.", nameof(annotations));
+
+        var redactions = annotations
+            .EnumerateArray()
+            .Select(PdfViewerAnnotation.FromJson)
+            .Where(static annotation => annotation?.Type == "redaction")
+            .Cast<PdfViewerAnnotation>()
+            .ToArray();
+
+        if (redactions.Length == 0)
+            throw new ArgumentException("At least one redaction annotation is required.", nameof(annotations));
+
+        var document = await new PdfImporter().LoadAsync(pdfStream, cancellationToken).ConfigureAwait(false);
+        ApplyRedactionsToModel(document, redactions);
+
+        await using var output = new MemoryStream();
+        await _bridge.RegenerateAsync(
+            document,
+            output,
+            canvasDocument => ApplyAnnotations(canvasDocument, redactions),
+            cancellationToken).ConfigureAwait(false);
+
+        return output.ToArray();
+    }
+
+    private void ApplyRedactionsToModel(Canvas.Importer.Document.PdfDocumentModel document, IReadOnlyCollection<PdfViewerAnnotation> redactions)
+    {
+        foreach (var pageWithRedactions in redactions.GroupBy(static item => item.PageNumber))
+        {
+            var page = document.Pages.ElementAtOrDefault(pageWithRedactions.Key - 1);
+            if (page is null)
+                continue;
+
+            var redactionBounds = pageWithRedactions
+                .Select(annotation => ToImporterRectangle(page, annotation))
+                .ToArray();
+
+            foreach (var element in page.GraphicsObjects)
+            {
+                RedactElement(element, redactionBounds);
+            }
+        }
+    }
+
+    private void RedactElement(PdfGraphicsElement element, IReadOnlyCollection<Canvas.Importer.Graphics.PdfRectangle> redactionBounds)
+    {
+        if (element.IsDeleted)
+            return;
+
+        if (element is PdfGroupElement group)
+        {
+            foreach (var child in group.Children)
+            {
+                RedactElement(child, redactionBounds);
+            }
+
+            if (group.Children.Count > 0 && group.Children.All(static child => child.IsDeleted))
+            {
+                group.IsDeleted = true;
+            }
+
+            return;
+        }
+
+        var bounds = element.Bounds ?? _bounds.ComputeElementBounds(element);
+        if (redactionBounds.Any(redaction => redaction.Intersects(bounds)))
+        {
+            element.IsDeleted = true;
+        }
     }
 
     private static void ApplyAnnotations(CanvasPdfDocument document, IReadOnlyCollection<PdfViewerAnnotation> annotations)
@@ -187,7 +267,17 @@ public sealed class PdfViewerAnnotationFlatteningService
         ], lineWidth: 0.5, fill: true, strokeColor: color, fillColor: color);
     }
 
-    private static PdfPoint ToPdfPoint(PdfPage page, double x, double topY) => new(x, page.Height - topY);
+    private static Canvas.Pdf.PdfPoint ToPdfPoint(PdfPage page, double x, double topY) => new(x, page.Height - topY);
+
+    private static Canvas.Importer.Graphics.PdfRectangle ToImporterRectangle(Canvas.Importer.Document.PdfPageModel page, PdfViewerAnnotation annotation)
+    {
+        var mediaBox = page.MediaBox ?? new Canvas.Importer.Graphics.PdfRectangle(0, 0, PdfPageSizes.A4Width, PdfPageSizes.A4Height);
+        var x = Percent(annotation.XPct, mediaBox.Width);
+        var topY = Percent(annotation.YPct, mediaBox.Height);
+        var width = Math.Max(1, Percent(annotation.WidthPct, mediaBox.Width));
+        var height = Math.Max(1, Percent(annotation.HeightPct, mediaBox.Height));
+        return new Canvas.Importer.Graphics.PdfRectangle(mediaBox.X + x, mediaBox.Y + mediaBox.Height - topY - height, width, height);
+    }
 
     private static void DrawStamp(PdfPage page, PdfViewerAnnotation annotation, double x, double topY, double width, double height, CanvasPdfColor color)
     {

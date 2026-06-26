@@ -107,6 +107,50 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
         }
     }
 
+    [HttpPost("redact")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(FileContentResult), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> Redact(
+        IFormFile? file,
+        [FromForm] string? sidecar,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "A PDF file is required." });
+        if (!file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase) &&
+            !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "Only PDF files are accepted." });
+        if (string.IsNullOrWhiteSpace(sidecar))
+            return BadRequest(new { error = "sidecar is required." });
+
+        try
+        {
+            using var sidecarDocument = JsonDocument.Parse(sidecar);
+            var annotations = sidecarDocument.RootElement.ValueKind == JsonValueKind.Array
+                ? sidecarDocument.RootElement
+                : sidecarDocument.RootElement.TryGetProperty("annotations", out var sidecarAnnotations)
+                    ? sidecarAnnotations
+                    : default;
+
+            if (annotations.ValueKind != JsonValueKind.Array)
+                return BadRequest(new { error = "sidecar must contain an annotations array." });
+
+            await using var pdfStream = file.OpenReadStream();
+            var pdfBytes = await _flatteningService.RedactAsync(pdfStream, annotations, cancellationToken);
+            var safeName = Path.GetFileNameWithoutExtension(file.FileName);
+            return File(pdfBytes, "application/pdf", $"{safeName}-redacted.pdf");
+        }
+        catch (JsonException)
+        {
+            return BadRequest(new { error = "sidecar must be valid JSON." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = $"Could not apply redactions: {ex.Message}" });
+        }
+    }
+
     private static PdfViewerAnnotationsResponse ToResponse(StoredPdfViewerAnnotations stored) => new()
     {
         DocumentId = stored.DocumentId,
