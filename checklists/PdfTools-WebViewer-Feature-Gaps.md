@@ -63,8 +63,8 @@ Intentional remaining gaps:
 - [ ] Sidecar backend storage is durable JSON file storage, but user ownership/access control is still open.
 - [ ] Sidecar annotations can be flattened into a reviewed PDF, but are not yet embedded as editable PDF annotation objects.
 - [ ] Text markup is area-based, not true text-selection-bound PDF markup.
-- [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, and pending redaction marks.
-      Remaining gaps: forms, secure redaction application, localization, keyboard navigation, and Playwright smoke tests.
+- [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, and English/German viewer labels.
+      Remaining gaps: forms, secure redaction application, keyboard navigation, and Playwright smoke tests.
 
 ## P0 - Viewer Foundation
 
@@ -130,7 +130,8 @@ our own implementation, UI language, and engine boundaries.
       Pending redaction area marks can be placed, moved, resized, persisted in sidecar JSON, and rendered into flattened reviewed PDFs.
 - [ ] Add secure backend redaction application when the PDF engine can remove underlying content.
 - [ ] Add accessibility/text layer support for generated and imported PDFs.
-- [ ] Add localization hooks for English/German UI strings.
+- [x] Add localization hooks for English/German UI strings.
+      Implemented a PDF-viewer-local EN/DE label map and visible language selector. It can later be wired to a global app locale if one is introduced.
 - [ ] Add viewer configuration API to hide/show toolbar groups and override button behavior.
 - [x] Add backend sidecar storage API for viewer review state.
       Implemented `POST/GET/DELETE /api/pdf-viewer/annotations` with durable version-1 sidecar JSON storage and wired UI Save/Load/Delete controls.
@@ -188,7 +189,8 @@ our own implementation, UI language, and engine boundaries.
 
 - [ ] **Accessibility text layer** - Add/selectable/assistive text layer for generated or imported PDFs where text extraction is available.
 - [ ] **Keyboard navigation** - Viewer and annotation controls navigable by keyboard.
-- [ ] **Localization** - Built-in English/German support plus override hooks for UI labels.
+- [x] **Localization** - Built-in English/German support plus override hooks for UI labels.
+      The PDF viewer now has a localized EN/DE label map and viewer-level language selector for the main toolbar, search, print, review, annotation controls, and empty/loading states.
 - [ ] **Custom toolbar configuration** - Hide/show viewer components and override button behavior for product-specific workflows.
 - [ ] **User identity** - Viewer-level user/author identity for annotations and review metadata.
 - [ ] **Plugin extension points** - Define extension surface for custom annotation tools or workflow buttons.

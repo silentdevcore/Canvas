@@ -44,6 +44,7 @@ import {
   type StampLabel,
 } from './annotations';
 import { deleteSavedAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
+import { pdfViewerLabels, resolvePdfViewerLocale, type PdfViewerLocale } from './i18n';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -212,6 +213,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const [selectedStamp, setSelectedStamp] = useState<StampLabel>('Draft');
   const [customStampText, setCustomStampText] = useState('');
   const [pendingImageDataUrl, setPendingImageDataUrl] = useState<string | null>(null);
+  const [viewerLocale, setViewerLocale] = useState<PdfViewerLocale>(() => resolvePdfViewerLocale());
   const [annotationApiStatus, setAnnotationApiStatus] = useState<string | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const pageStackRef = useRef<HTMLDivElement | null>(null);
@@ -224,6 +226,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const currentPageBoxAnnotations = currentPageAnnotations.filter(annotation => annotation.type !== 'ink');
   const selectedAnnotation = annotations.find(annotation => annotation.id === selectedAnnotationId) ?? null;
   const documentId = useMemo(() => documentIdFromSource(source), [source]);
+  const labels = pdfViewerLabels[viewerLocale];
 
   const emitViewerEvent = useCallback((label: string, detail: Record<string, unknown> = {}) => {
     eventIdRef.current += 1;
@@ -884,15 +887,15 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
 
   const resultSummary = useMemo(() => {
     if (!searchQuery.trim()) {
-      return 'No search query';
+      return labels.noSearchQuery;
     }
 
     if (isSearching) {
-      return 'Searching...';
+      return labels.searching;
     }
 
-    return `${searchResults.length} result${searchResults.length === 1 ? '' : 's'}`;
-  }, [isSearching, searchQuery, searchResults.length]);
+    return `${searchResults.length} ${searchResults.length === 1 ? labels.result : labels.results}`;
+  }, [isSearching, labels, searchQuery, searchResults.length]);
 
   return (
     <main className="pdfv-shell">
@@ -900,7 +903,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
           <div className="pdfv-source-group">
             <label className="pdfv-button pdfv-button-primary">
               <FiUpload />
-              <span>Open PDF</span>
+              <span>{labels.openPdf}</span>
               <input
                 className="sr-only"
                 type="file"
@@ -916,24 +919,24 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 value={urlInput}
                 placeholder="https://example.com/file.pdf"
                 onChange={event => setUrlInput(event.target.value)}
-                aria-label="PDF URL"
+                aria-label={labels.pdfUrl}
               />
-              <button type="submit" className="pdfv-button">Open URL</button>
+              <button type="submit" className="pdfv-button">{labels.openUrl}</button>
             </form>
           </div>
 
           <div className="pdfv-tool-group" aria-label="Viewer controls">
-            <button className="pdfv-icon-button" type="button" onClick={() => setSidebarOpen(value => !value)} title="Thumbnails">
+            <button className="pdfv-icon-button" type="button" onClick={() => setSidebarOpen(value => !value)} title={labels.thumbnails}>
               <FiSidebar />
             </button>
-            <button className="pdfv-icon-button" type="button" onClick={() => setSearchPanelOpen(value => !value)} title="Search">
+            <button className="pdfv-icon-button" type="button" onClick={() => setSearchPanelOpen(value => !value)} title={labels.search}>
               <FiSearch />
             </button>
-            <button className="pdfv-icon-button" type="button" onClick={() => goToPage(currentPage - 1)} disabled={currentPage <= 1} title="Previous page">
+            <button className="pdfv-icon-button" type="button" onClick={() => goToPage(currentPage - 1)} disabled={currentPage <= 1} title={labels.previousPage}>
               <FiChevronLeft />
             </button>
             <label className="pdfv-page-jump">
-              <span className="sr-only">Page number</span>
+              <span className="sr-only">{labels.pageNumber}</span>
               <input
                 value={pageInput}
                 inputMode="numeric"
@@ -948,34 +951,41 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
               />
               <span>/ {numPages || '-'}</span>
             </label>
-            <button className="pdfv-icon-button" type="button" onClick={() => goToPage(currentPage + 1)} disabled={!numPages || currentPage >= numPages} title="Next page">
+            <button className="pdfv-icon-button" type="button" onClick={() => goToPage(currentPage + 1)} disabled={!numPages || currentPage >= numPages} title={labels.nextPage}>
               <FiChevronRight />
             </button>
-            <button className="pdfv-icon-button" type="button" onClick={() => changeZoom(-0.1)} disabled={!source} title="Zoom out">
+            <button className="pdfv-icon-button" type="button" onClick={() => changeZoom(-0.1)} disabled={!source} title={labels.zoomOut}>
               <FiZoomOut />
             </button>
             <span className="pdfv-zoom-value">{Math.round(zoom * 100)}%</span>
-            <button className="pdfv-icon-button" type="button" onClick={() => changeZoom(0.1)} disabled={!source} title="Zoom in">
+            <button className="pdfv-icon-button" type="button" onClick={() => changeZoom(0.1)} disabled={!source} title={labels.zoomIn}>
               <FiZoomIn />
             </button>
             <button className={fitMode === 'page' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setFitMode('page')} disabled={!source}>
               <FiMaximize2 />
-              <span>Fit page</span>
+              <span>{labels.fitPage}</span>
             </button>
             <button className={fitMode === 'width' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setFitMode('width')} disabled={!source}>
               <FiColumns />
-              <span>Fit width</span>
+              <span>{labels.fitWidth}</span>
             </button>
-            <button className="pdfv-icon-button" type="button" onClick={downloadCurrentPdf} disabled={!source} title="Download">
+            <button className="pdfv-icon-button" type="button" onClick={downloadCurrentPdf} disabled={!source} title={labels.download}>
               <FiDownload />
             </button>
-            <button className="pdfv-icon-button" type="button" onClick={() => setPrintDialogOpen(true)} disabled={!source} title="Print">
+            <button className="pdfv-icon-button" type="button" onClick={() => setPrintDialogOpen(true)} disabled={!source} title={labels.print}>
               <FiPrinter />
             </button>
             <button className={reviewPanelOpen ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewPanelOpen(value => !value)} disabled={!source}>
               <FiEdit3 />
-              <span>Review</span>
+              <span>{labels.review}</span>
             </button>
+            <label className="pdfv-stamp-select">
+              <span>{labels.language}</span>
+              <select value={viewerLocale} onChange={event => setViewerLocale(event.target.value as PdfViewerLocale)}>
+                <option value="en">EN</option>
+                <option value="de">DE</option>
+              </select>
+            </label>
           </div>
         </section>
 
@@ -991,7 +1001,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
               <FiSearch aria-hidden="true" />
               <input
                 value={searchQuery}
-                placeholder="Search document text"
+                placeholder={labels.searchDocumentText}
                 onChange={event => setSearchQuery(event.target.value)}
                 disabled={!pdfDoc}
               />
@@ -1002,10 +1012,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                   onChange={event => setCaseSensitive(event.target.checked)}
                   disabled={!pdfDoc}
                 />
-                <span>Case sensitive</span>
+                <span>{labels.caseSensitive}</span>
               </label>
               <button className="pdfv-button pdfv-button-primary" type="submit" disabled={!pdfDoc || isSearching}>
-                Search
+                {labels.search}
               </button>
               <span className="pdfv-result-summary">{resultSummary}</span>
             </form>
@@ -1013,11 +1023,11 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
             {searchResults.length > 0 && (
               <div className="pdfv-result-controls">
                 <button className="pdfv-button" type="button" onClick={() => selectResult(selectedResultIndex - 1)} disabled={selectedResultIndex <= 0}>
-                  Previous result
+                  {labels.previousResult}
                 </button>
                 <strong>{selectedResultIndex + 1} / {searchResults.length}</strong>
                 <button className="pdfv-button" type="button" onClick={() => selectResult(selectedResultIndex + 1)} disabled={selectedResultIndex >= searchResults.length - 1}>
-                  Next result
+                  {labels.nextResult}
                 </button>
               </div>
             )}
@@ -1027,18 +1037,18 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
         {printDialogOpen && (
           <section className="pdfv-print-panel" aria-label="Print options">
             <div className="pdfv-print-options">
-              <strong>Print</strong>
+              <strong>{labels.print}</strong>
               <label className={printMode === 'all' ? 'pdfv-radio is-active' : 'pdfv-radio'}>
                 <input type="radio" checked={printMode === 'all'} onChange={() => setPrintMode('all')} />
-                <span>All pages</span>
+                <span>{labels.printAllPages}</span>
               </label>
               <label className={printMode === 'current' ? 'pdfv-radio is-active' : 'pdfv-radio'}>
                 <input type="radio" checked={printMode === 'current'} onChange={() => setPrintMode('current')} />
-                <span>Current page</span>
+                <span>{labels.printCurrentPage}</span>
               </label>
               <label className={printMode === 'range' ? 'pdfv-radio is-active' : 'pdfv-radio'}>
                 <input type="radio" checked={printMode === 'range'} onChange={() => setPrintMode('range')} />
-                <span>Range</span>
+                <span>{labels.printRange}</span>
               </label>
               <input
                 className="pdfv-range-input"
@@ -1048,13 +1058,13 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                   setPrintRange(event.target.value);
                 }}
                 placeholder="1-3,5"
-                aria-label="Page range"
+                aria-label={labels.pageRange}
               />
             </div>
             <div className="pdfv-print-actions">
               {printError && <span className="pdfv-print-error">{printError}</span>}
-              <button className="pdfv-button" type="button" onClick={() => setPrintDialogOpen(false)}>Cancel</button>
-              <button className="pdfv-button pdfv-button-primary" type="button" onClick={() => void printCurrentPdf()}>Print</button>
+              <button className="pdfv-button" type="button" onClick={() => setPrintDialogOpen(false)}>{labels.cancel}</button>
+              <button className="pdfv-button pdfv-button-primary" type="button" onClick={() => void printCurrentPdf()}>{labels.print}</button>
             </div>
           </section>
         )}
@@ -1062,25 +1072,25 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
         {reviewPanelOpen && (
           <section className="pdfv-review-panel" aria-label="Review annotations">
             <div className="pdfv-review-tools">
-              <strong>Review</strong>
+              <strong>{labels.review}</strong>
               <button className={reviewTool === 'view' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('view')}>
-                View
+                {labels.view}
               </button>
               <button className={reviewTool === 'note' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('note')}>
                 <FiMessageSquare />
-                <span>Note</span>
+                <span>{labels.note}</span>
               </button>
               <button className={reviewTool === 'freeText' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('freeText')}>
                 <FiType />
-                <span>Text</span>
+                <span>{labels.text}</span>
               </button>
               <button className={reviewTool === 'stamp' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('stamp')}>
                 <FiTag />
-                <span>Stamp</span>
+                <span>{labels.stamp}</span>
               </button>
               <label className={reviewTool === 'image' ? 'pdfv-button is-active' : 'pdfv-button'}>
                 <FiImage />
-                <span>Image</span>
+                <span>{labels.image}</span>
                 <input
                   className="sr-only"
                   type="file"
@@ -1093,44 +1103,44 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
               </label>
               <button className={reviewTool === 'line' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('line')}>
                 <FiMinus />
-                <span>Line</span>
+                <span>{labels.line}</span>
               </button>
               <button className={reviewTool === 'rectangle' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('rectangle')}>
                 <FiSquare />
-                <span>Rect</span>
+                <span>{labels.rect}</span>
               </button>
               <button className={reviewTool === 'circle' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('circle')}>
                 <FiCircle />
-                <span>Circle</span>
+                <span>{labels.circle}</span>
               </button>
               <button className={reviewTool === 'ink' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('ink')}>
                 <FiPenTool />
-                <span>Ink</span>
+                <span>{labels.ink}</span>
               </button>
               <button className={reviewTool === 'inkEraser' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('inkEraser')}>
                 <FiTrash2 />
-                <span>Eraser</span>
+                <span>{labels.eraser}</span>
               </button>
               <button className={reviewTool === 'highlight' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('highlight')}>
                 <FiEdit3 />
-                <span>Highlight</span>
+                <span>{labels.highlight}</span>
               </button>
               <button className={reviewTool === 'underline' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('underline')}>
                 <FiUnderline />
-                <span>Underline</span>
+                <span>{labels.underline}</span>
               </button>
               <button className={reviewTool === 'strikeout' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('strikeout')}>
                 <FiMinus />
-                <span>Strike</span>
+                <span>{labels.strike}</span>
               </button>
               <button className={reviewTool === 'redaction' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('redaction')}>
                 <FiEyeOff />
-                <span>Redact</span>
+                <span>{labels.redact}</span>
               </button>
               {reviewTool === 'stamp' && (
                 <>
                   <label className="pdfv-stamp-select">
-                    <span>Stamp</span>
+                    <span>{labels.stamp}</span>
                     <select
                       value={selectedStamp}
                       onChange={event => setSelectedStamp(event.target.value as StampLabel)}
@@ -1141,7 +1151,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                     </select>
                   </label>
                   <label className="pdfv-author-input pdfv-stamp-text-input">
-                    <span>Custom</span>
+                    <span>{labels.custom}</span>
                     <input
                       value={customStampText}
                       maxLength={48}
@@ -1152,16 +1162,16 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 </>
               )}
               <label className="pdfv-author-input">
-                <span>Author</span>
+                <span>{labels.author}</span>
                 <input value={reviewAuthor} onChange={event => setReviewAuthor(event.target.value)} />
               </label>
-              <span className="pdfv-result-summary">{annotations.length} annotation{annotations.length === 1 ? '' : 's'}</span>
+              <span className="pdfv-result-summary">{annotations.length} {annotations.length === 1 ? labels.annotation : labels.annotations}</span>
             </div>
             {selectedAnnotation && (
               <div className="pdfv-annotation-controls">
-                <strong>Selected</strong>
+                <strong>{labels.selected}</strong>
                 <label className="pdfv-color-input">
-                  <span>Color</span>
+                  <span>{labels.color}</span>
                   <input
                     type="color"
                     value={selectedAnnotation.color}
@@ -1171,7 +1181,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 </label>
                 {supportsOpacity(selectedAnnotation.type) && (
                   <label className="pdfv-size-input pdfv-slider-input">
-                    <span>Opacity</span>
+                    <span>{labels.opacity}</span>
                     <input
                       type="range"
                       min={10}
@@ -1187,7 +1197,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 )}
                 {supportsStrokeWidth(selectedAnnotation.type) && (
                   <label className="pdfv-size-input">
-                    <span>Stroke</span>
+                    <span>{labels.stroke}</span>
                     <input
                       type="number"
                       min={1}
@@ -1209,10 +1219,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                         disabled={selectedAnnotation.locked}
                         onChange={event => updateAnnotation(selectedAnnotation.id, { fillEnabled: event.target.checked })}
                       />
-                      <span>Fill</span>
+                      <span>{labels.fill}</span>
                     </label>
                     <label className="pdfv-color-input">
-                      <span>Fill color</span>
+                      <span>{labels.fillColor}</span>
                       <input
                         type="color"
                         value={selectedAnnotation.fillColor ?? '#ffffff'}
@@ -1225,36 +1235,36 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 {supportsLineEndings(selectedAnnotation.type) && (
                   <>
                     <label className="pdfv-stamp-select">
-                      <span>Start</span>
+                      <span>{labels.start}</span>
                       <select
                         value={selectedAnnotation.lineEndingStart ?? 'none'}
                         disabled={selectedAnnotation.locked}
                         onChange={event => updateAnnotation(selectedAnnotation.id, { lineEndingStart: event.target.value as LineEnding })}
                       >
-                        <option value="none">None</option>
-                        <option value="arrow">Arrow</option>
-                        <option value="circle">Circle</option>
-                        <option value="square">Square</option>
+                        <option value="none">{labels.none}</option>
+                        <option value="arrow">{labels.arrow}</option>
+                        <option value="circle">{labels.circle}</option>
+                        <option value="square">{labels.square}</option>
                       </select>
                     </label>
                     <label className="pdfv-stamp-select">
-                      <span>End</span>
+                      <span>{labels.end}</span>
                       <select
                         value={selectedAnnotation.lineEndingEnd ?? 'arrow'}
                         disabled={selectedAnnotation.locked}
                         onChange={event => updateAnnotation(selectedAnnotation.id, { lineEndingEnd: event.target.value as LineEnding })}
                       >
-                        <option value="none">None</option>
-                        <option value="arrow">Arrow</option>
-                        <option value="circle">Circle</option>
-                        <option value="square">Square</option>
+                        <option value="none">{labels.none}</option>
+                        <option value="arrow">{labels.arrow}</option>
+                        <option value="circle">{labels.circle}</option>
+                        <option value="square">{labels.square}</option>
                       </select>
                     </label>
                   </>
                 )}
                 {selectedAnnotation.type === 'stamp' && (
                   <label className="pdfv-author-input pdfv-stamp-text-input">
-                    <span>Text</span>
+                    <span>{labels.text}</span>
                     <input
                       value={selectedAnnotation.text}
                       maxLength={48}
@@ -1266,7 +1276,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 {selectedAnnotation.type !== 'ink' && (
                   <>
                     <label className="pdfv-size-input">
-                      <span>Width</span>
+                      <span>{labels.width}</span>
                       <input
                         type="number"
                         min={8}
@@ -1279,7 +1289,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                       />
                     </label>
                     <label className="pdfv-size-input">
-                      <span>Height</span>
+                      <span>{labels.height}</span>
                       <input
                         type="number"
                         min={6}
@@ -1302,7 +1312,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                   }}
                 >
                   {selectedAnnotation.locked ? <FiUnlock /> : <FiLock />}
-                  <span>{selectedAnnotation.locked ? 'Unlock' : 'Lock'}</span>
+                  <span>{selectedAnnotation.locked ? labels.unlock : labels.lock}</span>
                 </button>
                 <button
                   className="pdfv-button"
@@ -1311,14 +1321,14 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                   onClick={() => deleteAnnotation(selectedAnnotation.id)}
                 >
                   <FiTrash2 />
-                  <span>Delete</span>
+                  <span>{labels.delete}</span>
                 </button>
               </div>
             )}
             <div className="pdfv-review-actions">
               <label className="pdfv-button">
                 <FiUpload />
-                <span>Import sidecar</span>
+                <span>{labels.importSidecar}</span>
                 <input
                   className="sr-only"
                   type="file"
@@ -1331,23 +1341,23 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
               </label>
               <button className="pdfv-button" type="button" onClick={downloadAnnotationSidecar} disabled={annotations.length === 0}>
                 <FiDownload />
-                <span>Export sidecar</span>
+                <span>{labels.exportSidecar}</span>
               </button>
               <button className="pdfv-button" type="button" onClick={() => void downloadFlattenedPdf()} disabled={!source || annotations.length === 0}>
                 <FiFileText />
-                <span>Flatten PDF</span>
+                <span>{labels.flattenPdf}</span>
               </button>
               <button className="pdfv-button" type="button" onClick={() => void saveAnnotationSidecar()} disabled={annotations.length === 0}>
                 <FiDownload />
-                <span>Save</span>
+                <span>{labels.save}</span>
               </button>
               <button className="pdfv-button" type="button" onClick={() => void loadAnnotationSidecar()}>
                 <FiUpload />
-                <span>Load saved</span>
+                <span>{labels.loadSaved}</span>
               </button>
               <button className="pdfv-button" type="button" onClick={() => void deleteSavedAnnotationSidecar()}>
                 <FiTrash2 />
-                <span>Delete saved</span>
+                <span>{labels.deleteSaved}</span>
               </button>
               {annotationApiStatus && <span className="pdfv-api-status">{annotationApiStatus}</span>}
             </div>
@@ -1358,8 +1368,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
           {!source && (
             <div className="pdfv-empty">
               <FiFileText />
-              <h1>PDF Viewer</h1>
-              <p>Open a local PDF or use a backend-served PDF URL to inspect pages, search text, print, or download.</p>
+              <h1>{labels.emptyTitle}</h1>
+              <p>{labels.emptyDescription}</p>
             </div>
           )}
 
@@ -1369,14 +1379,14 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
               file={source.file}
               onLoadSuccess={onDocumentLoaded}
               onLoadError={onDocumentError}
-              loading={<div className="pdfv-state">Loading PDF...</div>}
+              loading={<div className="pdfv-state">{labels.loadingPdf}</div>}
               error={<div className="pdfv-state is-error">{loadError || 'PDF could not be loaded.'}</div>}
             >
               {sidebarOpen && (
                 <aside className="pdfv-sidebar" aria-label="Page thumbnails">
                   <div className="pdfv-sidebar-header">
                     <strong>{source.name}</strong>
-                    <span>{numPages || '-'} pages</span>
+                    <span>{numPages || '-'} {labels.pages}</span>
                   </div>
                   <div className="pdfv-thumbnails">
                     {Array.from({ length: numPages }, (_, index) => {
@@ -1424,7 +1434,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                     customTextRenderer={highlightedTextRenderer}
                     renderTextLayer
                     renderAnnotationLayer
-                    loading={<div className="pdfv-state">Rendering page...</div>}
+                    loading={<div className="pdfv-state">{labels.renderingPage}</div>}
                   />
                     <div className="pdfv-annotation-layer" aria-label="Annotation sidecar layer">
                       {currentPageInkAnnotations.length > 0 && (
