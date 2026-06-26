@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Canvas.Importer;
 using Canvas.Pdf;
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -112,6 +113,57 @@ public sealed class PdfViewerFormsControllerTests : IClassFixture<WebApplication
         Assert.Contains(fields.EnumerateArray(), field =>
             field.GetProperty("name").GetString() == "priority" &&
             field.GetProperty("value").GetString() == "High");
+    }
+
+    [Fact]
+    public async Task FillForms_WithFlatten_ReturnsPdfWithoutEditableFieldsAndWithVisibleValues()
+    {
+        var inputPdf = CreateSampleFormPdf();
+        using var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent(inputPdf)
+        {
+            Headers =
+            {
+                ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf"),
+            },
+        }, "file", "form.pdf");
+        form.Add(new StringContent("""
+            {
+              "fields": [
+                { "name": "customer.name", "value": "Grace" },
+                { "name": "customer.notes", "value": "Flattened note" },
+                { "name": "approval.accepted", "value": true },
+                { "name": "priority", "value": "High" }
+              ]
+            }
+            """), "fields");
+        form.Add(new StringContent("true"), "flatten");
+
+        var fillResponse = await _client.PostAsync("/api/pdf-viewer/forms/fill", form);
+
+        Assert.Equal(HttpStatusCode.OK, fillResponse.StatusCode);
+        var flattenedPdf = await fillResponse.Content.ReadAsByteArrayAsync();
+
+        using var extractForm = new MultipartFormDataContent();
+        extractForm.Add(new ByteArrayContent(flattenedPdf)
+        {
+            Headers =
+            {
+                ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf"),
+            },
+        }, "file", "form-flattened.pdf");
+
+        var extractResponse = await _client.PostAsync("/api/pdf-viewer/forms/extract", extractForm);
+        using var json = JsonDocument.Parse(await extractResponse.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.OK, extractResponse.StatusCode);
+        Assert.Empty(json.RootElement.GetProperty("fields").EnumerateArray());
+
+        await using var output = new MemoryStream(flattenedPdf);
+        var imported = await new PdfImporter().LoadAsync(output);
+        var texts = imported.Pages.SelectMany(static page => page.TextObjects).Select(static text => text.Text).ToArray();
+        Assert.Contains("Grace", texts);
+        Assert.Contains("Flattened note", texts);
+        Assert.Contains("High", texts);
     }
 
     private static byte[] CreateSampleFormPdf()

@@ -55,6 +55,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 - [x] Form workflow: existing AcroForm fields can be detected, edited, downloaded as filled PDFs, and optionally flattened
 - [x] Backend form reader baseline: existing AcroForm fields can be extracted through WebApi into the viewer form model
 - [x] Backend form writer baseline: supported AcroForm field values can be saved through WebApi incremental updates
+- [x] Backend form flattening baseline: supported AcroForm values can be rendered as page content and widgets removed
 - [x] Secure redaction workflow: redaction marks can be applied through the backend to remove covered imported content and download a redacted PDF
 - [x] Backend routes:
       `POST /api/pdf-viewer/annotations`,
@@ -85,7 +86,8 @@ Intentional remaining gaps:
 - [ ] Backend form reader extracts text, multiline text, checkbox, combo/dropdown, list, and radio-like button fields
       from AcroForm dictionaries. Backend form writing/flattening and richer inherited-field edge cases remain open.
 - [ ] Backend form writer updates text, multiline text, checkbox, dropdown/list, and radio-like button values with
-      incremental PDF updates. Backend flattening and full appearance regeneration remain open.
+      incremental PDF updates. Backend flattening baseline renders supported values into page content and removes
+      widgets; full field appearance regeneration and complex form hierarchies remain open.
 - [ ] Text markup is area-based, not true text-selection-bound PDF markup.
 - [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, form filling, English/German viewer labels, keyboard shortcuts, and Jest component smoke coverage.
 - [ ] Secure redaction removes importer-supported content under redaction rectangles during regenerated output, then draws black redaction boxes. Remaining gap: validate/extend coverage for complex PDFs, unsupported image/resource patterns, and optional Playwright browser smoke tests if Playwright is added to the project.
@@ -252,10 +254,10 @@ our own implementation, UI language, and engine boundaries.
 - [x] **Form reader support** - Import existing AcroForm fields and values.
       Frontend viewer baseline exists through `pdf-lib`; backend baseline now extracts AcroForm fields through
       `POST /api/pdf-viewer/forms/extract` into the viewer form model.
-- [ ] **Form writer/flattening support** - Save field changes and optionally flatten fields.
+- [x] **Form writer/flattening support** - Save field changes and optionally flatten fields.
       Frontend viewer baseline can download filled/flattened PDFs through `pdf-lib`; backend baseline can save
-      supported AcroForm values through `POST /api/pdf-viewer/forms/fill`. Backend flattening and full appearance
-      regeneration remain open.
+      supported AcroForm values through `POST /api/pdf-viewer/forms/fill`, and `flatten=true` renders supported
+      values into page content while removing editable widgets. Full appearance regeneration remains open.
 - [ ] **PDF-to-image/page rasterization** - Backend rasterization for thumbnails or fallback preview.
 - [ ] **Incremental update strategy** - Decide whether edited PDFs are fully rewritten or saved incrementally.
 

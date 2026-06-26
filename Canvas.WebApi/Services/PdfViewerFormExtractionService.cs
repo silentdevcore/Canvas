@@ -1,4 +1,6 @@
 using Canvas.Importer;
+using Canvas.Importer.Document;
+using Canvas.Importer.Graphics;
 using Canvas.Importer.Objects;
 using Canvas.Importer.Parsing;
 using System.Globalization;
@@ -40,11 +42,6 @@ public sealed class PdfViewerFormExtractionService
         bool flatten = false,
         CancellationToken cancellationToken = default)
     {
-        if (flatten)
-        {
-            throw new NotSupportedException("Backend form flattening is not supported yet.");
-        }
-
         if (fields.ValueKind != JsonValueKind.Array)
         {
             throw new ArgumentException("fields must be an array.", nameof(fields));
@@ -64,14 +61,21 @@ public sealed class PdfViewerFormExtractionService
             .Cast<PdfViewerFormFieldUpdate>()
             .ToDictionary(static update => update.Name, StringComparer.Ordinal);
         var appendedObjects = new List<(PdfObjectId Id, PdfObject Value)>();
+        var flattenCommands = new List<FormFlattenCommand>();
+        var flattenedWidgetIds = new HashSet<PdfObjectId>();
 
         if (resolver.TryResolve<PdfDictionary>(document.Catalog.Dictionary["AcroForm"], out var acroForm) &&
             resolver.TryResolve<PdfArray>(acroForm["Fields"], out var rootFields))
         {
             foreach (var fieldObject in rootFields.Items)
             {
-                FillField(fieldObject, resolver, new InheritedFormField(), updatesByName, appendedObjects);
+                FillField(fieldObject, resolver, new InheritedFormField(), updatesByName, appendedObjects, flatten ? flattenCommands : null, flattenedWidgetIds);
             }
+        }
+
+        if (flatten && flattenCommands.Count > 0)
+        {
+            AppendFlattenObjects(document, resolver, flattenCommands, flattenedWidgetIds, appendedObjects);
         }
 
         if (appendedObjects.Count == 0)
@@ -138,7 +142,9 @@ public sealed class PdfViewerFormExtractionService
         PdfObjectResolver resolver,
         InheritedFormField inherited,
         IReadOnlyDictionary<string, PdfViewerFormFieldUpdate> updatesByName,
-        List<(PdfObjectId Id, PdfObject Value)> appendedObjects)
+        List<(PdfObjectId Id, PdfObject Value)> appendedObjects,
+        List<FormFlattenCommand>? flattenCommands,
+        HashSet<PdfObjectId> flattenedWidgetIds)
     {
         if (!resolver.TryResolve<PdfDictionary>(fieldObject, out var field))
         {
@@ -150,7 +156,7 @@ public sealed class PdfViewerFormExtractionService
         {
             foreach (var kid in kids.Items)
             {
-                FillField(kid, resolver, current, updatesByName, appendedObjects);
+                FillField(kid, resolver, current, updatesByName, appendedObjects, flattenCommands, flattenedWidgetIds);
             }
 
             if (field["FT"] is null || field["Subtype"] is not PdfName { Value: "Widget" })
@@ -172,6 +178,14 @@ public sealed class PdfViewerFormExtractionService
         var updatedField = new PdfDictionary(new Dictionary<string, PdfObject>(field.Values, StringComparer.Ordinal));
         ApplyValueUpdate(updatedField, kind, update.Value);
         appendedObjects.Add((objectId, updatedField));
+
+        if (flattenCommands is not null &&
+            TryReadRectangle(field["Rect"], resolver, out var rect) &&
+            ResolvePageObjectId(field["P"], resolver) is { } pageObjectId)
+        {
+            flattenCommands.Add(new FormFlattenCommand(pageObjectId, rect, kind, update.Value.Clone()));
+            flattenedWidgetIds.Add(objectId);
+        }
     }
 
     private static void ApplyValueUpdate(PdfDictionary field, string kind, JsonElement value)
@@ -209,6 +223,202 @@ public sealed class PdfViewerFormExtractionService
             "Ch" => "list",
             _ => "unsupported"
         };
+    }
+
+    private static void AppendFlattenObjects(
+        PdfDocumentModel document,
+        PdfObjectResolver resolver,
+        IReadOnlyList<FormFlattenCommand> commands,
+        IReadOnlySet<PdfObjectId> widgetIds,
+        List<(PdfObjectId Id, PdfObject Value)> appendedObjects)
+    {
+        var nextObjectNumber = document.ObjectGraph.Objects.Keys.Select(static id => id.Number).DefaultIfEmpty().Max() + 1;
+        var fontObjectId = new PdfObjectId(nextObjectNumber++, 0);
+        appendedObjects.Add((fontObjectId, new PdfDictionary(new Dictionary<string, PdfObject>
+        {
+            ["Type"] = new PdfName("Font"),
+            ["Subtype"] = new PdfName("Type1"),
+            ["BaseFont"] = new PdfName("Helvetica"),
+            ["Encoding"] = new PdfName("WinAnsiEncoding")
+        })));
+
+        foreach (var pageGroup in commands.GroupBy(static command => command.PageObjectId))
+        {
+            var page = document.Pages.FirstOrDefault(candidate => candidate.OriginalReference == pageGroup.Key);
+            if (page is null)
+            {
+                continue;
+            }
+
+            var streamObjectId = new PdfObjectId(nextObjectNumber++, 0);
+            var contentBytes = Encoding.ASCII.GetBytes(BuildFlattenContentStream(pageGroup));
+            appendedObjects.Add((streamObjectId, new PdfStreamObject(new PdfDictionary(), contentBytes)));
+
+            var updatedPage = new PdfDictionary(new Dictionary<string, PdfObject>(page.PageDictionary.Values, StringComparer.Ordinal));
+            updatedPage["Contents"] = AppendContentReference(page.PageDictionary["Contents"], streamObjectId);
+            updatedPage["Resources"] = BuildFlattenResources(page, resolver, fontObjectId);
+            updatedPage["Annots"] = RemoveWidgetAnnotations(page.PageDictionary["Annots"], resolver, widgetIds);
+            appendedObjects.Add((pageGroup.Key, updatedPage));
+        }
+
+        if (document.Catalog.OriginalReference is { } catalogObjectId)
+        {
+            var updatedCatalog = new PdfDictionary(new Dictionary<string, PdfObject>(document.Catalog.Dictionary.Values, StringComparer.Ordinal));
+            var acroForm = resolver.TryResolve<PdfDictionary>(document.Catalog.Dictionary["AcroForm"], out var existingAcroForm)
+                ? new PdfDictionary(new Dictionary<string, PdfObject>(existingAcroForm.Values, StringComparer.Ordinal))
+                : new PdfDictionary();
+            acroForm["Fields"] = new PdfArray();
+            updatedCatalog["AcroForm"] = acroForm;
+            appendedObjects.Add((catalogObjectId, updatedCatalog));
+        }
+    }
+
+    private static string BuildFlattenContentStream(IEnumerable<FormFlattenCommand> commands)
+    {
+        var builder = new StringBuilder();
+        foreach (var command in commands)
+        {
+            builder.AppendLine("q");
+            switch (command.Kind)
+            {
+                case "checkbox":
+                    AppendCheckboxFlattenContent(builder, command);
+                    break;
+                case "text":
+                case "dropdown":
+                case "radio":
+                case "list":
+                    AppendTextFlattenContent(builder, command);
+                    break;
+            }
+
+            builder.AppendLine("Q");
+        }
+
+        return builder.ToString();
+    }
+
+    private static void AppendTextFlattenContent(StringBuilder builder, FormFlattenCommand command)
+    {
+        var text = command.Kind == "list" && command.Value.ValueKind == JsonValueKind.Array
+            ? string.Join(", ", command.Value.EnumerateArray().Select(ReadStringValue))
+            : ReadStringValue(command.Value);
+        var lines = text.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n').Split('\n');
+        var startX = command.Rect.Left + 2;
+        var startY = Math.Max(command.Rect.Bottom + 2, command.Rect.Top - 12);
+        builder.AppendLine("BT");
+        builder.AppendLine("/Fflat 10 Tf");
+        builder.AppendLine("0 0 0 rg");
+        builder.Append(CultureInfo.InvariantCulture, $"{FormatNumber(startX)} {FormatNumber(startY)} Td\n");
+        for (var index = 0; index < lines.Length; index++)
+        {
+            if (index > 0)
+            {
+                builder.AppendLine("0 -12 Td");
+            }
+
+            builder.Append(CultureInfo.InvariantCulture, $"({EscapeLiteralString(lines[index])}) Tj\n");
+        }
+
+        builder.AppendLine("ET");
+    }
+
+    private static void AppendCheckboxFlattenContent(StringBuilder builder, FormFlattenCommand command)
+    {
+        var checkedValue = command.Value.ValueKind == JsonValueKind.True ||
+            (command.Value.ValueKind == JsonValueKind.String && command.Value.GetString() is { } text && text != "Off" && text.Length > 0);
+        builder.AppendLine("0 0 0 RG");
+        builder.AppendLine("1 w");
+        builder.Append(CultureInfo.InvariantCulture, $"{FormatNumber(command.Rect.Left)} {FormatNumber(command.Rect.Bottom)} {FormatNumber(command.Rect.Width)} {FormatNumber(command.Rect.Height)} re S\n");
+        if (!checkedValue)
+        {
+            return;
+        }
+
+        var x1 = command.Rect.Left + command.Rect.Width * 0.2;
+        var y1 = command.Rect.Bottom + command.Rect.Height * 0.55;
+        var x2 = command.Rect.Left + command.Rect.Width * 0.42;
+        var y2 = command.Rect.Bottom + command.Rect.Height * 0.25;
+        var x3 = command.Rect.Left + command.Rect.Width * 0.82;
+        var y3 = command.Rect.Bottom + command.Rect.Height * 0.78;
+        builder.AppendLine("2 w");
+        builder.Append(CultureInfo.InvariantCulture, $"{FormatNumber(x1)} {FormatNumber(y1)} m {FormatNumber(x2)} {FormatNumber(y2)} l {FormatNumber(x3)} {FormatNumber(y3)} l S\n");
+    }
+
+    private static PdfDictionary BuildFlattenResources(PdfPageModel page, PdfObjectResolver resolver, PdfObjectId fontObjectId)
+    {
+        var resources = resolver.TryResolve<PdfDictionary>(page.PageDictionary["Resources"], out var pageResources)
+            ? new PdfDictionary(new Dictionary<string, PdfObject>(pageResources.Values, StringComparer.Ordinal))
+            : new PdfDictionary();
+        var fonts = resolver.TryResolve<PdfDictionary>(resources["Font"], out var existingFonts)
+            ? new PdfDictionary(new Dictionary<string, PdfObject>(existingFonts.Values, StringComparer.Ordinal))
+            : new PdfDictionary();
+        fonts["Fflat"] = new PdfReference(fontObjectId);
+        resources["Font"] = fonts;
+        return resources;
+    }
+
+    private static PdfObject AppendContentReference(PdfObject? existingContents, PdfObjectId streamObjectId)
+    {
+        var streamReference = new PdfReference(streamObjectId);
+        return existingContents switch
+        {
+            PdfArray array => new PdfArray(array.Items.Concat([streamReference])),
+            PdfObject contents => new PdfArray([contents, streamReference]),
+            null => streamReference
+        };
+    }
+
+    private static PdfObject RemoveWidgetAnnotations(PdfObject? annots, PdfObjectResolver resolver, IReadOnlySet<PdfObjectId> widgetIds)
+    {
+        if (annots is null || resolver.Resolve(annots) is not PdfArray array)
+        {
+            return new PdfArray();
+        }
+
+        return new PdfArray(array.Items.Where(item => item is not PdfReference reference || !widgetIds.Contains(reference.Id)));
+    }
+
+    private static PdfObjectId? ResolvePageObjectId(PdfObject? value, PdfObjectResolver resolver)
+    {
+        return value switch
+        {
+            PdfReference reference => reference.Id,
+            _ => resolver.Resolve(value ?? PdfNull.Value)?.OriginalId
+        };
+    }
+
+    private static bool TryReadRectangle(PdfObject? value, PdfObjectResolver resolver, out PdfRectangle rectangle)
+    {
+        rectangle = default;
+        if (value is null || resolver.Resolve(value) is not PdfArray { Items.Count: >= 4 } array)
+        {
+            return false;
+        }
+
+        var x1 = ResolveNumber(array.Items[0], resolver);
+        var y1 = ResolveNumber(array.Items[1], resolver);
+        var x2 = ResolveNumber(array.Items[2], resolver);
+        var y2 = ResolveNumber(array.Items[3], resolver);
+        if (x1 is null || y1 is null || x2 is null || y2 is null)
+        {
+            return false;
+        }
+
+        rectangle = new PdfRectangle(x1.Value, y1.Value, x2.Value - x1.Value, y2.Value - y1.Value);
+        return true;
+    }
+
+    private static double? ResolveNumber(PdfObject? value, PdfObjectResolver resolver)
+    {
+        return value is null
+            ? null
+            : resolver.Resolve(value) switch
+            {
+                PdfInteger integer => integer.Value,
+                PdfNumber number => number.Value,
+                _ => null
+            };
     }
 
     private static object NormalizeValue(string kind, string value)
@@ -309,6 +519,21 @@ public sealed class PdfViewerFormExtractionService
             JsonValueKind.Number => value.ToString(),
             _ => ""
         };
+    }
+
+    private static string EscapeLiteralString(string value)
+    {
+        return value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("(", "\\(", StringComparison.Ordinal)
+            .Replace(")", "\\)", StringComparison.Ordinal)
+            .Replace("\n", "\\n", StringComparison.Ordinal)
+            .Replace("\r", "", StringComparison.Ordinal);
+    }
+
+    private static string FormatNumber(double value)
+    {
+        return value.ToString("0.###", CultureInfo.InvariantCulture);
     }
 
     private static byte[] AppendIncrementalUpdate(byte[] basePdfBytes, PdfDictionary? trailer, IReadOnlyList<(PdfObjectId Id, PdfObject Value)> appendedObjects)
@@ -481,6 +706,14 @@ public sealed class PdfViewerFormExtractionService
 
                 WriteAscii(stream, " >>");
                 break;
+            case PdfStreamObject streamObject:
+                var streamDictionary = new PdfDictionary(new Dictionary<string, PdfObject>(streamObject.Dictionary.Values, StringComparer.Ordinal));
+                streamDictionary["Length"] = new PdfInteger(streamObject.EncodedBytes.Length);
+                WriteObject(stream, streamDictionary);
+                WriteAscii(stream, "\nstream\n");
+                stream.Write(streamObject.EncodedBytes.Span);
+                WriteAscii(stream, "\nendstream");
+                break;
             default:
                 throw new NotSupportedException($"PDF object type '{value.GetType().Name}' cannot be serialized for form update.");
         }
@@ -532,6 +765,8 @@ public sealed class PdfViewerFormExtractionService
             return new PdfViewerFormFieldUpdate(nameElement.GetString()!, value.Clone());
         }
     }
+
+    private sealed record FormFlattenCommand(PdfObjectId PageObjectId, PdfRectangle Rect, string Kind, JsonElement Value);
 }
 
 public sealed record PdfViewerFormFieldsResponse(
