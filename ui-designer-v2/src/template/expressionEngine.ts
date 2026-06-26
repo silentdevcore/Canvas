@@ -17,8 +17,15 @@ export interface ExpressionResult {
 }
 
 // Dataset-aggregate helpers: read a (optional) field from a row, and collect numeric column values.
+// A bare identifier is a fast field read; a computed argument (Qty * Price, $iif(Paid, Total, 0)) is
+// evaluated as a sub-expression against the row, so Sum(Qty*Price)/Sum(IIf(...)) work. Mirrors RowValue
+// in CanvasExpressionEvaluator.
+const BARE_IDENT = /^[A-Za-z_]\w*$/;
 function aggField(row: any, field?: string): any {
-  return field == null ? row : (row && typeof row === 'object' ? row[field] : undefined);
+  if (field == null) return row;
+  if (BARE_IDENT.test(field)) return row && typeof row === 'object' ? row[field] : undefined;
+  const r = evaluateExpression(field, { data: row && typeof row === 'object' ? row : {} });
+  return r.isValid ? r.value : undefined;
 }
 function aggNums(rows: any, field?: string): number[] {
   if (!Array.isArray(rows)) return [];

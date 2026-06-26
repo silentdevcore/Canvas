@@ -82,6 +82,15 @@ reads the field per row, coerces numeric, and reduces.
     (Average/Count/Lowest/Highest/First too). Report/page-scoped variables stay as references.
   - **Scope note:** like the DevExpress converter, only group-band aggregates resolve (to `$group`);
     report/page-footer grand totals need a dataset name and are a follow-up.
-- [ ] `RunningValue`, conditional aggregates (`Sum(IIf(...))`), aggregate over a *computed* per-row
-      expression (`Sum(Qty * Price)`).
-- [ ] Custom RDL `<Code>` functions.
+- [x] **Conditional / computed-argument aggregates** — `Sum(Qty * Price)`, `Sum(IIf(...))`. The aggregate's
+      second argument is no longer just a field name: the translator emits the translated inner expression
+      single-quoted (`$sum(ds, 'Qty * Price')`, `$sum(ds, '$iif(Paid, Total, 0)')`) and both evaluators
+      (`CanvasExpressionEvaluator.RowValue` + frontend `aggField`) evaluate it as a per-row sub-expression
+      (bare identifiers keep the fast field-read path). Tests: `TranslateRdl_ComputedAggregateArgument`,
+      `CanvasExpressionEvaluatorTests.Aggregate_Over_ComputedRowExpression`, and the frontend
+      `expressionEngine.test.ts` parity case.
+- [x] **`RunningValue`** — `RunningValue(expr, AggName[, scope])` maps to the matching aggregate over the
+      current scope (`$sum`/`$avg`/…). Canvas renders the total at the group/report footer, so the running
+      value through the last row equals the total; true per-row running state in detail rows is **not** modelled
+      (documented approximation). Test: `TranslateRdl_RunningValue_MapsToAggregate`.
+- [ ] Custom RDL `<Code>` functions — arbitrary embedded VB, not runnable in Canvas (kept preserved).

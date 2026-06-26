@@ -199,7 +199,7 @@ public static class CanvasExpressionEvaluator
                 throw new EvalException("aggregate requires a dataset");
             var field = args.Count > 1 && args[1] is not null ? FormatValue(args[1]) : null;
             var values = new List<object?>();
-            foreach (var row in rowsRaw) values.Add(FieldValue(row, field));
+            foreach (var row in rowsRaw) values.Add(RowValue(row, field));
 
             switch (name)
             {
@@ -217,6 +217,30 @@ public static class CanvasExpressionEvaluator
                 _ => throw new EvalException($"unknown aggregate {name}")
             };
         }
+
+        // The aggregate's per-row argument: a bare field name (fast dict read) or a sub-expression
+        // (Qty * Price, $iif(Paid, Total, 0)) evaluated against the row — so Sum(Qty*Price) works.
+        private static object? RowValue(object? row, string? field)
+        {
+            if (field is null) return row;
+            if (IsBareIdentifier(field)) return FieldValue(row, field);
+            if (AsRowData(row) is { } data && TryEvaluate(field, data, out var v)) return v;
+            return FieldValue(row, field);
+        }
+
+        private static bool IsBareIdentifier(string s)
+        {
+            if (s.Length == 0 || !(char.IsLetter(s[0]) || s[0] == '_')) return false;
+            foreach (var c in s) if (!(char.IsLetterOrDigit(c) || c == '_')) return false;
+            return true;
+        }
+
+        private static IReadOnlyDictionary<string, object?>? AsRowData(object? row) => row switch
+        {
+            IReadOnlyDictionary<string, object?> d => d,
+            IDictionary<string, object?> d => new Dictionary<string, object?>(d),
+            _ => null
+        };
 
         private static object? FieldValue(object? row, string? field) => field is null
             ? row

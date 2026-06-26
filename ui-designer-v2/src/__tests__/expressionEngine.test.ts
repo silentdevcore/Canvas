@@ -59,6 +59,12 @@ describe('expressionEngine — dataset aggregates', () => {
     expect(evaluateExpression('$concat("Total: ", $sum(Orders, "Total"))', ctx).value).toBe('Total: 60');
   });
 
+  test('aggregate over a computed per-row sub-expression (Sum(Qty*Price) / Sum(IIf(...)))', () => {
+    // Second arg is a per-row expression, not just a field name — parity with CanvasExpressionEvaluator.RowValue.
+    expect(evaluateExpression('$sum(Orders, "Total * 2")', ctx).value).toBe(120);                 // (10+20+30)*2
+    expect(evaluateExpression('$sum(Orders, "$iif(Total > 15, Total, 0)")', ctx).value).toBe(50); // 20 + 30 only
+  });
+
   test('non-array dataset yields safe defaults', () => {
     expect(evaluateExpression('$sum(Missing, "Total")', ctx).value).toBe(0);
     expect(evaluateExpression('$count(Missing)', ctx).value).toBe(0);

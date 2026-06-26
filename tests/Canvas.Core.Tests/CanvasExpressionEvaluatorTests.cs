@@ -73,6 +73,17 @@ public class CanvasExpressionEvaluatorTests
     }
 
     [Fact]
+    public void Aggregate_Over_ComputedRowExpression()
+    {
+        // The aggregate's second argument may be a per-row sub-expression, not just a field name:
+        // Sum(Qty*Price) / Sum(IIf(...)) translate to $sum(ds, "<expr>") and evaluate the expr per row.
+        var d = Dataset();   // Total = 10, 20, 30
+        Assert.Equal(120d, Eval("$sum(Orders, \"Total * 2\")", d));                  // (10 + 20 + 30) * 2
+        Assert.Equal(50d, Eval("$sum(Orders, \"$iif(Total > 15, Total, 0)\")", d));  // 20 + 30 only
+        Assert.Equal(60d, Eval("$sum(Orders, \"Total\")", d));                       // bare field still works
+    }
+
+    [Fact]
     public void Aggregate_In_Concat_And_Empty_Dataset()
     {
         var d = Dataset();

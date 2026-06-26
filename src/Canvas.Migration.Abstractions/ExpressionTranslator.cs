@@ -102,20 +102,43 @@ public static class ExpressionTranslator
                 return "$switch(" + TranslateArgs(call.Args, rdl, dataSet) + ")";
             if (name.Equals("IsNothing", StringComparison.OrdinalIgnoreCase) || name.Equals("IsNull", StringComparison.OrdinalIgnoreCase))
                 return "$isEmpty(" + TranslateArgs(call.Args, rdl, dataSet) + ")";
-            // Dataset aggregate over a single field: Sum(Field) → $sum(DataSet, "Field"). Needs a dataset
-            // and a bare-identifier field (field refs were already normalized to identifiers upstream).
+            // Dataset aggregate: Sum(Field) → $sum(DataSet, "Field"); a computed argument
+            // (Sum(Qty*Price), Sum(IIf(...))) is translated and emitted as a per-row sub-expression the
+            // evaluator runs against each row. Needs a dataset (field refs are normalized upstream).
             if (Aggregates.TryGetValue(name, out var helper)
-                && dataSet?.Trim() is { Length: > 0 } ds
-                && (ds == GroupScopeToken || Regex.IsMatch(ds, @"^[A-Za-z_]\w*$"))
-                && call.Args is [var only]
-                && Regex.IsMatch(only.Trim(), @"^[A-Za-z_]\w*$"))
-                return $"{helper}({ds}, \"{only.Trim()}\")";
+                && AggregateScope(dataSet) is { } scope
+                && call.Args is [var only])
+                return EmitAggregate(helper, scope, only, rdl, dataSet);
+            // RunningValue(expr, AggName[, scope]) ≈ the aggregate over the current scope. Canvas renders the
+            // total at the group/report footer; true per-row running state is not modelled (documented approx).
+            if (name.Equals("RunningValue", StringComparison.OrdinalIgnoreCase)
+                && AggregateScope(dataSet) is { } rvScope
+                && call.Args is [var rvExpr, var rvAgg, ..]
+                && Aggregates.TryGetValue(rvAgg.Trim().Trim('"', '\''), out var rvHelper))
+                return EmitAggregate(rvHelper, rvScope, rvExpr, rdl, dataSet);
             // Unknown function: translate its arguments but keep the original name (engine may have/lack it).
             return name + "(" + TranslateArgs(call.Args, rdl, dataSet) + ")";
         }
 
         // Leaf: identifier / number / string literal / simple binary arithmetic — left as-is.
         return expr;
+    }
+
+    // A valid aggregate scope is the $group token or a single dataset identifier; otherwise no aggregate.
+    private static string? AggregateScope(string? dataSet) =>
+        dataSet?.Trim() is { Length: > 0 } ds && (ds == GroupScopeToken || Regex.IsMatch(ds, @"^[A-Za-z_]\w*$"))
+            ? ds : null;
+
+    // A bare field stays a quoted field name ($sum(ds, "Field")); a computed argument is translated and
+    // emitted single-quoted as a per-row sub-expression — its inner string literals are double-quoted, so
+    // single-quoting the wrapper avoids escaping (any stray single quote is still backslash-escaped).
+    private static string EmitAggregate(string helper, string scope, string arg, bool rdl, string? dataSet)
+    {
+        var inner = arg.Trim();
+        if (Regex.IsMatch(inner, @"^[A-Za-z_]\w*$"))
+            return $"{helper}({scope}, \"{inner}\")";
+        var translated = Translate(inner, rdl, dataSet).Replace("\\", "\\\\").Replace("'", "\\'");
+        return $"{helper}({scope}, '{translated}')";
     }
 
     private static string Wrap(string fn, List<string> parts, bool rdl, string? dataSet) =>
