@@ -57,6 +57,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 - [x] Backend form writer baseline: supported AcroForm field values can be saved through WebApi incremental updates
 - [x] Backend form flattening baseline: supported AcroForm values can be rendered as page content and widgets removed
 - [x] Secure redaction workflow: redaction marks can be applied through the backend to remove covered imported content and download a redacted PDF
+- [x] Redaction audit metadata baseline: backend redaction output preserves count, page/area, reason, author, and timestamp data in PDF document info metadata
 - [x] Backend routes:
       `POST /api/pdf-viewer/annotations`,
       `GET /api/pdf-viewer/annotations/{documentId}`,
@@ -90,7 +91,7 @@ Intentional remaining gaps:
       widgets; full field appearance regeneration and complex form hierarchies remain open.
 - [ ] Text markup is area-based, not true text-selection-bound PDF markup.
 - [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, form filling, English/German viewer labels, keyboard shortcuts, and Jest component smoke coverage.
-- [ ] Secure redaction removes importer-supported content under redaction rectangles during regenerated output, then draws black redaction boxes. Remaining gap: validate/extend coverage for complex PDFs, unsupported image/resource patterns, and optional Playwright browser smoke tests if Playwright is added to the project.
+- [ ] Secure redaction removes importer-supported content under redaction rectangles during regenerated output, then draws black redaction boxes, and now writes a PDF-info audit metadata baseline. Remaining gap: validate/extend coverage for complex PDFs, unsupported image/resource patterns, externally signed audit logs, and optional Playwright browser smoke tests if Playwright is added to the project.
 
 ## P0 - Viewer Foundation
 
@@ -227,7 +228,9 @@ our own implementation, UI language, and engine boundaries.
       Implemented as area-based pending redaction marks with sidecar persistence and flattened PDF output. These marks are visual and do not remove underlying PDF content.
 - [x] **Apply secure redactions** - Remove underlying text/graphics/resources, not only paint black rectangles.
       Implemented backend redaction for importer-supported graphics elements under area marks, with viewer download action. Complex PDF/resource coverage still needs broader corpus testing.
-- [ ] **Redaction audit metadata** - Preserve reason/user/timestamp metadata for review workflows.
+- [x] **Redaction audit metadata** - Preserve reason/user/timestamp metadata for review workflows.
+      Implemented backend baseline writes `RedactionAudit` PDF document info metadata with redaction count, page/area,
+      reason, author, and created timestamp. External audit stores, signatures, and tamper-evident review history remain open.
 
 ## P2 - Accessibility, Localization, And Customization
 

@@ -349,6 +349,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
                   "widthPct": 100,
                   "heightPct": 100,
                   "text": "Redaction mark",
+                  "reason": "Privacy request",
                   "author": "Reviewer",
                   "createdAt": "2026-06-25T10:00:00Z",
                   "color": "#111827"
@@ -362,7 +363,14 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
 
-        await using var output = await response.Content.ReadAsStreamAsync();
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        var content = System.Text.Encoding.ASCII.GetString(bytes);
+        Assert.Contains("/RedactionAudit", content, StringComparison.Ordinal);
+        Assert.Contains("Privacy request", content, StringComparison.Ordinal);
+        Assert.Contains("Reviewer", content, StringComparison.Ordinal);
+        Assert.Contains("2026-06-25T10:00:00", content, StringComparison.Ordinal);
+
+        await using var output = new MemoryStream(bytes);
         var document = await new PdfImporter().LoadAsync(output);
         Assert.DoesNotContain(document.Pages.SelectMany(page => page.TextObjects), text => text.Text == "Source PDF");
     }

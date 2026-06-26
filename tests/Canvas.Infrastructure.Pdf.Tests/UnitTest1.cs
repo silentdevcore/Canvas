@@ -100,6 +100,23 @@ public class PdfSerializationIntegrationTests
     }
 
     [Fact]
+    public void ToBytes_ShouldEmitCustomDocumentInfoProperties()
+    {
+        var document = new PdfDocument();
+        document.Info.CustomProperties["RedactionAudit"] = """{"count":1,"reason":"Privacy request"}""";
+        document.Info.CustomProperties["Ignored-Key!"] = "sanitized";
+        document.AddPage().DrawText("metadata", 80, 700, 12);
+
+        var content = Encoding.ASCII.GetString(document.ToBytes(new PdfSaveOptions
+        {
+            CompressContentStreams = false
+        }));
+
+        Assert.Contains("/RedactionAudit ({\"count\":1,\"reason\":\"Privacy request\"})", content, StringComparison.Ordinal);
+        Assert.Contains("/IgnoredKey (sanitized)", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ToBytes_WithDiagnosticsEnabled_ShouldPopulateExpectedCounters()
     {
         var document = new PdfDocument();

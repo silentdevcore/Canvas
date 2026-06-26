@@ -2,6 +2,8 @@ namespace Canvas.Pdf;
 
 public sealed class PdfDocumentInfo
 {
+    private readonly Dictionary<string, string> _customProperties = new(StringComparer.Ordinal);
+
     public string? Title { get; set; }
 
     public string? Author { get; set; }
@@ -18,6 +20,8 @@ public sealed class PdfDocumentInfo
 
     public DateTimeOffset? ModificationDate { get; set; }
 
+    public IDictionary<string, string> CustomProperties => _customProperties;
+
     internal bool HasValues =>
         !string.IsNullOrWhiteSpace(Title)
         || !string.IsNullOrWhiteSpace(Author)
@@ -26,5 +30,6 @@ public sealed class PdfDocumentInfo
         || !string.IsNullOrWhiteSpace(Creator)
         || !string.IsNullOrWhiteSpace(Producer)
         || CreationDate is not null
-        || ModificationDate is not null;
+        || ModificationDate is not null
+        || _customProperties.Count > 0;
 }

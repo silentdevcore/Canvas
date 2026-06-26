@@ -65,7 +65,11 @@ public sealed class PdfViewerAnnotationFlatteningService
         await _bridge.RegenerateAsync(
             document,
             output,
-            canvasDocument => ApplyAnnotations(canvasDocument, redactions),
+            canvasDocument =>
+            {
+                ApplyAnnotations(canvasDocument, redactions);
+                ApplyRedactionAuditMetadata(canvasDocument, redactions);
+            },
             cancellationToken).ConfigureAwait(false);
 
         return output.ToArray();
@@ -157,6 +161,51 @@ public sealed class PdfViewerAnnotationFlatteningService
 
             DrawAnnotation(page, annotation);
         }
+    }
+
+    private static void ApplyRedactionAuditMetadata(CanvasPdfDocument document, IReadOnlyCollection<PdfViewerAnnotation> redactions)
+    {
+        var audit = new
+        {
+            version = 1,
+            generatedAt = DateTimeOffset.UtcNow,
+            count = redactions.Count,
+            items = redactions
+                .OrderBy(static item => item.PageNumber)
+                .ThenBy(static item => item.YPct)
+                .ThenBy(static item => item.XPct)
+                .Select(static item => new
+                {
+                    pageNumber = item.PageNumber,
+                    xPct = Math.Round(item.XPct, 3),
+                    yPct = Math.Round(item.YPct, 3),
+                    widthPct = Math.Round(item.WidthPct, 3),
+                    heightPct = Math.Round(item.HeightPct, 3),
+                    reason = item.RedactionReason,
+                    author = item.Author,
+                    createdAt = item.CreatedAt,
+                }),
+        };
+
+        document.Info.CustomProperties["RedactionAudit"] = JsonSerializer.Serialize(audit);
+        document.Info.Keywords = MergeKeywords(document.Info.Keywords, "redacted", "redaction-audit");
+        document.Info.ModificationDate = DateTimeOffset.UtcNow;
+    }
+
+    private static string MergeKeywords(string? current, params string[] additions)
+    {
+        var keywords = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var keyword in (current ?? string.Empty).Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            keywords.Add(keyword);
+        }
+
+        foreach (var addition in additions)
+        {
+            keywords.Add(addition);
+        }
+
+        return string.Join("; ", keywords);
     }
 
     private static void DrawAnnotation(PdfPage page, PdfViewerAnnotation annotation)
@@ -446,8 +495,15 @@ public sealed class PdfViewerAnnotationFlatteningService
         string? FillColor,
         string LineEndingStart,
         string LineEndingEnd,
-        IReadOnlyList<PdfViewerInkPoint> Points)
+        IReadOnlyList<PdfViewerInkPoint> Points,
+        string Author,
+        DateTimeOffset? CreatedAt,
+        string? Reason)
     {
+        public string RedactionReason => !string.IsNullOrWhiteSpace(Reason)
+            ? Reason.Trim()
+            : Text.Trim();
+
         public static PdfViewerAnnotation? FromJson(JsonElement element)
         {
             if (element.ValueKind != JsonValueKind.Object)
@@ -473,7 +529,10 @@ public sealed class PdfViewerAnnotationFlatteningService
                 ReadString(element, "fillColor"),
                 ReadString(element, "lineEndingStart") ?? "none",
                 ReadString(element, "lineEndingEnd") ?? "none",
-                ReadPoints(element));
+                ReadPoints(element),
+                ReadString(element, "author") ?? "",
+                ReadDateTimeOffset(element, "createdAt"),
+                ReadString(element, "reason"));
         }
 
         private static IReadOnlyList<PdfViewerInkPoint> ReadPoints(JsonElement element)
@@ -516,6 +575,12 @@ public sealed class PdfViewerAnnotationFlatteningService
             return element.TryGetProperty(propertyName, out var value) && value.TryGetDouble(out var result)
                 ? result
                 : fallback;
+        }
+
+        private static DateTimeOffset? ReadDateTimeOffset(JsonElement element, string propertyName)
+        {
+            var value = ReadString(element, propertyName);
+            return DateTimeOffset.TryParse(value, out var result) ? result : null;
         }
     }
 

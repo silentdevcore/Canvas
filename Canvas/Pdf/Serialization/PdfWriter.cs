@@ -1307,6 +1307,15 @@ internal sealed class PdfWriter
         AppendIfDate(entries, "CreationDate", info.CreationDate);
         AppendIfDate(entries, "ModDate", info.ModificationDate);
 
+        foreach (var customProperty in info.CustomProperties.OrderBy(static item => item.Key, StringComparer.Ordinal))
+        {
+            var key = SanitizeInfoKey(customProperty.Key);
+            if (!string.IsNullOrWhiteSpace(key))
+            {
+                AppendIfValue(entries, key, customProperty.Value);
+            }
+        }
+
         return $"<< {string.Join(" ", entries)} >>\n";
     }
 
@@ -1332,6 +1341,20 @@ internal sealed class PdfWriter
         var sign = offset >= TimeSpan.Zero ? "+" : "-";
         var absolute = offset.Duration();
         return $"D:{value:yyyyMMddHHmmss}{sign}{absolute.Hours:00}'{absolute.Minutes:00}'";
+    }
+
+    private static string SanitizeInfoKey(string value)
+    {
+        var builder = new StringBuilder(value.Length);
+        foreach (var character in value)
+        {
+            if (character is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or >= '0' and <= '9')
+            {
+                builder.Append(character);
+            }
+        }
+
+        return builder.ToString();
     }
 
     private static string BuildViewerPreferences(PdfViewerPreferencesOptions options)
