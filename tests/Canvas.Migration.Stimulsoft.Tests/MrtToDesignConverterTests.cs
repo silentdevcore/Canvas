@@ -77,6 +77,43 @@ public sealed class MrtToDesignConverterTests
     private static bool Has(IEnumerable<MigrationDiagnostic> diags, string id) => diags.Any(x => x.Id == id);
 
     [Fact]
+    public void GroupFooterAggregate_TranslatesToGroupScopedSum()
+    {
+        var mrt = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <StiSerializer version="1.02" type="Net" application="StiReport">
+              <ReportName>Agg</ReportName>
+              <Pages isList="true" count="1">
+                <Page1 Ref="1" type="Page" isKey="true">
+                  <PaperSize>A4</PaperSize>
+                  <Components isList="true" count="2">
+                    <GroupHeaderBand1 Ref="2" type="GroupHeaderBand" isKey="true">
+                      <ClientRectangle>0,0,749,20</ClientRectangle>
+                      <Condition>{Customers.Country}</Condition>
+                      <Name>GroupHeaderBand1</Name>
+                    </GroupHeaderBand1>
+                    <GroupFooterBand1 Ref="3" type="GroupFooterBand" isKey="true">
+                      <ClientRectangle>0,40,749,20</ClientRectangle>
+                      <Components isList="true" count="1">
+                        <Total1 Ref="4" type="Text" isKey="true">
+                          <ClientRectangle>0,0,200,20</ClientRectangle>
+                          <Text>{Sum(Customers.Total)}</Text>
+                          <Name>Total1</Name>
+                        </Total1>
+                      </Components>
+                      <Name>GroupFooterBand1</Name>
+                    </GroupFooterBand1>
+                  </Components>
+                  <Name>Page1</Name>
+                </Page1>
+              </Pages>
+            </StiSerializer>
+            """;
+
+        Assert.Equal("$sum($group, \"Total\")", El(Convert(mrt).Design, "Total1").Expression);
+    }
+
+    [Fact]
     public void Convert_ParsesPagesBandsAndPaperSize()
     {
         var r = Convert(SampleMrt);

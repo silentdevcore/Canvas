@@ -404,7 +404,10 @@ public sealed class MrtToDesignConverter
             if (element is null) continue;
 
             diagnostics.Add(Info("CANMIGMRT002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
-            if (raw.Text is { } t) ApplyBinding(element, t, diagnostics);
+            // Aggregates in a group band scope to the current group's row subset ($group),
+            // injected per group by DesignLayoutPlanner; non-group elements have no aggregate scope.
+            var aggDataset = raw.GroupName is not null ? ExpressionTranslator.GroupScopeToken : null;
+            if (raw.Text is { } t) ApplyBinding(element, t, diagnostics, aggDataset);
             ApplyGroupRepeatMetadata(element, raw, diagnostics);
 
             (raw.Region is "PageHeaderBand" or "PageFooterBand" ? sharedElements : elements).Add(element);
@@ -608,7 +611,8 @@ public sealed class MrtToDesignConverter
         return string.IsNullOrWhiteSpace(cleaned) ? "items" : cleaned;
     }
 
-    private static void ApplyBinding(ElementDto element, string text, List<MigrationDiagnostic> diagnostics)
+    private static void ApplyBinding(ElementDto element, string text, List<MigrationDiagnostic> diagnostics,
+        string? dataSetPath = null)
     {
         if (!LooksLikeExpr(text)) return;   // literal already set as Content/value
         var dotted = Regex.Match(text, @"^\s*\{[A-Za-z_]\w*\.([A-Za-z_]\w*)\}\s*$");
@@ -628,7 +632,12 @@ public sealed class MrtToDesignConverter
             // reference to a Canvas {{Field}} token (leaving system variables intact); keep the original.
             var normalized = Regex.Replace(text, @"\{(?:[A-Za-z_]\w*\.)?([A-Za-z_]\w*)\}", m =>
                 SystemVars.Contains(m.Groups[1].Value) ? m.Value : $"{{{{{m.Groups[1].Value}}}}}");
-            element.Expression = text;
+            // A fully-braced expression ({Sum(Customers.Total)}, {Customers.Qty * Customers.Price}) is
+            // evaluated: rewrite DataSource.Column refs to the DevExpress [Column] form and reuse that
+            // translator (IIf/operators + Sum/Avg/... aggregates). Mixed literal+{field} text is kept raw.
+            element.Expression = IsFullyBraced(text) && HasExpressionStructure(text[1..^1])
+                ? ExpressionTranslator.TranslateDevExpress(StimToDevExpr(text[1..^1]), dataSetPath) ?? text
+                : text;   // a lone {SystemVar} / single token stays raw
             element.Style ??= [];
             element.Style["mrtExpression"] = text;
             if (element.Type == "barcode") element.BarcodeValue = normalized;
@@ -638,6 +647,29 @@ public sealed class MrtToDesignConverter
     }
 
     private static bool LooksLikeExpr(string? text) => text is not null && text.Contains('{') && text.Contains('}');
+
+    // True when a single outer { } pair encloses the whole string (Stimulsoft's expression delimiter).
+    private static bool IsFullyBraced(string s)
+    {
+        if (s.Length < 2 || s[0] != '{' || s[^1] != '}') return false;
+        var depth = 0;
+        for (var i = 0; i < s.Length; i++)
+        {
+            if (s[i] == '{') depth++;
+            else if (s[i] == '}' && --depth == 0) return i == s.Length - 1;
+        }
+        return false;
+    }
+
+    // True when the braced inner is a real expression (function/operator/member) rather than a lone token
+    // such as a system variable ({PageNofM}) — those are kept verbatim.
+    private static bool HasExpressionStructure(string inner) =>
+        !Regex.IsMatch(inner.Trim(), @"^[A-Za-z_]\w*$");
+
+    // Rewrite Stimulsoft DataSource.Column field refs to the DevExpress [Column] form (but not method
+    // calls like Math.Round(...)), so the shared DevExpress translator can normalize them.
+    private static string StimToDevExpr(string expr) =>
+        Regex.Replace(expr, @"\b[A-Za-z_]\w*\.([A-Za-z_]\w*)\b(?!\s*\()", m => $"[{m.Groups[1].Value}]");
 
     private static void ApplyFont(RawElement raw, string? value)
     {
