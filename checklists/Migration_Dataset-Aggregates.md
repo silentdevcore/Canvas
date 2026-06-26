@@ -68,7 +68,20 @@ reads the field per row, coerces numeric, and reduces.
 
 - [x] **Group-scoped** aggregates (sum within the *current* group only) — done (server-side v1) via the
       `$group` convention + per-group expansion. See [Group-Scoped-Aggregates.md](Group-Scoped-Aggregates.md).
-- [ ] Other converters (FastReport / Telerik / Stimulsoft / Jasper) — wire the same dataset arg.
+- [x] Other converters (FastReport / Telerik / Stimulsoft / Jasper) — group-scoped aggregates wired.
+  - **FastReport** (`FrxToDesignConverter`): a fully-bracketed expression (`[Sum([Items.Total])]`) is
+    stripped and routed through `TranslateDevExpress` ([Source.Column] refs match that dialect), passing
+    `$group` for group-band elements. Mixed literal+field text (`"Page [Page]"`) stays raw.
+  - **Telerik** (`TrdxToDesignConverter`): dot field refs (`Fields.X.Value`) are rewritten to the RDL bang
+    form and routed through `TranslateRdl` with `$group` for `GroupHeader/FooterSection` elements.
+  - **Stimulsoft** (`MrtToDesignConverter`): a fully-braced expression (`{Sum(Customers.Total)}`) has its
+    `DataSource.Column` refs rewritten to `[Column]` and routed through `TranslateDevExpress` with `$group`
+    for group-band elements; lone `{SystemVar}` tokens stay raw.
+  - **Jasper** (`JrxmlToDesignConverter`): aggregates are *variables*, not inline functions — a group-reset
+    `<variable calculation="Sum">` over `$F{field}` referenced via `$V{name}` maps to `$sum($group, "field")`
+    (Average/Count/Lowest/Highest/First too). Report/page-scoped variables stay as references.
+  - **Scope note:** like the DevExpress converter, only group-band aggregates resolve (to `$group`);
+    report/page-footer grand totals need a dataset name and are a follow-up.
 - [ ] `RunningValue`, conditional aggregates (`Sum(IIf(...))`), aggregate over a *computed* per-row
       expression (`Sum(Qty * Price)`).
 - [ ] Custom RDL `<Code>` functions.
