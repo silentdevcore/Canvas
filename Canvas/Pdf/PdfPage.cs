@@ -11,6 +11,7 @@ public sealed class PdfPage
     private readonly List<PdfMultilineTextFieldAnnotation> _multilineTextFields = new();
     private readonly List<PdfTextFieldAnnotation> _textFields = new();
     private readonly List<PdfCheckBoxAnnotation> _checkBoxAnnotations = new();
+    private readonly List<PdfReviewAnnotation> _reviewAnnotations = new();
 
     private readonly PdfFontLoader? _fontLoader;
 
@@ -57,6 +58,8 @@ public sealed class PdfPage
     internal IReadOnlyList<PdfTextFieldAnnotation> TextFields => _textFields;
 
     internal IReadOnlyList<PdfCheckBoxAnnotation> CheckBoxAnnotations => _checkBoxAnnotations;
+
+    internal IReadOnlyList<PdfReviewAnnotation> ReviewAnnotations => _reviewAnnotations;
 
     public void SetPageBoundary(PdfPageBoundary boundary, PdfPoint lowerLeft, PdfPoint upperRight)
     {
@@ -1498,6 +1501,46 @@ public sealed class PdfPage
         });
     }
 
+    public void AddStickyNoteAnnotation(double x, double y, double width, double height, string contents, PdfColor? color = null, double opacity = 1)
+    {
+        AddReviewAnnotation(PdfReviewAnnotationType.StickyNote, x, y, width, height, contents, color, opacity);
+    }
+
+    public void AddFreeTextAnnotation(double x, double y, double width, double height, string contents, PdfColor? color = null, double opacity = 1)
+    {
+        AddReviewAnnotation(PdfReviewAnnotationType.FreeText, x, y, width, height, contents, color, opacity);
+    }
+
+    public void AddHighlightAnnotation(double x, double y, double width, double height, string contents = "", PdfColor? color = null, double opacity = 0.45)
+    {
+        AddReviewAnnotation(PdfReviewAnnotationType.Highlight, x, y, width, height, contents, color ?? PdfColor.FromRgb(254, 240, 138), opacity);
+    }
+
+    public void AddUnderlineAnnotation(double x, double y, double width, double height, string contents = "", PdfColor? color = null, double opacity = 1)
+    {
+        AddReviewAnnotation(PdfReviewAnnotationType.Underline, x, y, width, height, contents, color ?? PdfColor.FromRgb(37, 99, 235), opacity);
+    }
+
+    public void AddStrikeOutAnnotation(double x, double y, double width, double height, string contents = "", PdfColor? color = null, double opacity = 1)
+    {
+        AddReviewAnnotation(PdfReviewAnnotationType.StrikeOut, x, y, width, height, contents, color ?? PdfColor.FromRgb(220, 38, 38), opacity);
+    }
+
+    public void AddSquareAnnotation(double x, double y, double width, double height, string contents = "", PdfColor? color = null, double opacity = 1)
+    {
+        AddReviewAnnotation(PdfReviewAnnotationType.Square, x, y, width, height, contents, color, opacity);
+    }
+
+    public void AddCircleAnnotation(double x, double y, double width, double height, string contents = "", PdfColor? color = null, double opacity = 1)
+    {
+        AddReviewAnnotation(PdfReviewAnnotationType.Circle, x, y, width, height, contents, color, opacity);
+    }
+
+    public void AddRedactionAnnotation(double x, double y, double width, double height, string contents = "Redaction mark", PdfColor? color = null, double opacity = 1)
+    {
+        AddReviewAnnotation(PdfReviewAnnotationType.Redaction, x, y, width, height, contents, color ?? PdfColor.Black, opacity);
+    }
+
     private static (double X, double WordSpacing) ResolveLineLayout(
         double startX,
         double maxWidth,
@@ -1967,6 +2010,24 @@ public sealed class PdfPage
     private void AddImageElementWithCacheKey(string cacheKey, PdfImageData image, double x, double y, double width, double height, double opacity)
     {
         _elements.Add(new ImageElement(image, cacheKey, x, y, width, height, opacity));
+    }
+
+    private void AddReviewAnnotation(PdfReviewAnnotationType type, double x, double y, double width, double height, string contents, PdfColor? color, double opacity)
+    {
+        if (width <= 0 || height <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(width), "Annotation width and height must be greater than zero.");
+        }
+
+        _reviewAnnotations.Add(new PdfReviewAnnotation(
+            type,
+            x,
+            y,
+            width,
+            height,
+            contents,
+            color ?? PdfColor.FromRgb(250, 204, 21),
+            Math.Clamp(opacity, 0.1, 1)));
     }
 
     private static string GetImageBytesCacheKey(byte[] imageBytes)

@@ -83,11 +83,7 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
         try
         {
             using var sidecarDocument = JsonDocument.Parse(sidecar);
-            var annotations = sidecarDocument.RootElement.ValueKind == JsonValueKind.Array
-                ? sidecarDocument.RootElement
-                : sidecarDocument.RootElement.TryGetProperty("annotations", out var sidecarAnnotations)
-                    ? sidecarAnnotations
-                    : default;
+            var annotations = GetAnnotationsArray(sidecarDocument.RootElement);
 
             if (annotations.ValueKind != JsonValueKind.Array)
                 return BadRequest(new { error = "sidecar must contain an annotations array." });
@@ -127,11 +123,7 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
         try
         {
             using var sidecarDocument = JsonDocument.Parse(sidecar);
-            var annotations = sidecarDocument.RootElement.ValueKind == JsonValueKind.Array
-                ? sidecarDocument.RootElement
-                : sidecarDocument.RootElement.TryGetProperty("annotations", out var sidecarAnnotations)
-                    ? sidecarAnnotations
-                    : default;
+            var annotations = GetAnnotationsArray(sidecarDocument.RootElement);
 
             if (annotations.ValueKind != JsonValueKind.Array)
                 return BadRequest(new { error = "sidecar must contain an annotations array." });
@@ -151,6 +143,46 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
         }
     }
 
+    [HttpPost("embed")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(FileContentResult), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> Embed(
+        IFormFile? file,
+        [FromForm] string? sidecar,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "A PDF file is required." });
+        if (!file.ContentType.Contains("pdf", StringComparison.OrdinalIgnoreCase) &&
+            !file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "Only PDF files are accepted." });
+        if (string.IsNullOrWhiteSpace(sidecar))
+            return BadRequest(new { error = "sidecar is required." });
+
+        try
+        {
+            using var sidecarDocument = JsonDocument.Parse(sidecar);
+            var annotations = GetAnnotationsArray(sidecarDocument.RootElement);
+
+            if (annotations.ValueKind != JsonValueKind.Array)
+                return BadRequest(new { error = "sidecar must contain an annotations array." });
+
+            await using var pdfStream = file.OpenReadStream();
+            var pdfBytes = await _flatteningService.EmbedNativeAnnotationsAsync(pdfStream, annotations, cancellationToken);
+            var safeName = Path.GetFileNameWithoutExtension(file.FileName);
+            return File(pdfBytes, "application/pdf", $"{safeName}-annotated.pdf");
+        }
+        catch (JsonException)
+        {
+            return BadRequest(new { error = "sidecar must be valid JSON." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = $"Could not embed annotations: {ex.Message}" });
+        }
+    }
+
     private static PdfViewerAnnotationsResponse ToResponse(StoredPdfViewerAnnotations stored) => new()
     {
         DocumentId = stored.DocumentId,
@@ -161,6 +193,15 @@ public sealed class PdfViewerAnnotationsController : ControllerBase
         Annotations = stored.Annotations,
         AnnotationCount = stored.Annotations.GetArrayLength(),
     };
+
+    private static JsonElement GetAnnotationsArray(JsonElement root)
+    {
+        return root.ValueKind == JsonValueKind.Array
+            ? root
+            : root.TryGetProperty("annotations", out var sidecarAnnotations)
+                ? sidecarAnnotations
+                : default;
+    }
 }
 
 public sealed class SavePdfViewerAnnotationsRequest

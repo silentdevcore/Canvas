@@ -215,6 +215,80 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
     }
 
     [Fact]
+    public async Task EmbedAnnotations_ReturnsPdfWithNativeAnnotations()
+    {
+        var inputPdf = CreateSamplePdf();
+        using var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent(inputPdf)
+        {
+            Headers =
+            {
+                ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf"),
+            },
+        }, "file", "review.pdf");
+        form.Add(new StringContent("""
+            {
+              "version": 1,
+              "sourceName": "review.pdf",
+              "exportedAt": "2026-06-25T10:00:00Z",
+              "annotations": [
+                {
+                  "id": "note1",
+                  "type": "note",
+                  "pageNumber": 1,
+                  "xPct": 10,
+                  "yPct": 10,
+                  "widthPct": 10,
+                  "heightPct": 10,
+                  "text": "Native note",
+                  "author": "Reviewer",
+                  "createdAt": "2026-06-25T10:00:00Z",
+                  "color": "#facc15"
+                },
+                {
+                  "id": "text1",
+                  "type": "freeText",
+                  "pageNumber": 1,
+                  "xPct": 20,
+                  "yPct": 20,
+                  "widthPct": 30,
+                  "heightPct": 10,
+                  "text": "Native free text",
+                  "author": "Reviewer",
+                  "createdAt": "2026-06-25T10:00:00Z",
+                  "color": "#2563eb"
+                },
+                {
+                  "id": "highlight1",
+                  "type": "highlight",
+                  "pageNumber": 1,
+                  "xPct": 15,
+                  "yPct": 40,
+                  "widthPct": 45,
+                  "heightPct": 8,
+                  "text": "Native highlight",
+                  "author": "Reviewer",
+                  "createdAt": "2026-06-25T10:00:00Z",
+                  "color": "#fef08a"
+                }
+              ]
+            }
+            """), "sidecar");
+
+        var response = await _client.PostAsync("/api/pdf-viewer/annotations/embed", form);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
+
+        var content = System.Text.Encoding.ASCII.GetString(await response.Content.ReadAsByteArrayAsync());
+        Assert.Contains("/Annots", content, StringComparison.Ordinal);
+        Assert.Contains("/Subtype /Text", content, StringComparison.Ordinal);
+        Assert.Contains("/Subtype /FreeText", content, StringComparison.Ordinal);
+        Assert.Contains("/Subtype /Highlight", content, StringComparison.Ordinal);
+        Assert.Contains("/QuadPoints", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task RedactAnnotations_RemovesCoveredText()
     {
         var inputPdf = CreateSamplePdf();

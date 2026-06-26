@@ -49,6 +49,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 - [x] Review editing: select, move, resize, recolor, edit text, delete, lock/unlock
 - [x] Sidecar persistence: JSON import/export plus backend save/load/delete with durable JSON file storage
 - [x] Flatten workflow: current sidecar annotations can be rendered into a reviewed PDF download
+- [x] Native annotation embed workflow: supported sidecar annotations can be written back as editable PDF annotation objects
 - [x] Form workflow: existing AcroForm fields can be detected, edited, downloaded as filled PDFs, and optionally flattened
 - [x] Secure redaction workflow: redaction marks can be applied through the backend to remove covered imported content and download a redacted PDF
 - [x] Backend routes:
@@ -56,6 +57,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
       `GET /api/pdf-viewer/annotations/{documentId}`,
       `DELETE /api/pdf-viewer/annotations/{documentId}`,
       `POST /api/pdf-viewer/annotations/flatten`,
+      `POST /api/pdf-viewer/annotations/embed`,
       `POST /api/pdf-viewer/annotations/redact`
 - [x] Tests:
       `PdfViewerAnnotationsControllerTests`,
@@ -67,7 +69,9 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 Intentional remaining gaps:
 
 - [ ] Sidecar backend storage is durable JSON file storage, but user ownership/access control is still open.
-- [ ] Sidecar annotations can be flattened into a reviewed PDF, but are not yet embedded as editable PDF annotation objects.
+- [ ] Native annotation embedding is a baseline writer path for note, free text/stamp, highlight, underline, strikeout,
+      rectangle, circle, and redaction annotations. Existing annotation import, full appearance streams, and true
+      text-selection-bound markup remain open.
 - [ ] Text markup is area-based, not true text-selection-bound PDF markup.
 - [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, form filling, English/German viewer labels, keyboard shortcuts, and Jest component smoke coverage.
 - [ ] Secure redaction removes importer-supported content under redaction rectangles during regenerated output, then draws black redaction boxes. Remaining gap: validate/extend coverage for complex PDFs, unsupported image/resource patterns, and optional Playwright browser smoke tests if Playwright is added to the project.
@@ -146,6 +150,8 @@ our own implementation, UI language, and engine boundaries.
       Implemented `POST/GET/DELETE /api/pdf-viewer/annotations` with durable version-1 sidecar JSON storage and wired UI Save/Load/Delete controls.
 - [x] Add backend flatten API for reviewed PDF downloads.
       Implemented `POST /api/pdf-viewer/annotations/flatten` for PDF + sidecar input and reviewed PDF output.
+- [x] Add backend native annotation embed API for editable reviewed PDF downloads.
+      Implemented `POST /api/pdf-viewer/annotations/embed` for PDF + sidecar input and baseline editable PDF annotation output.
 - [x] Add backend redaction API for reviewed PDF downloads.
       Implemented `POST /api/pdf-viewer/annotations/redact` for PDF + sidecar redaction marks.
 
@@ -155,7 +161,8 @@ our own implementation, UI language, and engine boundaries.
       Canvas rendering layer.
 - [ ] Decide how generated PDFs are passed from existing preview/export flows into the viewer route.
 - [x] Decide whether annotations are stored first as sidecar JSON, embedded PDF annotations, or both.
-      Decision for first implementation: sidecar JSON first; embedded PDF annotations remain a later engine/backend task.
+      Decision implemented: sidecar JSON remains the review-state source for the viewer, with a backend export path that
+      embeds supported annotations as native PDF annotation objects.
 - [ ] Decide the boundary between `Canvas.Importer` existing-PDF parsing and `Canvas.Pdf` rewritten output.
 - [ ] Decide whether thumbnail rendering happens client-side, backend-side, or both.
 - [ ] Decide how tests verify viewer behavior: unit tests for state, Playwright smoke tests for UI, and
@@ -187,8 +194,10 @@ our own implementation, UI language, and engine boundaries.
       Image annotations support upload as sidecar data URLs, page placement, move/resize/lock/delete, opacity, sidecar persistence, and flattened PDF output.
 - [x] **Annotation selection/editing** - Select, move, resize, lock/unlock, delete, and update annotations.
       Implemented for sidecar annotations.
-- [ ] **Annotation persistence** - Save annotations back into PDF or export/import an annotation sidecar format.
-      Sidecar import/export exists in the UI, backend durable sidecar save/get/delete is wired through the viewer, and reviewed PDFs can be downloaded with flattened annotations. Writing editable PDF annotation objects remains open.
+- [x] **Annotation persistence** - Save annotations back into PDF or export/import an annotation sidecar format.
+      Sidecar import/export exists in the UI, backend durable sidecar save/get/delete is wired through the viewer,
+      reviewed PDFs can be downloaded with flattened annotations, and supported annotations can be exported as editable
+      native PDF annotation objects. Existing-PDF annotation import and full appearance stream fidelity remain open.
 
 ## P1 - Forms And Redaction
 
@@ -216,7 +225,9 @@ our own implementation, UI language, and engine boundaries.
 ## P2 - Engine/Backend Support
 
 - [ ] **Existing PDF save/edit bridge** - Decide how `Canvas.Importer` and `Canvas.Pdf` cooperate for editing existing PDFs.
-- [ ] **Annotation writer support** - Emit PDF annotations from Canvas model.
+- [x] **Annotation writer support** - Emit PDF annotations from Canvas model.
+      Baseline writer support exists for sticky note, free text, highlight, underline, strikeout, square, circle, and
+      redaction annotations, wired to the viewer sidecar embed endpoint. Appearance stream fidelity remains open.
 - [ ] **Annotation reader support** - Import existing PDF annotations into Canvas model.
 - [ ] **Form reader support** - Import existing AcroForm fields and values.
       Frontend viewer baseline exists through `pdf-lib`; shared backend/importer integration remains open.

@@ -71,6 +71,36 @@ public sealed class PdfViewerAnnotationFlatteningService
         return output.ToArray();
     }
 
+    public async Task<byte[]> EmbedNativeAnnotationsAsync(
+        Stream pdfStream,
+        JsonElement annotations,
+        CancellationToken cancellationToken = default)
+    {
+        if (annotations.ValueKind != JsonValueKind.Array)
+            throw new ArgumentException("annotations must be an array.", nameof(annotations));
+
+        var sidecarAnnotations = annotations
+            .EnumerateArray()
+            .Select(PdfViewerAnnotation.FromJson)
+            .Where(static annotation => annotation is not null)
+            .Cast<PdfViewerAnnotation>()
+            .Where(static annotation => annotation.Type is "note" or "freeText" or "stamp" or "highlight" or "underline" or "strikeout" or "rectangle" or "circle" or "redaction")
+            .ToArray();
+
+        if (sidecarAnnotations.Length == 0)
+            throw new ArgumentException("At least one supported annotation is required.", nameof(annotations));
+
+        var document = await new PdfImporter().LoadAsync(pdfStream, cancellationToken).ConfigureAwait(false);
+        await using var output = new MemoryStream();
+        await _bridge.RegenerateAsync(
+            document,
+            output,
+            canvasDocument => ApplyNativeAnnotations(canvasDocument, sidecarAnnotations),
+            cancellationToken).ConfigureAwait(false);
+
+        return output.ToArray();
+    }
+
     private void ApplyRedactionsToModel(Canvas.Importer.Document.PdfDocumentModel document, IReadOnlyCollection<PdfViewerAnnotation> redactions)
     {
         foreach (var pageWithRedactions in redactions.GroupBy(static item => item.PageNumber))
@@ -193,6 +223,58 @@ public sealed class PdfViewerAnnotationFlatteningService
                 break;
             case "freeText":
                 DrawFreeText(page, annotation, x, topY, width, height, color);
+                break;
+        }
+    }
+
+    private static void ApplyNativeAnnotations(CanvasPdfDocument document, IReadOnlyCollection<PdfViewerAnnotation> annotations)
+    {
+        foreach (var annotation in annotations.OrderBy(static item => item.PageNumber))
+        {
+            var page = document.Pages.ElementAtOrDefault(annotation.PageNumber - 1);
+            if (page is null)
+                continue;
+
+            AddNativeAnnotation(page, annotation);
+        }
+    }
+
+    private static void AddNativeAnnotation(PdfPage page, PdfViewerAnnotation annotation)
+    {
+        var x = Percent(annotation.XPct, page.Width);
+        var topY = Percent(annotation.YPct, page.Height);
+        var width = Math.Max(1, Percent(annotation.WidthPct, page.Width));
+        var height = Math.Max(1, Percent(annotation.HeightPct, page.Height));
+        var y = page.Height - topY - height;
+        var color = ParseColor(annotation.Color);
+        var opacity = Math.Clamp(annotation.Opacity, 10, 100) / 100d;
+
+        switch (annotation.Type)
+        {
+            case "note":
+                page.AddStickyNoteAnnotation(x, y, width, height, annotation.Text, color, opacity);
+                break;
+            case "freeText":
+            case "stamp":
+                page.AddFreeTextAnnotation(x, y, width, height, annotation.Text, color, opacity);
+                break;
+            case "highlight":
+                page.AddHighlightAnnotation(x, y, width, height, annotation.Text, color, opacity);
+                break;
+            case "underline":
+                page.AddUnderlineAnnotation(x, y, width, height, annotation.Text, color, opacity);
+                break;
+            case "strikeout":
+                page.AddStrikeOutAnnotation(x, y, width, height, annotation.Text, color, opacity);
+                break;
+            case "rectangle":
+                page.AddSquareAnnotation(x, y, width, height, annotation.Text, color, opacity);
+                break;
+            case "circle":
+                page.AddCircleAnnotation(x, y, width, height, annotation.Text, color, opacity);
+                break;
+            case "redaction":
+                page.AddRedactionAnnotation(x, y, width, height, annotation.Text, color, opacity);
                 break;
         }
     }

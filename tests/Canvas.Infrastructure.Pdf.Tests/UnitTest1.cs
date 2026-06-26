@@ -1,6 +1,7 @@
 ﻿using Canvas.Infrastructure.Pdf;
 using Canvas.Pdf;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Canvas.Infrastructure.Pdf.Tests;
 
@@ -70,6 +71,28 @@ public class PdfSerializationIntegrationTests
         Assert.Contains("/Type /Page", content, StringComparison.Ordinal);
         Assert.Contains("/Annots", content, StringComparison.Ordinal);
         Assert.Contains("/URI (https://example.com)", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ToBytes_ShouldEmitNativeReviewAnnotations()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage();
+        page.DrawText("review target", 80, 700, 12);
+        page.AddStickyNoteAnnotation(80, 660, 32, 32, "Needs review");
+        page.AddFreeTextAnnotation(120, 640, 120, 40, "Free text");
+        page.AddHighlightAnnotation(80, 705, 120, 16, "Important");
+
+        var content = Encoding.ASCII.GetString(document.ToBytes(new PdfSaveOptions
+        {
+            CompressContentStreams = false
+        }));
+
+        Assert.Contains("/Subtype /Text", content, StringComparison.Ordinal);
+        Assert.Contains("/Subtype /FreeText", content, StringComparison.Ordinal);
+        Assert.Contains("/Subtype /Highlight", content, StringComparison.Ordinal);
+        Assert.Contains("/QuadPoints", content, StringComparison.Ordinal);
+        Assert.Contains("/Contents (Needs review)", content, StringComparison.Ordinal);
     }
 
     [Fact]

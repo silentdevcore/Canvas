@@ -1,5 +1,5 @@
 import { createAnnotationSidecar, type PdfAnnotation } from '../features/pdf-viewer/annotations';
-import { applyRedactions, deleteSavedAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from '../features/pdf-viewer/annotationApi';
+import { applyRedactions, deleteSavedAnnotations, embedAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from '../features/pdf-viewer/annotationApi';
 
 const sampleAnnotation = (): PdfAnnotation => ({
   id: 'annotation-1',
@@ -105,6 +105,26 @@ describe('pdf viewer annotation API client', () => {
 
     expect(response).toBe(flattened);
     expect(fetchMock).toHaveBeenCalledWith('/api/pdf-viewer/annotations/flatten', {
+      method: 'POST',
+      body: expect.any(FormData),
+    });
+
+    const form = fetchMock.mock.calls[0][1].body as FormData;
+    expect(form.get('file')).toBe(file);
+    expect(form.get('sidecar')).toBe(JSON.stringify(sidecar));
+  });
+
+  test('embedAnnotations posts pdf file and sidecar form data', async () => {
+    const annotation = sampleAnnotation();
+    const sidecar = createAnnotationSidecar('review.pdf', [annotation]);
+    const embedded = new Blob(['%PDF annotated'], { type: 'application/pdf' });
+    const file = new File(['%PDF input'], 'review.pdf', { type: 'application/pdf' });
+    fetchMock.mockResolvedValueOnce(blobResponse(200, embedded));
+
+    const response = await embedAnnotations(file, sidecar);
+
+    expect(response).toBe(embedded);
+    expect(fetchMock).toHaveBeenCalledWith('/api/pdf-viewer/annotations/embed', {
       method: 'POST',
       body: expect.any(FormData),
     });

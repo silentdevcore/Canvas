@@ -91,3 +91,19 @@ export const applyRedactions = async (
   await assertOk(response);
   return response.blob();
 };
+
+export const embedAnnotations = async (
+  pdfFile: File,
+  sidecar: PdfAnnotationSidecar,
+): Promise<Blob> => {
+  const form = new FormData();
+  form.append('file', pdfFile);
+  form.append('sidecar', JSON.stringify(sidecar));
+
+  const response = await fetch(`${API_BASE}/embed`, {
+    method: 'POST',
+    body: form,
+  });
+  await assertOk(response);
+  return response.blob();
+};

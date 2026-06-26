@@ -196,6 +196,7 @@ internal sealed class PdfWriter
         var pageMultilineAnnotObjectIds = new List<int>[pageCount];
         var pageTextFieldAnnotObjectIds = new List<int>[pageCount];
         var pageCheckBoxAnnotObjectIds = new List<int>[pageCount];
+        var pageReviewAnnotObjectIds = new List<int>[pageCount];
         var allComboFieldObjectIds = new List<int>();
         var allMultilineFieldObjectIds = new List<int>();
         var allTextFieldObjectIds = new List<int>();
@@ -253,6 +254,14 @@ internal sealed class PdfWriter
             }
 
             pageCheckBoxAnnotObjectIds[i] = checkBoxIds;
+
+            var reviewIds = new List<int>();
+            foreach (var _ in document.Pages[i].ReviewAnnotations)
+            {
+                reviewIds.Add(nextObjectId++);
+            }
+
+            pageReviewAnnotObjectIds[i] = reviewIds;
             pageObjects.Add(pageObjectIds[i]);
         }
 
@@ -509,6 +518,14 @@ internal sealed class PdfWriter
                 objects.Add(new PdfIndirectObject(cbObjectId, cbWidgetObject));
             }
 
+            var pageReviewIds = pageReviewAnnotObjectIds[pageIndex];
+            for (var i = 0; i < page.ReviewAnnotations.Count; i++)
+            {
+                var review = page.ReviewAnnotations[i];
+                var reviewObjectId = pageReviewIds[i];
+                objects.Add(new PdfIndirectObject(reviewObjectId, BuildReviewAnnotationObject(review, pageObjectId)));
+            }
+
             var fontDictionary = string.Join(
                 " ",
                 pageFonts.Select(font => $"/{fontObjects[font].ResourceName} {fontObjects[font].ObjectId} 0 R")
@@ -528,12 +545,14 @@ internal sealed class PdfWriter
                 .Concat(pageComboAnnotObjectIds[pageIndex])
                 .Concat(pageMultilineAnnotObjectIds[pageIndex])
                 .Concat(pageTextFieldAnnotObjectIds[pageIndex])
-                .Concat(pageCheckBoxAnnotObjectIds[pageIndex]);
+                .Concat(pageCheckBoxAnnotObjectIds[pageIndex])
+                .Concat(pageReviewAnnotObjectIds[pageIndex]);
             var annotsSegment = pageLinkAnnotationIds.Count > 0
                 || pageComboAnnotObjectIds[pageIndex].Count > 0
                 || pageMultilineAnnotObjectIds[pageIndex].Count > 0
                 || pageTextFieldAnnotObjectIds[pageIndex].Count > 0
                 || pageCheckBoxAnnotObjectIds[pageIndex].Count > 0
+                || pageReviewAnnotObjectIds[pageIndex].Count > 0
                 ? $" /Annots [{string.Join(" ", allAnnotIds.Select(id => $"{id} 0 R"))}]"
                 : string.Empty;
 
@@ -938,6 +957,83 @@ internal sealed class PdfWriter
         }
 
         return $" /OpenAction [{pageObjectId} 0 R /Fit]";
+    }
+
+    private static string BuildReviewAnnotationObject(PdfReviewAnnotation annotation, int pageObjectId)
+    {
+        var rect = FormatRect(annotation.X, annotation.Y, annotation.Width, annotation.Height);
+        var color = FormatColorArray(annotation.Color);
+        var opacitySegment = annotation.Opacity < 1 ? $" /CA {FormatNumber(annotation.Opacity)}" : string.Empty;
+        var contents = EscapeLiteralString(annotation.Contents ?? string.Empty);
+
+        return annotation.Type switch
+        {
+            PdfReviewAnnotationType.StickyNote =>
+                $"<< /Type /Annot /Subtype /Text /Rect {rect} /P {pageObjectId} 0 R /Contents ({contents}) /C {color} /Name /Comment{opacitySegment} >>\n",
+            PdfReviewAnnotationType.FreeText =>
+                $"<< /Type /Annot /Subtype /FreeText /Rect {rect} /P {pageObjectId} 0 R /Contents ({contents}) /C {color} /DA (/Helv 10 Tf 0 g) /Border [0 0 1]{opacitySegment} >>\n",
+            PdfReviewAnnotationType.Highlight =>
+                BuildMarkupAnnotationObject("Highlight", annotation, pageObjectId, rect, color, opacitySegment, contents),
+            PdfReviewAnnotationType.Underline =>
+                BuildMarkupAnnotationObject("Underline", annotation, pageObjectId, rect, color, opacitySegment, contents),
+            PdfReviewAnnotationType.StrikeOut =>
+                BuildMarkupAnnotationObject("StrikeOut", annotation, pageObjectId, rect, color, opacitySegment, contents),
+            PdfReviewAnnotationType.Square =>
+                $"<< /Type /Annot /Subtype /Square /Rect {rect} /P {pageObjectId} 0 R /Contents ({contents}) /C {color} /BS << /W 2 /S /S >>{opacitySegment} >>\n",
+            PdfReviewAnnotationType.Circle =>
+                $"<< /Type /Annot /Subtype /Circle /Rect {rect} /P {pageObjectId} 0 R /Contents ({contents}) /C {color} /BS << /W 2 /S /S >>{opacitySegment} >>\n",
+            PdfReviewAnnotationType.Redaction =>
+                $"<< /Type /Annot /Subtype /Redact /Rect {rect} /P {pageObjectId} 0 R /Contents ({contents}) /C {color} /IC {color}{opacitySegment} >>\n",
+            _ => throw new ArgumentOutOfRangeException(nameof(annotation), annotation.Type, "Unsupported review annotation type.")
+        };
+    }
+
+    private static string BuildMarkupAnnotationObject(
+        string subtype,
+        PdfReviewAnnotation annotation,
+        int pageObjectId,
+        string rect,
+        string color,
+        string opacitySegment,
+        string contents)
+    {
+        var quadPoints = FormatQuadPoints(annotation.X, annotation.Y, annotation.Width, annotation.Height);
+        return $"<< /Type /Annot /Subtype /{subtype} /Rect {rect} /P {pageObjectId} 0 R /Contents ({contents}) /C {color} /QuadPoints {quadPoints}{opacitySegment} >>\n";
+    }
+
+    private static string FormatRect(double x, double y, double width, double height)
+    {
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "[{0} {1} {2} {3}]",
+            FormatNumber(x),
+            FormatNumber(y),
+            FormatNumber(x + width),
+            FormatNumber(y + height));
+    }
+
+    private static string FormatQuadPoints(double x, double y, double width, double height)
+    {
+        var left = x;
+        var right = x + width;
+        var bottom = y;
+        var top = y + height;
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            "[{0} {1} {2} {3} {4} {5} {6} {7}]",
+            FormatNumber(left),
+            FormatNumber(top),
+            FormatNumber(right),
+            FormatNumber(top),
+            FormatNumber(left),
+            FormatNumber(bottom),
+            FormatNumber(right),
+            FormatNumber(bottom));
+    }
+
+    private static string FormatColorArray(PdfColor color)
+    {
+        return $"[{FormatNumber(color.Red)} {FormatNumber(color.Green)} {FormatNumber(color.Blue)}]";
     }
 
     private static byte[] Serialize(
