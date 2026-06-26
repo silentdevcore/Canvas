@@ -307,6 +307,7 @@ function compareVals(a: any, b: any): number {
 
 class ExprParser {
   private i = 0;
+  private skip = false;   // inside a short-circuited operand: keep consuming tokens, suppress evaluation
   constructor(private toks: Tok[], private ctx: Record<string, any>) {}
 
   parse(): any {
@@ -318,18 +319,35 @@ class ExprParser {
   private get cur(): Tok { return this.toks[this.i]; }
   private isOp(...t: string[]): boolean { return this.cur.kind === 'op' && t.includes(this.cur.text); }
 
+  // Parse (consume tokens) with evaluation suppressed when short-circuiting, so the decided side of a
+  // &&/||/?? is not evaluated (no throws from null guards like A && A.foo) yet token positions stay in sync.
+  private withSkip(shouldSkip: boolean, parse: () => any): any {
+    if (!shouldSkip) return parse();
+    const prev = this.skip; this.skip = true;
+    try { return parse(); } finally { this.skip = prev; }
+  }
+
   private parseOr(): any {
     let left = this.parseAnd();
     while (this.isOp('||', '??')) {
       const op = this.cur.text; this.i++;
-      const right = this.parseAnd();
-      left = op === '||' ? (truthy(left) || truthy(right)) : (left ?? right);
+      const decided = !this.skip && (op === '||' ? truthy(left) : left != null);
+      const right = this.withSkip(decided, () => this.parseAnd());
+      if (!this.skip) {
+        if (op === '||') left = decided ? true : (truthy(left) || truthy(right));
+        else left = decided ? left : (left ?? right);
+      }
     }
     return left;
   }
   private parseAnd(): any {
     let left = this.parseEquality();
-    while (this.isOp('&&')) { this.i++; const r = this.parseEquality(); left = truthy(left) && truthy(r); }
+    while (this.isOp('&&')) {
+      this.i++;
+      const decided = !this.skip && !truthy(left);
+      const r = this.withSkip(decided, () => this.parseEquality());
+      if (!this.skip) left = decided ? false : (truthy(left) && truthy(r));
+    }
     return left;
   }
   private parseEquality(): any {
@@ -337,6 +355,7 @@ class ExprParser {
     while (this.isOp('==', '!=', '===', '!==')) {
       const op = this.cur.text; this.i++;
       const right = this.parseComparison();
+      if (this.skip) { left = undefined; continue; }
       const eq = op === '===' ? left === right : op === '!==' ? left !== right : looseEquals(left, right);
       left = (op === '!=' ) ? !eq : (op === '!==') ? eq : eq;
     }
@@ -346,7 +365,9 @@ class ExprParser {
     let left = this.parseAdditive();
     while (this.isOp('<', '<=', '>', '>=')) {
       const op = this.cur.text; this.i++;
-      const c = compareVals(left, this.parseAdditive());
+      const right = this.parseAdditive();
+      if (this.skip) { left = undefined; continue; }
+      const c = compareVals(left, right);
       left = op === '<' ? c < 0 : op === '<=' ? c <= 0 : op === '>' ? c > 0 : c >= 0;
     }
     return left;
@@ -356,6 +377,7 @@ class ExprParser {
     while (this.isOp('+', '-')) {
       const op = this.cur.text; this.i++;
       const right = this.parseMultiplicative();
+      if (this.skip) { left = undefined; continue; }
       if (op === '+') left = (isNumericVal(left) && isNumericVal(right)) ? toNum(left) + toNum(right) : fmt(left) + fmt(right);
       else left = toNum(left) - toNum(right);
     }
@@ -365,15 +387,17 @@ class ExprParser {
     let left = this.parseUnary();
     while (this.isOp('*', '/', '%')) {
       const op = this.cur.text; this.i++;
-      const a = toNum(left), b = toNum(this.parseUnary());
+      const right = this.parseUnary();
+      if (this.skip) { left = undefined; continue; }
+      const a = toNum(left), b = toNum(right);
       left = op === '*' ? a * b : op === '/' ? a / b : a % b;
     }
     return left;
   }
   private parseUnary(): any {
-    if (this.isOp('!')) { this.i++; return !truthy(this.parseUnary()); }
-    if (this.isOp('-')) { this.i++; return -toNum(this.parseUnary()); }
-    if (this.isOp('+')) { this.i++; return toNum(this.parseUnary()); }
+    if (this.isOp('!')) { this.i++; const v = this.parseUnary(); return this.skip ? undefined : !truthy(v); }
+    if (this.isOp('-')) { this.i++; const v = this.parseUnary(); return this.skip ? undefined : -toNum(v); }
+    if (this.isOp('+')) { this.i++; const v = this.parseUnary(); return this.skip ? undefined : toNum(v); }
     return this.parsePrimary();
   }
   private parsePrimary(): any {
@@ -409,6 +433,7 @@ class ExprParser {
     }
     if (this.cur.kind !== 'rparen') throw new Error('expected )');
     this.i++;
+    if (this.skip) return undefined;   // short-circuited: args were consumed for token sync, but don't invoke
     const fn = this.resolve(name);
     if (typeof fn !== 'function') throw new Error(`Function ${name} not found`);
     return fn(...args);

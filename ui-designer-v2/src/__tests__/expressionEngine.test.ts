@@ -65,6 +65,17 @@ describe('expressionEngine — dataset aggregates', () => {
     expect(evaluateExpression('$sum(Orders, "$iif(Total > 15, Total, 0)")', ctx).value).toBe(50); // 20 + 30 only
   });
 
+  test('&& / || / ?? short-circuit the decided side (no eval, no throw)', () => {
+    // The right side throws on its own (unknown function) …
+    expect(evaluateExpression('boom() > 0', ctx).isValid).toBe(false);
+    // … but is not evaluated when the left already decides the result. Parity with CanvasExpressionEvaluator.
+    expect(evaluateExpression('Missing != null && boom() > 0', ctx).value).toBe(false);
+    expect(evaluateExpression('$count(Orders) > 0 || boom()', ctx).value).toBe(true);
+    expect(evaluateExpression('Missing ?? "fallback"', ctx).value).toBe('fallback');
+    // Both sides still evaluate when the left does not decide.
+    expect(evaluateExpression('$count(Orders) > 0 && $sum(Orders, "Total") > 100', ctx).value).toBe(false);
+  });
+
   test('non-array dataset yields safe defaults', () => {
     expect(evaluateExpression('$sum(Missing, "Total")', ctx).value).toBe(0);
     expect(evaluateExpression('$count(Missing)', ctx).value).toBe(0);

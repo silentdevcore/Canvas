@@ -45,5 +45,11 @@ Special forms (template literals, `new Date(...)`, `instanceof`) and `??`/`?.` a
 
 ## Follow-ups (out of scope)
 
-- [ ] Short-circuit semantics for `&&`/`||` (both engines currently evaluate both sides).
+- [x] **Short-circuit semantics for `&&`/`||` (and `??` in the frontend).** Both engines are parse-while-
+      evaluate (no AST), so a `_skip` flag was added: when the left operand already decides the result, the
+      right operand's tokens are still consumed (positions stay in sync) but its value-production is
+      suppressed — leaf reads return null/undefined, `callFunction` returns without invoking, and the
+      binary/unary computations are skipped — so a guard like `Items != null && $count(Items) > 0` no longer
+      throws when `Items` is missing. Tests: `CanvasExpressionEvaluatorTests.LogicalOperators_ShortCircuit`
+      and the `expressionEngine.test.ts` parity case (`&&`/`||`/`??`).
 - [ ] Ternary `?:` / bitwise operators (not emitted by the translator).

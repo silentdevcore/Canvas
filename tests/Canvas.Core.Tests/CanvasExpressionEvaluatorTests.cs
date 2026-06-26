@@ -42,6 +42,23 @@ public class CanvasExpressionEvaluatorTests
     }
 
     [Fact]
+    public void LogicalOperators_ShortCircuit()
+    {
+        // The right side is dangerous on its own (an aggregate over a non-dataset throws → invalid)…
+        Assert.False(CanvasExpressionEvaluator.TryEvaluate(
+            "$count(Missing) > 0", new Dictionary<string, object?>(), out _));
+
+        // …but && short-circuits when the left is false, and || when the left is true — the right side is
+        // not evaluated, so the guard does not throw and the expression stays valid.
+        Assert.Equal(false, Eval("Items != null && $count(Items) > 0", new Dictionary<string, object?>()));
+        Assert.Equal(true, Eval("Total > 0 || $count(Missing) > 0", new() { ["Total"] = 5d }));
+
+        // Both sides still evaluate when the left does not decide the result.
+        Assert.Equal(true, Eval("A > 0 && B > 0", new() { ["A"] = 5d, ["B"] = 3d }));
+        Assert.Equal(false, Eval("A > 0 && B > 0", new() { ["A"] = 5d, ["B"] = -1d }));
+    }
+
+    [Fact]
     public void UnknownFunction_Or_Malformed_ReturnsFalse()
     {
         Assert.False(CanvasExpressionEvaluator.TryEvaluate("Sum(Total)", new Dictionary<string, object?> { ["Total"] = 5d }, out _));

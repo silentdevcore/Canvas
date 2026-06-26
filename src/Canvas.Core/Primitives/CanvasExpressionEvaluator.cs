@@ -61,19 +61,42 @@ public static class CanvasExpressionEvaluator
             return v;
         }
 
+        private bool _skip;   // inside a short-circuited operand: keep consuming tokens, suppress evaluation
+
         // ── precedence (low → high) ──────────────────────────────────────────────────────────────────
         private object? ParseOr()
         {
             var left = ParseAnd();
-            while (Current is { Kind: TokenKind.Op, Text: "||" }) { _i++; var r = ParseAnd(); left = Truthy(left) || Truthy(r); }
+            while (Current is { Kind: TokenKind.Op, Text: "||" })
+            {
+                _i++;
+                var shortCircuit = !_skip && Truthy(left);   // left already true → don't evaluate the right
+                var r = WithSkip(shortCircuit, ParseAnd);
+                if (!_skip) left = shortCircuit ? true : (Truthy(left) || Truthy(r));
+            }
             return left;
         }
 
         private object? ParseAnd()
         {
             var left = ParseEquality();
-            while (Current is { Kind: TokenKind.Op, Text: "&&" }) { _i++; var r = ParseEquality(); left = Truthy(left) && Truthy(r); }
+            while (Current is { Kind: TokenKind.Op, Text: "&&" })
+            {
+                _i++;
+                var shortCircuit = !_skip && !Truthy(left);   // left already false → don't evaluate the right
+                var r = WithSkip(shortCircuit, ParseEquality);
+                if (!_skip) left = shortCircuit ? false : (Truthy(left) && Truthy(r));
+            }
             return left;
+        }
+
+        // Parse (consume tokens) with evaluation suppressed when short-circuiting, so the decided side of a
+        // &&/|| is not evaluated (no throws from null guards like A && A.foo) yet token positions stay in sync.
+        private object? WithSkip(bool skip, Func<object?> parse)
+        {
+            if (!skip) return parse();
+            var prev = _skip; _skip = true;
+            try { return parse(); } finally { _skip = prev; }
         }
 
         private object? ParseEquality()
@@ -83,6 +106,7 @@ public static class CanvasExpressionEvaluator
             {
                 var op = Current.Text; _i++;
                 var right = ParseComparison();
+                if (_skip) { left = null; continue; }
                 var eq = LooseEquals(left, right);
                 left = op == "==" ? eq : !eq;
             }
@@ -96,6 +120,7 @@ public static class CanvasExpressionEvaluator
             {
                 var op = Current.Text; _i++;
                 var right = ParseAdditive();
+                if (_skip) { left = null; continue; }
                 var c = Compare(left, right);
                 left = op switch { "<" => c < 0, "<=" => c <= 0, ">" => c > 0, _ => c >= 0 };
             }
@@ -109,6 +134,7 @@ public static class CanvasExpressionEvaluator
             {
                 var op = Current.Text; _i++;
                 var right = ParseMultiplicative();
+                if (_skip) { left = null; continue; }
                 if (op == "+")
                     left = (IsNumeric(left) && IsNumeric(right))
                         ? ToNumber(left) + ToNumber(right)
@@ -126,6 +152,7 @@ public static class CanvasExpressionEvaluator
             {
                 var op = Current.Text; _i++;
                 var right = ParseUnary();
+                if (_skip) { left = null; continue; }
                 var (a, b) = (ToNumber(left), ToNumber(right));
                 left = op switch { "*" => a * b, "/" => a / b, _ => a % b };
             }
@@ -134,8 +161,8 @@ public static class CanvasExpressionEvaluator
 
         private object? ParseUnary()
         {
-            if (Current is { Kind: TokenKind.Op, Text: "!" }) { _i++; return !Truthy(ParseUnary()); }
-            if (Current is { Kind: TokenKind.Op, Text: "-" }) { _i++; return -ToNumber(ParseUnary()); }
+            if (Current is { Kind: TokenKind.Op, Text: "!" }) { _i++; var v = ParseUnary(); return _skip ? null : !Truthy(v); }
+            if (Current is { Kind: TokenKind.Op, Text: "-" }) { _i++; var v = ParseUnary(); return _skip ? null : -ToNumber(v); }
             return ParsePrimary();
         }
 
@@ -176,6 +203,7 @@ public static class CanvasExpressionEvaluator
                 while (Current.Kind == TokenKind.Comma) { _i++; args.Add(ParseOr()); }
             }
             Expect(TokenKind.RParen);
+            if (_skip) return null;   // short-circuited: args were consumed for token sync, but don't invoke
 
             return name switch
             {
