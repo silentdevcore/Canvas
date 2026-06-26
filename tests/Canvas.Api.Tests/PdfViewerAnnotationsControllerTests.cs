@@ -269,7 +269,19 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
                   "text": "Native highlight",
                   "author": "Reviewer",
                   "createdAt": "2026-06-25T10:00:00Z",
-                  "color": "#fef08a"
+                  "color": "#fef08a",
+                  "quadPoints": [
+                    {
+                      "x1Pct": 10,
+                      "y1Pct": 20,
+                      "x2Pct": 40,
+                      "y2Pct": 20,
+                      "x3Pct": 10,
+                      "y3Pct": 26,
+                      "x4Pct": 40,
+                      "y4Pct": 26
+                    }
+                  ]
                 }
               ]
             }
@@ -287,7 +299,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
         Assert.Contains("/Subtype /Highlight", content, StringComparison.Ordinal);
         Assert.Contains("/AP << /N", content, StringComparison.Ordinal);
         Assert.Contains("/Subtype /Form", content, StringComparison.Ordinal);
-        Assert.Contains("/QuadPoints", content, StringComparison.Ordinal);
+        Assert.Contains("/QuadPoints [30 144 120 144 30 133.2 120 133.2]", content, StringComparison.Ordinal);
     }
 
     [Fact]

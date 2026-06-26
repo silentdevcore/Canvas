@@ -1140,7 +1140,9 @@ internal sealed class PdfWriter
         string appearanceSegment,
         string contents)
     {
-        var quadPoints = FormatQuadPoints(annotation.X, annotation.Y, annotation.Width, annotation.Height);
+        var quadPoints = annotation.QuadPoints.Count > 0
+            ? FormatQuadPoints(annotation.QuadPoints)
+            : FormatQuadPoints(annotation.X, annotation.Y, annotation.Width, annotation.Height);
         return $"<< /Type /Annot /Subtype /{subtype} /Rect {rect} /P {pageObjectId} 0 R /Contents ({contents}) /C {color} /QuadPoints {quadPoints}{opacitySegment}{appearanceSegment} >>\n";
     }
 
@@ -1172,6 +1174,24 @@ internal sealed class PdfWriter
             FormatNumber(bottom),
             FormatNumber(right),
             FormatNumber(bottom));
+    }
+
+    private static string FormatQuadPoints(IReadOnlyList<PdfMarkupQuadPoint> quadPoints)
+    {
+        var values = new List<string>(quadPoints.Count * 8);
+        foreach (var point in quadPoints)
+        {
+            values.Add(FormatNumber(point.X1));
+            values.Add(FormatNumber(point.Y1));
+            values.Add(FormatNumber(point.X2));
+            values.Add(FormatNumber(point.Y2));
+            values.Add(FormatNumber(point.X3));
+            values.Add(FormatNumber(point.Y3));
+            values.Add(FormatNumber(point.X4));
+            values.Add(FormatNumber(point.Y4));
+        }
+
+        return $"[{string.Join(" ", values)}]";
     }
 
     private static string FormatColorArray(PdfColor color)

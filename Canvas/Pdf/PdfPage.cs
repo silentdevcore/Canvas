@@ -1511,19 +1511,19 @@ public sealed class PdfPage
         AddReviewAnnotation(PdfReviewAnnotationType.FreeText, x, y, width, height, contents, color, opacity);
     }
 
-    public void AddHighlightAnnotation(double x, double y, double width, double height, string contents = "", PdfColor? color = null, double opacity = 0.45)
+    public void AddHighlightAnnotation(double x, double y, double width, double height, string contents = "", PdfColor? color = null, double opacity = 0.45, IReadOnlyList<PdfMarkupQuadPoint>? quadPoints = null)
     {
-        AddReviewAnnotation(PdfReviewAnnotationType.Highlight, x, y, width, height, contents, color ?? PdfColor.FromRgb(254, 240, 138), opacity);
+        AddReviewAnnotation(PdfReviewAnnotationType.Highlight, x, y, width, height, contents, color ?? PdfColor.FromRgb(254, 240, 138), opacity, quadPoints);
     }
 
-    public void AddUnderlineAnnotation(double x, double y, double width, double height, string contents = "", PdfColor? color = null, double opacity = 1)
+    public void AddUnderlineAnnotation(double x, double y, double width, double height, string contents = "", PdfColor? color = null, double opacity = 1, IReadOnlyList<PdfMarkupQuadPoint>? quadPoints = null)
     {
-        AddReviewAnnotation(PdfReviewAnnotationType.Underline, x, y, width, height, contents, color ?? PdfColor.FromRgb(37, 99, 235), opacity);
+        AddReviewAnnotation(PdfReviewAnnotationType.Underline, x, y, width, height, contents, color ?? PdfColor.FromRgb(37, 99, 235), opacity, quadPoints);
     }
 
-    public void AddStrikeOutAnnotation(double x, double y, double width, double height, string contents = "", PdfColor? color = null, double opacity = 1)
+    public void AddStrikeOutAnnotation(double x, double y, double width, double height, string contents = "", PdfColor? color = null, double opacity = 1, IReadOnlyList<PdfMarkupQuadPoint>? quadPoints = null)
     {
-        AddReviewAnnotation(PdfReviewAnnotationType.StrikeOut, x, y, width, height, contents, color ?? PdfColor.FromRgb(220, 38, 38), opacity);
+        AddReviewAnnotation(PdfReviewAnnotationType.StrikeOut, x, y, width, height, contents, color ?? PdfColor.FromRgb(220, 38, 38), opacity, quadPoints);
     }
 
     public void AddSquareAnnotation(double x, double y, double width, double height, string contents = "", PdfColor? color = null, double opacity = 1)
@@ -2012,7 +2012,7 @@ public sealed class PdfPage
         _elements.Add(new ImageElement(image, cacheKey, x, y, width, height, opacity));
     }
 
-    private void AddReviewAnnotation(PdfReviewAnnotationType type, double x, double y, double width, double height, string contents, PdfColor? color, double opacity)
+    private void AddReviewAnnotation(PdfReviewAnnotationType type, double x, double y, double width, double height, string contents, PdfColor? color, double opacity, IReadOnlyList<PdfMarkupQuadPoint>? quadPoints = null)
     {
         if (width <= 0 || height <= 0)
         {
@@ -2027,7 +2027,8 @@ public sealed class PdfPage
             height,
             contents,
             color ?? PdfColor.FromRgb(250, 204, 21),
-            Math.Clamp(opacity, 0.1, 1)));
+            Math.Clamp(opacity, 0.1, 1),
+            quadPoints?.Count > 0 ? quadPoints : []));
     }
 
     private static string GetImageBytesCacheKey(byte[] imageBytes)

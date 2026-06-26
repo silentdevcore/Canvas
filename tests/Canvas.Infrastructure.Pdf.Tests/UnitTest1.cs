@@ -100,6 +100,33 @@ public class PdfSerializationIntegrationTests
     }
 
     [Fact]
+    public void ToBytes_ShouldEmitNativeReviewAnnotationQuadPoints()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage(300, 180);
+        page.AddHighlightAnnotation(
+            30,
+            120,
+            140,
+            34,
+            "Selected text",
+            PdfColor.FromRgb(254, 240, 138),
+            0.45,
+            [
+                new PdfMarkupQuadPoint(30, 154, 110, 154, 30, 142, 110, 142),
+                new PdfMarkupQuadPoint(30, 136, 170, 136, 30, 120, 170, 120),
+            ]);
+
+        var content = Encoding.ASCII.GetString(document.ToBytes(new PdfSaveOptions
+        {
+            CompressContentStreams = false
+        }));
+
+        Assert.Contains("/Subtype /Highlight", content, StringComparison.Ordinal);
+        Assert.Contains("/QuadPoints [30 154 110 154 30 142 110 142 30 136 170 136 30 120 170 120]", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ToBytes_ShouldEmitCustomDocumentInfoProperties()
     {
         var document = new PdfDocument();

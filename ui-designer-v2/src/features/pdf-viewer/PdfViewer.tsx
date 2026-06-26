@@ -39,6 +39,7 @@ import {
   stampColor,
   type InkPoint,
   type LineEnding,
+  type MarkupQuadPoint,
   type PdfAnnotation,
   type ReviewTool,
   type StampLabel,
@@ -189,6 +190,32 @@ const annotationStrokeWidth = (annotation: PdfAnnotation): number => annotation.
 
 const annotationOpacity = (annotation: PdfAnnotation): number => annotation.opacity ?? defaultOpacityForType(annotation.type);
 
+const isTextMarkupTool = (tool: ReviewTool): boolean => tool === 'highlight' || tool === 'underline' || tool === 'strikeout';
+
+const isTextMarkupAnnotation = (annotation: PdfAnnotation): boolean => (
+  annotation.type === 'highlight' || annotation.type === 'underline' || annotation.type === 'strikeout'
+);
+
+const annotationBoundsFromQuads = (quadPoints: MarkupQuadPoint[]): Pick<PdfAnnotation, 'xPct' | 'yPct' | 'widthPct' | 'heightPct'> | null => {
+  if (quadPoints.length === 0) {
+    return null;
+  }
+
+  const xs = quadPoints.flatMap(point => [point.x1Pct, point.x2Pct, point.x3Pct, point.x4Pct]);
+  const ys = quadPoints.flatMap(point => [point.y1Pct, point.y2Pct, point.y3Pct, point.y4Pct]);
+  const minX = clamp(Math.min(...xs), 0, 100);
+  const maxX = clamp(Math.max(...xs), 0, 100);
+  const minY = clamp(Math.min(...ys), 0, 100);
+  const maxY = clamp(Math.max(...ys), 0, 100);
+
+  return {
+    xPct: minX,
+    yPct: minY,
+    widthPct: Math.max(0.5, maxX - minX),
+    heightPct: Math.max(0.5, maxY - minY),
+  };
+};
+
 const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const [source, setSource] = useState<PdfSource | null>(initialSource);
   const [urlInput, setUrlInput] = useState(initialSource?.url ?? '');
@@ -230,6 +257,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const pageStackRef = useRef<HTMLDivElement | null>(null);
   const eventIdRef = useRef(0);
   const annotationInteractionRef = useRef<AnnotationInteraction | null>(null);
+  const suppressNextPageClickRef = useRef(false);
 
   const currentResult = searchResults[selectedResultIndex] ?? null;
   const currentPageAnnotations = annotations.filter(annotation => annotation.pageNumber === currentPage);
@@ -682,7 +710,83 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
     emitViewerEvent('annotation:image-selected', { name: file.name });
   };
 
+  const createTextMarkupFromSelection = () => {
+    if (!source || !isTextMarkupTool(reviewTool)) {
+      return;
+    }
+
+    const selection = window.getSelection();
+    const pageBounds = pageStackRef.current?.getBoundingClientRect();
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed || !pageBounds) {
+      return;
+    }
+
+    const selectionText = selection.toString().replace(/\s+/g, ' ').trim();
+    const quadPoints: MarkupQuadPoint[] = [];
+    for (let index = 0; index < selection.rangeCount; index += 1) {
+      const range = selection.getRangeAt(index);
+      for (const rect of Array.from(range.getClientRects())) {
+        const left = clamp(Math.max(rect.left, pageBounds.left), pageBounds.left, pageBounds.right);
+        const right = clamp(Math.min(rect.right, pageBounds.right), pageBounds.left, pageBounds.right);
+        const top = clamp(Math.max(rect.top, pageBounds.top), pageBounds.top, pageBounds.bottom);
+        const bottom = clamp(Math.min(rect.bottom, pageBounds.bottom), pageBounds.top, pageBounds.bottom);
+        if (right - left < 1 || bottom - top < 1) {
+          continue;
+        }
+
+        quadPoints.push({
+          x1Pct: ((left - pageBounds.left) / pageBounds.width) * 100,
+          y1Pct: ((top - pageBounds.top) / pageBounds.height) * 100,
+          x2Pct: ((right - pageBounds.left) / pageBounds.width) * 100,
+          y2Pct: ((top - pageBounds.top) / pageBounds.height) * 100,
+          x3Pct: ((left - pageBounds.left) / pageBounds.width) * 100,
+          y3Pct: ((bottom - pageBounds.top) / pageBounds.height) * 100,
+          x4Pct: ((right - pageBounds.left) / pageBounds.width) * 100,
+          y4Pct: ((bottom - pageBounds.top) / pageBounds.height) * 100,
+        });
+      }
+    }
+
+    const bounds = annotationBoundsFromQuads(quadPoints);
+    if (!bounds) {
+      return;
+    }
+
+    const type = annotationTypeFromTool(reviewTool);
+    const nextAnnotation: PdfAnnotation = {
+      id: `annotation-${Date.now()}-${Math.round(Math.random() * 1000)}`,
+      type,
+      pageNumber: currentPage,
+      ...bounds,
+      text: selectionText,
+      author: reviewAuthor.trim() || 'Reviewer',
+      createdAt: new Date().toISOString(),
+      color: type === 'highlight' ? '#fef08a' : type === 'underline' ? '#2563eb' : '#dc2626',
+      locked: false,
+      opacity: defaultOpacityForType(type),
+      strokeWidth: defaultStrokeWidthForType(type),
+      lineEndingStart: 'none',
+      lineEndingEnd: 'none',
+      quadPoints,
+    };
+
+    suppressNextPageClickRef.current = true;
+    selection.removeAllRanges();
+    setAnnotations(previous => [...previous, nextAnnotation]);
+    setSelectedAnnotationId(nextAnnotation.id);
+    emitViewerEvent('annotation:text-selection-created', {
+      type: nextAnnotation.type,
+      pageNumber: currentPage,
+      quads: quadPoints.length,
+    });
+  };
+
   const addAnnotationAtPoint = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (suppressNextPageClickRef.current) {
+      suppressNextPageClickRef.current = false;
+      return;
+    }
+
     if (reviewTool === 'view' || reviewTool === 'ink' || reviewTool === 'inkEraser' || !source) {
       return;
     }
@@ -1810,6 +1914,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                     ref={pageStackRef}
                     onClick={addAnnotationAtPoint}
                     onMouseDown={beginInkDrawing}
+                    onMouseUp={createTextMarkupFromSelection}
                   >
                   <Page
                     pageNumber={currentPage}
@@ -1921,13 +2026,68 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                                 </svg>
                               )
                               : annotation.type === 'highlight'
-                                ? <span className="pdfv-markup-highlight" />
+                                ? (
+                                  annotation.quadPoints && annotation.quadPoints.length > 0
+                                    ? (
+                                      <span className="pdfv-markup-quads" aria-hidden="true">
+                                        {annotation.quadPoints.map((quad, index) => (
+                                          <span
+                                            key={`${annotation.id}-quad-${index}`}
+                                            className="pdfv-markup-highlight"
+                                            style={{
+                                              left: `${((Math.min(quad.x1Pct, quad.x3Pct) - annotation.xPct) / annotation.widthPct) * 100}%`,
+                                              top: `${((Math.min(quad.y1Pct, quad.y2Pct) - annotation.yPct) / annotation.heightPct) * 100}%`,
+                                              width: `${((Math.max(quad.x2Pct, quad.x4Pct) - Math.min(quad.x1Pct, quad.x3Pct)) / annotation.widthPct) * 100}%`,
+                                              height: `${((Math.max(quad.y3Pct, quad.y4Pct) - Math.min(quad.y1Pct, quad.y2Pct)) / annotation.heightPct) * 100}%`,
+                                            }}
+                                          />
+                                        ))}
+                                      </span>
+                                    )
+                                    : <span className="pdfv-markup-highlight" />
+                                )
                                 : annotation.type === 'redaction'
                                   ? <span className="pdfv-markup-redaction" />
                                 : annotation.type === 'underline'
-                                  ? <span className="pdfv-markup-underline" />
+                                  ? (
+                                    annotation.quadPoints && annotation.quadPoints.length > 0
+                                      ? (
+                                        <span className="pdfv-markup-quads" aria-hidden="true">
+                                          {annotation.quadPoints.map((quad, index) => (
+                                            <span
+                                              key={`${annotation.id}-quad-${index}`}
+                                              className="pdfv-markup-underline"
+                                              style={{
+                                                left: `${((Math.min(quad.x1Pct, quad.x3Pct) - annotation.xPct) / annotation.widthPct) * 100}%`,
+                                                top: `${((Math.max(quad.y3Pct, quad.y4Pct) - annotation.yPct) / annotation.heightPct) * 100}%`,
+                                                width: `${((Math.max(quad.x2Pct, quad.x4Pct) - Math.min(quad.x1Pct, quad.x3Pct)) / annotation.widthPct) * 100}%`,
+                                              }}
+                                            />
+                                          ))}
+                                        </span>
+                                      )
+                                      : <span className="pdfv-markup-underline" />
+                                  )
                                   : annotation.type === 'strikeout'
-                                    ? <span className="pdfv-markup-strikeout" />
+                                    ? (
+                                      annotation.quadPoints && annotation.quadPoints.length > 0
+                                        ? (
+                                          <span className="pdfv-markup-quads" aria-hidden="true">
+                                            {annotation.quadPoints.map((quad, index) => (
+                                              <span
+                                                key={`${annotation.id}-quad-${index}`}
+                                                className="pdfv-markup-strikeout"
+                                                style={{
+                                                  left: `${((Math.min(quad.x1Pct, quad.x3Pct) - annotation.xPct) / annotation.widthPct) * 100}%`,
+                                                  top: `${((((Math.min(quad.y1Pct, quad.y2Pct) + Math.max(quad.y3Pct, quad.y4Pct)) / 2) - annotation.yPct) / annotation.heightPct) * 100}%`,
+                                                  width: `${((Math.max(quad.x2Pct, quad.x4Pct) - Math.min(quad.x1Pct, quad.x3Pct)) / annotation.widthPct) * 100}%`,
+                                                }}
+                                              />
+                                            ))}
+                                          </span>
+                                        )
+                                        : <span className="pdfv-markup-strikeout" />
+                                    )
                               : annotation.type === 'rectangle'
                                 ? <span className="pdfv-shape-rectangle" />
                                 : annotation.type === 'circle'

@@ -220,15 +220,24 @@ public sealed class PdfViewerAnnotationFlatteningService
         switch (annotation.Type)
         {
             case "highlight":
+                if (DrawMarkupQuads(page, annotation, color))
+                    break;
+
                 page.DrawRectangleFromTop(x, topY, width, height, lineWidth: 0.1, fill: true, strokeColor: color, fillColor: Soften(color, annotation.Opacity));
                 break;
             case "redaction":
                 page.DrawRectangleFromTop(x, topY, width, height, lineWidth: strokeWidth, fill: true, strokeColor: CanvasPdfColor.Black, fillColor: CanvasPdfColor.Black);
                 break;
             case "underline":
+                if (DrawMarkupQuads(page, annotation, color))
+                    break;
+
                 page.DrawLineFromTop(x, topY + height - 1.5, x + width, topY + height - 1.5, lineWidth: strokeWidth, strokeColor: color);
                 break;
             case "strikeout":
+                if (DrawMarkupQuads(page, annotation, color))
+                    break;
+
                 page.DrawLineFromTop(x, topY + height / 2, x + width, topY + height / 2, lineWidth: strokeWidth, strokeColor: color);
                 break;
             case "line":
@@ -308,13 +317,13 @@ public sealed class PdfViewerAnnotationFlatteningService
                 page.AddFreeTextAnnotation(x, y, width, height, annotation.Text, color, opacity);
                 break;
             case "highlight":
-                page.AddHighlightAnnotation(x, y, width, height, annotation.Text, color, opacity);
+                page.AddHighlightAnnotation(x, y, width, height, annotation.Text, color, opacity, ToPdfMarkupQuads(page, annotation));
                 break;
             case "underline":
-                page.AddUnderlineAnnotation(x, y, width, height, annotation.Text, color, opacity);
+                page.AddUnderlineAnnotation(x, y, width, height, annotation.Text, color, opacity, ToPdfMarkupQuads(page, annotation));
                 break;
             case "strikeout":
-                page.AddStrikeOutAnnotation(x, y, width, height, annotation.Text, color, opacity);
+                page.AddStrikeOutAnnotation(x, y, width, height, annotation.Text, color, opacity, ToPdfMarkupQuads(page, annotation));
                 break;
             case "rectangle":
                 page.AddSquareAnnotation(x, y, width, height, annotation.Text, color, opacity);
@@ -345,6 +354,42 @@ public sealed class PdfViewerAnnotationFlatteningService
                 lineWidth: Math.Clamp(annotation.StrokeWidth, 1, 16),
                 strokeColor: color);
         }
+    }
+
+    private static bool DrawMarkupQuads(PdfPage page, PdfViewerAnnotation annotation, CanvasPdfColor color)
+    {
+        if (annotation.QuadPoints.Count == 0)
+            return false;
+
+        var strokeWidth = Math.Clamp(annotation.StrokeWidth, 1, 16);
+        foreach (var quad in annotation.QuadPoints)
+        {
+            var left = Percent(Math.Min(quad.X1Pct, quad.X3Pct), page.Width);
+            var right = Percent(Math.Max(quad.X2Pct, quad.X4Pct), page.Width);
+            var top = Percent(Math.Min(quad.Y1Pct, quad.Y2Pct), page.Height);
+            var bottom = Percent(Math.Max(quad.Y3Pct, quad.Y4Pct), page.Height);
+            var width = Math.Max(1, right - left);
+            var height = Math.Max(1, bottom - top);
+
+            if (annotation.Type == "highlight")
+            {
+                page.DrawRectangleFromTop(left, top, width, height, lineWidth: 0.1, fill: true, strokeColor: color, fillColor: Soften(color, annotation.Opacity));
+                continue;
+            }
+
+            if (annotation.Type == "underline")
+            {
+                page.DrawLineFromTop(left, bottom - 1.5, right, bottom - 1.5, lineWidth: strokeWidth, strokeColor: color);
+                continue;
+            }
+
+            if (annotation.Type == "strikeout")
+            {
+                page.DrawLineFromTop(left, top + height / 2, right, top + height / 2, lineWidth: strokeWidth, strokeColor: color);
+            }
+        }
+
+        return true;
     }
 
     private static void DrawLineEnding(
@@ -399,6 +444,24 @@ public sealed class PdfViewerAnnotationFlatteningService
     }
 
     private static Canvas.Pdf.PdfPoint ToPdfPoint(PdfPage page, double x, double topY) => new(x, page.Height - topY);
+
+    private static IReadOnlyList<PdfMarkupQuadPoint>? ToPdfMarkupQuads(PdfPage page, PdfViewerAnnotation annotation)
+    {
+        if (annotation.QuadPoints.Count == 0)
+            return null;
+
+        return annotation.QuadPoints
+            .Select(point => new PdfMarkupQuadPoint(
+                Percent(point.X1Pct, page.Width),
+                page.Height - Percent(point.Y1Pct, page.Height),
+                Percent(point.X2Pct, page.Width),
+                page.Height - Percent(point.Y2Pct, page.Height),
+                Percent(point.X3Pct, page.Width),
+                page.Height - Percent(point.Y3Pct, page.Height),
+                Percent(point.X4Pct, page.Width),
+                page.Height - Percent(point.Y4Pct, page.Height)))
+            .ToArray();
+    }
 
     private static Canvas.Importer.Graphics.PdfRectangle ToImporterRectangle(Canvas.Importer.Document.PdfPageModel page, PdfViewerAnnotation annotation)
     {
@@ -498,7 +561,8 @@ public sealed class PdfViewerAnnotationFlatteningService
         IReadOnlyList<PdfViewerInkPoint> Points,
         string Author,
         DateTimeOffset? CreatedAt,
-        string? Reason)
+        string? Reason,
+        IReadOnlyList<PdfViewerMarkupQuadPoint> QuadPoints)
     {
         public string RedactionReason => !string.IsNullOrWhiteSpace(Reason)
             ? Reason.Trim()
@@ -532,7 +596,8 @@ public sealed class PdfViewerAnnotationFlatteningService
                 ReadPoints(element),
                 ReadString(element, "author") ?? "",
                 ReadDateTimeOffset(element, "createdAt"),
-                ReadString(element, "reason"));
+                ReadString(element, "reason"),
+                ReadQuadPoints(element));
         }
 
         private static IReadOnlyList<PdfViewerInkPoint> ReadPoints(JsonElement element)
@@ -546,6 +611,26 @@ public sealed class PdfViewerAnnotationFlatteningService
                 .Select(static point => new PdfViewerInkPoint(
                     ReadDouble(point, "xPct"),
                     ReadDouble(point, "yPct")))
+                .ToArray();
+        }
+
+        private static IReadOnlyList<PdfViewerMarkupQuadPoint> ReadQuadPoints(JsonElement element)
+        {
+            if (!element.TryGetProperty("quadPoints", out var pointsElement) || pointsElement.ValueKind != JsonValueKind.Array)
+                return [];
+
+            return pointsElement
+                .EnumerateArray()
+                .Where(static point => point.ValueKind == JsonValueKind.Object)
+                .Select(static point => new PdfViewerMarkupQuadPoint(
+                    ReadDouble(point, "x1Pct"),
+                    ReadDouble(point, "y1Pct"),
+                    ReadDouble(point, "x2Pct"),
+                    ReadDouble(point, "y2Pct"),
+                    ReadDouble(point, "x3Pct"),
+                    ReadDouble(point, "y3Pct"),
+                    ReadDouble(point, "x4Pct"),
+                    ReadDouble(point, "y4Pct")))
                 .ToArray();
         }
 
@@ -585,6 +670,16 @@ public sealed class PdfViewerAnnotationFlatteningService
     }
 
     private sealed record PdfViewerInkPoint(double XPct, double YPct);
+
+    private sealed record PdfViewerMarkupQuadPoint(
+        double X1Pct,
+        double Y1Pct,
+        double X2Pct,
+        double Y2Pct,
+        double X3Pct,
+        double Y3Pct,
+        double X4Pct,
+        double Y4Pct);
 
     private static byte[] DecodeDataUrl(string? dataUrl)
     {

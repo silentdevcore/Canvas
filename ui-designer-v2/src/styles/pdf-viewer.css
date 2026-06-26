@@ -757,6 +757,20 @@
   background: currentColor;
 }
 
+.pdfv-markup-quads {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.pdfv-markup-quads .pdfv-markup-highlight,
+.pdfv-markup-quads .pdfv-markup-underline,
+.pdfv-markup-quads .pdfv-markup-strikeout {
+  position: absolute;
+  min-height: 0;
+}
+
 .pdfv-markup-redaction {
   min-height: 24px;
   border: var(--pdfv-stroke-width, 1px) solid #000;

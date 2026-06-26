@@ -35,6 +35,17 @@ export interface InkPoint {
   yPct: number;
 }
 
+export interface MarkupQuadPoint {
+  x1Pct: number;
+  y1Pct: number;
+  x2Pct: number;
+  y2Pct: number;
+  x3Pct: number;
+  y3Pct: number;
+  x4Pct: number;
+  y4Pct: number;
+}
+
 export type LineEnding = 'none' | 'arrow' | 'circle' | 'square';
 
 export interface PdfAnnotation {
@@ -58,6 +69,7 @@ export interface PdfAnnotation {
   fillEnabled?: boolean;
   lineEndingStart?: LineEnding;
   lineEndingEnd?: LineEnding;
+  quadPoints?: MarkupQuadPoint[];
 }
 
 export interface PdfAnnotationSidecar {

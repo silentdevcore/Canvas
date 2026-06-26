@@ -47,6 +47,21 @@ describe('pdf viewer annotation sidecar model', () => {
     const annotations = [
       sampleAnnotation(),
       sampleAnnotation({
+        id: 'annotation-markup-quads',
+        quadPoints: [
+          {
+            x1Pct: 10,
+            y1Pct: 20,
+            x2Pct: 40,
+            y2Pct: 20,
+            x3Pct: 10,
+            y3Pct: 24,
+            x4Pct: 40,
+            y4Pct: 24,
+          },
+        ],
+      }),
+      sampleAnnotation({
         id: 'annotation-ink',
         type: 'ink',
         opacity: 72,
@@ -71,10 +86,11 @@ describe('pdf viewer annotation sidecar model', () => {
     expect(sidecar.version).toBe(1);
     expect(sidecar.sourceName).toBe('document.pdf');
     expect(sidecar.annotations).toEqual(annotations);
-    expect(sidecar.annotations[1].strokeWidth).toBe(5);
-    expect(sidecar.annotations[1].opacity).toBe(72);
-    expect(sidecar.annotations[2].imageDataUrl).toContain('data:image/png');
-    expect(sidecar.annotations[3].type).toBe('redaction');
+    expect(sidecar.annotations[1].quadPoints?.[0].x2Pct).toBe(40);
+    expect(sidecar.annotations[2].strokeWidth).toBe(5);
+    expect(sidecar.annotations[2].opacity).toBe(72);
+    expect(sidecar.annotations[3].imageDataUrl).toContain('data:image/png');
+    expect(sidecar.annotations[4].type).toBe('redaction');
     expect(Date.parse(sidecar.exportedAt)).not.toBeNaN();
   });
 

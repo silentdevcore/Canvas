@@ -52,6 +52,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 - [x] Native annotation embed workflow: supported sidecar annotations can be written back as editable PDF annotation objects
 - [x] Native annotation import workflow: supported existing PDF annotations can be extracted into the viewer sidecar model
 - [x] Native annotation appearance baseline: exported editable annotations include normal appearance Form XObjects
+- [x] Text-selection-bound markup baseline: highlight, underline, and strikeout can be created from browser text selection and persisted/exported with PDF `QuadPoints`
 - [x] Form workflow: existing AcroForm fields can be detected, edited, downloaded as filled PDFs, and optionally flattened
 - [x] Backend form reader baseline: existing AcroForm fields can be extracted through WebApi into the viewer form model
 - [x] Backend form writer baseline: supported AcroForm field values can be saved through WebApi incremental updates
@@ -79,8 +80,8 @@ Intentional remaining gaps:
 
 - [ ] Sidecar backend storage is durable JSON file storage, but user ownership/access control is still open.
 - [ ] Native annotation embedding is a baseline writer path for note, free text/stamp, highlight, underline, strikeout,
-      rectangle, circle, and redaction annotations. Basic normal appearance streams exist; richer viewer-specific
-      appearance fidelity and true text-selection-bound markup remain open.
+      rectangle, circle, and redaction annotations. Basic normal appearance streams and text-selection-bound `QuadPoints`
+      exist; richer viewer-specific appearance fidelity remains open.
 - [ ] Native annotation import is a baseline reader path for text, free text, highlight, underline, strikeout,
       square, circle, and redaction annotations. Appearance streams, replies/threads, rich metadata, and unsupported
       annotation subtypes remain open.
@@ -89,7 +90,8 @@ Intentional remaining gaps:
 - [ ] Backend form writer updates text, multiline text, checkbox, dropdown/list, and radio-like button values with
       incremental PDF updates. Backend flattening baseline renders supported values into page content and removes
       widgets; full field appearance regeneration and complex form hierarchies remain open.
-- [ ] Text markup is area-based, not true text-selection-bound PDF markup.
+- [ ] Text markup now supports browser-selection `QuadPoints` for new highlight/underline/strikeout annotations, while
+      imported legacy/area-only markups and non-standard text-layer edge cases still use rectangle fallback behavior.
 - [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, form filling, English/German viewer labels, keyboard shortcuts, and Jest component smoke coverage.
 - [ ] Secure redaction removes importer-supported content under redaction rectangles during regenerated output, then draws black redaction boxes, and now writes a PDF-info audit metadata baseline. Remaining gap: validate/extend coverage for complex PDFs, unsupported image/resource patterns, externally signed audit logs, and optional Playwright browser smoke tests if Playwright is added to the project.
 
@@ -134,7 +136,8 @@ our own implementation, UI language, and engine boundaries.
 - [x] Add an annotation toolbar mode, separate from normal view/search mode.
       Implemented as a `Review` panel with View, Note, and Text tools.
 - [x] Add text markup tools: highlight, underline, strikeout.
-      Implemented as sidecar area markups. True text-selection-bound PDF markup remains a later precision step.
+      Implemented as sidecar area markups plus browser-selection-bound `QuadPoints` for highlight/underline/strikeout.
+      Existing area-only annotations still work as fallback.
 - [x] Add free-text comment tool with font size, color, background, and border.
       Baseline free-text sidecar annotation exists with color and size controls. Advanced font/background/border controls remain open.
 - [x] Add sticky note/comment tool with author and timestamp metadata.
@@ -197,7 +200,8 @@ our own implementation, UI language, and engine boundaries.
 - [x] **Annotation model** - Define Canvas-side model for PDF annotations independent from UI widgets.
       Baseline sidecar model includes id, type, page, relative position/size, text, author, timestamp, and color.
 - [x] **Text markup annotations** - Highlight, underline, squiggly, strikeout.
-      Highlight, underline, and strikeout are implemented as movable/resizable sidecar area markups. Squiggly and text-selection-bound markup remain open.
+      Highlight, underline, and strikeout are implemented as movable/resizable sidecar area markups and can now be created
+      from browser text selection with persisted/exported `QuadPoints`. Squiggly remains open.
 - [x] **Free text annotations** - Add/edit text boxes with font, size, color, alignment, border/background.
       Baseline add/edit/delete/move/resize is implemented with color and size controls. Advanced font/alignment/background/border controls remain open.
 - [x] **Sticky note annotations** - Add note annotations with author/date/content metadata.
