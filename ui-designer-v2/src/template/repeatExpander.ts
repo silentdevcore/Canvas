@@ -172,6 +172,24 @@ export function expandRepeat(
 }
 
 /**
+ * Partitions rows into ordered distinct groups by a group field value (stable first-seen order).
+ * Mirrors DesignLayoutPlanner.PartitionByGroup so the designer preview matches server-side exports:
+ * a group band renders once per distinct group key, exposing that group's rows as $group.
+ */
+export function partitionByGroup(rows: any[], groupField: string): { key: any; rows: any[] }[] {
+  const order: string[] = [];
+  const groups = new Map<string, { key: any; rows: any[] }>();
+  for (const row of rows) {
+    const key = groupField.split('.').reduce((current: any, part: string) => current?.[part], row);
+    const k = key == null ? '' : String(key);
+    let g = groups.get(k);
+    if (!g) { g = { key, rows: [] }; groups.set(k, g); order.push(k); }
+    g.rows.push(row);
+  }
+  return order.map((k) => groups.get(k)!);
+}
+
+/**
  * Validates a repeat configuration
  */
 export function validateRepeatConfig(config: RepeatConfig): { isValid: boolean; errors: string[] } {
