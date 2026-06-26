@@ -43,10 +43,8 @@ builder.Services.AddCors(options =>
 
 // Register template rendering services
 builder.Services.AddScoped<ITemplateRepository, InMemoryTemplateRepository>();
-builder.Services.AddScoped<ITemplateExpander, TemplateExpander>();
 builder.Services.AddScoped<IExpressionEvaluator, ExpressionEvaluator>();
 builder.Services.AddScoped<IValueFormatter, ValueFormatter>();
-builder.Services.AddScoped<IRepeatExpander, RepeatExpander>();
 
 // Register PDF infrastructure
 builder.Services.AddScoped<IDocumentRenderer, PdfDocumentRenderer>();

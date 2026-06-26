@@ -36,5 +36,12 @@ engine instead of two.
 
 ## Follow-ups (out of scope)
 
-- [ ] Wire an actual consumer of `ITemplateExpander` (DesignerElement → document-model render path), or
-      remove the registration if it stays dead.
+- [x] **Removed the dead `ITemplateExpander` path.** It stayed unconsumed (the live render path is
+      `DesignLayoutPlanner`), so rather than wire it, the whole legacy `DesignerElement → ExpandedElement →
+      PDF` pipeline was deleted: `TemplateExpander`/`ITemplateExpander`, `RepeatExpander`/`IRepeatExpander`
+      (its `ExpandRepeatAsync` only served `TemplateExpander`, and depended on the `ExpandedElement`/
+      `ExpansionContext` types defined in `TemplateExpander.cs`), and `Canvas.Application.DocumentModelConverter`
+      (the only consumer of `ExpandedElement` — a `public static` class with zero callers). Their DI
+      registrations were dropped from `Program.cs`. **Kept** `ExpressionEvaluator`/`IExpressionEvaluator`
+      (the tested adapter delegating to `CanvasExpressionEvaluator`) and `ValueFormatter`/`IValueFormatter`
+      (standalone leaf utilities still registered for injection). Solution builds clean; Core suite green.
