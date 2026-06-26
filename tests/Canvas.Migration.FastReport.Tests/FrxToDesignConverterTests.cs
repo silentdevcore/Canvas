@@ -413,4 +413,33 @@ public sealed class FrxToDesignConverterTests
         Assert.Equal(2, cs.BorderBottom!.Width);
         Assert.Null(cs.BorderTop);                 // only the listed side
     }
+
+    // A group-footer aggregate (Sum) scopes to the current group ($group) and translates to the
+    // executable Canvas helper; a plain arithmetic expression translates to bare field identifiers.
+    [Fact]
+    public void GroupFooterAggregate_TranslatesToGroupScopedSum()
+    {
+        var frx = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <Report>
+              <Dictionary><TableDataSource Name="Items"><Column Name="Total"/></TableDataSource></Dictionary>
+              <ReportPage Name="Page1">
+                <GroupHeaderBand Name="GroupHeader1" Top="0" Width="700" Height="20" Condition="[Items.Country]">
+                  <TextObject Name="grp" Left="0" Top="0" Width="200" Height="20" Text="[Items.Country]"/>
+                </GroupHeaderBand>
+                <DataBand Name="Data1" Top="24" Width="700" Height="20" DataSource="Items">
+                  <TextObject Name="amount" Left="0" Top="0" Width="200" Height="20" Text="[[Items.Qty] * [Items.Price]]"/>
+                </DataBand>
+                <GroupFooterBand Name="GroupFooter1" Top="48" Width="700" Height="20">
+                  <TextObject Name="grpTotal" Left="0" Top="0" Width="200" Height="20" Text="[Sum([Items.Total])]"/>
+                </GroupFooterBand>
+              </ReportPage>
+            </Report>
+            """;
+
+        var d = Convert(frx).Design;
+
+        Assert.Equal("$sum($group, \"Total\")", El(d, "grpTotal").Expression);
+        Assert.Equal("Qty * Price", El(d, "amount").Expression);
+    }
 }

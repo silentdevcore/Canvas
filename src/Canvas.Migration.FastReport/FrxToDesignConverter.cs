@@ -351,8 +351,12 @@ public sealed class FrxToDesignConverter
 
                 diagnostics.Add(Info("CANMIGFRX002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
 
+                // Aggregates in a group band scope to the current group's row subset ($group),
+                // injected per group by DesignLayoutPlanner; report/page bands have no aggregate scope.
+                var aggDataset = bandType is "GroupHeaderBand" or "GroupFooterBand"
+                    ? ExpressionTranslator.GroupScopeToken : null;
                 if (raw.TextExpression is { } expr)
-                    ApplyBinding(element, expr, diagnostics);
+                    ApplyBinding(element, expr, diagnostics, aggDataset);
                 else if (raw.DataColumn is { Length: > 0 } col)
                 {
                     element.Binding = LastSegment(col);
@@ -588,7 +592,8 @@ public sealed class FrxToDesignConverter
         }
     }
 
-    private static void ApplyBinding(ElementDto element, string expression, List<MigrationDiagnostic> diagnostics)
+    private static void ApplyBinding(ElementDto element, string expression, List<MigrationDiagnostic> diagnostics,
+        string? dataSetPath = null)
     {
         var single = Regex.Match(expression, @"^[\w.]+$");
         if (single.Success)
@@ -600,10 +605,30 @@ public sealed class FrxToDesignConverter
         }
         else
         {
-            element.Expression = expression;
+            // A fully-bracketed FastReport expression ([Sum([Items.Total])], [[Qty] * [Price]]) is evaluated:
+            // strip the outer delimiter so inner [Source.Column] refs match the DevExpress dialect, then reuse
+            // that translator (IIf/operators + Sum/Avg/... aggregates → executable Canvas grammar). Mixed
+            // literal+field text (e.g. "Page [Page]") is preserved verbatim. Raw kept for review either way.
+            element.Expression = IsFullyBracketed(expression)
+                ? ExpressionTranslator.TranslateDevExpress(expression[1..^1], dataSetPath) ?? expression
+                : expression;
             if (string.IsNullOrEmpty(element.Content)) element.Content = expression;
             diagnostics.Add(Warn("CANMIGFRX010", $"'{element.Name}' expression '{expression}' mapped to Canvas expression — review the syntax."));
         }
+    }
+
+    // True when a single outer [ ] pair encloses the whole string (FastReport's expression delimiter),
+    // e.g. "[Sum([Items.Total])]" → yes, but "[a] + [b]" → no (the first ] closes before the end).
+    private static bool IsFullyBracketed(string s)
+    {
+        if (s.Length < 2 || s[0] != '[' || s[^1] != ']') return false;
+        var depth = 0;
+        for (var i = 0; i < s.Length; i++)
+        {
+            if (s[i] == '[') depth++;
+            else if (s[i] == ']' && --depth == 0) return i == s.Length - 1;
+        }
+        return false;
     }
 
     private static string LastSegment(string path)
