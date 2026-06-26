@@ -1,5 +1,5 @@
 import { PDFDocument } from 'pdf-lib';
-import { extractPdfFormFieldsFromBackend, fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldInfo } from '../features/pdf-viewer/pdfForms';
+import { extractPdfFormFieldsFromBackend, fillPdfFormFields, fillPdfFormFieldsWithBackend, readPdfFormFields, sameFormValue, type PdfFormFieldInfo } from '../features/pdf-viewer/pdfForms';
 
 const createSampleFormPdf = async (): Promise<ArrayBuffer> => {
   const pdf = await PDFDocument.create();
@@ -121,5 +121,35 @@ describe('pdf viewer form helpers', () => {
 
     const form = fetchMock.mock.calls[0][1].body as FormData;
     expect(form.get('file')).toBe(file);
+  });
+
+  test('fillPdfFormFieldsWithBackend posts pdf file and field payload', async () => {
+    const file = new File(['%PDF form'], 'form.pdf', { type: 'application/pdf' });
+    const fields: PdfFormFieldInfo[] = [{
+      name: 'customer.name',
+      kind: 'text',
+      value: 'Grace',
+      originalValue: 'Ada',
+      options: [],
+      multiline: false,
+    }];
+    const filled = new Blob(['%PDF filled'], { type: 'application/pdf' });
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      blob: async () => filled,
+    } as Response);
+
+    const response = await fillPdfFormFieldsWithBackend(file, fields, true);
+
+    expect(response).toBe(filled);
+    expect(fetchMock).toHaveBeenCalledWith('/api/pdf-viewer/forms/fill', {
+      method: 'POST',
+      body: expect.any(FormData),
+    });
+
+    const form = fetchMock.mock.calls[0][1].body as FormData;
+    expect(form.get('file')).toBe(file);
+    expect(form.get('fields')).toBe(JSON.stringify({ fields }));
+    expect(form.get('flatten')).toBe('true');
   });
 });

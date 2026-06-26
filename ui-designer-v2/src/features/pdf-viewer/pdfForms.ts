@@ -131,6 +131,29 @@ export const extractPdfFormFieldsFromBackend = async (pdfFile: File): Promise<Pd
   return payload.fields;
 };
 
+export const fillPdfFormFieldsWithBackend = async (
+  pdfFile: File,
+  fields: PdfFormFieldInfo[],
+  flatten = false,
+): Promise<Blob> => {
+  const form = new FormData();
+  form.append('file', pdfFile);
+  form.append('fields', JSON.stringify({ fields }));
+  form.append('flatten', String(flatten));
+
+  const response = await fetch('/api/pdf-viewer/forms/fill', {
+    method: 'POST',
+    body: form,
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.error || `HTTP ${response.status}`);
+  }
+
+  return response.blob();
+};
+
 export const fillPdfFormFields = async (
   bytes: ArrayBuffer,
   fields: PdfFormFieldInfo[],
