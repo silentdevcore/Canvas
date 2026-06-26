@@ -382,7 +382,11 @@ public sealed class TrdxToDesignConverter
 
             diagnostics.Add(Info("CANMIGTRDX002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
 
-            if (raw.Value is { } v) ApplyBinding(element, v, diagnostics);
+            // Aggregates in a group section scope to the current group's row subset ($group),
+            // injected per group by DesignLayoutPlanner; other sections have no aggregate scope.
+            var aggDataset = bandType is "GroupHeaderSection" or "GroupFooterSection"
+                ? ExpressionTranslator.GroupScopeToken : null;
+            if (raw.Value is { } v) ApplyBinding(element, v, diagnostics, aggDataset);
             if (band is not null) ApplyGroupRepeatMetadata(element, band, diagnostics);
 
             (bandType is "PageHeaderSection" or "PageFooterSection" ? sharedElements : elements).Add(element);
@@ -561,7 +565,8 @@ public sealed class TrdxToDesignConverter
         if ((Attr(style, "TextAlign") ?? Attr(style, "HorizontalAlign")) is { Length: > 0 } al) raw.TextAlign = ParseAlignment(al);
     }
 
-    private static void ApplyBinding(ElementDto element, string value, List<MigrationDiagnostic> diagnostics)
+    private static void ApplyBinding(ElementDto element, string value, List<MigrationDiagnostic> diagnostics,
+        string? dataSetPath = null)
     {
         if (!LooksLikeExpression(value)) return;   // literal already set as Content
         var single = Regex.Match(value, @"^\s*=\s*Fields\.(\w+)(?:\.Value)?\s*$");
@@ -579,7 +584,10 @@ public sealed class TrdxToDesignConverter
             // Canvas {{X}} token so it renders as a readable template; keep the original for review.
             var normalized = Regex.Replace(value.TrimStart().TrimStart('=').Trim(),
                 @"Fields\.(\w+)(?:\.Value)?", m => $"{{{{{m.Groups[1].Value}}}}}");
-            element.Expression = value;
+            // Telerik uses RDL grammar with dot field refs (Fields.X.Value); rewrite to the bang form the
+            // RDL translator expects, then translate (IIf/operators + Sum/Avg/... aggregates). Raw kept.
+            var rdlish = Regex.Replace(value, @"Fields\.(\w+)(?:\.Value)?", m => $"Fields!{m.Groups[1].Value}.Value");
+            element.Expression = ExpressionTranslator.TranslateRdl(rdlish, dataSetPath) ?? value;
             element.Style ??= [];
             element.Style["trdxExpression"] = value;
             if (element.Type == "barcode") element.BarcodeValue = normalized;

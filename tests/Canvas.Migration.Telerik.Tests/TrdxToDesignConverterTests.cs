@@ -269,8 +269,27 @@ public sealed class TrdxToDesignConverterTests
         var el = El(Convert(trdx).Design, "full");
         Assert.Contains("{{First}}", el.Content);
         Assert.Contains("{{Last}}", el.Content);
-        Assert.Equal("=Fields.First + ' ' + Fields.Last", el.Expression);
-        Assert.Equal("=Fields.First + ' ' + Fields.Last", el.Style!["trdxExpression"]);
+        Assert.Equal("First + ' ' + Last", el.Expression);                            // translated to Canvas grammar
+        Assert.Equal("=Fields.First + ' ' + Fields.Last", el.Style!["trdxExpression"]); // raw preserved for review
+    }
+
+    [Fact]
+    public void GroupFooterAggregate_TranslatesToGroupScopedSum()
+    {
+        var trdx = """
+            <Report Width="8.1in" Name="T" xmlns="http://schemas.telerik.com/reporting/2012/3.6">
+              <Items>
+                <GroupFooterSection Height="0.3in" Name="gf">
+                  <Items>
+                    <TextBox Width="2in" Height="0.3in" Left="0in" Top="0in" Value="=Sum(Fields.Total.Value)" Name="grpTotal" />
+                  </Items>
+                </GroupFooterSection>
+              </Items>
+            </Report>
+            """;
+
+        var el = El(Convert(trdx).Design, "grpTotal");
+        Assert.Equal("$sum($group, \"Total\")", el.Expression);
     }
 
     [Fact]
