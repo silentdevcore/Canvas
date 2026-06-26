@@ -63,6 +63,9 @@ public sealed class PdfViewerAnnotationFlatteningService
             case "highlight":
                 page.DrawRectangleFromTop(x, topY, width, height, lineWidth: 0.1, fill: true, strokeColor: color, fillColor: Soften(color, annotation.Opacity));
                 break;
+            case "redaction":
+                page.DrawRectangleFromTop(x, topY, width, height, lineWidth: strokeWidth, fill: true, strokeColor: CanvasPdfColor.Black, fillColor: CanvasPdfColor.Black);
+                break;
             case "underline":
                 page.DrawLineFromTop(x, topY + height - 1.5, x + width, topY + height - 1.5, lineWidth: strokeWidth, strokeColor: color);
                 break;

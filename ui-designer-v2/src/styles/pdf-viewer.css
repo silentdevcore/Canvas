@@ -606,6 +606,7 @@
 .pdfv-annotation-rectangle,
 .pdfv-annotation-circle,
 .pdfv-annotation-highlight,
+.pdfv-annotation-redaction,
 .pdfv-annotation-underline,
 .pdfv-annotation-strikeout {
   background: transparent;
@@ -618,6 +619,7 @@
 .pdfv-annotation-rectangle.is-selected,
 .pdfv-annotation-circle.is-selected,
 .pdfv-annotation-highlight.is-selected,
+.pdfv-annotation-redaction.is-selected,
 .pdfv-annotation-underline.is-selected,
 .pdfv-annotation-strikeout.is-selected {
   outline-offset: 6px;
@@ -626,6 +628,7 @@
 .pdfv-shape-rectangle,
 .pdfv-shape-circle,
 .pdfv-markup-highlight,
+.pdfv-markup-redaction,
 .pdfv-markup-underline,
 .pdfv-markup-strikeout {
   display: block;
@@ -666,6 +669,12 @@
 
 .pdfv-markup-highlight {
   min-height: 18px;
+  background: currentColor;
+}
+
+.pdfv-markup-redaction {
+  min-height: 24px;
+  border: var(--pdfv-stroke-width, 1px) solid #000;
   background: currentColor;
 }
 

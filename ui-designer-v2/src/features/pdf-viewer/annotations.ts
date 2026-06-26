@@ -4,6 +4,7 @@ export type ReviewTool =
   | 'freeText'
   | 'stamp'
   | 'image'
+  | 'redaction'
   | 'line'
   | 'rectangle'
   | 'circle'
@@ -20,6 +21,7 @@ export type AnnotationType =
   | 'freeText'
   | 'stamp'
   | 'image'
+  | 'redaction'
   | 'line'
   | 'rectangle'
   | 'circle'
@@ -87,6 +89,8 @@ export const annotationTypeFromTool = (tool: ReviewTool): AnnotationType => {
       return 'stamp';
     case 'image':
       return 'image';
+    case 'redaction':
+      return 'redaction';
     case 'note':
       return 'note';
     case 'line':

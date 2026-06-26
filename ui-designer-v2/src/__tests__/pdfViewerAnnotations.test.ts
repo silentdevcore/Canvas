@@ -31,6 +31,7 @@ describe('pdf viewer annotation sidecar model', () => {
     expect(annotationTypeFromTool('image')).toBe('image');
     expect(annotationTypeFromTool('ink')).toBe('ink');
     expect(annotationTypeFromTool('inkEraser')).toBe('ink');
+    expect(annotationTypeFromTool('redaction')).toBe('redaction');
     expect(annotationTypeFromTool('strikeout')).toBe('strikeout');
   });
 
@@ -57,6 +58,12 @@ describe('pdf viewer annotation sidecar model', () => {
         type: 'image',
         imageDataUrl: 'data:image/png;base64,iVBORw0KGgo=',
       }),
+      sampleAnnotation({
+        id: 'annotation-redaction',
+        type: 'redaction',
+        color: '#111827',
+        opacity: 88,
+      }),
     ];
 
     const sidecar = createAnnotationSidecar('document.pdf', annotations);
@@ -67,6 +74,7 @@ describe('pdf viewer annotation sidecar model', () => {
     expect(sidecar.annotations[1].strokeWidth).toBe(5);
     expect(sidecar.annotations[1].opacity).toBe(72);
     expect(sidecar.annotations[2].imageDataUrl).toContain('data:image/png');
+    expect(sidecar.annotations[3].type).toBe('redaction');
     expect(Date.parse(sidecar.exportedAt)).not.toBeNaN();
   });
 

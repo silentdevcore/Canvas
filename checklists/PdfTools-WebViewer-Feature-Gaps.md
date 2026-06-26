@@ -63,8 +63,8 @@ Intentional remaining gaps:
 - [ ] Sidecar backend storage is durable JSON file storage, but user ownership/access control is still open.
 - [ ] Sidecar annotations can be flattened into a reviewed PDF, but are not yet embedded as editable PDF annotation objects.
 - [ ] Text markup is area-based, not true text-selection-bound PDF markup.
-- [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, and image annotations.
-      Remaining gaps: forms, redaction, localization, keyboard navigation, and Playwright smoke tests.
+- [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, and pending redaction marks.
+      Remaining gaps: forms, secure redaction application, localization, keyboard navigation, and Playwright smoke tests.
 
 ## P0 - Viewer Foundation
 
@@ -126,7 +126,8 @@ our own implementation, UI language, and engine boundaries.
 
 - [ ] Show and edit existing AcroForm fields where import support exists.
 - [ ] Support save/flatten strategy for changed form values.
-- [ ] Add redaction mark mode for text/area selections.
+- [x] Add redaction mark mode for text/area selections.
+      Pending redaction area marks can be placed, moved, resized, persisted in sidecar JSON, and rendered into flattened reviewed PDFs.
 - [ ] Add secure backend redaction application when the PDF engine can remove underlying content.
 - [ ] Add accessibility/text layer support for generated and imported PDFs.
 - [ ] Add localization hooks for English/German UI strings.
@@ -178,7 +179,8 @@ our own implementation, UI language, and engine boundaries.
 
 - [ ] **Form field viewing/editing** - Fill text boxes, checkboxes, radio buttons, list boxes, and combo boxes in existing PDFs.
 - [ ] **Form save strategy** - Decide between saving filled fields into PDF, flattening, or sidecar persistence.
-- [ ] **Redaction marks** - Let users mark text/page areas for redaction as visible pending annotations.
+- [x] **Redaction marks** - Let users mark text/page areas for redaction as visible pending annotations.
+      Implemented as area-based pending redaction marks with sidecar persistence and flattened PDF output. These marks are visual and do not remove underlying PDF content.
 - [ ] **Apply secure redactions** - Remove underlying text/graphics/resources, not only paint black rectangles.
 - [ ] **Redaction audit metadata** - Preserve reason/user/timestamp metadata for review workflows.
 

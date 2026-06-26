@@ -8,6 +8,7 @@ import {
   FiColumns,
   FiDownload,
   FiEdit3,
+  FiEyeOff,
   FiFileText,
   FiImage,
   FiLink,
@@ -157,19 +158,19 @@ const parsePageRange = (range: string, maxPage: number): number[] => {
 };
 
 const defaultStrokeWidthForType = (type: PdfAnnotation['type']): number => (
-  type === 'highlight' ? 1 : type === 'underline' || type === 'strikeout' ? 2 : type === 'ink' ? 2 : 3
+  type === 'highlight' || type === 'redaction' ? 1 : type === 'underline' || type === 'strikeout' ? 2 : type === 'ink' ? 2 : 3
 );
 
 const defaultOpacityForType = (type: PdfAnnotation['type']): number => (
-  type === 'highlight' ? 45 : type === 'note' ? 96 : 100
+  type === 'highlight' ? 45 : type === 'redaction' ? 88 : type === 'note' ? 96 : 100
 );
 
 const supportsStrokeWidth = (type: PdfAnnotation['type']): boolean => (
-  ['ink', 'line', 'rectangle', 'circle', 'highlight', 'underline', 'strikeout'].includes(type)
+  ['ink', 'line', 'rectangle', 'circle', 'highlight', 'underline', 'strikeout', 'redaction'].includes(type)
 );
 
 const supportsOpacity = (type: PdfAnnotation['type']): boolean => (
-  ['ink', 'line', 'rectangle', 'circle', 'highlight', 'underline', 'strikeout', 'note', 'freeText', 'stamp', 'image'].includes(type)
+  ['ink', 'line', 'rectangle', 'circle', 'highlight', 'underline', 'strikeout', 'redaction', 'note', 'freeText', 'stamp', 'image'].includes(type)
 );
 
 const supportsFill = (type: PdfAnnotation['type']): boolean => type === 'rectangle' || type === 'circle';
@@ -525,12 +526,12 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
       pageNumber: currentPage,
       xPct,
       yPct,
-      widthPct: type === 'highlight' || type === 'underline' || type === 'strikeout' ? 26 : type === 'line' ? 26 : type === 'stamp' ? 24 : type === 'image' ? 24 : type === 'note' ? 18 : type === 'circle' ? 16 : type === 'rectangle' ? 22 : 28,
-      heightPct: type === 'highlight' || type === 'underline' || type === 'strikeout' ? 4 : type === 'line' ? 4 : type === 'stamp' ? 9 : type === 'image' ? 16 : type === 'note' ? 12 : type === 'circle' ? 16 : type === 'rectangle' ? 12 : 10,
-      text: type === 'stamp' ? stampText : type === 'note' ? 'New note' : type === 'freeText' ? 'Text annotation' : '',
+      widthPct: type === 'highlight' || type === 'underline' || type === 'strikeout' ? 26 : type === 'redaction' ? 28 : type === 'line' ? 26 : type === 'stamp' ? 24 : type === 'image' ? 24 : type === 'note' ? 18 : type === 'circle' ? 16 : type === 'rectangle' ? 22 : 28,
+      heightPct: type === 'highlight' || type === 'underline' || type === 'strikeout' ? 4 : type === 'redaction' ? 6 : type === 'line' ? 4 : type === 'stamp' ? 9 : type === 'image' ? 16 : type === 'note' ? 12 : type === 'circle' ? 16 : type === 'rectangle' ? 12 : 10,
+      text: type === 'stamp' ? stampText : type === 'redaction' ? 'Redaction mark' : type === 'note' ? 'New note' : type === 'freeText' ? 'Text annotation' : '',
       author: reviewAuthor.trim() || 'Reviewer',
       createdAt: new Date().toISOString(),
-      color: type === 'highlight' ? '#fef08a' : type === 'underline' ? '#2563eb' : type === 'strikeout' ? '#dc2626' : type === 'stamp' ? stampColor(selectedStamp) : type === 'image' ? '#0e7490' : type === 'note' ? '#facc15' : type === 'freeText' ? '#38bdf8' : '#ef4444',
+      color: type === 'highlight' ? '#fef08a' : type === 'underline' ? '#2563eb' : type === 'strikeout' ? '#dc2626' : type === 'redaction' ? '#111827' : type === 'stamp' ? stampColor(selectedStamp) : type === 'image' ? '#0e7490' : type === 'note' ? '#facc15' : type === 'freeText' ? '#38bdf8' : '#ef4444',
       locked: false,
       imageDataUrl: type === 'image' ? pendingImageDataUrl ?? undefined : undefined,
       opacity: defaultOpacityForType(type),
@@ -1122,6 +1123,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                 <FiMinus />
                 <span>Strike</span>
               </button>
+              <button className={reviewTool === 'redaction' ? 'pdfv-button is-active' : 'pdfv-button'} type="button" onClick={() => setReviewTool('redaction')}>
+                <FiEyeOff />
+                <span>Redact</span>
+              </button>
               {reviewTool === 'stamp' && (
                 <>
                   <label className="pdfv-stamp-select">
@@ -1524,6 +1529,8 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
                               )
                               : annotation.type === 'highlight'
                                 ? <span className="pdfv-markup-highlight" />
+                                : annotation.type === 'redaction'
+                                  ? <span className="pdfv-markup-redaction" />
                                 : annotation.type === 'underline'
                                   ? <span className="pdfv-markup-underline" />
                                   : annotation.type === 'strikeout'
