@@ -9,6 +9,7 @@ import MigrationsPage from '@/pages/MigrationsPage';
 import ImporterPage from '@/pages/ImporterPage';
 
 const PdfViewerPage = React.lazy(() => import('@/features/pdf-viewer/PdfViewerPage'));
+const SpreadsheetEditorPage = React.lazy(() => import('@/pages/SpreadsheetEditorPage'));
 
 const App: React.FC = () => (
   <Routes>
@@ -25,6 +26,14 @@ const App: React.FC = () => (
       element={(
         <Suspense fallback={<div className="route-loading">Loading PDF viewer...</div>}>
           <PdfViewerPage />
+        </Suspense>
+      )}
+    />
+    <Route
+      path="/spreadsheet"
+      element={(
+        <Suspense fallback={<div className="route-loading">Loading spreadsheet...</div>}>
+          <SpreadsheetEditorPage />
         </Suspense>
       )}
     />

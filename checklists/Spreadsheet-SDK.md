@@ -40,27 +40,33 @@ expression engine has **no A1 cell references**. This adds a real Excel-like exp
       Full Export suite **193** green; solution builds clean.
 
 ## Phase 2 — Frontend foundation (`ui-designer-v2`)
-- [ ] `src/spreadsheet/types.ts` (`Workbook`, `Sheet`, `Cell`) mirroring the DTOs.
-- [ ] `useSpreadsheetStore` (`src/spreadsheet/store.ts`): sheets, active sheet, selection range, snapshot
-      undo/redo + `persist` (mirror `src/store.ts`); cell CRUD, row/col insert/delete/resize, sheet ops.
-- [ ] `src/spreadsheet/formulaEngine.ts` — HyperFormula wrapper (one HF sheet per `Sheet`; `setCellContents`
-      on edit; computed values via `getCellValue`). HF owns the dependency graph; the store owns raw data.
-- [ ] Add `glide-data-grid`; `SpreadsheetGrid.tsx` renders computed values, row/col headers, inline edit
-      (writes formula/value → store + HF), range selection, column resize.
+- [x] `src/spreadsheet/types.ts` — wire types (`Workbook`/`SheetWire`/`Cell`, camelCase mirroring the DTOs)
+      + working `SheetState` (cells keyed `"row:col"`) + `from/toWire` converters.
+- [x] `useSpreadsheetStore` (`src/spreadsheet/store.ts`): sheets, active sheet, selection, snapshot
+      undo/redo + `persist`; `setCellInput` (parses formula vs number/text), style + number-format, sheet
+      add/rename/delete, `loadWorkbook`/`toWire`. Engine rebuilt on load/undo/import/rehydrate.
+- [x] `src/spreadsheet/formulaEngine.ts` — HyperFormula wrapper (`gpl-v3` key; one HF sheet per `Sheet`;
+      `setCellContents` on edit; live values via `getCellValue`, errors as `#CODE`).
+- [x] `glide-data-grid` (+ peers `react-responsive-carousel`/`marked`/`lodash`); `SpreadsheetGrid.tsx`
+      renders computed values, A/B/C headers + row numbers, inline edit (overlay shows the formula),
+      per-cell style (bold/bg/color/align), frozen columns.
 
 ## Phase 3 — Editor UX
-- [ ] `src/pages/SpreadsheetEditorPage.tsx` + route `/spreadsheet` (lazy, like `PdfViewerPage`) + `AppHeader`
-      nav entry.
-- [ ] Formula bar, sheet tabs (add/rename/switch), toolbar (insert/delete row+col, bold/italic/align,
-      number-format presets), name box (A1 address). `src/styles/spreadsheet.css` (imported in `index.css`).
+- [x] `src/pages/SpreadsheetEditorPage.tsx` + lazy route `/spreadsheet` in `App.tsx` + `AppHeader` nav entry
+      (desktop + mobile).
+- [x] Formula bar + A1 name box, sheet tabs (add/rename via dbl-click/delete), toolbar (undo/redo,
+      bold/italic, align, number-format presets, Import/Export). `src/styles/spreadsheet.css`.
 
 ## Phase 4 — Import / export wiring
-- [ ] `src/services/SpreadsheetService.ts` (mirror `ExportService.ts`): `exportXlsx` → download;
-      `importXlsx` → hydrate store + recalc. Optional CSV. Wire toolbar Import/Export buttons.
+- [x] `src/services/SpreadsheetService.ts` (mirrors `ExportService`): `exportXlsx` → download .xlsx;
+      `importXlsx` → `loadWorkbook` (rebuilds HF). Wired to the toolbar Import/Export buttons.
 
 ## Phase 5 — Polish, tests, docs
-- [ ] Frontend tests: store mutations + HF recalc (`=SUM(A1:A2)` updates on edit), A1 helper.
-- [ ] Short "Spreadsheets" docs note; verify build/tests/tsc + end-to-end flow.
+- [x] Frontend tests `__tests__/spreadsheetStore.test.ts` (HF recalc `=SUM(A1:A2)` 30→120, `IF`, parseInput,
+      undo/redo, toWire). Backend `SpreadsheetRoundTripTests` (Phase 1). A1 tests (Phase 1).
+- [x] Verified: tsc clean, **183** frontend tests, vite production build green, **live API round-trip**
+      (export → `.xlsx` PK; import → formula `=SUM(A1:A2)` + cached 30); `/spreadsheet` route 200.
+- [ ] Short "Spreadsheets" docs note in DocsPage/`docs/` (remaining).
 
 ## Verification
 - Backend: `dotnet test` round-trip preserves values/formulas/types/number-formats/styles/merges; `dotnet

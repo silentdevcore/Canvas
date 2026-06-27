@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiX } from 'react-icons/fi';
 
 interface AppHeaderProps {
-  activePage: 'home' | 'templates' | 'docs' | 'migrations' | 'importer' | 'viewer';
+  activePage: 'home' | 'templates' | 'docs' | 'migrations' | 'importer' | 'viewer' | 'spreadsheet';
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
@@ -50,6 +50,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
               PDF Viewer
             </button>
             <button
+              className={activePage === 'spreadsheet' ? 'is-active' : ''}
+              onClick={() => { navigate('/spreadsheet'); setMobileMenuOpen(false); }}
+            >
+              Spreadsheet
+            </button>
+            <button
               className={activePage === 'docs' ? 'is-active' : ''}
               onClick={() => { navigate('/docs'); setMobileMenuOpen(false); }}
             >
@@ -83,6 +89,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
           </button>
           <button className={activePage === 'viewer' ? 'is-active' : ''} onClick={() => navigate('/pdf-viewer')}>
             PDF Viewer
+          </button>
+          <button className={activePage === 'spreadsheet' ? 'is-active' : ''} onClick={() => navigate('/spreadsheet')}>
+            Spreadsheet
           </button>
           <button className={activePage === 'docs' ? 'is-active' : ''} onClick={() => navigate('/docs')}>
             Docs
