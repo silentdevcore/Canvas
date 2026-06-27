@@ -40,13 +40,16 @@ gallery, and increasingly **(d)** `llms.txt` + shipped MCP servers. We adopt all
       formed, lookup/grouping helpers). 4 tests green; full frontend suite 176 tests pass.
 
 ## Phase 1 — UI-designer docs (catalog-driven, demos + examples)
-- [ ] Per-element reference in `DocsPage.tsx` from the catalog: explanation, property table, **live demo**,
-      copy-paste **JSON + C#** examples.
-- [ ] Demos via the existing render path: tiny single-element `DesignExportDto` → `POST
-      /api/templates/render-design` (or `LivePreview`). Optional build-time PNGs to
-      `ui-designer-v2/public/docs/demos/`.
-- [ ] Cross-cutting guides: page settings, data binding (`{{expr}}`, `$sum/$iif/…`, `repeat` + group
-      aggregates), expression grammar (`expressionEngine.ts` / `CanvasExpressionEvaluator`).
+- [x] Rebuilt the `DocsPage.tsx` Elements Reference from the catalog: common-properties + style-keys tables,
+      a support matrix (anchored links), and per-category **ElementCards** — each with description, a
+      type-specific property table, a copy-paste **design JSON**, a **C#** example where it maps, and a
+      **live "Render preview"** that POSTs to `/api/templates/render-design` and shows the PDF in an iframe
+      (verified end-to-end: HTTP 200 → valid `%PDF`). Card styling added to `src/styles/docs.css`.
+- [x] Live demo uses the existing render path (no new infra). Build-time PNG export deferred (the
+      on-demand iframe preview covers it).
+- [x] Added a **Data Binding & Expressions** section: tokens (`{{field}}`), the expression grammar
+      (`$iif/$concat/$coalesce/$switch`, aggregates incl. computed-arg + `$group`, short-circuiting
+      operators), and repeats + group aggregates. tsc clean; 176 frontend tests pass.
 
 ## Phase 2 — C# API docs (`Canvas.Pdf`): XML comments + DocFX + cookbook
 - [ ] `<GenerateDocumentationFile>true</GenerateDocumentationFile>` in `Canvas/Canvas.csproj` (+ `Canvas.Core`).

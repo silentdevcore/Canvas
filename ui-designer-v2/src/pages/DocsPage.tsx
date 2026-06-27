@@ -7,6 +7,12 @@ import {
   FiMenu,
 } from 'react-icons/fi';
 import AppHeader from '@/components/Layout/AppHeader';
+import {
+  ELEMENT_CATALOG, COMMON_PROPERTIES, STYLE_KEYS, elementsByCategory, toDesign,
+  type ElementDoc, type ElementProperty,
+} from '@/docs/elementCatalog';
+
+const BACKEND_URL = 'http://localhost:5086';
 
 // ─── Copy Button ──────────────────────────────────────────────────────────────
 
@@ -46,55 +52,89 @@ const H3: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <h3 className="docs-h3">{children}</h3>
 );
 
-// ─── Element reference card ───────────────────────────────────────────────────
+// ─── Element reference (catalog-driven) ───────────────────────────────────────
 
-interface ElemRow {
-  type: string;
-  name: string;
-  desc: string;
-  props: string;
-  pdf: '✅' | '⚠️' | '❌';
-  word: '✅' | '⚠️' | '❌';
-}
+const PropertyTable: React.FC<{ rows: ElementProperty[] }> = ({ rows }) => (
+  <div className="docs-elem-table-wrap">
+    <table className="docs-elem-table">
+      <thead>
+        <tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        {rows.map(p => (
+          <tr key={p.name}>
+            <td><code className="docs-inline-code">{p.name}</code></td>
+            <td className="docs-props-cell">{p.allowedValues ? p.allowedValues.map(v => `"${v}"`).join(' | ') : p.type}</td>
+            <td>{p.default ? <code className="docs-inline-code">{p.default}</code> : '—'}</td>
+            <td>{p.description}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
 
-const ELEMENTS: ElemRow[] = [
-  { type: 'text',          name: 'Text',             desc: 'Static single-style text block.',                                                                           props: 'content, style.fontSize, style.color, style.fontWeight, style.textAlign, style.fontFamily',  pdf: '✅', word: '✅' },
-  { type: 'richtext',      name: 'Rich Text',         desc: 'HTML-formatted content — bold, italic, lists, inline colours.',                                             props: 'htmlContent',                                                                               pdf: '✅', word: '✅' },
-  { type: 'link',          name: 'Hyperlink',         desc: 'Clickable text link with optional href URL.',                                                               props: 'content, href, style.color',                                                                pdf: '✅', word: '✅' },
-  { type: 'table',         name: 'Table',             desc: 'Data grid with optional header/footer rows and zebra striping.',                                            props: 'style.rows, style.columns, headerRow, footerRow, headerBgColor, zebraEnabled, cellData[][]',  pdf: '✅', word: '✅' },
-  { type: 'image',         name: 'Image',             desc: 'Embedded image from URL or data URI. PDF supports data: URIs only; http/https images require Word export.', props: 'content (URL), fitMode (contain|cover|fill), focalX, focalY',                               pdf: '⚠️', word: '✅' },
-  { type: 'qrcode',        name: 'QR Code',           desc: 'Scannable QR code generated server-side.',                                                                  props: 'qrValue, qrSize, style.color, style.backgroundColor',                                        pdf: '✅', word: '✅' },
-  { type: 'barcode',       name: 'Barcode',           desc: '1-D barcode in CODE128, EAN-13, UPC-A and other formats.',                                                  props: 'barcodeValue, barcodeType',                                                                 pdf: '✅', word: '✅' },
-  { type: 'chart',         name: 'Chart',             desc: 'Bar, line or pie chart with custom data. Renders as a chart image in PDF export.',                            props: 'chartType (bar|line|pie), chartData.labels[], chartData.datasets[]',                         pdf: '✅', word: '❌' },
-  { type: 'field',         name: 'Form Field',        desc: 'Labelled text-input placeholder for fillable PDFs.',                                                        props: 'fieldLabel, fieldName, required, placeholder',                                               pdf: '✅', word: '✅' },
-  { type: 'checkbox',      name: 'Checkbox',          desc: 'Checkbox with an inline label.',                                                                            props: 'fieldLabel, fieldName, required',                                                            pdf: '✅', word: '✅' },
-  { type: 'radio',         name: 'Radio / List',      desc: 'Bullet or numbered list with selectable items.',                                                            props: 'fieldLabel, options[]',                                                                     pdf: '✅', word: '✅' },
-  { type: 'dropdown',      name: 'Dropdown',          desc: 'Select box with a list of options.',                                                                        props: 'fieldLabel, fieldName, options[]',                                                           pdf: '✅', word: '✅' },
-  { type: 'optionlist',    name: 'Option List',       desc: 'Numbered or bulleted list of items.',                                                                       props: 'options[], style.listStyle',                                                                pdf: '✅', word: '✅' },
-  { type: 'button',        name: 'Button',            desc: 'Styled action button — rendered as a rounded rectangle in PDF.',                                            props: 'content, style.backgroundColor, style.color, style.borderRadius',                           pdf: '✅', word: '✅' },
-  { type: 'signature',     name: 'Signature Line',    desc: 'Printable signature block with label and underline.',                                                       props: 'signatureLabel',                                                                            pdf: '✅', word: '✅' },
-  { type: 'number',        name: 'Number',            desc: 'Formatted numeric value — decimal, currency, percent, ordinal, or scientific.',                             props: 'numberValue, numberStyle, numberDecimals, numberLocale',                                    pdf: '✅', word: '✅' },
-  { type: 'shape',         name: 'Shape / Rect',      desc: 'Filled or stroked rectangle, optionally rounded.',                                                          props: 'style.backgroundColor, style.borderColor, style.borderWidth, per-side border widths/colors, style.borderRadius', pdf: '✅', word: '⚠️' },
-  { type: 'circle',        name: 'Circle / Ellipse',  desc: 'Circle or ellipse shape.',                                                                                  props: 'style.backgroundColor, style.borderColor, style.borderWidth',                               pdf: '✅', word: '⚠️' },
-  { type: 'line',          name: 'Line',              desc: 'Horizontal, vertical, or diagonal rule with optional dash styles.',                                          props: 'style.backgroundColor, style.strokeDashArray, height',                                     pdf: '✅', word: '⚠️' },
-  { type: 'arrow',         name: 'Arrow',             desc: 'Line with configurable start/end arrowhead markers.',                                                       props: 'arrowDirection, style.color, style.strokeWidth',                                            pdf: '✅', word: '⚠️' },
-  { type: 'draw',          name: 'Freehand Draw',     desc: 'SVG path drawn with the mouse. Rendered via Bézier curves in PDF.',                                         props: 'pathData, style.color, style.strokeWidth',                                                  pdf: '✅', word: '⚠️' },
-  { type: 'watermark',     name: 'Watermark',         desc: 'Diagonal text overlay — e.g. DRAFT, CONFIDENTIAL. Skipped in Word.',                                        props: 'content, style.color, style.fontSize, style.rotation',                                      pdf: '✅', word: '⚠️' },
-  { type: 'highlight',     name: 'Highlight',         desc: 'Translucent colour overlay. Skipped in Word.',                                                              props: 'style.backgroundColor, style.opacity',                                                      pdf: '✅', word: '⚠️' },
-  { type: 'checkmark',     name: 'Checkmark',         desc: 'Stand-alone check/cross/tick icon. Skipped in Word.',                                                       props: 'style.color, style.fontSize',                                                               pdf: '✅', word: '⚠️' },
-  { type: 'note',          name: 'Callout Note',      desc: 'Highlighted info/warning box with title and body text.',                                                    props: 'content, noteTitle, noteType (info|warning|error|success)',                                  pdf: '✅', word: '✅' },
-  { type: 'date',          name: 'Auto Date',         desc: 'Inserts today\'s date at render time with timezone and locale support.',                                    props: 'dateMode (auto|static), timezone, locale, dateFormat',                                      pdf: '✅', word: '✅' },
-  { type: 'pagenumber',    name: 'Page Number',       desc: 'Inserts the current page number, total, or a custom format.',                                               props: 'numberingFormat, prefix, suffix, startNumber',                                              pdf: '✅', word: '✅' },
-  { type: 'toc',           name: 'Table of Contents', desc: 'Auto-generated TOC with clickable page links. Scans heading-level text elements across all pages.',         props: 'tocTitle, tocMinLevel, tocMaxLevel, tocEntries[]',                                          pdf: '✅', word: '✅' },
-  { type: 'pageboundary',  name: 'Page Boundary',     desc: 'Explicit page-break marker. Acts as a layout hint — no visible output.',                                   props: '(none)',                                                                                    pdf: '⚠️', word: '⚠️' },
-  { type: 'subsection',    name: 'Subsection',        desc: 'Layout container with a dashed outline in PDF. Acts as a visual grouping aid.',                             props: 'style.borderColor',                                                                         pdf: '⚠️', word: '⚠️' },
-  { type: 'area',          name: 'Area',              desc: 'Non-printing layout area. Renders a dashed outline in PDF for design guidance only.',                       props: 'style.borderColor',                                                                         pdf: '⚠️', word: '⚠️' },
-  { type: 'footnote',      name: 'Footnote',          desc: 'DOCX footnote reference. PDF: superscript marker + text at page bottom. Word: native footnotes.xml.',      props: 'footnoteText',                                                                              pdf: '⚠️', word: '✅' },
-  { type: 'endnote',       name: 'Endnote',           desc: 'DOCX endnote reference. PDF: superscript marker. Word: native endnotes.xml.',                              props: 'footnoteText',                                                                              pdf: '⚠️', word: '✅' },
-  { type: 'bookmark',      name: 'Bookmark',          desc: 'Named anchor. PDF: named destination. Word: native bookmark.',                                              props: 'bookmarkName, bookmarkTarget',                                                              pdf: '✅', word: '✅' },
-  { type: 'comment',       name: 'Word Comment',      desc: 'Margin annotation. PDF: yellow box with author. Word: native comments.xml.',                               props: 'commentText, commentAuthor, commentDate, commentId',                                        pdf: '✅', word: '✅' },
-  { type: 'contentcontrol',name: 'Content Control',   desc: 'OOXML structured content control. PDF: bordered box with label. Word: native SDT.',                        props: 'contentControlType, contentControlTitle, contentControlTag, contentControlPlaceholder',     pdf: '⚠️', word: '✅' },
-];
+// One per-element card: description, property table, copy-paste design JSON, optional C#, and a live
+// preview rendered by the backend (POST /api/templates/render-design → PDF shown in an iframe).
+const ElementCard: React.FC<{ doc: ElementDoc }> = ({ doc }) => {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const designJson = JSON.stringify(toDesign(doc.example, doc.label), null, 2);
+  const fmt = doc.formatSupport;
+
+  const renderPreview = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/templates/render-design`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: designJson,
+      });
+      if (!res.ok) throw new Error(`Render failed (${res.status})`);
+      const blob = await res.blob();
+      setPreviewUrl(prev => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(blob);
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Render failed — is the backend running on :5086?');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="docs-elem-card" id={`element-${doc.type}`}>
+      <div className="docs-elem-card-head">
+        <h4 className="docs-elem-card-title">{doc.label} <code className="docs-inline-code">{doc.type}</code></h4>
+        <span className="docs-elem-card-formats">
+          {fmt.pdf && <span className="docs-badge">PDF</span>}
+          {fmt.word && <span className="docs-badge">Word</span>}
+          {fmt.html && <span className="docs-badge">HTML</span>}
+          {fmt.excel && <span className="docs-badge">Excel</span>}
+          {doc.bindable && <span className="docs-badge docs-badge--bind">Bindable</span>}
+        </span>
+      </div>
+      <p>{doc.description}</p>
+      {doc.properties.length > 0 && <PropertyTable rows={doc.properties} />}
+      <Code lang="json">{designJson}</Code>
+      {doc.csharpExample && <Code lang="csharp">{doc.csharpExample}</Code>}
+      {fmt.pdf ? (
+        <div className="docs-elem-demo">
+          <button className="docs-demo-btn" onClick={renderPreview} disabled={loading}>
+            {loading ? 'Rendering…' : 'Render preview'}
+          </button>
+          {error && <span className="docs-demo-error">{error}</span>}
+          {previewUrl && <iframe className="docs-demo-frame" title={`${doc.label} preview`} src={previewUrl} />}
+        </div>
+      ) : (
+        <p className="docs-elem-note">Designer-only guide — not rendered to output formats.</p>
+      )}
+    </div>
+  );
+};
 
 // ─── Nav sections ─────────────────────────────────────────────────────────────
 
@@ -102,6 +142,7 @@ const SECTIONS = [
   { id: 'quick-start',     label: 'Quick Start' },
   { id: 'editor-overview', label: 'Editor Overview' },
   { id: 'elements',        label: 'Elements Reference' },
+  { id: 'data-binding',    label: 'Data Binding & Expressions' },
   { id: 'import-export',   label: 'Import & Export' },
   { id: 'document-ops',    label: 'Document Operations' },
   { id: 'migrations',      label: 'Migrations' },
@@ -252,101 +293,88 @@ const DocsPage: React.FC = () => {
           {/* ── Elements Reference ───────────────────────────────────────── */}
           <section id="elements" className="docs-section">
             <H2 id="elements">Elements Reference</H2>
-            <p>Every element is absolutely positioned on the canvas using <code className="docs-inline-code">x</code>, <code className="docs-inline-code">y</code>, <code className="docs-inline-code">width</code>, and <code className="docs-inline-code">height</code> in points (pt). All element types are listed below.</p>
+            <p>Every element is absolutely positioned on the canvas using <code className="docs-inline-code">x</code>, <code className="docs-inline-code">y</code>, <code className="docs-inline-code">width</code>, and <code className="docs-inline-code">height</code> in points (pt). Each element below lists its type-specific properties with a copy-paste design JSON, a C# equivalent where the <code className="docs-inline-code">Canvas.Pdf</code> API maps directly, and a <strong>live preview</strong> rendered by the backend.</p>
 
+            <H3>Common element properties</H3>
+            <p>Shared by every element type (in addition to the type-specific properties listed per element):</p>
+            <PropertyTable rows={COMMON_PROPERTIES} />
+
+            <H3>Common <code className="docs-inline-code">style</code> keys</H3>
+            <p>Accepted inside the <code className="docs-inline-code">style</code> map; renderers ignore unknown keys.</p>
+            <PropertyTable rows={STYLE_KEYS} />
+
+            <H3>Support matrix</H3>
             <div className="docs-elem-table-wrap">
               <table className="docs-elem-table">
                 <thead>
                   <tr>
-                    <th>Type ID</th>
-                    <th>Name</th>
-                    <th>Description</th>
+                    <th>Type ID</th><th>Name</th>
                     <th style={{ textAlign: 'center' }}>PDF</th>
                     <th style={{ textAlign: 'center' }}>Word</th>
-                    <th>Key Properties</th>
+                    <th style={{ textAlign: 'center' }}>HTML</th>
+                    <th style={{ textAlign: 'center' }}>Excel</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {ELEMENTS.map(el => (
+                  {ELEMENT_CATALOG.map(el => (
                     <tr key={el.type}>
-                      <td><code className="docs-inline-code">{el.type}</code></td>
-                      <td style={{ whiteSpace: 'nowrap' }}>{el.name}</td>
-                      <td>{el.desc}</td>
-                      <td style={{ textAlign: 'center', fontSize: 16 }}>{el.pdf}</td>
-                      <td style={{ textAlign: 'center', fontSize: 16 }}>{el.word}</td>
-                      <td className="docs-props-cell">{el.props}</td>
+                      <td><a className="docs-inline-code docs-elem-link" href={`#element-${el.type}`}>{el.type}</a></td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{el.label}</td>
+                      <td style={{ textAlign: 'center', fontSize: 15 }}>{el.formatSupport.pdf ? '✅' : '—'}</td>
+                      <td style={{ textAlign: 'center', fontSize: 15 }}>{el.formatSupport.word ? '✅' : '—'}</td>
+                      <td style={{ textAlign: 'center', fontSize: 15 }}>{el.formatSupport.html ? '✅' : '—'}</td>
+                      <td style={{ textAlign: 'center', fontSize: 15 }}>{el.formatSupport.excel ? '✅' : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <p style={{ fontSize: 12, color: '#6b7280', marginTop: 8 }}>✅ Full support &nbsp;⚠️ Partial / placeholder &nbsp;❌ No handler</p>
             </div>
 
-            <H3>Common element properties</H3>
-            <Code lang="json">{`{
-  "id":     "elem-1715000000000",   // unique string ID
-  "type":   "text",                 // element type (see table above)
-  "x":      72,                     // left offset in points from page left
-  "y":      72,                     // top offset in points from page top
-  "width":  420,                    // element width in points
-  "height": 48,                     // element height in points
-  "style": {
-    "fontSize":       16,
-    "color":          "#111827",
-    "fontWeight":     "bold",       // "normal" | "bold"
-    "fontStyle":      "normal",     // "normal" | "italic"
-    "textAlign":      "left",       // "left" | "center" | "right"
-    "fontFamily":     "Arial",
-    "lineHeight":     1.4,
-    "backgroundColor":"#ffffff",
-    "borderColor":    "#e2e8f0",
-    "borderWidth":    1,
-    "borderRadius":   4,
-    "rotation":       0             // degrees
-  }
-}`}</Code>
+            {elementsByCategory().map(group => (
+              <React.Fragment key={group.category}>
+                <H3>{group.category}</H3>
+                {group.elements.map(doc => <ElementCard key={doc.type} doc={doc} />)}
+              </React.Fragment>
+            ))}
+          </section>
 
-            <H3>Table element</H3>
-            <Code lang="json">{`{
-  "id":     "table-1715000000001",
-  "type":   "table",
-  "x": 72, "y": 200, "width": 451, "height": 180,
-  "style": {
-    "rows":         4,
-    "columns":      3,
-    "borderWidth":  1,
-    "borderColor":  "#e2e8f0",
-    "cellPadding":  6
-  },
-  "headerRow":      true,
-  "footerRow":      false,
-  "headerBgColor":  "#1d6fff",
-  "zebraEnabled":   true,
-  "zebraColor":     "#f8fafc",
-  "columnWidths":   [240, 80, 131],
-  "columnAlignments": ["left", "center", "right"],
-  "cellData": [
-    ["Description",  "Qty",  "Amount"],
-    ["Web Design",   "1",    "€ 1,200"],
-    ["Hosting",      "1",    "€ 150"],
-    ["Total",        "",     "€ 1,350"]
-  ]
-}`}</Code>
+          {/* ── Data Binding & Expressions ──────────────────────────────── */}
+          <section id="data-binding" className="docs-section">
+            <H2 id="data-binding">Data Binding &amp; Expressions</H2>
+            <p>Elements become dynamic in three ways. At render time you POST your design plus a JSON <code className="docs-inline-code">data</code> payload; the engine resolves tokens, evaluates expressions, and expands repeats.</p>
 
-            <H3>Chart element</H3>
+            <H3>1. Tokens — <code className="docs-inline-code">{'{{field}}'}</code></H3>
+            <p>Any text/content may contain <code className="docs-inline-code">{'{{path.to.field}}'}</code> placeholders, replaced from the data payload. Dotted paths walk nested objects.</p>
+            <Code lang="json">{`// element.content
+"Invoice {{invoice.number}} — {{customer.name}}"
+
+// data payload
+{ "invoice": { "number": "1001" }, "customer": { "name": "ACME" } }`}</Code>
+
+            <H3>2. Expressions — <code className="docs-inline-code">element.expression</code></H3>
+            <p>The <code className="docs-inline-code">expression</code> field is evaluated with the Canvas expression grammar (the same engine on the server and in the live preview). Helpers and operators:</p>
+            <PropertyTable rows={[
+              { name: '$iif(cond, a, b)', type: 'helper', description: 'Conditional; short-circuits (b is not evaluated when cond is true).' },
+              { name: '$concat(...)', type: 'helper', description: 'Concatenate values into a string.' },
+              { name: '$coalesce(...)', type: 'helper', description: 'First non-null argument.' },
+              { name: '$switch(c1, v1, …, default?)', type: 'helper', description: 'Multi-branch selection.' },
+              { name: '$sum / $avg / $min / $max', type: 'aggregate', description: 'Aggregate over a dataset (or $group); 2nd arg is a field name OR a per-row expression, e.g. $sum(Orders, "Qty * Price").' },
+              { name: '$count / $first / $last', type: 'aggregate', description: 'Count / first / last over a dataset.' },
+              { name: '&&  ||  ??  ==  !=  <  <=  >  >=  + - * / %', type: 'operators', description: 'Logical (short-circuiting), comparison, and arithmetic operators.' },
+            ]} />
+            <Code lang="json">{`"expression": "$iif(total > 1000, $concat(\\"VIP: \\", customer), customer)"`}</Code>
+
+            <H3>3. Repeats &amp; group aggregates — <code className="docs-inline-code">element.repeat</code></H3>
+            <p>Bind an element (typically a table or a group band) to a dataset to render it once per row, or once per group. Inside a group, <code className="docs-inline-code">$group</code> is the current group's rows, so a footer total scopes to the group rather than the whole dataset.</p>
             <Code lang="json">{`{
-  "id":        "chart-1715000000002",
-  "type":      "chart",
-  "x": 72, "y": 400, "width": 420, "height": 200,
-  "chartType": "bar",              // "bar" | "line" | "pie"
-  "chartData": {
-    "labels":   ["Q1", "Q2", "Q3", "Q4"],
-    "datasets": [
-      { "label": "Revenue", "data": [42000, 55000, 49000, 71000] },
-      { "label": "Costs",   "data": [28000, 31000, 27000, 38000] }
-    ]
-  }
+  "type": "text",
+  "expression": "$sum($group, \\"Amount\\")",   // per-group subtotal
+  "repeat": { "dataPath": "Sales" },
+  "style": { "groupField": "Region" }            // partitions Sales by Region
 }`}</Code>
+            <div className="docs-callout docs-callout--tip">
+              <strong>Tip:</strong> the live preview in the editor uses the same grammar, so what you see matches the exported PDF/Word output.
+            </div>
           </section>
 
           {/* ── Import & Export ─────────────────────────────────────────── */}
