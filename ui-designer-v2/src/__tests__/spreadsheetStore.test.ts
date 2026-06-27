@@ -4,7 +4,7 @@ import { emptySheet } from '../spreadsheet/types';
 const reset = () => {
   useSpreadsheetStore.setState({
     name: 'Workbook', sheets: [emptySheet()], active: 0,
-    selection: { row: 0, col: 0 }, past: [], future: [],
+    selection: { row: 0, col: 0 }, range: null, past: [], future: [],
   });
   useSpreadsheetStore.getState().rebuildEngine();
 };
@@ -47,6 +47,25 @@ describe('spreadsheet store + HyperFormula recalc', () => {
     expect(useSpreadsheetStore.getState().cellAt(0, 0)?.value).toBe('a');
     useSpreadsheetStore.getState().redo();
     expect(useSpreadsheetStore.getState().cellAt(0, 0)?.value).toBe('b');
+  });
+
+  test('applyStyle styles every cell of the selected range', () => {
+    const s = useSpreadsheetStore.getState();
+    s.selectRange({ r0: 0, c0: 0, r1: 1, c1: 1 });
+    s.applyStyle({ bold: true });
+    const g = useSpreadsheetStore.getState();
+    expect(g.cellAt(0, 0)?.style?.bold).toBe(true);
+    expect(g.cellAt(1, 1)?.style?.bold).toBe(true);
+  });
+
+  test('selectionStats sums/averages the numeric cells in the range', () => {
+    const s = useSpreadsheetStore.getState();
+    s.setCellInput(0, 0, '10');
+    s.setCellInput(0, 1, '20');
+    s.setCellInput(0, 2, 'text'); // ignored
+    s.selectRange({ r0: 0, c0: 0, r1: 0, c1: 2 });
+    const stats = useSpreadsheetStore.getState().selectionStats();
+    expect(stats).toEqual({ sum: 30, avg: 15, count: 2 });
   });
 
   test('toWire produces a sparse workbook the backend can read', () => {

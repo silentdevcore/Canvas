@@ -7,6 +7,8 @@ import {
 import { sheetEngine } from './formulaEngine';
 
 export interface Selection { row: number; col: number; }
+/** Inclusive selected rectangle (0-based). */
+export interface SelRange { r0: number; c0: number; r1: number; c1: number; }
 
 interface Snapshot { name: string; sheets: SheetState[]; }
 
@@ -15,6 +17,7 @@ interface SpreadsheetState {
   sheets: SheetState[];
   active: number;
   selection: Selection;
+  range: SelRange | null;
   past: Snapshot[];
   future: Snapshot[];
 
@@ -22,12 +25,19 @@ interface SpreadsheetState {
   activeSheet: () => SheetState;
   computed: (row: number, col: number) => string | number | boolean | null;
   cellAt: (row: number, col: number) => Cell | undefined;
+  /** Sum / average / count over the numeric computed cells in the current range (or active cell). */
+  selectionStats: () => { count: number; sum: number; avg: number | null };
 
   // actions
   select: (row: number, col: number) => void;
+  selectRange: (r: SelRange | null) => void;
   setActive: (index: number) => void;
   setCellInput: (row: number, col: number, raw: string) => void;
   setCellStyle: (row: number, col: number, patch: Partial<CellStyle>) => void;
+  /** Merge a style patch into every cell of the current range (or the active cell). */
+  applyStyle: (patch: Partial<CellStyle>) => void;
+  /** Set a number format on every cell of the current range (or the active cell). */
+  applyNumberFormat: (fmt: string | undefined) => void;
   setNumberFormat: (row: number, col: number, fmt: string | undefined) => void;
   addSheet: () => void;
   renameSheet: (index: number, name: string) => void;
@@ -40,6 +50,28 @@ interface SpreadsheetState {
 }
 
 const clone = (sheets: SheetState[]): SheetState[] => JSON.parse(JSON.stringify(sheets));
+
+/** Apply a mutation to every cell of the current range (or the active cell), with an undo snapshot. */
+function mutateRange(
+  get: () => SpreadsheetState,
+  set: (partial: Partial<SpreadsheetState>) => void,
+  mutate: (cell: Cell) => void,
+): void {
+  const { sheets, active, selection } = get();
+  const r = get().range ?? { r0: selection.row, c0: selection.col, r1: selection.row, c1: selection.col };
+  const snapshot: Snapshot = { name: get().name, sheets: clone(sheets) };
+  const next = clone(sheets);
+  const nextSheet = next[active];
+  for (let row = Math.min(r.r0, r.r1); row <= Math.max(r.r0, r.r1); row++) {
+    for (let col = Math.min(r.c0, r.c1); col <= Math.max(r.c0, r.c1); col++) {
+      const key = cellKey(row, col);
+      const cell: Cell = nextSheet.cells[key] ?? { row, col, type: 'empty', value: null };
+      mutate(cell);
+      nextSheet.cells[key] = cell;
+    }
+  }
+  set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+}
 
 /** Parse raw cell input into a typed cell payload (formula vs number/boolean/text). */
 export function parseInput(raw: string): { type: CellType; value?: Cell['value']; formula?: string } {
@@ -61,6 +93,7 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
       sheets: [emptySheet()],
       active: 0,
       selection: { row: 0, col: 0 },
+      range: null,
       past: [],
       future: [],
 
@@ -68,8 +101,23 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
       computed: (row, col) => sheetEngine.getValue(get().active, row, col),
       cellAt: (row, col) => get().activeSheet().cells[cellKey(row, col)],
 
+      selectionStats: () => {
+        const { active } = get();
+        const r = get().range ?? { r0: get().selection.row, c0: get().selection.col, r1: get().selection.row, c1: get().selection.col };
+        let count = 0;
+        let sum = 0;
+        for (let row = Math.min(r.r0, r.r1); row <= Math.max(r.r0, r.r1); row++) {
+          for (let col = Math.min(r.c0, r.c1); col <= Math.max(r.c0, r.c1); col++) {
+            const v = sheetEngine.getValue(active, row, col);
+            if (typeof v === 'number' && !Number.isNaN(v)) { count++; sum += v; }
+          }
+        }
+        return { count, sum, avg: count ? sum / count : null };
+      },
+
       select: (row, col) => set({ selection: { row, col } }),
-      setActive: (index) => set({ active: Math.max(0, Math.min(index, get().sheets.length - 1)), selection: { row: 0, col: 0 } }),
+      selectRange: (r) => set({ range: r }),
+      setActive: (index) => set({ active: Math.max(0, Math.min(index, get().sheets.length - 1)), selection: { row: 0, col: 0 }, range: null }),
 
       setCellInput: (row, col, raw) => {
         const { sheets, active } = get();
@@ -122,6 +170,9 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
         nextSheet.cells[key] = cell;
         set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
       },
+
+      applyStyle: (patch) => mutateRange(get, set, (cell) => { cell.style = { ...cell.style, ...patch }; }),
+      applyNumberFormat: (fmt) => mutateRange(get, set, (cell) => { cell.numberFormat = fmt; }),
 
       addSheet: () => {
         const { sheets } = get();

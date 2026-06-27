@@ -19,6 +19,11 @@ const NUMBER_FORMATS: { label: string; value: string | undefined }[] = [
   { label: 'Date', value: 'dd.MM.yyyy' },
 ];
 
+const FONT_FAMILIES = ['Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Courier New', 'Verdana', 'Calibri'];
+const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36];
+
+const round = (n: number) => (Number.isInteger(n) ? n : Math.round(n * 10000) / 10000);
+
 const SpreadsheetEditorPage: React.FC = () => {
   const sheets = useSpreadsheetStore((s) => s.sheets);
   const active = useSpreadsheetStore((s) => s.active);
@@ -27,8 +32,10 @@ const SpreadsheetEditorPage: React.FC = () => {
   const selection = useSpreadsheetStore((s) => s.selection);
   const cellAt = useSpreadsheetStore((s) => s.cellAt);
   const setCellInput = useSpreadsheetStore((s) => s.setCellInput);
-  const setCellStyle = useSpreadsheetStore((s) => s.setCellStyle);
-  const setNumberFormat = useSpreadsheetStore((s) => s.setNumberFormat);
+  const applyStyle = useSpreadsheetStore((s) => s.applyStyle);
+  const applyNumberFormat = useSpreadsheetStore((s) => s.applyNumberFormat);
+  const selectionStats = useSpreadsheetStore((s) => s.selectionStats);
+  const range = useSpreadsheetStore((s) => s.range);
   const addSheet = useSpreadsheetStore((s) => s.addSheet);
   const setActive = useSpreadsheetStore((s) => s.setActive);
   const renameSheet = useSpreadsheetStore((s) => s.renameSheet);
@@ -44,6 +51,8 @@ const SpreadsheetEditorPage: React.FC = () => {
 
   const { row, col } = selection;
   const cell = cellAt(row, col);
+  const stats = selectionStats(); // recomputes on sheets/selection/range change (all subscribed)
+  const rangeLabel = range ? `${colName(Math.min(range.c0, range.c1))}${Math.min(range.r0, range.r1) + 1}:${colName(Math.max(range.c0, range.c1))}${Math.max(range.r0, range.r1) + 1}` : null;
   const formulaBarValue = cell?.type === 'formula' ? (cell.formula ?? '') : (cell?.value != null ? String(cell.value) : '');
   const [editing, setEditing] = useState<string | null>(null);
   const barValue = editing ?? formulaBarValue;
@@ -105,17 +114,32 @@ const SpreadsheetEditorPage: React.FC = () => {
         <button className="ss-tool" title="Undo" onClick={undo}><FiRotateCcw /></button>
         <button className="ss-tool" title="Redo" onClick={redo}><FiRotateCw /></button>
         <span className="ss-sep" />
-        <button className="ss-tool" title="Bold" onClick={() => setCellStyle(row, col, { bold: !cell?.style?.bold })}><FiBold /></button>
-        <button className="ss-tool" title="Italic" onClick={() => setCellStyle(row, col, { italic: !cell?.style?.italic })}><FiItalic /></button>
-        <button className="ss-tool" title="Align left" onClick={() => setCellStyle(row, col, { textAlign: 'left' })}><FiAlignLeft /></button>
-        <button className="ss-tool" title="Align center" onClick={() => setCellStyle(row, col, { textAlign: 'center' })}><FiAlignCenter /></button>
-        <button className="ss-tool" title="Align right" onClick={() => setCellStyle(row, col, { textAlign: 'right' })}><FiAlignRight /></button>
+        <select className="ss-format" title="Font" value={cell?.style?.fontFamily ?? ''} onChange={(e) => applyStyle({ fontFamily: e.target.value || undefined })}>
+          <option value="">Font</option>
+          {FONT_FAMILIES.map((f) => <option key={f} value={f}>{f}</option>)}
+        </select>
+        <select className="ss-format ss-format--sm" title="Font size" value={cell?.style?.fontSize ?? ''} onChange={(e) => applyStyle({ fontSize: e.target.value ? Number(e.target.value) : undefined })}>
+          <option value="">Size</option>
+          {FONT_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <button className="ss-tool" title="Bold" onClick={() => applyStyle({ bold: !cell?.style?.bold })}><FiBold /></button>
+        <button className="ss-tool" title="Italic" onClick={() => applyStyle({ italic: !cell?.style?.italic })}><FiItalic /></button>
+        <label className="ss-color" title="Text color"><span>A</span>
+          <input type="color" value={cell?.style?.color ?? '#111827'} onChange={(e) => applyStyle({ color: e.target.value })} />
+        </label>
+        <label className="ss-color ss-color--fill" title="Fill color"><span>▦</span>
+          <input type="color" value={cell?.style?.backgroundColor ?? '#ffffff'} onChange={(e) => applyStyle({ backgroundColor: e.target.value })} />
+        </label>
+        <span className="ss-sep" />
+        <button className="ss-tool" title="Align left" onClick={() => applyStyle({ textAlign: 'left' })}><FiAlignLeft /></button>
+        <button className="ss-tool" title="Align center" onClick={() => applyStyle({ textAlign: 'center' })}><FiAlignCenter /></button>
+        <button className="ss-tool" title="Align right" onClick={() => applyStyle({ textAlign: 'right' })}><FiAlignRight /></button>
         <span className="ss-sep" />
         <select
           className="ss-format"
           title="Number format"
           value={cell?.numberFormat ?? ''}
-          onChange={(e) => setNumberFormat(row, col, e.target.value || undefined)}
+          onChange={(e) => applyNumberFormat(e.target.value || undefined)}
         >
           {NUMBER_FORMATS.map((f) => <option key={f.label} value={f.value ?? ''}>{f.label}</option>)}
         </select>
@@ -167,6 +191,15 @@ const SpreadsheetEditorPage: React.FC = () => {
           </div>
         ))}
         <button className="ss-tab-add" title="Add sheet" onClick={addSheet}><FiPlus /></button>
+        <span className="ss-spacer" />
+        {stats.count > 0 && (
+          <span className="ss-stats">
+            {rangeLabel && <span className="ss-stats-range">{rangeLabel}</span>}
+            <span>Sum: <strong>{round(stats.sum)}</strong></span>
+            <span>Avg: <strong>{stats.avg != null ? round(stats.avg) : '—'}</strong></span>
+            <span>Count: <strong>{stats.count}</strong></span>
+          </span>
+        )}
       </div>
     </div>
   );

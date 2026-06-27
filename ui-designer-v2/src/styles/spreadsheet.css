@@ -150,3 +150,41 @@
   padding: 6px 8px;
 }
 .ss-tab-add:hover { color: #2563eb; }
+
+/* v2: font/color controls + status bar */
+.ss-format--sm { min-width: 56px; }
+.ss-color {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  color: #334155;
+  font-weight: 700;
+}
+.ss-color:hover { background: #f1f5f9; }
+.ss-color input[type="color"] {
+  position: absolute;
+  inset: auto 2px 2px 2px;
+  height: 4px;
+  width: calc(100% - 4px);
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.ss-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+  padding: 0 8px;
+  font-size: 12px;
+  color: #475569;
+  white-space: nowrap;
+}
+.ss-stats strong { color: #1e293b; }
+.ss-stats-range { font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; color: #94a3b8; }
