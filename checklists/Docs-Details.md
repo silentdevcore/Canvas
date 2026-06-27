@@ -81,10 +81,16 @@ gallery, and increasingly **(d)** `llms.txt` + shipped MCP servers. We adopt all
       schema + catalog tests (6) green.
 
 ## Phase 4 — MCP server (follow-up)
-- [ ] `tools/Canvas.Mcp` exposing `list_elements`, `get_element_schema(type)`, `get_example(type, surface)`,
-      `search_docs(query)`, `get_csharp_api(symbol)`, `validate_design(json)`, `render_preview(design)`.
-- [ ] Back it with the Phase 0 catalog, Phase 3 schema/OpenAPI, DocFX metadata, and existing endpoints.
-- [ ] Install/config docs for Claude Desktop / Claude Code + an MCP smoke test.
+- [x] `tools/Canvas.Mcp` (TypeScript, `@modelcontextprotocol/sdk` v1.29, stdio) exposing tools
+      `list_elements`, `get_element_schema(type)`, `get_example(type, surface)`, `search_docs(query)`,
+      `validate_design(json)`, `render_preview(design)`, and resources `canvas://schema/design-export`,
+      `canvas://openapi`, `canvas://docs/llms-full`, `canvas://docs/cookbook`.
+- [x] Source of truth: imports the **element catalog directly** (run via `tsx`, which erases the type-only
+      `ElementType` import) so it never drifts; reads the Phase 3 schema/OpenAPI/llms-full/cookbook from the
+      repo; `render_preview` proxies `POST /api/templates/render-design`. `validate_design` reuses the
+      schema's required-fields + type-enum rules (no external validator).
+- [x] `README.md` (install + Claude Desktop/Code config) + `smoke.ts`. Smoke test green: 6 tools registered,
+      38 elements, valid/invalid `validate_design`, resource exposed. `node_modules` git-ignored.
 
 ## Phase 5 — Polish & verification
 - [ ] `docs/Documentation-Approach.md`: provider comparison + chosen blend.
