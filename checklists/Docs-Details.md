@@ -1,0 +1,87 @@
+# Docs Details — Detailed Documentation for C#, UI Designer & AI
+
+Detailed, demo-rich documentation for Canvas's two API surfaces plus AI consumption. Mirrors how PDF SDK
+vendors document (DocFX API reference + how-to guides + example gallery + `llms.txt`/MCP), anchored on a
+single machine-readable **element catalog** so human docs, AI docs, and validation never drift.
+
+## Context
+
+Canvas has two documentable surfaces — the imperative **C# `Canvas.Pdf`** engine (`Canvas/Pdf/`, ~150
+public methods, ~5–10% with XML doc comments) and the declarative **`DesignExportDto` element model** (37
+types in `Canvas.Domain/ValueObjects/ElementType.cs`; properties in
+`src/Canvas.Core/Contracts/DesignExportDto.cs`). Element metadata is currently scattered/duplicated across
+the enum, `ElementDto`, `HelpModal.tsx`, and `DocsPage.tsx`. No DocFX, `llms.txt`, JSON-Schema, or MCP yet.
+
+### Decisions (confirmed)
+- AI output target: **both** declarative `DesignExportDto` JSON **and** imperative `Canvas.Pdf` C#.
+- AI mechanism: **`llms.txt` + JSON Schema first, MCP as a follow-up phase**.
+- Human docs home: **expand the in-app `DocsPage`, catalog-driven**.
+- C# reference: **XML comments + DocFX, plus a hand-written cookbook**.
+
+### How providers document (chosen blend)
+IronPDF / Aspose / iText / Syncfusion / DevExpress combine **(a)** auto-generated API reference (DocFX),
+**(b)** task-oriented how-to guides with runnable snippets + output, **(c)** a categorized example/demo
+gallery, and increasingly **(d)** `llms.txt` + shipped MCP servers. We adopt all four.
+
+---
+
+## Phase 0 — Single source of truth: the element catalog
+- [x] Create `ui-designer-v2/src/docs/elementCatalog.ts` — one typed entry per element (all 38 frontend
+      `ElementType`s): `type`, `label`, `category`, `description`, `formatSupport` (pdf/word/html/excel),
+      `bindable`, type-specific `properties[]`, an `example` ElementDto (+ `toDesign()` wrapper), and
+      optional `csharpExample`. Shared props/style keys documented once in `COMMON_PROPERTIES`/`STYLE_KEYS`.
+- [x] Seed from canonical sources: `ElementType.cs`, `DesignExportDto.cs` (`ElementDto` fields),
+      `HelpModal.tsx` `ELEMENTS`, and the renderer switches for the support matrix.
+- [x] `types.ts`: `ElementType` is now derived from a runtime `ELEMENT_TYPES` array (the authoritative list
+      the catalog is drift-guarded against). Refactored `HelpModal.tsx` to render from the catalog (removed
+      its duplicated `ELEMENTS` array). *DocsPage Elements Reference is rebuilt catalog-driven in Phase 1
+      to avoid redundant churn.*
+- [x] Drift-guard test `__tests__/elementCatalog.test.ts` (every `ElementType` ↔ exactly one entry, well-
+      formed, lookup/grouping helpers). 4 tests green; full frontend suite 176 tests pass.
+
+## Phase 1 — UI-designer docs (catalog-driven, demos + examples)
+- [ ] Per-element reference in `DocsPage.tsx` from the catalog: explanation, property table, **live demo**,
+      copy-paste **JSON + C#** examples.
+- [ ] Demos via the existing render path: tiny single-element `DesignExportDto` → `POST
+      /api/templates/render-design` (or `LivePreview`). Optional build-time PNGs to
+      `ui-designer-v2/public/docs/demos/`.
+- [ ] Cross-cutting guides: page settings, data binding (`{{expr}}`, `$sum/$iif/…`, `repeat` + group
+      aggregates), expression grammar (`expressionEngine.ts` / `CanvasExpressionEvaluator`).
+
+## Phase 2 — C# API docs (`Canvas.Pdf`): XML comments + DocFX + cookbook
+- [ ] `<GenerateDocumentationFile>true</GenerateDocumentationFile>` in `Canvas/Canvas.csproj` (+ `Canvas.Core`).
+- [ ] XML comments (`/// <summary>/<param>/<returns>/<example>`) on public `Canvas.Pdf` types — prioritize
+      `PdfDocument`, `PdfPage` draw/paragraph/image/table/line/shape, options classes, color types, enums.
+- [ ] `docfx.json` + build script → API reference under `docs/api/`; document the regenerate command.
+- [ ] C# cookbook: expand `samples/Canvas.Demo/Program.cs` into categorized recipes (text, shapes, images,
+      tables, links/nav, forms, watermark, TOC, encryption, flow) with runnable snippet + expected output;
+      surface a "C# Cookbook" section in `DocsPage.tsx` and `docs/`.
+
+## Phase 3 — AI docs: `llms.txt` + JSON Schema (both surfaces)
+- [ ] JSON Schema for `DesignExportDto` → `docs/schema/design-export.schema.json`; test validates catalog
+      `exampleDesign` payloads + sample templates.
+- [ ] Commit OpenAPI artifact `docs/schema/openapi.json` (from `AddOpenApi()` / `/openapi/v1.json`).
+- [ ] `llms.txt` + `llms-full.txt` at repo root (served at `/llms.txt`): capability summary, element catalog,
+      endpoints, C# cheatsheet, and end-to-end examples for **both** surfaces (design JSON → `/api/export`,
+      and a `Canvas.Pdf` C# snippet).
+- [ ] "AI usage" doc section: both codegen targets + validation loop (generate → validate → `/api/export`
+      or `csharp-code-to-pdf`).
+
+## Phase 4 — MCP server (follow-up)
+- [ ] `tools/Canvas.Mcp` exposing `list_elements`, `get_element_schema(type)`, `get_example(type, surface)`,
+      `search_docs(query)`, `get_csharp_api(symbol)`, `validate_design(json)`, `render_preview(design)`.
+- [ ] Back it with the Phase 0 catalog, Phase 3 schema/OpenAPI, DocFX metadata, and existing endpoints.
+- [ ] Install/config docs for Claude Desktop / Claude Code + an MCP smoke test.
+
+## Phase 5 — Polish & verification
+- [ ] `docs/Documentation-Approach.md`: provider comparison + chosen blend.
+- [ ] Update `checklists/Documentation-Audit.md` source-of-truth rules (catalog, `llms.txt`, JSON Schema).
+
+## Verification
+- Drift-guard tests green; `HelpModal`/`DocsPage` render from the catalog (no duplicated arrays).
+- `dotnet build` clean with `GenerateDocumentationFile`; DocFX builds without warnings on documented types.
+- JSON-Schema test validates catalog examples + sample templates.
+- Per-element `DocsPage` demos render via `/api/templates/render-design`.
+- `llms.txt` link-check; OpenAPI + schema artifacts committed.
+- (Phase 4) MCP smoke test returns expected data.
+- `npm run build` + `npx tsc --noEmit` clean; backend `:5086` + frontend `:5173` respond.

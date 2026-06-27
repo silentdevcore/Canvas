@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FiX, FiZap, FiCommand, FiGrid, FiHelpCircle, FiExternalLink } from 'react-icons/fi';
 import type { ElementType } from '@/types';
+import { ELEMENT_CATALOG } from '@/docs/elementCatalog';
 
 interface Props {
   selectedElementType: ElementType | null;
@@ -26,35 +27,15 @@ const SHORTCUTS = [
   { keys: 'F1',        action: 'Open this help dialog' },
 ];
 
-const ELEMENTS: Array<{ type: ElementType; label: string; description: string; pdf: boolean; word: boolean }> = [
-  { type: 'text',          label: 'Text Block',       description: 'Single-line or multi-line static text with full typography.',     pdf: true,  word: true  },
-  { type: 'richtext',      label: 'Rich Text',        description: 'HTML-formatted paragraph supporting bold, italic, lists, etc.',   pdf: true,  word: true  },
-  { type: 'image',         label: 'Image',            description: 'Embedded raster or vector image with crop and fit modes.',        pdf: true,  word: true  },
-  { type: 'table',         label: 'Table',            description: 'Fixed-column table with header/footer rows and zebra styling.',   pdf: true,  word: true  },
-  { type: 'line',          label: 'Line',             description: 'Horizontal or rotated divider line.',                             pdf: true,  word: true  },
-  { type: 'rect',          label: 'Rectangle',        description: 'Filled or stroked rectangle.',                                   pdf: true,  word: true  },
-  { type: 'circle',        label: 'Circle',           description: 'Filled or stroked ellipse.',                                     pdf: true,  word: true  },
-  { type: 'arrow',         label: 'Arrow',            description: 'Directional arrow with customisable head markers.',               pdf: true,  word: true  },
-  { type: 'draw',          label: 'Drawing',          description: 'Freehand SVG stroke drawn with the mouse.',                      pdf: true,  word: true  },
-  { type: 'chart',         label: 'Chart',            description: 'Bar, line, or pie chart rendered from inline data.',             pdf: true,  word: false },
-  { type: 'qrcode',        label: 'QR Code',          description: 'QR code generated from a URL or data string.',                   pdf: true,  word: true  },
-  { type: 'barcode',       label: 'Barcode',          description: 'Code128, EAN, UPC and other formats.',                           pdf: true,  word: true  },
-  { type: 'field',         label: 'Text Field',       description: 'Interactive PDF form field for user input.',                     pdf: true,  word: true  },
-  { type: 'textarea',      label: 'Text Area',        description: 'Multi-line fillable text input for comments or descriptions.',    pdf: true,  word: true  },
-  { type: 'checkbox',      label: 'Checkbox',         description: 'Single boolean checkbox form field.',                            pdf: true,  word: true  },
-  { type: 'radio',         label: 'Radio Group',      description: 'Single-select radio buttons from a list of options.',            pdf: true,  word: true  },
-  { type: 'dropdown',      label: 'Dropdown',         description: 'Select dropdown with a configurable list of options.',           pdf: true,  word: true  },
-  { type: 'signature',     label: 'Signature',        description: 'Signature line placeholder.',                                    pdf: true,  word: true  },
-  { type: 'watermark',     label: 'Watermark',        description: 'Text or image watermark with configurable opacity and scope.',   pdf: true,  word: true  },
-  { type: 'pagenumber',    label: 'Page Number',      description: 'Auto-incremented page number placeholder.',                      pdf: true,  word: true  },
-  { type: 'date',          label: 'Date',             description: 'Static or render-time date with locale formatting.',             pdf: true,  word: true  },
-  { type: 'toc',           label: 'Table of Contents',description: 'Auto-generated TOC from heading-level text elements.',           pdf: true,  word: true  },
-  { type: 'footnote',      label: 'Footnote',         description: 'Inline footnote reference; native in DOCX and fallback-rendered in PDF.', pdf: true,  word: true  },
-  { type: 'endnote',       label: 'Endnote',          description: 'Inline endnote reference; native in DOCX and fallback-rendered in PDF.',  pdf: true,  word: true  },
-  { type: 'bookmark',      label: 'Bookmark',         description: 'Named anchor for cross-references and navigation.',              pdf: true,  word: true  },
-  { type: 'comment',       label: 'Comment',          description: 'Review comment; native in DOCX and fallback-rendered in PDF.',   pdf: true,  word: true  },
-  { type: 'contentcontrol',label: 'Content Control',  description: 'Structured Word content control SDT with PDF fallback box.',     pdf: true,  word: true  },
-];
+// Derived from the single source of truth so the Help dialog never drifts from the docs/catalog.
+const ELEMENTS: Array<{ type: ElementType; label: string; description: string; pdf: boolean; word: boolean }> =
+  ELEMENT_CATALOG.map((e) => ({
+    type: e.type,
+    label: e.label,
+    description: e.description,
+    pdf: e.formatSupport.pdf,
+    word: e.formatSupport.word,
+  }));
 
 const QUICK_STEPS = [
   { step: 1, title: 'Open a template',        desc: 'Browse the template gallery and click "Use this template" to start.' },

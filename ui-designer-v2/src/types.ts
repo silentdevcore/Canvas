@@ -1,43 +1,51 @@
-export type ElementType =
-  | 'text'
-  | 'image'
-  | 'shape'
-  | 'table'
-  | 'line'
-  | 'qrcode'
-  | 'barcode'
-  | 'signature'
-  | 'richtext'
-  | 'field'
-  | 'textarea'
-  | 'checkbox'
-  | 'rect'
-  | 'circle'
-  | 'chart'
-  | 'subsection'
-  | 'area'
-  | 'button'
-  | 'dropdown'
-  | 'optionlist'
-  | 'radio'
-  | 'watermark'
-  | 'note'
-  | 'arrow'
-  | 'draw'
-  | 'date'
-  | 'highlight'
-  | 'checkmark'
-  | 'pageboundary'
-  | 'pagenumber'
-  | 'link'
-  | 'number'
-  | 'toc'
+/**
+ * Every element type the designer can place. This runtime array is the authoritative list — the
+ * `ElementType` union is derived from it, and the documentation element catalog is drift-guarded
+ * against it (see src/docs/elementCatalog.ts and its test).
+ */
+export const ELEMENT_TYPES = [
+  'text',
+  'image',
+  'shape',
+  'table',
+  'line',
+  'qrcode',
+  'barcode',
+  'signature',
+  'richtext',
+  'field',
+  'textarea',
+  'checkbox',
+  'rect',
+  'circle',
+  'chart',
+  'subsection',
+  'area',
+  'button',
+  'dropdown',
+  'optionlist',
+  'radio',
+  'watermark',
+  'note',
+  'arrow',
+  'draw',
+  'date',
+  'highlight',
+  'checkmark',
+  'pageboundary',
+  'pagenumber',
+  'link',
+  'number',
+  'toc',
   // Word-only elements
-  | 'footnote'
-  | 'endnote'
-  | 'bookmark'
-  | 'comment'
-  | 'contentcontrol';
+  'footnote',
+  'endnote',
+  'bookmark',
+  'comment',
+  'contentcontrol',
+] as const;
+
+export type ElementType = (typeof ELEMENT_TYPES)[number];
 
 export interface CellBorderSide {
   color?: string;
