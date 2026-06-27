@@ -79,8 +79,13 @@ Nine schema violations were fixed to eliminate Word's repair dialog and missing 
 
 ### Known Remaining Gaps
 - [ ] `RichTextSpanParser`: nested `<div>`/`<span>` and `<br>` handling
-- [ ] Table cell vertical alignment (`<w:vAlign>` not yet mapped)
-- [ ] Background color sanitization for non-hex values (rgba/hsl/named colors)
+- [~] Table cell vertical alignment — table-level `verticalAlign` **is** mapped to `<w:vAlign>` for every
+      cell; true *per-cell* vAlign still needs a `CellStyleDto.VerticalAlign` field (DTO + frontend change).
+- [x] **Background color sanitization for non-hex values** — `NormalizeHexColor` now accepts `rgb()/rgba()`,
+      `hsl()/hsla()` (alpha dropped — Word shading has none; channels accept 0–255 or `%`; comma- or
+      space-separated), and ~45 named CSS colors, in addition to `#rgb`/`#rrggbb`/bare hex; unrecognized
+      still falls back. Improves every `Shading` call site (paragraphs, runs, sticky notes, shapes, table
+      cells, headers). Test: `WordElementCoverageTests.BackgroundColor_NormalizesCssColors_ToShadingFill`.
 - [ ] Large doc SLA validation (50+ pages performance target)
 - [ ] Beta release to internal users
 

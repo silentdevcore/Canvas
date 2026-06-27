@@ -236,6 +236,30 @@ public sealed class WordElementCoverageTests
         Assert.NotEmpty(doc.MainDocumentPart!.Document!.Body!.Descendants<Drawing>());
     }
 
+    [Theory]
+    // NormalizeHexColor accepts CSS rgb()/rgba()/hsl()/named colors, not just hex — the paragraph
+    // Shading Fill is the resolved 6-digit hex (alpha dropped; Word shading has no alpha).
+    [InlineData("rgb(255, 0, 0)", "FF0000")]
+    [InlineData("rgba(0, 128, 0, 0.5)", "008000")]
+    [InlineData("rgb(100%, 0%, 0%)", "FF0000")]
+    [InlineData("hsl(120, 100%, 50%)", "00FF00")]
+    [InlineData("red", "FF0000")]
+    [InlineData("navy", "000080")]
+    [InlineData("#0a0", "00AA00")]
+    public void BackgroundColor_NormalizesCssColors_ToShadingFill(string css, string expected)
+    {
+        using var ms = new MemoryStream();
+        using var doc = ExportSingle(new ElementDto
+        {
+            Id = "t", Type = "text", X = 0, Y = 0, Width = 100, Height = 20, Content = "hi",
+            Style = new Dictionary<string, object> { ["backgroundColor"] = css },
+        }, ms, fidelityV2: false);
+
+        var shading = doc.MainDocumentPart!.Document!.Body!.Descendants<Shading>().FirstOrDefault();
+        Assert.NotNull(shading);
+        Assert.Equal(expected, shading!.Fill!.Value);
+    }
+
     [Fact]
     public void UnsupportedElement_RendersPlaceholderAndWarning()
     {

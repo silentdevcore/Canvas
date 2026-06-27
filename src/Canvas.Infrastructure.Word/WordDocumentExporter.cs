@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Canvas.Core.Abstractions;
 using QRCoder;
 using ZXing;
@@ -1884,17 +1885,115 @@ public sealed class WordDocumentExporter : IDocumentExporter
         settings.Settings.Save();
     }
 
+    // Normalizes a CSS color to a 6-digit upper-hex string (no '#') for OOXML. Accepts #rgb / #rrggbb /
+    // bare hex, rgb()/rgba(), hsl()/hsla() (alpha is dropped — Word shading has no alpha), and named CSS
+    // colors. Anything unrecognized returns the fallback.
     private static string NormalizeHexColor(string raw, string fallback)
     {
         if (string.IsNullOrWhiteSpace(raw)) return fallback;
+        var value = raw.Trim();
 
-        var value = raw.Trim().TrimStart('#');
-        if (value.Length == 3 && value.All(Uri.IsHexDigit))
-            return string.Concat(value.Select(c => $"{char.ToUpperInvariant(c)}{char.ToUpperInvariant(c)}"));
+        var hex = value.TrimStart('#');
+        if (hex.Length == 3 && hex.All(Uri.IsHexDigit))
+            return string.Concat(hex.Select(c => $"{char.ToUpperInvariant(c)}{char.ToUpperInvariant(c)}"));
+        if (hex.Length == 6 && hex.All(Uri.IsHexDigit))
+            return hex.ToUpperInvariant();
 
-        return value.Length == 6 && value.All(Uri.IsHexDigit)
-            ? value.ToUpperInvariant()
-            : fallback.ToUpperInvariant();
+        if (TryParseFunctionalColor(value, out var fromFunc)) return fromFunc;
+        if (NamedColors.TryGetValue(value.ToLowerInvariant(), out var fromName)) return fromName;
+
+        return fallback.ToUpperInvariant();
     }
+
+    // rgb(r,g,b[,a]) / rgba(...) / hsl(h,s%,l%[,a]) / hsla(...) → "RRGGBB". Components may be comma- or
+    // space-separated; rgb channels accept 0–255 or percentages; the optional alpha is ignored.
+    private static bool TryParseFunctionalColor(string value, out string hex)
+    {
+        hex = "";
+        var m = Regex.Match(value, @"^(rgba?|hsla?)\s*\(\s*([^)]+?)\s*\)$", RegexOptions.IgnoreCase);
+        if (!m.Success) return false;
+        var kind = m.Groups[1].Value.ToLowerInvariant();
+        var parts = Regex.Split(m.Groups[2].Value.Trim(), @"[\s,/]+");
+        if (parts.Length < 3) return false;
+
+        int r, g, b;
+        if (kind.StartsWith("rgb"))
+        {
+            if (!TryColorChannel(parts[0], out r) || !TryColorChannel(parts[1], out g) || !TryColorChannel(parts[2], out b))
+                return false;
+        }
+        else
+        {
+            if (!TryNum(parts[0].Replace("deg", ""), out var h) || !TryFraction(parts[1], out var s) || !TryFraction(parts[2], out var l))
+                return false;
+            (r, g, b) = HslToRgb(h, s, l);
+        }
+        hex = $"{r:X2}{g:X2}{b:X2}";
+        return true;
+    }
+
+    private static bool TryColorChannel(string s, out int v)
+    {
+        v = 0;
+        s = s.Trim();
+        if (s.EndsWith('%'))
+        {
+            if (!TryNum(s.TrimEnd('%'), out var pct)) return false;
+            v = (int)Math.Round(Math.Clamp(pct, 0, 100) / 100.0 * 255);
+            return true;
+        }
+        if (!TryNum(s, out var n)) return false;
+        v = (int)Math.Round(Math.Clamp(n, 0, 255));
+        return true;
+    }
+
+    private static bool TryFraction(string s, out double frac)
+    {
+        frac = 0;
+        if (!TryNum(s.Trim().TrimEnd('%'), out var n)) return false;
+        frac = Math.Clamp(n, 0, 100) / 100.0;
+        return true;
+    }
+
+    private static bool TryNum(string s, out double n) =>
+        double.TryParse(s.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out n);
+
+    private static (int r, int g, int b) HslToRgb(double h, double s, double l)
+    {
+        h = ((h % 360) + 360) % 360 / 360.0;
+        if (s <= 0) { var g = (int)Math.Round(l * 255); return (g, g, g); }
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        return ((int)Math.Round(Hue(p, q, h + 1.0 / 3) * 255),
+                (int)Math.Round(Hue(p, q, h) * 255),
+                (int)Math.Round(Hue(p, q, h - 1.0 / 3) * 255));
+
+        static double Hue(double p, double q, double t)
+        {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1.0 / 6) return p + (q - p) * 6 * t;
+            if (t < 1.0 / 2) return q;
+            if (t < 2.0 / 3) return p + (q - p) * (2.0 / 3 - t) * 6;
+            return p;
+        }
+    }
+
+    // Common CSS named colors → upper-hex (no '#'). Not exhaustive; unrecognized names fall back.
+    private static readonly Dictionary<string, string> NamedColors = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["black"] = "000000", ["white"] = "FFFFFF", ["red"] = "FF0000", ["green"] = "008000",
+        ["lime"] = "00FF00", ["blue"] = "0000FF", ["yellow"] = "FFFF00", ["cyan"] = "00FFFF",
+        ["aqua"] = "00FFFF", ["magenta"] = "FF00FF", ["fuchsia"] = "FF00FF", ["silver"] = "C0C0C0",
+        ["gray"] = "808080", ["grey"] = "808080", ["maroon"] = "800000", ["olive"] = "808000",
+        ["purple"] = "800080", ["teal"] = "008080", ["navy"] = "000080", ["orange"] = "FFA500",
+        ["gold"] = "FFD700", ["pink"] = "FFC0CB", ["brown"] = "A52A2A", ["coral"] = "FF7F50",
+        ["crimson"] = "DC143C", ["indigo"] = "4B0082", ["violet"] = "EE82EE", ["khaki"] = "F0E68C",
+        ["salmon"] = "FA8072", ["tomato"] = "FF6347", ["turquoise"] = "40E0D0", ["beige"] = "F5F5DC",
+        ["ivory"] = "FFFFF0", ["lavender"] = "E6E6FA", ["plum"] = "DDA0DD", ["orchid"] = "DA70D6",
+        ["tan"] = "D2B48C", ["chocolate"] = "D2691E", ["lightgray"] = "D3D3D3", ["lightgrey"] = "D3D3D3",
+        ["darkgray"] = "A9A9A9", ["darkgrey"] = "A9A9A9", ["lightblue"] = "ADD8E6", ["darkblue"] = "00008B",
+        ["lightgreen"] = "90EE90", ["darkgreen"] = "006400", ["darkred"] = "8B0000", ["transparent"] = "FFFFFF",
+    };
 
 }
