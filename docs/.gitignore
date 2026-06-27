@@ -1,0 +1,4 @@
+# DocFX build artifacts
+_site/
+api/*.yml
+api/.manifest

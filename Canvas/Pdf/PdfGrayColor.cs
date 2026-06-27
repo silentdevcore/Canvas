@@ -2,6 +2,7 @@ using System.Globalization;
 
 namespace Canvas.Pdf;
 
+/// <summary>A grayscale color with a single 0–1 component (0 = black, 1 = white).</summary>
 public readonly struct PdfGrayColor : IPdfColor
 {
     public PdfGrayColor(double gray)

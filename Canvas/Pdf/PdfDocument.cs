@@ -2,6 +2,20 @@ using Canvas.Pdf.Serialization;
 
 namespace Canvas.Pdf;
 
+/// <summary>
+/// The root of the imperative Canvas PDF API: create a document, add <see cref="PdfPage"/>s, draw on them,
+/// then call <see cref="ToBytes()"/> to produce the PDF bytes. This is the target API that vendor-SDK
+/// migrations (IronPDF, Aspose, iText, …) are converted to.
+/// </summary>
+/// <example>
+/// <code>
+/// var document = new PdfDocument();
+/// document.Info.Title = "Hello";
+/// var page = document.AddPage();                 // A4 by default
+/// page.DrawText("Hello world", x: 40, y: 800, fontSize: 18);
+/// byte[] pdf = document.ToBytes();
+/// </code>
+/// </example>
 public sealed class PdfDocument
 {
     private readonly List<PdfPage> _pages = new();
@@ -22,13 +36,17 @@ public sealed class PdfDocument
     private PdfGenerationDiagnostics? _lastDiagnostics;
     private PdfViewerPreferencesOptions _viewerPreferences = PdfViewerPreferencesOptions.Default;
 
+    /// <summary>Creates an empty document.</summary>
+    /// <param name="defaultFont">The standard font used by pages and text drawing unless overridden.</param>
     public PdfDocument(PdfStandardFont defaultFont = PdfStandardFont.Helvetica)
     {
         DefaultFont = defaultFont;
     }
 
+    /// <summary>The pages of the document, in order. Add pages with <see cref="AddPage()"/>.</summary>
     public IReadOnlyList<PdfPage> Pages => _pages;
 
+    /// <summary>The default standard font applied to new pages and to text drawing without an explicit font.</summary>
     public PdfStandardFont DefaultFont { get; set; }
 
     /// <summary>
@@ -37,6 +55,7 @@ public sealed class PdfDocument
     /// </summary>
     public PdfFontLoader? FontLoader { get; set; }
 
+    /// <summary>Document metadata (Title, Author, Subject, Keywords, dates, custom properties).</summary>
     public PdfDocumentInfo Info { get; } = new();
 
     public PdfGenerationDiagnostics? LastDiagnostics => _lastDiagnostics;
@@ -903,6 +922,9 @@ public sealed class PdfDocument
 
     internal PdfViewerPreferencesOptions ViewerPreferences => _viewerPreferences;
 
+    /// <summary>Adds a page of the given size (defaults to A4) and returns it for drawing.</summary>
+    /// <param name="width">Page width in points.</param>
+    /// <param name="height">Page height in points.</param>
     public PdfPage AddPage(double width = PdfPageSizes.A4Width, double height = PdfPageSizes.A4Height)
     {
         var page = new PdfPage(width, height, DefaultFont, FontLoader);
@@ -910,6 +932,9 @@ public sealed class PdfDocument
         return page;
     }
 
+    /// <summary>Adds a page using a standard preset size (A4, A3, Letter), optionally landscape.</summary>
+    /// <param name="preset">The page-size preset.</param>
+    /// <param name="landscape">When true, swaps width/height to landscape orientation.</param>
     public PdfPage AddPage(PdfPagePreset preset, bool landscape = false)
     {
         var (width, height) = preset switch
@@ -928,6 +953,10 @@ public sealed class PdfDocument
         return AddPage(width, height);
     }
 
+    /// <summary>Adds a page with a page rotation applied (0, 90, 180, or 270 degrees).</summary>
+    /// <param name="rotationDegrees">Clockwise viewer rotation in degrees.</param>
+    /// <param name="width">Page width in points.</param>
+    /// <param name="height">Page height in points.</param>
     public PdfPage AddPageRotated(int rotationDegrees, double width = PdfPageSizes.A4Width, double height = PdfPageSizes.A4Height)
     {
         if (rotationDegrees % 90 != 0)
@@ -980,6 +1009,10 @@ public sealed class PdfDocument
         }
     }
 
+    /// <summary>Adds an outline bookmark pointing to a page.</summary>
+    /// <param name="title">The bookmark label shown in the PDF outline.</param>
+    /// <param name="pageNumber">1-based target page number.</param>
+    /// <param name="level">Outline nesting level (1 = top level).</param>
     public void AddBookmark(string title, int pageNumber, int level = 1)
     {
         if (string.IsNullOrWhiteSpace(title))
@@ -1045,6 +1078,9 @@ public sealed class PdfDocument
         _namedDestinations.Add(new PdfNamedDestination(name, pageNumber, y));
     }
 
+    /// <summary>Generates a table of contents from the document's bookmarks/sections and inserts the
+    /// resulting page(s). Returns the page(s) that were added.</summary>
+    /// <param name="options">TOC layout options (title, leader dots, level range, placement).</param>
     public IReadOnlyList<PdfPage> AddTableOfContents(PdfTableOfContentsOptions? options = null)
     {
         options ??= PdfTableOfContentsOptions.Default;
@@ -1263,6 +1299,8 @@ public sealed class PdfDocument
         return new PdfFlowContext(this, options);
     }
 
+    /// <summary>Stamps page numbers onto every page using the given format and placement.</summary>
+    /// <param name="options">Numbering format, prefix/suffix, start number, and position.</param>
     public void AddPageNumbers(PdfPageNumberOptions? options = null)
     {
         options ??= PdfPageNumberOptions.Default;
@@ -1414,6 +1452,9 @@ public sealed class PdfDocument
         return options.StartNumber + (pageIndex - sectionStartIndex);
     }
 
+    /// <summary>Draws a diagonal text watermark (e.g. "DRAFT") across the configured pages.</summary>
+    /// <param name="text">The watermark text.</param>
+    /// <param name="options">Rotation, opacity, color, font size, and page scope.</param>
     public void AddTextWatermark(string text, PdfWatermarkOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -1654,6 +1695,9 @@ public sealed class PdfDocument
         stream.Write(bytes, 0, bytes.Length);
     }
 
+    /// <summary>Serializes the document to PDF bytes. This is the terminal call after building the document.</summary>
+    /// <param name="options">Save options (content-stream compression, diagnostics collection).</param>
+    /// <returns>The complete PDF file as a byte array.</returns>
     public byte[] ToBytes(PdfSaveOptions? options = null)
     {
         options ??= PdfSaveOptions.Default;

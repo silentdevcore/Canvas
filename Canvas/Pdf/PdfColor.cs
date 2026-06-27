@@ -2,6 +2,7 @@ using System.Globalization;
 
 namespace Canvas.Pdf;
 
+/// <summary>An RGB color with components in the 0–1 range (e.g. <c>new PdfColor(0.1, 0.2, 0.5)</c>).</summary>
 public readonly struct PdfColor : IPdfColor
 {
     public PdfColor(double red, double green, double blue)

@@ -3,6 +3,12 @@ using System.Security.Cryptography;
 
 namespace Canvas.Pdf;
 
+/// <summary>
+/// A single page you draw onto. Obtain one from <see cref="PdfDocument.AddPage()"/>. Coordinates are in
+/// points (1/72 inch) with the origin at the bottom-left of the page; <c>x</c> increases to the right and
+/// <c>y</c> increases upward (standard PDF coordinates). Many drawing methods also have a <c>*FromTop</c>
+/// variant that measures <c>y</c> from the top of the page instead.
+/// </summary>
 public sealed class PdfPage
 {
     private readonly List<PdfPageElement> _elements = new();
@@ -93,6 +99,12 @@ public sealed class PdfPage
         }
     }
 
+    /// <summary>Draws a single line of text at the given baseline position.</summary>
+    /// <param name="text">The text to draw.</param>
+    /// <param name="x">Left x in points.</param>
+    /// <param name="y">Text baseline y in points (from the bottom of the page).</param>
+    /// <param name="fontSize">Font size in points.</param>
+    /// <param name="font">Standard font; falls back to the page/document default when null.</param>
     public void DrawText(string text, double x, double y, double fontSize = 12, PdfStandardFont? font = null)
     {
         DrawText(text, x, y, new PdfDrawTextOptions
@@ -113,6 +125,12 @@ public sealed class PdfPage
         });
     }
 
+    /// <summary>Draws a single line of text with full styling control (font, weight, color, rotation,
+    /// underline/strikethrough, character spacing, language/direction).</summary>
+    /// <param name="text">The text to draw.</param>
+    /// <param name="x">Left x in points.</param>
+    /// <param name="y">Text baseline y in points (from the bottom of the page).</param>
+    /// <param name="options">Text styling options.</param>
     public void DrawText(string text, double x, double y, PdfDrawTextOptions options)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -397,6 +415,12 @@ public sealed class PdfPage
         DrawCircle(centerX, ToYFromTop(topCenterY), radius, lineWidth, fill, strokeColor, fillColor, strokeStyle);
     }
 
+    /// <summary>Draws an image loaded from a file path. Omit width/height to use the image's natural size.</summary>
+    /// <param name="imagePath">Path to a PNG or JPEG file.</param>
+    /// <param name="x">Left x in points.</param>
+    /// <param name="y">Bottom y in points.</param>
+    /// <param name="width">Target width in points, or null for natural width.</param>
+    /// <param name="height">Target height in points, or null for natural height.</param>
     public void DrawImage(string imagePath, double x, double y, double? width = null, double? height = null)
     {
         var image = PdfImageReader.Read(imagePath);
@@ -713,6 +737,14 @@ public sealed class PdfPage
         };
     }
 
+    /// <summary>Lays out and draws a wrapped paragraph within <paramref name="maxWidth"/>, returning the
+    /// measured layout (so you can position following content).</summary>
+    /// <param name="text">The paragraph text.</param>
+    /// <param name="x">Left x in points.</param>
+    /// <param name="y">Top y of the paragraph block in points.</param>
+    /// <param name="maxWidth">Wrapping width in points.</param>
+    /// <param name="options">Paragraph options (font, alignment, color, line spacing).</param>
+    /// <returns>The resulting layout, including the consumed height.</returns>
     public PdfParagraphLayoutResult DrawParagraph(string text, double x, double y, double maxWidth, PdfParagraphOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -974,6 +1006,13 @@ public sealed class PdfPage
         return Height - topY;
     }
 
+    /// <summary>Draws a simple grid table from rows of strings and returns its measured layout.</summary>
+    /// <param name="x">Left x in points.</param>
+    /// <param name="y">Top y of the table in points.</param>
+    /// <param name="width">Total table width in points.</param>
+    /// <param name="rows">Rows of cell text (the first row may be styled as a header via options).</param>
+    /// <param name="options">Table styling (borders, header, column widths, padding).</param>
+    /// <returns>The resulting layout, including the consumed height.</returns>
     public PdfTableLayoutResult DrawSimpleTable(double x, double y, double width, IReadOnlyList<IReadOnlyList<string>> rows, PdfTableOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(rows);
@@ -1293,6 +1332,12 @@ public sealed class PdfPage
         };
     }
 
+    /// <summary>Adds a clickable rectangle that opens a URL.</summary>
+    /// <param name="x">Left x in points.</param>
+    /// <param name="y">Bottom y in points.</param>
+    /// <param name="width">Clickable width in points.</param>
+    /// <param name="height">Clickable height in points.</param>
+    /// <param name="url">The destination URL.</param>
     public void AddWebLink(double x, double y, double width, double height, string url)
     {
         if (width <= 0)
@@ -1483,6 +1528,12 @@ public sealed class PdfPage
         });
     }
 
+    /// <summary>Adds an interactive checkbox form field.</summary>
+    /// <param name="fieldName">The form field name (unique within the document).</param>
+    /// <param name="x">Left x in points.</param>
+    /// <param name="y">Bottom y in points.</param>
+    /// <param name="size">Box size (width and height) in points.</param>
+    /// <param name="isChecked">Initial checked state.</param>
     public void AddCheckBox(string fieldName, double x, double y, double size, bool isChecked = false)
     {
         if (string.IsNullOrWhiteSpace(fieldName))

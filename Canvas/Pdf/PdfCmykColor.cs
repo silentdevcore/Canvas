@@ -2,6 +2,7 @@ using System.Globalization;
 
 namespace Canvas.Pdf;
 
+/// <summary>A CMYK (cyan, magenta, yellow, key/black) color with components in the 0–1 range.</summary>
 public readonly struct PdfCmykColor : IPdfColor
 {
     public PdfCmykColor(double cyan, double magenta, double yellow, double black)

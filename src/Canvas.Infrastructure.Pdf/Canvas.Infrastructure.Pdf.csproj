@@ -17,6 +17,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- Emit the XML doc file for the Canvas.Pdf API (linked from ../../Canvas/Pdf) for DocFX/IntelliSense.
+         CS1591 is suppressed so undocumented members don't flood the build while we document incrementally. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
 </Project>

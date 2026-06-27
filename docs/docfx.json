@@ -1,0 +1,31 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "src/Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj",
+            "src/Canvas.Core/Canvas.Core.csproj"
+          ],
+          "src": ".."
+        }
+      ],
+      "dest": "api",
+      "namespaceLayout": "nested",
+      "memberLayout": "samePage"
+    }
+  ],
+  "build": {
+    "content": [
+      { "files": ["api/**.yml", "api/index.md"] },
+      { "files": ["index.md", "csharp-cookbook.md", "toc.yml"] }
+    ],
+    "output": "_site",
+    "template": ["default", "modern"],
+    "globalMetadata": {
+      "_appName": "Canvas.Pdf",
+      "_appTitle": "Canvas.Pdf API Reference",
+      "_enableSearch": true
+    }
+  }
+}
