@@ -68,14 +68,17 @@ gallery, and increasingly **(d)** `llms.txt` + shipped MCP servers. We adopt all
       runnable snippets; points back to `samples/Canvas.Demo/Program.cs` and the API reference.
 
 ## Phase 3 — AI docs: `llms.txt` + JSON Schema (both surfaces)
-- [ ] JSON Schema for `DesignExportDto` → `docs/schema/design-export.schema.json`; test validates catalog
-      `exampleDesign` payloads + sample templates.
-- [ ] Commit OpenAPI artifact `docs/schema/openapi.json` (from `AddOpenApi()` / `/openapi/v1.json`).
-- [ ] `llms.txt` + `llms-full.txt` at repo root (served at `/llms.txt`): capability summary, element catalog,
-      endpoints, C# cheatsheet, and end-to-end examples for **both** surfaces (design JSON → `/api/export`,
-      and a `Canvas.Pdf` C# snippet).
-- [ ] "AI usage" doc section: both codegen targets + validation loop (generate → validate → `/api/export`
-      or `csharp-code-to-pdf`).
+- [x] `docs/schema/design-export.schema.json` (draft 2020-12) for `DesignExportDto`. Schema-driven test
+      `__tests__/designSchema.test.ts`: the schema's element-type enum matches `ELEMENT_TYPES`, and every
+      catalog example wrapped via `toDesign()` satisfies the schema's required-field + type-enum + numeric
+      constraints (no `ajv` dependency — reads the real schema file).
+- [x] OpenAPI artifact committed `docs/schema/openapi.json` (174 KB, from `/openapi/v1.json`).
+- [x] `llms.txt` (concise) + `llms-full.txt` (all 38 elements with props/examples, both surfaces, the
+      generate→validate→render loop, expression grammar, endpoints) at **repo root** (canonical for
+      repo-reading agents + the MCP server; avoids the drift of duplicate served copies).
+- [x] "AI & Codegen" section added to `DocsPage.tsx`: the two generation targets, the validation loop, and
+      the machine-readable resources (llms.txt, schema, OpenAPI, catalog) + an MCP pointer. tsc clean;
+      schema + catalog tests (6) green.
 
 ## Phase 4 — MCP server (follow-up)
 - [ ] `tools/Canvas.Mcp` exposing `list_elements`, `get_element_schema(type)`, `get_example(type, surface)`,

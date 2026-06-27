@@ -1,0 +1,59 @@
+# Canvas
+
+> Canvas is a document-automation platform: a visual designer plus a .NET engine that generates PDF, Word,
+> and other formats. AI agents can generate documents two ways — a declarative **design JSON**
+> (`DesignExportDto`) posted to the render/export API, or imperative **C# code** with the `Canvas.Pdf` API.
+
+There are two generation surfaces:
+
+1. **Declarative design JSON** (`DesignExportDto`) — describe pages + elements, POST to the API, get a file.
+   Best for templates and data-driven documents. Validate against the JSON Schema before posting.
+2. **Imperative C# code** (`Canvas.Pdf`) — `new PdfDocument()`, `AddPage()`, `page.DrawText(...)`,
+   `document.ToBytes()`. Best for programmatic generation and SDK migrations.
+
+## Quick start — design JSON
+
+```json
+{ "id": "doc-1", "name": "Hello",
+  "pages": [ { "id": "p1", "elements": [
+    { "id": "el1", "type": "text", "x": 40, "y": 40, "width": 300, "height": 24,
+      "content": "Invoice {{number}}", "style": { "fontSize": 18, "fontWeight": "bold" } } ] } ],
+  "pageSettings": { "width": 595, "height": 842, "orientation": "portrait", "unit": "pt" } }
+```
+
+POST it to `/api/templates/render-design` (raw design → PDF) or `/api/export` (with a `format` + optional
+`data` payload for `{{token}}`/expression binding).
+
+## Quick start — C# code
+
+```csharp
+using Canvas.Pdf;
+var document = new PdfDocument();
+var page = document.AddPage();
+page.DrawText("Invoice 1001", x: 40, y: 800, new PdfDrawTextOptions { FontSize = 18, Bold = true });
+byte[] pdf = document.ToBytes();
+```
+
+## Elements
+
+38 element types across Text, Form, Visual, Shapes & Layout, and Document categories (text, richtext,
+table, image, qrcode, barcode, chart, field, checkbox, dropdown, radio, signature, line, rect, circle,
+arrow, draw, watermark, note, link, date, pagenumber, number, toc, footnote, bookmark, comment,
+contentcontrol, …). Each element's properties, format support, and examples are in the catalog and full doc.
+
+## Docs
+
+- [Full AI reference](/llms-full.txt): every element with properties + examples, the API, and the
+  generate→validate→post loop.
+- [Design JSON Schema](/docs/schema/design-export.schema.json): validate a `DesignExportDto` before posting.
+- [OpenAPI](/docs/schema/openapi.json): the full HTTP API.
+- [C# Cookbook](/docs/csharp-cookbook.md): task-oriented `Canvas.Pdf` recipes.
+- Element catalog (source of truth): `ui-designer-v2/src/docs/elementCatalog.ts`.
+
+## Key endpoints
+
+- `POST /api/templates/render-design` — raw `DesignExportDto` → PDF.
+- `POST /api/export` — `{ design, format, data? }` → file (pdf, docx, html, xlsx, …).
+- `POST /api/templates/validate` — validate a design without rendering.
+- `POST /api/templates/csharp-code-to-pdf` — compile `Canvas.Pdf` C# → PDF.
+- `GET  /api/export/formats` — list export formats.

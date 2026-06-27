@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canvas/schema/design-export.schema.json",
+  "title": "DesignExportDto",
+  "description": "A Canvas document design. POST to /api/export or /api/templates/render-design (optionally with a data payload for binding) to produce a PDF/Word/etc. file. Mirrors src/Canvas.Core/Contracts/DesignExportDto.cs.",
+  "type": "object",
+  "required": ["id", "name", "pages"],
+  "properties": {
+    "id": { "type": "string", "description": "Unique design id." },
+    "name": { "type": "string", "description": "Human-readable design name." },
+    "category": { "type": "string" },
+    "description": { "type": "string" },
+    "pages": {
+      "type": "array",
+      "description": "The pages of the document, rendered in order.",
+      "items": { "$ref": "#/$defs/page" }
+    },
+    "sharedElements": {
+      "type": "array",
+      "description": "Elements repeated on every page (headers/footers/watermarks).",
+      "items": { "$ref": "#/$defs/element" }
+    },
+    "pageSettings": { "$ref": "#/$defs/pageSettings" }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "page": {
+      "type": "object",
+      "required": ["id", "elements"],
+      "properties": {
+        "id": { "type": "string" },
+        "elements": { "type": "array", "items": { "$ref": "#/$defs/element" } }
+      },
+      "additionalProperties": true
+    },
+    "pageSettings": {
+      "type": "object",
+      "description": "Page geometry and document-level settings.",
+      "properties": {
+        "width": { "type": "number", "description": "Page width in points (595 = A4)." },
+        "height": { "type": "number", "description": "Page height in points (842 = A4)." },
+        "orientation": { "type": "string", "enum": ["portrait", "landscape"] },
+        "unit": { "type": "string", "enum": ["px", "pt", "mm", "cm", "in"] },
+        "backgroundColor": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "element": {
+      "type": "object",
+      "description": "A single positioned element. Type-specific properties are permitted in addition to the common ones (see ui-designer-v2/src/docs/elementCatalog.ts for the per-type properties).",
+      "required": ["id", "type", "x", "y", "width", "height"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": {
+          "type": "string",
+          "description": "The element type.",
+          "enum": [
+            "text", "image", "shape", "table", "line", "qrcode", "barcode", "signature",
+            "richtext", "field", "textarea", "checkbox", "rect", "circle", "chart",
+            "subsection", "area", "button", "dropdown", "optionlist", "radio", "watermark",
+            "note", "arrow", "draw", "date", "highlight", "checkmark", "pageboundary",
+            "pagenumber", "link", "number", "toc", "footnote", "endnote", "bookmark",
+            "comment", "contentcontrol"
+          ]
+        },
+        "name": { "type": "string" },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "width": { "type": "number" },
+        "height": { "type": "number" },
+        "hidden": { "type": "boolean" },
+        "locked": { "type": "boolean" },
+        "content": { "type": "string" },
+        "style": { "type": "object", "additionalProperties": true },
+        "binding": { "type": "string", "description": "Data path whose value replaces the content at render time." },
+        "expression": { "type": "string", "description": "Template expression ($iif/$sum/$concat/...) evaluated at render time." },
+        "visibleExpression": { "type": "string", "description": "Boolean expression gating visibility." }
+      },
+      "additionalProperties": true
+    }
+  }
+}

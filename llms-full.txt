@@ -1,0 +1,121 @@
+# Canvas — full AI reference
+
+Canvas generates documents two ways: a declarative **design JSON** (`DesignExportDto`) posted to the API,
+or imperative **C# code** (`Canvas.Pdf`). This file is a snapshot derived from the element catalog
+(`ui-designer-v2/src/docs/elementCatalog.ts`) and the API. Validate generated design JSON against
+`docs/schema/design-export.schema.json` before posting.
+
+## The generate → validate → render loop
+
+1. Build a `DesignExportDto` (or `Canvas.Pdf` C#).
+2. Validate the JSON against `docs/schema/design-export.schema.json` (required: `id`, `name`, `pages`;
+   each element needs `id`, `type` (from the enum below), `x`, `y`, `width`, `height`).
+3. Render: `POST /api/templates/render-design` (raw design → PDF) or `POST /api/export`
+   (`{ design, format, data? }` → pdf/docx/html/xlsx/…). For C#: `POST /api/templates/csharp-code-to-pdf`.
+
+## DesignExportDto shape
+
+```
+{ id, name, category?, description?,
+  pages: [ { id, elements: [ <element> ] } ],
+  sharedElements?: [ <element> ],   // repeated on every page (headers/footers/watermarks)
+  pageSettings?: { width, height, orientation: "portrait"|"landscape", unit: "px"|"pt"|"mm"|"cm"|"in",
+                   backgroundColor? } }
+```
+
+Common element fields (every element): `id`, `type`, `x`, `y`, `width`, `height`, `name?`, `hidden?`,
+`locked?`, `style?` (CSS-like map), `binding?` (data path), `expression?` (template expression),
+`visibleExpression?`. Style keys: `fontSize, fontFamily, fontWeight, fontStyle, color, textAlign,
+backgroundColor, borderColor, borderWidth, borderRadius, padding, lineHeight, opacity, rotation`.
+
+## Data binding & expressions
+
+- Tokens: any content may contain `{{path.to.field}}`, filled from the `data` payload at render time.
+- Expressions (`element.expression`): `$iif(cond,a,b)`, `$concat(...)`, `$coalesce(...)`,
+  `$switch(c1,v1,...,default?)`, aggregates `$sum/$avg/$min/$max/$count/$first/$last` over a dataset or
+  `$group` (2nd arg may be a field name OR a per-row expression, e.g. `$sum(Orders,"Qty * Price")`),
+  operators `&& || ?? == != < <= > >= + - * / %` (`&&`/`||`/`??` short-circuit).
+- Repeats: `element.repeat = { dataPath }` renders once per row; with `style.groupField` set, once per group
+  and `$group` is the current group's rows (so a footer `$sum($group,"Amount")` is a per-group subtotal).
+
+## Element types (type enum)
+
+text, image, shape, table, line, qrcode, barcode, signature, richtext, field, textarea, checkbox, rect,
+circle, chart, subsection, area, button, dropdown, optionlist, radio, watermark, note, arrow, draw, date,
+highlight, checkmark, pageboundary, pagenumber, link, number, toc, footnote, endnote, bookmark, comment,
+contentcontrol.
+
+### Text
+- **text** [PDF/Word/HTML/Excel] — static text. Props: `content`, `headingLevel?` (1–3, for TOC).
+- **richtext** [PDF/Word/HTML] — inline HTML. Props: `htmlContent`.
+- **date** [all] — static/render/binding date. Props: `dateMode`, `dateFormat`, `locale`, `timezone`, `fallbackText`.
+- **pagenumber** [PDF/Word/HTML] — page number. Props: `numberingFormat` (current|total|pageOfTotal|roman|alphabetic), `startNumber`, `prefix`, `suffix`.
+- **number** [PDF/Word/HTML] — formatted number. Props: `numberValue`, `numberStyle` (decimal|currency|percent|scientific|ordinal), `numberDecimals`, `numberCurrency`, `numberLocale`.
+- **toc** [PDF/Word/HTML] — table of contents. Props: `tocTitle`, `tocShowPageNumbers`, `tocShowLeaderDots`, `tocMinLevel`, `tocMaxLevel`, `tocPlacement`.
+- **footnote** / **endnote** [PDF/Word/HTML] — notes. Props: `footnoteText`, `footnoteRef?`.
+
+### Form
+- **field** [PDF/Word/HTML] — single-line text field. Props: `fieldLabel`, `fieldName`, `placeholder`, `required`.
+- **textarea** [PDF/Word/HTML] — multi-line field. Props: `fieldName`, `placeholder`.
+- **checkbox** [PDF/Word/HTML] — checkbox. Props: `fieldName`, `checkState` (checked|cross|dot|empty).
+- **radio** [PDF/Word/HTML] — radio group. Props: `options[]`, `selectedValue`.
+- **dropdown** [PDF/Word/HTML] — combo box. Props: `options[]`, `selectedValue`, `fieldName`.
+- **optionlist** [PDF/Word/HTML] — bulleted/numbered list. Props: `options[]`, `ordered`, `listStyle`.
+- **button** [PDF/Word/HTML] — button. Props: `content`, `buttonAction` (URL or "page:N").
+- **signature** [PDF/Word/HTML] — signature line. Props: `signatureLabel`.
+
+### Visual
+- **image** [all] — raster/vector image. Props: `content` (URL/data URI), `fitMode` (contain|cover|fill|none), `preserveAspectRatio`, crop fields.
+- **qrcode** [all] — QR code. Props: `qrValue`, `qrSize`.
+- **barcode** [all] — linear barcode. Props: `barcodeValue`, `barcodeType` (Code128|EAN13|UPCA|Code39).
+- **chart** [PDF/HTML] — bar/line/pie. Props: `chartType`, `chartData` ({ labels, datasets }).
+
+### Shapes & Layout
+- **shape**/**rect** [all] — filled/stroked rectangle. Style: backgroundColor, borderColor, borderWidth.
+- **circle** [all] — ellipse. Style: backgroundColor/border.
+- **line** [all] — divider line. Style: borderColor/borderWidth.
+- **arrow** [PDF/Word/HTML] — arrow. Props: `arrowMode`, `startMarker`, `endMarker`.
+- **draw** [PDF/Word/HTML] — freehand SVG. Props: `drawTool`, `pathData`.
+- **table** [all] — grid. Props: `cellData[][]`, `columnWidths[]`, `columnAlignments[]`, `headerRow`, `footerRow`, `zebraEnabled`, `cellStyles[]`, `repeat?`.
+- **subsection** / **area** / **pageboundary** [designer-only guides, not rendered to output].
+- **highlight** [PDF/Word/HTML] — highlight rectangle. Props: `markMode`.
+- **checkmark** [PDF/Word/HTML] — static check/cross/dot. Props: `checkState`.
+
+### Document
+- **watermark** [PDF/Word/HTML] — text/image watermark. Props: `content`, `watermarkMode`, `pageScope` (current|all|first|last|range|odd|even), `pageRange`.
+- **note** [PDF/Word/HTML] — sticky note. Props: `noteTitle`, `noteBody`, `noteAuthor`.
+- **link** [PDF/Word/HTML] — hyperlink. Props: `content`, `href`, `linkTarget`.
+- **bookmark** [PDF/Word/HTML] — named anchor. Props: `bookmarkName`, `bookmarkTarget`.
+- **comment** [PDF/Word/HTML] — review comment. Props: `commentAuthor`, `commentText`, `commentDate`.
+- **contentcontrol** [PDF/Word/HTML] — Word SDT. Props: `contentControlType`, `contentControlTag`, `contentControlTitle`.
+
+## Canvas.Pdf C# API (essentials)
+
+```csharp
+using Canvas.Pdf;
+var document = new PdfDocument();              // AddPage(), AddPage(PdfPagePreset.Letter), AddPage(width,height)
+document.Info.Title = "Report";
+var page = document.AddPage();
+page.DrawText("Title", x: 40, y: 800, new PdfDrawTextOptions { FontSize = 18, Bold = true });
+page.DrawParagraph("Body…", x: 40, y: 770, maxWidth: 380);
+page.DrawRectangle(x: 40, y: 720, width: 200, height: 40, lineWidth: 1, fill: true, fillColor: new PdfColor(0.93,0.95,1));
+page.DrawImage("logo.png", x: 40, y: 660, width: 120, height: 50);
+page.DrawSimpleTable(x: 40, y: 620, width: 360, rows: new[] { new[]{"Item","Qty"}, new[]{"Coffee","2"} });
+page.AddWebLink(x: 40, y: 600, width: 80, height: 16, url: "https://example.com");
+document.AddPageNumbers();
+document.AddTextWatermark("DRAFT", new PdfWatermarkOptions { RotationDegrees = -45, Opacity = 0.15 });
+byte[] pdf = document.ToBytes();
+```
+
+Colors: `new PdfColor(r,g,b)` (0–1), `new PdfGrayColor(v)`, `new PdfCmykColor(c,m,y,k)`. Full reference:
+`docs/csharp-cookbook.md` + the DocFX API site (`docs/README.md`).
+
+## Endpoints
+
+- `POST /api/templates/render-design` — raw `DesignExportDto` → PDF.
+- `POST /api/export` — `{ design, format, data? }` → file (pdf|docx|html|xlsx|csv|md|odt|svg|png|jpeg|tiff).
+- `POST /api/templates/validate` — validate without rendering.
+- `POST /api/templates/csharp-code-to-pdf` — compile `Canvas.Pdf` C# → PDF.
+- `POST /api/templates/csharp-to-json` / `csharp-code-to-json` — C# → DesignExportDto JSON.
+- `GET  /api/export/formats` — list export formats.
+- Full HTTP surface: `docs/schema/openapi.json`.

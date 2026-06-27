@@ -152,6 +152,7 @@ const SECTIONS = [
   { id: 'csharp-examples', label: 'C# Code Examples' },
   { id: 'json-to-csharp',  label: 'JSON → C# Mapping' },
   { id: 'rest-api',        label: 'REST API' },
+  { id: 'ai-codegen',      label: 'AI & Codegen' },
   { id: 'documentation-map', label: 'Documentation Map' },
 ];
 
@@ -1271,6 +1272,36 @@ public class TemplatesController : ControllerBase
                   Go to home
                 </button>
               </div>
+            </div>
+          </section>
+
+          {/* ── AI & Codegen ────────────────────────────────────────────── */}
+          <section id="ai-codegen" className="docs-section">
+            <H2 id="ai-codegen">AI &amp; Codegen</H2>
+            <p>An AI agent can generate documents in two ways. Pick the surface that fits the task, generate, validate, then render.</p>
+
+            <H3>Two generation targets</H3>
+            <ul className="docs-steps">
+              <li><strong>Declarative design JSON</strong> (<code className="docs-inline-code">DesignExportDto</code>) — describe pages + elements, POST to the render/export API. Best for templates and data-driven documents.</li>
+              <li><strong>Imperative C# code</strong> (<code className="docs-inline-code">Canvas.Pdf</code>) — <code className="docs-inline-code">new PdfDocument()</code> → <code className="docs-inline-code">page.DrawText(...)</code> → <code className="docs-inline-code">ToBytes()</code>. Best for programmatic generation and SDK migrations.</li>
+            </ul>
+
+            <H3>Generate → validate → render</H3>
+            <ol className="docs-steps">
+              <li>Generate a <code className="docs-inline-code">DesignExportDto</code> (or <code className="docs-inline-code">Canvas.Pdf</code> C#). Use the per-element catalog above for the exact properties.</li>
+              <li>Validate the JSON against <code className="docs-inline-code">docs/schema/design-export.schema.json</code> (required: <code className="docs-inline-code">id</code>, <code className="docs-inline-code">name</code>, <code className="docs-inline-code">pages</code>; each element needs <code className="docs-inline-code">id</code>, <code className="docs-inline-code">type</code>, <code className="docs-inline-code">x</code>, <code className="docs-inline-code">y</code>, <code className="docs-inline-code">width</code>, <code className="docs-inline-code">height</code>).</li>
+              <li>Render: <code className="docs-inline-code">POST /api/templates/render-design</code> (raw design → PDF) or <code className="docs-inline-code">POST /api/export</code> (<code className="docs-inline-code">{'{ design, format, data? }'}</code>). For C#: <code className="docs-inline-code">POST /api/templates/csharp-code-to-pdf</code>.</li>
+            </ol>
+
+            <H3>Machine-readable resources</H3>
+            <ul className="docs-steps">
+              <li><code className="docs-inline-code">llms.txt</code> / <code className="docs-inline-code">llms-full.txt</code> (repo root) — capability map + every element with properties and examples for both surfaces.</li>
+              <li><code className="docs-inline-code">docs/schema/design-export.schema.json</code> — JSON Schema for design validation.</li>
+              <li><code className="docs-inline-code">docs/schema/openapi.json</code> — the full HTTP API.</li>
+              <li><code className="docs-inline-code">ui-designer-v2/src/docs/elementCatalog.ts</code> — the element catalog (source of truth for all of the above).</li>
+            </ul>
+            <div className="docs-callout docs-callout--tip">
+              <strong>MCP:</strong> a Model Context Protocol server (<code className="docs-inline-code">tools/Canvas.Mcp</code>) exposes these as tools/resources — <code className="docs-inline-code">list_elements</code>, <code className="docs-inline-code">get_element_schema</code>, <code className="docs-inline-code">get_example</code>, <code className="docs-inline-code">validate_design</code>, <code className="docs-inline-code">render_preview</code> — so an agent can query and verify without scraping docs.
             </div>
           </section>
 
