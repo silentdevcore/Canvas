@@ -71,6 +71,10 @@ builder.Services.AddScoped<IDocumentExporter, OdtDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, WordDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, ExcelDocumentExporter>();
 
+// Spreadsheet Editor SDK: workbook (SpreadsheetDto) ⇄ .xlsx round-trip (distinct from the design exporters).
+builder.Services.AddScoped<Canvas.Infrastructure.Sheet.ExcelWorkbookExporter>();
+builder.Services.AddScoped<Canvas.Infrastructure.Sheet.ExcelWorkbookImporter>();
+
 // Register file importers
 builder.Services.AddTransient<IFileImporter, PdfFileImporter>();
 builder.Services.AddTransient<IFileImporter, DocxFileImporter>();
