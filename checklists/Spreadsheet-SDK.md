@@ -66,7 +66,9 @@ expression engine has **no A1 cell references**. This adds a real Excel-like exp
       undo/redo, toWire). Backend `SpreadsheetRoundTripTests` (Phase 1). A1 tests (Phase 1).
 - [x] Verified: tsc clean, **183** frontend tests, vite production build green, **live API round-trip**
       (export → `.xlsx` PK; import → formula `=SUM(A1:A2)` + cached 30); `/spreadsheet` route 200.
-- [ ] Short "Spreadsheets" docs note in DocsPage/`docs/` (remaining).
+- [x] "Spreadsheets" section added to the in-app docs (`DocsPage.tsx`): overview, formulas (HyperFormula
+      A1), the xlsx/csv/json import-export matrix, and the `/api/spreadsheet/*` endpoints + `SpreadsheetDto`
+      model. Sidebar entry + scroll-spy wired. tsc clean.
 
 ## Rename: Sheet → Spreadsheet (proposed — awaiting confirmation)
 

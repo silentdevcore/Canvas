@@ -153,6 +153,7 @@ const SECTIONS = [
   { id: 'json-to-csharp',  label: 'JSON → C# Mapping' },
   { id: 'rest-api',        label: 'REST API' },
   { id: 'ai-codegen',      label: 'AI & Codegen' },
+  { id: 'spreadsheets',    label: 'Spreadsheets' },
   { id: 'documentation-map', label: 'Documentation Map' },
 ];
 
@@ -1302,6 +1303,39 @@ public class TemplatesController : ControllerBase
             </ul>
             <div className="docs-callout docs-callout--tip">
               <strong>MCP:</strong> a Model Context Protocol server (<code className="docs-inline-code">tools/Canvas.Mcp</code>) exposes these as tools/resources — <code className="docs-inline-code">list_elements</code>, <code className="docs-inline-code">get_element_schema</code>, <code className="docs-inline-code">get_example</code>, <code className="docs-inline-code">validate_design</code>, <code className="docs-inline-code">render_preview</code> — so an agent can query and verify without scraping docs.
+            </div>
+          </section>
+
+          {/* ── Spreadsheets ────────────────────────────────────────────── */}
+          <section id="spreadsheets" className="docs-section">
+            <H2 id="spreadsheets">Spreadsheets</H2>
+            <p>Canvas includes an Excel-like <strong>Spreadsheet Editor</strong> at <code className="docs-inline-code">/spreadsheet</code> — a separate surface from the document designer, with live formulas, multiple sheets, cell styling, and <code className="docs-inline-code">.xlsx</code> round-trips.</p>
+
+            <H3>Formulas</H3>
+            <p>Type a value, or a formula starting with <code className="docs-inline-code">=</code> using standard A1 references — e.g. <code className="docs-inline-code">=SUM(A1:A10)</code>, <code className="docs-inline-code">=IF(B2&gt;0, B2*1.2, 0)</code>. Recalculation is powered by HyperFormula (~390 Excel functions, dependency-graph recalc); edits update dependents live. The formula bar shows the active cell's source; the grid shows the computed result.</p>
+
+            <H3>Import &amp; Export</H3>
+            <div className="docs-elem-table-wrap">
+              <table className="docs-elem-table">
+                <thead><tr><th>Format</th><th>Import</th><th>Export</th><th>Notes</th></tr></thead>
+                <tbody>
+                  <tr><td><code className="docs-inline-code">.xlsx</code></td><td style={{ textAlign: 'center' }}>✅</td><td style={{ textAlign: 'center' }}>✅</td><td>Full fidelity — formulas, types, number formats, styles, merges (ClosedXML).</td></tr>
+                  <tr><td><code className="docs-inline-code">.csv</code></td><td style={{ textAlign: 'center' }}>✅</td><td style={{ textAlign: 'center' }}>✅</td><td>Plain values; export writes the computed values (RFC 4180 quoting).</td></tr>
+                  <tr><td><code className="docs-inline-code">.json</code></td><td style={{ textAlign: 'center' }}>✅</td><td style={{ textAlign: 'center' }}>✅</td><td>The native workbook model — lossless, offline.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p>The toolbar <strong>Import</strong> button accepts any of the three (dispatched by extension); <strong>Export ▾</strong> is a format menu. <code className="docs-inline-code">.xls</code> / <code className="docs-inline-code">.ods</code> and PDF export are not yet supported.</p>
+
+            <H3>Backend API &amp; model</H3>
+            <p>The <code className="docs-inline-code">.xlsx</code> round-trip is served by the backend:</p>
+            <ul className="docs-steps">
+              <li><code className="docs-inline-code">POST /api/spreadsheet/export</code> — a <code className="docs-inline-code">SpreadsheetDto</code> workbook → <code className="docs-inline-code">.xlsx</code> (real A1 formulas via <code className="docs-inline-code">cell.FormulaA1</code>).</li>
+              <li><code className="docs-inline-code">POST /api/spreadsheet/import</code> — multipart <code className="docs-inline-code">.xlsx</code> → <code className="docs-inline-code">SpreadsheetDto</code> (preserves formulas + cached values, types, styles, merges).</li>
+            </ul>
+            <p>The model (<code className="docs-inline-code">src/Canvas.Core/Contracts/SpreadsheetDto.cs</code>) is a workbook of sheets of sparse typed cells (<code className="docs-inline-code">number</code>/<code className="docs-inline-code">text</code>/<code className="docs-inline-code">boolean</code>/<code className="docs-inline-code">date</code>/<code className="docs-inline-code">formula</code>) with number formats, styles, merges, frozen panes, and defined names — exported/imported by <code className="docs-inline-code">Canvas.Infrastructure.Spreadsheet</code>.</p>
+            <div className="docs-callout docs-callout--tip">
+              <strong>Note:</strong> a workbook (spreadsheet) contains multiple <em>sheets</em> — the live calculation runs client-side (HyperFormula, GPLv3-or-commercial); the backend stores formula strings + cached values, and Excel/HyperFormula recompute on open.
             </div>
           </section>
 
