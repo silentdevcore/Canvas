@@ -23,7 +23,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.Demo", "samples\Canv
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.Infrastructure.Converters", "src\Canvas.Infrastructure.Converters\Canvas.Infrastructure.Converters.csproj", "{DD9E4804-06E0-4BCB-9436-67DE0C226F06}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.Infrastructure.Sheet", "src\Canvas.Infrastructure.Sheet\Canvas.Infrastructure.Sheet.csproj", "{0E55DCE8-7914-456E-BD85-9473BB6A30FD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.Infrastructure.Spreadsheet", "src\Canvas.Infrastructure.Spreadsheet\Canvas.Infrastructure.Spreadsheet.csproj", "{0E55DCE8-7914-456E-BD85-9473BB6A30FD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.Infrastructure.Word", "src\Canvas.Infrastructure.Word\Canvas.Infrastructure.Word.csproj", "{72616487-9245-4FB4-A27E-D32A30EE3586}"
 EndProject

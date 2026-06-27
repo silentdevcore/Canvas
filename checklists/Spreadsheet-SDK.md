@@ -68,6 +68,31 @@ expression engine has **no A1 cell references**. This adds a real Excel-like exp
       (export → `.xlsx` PK; import → formula `=SUM(A1:A2)` + cached 30); `/spreadsheet` route 200.
 - [ ] Short "Spreadsheets" docs note in DocsPage/`docs/` (remaining).
 
+## Rename: Sheet → Spreadsheet (proposed — awaiting confirmation)
+
+Two distinct kinds of "Sheet". **A** is the recommended rename; **B** should stay (a workbook *contains*
+sheets — that's correct Excel terminology, and `SheetDto`→`SpreadsheetDto` would collide with the workbook
+type). Confirm the scope before executing.
+
+### A) Rename the infrastructure project `Canvas.Infrastructure.Sheet` → `Canvas.Infrastructure.Spreadsheet` — DONE
+- [x] Folder `src/Canvas.Infrastructure.Sheet/` → `src/Canvas.Infrastructure.Spreadsheet/` (`git mv`).
+- [x] `Canvas.Infrastructure.Sheet.csproj` → `Canvas.Infrastructure.Spreadsheet.csproj`.
+- [x] `namespace …Sheet` → `…Spreadsheet` in all 5 files.
+- [~] `SheetRendererCapabilities` class **left as-is** — a class identifier (scope B), not the project rename;
+      only its own declaration exists. Rename later if desired.
+- [x] `Canvas.sln` project name + path entry.
+- [x] `ProjectReference` paths in `Canvas.WebApi.csproj` + `Canvas.Export.Tests.csproj`.
+- [x] `using`/qualified `Canvas.Infrastructure.Spreadsheet.*` in `Program.cs`, `SpreadsheetController.cs`, and
+      the 3 test files. No stale `.Sheet` references remain.
+- [x] `dotnet build Canvas.sln` clean; `Canvas.Export.Tests` **193** green.
+
+### B) Per-sheet model identifiers — **recommend NOT renaming** (a Spreadsheet contains Sheets)
+- [ ] `SheetDto`/`SheetColumnDto`/`SheetRowDto` (`SpreadsheetDto.cs`) — keep; `SheetDto→SpreadsheetDto`
+      collides with the workbook type.
+- [ ] Frontend `SheetState`/`SheetWire`/`SheetEngine`/`addSheet`/`activeSheet`/… — keep (worksheet semantics).
+      *If you do want these renamed (e.g. `SheetEngine→SpreadsheetEngine`, `SheetState→WorksheetState`), say
+      which, and I'll scope it.*
+
 ## Verification
 - Backend: `dotnet test` round-trip preserves values/formulas/types/number-formats/styles/merges; `dotnet
   build Canvas.sln` clean.

@@ -23,7 +23,7 @@
     <ProjectReference Include="../../src/Canvas.Application/Canvas.Application.csproj" />
     <ProjectReference Include="../../src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj" />
     <ProjectReference Include="../../src/Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj" />
-    <ProjectReference Include="../../src/Canvas.Infrastructure.Sheet/Canvas.Infrastructure.Sheet.csproj" />
+    <ProjectReference Include="../../src/Canvas.Infrastructure.Spreadsheet/Canvas.Infrastructure.Spreadsheet.csproj" />
     <ProjectReference Include="../../Canvas.WebApi/Canvas.WebApi.csproj" />
   </ItemGroup>
 

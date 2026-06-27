@@ -3,7 +3,7 @@ using Canvas.Core.Contracts;
 using ClosedXML.Excel;
 using System.Text.Json;
 
-namespace Canvas.Infrastructure.Sheet;
+namespace Canvas.Infrastructure.Spreadsheet;
 
 public sealed class ExcelDocumentExporter : IDocumentExporter
 {

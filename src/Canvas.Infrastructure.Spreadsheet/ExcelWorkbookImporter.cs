@@ -1,7 +1,7 @@
 using Canvas.Core.Contracts;
 using ClosedXML.Excel;
 
-namespace Canvas.Infrastructure.Sheet;
+namespace Canvas.Infrastructure.Spreadsheet;
 
 /// <summary>
 /// Imports an <c>.xlsx</c> file into a <see cref="SpreadsheetDto"/> via ClosedXML, preserving A1 formulas,

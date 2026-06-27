@@ -1,6 +1,6 @@
 using Canvas.Core.Abstractions;
 
-namespace Canvas.Infrastructure.Sheet;
+namespace Canvas.Infrastructure.Spreadsheet;
 
 public sealed class SheetRendererCapabilities : IRendererCapabilities
 {

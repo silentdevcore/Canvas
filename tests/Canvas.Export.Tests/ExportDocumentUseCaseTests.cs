@@ -67,7 +67,7 @@ public class ExportDocumentUseCaseTests
             new ImageDocumentExporter(),
             new JpegDocumentExporter(),
             new Canvas.Infrastructure.Word.WordDocumentExporter(),
-            new Canvas.Infrastructure.Sheet.ExcelDocumentExporter(),
+            new Canvas.Infrastructure.Spreadsheet.ExcelDocumentExporter(),
         };
         var useCase = new ExportDocumentUseCase(exporters);
         var formats = useCase.GetSupportedFormats().ToList();

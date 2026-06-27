@@ -14,7 +14,7 @@ using Canvas.Core.Primitives;
 using Canvas.Domain.Repositories;
 using Canvas.Infrastructure.Converters;
 using Canvas.Infrastructure.Pdf;
-using Canvas.Infrastructure.Sheet;
+using Canvas.Infrastructure.Spreadsheet;
 using Canvas.Infrastructure.Word;
 using Canvas.Pdf;
 using Canvas.WebApi.Infrastructure;
@@ -72,8 +72,8 @@ builder.Services.AddScoped<IDocumentExporter, WordDocumentExporter>();
 builder.Services.AddScoped<IDocumentExporter, ExcelDocumentExporter>();
 
 // Spreadsheet Editor SDK: workbook (SpreadsheetDto) ⇄ .xlsx round-trip (distinct from the design exporters).
-builder.Services.AddScoped<Canvas.Infrastructure.Sheet.ExcelWorkbookExporter>();
-builder.Services.AddScoped<Canvas.Infrastructure.Sheet.ExcelWorkbookImporter>();
+builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.ExcelWorkbookExporter>();
+builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.ExcelWorkbookImporter>();
 
 // Register file importers
 builder.Services.AddTransient<IFileImporter, PdfFileImporter>();

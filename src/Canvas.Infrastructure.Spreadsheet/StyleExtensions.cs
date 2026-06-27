@@ -1,4 +1,4 @@
-namespace Canvas.Infrastructure.Sheet;
+namespace Canvas.Infrastructure.Spreadsheet;
 
 internal static class StyleExtensions
 {

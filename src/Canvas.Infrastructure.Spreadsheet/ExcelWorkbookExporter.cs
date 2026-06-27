@@ -2,7 +2,7 @@ using System.Text.Json;
 using Canvas.Core.Contracts;
 using ClosedXML.Excel;
 
-namespace Canvas.Infrastructure.Sheet;
+namespace Canvas.Infrastructure.Spreadsheet;
 
 /// <summary>
 /// Exports a <see cref="SpreadsheetDto"/> workbook to <c>.xlsx</c> via ClosedXML — typed cell values,

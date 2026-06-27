@@ -1,7 +1,7 @@
 using System.Globalization;
 using Canvas.Core.Contracts;
 using Canvas.Core.Primitives;
-using Canvas.Infrastructure.Sheet;
+using Canvas.Infrastructure.Spreadsheet;
 
 namespace Canvas.Export.Tests;
 
