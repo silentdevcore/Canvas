@@ -93,8 +93,13 @@ gallery, and increasingly **(d)** `llms.txt` + shipped MCP servers. We adopt all
       38 elements, valid/invalid `validate_design`, resource exposed. `node_modules` git-ignored.
 
 ## Phase 5 — Polish & verification
-- [ ] `docs/Documentation-Approach.md`: provider comparison + chosen blend.
-- [ ] Update `checklists/Documentation-Audit.md` source-of-truth rules (catalog, `llms.txt`, JSON Schema).
+- [x] `docs/Documentation-Approach.md`: how vendors document (4 pillars) + the chosen blend, the single
+      source of truth (catalog), where each artifact lives, and the "when you add a capability" rules.
+- [x] Updated `checklists/Documentation-Audit.md` source-of-truth rules: element catalog, design JSON
+      schema, AI/MCP reference, C# DocFX + cookbook, and the documentation-strategy doc.
+- [x] Final verification: frontend tsc clean (0 non-PdfViewer errors), **178** frontend tests pass, MCP
+      smoke green, backend `:5086` + frontend `:5173` both 200. *(Pre-existing unrelated `PdfViewer.tsx`
+      compile error — not part of this work — keeps one suite red.)*
 
 ## Verification
 - Drift-guard tests green; `HelpModal`/`DocsPage` render from the catalog (no duplicated arrays).

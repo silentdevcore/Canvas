@@ -16,6 +16,11 @@ Keep the documentation set coherent as Canvas grows across PDF generation, impor
 | PDF engine API | `Canvas/TECHNICAL_DOCUMENTATION.md`, `Canvas/README.md` |
 | Feature/milestone history | `checklists/*.md` |
 | Multi-language UI behavior | `ui-designer-v2/MULTILANGUAGE.md`, `checklists/multi-languages.md` |
+| **Element definitions (props, format support, examples)** | `ui-designer-v2/src/docs/elementCatalog.ts` (drives DocsPage, HelpModal, llms-full, schema enum, MCP) |
+| **Design JSON contract for validation** | `docs/schema/design-export.schema.json` |
+| **AI/agent capability reference** | `llms.txt`, `llms-full.txt`, and the `tools/Canvas.Mcp` MCP server |
+| **C# `Canvas.Pdf` API reference + recipes** | XML doc comments + DocFX (`docs/docfx.json`), `docs/csharp-cookbook.md` |
+| **Documentation strategy** | `docs/Documentation-Approach.md` |
 
 ## Completed In This Audit
 
