@@ -7,6 +7,8 @@ import AppHeader from '../components/Layout/AppHeader';
 import { SpreadsheetGrid, colName } from '../spreadsheet/SpreadsheetGrid';
 import { useSpreadsheetStore } from '../spreadsheet/store';
 import { SpreadsheetService } from '../services/SpreadsheetService';
+import { workbookToWire } from '../spreadsheet/types';
+import { sheetToCsv, csvToSheet, workbookToJson, jsonToWorkbook, downloadText } from '../spreadsheet/io';
 import '../styles/spreadsheet.css';
 
 const NUMBER_FORMATS: { label: string; value: string | undefined }[] = [
@@ -20,6 +22,8 @@ const NUMBER_FORMATS: { label: string; value: string | undefined }[] = [
 const SpreadsheetEditorPage: React.FC = () => {
   const sheets = useSpreadsheetStore((s) => s.sheets);
   const active = useSpreadsheetStore((s) => s.active);
+  const name = useSpreadsheetStore((s) => s.name);
+  const computed = useSpreadsheetStore((s) => s.computed);
   const selection = useSpreadsheetStore((s) => s.selection);
   const cellAt = useSpreadsheetStore((s) => s.cellAt);
   const setCellInput = useSpreadsheetStore((s) => s.setCellInput);
@@ -36,6 +40,7 @@ const SpreadsheetEditorPage: React.FC = () => {
 
   const fileInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [exportMenu, setExportMenu] = useState(false);
 
   const { row, col } = selection;
   const cell = cellAt(row, col);
@@ -48,13 +53,24 @@ const SpreadsheetEditorPage: React.FC = () => {
     setEditing(null);
   };
 
+  const safeName = (name || 'workbook').replace(/[\\/:*?"<>|]/g, '_');
+
   const onImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setBusy('Importing…');
     try {
-      const wb = await SpreadsheetService.importXlsx(file);
-      loadWorkbook(wb);
+      const ext = file.name.toLowerCase().split('.').pop();
+      if (ext === 'xlsx') {
+        loadWorkbook(await SpreadsheetService.importXlsx(file));
+      } else if (ext === 'csv') {
+        const sheet = csvToSheet(await file.text(), 'Sheet1');
+        loadWorkbook(workbookToWire(file.name.replace(/\.csv$/i, ''), [sheet]));
+      } else if (ext === 'json') {
+        loadWorkbook(jsonToWorkbook(await file.text()));
+      } else {
+        alert('Unsupported file. Use .xlsx, .csv, or .json.');
+      }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Import failed');
     } finally {
@@ -63,10 +79,17 @@ const SpreadsheetEditorPage: React.FC = () => {
     }
   };
 
-  const onExport = async () => {
+  const exportAs = async (fmt: 'xlsx' | 'csv' | 'json') => {
+    setExportMenu(false);
     setBusy('Exporting…');
     try {
-      await SpreadsheetService.exportXlsx(toWire());
+      if (fmt === 'xlsx') {
+        await SpreadsheetService.exportXlsx(toWire());
+      } else if (fmt === 'csv') {
+        downloadText(sheetToCsv(sheets[active], computed), `${safeName}.csv`, 'text/csv;charset=utf-8');
+      } else {
+        downloadText(workbookToJson(toWire()), `${safeName}.json`, 'application/json');
+      }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Export failed');
     } finally {
@@ -99,8 +122,17 @@ const SpreadsheetEditorPage: React.FC = () => {
         <span className="ss-spacer" />
         {busy && <span className="ss-busy">{busy}</span>}
         <button className="ss-tool ss-tool--text" onClick={() => fileInput.current?.click()}><FiUpload /> Import</button>
-        <button className="ss-tool ss-tool--text ss-tool--primary" onClick={onExport}><FiDownload /> Export</button>
-        <input ref={fileInput} type="file" accept=".xlsx" hidden onChange={onImport} />
+        <div className="ss-export">
+          <button className="ss-tool ss-tool--text ss-tool--primary" onClick={() => setExportMenu((v) => !v)}><FiDownload /> Export ▾</button>
+          {exportMenu && (
+            <div className="ss-menu" onMouseLeave={() => setExportMenu(false)}>
+              <button onClick={() => exportAs('xlsx')}>Excel (.xlsx)</button>
+              <button onClick={() => exportAs('csv')}>CSV (.csv)</button>
+              <button onClick={() => exportAs('json')}>JSON (.json)</button>
+            </div>
+          )}
+        </div>
+        <input ref={fileInput} type="file" accept=".xlsx,.csv,.json" hidden onChange={onImport} />
       </div>
 
       <div className="spreadsheet-formula-bar">
