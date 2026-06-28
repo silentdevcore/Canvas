@@ -30,12 +30,13 @@ through `.xlsx` — so most formatting work is **UI + grid rendering**, not new 
 - [x] `selectionStats()` (Sum / Average / Count of numeric computed cells in the range); shown in the
       bottom bar with the A1 range label. Test included.
 
-## #1 — Insert / delete / resize rows & columns
-- [ ] Store actions `insertRow/deleteRow/insertCol/deleteCol` routed through HyperFormula
-      `addRows`/`removeRows`/`addColumns`/`removeColumns` so **formula references shift**; remap the store's
-      `cells` keys + `colWidths` accordingly; snapshot for undo.
-- [ ] Column/row resize → persist into `colWidths` (+ row heights). Toolbar + header context actions. Tests
-      (insert a row above a `=SUM` → the range expands correctly).
+## #1 — Insert / delete / resize rows & columns — DONE
+- [x] Store `insertRow/deleteRow/insertCol/deleteCol` via `rowColOp`: shift the store's `cells`/`colWidths`
+      (`shiftCellsForRowCol`) **and** HyperFormula (`addRows`/`removeRows`/`addColumns`/`removeColumns`), then
+      pull the **ref-shifted formula sources** back via `getFormula`; snapshot for undo. Toolbar buttons
+      (+Row/−Row/+Col/−Col at the active cell).
+- [x] Column resize → `setColWidth` (glide `onColumnResize`) persisted into `colWidths` (round-trips to xlsx).
+- [x] Tests: insert a row above `=SUM(A1:A2)` → becomes `=SUM(A2:A3)` (still 30); delete a column shifts left.
 
 ## #2 — Copy / cut / paste (Excel-compatible)
 - [ ] Copy/cut the selected range to the clipboard as **TSV** (paste into Excel works); paste TSV from the

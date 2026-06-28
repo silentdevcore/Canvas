@@ -36,6 +36,10 @@ const SpreadsheetEditorPage: React.FC = () => {
   const applyNumberFormat = useSpreadsheetStore((s) => s.applyNumberFormat);
   const selectionStats = useSpreadsheetStore((s) => s.selectionStats);
   const range = useSpreadsheetStore((s) => s.range);
+  const insertRow = useSpreadsheetStore((s) => s.insertRow);
+  const deleteRow = useSpreadsheetStore((s) => s.deleteRow);
+  const insertCol = useSpreadsheetStore((s) => s.insertCol);
+  const deleteCol = useSpreadsheetStore((s) => s.deleteCol);
   const addSheet = useSpreadsheetStore((s) => s.addSheet);
   const setActive = useSpreadsheetStore((s) => s.setActive);
   const renameSheet = useSpreadsheetStore((s) => s.renameSheet);
@@ -143,6 +147,11 @@ const SpreadsheetEditorPage: React.FC = () => {
         >
           {NUMBER_FORMATS.map((f) => <option key={f.label} value={f.value ?? ''}>{f.label}</option>)}
         </select>
+        <span className="ss-sep" />
+        <button className="ss-tool ss-tool--text" title="Insert row above" onClick={() => insertRow(row)}>+Row</button>
+        <button className="ss-tool ss-tool--text" title="Delete row" onClick={() => deleteRow(row)}>−Row</button>
+        <button className="ss-tool ss-tool--text" title="Insert column left" onClick={() => insertCol(col)}>+Col</button>
+        <button className="ss-tool ss-tool--text" title="Delete column" onClick={() => deleteCol(col)}>−Col</button>
         <span className="ss-spacer" />
         {busy && <span className="ss-busy">{busy}</span>}
         <button className="ss-tool ss-tool--text" onClick={() => fileInput.current?.click()}><FiUpload /> Import</button>

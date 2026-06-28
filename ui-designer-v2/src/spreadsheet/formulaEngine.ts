@@ -42,6 +42,19 @@ export class SheetEngine {
     try { this.hf.setCellContents({ sheet, row, col }, [[raw === '' ? null : raw]]); } catch { /* noop */ }
   }
 
+  // Structural ops — HyperFormula shifts all dependent A1 formula references automatically.
+  addRows(sheetIndex: number, at: number, count = 1): void { try { this.hf.addRows(this.sid(sheetIndex), [at, count]); } catch { /* noop */ } }
+  removeRows(sheetIndex: number, at: number, count = 1): void { try { this.hf.removeRows(this.sid(sheetIndex), [at, count]); } catch { /* noop */ } }
+  addColumns(sheetIndex: number, at: number, count = 1): void { try { this.hf.addColumns(this.sid(sheetIndex), [at, count]); } catch { /* noop */ } }
+  removeColumns(sheetIndex: number, at: number, count = 1): void { try { this.hf.removeColumns(this.sid(sheetIndex), [at, count]); } catch { /* noop */ } }
+
+  /** The (possibly ref-shifted) formula source at a cell, including the leading '=' — or null. */
+  getFormula(sheetIndex: number, row: number, col: number): string | null {
+    try { return this.hf.getCellFormula({ sheet: this.sid(sheetIndex), row, col }) ?? null; } catch { return null; }
+  }
+
+  private sid(sheetIndex: number): number { return this.ids[sheetIndex] ?? sheetIndex; }
+
   /** Live computed display value (resolves formulas); errors come back as their #CODE string. */
   getValue(sheetIndex: number, row: number, col: number): RawValue {
     const sheet = this.ids[sheetIndex] ?? sheetIndex;

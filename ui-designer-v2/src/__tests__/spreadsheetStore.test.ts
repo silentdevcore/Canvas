@@ -68,6 +68,30 @@ describe('spreadsheet store + HyperFormula recalc', () => {
     expect(stats).toEqual({ sum: 30, avg: 15, count: 2 });
   });
 
+  test('insertRow shifts data + formula references (HyperFormula)', () => {
+    const s = useSpreadsheetStore.getState();
+    s.setCellInput(0, 0, '10');           // A1
+    s.setCellInput(1, 0, '20');           // A2
+    s.setCellInput(2, 0, '=SUM(A1:A2)');  // A3 = 30
+    s.insertRow(0);                        // new top row → everything shifts down
+    const g = useSpreadsheetStore.getState();
+    expect(g.cellAt(3, 0)?.type).toBe('formula');
+    expect(g.cellAt(3, 0)?.formula).toBe('=SUM(A2:A3)'); // references shifted
+    expect(g.computed(3, 0)).toBe(30);                   // still correct
+  });
+
+  test('deleteCol removes the column and shifts the rest left', () => {
+    const s = useSpreadsheetStore.getState();
+    s.setCellInput(0, 0, 'a');
+    s.setCellInput(0, 1, 'b');
+    s.setCellInput(0, 2, 'c');
+    s.deleteCol(1);
+    const g = useSpreadsheetStore.getState();
+    expect(g.cellAt(0, 0)?.value).toBe('a');
+    expect(g.cellAt(0, 1)?.value).toBe('c'); // c shifted from col 2 → 1
+    expect(g.cellAt(0, 2)).toBeUndefined();
+  });
+
   test('toWire produces a sparse workbook the backend can read', () => {
     const s = useSpreadsheetStore.getState();
     s.setCellInput(0, 0, 'Hello');

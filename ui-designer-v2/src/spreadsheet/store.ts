@@ -39,6 +39,11 @@ interface SpreadsheetState {
   /** Set a number format on every cell of the current range (or the active cell). */
   applyNumberFormat: (fmt: string | undefined) => void;
   setNumberFormat: (row: number, col: number, fmt: string | undefined) => void;
+  insertRow: (at: number) => void;
+  deleteRow: (at: number) => void;
+  insertCol: (at: number) => void;
+  deleteCol: (at: number) => void;
+  setColWidth: (col: number, width: number) => void;
   addSheet: () => void;
   renameSheet: (index: number, name: string) => void;
   deleteSheet: (index: number) => void;
@@ -50,6 +55,64 @@ interface SpreadsheetState {
 }
 
 const clone = (sheets: SheetState[]): SheetState[] => JSON.parse(JSON.stringify(sheets));
+
+/** Shift a sheet's cells (+ column widths) for a row/column insert or delete at `at`. */
+function shiftCellsForRowCol(sheet: SheetState, axis: 'row' | 'col', at: number, insert: boolean): void {
+  const cells: Record<string, Cell> = {};
+  for (const cell of Object.values(sheet.cells)) {
+    let { row, col } = cell;
+    const idx = axis === 'row' ? row : col;
+    if (insert) {
+      if (idx >= at) { if (axis === 'row') row++; else col++; }
+    } else {
+      if (idx === at) continue;            // drop cells on the deleted line
+      if (idx > at) { if (axis === 'row') row--; else col--; }
+    }
+    cells[cellKey(row, col)] = { ...cell, row, col };
+  }
+  sheet.cells = cells;
+
+  if (axis === 'col') {
+    const widths: Record<number, number> = {};
+    for (const [k, width] of Object.entries(sheet.colWidths)) {
+      let ci = Number(k);
+      if (insert) { if (ci >= at) ci++; } else { if (ci === at) continue; if (ci > at) ci--; }
+      widths[ci] = width;
+    }
+    sheet.colWidths = widths;
+  }
+}
+
+/** Insert/delete a row or column: shift the store + HyperFormula (which re-points A1 refs), then pull the
+ *  shifted formula sources back so the model and the engine stay consistent. */
+function rowColOp(
+  get: () => SpreadsheetState,
+  set: (partial: Partial<SpreadsheetState>) => void,
+  axis: 'row' | 'col',
+  at: number,
+  insert: boolean,
+): void {
+  const { sheets, active } = get();
+  const snapshot: Snapshot = { name: get().name, sheets: clone(sheets) };
+  const next = clone(sheets);
+  const sheet = next[active];
+
+  shiftCellsForRowCol(sheet, axis, at, insert);
+  if (axis === 'row') sheet.rowCount = Math.max(1, sheet.rowCount + (insert ? 1 : -1));
+  else sheet.colCount = Math.max(1, sheet.colCount + (insert ? 1 : -1));
+
+  if (axis === 'row') insert ? sheetEngine.addRows(active, at) : sheetEngine.removeRows(active, at);
+  else insert ? sheetEngine.addColumns(active, at) : sheetEngine.removeColumns(active, at);
+
+  for (const cell of Object.values(sheet.cells)) {
+    if (cell.type === 'formula') {
+      const f = sheetEngine.getFormula(active, cell.row, cell.col);
+      if (f) cell.formula = f;
+      cell.value = sheetEngine.getValue(active, cell.row, cell.col);
+    }
+  }
+  set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+}
 
 /** Apply a mutation to every cell of the current range (or the active cell), with an undo snapshot. */
 function mutateRange(
@@ -173,6 +236,17 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
 
       applyStyle: (patch) => mutateRange(get, set, (cell) => { cell.style = { ...cell.style, ...patch }; }),
       applyNumberFormat: (fmt) => mutateRange(get, set, (cell) => { cell.numberFormat = fmt; }),
+
+      insertRow: (at) => rowColOp(get, set, 'row', at, true),
+      deleteRow: (at) => rowColOp(get, set, 'row', at, false),
+      insertCol: (at) => rowColOp(get, set, 'col', at, true),
+      deleteCol: (at) => rowColOp(get, set, 'col', at, false),
+
+      setColWidth: (col, width) => {
+        const next = clone(get().sheets);
+        next[get().active].colWidths[col] = width;
+        set({ sheets: next }); // not snapshotted — resize is cheap/continuous
+      },
 
       addSheet: () => {
         const { sheets } = get();

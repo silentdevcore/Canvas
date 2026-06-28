@@ -39,6 +39,7 @@ export const SpreadsheetGrid: React.FC = () => {
   const setCellInput = useSpreadsheetStore((s) => s.setCellInput);
   const select = useSpreadsheetStore((s) => s.select);
   const selectRange = useSpreadsheetStore((s) => s.selectRange);
+  const setColWidth = useSpreadsheetStore((s) => s.setColWidth);
 
   const columns: GridColumn[] = React.useMemo(
     () => Array.from({ length: sheet.colCount }, (_, c) => ({
@@ -89,6 +90,7 @@ export const SpreadsheetGrid: React.FC = () => {
       getCellContent={getCellContent}
       onCellEdited={onCellEdited}
       onGridSelectionChange={onGridSelectionChange}
+      onColumnResize={(_col, newSize, colIndex) => setColWidth(colIndex, newSize)}
       rowMarkers="number"
       smoothScrollX
       smoothScrollY
