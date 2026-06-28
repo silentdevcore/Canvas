@@ -56,14 +56,20 @@ protection, grouping, comments, rendering (PDF/PNG/HTML), and `.xls`/`.ods`/back
       registered. Tests: `.xls` round-trip (values/formula/merge), CSV quoting/types. `.ods`/HTML-import
       deferred (no good .NET ODS writer; the frontend already parses HTML/CSV).
 
-## Phase 5 — DataTable / templating / polish
-- [ ] DataTable/JSON-array ⇄ sheet; smart-marker templating (reuse `CanvasExpressionEvaluator`); streaming
-      note + streaming CSV; docs (DocsPage Spreadsheets + backend-capabilities note).
+## Phase 5 — DataTable / templating / polish — DONE
+- [x] `SpreadsheetData`: `FromRows` (JSON row objects → bold header + typed rows = DataTable equivalent),
+      `Fill` (`{{token}}` placeholder replacement in text cells, dotted paths resolve nested objects).
+      Endpoints `POST /api/spreadsheet/from-data` and `/fill`. DI registered.
+- [x] Docs: DocsPage "Spreadsheets" updated — round-trip/IO list (xlsx/xls/csv), new **Backend engine**
+      subsection (calculate/render/sort/find-replace/from-data/fill), rich-features note, calc note.
+- [x] Tests `FromRows_BuildsHeaderAndTypedRows`, `Fill_ReplacesTokens`. Full Export suite **203** green.
+      Streaming: ClosedXML is in-memory (practical ~10⁵-row ceiling); a SAX 1M-row engine stays deferred.
 
 ## Deferred
 Charts, pivot tables, images/shapes, digital signatures, full 1M-row streaming engine.
 
-## Verification
-- `dotnet build Canvas.sln` clean; `Canvas.Export.Tests` green (recalc, each feature round-trip, `.xls`,
-  render PDF/PNG/HTML).
-- Live (`:5086`): `/calculate` returns computed values; `/render?format=pdf` → `%PDF`; `/import` `.xls` → DTO.
+## Verification — all phases DONE
+- `dotnet build Canvas.sln` clean; `Canvas.Export.Tests` **203** green (recalc, each rich-feature round-trip,
+  `.xls` + CSV, render, from-data + fill).
+- Live (`:5086`): `/calculate` computes chained deps; `/render?format=pdf` → `%PDF`; `/export?format=xls` →
+  BIFF; `/from-data` builds a sheet; `/fill` resolves nested `{{user.name}}`.

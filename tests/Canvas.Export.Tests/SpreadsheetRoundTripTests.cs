@@ -82,6 +82,31 @@ public sealed class SpreadsheetRoundTripTests
     }
 
     [Fact]
+    public void FromRows_BuildsHeaderAndTypedRows()
+    {
+        var rows = new List<Dictionary<string, System.Text.Json.JsonElement>>
+        {
+            System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, System.Text.Json.JsonElement>>("{\"Name\":\"Ann\",\"Age\":30}")!,
+            System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, System.Text.Json.JsonElement>>("{\"Name\":\"Bob\",\"Age\":25}")!,
+        };
+        var sheet = new SpreadsheetData().FromRows(rows, "People");
+        Assert.Equal("Name", sheet.Cells.First(c => c.Row == 0 && c.Col == 0).Value);
+        Assert.True(sheet.Cells.First(c => c.Row == 0 && c.Col == 0).Style!.Bold);
+        Assert.Equal("Ann", sheet.Cells.First(c => c.Row == 1 && c.Col == 0).Value);
+        Assert.Equal(30d, sheet.Cells.First(c => c.Row == 1 && c.Col == 1).Value);
+    }
+
+    [Fact]
+    public void Fill_ReplacesTokens()
+    {
+        var wb = new SpreadsheetDto { Sheets = [new SheetDto { Cells = [new CellDto { Row = 0, Col = 0, Type = "text", Value = "Hello {{name}}" }] }] };
+        var data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, System.Text.Json.JsonElement>>("{\"name\":\"World\"}")!;
+        var count = new SpreadsheetData().Fill(wb, data);
+        Assert.Equal(1, count);
+        Assert.Equal("Hello World", wb.Sheets[0].Cells[0].Value);
+    }
+
+    [Fact]
     public void Xls_RoundTrip_PreservesValuesFormulasMerges()
     {
         var wb = new SpreadsheetDto

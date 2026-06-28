@@ -24,9 +24,10 @@ public class SpreadsheetController : ControllerBase
     private readonly SpreadsheetOperations _ops;
     private readonly ExportDocumentUseCase _export;
     private readonly XlsWorkbookIo _xls;
+    private readonly SpreadsheetData _data;
     private readonly PdfFontLoader? _fontLoader;
 
-    public SpreadsheetController(ExcelWorkbookExporter exporter, ExcelWorkbookImporter importer, SpreadsheetToDesignConverter toDesign, SpreadsheetCalculator calculator, SpreadsheetOperations ops, ExportDocumentUseCase export, XlsWorkbookIo xls, PdfFontLoader? fontLoader = null)
+    public SpreadsheetController(ExcelWorkbookExporter exporter, ExcelWorkbookImporter importer, SpreadsheetToDesignConverter toDesign, SpreadsheetCalculator calculator, SpreadsheetOperations ops, ExportDocumentUseCase export, XlsWorkbookIo xls, SpreadsheetData data, PdfFontLoader? fontLoader = null)
     {
         _exporter = exporter;
         _importer = importer;
@@ -35,6 +36,7 @@ public class SpreadsheetController : ControllerBase
         _ops = ops;
         _export = export;
         _xls = xls;
+        _data = data;
         _fontLoader = fontLoader;
     }
 
@@ -170,6 +172,36 @@ public class SpreadsheetController : ControllerBase
         if (workbook is null || string.IsNullOrEmpty(find)) return BadRequest(new { error = "Body + 'find' are required." });
         var count = _ops.FindReplace(workbook, find, replace, matchCase);
         return Ok(new { workbook, count });
+    }
+
+    /// <summary>Builds a workbook from JSON row objects — a bold header row (union of keys) + one typed row
+    /// per object. The DataTable equivalent for API callers.</summary>
+    [HttpPost("from-data")]
+    [ProducesResponseType(typeof(SpreadsheetDto), 200)]
+    [ProducesResponseType(400)]
+    public IActionResult FromData([FromBody] List<Dictionary<string, System.Text.Json.JsonElement>>? rows, [FromQuery] string sheetName = "Sheet1")
+    {
+        if (rows is null) return BadRequest(new { error = "A JSON array of row objects is required." });
+        var sheet = _data.FromRows(rows, sheetName);
+        return Ok(new SpreadsheetDto { Id = Guid.NewGuid().ToString("n"), Name = sheetName, Sheets = [sheet] });
+    }
+
+    /// <summary>Fills a template workbook's <c>{{token}}</c> placeholders from a data object; returns the
+    /// workbook + the number of cells changed.</summary>
+    [HttpPost("fill")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400)]
+    public IActionResult Fill([FromBody] FillRequest? request)
+    {
+        if (request?.Workbook is null) return BadRequest(new { error = "Body with 'workbook' is required." });
+        var count = _data.Fill(request.Workbook, request.Data ?? []);
+        return Ok(new { workbook = request.Workbook, count });
+    }
+
+    public sealed class FillRequest
+    {
+        public SpreadsheetDto? Workbook { get; set; }
+        public Dictionary<string, System.Text.Json.JsonElement>? Data { get; set; }
     }
 
     private static string SanitizeFileName(string? name)

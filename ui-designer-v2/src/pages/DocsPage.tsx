@@ -1325,17 +1325,26 @@ public class TemplatesController : ControllerBase
                 </tbody>
               </table>
             </div>
-            <p>The toolbar <strong>Import</strong> button accepts any of the three (dispatched by extension); <strong>Export ▾</strong> is a format menu. <code className="docs-inline-code">.xls</code> / <code className="docs-inline-code">.ods</code> and PDF export are not yet supported.</p>
+            <p>The toolbar <strong>Import</strong> button accepts any of the three (dispatched by extension); <strong>Export ▾</strong> is a format menu. <code className="docs-inline-code">.ods</code> is not yet supported.</p>
 
             <H3>Backend API &amp; model</H3>
-            <p>The <code className="docs-inline-code">.xlsx</code> round-trip is served by the backend:</p>
+            <p>Round-trip + IO:</p>
             <ul className="docs-steps">
-              <li><code className="docs-inline-code">POST /api/spreadsheet/export</code> — a <code className="docs-inline-code">SpreadsheetDto</code> workbook → <code className="docs-inline-code">.xlsx</code> (real A1 formulas via <code className="docs-inline-code">cell.FormulaA1</code>).</li>
-              <li><code className="docs-inline-code">POST /api/spreadsheet/import</code> — multipart <code className="docs-inline-code">.xlsx</code> → <code className="docs-inline-code">SpreadsheetDto</code> (preserves formulas + cached values, types, styles, merges).</li>
+              <li><code className="docs-inline-code">POST /api/spreadsheet/export?format=xlsx|xls|csv&amp;recalculate=</code> — a <code className="docs-inline-code">SpreadsheetDto</code> workbook → <code className="docs-inline-code">.xlsx</code> (real A1 formulas), legacy <code className="docs-inline-code">.xls</code> (NPOI), or CSV.</li>
+              <li><code className="docs-inline-code">POST /api/spreadsheet/import</code> — multipart <code className="docs-inline-code">.xlsx</code> / <code className="docs-inline-code">.xls</code> / <code className="docs-inline-code">.csv</code> → <code className="docs-inline-code">SpreadsheetDto</code> (dispatched by extension; preserves formulas + cached values, types, styles, merges).</li>
             </ul>
+            <H3>Backend engine (server-side)</H3>
+            <p>The backend is authoritative for headless/API callers — it no longer just stores formula strings:</p>
+            <ul className="docs-steps">
+              <li><code className="docs-inline-code">POST /api/spreadsheet/calculate</code> — evaluates formulas server-side (ClosedXML) and writes each computed value back into the model. Chained dependencies resolve; unsupported functions degrade to <code className="docs-inline-code">#ERROR</code>.</li>
+              <li><code className="docs-inline-code">POST /api/spreadsheet/render?format=pdf|html|png|jpeg</code> — renders a sheet as a gridlined document (PDF via Canvas.Pdf; html/png/jpeg via the standard exporters).</li>
+              <li><code className="docs-inline-code">POST /api/spreadsheet/sort</code> and <code className="docs-inline-code">/find-replace</code> — sort a range by a key column; find/replace across text + formula cells.</li>
+              <li><code className="docs-inline-code">POST /api/spreadsheet/from-data</code> and <code className="docs-inline-code">/fill</code> — build a workbook from JSON rows (DataTable), or fill a template's <code className="docs-inline-code">{'{{token}}'}</code> placeholders from a data object.</li>
+            </ul>
+            <p>Rich Excel features round-trip through <code className="docs-inline-code">.xlsx</code>: page setup, sheet protection, auto-filter, row/column grouping, cell comments + hyperlinks, conditional formatting, and data validation.</p>
             <p>The model (<code className="docs-inline-code">src/Canvas.Core/Contracts/SpreadsheetDto.cs</code>) is a workbook of sheets of sparse typed cells (<code className="docs-inline-code">number</code>/<code className="docs-inline-code">text</code>/<code className="docs-inline-code">boolean</code>/<code className="docs-inline-code">date</code>/<code className="docs-inline-code">formula</code>) with number formats, styles, merges, frozen panes, and defined names — exported/imported by <code className="docs-inline-code">Canvas.Infrastructure.Spreadsheet</code>.</p>
             <div className="docs-callout docs-callout--tip">
-              <strong>Note:</strong> a workbook (spreadsheet) contains multiple <em>sheets</em> — the live calculation runs client-side (HyperFormula, GPLv3-or-commercial); the backend stores formula strings + cached values, and Excel/HyperFormula recompute on open.
+              <strong>Note:</strong> a workbook (spreadsheet) contains multiple <em>sheets</em>. Live editing recalculates client-side (HyperFormula, GPLv3-or-commercial); for headless/API callers <code className="docs-inline-code">/calculate</code> recomputes server-side (ClosedXML). Charts and pivot tables are not yet supported.
             </div>
           </section>
 
