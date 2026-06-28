@@ -1,5 +1,17 @@
 import { sheetToCsv, parseCsv, csvToSheet, workbookToJson, jsonToWorkbook } from '../spreadsheet/io';
 import { emptySheet, cellKey, workbookToWire, type Workbook } from '../spreadsheet/types';
+import { formatCellValue } from '../spreadsheet/numberFormat';
+
+describe('number-format display', () => {
+  test('number / currency / percent / date / passthrough', () => {
+    expect(formatCellValue(1234.5, '#,##0.00')).toBe('1,234.50');
+    expect(formatCellValue(1234.5, '"€"#,##0.00')).toBe('€1,234.50');
+    expect(formatCellValue(0.1234, '0.00%')).toBe('12.34%');
+    expect(formatCellValue('2026-06-27', 'dd.MM.yyyy')).toMatch(/^\d{2}\.\d{2}\.2026$/);
+    expect(formatCellValue('hello', '#,##0.00')).toBe('hello'); // non-numeric passthrough
+    expect(formatCellValue(5, undefined)).toBe('5');             // no format → raw
+  });
+});
 
 describe('spreadsheet CSV io', () => {
   test('sheetToCsv emits computed values with RFC-4180 quoting', () => {

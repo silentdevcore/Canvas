@@ -6,6 +6,7 @@ import {
 import '@glideapps/glide-data-grid/dist/index.css';
 import { useSpreadsheetStore } from './store';
 import { cellKey, type CellStyle } from './types';
+import { formatCellValue } from './numberFormat';
 
 /** Map a cell style to a glide per-cell theme override (font, fill, text color). */
 function buildTheme(style: CellStyle): Partial<Theme> {
@@ -55,9 +56,9 @@ export const SpreadsheetGrid: React.FC = () => {
   const getCellContent = useCallback(([col, row]: Item): GridCell => {
     const cell = sheet.cells[cellKey(row, col)];
     const value = computed(row, col);
-    const display = value == null ? '' : String(value);
-    // On edit the overlay shows the formula source; the grid shows the computed result.
-    const editData = cell?.type === 'formula' ? (cell.formula ?? '') : display;
+    const display = formatCellValue(value, cell?.numberFormat); // number-format-aware display
+    // On edit the overlay shows the formula source (or the raw value); the grid shows the formatted result.
+    const editData = cell?.type === 'formula' ? (cell.formula ?? '') : (cell?.value != null ? String(cell.value) : '');
     const style = cell?.style;
     return {
       kind: GridCellKind.Text,

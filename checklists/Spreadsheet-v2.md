@@ -44,10 +44,11 @@ through `.xlsx` — so most formatting work is **UI + grid rendering**, not new 
       (paste from Excel works, formulas included), one undo step; `onDelete` → `clearRange` (content only,
       keeps styling). Test: paste a block incl. `=A1+B1` → computes 3; clearRange clears it.
 
-## #3 — Number-format-aware display
-- [ ] Apply each cell's `numberFormat` to its on-screen value (currency / percent / date / decimals) so the
-      grid matches Excel and the exported file. A small format-code → formatter mapper (cover the toolbar
-      presets first; degrade gracefully on unknown codes).
+## #3 — Number-format-aware display — DONE
+- [x] `numberFormat.ts` (`formatCellValue`) maps format codes to display: number (`#,##0.00`), currency
+      (`"€"#,##0.00`), percent (`0.00%`), date (`dd.MM.yyyy` tokens); degrades to the raw string otherwise.
+      The grid's `displayData` is formatted while the edit overlay keeps the raw value/formula. Test covers
+      all four presets + passthrough.
 
 ## #4 — Merge / freeze UI
 - [ ] Merge / unmerge the selected range (update `merges`; render spans in glide). Freeze rows/cols toggle
