@@ -88,12 +88,10 @@ type). Confirm the scope before executing.
       the 3 test files. No stale `.Sheet` references remain.
 - [x] `dotnet build Canvas.sln` clean; `Canvas.Export.Tests` **193** green.
 
-### B) Per-sheet model identifiers — **recommend NOT renaming** (a Spreadsheet contains Sheets)
-- [ ] `SheetDto`/`SheetColumnDto`/`SheetRowDto` (`SpreadsheetDto.cs`) — keep; `SheetDto→SpreadsheetDto`
-      collides with the workbook type.
-- [ ] Frontend `SheetState`/`SheetWire`/`SheetEngine`/`addSheet`/`activeSheet`/… — keep (worksheet semantics).
-      *If you do want these renamed (e.g. `SheetEngine→SpreadsheetEngine`, `SheetState→WorksheetState`), say
-      which, and I'll scope it.*
+### B) Per-sheet model identifiers — **kept, not renamed** (decided: "rename project only")
+- [x] `SheetDto`/`SheetColumnDto`/`SheetRowDto` (`SpreadsheetDto.cs`) — **kept** (a Spreadsheet contains
+      Sheets; `SheetDto→SpreadsheetDto` would collide with the workbook type).
+- [x] Frontend `SheetState`/`SheetWire`/`SheetEngine`/`addSheet`/`activeSheet`/… — **kept** (worksheet semantics).
 
 ## Verification
 - Backend: `dotnet test` round-trip preserves values/formulas/types/number-formats/styles/merges; `dotnet

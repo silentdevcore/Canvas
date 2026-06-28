@@ -35,13 +35,14 @@ The native `Workbook` model — lossless save/load, offline, no backend.
 - [x] **JSON import**: `jsonToWorkbook` (validates `sheets`) → `loadWorkbook`.
 - [x] In the Export menu + Import dispatch; test confirms a round-trip preserves formulas + styles.
 
-## Deferred (need new libraries or are lower priority)
-- [ ] **`.xls` (legacy Excel)** — ClosedXML is `.xlsx`-only; would need NPOI (new dependency). Defer until
-      a real need.
-- [ ] **`.ods` (OpenDocument Spreadsheet)** — not supported by ClosedXML; needs another library. Defer.
-- [ ] **PDF export** — render the active sheet to PDF via the existing `Canvas.Pdf` engine (read-only).
-      Feasible later; reuses `DrawSimpleTable`/cell drawing.
-- [ ] **TSV** — trivial variant of CSV if requested (tab delimiter).
+## Backend formats — shipped via the Spreadsheet Backend Engine
+See `checklists/Spreadsheet-Backend-Engine.md` (commits `39de695b`..`6490ab9a`, 2026-06-28).
+- [x] **`.xls` (legacy Excel)** — `XlsWorkbookIo` via **NPOI 2.8** (Phase 4); `/export?format=xls`, `/import` `.xls`.
+- [x] **PDF export** — `/render?format=pdf` renders the sheet to PDF via `Canvas.Pdf` (Phase 3); also html/png/jpeg.
+- [x] **TSV** — `CsvSheetIo` takes a delimiter; `/export?format=tsv`, `/import` `.tsv`. Test `Tsv_RoundTrip_TabDelimited`.
+
+## Still deferred (need new libraries)
+- [ ] **`.ods` (OpenDocument Spreadsheet)** — not supported by ClosedXML; no solid .NET ODS writer. Defer.
 
 ## Verification
 - CSV: export a sheet with text + numbers + a formula → file has computed values, correct quoting; import

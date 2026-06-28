@@ -147,6 +147,22 @@ public sealed class SpreadsheetRoundTripTests
     }
 
     [Fact]
+    public void Tsv_RoundTrip_TabDelimited()
+    {
+        var sheet = new SheetDto { Cells =
+        [
+            new CellDto { Row = 0, Col = 0, Type = "text", Value = "a,b" }, // comma needs no quoting in TSV
+            new CellDto { Row = 0, Col = 1, Type = "number", Value = 5d },
+        ] };
+        var tsv = CsvSheetIo.ToCsv(sheet, '\t');
+        Assert.Equal("a,b\t5", tsv);
+
+        var back = CsvSheetIo.FromCsv(tsv, "Sheet1", '\t');
+        Assert.Equal("a,b", back.Cells.First(c => c.Row == 0 && c.Col == 0).Value);
+        Assert.Equal(5d, back.Cells.First(c => c.Row == 0 && c.Col == 1).Value);
+    }
+
+    [Fact]
     public void ToDesign_Gridlines_AddsHeaderRowAndBorder()
     {
         var wb = new SpreadsheetDto { Sheets = [new SheetDto { Cells = [new CellDto { Row = 0, Col = 0, Type = "text", Value = "x" }] }] };

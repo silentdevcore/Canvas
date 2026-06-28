@@ -1330,8 +1330,8 @@ public class TemplatesController : ControllerBase
             <H3>Backend API &amp; model</H3>
             <p>Round-trip + IO:</p>
             <ul className="docs-steps">
-              <li><code className="docs-inline-code">POST /api/spreadsheet/export?format=xlsx|xls|csv&amp;recalculate=</code> — a <code className="docs-inline-code">SpreadsheetDto</code> workbook → <code className="docs-inline-code">.xlsx</code> (real A1 formulas), legacy <code className="docs-inline-code">.xls</code> (NPOI), or CSV.</li>
-              <li><code className="docs-inline-code">POST /api/spreadsheet/import</code> — multipart <code className="docs-inline-code">.xlsx</code> / <code className="docs-inline-code">.xls</code> / <code className="docs-inline-code">.csv</code> → <code className="docs-inline-code">SpreadsheetDto</code> (dispatched by extension; preserves formulas + cached values, types, styles, merges).</li>
+              <li><code className="docs-inline-code">POST /api/spreadsheet/export?format=xlsx|xls|csv|tsv&amp;recalculate=</code> — a <code className="docs-inline-code">SpreadsheetDto</code> workbook → <code className="docs-inline-code">.xlsx</code> (real A1 formulas), legacy <code className="docs-inline-code">.xls</code> (NPOI), or CSV/TSV.</li>
+              <li><code className="docs-inline-code">POST /api/spreadsheet/import</code> — multipart <code className="docs-inline-code">.xlsx</code> / <code className="docs-inline-code">.xls</code> / <code className="docs-inline-code">.csv</code> / <code className="docs-inline-code">.tsv</code> → <code className="docs-inline-code">SpreadsheetDto</code> (dispatched by extension; preserves formulas + cached values, types, styles, merges).</li>
             </ul>
             <H3>Backend engine (server-side)</H3>
             <p>The backend is authoritative for headless/API callers — it no longer just stores formula strings:</p>

@@ -55,6 +55,7 @@ public class SpreadsheetController : ControllerBase
         {
             "xls" => File(_xls.Export(workbook), "application/vnd.ms-excel", $"{name}.xls"),
             "csv" => File(System.Text.Encoding.UTF8.GetBytes(workbook.Sheets.Count > 0 ? CsvSheetIo.ToCsv(workbook.Sheets[0]) : ""), "text/csv", $"{name}.csv"),
+            "tsv" => File(System.Text.Encoding.UTF8.GetBytes(workbook.Sheets.Count > 0 ? CsvSheetIo.ToCsv(workbook.Sheets[0], '\t') : ""), "text/tab-separated-values", $"{name}.tsv"),
             _ => File(_exporter.Export(workbook, recalculate), XlsxMime, $"{name}.xlsx"),
         };
     }
@@ -78,7 +79,7 @@ public class SpreadsheetController : ControllerBase
     public async Task<IActionResult> Import(IFormFile? file)
     {
         if (file is null || file.Length == 0)
-            return BadRequest(new { error = "A spreadsheet file (.xlsx, .xls, or .csv) is required." });
+            return BadRequest(new { error = "A spreadsheet file (.xlsx, .xls, .csv, or .tsv) is required." });
 
         using var ms = new MemoryStream();
         await using (var stream = file.OpenReadStream())
@@ -91,11 +92,11 @@ public class SpreadsheetController : ControllerBase
             SpreadsheetDto workbook = ext switch
             {
                 ".xls" => _xls.Import(ms, file.FileName),
-                ".csv" => new SpreadsheetDto
+                ".csv" or ".tsv" => new SpreadsheetDto
                 {
                     Id = Guid.NewGuid().ToString("n"),
                     Name = Path.GetFileNameWithoutExtension(file.FileName),
-                    Sheets = [CsvSheetIo.FromCsv(new StreamReader(ms).ReadToEnd(), "Sheet1")],
+                    Sheets = [CsvSheetIo.FromCsv(new StreamReader(ms).ReadToEnd(), "Sheet1", ext == ".tsv" ? '\t' : ',')],
                 },
                 _ => _importer.Import(ms, file.FileName), // .xlsx (default)
             };

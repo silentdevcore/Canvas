@@ -52,9 +52,9 @@ protection, grouping, comments, rendering (PDF/PNG/HTML), and `.xls`/`.ods`/back
 - [x] `XlsWorkbookIo` — legacy `.xls` (BIFF8) read/write via **NPOI 2.8** ↔ `SpreadsheetDto` (values,
       formulas, merges, column widths; styles not carried for `.xls`). `CsvSheetIo` — server-side RFC-4180
       CSV export (computed values) + import (number/text detection).
-- [x] `/export?format=xlsx|xls|csv`; `/import` dispatches by file extension (`.xlsx`/`.xls`/`.csv`). DI
-      registered. Tests: `.xls` round-trip (values/formula/merge), CSV quoting/types. `.ods`/HTML-import
-      deferred (no good .NET ODS writer; the frontend already parses HTML/CSV).
+- [x] `/export?format=xlsx|xls|csv|tsv`; `/import` dispatches by file extension (`.xlsx`/`.xls`/`.csv`/`.tsv`,
+      TSV reuses `CsvSheetIo` with a tab delimiter). DI registered. Tests: `.xls` round-trip, CSV + TSV
+      quoting/types. `.ods`/HTML-import deferred (no good .NET ODS writer; the frontend already parses HTML/CSV).
 
 ## Phase 5 — DataTable / templating / polish — DONE
 - [x] `SpreadsheetData`: `FromRows` (JSON row objects → bold header + typed rows = DataTable equivalent),
