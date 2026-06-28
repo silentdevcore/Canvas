@@ -44,6 +44,10 @@ interface SpreadsheetState {
   insertCol: (at: number) => void;
   deleteCol: (at: number) => void;
   setColWidth: (col: number, width: number) => void;
+  /** Paste a block of raw values starting at (row, col) — one undo step. */
+  pasteValues: (row: number, col: number, values: readonly (readonly string[])[]) => void;
+  /** Clear the content of the current range (keeps styling), one undo step. */
+  clearRange: () => void;
   addSheet: () => void;
   renameSheet: (index: number, name: string) => void;
   deleteSheet: (index: number) => void;
@@ -246,6 +250,49 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
         const next = clone(get().sheets);
         next[get().active].colWidths[col] = width;
         set({ sheets: next }); // not snapshotted — resize is cheap/continuous
+      },
+
+      pasteValues: (startRow, startCol, values) => {
+        const { sheets, active } = get();
+        const snapshot: Snapshot = { name: get().name, sheets: clone(sheets) };
+        const next = clone(sheets);
+        const sheet = next[active];
+        values.forEach((rowVals, dr) =>
+          rowVals.forEach((raw, dc) => {
+            const row = startRow + dr;
+            const col = startCol + dc;
+            const key = cellKey(row, col);
+            const existing = sheet.cells[key];
+            const parsed = parseInput(raw);
+            if (parsed.type === 'empty' && !existing?.style && !existing?.numberFormat) delete sheet.cells[key];
+            else sheet.cells[key] = { row, col, type: parsed.type, value: parsed.value, formula: parsed.formula, numberFormat: existing?.numberFormat, style: existing?.style };
+            sheetEngine.setCell(active, row, col, raw);
+          }),
+        );
+        for (const cell of Object.values(sheet.cells)) if (cell.type === 'formula') cell.value = sheetEngine.getValue(active, cell.row, cell.col);
+        sheet.rowCount = Math.max(sheet.rowCount, startRow + values.length);
+        sheet.colCount = Math.max(sheet.colCount, startCol + Math.max(0, ...values.map((v) => v.length)));
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+      },
+
+      clearRange: () => {
+        const { active, selection } = get();
+        const r = get().range ?? { r0: selection.row, c0: selection.col, r1: selection.row, c1: selection.col };
+        const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
+        const next = clone(get().sheets);
+        const sheet = next[active];
+        for (let row = Math.min(r.r0, r.r1); row <= Math.max(r.r0, r.r1); row++) {
+          for (let col = Math.min(r.c0, r.c1); col <= Math.max(r.c0, r.c1); col++) {
+            const key = cellKey(row, col);
+            const ex = sheet.cells[key];
+            if (ex) {
+              if (ex.style || ex.numberFormat) { ex.type = 'empty'; ex.value = null; ex.formula = undefined; }
+              else delete sheet.cells[key];
+            }
+            sheetEngine.setCell(active, row, col, '');
+          }
+        }
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
       },
 
       addSheet: () => {

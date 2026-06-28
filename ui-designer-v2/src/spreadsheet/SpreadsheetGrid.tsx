@@ -40,6 +40,8 @@ export const SpreadsheetGrid: React.FC = () => {
   const select = useSpreadsheetStore((s) => s.select);
   const selectRange = useSpreadsheetStore((s) => s.selectRange);
   const setColWidth = useSpreadsheetStore((s) => s.setColWidth);
+  const pasteValues = useSpreadsheetStore((s) => s.pasteValues);
+  const clearRange = useSpreadsheetStore((s) => s.clearRange);
 
   const columns: GridColumn[] = React.useMemo(
     () => Array.from({ length: sheet.colCount }, (_, c) => ({
@@ -91,6 +93,9 @@ export const SpreadsheetGrid: React.FC = () => {
       onCellEdited={onCellEdited}
       onGridSelectionChange={onGridSelectionChange}
       onColumnResize={(_col, newSize, colIndex) => setColWidth(colIndex, newSize)}
+      getCellsForSelection={true}
+      onPaste={(target, values) => { pasteValues(target[1], target[0], values); return false; }}
+      onDelete={(sel) => { clearRange(); return sel; }}
       rowMarkers="number"
       smoothScrollX
       smoothScrollY

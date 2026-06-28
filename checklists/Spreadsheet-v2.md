@@ -38,9 +38,11 @@ through `.xlsx` — so most formatting work is **UI + grid rendering**, not new 
 - [x] Column resize → `setColWidth` (glide `onColumnResize`) persisted into `colWidths` (round-trips to xlsx).
 - [x] Tests: insert a row above `=SUM(A1:A2)` → becomes `=SUM(A2:A3)` (still 30); delete a column shifts left.
 
-## #2 — Copy / cut / paste (Excel-compatible)
-- [ ] Copy/cut the selected range to the clipboard as **TSV** (paste into Excel works); paste TSV from the
-      clipboard into the grid (paste from Excel works). Keyboard Ctrl+C/X/V; `Delete` clears the range.
+## #2 — Copy / cut / paste (Excel-compatible) — DONE
+- [x] Uses glide's built-in clipboard: `getCellsForSelection` enables **Ctrl+C/X** copying the range as TSV
+      (computed values → pastes into Excel); `onPaste` → `pasteValues` writes a TSV block from the clipboard
+      (paste from Excel works, formulas included), one undo step; `onDelete` → `clearRange` (content only,
+      keeps styling). Test: paste a block incl. `=A1+B1` → computes 3; clearRange clears it.
 
 ## #3 — Number-format-aware display
 - [ ] Apply each cell's `numberFormat` to its on-screen value (currency / percent / date / decimals) so the

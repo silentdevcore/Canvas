@@ -92,6 +92,21 @@ describe('spreadsheet store + HyperFormula recalc', () => {
     expect(g.cellAt(0, 2)).toBeUndefined();
   });
 
+  test('pasteValues writes a block (incl. formulas); clearRange clears it', () => {
+    const s = useSpreadsheetStore.getState();
+    s.pasteValues(0, 0, [['1', '2'], ['3', '=A1+B1']]);
+    let g = useSpreadsheetStore.getState();
+    expect(g.cellAt(0, 0)?.value).toBe(1);
+    expect(g.cellAt(1, 1)?.formula).toBe('=A1+B1');
+    expect(g.computed(1, 1)).toBe(3); // A1 + B1 = 1 + 2
+
+    g.selectRange({ r0: 0, c0: 0, r1: 1, c1: 1 });
+    useSpreadsheetStore.getState().clearRange();
+    g = useSpreadsheetStore.getState();
+    expect(g.cellAt(0, 0)).toBeUndefined();
+    expect(g.cellAt(1, 1)).toBeUndefined();
+  });
+
   test('toWire produces a sparse workbook the backend can read', () => {
     const s = useSpreadsheetStore.getState();
     s.setCellInput(0, 0, 'Hello');
