@@ -82,6 +82,16 @@ public sealed class SpreadsheetRoundTripTests
     }
 
     [Fact]
+    public void ToDesign_Gridlines_AddsHeaderRowAndBorder()
+    {
+        var wb = new SpreadsheetDto { Sheets = [new SheetDto { Cells = [new CellDto { Row = 0, Col = 0, Type = "text", Value = "x" }] }] };
+        var table = new SpreadsheetToDesignConverter().Convert(wb, 0, gridlines: true).Pages[0].Elements[0];
+        Assert.True(table.HeaderRow);
+        Assert.NotNull(table.Style);
+        Assert.True(table.Style!.ContainsKey("borderColor"));
+    }
+
+    [Fact]
     public void RichFeatures_RoundTrip()
     {
         var wb = new SpreadsheetDto

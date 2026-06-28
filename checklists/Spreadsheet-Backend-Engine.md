@@ -40,9 +40,13 @@ protection, grouping, comments, rendering (PDF/PNG/HTML), and `.xls`/`.ods`/back
 - [x] Tests: `RichFeatures_RoundTrip`, `SortRange_OrdersRowsByKeyColumn`, `FindReplace_ReplacesTextAndFormulas`.
       Full Export suite **198** green.
 
-## Phase 3 — Rendering (sheet → PDF / PNG / HTML) on Canvas.Pdf
-- [ ] `SpreadsheetRenderer`: PDF (gridlines, print area, paging, freeze headers), HTML `<table>`, PNG/JPEG
-      (rasterize the PDF). `POST /api/spreadsheet/render?format=pdf|png|html|jpeg`. Tests.
+## Phase 3 — Rendering (sheet → PDF / PNG / HTML) on Canvas.Pdf — DONE
+- [x] `POST /api/spreadsheet/render?format=pdf|html|png|jpeg&sheet=0` — maps the sheet to a **gridlined**
+      table (`SpreadsheetToDesignConverter(..., gridlines: true)` → header row + light borders) and reuses
+      the existing renderers: PDF via `DesignJsonMapper.MapToPdfDocument` (Canvas.Pdf), html/png/jpeg via
+      `ExportDocumentUseCase`. No new rendering code.
+- [x] Unit test for the gridlines option; **live-verified**: render → `%PDF` (1355 B), `<!DOCTYPE html>`,
+      PNG (`89504e47`).
 
 ## Phase 4 — Format breadth
 - [ ] Backend CSV/TSV; `.xls` read/write via NPOI ↔ `SpreadsheetDto`; HTML import; `.ods` deferred.

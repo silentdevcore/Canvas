@@ -10,7 +10,7 @@ namespace Canvas.Infrastructure.Spreadsheet;
 /// </summary>
 public sealed class SpreadsheetToDesignConverter
 {
-    public DesignExportDto Convert(SpreadsheetDto workbook, int sheetIndex = 0)
+    public DesignExportDto Convert(SpreadsheetDto workbook, int sheetIndex = 0, bool gridlines = false)
     {
         var sheet = workbook.Sheets.Count > sheetIndex && sheetIndex >= 0
             ? workbook.Sheets[sheetIndex]
@@ -67,6 +67,12 @@ public sealed class SpreadsheetToDesignConverter
             ColumnWidths = columnWidths,
             CellStyles = cellStyles.Count > 0 ? cellStyles.ToArray() : null,
         };
+
+        if (gridlines) // render like a worksheet: a light grid + a styled header row
+        {
+            element.HeaderRow = rows > 0;
+            element.Style = new Dictionary<string, object> { ["borderColor"] = "#cccccc", ["borderWidth"] = 0.5 };
+        }
 
         return new DesignExportDto
         {

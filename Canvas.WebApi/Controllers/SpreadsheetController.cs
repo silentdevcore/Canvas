@@ -1,5 +1,8 @@
+using Canvas.Application.UseCases;
 using Canvas.Core.Contracts;
 using Canvas.Infrastructure.Spreadsheet;
+using Canvas.Pdf;
+using Canvas.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Canvas.WebApi.Controllers;
@@ -19,14 +22,18 @@ public class SpreadsheetController : ControllerBase
     private readonly SpreadsheetToDesignConverter _toDesign;
     private readonly SpreadsheetCalculator _calculator;
     private readonly SpreadsheetOperations _ops;
+    private readonly ExportDocumentUseCase _export;
+    private readonly PdfFontLoader? _fontLoader;
 
-    public SpreadsheetController(ExcelWorkbookExporter exporter, ExcelWorkbookImporter importer, SpreadsheetToDesignConverter toDesign, SpreadsheetCalculator calculator, SpreadsheetOperations ops)
+    public SpreadsheetController(ExcelWorkbookExporter exporter, ExcelWorkbookImporter importer, SpreadsheetToDesignConverter toDesign, SpreadsheetCalculator calculator, SpreadsheetOperations ops, ExportDocumentUseCase export, PdfFontLoader? fontLoader = null)
     {
         _exporter = exporter;
         _importer = importer;
         _toDesign = toDesign;
         _calculator = calculator;
         _ops = ops;
+        _export = export;
+        _fontLoader = fontLoader;
     }
 
     /// <summary>Exports a workbook to an <c>.xlsx</c> file (real A1 formulas + typed values). Pass
@@ -78,6 +85,38 @@ public class SpreadsheetController : ControllerBase
         catch (Exception ex)
         {
             return BadRequest(new { error = $"Could not read the spreadsheet: {ex.Message}" });
+        }
+    }
+
+    /// <summary>Renders a worksheet to a document: <c>pdf</c> (Canvas.Pdf), or <c>html</c>/<c>png</c>/<c>jpeg</c>
+    /// via the standard exporters. The sheet is mapped to a gridlined table.</summary>
+    [HttpPost("render")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(415)]
+    public IActionResult Render([FromBody] SpreadsheetDto workbook, [FromQuery] string format = "pdf", [FromQuery] int sheet = 0)
+    {
+        if (workbook is null)
+            return BadRequest(new { error = "Request body is required." });
+
+        var design = _toDesign.Convert(workbook, sheet, gridlines: true);
+        var name = SanitizeFileName(workbook.Name);
+
+        if (format.Equals("pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, null);
+            var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
+            return File(bytes, "application/pdf", $"{name}.pdf");
+        }
+
+        try
+        {
+            var result = _export.Execute(new ExportDocumentRequest(design, format, null));
+            return File(result.Data, result.MimeType, result.FileName);
+        }
+        catch (NotSupportedException ex)
+        {
+            return StatusCode(415, new { error = ex.Message });
         }
     }
 
