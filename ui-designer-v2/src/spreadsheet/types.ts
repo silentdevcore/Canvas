@@ -52,6 +52,26 @@ export interface Workbook {
 
 export const cellKey = (row: number, col: number) => `${row}:${col}`;
 
+/** 0-based column index → spreadsheet letters ("A", "AA", …). */
+export function colName(index: number): string {
+  let s = '';
+  let n = index + 1;
+  while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); }
+  return s;
+}
+const colIndex = (name: string): number => [...name.toUpperCase()].reduce((n, ch) => n * 26 + (ch.charCodeAt(0) - 64), 0) - 1;
+export const toA1 = (row: number, col: number) => `${colName(col)}${row + 1}`;
+export const toA1Range = (r0: number, c0: number, r1: number, c1: number) =>
+  `${toA1(Math.min(r0, r1), Math.min(c0, c1))}:${toA1(Math.max(r0, r1), Math.max(c0, c1))}`;
+
+/** Parse "A1:B2" (or "A1") → inclusive 0-based rectangle. */
+export function parseA1Range(a1: string): { r0: number; c0: number; r1: number; c1: number } {
+  const [a, b = a] = a1.split(':');
+  const m = (s: string) => { const mm = s.replace(/\$/g, '').match(/^([A-Za-z]+)(\d+)$/)!; return { col: colIndex(mm[1]), row: Number(mm[2]) - 1 }; };
+  const p = m(a); const q = m(b);
+  return { r0: Math.min(p.row, q.row), c0: Math.min(p.col, q.col), r1: Math.max(p.row, q.row), c1: Math.max(p.col, q.col) };
+}
+
 /** Working sheet — cells indexed by "row:col" for O(1) grid access. */
 export interface SheetState {
   id: string;

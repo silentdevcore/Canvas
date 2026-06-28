@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
   SheetState, Cell, CellType, CellStyle, cellKey, emptySheet,
-  Workbook, workbookFromWire, workbookToWire,
+  Workbook, workbookFromWire, workbookToWire, toA1Range, parseA1Range,
 } from './types';
 import { sheetEngine } from './formulaEngine';
 
@@ -48,6 +48,11 @@ interface SpreadsheetState {
   pasteValues: (row: number, col: number, values: readonly (readonly string[])[]) => void;
   /** Clear the content of the current range (keeps styling), one undo step. */
   clearRange: () => void;
+  /** Merge / unmerge the current range; freeze panes. (Round-trip to .xlsx; the editor renders horizontal
+   *  merges + frozen columns — vertical merges / frozen rows still export correctly.) */
+  mergeSelection: () => void;
+  unmergeSelection: () => void;
+  setFrozen: (rows: number, cols: number) => void;
   addSheet: () => void;
   renameSheet: (index: number, name: string) => void;
   deleteSheet: (index: number) => void;
@@ -292,6 +297,37 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
             sheetEngine.setCell(active, row, col, '');
           }
         }
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+      },
+
+      mergeSelection: () => {
+        const r = get().range;
+        if (!r || (r.r0 === r.r1 && r.c0 === r.c1)) return; // need a multi-cell range
+        const a1 = toA1Range(r.r0, r.c0, r.r1, r.c1);
+        const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
+        const next = clone(get().sheets);
+        const sheet = next[get().active];
+        if (!sheet.merges.includes(a1)) sheet.merges.push(a1);
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+      },
+
+      unmergeSelection: () => {
+        const { selection } = get();
+        const r = get().range ?? { r0: selection.row, c0: selection.col, r1: selection.row, c1: selection.col };
+        const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
+        const next = clone(get().sheets);
+        const sheet = next[get().active];
+        const intersects = (m: { r0: number; c0: number; r1: number; c1: number }) =>
+          Math.min(r.r0, r.r1) <= m.r1 && Math.max(r.r0, r.r1) >= m.r0 && Math.min(r.c0, r.c1) <= m.c1 && Math.max(r.c0, r.c1) >= m.c0;
+        sheet.merges = sheet.merges.filter((s) => !intersects(parseA1Range(s)));
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+      },
+
+      setFrozen: (rows, cols) => {
+        const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
+        const next = clone(get().sheets);
+        next[get().active].frozenRows = Math.max(0, rows);
+        next[get().active].frozenCols = Math.max(0, cols);
         set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
       },
 

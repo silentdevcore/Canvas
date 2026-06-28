@@ -1,12 +1,14 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   DataEditor, GridCellKind, type GridColumn, type GridCell, type Item, type EditableGridCell,
   type GridSelection, type Theme,
 } from '@glideapps/glide-data-grid';
 import '@glideapps/glide-data-grid/dist/index.css';
 import { useSpreadsheetStore } from './store';
-import { cellKey, type CellStyle } from './types';
+import { cellKey, colName, parseA1Range, type CellStyle } from './types';
 import { formatCellValue } from './numberFormat';
+
+export { colName };
 
 /** Map a cell style to a glide per-cell theme override (font, fill, text color). */
 function buildTheme(style: CellStyle): Partial<Theme> {
@@ -19,18 +21,6 @@ function buildTheme(style: CellStyle): Partial<Theme> {
   if (style.backgroundColor) t.bgCell = style.backgroundColor;
   if (style.color) t.textDark = style.color;
   return t;
-}
-
-/** 0-based column index → spreadsheet letters ("A", "AA", …). */
-export function colName(index: number): string {
-  let s = '';
-  let n = index + 1;
-  while (n > 0) {
-    const r = (n - 1) % 26;
-    s = String.fromCharCode(65 + r) + s;
-    n = Math.floor((n - 1) / 26);
-  }
-  return s;
 }
 
 /** The cell grid — renders the active sheet's computed values with inline editing (glide-data-grid). */
@@ -53,9 +43,24 @@ export const SpreadsheetGrid: React.FC = () => {
     [sheet.colCount, sheet.colWidths],
   );
 
+  // Horizontal merges → glide column spans. Maps every covered "row:col" to its span + origin cell.
+  // (glide renders column spans only; vertical/rectangular merges still export correctly to .xlsx.)
+  const spanMap = useMemo(() => {
+    const map = new Map<string, { span: [number, number]; or: number; oc: number }>();
+    for (const m of sheet.merges) {
+      const r = parseA1Range(m);
+      if (r.r0 !== r.r1) continue; // single-row only
+      for (let c = r.c0; c <= r.c1; c++) map.set(cellKey(r.r0, c), { span: [r.c0, r.c1], or: r.r0, oc: r.c0 });
+    }
+    return map;
+  }, [sheet.merges]);
+
   const getCellContent = useCallback(([col, row]: Item): GridCell => {
-    const cell = sheet.cells[cellKey(row, col)];
-    const value = computed(row, col);
+    const merged = spanMap.get(cellKey(row, col));
+    const cr = merged ? merged.or : row;
+    const cc = merged ? merged.oc : col;   // a merged cell renders its origin's content
+    const cell = sheet.cells[cellKey(cr, cc)];
+    const value = computed(cr, cc);
     const display = formatCellValue(value, cell?.numberFormat); // number-format-aware display
     // On edit the overlay shows the formula source (or the raw value); the grid shows the formatted result.
     const editData = cell?.type === 'formula' ? (cell.formula ?? '') : (cell?.value != null ? String(cell.value) : '');
@@ -65,10 +70,11 @@ export const SpreadsheetGrid: React.FC = () => {
       data: editData,
       displayData: display,
       allowOverlay: true,
+      ...(merged ? { span: merged.span } : {}),
       contentAlign: style?.textAlign ?? (cell?.type === 'number' || cell?.type === 'formula' ? 'right' : 'left'),
       themeOverride: style ? buildTheme(style) : undefined,
     };
-  }, [sheet, computed]);
+  }, [sheet, computed, spanMap]);
 
   const onCellEdited = useCallback(([col, row]: Item, newValue: EditableGridCell) => {
     if (newValue.kind !== GridCellKind.Text) return;

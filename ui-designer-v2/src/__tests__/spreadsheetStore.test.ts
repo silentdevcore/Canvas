@@ -107,6 +107,21 @@ describe('spreadsheet store + HyperFormula recalc', () => {
     expect(g.cellAt(1, 1)).toBeUndefined();
   });
 
+  test('merge / unmerge / freeze update the sheet model', () => {
+    const s = useSpreadsheetStore.getState();
+    s.selectRange({ r0: 0, c0: 0, r1: 0, c1: 2 });
+    s.mergeSelection();
+    expect(useSpreadsheetStore.getState().activeSheet().merges).toContain('A1:C1');
+
+    useSpreadsheetStore.getState().setFrozen(2, 1);
+    expect(useSpreadsheetStore.getState().activeSheet().frozenRows).toBe(2);
+    expect(useSpreadsheetStore.getState().activeSheet().frozenCols).toBe(1);
+
+    useSpreadsheetStore.getState().selectRange({ r0: 0, c0: 1, r1: 0, c1: 1 }); // a cell inside the merge
+    useSpreadsheetStore.getState().unmergeSelection();
+    expect(useSpreadsheetStore.getState().activeSheet().merges).toEqual([]);
+  });
+
   test('toWire produces a sparse workbook the backend can read', () => {
     const s = useSpreadsheetStore.getState();
     s.setCellInput(0, 0, 'Hello');

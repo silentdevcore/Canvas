@@ -50,9 +50,13 @@ through `.xlsx` — so most formatting work is **UI + grid rendering**, not new 
       The grid's `displayData` is formatted while the edit overlay keeps the raw value/formula. Test covers
       all four presets + passthrough.
 
-## #4 — Merge / freeze UI
-- [ ] Merge / unmerge the selected range (update `merges`; render spans in glide). Freeze rows/cols toggle
-      (set `frozenRows`/`frozenCols`; glide `freezeColumns` + frozen rows).
+## #4 — Merge / freeze UI — DONE
+- [x] `mergeSelection`/`unmergeSelection` (update `merges` in A1, via centralized `toA1Range`/`parseA1Range`)
+      and `setFrozen(rows, cols)`. Toolbar: Merge / Unmerge / Freeze (to selection) / Unfreeze.
+- [x] Grid renders **horizontal merges** (glide column `span`) + **frozen columns** (`freezeColumns`). Test
+      covers merge/unmerge/freeze. *Library limit:* glide has no vertical-merge or frozen-row rendering —
+      those are stored and **export correctly to `.xlsx`** (Excel renders them; verified by the Phase-1
+      backend round-trip test).
 
 ## #7 — Backend: spreadsheet → document / PDF bridge
 - [ ] `POST /api/spreadsheet/to-design` (or a converter) mapping a `SheetDto` → a Canvas `table` `ElementDto`

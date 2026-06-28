@@ -40,6 +40,9 @@ const SpreadsheetEditorPage: React.FC = () => {
   const deleteRow = useSpreadsheetStore((s) => s.deleteRow);
   const insertCol = useSpreadsheetStore((s) => s.insertCol);
   const deleteCol = useSpreadsheetStore((s) => s.deleteCol);
+  const mergeSelection = useSpreadsheetStore((s) => s.mergeSelection);
+  const unmergeSelection = useSpreadsheetStore((s) => s.unmergeSelection);
+  const setFrozen = useSpreadsheetStore((s) => s.setFrozen);
   const addSheet = useSpreadsheetStore((s) => s.addSheet);
   const setActive = useSpreadsheetStore((s) => s.setActive);
   const renameSheet = useSpreadsheetStore((s) => s.renameSheet);
@@ -152,6 +155,11 @@ const SpreadsheetEditorPage: React.FC = () => {
         <button className="ss-tool ss-tool--text" title="Delete row" onClick={() => deleteRow(row)}>−Row</button>
         <button className="ss-tool ss-tool--text" title="Insert column left" onClick={() => insertCol(col)}>+Col</button>
         <button className="ss-tool ss-tool--text" title="Delete column" onClick={() => deleteCol(col)}>−Col</button>
+        <span className="ss-sep" />
+        <button className="ss-tool ss-tool--text" title="Merge selected cells" onClick={mergeSelection}>Merge</button>
+        <button className="ss-tool ss-tool--text" title="Unmerge" onClick={unmergeSelection}>Unmerge</button>
+        <button className="ss-tool ss-tool--text" title="Freeze rows/columns up to the selection" onClick={() => setFrozen(row, col)}>Freeze</button>
+        <button className="ss-tool ss-tool--text" title="Unfreeze" onClick={() => setFrozen(0, 0)}>Unfreeze</button>
         <span className="ss-spacer" />
         {busy && <span className="ss-busy">{busy}</span>}
         <button className="ss-tool ss-tool--text" onClick={() => fileInput.current?.click()}><FiUpload /> Import</button>
