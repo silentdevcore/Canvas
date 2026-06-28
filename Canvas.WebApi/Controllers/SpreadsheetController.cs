@@ -17,25 +17,40 @@ public class SpreadsheetController : ControllerBase
     private readonly ExcelWorkbookExporter _exporter;
     private readonly ExcelWorkbookImporter _importer;
     private readonly SpreadsheetToDesignConverter _toDesign;
+    private readonly SpreadsheetCalculator _calculator;
 
-    public SpreadsheetController(ExcelWorkbookExporter exporter, ExcelWorkbookImporter importer, SpreadsheetToDesignConverter toDesign)
+    public SpreadsheetController(ExcelWorkbookExporter exporter, ExcelWorkbookImporter importer, SpreadsheetToDesignConverter toDesign, SpreadsheetCalculator calculator)
     {
         _exporter = exporter;
         _importer = importer;
         _toDesign = toDesign;
+        _calculator = calculator;
     }
 
-    /// <summary>Exports a workbook to an <c>.xlsx</c> file (real A1 formulas + typed values).</summary>
+    /// <summary>Exports a workbook to an <c>.xlsx</c> file (real A1 formulas + typed values). Pass
+    /// <c>recalculate=true</c> to evaluate formulas server-side so the file carries fresh cached values.</summary>
     [HttpPost("export")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
-    public IActionResult Export([FromBody] SpreadsheetDto workbook)
+    public IActionResult Export([FromBody] SpreadsheetDto workbook, [FromQuery] bool recalculate = false)
     {
         if (workbook is null)
             return BadRequest(new { error = "Request body is required." });
 
-        var bytes = _exporter.Export(workbook);
+        var bytes = _exporter.Export(workbook, recalculate);
         return File(bytes, XlsxMime, $"{SanitizeFileName(workbook.Name)}.xlsx");
+    }
+
+    /// <summary>Recalculates all formulas server-side (ClosedXML) and returns the workbook with each formula
+    /// cell's computed value filled in. The authoritative engine for headless/API callers.</summary>
+    [HttpPost("calculate")]
+    [ProducesResponseType(typeof(SpreadsheetDto), 200)]
+    [ProducesResponseType(400)]
+    public IActionResult Calculate([FromBody] SpreadsheetDto workbook)
+    {
+        if (workbook is null)
+            return BadRequest(new { error = "Request body is required." });
+        return Ok(_calculator.Calculate(workbook));
     }
 
     /// <summary>Imports an uploaded <c>.xlsx</c> file into a workbook model.</summary>

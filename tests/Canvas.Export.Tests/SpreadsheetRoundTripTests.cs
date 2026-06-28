@@ -82,6 +82,36 @@ public sealed class SpreadsheetRoundTripTests
     }
 
     [Fact]
+    public void Calculate_ComputesFormulasServerSide()
+    {
+        var wb = new SpreadsheetDto
+        {
+            Sheets =
+            [
+                new SheetDto
+                {
+                    Name = "S",
+                    Cells =
+                    [
+                        new CellDto { Row = 0, Col = 0, Type = "number", Value = 10d },
+                        new CellDto { Row = 1, Col = 0, Type = "number", Value = 20d },
+                        new CellDto { Row = 2, Col = 0, Type = "formula", Formula = "=SUM(A1:A2)" },
+                        new CellDto { Row = 3, Col = 0, Type = "formula", Formula = "=IF(A3>25,\"big\",\"small\")" },
+                        new CellDto { Row = 4, Col = 0, Type = "formula", Formula = "=A1/0" },
+                    ],
+                },
+            ],
+        };
+
+        var cells = new SpreadsheetCalculator().Calculate(wb).Sheets[0].Cells;
+        object? V(int r) => cells.First(c => c.Row == r && c.Col == 0).Value;
+
+        Assert.Equal(30d, Convert.ToDouble(V(2), System.Globalization.CultureInfo.InvariantCulture));
+        Assert.Equal("big", V(3));
+        Assert.StartsWith("#", V(4)!.ToString()); // division error surfaced as #CODE
+    }
+
+    [Fact]
     public void ToDesign_MapsSheetToTableElement()
     {
         var wb = new SpreadsheetDto

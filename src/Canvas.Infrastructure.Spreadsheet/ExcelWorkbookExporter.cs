@@ -11,10 +11,21 @@ namespace Canvas.Infrastructure.Spreadsheet;
 /// </summary>
 public sealed class ExcelWorkbookExporter
 {
-    public byte[] Export(SpreadsheetDto workbook)
+    /// <summary>Exports the workbook to .xlsx bytes. When <paramref name="recalculate"/> is true, formulas
+    /// are evaluated server-side (ClosedXML) so the file carries fresh cached values.</summary>
+    public byte[] Export(SpreadsheetDto workbook, bool recalculate = false)
     {
-        using var wb = new XLWorkbook();
+        using var wb = Build(workbook);
+        if (recalculate) TryRecalculate(wb);
+        using var ms = new MemoryStream();
+        wb.SaveAs(ms);
+        return ms.ToArray();
+    }
 
+    /// <summary>Builds the ClosedXML workbook from the model (without saving). Shared with the calculator.</summary>
+    internal static XLWorkbook Build(SpreadsheetDto workbook)
+    {
+        var wb = new XLWorkbook();
         foreach (var sheet in workbook.Sheets)
             RenderSheet(wb, sheet);
         if (!wb.Worksheets.Any())
@@ -24,9 +35,12 @@ public sealed class ExcelWorkbookExporter
             if (!string.IsNullOrWhiteSpace(dn.Name) && !string.IsNullOrWhiteSpace(dn.RefersTo))
                 try { wb.NamedRanges.Add(dn.Name, dn.RefersTo); } catch { /* skip invalid name */ }
 
-        using var ms = new MemoryStream();
-        wb.SaveAs(ms);
-        return ms.ToArray();
+        return wb;
+    }
+
+    internal static void TryRecalculate(XLWorkbook wb)
+    {
+        try { wb.RecalculateAllFormulas(); } catch { /* some functions are unsupported — cells fall back per-cell */ }
     }
 
     private static void RenderSheet(XLWorkbook wb, SheetDto sheet)
