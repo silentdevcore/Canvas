@@ -82,6 +82,79 @@ public sealed class SpreadsheetRoundTripTests
     }
 
     [Fact]
+    public void RichFeatures_RoundTrip()
+    {
+        var wb = new SpreadsheetDto
+        {
+            Sheets =
+            [
+                new SheetDto
+                {
+                    Name = "Rich",
+                    Cells =
+                    [
+                        new CellDto { Row = 0, Col = 0, Type = "text", Value = "Hdr", Comment = "a note", Hyperlink = "https://example.com" },
+                        new CellDto { Row = 1, Col = 0, Type = "number", Value = 5d },
+                    ],
+                    AutoFilterRange = "A1:B2",
+                    Columns = [new SheetColumnDto { Index = 0, OutlineLevel = 1 }],
+                    PageSetup = new PageSetupDto { Orientation = "landscape", PrintArea = "A1:B2", Header = "Report" },
+                    Protection = new ProtectionDto { Protected = true },
+                    // export-only (round-trip just confirms they don't break the file):
+                    DataValidations = [new DataValidationDto { Range = "A2", Type = "list", ListSource = "x,y,z" }],
+                    ConditionalFormats = [new ConditionalFormatDto { Range = "A2", Type = "cellIs", Operator = "greaterThan", Value = "3", Color = "#FF0000" }],
+                },
+            ],
+        };
+
+        var s = RoundTrip(wb, out _).Sheets[0];
+        var a1 = s.Cells.First(c => c.Row == 0 && c.Col == 0);
+        Assert.Equal("a note", a1.Comment);
+        Assert.StartsWith("https://example.com", a1.Hyperlink);
+        Assert.NotNull(s.AutoFilterRange);
+        Assert.Contains(s.Columns, c => c.Index == 0 && c.OutlineLevel == 1);
+        Assert.Equal("landscape", s.PageSetup!.Orientation);
+        Assert.Equal("Report", s.PageSetup!.Header);
+        Assert.True(s.Protection!.Protected);
+    }
+
+    [Fact]
+    public void SortRange_OrdersRowsByKeyColumn()
+    {
+        var sheet = new SheetDto
+        {
+            Cells =
+            [
+                new CellDto { Row = 0, Col = 0, Type = "text", Value = "b" }, new CellDto { Row = 0, Col = 1, Type = "number", Value = 2d },
+                new CellDto { Row = 1, Col = 0, Type = "text", Value = "a" }, new CellDto { Row = 1, Col = 1, Type = "number", Value = 1d },
+            ],
+        };
+        new SpreadsheetOperations().SortRange(sheet, "A1:B2", keyColumnOffset: 0, ascending: true);
+        Assert.Equal("a", sheet.Cells.First(c => c.Row == 0 && c.Col == 0).Value);
+        Assert.Equal(1d, sheet.Cells.First(c => c.Row == 0 && c.Col == 1).Value);
+    }
+
+    [Fact]
+    public void FindReplace_ReplacesTextAndFormulas()
+    {
+        var wb = new SpreadsheetDto
+        {
+            Sheets =
+            [
+                new SheetDto { Cells =
+                [
+                    new CellDto { Row = 0, Col = 0, Type = "text", Value = "hello world" },
+                    new CellDto { Row = 1, Col = 0, Type = "formula", Formula = "=A1&\" world\"" },
+                ] },
+            ],
+        };
+        var count = new SpreadsheetOperations().FindReplace(wb, "world", "there");
+        Assert.Equal(2, count);
+        Assert.Equal("hello there", wb.Sheets[0].Cells[0].Value);
+        Assert.Equal("=A1&\" there\"", wb.Sheets[0].Cells[1].Formula);
+    }
+
+    [Fact]
     public void Calculate_ComputesFormulasServerSide()
     {
         var wb = new SpreadsheetDto

@@ -56,8 +56,10 @@ public sealed class ExcelWorkbookImporter
                 var nf = cell.Style.NumberFormat.Format;
                 if (!string.IsNullOrEmpty(nf)) dc.NumberFormat = nf;
                 dc.Style = ReadStyle(cell);
+                if (cell.HasComment) try { dc.Comment = cell.GetComment().Text; } catch { }
+                if (cell.HasHyperlink) try { dc.Hyperlink = cell.GetHyperlink().ExternalAddress?.ToString() ?? cell.GetHyperlink().InternalAddress; } catch { }
 
-                if (dc.Type != "empty" || dc.Style is not null)
+                if (dc.Type != "empty" || dc.Style is not null || dc.Comment is not null || dc.Hyperlink is not null)
                     sheet.Cells.Add(dc);
             }
         }
@@ -71,8 +73,9 @@ public sealed class ExcelWorkbookImporter
             var col = ws.Column(c);
             var width = col.Width;
             var hidden = col.IsHidden;
-            if (hidden || Math.Abs(width - ws.ColumnWidth) > 0.01)
-                sheet.Columns.Add(new SheetColumnDto { Index = c - 1, Width = width, Hidden = hidden });
+            var outline = col.OutlineLevel;
+            if (hidden || outline > 0 || Math.Abs(width - ws.ColumnWidth) > 0.01)
+                sheet.Columns.Add(new SheetColumnDto { Index = c - 1, Width = width, Hidden = hidden, OutlineLevel = outline });
         }
 
         try
@@ -82,7 +85,42 @@ public sealed class ExcelWorkbookImporter
         }
         catch { /* frozen panes unavailable */ }
 
+        try { if (ws.AutoFilter is { IsEnabled: true } af) sheet.AutoFilterRange = af.Range.RangeAddress.ToStringRelative(); } catch { }
+        try { if (ws.IsProtected) sheet.Protection = new ProtectionDto { Protected = true }; } catch { }
+        sheet.PageSetup = ReadPageSetup(ws);
+
         return sheet;
+    }
+
+    private static PageSetupDto? ReadPageSetup(IXLWorksheet ws)
+    {
+        try
+        {
+            var s = ws.PageSetup;
+            var dto = new PageSetupDto
+            {
+                Orientation = s.PageOrientation == XLPageOrientation.Landscape ? "landscape" : "portrait",
+                Header = HfText(s.Header.Center),
+                Footer = HfText(s.Footer.Center),
+            };
+            if (s.PrintAreas.Any()) dto.PrintArea = s.PrintAreas.First().RangeAddress.ToStringRelative();
+            if (s.PagesWide > 0) dto.FitToWidth = s.PagesWide;
+            if (s.PagesTall > 0) dto.FitToHeight = s.PagesTall;
+            // Only return when it carries something beyond the default portrait.
+            return dto.Orientation == "landscape" || dto.Header != null || dto.Footer != null || dto.PrintArea != null || dto.FitToWidth != null
+                ? dto : null;
+        }
+        catch { return null; }
+    }
+
+    // ClosedXML stores header/footer text per page occurrence; AddText defaults vary — try each.
+    private static string? HfText(IXLHFItem item)
+    {
+        foreach (var occ in new[] { XLHFOccurrence.AllPages, XLHFOccurrence.OddPages, XLHFOccurrence.EvenPages, XLHFOccurrence.FirstPage })
+        {
+            try { if (item.GetText(occ) is { Length: > 0 } t) return t; } catch { }
+        }
+        return null;
     }
 
     private static (string Type, object? Value) ReadTypedValue(IXLCell cell) => cell.DataType switch

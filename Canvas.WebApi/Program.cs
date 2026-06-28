@@ -76,6 +76,7 @@ builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.ExcelWorkbookExport
 builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.ExcelWorkbookImporter>();
 builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.SpreadsheetToDesignConverter>();
 builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.SpreadsheetCalculator>();
+builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.SpreadsheetOperations>();
 
 // Register file importers
 builder.Services.AddTransient<IFileImporter, PdfFileImporter>();

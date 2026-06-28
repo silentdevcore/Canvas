@@ -29,11 +29,16 @@ protection, grouping, comments, rendering (PDF/PNG/HTML), and `.xls`/`.ods`/back
 - [x] Test `Calculate_ComputesFormulasServerSide` (`=SUM`/`=IF`/div-by-zero). **Live verified**: chained
       deps compute (`A2==A1*B1==30`, `A3==SUM(A1:A2)==40`, `A4==IF(...)=="hi"`). Solution builds clean.
 
-## Phase 2 — Rich Excel features (model + ClosedXML round-trip)
-- [ ] Model: `conditionalFormats[]`, `dataValidations[]`, `autoFilter`, `PageSetupDto`, `ProtectionDto`,
-      row/col grouping levels, `comment`, `hyperlink`.
-- [ ] Exporter/importer map each via ClosedXML; ops endpoints `sort` / `filter` / `find-replace`.
-- [ ] Round-trip tests per feature.
+## Phase 2 — Rich Excel features (model + ClosedXML round-trip) — DONE
+- [x] Model: `PageSetupDto`, `ProtectionDto`, `AutoFilterRange`, `ConditionalFormatDto[]`,
+      `DataValidationDto[]`, `OutlineLevel` on column/row, `Comment`/`Hyperlink` on cells.
+- [x] Exporter maps all (page setup, protect, auto-filter, comments, hyperlinks, grouping, + cellIs/
+      colorScale conditional formats, list/number data validations). Importer round-trips page setup,
+      auto-filter, comments, hyperlinks, protection, grouping (CF/validation are export-only/best-effort).
+- [x] `SpreadsheetOperations` (sort range by key column; find/replace across text + formulas) + endpoints
+      `POST /api/spreadsheet/sort` and `/find-replace`. DI registered.
+- [x] Tests: `RichFeatures_RoundTrip`, `SortRange_OrdersRowsByKeyColumn`, `FindReplace_ReplacesTextAndFormulas`.
+      Full Export suite **198** green.
 
 ## Phase 3 — Rendering (sheet → PDF / PNG / HTML) on Canvas.Pdf
 - [ ] `SpreadsheetRenderer`: PDF (gridlines, print area, paging, freeze headers), HTML `<table>`, PNG/JPEG

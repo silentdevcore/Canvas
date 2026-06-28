@@ -53,6 +53,8 @@ public sealed class ExcelWorkbookExporter
             ApplyValue(cell, c);
             if (c.NumberFormat is { Length: > 0 } nf) cell.Style.NumberFormat.Format = nf;
             if (c.Style is not null) ApplyCellStyle(cell, c.Style);
+            if (c.Comment is { Length: > 0 } cm) try { cell.CreateComment().AddText(cm); } catch { }
+            if (c.Hyperlink is { Length: > 0 } hl) try { cell.SetHyperlink(new XLHyperlink(hl)); } catch { }
         }
 
         foreach (var m in sheet.Merges)
@@ -62,15 +64,97 @@ public sealed class ExcelWorkbookExporter
         {
             if (col.Width is { } w and > 0) ws.Column(col.Index + 1).Width = w;
             if (col.Hidden) ws.Column(col.Index + 1).Hide();
+            if (col.OutlineLevel > 0) try { ws.Column(col.Index + 1).OutlineLevel = col.OutlineLevel; } catch { }
         }
         foreach (var row in sheet.Rows)
         {
             if (row.Height is { } h and > 0) ws.Row(row.Index + 1).Height = h;
             if (row.Hidden) ws.Row(row.Index + 1).Hide();
+            if (row.OutlineLevel > 0) try { ws.Row(row.Index + 1).OutlineLevel = row.OutlineLevel; } catch { }
         }
 
         if (sheet.FrozenRows > 0) ws.SheetView.FreezeRows(sheet.FrozenRows);
         if (sheet.FrozenCols > 0) ws.SheetView.FreezeColumns(sheet.FrozenCols);
+
+        if (sheet.AutoFilterRange is { Length: > 0 } af) try { ws.Range(af).SetAutoFilter(); } catch { }
+        ApplyPageSetup(ws, sheet.PageSetup);
+        foreach (var dv in sheet.DataValidations) ApplyDataValidation(ws, dv);
+        foreach (var cf in sheet.ConditionalFormats) ApplyConditionalFormat(ws, cf);
+        if (sheet.Protection is { Protected: true } p)
+            try { if (p.Password is { Length: > 0 } pw) ws.Protect(pw); else ws.Protect(); } catch { }
+    }
+
+    private static void ApplyPageSetup(IXLWorksheet ws, PageSetupDto? ps)
+    {
+        if (ps is null) return;
+        var s = ws.PageSetup;
+        try
+        {
+            if (ps.Orientation is { Length: > 0 } o)
+                s.PageOrientation = o.Equals("landscape", StringComparison.OrdinalIgnoreCase) ? XLPageOrientation.Landscape : XLPageOrientation.Portrait;
+            if (ps.PaperSize is { Length: > 0 } paper && Enum.TryParse<XLPaperSize>(paper + "Paper", true, out var size)) s.PaperSize = size;
+            if (ps.PrintArea is { Length: > 0 } pa) s.PrintAreas.Add(pa);
+            if (ps.Header is { Length: > 0 } h) s.Header.Center.AddText(h);
+            if (ps.Footer is { Length: > 0 } f) s.Footer.Center.AddText(f);
+            if (ps.FitToWidth is { } fw && ps.FitToHeight is { } fh) s.FitToPages(fw, fh);
+            else if (ps.Scale is { } sc and > 0) s.Scale = (int)sc;
+            if (ps.Margins is { } m)
+            {
+                if (m.Top is { } t) s.Margins.Top = t;
+                if (m.Bottom is { } b) s.Margins.Bottom = b;
+                if (m.Left is { } l) s.Margins.Left = l;
+                if (m.Right is { } r) s.Margins.Right = r;
+            }
+            foreach (var rb in ps.RowPageBreaks) s.AddHorizontalPageBreak(rb + 1);
+            foreach (var cb in ps.ColPageBreaks) s.AddVerticalPageBreak(cb + 1);
+        }
+        catch { /* best-effort page setup */ }
+    }
+
+    private static void ApplyDataValidation(IXLWorksheet ws, DataValidationDto dv)
+    {
+        if (string.IsNullOrWhiteSpace(dv.Range)) return;
+        try
+        {
+            var v = ws.Range(dv.Range).CreateDataValidation();
+            switch (dv.Type)
+            {
+                case "list":
+                    var src = dv.ListSource ?? "";
+                    v.List(src.Contains('!') || src.Contains(':') ? src : $"\"{src}\"");
+                    break;
+                case "wholeNumber": v.WholeNumber.Between(dv.Value1 ?? "0", dv.Value2 ?? "0"); break;
+                case "decimal": v.Decimal.Between(dv.Value1 ?? "0", dv.Value2 ?? "0"); break;
+                case "textLength": v.TextLength.Between(dv.Value1 ?? "0", dv.Value2 ?? "0"); break;
+            }
+        }
+        catch { /* best-effort */ }
+    }
+
+    private static void ApplyConditionalFormat(IXLWorksheet ws, ConditionalFormatDto cf)
+    {
+        if (string.IsNullOrWhiteSpace(cf.Range)) return;
+        try
+        {
+            var color = cf.Color is { Length: > 0 } c ? ParseColor(c) : XLColor.Yellow;
+            if (cf.Type == "colorScale")
+            {
+                ws.Range(cf.Range).AddConditionalFormat().ColorScale()
+                    .LowestValue(XLColor.White).HighestValue(color);
+                return;
+            }
+            var rule = ws.Range(cf.Range).AddConditionalFormat();
+            var styled = (cf.Operator ?? "greaterThan") switch
+            {
+                "lessThan" => rule.WhenLessThan(cf.Value ?? "0"),
+                "equalTo" => rule.WhenEquals(cf.Value ?? "0"),
+                "between" => rule.WhenBetween(cf.Value ?? "0", cf.Value2 ?? "0"),
+                "contains" => rule.WhenContains(cf.Value ?? ""),
+                _ => rule.WhenGreaterThan(cf.Value ?? "0"),
+            };
+            styled.Fill.SetBackgroundColor(color);
+        }
+        catch { /* best-effort */ }
     }
 
     // ── values ───────────────────────────────────────────────────────────────────────────────────────

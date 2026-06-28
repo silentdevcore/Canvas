@@ -29,6 +29,12 @@ public sealed class SheetDto
     public List<string> Merges { get; set; } = [];
     public int FrozenRows { get; set; }
     public int FrozenCols { get; set; }
+    /// <summary>Range (A1) the auto-filter dropdowns cover, e.g. "A1:D20".</summary>
+    public string? AutoFilterRange { get; set; }
+    public PageSetupDto? PageSetup { get; set; }
+    public ProtectionDto? Protection { get; set; }
+    public List<ConditionalFormatDto> ConditionalFormats { get; set; } = [];
+    public List<DataValidationDto> DataValidations { get; set; } = [];
 }
 
 public sealed class SheetColumnDto
@@ -38,6 +44,8 @@ public sealed class SheetColumnDto
     /// <summary>Width in Excel character units (ClosedXML's column width unit).</summary>
     public double? Width { get; set; }
     public bool Hidden { get; set; }
+    /// <summary>Outline/grouping level (0 = none).</summary>
+    public int OutlineLevel { get; set; }
 }
 
 public sealed class SheetRowDto
@@ -47,6 +55,59 @@ public sealed class SheetRowDto
     /// <summary>Height in points.</summary>
     public double? Height { get; set; }
     public bool Hidden { get; set; }
+    /// <summary>Outline/grouping level (0 = none).</summary>
+    public int OutlineLevel { get; set; }
+}
+
+/// <summary>Print / page setup for a sheet.</summary>
+public sealed class PageSetupDto
+{
+    public string? Orientation { get; set; }   // "portrait" | "landscape"
+    public string? PaperSize { get; set; }     // "A4" | "Letter" | "A3" | …
+    public string? PrintArea { get; set; }     // A1 range
+    public string? Header { get; set; }        // center header text
+    public string? Footer { get; set; }        // center footer text
+    public int? FitToWidth { get; set; }       // fit-to N pages wide
+    public int? FitToHeight { get; set; }      // fit-to N pages tall
+    public double? Scale { get; set; }         // % scale (when not fit-to-page)
+    public MarginsDto? Margins { get; set; }
+    public List<int> RowPageBreaks { get; set; } = [];  // 0-based row indices
+    public List<int> ColPageBreaks { get; set; } = [];  // 0-based column indices
+}
+
+/// <summary>Sheet protection (read-only cells except where unlocked).</summary>
+public sealed class ProtectionDto
+{
+    public bool Protected { get; set; }
+    public string? Password { get; set; }
+}
+
+/// <summary>A conditional-formatting rule over a range. (Export to .xlsx; import is best-effort.)</summary>
+public sealed class ConditionalFormatDto
+{
+    public string Range { get; set; } = "";
+    /// <summary>"cellIs" | "colorScale" | "dataBar".</summary>
+    public string Type { get; set; } = "cellIs";
+    /// <summary>For cellIs: "greaterThan" | "lessThan" | "equalTo" | "between" | "contains".</summary>
+    public string? Operator { get; set; }
+    public string? Value { get; set; }
+    public string? Value2 { get; set; }
+    /// <summary>Fill color applied when the rule matches (cellIs), or the high color (colorScale/dataBar).</summary>
+    public string? Color { get; set; }
+}
+
+/// <summary>A data-validation rule over a range. (Export to .xlsx; import is best-effort.)</summary>
+public sealed class DataValidationDto
+{
+    public string Range { get; set; } = "";
+    /// <summary>"list" | "wholeNumber" | "decimal" | "date" | "textLength".</summary>
+    public string Type { get; set; } = "list";
+    /// <summary>For non-list types: "between" | "greaterThan" | "lessThan" | "equalTo".</summary>
+    public string? Operator { get; set; }
+    public string? Value1 { get; set; }
+    public string? Value2 { get; set; }
+    /// <summary>For list: comma-separated allowed values, or an A1 range reference.</summary>
+    public string? ListSource { get; set; }
 }
 
 /// <summary>A single sparse cell. <see cref="Row"/>/<see cref="Col"/> are 0-based.</summary>
@@ -65,6 +126,10 @@ public sealed class CellDto
     /// <summary>Cell styling. Reuses <see cref="CellStyleDto"/>; its Row/Col are unused here (this cell's own
     /// <see cref="Row"/>/<see cref="Col"/> are authoritative).</summary>
     public CellStyleDto? Style { get; set; }
+    /// <summary>Cell comment/note text.</summary>
+    public string? Comment { get; set; }
+    /// <summary>Hyperlink target (URL or internal "Sheet!A1").</summary>
+    public string? Hyperlink { get; set; }
 }
 
 public sealed class DefinedNameDto
