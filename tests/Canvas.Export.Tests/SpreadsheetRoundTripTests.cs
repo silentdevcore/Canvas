@@ -82,6 +82,46 @@ public sealed class SpreadsheetRoundTripTests
     }
 
     [Fact]
+    public void Xls_RoundTrip_PreservesValuesFormulasMerges()
+    {
+        var wb = new SpreadsheetDto
+        {
+            Sheets =
+            [
+                new SheetDto { Name = "Data", Merges = ["A1:A2"], Cells =
+                [
+                    new CellDto { Row = 0, Col = 0, Type = "text", Value = "Hi" },
+                    new CellDto { Row = 0, Col = 1, Type = "number", Value = 10d },
+                    new CellDto { Row = 1, Col = 1, Type = "formula", Formula = "=B1*2" },
+                ] },
+            ],
+        };
+        var io = new XlsWorkbookIo();
+        using var ms = new MemoryStream(io.Export(wb));
+        var s = io.Import(ms, "x.xls").Sheets[0];
+        Assert.Equal("Hi", s.Cells.First(c => c.Row == 0 && c.Col == 0).Value);
+        Assert.Equal(10d, Convert.ToDouble(s.Cells.First(c => c.Row == 0 && c.Col == 1).Value, CultureInfo.InvariantCulture));
+        Assert.Equal("=B1*2", s.Cells.First(c => c.Row == 1 && c.Col == 1).Formula);
+        Assert.Contains("A1:A2", s.Merges);
+    }
+
+    [Fact]
+    public void Csv_RoundTrip_QuotesAndTypes()
+    {
+        var sheet = new SheetDto { Cells =
+        [
+            new CellDto { Row = 0, Col = 0, Type = "text", Value = "a,b" },
+            new CellDto { Row = 0, Col = 1, Type = "number", Value = 5d },
+        ] };
+        var csv = CsvSheetIo.ToCsv(sheet);
+        Assert.Equal("\"a,b\",5", csv);
+
+        var back = CsvSheetIo.FromCsv(csv);
+        Assert.Equal("a,b", back.Cells.First(c => c.Row == 0 && c.Col == 0).Value);
+        Assert.Equal(5d, back.Cells.First(c => c.Row == 0 && c.Col == 1).Value);
+    }
+
+    [Fact]
     public void ToDesign_Gridlines_AddsHeaderRowAndBorder()
     {
         var wb = new SpreadsheetDto { Sheets = [new SheetDto { Cells = [new CellDto { Row = 0, Col = 0, Type = "text", Value = "x" }] }] };

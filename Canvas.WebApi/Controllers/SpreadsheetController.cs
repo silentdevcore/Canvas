@@ -23,9 +23,10 @@ public class SpreadsheetController : ControllerBase
     private readonly SpreadsheetCalculator _calculator;
     private readonly SpreadsheetOperations _ops;
     private readonly ExportDocumentUseCase _export;
+    private readonly XlsWorkbookIo _xls;
     private readonly PdfFontLoader? _fontLoader;
 
-    public SpreadsheetController(ExcelWorkbookExporter exporter, ExcelWorkbookImporter importer, SpreadsheetToDesignConverter toDesign, SpreadsheetCalculator calculator, SpreadsheetOperations ops, ExportDocumentUseCase export, PdfFontLoader? fontLoader = null)
+    public SpreadsheetController(ExcelWorkbookExporter exporter, ExcelWorkbookImporter importer, SpreadsheetToDesignConverter toDesign, SpreadsheetCalculator calculator, SpreadsheetOperations ops, ExportDocumentUseCase export, XlsWorkbookIo xls, PdfFontLoader? fontLoader = null)
     {
         _exporter = exporter;
         _importer = importer;
@@ -33,6 +34,7 @@ public class SpreadsheetController : ControllerBase
         _calculator = calculator;
         _ops = ops;
         _export = export;
+        _xls = xls;
         _fontLoader = fontLoader;
     }
 
@@ -41,13 +43,18 @@ public class SpreadsheetController : ControllerBase
     [HttpPost("export")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
-    public IActionResult Export([FromBody] SpreadsheetDto workbook, [FromQuery] bool recalculate = false)
+    public IActionResult Export([FromBody] SpreadsheetDto workbook, [FromQuery] bool recalculate = false, [FromQuery] string format = "xlsx")
     {
         if (workbook is null)
             return BadRequest(new { error = "Request body is required." });
 
-        var bytes = _exporter.Export(workbook, recalculate);
-        return File(bytes, XlsxMime, $"{SanitizeFileName(workbook.Name)}.xlsx");
+        var name = SanitizeFileName(workbook.Name);
+        return format.ToLowerInvariant() switch
+        {
+            "xls" => File(_xls.Export(workbook), "application/vnd.ms-excel", $"{name}.xls"),
+            "csv" => File(System.Text.Encoding.UTF8.GetBytes(workbook.Sheets.Count > 0 ? CsvSheetIo.ToCsv(workbook.Sheets[0]) : ""), "text/csv", $"{name}.csv"),
+            _ => File(_exporter.Export(workbook, recalculate), XlsxMime, $"{name}.xlsx"),
+        };
     }
 
     /// <summary>Recalculates all formulas server-side (ClosedXML) and returns the workbook with each formula
@@ -69,17 +76,27 @@ public class SpreadsheetController : ControllerBase
     public async Task<IActionResult> Import(IFormFile? file)
     {
         if (file is null || file.Length == 0)
-            return BadRequest(new { error = "An .xlsx file is required." });
+            return BadRequest(new { error = "A spreadsheet file (.xlsx, .xls, or .csv) is required." });
 
-        // ClosedXML needs a seekable stream — copy the upload into memory first.
         using var ms = new MemoryStream();
         await using (var stream = file.OpenReadStream())
             await stream.CopyToAsync(ms);
         ms.Position = 0;
 
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
         try
         {
-            var workbook = _importer.Import(ms, file.FileName);
+            SpreadsheetDto workbook = ext switch
+            {
+                ".xls" => _xls.Import(ms, file.FileName),
+                ".csv" => new SpreadsheetDto
+                {
+                    Id = Guid.NewGuid().ToString("n"),
+                    Name = Path.GetFileNameWithoutExtension(file.FileName),
+                    Sheets = [CsvSheetIo.FromCsv(new StreamReader(ms).ReadToEnd(), "Sheet1")],
+                },
+                _ => _importer.Import(ms, file.FileName), // .xlsx (default)
+            };
             return Ok(workbook);
         }
         catch (Exception ex)

@@ -48,9 +48,13 @@ protection, grouping, comments, rendering (PDF/PNG/HTML), and `.xls`/`.ods`/back
 - [x] Unit test for the gridlines option; **live-verified**: render → `%PDF` (1355 B), `<!DOCTYPE html>`,
       PNG (`89504e47`).
 
-## Phase 4 — Format breadth
-- [ ] Backend CSV/TSV; `.xls` read/write via NPOI ↔ `SpreadsheetDto`; HTML import; `.ods` deferred.
-      `format` param on `/import` + `/export`; tests.
+## Phase 4 — Format breadth — DONE
+- [x] `XlsWorkbookIo` — legacy `.xls` (BIFF8) read/write via **NPOI 2.8** ↔ `SpreadsheetDto` (values,
+      formulas, merges, column widths; styles not carried for `.xls`). `CsvSheetIo` — server-side RFC-4180
+      CSV export (computed values) + import (number/text detection).
+- [x] `/export?format=xlsx|xls|csv`; `/import` dispatches by file extension (`.xlsx`/`.xls`/`.csv`). DI
+      registered. Tests: `.xls` round-trip (values/formula/merge), CSV quoting/types. `.ods`/HTML-import
+      deferred (no good .NET ODS writer; the frontend already parses HTML/CSV).
 
 ## Phase 5 — DataTable / templating / polish
 - [ ] DataTable/JSON-array ⇄ sheet; smart-marker templating (reuse `CanvasExpressionEvaluator`); streaming
