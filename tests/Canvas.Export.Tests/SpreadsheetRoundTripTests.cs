@@ -81,6 +81,40 @@ public sealed class SpreadsheetRoundTripTests
         Assert.Equal(1, sheet.FrozenRows);
     }
 
+    [Fact]
+    public void ToDesign_MapsSheetToTableElement()
+    {
+        var wb = new SpreadsheetDto
+        {
+            Name = "Book",
+            Sheets =
+            [
+                new SheetDto
+                {
+                    Name = "Data",
+                    Cells =
+                    [
+                        new CellDto { Row = 0, Col = 0, Type = "text", Value = "Item", Style = new CellStyleDto { Bold = true } },
+                        new CellDto { Row = 0, Col = 1, Type = "text", Value = "Qty" },
+                        new CellDto { Row = 1, Col = 0, Type = "text", Value = "Coffee" },
+                        new CellDto { Row = 1, Col = 1, Type = "formula", Formula = "=1+1", Value = 2d },
+                    ],
+                    Columns = [new SheetColumnDto { Index = 0, Width = 20 }],
+                },
+            ],
+        };
+
+        var design = new SpreadsheetToDesignConverter().Convert(wb);
+
+        var table = Assert.Single(design.Pages[0].Elements);
+        Assert.Equal("table", table.Type);
+        Assert.Equal("Data", design.Name);
+        Assert.Equal("Item", table.CellData![0][0]);
+        Assert.Equal("2", table.CellData![1][1]); // the formula's cached computed value
+        Assert.Contains(table.CellStyles!, s => s.Row == 0 && s.Col == 0 && s.Bold == true);
+        Assert.Equal(140d, table.ColumnWidths![0]); // 20 char-units → points
+    }
+
     [Theory]
     [InlineData(0, "A")]
     [InlineData(25, "Z")]

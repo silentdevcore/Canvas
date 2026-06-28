@@ -16,11 +16,13 @@ public class SpreadsheetController : ControllerBase
 
     private readonly ExcelWorkbookExporter _exporter;
     private readonly ExcelWorkbookImporter _importer;
+    private readonly SpreadsheetToDesignConverter _toDesign;
 
-    public SpreadsheetController(ExcelWorkbookExporter exporter, ExcelWorkbookImporter importer)
+    public SpreadsheetController(ExcelWorkbookExporter exporter, ExcelWorkbookImporter importer, SpreadsheetToDesignConverter toDesign)
     {
         _exporter = exporter;
         _importer = importer;
+        _toDesign = toDesign;
     }
 
     /// <summary>Exports a workbook to an <c>.xlsx</c> file (real A1 formulas + typed values).</summary>
@@ -60,6 +62,18 @@ public class SpreadsheetController : ControllerBase
         {
             return BadRequest(new { error = $"Could not read the spreadsheet: {ex.Message}" });
         }
+    }
+
+    /// <summary>Converts a worksheet to a Canvas design (a <c>table</c> element) so it can be embedded in a
+    /// PDF/Word/HTML document via the standard exporters.</summary>
+    [HttpPost("to-design")]
+    [ProducesResponseType(typeof(DesignExportDto), 200)]
+    [ProducesResponseType(400)]
+    public IActionResult ToDesign([FromBody] SpreadsheetDto workbook, [FromQuery] int sheet = 0)
+    {
+        if (workbook is null)
+            return BadRequest(new { error = "Request body is required." });
+        return Ok(_toDesign.Convert(workbook, sheet));
     }
 
     private static string SanitizeFileName(string? name)

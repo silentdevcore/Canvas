@@ -58,11 +58,13 @@ through `.xlsx` — so most formatting work is **UI + grid rendering**, not new 
       those are stored and **export correctly to `.xlsx`** (Excel renders them; verified by the Phase-1
       backend round-trip test).
 
-## #7 — Backend: spreadsheet → document / PDF bridge
-- [ ] `POST /api/spreadsheet/to-design` (or a converter) mapping a `SheetDto` → a Canvas `table` `ElementDto`
-      (CellData + per-cell styles + column widths) inside a `DesignExportDto`, so a sheet can be embedded in
-      a PDF/Word document via the existing exporters. Optional direct **PDF export** of a sheet via
-      `Canvas.Pdf` `DrawSimpleTable`.
+## #7 — Backend: spreadsheet → document / PDF bridge — DONE
+- [x] `SpreadsheetToDesignConverter` maps a `SheetDto` → a Canvas `table` `ElementDto` (CellData from the
+      computed values, per-cell `CellStyles`, `ColumnWidths` char-units→points) inside a `DesignExportDto`.
+      Endpoint `POST /api/spreadsheet/to-design?sheet=0`; registered in `Program.cs`. A sheet can now be
+      embedded in a PDF/Word/HTML document via the standard exporters. Test: `ToDesign_MapsSheetToTableElement`
+      (formula's cached value + bold style + width carried through). Solution builds clean.
+      *(Direct sheet→PDF via `Canvas.Pdf` is covered transitively: to-design → `/api/export?format=pdf`.)*
 
 ## Verification
 - Frontend: `tsc --noEmit` + `jest` (formatting/range/rows-cols/clipboard/number-format) green; vite build green.
