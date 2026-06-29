@@ -651,6 +651,102 @@ const MRT_REPORT_FRAMEWORK: Framework = {
   description: 'Converts a Stimulsoft Reports report (.mrt, StiSerializer XML) into an editable Canvas design — bands with explicit positions flattened (hundredths-inch → points), page header/footer → shared elements, {Source.Field} → binding. Open the result in the visual designer.',
 };
 
+// ── Spreadsheet code-migration examples (library C# → Canvas spreadsheet API) ──
+const CLOSEDXML_SPREADSHEET_EXAMPLE = `using ClosedXML.Excel;
+
+var workbook = new XLWorkbook();
+var ws = workbook.Worksheets.Add("Sales");
+
+ws.Cell("A1").Value = "Item";
+ws.Cell("B1").Value = "Qty";
+ws.Cell("C1").Value = "Price";
+ws.Cell("A1").Style.Font.Bold = true;
+ws.Cell("B1").Style.Font.Bold = true;
+ws.Cell("C1").Style.Font.Bold = true;
+
+ws.Cell("A2").Value = "Coffee";
+ws.Cell("B2").Value = 3;
+ws.Cell("C2").Value = 4.50;
+
+ws.Cell("A3").Value = "Tea";
+ws.Cell("B3").Value = 5;
+ws.Cell("C3").Value = 2.75;
+
+ws.Cell("B4").FormulaA1 = "SUM(B2:B3)";
+ws.Cell("C4").Style.Fill.BackgroundColor = XLColor.Yellow;
+ws.Cell("A4").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+ws.Column(1).Width = 20;
+
+workbook.SaveAs("sales.xlsx");`;
+
+const EPPLUS_SPREADSHEET_EXAMPLE = `using OfficeOpenXml;
+using System.IO;
+
+using var package = new ExcelPackage();
+var ws = package.Workbook.Worksheets.Add("Sales");
+
+ws.Cells["A1"].Value = "Sales Report";
+ws.Cells["A1:C1"].Merge = true;
+ws.Cells["A1"].Style.Font.Bold = true;
+ws.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+ws.Cells["A2"].Value = "Item";
+ws.Cells["B2"].Value = "Qty";
+ws.Cells["C2"].Value = "Price";
+
+ws.Cells["A3"].Value = "Coffee";
+ws.Cells["B3"].Value = 3;
+ws.Cells["C3"].Value = 4.50;
+
+ws.Cells["A4"].Value = "Tea";
+ws.Cells["B4"].Value = 5;
+ws.Cells["C4"].Value = 2.75;
+
+ws.Cells["B5"].Formula = "SUM(B3:B4)";
+ws.Column(1).Width = 20;
+
+package.SaveAs(new FileInfo("sales.xlsx"));`;
+
+const GEMBOX_SPREADSHEET_EXAMPLE = `using GemBox.Spreadsheet;
+
+SpreadsheetInfo.SetLicense("FREE-LIMITED-KEY");
+
+var workbook = new ExcelFile();
+var ws = workbook.Worksheets.Add("Sales");
+
+ws.Cells["A1"].Value = "Item";
+ws.Cells["B1"].Value = "Qty";
+ws.Cells["A1"].Style.Font.Weight = ExcelFont.BoldWeight;
+ws.Cells["B1"].Style.Font.Weight = ExcelFont.BoldWeight;
+ws.Cells["A1"].Style.HorizontalAlignment = HorizontalAlignmentStyle.Center;
+
+ws.Cells["A2"].Value = "Coffee";
+ws.Cells["B2"].Value = 3;
+ws.Cells["A3"].Value = "Tea";
+ws.Cells["B3"].Value = 5;
+
+ws.Cells["B4"].Formula = "=SUM(B2:B3)";
+
+workbook.Save("sales.xlsx");`;
+
+const ASPOSE_CELLS_EXAMPLE = `using Aspose.Cells;
+
+var workbook = new Workbook();
+var ws = workbook.Worksheets[0];
+ws.Name = "Sales";
+
+ws.Cells["A1"].PutValue("Item");
+ws.Cells["B1"].PutValue("Qty");
+ws.Cells["A2"].PutValue("Coffee");
+ws.Cells["B2"].PutValue(3);
+ws.Cells["A3"].PutValue("Tea");
+ws.Cells["B3"].PutValue(5);
+
+ws.Cells["B4"].Formula = "=SUM(B2:B3)";
+ws.Cells.SetColumnWidth(0, 20);
+
+workbook.Save("sales.xlsx");`;
+
 const EXAMPLES: Record<string, string> = {
   [REPORT_ID]: DEVEXPRESS_REPORT_EXAMPLE,
   [RDL_REPORT_ID]: RDL_REPORT_EXAMPLE,
@@ -675,6 +771,11 @@ const EXAMPLES: Record<string, string> = {
   ActivePdf: ACTIVEPDF_EXAMPLE,
   PdfTools: PDFTOOLS_EXAMPLE,
   PdfToolsToolbox: PDFTOOLS_TOOLBOX_EXAMPLE,
+  // Spreadsheet code migration
+  ClosedXmlSpreadsheet: CLOSEDXML_SPREADSHEET_EXAMPLE,
+  EpplusSpreadsheet: EPPLUS_SPREADSHEET_EXAMPLE,
+  GemBoxSpreadsheet: GEMBOX_SPREADSHEET_EXAMPLE,
+  AsposeCells: ASPOSE_CELLS_EXAMPLE,
 };
 
 interface ConversionSummary {
