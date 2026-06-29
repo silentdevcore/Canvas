@@ -2,7 +2,7 @@ using Canvas.Migration.EpplusSpreadsheet;
 
 namespace Canvas.WebApi.Services.Converters;
 
-public sealed class EpplusSpreadsheetConverter : BasePdfConverter
+public sealed class EpplusSpreadsheetConverter : BaseSpreadsheetConverter
 {
     public override string FrameworkId => "EpplusSpreadsheet";
 

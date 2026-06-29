@@ -70,6 +70,14 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
 All four converters live at `GET /api/migration/frameworks` + `POST /api/migration/convert` (Status `full`).
 10 migration unit tests green; `dotnet build Canvas.sln` clean. Live-verified each emits Canvas code.
 
+## Follow-up — migration list categorization — DONE
+- [x] `ICodeConverter.Kind` ("pdf" default | "spreadsheet"); exposed via `FrameworkInfo.Kind` + the
+      `/frameworks` endpoint (`kind`). New `BaseSpreadsheetConverter` (the 4 extend it) sets Kind +
+      renders a spreadsheet-appropriate preview (sheets/cells counts, not PDF draw-call replay).
+- [x] Frontend `MigrationsPage`: `<optgroup>` split ("PDF libraries → Canvas.Pdf" vs "Spreadsheet libraries
+      → Canvas spreadsheet"); output pane labels "Canvas Spreadsheet Code" for spreadsheet kind.
+- [x] Live: 15 pdf + 4 spreadsheet tagged; spreadsheet `/preview` → valid `%PDF`. tsc clean.
+
 ## Sequencing (phase-by-phase, commit each)
 1. Pillar A (A1→A4). 2. B1 authoring API. 3. ClosedXML (B2/B3 + checklist). 4. EPPlus → GemBox → Aspose.
 5. Wrap-up docs (Migration page lists the 4 new spreadsheet sources).

@@ -35,7 +35,7 @@ public sealed class MigrationService
     }
 
     public IEnumerable<FrameworkInfo> GetFrameworks() =>
-        _converters.Values.Select(c => new FrameworkInfo(c.FrameworkId, c.FrameworkName, c.Status, c.Description));
+        _converters.Values.Select(c => new FrameworkInfo(c.FrameworkId, c.FrameworkName, c.Status, c.Description, c.Kind));
 
     public MigrationResult Convert(string frameworkId, string sourceCode)
     {
@@ -73,4 +73,4 @@ public sealed class MigrationService
     }
 }
 
-public sealed record FrameworkInfo(string Id, string Name, string Status, string Description);
+public sealed record FrameworkInfo(string Id, string Name, string Status, string Description, string Kind);

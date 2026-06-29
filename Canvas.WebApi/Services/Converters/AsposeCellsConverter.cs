@@ -2,7 +2,7 @@ using Canvas.Migration.AsposeCells;
 
 namespace Canvas.WebApi.Services.Converters;
 
-public sealed class AsposeCellsConverter : BasePdfConverter
+public sealed class AsposeCellsConverter : BaseSpreadsheetConverter
 {
     public override string FrameworkId => "AsposeCells";
 

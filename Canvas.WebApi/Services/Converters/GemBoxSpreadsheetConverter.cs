@@ -2,7 +2,7 @@ using Canvas.Migration.GemBoxSpreadsheet;
 
 namespace Canvas.WebApi.Services.Converters;
 
-public sealed class GemBoxSpreadsheetConverter : BasePdfConverter
+public sealed class GemBoxSpreadsheetConverter : BaseSpreadsheetConverter
 {
     public override string FrameworkId => "GemBoxSpreadsheet";
 

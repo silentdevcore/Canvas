@@ -34,7 +34,8 @@ public class MigrationController : ControllerBase
             id = f.Id,
             name = f.Name,
             status = f.Status,
-            description = f.Description
+            description = f.Description,
+            kind = f.Kind
         });
         return Ok(frameworks);
     }

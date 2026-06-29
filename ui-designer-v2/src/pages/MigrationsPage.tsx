@@ -25,6 +25,7 @@ interface Framework {
   name: string;
   status: string;
   description: string;
+  kind?: string; // "pdf" (default) | "spreadsheet"
 }
 
 interface Diagnostic {
@@ -1071,11 +1072,20 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
             value={selectedId}
             onChange={e => handleFrameworkChange(e.target.value)}
           >
-            {frameworks.map(f => (
-              <option key={f.id} value={f.id}>
-                {f.name}{f.status === 'skeleton' ? ' (skeleton)' : f.status === 'pilot' ? ' (pilot)' : ''}
-              </option>
-            ))}
+            {(() => {
+              const label = (f: Framework) =>
+                `${f.name}${f.status === 'skeleton' ? ' (skeleton)' : f.status === 'pilot' ? ' (pilot)' : ''}`;
+              const opt = (f: Framework) => <option key={f.id} value={f.id}>{label(f)}</option>;
+              const spreadsheet = frameworks.filter(f => f.kind === 'spreadsheet');
+              const other = frameworks.filter(f => f.kind !== 'spreadsheet');
+              // Group only when both kinds are present (code mode); otherwise a flat list.
+              return spreadsheet.length > 0 && other.length > 0 ? (
+                <>
+                  <optgroup label="PDF libraries → Canvas.Pdf">{other.map(opt)}</optgroup>
+                  <optgroup label="Spreadsheet libraries → Canvas spreadsheet">{spreadsheet.map(opt)}</optgroup>
+                </>
+              ) : frameworks.map(opt);
+            })()}
           </select>
           {current && (
             <span className="mgr-framework-desc">{current.description}</span>
@@ -1282,7 +1292,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
 
           <div className="mgr-pane" style={{ flex: 1 }}>
             <div className="mgr-pane-header">
-              <span>{isReportDesign(selectedId) ? 'Canvas Design (JSON)' : 'Canvas.Pdf Code'}</span>
+              <span>{isReportDesign(selectedId) ? 'Canvas Design (JSON)' : current?.kind === 'spreadsheet' ? 'Canvas Spreadsheet Code' : 'Canvas.Pdf Code'}</span>
               <div className="mgr-pane-header-actions">
                 {hasConverted && (
                   <button

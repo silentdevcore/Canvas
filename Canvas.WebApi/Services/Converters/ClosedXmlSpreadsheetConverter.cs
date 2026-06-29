@@ -2,7 +2,7 @@ using Canvas.Migration.ClosedXmlSpreadsheet;
 
 namespace Canvas.WebApi.Services.Converters;
 
-public sealed class ClosedXmlSpreadsheetConverter : BasePdfConverter
+public sealed class ClosedXmlSpreadsheetConverter : BaseSpreadsheetConverter
 {
     public override string FrameworkId => "ClosedXmlSpreadsheet";
 

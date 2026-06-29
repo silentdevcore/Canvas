@@ -9,6 +9,7 @@ public abstract class BasePdfConverter : ICodeConverter
     public abstract string FrameworkName { get; }
     public virtual string Status => "skeleton";
     public abstract string Description { get; }
+    public virtual string Kind => "pdf";
 
     public abstract string ConvertCode(string sourceCode);
 
