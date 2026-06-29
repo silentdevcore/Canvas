@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUpload, FiGrid } from 'react-icons/fi';
 import AppHeader from '@/components/Layout/AppHeader';
-import MigrationTabs, { formatTabs } from '@/components/Migrations/MigrationTabs';
+import MigrationTabs, { sheetTabs } from '@/components/Migrations/MigrationTabs';
 import { SpreadsheetService } from '@/services/SpreadsheetService';
 import { useSpreadsheetStore } from '@/spreadsheet/store';
 import { jsonToWorkbook } from '@/spreadsheet/io';
@@ -42,7 +42,7 @@ const SpreadsheetImportPage: React.FC = () => {
   return (
     <div className="mgr-page">
       <AppHeader activePage="migrations" />
-      <MigrationTabs tabs={formatTabs('spreadsheet')} />
+      <MigrationTabs tabs={sheetTabs('datasource')} />
 
       <main className="mgr-main">
         <div className="mgr-heading">

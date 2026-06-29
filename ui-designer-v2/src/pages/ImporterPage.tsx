@@ -12,7 +12,6 @@ import {
   FiZap,
 } from 'react-icons/fi';
 import AppHeader from '@/components/Layout/AppHeader';
-import MigrationTabs, { formatTabs } from '@/components/Migrations/MigrationTabs';
 import { useTemplateLoader } from '@/hooks/useTemplateLoader';
 import ExportService from '@/services/ExportService';
 
@@ -245,8 +244,7 @@ const ImporterPage: React.FC = () => {
 
   return (
     <div className="importer-page">
-      <AppHeader activePage="migrations" />
-      <MigrationTabs tabs={formatTabs('documents')} />
+      <AppHeader activePage="importer" />
 
       <main className="importer-main">
         <header className="importer-header">

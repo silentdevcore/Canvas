@@ -37,6 +37,10 @@ public sealed class MigrationService
     public IEnumerable<FrameworkInfo> GetFrameworks() =>
         _converters.Values.Select(c => new FrameworkInfo(c.FrameworkId, c.FrameworkName, c.Status, c.Description, c.Kind));
 
+    /// <summary>Migration target kind for a framework ("pdf" | "spreadsheet"); defaults to "pdf".</summary>
+    public string GetKind(string frameworkId) =>
+        _converters.TryGetValue(frameworkId, out var c) ? c.Kind : "pdf";
+
     public MigrationResult Convert(string frameworkId, string sourceCode)
     {
         var converter = GetConverter(frameworkId);

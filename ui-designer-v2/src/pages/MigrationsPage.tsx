@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiCode, FiCopy, FiDownload, FiExternalLink, FiPlay, FiRefreshCw, FiGitMerge, FiLayout, FiUpload } from 'react-icons/fi';
 import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import AppHeader from '@/components/Layout/AppHeader';
-import MigrationTabs, { formatTabs } from '@/components/Migrations/MigrationTabs';
+import MigrationTabs, { pdfTabs, sheetTabs } from '@/components/Migrations/MigrationTabs';
 import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, useEditorStore, type Template } from '@/store';
 
@@ -1052,17 +1052,13 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     });
   }, []);
 
+  const isSpreadsheetCode = !isDesigner && kindFilter === 'spreadsheet';
   return (
     <div className="mgr-page">
       <AppHeader activePage="migrations" />
-      {isDesigner ? (
-        <MigrationTabs tabs={formatTabs('designer')} />
-      ) : (
-        <MigrationTabs tabs={[
-          { label: 'PDF Migration', to: '/migrations/code/pdf', active: kindFilter === 'pdf' },
-          { label: 'Spreadsheet Migration', to: '/migrations/code/spreadsheet', active: kindFilter === 'spreadsheet' },
-        ]} />
-      )}
+      {isSpreadsheetCode
+        ? <MigrationTabs tabs={sheetTabs('code')} />
+        : <MigrationTabs tabs={pdfTabs(isDesigner ? 'designer' : 'code')} />}
 
       <main className="mgr-main">
         {/* Page heading */}
@@ -1070,12 +1066,12 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
           <div className="mgr-heading-left">
             {isDesigner ? <FiLayout className="mgr-heading-icon" /> : <FiCode className="mgr-heading-icon" />}
             <div>
-              <h1>{isDesigner ? 'Report-designer Migration' : 'Code Migration'}</h1>
+              <h1>{isDesigner ? 'UI-Designer Migration' : isSpreadsheetCode ? 'Spreadsheet Code Migration' : 'PDF Code Migration'}</h1>
               <p>
                 {isDesigner
                   ? 'Convert a report-designer file (DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik) into an editable Canvas design, then open it in the visual designer.'
-                  : kindFilter === 'spreadsheet'
-                    ? 'Paste code from another spreadsheet library (ClosedXML, EPPlus, GemBox, Aspose.Cells) and convert it to the Canvas spreadsheet API.'
+                  : isSpreadsheetCode
+                    ? 'Paste code from another spreadsheet library (ClosedXML, EPPlus, GemBox, Aspose.Cells), convert it to the Canvas spreadsheet API, and preview the result as a grid.'
                     : 'Paste code from another PDF library, convert it to Canvas.Pdf, and preview the result instantly.'}
               </p>
             </div>
@@ -1427,11 +1423,11 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
           </div>
         )}
 
-        {/* PDF Preview */}
+        {/* Preview — PDF for PDF code, an HTML grid for spreadsheet code */}
         <div className="mgr-preview">
           <div className="mgr-preview-header">
-            <span>PDF Preview</span>
-            {pdfDataUrl && (
+            <span>{isSpreadsheetCode ? 'Spreadsheet Preview' : 'PDF Preview'}</span>
+            {pdfDataUrl && !isSpreadsheetCode && (
               <button className="mgr-preview-action" type="button" onClick={handleOpenPreviewInViewer}>
                 <FiExternalLink />
                 Open in PDF Viewer
@@ -1439,11 +1435,11 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
             )}
           </div>
           {pdfUrl
-            ? <iframe className="mgr-pdf-frame" src={pdfUrl} title="PDF Preview" />
+            ? <iframe className="mgr-pdf-frame" src={pdfUrl} title={isSpreadsheetCode ? 'Spreadsheet Preview' : 'PDF Preview'} />
             : (
               <div className="mgr-pdf-empty">
                 <FiPlay size={32} />
-                <p>Click <strong>Generate Preview</strong> to render the converted PDF</p>
+                <p>Click <strong>Generate Preview</strong> to render the converted {isSpreadsheetCode ? 'workbook as a grid' : 'PDF'}</p>
               </div>
             )
           }

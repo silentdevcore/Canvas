@@ -19,18 +19,25 @@ const App: React.FC = () => (
     <Route path="/create" element={<CreatePage />} />
     <Route path="/docs" element={<DocsPage />} />
     <Route path="/migrations" element={<MigrationsHubPage />} />
-    {/* Type 1 — Code Migration (PDF + Spreadsheet libraries → Canvas code) */}
-    <Route path="/migrations/code" element={<Navigate to="/migrations/code/pdf" replace />} />
-    <Route path="/migrations/code/pdf" element={<MigrationsPage mode="code" codeKind="pdf" />} />
-    <Route path="/migrations/code/spreadsheet" element={<MigrationsPage mode="code" codeKind="spreadsheet" />} />
-    {/* Type 2 — DataSource / Format Migration (file/format → Canvas design/model) */}
-    <Route path="/migrations/format" element={<Navigate to="/migrations/format/designer" replace />} />
-    <Route path="/migrations/format/designer" element={<MigrationsPage mode="designer" />} />
-    <Route path="/migrations/format/documents" element={<ImporterPage />} />
-    <Route path="/migrations/format/spreadsheet" element={<SpreadsheetImportPage />} />
+    {/* Domain 1 — PDF Migration */}
+    <Route path="/migrations/pdf" element={<Navigate to="/migrations/pdf/code" replace />} />
+    <Route path="/migrations/pdf/code" element={<MigrationsPage mode="code" codeKind="pdf" />} />
+    <Route path="/migrations/pdf/designer" element={<MigrationsPage mode="designer" />} />
+    {/* Domain 2 — Spreadsheet Migration */}
+    <Route path="/migrations/spreadsheet" element={<Navigate to="/migrations/spreadsheet/code" replace />} />
+    <Route path="/migrations/spreadsheet/code" element={<MigrationsPage mode="code" codeKind="spreadsheet" />} />
+    <Route path="/migrations/spreadsheet/datasource" element={<SpreadsheetImportPage />} />
+    {/* Document importer — standalone */}
+    <Route path="/importer" element={<ImporterPage />} />
     {/* Back-compat redirects */}
-    <Route path="/migrations/designer" element={<Navigate to="/migrations/format/designer" replace />} />
-    <Route path="/importer" element={<Navigate to="/migrations/format/documents" replace />} />
+    <Route path="/migrations/code" element={<Navigate to="/migrations/pdf/code" replace />} />
+    <Route path="/migrations/code/pdf" element={<Navigate to="/migrations/pdf/code" replace />} />
+    <Route path="/migrations/code/spreadsheet" element={<Navigate to="/migrations/spreadsheet/code" replace />} />
+    <Route path="/migrations/designer" element={<Navigate to="/migrations/pdf/designer" replace />} />
+    <Route path="/migrations/format" element={<Navigate to="/migrations/pdf/designer" replace />} />
+    <Route path="/migrations/format/designer" element={<Navigate to="/migrations/pdf/designer" replace />} />
+    <Route path="/migrations/format/spreadsheet" element={<Navigate to="/migrations/spreadsheet/datasource" replace />} />
+    <Route path="/migrations/format/documents" element={<Navigate to="/importer" replace />} />
     <Route
       path="/pdf-viewer"
       element={(

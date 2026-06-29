@@ -79,6 +79,28 @@ All four converters live at `GET /api/migration/frameworks` + `POST /api/migrati
       → Canvas spreadsheet"); output pane labels "Canvas Spreadsheet Code" for spreadsheet kind.
 - [x] Live: 15 pdf + 4 spreadsheet tagged; spreadsheet `/preview` → valid `%PDF`. tsc clean.
 
+## Follow-up — split Migrations into PDF and Spreadsheet domains (+ grid previewer)
+Reorganize Migrations **domain-first** (replacing the Code-vs-Format split). Two top-level areas, each with
+its own sub-tabs; Spreadsheet Code Migration gets its own view + a non-PDF previewer. Plan mirrored from
+`~/.claude/plans/can-you-analyse-migrations-valiant-beaver.md`.
+
+- **PDF Migration** (`/migrations/pdf`): Code (`/pdf/code`, 15 libs → Canvas.Pdf) · UI-Designer (`/pdf/designer`, report files → design).
+- **Spreadsheet Migration** (`/migrations/spreadsheet`): Code (`/spreadsheet/code`, 4 libs → Canvas spreadsheet API, **grid preview**) · Datasource (`/spreadsheet/datasource`, .xlsx/.csv → workbook).
+- Document importer stays standalone at `/importer` (out of scope).
+
+- [x] Routing (`App.tsx`): `/migrations/pdf/{code,designer}`, `/migrations/spreadsheet/{code,datasource}`,
+      `/importer` standalone + back-compat redirects (`/migrations/code*`, `/migrations/designer`, `/migrations/format/*`).
+- [x] Hub (`MigrationsHubPage.tsx`): two cards — PDF Migration, Spreadsheet Migration.
+- [x] `MigrationTabs.tsx`: `pdfTabs(code|designer)` + `sheetTabs(code|datasource)` (replaced `formatTabs`).
+- [x] `MigrationsPage.tsx`: domain sub-tab bar (derived from `codeKind`/`mode`); spreadsheet-preview branch
+      ("Spreadsheet Preview" label, iframe renders the returned HTML grid, "Open in PDF Viewer" hidden).
+- [x] Backend grid previewer: `BaseSpreadsheetConverter.GeneratePreview` → `ReplaySpreadsheetCalls`
+      (`AddSheet`/`Cell("A1"|r,c).Value`/`Formula`) → styled HTML `<table>`; `MigrationController` + `MigrationService.GetKind`
+      set content-type (`text/html` spreadsheet, `application/pdf` pdf).
+- [x] `SpreadsheetImportPage` → `sheetTabs('datasource')`; `ImporterPage` standalone (format tabs dropped, nav restored).
+- [x] Verified: tsc + vite build + `dotnet build Canvas.sln` clean; live — spreadsheet `/preview` → `text/html`
+      with `<table>` (Item/Coffee/SUM); PDF `/preview` → `application/pdf`.
+
 ## Sequencing (phase-by-phase, commit each)
 1. Pillar A (A1→A4). 2. B1 authoring API. 3. ClosedXML (B2/B3 + checklist). 4. EPPlus → GemBox → Aspose.
 5. Wrap-up docs (Migration page lists the 4 new spreadsheet sources).

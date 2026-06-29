@@ -38,6 +38,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
               Templates
             </button>
             <button
+              className={activePage === 'importer' ? 'is-active' : ''}
+              onClick={() => { navigate('/importer'); setMobileMenuOpen(false); }}
+            >
+              Importer
+            </button>
+            <button
               className={activePage === 'viewer' ? 'is-active' : ''}
               onClick={() => { navigate('/pdf-viewer'); setMobileMenuOpen(false); }}
             >
@@ -77,6 +83,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
           </button>
           <button className={activePage === 'templates' ? 'is-active' : ''} onClick={() => navigate('/template')}>
             Templates
+          </button>
+          <button className={activePage === 'importer' ? 'is-active' : ''} onClick={() => navigate('/importer')}>
+            Importer
           </button>
           <button className={activePage === 'viewer' ? 'is-active' : ''} onClick={() => navigate('/pdf-viewer')}>
             PDF Viewer

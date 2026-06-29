@@ -197,7 +197,8 @@ public class MigrationController : ControllerBase
         }
     }
 
-    /// <summary>Converts source code and returns a rendered PDF preview as binary.</summary>
+    /// <summary>Converts source code and returns a rendered preview as binary — a PDF for PDF-code
+    /// migrations, or an HTML grid for spreadsheet-code migrations.</summary>
     [HttpPost("preview")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
@@ -210,8 +211,10 @@ public class MigrationController : ControllerBase
 
         try
         {
-            var pdfBytes = _service.GeneratePreview(request.Framework, request.SourceCode);
-            return File(pdfBytes, "application/pdf", "migration-preview.pdf");
+            var bytes = _service.GeneratePreview(request.Framework, request.SourceCode);
+            return _service.GetKind(request.Framework) == "spreadsheet"
+                ? File(bytes, "text/html; charset=utf-8")
+                : File(bytes, "application/pdf", "migration-preview.pdf");
         }
         catch (ArgumentException ex)
         {

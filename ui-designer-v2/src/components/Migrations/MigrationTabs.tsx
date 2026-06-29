@@ -32,11 +32,16 @@ const MigrationTabs: React.FC<{ tabs: MigrationTab[] }> = ({ tabs }) => {
   );
 };
 
-/** The DataSource/Format Migration sub-tabs, with the given one marked active. */
-export const formatTabs = (active: 'designer' | 'documents' | 'spreadsheet'): MigrationTab[] => [
-  { label: 'Report designers', to: '/migrations/format/designer', active: active === 'designer' },
-  { label: 'Documents', to: '/migrations/format/documents', active: active === 'documents' },
-  { label: 'Spreadsheets', to: '/migrations/format/spreadsheet', active: active === 'spreadsheet' },
+/** PDF Migration sub-tabs. */
+export const pdfTabs = (active: 'code' | 'designer'): MigrationTab[] => [
+  { label: 'Code Migration', to: '/migrations/pdf/code', active: active === 'code' },
+  { label: 'UI-Designer Migration', to: '/migrations/pdf/designer', active: active === 'designer' },
+];
+
+/** Spreadsheet Migration sub-tabs. */
+export const sheetTabs = (active: 'code' | 'datasource'): MigrationTab[] => [
+  { label: 'Code Migration', to: '/migrations/spreadsheet/code', active: active === 'code' },
+  { label: 'Datasource Migration', to: '/migrations/spreadsheet/datasource', active: active === 'datasource' },
 ];
 
 export default MigrationTabs;

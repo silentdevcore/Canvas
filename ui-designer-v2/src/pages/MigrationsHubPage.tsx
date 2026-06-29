@@ -4,33 +4,34 @@ import { FiCode, FiLayout, FiArrowRight } from 'react-icons/fi';
 import AppHeader from '@/components/Layout/AppHeader';
 
 /**
- * Migrations landing page. The two migration *types*, each a dedicated view:
- *  - Code Migration             → /migrations/code   (library C# → Canvas code: PDF + Spreadsheet)
- *  - DataSource / Format Migration → /migrations/format (a source file/format → Canvas design/model)
+ * Migrations landing page. Two domains, each a dedicated area with Code + Designer/Datasource sub-tabs:
+ *  - PDF Migration         → /migrations/pdf         (Code → Canvas.Pdf · UI-Designer → Canvas design)
+ *  - Spreadsheet Migration → /migrations/spreadsheet (Code → Canvas spreadsheet API · Datasource → workbook)
  */
 const MigrationsHubPage: React.FC = () => {
   const navigate = useNavigate();
 
   const cards = [
     {
-      id: 'code',
-      to: '/migrations/code',
+      id: 'pdf',
+      to: '/migrations/pdf',
       icon: <FiCode />,
-      title: 'Code Migration',
-      blurb: 'Convert C# source that uses a third-party library into equivalent Canvas code — PDF '
-        + 'libraries (iText, Apryse, Aspose, Syncfusion, Foxit, Spire, …) → Canvas.Pdf, and spreadsheet '
-        + 'libraries (ClosedXML, EPPlus, GemBox, Aspose.Cells) → the Canvas spreadsheet API.',
-      tag: '15 PDF + 4 spreadsheet libraries',
+      title: 'PDF Migration',
+      blurb: 'Move PDF work into Canvas — Code Migration converts C# from a PDF library (iText, Apryse, '
+        + 'Aspose, Syncfusion, Foxit, Spire, …) into Canvas.Pdf code with a live PDF preview; UI-Designer '
+        + 'Migration converts report-designer files (DevExpress, RDL/RDLC, ActiveReports, FastReport, '
+        + 'Telerik) into an editable Canvas design.',
+      tag: '15 PDF libraries · 7 report designers',
     },
     {
-      id: 'format',
-      to: '/migrations/format',
+      id: 'spreadsheet',
+      to: '/migrations/spreadsheet',
       icon: <FiLayout />,
-      title: 'DataSource / Format Migration',
-      blurb: 'Bring an existing file or format into Canvas — report-designer files (DevExpress, RDL/RDLC, '
-        + 'ActiveReports, FastReport, Telerik, …) and documents (.pdf/.docx/.pptx/.odt/images) become '
-        + 'editable Canvas designs; spreadsheets (.xlsx/.xls/.csv) open in the spreadsheet editor.',
-      tag: 'report designers · documents · spreadsheets',
+      title: 'Spreadsheet Migration',
+      blurb: 'Move spreadsheet work into Canvas — Code Migration converts C# from a spreadsheet library '
+        + '(ClosedXML, EPPlus, GemBox, Aspose.Cells) into the Canvas spreadsheet API with a grid preview; '
+        + 'Datasource Migration imports a spreadsheet file (.xlsx/.xls/.csv) into the spreadsheet editor.',
+      tag: '4 spreadsheet libraries · file import',
     },
   ];
 
