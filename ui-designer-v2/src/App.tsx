@@ -19,13 +19,14 @@ const App: React.FC = () => (
     <Route path="/create" element={<CreatePage />} />
     <Route path="/docs" element={<DocsPage />} />
     <Route path="/migrations" element={<MigrationsHubPage />} />
-    {/* Domain 1 — PDF Migration */}
+    {/* Domain 1 — PDF Migration. Distinct `key` per route forces a fresh MigrationsPage instance so each
+        sub-tab is its own view (no cross-route state bleed). */}
     <Route path="/migrations/pdf" element={<Navigate to="/migrations/pdf/code" replace />} />
-    <Route path="/migrations/pdf/code" element={<MigrationsPage mode="code" codeKind="pdf" />} />
-    <Route path="/migrations/pdf/designer" element={<MigrationsPage mode="designer" />} />
+    <Route path="/migrations/pdf/code" element={<MigrationsPage key="pdf-code" mode="code" codeKind="pdf" />} />
+    <Route path="/migrations/pdf/designer" element={<MigrationsPage key="pdf-designer" mode="designer" />} />
     {/* Domain 2 — Spreadsheet Migration */}
     <Route path="/migrations/spreadsheet" element={<Navigate to="/migrations/spreadsheet/code" replace />} />
-    <Route path="/migrations/spreadsheet/code" element={<MigrationsPage mode="code" codeKind="spreadsheet" />} />
+    <Route path="/migrations/spreadsheet/code" element={<MigrationsPage key="spreadsheet-code" mode="code" codeKind="spreadsheet" />} />
     <Route path="/migrations/spreadsheet/datasource" element={<SpreadsheetImportPage />} />
     {/* Document importer — standalone */}
     <Route path="/importer" element={<ImporterPage />} />
