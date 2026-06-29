@@ -25,6 +25,8 @@ public sealed class MigrationService
             new PdfKitNetConverter(),
             new FoxitPdfConverter(),
             new DevExpressPdfConverter(),
+            // spreadsheet code migration (→ Canvas spreadsheet API)
+            new ClosedXmlSpreadsheetConverter(),
         };
         _converters = all.ToDictionary(c => c.FrameworkId, StringComparer.OrdinalIgnoreCase);
     }

@@ -47,11 +47,11 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
       `Freeze`), `CanvasCell` (`Value` w/ type inference, `Formula`, `NumberFormat`, `Comment`, `Hyperlink`,
       `Style(s => ...)`), `CanvasCellStyle` (Bold/Italic/Background/Color/Font/FontSize/Align). Test
       `CanvasWorkbook_FluentApi_BuildsCalculableWorkbook` (build → .xlsx round-trip + `/calculate` = 20).
-- [ ] **B2/B3 ClosedXML** (reference impl, lowest-risk) — `Canvas.Migration.ClosedXmlSpreadsheet` (Roslyn
-      rewriter subclass of `CSharpSourceMigration`, clone `GemBoxPdfMigration` structure), diag prefix
-      `CANMIGCLXL`; `ICodeConverter` in `Canvas.WebApi/Services/Converters/`, registered in `MigrationService`;
-      rewriter unit test + endpoint smoke. Mapping: `Worksheets.Add`→`AddSheet`; `Cell("A1").Value=`→`.Cell("A1").Value()`;
-      `Range(..).Merge()`; `SaveAs`→`Save`.
+- [x] **B2/B3 ClosedXML** (reference impl) — `Canvas.Migration.ClosedXmlSpreadsheet` (Roslyn rewriter),
+      `CANMIGCLXL`; `ClosedXmlSpreadsheetConverter` registered in `MigrationService` (Status `full`). Handles
+      new workbook, AddSheet, Value/Formula/Width/Height property→method, Bold/Italic/FontSize style lambdas,
+      1-based→0-based index shift, SaveAs→Save, usings swap; diagnostics for the rest. 3 tests + live convert.
+      See `checklists/Spreadsheet-Migration-ClosedXML.md`.
 - [ ] **B2/B3 EPPlus** — `Canvas.Migration.EpplusSpreadsheet`, `CANMIGEPPL`. `pkg.Workbook.Worksheets.Add`;
       `Cells["A1"].Value=`; `Cells["A1:B1"].Merge=true`; `pkg.SaveAs`.
 - [ ] **B2/B3 GemBox.Spreadsheet** — `Canvas.Migration.GemBoxSpreadsheet`, `CANMIGGBSS`. `new ExcelFile()`;
