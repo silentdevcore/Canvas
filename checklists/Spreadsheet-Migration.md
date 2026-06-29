@@ -38,7 +38,8 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
       test `canvasWorkbookSchema.test.ts` (cell-type enum in lock-step + required-field constraints). 20 jest green.
 - [x] **A4 Document** — DocsPage "Workbook JSON (canonical format)" subsection; `llms.txt` entry; MCP
       `workbook-schema` resource (`canvas://schema/canvas-workbook`).
-- [ ] (Optional, deferred) `POST /api/spreadsheet/validate` + import major-version warning.
+- [x] `POST /api/spreadsheet/validate` + import major-version warning — done in `Spreadsheet-Polish.md`
+      Phase 1 (`SpreadsheetValidator`, frontend version guard, editor "Validate" button).
 
 ## Pillar B — Code-library migration (Roslyn rewriters → Canvas authoring API)
 - [x] **B1 Canvas spreadsheet authoring API (the rewrite target)** — `CanvasWorkbookBuilder.cs`:
