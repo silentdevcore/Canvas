@@ -82,6 +82,37 @@ public sealed class SpreadsheetRoundTripTests
     }
 
     [Fact]
+    public void CanvasWorkbook_FluentApi_BuildsCalculableWorkbook()
+    {
+        var wb = new CanvasWorkbook("Report");
+        var ws = wb.AddSheet("Sales");
+        ws.Cell("A1").Value("Item").Style(s => s.Bold().Background("#eeeeee"));
+        ws.Range("A1:B1").Merge();                  // header spans the (empty) B1
+        ws.Cell("A2").Value("Coffee").Comment("popular");
+        ws.Cell("B2").Value(10);
+        ws.Cell("B3").Formula("=B2*2");
+        ws.Column(0).Width(24);
+
+        // The model is the canonical Canvas Workbook JSON.
+        var model = wb.ToWorkbook();
+        Assert.Equal("Report", model.Name);
+        Assert.Equal("1.0", model.SchemaVersion);
+        Assert.Contains("A1:B1", model.Sheets[0].Merges);
+
+        // Round-trips through .xlsx with values/formula/style/comment intact.
+        using var ms = new MemoryStream(wb.ToXlsx());
+        var s = new ExcelWorkbookImporter().Import(ms, "fluent.xlsx").Sheets[0];
+        Assert.Equal("Item", Cell(s, 0, 0)!.Value);
+        Assert.True(Cell(s, 0, 0)!.Style!.Bold);
+        Assert.Equal("=B2*2", Cell(s, 2, 1)!.Formula);
+        Assert.Equal("popular", Cell(s, 1, 0)!.Comment);
+
+        // The backend calculator computes a fluent-written formula (B3 = B2*2 = 20).
+        var calc = new SpreadsheetCalculator().Calculate(model);
+        Assert.Equal(20d, Convert.ToDouble(Cell(calc.Sheets[0], 2, 1)!.Value, CultureInfo.InvariantCulture));
+    }
+
+    [Fact]
     public void FromRows_BuildsHeaderAndTypedRows()
     {
         var rows = new List<Dictionary<string, System.Text.Json.JsonElement>>

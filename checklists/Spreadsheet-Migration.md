@@ -41,12 +41,12 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
 - [ ] (Optional, deferred) `POST /api/spreadsheet/validate` + import major-version warning.
 
 ## Pillar B — Code-library migration (Roslyn rewriters → Canvas authoring API)
-- [ ] **B1 Canvas spreadsheet authoring API (the rewrite target)** — new
-      `src/Canvas.Infrastructure.Spreadsheet/CanvasWorkbookBuilder.cs` fluent `CanvasWorkbook`/`CanvasWorksheet`
-      wrapping `SpreadsheetDto` + `ExcelWorkbookExporter`/`SpreadsheetCalculator`. Common ops:
-      `AddSheet`, `Cell("A1")`/`Cell(r,c)`, `.Value()`/`.Formula()`/`.Style(...)`/`.NumberFormat()`,
-      `Range(..).Merge()`, `Column(i).Width()`, `Save("x.xlsx")`, `.ToWorkbook()` (DTO/JSON), `.ToPdf()`.
-      Unit tests (build → export `.xlsx`; `/calculate` computes a fluent-written formula).
+- [x] **B1 Canvas spreadsheet authoring API (the rewrite target)** — `CanvasWorkbookBuilder.cs`:
+      `CanvasWorkbook` (`AddSheet`, `Sheet`, `ToWorkbook`, `ToXlsx`, `Save` by extension xlsx/xls/csv/tsv),
+      `CanvasWorksheet` (`Cell("A1")`/`Cell(r,c)`, `Range(..).Merge()`, `Column(i).Width/Hidden/OutlineLevel`,
+      `Freeze`), `CanvasCell` (`Value` w/ type inference, `Formula`, `NumberFormat`, `Comment`, `Hyperlink`,
+      `Style(s => ...)`), `CanvasCellStyle` (Bold/Italic/Background/Color/Font/FontSize/Align). Test
+      `CanvasWorkbook_FluentApi_BuildsCalculableWorkbook` (build → .xlsx round-trip + `/calculate` = 20).
 - [ ] **B2/B3 ClosedXML** (reference impl, lowest-risk) — `Canvas.Migration.ClosedXmlSpreadsheet` (Roslyn
       rewriter subclass of `CSharpSourceMigration`, clone `GemBoxPdfMigration` structure), diag prefix
       `CANMIGCLXL`; `ICodeConverter` in `Canvas.WebApi/Services/Converters/`, registered in `MigrationService`;
