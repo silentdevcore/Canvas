@@ -27,6 +27,7 @@ public sealed class MigrationService
             new DevExpressPdfConverter(),
             // spreadsheet code migration (→ Canvas spreadsheet API)
             new ClosedXmlSpreadsheetConverter(),
+            new EpplusSpreadsheetConverter(),
         };
         _converters = all.ToDictionary(c => c.FrameworkId, StringComparer.OrdinalIgnoreCase);
     }

@@ -52,8 +52,9 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
       new workbook, AddSheet, Value/Formula/Width/Height property→method, Bold/Italic/FontSize style lambdas,
       1-based→0-based index shift, SaveAs→Save, usings swap; diagnostics for the rest. 3 tests + live convert.
       See `checklists/Spreadsheet-Migration-ClosedXML.md`.
-- [ ] **B2/B3 EPPlus** — `Canvas.Migration.EpplusSpreadsheet`, `CANMIGEPPL`. `pkg.Workbook.Worksheets.Add`;
-      `Cells["A1"].Value=`; `Cells["A1:B1"].Merge=true`; `pkg.SaveAs`.
+- [x] **B2/B3 EPPlus** — `Canvas.Migration.EpplusSpreadsheet`, `CANMIGEPPL`. `Cells[..]` indexer→`Cell(..)`,
+      `pkg.Workbook.Worksheets.Add`→`AddSheet`, `Merge=true`→`Range(..).Merge()`, value/formula/style/SaveAs,
+      index shift. Converter registered; 3 tests. See `checklists/Spreadsheet-Migration-EPPlus.md`.
 - [ ] **B2/B3 GemBox.Spreadsheet** — `Canvas.Migration.GemBoxSpreadsheet`, `CANMIGGBSS`. `new ExcelFile()`;
       `Worksheets.Add`; `Cells["A1"].Value=`/`[r,c]`; `Cells[..].Style.Font.Weight`; `wb.Save`.
 - [ ] **B2/B3 Aspose.Cells** — `Canvas.Migration.AsposeCells`, `CANMIGASPC`. `new Workbook()`;
