@@ -33,6 +33,7 @@ public sealed class MigrationService
             new SpireXlsConverter(),
             new SyncfusionXlsIoConverter(),
             new NpoiConverter(),
+            new SpreadsheetLightConverter(),
         };
         _converters = all.ToDictionary(c => c.FrameworkId, StringComparer.OrdinalIgnoreCase);
     }

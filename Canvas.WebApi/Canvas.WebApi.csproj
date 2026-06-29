@@ -63,6 +63,7 @@
     <ProjectReference Include="..\src\Canvas.Migration.SpireXls\Canvas.Migration.SpireXls.csproj" />
     <ProjectReference Include="..\src\Canvas.Migration.SyncfusionXlsIo\Canvas.Migration.SyncfusionXlsIo.csproj" />
     <ProjectReference Include="..\src\Canvas.Migration.Npoi\Canvas.Migration.Npoi.csproj" />
+    <ProjectReference Include="..\src\Canvas.Migration.SpreadsheetLight\Canvas.Migration.SpreadsheetLight.csproj" />
   </ItemGroup>
 
   <Target Name="CopyImageOcrWorker" AfterTargets="Build">
