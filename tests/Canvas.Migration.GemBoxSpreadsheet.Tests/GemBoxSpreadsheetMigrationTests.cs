@@ -34,6 +34,21 @@ public sealed class GemBoxSpreadsheetMigrationTests
     }
 
     [Fact]
+    public void MapsHorizontalAlignment()
+    {
+        const string src = """
+            using GemBox.Spreadsheet;
+            var wb = new ExcelFile();
+            var ws = wb.Worksheets.Add("S");
+            ws.Cells["A1"].Style.HorizontalAlignment = HorizontalAlignmentStyle.Center;
+            wb.Save("o.xlsx");
+            """;
+
+        var code = new GemBoxSpreadsheetMigration().Migrate(src).MigratedCode;
+        Assert.Contains("ws.Cell(\"A1\").Style(s => s.Align(\"center\"))", code);
+    }
+
+    [Fact]
     public void FlagsMergeAndCharts()
     {
         const string src = """

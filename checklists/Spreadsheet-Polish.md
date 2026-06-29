@@ -20,8 +20,9 @@ deeper migration fidelity, and surfacing the now-lossless advanced features in t
       s.Background("#RRGGBB"))` via a named-color lookup (~16 common names); unknown colors → `CANMIGCLXL023`.
 - [x] **Named ranges**: `CanvasWorkbook.DefineName(name, refersTo)` builder method; ClosedXML
       `wb.NamedRanges.Add("X", "Sheet!A1")` → `wb.DefineName(...)`.
-- [x] Tests added (ClosedXML 4, EPPlus 4). GemBox/Aspose color+alignment stay diagnosed (their idioms —
-      `FillPattern.SetSolid`, `GetStyle/SetStyle` — diverge; manual-review note remains).
+- [x] Tests added (ClosedXML 4, EPPlus 4, GemBox 3). Horizontal alignment now covered for ClosedXML +
+      EPPlus + **GemBox** (`Style.HorizontalAlignment`). Aspose alignment + GemBox/Aspose fill colour stay
+      diagnosed (detached `GetStyle/SetStyle` and `FillPattern.SetSolid` idioms diverge).
 
 ## Phase 3 — Editor UI for advanced features (make the lossless format editable) — DONE (CF/validation deferred)
 - [x] Store actions `setCellMeta(row,col,{comment,hyperlink})` + `patchSheet({pageSetup,protection,autoFilterRange})`
