@@ -4,9 +4,9 @@ import { FiCode, FiLayout, FiArrowRight } from 'react-icons/fi';
 import AppHeader from '@/components/Layout/AppHeader';
 
 /**
- * Migrations landing page. Explains the two kinds of migration and links to each dedicated view:
- *  - Code Migration   → /migrations/code     (third-party PDF library C# → Canvas.Pdf code)
- *  - Designer Migration → /migrations/designer (report-designer files → editable Canvas designs)
+ * Migrations landing page. The two migration *types*, each a dedicated view:
+ *  - Code Migration             → /migrations/code   (library C# → Canvas code: PDF + Spreadsheet)
+ *  - DataSource / Format Migration → /migrations/format (a source file/format → Canvas design/model)
  */
 const MigrationsHubPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,19 +17,20 @@ const MigrationsHubPage: React.FC = () => {
       to: '/migrations/code',
       icon: <FiCode />,
       title: 'Code Migration',
-      blurb: 'Convert C# source from a third-party PDF library — iText, Apryse, Aspose, Syncfusion, '
-        + 'Foxit, Spire, and more — into equivalent Canvas.Pdf code, with a live PDF preview.',
-      tag: '15 PDF frameworks',
+      blurb: 'Convert C# source that uses a third-party library into equivalent Canvas code — PDF '
+        + 'libraries (iText, Apryse, Aspose, Syncfusion, Foxit, Spire, …) → Canvas.Pdf, and spreadsheet '
+        + 'libraries (ClosedXML, EPPlus, GemBox, Aspose.Cells) → the Canvas spreadsheet API.',
+      tag: '15 PDF + 4 spreadsheet libraries',
     },
     {
-      id: 'designer',
-      to: '/migrations/designer',
+      id: 'format',
+      to: '/migrations/format',
       icon: <FiLayout />,
-      title: 'Designer Migration',
-      blurb: 'Convert a report-designer file — DevExpress XtraReports, RDL/RDLC (SSRS, Syncfusion), '
-        + 'ActiveReports (.rdlx/.rpx), FastReport (.frx), Telerik (.trdx) — into an editable Canvas '
-        + 'design you can open in the visual designer.',
-      tag: '7 report designers',
+      title: 'DataSource / Format Migration',
+      blurb: 'Bring an existing file or format into Canvas — report-designer files (DevExpress, RDL/RDLC, '
+        + 'ActiveReports, FastReport, Telerik, …) and documents (.pdf/.docx/.pptx/.odt/images) become '
+        + 'editable Canvas designs; spreadsheets (.xlsx/.xls/.csv) open in the spreadsheet editor.',
+      tag: 'report designers · documents · spreadsheets',
     },
   ];
 

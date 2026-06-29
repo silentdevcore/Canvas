@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiCode, FiCopy, FiDownload, FiExternalLink, FiPlay, FiRefreshCw, FiGitMerge, FiLayout, FiUpload } from 'react-icons/fi';
 import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
 import AppHeader from '@/components/Layout/AppHeader';
+import MigrationTabs, { formatTabs } from '@/components/Migrations/MigrationTabs';
 import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, useEditorStore, type Template } from '@/store';
 
@@ -694,6 +695,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
   const isDesigner = mode === 'designer';
   const [frameworks, setFrameworks] = useState<Framework[]>(isDesigner ? DESIGNER_FRAMEWORKS : FRAMEWORKS_FALLBACK);
   const [selectedId, setSelectedId] = useState(isDesigner ? REPORT_ID : 'Syncfusion');
+  // Code Migration sub-tab: which library kind to show (PDF vs Spreadsheet).
+  const [kindFilter, setKindFilter] = useState<'pdf' | 'spreadsheet'>('pdf');
   const [reportDesign, setReportDesign] = useState<any | null>(null);
   const navigate = useNavigate();
   const setCurrentTemplate = useEditorStore(s => s.setCurrentTemplate);
@@ -1041,9 +1044,23 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     });
   }, []);
 
+  const switchKind = (k: 'pdf' | 'spreadsheet') => {
+    setKindFilter(k);
+    const first = frameworks.find(f => (k === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet'));
+    if (first) handleFrameworkChange(first.id);
+  };
+
   return (
     <div className="mgr-page">
       <AppHeader activePage="migrations" />
+      {isDesigner ? (
+        <MigrationTabs tabs={formatTabs('designer')} />
+      ) : (
+        <MigrationTabs tabs={[
+          { label: 'PDF', active: kindFilter === 'pdf', onClick: () => switchKind('pdf') },
+          { label: 'Spreadsheet', active: kindFilter === 'spreadsheet', onClick: () => switchKind('spreadsheet') },
+        ]} />
+      )}
 
       <main className="mgr-main">
         {/* Page heading */}
@@ -1051,11 +1068,13 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
           <div className="mgr-heading-left">
             {isDesigner ? <FiLayout className="mgr-heading-icon" /> : <FiCode className="mgr-heading-icon" />}
             <div>
-              <h1>{isDesigner ? 'Designer Migrations' : 'Code Migrations'}</h1>
+              <h1>{isDesigner ? 'Report-designer Migration' : 'Code Migration'}</h1>
               <p>
                 {isDesigner
                   ? 'Convert a report-designer file (DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik) into an editable Canvas design, then open it in the visual designer.'
-                  : 'Paste code from another PDF library, convert it to Canvas.Pdf, and preview the result instantly.'}
+                  : kindFilter === 'spreadsheet'
+                    ? 'Paste code from another spreadsheet library (ClosedXML, EPPlus, GemBox, Aspose.Cells) and convert it to the Canvas spreadsheet API.'
+                    : 'Paste code from another PDF library, convert it to Canvas.Pdf, and preview the result instantly.'}
               </p>
             </div>
           </div>
@@ -1076,15 +1095,11 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
               const label = (f: Framework) =>
                 `${f.name}${f.status === 'skeleton' ? ' (skeleton)' : f.status === 'pilot' ? ' (pilot)' : ''}`;
               const opt = (f: Framework) => <option key={f.id} value={f.id}>{label(f)}</option>;
-              const spreadsheet = frameworks.filter(f => f.kind === 'spreadsheet');
-              const other = frameworks.filter(f => f.kind !== 'spreadsheet');
-              // Group only when both kinds are present (code mode); otherwise a flat list.
-              return spreadsheet.length > 0 && other.length > 0 ? (
-                <>
-                  <optgroup label="PDF libraries → Canvas.Pdf">{other.map(opt)}</optgroup>
-                  <optgroup label="Spreadsheet libraries → Canvas spreadsheet">{spreadsheet.map(opt)}</optgroup>
-                </>
-              ) : frameworks.map(opt);
+              // Code mode: the PDF | Spreadsheet sub-tab filters by kind. Designer mode: show all.
+              const visible = isDesigner
+                ? frameworks
+                : frameworks.filter(f => (kindFilter === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet'));
+              return visible.map(opt);
             })()}
           </select>
           {current && (
