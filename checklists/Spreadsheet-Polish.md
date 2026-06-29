@@ -8,7 +8,8 @@ deeper migration fidelity, and surfacing the now-lossless advanced features in t
 - [x] `SpreadsheetValidator` — structural + version checks → `{ severity, path, message }` (unknown cell
       type, formula missing `=`, negative row/col, unparseable merge, newer major `schemaVersion`).
 - [x] `POST /api/spreadsheet/validate` → `{ valid, version, supportedVersion, issues[] }`. DI + test +
-      live-verified.
+      live-verified. **Surfaced in the editor**: a toolbar "Validate" button (`SpreadsheetService.validate`)
+      shows a dismissible result banner (valid ✓ / error+warning counts + the first issues with their paths).
 - [x] Frontend `jsonToWorkbook` throws a clear error on a newer major `schemaVersion`
       (`CURRENT_SCHEMA_VERSION = '1.0'`); jest covers it. (8 io tests green.)
 - [x] `.ods`: no solid .NET ODS writer — stays deferred (documented here + in Spreadsheet-Migration).

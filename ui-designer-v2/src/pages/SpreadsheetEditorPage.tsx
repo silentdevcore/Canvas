@@ -6,7 +6,7 @@ import {
 import AppHeader from '../components/Layout/AppHeader';
 import { SpreadsheetGrid, colName } from '../spreadsheet/SpreadsheetGrid';
 import { useSpreadsheetStore } from '../spreadsheet/store';
-import { SpreadsheetService } from '../services/SpreadsheetService';
+import { SpreadsheetService, type ValidationResult } from '../services/SpreadsheetService';
 import { workbookToWire, toA1, toA1Range } from '../spreadsheet/types';
 import { sheetToCsv, csvToSheet, workbookToJson, jsonToWorkbook, downloadText } from '../spreadsheet/io';
 import '../styles/spreadsheet.css';
@@ -64,6 +64,7 @@ const SpreadsheetEditorPage: React.FC = () => {
   const [cellMenu, setCellMenu] = useState(false);
   const [sheetMenu, setSheetMenu] = useState(false);
   const [rulesMenu, setRulesMenu] = useState(false);
+  const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [cf, setCf] = useState({ type: 'cellIs', operator: 'greaterThan', value: '', value2: '', color: '#ffeb3b' });
   const [dv, setDv] = useState({ type: 'list', operator: 'between', value1: '', value2: '', listSource: '' });
 
@@ -122,6 +123,17 @@ const SpreadsheetEditorPage: React.FC = () => {
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Export failed');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const validate = async () => {
+    setBusy('Validating…');
+    try {
+      setValidation(await SpreadsheetService.validate(toWire()));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Validation failed');
     } finally {
       setBusy(null);
     }
@@ -283,6 +295,7 @@ const SpreadsheetEditorPage: React.FC = () => {
         </div>
         <span className="ss-spacer" />
         {busy && <span className="ss-busy">{busy}</span>}
+        <button className="ss-tool ss-tool--text" title="Validate the workbook" onClick={validate}>Validate</button>
         <button className="ss-tool ss-tool--text" onClick={() => fileInput.current?.click()}><FiUpload /> Import</button>
         <div className="ss-export">
           <button className="ss-tool ss-tool--text ss-tool--primary" onClick={() => setExportMenu((v) => !v)}><FiDownload /> Export ▾</button>
@@ -296,6 +309,25 @@ const SpreadsheetEditorPage: React.FC = () => {
         </div>
         <input ref={fileInput} type="file" accept=".xlsx,.csv,.json" hidden onChange={onImport} />
       </div>
+
+      {validation && (
+        <div className={`ss-validation${validation.valid ? ' is-valid' : ' is-invalid'}`}>
+          <span className="ss-validation-summary">
+            {validation.valid
+              ? '✓ Workbook is valid'
+              : `✕ ${validation.issues.filter((i) => i.severity === 'error').length} error(s), ${validation.issues.filter((i) => i.severity === 'warning').length} warning(s)`}
+          </span>
+          {!validation.valid && (
+            <ul className="ss-validation-list">
+              {validation.issues.slice(0, 8).map((i, k) => (
+                <li key={k} className={`ss-issue ss-issue--${i.severity}`}><code>{i.path}</code> {i.message}</li>
+              ))}
+              {validation.issues.length > 8 && <li className="ss-issue">…and {validation.issues.length - 8} more</li>}
+            </ul>
+          )}
+          <button className="ss-validation-close" title="Dismiss" onClick={() => setValidation(null)}><FiX /></button>
+        </div>
+      )}
 
       <div className="spreadsheet-formula-bar">
         <span className="ss-namebox">{colName(col)}{row + 1}</span>

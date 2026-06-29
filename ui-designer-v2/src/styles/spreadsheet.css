@@ -84,6 +84,19 @@
 .ss-rule-form input[type="color"] { width: 28px; height: 28px; padding: 0; border: 1px solid #cbd5e1; border-radius: 6px; flex: 0 0 auto; }
 .ss-rule-add { flex: 1 1 100%; padding: 6px; border: none; border-radius: 6px; background: #2563eb; color: #fff; font-size: 12px; cursor: pointer; }
 .ss-rule-add:hover { background: #1d4ed8; }
+
+/* Validation result banner */
+.ss-validation { position: relative; padding: 8px 32px 8px 12px; font-size: 13px; border-bottom: 1px solid #e2e8f0; }
+.ss-validation.is-valid { background: #ecfdf5; color: #047857; }
+.ss-validation.is-invalid { background: #fef2f2; color: #b91c1c; }
+.ss-validation-summary { font-weight: 600; }
+.ss-validation-list { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+.ss-issue { font-size: 12px; color: #475569; }
+.ss-issue--error { color: #b91c1c; }
+.ss-issue--warning { color: #b45309; }
+.ss-issue code { background: rgba(0,0,0,.06); padding: 0 4px; border-radius: 4px; }
+.ss-validation-close { position: absolute; top: 6px; right: 6px; border: none; background: transparent; color: inherit; cursor: pointer; padding: 2px; display: flex; opacity: .6; }
+.ss-validation-close:hover { opacity: 1; }
 .ss-busy { font-size: 12px; color: #64748b; margin-right: 8px; }
 .ss-format {
   height: 30px;
