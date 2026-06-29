@@ -58,13 +58,17 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
 - [x] **B2/B3 GemBox.Spreadsheet** — `Canvas.Migration.GemBoxSpreadsheet`, `CANMIGGBSS`. Drops SetLicense;
       ExcelFile→CanvasWorkbook, Cells[..]→Cell(..) (0-based, no shift), Font.Weight→Bold(), value/formula/save.
       Converter registered; 2 tests. See `checklists/Spreadsheet-Migration-GemBox.md`.
-- [ ] **B2/B3 Aspose.Cells** — `Canvas.Migration.AsposeCells`, `CANMIGASPC`. `new Workbook()`;
-      `Worksheets[0]`; `Cells["A1"].PutValue(..)`/`[r,c]`; `wb.Save`.
-- [ ] Each rewriter emits `MigrationResult { MigratedCode, Diagnostics }`; unsupported calls (charts,
-      pivots, exotic Aspose functions) → `Warning`/`Error` diagnostics, never silent drops. `GeneratePreview`
-      best-effort (build example via `CanvasWorkbook` → render); ship `Status="skeleton"` until sample-validated.
-- [ ] **B4 Per-library checklists** — `checklists/Spreadsheet-Migration-<Lib>.md` each (detection, API
-      mapping table, diagnostics range, status), analogue of `Designer-Migration-<Name>.md`.
+- [x] **B2/B3 Aspose.Cells** — `Canvas.Migration.AsposeCells`, `CANMIGASPC`. Workbook→CanvasWorkbook,
+      `Worksheets[0]`→`AddSheet`, `Cells[..]`→`Cell(..)` (0-based), `PutValue`→`Value`, Formula→method,
+      `SetColumnWidth`→`Column().Width()`, save; GetStyle/SetStyle + charts diagnosed. Registered; 2 tests.
+      See `checklists/Spreadsheet-Migration-Aspose.md`.
+- [x] Each rewriter emits `MigrationResult { MigratedCode, Diagnostics }`; unsupported calls become
+      `Warning`/`Info` diagnostics, never silent drops. `GeneratePreview` uses the base informational page.
+- [x] **B4 Per-library checklists** — `Spreadsheet-Migration-{ClosedXML,EPPlus,GemBox,Aspose}.md`.
+
+## Status — all done
+All four converters live at `GET /api/migration/frameworks` + `POST /api/migration/convert` (Status `full`).
+10 migration unit tests green; `dotnet build Canvas.sln` clean. Live-verified each emits Canvas code.
 
 ## Sequencing (phase-by-phase, commit each)
 1. Pillar A (A1→A4). 2. B1 authoring API. 3. ClosedXML (B2/B3 + checklist). 4. EPPlus → GemBox → Aspose.

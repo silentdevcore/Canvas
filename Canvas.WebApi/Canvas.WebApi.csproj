@@ -59,6 +59,7 @@
     <ProjectReference Include="..\src\Canvas.Migration.ClosedXmlSpreadsheet\Canvas.Migration.ClosedXmlSpreadsheet.csproj" />
     <ProjectReference Include="..\src\Canvas.Migration.EpplusSpreadsheet\Canvas.Migration.EpplusSpreadsheet.csproj" />
     <ProjectReference Include="..\src\Canvas.Migration.GemBoxSpreadsheet\Canvas.Migration.GemBoxSpreadsheet.csproj" />
+    <ProjectReference Include="..\src\Canvas.Migration.AsposeCells\Canvas.Migration.AsposeCells.csproj" />
   </ItemGroup>
 
   <Target Name="CopyImageOcrWorker" AfterTargets="Build">
