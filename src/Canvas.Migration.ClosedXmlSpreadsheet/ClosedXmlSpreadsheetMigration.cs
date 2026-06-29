@@ -102,6 +102,13 @@ public sealed class ClosedXmlSpreadsheetMigration : CSharpSourceMigration
             if (name == "AddWorksheet")
                 return visited.WithExpression(ma.WithName(SyntaxFactory.IdentifierName("AddSheet")));
 
+            // wb.NamedRanges.Add("X", "Sheet!A1") → wb.DefineName("X", "Sheet!A1")
+            if (name == "Add" && ma.Expression is MemberAccessExpressionSyntax nr && nr.Name.Identifier.ValueText == "NamedRanges"
+                && visited.ArgumentList.Arguments.Count >= 2)
+                return visited
+                    .WithExpression(ma.WithExpression(nr.Expression).WithName(SyntaxFactory.IdentifierName("DefineName")))
+                    .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(visited.ArgumentList.Arguments.Take(2))));
+
             // wb.SaveAs(path) → wb.Save(path)
             if (name == "SaveAs")
                 return visited.WithExpression(ma.WithName(SyntaxFactory.IdentifierName("Save")));
@@ -149,6 +156,18 @@ public sealed class ClosedXmlSpreadsheetMigration : CSharpSourceMigration
             // X.Style.Font.Bold / .Italic / .FontSize = v → X.Style(s => s.Bold(v) / ...)
             if (TryStyleChain(lhs, out var cellExpr, out var styleMethod))
                 return StyleLambda(cellExpr!, styleMethod!, rhs);
+
+            // X.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center → X.Style(s => s.Align("center"))
+            if (MatchChain(lhs, "Alignment", "Horizontal", out var cellA) && MapAlign(rhs) is { } align)
+                return StyleLambda(cellA!, "Align", StringLit(align));
+
+            // X.Style.Fill.BackgroundColor = XLColor.Red → X.Style(s => s.Background("#FF0000"))
+            if (MatchChain(lhs, "Fill", "BackgroundColor", out var cellB))
+            {
+                if (TryColorHex(rhs, out var hex)) return StyleLambda(cellB!, "Background", StringLit(hex!));
+                Diagnostics.Add(Warn("CANMIGCLXL023", $"Fill color '{rhs}' needs manual conversion to a hex string: .Style(s => s.Background(\"#RRGGBB\"))."));
+                return visited;
+            }
 
             if (IsStyleChain(lhs))
                 Diagnostics.Add(Warn("CANMIGCLXL020", $"Style assignment '{lhs}' needs manual migration to .Style(s => …) (e.g. Fill/Border/Alignment)."));
@@ -209,6 +228,55 @@ public sealed class ClosedXmlSpreadsheetMigration : CSharpSourceMigration
 
         private static bool IsStyleChain(MemberAccessExpressionSyntax lhs) =>
             lhs.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().Any(m => m.Name.Identifier.ValueText == "Style");
+
+        // Matches <cell>.Style.<group>.<leaf> and yields the cell expression.
+        private static bool MatchChain(MemberAccessExpressionSyntax lhs, string group, string leaf, out ExpressionSyntax? cellExpr)
+        {
+            cellExpr = null;
+            if (lhs.Name.Identifier.ValueText != leaf) return false;
+            if (lhs.Expression is MemberAccessExpressionSyntax g && g.Name.Identifier.ValueText == group
+                && g.Expression is MemberAccessExpressionSyntax style && style.Name.Identifier.ValueText == "Style")
+            {
+                cellExpr = style.Expression;
+                return true;
+            }
+            return false;
+        }
+
+        // XLAlignmentHorizontalValues.Center / .Left / .Right → "center" / "left" / "right".
+        private static string? MapAlign(ExpressionSyntax rhs) => RightmostName(rhs) switch
+        {
+            "Left" => "left",
+            "Center" or "CenterContinuous" => "center",
+            "Right" => "right",
+            _ => null,
+        };
+
+        private static readonly Dictionary<string, string> NamedColors = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Black"] = "#000000", ["White"] = "#FFFFFF", ["Red"] = "#FF0000", ["Green"] = "#008000",
+            ["Blue"] = "#0000FF", ["Yellow"] = "#FFFF00", ["Orange"] = "#FFA500", ["Gray"] = "#808080",
+            ["Grey"] = "#808080", ["LightGray"] = "#D3D3D3", ["LightGrey"] = "#D3D3D3", ["DarkGray"] = "#A9A9A9",
+            ["Cyan"] = "#00FFFF", ["Magenta"] = "#FF00FF", ["Purple"] = "#800080", ["Brown"] = "#A52A2A",
+        };
+
+        // XLColor.Red / Color.Red → "#FF0000" when the name is known.
+        private static bool TryColorHex(ExpressionSyntax rhs, out string? hex)
+        {
+            hex = null;
+            var n = RightmostName(rhs);
+            return n is not null && NamedColors.TryGetValue(n, out hex);
+        }
+
+        private static string? RightmostName(ExpressionSyntax e) => e switch
+        {
+            MemberAccessExpressionSyntax m => m.Name.Identifier.ValueText,
+            IdentifierNameSyntax id => id.Identifier.ValueText,
+            _ => null,
+        };
+
+        private static LiteralExpressionSyntax StringLit(string s) =>
+            SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(s));
 
         private static string SimpleTypeName(TypeSyntax type) => type switch
         {

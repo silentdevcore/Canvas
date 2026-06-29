@@ -13,14 +13,15 @@ deeper migration fidelity, and surfacing the now-lossless advanced features in t
       (`CURRENT_SCHEMA_VERSION = '1.0'`); jest covers it. (8 io tests green.)
 - [x] `.ods`: no solid .NET ODS writer — stays deferred (documented here + in Spreadsheet-Migration).
 
-## Phase 2 — Deeper migration fidelity (rewriters)
-- [ ] Map the common styles all four libs share, beyond Bold/Italic/FontSize: **fill/background color**
-      and **horizontal alignment** → `.Style(s => s.Background(...) / s.Align(...))`. (ClosedXML
-      `Style.Fill.BackgroundColor`/`Style.Alignment.Horizontal`; EPPlus `Style.Fill.PatternType+BackgroundColor`,
-      `Style.HorizontalAlignment`; GemBox `Style.FillPattern`/`Style.HorizontalAlignment`.)
-- [ ] **Named ranges**: ClosedXML `wb.NamedRanges.Add("X", "Sheet!A1")` / `wb.DefinedNames` → carry to
-      `SpreadsheetDto.DefinedNames` via a `CanvasWorkbook.DefineName(name, refersTo)` builder method.
-- [ ] Tests per added mapping; keep unsupported paths as diagnostics (no silent drops).
+## Phase 2 — Deeper migration fidelity (rewriters) — DONE
+- [x] **Horizontal alignment** → `.Style(s => s.Align("left|center|right"))`: ClosedXML
+      `Style.Alignment.Horizontal` + EPPlus `Style.HorizontalAlignment` (enum rightmost name → value).
+- [x] **Fill/background color** (ClosedXML `Style.Fill.BackgroundColor = XLColor.Name`) → `.Style(s =>
+      s.Background("#RRGGBB"))` via a named-color lookup (~16 common names); unknown colors → `CANMIGCLXL023`.
+- [x] **Named ranges**: `CanvasWorkbook.DefineName(name, refersTo)` builder method; ClosedXML
+      `wb.NamedRanges.Add("X", "Sheet!A1")` → `wb.DefineName(...)`.
+- [x] Tests added (ClosedXML 4, EPPlus 4). GemBox/Aspose color+alignment stay diagnosed (their idioms —
+      `FillPattern.SetSolid`, `GetStyle/SetStyle` — diverge; manual-review note remains).
 
 ## Phase 3 — Editor UI for advanced features (make the lossless format editable)
 - [ ] Sheet-level inspector panel(s) in the Spreadsheet editor to view/edit **page setup** (orientation,

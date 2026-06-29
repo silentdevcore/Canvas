@@ -44,6 +44,13 @@ public sealed class CanvasWorkbook
     public CanvasWorksheet Sheet(string name) => _sheets.First(s => s.Name == name);
     public int SheetCount => _sheets.Count;
 
+    /// <summary>Adds a named range, e.g. <c>DefineName("Sales", "Sheet1!A1:A10")</c>.</summary>
+    public CanvasWorkbook DefineName(string name, string refersTo)
+    {
+        _wb.DefinedNames.Add(new DefinedNameDto { Name = name, RefersTo = refersTo });
+        return this;
+    }
+
     /// <summary>The underlying Canvas Workbook JSON model.</summary>
     public SpreadsheetDto ToWorkbook() => _wb;
 

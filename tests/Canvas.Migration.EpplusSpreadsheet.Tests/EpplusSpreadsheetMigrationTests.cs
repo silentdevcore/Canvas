@@ -48,6 +48,21 @@ public sealed class EpplusSpreadsheetMigrationTests
     }
 
     [Fact]
+    public void MapsHorizontalAlignment()
+    {
+        const string src = """
+            using OfficeOpenXml;
+            using var pkg = new ExcelPackage();
+            var ws = pkg.Workbook.Worksheets.Add("S");
+            ws.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            pkg.SaveAs("o.xlsx");
+            """;
+
+        var code = new EpplusSpreadsheetMigration().Migrate(src).MigratedCode;
+        Assert.Contains("ws.Cell(\"A1\").Style(s => s.Align(\"center\"))", code);
+    }
+
+    [Fact]
     public void FlagsUnsupportedFeatures()
     {
         const string src = """

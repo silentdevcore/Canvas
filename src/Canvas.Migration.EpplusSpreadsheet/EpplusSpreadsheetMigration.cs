@@ -173,6 +173,11 @@ public sealed class EpplusSpreadsheetMigration : CSharpSourceMigration
             if (TryStyleChain(lhs, out var cellExpr, out var styleMethod))
                 return StyleLambda(cellExpr!, styleMethod!, rhs);
 
+            // X.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center → X.Style(s => s.Align("center"))
+            if (member == "HorizontalAlignment" && lhs.Expression is MemberAccessExpressionSyntax st
+                && st.Name.Identifier.ValueText == "Style" && MapAlign(rhs) is { } align)
+                return StyleLambda(st.Expression, "Align", StringLit(align));
+
             if (IsStyleChain(lhs))
                 Diagnostics.Add(Warn("CANMIGEPPL020", $"Style assignment '{lhs}' needs manual migration to .Style(s => …) (e.g. Fill/Border/Alignment)."));
 
@@ -228,6 +233,18 @@ public sealed class EpplusSpreadsheetMigration : CSharpSourceMigration
 
         private static bool IsStyleChain(MemberAccessExpressionSyntax lhs) =>
             lhs.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().Any(m => m.Name.Identifier.ValueText == "Style");
+
+        private static string? MapAlign(ExpressionSyntax rhs) =>
+            (rhs as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText switch
+            {
+                "Left" => "left",
+                "Center" or "CenterContinuous" => "center",
+                "Right" => "right",
+                _ => null,
+            };
+
+        private static LiteralExpressionSyntax StringLit(string s) =>
+            SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(s));
 
         private static string SimpleTypeName(TypeSyntax type) => type switch
         {

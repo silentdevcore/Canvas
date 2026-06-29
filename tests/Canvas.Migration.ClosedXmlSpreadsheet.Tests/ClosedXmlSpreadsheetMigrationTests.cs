@@ -53,6 +53,25 @@ public sealed class ClosedXmlSpreadsheetMigrationTests
     }
 
     [Fact]
+    public void MapsNamedRangesAlignmentAndFillColor()
+    {
+        const string src = """
+            using ClosedXML.Excel;
+            var wb = new XLWorkbook();
+            var ws = wb.Worksheets.Add("S");
+            ws.Cell("A1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.Cell("A1").Style.Fill.BackgroundColor = XLColor.Red;
+            wb.NamedRanges.Add("Sales", "S!A1:A10");
+            wb.SaveAs("o.xlsx");
+            """;
+
+        var code = Migrate(src);
+        Assert.Contains("ws.Cell(\"A1\").Style(s => s.Align(\"center\"))", code);
+        Assert.Contains("ws.Cell(\"A1\").Style(s => s.Background(\"#FF0000\"))", code);
+        Assert.Contains("wb.DefineName(\"Sales\", \"S!A1:A10\")", code);
+    }
+
+    [Fact]
     public void FlagsUnsupportedFeatures()
     {
         const string src = """
