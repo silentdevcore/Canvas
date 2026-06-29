@@ -20,7 +20,9 @@ const App: React.FC = () => (
     <Route path="/docs" element={<DocsPage />} />
     <Route path="/migrations" element={<MigrationsHubPage />} />
     {/* Type 1 — Code Migration (PDF + Spreadsheet libraries → Canvas code) */}
-    <Route path="/migrations/code" element={<MigrationsPage mode="code" />} />
+    <Route path="/migrations/code" element={<Navigate to="/migrations/code/pdf" replace />} />
+    <Route path="/migrations/code/pdf" element={<MigrationsPage mode="code" codeKind="pdf" />} />
+    <Route path="/migrations/code/spreadsheet" element={<MigrationsPage mode="code" codeKind="spreadsheet" />} />
     {/* Type 2 — DataSource / Format Migration (file/format → Canvas design/model) */}
     <Route path="/migrations/format" element={<Navigate to="/migrations/format/designer" replace />} />
     <Route path="/migrations/format/designer" element={<MigrationsPage mode="designer" />} />

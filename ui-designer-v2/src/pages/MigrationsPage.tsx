@@ -691,12 +691,12 @@ const DESIGNER_FRAMEWORKS: Framework[] = [
 
 type MigrationMode = 'code' | 'designer';
 
-const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
+const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spreadsheet' }> = ({ mode, codeKind }) => {
   const isDesigner = mode === 'designer';
+  // Code Migration sub-tab (PDF | Spreadsheet) is driven by the route (codeKind prop).
+  const kindFilter: 'pdf' | 'spreadsheet' = codeKind ?? 'pdf';
   const [frameworks, setFrameworks] = useState<Framework[]>(isDesigner ? DESIGNER_FRAMEWORKS : FRAMEWORKS_FALLBACK);
-  const [selectedId, setSelectedId] = useState(isDesigner ? REPORT_ID : 'Syncfusion');
-  // Code Migration sub-tab: which library kind to show (PDF vs Spreadsheet).
-  const [kindFilter, setKindFilter] = useState<'pdf' | 'spreadsheet'>('pdf');
+  const [selectedId, setSelectedId] = useState(isDesigner ? REPORT_ID : (kindFilter === 'spreadsheet' ? 'ClosedXmlSpreadsheet' : 'Syncfusion'));
   const [reportDesign, setReportDesign] = useState<any | null>(null);
   const navigate = useNavigate();
   const setCurrentTemplate = useEditorStore(s => s.setCurrentTemplate);
@@ -762,6 +762,14 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     setError(null);
     setReportDesign(null);
   };
+
+  // Keep the selected framework valid for the active Code sub-tab (PDF vs Spreadsheet).
+  useEffect(() => {
+    if (isDesigner) return;
+    const visible = frameworks.filter(f => (kindFilter === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet'));
+    if (visible.length > 0 && !visible.some(f => f.id === selectedId)) handleFrameworkChange(visible[0].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [codeKind, frameworks]);
 
   const applyConvertResult = (data: { canvasCode?: string; diagnostics?: Diagnostic[]; summary?: ConversionSummary }) => {
     const diags = data.diagnostics ?? [];
@@ -1044,12 +1052,6 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
     });
   }, []);
 
-  const switchKind = (k: 'pdf' | 'spreadsheet') => {
-    setKindFilter(k);
-    const first = frameworks.find(f => (k === 'spreadsheet' ? f.kind === 'spreadsheet' : f.kind !== 'spreadsheet'));
-    if (first) handleFrameworkChange(first.id);
-  };
-
   return (
     <div className="mgr-page">
       <AppHeader activePage="migrations" />
@@ -1057,8 +1059,8 @@ const MigrationsPage: React.FC<{ mode: MigrationMode }> = ({ mode }) => {
         <MigrationTabs tabs={formatTabs('designer')} />
       ) : (
         <MigrationTabs tabs={[
-          { label: 'PDF', active: kindFilter === 'pdf', onClick: () => switchKind('pdf') },
-          { label: 'Spreadsheet', active: kindFilter === 'spreadsheet', onClick: () => switchKind('spreadsheet') },
+          { label: 'PDF Migration', to: '/migrations/code/pdf', active: kindFilter === 'pdf' },
+          { label: 'Spreadsheet Migration', to: '/migrations/code/spreadsheet', active: kindFilter === 'spreadsheet' },
         ]} />
       )}
 

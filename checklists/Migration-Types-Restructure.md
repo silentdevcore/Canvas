@@ -15,8 +15,9 @@ change; reuses existing converters/endpoints (no backend rewrite). See plan
 - [x] `components/Migrations/MigrationTabs.tsx` — shared sub-tab bar (`tabs[]` w/ `to`|`onClick`, active) +
       `formatTabs(active)` helper + `.mgr-subtabs` CSS.
 - [x] `MigrationsHubPage.tsx` — two type cards (Code → `/migrations/code`, Format → `/migrations/format`).
-- [x] `MigrationsPage.tsx` (mode `code`) — PDF | Spreadsheet sub-tab via `kindFilter` (filters the `<select>`,
-      `switchKind` resets selection); heading "Code Migration" + kind-aware blurb. Optgroup removed.
+- [x] `MigrationsPage.tsx` (mode `code`) — **route-based** PDF | Spreadsheet sub-tabs labeled
+      "PDF Migration" / "Spreadsheet Migration" at `/migrations/code/pdf` + `/migrations/code/spreadsheet`
+      (`codeKind` prop drives `kindFilter`; an effect keeps the selected framework valid). Optgroup removed.
 - [x] `MigrationsPage.tsx` (mode `designer`) — Format sub-tab bar (active = Report designers); heading renamed.
 - [x] `ImporterPage.tsx` — Format sub-tab bar (active = Documents); `activePage="migrations"`.
 - [x] `SpreadsheetImportPage.tsx` (new) — .xlsx/.xls/.csv/.tsv/.json uploader → `SpreadsheetService.importXlsx`
