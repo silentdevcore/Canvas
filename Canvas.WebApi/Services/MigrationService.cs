@@ -31,6 +31,7 @@ public sealed class MigrationService
             new GemBoxSpreadsheetConverter(),
             new AsposeCellsConverter(),
             new SpireXlsConverter(),
+            new SyncfusionXlsIoConverter(),
         };
         _converters = all.ToDictionary(c => c.FrameworkId, StringComparer.OrdinalIgnoreCase);
     }
