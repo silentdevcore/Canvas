@@ -82,6 +82,39 @@ public sealed class SpreadsheetRoundTripTests
     }
 
     [Fact]
+    public void Validator_FlagsStructuralAndVersionIssues()
+    {
+        var wb = new SpreadsheetDto
+        {
+            SchemaVersion = "2.0", // newer than supported → error
+            Sheets =
+            [
+                new SheetDto { Name = "S", Merges = ["NOTARANGE"], Cells =
+                [
+                    new CellDto { Row = 0, Col = 0, Type = "bogus", Value = 1 },          // unknown type
+                    new CellDto { Row = 1, Col = 1, Type = "formula", Formula = "A1" },    // missing '='
+                ] },
+            ],
+        };
+
+        var result = new SpreadsheetValidator().Validate(wb);
+        Assert.False(result.Valid);
+        Assert.Equal("2.0", result.Version);
+        Assert.Contains(result.Issues, i => i.Path == "schemaVersion");
+        Assert.Contains(result.Issues, i => i.Message.Contains("Unknown cell type"));
+        Assert.Contains(result.Issues, i => i.Message.Contains("starting with '='"));
+        Assert.Contains(result.Issues, i => i.Path.EndsWith("merges"));
+
+        // a clean workbook validates
+        var ok = new SpreadsheetValidator().Validate(new SpreadsheetDto
+        {
+            Sheets = [new SheetDto { Name = "S", Cells = [new CellDto { Row = 0, Col = 0, Type = "number", Value = 1d }] }],
+        });
+        Assert.True(ok.Valid);
+        Assert.Empty(ok.Issues);
+    }
+
+    [Fact]
     public void CanvasWorkbook_FluentApi_BuildsCalculableWorkbook()
     {
         var wb = new CanvasWorkbook("Report");

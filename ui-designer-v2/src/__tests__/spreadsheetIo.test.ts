@@ -61,6 +61,12 @@ describe('spreadsheet JSON io', () => {
     expect(() => jsonToWorkbook('{"foo":1}')).toThrow();
   });
 
+  test('jsonToWorkbook rejects a newer major schemaVersion (forward-compat guard)', () => {
+    expect(() => jsonToWorkbook('{"schemaVersion":"2.0","sheets":[]}')).toThrow(/newer than this app supports/);
+    // same major loads fine
+    expect(jsonToWorkbook('{"schemaVersion":"1.0","sheets":[]}').sheets).toEqual([]);
+  });
+
   test('advanced Phase-2 fields + version survive a load → save round-trip', () => {
     const wire: Workbook = {
       schemaVersion: '1.0',

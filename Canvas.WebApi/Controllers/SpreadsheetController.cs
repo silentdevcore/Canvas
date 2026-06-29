@@ -25,9 +25,10 @@ public class SpreadsheetController : ControllerBase
     private readonly ExportDocumentUseCase _export;
     private readonly XlsWorkbookIo _xls;
     private readonly SpreadsheetData _data;
+    private readonly SpreadsheetValidator _validator;
     private readonly PdfFontLoader? _fontLoader;
 
-    public SpreadsheetController(ExcelWorkbookExporter exporter, ExcelWorkbookImporter importer, SpreadsheetToDesignConverter toDesign, SpreadsheetCalculator calculator, SpreadsheetOperations ops, ExportDocumentUseCase export, XlsWorkbookIo xls, SpreadsheetData data, PdfFontLoader? fontLoader = null)
+    public SpreadsheetController(ExcelWorkbookExporter exporter, ExcelWorkbookImporter importer, SpreadsheetToDesignConverter toDesign, SpreadsheetCalculator calculator, SpreadsheetOperations ops, ExportDocumentUseCase export, XlsWorkbookIo xls, SpreadsheetData data, SpreadsheetValidator validator, PdfFontLoader? fontLoader = null)
     {
         _exporter = exporter;
         _importer = importer;
@@ -37,6 +38,7 @@ public class SpreadsheetController : ControllerBase
         _export = export;
         _xls = xls;
         _data = data;
+        _validator = validator;
         _fontLoader = fontLoader;
     }
 
@@ -173,6 +175,17 @@ public class SpreadsheetController : ControllerBase
         if (workbook is null || string.IsNullOrEmpty(find)) return BadRequest(new { error = "Body + 'find' are required." });
         var count = _ops.FindReplace(workbook, find, replace, matchCase);
         return Ok(new { workbook, count });
+    }
+
+    /// <summary>Validates a workbook (Canvas Workbook JSON): structural + schemaVersion checks. Returns
+    /// <c>{ valid, version, supportedVersion, issues[] }</c>.</summary>
+    [HttpPost("validate")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400)]
+    public IActionResult Validate([FromBody] SpreadsheetDto workbook)
+    {
+        if (workbook is null) return BadRequest(new { error = "Request body is required." });
+        return Ok(_validator.Validate(workbook));
     }
 
     /// <summary>Builds a workbook from JSON row objects — a bold header row (union of keys) + one typed row
