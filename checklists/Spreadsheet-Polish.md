@@ -31,8 +31,12 @@ deeper migration fidelity, and surfacing the now-lossless advanced features in t
       auto-filter range — wired to the `SheetState` passthrough fields (no new model).
 - [x] `tsc` clean; jest `setCellMeta + patchSheet land in the exported wire` (22 frontend tests green) — the
       lossless wire (Pillar A2) + backend exporter carry them through `.xlsx`.
-- [ ] (Deferred) Range-scoped **conditional formatting** + **data validation** rule editors (add/list/remove
-      on the selection) — heavier multi-field rule UI; the data already round-trips, just not yet editable.
+- [x] Range-scoped **conditional formatting** + **data validation** rule editors — toolbar "Rules ▾" popover
+      lists/removes existing rules and adds new ones to the current selection (`addConditionalFormat`/
+      `removeConditionalFormat`/`addDataValidation`/`removeDataValidation` store actions). CF: cellIs
+      (operator+value+value2) / colorScale + colour; DV: list (comma source) / numeric (operator+value1/2).
+      Store test confirms add/remove reach the wire (13 store tests green). In-place edit / colorScale dual
+      colours / dataBar remain out of scope.
 
 ## Verification
 - `dotnet build Canvas.sln` clean; `Canvas.Export.Tests` + migration test projects green; frontend `tsc` +

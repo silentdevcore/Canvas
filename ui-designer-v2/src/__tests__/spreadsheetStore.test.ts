@@ -150,4 +150,21 @@ describe('spreadsheet store + HyperFormula recalc', () => {
     expect(sheet.protection).toMatchObject({ protected: true });
     expect(sheet.autoFilterRange).toBe('A1:C5');
   });
+
+  test('conditional-format + data-validation rules add/remove and reach the wire', () => {
+    const s = useSpreadsheetStore.getState();
+    s.addConditionalFormat({ range: 'A1:A10', type: 'cellIs', operator: 'greaterThan', value: '100', color: '#ff0000' });
+    s.addDataValidation({ range: 'B1:B10', type: 'list', listSource: 'a,b,c' });
+
+    let sheet = useSpreadsheetStore.getState().toWire().sheets[0];
+    expect(sheet.conditionalFormats).toHaveLength(1);
+    expect(sheet.conditionalFormats?.[0]).toMatchObject({ range: 'A1:A10', operator: 'greaterThan', value: '100', color: '#ff0000' });
+    expect(sheet.dataValidations?.[0]).toMatchObject({ range: 'B1:B10', type: 'list', listSource: 'a,b,c' });
+
+    useSpreadsheetStore.getState().removeConditionalFormat(0);
+    useSpreadsheetStore.getState().removeDataValidation(0);
+    sheet = useSpreadsheetStore.getState().toWire().sheets[0];
+    expect(sheet.conditionalFormats).toHaveLength(0);
+    expect(sheet.dataValidations).toHaveLength(0);
+  });
 });

@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import {
   SheetState, Cell, CellType, CellStyle, cellKey, emptySheet,
   Workbook, workbookFromWire, workbookToWire, toA1Range, parseA1Range,
+  ConditionalFormat, DataValidation,
 } from './types';
 import { sheetEngine } from './formulaEngine';
 
@@ -59,6 +60,10 @@ interface SpreadsheetState {
   setCellMeta: (row: number, col: number, patch: { comment?: string; hyperlink?: string }) => void;
   /** Merge advanced settings into the active sheet (page setup / protection / auto-filter). */
   patchSheet: (patch: Partial<Pick<SheetState, 'pageSetup' | 'protection' | 'autoFilterRange'>>) => void;
+  addConditionalFormat: (rule: ConditionalFormat) => void;
+  removeConditionalFormat: (index: number) => void;
+  addDataValidation: (rule: DataValidation) => void;
+  removeDataValidation: (index: number) => void;
   addSheet: () => void;
   renameSheet: (index: number, name: string) => void;
   deleteSheet: (index: number) => void;
@@ -356,6 +361,35 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
         const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
         const next = clone(get().sheets);
         Object.assign(next[get().active], patch);
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+      },
+
+      addConditionalFormat: (rule) => {
+        const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
+        const next = clone(get().sheets);
+        const sheet = next[get().active];
+        sheet.conditionalFormats = [...(sheet.conditionalFormats ?? []), rule];
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+      },
+      removeConditionalFormat: (index) => {
+        const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
+        const next = clone(get().sheets);
+        const sheet = next[get().active];
+        sheet.conditionalFormats = (sheet.conditionalFormats ?? []).filter((_, i) => i !== index);
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+      },
+      addDataValidation: (rule) => {
+        const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
+        const next = clone(get().sheets);
+        const sheet = next[get().active];
+        sheet.dataValidations = [...(sheet.dataValidations ?? []), rule];
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+      },
+      removeDataValidation: (index) => {
+        const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
+        const next = clone(get().sheets);
+        const sheet = next[get().active];
+        sheet.dataValidations = (sheet.dataValidations ?? []).filter((_, i) => i !== index);
         set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
       },
 

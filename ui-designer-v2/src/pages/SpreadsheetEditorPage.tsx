@@ -7,7 +7,7 @@ import AppHeader from '../components/Layout/AppHeader';
 import { SpreadsheetGrid, colName } from '../spreadsheet/SpreadsheetGrid';
 import { useSpreadsheetStore } from '../spreadsheet/store';
 import { SpreadsheetService } from '../services/SpreadsheetService';
-import { workbookToWire } from '../spreadsheet/types';
+import { workbookToWire, toA1, toA1Range } from '../spreadsheet/types';
 import { sheetToCsv, csvToSheet, workbookToJson, jsonToWorkbook, downloadText } from '../spreadsheet/io';
 import '../styles/spreadsheet.css';
 
@@ -51,6 +51,10 @@ const SpreadsheetEditorPage: React.FC = () => {
   const toWire = useSpreadsheetStore((s) => s.toWire);
   const setCellMeta = useSpreadsheetStore((s) => s.setCellMeta);
   const patchSheet = useSpreadsheetStore((s) => s.patchSheet);
+  const addConditionalFormat = useSpreadsheetStore((s) => s.addConditionalFormat);
+  const removeConditionalFormat = useSpreadsheetStore((s) => s.removeConditionalFormat);
+  const addDataValidation = useSpreadsheetStore((s) => s.addDataValidation);
+  const removeDataValidation = useSpreadsheetStore((s) => s.removeDataValidation);
   const undo = useSpreadsheetStore((s) => s.undo);
   const redo = useSpreadsheetStore((s) => s.redo);
 
@@ -59,11 +63,15 @@ const SpreadsheetEditorPage: React.FC = () => {
   const [exportMenu, setExportMenu] = useState(false);
   const [cellMenu, setCellMenu] = useState(false);
   const [sheetMenu, setSheetMenu] = useState(false);
+  const [rulesMenu, setRulesMenu] = useState(false);
+  const [cf, setCf] = useState({ type: 'cellIs', operator: 'greaterThan', value: '', value2: '', color: '#ffeb3b' });
+  const [dv, setDv] = useState({ type: 'list', operator: 'between', value1: '', value2: '', listSource: '' });
 
   const { row, col } = selection;
   const cell = cellAt(row, col);
   const sheet = sheets[active];
   const pageSetup = sheet?.pageSetup ?? {};
+  const selRange = range ? toA1Range(range.r0, range.c0, range.r1, range.c1) : toA1(row, col);
   const stats = selectionStats(); // recomputes on sheets/selection/range change (all subscribed)
   const rangeLabel = range ? `${colName(Math.min(range.c0, range.c1))}${Math.min(range.r0, range.r1) + 1}:${colName(Math.max(range.c0, range.c1))}${Math.max(range.r0, range.r1) + 1}` : null;
   const formulaBarValue = cell?.type === 'formula' ? (cell.formula ?? '') : (cell?.value != null ? String(cell.value) : '');
@@ -203,6 +211,73 @@ const SpreadsheetEditorPage: React.FC = () => {
                 <input type="checkbox" checked={sheet?.protection?.protected ?? false} onChange={(e) => patchSheet({ protection: e.target.checked ? { protected: true } : undefined })} />
                 Protect sheet
               </label>
+            </div>
+          )}
+        </div>
+        <div className="ss-export">
+          <button className="ss-tool ss-tool--text" title="Conditional formatting & data validation rules" onClick={() => { setRulesMenu((v) => !v); setCellMenu(false); setSheetMenu(false); }}>Rules ▾</button>
+          {rulesMenu && (
+            <div className="ss-menu ss-menu--panel ss-menu--wide" onMouseLeave={() => setRulesMenu(false)}>
+              <div className="ss-rule-head">Conditional formatting</div>
+              {(sheet?.conditionalFormats ?? []).map((r, i) => (
+                <div key={i} className="ss-rule-row">
+                  <span className="ss-rule-swatch" style={{ background: r.color ?? '#ccc' }} />
+                  <span className="ss-rule-text">{r.range} · {r.type}{r.operator ? ` ${r.operator}` : ''}{r.value ? ` ${r.value}` : ''}</span>
+                  <button className="ss-rule-del" title="Remove" onClick={() => removeConditionalFormat(i)}><FiX /></button>
+                </div>
+              ))}
+              <div className="ss-rule-form">
+                <select value={cf.type} onChange={(e) => setCf({ ...cf, type: e.target.value })}>
+                  <option value="cellIs">Cell is</option>
+                  <option value="colorScale">Color scale</option>
+                </select>
+                {cf.type === 'cellIs' && (
+                  <select value={cf.operator} onChange={(e) => setCf({ ...cf, operator: e.target.value })}>
+                    {['greaterThan', 'lessThan', 'equalTo', 'between', 'contains'].map((o) => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                )}
+                {cf.type === 'cellIs' && <input type="text" placeholder="value" value={cf.value} onChange={(e) => setCf({ ...cf, value: e.target.value })} />}
+                {cf.type === 'cellIs' && cf.operator === 'between' && <input type="text" placeholder="and" value={cf.value2} onChange={(e) => setCf({ ...cf, value2: e.target.value })} />}
+                <input type="color" value={cf.color} onChange={(e) => setCf({ ...cf, color: e.target.value })} />
+                <button className="ss-rule-add" onClick={() => addConditionalFormat({
+                  range: selRange, type: cf.type,
+                  operator: cf.type === 'cellIs' ? cf.operator : undefined,
+                  value: cf.type === 'cellIs' ? (cf.value || undefined) : undefined,
+                  value2: cf.type === 'cellIs' && cf.operator === 'between' ? (cf.value2 || undefined) : undefined,
+                  color: cf.color,
+                })}>Add to {selRange}</button>
+              </div>
+
+              <div className="ss-rule-head">Data validation</div>
+              {(sheet?.dataValidations ?? []).map((r, i) => (
+                <div key={i} className="ss-rule-row">
+                  <span className="ss-rule-text">{r.range} · {r.type}{r.listSource ? ` [${r.listSource}]` : r.operator ? ` ${r.operator}` : ''}</span>
+                  <button className="ss-rule-del" title="Remove" onClick={() => removeDataValidation(i)}><FiX /></button>
+                </div>
+              ))}
+              <div className="ss-rule-form">
+                <select value={dv.type} onChange={(e) => setDv({ ...dv, type: e.target.value })}>
+                  {['list', 'wholeNumber', 'decimal', 'textLength'].map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+                {dv.type === 'list'
+                  ? <input type="text" placeholder="a,b,c" value={dv.listSource} onChange={(e) => setDv({ ...dv, listSource: e.target.value })} />
+                  : (
+                    <>
+                      <select value={dv.operator} onChange={(e) => setDv({ ...dv, operator: e.target.value })}>
+                        {['between', 'greaterThan', 'lessThan', 'equalTo'].map((o) => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                      <input type="text" placeholder="value" value={dv.value1} onChange={(e) => setDv({ ...dv, value1: e.target.value })} />
+                      {dv.operator === 'between' && <input type="text" placeholder="and" value={dv.value2} onChange={(e) => setDv({ ...dv, value2: e.target.value })} />}
+                    </>
+                  )}
+                <button className="ss-rule-add" onClick={() => addDataValidation({
+                  range: selRange, type: dv.type,
+                  listSource: dv.type === 'list' ? (dv.listSource || undefined) : undefined,
+                  operator: dv.type !== 'list' ? dv.operator : undefined,
+                  value1: dv.type !== 'list' ? (dv.value1 || undefined) : undefined,
+                  value2: dv.type !== 'list' && dv.operator === 'between' ? (dv.value2 || undefined) : undefined,
+                })}>Add to {selRange}</button>
+              </div>
             </div>
           )}
         </div>

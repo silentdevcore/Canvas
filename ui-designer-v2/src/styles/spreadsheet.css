@@ -70,6 +70,20 @@
 }
 .ss-field textarea { resize: vertical; font-family: inherit; }
 .ss-field--row input[type="checkbox"] { width: auto; }
+
+/* Conditional-formatting / data-validation rule editor */
+.ss-menu--wide { min-width: 320px; }
+.ss-rule-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #64748b; margin-top: 4px; }
+.ss-rule-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #334155; }
+.ss-rule-swatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #cbd5e1; flex: 0 0 auto; }
+.ss-rule-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ss-rule-del { border: none; background: transparent; color: #94a3b8; cursor: pointer; padding: 2px; display: flex; }
+.ss-rule-del:hover { color: #ef4444; }
+.ss-rule-form { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.ss-rule-form select, .ss-rule-form input[type="text"] { font-size: 12px; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 6px; flex: 1 1 70px; min-width: 60px; }
+.ss-rule-form input[type="color"] { width: 28px; height: 28px; padding: 0; border: 1px solid #cbd5e1; border-radius: 6px; flex: 0 0 auto; }
+.ss-rule-add { flex: 1 1 100%; padding: 6px; border: none; border-radius: 6px; background: #2563eb; color: #fff; font-size: 12px; cursor: pointer; }
+.ss-rule-add:hover { background: #1d4ed8; }
 .ss-busy { font-size: 12px; color: #64748b; margin-right: 8px; }
 .ss-format {
   height: 30px;
