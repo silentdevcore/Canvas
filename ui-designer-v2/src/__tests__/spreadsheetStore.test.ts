@@ -132,4 +132,22 @@ describe('spreadsheet store + HyperFormula recalc', () => {
     expect(cells.find((c) => c.row === 0 && c.col === 0)?.value).toBe('Hello');
     expect(cells.find((c) => c.row === 1 && c.col === 1)?.formula).toBe('=1+1');
   });
+
+  test('setCellMeta + patchSheet land in the exported wire', () => {
+    const s = useSpreadsheetStore.getState();
+    s.setCellMeta(0, 0, { comment: 'note', hyperlink: 'https://x.com' });
+    s.patchSheet({
+      pageSetup: { orientation: 'landscape', header: 'Report' },
+      protection: { protected: true },
+      autoFilterRange: 'A1:C5',
+    });
+
+    const sheet = useSpreadsheetStore.getState().toWire().sheets[0];
+    const cell = sheet.cells.find((c) => c.row === 0 && c.col === 0);
+    expect(cell?.comment).toBe('note');
+    expect(cell?.hyperlink).toBe('https://x.com');
+    expect(sheet.pageSetup).toMatchObject({ orientation: 'landscape', header: 'Report' });
+    expect(sheet.protection).toMatchObject({ protected: true });
+    expect(sheet.autoFilterRange).toBe('A1:C5');
+  });
 });

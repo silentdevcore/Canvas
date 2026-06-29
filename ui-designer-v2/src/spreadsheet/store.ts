@@ -55,6 +55,10 @@ interface SpreadsheetState {
   mergeSelection: () => void;
   unmergeSelection: () => void;
   setFrozen: (rows: number, cols: number) => void;
+  /** Set comment / hyperlink on a cell (creates it if absent). */
+  setCellMeta: (row: number, col: number, patch: { comment?: string; hyperlink?: string }) => void;
+  /** Merge advanced settings into the active sheet (page setup / protection / auto-filter). */
+  patchSheet: (patch: Partial<Pick<SheetState, 'pageSetup' | 'protection' | 'autoFilterRange'>>) => void;
   addSheet: () => void;
   renameSheet: (index: number, name: string) => void;
   deleteSheet: (index: number) => void;
@@ -332,6 +336,26 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
         const next = clone(get().sheets);
         next[get().active].frozenRows = Math.max(0, rows);
         next[get().active].frozenCols = Math.max(0, cols);
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+      },
+
+      setCellMeta: (row, col, patch) => {
+        const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
+        const next = clone(get().sheets);
+        const sheet = next[get().active];
+        const key = cellKey(row, col);
+        const existing = sheet.cells[key] ?? { row, col, type: 'empty' as const, value: null };
+        const merged = { ...existing, ...patch };
+        if (!merged.comment) delete merged.comment;
+        if (!merged.hyperlink) delete merged.hyperlink;
+        sheet.cells[key] = merged;
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+      },
+
+      patchSheet: (patch) => {
+        const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
+        const next = clone(get().sheets);
+        Object.assign(next[get().active], patch);
         set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
       },
 

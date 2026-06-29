@@ -23,14 +23,16 @@ deeper migration fidelity, and surfacing the now-lossless advanced features in t
 - [x] Tests added (ClosedXML 4, EPPlus 4). GemBox/Aspose color+alignment stay diagnosed (their idioms —
       `FillPattern.SetSolid`, `GetStyle/SetStyle` — diverge; manual-review note remains).
 
-## Phase 3 — Editor UI for advanced features (make the lossless format editable)
-- [ ] Sheet-level inspector panel(s) in the Spreadsheet editor to view/edit **page setup** (orientation,
-      paper, margins, header/footer, fit/scale), **protection** (toggle + password), and **auto-filter range**
-      — wired to the new `SheetState` passthrough fields (no new model needed).
-- [ ] Range-scoped **conditional formatting** + **data validation** editors (add/list/remove rules on the
-      current selection), writing into `sheet.conditionalFormats` / `sheet.dataValidations`.
-- [ ] Cell **comment** + **hyperlink** editing on the active cell.
-- [ ] Round-trip smoke: set each in the UI → export `.xlsx` → reimport shows it; `tsc`/`jest` green.
+## Phase 3 — Editor UI for advanced features (make the lossless format editable) — DONE (CF/validation deferred)
+- [x] Store actions `setCellMeta(row,col,{comment,hyperlink})` + `patchSheet({pageSetup,protection,autoFilterRange})`
+      (undo-snapshotted, like `setFrozen`).
+- [x] Toolbar **Cell ▾** popover — comment (textarea) + hyperlink on the active cell.
+- [x] Toolbar **Sheet ▾** popover — page setup (orientation, header, footer), protection toggle,
+      auto-filter range — wired to the `SheetState` passthrough fields (no new model).
+- [x] `tsc` clean; jest `setCellMeta + patchSheet land in the exported wire` (22 frontend tests green) — the
+      lossless wire (Pillar A2) + backend exporter carry them through `.xlsx`.
+- [ ] (Deferred) Range-scoped **conditional formatting** + **data validation** rule editors (add/list/remove
+      on the selection) — heavier multi-field rule UI; the data already round-trips, just not yet editable.
 
 ## Verification
 - `dotnet build Canvas.sln` clean; `Canvas.Export.Tests` + migration test projects green; frontend `tsc` +

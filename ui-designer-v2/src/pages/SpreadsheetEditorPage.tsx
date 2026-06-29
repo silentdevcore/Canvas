@@ -49,15 +49,21 @@ const SpreadsheetEditorPage: React.FC = () => {
   const deleteSheet = useSpreadsheetStore((s) => s.deleteSheet);
   const loadWorkbook = useSpreadsheetStore((s) => s.loadWorkbook);
   const toWire = useSpreadsheetStore((s) => s.toWire);
+  const setCellMeta = useSpreadsheetStore((s) => s.setCellMeta);
+  const patchSheet = useSpreadsheetStore((s) => s.patchSheet);
   const undo = useSpreadsheetStore((s) => s.undo);
   const redo = useSpreadsheetStore((s) => s.redo);
 
   const fileInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [exportMenu, setExportMenu] = useState(false);
+  const [cellMenu, setCellMenu] = useState(false);
+  const [sheetMenu, setSheetMenu] = useState(false);
 
   const { row, col } = selection;
   const cell = cellAt(row, col);
+  const sheet = sheets[active];
+  const pageSetup = sheet?.pageSetup ?? {};
   const stats = selectionStats(); // recomputes on sheets/selection/range change (all subscribed)
   const rangeLabel = range ? `${colName(Math.min(range.c0, range.c1))}${Math.min(range.r0, range.r1) + 1}:${colName(Math.max(range.c0, range.c1))}${Math.max(range.r0, range.r1) + 1}` : null;
   const formulaBarValue = cell?.type === 'formula' ? (cell.formula ?? '') : (cell?.value != null ? String(cell.value) : '');
@@ -160,6 +166,46 @@ const SpreadsheetEditorPage: React.FC = () => {
         <button className="ss-tool ss-tool--text" title="Unmerge" onClick={unmergeSelection}>Unmerge</button>
         <button className="ss-tool ss-tool--text" title="Freeze rows/columns up to the selection" onClick={() => setFrozen(row, col)}>Freeze</button>
         <button className="ss-tool ss-tool--text" title="Unfreeze" onClick={() => setFrozen(0, 0)}>Unfreeze</button>
+        <span className="ss-sep" />
+        <div className="ss-export">
+          <button className="ss-tool ss-tool--text" title="Cell comment & hyperlink" onClick={() => { setCellMenu((v) => !v); setSheetMenu(false); }}>Cell ▾</button>
+          {cellMenu && (
+            <div className="ss-menu ss-menu--panel" onMouseLeave={() => setCellMenu(false)}>
+              <label className="ss-field">Comment
+                <textarea rows={2} value={cell?.comment ?? ''} onChange={(e) => setCellMeta(row, col, { comment: e.target.value, hyperlink: cell?.hyperlink })} />
+              </label>
+              <label className="ss-field">Hyperlink
+                <input type="text" placeholder="https://… or Sheet!A1" value={cell?.hyperlink ?? ''} onChange={(e) => setCellMeta(row, col, { hyperlink: e.target.value, comment: cell?.comment })} />
+              </label>
+            </div>
+          )}
+        </div>
+        <div className="ss-export">
+          <button className="ss-tool ss-tool--text" title="Sheet settings (page setup, protection, auto-filter)" onClick={() => { setSheetMenu((v) => !v); setCellMenu(false); }}>Sheet ▾</button>
+          {sheetMenu && (
+            <div className="ss-menu ss-menu--panel" onMouseLeave={() => setSheetMenu(false)}>
+              <label className="ss-field">Orientation
+                <select value={pageSetup.orientation ?? 'portrait'} onChange={(e) => patchSheet({ pageSetup: { ...pageSetup, orientation: e.target.value } })}>
+                  <option value="portrait">Portrait</option>
+                  <option value="landscape">Landscape</option>
+                </select>
+              </label>
+              <label className="ss-field">Header
+                <input type="text" value={pageSetup.header ?? ''} onChange={(e) => patchSheet({ pageSetup: { ...pageSetup, header: e.target.value } })} />
+              </label>
+              <label className="ss-field">Footer
+                <input type="text" value={pageSetup.footer ?? ''} onChange={(e) => patchSheet({ pageSetup: { ...pageSetup, footer: e.target.value } })} />
+              </label>
+              <label className="ss-field">Auto-filter range
+                <input type="text" placeholder="A1:D20" value={sheet?.autoFilterRange ?? ''} onChange={(e) => patchSheet({ autoFilterRange: e.target.value || undefined })} />
+              </label>
+              <label className="ss-field ss-field--row">
+                <input type="checkbox" checked={sheet?.protection?.protected ?? false} onChange={(e) => patchSheet({ protection: e.target.checked ? { protected: true } : undefined })} />
+                Protect sheet
+              </label>
+            </div>
+          )}
+        </div>
         <span className="ss-spacer" />
         {busy && <span className="ss-busy">{busy}</span>}
         <button className="ss-tool ss-tool--text" onClick={() => fileInput.current?.click()}><FiUpload /> Import</button>
