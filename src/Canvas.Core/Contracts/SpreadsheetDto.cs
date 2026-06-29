@@ -1,12 +1,25 @@
+using System.Text.Json.Serialization;
+
 namespace Canvas.Core.Contracts;
 
 /// <summary>
 /// A workbook for the Spreadsheet Editor SDK — an Excel-like model distinct from the document
-/// <see cref="DesignExportDto"/>. Round-trips to/from <c>.xlsx</c> (ClosedXML) preserving typed values,
-/// formulas, number formats, styles, merges, column widths, frozen panes, and defined names.
+/// <see cref="DesignExportDto"/>. This is the canonical <b>Canvas Workbook JSON</b> format (camelCase);
+/// round-trips to/from <c>.xlsx</c> (ClosedXML) preserving typed values, formulas, number formats, styles,
+/// merges, column widths, frozen panes, and defined names.
 /// </summary>
 public sealed class SpreadsheetDto
 {
+    /// <summary>Current Canvas Workbook JSON schema version. Bump the major when a change is breaking.</summary>
+    public const string CurrentSchemaVersion = "1.0";
+
+    /// <summary>Optional JSON Schema URL for editor/tooling validation (the <c>$schema</c> property).</summary>
+    [JsonPropertyName("$schema")]
+    public string? Schema { get; set; }
+
+    /// <summary>Canvas Workbook JSON format version, e.g. "1.0". Defaults so older payloads still load.</summary>
+    public string SchemaVersion { get; set; } = CurrentSchemaVersion;
+
     public string Id { get; set; } = "";
     public string Name { get; set; } = "Workbook";
     public List<SheetDto> Sheets { get; set; } = [];

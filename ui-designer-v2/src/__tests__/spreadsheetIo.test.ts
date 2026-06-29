@@ -1,5 +1,5 @@
 import { sheetToCsv, parseCsv, csvToSheet, workbookToJson, jsonToWorkbook } from '../spreadsheet/io';
-import { emptySheet, cellKey, workbookToWire, type Workbook } from '../spreadsheet/types';
+import { emptySheet, cellKey, workbookToWire, workbookFromWire, type Workbook } from '../spreadsheet/types';
 import { formatCellValue } from '../spreadsheet/numberFormat';
 
 describe('number-format display', () => {
@@ -59,5 +59,42 @@ describe('spreadsheet JSON io', () => {
 
   test('jsonToWorkbook rejects non-workbook JSON', () => {
     expect(() => jsonToWorkbook('{"foo":1}')).toThrow();
+  });
+
+  test('advanced Phase-2 fields + version survive a load → save round-trip', () => {
+    const wire: Workbook = {
+      schemaVersion: '1.0',
+      id: 'w',
+      name: 'Book',
+      definedNames: [{ name: 'Sales', refersTo: 'Sheet1!$A$1' }],
+      sheets: [{
+        id: 's', name: 'Sheet1', rowCount: 100, colCount: 26,
+        columns: [{ index: 0, width: 20, outlineLevel: 1 }],
+        rows: [{ index: 0, height: 18, hidden: true }],
+        cells: [{ row: 0, col: 0, type: 'text', value: 'X', comment: 'note', hyperlink: 'https://x.com' }],
+        merges: ['A1:B1'], frozenRows: 1, frozenCols: 0,
+        autoFilterRange: 'A1:B2',
+        pageSetup: { orientation: 'landscape', header: 'Report' },
+        protection: { protected: true },
+        conditionalFormats: [{ range: 'A1', type: 'cellIs', operator: 'greaterThan', value: '3', color: '#f00' }],
+        dataValidations: [{ range: 'A2', type: 'list', listSource: 'a,b,c' }],
+      }],
+    };
+
+    const { sheets, definedNames, schemaVersion } = workbookFromWire(wire);
+    const out = workbookToWire('Book', sheets, definedNames, schemaVersion);
+    const s = out.sheets[0];
+
+    expect(out.schemaVersion).toBe('1.0');
+    expect(out.definedNames[0]).toEqual({ name: 'Sales', refersTo: 'Sheet1!$A$1' });
+    expect(s.columns.find((c) => c.index === 0)).toMatchObject({ width: 20, outlineLevel: 1 });
+    expect(s.rows[0]).toMatchObject({ index: 0, height: 18, hidden: true });
+    expect(s.autoFilterRange).toBe('A1:B2');
+    expect(s.pageSetup).toMatchObject({ orientation: 'landscape', header: 'Report' });
+    expect(s.protection).toMatchObject({ protected: true });
+    expect(s.conditionalFormats?.[0]).toMatchObject({ range: 'A1', value: '3' });
+    expect(s.dataValidations?.[0]).toMatchObject({ range: 'A2', listSource: 'a,b,c' });
+    const cell = s.cells.find((c) => c.row === 0 && c.col === 0);
+    expect(cell).toMatchObject({ comment: 'note', hyperlink: 'https://x.com' });
   });
 });

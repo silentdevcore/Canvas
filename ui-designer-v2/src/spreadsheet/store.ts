@@ -14,6 +14,8 @@ interface Snapshot { name: string; sheets: SheetState[]; }
 
 interface SpreadsheetState {
   name: string;
+  schemaVersion: string;
+  definedNames: { name: string; refersTo: string }[];
   sheets: SheetState[];
   active: number;
   selection: Selection;
@@ -162,6 +164,8 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
   persist(
     (set, get) => ({
       name: 'Workbook',
+      schemaVersion: '1.0',
+      definedNames: [],
       sheets: [emptySheet()],
       active: 0,
       selection: { row: 0, col: 0 },
@@ -353,11 +357,11 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
       },
 
       loadWorkbook: (w) => {
-        const { name, sheets } = workbookFromWire(w);
-        set({ name, sheets, active: 0, selection: { row: 0, col: 0 }, past: [], future: [] });
+        const { name, sheets, definedNames, schemaVersion } = workbookFromWire(w);
+        set({ name, schemaVersion, definedNames, sheets, active: 0, selection: { row: 0, col: 0 }, past: [], future: [] });
         sheetEngine.rebuild(sheets);
       },
-      toWire: () => workbookToWire(get().name, get().sheets),
+      toWire: () => workbookToWire(get().name, get().sheets, get().definedNames, get().schemaVersion),
       rebuildEngine: () => sheetEngine.rebuild(get().sheets),
 
       undo: () => {

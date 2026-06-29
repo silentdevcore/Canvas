@@ -171,6 +171,10 @@ server.registerResource('design-schema', 'canvas://schema/design-export', {
   title: 'DesignExportDto JSON Schema', description: 'Validate a design before rendering.', mimeType: 'application/json',
 }, async (uri) => ({ contents: [{ uri: uri.href, text: read('docs/schema/design-export.schema.json') }] }));
 
+server.registerResource('workbook-schema', 'canvas://schema/canvas-workbook', {
+  title: 'Canvas Workbook JSON Schema', description: 'Validate a spreadsheet workbook before posting to /api/spreadsheet/*.', mimeType: 'application/json',
+}, async (uri) => ({ contents: [{ uri: uri.href, text: read('docs/schema/canvas-workbook.schema.json') }] }));
+
 server.registerResource('openapi', 'canvas://openapi', {
   title: 'Canvas OpenAPI', description: 'Full HTTP API.', mimeType: 'application/json',
 }, async (uri) => ({ contents: [{ uri: uri.href, text: read('docs/schema/openapi.json') }] }));
