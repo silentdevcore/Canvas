@@ -521,7 +521,7 @@ Content-Disposition: attachment; filename="contract_signed.docx"
           {/* ── Migrations ──────────────────────────────────────────────── */}
           <section id="migrations" className="docs-section">
             <H2 id="migrations">Migrations</H2>
-            <p>Canvas includes developer migration tools for moving existing PDF-generation code and report definitions into Canvas. Use the <strong>Migrations</strong> page from the top navigation for an interactive converter with diagnostics and PDF preview.</p>
+            <p>Canvas includes developer migration tools, organized into two types on the <strong>Migrations</strong> page: <strong>Code Migration</strong> (third-party library C# → Canvas code — <strong>15 PDF</strong> + <strong>4 spreadsheet</strong> libraries) and <strong>DataSource / Format Migration</strong> (a source file/format → an editable Canvas design or workbook — report designers, documents, and spreadsheets). Each opens an interactive converter with diagnostics and preview.</p>
 
             <H3>PDF code migration</H3>
             <p>Paste C# source written for a supported PDF library and convert deterministic document-generation patterns into <code className="docs-inline-code">Canvas.Pdf</code> C# code. Unsupported provider APIs stay visible through diagnostics instead of being silently rewritten.</p>
@@ -539,6 +539,29 @@ Content-Disposition: attachment; filename="contract_signed.docx"
                       <td>{provider}</td>
                       <td>{migrated}</td>
                       <td>{manual}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <H3>Spreadsheet code migration</H3>
+            <p>Paste C# source written for a supported spreadsheet library and convert it into the Canvas spreadsheet API (<code className="docs-inline-code">CanvasWorkbook</code>). Workbook/worksheet/cell/value/formula/style/save calls are rewritten via Roslyn; charts, pivots, conditional formatting, and data validation stay visible through diagnostics.</p>
+
+            <div className="docs-elem-table-wrap">
+              <table className="docs-elem-table">
+                <thead><tr><th>Library</th><th>Converter</th><th>Notes</th></tr></thead>
+                <tbody>
+                  {([
+                    ['ClosedXML', 'Canvas.Migration.ClosedXmlSpreadsheet', 'Reference impl; 1-based → 0-based index shift, alignment/fill colour, named ranges'],
+                    ['EPPlus', 'Canvas.Migration.EpplusSpreadsheet', 'Cells[..] indexer → Cell(..), Merge=true → Range(..).Merge(), alignment'],
+                    ['GemBox.Spreadsheet', 'Canvas.Migration.GemBoxSpreadsheet', 'Drops SetLicense, already 0-based, Font.Weight → Bold(), alignment'],
+                    ['Aspose.Cells', 'Canvas.Migration.AsposeCells', 'PutValue → Value, Worksheets[0] → AddSheet, SetColumnWidth → Column().Width()'],
+                  ] as [string,string,string][]).map(([lib, converter, notes]) => (
+                    <tr key={lib}>
+                      <td>{lib}</td>
+                      <td><code className="docs-inline-code">{converter}</code></td>
+                      <td>{notes}</td>
                     </tr>
                   ))}
                 </tbody>
