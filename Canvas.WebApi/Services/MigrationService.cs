@@ -28,6 +28,7 @@ public sealed class MigrationService
             // spreadsheet code migration (→ Canvas spreadsheet API)
             new ClosedXmlSpreadsheetConverter(),
             new EpplusSpreadsheetConverter(),
+            new GemBoxSpreadsheetConverter(),
         };
         _converters = all.ToDictionary(c => c.FrameworkId, StringComparer.OrdinalIgnoreCase);
     }

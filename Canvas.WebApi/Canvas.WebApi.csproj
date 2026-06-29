@@ -58,6 +58,7 @@
     <ProjectReference Include="../src/Canvas.Migration.Telerik/Canvas.Migration.Telerik.csproj" />
     <ProjectReference Include="..\src\Canvas.Migration.ClosedXmlSpreadsheet\Canvas.Migration.ClosedXmlSpreadsheet.csproj" />
     <ProjectReference Include="..\src\Canvas.Migration.EpplusSpreadsheet\Canvas.Migration.EpplusSpreadsheet.csproj" />
+    <ProjectReference Include="..\src\Canvas.Migration.GemBoxSpreadsheet\Canvas.Migration.GemBoxSpreadsheet.csproj" />
   </ItemGroup>
 
   <Target Name="CopyImageOcrWorker" AfterTargets="Build">

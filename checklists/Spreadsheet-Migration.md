@@ -55,8 +55,9 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
 - [x] **B2/B3 EPPlus** — `Canvas.Migration.EpplusSpreadsheet`, `CANMIGEPPL`. `Cells[..]` indexer→`Cell(..)`,
       `pkg.Workbook.Worksheets.Add`→`AddSheet`, `Merge=true`→`Range(..).Merge()`, value/formula/style/SaveAs,
       index shift. Converter registered; 3 tests. See `checklists/Spreadsheet-Migration-EPPlus.md`.
-- [ ] **B2/B3 GemBox.Spreadsheet** — `Canvas.Migration.GemBoxSpreadsheet`, `CANMIGGBSS`. `new ExcelFile()`;
-      `Worksheets.Add`; `Cells["A1"].Value=`/`[r,c]`; `Cells[..].Style.Font.Weight`; `wb.Save`.
+- [x] **B2/B3 GemBox.Spreadsheet** — `Canvas.Migration.GemBoxSpreadsheet`, `CANMIGGBSS`. Drops SetLicense;
+      ExcelFile→CanvasWorkbook, Cells[..]→Cell(..) (0-based, no shift), Font.Weight→Bold(), value/formula/save.
+      Converter registered; 2 tests. See `checklists/Spreadsheet-Migration-GemBox.md`.
 - [ ] **B2/B3 Aspose.Cells** — `Canvas.Migration.AsposeCells`, `CANMIGASPC`. `new Workbook()`;
       `Worksheets[0]`; `Cells["A1"].PutValue(..)`/`[r,c]`; `wb.Save`.
 - [ ] Each rewriter emits `MigrationResult { MigratedCode, Diagnostics }`; unsupported calls (charts,
