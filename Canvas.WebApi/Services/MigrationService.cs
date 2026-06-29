@@ -32,6 +32,7 @@ public sealed class MigrationService
             new AsposeCellsConverter(),
             new SpireXlsConverter(),
             new SyncfusionXlsIoConverter(),
+            new NpoiConverter(),
         };
         _converters = all.ToDictionary(c => c.FrameworkId, StringComparer.OrdinalIgnoreCase);
     }
