@@ -747,6 +747,86 @@ ws.Cells.SetColumnWidth(0, 20);
 
 workbook.Save("sales.xlsx");`;
 
+const SPIRE_XLS_EXAMPLE = `using Spire.Xls;
+
+var workbook = new Workbook();
+var sheet = workbook.Worksheets[0];
+
+sheet.Range["A1"].Text = "Item";
+sheet.Range["B1"].Text = "Qty";
+sheet.Range["A1"].Style.Font.IsBold = true;
+sheet.Range["B1"].Style.Font.IsBold = true;
+
+sheet.Range["A2"].Text = "Coffee";
+sheet.Range["B2"].NumberValue = 3;
+sheet.Range["A3"].Text = "Tea";
+sheet.Range["B3"].NumberValue = 5;
+
+sheet.Range["B4"].Formula = "=SUM(B2:B3)";
+sheet.SetColumnWidth(1, 18);
+
+workbook.SaveToFile("sales.xlsx", ExcelVersion.Version2013);`;
+
+const SYNCFUSION_XLSIO_EXAMPLE = `using Syncfusion.XlsIO;
+
+using ExcelEngine excelEngine = new ExcelEngine();
+IApplication application = excelEngine.Excel;
+IWorkbook workbook = application.Workbooks.Create(1);
+IWorksheet worksheet = workbook.Worksheets[0];
+
+worksheet.Range["A1"].Text = "Item";
+worksheet.Range["B1"].Text = "Qty";
+worksheet.Range["A1"].CellStyle.Font.Bold = true;
+worksheet.Range["B1"].CellStyle.Font.Bold = true;
+
+worksheet.Range["A2"].Text = "Coffee";
+worksheet.Range["B2"].Number = 3;
+worksheet.Range["A3"].Text = "Tea";
+worksheet.Range["B3"].Number = 5;
+
+worksheet.Range["B4"].Formula = "=SUM(B2:B3)";
+worksheet.SetColumnWidth(1, 18);
+
+workbook.SaveAs("sales.xlsx");`;
+
+const NPOI_EXAMPLE = `using NPOI.XSSF.UserModel;
+using NPOI.SS.UserModel;
+using System.IO;
+
+IWorkbook wb = new XSSFWorkbook();
+ISheet sheet = wb.CreateSheet("Sales");
+
+IRow header = sheet.CreateRow(0);
+header.CreateCell(0).SetCellValue("Item");
+header.CreateCell(1).SetCellValue("Qty");
+
+IRow r1 = sheet.CreateRow(1);
+r1.CreateCell(0).SetCellValue("Coffee");
+r1.CreateCell(1).SetCellValue(3);
+
+IRow r2 = sheet.CreateRow(2);
+r2.CreateCell(0).SetCellValue("Tea");
+r2.CreateCell(1).SetCellValue(5);
+
+sheet.CreateRow(3).CreateCell(1).SetCellFormula("SUM(B1:B3)");
+
+using (var fs = new FileStream("sales.xlsx", FileMode.Create))
+    wb.Write(fs);`;
+
+const SPREADSHEETLIGHT_EXAMPLE = `using SpreadsheetLight;
+
+var doc = new SLDocument();
+
+doc.SetCellValue("A1", "Item");
+doc.SetCellValue("B1", "Qty");
+doc.SetCellValue("A2", "Coffee");
+doc.SetCellValue("B2", 3);
+doc.SetCellValue("A3", "Tea");
+doc.SetCellValue("B3", 5);
+doc.SetCellValue("B4", "=SUM(B2:B3)");
+
+doc.SaveAs("sales.xlsx");`;
+
 const EXAMPLES: Record<string, string> = {
   [REPORT_ID]: DEVEXPRESS_REPORT_EXAMPLE,
   [RDL_REPORT_ID]: RDL_REPORT_EXAMPLE,
@@ -776,6 +856,10 @@ const EXAMPLES: Record<string, string> = {
   EpplusSpreadsheet: EPPLUS_SPREADSHEET_EXAMPLE,
   GemBoxSpreadsheet: GEMBOX_SPREADSHEET_EXAMPLE,
   AsposeCells: ASPOSE_CELLS_EXAMPLE,
+  SpireXls: SPIRE_XLS_EXAMPLE,
+  SyncfusionXlsIo: SYNCFUSION_XLSIO_EXAMPLE,
+  Npoi: NPOI_EXAMPLE,
+  SpreadsheetLight: SPREADSHEETLIGHT_EXAMPLE,
 };
 
 interface ConversionSummary {
