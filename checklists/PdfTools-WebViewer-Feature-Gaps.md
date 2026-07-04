@@ -53,6 +53,7 @@ Branch `feature/pdf-tools-web-viewer` now contains a usable PDF viewer and revie
 - [x] Native annotation import workflow: supported existing PDF annotations can be extracted into the viewer sidecar model
 - [x] Native annotation appearance baseline: exported editable annotations include normal appearance Form XObjects
 - [x] Text-selection-bound markup baseline: highlight, underline, and strikeout can be created from browser text selection and persisted/exported with PDF `QuadPoints`
+- [x] Native markup `QuadPoints` import baseline: existing highlight, underline, and strikeout annotations preserve text-selection quads in the viewer sidecar model
 - [x] Form workflow: existing AcroForm fields can be detected, edited, downloaded as filled PDFs, and optionally flattened
 - [x] Backend form reader baseline: existing AcroForm fields can be extracted through WebApi into the viewer form model
 - [x] Backend form writer baseline: supported AcroForm field values can be saved through WebApi incremental updates
@@ -83,15 +84,16 @@ Intentional remaining gaps:
       rectangle, circle, and redaction annotations. Basic normal appearance streams and text-selection-bound `QuadPoints`
       exist; richer viewer-specific appearance fidelity remains open.
 - [ ] Native annotation import is a baseline reader path for text, free text, highlight, underline, strikeout,
-      square, circle, and redaction annotations. Appearance streams, replies/threads, rich metadata, and unsupported
-      annotation subtypes remain open.
+      square, circle, and redaction annotations. Markup `QuadPoints` are preserved for highlight/underline/strikeout;
+      appearance streams, replies/threads, rich metadata, and unsupported annotation subtypes remain open.
 - [ ] Backend form reader extracts text, multiline text, checkbox, combo/dropdown, list, and radio-like button fields
       from AcroForm dictionaries. Backend form writing/flattening and richer inherited-field edge cases remain open.
 - [ ] Backend form writer updates text, multiline text, checkbox, dropdown/list, and radio-like button values with
       incremental PDF updates. Backend flattening baseline renders supported values into page content and removes
       widgets; full field appearance regeneration and complex form hierarchies remain open.
 - [ ] Text markup now supports browser-selection `QuadPoints` for new highlight/underline/strikeout annotations, while
-      imported legacy/area-only markups and non-standard text-layer edge cases still use rectangle fallback behavior.
+      native imported markup `QuadPoints` are preserved. Legacy/area-only markups and non-standard text-layer edge cases
+      still use rectangle fallback behavior.
 - [ ] Advanced controls now cover ink/line/shape stroke width, opacity, ink eraser, line endings, shape fill, custom stamps, image annotations, pending redaction marks, form filling, English/German viewer labels, keyboard shortcuts, and Jest component smoke coverage.
 - [ ] Secure redaction removes importer-supported content under redaction rectangles during regenerated output, then draws black redaction boxes, and now writes a PDF-info audit metadata baseline. Remaining gap: validate/extend coverage for complex PDFs, unsupported image/resource patterns, externally signed audit logs, and optional Playwright browser smoke tests if Playwright is added to the project.
 
@@ -256,8 +258,9 @@ our own implementation, UI language, and engine boundaries.
       emitted for supported types; richer viewer-specific appearance fidelity remains open.
 - [x] **Annotation reader support** - Import existing PDF annotations into Canvas model.
       Baseline reader support extracts text, free text, highlight, underline, strikeout, square, circle, and redaction
-      annotations into the viewer sidecar model. Rich annotation metadata, appearance stream fidelity, replies, and
-      less common annotation subtypes remain open.
+      annotations into the viewer sidecar model. Highlight/underline/strikeout `QuadPoints` are preserved as sidecar
+      text-selection quads. Rich annotation metadata, appearance stream fidelity, replies, and less common annotation
+      subtypes remain open.
 - [x] **Form reader support** - Import existing AcroForm fields and values.
       Frontend viewer baseline exists through `pdf-lib`; backend baseline now extracts AcroForm fields through
       `POST /api/pdf-viewer/forms/extract` into the viewer form model.

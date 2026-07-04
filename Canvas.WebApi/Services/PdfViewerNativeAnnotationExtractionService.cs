@@ -90,10 +90,14 @@ public sealed class PdfViewerNativeAnnotationExtractionService
             return null;
         }
 
-        var xPct = ClampPercent(((rect.Left - pageBounds.Left) / pageBounds.Width) * 100d);
-        var yPct = ClampPercent(((pageBounds.Top - rect.Top) / pageBounds.Height) * 100d);
-        var widthPct = ClampPercent((rect.Width / pageBounds.Width) * 100d);
-        var heightPct = ClampPercent((rect.Height / pageBounds.Height) * 100d);
+        var quadPoints = IsMarkupType(viewerType)
+            ? ReadQuadPoints(dictionary["QuadPoints"], pageBounds, resolver)
+            : [];
+        var bounds = quadPoints.Count > 0 ? BoundsFromQuadPoints(quadPoints) : null;
+        var xPct = bounds?.XPct ?? ClampPercent(((rect.Left - pageBounds.Left) / pageBounds.Width) * 100d);
+        var yPct = bounds?.YPct ?? ClampPercent(((pageBounds.Top - rect.Top) / pageBounds.Height) * 100d);
+        var widthPct = bounds?.WidthPct ?? ClampPercent((rect.Width / pageBounds.Width) * 100d);
+        var heightPct = bounds?.HeightPct ?? ClampPercent((rect.Height / pageBounds.Height) * 100d);
         var color = TryReadColor(dictionary["C"], resolver) ?? DefaultColor(viewerType);
         var opacity = ReadNumber(dictionary["CA"], resolver) is { } alpha
             ? Math.Clamp(alpha * 100d, 10d, 100d)
@@ -114,7 +118,72 @@ public sealed class PdfViewerNativeAnnotationExtractionService
             CreatedAt: DateTimeOffset.UtcNow,
             Color: color,
             Locked: false,
-            Opacity: Math.Round(opacity, 2));
+            Opacity: Math.Round(opacity, 2),
+            QuadPoints: quadPoints);
+    }
+
+    private static bool IsMarkupType(string viewerType) => viewerType is "highlight" or "underline" or "strikeout";
+
+    private static IReadOnlyList<PdfViewerMarkupQuadPointResponse> ReadQuadPoints(
+        PdfObject? value,
+        PdfRectangle pageBounds,
+        PdfObjectResolver resolver)
+    {
+        if (value is null ||
+            pageBounds.Width <= 0 ||
+            pageBounds.Height <= 0 ||
+            resolver.Resolve(value) is not PdfArray array ||
+            array.Items.Count < 8)
+        {
+            return [];
+        }
+
+        var points = new List<PdfViewerMarkupQuadPointResponse>();
+        for (var index = 0; index + 7 < array.Items.Count; index += 8)
+        {
+            var x1 = ReadNumber(array.Items[index], resolver);
+            var y1 = ReadNumber(array.Items[index + 1], resolver);
+            var x2 = ReadNumber(array.Items[index + 2], resolver);
+            var y2 = ReadNumber(array.Items[index + 3], resolver);
+            var x3 = ReadNumber(array.Items[index + 4], resolver);
+            var y3 = ReadNumber(array.Items[index + 5], resolver);
+            var x4 = ReadNumber(array.Items[index + 6], resolver);
+            var y4 = ReadNumber(array.Items[index + 7], resolver);
+            if (x1 is null || y1 is null || x2 is null || y2 is null || x3 is null || y3 is null || x4 is null || y4 is null)
+            {
+                continue;
+            }
+
+            points.Add(new PdfViewerMarkupQuadPointResponse(
+                XPct(x1.Value, pageBounds),
+                YPct(y1.Value, pageBounds),
+                XPct(x2.Value, pageBounds),
+                YPct(y2.Value, pageBounds),
+                XPct(x3.Value, pageBounds),
+                YPct(y3.Value, pageBounds),
+                XPct(x4.Value, pageBounds),
+                YPct(y4.Value, pageBounds)));
+        }
+
+        return points;
+    }
+
+    private static PdfViewerAnnotationBounds? BoundsFromQuadPoints(IReadOnlyList<PdfViewerMarkupQuadPointResponse> quadPoints)
+    {
+        if (quadPoints.Count == 0)
+            return null;
+
+        var xs = quadPoints.SelectMany(static point => new[] { point.X1Pct, point.X2Pct, point.X3Pct, point.X4Pct }).ToArray();
+        var ys = quadPoints.SelectMany(static point => new[] { point.Y1Pct, point.Y2Pct, point.Y3Pct, point.Y4Pct }).ToArray();
+        var left = ClampPercent(xs.Min());
+        var right = ClampPercent(xs.Max());
+        var top = ClampPercent(ys.Min());
+        var bottom = ClampPercent(ys.Max());
+        return new PdfViewerAnnotationBounds(
+            Math.Round(left, 4),
+            Math.Round(top, 4),
+            Math.Round(Math.Max(0.0001, right - left), 4),
+            Math.Round(Math.Max(0.0001, bottom - top), 4));
     }
 
     private static string? ResolveSubtype(PdfObject? value, PdfObjectResolver resolver)
@@ -190,6 +259,12 @@ public sealed class PdfViewerNativeAnnotationExtractionService
 
     private static double ClampPercent(double value) => Math.Clamp(value, 0d, 100d);
 
+    private static double XPct(double x, PdfRectangle pageBounds) =>
+        Math.Round(ClampPercent(((x - pageBounds.Left) / pageBounds.Width) * 100d), 4);
+
+    private static double YPct(double y, PdfRectangle pageBounds) =>
+        Math.Round(ClampPercent(((pageBounds.Top - y) / pageBounds.Height) * 100d), 4);
+
     private static string DefaultColor(string viewerType)
     {
         return viewerType switch
@@ -222,4 +297,21 @@ public sealed record PdfViewerAnnotationResponse(
     DateTimeOffset CreatedAt,
     string Color,
     bool Locked,
-    double Opacity);
+    double Opacity,
+    IReadOnlyList<PdfViewerMarkupQuadPointResponse>? QuadPoints = null);
+
+public sealed record PdfViewerMarkupQuadPointResponse(
+    double X1Pct,
+    double Y1Pct,
+    double X2Pct,
+    double Y2Pct,
+    double X3Pct,
+    double Y3Pct,
+    double X4Pct,
+    double Y4Pct);
+
+internal sealed record PdfViewerAnnotationBounds(
+    double XPct,
+    double YPct,
+    double WidthPct,
+    double HeightPct);

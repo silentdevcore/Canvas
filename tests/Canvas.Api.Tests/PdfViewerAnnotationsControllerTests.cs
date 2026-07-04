@@ -332,6 +332,19 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
         Assert.Equal(20, annotations[0].GetProperty("yPct").GetDouble());
         Assert.Equal("freeText", annotations[1].GetProperty("type").GetString());
         Assert.Equal("highlight", annotations[2].GetProperty("type").GetString());
+        Assert.Equal(10, annotations[2].GetProperty("xPct").GetDouble());
+        Assert.Equal(14.4444, annotations[2].GetProperty("yPct").GetDouble(), precision: 4);
+        Assert.Equal(46.6667, annotations[2].GetProperty("widthPct").GetDouble(), precision: 4);
+        Assert.Equal(18.8889, annotations[2].GetProperty("heightPct").GetDouble(), precision: 4);
+
+        var quadPoints = annotations[2].GetProperty("quadPoints");
+        Assert.Equal(2, quadPoints.GetArrayLength());
+        Assert.Equal(10, quadPoints[0].GetProperty("x1Pct").GetDouble());
+        Assert.Equal(14.4444, quadPoints[0].GetProperty("y1Pct").GetDouble(), precision: 4);
+        Assert.Equal(36.6667, quadPoints[0].GetProperty("x2Pct").GetDouble(), precision: 4);
+        Assert.Equal(21.1111, quadPoints[0].GetProperty("y3Pct").GetDouble(), precision: 4);
+        Assert.Equal(56.6667, quadPoints[1].GetProperty("x2Pct").GetDouble(), precision: 4);
+        Assert.Equal(33.3333, quadPoints[1].GetProperty("y3Pct").GetDouble(), precision: 4);
     }
 
     [Fact]
@@ -413,7 +426,18 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
         page.DrawTextFromTop("Annotated PDF", 24, 24, 12);
         page.AddStickyNoteAnnotation(30, 126, 30, 18, "Native note", PdfColor.FromRgb(250, 204, 21));
         page.AddFreeTextAnnotation(75, 90, 90, 18, "Native free text", PdfColor.FromRgb(37, 99, 235));
-        page.AddHighlightAnnotation(30, 54, 150, 18, "Native highlight", PdfColor.FromRgb(254, 240, 138), 0.45);
+        page.AddHighlightAnnotation(
+            30,
+            120,
+            140,
+            34,
+            "Native highlight",
+            PdfColor.FromRgb(254, 240, 138),
+            0.45,
+            [
+                new PdfMarkupQuadPoint(30, 154, 110, 154, 30, 142, 110, 142),
+                new PdfMarkupQuadPoint(30, 136, 170, 136, 30, 120, 170, 120),
+            ]);
 
         using var stream = new MemoryStream();
         document.Save(stream);
