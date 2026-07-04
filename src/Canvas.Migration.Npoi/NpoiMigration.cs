@@ -90,6 +90,15 @@ public sealed class NpoiMigration : CSharpSourceMigration
             return visited;
         }
 
+        // NPOI interface-typed locals (IWorkbook/ISheet) → var, so the migrated code compiles.
+        public override SyntaxNode? VisitVariableDeclaration(VariableDeclarationSyntax node)
+        {
+            var visited = (VariableDeclarationSyntax)base.VisitVariableDeclaration(node)!;
+            if (SimpleTypeName(visited.Type) is "IWorkbook" or "ISheet" or "IRow" or "ICell")
+                return visited.WithType(SyntaxFactory.IdentifierName("var").WithTriviaFrom(visited.Type));
+            return visited;
+        }
+
         // Drop the addressing-only `var row = sheet.CreateRow(..)` / `var cell = row.CreateCell(..)` declarations.
         public override SyntaxNode? VisitGlobalStatement(GlobalStatementSyntax node)
             => node.Statement is LocalDeclarationStatementSyntax l && IsAddressingDecl(l) ? null : base.VisitGlobalStatement(node);
