@@ -4,7 +4,10 @@ public static class ReportMigrationProviderKeys
 {
     public const string ActiveReportsJs = "activereports-js";
     public const string DevExpressReport = "devexpress-report";
+    public const string FastReport = "fastreport";
     public const string JasperReports = "jasperreports";
     public const string Rdl = "rdl";
     public const string Rpx = "rpx";
+    public const string Stimulsoft = "stimulsoft";
+    public const string Telerik = "telerik";
 }

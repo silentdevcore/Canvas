@@ -6,9 +6,12 @@ public sealed class ReportMigrationProvidersTests
     {
         { ReportMigrationProviderKeys.ActiveReportsJs, "PXA.Migration.Report.ActiveReportsJsMigration" },
         { ReportMigrationProviderKeys.DevExpressReport, "PXA.Migration.Report.DevExpressReportMigration" },
+        { ReportMigrationProviderKeys.FastReport, "PXA.Migration.Report.FastReportMigration" },
         { ReportMigrationProviderKeys.JasperReports, "PXA.Migration.Report.JasperReportsMigration" },
         { ReportMigrationProviderKeys.Rdl, "PXA.Migration.Report.RdlReportMigration" },
         { ReportMigrationProviderKeys.Rpx, "PXA.Migration.Report.RpxReportMigration" },
+        { ReportMigrationProviderKeys.Stimulsoft, "PXA.Migration.Report.StimulsoftReportMigration" },
+        { ReportMigrationProviderKeys.Telerik, "PXA.Migration.Report.TelerikReportMigration" },
     };
 
     [Theory]

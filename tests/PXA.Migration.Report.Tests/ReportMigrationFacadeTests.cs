@@ -47,6 +47,25 @@ public sealed class ReportMigrationFacadeTests
     }
 
     [Fact]
+    public void FastReport_ConvertsFrxToDesign()
+    {
+        var result = new FastReportMigration().Convert("""
+            <?xml version="1.0" encoding="utf-8"?>
+            <Report ScriptLanguage="CSharp" ReportInfo.Name="Invoice">
+              <ReportPage Name="Page1">
+                <DataBand Name="Data1" Top="0" Width="718.2" Height="20">
+                  <TextObject Name="name" Left="0" Top="0" Width="200" Height="20" Text="[Items.Name]"/>
+                </DataBand>
+              </ReportPage>
+            </Report>
+            """);
+
+        Assert.Equal("Invoice", result.Design.Name);
+        Assert.Contains(result.Design.Pages[0].Elements, element => element.Name == "name");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGFRX001");
+    }
+
+    [Fact]
     public void JasperReports_ConvertsJrxmlToDesign()
     {
         var result = new JasperReportsMigration().Convert("""
@@ -113,5 +132,61 @@ public sealed class ReportMigrationFacadeTests
         Assert.Contains(result.Design.Pages[0].Elements, element => element.Name == "customer");
         Assert.Contains(result.Diagnostics, diagnostic =>
             diagnostic.Id == "CANMIGRPX001" && diagnostic.Severity == MigrationDiagnosticSeverity.Info);
+    }
+
+    [Fact]
+    public void Stimulsoft_ConvertsMrtToDesign()
+    {
+        var result = new StimulsoftReportMigration().Convert("""
+            <?xml version="1.0" encoding="utf-8"?>
+            <StiSerializer version="1.02" type="Net" application="StiReport">
+              <ReportName>Invoice</ReportName>
+              <Pages isList="true" count="1">
+                <Page1 Ref="1" type="Page" isKey="true">
+                  <PaperSize>A4</PaperSize>
+                  <Components isList="true" count="1">
+                    <DataBand1 Ref="2" type="DataBand" isKey="true">
+                      <ClientRectangle>0,80,749,40</ClientRectangle>
+                      <Components isList="true" count="1">
+                        <Text1 Ref="3" type="Text" isKey="true">
+                          <ClientRectangle>0,0,300,20</ClientRectangle>
+                          <Text>{Customers.CompanyName}</Text>
+                          <Name>Text1</Name>
+                        </Text1>
+                      </Components>
+                      <Name>DataBand1</Name>
+                    </DataBand1>
+                  </Components>
+                  <Name>Page1</Name>
+                </Page1>
+              </Pages>
+            </StiSerializer>
+            """);
+
+        Assert.Equal("Invoice", result.Design.Name);
+        Assert.Contains(result.Design.Pages[0].Elements, element => element.Name == "Text1");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGMRT001");
+    }
+
+    [Fact]
+    public void Telerik_ConvertsTrdxToDesign()
+    {
+        var result = new TelerikReportMigration().Convert("""
+            <?xml version="1.0" encoding="utf-8"?>
+            <Report Width="8.1in" Name="Invoice" xmlns="http://schemas.telerik.com/reporting/2012/3.6">
+              <PageSettings><PaperKind>Letter</PaperKind><Margins Left="1in" Right="1in" Top="1in" Bottom="1in"/></PageSettings>
+              <Items>
+                <DetailSection Height="1in" Name="detailSection1">
+                  <Items>
+                    <TextBox Width="3in" Height="0.3in" Left="0in" Top="0in" Value="=Fields.CustomerName" Name="customer"/>
+                  </Items>
+                </DetailSection>
+              </Items>
+            </Report>
+            """);
+
+        Assert.Equal("Invoice", result.Design.Name);
+        Assert.Contains(result.Design.Pages[0].Elements, element => element.Name == "customer");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGTRDX001");
     }
 }

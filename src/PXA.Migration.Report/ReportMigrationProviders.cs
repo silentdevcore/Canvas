@@ -7,9 +7,12 @@ public static class ReportMigrationProviders
         {
             [ReportMigrationProviderKeys.ActiveReportsJs] = static () => new ActiveReportsJsMigration(),
             [ReportMigrationProviderKeys.DevExpressReport] = static () => new DevExpressReportMigration(),
+            [ReportMigrationProviderKeys.FastReport] = static () => new FastReportMigration(),
             [ReportMigrationProviderKeys.JasperReports] = static () => new JasperReportsMigration(),
             [ReportMigrationProviderKeys.Rdl] = static () => new RdlReportMigration(),
             [ReportMigrationProviderKeys.Rpx] = static () => new RpxReportMigration(),
+            [ReportMigrationProviderKeys.Stimulsoft] = static () => new StimulsoftReportMigration(),
+            [ReportMigrationProviderKeys.Telerik] = static () => new TelerikReportMigration(),
         };
 
     public static IReadOnlyList<string> Keys { get; } = Factories.Keys.OrderBy(static key => key, StringComparer.Ordinal).ToArray();

@@ -4,9 +4,12 @@
     <ProjectReference Include="../Canvas.Core/Canvas.Core.csproj" />
     <ProjectReference Include="../Canvas.Migration.ActiveReportsJs/Canvas.Migration.ActiveReportsJs.csproj" />
     <ProjectReference Include="../Canvas.Migration.DevExpressReport/Canvas.Migration.DevExpressReport.csproj" />
+    <ProjectReference Include="../Canvas.Migration.FastReport/Canvas.Migration.FastReport.csproj" />
     <ProjectReference Include="../Canvas.Migration.JasperReports/Canvas.Migration.JasperReports.csproj" />
     <ProjectReference Include="../Canvas.Migration.Rdl/Canvas.Migration.Rdl.csproj" />
     <ProjectReference Include="../Canvas.Migration.Rpx/Canvas.Migration.Rpx.csproj" />
+    <ProjectReference Include="../Canvas.Migration.Stimulsoft/Canvas.Migration.Stimulsoft.csproj" />
+    <ProjectReference Include="../Canvas.Migration.Telerik/Canvas.Migration.Telerik.csproj" />
     <ProjectReference Include="../PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
   </ItemGroup>
 
