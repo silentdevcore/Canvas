@@ -96,6 +96,8 @@ server restarts are part of this step.
       PDF provider facade coverage expanded with `PXA.Migration.PdfTools` and `PXA.Migration.PdfToolsToolbox`.
       Shared PDF migration entry point added with `PXA.Migration.Pdf`, exposing provider keys and
       `PdfMigrationProviders.Create(...)` / `TryCreate(...)` for CLI/API use.
+      Report migration entry point added with `PXA.Migration.Report`, PXA-facing report result/contract,
+      and provider keys for DevExpress Report, RDL, and RPX designer migrations.
 - [ ] Phase 4: move importer and file importer namespaces:
       - `Canvas.Importer` -> `PXA.Importer`
       - `Canvas.FileImporter.*` -> `PXA.FileImporter.*`
@@ -133,6 +135,8 @@ server restarts are part of this step.
       diagnostics-first and direct-generation provider facade compatibility.
       Initial `PXA.Migration.Pdf.Tests` coverage added for provider registry keys, factory creation,
       case-insensitive lookup, and unknown-key rejection.
+      Initial `PXA.Migration.Report.Tests` coverage added for report provider registry keys and
+      DevExpress Report/RDL/RPX facade conversion smoke tests.
 - [ ] Spreadsheet migration tests:
       - Aspose.Cells
       - ClosedXML
