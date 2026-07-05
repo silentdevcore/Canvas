@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Canvas.FileImporter.ImageOcr/Canvas.FileImporter.ImageOcr.csproj" />
+    <ProjectReference Include="../PXA.Core/PXA.Core.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

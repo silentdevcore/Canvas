@@ -4,6 +4,7 @@
     <ProjectReference Include="../Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj" />
     <ProjectReference Include="../Canvas.Infrastructure.Spreadsheet/Canvas.Infrastructure.Spreadsheet.csproj" />
     <ProjectReference Include="../Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj" />
+    <ProjectReference Include="../PXA.Core/PXA.Core.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

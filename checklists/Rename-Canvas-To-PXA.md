@@ -115,6 +115,12 @@ server restarts are part of this step.
       Tesseract engine facades, and Canvas adapters. The OCR worker executable/package name remains a later
       physical rename item in Phase 8/9.
 - [ ] Phase 5: move infrastructure, application, core, and domain namespaces.
+      Started with additive `PXA.Core` project and PXA-owned contract types for design documents,
+      spreadsheet workbooks, and export options. JSON-compatible adapters bridge `PXA.Core.Contracts`
+      to the existing `Canvas.Core.Contracts` types while engines still use the legacy internals.
+      Public PXA generator and file importer facades now expose `PXA.Core.Contracts` instead of
+      `Canvas.Core.Contracts` for document import/export surfaces. Remaining follow-up: report migration
+      result contracts, application use cases, infrastructure facades, and domain-facing model aliases.
 - [ ] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
@@ -166,6 +172,8 @@ server restarts are part of this step.
       - Legacy code with `using Canvas.Pdf;`
       Initial `PXA.Generator.Tests` coverage added for `Pdf.CreateDocument()`, `Spreadsheet.CreateWorkbook()`,
       and `Word.Export(...)`.
+      `PXA.Generator.Word.Export(...)` now accepts `PXA.Core.Contracts.DesignExportDto` and adapts to
+      the legacy Canvas exporter internally.
 - [ ] Importer compatibility tests:
       - New code with `using PXA.Importer;`
       - Legacy code with `using Canvas.Importer;`
@@ -174,6 +182,9 @@ server restarts are part of this step.
       case-insensitive/extension lookup, unknown-key rejection, and SVG/Image facade smoke tests.
       Initial `PXA.FileImporter.ImageAnalysis.Tests` and `PXA.FileImporter.ImageOcr.Tests` coverage added for
       specialized analysis/OCR facades, diagnostics mapping, PXA OCR engine adapter flow, and Tesseract facade identity.
+      File importer design results now return `PXA.Core.Contracts.DesignExportDto`.
+- [ ] Core compatibility tests:
+      Initial `PXA.Core.Tests` coverage added for DesignExportDto, SpreadsheetDto, and ExportOptions adapters.
 - [ ] `npm run build` in `ui-designer-v2`.
 - [ ] Relevant Jest tests in `ui-designer-v2`.
 - [ ] MCP smoke test if `tools/Canvas.Mcp` is renamed or rebranded.

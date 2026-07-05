@@ -1,4 +1,4 @@
-using Canvas.Core.Contracts;
+using PXA.Core.Contracts;
 
 namespace PXA.FileImporter.ImageAnalysis;
 
@@ -14,7 +14,7 @@ public sealed class ImageAnalysisImportResult
     internal static ImageAnalysisImportResult FromCanvas(
         Canvas.FileImporter.ImageAnalysis.Analysis.ImageAnalysisImportResult result) => new()
     {
-        Design = result.Design,
+        Design = result.Design.ToPxa(),
         Diagnostics = ImageAnalysisDiagnostics.FromCanvas(result.Diagnostics),
         DebugOverlayPng = result.DebugOverlayPng,
     };

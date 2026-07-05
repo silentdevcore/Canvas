@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../Canvas.FileImporter.ImageAnalysis/Canvas.FileImporter.ImageAnalysis.csproj" />
-    <ProjectReference Include="../PXA.Core/PXA.Core.csproj" />
-    <ProjectReference Include="../PXA.FileImporter/PXA.FileImporter.csproj" />
+    <ProjectReference Include="../Canvas.Core/Canvas.Core.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

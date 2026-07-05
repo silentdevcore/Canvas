@@ -1,6 +1,6 @@
-using Canvas.Core.Contracts;
 using Canvas.Core.Primitives;
 using Canvas.Infrastructure.Word;
+using PXA.Core.Contracts;
 
 namespace PXA.Generator;
 
@@ -13,5 +13,5 @@ public static class Word
     /// Exports a Canvas design document to DOCX bytes using the current Word exporter.
     /// </summary>
     public static byte[] Export(DesignExportDto design, ExportOptions? options = null) =>
-        new WordDocumentExporter().Export(design, options);
+        new WordDocumentExporter().Export(design.ToCanvas(), options?.ToCanvas());
 }

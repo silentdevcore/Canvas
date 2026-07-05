@@ -1,4 +1,4 @@
-using Canvas.Core.Contracts;
+using PXA.Core.Contracts;
 
 namespace PXA.FileImporter;
 
@@ -11,8 +11,8 @@ public sealed class DocFileImporter : IFileImporter
 
     public IReadOnlyList<string> SupportedExtensions => inner.SupportedExtensions;
 
-    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
-        inner.ImportAsync(stream, name);
+    public async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        (await inner.ImportAsync(stream, name)).ToPxa();
 }
 
 /// <summary>
@@ -24,8 +24,8 @@ public sealed class DocxFileImporter : IFileImporter
 
     public IReadOnlyList<string> SupportedExtensions => inner.SupportedExtensions;
 
-    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
-        inner.ImportAsync(stream, name);
+    public async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        (await inner.ImportAsync(stream, name)).ToPxa();
 }
 
 /// <summary>
@@ -37,8 +37,8 @@ public sealed class ImageFileImporter : IFileImporter
 
     public IReadOnlyList<string> SupportedExtensions => inner.SupportedExtensions;
 
-    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
-        inner.ImportAsync(stream, name);
+    public async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        (await inner.ImportAsync(stream, name)).ToPxa();
 }
 
 /// <summary>
@@ -50,8 +50,8 @@ public sealed class OdtFileImporter : IFileImporter
 
     public IReadOnlyList<string> SupportedExtensions => inner.SupportedExtensions;
 
-    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
-        inner.ImportAsync(stream, name);
+    public async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        (await inner.ImportAsync(stream, name)).ToPxa();
 }
 
 /// <summary>
@@ -63,8 +63,8 @@ public sealed class PdfFileImporter : IFileImporter
 
     public IReadOnlyList<string> SupportedExtensions => inner.SupportedExtensions;
 
-    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
-        inner.ImportAsync(stream, name);
+    public async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        (await inner.ImportAsync(stream, name)).ToPxa();
 }
 
 /// <summary>
@@ -76,8 +76,8 @@ public sealed class PptxFileImporter : IFileImporter
 
     public IReadOnlyList<string> SupportedExtensions => inner.SupportedExtensions;
 
-    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
-        inner.ImportAsync(stream, name);
+    public async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        (await inner.ImportAsync(stream, name)).ToPxa();
 }
 
 /// <summary>
@@ -89,6 +89,6 @@ public sealed class SvgFileImporter : IFileImporter
 
     public IReadOnlyList<string> SupportedExtensions => inner.SupportedExtensions;
 
-    public Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
-        inner.ImportAsync(stream, name);
+    public async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
+        (await inner.ImportAsync(stream, name)).ToPxa();
 }

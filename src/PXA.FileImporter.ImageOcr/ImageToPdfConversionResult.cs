@@ -1,4 +1,4 @@
-using Canvas.Core.Contracts;
+using PXA.Core.Contracts;
 
 namespace PXA.FileImporter.ImageOcr;
 
@@ -16,7 +16,7 @@ public sealed class ImageToPdfConversionResult
     internal static ImageToPdfConversionResult FromCanvas(
         Canvas.FileImporter.ImageOcr.ImageToPdfConversionResult result) => new()
     {
-        Design = result.Design,
+        Design = result.Design.ToPxa(),
         OcrPages = result.OcrPages.Select(OcrModelMapper.FromCanvas).ToArray(),
         Diagnostics = ImageToPdfDiagnostics.FromCanvas(result.Diagnostics),
         Warnings = result.Warnings,

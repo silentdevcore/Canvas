@@ -1,5 +1,5 @@
 using Canvas.Pdf;
-using Canvas.Core.Contracts;
+using PXA.Core.Contracts;
 using PXA.Generator;
 
 namespace PXA.Generator.Tests;

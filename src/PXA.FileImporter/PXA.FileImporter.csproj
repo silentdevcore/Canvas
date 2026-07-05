@@ -8,6 +8,7 @@
     <ProjectReference Include="../Canvas.FileImporter.Pdf/Canvas.FileImporter.Pdf.csproj" />
     <ProjectReference Include="../Canvas.FileImporter.Pptx/Canvas.FileImporter.Pptx.csproj" />
     <ProjectReference Include="../Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj" />
+    <ProjectReference Include="../PXA.Core/PXA.Core.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
