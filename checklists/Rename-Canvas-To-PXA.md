@@ -130,6 +130,9 @@ server restarts are part of this step.
       facade, diagnostics reader, output writer, renderer capabilities, and PDF service hooks.
       Word infrastructure facade started with additive `PXA.Infrastructure.Word` project for DOCX export,
       renderer capabilities, and DOCX digital-signing facade.
+      Spreadsheet infrastructure facade started with additive `PXA.Infrastructure.Spreadsheet` project for
+      fluent workbook authoring, XLSX/XLS/CSV IO, spreadsheet calculation, validation, spreadsheet-to-design
+      conversion, Excel document export, operations, and sheet renderer capabilities.
 - [ ] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
@@ -203,6 +206,9 @@ server restarts are part of this step.
       diagnostics reading, capabilities, and service delegation.
       Initial `PXA.Infrastructure.Word.Tests` coverage added for DOCX export with PXA core contracts,
       Word renderer capabilities, and digital-signing facade delegation.
+      Initial `PXA.Infrastructure.Spreadsheet.Tests` coverage added for fluent workbook authoring,
+      XLSX import/export, calculation, validation, spreadsheet-to-design, Excel document export,
+      and sheet renderer capabilities.
 - [ ] `npm run build` in `ui-designer-v2`.
 - [ ] Relevant Jest tests in `ui-designer-v2`.
 - [ ] MCP smoke test if `tools/Canvas.Mcp` is renamed or rebranded.
