@@ -81,6 +81,9 @@ server restarts are part of this step.
       - Word export APIs -> `PXA.Generator.Word`
       - Spreadsheet APIs -> `PXA.Generator.Spreadsheet`
 - [ ] Phase 3: move migration namespaces from `Canvas.Migration.*` to `PXA.Migration.*`, including PDF, report, and spreadsheet providers.
+      Started with additive `PXA.Migration.Abstractions` project, PXA-facing migration result/diagnostic types,
+      and a `CanvasSourceMigrationAdapter` bridge for existing `Canvas.Migration.Abstractions.ISourceMigration`
+      implementations.
 - [ ] Phase 4: move importer and file importer namespaces:
       - `Canvas.Importer` -> `PXA.Importer`
       - `Canvas.FileImporter.*` -> `PXA.FileImporter.*`
@@ -100,6 +103,7 @@ server restarts are part of this step.
 - [ ] `dotnet build Canvas.sln`
 - [ ] `dotnet build Canvas.slnx` if kept as an active solution entry.
 - [ ] Relevant migration tests.
+      Initial `PXA.Migration.Abstractions.Tests` coverage added for Canvas-to-PXA source migration adapter mapping.
 - [ ] Spreadsheet migration tests:
       - Aspose.Cells
       - ClosedXML
