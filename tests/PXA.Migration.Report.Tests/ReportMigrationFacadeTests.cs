@@ -1,9 +1,24 @@
 using PXA.Migration.Abstractions;
+using PXA.Core.Contracts;
 
 namespace PXA.Migration.Report.Tests;
 
 public sealed class ReportMigrationFacadeTests
 {
+    [Fact]
+    public void Convert_ReturnsPxaCoreDesignContract()
+    {
+        var result = new RdlReportMigration().Convert("""
+            <?xml version="1.0" encoding="utf-8"?>
+            <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" Name="ContractCheck">
+              <Body><ReportItems /></Body>
+              <Page><PageHeight>11in</PageHeight><PageWidth>8.5in</PageWidth></Page>
+            </Report>
+            """);
+
+        Assert.IsType<DesignExportDto>(result.Design);
+    }
+
     [Fact]
     public void ActiveReportsJs_ConvertsJsonToDesign()
     {

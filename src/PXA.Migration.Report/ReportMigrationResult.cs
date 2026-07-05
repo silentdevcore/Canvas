@@ -1,4 +1,4 @@
-using Canvas.Core.Contracts;
+using PXA.Core.Contracts;
 using PXA.Migration.Abstractions;
 
 namespace PXA.Migration.Report;

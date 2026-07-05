@@ -121,6 +121,8 @@ server restarts are part of this step.
       Public PXA generator and file importer facades now expose `PXA.Core.Contracts` instead of
       `Canvas.Core.Contracts` for document import/export surfaces. Remaining follow-up: report migration
       result contracts, application use cases, infrastructure facades, and domain-facing model aliases.
+      Report migration results now expose `PXA.Core.Contracts.DesignExportDto` while existing
+      Canvas report converters remain the internal implementation.
 - [ ] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
@@ -156,6 +158,7 @@ server restarts are part of this step.
       DevExpress Report/RDL/RPX facade conversion smoke tests.
       `PXA.Migration.Report.Tests` expanded for JasperReports and ActiveReports JS facade smoke coverage.
       `PXA.Migration.Report.Tests` expanded for FastReport, Telerik, and Stimulsoft facade smoke coverage.
+      `PXA.Migration.Report.Tests` expanded to verify report migrations return the PXA core design contract.
       Initial `PXA.Migration.Spreadsheet.Tests` coverage added for spreadsheet provider registry keys,
       factory creation, case-insensitive lookup, unknown-key rejection, and ClosedXML/EPPlus smoke tests.
 - [ ] Spreadsheet migration tests:
