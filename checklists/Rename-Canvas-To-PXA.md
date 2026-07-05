@@ -140,6 +140,10 @@ server restarts are part of this step.
       page settings, designer elements, element config models, validation results, template name info,
       and Canvas/PXA repository adapters.
 - [ ] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
+      Started with additive Web API branding discovery endpoint exposed on both legacy
+      `/api/system/brand` and PXA `/api/pxa/system/brand` routes. Response advertises
+      Power Dox Automation/PXA naming, reserved `pxa` CLI and `.pxa` extension, and legacy
+      Canvas compatibility notes.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
       - `tools/Canvas.Mcp` -> `tools/PXA.Mcp` or package `pxa-mcp`
@@ -220,6 +224,8 @@ server restarts are part of this step.
 - [ ] Domain compatibility tests:
       Initial `PXA.Domain.Tests` coverage added for design template conversion, validation result conversion,
       and Canvas/PXA repository adapter flows.
+- [ ] Web/API compatibility tests:
+      `Canvas.Api.Tests` now covers legacy and PXA branding discovery routes with compatibility notes.
 - [ ] `npm run build` in `ui-designer-v2`.
 - [ ] Relevant Jest tests in `ui-designer-v2`.
 - [ ] MCP smoke test if `tools/Canvas.Mcp` is renamed or rebranded.
