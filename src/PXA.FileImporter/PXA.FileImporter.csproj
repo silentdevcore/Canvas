@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../Canvas.FileImporter.Doc/Canvas.FileImporter.Doc.csproj" />
+    <ProjectReference Include="../Canvas.FileImporter.Docx/Canvas.FileImporter.Docx.csproj" />
+    <ProjectReference Include="../Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj" />
+    <ProjectReference Include="../Canvas.FileImporter.Odt/Canvas.FileImporter.Odt.csproj" />
+    <ProjectReference Include="../Canvas.FileImporter.Pdf/Canvas.FileImporter.Pdf.csproj" />
+    <ProjectReference Include="../Canvas.FileImporter.Pptx/Canvas.FileImporter.Pptx.csproj" />
+    <ProjectReference Include="../Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+</Project>

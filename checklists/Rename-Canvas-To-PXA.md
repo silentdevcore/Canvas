@@ -108,6 +108,10 @@ server restarts are part of this step.
       - `Canvas.FileImporter.*` -> `PXA.FileImporter.*`
       Started with additive `PXA.Importer` project and PDF import facade that delegates to the existing
       `Canvas.Importer.PdfImporter`.
+      File importer entry point added with `PXA.FileImporter`, PXA-facing `IFileImporter`, provider keys,
+      and registry/facades for PDF, DOCX, DOC, ODT, SVG, PPTX, and raster image import.
+      ImageAnalysis, ImageOCR, and the OCR worker remain separate follow-up modules because they expose
+      specialized analysis/OCR APIs beyond the common `IFileImporter` contract.
 - [ ] Phase 5: move infrastructure, application, core, and domain namespaces.
 - [ ] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
@@ -164,6 +168,8 @@ server restarts are part of this step.
       - New code with `using PXA.Importer;`
       - Legacy code with `using Canvas.Importer;`
       Initial `PXA.Importer.Tests` coverage added for `Pdf.LoadAsync(...)` and PXA-facing import options.
+      Initial `PXA.FileImporter.Tests` coverage added for file importer registry keys, factory creation,
+      case-insensitive/extension lookup, unknown-key rejection, and SVG/Image facade smoke tests.
 - [ ] `npm run build` in `ui-designer-v2`.
 - [ ] Relevant Jest tests in `ui-designer-v2`.
 - [ ] MCP smoke test if `tools/Canvas.Mcp` is renamed or rebranded.
