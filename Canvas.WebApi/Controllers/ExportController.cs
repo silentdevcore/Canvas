@@ -10,6 +10,7 @@ namespace Canvas.WebApi.Controllers;
 
 [ApiController]
 [Route("api/export")]
+[Route("api/pxa/export")]
 public class ExportController : ControllerBase
 {
     private readonly ExportDocumentUseCase _useCase;

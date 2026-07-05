@@ -144,6 +144,7 @@ server restarts are part of this step.
       `/api/system/brand` and PXA `/api/pxa/system/brand` routes. Response advertises
       Power Dox Automation/PXA naming, reserved `pxa` CLI and `.pxa` extension, and legacy
       Canvas compatibility notes.
+      Export API alias added with `/api/pxa/export` while legacy `/api/export` remains compatible.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
       - `tools/Canvas.Mcp` -> `tools/PXA.Mcp` or package `pxa-mcp`
@@ -226,6 +227,7 @@ server restarts are part of this step.
       and Canvas/PXA repository adapter flows.
 - [ ] Web/API compatibility tests:
       `Canvas.Api.Tests` now covers legacy and PXA branding discovery routes with compatibility notes.
+      `Canvas.Api.Tests` now covers PXA export alias routes for format discovery and HTML export.
 - [ ] `npm run build` in `ui-designer-v2`.
 - [ ] Relevant Jest tests in `ui-designer-v2`.
 - [ ] MCP smoke test if `tools/Canvas.Mcp` is renamed or rebranded.

@@ -173,6 +173,17 @@ public sealed class ExportControllerTests : IClassFixture<WebApplicationFactory<
     }
 
     [Fact]
+    public async Task GetFormats_PxaRoute_Returns200_WithAllFormats()
+    {
+        var response = await _client.GetAsync("/api/pxa/export/formats");
+        var formats  = await response.Content.ReadFromJsonAsync<JsonElement[]>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(formats);
+        Assert.Equal(11, formats!.Length);
+    }
+
+    [Fact]
     public async Task GetFormats_IncludesCapabilityFields()
     {
         var response = await _client.GetAsync("/api/export/formats");
@@ -210,12 +221,22 @@ public sealed class ExportControllerTests : IClassFixture<WebApplicationFactory<
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Export_PxaRoute_Html_Returns200()
+    {
+        var response = await PostExport("html", "/api/pxa/export");
+        var body     = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("Hello", body);
+    }
+
     // ─── Helper ───────────────────────────────────────────────────────────────
 
-    private async Task<HttpResponseMessage> PostExport(string format)
+    private async Task<HttpResponseMessage> PostExport(string format, string route = "/api/export")
     {
         var json    = JsonSerializer.Serialize(SampleDesign);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
-        return await _client.PostAsync($"/api/export?format={format}", content);
+        return await _client.PostAsync($"{route}?format={format}", content);
     }
 }
