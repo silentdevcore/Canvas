@@ -5,7 +5,9 @@ public static class ReportMigrationProviders
     private static readonly IReadOnlyDictionary<string, Func<IReportMigration>> Factories =
         new Dictionary<string, Func<IReportMigration>>(StringComparer.OrdinalIgnoreCase)
         {
+            [ReportMigrationProviderKeys.ActiveReportsJs] = static () => new ActiveReportsJsMigration(),
             [ReportMigrationProviderKeys.DevExpressReport] = static () => new DevExpressReportMigration(),
+            [ReportMigrationProviderKeys.JasperReports] = static () => new JasperReportsMigration(),
             [ReportMigrationProviderKeys.Rdl] = static () => new RdlReportMigration(),
             [ReportMigrationProviderKeys.Rpx] = static () => new RpxReportMigration(),
         };

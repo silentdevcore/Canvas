@@ -2,7 +2,9 @@
 
   <ItemGroup>
     <ProjectReference Include="../Canvas.Core/Canvas.Core.csproj" />
+    <ProjectReference Include="../Canvas.Migration.ActiveReportsJs/Canvas.Migration.ActiveReportsJs.csproj" />
     <ProjectReference Include="../Canvas.Migration.DevExpressReport/Canvas.Migration.DevExpressReport.csproj" />
+    <ProjectReference Include="../Canvas.Migration.JasperReports/Canvas.Migration.JasperReports.csproj" />
     <ProjectReference Include="../Canvas.Migration.Rdl/Canvas.Migration.Rdl.csproj" />
     <ProjectReference Include="../Canvas.Migration.Rpx/Canvas.Migration.Rpx.csproj" />
     <ProjectReference Include="../PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />

@@ -98,6 +98,7 @@ server restarts are part of this step.
       `PdfMigrationProviders.Create(...)` / `TryCreate(...)` for CLI/API use.
       Report migration entry point added with `PXA.Migration.Report`, PXA-facing report result/contract,
       and provider keys for DevExpress Report, RDL, and RPX designer migrations.
+      Report migration registry expanded with JasperReports JRXML and ActiveReports JS JSON facades.
 - [ ] Phase 4: move importer and file importer namespaces:
       - `Canvas.Importer` -> `PXA.Importer`
       - `Canvas.FileImporter.*` -> `PXA.FileImporter.*`
@@ -137,6 +138,7 @@ server restarts are part of this step.
       case-insensitive lookup, and unknown-key rejection.
       Initial `PXA.Migration.Report.Tests` coverage added for report provider registry keys and
       DevExpress Report/RDL/RPX facade conversion smoke tests.
+      `PXA.Migration.Report.Tests` expanded for JasperReports and ActiveReports JS facade smoke coverage.
 - [ ] Spreadsheet migration tests:
       - Aspose.Cells
       - ClosedXML

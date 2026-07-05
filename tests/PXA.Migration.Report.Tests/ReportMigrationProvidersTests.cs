@@ -4,7 +4,9 @@ public sealed class ReportMigrationProvidersTests
 {
     public static TheoryData<string, string> ProviderCases => new()
     {
+        { ReportMigrationProviderKeys.ActiveReportsJs, "PXA.Migration.Report.ActiveReportsJsMigration" },
         { ReportMigrationProviderKeys.DevExpressReport, "PXA.Migration.Report.DevExpressReportMigration" },
+        { ReportMigrationProviderKeys.JasperReports, "PXA.Migration.Report.JasperReportsMigration" },
         { ReportMigrationProviderKeys.Rdl, "PXA.Migration.Report.RdlReportMigration" },
         { ReportMigrationProviderKeys.Rpx, "PXA.Migration.Report.RpxReportMigration" },
     };

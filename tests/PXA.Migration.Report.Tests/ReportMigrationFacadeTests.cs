@@ -5,6 +5,27 @@ namespace PXA.Migration.Report.Tests;
 public sealed class ReportMigrationFacadeTests
 {
     [Fact]
+    public void ActiveReportsJs_ConvertsJsonToDesign()
+    {
+        var result = new ActiveReportsJsMigration().Convert("""
+            {
+              "reportType": "ActiveReportsJS",
+              "name": "Invoice JS",
+              "page": { "width": "8.5in", "height": "11in" },
+              "body": {
+                "reportItems": [
+                  { "type": "textbox", "name": "title", "left": "1in", "top": "0.5in", "width": "4in", "height": "0.4in", "value": "Invoice" }
+                ]
+              }
+            }
+            """);
+
+        Assert.Equal("Invoice JS", result.Design.Name);
+        Assert.Contains(result.Design.Pages[0].Elements, element => element.Name == "title");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGARJS001");
+    }
+
+    [Fact]
     public void DevExpressReport_ConvertsRepxToDesign()
     {
         var result = new DevExpressReportMigration().Convert("""
@@ -23,6 +44,29 @@ public sealed class ReportMigrationFacadeTests
         Assert.Equal("InvoiceReport", result.Design.Name);
         Assert.Contains(result.Design.Pages[0].Elements, element => element.Name == "title");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGDEVREP001");
+    }
+
+    [Fact]
+    public void JasperReports_ConvertsJrxmlToDesign()
+    {
+        var result = new JasperReportsMigration().Convert("""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Invoice"
+                pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+              <detail>
+                <band height="40">
+                  <textField>
+                    <reportElement key="customer" x="0" y="0" width="200" height="20"/>
+                    <textFieldExpression><![CDATA[$F{customerName}]]></textFieldExpression>
+                  </textField>
+                </band>
+              </detail>
+            </jasperReport>
+            """);
+
+        Assert.Equal("Invoice", result.Design.Name);
+        Assert.Contains(result.Design.Pages[0].Elements, element => element.Name == "customer");
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "CANMIGJRXML001");
     }
 
     [Fact]
