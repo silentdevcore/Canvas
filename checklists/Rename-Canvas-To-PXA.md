@@ -133,6 +133,8 @@ server restarts are part of this step.
       Spreadsheet infrastructure facade started with additive `PXA.Infrastructure.Spreadsheet` project for
       fluent workbook authoring, XLSX/XLS/CSV IO, spreadsheet calculation, validation, spreadsheet-to-design
       conversion, Excel document export, operations, and sheet renderer capabilities.
+      Converter infrastructure facade started with additive `PXA.Infrastructure.Converters` project for
+      HTML, Markdown, CSV, XML, SVG, PNG/JPEG/TIFF, ODT exports and converter renderer capabilities.
 - [ ] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
@@ -209,6 +211,8 @@ server restarts are part of this step.
       Initial `PXA.Infrastructure.Spreadsheet.Tests` coverage added for fluent workbook authoring,
       XLSX import/export, calculation, validation, spreadsheet-to-design, Excel document export,
       and sheet renderer capabilities.
+      Initial `PXA.Infrastructure.Converters.Tests` coverage added for text/image/ODT converter exports,
+      converter capabilities, and PXA core contract adaptation.
 - [ ] `npm run build` in `ui-designer-v2`.
 - [ ] Relevant Jest tests in `ui-designer-v2`.
 - [ ] MCP smoke test if `tools/Canvas.Mcp` is renamed or rebranded.
