@@ -103,15 +103,17 @@ server restarts are part of this step.
       Spreadsheet migration entry point added with `PXA.Migration.Spreadsheet`, provider facades, and
       registry keys for Aspose.Cells, ClosedXML, EPPlus, GemBox.Spreadsheet, NPOI, Spire.XLS,
       SpreadsheetLight, and Syncfusion XlsIO.
-- [ ] Phase 4: move importer and file importer namespaces:
+- [x] Phase 4: move importer and file importer namespaces:
       - `Canvas.Importer` -> `PXA.Importer`
       - `Canvas.FileImporter.*` -> `PXA.FileImporter.*`
       Started with additive `PXA.Importer` project and PDF import facade that delegates to the existing
       `Canvas.Importer.PdfImporter`.
       File importer entry point added with `PXA.FileImporter`, PXA-facing `IFileImporter`, provider keys,
       and registry/facades for PDF, DOCX, DOC, ODT, SVG, PPTX, and raster image import.
-      ImageAnalysis, ImageOCR, and the OCR worker remain separate follow-up modules because they expose
-      specialized analysis/OCR APIs beyond the common `IFileImporter` contract.
+      Specialized additive facades added with `PXA.FileImporter.ImageAnalysis` and `PXA.FileImporter.ImageOcr`,
+      including PXA-facing analysis options/results/diagnostics, OCR options/results/models, OCR engine contract,
+      Tesseract engine facades, and Canvas adapters. The OCR worker executable/package name remains a later
+      physical rename item in Phase 8/9.
 - [ ] Phase 5: move infrastructure, application, core, and domain namespaces.
 - [ ] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
@@ -170,6 +172,8 @@ server restarts are part of this step.
       Initial `PXA.Importer.Tests` coverage added for `Pdf.LoadAsync(...)` and PXA-facing import options.
       Initial `PXA.FileImporter.Tests` coverage added for file importer registry keys, factory creation,
       case-insensitive/extension lookup, unknown-key rejection, and SVG/Image facade smoke tests.
+      Initial `PXA.FileImporter.ImageAnalysis.Tests` and `PXA.FileImporter.ImageOcr.Tests` coverage added for
+      specialized analysis/OCR facades, diagnostics mapping, PXA OCR engine adapter flow, and Tesseract facade identity.
 - [ ] `npm run build` in `ui-designer-v2`.
 - [ ] Relevant Jest tests in `ui-designer-v2`.
 - [ ] MCP smoke test if `tools/Canvas.Mcp` is renamed or rebranded.
