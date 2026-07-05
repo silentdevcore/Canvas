@@ -2,6 +2,8 @@
 
   <ItemGroup>
     <ProjectReference Include="../Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj" />
+    <ProjectReference Include="../Canvas.Infrastructure.Spreadsheet/Canvas.Infrastructure.Spreadsheet.csproj" />
+    <ProjectReference Include="../Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

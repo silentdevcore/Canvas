@@ -74,7 +74,8 @@ server restarts are part of this step.
       Initial inventory completed from current repo state: product namespaces/projects, UI/editor canvas terms, docs/checklists,
       schemas, MCP, samples, and unrelated HTML/graphics canvas usages were identified as separate rename buckets.
 - [ ] Phase 1: introduce new `PXA.*` public API layer without physical path/project renames.
-      Started with additive `PXA.Generator` project and PDF factory facade that returns the existing `Canvas.Pdf` document model.
+      Started with additive `PXA.Generator` project and PDF/Word/Spreadsheet facades that delegate to the existing
+      Canvas implementations.
 - [ ] Phase 2: add generator facade target for PDF/Word/Spreadsheet:
       - `Canvas.Pdf` -> `PXA.Generator.Pdf` / `PXA.Generator`
       - Word export APIs -> `PXA.Generator.Word`
@@ -109,7 +110,8 @@ server restarts are part of this step.
 - [ ] Generator compatibility tests:
       - New code with `using PXA.Generator;`
       - Legacy code with `using Canvas.Pdf;`
-      Initial `PXA.Generator.Tests` coverage added for `Pdf.CreateDocument()`.
+      Initial `PXA.Generator.Tests` coverage added for `Pdf.CreateDocument()`, `Spreadsheet.CreateWorkbook()`,
+      and `Word.Export(...)`.
 - [ ] Importer compatibility tests:
       - New code with `using PXA.Importer;`
       - Legacy code with `using Canvas.Importer;`
