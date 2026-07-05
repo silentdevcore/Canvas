@@ -1,7 +1,8 @@
-using Canvas.Domain.Repositories;
-using Canvas.Domain.ValueObjects;
-using CanvasDomain = Canvas.Domain.Entities;
+using PXA.Domain;
+using PXA.Domain.Repositories;
+using PXA.Domain.ValueObjects;
 using CanvasUseCases = Canvas.Application.UseCases;
+using PxaDomain = PXA.Domain.Entities;
 
 namespace PXA.Application.UseCases;
 
@@ -13,30 +14,7 @@ public sealed class ValidateTemplateRequest
     public PageSettings? PageSettings { get; set; }
     public List<DesignerElement>? Elements { get; set; }
     public Dictionary<string, object>? SamplePayload { get; set; }
-    public TemplateMetadata? TemplateMetadata { get; set; }
-}
-
-public sealed class TemplateMetadata
-{
-    public string? Version { get; set; }
-    public string? SchemaVersion { get; set; }
-    public string? CreatedBy { get; set; }
-    public string? UpdatedBy { get; set; }
-    public string? Locale { get; set; }
-    public string? Currency { get; set; }
-    public string? Timezone { get; set; }
-    public FormattingProfile? FormattingProfile { get; set; }
-    public Dictionary<string, object>? MigrationHints { get; set; }
-    public bool? IsPublic { get; set; }
-    public bool? IsArchived { get; set; }
-}
-
-public sealed class FormattingProfile
-{
-    public string? DateFormat { get; set; }
-    public string? TimeFormat { get; set; }
-    public string? NumberFormat { get; set; }
-    public string? CurrencyFormat { get; set; }
+    public PxaDomain.TemplateMetadata? TemplateMetadata { get; set; }
 }
 
 public sealed class ValidationResult
@@ -55,7 +33,7 @@ public sealed class ValidateTemplateUseCase
 
     public ValidateTemplateUseCase(ITemplateRepository templateRepository)
     {
-        inner = new CanvasUseCases.ValidateTemplateUseCase(templateRepository);
+        inner = new CanvasUseCases.ValidateTemplateUseCase(new CanvasTemplateRepositoryAdapter(templateRepository));
     }
 
     public async Task<ValidationResult> ExecuteAsync(ValidateTemplateRequest request)
@@ -67,10 +45,10 @@ public sealed class ValidateTemplateUseCase
             Id = request.Id,
             Name = request.Name,
             Description = request.Description,
-            PageSettings = request.PageSettings,
-            Elements = request.Elements,
+            PageSettings = request.PageSettings?.ToCanvas(),
+            Elements = request.Elements?.Select(element => element.ToCanvas()).ToList(),
             SamplePayload = request.SamplePayload,
-            TemplateMetadata = request.TemplateMetadata is null ? null : ToCanvas(request.TemplateMetadata),
+            TemplateMetadata = request.TemplateMetadata?.ToCanvas(),
         });
 
         return new ValidationResult
@@ -80,25 +58,4 @@ public sealed class ValidateTemplateUseCase
             Warnings = result.Warnings,
         };
     }
-
-    private static CanvasDomain.TemplateMetadata ToCanvas(TemplateMetadata metadata) => new()
-    {
-        Version = metadata.Version,
-        SchemaVersion = metadata.SchemaVersion,
-        CreatedBy = metadata.CreatedBy,
-        UpdatedBy = metadata.UpdatedBy,
-        Locale = metadata.Locale,
-        Currency = metadata.Currency,
-        Timezone = metadata.Timezone,
-        FormattingProfile = metadata.FormattingProfile is null ? null : new CanvasDomain.FormattingProfile
-        {
-            DateFormat = metadata.FormattingProfile.DateFormat,
-            TimeFormat = metadata.FormattingProfile.TimeFormat,
-            NumberFormat = metadata.FormattingProfile.NumberFormat,
-            CurrencyFormat = metadata.FormattingProfile.CurrencyFormat,
-        },
-        MigrationHints = metadata.MigrationHints,
-        IsPublic = metadata.IsPublic,
-        IsArchived = metadata.IsArchived,
-    };
 }

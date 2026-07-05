@@ -125,7 +125,8 @@ server restarts are part of this step.
       Canvas report converters remain the internal implementation.
       Application facade started with additive `PXA.Application` project for Clone, ExtractPages,
       FindAndReplace, and ValidateTemplate use cases. Design use cases expose `PXA.Core.Contracts`;
-      validation keeps the existing Canvas domain repository internally until `PXA.Domain` is introduced.
+      ValidateTemplate now accepts `PXA.Domain.Repositories.ITemplateRepository` and uses the
+      PXA-to-Canvas repository adapter internally.
       PDF infrastructure facade started with additive `PXA.Infrastructure.Pdf` project for renderer,
       facade, diagnostics reader, output writer, renderer capabilities, and PDF service hooks.
       Word infrastructure facade started with additive `PXA.Infrastructure.Word` project for DOCX export,
@@ -135,6 +136,9 @@ server restarts are part of this step.
       conversion, Excel document export, operations, and sheet renderer capabilities.
       Converter infrastructure facade started with additive `PXA.Infrastructure.Converters` project for
       HTML, Markdown, CSV, XML, SVG, PNG/JPEG/TIFF, ODT exports and converter renderer capabilities.
+      Domain facade started with additive `PXA.Domain` project for design templates, template metadata,
+      page settings, designer elements, element config models, validation results, template name info,
+      and Canvas/PXA repository adapters.
 - [ ] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
@@ -213,6 +217,9 @@ server restarts are part of this step.
       and sheet renderer capabilities.
       Initial `PXA.Infrastructure.Converters.Tests` coverage added for text/image/ODT converter exports,
       converter capabilities, and PXA core contract adaptation.
+- [ ] Domain compatibility tests:
+      Initial `PXA.Domain.Tests` coverage added for design template conversion, validation result conversion,
+      and Canvas/PXA repository adapter flows.
 - [ ] `npm run build` in `ui-designer-v2`.
 - [ ] Relevant Jest tests in `ui-designer-v2`.
 - [ ] MCP smoke test if `tools/Canvas.Mcp` is renamed or rebranded.

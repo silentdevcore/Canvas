@@ -1,6 +1,6 @@
-using Canvas.Domain.Entities;
-using Canvas.Domain.Repositories;
-using Canvas.Domain.ValueObjects;
+using PXA.Domain.Entities;
+using PXA.Domain.Repositories;
+using PXA.Domain.ValueObjects;
 using PXA.Application.UseCases;
 
 namespace PXA.Application.Tests;
@@ -10,7 +10,7 @@ public sealed class ValidateTemplateUseCaseTests
     [Fact]
     public async Task ValidateTemplate_DelegatesToCanvasRepositoryAndReturnsPxaResult()
     {
-        var repository = new FakeTemplateRepository(new Canvas.Domain.Repositories.ValidationResult
+        var repository = new FakeTemplateRepository(new PXA.Domain.Repositories.ValidationResult
         {
             IsValid = false,
             Errors = ["missing-name"],
@@ -30,11 +30,11 @@ public sealed class ValidateTemplateUseCaseTests
                 Orientation = "portrait",
                 Margins = new Margins(),
             },
-            TemplateMetadata = new PXA.Application.UseCases.TemplateMetadata
+            TemplateMetadata = new TemplateMetadata
             {
                 Version = "2.0",
                 Locale = "de-DE",
-                FormattingProfile = new PXA.Application.UseCases.FormattingProfile
+                FormattingProfile = new FormattingProfile
                 {
                     DateFormat = "dd.MM.yyyy",
                 },
@@ -50,9 +50,9 @@ public sealed class ValidateTemplateUseCaseTests
 
     private sealed class FakeTemplateRepository : ITemplateRepository
     {
-        private readonly Canvas.Domain.Repositories.ValidationResult result;
+        private readonly PXA.Domain.Repositories.ValidationResult result;
 
-        public FakeTemplateRepository(Canvas.Domain.Repositories.ValidationResult result)
+        public FakeTemplateRepository(PXA.Domain.Repositories.ValidationResult result)
         {
             this.result = result;
         }
@@ -65,7 +65,7 @@ public sealed class ValidateTemplateUseCaseTests
 
         public Task SaveAsync(DesignTemplate template) => Task.CompletedTask;
 
-        public Task<Canvas.Domain.Repositories.ValidationResult> ValidateAsync(DesignTemplate template)
+        public Task<PXA.Domain.Repositories.ValidationResult> ValidateAsync(DesignTemplate template)
         {
             LastValidated = template;
             return Task.FromResult(result);

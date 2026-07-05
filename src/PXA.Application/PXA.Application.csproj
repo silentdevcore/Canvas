@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="../Canvas.Application/Canvas.Application.csproj" />
     <ProjectReference Include="../PXA.Core/PXA.Core.csproj" />
+    <ProjectReference Include="../PXA.Domain/PXA.Domain.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

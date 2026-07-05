@@ -1,0 +1,37 @@
+namespace PXA.Domain.ValueObjects;
+
+public enum ElementType
+{
+    Text,
+    Image,
+    Rectangle,
+    Line,
+    QRCode,
+    Barcode,
+    Signature,
+    RichText,
+    Link,
+    Button,
+    Checkbox,
+    Radio,
+    Table,
+    List,
+    Chart,
+    TextField,
+    Dropdown,
+    Watermark,
+    Note,
+    Arrow,
+    Draw,
+    Date,
+    Highlight,
+    CheckMark,
+    PageBoundary,
+    PageNumber,
+    Footnote,
+    Endnote,
+    Bookmark,
+    Comment,
+    ContentControl,
+    Toc
+}
