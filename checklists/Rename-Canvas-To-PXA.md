@@ -92,6 +92,7 @@ server restarts are part of this step.
       PDF provider facade coverage expanded with `PXA.Migration.DsPdf` and `PXA.Migration.FoxitPdf`.
       PDF provider facade coverage expanded with `PXA.Migration.IronPdf` and `PXA.Migration.GemBoxPdf`.
       PDF provider facade coverage expanded with `PXA.Migration.SpirePdf` and `PXA.Migration.PdfKitNet`.
+      PDF provider facade coverage expanded with `PXA.Migration.LeadtoolsPdf` and `PXA.Migration.ActivePdf`.
 - [ ] Phase 4: move importer and file importer namespaces:
       - `Canvas.Importer` -> `PXA.Importer`
       - `Canvas.FileImporter.*` -> `PXA.FileImporter.*`
@@ -122,6 +123,8 @@ server restarts are part of this step.
       Initial `PXA.Migration.IronPdf.Tests` and `PXA.Migration.GemBoxPdf.Tests` coverage added for provider
       facade compatibility and warning diagnostic mapping.
       Initial `PXA.Migration.SpirePdf.Tests` and `PXA.Migration.PdfKitNet.Tests` coverage added for provider
+      facade compatibility and warning diagnostic mapping.
+      Initial `PXA.Migration.LeadtoolsPdf.Tests` and `PXA.Migration.ActivePdf.Tests` coverage added for provider
       facade compatibility and warning diagnostic mapping.
 - [ ] Spreadsheet migration tests:
       - Aspose.Cells
