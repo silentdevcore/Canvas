@@ -84,6 +84,8 @@ server restarts are part of this step.
       Started with additive `PXA.Migration.Abstractions` project, PXA-facing migration result/diagnostic types,
       and a `CanvasSourceMigrationAdapter` bridge for existing `Canvas.Migration.Abstractions.ISourceMigration`
       implementations.
+      First concrete provider facade added with `PXA.Migration.DevExpressPdf`, delegating to the existing
+      `Canvas.Migration.DevExpressPdf.DevExpressPdfMigration` while returning PXA migration abstractions.
 - [ ] Phase 4: move importer and file importer namespaces:
       - `Canvas.Importer` -> `PXA.Importer`
       - `Canvas.FileImporter.*` -> `PXA.FileImporter.*`
@@ -104,6 +106,7 @@ server restarts are part of this step.
 - [ ] `dotnet build Canvas.slnx` if kept as an active solution entry.
 - [ ] Relevant migration tests.
       Initial `PXA.Migration.Abstractions.Tests` coverage added for Canvas-to-PXA source migration adapter mapping.
+      Initial `PXA.Migration.DevExpressPdf.Tests` coverage added for the first concrete PXA migration provider facade.
 - [ ] Spreadsheet migration tests:
       - Aspose.Cells
       - ClosedXML
