@@ -271,6 +271,68 @@ our own implementation, UI language, and engine boundaries.
 - [ ] **PDF-to-image/page rasterization** - Backend rasterization for thumbnails or fallback preview.
 - [ ] **Incremental update strategy** - Decide whether edited PDFs are fully rewritten or saved incrementally.
 
+## PdfPreview V2 Roadmap
+
+The current PDF Viewer/PdfPreview baseline is considered complete enough for a first professional version.
+V2 should focus on hardening, configurability, collaboration boundaries, and fidelity for complex existing PDFs.
+
+### V2 - Product And UX
+
+- [ ] **Viewer configuration API** - Allow host pages to hide/show toolbar groups, disable workflows, and override core actions such as download, print, save, embed, redact, and form-fill.
+      Acceptance: `/pdf-viewer` can be instantiated with a typed configuration object and at least one test verifies hidden toolbar groups and overridden action callbacks.
+- [ ] **User identity and ownership** - Replace the local `Reviewer` default with a viewer-level identity model for author names, review sessions, and server-side ownership.
+      Acceptance: annotations saved through the backend include an authenticated or configured user identity, and users cannot load/delete another user's sidecar by guessing `documentId`.
+- [ ] **Access control for sidecar storage** - Move durable sidecar storage from document-id-only JSON files to an ownership-aware storage contract.
+      Acceptance: save/load/delete APIs validate owner/workspace context and have negative tests for unauthorized access.
+- [ ] **Plugin extension points** - Define a small extension surface for custom toolbar buttons, annotation tools, review workflows, and metadata panels.
+      Acceptance: a sample custom action can be registered without editing `PdfViewer.tsx`.
+- [ ] **Viewer polish pass** - Review responsive layout, dense toolbar behavior, empty states, error states, loading states, and long file names.
+      Acceptance: desktop/tablet/mobile smoke screenshots show no overlapping controls or clipped critical text.
+
+### V2 - Accessibility And Text Layer
+
+- [ ] **Accessibility/text layer support** - Add a deliberate accessibility mode for generated and imported PDFs where text extraction is available.
+      Acceptance: pages expose selectable/assistive text consistently, and keyboard users can navigate viewer controls, search results, annotations, and form fields.
+- [ ] **Selection robustness** - Harden text-selection-bound highlight/underline/strikeout for rotated pages, zoom changes, multi-page drags, browser differences, and unusual PDF text segmentation.
+      Acceptance: tests or smoke fixtures cover at least normal text, multiline selection, zoomed selection, and rectangle fallback.
+- [ ] **Search-to-markup workflow** - Let users turn a search result into a highlight/underline/strikeout annotation.
+      Acceptance: selecting a search hit creates a markup annotation with `QuadPoints` when text bounds are available.
+
+### V2 - Annotation Fidelity
+
+- [ ] **Richer annotation appearance fidelity** - Improve native annotation appearance streams for highlights, underline, strikeout, stamps, shapes, and opacity across common PDF viewers.
+      Acceptance: exported editable annotations render recognizably in Apple Preview, Chrome, Acrobat, and PDF.js.
+- [ ] **Annotation metadata import/export** - Preserve richer fields such as modified date, subject, title, name, flags, read-only/locked state, popup state, and intent where supported.
+      Acceptance: supported metadata survives extract -> sidecar -> embed for baseline annotation types.
+- [ ] **Replies and threads** - Import/export annotation replies, review threads, and popup comments.
+      Acceptance: existing threaded comments can be extracted into sidecar metadata and re-embedded without losing ordering.
+- [ ] **Additional annotation subtypes** - Evaluate and add common missing subtypes such as squiggly, caret, file attachment, polygon/polyline, and sound only where product value is clear.
+      Acceptance: each added subtype has sidecar schema, UI behavior, native extract/embed coverage, and tests.
+- [ ] **Complex form appearance regeneration** - Improve full appearance regeneration for edited fields, including inherited resources, fonts, radio groups, list boxes, and multiline layout.
+      Acceptance: filled PDFs display changed values consistently in Acrobat/PDF.js without relying on viewer-side appearance fallback.
+
+### V2 - Redaction And Audit Hardening
+
+- [ ] **Complex PDF redaction corpus** - Validate secure redaction against PDFs with images, clipping paths, nested forms, transparency groups, rotated pages, and unusual resources.
+      Acceptance: corpus tests prove removed content is not extractable and no visible sensitive fragments remain for covered importer-supported content.
+- [ ] **Image/resource redaction coverage** - Extend redaction beyond text/vector graphics where imported image/resource patterns can be safely removed or raster-masked.
+      Acceptance: covered image content is removed or irreversibly masked in regenerated output, with tests.
+- [ ] **Tamper-evident audit trail** - Move beyond PDF info metadata to an external or signed audit trail for redaction workflows.
+      Acceptance: redaction reason/user/timestamp/area data can be stored in a tamper-evident record and correlated with the exported PDF.
+- [ ] **Redaction preview validation** - Add warnings when a redaction mark intersects unsupported content that cannot be confidently removed.
+      Acceptance: backend returns structured warnings and the viewer displays them before download.
+
+### V2 - Engine And Save Strategy
+
+- [ ] **Existing PDF edit bridge decision** - Define when we rewrite through `Canvas.Importer` + `Canvas.Pdf`, when we patch incrementally, and when we reject unsupported edits.
+      Acceptance: architecture note documents boundaries, failure modes, and test expectations.
+- [ ] **Incremental update strategy** - Decide and implement incremental save for annotation/form changes where full rewrite is not required.
+      Acceptance: simple annotation/form edits can be appended incrementally and preserve unrelated original PDF structures.
+- [ ] **Backend page rasterization** - Add backend PDF-to-image/page rasterization for thumbnails, fallback preview, visual diff tests, and headless smoke checks.
+      Acceptance: endpoint/service can rasterize selected pages at a requested scale with deterministic output for tests.
+- [ ] **Playwright/browser smoke tests** - Add end-to-end coverage for open, search, select text, annotate, save/load sidecar, embed, redact, and form-fill flows.
+      Acceptance: CI or local command runs a small smoke suite against the dev server.
+
 ## Recommendation
 
 Start with **P0 viewer foundation** only when we are ready to invest in a PDF review workflow. The first
