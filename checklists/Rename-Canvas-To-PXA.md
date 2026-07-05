@@ -88,6 +88,7 @@ server restarts are part of this step.
       `Canvas.Migration.DevExpressPdf.DevExpressPdfMigration` while returning PXA migration abstractions.
       PDF-code migration facade set expanded with `PXA.Migration.SyncfusionPdf` and `PXA.Migration.iText7`,
       both delegating to existing Canvas providers and preserving `CANMIG...` diagnostic IDs.
+      Additional central PDF provider facades added with `PXA.Migration.AsposePdf` and `PXA.Migration.Apryse`.
 - [ ] Phase 4: move importer and file importer namespaces:
       - `Canvas.Importer` -> `PXA.Importer`
       - `Canvas.FileImporter.*` -> `PXA.FileImporter.*`
@@ -111,6 +112,8 @@ server restarts are part of this step.
       Initial `PXA.Migration.DevExpressPdf.Tests` coverage added for the first concrete PXA migration provider facade.
       Initial `PXA.Migration.SyncfusionPdf.Tests` and `PXA.Migration.iText7.Tests` coverage added for core PDF
       provider facade compatibility and warning diagnostic mapping.
+      Initial `PXA.Migration.AsposePdf.Tests` and `PXA.Migration.Apryse.Tests` coverage added for provider
+      facade compatibility and diagnostic severity mapping.
 - [ ] Spreadsheet migration tests:
       - Aspose.Cells
       - ClosedXML
