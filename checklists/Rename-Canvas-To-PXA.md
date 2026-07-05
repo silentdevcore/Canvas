@@ -126,6 +126,8 @@ server restarts are part of this step.
       Application facade started with additive `PXA.Application` project for Clone, ExtractPages,
       FindAndReplace, and ValidateTemplate use cases. Design use cases expose `PXA.Core.Contracts`;
       validation keeps the existing Canvas domain repository internally until `PXA.Domain` is introduced.
+      PDF infrastructure facade started with additive `PXA.Infrastructure.Pdf` project for renderer,
+      facade, diagnostics reader, output writer, renderer capabilities, and PDF service hooks.
 - [ ] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
@@ -194,6 +196,9 @@ server restarts are part of this step.
 - [ ] Application compatibility tests:
       Initial `PXA.Application.Tests` coverage added for CloneTemplate, ExtractPages, FindAndReplace,
       and ValidateTemplate facades.
+- [ ] Infrastructure compatibility tests:
+      Initial `PXA.Infrastructure.Pdf.Tests` coverage added for PDF rendering, file generation,
+      diagnostics reading, capabilities, and service delegation.
 - [ ] `npm run build` in `ui-designer-v2`.
 - [ ] Relevant Jest tests in `ui-designer-v2`.
 - [ ] MCP smoke test if `tools/Canvas.Mcp` is renamed or rebranded.
