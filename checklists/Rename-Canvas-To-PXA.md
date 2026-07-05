@@ -89,6 +89,7 @@ server restarts are part of this step.
       PDF-code migration facade set expanded with `PXA.Migration.SyncfusionPdf` and `PXA.Migration.iText7`,
       both delegating to existing Canvas providers and preserving `CANMIG...` diagnostic IDs.
       Additional central PDF provider facades added with `PXA.Migration.AsposePdf` and `PXA.Migration.Apryse`.
+      PDF provider facade coverage expanded with `PXA.Migration.DsPdf` and `PXA.Migration.FoxitPdf`.
 - [ ] Phase 4: move importer and file importer namespaces:
       - `Canvas.Importer` -> `PXA.Importer`
       - `Canvas.FileImporter.*` -> `PXA.FileImporter.*`
@@ -114,6 +115,8 @@ server restarts are part of this step.
       provider facade compatibility and warning diagnostic mapping.
       Initial `PXA.Migration.AsposePdf.Tests` and `PXA.Migration.Apryse.Tests` coverage added for provider
       facade compatibility and diagnostic severity mapping.
+      Initial `PXA.Migration.DsPdf.Tests` and `PXA.Migration.FoxitPdf.Tests` coverage added for provider
+      facade compatibility and warning diagnostic mapping.
 - [ ] Spreadsheet migration tests:
       - Aspose.Cells
       - ClosedXML
