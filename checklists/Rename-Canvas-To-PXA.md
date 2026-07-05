@@ -100,6 +100,9 @@ server restarts are part of this step.
       and provider keys for DevExpress Report, RDL, and RPX designer migrations.
       Report migration registry expanded with JasperReports JRXML and ActiveReports JS JSON facades.
       Report migration registry expanded with FastReport FRX, Telerik TRDX, and Stimulsoft MRT facades.
+      Spreadsheet migration entry point added with `PXA.Migration.Spreadsheet`, provider facades, and
+      registry keys for Aspose.Cells, ClosedXML, EPPlus, GemBox.Spreadsheet, NPOI, Spire.XLS,
+      SpreadsheetLight, and Syncfusion XlsIO.
 - [ ] Phase 4: move importer and file importer namespaces:
       - `Canvas.Importer` -> `PXA.Importer`
       - `Canvas.FileImporter.*` -> `PXA.FileImporter.*`
@@ -141,6 +144,8 @@ server restarts are part of this step.
       DevExpress Report/RDL/RPX facade conversion smoke tests.
       `PXA.Migration.Report.Tests` expanded for JasperReports and ActiveReports JS facade smoke coverage.
       `PXA.Migration.Report.Tests` expanded for FastReport, Telerik, and Stimulsoft facade smoke coverage.
+      Initial `PXA.Migration.Spreadsheet.Tests` coverage added for spreadsheet provider registry keys,
+      factory creation, case-insensitive lookup, unknown-key rejection, and ClosedXML/EPPlus smoke tests.
 - [ ] Spreadsheet migration tests:
       - Aspose.Cells
       - ClosedXML
