@@ -1,6 +1,6 @@
 # Contributor Guide: Adding Renderers, Importers, and Migrations
 
-This guide covers the main extension patterns in Canvas:
+This guide covers the main extension patterns in Power Dox Automation / PXA:
 
 - output renderers and exporters
 - file importers
@@ -8,7 +8,7 @@ This guide covers the main extension patterns in Canvas:
 - report-to-design converters
 - document operation endpoints
 
-Keep new code inside the smallest project boundary that owns the feature, and update docs/checklists in the same change.
+Keep new code inside the smallest project boundary that owns the feature, and update docs/checklists in the same change. PXA is currently additive: prefer public `PXA.*` facades for new developer-facing APIs while using the existing `Canvas.*` projects as the implementation boundary until the later physical rename.
 
 ---
 
@@ -24,6 +24,9 @@ Use an existing infrastructure project when the format belongs to an established
 - `src/Canvas.Infrastructure.Converters` for ODT, HTML, CSV, Markdown, image, TIFF, SVG/XML-style output.
 
 Create `src/Canvas.Infrastructure.<Format>` only when the format needs its own dependencies or boundary.
+
+When the feature is public developer-facing API, add or update the corresponding `PXA.Infrastructure.*` or
+`PXA.Generator` facade so new examples do not need to start from legacy `Canvas.*` names.
 
 Dependencies:
 
@@ -96,7 +99,7 @@ Add or update tests in the closest project:
 
 ## Pattern B - File Importer
 
-New file importers should use the dedicated `Canvas.FileImporter.<Format>` project pattern.
+New file importers should expose a PXA-facing facade and use the dedicated legacy implementation project pattern while the physical rename is deferred.
 
 ### 1. Create the importer project
 
@@ -105,6 +108,12 @@ Project layout:
 ```text
 src/Canvas.FileImporter.<Format>/
 tests/Canvas.FileImporter.<Format>.Tests/
+```
+
+Public facade target:
+
+```text
+src/PXA.FileImporter.<Format>/
 ```
 
 Dependencies:
@@ -187,7 +196,7 @@ Minimum coverage:
 
 ## Pattern C - PDF Code Migration Provider
 
-Use this pattern when converting C# source from a third-party PDF library into `Canvas.Pdf` C# source.
+Use this pattern when converting C# source from a third-party PDF library into PXA-compatible PDF C# source.
 
 ### 1. Create provider project and tests
 
@@ -196,6 +205,12 @@ Project layout:
 ```text
 src/Canvas.Migration.<Provider>/
 tests/Canvas.Migration.<Provider>.Tests/
+```
+
+Public facade target:
+
+```text
+src/PXA.Migration.<Provider>/ or provider registry under src/PXA.Migration.Pdf/
 ```
 
 Dependencies:
@@ -236,7 +251,7 @@ Ensure it appears in:
 
 - `GET /api/migration/frameworks`
 - `POST /api/migration/convert`
-- `POST /api/migration/preview`, when preview can replay generated Canvas calls
+- `POST /api/migration/preview`, when preview can replay generated PXA-compatible PDF calls
 
 ### 5. Add tests
 
@@ -258,17 +273,17 @@ Provider tests should cover:
 
 ## Pattern D - Report-To-Design Converter
 
-Use this pattern when a reporting framework or report file format should become an editable Canvas design.
+Use this pattern when a reporting framework or report file format should become an editable PXA design.
 
 Existing examples:
 
-- `Canvas.Migration.DevExpressReport`: XtraReport C# and REPX
-- `Canvas.Migration.Rdl`: RDL/RDLC/Syncfusion/Bold Reports style XML
-- `Canvas.Migration.Rpx`: ActiveReports/GrapeCity section reports
+- `PXA.Migration.Report` / legacy `Canvas.Migration.DevExpressReport`: XtraReport C# and REPX
+- `PXA.Migration.Report` / legacy `Canvas.Migration.Rdl`: RDL/RDLC/Syncfusion/Bold Reports style XML
+- `PXA.Migration.Report` / legacy `Canvas.Migration.Rpx`: ActiveReports/GrapeCity section reports
 
 ### 1. Target `DesignExportDto`
 
-Report converters output editable design JSON, not `Canvas.Pdf` C# source.
+Report converters output editable design JSON, not PXA-compatible PDF C# source.
 
 The converter should preserve:
 

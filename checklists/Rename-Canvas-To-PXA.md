@@ -195,6 +195,9 @@ server restarts are part of this step.
       group, and keeps `Canvas.*` project/test names as current legacy implementation inventory.
       `TESTING.md` now describes PXA-compatible PDF code/output and editable PXA design targets while
       keeping current `Canvas.*.Tests` project names as the real test inventory.
+      `CONTRIBUTING_RENDERERS.md` now names Power Dox Automation/PXA as the extension target, asks new
+      developer-facing work to expose `PXA.*` facades, and documents legacy `Canvas.*` implementation
+      project patterns during the compatibility phase.
 - [ ] Phase 9: optional later physical rename of solution, project files, folders, and test assemblies.
 
 ## Future Test Plan
