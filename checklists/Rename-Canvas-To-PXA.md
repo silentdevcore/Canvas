@@ -157,9 +157,10 @@ server restarts are part of this step.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
       Started visible branding in `ui-designer-v2`: browser title/loading text, package metadata,
       app header logo/accessibility label, home hero/feature copy, importer format copy, and migrations hub
-      product copy now use Power Dox Automation/PXA. Technical HTML canvas terms, localStorage keys,
-      and legacy `Canvas.Pdf` API references remain unchanged for compatibility until their specific
-      surfaces are migrated.
+      product copy now use Power Dox Automation/PXA. The migrations conversion page now uses PXA wording
+      for report-designer targets, backend error messages, spreadsheet/PDF conversion copy, and output
+      panel labels. Technical HTML canvas terms, localStorage keys, and legacy `Canvas.Pdf` API references
+      remain unchanged for compatibility until their specific surfaces are migrated.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
       - `tools/Canvas.Mcp` -> `tools/PXA.Mcp` or package `pxa-mcp`
       - `samples/Canvas.Demo` -> `samples/PXA.Demo`

@@ -7,7 +7,7 @@ import MigrationTabs, { pdfTabs, sheetTabs } from '@/components/Migrations/Migra
 import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, useEditorStore, type Template } from '@/store';
 
-// Framework ids for the report → Canvas Designer flows (output is a design, not C# code).
+// Framework ids for the report → PXA Designer flows (output is a design, not C# code).
 const REPORT_ID = 'DevExpressReport';
 const RDL_REPORT_ID = 'RdlReport';
 const RPX_REPORT_ID = 'RpxReport';
@@ -51,8 +51,8 @@ const FRAMEWORKS_FALLBACK: Framework[] = [
   { id: 'PdfKitNet',  name: 'PDFKit.NET',        status: 'full',    description: 'Roslyn-based full conversion: Document + NewPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine → DrawLineFromTop; DrawRectangle → DrawRectangleFromTop; Save/Render → Save; forms/encryption/annotations produce warnings. Package identity must be manually verified.' },
   { id: 'Leadtools',  name: 'LEADTOOLS',         status: 'full',    description: 'Roslyn-based full conversion: PDFDocument + AddPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine → DrawLineFromTop; DrawRectangle → DrawRectangleFromTop; Save/Export → Save; raster/OCR/barcode/conversion APIs produce warnings.' },
   { id: 'ActivePdf',  name: 'ActivePDF',         status: 'pilot',   description: 'Cautious Roslyn pilot for likely Toolkit-style generation; DocConverter, WebGrabber, COM/server, printer, merge, and stamp workflows are manual.' },
-  { id: 'PdfTools',   name: 'PDFTools / Pdftools SDK', status: 'pilot', description: 'Cautious Roslyn pilot: removes Sdk.Initialize and flags SDK conversion/processing workflows for manual Canvas.Pdf migration. Direct PDF generation belongs to the separate PDF Toolbox SDK/add-on.' },
-  { id: 'PdfToolsToolbox', name: 'PDF Toolbox SDK', status: 'pilot', description: 'Cautious Roslyn pilot for Toolbox direct-generation flows: Document.Create/Page.Create/TextGenerator.ShowLine → Canvas.Pdf; existing-PDF editing and rich styling remain manual.' },
+  { id: 'PdfTools',   name: 'PDFTools / Pdftools SDK', status: 'pilot', description: 'Cautious Roslyn pilot: removes Sdk.Initialize and flags SDK conversion/processing workflows for manual PXA-compatible PDF migration. Direct PDF generation belongs to the separate PDF Toolbox SDK/add-on.' },
+  { id: 'PdfToolsToolbox', name: 'PDF Toolbox SDK', status: 'pilot', description: 'Cautious Roslyn pilot for Toolbox direct-generation flows: Document.Create/Page.Create/TextGenerator.ShowLine → PXA-compatible PDF code; existing-PDF editing and rich styling remain manual.' },
 ];
 
 const SYNCFUSION_EXAMPLE = `using Syncfusion.Pdf;
@@ -97,7 +97,7 @@ const APRYSE_EXAMPLE = `using pdftron;
 using pdftron.PDF;
 using pdftron.SDF;
 
-// Initialise the Apryse SDK (not required by Canvas.Pdf)
+// Initialise the Apryse SDK (not required by PXA-compatible PDF output)
 PDFNet.Initialize(licenseKey);
 
 // Create a new PDF document with two pages
@@ -383,7 +383,7 @@ const REPORT_FRAMEWORK: Framework = {
   id: REPORT_ID,
   name: 'DevExpress Reports',
   status: 'designer',
-  description: 'Converts a DevExpress XtraReport — a C# class or a .repx XML layout — into an editable Canvas design (bands flattened, report units → points). Open the result in the visual designer.',
+  description: 'Converts a DevExpress XtraReport — a C# class or a .repx XML layout — into an editable PXA design (bands flattened, report units → points). Open the result in the visual designer.',
 };
 
 const RDL_REPORT_EXAMPLE = `<?xml version="1.0" encoding="utf-8"?>
@@ -438,7 +438,7 @@ const RDL_REPORT_FRAMEWORK: Framework = {
   id: RDL_REPORT_ID,
   name: 'Syncfusion / RDL Reports',
   status: 'designer',
-  description: 'Converts an RDL/RDLC report (SSRS, Syncfusion) into an editable Canvas design — items positioned absolutely, CSS lengths → points, tablix → table, page header/footer → shared elements. Open the result in the visual designer.',
+  description: 'Converts an RDL/RDLC report (SSRS, Syncfusion) into an editable PXA design — items positioned absolutely, CSS lengths → points, tablix → table, page header/footer → shared elements. Open the result in the visual designer.',
 };
 
 const RPX_REPORT_EXAMPLE = `<?xml version="1.0" encoding="utf-8"?>
@@ -468,7 +468,7 @@ const RPX_REPORT_FRAMEWORK: Framework = {
   id: RPX_REPORT_ID,
   name: 'ActiveReports (.rpx)',
   status: 'designer',
-  description: 'Converts a GrapeCity/MESCIUS ActiveReports section report (.rpx) into an editable Canvas design — banded sections flattened to absolute positions (inches → points), page header/footer → shared elements, DataField → binding. Open the result in the visual designer.',
+  description: 'Converts a GrapeCity/MESCIUS ActiveReports section report (.rpx) into an editable PXA design — banded sections flattened to absolute positions (inches → points), page header/footer → shared elements, DataField → binding. Open the result in the visual designer.',
 };
 
 const FRX_REPORT_EXAMPLE = `<?xml version="1.0" encoding="utf-8"?>
@@ -495,7 +495,7 @@ const FRX_REPORT_FRAMEWORK: Framework = {
   id: FRX_REPORT_ID,
   name: 'FastReport (.frx)',
   status: 'designer',
-  description: 'Converts a FastReport .NET report (.frx) into an editable Canvas design — banded layout flattened to absolute positions (pixels → points, page size in mm), page header/footer → shared elements, [Source.Column] → binding. Open the result in the visual designer.',
+  description: 'Converts a FastReport .NET report (.frx) into an editable PXA design — banded layout flattened to absolute positions (pixels → points, page size in mm), page header/footer → shared elements, [Source.Column] → binding. Open the result in the visual designer.',
 };
 
 const TRDX_REPORT_EXAMPLE = `<?xml version="1.0" encoding="utf-8"?>
@@ -533,7 +533,7 @@ const TRDX_REPORT_FRAMEWORK: Framework = {
   id: TRDX_REPORT_ID,
   name: 'Telerik Reporting (.trdx)',
   status: 'designer',
-  description: 'Converts a Telerik Reporting report (.trdx) into an editable Canvas design — sections flattened to absolute positions (Unit strings → points), named StyleSheet styles resolved, page header/footer → shared elements, =Fields.X → binding. Open the result in the visual designer.',
+  description: 'Converts a Telerik Reporting report (.trdx) into an editable PXA design — sections flattened to absolute positions (Unit strings → points), named StyleSheet styles resolved, page header/footer → shared elements, =Fields.X → binding. Open the result in the visual designer.',
 };
 
 const JRXML_REPORT_EXAMPLE = `<?xml version="1.0" encoding="UTF-8"?>
@@ -574,7 +574,7 @@ const JRXML_REPORT_FRAMEWORK: Framework = {
   id: JRXML_REPORT_ID,
   name: 'JasperReports (.jrxml)',
   status: 'designer',
-  description: 'Converts a JasperReports / Jaspersoft Studio report (.jrxml) into an editable Canvas design — bands flattened to absolute positions (points, no scaling), named styles resolved, page header/footer → shared elements, $F{field} → binding. Open the result in the visual designer.',
+  description: 'Converts a JasperReports / Jaspersoft Studio report (.jrxml) into an editable PXA design — bands flattened to absolute positions (points, no scaling), named styles resolved, page header/footer → shared elements, $F{field} → binding. Open the result in the visual designer.',
 };
 
 const ACTIVE_REPORTS_JS_EXAMPLE = `{
@@ -613,7 +613,7 @@ const ACTIVE_REPORTS_JS_FRAMEWORK: Framework = {
   id: ACTIVE_REPORTS_JS_ID,
   name: 'ActiveReports JS (.json)',
   status: 'designer',
-  description: 'Converts marked ActiveReports JS JSON reports into editable Canvas designs — text, line, image, barcode and simple table items map directly; unknown regions become review placeholders.',
+  description: 'Converts marked ActiveReports JS JSON reports into editable PXA designs — text, line, image, barcode and simple table items map directly; unknown regions become review placeholders.',
 };
 
 const MRT_REPORT_EXAMPLE = `<?xml version="1.0" encoding="utf-8"?>
@@ -648,10 +648,10 @@ const MRT_REPORT_FRAMEWORK: Framework = {
   id: MRT_REPORT_ID,
   name: 'Stimulsoft (.mrt)',
   status: 'designer',
-  description: 'Converts a Stimulsoft Reports report (.mrt, StiSerializer XML) into an editable Canvas design — bands with explicit positions flattened (hundredths-inch → points), page header/footer → shared elements, {Source.Field} → binding. Open the result in the visual designer.',
+  description: 'Converts a Stimulsoft Reports report (.mrt, StiSerializer XML) into an editable PXA design — bands with explicit positions flattened (hundredths-inch → points), page header/footer → shared elements, {Source.Field} → binding. Open the result in the visual designer.',
 };
 
-// ── Spreadsheet code-migration examples (library C# → Canvas spreadsheet API) ──
+// ── Spreadsheet code-migration examples (library C# → PXA spreadsheet API) ──
 const CLOSEDXML_SPREADSHEET_EXAMPLE = `using ClosedXML.Excel;
 
 var workbook = new XLWorkbook();
@@ -869,7 +869,7 @@ interface ConversionSummary {
   totalDiagnostics: number;
 }
 
-// The report-designer → Canvas design frameworks (output is an editable design, not C# code).
+// The report-designer → PXA design frameworks (output is an editable design, not C# code).
 const DESIGNER_FRAMEWORKS: Framework[] = [
   REPORT_FRAMEWORK, RDL_REPORT_FRAMEWORK, RPX_REPORT_FRAMEWORK, FRX_REPORT_FRAMEWORK, TRDX_REPORT_FRAMEWORK, JRXML_REPORT_FRAMEWORK, ACTIVE_REPORTS_JS_FRAMEWORK, MRT_REPORT_FRAMEWORK,
 ];
@@ -1056,7 +1056,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     setConverting(true);
     setError(null);
     try {
-      // Report (DevExpress XtraReport or RDL/RDLC) → Canvas design (JSON), opened in the visual designer.
+      // Report (DevExpress XtraReport or RDL/RDLC) → PXA design (JSON), opened in the visual designer.
       if (isReportDesign(selectedId)) {
         let resources: Record<string, string> = {};
         if (selectedId === JRXML_REPORT_ID) resources = { ...resources, ...jrxmlResourceMap };
@@ -1109,7 +1109,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
       if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? `HTTP ${res.status}`); }
       applyConvertResult(await res.json());
     } catch (e: any) {
-      setError(e.message ?? 'Conversion failed — is the Canvas.WebApi backend running on port 5086?');
+      setError(e.message ?? 'Conversion failed — is the Power Dox Automation backend running on port 5086?');
     } finally {
       setConverting(false);
     }
@@ -1174,7 +1174,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
       setPdfUrl(url);
       setPdfDataUrl(await blobToDataUrl(blob));
     } catch (e: any) {
-      setError(e.message ?? 'Preview failed — is the Canvas.WebApi backend running on port 5086?');
+      setError(e.message ?? 'Preview failed — is the Power Dox Automation backend running on port 5086?');
     } finally {
       setPreviewing(false);
     }
@@ -1254,10 +1254,10 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
               <h1>{isDesigner ? 'UI-Designer Migration' : isSpreadsheetCode ? 'Spreadsheet Code Migration' : 'PDF Code Migration'}</h1>
               <p>
                 {isDesigner
-                  ? 'Convert a report-designer file (DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik) into an editable Canvas design, then open it in the visual designer.'
+                  ? 'Convert a report-designer file (DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik) into an editable PXA design, then open it in the visual designer.'
                   : isSpreadsheetCode
-                    ? 'Paste code from another spreadsheet library (ClosedXML, EPPlus, GemBox, Aspose.Cells), convert it to the Canvas spreadsheet API, and preview the result as a grid.'
-                    : 'Paste code from another PDF library, convert it to Canvas.Pdf, and preview the result instantly.'}
+                    ? 'Paste code from another spreadsheet library (ClosedXML, EPPlus, GemBox, Aspose.Cells), convert it to the PXA spreadsheet API, and preview the result as a grid.'
+                    : 'Paste code from another PDF library, convert it to PXA-compatible PDF code, and preview the result instantly.'}
               </p>
             </div>
           </div>
@@ -1490,7 +1490,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
 
           <div className="mgr-pane" style={{ flex: 1 }}>
             <div className="mgr-pane-header">
-              <span>{isReportDesign(selectedId) ? 'Canvas Design (JSON)' : current?.kind === 'spreadsheet' ? 'Canvas Spreadsheet Code' : 'Canvas.Pdf Code'}</span>
+              <span>{isReportDesign(selectedId) ? 'PXA Design (JSON)' : current?.kind === 'spreadsheet' ? 'PXA Spreadsheet Code' : 'PXA-compatible PDF Code'}</span>
               <div className="mgr-pane-header-actions">
                 {hasConverted && (
                   <button
