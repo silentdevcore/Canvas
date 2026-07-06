@@ -280,7 +280,7 @@ const DocsPage: React.FC = () => {
                 { label: 'Pages Panel', desc: 'At the bottom of the editor. Add, delete, duplicate, and drag-to-reorder pages. Click a page thumbnail to navigate to it.' },
                 { label: 'Shared Elements', desc: 'Elements marked as "shared" appear on every page — ideal for headers and footers. Managed from the toolbar.' },
                 { label: 'Find & Replace', desc: 'Click the search icon in the toolbar to open the Find & Replace modal. Supports plain text, case-sensitive, whole-word, and regular expression modes.' },
-                { label: 'Import File', desc: 'On the Templates page, click "Import file" to open an existing PDF, DOCX, DOC, or ODT as a Canvas design. The document is converted to editable elements.' },
+                { label: 'Import File', desc: 'On the Templates page, click "Import file" to open an existing PDF, DOCX, DOC, or ODT as a PXA design. The document is converted to editable elements.' },
                 { label: 'Page Settings', desc: 'Gear icon in the toolbar. Controls page size, margins, background, header/footer, bleed, watermark, page numbering, metadata, Track Changes, Document Protection, Named Styles, and Custom Properties.' },
                 { label: 'Keyboard Shortcuts', desc: 'Undo/Redo: ⌘Z / ⌘⇧Z  ·  Copy/Paste/Duplicate: ⌘C / ⌘V / ⌘D  ·  Select all: ⌘A  ·  Delete: Del or ⌫  ·  Deselect: Esc  ·  Move: Arrow keys (1 pt), Shift+Arrows (10 pt)  ·  Zoom: ⌘+ / ⌘– / ⌘0' },
               ].map(item => (
@@ -295,7 +295,7 @@ const DocsPage: React.FC = () => {
           {/* ── Elements Reference ───────────────────────────────────────── */}
           <section id="elements" className="docs-section">
             <H2 id="elements">Elements Reference</H2>
-            <p>Every element is absolutely positioned on the canvas using <code className="docs-inline-code">x</code>, <code className="docs-inline-code">y</code>, <code className="docs-inline-code">width</code>, and <code className="docs-inline-code">height</code> in points (pt). Each element below lists its type-specific properties with a copy-paste design JSON, a C# equivalent where the <code className="docs-inline-code">Canvas.Pdf</code> API maps directly, and a <strong>live preview</strong> rendered by the backend.</p>
+            <p>Every element is absolutely positioned on the canvas using <code className="docs-inline-code">x</code>, <code className="docs-inline-code">y</code>, <code className="docs-inline-code">width</code>, and <code className="docs-inline-code">height</code> in points (pt). Each element below lists its type-specific properties with a copy-paste design JSON, a C# equivalent where the PXA PDF API maps directly, and a <strong>live preview</strong> rendered by the backend.</p>
 
             <H3>Common element properties</H3>
             <p>Shared by every element type (in addition to the type-specific properties listed per element):</p>
@@ -413,19 +413,19 @@ const DocsPage: React.FC = () => {
             </div>
 
             <H3>Import formats</H3>
-            <p>On the <strong>Templates</strong> page, click <em>Import file</em> and choose a supported file. The document is converted to a Canvas design and opened in the editor.</p>
+            <p>On the <strong>Templates</strong> page, click <em>Import file</em> and choose a supported file. The document is converted to a PXA design and opened in the editor.</p>
 
             <div className="docs-elem-table-wrap">
               <table className="docs-elem-table">
                 <thead><tr><th>Extension</th><th>Source format</th><th>What is extracted</th></tr></thead>
                 <tbody>
                   {([
-                    ['.pdf',  'PDF',                    'Canvas.Importer low-level parser/editor model: page tree, text, vector paths, images, clipping, colors, fonts, and regeneration bridge'],
+                    ['.pdf',  'PDF',                    'PXA importer low-level parser/editor model: page tree, text, vector paths, images, clipping, colors, fonts, and regeneration bridge'],
                     ['.docx', 'Word Open XML',          'Paragraphs → Text; tables → Table; inline images → Image; typography from RunProperties; page size from SectionProperties'],
                     ['.doc',  'Word 97-2003 binary',    'Pure C# CFBF parser: reads WordDocument stream via FIB offsets; text stacked as paragraphs'],
                     ['.odt',  'OpenDocument Text',      'Paragraphs and headings with style resolution; draw:frame images extracted as base64'],
-                    ['.svg',  'SVG',                    'Dedicated SVG importer maps vector-oriented content into editable Canvas elements where possible'],
-                    ['.pptx', 'PowerPoint',             'Slides become Canvas pages; text, images, and shapes are mapped into editable elements'],
+                    ['.svg',  'SVG',                    'Dedicated SVG importer maps vector-oriented content into editable PXA elements where possible'],
+                    ['.pptx', 'PowerPoint',             'Slides become PXA pages; text, images, and shapes are mapped into editable elements'],
                     ['.png / .jpg / .jpeg / .gif / .webp / .bmp / .tiff', 'Raster image', 'Direct image import creates a single-page design; ImageAnalysis/OCR paths can reconstruct editable text, shapes, and diagnostics'],
                   ] as [string,string,string][]).map(([ext, fmt, note]) => (
                     <tr key={ext}>
@@ -521,10 +521,10 @@ Content-Disposition: attachment; filename="contract_signed.docx"
           {/* ── Migrations ──────────────────────────────────────────────── */}
           <section id="migrations" className="docs-section">
             <H2 id="migrations">Migrations</H2>
-            <p>Canvas includes developer migration tools, organized into two types on the <strong>Migrations</strong> page: <strong>Code Migration</strong> (third-party library C# → Canvas code — <strong>15 PDF</strong> + <strong>4 spreadsheet</strong> libraries) and <strong>DataSource / Format Migration</strong> (a source file/format → an editable Canvas design or workbook — report designers, documents, and spreadsheets). Each opens an interactive converter with diagnostics and preview.</p>
+            <p>Power Dox Automation includes developer migration tools, organized into two types on the <strong>Migrations</strong> page: <strong>Code Migration</strong> (third-party library C# → PXA-compatible code — <strong>15 PDF</strong> + <strong>4 spreadsheet</strong> libraries) and <strong>DataSource / Format Migration</strong> (a source file/format → an editable PXA design or workbook — report designers, documents, and spreadsheets). Each opens an interactive converter with diagnostics and preview.</p>
 
             <H3>PDF code migration</H3>
-            <p>Paste C# source written for a supported PDF library and convert deterministic document-generation patterns into <code className="docs-inline-code">Canvas.Pdf</code> C# code. Unsupported provider APIs stay visible through diagnostics instead of being silently rewritten.</p>
+            <p>Paste C# source written for a supported PDF library and convert deterministic document-generation patterns into PXA-compatible PDF C# code. Unsupported provider APIs stay visible through diagnostics instead of being silently rewritten.</p>
 
             <div className="docs-elem-table-wrap">
               <table className="docs-elem-table">
@@ -532,7 +532,7 @@ Content-Disposition: attachment; filename="contract_signed.docx"
                 <tbody>
                   {([
                     ['DevExpress PDF, Syncfusion PDF, iText 7, Aspose.PDF, DsPdf', 'Document/page creation, simple text, lines, rectangles, colors, save/export where deterministic', 'Existing-PDF editing, forms, signatures, advanced layout, compliance'],
-                    ['IronPDF, ActivePDF', 'Canvas.Pdf scaffold and save/export paths', 'HTML/CSS/URL/Razor rendering, printer/COM/server workflows'],
+                    ['IronPDF, ActivePDF', 'PXA-compatible PDF scaffold and save/export paths', 'HTML/CSS/URL/Razor rendering, printer/COM/server workflows'],
                     ['Apryse, Foxit, GemBox, Spire, PDFKit.NET, LEADTOOLS, PDFTools', 'Provider-specific safe subsets and diagnostics', 'Rendering/viewer/OCR/conversion, attachments, redaction, low-level editing'],
                   ] as [string,string,string][]).map(([provider, migrated, manual]) => (
                     <tr key={provider}>
@@ -546,17 +546,17 @@ Content-Disposition: attachment; filename="contract_signed.docx"
             </div>
 
             <H3>Spreadsheet code migration</H3>
-            <p>Paste C# source written for a supported spreadsheet library and convert it into the Canvas spreadsheet API (<code className="docs-inline-code">CanvasWorkbook</code>). Workbook/worksheet/cell/value/formula/style/save calls are rewritten via Roslyn; charts, pivots, conditional formatting, and data validation stay visible through diagnostics.</p>
+            <p>Paste C# source written for a supported spreadsheet library and convert it into the PXA spreadsheet API (<code className="docs-inline-code">CanvasWorkbook</code> legacy model). Workbook/worksheet/cell/value/formula/style/save calls are rewritten via Roslyn; charts, pivots, conditional formatting, and data validation stay visible through diagnostics.</p>
 
             <div className="docs-elem-table-wrap">
               <table className="docs-elem-table">
                 <thead><tr><th>Library</th><th>Converter</th><th>Notes</th></tr></thead>
                 <tbody>
                   {([
-                    ['ClosedXML', 'Canvas.Migration.ClosedXmlSpreadsheet', 'Reference impl; 1-based → 0-based index shift, alignment/fill colour, named ranges'],
-                    ['EPPlus', 'Canvas.Migration.EpplusSpreadsheet', 'Cells[..] indexer → Cell(..), Merge=true → Range(..).Merge(), alignment'],
-                    ['GemBox.Spreadsheet', 'Canvas.Migration.GemBoxSpreadsheet', 'Drops SetLicense, already 0-based, Font.Weight → Bold(), alignment'],
-                    ['Aspose.Cells', 'Canvas.Migration.AsposeCells', 'PutValue → Value, Worksheets[0] → AddSheet, SetColumnWidth → Column().Width()'],
+                    ['ClosedXML', 'PXA.Migration.Spreadsheet / legacy Canvas.Migration.ClosedXmlSpreadsheet', 'Reference impl; 1-based → 0-based index shift, alignment/fill colour, named ranges'],
+                    ['EPPlus', 'PXA.Migration.Spreadsheet / legacy Canvas.Migration.EpplusSpreadsheet', 'Cells[..] indexer → Cell(..), Merge=true → Range(..).Merge(), alignment'],
+                    ['GemBox.Spreadsheet', 'PXA.Migration.Spreadsheet / legacy Canvas.Migration.GemBoxSpreadsheet', 'Drops SetLicense, already 0-based, Font.Weight → Bold(), alignment'],
+                    ['Aspose.Cells', 'PXA.Migration.Spreadsheet / legacy Canvas.Migration.AsposeCells', 'PutValue → Value, Worksheets[0] → AddSheet, SetColumnWidth → Column().Width()'],
                   ] as [string,string,string][]).map(([lib, converter, notes]) => (
                     <tr key={lib}>
                       <td>{lib}</td>
@@ -569,16 +569,16 @@ Content-Disposition: attachment; filename="contract_signed.docx"
             </div>
 
             <H3>Report-to-design migration</H3>
-            <p>Report converters target editable Canvas design JSON, not raw <code className="docs-inline-code">Canvas.Pdf</code> source. Converted reports can open directly in the visual editor.</p>
+            <p>Report converters target editable PXA design JSON, not raw PDF source. Converted reports can open directly in the visual editor.</p>
 
             <div className="docs-elem-table-wrap">
               <table className="docs-elem-table">
                 <thead><tr><th>Input</th><th>Converter</th><th>Output</th></tr></thead>
                 <tbody>
                   {([
-                    ['DevExpress XtraReport / REPX', 'Canvas.Migration.DevExpressReport', 'Band-flattened editable Canvas design'],
-                    ['RDL / RDLC / Syncfusion / Bold Reports', 'Canvas.Migration.Rdl', 'Page, header/footer, textbox, line, rectangle, image, tablix/table, barcode placeholders'],
-                    ['ActiveReports / GrapeCity RPX', 'Canvas.Migration.Rpx', 'Section-report bands flattened into Canvas elements'],
+                    ['DevExpress XtraReport / REPX', 'PXA.Migration.Report / legacy Canvas.Migration.DevExpressReport', 'Band-flattened editable PXA design'],
+                    ['RDL / RDLC / Syncfusion / Bold Reports', 'PXA.Migration.Report / legacy Canvas.Migration.Rdl', 'Page, header/footer, textbox, line, rectangle, image, tablix/table, barcode placeholders'],
+                    ['ActiveReports / GrapeCity RPX', 'PXA.Migration.Report / legacy Canvas.Migration.Rpx', 'Section-report bands flattened into PXA elements'],
                   ] as [string,string,string][]).map(([input, converter, output]) => (
                     <tr key={input}>
                       <td>{input}</td>
@@ -694,7 +694,7 @@ POST /api/migration/preview`}</Code>
           {/* ── JSON Schema ──────────────────────────────────────────────── */}
           <section id="json-schema" className="docs-section">
             <H2 id="json-schema">JSON Schema</H2>
-            <p>Exporting a document from the editor produces a single JSON file. This is the canonical data format consumed by the Canvas WebAPI to generate PDF output.</p>
+            <p>Exporting a document from the editor produces a single JSON file. This is the canonical data format consumed by the Power Dox Automation Web API to generate PDF output.</p>
 
             <H3>Full template structure</H3>
             <Code lang="json">{`{
@@ -995,7 +995,7 @@ Console.WriteLine($"Elements on page 1: {template.Pages[0].Elements.Count}");`}<
 var json = JsonSerializer.Serialize(template, options);
 await File.WriteAllTextAsync("output.json", json);`}</Code>
 
-            <H3>Rendering to PDF via Canvas WebAPI</H3>
+            <H3>Rendering to PDF via Power Dox Automation Web API</H3>
             <Code lang="csharp">{`using var http = new HttpClient { BaseAddress = new Uri("https://localhost:5274") };
 
 // Serialize the template
@@ -1132,7 +1132,7 @@ var output = JsonConvert.SerializeObject(template, Formatting.Indented, settings
           {/* ── REST API ─────────────────────────────────────────────────── */}
           <section id="rest-api" className="docs-section">
             <H2 id="rest-api">REST API</H2>
-            <p>The Canvas WebAPI (ASP.NET Core, <code className="docs-inline-code">Canvas.WebApi</code>) runs at <code className="docs-inline-code">http://localhost:5274</code> by default. Swagger UI is at <code className="docs-inline-code">http://localhost:5274/swagger</code>.</p>
+            <p>The Power Dox Automation Web API (ASP.NET Core, currently hosted by the legacy <code className="docs-inline-code">Canvas.WebApi</code> project) runs at <code className="docs-inline-code">http://localhost:5274</code> by default. Swagger UI is at <code className="docs-inline-code">http://localhost:5274/swagger</code>.</p>
 
             <H3>All endpoints</H3>
             <div className="docs-endpoint-grid">
@@ -1145,7 +1145,7 @@ var output = JsonConvert.SerializeObject(template, Formatting.Indented, settings
                 { method: 'POST', path: '/api/document/extract-pages',     desc: 'Extract a page subset. Body: { design, pageNumbers: number[], newName? }.' },
                 { method: 'POST', path: '/api/document/sign-docx',         desc: 'Apply X.509 digital signature to a DOCX. Multipart: docx file + certificate PFX + optional password. Returns signed DOCX.' },
                 { method: 'POST', path: '/api/document/convert-image-to-pdf', desc: 'Convert a raster image to PDF, optionally with OCR/debug parameters. Multipart file upload.' },
-                { method: 'POST', path: '/api/document/import-pdf-engine', desc: 'Import PDF through Canvas.Importer → DesignExportDto. Multipart file upload.' },
+                { method: 'POST', path: '/api/document/import-pdf-engine', desc: 'Import PDF through the PXA importer facade → DesignExportDto. Multipart file upload.' },
                 { method: 'POST', path: '/api/document/debug-pdf-engine',  desc: 'Return PDF importer diagnostics/debug output for a PDF upload.' },
                 { method: 'POST', path: '/api/document/import-docx',       desc: 'Import DOCX → DesignExportDto. Multipart file upload.' },
                 { method: 'POST', path: '/api/document/import-doc',        desc: 'Import Word 97-2003 .doc → DesignExportDto. Multipart file upload.' },
@@ -1155,9 +1155,9 @@ var output = JsonConvert.SerializeObject(template, Formatting.Indented, settings
                 { method: 'POST', path: '/api/document/import-pptx',       desc: 'Import PowerPoint .pptx → DesignExportDto. Multipart file upload.' },
                 { method: 'POST', path: '/api/document/import-image-analysis', desc: 'Import raster image through the deterministic image-analysis pipeline → DesignExportDto plus optional diagnostics.' },
                 { method: 'GET',  path: '/api/migration/frameworks',       desc: 'List supported PDF code migration frameworks and their status.' },
-                { method: 'POST', path: '/api/migration/convert',          desc: 'Convert vendor PDF-generation C# source to Canvas.Pdf C# with diagnostics.' },
+                { method: 'POST', path: '/api/migration/convert',          desc: 'Convert vendor PDF-generation C# source to PXA-compatible PDF C# with diagnostics.' },
                 { method: 'POST', path: '/api/migration/report-to-design', desc: 'Convert XtraReport/REPX/RDL/RPX style report sources to editable DesignExportDto.' },
-                { method: 'POST', path: '/api/migration/preview',          desc: 'Render migrated Canvas.Pdf code to a PDF preview.' },
+                { method: 'POST', path: '/api/migration/preview',          desc: 'Render migrated PXA-compatible PDF code to a PDF preview.' },
                 { method: 'POST', path: '/api/templates/render',           desc: 'Render a template with data to PDF.' },
                 { method: 'POST', path: '/api/templates/render/async',     desc: 'Start an asynchronous render job.' },
                 { method: 'POST', path: '/api/templates/render-design',    desc: 'Render a raw DesignExportDto to PDF.' },
@@ -1261,7 +1261,7 @@ app.MapControllers();
 app.Run();`}</Code>
 
             <div className="docs-callout docs-callout--info">
-              <strong>Note:</strong> The WebAPI is started separately from the React app. Run <code className="docs-inline-code">dotnet run</code> inside <code className="docs-inline-code">Canvas.WebApi/</code> — it defaults to <code className="docs-inline-code">http://localhost:5274</code>. The React dev server runs on port <code className="docs-inline-code">5173</code>.
+              <strong>Note:</strong> The Web API is started separately from the React app. Run <code className="docs-inline-code">dotnet run</code> inside the current backend project <code className="docs-inline-code">Canvas.WebApi/</code> — it defaults to <code className="docs-inline-code">http://localhost:5274</code>. The React dev server runs on port <code className="docs-inline-code">5173</code>.
             </div>
 
             <H3>Minimal controller example</H3>
@@ -1307,12 +1307,12 @@ public class TemplatesController : ControllerBase
             <H3>Two generation targets</H3>
             <ul className="docs-steps">
               <li><strong>Declarative design JSON</strong> (<code className="docs-inline-code">DesignExportDto</code>) — describe pages + elements, POST to the render/export API. Best for templates and data-driven documents.</li>
-              <li><strong>Imperative C# code</strong> (<code className="docs-inline-code">Canvas.Pdf</code>) — <code className="docs-inline-code">new PdfDocument()</code> → <code className="docs-inline-code">page.DrawText(...)</code> → <code className="docs-inline-code">ToBytes()</code>. Best for programmatic generation and SDK migrations.</li>
+              <li><strong>Imperative C# code</strong> (PXA PDF API, with legacy <code className="docs-inline-code">Canvas.Pdf</code> compatibility) — <code className="docs-inline-code">new PdfDocument()</code> → <code className="docs-inline-code">page.DrawText(...)</code> → <code className="docs-inline-code">ToBytes()</code>. Best for programmatic generation and SDK migrations.</li>
             </ul>
 
             <H3>Generate → validate → render</H3>
             <ol className="docs-steps">
-              <li>Generate a <code className="docs-inline-code">DesignExportDto</code> (or <code className="docs-inline-code">Canvas.Pdf</code> C#). Use the per-element catalog above for the exact properties.</li>
+              <li>Generate a <code className="docs-inline-code">DesignExportDto</code> (or PXA-compatible PDF C#). Use the per-element catalog above for the exact properties.</li>
               <li>Validate the JSON against <code className="docs-inline-code">docs/schema/design-export.schema.json</code> (required: <code className="docs-inline-code">id</code>, <code className="docs-inline-code">name</code>, <code className="docs-inline-code">pages</code>; each element needs <code className="docs-inline-code">id</code>, <code className="docs-inline-code">type</code>, <code className="docs-inline-code">x</code>, <code className="docs-inline-code">y</code>, <code className="docs-inline-code">width</code>, <code className="docs-inline-code">height</code>).</li>
               <li>Render: <code className="docs-inline-code">POST /api/templates/render-design</code> (raw design → PDF) or <code className="docs-inline-code">POST /api/export</code> (<code className="docs-inline-code">{'{ design, format, data? }'}</code>). For C#: <code className="docs-inline-code">POST /api/templates/csharp-code-to-pdf</code>.</li>
             </ol>
@@ -1332,7 +1332,7 @@ public class TemplatesController : ControllerBase
           {/* ── Spreadsheets ────────────────────────────────────────────── */}
           <section id="spreadsheets" className="docs-section">
             <H2 id="spreadsheets">Spreadsheets</H2>
-            <p>Canvas includes an Excel-like <strong>Spreadsheet Editor</strong> at <code className="docs-inline-code">/spreadsheet</code> — a separate surface from the document designer, with live formulas, multiple sheets, cell styling, and <code className="docs-inline-code">.xlsx</code> round-trips.</p>
+            <p>Power Dox Automation includes an Excel-like <strong>Spreadsheet Editor</strong> at <code className="docs-inline-code">/spreadsheet</code> — a separate surface from the document designer, with live formulas, multiple sheets, cell styling, and <code className="docs-inline-code">.xlsx</code> round-trips.</p>
 
             <H3>Formulas</H3>
             <p>Type a value, or a formula starting with <code className="docs-inline-code">=</code> using standard A1 references — e.g. <code className="docs-inline-code">=SUM(A1:A10)</code>, <code className="docs-inline-code">=IF(B2&gt;0, B2*1.2, 0)</code>. Recalculation is powered by HyperFormula (~390 Excel functions, dependency-graph recalc); edits update dependents live. The formula bar shows the active cell's source; the grid shows the computed result.</p>
@@ -1360,7 +1360,7 @@ public class TemplatesController : ControllerBase
             <p>The backend is authoritative for headless/API callers — it no longer just stores formula strings:</p>
             <ul className="docs-steps">
               <li><code className="docs-inline-code">POST /api/spreadsheet/calculate</code> — evaluates formulas server-side (ClosedXML) and writes each computed value back into the model. Chained dependencies resolve; unsupported functions degrade to <code className="docs-inline-code">#ERROR</code>.</li>
-              <li><code className="docs-inline-code">POST /api/spreadsheet/render?format=pdf|html|png|jpeg</code> — renders a sheet as a gridlined document (PDF via Canvas.Pdf; html/png/jpeg via the standard exporters).</li>
+              <li><code className="docs-inline-code">POST /api/spreadsheet/render?format=pdf|html|png|jpeg</code> — renders a sheet as a gridlined document (PDF via the PXA-compatible PDF renderer; html/png/jpeg via the standard exporters).</li>
               <li><code className="docs-inline-code">POST /api/spreadsheet/sort</code> and <code className="docs-inline-code">/find-replace</code> — sort a range by a key column; find/replace across text + formula cells.</li>
               <li><code className="docs-inline-code">POST /api/spreadsheet/from-data</code> and <code className="docs-inline-code">/fill</code> — build a workbook from JSON rows (DataTable), or fill a template's <code className="docs-inline-code">{'{{token}}'}</code> placeholders from a data object.</li>
             </ul>
@@ -1368,7 +1368,7 @@ public class TemplatesController : ControllerBase
             <p>The model (<code className="docs-inline-code">src/Canvas.Core/Contracts/SpreadsheetDto.cs</code>) is a workbook of sheets of sparse typed cells (<code className="docs-inline-code">number</code>/<code className="docs-inline-code">text</code>/<code className="docs-inline-code">boolean</code>/<code className="docs-inline-code">date</code>/<code className="docs-inline-code">formula</code>) with number formats, styles, merges, frozen panes, and defined names — exported/imported by <code className="docs-inline-code">Canvas.Infrastructure.Spreadsheet</code>.</p>
 
             <H3>Workbook JSON (canonical format)</H3>
-            <p><strong>Canvas Workbook JSON</strong> is the canonical, portable spreadsheet format — the camelCase serialization of <code className="docs-inline-code">SpreadsheetDto</code> that every spreadsheet endpoint accepts and that the editor's <strong>Export ▾ → JSON</strong> produces. It is versioned (<code className="docs-inline-code">schemaVersion</code>, currently <code className="docs-inline-code">"1.0"</code>) and carries an optional <code className="docs-inline-code">$schema</code> URL. A published JSON Schema lives at <code className="docs-inline-code">docs/schema/canvas-workbook.schema.json</code> for editor/tooling validation.</p>
+            <p><strong>PXA Workbook JSON</strong> is the canonical, portable spreadsheet format — currently using the legacy Canvas workbook schema for compatibility. It is the camelCase serialization of <code className="docs-inline-code">SpreadsheetDto</code> that every spreadsheet endpoint accepts and that the editor's <strong>Export ▾ → JSON</strong> produces. It is versioned (<code className="docs-inline-code">schemaVersion</code>, currently <code className="docs-inline-code">"1.0"</code>) and carries an optional <code className="docs-inline-code">$schema</code> URL. A published JSON Schema lives at <code className="docs-inline-code">docs/schema/canvas-workbook.schema.json</code> for editor/tooling validation.</p>
             <p>The format is <strong>lossless</strong>: saving and reloading JSON preserves everything the backend holds — typed values, formulas + cached values, number formats, styles, merges, frozen panes, defined names, and the full feature set (page setup, protection, auto-filter, row/column grouping, conditional formatting, data validation, cell comments + hyperlinks).</p>
             <div className="docs-callout docs-callout--tip">
               <strong>Note:</strong> a workbook (spreadsheet) contains multiple <em>sheets</em>. Live editing recalculates client-side (HyperFormula, GPLv3-or-commercial); for headless/API callers <code className="docs-inline-code">/calculate</code> recomputes server-side (ClosedXML). Charts and pivot tables are not yet supported.
@@ -1389,9 +1389,9 @@ public class TemplatesController : ControllerBase
                     ['Project inventory', 'PROJECT_SUMMARY.md', 'Current project groups, endpoints, feature inventory, and test groups'],
                     ['Extension patterns', 'CONTRIBUTING_RENDERERS.md', 'Adding renderers, file importers, migration providers, report converters, and document operations'],
                     ['Testing', 'TESTING.md', 'Test project matrix, commands, CI expectations, and snapshot workflow'],
-                    ['PDF engine API', 'Canvas/TECHNICAL_DOCUMENTATION.md', 'Canvas.Pdf usage, options, layout helpers, encryption, forms, diagnostics'],
+                    ['PDF engine API', 'Canvas/TECHNICAL_DOCUMENTATION.md', 'PXA-compatible PDF usage, options, layout helpers, encryption, forms, diagnostics'],
                     ['PDF encryption', 'checklists/Pdf-Encryption.md', 'RC4-128 status, AES follow-ups, and security handler notes'],
-                    ['PDF provider gaps', 'checklists/CanvasPdf-Provider-Feature-Gaps.md', 'Canvas.Pdf feature gaps compared with major PDF frameworks'],
+                    ['PDF provider gaps', 'checklists/CanvasPdf-Provider-Feature-Gaps.md', 'PXA-compatible PDF feature gaps compared with major PDF frameworks'],
                     ['Documentation audit', 'checklists/Documentation-Audit.md', 'Source-of-truth rules and follow-up documentation tasks'],
                     ['Multi-language UI', 'ui-designer-v2/MULTILANGUAGE.md', 'Language tabs, localized properties, RTL, and export behavior'],
                     ['Migration status', 'checklists/Code-Migrations.md', 'Provider progress and migration acceptance criteria'],

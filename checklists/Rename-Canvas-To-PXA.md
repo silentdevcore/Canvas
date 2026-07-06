@@ -159,8 +159,11 @@ server restarts are part of this step.
       app header logo/accessibility label, home hero/feature copy, importer format copy, and migrations hub
       product copy now use Power Dox Automation/PXA. The migrations conversion page now uses PXA wording
       for report-designer targets, backend error messages, spreadsheet/PDF conversion copy, and output
-      panel labels. Technical HTML canvas terms, localStorage keys, and legacy `Canvas.Pdf` API references
-      remain unchanged for compatibility until their specific surfaces are migrated.
+      panel labels. The in-app docs now use Power Dox Automation/PXA wording for import/export,
+      migration, REST API, AI/codegen, spreadsheet, and documentation-map product descriptions while
+      marking current `Canvas.*` project paths and namespaces as legacy compatibility where needed.
+      Technical HTML canvas terms, localStorage keys, and legacy `Canvas.Pdf` API references remain
+      unchanged for compatibility until their specific surfaces are migrated.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
       - `tools/Canvas.Mcp` -> `tools/PXA.Mcp` or package `pxa-mcp`
       - `samples/Canvas.Demo` -> `samples/PXA.Demo`
