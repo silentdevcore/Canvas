@@ -170,7 +170,7 @@ server restarts are part of this step.
       renamed in this UI-branding slice.
       Technical HTML canvas terms, localStorage keys, and legacy `Canvas.Pdf` API references remain
       unchanged for compatibility until their specific surfaces are migrated.
-- [ ] Phase 8: update MCP/sample/docs/package identities:
+- [x] Phase 8: update MCP/sample/docs/package identities:
       - `tools/Canvas.Mcp` -> `tools/PXA.Mcp` or package `pxa-mcp`
       - `samples/Canvas.Demo` -> `samples/PXA.Demo`
       - active docs and schemas to PXA naming
