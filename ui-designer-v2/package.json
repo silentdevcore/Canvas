@@ -1,7 +1,7 @@
 {
   "name": "ui-designer-v2",
   "version": "1.0.0",
-  "description": "Canvas UI Designer - User-friendly document template designer",
+  "description": "Power Dox Automation - user-friendly document automation designer",
   "main": "src/main.tsx",
   "scripts": {
     "dev": "vite",
@@ -66,10 +66,12 @@
     "ui-designer",
     "document-templates",
     "pdf-generator",
+    "pxa",
+    "power-dox-automation",
     "canvas-pdf",
     "react",
     "typescript"
   ],
-  "author": "Canvas Team",
+  "author": "PXA Team",
   "license": "MIT"
 }

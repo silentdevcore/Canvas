@@ -5,8 +5,8 @@ import AppHeader from '@/components/Layout/AppHeader';
 
 /**
  * Migrations landing page. Two domains, each a dedicated area with Code + Designer/Datasource sub-tabs:
- *  - PDF Migration         → /migrations/pdf         (Code → Canvas.Pdf · UI-Designer → Canvas design)
- *  - Spreadsheet Migration → /migrations/spreadsheet (Code → Canvas spreadsheet API · Datasource → workbook)
+ *  - PDF Migration         → /migrations/pdf         (Code → Canvas.Pdf/PXA · UI-Designer → PXA design)
+ *  - Spreadsheet Migration → /migrations/spreadsheet (Code → PXA spreadsheet API · Datasource → workbook)
  */
 const MigrationsHubPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,10 +17,10 @@ const MigrationsHubPage: React.FC = () => {
       to: '/migrations/pdf',
       icon: <FiCode />,
       title: 'PDF Migration',
-      blurb: 'Move PDF work into Canvas — Code Migration converts C# from a PDF library (iText, Apryse, '
-        + 'Aspose, Syncfusion, Foxit, Spire, …) into Canvas.Pdf code with a live PDF preview; UI-Designer '
+      blurb: 'Move PDF work into PXA — Code Migration converts C# from a PDF library (iText, Apryse, '
+        + 'Aspose, Syncfusion, Foxit, Spire, …) into compatible PDF code with a live PDF preview; UI-Designer '
         + 'Migration converts report-designer files (DevExpress, RDL/RDLC, ActiveReports, FastReport, '
-        + 'Telerik) into an editable Canvas design.',
+        + 'Telerik) into an editable PXA design.',
       tag: '15 PDF libraries · 7 report designers',
     },
     {
@@ -28,8 +28,8 @@ const MigrationsHubPage: React.FC = () => {
       to: '/migrations/spreadsheet',
       icon: <FiLayout />,
       title: 'Spreadsheet Migration',
-      blurb: 'Move spreadsheet work into Canvas — Code Migration converts C# from a spreadsheet library '
-        + '(ClosedXML, EPPlus, GemBox, Aspose.Cells) into the Canvas spreadsheet API with a grid preview; '
+      blurb: 'Move spreadsheet work into PXA — Code Migration converts C# from a spreadsheet library '
+        + '(ClosedXML, EPPlus, GemBox, Aspose.Cells) into the PXA spreadsheet API with a grid preview; '
         + 'Datasource Migration imports a spreadsheet file (.xlsx/.xls/.csv) into the spreadsheet editor.',
       tag: '4 spreadsheet libraries · file import',
     },
@@ -46,7 +46,7 @@ const MigrationsHubPage: React.FC = () => {
             <div>
               <h1>Migrations</h1>
               <p>
-                Bring existing reports and PDF-generation code into Canvas. Choose a migration type below —
+                Bring existing reports and PDF-generation code into Power Dox Automation. Choose a migration type below —
                 each opens a dedicated workspace where you paste a source file and convert it.
               </p>
             </div>

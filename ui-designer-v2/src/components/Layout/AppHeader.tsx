@@ -15,7 +15,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
       {mobileMenuOpen && (
         <div className="pdf-mobile-menu" role="dialog" aria-label="Mobile menu">
           <div className="pdf-mobile-menu-header">
-            <span className="pdf-logo"><span>UI</span><strong>Designer</strong></span>
+            <span className="pdf-logo"><span>PXA</span><strong>Designer</strong></span>
             <button
               className="pdf-mobile-menu-close"
               onClick={() => setMobileMenuOpen(false)}
@@ -72,8 +72,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
       )}
 
       <header className="pdf-nav">
-        <button className="pdf-logo" onClick={() => navigate('/')} aria-label="UI Designer home">
-          <span>UI</span>
+        <button className="pdf-logo" onClick={() => navigate('/')} aria-label="Power Dox Automation home">
+          <span>PXA</span>
           <strong>Designer</strong>
         </button>
 

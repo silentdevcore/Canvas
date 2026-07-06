@@ -88,7 +88,7 @@ const FORMATS: FormatCard[] = [
     label: 'PowerPoint',
     extDisplay: '.pptx',
     accept: '.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    description: 'Each slide becomes a Canvas page with shapes, text, and images.',
+    description: 'Each slide becomes a PXA page with shapes, text, and images.',
     Icon: FiLayout,
   },
   {
@@ -120,7 +120,7 @@ const FORMATS: FormatCard[] = [
     label: 'Image',
     extDisplay: '.png .jpg .gif .webp .bmp .tiff',
     accept: '.png,.jpg,.jpeg,.gif,.webp,.bmp,.tiff,.tif,image/png,image/jpeg,image/gif,image/webp,image/bmp,image/tiff',
-    description: 'Raster image placed as a full-page Canvas design.',
+    description: 'Raster image placed as a full-page PXA design.',
     Icon: FiImage,
   },
   {
@@ -253,7 +253,7 @@ const ImporterPage: React.FC = () => {
             Open an existing file
           </span>
           <h1>Import a file</h1>
-          <p>Choose the format, then select a file — it opens as an editable Canvas design.</p>
+          <p>Choose the format, then select a file — it opens as an editable PXA design.</p>
         </header>
 
         <div className="importer-grid">

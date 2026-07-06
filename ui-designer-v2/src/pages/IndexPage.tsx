@@ -99,7 +99,7 @@ const IndexPage: React.FC = () => {
             </div>
             <h1>Build, fill, and prepare business documents faster</h1>
             <p>
-              Start from a template or import an existing PDF, Word, or ODT file. Add fields, signatures, and data bindings — then export to PDF, DOCX, ODT, TIFF and more.
+              Power Dox Automation helps you start from a template or import an existing PDF, Word, or ODT file. Add fields, signatures, and data bindings — then export to PDF, DOCX, ODT, TIFF and more.
             </p>
           </div>
 
@@ -128,7 +128,7 @@ const IndexPage: React.FC = () => {
               className="pdf-upload-card"
               onClick={() => importInputRef.current?.click()}
               disabled={importing}
-              title="Import a PDF, Word .doc/.docx, ODT, or image (PNG/JPG/WebP/…) as a Canvas design"
+              title="Import a PDF, Word .doc/.docx, ODT, or image (PNG/JPG/WebP/…) as a PXA design"
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.99 }}
             >
@@ -270,7 +270,7 @@ const IndexPage: React.FC = () => {
         {/* Features */}
         <section className="pdf-feature-section" id="features">
           <div className="pdf-section-heading">
-            <span>Feature-rich platform</span>
+            <span>Power Dox Automation</span>
             <h2>Everything you need to manage PDF templates</h2>
           </div>
           <div className="pdf-feature-grid">
