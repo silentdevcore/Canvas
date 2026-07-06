@@ -139,7 +139,7 @@ server restarts are part of this step.
       Domain facade started with additive `PXA.Domain` project for design templates, template metadata,
       page settings, designer elements, element config models, validation results, template name info,
       and Canvas/PXA repository adapters.
-- [ ] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
+- [x] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
       Started with additive Web API branding discovery endpoint exposed on both legacy
       `/api/system/brand` and PXA `/api/pxa/system/brand` routes. Response advertises
       Power Dox Automation/PXA naming, reserved `pxa` CLI and `.pxa` extension, and legacy
@@ -152,6 +152,8 @@ server restarts are part of this step.
       Templates API alias added with `/api/pxa/templates` while legacy `/api/templates` remains compatible.
       PDF Viewer API aliases added with `/api/pxa/pdf-viewer/annotations` and `/api/pxa/pdf-viewer/forms`
       while legacy `/api/pdf-viewer/*` routes remain compatible.
+      Auth remains intentionally on the platform route `/api/auth`; no `/api/pxa/auth` alias is planned
+      unless all public platform routes are later duplicated under PXA.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
       - `tools/Canvas.Mcp` -> `tools/PXA.Mcp` or package `pxa-mcp`
@@ -232,7 +234,7 @@ server restarts are part of this step.
 - [ ] Domain compatibility tests:
       Initial `PXA.Domain.Tests` coverage added for design template conversion, validation result conversion,
       and Canvas/PXA repository adapter flows.
-- [ ] Web/API compatibility tests:
+- [x] Web/API compatibility tests:
       `Canvas.Api.Tests` now covers legacy and PXA branding discovery routes with compatibility notes.
       `Canvas.Api.Tests` now covers PXA export alias routes for format discovery and HTML export.
       `Canvas.Api.Tests` now covers PXA migration alias routes for framework discovery and code conversion.
