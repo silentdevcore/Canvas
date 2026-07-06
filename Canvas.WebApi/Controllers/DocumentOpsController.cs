@@ -17,6 +17,7 @@ namespace Canvas.WebApi.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/document")]
+[Route("api/pxa/document")]
 public class DocumentOpsController : ControllerBase
 {
     private readonly FindAndReplaceUseCase      _findReplace;

@@ -8,6 +8,7 @@ namespace Canvas.WebApi.Controllers;
 
 [ApiController]
 [Route("api/document")]
+[Route("api/pxa/document")]
 public sealed class ImageConversionController : ControllerBase
 {
     private static readonly HashSet<string> SupportedExtensions = new(StringComparer.OrdinalIgnoreCase)
