@@ -148,6 +148,7 @@ server restarts are part of this step.
       Migration API alias added with `/api/pxa/migration` while legacy `/api/migration` remains compatible.
       Document API alias added with `/api/pxa/document` while legacy `/api/document` remains compatible,
       covering document operations and image-to-PDF conversion routes.
+      Spreadsheet API alias added with `/api/pxa/spreadsheet` while legacy `/api/spreadsheet` remains compatible.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
       - `tools/Canvas.Mcp` -> `tools/PXA.Mcp` or package `pxa-mcp`
@@ -234,6 +235,8 @@ server restarts are part of this step.
       `Canvas.Api.Tests` now covers PXA migration alias routes for framework discovery and code conversion.
       `Canvas.Api.Tests` now covers PXA document alias routes for find/replace, clone, and image conversion
       unsupported-format handling.
+      `Canvas.Api.Tests` now covers PXA spreadsheet alias routes for JSON-to-workbook creation and
+      workbook validation.
 - [ ] `npm run build` in `ui-designer-v2`.
 - [ ] Relevant Jest tests in `ui-designer-v2`.
 - [ ] MCP smoke test if `tools/Canvas.Mcp` is renamed or rebranded.

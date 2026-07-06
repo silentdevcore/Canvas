@@ -13,6 +13,7 @@ namespace Canvas.WebApi.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/spreadsheet")]
+[Route("api/pxa/spreadsheet")]
 public class SpreadsheetController : ControllerBase
 {
     private const string XlsxMime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
