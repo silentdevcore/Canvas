@@ -15,6 +15,7 @@ namespace Canvas.WebApi.Controllers;
 
 [ApiController]
 [Route("api/migration")]
+[Route("api/pxa/migration")]
 public class MigrationController : ControllerBase
 {
     private readonly MigrationService _service;
