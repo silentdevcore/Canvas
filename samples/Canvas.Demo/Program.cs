@@ -1,13 +1,14 @@
 ﻿using Canvas.Pdf;
+using PXA.Generator;
 using System.Globalization;
 
-var document = new PdfDocument(defaultFont: PdfStandardFonts.FromStyle(PdfFontFamily.Times));
-document.Info.Title = "Canvas Minimal PDF Demo";
-document.Info.Author = "Canvas.Pdf";
+var document = Pdf.CreateDocument(PdfStandardFonts.FromStyle(PdfFontFamily.Times));
+document.Info.Title = "PXA Minimal PDF Demo";
+document.Info.Author = "Power Dox Automation";
 document.Info.Subject = "Vector drawing and text rendering";
-document.Info.Keywords = "canvas,pdf,demo";
-document.Info.Creator = "Console Demo";
-document.Info.Producer = ".NET 10 Minimal PDF Engine";
+document.Info.Keywords = "pxa,pdf,demo,power-dox-automation";
+document.Info.Creator = "PXA Demo";
+document.Info.Producer = "Power Dox Automation PDF Engine";
 
 var firstPage = document.AddPage();
 var secondPage = document.AddPage();
@@ -400,7 +401,7 @@ document.AddPageNumbers(new PdfPageNumberOptions
 
 document.AddHeadersAndFooters(new PdfHeaderFooterOptions
 {
-    HeaderTemplate = "Canvas.Pdf Demo - Section {sectionindex}/{sections}: {section} ({sectionpage}/{sectiontotal}, pages {sectionstart}-{sectionend})\n{date} {time}",
+    HeaderTemplate = "PXA PDF Demo - Section {sectionindex}/{sections}: {section} ({sectionpage}/{sectiontotal}, pages {sectionstart}-{sectionend})\n{date} {time}",
     FooterTemplate = "Page {page} of {total} | Section {sectionpage}/{sectiontotal}\n{title} | {author} | {creationdate} | {keywords}",
     HeaderAlignment = PdfTextAlignment.Left,
     FooterAlignment = PdfTextAlignment.Right,

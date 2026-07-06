@@ -179,6 +179,10 @@ server restarts are part of this step.
       accepts `PXA_API_URL` while retaining `CANVAS_API_URL`, and publishes `pxa://...` resources while
       retaining legacy `canvas://...` aliases. The folder remains `tools/Canvas.Mcp` until the later
       physical rename phase.
+      Sample identity started: `samples/Canvas.Demo` now builds an assembly/root namespace named
+      `PXA.Demo`, creates the PDF through the `PXA.Generator` facade, and uses PXA-facing demo metadata
+      and renderer notes. The folder and legacy `Canvas.*` project references remain until the later
+      physical rename phase.
 - [ ] Phase 9: optional later physical rename of solution, project files, folders, and test assemblies.
 
 ## Future Test Plan
