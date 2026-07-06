@@ -154,7 +154,7 @@ server restarts are part of this step.
       while legacy `/api/pdf-viewer/*` routes remain compatible.
       Auth remains intentionally on the platform route `/api/auth`; no `/api/pxa/auth` alias is planned
       unless all public platform routes are later duplicated under PXA.
-- [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
+- [x] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
       Started visible branding in `ui-designer-v2`: browser title/loading text, package metadata,
       app header logo/accessibility label, home hero/feature copy, importer format copy, and migrations hub
       product copy now use Power Dox Automation/PXA. The migrations conversion page now uses PXA wording
@@ -164,6 +164,10 @@ server restarts are part of this step.
       marking current `Canvas.*` project paths and namespaces as legacy compatibility where needed.
       Smaller UI surfaces now use PXA wording for spreadsheet import, workbook JSON errors,
       code-panel descriptions, generated PDF-code comments, starter text, and global style comments.
+      Final inventory leaves only intentional technical canvas terms, legacy compatibility references,
+      localStorage/sessionStorage keys, current legacy project paths, and sample content. The legacy
+      `ui-designer` folder remains historical for now and is deferred to Phase 8/9 instead of being
+      renamed in this UI-branding slice.
       Technical HTML canvas terms, localStorage keys, and legacy `Canvas.Pdf` API references remain
       unchanged for compatibility until their specific surfaces are migrated.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
