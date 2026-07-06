@@ -1,7 +1,8 @@
-# Canvas.Pdf C# Cookbook
+# PXA PDF C# Cookbook
 
-Task-oriented recipes for the imperative `Canvas.Pdf` API. Every snippet is self-contained — add
-`using Canvas.Pdf;`, build a `PdfDocument`, and call `ToBytes()` to get the PDF bytes.
+Task-oriented recipes for the imperative PXA-compatible PDF API. Every snippet is self-contained — add
+`using Canvas.Pdf;` plus `using PXA.Generator;`, create a `PdfDocument` with `Pdf.CreateDocument()`, and
+call `ToBytes()` to get the PDF bytes.
 
 > **Coordinates** are in points (1/72"). The origin is the **bottom-left** of the page; `x` increases to
 > the right and `y` increases upward. Many `Draw*` methods have a `*FromTop` variant that measures `y`
@@ -11,10 +12,11 @@ Task-oriented recipes for the imperative `Canvas.Pdf` API. Every snippet is self
 
 ```csharp
 using Canvas.Pdf;
+using PXA.Generator;
 
-var document = new PdfDocument();
+var document = Pdf.CreateDocument();
 document.Info.Title = "Hello";
-document.Info.Author = "Canvas.Pdf";
+document.Info.Author = "Power Dox Automation";
 
 var page = document.AddPage();                 // A4 portrait by default
 page.DrawText("Hello world", x: 40, y: 800, fontSize: 18);

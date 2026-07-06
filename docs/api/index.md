@@ -1,6 +1,7 @@
 # API Reference
 
-Generated from the XML documentation comments on the public `Canvas.Pdf` and `Canvas.Core.Contracts` types.
+Generated from the XML documentation comments on the public PXA-compatible PDF surface, currently backed by
+the legacy `Canvas.Pdf` and `Canvas.Core.Contracts` types.
 
 Start with:
 

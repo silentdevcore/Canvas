@@ -183,6 +183,10 @@ server restarts are part of this step.
       `PXA.Demo`, creates the PDF through the `PXA.Generator` facade, and uses PXA-facing demo metadata
       and renderer notes. The folder and legacy `Canvas.*` project references remain until the later
       physical rename phase.
+      Active docs/AI references started: `llms.txt`, `llms-full.txt`, DocFX landing/config files,
+      cookbook intro, documentation approach, and schema descriptions now present Power Dox Automation/PXA
+      as the primary identity while preserving legacy `Canvas.*` xrefs, project paths, and schema URIs
+      for compatibility.
 - [ ] Phase 9: optional later physical rename of solution, project files, folders, and test assemblies.
 
 ## Future Test Plan

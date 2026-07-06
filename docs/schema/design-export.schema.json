@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://canvas/schema/design-export.schema.json",
   "title": "DesignExportDto",
-  "description": "A Canvas document design. POST to /api/export or /api/templates/render-design (optionally with a data payload for binding) to produce a PDF/Word/etc. file. Mirrors src/Canvas.Core/Contracts/DesignExportDto.cs.",
+  "description": "A PXA document design, currently using the legacy Canvas schema URI for compatibility. POST to /api/export or /api/templates/render-design (optionally with a data payload for binding) to produce a PDF/Word/etc. file. Mirrors src/Canvas.Core/Contracts/DesignExportDto.cs.",
   "type": "object",
   "required": ["id", "name", "pages"],
   "properties": {

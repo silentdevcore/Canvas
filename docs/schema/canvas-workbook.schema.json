@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://canvas/schema/canvas-workbook.schema.json",
-  "title": "Canvas Workbook JSON",
-  "description": "The canonical Canvas spreadsheet workbook format (camelCase). POST to /api/spreadsheet/export (→ .xlsx/.xls/.csv/.tsv), /calculate, /render, /sort, /find-replace, /fill. Round-trips to .xlsx via ClosedXML. Mirrors src/Canvas.Core/Contracts/SpreadsheetDto.cs.",
+  "title": "PXA Workbook JSON",
+  "description": "The canonical PXA spreadsheet workbook format (camelCase), currently served from the legacy Canvas schema URI for compatibility. POST to /api/spreadsheet/export (→ .xlsx/.xls/.csv/.tsv), /calculate, /render, /sort, /find-replace, /fill. Round-trips to .xlsx via ClosedXML. Mirrors src/Canvas.Core/Contracts/SpreadsheetDto.cs.",
   "type": "object",
   "required": ["id", "name", "sheets"],
   "properties": {
     "$schema": { "type": "string", "description": "Optional JSON Schema URL for tooling validation." },
-    "schemaVersion": { "type": "string", "description": "Canvas Workbook JSON format version, e.g. \"1.0\". Defaults to \"1.0\" when absent." },
+    "schemaVersion": { "type": "string", "description": "PXA Workbook JSON format version, e.g. \"1.0\". Defaults to \"1.0\" when absent." },
     "id": { "type": "string", "description": "Unique workbook id." },
     "name": { "type": "string", "description": "Human-readable workbook name." },
     "sheets": { "type": "array", "description": "Worksheets, in order.", "items": { "$ref": "#/$defs/sheet" } },

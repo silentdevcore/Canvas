@@ -1,4 +1,4 @@
-# Canvas documentation
+# Power Dox Automation / PXA Documentation
 
 This folder holds the **generated C# API reference** (DocFX) and hand-written guides. The visual-designer
 element docs live in the app (the **Elements Reference** at `/docs`), driven by
@@ -6,8 +6,8 @@ element docs live in the app (the **Elements Reference** at `/docs`), driven by
 
 ## Build the C# API reference (DocFX)
 
-XML doc comments are emitted automatically (`GenerateDocumentationFile` is enabled on
-`Canvas.Infrastructure.Pdf` and `Canvas.Core`). To produce the HTML reference:
+XML doc comments are emitted automatically (`GenerateDocumentationFile` is enabled on the current legacy
+`Canvas.Infrastructure.Pdf` and `Canvas.Core` projects). To produce the HTML reference:
 
 ```bash
 # one-time: install the DocFX global tool

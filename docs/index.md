@@ -1,13 +1,15 @@
-# Canvas.Pdf API Reference
+# PXA PDF API Reference
 
-`Canvas.Pdf` is the imperative C# API for generating PDFs in code. Create a
+The PXA PDF API is the imperative C# surface for generating PDFs in code. During the compatibility phase it
+uses the legacy [`Canvas.Pdf`](xref:Canvas.Pdf.PdfDocument) types underneath. Create a
 [`PdfDocument`](xref:Canvas.Pdf.PdfDocument), add [`PdfPage`](xref:Canvas.Pdf.PdfPage)s, draw on them, and
 call `ToBytes()`.
 
 ```csharp
 using Canvas.Pdf;
+using PXA.Generator;
 
-var document = new PdfDocument();
+var document = Pdf.CreateDocument();
 document.Info.Title = "Hello";
 
 var page = document.AddPage();                 // A4 by default

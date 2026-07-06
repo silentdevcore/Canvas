@@ -1,13 +1,13 @@
-# Canvas — full AI reference
+# Power Dox Automation / PXA — full AI reference
 
-Canvas generates documents two ways: a declarative **design JSON** (`DesignExportDto`) posted to the API,
-or imperative **C# code** (`Canvas.Pdf`). This file is a snapshot derived from the element catalog
+Power Dox Automation (PXA) generates documents two ways: a declarative **design JSON** (`DesignExportDto`) posted to the API,
+or imperative **C# code** with the PXA-compatible PDF API. This file is a snapshot derived from the element catalog
 (`ui-designer-v2/src/docs/elementCatalog.ts`) and the API. Validate generated design JSON against
 `docs/schema/design-export.schema.json` before posting.
 
 ## The generate → validate → render loop
 
-1. Build a `DesignExportDto` (or `Canvas.Pdf` C#).
+1. Build a `DesignExportDto` (or PXA-compatible PDF C#).
 2. Validate the JSON against `docs/schema/design-export.schema.json` (required: `id`, `name`, `pages`;
    each element needs `id`, `type` (from the enum below), `x`, `y`, `width`, `height`).
 3. Render: `POST /api/templates/render-design` (raw design → PDF) or `POST /api/export`
@@ -89,11 +89,12 @@ contentcontrol.
 - **comment** [PDF/Word/HTML] — review comment. Props: `commentAuthor`, `commentText`, `commentDate`.
 - **contentcontrol** [PDF/Word/HTML] — Word SDT. Props: `contentControlType`, `contentControlTag`, `contentControlTitle`.
 
-## Canvas.Pdf C# API (essentials)
+## PXA-Compatible PDF C# API (essentials)
 
 ```csharp
 using Canvas.Pdf;
-var document = new PdfDocument();              // AddPage(), AddPage(PdfPagePreset.Letter), AddPage(width,height)
+using PXA.Generator;
+var document = Pdf.CreateDocument();           // AddPage(), AddPage(PdfPagePreset.Letter), AddPage(width,height)
 document.Info.Title = "Report";
 var page = document.AddPage();
 page.DrawText("Title", x: 40, y: 800, new PdfDrawTextOptions { FontSize = 18, Bold = true });
@@ -115,7 +116,7 @@ Colors: `new PdfColor(r,g,b)` (0–1), `new PdfGrayColor(v)`, `new PdfCmykColor(
 - `POST /api/templates/render-design` — raw `DesignExportDto` → PDF.
 - `POST /api/export` — `{ design, format, data? }` → file (pdf|docx|html|xlsx|csv|md|odt|svg|png|jpeg|tiff).
 - `POST /api/templates/validate` — validate without rendering.
-- `POST /api/templates/csharp-code-to-pdf` — compile `Canvas.Pdf` C# → PDF.
+- `POST /api/templates/csharp-code-to-pdf` — compile PXA-compatible PDF C# → PDF.
 - `POST /api/templates/csharp-to-json` / `csharp-code-to-json` — C# → DesignExportDto JSON.
 - `GET  /api/export/formats` — list export formats.
 - Full HTTP surface: `docs/schema/openapi.json`.
