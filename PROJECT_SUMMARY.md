@@ -1,8 +1,8 @@
-# Canvas - Project Summary
+# Power Dox Automation / PXA - Project Summary
 
 ## Overview
 
-Canvas is a document automation platform with a visual template designer, data binding, multi-language output, multi-format export/import, PDF code migration, and report-to-design migration. The active stack is a .NET 10 API plus the `ui-designer-v2` React/TypeScript frontend.
+Power Dox Automation (PXA) is a document automation platform with a visual template designer, data binding, multi-language output, multi-format export/import, PDF code migration, and report-to-design migration. The active stack is a .NET 10 API plus the `ui-designer-v2` React/TypeScript frontend. PXA is currently additive: public `PXA.*` facades sit over the existing legacy `Canvas.*` implementation projects.
 
 ---
 
@@ -12,15 +12,15 @@ Canvas is a document automation platform with a visual template designer, data b
 |-------|------------|
 | Frontend | React 18, TypeScript, Vite, Zustand, react-icons |
 | Backend | .NET 10, ASP.NET Core |
-| PDF export | Custom `Canvas.Pdf` renderer/writer, no external PDF library |
-| PDF import/edit model | `Canvas.Importer` low-level parser, scene graph, editing model, regeneration bridge |
+| PDF export | PXA-compatible PDF renderer/writer backed by legacy `Canvas.Pdf`, no external PDF library |
+| PDF import/edit model | PXA importer facade backed by legacy `Canvas.Importer` low-level parser, scene graph, editing model, regeneration bridge |
 | DOCX export/import | DocumentFormat.OpenXml 3.5.1 |
 | DOCX digital signing | System.Security.Cryptography.Xml 10.0.8 |
 | Excel export | ClosedXML |
-| File importers | Dedicated `Canvas.FileImporter.*` projects |
-| Migration | `Canvas.Migration.*` provider projects, Roslyn helpers, report converters |
+| File importers | Dedicated `PXA.FileImporter.*` facades over legacy `Canvas.FileImporter.*` projects |
+| Migration | `PXA.Migration.*` facades over legacy `Canvas.Migration.*` provider projects, Roslyn helpers, report converters |
 | ODT import/export | System.IO.Compression + LINQ to XML |
-| Image analysis/OCR | `Canvas.FileImporter.ImageAnalysis`, `Canvas.FileImporter.ImageOcr`, isolated OCR worker |
+| Image analysis/OCR | `PXA.FileImporter.ImageAnalysis`, `PXA.FileImporter.ImageOcr`, legacy Canvas implementations, isolated OCR worker |
 
 ---
 
@@ -28,14 +28,15 @@ Canvas is a document automation platform with a visual template designer, data b
 
 | Group | Projects | Role |
 |-------|----------|------|
+| PXA public facades | `PXA.Generator`, `PXA.Importer`, `PXA.FileImporter.*`, `PXA.Migration.*`, `PXA.Core`, `PXA.Application`, `PXA.Domain`, `PXA.Infrastructure.*` | Additive public identity and compatibility bridges |
 | Core | `Canvas.Core` | Contracts, DTOs, abstractions, capabilities, primitives |
 | Application | `Canvas.Application` | Use-case orchestration |
-| PDF engine | `Canvas`, `Canvas.Infrastructure.Pdf` | Direct PDF generation API and renderer facade |
+| PDF engine | `Canvas`, `Canvas.Infrastructure.Pdf` | Legacy direct PDF generation API and renderer facade |
 | Other exporters | `Canvas.Infrastructure.Word`, `Canvas.Infrastructure.Sheet`, `Canvas.Infrastructure.Converters` | DOCX/XLSX/ODT/HTML/CSV/Markdown/Image/TIFF and related services |
 | File importers | `Canvas.FileImporter.Abstractions`, `Canvas.FileImporter.*` | PDF, DOCX, DOC, ODT, PPTX, SVG, Image, ImageAnalysis, OCR import paths |
-| PDF importer SDK | `Canvas.Importer` | PDF parser, editable DOM, graphics interpretation, regeneration bridge |
-| Migrations | `Canvas.Migration.Abstractions`, `Canvas.Migration.Roslyn`, `Canvas.Migration.*` | Vendor code migration and report-to-design conversion |
-| API | `Canvas.WebApi` | Presentation layer and composition root |
+| PDF importer SDK | `Canvas.Importer` | Legacy PDF parser, editable DOM, graphics interpretation, regeneration bridge |
+| Migrations | `Canvas.Migration.Abstractions`, `Canvas.Migration.Roslyn`, `Canvas.Migration.*` | Legacy provider implementations for vendor code migration and report-to-design conversion |
+| API | `Canvas.WebApi` | Presentation layer and composition root with legacy and PXA route aliases |
 | Domain compatibility | `Canvas.Domain` | Legacy/domain models used by compatibility paths |
 
 ---
@@ -92,7 +93,7 @@ POST   /api/document/extract-pages         Extract pages
 POST   /api/document/sign-docx             Apply X.509 digital signature
 POST   /api/document/convert-image-to-pdf  Convert raster image to PDF
 
-POST   /api/document/import-pdf-engine     Import PDF through Canvas.Importer
+POST   /api/document/import-pdf-engine     Import PDF through the PXA importer facade
 POST   /api/document/debug-pdf-engine      Debug PDF importer output
 POST   /api/document/import-docx           Import DOCX
 POST   /api/document/import-doc            Import DOC
@@ -103,9 +104,9 @@ POST   /api/document/import-pptx           Import PPTX
 POST   /api/document/import-image-analysis Import image through analysis pipeline
 
 GET    /api/migration/frameworks           List migration frameworks
-POST   /api/migration/convert              Convert vendor PDF code to Canvas.Pdf
+POST   /api/migration/convert              Convert vendor PDF code to PXA-compatible PDF C#
 POST   /api/migration/report-to-design     Convert report source to DesignExportDto
-POST   /api/migration/preview              Preview migrated Canvas.Pdf code
+POST   /api/migration/preview              Preview migrated PXA-compatible PDF code
 
 GET    /api/templates                      List templates
 POST   /api/templates                      Create template
