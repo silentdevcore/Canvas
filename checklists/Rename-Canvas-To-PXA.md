@@ -193,6 +193,8 @@ server restarts are part of this step.
       public entry points, and legacy Canvas project boundaries until the later physical rename phase.
       `PROJECT_SUMMARY.md` now presents PXA as the primary product identity, adds the PXA facade project
       group, and keeps `Canvas.*` project/test names as current legacy implementation inventory.
+      `TESTING.md` now describes PXA-compatible PDF code/output and editable PXA design targets while
+      keeping current `Canvas.*.Tests` project names as the real test inventory.
 - [ ] Phase 9: optional later physical rename of solution, project files, folders, and test assemblies.
 
 ## Future Test Plan

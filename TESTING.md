@@ -6,13 +6,13 @@
 |-------|----------|-------|
 | Core and application | `tests/Canvas.Core.Tests`, `tests/Canvas.Application.Tests` | Contracts, primitives, expression engine, formatters, use-case orchestration |
 | API | `tests/Canvas.Api.Tests` | Controller integration and WebApi wiring |
-| PDF engine | `tests/Canvas.Infrastructure.Pdf.Tests` | `Canvas.Pdf` writer, encryption, diagnostics, PDF rendering services, golden snapshots |
+| PDF engine | `tests/Canvas.Infrastructure.Pdf.Tests` | PXA-compatible PDF writer, encryption, diagnostics, PDF rendering services, golden snapshots |
 | Export integration | `tests/Canvas.Export.Tests` | DOCX, ODT, XLSX, HTML, CSV, Markdown, PDF, image/TIFF, localization, security, fidelity |
 | PDF importer SDK | `tests/Canvas.Importer.Tests` | Tokenizer, object parsing, stream/content parsing, graphics interpretation, editable model |
 | File importers | `tests/Canvas.FileImporter.Pdf.Tests`, `Docx`, `Doc`, `Odt`, `Pptx`, `Svg`, `Image` | File-to-`DesignExportDto` adapters |
 | Image analysis/OCR | `tests/Canvas.FileImporter.ImageAnalysis.Tests`, `tests/Canvas.FileImporter.ImageOcr.Tests` | Raster analysis, OCR pipeline, visual fusion, image-to-PDF behavior |
-| PDF migration providers | `tests/Canvas.Migration.*.Tests` provider projects | Vendor C# PDF code migration to `Canvas.Pdf` |
-| Report migration | `tests/Canvas.Migration.DevExpressReport.Tests`, `tests/Canvas.Migration.Rdl.Tests`, `tests/Canvas.Migration.Rpx.Tests` | Report source to editable Canvas design |
+| PDF migration providers | `tests/Canvas.Migration.*.Tests` provider projects | Vendor C# PDF code migration to PXA-compatible PDF code |
+| Report migration | `tests/Canvas.Migration.DevExpressReport.Tests`, `tests/Canvas.Migration.Rdl.Tests`, `tests/Canvas.Migration.Rpx.Tests` | Report source to editable PXA design |
 | Frontend | `ui-designer-v2` Jest tests | Editor, services, template utilities, export service, validation |
 
 ---
