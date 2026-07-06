@@ -6,6 +6,7 @@ namespace Canvas.WebApi.Controllers;
 
 [ApiController]
 [Route("api/pdf-viewer/annotations")]
+[Route("api/pxa/pdf-viewer/annotations")]
 public sealed class PdfViewerAnnotationsController : ControllerBase
 {
     private readonly PdfViewerAnnotationStore _store;

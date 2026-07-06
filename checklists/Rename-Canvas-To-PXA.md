@@ -150,6 +150,8 @@ server restarts are part of this step.
       covering document operations and image-to-PDF conversion routes.
       Spreadsheet API alias added with `/api/pxa/spreadsheet` while legacy `/api/spreadsheet` remains compatible.
       Templates API alias added with `/api/pxa/templates` while legacy `/api/templates` remains compatible.
+      PDF Viewer API aliases added with `/api/pxa/pdf-viewer/annotations` and `/api/pxa/pdf-viewer/forms`
+      while legacy `/api/pdf-viewer/*` routes remain compatible.
 - [ ] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
 - [ ] Phase 8: update MCP/sample/docs/package identities:
       - `tools/Canvas.Mcp` -> `tools/PXA.Mcp` or package `pxa-mcp`
@@ -239,6 +241,8 @@ server restarts are part of this step.
       `Canvas.Api.Tests` now covers PXA spreadsheet alias routes for JSON-to-workbook creation and
       workbook validation.
       `Canvas.Api.Tests` now covers PXA templates alias routes for template listing and validation.
+      `Canvas.Api.Tests` now covers PXA PDF Viewer alias routes for annotation sidecar save/get
+      and form field extraction.
 - [ ] `npm run build` in `ui-designer-v2`.
 - [ ] Relevant Jest tests in `ui-designer-v2`.
 - [ ] MCP smoke test if `tools/Canvas.Mcp` is renamed or rebranded.

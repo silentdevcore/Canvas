@@ -116,6 +116,31 @@ public sealed class PdfViewerFormsControllerTests : IClassFixture<WebApplication
     }
 
     [Fact]
+    public async Task ExtractForms_PxaRoute_ReturnsAcroFormFields()
+    {
+        var inputPdf = CreateSampleFormPdf();
+        using var form = new MultipartFormDataContent();
+        form.Add(new ByteArrayContent(inputPdf)
+        {
+            Headers =
+            {
+                ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf"),
+            },
+        }, "file", "form.pdf");
+
+        var response = await _client.PostAsync("/api/pxa/pdf-viewer/forms/extract", form);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var fields = json.RootElement.GetProperty("fields");
+        Assert.Equal(4, fields.GetArrayLength());
+        Assert.Contains(fields.EnumerateArray(), field =>
+            field.GetProperty("name").GetString() == "customer.name" &&
+            field.GetProperty("value").GetString() == "Ada");
+    }
+
+    [Fact]
     public async Task FillForms_WithFlatten_ReturnsPdfWithoutEditableFieldsAndWithVisibleValues()
     {
         var inputPdf = CreateSampleFormPdf();

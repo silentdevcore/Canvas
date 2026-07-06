@@ -6,6 +6,7 @@ namespace Canvas.WebApi.Controllers;
 
 [ApiController]
 [Route("api/pdf-viewer/forms")]
+[Route("api/pxa/pdf-viewer/forms")]
 public sealed class PdfViewerFormsController : ControllerBase
 {
     private readonly PdfViewerFormExtractionService _extractionService;

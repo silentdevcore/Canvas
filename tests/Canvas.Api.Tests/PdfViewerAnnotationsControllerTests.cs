@@ -107,6 +107,49 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
     }
 
     [Fact]
+    public async Task SaveAndGetAnnotations_PxaRoute_RoundTripsSidecar()
+    {
+        var documentId = $"pxa-doc-{Guid.NewGuid():N}";
+        var request = new
+        {
+            documentId,
+            version = 1,
+            sourceName = "pxa-review.pdf",
+            annotations = new object[]
+            {
+                new
+                {
+                    id = "note1",
+                    type = "note",
+                    pageNumber = 1,
+                    xPct = 10,
+                    yPct = 10,
+                    widthPct = 20,
+                    heightPct = 8,
+                    text = "PXA note",
+                    author = "Reviewer",
+                    createdAt = "2026-06-25T10:00:00Z",
+                    color = "#facc15",
+                    locked = false,
+                },
+            },
+        };
+
+        var saveResponse = await _client.PostAsJsonAsync("/api/pxa/pdf-viewer/annotations", request);
+        var getResponse = await _client.GetAsync($"/api/pxa/pdf-viewer/annotations/{documentId}");
+
+        Assert.Equal(HttpStatusCode.OK, saveResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+
+        using var json = JsonDocument.Parse(await getResponse.Content.ReadAsStringAsync());
+        var root = json.RootElement;
+        Assert.Equal(documentId, root.GetProperty("documentId").GetString());
+        Assert.Equal("pxa-review.pdf", root.GetProperty("sourceName").GetString());
+        Assert.Equal(1, root.GetProperty("annotationCount").GetInt32());
+        Assert.Equal("PXA note", root.GetProperty("annotations")[0].GetProperty("text").GetString());
+    }
+
+    [Fact]
     public async Task SaveAnnotations_RejectsUnsupportedVersion()
     {
         var response = await _client.PostAsJsonAsync("/api/pdf-viewer/annotations", new
