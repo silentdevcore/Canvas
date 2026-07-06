@@ -1,4 +1,4 @@
-# Canvas — Enterprise Document Automation Platform
+# Power Dox Automation / PXA — Enterprise Document Automation Platform
 
 A production-ready document automation platform with a visual template designer, a rich expression engine, and multi-format export/import. Comparable to commercial tools like CraftMyPDF, built on .NET 10 + React/TypeScript.
 
@@ -37,12 +37,12 @@ A production-ready document automation platform with a visual template designer,
 ### Import Formats
 | Format | Notes |
 |--------|-------|
-| PDF | `Canvas.Importer` editable PDF model - page tree, text, paths, inline images, XObject images, marked content, clipping, colors, fonts, shading operators; bridge regeneration currently covers text, vector paths, JPEG/Flate XObject images, soft masks, and compatibility-preserved shading/resource cases |
+| PDF | PXA importer facade backed by the legacy `Canvas.Importer` editable PDF model - page tree, text, paths, inline images, XObject images, marked content, clipping, colors, fonts, shading operators; bridge regeneration currently covers text, vector paths, JPEG/Flate XObject images, soft masks, and compatibility-preserved shading/resource cases |
 | DOCX | OpenXML SDK — paragraphs, tables, inline images, typography |
 | DOC | Pure C# CFBF parser — reads WordDocument stream via FIB offsets |
 | ODT | System.IO.Compression + LINQ to XML — paragraphs, styles, draw:frame images |
-| SVG | Dedicated SVG importer for vector-oriented Canvas designs |
-| PPTX | PowerPoint slide import into Canvas pages/elements |
+| SVG | Dedicated SVG importer for vector-oriented PXA designs |
+| PPTX | PowerPoint slide import into PXA pages/elements |
 | Images | Raster image import plus image-analysis/OCR conversion paths |
 
 ### Document Operations (API)
@@ -98,7 +98,7 @@ POST /api/document/clone          # Deep-clone a design with a new ID
 POST /api/document/extract-pages  # Extract a page subset into a new design
 POST /api/document/sign-docx      # Apply X.509 digital signature to a DOCX
 
-POST /api/document/import-pdf-engine      # Import PDF -> DesignExportDto through Canvas.Importer
+POST /api/document/import-pdf-engine      # Import PDF -> DesignExportDto through the PXA importer facade
 POST /api/document/debug-pdf-engine       # Debug PDF importer output
 POST /api/document/import-docx    # Import DOCX → DesignExportDto
 POST /api/document/import-doc     # Import DOC (Word 97-2003) → DesignExportDto
@@ -113,9 +113,9 @@ POST /api/document/convert-image-to-pdf   # Convert raster image to PDF
 ### Migrations
 ```
 GET  /api/migration/frameworks        # List supported code migration frameworks
-POST /api/migration/convert           # Convert vendor PDF code to Canvas.Pdf C#
+POST /api/migration/convert           # Convert vendor PDF code to PXA-compatible PDF C#
 POST /api/migration/report-to-design  # Convert report source (XtraReport/REPX/RDL/RPX) to DesignExportDto
-POST /api/migration/preview           # Render migrated Canvas.Pdf code as PDF preview
+POST /api/migration/preview           # Render migrated PXA-compatible PDF code as PDF preview
 ```
 
 ### Templates
@@ -144,18 +144,19 @@ GET  /api/auth/me
 ## Architecture
 
 ```
-Canvas.WebApi                  ← ASP.NET Core presentation layer
+Canvas.WebApi                  ← ASP.NET Core presentation layer (legacy project name; PXA API aliases exist)
   ↓
-Canvas.Application             ← Use-case orchestration (FindAndReplace, Clone, ExtractPages, …)
+Canvas.Application             ← Use-case orchestration (legacy project name)
   ↓
-Canvas.Core                    ← Contracts, DTOs, abstractions (IDocumentRenderer, etc.)
+Canvas.Core                    ← Contracts, DTOs, abstractions (legacy project name)
   ↑ (all infrastructure projects implement Canvas.Core contracts)
-Canvas.Infrastructure.Pdf      ← Custom PDF renderer (no external PDF library)
-Canvas.Importer                ← Editable PDF parsing/model/rewrite/regeneration bridge contracts and importer pipeline
+PXA.* facade projects          ← Additive public PXA identity for generator/importer/migration surfaces
+Canvas.Infrastructure.Pdf      ← Custom PDF renderer (legacy project name)
+Canvas.Importer                ← Editable PDF parsing/model/rewrite/regeneration bridge internals
 Canvas.Infrastructure.Word     ← DOCX exporter, DocxImporter, DigitalSigningService, style/footnote/comment services
 Canvas.Infrastructure.Sheet    ← XLSX exporter via ClosedXML
 Canvas.Infrastructure.Converters ← ODT, HTML, CSV, Markdown, Image, TIFF exporters; PDF/DOC/ODT importers
-Canvas.Domain                  ← Domain models
+Canvas.Domain                  ← Legacy/domain compatibility models
 ```
 
 Frontend (`ui-designer-v2/`):
@@ -180,11 +181,11 @@ src/
 | Frontend | React 18, TypeScript, Vite, Zustand, react-icons |
 | Backend | .NET 10, ASP.NET Core |
 | PDF export | Custom .NET renderer (no iTextSharp/PDFsharp) |
-| PDF edit/regenerate | `Canvas.Importer` + `Canvas.Infrastructure.Pdf` bridge |
+| PDF edit/regenerate | PXA importer facade backed by `Canvas.Importer` + `Canvas.Infrastructure.Pdf` bridge |
 | DOCX export/import | DocumentFormat.OpenXml 3.5.1 |
 | DOCX signing | System.Security.Cryptography.Xml 10.0.8 (RSA-SHA256 XML-DSig) |
 | Excel | ClosedXML |
-| PDF import | `Canvas.Importer` low-level parser/object graph/editor pipeline |
+| PDF import | PXA importer facade backed by `Canvas.Importer` low-level parser/object graph/editor pipeline |
 | DOC import | Pure C# CFBF parser |
 | ODT import/export | System.IO.Compression + LINQ to XML (ODF 1.3) |
 | Image export | System.Drawing / SkiaSharp |
@@ -215,8 +216,8 @@ cd ui-designer-v2 && npm run build
 cd Canvas.WebApi && dotnet publish -c Release
 
 # Docker
-docker build -t canvas-api ./Canvas.WebApi
-docker build -t canvas-ui ./ui-designer-v2
+docker build -t pxa-api ./Canvas.WebApi
+docker build -t pxa-ui ./ui-designer-v2
 docker-compose up -d
 ```
 
@@ -232,13 +233,13 @@ To enable non-Latin PDF export, place Noto font files in the `fonts/` directory 
 |---|---|
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Project layer diagram and responsibilities |
 | [`PROJECT_SUMMARY.md`](PROJECT_SUMMARY.md) | Compact project inventory, endpoints, project groups, and test groups |
-| [`Canvas/TECHNICAL_DOCUMENTATION.md`](Canvas/TECHNICAL_DOCUMENTATION.md) | Full API reference for the PDF engine (per-element multi-language § 25; document localization § 26) |
+| [`Canvas/TECHNICAL_DOCUMENTATION.md`](Canvas/TECHNICAL_DOCUMENTATION.md) | Legacy-path technical reference for the PXA-compatible PDF engine (per-element multi-language § 25; document localization § 26) |
 | [`ui-designer-v2/MULTILANGUAGE.md`](ui-designer-v2/MULTILANGUAGE.md) | UI guide for per-element language and RTL controls |
 | [`fonts/README.md`](fonts/README.md) | Noto font download and deployment instructions |
 | [`CONTRIBUTING_RENDERERS.md`](CONTRIBUTING_RENDERERS.md) | How to add renderers, importers, migrations, and report converters |
 | [`TESTING.md`](TESTING.md) | Test structure and conventions |
 | [`checklists/Documentation-Audit.md`](checklists/Documentation-Audit.md) | Documentation ownership map and update tracker |
-| [`checklists/CanvasPdf-Provider-Feature-Gaps.md`](checklists/CanvasPdf-Provider-Feature-Gaps.md) | Canvas.Pdf feature gaps compared with major PDF providers |
+| [`checklists/CanvasPdf-Provider-Feature-Gaps.md`](checklists/CanvasPdf-Provider-Feature-Gaps.md) | PXA-compatible PDF feature gaps compared with major PDF providers |
 
 ### Documentation Map
 
@@ -246,7 +247,7 @@ To enable non-Latin PDF export, place Noto font files in the `fonts/` directory 
 |---|---|
 | Architecture and boundaries | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
 | Product/project inventory | [`PROJECT_SUMMARY.md`](PROJECT_SUMMARY.md) |
-| PDF engine API | [`Canvas/TECHNICAL_DOCUMENTATION.md`](Canvas/TECHNICAL_DOCUMENTATION.md) and [`Canvas/README.md`](Canvas/README.md) |
+| PDF engine API | [`docs/index.md`](docs/index.md), [`Canvas/TECHNICAL_DOCUMENTATION.md`](Canvas/TECHNICAL_DOCUMENTATION.md), and [`Canvas/README.md`](Canvas/README.md) |
 | Renderer/importer/migration contributions | [`CONTRIBUTING_RENDERERS.md`](CONTRIBUTING_RENDERERS.md) |
 | Test commands and project groups | [`TESTING.md`](TESTING.md) |
 | PDF provider migration status | [`checklists/Code-Migrations.md`](checklists/Code-Migrations.md) |

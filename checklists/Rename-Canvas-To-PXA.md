@@ -187,6 +187,8 @@ server restarts are part of this step.
       cookbook intro, documentation approach, and schema descriptions now present Power Dox Automation/PXA
       as the primary identity while preserving legacy `Canvas.*` xrefs, project paths, and schema URIs
       for compatibility.
+      Root `README.md` now presents Power Dox Automation/PXA as the primary product identity, describes
+      PXA importer/generator/migration surfaces, and keeps current `Canvas.*` paths as legacy project names.
 - [ ] Phase 9: optional later physical rename of solution, project files, folders, and test assemblies.
 
 ## Future Test Plan
