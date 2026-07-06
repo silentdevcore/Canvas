@@ -12,6 +12,7 @@ namespace Canvas.WebApi.Controllers;
 
 [ApiController]
 [Route("api/templates")]
+[Route("api/pxa/templates")]
 public class TemplatesController : ControllerBase
 {
     private readonly RenderTemplateUseCase _renderTemplateUseCase;
