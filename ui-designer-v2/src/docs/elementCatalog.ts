@@ -3,7 +3,7 @@
 // One entry per frontend ElementType. Drives the in-app docs (DocsPage), the Help dialog (HelpModal),
 // the AI artifacts (llms.txt / JSON examples), and a drift-guard test that keeps this in lock-step with
 // the ElementType union. Grounded in the backend ElementDto (src/Canvas.Core/Contracts/DesignExportDto.cs)
-// and the per-format renderer switches (Canvas.WebApi/Infrastructure/DesignJsonMapper.cs,
+// and the per-format renderer switches (legacy Canvas.WebApi/Infrastructure/DesignJsonMapper.cs,
 // src/Canvas.Infrastructure.Word/WordDocumentExporter.cs).
 //
 // Common element properties (id, type, x, y, width, height, name, hidden, locked, style, binding,
@@ -42,7 +42,7 @@ export interface ElementDoc {
   properties: ElementProperty[];
   /** A minimal ElementDto for this element; wrap with toDesign() for a complete DesignExportDto. */
   example: Record<string, unknown>;
-  /** Optional equivalent using the imperative Canvas.Pdf C# API. */
+  /** Optional equivalent using the imperative PXA-compatible PDF C# API. */
   csharpExample?: string;
 }
 

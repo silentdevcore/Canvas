@@ -133,7 +133,7 @@ const CodeViewer: React.FC<Props> = ({
 
         {exportState === 'error' && exportError && (
           <div className="code-panel-error">
-            Backend error: {exportError}. Make sure Canvas.WebApi is running on port 5086.
+            Backend error: {exportError}. Make sure the Power Dox Automation backend is running on port 5086.
           </div>
         )}
 
@@ -155,7 +155,7 @@ const CodeViewer: React.FC<Props> = ({
         <div className="code-panel-description">
           {activeTab === 'json'
             ? `Full template data as JSON for language: ${langLabel}`
-            : `C# code using Canvas.Pdf — placeholders resolved for ${langLabel}.`}
+            : `PXA-compatible PDF C# code — placeholders resolved for ${langLabel}.`}
         </div>
 
         <div className="code-panel-body">

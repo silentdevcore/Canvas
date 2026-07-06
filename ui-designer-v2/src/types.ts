@@ -256,7 +256,7 @@ export interface DocumentProtection {
   passwordHash?: string;
 }
 
-// ── PDF Encryption (Canvas.Pdf Standard Security Handler) ────────────────────
+// ── PDF Encryption (PXA-compatible Standard Security Handler) ────────────────
 
 export interface PdfEncryptionPermissions {
   print: boolean;

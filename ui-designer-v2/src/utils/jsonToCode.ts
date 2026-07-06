@@ -695,7 +695,7 @@ export function jsonToCode(design: ParsedDesign): string {
   const targetLanguage = resolveTargetLanguage(design);
 
   const lines: string[] = [
-    '// Canvas.Pdf Code Editor — generated from JSON design',
+    '// PXA PDF Code Editor — generated from JSON design',
     '// Rendering script for the selected language view; use C# DTO for lossless round-trip editing.',
     '',
     ...renderMetadataBlock(design, pageW, pageH, targetLanguage),
@@ -731,7 +731,7 @@ export function jsonToCode(design: ParsedDesign): string {
   return lines.join('\n');
 }
 
-// Emit the Canvas.Pdf encryption setup when the design enables PDF encryption.
+// Emit the PXA-compatible PDF encryption setup when the design enables PDF encryption.
 function renderEncryptionBlock(ps: any): string[] {
   const enc = ps?.encryption;
   if (!enc || !enc.enabled) return [];
@@ -763,7 +763,7 @@ function renderEncryptionBlock(ps: any): string[] {
   }
 
   return [
-    '// PDF encryption (Canvas.Pdf Standard Security Handler)',
+    '// PDF encryption (PXA-compatible Standard Security Handler)',
     'var saveOptions = new PdfSaveOptions',
     '{',
     '    Encryption = new PdfEncryptionOptions',

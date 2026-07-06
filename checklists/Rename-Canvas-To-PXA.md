@@ -162,6 +162,8 @@ server restarts are part of this step.
       panel labels. The in-app docs now use Power Dox Automation/PXA wording for import/export,
       migration, REST API, AI/codegen, spreadsheet, and documentation-map product descriptions while
       marking current `Canvas.*` project paths and namespaces as legacy compatibility where needed.
+      Smaller UI surfaces now use PXA wording for spreadsheet import, workbook JSON errors,
+      code-panel descriptions, generated PDF-code comments, starter text, and global style comments.
       Technical HTML canvas terms, localStorage keys, and legacy `Canvas.Pdf` API references remain
       unchanged for compatibility until their specific surfaces are migrated.
 - [ ] Phase 8: update MCP/sample/docs/package identities:

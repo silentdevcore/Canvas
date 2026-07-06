@@ -332,9 +332,9 @@ export const STARTER_LABELS: Record<StarterKey, string> = {
   multipage: 'Multi-Page',
 };
 
-// Canvas.Pdf API starter — script must return a PdfDocument as last expression
-export const CSHARP_CODE_STARTER = `// Canvas.Pdf Code Editor
-// Write any Canvas.Pdf API code here.
+// PXA-compatible PDF API starter — script must return a PdfDocument as last expression
+export const CSHARP_CODE_STARTER = `// PXA PDF Code Editor
+// Write PXA-compatible PDF API code here.
 // The last expression must be the PdfDocument instance.
 
 var document = new PdfDocument();
@@ -350,7 +350,7 @@ page.DrawRectangle(
     fillColor: new PdfColor(0.09, 0.23, 0.55),
     strokeColor: new PdfColor(0.09, 0.23, 0.55));
 
-page.DrawText("Hello from Canvas.Pdf!", x: 72, y: 768,
+page.DrawText("Hello from Power Dox Automation!", x: 72, y: 768,
     new PdfDrawTextOptions
     {
         FontSize = 22,
@@ -369,7 +369,7 @@ page.DrawText("Edit this code and click ▶ Run to see the result.", x: 72, y: 7
 
 // Body paragraph
 page.DrawParagraph(
-    "This is the Canvas.Pdf API — the same library used by the visual editor under the hood. " +
+    "This is the PXA-compatible PDF API — the same engine used by the visual editor under the hood. " +
     "You have access to rectangles, text, paragraphs, tables, images, and more.",
     x: 72, y: 700, maxWidth: 451,
     new PdfParagraphOptions
@@ -412,7 +412,7 @@ page.DrawSimpleTable(
 
 // Footer line
 page.DrawLine(x1: 48, y1: 32, x2: 547, y2: 32, lineWidth: 0.5, strokeColor: new PdfGrayColor(0.8));
-page.DrawText("Generated with Canvas.Pdf · Canvas Code Editor", x: 48, y: 20,
+page.DrawText("Generated with PXA PDF · PXA Code Editor", x: 48, y: 20,
     new PdfDrawTextOptions { FontSize = 9, FontFamily = PdfFontFamily.Helvetica, FillColor = new PdfGrayColor(0.55) });
 
 document`;

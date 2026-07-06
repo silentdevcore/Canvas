@@ -84,7 +84,7 @@ export function workbookToJson(w: Workbook): string {
   return JSON.stringify(w, null, 2);
 }
 
-/** The Canvas Workbook JSON format version this client understands (matches SpreadsheetDto.CurrentSchemaVersion). */
+/** The PXA Workbook JSON format version this client understands (matches SpreadsheetDto.CurrentSchemaVersion). */
 export const CURRENT_SCHEMA_VERSION = '1.0';
 
 const major = (v: string | undefined): number => Number((v ?? '1.0').split('.')[0]) || 0;
@@ -93,7 +93,7 @@ export function jsonToWorkbook(text: string): Workbook {
   const w = JSON.parse(text);
   if (!w || typeof w !== 'object' || !Array.isArray(w.sheets)) throw new Error('Not a valid workbook JSON (missing "sheets").');
   if (major(w.schemaVersion) > major(CURRENT_SCHEMA_VERSION))
-    throw new Error(`This workbook uses Canvas Workbook JSON v${w.schemaVersion}, which is newer than this app supports (v${CURRENT_SCHEMA_VERSION}). Update the app to open it without losing data.`);
+    throw new Error(`This workbook uses PXA Workbook JSON v${w.schemaVersion}, which is newer than this app supports (v${CURRENT_SCHEMA_VERSION}). Update the app to open it without losing data.`);
   return w as Workbook;
 }
 

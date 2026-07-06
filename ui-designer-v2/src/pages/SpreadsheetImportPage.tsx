@@ -10,7 +10,7 @@ import '@/styles/migrations.css';
 
 /**
  * DataSource/Format Migration → Spreadsheets. Imports a spreadsheet file (.xlsx/.xls/.csv/.tsv via the
- * backend, or a Canvas Workbook .json) into the spreadsheet model and opens it in the editor.
+ * backend, or a PXA Workbook .json) into the spreadsheet model and opens it in the editor.
  */
 const SpreadsheetImportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ const SpreadsheetImportPage: React.FC = () => {
             <div>
               <h1>Spreadsheet Migration</h1>
               <p>Import an Excel or CSV file (<code>.xlsx</code>, <code>.xls</code>, <code>.csv</code>,
-                {' '}<code>.tsv</code>) — or a Canvas Workbook <code>.json</code> — into the spreadsheet editor,
+                {' '}<code>.tsv</code>) — or a PXA Workbook <code>.json</code> — into the spreadsheet editor,
                 preserving formulas, typed values, styles, and merges.</p>
             </div>
           </div>

@@ -1,4 +1,4 @@
-/* Canvas UI Designer - Global Styles */
+/* PXA Designer - Global Styles */
 
 :root {
   /* Color Palette - Modern and Clean */
@@ -79,4 +79,3 @@
   --transition-normal: 250ms ease-in-out;
   --transition-slow: 350ms ease-in-out;
 }
-

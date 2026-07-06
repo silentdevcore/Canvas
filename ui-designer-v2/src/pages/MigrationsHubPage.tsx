@@ -5,7 +5,7 @@ import AppHeader from '@/components/Layout/AppHeader';
 
 /**
  * Migrations landing page. Two domains, each a dedicated area with Code + Designer/Datasource sub-tabs:
- *  - PDF Migration         → /migrations/pdf         (Code → Canvas.Pdf/PXA · UI-Designer → PXA design)
+ *  - PDF Migration         → /migrations/pdf         (Code → PXA-compatible PDF · UI-Designer → PXA design)
  *  - Spreadsheet Migration → /migrations/spreadsheet (Code → PXA spreadsheet API · Datasource → workbook)
  */
 const MigrationsHubPage: React.FC = () => {
