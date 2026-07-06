@@ -189,6 +189,8 @@ server restarts are part of this step.
       for compatibility.
       Root `README.md` now presents Power Dox Automation/PXA as the primary product identity, describes
       PXA importer/generator/migration surfaces, and keeps current `Canvas.*` paths as legacy project names.
+      `ARCHITECTURE.md` now documents the additive `PXA.*` facade layer, PXA importer/generator/migration
+      public entry points, and legacy Canvas project boundaries until the later physical rename phase.
 - [ ] Phase 9: optional later physical rename of solution, project files, folders, and test assemblies.
 
 ## Future Test Plan
