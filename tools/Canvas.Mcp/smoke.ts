@@ -39,7 +39,8 @@ const badRes = firstText(await client.callTool({
 assert(badRes.includes('invalid type "bogus"'), `validate_design rejects an unknown element type`);
 
 const resources = (await client.listResources()).resources.map((r) => r.uri);
-assert(resources.includes('canvas://schema/design-export'), `design-schema resource is exposed`);
+assert(resources.includes('pxa://schema/design-export'), `PXA design-schema resource is exposed`);
+assert(resources.includes('canvas://schema/design-export'), `legacy design-schema resource alias is exposed`);
 
 await client.close();
 console.log('\nMCP smoke test passed.');

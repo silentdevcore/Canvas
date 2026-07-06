@@ -174,6 +174,11 @@ server restarts are part of this step.
       - `tools/Canvas.Mcp` -> `tools/PXA.Mcp` or package `pxa-mcp`
       - `samples/Canvas.Demo` -> `samples/PXA.Demo`
       - active docs and schemas to PXA naming
+      Started with MCP package identity: `tools/Canvas.Mcp` now advertises `pxa-mcp` as package/server
+      identity, exposes `pxa-mcp` as the primary binary while retaining `canvas-mcp` compatibility,
+      accepts `PXA_API_URL` while retaining `CANVAS_API_URL`, and publishes `pxa://...` resources while
+      retaining legacy `canvas://...` aliases. The folder remains `tools/Canvas.Mcp` until the later
+      physical rename phase.
 - [ ] Phase 9: optional later physical rename of solution, project files, folders, and test assemblies.
 
 ## Future Test Plan

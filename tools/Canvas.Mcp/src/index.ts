@@ -1,10 +1,10 @@
 /**
- * Canvas MCP server — exposes the element catalog, design JSON Schema, docs, and validate/render tools
+ * PXA MCP server — exposes the element catalog, design JSON Schema, docs, and validate/render tools
  * to AI agents over the Model Context Protocol. The element catalog (ui-designer-v2/src/docs/elementCatalog.ts)
  * is the single source of truth; this server imports it directly (run via tsx, which erases the type-only
  * import of ElementType). Schema/OpenAPI/llms-full/cookbook are served as resources from the repo.
  *
- * Run:  CANVAS_API_URL=http://localhost:5086 npx tsx src/index.ts   (stdio transport)
+ * Run:  PXA_API_URL=http://localhost:5086 npx tsx src/index.ts   (stdio transport)
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -20,7 +20,7 @@ import {
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../../..');
-const API_URL = process.env.CANVAS_API_URL ?? 'http://localhost:5086';
+const API_URL = process.env.PXA_API_URL ?? process.env.CANVAS_API_URL ?? 'http://localhost:5086';
 
 const read = (rel: string) => fs.readFileSync(path.join(REPO_ROOT, rel), 'utf8');
 const schema = JSON.parse(read('docs/schema/design-export.schema.json'));
@@ -28,7 +28,7 @@ const schema = JSON.parse(read('docs/schema/design-export.schema.json'));
 const text = (s: string) => ({ content: [{ type: 'text' as const, text: s }] });
 const json = (o: unknown) => text(JSON.stringify(o, null, 2));
 
-const server = new McpServer({ name: 'canvas-mcp', version: '0.1.0' });
+const server = new McpServer({ name: 'pxa-mcp', version: '0.1.0' });
 
 // ── Tools ──────────────────────────────────────────────────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ server.registerTool(
   'list_elements',
   {
     title: 'List elements',
-    description: 'List every Canvas element type with its category, description, and format support.',
+    description: 'List every PXA element type with its category, description, and format support.',
     inputSchema: { category: z.enum(CATEGORY_ORDER as [string, ...string[]]).optional() },
   },
   async ({ category }) => {
@@ -64,7 +64,7 @@ server.registerTool(
   'get_example',
   {
     title: 'Get example',
-    description: 'A ready-to-use example for an element. surface="json" returns a complete DesignExportDto; surface="csharp" returns a Canvas.Pdf C# snippet (when available).',
+    description: 'A ready-to-use example for an element. surface="json" returns a complete DesignExportDto; surface="csharp" returns a PXA-compatible PDF C# snippet (when available).',
     inputSchema: {
       type: z.string(),
       surface: z.enum(['json', 'csharp']).default('json'),
@@ -142,7 +142,7 @@ server.registerTool(
   'render_preview',
   {
     title: 'Render preview',
-    description: `Validate a DesignExportDto then render it to PDF via the Canvas backend (${API_URL}). Writes the PDF to a temp file and returns its path + size.`,
+    description: `Validate a DesignExportDto then render it to PDF via the Power Dox Automation backend (${API_URL}). Writes the PDF to a temp file and returns its path + size.`,
     inputSchema: { design: z.string().describe('The DesignExportDto as a JSON string.') },
   },
   async ({ design }) => {
@@ -156,7 +156,7 @@ server.registerTool(
       });
       if (!res.ok) return text(`Render failed: HTTP ${res.status}`);
       const bytes = Buffer.from(await res.arrayBuffer());
-      const out = path.join(os.tmpdir(), `canvas-preview-${Date.now()}.pdf`);
+      const out = path.join(os.tmpdir(), `pxa-preview-${Date.now()}.pdf`);
       fs.writeFileSync(out, bytes);
       return text(`Rendered ${bytes.length} bytes → ${out}`);
     } catch (e) {
@@ -167,27 +167,21 @@ server.registerTool(
 
 // ── Resources ──────────────────────────────────────────────────────────────────────────────────────
 
-server.registerResource('design-schema', 'canvas://schema/design-export', {
-  title: 'DesignExportDto JSON Schema', description: 'Validate a design before rendering.', mimeType: 'application/json',
-}, async (uri) => ({ contents: [{ uri: uri.href, text: read('docs/schema/design-export.schema.json') }] }));
+function registerTextResource(name: string, uri: string, title: string, description: string, relPath: string, mimeType: string) {
+  server.registerResource(name, uri, { title, description, mimeType }, async (resourceUri) => ({
+    contents: [{ uri: resourceUri.href, text: read(relPath) }],
+  }));
+}
 
-server.registerResource('workbook-schema', 'canvas://schema/canvas-workbook', {
-  title: 'Canvas Workbook JSON Schema', description: 'Validate a spreadsheet workbook before posting to /api/spreadsheet/*.', mimeType: 'application/json',
-}, async (uri) => ({ contents: [{ uri: uri.href, text: read('docs/schema/canvas-workbook.schema.json') }] }));
-
-server.registerResource('openapi', 'canvas://openapi', {
-  title: 'Canvas OpenAPI', description: 'Full HTTP API.', mimeType: 'application/json',
-}, async (uri) => ({ contents: [{ uri: uri.href, text: read('docs/schema/openapi.json') }] }));
-
-server.registerResource('llms-full', 'canvas://docs/llms-full', {
-  title: 'Canvas AI reference', description: 'Capability map + all elements + examples.', mimeType: 'text/markdown',
-}, async (uri) => ({ contents: [{ uri: uri.href, text: read('llms-full.txt') }] }));
-
-server.registerResource('cookbook', 'canvas://docs/cookbook', {
-  title: 'Canvas.Pdf C# Cookbook', description: 'Task-oriented C# recipes.', mimeType: 'text/markdown',
-}, async (uri) => ({ contents: [{ uri: uri.href, text: read('docs/csharp-cookbook.md') }] }));
+for (const [prefix, label] of [['pxa', 'PXA'], ['canvas', 'Legacy Canvas']] as const) {
+  registerTextResource(`${prefix}-design-schema`, `${prefix}://schema/design-export`, 'DesignExportDto JSON Schema', 'Validate a design before rendering.', 'docs/schema/design-export.schema.json', 'application/json');
+  registerTextResource(`${prefix}-workbook-schema`, `${prefix}://schema/canvas-workbook`, `${label} Workbook JSON Schema`, 'Validate a spreadsheet workbook before posting to /api/spreadsheet/*.', 'docs/schema/canvas-workbook.schema.json', 'application/json');
+  registerTextResource(`${prefix}-openapi`, `${prefix}://openapi`, `${label} OpenAPI`, 'Full HTTP API.', 'docs/schema/openapi.json', 'application/json');
+  registerTextResource(`${prefix}-llms-full`, `${prefix}://docs/llms-full`, `${label} AI reference`, 'Capability map + all elements + examples.', 'llms-full.txt', 'text/markdown');
+  registerTextResource(`${prefix}-cookbook`, `${prefix}://docs/cookbook`, `${label} PDF C# Cookbook`, 'Task-oriented C# recipes.', 'docs/csharp-cookbook.md', 'text/markdown');
+}
 
 // ── Start ──────────────────────────────────────────────────────────────────────────────────────────
 
 await server.connect(new StdioServerTransport());
-console.error(`canvas-mcp ready — ${ELEMENT_CATALOG.length} elements, API ${API_URL}`);
+console.error(`pxa-mcp ready — ${ELEMENT_CATALOG.length} elements, API ${API_URL}`);
