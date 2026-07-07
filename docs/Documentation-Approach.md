@@ -10,7 +10,7 @@ PXA-compatible PDF C# API) and how AI agents consume it. Use this as the referen
 | **API reference** | Auto-generated from XML/Doxygen comments (DocFX). | XML comments on the current legacy `Canvas.Pdf` implementation + `GenerateDocumentationFile`; `docs/docfx.json` builds the PXA-facing reference. |
 | **How-to guides** | Task-oriented articles with runnable snippets + expected output. | `docs/csharp-cookbook.md`; per-element design JSON + C# in the app docs. |
 | **Example / demo gallery** | A categorized gallery of runnable examples. | Per-element **live render previews** in the in-app Elements Reference. |
-| **AI-readable docs** | `llms.txt` and (increasingly) shipped MCP servers. | `llms.txt` / `llms-full.txt` + the `pxa-mcp` server (currently located under `tools/Canvas.Mcp`). |
+| **AI-readable docs** | `llms.txt` and (increasingly) shipped MCP servers. | `llms.txt` / `llms-full.txt` + the `pxa-mcp` server in `tools/PXA.Mcp`. |
 
 ## The single source of truth
 

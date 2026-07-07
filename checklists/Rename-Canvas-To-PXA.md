@@ -40,7 +40,7 @@ server restarts are part of this step.
 - [x] Include `Canvas.sln` and `Canvas.slnx` in the rename plan.
 - [ ] Include all `tests/Canvas.*.Tests` projects in the namespace/project rename plan.
 - [ ] Include `samples/Canvas.Demo`.
-- [ ] Include `tools/Canvas.Mcp` package name, README, and smoke script.
+- [x] Include `tools/Canvas.Mcp` package name, README, and smoke script.
 - [ ] Include `docs/schema/canvas-workbook.schema.json` and schema `$id`/title naming.
 - [ ] Include `llms.txt`, `llms-full.txt`, and generated OpenAPI/doc artifacts when docs are renamed.
 - [ ] Include both frontend folders: legacy `ui-designer` and current `ui-designer-v2`.
@@ -174,11 +174,10 @@ server restarts are part of this step.
       - `tools/Canvas.Mcp` -> `tools/PXA.Mcp` or package `pxa-mcp`
       - `samples/Canvas.Demo` -> `samples/PXA.Demo`
       - active docs and schemas to PXA naming
-      Started with MCP package identity: `tools/Canvas.Mcp` now advertises `pxa-mcp` as package/server
+      Started with MCP package identity: the MCP server advertises `pxa-mcp` as package/server
       identity, exposes `pxa-mcp` as the primary binary while retaining `canvas-mcp` compatibility,
       accepts `PXA_API_URL` while retaining `CANVAS_API_URL`, and publishes `pxa://...` resources while
-      retaining legacy `canvas://...` aliases. The folder remains `tools/Canvas.Mcp` until the later
-      physical rename phase.
+      retaining legacy `canvas://...` aliases.
       Sample identity started: `samples/Canvas.Demo` now builds an assembly/root namespace named
       `PXA.Demo`, creates the PDF through the `PXA.Generator` facade, and uses PXA-facing demo metadata
       and renderer notes. The folder and legacy `Canvas.*` project references remain until the later
@@ -206,6 +205,9 @@ server restarts are part of this step.
       Added `Canvas.WebApi/PXA.WebApi.http` as a PXA-named HTTP request alias for the `/api/pxa/system/brand`
       endpoint. Assembly, namespace, and folder rename for `Canvas.WebApi` remains a later dedicated slice
       because many API/export tests reference the current `Program` type and `Canvas.WebApi.*` namespaces.
+      Renamed the tracked MCP server files from `tools/Canvas.Mcp` to `tools/PXA.Mcp`. The legacy folder now
+      keeps a README pointer only; untracked local `node_modules` / lock artifacts may remain there locally.
+      The server still exposes the compatibility `canvas-mcp` binary and `canvas://...` resource aliases.
 
 ## Future Test Plan
 
@@ -293,7 +295,7 @@ server restarts are part of this step.
       and form field extraction.
 - [ ] `npm run build` in `ui-designer-v2`.
 - [ ] Relevant Jest tests in `ui-designer-v2`.
-- [ ] MCP smoke test if `tools/Canvas.Mcp` is renamed or rebranded.
+- [ ] MCP smoke test if `tools/PXA.Mcp` is renamed or rebranded.
 - [ ] UI smoke test for migration page, designer open flow, export, and preview.
 - [ ] Documentation link check after main docs are updated.
 

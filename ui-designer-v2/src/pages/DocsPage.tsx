@@ -1325,7 +1325,7 @@ public class TemplatesController : ControllerBase
               <li><code className="docs-inline-code">ui-designer-v2/src/docs/elementCatalog.ts</code> — the element catalog (source of truth for all of the above).</li>
             </ul>
             <div className="docs-callout docs-callout--tip">
-              <strong>MCP:</strong> a Model Context Protocol server (<code className="docs-inline-code">tools/Canvas.Mcp</code>) exposes these as tools/resources — <code className="docs-inline-code">list_elements</code>, <code className="docs-inline-code">get_element_schema</code>, <code className="docs-inline-code">get_example</code>, <code className="docs-inline-code">validate_design</code>, <code className="docs-inline-code">render_preview</code> — so an agent can query and verify without scraping docs.
+              <strong>MCP:</strong> a Model Context Protocol server (<code className="docs-inline-code">tools/PXA.Mcp</code>) exposes these as tools/resources — <code className="docs-inline-code">list_elements</code>, <code className="docs-inline-code">get_element_schema</code>, <code className="docs-inline-code">get_example</code>, <code className="docs-inline-code">validate_design</code>, <code className="docs-inline-code">render_preview</code> — so an agent can query and verify without scraping docs.
             </div>
           </section>
 
