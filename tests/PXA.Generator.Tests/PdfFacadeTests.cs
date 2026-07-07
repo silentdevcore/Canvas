@@ -29,6 +29,18 @@ public sealed class PdfFacadeTests
     }
 
     [Fact]
+    public void LegacyCanvasPdfNamespace_StillGeneratesPdf()
+    {
+        var document = new PdfDocument();
+        var page = document.AddPage(300, 180);
+        page.DrawTextFromTop("Legacy Canvas.Pdf compatibility", 24, 24, 12);
+
+        var bytes = document.ToBytes();
+
+        Assert.Equal("%PDF"u8.ToArray(), bytes[..4]);
+    }
+
+    [Fact]
     public void CreateWorkbook_ReturnsSpreadsheetWorkbook()
     {
         var workbook = Spreadsheet.CreateWorkbook("Sales");

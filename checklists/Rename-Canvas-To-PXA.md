@@ -260,13 +260,15 @@ server restarts are part of this step.
       Added PXA facade smoke coverage for every listed provider and verified with
       `dotnet test tests/PXA.Migration.Spreadsheet.Tests/PXA.Migration.Spreadsheet.Tests.csproj`
       (19 passed).
-- [ ] Generator compatibility tests:
+- [x] Generator compatibility tests:
       - New code with `using PXA.Generator;`
       - Legacy code with `using Canvas.Pdf;`
       Initial `PXA.Generator.Tests` coverage added for `Pdf.CreateDocument()`, `Spreadsheet.CreateWorkbook()`,
       and `Word.Export(...)`.
       `PXA.Generator.Word.Export(...)` now accepts `PXA.Core.Contracts.DesignExportDto` and adapts to
       the legacy Canvas exporter internally.
+      Added explicit legacy `Canvas.Pdf.PdfDocument` smoke coverage and verified with
+      `dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj` (5 passed).
 - [ ] Importer compatibility tests:
       - New code with `using PXA.Importer;`
       - Legacy code with `using Canvas.Importer;`
