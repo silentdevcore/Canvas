@@ -39,7 +39,7 @@ server restarts are part of this step.
 
 - [x] Include `Canvas.sln` and `Canvas.slnx` in the rename plan.
 - [ ] Include all `tests/Canvas.*.Tests` projects in the namespace/project rename plan.
-- [ ] Include `samples/Canvas.Demo`.
+- [x] Include `samples/Canvas.Demo`.
 - [x] Include `tools/Canvas.Mcp` package name, README, and smoke script.
 - [ ] Include `docs/schema/canvas-workbook.schema.json` and schema `$id`/title naming.
 - [ ] Include `llms.txt`, `llms-full.txt`, and generated OpenAPI/doc artifacts when docs are renamed.
@@ -178,10 +178,7 @@ server restarts are part of this step.
       identity, exposes `pxa-mcp` as the primary binary while retaining `canvas-mcp` compatibility,
       accepts `PXA_API_URL` while retaining `CANVAS_API_URL`, and publishes `pxa://...` resources while
       retaining legacy `canvas://...` aliases.
-      Sample identity started: `samples/Canvas.Demo` now builds an assembly/root namespace named
-      `PXA.Demo`, creates the PDF through the `PXA.Generator` facade, and uses PXA-facing demo metadata
-      and renderer notes. The folder and legacy `Canvas.*` project references remain until the later
-      physical rename phase.
+      Sample identity started with PXA-facing demo metadata and renderer notes.
       Active docs/AI references started: `llms.txt`, `llms-full.txt`, DocFX landing/config files,
       cookbook intro, documentation approach, and schema descriptions now present Power Dox Automation/PXA
       as the primary identity while preserving legacy `Canvas.*` xrefs, project paths, and schema URIs
@@ -208,6 +205,9 @@ server restarts are part of this step.
       Renamed the tracked MCP server files from `tools/Canvas.Mcp` to `tools/PXA.Mcp`. The legacy folder now
       keeps a README pointer only; untracked local `node_modules` / lock artifacts may remain there locally.
       The server still exposes the compatibility `canvas-mcp` binary and `canvas://...` resource aliases.
+      Renamed the tracked demo sample files from `samples/Canvas.Demo` to `samples/PXA.Demo`, including
+      `PXA.Demo.csproj`, and updated `Canvas.sln` / `PXA.sln` to point at the new sample path. The legacy
+      sample folder now keeps a README pointer only; local `bin` / `obj` artifacts may remain there locally.
 
 ## Future Test Plan
 

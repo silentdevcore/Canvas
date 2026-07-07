@@ -177,4 +177,4 @@ document.Info.CustomProperties["Department"] = "Finance";
 ---
 
 See the [API Reference](api/) for every type, overload, and option. A complete runnable program lives in
-`samples/Canvas.Demo/Program.cs`.
+`samples/PXA.Demo/Program.cs`.

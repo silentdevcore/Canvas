@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.Infrastructure.Pdf",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{5D20AA90-6969-D8BD-9DCD-8634F4692FDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.Demo", "samples\Canvas.Demo\Canvas.Demo.csproj", "{2677E805-95BF-4881-B8FE-6B7E97ACE48D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Demo", "samples\PXA.Demo\PXA.Demo.csproj", "{2677E805-95BF-4881-B8FE-6B7E97ACE48D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.Infrastructure.Converters", "src\Canvas.Infrastructure.Converters\Canvas.Infrastructure.Converters.csproj", "{DD9E4804-06E0-4BCB-9436-67DE0C226F06}"
 EndProject
