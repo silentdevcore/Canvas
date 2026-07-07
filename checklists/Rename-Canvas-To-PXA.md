@@ -203,6 +203,9 @@ server restarts are part of this step.
       build through a PXA-named entry point while legacy project paths remain stable. Verified with
       `dotnet sln PXA.sln list` and `dotnet build PXA.sln` (0 errors; existing dependency/analyzer/nullability
       warnings remain).
+      Added `Canvas.WebApi/PXA.WebApi.http` as a PXA-named HTTP request alias for the `/api/pxa/system/brand`
+      endpoint. Assembly, namespace, and folder rename for `Canvas.WebApi` remains a later dedicated slice
+      because many API/export tests reference the current `Program` type and `Canvas.WebApi.*` namespaces.
 
 ## Future Test Plan
 

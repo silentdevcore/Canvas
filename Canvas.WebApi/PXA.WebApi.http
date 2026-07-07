@@ -1,0 +1,7 @@
+@PXA.WebApi_HostAddress = http://localhost:5086
+
+GET {{PXA.WebApi_HostAddress}}/api/pxa/system/brand
+Accept: application/json
+
+###
+
