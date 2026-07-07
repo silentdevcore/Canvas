@@ -283,12 +283,14 @@ server restarts are part of this step.
       `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj` (15 passed),
       `dotnet test --no-build` for `PXA.FileImporter.ImageAnalysis.Tests` (2 passed), and
       `PXA.FileImporter.ImageOcr.Tests` (2 passed).
-- [ ] Core compatibility tests:
+- [x] Core compatibility tests:
       Initial `PXA.Core.Tests` coverage added for DesignExportDto, SpreadsheetDto, and ExportOptions adapters.
-- [ ] Application compatibility tests:
+      Verified with `dotnet test tests/PXA.Core.Tests/PXA.Core.Tests.csproj --no-build` (3 passed).
+- [x] Application compatibility tests:
       Initial `PXA.Application.Tests` coverage added for CloneTemplate, ExtractPages, FindAndReplace,
       and ValidateTemplate facades.
-- [ ] Infrastructure compatibility tests:
+      Verified with `dotnet test tests/PXA.Application.Tests/PXA.Application.Tests.csproj --no-build` (4 passed).
+- [x] Infrastructure compatibility tests:
       Initial `PXA.Infrastructure.Pdf.Tests` coverage added for PDF rendering, file generation,
       diagnostics reading, capabilities, and service delegation.
       Initial `PXA.Infrastructure.Word.Tests` coverage added for DOCX export with PXA core contracts,
@@ -298,9 +300,13 @@ server restarts are part of this step.
       and sheet renderer capabilities.
       Initial `PXA.Infrastructure.Converters.Tests` coverage added for text/image/ODT converter exports,
       converter capabilities, and PXA core contract adaptation.
-- [ ] Domain compatibility tests:
+      Verified with `dotnet test --no-build` for `PXA.Infrastructure.Pdf.Tests` (5 passed),
+      `PXA.Infrastructure.Word.Tests` (3 passed), `PXA.Infrastructure.Spreadsheet.Tests` (6 passed),
+      and `PXA.Infrastructure.Converters.Tests` (9 passed).
+- [x] Domain compatibility tests:
       Initial `PXA.Domain.Tests` coverage added for design template conversion, validation result conversion,
       and Canvas/PXA repository adapter flows.
+      Verified with `dotnet test tests/PXA.Domain.Tests/PXA.Domain.Tests.csproj --no-build` (4 passed).
 - [x] Web/API compatibility tests:
       `Canvas.Api.Tests` now covers legacy and PXA branding discovery routes with compatibility notes.
       `Canvas.Api.Tests` now covers PXA export alias routes for format discovery and HTML export.
