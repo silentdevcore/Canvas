@@ -269,7 +269,7 @@ server restarts are part of this step.
       the legacy Canvas exporter internally.
       Added explicit legacy `Canvas.Pdf.PdfDocument` smoke coverage and verified with
       `dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj` (5 passed).
-- [ ] Importer compatibility tests:
+- [x] Importer compatibility tests:
       - New code with `using PXA.Importer;`
       - Legacy code with `using Canvas.Importer;`
       Initial `PXA.Importer.Tests` coverage added for `Pdf.LoadAsync(...)` and PXA-facing import options.
@@ -278,6 +278,11 @@ server restarts are part of this step.
       Initial `PXA.FileImporter.ImageAnalysis.Tests` and `PXA.FileImporter.ImageOcr.Tests` coverage added for
       specialized analysis/OCR facades, diagnostics mapping, PXA OCR engine adapter flow, and Tesseract facade identity.
       File importer design results now return `PXA.Core.Contracts.DesignExportDto`.
+      Added explicit legacy `Canvas.Importer.PdfImporter` smoke coverage and verified with
+      `dotnet test tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj` (3 passed),
+      `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj` (15 passed),
+      `dotnet test --no-build` for `PXA.FileImporter.ImageAnalysis.Tests` (2 passed), and
+      `PXA.FileImporter.ImageOcr.Tests` (2 passed).
 - [ ] Core compatibility tests:
       Initial `PXA.Core.Tests` coverage added for DesignExportDto, SpreadsheetDto, and ExportOptions adapters.
 - [ ] Application compatibility tests:
