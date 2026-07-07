@@ -245,9 +245,10 @@ server restarts are part of this step.
       `PXA.Migration.Report.Tests` expanded to verify report migrations return the PXA core design contract.
       Initial `PXA.Migration.Spreadsheet.Tests` coverage added for spreadsheet provider registry keys,
       factory creation, case-insensitive lookup, unknown-key rejection, and ClosedXML/EPPlus smoke tests.
-      Verified with `dotnet test --no-build` for `PXA.Migration.Pdf.Tests` (18 passed),
-      `PXA.Migration.Report.Tests` (20 passed), and `PXA.Migration.Spreadsheet.Tests` (13 passed).
-- [ ] Spreadsheet migration tests:
+      Verified with `dotnet test --no-build` for `PXA.Migration.Pdf.Tests` (18 passed) and
+      `PXA.Migration.Report.Tests` (20 passed). `PXA.Migration.Spreadsheet.Tests` passed with build
+      after adding all-provider PXA facade smoke coverage (19 passed).
+- [x] Spreadsheet migration tests:
       - Aspose.Cells
       - ClosedXML
       - EPPlus
@@ -256,6 +257,9 @@ server restarts are part of this step.
       - Spire.XLS
       - SpreadsheetLight
       - Syncfusion XlsIO
+      Added PXA facade smoke coverage for every listed provider and verified with
+      `dotnet test tests/PXA.Migration.Spreadsheet.Tests/PXA.Migration.Spreadsheet.Tests.csproj`
+      (19 passed).
 - [ ] Generator compatibility tests:
       - New code with `using PXA.Generator;`
       - Legacy code with `using Canvas.Pdf;`
