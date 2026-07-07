@@ -219,7 +219,7 @@ server restarts are part of this step.
       59 existing dependency/analyzer/nullability/XML-doc/NPOI warnings remain).
 - [x] `dotnet build Canvas.slnx` if kept as an active solution entry.
       Not run as an active build target because current `Canvas.slnx` is an empty `<Solution>` with no project entries.
-- [ ] Relevant migration tests.
+- [x] Relevant migration tests.
       Initial `PXA.Migration.Abstractions.Tests` coverage added for Canvas-to-PXA source migration adapter mapping.
       Initial `PXA.Migration.DevExpressPdf.Tests` coverage added for the first concrete PXA migration provider facade.
       Initial `PXA.Migration.SyncfusionPdf.Tests` and `PXA.Migration.iText7.Tests` coverage added for core PDF
@@ -245,6 +245,8 @@ server restarts are part of this step.
       `PXA.Migration.Report.Tests` expanded to verify report migrations return the PXA core design contract.
       Initial `PXA.Migration.Spreadsheet.Tests` coverage added for spreadsheet provider registry keys,
       factory creation, case-insensitive lookup, unknown-key rejection, and ClosedXML/EPPlus smoke tests.
+      Verified with `dotnet test --no-build` for `PXA.Migration.Pdf.Tests` (18 passed),
+      `PXA.Migration.Report.Tests` (20 passed), and `PXA.Migration.Spreadsheet.Tests` (13 passed).
 - [ ] Spreadsheet migration tests:
       - Aspose.Cells
       - ClosedXML
