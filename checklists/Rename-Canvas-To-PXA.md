@@ -37,7 +37,7 @@ server restarts are part of this step.
 
 ## Current Repo Additions To Include
 
-- [ ] Include `Canvas.sln` and `Canvas.slnx` in the rename plan.
+- [x] Include `Canvas.sln` and `Canvas.slnx` in the rename plan.
 - [ ] Include all `tests/Canvas.*.Tests` projects in the namespace/project rename plan.
 - [ ] Include `samples/Canvas.Demo`.
 - [ ] Include `tools/Canvas.Mcp` package name, README, and smoke script.
@@ -199,6 +199,10 @@ server restarts are part of this step.
       developer-facing work to expose `PXA.*` facades, and documents legacy `Canvas.*` implementation
       project patterns during the compatibility phase.
 - [ ] Phase 9: optional later physical rename of solution, project files, folders, and test assemblies.
+      Started with additive solution alias `PXA.sln`, copied from the current `Canvas.sln` so developers can
+      build through a PXA-named entry point while legacy project paths remain stable. Verified with
+      `dotnet sln PXA.sln list` and `dotnet build PXA.sln` (0 errors; existing dependency/analyzer/nullability
+      warnings remain).
 
 ## Future Test Plan
 
