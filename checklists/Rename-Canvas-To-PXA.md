@@ -38,7 +38,7 @@ server restarts are part of this step.
 ## Current Repo Additions To Include
 
 - [x] Include `Canvas.sln` and `Canvas.slnx` in the rename plan.
-- [ ] Include all `tests/Canvas.*.Tests` projects in the namespace/project rename plan.
+- [x] Include all `tests/Canvas.*.Tests` projects in the namespace/project rename plan.
 - [x] Include `samples/Canvas.Demo`.
 - [x] Include `tools/Canvas.Mcp` package name, README, and smoke script.
 - [x] Include `docs/schema/canvas-workbook.schema.json` and schema `$id`/title naming.
@@ -211,6 +211,9 @@ server restarts are part of this step.
       Added `docs/schema/pxa-workbook.schema.json` as the primary PXA Workbook JSON schema with a PXA `$id`;
       kept `docs/schema/canvas-workbook.schema.json` as the legacy compatibility alias and updated MCP,
       in-app docs, AI docs, and schema tests to prefer the PXA path.
+      Added additive `PXA.Api.Tests` and `PXA.Export.Tests` project aliases that compile the existing
+      legacy API/export test sources under PXA-named test assemblies. Both `Canvas.sln` and `PXA.sln` now
+      include the aliases while the legacy `Canvas.Api.Tests` / `Canvas.Export.Tests` projects remain.
 
 ## Future Test Plan
 
@@ -318,6 +321,11 @@ server restarts are part of this step.
       `Canvas.Api.Tests` now covers PXA templates alias routes for template listing and validation.
       `Canvas.Api.Tests` now covers PXA PDF Viewer alias routes for annotation sidecar save/get
       and form field extraction.
+      Added and verified `PXA.Api.Tests` alias with
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --disable-build-servers` (61 passed).
+- [x] Export compatibility tests:
+      Added and verified `PXA.Export.Tests` alias with
+      `dotnet test tests/PXA.Export.Tests/PXA.Export.Tests.csproj --disable-build-servers` (206 passed).
 - [x] `npm run build` in `ui-designer-v2`.
       Passed after adding the primary `docs/schema/pxa-workbook.schema.json` reference to the in-app docs
       (Vite chunk-size warning remains existing/non-blocking).
