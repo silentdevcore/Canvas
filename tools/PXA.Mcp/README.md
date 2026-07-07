@@ -22,7 +22,7 @@ The legacy `canvas-mcp` binary name and `canvas://...` resources remain availabl
 
 Primary resources:
 
-`pxa://schema/design-export`, `pxa://schema/canvas-workbook`, `pxa://openapi`, `pxa://docs/llms-full`, `pxa://docs/cookbook`.
+`pxa://schema/design-export`, `pxa://schema/pxa-workbook`, `pxa://openapi`, `pxa://docs/llms-full`, `pxa://docs/cookbook`.
 
 Legacy aliases remain available with the `canvas://` scheme for existing clients.
 

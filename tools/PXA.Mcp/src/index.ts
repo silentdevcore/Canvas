@@ -173,13 +173,17 @@ function registerTextResource(name: string, uri: string, title: string, descript
   }));
 }
 
-for (const [prefix, label] of [['pxa', 'PXA'], ['canvas', 'Legacy Canvas']] as const) {
-  registerTextResource(`${prefix}-design-schema`, `${prefix}://schema/design-export`, 'DesignExportDto JSON Schema', 'Validate a design before rendering.', 'docs/schema/design-export.schema.json', 'application/json');
-  registerTextResource(`${prefix}-workbook-schema`, `${prefix}://schema/canvas-workbook`, `${label} Workbook JSON Schema`, 'Validate a spreadsheet workbook before posting to /api/spreadsheet/*.', 'docs/schema/canvas-workbook.schema.json', 'application/json');
-  registerTextResource(`${prefix}-openapi`, `${prefix}://openapi`, `${label} OpenAPI`, 'Full HTTP API.', 'docs/schema/openapi.json', 'application/json');
-  registerTextResource(`${prefix}-llms-full`, `${prefix}://docs/llms-full`, `${label} AI reference`, 'Capability map + all elements + examples.', 'llms-full.txt', 'text/markdown');
-  registerTextResource(`${prefix}-cookbook`, `${prefix}://docs/cookbook`, `${label} PDF C# Cookbook`, 'Task-oriented C# recipes.', 'docs/csharp-cookbook.md', 'text/markdown');
-}
+registerTextResource('pxa-design-schema', 'pxa://schema/design-export', 'DesignExportDto JSON Schema', 'Validate a design before rendering.', 'docs/schema/design-export.schema.json', 'application/json');
+registerTextResource('pxa-workbook-schema', 'pxa://schema/pxa-workbook', 'PXA Workbook JSON Schema', 'Validate a spreadsheet workbook before posting to /api/spreadsheet/*.', 'docs/schema/pxa-workbook.schema.json', 'application/json');
+registerTextResource('pxa-openapi', 'pxa://openapi', 'PXA OpenAPI', 'Full HTTP API.', 'docs/schema/openapi.json', 'application/json');
+registerTextResource('pxa-llms-full', 'pxa://docs/llms-full', 'PXA AI reference', 'Capability map + all elements + examples.', 'llms-full.txt', 'text/markdown');
+registerTextResource('pxa-cookbook', 'pxa://docs/cookbook', 'PXA PDF C# Cookbook', 'Task-oriented C# recipes.', 'docs/csharp-cookbook.md', 'text/markdown');
+
+registerTextResource('canvas-design-schema', 'canvas://schema/design-export', 'DesignExportDto JSON Schema', 'Validate a design before rendering.', 'docs/schema/design-export.schema.json', 'application/json');
+registerTextResource('canvas-workbook-schema', 'canvas://schema/canvas-workbook', 'Legacy Canvas Workbook JSON Schema', 'Validate a spreadsheet workbook before posting to /api/spreadsheet/*.', 'docs/schema/canvas-workbook.schema.json', 'application/json');
+registerTextResource('canvas-openapi', 'canvas://openapi', 'Legacy Canvas OpenAPI', 'Full HTTP API.', 'docs/schema/openapi.json', 'application/json');
+registerTextResource('canvas-llms-full', 'canvas://docs/llms-full', 'Legacy Canvas AI reference', 'Capability map + all elements + examples.', 'llms-full.txt', 'text/markdown');
+registerTextResource('canvas-cookbook', 'canvas://docs/cookbook', 'Legacy Canvas PDF C# Cookbook', 'Task-oriented C# recipes.', 'docs/csharp-cookbook.md', 'text/markdown');
 
 // ── Start ──────────────────────────────────────────────────────────────────────────────────────────
 

@@ -2,21 +2,30 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { workbookToWire, emptySheet, cellKey, type CellType } from '../spreadsheet/types';
 
-// Validates the committed JSON Schema (docs/schema/canvas-workbook.schema.json) against the model:
+// Validates the committed JSON Schema (docs/schema/pxa-workbook.schema.json) against the model:
 //  - the schema's cell-type enum stays in lock-step with the CellType union, and
 //  - a representative workbook satisfies the schema's structural (required-field) constraints.
 // Schema-driven (reads the real schema file) without a full JSON-Schema validator dependency,
 // mirroring designSchema.test.ts.
 
-const schemaPath = path.resolve(__dirname, '../../../docs/schema/canvas-workbook.schema.json');
+const schemaPath = path.resolve(__dirname, '../../../docs/schema/pxa-workbook.schema.json');
+const legacySchemaPath = path.resolve(__dirname, '../../../docs/schema/canvas-workbook.schema.json');
 const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
+const legacySchema = JSON.parse(fs.readFileSync(legacySchemaPath, 'utf8'));
 
 const requiredOf = (def: any): string[] => def.required ?? [];
 const has = (obj: any, key: string) => obj != null && Object.prototype.hasOwnProperty.call(obj, key);
 
 const ALL_CELL_TYPES: CellType[] = ['number', 'text', 'boolean', 'date', 'formula', 'empty'];
 
-describe('canvas-workbook.schema.json — stays in sync with the model', () => {
+describe('pxa-workbook.schema.json — stays in sync with the model', () => {
+  test('the PXA schema is primary and the legacy Canvas schema remains compatible', () => {
+    expect(schema.$id).toBe('https://pxa/schema/pxa-workbook.schema.json');
+    expect(schema.title).toBe('PXA Workbook JSON');
+    expect(legacySchema.$id).toBe('https://canvas/schema/canvas-workbook.schema.json');
+    expect(legacySchema.$defs.cell.properties.type.enum).toEqual(schema.$defs.cell.properties.type.enum);
+  });
+
   test('the schema cell-type enum matches the CellType union exactly', () => {
     const enumTypes: string[] = schema.$defs.cell.properties.type.enum;
     expect([...enumTypes].sort()).toEqual([...ALL_CELL_TYPES].sort());

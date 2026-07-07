@@ -41,7 +41,7 @@ server restarts are part of this step.
 - [ ] Include all `tests/Canvas.*.Tests` projects in the namespace/project rename plan.
 - [x] Include `samples/Canvas.Demo`.
 - [x] Include `tools/Canvas.Mcp` package name, README, and smoke script.
-- [ ] Include `docs/schema/canvas-workbook.schema.json` and schema `$id`/title naming.
+- [x] Include `docs/schema/canvas-workbook.schema.json` and schema `$id`/title naming.
 - [ ] Include `llms.txt`, `llms-full.txt`, and generated OpenAPI/doc artifacts when docs are renamed.
 - [ ] Include both frontend folders: legacy `ui-designer` and current `ui-designer-v2`.
 - [ ] Include package names/routes/visible branding in frontend only after backend API compatibility is protected.
@@ -208,6 +208,9 @@ server restarts are part of this step.
       Renamed the tracked demo sample files from `samples/Canvas.Demo` to `samples/PXA.Demo`, including
       `PXA.Demo.csproj`, and updated `Canvas.sln` / `PXA.sln` to point at the new sample path. The legacy
       sample folder now keeps a README pointer only; local `bin` / `obj` artifacts may remain there locally.
+      Added `docs/schema/pxa-workbook.schema.json` as the primary PXA Workbook JSON schema with a PXA `$id`;
+      kept `docs/schema/canvas-workbook.schema.json` as the legacy compatibility alias and updated MCP,
+      in-app docs, AI docs, and schema tests to prefer the PXA path.
 
 ## Future Test Plan
 
@@ -293,9 +296,15 @@ server restarts are part of this step.
       `Canvas.Api.Tests` now covers PXA templates alias routes for template listing and validation.
       `Canvas.Api.Tests` now covers PXA PDF Viewer alias routes for annotation sidecar save/get
       and form field extraction.
-- [ ] `npm run build` in `ui-designer-v2`.
-- [ ] Relevant Jest tests in `ui-designer-v2`.
-- [ ] MCP smoke test if `tools/PXA.Mcp` is renamed or rebranded.
+- [x] `npm run build` in `ui-designer-v2`.
+      Passed after adding the primary `docs/schema/pxa-workbook.schema.json` reference to the in-app docs
+      (Vite chunk-size warning remains existing/non-blocking).
+- [x] Relevant Jest tests in `ui-designer-v2`.
+      `npm test -- --runTestsByPath src/__tests__/canvasWorkbookSchema.test.ts` passed for the primary PXA
+      schema and legacy Canvas schema alias.
+- [x] MCP smoke test if `tools/PXA.Mcp` is renamed or rebranded.
+      `npx tsx smoke.ts` passed and now verifies both `pxa://schema/pxa-workbook` and
+      `canvas://schema/canvas-workbook` resources.
 - [ ] UI smoke test for migration page, designer open flow, export, and preview.
 - [ ] Documentation link check after main docs are updated.
 
