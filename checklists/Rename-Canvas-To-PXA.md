@@ -214,7 +214,9 @@ server restarts are part of this step.
 
 ## Future Test Plan
 
-- [ ] `dotnet build Canvas.sln`
+- [x] `dotnet build Canvas.sln`
+      Passed with `--disable-build-servers` after the physical sample/schema alias updates (0 errors;
+      59 existing dependency/analyzer/nullability/XML-doc/NPOI warnings remain).
 - [ ] `dotnet build Canvas.slnx` if kept as an active solution entry.
 - [ ] Relevant migration tests.
       Initial `PXA.Migration.Abstractions.Tests` coverage added for Canvas-to-PXA source migration adapter mapping.
