@@ -1,5 +1,5 @@
 {
-  "name": "ui-designer-v2",
+  "name": "pxa-designer",
   "version": "1.0.0",
   "description": "Power Dox Automation - user-friendly document automation designer",
   "main": "src/main.tsx",
@@ -63,12 +63,12 @@
     "vite": "^8.0.10"
   },
   "keywords": [
-    "ui-designer",
+    "pxa-designer",
     "document-templates",
     "pdf-generator",
     "pxa",
     "power-dox-automation",
-    "canvas-pdf",
+    "document-designer",
     "react",
     "typescript"
   ],

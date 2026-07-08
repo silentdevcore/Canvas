@@ -32,7 +32,7 @@ export const STARTER_TEMPLATES: Record<string, object> = {
             y: 72,
             width: 451,
             height: 48,
-            content: 'Hello, Canvas PDF!',
+            content: 'Hello, PXA PDF!',
             style: { fontSize: 28, fontWeight: 'bold', color: '#1e3a8a', textAlign: 'center' },
           },
           {
@@ -289,7 +289,7 @@ export const STARTER_TEMPLATES: Record<string, object> = {
             height: 100,
             noteTitle: 'Developer Note',
             noteBody: 'Add more pages by duplicating the page objects in the JSON array above.',
-            noteAuthor: 'Canvas',
+            noteAuthor: 'PXA',
             style: { backgroundColor: '#fef9c3', borderColor: '#fbbf24' },
           },
         ],

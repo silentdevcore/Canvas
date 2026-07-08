@@ -145,7 +145,7 @@ function configureSchema(monaco: Monaco) {
     validate: true,
     schemas: [
       {
-        uri: 'canvas://design-schema',
+        uri: 'pxa://design-schema',
         fileMatch: ['*'],
         schema: {
           type: 'object',

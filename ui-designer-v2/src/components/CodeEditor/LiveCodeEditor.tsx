@@ -266,7 +266,7 @@ export default function LiveCodeEditor({ onBack }: Props) {
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = 'canvas-code.pdf';
+        a.href = url; a.download = 'pxa-code.pdf';
         document.body.appendChild(a); a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);

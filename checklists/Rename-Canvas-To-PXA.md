@@ -43,8 +43,8 @@ server restarts are part of this step.
 - [x] Include `tools/Canvas.Mcp` package name, README, and smoke script.
 - [x] Include `docs/schema/canvas-workbook.schema.json` and schema `$id`/title naming.
 - [ ] Include `llms.txt`, `llms-full.txt`, and generated OpenAPI/doc artifacts when docs are renamed.
-- [ ] Include both frontend folders: legacy `ui-designer` and current `ui-designer-v2`.
-- [ ] Include package names/routes/visible branding in frontend only after backend API compatibility is protected.
+- [x] Include both frontend folders: legacy `ui-designer` and current `ui-designer-v2`.
+- [x] Include package names/routes/visible branding in frontend only after backend API compatibility is protected.
 
 ## Compatibility Rules
 
@@ -170,6 +170,10 @@ server restarts are part of this step.
       renamed in this UI-branding slice.
       Technical HTML canvas terms, localStorage keys, and legacy `Canvas.Pdf` API references remain
       unchanged for compatibility until their specific surfaces are migrated.
+      Frontend package naming slice completed: the active `ui-designer-v2` package now publishes as
+      `pxa-designer`, code-editor sample/download/schema identifiers use PXA naming, and the legacy
+      `ui-designer` package/title is explicitly marked as historical compatibility rather than active PXA UI.
+      Legacy localStorage keys remain unchanged so existing user drafts and preferences survive the rename.
 - [x] Phase 8: update MCP/sample/docs/package identities:
       - `tools/Canvas.Mcp` -> `tools/PXA.Mcp` or package `pxa-mcp`
       - `samples/Canvas.Demo` -> `samples/PXA.Demo`
