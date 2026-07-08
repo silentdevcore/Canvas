@@ -72,7 +72,11 @@ dedicated public package/versioning decision.
 ## Documentation Plan
 
 - [x] Move main docs to **Power Dox Automation / PXA** naming later.
-- [ ] Update active examples in main docs to use future `PXA.*` APIs later.
+- [x] Update active examples in main docs to use future `PXA.*` APIs later.
+      Active examples use `PXA.Generator.Pdf.CreateDocument()` as the entry point while retaining
+      `using Canvas.Pdf;` for compatibility-phase PDF option/value types such as `PdfColor`,
+      `PdfDrawTextOptions`, and `PdfPagePreset`. Full removal of `Canvas.Pdf` from examples depends on a
+      future PXA-owned PDF type facade and belongs with the physical/breaking rename phase.
 - [x] Keep historical checklist wording when it describes legacy Canvas implementation history.
 - [x] Add clear legacy notes to historical checklists instead of blindly replacing every `Canvas` occurrence.
 - [x] Add a short glossary: **Power Dox Automation** = product, **PXA** = developer/API/CLI identity, `Canvas.*` = legacy namespace.
@@ -362,6 +366,8 @@ dedicated public package/versioning decision.
       `npx tsx smoke.ts` passed and now verifies both `pxa://schema/pxa-workbook` and
       `canvas://schema/canvas-workbook` resources.
 - [ ] UI smoke test for migration page, designer open flow, export, and preview.
+      Open: no Playwright/Cypress/E2E smoke harness exists in the repo yet. Current UI verification is limited
+      to `npm run build` and targeted Jest tests until a browser smoke harness is added.
 - [ ] Documentation link check after main docs are updated.
 
 ## Assumptions
