@@ -73,14 +73,17 @@ server restarts are part of this step.
 - [x] Phase 0: inventory all `Canvas` occurrences and classify as product namespace, file/project path, UI branding, docs, schema, or unrelated HTML/graphics canvas.
       Initial inventory completed from current repo state: product namespaces/projects, UI/editor canvas terms, docs/checklists,
       schemas, MCP, samples, and unrelated HTML/graphics canvas usages were identified as separate rename buckets.
-- [ ] Phase 1: introduce new `PXA.*` public API layer without physical path/project renames.
+- [x] Phase 1: introduce new `PXA.*` public API layer without physical path/project renames.
       Started with additive `PXA.Generator` project and PDF/Word/Spreadsheet facades that delegate to the existing
       Canvas implementations.
-- [ ] Phase 2: add generator facade target for PDF/Word/Spreadsheet:
+      Completed for the current compatibility layer: additive PXA projects now cover generator, importer,
+      file importer, migration, core, application, domain, infrastructure, API/export test aliases, MCP,
+      schema, and sample entry points while legacy Canvas project paths remain compatible.
+- [x] Phase 2: add generator facade target for PDF/Word/Spreadsheet:
       - `Canvas.Pdf` -> `PXA.Generator.Pdf` / `PXA.Generator`
       - Word export APIs -> `PXA.Generator.Word`
       - Spreadsheet APIs -> `PXA.Generator.Spreadsheet`
-- [ ] Phase 3: move migration namespaces from `Canvas.Migration.*` to `PXA.Migration.*`, including PDF, report, and spreadsheet providers.
+- [x] Phase 3: move migration namespaces from `Canvas.Migration.*` to `PXA.Migration.*`, including PDF, report, and spreadsheet providers.
       Started with additive `PXA.Migration.Abstractions` project, PXA-facing migration result/diagnostic types,
       and a `CanvasSourceMigrationAdapter` bridge for existing `Canvas.Migration.Abstractions.ISourceMigration`
       implementations.
@@ -114,7 +117,7 @@ server restarts are part of this step.
       including PXA-facing analysis options/results/diagnostics, OCR options/results/models, OCR engine contract,
       Tesseract engine facades, and Canvas adapters. The OCR worker executable/package name remains a later
       physical rename item in Phase 8/9.
-- [ ] Phase 5: move infrastructure, application, core, and domain namespaces.
+- [x] Phase 5: move infrastructure, application, core, and domain namespaces.
       Started with additive `PXA.Core` project and PXA-owned contract types for design documents,
       spreadsheet workbooks, and export options. JSON-compatible adapters bridge `PXA.Core.Contracts`
       to the existing `Canvas.Core.Contracts` types while engines still use the legacy internals.
@@ -139,6 +142,9 @@ server restarts are part of this step.
       Domain facade started with additive `PXA.Domain` project for design templates, template metadata,
       page settings, designer elements, element config models, validation results, template name info,
       and Canvas/PXA repository adapters.
+      Completed for additive facade coverage and verified through the PXA solution/test aliases. Remaining
+      work here is physical namespace/path replacement, which belongs to Phase 9 and the later breaking
+      rename plan.
 - [x] Phase 6: update Web/API branding to **Power Dox Automation** and **PXA** while preserving legacy endpoints.
       Started with additive Web API branding discovery endpoint exposed on both legacy
       `/api/system/brand` and PXA `/api/pxa/system/brand` routes. Response advertises
@@ -224,6 +230,11 @@ server restarts are part of this step.
 - [x] `dotnet build Canvas.sln`
       Passed with `--disable-build-servers` after the physical sample/schema alias updates (0 errors;
       59 existing dependency/analyzer/nullability/XML-doc/NPOI warnings remain).
+- [x] `dotnet build PXA.sln`
+      Passed with `--disable-build-servers -m:1` after the frontend/package naming slice (0 errors;
+      246 existing warnings remain, mostly NuGet security-index/network warnings plus known package,
+      nullability, XML-doc, xUnit analyzer, and NPOI license warnings). A first parallel build attempt
+      produced no compiler errors but was stopped after a silent five-minute hang; serial build completed.
 - [x] `dotnet build Canvas.slnx` if kept as an active solution entry.
       Not run as an active build target because current `Canvas.slnx` is an empty `<Solution>` with no project entries.
 - [x] Relevant migration tests.
