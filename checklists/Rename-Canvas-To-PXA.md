@@ -42,31 +42,42 @@ server restarts are part of this step.
 - [x] Include `samples/Canvas.Demo`.
 - [x] Include `tools/Canvas.Mcp` package name, README, and smoke script.
 - [x] Include `docs/schema/canvas-workbook.schema.json` and schema `$id`/title naming.
-- [ ] Include `llms.txt`, `llms-full.txt`, and generated OpenAPI/doc artifacts when docs are renamed.
+- [x] Include `llms.txt`, `llms-full.txt`, and generated OpenAPI/doc artifacts when docs are renamed.
+      `llms.txt` and `llms-full.txt` already use Power Dox Automation/PXA as the primary identity while
+      documenting legacy `Canvas.Pdf` compatibility. `docs/schema/openapi.json` now uses a PXA title and
+      includes additive `/api/pxa/...` aliases for the documented document/export/migration/pdf-viewer/template
+      routes while retaining the legacy `/api/...` paths. Auth remains on `/api/auth` by design.
 - [x] Include both frontend folders: legacy `ui-designer` and current `ui-designer-v2`.
 - [x] Include package names/routes/visible branding in frontend only after backend API compatibility is protected.
 
 ## Compatibility Rules
 
 - [ ] Keep `Canvas.*` for one major version as `[Obsolete]` shims.
-- [ ] Prefer additive PXA facades first; avoid one massive physical rename as the first implementation step.
+- [x] Prefer additive PXA facades first; avoid one massive physical rename as the first implementation step.
 - [ ] Keep old NuGet/package identities or publish forwarding packages for one major version if packages are introduced.
-- [ ] Keep old HTTP endpoints compatible.
-- [ ] Keep old JSON fields compatible.
-- [ ] Add new PXA-oriented fields only alongside legacy fields.
-- [ ] Keep `CANMIG...` diagnostic IDs stable for now.
-- [ ] Do not rename unrelated terms such as HTML Canvas, `html2canvas`, `SKCanvas`, or iText `PdfCanvas`.
-- [ ] Do not rename user/domain words like "canvas" in HTML/CSS drawing contexts unless they refer to the product brand.
-- [ ] Keep existing document JSON schema fields stable unless a versioned schema migration is added.
+- [x] Keep old HTTP endpoints compatible.
+- [x] Keep old JSON fields compatible.
+- [x] Add new PXA-oriented fields only alongside legacy fields.
+- [x] Keep `CANMIG...` diagnostic IDs stable for now.
+- [x] Do not rename unrelated terms such as HTML Canvas, `html2canvas`, `SKCanvas`, or iText `PdfCanvas`.
+- [x] Do not rename user/domain words like "canvas" in HTML/CSS drawing contexts unless they refer to the product brand.
+- [x] Keep existing document JSON schema fields stable unless a versioned schema migration is added.
+
+Compatibility verification note: the implementation has stayed additive through `PXA.*` facade projects,
+PXA `/api/pxa/...` route aliases, PXA schema aliases, and PXA package/tool aliases while retaining the
+legacy Canvas routes, JSON contracts, localStorage keys, `CANMIG...` diagnostics, and technical canvas
+terms. `[Obsolete]` shims and any future package-forwarding policy remain open because they require a
+dedicated public package/versioning decision.
 
 ## Documentation Plan
 
-- [ ] Move main docs to **Power Dox Automation / PXA** naming later.
+- [x] Move main docs to **Power Dox Automation / PXA** naming later.
 - [ ] Update active examples in main docs to use future `PXA.*` APIs later.
-- [ ] Keep historical checklist wording when it describes legacy Canvas implementation history.
-- [ ] Add clear legacy notes to historical checklists instead of blindly replacing every `Canvas` occurrence.
+- [x] Keep historical checklist wording when it describes legacy Canvas implementation history.
+- [x] Add clear legacy notes to historical checklists instead of blindly replacing every `Canvas` occurrence.
 - [x] Add a short glossary: **Power Dox Automation** = product, **PXA** = developer/API/CLI identity, `Canvas.*` = legacy namespace.
-- [ ] Update docs schemas and generated OpenAPI only after code/API names are stabilized.
+- [x] Update docs schemas and generated OpenAPI only after code/API names are stabilized.
+      PXA workbook schema alias and OpenAPI PXA route aliases are present; legacy schema/path contracts remain.
 
 ## Future Implementation Phases
 
