@@ -42,7 +42,9 @@ public sealed class PdfImportFacadeTests
         source.AddPage(300, 180).DrawTextFromTop("Legacy Canvas.Importer compatibility", 24, 24, 12);
         await using var stream = new MemoryStream(source.ToBytes());
 
+#pragma warning disable PXA0002 // Explicit compatibility contract test.
         var imported = await new Canvas.Importer.PdfImporter().LoadAsync(stream);
+#pragma warning restore PXA0002
 
         var importedPage = Assert.Single(imported.Pages);
         Assert.Contains(importedPage.TextObjects, text => text.Text == "Legacy Canvas.Importer compatibility");

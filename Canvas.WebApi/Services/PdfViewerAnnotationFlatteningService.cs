@@ -7,6 +7,8 @@ using Canvas.Pdf;
 using CanvasPdfColor = Canvas.Pdf.PdfColor;
 using CanvasPdfDocument = Canvas.Pdf.PdfDocument;
 
+#pragma warning disable PXA0002 // WebApi implementation intentionally uses the compatibility importer engine.
+
 namespace Canvas.WebApi.Services;
 
 public sealed class PdfViewerAnnotationFlatteningService
@@ -698,3 +700,5 @@ public sealed class PdfViewerAnnotationFlatteningService
         }
     }
 }
+
+#pragma warning restore PXA0002

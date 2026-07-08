@@ -4,6 +4,8 @@ using Canvas.Importer.Graphics;
 using Canvas.Importer.Objects;
 using Canvas.Importer.Parsing;
 
+#pragma warning disable PXA0002 // WebApi implementation intentionally uses the compatibility importer engine.
+
 namespace Canvas.WebApi.Services;
 
 public sealed class PdfViewerNativeAnnotationExtractionService
@@ -315,3 +317,5 @@ internal sealed record PdfViewerAnnotationBounds(
     double YPct,
     double WidthPct,
     double HeightPct);
+
+#pragma warning restore PXA0002

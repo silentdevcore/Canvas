@@ -6,6 +6,8 @@ using Canvas.Importer.Analysis;
 using Canvas.Importer.Document;
 using Canvas.Importer.Graphics;
 
+#pragma warning disable PXA0002 // File-import implementation intentionally uses the compatibility importer engine.
+
 namespace Canvas.FileImporter.Pdf;
 
 /// <summary>
@@ -1076,3 +1078,5 @@ public sealed class PdfFileImporter : IFileImporter
 
     private readonly record struct PathPaintIntent(bool Fill, bool Stroke);
 }
+
+#pragma warning restore PXA0002

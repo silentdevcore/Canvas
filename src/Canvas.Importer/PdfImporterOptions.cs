@@ -12,6 +12,16 @@ public sealed class PdfImporter
 {
     private readonly PdfImporterOptions _options;
 
+    /// <summary>
+    /// Creates the legacy Canvas PDF importer.
+    /// </summary>
+    /// <remarks>
+    /// Existing callers remain supported. New integrations should use
+    /// <c>PXA.Importer.Pdf.LoadAsync(...)</c>.
+    /// </remarks>
+    [Obsolete(
+        "Canvas.Importer.PdfImporter is the legacy compatibility entry point. Use PXA.Importer.Pdf.LoadAsync(...) for new code.",
+        DiagnosticId = "PXA0002")]
     public PdfImporter(PdfImporterOptions? options = null)
     {
         _options = options ?? new PdfImporterOptions();

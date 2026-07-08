@@ -9,6 +9,8 @@ using Canvas.Importer.Debugging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 
+#pragma warning disable PXA0002 // WebApi implementation intentionally uses the compatibility importer engine.
+
 namespace Canvas.WebApi.Controllers;
 
 /// <summary>
@@ -571,3 +573,5 @@ public sealed class ImageAnalysisDebugResponse
     public required ImageAnalysisDiagnostics Diagnostics { get; set; }
     public string? DebugOverlay { get; set; }
 }
+
+#pragma warning restore PXA0002

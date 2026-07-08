@@ -17,6 +17,8 @@ using Canvas.Importer.Parsing;
 using Canvas.Importer.Streams;
 using Canvas.Importer.Xref;
 
+#pragma warning disable PXA0002 // This suite intentionally verifies the legacy Canvas importer engine.
+
 namespace Canvas.Importer.Tests;
 
 public sealed class PdfImporterCoreTests
@@ -3976,3 +3978,5 @@ public sealed class PdfImporterCoreTests
         return Assert.IsType<PrimitiveShape>(Assert.Single(new PrimitiveBuilder().Build([element])));
     }
 }
+
+#pragma warning restore PXA0002

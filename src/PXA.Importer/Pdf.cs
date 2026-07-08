@@ -18,7 +18,9 @@ public static class Pdf
     {
         ArgumentNullException.ThrowIfNull(pdfStream);
 
+#pragma warning disable PXA0002 // PXA facade intentionally delegates to the legacy importer engine.
         return new PdfImporter(options?.ToCanvasOptions()).LoadAsync(pdfStream, cancellationToken);
+#pragma warning restore PXA0002
     }
 }
 

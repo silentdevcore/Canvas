@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 
+#pragma warning disable PXA0002 // API tests intentionally inspect output through the legacy importer engine.
+
 namespace Canvas.Api.Tests;
 
 public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebApplicationFactory<Program>>, IDisposable
@@ -487,3 +489,5 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
         return stream.ToArray();
     }
 }
+
+#pragma warning restore PXA0002

@@ -55,7 +55,10 @@ server restarts are part of this step.
 - [ ] Keep `Canvas.*` for one major version as `[Obsolete]` shims.
       Started with the direct legacy `Canvas.Pdf.PdfDocument(...)` constructor marked obsolete with
       diagnostic `PXA0001`, guiding new code to `PXA.Generator.Pdf.CreateDocument(...)` while preserving
-      compatibility. Broader namespace/type-level obsolete coverage remains open until PXA-owned PDF option
+      compatibility. The legacy `Canvas.Importer.PdfImporter(...)` constructor now uses diagnostic `PXA0002`
+      and guides new integrations to `PXA.Importer.Pdf.LoadAsync(...)`; the PXA facade and intentional
+      implementation/compatibility tests suppress that diagnostic locally. Broader namespace/type-level
+      obsolete coverage remains open until PXA-owned PDF option
       and value types exist, otherwise active compatibility examples would produce noisy internal warnings.
       Internal implementation-layer usages suppress `PXA0001` locally where they intentionally bridge through
       the legacy Canvas.Pdf engine.
@@ -325,6 +328,11 @@ dedicated public package/versioning decision.
       `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj` (15 passed),
       `dotnet test --no-build` for `PXA.FileImporter.ImageAnalysis.Tests` (2 passed), and
       `PXA.FileImporter.ImageOcr.Tests` (2 passed).
+      Re-verified after adding `PXA0002` obsolete guidance with
+      `dotnet test tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj --disable-build-servers --no-restore -m:1`
+      (3 passed) and `dotnet build Canvas.WebApi/Canvas.WebApi.csproj --no-restore
+      --disable-build-servers -m:1` (0 errors; existing package/NPOI/nullable warnings remain; no internal
+      `PXA0002` warnings).
 - [x] Core compatibility tests:
       Initial `PXA.Core.Tests` coverage added for DesignExportDto, SpreadsheetDto, and ExportOptions adapters.
       Verified with `dotnet test tests/PXA.Core.Tests/PXA.Core.Tests.csproj --no-build` (3 passed).
