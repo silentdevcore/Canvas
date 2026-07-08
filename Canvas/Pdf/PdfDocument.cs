@@ -3,9 +3,10 @@ using Canvas.Pdf.Serialization;
 namespace Canvas.Pdf;
 
 /// <summary>
-/// The root of the imperative Canvas PDF API: create a document, add <see cref="PdfPage"/>s, draw on them,
-/// then call <see cref="ToBytes()"/> to produce the PDF bytes. This is the target API that vendor-SDK
-/// migrations (IronPDF, Aspose, iText, …) are converted to.
+/// The root of the imperative PDF API: create a document, add <see cref="PdfPage"/>s, draw on them,
+/// then call <see cref="ToBytes()"/> to produce the PDF bytes. During the PXA compatibility window, new
+/// code should create documents through <c>PXA.Generator.Pdf.CreateDocument()</c> while this legacy type
+/// remains available for existing Canvas.Pdf callers.
 /// </summary>
 /// <example>
 /// <code>
@@ -36,8 +37,17 @@ public sealed class PdfDocument
     private PdfGenerationDiagnostics? _lastDiagnostics;
     private PdfViewerPreferencesOptions _viewerPreferences = PdfViewerPreferencesOptions.Default;
 
-    /// <summary>Creates an empty document.</summary>
+    /// <summary>
+    /// Creates an empty document.
+    /// </summary>
+    /// <remarks>
+    /// Compatibility shim for existing Canvas.Pdf callers. New code should use
+    /// <c>PXA.Generator.Pdf.CreateDocument(...)</c> so the public entry point follows the PXA naming.
+    /// </remarks>
     /// <param name="defaultFont">The standard font used by pages and text drawing unless overridden.</param>
+    [Obsolete(
+        "Canvas.Pdf.PdfDocument is the legacy compatibility entry point. Use PXA.Generator.Pdf.CreateDocument(...) for new code.",
+        DiagnosticId = "PXA0001")]
     public PdfDocument(PdfStandardFont defaultFont = PdfStandardFont.Helvetica)
     {
         DefaultFont = defaultFont;

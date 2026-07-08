@@ -29,8 +29,10 @@ public sealed class RenderTemplateUseCase
             throw new ArgumentException("Output path cannot be null or empty.", nameof(request));
         }
 
+#pragma warning disable PXA0001 // Legacy implementation layer keeps using Canvas.Pdf internally during the PXA compatibility window.
         // Create a simple PDF document for testing
         var pdfDocument = new Canvas.Pdf.PdfDocument();
+#pragma warning restore PXA0001
         var page = pdfDocument.AddPage();
         page.DrawText("Template Rendered Successfully", 100, 700, 14);
 

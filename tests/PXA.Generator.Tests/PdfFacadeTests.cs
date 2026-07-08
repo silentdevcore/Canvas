@@ -31,7 +31,9 @@ public sealed class PdfFacadeTests
     [Fact]
     public void LegacyCanvasPdfNamespace_StillGeneratesPdf()
     {
+#pragma warning disable PXA0001 // This test intentionally verifies the legacy Canvas.Pdf compatibility entry point.
         var document = new PdfDocument();
+#pragma warning restore PXA0001
         var page = document.AddPage(300, 180);
         page.DrawTextFromTop("Legacy Canvas.Pdf compatibility", 24, 24, 12);
 

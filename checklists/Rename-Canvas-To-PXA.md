@@ -53,6 +53,12 @@ server restarts are part of this step.
 ## Compatibility Rules
 
 - [ ] Keep `Canvas.*` for one major version as `[Obsolete]` shims.
+      Started with the direct legacy `Canvas.Pdf.PdfDocument(...)` constructor marked obsolete with
+      diagnostic `PXA0001`, guiding new code to `PXA.Generator.Pdf.CreateDocument(...)` while preserving
+      compatibility. Broader namespace/type-level obsolete coverage remains open until PXA-owned PDF option
+      and value types exist, otherwise active compatibility examples would produce noisy internal warnings.
+      Internal implementation-layer usages suppress `PXA0001` locally where they intentionally bridge through
+      the legacy Canvas.Pdf engine.
 - [x] Prefer additive PXA facades first; avoid one massive physical rename as the first implementation step.
 - [ ] Keep old NuGet/package identities or publish forwarding packages for one major version if packages are introduced.
 - [x] Keep old HTTP endpoints compatible.
@@ -302,6 +308,9 @@ dedicated public package/versioning decision.
       the legacy Canvas exporter internally.
       Added explicit legacy `Canvas.Pdf.PdfDocument` smoke coverage and verified with
       `dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj` (5 passed).
+      Re-verified after adding `PXA0001` obsolete guidance to the legacy `Canvas.Pdf.PdfDocument(...)`
+      constructor with `dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj --disable-build-servers`
+      (5 passed).
 - [x] Importer compatibility tests:
       - New code with `using PXA.Importer;`
       - Legacy code with `using Canvas.Importer;`
@@ -353,6 +362,9 @@ dedicated public package/versioning decision.
       and form field extraction.
       Added and verified `PXA.Api.Tests` alias with
       `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --disable-build-servers` (61 passed).
+      Re-verified WebApi compilation after adding the first obsolete shim with
+      `dotnet build Canvas.WebApi/Canvas.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing package/NPOI warnings remain; no `PXA0001` internal warnings).
 - [x] Export compatibility tests:
       Added and verified `PXA.Export.Tests` alias with
       `dotnet test tests/PXA.Export.Tests/PXA.Export.Tests.csproj --disable-build-servers` (206 passed).

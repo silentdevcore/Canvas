@@ -150,7 +150,9 @@ public sealed class CanvasPdfGeneratorBridge : IPdfGeneratorBridge
 
     private CanvasPdfDocument CreateDocument(PdfDocumentModel source)
     {
+#pragma warning disable PXA0001 // Importer regeneration bridge targets the legacy Canvas.Pdf implementation during compatibility window.
         var document = new CanvasPdfDocument();
+#pragma warning restore PXA0001
         ApplyMetadata(document, source.Metadata);
 
         foreach (var pageModel in source.Pages)
