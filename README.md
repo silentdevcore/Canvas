@@ -4,6 +4,17 @@ A production-ready document automation platform with a visual template designer,
 
 ---
 
+## Naming Glossary
+
+| Name | Meaning |
+|------|---------|
+| Power Dox Automation | Product and website name |
+| PXA | Developer-facing identity for APIs, packages, CLI, schemas, and future `.pxa` files |
+| `PXA.*` | Additive public facade projects for new code |
+| `Canvas.*` | Legacy implementation namespaces/projects kept compatible during the rename window |
+
+---
+
 ## Features
 
 ### Visual Template Designer

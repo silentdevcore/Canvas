@@ -65,7 +65,7 @@ server restarts are part of this step.
 - [ ] Update active examples in main docs to use future `PXA.*` APIs later.
 - [ ] Keep historical checklist wording when it describes legacy Canvas implementation history.
 - [ ] Add clear legacy notes to historical checklists instead of blindly replacing every `Canvas` occurrence.
-- [ ] Add a short glossary: **Power Dox Automation** = product, **PXA** = developer/API/CLI identity, `Canvas.*` = legacy namespace.
+- [x] Add a short glossary: **Power Dox Automation** = product, **PXA** = developer/API/CLI identity, `Canvas.*` = legacy namespace.
 - [ ] Update docs schemas and generated OpenAPI only after code/API names are stabilized.
 
 ## Future Implementation Phases

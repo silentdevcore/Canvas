@@ -1,5 +1,14 @@
 # Power Dox Automation / PXA - Architecture
 
+## Naming Glossary
+
+| Name | Meaning |
+|------|---------|
+| Power Dox Automation | Product and website name |
+| PXA | Developer/API/CLI identity and future native file-format prefix |
+| `PXA.*` | Additive public facade layer preferred for new developer-facing code |
+| `Canvas.*` | Legacy implementation layer retained for compatibility until the physical rename phase |
+
 ## Dependency Direction
 
 ```text
