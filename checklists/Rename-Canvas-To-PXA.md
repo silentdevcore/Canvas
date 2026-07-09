@@ -378,6 +378,14 @@ Completed Phase 9 promotion slices:
       (29 passed). `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
       was started for this slice but stopped after a silent hang; previous WebApi composition builds passed
       before this additive Core-only interface slice.
+- [x] `PXA.Core` document exporter abstraction promotion:
+      Added PXA-owned `PXA.Core.Abstractions.IDocumentExporter` over `PXA.Core.Contracts.DesignExportDto`
+      and `ExportOptions` while keeping the legacy Canvas document exporter abstraction intact. Added tests
+      for default exporter capabilities and the default options-overload fallback. Verified with
+      `dotnet test tests/PXA.Core.Tests/PXA.Core.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (35 passed) and
+      `dotnet test tests/Canvas.Core.Tests/Canvas.Core.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (29 passed).
 
 ## Future Test Plan
 
