@@ -33,6 +33,24 @@ public static class ContractAdapters
         options.CancellationToken,
         options.WordFidelityV2);
 
+    public static Canvas.Core.Primitives.PdfPoint ToCanvas(this PXA.Core.Primitives.PdfPoint point) =>
+        new(point.X, point.Y);
+
+    public static PXA.Core.Primitives.PdfPoint ToPxa(this Canvas.Core.Primitives.PdfPoint point) =>
+        new(point.X, point.Y);
+
+    public static Canvas.Core.Primitives.PdfTextAlignment ToCanvas(this PXA.Core.Primitives.PdfTextAlignment alignment) =>
+        Enum.Parse<Canvas.Core.Primitives.PdfTextAlignment>(alignment.ToString());
+
+    public static PXA.Core.Primitives.PdfTextAlignment ToPxa(this Canvas.Core.Primitives.PdfTextAlignment alignment) =>
+        Enum.Parse<PXA.Core.Primitives.PdfTextAlignment>(alignment.ToString());
+
+    public static Canvas.Core.Primitives.PdfVerticalAlignment ToCanvas(this PXA.Core.Primitives.PdfVerticalAlignment alignment) =>
+        Enum.Parse<Canvas.Core.Primitives.PdfVerticalAlignment>(alignment.ToString());
+
+    public static PXA.Core.Primitives.PdfVerticalAlignment ToPxa(this Canvas.Core.Primitives.PdfVerticalAlignment alignment) =>
+        Enum.Parse<PXA.Core.Primitives.PdfVerticalAlignment>(alignment.ToString());
+
     private static TTarget Convert<TSource, TTarget>(TSource source)
     {
         ArgumentNullException.ThrowIfNull(source);

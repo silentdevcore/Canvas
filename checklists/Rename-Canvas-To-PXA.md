@@ -345,6 +345,19 @@ Guardrails:
 - Verify each slice with the smallest relevant tests plus `dotnet build PXA.WebApi/PXA.WebApi.csproj`;
   run full solution builds only after several small green slices because they are currently slow and can hang.
 
+Completed Phase 9 promotion slices:
+
+- [x] `PXA.Core` primitive promotion:
+      Added PXA-owned `PXA.Core.Primitives.PdfPoint`, `PdfTextAlignment`, `PdfVerticalAlignment`, and
+      `ExportFormat` while keeping the legacy Canvas primitives intact. Added adapter methods between the
+      PXA and Canvas primitive types so compatibility projects can bridge explicitly. Verified with
+      `dotnet test tests/PXA.Core.Tests/PXA.Core.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (12 passed),
+      `dotnet test tests/Canvas.Core.Tests/Canvas.Core.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (29 passed), and
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing dependency/NPOI/nullability/XML-doc warnings remain).
+
 ## Future Test Plan
 
 - [x] `dotnet build Canvas.sln`
