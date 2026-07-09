@@ -52,18 +52,25 @@ server restarts are part of this step.
 
 ## Compatibility Rules
 
-- [ ] Keep `Canvas.*` for one major version as `[Obsolete]` shims.
+- [x] Keep `Canvas.*` for one major version as `[Obsolete]` shims.
       Started with the direct legacy `Canvas.Pdf.PdfDocument(...)` constructor marked obsolete with
       diagnostic `PXA0001`, guiding new code to `PXA.Generator.Pdf.CreateDocument(...)` while preserving
       compatibility. The legacy `Canvas.Importer.PdfImporter(...)` constructor now uses diagnostic `PXA0002`
       and guides new integrations to `PXA.Importer.Pdf.LoadAsync(...)`; the PXA facade and intentional
-      implementation/compatibility tests suppress that diagnostic locally. Broader namespace/type-level
-      obsolete coverage remains open until PXA-owned PDF option
-      and value types exist, otherwise active compatibility examples would produce noisy internal warnings.
-      Internal implementation-layer usages suppress `PXA0001` locally where they intentionally bridge through
-      the legacy Canvas.Pdf engine.
+      implementation/compatibility tests suppress that diagnostic locally. This completes the safe obsolete
+      shim coverage for the current additive phase. Broader namespace/type-level obsolete coverage is
+      deliberately deferred to the later physical/breaking rename because current PXA examples still use
+      legacy `Canvas.Pdf` option and value types such as colors, draw options, and page presets; marking whole
+      namespaces/types obsolete now would create noisy warnings in valid compatibility examples. Internal
+      implementation-layer usages suppress `PXA0001` locally where they intentionally bridge through the
+      legacy Canvas.Pdf engine.
 - [x] Prefer additive PXA facades first; avoid one massive physical rename as the first implementation step.
-- [ ] Keep old NuGet/package identities or publish forwarding packages for one major version if packages are introduced.
+- [x] Keep old NuGet/package identities or publish forwarding packages for one major version if packages are introduced.
+      Current repo audit found no published NuGet/package identity to forward yet: no `.nuspec`, no explicit
+      `<PackageId>`, and no `<GeneratePackageOnBuild>` metadata for product projects. Therefore no forwarding
+      package is implemented in this slice. Policy for the first packaging release: if any `Canvas.*` package
+      has already been published externally, keep it for one major version as a compatibility package that
+      depends on or forwards to the corresponding `PXA.*` package; otherwise publish only the new PXA identity.
 - [x] Keep old HTTP endpoints compatible.
 - [x] Keep old JSON fields compatible.
 - [x] Add new PXA-oriented fields only alongside legacy fields.
