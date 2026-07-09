@@ -155,7 +155,7 @@ GET  /api/auth/me
 ## Architecture
 
 ```
-PXA.WebApi                  ← ASP.NET Core presentation layer (legacy project name; PXA API aliases exist)
+PXA.WebApi                  ← ASP.NET Core presentation layer with legacy and PXA API aliases
   ↓
 Canvas.Application             ← Use-case orchestration (legacy project name)
   ↓
