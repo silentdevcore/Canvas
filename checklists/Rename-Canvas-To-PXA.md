@@ -368,6 +368,16 @@ Completed Phase 9 promotion slices:
       (29 passed), and
       `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing dependency/NPOI/nullability/XML-doc warnings remain).
+- [x] `PXA.Core` simple abstraction promotion:
+      Added PXA-owned `PXA.Core.Abstractions.IExporterCapabilities`, `ExporterCapabilities`,
+      `IDiagnosticsReader`, `IOutputWriter`, and `IImageReader` while keeping legacy Canvas abstractions
+      intact. Added adapter methods for exporter capabilities and PXA abstraction tests. Verified with
+      `dotnet test tests/PXA.Core.Tests/PXA.Core.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (33 passed) and
+      `dotnet test tests/Canvas.Core.Tests/Canvas.Core.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (29 passed). `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      was started for this slice but stopped after a silent hang; previous WebApi composition builds passed
+      before this additive Core-only interface slice.
 
 ## Future Test Plan
 

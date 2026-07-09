@@ -65,6 +65,30 @@ public static class ContractAdapters
         this Canvas.Core.Capabilities.UnsupportedFeatureFallbackMode mode) =>
         Enum.Parse<PXA.Core.Capabilities.UnsupportedFeatureFallbackMode>(mode.ToString());
 
+    public static PXA.Core.Abstractions.ExporterCapabilities ToPxa(
+        this Canvas.Core.Abstractions.IExporterCapabilities capabilities)
+    {
+        ArgumentNullException.ThrowIfNull(capabilities);
+
+        return new PXA.Core.Abstractions.ExporterCapabilities(
+            capabilities.SupportsMultiPage,
+            capabilities.SupportsImages,
+            capabilities.SupportsRichText,
+            capabilities.SupportsFormFields);
+    }
+
+    public static Canvas.Core.Abstractions.ExporterCapabilities ToCanvas(
+        this PXA.Core.Abstractions.IExporterCapabilities capabilities)
+    {
+        ArgumentNullException.ThrowIfNull(capabilities);
+
+        return new Canvas.Core.Abstractions.ExporterCapabilities(
+            capabilities.SupportsMultiPage,
+            capabilities.SupportsImages,
+            capabilities.SupportsRichText,
+            capabilities.SupportsFormFields);
+    }
+
     private static TTarget Convert<TSource, TTarget>(TSource source)
     {
         ArgumentNullException.ThrowIfNull(source);
