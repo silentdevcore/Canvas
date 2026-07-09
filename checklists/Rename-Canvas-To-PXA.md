@@ -281,6 +281,8 @@ dedicated public package/versioning decision.
       produced no compiler errors but was stopped after a silent five-minute hang; serial build completed.
 - [x] `dotnet build Canvas.slnx` if kept as an active solution entry.
       Not run as an active build target because current `Canvas.slnx` is an empty `<Solution>` with no project entries.
+      Added matching empty `PXA.slnx` as the PXA-named solution-file alias; real builds continue through
+      `Canvas.sln` and `PXA.sln`.
 - [x] Relevant migration tests.
       Initial `PXA.Migration.Abstractions.Tests` coverage added for Canvas-to-PXA source migration adapter mapping.
       Initial `PXA.Migration.DevExpressPdf.Tests` coverage added for the first concrete PXA migration provider facade.
