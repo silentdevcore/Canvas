@@ -254,6 +254,8 @@ dedicated public package/versioning decision.
       `dotnet build PXA.sln --no-restore --disable-build-servers -m:1` and
       `dotnet build Canvas.sln --no-restore --disable-build-servers -m:1` both passed with 0 errors
       and existing dependency/NPOI/PXA0001 compatibility warnings.
+      Follow-up documentation cleanup updated active checklist references from the old WebApi project filename
+      to `Canvas.WebApi/PXA.WebApi.csproj`.
       Renamed the tracked MCP server files from `tools/Canvas.Mcp` to `tools/PXA.Mcp`. The legacy folder now
       keeps a README pointer only; untracked local `node_modules` / lock artifacts may remain there locally.
       The server still exposes the compatibility `canvas-mcp` binary and `canvas://...` resource aliases.

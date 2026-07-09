@@ -16,7 +16,7 @@ Scope: split every file-format importer into its own self-contained project, fol
 
 - [ ] Create `src/Canvas.FileImporter.Pdf/Canvas.FileImporter.Pdf.csproj` (references Abstractions, Canvas.Core, Canvas.Importer).
 - [ ] Move `CanvasImporterPdfImporter.cs` → `PdfFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["pdf"]`.
-- [ ] Add project to `Canvas.sln` and `Canvas.WebApi.csproj`.
+- [ ] Add project to `Canvas.sln` and `Canvas.WebApi/PXA.WebApi.csproj`.
 - [ ] Create `tests/Canvas.FileImporter.Pdf.Tests/` with basic round-trip test.
 
 ---
@@ -25,7 +25,7 @@ Scope: split every file-format importer into its own self-contained project, fol
 
 - [ ] Create `src/Canvas.FileImporter.Docx/Canvas.FileImporter.Docx.csproj` (references Abstractions, Canvas.Core; NuGet: DocumentFormat.OpenXml).
 - [ ] Move `DocxImporter.cs` → `DocxFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["docx"]`.
-- [ ] Add project to `Canvas.sln` and `Canvas.WebApi.csproj`.
+- [ ] Add project to `Canvas.sln` and `Canvas.WebApi/PXA.WebApi.csproj`.
 - [ ] Create `tests/Canvas.FileImporter.Docx.Tests/` with basic round-trip test.
 
 ---
@@ -34,7 +34,7 @@ Scope: split every file-format importer into its own self-contained project, fol
 
 - [ ] Create `src/Canvas.FileImporter.Pptx/Canvas.FileImporter.Pptx.csproj` (references Abstractions, Canvas.Core; NuGet: DocumentFormat.OpenXml).
 - [ ] Move `PptxImporter.cs` → `PptxFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["pptx"]`.
-- [ ] Add project to `Canvas.sln` and `Canvas.WebApi.csproj`.
+- [ ] Add project to `Canvas.sln` and `Canvas.WebApi/PXA.WebApi.csproj`.
 - [ ] Create `tests/Canvas.FileImporter.Pptx.Tests/` with basic round-trip test.
 
 ---
@@ -43,7 +43,7 @@ Scope: split every file-format importer into its own self-contained project, fol
 
 - [ ] Create `src/Canvas.FileImporter.Doc/Canvas.FileImporter.Doc.csproj` (references Abstractions, Canvas.Core; no extra NuGet).
 - [ ] Move `DocImporter.cs` → `DocFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["doc"]`.
-- [ ] Add project to `Canvas.sln` and `Canvas.WebApi.csproj`.
+- [ ] Add project to `Canvas.sln` and `Canvas.WebApi/PXA.WebApi.csproj`.
 - [ ] Create `tests/Canvas.FileImporter.Doc.Tests/` with basic round-trip test.
 
 ---
@@ -52,7 +52,7 @@ Scope: split every file-format importer into its own self-contained project, fol
 
 - [ ] Create `src/Canvas.FileImporter.Odt/Canvas.FileImporter.Odt.csproj` (references Abstractions, Canvas.Core; no extra NuGet).
 - [ ] Move `OdtImporter.cs` → `OdtFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["odt"]`.
-- [ ] Add project to `Canvas.sln` and `Canvas.WebApi.csproj`.
+- [ ] Add project to `Canvas.sln` and `Canvas.WebApi/PXA.WebApi.csproj`.
 - [ ] Create `tests/Canvas.FileImporter.Odt.Tests/` with basic round-trip test.
 
 ---
@@ -61,7 +61,7 @@ Scope: split every file-format importer into its own self-contained project, fol
 
 - [ ] Create `src/Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj` (references Abstractions, Canvas.Core; no extra NuGet).
 - [ ] Move `SvgImporter.cs` → `SvgFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["svg"]`.
-- [ ] Add project to `Canvas.sln` and `Canvas.WebApi.csproj`.
+- [ ] Add project to `Canvas.sln` and `Canvas.WebApi/PXA.WebApi.csproj`.
 - [ ] Create `tests/Canvas.FileImporter.Svg.Tests/` with basic round-trip test.
 
 ---
@@ -70,7 +70,7 @@ Scope: split every file-format importer into its own self-contained project, fol
 
 - [ ] Create `src/Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj` (references Abstractions, Canvas.Core; NuGet: SkiaSharp).
 - [ ] Move `ImageImporter.cs` → `ImageFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["png","jpg","jpeg","gif","webp","bmp","tiff","tif"]`.
-- [ ] Add project to `Canvas.sln` and `Canvas.WebApi.csproj`.
+- [ ] Add project to `Canvas.sln` and `Canvas.WebApi/PXA.WebApi.csproj`.
 - [ ] Create `tests/Canvas.FileImporter.Image.Tests/` with basic round-trip test.
 
 ---

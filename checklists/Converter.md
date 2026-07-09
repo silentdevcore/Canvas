@@ -261,7 +261,7 @@ Frontend (ExportService.ts)
   services.AddScoped<IDocumentExporter, CsvDocumentExporter>();
   services.AddScoped<IDocumentExporter, MarkdownDocumentExporter>();
   ```
-- [x] Add project references in `Canvas.WebApi.csproj`:
+- [x] Add project references in `Canvas.WebApi/PXA.WebApi.csproj`:
   - `Canvas.Infrastructure.Word` ✓
   - `Canvas.Infrastructure.Sheet` ✓
   - `Canvas.Infrastructure.Converters` ✓
@@ -333,7 +333,7 @@ Frontend (ExportService.ts)
 | File | Change | Status |
 |------|--------|--------|
 | `Canvas.WebApi/Program.cs` | Registered `ExportDocumentUseCase` + 9 exporters in DI | ✅ done |
-| `Canvas.WebApi/Canvas.WebApi.csproj` | Added project references to Word, Sheet, Converters | ✅ done |
+| `Canvas.WebApi/PXA.WebApi.csproj` | Added project references to Word, Sheet, Converters | ✅ done |
 | `Canvas.WebApi/Infrastructure/DesignExportDto.cs` | Replaced with `global using Canvas.Core.Contracts` | ✅ done |
 | `Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj` | Added `DocumentFormat.OpenXml` 3.5.1 | ✅ done |
 | `Canvas.Infrastructure.Sheet/Canvas.Infrastructure.Sheet.csproj` | Added `ClosedXML` 0.105.0 | ✅ done |

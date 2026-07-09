@@ -83,7 +83,7 @@ type). Confirm the scope before executing.
 - [~] `SheetRendererCapabilities` class **left as-is** — a class identifier (scope B), not the project rename;
       only its own declaration exists. Rename later if desired.
 - [x] `Canvas.sln` project name + path entry.
-- [x] `ProjectReference` paths in `Canvas.WebApi.csproj` + `Canvas.Export.Tests.csproj`.
+- [x] `ProjectReference` paths in `Canvas.WebApi/PXA.WebApi.csproj` + `Canvas.Export.Tests.csproj`.
 - [x] `using`/qualified `Canvas.Infrastructure.Spreadsheet.*` in `Program.cs`, `SpreadsheetController.cs`, and
       the 3 test files. No stale `.Sheet` references remain.
 - [x] `dotnet build Canvas.sln` clean; `Canvas.Export.Tests` **193** green.

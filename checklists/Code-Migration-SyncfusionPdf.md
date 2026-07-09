@@ -9,7 +9,7 @@
 - [x] WebApi conversion returns summary counts for converted, warning, error, and total diagnostics.
 - [x] Realistic invoice-style fixture validates the end-to-end migration shape.
 - [x] Verified with `dotnet test tests/Canvas.Migration.SyncfusionPdf.Tests/Canvas.Migration.SyncfusionPdf.Tests.csproj --no-restore --no-build`: `20/20` passed.
-- [x] Verified with `dotnet build Canvas.WebApi/Canvas.WebApi.csproj --no-restore`.
+- [x] Verified with `dotnet build Canvas.WebApi/PXA.WebApi.csproj --no-restore`.
 - [ ] Semantic symbol matching remains a post-v1 hardening task.
 - [ ] Real analyzer/codefix packaging remains a post-v1 IDE integration task.
 - [ ] Visual PDF fixture comparison remains a post-v1 quality gate.
