@@ -31,7 +31,7 @@ Der bisherige Fokus war:
 
 Beim Erstellen dieses Handoffs zeigt `git status --short` unter anderem Änderungen, die nicht aus der Migration-Arbeit stammen bzw. nicht zurückgesetzt werden sollen:
 
-- `Canvas.WebApi/Controllers/DocumentOpsController.cs`
+- `PXA.WebApi/Controllers/DocumentOpsController.cs`
 - `src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj`
 - Gelöschte Dateien:
   - `src/Canvas.Infrastructure.Converters/PdfImporter.cs`
@@ -85,11 +85,11 @@ Aktuell relevante neue/letzte Provider-Dateien:
 
 WebApi-Konverter:
 
-- `Canvas.WebApi/Services/Converters/PdfKitNetConverter.cs`
-- `Canvas.WebApi/Services/Converters/LeadtoolsPdfConverter.cs`
-- `Canvas.WebApi/Services/Converters/ActivePdfConverter.cs`
-- `Canvas.WebApi/Services/Converters/PdfToolsConverter.cs`
-- `Canvas.WebApi/Services/Converters/PdfToolsToolboxConverter.cs`
+- `PXA.WebApi/Services/Converters/PdfKitNetConverter.cs`
+- `PXA.WebApi/Services/Converters/LeadtoolsPdfConverter.cs`
+- `PXA.WebApi/Services/Converters/ActivePdfConverter.cs`
+- `PXA.WebApi/Services/Converters/PdfToolsConverter.cs`
+- `PXA.WebApi/Services/Converters/PdfToolsToolboxConverter.cs`
 
 API-Smoke-Tests:
 
@@ -292,7 +292,7 @@ Der Kontext ist groß geworden. Bitte nicht von vorne anfangen. Erst lokale Date
 - `checklists/Code-Migrations.md`
 - `checklists/Code-Migrations-UI.md`
 - `tests/Canvas.Api.Tests/MigrationServiceTests.cs`
-- `Canvas.WebApi/Services/Converters/*PdfConverter.cs`
+- `PXA.WebApi/Services/Converters/*PdfConverter.cs`
 - die drei letzten Provider unter `src/Canvas.Migration.*`
 
 Dann den aktuellen Working Tree sauber einordnen und erst danach weiterarbeiten.

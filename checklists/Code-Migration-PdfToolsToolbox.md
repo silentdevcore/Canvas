@@ -4,7 +4,7 @@
 
 - [x] Add cautious Roslyn-backed provider project: `src/Canvas.Migration.PdfToolsToolbox`
 - [x] Add provider tests: `tests/Canvas.Migration.PdfToolsToolbox.Tests`
-- [x] Connect WebApi converter: `Canvas.WebApi/Services/Converters/PdfToolsToolboxConverter.cs`
+- [x] Connect WebApi converter: `PXA.WebApi/Services/Converters/PdfToolsToolboxConverter.cs`
 - [x] Add UI fallback status/example as `pilot`
 - [x] Split from `PDFTools / Pdftools SDK`; Toolbox is the direct-generation/content-editing API family
 - [x] Confirm official direct-generation entry points:

@@ -7,7 +7,7 @@ Removes the last duplicate server-side expression implementation. Companion to
 
 `ExpressionEvaluator` (`src/Canvas.Core/Primitives/ExpressionEvaluator.cs`) was the original **stub**
 implementation of `IExpressionEvaluator`: regex variable substitution plus bare `==`/`!=`, returning the
-raw string for anything else. It is registered in DI (`Canvas.WebApi/Program.cs`) and injected into
+raw string for anything else. It is registered in DI (`PXA.WebApi/Program.cs`) and injected into
 `TemplateExpander` (the value/visibility-resolution path), but nothing currently consumes
 `ITemplateExpander` — the live export path is `DesignLayoutPlanner`, already on `CanvasExpressionEvaluator`.
 

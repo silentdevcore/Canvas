@@ -23,7 +23,7 @@ Font files are optional. If a file is missing, the PDF engine falls back silentl
 
 ## Configuration
 
-The fonts directory path is configured in `Canvas.WebApi/appsettings.json`:
+The fonts directory path is configured in `PXA.WebApi/appsettings.json`:
 
 ```json
 "Pdf": {

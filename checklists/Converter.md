@@ -25,8 +25,8 @@ Frontend (ExportService.ts)
                           └── MarkdownDocumentExporter (Canvas.Infrastructure.Converters)
 ```
 
-**Input** (already exists): `DesignExportDto` in `Canvas.WebApi/Infrastructure/DesignExportDto.cs`  
-**Existing PDF path**: `POST /api/templates/render-design` → keep unchanged for backward compat  
+**Input** (already exists): `DesignExportDto` in `PXA.WebApi/Infrastructure/DesignExportDto.cs`
+**Existing PDF path**: `POST /api/templates/render-design` → keep unchanged for backward compat
 **New path**: `POST /api/templates/export?format=<key>` → returns file with correct MIME type
 
 ---
@@ -72,7 +72,7 @@ Frontend (ExportService.ts)
 
 ## Phase 3 — API Endpoint (Canvas.WebApi)
 
-- [x] Add `ExportController` at `Canvas.WebApi/Controllers/ExportController.cs`:
+- [x] Add `ExportController` at `PXA.WebApi/Controllers/ExportController.cs`:
   ```
   POST /api/export?format={key}
   Body: DesignExportDto
@@ -261,7 +261,7 @@ Frontend (ExportService.ts)
   services.AddScoped<IDocumentExporter, CsvDocumentExporter>();
   services.AddScoped<IDocumentExporter, MarkdownDocumentExporter>();
   ```
-- [x] Add project references in `Canvas.WebApi/PXA.WebApi.csproj`:
+- [x] Add project references in `PXA.WebApi/PXA.WebApi.csproj`:
   - `Canvas.Infrastructure.Word` ✓
   - `Canvas.Infrastructure.Sheet` ✓
   - `Canvas.Infrastructure.Converters` ✓
@@ -312,7 +312,7 @@ Frontend (ExportService.ts)
 | `Canvas.Core/Primitives/ExportFormat.cs` | Canvas.Core | ✅ done |
 | `Canvas.Application/UseCases/ExportDocumentUseCase.cs` | Canvas.Application | ✅ done |
 | `Canvas.Application/UseCases/ExportDocumentRequest.cs` | Canvas.Application | ✅ done |
-| `Canvas.WebApi/Controllers/ExportController.cs` | Canvas.WebApi | ✅ done |
+| `PXA.WebApi/Controllers/ExportController.cs` | Canvas.WebApi | ✅ done |
 | `Canvas.Infrastructure.Converters/HtmlDocumentExporter.cs` | Canvas.Infrastructure.Converters | ✅ done |
 | `Canvas.Infrastructure.Converters/XmlDocumentExporter.cs` | Canvas.Infrastructure.Converters | ✅ done |
 | `Canvas.Infrastructure.Converters/ImageDocumentExporter.cs` | Canvas.Infrastructure.Converters | ✅ done |
@@ -332,9 +332,9 @@ Frontend (ExportService.ts)
 
 | File | Change | Status |
 |------|--------|--------|
-| `Canvas.WebApi/Program.cs` | Registered `ExportDocumentUseCase` + 9 exporters in DI | ✅ done |
-| `Canvas.WebApi/PXA.WebApi.csproj` | Added project references to Word, Sheet, Converters | ✅ done |
-| `Canvas.WebApi/Infrastructure/DesignExportDto.cs` | Replaced with `global using Canvas.Core.Contracts` | ✅ done |
+| `PXA.WebApi/Program.cs` | Registered `ExportDocumentUseCase` + 9 exporters in DI | ✅ done |
+| `PXA.WebApi/PXA.WebApi.csproj` | Added project references to Word, Sheet, Converters | ✅ done |
+| `PXA.WebApi/Infrastructure/DesignExportDto.cs` | Replaced with `global using Canvas.Core.Contracts` | ✅ done |
 | `Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj` | Added `DocumentFormat.OpenXml` 3.5.1 | ✅ done |
 | `Canvas.Infrastructure.Sheet/Canvas.Infrastructure.Sheet.csproj` | Added `ClosedXML` 0.105.0 | ✅ done |
 | `Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj` | Added `SkiaSharp` 3.119.2 | ✅ done |

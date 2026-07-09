@@ -62,7 +62,7 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 
 ### Delivery
 - [x] Backend `POST /api/migration/report-to-design` auto-detects `.rpx` (after RDL, before DevExpress)
-      → `RpxToDesignConverter` ([MigrationController.cs](../Canvas.WebApi/Controllers/MigrationController.cs)).
+      → `RpxToDesignConverter` ([MigrationController.cs](../PXA.WebApi/Controllers/MigrationController.cs)).
 - [x] Frontend **"ActiveReports (.rpx)"** entry + **Open in Designer**
       ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
 

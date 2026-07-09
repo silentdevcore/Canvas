@@ -4,7 +4,7 @@
 
 - [x] Added cautious Roslyn-backed provider project: `src/Canvas.Migration.PdfKitNet`
 - [x] Added provider tests: `tests/Canvas.Migration.PdfKitNet.Tests`
-- [x] Connected WebApi converter: `Canvas.WebApi/Services/Converters/PdfKitNetConverter.cs`
+- [x] Connected WebApi converter: `PXA.WebApi/Services/Converters/PdfKitNetConverter.cs`
 - [x] Added UI fallback status/example as `pilot`
 - [ ] Confirm the exact NuGet package and public API names with a real customer/source sample
 

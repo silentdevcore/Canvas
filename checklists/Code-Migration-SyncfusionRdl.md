@@ -88,7 +88,7 @@ gaps (per-cell table styling, native maps/charts) require **Canvas model** chang
 ### Delivery
 - [x] Backend `POST /api/migration/report-to-design` auto-detects RDL (`<Report>` in an RDL namespace)
       → `RdlToDesignConverter`, else falls through to the DevExpress converter
-      ([MigrationController.cs](../Canvas.WebApi/Controllers/MigrationController.cs)).
+      ([MigrationController.cs](../PXA.WebApi/Controllers/MigrationController.cs)).
 - [x] Frontend **"Syncfusion / RDL Reports"** entry + **Open in Designer** (loads via
       `bulkReplaceContent`) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
 

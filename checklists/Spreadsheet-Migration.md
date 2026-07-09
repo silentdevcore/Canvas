@@ -112,7 +112,7 @@ its own sub-tabs; Spreadsheet Code Migration gets its own view + a non-PDF previ
 - **Authoring API:** `src/Canvas.Infrastructure.Spreadsheet/CanvasWorkbookBuilder.cs` (new).
 - **Migration (reuse):** `src/Canvas.Migration.Roslyn/CSharpSourceMigration.cs`;
   clone `src/Canvas.Migration.GemBoxPdf/GemBoxPdfMigration.cs`; `Canvas.Migration.Abstractions` (`MigrationDiagnostic`);
-  new `src/Canvas.Migration.<Lib>Spreadsheet/`; `Canvas.WebApi/Services/{ICodeConverter.cs,MigrationService.cs,Converters/}`.
+  new `src/Canvas.Migration.<Lib>Spreadsheet/`; `PXA.WebApi/Services/{ICodeConverter.cs,MigrationService.cs,Converters/}`.
 
 ## Verification
 - **Format:** `Canvas.Export.Tests` JSON round-trip preserves Phase-2 fields + `schemaVersion`; sample

@@ -257,7 +257,7 @@ Implementation targets:
 Implementation targets:
 - [x] src/Canvas.Core/: domain entities and abstractions
 - [x] src/Canvas.Application/: use cases and business logic
-- [x] Canvas.WebApi/: clean API layer
+- [x] PXA.WebApi/: clean API layer
 - [x] Proper architectural boundaries and patterns
 
 ### 1) Binding Properties (Critical)

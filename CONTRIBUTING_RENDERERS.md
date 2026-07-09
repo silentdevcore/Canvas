@@ -60,7 +60,7 @@ Implement supporting services where applicable:
 
 ### 3. Register the backend
 
-Wire the exporter in `Canvas.WebApi/Program.cs` and expose it through `ExportController`.
+Wire the exporter in `PXA.WebApi/Program.cs` and expose it through `ExportController`.
 
 Update:
 

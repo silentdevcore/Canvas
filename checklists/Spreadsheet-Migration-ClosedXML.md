@@ -5,7 +5,7 @@ Migrates ClosedXML (`XLWorkbook`) authoring code → the Canvas spreadsheet API 
 the other libraries (EPPlus / GemBox / Aspose) clone this structure.
 
 - **Project:** `src/Canvas.Migration.ClosedXmlSpreadsheet/` (`ClosedXmlSpreadsheetMigration : CSharpSourceMigration`, Roslyn).
-- **Converter:** `Canvas.WebApi/Services/Converters/ClosedXmlSpreadsheetConverter.cs` (`FrameworkId = "ClosedXmlSpreadsheet"`, Status `full`), registered in `MigrationService`.
+- **Converter:** `PXA.WebApi/Services/Converters/ClosedXmlSpreadsheetConverter.cs` (`FrameworkId = "ClosedXmlSpreadsheet"`, Status `full`), registered in `MigrationService`.
 - **Diagnostics prefix:** `CANMIGCLXL`.
 - **Tests:** `tests/Canvas.Migration.ClosedXmlSpreadsheet.Tests/` (3, green). Live: `/api/migration/convert`.
 

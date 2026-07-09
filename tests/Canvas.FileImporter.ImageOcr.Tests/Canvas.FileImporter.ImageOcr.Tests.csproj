@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Canvas.FileImporter.ImageOcr/Canvas.FileImporter.ImageOcr.csproj" />
-    <ProjectReference Include="../../Canvas.WebApi/PXA.WebApi.csproj" />
+    <ProjectReference Include="../../PXA.WebApi/PXA.WebApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>

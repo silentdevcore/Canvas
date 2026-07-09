@@ -4,7 +4,7 @@
 
 - [x] Add cautious Roslyn-backed provider project: `src/Canvas.Migration.PdfTools`
 - [x] Add provider tests: `tests/Canvas.Migration.PdfTools.Tests`
-- [x] Connect WebApi converter: `Canvas.WebApi/Services/Converters/PdfToolsConverter.cs`
+- [x] Connect WebApi converter: `PXA.WebApi/Services/Converters/PdfToolsConverter.cs`
 - [x] Add UI fallback status/example as `pilot`
 - [x] Confirm current .NET package name from official docs: `PdfTools`
 - [x] Confirm current SDK initialization pattern from official docs: `Sdk.Initialize(...)`

@@ -1231,7 +1231,7 @@ Content-Disposition: attachment; filename="invoice-freelancer.pdf"
 }`}</Code>
 
             <H3>Register in ASP.NET Core (Program.cs)</H3>
-            <Code lang="csharp">{`// Canvas.WebApi/Program.cs
+            <Code lang="csharp">{`// PXA.WebApi/Program.cs
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
@@ -1261,7 +1261,7 @@ app.MapControllers();
 app.Run();`}</Code>
 
             <div className="docs-callout docs-callout--info">
-              <strong>Note:</strong> The Web API is started separately from the React app. Run <code className="docs-inline-code">dotnet run</code> inside the current backend project <code className="docs-inline-code">Canvas.WebApi/</code> — it defaults to <code className="docs-inline-code">http://localhost:5274</code>. The React dev server runs on port <code className="docs-inline-code">5173</code>.
+              <strong>Note:</strong> The Web API is started separately from the React app. Run <code className="docs-inline-code">dotnet run</code> inside the current backend project <code className="docs-inline-code">PXA.WebApi/</code> — it defaults to <code className="docs-inline-code">http://localhost:5274</code>. The React dev server runs on port <code className="docs-inline-code">5173</code>.
             </div>
 
             <H3>Minimal controller example</H3>

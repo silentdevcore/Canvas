@@ -1,7 +1,7 @@
 # Backend-Adjust Checklist
 
 Analysis of gaps between the frontend UI designer and the backend PDF renderer (`DesignJsonMapper.cs`).
-All fixes go in `Canvas.WebApi/Infrastructure/DesignJsonMapper.cs` unless stated otherwise.
+All fixes go in `PXA.WebApi/Infrastructure/DesignJsonMapper.cs` unless stated otherwise.
 
 ---
 

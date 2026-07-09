@@ -40,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../Canvas.WebApi/PXA.WebApi.csproj" />
+    <ProjectReference Include="../../PXA.WebApi/PXA.WebApi.csproj" />
     <ProjectReference Include="../../src/Canvas.FileImporter.ImageOcr.Worker/Canvas.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />
   </ItemGroup>
 

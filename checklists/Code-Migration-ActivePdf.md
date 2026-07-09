@@ -4,7 +4,7 @@
 
 - [x] Added cautious Roslyn-backed provider project: `src/Canvas.Migration.ActivePdf`
 - [x] Added provider tests: `tests/Canvas.Migration.ActivePdf.Tests`
-- [x] Connected WebApi converter: `Canvas.WebApi/Services/Converters/ActivePdfConverter.cs`
+- [x] Connected WebApi converter: `PXA.WebApi/Services/Converters/ActivePdfConverter.cs`
 - [x] Added UI fallback status/example as `pilot`
 - [ ] Confirm exact ActivePDF product, NuGet package, or COM interop reference with a real source sample
 

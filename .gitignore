@@ -66,6 +66,7 @@ ui-designer-v2/tmp/
 .claude/
 .dotnet-home/
 Canvas.WebApi/App_Data/
+PXA.WebApi/App_Data/
 BookingReceipt.Designer.cs
 designer-simples/
 

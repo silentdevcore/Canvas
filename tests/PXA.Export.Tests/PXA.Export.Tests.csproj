@@ -30,7 +30,7 @@
     <ProjectReference Include="../../src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj" />
     <ProjectReference Include="../../src/Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj" />
     <ProjectReference Include="../../src/Canvas.Infrastructure.Spreadsheet/Canvas.Infrastructure.Spreadsheet.csproj" />
-    <ProjectReference Include="../../Canvas.WebApi/PXA.WebApi.csproj" />
+    <ProjectReference Include="../../PXA.WebApi/PXA.WebApi.csproj" />
   </ItemGroup>
 
 </Project>

@@ -58,7 +58,7 @@ the next, unstarted milestone.
 
 ### Delivery
 - [x] Backend `POST /api/migration/report-to-design` → `{ design, diagnostics }`
-      ([MigrationController.cs](../Canvas.WebApi/Controllers/MigrationController.cs)).
+      ([MigrationController.cs](../PXA.WebApi/Controllers/MigrationController.cs)).
 - [x] Frontend **"DevExpress Reports"** entry + **Open in Designer** (loads via `bulkReplaceContent`,
       navigates to the editor) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
 

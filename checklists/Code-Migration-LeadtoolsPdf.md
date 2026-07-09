@@ -4,7 +4,7 @@
 
 - [x] Added cautious Roslyn-backed provider project: `src/Canvas.Migration.LeadtoolsPdf`
 - [x] Added provider tests: `tests/Canvas.Migration.LeadtoolsPdf.Tests`
-- [x] Connected WebApi converter: `Canvas.WebApi/Services/Converters/LeadtoolsPdfConverter.cs`
+- [x] Connected WebApi converter: `PXA.WebApi/Services/Converters/LeadtoolsPdfConverter.cs`
 - [x] Added UI fallback status/example as `pilot`
 - [ ] Confirm exact LEADTOOLS PDF-generation package/API with a real source sample
 
