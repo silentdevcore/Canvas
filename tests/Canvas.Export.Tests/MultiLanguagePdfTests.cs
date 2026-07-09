@@ -194,7 +194,7 @@ public sealed class MultiLanguagePdfTests
         };
 
         var loader = new PdfFontLoader(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
-        var doc = Canvas.WebApi.Infrastructure.DesignJsonMapper.MapToPdfDocument(design, loader);
+        var doc = PXA.WebApi.Infrastructure.DesignJsonMapper.MapToPdfDocument(design, loader);
         var bytes = doc.ToBytes();
 
         Assert.True(bytes.Length > 0);
@@ -235,7 +235,7 @@ public sealed class MultiLanguagePdfTests
             }]
         };
 
-        var doc   = Canvas.WebApi.Infrastructure.DesignJsonMapper.MapToPdfDocument(design, targetLanguage: "de");
+        var doc   = PXA.WebApi.Infrastructure.DesignJsonMapper.MapToPdfDocument(design, targetLanguage: "de");
         var bytes = doc.ToBytes();
 
         Assert.True(bytes.Length > 0);
@@ -289,7 +289,7 @@ public sealed class MultiLanguagePdfTests
             }]
         };
 
-        var doc   = Canvas.WebApi.Infrastructure.DesignJsonMapper.MapToPdfDocument(design, targetLanguage: "ar");
+        var doc   = PXA.WebApi.Infrastructure.DesignJsonMapper.MapToPdfDocument(design, targetLanguage: "ar");
         var bytes = doc.ToBytes();
 
         Assert.True(bytes.Length > 0);

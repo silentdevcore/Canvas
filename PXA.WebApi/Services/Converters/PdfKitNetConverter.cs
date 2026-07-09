@@ -1,6 +1,6 @@
 using Canvas.Migration.PdfKitNet;
 
-namespace Canvas.WebApi.Services.Converters;
+namespace PXA.WebApi.Services.Converters;
 
 public sealed class PdfKitNetConverter : BasePdfConverter
 {

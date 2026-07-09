@@ -8,10 +8,10 @@ using Canvas.Migration.Rdl;
 using Canvas.Migration.Rpx;
 using Canvas.Migration.Stimulsoft;
 using Canvas.Migration.Telerik;
-using Canvas.WebApi.Services;
+using PXA.WebApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Canvas.WebApi.Controllers;
+namespace PXA.WebApi.Controllers;
 
 [ApiController]
 [Route("api/migration")]

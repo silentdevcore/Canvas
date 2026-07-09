@@ -1,7 +1,8 @@
 using Canvas.Domain.Entities;
 using Canvas.Domain.Repositories;
+using Canvas.Domain.ValueObjects;
 
-namespace Canvas.WebApi.Infrastructure;
+namespace PXA.WebApi.Infrastructure;
 
 public class InMemoryTemplateRepository : ITemplateRepository
 {
@@ -15,24 +16,24 @@ public class InMemoryTemplateRepository : ITemplateRepository
             Id = "sample-invoice",
             Name = "Sample Invoice Template",
             Description = "A basic invoice template for testing",
-            Elements = new List<Domain.ValueObjects.DesignerElement>
+            Elements = new List<DesignerElement>
             {
-                new Domain.ValueObjects.DesignerElement
+                new DesignerElement
                 {
                     Id = "title",
-                    Type = Domain.ValueObjects.ElementType.Text,
+                    Type = ElementType.Text,
                     Props = new Dictionary<string, object> { { "text", "INVOICE" } },
                     X = 50,
                     Y = 50,
                     Width = 200,
                     Height = 30
                 },
-                new Domain.ValueObjects.DesignerElement
+                new DesignerElement
                 {
                     Id = "customer-name",
-                    Type = Domain.ValueObjects.ElementType.Text,
+                    Type = ElementType.Text,
                     Props = new Dictionary<string, object> { { "text", "Customer Name" } },
-                    Binding = new Domain.ValueObjects.BindingConfig
+                    Binding = new BindingConfig
                     {
                         DataPath = "customer.name",
                         FallbackValue = "Customer Name"
@@ -43,7 +44,7 @@ public class InMemoryTemplateRepository : ITemplateRepository
                     Height = 20
                 }
             },
-            PageSettings = new Domain.ValueObjects.PageSettings(),
+            PageSettings = new PageSettings(),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

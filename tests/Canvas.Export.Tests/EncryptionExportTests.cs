@@ -1,7 +1,7 @@
 using System.Text;
 using Canvas.Core.Contracts;
 using Canvas.Pdf;
-using Canvas.WebApi.Infrastructure;
+using PXA.WebApi.Infrastructure;
 
 namespace Canvas.Export.Tests;
 

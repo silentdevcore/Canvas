@@ -2,7 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Canvas.WebApi.Services.Converters;
+namespace PXA.WebApi.Services.Converters;
 
 /// <summary>
 /// Base for spreadsheet-library code converters (→ Canvas spreadsheet API). Marks <see cref="Kind"/> as

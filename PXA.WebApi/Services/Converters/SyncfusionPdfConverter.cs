@@ -1,6 +1,6 @@
 using Canvas.Migration.SyncfusionPdf;
 
-namespace Canvas.WebApi.Services.Converters;
+namespace PXA.WebApi.Services.Converters;
 
 public sealed class SyncfusionPdfConverter : BasePdfConverter
 {

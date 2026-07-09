@@ -1,6 +1,6 @@
 using Canvas.Application.UseCases;
 
-namespace Canvas.WebApi.Middleware;
+namespace PXA.WebApi.Middleware;
 
 public class AuthenticationMiddleware
 {

@@ -9,7 +9,7 @@ using System.Text.Json;
 
 #pragma warning disable PXA0002 // WebApi implementation intentionally uses the compatibility importer engine.
 
-namespace Canvas.WebApi.Services;
+namespace PXA.WebApi.Services;
 
 public sealed class PdfViewerFormExtractionService
 {

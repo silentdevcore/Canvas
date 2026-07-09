@@ -243,8 +243,8 @@ dedicated public package/versioning decision.
       Added `PXA.WebApi/PXA.WebApi.http` as a PXA-named HTTP request alias for the `/api/pxa/system/brand`
       endpoint. The WebApi folder and project file are now physically named `PXA.WebApi/PXA.WebApi.csproj`,
       both `Canvas.sln` and `PXA.sln` reference it as `PXA.WebApi`, and API/export/ImageOCR test project
-      references point to the new project file. Implementation namespaces intentionally remain
-      `Canvas.WebApi.*` for this slice so controller/test source compatibility stays stable. Verified with
+      references point to the new project file. Implementation namespaces were moved from the legacy WebApi
+      namespace to `PXA.WebApi.*` in the follow-up namespace slice. Verified with
       `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing dependency/NPOI/nullability/XML-doc warnings remain),
       `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
@@ -254,6 +254,13 @@ dedicated public package/versioning decision.
       `dotnet build PXA.sln --no-restore --disable-build-servers -m:1` and
       `dotnet build Canvas.sln --no-restore --disable-build-servers -m:1` both passed with 0 errors
       and existing dependency/NPOI/PXA0001 compatibility warnings.
+      The WebApi namespace slice was re-verified with
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing dependency/NPOI/nullable warnings remain),
+      `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (61 passed), and
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (61 passed).
       Follow-up documentation cleanup updated active checklist references from the old WebApi project filename
       to `PXA.WebApi/PXA.WebApi.csproj`.
       Renamed the tracked MCP server files from `tools/Canvas.Mcp` to `tools/PXA.Mcp`. The legacy folder now

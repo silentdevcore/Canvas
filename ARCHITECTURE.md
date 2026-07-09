@@ -15,7 +15,7 @@
 PXA.* facade projects
    |
    v
-Canvas.WebApi
+PXA.WebApi
    |
    v
 Canvas.Application
@@ -70,7 +70,7 @@ Layer: use-case orchestration.
 - Use cases include render/export, validate, find-and-replace, clone, extract-pages, page numbering, table flow, headers/footers, watermarks, diagnostics, and template CRUD orchestration.
 - References `Canvas.Core` and keeps business workflow code independent of concrete output formats.
 
-### `Canvas.WebApi`
+### `PXA.WebApi`
 Layer: presentation and composition root.
 
 - `ExportController` exposes export and multi-language export.
@@ -181,7 +181,7 @@ The older `ui-designer` tree remains in the repository for legacy/reference work
 4. File importer projects should reference `Canvas.FileImporter.Abstractions`, `Canvas.Core`, and only the parser libraries they need.
 5. Migration provider projects must stay isolated from renderer/importer infrastructure except for shared migration abstractions and Roslyn helpers.
 6. Report migration projects output `DesignExportDto`; PDF code migration projects output PXA-compatible PDF C# source.
-7. `Canvas.WebApi` is the current composition root and owns both legacy and PXA endpoint wiring.
+7. `PXA.WebApi` is the current composition root and owns both legacy and PXA endpoint wiring.
 
 ---
 

@@ -17,8 +17,8 @@ using Canvas.Infrastructure.Pdf;
 using Canvas.Infrastructure.Spreadsheet;
 using Canvas.Infrastructure.Word;
 using Canvas.Pdf;
-using Canvas.WebApi.Infrastructure;
-using Canvas.WebApi.Middleware;
+using PXA.WebApi.Infrastructure;
+using PXA.WebApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,11 +104,11 @@ builder.Services.AddSingleton<IOcrEngine>(sp =>
 builder.Services.AddTransient<ImageToPdfConverter>();
 
 // Register migration service
-builder.Services.AddSingleton<Canvas.WebApi.Services.MigrationService>();
-builder.Services.AddSingleton<Canvas.WebApi.Services.PdfViewerAnnotationStore>();
-builder.Services.AddSingleton<Canvas.WebApi.Services.PdfViewerAnnotationFlatteningService>();
-builder.Services.AddSingleton<Canvas.WebApi.Services.PdfViewerNativeAnnotationExtractionService>();
-builder.Services.AddSingleton<Canvas.WebApi.Services.PdfViewerFormExtractionService>();
+builder.Services.AddSingleton<PXA.WebApi.Services.MigrationService>();
+builder.Services.AddSingleton<PXA.WebApi.Services.PdfViewerAnnotationStore>();
+builder.Services.AddSingleton<PXA.WebApi.Services.PdfViewerAnnotationFlatteningService>();
+builder.Services.AddSingleton<PXA.WebApi.Services.PdfViewerNativeAnnotationExtractionService>();
+builder.Services.AddSingleton<PXA.WebApi.Services.PdfViewerFormExtractionService>();
 
 // Register use cases
 builder.Services.AddScoped<ExportDocumentUseCase>();

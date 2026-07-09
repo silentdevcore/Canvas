@@ -1,6 +1,6 @@
-using Canvas.WebApi.Services.Converters;
+using PXA.WebApi.Services.Converters;
 
-namespace Canvas.WebApi.Services;
+namespace PXA.WebApi.Services;
 
 public sealed class MigrationService
 {

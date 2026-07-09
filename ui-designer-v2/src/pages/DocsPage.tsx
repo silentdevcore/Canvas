@@ -1132,7 +1132,7 @@ var output = JsonConvert.SerializeObject(template, Formatting.Indented, settings
           {/* ── REST API ─────────────────────────────────────────────────── */}
           <section id="rest-api" className="docs-section">
             <H2 id="rest-api">REST API</H2>
-            <p>The Power Dox Automation Web API (ASP.NET Core, currently hosted by the legacy <code className="docs-inline-code">Canvas.WebApi</code> project) runs at <code className="docs-inline-code">http://localhost:5274</code> by default. Swagger UI is at <code className="docs-inline-code">http://localhost:5274/swagger</code>.</p>
+            <p>The Power Dox Automation Web API (ASP.NET Core, currently hosted by the legacy <code className="docs-inline-code">PXA.WebApi</code> project) runs at <code className="docs-inline-code">http://localhost:5274</code> by default. Swagger UI is at <code className="docs-inline-code">http://localhost:5274/swagger</code>.</p>
 
             <H3>All endpoints</H3>
             <div className="docs-endpoint-grid">

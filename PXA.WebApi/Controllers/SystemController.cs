@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Canvas.WebApi.Controllers;
+namespace PXA.WebApi.Controllers;
 
 [ApiController]
 [Route("api/system")]

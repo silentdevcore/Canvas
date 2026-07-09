@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using Canvas.Pdf;
 
-namespace Canvas.WebApi.Infrastructure;
+namespace PXA.WebApi.Infrastructure;
 
 /// <summary>
 /// Parses TipTap / ProseMirror HTML into styled span runs and renders them

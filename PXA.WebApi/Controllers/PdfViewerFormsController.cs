@@ -1,8 +1,8 @@
-using Canvas.WebApi.Services;
+using PXA.WebApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
-namespace Canvas.WebApi.Controllers;
+namespace PXA.WebApi.Controllers;
 
 [ApiController]
 [Route("api/pdf-viewer/forms")]

@@ -1162,7 +1162,7 @@ public class ExporterTests
     [Fact]
     public void NativePdf_Export_WithRdlMatrixHeaders_ProducesValidPdf()
     {
-        var bytes = Canvas.WebApi.Infrastructure.DesignJsonMapper
+        var bytes = PXA.WebApi.Infrastructure.DesignJsonMapper
             .MapToPdfDocument(MatrixHeaderDesign())
             .ToBytes();
 

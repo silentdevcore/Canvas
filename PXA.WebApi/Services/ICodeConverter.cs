@@ -1,4 +1,4 @@
-namespace Canvas.WebApi.Services;
+namespace PXA.WebApi.Services;
 
 public interface ICodeConverter
 {

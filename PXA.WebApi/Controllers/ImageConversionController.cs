@@ -1,10 +1,10 @@
 using Canvas.FileImporter.ImageOcr;
 using Canvas.Pdf;
-using Canvas.WebApi.Infrastructure;
+using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
-namespace Canvas.WebApi.Controllers;
+namespace PXA.WebApi.Controllers;
 
 [ApiController]
 [Route("api/document")]

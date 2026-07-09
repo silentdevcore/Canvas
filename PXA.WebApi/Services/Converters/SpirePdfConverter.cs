@@ -1,6 +1,6 @@
 using Canvas.Migration.SpirePdf;
 
-namespace Canvas.WebApi.Services.Converters;
+namespace PXA.WebApi.Services.Converters;
 
 public sealed class SpirePdfConverter : BasePdfConverter
 {

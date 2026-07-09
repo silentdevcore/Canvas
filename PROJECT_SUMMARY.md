@@ -36,7 +36,7 @@ Power Dox Automation (PXA) is a document automation platform with a visual templ
 | File importers | `Canvas.FileImporter.Abstractions`, `Canvas.FileImporter.*` | PDF, DOCX, DOC, ODT, PPTX, SVG, Image, ImageAnalysis, OCR import paths |
 | PDF importer SDK | `Canvas.Importer` | Legacy PDF parser, editable DOM, graphics interpretation, regeneration bridge |
 | Migrations | `Canvas.Migration.Abstractions`, `Canvas.Migration.Roslyn`, `Canvas.Migration.*` | Legacy provider implementations for vendor code migration and report-to-design conversion |
-| API | `Canvas.WebApi` | Presentation layer and composition root with legacy and PXA route aliases |
+| API | `PXA.WebApi` | Presentation layer and composition root with legacy and PXA route aliases |
 | Domain compatibility | `Canvas.Domain` | Legacy/domain models used by compatibility paths |
 
 ---

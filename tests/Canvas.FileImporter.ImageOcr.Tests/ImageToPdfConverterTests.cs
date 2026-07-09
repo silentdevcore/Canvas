@@ -1,6 +1,6 @@
 using Canvas.Core.Contracts;
 using Canvas.FileImporter.ImageOcr;
-using Canvas.WebApi.Infrastructure;
+using PXA.WebApi.Infrastructure;
 using SkiaSharp;
 using System.Text;
 using System.Text.Json;

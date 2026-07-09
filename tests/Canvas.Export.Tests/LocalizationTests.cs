@@ -1,5 +1,5 @@
 using Canvas.Core.Contracts;
-using Canvas.WebApi.Infrastructure;
+using PXA.WebApi.Infrastructure;
 
 namespace Canvas.Export.Tests;
 

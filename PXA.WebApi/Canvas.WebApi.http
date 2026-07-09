@@ -1,6 +1,6 @@
-@Canvas.WebApi_HostAddress = http://localhost:5086
+@PXA.WebApi_HostAddress = http://localhost:5086
 
-GET {{Canvas.WebApi_HostAddress}}/weatherforecast/
+GET {{PXA.WebApi_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###

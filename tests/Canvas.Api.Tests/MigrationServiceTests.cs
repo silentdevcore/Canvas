@@ -1,4 +1,4 @@
-using Canvas.WebApi.Services;
+using PXA.WebApi.Services;
 
 namespace Canvas.Api.Tests;
 

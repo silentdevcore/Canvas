@@ -2,10 +2,10 @@ using Canvas.Application.UseCases;
 using Canvas.Core.Contracts;
 using Canvas.Infrastructure.Spreadsheet;
 using Canvas.Pdf;
-using Canvas.WebApi.Infrastructure;
+using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Canvas.WebApi.Controllers;
+namespace PXA.WebApi.Controllers;
 
 /// <summary>
 /// Spreadsheet Editor SDK endpoints: round-trips a <see cref="SpreadsheetDto"/> workbook to/from

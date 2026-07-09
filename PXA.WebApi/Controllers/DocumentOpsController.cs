@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Http;
 
 #pragma warning disable PXA0002 // WebApi implementation intentionally uses the compatibility importer engine.
 
-namespace Canvas.WebApi.Controllers;
+namespace PXA.WebApi.Controllers;
 
 /// <summary>
 /// Document-level operations: find-and-replace, clone, and page extraction.

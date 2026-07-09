@@ -1,6 +1,6 @@
 using Canvas.Core.Contracts;
 
-namespace Canvas.WebApi.Infrastructure;
+namespace PXA.WebApi.Infrastructure;
 
 /// <summary>
 /// Resolves the effective value for each localized property given a target language.

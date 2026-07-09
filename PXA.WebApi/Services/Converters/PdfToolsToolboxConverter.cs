@@ -1,6 +1,6 @@
 using Canvas.Migration.PdfToolsToolbox;
 
-namespace Canvas.WebApi.Services.Converters;
+namespace PXA.WebApi.Services.Converters;
 
 public sealed class PdfToolsToolboxConverter : BasePdfConverter
 {

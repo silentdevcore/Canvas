@@ -1,6 +1,6 @@
 using Canvas.Migration.DsPdf;
 
-namespace Canvas.WebApi.Services.Converters;
+namespace PXA.WebApi.Services.Converters;
 
 public sealed class DsPdfConverter : BasePdfConverter
 {

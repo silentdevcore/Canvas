@@ -9,7 +9,7 @@ using ZXing;
 using ZXing.Common;
 using DesignLayoutPlanner = Canvas.Core.Primitives.DesignLayoutPlanner;
 
-namespace Canvas.WebApi.Infrastructure;
+namespace PXA.WebApi.Infrastructure;
 
 public static class DesignJsonMapper
 {

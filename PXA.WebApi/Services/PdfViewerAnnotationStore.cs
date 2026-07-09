@@ -5,7 +5,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 
-namespace Canvas.WebApi.Services;
+namespace PXA.WebApi.Services;
 
 public sealed class PdfViewerAnnotationStore
 {

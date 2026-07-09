@@ -1,6 +1,6 @@
 using Canvas.Migration.GemBoxPdf;
 
-namespace Canvas.WebApi.Services.Converters;
+namespace PXA.WebApi.Services.Converters;
 
 public sealed class GemBoxPdfConverter : BasePdfConverter
 {

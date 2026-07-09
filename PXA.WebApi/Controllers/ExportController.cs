@@ -2,11 +2,11 @@ using System.IO.Compression;
 using Canvas.Application.UseCases;
 using Canvas.Core.Contracts;
 using Canvas.Pdf;
-using Canvas.WebApi.Infrastructure;
+using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using ExportOptions = Canvas.Core.Contracts.ExportOptions;
 
-namespace Canvas.WebApi.Controllers;
+namespace PXA.WebApi.Controllers;
 
 [ApiController]
 [Route("api/export")]

@@ -1,6 +1,6 @@
 using Canvas.Migration.iText7;
 
-namespace Canvas.WebApi.Services.Converters;
+namespace PXA.WebApi.Services.Converters;
 
 public sealed class IText7PdfConverter : BasePdfConverter
 {

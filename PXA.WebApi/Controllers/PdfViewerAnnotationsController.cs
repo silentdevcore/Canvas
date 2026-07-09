@@ -1,8 +1,8 @@
 using System.Text.Json;
-using Canvas.WebApi.Services;
+using PXA.WebApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Canvas.WebApi.Controllers;
+namespace PXA.WebApi.Controllers;
 
 [ApiController]
 [Route("api/pdf-viewer/annotations")]

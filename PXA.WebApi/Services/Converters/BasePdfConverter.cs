@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using Canvas.Pdf;
 
-namespace Canvas.WebApi.Services.Converters;
+namespace PXA.WebApi.Services.Converters;
 
 public abstract class BasePdfConverter : ICodeConverter
 {

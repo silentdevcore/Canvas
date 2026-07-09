@@ -2,13 +2,13 @@ using System.Reflection;
 using Canvas.Application.UseCases;
 using Canvas.Domain.Entities;
 using Canvas.Domain.Repositories;
-using Canvas.WebApi.Infrastructure;
+using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 
-namespace Canvas.WebApi.Controllers;
+namespace PXA.WebApi.Controllers;
 
 [ApiController]
 [Route("api/templates")]
@@ -364,7 +364,7 @@ public class TemplatesController : ControllerBase
                     typeof(Canvas.Pdf.PdfDocument).Assembly)
                 .WithImports(
                     "Canvas.Pdf",
-                    "Canvas.WebApi.Infrastructure",
+                    "PXA.WebApi.Infrastructure",
                     "System",
                     "System.IO",
                     "System.Collections.Generic")
@@ -442,7 +442,7 @@ public class TemplatesController : ControllerBase
                 .WithReferences(platformRefs)
                 .AddReferences(Assembly.GetExecutingAssembly())
                 .WithImports(
-                    "Canvas.WebApi.Infrastructure",
+                    "PXA.WebApi.Infrastructure",
                     "System",
                     "System.Collections.Generic")
                 .WithEmitDebugInformation(true);

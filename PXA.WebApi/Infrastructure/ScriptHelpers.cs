@@ -3,7 +3,7 @@ using ZXing;
 using ZXing.Common;
 using System.IO.Compression;
 
-namespace Canvas.WebApi.Infrastructure;
+namespace PXA.WebApi.Infrastructure;
 
 /// <summary>
 /// Public helpers callable from Roslyn scripts (csharp-code-to-pdf endpoint).

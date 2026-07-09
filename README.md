@@ -87,7 +87,7 @@ Opens at **http://localhost:5173**
 
 ### Backend
 ```bash
-cd Canvas.WebApi
+cd PXA.WebApi
 dotnet run
 ```
 API at **http://localhost:5274** — Swagger UI at http://localhost:5274/swagger
@@ -155,7 +155,7 @@ GET  /api/auth/me
 ## Architecture
 
 ```
-Canvas.WebApi                  ← ASP.NET Core presentation layer (legacy project name; PXA API aliases exist)
+PXA.WebApi                  ← ASP.NET Core presentation layer (legacy project name; PXA API aliases exist)
   ↓
 Canvas.Application             ← Use-case orchestration (legacy project name)
   ↓
@@ -224,10 +224,10 @@ Test projects: `Canvas.Core.Tests`, `Canvas.Application.Tests`, `Canvas.Infrastr
 cd ui-designer-v2 && npm run build
 
 # Backend publish
-cd Canvas.WebApi && dotnet publish -c Release
+cd PXA.WebApi && dotnet publish -c Release
 
 # Docker
-docker build -t pxa-api ./Canvas.WebApi
+docker build -t pxa-api ./PXA.WebApi
 docker build -t pxa-ui ./ui-designer-v2
 docker-compose up -d
 ```
