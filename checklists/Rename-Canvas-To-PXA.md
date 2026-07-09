@@ -393,7 +393,11 @@ dedicated public package/versioning decision.
       (4 passed) and `npm run build` in `ui-designer-v2` (passed; existing chunk-size warning remains).
       This is a lightweight route/component smoke test; a full Playwright/Cypress browser harness with
       screenshots remains optional future hardening, not a blocker for the current PXA rename checklist.
-- [ ] Documentation link check after main docs are updated.
+- [x] Documentation link check after main docs are updated.
+      Checked 111 tracked `.md` / `.mdx` / `.txt` documentation files with a local-link verifier that resolves
+      relative links, repo-root links such as `/docs/...`, `.md` suffix fallbacks, and `README.md` / `index.md`
+      directory targets. No broken local markdown links found. External links and `xref:` API references were
+      intentionally not crawled.
 
 ## Assumptions
 
