@@ -278,6 +278,73 @@ dedicated public package/versioning decision.
       legacy API/export test sources under PXA-named test assemblies. Both `Canvas.sln` and `PXA.sln` now
       include the aliases while the legacy `Canvas.Api.Tests` / `Canvas.Export.Tests` projects remain.
 
+## Phase 9 Collision Plan
+
+The remaining physical rename work is not a simple folder move because many `src/PXA.*` projects already
+exist as public facades or provider aggregators over legacy `Canvas.*` implementation projects.
+
+Recommended order:
+
+1. **Keep facade projects stable first.**
+   `PXA.Core`, `PXA.Application`, `PXA.Domain`, `PXA.Infrastructure.*`, `PXA.FileImporter`,
+   `PXA.Importer`, `PXA.Migration.Pdf`, `PXA.Migration.Report`, and `PXA.Migration.Spreadsheet`
+   should stay in place as the public surface while implementation moves are done underneath them.
+2. **Promote shared contracts before implementation engines.**
+   Move/copy remaining canonical contracts from `Canvas.Core` into `PXA.Core`, then convert Canvas-facing
+   types to compatibility aliases or adapters. Do this before moving Application or Infrastructure because
+   almost every project depends on Core DTOs and abstractions.
+3. **Promote Domain separately.**
+   `PXA.Domain` currently wraps `Canvas.Domain`; do not rename `Canvas.Domain/` directly into
+   `src/PXA.Domain/` because that folder already exists. First move missing implementation types into the
+   existing `src/PXA.Domain` project, then keep `Canvas.Domain` as a compatibility project that forwards
+   to PXA.
+4. **Promote Application after Core/Domain.**
+   `PXA.Application` currently references `Canvas.Application`, `PXA.Core`, and `PXA.Domain`.
+   Move use cases into the existing `src/PXA.Application` project in small groups, then leave
+   `Canvas.Application` as compatibility shims.
+5. **Promote Infrastructure by capability family.**
+   `PXA.Infrastructure.Pdf`, `Word`, `Spreadsheet`, and `Converters` already exist and reference the
+   Canvas engines. Move one family at a time, keeping tests green after each family. PDF should go first
+   because it is the generator core, then Word/Spreadsheet, then Converters.
+6. **Promote Importers after Core and PDF infrastructure.**
+   `PXA.Importer` wraps `Canvas.Importer`; `PXA.FileImporter` aggregates dedicated `Canvas.FileImporter.*`
+   projects. Keep the low-level PDF importer move separate from file-format importer moves because it has
+   parser/editor/regenerator internals and many downstream import adapters.
+7. **Promote Migration provider projects last.**
+   PXA provider facades already exist for PDF migrations; report/spreadsheet aggregators still reference
+   `Canvas.Migration.*` provider engines. Move individual provider projects one provider family at a time
+   only after Core/Application/Infrastructure identities are stable.
+8. **Tests follow the same pattern.**
+   Keep current `Canvas.*.Tests` until each underlying project is promoted, then add or switch to
+   `PXA.*.Tests` aliases before removing legacy test project names.
+
+Current classification:
+
+| Area | Current state | Next action |
+| --- | --- | --- |
+| `PXA.WebApi` | Physically renamed; namespace renamed; API tests green | Done except future route/diagnostic cleanup |
+| `PXA.Core` | Facade over `Canvas.Core` plus selected PXA contracts | Promote canonical contracts/abstractions first |
+| `PXA.Domain` | Facade/adapters over `Canvas.Domain` | Move missing domain implementation into existing PXA project |
+| `PXA.Application` | Facade over `Canvas.Application` plus selected PXA use cases | Move use cases after Core/Domain |
+| `PXA.Infrastructure.Pdf` | Facade over PDF infrastructure | Promote PDF implementation first among infrastructure |
+| `PXA.Infrastructure.Word` | Facade over Word infrastructure | Promote after PDF |
+| `PXA.Infrastructure.Spreadsheet` | Facade over Spreadsheet infrastructure | Promote after PDF or alongside spreadsheet migration |
+| `PXA.Infrastructure.Converters` | Facade over converter exporters | Promote after Word/Spreadsheet dependencies settle |
+| `PXA.Importer` | Facade over low-level `Canvas.Importer` | Promote after Core/PDF infrastructure |
+| `PXA.FileImporter` | Aggregator over `Canvas.FileImporter.*` | Promote individual importers after low-level importer |
+| `PXA.Migration.Pdf` | Aggregator over PXA provider facades | Keep, then retire legacy provider engines later |
+| `PXA.Migration.Report` | Aggregator over `Canvas.Migration.*` report engines | Promote report providers one by one late |
+| `PXA.Migration.Spreadsheet` | Aggregator over `Canvas.Migration.*` spreadsheet engines | Promote spreadsheet providers one by one late |
+
+Guardrails:
+
+- Do not move a `Canvas.*` implementation folder into an already-existing `src/PXA.*` facade folder without
+  first deciding whether the facade or the implementation owns each file.
+- Do not remove `Canvas.*` projects until the matching PXA project has source-level ownership and the legacy
+  project can compile as a compatibility shim.
+- Verify each slice with the smallest relevant tests plus `dotnet build PXA.WebApi/PXA.WebApi.csproj`;
+  run full solution builds only after several small green slices because they are currently slow and can hang.
+
 ## Future Test Plan
 
 - [x] `dotnet build Canvas.sln`
