@@ -1,6 +1,0 @@
-@PXA.WebApi_HostAddress = http://localhost:5086
-
-GET {{PXA.WebApi_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

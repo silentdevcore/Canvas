@@ -261,6 +261,8 @@ dedicated public package/versioning decision.
       (61 passed), and
       `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
       (61 passed).
+      Removed the stale default legacy-named WebApi scratch request after the folder/namespace rename;
+      `PXA.WebApi/PXA.WebApi.http` is now the only tracked WebApi HTTP scratch file.
       Follow-up documentation cleanup updated active checklist references from the old WebApi project filename
       to `PXA.WebApi/PXA.WebApi.csproj`.
       Renamed the tracked MCP server files from `tools/Canvas.Mcp` to `tools/PXA.Mcp`. The legacy folder now
