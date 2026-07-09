@@ -241,8 +241,19 @@ dedicated public package/versioning decision.
       `dotnet sln PXA.sln list` and `dotnet build PXA.sln` (0 errors; existing dependency/analyzer/nullability
       warnings remain).
       Added `Canvas.WebApi/PXA.WebApi.http` as a PXA-named HTTP request alias for the `/api/pxa/system/brand`
-      endpoint. Assembly, namespace, and folder rename for `Canvas.WebApi` remains a later dedicated slice
-      because many API/export tests reference the current `Program` type and `Canvas.WebApi.*` namespaces.
+      endpoint. The WebApi project file is now physically named `Canvas.WebApi/PXA.WebApi.csproj`, both
+      `Canvas.sln` and `PXA.sln` reference it as `PXA.WebApi`, and API/export/ImageOCR test project references
+      point to the new project file. The folder and implementation namespaces intentionally remain
+      `Canvas.WebApi` for this slice so controller/test source compatibility stays stable. Verified with
+      `dotnet build Canvas.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing dependency/NPOI/nullability/XML-doc warnings remain),
+      `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (61 passed), and
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (61 passed). Solution-level verification after this slice:
+      `dotnet build PXA.sln --no-restore --disable-build-servers -m:1` and
+      `dotnet build Canvas.sln --no-restore --disable-build-servers -m:1` both passed with 0 errors
+      and existing dependency/NPOI/PXA0001 compatibility warnings.
       Renamed the tracked MCP server files from `tools/Canvas.Mcp` to `tools/PXA.Mcp`. The legacy folder now
       keeps a README pointer only; untracked local `node_modules` / lock artifacts may remain there locally.
       The server still exposes the compatibility `canvas-mcp` binary and `canvas://...` resource aliases.
@@ -337,7 +348,7 @@ dedicated public package/versioning decision.
       `PXA.FileImporter.ImageOcr.Tests` (2 passed).
       Re-verified after adding `PXA0002` obsolete guidance with
       `dotnet test tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj --disable-build-servers --no-restore -m:1`
-      (3 passed) and `dotnet build Canvas.WebApi/Canvas.WebApi.csproj --no-restore
+      (3 passed) and `dotnet build Canvas.WebApi/PXA.WebApi.csproj --no-restore
       --disable-build-servers -m:1` (0 errors; existing package/NPOI/nullable warnings remain; no internal
       `PXA0002` warnings).
 - [x] Core compatibility tests:
@@ -378,7 +389,7 @@ dedicated public package/versioning decision.
       Added and verified `PXA.Api.Tests` alias with
       `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --disable-build-servers` (61 passed).
       Re-verified WebApi compilation after adding the first obsolete shim with
-      `dotnet build Canvas.WebApi/Canvas.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build Canvas.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing package/NPOI warnings remain; no `PXA0001` internal warnings).
 - [x] Export compatibility tests:
       Added and verified `PXA.Export.Tests` alias with
