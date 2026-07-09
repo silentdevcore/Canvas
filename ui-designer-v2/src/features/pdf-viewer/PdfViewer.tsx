@@ -192,10 +192,6 @@ const annotationOpacity = (annotation: PdfAnnotation): number => annotation.opac
 
 const isTextMarkupTool = (tool: ReviewTool): boolean => tool === 'highlight' || tool === 'underline' || tool === 'strikeout';
 
-const isTextMarkupAnnotation = (annotation: PdfAnnotation): boolean => (
-  annotation.type === 'highlight' || annotation.type === 'underline' || annotation.type === 'strikeout'
-);
-
 const annotationBoundsFromQuads = (quadPoints: MarkupQuadPoint[]): Pick<PdfAnnotation, 'xPct' | 'yPct' | 'widthPct' | 'heightPct'> | null => {
   if (quadPoints.length === 0) {
     return null;

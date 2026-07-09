@@ -385,9 +385,14 @@ dedicated public package/versioning decision.
 - [x] MCP smoke test if `tools/PXA.Mcp` is renamed or rebranded.
       `npx tsx smoke.ts` passed and now verifies both `pxa://schema/pxa-workbook` and
       `canvas://schema/canvas-workbook` resources.
-- [ ] UI smoke test for migration page, designer open flow, export, and preview.
-      Open: no Playwright/Cypress/E2E smoke harness exists in the repo yet. Current UI verification is limited
-      to `npm run build` and targeted Jest tests until a browser smoke harness is added.
+- [x] UI smoke test for migration page, designer open flow, export, and preview.
+      Added `ui-designer-v2/src/__tests__/appRouteSmoke.test.tsx` using the existing Jest/jsdom setup.
+      It covers the migrations landing route, report-designer conversion handoff into `/create`, designer
+      preview mode, JSON export callback, and the PDF viewer route. Verified with
+      `npm test -- --runTestsByPath src/__tests__/appRouteSmoke.test.tsx src/__tests__/pdfViewerSmoke.test.tsx`
+      (4 passed) and `npm run build` in `ui-designer-v2` (passed; existing chunk-size warning remains).
+      This is a lightweight route/component smoke test; a full Playwright/Cypress browser harness with
+      screenshots remains optional future hardening, not a blocker for the current PXA rename checklist.
 - [ ] Documentation link check after main docs are updated.
 
 ## Assumptions
