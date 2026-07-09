@@ -51,6 +51,20 @@ public static class ContractAdapters
     public static PXA.Core.Primitives.PdfVerticalAlignment ToPxa(this Canvas.Core.Primitives.PdfVerticalAlignment alignment) =>
         Enum.Parse<PXA.Core.Primitives.PdfVerticalAlignment>(alignment.ToString());
 
+    public static Canvas.Core.Capabilities.RendererFeature ToCanvas(this PXA.Core.Capabilities.RendererFeature feature) =>
+        Enum.Parse<Canvas.Core.Capabilities.RendererFeature>(feature.ToString());
+
+    public static PXA.Core.Capabilities.RendererFeature ToPxa(this Canvas.Core.Capabilities.RendererFeature feature) =>
+        Enum.Parse<PXA.Core.Capabilities.RendererFeature>(feature.ToString());
+
+    public static Canvas.Core.Capabilities.UnsupportedFeatureFallbackMode ToCanvas(
+        this PXA.Core.Capabilities.UnsupportedFeatureFallbackMode mode) =>
+        Enum.Parse<Canvas.Core.Capabilities.UnsupportedFeatureFallbackMode>(mode.ToString());
+
+    public static PXA.Core.Capabilities.UnsupportedFeatureFallbackMode ToPxa(
+        this Canvas.Core.Capabilities.UnsupportedFeatureFallbackMode mode) =>
+        Enum.Parse<PXA.Core.Capabilities.UnsupportedFeatureFallbackMode>(mode.ToString());
+
     private static TTarget Convert<TSource, TTarget>(TSource source)
     {
         ArgumentNullException.ThrowIfNull(source);

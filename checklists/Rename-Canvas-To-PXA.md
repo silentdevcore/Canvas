@@ -357,6 +357,17 @@ Completed Phase 9 promotion slices:
       (29 passed), and
       `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing dependency/NPOI/nullability/XML-doc warnings remain).
+- [x] `PXA.Core` capability promotion:
+      Added PXA-owned `PXA.Core.Abstractions.IRendererCapabilities`,
+      `PXA.Core.Capabilities.RendererFeature`, `UnsupportedFeatureFallbackMode`, and
+      `RendererCapabilityFallback` while keeping legacy Canvas capabilities intact. Added adapter methods
+      for capability enums and PXA capability tests. Verified with
+      `dotnet test tests/PXA.Core.Tests/PXA.Core.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (30 passed),
+      `dotnet test tests/Canvas.Core.Tests/Canvas.Core.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (29 passed), and
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing dependency/NPOI/nullability/XML-doc warnings remain).
 
 ## Future Test Plan
 
