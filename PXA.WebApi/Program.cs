@@ -12,13 +12,13 @@ using Canvas.FileImporter.ImageAnalysis;
 using Canvas.FileImporter.ImageOcr;
 using Canvas.Core.Primitives;
 using Canvas.Domain.Repositories;
-using Canvas.Infrastructure.Converters;
 using Canvas.Infrastructure.Pdf;
-using Canvas.Infrastructure.Spreadsheet;
-using Canvas.Infrastructure.Word;
 using Canvas.Pdf;
 using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Middleware;
+using PxaConverters = PXA.Infrastructure.Converters;
+using PxaSpreadsheet = PXA.Infrastructure.Spreadsheet;
+using PxaWord = PXA.Infrastructure.Word;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,27 +59,27 @@ builder.Services.AddSingleton<PdfFontLoader>(sp =>
 });
 
 // Register export format exporters
-builder.Services.AddScoped<IDocumentExporter, HtmlDocumentExporter>();
-builder.Services.AddScoped<IDocumentExporter, XmlDocumentExporter>();
-builder.Services.AddScoped<IDocumentExporter, SvgDocumentExporter>();
-builder.Services.AddScoped<IDocumentExporter, CsvDocumentExporter>();
-builder.Services.AddScoped<IDocumentExporter, MarkdownDocumentExporter>();
-builder.Services.AddScoped<IDocumentExporter, ImageDocumentExporter>();
-builder.Services.AddScoped<IDocumentExporter, JpegDocumentExporter>();
-builder.Services.AddScoped<IDocumentExporter, TiffDocumentExporter>();
-builder.Services.AddScoped<IDocumentExporter, OdtDocumentExporter>();
-builder.Services.AddScoped<IDocumentExporter, WordDocumentExporter>();
-builder.Services.AddScoped<IDocumentExporter, ExcelDocumentExporter>();
+builder.Services.AddScoped<PXA.Core.Abstractions.IDocumentExporter, PxaConverters.HtmlDocumentExporter>();
+builder.Services.AddScoped<PXA.Core.Abstractions.IDocumentExporter, PxaConverters.XmlDocumentExporter>();
+builder.Services.AddScoped<PXA.Core.Abstractions.IDocumentExporter, PxaConverters.SvgDocumentExporter>();
+builder.Services.AddScoped<PXA.Core.Abstractions.IDocumentExporter, PxaConverters.CsvDocumentExporter>();
+builder.Services.AddScoped<PXA.Core.Abstractions.IDocumentExporter, PxaConverters.MarkdownDocumentExporter>();
+builder.Services.AddScoped<PXA.Core.Abstractions.IDocumentExporter, PxaConverters.ImageDocumentExporter>();
+builder.Services.AddScoped<PXA.Core.Abstractions.IDocumentExporter, PxaConverters.JpegDocumentExporter>();
+builder.Services.AddScoped<PXA.Core.Abstractions.IDocumentExporter, PxaConverters.TiffDocumentExporter>();
+builder.Services.AddScoped<PXA.Core.Abstractions.IDocumentExporter, PxaConverters.OdtDocumentExporter>();
+builder.Services.AddScoped<PXA.Core.Abstractions.IDocumentExporter, PxaWord.WordDocumentExporter>();
+builder.Services.AddScoped<PXA.Core.Abstractions.IDocumentExporter, PxaSpreadsheet.ExcelDocumentExporter>();
 
 // Spreadsheet Editor SDK: workbook (SpreadsheetDto) ⇄ .xlsx round-trip (distinct from the design exporters).
-builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.ExcelWorkbookExporter>();
-builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.ExcelWorkbookImporter>();
-builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.SpreadsheetToDesignConverter>();
-builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.SpreadsheetCalculator>();
-builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.SpreadsheetOperations>();
-builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.XlsWorkbookIo>();
-builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.SpreadsheetData>();
-builder.Services.AddScoped<Canvas.Infrastructure.Spreadsheet.SpreadsheetValidator>();
+builder.Services.AddScoped<PxaSpreadsheet.ExcelWorkbookExporter>();
+builder.Services.AddScoped<PxaSpreadsheet.ExcelWorkbookImporter>();
+builder.Services.AddScoped<PxaSpreadsheet.SpreadsheetToDesignConverter>();
+builder.Services.AddScoped<PxaSpreadsheet.SpreadsheetCalculator>();
+builder.Services.AddScoped<PxaSpreadsheet.SpreadsheetOperations>();
+builder.Services.AddScoped<PxaSpreadsheet.XlsWorkbookIo>();
+builder.Services.AddScoped<PxaSpreadsheet.SpreadsheetData>();
+builder.Services.AddScoped<PxaSpreadsheet.SpreadsheetValidator>();
 
 // Register file importers
 builder.Services.AddTransient<IFileImporter, PdfFileImporter>();
@@ -111,7 +111,7 @@ builder.Services.AddSingleton<PXA.WebApi.Services.PdfViewerNativeAnnotationExtra
 builder.Services.AddSingleton<PXA.WebApi.Services.PdfViewerFormExtractionService>();
 
 // Register use cases
-builder.Services.AddScoped<ExportDocumentUseCase>();
+builder.Services.AddScoped<PXA.Application.UseCases.ExportDocumentUseCase>();
 builder.Services.AddScoped<RenderTemplateUseCase>();
 builder.Services.AddScoped<CreateTemplateUseCase>();
 builder.Services.AddScoped<UpdateTemplateUseCase>();

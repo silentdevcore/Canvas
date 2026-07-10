@@ -31,8 +31,11 @@
     <ProjectReference Include="../Canvas.Domain/Canvas.Domain.csproj" />
     <ProjectReference Include="../src/Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj" />
     <ProjectReference Include="../src/Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj" />
-    <ProjectReference Include="../src/Canvas.Infrastructure.Spreadsheet/Canvas.Infrastructure.Spreadsheet.csproj" />
-    <ProjectReference Include="../src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj" />
+    <ProjectReference Include="../src/PXA.Application/PXA.Application.csproj" />
+    <ProjectReference Include="../src/PXA.Core/PXA.Core.csproj" />
+    <ProjectReference Include="../src/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj" />
+    <ProjectReference Include="../src/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj" />
+    <ProjectReference Include="../src/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.ActivePdf/Canvas.Migration.ActivePdf.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.ActiveReportsJs/Canvas.Migration.ActiveReportsJs.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.Apryse/Canvas.Migration.Apryse.csproj" />

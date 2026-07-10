@@ -488,15 +488,30 @@ Completed Phase 9 promotion slices:
       ODT export, Google font CSS helpers, style extensions, and converter renderer capabilities.
       `PXA.Infrastructure.Converters` no longer references `Canvas.Infrastructure.Converters`; it
       carries the same NPOI/SkiaSharp dependencies directly and keeps the PXA `DocumentExporter`
-      public contract for converter facade tests. `PXA.WebApi` still uses the legacy Canvas converter
-      registrations because its active export use cases are still Canvas.Application/Canvas.Core based;
-      switching API composition belongs with the Web/API application ownership slice. Verified with
+      public contract for converter facade tests. Initial WebApi export composition switching was completed
+      in the follow-up Web/API export wiring slice. Verified with
       `dotnet build src/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing dependency/NPOI warnings remain),
       `dotnet test tests/PXA.Infrastructure.Converters.Tests/PXA.Infrastructure.Converters.Tests.csproj --no-restore --disable-build-servers -m:1`
       (9 passed), and
       `dotnet test tests/Canvas.Export.Tests/Canvas.Export.Tests.csproj --no-restore --disable-build-servers -m:1 --filter "FullyQualifiedName~ExporterTests"`
       (66 passed).
+- [x] `PXA.WebApi` export/spreadsheet composition wiring:
+      Switched the active WebApi export registrations to `PXA.Application.UseCases.ExportDocumentUseCase`,
+      `PXA.Core.Abstractions.IDocumentExporter`, `PXA.Infrastructure.Converters`, `PXA.Infrastructure.Word`,
+      and `PXA.Infrastructure.Spreadsheet`. `ExportController` and `SpreadsheetController` now accept
+      PXA contracts for export/spreadsheet routes and adapt only the PDF-special rendering paths back to
+      the legacy `DesignJsonMapper`/`Canvas.Pdf` bridge. WebApi no longer references
+      `Canvas.Infrastructure.Converters` or `Canvas.Infrastructure.Spreadsheet`; `Canvas.Infrastructure.Word`
+      remains for current document-operation compatibility endpoints. Verified with
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing dependency/NPOI/nullability warnings remain),
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1 --filter "FullyQualifiedName~Export|FullyQualifiedName~Spreadsheet"`
+      (19 passed), and
+      `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --disable-build-servers -m:1 --filter "FullyQualifiedName~Export|FullyQualifiedName~Spreadsheet"`
+      (19 passed), and
+      `dotnet test tests/PXA.Infrastructure.Converters.Tests/PXA.Infrastructure.Converters.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (9 passed).
 
 ## Future Test Plan
 

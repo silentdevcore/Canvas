@@ -1,14 +1,16 @@
-using Canvas.Application.UseCases;
-using Canvas.Core.Contracts;
-using Canvas.Infrastructure.Spreadsheet;
 using Canvas.Pdf;
+using PXA.Application.UseCases;
+using PXA.Infrastructure.Spreadsheet;
 using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using PxaContractAdapters = PXA.Core.Contracts.ContractAdapters;
+using PxaDesignExportDto = PXA.Core.Contracts.DesignExportDto;
+using PxaSpreadsheetDto = PXA.Core.Contracts.SpreadsheetDto;
 
 namespace PXA.WebApi.Controllers;
 
 /// <summary>
-/// Spreadsheet Editor SDK endpoints: round-trips a <see cref="SpreadsheetDto"/> workbook to/from
+/// Spreadsheet Editor SDK endpoints: round-trips a PXA spreadsheet workbook to/from
 /// <c>.xlsx</c> (preserving formulas, typed values, styles, merges).
 /// </summary>
 [ApiController]
@@ -48,7 +50,7 @@ public class SpreadsheetController : ControllerBase
     [HttpPost("export")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
-    public IActionResult Export([FromBody] SpreadsheetDto workbook, [FromQuery] bool recalculate = false, [FromQuery] string format = "xlsx")
+    public IActionResult Export([FromBody] PxaSpreadsheetDto workbook, [FromQuery] bool recalculate = false, [FromQuery] string format = "xlsx")
     {
         if (workbook is null)
             return BadRequest(new { error = "Request body is required." });
@@ -66,9 +68,9 @@ public class SpreadsheetController : ControllerBase
     /// <summary>Recalculates all formulas server-side (ClosedXML) and returns the workbook with each formula
     /// cell's computed value filled in. The authoritative engine for headless/API callers.</summary>
     [HttpPost("calculate")]
-    [ProducesResponseType(typeof(SpreadsheetDto), 200)]
+    [ProducesResponseType(typeof(PxaSpreadsheetDto), 200)]
     [ProducesResponseType(400)]
-    public IActionResult Calculate([FromBody] SpreadsheetDto workbook)
+    public IActionResult Calculate([FromBody] PxaSpreadsheetDto workbook)
     {
         if (workbook is null)
             return BadRequest(new { error = "Request body is required." });
@@ -77,7 +79,7 @@ public class SpreadsheetController : ControllerBase
 
     /// <summary>Imports an uploaded <c>.xlsx</c> file into a workbook model.</summary>
     [HttpPost("import")]
-    [ProducesResponseType(typeof(SpreadsheetDto), 200)]
+    [ProducesResponseType(typeof(PxaSpreadsheetDto), 200)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> Import(IFormFile? file)
     {
@@ -92,10 +94,10 @@ public class SpreadsheetController : ControllerBase
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
         try
         {
-            SpreadsheetDto workbook = ext switch
+            PxaSpreadsheetDto workbook = ext switch
             {
                 ".xls" => _xls.Import(ms, file.FileName),
-                ".csv" or ".tsv" => new SpreadsheetDto
+                ".csv" or ".tsv" => new PxaSpreadsheetDto
                 {
                     Id = Guid.NewGuid().ToString("n"),
                     Name = Path.GetFileNameWithoutExtension(file.FileName),
@@ -117,7 +119,7 @@ public class SpreadsheetController : ControllerBase
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(415)]
-    public IActionResult Render([FromBody] SpreadsheetDto workbook, [FromQuery] string format = "pdf", [FromQuery] int sheet = 0)
+    public IActionResult Render([FromBody] PxaSpreadsheetDto workbook, [FromQuery] string format = "pdf", [FromQuery] int sheet = 0)
     {
         if (workbook is null)
             return BadRequest(new { error = "Request body is required." });
@@ -127,8 +129,9 @@ public class SpreadsheetController : ControllerBase
 
         if (format.Equals("pdf", StringComparison.OrdinalIgnoreCase))
         {
-            var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, null);
-            var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
+            var canvasDesign = PxaContractAdapters.ToCanvas(design);
+            var doc = DesignJsonMapper.MapToPdfDocument(canvasDesign, _fontLoader, null);
+            var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(canvasDesign));
             return File(bytes, "application/pdf", $"{name}.pdf");
         }
 
@@ -146,9 +149,9 @@ public class SpreadsheetController : ControllerBase
     /// <summary>Converts a worksheet to a Canvas design (a <c>table</c> element) so it can be embedded in a
     /// PDF/Word/HTML document via the standard exporters.</summary>
     [HttpPost("to-design")]
-    [ProducesResponseType(typeof(DesignExportDto), 200)]
+    [ProducesResponseType(typeof(PxaDesignExportDto), 200)]
     [ProducesResponseType(400)]
-    public IActionResult ToDesign([FromBody] SpreadsheetDto workbook, [FromQuery] int sheet = 0)
+    public IActionResult ToDesign([FromBody] PxaSpreadsheetDto workbook, [FromQuery] int sheet = 0)
     {
         if (workbook is null)
             return BadRequest(new { error = "Request body is required." });
@@ -157,9 +160,9 @@ public class SpreadsheetController : ControllerBase
 
     /// <summary>Sorts a worksheet range by a key column (0-based offset within the range).</summary>
     [HttpPost("sort")]
-    [ProducesResponseType(typeof(SpreadsheetDto), 200)]
+    [ProducesResponseType(typeof(PxaSpreadsheetDto), 200)]
     [ProducesResponseType(400)]
-    public IActionResult Sort([FromBody] SpreadsheetDto workbook, [FromQuery] int sheet = 0, [FromQuery] string range = "", [FromQuery] int keyColumn = 0, [FromQuery] bool ascending = true)
+    public IActionResult Sort([FromBody] PxaSpreadsheetDto workbook, [FromQuery] int sheet = 0, [FromQuery] string range = "", [FromQuery] int keyColumn = 0, [FromQuery] bool ascending = true)
     {
         if (workbook is null || string.IsNullOrWhiteSpace(range)) return BadRequest(new { error = "Body + 'range' are required." });
         if (sheet < 0 || sheet >= workbook.Sheets.Count) return BadRequest(new { error = "Invalid sheet index." });
@@ -171,7 +174,7 @@ public class SpreadsheetController : ControllerBase
     [HttpPost("find-replace")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
-    public IActionResult FindReplace([FromBody] SpreadsheetDto workbook, [FromQuery] string find = "", [FromQuery] string replace = "", [FromQuery] bool matchCase = false)
+    public IActionResult FindReplace([FromBody] PxaSpreadsheetDto workbook, [FromQuery] string find = "", [FromQuery] string replace = "", [FromQuery] bool matchCase = false)
     {
         if (workbook is null || string.IsNullOrEmpty(find)) return BadRequest(new { error = "Body + 'find' are required." });
         var count = _ops.FindReplace(workbook, find, replace, matchCase);
@@ -183,7 +186,7 @@ public class SpreadsheetController : ControllerBase
     [HttpPost("validate")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
-    public IActionResult Validate([FromBody] SpreadsheetDto workbook)
+    public IActionResult Validate([FromBody] PxaSpreadsheetDto workbook)
     {
         if (workbook is null) return BadRequest(new { error = "Request body is required." });
         return Ok(_validator.Validate(workbook));
@@ -192,13 +195,13 @@ public class SpreadsheetController : ControllerBase
     /// <summary>Builds a workbook from JSON row objects — a bold header row (union of keys) + one typed row
     /// per object. The DataTable equivalent for API callers.</summary>
     [HttpPost("from-data")]
-    [ProducesResponseType(typeof(SpreadsheetDto), 200)]
+    [ProducesResponseType(typeof(PxaSpreadsheetDto), 200)]
     [ProducesResponseType(400)]
     public IActionResult FromData([FromBody] List<Dictionary<string, System.Text.Json.JsonElement>>? rows, [FromQuery] string sheetName = "Sheet1")
     {
         if (rows is null) return BadRequest(new { error = "A JSON array of row objects is required." });
         var sheet = _data.FromRows(rows, sheetName);
-        return Ok(new SpreadsheetDto { Id = Guid.NewGuid().ToString("n"), Name = sheetName, Sheets = [sheet] });
+        return Ok(new PxaSpreadsheetDto { Id = Guid.NewGuid().ToString("n"), Name = sheetName, Sheets = [sheet] });
     }
 
     /// <summary>Fills a template workbook's <c>{{token}}</c> placeholders from a data object; returns the
@@ -215,7 +218,7 @@ public class SpreadsheetController : ControllerBase
 
     public sealed class FillRequest
     {
-        public SpreadsheetDto? Workbook { get; set; }
+        public PxaSpreadsheetDto? Workbook { get; set; }
         public Dictionary<string, System.Text.Json.JsonElement>? Data { get; set; }
     }
 

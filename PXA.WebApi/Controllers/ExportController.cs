@@ -1,10 +1,11 @@
 using System.IO.Compression;
-using Canvas.Application.UseCases;
-using Canvas.Core.Contracts;
 using Canvas.Pdf;
+using PXA.Application.UseCases;
 using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using ExportOptions = Canvas.Core.Contracts.ExportOptions;
+using PxaContractAdapters = PXA.Core.Contracts.ContractAdapters;
+using PxaDesignExportDto = PXA.Core.Contracts.DesignExportDto;
+using PxaExportOptions = PXA.Core.Contracts.ExportOptions;
 
 namespace PXA.WebApi.Controllers;
 
@@ -35,7 +36,7 @@ public class ExportController : ControllerBase
         [FromQuery] float? dpi,
         [FromQuery] int? quality,
         [FromQuery] string? language,
-        [FromBody] DesignExportDto design)
+        [FromBody] PxaDesignExportDto design)
     {
         if (string.IsNullOrWhiteSpace(format))
             return BadRequest(new { error = "Query parameter 'format' is required." });
@@ -47,13 +48,14 @@ public class ExportController : ControllerBase
         var effectiveLang = language ?? design.PageSettings?.TargetLanguage;
         if (format.Equals("pdf", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(effectiveLang))
         {
-            var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, effectiveLang);
-            var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
+            var canvasDesign = PxaContractAdapters.ToCanvas(design);
+            var doc = DesignJsonMapper.MapToPdfDocument(canvasDesign, _fontLoader, effectiveLang);
+            var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(canvasDesign));
             var safeName = SanitizeFileName(design.Name);
             return File(bytes, "application/pdf", $"{safeName}-{effectiveLang}.pdf");
         }
 
-        var options = (dpi.HasValue || quality.HasValue) ? new ExportOptions(dpi, quality) : null;
+        var options = (dpi.HasValue || quality.HasValue) ? new PxaExportOptions(dpi, quality) : null;
 
         try
         {
@@ -80,7 +82,7 @@ public class ExportController : ControllerBase
     [HttpPost("multilanguage")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
-    public IActionResult ExportMultiLanguage([FromBody] DesignExportDto design)
+    public IActionResult ExportMultiLanguage([FromBody] PxaDesignExportDto design)
     {
         if (design is null)
             return BadRequest(new { error = "Request body is required." });
@@ -96,8 +98,9 @@ public class ExportController : ControllerBase
         {
             foreach (var lang in langs)
             {
-                var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, lang);
-                var pdfBytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
+                var canvasDesign = PxaContractAdapters.ToCanvas(design);
+                var doc = DesignJsonMapper.MapToPdfDocument(canvasDesign, _fontLoader, lang);
+                var pdfBytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(canvasDesign));
                 var entry = archive.CreateEntry($"{safeName}-{lang}.pdf", CompressionLevel.Fastest);
                 using var entryStream = entry.Open();
                 entryStream.Write(pdfBytes);
