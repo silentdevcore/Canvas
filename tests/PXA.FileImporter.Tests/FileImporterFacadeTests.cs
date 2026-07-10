@@ -1,5 +1,7 @@
 using System.IO.Compression;
 using System.Text;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 using PXA.FileImporter;
 using SkiaSharp;
 
@@ -7,6 +9,19 @@ namespace PXA.FileImporter.Tests;
 
 public sealed class FileImporterFacadeTests
 {
+    [Fact]
+    public async Task DocxImporter_ImportsTextDesign()
+    {
+        await using var stream = new MemoryStream(MakeMinimalDocx("Hello DOCX"));
+
+        var design = await new DocxFileImporter().ImportAsync(stream, "sample.docx");
+
+        Assert.Equal("sample.docx", design.Name);
+        Assert.Equal(595, design.PageSettings!.Width);
+        Assert.Equal("text", design.Pages[0].Elements[0].Type);
+        Assert.Equal("Hello DOCX", design.Pages[0].Elements[0].Content);
+    }
+
     [Fact]
     public async Task DocImporter_RejectsInvalidDoc()
     {
@@ -74,6 +89,26 @@ public sealed class FileImporterFacadeTests
         using var image = SKImage.FromBitmap(bitmap);
         using var data = image.Encode(SKEncodedImageFormat.Png, 90);
         return data.ToArray();
+    }
+
+    private static byte[] MakeMinimalDocx(string text)
+    {
+        using var stream = new MemoryStream();
+        using (var doc = WordprocessingDocument.Create(
+            stream,
+            DocumentFormat.OpenXml.WordprocessingDocumentType.Document,
+            autoSave: true))
+        {
+            var mainPart = doc.AddMainDocumentPart();
+            mainPart.Document = new Document(
+                new Body(
+                    new Paragraph(new Run(new Text(text))),
+                    new SectionProperties(
+                        new PageSize { Width = 8925U, Height = 12630U },
+                        new PageMargin { Top = 720, Right = 720U, Bottom = 720, Left = 720U })));
+        }
+
+        return stream.ToArray();
     }
 
     private static byte[] MakeMinimalOdt(string text)
