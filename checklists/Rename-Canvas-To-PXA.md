@@ -634,6 +634,25 @@ Completed Phase 9 promotion slices:
       (2 passed), and
       `dotnet test tests/Canvas.FileImporter.ImageAnalysis.Tests/Canvas.FileImporter.ImageAnalysis.Tests.csproj --no-restore --disable-build-servers -m:1`
       (179 passed; existing xUnit analyzer warnings remain).
+- [x] `PXA.FileImporter.ImageOcr` ownership promotion:
+      Promoted the scanned-image OCR-to-editable-design converter from adapters over
+      `Canvas.FileImporter.ImageOcr` to PXA-owned source over `PXA.Core.Contracts`, SkiaSharp, and Tesseract.
+      The PXA project now owns OCR layout/fusion, visual element detection, text extraction, debug overlay
+      rendering, embedded and process-isolated Tesseract engines, worker contracts, OCR pixel helpers, and
+      converter orchestration directly while preserving the public PXA `IOcrEngine`, OCR model,
+      `ImageToPdfConversionOptions`, and `ImageToPdfConversionResult` contracts. Adapter files
+      `OcrEngineAdapters`, `OcrModelMapper`, and wrapper `TesseractOcrEngines` were removed.
+      `PXA.FileImporter.ImageOcr` no longer references the `Canvas.FileImporter.ImageOcr` project. The
+      large `tessdata` / `native` assets are still linked from the legacy folder to avoid duplicating data,
+      and the process-isolated worker still resolves the legacy
+      `Canvas.FileImporter.ImageOcr.Worker.dll` until the separate worker physical rename slice.
+      Verified with
+      `dotnet build src/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj --no-restore --disable-build-servers -m:1`
+      (0 warnings, 0 errors),
+      `dotnet test tests/PXA.FileImporter.ImageOcr.Tests/PXA.FileImporter.ImageOcr.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (2 passed), and
+      `dotnet test tests/Canvas.FileImporter.ImageOcr.Tests/Canvas.FileImporter.ImageOcr.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (97 passed; existing dependency/WebApi warnings remain).
 
 ## Future Test Plan
 

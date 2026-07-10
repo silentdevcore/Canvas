@@ -12,16 +12,6 @@ public sealed class ImageToPdfConversionResult
     public required ImageToPdfDiagnostics Diagnostics { get; init; }
     public IReadOnlyList<string> Warnings { get; init; } = [];
     public byte[]? DebugOverlayPng { get; init; }
-
-    internal static ImageToPdfConversionResult FromCanvas(
-        Canvas.FileImporter.ImageOcr.ImageToPdfConversionResult result) => new()
-    {
-        Design = result.Design.ToPxa(),
-        OcrPages = result.OcrPages.Select(OcrModelMapper.FromCanvas).ToArray(),
-        Diagnostics = ImageToPdfDiagnostics.FromCanvas(result.Diagnostics),
-        Warnings = result.Warnings,
-        DebugOverlayPng = result.DebugOverlayPng,
-    };
 }
 
 public sealed class ImageToPdfDiagnostics
@@ -46,44 +36,12 @@ public sealed class ImageToPdfDiagnostics
     public double RuntimeMs { get; init; }
     public long MemoryDeltaBytes { get; init; }
     public ImageToPdfLayoutDiagnostics Layout { get; init; } = new();
-
-    internal static ImageToPdfDiagnostics FromCanvas(
-        Canvas.FileImporter.ImageOcr.ImageToPdfDiagnostics diagnostics) => new()
-    {
-        SourceWidthPx = diagnostics.SourceWidthPx,
-        SourceHeightPx = diagnostics.SourceHeightPx,
-        EffectiveDpiX = diagnostics.EffectiveDpiX,
-        EffectiveDpiY = diagnostics.EffectiveDpiY,
-        PageWidthPt = diagnostics.PageWidthPt,
-        PageHeightPt = diagnostics.PageHeightPt,
-        PreprocessingApplied = diagnostics.PreprocessingApplied,
-        PreprocessingScaleFactor = diagnostics.PreprocessingScaleFactor,
-        PreprocessingSteps = diagnostics.PreprocessingSteps,
-        PageCount = diagnostics.PageCount,
-        OcrEngine = diagnostics.OcrEngine,
-        OcrEngineVersion = diagnostics.OcrEngineVersion,
-        Languages = diagnostics.Languages,
-        WordCount = diagnostics.WordCount,
-        LineCount = diagnostics.LineCount,
-        AverageConfidence = diagnostics.AverageConfidence,
-        LowConfidenceWordCount = diagnostics.LowConfidenceWordCount,
-        RuntimeMs = diagnostics.RuntimeMs,
-        MemoryDeltaBytes = diagnostics.MemoryDeltaBytes,
-        Layout = ImageToPdfLayoutDiagnostics.FromCanvas(diagnostics.Layout),
-    };
 }
 
 public sealed class ImageToPdfLayoutDiagnostics
 {
     public ImageToPdfRuleDiagnostics Rules { get; init; } = new();
     public IReadOnlyList<ImageToPdfTableCandidateDiagnostics> TableCandidates { get; init; } = [];
-
-    internal static ImageToPdfLayoutDiagnostics FromCanvas(
-        Canvas.FileImporter.ImageOcr.ImageToPdfLayoutDiagnostics diagnostics) => new()
-    {
-        Rules = ImageToPdfRuleDiagnostics.FromCanvas(diagnostics.Rules),
-        TableCandidates = diagnostics.TableCandidates.Select(ImageToPdfTableCandidateDiagnostics.FromCanvas).ToArray(),
-    };
 }
 
 public sealed class ImageToPdfRuleDiagnostics
@@ -94,17 +52,6 @@ public sealed class ImageToPdfRuleDiagnostics
     public double AverageContrast { get; init; }
     public double MaxContrast { get; init; }
     public IReadOnlyList<ImageToPdfRuleSegmentDiagnostics> SampleSegments { get; init; } = [];
-
-    internal static ImageToPdfRuleDiagnostics FromCanvas(
-        Canvas.FileImporter.ImageOcr.ImageToPdfRuleDiagnostics diagnostics) => new()
-    {
-        SegmentCount = diagnostics.SegmentCount,
-        HorizontalSegmentCount = diagnostics.HorizontalSegmentCount,
-        VerticalSegmentCount = diagnostics.VerticalSegmentCount,
-        AverageContrast = diagnostics.AverageContrast,
-        MaxContrast = diagnostics.MaxContrast,
-        SampleSegments = diagnostics.SampleSegments.Select(ImageToPdfRuleSegmentDiagnostics.FromCanvas).ToArray(),
-    };
 }
 
 public sealed class ImageToPdfRuleSegmentDiagnostics
@@ -114,16 +61,6 @@ public sealed class ImageToPdfRuleSegmentDiagnostics
     public int Y { get; init; }
     public int Length { get; init; }
     public double Contrast { get; init; }
-
-    internal static ImageToPdfRuleSegmentDiagnostics FromCanvas(
-        Canvas.FileImporter.ImageOcr.ImageToPdfRuleSegmentDiagnostics diagnostics) => new()
-    {
-        Orientation = diagnostics.Orientation,
-        X = diagnostics.X,
-        Y = diagnostics.Y,
-        Length = diagnostics.Length,
-        Contrast = diagnostics.Contrast,
-    };
 }
 
 public sealed class ImageToPdfTableCandidateDiagnostics
@@ -139,20 +76,4 @@ public sealed class ImageToPdfTableCandidateDiagnostics
     public double Confidence { get; init; }
     public IReadOnlyList<double> ColumnAnchors { get; init; } = [];
     public IReadOnlyList<double> RowAnchors { get; init; } = [];
-
-    internal static ImageToPdfTableCandidateDiagnostics FromCanvas(
-        Canvas.FileImporter.ImageOcr.ImageToPdfTableCandidateDiagnostics diagnostics) => new()
-    {
-        Detector = diagnostics.Detector,
-        Status = diagnostics.Status,
-        RejectionReason = diagnostics.RejectionReason,
-        SourceBoundsPx = diagnostics.SourceBoundsPx,
-        RuleBoundsPx = diagnostics.RuleBoundsPx,
-        BackgroundBoundsPx = diagnostics.BackgroundBoundsPx,
-        RowCount = diagnostics.RowCount,
-        ColumnCount = diagnostics.ColumnCount,
-        Confidence = diagnostics.Confidence,
-        ColumnAnchors = diagnostics.ColumnAnchors,
-        RowAnchors = diagnostics.RowAnchors,
-    };
 }

@@ -34,37 +34,4 @@ public sealed class ImageToPdfConversionOptions
     public int MaxOcrRuntimeSeconds { get; init; } = 45;
     public long MaxFileBytes { get; init; } = 25 * 1024 * 1024;
     public long MaxPixels { get; init; } = 40_000_000;
-
-    internal Canvas.FileImporter.ImageOcr.ImageToPdfConversionOptions ToCanvasOptions() => new()
-    {
-        Languages = Languages,
-        NativeLibraryPath = NativeLibraryPath,
-        SourceDpiX = SourceDpiX,
-        SourceDpiY = SourceDpiY,
-        PageWidthPt = PageWidthPt,
-        PageHeightPt = PageHeightPt,
-        PageSizingMode = PageSizingMode,
-        IncludeBackgroundImage = IncludeBackgroundImage,
-        IncludeDiagnostics = IncludeDiagnostics,
-        IncludeDebugOverlay = IncludeDebugOverlay,
-        EnablePreprocessing = EnablePreprocessing,
-        PreprocessGrayscale = PreprocessGrayscale,
-        PreprocessContrast = PreprocessContrast,
-        PreprocessBinarize = PreprocessBinarize,
-        LowConfidenceThreshold = LowConfidenceThreshold,
-        LayoutMode = LayoutMode,
-        RuleContrastThreshold = RuleContrastThreshold,
-        LightFillMinLuma = LightFillMinLuma,
-        LightFillMaxSaturation = LightFillMaxSaturation,
-        LightFillMinDistance = LightFillMinDistance,
-        LightFillMaxDistance = LightFillMaxDistance,
-        BackgroundFillMinColorDistance = BackgroundFillMinColorDistance,
-        BackgroundFillMinAreaFraction = BackgroundFillMinAreaFraction,
-        BackgroundFillMinWidthFraction = BackgroundFillMinWidthFraction,
-        BackgroundFillMinCoverage = BackgroundFillMinCoverage,
-        DetectionMaxPixels = DetectionMaxPixels,
-        MaxOcrRuntimeSeconds = MaxOcrRuntimeSeconds,
-        MaxFileBytes = MaxFileBytes,
-        MaxPixels = MaxPixels,
-    };
 }
