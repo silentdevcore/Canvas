@@ -445,6 +445,22 @@ Completed Phase 9 promotion slices:
       (34 passed), and
       `dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj --no-restore --disable-build-servers -m:1`
       (5 passed).
+- [x] `PXA.Infrastructure.Word` ownership promotion:
+      Promoted Word infrastructure from Canvas wrappers to PXA-owned implementations over `PXA.Core`,
+      including DOCX export, renderer capabilities, document protection, custom properties, style
+      definitions, rich text span parsing, comments, footnotes, unit conversion, and DOCX digital signing.
+      `PXA.Infrastructure.Word` no longer references `Canvas.Infrastructure.Word`; it carries the same
+      OpenXML/QR/signing package dependencies directly. `PXA.Generator` remains on the legacy Word/Spreadsheet
+      references until Spreadsheet and Converter infrastructure are promoted, so duplicate transitive
+      `Canvas.Pdf` type identities are avoided. Verified with
+      `dotnet build src/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing copied nullable warning remains),
+      `dotnet test tests/PXA.Infrastructure.Word.Tests/PXA.Infrastructure.Word.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (3 passed),
+      `dotnet test tests/Canvas.Export.Tests/Canvas.Export.Tests.csproj --no-restore --disable-build-servers -m:1 --filter "FullyQualifiedName~Word"`
+      (85 passed), and
+      `dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (5 passed).
 
 ## Future Test Plan
 
