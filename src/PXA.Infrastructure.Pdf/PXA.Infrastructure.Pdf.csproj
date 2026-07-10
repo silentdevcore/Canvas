@@ -1,7 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj" />
+    <ProjectReference Include="../PXA.Core/PXA.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../../Canvas/Pdf/**/*.cs"
+             Exclude="../../Canvas/Pdf/Compatibility/CorePrimitiveAdapters.cs"
+             Link="Pdf/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <PropertyGroup>

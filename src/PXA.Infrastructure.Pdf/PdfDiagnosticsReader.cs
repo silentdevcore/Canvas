@@ -1,11 +1,16 @@
+using PXA.Core.Abstractions;
+
 namespace PXA.Infrastructure.Pdf;
 
-/// <summary>
-/// Power Dox Automation facade for reading PDF generation diagnostics.
-/// </summary>
-public sealed class PdfDiagnosticsReader
+public sealed class PdfDiagnosticsReader : IDiagnosticsReader
 {
-    private readonly Canvas.Infrastructure.Pdf.PdfDiagnosticsReader inner = new();
+    public object? Read(object documentModel)
+    {
+        if (documentModel is not Canvas.Pdf.PdfDocument document)
+        {
+            throw new ArgumentException("Document model must be Canvas.Pdf.PdfDocument for PdfDiagnosticsReader.", nameof(documentModel));
+        }
 
-    public object? Read(object documentModel) => inner.Read(documentModel);
+        return document.LastDiagnostics;
+    }
 }

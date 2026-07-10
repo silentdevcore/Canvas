@@ -427,6 +427,24 @@ Completed Phase 9 promotion slices:
       `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1` started and
       compiled through the early dependency chain, then stopped after a silent hang; the previous WebApi
       composition build passed before this Application-only ownership slice.
+- [x] `PXA.Infrastructure.Pdf` service ownership promotion:
+      Promoted PDF infrastructure services from wrappers to PXA-owned implementations over `PXA.Core`
+      abstractions, including document rendering, diagnostics, file output, renderer capabilities, page
+      numbering, header/footer, watermark, table flow, table of contents, page coverage, and facade
+      orchestration. `PXA.Infrastructure.Pdf` no longer references `Canvas.Infrastructure.Pdf`; it links the
+      current `Canvas.Pdf` engine source directly while excluding the unused legacy Canvas Core primitive
+      compatibility adapter. The public PDF engine namespace remains `Canvas.Pdf` until the later PDF engine
+      type-facade/physical rename phase. `PXA.Generator` remains on `Canvas.Infrastructure.Pdf` for now
+      because switching it to `PXA.Infrastructure.Pdf` while Word/Spreadsheet still transitively reference
+      `Canvas.Infrastructure.Pdf` creates duplicate `Canvas.Pdf` type identities. Verified with
+      `dotnet build src/PXA.Infrastructure.Pdf/PXA.Infrastructure.Pdf.csproj --no-restore --disable-build-servers -m:1`
+      (0 warnings, 0 errors),
+      `dotnet test tests/PXA.Infrastructure.Pdf.Tests/PXA.Infrastructure.Pdf.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (5 passed),
+      `dotnet test tests/Canvas.Infrastructure.Pdf.Tests/Canvas.Infrastructure.Pdf.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (34 passed), and
+      `dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (5 passed).
 
 ## Future Test Plan
 

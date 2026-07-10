@@ -1,11 +1,14 @@
+using PXA.Core.Abstractions;
+
 namespace PXA.Infrastructure.Pdf;
 
-/// <summary>
-/// Power Dox Automation facade for writing generated PDF bytes to disk.
-/// </summary>
-public sealed class FileOutputWriter
+public sealed class FileOutputWriter : IOutputWriter
 {
-    private readonly Canvas.Infrastructure.Pdf.FileOutputWriter inner = new();
+    public void Write(string path, byte[] data)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentNullException.ThrowIfNull(data);
 
-    public void Write(string path, byte[] data) => inner.Write(path, data);
+        File.WriteAllBytes(path, data);
+    }
 }

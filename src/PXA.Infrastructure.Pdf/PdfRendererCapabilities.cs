@@ -1,24 +1,34 @@
+using PXA.Core.Abstractions;
+
 namespace PXA.Infrastructure.Pdf;
 
-/// <summary>
-/// Power Dox Automation PDF renderer capability snapshot.
-/// </summary>
-public sealed class PdfRendererCapabilities
+public sealed class PdfRendererCapabilities : IRendererCapabilities
 {
-    private readonly Canvas.Infrastructure.Pdf.PdfRendererCapabilities inner = new();
+    public string RendererKey => "pdf";
 
-    public string RendererKey => inner.RendererKey;
-    public bool SupportsBookmarks => inner.SupportsBookmarks;
-    public bool SupportsTableOfContents => inner.SupportsTableOfContents;
-    public bool SupportsNamedDestinations => inner.SupportsNamedDestinations;
-    public bool SupportsInternalLinks => inner.SupportsInternalLinks;
-    public bool SupportsExternalLinks => inner.SupportsExternalLinks;
-    public bool SupportsImageOpacity => inner.SupportsImageOpacity;
-    public bool SupportsPageRotation => inner.SupportsPageRotation;
-    public bool SupportsPageBoundaries => inner.SupportsPageBoundaries;
-    public bool SupportsWatermarks => inner.SupportsWatermarks;
-    public bool SupportsHeaderFooter => inner.SupportsHeaderFooter;
-    public bool SupportsSectionNumbering => inner.SupportsSectionNumbering;
-    public bool SupportsAdvancedTextDecorations => inner.SupportsAdvancedTextDecorations;
-    public bool SupportsCompression => inner.SupportsCompression;
+    public bool SupportsBookmarks => true;
+
+    public bool SupportsTableOfContents => true;
+
+    public bool SupportsNamedDestinations => true;
+
+    public bool SupportsInternalLinks => true;
+
+    public bool SupportsExternalLinks => true;
+
+    public bool SupportsImageOpacity => true;
+
+    public bool SupportsPageRotation => true;
+
+    public bool SupportsPageBoundaries => true;
+
+    public bool SupportsWatermarks => true;
+
+    public bool SupportsHeaderFooter => true;
+
+    public bool SupportsSectionNumbering => true;
+
+    public bool SupportsAdvancedTextDecorations => true;
+
+    public bool SupportsCompression => true;
 }

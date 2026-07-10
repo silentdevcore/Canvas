@@ -1,11 +1,16 @@
+using PXA.Core.Abstractions;
+
 namespace PXA.Infrastructure.Pdf;
 
-/// <summary>
-/// Power Dox Automation facade for rendering PDF document models to bytes.
-/// </summary>
-public sealed class PdfDocumentRenderer
+public sealed class PdfDocumentRenderer : IDocumentRenderer
 {
-    private readonly Canvas.Infrastructure.Pdf.PdfDocumentRenderer inner = new();
+    public byte[] Render(object documentModel)
+    {
+        if (documentModel is not Canvas.Pdf.PdfDocument pdfDocument)
+        {
+            throw new ArgumentException("Document model must be Canvas.Pdf.PdfDocument for PdfDocumentRenderer.", nameof(documentModel));
+        }
 
-    public byte[] Render(object documentModel) => inner.Render(documentModel);
+        return pdfDocument.ToBytes();
+    }
 }
