@@ -12,13 +12,4 @@ public sealed class ImageAnalysisOptions
     public double? SourceDpiY { get; init; }
 
     public static ImageAnalysisOptions Default { get; } = new();
-
-    internal Canvas.FileImporter.ImageAnalysis.Analysis.ImageAnalysisOptions ToCanvasOptions() => new()
-    {
-        IncludeDebugOverlay = IncludeDebugOverlay,
-        IncludeFallbackImageLayer = IncludeFallbackImageLayer,
-        LowConfidenceThreshold = LowConfidenceThreshold,
-        SourceDpiX = SourceDpiX,
-        SourceDpiY = SourceDpiY,
-    };
 }

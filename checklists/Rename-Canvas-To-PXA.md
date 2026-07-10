@@ -618,6 +618,22 @@ Completed Phase 9 promotion slices:
       (19 passed), and
       `dotnet test tests/Canvas.FileImporter.Pptx.Tests/Canvas.FileImporter.Pptx.Tests.csproj --no-restore --disable-build-servers -m:1`
       (1 passed).
+- [x] `PXA.FileImporter.ImageAnalysis` ownership promotion:
+      Promoted the editable raster image analysis importer from a facade over
+      `Canvas.FileImporter.ImageAnalysis` to PXA-owned source over `PXA.Core.Contracts`, `PXA.FileImporter`,
+      and SkiaSharp. The PXA project now owns preprocessing, color analysis, shape detection, glyph/text
+      recognition, scene assembly, debug overlay rendering, and character templates directly while preserving
+      the public PXA `ImageAnalysisOptions` / `ImageAnalysisImportResult` contracts. Static
+      `SupportedExtensions` remains available for existing call-sites, with explicit `IFileImporter`
+      implementation for the common PXA importer contract. `PXA.FileImporter.ImageAnalysis` no longer
+      references `Canvas.FileImporter.ImageAnalysis`.
+      Verified with
+      `dotnet build src/PXA.FileImporter.ImageAnalysis/PXA.FileImporter.ImageAnalysis.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing SkiaSharp filter-quality warnings remain),
+      `dotnet test tests/PXA.FileImporter.ImageAnalysis.Tests/PXA.FileImporter.ImageAnalysis.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (2 passed), and
+      `dotnet test tests/Canvas.FileImporter.ImageAnalysis.Tests/Canvas.FileImporter.ImageAnalysis.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (179 passed; existing xUnit analyzer warnings remain).
 
 ## Future Test Plan
 

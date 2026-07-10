@@ -10,14 +10,6 @@ public sealed class ImageAnalysisImportResult
     public required DesignExportDto Design { get; init; }
     public required ImageAnalysisDiagnostics Diagnostics { get; init; }
     public byte[]? DebugOverlayPng { get; init; }
-
-    internal static ImageAnalysisImportResult FromCanvas(
-        Canvas.FileImporter.ImageAnalysis.Analysis.ImageAnalysisImportResult result) => new()
-    {
-        Design = result.Design.ToPxa(),
-        Diagnostics = ImageAnalysisDiagnostics.FromCanvas(result.Diagnostics),
-        DebugOverlayPng = result.DebugOverlayPng,
-    };
 }
 
 /// <summary>
@@ -44,28 +36,4 @@ public sealed class ImageAnalysisDiagnostics
     public required string RecognitionReadiness { get; init; }
     public required string RecognitionFidelityScope { get; init; }
     public required IReadOnlyList<string> Warnings { get; init; }
-
-    internal static ImageAnalysisDiagnostics FromCanvas(
-        Canvas.FileImporter.ImageAnalysis.Analysis.ImageAnalysisDiagnostics diagnostics) => new()
-    {
-        SourceWidthPx = diagnostics.SourceWidthPx,
-        SourceHeightPx = diagnostics.SourceHeightPx,
-        WorkingWidthPx = diagnostics.WorkingWidthPx,
-        WorkingHeightPx = diagnostics.WorkingHeightPx,
-        ScaleFactor = diagnostics.ScaleFactor,
-        ColorRegionCount = diagnostics.ColorRegionCount,
-        ShapeCount = diagnostics.ShapeCount,
-        TextLineCount = diagnostics.TextLineCount,
-        WordCount = diagnostics.WordCount,
-        GlyphCount = diagnostics.GlyphCount,
-        LowConfidenceGlyphCount = diagnostics.LowConfidenceGlyphCount,
-        LowConfidenceGlyphRate = diagnostics.LowConfidenceGlyphRate,
-        ElementCount = diagnostics.ElementCount,
-        RuntimeMs = diagnostics.RuntimeMs,
-        MemoryDeltaBytes = diagnostics.MemoryDeltaBytes,
-        GlyphTemplateProfile = diagnostics.GlyphTemplateProfile,
-        RecognitionReadiness = diagnostics.RecognitionReadiness,
-        RecognitionFidelityScope = diagnostics.RecognitionFidelityScope,
-        Warnings = diagnostics.Warnings,
-    };
 }
