@@ -550,6 +550,20 @@ Completed Phase 9 promotion slices:
       (15 passed), and
       `dotnet test tests/Canvas.FileImporter.Image.Tests/Canvas.FileImporter.Image.Tests.csproj --no-restore --disable-build-servers -m:1`
       (8 passed).
+- [x] `PXA.FileImporter` SVG ownership promotion:
+      Promoted the SVG importer inside the `PXA.FileImporter` aggregator from a wrapper over
+      `Canvas.FileImporter.Svg` to PXA-owned source over `PXA.Core.Contracts`, preserving SVG page-size
+      detection, rect/text/image mapping, inline vector fallback for path/circle/ellipse/line/polyline/polygon,
+      transforms, style color parsing, and `use`/defs expansion behavior. `PXA.FileImporter` no longer
+      references `Canvas.FileImporter.Svg`; DOC/DOCX/ODT/PPTX still wrap their legacy Canvas implementations
+      until their individual slices.
+      Verified with
+      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing PPTX nullable and PDF XML-doc warnings remain),
+      `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (15 passed), and
+      `dotnet test tests/Canvas.FileImporter.Svg.Tests/Canvas.FileImporter.Svg.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (1 passed).
 
 ## Future Test Plan
 

@@ -7,7 +7,7 @@ namespace PXA.FileImporter.Tests;
 public sealed class FileImporterFacadeTests
 {
     [Fact]
-    public async Task SvgImporter_DelegatesToCanvasImporter()
+    public async Task SvgImporter_ImportsSvgDesign()
     {
         const string svg = """
             <svg xmlns="http://www.w3.org/2000/svg" width="200" height="100">

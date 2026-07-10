@@ -53,16 +53,3 @@ public sealed class PptxFileImporter : IFileImporter
     public async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
         (await inner.ImportAsync(stream, name)).ToPxa();
 }
-
-/// <summary>
-/// Power Dox Automation facade for SVG import.
-/// </summary>
-public sealed class SvgFileImporter : IFileImporter
-{
-    private readonly Canvas.FileImporter.Svg.SvgFileImporter inner = new();
-
-    public IReadOnlyList<string> SupportedExtensions => inner.SupportedExtensions;
-
-    public async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
-        (await inner.ImportAsync(stream, name)).ToPxa();
-}
