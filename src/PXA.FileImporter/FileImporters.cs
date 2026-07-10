@@ -3,19 +3,6 @@ using PXA.Core.Contracts;
 namespace PXA.FileImporter;
 
 /// <summary>
-/// Power Dox Automation facade for legacy Word 97-2003 document import.
-/// </summary>
-public sealed class DocFileImporter : IFileImporter
-{
-    private readonly Canvas.FileImporter.Doc.DocFileImporter inner = new();
-
-    public IReadOnlyList<string> SupportedExtensions => inner.SupportedExtensions;
-
-    public async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
-        (await inner.ImportAsync(stream, name)).ToPxa();
-}
-
-/// <summary>
 /// Power Dox Automation facade for DOCX import.
 /// </summary>
 public sealed class DocxFileImporter : IFileImporter

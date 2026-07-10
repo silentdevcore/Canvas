@@ -7,6 +7,15 @@ namespace PXA.FileImporter.Tests;
 public sealed class FileImporterFacadeTests
 {
     [Fact]
+    public async Task DocImporter_RejectsInvalidDoc()
+    {
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes("not a compound document"));
+
+        await Assert.ThrowsAsync<InvalidDataException>(
+            () => new DocFileImporter().ImportAsync(stream, "bad.doc"));
+    }
+
+    [Fact]
     public async Task SvgImporter_ImportsSvgDesign()
     {
         const string svg = """
@@ -27,7 +36,7 @@ public sealed class FileImporterFacadeTests
     }
 
     [Fact]
-    public async Task ImageImporter_DelegatesToCanvasImporter()
+    public async Task ImageImporter_ImportsImageDesign()
     {
         await using var stream = new MemoryStream(MakeImage(120, 80));
 

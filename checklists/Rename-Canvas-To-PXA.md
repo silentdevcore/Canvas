@@ -564,6 +564,20 @@ Completed Phase 9 promotion slices:
       (15 passed), and
       `dotnet test tests/Canvas.FileImporter.Svg.Tests/Canvas.FileImporter.Svg.Tests.csproj --no-restore --disable-build-servers -m:1`
       (1 passed).
+- [x] `PXA.FileImporter` DOC ownership promotion:
+      Promoted the legacy Word 97-2003 `.doc` importer inside the `PXA.FileImporter` aggregator from a
+      wrapper over `Canvas.FileImporter.Doc` to PXA-owned source over `PXA.Core.Contracts`, preserving CFBF
+      validation, `WordDocument` stream extraction, FIB text offsets, printable-text fallback, and single-page
+      text layout behavior. `PXA.FileImporter` no longer references `Canvas.FileImporter.Doc`; DOCX/ODT/PPTX
+      still wrap their legacy Canvas implementations until their individual slices.
+      Verified with
+      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing PPTX nullable and PDF XML-doc warnings remain),
+      `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (16 passed after rerunning serially; the first parallel attempt hit a transient `.deps.json` file lock),
+      and
+      `dotnet test tests/Canvas.FileImporter.Doc.Tests/Canvas.FileImporter.Doc.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (1 passed).
 
 ## Future Test Plan
 
