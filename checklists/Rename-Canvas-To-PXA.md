@@ -386,6 +386,32 @@ Completed Phase 9 promotion slices:
       (35 passed) and
       `dotnet test tests/Canvas.Core.Tests/Canvas.Core.Tests.csproj --no-restore --disable-build-servers -m:1`
       (29 passed).
+- [x] `PXA.Domain` designer element behavior promotion:
+      Promoted the legacy `DesignerElement.MigratePropsToConfig()` behavior into
+      `PXA.Domain.ValueObjects.DesignerElement`, including the typed config migration and value parsing
+      helpers. PXA numeric string parsing now uses invariant culture to avoid locale-dependent prop
+      conversion. Added PXA-owned behavior tests for text and page-number props migration. Verified with
+      `dotnet test tests/PXA.Domain.Tests/PXA.Domain.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (6 passed),
+      `dotnet test tests/PXA.Application.Tests/PXA.Application.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (4 passed), and
+      `dotnet test tests/Canvas.Application.Tests/Canvas.Application.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (5 passed). The first PXA Application test attempt raced with a parallel Canvas Application build in
+      the shared `Canvas/obj` apphost output; rerunning it serially passed. The broader
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1` composition
+      build also passed for this Core/Domain promotion block (0 errors; 22 existing warnings remain).
+- [x] `PXA.Core` remaining behavior promotion:
+      Promoted the remaining shared Core service abstractions and behavior primitives into `PXA.Core`,
+      including `IDocumentRenderer`, expression/value formatter interfaces, page/header/table/watermark
+      service interfaces, `A1Reference`, `PxaExpressionEvaluator`, `ExpressionEvaluator`,
+      `DesignLayoutPlanner`, and `ValueFormatter`. The PXA evaluator type is PXA-named instead of exposing
+      the legacy `CanvasExpressionEvaluator` name. Verified with
+      `dotnet test tests/PXA.Core.Tests/PXA.Core.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (40 passed) and
+      `dotnet test tests/Canvas.Core.Tests/Canvas.Core.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (29 passed). The broader
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1` composition
+      build also passed for this Core/Domain promotion block (0 errors; 22 existing warnings remain).
 
 ## Future Test Plan
 
