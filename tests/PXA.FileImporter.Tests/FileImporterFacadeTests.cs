@@ -1,6 +1,8 @@
 using System.IO.Compression;
 using System.Text;
+using A = DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Packaging;
+using P = DocumentFormat.OpenXml.Presentation;
 using DocumentFormat.OpenXml.Wordprocessing;
 using PXA.FileImporter;
 using SkiaSharp;
@@ -42,6 +44,19 @@ public sealed class FileImporterFacadeTests
         Assert.Equal(595, design.PageSettings!.Width);
         Assert.Equal("text", design.Pages[0].Elements[0].Type);
         Assert.Equal("Hello PXA", design.Pages[0].Elements[0].Content);
+    }
+
+    [Fact]
+    public async Task PptxImporter_ImportsSlideTextDesign()
+    {
+        await using var stream = new MemoryStream(MakeMinimalPptx("Hello PPTX"));
+
+        var design = await new PptxFileImporter().ImportAsync(stream, "sample.pptx");
+
+        Assert.Equal("sample.pptx", design.Name);
+        Assert.Single(design.Pages);
+        Assert.Equal("text", design.Pages[0].Elements[0].Type);
+        Assert.Equal("Hello PPTX", design.Pages[0].Elements[0].Content);
     }
 
     [Fact]
@@ -106,6 +121,55 @@ public sealed class FileImporterFacadeTests
                     new SectionProperties(
                         new PageSize { Width = 8925U, Height = 12630U },
                         new PageMargin { Top = 720, Right = 720U, Bottom = 720, Left = 720U })));
+        }
+
+        return stream.ToArray();
+    }
+
+    private static byte[] MakeMinimalPptx(string text)
+    {
+        using var stream = new MemoryStream();
+        using (var doc = PresentationDocument.Create(
+            stream,
+            DocumentFormat.OpenXml.PresentationDocumentType.Presentation,
+            autoSave: true))
+        {
+            var presentationPart = doc.AddPresentationPart();
+            presentationPart.Presentation = new P.Presentation
+            {
+                SlideSize = new P.SlideSize { Cx = 9144000, Cy = 6858000 },
+                SlideIdList = new P.SlideIdList()
+            };
+
+            var slidePart = presentationPart.AddNewPart<SlidePart>("rId1");
+            slidePart.Slide = new P.Slide(
+                new P.CommonSlideData(
+                    new P.ShapeTree(
+                        new P.NonVisualGroupShapeProperties(
+                            new P.NonVisualDrawingProperties { Id = 1U, Name = "" },
+                            new P.NonVisualGroupShapeDrawingProperties(),
+                            new P.ApplicationNonVisualDrawingProperties()),
+                        new P.GroupShapeProperties(new A.TransformGroup()),
+                        new P.Shape(
+                            new P.NonVisualShapeProperties(
+                                new P.NonVisualDrawingProperties { Id = 2U, Name = "Title" },
+                                new P.NonVisualShapeDrawingProperties(new A.ShapeLocks { NoGrouping = true }),
+                                new P.ApplicationNonVisualDrawingProperties()),
+                            new P.ShapeProperties(
+                                new A.Transform2D(
+                                    new A.Offset { X = 914400, Y = 914400 },
+                                    new A.Extents { Cx = 3657600, Cy = 914400 }),
+                                new A.PresetGeometry(new A.AdjustValueList())
+                                {
+                                    Preset = A.ShapeTypeValues.Rectangle
+                                }),
+                            new P.TextBody(
+                                new A.BodyProperties(),
+                                new A.ListStyle(),
+                                new A.Paragraph(new A.Run(new A.Text(text))))))));
+
+            presentationPart.Presentation.SlideIdList.Append(
+                new P.SlideId { Id = 256U, RelationshipId = "rId1" });
         }
 
         return stream.ToArray();

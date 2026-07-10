@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../Canvas.FileImporter.Pptx/Canvas.FileImporter.Pptx.csproj" />
     <ProjectReference Include="../PXA.Core/PXA.Core.csproj" />
     <ProjectReference Include="../PXA.Importer/PXA.Importer.csproj" />
   </ItemGroup>

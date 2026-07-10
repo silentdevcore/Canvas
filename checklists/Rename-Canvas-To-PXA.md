@@ -604,6 +604,20 @@ Completed Phase 9 promotion slices:
       (18 passed), and
       `dotnet test tests/Canvas.FileImporter.Docx.Tests/Canvas.FileImporter.Docx.Tests.csproj --no-restore --disable-build-servers -m:1`
       (1 passed).
+- [x] `PXA.FileImporter` PPTX ownership promotion:
+      Promoted the PowerPoint `.pptx` importer inside the `PXA.FileImporter` aggregator from the final wrapper
+      over `Canvas.FileImporter.Pptx` to PXA-owned source over `PXA.Core.Contracts` and `DocumentFormat.OpenXml`,
+      preserving slide/page mapping, shape/text/picture extraction, theme and background color resolution,
+      inline image data URI extraction, and presentation metadata naming. `PXA.FileImporter` no longer
+      references any `Canvas.FileImporter.*` implementation project; all built-in file importers in the
+      aggregator are now PXA-owned source.
+      Verified with
+      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing PPTX nullable and PDF XML-doc warnings remain),
+      `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (19 passed), and
+      `dotnet test tests/Canvas.FileImporter.Pptx.Tests/Canvas.FileImporter.Pptx.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (1 passed).
 
 ## Future Test Plan
 
