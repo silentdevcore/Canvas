@@ -55,19 +55,6 @@ public sealed class OdtFileImporter : IFileImporter
 }
 
 /// <summary>
-/// Power Dox Automation facade for PDF-to-design import.
-/// </summary>
-public sealed class PdfFileImporter : IFileImporter
-{
-    private readonly Canvas.FileImporter.Pdf.PdfFileImporter inner = new();
-
-    public IReadOnlyList<string> SupportedExtensions => inner.SupportedExtensions;
-
-    public async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
-        (await inner.ImportAsync(stream, name)).ToPxa();
-}
-
-/// <summary>
 /// Power Dox Automation facade for PPTX import.
 /// </summary>
 public sealed class PptxFileImporter : IFileImporter

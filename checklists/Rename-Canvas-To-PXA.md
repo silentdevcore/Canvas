@@ -525,6 +525,18 @@ Completed Phase 9 promotion slices:
       (3 passed), and
       `dotnet test tests/Canvas.Importer.Tests/Canvas.Importer.Tests.csproj --no-restore --disable-build-servers -m:1`
       (95 passed).
+- [x] `PXA.FileImporter` PDF ownership promotion:
+      Promoted the PDF file importer inside the `PXA.FileImporter` aggregator from a wrapper over
+      `Canvas.FileImporter.Pdf` to PXA-owned source over `PXA.Importer` and `PXA.Core.Contracts`.
+      `PXA.FileImporter` no longer references `Canvas.FileImporter.Pdf`; the other file importer
+      providers still wrap their legacy Canvas implementations until their individual promotion slices.
+      Verified with
+      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      (0 warnings, 0 errors),
+      `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (15 passed), and
+      `dotnet test tests/Canvas.FileImporter.Pdf.Tests/Canvas.FileImporter.Pdf.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (1 passed).
 
 ## Future Test Plan
 
