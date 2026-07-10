@@ -1,4 +1,4 @@
-using Canvas.Infrastructure.Spreadsheet;
+using PXA.Infrastructure.Spreadsheet;
 
 namespace PXA.Generator;
 
@@ -8,7 +8,7 @@ namespace PXA.Generator;
 public static class Spreadsheet
 {
     /// <summary>
-    /// Creates a workbook using the current Canvas spreadsheet implementation.
+    /// Creates a workbook using the current PXA spreadsheet implementation.
     /// </summary>
     public static CanvasWorkbook CreateWorkbook(string name = "Workbook") =>
         new(name);

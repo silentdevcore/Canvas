@@ -461,6 +461,27 @@ Completed Phase 9 promotion slices:
       (85 passed), and
       `dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj --no-restore --disable-build-servers -m:1`
       (5 passed).
+- [x] `PXA.Infrastructure.Spreadsheet` ownership promotion:
+      Promoted Spreadsheet infrastructure from Canvas wrappers to PXA-owned implementations over
+      `PXA.Core` and `PXA.Application`, including fluent workbook authoring, XLSX/XLS/CSV IO,
+      spreadsheet calculation, validation, spreadsheet-to-design conversion, Excel document export,
+      workbook operations, sheet renderer capabilities, and spreadsheet data contracts.
+      `PXA.Infrastructure.Spreadsheet` no longer references `Canvas.Infrastructure.Spreadsheet`; it
+      carries the same ClosedXML/NPOI dependencies directly. With PDF, Word, and Spreadsheet
+      infrastructure promoted, `PXA.Generator` now references `PXA.Infrastructure.Pdf`,
+      `PXA.Infrastructure.Word`, and `PXA.Infrastructure.Spreadsheet` instead of the legacy Canvas
+      infrastructure projects. The public PDF engine namespace remains `Canvas.Pdf` until the later
+      PDF engine type-facade/physical rename phase. Verified with
+      `dotnet build src/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing dependency/NPOI/ClosedXML/nullability warnings remain),
+      `dotnet test tests/PXA.Infrastructure.Spreadsheet.Tests/PXA.Infrastructure.Spreadsheet.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (6 passed),
+      `dotnet build src/PXA.Generator/PXA.Generator.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing PDF XML-doc, dependency/NPOI, and nullable warnings remain),
+      `dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (5 passed), and
+      `dotnet test tests/Canvas.Export.Tests/Canvas.Export.Tests.csproj --no-restore --disable-build-servers -m:1 --filter "FullyQualifiedName~Spreadsheet"`
+      (20 passed).
 
 ## Future Test Plan
 

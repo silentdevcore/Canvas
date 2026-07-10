@@ -1,21 +1,34 @@
+using PXA.Core.Abstractions;
+
 namespace PXA.Infrastructure.Spreadsheet;
 
-public sealed class SheetRendererCapabilities
+public sealed class SheetRendererCapabilities : IRendererCapabilities
 {
-    private readonly Canvas.Infrastructure.Spreadsheet.SheetRendererCapabilities inner = new();
+    public string RendererKey => "sheet";
 
-    public string RendererKey => inner.RendererKey;
-    public bool SupportsBookmarks => inner.SupportsBookmarks;
-    public bool SupportsTableOfContents => inner.SupportsTableOfContents;
-    public bool SupportsNamedDestinations => inner.SupportsNamedDestinations;
-    public bool SupportsInternalLinks => inner.SupportsInternalLinks;
-    public bool SupportsExternalLinks => inner.SupportsExternalLinks;
-    public bool SupportsImageOpacity => inner.SupportsImageOpacity;
-    public bool SupportsPageRotation => inner.SupportsPageRotation;
-    public bool SupportsPageBoundaries => inner.SupportsPageBoundaries;
-    public bool SupportsWatermarks => inner.SupportsWatermarks;
-    public bool SupportsHeaderFooter => inner.SupportsHeaderFooter;
-    public bool SupportsSectionNumbering => inner.SupportsSectionNumbering;
-    public bool SupportsAdvancedTextDecorations => inner.SupportsAdvancedTextDecorations;
-    public bool SupportsCompression => inner.SupportsCompression;
+    public bool SupportsBookmarks => false;
+
+    public bool SupportsTableOfContents => false;
+
+    public bool SupportsNamedDestinations => false;
+
+    public bool SupportsInternalLinks => true;
+
+    public bool SupportsExternalLinks => true;
+
+    public bool SupportsImageOpacity => false;
+
+    public bool SupportsPageRotation => false;
+
+    public bool SupportsPageBoundaries => false;
+
+    public bool SupportsWatermarks => false;
+
+    public bool SupportsHeaderFooter => true;
+
+    public bool SupportsSectionNumbering => false;
+
+    public bool SupportsAdvancedTextDecorations => false;
+
+    public bool SupportsCompression => false;
 }
