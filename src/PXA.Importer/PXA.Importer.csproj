@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../Canvas.Importer/Canvas.Importer.csproj" />
+    <ProjectReference Include="../PXA.Infrastructure.Pdf/PXA.Infrastructure.Pdf.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -512,6 +512,19 @@ Completed Phase 9 promotion slices:
       (19 passed), and
       `dotnet test tests/PXA.Infrastructure.Converters.Tests/PXA.Infrastructure.Converters.Tests.csproj --no-restore --disable-build-servers -m:1`
       (9 passed).
+- [x] `PXA.Importer` ownership promotion:
+      Promoted the low-level PDF importer from a facade over `Canvas.Importer` to PXA-owned source over
+      `PXA.Infrastructure.Pdf`, including tokenizer, xref/object parsing, stream decoding, font parsing,
+      graphics interpretation, document model, editing session, semantic analysis, debug overlay, and PDF
+      regeneration bridge. `PXA.Importer` no longer references `Canvas.Importer`; the legacy
+      `Canvas.Importer` project remains for compatibility and keeps its `PXA0002` obsolete diagnostic.
+      `PXA.Importer.Pdf.LoadAsync(...)` remains the preferred PXA entry point. Verified with
+      `dotnet build src/PXA.Importer/PXA.Importer.csproj --no-restore --disable-build-servers -m:1`
+      (0 warnings, 0 errors),
+      `dotnet test tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (3 passed), and
+      `dotnet test tests/Canvas.Importer.Tests/Canvas.Importer.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (95 passed).
 
 ## Future Test Plan
 

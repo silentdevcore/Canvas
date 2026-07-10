@@ -1,5 +1,4 @@
-using Canvas.Importer;
-using Canvas.Importer.Document;
+using PXA.Importer.Document;
 
 namespace PXA.Importer;
 
@@ -9,7 +8,7 @@ namespace PXA.Importer;
 public static class Pdf
 {
     /// <summary>
-    /// Loads a PDF stream into the current Canvas importer document model.
+    /// Loads a PDF stream into the current PXA importer document model.
     /// </summary>
     public static Task<PdfDocumentModel> LoadAsync(
         Stream pdfStream,
@@ -18,9 +17,7 @@ public static class Pdf
     {
         ArgumentNullException.ThrowIfNull(pdfStream);
 
-#pragma warning disable PXA0002 // PXA facade intentionally delegates to the legacy importer engine.
         return new PdfImporter(options?.ToCanvasOptions()).LoadAsync(pdfStream, cancellationToken);
-#pragma warning restore PXA0002
     }
 }
 
