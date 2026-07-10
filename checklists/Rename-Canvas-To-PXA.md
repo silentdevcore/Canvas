@@ -578,6 +578,19 @@ Completed Phase 9 promotion slices:
       and
       `dotnet test tests/Canvas.FileImporter.Doc.Tests/Canvas.FileImporter.Doc.Tests.csproj --no-restore --disable-build-servers -m:1`
       (1 passed).
+- [x] `PXA.FileImporter` ODT ownership promotion:
+      Promoted the OpenDocument Text `.odt` importer inside the `PXA.FileImporter` aggregator from a wrapper
+      over `Canvas.FileImporter.Odt` to PXA-owned source over `PXA.Core.Contracts`, preserving ZIP/content.xml
+      parsing, style extraction, paragraph/header text mapping, frame image mapping, metadata-title fallback,
+      and portrait page layout behavior. `PXA.FileImporter` no longer references `Canvas.FileImporter.Odt`;
+      DOCX/PPTX still wrap their legacy Canvas implementations until their individual slices.
+      Verified with
+      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing PPTX nullable and PDF XML-doc warnings remain),
+      `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (17 passed), and
+      `dotnet test tests/Canvas.FileImporter.Odt.Tests/Canvas.FileImporter.Odt.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (1 passed).
 
 ## Future Test Plan
 

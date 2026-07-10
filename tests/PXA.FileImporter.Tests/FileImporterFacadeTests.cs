@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Text;
 using PXA.FileImporter;
 using SkiaSharp;
@@ -13,6 +14,19 @@ public sealed class FileImporterFacadeTests
 
         await Assert.ThrowsAsync<InvalidDataException>(
             () => new DocFileImporter().ImportAsync(stream, "bad.doc"));
+    }
+
+    [Fact]
+    public async Task OdtImporter_ImportsTextDesign()
+    {
+        await using var stream = new MemoryStream(MakeMinimalOdt("Hello PXA"));
+
+        var design = await new OdtFileImporter().ImportAsync(stream, "sample.odt");
+
+        Assert.Equal("sample.odt", design.Name);
+        Assert.Equal(595, design.PageSettings!.Width);
+        Assert.Equal("text", design.Pages[0].Elements[0].Type);
+        Assert.Equal("Hello PXA", design.Pages[0].Elements[0].Content);
     }
 
     [Fact]
@@ -60,5 +74,27 @@ public sealed class FileImporterFacadeTests
         using var image = SKImage.FromBitmap(bitmap);
         using var data = image.Encode(SKEncodedImageFormat.Png, 90);
         return data.ToArray();
+    }
+
+    private static byte[] MakeMinimalOdt(string text)
+    {
+        using var stream = new MemoryStream();
+        using (var zip = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            var content = zip.CreateEntry("content.xml");
+            using var writer = new StreamWriter(content.Open(), Encoding.UTF8);
+            writer.Write($$"""
+                <?xml version="1.0" encoding="UTF-8"?>
+                <document-content xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">
+                  <text:body>
+                    <text:text>
+                      <text:p>{{System.Security.SecurityElement.Escape(text)}}</text:p>
+                    </text:text>
+                  </text:body>
+                </document-content>
+                """);
+        }
+
+        return stream.ToArray();
     }
 }
