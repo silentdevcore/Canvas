@@ -482,6 +482,21 @@ Completed Phase 9 promotion slices:
       (5 passed), and
       `dotnet test tests/Canvas.Export.Tests/Canvas.Export.Tests.csproj --no-restore --disable-build-servers -m:1 --filter "FullyQualifiedName~Spreadsheet"`
       (20 passed).
+- [x] `PXA.Infrastructure.Converters` ownership promotion:
+      Promoted converter infrastructure from Canvas wrappers to PXA-owned implementations over
+      `PXA.Core` and `PXA.Application`, including HTML, Markdown, CSV, XML, SVG, PNG/JPEG/TIFF,
+      ODT export, Google font CSS helpers, style extensions, and converter renderer capabilities.
+      `PXA.Infrastructure.Converters` no longer references `Canvas.Infrastructure.Converters`; it
+      carries the same NPOI/SkiaSharp dependencies directly and keeps the PXA `DocumentExporter`
+      public contract for converter facade tests. `PXA.WebApi` still uses the legacy Canvas converter
+      registrations because its active export use cases are still Canvas.Application/Canvas.Core based;
+      switching API composition belongs with the Web/API application ownership slice. Verified with
+      `dotnet build src/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing dependency/NPOI warnings remain),
+      `dotnet test tests/PXA.Infrastructure.Converters.Tests/PXA.Infrastructure.Converters.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (9 passed), and
+      `dotnet test tests/Canvas.Export.Tests/Canvas.Export.Tests.csproj --no-restore --disable-build-servers -m:1 --filter "FullyQualifiedName~ExporterTests"`
+      (66 passed).
 
 ## Future Test Plan
 
