@@ -643,9 +643,7 @@ Completed Phase 9 promotion slices:
       `ImageToPdfConversionOptions`, and `ImageToPdfConversionResult` contracts. Adapter files
       `OcrEngineAdapters`, `OcrModelMapper`, and wrapper `TesseractOcrEngines` were removed.
       `PXA.FileImporter.ImageOcr` no longer references the `Canvas.FileImporter.ImageOcr` project. The
-      large `tessdata` / `native` assets are still linked from the legacy folder to avoid duplicating data,
-      and the process-isolated worker still resolves the legacy
-      `Canvas.FileImporter.ImageOcr.Worker.dll` until the separate worker physical rename slice.
+      large `tessdata` / `native` assets are still linked from the legacy folder to avoid duplicating data.
       Verified with
       `dotnet build src/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj --no-restore --disable-build-servers -m:1`
       (0 warnings, 0 errors),
@@ -653,6 +651,28 @@ Completed Phase 9 promotion slices:
       (2 passed), and
       `dotnet test tests/Canvas.FileImporter.ImageOcr.Tests/Canvas.FileImporter.ImageOcr.Tests.csproj --no-restore --disable-build-servers -m:1`
       (97 passed; existing dependency/WebApi warnings remain).
+- [x] `PXA.FileImporter.ImageOcr.Worker` physical promotion:
+      Added a PXA-owned process-isolated OCR worker project over `PXA.FileImporter.ImageOcr`, updated the
+      PXA OCR engine default worker resolution to prefer `PXA.FileImporter.ImageOcr.Worker.dll`, and kept
+      fallback resolution for the legacy `Canvas.FileImporter.ImageOcr.Worker.dll` during the compatibility
+      window. `PXA.WebApi`, `PXA.Api.Tests`, and `PXA.sln` now use the PXA worker project; `Canvas.sln` and
+      legacy Canvas API tests continue to use the Canvas worker. The WebApi OCR controller now uses the PXA
+      OCR engine contract and converts the PXA design DTO back to the legacy Canvas DTO only at the existing
+      `DesignJsonMapper`/`Canvas.Pdf` boundary.
+      Verified with
+      `dotnet build src/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj --no-restore --disable-build-servers -m:1`
+      (0 warnings, 0 errors),
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing package/NPOI/nullability warnings remain),
+      `dotnet test tests/PXA.FileImporter.ImageOcr.Tests/PXA.FileImporter.ImageOcr.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (2 passed),
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (61 passed), and
+      `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (61 passed). A full `dotnet build PXA.sln --no-restore --disable-build-servers -m:1`
+      initially exposed a pre-existing `samples/PXA.Demo` ambiguity between `Canvas.Infrastructure.Pdf` and
+      `PXA.Infrastructure.Pdf`; the demo now references only `PXA.Generator` directly, and the full PXA
+      solution build passes (0 errors; existing package/NPOI/analyzer/nullability/obsolete warnings remain).
 
 ## Future Test Plan
 

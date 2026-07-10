@@ -2,8 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/PXA.Generator/PXA.Generator.csproj" />
-    <ProjectReference Include="../../src/Canvas.Application/Canvas.Application.csproj" />
-    <ProjectReference Include="../../src/Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

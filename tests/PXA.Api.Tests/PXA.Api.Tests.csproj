@@ -41,15 +41,16 @@
 
   <ItemGroup>
     <ProjectReference Include="../../PXA.WebApi/PXA.WebApi.csproj" />
-    <ProjectReference Include="../../src/Canvas.FileImporter.ImageOcr.Worker/Canvas.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />
+    <ProjectReference Include="../../src/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj" />
+    <ProjectReference Include="../../src/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />
   </ItemGroup>
 
   <Target Name="CopyImageOcrWorker" AfterTargets="Build">
-    <MSBuild Projects="../../src/Canvas.FileImporter.ImageOcr.Worker/Canvas.FileImporter.ImageOcr.Worker.csproj"
+    <MSBuild Projects="../../src/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj"
              Targets="Build"
              Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
     <ItemGroup>
-      <ImageOcrWorkerFiles Include="../../src/Canvas.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />
+      <ImageOcrWorkerFiles Include="../../src/PXA.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />
     </ItemGroup>
     <Copy SourceFiles="@(ImageOcrWorkerFiles)"
           DestinationFiles="@(ImageOcrWorkerFiles->'$(OutputPath)ocr-worker/%(RecursiveDir)%(Filename)%(Extension)')"

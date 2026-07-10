@@ -1,7 +1,8 @@
-using Canvas.FileImporter.ImageOcr;
 using Canvas.Pdf;
+using PXA.Core.Contracts;
 using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
+using PXA.FileImporter.ImageOcr;
 using System.Diagnostics;
 
 namespace PXA.WebApi.Controllers;
@@ -128,7 +129,8 @@ public sealed class ImageConversionController : ControllerBase
                 });
             }
 
-            var document = DesignJsonMapper.MapToPdfDocument(result.Design, _fontLoader);
+            var canvasDesign = result.Design.ToCanvas();
+            var document = DesignJsonMapper.MapToPdfDocument(canvasDesign, _fontLoader);
             var pdfBytes = document.ToBytes();
             var safeName = SanitizeFileName(Path.GetFileNameWithoutExtension(file.FileName));
             return File(pdfBytes, "application/pdf", $"{safeName}.pdf");

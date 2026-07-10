@@ -24,8 +24,8 @@
     <ProjectReference Include="../src/Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj" />
     <ProjectReference Include="../src/Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj" />
     <ProjectReference Include="../src/Canvas.FileImporter.ImageAnalysis/Canvas.FileImporter.ImageAnalysis.csproj" />
-    <ProjectReference Include="../src/Canvas.FileImporter.ImageOcr/Canvas.FileImporter.ImageOcr.csproj" />
-    <ProjectReference Include="../src/Canvas.FileImporter.ImageOcr.Worker/Canvas.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />
+    <ProjectReference Include="../src/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj" />
+    <ProjectReference Include="../src/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />
     <ProjectReference Include="../src/Canvas.Application/Canvas.Application.csproj" />
     <ProjectReference Include="../src/Canvas.Core/Canvas.Core.csproj" />
     <ProjectReference Include="../Canvas.Domain/Canvas.Domain.csproj" />
@@ -70,9 +70,9 @@
   </ItemGroup>
 
   <Target Name="CopyImageOcrWorker" AfterTargets="Build">
-    <MSBuild Projects="../src/Canvas.FileImporter.ImageOcr.Worker/Canvas.FileImporter.ImageOcr.Worker.csproj" Targets="Build" Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
+    <MSBuild Projects="../src/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj" Targets="Build" Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
     <ItemGroup>
-      <ImageOcrWorkerFiles Include="../src/Canvas.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />
+      <ImageOcrWorkerFiles Include="../src/PXA.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />
     </ItemGroup>
     <Copy SourceFiles="@(ImageOcrWorkerFiles)" DestinationFiles="@(ImageOcrWorkerFiles->'$(OutputPath)ocr-worker/%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>

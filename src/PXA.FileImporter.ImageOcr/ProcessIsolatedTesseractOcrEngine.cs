@@ -122,7 +122,15 @@ public sealed class ProcessIsolatedTesseractOcrEngine : IOcrEngine
     {
         var baseDir = AppContext.BaseDirectory;
         var workerDir = Path.Combine(baseDir, "ocr-worker");
-        var dllPath = Path.Combine(workerDir, "Canvas.FileImporter.ImageOcr.Worker.dll");
+        var dllPath = Path.Combine(workerDir, "PXA.FileImporter.ImageOcr.Worker.dll");
+        if (File.Exists(dllPath))
+            return dllPath;
+
+        var legacyDllPath = Path.Combine(workerDir, "Canvas.FileImporter.ImageOcr.Worker.dll");
+        if (File.Exists(legacyDllPath))
+            return legacyDllPath;
+
+        dllPath = Path.Combine(baseDir, "PXA.FileImporter.ImageOcr.Worker.dll");
         if (File.Exists(dllPath))
             return dllPath;
 

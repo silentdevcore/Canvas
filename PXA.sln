@@ -145,7 +145,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.FileImporter.ImageOc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.FileImporter.ImageOcr.Tests", "tests\Canvas.FileImporter.ImageOcr.Tests\Canvas.FileImporter.ImageOcr.Tests.csproj", "{3FD37DE2-6048-49DC-A00F-A227F50290AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.FileImporter.ImageOcr.Worker", "src\Canvas.FileImporter.ImageOcr.Worker\Canvas.FileImporter.ImageOcr.Worker.csproj", "{2648A4BA-5CAD-4650-8995-95EAD59ADD11}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.FileImporter.ImageOcr.Worker", "src\PXA.FileImporter.ImageOcr.Worker\PXA.FileImporter.ImageOcr.Worker.csproj", "{2648A4BA-5CAD-4650-8995-95EAD59ADD11}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canvas.Migration.DevExpressReport", "src\Canvas.Migration.DevExpressReport\Canvas.Migration.DevExpressReport.csproj", "{4B968256-5AD8-463B-AD9C-BAE5F4B750BB}"
 EndProject

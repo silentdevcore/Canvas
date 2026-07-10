@@ -9,7 +9,7 @@ using Canvas.FileImporter.Pdf;
 using Canvas.FileImporter.Pptx;
 using Canvas.FileImporter.Svg;
 using Canvas.FileImporter.ImageAnalysis;
-using Canvas.FileImporter.ImageOcr;
+using PXA.FileImporter.ImageOcr;
 using Canvas.Core.Primitives;
 using Canvas.Domain.Repositories;
 using Canvas.Infrastructure.Pdf;
