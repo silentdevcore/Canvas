@@ -4,21 +4,21 @@ using PXA.Domain.ValueObjects;
 
 namespace PXA.Application.UseCases;
 
-public class ValidateTemplateUseCase
+public class CreateTemplateUseCase
 {
     private readonly ITemplateRepository _templateRepository;
 
-    public ValidateTemplateUseCase(ITemplateRepository templateRepository)
+    public CreateTemplateUseCase(ITemplateRepository templateRepository)
     {
         _templateRepository = templateRepository;
     }
 
-    public async Task<ValidationResult> ExecuteAsync(ValidateTemplateRequest request)
+    public async Task<DesignTemplate> ExecuteAsync(CreateTemplateRequest request)
     {
         var template = new DesignTemplate
         {
             Id = request.Id ?? Guid.NewGuid().ToString(),
-            Name = request.Name ?? "Validation Template",
+            Name = request.Name,
             Description = request.Description,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -35,23 +35,25 @@ public class ValidateTemplateUseCase
             {
                 Version = "1.0.0",
                 SchemaVersion = "1.0.0",
-                CreatedBy = "validator",
-                UpdatedBy = "validator",
+                CreatedBy = request.CreatedBy ?? "system",
+                UpdatedBy = request.CreatedBy ?? "system",
                 Locale = "en-US",
                 Currency = "USD",
                 Timezone = "UTC"
             }
         };
 
-        return await _templateRepository.ValidateAsync(template);
+        await _templateRepository.SaveAsync(template);
+        return template;
     }
 }
 
-public class ValidateTemplateRequest
+public class CreateTemplateRequest
 {
     public string? Id { get; set; }
-    public string? Name { get; set; }
+    public required string Name { get; set; }
     public string? Description { get; set; }
+    public string? CreatedBy { get; set; }
     public PageSettings? PageSettings { get; set; }
     public List<DesignerElement>? Elements { get; set; }
     public Dictionary<string, object>? SamplePayload { get; set; }

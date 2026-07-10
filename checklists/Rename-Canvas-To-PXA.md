@@ -412,6 +412,21 @@ Completed Phase 9 promotion slices:
       (29 passed). The broader
       `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1` composition
       build also passed for this Core/Domain promotion block (0 errors; 22 existing warnings remain).
+- [x] `PXA.Application` use case ownership promotion:
+      Promoted the PXA application use cases from Canvas facades to PXA-owned implementations over
+      `PXA.Core` and `PXA.Domain`, including clone, extract pages, find/replace, validation, template
+      create/get/update, export, generate, diagnostics, page coverage, header/footer, page numbering,
+      table flow, table of contents, and watermark application. Removed the direct
+      `Canvas.Application` project reference from `PXA.Application`. `RenderTemplateUseCase` remains
+      deferred to the PDF/infrastructure promotion because it currently owns direct PDF rendering/output
+      behavior. Verified with
+      `dotnet test tests/PXA.Application.Tests/PXA.Application.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (8 passed) and
+      `dotnet test tests/Canvas.Application.Tests/Canvas.Application.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (5 passed). A follow-up
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1` started and
+      compiled through the early dependency chain, then stopped after a silent hang; the previous WebApi
+      composition build passed before this Application-only ownership slice.
 
 ## Future Test Plan
 
