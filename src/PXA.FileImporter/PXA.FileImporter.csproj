@@ -3,12 +3,15 @@
   <ItemGroup>
     <ProjectReference Include="../Canvas.FileImporter.Doc/Canvas.FileImporter.Doc.csproj" />
     <ProjectReference Include="../Canvas.FileImporter.Docx/Canvas.FileImporter.Docx.csproj" />
-    <ProjectReference Include="../Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj" />
     <ProjectReference Include="../Canvas.FileImporter.Odt/Canvas.FileImporter.Odt.csproj" />
     <ProjectReference Include="../Canvas.FileImporter.Pptx/Canvas.FileImporter.Pptx.csproj" />
     <ProjectReference Include="../Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj" />
     <ProjectReference Include="../PXA.Core/PXA.Core.csproj" />
     <ProjectReference Include="../PXA.Importer/PXA.Importer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="3.119.2" />
   </ItemGroup>
 
   <PropertyGroup>

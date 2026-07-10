@@ -537,6 +537,19 @@ Completed Phase 9 promotion slices:
       (15 passed), and
       `dotnet test tests/Canvas.FileImporter.Pdf.Tests/Canvas.FileImporter.Pdf.Tests.csproj --no-restore --disable-build-servers -m:1`
       (1 passed).
+- [x] `PXA.FileImporter` image ownership promotion:
+      Promoted the raster image importer inside the `PXA.FileImporter` aggregator from a wrapper over
+      `Canvas.FileImporter.Image` to PXA-owned source over `PXA.Core.Contracts` and SkiaSharp, preserving
+      A4 page placement, EXIF orientation handling, JPEG/PNG data URI passthrough, and corrupt-image
+      validation behavior. `PXA.FileImporter` no longer references `Canvas.FileImporter.Image`; the other
+      file importer providers still wrap their legacy Canvas implementations until their individual slices.
+      Verified with
+      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing PPTX/PDF XML-doc warnings remain),
+      `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (15 passed), and
+      `dotnet test tests/Canvas.FileImporter.Image.Tests/Canvas.FileImporter.Image.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (8 passed).
 
 ## Future Test Plan
 

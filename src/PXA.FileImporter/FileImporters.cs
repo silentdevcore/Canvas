@@ -29,19 +29,6 @@ public sealed class DocxFileImporter : IFileImporter
 }
 
 /// <summary>
-/// Power Dox Automation facade for raster image import.
-/// </summary>
-public sealed class ImageFileImporter : IFileImporter
-{
-    private readonly Canvas.FileImporter.Image.ImageFileImporter inner = new();
-
-    public IReadOnlyList<string> SupportedExtensions => inner.SupportedExtensions;
-
-    public async Task<DesignExportDto> ImportAsync(Stream stream, string? name = null) =>
-        (await inner.ImportAsync(stream, name)).ToPxa();
-}
-
-/// <summary>
 /// Power Dox Automation facade for ODT import.
 /// </summary>
 public sealed class OdtFileImporter : IFileImporter
