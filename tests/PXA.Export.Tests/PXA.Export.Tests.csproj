@@ -8,12 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="../Canvas.Export.Tests/**/*.cs"
-             Exclude="../Canvas.Export.Tests/bin/**;../Canvas.Export.Tests/obj/**"
-             Link="%(RecursiveDir)%(Filename)%(Extension)" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -22,15 +16,15 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
-    <Using Include="Canvas.Core.Contracts" />
+    <Using Include="PXA.Core.Contracts" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Canvas.Application/Canvas.Application.csproj" />
-    <ProjectReference Include="../../src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj" />
-    <ProjectReference Include="../../src/Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj" />
-    <ProjectReference Include="../../src/Canvas.Infrastructure.Spreadsheet/Canvas.Infrastructure.Spreadsheet.csproj" />
-    <ProjectReference Include="../../PXA.WebApi/PXA.WebApi.csproj" />
+    <ProjectReference Include="../../src/PXA.Application/PXA.Application.csproj" />
+    <ProjectReference Include="../../src/PXA.Core/PXA.Core.csproj" />
+    <ProjectReference Include="../../src/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj" />
+    <ProjectReference Include="../../src/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj" />
+    <ProjectReference Include="../../src/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj" />
   </ItemGroup>
 
 </Project>

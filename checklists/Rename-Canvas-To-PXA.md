@@ -803,6 +803,16 @@ Completed Phase 9 promotion slices:
       `dotnet test tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj --no-restore --disable-build-servers -m:1`
       (3 passed) and `rg -n "Canvas\.Importer|src/Canvas\.Importer" tests/PXA.Importer.Tests --glob "*.cs" --glob "*.csproj"`
       (no matches).
+- [x] `PXA.Export.Tests` direct export dependency switch:
+      Replaced the PXA export test project wrapper over linked `Canvas.Export.Tests` sources with
+      PXA-owned composition tests. The project now references `PXA.Application`, `PXA.Core`,
+      `PXA.Infrastructure.Converters`, `PXA.Infrastructure.Word`, and `PXA.Infrastructure.Spreadsheet`
+      directly, covering HTML exporter lookup plus Word/Excel bytes through the active PXA contract types.
+      The full legacy Canvas export regression suite remains in `tests/Canvas.Export.Tests`.
+      Verified with
+      `dotnet test tests/PXA.Export.Tests/PXA.Export.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (3 passed) and `rg -n "Canvas\.|Canvas\.Export|src/Canvas|PXA.WebApi" tests/PXA.Export.Tests --glob "*.cs" --glob "*.csproj"`
+      (no matches).
 
 ## Future Test Plan
 
