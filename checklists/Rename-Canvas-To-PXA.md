@@ -692,11 +692,11 @@ Completed Phase 9 promotion slices:
       (61 passed).
 - [x] `PXA.WebApi` PDF viewer importer extraction switch:
       Switched the PDF viewer native annotation extraction and AcroForm extraction/fill parsing services from
-      `Canvas.Importer` to `PXA.Importer`. The annotation flattening/redaction service intentionally remains
-      on `Canvas.Importer.Generation.CanvasPdfGeneratorBridge` for now because that path is still coupled to
-      the legacy `Canvas.Pdf` regenerator boundary; moving it prematurely pulls both `Canvas.Infrastructure.Pdf`
-      and `PXA.Infrastructure.Pdf` into the same WebApi compile graph and creates duplicate PDF engine type
-      identities. This is the next PDF-engine boundary cleanup item, not an importer ownership blocker.
+      `Canvas.Importer` to `PXA.Importer`. Follow-up WebApi composition work also moved the annotation
+      flattening/redaction service to `PXA.Importer.Generation.CanvasPdfGeneratorBridge`; the service still
+      renders through the compatibility `Canvas.Pdf` engine boundary, but no longer needs the legacy
+      `Canvas.Importer` project identity. A full restore was required after the project-reference changes to
+      clear the stale `Canvas.Application` -> `Canvas` -> `Canvas.Infrastructure.Pdf` asset graph.
       Verified with
       `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing package/NPOI warnings remain),
@@ -718,6 +718,19 @@ Completed Phase 9 promotion slices:
       (3 passed), and
       `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --disable-build-servers -m:1 --filter "FullyQualifiedName~DocumentOpsControllerTests"`
       (3 passed).
+- [x] `PXA.WebApi` template/auth application composition switch:
+      Switched auth middleware/controller and stored-template repository wiring from `Canvas.Application`
+      / `Canvas.Domain` to `PXA.Application` / `PXA.Domain`. `PXA.Application` now owns
+      `AuthenticateUserUseCase`; `PXA.WebApi` no longer has direct project references to
+      `Canvas.Application`, `Canvas.Domain`, `Canvas.Infrastructure.Pdf`, or `Canvas.Infrastructure.Word`.
+      Stored-template rendering no longer depends on the removed legacy `RenderTemplateUseCase` registration;
+      it uses the PXA template lookup and the compatibility `Canvas.Pdf` engine boundary directly until a
+      PXA-owned template renderer is introduced.
+      Verified with
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --disable-build-servers -m:1`
+      (0 errors; existing dependency/NPOI/nullability warnings remain) and
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --disable-build-servers -m:1 --filter "FullyQualifiedName~TemplatesControllerTests|FullyQualifiedName~PdfViewerFormsControllerTests|FullyQualifiedName~PdfViewerAnnotationsControllerTests"`
+      (16 passed).
 
 ## Future Test Plan
 

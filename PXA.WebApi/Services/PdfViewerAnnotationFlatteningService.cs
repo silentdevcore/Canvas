@@ -1,14 +1,12 @@
 using System.Text.Json;
 using Canvas.Pdf;
-using Canvas.Importer;
-using Canvas.Importer.Analysis;
-using Canvas.Importer.Document;
-using Canvas.Importer.Generation;
-using Canvas.Importer.Graphics;
+using PXA.Importer;
+using PXA.Importer.Analysis;
+using PXA.Importer.Document;
+using PXA.Importer.Generation;
+using PXA.Importer.Graphics;
 using CanvasPdfColor = Canvas.Pdf.PdfColor;
 using CanvasPdfDocument = Canvas.Pdf.PdfDocument;
-
-#pragma warning disable PXA0002 // Flattening still uses the Canvas regenerator until the PDF engine boundary is renamed.
 
 namespace PXA.WebApi.Services;
 
@@ -701,5 +699,3 @@ public sealed class PdfViewerAnnotationFlatteningService
         }
     }
 }
-
-#pragma warning restore PXA0002

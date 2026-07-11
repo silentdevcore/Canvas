@@ -1,4 +1,4 @@
-using Canvas.Application.UseCases;
+using PXA.Application.UseCases;
 
 namespace PXA.WebApi.Middleware;
 

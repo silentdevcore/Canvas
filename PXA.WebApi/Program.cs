@@ -1,11 +1,6 @@
-using Canvas.Application.UseCases;
-using Canvas.Core.Abstractions;
 using PXA.FileImporter;
 using PXA.FileImporter.ImageAnalysis;
 using PXA.FileImporter.ImageOcr;
-using Canvas.Core.Primitives;
-using Canvas.Domain.Repositories;
-using Canvas.Infrastructure.Pdf;
 using Canvas.Pdf;
 using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Middleware;
@@ -35,13 +30,7 @@ builder.Services.AddCors(options =>
 });
 
 // Register template rendering services
-builder.Services.AddScoped<ITemplateRepository, InMemoryTemplateRepository>();
-builder.Services.AddScoped<IExpressionEvaluator, ExpressionEvaluator>();
-builder.Services.AddScoped<IValueFormatter, ValueFormatter>();
-
-// Register PDF infrastructure
-builder.Services.AddScoped<IDocumentRenderer, PdfDocumentRenderer>();
-builder.Services.AddScoped<IOutputWriter, FileOutputWriter>();
+builder.Services.AddScoped<PXA.Domain.Repositories.ITemplateRepository, InMemoryTemplateRepository>();
 
 // Register font loader for multi-language PDF support (optional: gracefully absent if fonts dir missing)
 builder.Services.AddSingleton<PdfFontLoader>(sp =>
@@ -105,12 +94,11 @@ builder.Services.AddSingleton<PXA.WebApi.Services.PdfViewerFormExtractionService
 
 // Register use cases
 builder.Services.AddScoped<PXA.Application.UseCases.ExportDocumentUseCase>();
-builder.Services.AddScoped<RenderTemplateUseCase>();
-builder.Services.AddScoped<CreateTemplateUseCase>();
-builder.Services.AddScoped<UpdateTemplateUseCase>();
-builder.Services.AddScoped<GetTemplateUseCase>();
-builder.Services.AddScoped<ValidateTemplateUseCase>();
-builder.Services.AddScoped<AuthenticateUserUseCase>();
+builder.Services.AddScoped<PXA.Application.UseCases.CreateTemplateUseCase>();
+builder.Services.AddScoped<PXA.Application.UseCases.UpdateTemplateUseCase>();
+builder.Services.AddScoped<PXA.Application.UseCases.GetTemplateUseCase>();
+builder.Services.AddScoped<PXA.Application.UseCases.ValidateTemplateUseCase>();
+builder.Services.AddScoped<PXA.Application.UseCases.AuthenticateUserUseCase>();
 builder.Services.AddScoped<PXA.Application.UseCases.FindAndReplaceUseCase>();
 builder.Services.AddScoped<PXA.Application.UseCases.CloneTemplateUseCase>();
 builder.Services.AddScoped<PXA.Application.UseCases.ExtractPagesUseCase>();

@@ -20,11 +20,7 @@
     <ProjectReference Include="../src/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj" />
     <ProjectReference Include="../src/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />
     <ProjectReference Include="../src/PXA.Importer/PXA.Importer.csproj" />
-    <ProjectReference Include="../src/Canvas.Application/Canvas.Application.csproj" />
     <ProjectReference Include="../src/Canvas.Core/Canvas.Core.csproj" />
-    <ProjectReference Include="../Canvas.Domain/Canvas.Domain.csproj" />
-    <ProjectReference Include="../src/Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj" />
-    <ProjectReference Include="../src/Canvas.Infrastructure.Word/Canvas.Infrastructure.Word.csproj" />
     <ProjectReference Include="../src/PXA.Application/PXA.Application.csproj" />
     <ProjectReference Include="../src/PXA.Core/PXA.Core.csproj" />
     <ProjectReference Include="../src/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj" />

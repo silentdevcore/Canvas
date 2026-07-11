@@ -1,6 +1,6 @@
-using Canvas.Domain.Entities;
-using Canvas.Domain.Repositories;
-using Canvas.Domain.ValueObjects;
+using PXA.Domain.Entities;
+using PXA.Domain.Repositories;
+using PXA.Domain.ValueObjects;
 
 namespace PXA.WebApi.Infrastructure;
 

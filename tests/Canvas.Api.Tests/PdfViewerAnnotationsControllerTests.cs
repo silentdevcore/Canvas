@@ -1,14 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Canvas.Importer;
 using Canvas.Pdf;
 using PXA.WebApi.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
-
-#pragma warning disable PXA0002 // API tests intentionally inspect output through the legacy importer engine.
+using PXA.Importer;
 
 namespace Canvas.Api.Tests;
 
@@ -489,5 +487,3 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
         return stream.ToArray();
     }
 }
-
-#pragma warning restore PXA0002
