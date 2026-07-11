@@ -7,6 +7,8 @@ public sealed class RdlReportMigration : IReportMigration
 {
     private readonly RdlToDesignConverter inner = new();
 
+    public static bool LooksLike(string source) => RdlToDesignConverter.LooksLikeRdl(source);
+
     public ReportMigrationResult Convert(string source)
     {
         var result = inner.ConvertAuto(source);

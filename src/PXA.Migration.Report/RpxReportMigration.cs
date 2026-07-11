@@ -7,9 +7,14 @@ public sealed class RpxReportMigration : IReportMigration
 {
     private readonly RpxToDesignConverter inner = new();
 
+    public static bool LooksLike(string source) => RpxToDesignConverter.LooksLikeRpx(source);
+
     public ReportMigrationResult Convert(string source)
+        => Convert(source, resources: null);
+
+    public ReportMigrationResult Convert(string source, IReadOnlyDictionary<string, string>? resources)
     {
-        var result = inner.ConvertAuto(source);
+        var result = inner.Convert(source, resources);
         return new ReportMigrationResult
         {
             Design = result.Design.ToPxa(),

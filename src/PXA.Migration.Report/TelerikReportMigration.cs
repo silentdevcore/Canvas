@@ -7,6 +7,8 @@ public sealed class TelerikReportMigration : IReportMigration
 {
     private readonly TrdxToDesignConverter inner = new();
 
+    public static bool LooksLike(string source) => TrdxToDesignConverter.LooksLikeTrdx(source);
+
     public ReportMigrationResult Convert(string source)
     {
         var result = inner.ConvertAuto(source);

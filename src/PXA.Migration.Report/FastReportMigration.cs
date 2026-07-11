@@ -7,6 +7,8 @@ public sealed class FastReportMigration : IReportMigration
 {
     private readonly FrxToDesignConverter inner = new();
 
+    public static bool LooksLike(string source) => FrxToDesignConverter.LooksLikeFrx(source);
+
     public ReportMigrationResult Convert(string source)
     {
         var result = inner.ConvertAuto(source);

@@ -7,6 +7,8 @@ public sealed class StimulsoftReportMigration : IReportMigration
 {
     private readonly MrtToDesignConverter inner = new();
 
+    public static bool LooksLike(string source) => MrtToDesignConverter.LooksLikeMrt(source);
+
     public ReportMigrationResult Convert(string source)
     {
         var result = inner.ConvertAuto(source);

@@ -7,6 +7,8 @@ public sealed class ActiveReportsJsMigration : IReportMigration
 {
     private readonly ActiveReportsJsToDesignConverter inner = new();
 
+    public static bool LooksLike(string source) => ActiveReportsJsToDesignConverter.LooksLikeActiveReportsJs(source);
+
     public ReportMigrationResult Convert(string source)
     {
         var result = inner.ConvertAuto(source);

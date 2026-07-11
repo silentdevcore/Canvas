@@ -755,6 +755,24 @@ Completed Phase 9 promotion slices:
       (0 errors; existing dependency/NPOI/nullability/XML-doc warnings remain) and
       `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --disable-build-servers -m:1 --filter "FullyQualifiedName~Migration"`
       (16 passed).
+- [x] `PXA.WebApi` report migration provider composition switch:
+      Switched the report-to-design API path from direct `Canvas.Migration.*` report converters to
+      `PXA.Migration.Report` facades and replaced the eight direct report-provider project references with
+      the `PXA.Migration.Report` aggregator. The PXA report facade now exposes the WebApi-required
+      detection/resource helpers: report package extraction, DevExpress `.resx` resource parsing,
+      `LooksLike(...)` checks, and resource-aware DevExpress/RPX/Jasper conversion overloads. Legacy Canvas
+      report migration provider projects still build as internal dependencies of the PXA facade during the
+      compatibility window, but `PXA.WebApi` no longer composes directly against those report provider
+      identities.
+      Verified with
+      `dotnet build src/PXA.Migration.Report/PXA.Migration.Report.csproj --disable-build-servers -m:1`
+      (0 errors; existing Stimulsoft warning remains),
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing dependency/NPOI/nullability warnings remain),
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1 --filter "FullyQualifiedName~Migration"`
+      (16 passed), and
+      `dotnet test tests/PXA.Migration.Report.Tests/PXA.Migration.Report.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (20 passed).
 
 ## Future Test Plan
 

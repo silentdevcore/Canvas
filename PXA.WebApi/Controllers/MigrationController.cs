@@ -1,15 +1,8 @@
-using Canvas.Core.Contracts;
-using Canvas.Migration.Abstractions;
-using Canvas.Migration.ActiveReportsJs;
-using Canvas.Migration.DevExpressReport;
-using Canvas.Migration.FastReport;
-using Canvas.Migration.JasperReports;
-using Canvas.Migration.Rdl;
-using Canvas.Migration.Rpx;
-using Canvas.Migration.Stimulsoft;
-using Canvas.Migration.Telerik;
 using PXA.WebApi.Services;
 using Microsoft.AspNetCore.Mvc;
+using PXA.Migration.Report;
+using PxaDesignExportDto = PXA.Core.Contracts.DesignExportDto;
+using PxaMigrationDiagnostic = PXA.Migration.Abstractions.MigrationDiagnostic;
 
 namespace PXA.WebApi.Controllers;
 
@@ -127,56 +120,56 @@ public class MigrationController : ControllerBase
 
         try
         {
-            DesignExportDto design;
-            IReadOnlyList<Canvas.Migration.Abstractions.MigrationDiagnostic> diagnostics;
-            if (RdlToDesignConverter.LooksLikeRdl(sourceCode))
+            PxaDesignExportDto design;
+            IReadOnlyList<PxaMigrationDiagnostic> diagnostics;
+            if (RdlReportMigration.LooksLike(sourceCode))
             {
-                var result = new RdlToDesignConverter().Convert(sourceCode);
+                var result = new RdlReportMigration().Convert(sourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
-            else if (RpxToDesignConverter.LooksLikeRpx(sourceCode))
+            else if (RpxReportMigration.LooksLike(sourceCode))
             {
                 var resources = MergeReportResources(request.ResourceXml, request.Resources, packageResources);
-                var result = new RpxToDesignConverter().Convert(sourceCode, resources);
+                var result = new RpxReportMigration().Convert(sourceCode, resources);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
-            else if (FrxToDesignConverter.LooksLikeFrx(sourceCode))
+            else if (FastReportMigration.LooksLike(sourceCode))
             {
-                var result = new FrxToDesignConverter().Convert(sourceCode);
+                var result = new FastReportMigration().Convert(sourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
-            else if (TrdxToDesignConverter.LooksLikeTrdx(sourceCode))
+            else if (TelerikReportMigration.LooksLike(sourceCode))
             {
-                var result = new TrdxToDesignConverter().Convert(sourceCode);
+                var result = new TelerikReportMigration().Convert(sourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
-            else if (JrxmlToDesignConverter.LooksLikeJrxml(sourceCode))
+            else if (JasperReportsMigration.LooksLike(sourceCode))
             {
                 var resources = MergeReportResources(request.ResourceXml, request.Resources, packageResources);
-                var result = new JrxmlToDesignConverter().Convert(sourceCode, resources);
+                var result = new JasperReportsMigration().Convert(sourceCode, resources);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
-            else if (ActiveReportsJsToDesignConverter.LooksLikeActiveReportsJs(sourceCode))
+            else if (ActiveReportsJsMigration.LooksLike(sourceCode))
             {
-                var result = new ActiveReportsJsToDesignConverter().Convert(sourceCode);
+                var result = new ActiveReportsJsMigration().Convert(sourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
-            else if (MrtToDesignConverter.LooksLikeMrt(sourceCode))
+            else if (StimulsoftReportMigration.LooksLike(sourceCode))
             {
-                var result = new MrtToDesignConverter().Convert(sourceCode);
+                var result = new StimulsoftReportMigration().Convert(sourceCode);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
             else
             {
                 var resources = MergeReportResources(request.ResourceXml, request.Resources, packageResources);
-                var result = new XtraReportToDesignConverter().ConvertAuto(sourceCode, resources);
+                var result = new DevExpressReportMigration().Convert(sourceCode, resources);
                 design = result.Design;
                 diagnostics = result.Diagnostics;
             }
@@ -225,13 +218,13 @@ public class MigrationController : ControllerBase
 
     // Recognized by one of the explicit detectors — used to pick the main report inside a zip package.
     private static bool LooksLikeAnyReport(string content) =>
-        RdlToDesignConverter.LooksLikeRdl(content)
-        || RpxToDesignConverter.LooksLikeRpx(content)
-        || FrxToDesignConverter.LooksLikeFrx(content)
-        || TrdxToDesignConverter.LooksLikeTrdx(content)
-        || JrxmlToDesignConverter.LooksLikeJrxml(content)
-        || ActiveReportsJsToDesignConverter.LooksLikeActiveReportsJs(content)
-        || MrtToDesignConverter.LooksLikeMrt(content);
+        RdlReportMigration.LooksLike(content)
+        || RpxReportMigration.LooksLike(content)
+        || FastReportMigration.LooksLike(content)
+        || TelerikReportMigration.LooksLike(content)
+        || JasperReportsMigration.LooksLike(content)
+        || ActiveReportsJsMigration.LooksLike(content)
+        || StimulsoftReportMigration.LooksLike(content);
 
     private static IReadOnlyDictionary<string, string>? MergeReportResources(
         string? resourceXml,

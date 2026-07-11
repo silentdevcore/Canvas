@@ -8,8 +8,11 @@ public sealed class DevExpressReportMigration : IReportMigration
     private readonly XtraReportToDesignConverter inner = new();
 
     public ReportMigrationResult Convert(string source)
+        => Convert(source, resources: null);
+
+    public ReportMigrationResult Convert(string source, IReadOnlyDictionary<string, string>? resources)
     {
-        var result = inner.ConvertAuto(source);
+        var result = inner.ConvertAuto(source, resources);
         return new ReportMigrationResult
         {
             Design = result.Design.ToPxa(),
