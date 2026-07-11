@@ -743,6 +743,18 @@ Completed Phase 9 promotion slices:
       (0 errors; existing dependency/NPOI/nullability/XML-doc warnings remain) and
       `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --disable-build-servers -m:1 --filter "FullyQualifiedName~Migration"`
       (16 passed).
+- [x] `PXA.WebApi` spreadsheet migration provider composition switch:
+      Switched all active spreadsheet code-converter services from direct `Canvas.Migration.*` spreadsheet
+      namespaces to the `PXA.Migration.Spreadsheet` facades and replaced the eight direct spreadsheet-provider
+      project references with the `PXA.Migration.Spreadsheet` aggregator. Legacy Canvas spreadsheet migration
+      provider projects still build as internal dependencies of the PXA facade during the compatibility
+      window, but `PXA.WebApi` no longer composes directly against those spreadsheet provider identities.
+      Report migration providers remain the next WebApi migration-composition follow-up.
+      Verified with
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --disable-build-servers -m:1`
+      (0 errors; existing dependency/NPOI/nullability/XML-doc warnings remain) and
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --disable-build-servers -m:1 --filter "FullyQualifiedName~Migration"`
+      (16 passed).
 
 ## Future Test Plan
 

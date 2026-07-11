@@ -1,4 +1,4 @@
-using Canvas.Migration.GemBoxSpreadsheet;
+using PXA.Migration.Spreadsheet;
 
 namespace PXA.WebApi.Services.Converters;
 

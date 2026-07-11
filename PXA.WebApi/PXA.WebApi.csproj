@@ -35,14 +35,7 @@
     <ProjectReference Include="../src/Canvas.Migration.Rpx/Canvas.Migration.Rpx.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.Stimulsoft/Canvas.Migration.Stimulsoft.csproj" />
     <ProjectReference Include="../src/Canvas.Migration.Telerik/Canvas.Migration.Telerik.csproj" />
-    <ProjectReference Include="..\src\Canvas.Migration.ClosedXmlSpreadsheet\Canvas.Migration.ClosedXmlSpreadsheet.csproj" />
-    <ProjectReference Include="..\src\Canvas.Migration.EpplusSpreadsheet\Canvas.Migration.EpplusSpreadsheet.csproj" />
-    <ProjectReference Include="..\src\Canvas.Migration.GemBoxSpreadsheet\Canvas.Migration.GemBoxSpreadsheet.csproj" />
-    <ProjectReference Include="..\src\Canvas.Migration.AsposeCells\Canvas.Migration.AsposeCells.csproj" />
-    <ProjectReference Include="..\src\Canvas.Migration.SpireXls\Canvas.Migration.SpireXls.csproj" />
-    <ProjectReference Include="..\src\Canvas.Migration.SyncfusionXlsIo\Canvas.Migration.SyncfusionXlsIo.csproj" />
-    <ProjectReference Include="..\src\Canvas.Migration.Npoi\Canvas.Migration.Npoi.csproj" />
-    <ProjectReference Include="..\src\Canvas.Migration.SpreadsheetLight\Canvas.Migration.SpreadsheetLight.csproj" />
+    <ProjectReference Include="../src/PXA.Migration.Spreadsheet/PXA.Migration.Spreadsheet.csproj" />
   </ItemGroup>
 
   <Target Name="CopyImageOcrWorker" AfterTargets="Build">
