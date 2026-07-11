@@ -1,4 +1,4 @@
-using Canvas.Migration.SyncfusionPdf;
+using PXA.Migration.SyncfusionPdf;
 
 namespace PXA.WebApi.Services.Converters;
 

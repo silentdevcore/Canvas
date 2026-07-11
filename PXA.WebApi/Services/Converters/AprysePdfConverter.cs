@@ -1,4 +1,4 @@
-using Canvas.Migration.Apryse;
+using PXA.Migration.Apryse;
 
 namespace PXA.WebApi.Services.Converters;
 

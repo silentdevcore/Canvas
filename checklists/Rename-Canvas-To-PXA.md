@@ -731,6 +731,18 @@ Completed Phase 9 promotion slices:
       (0 errors; existing dependency/NPOI/nullability warnings remain) and
       `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --disable-build-servers -m:1 --filter "FullyQualifiedName~TemplatesControllerTests|FullyQualifiedName~PdfViewerFormsControllerTests|FullyQualifiedName~PdfViewerAnnotationsControllerTests"`
       (16 passed).
+- [x] `PXA.WebApi` PDF migration provider composition switch:
+      Switched all active PDF code-converter services from direct `Canvas.Migration.*Pdf` namespaces to
+      `PXA.Migration.*` facades and replaced the many direct PDF-provider project references with the
+      `PXA.Migration.Pdf` aggregator. Legacy Canvas PDF migration provider projects still build as internal
+      dependencies of the PXA facades during the compatibility window, but `PXA.WebApi` no longer composes
+      directly against those provider identities. Report and spreadsheet migration providers remain a
+      separate follow-up slice.
+      Verified with
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --disable-build-servers -m:1`
+      (0 errors; existing dependency/NPOI/nullability/XML-doc warnings remain) and
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --disable-build-servers -m:1 --filter "FullyQualifiedName~Migration"`
+      (16 passed).
 
 ## Future Test Plan
 

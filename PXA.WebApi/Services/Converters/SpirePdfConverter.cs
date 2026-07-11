@@ -1,4 +1,4 @@
-using Canvas.Migration.SpirePdf;
+using PXA.Migration.SpirePdf;
 
 namespace PXA.WebApi.Services.Converters;
 

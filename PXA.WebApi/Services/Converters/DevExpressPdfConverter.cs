@@ -1,4 +1,4 @@
-using Canvas.Migration.DevExpressPdf;
+using PXA.Migration.DevExpressPdf;
 
 namespace PXA.WebApi.Services.Converters;
 

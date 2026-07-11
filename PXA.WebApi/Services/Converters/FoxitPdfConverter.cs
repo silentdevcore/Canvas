@@ -1,4 +1,4 @@
-using Canvas.Migration.FoxitPdf;
+using PXA.Migration.FoxitPdf;
 
 namespace PXA.WebApi.Services.Converters;
 
