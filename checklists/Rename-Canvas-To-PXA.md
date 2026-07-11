@@ -785,6 +785,15 @@ Completed Phase 9 promotion slices:
       (0 errors; existing dependency/NPOI/nullability warnings remain),
       `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
       (61 passed), and `rg -n "Canvas\.Core" PXA.WebApi --glob "*.cs" --glob "*.csproj"` (no matches).
+- [x] `PXA.Migration.Report` core dependency cleanup:
+      Removed the direct `Canvas.Core` project reference from the PXA report migration aggregator. The report
+      facade still adapts legacy report converter outputs through `PXA.Core.Contracts`/`PXA.Core`, while
+      `Canvas.Core` remains only a transitive compatibility dependency during the additive rename phase.
+      Verified with
+      `dotnet build src/PXA.Migration.Report/PXA.Migration.Report.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors) and
+      `dotnet test tests/PXA.Migration.Report.Tests/PXA.Migration.Report.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (20 passed).
 
 ## Future Test Plan
 

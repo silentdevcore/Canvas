@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../Canvas.Core/Canvas.Core.csproj" />
     <ProjectReference Include="../Canvas.Migration.ActiveReportsJs/Canvas.Migration.ActiveReportsJs.csproj" />
     <ProjectReference Include="../Canvas.Migration.DevExpressReport/Canvas.Migration.DevExpressReport.csproj" />
     <ProjectReference Include="../Canvas.Migration.FastReport/Canvas.Migration.FastReport.csproj" />
