@@ -36,17 +36,15 @@ public sealed class PdfImportFacadeTests
     }
 
     [Fact]
-    public async Task LegacyCanvasImporterNamespace_StillLoadsPdf()
+    public async Task PxaImporterClass_StillLoadsPdf()
     {
         var source = PXA.Generator.Pdf.CreateDocument();
-        source.AddPage(300, 180).DrawTextFromTop("Legacy Canvas.Importer compatibility", 24, 24, 12);
+        source.AddPage(300, 180).DrawTextFromTop("PXA importer class compatibility", 24, 24, 12);
         await using var stream = new MemoryStream(source.ToBytes());
 
-#pragma warning disable PXA0002 // Explicit compatibility contract test.
-        var imported = await new Canvas.Importer.PdfImporter().LoadAsync(stream);
-#pragma warning restore PXA0002
+        var imported = await new PdfImporter().LoadAsync(stream);
 
         var importedPage = Assert.Single(imported.Pages);
-        Assert.Contains(importedPage.TextObjects, text => text.Text == "Legacy Canvas.Importer compatibility");
+        Assert.Contains(importedPage.TextObjects, text => text.Text == "PXA importer class compatibility");
     }
 }

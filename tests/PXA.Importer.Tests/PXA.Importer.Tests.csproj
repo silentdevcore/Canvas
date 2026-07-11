@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Canvas.Importer/Canvas.Importer.csproj" />
     <ProjectReference Include="../../src/PXA.Generator/PXA.Generator.csproj" />
     <ProjectReference Include="../../src/PXA.Importer/PXA.Importer.csproj" />
   </ItemGroup>

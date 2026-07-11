@@ -794,6 +794,15 @@ Completed Phase 9 promotion slices:
       (0 errors) and
       `dotnet test tests/PXA.Migration.Report.Tests/PXA.Migration.Report.Tests.csproj --no-restore --disable-build-servers -m:1`
       (20 passed).
+- [x] `PXA.Importer.Tests` direct importer dependency switch:
+      Switched the PXA importer facade tests from a direct `Canvas.Importer` project reference and legacy
+      `Canvas.Importer.PdfImporter` construction to the PXA-owned importer facade/class. Legacy importer
+      compatibility remains covered by the dedicated Canvas importer tests; the PXA test project now validates
+      the active PXA importer surface without a direct Canvas importer project reference.
+      Verified with
+      `dotnet test tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (3 passed) and `rg -n "Canvas\.Importer|src/Canvas\.Importer" tests/PXA.Importer.Tests --glob "*.cs" --glob "*.csproj"`
+      (no matches).
 
 ## Future Test Plan
 
