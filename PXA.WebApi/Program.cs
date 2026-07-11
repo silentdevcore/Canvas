@@ -1,14 +1,7 @@
 using Canvas.Application.UseCases;
 using Canvas.Core.Abstractions;
-using Canvas.FileImporter.Abstractions;
-using Canvas.FileImporter.Doc;
-using Canvas.FileImporter.Docx;
-using Canvas.FileImporter.Image;
-using Canvas.FileImporter.Odt;
-using Canvas.FileImporter.Pdf;
-using Canvas.FileImporter.Pptx;
-using Canvas.FileImporter.Svg;
-using Canvas.FileImporter.ImageAnalysis;
+using PXA.FileImporter;
+using PXA.FileImporter.ImageAnalysis;
 using PXA.FileImporter.ImageOcr;
 using Canvas.Core.Primitives;
 using Canvas.Domain.Repositories;
@@ -118,9 +111,9 @@ builder.Services.AddScoped<UpdateTemplateUseCase>();
 builder.Services.AddScoped<GetTemplateUseCase>();
 builder.Services.AddScoped<ValidateTemplateUseCase>();
 builder.Services.AddScoped<AuthenticateUserUseCase>();
-builder.Services.AddScoped<FindAndReplaceUseCase>();
-builder.Services.AddScoped<CloneTemplateUseCase>();
-builder.Services.AddScoped<ExtractPagesUseCase>();
+builder.Services.AddScoped<PXA.Application.UseCases.FindAndReplaceUseCase>();
+builder.Services.AddScoped<PXA.Application.UseCases.CloneTemplateUseCase>();
+builder.Services.AddScoped<PXA.Application.UseCases.ExtractPagesUseCase>();
 
 var app = builder.Build();
 

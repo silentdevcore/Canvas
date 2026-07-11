@@ -1,15 +1,12 @@
-using Canvas.Application.UseCases;
 using Canvas.Core.Contracts;
-using Canvas.FileImporter.Abstractions;
-using Canvas.FileImporter.ImageAnalysis;
-using Canvas.FileImporter.ImageAnalysis.Analysis;
-using Canvas.Infrastructure.Word;
-using Canvas.Importer.Analysis;
-using Canvas.Importer.Debugging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-
-#pragma warning disable PXA0002 // WebApi implementation intentionally uses the compatibility importer engine.
+using PXA.Application.UseCases;
+using PXA.FileImporter;
+using PXA.FileImporter.ImageAnalysis;
+using PXA.FileImporter.ImageAnalysis.Analysis;
+using PXA.Importer.Analysis;
+using PXA.Importer.Debugging;
 
 namespace PXA.WebApi.Controllers;
 
@@ -55,7 +52,7 @@ public class DocumentOpsController : ControllerBase
     /// Returns the modified design and a replacement count.
     /// </remarks>
     [HttpPost("find-replace")]
-    [ProducesResponseType(typeof(FindAndReplaceResult), 200)]
+    [ProducesResponseType(typeof(FindAndReplaceApiResponse), 200)]
     [ProducesResponseType(400)]
     public IActionResult FindAndReplace([FromBody] FindAndReplaceApiRequest body)
     {
@@ -68,14 +65,19 @@ public class DocumentOpsController : ControllerBase
         {
             var result = _findReplace.Execute(new FindAndReplaceRequest
             {
-                Design        = body.Design,
+                Design        = ToPxa(body.Design),
                 Find          = body.Find,
                 Replace       = body.Replace ?? "",
                 CaseSensitive = body.CaseSensitive,
                 WholeWord     = body.WholeWord,
                 UseRegex      = body.UseRegex,
             });
-            return Ok(result);
+            return Ok(new FindAndReplaceApiResponse
+            {
+                Design = ToCanvas(result.Design),
+                ReplacementCount = result.ReplacementCount,
+                AffectedElementIds = result.AffectedElementIds,
+            });
         }
         catch (System.Text.RegularExpressions.RegexParseException ex)
         {
@@ -96,10 +98,10 @@ public class DocumentOpsController : ControllerBase
 
         var clone = _clone.Execute(new CloneDesignRequest
         {
-            Design  = body.Design,
+            Design  = ToPxa(body.Design),
             NewName = body.NewName,
         });
-        return Ok(clone);
+        return Ok(ToCanvas(clone));
     }
 
     /// <summary>
@@ -119,11 +121,11 @@ public class DocumentOpsController : ControllerBase
         {
             var result = _extractPages.Execute(new ExtractPagesRequest
             {
-                Design      = body.Design,
+                Design      = ToPxa(body.Design),
                 PageNumbers = body.PageNumbers,
                 NewName     = body.NewName,
             });
-            return Ok(result);
+            return Ok(ToCanvas(result));
         }
         catch (ArgumentOutOfRangeException ex)
         {
@@ -132,8 +134,8 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
-    /// Imports a PDF using the Canvas.Importer low-level engine (own tokenizer, object graph,
-    /// and content stream interpreter). Returns a Canvas design with text, shape, and image
+    /// Imports a PDF using the PXA.Importer low-level engine (own tokenizer, object graph,
+    /// and content stream interpreter). Returns a Canvas-compatible design with text, shape, and image
     /// elements derived from the PDF's raw graphics scene graph.
     /// Route: POST /api/document/import-pdf-engine
     /// </summary>
@@ -155,7 +157,7 @@ public class DocumentOpsController : ControllerBase
             await using var stream = file.OpenReadStream();
             var design = await Importer("pdf").ImportAsync(
                 stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(design);
+            return Ok(ToCanvas(design));
         }
         catch (Exception ex)
         {
@@ -164,7 +166,7 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
-    /// Debug: returns element statistics from the Canvas.Importer scene graph for one page.
+    /// Debug: returns element statistics from the PXA.Importer scene graph for one page.
     /// Query param: page=1 (1-based).
     /// </summary>
     [HttpPost("debug-pdf-engine")]
@@ -176,21 +178,21 @@ public class DocumentOpsController : ControllerBase
         try
         {
             await using var stream = file.OpenReadStream();
-            var doc = await new Canvas.Importer.PdfImporter().LoadAsync(stream);
+            var doc = await new PXA.Importer.PdfImporter().LoadAsync(stream);
             var p   = doc.Pages.ElementAtOrDefault(page - 1);
             if (p is null)
                 return NotFound(new { error = $"Page {page} not found.", pageCount = doc.Pages.Count });
 
             // Flatten scene graph to count all elements recursively
-            IEnumerable<Canvas.Importer.Graphics.PdfGraphicsElement> Flatten(
-                IEnumerable<Canvas.Importer.Graphics.PdfGraphicsElement> els)
-                => els.SelectMany(e => e is Canvas.Importer.Graphics.PdfGroupElement g
+            IEnumerable<PXA.Importer.Graphics.PdfGraphicsElement> Flatten(
+                IEnumerable<PXA.Importer.Graphics.PdfGraphicsElement> els)
+                => els.SelectMany(e => e is PXA.Importer.Graphics.PdfGroupElement g
                     ? Flatten(g.Children).Prepend(e) : new[] { e });
 
             var all   = Flatten(p.GraphicsObjects).ToList();
             var scenePage = new SceneGraphEngine().BuildPage(page - 1, p);
             var overlays = new PdfDebugOverlayBuilder().Build(scenePage);
-            var texts = all.OfType<Canvas.Importer.Graphics.PdfTextElement>().Take(30).Select(t => new {
+            var texts = all.OfType<PXA.Importer.Graphics.PdfTextElement>().Take(30).Select(t => new {
                 text = t.Text,
                 fontSize = t.FontSize,
                 font = t.FontResourceName,
@@ -203,11 +205,11 @@ public class DocumentOpsController : ControllerBase
                 mediaBox   = p.MediaBox,
                 totalElements = all.Count,
                 byType = new {
-                    text    = all.OfType<Canvas.Importer.Graphics.PdfTextElement>().Count(),
-                    path    = all.OfType<Canvas.Importer.Graphics.PdfPathElement>().Count(),
-                    image   = all.OfType<Canvas.Importer.Graphics.PdfImageElement>().Count(),
-                    shading = all.OfType<Canvas.Importer.Graphics.PdfShadingElement>().Count(),
-                    group   = all.OfType<Canvas.Importer.Graphics.PdfGroupElement>().Count(),
+                    text    = all.OfType<PXA.Importer.Graphics.PdfTextElement>().Count(),
+                    path    = all.OfType<PXA.Importer.Graphics.PdfPathElement>().Count(),
+                    image   = all.OfType<PXA.Importer.Graphics.PdfImageElement>().Count(),
+                    shading = all.OfType<PXA.Importer.Graphics.PdfShadingElement>().Count(),
+                    group   = all.OfType<PXA.Importer.Graphics.PdfGroupElement>().Count(),
                 },
                 sceneGraph = new {
                     layerCount = scenePage.Layers.Count,
@@ -258,6 +260,12 @@ public class DocumentOpsController : ControllerBase
         return node is null ? 0 : 1 + node.Children.Sum(CountLayoutNodes);
     }
 
+    private static DesignExportDto ToCanvas(PXA.Core.Contracts.DesignExportDto design) =>
+        PXA.Core.Contracts.ContractAdapters.ToCanvas(design);
+
+    private static PXA.Core.Contracts.DesignExportDto ToPxa(DesignExportDto design) =>
+        PXA.Core.Contracts.ContractAdapters.ToPxa(design);
+
     /// <summary>
     /// Imports a legacy Word 97-2003 .doc file and converts it into a Canvas design.
     /// Paragraphs are extracted with basic font metadata and stacked as Text elements.
@@ -278,7 +286,7 @@ public class DocumentOpsController : ControllerBase
         {
             await using var stream = file.OpenReadStream();
             var design = await Importer("doc").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(design);
+            return Ok(ToCanvas(design));
         }
         catch (Exception ex)
         {
@@ -307,7 +315,7 @@ public class DocumentOpsController : ControllerBase
         {
             await using var stream = file.OpenReadStream();
             var design = await Importer("docx").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(design);
+            return Ok(ToCanvas(design));
         }
         catch (Exception ex)
         {
@@ -336,7 +344,7 @@ public class DocumentOpsController : ControllerBase
         {
             await using var stream = file.OpenReadStream();
             var design = await Importer("odt").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(design);
+            return Ok(ToCanvas(design));
         }
         catch (Exception ex)
         {
@@ -364,7 +372,7 @@ public class DocumentOpsController : ControllerBase
             await using var stream = file.OpenReadStream();
             var design = await Importer(Path.GetExtension(file.FileName).TrimStart('.').ToLowerInvariant())
                 .ImportAsync(stream, file.FileName);
-            return Ok(design);
+            return Ok(ToCanvas(design));
         }
         catch (Exception ex)
         {
@@ -396,7 +404,7 @@ public class DocumentOpsController : ControllerBase
         {
             await using var stream = file.OpenReadStream();
             var design = await Importer("svg").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(design);
+            return Ok(ToCanvas(design));
         }
         catch (Exception ex)
         {
@@ -429,7 +437,7 @@ public class DocumentOpsController : ControllerBase
             await stream.CopyToAsync(ms);
             ms.Position = 0;
             var design = await Importer("pptx").ImportAsync(ms, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(design);
+            return Ok(ToCanvas(design));
         }
         catch (Exception ex)
         {
@@ -478,12 +486,13 @@ public class DocumentOpsController : ControllerBase
                     LowConfidenceThreshold = lowConfidenceThreshold ?? ImageAnalysisOptions.Default.LowConfidenceThreshold,
                 });
 
+            var canvasDesign = ToCanvas(result.Design);
             if (!includeDiagnostics && !includeDebugOverlay)
-                return Ok(result.Design);
+                return Ok(canvasDesign);
 
             return Ok(new ImageAnalysisDebugResponse
             {
-                Design = result.Design,
+                Design = canvasDesign,
                 Diagnostics = result.Diagnostics,
                 DebugOverlay = result.DebugOverlayPng is null
                     ? null
@@ -525,7 +534,7 @@ public class DocumentOpsController : ControllerBase
             using var certMs = new MemoryStream();
             await certStream.CopyToAsync(certMs);
 
-            var signedBytes = DigitalSigningService.SignDocx(docxStream, certMs.ToArray(), password);
+            var signedBytes = PXA.Infrastructure.Word.DigitalSigningService.SignDocx(docxStream, certMs.ToArray(), password);
             var outName     = Path.GetFileNameWithoutExtension(docx.FileName) + "_signed.docx";
             return File(signedBytes,
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -554,6 +563,13 @@ public sealed class FindAndReplaceApiRequest
     public bool UseRegex { get; set; }
 }
 
+public sealed class FindAndReplaceApiResponse
+{
+    public required DesignExportDto Design { get; set; }
+    public int ReplacementCount { get; set; }
+    public List<string> AffectedElementIds { get; set; } = [];
+}
+
 public sealed class CloneApiRequest
 {
     public required DesignExportDto Design { get; set; }
@@ -573,5 +589,3 @@ public sealed class ImageAnalysisDebugResponse
     public required ImageAnalysisDiagnostics Diagnostics { get; set; }
     public string? DebugOverlay { get; set; }
 }
-
-#pragma warning restore PXA0002

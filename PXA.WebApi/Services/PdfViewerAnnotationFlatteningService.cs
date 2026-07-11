@@ -1,13 +1,14 @@
 using System.Text.Json;
-using Canvas.Importer.Analysis;
+using Canvas.Pdf;
 using Canvas.Importer;
+using Canvas.Importer.Analysis;
+using Canvas.Importer.Document;
 using Canvas.Importer.Generation;
 using Canvas.Importer.Graphics;
-using Canvas.Pdf;
 using CanvasPdfColor = Canvas.Pdf.PdfColor;
 using CanvasPdfDocument = Canvas.Pdf.PdfDocument;
 
-#pragma warning disable PXA0002 // WebApi implementation intentionally uses the compatibility importer engine.
+#pragma warning disable PXA0002 // Flattening still uses the Canvas regenerator until the PDF engine boundary is renamed.
 
 namespace PXA.WebApi.Services;
 
@@ -107,7 +108,7 @@ public sealed class PdfViewerAnnotationFlatteningService
         return output.ToArray();
     }
 
-    private void ApplyRedactionsToModel(Canvas.Importer.Document.PdfDocumentModel document, IReadOnlyCollection<PdfViewerAnnotation> redactions)
+    private void ApplyRedactionsToModel(PdfDocumentModel document, IReadOnlyCollection<PdfViewerAnnotation> redactions)
     {
         foreach (var pageWithRedactions in redactions.GroupBy(static item => item.PageNumber))
         {
@@ -126,7 +127,7 @@ public sealed class PdfViewerAnnotationFlatteningService
         }
     }
 
-    private void RedactElement(PdfGraphicsElement element, IReadOnlyCollection<Canvas.Importer.Graphics.PdfRectangle> redactionBounds)
+    private void RedactElement(PdfGraphicsElement element, IReadOnlyCollection<PdfRectangle> redactionBounds)
     {
         if (element.IsDeleted)
             return;
@@ -465,14 +466,14 @@ public sealed class PdfViewerAnnotationFlatteningService
             .ToArray();
     }
 
-    private static Canvas.Importer.Graphics.PdfRectangle ToImporterRectangle(Canvas.Importer.Document.PdfPageModel page, PdfViewerAnnotation annotation)
+    private static PdfRectangle ToImporterRectangle(PdfPageModel page, PdfViewerAnnotation annotation)
     {
-        var mediaBox = page.MediaBox ?? new Canvas.Importer.Graphics.PdfRectangle(0, 0, PdfPageSizes.A4Width, PdfPageSizes.A4Height);
+        var mediaBox = page.MediaBox ?? new PdfRectangle(0, 0, PdfPageSizes.A4Width, PdfPageSizes.A4Height);
         var x = Percent(annotation.XPct, mediaBox.Width);
         var topY = Percent(annotation.YPct, mediaBox.Height);
         var width = Math.Max(1, Percent(annotation.WidthPct, mediaBox.Width));
         var height = Math.Max(1, Percent(annotation.HeightPct, mediaBox.Height));
-        return new Canvas.Importer.Graphics.PdfRectangle(mediaBox.X + x, mediaBox.Y + mediaBox.Height - topY - height, width, height);
+        return new PdfRectangle(mediaBox.X + x, mediaBox.Y + mediaBox.Height - topY - height, width, height);
     }
 
     private static void DrawStamp(PdfPage page, PdfViewerAnnotation annotation, double x, double topY, double width, double height, CanvasPdfColor color)

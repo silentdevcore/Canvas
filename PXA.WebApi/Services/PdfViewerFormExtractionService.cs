@@ -1,13 +1,12 @@
-using Canvas.Importer;
-using Canvas.Importer.Document;
-using Canvas.Importer.Graphics;
-using Canvas.Importer.Objects;
-using Canvas.Importer.Parsing;
+using PXA.Importer;
+using PXA.Importer.Document;
+using PXA.Importer.Graphics;
+using PXA.Importer.Objects;
+using PXA.Importer.Parsing;
+using PXA.Importer.Tokenizer;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
-
-#pragma warning disable PXA0002 // WebApi implementation intentionally uses the compatibility importer engine.
 
 namespace PXA.WebApi.Services;
 
@@ -609,7 +608,7 @@ public sealed class PdfViewerFormExtractionService
                 continue;
             }
 
-            var tokenizer = new Canvas.Importer.Tokenizer.PdfTokenizer(bytes[(index + marker.Length)..]);
+            var tokenizer = new PdfTokenizer(bytes[(index + marker.Length)..]);
             var token = tokenizer.ReadToken();
             if (long.TryParse(token.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
             {
@@ -782,5 +781,3 @@ public sealed record PdfViewerFormFieldResponse(
     object OriginalValue,
     IReadOnlyList<string> Options,
     bool Multiline);
-
-#pragma warning restore PXA0002

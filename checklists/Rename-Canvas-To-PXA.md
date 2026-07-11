@@ -307,9 +307,9 @@ Recommended order:
    Canvas engines. Move one family at a time, keeping tests green after each family. PDF should go first
    because it is the generator core, then Word/Spreadsheet, then Converters.
 6. **Promote Importers after Core and PDF infrastructure.**
-   `PXA.Importer` wraps `Canvas.Importer`; `PXA.FileImporter` aggregates dedicated `Canvas.FileImporter.*`
-   projects. Keep the low-level PDF importer move separate from file-format importer moves because it has
-   parser/editor/regenerator internals and many downstream import adapters.
+   `PXA.Importer` and `PXA.FileImporter` now own their active PXA source, and `PXA.WebApi` composes through
+   the PXA importer projects. Remaining importer follow-up is limited to compatibility cleanup such as legacy
+   test/project aliases and shared OCR data assets.
 7. **Promote Migration provider projects last.**
    PXA provider facades already exist for PDF migrations; report/spreadsheet aggregators still reference
    `Canvas.Migration.*` provider engines. Move individual provider projects one provider family at a time
@@ -330,8 +330,8 @@ Current classification:
 | `PXA.Infrastructure.Word` | Facade over Word infrastructure | Promote after PDF |
 | `PXA.Infrastructure.Spreadsheet` | Facade over Spreadsheet infrastructure | Promote after PDF or alongside spreadsheet migration |
 | `PXA.Infrastructure.Converters` | Facade over converter exporters | Promote after Word/Spreadsheet dependencies settle |
-| `PXA.Importer` | Facade over low-level `Canvas.Importer` | Promote after Core/PDF infrastructure |
-| `PXA.FileImporter` | Aggregator over `Canvas.FileImporter.*` | Promote individual importers after low-level importer |
+| `PXA.Importer` | PXA-owned low-level importer source; still bridges to Canvas/PDF engine where needed | Keep compatibility shims until PDF engine rename |
+| `PXA.FileImporter` | PXA-owned built-in importers; WebApi composes through PXA projects | Keep legacy Canvas aliases/tests for compatibility window |
 | `PXA.Migration.Pdf` | Aggregator over PXA provider facades | Keep, then retire legacy provider engines later |
 | `PXA.Migration.Report` | Aggregator over `Canvas.Migration.*` report engines | Promote report providers one by one late |
 | `PXA.Migration.Spreadsheet` | Aggregator over `Canvas.Migration.*` spreadsheet engines | Promote spreadsheet providers one by one late |
@@ -673,6 +673,51 @@ Completed Phase 9 promotion slices:
       initially exposed a pre-existing `samples/PXA.Demo` ambiguity between `Canvas.Infrastructure.Pdf` and
       `PXA.Infrastructure.Pdf`; the demo now references only `PXA.Generator` directly, and the full PXA
       solution build passes (0 errors; existing package/NPOI/analyzer/nullability/obsolete warnings remain).
+- [x] `PXA.WebApi` file importer composition switch:
+      Switched the active WebApi file importer registrations from `Canvas.FileImporter.*` projects to
+      `PXA.FileImporter`, `PXA.FileImporter.ImageAnalysis`, `PXA.FileImporter.ImageOcr`, and the PXA OCR
+      worker. Import endpoints still return the existing Canvas-compatible design JSON contract by converting
+      PXA importer DTOs at the controller boundary. The PDF engine debug endpoint now uses `PXA.Importer`
+      analysis/debugging types directly. `PXA.WebApi` no longer has project references or implementation
+      `using` directives for `Canvas.FileImporter.*`; OCR `tessdata` / `native` assets remain linked from
+      the legacy folder to avoid duplicating large data during the compatibility window.
+      Verified with
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing package/NPOI/nullability warnings remain),
+      `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (19 passed),
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (61 passed), and
+      `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (61 passed).
+- [x] `PXA.WebApi` PDF viewer importer extraction switch:
+      Switched the PDF viewer native annotation extraction and AcroForm extraction/fill parsing services from
+      `Canvas.Importer` to `PXA.Importer`. The annotation flattening/redaction service intentionally remains
+      on `Canvas.Importer.Generation.CanvasPdfGeneratorBridge` for now because that path is still coupled to
+      the legacy `Canvas.Pdf` regenerator boundary; moving it prematurely pulls both `Canvas.Infrastructure.Pdf`
+      and `PXA.Infrastructure.Pdf` into the same WebApi compile graph and creates duplicate PDF engine type
+      identities. This is the next PDF-engine boundary cleanup item, not an importer ownership blocker.
+      Verified with
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing package/NPOI warnings remain),
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (61 passed), and
+      `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (61 passed).
+- [x] `PXA.WebApi` DocumentOps application composition switch:
+      Switched the document operations controller for find/replace, clone, and page extraction from
+      `Canvas.Application.UseCases` to `PXA.Application.UseCases`. The HTTP contract still accepts and
+      returns the existing Canvas-compatible design JSON by converting through `PXA.Core.Contracts`
+      adapters at the controller boundary. The DOCX signing endpoint now calls the PXA Word signing service.
+      Template rendering/authentication remain on the legacy Canvas application services until their
+      controller contracts are moved or explicitly adapter-wrapped.
+      Verified with
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
+      (0 errors; existing package/NPOI/nullability warnings remain),
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1 --filter "FullyQualifiedName~DocumentOpsControllerTests"`
+      (3 passed), and
+      `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --disable-build-servers -m:1 --filter "FullyQualifiedName~DocumentOpsControllerTests"`
+      (3 passed).
 
 ## Future Test Plan
 
