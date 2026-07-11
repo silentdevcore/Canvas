@@ -330,11 +330,25 @@ Current classification:
 | `PXA.Infrastructure.Word` | Facade over Word infrastructure | Promote after PDF |
 | `PXA.Infrastructure.Spreadsheet` | Facade over Spreadsheet infrastructure | Promote after PDF or alongside spreadsheet migration |
 | `PXA.Infrastructure.Converters` | Facade over converter exporters | Promote after Word/Spreadsheet dependencies settle |
-| `PXA.Importer` | PXA-owned low-level importer source; still bridges to Canvas/PDF engine where needed | Keep compatibility shims until PDF engine rename |
+| `PXA.Importer` | PXA-owned low-level importer source; still bridges to Canvas/PDF engine where needed; PXA tests now use PXA importer directly | Keep compatibility shims until PDF engine rename |
 | `PXA.FileImporter` | PXA-owned built-in importers; WebApi composes through PXA projects | Keep legacy Canvas aliases/tests for compatibility window |
 | `PXA.Migration.Pdf` | Aggregator over PXA provider facades | Keep, then retire legacy provider engines later |
-| `PXA.Migration.Report` | Aggregator over `Canvas.Migration.*` report engines | Promote report providers one by one late |
+| `PXA.Migration.Report` | Aggregator over `Canvas.Migration.*` report engines; direct `Canvas.Core` reference removed | Promote report providers one by one late |
 | `PXA.Migration.Spreadsheet` | Aggregator over `Canvas.Migration.*` spreadsheet engines | Promote spreadsheet providers one by one late |
+| `PXA.Export.Tests` | PXA-owned export composition tests over PXA Application/Core/Infrastructure projects | Keep full legacy regression suite in `tests/Canvas.Export.Tests` |
+
+Remaining compatibility bridges after the latest promotion slices:
+
+- `PXA.Core` and `PXA.Domain` still reference the legacy core/domain projects because they own the active
+  adapter boundary for the additive rename window.
+- Individual `PXA.Migration.*` provider facades still reference legacy provider engines; the WebApi no longer
+  composes directly against those legacy provider projects.
+- `PXA.Migration.Report` and `PXA.Migration.Spreadsheet` still aggregate legacy report/spreadsheet engines
+  until those provider implementations are promoted one by one.
+- `PXA.Infrastructure.Pdf`, `PXA.Generator`, `PXA.Importer`, and selected WebApi code still reference
+  `Canvas.Pdf` because the PDF engine facade/physical rename remains a later dedicated slice.
+- `PXA.Api.Tests` intentionally links the legacy API test sources and OCR data paths for route compatibility
+  coverage; replacing it with PXA-owned API tests should be a separate coverage-preserving slice.
 
 Guardrails:
 
