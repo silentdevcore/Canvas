@@ -1,4 +1,4 @@
-using Canvas.Core.Contracts;
+using PXA.Core.Contracts;
 
 namespace PXA.WebApi.Infrastructure;
 

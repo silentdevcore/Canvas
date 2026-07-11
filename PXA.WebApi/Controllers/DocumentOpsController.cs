@@ -1,4 +1,3 @@
-using Canvas.Core.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using PXA.Application.UseCases;
@@ -65,7 +64,7 @@ public class DocumentOpsController : ControllerBase
         {
             var result = _findReplace.Execute(new FindAndReplaceRequest
             {
-                Design        = ToPxa(body.Design),
+                Design        = body.Design,
                 Find          = body.Find,
                 Replace       = body.Replace ?? "",
                 CaseSensitive = body.CaseSensitive,
@@ -74,7 +73,7 @@ public class DocumentOpsController : ControllerBase
             });
             return Ok(new FindAndReplaceApiResponse
             {
-                Design = ToCanvas(result.Design),
+                Design = result.Design,
                 ReplacementCount = result.ReplacementCount,
                 AffectedElementIds = result.AffectedElementIds,
             });
@@ -98,10 +97,10 @@ public class DocumentOpsController : ControllerBase
 
         var clone = _clone.Execute(new CloneDesignRequest
         {
-            Design  = ToPxa(body.Design),
+            Design  = body.Design,
             NewName = body.NewName,
         });
-        return Ok(ToCanvas(clone));
+        return Ok(clone);
     }
 
     /// <summary>
@@ -121,11 +120,11 @@ public class DocumentOpsController : ControllerBase
         {
             var result = _extractPages.Execute(new ExtractPagesRequest
             {
-                Design      = ToPxa(body.Design),
+                Design      = body.Design,
                 PageNumbers = body.PageNumbers,
                 NewName     = body.NewName,
             });
-            return Ok(ToCanvas(result));
+            return Ok(result);
         }
         catch (ArgumentOutOfRangeException ex)
         {
@@ -157,7 +156,7 @@ public class DocumentOpsController : ControllerBase
             await using var stream = file.OpenReadStream();
             var design = await Importer("pdf").ImportAsync(
                 stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(ToCanvas(design));
+            return Ok(design);
         }
         catch (Exception ex)
         {
@@ -260,12 +259,6 @@ public class DocumentOpsController : ControllerBase
         return node is null ? 0 : 1 + node.Children.Sum(CountLayoutNodes);
     }
 
-    private static DesignExportDto ToCanvas(PXA.Core.Contracts.DesignExportDto design) =>
-        PXA.Core.Contracts.ContractAdapters.ToCanvas(design);
-
-    private static PXA.Core.Contracts.DesignExportDto ToPxa(DesignExportDto design) =>
-        PXA.Core.Contracts.ContractAdapters.ToPxa(design);
-
     /// <summary>
     /// Imports a legacy Word 97-2003 .doc file and converts it into a Canvas design.
     /// Paragraphs are extracted with basic font metadata and stacked as Text elements.
@@ -286,7 +279,7 @@ public class DocumentOpsController : ControllerBase
         {
             await using var stream = file.OpenReadStream();
             var design = await Importer("doc").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(ToCanvas(design));
+            return Ok(design);
         }
         catch (Exception ex)
         {
@@ -315,7 +308,7 @@ public class DocumentOpsController : ControllerBase
         {
             await using var stream = file.OpenReadStream();
             var design = await Importer("docx").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(ToCanvas(design));
+            return Ok(design);
         }
         catch (Exception ex)
         {
@@ -344,7 +337,7 @@ public class DocumentOpsController : ControllerBase
         {
             await using var stream = file.OpenReadStream();
             var design = await Importer("odt").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(ToCanvas(design));
+            return Ok(design);
         }
         catch (Exception ex)
         {
@@ -372,7 +365,7 @@ public class DocumentOpsController : ControllerBase
             await using var stream = file.OpenReadStream();
             var design = await Importer(Path.GetExtension(file.FileName).TrimStart('.').ToLowerInvariant())
                 .ImportAsync(stream, file.FileName);
-            return Ok(ToCanvas(design));
+            return Ok(design);
         }
         catch (Exception ex)
         {
@@ -404,7 +397,7 @@ public class DocumentOpsController : ControllerBase
         {
             await using var stream = file.OpenReadStream();
             var design = await Importer("svg").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(ToCanvas(design));
+            return Ok(design);
         }
         catch (Exception ex)
         {
@@ -437,7 +430,7 @@ public class DocumentOpsController : ControllerBase
             await stream.CopyToAsync(ms);
             ms.Position = 0;
             var design = await Importer("pptx").ImportAsync(ms, Path.GetFileNameWithoutExtension(file.FileName));
-            return Ok(ToCanvas(design));
+            return Ok(design);
         }
         catch (Exception ex)
         {
@@ -486,13 +479,12 @@ public class DocumentOpsController : ControllerBase
                     LowConfidenceThreshold = lowConfidenceThreshold ?? ImageAnalysisOptions.Default.LowConfidenceThreshold,
                 });
 
-            var canvasDesign = ToCanvas(result.Design);
             if (!includeDiagnostics && !includeDebugOverlay)
-                return Ok(canvasDesign);
+                return Ok(result.Design);
 
             return Ok(new ImageAnalysisDebugResponse
             {
-                Design = canvasDesign,
+                Design = result.Design,
                 Diagnostics = result.Diagnostics,
                 DebugOverlay = result.DebugOverlayPng is null
                     ? null

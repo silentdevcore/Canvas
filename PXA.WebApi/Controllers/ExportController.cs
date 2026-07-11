@@ -3,7 +3,6 @@ using Canvas.Pdf;
 using PXA.Application.UseCases;
 using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using PxaContractAdapters = PXA.Core.Contracts.ContractAdapters;
 using PxaDesignExportDto = PXA.Core.Contracts.DesignExportDto;
 using PxaExportOptions = PXA.Core.Contracts.ExportOptions;
 
@@ -48,9 +47,8 @@ public class ExportController : ControllerBase
         var effectiveLang = language ?? design.PageSettings?.TargetLanguage;
         if (format.Equals("pdf", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(effectiveLang))
         {
-            var canvasDesign = PxaContractAdapters.ToCanvas(design);
-            var doc = DesignJsonMapper.MapToPdfDocument(canvasDesign, _fontLoader, effectiveLang);
-            var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(canvasDesign));
+            var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, effectiveLang);
+            var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
             var safeName = SanitizeFileName(design.Name);
             return File(bytes, "application/pdf", $"{safeName}-{effectiveLang}.pdf");
         }
@@ -98,9 +96,8 @@ public class ExportController : ControllerBase
         {
             foreach (var lang in langs)
             {
-                var canvasDesign = PxaContractAdapters.ToCanvas(design);
-                var doc = DesignJsonMapper.MapToPdfDocument(canvasDesign, _fontLoader, lang);
-                var pdfBytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(canvasDesign));
+                var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, lang);
+                var pdfBytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
                 var entry = archive.CreateEntry($"{safeName}-{lang}.pdf", CompressionLevel.Fastest);
                 using var entryStream = entry.Open();
                 entryStream.Write(pdfBytes);

@@ -129,8 +129,7 @@ public sealed class ImageConversionController : ControllerBase
                 });
             }
 
-            var canvasDesign = result.Design.ToCanvas();
-            var document = DesignJsonMapper.MapToPdfDocument(canvasDesign, _fontLoader);
+            var document = DesignJsonMapper.MapToPdfDocument(result.Design, _fontLoader);
             var pdfBytes = document.ToBytes();
             var safeName = SanitizeFileName(Path.GetFileNameWithoutExtension(file.FileName));
             return File(pdfBytes, "application/pdf", $"{safeName}.pdf");

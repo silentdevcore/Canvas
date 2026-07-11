@@ -3,7 +3,6 @@ using PXA.Application.UseCases;
 using PXA.Infrastructure.Spreadsheet;
 using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
-using PxaContractAdapters = PXA.Core.Contracts.ContractAdapters;
 using PxaDesignExportDto = PXA.Core.Contracts.DesignExportDto;
 using PxaSpreadsheetDto = PXA.Core.Contracts.SpreadsheetDto;
 
@@ -129,9 +128,8 @@ public class SpreadsheetController : ControllerBase
 
         if (format.Equals("pdf", StringComparison.OrdinalIgnoreCase))
         {
-            var canvasDesign = PxaContractAdapters.ToCanvas(design);
-            var doc = DesignJsonMapper.MapToPdfDocument(canvasDesign, _fontLoader, null);
-            var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(canvasDesign));
+            var doc = DesignJsonMapper.MapToPdfDocument(design, _fontLoader, null);
+            var bytes = doc.ToBytes(DesignJsonMapper.BuildSaveOptions(design));
             return File(bytes, "application/pdf", $"{name}.pdf");
         }
 

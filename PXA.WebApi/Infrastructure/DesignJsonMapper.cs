@@ -7,7 +7,7 @@ using QRCoder;
 using SkiaSharp;
 using ZXing;
 using ZXing.Common;
-using DesignLayoutPlanner = Canvas.Core.Primitives.DesignLayoutPlanner;
+using DesignLayoutPlanner = PXA.Core.Primitives.DesignLayoutPlanner;
 
 namespace PXA.WebApi.Infrastructure;
 

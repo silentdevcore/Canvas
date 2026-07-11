@@ -773,6 +773,18 @@ Completed Phase 9 promotion slices:
       (16 passed), and
       `dotnet test tests/PXA.Migration.Report.Tests/PXA.Migration.Report.Tests.csproj --no-restore --disable-build-servers -m:1`
       (20 passed).
+- [x] `PXA.WebApi` core contract composition switch:
+      Switched active WebApi design/workbook contract usage from direct `Canvas.Core.Contracts` to
+      `PXA.Core.Contracts`. Document operations, export, image conversion, spreadsheet PDF rendering, and
+      image-analysis debug paths now pass PXA design contracts directly instead of adapting through Canvas
+      DTOs. `DesignJsonMapper` now uses the PXA core layout planner facade, and the direct
+      `Canvas.Core` project reference was removed from `PXA.WebApi`; legacy `Canvas.Core` still builds as
+      an internal dependency of `PXA.Core` during the compatibility window.
+      Verified with
+      `dotnet build PXA.WebApi/PXA.WebApi.csproj --disable-build-servers -m:1 -v:minimal`
+      (0 errors; existing dependency/NPOI/nullability warnings remain),
+      `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1`
+      (61 passed), and `rg -n "Canvas\.Core" PXA.WebApi --glob "*.cs" --glob "*.csproj"` (no matches).
 
 ## Future Test Plan
 

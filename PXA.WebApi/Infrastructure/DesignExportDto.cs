@@ -1,2 +1,2 @@
-// Types moved to Canvas.Core.Contracts — re-exported here for backward compatibility.
-global using Canvas.Core.Contracts;
+// PXA design/workbook contract types are exposed globally in the WebApi compatibility layer.
+global using PXA.Core.Contracts;
