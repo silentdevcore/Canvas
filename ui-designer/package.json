@@ -13,7 +13,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "Legacy Canvas UI Designer retained for historical compatibility; active development continues in ui-designer-v2 / PXA Designer.",
+  "description": "Historical PXA UI Designer retained for historical compatibility; active development continues in ui-designer-v2 / PXA Designer.",
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",

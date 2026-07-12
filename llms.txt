@@ -9,7 +9,7 @@ There are two generation surfaces:
 
 1. **Declarative design JSON** (`DesignExportDto`) — describe pages + elements, POST to the API, get a file.
    Best for templates and data-driven documents. Validate against the JSON Schema before posting.
-2. **Imperative C# code** (PXA-compatible PDF API, with legacy `Canvas.Pdf` types) — `Pdf.CreateDocument()`,
+2. **Imperative C# code** (PXA-compatible PDF API, with legacy `PXA.Pdf` types) — `Pdf.CreateDocument()`,
    `AddPage()`, `page.DrawText(...)`, `document.ToBytes()`. Best for programmatic generation and SDK migrations.
 
 ## Quick start — design JSON
@@ -28,7 +28,7 @@ POST it to `/api/templates/render-design` (raw design → PDF) or `/api/export` 
 ## Quick start — C# code
 
 ```csharp
-using Canvas.Pdf;
+using PXA.Pdf;
 using PXA.Generator;
 var document = Pdf.CreateDocument();
 var page = document.AddPage();
@@ -48,7 +48,7 @@ contentcontrol, …). Each element's properties, format support, and examples ar
 - [Full AI reference](/llms-full.txt): every element with properties + examples, the API, and the
   generate→validate→post loop.
 - [Design JSON Schema](/docs/schema/design-export.schema.json): validate a `DesignExportDto` before posting.
-- [PXA Workbook JSON Schema](/docs/schema/pxa-workbook.schema.json): the canonical spreadsheet format. The legacy `/docs/schema/canvas-workbook.schema.json` alias remains for compatibility. Validate a `SpreadsheetDto` workbook before posting to `/api/spreadsheet/*` (export/calculate/render/sort/find-replace/fill).
+- [PXA Workbook JSON Schema](/docs/schema/pxa-workbook.schema.json): the canonical spreadsheet format. Validate a `SpreadsheetDto` workbook before posting to `/api/spreadsheet/*` (export/calculate/render/sort/find-replace/fill).
 - [OpenAPI](/docs/schema/openapi.json): the full HTTP API.
 - [C# Cookbook](/docs/csharp-cookbook.md): task-oriented PXA-compatible PDF recipes.
 - Element catalog (source of truth): `ui-designer-v2/src/docs/elementCatalog.ts`.

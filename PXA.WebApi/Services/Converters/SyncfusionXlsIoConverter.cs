@@ -11,7 +11,7 @@ public sealed class SyncfusionXlsIoConverter : BaseSpreadsheetConverter
     public override string Status => "full";
 
     public override string Description =>
-        "Spreadsheet code migration: Syncfusion XlsIO (ExcelEngine/IWorkbook) → Canvas spreadsheet API (CanvasWorkbook). Roslyn-based: drops the ExcelEngine/IApplication scaffolding, Workbooks.Create → new CanvasWorkbook(), Worksheets[0] → AddSheet, Range[\"A1\"] → Cell(..), Text/Value/Number/Formula → method, CellStyle.Font.Bold style, SetColumnWidth → Column().Width(), SaveAs → Save. Charts and complex styles need manual review.";
+        "Spreadsheet code migration: Syncfusion XlsIO (ExcelEngine/IWorkbook) → PXA spreadsheet API (PxaWorkbook). Roslyn-based: drops the ExcelEngine/IApplication scaffolding, Workbooks.Create → new PxaWorkbook(), Worksheets[0] → AddSheet, Range[\"A1\"] → Cell(..), Text/Value/Number/Formula → method, CellStyle.Font.Bold style, SetColumnWidth → Column().Width(), SaveAs → Save. Charts and complex styles need manual review.";
 
     public override string ConvertCode(string sourceCode) =>
         new SyncfusionXlsIoMigration().Migrate(sourceCode).MigratedCode;

@@ -115,9 +115,9 @@ public sealed class SpreadsheetRoundTripTests
     }
 
     [Fact]
-    public void CanvasWorkbook_FluentApi_BuildsCalculableWorkbook()
+    public void PxaWorkbook_FluentApi_BuildsCalculableWorkbook()
     {
-        var wb = new CanvasWorkbook("Report");
+        var wb = new PxaWorkbook("Report");
         var ws = wb.AddSheet("Sales");
         ws.Cell("A1").Value("Item").Style(s => s.Bold().Background("#eeeeee"));
         ws.Range("A1:B1").Merge();                  // header spans the (empty) B1
@@ -126,7 +126,7 @@ public sealed class SpreadsheetRoundTripTests
         ws.Cell("B3").Formula("=B2*2");
         ws.Column(0).Width(24);
 
-        // The model is the canonical Canvas Workbook JSON.
+        // The model is the canonical PXA Workbook JSON.
         var model = wb.ToWorkbook();
         Assert.Equal("Report", model.Name);
         Assert.Equal("1.0", model.SchemaVersion);

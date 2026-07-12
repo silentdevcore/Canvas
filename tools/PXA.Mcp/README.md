@@ -5,7 +5,7 @@ Power Dox Automation / PXA documents. It exposes the **element catalog** (the si
 `ui-designer-v2/src/docs/elementCatalog.ts`), the **design JSON Schema**, the docs, and **validate/render**
 tools — so an agent can query exact element properties and check its output instead of guessing.
 
-The legacy `canvas-mcp` binary name and `canvas://...` resources remain available as aliases.
+The server exposes PXA resources through the `pxa://...` scheme.
 
 ## Tools
 
@@ -24,7 +24,7 @@ Primary resources:
 
 `pxa://schema/design-export`, `pxa://schema/pxa-workbook`, `pxa://openapi`, `pxa://docs/llms-full`, `pxa://docs/cookbook`.
 
-Legacy aliases remain available with the `canvas://` scheme for existing clients.
+Use the `pxa://` scheme for all resources.
 
 ## Run
 
@@ -47,7 +47,7 @@ Add to your MCP config (e.g. Claude Desktop `claude_desktop_config.json`):
     "pxa": {
       "command": "npx",
       "args": ["tsx", "src/index.ts"],
-      "cwd": "/absolute/path/to/Canvas/tools/PXA.Mcp",
+      "cwd": "/absolute/path/to/PXA/tools/PXA.Mcp",
       "env": { "PXA_API_URL": "http://localhost:5086" }
     }
   }

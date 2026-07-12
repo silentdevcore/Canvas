@@ -24,7 +24,7 @@ public sealed class FoxitPdfMigration : CSharpSourceMigration
         var rewriter = new FoxitRewriter(docVar, pageVars, graphicsVars, saveTarget);
         var newRoot = (CompilationUnitSyntax)rewriter.Visit(root)!;
         newRoot = RemoveFoxitUsings(newRoot);
-        newRoot = EnsureCanvasUsing(newRoot);
+        newRoot = EnsurePxaUsing(newRoot);
 
         var diagnostics = rewriter.Diagnostics.ToList();
         diagnostics.AddRange(ScanForUnsupportedIdentifiers(root));
@@ -126,7 +126,7 @@ public sealed class FoxitPdfMigration : CSharpSourceMigration
         return root.WithUsings(SyntaxFactory.List(filtered));
     }
 
-    private static CompilationUnitSyntax EnsureCanvasUsing(CompilationUnitSyntax root)
+    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root)
     {
         if (root.Usings.Any(static u => u.Name?.ToString() == "PXA.Pdf"))
             return root;

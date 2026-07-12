@@ -2,9 +2,9 @@
 //
 // One entry per frontend ElementType. Drives the in-app docs (DocsPage), the Help dialog (HelpModal),
 // the AI artifacts (llms.txt / JSON examples), and a drift-guard test that keeps this in lock-step with
-// the ElementType union. Grounded in the backend ElementDto (src/Canvas.Core/Contracts/DesignExportDto.cs)
+// the ElementType union. Grounded in the backend ElementDto (src/PXA.Core/Contracts/DesignExportDto.cs)
 // and the per-format renderer switches (legacy PXA.WebApi/Infrastructure/DesignJsonMapper.cs,
-// src/Canvas.Infrastructure.Word/WordDocumentExporter.cs).
+// src/PXA.Infrastructure.Word/WordDocumentExporter.cs).
 //
 // Common element properties (id, type, x, y, width, height, name, hidden, locked, style, binding,
 // expression, visibleExpression) are shared by every element and documented once in COMMON_PROPERTIES;

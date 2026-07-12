@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace PXA.Migration.SyncfusionXlsIo;
 
 /// <summary>
-/// Migrates Syncfusion XlsIO (<c>ExcelEngine</c> / <c>IWorkbook</c>) authoring code to the Canvas spreadsheet
-/// API (<c>CanvasWorkbook</c>). Roslyn-based: drops the ExcelEngine/IApplication scaffolding, maps
-/// <c>Workbooks.Create</c> → <c>new CanvasWorkbook()</c>, <c>Range["A1"]</c> indexer, Text/Value/Number/
+/// Migrates Syncfusion XlsIO (<c>ExcelEngine</c> / <c>IWorkbook</c>) authoring code to the PXA spreadsheet
+/// API (<c>PxaWorkbook</c>). Roslyn-based: drops the ExcelEngine/IApplication scaffolding, maps
+/// <c>Workbooks.Create</c> → <c>new PxaWorkbook()</c>, <c>Range["A1"]</c> indexer, Text/Value/Number/
 /// Formula, CellStyle.Font.Bold, merge, SetColumnWidth, SaveAs.
 /// </summary>
 public sealed class SyncfusionXlsIoMigration : CSharpSourceMigration
@@ -63,7 +63,7 @@ public sealed class SyncfusionXlsIoMigration : CSharpSourceMigration
     {
         var names = root.DescendantNodes().OfType<IdentifierNameSyntax>().Select(i => i.Identifier.ValueText).ToHashSet(StringComparer.Ordinal);
         if (names.Overlaps(new[] { "IChart", "Chart", "Charts", "IPivotTable", "PivotTables" }))
-            yield return Warn("CANMIGSFXL030", "Charts / pivot tables are not supported by the Canvas spreadsheet engine; migrate manually.");
+            yield return Warn("CANMIGSFXL030", "Charts / pivot tables are not supported by the PXA spreadsheet engine; migrate manually.");
     }
 
     private static MigrationDiagnostic Info(string id, string m) => new() { Id = id, Message = m, Severity = MigrationDiagnosticSeverity.Info };
@@ -108,15 +108,15 @@ public sealed class SyncfusionXlsIoMigration : CSharpSourceMigration
             if (visited.Expression is not MemberAccessExpressionSyntax ma) return visited;
             var name = ma.Name.Identifier.ValueText;
 
-            // <app>.Workbooks.Create(n) → new CanvasWorkbook()
+            // <app>.Workbooks.Create(n) → new PxaWorkbook()
             if (name == "Create" && ma.Expression is MemberAccessExpressionSyntax wbs && wbs.Name.Identifier.ValueText == "Workbooks")
             {
                 if (!_notedDefaultSheet)
                 {
-                    Diagnostics.Add(Info("CANMIGSFXL011", "Workbooks.Create(n) maps to new CanvasWorkbook(); Worksheets[0] → AddSheet(\"Sheet1\")."));
+                    Diagnostics.Add(Info("CANMIGSFXL011", "Workbooks.Create(n) maps to new PxaWorkbook(); Worksheets[0] → AddSheet(\"Sheet1\")."));
                     _notedDefaultSheet = true;
                 }
-                return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.IdentifierName("CanvasWorkbook"))
+                return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.IdentifierName("PxaWorkbook"))
                     .WithArgumentList(SyntaxFactory.ArgumentList());
             }
 

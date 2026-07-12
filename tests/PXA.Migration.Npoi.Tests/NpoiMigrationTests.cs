@@ -5,7 +5,7 @@ namespace PXA.Migration.Npoi.Tests;
 public sealed class NpoiMigrationTests
 {
     [Fact]
-    public void InlinesRowCellModelToCanvasCells()
+    public void InlinesRowCellModelToPxaCells()
     {
         const string src = """
             using NPOI.XSSF.UserModel;
@@ -24,7 +24,7 @@ public sealed class NpoiMigrationTests
 
         var code = new NpoiMigration().Migrate(src).MigratedCode;
 
-        Assert.Contains("new CanvasWorkbook()", code);
+        Assert.Contains("new PxaWorkbook()", code);
         Assert.Contains("wb.AddSheet(\"Sales\")", code);
         Assert.Contains("sheet.Cell(0, 0).Value(\"Item\")", code);   // via cell var
         Assert.Contains("sheet.Cell(0, 1).Value(\"Qty\")", code);    // via row var chain

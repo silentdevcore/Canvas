@@ -19,7 +19,7 @@ public sealed class SpreadsheetLightMigrationTests
 
         var code = new SpreadsheetLightMigration().Migrate(src).MigratedCode;
 
-        Assert.Contains("new CanvasWorkbook()", code);
+        Assert.Contains("new PxaWorkbook()", code);
         Assert.Contains("var sheet = doc.AddSheet(\"Sheet1\");", code);   // injected worksheet
         Assert.Contains("sheet.Cell(\"A1\").Value(\"Item\")", code);
         Assert.Contains("sheet.Cell(\"B1\").Value(3)", code);

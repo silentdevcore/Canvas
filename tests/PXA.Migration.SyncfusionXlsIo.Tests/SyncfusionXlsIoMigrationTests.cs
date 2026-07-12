@@ -24,7 +24,7 @@ public sealed class SyncfusionXlsIoMigrationTests
 
         var code = new SyncfusionXlsIoMigration().Migrate(src).MigratedCode;
 
-        Assert.Contains("new CanvasWorkbook()", code);
+        Assert.Contains("new PxaWorkbook()", code);
         Assert.Contains("workbook.AddSheet(\"Sheet1\")", code);
         Assert.Contains("worksheet.Cell(\"A1\").Value(\"Item\")", code);
         Assert.Contains("worksheet.Cell(\"B1\").Value(3)", code);

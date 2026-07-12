@@ -209,7 +209,7 @@ graphics.DrawString("Total Due", titleFont, DXBrushes.Green, 40, 660);
 
 processor.RenderNewPage(PdfPaperSize.A4, graphics);
 
-// ---- Encrypt and save (maps to Canvas PdfSaveOptions.Encryption — see diagnostics) ----
+// ---- Encrypt and save (maps to PXA PdfSaveOptions.Encryption — see diagnostics) ----
 var encryptionOptions = new PdfEncryptionOptions();
 encryptionOptions.UserPasswordString = "open-sesame";
 encryptionOptions.OwnerPasswordString = "admin";
@@ -897,7 +897,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
   const [jrxmlResourceFileNames, setJrxmlResourceFileNames] = useState<string[]>([]);
   const [rpxResourceMap, setRpxResourceMap] = useState<Record<string, string>>({});
   const [rpxResourceFileNames, setRpxResourceFileNames] = useState<string[]>([]);
-  const [canvasCode, setCanvasCode] = useState('');
+  const [pxaCode, setPxaCode] = useState('');
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
   const [summary, setSummary] = useState<ConversionSummary | null>(null);
   const [hasConverted, setHasConverted] = useState(false);
@@ -938,7 +938,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     setJrxmlResourceFileNames([]);
     setRpxResourceMap({});
     setRpxResourceFileNames([]);
-    setCanvasCode('');
+    setPxaCode('');
     setDiagnostics([]);
     setSummary(null);
     setHasConverted(false);
@@ -956,9 +956,9 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [codeKind, frameworks]);
 
-  const applyConvertResult = (data: { canvasCode?: string; diagnostics?: Diagnostic[]; summary?: ConversionSummary }) => {
+  const applyConvertResult = (data: { pxaCode?: string; diagnostics?: Diagnostic[]; summary?: ConversionSummary }) => {
     const diags = data.diagnostics ?? [];
-    setCanvasCode(data.canvasCode ?? '');
+    setPxaCode(data.pxaCode ?? '');
     setDiagnostics(diags);
     setSummary(data.summary ?? null);
     setHasConverted(true);
@@ -1088,7 +1088,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
         const diags: Diagnostic[] = data.diagnostics ?? [];
         const elementCount = data.design?.pages?.[0]?.elements?.length ?? 0;
         setReportDesign(data.design);
-        setCanvasCode(JSON.stringify(data.design, null, 2));
+        setPxaCode(JSON.stringify(data.design, null, 2));
         setDiagnostics(diags);
         setSummary({
           convertedCount: elementCount,
@@ -1181,15 +1181,15 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
   };
 
   const handleCopy = async () => {
-    if (!canvasCode) return;
-    await navigator.clipboard.writeText(canvasCode);
+    if (!pxaCode) return;
+    await navigator.clipboard.writeText(pxaCode);
     setCopyLabel('Copied!');
     setTimeout(() => setCopyLabel('Copy'), 2000);
   };
 
   const handleDownload = () => {
-    if (!canvasCode) return;
-    const blob = new Blob([canvasCode], { type: 'text/plain' });
+    if (!pxaCode) return;
+    const blob = new Blob([pxaCode], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -1501,20 +1501,20 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
                     <FiGitMerge /> Diff
                   </button>
                 )}
-                <button className="mgr-icon-btn" onClick={handleCopy} disabled={!canvasCode} title="Copy to clipboard">
+                <button className="mgr-icon-btn" onClick={handleCopy} disabled={!pxaCode} title="Copy to clipboard">
                   <FiCopy /> {copyLabel}
                 </button>
-                <button className="mgr-icon-btn" onClick={handleDownload} disabled={!canvasCode} title="Download as .cs file">
+                <button className="mgr-icon-btn" onClick={handleDownload} disabled={!pxaCode} title="Download as .cs file">
                   <FiDownload /> Download .cs
                 </button>
               </div>
             </div>
             <div className="mgr-editor-wrapper">
-              {diffMode && canvasCode ? (
+              {diffMode && pxaCode ? (
                 <DiffEditor
                   language="csharp"
                   original={sourceCode}
-                  modified={canvasCode}
+                  modified={pxaCode}
                   options={{
                     readOnly: true,
                     minimap: { enabled: false },
@@ -1531,7 +1531,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
               ) : (
                 <Editor
                   language={isReportDesign(selectedId) ? 'json' : 'csharp'}
-                  value={canvasCode}
+                  value={pxaCode}
                   options={{
                     readOnly: true,
                     minimap: { enabled: false },

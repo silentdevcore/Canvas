@@ -23,7 +23,7 @@ public sealed class GemBoxPdfMigration : CSharpSourceMigration
         var rewriter = new GemBoxPdfRewriter(documentVariable, pageVariable, saveTarget);
         var rewritten = (CompilationUnitSyntax)rewriter.Visit(root)!;
         rewritten = RemoveGemBoxUsings(rewritten);
-        rewritten = EnsureCanvasUsing(rewritten);
+        rewritten = EnsurePxaUsing(rewritten);
 
         var diagnostics = rewriter.Diagnostics.ToList();
         diagnostics.AddRange(ScanForUnsupportedIdentifiers(root));
@@ -128,7 +128,7 @@ public sealed class GemBoxPdfMigration : CSharpSourceMigration
         return root.WithUsings(SyntaxFactory.List(filtered));
     }
 
-    private static CompilationUnitSyntax EnsureCanvasUsing(CompilationUnitSyntax root)
+    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root)
     {
         if (root.Usings.Any(static directive => directive.Name?.ToString() == "PXA.Pdf"))
             return root;

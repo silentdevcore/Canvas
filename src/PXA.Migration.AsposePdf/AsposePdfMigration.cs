@@ -19,7 +19,7 @@ public sealed class AsposePdfMigration : CSharpSourceMigration
         var root = tree.GetCompilationUnitRoot();
         var rewriter = new AsposePdfSyntaxRewriter(root);
         var migratedRoot = (CompilationUnitSyntax)rewriter.Visit(root)!;
-        migratedRoot = EnsureCanvasUsing(RemoveAsposeUsings(migratedRoot));
+        migratedRoot = EnsurePxaUsing(RemoveAsposeUsings(migratedRoot));
 
         return new MigrationResult
         {
@@ -42,7 +42,7 @@ public sealed class AsposePdfMigration : CSharpSourceMigration
         return root.WithUsings(SyntaxFactory.List(usings));
     }
 
-    private static CompilationUnitSyntax EnsureCanvasUsing(CompilationUnitSyntax root)
+    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root)
     {
         if (root.Usings.Any(static directive => directive.Name?.ToString() == "PXA.Pdf"))
         {
@@ -142,7 +142,7 @@ public sealed class AsposePdfMigration : CSharpSourceMigration
                 && visited.Expression is MemberAccessExpressionSyntax pagesAccess
                 && pagesAccess.Name.Identifier.ValueText == "Pages")
             {
-                _diagnostics.Add(Info("CANMIGASPOSE002", "Aspose document.Pages.Add() was migrated to Canvas document.AddPage()."));
+                _diagnostics.Add(Info("CANMIGASPOSE002", "Aspose document.Pages.Add() was migrated to PXA document.AddPage()."));
 
                 return SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
@@ -160,8 +160,8 @@ public sealed class AsposePdfMigration : CSharpSourceMigration
                 _diagnostics.Add(Info(
                     paragraphMigration.UsedPosition ? "CANMIGASPOSE005" : "CANMIGASPOSE003",
                     paragraphMigration.UsedPosition
-                        ? "Positioned Aspose.PDF TextFragment was migrated to Canvas DrawText."
-                        : "Simple Aspose.PDF TextFragment paragraph was migrated to Canvas DrawTextFromTop."));
+                        ? "Positioned Aspose.PDF TextFragment was migrated to PXA DrawText."
+                        : "Simple Aspose.PDF TextFragment paragraph was migrated to PXA DrawTextFromTop."));
                 return paragraphMigration.Invocation;
             }
 
@@ -170,8 +170,8 @@ public sealed class AsposePdfMigration : CSharpSourceMigration
                 _diagnostics.Add(Info(
                     builderMigration.UsedPosition ? "CANMIGASPOSE006" : "CANMIGASPOSE004",
                     builderMigration.UsedPosition
-                        ? "Positioned Aspose.PDF TextBuilder.AppendText call was migrated to Canvas DrawText."
-                        : "Simple Aspose.PDF TextBuilder.AppendText call was migrated to Canvas DrawTextFromTop."));
+                        ? "Positioned Aspose.PDF TextBuilder.AppendText call was migrated to PXA DrawText."
+                        : "Simple Aspose.PDF TextBuilder.AppendText call was migrated to PXA DrawTextFromTop."));
                 return builderMigration.Invocation;
             }
 
@@ -197,7 +197,7 @@ public sealed class AsposePdfMigration : CSharpSourceMigration
 
             if (_removableTextFragments.Contains(variableName))
             {
-                _diagnostics.Add(Info("CANMIGASPOSE008", "Supported Aspose.PDF TextFragment variable was folded into Canvas drawing calls."));
+                _diagnostics.Add(Info("CANMIGASPOSE008", "Supported Aspose.PDF TextFragment variable was folded into PXA drawing calls."));
                 return true;
             }
 
@@ -313,7 +313,7 @@ public sealed class AsposePdfMigration : CSharpSourceMigration
                 return false;
             }
 
-            _diagnostics.Add(Info("CANMIGASPOSE010", "Aspose.PDF TextFragment.Position assignment was folded into Canvas DrawText coordinates."));
+            _diagnostics.Add(Info("CANMIGASPOSE010", "Aspose.PDF TextFragment.Position assignment was folded into PXA DrawText coordinates."));
             return true;
         }
 
@@ -329,7 +329,7 @@ public sealed class AsposePdfMigration : CSharpSourceMigration
                 return false;
             }
 
-            _diagnostics.Add(Warning("CANMIGASPOSE011", "Aspose.PDF TextFragment.TextState styling requires manual Canvas font/color review."));
+            _diagnostics.Add(Warning("CANMIGASPOSE011", "Aspose.PDF TextFragment.TextState styling requires manual PXA font/color review."));
             return true;
         }
 
@@ -581,7 +581,7 @@ public sealed class AsposePdfMigration : CSharpSourceMigration
 
             if (names.Contains("Table"))
             {
-                _diagnostics.Add(Warning("CANMIGASPOSE020", "Aspose.PDF Table usage requires manual Canvas table migration."));
+                _diagnostics.Add(Warning("CANMIGASPOSE020", "Aspose.PDF Table usage requires manual PXA table migration."));
             }
 
             if (names.Overlaps(new[]

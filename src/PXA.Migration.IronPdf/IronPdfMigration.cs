@@ -29,7 +29,7 @@ public sealed class IronPdfMigration : CSharpSourceMigration
         var rewriter = new IronPdfRewriter(rendererVar, pdfVar, saveTarget);
         var newRoot = (CompilationUnitSyntax)rewriter.Visit(root)!;
         newRoot = RemoveIronPdfUsings(newRoot);
-        newRoot = EnsureCanvasUsing(newRoot);
+        newRoot = EnsurePxaUsing(newRoot);
 
         var diagnostics = rewriter.Diagnostics.ToList();
         diagnostics.AddRange(ScanForUnsupportedIdentifiers(root));
@@ -112,7 +112,7 @@ public sealed class IronPdfMigration : CSharpSourceMigration
         return root.WithUsings(SyntaxFactory.List(filtered));
     }
 
-    private static CompilationUnitSyntax EnsureCanvasUsing(CompilationUnitSyntax root)
+    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root)
     {
         if (root.Usings.Any(static u => u.Name?.ToString() == "PXA.Pdf"))
             return root;
@@ -183,7 +183,7 @@ public sealed class IronPdfMigration : CSharpSourceMigration
             if (IsRendererCreation(node))
             {
                 _diagnostics.Add(Info("CANMIGIRONPDF001",
-                    "ChromePdfRenderer/HtmlToPdf → PdfDocument + AddPage. HTML rendering requires manual Canvas draw call migration."));
+                    "ChromePdfRenderer/HtmlToPdf → PdfDocument + AddPage. HTML rendering requires manual PXA draw call migration."));
                 _scaffoldEmitted = true;
                 return
                 [
@@ -197,7 +197,7 @@ public sealed class IronPdfMigration : CSharpSourceMigration
             {
                 var truncated = htmlArg != null ? Truncate(htmlArg) : "html";
                 _diagnostics.Add(Warning("CANMIGIRONPDF002",
-                    $"RenderHtmlAsPdf({truncated}) — HTML rendering requires manual Canvas draw call migration. Add draw calls after document.AddPage()."));
+                    $"RenderHtmlAsPdf({truncated}) — HTML rendering requires manual PXA draw call migration. Add draw calls after document.AddPage()."));
                 // Emit scaffold here if the renderer was created inline (chained call, no prior creation statement)
                 if (!_scaffoldEmitted)
                 {
@@ -216,14 +216,14 @@ public sealed class IronPdfMigration : CSharpSourceMigration
             if (TryGetRenderCall(node, "RenderHtmlFileAsPdf", out var fileArg))
             {
                 _diagnostics.Add(Warning("CANMIGIRONPDF003",
-                    $"RenderHtmlFileAsPdf({fileArg ?? "..."}) — HTML file rendering requires manual Canvas migration. Review the HTML template and replace with Canvas draw calls."));
+                    $"RenderHtmlFileAsPdf({fileArg ?? "..."}) — HTML file rendering requires manual PXA migration. Review the HTML template and replace with PXA draw calls."));
                 return [];
             }
 
             if (TryGetRenderCall(node, "RenderUrlAsPdf", out var urlArg))
             {
                 _diagnostics.Add(Warning("CANMIGIRONPDF004",
-                    $"RenderUrlAsPdf({urlArg ?? "..."}) — URL-based rendering is outside PXA.Pdf scope. Recreate the page content with Canvas draw calls."));
+                    $"RenderUrlAsPdf({urlArg ?? "..."}) — URL-based rendering is outside PXA.Pdf scope. Recreate the page content with PXA draw calls."));
                 return [];
             }
 
@@ -231,7 +231,7 @@ public sealed class IronPdfMigration : CSharpSourceMigration
                 TryGetRenderCall(node, "RenderRazorViewToPdf", out _))
             {
                 _diagnostics.Add(Warning("CANMIGIRONPDF005",
-                    "Razor-to-PDF rendering requires manual view/model migration. Review Razor template and replace with Canvas draw calls."));
+                    "Razor-to-PDF rendering requires manual view/model migration. Review Razor template and replace with PXA draw calls."));
                 return [];
             }
 

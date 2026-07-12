@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace PXA.Migration.GemBoxSpreadsheet;
 
 /// <summary>
-/// Migrates GemBox.Spreadsheet (<c>ExcelFile</c>) authoring code to the Canvas spreadsheet API
-/// (<c>CanvasWorkbook</c>). Roslyn-based: drops the <c>SpreadsheetInfo.SetLicense</c> call, rewrites
+/// Migrates GemBox.Spreadsheet (<c>ExcelFile</c>) authoring code to the PXA spreadsheet API
+/// (<c>PxaWorkbook</c>). Roslyn-based: drops the <c>SpreadsheetInfo.SetLicense</c> call, rewrites
 /// workbook/worksheet/cell-indexer/value/formula/font-weight style/save calls. GemBox cell indexes are
 /// already 0-based (no shift). Charts, pivots, and range merges are flagged for manual review.
 /// </summary>
@@ -58,7 +58,7 @@ public sealed class GemBoxSpreadsheetMigration : CSharpSourceMigration
             .Select(i => i.Identifier.ValueText).ToHashSet(StringComparer.Ordinal);
 
         if (names.Overlaps(new[] { "ExcelChart", "PivotTable", "PivotTables" }))
-            yield return Warn("CANMIGGBSS030", "Charts / pivot tables are not supported by the Canvas spreadsheet engine; migrate manually.");
+            yield return Warn("CANMIGGBSS030", "Charts / pivot tables are not supported by the PXA spreadsheet engine; migrate manually.");
         if (names.Contains("Merged") || names.Contains("GetSubrange"))
             yield return Warn("CANMIGGBSS020", "GemBox merge (Cells.GetSubrange(\"A1:B1\").Merged = true) → ws.Range(\"A1:B1\").Merge() — migrate manually.");
     }
@@ -92,7 +92,7 @@ public sealed class GemBoxSpreadsheetMigration : CSharpSourceMigration
         {
             var visited = (ObjectCreationExpressionSyntax)base.VisitObjectCreationExpression(node)!;
             if (SimpleTypeName(visited.Type) == "ExcelFile")
-                return visited.WithType(SyntaxFactory.IdentifierName("CanvasWorkbook").WithTriviaFrom(visited.Type))
+                return visited.WithType(SyntaxFactory.IdentifierName("PxaWorkbook").WithTriviaFrom(visited.Type))
                     .WithArgumentList(SyntaxFactory.ArgumentList());
             return visited;
         }

@@ -4,7 +4,7 @@ using PXA.Core.Primitives;
 namespace PXA.Core.Tests;
 
 // IExpressionEvaluator is now backed by the shared PxaExpressionEvaluator, so the TemplateExpander
-// value/visibility path evaluates real Canvas grammar (helpers, operators) — not the old regex stub.
+// value/visibility path evaluates real PXA grammar (helpers, operators) — not the old regex stub.
 public class ExpressionEvaluatorTests
 {
     private static readonly IExpressionEvaluator Evaluator = new ExpressionEvaluator();

@@ -107,7 +107,7 @@ function createSafeContext(context: ExpressionContext): Record<string, any> {
       return String(value);
     },
 
-    // Helpers emitted by the migration ExpressionTranslator (RDL/DevExpress → Canvas grammar).
+    // Helpers emitted by the migration ExpressionTranslator (RDL/DevExpress → PXA grammar).
     $iif: (cond: any, a: any, b: any) => (cond ? a : b),
     $switch: (...args: any[]) => {
       for (let i = 0; i + 1 < args.length; i += 2) if (args[i]) return args[i + 1];
@@ -196,7 +196,7 @@ function evaluateSafeExpression(expression: string, context: Record<string, any>
   const expr = expression.trim();
   if (expr === '') return { value: undefined, isValid: false, error: 'Empty expression' };
 
-  // Preserved special forms (not part of the Canvas grammar, but supported by this engine).
+  // Preserved special forms (not part of the PXA grammar, but supported by this engine).
   if (expr.startsWith('`') && expr.endsWith('`')) return evaluateTemplateLiteral(expr, context);
   if (expr.startsWith('new ')) return evaluateNewExpression(expr, context);
   if (expr.includes(' instanceof ')) return evaluateInstanceof(expr, context);
@@ -210,7 +210,7 @@ function evaluateSafeExpression(expression: string, context: Record<string, any>
   }
 }
 
-// ── Tokenizer + recursive-descent parser (mirrors src/Canvas.Core/Primitives/CanvasExpressionEvaluator.cs) ──
+// ── Tokenizer + recursive-descent parser (mirrors src/PXA.Core/Primitives/CanvasExpressionEvaluator.cs) ──
 
 type TokKind = 'num' | 'str' | 'ident' | 'op' | 'lparen' | 'rparen' | 'comma' | 'end';
 interface Tok { kind: TokKind; text: string; num?: number; }

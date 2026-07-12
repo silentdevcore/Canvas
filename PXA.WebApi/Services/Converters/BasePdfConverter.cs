@@ -31,7 +31,7 @@ public abstract class BasePdfConverter : ICodeConverter
             var page = document.AddPage();
             DrawPreviewChrome(page, FrameworkName);
 
-            var rendered = ReplayCanvasCalls(page, converted);
+            var rendered = ReplayPxaCalls(page, converted);
 
             if (!rendered)
             {
@@ -55,7 +55,7 @@ public abstract class BasePdfConverter : ICodeConverter
 
     // Parses and replays recognisable PXA.Pdf draw calls from converted source.
     // Returns true if at least one call was rendered.
-    protected static bool ReplayCanvasCalls(PdfPage page, string code)
+    protected static bool ReplayPxaCalls(PdfPage page, string code)
     {
         var rendered = false;
 
@@ -181,7 +181,7 @@ public abstract class BasePdfConverter : ICodeConverter
             new PdfDrawTextOptions { FontSize = 8, FillColor = PdfColor.White });
     }
 
-    protected static string SkeletonCanvasCode(string frameworkName) =>
+    protected static string SkeletonPxaCode(string frameworkName) =>
         $"""
         // Converted from {frameworkName} — skeleton output
         // Full conversion not yet implemented. Use the pattern below as a starting point.

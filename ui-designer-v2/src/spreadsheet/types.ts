@@ -1,4 +1,4 @@
-// Spreadsheet model — mirrors the backend SpreadsheetDto (src/Canvas.Core/Contracts/SpreadsheetDto.cs),
+// Spreadsheet model — mirrors the backend SpreadsheetDto (src/PXA.Core/Contracts/SpreadsheetDto.cs),
 // serialized camelCase. The wire shape uses a sparse `cells` array; the store keeps cells in a Record
 // keyed by "row:col" for fast lookup (see store.ts).
 

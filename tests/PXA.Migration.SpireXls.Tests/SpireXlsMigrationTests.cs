@@ -21,7 +21,7 @@ public sealed class SpireXlsMigrationTests
 
         var code = new SpireXlsMigration().Migrate(src).MigratedCode;
 
-        Assert.Contains("new CanvasWorkbook()", code);
+        Assert.Contains("new PxaWorkbook()", code);
         Assert.Contains("workbook.AddSheet(\"Sheet1\")", code);
         Assert.Contains("sheet.Cell(\"A1\").Value(\"Item\")", code);
         Assert.Contains("sheet.Cell(\"B1\").Value(3)", code);

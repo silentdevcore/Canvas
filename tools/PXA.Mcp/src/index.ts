@@ -20,7 +20,7 @@ import {
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../../..');
-const API_URL = process.env.PXA_API_URL ?? process.env.CANVAS_API_URL ?? 'http://localhost:5086';
+const API_URL = process.env.PXA_API_URL ?? 'http://localhost:5086';
 
 const read = (rel: string) => fs.readFileSync(path.join(REPO_ROOT, rel), 'utf8');
 const schema = JSON.parse(read('docs/schema/design-export.schema.json'));
@@ -178,12 +178,6 @@ registerTextResource('pxa-workbook-schema', 'pxa://schema/pxa-workbook', 'PXA Wo
 registerTextResource('pxa-openapi', 'pxa://openapi', 'PXA OpenAPI', 'Full HTTP API.', 'docs/schema/openapi.json', 'application/json');
 registerTextResource('pxa-llms-full', 'pxa://docs/llms-full', 'PXA AI reference', 'Capability map + all elements + examples.', 'llms-full.txt', 'text/markdown');
 registerTextResource('pxa-cookbook', 'pxa://docs/cookbook', 'PXA PDF C# Cookbook', 'Task-oriented C# recipes.', 'docs/csharp-cookbook.md', 'text/markdown');
-
-registerTextResource('canvas-design-schema', 'canvas://schema/design-export', 'DesignExportDto JSON Schema', 'Validate a design before rendering.', 'docs/schema/design-export.schema.json', 'application/json');
-registerTextResource('canvas-workbook-schema', 'canvas://schema/canvas-workbook', 'Legacy Canvas Workbook JSON Schema', 'Validate a spreadsheet workbook before posting to /api/spreadsheet/*.', 'docs/schema/canvas-workbook.schema.json', 'application/json');
-registerTextResource('canvas-openapi', 'canvas://openapi', 'Legacy Canvas OpenAPI', 'Full HTTP API.', 'docs/schema/openapi.json', 'application/json');
-registerTextResource('canvas-llms-full', 'canvas://docs/llms-full', 'Legacy Canvas AI reference', 'Capability map + all elements + examples.', 'llms-full.txt', 'text/markdown');
-registerTextResource('canvas-cookbook', 'canvas://docs/cookbook', 'Legacy Canvas PDF C# Cookbook', 'Task-oriented C# recipes.', 'docs/csharp-cookbook.md', 'text/markdown');
 
 // ── Start ──────────────────────────────────────────────────────────────────────────────────────────
 

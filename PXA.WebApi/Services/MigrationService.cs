@@ -25,7 +25,7 @@ public sealed class MigrationService
             new PdfKitNetConverter(),
             new FoxitPdfConverter(),
             new DevExpressPdfConverter(),
-            // spreadsheet code migration (→ Canvas spreadsheet API)
+            // spreadsheet code migration (→ PXA spreadsheet API)
             new ClosedXmlSpreadsheetConverter(),
             new EpplusSpreadsheetConverter(),
             new GemBoxSpreadsheetConverter(),
@@ -48,9 +48,9 @@ public sealed class MigrationService
     public MigrationResult Convert(string frameworkId, string sourceCode)
     {
         var converter = GetConverter(frameworkId);
-        var canvasCode = converter.ConvertCode(sourceCode);
+        var pxaCode = converter.ConvertCode(sourceCode);
         var diagnostics = converter.GetDiagnostics(sourceCode);
-        return new MigrationResult(canvasCode, diagnostics, CreateSummary(diagnostics));
+        return new MigrationResult(pxaCode, diagnostics, CreateSummary(diagnostics));
     }
 
     public byte[] GeneratePreview(string frameworkId, string sourceCode)

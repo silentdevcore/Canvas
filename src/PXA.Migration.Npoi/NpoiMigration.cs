@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace PXA.Migration.Npoi;
 
 /// <summary>
-/// Migrates NPOI (<c>XSSFWorkbook</c>/<c>HSSFWorkbook</c>) authoring code to the Canvas spreadsheet API
-/// (<c>CanvasWorkbook</c>). NPOI uses a row/cell object model (CreateRow/CreateCell), so this pre-scans the
+/// Migrates NPOI (<c>XSSFWorkbook</c>/<c>HSSFWorkbook</c>) authoring code to the PXA spreadsheet API
+/// (<c>PxaWorkbook</c>). NPOI uses a row/cell object model (CreateRow/CreateCell), so this pre-scans the
 /// code to map row/cell variables to their (sheet, row, col) and inlines the writes as
 /// <c>sheet.Cell(r, c).Value(..)/Formula(..)</c>. Stream-based <c>Write</c> and column-width units are flagged.
 /// </summary>
@@ -85,7 +85,7 @@ public sealed class NpoiMigration : CSharpSourceMigration
             var visited = (ObjectCreationExpressionSyntax)base.VisitObjectCreationExpression(node)!;
             var name = SimpleTypeName(visited.Type);
             if (name is "XSSFWorkbook" or "HSSFWorkbook")
-                return visited.WithType(SyntaxFactory.IdentifierName("CanvasWorkbook").WithTriviaFrom(visited.Type))
+                return visited.WithType(SyntaxFactory.IdentifierName("PxaWorkbook").WithTriviaFrom(visited.Type))
                     .WithArgumentList(SyntaxFactory.ArgumentList());
             return visited;
         }
@@ -135,7 +135,7 @@ public sealed class NpoiMigration : CSharpSourceMigration
             // sheet.SetColumnWidth(col, w) → sheet.Column(col).Width(w)  (NPOI col is 0-based; width is 1/256 char)
             if (name == "SetColumnWidth" && visited.ArgumentList.Arguments.Count == 2)
             {
-                Diagnostics.Add(Warn("CANMIGNPOI012", "NPOI SetColumnWidth uses 1/256-character units; Canvas Width() takes character units — adjust the value."));
+                Diagnostics.Add(Warn("CANMIGNPOI012", "NPOI SetColumnWidth uses 1/256-character units; PXA Width() takes character units — adjust the value."));
                 var colRecv = SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ma.Expression, SyntaxFactory.IdentifierName("Column")),
                     SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(visited.ArgumentList.Arguments[0])));
@@ -147,7 +147,7 @@ public sealed class NpoiMigration : CSharpSourceMigration
             // wb.Write(stream) → wb.Save("output.xlsx")
             if (name == "Write")
             {
-                Diagnostics.Add(Warn("CANMIGNPOI013", "NPOI Write(stream) → Canvas Save(path): replace the stream with a target file path."));
+                Diagnostics.Add(Warn("CANMIGNPOI013", "NPOI Write(stream) → PXA Save(path): replace the stream with a target file path."));
                 return visited.WithExpression(ma.WithName(SyntaxFactory.IdentifierName("Save")))
                     .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("output.xlsx"))))));

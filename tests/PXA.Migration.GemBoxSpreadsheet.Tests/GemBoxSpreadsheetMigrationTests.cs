@@ -22,7 +22,7 @@ public sealed class GemBoxSpreadsheetMigrationTests
         var code = new GemBoxSpreadsheetMigration().Migrate(src).MigratedCode;
 
         Assert.DoesNotContain("SetLicense", code);             // license dropped
-        Assert.Contains("new CanvasWorkbook()", code);
+        Assert.Contains("new PxaWorkbook()", code);
         Assert.Contains("wb.AddSheet(\"Sheet1\")", code);
         Assert.Contains("ws.Cell(\"A1\").Value(\"Item\")", code);
         Assert.Contains("ws.Cell(0, 1).Value(10)", code);       // 0-based: unchanged

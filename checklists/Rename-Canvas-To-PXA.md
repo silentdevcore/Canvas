@@ -9,6 +9,11 @@ The old `Canvas.*` projects and namespaces are not kept as source-level `[Obsole
 JSON fields, localStorage keys, and `CANMIG...` diagnostic identifiers remain stable where they are external
 contracts.
 
+Final cleanup decision: active product/API/docs names are PXA-only. The previous Canvas compatibility names
+were removed from active code-generation output, MCP resources, schema aliases, UI migration payload names,
+and the public workbook authoring API. Remaining `Canvas` words are historical checklist entries or technical
+terms such as editor canvas surfaces, `PdfCanvas`, `SKCanvas`, and third-party APIs.
+
 ## Product Naming
 
 - [x] Product/Web name: **Power Dox Automation**
@@ -84,6 +89,13 @@ contracts, localStorage keys, `CANMIG...` diagnostics, and technical canvas term
 - [x] `PXA.FileImporter.ImageOcr.Worker` lookup strings updated to the PXA worker name.
 - [x] Active code/docs scan completed: remaining `Canvas.*` mentions in main docs are limited to explicit
       historical/glossary notes and compatibility aliases.
+- [x] Final product-name cleanup completed:
+      - generated migration responses use `pxaCode` / `PxaCode`
+      - spreadsheet authoring API uses `PxaWorkbook`, `PxaWorksheet`, `PxaCell`, `PxaRange`, and `PxaColumn`
+      - OCR layout builder uses `PxaElementBuilder`
+      - MCP exposes only `pxa://...` resources and `PXA_API_URL`
+      - workbook schema alias `docs/schema/canvas-workbook.schema.json` removed; `pxa-workbook.schema.json` is canonical
+      - active documentation and UI migration docs no longer reference Canvas compatibility names
 
 Verification for this slice:
 
@@ -94,6 +106,9 @@ Verification for this slice:
 - [x] `dotnet test tests/PXA.Migration.Spreadsheet.Tests/PXA.Migration.Spreadsheet.Tests.csproj --no-build --no-restore --disable-build-servers -m:1`
 - [x] Spreadsheet provider tests for AsposeCells, ClosedXML, EPPlus, GemBox, NPOI, Spire.XLS,
       SpreadsheetLight, and Syncfusion XlsIO.
+- [x] `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-build --no-restore --disable-build-servers -m:1 --filter "Migration"`
+- [x] `dotnet test tests/PXA.Infrastructure.Spreadsheet.Tests/PXA.Infrastructure.Spreadsheet.Tests.csproj --no-build --no-restore --disable-build-servers -m:1`
+- [x] `npm run build` in `ui-designer-v2`
 
 ## Documentation Plan
 

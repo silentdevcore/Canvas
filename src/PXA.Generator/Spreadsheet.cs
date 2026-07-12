@@ -10,6 +10,6 @@ public static class Spreadsheet
     /// <summary>
     /// Creates a workbook using the current PXA spreadsheet implementation.
     /// </summary>
-    public static CanvasWorkbook CreateWorkbook(string name = "Workbook") =>
+    public static PxaWorkbook CreateWorkbook(string name = "Workbook") =>
         new(name);
 }

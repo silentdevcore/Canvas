@@ -24,7 +24,7 @@ public sealed class ApryseMigration : CSharpSourceMigration
         var rewriter = new ApryseRewriter(docVar, pageVar, saveTarget);
         var newRoot = (CompilationUnitSyntax)rewriter.Visit(root)!;
         newRoot = RemoveAprysedUsings(newRoot);
-        newRoot = EnsureCanvasUsing(newRoot);
+        newRoot = EnsurePxaUsing(newRoot);
 
         return new MigrationResult
         {
@@ -89,7 +89,7 @@ public sealed class ApryseMigration : CSharpSourceMigration
         return root.WithUsings(SyntaxFactory.List(filtered));
     }
 
-    private static CompilationUnitSyntax EnsureCanvasUsing(CompilationUnitSyntax root)
+    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root)
     {
         if (root.Usings.Any(u => u.Name?.ToString() == "PXA.Pdf"))
             return root;

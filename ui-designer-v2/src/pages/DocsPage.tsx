@@ -354,7 +354,7 @@ const DocsPage: React.FC = () => {
 { "invoice": { "number": "1001" }, "customer": { "name": "ACME" } }`}</Code>
 
             <H3>2. Expressions — <code className="docs-inline-code">element.expression</code></H3>
-            <p>The <code className="docs-inline-code">expression</code> field is evaluated with the Canvas expression grammar (the same engine on the server and in the live preview). Helpers and operators:</p>
+            <p>The <code className="docs-inline-code">expression</code> field is evaluated with the PXA expression grammar (the same engine on the server and in the live preview). Helpers and operators:</p>
             <PropertyTable rows={[
               { name: '$iif(cond, a, b)', type: 'helper', description: 'Conditional; short-circuits (b is not evaluated when cond is true).' },
               { name: '$concat(...)', type: 'helper', description: 'Concatenate values into a string.' },
@@ -546,17 +546,17 @@ Content-Disposition: attachment; filename="contract_signed.docx"
             </div>
 
             <H3>Spreadsheet code migration</H3>
-            <p>Paste C# source written for a supported spreadsheet library and convert it into the PXA spreadsheet API (<code className="docs-inline-code">CanvasWorkbook</code> legacy model). Workbook/worksheet/cell/value/formula/style/save calls are rewritten via Roslyn; charts, pivots, conditional formatting, and data validation stay visible through diagnostics.</p>
+            <p>Paste C# source written for a supported spreadsheet library and convert it into the PXA spreadsheet API (<code className="docs-inline-code">PxaWorkbook</code> legacy model). Workbook/worksheet/cell/value/formula/style/save calls are rewritten via Roslyn; charts, pivots, conditional formatting, and data validation stay visible through diagnostics.</p>
 
             <div className="docs-elem-table-wrap">
               <table className="docs-elem-table">
                 <thead><tr><th>Library</th><th>Converter</th><th>Notes</th></tr></thead>
                 <tbody>
                   {([
-                    ['ClosedXML', 'PXA.Migration.Spreadsheet / legacy Canvas.Migration.ClosedXmlSpreadsheet', 'Reference impl; 1-based → 0-based index shift, alignment/fill colour, named ranges'],
-                    ['EPPlus', 'PXA.Migration.Spreadsheet / legacy Canvas.Migration.EpplusSpreadsheet', 'Cells[..] indexer → Cell(..), Merge=true → Range(..).Merge(), alignment'],
-                    ['GemBox.Spreadsheet', 'PXA.Migration.Spreadsheet / legacy Canvas.Migration.GemBoxSpreadsheet', 'Drops SetLicense, already 0-based, Font.Weight → Bold(), alignment'],
-                    ['Aspose.Cells', 'PXA.Migration.Spreadsheet / legacy Canvas.Migration.AsposeCells', 'PutValue → Value, Worksheets[0] → AddSheet, SetColumnWidth → Column().Width()'],
+                    ['ClosedXML', 'PXA.Migration.Spreadsheet / historical PXA.Migration.ClosedXmlSpreadsheet', 'Reference impl; 1-based → 0-based index shift, alignment/fill colour, named ranges'],
+                    ['EPPlus', 'PXA.Migration.Spreadsheet / historical PXA.Migration.EpplusSpreadsheet', 'Cells[..] indexer → Cell(..), Merge=true → Range(..).Merge(), alignment'],
+                    ['GemBox.Spreadsheet', 'PXA.Migration.Spreadsheet / historical PXA.Migration.GemBoxSpreadsheet', 'Drops SetLicense, already 0-based, Font.Weight → Bold(), alignment'],
+                    ['Aspose.Cells', 'PXA.Migration.Spreadsheet / historical PXA.Migration.AsposeCells', 'PutValue → Value, Worksheets[0] → AddSheet, SetColumnWidth → Column().Width()'],
                   ] as [string,string,string][]).map(([lib, converter, notes]) => (
                     <tr key={lib}>
                       <td>{lib}</td>
@@ -576,9 +576,9 @@ Content-Disposition: attachment; filename="contract_signed.docx"
                 <thead><tr><th>Input</th><th>Converter</th><th>Output</th></tr></thead>
                 <tbody>
                   {([
-                    ['DevExpress XtraReport / REPX', 'PXA.Migration.Report / legacy Canvas.Migration.DevExpressReport', 'Band-flattened editable PXA design'],
-                    ['RDL / RDLC / Syncfusion / Bold Reports', 'PXA.Migration.Report / legacy Canvas.Migration.Rdl', 'Page, header/footer, textbox, line, rectangle, image, tablix/table, barcode placeholders'],
-                    ['ActiveReports / GrapeCity RPX', 'PXA.Migration.Report / legacy Canvas.Migration.Rpx', 'Section-report bands flattened into PXA elements'],
+                    ['DevExpress XtraReport / REPX', 'PXA.Migration.Report / historical PXA.Migration.DevExpressReport', 'Band-flattened editable PXA design'],
+                    ['RDL / RDLC / Syncfusion / Bold Reports', 'PXA.Migration.Report / historical PXA.Migration.Rdl', 'Page, header/footer, textbox, line, rectangle, image, tablix/table, barcode placeholders'],
+                    ['ActiveReports / GrapeCity RPX', 'PXA.Migration.Report / historical PXA.Migration.Rpx', 'Section-report bands flattened into PXA elements'],
                   ] as [string,string,string][]).map(([input, converter, output]) => (
                     <tr key={input}>
                       <td>{input}</td>
@@ -1307,7 +1307,7 @@ public class TemplatesController : ControllerBase
             <H3>Two generation targets</H3>
             <ul className="docs-steps">
               <li><strong>Declarative design JSON</strong> (<code className="docs-inline-code">DesignExportDto</code>) — describe pages + elements, POST to the render/export API. Best for templates and data-driven documents.</li>
-              <li><strong>Imperative C# code</strong> (PXA PDF API, with legacy <code className="docs-inline-code">Canvas.Pdf</code> compatibility) — <code className="docs-inline-code">new PdfDocument()</code> → <code className="docs-inline-code">page.DrawText(...)</code> → <code className="docs-inline-code">ToBytes()</code>. Best for programmatic generation and SDK migrations.</li>
+              <li><strong>Imperative C# code</strong> (PXA PDF API, with legacy <code className="docs-inline-code">PXA.Pdf</code> compatibility) — <code className="docs-inline-code">new PdfDocument()</code> → <code className="docs-inline-code">page.DrawText(...)</code> → <code className="docs-inline-code">ToBytes()</code>. Best for programmatic generation and SDK migrations.</li>
             </ul>
 
             <H3>Generate → validate → render</H3>
@@ -1365,10 +1365,10 @@ public class TemplatesController : ControllerBase
               <li><code className="docs-inline-code">POST /api/spreadsheet/from-data</code> and <code className="docs-inline-code">/fill</code> — build a workbook from JSON rows (DataTable), or fill a template's <code className="docs-inline-code">{'{{token}}'}</code> placeholders from a data object.</li>
             </ul>
             <p>Rich Excel features round-trip through <code className="docs-inline-code">.xlsx</code>: page setup, sheet protection, auto-filter, row/column grouping, cell comments + hyperlinks, conditional formatting, and data validation.</p>
-            <p>The model (<code className="docs-inline-code">src/Canvas.Core/Contracts/SpreadsheetDto.cs</code>) is a workbook of sheets of sparse typed cells (<code className="docs-inline-code">number</code>/<code className="docs-inline-code">text</code>/<code className="docs-inline-code">boolean</code>/<code className="docs-inline-code">date</code>/<code className="docs-inline-code">formula</code>) with number formats, styles, merges, frozen panes, and defined names — exported/imported by <code className="docs-inline-code">Canvas.Infrastructure.Spreadsheet</code>.</p>
+            <p>The model (<code className="docs-inline-code">src/PXA.Core/Contracts/SpreadsheetDto.cs</code>) is a workbook of sheets of sparse typed cells (<code className="docs-inline-code">number</code>/<code className="docs-inline-code">text</code>/<code className="docs-inline-code">boolean</code>/<code className="docs-inline-code">date</code>/<code className="docs-inline-code">formula</code>) with number formats, styles, merges, frozen panes, and defined names — exported/imported by <code className="docs-inline-code">PXA.Infrastructure.Spreadsheet</code>.</p>
 
             <H3>Workbook JSON (canonical format)</H3>
-            <p><strong>PXA Workbook JSON</strong> is the canonical, portable spreadsheet format. It is the camelCase serialization of <code className="docs-inline-code">SpreadsheetDto</code> that every spreadsheet endpoint accepts and that the editor's <strong>Export ▾ → JSON</strong> produces. It is versioned (<code className="docs-inline-code">schemaVersion</code>, currently <code className="docs-inline-code">"1.0"</code>) and carries an optional <code className="docs-inline-code">$schema</code> URL. A published JSON Schema lives at <code className="docs-inline-code">docs/schema/pxa-workbook.schema.json</code> for editor/tooling validation; <code className="docs-inline-code">docs/schema/canvas-workbook.schema.json</code> remains as the legacy compatibility alias.</p>
+            <p><strong>PXA Workbook JSON</strong> is the canonical, portable spreadsheet format. It is the camelCase serialization of <code className="docs-inline-code">SpreadsheetDto</code> that every spreadsheet endpoint accepts and that the editor's <strong>Export ▾ → JSON</strong> produces. It is versioned (<code className="docs-inline-code">schemaVersion</code>, currently <code className="docs-inline-code">"1.0"</code>) and carries an optional <code className="docs-inline-code">$schema</code> URL. A published JSON Schema lives at <code className="docs-inline-code">docs/schema/pxa-workbook.schema.json</code> for editor/tooling validation.</p>
             <p>The format is <strong>lossless</strong>: saving and reloading JSON preserves everything the backend holds — typed values, formulas + cached values, number formats, styles, merges, frozen panes, defined names, and the full feature set (page setup, protection, auto-filter, row/column grouping, conditional formatting, data validation, cell comments + hyperlinks).</p>
             <div className="docs-callout docs-callout--tip">
               <strong>Note:</strong> a workbook (spreadsheet) contains multiple <em>sheets</em>. Live editing recalculates client-side (HyperFormula, GPLv3-or-commercial); for headless/API callers <code className="docs-inline-code">/calculate</code> recomputes server-side (ClosedXML). Charts and pivot tables are not yet supported.

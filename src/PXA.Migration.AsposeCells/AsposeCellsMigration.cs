@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace PXA.Migration.AsposeCells;
 
 /// <summary>
-/// Migrates Aspose.Cells (<c>Workbook</c>) authoring code to the Canvas spreadsheet API (<c>CanvasWorkbook</c>).
+/// Migrates Aspose.Cells (<c>Workbook</c>) authoring code to the PXA spreadsheet API (<c>PxaWorkbook</c>).
 /// Roslyn-based: rewrites workbook/worksheet/cell-indexer/PutValue/formula/SetColumnWidth/save calls.
 /// Aspose cell indexes are already 0-based (no shift). The GetStyle/SetStyle pattern, charts, and pivots are
 /// flagged for manual review. ClosedXML's formula engine covers fewer functions than Aspose — exotic
@@ -61,7 +61,7 @@ public sealed class AsposeCellsMigration : CSharpSourceMigration
         if (names.Contains("GetStyle") || names.Contains("SetStyle"))
             yield return Warn("CANMIGASPC020", "Aspose GetStyle/SetStyle styling → migrate manually to .Style(s => …) on the cell.");
         if (names.Overlaps(new[] { "Chart", "Charts", "PivotTable", "PivotTables" }))
-            yield return Warn("CANMIGASPC030", "Charts / pivot tables are not supported by the Canvas spreadsheet engine; migrate manually.");
+            yield return Warn("CANMIGASPC030", "Charts / pivot tables are not supported by the PXA spreadsheet engine; migrate manually.");
     }
 
     private static MigrationDiagnostic Info(string id, string m) => new() { Id = id, Message = m, Severity = MigrationDiagnosticSeverity.Info };
@@ -85,7 +85,7 @@ public sealed class AsposeCellsMigration : CSharpSourceMigration
                 }
                 if (visited.ArgumentList?.Arguments.Count > 0)
                     Diagnostics.Add(Warn("CANMIGASPC023", "new Workbook(path) loads an existing file; Canvas import is via ExcelWorkbookImporter — review."));
-                return visited.WithType(SyntaxFactory.IdentifierName("CanvasWorkbook").WithTriviaFrom(visited.Type))
+                return visited.WithType(SyntaxFactory.IdentifierName("PxaWorkbook").WithTriviaFrom(visited.Type))
                     .WithArgumentList(SyntaxFactory.ArgumentList());
             }
             return visited;

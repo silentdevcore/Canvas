@@ -977,7 +977,7 @@ public sealed class XtraReportToDesignConverter
         else
         {
             // Normalize [Field] refs to {{Field}} for readable content, and translate the expression to
-            // executable Canvas grammar for the preview engine; raw preserved for review.
+            // executable PXA grammar for the preview engine; raw preserved for review.
             var normalized = Regex.Replace(expression, @"\[([^\]]+)\]", m =>
             {
                 var n = m.Groups[1].Value.Trim();

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" Name="Comprehensive Syncfusion Sales Report">
-  <Description>Large Syncfusion/Bold Reports style RDL fixture for Canvas designer migration fidelity.</Description>
+  <Description>Large Syncfusion/Bold Reports style RDL fixture for PXA designer migration fidelity.</Description>
   <Author>Canvas Migration Tests</Author>
   <DataSources>
     <DataSource Name="SalesData">

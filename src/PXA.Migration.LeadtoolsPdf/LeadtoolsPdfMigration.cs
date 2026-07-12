@@ -21,7 +21,7 @@ public sealed class LeadtoolsPdfMigration : CSharpSourceMigration
         var rewriter = new LeadtoolsPdfRewriter(documentVariable, pageVariable, saveTarget);
         var rewritten = (CompilationUnitSyntax)rewriter.Visit(root)!;
         rewritten = RemoveLeadtoolsUsings(rewritten);
-        rewritten = EnsureCanvasUsing(rewritten);
+        rewritten = EnsurePxaUsing(rewritten);
 
         var diagnostics = new List<MigrationDiagnostic>
         {
@@ -126,7 +126,7 @@ public sealed class LeadtoolsPdfMigration : CSharpSourceMigration
         return root.WithUsings(SyntaxFactory.List(filtered));
     }
 
-    private static CompilationUnitSyntax EnsureCanvasUsing(CompilationUnitSyntax root)
+    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root)
     {
         if (root.Usings.Any(static directive => directive.Name?.ToString() == "PXA.Pdf"))
             return root;

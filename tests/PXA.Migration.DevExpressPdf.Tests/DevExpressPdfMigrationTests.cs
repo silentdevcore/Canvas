@@ -6,7 +6,7 @@ namespace PXA.Migration.DevExpressPdf.Tests;
 public sealed class DevExpressPdfMigrationTests
 {
     [Fact]
-    public void Migrate_BasicGenerationWorkflow_ProducesCanvasCode()
+    public void Migrate_BasicGenerationWorkflow_ProducesPxaCode()
     {
         var source = """
             using DevExpress.Pdf;

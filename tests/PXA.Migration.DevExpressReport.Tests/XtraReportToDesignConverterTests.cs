@@ -1426,7 +1426,7 @@ public sealed class XtraReportToDesignConverterTests
         var result = new XtraReportToDesignConverter().Convert(source);
         var el = Element(result.Design, "xrAmount");
 
-        Assert.Equal("Qty * Price", el.Expression);                                  // translated to Canvas grammar
+        Assert.Equal("Qty * Price", el.Expression);                                  // translated to PXA grammar
         Assert.Equal("[Qty] * [Price]", el.Style!["devExpressExpression"]);           // raw preserved
         Assert.Contains(result.Diagnostics, d => d.Id == "CANMIGDEVREP010" && d.Severity == PXA.Migration.Abstractions.MigrationDiagnosticSeverity.Warning);
     }

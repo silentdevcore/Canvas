@@ -52,7 +52,7 @@ public sealed class MigrationControllerTests : IClassFixture<WebApplicationFacto
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("using PXA.Pdf;", body.GetProperty("canvasCode").GetString());
+        Assert.Contains("using PXA.Pdf;", body.GetProperty("pxaCode").GetString());
         Assert.True(body.GetProperty("summary").GetProperty("convertedCount").GetInt32() > 0);
         Assert.Contains(
             body.GetProperty("diagnostics").EnumerateArray(),

@@ -1,7 +1,7 @@
 namespace PXA.FileImporter.ImageOcr;
 
 // Shared internal layout models used across the image-OCR pipeline stages
-// (VisualElementDetector, OcrVisualFusionEngine, CanvasElementBuilder).
+// (VisualElementDetector, OcrVisualFusionEngine, PxaElementBuilder).
 // These were previously private nested types on ImageToPdfConverter; they were
 // promoted to top-level internal types so the split pipeline stages can share them.
 

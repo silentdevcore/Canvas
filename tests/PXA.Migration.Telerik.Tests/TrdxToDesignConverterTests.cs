@@ -269,7 +269,7 @@ public sealed class TrdxToDesignConverterTests
         var el = El(Convert(trdx).Design, "full");
         Assert.Contains("{{First}}", el.Content);
         Assert.Contains("{{Last}}", el.Content);
-        Assert.Equal("First + ' ' + Last", el.Expression);                            // translated to Canvas grammar
+        Assert.Equal("First + ' ' + Last", el.Expression);                            // translated to PXA grammar
         Assert.Equal("=Fields.First + ' ' + Fields.Last", el.Style!["trdxExpression"]); // raw preserved for review
     }
 

@@ -4,7 +4,7 @@ using PXA.Core.Contracts;
 namespace PXA.Infrastructure.Spreadsheet;
 
 /// <summary>
-/// Bridges the Spreadsheet SDK into the document model: maps a worksheet to a Canvas <c>table</c>
+/// Bridges the Spreadsheet SDK into the document model: maps a worksheet to a PXA <c>table</c>
 /// <see cref="ElementDto"/> inside a <see cref="DesignExportDto"/>, so a sheet can be embedded in a
 /// PDF/Word/HTML document via the existing exporters. Uses each cell's (computed) value as the cell text.
 /// </summary>

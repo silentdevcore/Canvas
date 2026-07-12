@@ -11,7 +11,7 @@ public sealed class GemBoxSpreadsheetConverter : BaseSpreadsheetConverter
     public override string Status => "full";
 
     public override string Description =>
-        "Spreadsheet code migration: GemBox.Spreadsheet ExcelFile → Canvas spreadsheet API (CanvasWorkbook). Roslyn-based: drops SetLicense, rewrites worksheet/Cells[..] indexer/value/formula/font-weight style/save (indexes already 0-based). Charts, pivots, and range merges need manual review.";
+        "Spreadsheet code migration: GemBox.Spreadsheet ExcelFile → PXA spreadsheet API (PxaWorkbook). Roslyn-based: drops SetLicense, rewrites worksheet/Cells[..] indexer/value/formula/font-weight style/save (indexes already 0-based). Charts, pivots, and range merges need manual review.";
 
     public override string ConvertCode(string sourceCode) =>
         new GemBoxSpreadsheetMigration().Migrate(sourceCode).MigratedCode;

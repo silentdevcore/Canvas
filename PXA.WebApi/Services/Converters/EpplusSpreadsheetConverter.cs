@@ -11,7 +11,7 @@ public sealed class EpplusSpreadsheetConverter : BaseSpreadsheetConverter
     public override string Status => "full";
 
     public override string Description =>
-        "Spreadsheet code migration: EPPlus ExcelPackage → Canvas spreadsheet API (CanvasWorkbook). Roslyn-based: package/worksheet, Cells[..] indexer → Cell(..), value/formula/Merge/Bold-Italic-FontSize style/SaveAs mapping + 1-based→0-based index shift. Charts, pivots, conditional formatting, and data validation need manual review.";
+        "Spreadsheet code migration: EPPlus ExcelPackage → PXA spreadsheet API (PxaWorkbook). Roslyn-based: package/worksheet, Cells[..] indexer → Cell(..), value/formula/Merge/Bold-Italic-FontSize style/SaveAs mapping + 1-based→0-based index shift. Charts, pivots, conditional formatting, and data validation need manual review.";
 
     public override string ConvertCode(string sourceCode) =>
         new EpplusSpreadsheetMigration().Migrate(sourceCode).MigratedCode;

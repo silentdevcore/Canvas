@@ -20,7 +20,7 @@ public sealed class EpplusSpreadsheetMigrationTests
 
         var code = new EpplusSpreadsheetMigration().Migrate(src).MigratedCode;
 
-        Assert.Contains("new CanvasWorkbook()", code);
+        Assert.Contains("new PxaWorkbook()", code);
         Assert.Contains("pkg.AddSheet(\"Sheet1\")", code);
         Assert.Contains("ws.Cell(\"A1\").Value(\"Item\")", code);
         Assert.Contains("ws.Cell(\"B1\").Formula(\"SUM(B2:B3)\")", code);

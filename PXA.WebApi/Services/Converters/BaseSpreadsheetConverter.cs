@@ -5,9 +5,9 @@ using System.Text.RegularExpressions;
 namespace PXA.WebApi.Services.Converters;
 
 /// <summary>
-/// Base for spreadsheet-library code converters (→ Canvas spreadsheet API). Marks <see cref="Kind"/> as
+/// Base for spreadsheet-library code converters (→ PXA spreadsheet API). Marks <see cref="Kind"/> as
 /// "spreadsheet" and renders the preview as an <b>HTML grid</b> (UTF-8 bytes): it replays the converted
-/// <c>CanvasWorkbook</c> calls into a sparse cell model and emits a styled <c>&lt;table&gt;</c>. (The migrated
+/// <c>PxaWorkbook</c> calls into a sparse cell model and emits a styled <c>&lt;table&gt;</c>. (The migrated
 /// user code can't be executed here; this mirrors how the PDF converters replay recognizable draw calls.)
 /// </summary>
 public abstract class BaseSpreadsheetConverter : BasePdfConverter
@@ -20,7 +20,7 @@ public abstract class BaseSpreadsheetConverter : BasePdfConverter
         return Encoding.UTF8.GetBytes(RenderHtml(converted, FrameworkName));
     }
 
-    // ── replay the converted CanvasWorkbook calls into a grid ─────────────────────────────────────────
+    // ── replay the converted PxaWorkbook calls into a grid ─────────────────────────────────────────
     private static string RenderHtml(string code, string frameworkName)
     {
         var sheets = ReplaySpreadsheetCalls(code);
@@ -32,7 +32,7 @@ public abstract class BaseSpreadsheetConverter : BasePdfConverter
           .Append("table{border-collapse:collapse}td,th{border:1px solid #e2e8f0;padding:4px 8px;min-width:48px;text-align:left}")
           .Append("th{background:#f8fafc;color:#64748b;font-weight:600;text-align:center}")
           .Append(".f{color:#2563eb}.empty{color:#94a3b8}</style></head><body>")
-          .Append($"<h2>{WebUtility.HtmlEncode(frameworkName)} → Canvas spreadsheet</h2>")
+          .Append($"<h2>{WebUtility.HtmlEncode(frameworkName)} → PXA spreadsheet</h2>")
           .Append("<p class=\"sub\">Preview of the converted workbook (recognized cells replayed from the code panel).</p>");
 
         if (sheets.Count == 0 || sheets.All(s => s.Cells.Count == 0))

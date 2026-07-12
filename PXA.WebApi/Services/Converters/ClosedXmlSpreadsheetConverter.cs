@@ -11,7 +11,7 @@ public sealed class ClosedXmlSpreadsheetConverter : BaseSpreadsheetConverter
     public override string Status => "full";
 
     public override string Description =>
-        "Spreadsheet code migration: ClosedXML XLWorkbook → Canvas spreadsheet API (CanvasWorkbook). Roslyn-based: workbook/worksheet/cell/value/formula/Bold-Italic-FontSize style/save mapping + 1-based→0-based index shift. Charts, pivots, conditional formatting, data validation, and auto-filter need manual review.";
+        "Spreadsheet code migration: ClosedXML XLWorkbook → PXA spreadsheet API (PxaWorkbook). Roslyn-based: workbook/worksheet/cell/value/formula/Bold-Italic-FontSize style/save mapping + 1-based→0-based index shift. Charts, pivots, conditional formatting, data validation, and auto-filter need manual review.";
 
     public override string ConvertCode(string sourceCode) =>
         new ClosedXmlSpreadsheetMigration().Migrate(sourceCode).MigratedCode;

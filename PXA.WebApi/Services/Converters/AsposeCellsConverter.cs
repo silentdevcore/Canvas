@@ -11,7 +11,7 @@ public sealed class AsposeCellsConverter : BaseSpreadsheetConverter
     public override string Status => "full";
 
     public override string Description =>
-        "Spreadsheet code migration: Aspose.Cells Workbook → Canvas spreadsheet API (CanvasWorkbook). Roslyn-based: worksheet, Cells[..] indexer → Cell(..), PutValue → Value, Formula, SetColumnWidth → Column().Width(), save (indexes already 0-based). GetStyle/SetStyle styling, charts, and pivots need manual review; ClosedXML covers fewer functions than Aspose's ~450.";
+        "Spreadsheet code migration: Aspose.Cells Workbook → PXA spreadsheet API (PxaWorkbook). Roslyn-based: worksheet, Cells[..] indexer → Cell(..), PutValue → Value, Formula, SetColumnWidth → Column().Width(), save (indexes already 0-based). GetStyle/SetStyle styling, charts, and pivots need manual review; ClosedXML covers fewer functions than Aspose's ~450.";
 
     public override string ConvertCode(string sourceCode) =>
         new AsposeCellsMigration().Migrate(sourceCode).MigratedCode;

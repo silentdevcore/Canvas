@@ -9,7 +9,7 @@ namespace PXA.Infrastructure.Converters;
 /// <summary>
 /// Exports a <see cref="DesignExportDto"/> to OpenDocument Text format (.odt).
 /// Produces a spec-compliant ODF 1.3 ZIP package with absolute-positioned draw frames
-/// so that the pixel-accurate layout from the Canvas designer is preserved in
+/// so that the pixel-accurate layout from the PXA designer is preserved in
 /// LibreOffice / Google Docs.
 /// </summary>
 public sealed class OdtDocumentExporter : DocumentExporter

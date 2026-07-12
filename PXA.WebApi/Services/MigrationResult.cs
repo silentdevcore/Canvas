@@ -1,7 +1,7 @@
 namespace PXA.WebApi.Services;
 
 public sealed record MigrationResult(
-    string CanvasCode,
+    string PxaCode,
     IReadOnlyList<MigrationDiagnostic> Diagnostics,
     MigrationSummary Summary);
 

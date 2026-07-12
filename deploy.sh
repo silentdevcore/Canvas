@@ -102,7 +102,7 @@ setup_frontend() {
 setup_backend() {
     print_header "Setting up API Server (Backend)..."
 
-    cd Canvas.WebApi
+    cd PXA.WebApi
 
     # Restore packages
     print_status "Restoring .NET packages..."
@@ -137,13 +137,11 @@ run_tests() {
 
     # Backend tests
     print_status "Running backend tests..."
-    cd Canvas
-    if dotnet test --configuration Release --no-build; then
+    if dotnet test PXA.sln --configuration Release --no-build; then
         print_status "Backend tests passed ✓"
     else
         print_warning "Some backend tests failed, but continuing..."
     fi
-    cd ..
 }
 
 # Start services
@@ -152,7 +150,7 @@ start_services() {
 
     # Start backend in background
     print_status "Starting API server..."
-    cd Canvas.WebApi
+    cd PXA.WebApi
     dotnet run --configuration Release > ../api.log 2>&1 &
     API_PID=$!
     echo $API_PID > ../api.pid

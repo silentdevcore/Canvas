@@ -50,7 +50,7 @@ public class MigrationController : ControllerBase
             var result = _service.Convert(request.Framework, request.SourceCode);
             return Ok(new
             {
-                canvasCode = result.CanvasCode,
+                pxaCode = result.PxaCode,
                 summary = new
                 {
                     convertedCount = result.Summary.ConvertedCount,

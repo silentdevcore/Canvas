@@ -23,7 +23,7 @@ public sealed class DsPdfMigration : CSharpSourceMigration
         var rewriter = new DsPdfRewriter(docVar, pageVars, saveTarget);
         var newRoot = (CompilationUnitSyntax)rewriter.Visit(root)!;
         newRoot = RemoveDsUsings(newRoot);
-        newRoot = EnsureCanvasUsing(newRoot);
+        newRoot = EnsurePxaUsing(newRoot);
 
         var diagnostics = rewriter.Diagnostics.ToList();
         diagnostics.AddRange(ScanForUnsupportedIdentifiers(root));
@@ -112,7 +112,7 @@ public sealed class DsPdfMigration : CSharpSourceMigration
         return root.WithUsings(SyntaxFactory.List(filtered));
     }
 
-    private static CompilationUnitSyntax EnsureCanvasUsing(CompilationUnitSyntax root)
+    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root)
     {
         if (root.Usings.Any(static u => u.Name?.ToString() == "PXA.Pdf"))
             return root;

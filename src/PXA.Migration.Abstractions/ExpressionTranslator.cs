@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace PXA.Migration.Abstractions;
 
 /// <summary>
-/// Translates report-designer expression dialects (RDL/SSRS, DevExpress) into the grammar the Canvas
+/// Translates report-designer expression dialects (RDL/SSRS, DevExpress) into the grammar the PXA
 /// frontend expression engine evaluates: identifiers for fields, simple binary operators, and a small set
 /// of helper functions (<c>$iif</c>, <c>$switch</c>, <c>$concat</c>, <c>$and</c>, <c>$or</c>, <c>$not</c>,
 /// <c>$coalesce</c>). Single-row scope plus dataset aggregates (<c>Sum/Avg/Count/Min/Max/First/Last</c> →
@@ -39,7 +39,7 @@ public static class ExpressionTranslator
     /// row subset (injected per group by <c>DesignLayoutPlanner</c>). e.g. <c>$sum($group, "Total")</c>.</summary>
     public const string GroupScopeToken = "$group";
 
-    // RDL/DevExpress aggregate function → Canvas helper. Single-field; dataset or $group scope.
+    // RDL/DevExpress aggregate function → PXA helper. Single-field; dataset or $group scope.
     private static readonly Dictionary<string, string> Aggregates = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Sum"] = "$sum", ["Avg"] = "$avg", ["Average"] = "$avg", ["Count"] = "$count",
@@ -109,7 +109,7 @@ public static class ExpressionTranslator
                 && AggregateScope(dataSet) is { } scope
                 && call.Args is [var only])
                 return EmitAggregate(helper, scope, only, rdl, dataSet);
-            // RunningValue(expr, AggName[, scope]) ≈ the aggregate over the current scope. Canvas renders the
+            // RunningValue(expr, AggName[, scope]) ≈ the aggregate over the current scope. PXA renders the
             // total at the group/report footer; true per-row running state is not modelled (documented approx).
             if (name.Equals("RunningValue", StringComparison.OrdinalIgnoreCase)
                 && AggregateScope(dataSet) is { } rvScope

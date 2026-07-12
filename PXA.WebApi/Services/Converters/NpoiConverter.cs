@@ -11,7 +11,7 @@ public sealed class NpoiConverter : BaseSpreadsheetConverter
     public override string Status => "full";
 
     public override string Description =>
-        "Spreadsheet code migration: NPOI (XSSF/HSSFWorkbook) → Canvas spreadsheet API (CanvasWorkbook). Roslyn-based: tracks the CreateRow/CreateCell variable model and inlines cell writes as sheet.Cell(r, c).Value(..)/Formula(..); CreateSheet → AddSheet, SetColumnWidth → Column().Width(), Write(stream) → Save(path). Column-width units and stream save are flagged for review.";
+        "Spreadsheet code migration: NPOI (XSSF/HSSFWorkbook) → PXA spreadsheet API (PxaWorkbook). Roslyn-based: tracks the CreateRow/CreateCell variable model and inlines cell writes as sheet.Cell(r, c).Value(..)/Formula(..); CreateSheet → AddSheet, SetColumnWidth → Column().Width(), Write(stream) → Save(path). Column-width units and stream save are flagged for review.";
 
     public override string ConvertCode(string sourceCode) =>
         new NpoiMigration().Migrate(sourceCode).MigratedCode;

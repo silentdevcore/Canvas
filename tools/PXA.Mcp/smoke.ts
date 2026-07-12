@@ -40,9 +40,7 @@ assert(badRes.includes('invalid type "bogus"'), `validate_design rejects an unkn
 
 const resources = (await client.listResources()).resources.map((r) => r.uri);
 assert(resources.includes('pxa://schema/design-export'), `PXA design-schema resource is exposed`);
-assert(resources.includes('canvas://schema/design-export'), `legacy design-schema resource alias is exposed`);
 assert(resources.includes('pxa://schema/pxa-workbook'), `PXA workbook-schema resource is exposed`);
-assert(resources.includes('canvas://schema/canvas-workbook'), `legacy workbook-schema resource alias is exposed`);
 
 await client.close();
 console.log('\nMCP smoke test passed.');

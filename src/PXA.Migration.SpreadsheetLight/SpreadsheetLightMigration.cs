@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace PXA.Migration.SpreadsheetLight;
 
 /// <summary>
-/// Migrates SpreadsheetLight (<c>SLDocument</c>) authoring code to the Canvas spreadsheet API
-/// (<c>CanvasWorkbook</c>). In SpreadsheetLight one <c>SLDocument</c> is both the workbook and the active
-/// worksheet; Canvas separates them, so this maps the document to a <c>CanvasWorkbook</c>, <b>injects</b>
+/// Migrates SpreadsheetLight (<c>SLDocument</c>) authoring code to the PXA spreadsheet API
+/// (<c>PxaWorkbook</c>). In SpreadsheetLight one <c>SLDocument</c> is both the workbook and the active
+/// worksheet; Canvas separates them, so this maps the document to a <c>PxaWorkbook</c>, <b>injects</b>
 /// <c>var sheet = &lt;doc&gt;.AddSheet("Sheet1");</c>, and retargets the cell calls to that worksheet.
 /// </summary>
 public sealed class SpreadsheetLightMigration : CSharpSourceMigration
@@ -71,7 +71,7 @@ public sealed class SpreadsheetLightMigration : CSharpSourceMigration
         {
             var visited = (ObjectCreationExpressionSyntax)base.VisitObjectCreationExpression(node)!;
             if (SimpleTypeName(visited.Type) == "SLDocument")
-                return visited.WithType(SyntaxFactory.IdentifierName("CanvasWorkbook").WithTriviaFrom(visited.Type))
+                return visited.WithType(SyntaxFactory.IdentifierName("PxaWorkbook").WithTriviaFrom(visited.Type))
                     .WithArgumentList(SyntaxFactory.ArgumentList());
             return visited;
         }

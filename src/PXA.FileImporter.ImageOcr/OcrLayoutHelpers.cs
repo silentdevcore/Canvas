@@ -3,7 +3,7 @@ using SkiaSharp;
 namespace PXA.FileImporter.ImageOcr;
 
 // Cross-cutting leaf helpers shared by the image-OCR pipeline stages
-// (VisualElementDetector, OcrVisualFusionEngine, CanvasElementBuilder) and the
+// (VisualElementDetector, OcrVisualFusionEngine, PxaElementBuilder) and the
 // ImageToPdfConverter orchestrator. Promoted verbatim from ImageToPdfConverter.
 internal static class OcrLayoutHelpers
 {

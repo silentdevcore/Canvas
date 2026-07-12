@@ -11,7 +11,7 @@ public sealed class SpreadsheetLightConverter : BaseSpreadsheetConverter
     public override string Status => "full";
 
     public override string Description =>
-        "Spreadsheet code migration: SpreadsheetLight SLDocument → Canvas spreadsheet API (CanvasWorkbook). The SLDocument doubles as the active worksheet, so the converter maps it to a CanvasWorkbook and injects `var sheet = doc.AddSheet(\"Sheet1\");`, retargeting SetCellValue (address or row/col, formulas via \"=\") at the worksheet; RenameWorksheet → sheet.Name; SaveAs → Save.";
+        "Spreadsheet code migration: SpreadsheetLight SLDocument → PXA spreadsheet API (PxaWorkbook). The SLDocument doubles as the active worksheet, so the converter maps it to a PxaWorkbook and injects `var sheet = doc.AddSheet(\"Sheet1\");`, retargeting SetCellValue (address or row/col, formulas via \"=\") at the worksheet; RenameWorksheet → sheet.Name; SaveAs → Save.";
 
     public override string ConvertCode(string sourceCode) =>
         new SpreadsheetLightMigration().Migrate(sourceCode).MigratedCode;

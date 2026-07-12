@@ -6,7 +6,7 @@ namespace PXA.FileImporter.ImageOcr;
 // Pipeline stage 4: converts fused semantic candidates into Canvas ElementDto
 // objects, applying page placement/scaling and source diagnostics to styles.
 // Promoted verbatim from ImageToPdfConverter.BuildDesign element construction.
-internal static class CanvasElementBuilder
+internal static class PxaElementBuilder
 {
     public static ImagePlacement ResolveImagePlacement(
         int imageWidthPx,

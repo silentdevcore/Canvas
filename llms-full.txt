@@ -92,7 +92,7 @@ contentcontrol.
 ## PXA-Compatible PDF C# API (essentials)
 
 ```csharp
-using Canvas.Pdf;
+using PXA.Pdf;
 using PXA.Generator;
 var document = Pdf.CreateDocument();           // AddPage(), AddPage(PdfPagePreset.Letter), AddPage(width,height)
 document.Info.Title = "Report";

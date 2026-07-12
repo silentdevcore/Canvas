@@ -179,7 +179,7 @@ public class SpreadsheetController : ControllerBase
         return Ok(new { workbook, count });
     }
 
-    /// <summary>Validates a workbook (Canvas Workbook JSON): structural + schemaVersion checks. Returns
+    /// <summary>Validates a workbook (PXA Workbook JSON): structural + schemaVersion checks. Returns
     /// <c>{ valid, version, supportedVersion, issues[] }</c>.</summary>
     [HttpPost("validate")]
     [ProducesResponseType(200)]

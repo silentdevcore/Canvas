@@ -76,7 +76,7 @@ public static class DesignJsonMapper
         document.Info.Author  = design.PageSettings?.Metadata?.Author  ?? "";
         document.Info.Subject = design.PageSettings?.Metadata?.Subject ?? design.Category ?? "";
         document.Info.Keywords = design.PageSettings?.Metadata?.Keywords ?? "";
-        document.Info.Creator = "Canvas PDF Renderer";
+        document.Info.Creator = "PXA PDF Renderer";
 
         var ps = design.PageSettings ?? new PageSettingsDto();
         var plannedPages = DesignLayoutPlanner.BuildPages(design);

@@ -6,9 +6,9 @@ namespace PXA.Infrastructure.Spreadsheet.Tests;
 public sealed class SpreadsheetInfrastructureFacadeTests
 {
     [Fact]
-    public void CanvasWorkbook_BuildsPxaWorkbookContract()
+    public void PxaWorkbook_BuildsPxaWorkbookContract()
     {
-        var workbook = new CanvasWorkbook("Budget");
+        var workbook = new PxaWorkbook("Budget");
         workbook.AddSheet("Data")
             .Cell("A1")
             .Value("Amount")

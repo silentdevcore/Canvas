@@ -3,7 +3,7 @@ using PXA.Core.Primitives;
 
 namespace PXA.Infrastructure.Spreadsheet;
 
-/// <summary>Structural + version validation for a <see cref="SpreadsheetDto"/> (Canvas Workbook JSON).</summary>
+/// <summary>Structural + version validation for a <see cref="SpreadsheetDto"/> (PXA Workbook JSON).</summary>
 public sealed class SpreadsheetValidator
 {
     private static readonly string[] CellTypes = ["number", "text", "boolean", "date", "formula", "empty"];

@@ -19,7 +19,7 @@ public sealed class IText7Migration : CSharpSourceMigration
         var root = tree.GetCompilationUnitRoot();
         var rewriter = new IText7SyntaxRewriter(root);
         var migratedRoot = (CompilationUnitSyntax)rewriter.Visit(root)!;
-        migratedRoot = EnsureCanvasUsing(RemoveITextUsings(migratedRoot));
+        migratedRoot = EnsurePxaUsing(RemoveITextUsings(migratedRoot));
 
         return new MigrationResult
         {
@@ -42,7 +42,7 @@ public sealed class IText7Migration : CSharpSourceMigration
         return root.WithUsings(SyntaxFactory.List(usings));
     }
 
-    private static CompilationUnitSyntax EnsureCanvasUsing(CompilationUnitSyntax root)
+    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root)
     {
         if (root.Usings.Any(static directive => directive.Name?.ToString() == "PXA.Pdf"))
         {
@@ -100,7 +100,7 @@ public sealed class IText7Migration : CSharpSourceMigration
             foreach (var (documentVariableName, documentInfo) in _documentInfoByVariable)
             {
                 members.Add(SyntaxFactory.GlobalStatement(CreateSaveStatement(documentVariableName, documentInfo.SaveTarget)));
-                _diagnostics.Add(Info("CANMIGITEXT007", "iText7 PdfWriter target was migrated to Canvas document.Save(...)."));
+                _diagnostics.Add(Info("CANMIGITEXT007", "iText7 PdfWriter target was migrated to PXA document.Save(...)."));
             }
 
             return visited.WithMembers(SyntaxFactory.List(members));
@@ -246,13 +246,13 @@ public sealed class IText7Migration : CSharpSourceMigration
 
             if (_writerTargetByVariable.ContainsKey(variableName))
             {
-                _diagnostics.Add(Info("CANMIGITEXT001", "iText7 PdfWriter construction was folded into Canvas document.Save(...)."));
+                _diagnostics.Add(Info("CANMIGITEXT001", "iText7 PdfWriter construction was folded into PXA document.Save(...)."));
                 return true;
             }
 
             if (_pdfWriterByVariable.ContainsKey(variableName))
             {
-                _diagnostics.Add(Info("CANMIGITEXT002", "iText7 kernel PdfDocument construction was folded into Canvas PdfDocument."));
+                _diagnostics.Add(Info("CANMIGITEXT002", "iText7 kernel PdfDocument construction was folded into PXA PdfDocument."));
                 return true;
             }
 
@@ -286,10 +286,10 @@ public sealed class IText7Migration : CSharpSourceMigration
             }
 
             pageVariableName = documentInfo.PageVariableName;
-            _diagnostics.Add(Info("CANMIGITEXT004", "iText7 layout Document construction was migrated to Canvas PdfDocument."));
+            _diagnostics.Add(Info("CANMIGITEXT004", "iText7 layout Document construction was migrated to PXA PdfDocument."));
             if (documentInfo.PageSize is not null)
             {
-                _diagnostics.Add(Info("CANMIGITEXT008", "iText7 PageSize was migrated to Canvas PdfPagePreset."));
+                _diagnostics.Add(Info("CANMIGITEXT008", "iText7 PageSize was migrated to PXA PdfPagePreset."));
             }
 
             var variable = declaration.Declaration.Variables[0]

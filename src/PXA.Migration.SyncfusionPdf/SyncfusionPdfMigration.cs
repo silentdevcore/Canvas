@@ -19,7 +19,7 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
         var root = tree.GetCompilationUnitRoot();
         var rewriter = new SyncfusionPdfSyntaxRewriter(root);
         var migratedRoot = (CompilationUnitSyntax)rewriter.Visit(root)!;
-        migratedRoot = EnsureCanvasUsing(RemoveSyncfusionUsings(migratedRoot));
+        migratedRoot = EnsurePxaUsing(RemoveSyncfusionUsings(migratedRoot));
 
         return new MigrationResult
         {
@@ -42,7 +42,7 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
         return root.WithUsings(SyntaxFactory.List(usings));
     }
 
-    private static CompilationUnitSyntax EnsureCanvasUsing(CompilationUnitSyntax root)
+    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root)
     {
         if (root.Usings.Any(static directive => directive.Name?.ToString() == "PXA.Pdf"))
         {
@@ -143,7 +143,7 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
                 && visited.Expression is MemberAccessExpressionSyntax pagesAccess
                 && pagesAccess.Name.Identifier.ValueText == "Pages")
             {
-                _diagnostics.Add(Info("CANMIGSYNC002", "Syncfusion document.Pages.Add() was migrated to Canvas document.AddPage()."));
+                _diagnostics.Add(Info("CANMIGSYNC002", "Syncfusion document.Pages.Add() was migrated to PXA document.AddPage()."));
 
                 return SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,

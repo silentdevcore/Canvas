@@ -19,7 +19,7 @@ public sealed class JrxmlConvertResult
 /// (<c>&lt;title&gt;</c>/<c>&lt;pageHeader&gt;</c>/<c>&lt;detail&gt;</c>/… each wrapping a
 /// <c>&lt;band&gt;</c>) — into a Canvas <see cref="DesignExportDto"/>. JasperReports coordinates are in
 /// points (pixels = 1/72in), so no unit scaling. Bands stack and flatten to absolute page coordinates
-/// (mirroring <c>Canvas.Migration.Rpx</c>); named <c>&lt;style&gt;</c> elements are resolved.
+/// (mirroring <c>PXA.Migration.Rpx</c>); named <c>&lt;style&gt;</c> elements are resolved.
 /// Elements are matched by <see cref="XName.LocalName"/> (namespace-agnostic).
 /// </summary>
 public sealed class JrxmlToDesignConverter
@@ -1176,7 +1176,7 @@ public sealed class JrxmlToDesignConverter
             else
             {
                 diagnostics.Add(Warn("CANMIGJRXML010",
-                    $"'{element.Name}' {JasperTokenLabel(kind)} '${kind}{{{name}}}' was normalized to Canvas expression '{element.Expression}'; review runtime semantics."));
+                    $"'{element.Name}' {JasperTokenLabel(kind)} '${kind}{{{name}}}' was normalized to PXA expression '{element.Expression}'; review runtime semantics."));
             }
         }
         else if (LooksLikeExpr(expression))
@@ -1185,7 +1185,7 @@ public sealed class JrxmlToDesignConverter
             if (string.IsNullOrEmpty(element.Content)) element.Content = element.Expression;
             element.Style ??= [];
             element.Style["jrxmlExpression"] = expression;
-            diagnostics.Add(Warn("CANMIGJRXML010", $"'{element.Name}' expression '{expression}' mapped to Canvas expression — review the syntax."));
+            diagnostics.Add(Warn("CANMIGJRXML010", $"'{element.Name}' expression '{expression}' mapped to PXA expression — review the syntax."));
         }
         else
         {

@@ -20,11 +20,11 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("Aspose", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
-        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
-        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
-        Assert.Contains("document.Save(outputStream);", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var page = document.AddPage();", result.PxaCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.PxaCode);
+        Assert.Contains("document.Save(outputStream);", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGASPOSE003");
         Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
         Assert.True(result.Summary.ConvertedCount > 0);
@@ -47,10 +47,10 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("Apryse", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
-        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
-        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var page = document.AddPage();", result.PxaCode);
+        Assert.Contains("document.Save(outputPath);", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGAPRYSE001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGAPRYSE003");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGAPRYSE004");
@@ -77,9 +77,9 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("iText7", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.Contains("page.DrawText(\"Smoke\", 72, 700, 12);", result.CanvasCode);
-        Assert.Contains("document.Save(outputStream);", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.Contains("page.DrawText(\"Smoke\", 72, 700, 12);", result.PxaCode);
+        Assert.Contains("document.Save(outputStream);", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGITEXT009");
         Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
         Assert.True(result.Summary.ConvertedCount > 0);
@@ -101,12 +101,12 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("IronPdf", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
-        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
-        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
-        Assert.DoesNotContain("ChromePdfRenderer", result.CanvasCode);
-        Assert.DoesNotContain("RenderHtmlAsPdf", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var page = document.AddPage();", result.PxaCode);
+        Assert.Contains("document.Save(outputPath);", result.PxaCode);
+        Assert.DoesNotContain("ChromePdfRenderer", result.PxaCode);
+        Assert.DoesNotContain("RenderHtmlAsPdf", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGIRONPDF001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGIRONPDF002");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGIRONPDF006");
@@ -133,11 +133,11 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("DevExpress", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
-        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
-        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
-        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var page = document.AddPage();", result.PxaCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.PxaCode);
+        Assert.Contains("document.Save(outputPath);", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGDEVEXP001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGDEVEXP005");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGDEVEXP008");
@@ -162,11 +162,11 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("DsPdf", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
-        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
-        Assert.Contains("page.DrawTextFromTop(\"Smoke\",", result.CanvasCode);
-        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var page = document.AddPage();", result.PxaCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\",", result.PxaCode);
+        Assert.Contains("document.Save(outputPath);", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGDSPDF001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGDSPDF003");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGDSPDF007");
@@ -190,13 +190,13 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("Foxit", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
-        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
-        Assert.Contains("page.DrawTextFromTop(\"Smoke\",", result.CanvasCode);
-        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
-        Assert.DoesNotContain("PDFDoc", result.CanvasCode);
-        Assert.DoesNotContain("InsertPage", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var page = document.AddPage();", result.PxaCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\",", result.PxaCode);
+        Assert.Contains("document.Save(outputPath);", result.PxaCode);
+        Assert.DoesNotContain("PDFDoc", result.PxaCode);
+        Assert.DoesNotContain("InsertPage", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGFOXIT001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGFOXIT004");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGFOXIT007");
@@ -222,13 +222,13 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("GemBox", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.DoesNotContain("GemBox.Pdf", result.CanvasCode);
-        Assert.DoesNotContain("ComponentInfo.SetLicense", result.CanvasCode);
-        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
-        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
-        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
-        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.DoesNotContain("GemBox.Pdf", result.PxaCode);
+        Assert.DoesNotContain("ComponentInfo.SetLicense", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var page = document.AddPage();", result.PxaCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.PxaCode);
+        Assert.Contains("document.Save(outputPath);", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGGEMBOX001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGGEMBOX003");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGGEMBOX007");
@@ -253,12 +253,12 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("Spire", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.DoesNotContain("Spire.Pdf", result.CanvasCode);
-        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
-        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
-        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
-        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.DoesNotContain("Spire.Pdf", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var page = document.AddPage();", result.PxaCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.PxaCode);
+        Assert.Contains("document.Save(outputPath);", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGSPIRE001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGSPIRE003");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGSPIRE007");
@@ -282,11 +282,11 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("PdfKitNet", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
-        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
-        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
-        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var page = document.AddPage();", result.PxaCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.PxaCode);
+        Assert.Contains("document.Save(outputPath);", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFKIT000");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFKIT003");
         Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
@@ -310,12 +310,12 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("Leadtools", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.DoesNotContain("using Leadtools", result.CanvasCode);
-        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
-        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
-        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
-        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.DoesNotContain("using Leadtools", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var page = document.AddPage();", result.PxaCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.PxaCode);
+        Assert.Contains("document.Save(outputPath);", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGLEAD000");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGLEAD003");
         Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
@@ -339,12 +339,12 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("ActivePdf", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.DoesNotContain("using activePDF", result.CanvasCode);
-        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
-        Assert.Contains("var page = document.AddPage();", result.CanvasCode);
-        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.CanvasCode);
-        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.DoesNotContain("using activePDF", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var page = document.AddPage();", result.PxaCode);
+        Assert.Contains("page.DrawTextFromTop(\"Smoke\", 40, 40, 12);", result.PxaCode);
+        Assert.Contains("document.Save(outputPath);", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGACTIVE000");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGACTIVE003");
         Assert.Equal(result.Diagnostics.Count, result.Summary.TotalDiagnostics);
@@ -369,12 +369,12 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("PdfTools", source);
 
-        Assert.Contains("using PdfTools;", result.CanvasCode);
-        Assert.Contains("using PdfTools.Pdf;", result.CanvasCode);
-        Assert.DoesNotContain("Sdk.Initialize", result.CanvasCode);
-        Assert.DoesNotContain("using PXA.Pdf;", result.CanvasCode);
-        Assert.Contains("Document.Open(input, null);", result.CanvasCode);
-        Assert.Contains("document.Save(outputPath);", result.CanvasCode);
+        Assert.Contains("using PdfTools;", result.PxaCode);
+        Assert.Contains("using PdfTools.Pdf;", result.PxaCode);
+        Assert.DoesNotContain("Sdk.Initialize", result.PxaCode);
+        Assert.DoesNotContain("using PXA.Pdf;", result.PxaCode);
+        Assert.Contains("Document.Open(input, null);", result.PxaCode);
+        Assert.Contains("document.Save(outputPath);", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLS000");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLS001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLS020");
@@ -409,12 +409,12 @@ public sealed class MigrationServiceTests
 
         var result = sut.Convert("PdfToolsToolbox", source);
 
-        Assert.Contains("using PXA.Pdf;", result.CanvasCode);
-        Assert.DoesNotContain("PdfTools.Toolbox", result.CanvasCode);
-        Assert.Contains("var document = new PdfDocument();", result.CanvasCode);
-        Assert.Contains("var outPage = document.AddPage(PdfPagePreset.A4, false);", result.CanvasCode);
-        Assert.Contains("outPage.DrawTextFromTop(\"Smoke\", 72, 72, 20);", result.CanvasCode);
-        Assert.Contains("document.Save(outPath);", result.CanvasCode);
+        Assert.Contains("using PXA.Pdf;", result.PxaCode);
+        Assert.DoesNotContain("PdfTools.Toolbox", result.PxaCode);
+        Assert.Contains("var document = new PdfDocument();", result.PxaCode);
+        Assert.Contains("var outPage = document.AddPage(PdfPagePreset.A4, false);", result.PxaCode);
+        Assert.Contains("outPage.DrawTextFromTop(\"Smoke\", 72, 72, 20);", result.PxaCode);
+        Assert.Contains("document.Save(outPath);", result.PxaCode);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLBOX000");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLBOX001");
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "CANMIGPDFTOOLBOX002");

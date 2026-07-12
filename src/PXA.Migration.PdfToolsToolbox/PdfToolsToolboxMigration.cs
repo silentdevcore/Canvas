@@ -26,7 +26,7 @@ public sealed class PdfToolsToolboxMigration : CSharpSourceMigration
         diagnostics.AddRange(rewriter.Diagnostics);
         diagnostics.AddRange(ScanForManualWork(root));
 
-        var introducedCanvasCode = rewriter.IntroducedCanvasCode;
+        var introducedPxaCode = rewriter.IntroducedPxaCode;
         var hasToolboxRemainders = HasToolboxRemainders(rewritten);
 
         if (hasToolboxRemainders)
@@ -39,8 +39,8 @@ public sealed class PdfToolsToolboxMigration : CSharpSourceMigration
             rewritten = RemoveToolboxUsings(rewritten);
         }
 
-        if (introducedCanvasCode)
-            rewritten = EnsureCanvasUsing(rewritten);
+        if (introducedPxaCode)
+            rewritten = EnsurePxaUsing(rewritten);
 
         return new MigrationResult
         {
@@ -148,7 +148,7 @@ public sealed class PdfToolsToolboxMigration : CSharpSourceMigration
         }.Any(marker => memberText.Contains(marker, StringComparison.Ordinal));
     }
 
-    private static CompilationUnitSyntax EnsureCanvasUsing(CompilationUnitSyntax root)
+    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root)
     {
         if (root.Usings.Any(static directive => directive.Name?.ToString() == "PXA.Pdf"))
             return root;
@@ -186,7 +186,7 @@ public sealed class PdfToolsToolboxMigration : CSharpSourceMigration
         }
 
         public IReadOnlyList<MigrationDiagnostic> Diagnostics => _diagnostics;
-        public bool IntroducedCanvasCode { get; private set; }
+        public bool IntroducedPxaCode { get; private set; }
 
         public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
         {
@@ -238,14 +238,14 @@ public sealed class PdfToolsToolboxMigration : CSharpSourceMigration
             if (IsDocumentCreateStatement(statement))
             {
                 _diagnostics.Add(Info("CANMIGPDFTOOLBOX001", "PDF Toolbox Document.Create(...) -> new PXA.Pdf.PdfDocument()"));
-                IntroducedCanvasCode = true;
+                IntroducedPxaCode = true;
                 return [MakeGlobal("var document = new PdfDocument();", statement)];
             }
 
             if (IsPageCreateStatement(statement, out var pageVariable, out var addPageExpression))
             {
                 _diagnostics.Add(Info("CANMIGPDFTOOLBOX002", $"PDF Toolbox Page.Create(...) -> document.{addPageExpression}"));
-                IntroducedCanvasCode = true;
+                IntroducedPxaCode = true;
                 return [MakeGlobal($"var {pageVariable} = document.{addPageExpression};", statement)];
             }
 
@@ -282,7 +282,7 @@ public sealed class PdfToolsToolboxMigration : CSharpSourceMigration
                 return null;
 
             _context.SaveInserted = true;
-            IntroducedCanvasCode = true;
+            IntroducedPxaCode = true;
             _diagnostics.Add(Info("CANMIGPDFTOOLBOX007", $"PDF Toolbox output target -> document.Save({_context.OutputPath})."));
             return original != null
                 ? MakeGlobal($"document.Save({_context.OutputPath});", original)
@@ -398,7 +398,7 @@ public sealed class PdfToolsToolboxMigration : CSharpSourceMigration
                 var fontSize = _context.FontSize ?? "12";
                 converted = $"{_context.PageVariable}.DrawTextFromTop({text}, {position.X}, {position.TopY}, {fontSize});";
                 _diagnostics.Add(Info("CANMIGPDFTOOLBOX003", "PDF Toolbox TextGenerator.ShowLine(...) -> page.DrawTextFromTop(...)"));
-                IntroducedCanvasCode = true;
+                IntroducedPxaCode = true;
                 return true;
             }
 

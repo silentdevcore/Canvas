@@ -17,7 +17,7 @@ public sealed class FrxConvertResult
 /// Converts a FastReport .NET <c>.frx</c> report — plain, namespace-free XML with a <b>banded</b> layout
 /// (root <c>&lt;Report&gt;</c> → <c>&lt;ReportPage&gt;</c> → <c>*Band</c> elements holding objects) — into a
 /// Canvas <see cref="DesignExportDto"/>. Like ActiveReports <c>.rpx</c> this is band-relative, so it
-/// mirrors the <c>Canvas.Migration.Rpx</c> band-flatten approach. Object geometry is in <b>pixels</b>
+/// mirrors the <c>PXA.Migration.Rpx</c> band-flatten approach. Object geometry is in <b>pixels</b>
 /// (96 dpi) and page size in <b>millimetres</b>; sub-properties are dotted attributes
 /// (<c>Fill.Color</c>, <c>Border.Color</c>, <c>Font="Tahoma, 9pt, style=Bold"</c>). Elements are matched
 /// by <see cref="XName.LocalName"/>.
@@ -315,7 +315,7 @@ public sealed class FrxToDesignConverter
         return m.Success ? $"{{{{{LastSegment(m.Groups[1].Value)}}}}}" : text;
     }
 
-    // ── Band-flatten build (mirrors Canvas.Migration.Rpx) ──────────────────────────────────────────
+    // ── Band-flatten build (mirrors PXA.Migration.Rpx) ──────────────────────────────────────────
 
     private static FrxConvertResult BuildDesign(RawReport report)
     {
@@ -608,13 +608,13 @@ public sealed class FrxToDesignConverter
         {
             // A fully-bracketed FastReport expression ([Sum([Items.Total])], [[Qty] * [Price]]) is evaluated:
             // strip the outer delimiter so inner [Source.Column] refs match the DevExpress dialect, then reuse
-            // that translator (IIf/operators + Sum/Avg/... aggregates → executable Canvas grammar). Mixed
+            // that translator (IIf/operators + Sum/Avg/... aggregates → executable PXA grammar). Mixed
             // literal+field text (e.g. "Page [Page]") is preserved verbatim. Raw kept for review either way.
             element.Expression = IsFullyBracketed(expression)
                 ? ExpressionTranslator.TranslateDevExpress(expression[1..^1], dataSetPath) ?? expression
                 : expression;
             if (string.IsNullOrEmpty(element.Content)) element.Content = expression;
-            diagnostics.Add(Warn("CANMIGFRX010", $"'{element.Name}' expression '{expression}' mapped to Canvas expression — review the syntax."));
+            diagnostics.Add(Warn("CANMIGFRX010", $"'{element.Name}' expression '{expression}' mapped to PXA expression — review the syntax."));
         }
     }
 

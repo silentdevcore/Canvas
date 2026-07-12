@@ -20,7 +20,7 @@ public sealed class DevExpressPdfMigration : CSharpSourceMigration
         // symbols (processor/graphics/page) still resolve, letting us match receivers by symbol
         // identity rather than fragile string names. Falls back to name matching when unresolved.
         var compilation = CSharpCompilation.Create(
-            "Canvas.Migration.DevExpress.Semantic",
+            "PXA.Migration.DevExpress.Semantic",
             new[] { tree },
             new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location) });
         var semanticModel = compilation.GetSemanticModel(tree);
@@ -38,7 +38,7 @@ public sealed class DevExpressPdfMigration : CSharpSourceMigration
             semanticModel, processorSymbol, graphicsSymbol, fontSizes, encryption);
         var newRoot = (CompilationUnitSyntax)rewriter.Visit(root)!;
         newRoot = RemoveDevExpressUsings(newRoot);
-        newRoot = EnsureCanvasUsing(newRoot);
+        newRoot = EnsurePxaUsing(newRoot);
 
         var diagnostics = rewriter.Diagnostics.ToList();
         diagnostics.AddRange(ScanForUnsupportedIdentifiers(root));
@@ -140,7 +140,7 @@ public sealed class DevExpressPdfMigration : CSharpSourceMigration
         public string? OwnerPassword { get; init; }
         public bool Recognized { get; init; }
 
-        public string BuildCanvasSaveOptions()
+        public string BuildPxaSaveOptions()
         {
             var props = new List<string>();
             if (UserPassword != null) props.Add($"UserPassword = {UserPassword}");
@@ -274,7 +274,7 @@ public sealed class DevExpressPdfMigration : CSharpSourceMigration
         return root.WithUsings(SyntaxFactory.List(filtered));
     }
 
-    private static CompilationUnitSyntax EnsureCanvasUsing(CompilationUnitSyntax root)
+    private static CompilationUnitSyntax EnsurePxaUsing(CompilationUnitSyntax root)
     {
         if (root.Usings.Any(static u => u.Name?.ToString() == "PXA.Pdf"))
             return root;
@@ -436,7 +436,7 @@ public sealed class DevExpressPdfMigration : CSharpSourceMigration
 
                 if (args.Count >= 2 && _encryption.Recognized)
                 {
-                    var options = _encryption.BuildCanvasSaveOptions();
+                    var options = _encryption.BuildPxaSaveOptions();
                     _diagnostics.Add(Info("CANMIGDEVEXP010",
                         "DevExpress encryption mapped to PdfSaveOptions.Encryption."));
                     _diagnostics.Add(Info("CANMIGDEVEXP008",
@@ -662,7 +662,7 @@ public sealed class DevExpressPdfMigration : CSharpSourceMigration
                 v.Initializer?.Value is ObjectCreationExpressionSyntax c && GetSimpleName(c.Type) == "DXFont");
         }
 
-        // True for the encryption statements that BuildCanvasSaveOptions has already absorbed:
+        // True for the encryption statements that BuildPxaSaveOptions has already absorbed:
         // the PdfEncryptionOptions/PdfSaveOptions declarations and any member assignments on them.
         private bool IsConsumedEncryptionStatement(GlobalStatementSyntax node)
         {

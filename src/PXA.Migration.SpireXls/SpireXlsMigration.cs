@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace PXA.Migration.SpireXls;
 
 /// <summary>
-/// Migrates Spire.XLS (e-iceblue <c>Workbook</c>) authoring code to the Canvas spreadsheet API
-/// (<c>CanvasWorkbook</c>). Roslyn-based: workbook/worksheet, <c>Range["A1"]</c> indexer, Text/Value/Number/
+/// Migrates Spire.XLS (e-iceblue <c>Workbook</c>) authoring code to the PXA spreadsheet API
+/// (<c>PxaWorkbook</c>). Roslyn-based: workbook/worksheet, <c>Range["A1"]</c> indexer, Text/Value/Number/
 /// Formula, IsBold style, merge, SaveToFile. Charts and complex styles are flagged for manual review.
 /// </summary>
 public sealed class SpireXlsMigration : CSharpSourceMigration
@@ -54,7 +54,7 @@ public sealed class SpireXlsMigration : CSharpSourceMigration
         var names = root.DescendantNodes().OfType<IdentifierNameSyntax>()
             .Select(i => i.Identifier.ValueText).ToHashSet(StringComparer.Ordinal);
         if (names.Overlaps(new[] { "Chart", "Charts", "PivotTable", "PivotTables" }))
-            yield return Warn("CANMIGSPXL030", "Charts / pivot tables are not supported by the Canvas spreadsheet engine; migrate manually.");
+            yield return Warn("CANMIGSPXL030", "Charts / pivot tables are not supported by the PXA spreadsheet engine; migrate manually.");
     }
 
     private static MigrationDiagnostic Info(string id, string m) => new() { Id = id, Message = m, Severity = MigrationDiagnosticSeverity.Info };
@@ -76,7 +76,7 @@ public sealed class SpireXlsMigration : CSharpSourceMigration
                     Diagnostics.Add(Info("CANMIGSPXL011", "Spire Workbook auto-creates default worksheets; Worksheets[0] is mapped to AddSheet(\"Sheet1\")."));
                     _notedDefaultSheet = true;
                 }
-                return visited.WithType(SyntaxFactory.IdentifierName("CanvasWorkbook").WithTriviaFrom(visited.Type))
+                return visited.WithType(SyntaxFactory.IdentifierName("PxaWorkbook").WithTriviaFrom(visited.Type))
                     .WithArgumentList(SyntaxFactory.ArgumentList());
             }
             return visited;

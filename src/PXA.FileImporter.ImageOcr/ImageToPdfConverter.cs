@@ -10,7 +10,7 @@ namespace PXA.FileImporter.ImageOcr;
 //   2. VisualElementDetector  — pixel-only visual candidates (rules, shapes, ...).
 //   3. OcrVisualFusionEngine  — fuse OCR text with visual candidates (tables,
 //                               fields, signatures, standalone text groups).
-//   4. CanvasElementBuilder   — build Canvas ElementDto objects.
+//   4. PxaElementBuilder   — build PXA ElementDto objects.
 public sealed class ImageToPdfConverter
 {
     private const double DefaultDpi = 300;
@@ -178,7 +178,7 @@ public sealed class ImageToPdfConverter
         ImageToPdfConversionOptions options)
     {
         var elements = new List<ElementDto>();
-        var placement = CanvasElementBuilder.ResolveImagePlacement(bitmap.Width, bitmap.Height, pageWidth, pageHeight);
+        var placement = PxaElementBuilder.ResolveImagePlacement(bitmap.Width, bitmap.Height, pageWidth, pageHeight);
         // Snapshot pixels once; the detection stages read this instead of SKBitmap.GetPixel.
         var pixels = new OcrPixels(bitmap);
         var pixelCount = (long)bitmap.Width * bitmap.Height;
@@ -203,12 +203,12 @@ public sealed class ImageToPdfConverter
             var toTables = OcrVisualFusionEngine.DetectColumnAlignedTables(lines);
             var toTableLines = toTables.SelectMany(t => t.Lines).ToHashSet();
             foreach (var table in toTables)
-                elements.Add(CanvasElementBuilder.BuildTableElement(table, placement, pixels));
+                elements.Add(PxaElementBuilder.BuildTableElement(table, placement, pixels));
 
             var textOnlyGroups = OcrVisualFusionEngine.BuildTextGroups(
                 lines.Where(l => !toTableLines.Contains(l)).ToList(), options);
             foreach (var textGroup in textOnlyGroups)
-                elements.AddRange(CanvasElementBuilder.BuildTextElements(textGroup, placement, pixels, baselineHeightPx, splitRuns: false));
+                elements.AddRange(PxaElementBuilder.BuildTextElements(textGroup, placement, pixels, baselineHeightPx, splitRuns: false));
 
             return new DesignBuildResult(
                 BuildDesignDto(name, pageWidth, pageHeight, elements),
@@ -230,7 +230,7 @@ public sealed class ImageToPdfConverter
                     .OrderByDescending(f => (long)f.Bounds.Width * f.Bounds.Height)
                     .ToList();
                 foreach (var fill in fills)
-                    elements.Add(CanvasElementBuilder.BuildShapeElement(fill, placement));
+                    elements.Add(PxaElementBuilder.BuildShapeElement(fill, placement));
             }
             finally
             {
@@ -243,12 +243,12 @@ public sealed class ImageToPdfConverter
             var bgTables = OcrVisualFusionEngine.DetectColumnAlignedTables(lines);
             var bgTableLines = bgTables.SelectMany(t => t.Lines).ToHashSet();
             foreach (var table in bgTables)
-                elements.Add(CanvasElementBuilder.BuildTableElement(table, placement, pixels));
+                elements.Add(PxaElementBuilder.BuildTableElement(table, placement, pixels));
 
             var bgTextGroups = OcrVisualFusionEngine.BuildTextGroups(
                 lines.Where(l => !bgTableLines.Contains(l)).ToList(), options);
             foreach (var textGroup in bgTextGroups)
-                elements.AddRange(CanvasElementBuilder.BuildTextElements(textGroup, placement, pixels, baselineHeightPx, splitRuns: false));
+                elements.AddRange(PxaElementBuilder.BuildTextElements(textGroup, placement, pixels, baselineHeightPx, splitRuns: false));
 
             return new DesignBuildResult(
                 BuildDesignDto(name, pageWidth, pageHeight, elements),
@@ -373,35 +373,35 @@ public sealed class ImageToPdfConverter
         // Stage 4: build elements in priority order (table, checkbox, signature,
         // field, image region, shape, text).
         if (options.IncludeBackgroundImage)
-            elements.Add(CanvasElementBuilder.BuildBackgroundImageElement(dataUri, placement));
+            elements.Add(PxaElementBuilder.BuildBackgroundImageElement(dataUri, placement));
 
         foreach (var table in tableCandidates)
-            elements.Add(CanvasElementBuilder.BuildTableElement(table, placement, pixels));
+            elements.Add(PxaElementBuilder.BuildTableElement(table, placement, pixels));
 
         foreach (var checkbox in checkboxCandidates)
-            elements.Add(CanvasElementBuilder.BuildCheckboxElement(checkbox, placement));
+            elements.Add(PxaElementBuilder.BuildCheckboxElement(checkbox, placement));
 
         foreach (var field in fieldCandidates)
-            elements.Add(CanvasElementBuilder.BuildFieldElement(field, placement));
+            elements.Add(PxaElementBuilder.BuildFieldElement(field, placement));
 
         foreach (var signature in signatureCandidates)
-            elements.Add(CanvasElementBuilder.BuildSignatureElement(signature, placement));
+            elements.Add(PxaElementBuilder.BuildSignatureElement(signature, placement));
 
         foreach (var filledRectangle in filledRectangleCandidates)
-            elements.Add(CanvasElementBuilder.BuildShapeElement(filledRectangle, placement));
+            elements.Add(PxaElementBuilder.BuildShapeElement(filledRectangle, placement));
 
         foreach (var circle in circleCandidates)
-            elements.Add(CanvasElementBuilder.BuildShapeElement(circle, placement));
+            elements.Add(PxaElementBuilder.BuildShapeElement(circle, placement));
 
         foreach (var shape in shapeCandidates)
-            elements.Add(CanvasElementBuilder.BuildShapeElement(shape, placement));
+            elements.Add(PxaElementBuilder.BuildShapeElement(shape, placement));
 
         foreach (var imageRegion in imageRegionCandidates)
-            elements.Add(CanvasElementBuilder.BuildImageRegionElement(imageRegion, placement, bitmap));
+            elements.Add(PxaElementBuilder.BuildImageRegionElement(imageRegion, placement, bitmap));
 
         var textGroups = OcrVisualFusionEngine.BuildTextGroups(lines.Where(l => !tableLines.Contains(l) && !fieldLabelLines.Contains(l) && !signatureLabelLines.Contains(l)).ToList(), options);
         foreach (var textGroup in textGroups)
-            elements.AddRange(CanvasElementBuilder.BuildTextElements(textGroup, placement, pixels, baselineHeightPx, splitRuns: true));
+            elements.AddRange(PxaElementBuilder.BuildTextElements(textGroup, placement, pixels, baselineHeightPx, splitRuns: true));
 
         return new DesignBuildResult(
             BuildDesignDto(name, pageWidth, pageHeight, elements),
@@ -434,7 +434,7 @@ public sealed class ImageToPdfConverter
                 Metadata = new PdfMetadataDto
                 {
                     Title = name,
-                    Subject = "Converted with Canvas Image OCR Converter",
+                    Subject = "Converted with PXA Image OCR Converter",
                 },
             },
         };

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace PXA.Migration.EpplusSpreadsheet;
 
 /// <summary>
-/// Migrates EPPlus (<c>ExcelPackage</c>) authoring code to the Canvas spreadsheet API (<c>CanvasWorkbook</c>).
+/// Migrates EPPlus (<c>ExcelPackage</c>) authoring code to the PXA spreadsheet API (<c>PxaWorkbook</c>).
 /// Roslyn-based: rewrites the package/worksheet/cell-indexer/value/formula/merge/style/save calls and shifts
 /// EPPlus's 1-based indexes to Canvas's 0-based. Charts, pivots, conditional formatting, and data validation
 /// are flagged for manual review.
@@ -61,7 +61,7 @@ public sealed class EpplusSpreadsheetMigration : CSharpSourceMigration
             .Select(i => i.Identifier.ValueText).ToHashSet(StringComparer.Ordinal);
 
         if (names.Overlaps(new[] { "PivotTables", "PivotTable", "Drawings", "Chart" }))
-            yield return Warn("CANMIGEPPL030", "Pivot tables / charts / drawings are not supported by the Canvas spreadsheet engine; migrate manually.");
+            yield return Warn("CANMIGEPPL030", "Pivot tables / charts / drawings are not supported by the PXA spreadsheet engine; migrate manually.");
 
         if (names.Overlaps(new[] { "ConditionalFormatting", "AutoFilter", "DataValidations", "DataValidation" }))
             yield return Warn("CANMIGEPPL031",
@@ -83,8 +83,8 @@ public sealed class EpplusSpreadsheetMigration : CSharpSourceMigration
             if (SimpleTypeName(visited.Type) == "ExcelPackage")
             {
                 if (visited.ArgumentList?.Arguments.Count > 0)
-                    Diagnostics.Add(Warn("CANMIGEPPL023", "new ExcelPackage(file/stream) loads an existing file; Canvas import is via ExcelWorkbookImporter — review."));
-                return visited.WithType(SyntaxFactory.IdentifierName("CanvasWorkbook").WithTriviaFrom(visited.Type))
+                    Diagnostics.Add(Warn("CANMIGEPPL023", "new ExcelPackage(file/stream) loads an existing file; PXA import is via ExcelWorkbookImporter — review."));
+                return visited.WithType(SyntaxFactory.IdentifierName("PxaWorkbook").WithTriviaFrom(visited.Type))
                     .WithArgumentList(SyntaxFactory.ArgumentList());
             }
             return visited;
@@ -131,14 +131,14 @@ public sealed class EpplusSpreadsheetMigration : CSharpSourceMigration
 
             // pkg.Save() (no path) → can't map directly
             if (name == "Save" && visited.ArgumentList.Arguments.Count == 0)
-                Diagnostics.Add(Warn("CANMIGEPPL025", "EPPlus Save() writes to the package's own file; Canvas Save(path) needs a target path."));
+                Diagnostics.Add(Warn("CANMIGEPPL025", "EPPlus Save() writes to the package's own file; PXA Save(path) needs a target path."));
 
             // numeric Column(i)/Row(i) → 0-based
             if ((name == "Column" || name == "Row") && visited.ArgumentList.Arguments.Count == 1
                 && IsNumeric(visited.ArgumentList.Arguments[0].Expression))
             {
                 AppliedIndexShift = true;
-                if (name == "Row") Diagnostics.Add(Warn("CANMIGEPPL021", "Row(i) has no direct Canvas builder method; review row height/grouping manually."));
+                if (name == "Row") Diagnostics.Add(Warn("CANMIGEPPL021", "Row(i) has no direct PXA builder method; review row height/grouping manually."));
                 return visited.WithArgumentList(ShiftArgs(visited.ArgumentList));
             }
 

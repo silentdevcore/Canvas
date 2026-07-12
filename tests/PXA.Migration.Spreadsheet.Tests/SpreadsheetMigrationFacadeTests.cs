@@ -19,7 +19,7 @@ public sealed class SpreadsheetMigrationFacadeTests
 
         MigrationResult result = new AsposeCellsMigration().Migrate(source);
 
-        Assert.Contains("new CanvasWorkbook()", result.MigratedCode);
+        Assert.Contains("new PxaWorkbook()", result.MigratedCode);
         Assert.Contains("wb.AddSheet(\"Sheet1\")", result.MigratedCode);
         Assert.Contains("ws.Cell(\"A1\").Value(\"Item\")", result.MigratedCode);
         Assert.Contains("ws.Cell(0, 1).Value(10)", result.MigratedCode);
@@ -40,7 +40,7 @@ public sealed class SpreadsheetMigrationFacadeTests
 
         MigrationResult result = new ClosedXmlSpreadsheetMigration().Migrate(source);
 
-        Assert.Contains("new CanvasWorkbook()", result.MigratedCode);
+        Assert.Contains("new PxaWorkbook()", result.MigratedCode);
         Assert.Contains("wb.AddSheet(\"Sheet1\")", result.MigratedCode);
         Assert.Contains("ws.Cell(\"A1\").Value(\"Item\")", result.MigratedCode);
         Assert.Contains("wb.Save(\"out.xlsx\")", result.MigratedCode);
@@ -82,7 +82,7 @@ public sealed class SpreadsheetMigrationFacadeTests
         MigrationResult result = new GemBoxSpreadsheetMigration().Migrate(source);
 
         Assert.DoesNotContain("SetLicense", result.MigratedCode);
-        Assert.Contains("new CanvasWorkbook()", result.MigratedCode);
+        Assert.Contains("new PxaWorkbook()", result.MigratedCode);
         Assert.Contains("wb.AddSheet(\"Sheet1\")", result.MigratedCode);
         Assert.Contains("ws.Cell(\"A1\").Value(\"Item\")", result.MigratedCode);
         Assert.Contains("ws.Cell(0, 1).Value(10)", result.MigratedCode);
@@ -107,7 +107,7 @@ public sealed class SpreadsheetMigrationFacadeTests
 
         MigrationResult result = new NpoiMigration().Migrate(source);
 
-        Assert.Contains("new CanvasWorkbook()", result.MigratedCode);
+        Assert.Contains("new PxaWorkbook()", result.MigratedCode);
         Assert.Contains("wb.AddSheet(\"Sales\")", result.MigratedCode);
         Assert.Contains("sheet.Cell(0, 0).Value(\"Item\")", result.MigratedCode);
         Assert.Contains("sheet.Cell(0, 1).Value(\"Qty\")", result.MigratedCode);
@@ -132,7 +132,7 @@ public sealed class SpreadsheetMigrationFacadeTests
 
         MigrationResult result = new SpireXlsMigration().Migrate(source);
 
-        Assert.Contains("new CanvasWorkbook()", result.MigratedCode);
+        Assert.Contains("new PxaWorkbook()", result.MigratedCode);
         Assert.Contains("workbook.AddSheet(\"Sheet1\")", result.MigratedCode);
         Assert.Contains("sheet.Cell(\"A1\").Value(\"Item\")", result.MigratedCode);
         Assert.Contains("sheet.Cell(\"B1\").Value(3)", result.MigratedCode);
@@ -157,7 +157,7 @@ public sealed class SpreadsheetMigrationFacadeTests
 
         MigrationResult result = new SpreadsheetLightMigration().Migrate(source);
 
-        Assert.Contains("new CanvasWorkbook()", result.MigratedCode);
+        Assert.Contains("new PxaWorkbook()", result.MigratedCode);
         Assert.Contains("var sheet = doc.AddSheet(\"Sheet1\");", result.MigratedCode);
         Assert.Contains("sheet.Cell(\"A1\").Value(\"Item\")", result.MigratedCode);
         Assert.Contains("sheet.Cell(\"B1\").Value(3)", result.MigratedCode);
@@ -186,7 +186,7 @@ public sealed class SpreadsheetMigrationFacadeTests
 
         MigrationResult result = new SyncfusionXlsIoMigration().Migrate(source);
 
-        Assert.Contains("new CanvasWorkbook()", result.MigratedCode);
+        Assert.Contains("new PxaWorkbook()", result.MigratedCode);
         Assert.Contains("workbook.AddSheet(\"Sheet1\")", result.MigratedCode);
         Assert.Contains("worksheet.Cell(\"A1\").Value(\"Item\")", result.MigratedCode);
         Assert.Contains("worksheet.Cell(\"B1\").Value(3)", result.MigratedCode);

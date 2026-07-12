@@ -1,4 +1,4 @@
-# Snapshot Testing Notes (Canvas.Infrastructure.Pdf.Tests)
+# Snapshot Testing Notes (PXA.Infrastructure.Pdf.Tests)
 
 ## Golden test
 - Test: `PdfGoldenSnapshotTests.ToBytes_ShouldMatchGoldenHash_ForRepresentativeDocument`

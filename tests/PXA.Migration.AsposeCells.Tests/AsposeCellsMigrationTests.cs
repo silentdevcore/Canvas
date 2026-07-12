@@ -20,7 +20,7 @@ public sealed class AsposeCellsMigrationTests
 
         var code = new AsposeCellsMigration().Migrate(src).MigratedCode;
 
-        Assert.Contains("new CanvasWorkbook()", code);
+        Assert.Contains("new PxaWorkbook()", code);
         Assert.Contains("wb.AddSheet(\"Sheet1\")", code);            // Worksheets[0] → AddSheet
         Assert.Contains("ws.Cell(\"A1\").Value(\"Item\")", code);    // Cells[..] + PutValue → Cell().Value()
         Assert.Contains("ws.Cell(0, 1).Value(10)", code);            // 0-based: unchanged

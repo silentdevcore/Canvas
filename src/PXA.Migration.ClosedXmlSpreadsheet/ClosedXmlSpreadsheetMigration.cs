@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace PXA.Migration.ClosedXmlSpreadsheet;
 
 /// <summary>
-/// Migrates ClosedXML (<c>XLWorkbook</c>) authoring code to the Canvas spreadsheet API
-/// (<c>CanvasWorkbook</c>, see <c>PXA.Infrastructure.Spreadsheet.CanvasWorkbookBuilder</c>).
+/// Migrates ClosedXML (<c>XLWorkbook</c>) authoring code to the PXA spreadsheet API
+/// (<c>PxaWorkbook</c>, see <c>PXA.Infrastructure.Spreadsheet.PxaWorkbookBuilder</c>).
 /// Roslyn-based: rewrites workbook/worksheet/cell/value/formula/style/save calls and shifts ClosedXML's
 /// 1-based indexes to Canvas's 0-based. Charts, pivots, conditional formatting, data validation, and
 /// auto-filter are flagged for manual review.
@@ -62,7 +62,7 @@ public sealed class ClosedXmlSpreadsheetMigration : CSharpSourceMigration
             .Select(i => i.Identifier.ValueText).ToHashSet(StringComparer.Ordinal);
 
         if (names.Overlaps(new[] { "PivotTable", "PivotTables", "AddPivotTable" }))
-            yield return Warning("CANMIGCLXL030", "Pivot tables are not supported by the Canvas spreadsheet engine; migrate manually.");
+            yield return Warning("CANMIGCLXL030", "Pivot tables are not supported by the PXA spreadsheet engine; migrate manually.");
 
         if (names.Overlaps(new[] { "AddConditionalFormat", "SetAutoFilter", "SetDataValidation", "CreateDataValidation" }))
             yield return Warning("CANMIGCLXL031",
@@ -85,7 +85,7 @@ public sealed class ClosedXmlSpreadsheetMigration : CSharpSourceMigration
         {
             var visited = (ObjectCreationExpressionSyntax)base.VisitObjectCreationExpression(node)!;
             if (SimpleTypeName(visited.Type) == "XLWorkbook")
-                return visited.WithType(SyntaxFactory.IdentifierName("CanvasWorkbook").WithTriviaFrom(visited.Type));
+                return visited.WithType(SyntaxFactory.IdentifierName("PxaWorkbook").WithTriviaFrom(visited.Type));
             return visited;
         }
 

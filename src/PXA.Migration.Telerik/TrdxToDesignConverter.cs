@@ -16,9 +16,9 @@ public sealed class TrdxConvertResult
 /// Converts a Telerik Reporting <c>.trdx</c> report — namespaced XML
 /// (<c>http://schemas.telerik.com/reporting/…</c>) with a <b>sectioned</b> layout — into a Canvas
 /// <see cref="DesignExportDto"/>. It is a hybrid: geometry is in CSS-like Unit strings
-/// (<c>"8.1in"</c>, like <c>Canvas.Migration.Rdl</c>) while sections (<c>PageHeaderSection</c>,
+/// (<c>"8.1in"</c>, like <c>PXA.Migration.Rdl</c>) while sections (<c>PageHeaderSection</c>,
 /// <c>DetailSection</c>, …) stack and flatten to absolute page coordinates (like
-/// <c>Canvas.Migration.Rpx</c>). Named styles are resolved from the report's <c>&lt;StyleSheet&gt;</c>.
+/// <c>PXA.Migration.Rpx</c>). Named styles are resolved from the report's <c>&lt;StyleSheet&gt;</c>.
 /// Elements are matched by <see cref="XName.LocalName"/> (namespace-agnostic).
 /// </summary>
 public sealed class TrdxToDesignConverter
