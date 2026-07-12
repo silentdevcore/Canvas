@@ -126,15 +126,11 @@ public sealed class ProcessIsolatedTesseractOcrEngine : IOcrEngine
         if (File.Exists(dllPath))
             return dllPath;
 
-        var legacyDllPath = Path.Combine(workerDir, "Canvas.FileImporter.ImageOcr.Worker.dll");
-        if (File.Exists(legacyDllPath))
-            return legacyDllPath;
-
         dllPath = Path.Combine(baseDir, "PXA.FileImporter.ImageOcr.Worker.dll");
         if (File.Exists(dllPath))
             return dllPath;
 
-        return Path.Combine(baseDir, "Canvas.FileImporter.ImageOcr.Worker.dll");
+        return Path.Combine(baseDir, "PXA.FileImporter.ImageOcr.Worker.dll");
     }
 
     private static void TryDeleteDirectory(string path)

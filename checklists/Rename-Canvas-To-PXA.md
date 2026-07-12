@@ -2,10 +2,12 @@
 
 ## Summary
 
-Create a later implementation path for renaming **Canvas** to **Power Dox Automation / PXA**.
+Track the completed breaking rename from **Canvas** to **Power Dox Automation / PXA**.
 
-This checklist is a planning tracker only. No code rename, namespace rename, docs rewrite, commits, or
-server restarts are part of this step.
+Decision: **Option A / breaking rename is accepted**. Active code uses `PXA.*` project names and namespaces.
+The old `Canvas.*` projects and namespaces are not kept as source-level `[Obsolete]` shims. HTTP routes,
+JSON fields, localStorage keys, and `CANMIG...` diagnostic identifiers remain stable where they are external
+contracts.
 
 ## Product Naming
 
@@ -52,25 +54,12 @@ server restarts are part of this step.
 
 ## Compatibility Rules
 
-- [x] Keep `Canvas.*` for one major version as `[Obsolete]` shims.
-      Started with the direct legacy `Canvas.Pdf.PdfDocument(...)` constructor marked obsolete with
-      diagnostic `PXA0001`, guiding new code to `PXA.Generator.Pdf.CreateDocument(...)` while preserving
-      compatibility. The legacy `Canvas.Importer.PdfImporter(...)` constructor now uses diagnostic `PXA0002`
-      and guides new integrations to `PXA.Importer.Pdf.LoadAsync(...)`; the PXA facade and intentional
-      implementation/compatibility tests suppress that diagnostic locally. This completes the safe obsolete
-      shim coverage for the current additive phase. Broader namespace/type-level obsolete coverage is
-      deliberately deferred to the later physical/breaking rename because current PXA examples still use
-      legacy `Canvas.Pdf` option and value types such as colors, draw options, and page presets; marking whole
-      namespaces/types obsolete now would create noisy warnings in valid compatibility examples. Internal
-      implementation-layer usages suppress `PXA0001` locally where they intentionally bridge through the
-      legacy Canvas.Pdf engine.
-- [x] Prefer additive PXA facades first; avoid one massive physical rename as the first implementation step.
-- [x] Keep old NuGet/package identities or publish forwarding packages for one major version if packages are introduced.
-      Current repo audit found no published NuGet/package identity to forward yet: no `.nuspec`, no explicit
-      `<PackageId>`, and no `<GeneratePackageOnBuild>` metadata for product projects. Therefore no forwarding
-      package is implemented in this slice. Policy for the first packaging release: if any `Canvas.*` package
-      has already been published externally, keep it for one major version as a compatibility package that
-      depends on or forwards to the corresponding `PXA.*` package; otherwise publish only the new PXA identity.
+- [x] Treat the code rename as breaking: `Canvas.*` source projects and namespaces are retired.
+- [x] Do not promise source-level `[Obsolete]` shims for `Canvas.*` in the active repository.
+- [x] Keep old NuGet/package identities or publish forwarding packages only if a prior external package was
+      actually published under a `Canvas.*` identity. Current repo audit found no published NuGet/package
+      identity to forward yet: no `.nuspec`, no explicit `<PackageId>`, and no `<GeneratePackageOnBuild>`
+      metadata for product projects.
 - [x] Keep old HTTP endpoints compatible.
 - [x] Keep old JSON fields compatible.
 - [x] Add new PXA-oriented fields only alongside legacy fields.
@@ -79,23 +68,43 @@ server restarts are part of this step.
 - [x] Do not rename user/domain words like "canvas" in HTML/CSS drawing contexts unless they refer to the product brand.
 - [x] Keep existing document JSON schema fields stable unless a versioned schema migration is added.
 
-Compatibility verification note: the implementation has stayed additive through `PXA.*` facade projects,
-PXA `/api/pxa/...` route aliases, PXA schema aliases, and PXA package/tool aliases while retaining the
-legacy Canvas routes, JSON contracts, localStorage keys, `CANMIG...` diagnostics, and technical canvas
-terms. `[Obsolete]` shims and any future package-forwarding policy remain open because they require a
-dedicated public package/versioning decision.
+Compatibility verification note: runtime/API compatibility is preserved for legacy HTTP routes, JSON
+contracts, localStorage keys, `CANMIG...` diagnostics, and technical canvas terms. Source compatibility for
+`Canvas.*` namespaces is intentionally not preserved after the breaking PXA rename.
+
+## Option A Completion
+
+- [x] Active main docs updated to describe PXA as the implementation identity instead of an additive facade over Canvas.
+- [x] Source-level `Canvas.*` shim promises removed from active documentation.
+- [x] DocFX and schema docs updated to point at `src/PXA.*` projects and contracts.
+- [x] Spreadsheet migration generated output updated from `Canvas.Infrastructure.Spreadsheet` to
+      `PXA.Infrastructure.Spreadsheet`.
+- [x] `PXA.Pdf.PdfDocument` constructor guidance updated to recommend `PXA.Generator.Pdf.CreateDocument(...)`
+      without referring to a Canvas compatibility window.
+- [x] `PXA.FileImporter.ImageOcr.Worker` lookup strings updated to the PXA worker name.
+- [x] Active code/docs scan completed: remaining `Canvas.*` mentions in main docs are limited to explicit
+      historical/glossary notes and compatibility aliases.
+
+Verification for this slice:
+
+- [x] `git diff --check`
+- [x] `dotnet build PXA.sln --no-restore --disable-build-servers -m:1`
+- [x] `dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj --no-build --no-restore --disable-build-servers -m:1`
+- [x] `dotnet test tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj --no-build --no-restore --disable-build-servers -m:1`
+- [x] `dotnet test tests/PXA.Migration.Spreadsheet.Tests/PXA.Migration.Spreadsheet.Tests.csproj --no-build --no-restore --disable-build-servers -m:1`
+- [x] Spreadsheet provider tests for AsposeCells, ClosedXML, EPPlus, GemBox, NPOI, Spire.XLS,
+      SpreadsheetLight, and Syncfusion XlsIO.
 
 ## Documentation Plan
 
 - [x] Move main docs to **Power Dox Automation / PXA** naming later.
-- [x] Update active examples in main docs to use future `PXA.*` APIs later.
-      Active examples use `PXA.Generator.Pdf.CreateDocument()` as the entry point while retaining
-      `using Canvas.Pdf;` for compatibility-phase PDF option/value types such as `PdfColor`,
-      `PdfDrawTextOptions`, and `PdfPagePreset`. Full removal of `Canvas.Pdf` from examples depends on a
-      future PXA-owned PDF type facade and belongs with the physical/breaking rename phase.
+- [x] Update active examples in main docs to use `PXA.*` APIs.
+      Active examples use `PXA.Generator.Pdf.CreateDocument()` plus `using PXA.Pdf;` for PDF option/value
+      types such as `PdfColor`, `PdfDrawTextOptions`, and `PdfPagePreset`.
 - [x] Keep historical checklist wording when it describes legacy Canvas implementation history.
 - [x] Add clear legacy notes to historical checklists instead of blindly replacing every `Canvas` occurrence.
-- [x] Add a short glossary: **Power Dox Automation** = product, **PXA** = developer/API/CLI identity, `Canvas.*` = legacy namespace.
+- [x] Add a short glossary: **Power Dox Automation** = product, **PXA** = developer/API/CLI identity,
+      `Canvas.*` = historical namespace removed by the breaking rename.
 - [x] Update docs schemas and generated OpenAPI only after code/API names are stabilized.
       PXA workbook schema alias and OpenAPI PXA route aliases are present; legacy schema/path contracts remain.
 

@@ -4,7 +4,7 @@ namespace PXA.FileImporter.ImageAnalysis.Analysis;
 
 /// <summary>
 /// Base class for all elements extracted from a raster image during analysis.
-/// Mirrors the PrimitiveObject hierarchy in Canvas.Importer (the PDF engine).
+/// Mirrors the PrimitiveObject hierarchy in PXA.Importer (the PDF engine).
 /// </summary>
 public abstract class ImagePrimitive
 {

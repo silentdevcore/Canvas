@@ -19,7 +19,7 @@ public abstract class BasePdfConverter : ICodeConverter
     public virtual byte[] GeneratePreview(string sourceCode)
     {
         var converted = ConvertCode(sourceCode);
-#pragma warning disable PXA0001 // Converter preview replays legacy PXA.Pdf migration output during compatibility window.
+#pragma warning disable PXA0001 // Converter preview replays generated PXA.Pdf migration output.
         var document = new PdfDocument();
 #pragma warning restore PXA0001
 

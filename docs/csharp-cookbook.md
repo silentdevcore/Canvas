@@ -1,7 +1,7 @@
 # PXA PDF C# Cookbook
 
-Task-oriented recipes for the imperative PXA-compatible PDF API. Every snippet is self-contained — add
-`using Canvas.Pdf;` plus `using PXA.Generator;`, create a `PdfDocument` with `Pdf.CreateDocument()`, and
+Task-oriented recipes for the imperative PXA PDF API. Every snippet is self-contained — add
+`using PXA.Pdf;` plus `using PXA.Generator;`, create a `PdfDocument` with `Pdf.CreateDocument()`, and
 call `ToBytes()` to get the PDF bytes.
 
 > **Coordinates** are in points (1/72"). The origin is the **bottom-left** of the page; `x` increases to
@@ -11,7 +11,7 @@ call `ToBytes()` to get the PDF bytes.
 ## Getting started
 
 ```csharp
-using Canvas.Pdf;
+using PXA.Pdf;
 using PXA.Generator;
 
 var document = Pdf.CreateDocument();

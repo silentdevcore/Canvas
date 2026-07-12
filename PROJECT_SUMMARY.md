@@ -2,7 +2,7 @@
 
 ## Overview
 
-Power Dox Automation (PXA) is a document automation platform with a visual template designer, data binding, multi-language output, multi-format export/import, PDF code migration, and report-to-design migration. The active stack is a .NET 10 API plus the `ui-designer-v2` React/TypeScript frontend. PXA is currently additive: public `PXA.*` facades sit over the existing legacy `Canvas.*` implementation projects.
+Power Dox Automation (PXA) is a document automation platform with a visual template designer, data binding, multi-language output, multi-format export/import, PDF code migration, and report-to-design migration. The active stack is a .NET 10 API plus the `ui-designer-v2` React/TypeScript frontend. The breaking Canvas-to-PXA rename has been accepted: active source projects and namespaces use `PXA.*`.
 
 ---
 
@@ -12,15 +12,15 @@ Power Dox Automation (PXA) is a document automation platform with a visual templ
 |-------|------------|
 | Frontend | React 18, TypeScript, Vite, Zustand, react-icons |
 | Backend | .NET 10, ASP.NET Core |
-| PDF export | PXA-compatible PDF renderer/writer backed by legacy `Canvas.Pdf`, no external PDF library |
-| PDF import/edit model | PXA importer facade backed by legacy `Canvas.Importer` low-level parser, scene graph, editing model, regeneration bridge |
+| PDF export | PXA PDF renderer/writer, no external PDF library |
+| PDF import/edit model | PXA importer low-level parser, scene graph, editing model, regeneration bridge |
 | DOCX export/import | DocumentFormat.OpenXml 3.5.1 |
 | DOCX digital signing | System.Security.Cryptography.Xml 10.0.8 |
 | Excel export | ClosedXML |
-| File importers | Dedicated `PXA.FileImporter.*` facades over legacy `Canvas.FileImporter.*` projects |
-| Migration | `PXA.Migration.*` facades over legacy `Canvas.Migration.*` provider projects, Roslyn helpers, report converters |
+| File importers | Dedicated `PXA.FileImporter.*` projects |
+| Migration | `PXA.Migration.*` provider projects, Roslyn helpers, report converters |
 | ODT import/export | System.IO.Compression + LINQ to XML |
-| Image analysis/OCR | `PXA.FileImporter.ImageAnalysis`, `PXA.FileImporter.ImageOcr`, legacy Canvas implementations, isolated OCR worker |
+| Image analysis/OCR | `PXA.FileImporter.ImageAnalysis`, `PXA.FileImporter.ImageOcr`, isolated OCR worker |
 
 ---
 
@@ -28,16 +28,15 @@ Power Dox Automation (PXA) is a document automation platform with a visual templ
 
 | Group | Projects | Role |
 |-------|----------|------|
-| PXA public facades | `PXA.Generator`, `PXA.Importer`, `PXA.FileImporter.*`, `PXA.Migration.*`, `PXA.Core`, `PXA.Application`, `PXA.Domain`, `PXA.Infrastructure.*` | Additive public identity and compatibility bridges |
-| Core | `Canvas.Core` | Contracts, DTOs, abstractions, capabilities, primitives |
-| Application | `Canvas.Application` | Use-case orchestration |
-| PDF engine | `Canvas`, `Canvas.Infrastructure.Pdf` | Legacy direct PDF generation API and renderer facade |
-| Other exporters | `Canvas.Infrastructure.Word`, `Canvas.Infrastructure.Sheet`, `Canvas.Infrastructure.Converters` | DOCX/XLSX/ODT/HTML/CSV/Markdown/Image/TIFF and related services |
-| File importers | `Canvas.FileImporter.Abstractions`, `Canvas.FileImporter.*` | PDF, DOCX, DOC, ODT, PPTX, SVG, Image, ImageAnalysis, OCR import paths |
-| PDF importer SDK | `Canvas.Importer` | Legacy PDF parser, editable DOM, graphics interpretation, regeneration bridge |
-| Migrations | `Canvas.Migration.Abstractions`, `Canvas.Migration.Roslyn`, `Canvas.Migration.*` | Legacy provider implementations for vendor code migration and report-to-design conversion |
-| API | `PXA.WebApi` | Presentation layer and composition root with legacy and PXA route aliases |
-| Domain compatibility | `Canvas.Domain` | Legacy/domain models used by compatibility paths |
+| Core | `PXA.Core` | Contracts, DTOs, abstractions, capabilities, primitives |
+| Application | `PXA.Application` | Use-case orchestration |
+| PDF engine | `PXA.Pdf`, `PXA.Infrastructure.Pdf`, `PXA.Generator` | PDF generation API, renderer facade, public generator entry point |
+| Other exporters | `PXA.Infrastructure.Word`, `PXA.Infrastructure.Spreadsheet`, `PXA.Infrastructure.Converters` | DOCX/XLSX/ODT/HTML/CSV/Markdown/Image/TIFF and related services |
+| File importers | `PXA.FileImporter.Abstractions`, `PXA.FileImporter.*` | PDF, DOCX, DOC, ODT, PPTX, SVG, Image, ImageAnalysis, OCR import paths |
+| PDF importer SDK | `PXA.Importer` | PDF parser, editable DOM, graphics interpretation, regeneration bridge |
+| Migrations | `PXA.Migration.Abstractions`, `PXA.Migration.Roslyn`, `PXA.Migration.*` | Provider implementations for vendor code migration and report-to-design conversion |
+| API | `PXA.WebApi` | Presentation layer and composition root with legacy HTTP route aliases |
+| Domain | `PXA.Domain` | Template/domain models and repositories |
 
 ---
 
@@ -61,22 +60,28 @@ Power Dox Automation (PXA) is a document automation platform with a visual templ
 ## Feature Inventory
 
 ### Export Formats
+
 PDF, DOCX, ODT, XLSX, HTML, CSV, Markdown, PNG, JPEG, TIFF.
 
 ### Import Formats And Conversion Inputs
+
 PDF engine import, DOCX, DOC, ODT, SVG, PPTX, raster images, image analysis, OCR image conversion, and image-to-PDF conversion.
 
 ### PDF Code Migration Providers
+
 Syncfusion PDF, iText7, Aspose.PDF, IronPDF, DevExpress PDF, Apryse, Foxit PDF SDK, DsPdf, GemBox.Pdf, Spire.PDF, PDFKit.NET, LEADTOOLS PDF, ActivePDF, PDFTools / Pdftools SDK, and PDFTools Toolbox.
 
 ### Report-To-Design Migration
-DevExpress XtraReport / REPX, RDL/RDLC/Syncfusion/Bold Reports style XML, and ActiveReports/GrapeCity `.rpx`.
+
+DevExpress XtraReport / REPX, RDL/RDLC/Syncfusion/Bold Reports style XML, JasperReports JRXML, ActiveReports/GrapeCity `.rpx`, ActiveReports JS JSON, FastReport FRX, Telerik TRDX, and Stimulsoft MRT.
 
 ### Element Types
+
 Text, rich text, image, table, rect, circle, line, barcode, QR code, signature, field, checkbox, repeater, chart, note, footnote, endnote, bookmark, comment, content control, and report/import placeholders where applicable.
 
 ### Document Operations
-Find and replace, clone, extract pages, DOCX digital signing, template validation/rendering, C# code-to-PDF, C# code-to-JSON, raw design rendering, code migration, report-to-design migration, and migration preview.
+
+Find and replace, clone, extract pages, DOCX digital signing, template validation/rendering, C# code-to-PDF, C# code-to-JSON, raw design rendering, code migration, report-to-design migration, migration preview, and PDF viewer operations.
 
 ---
 
@@ -93,7 +98,7 @@ POST   /api/document/extract-pages         Extract pages
 POST   /api/document/sign-docx             Apply X.509 digital signature
 POST   /api/document/convert-image-to-pdf  Convert raster image to PDF
 
-POST   /api/document/import-pdf-engine     Import PDF through the PXA importer facade
+POST   /api/document/import-pdf-engine     Import PDF through the PXA importer
 POST   /api/document/debug-pdf-engine      Debug PDF importer output
 POST   /api/document/import-docx           Import DOCX
 POST   /api/document/import-doc            Import DOC
@@ -133,12 +138,12 @@ Default local servers: frontend `http://localhost:5173`; API ports depend on lau
 
 | Group | Example projects |
 |-------|------------------|
-| Core/Application/API | `Canvas.Core.Tests`, `Canvas.Application.Tests`, `Canvas.Api.Tests` |
-| PDF engine/export | `Canvas.Infrastructure.Pdf.Tests`, `Canvas.Export.Tests` |
-| PDF importer SDK | `Canvas.Importer.Tests` |
-| File importers | `Canvas.FileImporter.*.Tests` |
-| Image analysis/OCR | `Canvas.FileImporter.ImageAnalysis.Tests`, `Canvas.FileImporter.ImageOcr.Tests` |
-| PDF code migrations | `Canvas.Migration.*Pdf.Tests`, `Canvas.Migration.iText7.Tests`, provider-specific tests |
-| Report migrations | `Canvas.Migration.DevExpressReport.Tests`, `Canvas.Migration.Rdl.Tests`, `Canvas.Migration.Rpx.Tests` |
+| Core/Application/API | `PXA.Core.Tests`, `PXA.Application.Tests`, `PXA.Api.Tests` |
+| PDF engine/export | `PXA.Infrastructure.Pdf.Tests`, `PXA.Export.Tests` |
+| PDF importer SDK | `PXA.Importer.Tests` |
+| File importers | `PXA.FileImporter.*.Tests` |
+| Image analysis/OCR | `PXA.FileImporter.ImageAnalysis.Tests`, `PXA.FileImporter.ImageOcr.Tests` |
+| PDF code migrations | `PXA.Migration.*Pdf.Tests`, `PXA.Migration.iText7.Tests`, provider-specific tests |
+| Report migrations | `PXA.Migration.DevExpressReport.Tests`, `PXA.Migration.Rdl.Tests`, `PXA.Migration.Rpx.Tests` |
 
 See `TESTING.md` for command examples and validation policy.

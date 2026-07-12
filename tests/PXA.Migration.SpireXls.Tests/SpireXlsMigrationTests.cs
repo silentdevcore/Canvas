@@ -30,7 +30,7 @@ public sealed class SpireXlsMigrationTests
         Assert.Contains("sheet.Range(\"A1:B1\").Merge()", code);
         Assert.Contains("workbook.Save(\"out.xlsx\")", code);
         Assert.DoesNotContain("Spire", code);
-        Assert.Contains("using Canvas.Infrastructure.Spreadsheet;", code);
+        Assert.Contains("using PXA.Infrastructure.Spreadsheet;", code);
     }
 
     [Fact]

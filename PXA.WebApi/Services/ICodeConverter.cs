@@ -7,7 +7,7 @@ public interface ICodeConverter
     string Status { get; }
     string Description { get; }
 
-    /// <summary>Migration target: "pdf" (→ Canvas.Pdf code) or "spreadsheet" (→ Canvas spreadsheet code).</summary>
+    /// <summary>Migration target: "pdf" (→ PXA.Pdf code) or "spreadsheet" (→ PXA spreadsheet code).</summary>
     string Kind { get; }
 
     string ConvertCode(string sourceCode);

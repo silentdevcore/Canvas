@@ -6,15 +6,15 @@ element docs live in the app (the **Elements Reference** at `/docs`), driven by
 
 ## Build the C# API reference (DocFX)
 
-XML doc comments are emitted automatically (`GenerateDocumentationFile` is enabled on the current legacy
-`Canvas.Infrastructure.Pdf` and `Canvas.Core` projects). To produce the HTML reference:
+XML doc comments are emitted automatically (`GenerateDocumentationFile` is enabled on the active
+`PXA.Pdf` and `PXA.Core` projects). To produce the HTML reference:
 
 ```bash
 # one-time: install the DocFX global tool
 dotnet tool install -g docfx
 
 # from the repo root
-dotnet build src/Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj
+dotnet build src/PXA.Pdf/PXA.Pdf.csproj
 docfx metadata docs/docfx.json   # reads the csprojs + XML → docs/api/*.yml
 docfx build    docs/docfx.json   # → docs/_site (open docs/_site/index.html)
 

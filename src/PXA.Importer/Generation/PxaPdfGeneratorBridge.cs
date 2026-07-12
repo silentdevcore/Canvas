@@ -97,7 +97,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
                 ["EncodedBytes"] = stream.EncodedBytes.ToArray(),
                 ["DecodedBytes"] = stream.IsDecoded ? stream.DecodedBytes.ToArray() : null
             },
-            _ => throw new NotSupportedException($"PDF object type '{parsedObject.GetType().Name}' is not supported by the Canvas.Pdf sample bridge.")
+            _ => throw new NotSupportedException($"PDF object type '{parsedObject.GetType().Name}' is not supported by the PXA.Pdf regeneration bridge.")
         };
     }
 
@@ -138,7 +138,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
                 ["MarkedContentTag"] = group.MarkedContentTag,
                 ["Children"] = group.Children.Select(MapGraphicsElement).ToArray()
             },
-            _ => throw new NotSupportedException($"Graphics element type '{element.GetType().Name}' is not supported by the Canvas.Pdf sample bridge.")
+            _ => throw new NotSupportedException($"Graphics element type '{element.GetType().Name}' is not supported by the PXA.Pdf regeneration bridge.")
         };
     }
 
@@ -150,7 +150,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
 
     private CanvasPdfDocument CreateDocument(PdfDocumentModel source)
     {
-#pragma warning disable PXA0001 // Importer regeneration bridge targets the legacy Canvas.Pdf implementation during compatibility window.
+#pragma warning disable PXA0001 // Importer regeneration bridge targets the PXA.Pdf implementation .
         var document = new CanvasPdfDocument();
 #pragma warning restore PXA0001
         ApplyMetadata(document, source.Metadata);
@@ -197,7 +197,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
             case PdfShadingElement shading:
                 return;
             default:
-                throw new NotSupportedException($"Graphics element type '{element.GetType().Name}' is not supported by the Canvas.Pdf sample bridge.");
+                throw new NotSupportedException($"Graphics element type '{element.GetType().Name}' is not supported by the PXA.Pdf regeneration bridge.");
         }
     }
 
@@ -650,7 +650,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         if (lower.StartsWith("helvetica", StringComparison.Ordinal) || lower.StartsWith("arial", StringComparison.Ordinal) ||
             lower.StartsWith("symbol", StringComparison.Ordinal) || lower.StartsWith("zapf", StringComparison.Ordinal))
             return PdfFontFamily.Helvetica;
-        // Embedded custom fonts: fall back to null (Canvas.Pdf uses its document default)
+        // Embedded custom fonts: fall back to null (PXA.Pdf uses its document default)
         return null;
     }
 
@@ -705,7 +705,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
             return;
         }
 
-        throw new NotSupportedException($"Path element with operator '{operatorName}' is not supported by the Canvas.Pdf sample bridge.");
+        throw new NotSupportedException($"Path element with operator '{operatorName}' is not supported by the PXA.Pdf regeneration bridge.");
     }
 
     private static void RenderImage(CanvasPdfPage page, PdfPageModel sourcePage, PdfObjectGraph graph, PdfImageElement image)
@@ -835,14 +835,14 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
     private static void AddInternalPageElement(CanvasPdfPage page, string typeName, params object?[] arguments)
     {
         var elementType = typeof(CanvasPdfPage).Assembly.GetType(typeName, throwOnError: true)
-            ?? throw new InvalidOperationException($"Canvas.Pdf internal type '{typeName}' was not found.");
+            ?? throw new InvalidOperationException($"PXA.Pdf internal type '{typeName}' was not found.");
         var element = Activator.CreateInstance(
             elementType,
             BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
             binder: null,
             args: arguments,
             culture: CultureInfo.InvariantCulture)
-            ?? throw new InvalidOperationException($"Canvas.Pdf internal type '{typeName}' could not be constructed.");
+            ?? throw new InvalidOperationException($"PXA.Pdf internal type '{typeName}' could not be constructed.");
 
         if (PageElementsField.GetValue(page) is not System.Collections.IList elements)
         {
@@ -1064,7 +1064,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
                     translated.Add(close);
                     break;
                 default:
-                    throw new NotSupportedException($"Path segment type '{segment.GetType().Name}' is not supported by the Canvas.Pdf sample bridge.");
+                    throw new NotSupportedException($"Path segment type '{segment.GetType().Name}' is not supported by the PXA.Pdf regeneration bridge.");
             }
         }
 
@@ -1153,7 +1153,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
                 ["Height"] = rectangle.Rectangle.Height
             },
             ClosePathSegment => new Dictionary<string, object?> { ["Kind"] = nameof(ClosePathSegment) },
-            _ => throw new NotSupportedException($"Path segment type '{segment.GetType().Name}' is not supported by the Canvas.Pdf sample bridge.")
+            _ => throw new NotSupportedException($"Path segment type '{segment.GetType().Name}' is not supported by the PXA.Pdf regeneration bridge.")
         };
     }
 
@@ -1178,7 +1178,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
             PdfColorSpace.DeviceGray => new PdfGrayColor(color.C1),
             PdfColorSpace.DeviceRgb => new CanvasPdfColor(color.C1, color.C2, color.C3),
             PdfColorSpace.DeviceCmyk => new PdfCmykColor(color.C1, color.C2, color.C3, color.C4),
-            _ => throw new NotSupportedException($"Color space '{color.ColorSpace}' is not supported by the Canvas.Pdf sample bridge.")
+            _ => throw new NotSupportedException($"Color space '{color.ColorSpace}' is not supported by the PXA.Pdf regeneration bridge.")
         };
     }
 

@@ -4,7 +4,7 @@ public sealed class PdfHeaderFooterOptions
 {
     public static PdfHeaderFooterOptions Default { get; } = new();
 
-    public string? HeaderTemplate { get; init; } = "Canvas.Pdf";
+    public string? HeaderTemplate { get; init; } = "PXA.Pdf";
 
     public string? FooterTemplate { get; init; } = "Page {page} of {total}";
 

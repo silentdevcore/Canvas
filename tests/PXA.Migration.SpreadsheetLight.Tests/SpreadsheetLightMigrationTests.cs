@@ -27,6 +27,6 @@ public sealed class SpreadsheetLightMigrationTests
         Assert.Contains("sheet.Cell(\"B4\").Formula(\"=SUM(B1:B3)\")", code); // "=" → Formula
         Assert.Contains("doc.Save(\"out.xlsx\")", code);
         Assert.DoesNotContain("SpreadsheetLight", code);
-        Assert.Contains("using Canvas.Infrastructure.Spreadsheet;", code);
+        Assert.Contains("using PXA.Infrastructure.Spreadsheet;", code);
     }
 }

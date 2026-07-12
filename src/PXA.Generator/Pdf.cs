@@ -3,14 +3,14 @@ using PXA.Pdf;
 namespace PXA.Generator;
 
 /// <summary>
-/// Additive Power Dox Automation facade for the current Canvas PDF generator.
+/// Power Dox Automation facade for the PXA PDF generator.
 /// </summary>
 public static class Pdf
 {
     /// <summary>
-    /// Creates a PDF document using the current Canvas.Pdf implementation.
+    /// Creates a PDF document using the current PXA PDF implementation.
     /// </summary>
-#pragma warning disable PXA0001 // PXA facade intentionally delegates to the legacy implementation during compatibility window.
+#pragma warning disable PXA0001 // The facade is the preferred public entry point for constructing PdfDocument.
     public static PdfDocument CreateDocument(PdfStandardFont defaultFont = PdfStandardFont.Helvetica) =>
         new(defaultFont);
 #pragma warning restore PXA0001

@@ -17,7 +17,7 @@ using PXA.Importer.Parsing;
 using PXA.Importer.Streams;
 using PXA.Importer.Xref;
 
-#pragma warning disable PXA0002 // This suite intentionally verifies the legacy Canvas importer engine.
+#pragma warning disable PXA0002 // This suite intentionally verifies the low-level PXA importer engine.
 
 namespace PXA.Importer.Tests;
 

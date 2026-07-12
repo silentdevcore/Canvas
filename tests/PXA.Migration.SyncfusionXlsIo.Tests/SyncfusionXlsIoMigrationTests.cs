@@ -36,6 +36,6 @@ public sealed class SyncfusionXlsIoMigrationTests
         Assert.DoesNotContain("ExcelEngine", code);
         Assert.DoesNotContain("Dispose", code);
         Assert.DoesNotContain("Syncfusion", code);
-        Assert.Contains("using Canvas.Infrastructure.Spreadsheet;", code);
+        Assert.Contains("using PXA.Infrastructure.Spreadsheet;", code);
     }
 }

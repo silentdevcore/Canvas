@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://pxa/schema/pxa-workbook.schema.json",
   "title": "PXA Workbook JSON",
-  "description": "The canonical PXA spreadsheet workbook format (camelCase). POST to /api/spreadsheet/export (→ .xlsx/.xls/.csv/.tsv), /calculate, /render, /sort, /find-replace, /fill. Round-trips to .xlsx via ClosedXML. Mirrors src/Canvas.Core/Contracts/SpreadsheetDto.cs.",
+  "description": "The canonical PXA spreadsheet workbook format (camelCase). POST to /api/spreadsheet/export (→ .xlsx/.xls/.csv/.tsv), /calculate, /render, /sort, /find-replace, /fill. Round-trips to .xlsx via ClosedXML. Mirrors src/PXA.Core/Contracts/SpreadsheetDto.cs.",
   "type": "object",
   "required": ["id", "name", "sheets"],
   "properties": {

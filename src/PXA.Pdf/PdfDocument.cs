@@ -4,9 +4,8 @@ namespace PXA.Pdf;
 
 /// <summary>
 /// The root of the imperative PDF API: create a document, add <see cref="PdfPage"/>s, draw on them,
-/// then call <see cref="ToBytes()"/> to produce the PDF bytes. During the PXA compatibility window, new
-/// code should create documents through <c>PXA.Pdf.CreateDocument()</c> while this legacy type
-/// remains available for existing Canvas.Pdf callers.
+/// then call <see cref="ToBytes()"/> to produce the PDF bytes. New code should create documents
+/// through <c>PXA.Generator.Pdf.CreateDocument()</c> so the product entry point remains centralized.
 /// </summary>
 /// <example>
 /// <code>
@@ -41,12 +40,12 @@ public sealed class PdfDocument
     /// Creates an empty document.
     /// </summary>
     /// <remarks>
-    /// Compatibility shim for existing Canvas.Pdf callers. New code should use
-    /// <c>PXA.Pdf.CreateDocument(...)</c> so the public entry point follows the PXA naming.
+    /// Direct constructor retained for low-level engine tests and advanced scenarios. New code should use
+    /// <c>PXA.Generator.Pdf.CreateDocument(...)</c> so the public entry point follows the PXA generator facade.
     /// </remarks>
     /// <param name="defaultFont">The standard font used by pages and text drawing unless overridden.</param>
     [Obsolete(
-        "PXA.Pdf.PdfDocument is the legacy compatibility entry point. Use PXA.Pdf.CreateDocument(...) for new code.",
+        "Direct PXA.Pdf.PdfDocument construction is discouraged. Use PXA.Generator.Pdf.CreateDocument(...) for new code.",
         DiagnosticId = "PXA0001")]
     public PdfDocument(PdfStandardFont defaultFont = PdfStandardFont.Helvetica)
     {

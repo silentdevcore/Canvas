@@ -28,7 +28,7 @@ public sealed class EpplusSpreadsheetMigrationTests
         Assert.Contains("ws.Range(\"A1:B1\").Merge()", code);
         Assert.Contains("pkg.Save(\"out.xlsx\")", code);
         Assert.DoesNotContain("OfficeOpenXml", code);
-        Assert.Contains("using Canvas.Infrastructure.Spreadsheet;", code);
+        Assert.Contains("using PXA.Infrastructure.Spreadsheet;", code);
     }
 
     [Fact]

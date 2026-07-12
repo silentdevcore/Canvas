@@ -31,7 +31,7 @@ public sealed class ClosedXmlSpreadsheetMigrationTests
         Assert.Contains("wb.Save(\"out.xlsx\")", code);
         // ClosedXML using removed, Canvas using added
         Assert.DoesNotContain("ClosedXML", code);
-        Assert.Contains("using Canvas.Infrastructure.Spreadsheet;", code);
+        Assert.Contains("using PXA.Infrastructure.Spreadsheet;", code);
     }
 
     [Fact]

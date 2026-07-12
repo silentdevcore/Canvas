@@ -112,7 +112,7 @@ public class SpreadsheetController : ControllerBase
         }
     }
 
-    /// <summary>Renders a worksheet to a document: <c>pdf</c> (Canvas.Pdf), or <c>html</c>/<c>png</c>/<c>jpeg</c>
+    /// <summary>Renders a worksheet to a document: <c>pdf</c> (PXA.Pdf), or <c>html</c>/<c>png</c>/<c>jpeg</c>
     /// via the standard exporters. The sheet is mapped to a gridlined table.</summary>
     [HttpPost("render")]
     [ProducesResponseType(200)]

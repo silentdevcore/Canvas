@@ -34,7 +34,7 @@ public class MigrationController : ControllerBase
         return Ok(frameworks);
     }
 
-    /// <summary>Converts source code from a third-party PDF framework to Canvas.Pdf C# code.</summary>
+    /// <summary>Converts source code from a third-party PDF framework to PXA.Pdf C# code.</summary>
     [HttpPost("convert")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]

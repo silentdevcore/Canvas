@@ -34,7 +34,7 @@ public sealed record ApiBrandingResponse(
         CompatibilityNotes:
         [
             "Legacy /api routes remain compatible.",
-            "Canvas.* namespaces remain available during the transition.",
+            "The rename is complete: use PXA.* namespaces for code integrations.",
             "CANMIG diagnostic identifiers remain stable."
         ]);
 }

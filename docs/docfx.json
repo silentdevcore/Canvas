@@ -4,8 +4,8 @@
       "src": [
         {
           "files": [
-            "src/Canvas.Infrastructure.Pdf/Canvas.Infrastructure.Pdf.csproj",
-            "src/Canvas.Core/Canvas.Core.csproj"
+            "src/PXA.Infrastructure.Pdf/PXA.Infrastructure.Pdf.csproj",
+            "src/PXA.Core/PXA.Core.csproj"
           ],
           "src": ".."
         }

@@ -28,7 +28,7 @@ public sealed class AsposeCellsMigrationTests
         Assert.Contains("ws.Column(0).Width(20)", code);             // SetColumnWidth → Column().Width()
         Assert.Contains("wb.Save(\"out.xlsx\")", code);
         Assert.DoesNotContain("Aspose", code);
-        Assert.Contains("using Canvas.Infrastructure.Spreadsheet;", code);
+        Assert.Contains("using PXA.Infrastructure.Spreadsheet;", code);
     }
 
     [Fact]

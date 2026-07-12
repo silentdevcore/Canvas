@@ -8,7 +8,7 @@ This guide covers the main extension patterns in Power Dox Automation / PXA:
 - report-to-design converters
 - document operation endpoints
 
-Keep new code inside the smallest project boundary that owns the feature, and update docs/checklists in the same change. PXA is currently additive: prefer public `PXA.*` facades for new developer-facing APIs while using the existing `Canvas.*` projects as the implementation boundary until the later physical rename.
+Keep new code inside the smallest project boundary that owns the feature, and update docs/checklists in the same change. PXA is now the active implementation identity. New developer-facing APIs and implementation projects should use `PXA.*` namespaces and project paths.
 
 ---
 
@@ -18,25 +18,25 @@ Keep new code inside the smallest project boundary that owns the feature, and up
 
 Use an existing infrastructure project when the format belongs to an established adapter family:
 
-- `src/Canvas.Infrastructure.Pdf` for PDF rendering services.
-- `src/Canvas.Infrastructure.Word` for DOCX/Word output.
-- `src/Canvas.Infrastructure.Sheet` for XLSX output.
-- `src/Canvas.Infrastructure.Converters` for ODT, HTML, CSV, Markdown, image, TIFF, SVG/XML-style output.
+- `src/PXA.Infrastructure.Pdf` for PDF rendering services.
+- `src/PXA.Infrastructure.Word` for DOCX/Word output.
+- `src/PXA.Infrastructure.Spreadsheet` for XLSX output.
+- `src/PXA.Infrastructure.Converters` for ODT, HTML, CSV, Markdown, image, TIFF, SVG/XML-style output.
 
-Create `src/Canvas.Infrastructure.<Format>` only when the format needs its own dependencies or boundary.
+Create `src/PXA.Infrastructure.<Format>` only when the format needs its own dependencies or boundary.
 
 When the feature is public developer-facing API, add or update the corresponding `PXA.Infrastructure.*` or
-`PXA.Generator` facade so new examples do not need to start from legacy `Canvas.*` names.
+`PXA.Generator` facade so new examples do not need to start from old Canvas names.
 
 Dependencies:
 
-- Required: `Canvas.Core`
-- Optional: `Canvas.Application` only when orchestration helpers are explicitly needed
+- Required: `PXA.Core`
+- Optional: `PXA.Application` only when orchestration helpers are explicitly needed
 - Avoid references to other infrastructure projects
 
 ### 2. Implement the exporter
 
-Implement `IDocumentRenderer` or the existing format-specific equivalent from `Canvas.Core.Abstractions`.
+Implement `IDocumentRenderer` or the existing format-specific equivalent from `PXA.Core.Abstractions`.
 
 Naming convention:
 
@@ -84,7 +84,7 @@ In `ui-designer-v2/src/components/Editor/ExportModal.tsx`:
 
 Add or update tests in the closest project:
 
-- `tests/Canvas.Export.Tests` for end-to-end export behavior
+- `tests/PXA.Export.Tests` for end-to-end export behavior
 - a dedicated infrastructure test project if the renderer has substantial internal behavior
 - snapshot tests only when output is stable enough to make them meaningful
 
@@ -99,15 +99,15 @@ Add or update tests in the closest project:
 
 ## Pattern B - File Importer
 
-New file importers should expose a PXA-facing facade and use the dedicated legacy implementation project pattern while the physical rename is deferred.
+New file importers should expose a PXA-facing facade and use the dedicated PXA implementation project pattern.
 
 ### 1. Create the importer project
 
 Project layout:
 
 ```text
-src/Canvas.FileImporter.<Format>/
-tests/Canvas.FileImporter.<Format>.Tests/
+src/PXA.FileImporter.<Format>/
+tests/PXA.FileImporter.<Format>.Tests/
 ```
 
 Public facade target:
@@ -118,16 +118,16 @@ src/PXA.FileImporter.<Format>/
 
 Dependencies:
 
-- `Canvas.FileImporter.Abstractions`
-- `Canvas.Core`
+- `PXA.FileImporter`
+- `PXA.Core`
 - parser/conversion packages needed by that format only
-- `Canvas.Importer` only for PDF-specific importers that need the PDF parser/editor engine
+- `PXA.Importer` only for PDF-specific importers that need the PDF parser/editor engine
 
-Avoid placing new importers in `Canvas.Infrastructure.Converters`; that project now owns converter-style exporters and legacy/shared converter infrastructure, not the preferred importer boundary.
+Avoid placing new importers in `PXA.Infrastructure.Converters`; that project now owns converter-style exporters and shared converter infrastructure, not the preferred importer boundary.
 
 ### 2. Implement `IFileImporter`
 
-Implement the importer contract from `src/Canvas.FileImporter.Abstractions`.
+Implement the importer contract from `src/PXA.FileImporter`.
 
 Naming convention:
 
@@ -176,14 +176,14 @@ Update `ui-designer-v2`:
 
 ### 5. Add tests
 
-Add focused tests in `tests/Canvas.FileImporter.<Format>.Tests`.
+Add focused tests in `tests/PXA.FileImporter.<Format>.Tests`.
 
 Minimum coverage:
 
 - valid sample imports to `DesignExportDto`
 - invalid/empty input behavior
 - key layout and element mapping assertions
-- endpoint smoke test in `Canvas.Api.Tests` when the WebApi route is new
+- endpoint smoke test in `PXA.Api.Tests` when the WebApi route is new
 
 ### 6. Update docs
 
@@ -203,8 +203,8 @@ Use this pattern when converting C# source from a third-party PDF library into P
 Project layout:
 
 ```text
-src/Canvas.Migration.<Provider>/
-tests/Canvas.Migration.<Provider>.Tests/
+src/PXA.Migration.<Provider>/
+tests/PXA.Migration.<Provider>.Tests/
 ```
 
 Public facade target:
@@ -215,9 +215,9 @@ src/PXA.Migration.<Provider>/ or provider registry under src/PXA.Migration.Pdf/
 
 Dependencies:
 
-- `Canvas.Migration.Abstractions`
-- `Canvas.Migration.Roslyn` for C# source rewriting providers
-- `Canvas.Core` only when DTO/contracts are required
+- `PXA.Migration.Abstractions`
+- `PXA.Migration.Roslyn` for C# source rewriting providers
+- `PXA.Core` only when DTO/contracts are required
 
 Do not reference rendering/importer infrastructure from provider migration projects.
 
@@ -238,8 +238,8 @@ Keep the first slice conservative: document creation, page creation, simple text
 
 Preferred implementation:
 
-- Roslyn-backed rewriter under `src/Canvas.Migration.<Provider>`
-- provider-neutral result and diagnostic contracts from `Canvas.Migration.Abstractions`
+- Roslyn-backed rewriter under `src/PXA.Migration.<Provider>`
+- provider-neutral result and diagnostic contracts from `PXA.Migration.Abstractions`
 - no silent destructive rewrites
 - preserve source where manual follow-up is required
 
@@ -277,9 +277,9 @@ Use this pattern when a reporting framework or report file format should become 
 
 Existing examples:
 
-- `PXA.Migration.Report` / legacy `Canvas.Migration.DevExpressReport`: XtraReport C# and REPX
-- `PXA.Migration.Report` / legacy `Canvas.Migration.Rdl`: RDL/RDLC/Syncfusion/Bold Reports style XML
-- `PXA.Migration.Report` / legacy `Canvas.Migration.Rpx`: ActiveReports/GrapeCity section reports
+- `PXA.Migration.DevExpressReport`: XtraReport C# and REPX
+- `PXA.Migration.Rdl`: RDL/RDLC/Syncfusion/Bold Reports style XML
+- `PXA.Migration.Rpx`: ActiveReports/GrapeCity section reports
 
 ### 1. Target `DesignExportDto`
 
@@ -299,11 +299,11 @@ The converter should preserve:
 Project layout:
 
 ```text
-src/Canvas.Migration.<ReportFormat>/
-tests/Canvas.Migration.<ReportFormat>.Tests/
+src/PXA.Migration.<ReportFormat>/
+tests/PXA.Migration.<ReportFormat>.Tests/
 ```
 
-Use `Canvas.Migration.Abstractions` for diagnostics and `Canvas.Core` for `DesignExportDto`.
+Use `PXA.Migration.Abstractions` for diagnostics and `PXA.Core` for `DesignExportDto`.
 
 ### 3. Wire endpoint routing
 
@@ -343,7 +343,7 @@ Use this pattern for operations such as clone, extract-pages, sign, find-replace
 Place orchestration in:
 
 ```text
-src/Canvas.Application/UseCases/<Name>UseCase.cs
+src/PXA.Application/UseCases/<Name>UseCase.cs
 ```
 
 Keep concrete file-format work in infrastructure/importer projects.
@@ -358,8 +358,8 @@ Add a static method in `ui-designer-v2/src/services/ExportService.ts` or a more 
 
 ### 4. Add tests and docs
 
-- Use-case tests in `Canvas.Application.Tests`
-- endpoint tests in `Canvas.Api.Tests`
+- Use-case tests in `PXA.Application.Tests`
+- endpoint tests in `PXA.Api.Tests`
 - README/API docs and relevant checklist entries
 
 ---

@@ -47,7 +47,7 @@ public sealed class EpplusSpreadsheetMigration : CSharpSourceMigration
             return !n.StartsWith("OfficeOpenXml", StringComparison.Ordinal);
         }).ToList();
 
-        const string canvasNs = "Canvas.Infrastructure.Spreadsheet";
+        const string canvasNs = "PXA.Infrastructure.Spreadsheet";
         if (!kept.Any(u => u.Name?.ToString() == canvasNs))
             kept.Insert(0, SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(canvasNs))
                 .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));

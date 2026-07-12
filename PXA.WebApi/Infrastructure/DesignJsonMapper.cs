@@ -68,7 +68,7 @@ public static class DesignJsonMapper
         if (evaluationProps.Count > 0)
             design = ApplyPropertySubstitutions(design, evaluationProps);
 
-#pragma warning disable PXA0001 // Web API mapper is part of the legacy implementation layer behind the PXA facade routes.
+#pragma warning disable PXA0001 // Web API mapper targets the PXA PDF engine behind the API routes.
         var document = new PdfDocument();
 #pragma warning restore PXA0001
         document.FontLoader = fontLoader;

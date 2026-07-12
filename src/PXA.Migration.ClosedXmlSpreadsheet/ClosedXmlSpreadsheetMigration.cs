@@ -8,7 +8,7 @@ namespace PXA.Migration.ClosedXmlSpreadsheet;
 
 /// <summary>
 /// Migrates ClosedXML (<c>XLWorkbook</c>) authoring code to the Canvas spreadsheet API
-/// (<c>CanvasWorkbook</c>, see <c>Canvas.Infrastructure.Spreadsheet.CanvasWorkbookBuilder</c>).
+/// (<c>CanvasWorkbook</c>, see <c>PXA.Infrastructure.Spreadsheet.CanvasWorkbookBuilder</c>).
 /// Roslyn-based: rewrites workbook/worksheet/cell/value/formula/style/save calls and shifts ClosedXML's
 /// 1-based indexes to Canvas's 0-based. Charts, pivots, conditional formatting, data validation, and
 /// auto-filter are flagged for manual review.
@@ -48,7 +48,7 @@ public sealed class ClosedXmlSpreadsheetMigration : CSharpSourceMigration
             return !n.StartsWith("ClosedXML", StringComparison.Ordinal);
         }).ToList();
 
-        const string canvasNs = "Canvas.Infrastructure.Spreadsheet";
+        const string canvasNs = "PXA.Infrastructure.Spreadsheet";
         if (!kept.Any(u => u.Name?.ToString() == canvasNs))
             kept.Insert(0, SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(canvasNs))
                 .WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed));

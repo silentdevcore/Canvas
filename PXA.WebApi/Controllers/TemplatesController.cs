@@ -262,7 +262,7 @@ public class TemplatesController : ControllerBase
             Version = templateVersion
         });
 
-#pragma warning disable PXA0001 // Stored-template rendering still targets the compatibility PDF engine boundary.
+#pragma warning disable PXA0001 // Stored-template rendering targets the PXA PDF engine boundary.
         var pdfDocument = new PXA.Pdf.PdfDocument();
 #pragma warning restore PXA0001
         var page = pdfDocument.AddPage();
