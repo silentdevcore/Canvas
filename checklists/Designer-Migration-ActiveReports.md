@@ -1,4 +1,4 @@
-# Designer Migration: ActiveReports (`.rpx` / `.rdlx`) → Canvas Designer
+# Designer Migration: ActiveReports (`.rpx` / `.rdlx`) → PXA Designer
 
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md). Tracks the
 MESCIUS (GrapeCity) **ActiveReports** family of report designers.
@@ -7,9 +7,9 @@ MESCIUS (GrapeCity) **ActiveReports** family of report designers.
 - **Two distinct file formats — different converters:**
   | Format | Designer kind | Layout | Converter | Companion doc |
   | --- | --- | --- | --- | --- |
-| `.rpx` | **Section** report | banded XML (inches) | `Canvas.Migration.Rpx` | [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) |
-| `.rdlx` | **Page** report | RDL XML (`reportdefinition` ns) | `Canvas.Migration.Rdl` | [Code-Migration-SyncfusionRdl.md](Code-Migration-SyncfusionRdl.md) |
-| `.json` | **ActiveReports JS** report | marked JSON (`reportType: ActiveReportsJS`) | `Canvas.Migration.ActiveReportsJs` | this file |
+| `.rpx` | **Section** report | banded XML (inches) | `PXA.Migration.Rpx` | [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) |
+| `.rdlx` | **Page** report | RDL XML (`reportdefinition` ns) | `PXA.Migration.Rdl` | [Code-Migration-SyncfusionRdl.md](Code-Migration-SyncfusionRdl.md) |
+| `.json` | **ActiveReports JS** report | marked JSON (`reportType: ActiveReportsJS`) | `PXA.Migration.ActiveReportsJs` | this file |
 - **Routing:** `.rdlx` uses the Microsoft RDL `reportdefinition` namespace, so it is detected and
   routed by `LooksLikeRdl` (the RPX detector explicitly **rejects** that namespace). `.rpx` is the
   banded section format detected by `LooksLikeRpx` (root `<Report>` + `<Sections>`).
@@ -23,7 +23,7 @@ MESCIUS (GrapeCity) **ActiveReports** family of report designers.
 Local sample source: `designer-simples/ActiveReports/ReportSamples-master` (local-only test resources).
 
 Analyzed 8 `.rdlx` files — all in the RDL-2005 `reportdefinition` namespace (ActiveReports **Page**
-reports, → `Canvas.Migration.Rdl`):
+reports, → `PXA.Migration.Rdl`):
 
 - `Enterprise Reports - Marketing Plan Data.rdlx`
 - `Financial Reports - BalanceSheetReport.rdlx`, `…- CashFlowReport.rdlx`,
@@ -41,7 +41,7 @@ Observed feature coverage:
 | --- | ---: | --- | --- |
 | `Textbox` (value/expression, font, colour, align, padding) | 470 | supported | Done |
 | RDL-2005 `<Table>` Header/Details rows | 22 tables, 20 Header / 20 Details | supported | Done |
-| RDL-2005 `<Table>` **`<Footer>`** rows (totals/summary) | 14 footers | **now included** in the Canvas grid | Done (this pass) |
+| RDL-2005 `<Table>` **`<Footer>`** rows (totals/summary) | 14 footers | **now included** in the PXA grid | Done (this pass) |
 | **`<List>`** region (grouped repeat) + nested `<Table>` + `<Grouping>` | 1 (BloodTestReport) | **now parsed**: container + repeat metadata; children extracted | Done (this pass) |
 | `Image` (embedded/base64/reference) | 9 | supported | Done |
 | `Line` | 17 | supported | Done |
@@ -58,15 +58,15 @@ Key sample-driven conclusions:
 
 | ID | Severity | Meaning |
 | --- | --- | --- |
-| `CANMIGRDL030` | Info | RDL-2005 `<Table>` `<Footer>` rows were included in the Canvas table grid |
-| `CANMIGRDL031` | Warning | RDL `<List>` region mapped to a Canvas container with repeat metadata; child items extracted as positioned elements — review grouping/repeat semantics |
-| `CANMIGRDL032` | Warning | RDL-2005 `<TableGroups>` header/footer repeat metadata preserved on Canvas table style |
+| `CANMIGRDL030` | Info | RDL-2005 `<Table>` `<Footer>` rows were included in the PXA table grid |
+| `CANMIGRDL031` | Warning | RDL `<List>` region mapped to a PXA container with repeat metadata; child items extracted as positioned elements — review grouping/repeat semantics |
+| `CANMIGRDL032` | Warning | RDL-2005 `<TableGroups>` header/footer repeat metadata preserved on PXA table style |
 
 ## V2 checklist
 
-- [x] **P0** RDL-2005 `<Table>` `<Footer>` rows included in the Canvas grid (financial totals no longer lost).
+- [x] **P0** RDL-2005 `<Table>` `<Footer>` rows included in the PXA grid (financial totals no longer lost).
 - [x] **P0** `<List>` region support: recurse `<ReportItems>` (nested Table parsed), `<Grouping>`/
-      `<GroupExpressions>` preserved as Canvas `RepeatDto` + `style.rdlList` metadata; transparent container.
+      `<GroupExpressions>` preserved as PXA `RepeatDto` + `style.rdlList` metadata; transparent container.
 - [x] **P0** `<Grouping>` recognized alongside `<Group>` in `ParseTablixGroups` (RDL-2005 groupings no longer ignored).
 - [x] **P0** Validate all 8 `.rdlx` samples convert with no dropped top-level regions (integration test).
 - [x] **P1** Per-cell border/background/alignment fidelity — see *Per-cell table styling* below (v1 vertical slice).
@@ -76,14 +76,14 @@ Key sample-driven conclusions:
       future group-repeat renderer; none of the current local samples exercise this.
 - [x] **P1** RPX section-report P0 metadata pass: `GroupHeader`/`GroupFooter` and `Detail` repeat metadata,
       `CanGrow`/`CanShrink`, `OutputFormat`, page-break metadata, and CrossSectionLine/CrossSectionBox
-      visual preservation are implemented in `Canvas.Migration.Rpx`.
+      visual preservation are implemented in `PXA.Migration.Rpx`.
 - [x] **P1** RPX subreport resource inlining: matching `.rpx` resources supplied to `report-to-design`
       are recursively converted and positioned at the parent `SubReport` placeholder.
 - [x] **P1** RPX UI resource upload: the migration page accepts multiple `.rpx` resource files for
       ActiveReports subreport inlining.
 - [x] **P1** RPX embedded-script no-op preservation: script language/hash/preview metadata is retained in
       `PageSettings.CustomProperties` for manual review.
-- [x] **P1** RPX page-break mapping: `PageBreak`/`NewPage` hints create typed Canvas `pageboundary`
+- [x] **P1** RPX page-break mapping: `PageBreak`/`NewPage` hints create typed PXA `pageboundary`
       markers alongside `style.rpxPageBreak` metadata.
 - [x] **P1** RPX real-sample validation harness: tests auto-discover
       `designer-simples/ActiveReports/**/*.rpx` and skip gracefully until real section-report samples exist.
@@ -95,7 +95,7 @@ Key sample-driven conclusions:
       (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md).)
 - [x] **P2** ActiveReports **JS** JSON report model V1: explicitly marked JSON reports
       (`reportType`/`reportKind`/`designer` containing `ActiveReportsJS`) route to
-      `Canvas.Migration.ActiveReportsJs`; text/line/image/barcode/simple table items map to Canvas
+      `PXA.Migration.ActiveReportsJs`; text/line/image/barcode/simple table items map to PXA
       elements and unsupported regions become visible placeholders. Real vendor-saved JSON samples
       are still needed for schema tuning.
 - [x] **P2** ActiveReports JS sample validation harness: tests auto-discover
@@ -104,15 +104,15 @@ Key sample-driven conclusions:
 
 ## Implementation notes
 
-- Converter: [`src/Canvas.Migration.Rdl/RdlToDesignConverter.cs`](../src/Canvas.Migration.Rdl/RdlToDesignConverter.cs)
+- Converter: [`src/PXA.Migration.Rdl/RdlToDesignConverter.cs`](../src/PXA.Migration.Rdl/RdlToDesignConverter.cs)
   — footer concat in the 2005/2008 `<Table>` branch; `case "List"` in `ParseReportItems` + recursion;
   `MapList`/`RdlListRepeatMetadata`; `ParseTablixGroups` matches `Group`|`Grouping`.
-- Tests: [`tests/Canvas.Migration.Rdl.Tests/RdlToDesignConverterTests.cs`](../tests/Canvas.Migration.Rdl.Tests/RdlToDesignConverterTests.cs)
+- Tests: [`tests/PXA.Migration.Rdl.Tests/RdlToDesignConverterTests.cs`](../tests/PXA.Migration.Rdl.Tests/RdlToDesignConverterTests.cs)
   — footer-rows, List-with-nested-table, and an 8-sample integration check (locates `designer-simples`).
 
-## Per-cell table styling (Canvas-model track)
+## Per-cell table styling (PXA-model track)
 
-Canvas tables historically carried only `CellData` / `ColumnWidths` / `ColumnAlignments` / `HeaderRow`
+PXA tables historically carried only `CellData` / `ColumnWidths` / `ColumnAlignments` / `HeaderRow`
 plus table-level `HeaderBgColor` / `ZebraColor` — so per-cell borders, backgrounds, and alignment from
 real reports (ActiveReports/RDL per-side cell pens, FastReport/Telerik cell borders) were dropped. This
 adds an **additive, backward-compatible** per-cell style model and wires a **v1 vertical slice**
@@ -121,7 +121,7 @@ adds an **additive, backward-compatible** per-cell style model and wires a **v1 
 **Contract:** `ElementDto.CellStyles` — a sparse `CellStyleDto[]` (only styled cells listed), each with
 `Row`, `Col`, `BackgroundColor`, `TextAlign`, uniform `BorderColor`/`BorderWidth`, and per-side
 `BorderTop/Right/Bottom/Left` (`CellBorderSideDto { Color, Width }`) for per-side pens.
-[`src/Canvas.Core/Contracts/DesignExportDto.cs`](../src/Canvas.Core/Contracts/DesignExportDto.cs)
+[`src/PXA.Core/Contracts/DesignExportDto.cs`](../src/PXA.Core/Contracts/DesignExportDto.cs)
 
 **v1 scope (done):** borders + background + text-align; render/import only (no manual cell editor yet).
 
@@ -130,7 +130,7 @@ adds an **additive, backward-compatible** per-cell style model and wires a **v1 
       shapes (2008 `<Border>`/`<TopBorder>…`, RDL-2005 `<BorderColor>`/`<BorderWidth>`/`<BorderStyle>`
       with `<Default>`/per-side children). `ExtractCellStyle` in `RdlToDesignConverter.cs`.
 - [x] Server image preview (`ImageDocumentExporter.DrawTable`) applies per-cell bg/borders/alignment.
-- [x] Frontend renders per-cell styles: `SimpleCanvas` `tdStyle` + `LivePreview` `tdSt`, keyed by the
+- [x] Frontend renders per-cell styles: `SimplePxaSurface` `tdStyle` + `LivePreview` `tdSt`, keyed by the
       absolute data-row index; explicit per-cell borders replace the default grid border (exporter parity).
 - [x] Frontend type mirror (`ui-designer-v2/src/types.ts`: `CellStyle` / `CellBorderSide`).
 - [x] Tests: RDL `CellStyles` extraction + null-when-unstyled (backward-compat); image-export render diff.
@@ -140,8 +140,8 @@ adds an **additive, backward-compatible** per-cell style model and wires a **v1 
       text-align, and uniform + per-side borders; explicit cell borders replace the table grid (parity
       with canvas/image). ODT emits `<style:style family="table-cell">` defs in `office:automatic-styles`.
 - [x] Codegen emits `CellStyles`: `jsonToCSharp.ts` writes the full `CellStyleDto[]` initializer (consumed
-      by the Canvas.Pdf runtime DTO renderer); `CodeGenerator.ts` (PDFsharp sample) applies per-cell
-      background/text-colour/bold/alignment. *(Canvas.Pdf runtime rendering lives outside this repo; the
+      by the PXA.Pdf runtime DTO renderer); `CodeGenerator.ts` (PDFsharp sample) applies per-cell
+      background/text-colour/bold/alignment. *(PXA.Pdf runtime rendering lives outside this repo; the
       DTO it receives now carries the styles.)*
 - [x] Other converters populate `CellStyles`: **FastReport** (`TableCell` Fill/TextFill/Border.Lines/Font/
       HorzAlign/Padding), **Telerik** (content-item named+inline `<Style>`), **DevExpress** (XRTableCell XML

@@ -9,7 +9,7 @@ namespace PXA.Migration.SpreadsheetLight;
 /// <summary>
 /// Migrates SpreadsheetLight (<c>SLDocument</c>) authoring code to the PXA spreadsheet API
 /// (<c>PxaWorkbook</c>). In SpreadsheetLight one <c>SLDocument</c> is both the workbook and the active
-/// worksheet; Canvas separates them, so this maps the document to a <c>PxaWorkbook</c>, <b>injects</b>
+/// worksheet; PXA separates them, so this maps the document to a <c>PxaWorkbook</c>, <b>injects</b>
 /// <c>var sheet = &lt;doc&gt;.AddSheet("Sheet1");</c>, and retargets the cell calls to that worksheet.
 /// </summary>
 public sealed class SpreadsheetLightMigration : CSharpSourceMigration

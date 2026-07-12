@@ -28,7 +28,7 @@ public sealed class IronPdfMigrationPxaFacadeTests
     }
 
     [Fact]
-    public void Migrate_MapsCanvasWarningsToPxaDiagnostics()
+    public void Migrate_MapsPxaWarningsToPxaDiagnostics()
     {
         var source = """
             using IronPdf;

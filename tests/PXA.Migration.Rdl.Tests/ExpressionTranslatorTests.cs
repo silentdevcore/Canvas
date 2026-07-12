@@ -13,7 +13,7 @@ public sealed class ExpressionTranslatorTests
     [InlineData("=Fields!A.Value And Fields!B.Value", "$and(A, B)")]
     [InlineData("=Parameters!P.Value", "P")]
     [InlineData("=\"A & B\"", "\"A & B\"")]                       // '&' inside a string is not concat
-    public void TranslateRdl_ProducesCanvasGrammar(string input, string expected)
+    public void TranslateRdl_ProducesPxaGrammar(string input, string expected)
         => Assert.Equal(expected, ExpressionTranslator.TranslateRdl(input));
 
     [Theory]
@@ -21,7 +21,7 @@ public sealed class ExpressionTranslatorTests
     [InlineData("Iif([Ok], 1, 0)", "$iif(Ok, 1, 0)")]
     [InlineData("[Ds.Field]", "Field")]
     [InlineData("[A] == [B]", "A == B")]
-    public void TranslateDevExpress_ProducesCanvasGrammar(string input, string expected)
+    public void TranslateDevExpress_ProducesPxaGrammar(string input, string expected)
         => Assert.Equal(expected, ExpressionTranslator.TranslateDevExpress(input));
 
     [Fact]

@@ -23,7 +23,7 @@ public sealed class ConverterFacadeTests
         yield return [new HtmlDocumentExporter(), "html", ".html", "Hello PXA"];
         yield return [new MarkdownDocumentExporter(), "md", ".md", "Hello PXA"];
         yield return [new CsvDocumentExporter(), "csv", ".csv", "Hello PXA"];
-        yield return [new XmlDocumentExporter(), "xml", ".xml", "CanvasDocument"];
+        yield return [new XmlDocumentExporter(), "xml", ".xml", "PxaDocument"];
         yield return [new SvgDocumentExporter(), "svg", ".svg", "<svg"];
     }
 
@@ -49,7 +49,7 @@ public sealed class ConverterFacadeTests
     }
 
     [Fact]
-    public void ConverterCapabilities_MirrorCanvasCapabilities()
+    public void ConverterCapabilities_MirrorPxaCapabilities()
     {
         var capabilities = new ConverterRendererCapabilities();
 

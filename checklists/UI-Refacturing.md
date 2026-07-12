@@ -11,10 +11,10 @@
 | Home page copy | `IndexPage.tsx` | 339 | Says "PDF, JSON & image export" — we now export 10+ formats; 4 "coming soon" tool cards with no plan |
 | Trust band | `IndexPage.tsx` | 207–221 | Stat says "PDF, JSON & image export" — stale |
 | Sign DOCX | `ExportService.signDocx()` | — | **Full backend API exists, zero UI** — unreachable by users |
-| Content Control inspector | `SimpleCanvas.tsx` | inspector ~5000–5200 | `contentControlTitle`, `contentControlTag`, `contentControlPlaceholder` missing from inspector |
-| Bookmark inspector | `SimpleCanvas.tsx` | inspector | `bookmarkTarget` field missing |
-| Comment inspector | `SimpleCanvas.tsx` | inspector | `commentDate`, `commentId` fields missing |
-| Revision inspector | `SimpleCanvas.tsx` | inspector | `revisionId` field missing |
+| Content Control inspector | `SimplePxaSurface.tsx` | inspector ~5000–5200 | `contentControlTitle`, `contentControlTag`, `contentControlPlaceholder` missing from inspector |
+| Bookmark inspector | `SimplePxaSurface.tsx` | inspector | `bookmarkTarget` field missing |
+| Comment inspector | `SimplePxaSurface.tsx` | inspector | `commentDate`, `commentId` fields missing |
+| Revision inspector | `SimplePxaSurface.tsx` | inspector | `revisionId` field missing |
 | ExportModal formats | `ExportModal.tsx` | 144 | Lists SVG but `ExportFormat` union in ExportService doesn't include `'svg'` |
 | Auth buttons | IndexPage.tsx, TemplatePage.tsx | | Show "not implemented" toast — should be removed or handled gracefully |
 | Hero cards | `IndexPage.tsx` | 140–175 | No "Import file" entry point from home page |
@@ -68,11 +68,11 @@ Create `src/styles/` sub-files and import them from the root `index.css`:
 | `nav.css` | `.pdf-nav`, `.pdf-logo`, `.pdf-nav-links`, mobile menu | ~120 |
 | `home.css` | Hero, tools, trust band, category grid, features, security, usage strips | ~650 |
 | `gallery.css` | Template browser toolbar, cards, detail panel, category filter | ~1 100 |
-| `editor.css` | Canvas, topbar, tool panel, inspector, layers, pages panel, modals | ~2 200 |
+| `editor.css` | PXA, topbar, tool panel, inspector, layers, pages panel, modals | ~2 200 |
 | `docs.css` | DocsPage sidebar, content, code blocks, endpoint grid | ~520 |
 | `responsive.css` | All `@media` breakpoints | ~200 |
 
-**Files to create:** 8 CSS files under `src/styles/`  
+**Files to create:** 8 CSS files under `src/styles/`
 **Files to modify:** `src/styles/index.css` (becomes the import aggregator)
 
 ---
@@ -122,15 +122,15 @@ Flow:
    - Error display
 3. After signing, show success state with file size
 
-**Files to create:** `SignDocxModal.tsx`  
-**Files to modify:** `ExportModal.tsx` (add Sign button), `SimpleCanvas.tsx` (pass docxBlob state to ExportModal)
+**Files to create:** `SignDocxModal.tsx`
+**Files to modify:** `ExportModal.tsx` (add Sign button), `SimplePxaSurface.tsx` (pass docxBlob state to ExportModal)
 
 ---
 
 #### 3-B. Complete inspector panels — missing fields
 **[high]**
 
-Patch `SimpleCanvas.tsx` inspector section for these element types:
+Patch `SimplePxaSurface.tsx` inspector section for these element types:
 
 **Content Control** (add to existing contentcontrol block):
 - `contentControlTitle` — text input "Title"
@@ -147,7 +147,7 @@ Patch `SimpleCanvas.tsx` inspector section for these element types:
 **Revision** (add to existing revision block, shown when revisionType ≠ null):
 - `revisionId` — text input "Revision ID"
 
-**File to modify:** `SimpleCanvas.tsx` (inspector panels, ~lines 4543–5250)
+**File to modify:** `SimplePxaSurface.tsx` (inspector panels, ~lines 4543–5250)
 
 ---
 
@@ -165,7 +165,7 @@ Add two actions to the **page thumbnail strip** (bottom panel):
 - Right-click (context menu) on a page thumbnail → "Extract this page to new document"
 - Calls `ExportService.extractPages(design, [pageNumber])` → opens result in a new tab or downloads as JSON
 
-**File to modify:** `SimpleCanvas.tsx` (topbar breadcrumb menu + page thumbnail context menu)
+**File to modify:** `SimplePxaSurface.tsx` (topbar breadcrumb menu + page thumbnail context menu)
 
 ---
 
@@ -193,7 +193,7 @@ Check `GET /api/export/formats` response to determine if the backend supports SV
 - Add a "Mobile not supported" overlay below 768px with a link to the preview instead
 - Or: hide the left tool panel and inspector on mobile, show a "tap to select tool" bottom sheet
 
-**File to modify:** `SimpleCanvas.tsx` (add viewport check + overlay)
+**File to modify:** `SimplePxaSurface.tsx` (add viewport check + overlay)
 
 ---
 
@@ -235,7 +235,7 @@ Phase 4-A  → Mobile overlay                         (last — low priority)
 | `src/pages/IndexPage.tsx` | Use AppHeader, update trust band, update hero cards, fix tool cards |
 | `src/pages/TemplatePage.tsx` | Use AppHeader |
 | `src/pages/DocsPage.tsx` | Use AppHeader |
-| `src/components/Editor/SimpleCanvas.tsx` | Complete inspector fields, clone/extract menus |
+| `src/components/Editor/SimplePxaSurface.tsx` | Complete inspector fields, clone/extract menus |
 | `src/components/Editor/ExportModal.tsx` | Sign button, SVG fix |
 | `src/services/ExportService.ts` | Add/remove SVG from ExportFormat |
 | `src/styles/index.css` | Becomes import aggregator only |
@@ -270,7 +270,7 @@ Also: PdfImporter now falls back to letter-by-letter text reconstruction when Pd
 `Word.Text` is empty (happens with PDFs whose embedded fonts lack a ToUnicode map).
 
 ### Files fixed
-- `src/Canvas.Infrastructure.Converters/PdfImporter.cs` — type casing + `WordText()` fallback helper
-- `src/Canvas.Infrastructure.Word/DocxImporter.cs` — "Text", "Table", "Image" → lowercase
-- `src/Canvas.Infrastructure.Converters/DocImporter.cs` — "Text" → "text"
-- `src/Canvas.Infrastructure.Converters/OdtImporter.cs` — "Text", "Image" → lowercase
+- `src/PXA.Infrastructure.Converters/PdfImporter.cs` — type casing + `WordText()` fallback helper
+- `src/PXA.Infrastructure.Word/DocxImporter.cs` — "Text", "Table", "Image" → lowercase
+- `src/PXA.Infrastructure.Converters/DocImporter.cs` — "Text" → "text"
+- `src/PXA.Infrastructure.Converters/OdtImporter.cs` — "Text", "Image" → lowercase

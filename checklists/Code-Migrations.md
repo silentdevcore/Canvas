@@ -1,8 +1,8 @@
-# Canvas PDF Code Migrations
+# PXA PDF Code Migrations
 
 ## Goal
 
-Build a `Canvas.Migration.*` feature family for migrating existing C# PDF-generation code from third-party vendors to `Canvas.Pdf`.
+Build a `PXA.Migration.*` feature family for migrating existing C# PDF-generation code from third-party vendors to `PXA.Pdf`.
 
 The first milestone started with checklist and architecture scaffolding. Syncfusion PDF, iText7, Aspose.PDF, IronPDF, DevExpress PDF, Apryse, Foxit PDF SDK, DsPdf, GemBox.Pdf, Spire.PDF, PDFKit.NET, LEADTOOLS PDF, ActivePDF, and PDFTools / Pdftools SDK now have Roslyn-backed pilot implementations. PDF Toolbox SDK / Toolbox add-on is queued as a separate direct-generation provider checklist.
 
@@ -31,12 +31,12 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 ## Architecture Checklist
 
 - [ ] Keep migration projects separate from rendering/importing infrastructure
-- [ ] Do not reference migration projects from `Canvas.Core`
-- [ ] Do not reference migration projects from `Canvas.Infrastructure.Pdf`
-- [ ] Use `Canvas.Pdf` as the target output API
-- [x] Add shared abstractions under `src/Canvas.Migration.Abstractions`
-- [x] Add Roslyn migration infrastructure under `src/Canvas.Migration.Roslyn`
-- [ ] Add one provider project per vendor under future `src/Canvas.Migration.<Provider>`
+- [ ] Do not reference migration projects from `PXA.Core`
+- [ ] Do not reference migration projects from `PXA.Infrastructure.Pdf`
+- [ ] Use `PXA.Pdf` as the target output API
+- [x] Add shared abstractions under `src/PXA.Migration.Abstractions`
+- [x] Add Roslyn migration infrastructure under `src/PXA.Migration.Roslyn`
+- [ ] Add one provider project per vendor under future `src/PXA.Migration.<Provider>`
 - [x] Define provider-neutral migration diagnostics
 - [ ] Define provider-neutral mapping result model
 - [x] Define migration report output for unsupported or manual follow-up work
@@ -44,23 +44,23 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 
 ## Future Project Layout
 
-- [x] `src/Canvas.Migration.Abstractions`
-- [x] `src/Canvas.Migration.Roslyn`
-- [x] `src/Canvas.Migration.iText7`
-- [x] `src/Canvas.Migration.AsposePdf`
-- [x] `src/Canvas.Migration.IronPdf`
-- [x] `src/Canvas.Migration.Apryse`
-- [x] `src/Canvas.Migration.SyncfusionPdf`
-- [x] `src/Canvas.Migration.DsPdf`
-- [x] `src/Canvas.Migration.GemBoxPdf`
-- [x] `src/Canvas.Migration.SpirePdf`
-- [x] `src/Canvas.Migration.PdfKitNet`
-- [x] `src/Canvas.Migration.LeadtoolsPdf`
-- [x] `src/Canvas.Migration.FoxitPdf`
-- [x] `src/Canvas.Migration.DevExpressPdf`
-- [x] `src/Canvas.Migration.ActivePdf`
-- [x] `src/Canvas.Migration.PdfTools`
-- [x] `src/Canvas.Migration.PdfToolsToolbox`
+- [x] `src/PXA.Migration.Abstractions`
+- [x] `src/PXA.Migration.Roslyn`
+- [x] `src/PXA.Migration.iText7`
+- [x] `src/PXA.Migration.AsposePdf`
+- [x] `src/PXA.Migration.IronPdf`
+- [x] `src/PXA.Migration.Apryse`
+- [x] `src/PXA.Migration.SyncfusionPdf`
+- [x] `src/PXA.Migration.DsPdf`
+- [x] `src/PXA.Migration.GemBoxPdf`
+- [x] `src/PXA.Migration.SpirePdf`
+- [x] `src/PXA.Migration.PdfKitNet`
+- [x] `src/PXA.Migration.LeadtoolsPdf`
+- [x] `src/PXA.Migration.FoxitPdf`
+- [x] `src/PXA.Migration.DevExpressPdf`
+- [x] `src/PXA.Migration.ActivePdf`
+- [x] `src/PXA.Migration.PdfTools`
+- [x] `src/PXA.Migration.PdfToolsToolbox`
 
 ## Shared Roslyn Analyzer And Code Fix Tasks
 
@@ -75,7 +75,7 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 - [ ] Produce diagnostics for ambiguous APIs
 - [ ] Offer code fixes only for deterministic mappings
 - [ ] Preserve user formatting where practical
-- [ ] Add `using Canvas.Pdf` when code fixes introduce Canvas APIs
+- [ ] Add `using PXA.Pdf` when code fixes introduce PXA APIs
 - [ ] Remove obsolete vendor `using` directives only when safe
 - [x] Emit a migration report with converted, skipped, and manual items
 
@@ -129,21 +129,21 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 - [ ] Code fix behavior is defined
 - [ ] Before/after migration snapshots are planned
 - [ ] Integration sample is planned
-- [ ] Expected `Canvas.Pdf` output compiles in a test fixture
+- [ ] Expected `PXA.Pdf` output compiles in a test fixture
 
 ## Test Plan For Future Implementation
 
 - [ ] Unit-test each vendor mapper with small C# snippets
 - [ ] Verify diagnostics for unsupported APIs
 - [ ] Verify diagnostics for ambiguous APIs
-- [ ] Verify code fixes produce compilable `Canvas.Pdf` code
+- [ ] Verify code fixes produce compilable `PXA.Pdf` code
 - [ ] Add snapshot tests for before/after migrations
 - [ ] Add one integration test per provider project using a realistic sample
-- [ ] Run `dotnet build Canvas.sln` after adding projects
+- [ ] Run `dotnet build PXA.sln` after adding projects
 
 ## Assumptions
 
-- [x] Use `Canvas.Migration.*`, not `Convas.Migration.*`
+- [x] Use `PXA.Migration.*`, not `Convas.Migration.*`
 - [x] Use Markdown extension `.md`; `Code-Migrations.dm` is treated as a typo
 - [x] Use canonical provider names in checklist titles and future project names
 - [x] Keep this milestone to architecture and checklist scaffolding

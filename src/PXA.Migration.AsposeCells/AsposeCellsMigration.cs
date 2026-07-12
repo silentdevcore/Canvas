@@ -80,11 +80,11 @@ public sealed class AsposeCellsMigration : CSharpSourceMigration
             {
                 if (!_notedDefaultSheet)
                 {
-                    Diagnostics.Add(Info("CANMIGASPC011", "Aspose Workbook auto-creates a default worksheet; in Canvas call wb.AddSheet(...) explicitly (Worksheets[0] is mapped to AddSheet(\"Sheet1\"))."));
+                    Diagnostics.Add(Info("CANMIGASPC011", "Aspose Workbook auto-creates a default worksheet; in PXA call wb.AddSheet(...) explicitly (Worksheets[0] is mapped to AddSheet(\"Sheet1\"))."));
                     _notedDefaultSheet = true;
                 }
                 if (visited.ArgumentList?.Arguments.Count > 0)
-                    Diagnostics.Add(Warn("CANMIGASPC023", "new Workbook(path) loads an existing file; Canvas import is via ExcelWorkbookImporter — review."));
+                    Diagnostics.Add(Warn("CANMIGASPC023", "new Workbook(path) loads an existing file; PXA import is via ExcelWorkbookImporter — review."));
                 return visited.WithType(SyntaxFactory.IdentifierName("PxaWorkbook").WithTriviaFrom(visited.Type))
                     .WithArgumentList(SyntaxFactory.ArgumentList());
             }
@@ -129,7 +129,7 @@ public sealed class AsposeCellsMigration : CSharpSourceMigration
             {
                 var first = visited.ArgumentList.Arguments.Take(1);
                 if (visited.ArgumentList.Arguments.Count > 1)
-                    Diagnostics.Add(Warn("CANMIGASPC022", "PutValue(value, isConverted/…) extra args dropped; Canvas Value(object) infers the type."));
+                    Diagnostics.Add(Warn("CANMIGASPC022", "PutValue(value, isConverted/…) extra args dropped; PXA Value(object) infers the type."));
                 return visited
                     .WithExpression(ma.WithName(SyntaxFactory.IdentifierName("Value")))
                     .WithArgumentList(SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(first)));
@@ -151,9 +151,9 @@ public sealed class AsposeCellsMigration : CSharpSourceMigration
                     SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(visited.ArgumentList.Arguments[1])));
             }
 
-            // wb.Save(stream/SaveFormat) → Canvas Save(string path)
+            // wb.Save(stream/SaveFormat) → PXA Save(string path)
             if (name == "Save" && !(visited.ArgumentList.Arguments.Count == 1 && visited.ArgumentList.Arguments[0].Expression is LiteralExpressionSyntax))
-                Diagnostics.Add(Warn("CANMIGASPC024", "Aspose Save(stream/SaveFormat) → Canvas Save(string path): pass a file path."));
+                Diagnostics.Add(Warn("CANMIGASPC024", "Aspose Save(stream/SaveFormat) → PXA Save(string path): pass a file path."));
 
             return visited;
         }

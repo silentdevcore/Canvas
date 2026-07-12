@@ -1,7 +1,7 @@
 import React from 'react';
 import { useEditorStore } from '../../store';
 import Toolbar from './Toolbar';
-import Canvas from './Canvas'; // We'll create this next
+import PxaSurface from './PxaSurface'; // We'll create this next
 import PropertiesPanel from './PropertiesPanel'; // We'll port this
 import JsonEditorPanel from './JsonEditorPanel'; // We'll create this
 
@@ -25,7 +25,7 @@ const ComplexEditor: React.FC<ComplexEditorProps> = ({ onPreview, onBack }) => {
       </header>
       <div className="editor-layout">
         <Toolbar />
-        <Canvas elements={currentTemplate.pages?.[0]?.elements ?? []} />
+        <PxaSurface elements={currentTemplate.pages?.[0]?.elements ?? []} />
         <PropertiesPanel />
         <JsonEditorPanel jsonData={currentTemplate.data} onUpdate={useEditorStore((state) => state.updateJsonData)} />
       </div>

@@ -2,7 +2,7 @@ using PXA.Core.Primitives;
 
 namespace PXA.Core.Tests;
 
-public class CanvasExpressionEvaluatorTests
+public class PxaExpressionEvaluatorTests
 {
     private static object? Eval(string expr, Dictionary<string, object?> data)
     {

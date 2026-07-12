@@ -30,7 +30,7 @@ public sealed class PdfKitNetMigrationPxaFacadeTests
     }
 
     [Fact]
-    public void Migrate_MapsCanvasWarningsToPxaDiagnostics()
+    public void Migrate_MapsPxaWarningsToPxaDiagnostics()
     {
         var source = """
             using PdfKitNet;

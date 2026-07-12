@@ -26,7 +26,7 @@ public sealed class SystemControllerTests : IClassFixture<WebApplicationFactory<
         Assert.Equal("PXA", body.GetProperty("developerName").GetString());
         Assert.Equal("pxa", body.GetProperty("cliName").GetString());
         Assert.Equal(".pxa", body.GetProperty("nativeFileExtension").GetString());
-        Assert.Equal("Canvas", body.GetProperty("legacyProductName").GetString());
+        Assert.Equal("PXA", body.GetProperty("legacyProductName").GetString());
         Assert.Contains(
             body.GetProperty("compatibilityNotes").EnumerateArray(),
             note => note.GetString() == "Legacy /api routes remain compatible.");

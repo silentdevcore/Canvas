@@ -13,8 +13,8 @@ import './App.css';
 
 // Lazy load heavy components
 const Sidebar = lazy(() => import('./Sidebar'));
-const Canvas = lazy(() => import('./Canvas'));
-const VirtualCanvas = lazy(() => import('./VirtualCanvas'));
+
+
 const PropertiesPanel = lazy(() => import('./PropertiesPanel'));
 const PageSettingsPanel = lazy(() => import('./PageSettingsPanel'));
 const ExportPanel = lazy(() => import('./ExportPanel'));
@@ -515,9 +515,9 @@ const App: React.FC = () => {
         <div className="ui-main-column">
           <Suspense fallback={<LoadingSpinner />}>
             {virtualScrolling ? (
-              <VirtualCanvas width={4000} height={4000} viewportWidth={800} viewportHeight={600} />
+
             ) : (
-              <Canvas documentView={documentView} />
+
             )}
           </Suspense>
           <div className="ui-bottom-panel-shell">

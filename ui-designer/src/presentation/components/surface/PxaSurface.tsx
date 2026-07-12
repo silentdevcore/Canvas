@@ -1,14 +1,14 @@
 import React, { useCallback } from 'react';
-import { useCanvasViewModel } from '../../viewModels/CanvasViewModel';
+import { usePxaSurfaceViewModel } from '../../viewModels/PxaSurfaceViewModel';
 import ElementRenderer from '../../../ElementRenderer';
 import FocusIndicator from '../../../FocusIndicator';
 
 /**
- * Canvas Component following Clean Architecture principles.
+ * PxaSurface Component following Clean Architecture principles.
  * This component focuses purely on UI rendering and user interaction.
- * All business logic is handled by the CanvasViewModel and use cases.
+ * All business logic is handled by the PxaSurfaceViewModel and use cases.
  */
-export const Canvas: React.FC = () => {
+export const PxaSurface: React.FC = () => {
   const {
     elements,
     selectedElementId,
@@ -18,11 +18,11 @@ export const Canvas: React.FC = () => {
     addElement,
     selectElement,
     clearError
-  } = useCanvasViewModel();
+  } = usePxaSurfaceViewModel();
 
-  // Handle canvas click (deselect elements)
-  const handleCanvasClick = useCallback((event: React.MouseEvent) => {
-    // Only deselect if clicking on canvas background, not on elements
+  // Handle surface click (deselect elements)
+  const handleSurfaceClick = useCallback((event: React.MouseEvent) => {
+    // Only deselect if clicking on surface background, not on elements
     if (event.target === event.currentTarget) {
       selectElement(null);
     }
@@ -58,10 +58,10 @@ export const Canvas: React.FC = () => {
         </div>
       )}
 
-      {/* Main canvas area */}
+      {/* Main surface area */}
       <div
         className="canvas canvas-presentation"
-        onClick={handleCanvasClick}
+        onClick={handleSurfaceClick}
       >
         {/* Render all elements */}
         {elements.map((element) => (
@@ -108,7 +108,7 @@ export const Canvas: React.FC = () => {
         />
       </div>
 
-      {/* Canvas controls */}
+      {/* PxaSurface controls */}
       <div className="canvas-controls">
         <div className="element-count">
           {elements.length} element{elements.length !== 1 ? 's' : ''}

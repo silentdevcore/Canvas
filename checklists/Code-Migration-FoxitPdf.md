@@ -1,9 +1,9 @@
-# Canvas Migration: Foxit PDF SDK
+# PXA Migration: Foxit PDF SDK
 
 ## V1 Pilot Analysis
 
 - [x] Foxit PDF SDK is a broad SDK with document generation, editing, annotations, forms, security, rendering, OCR/conversion, viewer, and redaction surfaces.
-- [x] Canvas.Pdf currently covers the simple generation subset best: new document, new page, text, images, shapes, and save/export.
+- [x] PXA.Pdf currently covers the simple generation subset best: new document, new page, text, images, shapes, and save/export.
 - [x] Existing-PDF editing and processing features should remain report-only/manual in v1.
 - [x] First implementation is a Roslyn-backed reporting pilot, not an automatic code rewrite.
 
@@ -28,8 +28,8 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/Canvas.Migration.FoxitPdf`
-- [x] Add `tests/Canvas.Migration.FoxitPdf.Tests`
+- [x] Add `src/PXA.Migration.FoxitPdf`
+- [x] Add `tests/PXA.Migration.FoxitPdf.Tests`
 - [x] Add WebApi converter integration
 - [x] Add API service smoke test
 - [x] Report deterministic candidates while preserving original source
@@ -37,12 +37,12 @@
 
 ## Mapping Table
 
-| Foxit PDF SDK API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
+| Foxit PDF SDK API / pattern | PXA.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `Library.Initialize(...)` | No Canvas equivalent | Report-only | Canvas.Pdf does not require global SDK initialization. |
-| `new PDFDoc()` | `new Canvas.Pdf.PdfDocument()` | Report-only in v1 | Input-file constructors imply existing-PDF editing and need manual review. |
+| `Library.Initialize(...)` | No PXA equivalent | Report-only | PXA.Pdf does not require global SDK initialization. |
+| `new PDFDoc()` | `new PXA.Pdf.PdfDocument()` | Report-only in v1 | Input-file constructors imply existing-PDF editing and need manual review. |
 | `doc.InsertPage(...)`, `CreatePage(...)`, `AddPage(...)` | `document.AddPage(...)` | Report-only in v1 | Review page size, orientation, and coordinate origin. |
-| `GetGraphics(...)`, `StartGenerateContents(...)`, `GenerateContent(...)` | Draw directly on `PdfPage` | Report-only in v1 | Canvas draw calls target the page returned by `AddPage`. |
+| `GetGraphics(...)`, `StartGenerateContents(...)`, `GenerateContent(...)` | Draw directly on `PdfPage` | Report-only in v1 | PXA draw calls target the page returned by `AddPage`. |
 | `DrawText(...)`, `ShowText(...)`, `DrawString(...)`, `TextOut(...)` | `page.DrawText(...)` / `page.DrawTextFromTop(...)` | Report-only in v1 | Font and coordinate mapping must be reviewed. |
 | `DrawImage(...)`, `AddImage(...)` | `page.DrawImage(...)` | Report-only in v1 | Image resource and scaling semantics need manual review. |
 | `DrawLine(...)`, `DrawRect(...)`, `DrawRectangle(...)`, `FillRect(...)`, `DrawPath(...)` | `page.DrawLine(...)`, `page.DrawRectangle(...)`, path drawing | Report-only in v1 | Geometry and stroke/fill styles need review. |
@@ -90,17 +90,17 @@ graphics.DrawRect(pen, 40, 620, 200, 80);
 doc.SaveAs(path);
 ```
 
-## Expected Canvas.Pdf Output Snippets
+## Expected PXA.Pdf Output Snippets
 
 ```csharp
-// Canvas.Pdf migration report: Foxit PDF SDK
-// - Library.Initialize(...) detected. Canvas.Pdf does not require a global Foxit SDK initialization call.
-// - new PDFDoc(...) detected. Candidate Canvas rewrite starts with `var document = new PdfDocument();`; input-file constructors need manual review.
-// - InsertPage(...) detected. Candidate Canvas rewrite is `var page = document.AddPage(...)` after page size/orientation review.
-// - DrawText(...) detected. Candidate Canvas rewrite is `page.DrawText(...)` or `page.DrawTextFromTop(...)` after coordinate review.
-// - DrawImage(...) detected. Candidate Canvas rewrite is `page.DrawImage(...)` after image sizing/resource review.
-// - DrawRect(...) detected. Candidate Canvas rewrite is `page.DrawLine(...)`, `page.DrawRectangle(...)`, or path drawing after geometry review.
-// - SaveAs(...) detected. Candidate Canvas rewrite ends with `document.Save(...)`; review Foxit save flags.
+// PXA.Pdf migration report: Foxit PDF SDK
+// - Library.Initialize(...) detected. PXA.Pdf does not require a global Foxit SDK initialization call.
+// - new PDFDoc(...) detected. Candidate PXA rewrite starts with `var document = new PdfDocument();`; input-file constructors need manual review.
+// - InsertPage(...) detected. Candidate PXA rewrite is `var page = document.AddPage(...)` after page size/orientation review.
+// - DrawText(...) detected. Candidate PXA rewrite is `page.DrawText(...)` or `page.DrawTextFromTop(...)` after coordinate review.
+// - DrawImage(...) detected. Candidate PXA rewrite is `page.DrawImage(...)` after image sizing/resource review.
+// - DrawRect(...) detected. Candidate PXA rewrite is `page.DrawLine(...)`, `page.DrawRectangle(...)`, or path drawing after geometry review.
+// - SaveAs(...) detected. Candidate PXA rewrite ends with `document.Save(...)`; review Foxit save flags.
 ```
 
 ## Analyzer Diagnostics Checklist
@@ -120,7 +120,7 @@ doc.SaveAs(path);
 - [ ] Implement only after exact API confirmation from real Foxit customer samples
 - [ ] Replace deterministic document creation
 - [ ] Replace deterministic page creation
-- [ ] Add `using Canvas.Pdf`
+- [ ] Add `using PXA.Pdf`
 - [ ] Preserve unsupported calls with diagnostics
 
 ## Tests Checklist

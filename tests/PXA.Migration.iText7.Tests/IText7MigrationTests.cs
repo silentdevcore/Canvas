@@ -356,14 +356,14 @@ public sealed class IText7MigrationTests
             using var pdf = new PdfDocument(writer);
             using var document = new Document(pdf);
             var canvas = new PdfCanvas(pdf.GetFirstPage());
-            canvas.BeginText().MoveText(72, 700).ShowText("Canvas text").EndText();
+            canvas.BeginText().MoveText(72, 700).ShowText("PXA text").EndText();
             """;
         var expected = """
             using PXA.Pdf;
 
             var document = new PdfDocument();
             var page = document.AddPage();
-            page.DrawText("Canvas text", 72, 700, 12);
+            page.DrawText("PXA text", 72, 700, 12);
             document.Save(path);
             """;
         var sut = new IText7Migration();

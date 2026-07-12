@@ -2,7 +2,7 @@
 
 ## Summary
 
-- [x] Create a new image-to-PDF conversion path that turns raster images into editable Canvas documents and exports them as PDFs with real text, image, and layout objects.
+- [x] Create a new image-to-PDF conversion path that turns raster images into editable PXA documents and exports them as PDFs with real text, image, and layout objects.
 - [x] Use an embedded local OCR engine, preferably the `Tesseract` NuGet package with bundled `tessdata-fast` language files.
 - [x] Do not shell out to a locally installed OCR executable.
 - [x] Do not require a cloud OCR provider for the core conversion workflow.
@@ -10,16 +10,16 @@
 
 ## Product Goal
 
-- [x] Primary output: editable PDF generated through Canvas.
+- [x] Primary output: editable PDF generated through PXA.
 - [x] Intermediate output: `DesignExportDto` with editable `text`, `image`, and layout elements.
 - [x] Optional output: diagnostic/debug response for development and quality review.
 - [x] Preserve visual fidelity by optionally placing the original image as a locked background layer.
-- [x] Preserve editability by rendering recognized text as real Canvas/PDF text objects.
+- [x] Preserve editability by rendering recognized text as real PXA/PDF text objects.
 
 ## Architecture
 
-- [x] Add a new module, for example `Canvas.FileImporter.ImageOcr`, for the OCR-based conversion path.
-- [x] Keep the current `Canvas.FileImporter.ImageAnalysis` pipeline separate; treat it as legacy/reference code, not the new OCR core.
+- [x] Add a new module, for example `PXA.FileImporter.ImageOcr`, for the OCR-based conversion path.
+- [x] Keep the current `PXA.FileImporter.ImageAnalysis` pipeline separate; treat it as legacy/reference code, not the new OCR core.
 - [x] Define an `IOcrEngine` abstraction so Tesseract can be replaced or supplemented later.
 - [x] Add a Tesseract-backed implementation behind the abstraction.
 - [x] Store bundled OCR language files under a predictable deployment path such as `tessdata/`.
@@ -102,7 +102,7 @@
 
 ## Coordinate Mapping
 
-- [x] Convert OCR pixel coordinates into Canvas/PDF points.
+- [x] Convert OCR pixel coordinates into PXA/PDF points.
 - [ ] Account for DPI, target page size, scaling, EXIF orientation, and deskew transforms.
   - [x] Account for DPI, target page size, and proportional scaling.
   - [x] Account for EXIF orientation in decoded image mapping.
@@ -128,7 +128,7 @@
   - [x] Support empty table cells when rows align to known column anchors.
   - [x] Tolerate incomplete table rule lines conservatively.
   - [x] Ignore row/column spans unless OCR evidence is unambiguous.
-- [x] Emit recognized text as Canvas `text` elements.
+- [x] Emit recognized text as PXA `text` elements.
 - [x] Estimate font size from OCR word/line box height.
 - [x] Split colored or differently sized OCR word runs within a line into separate text elements.
 - [x] Classify conservative OCR text roles such as heading, body, and caption.
@@ -138,13 +138,13 @@
 - [x] Reuse shape detection only where it is stable enough to improve editability.
 - [x] Do not reuse the current custom glyph recognizer as the main OCR strategy.
 
-## Canvas Element Mapping From Images
+## PXA Element Mapping From Images
 
 - [x] Add a conservative form/document element mapper after OCR layout detection.
 - [x] Keep the original image as a locked background while placing editable detected elements above it.
 - [x] Use shared exclusion zones so OCR text, table regions, and table rules are not duplicated as shapes.
 - [x] Resolve overlapping detections by priority: table, checkbox, signature, field, image region, shape, text.
-- [x] Map detected objects to supported Canvas element types.
+- [x] Map detected objects to supported PXA element types.
   - [x] Map OCR text, text runs, paragraphs, headings, and captions to `text`.
   - [x] Map simple tables with empty cells to `table`.
   - [x] Map simple horizontal and vertical separators to `line`.
@@ -176,7 +176,7 @@
     - [x] Add `imageOcrDetector` for image region elements.
   - [x] Add `sourceBoundsPx`.
 - [x] Keep uncertain candidates out of the design instead of guessing.
-- [x] Add tests for Canvas element mapping.
+- [x] Add tests for PXA element mapping.
   - [x] Checkbox empty, checked, crossed, and dotted.
   - [x] Label plus empty input field.
   - [x] Signature line with label.
@@ -190,7 +190,7 @@
 ## PDF Generation
 
 - [x] Create a `DesignExportDto` as the canonical intermediate model.
-- [x] Export the design through the existing Canvas PDF renderer.
+- [x] Export the design through the existing PXA PDF renderer.
 - [x] Render OCR text as real PDF text objects.
 - [x] Render the original image as a background layer when enabled.
 - [x] Keep low-confidence OCR visible in diagnostics.
@@ -225,7 +225,7 @@
 - [x] Show OCR progress states.
 - [x] Show conversion warnings after completion.
 - [x] Let users download the generated PDF.
-- [x] Let users open the editable Canvas design after conversion.
+- [x] Let users open the editable PXA design after conversion.
 
 ## Diagnostics And Debugging
 
@@ -249,19 +249,19 @@
 
 ## Existing Code To Analyze After Saving This Plan
 
-- [x] Review `src/Canvas.FileImporter.Image/ImageFileImporter.cs`.
+- [x] Review `src/PXA.FileImporter.Image/ImageFileImporter.cs`.
   - [x] Reuse image decoding where appropriate.
   - [x] Reuse EXIF orientation handling where appropriate.
   - [x] Reuse data URI / image encoding logic where appropriate.
-- [ ] Review `src/Canvas.FileImporter.ImageAnalysis/ImageAnalysisFileImporter.cs`.
+- [ ] Review `src/PXA.FileImporter.ImageAnalysis/ImageAnalysisFileImporter.cs`.
   - [ ] Reuse diagnostics ideas.
   - [ ] Reuse debug overlay concepts.
   - [ ] Reuse coordinate mapping ideas only if they fit the new OCR pipeline.
-- [ ] Review `src/Canvas.FileImporter.ImageAnalysis/Analysis/*`.
+- [ ] Review `src/PXA.FileImporter.ImageAnalysis/Analysis/*`.
   - [ ] Reuse stable preprocessing helpers where they are general-purpose.
   - [ ] Reuse stable shape/region detection only as optional layout enrichment.
   - [ ] Do not use the current custom glyph recognition as the OCR core.
-- [x] Review `Canvas/Pdf/*` and `src/Canvas.Infrastructure.Pdf/*`.
+- [x] Review `PXA/Pdf/*` and `src/PXA.Infrastructure.Pdf/*`.
   - [x] Reuse existing text rendering.
   - [x] Reuse existing image rendering.
   - [x] Reuse existing PDF serialization.
@@ -330,8 +330,8 @@
   - [x] Map OCR words into table cells when a visual table-region candidate exists.
 - [ ] Map nearby OCR labels to form fields, checkboxes, and signature lines without consuming unrelated paragraph text.
   - [x] Map nearby OCR labels to field and checkbox candidates without consuming unrelated paragraph text.
-- [x] Keep normal paragraph/body text outside detected visual element regions and emit it as standalone Canvas text elements.
-- [ ] Add diagnostics for every stage: OCR extraction, visual detection, fusion decisions, rejected candidates, and final Canvas element output.
+- [x] Keep normal paragraph/body text outside detected visual element regions and emit it as standalone PXA text elements.
+- [ ] Add diagnostics for every stage: OCR extraction, visual detection, fusion decisions, rejected candidates, and final PXA element output.
 - [ ] Add debug overlays for each stage: OCR text bounds, visual candidates, fusion/mapping results, and final element bounds.
 - [x] Add tests proving that OCR text recognition can succeed independently of element detection.
 - [ ] Add tests proving that visual line/table/field detection can run from image pixels without OCR text.
@@ -345,14 +345,14 @@
   - [x] Add `OcrTextDocument` with source image size, pages, blocks, lines, words, bounds in original pixels, confidence, language, and preprocessing metadata.
   - [x] Add `VisualLayoutDocument` with detected rule segments, table regions, fields, checkboxes, signature lines, shapes, image regions, and confidence/rejection diagnostics.
   - [x] Add `FusedLayoutDocument` with final semantic candidates: tables with cell text, fields with labels, checkboxes with labels/state, signatures with labels, standalone text groups, shapes, and image regions.
-  - [x] Keep these models internal to `Canvas.FileImporter.ImageOcr` unless API consumers need them later.
+  - [x] Keep these models internal to `PXA.FileImporter.ImageOcr` unless API consumers need them later.
 - [ ] Refactor `ImageToPdfConverter.ConvertAsync` into an orchestrator that decodes the image, applies orientation/preprocessing/scale mapping, runs OCR extraction, runs visual detection, runs OCR/visual fusion, builds `DesignExportDto`, builds diagnostics/debug overlays, and returns the result.
   - [x] Add `OcrTextExtractor` that calls `IOcrEngine`, handles OCR bitmap scaling, maps OCR coordinates back to source pixels, and produces `OcrTextDocument`.
   - [ ] Add `VisualElementDetector` that receives original `SKBitmap`, source dimensions, and options; detects visual candidates from pixels/rules/edges/fills; avoids final text-placement decisions; and produces `VisualLayoutDocument`.
     - [x] Add initial `VisualElementDetector` for pixel-only rules, table regions, rectangles, and checkbox candidates.
   - [ ] Add `OcrVisualFusionEngine` that receives `OcrTextDocument` and `VisualLayoutDocument`, assigns text to tables/fields/signatures/checkboxes, marks consumed OCR text, and produces standalone text groups for unconsumed text.
     - [x] Add initial `OcrVisualFusionEngine` for fields, checkboxes, consumed OCR lines, rejected mappings, and standalone text.
-  - [ ] Add `CanvasElementBuilder` that converts fused semantic candidates into `ElementDto`, applies page placement/scaling, and adds source diagnostics to element styles.
+  - [ ] Add `PxaElementBuilder` that converts fused semantic candidates into `ElementDto`, applies page placement/scaling, and adds source diagnostics to element styles.
 - [ ] Implement deterministic fusion rules.
   - [ ] Prefer visual table bounds from detected rules/backgrounds, and allow OCR text-grid table candidates when no visual table exists.
     - [x] Prefer visual table-region bounds from detected rules.
@@ -369,7 +369,7 @@
   - [ ] Add visual diagnostics for rule segment count, table candidates, field candidates, checkbox candidates, signature candidates, and rejection reasons.
   - [ ] Add fusion diagnostics for OCR words assigned to tables, OCR lines consumed by fields/signatures/checkbox labels, OCR lines left as standalone text, and rejected mappings with reasons.
     - [x] Add initial fusion diagnostics for consumed OCR lines, standalone OCR lines, and rejected mappings with reasons.
-  - [ ] Add OCR-only, visual-candidates, fusion, and final Canvas element debug overlays.
+  - [ ] Add OCR-only, visual-candidates, fusion, and final PXA element debug overlays.
 - [ ] Add focused tests around stage separation.
   - [x] Add OCR-only tests where a fake OCR engine returns words/lines and `OcrTextDocument` preserves text, confidence, and bounds.
   - [ ] Add visual-only tests with synthetic images containing lines, tables, fields, and checkboxes, verifying visual candidates without OCR dependency.
@@ -388,7 +388,7 @@
 - [ ] Do not replace Tesseract in this plan.
 - [ ] Do not change the public endpoint: keep `POST /api/document/convert-image-to-pdf`.
 - [ ] Keep the original image background layer behavior.
-- [ ] Keep current Canvas element types.
+- [ ] Keep current PXA element types.
 - [ ] Prioritize architectural separation and debuggability first; table/field quality improvements should happen inside the new stages after the split.
 - [ ] Treat this as appended unchecked checklist work and do not mark existing items complete.
 
@@ -424,7 +424,7 @@
 
 - [x] A PNG scan can be converted into a valid PDF.
 - [ ] A JPEG scan can be converted into a valid PDF.
-- [x] Recognized text is represented as editable Canvas text elements.
+- [x] Recognized text is represented as editable PXA text elements.
 - [x] The generated PDF preserves visual fidelity through an optional original-image background layer.
 - [x] OCR runs from app-bundled dependencies and language files.
 - [x] OCR runs with app-bundled primary native Tesseract/Leptonica libraries on this runtime.

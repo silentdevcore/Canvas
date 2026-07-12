@@ -16,18 +16,18 @@ using ImporterPdfColor = PXA.Importer.Graphics.PdfColor;
 using ImporterPdfMatrix = PXA.Importer.Graphics.PdfMatrix;
 using ImporterPdfPoint = PXA.Importer.Graphics.PdfPoint;
 using ImporterPdfRectangle = PXA.Importer.Graphics.PdfRectangle;
-using CanvasPdfColor = PXA.Pdf.PdfColor;
-using CanvasPdfDocument = PXA.Pdf.PdfDocument;
-using CanvasPdfPage = PXA.Pdf.PdfPage;
-using CanvasPdfPoint = PXA.Pdf.PdfPoint;
+using PxaPdfColor = PXA.Pdf.PdfColor;
+using PxaPdfDocument = PXA.Pdf.PdfDocument;
+using PxaPdfPage = PXA.Pdf.PdfPage;
+using PxaPdfPoint = PXA.Pdf.PdfPoint;
 
 namespace PXA.Importer.Generation;
 
 public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
 {
-    private static readonly FieldInfo PageElementsField = typeof(CanvasPdfPage).GetField("_elements", BindingFlags.Instance | BindingFlags.NonPublic)
+    private static readonly FieldInfo PageElementsField = typeof(PxaPdfPage).GetField("_elements", BindingFlags.Instance | BindingFlags.NonPublic)
         ?? throw new InvalidOperationException("PXA.Pdf.PdfPage._elements field was not found.");
-    private static readonly Type CanvasPdfImageDataType = typeof(CanvasPdfPage).Assembly.GetType("PXA.Pdf.PdfImageData", throwOnError: true)
+    private static readonly Type PxaPdfImageDataType = typeof(PxaPdfPage).Assembly.GetType("PXA.Pdf.PdfImageData", throwOnError: true)
         ?? throw new InvalidOperationException("PXA.Pdf.PdfImageData type was not found.");
 
     private readonly PdfDocumentRenderer _renderer;
@@ -50,7 +50,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
     public async Task RegenerateAsync(
         PdfDocumentModel document,
         Stream output,
-        Action<CanvasPdfDocument>? configureDocument,
+        Action<PxaPdfDocument>? configureDocument,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
@@ -148,10 +148,10 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         return MapObject(resources);
     }
 
-    private CanvasPdfDocument CreateDocument(PdfDocumentModel source)
+    private PxaPdfDocument CreateDocument(PdfDocumentModel source)
     {
 #pragma warning disable PXA0001 // Importer regeneration bridge targets the PXA.Pdf implementation .
-        var document = new CanvasPdfDocument();
+        var document = new PxaPdfDocument();
 #pragma warning restore PXA0001
         ApplyMetadata(document, source.Metadata);
 
@@ -174,7 +174,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         return document;
     }
 
-    private static void RenderElement(CanvasPdfPage page, PdfPageModel sourcePage, PdfObjectGraph graph, PdfGraphicsElement element)
+    private static void RenderElement(PxaPdfPage page, PdfPageModel sourcePage, PdfObjectGraph graph, PdfGraphicsElement element)
     {
         switch (element)
         {
@@ -626,7 +626,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         stream.Write(bytes, 0, bytes.Length);
     }
 
-    private static void RenderText(CanvasPdfPage page, PdfTextElement text)
+    private static void RenderText(PxaPdfPage page, PdfTextElement text)
     {
         page.DrawText(text.Text, text.Transform.E, text.Transform.F, new PdfDrawTextOptions
         {
@@ -654,7 +654,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         return null;
     }
 
-    private static void RenderPath(CanvasPdfPage page, PdfPathElement path)
+    private static void RenderPath(PxaPdfPage page, PdfPathElement path)
     {
         var operatorName = path.SourceCommand.Operator.Name;
         var fill = IsFillOperator(operatorName);
@@ -708,13 +708,13 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         throw new NotSupportedException($"Path element with operator '{operatorName}' is not supported by the PXA.Pdf regeneration bridge.");
     }
 
-    private static void RenderImage(CanvasPdfPage page, PdfPageModel sourcePage, PdfObjectGraph graph, PdfImageElement image)
+    private static void RenderImage(PxaPdfPage page, PdfPageModel sourcePage, PdfObjectGraph graph, PdfImageElement image)
     {
         var imageBounds = image.Bounds ?? MatrixEngine.TransformBounds(new ImporterPdfRectangle(0, 0, 1, 1), image.Transform);
 
         if (!string.IsNullOrEmpty(image.ResourceName) &&
             TryResolveImageXObject(sourcePage.Resources, graph, image.ResourceName, out var imageStream) &&
-            TryCreateCanvasImageData(imageStream, sourcePage.Resources, graph, out var imageData))
+            TryCreatePxaImageData(imageStream, sourcePage.Resources, graph, out var imageData))
         {
             AddInternalPageElement(
                 page,
@@ -754,7 +754,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         }
     }
 
-    private static bool TryRenderLine(CanvasPdfPage page, IReadOnlyList<PdfPathSegment> segments, PdfStrokeStyle strokeStyle, IPdfColor strokeColor)
+    private static bool TryRenderLine(PxaPdfPage page, IReadOnlyList<PdfPathSegment> segments, PdfStrokeStyle strokeStyle, IPdfColor strokeColor)
     {
         if (segments.Count == 2 &&
             segments[0] is MoveToSegment move &&
@@ -767,27 +767,27 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         return false;
     }
 
-    private static bool TryRenderBezier(CanvasPdfPage page, IReadOnlyList<PdfPathSegment> segments, PdfStrokeStyle strokeStyle, IPdfColor strokeColor)
+    private static bool TryRenderBezier(PxaPdfPage page, IReadOnlyList<PdfPathSegment> segments, PdfStrokeStyle strokeStyle, IPdfColor strokeColor)
     {
         if (segments.Count == 2 &&
             segments[0] is MoveToSegment move &&
             segments[1] is CurveToSegment curve)
         {
-            page.DrawBezierCurve(ToCanvasPoint(move.Point), ToCanvasPoint(curve.Control1), ToCanvasPoint(curve.Control2), ToCanvasPoint(curve.End), strokeStyle.LineWidth, strokeColor, strokeStyle);
+            page.DrawBezierCurve(ToPxaPoint(move.Point), ToPxaPoint(curve.Control1), ToPxaPoint(curve.Control2), ToPxaPoint(curve.End), strokeStyle.LineWidth, strokeColor, strokeStyle);
             return true;
         }
 
         return false;
     }
 
-    private static bool TryRenderPolygon(CanvasPdfPage page, IReadOnlyList<PdfPathSegment> segments, bool fill, bool stroke, PdfStrokeStyle strokeStyle, IPdfColor strokeColor, IPdfColor fillColor)
+    private static bool TryRenderPolygon(PxaPdfPage page, IReadOnlyList<PdfPathSegment> segments, bool fill, bool stroke, PdfStrokeStyle strokeStyle, IPdfColor strokeColor, IPdfColor fillColor)
     {
         if (segments.Count < 2 || segments[0] is not MoveToSegment start)
         {
             return false;
         }
 
-        var points = new List<CanvasPdfPoint> { ToCanvasPoint(start.Point) };
+        var points = new List<PxaPdfPoint> { ToPxaPoint(start.Point) };
         var lastSegmentIndex = segments.Count - 1;
         var hasExplicitClose = segments[^1] is ClosePathSegment;
         var requiresExplicitClose = stroke || !fill;
@@ -804,7 +804,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
                 return false;
             }
 
-            points.Add(ToCanvasPoint(line.Point));
+            points.Add(ToPxaPoint(line.Point));
         }
 
         if (points.Count < 3)
@@ -832,9 +832,9 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         return true;
     }
 
-    private static void AddInternalPageElement(CanvasPdfPage page, string typeName, params object?[] arguments)
+    private static void AddInternalPageElement(PxaPdfPage page, string typeName, params object?[] arguments)
     {
-        var elementType = typeof(CanvasPdfPage).Assembly.GetType(typeName, throwOnError: true)
+        var elementType = typeof(PxaPdfPage).Assembly.GetType(typeName, throwOnError: true)
             ?? throw new InvalidOperationException($"PXA.Pdf internal type '{typeName}' was not found.");
         var element = Activator.CreateInstance(
             elementType,
@@ -874,7 +874,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         return true;
     }
 
-    private static bool TryCreateCanvasImageData(PdfStreamObject stream, PdfDictionary resources, PdfObjectGraph graph, out object imageData)
+    private static bool TryCreatePxaImageData(PdfStreamObject stream, PdfDictionary resources, PdfObjectGraph graph, out object imageData)
     {
         imageData = null!;
 
@@ -924,23 +924,23 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         object? softMask = null;
         if (ResolveObject(stream.Dictionary["SMask"], graph) is PdfStreamObject softMaskStream)
         {
-            if (!TryCreateCanvasImageData(softMaskStream, resources, graph, out softMask))
+            if (!TryCreatePxaImageData(softMaskStream, resources, graph, out softMask))
             {
                 return false;
             }
         }
 
-        var instance = Activator.CreateInstance(CanvasPdfImageDataType)
+        var instance = Activator.CreateInstance(PxaPdfImageDataType)
             ?? throw new InvalidOperationException("PXA.Pdf.PdfImageData could not be constructed.");
 
-        CanvasPdfImageDataType.GetProperty("Width")!.SetValue(instance, (int)width);
-        CanvasPdfImageDataType.GetProperty("Height")!.SetValue(instance, (int)height);
-        CanvasPdfImageDataType.GetProperty("BitsPerComponent")!.SetValue(instance, (int)bitsPerComponent);
-        CanvasPdfImageDataType.GetProperty("ColorSpaceName")!.SetValue(instance, colorSpaceName);
-        CanvasPdfImageDataType.GetProperty("FilterName")!.SetValue(instance, filterName);
-        CanvasPdfImageDataType.GetProperty("DecodeParameters")!.SetValue(instance, decodeParameters);
-        CanvasPdfImageDataType.GetProperty("Data")!.SetValue(instance, data.ToArray());
-        CanvasPdfImageDataType.GetProperty("SoftMask")!.SetValue(instance, softMask);
+        PxaPdfImageDataType.GetProperty("Width")!.SetValue(instance, (int)width);
+        PxaPdfImageDataType.GetProperty("Height")!.SetValue(instance, (int)height);
+        PxaPdfImageDataType.GetProperty("BitsPerComponent")!.SetValue(instance, (int)bitsPerComponent);
+        PxaPdfImageDataType.GetProperty("ColorSpaceName")!.SetValue(instance, colorSpaceName);
+        PxaPdfImageDataType.GetProperty("FilterName")!.SetValue(instance, filterName);
+        PxaPdfImageDataType.GetProperty("DecodeParameters")!.SetValue(instance, decodeParameters);
+        PxaPdfImageDataType.GetProperty("Data")!.SetValue(instance, data.ToArray());
+        PxaPdfImageDataType.GetProperty("SoftMask")!.SetValue(instance, softMask);
         imageData = instance;
         return true;
     }
@@ -1114,7 +1114,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
             point.X * transform.B + point.Y * transform.D + transform.F);
     }
 
-    private static CanvasPdfPoint ToCanvasPoint(ImporterPdfPoint point) => new(point.X, point.Y);
+    private static PxaPdfPoint ToPxaPoint(ImporterPdfPoint point) => new(point.X, point.Y);
 
     private static Dictionary<string, object?> DescribeColor(ImporterPdfColor color)
     {
@@ -1176,7 +1176,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         return color.ColorSpace switch
         {
             PdfColorSpace.DeviceGray => new PdfGrayColor(color.C1),
-            PdfColorSpace.DeviceRgb => new CanvasPdfColor(color.C1, color.C2, color.C3),
+            PdfColorSpace.DeviceRgb => new PxaPdfColor(color.C1, color.C2, color.C3),
             PdfColorSpace.DeviceCmyk => new PdfCmykColor(color.C1, color.C2, color.C3, color.C4),
             _ => throw new NotSupportedException($"Color space '{color.ColorSpace}' is not supported by the PXA.Pdf regeneration bridge.")
         };
@@ -1198,7 +1198,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
     private static bool IsFillOperator(string operatorName)
         => operatorName is "f" or "F" or "f*" or "B" or "B*" or "b" or "b*";
 
-    private static void ApplyPageBoundary(CanvasPdfPage page, PdfPageBoundary boundary, ImporterPdfRectangle? rectangle)
+    private static void ApplyPageBoundary(PxaPdfPage page, PdfPageBoundary boundary, ImporterPdfRectangle? rectangle)
     {
         if (rectangle is null || rectangle.Value.Width <= 0 || rectangle.Value.Height <= 0)
         {
@@ -1207,8 +1207,8 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
 
         page.SetPageBoundary(
             boundary,
-            new CanvasPdfPoint(rectangle.Value.X, rectangle.Value.Y),
-            new CanvasPdfPoint(rectangle.Value.X + rectangle.Value.Width, rectangle.Value.Y + rectangle.Value.Height));
+            new PxaPdfPoint(rectangle.Value.X, rectangle.Value.Y),
+            new PxaPdfPoint(rectangle.Value.X + rectangle.Value.Width, rectangle.Value.Y + rectangle.Value.Height));
     }
 
     private static bool TryGetIndexedColorSpaceArray(PdfObject? colorSpace, PdfDictionary resources, PdfObjectGraph graph, out PdfArray indexedArray)
@@ -1342,7 +1342,7 @@ public sealed class PxaPdfGeneratorBridge : IPdfGeneratorBridge
         return output.ToArray();
     }
 
-    private static void ApplyMetadata(CanvasPdfDocument document, PdfDictionary metadata)
+    private static void ApplyMetadata(PxaPdfDocument document, PdfDictionary metadata)
     {
         foreach (var entry in metadata.Values)
         {

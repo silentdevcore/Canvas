@@ -48,7 +48,7 @@ jest.mock('@monaco-editor/react', () => {
   return { __esModule: true, default: Editor, DiffEditor };
 });
 
-jest.mock('@/components/Editor/SimpleCanvas', () => ({
+jest.mock('@/components/Editor/SimplePxaSurface', () => ({
   __esModule: true,
   default: ({
     template,

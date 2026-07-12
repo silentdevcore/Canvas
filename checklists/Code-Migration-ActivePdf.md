@@ -1,9 +1,9 @@
-# Canvas Migration: ActivePDF
+# PXA Migration: ActivePDF
 
 ## V1 Pilot Analysis
 
-- [x] Added cautious Roslyn-backed provider project: `src/Canvas.Migration.ActivePdf`
-- [x] Added provider tests: `tests/Canvas.Migration.ActivePdf.Tests`
+- [x] Added cautious Roslyn-backed provider project: `src/PXA.Migration.ActivePdf`
+- [x] Added provider tests: `tests/PXA.Migration.ActivePdf.Tests`
 - [x] Connected WebApi converter: `PXA.WebApi/Services/Converters/ActivePdfConverter.cs`
 - [x] Added UI fallback status/example as `pilot`
 - [ ] Confirm exact ActivePDF product, NuGet package, or COM interop reference with a real source sample
@@ -34,7 +34,7 @@ ActivePDF has several product lines and legacy COM/server workflows. V1 only att
 
 ## Mapping Table
 
-| ActivePDF API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
+| ActivePDF API / pattern | PXA.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
 | `new Toolkit()` / `new APDoc()` / `new Document()` | `var document = new PdfDocument();` | Pilot code fix | Treat as likely direct generation |
 | `document.AddPage()` / `BeginPage()` / `NewPage()` | `var page = document.AddPage();` | Pilot code fix | Preserves assigned page variable |
@@ -68,10 +68,10 @@ toolkit.DrawRectangle(40, 100, 200, 80);
 toolkit.Save(outputPath);
 ```
 
-## Expected Canvas.Pdf Output Snippets
+## Expected PXA.Pdf Output Snippets
 
 ```csharp
-using Canvas.Pdf;
+using PXA.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -102,7 +102,7 @@ document.Save(outputPath);
 - [x] Replace simple text drawing
 - [x] Replace simple line/rectangle drawing
 - [x] Replace simple save/close
-- [x] Add `using Canvas.Pdf`
+- [x] Add `using PXA.Pdf`
 - [x] Remove ActivePDF usings
 - [x] Leave COM/conversion/merge/print flows as manual diagnostics
 - [ ] Validate mappings against real ActivePDF product API before promoting beyond pilot

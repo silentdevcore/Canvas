@@ -16,7 +16,7 @@ public sealed class MrtConvertResult
 /// <summary>
 /// Converts a Stimulsoft Reports <c>.mrt</c> report — <c>StiSerializer</c> XML with a <b>banded</b>
 /// layout (a <c>&lt;Page&gt;</c> whose <c>&lt;Components&gt;</c> are bands, each band's nested
-/// <c>&lt;Components&gt;</c> holding report items) — into a Canvas <see cref="DesignExportDto"/>. Bands
+/// <c>&lt;Components&gt;</c> holding report items) — into a PXA <see cref="DesignExportDto"/>. Bands
 /// carry an explicit <c>&lt;ClientRectangle&gt;</c> position (so this mirrors the FastReport approach of
 /// explicit band positions); item rectangles are band-relative. Coordinates are in hundredths of an inch
 /// (×0.72 → points). Elements are matched by their <c>type</c> attribute / <see cref="XName.LocalName"/>.
@@ -403,7 +403,7 @@ public sealed class MrtToDesignConverter
             var element = MapControl(raw, raw.X, raw.Y, diagnostics);
             if (element is null) continue;
 
-            diagnostics.Add(Info("CANMIGMRT002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
+            diagnostics.Add(Info("CANMIGMRT002", $"'{raw.Name}' ({raw.Type}) → PXA {element.Type}."));
             // Aggregates in a group band scope to the current group's row subset ($group),
             // injected per group by DesignLayoutPlanner; non-group elements have no aggregate scope.
             var aggDataset = raw.GroupName is not null ? ExpressionTranslator.GroupScopeToken : null;
@@ -491,11 +491,11 @@ public sealed class MrtToDesignConverter
             case "Chart":
             case "CrossTab":
                 diagnostics.Add(Warn("CANMIGMRT014",
-                    $"'{raw.Name}' is a {raw.Type} — Canvas has no native equivalent; inserted a positioned placeholder for review."));
+                    $"'{raw.Name}' is a {raw.Type} — PXA has no native equivalent; inserted a positioned placeholder for review."));
                 return Placeholder(element, $"[{raw.Type}: {raw.Name} — migrate manually]");
 
             default:
-                diagnostics.Add(Warn("CANMIGMRT011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
+                diagnostics.Add(Warn("CANMIGMRT011", $"'{raw.Name}' is a {raw.Type} — not supported by PXA yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
     }
@@ -570,7 +570,7 @@ public sealed class MrtToDesignConverter
     private static readonly HashSet<string> SystemVars = new(StringComparer.OrdinalIgnoreCase)
     { "Page", "PageNofM", "TotalPageCount", "Today", "Now", "Time", "Column", "Line", "ReportName", "ReportAlias" };
 
-    // Group bands repeat per group key: attach Canvas RepeatDto + group metadata (mirrors the
+    // Group bands repeat per group key: attach PXA RepeatDto + group metadata (mirrors the
     // RDL/Jasper/DevExpress/FastReport/Telerik group mapping).
     private static void ApplyGroupRepeatMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
     {
@@ -590,7 +590,7 @@ public sealed class MrtToDesignConverter
         element.Style["groupField"] = dataPath;   // generic key the planner reads to inject $group
         element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
         diagnostics.Add(Warn("CANMIGMRT013",
-            $"'{element.Name}' is in a {raw.GroupRole ?? "group"} group band '{raw.GroupName}' — mapped to Canvas repeat metadata; group runtime semantics need review."));
+            $"'{element.Name}' is in a {raw.GroupRole ?? "group"} group band '{raw.GroupName}' — mapped to PXA repeat metadata; group runtime semantics need review."));
     }
 
     // Condition like "{Customers.Country}" → "Country"; otherwise the group name.
@@ -625,12 +625,12 @@ public sealed class MrtToDesignConverter
             element.Binding = field;
             if (element.Type == "text") element.Content = $"{{{{{field}}}}}";
             else if (element.Type == "barcode") element.BarcodeValue = $"{{{{{field}}}}}";
-            diagnostics.Add(Info("CANMIGMRT010", $"'{element.Name}' bound to {text} → Canvas binding '{field}'."));
+            diagnostics.Add(Info("CANMIGMRT010", $"'{element.Name}' bound to {text} → PXA binding '{field}'."));
         }
         else
         {
             // Compound expression (multiple fields / functions): normalize every {Source.Field}/{Field}
-            // reference to a Canvas {{Field}} token (leaving system variables intact); keep the original.
+            // reference to a PXA {{Field}} token (leaving system variables intact); keep the original.
             var normalized = Regex.Replace(text, @"\{(?:[A-Za-z_]\w*\.)?([A-Za-z_]\w*)\}", m =>
                 SystemVars.Contains(m.Groups[1].Value) ? m.Value : $"{{{{{m.Groups[1].Value}}}}}");
             // A fully-braced expression ({Sum(Customers.Total)}, {Customers.Qty * Customers.Price}) is
@@ -643,7 +643,7 @@ public sealed class MrtToDesignConverter
             element.Style["mrtExpression"] = text;
             if (element.Type == "barcode") element.BarcodeValue = normalized;
             else if (string.IsNullOrEmpty(element.Content)) element.Content = normalized;
-            diagnostics.Add(Warn("CANMIGMRT010", $"'{element.Name}' expression '{text}' mapped to a Canvas template with normalized field references — review the syntax."));
+            diagnostics.Add(Warn("CANMIGMRT010", $"'{element.Name}' expression '{text}' mapped to a PXA template with normalized field references — review the syntax."));
         }
     }
 

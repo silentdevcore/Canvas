@@ -7,7 +7,7 @@
 - [x] Mobile-first responsive design implementation
 - [x] Cross-browser compatibility testing
 
-## Canvas & Document View
+## PXA & Document View
 - [x] Document end marker/line for visual boundary indication
 - [x] Document preview mode with realistic rendering
 - [x] Page break visualization in canvas

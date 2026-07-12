@@ -39,7 +39,7 @@ public sealed class PdfToolsToolboxMigrationPxaFacadeTests
     }
 
     [Fact]
-    public void Migrate_MapsCanvasWarningsToPxaDiagnostics()
+    public void Migrate_MapsPxaWarningsToPxaDiagnostics()
     {
         var source = """
             using PdfTools.Toolbox.Pdf;

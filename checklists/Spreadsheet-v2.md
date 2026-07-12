@@ -59,12 +59,12 @@ through `.xlsx` — so most formatting work is **UI + grid rendering**, not new 
       backend round-trip test).
 
 ## #7 — Backend: spreadsheet → document / PDF bridge — DONE
-- [x] `SpreadsheetToDesignConverter` maps a `SheetDto` → a Canvas `table` `ElementDto` (CellData from the
+- [x] `SpreadsheetToDesignConverter` maps a `SheetDto` → a PXA `table` `ElementDto` (CellData from the
       computed values, per-cell `CellStyles`, `ColumnWidths` char-units→points) inside a `DesignExportDto`.
       Endpoint `POST /api/spreadsheet/to-design?sheet=0`; registered in `Program.cs`. A sheet can now be
       embedded in a PDF/Word/HTML document via the standard exporters. Test: `ToDesign_MapsSheetToTableElement`
       (formula's cached value + bold style + width carried through). Solution builds clean.
-      *(Direct sheet→PDF via `Canvas.Pdf` is covered transitively: to-design → `/api/export?format=pdf`.)*
+      *(Direct sheet→PDF via `PXA.Pdf` is covered transitively: to-design → `/api/export?format=pdf`.)*
 
 ## Verification
 - Frontend: `tsc --noEmit` + `jest` (formatting/range/rows-cols/clipboard/number-format) green; vite build green.

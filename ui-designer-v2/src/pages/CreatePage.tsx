@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import SimpleCanvas from '@/components/Editor/SimpleCanvas';
+import SimplePxaSurface from '@/components/Editor/SimplePxaSurface';
 import LivePreview from '@/components/Preview/LivePreview';
 import LiveCodeEditor from '@/components/CodeEditor/LiveCodeEditor';
 import { normalizePageSettings, useEditorStore } from '@/store';
@@ -38,7 +38,7 @@ const CreatePage: React.FC = () => {
 
   useEffect(() => {
     if (!currentTemplate) {
-      const handoffJson = sessionStorage.getItem('canvas_migration_designer_handoff');
+      const handoffJson = sessionStorage.getItem('pxa_migration_designer_handoff');
       if (handoffJson) {
         try {
           const handoff = JSON.parse(handoffJson);
@@ -47,11 +47,11 @@ const CreatePage: React.FC = () => {
             if (handoff.pageSettings) {
               updatePageSettings(normalizePageSettings(handoff.pageSettings));
             }
-            sessionStorage.removeItem('canvas_migration_designer_handoff');
+            sessionStorage.removeItem('pxa_migration_designer_handoff');
             return;
           }
         } catch {
-          sessionStorage.removeItem('canvas_migration_designer_handoff');
+          sessionStorage.removeItem('pxa_migration_designer_handoff');
         }
       }
       navigate('/', { replace: true });
@@ -79,7 +79,7 @@ const CreatePage: React.FC = () => {
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.3 }}
         >
-          <SimpleCanvas
+          <SimplePxaSurface
             template={currentTemplate}
             elements={elements}
             pages={pages}

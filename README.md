@@ -11,7 +11,7 @@ A production-ready document automation platform with a visual template designer,
 | Power Dox Automation | Product and website name |
 | PXA | Developer-facing identity for APIs, packages, CLI, schemas, and future `.pxa` files |
 | `PXA.*` | Active backend namespaces, project names, and public developer-facing API |
-| `Canvas.*` | Historical project/namespace name removed by the breaking PXA rename |
+| `PXA.*` | Historical project/namespace name removed by the breaking PXA rename |
 
 ---
 
@@ -174,7 +174,7 @@ Frontend (`ui-designer-v2/`):
 ```
 src/
   components/
-    Editor/       ← SimpleCanvas, ExportModal, FindReplaceModal, inspector panels
+    Editor/       ← SimplePxaSurface, ExportModal, FindReplaceModal, inspector panels
     Gallery/      ← TemplatePage, CategoryFilter, TemplateCard
   services/       ← ExportService (export, import, sign, find-replace, clone, extract)
   hooks/          ← useTemplateLoader (loadTemplate, loadBlank, loadFromFile)
@@ -250,7 +250,7 @@ To enable non-Latin PDF export, place Noto font files in the `fonts/` directory 
 | [`CONTRIBUTING_RENDERERS.md`](CONTRIBUTING_RENDERERS.md) | How to add renderers, importers, migrations, and report converters |
 | [`TESTING.md`](TESTING.md) | Test structure and conventions |
 | [`checklists/Documentation-Audit.md`](checklists/Documentation-Audit.md) | Documentation ownership map and update tracker |
-| [`checklists/CanvasPdf-Provider-Feature-Gaps.md`](checklists/CanvasPdf-Provider-Feature-Gaps.md) | PXA-compatible PDF feature gaps compared with major PDF providers |
+| [`checklists/PxaPdf-Provider-Feature-Gaps.md`](checklists/PxaPdf-Provider-Feature-Gaps.md) | PXA-compatible PDF feature gaps compared with major PDF providers |
 
 ### Documentation Map
 

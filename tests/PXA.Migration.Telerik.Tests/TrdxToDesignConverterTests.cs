@@ -178,7 +178,7 @@ public sealed class TrdxToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_Table_AnchoredCells_BecomeCanvasTableGrid()
+    public void Convert_Table_AnchoredCells_BecomePxaTableGrid()
     {
         var trdx = """
             <Report Width="8.1in" Name="T" xmlns="http://schemas.telerik.com/reporting/2012/3.6">

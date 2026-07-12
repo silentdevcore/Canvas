@@ -350,7 +350,7 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_ParameterAndVariableExpressions_NormalizeToCanvasDialect()
+    public void Convert_ParameterAndVariableExpressions_NormalizeToPxaDialect()
     {
         var jrxml = """
             <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" name="Expressions"
@@ -795,7 +795,7 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_ComponentElementBarcode_BecomesCanvasBarcode()
+    public void Convert_ComponentElementBarcode_BecomesPxaBarcode()
     {
         var jrxml = """
             <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
@@ -866,7 +866,7 @@ public sealed class JrxmlToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_ComponentElementTable_BecomesCanvasTableWithMetadata()
+    public void Convert_ComponentElementTable_BecomesPxaTableWithMetadata()
     {
         var jrxml = """
             <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"

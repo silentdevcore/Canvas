@@ -45,8 +45,8 @@ const FRAMEWORKS_FALLBACK: Framework[] = [
   { id: 'DsPdf',      name: 'DsPdf (GrapeCity)', status: 'full',    description: 'Roslyn-based conversion: GcPdfDocument → PdfDocument; doc.NewPage() → AddPage(); page.Graphics.DrawString/DrawLine/DrawRectangle/FillRectangle → DrawTextFromTop/DrawLineFromTop/DrawRectangleFromTop; doc.Save() preserved.' },
   { id: 'Foxit',      name: 'Foxit PDF SDK',     status: 'full',    description: 'Roslyn-based conversion: PDFDoc → PdfDocument; InsertPage/CreatePage → AddPage; Library.Initialize + GetGraphics/GenerateContent removed; graphics.DrawText/DrawLine/DrawRect/FillRect → DrawTextFromTop/DrawLineFromTop/DrawRectangleFromTop; doc.Save/SaveAs → document.Save().' },
   { id: 'DevExpress', name: 'DevExpress PDF',    status: 'full',    description: 'Roslyn-based conversion: PdfDocumentProcessor → PdfDocument, RenderNewPage → AddPage, draw calls repositioned, SaveDocument → Save. Forms/signatures/report export produce warnings.' },
-  { id: 'IronPdf',    name: 'IronPDF',           status: 'pilot',   description: 'Roslyn-based pilot: ChromePdfRenderer → PdfDocument + AddPage scaffold; SaveAs → document.Save(); HTML/URL/Razor rendering calls replaced with diagnostics for manual Canvas draw call migration.' },
-  { id: 'Spire',      name: 'Spire.PDF',         status: 'full',    description: 'Roslyn-based full conversion: PdfDocument + Pages.Add → AddPage; Canvas.DrawString → DrawTextFromTop; Canvas.DrawLine → DrawLineFromTop; Canvas.DrawRectangle/FillRectangle → DrawRectangleFromTop; SaveToFile → Save; tables/forms/annotations produce warnings.' },
+  { id: 'IronPdf',    name: 'IronPDF',           status: 'pilot',   description: 'Roslyn-based pilot: ChromePdfRenderer → PdfDocument + AddPage scaffold; SaveAs → document.Save(); HTML/URL/Razor rendering calls replaced with diagnostics for manual PXA draw call migration.' },
+  { id: 'Spire',      name: 'Spire.PDF',         status: 'full',    description: 'Roslyn-based full conversion: PdfDocument + Pages.Add → AddPage; page.Canvas.DrawString → DrawTextFromTop; page.Canvas.DrawLine → DrawLineFromTop; page.Canvas.DrawRectangle/FillRectangle → DrawRectangleFromTop; SaveToFile → Save; tables/forms/annotations produce warnings.' },
   { id: 'GemBox',     name: 'GemBox.Pdf',        status: 'full',    description: 'Roslyn-based full conversion: PdfDocument + Pages.Add → AddPage; Content.DrawText → DrawTextFromTop; Content.DrawLine → DrawLineFromTop; Content.DrawRectangle → DrawRectangleFromTop; ComponentInfo.SetLicense removed; forms/encryption/annotations produce warnings.' },
   { id: 'PdfKitNet',  name: 'PDFKit.NET',        status: 'full',    description: 'Roslyn-based full conversion: Document + NewPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine → DrawLineFromTop; DrawRectangle → DrawRectangleFromTop; Save/Render → Save; forms/encryption/annotations produce warnings. Package identity must be manually verified.' },
   { id: 'Leadtools',  name: 'LEADTOOLS',         status: 'full',    description: 'Roslyn-based full conversion: PDFDocument + AddPage/Pages.Add → AddPage; DrawText/DrawString → DrawTextFromTop; DrawLine → DrawLineFromTop; DrawRectangle → DrawRectangleFromTop; Save/Export → Save; raster/OCR/barcode/conversion APIs produce warnings.' },
@@ -1138,13 +1138,13 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
       showMarginGuide: false,
     });
 
-    sessionStorage.setItem('canvas_migration_designer_handoff', JSON.stringify({
+    sessionStorage.setItem('pxa_migration_designer_handoff', JSON.stringify({
       template,
       pageSettings,
     }));
     setCurrentTemplate(template);
     updatePageSettings(pageSettings);
-    localStorage.setItem('canvas_last_template', template.name);
+    localStorage.setItem('pxa_last_template', template.name);
     navigate('/create?source=migration');
   };
 

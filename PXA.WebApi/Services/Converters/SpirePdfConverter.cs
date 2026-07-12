@@ -11,7 +11,7 @@ public sealed class SpirePdfConverter : BasePdfConverter
     public override string Status => "full";
 
     public override string Description =>
-        "Roslyn-based pilot: PdfDocument + Pages.Add → AddPage; Canvas.DrawString/DrawLine/DrawRectangle mapped; images, tables, forms, security, and annotations require manual review.";
+        "Roslyn-based pilot: PdfDocument + Pages.Add → AddPage; page.Canvas.DrawString/DrawLine/DrawRectangle mapped; images, tables, forms, security, and annotations require manual review.";
 
     public override string ConvertCode(string sourceCode)
     {

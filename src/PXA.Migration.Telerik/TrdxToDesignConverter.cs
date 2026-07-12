@@ -14,7 +14,7 @@ public sealed class TrdxConvertResult
 
 /// <summary>
 /// Converts a Telerik Reporting <c>.trdx</c> report — namespaced XML
-/// (<c>http://schemas.telerik.com/reporting/…</c>) with a <b>sectioned</b> layout — into a Canvas
+/// (<c>http://schemas.telerik.com/reporting/…</c>) with a <b>sectioned</b> layout — into a PXA
 /// <see cref="DesignExportDto"/>. It is a hybrid: geometry is in CSS-like Unit strings
 /// (<c>"8.1in"</c>, like <c>PXA.Migration.Rdl</c>) while sections (<c>PageHeaderSection</c>,
 /// <c>DetailSection</c>, …) stack and flatten to absolute page coordinates (like
@@ -268,7 +268,7 @@ public sealed class TrdxToDesignConverter
 
     private string? ItemValue(XElement item) => Attr(item, "Value") ?? Child(item, "Value")?.Value;
 
-    // A cell value: a single =Fields.X expression becomes a Canvas binding token; otherwise literal text.
+    // A cell value: a single =Fields.X expression becomes a PXA binding token; otherwise literal text.
     private static string CellDisplay(string? value)
     {
         value = (value ?? "").Trim();
@@ -302,7 +302,7 @@ public sealed class TrdxToDesignConverter
         return Attr(grouping, "Expression") ?? Child(grouping, "Expression")?.Value;
     }
 
-    // Group sections repeat per group key: attach Canvas RepeatDto + group metadata so the section's items
+    // Group sections repeat per group key: attach PXA RepeatDto + group metadata so the section's items
     // can be wired as a repeating template (mirrors the RDL/Jasper/DevExpress/FastReport group mapping).
     private static void ApplyGroupRepeatMetadata(ElementDto element, RawBand band, List<MigrationDiagnostic> diagnostics)
     {
@@ -324,7 +324,7 @@ public sealed class TrdxToDesignConverter
         element.Style["groupField"] = dataPath;   // generic key the planner reads to inject $group
         element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
         diagnostics.Add(Warn("CANMIGTRDX014",
-            $"'{element.Name}' is in {band.Type} '{band.GroupName ?? band.Name}' — mapped to Canvas repeat metadata; group runtime semantics need review."));
+            $"'{element.Name}' is in {band.Type} '{band.GroupName ?? band.Name}' — mapped to PXA repeat metadata; group runtime semantics need review."));
     }
 
     // Grouping expression like "=Fields.Region" → "Region"; otherwise the group/section name.
@@ -381,7 +381,7 @@ public sealed class TrdxToDesignConverter
             var element = MapControl(raw, x, yPt, diagnostics);
             if (element is null) continue;
 
-            diagnostics.Add(Info("CANMIGTRDX002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
+            diagnostics.Add(Info("CANMIGTRDX002", $"'{raw.Name}' ({raw.Type}) → PXA {element.Type}."));
 
             // Aggregates in a group section scope to the current group's row subset ($group),
             // injected per group by DesignLayoutPlanner; other sections have no aggregate scope.
@@ -473,7 +473,7 @@ public sealed class TrdxToDesignConverter
 
             default:
                 // Chart, Graph, Map, … — full fidelity is V2.
-                diagnostics.Add(Warn("CANMIGTRDX011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
+                diagnostics.Add(Warn("CANMIGTRDX011", $"'{raw.Name}' is a {raw.Type} — not supported by PXA yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
     }
@@ -498,7 +498,7 @@ public sealed class TrdxToDesignConverter
         element.CellStyles = raw.CellStyles is { Count: > 0 } cs ? cs.ToArray() : null;
 
         diagnostics.Add(Warn("CANMIGTRDX013",
-            $"'{raw.Name}' Telerik {raw.Type} was mapped to a Canvas table ({grid.Count} row(s) × {columns} column(s)); cell anchoring/grouping is best-effort — review."));
+            $"'{raw.Name}' Telerik {raw.Type} was mapped to a PXA table ({grid.Count} row(s) × {columns} column(s)); cell anchoring/grouping is best-effort — review."));
         return element;
     }
 
@@ -577,12 +577,12 @@ public sealed class TrdxToDesignConverter
             element.Binding = field;
             if (element.Type == "text") element.Content = $"{{{{{field}}}}}";
             else if (element.Type == "barcode") element.BarcodeValue = $"{{{{{field}}}}}";
-            diagnostics.Add(Info("CANMIGTRDX010", $"'{element.Name}' bound to Fields.{field} → Canvas binding '{field}'."));
+            diagnostics.Add(Info("CANMIGTRDX010", $"'{element.Name}' bound to Fields.{field} → PXA binding '{field}'."));
         }
         else
         {
             // Compound expression (multiple fields / functions): normalize every Fields.X reference to a
-            // Canvas {{X}} token so it renders as a readable template; keep the original for review.
+            // PXA {{X}} token so it renders as a readable template; keep the original for review.
             var normalized = Regex.Replace(value.TrimStart().TrimStart('=').Trim(),
                 @"Fields\.(\w+)(?:\.Value)?", m => $"{{{{{m.Groups[1].Value}}}}}");
             // Telerik uses RDL grammar with dot field refs (Fields.X.Value); rewrite to the bang form the
@@ -593,7 +593,7 @@ public sealed class TrdxToDesignConverter
             element.Style["trdxExpression"] = value;
             if (element.Type == "barcode") element.BarcodeValue = normalized;
             else if (string.IsNullOrEmpty(element.Content)) element.Content = normalized;
-            diagnostics.Add(Warn("CANMIGTRDX010", $"'{element.Name}' expression '{value}' mapped to a Canvas template with normalized field references — review the syntax."));
+            diagnostics.Add(Warn("CANMIGTRDX010", $"'{element.Name}' expression '{value}' mapped to a PXA template with normalized field references — review the syntax."));
         }
     }
 

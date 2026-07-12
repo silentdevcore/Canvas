@@ -199,7 +199,7 @@ public sealed class FrxToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_TableObject_BecomesCanvasTableWithCellsWidthsAndBindings()
+    public void Convert_TableObject_BecomesPxaTableWithCellsWidthsAndBindings()
     {
         var frx = """
             <Report ReportInfo.Name="T">
@@ -259,7 +259,7 @@ public sealed class FrxToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_MultipleReportPages_BecomeMultipleCanvasPages()
+    public void Convert_MultipleReportPages_BecomeMultiplePxaPages()
     {
         var frx = """
             <Report ReportInfo.Name="T">
@@ -415,7 +415,7 @@ public sealed class FrxToDesignConverterTests
     }
 
     // A group-footer aggregate (Sum) scopes to the current group ($group) and translates to the
-    // executable Canvas helper; a plain arithmetic expression translates to bare field identifiers.
+    // executable PXA helper; a plain arithmetic expression translates to bare field identifiers.
     [Fact]
     public void GroupFooterAggregate_TranslatesToGroupScopedSum()
     {

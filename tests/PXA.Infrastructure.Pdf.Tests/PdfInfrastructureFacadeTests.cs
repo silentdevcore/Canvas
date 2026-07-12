@@ -47,7 +47,7 @@ public sealed class PdfInfrastructureFacadeTests
     }
 
     [Fact]
-    public void Capabilities_MirrorCanvasPdfRendererCapabilities()
+    public void Capabilities_MirrorPxaPdfRendererCapabilities()
     {
         var capabilities = new PdfRendererCapabilities();
 
@@ -58,7 +58,7 @@ public sealed class PdfInfrastructureFacadeTests
     }
 
     [Fact]
-    public void Services_DelegateToCanvasPdfDocument()
+    public void Services_DelegateToPxaPdfDocument()
     {
         var document = BuildDocument();
 

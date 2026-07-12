@@ -101,7 +101,7 @@ public sealed class SpreadsheetInfrastructureFacadeTests
     }
 
     [Fact]
-    public void SheetCapabilities_MirrorCanvasSpreadsheetCapabilities()
+    public void SheetCapabilities_MirrorPxaSpreadsheetCapabilities()
     {
         var capabilities = new SheetRendererCapabilities();
 

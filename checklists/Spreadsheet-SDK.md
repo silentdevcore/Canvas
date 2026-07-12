@@ -1,11 +1,11 @@
-# Spreadsheet Editor SDK — Excel-like spreadsheets in Canvas
+# Spreadsheet Editor SDK — Excel-like spreadsheets in PXA
 
 An interactive in-app grid editor with live formulas, a backend `SpreadsheetDto` model, and `.xlsx`
 import + export. Adds spreadsheet capability alongside the document designer.
 
 ## Context
 
-Canvas can only *export* a `table` element to `.xlsx` via `ExcelDocumentExporter` (ClosedXML), storing
+PXA can only *export* a `table` element to `.xlsx` via `ExcelDocumentExporter` (ClosedXML), storing
 **literal values** — no formulas, no cell data types, no spreadsheet model, and **no xlsx import**. The
 expression engine has **no A1 cell references**. This adds a real Excel-like experience.
 
@@ -20,11 +20,11 @@ expression engine has **no A1 cell references**. This adds a real Excel-like exp
 
 ---
 
-## Phase 0 — Backend model (`Canvas.Core.Contracts`)
+## Phase 0 — Backend model (`PXA.Core.Contracts`)
 - [x] `SpreadsheetDto`/`SheetDto`/`SheetColumnDto`/`SheetRowDto`/`CellDto`/`DefinedNameDto` in
-      `src/Canvas.Core/Contracts/SpreadsheetDto.cs` (sparse typed cells with `formula`/`numberFormat`/style,
+      `src/PXA.Core/Contracts/SpreadsheetDto.cs` (sparse typed cells with `formula`/`numberFormat`/style,
       merges, frozen panes, defined names). Reuses `CellStyleDto`/`CellBorderSideDto`.
-- [x] `A1Reference` helper in `src/Canvas.Core/Primitives/A1Reference.cs` (col↔letters, A1↔row/col).
+- [x] `A1Reference` helper in `src/PXA.Core/Primitives/A1Reference.cs` (col↔letters, A1↔row/col).
 
 ## Phase 1 — Backend xlsx I/O + API
 - [x] `ExcelWorkbookExporter` (SpreadsheetDto → ClosedXML): typed values, formulas via `cell.FormulaA1`,
@@ -76,17 +76,17 @@ Two distinct kinds of "Sheet". **A** is the recommended rename; **B** should sta
 sheets — that's correct Excel terminology, and `SheetDto`→`SpreadsheetDto` would collide with the workbook
 type). Confirm the scope before executing.
 
-### A) Rename the infrastructure project `Canvas.Infrastructure.Sheet` → `Canvas.Infrastructure.Spreadsheet` — DONE
-- [x] Folder `src/Canvas.Infrastructure.Sheet/` → `src/Canvas.Infrastructure.Spreadsheet/` (`git mv`).
-- [x] `Canvas.Infrastructure.Sheet.csproj` → `Canvas.Infrastructure.Spreadsheet.csproj`.
+### A) Rename the infrastructure project `PXA.Infrastructure.Sheet` → `PXA.Infrastructure.Spreadsheet` — DONE
+- [x] Folder `src/PXA.Infrastructure.Sheet/` → `src/PXA.Infrastructure.Spreadsheet/` (`git mv`).
+- [x] `PXA.Infrastructure.Sheet.csproj` → `PXA.Infrastructure.Spreadsheet.csproj`.
 - [x] `namespace …Sheet` → `…Spreadsheet` in all 5 files.
 - [~] `SheetRendererCapabilities` class **left as-is** — a class identifier (scope B), not the project rename;
       only its own declaration exists. Rename later if desired.
-- [x] `Canvas.sln` project name + path entry.
-- [x] `ProjectReference` paths in `PXA.WebApi/PXA.WebApi.csproj` + `Canvas.Export.Tests.csproj`.
-- [x] `using`/qualified `Canvas.Infrastructure.Spreadsheet.*` in `Program.cs`, `SpreadsheetController.cs`, and
+- [x] `PXA.sln` project name + path entry.
+- [x] `ProjectReference` paths in `PXA.WebApi/PXA.WebApi.csproj` + `PXA.Export.Tests.csproj`.
+- [x] `using`/qualified `PXA.Infrastructure.Spreadsheet.*` in `Program.cs`, `SpreadsheetController.cs`, and
       the 3 test files. No stale `.Sheet` references remain.
-- [x] `dotnet build Canvas.sln` clean; `Canvas.Export.Tests` **193** green.
+- [x] `dotnet build PXA.sln` clean; `PXA.Export.Tests` **193** green.
 
 ### B) Per-sheet model identifiers — **kept, not renamed** (decided: "rename project only")
 - [x] `SheetDto`/`SheetColumnDto`/`SheetRowDto` (`SpreadsheetDto.cs`) — **kept** (a Spreadsheet contains
@@ -95,7 +95,7 @@ type). Confirm the scope before executing.
 
 ## Verification
 - Backend: `dotnet test` round-trip preserves values/formulas/types/number-formats/styles/merges; `dotnet
-  build Canvas.sln` clean.
+  build PXA.sln` clean.
 - Frontend: `tsc --noEmit` + `jest` (store + recalc) green.
 - E2E (app :5173, backend :5086): `/spreadsheet`, type `=SUM(A1:A2)` → live result; format currency;
   export → `.xlsx` opens in Excel with the formula; import a real `.xlsx` with formulas → preserved.

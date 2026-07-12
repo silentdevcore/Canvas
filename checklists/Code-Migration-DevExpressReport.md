@@ -1,11 +1,11 @@
-# Canvas Migration: DevExpress XtraReport → Canvas Designer
+# PXA Migration: DevExpress XtraReport → PXA Designer
 
 ## Goal
 
-Convert a **C# DevExpress XtraReport class** (Report Designer output) into a **Canvas design** that opens
+Convert a **C# DevExpress XtraReport class** (Report Designer output) into a **PXA design** that opens
 and is editable in `ui-designer-v2` — replacing the dead-end `CANMIGDEVEXP020` "report export requires
 manual migration" warning emitted by the code converter
-([DevExpressPdfMigration.cs](../src/Canvas.Migration.DevExpressPdf/DevExpressPdfMigration.cs)).
+([DevExpressPdfMigration.cs](../src/PXA.Migration.DevExpressPdf/DevExpressPdfMigration.cs)).
 
 - **Input**: a C# `XtraReport` subclass + designer code (`InitializeComponent()` configuring `XRLabel`,
   `XRLine`, `XRPictureBox`, `XRShape`, `XRTable`, … via `LocationF`/`SizeF`/`Text`/`Font`/`ForeColor`).
@@ -37,7 +37,7 @@ the next, unstarted milestone.
       to the page bottom (`pageHeight − bottomMargin − footerHeight`).
 
 ### Architecture
-- [x] Isolated project `src/Canvas.Migration.DevExpressReport` (refs `Canvas.Core` + Roslyn); returns a
+- [x] Isolated project `src/PXA.Migration.DevExpressReport` (refs `PXA.Core` + Roslyn); returns a
       `DesignExportDto`, not a code string.
 - [x] `XtraReportToDesignConverter.Convert(string)` → `{ DesignExportDto Design, IReadOnlyList<MigrationDiagnostic> Diagnostics }`.
 - [x] Roslyn pre-scan: locate `: XtraReport`; collect control field declarations; read
@@ -45,7 +45,7 @@ the next, unstarted milestone.
       rows/cells from `*.Controls/Rows/Cells.Add(Range)`.
 
 ### Control mapping
-| XtraReport control | Canvas `ElementDto.Type` | Status |
+| XtraReport control | PXA `ElementDto.Type` | Status |
 | --- | --- | --- |
 | `XRLabel` / `XRPageInfo` | `text` (+ font/colour/align style) | [x] |
 | `XRLine` | `line` | [x] |
@@ -68,24 +68,24 @@ the next, unstarted milestone.
 - [x] XRTable rows/cells; single-field binding + complex expression; page header/footer → shared.
 - [x] Unsupported control → `CANMIGDEVREP011`.
 - [x] **End-to-end**: a converted report (C# and `.repx`) renders to a valid PDF through the real export
-      pipeline (`DesignJsonMapper` → `ToBytes`) — in `Canvas.Export.Tests`.
+      pipeline (`DesignJsonMapper` → `ToBytes`) — in `PXA.Export.Tests`.
 
 ### Diagnostics (implemented)
 | ID | Severity | Meaning |
 | --- | --- | --- |
 | `CANMIGDEVREP001` | Info | XtraReport + bands detected (N bands, M controls) |
-| `CANMIGDEVREP002` | Info | Per-control mapping (`name (XRType) → Canvas type`) |
+| `CANMIGDEVREP002` | Info | Per-control mapping (`name (XRType) → PXA type`) |
 | `CANMIGDEVREP010` | Info / Warning | Text binding mapped — `[X]` → `binding` (Info); complex expression → `expression` (Warning) |
 | `CANMIGDEVREP011` | Warning | Unsupported control skipped |
 | `CANMIGDEVREP012` | Warning | Sub-report placeholder inserted, or report scripts/event handlers require manual migration |
 | `CANMIGDEVREP013` | Warning | Picture data not embeddable — placeholder inserted |
-| `CANMIGDEVREP014` | Warning | `DetailReportBand` / sub-detail layout flattened; data-repeat semantics require Canvas template wiring |
-| `CANMIGDEVREP015` | Warning | `GroupHeaderBand` / `GroupFooterBand` layout flattened; group/sort repeat semantics require Canvas template wiring |
-| `CANMIGDEVREP016` | Warning | `CanGrow` / `CanShrink` imported as Canvas text wrapping/overflow hints; dynamic band reflow requires review |
+| `CANMIGDEVREP014` | Warning | `DetailReportBand` / sub-detail layout flattened; data-repeat semantics require PXA template wiring |
+| `CANMIGDEVREP015` | Warning | `GroupHeaderBand` / `GroupFooterBand` layout flattened; group/sort repeat semantics require PXA template wiring |
+| `CANMIGDEVREP016` | Warning | `CanGrow` / `CanShrink` imported as PXA text wrapping/overflow hints; dynamic band reflow requires review |
 | `CANMIGDEVREP017` | Warning | DevExpress anchoring imported as metadata; responsive positioning requires review |
-| `CANMIGDEVREP018` | Warning | `XRChart` imported as editable Canvas chart placeholder; `XRGauge`/`XRPivotGrid` imported as positioned placeholders |
-| `CANMIGDEVREP019` | Warning | `XRShape` arrow imported as Canvas arrow; direction/head style requires visual review |
-| `CANMIGDEVREP020` | Warning | DevExpress `Visible` expression preserved as Canvas `visibleExpression`; simple BookingReceipt-style cases are evaluated during PDF export |
+| `CANMIGDEVREP018` | Warning | `XRChart` imported as editable PXA chart placeholder; `XRGauge`/`XRPivotGrid` imported as positioned placeholders |
+| `CANMIGDEVREP019` | Warning | `XRShape` arrow imported as PXA arrow; direction/head style requires visual review |
+| `CANMIGDEVREP020` | Warning | DevExpress `Visible` expression preserved as PXA `visibleExpression`; simple BookingReceipt-style cases are evaluated during PDF export |
 | `CANMIGDEVREP021` | Warning | C# designer image resource key preserved; `.resx`/resource payload is needed for automatic image embedding |
 | `CANMIGDEVREP022` | Warning | DevExpress `MultiColumn` band mode detected; repeated column flow requires manual review |
 | `CANMIGDEVREP023` | Warning | DevExpress `TextFitMode` / `TextTrimming` imported as metadata; text shrink/trimming requires manual review |
@@ -108,7 +108,7 @@ before lower-value table styling.
       controls, fonts/colours, alignment, expression bindings, and page header/footer → shared elements.
 
 ### 2. Richer controls & styling  *(partly done)*
-- [x] `XRPictureBox` embedded image (`.repx` base64 `ImageSource`/`Image` → Canvas image `Content` data
+- [x] `XRPictureBox` embedded image (`.repx` base64 `ImageSource`/`Image` → PXA image `Content` data
       URL), replacing the `CANMIGDEVREP013` placeholder when image data is present.
 - [x] C# `XRPictureBox.ImageSource = new ImageSource("img", resources.GetString("..."))` preserves the
       resource key as `style.devExpressImageResourceKey` and emits `CANMIGDEVREP021` when the `.resx`
@@ -122,25 +122,25 @@ before lower-value table styling.
 - [x] `XRCheckBox` → `checkmark` with `CheckState` (from `CheckBoxState`/`Checked`).
 - [x] `XRShape` ellipse → `circle`, line → `line`, otherwise `rect`.
 - [x] Label `BackColor` → text `backgroundColor`; font `Underline`/`Strikeout` → `textDecoration`.
-- [x] `XRControlStyle` / `StyleName` → inherited Canvas font/colour/border/padding style hints.
+- [x] `XRControlStyle` / `StyleName` → inherited PXA font/colour/border/padding style hints.
 - [x] `TextFitMode` / `TextTrimming` → `style.devExpressTextFitMode` /
       `style.devExpressTextTrimming` with `CANMIGDEVREP023`.
 - [x] Table column alignments from the header-row cell `TextAlignment` → `ColumnAlignments`.
 - [x] Per-cell font/colour table styling — `XRTableCell` `BackColor`/`ForeColor`/`TextAlignment`/`Font`/
-      `Borders` are extracted into sparse Canvas `CellStyles` (uniform + per-side borders) and rendered by
+      `Borders` are extracted into sparse PXA `CellStyles` (uniform + per-side borders) and rendered by
       the canvas/preview and all exporters.
 - [x] Standard expressions are **executable** in the designer/preview: non-trivial bindings emit a
-      translated Canvas-grammar `Expression` via `ExpressionTranslator.TranslateDevExpress` (raw kept on
+      translated PXA-grammar `Expression` via `ExpressionTranslator.TranslateDevExpress` (raw kept on
       `style.devExpressExpression`). See [Migration_RDL+DevExpress.md](Migration_RDL+DevExpress.md).
       Custom functions / aggregates remain out of scope.
-- [x] **P0** More controls: `XRChart` → editable Canvas `chart`; `XRGauge`/`XRPivotGrid` →
+- [x] **P0** More controls: `XRChart` → editable PXA `chart`; `XRGauge`/`XRPivotGrid` →
       positioned placeholders with `CANMIGDEVREP018` diagnostics instead of layout holes.
 - [x] `XRLine`/`XRShape` `LineWidth` → `strokeWidth`/`borderWidth`; `XRLine` `LineStyle` → `dashStyle`.
 - [x] **P1** `XRShape` arrow kinds; per-side `.Borders` selection.
 
 ### 3. Data & layout fidelity
-- [~] ~~Translate DevExpress expression syntax to the Canvas expression DSL.~~ **Not worth doing** —
-      Canvas's `ExpressionEvaluator` ([src/Canvas.Core/Primitives/ExpressionEvaluator.cs](../src/Canvas.Core/Primitives/ExpressionEvaluator.cs))
+- [~] ~~Translate DevExpress expression syntax to the PXA expression DSL.~~ **Not worth doing** —
+      PXA's `ExpressionEvaluator` ([src/PXA.Core/Primitives/ExpressionEvaluator.cs](../src/PXA.Core/Primitives/ExpressionEvaluator.cs))
       is a stub (bare-identifier substitution + `==`/`!=` only; no arithmetic/functions), so there's no
       richer target to translate into. Single-field `[X]` → `binding` (done); other expressions are
       preserved verbatim on `expression` with a warning.
@@ -148,11 +148,11 @@ before lower-value table styling.
 - [x] **P0** Grouping/sorting bands (`GroupHeaderBand`/`GroupFooterBand`) — group/footer layout is
       imported and stacked in band order; C# `GroupFields`/`SortFields` and `.repx` `<GroupFields>`/
       `<SortFields>` are captured in `CANMIGDEVREP015` diagnostics. **Repeat semantics:** each group-band
-      control now carries Canvas `RepeatDto` (data path from the first group field) plus
+      control now carries PXA `RepeatDto` (data path from the first group field) plus
       `style.devExpressGroup` (name/role/band/fields/sorts), mirroring the RDL/Jasper group-repeat mapping,
-      so the band can be wired as a repeating template. Runtime data-binding still needs Canvas template wiring.
+      so the band can be wired as a repeating template. Runtime data-binding still needs PXA template wiring.
 - [x] **P0** `AnchorVertical`/`AnchorHorizontal` and `CanGrow`/`CanShrink` auto-sizing: imported as
-      Canvas style hints (`whiteSpace`, `overflow`, `verticalAlign`) plus DevExpress metadata, with
+      PXA style hints (`whiteSpace`, `overflow`, `verticalAlign`) plus DevExpress metadata, with
       `CANMIGDEVREP016/017` diagnostics for dynamic reflow/anchoring review.
 - [x] **P0** `ReportFooterBand` once-at-end semantics: report-footer elements are imported as
       `PageScope = "last"` so export renders them only on the final page while single-page designs
@@ -173,6 +173,6 @@ before lower-value table styling.
 - [x] **P1** `MultiColumn.Mode` detection on bands with `CANMIGDEVREP022` diagnostic.
 
 ## Assumptions
-- [x] Use `Canvas.Migration.DevExpressReport`, separate from `Canvas.Migration.DevExpressPdf`.
-- [x] Output target is Canvas design JSON (designer), not Canvas.Pdf C# code.
+- [x] Use `PXA.Migration.DevExpressReport`, separate from `PXA.Migration.DevExpressPdf`.
+- [x] Output target is PXA design JSON (designer), not PXA.Pdf C# code.
 - [x] Default page size A4 when the report declares none.

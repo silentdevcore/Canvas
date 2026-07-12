@@ -2098,7 +2098,7 @@ textarea:focus {
   transition: transform 0.2s ease-in-out;
 }
 
-/* Canvas hover effects */
+
 .canvas:hover {
   border-color: color-mix(in srgb, var(--ui-color-border-subtle) 60%, var(--ui-color-border-strong));
   transition: border-color 0.2s ease-in-out;
@@ -2131,7 +2131,7 @@ textarea:focus {
   transform: scale(1.01);
 }
 
-/* Canvas element micro-interactions */
+
 .canvas-element:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);

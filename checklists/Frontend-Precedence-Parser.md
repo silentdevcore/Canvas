@@ -8,7 +8,7 @@ Brings the designer/preview expression engine to parity with the server. Compani
 
 `expressionEngine.ts` evaluated arithmetic/comparison by `expression.split(op)` (first two parts only —
 no precedence/associativity), and didn't handle raw `&&`/`||` at all. The server
-`CanvasExpressionEvaluator` already has a correct recursive-descent parser; this ports that grammar to
+`PxaExpressionEvaluator` already has a correct recursive-descent parser; this ports that grammar to
 TypeScript so both surfaces agree.
 
 Precedence ladder (mirrors C#): `or → and → equality → comparison → additive → multiplicative → unary →
@@ -32,7 +32,7 @@ Special forms (template literals, `new Date(...)`, `instanceof`) and `??`/`?.` a
 - [x] Tests: precedence, logical, comparison+arithmetic, string concat, and a **parity table** vs the
       documented C# results; existing helper/aggregate cases still pass. Full frontend suite + `tsc`.
 
-## Parity with `CanvasExpressionEvaluator` (server)
+## Parity with `PxaExpressionEvaluator` (server)
 
 | Construct | Both engines |
 | --- | --- |
@@ -50,6 +50,6 @@ Special forms (template literals, `new Date(...)`, `instanceof`) and `??`/`?.` a
       right operand's tokens are still consumed (positions stay in sync) but its value-production is
       suppressed — leaf reads return null/undefined, `callFunction` returns without invoking, and the
       binary/unary computations are skipped — so a guard like `Items != null && $count(Items) > 0` no longer
-      throws when `Items` is missing. Tests: `CanvasExpressionEvaluatorTests.LogicalOperators_ShortCircuit`
+      throws when `Items` is missing. Tests: `PxaExpressionEvaluatorTests.LogicalOperators_ShortCircuit`
       and the `expressionEngine.test.ts` parity case (`&&`/`||`/`??`).
 - [ ] Ternary `?:` / bitwise operators (not emitted by the translator).

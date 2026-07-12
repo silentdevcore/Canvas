@@ -1,22 +1,22 @@
-# Canvas Migration: Apryse SDK
+# PXA Migration: Apryse SDK
 
 ## V1 Implementation Status
 
 - [x] V1 scope: deterministic C# source-to-source migration for the core Apryse document lifecycle.
-- [x] Roslyn-backed migration is connected through `Canvas.WebApi` via framework id `Apryse`.
+- [x] Roslyn-backed migration is connected through `PXA.WebApi` via framework id `Apryse`.
 - [x] Status upgraded from reporting pilot to **full** converter.
-- [x] `PDFNet.Initialize(...)` is removed — Canvas.Pdf requires no SDK initialisation call.
+- [x] `PDFNet.Initialize(...)` is removed — PXA.Pdf requires no SDK initialisation call.
 - [x] `new PDFDoc(...)` is rewritten to `var document = new PdfDocument()` (both `var` and `using var` forms).
-- [x] `doc.PageCreate(...)` is removed — Canvas AddPage creates and attaches the page in one step.
+- [x] `doc.PageCreate(...)` is removed — PXA AddPage creates and attaches the page in one step.
 - [x] `doc.PagePushBack(page)` is rewritten to `var <pageVarName> = document.AddPage()` — variable name is read from the PagePushBack argument, so multiple pages get distinct names.
 - [x] `doc.Save(path, SDFDoc.SaveOptions.*)` is rewritten to `document.Save(path)` — extra Apryse save flags are dropped.
-- [x] All `pdftron.*` usings are removed; `using Canvas.Pdf;` is inserted.
+- [x] All `pdftron.*` usings are removed; `using PXA.Pdf;` is inserted.
 - [x] `ElementBuilder`, `ElementWriter`, `CreateTextBegin/Run/End`, `CreateImage*`, `CreateRect`, `CreatePath`, `WriteElement`, `Begin` are kept as-is (manual migration required — no diagnostic yet).
 - [x] SDF, `ElementReader`, annotations, forms, redaction, rendering, viewer, OCR, conversion, and signature APIs are kept as-is (out of v1 scope — no diagnostic yet).
 - [x] WebApi conversion response includes migrated code, diagnostics, and summary counts.
 - [ ] V1 does not yet emit diagnostics for ElementBuilder / ElementWriter / unsupported APIs (report items removed when converting from reporting pilot).
 - [ ] V1 does not resolve Apryse overloads or page-size arguments semantically.
-- [ ] Future hardening: map `ElementBuilder` text/image/path elements to Canvas draw calls.
+- [ ] Future hardening: map `ElementBuilder` text/image/path elements to PXA draw calls.
 - [ ] Future hardening: map `PageCreate(Rect)` page-size argument to `PdfPagePreset`.
 - [ ] Future hardening: replace syntax-only matching with semantic matching before broad rollout.
 
@@ -52,13 +52,13 @@
 - [x] `IsDeclarationWithCall` added to handle `var page = doc.PageCreate()` (local declaration, not expression statement).
 - [x] `GetFirstArgName` reads the `PagePushBack` argument to preserve per-page variable names (e.g. `page1`, `page2`).
 - [x] `TryGetPdfDocDeclaration` handles both `var doc = new PDFDoc()` and `using var doc = new PDFDoc()`.
-- [x] pdftron usings removed via `RemoveAprysedUsings`; `using Canvas.Pdf;` inserted via `EnsureCanvasUsing`.
+- [x] pdftron usings removed via `RemoveAprysedUsings`; `using PXA.Pdf;` inserted via `EnsurePxaUsing`.
 
 ## Mapping Table
 
-| Apryse API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
+| Apryse API / pattern | PXA.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `using pdftron;` / `using pdftron.PDF;` / `using pdftron.SDF;` | *(removed)* + `using Canvas.Pdf;` | Automatic | All pdftron.* namespaces stripped |
+| `using pdftron;` / `using pdftron.PDF;` / `using pdftron.SDF;` | *(removed)* + `using PXA.Pdf;` | Automatic | All pdftron.* namespaces stripped |
 | `PDFNet.Initialize(key)` | *(removed)* | Automatic | No SDK init needed |
 | `using var doc = new PDFDoc()` | `var document = new PdfDocument()` | Automatic | `using` keyword dropped |
 | `var doc = new PDFDoc()` | `var document = new PdfDocument()` | Automatic | |
@@ -66,7 +66,7 @@
 | `doc.PagePushBack(page)` | `var page = document.AddPage()` | Automatic | Argument name preserved |
 | `doc.PagePushBack(page1)` + `doc.PagePushBack(page2)` | `var page1 = document.AddPage()` + `var page2 = document.AddPage()` | Automatic | Each pushed page gets its own variable |
 | `doc.Save(path, SDFDoc.SaveOptions.e_linearized)` | `document.Save(path)` | Automatic | Extra args dropped |
-| `new ElementBuilder()` | kept as-is | Manual | Map to Canvas page draw calls |
+| `new ElementBuilder()` | kept as-is | Manual | Map to PXA page draw calls |
 | `new ElementWriter()` / `writer.Begin(page)` | kept as-is | Manual | Content stream → page drawing |
 | `writer.WriteElement(...)` | kept as-is | Manual | Review ElementBuilder source |
 | `builder.CreateTextBegin/Run/End(...)` | kept as-is | Manual | → `page.DrawText(...)` after review |
@@ -123,10 +123,10 @@ writer.End();
 doc.Save(outputPath, SDFDoc.SaveOptions.e_linearized);
 ```
 
-## Expected Canvas.Pdf Output
+## Expected PXA.Pdf Output
 
 ```csharp
-using Canvas.Pdf;
+using PXA.Pdf;
 
 var document = new PdfDocument();
 var page1 = document.AddPage();
@@ -142,7 +142,7 @@ document.Save(outputPath);
 
 ## Code Fix Checklist
 
-- [x] Remove `pdftron.*` usings, add `using Canvas.Pdf;`
+- [x] Remove `pdftron.*` usings, add `using PXA.Pdf;`
 - [x] Remove `PDFNet.Initialize(...)`
 - [x] Replace `new PDFDoc()` with `new PdfDocument()` (both `var` and `using var`)
 - [x] Remove `doc.PageCreate(...)` statements (both expression and local-declaration forms)

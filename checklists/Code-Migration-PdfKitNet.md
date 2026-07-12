@@ -1,9 +1,9 @@
-# Canvas Migration: PDFKit.NET
+# PXA Migration: PDFKit.NET
 
 ## V1 Pilot Analysis
 
-- [x] Added cautious Roslyn-backed provider project: `src/Canvas.Migration.PdfKitNet`
-- [x] Added provider tests: `tests/Canvas.Migration.PdfKitNet.Tests`
+- [x] Added cautious Roslyn-backed provider project: `src/PXA.Migration.PdfKitNet`
+- [x] Added provider tests: `tests/PXA.Migration.PdfKitNet.Tests`
 - [x] Connected WebApi converter: `PXA.WebApi/Services/Converters/PdfKitNetConverter.cs`
 - [x] Added UI fallback status/example as `pilot`
 - [ ] Confirm the exact NuGet package and public API names with a real customer/source sample
@@ -30,7 +30,7 @@ PDFKit.NET remains less certain than the other providers because the package/API
 
 ## Mapping Table
 
-| PDFKit.NET API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
+| PDFKit.NET API / pattern | PXA.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
 | `new Document()` / `new PdfDocument()` / `new PDFDocument()` | `var document = new PdfDocument();` | Pilot code fix | API identity must be validated |
 | `document.NewPage()` / `document.AddPage()` | `var page = document.AddPage();` | Pilot code fix | Preserves assigned page variable |
@@ -66,10 +66,10 @@ page.DrawRectangle(40, 100, 200, 80);
 doc.Render(outputPath);
 ```
 
-## Expected Canvas.Pdf Output Snippets
+## Expected PXA.Pdf Output Snippets
 
 ```csharp
-using Canvas.Pdf;
+using PXA.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -100,7 +100,7 @@ document.Save(outputPath);
 - [x] Replace simple text drawing
 - [x] Replace simple line/rectangle drawing
 - [x] Replace simple save/export
-- [x] Add `using Canvas.Pdf`
+- [x] Add `using PXA.Pdf`
 - [x] Remove likely PDFKit.NET usings
 - [x] Emit manual migration report entries
 - [ ] Validate mappings against real package API before promoting beyond pilot

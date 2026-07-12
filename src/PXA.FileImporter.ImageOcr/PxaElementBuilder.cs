@@ -3,7 +3,7 @@ using SkiaSharp;
 
 namespace PXA.FileImporter.ImageOcr;
 
-// Pipeline stage 4: converts fused semantic candidates into Canvas ElementDto
+// Pipeline stage 4: converts fused semantic candidates into PXA ElementDto
 // objects, applying page placement/scaling and source diagnostics to styles.
 // Promoted verbatim from ImageToPdfConverter.BuildDesign element construction.
 internal static class PxaElementBuilder

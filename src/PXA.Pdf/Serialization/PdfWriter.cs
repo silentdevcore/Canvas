@@ -339,7 +339,7 @@ internal sealed class PdfWriter
                 static opacity => opacity,
                 opacity => opacityObjects[opacity].ResourceName);
 
-            var contentStream = PdfCanvasRenderer.RenderPage(
+            var contentStream = PdfPageContentRenderer.RenderPage(
                 page, pageFontResources, pageImageResources, pageOpacityResources, pageEmbeddedFontResources);
             var contentBytes = Encoding.ASCII.GetBytes(contentStream);
 

@@ -1,10 +1,10 @@
-# Canvas Migration: IronPDF
+# PXA Migration: IronPDF
 
 ## V1 Implementation Status
 
-- [x] V1 scope: Roslyn-backed pilot that generates a compilable Canvas.Pdf scaffold and provides diagnostics for manual HTML draw call migration.
-- [x] Roslyn-backed migration connected through `Canvas.WebApi` via framework id `IronPdf`.
-- [x] Status: **Pilot** — HTML rendering is not automatically convertible to Canvas draw calls; scaffold + diagnostics are provided instead.
+- [x] V1 scope: Roslyn-backed pilot that generates a compilable PXA.Pdf scaffold and provides diagnostics for manual HTML draw call migration.
+- [x] Roslyn-backed migration connected through `PXA.WebApi` via framework id `IronPdf`.
+- [x] Status: **Pilot** — HTML rendering is not automatically convertible to PXA draw calls; scaffold + diagnostics are provided instead.
 - [x] `ChromePdfRenderer` / `HtmlToPdf` creation → `var document = new PdfDocument(); var page = document.AddPage();`
 - [x] Chained form `new ChromePdfRenderer().RenderHtmlAsPdf(...)` → scaffold generated on the render call statement.
 - [x] `renderer.RenderHtmlAsPdf(html)` → removed; HTML content preserved in CANMIGIRONPDF002 diagnostic message.
@@ -15,10 +15,10 @@
 - [x] `await pdf.SaveAsAsync(path)` → `document.Save(path)` (synchronous; CANMIGIRONPDF007 info diagnostic).
 - [x] `renderer.RenderingOptions.X = ...` property assignments removed (renderer is gone after migration).
 - [x] IronPDF editing/merge/signing calls (`Merge`, `AppendPdf`, `SignPdfWithDigitalSignature`) → kept with CANMIGIRONPDF020 warning.
-- [x] All `IronPdf` / `IronPdf.Rendering` usings removed; `using Canvas.Pdf;` added.
+- [x] All `IronPdf` / `IronPdf.Rendering` usings removed; `using PXA.Pdf;` added.
 - [x] Scan for unsupported identifiers (`PdfMerger`, `SecuritySettings`, `PdfSignature`, etc.) → CANMIGIRONPDF020 warning.
 - [ ] V1 does not parse or render HTML/CSS/JavaScript.
-- [ ] V1 does not generate Canvas draw calls from HTML element analysis.
+- [ ] V1 does not generate PXA draw calls from HTML element analysis.
 - [ ] Future: add optional HTML literal extraction for simple headings/paragraphs.
 
 ## Package / API Identification
@@ -38,9 +38,9 @@
 
 ## Roslyn Implementation Status
 
-- [x] Add `src/Canvas.Migration.IronPdf`
-- [x] Add `tests/Canvas.Migration.IronPdf.Tests`
-- [x] Add projects to `Canvas.sln`
+- [x] Add `src/PXA.Migration.IronPdf`
+- [x] Add `tests/PXA.Migration.IronPdf.Tests`
+- [x] Add projects to `PXA.sln`
 - [x] Implement `IronPdfMigration` as a real `CSharpSyntaxRewriter`
 - [x] Pre-scan phase: find renderer var, pdf var, save target
 - [x] `VisitCompilationUnit` override for one-to-many statement replacement
@@ -52,14 +52,14 @@
 - [x] Convert `pdf.SaveAs(path)` → `document.Save(path)`
 - [x] Convert `await pdf.SaveAsAsync(path)` → `document.Save(path)`
 - [x] Warn and keep editing/security/signing calls
-- [x] Remove IronPdf usings, add `using Canvas.Pdf;`
+- [x] Remove IronPdf usings, add `using PXA.Pdf;`
 - [x] Connect WebApi IronPDF converter to the Roslyn migration engine
-- [x] Verified with `dotnet test tests/Canvas.Migration.IronPdf.Tests`: `11/11` passed
-- [x] Verified with `dotnet test tests/Canvas.Api.Tests`: `22/22` passed
+- [x] Verified with `dotnet test tests/PXA.Migration.IronPdf.Tests`: `11/11` passed
+- [x] Verified with `dotnet test tests/PXA.Api.Tests`: `22/22` passed
 
 ## Mapping Table
 
-| IronPDF API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
+| IronPDF API / pattern | PXA.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
 | `new ChromePdfRenderer()` | `new PdfDocument()` + `AddPage()` | Automatic | Scaffold only; HTML content needs manual translation |
 | `new HtmlToPdf()` | `new PdfDocument()` + `AddPage()` | Automatic | Legacy renderer |
@@ -78,9 +78,9 @@
 | ID | Severity | Meaning | Code fix |
 | --- | --- | --- | --- |
 | `CANMIGIRONPDF001` | Info | ChromePdfRenderer/HtmlToPdf → PdfDocument + AddPage scaffold | Yes |
-| `CANMIGIRONPDF002` | Warning | RenderHtmlAsPdf — HTML rendering requires manual Canvas draw call migration | No |
+| `CANMIGIRONPDF002` | Warning | RenderHtmlAsPdf — HTML rendering requires manual PXA draw call migration | No |
 | `CANMIGIRONPDF003` | Warning | RenderHtmlFileAsPdf — HTML template requires manual review | No |
-| `CANMIGIRONPDF004` | Warning | RenderUrlAsPdf — URL rendering is outside Canvas.Pdf scope | No |
+| `CANMIGIRONPDF004` | Warning | RenderUrlAsPdf — URL rendering is outside PXA.Pdf scope | No |
 | `CANMIGIRONPDF005` | Warning | RenderRazorToPdf — Razor template requires manual migration | No |
 | `CANMIGIRONPDF006` | Info | `SaveAs(path)` → `document.Save(path)` | Yes |
 | `CANMIGIRONPDF007` | Info | `SaveAsAsync(path)` → `document.Save(path)` (sync) | Yes |
@@ -94,7 +94,7 @@
 - [ ] Security and signing APIs
 - [ ] URL-to-PDF rendering
 - [ ] Razor template rendering
-- [ ] HTML literal extraction to Canvas draw calls
+- [ ] HTML literal extraction to PXA draw calls
 
 ## Sample Input
 
@@ -107,10 +107,10 @@ var pdf = renderer.RenderHtmlAsPdf("<h1>Invoice #2024</h1><p>Total: $150</p>");
 pdf.SaveAs(outputPath);
 ```
 
-## Expected Canvas.Pdf Output
+## Expected PXA.Pdf Output
 
 ```csharp
-using Canvas.Pdf;
+using PXA.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -119,12 +119,12 @@ document.Save(outputPath);
 
 **Diagnostics emitted:**
 - CANMIGIRONPDF001 Info: ChromePdfRenderer → PdfDocument + AddPage
-- CANMIGIRONPDF002 Warning: RenderHtmlAsPdf(`<h1>Invoice #2024</h1><p>Total: $150</p>`) — manually add Canvas draw calls
+- CANMIGIRONPDF002 Warning: RenderHtmlAsPdf(`<h1>Invoice #2024</h1><p>Total: $150</p>`) — manually add PXA draw calls
 - CANMIGIRONPDF006 Info: SaveAs(outputPath) → document.Save(outputPath)
 
 ## Tests Checklist
 
-- [x] Basic HTML render workflow → Canvas scaffold
+- [x] Basic HTML render workflow → PXA scaffold
 - [x] Literal HTML content preserved in diagnostic message
 - [x] Dynamic HTML rendering warning
 - [x] Chained `new ChromePdfRenderer().RenderHtmlAsPdf(...)` form

@@ -59,16 +59,16 @@ This checklist outlines the implementation of Clean Architecture principles for 
 ### 4. Presentation Layer (UI Components)
 - [ ] Create `src/presentation/` directory structure
 - [ ] Organize components by feature
-  - [ ] `components/canvas/` - Canvas-related components
+  - [ ] `components/canvas/` - PXA-related components
   - [ ] `components/sidebar/` - Element palette components
   - [ ] `components/properties/` - Property editor components
   - [ ] `components/export/` - Export panel components
 - [ ] Implement presentation models/view models
-  - [ ] `CanvasViewModel` - manages canvas state presentation
+  - [ ] `PxaSurfaceViewModel` - manages canvas state presentation
   - [ ] `ElementViewModel` - handles element display logic
   - [ ] `PropertiesViewModel` - manages property editing
 - [ ] Implement UI controllers/presenters
-  - [ ] `CanvasController` - handles user interactions
+  - [ ] `PxaSurfaceController` - handles user interactions
   - [ ] `ElementController` - manages element operations
   - [ ] `ExportController` - coordinates export operations
 
@@ -278,7 +278,7 @@ This checklist outlines the implementation of Clean Architecture principles for 
    // src/application/useCases/AddNewElementUseCase.ts
    export class AddNewElementUseCase implements IAddElementUseCase {
      constructor(private elementRepository: IElementRepository) {}
-     
+
      async execute(props: NewElementProps): Promise<ElementId> {
        // business logic
      }

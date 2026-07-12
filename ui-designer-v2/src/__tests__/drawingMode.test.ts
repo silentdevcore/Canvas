@@ -1,4 +1,4 @@
-// Tests for the draw-mode geometry helpers used in SimpleCanvas
+// Tests for the draw-mode geometry helpers used in SimplePxaSurface
 
 function computeLineElement(startX: number, startY: number, currentX: number, currentY: number) {
   const dx = currentX - startX;

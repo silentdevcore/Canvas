@@ -175,7 +175,7 @@ public sealed class WordRegressionPayloadTests
         };
 
         var repoRoot = FindRepoRoot();
-        var perfDir = Path.Combine(repoRoot, "tests", "Canvas.Export.Tests", "Fidelity", "artifacts", "latest", "perf");
+        var perfDir = Path.Combine(repoRoot, "tests", "PXA.Export.Tests", "Fidelity", "artifacts", "latest", "perf");
         Directory.CreateDirectory(perfDir);
         var perfPath = Path.Combine(perfDir, "word-export-perf-50-pages.json");
         File.WriteAllText(perfPath, JsonSerializer.Serialize(artifact, new JsonSerializerOptions { WriteIndented = true }));

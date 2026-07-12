@@ -4,7 +4,7 @@ using PXA.Pdf.Layout;
 
 namespace PXA.Pdf.Rendering;
 
-internal static class PdfCanvasRenderer
+internal static class PdfPageContentRenderer
 {
     public static string RenderPage(
         PdfPage page,

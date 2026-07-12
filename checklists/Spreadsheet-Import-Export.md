@@ -38,7 +38,7 @@ The native `Workbook` model — lossless save/load, offline, no backend.
 ## Backend formats — shipped via the Spreadsheet Backend Engine
 See `checklists/Spreadsheet-Backend-Engine.md` (commits `39de695b`..`6490ab9a`, 2026-06-28).
 - [x] **`.xls` (legacy Excel)** — `XlsWorkbookIo` via **NPOI 2.8** (Phase 4); `/export?format=xls`, `/import` `.xls`.
-- [x] **PDF export** — `/render?format=pdf` renders the sheet to PDF via `Canvas.Pdf` (Phase 3); also html/png/jpeg.
+- [x] **PDF export** — `/render?format=pdf` renders the sheet to PDF via `PXA.Pdf` (Phase 3); also html/png/jpeg.
 - [x] **TSV** — `CsvSheetIo` takes a delimiter; `/export?format=tsv`, `/import` `.tsv`. Test `Tsv_RoundTrip_TabDelimited`.
 
 ## Still deferred (need new libraries)

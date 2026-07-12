@@ -29,8 +29,8 @@ public sealed record ApiBrandingResponse(
         DeveloperName: "PXA",
         CliName: "pxa",
         NativeFileExtension: ".pxa",
-        LegacyProductName: "Canvas",
-        LegacyNamespacePrefix: "Canvas",
+        LegacyProductName: "PXA",
+        LegacyNamespacePrefix: "PXA",
         CompatibilityNotes:
         [
             "Legacy /api routes remain compatible.",

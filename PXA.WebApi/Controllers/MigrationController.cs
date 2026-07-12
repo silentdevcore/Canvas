@@ -73,7 +73,7 @@ public class MigrationController : ControllerBase
     }
 
     /// <summary>
-    /// Converts a report-designer layout into a Canvas design (DesignExportDto) the visual designer can
+    /// Converts a report-designer layout into a PXA design (DesignExportDto) the visual designer can
     /// open. Auto-detects the format: an RDL/RDLC report (SSRS, Syncfusion — root <c>&lt;Report&gt;</c> in
     /// an RDL namespace), an ActiveReports <c>.rpx</c> section report (root <c>&lt;Report&gt;</c> with
     /// <c>&lt;Sections&gt;</c>), otherwise a DevExpress XtraReport (a C# Report Designer class or a

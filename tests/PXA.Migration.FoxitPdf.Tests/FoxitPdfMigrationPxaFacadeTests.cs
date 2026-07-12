@@ -30,7 +30,7 @@ public sealed class FoxitPdfMigrationPxaFacadeTests
     }
 
     [Fact]
-    public void Migrate_MapsCanvasWarningsToPxaDiagnostics()
+    public void Migrate_MapsPxaWarningsToPxaDiagnostics()
     {
         var source = """
             using foxit.pdf;

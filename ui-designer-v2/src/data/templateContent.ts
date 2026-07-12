@@ -3979,7 +3979,7 @@ function buildCreativeResume(id: (k: string) => string): SimpleElement[] {
     { id: id('p2-bg'), type: 'rect', x: 214, y: 304, width: 172, height: 80,
       style: { backgroundColor: '#1e293b', borderWidth: 0, borderRadius: 4 } },
     { id: id('p2-t'), type: 'text', x: 224, y: 316, width: 152, height: 14,
-      content: 'Spotify — Canvas Art', style: { fontSize: 9, color: '#a855f7', fontWeight: 'bold' } },
+      content: 'Spotify — PXA Art', style: { fontSize: 9, color: '#a855f7', fontWeight: 'bold' } },
     { id: id('p2-d'), type: 'text', x: 224, y: 332, width: 152, height: 44,
       content: 'Art direction for 120 animated track visuals. Deployed to 602M users globally.', style: { fontSize: 7.5, color: '#94a3b8' } },
     { id: id('p3-bg'), type: 'rect', x: 396, y: 304, width: 172, height: 80,

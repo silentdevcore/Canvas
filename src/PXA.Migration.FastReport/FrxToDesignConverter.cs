@@ -16,7 +16,7 @@ public sealed class FrxConvertResult
 /// <summary>
 /// Converts a FastReport .NET <c>.frx</c> report — plain, namespace-free XML with a <b>banded</b> layout
 /// (root <c>&lt;Report&gt;</c> → <c>&lt;ReportPage&gt;</c> → <c>*Band</c> elements holding objects) — into a
-/// Canvas <see cref="DesignExportDto"/>. Like ActiveReports <c>.rpx</c> this is band-relative, so it
+/// PXA <see cref="DesignExportDto"/>. Like ActiveReports <c>.rpx</c> this is band-relative, so it
 /// mirrors the <c>PXA.Migration.Rpx</c> band-flatten approach. Object geometry is in <b>pixels</b>
 /// (96 dpi) and page size in <b>millimetres</b>; sub-properties are dotted attributes
 /// (<c>Fill.Color</c>, <c>Border.Color</c>, <c>Font="Tahoma, 9pt, style=Bold"</c>). Elements are matched
@@ -80,7 +80,7 @@ public sealed class FrxToDesignConverter
 
         // Bands are descendants of ReportPage (a ChildBand can nest inside another band); each band's
         // objects are its own non-band children. Band Top is the absolute design position (px). Each
-        // ReportPage becomes a separate Canvas page (tagged by PageIndex).
+        // ReportPage becomes a separate PXA page (tagged by PageIndex).
         var sectionNames = new HashSet<string>(StringComparer.Ordinal);
         for (var pi = 0; pi < pages.Count; pi++)
         {
@@ -257,7 +257,7 @@ public sealed class FrxToDesignConverter
         return any ? cs : null;
     }
 
-    // Group bands repeat per group key: attach Canvas RepeatDto + group metadata so the band's objects
+    // Group bands repeat per group key: attach PXA RepeatDto + group metadata so the band's objects
     // can be wired as a repeating template (mirrors the RDL/Jasper/DevExpress group-repeat mapping).
     private static void ApplyGroupRepeatMetadata(ElementDto element, RawBand band, List<MigrationDiagnostic> diagnostics)
     {
@@ -279,7 +279,7 @@ public sealed class FrxToDesignConverter
         element.Style["groupField"] = dataPath;   // generic key the planner reads to inject $group
         element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
         diagnostics.Add(Warn("CANMIGFRX014",
-            $"'{element.Name}' is in {band.Type} '{band.GroupName ?? band.Name}' — mapped to Canvas repeat metadata; group runtime semantics need review."));
+            $"'{element.Name}' is in {band.Type} '{band.GroupName ?? band.Name}' — mapped to PXA repeat metadata; group runtime semantics need review."));
     }
 
     // Condition like "[Employees.Country]" → "Country"; otherwise the group/band name.
@@ -306,7 +306,7 @@ public sealed class FrxToDesignConverter
                    .Select(p => double.TryParse(p, NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : 0)
                    .ToArray();
 
-    // A table cell value: a single [Source.Column] becomes a Canvas binding token; anything else is literal.
+    // A table cell value: a single [Source.Column] becomes a PXA binding token; anything else is literal.
     private static string CellDisplay(string? text)
     {
         text = (text ?? "").Trim();
@@ -323,7 +323,7 @@ public sealed class FrxToDesignConverter
         var bandByName = new Dictionary<string, RawBand>(StringComparer.Ordinal);
         foreach (var b in report.Bands) bandByName.TryAdd(b.Name, b);
 
-        // One Canvas page per FastReport ReportPage. For a single page, PageHeader/PageFooter bands map to
+        // One PXA page per FastReport ReportPage. For a single page, PageHeader/PageFooter bands map to
         // SharedElements (repeat on every page); for multiple pages each page keeps its own header/footer.
         var multiPage = report.PageCount > 1;
         var pageIndices = Enumerable.Range(0, report.PageCount);
@@ -350,7 +350,7 @@ public sealed class FrxToDesignConverter
                 var element = MapControl(raw, x, yPt, diagnostics);
                 if (element is null) continue;
 
-                diagnostics.Add(Info("CANMIGFRX002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
+                diagnostics.Add(Info("CANMIGFRX002", $"'{raw.Name}' ({raw.Type}) → PXA {element.Type}."));
 
                 // Aggregates in a group band scope to the current group's row subset ($group),
                 // injected per group by DesignLayoutPlanner; report/page bands have no aggregate scope.
@@ -363,7 +363,7 @@ public sealed class FrxToDesignConverter
                     element.Binding = LastSegment(col);
                     if (element.Type == "barcode") element.BarcodeValue = $"{{{{{LastSegment(col)}}}}}";
                     else if (element.Type == "text") element.Content = $"{{{{{LastSegment(col)}}}}}";
-                    diagnostics.Add(Info("CANMIGFRX010", $"'{raw.Name}' bound to {col} → Canvas binding '{LastSegment(col)}'."));
+                    diagnostics.Add(Info("CANMIGFRX010", $"'{raw.Name}' bound to {col} → PXA binding '{LastSegment(col)}'."));
                 }
 
                 if (band is not null) ApplyGroupRepeatMetadata(element, band, diagnostics);
@@ -381,13 +381,13 @@ public sealed class FrxToDesignConverter
 
         if (report.HasScript)
             diagnostics.Add(Warn("CANMIGFRX011",
-                "Report contains script/event handlers — Canvas has no scripting; migrate that logic manually."));
+                "Report contains script/event handlers — PXA has no scripting; migrate that logic manually."));
         if (multiPage)
             diagnostics.Add(Info("CANMIGFRX015",
-                $"Report has {report.PageCount} ReportPages — mapped to {report.PageCount} Canvas pages; per-page header/footer kept on each page."));
+                $"Report has {report.PageCount} ReportPages — mapped to {report.PageCount} PXA pages; per-page header/footer kept on each page."));
         foreach (var band in report.MultiColumnBands)
             diagnostics.Add(Warn("CANMIGFRX016",
-                $"'{band}' is a multi-column band — Canvas flattens the layout (no column reflow); review the repeated column flow manually."));
+                $"'{band}' is a multi-column band — PXA flattens the layout (no column reflow); review the repeated column flow manually."));
 
         diagnostics.Insert(0, Info("CANMIGFRX001",
             $"FastReport '{report.Name}' detected — {report.Bands.Count} band(s), {mapped} object(s) mapped."));
@@ -466,7 +466,7 @@ public sealed class FrxToDesignConverter
                 return MapTable(raw, element, diagnostics);
 
             default:
-                diagnostics.Add(Warn("CANMIGFRX011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
+                diagnostics.Add(Warn("CANMIGFRX011", $"'{raw.Name}' is a {raw.Type} — not supported by PXA yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
     }
@@ -492,7 +492,7 @@ public sealed class FrxToDesignConverter
         element.CellStyles = raw.CellStyles is { Count: > 0 } cs ? cs.ToArray() : null;
 
         diagnostics.Add(Info("CANMIGFRX013",
-            $"'{raw.Name}' FastReport TableObject was mapped to a Canvas table ({grid.Count} row(s) × {columns} column(s))."));
+            $"'{raw.Name}' FastReport TableObject was mapped to a PXA table ({grid.Count} row(s) × {columns} column(s))."));
         return element;
     }
 
@@ -602,7 +602,7 @@ public sealed class FrxToDesignConverter
             var field = LastSegment(expression);
             element.Binding = field;
             element.Content = $"{{{{{field}}}}}";
-            diagnostics.Add(Info("CANMIGFRX010", $"'{element.Name}' bound to [{expression}] → Canvas binding '{field}'."));
+            diagnostics.Add(Info("CANMIGFRX010", $"'{element.Name}' bound to [{expression}] → PXA binding '{field}'."));
         }
         else
         {

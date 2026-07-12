@@ -146,8 +146,8 @@ public sealed class WordPageGeometryTests
             var expectedHeight = design.PageSettings?.Height > 0 ? design.PageSettings.Height : 842;
             var expectedLandscape = string.Equals(design.PageSettings?.Orientation, "landscape", StringComparison.OrdinalIgnoreCase);
 
-            var expectedWidthTwips = CanvasToTwips(expectedWidth);
-            var expectedHeightTwips = CanvasToTwips(expectedHeight);
+            var expectedWidthTwips = PxaToTwips(expectedWidth);
+            var expectedHeightTwips = PxaToTwips(expectedHeight);
             if (expectedLandscape && expectedWidthTwips < expectedHeightTwips)
                 (expectedWidthTwips, expectedHeightTwips) = (expectedHeightTwips, expectedWidthTwips);
             else if (!expectedLandscape && expectedWidthTwips > expectedHeightTwips)
@@ -158,7 +158,7 @@ public sealed class WordPageGeometryTests
         }
     }
 
-    private static int CanvasToTwips(double units)
+    private static int PxaToTwips(double units)
         => (int)Math.Round(units * 1440.0 / 72.0, MidpointRounding.AwayFromZero);
 
     private static string FindRepoRoot()

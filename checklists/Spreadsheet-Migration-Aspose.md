@@ -1,15 +1,15 @@
 # Spreadsheet Migration — Aspose.Cells
 
-Migrates Aspose.Cells (`Workbook`) authoring code → Canvas spreadsheet API (`CanvasWorkbook`). The most
+Migrates Aspose.Cells (`Workbook`) authoring code → PXA spreadsheet API (`PxaWorkbook`). The most
 divergent source: `PutValue()` method, `Worksheets[0]` default sheet, 0-based indexes, `GetStyle/SetStyle`.
 
-- **Project:** `src/Canvas.Migration.AsposeCells/`. **Converter:** `AsposeCellsConverter` (`AsposeCells`, `full`).
-- **Diagnostics:** `CANMIGASPC`. **Tests:** `tests/Canvas.Migration.AsposeCells.Tests/` (2, green).
+- **Project:** `src/PXA.Migration.AsposeCells/`. **Converter:** `AsposeCellsConverter` (`AsposeCells`, `full`).
+- **Diagnostics:** `CANMIGASPC`. **Tests:** `tests/PXA.Migration.AsposeCells.Tests/` (2, green).
 
 ## API mapping
-| Aspose.Cells | Canvas |
+| Aspose.Cells | PXA |
 |---|---|
-| `new Workbook()` | `new CanvasWorkbook()` (+ default-sheet note) |
+| `new Workbook()` | `new PxaWorkbook()` (+ default-sheet note) |
 | `wb.Worksheets[0]` | `wb.AddSheet("Sheet1")` |
 | `wb.Worksheets[i]` (i>0) | `wb.Sheet(i)` |
 | `wb.Worksheets.Add("S")` | `wb.AddSheet("S")` |

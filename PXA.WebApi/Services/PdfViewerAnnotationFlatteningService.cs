@@ -5,8 +5,8 @@ using PXA.Importer.Analysis;
 using PXA.Importer.Document;
 using PXA.Importer.Generation;
 using PXA.Importer.Graphics;
-using CanvasPdfColor = PXA.Pdf.PdfColor;
-using CanvasPdfDocument = PXA.Pdf.PdfDocument;
+using PxaPdfColor = PXA.Pdf.PdfColor;
+using PxaPdfDocument = PXA.Pdf.PdfDocument;
 
 namespace PXA.WebApi.Services;
 
@@ -152,7 +152,7 @@ public sealed class PdfViewerAnnotationFlatteningService
         }
     }
 
-    private static void ApplyAnnotations(CanvasPdfDocument document, IReadOnlyCollection<PdfViewerAnnotation> annotations)
+    private static void ApplyAnnotations(PxaPdfDocument document, IReadOnlyCollection<PdfViewerAnnotation> annotations)
     {
         foreach (var annotation in annotations.OrderBy(static item => item.PageNumber))
         {
@@ -164,7 +164,7 @@ public sealed class PdfViewerAnnotationFlatteningService
         }
     }
 
-    private static void ApplyRedactionAuditMetadata(CanvasPdfDocument document, IReadOnlyCollection<PdfViewerAnnotation> redactions)
+    private static void ApplyRedactionAuditMetadata(PxaPdfDocument document, IReadOnlyCollection<PdfViewerAnnotation> redactions)
     {
         var audit = new
         {
@@ -227,7 +227,7 @@ public sealed class PdfViewerAnnotationFlatteningService
                 page.DrawRectangleFromTop(x, topY, width, height, lineWidth: 0.1, fill: true, strokeColor: color, fillColor: Soften(color, annotation.Opacity));
                 break;
             case "redaction":
-                page.DrawRectangleFromTop(x, topY, width, height, lineWidth: strokeWidth, fill: true, strokeColor: CanvasPdfColor.Black, fillColor: CanvasPdfColor.Black);
+                page.DrawRectangleFromTop(x, topY, width, height, lineWidth: strokeWidth, fill: true, strokeColor: PxaPdfColor.Black, fillColor: PxaPdfColor.Black);
                 break;
             case "underline":
                 if (DrawMarkupQuads(page, annotation, color))
@@ -286,7 +286,7 @@ public sealed class PdfViewerAnnotationFlatteningService
         }
     }
 
-    private static void ApplyNativeAnnotations(CanvasPdfDocument document, IReadOnlyCollection<PdfViewerAnnotation> annotations)
+    private static void ApplyNativeAnnotations(PxaPdfDocument document, IReadOnlyCollection<PdfViewerAnnotation> annotations)
     {
         foreach (var annotation in annotations.OrderBy(static item => item.PageNumber))
         {
@@ -338,7 +338,7 @@ public sealed class PdfViewerAnnotationFlatteningService
         }
     }
 
-    private static void DrawInk(PdfPage page, PdfViewerAnnotation annotation, CanvasPdfColor color)
+    private static void DrawInk(PdfPage page, PdfViewerAnnotation annotation, PxaPdfColor color)
     {
         if (annotation.Points.Count < 2)
             return;
@@ -357,7 +357,7 @@ public sealed class PdfViewerAnnotationFlatteningService
         }
     }
 
-    private static bool DrawMarkupQuads(PdfPage page, PdfViewerAnnotation annotation, CanvasPdfColor color)
+    private static bool DrawMarkupQuads(PdfPage page, PdfViewerAnnotation annotation, PxaPdfColor color)
     {
         if (annotation.QuadPoints.Count == 0)
             return false;
@@ -401,7 +401,7 @@ public sealed class PdfViewerAnnotationFlatteningService
         double tailX,
         double tailTopY,
         double strokeWidth,
-        CanvasPdfColor color)
+        PxaPdfColor color)
     {
         if (string.IsNullOrWhiteSpace(ending) || ending == "none")
             return;
@@ -474,7 +474,7 @@ public sealed class PdfViewerAnnotationFlatteningService
         return new PdfRectangle(mediaBox.X + x, mediaBox.Y + mediaBox.Height - topY - height, width, height);
     }
 
-    private static void DrawStamp(PdfPage page, PdfViewerAnnotation annotation, double x, double topY, double width, double height, CanvasPdfColor color)
+    private static void DrawStamp(PdfPage page, PdfViewerAnnotation annotation, double x, double topY, double width, double height, PxaPdfColor color)
     {
         page.DrawRoundedRectangleFromTop(x, topY, width, height, cornerRadius: 4, lineWidth: 2, fill: false, strokeColor: color);
         DrawTextIfAny(page, annotation.Text, x + 6, topY + Math.Max(2, height / 2 - 6), 12, color, bold: true);
@@ -489,19 +489,19 @@ public sealed class PdfViewerAnnotationFlatteningService
         page.DrawImageFromTop(imageBytes, x, topY, width, height, Math.Clamp(annotation.Opacity, 10, 100) / 100d);
     }
 
-    private static void DrawNote(PdfPage page, PdfViewerAnnotation annotation, double x, double topY, double width, double height, CanvasPdfColor color)
+    private static void DrawNote(PdfPage page, PdfViewerAnnotation annotation, double x, double topY, double width, double height, PxaPdfColor color)
     {
         page.DrawRoundedRectangleFromTop(x, topY, width, height, cornerRadius: 3, lineWidth: 1, fill: true, strokeColor: color, fillColor: Soften(color));
-        DrawTextIfAny(page, annotation.Text, x + 5, topY + 5, 9, CanvasPdfColor.Black);
+        DrawTextIfAny(page, annotation.Text, x + 5, topY + 5, 9, PxaPdfColor.Black);
     }
 
-    private static void DrawFreeText(PdfPage page, PdfViewerAnnotation annotation, double x, double topY, double width, double height, CanvasPdfColor color)
+    private static void DrawFreeText(PdfPage page, PdfViewerAnnotation annotation, double x, double topY, double width, double height, PxaPdfColor color)
     {
         page.DrawRectangleFromTop(x, topY, width, height, lineWidth: 1, fill: false, strokeColor: color);
         DrawTextIfAny(page, annotation.Text, x + 4, topY + 4, 10, color);
     }
 
-    private static void DrawTextIfAny(PdfPage page, string? text, double x, double topY, double fontSize, CanvasPdfColor color, bool bold = false)
+    private static void DrawTextIfAny(PdfPage page, string? text, double x, double topY, double fontSize, PxaPdfColor color, bool bold = false)
     {
         if (string.IsNullOrWhiteSpace(text))
             return;
@@ -516,28 +516,28 @@ public sealed class PdfViewerAnnotationFlatteningService
 
     private static double Percent(double value, double total) => Math.Clamp(value, 0, 100) / 100d * total;
 
-    private static CanvasPdfColor ParseColor(string? value)
+    private static PxaPdfColor ParseColor(string? value)
     {
         if (string.IsNullOrWhiteSpace(value) || value.Length != 7 || value[0] != '#')
-            return CanvasPdfColor.RedColor;
+            return PxaPdfColor.RedColor;
 
         try
         {
-            return CanvasPdfColor.FromRgb(
+            return PxaPdfColor.FromRgb(
                 Convert.ToInt32(value[1..3], 16),
                 Convert.ToInt32(value[3..5], 16),
                 Convert.ToInt32(value[5..7], 16));
         }
         catch (FormatException)
         {
-            return CanvasPdfColor.RedColor;
+            return PxaPdfColor.RedColor;
         }
     }
 
-    private static CanvasPdfColor Soften(CanvasPdfColor color, double opacity = 45)
+    private static PxaPdfColor Soften(PxaPdfColor color, double opacity = 45)
     {
         var weight = Math.Clamp(opacity, 10, 100) / 100d;
-        return new CanvasPdfColor(
+        return new PxaPdfColor(
             1 - (1 - color.Red) * weight,
             1 - (1 - color.Green) * weight,
             1 - (1 - color.Blue) * weight);

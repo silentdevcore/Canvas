@@ -96,11 +96,11 @@ dimension/format filter.
 
 ## 5. F1 Key Help Popup Dialog
 
-The keyboard shortcut handler in `SimpleCanvas.tsx` has no F1 binding. No help modal
+The keyboard shortcut handler in `SimplePxaSurface.tsx` has no F1 binding. No help modal
 component exists in the codebase. The `DocsPage` is a separate route that requires
 leaving the editor entirely to access.
 
-- [x] Add `F1` to the keyboard shortcut handler in `SimpleCanvas.tsx`
+- [x] Add `F1` to the keyboard shortcut handler in `SimplePxaSurface.tsx`
 - [x] Create `ui-designer-v2/src/components/Editor/HelpModal.tsx` with four tabs:
   - **Quick Start** — 5-step visual guide: open template → add elements → edit properties → preview → export
   - **Keyboard Shortcuts** — table of all shortcuts (Undo, Redo, Copy, Paste, Duplicate, Delete, Arrow nudge, Zoom, F1)
@@ -120,7 +120,7 @@ leaving the editor entirely to access.
 39 element types are available in the toolbar. The analysis below shows which are fully
 rendered in PDF export, which are placeholders, and which have no handler at all.
 Audit is based on the `case` handlers in `PXA.WebApi/Infrastructure/DesignJsonMapper.cs`
-(PDF renderer) and `src/Canvas.Infrastructure.Word/WordDocumentExporter.cs` (Word renderer).
+(PDF renderer) and `src/PXA.Infrastructure.Word/WordDocumentExporter.cs` (Word renderer).
 
 ### Support Matrix
 
@@ -204,7 +204,7 @@ Audit is based on the `case` handlers in `PXA.WebApi/Infrastructure/DesignJsonMa
 - [x] When mode = PDF: hide the entire "Word / DOCX Elements" toolbar group
 - [x] Show an inline warning banner when an unsupported element is on the canvas and user switches to PDF mode
 - [x] Update the DocsPage element reference table with "Supported in PDF" / "Supported in Word" columns
-- [x] Add a `supportedOutputs: ('pdf' | 'word')[]` field to each tool-definition object in `SimpleCanvas.tsx`
+- [x] Add a `supportedOutputs: ('pdf' | 'word')[]` field to each tool-definition object in `SimplePxaSurface.tsx`
 - [x] Write unit tests: switching to PDF mode hides Word tools; switching back restores them
 
 ---
@@ -221,7 +221,7 @@ Seven reported issues in the form-field rendering, canvas editor, and PDF export
 |---|------|-----------|
 | 1 | Text fill option | `field`/`textarea` inspector had no "Fill background" toggle; PDF mapper already handles `backgroundColor: transparent` |
 | 2 | Text height | `case "field"` and `case "textarea"` in `DesignJsonMapper.cs` used hardcoded `20 px` for the label row height. CSS grid gives 26 px (8 padding + 12 label + 6 gap), causing AcroForm widget to overlap the label |
-| 3 | Position retention | `getCanvasPoint` divided raw pointer-to-rect offset by 1 (no zoom factor). `getBoundingClientRect()` returns **scaled** visual pixels; dividing by `zoomLevel` was missing, so drag/resize coordinates were `zoomLevel`× wrong at any zoom ≠ 1 |
+| 3 | Position retention | `getSurfacePoint` divided raw pointer-to-rect offset by 1 (no zoom factor). `getBoundingClientRect()` returns **scaled** visual pixels; dividing by `zoomLevel` was missing, so drag/resize coordinates were `zoomLevel`× wrong at any zoom ≠ 1 |
 | 4 | Visible/Invisible | The canvas rendering loop had no `!el.hidden` check — hidden elements were rendered identically to visible ones. No visibility toggle existed in the element properties inspector |
 | 5 | Button actions | `case "button"` in `DesignJsonMapper.cs` drew the visual shape only; no link annotation was added. Inspector exposed a single URL string; no page-navigation, submit, or reset options |
 | 6 | German labels | `label: 'Markieren'`, `label: 'Ankreuzen'`, and `fieldLabel: 'Auswahl'` were hardcoded German strings in the toolbar tool definitions |
@@ -229,15 +229,15 @@ Seven reported issues in the form-field rendering, canvas editor, and PDF export
 
 ### Implementation Checklist
 
-- [x] Add "Fill background" checkbox to `field` and `textarea` inspector blocks (`SimpleCanvas.tsx`)
+- [x] Add "Fill background" checkbox to `field` and `textarea` inspector blocks (`SimplePxaSurface.tsx`)
 - [x] Fix label row offset: `20` → `26` in `case "field"` and `case "textarea"` (`DesignJsonMapper.cs`); use named constant `labelOffset`
-- [x] Fix `getCanvasPoint` to divide by `zoomLevel` so drag/resize coordinates are correct at all zoom levels
+- [x] Fix `getSurfacePoint` to divide by `zoomLevel` so drag/resize coordinates are correct at all zoom levels
 - [x] Add `is-hidden` CSS class to hidden canvas elements (opacity 0.3 + amber dashed outline); add "Visible in output" checkbox to inspector
 - [x] Expand button inspector to Action-type select (`none | url | page | submit | reset`) with conditional URL / page-number input
 - [x] Add PDF link annotation in `case "button"`: `page.AddWebLink()` for URL actions, `page.AddPageLink()` for `page:N` actions
 - [x] Replace German toolbar labels: `Markieren` → `Highlight`, `Ankreuzen` → `Checkmark`, `Auswahl` → `Selection`
 - [x] Add `el.SignatureLabel = Substitute(...)` to `SubstituteElement` in `DesignJsonMapper.cs`
-- [x] Wrap `element.signatureLabel`, `element.fieldLabel` in `resolveContent()` at all rendering sites in `SimpleCanvas.tsx`
+- [x] Wrap `element.signatureLabel`, `element.fieldLabel` in `resolveContent()` at all rendering sites in `SimplePxaSurface.tsx`
 - [x] Add `{{key}}` hint text to label inputs in inspector (field, textarea, checkbox, checkmark, signature)
 
 ---
@@ -258,7 +258,7 @@ Seven reported issues in the form-field rendering, canvas editor, and PDF export
 
 ### Notable Additions (Section 6)
 
-- **Interactive PDF forms:** `field` (single-line), `textarea` (multiline), and `dropdown` elements are now fillable AcroForm widgets in PDF — backed by `PdfTextFieldAnnotation`, `PdfMultilineTextFieldAnnotation`, and `PdfComboBoxAnnotation` in `Canvas/Pdf/`.
-- **`supportedOutputs`** added to all 38 tool definitions in `SimpleCanvas.tsx` (`['pdf', 'word']` for 35 tools; `['word']` for `footnote`, `endnote`, `contentcontrol`).
+- **Interactive PDF forms:** `field` (single-line), `textarea` (multiline), and `dropdown` elements are now fillable AcroForm widgets in PDF — backed by `PdfTextFieldAnnotation`, `PdfMultilineTextFieldAnnotation`, and `PdfComboBoxAnnotation` in `PXA/Pdf/`.
+- **`supportedOutputs`** added to all 38 tool definitions in `SimplePxaSurface.tsx` (`['pdf', 'word']` for 35 tools; `['word']` for `footnote`, `endnote`, `contentcontrol`).
 - All PDF case handlers implemented for: `link`, `number`, `bookmark`, `footnote`, `endnote`, `comment`, `draw` (SVG path parsing), `chart` (SkiaSharp PNG render).
 - All Word case handlers implemented for: `qrcode`, `barcode`, `date`, `dropdown` (native SDT content control).

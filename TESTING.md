@@ -99,7 +99,7 @@ CI should validate:
 
 ## Notes
 
-- `Canvas.*` projects and namespaces were removed in the PXA breaking rename. Use `PXA.*` projects and namespaces for active code.
+- `PXA.*` projects and namespaces were removed in the PXA breaking rename. Use `PXA.*` projects and namespaces for active code.
 - `CANMIG...` diagnostic identifiers remain stable even though provider namespaces are now `PXA.Migration.*`.
 - Many migration providers are intentionally conservative. Tests should assert diagnostics for unsupported APIs instead of forcing unsafe rewrites.
 - Report converters should test both element mapping and final renderability where possible.

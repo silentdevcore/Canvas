@@ -8,7 +8,7 @@ namespace PXA.FileImporter;
 /// Reads text from the Word Binary File Format without external libraries:
 /// locates the WordDocument stream inside the CFBF container, extracts the
 /// text array using the File Information Block offsets, and stacks paragraphs
-/// as Text elements on a single Canvas page.
+/// as Text elements on a single PXA page.
 /// </summary>
 public sealed class DocFileImporter : IFileImporter
 {

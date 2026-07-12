@@ -38,7 +38,7 @@ public sealed class WordPdfFidelityTests
 
         Assert.NotEmpty(sampleFiles);
 
-        var runDir = Path.Combine(repoRoot, "tests", "Canvas.Export.Tests", "Fidelity", "artifacts", "latest");
+        var runDir = Path.Combine(repoRoot, "tests", "PXA.Export.Tests", "Fidelity", "artifacts", "latest");
         Directory.CreateDirectory(runDir);
 
         var processedCount = 0;

@@ -17,7 +17,7 @@ public static class Pdf
     {
         ArgumentNullException.ThrowIfNull(pdfStream);
 
-        return new PdfImporter(options?.ToCanvasOptions()).LoadAsync(pdfStream, cancellationToken);
+        return new PdfImporter(options?.ToPxaOptions()).LoadAsync(pdfStream, cancellationToken);
     }
 }
 
@@ -34,7 +34,7 @@ public sealed record PdfImportOptions
 
     public int MaxParallelPageParsers { get; init; } = Environment.ProcessorCount;
 
-    internal PdfImporterOptions ToCanvasOptions() => new()
+    internal PdfImporterOptions ToPxaOptions() => new()
     {
         LazyObjectLoading = LazyObjectLoading,
         DeferredStreamDecoding = DeferredStreamDecoding,

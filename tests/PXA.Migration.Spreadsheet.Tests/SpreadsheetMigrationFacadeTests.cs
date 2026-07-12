@@ -47,7 +47,7 @@ public sealed class SpreadsheetMigrationFacadeTests
     }
 
     [Fact]
-    public void Epplus_MapsCanvasDiagnosticsToPxaDiagnostics()
+    public void Epplus_MapsPxaDiagnosticsToPxaDiagnostics()
     {
         const string source = """
             using OfficeOpenXml;

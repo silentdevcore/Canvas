@@ -1,11 +1,11 @@
-# Canvas Migration: iText7
+# PXA Migration: iText7
 
 ## V1 Implementation Status
 
 - [x] V1 scope: deterministic C# source-to-source migration for simple generated PDFs using iText7.
-- [x] Roslyn-backed migration connected through `Canvas.WebApi` via framework id `iText7`.
+- [x] Roslyn-backed migration connected through `PXA.WebApi` via framework id `iText7`.
 - [x] Status upgraded from pilot to **full** converter.
-- [x] Basic document lifecycle: `PdfWriter` + kernel `PdfDocument` + layout `Document` → `Canvas.Pdf.PdfDocument`.
+- [x] Basic document lifecycle: `PdfWriter` + kernel `PdfDocument` + layout `Document` → `PXA.Pdf.PdfDocument`.
 - [x] Save targets preserved for simple path/stream writer variables.
 - [x] First-page creation including `PageSize.A4`, `PageSize.A3`, `PageSize.LETTER`, and `.Rotate()`.
 - [x] `document.Add(new Paragraph(text))` → `page.DrawTextFromTop(text, 40, 40, 12)`.
@@ -18,8 +18,8 @@
 - [x] `PdfCanvas.Rectangle(...).Fill()` → `page.DrawRectangle(..., true)`.
 - [x] `PdfCanvas.BeginText().MoveText(...).ShowText(...).EndText()` chain → `page.DrawText(...)`.
 - [x] Separated `BeginText; MoveText; ShowText; EndText` sequence → `page.DrawText(...)`.
-- [x] `document.Close()` → removed (Canvas.Pdf does not require explicit close).
-- [x] `document.SetMargins(...)` → removed (Canvas.Pdf margins configured differently).
+- [x] `document.Close()` → removed (PXA.Pdf does not require explicit close).
+- [x] `document.SetMargins(...)` → removed (PXA.Pdf margins configured differently).
 - [x] `PdfCanvas` variable removed when all usages are supported.
 - [x] Table, signatures, forms, encryption → warnings for manual migration.
 - [x] WebApi conversion response includes migrated code, diagnostics, and summary counts.
@@ -51,18 +51,18 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/Canvas.Migration.iText7`
-- [x] Add `tests/Canvas.Migration.iText7.Tests`
-- [x] Add projects to `Canvas.sln`
+- [x] Add `src/PXA.Migration.iText7`
+- [x] Add `tests/PXA.Migration.iText7.Tests`
+- [x] Add projects to `PXA.sln`
 - [x] Implement first source migration entry point: `IText7Migration`
 - [x] Convert Hello World sample end to end
 - [x] Fold `PdfWriter(path)` into final `document.Save(path)`
-- [x] Fold kernel `PdfDocument(writer)` into Canvas `PdfDocument`
-- [x] Convert layout `Document(pdf)` into Canvas document plus first page
+- [x] Fold kernel `PdfDocument(writer)` into PXA `PdfDocument`
+- [x] Convert layout `Document(pdf)` into PXA document plus first page
 - [x] Convert simple `document.Add(new Paragraph("..."))`
 - [x] Emit warnings for `Table`
 - [x] Emit warnings for signatures/forms/security-style APIs
-- [x] Map `Document(pdf, PageSize.A4/A3/LETTER)` to Canvas page presets
+- [x] Map `Document(pdf, PageSize.A4/A3/LETTER)` to PXA page presets
 - [x] Map `PageSize.*.Rotate()` to `landscape: true`
 - [x] Add realistic invoice-style end-to-end fixture
 - [x] Convert simple left-aligned `ShowTextAligned(...)` coordinate text
@@ -72,7 +72,7 @@
 - [x] Convert simple kernel `PdfCanvas.BeginText().MoveText(...).ShowText(...).EndText()` text drawing
 - [x] Convert separated kernel `PdfCanvas` text state sequence: `BeginText(); MoveText(...); ShowText(...); EndText();`
 - [x] Remove `PdfCanvas` local variables only when all usages are migrated
-- [x] Verified with `dotnet test tests/Canvas.Migration.iText7.Tests/Canvas.Migration.iText7.Tests.csproj --no-restore --no-build`: `15/15` passed
+- [x] Verified with `dotnet test tests/PXA.Migration.iText7.Tests/PXA.Migration.iText7.Tests.csproj --no-restore --no-build`: `15/15` passed
 - [x] Connect WebApi iText7 converter to the Roslyn migration engine
 - [x] Add support for explicit coordinate text via `ShowTextAligned(...)`
 - [x] Add support for simple kernel `PdfCanvas` drawing APIs
@@ -85,21 +85,21 @@
 - [x] `Paragraph.SetFontSize(N)` font size extraction → `CANMIGITEXT018` diagnostic
 - [x] Paragraph fluent chain unwrapping (`.SetBold()`, `.SetFont()`, etc. ignored, text and size extracted)
 - [x] `ShowTextAligned` with `SetFontSize` chaining
-- [x] Verified with `dotnet test tests/Canvas.Migration.iText7.Tests`: `20/20` passed
-- [x] Verified with `dotnet test tests/Canvas.Api.Tests`: `22/22` passed
+- [x] Verified with `dotnet test tests/PXA.Migration.iText7.Tests`: `20/20` passed
+- [x] Verified with `dotnet test tests/PXA.Api.Tests`: `22/22` passed
 - [ ] Replace syntax-only matching with semantic matching before broad rollout
 
 ## Mapping Table Placeholders
 
-| iText7 API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
+| iText7 API / pattern | PXA.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
 | `new PdfWriter(pathOrStream)` | `document.Save(pathOrStream)` | Automatic | Implemented for simple writer variable chain |
-| `new PdfDocument(writer)` | `new Canvas.Pdf.PdfDocument()` | Automatic | Implemented when `writer` is a simple local variable |
+| `new PdfDocument(writer)` | `new PXA.Pdf.PdfDocument()` | Automatic | Implemented when `writer` is a simple local variable |
 | `new Document(pdf)` | `var document = new PdfDocument(); var page = document.AddPage();` | Automatic | |
 | `new Document(pdf, PageSize.A4)` | `document.AddPage(PdfPagePreset.A4, false)` | Automatic | Supports A4, A3, and Letter |
 | `new Document(pdf, PageSize.A4.Rotate())` | `document.AddPage(PdfPagePreset.A4, true)` | Automatic | Landscape flag maps rotated page sizes |
-| `document.Close()` | *(removed)* | Automatic | Canvas.Pdf does not require explicit close |
-| `document.SetMargins(...)` | *(removed)* | Automatic | Configure margins via Canvas.Pdf page options |
+| `document.Close()` | *(removed)* | Automatic | PXA.Pdf does not require explicit close |
+| `document.SetMargins(...)` | *(removed)* | Automatic | Configure margins via PXA.Pdf page options |
 | `document.Add(new Paragraph(text))` | `page.DrawTextFromTop(text, 40, 40, 12)` | Automatic | Starter fixed position |
 | `document.Add(new Paragraph(text).SetFontSize(N))` | `page.DrawTextFromTop(text, 40, 40, N)` | Automatic | Font size extracted from SetFontSize chain |
 | `document.Add(new Paragraph(text).SetBold().SetFontSize(N)...)` | `page.DrawTextFromTop(text, 40, 40, N)` | Automatic | Fluent chain unwrapped; SetFontSize preserved; other styling dropped |
@@ -111,29 +111,29 @@
 | `canvas.Rectangle(x, y, w, h).Fill()` | `page.DrawRectangle(x, y, w, h, 1, true)` | Automatic | |
 | `canvas.BeginText().MoveText(x, y).ShowText(text).EndText()` | `page.DrawText(text, x, y, 12)` | Automatic | Chain-style |
 | `canvas.BeginText(); canvas.MoveText(x, y); canvas.ShowText(text); canvas.EndText();` | `page.DrawText(text, x, y, 12)` | Automatic | Exact 4-statement sequence |
-| `document.Add(new Table(...))` | Kept + warning | Manual | Map after Canvas table API review |
+| `document.Add(new Table(...))` | Kept + warning | Manual | Map after PXA table API review |
 
 ## Diagnostic IDs
 
 | ID | Severity | Meaning | Code fix |
 | --- | --- | --- | --- |
-| `CANMIGITEXT001` | Info | `PdfWriter` construction was folded into Canvas save | Yes |
-| `CANMIGITEXT002` | Info | Kernel `PdfDocument` construction was folded into Canvas document | Yes |
+| `CANMIGITEXT001` | Info | `PdfWriter` construction was folded into PXA save | Yes |
+| `CANMIGITEXT002` | Info | Kernel `PdfDocument` construction was folded into PXA document | Yes |
 | `CANMIGITEXT003` | Info | Simple `Paragraph` addition was migrated to `DrawTextFromTop` | Yes |
-| `CANMIGITEXT004` | Info | Layout `Document` construction was migrated to Canvas document | Yes |
+| `CANMIGITEXT004` | Info | Layout `Document` construction was migrated to PXA document | Yes |
 | `CANMIGITEXT005` | Warning | `Table` usage requires manual table migration | No |
 | `CANMIGITEXT006` | Warning | Signatures, encryption, forms, metadata, or existing-PDF processing are outside v1 scope | No |
 | `CANMIGITEXT007` | Info | Writer target was migrated to `document.Save(...)` | Yes |
-| `CANMIGITEXT008` | Info | iText7 `PageSize` was migrated to Canvas `PdfPagePreset` | Yes |
-| `CANMIGITEXT009` | Info | Left-aligned `ShowTextAligned` was migrated to Canvas `DrawText` | Yes |
+| `CANMIGITEXT008` | Info | iText7 `PageSize` was migrated to PXA `PdfPagePreset` | Yes |
+| `CANMIGITEXT009` | Info | Left-aligned `ShowTextAligned` was migrated to PXA `DrawText` | Yes |
 | `CANMIGITEXT010` | Warning | Center/right `ShowTextAligned` anchor alignment needs manual review | No |
-| `CANMIGITEXT011` | Info | Simple `PdfCanvas` line was migrated to Canvas `DrawLine` | Yes |
-| `CANMIGITEXT012` | Info | Simple `PdfCanvas` rectangle was migrated to Canvas `DrawRectangle` | Yes |
+| `CANMIGITEXT011` | Info | Simple `PdfCanvas` line was migrated to PXA `DrawLine` | Yes |
+| `CANMIGITEXT012` | Info | Simple `PdfCanvas` rectangle was migrated to PXA `DrawRectangle` | Yes |
 | `CANMIGITEXT013` | Info | Supported `PdfCanvas` variable was removed after all usages were migrated | Yes |
-| `CANMIGITEXT014` | Info | Simple `PdfCanvas` text chain was migrated to Canvas `DrawText` | Yes |
-| `CANMIGITEXT015` | Info | Separated `PdfCanvas` text state statements were migrated to Canvas `DrawText` | Yes |
-| `CANMIGITEXT016` | Info | `document.Close()` removed — Canvas.Pdf does not require explicit closing | Yes |
-| `CANMIGITEXT017` | Info | `document.SetMargins(...)` removed — configure margins via Canvas.Pdf page options | Yes |
+| `CANMIGITEXT014` | Info | Simple `PdfCanvas` text chain was migrated to PXA `DrawText` | Yes |
+| `CANMIGITEXT015` | Info | Separated `PdfCanvas` text state statements were migrated to PXA `DrawText` | Yes |
+| `CANMIGITEXT016` | Info | `document.Close()` removed — PXA.Pdf does not require explicit closing | Yes |
+| `CANMIGITEXT017` | Info | `document.SetMargins(...)` removed — configure margins via PXA.Pdf page options | Yes |
 | `CANMIGITEXT018` | Info | `Paragraph.SetFontSize(N)` mapped to `fontSize` argument in draw call | Yes |
 
 ## Unsupported / Manual Follow-Up
@@ -161,10 +161,10 @@ using var document = new Document(pdf);
 document.Add(new Paragraph("Hello"));
 ```
 
-## Expected Canvas.Pdf Output Snippets
+## Expected PXA.Pdf Output Snippets
 
 ```csharp
-using Canvas.Pdf;
+using PXA.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -191,7 +191,7 @@ document.Save(path);
 - [x] Replace simple `PdfCanvas` line and rectangle drawing
 - [x] Replace simple chain-style `PdfCanvas` text drawing
 - [x] Replace simple separated-statement `PdfCanvas` text drawing
-- [x] Add `using Canvas.Pdf`
+- [x] Add `using PXA.Pdf`
 - [x] Preserve writer save target for `document.Save(...)`
 - [x] Map simple page size presets
 - [x] Remove `document.Close()`

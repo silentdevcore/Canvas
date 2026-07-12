@@ -18,7 +18,7 @@ public sealed class RpxConvertResult
 /// <summary>
 /// Converts a GrapeCity / MESCIUS ActiveReports <c>.rpx</c> "Section Report" — a <b>banded</b> XML layout
 /// (root <c>&lt;Report&gt;</c> with a <c>&lt;Sections&gt;</c> collection of ReportHeader/PageHeader/Detail/
-/// PageFooter/… bands, each holding <c>&lt;Controls&gt;</c>) — into a Canvas <see cref="DesignExportDto"/>.
+/// PageFooter/… bands, each holding <c>&lt;Controls&gt;</c>) — into a PXA <see cref="DesignExportDto"/>.
 /// Unlike RDL this is band-relative, so it mirrors the DevExpress XtraReport band-flatten approach:
 /// section heights stack into absolute page coordinates; PageHeader/PageFooter become repeating shared
 /// elements. Positions are inches. Elements are matched by <see cref="XName.LocalName"/> (namespace-agnostic).
@@ -255,14 +255,14 @@ public sealed class RpxToDesignConverter
             var element = MapControl(raw, x, yPt, diagnostics);
             if (element is null) continue;
 
-            diagnostics.Add(Info("CANMIGRPX002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
+            diagnostics.Add(Info("CANMIGRPX002", $"'{raw.Name}' ({raw.Type}) → PXA {element.Type}."));
 
             if (raw.DataField is { Length: > 0 } field)
             {
                 element.Binding = field;
                 if (element.Type == "text") element.Content = $"{{{{{field}}}}}";
                 if (!string.IsNullOrWhiteSpace(raw.OutputFormat)) element.Formatter = raw.OutputFormat;
-                diagnostics.Add(Info("CANMIGRPX010", $"'{raw.Name}' bound to field {field} → Canvas binding '{field}'."));
+                diagnostics.Add(Info("CANMIGRPX010", $"'{raw.Name}' bound to field {field} → PXA binding '{field}'."));
             }
 
             ApplyBandMetadata(element, raw, bandType, diagnostics);
@@ -289,7 +289,7 @@ public sealed class RpxToDesignConverter
 
         if (report.Script is not null)
             diagnostics.Add(Warn("CANMIGRPX018",
-                "Report contains embedded script — Canvas imports script metadata as a no-op; migrate behaviour manually."));
+                "Report contains embedded script — PXA imports script metadata as a no-op; migrate behaviour manually."));
 
         diagnostics.Insert(0, Info("CANMIGRPX001",
             $"ActiveReports section report '{report.Name}' detected — {report.Bands.Count} section(s), {mapped} control(s) mapped."));
@@ -375,7 +375,7 @@ public sealed class RpxToDesignConverter
 
             case "OleObject":
                 diagnostics.Add(Warn("CANMIGRPX011",
-                    $"'{raw.Name}' is an OLE object — Canvas has no native OLE embedding; inserted a placeholder."));
+                    $"'{raw.Name}' is an OLE object — PXA has no native OLE embedding; inserted a placeholder."));
                 element = Placeholder(element, $"[OLE object: {raw.Name} — migrate manually]");
                 element.Style!["rpxOleObject"] = new Dictionary<string, object?>
                 {
@@ -385,7 +385,7 @@ public sealed class RpxToDesignConverter
                 return element;
 
             default:
-                diagnostics.Add(Warn("CANMIGRPX011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
+                diagnostics.Add(Warn("CANMIGRPX011", $"'{raw.Name}' is a {raw.Type} — not supported by PXA yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
     }
@@ -433,7 +433,7 @@ public sealed class RpxToDesignConverter
         }
 
         diagnostics.Add(Info("CANMIGRPX017",
-            $"'{raw.Name}' subreport resource '{matchedKey}' inlined with {imported.Count} Canvas element(s)."));
+            $"'{raw.Name}' subreport resource '{matchedKey}' inlined with {imported.Count} PXA element(s)."));
         return imported;
     }
 
@@ -545,7 +545,7 @@ public sealed class RpxToDesignConverter
             };
             element.Repeat = new RepeatDto { DataPath = dataPath, TemplateId = element.Id };
             diagnostics.Add(Warn("CANMIGRPX013",
-                $"'{raw.Name}' is in {bandType} '{raw.Band}' — mapped to Canvas repeat metadata; group runtime semantics need review."));
+                $"'{raw.Name}' is in {bandType} '{raw.Band}' — mapped to PXA repeat metadata; group runtime semantics need review."));
         }
         else if (bandType == "Detail")
         {
@@ -580,14 +580,14 @@ public sealed class RpxToDesignConverter
             };
             if (raw.CanShrink == true) element.Style["rpxCanShrink"] = true;
             diagnostics.Add(Warn("CANMIGRPX014",
-                $"'{raw.Name}' uses CanGrow/CanShrink — Canvas imports wrapping/overflow hints, but dynamic band reflow needs review."));
+                $"'{raw.Name}' uses CanGrow/CanShrink — PXA imports wrapping/overflow hints, but dynamic band reflow needs review."));
         }
 
         if (!string.IsNullOrWhiteSpace(raw.OutputFormat))
         {
             element.Style["rpxOutputFormat"] = raw.OutputFormat;
             diagnostics.Add(Warn("CANMIGRPX015",
-                $"'{raw.Name}' uses OutputFormat '{raw.OutputFormat}' — preserved as Canvas formatter metadata; exact formatting should be reviewed."));
+                $"'{raw.Name}' uses OutputFormat '{raw.OutputFormat}' — preserved as PXA formatter metadata; exact formatting should be reviewed."));
         }
 
         if (!string.IsNullOrWhiteSpace(raw.PageBreak))

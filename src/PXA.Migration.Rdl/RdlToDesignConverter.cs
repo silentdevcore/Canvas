@@ -16,7 +16,7 @@ public sealed class RdlConvertResult
 
 /// <summary>
 /// Converts an RDL report — the XML standard emitted by Microsoft SSRS/RDLC and by the Syncfusion /
-/// Bold Reports designer (and, later, ActiveReports/DsReport) — into a Canvas <see cref="DesignExportDto"/>
+/// Bold Reports designer (and, later, ActiveReports/DsReport) — into a PXA <see cref="DesignExportDto"/>
 /// the visual designer can open. RDL has no bands: body items are absolutely positioned inside
 /// <c>&lt;Body&gt;</c>, while <c>&lt;PageHeader&gt;</c>/<c>&lt;PageFooter&gt;</c> items become repeating
 /// shared elements. Lengths are CSS strings ("8.5in", "21cm", "10pt") parsed straight to points.
@@ -193,7 +193,7 @@ public sealed class RdlToDesignConverter
                     break;
                 case "List":
                     // RDL List: a grouped repeating region whose <ReportItems> (here a nested Table)
-                    // are recursed below; its <Grouping> becomes Canvas repeat metadata.
+                    // are recursed below; its <Grouping> becomes PXA repeat metadata.
                     ApplyStyle(raw, Child(item, "Style"));
                     raw.DataSetName = Child(item, "DataSetName")?.Value.Trim();
                     raw.TablixGroups = ParseTablixGroups(item);
@@ -1443,7 +1443,7 @@ public sealed class RdlToDesignConverter
                 : MapControl(raw, x, y, diagnostics);
             if (element is null) continue;
 
-            diagnostics.Add(Info("CANMIGRDL002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
+            diagnostics.Add(Info("CANMIGRDL002", $"'{raw.Name}' ({raw.Type}) → PXA {element.Type}."));
 
             if (raw.TextExpression is { } expr)
             {
@@ -1479,7 +1479,7 @@ public sealed class RdlToDesignConverter
 
         if (report.HasCode)
             diagnostics.Add(Warn("CANMIGRDL011",
-                "Report contains custom <Code> / expressions — Canvas has no scripting; migrate that logic manually."));
+                "Report contains custom <Code> / expressions — PXA has no scripting; migrate that logic manually."));
         if (report.DeepNesting)
             diagnostics.Add(Warn("CANMIGRDL013",
                 "Container nesting exceeded the flatten depth limit — some deeply nested items were skipped."));
@@ -1515,7 +1515,7 @@ public sealed class RdlToDesignConverter
                 Value = JsonSerializer.Serialize(report.ReportParameters)
             });
             diagnostics.Add(Warn("CANMIGRDL024",
-                "RDL report parameters were preserved in PageSettings.CustomProperties['rdlReportParameters']; Canvas has no native report-parameter UI yet."));
+                "RDL report parameters were preserved in PageSettings.CustomProperties['rdlReportParameters']; PXA has no native report-parameter UI yet."));
         }
 
         if (report.ReportParametersLayout.Count > 0)
@@ -1546,7 +1546,7 @@ public sealed class RdlToDesignConverter
                     element.Content = raw.Text ?? "";
                     element.Style = BuildTextStyle(raw);
                     diagnostics.Add(Warn("CANMIGRDL016",
-                        $"'{raw.Name}' contains multiple/styled text runs — imported as Canvas richtext; review inline formatting."));
+                        $"'{raw.Name}' contains multiple/styled text runs — imported as PXA richtext; review inline formatting."));
                 }
                 else
                 {
@@ -1607,12 +1607,12 @@ public sealed class RdlToDesignConverter
                 return MapList(raw, element, diagnostics);
 
             default:
-                diagnostics.Add(Warn("CANMIGRDL011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
+                diagnostics.Add(Warn("CANMIGRDL011", $"'{raw.Name}' is a {raw.Type} — not supported by PXA yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
     }
 
-    // RDL List → a transparent Canvas container rect carrying repeat/grouping metadata. The List's child
+    // RDL List → a transparent PXA container rect carrying repeat/grouping metadata. The List's child
     // items (e.g. a nested Table) are parsed separately as positioned elements, so the container stays
     // borderless to avoid obscuring them.
     private static ElementDto MapList(RawElement raw, ElementDto element, List<MigrationDiagnostic> diagnostics)
@@ -1627,7 +1627,7 @@ public sealed class RdlToDesignConverter
             element.Repeat = new RepeatDto { DataPath = path, TemplateId = element.Id };
 
         diagnostics.Add(Warn("CANMIGRDL031",
-            $"'{raw.Name}' RDL List region was mapped to a Canvas container with repeat metadata; its child items were extracted as positioned elements — review grouping/repeat semantics."));
+            $"'{raw.Name}' RDL List region was mapped to a PXA container with repeat metadata; its child items were extracted as positioned elements — review grouping/repeat semantics."));
         return element;
     }
 
@@ -1672,10 +1672,10 @@ public sealed class RdlToDesignConverter
             element.Style["rdlMap"] = raw.MapMetadata;
 
         diagnostics.Add(Warn("CANMIGRDL022",
-            $"'{raw.Name}' native RDL Map metadata was preserved on a positioned placeholder; Canvas has no native map element yet."));
+            $"'{raw.Name}' native RDL Map metadata was preserved on a positioned placeholder; PXA has no native map element yet."));
         if (MapMetadataHasFilters(raw.MapMetadata))
             diagnostics.Add(Warn("CANMIGRDL025",
-                $"'{raw.Name}' MapDataRegion filters were preserved as metadata; Canvas does not evaluate report filters yet."));
+                $"'{raw.Name}' MapDataRegion filters were preserved as metadata; PXA does not evaluate report filters yet."));
         return element;
     }
 
@@ -1712,7 +1712,7 @@ public sealed class RdlToDesignConverter
             element.Style["rdlGaugePanel"] = raw.GaugePanelMetadata;
 
         diagnostics.Add(Warn("CANMIGRDL021",
-            $"'{raw.Name}' native RDL GaugePanel metadata was preserved on a positioned placeholder; Canvas has no native gauge element yet."));
+            $"'{raw.Name}' native RDL GaugePanel metadata was preserved on a positioned placeholder; PXA has no native gauge element yet."));
         return element;
     }
 
@@ -1788,7 +1788,7 @@ public sealed class RdlToDesignConverter
                 ["rdlImageSource"] = "External"
             };
             diagnostics.Add(Warn("CANMIGRDL012",
-                $"'{raw.Name}' external image reference was preserved; verify fetch/security behaviour in Canvas."));
+                $"'{raw.Name}' external image reference was preserved; verify fetch/security behaviour in PXA."));
             return true;
         }
 
@@ -1846,7 +1846,7 @@ public sealed class RdlToDesignConverter
             }
         }
         diagnostics.Add(Warn("CANMIGRDL023",
-            $"'{raw.Name}' was extracted from Tablix '{parent}' cell [{raw.ParentTablixRow},{raw.ParentTablixColumn}] as a separate positioned element; RDL repeat scope was mapped to Canvas repeat metadata for review."));
+            $"'{raw.Name}' was extracted from Tablix '{parent}' cell [{raw.ParentTablixRow},{raw.ParentTablixColumn}] as a separate positioned element; RDL repeat scope was mapped to PXA repeat metadata for review."));
     }
 
     private static Dictionary<string, object>? RdlRepeatMetadata(RawElement raw)
@@ -1953,7 +1953,7 @@ public sealed class RdlToDesignConverter
         element.Style ??= [];
         element.Style["rdlFilters"] = raw.Filters.ToArray();
         diagnostics.Add(Warn("CANMIGRDL025",
-            $"'{raw.Name}' RDL filters were preserved as metadata; Canvas does not evaluate report filters yet."));
+            $"'{raw.Name}' RDL filters were preserved as metadata; PXA does not evaluate report filters yet."));
     }
 
     private static void ApplyNavigationMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
@@ -1970,7 +1970,7 @@ public sealed class RdlToDesignConverter
             element.Style["rdlNavigationMappedToLink"] = true;
         }
         diagnostics.Add(Warn("CANMIGRDL026",
-            $"'{raw.Name}' RDL navigation/action metadata was preserved and mapped to a Canvas link when possible."));
+            $"'{raw.Name}' RDL navigation/action metadata was preserved and mapped to a PXA link when possible."));
     }
 
     private static bool TryResolveNavigationHref(Dictionary<string, object> navigation, out string href)
@@ -2048,7 +2048,7 @@ public sealed class RdlToDesignConverter
         element.ChartData = CreateRdlChartData(raw.Name, props, raw.ChartSeries);
         element.Style = RdlCustomItemStyle("Chart", props);
         diagnostics.Add(Warn("CANMIGRDL017",
-            $"'{raw.Name}' RDL chart was imported as an editable Canvas chart placeholder; review series/category/value bindings."));
+            $"'{raw.Name}' RDL chart was imported as an editable PXA chart placeholder; review series/category/value bindings."));
         return element;
     }
 
@@ -2086,7 +2086,7 @@ public sealed class RdlToDesignConverter
 
             var what = customType.Length > 0 ? customType : "Custom item";
             diagnostics.Add(Warn("CANMIGRDL011",
-                $"'{raw.Name}' is a custom report item ({what}) — not supported by Canvas yet; inserted a placeholder."));
+                $"'{raw.Name}' is a custom report item ({what}) — not supported by PXA yet; inserted a placeholder."));
             return Placeholder(element, $"[{what}: migrate manually]");
         }
 
@@ -2128,7 +2128,7 @@ public sealed class RdlToDesignConverter
             gauge.Style["rdlGauge"] = metadata;
 
         diagnostics.Add(Warn("CANMIGRDL018",
-            $"'{raw.Name}' RDL gauge metadata was preserved on a positioned placeholder; Canvas has no native gauge element yet."));
+            $"'{raw.Name}' RDL gauge metadata was preserved on a positioned placeholder; PXA has no native gauge element yet."));
         return gauge;
     }
 
@@ -2144,7 +2144,7 @@ public sealed class RdlToDesignConverter
         element.ChartData["rdlSparkline"] = true;
         element.Style = RdlCustomItemStyle("Sparkline", props);
         diagnostics.Add(Warn("CANMIGRDL017",
-            $"'{raw.Name}' RDL sparkline was imported as a compact Canvas chart; review series/category/value bindings."));
+            $"'{raw.Name}' RDL sparkline was imported as a compact PXA chart; review series/category/value bindings."));
         return element;
     }
 
@@ -2166,7 +2166,7 @@ public sealed class RdlToDesignConverter
             map.Style["rdlMap"] = metadata;
 
         diagnostics.Add(Warn("CANMIGRDL022",
-            $"'{raw.Name}' RDL map custom item metadata was preserved on a positioned placeholder; Canvas has no native map element yet."));
+            $"'{raw.Name}' RDL map custom item metadata was preserved on a positioned placeholder; PXA has no native map element yet."));
         return map;
     }
 
@@ -2200,7 +2200,7 @@ public sealed class RdlToDesignConverter
             document.Style["rdlDocumentSizing"] = sizing;
 
         diagnostics.Add(Warn("CANMIGRDL027",
-            $"'{raw.Name}' RDL document custom item was preserved as a positioned placeholder; Canvas has no native embedded document item yet."));
+            $"'{raw.Name}' RDL document custom item was preserved as a positioned placeholder; PXA has no native embedded document item yet."));
         return document;
     }
 
@@ -2218,7 +2218,7 @@ public sealed class RdlToDesignConverter
         element.Style["rdlSignatureKind"] = isPdfSignature ? "pdf" : "electronic";
 
         diagnostics.Add(Warn("CANMIGRDL028",
-            $"'{raw.Name}' RDL signature custom item was mapped to a Canvas signature placeholder; review signing/certificate semantics."));
+            $"'{raw.Name}' RDL signature custom item was mapped to a PXA signature placeholder; review signing/certificate semantics."));
         return element;
     }
 
@@ -2265,7 +2265,7 @@ public sealed class RdlToDesignConverter
         }
 
         diagnostics.Add(Warn("CANMIGRDL020",
-            $"'{raw.Name}' RDL shape custom item was imported as a Canvas {element.Type}; review geometry and rotation."));
+            $"'{raw.Name}' RDL shape custom item was imported as a PXA {element.Type}; review geometry and rotation."));
         return element;
     }
 
@@ -2457,7 +2457,7 @@ public sealed class RdlToDesignConverter
         ApplyTablixMetadata(element, raw, diagnostics);
         if (raw.TableHasFooter)
             diagnostics.Add(Info("CANMIGRDL030",
-                $"'{raw.Name}' RDL <Table> <Footer> rows were included in the Canvas table grid."));
+                $"'{raw.Name}' RDL <Table> <Footer> rows were included in the PXA table grid."));
         if (raw.TablixNestedItemNames.Count > 0)
         {
             element.Style ??= [];
@@ -2472,7 +2472,7 @@ public sealed class RdlToDesignConverter
             element.Style ??= [];
             element.Style["rdlTablixNavigation"] = raw.TablixNavigationMetadata.ToArray();
             diagnostics.Add(Warn("CANMIGRDL026",
-                $"'{raw.Name}' Tablix navigation/document-map metadata was preserved; Canvas does not execute drilldown/document-map behaviour yet."));
+                $"'{raw.Name}' Tablix navigation/document-map metadata was preserved; PXA does not execute drilldown/document-map behaviour yet."));
         }
         return element;
     }
@@ -2515,13 +2515,13 @@ public sealed class RdlToDesignConverter
             element.Style["rdlHeaderRowFromHierarchy"] = raw.TableHeaderRow.Value;
 
         diagnostics.Add(Warn("CANMIGRDL014",
-            $"'{raw.Name}' Tablix grouping/sorting metadata was preserved; Canvas repeat/group semantics still require review."));
+            $"'{raw.Name}' Tablix grouping/sorting metadata was preserved; PXA repeat/group semantics still require review."));
         if (raw.TablixGroupFilters is { Count: > 0 })
             diagnostics.Add(Warn("CANMIGRDL025",
-                $"'{raw.Name}' Tablix group filters were preserved as metadata; Canvas does not evaluate report filters yet."));
+                $"'{raw.Name}' Tablix group filters were preserved as metadata; PXA does not evaluate report filters yet."));
         if (raw.TablixRowHierarchy is { Count: > 0 } || raw.TablixColumnHierarchy is { Count: > 0 })
             diagnostics.Add(Warn("CANMIGRDL029",
-                $"'{raw.Name}' Tablix row/column hierarchy headers were preserved as metadata; Canvas has limited native matrix/group header rendering."));
+                $"'{raw.Name}' Tablix row/column hierarchy headers were preserved as metadata; PXA has limited native matrix/group header rendering."));
         if (raw.RdlTableGroups is { Count: > 0 })
             diagnostics.Add(Warn("CANMIGRDL032",
                 $"'{raw.Name}' RDL-2005 TableGroups header/footer repeat metadata was preserved; runtime group-section rendering needs review."));
@@ -2696,20 +2696,20 @@ public sealed class RdlToDesignConverter
         {
             element.Binding = field;
             element.Content = $"{{{{{field}}}}}";
-            diagnostics.Add(Info("CANMIGRDL010", $"'{element.Name}' value bound to field {field} → Canvas binding '{field}'."));
+            diagnostics.Add(Info("CANMIGRDL010", $"'{element.Name}' value bound to field {field} → PXA binding '{field}'."));
         }
         else
         {
             // Compound expression (multiple fields / functions / operators): normalize every Fields!X
-            // reference to a Canvas {{X}} token so the content reads as a template; keep the original.
+            // reference to a PXA {{X}} token so the content reads as a template; keep the original.
             var normalized = Regex.Replace(expression.TrimStart().TrimStart('=').Trim(),
                 @"Fields!(\w+)(?:\.Value)?", m => $"{{{{{m.Groups[1].Value}}}}}");
-            // Executable Canvas-grammar form for the preview engine; raw preserved for review.
+            // Executable PXA-grammar form for the preview engine; raw preserved for review.
             element.Expression = ExpressionTranslator.TranslateRdl(expression, dataSetPath) ?? expression;
             element.Style ??= [];
             element.Style["rdlExpression"] = expression;
             if (string.IsNullOrEmpty(element.Content)) element.Content = normalized;
-            diagnostics.Add(Warn("CANMIGRDL010", $"'{element.Name}' value expression '{expression}' mapped to a Canvas template with normalized field references — review the syntax."));
+            diagnostics.Add(Warn("CANMIGRDL010", $"'{element.Name}' value expression '{expression}' mapped to a PXA template with normalized field references — review the syntax."));
         }
     }
 
@@ -2722,7 +2722,7 @@ public sealed class RdlToDesignConverter
 
         element.VisibleExpression = InvertHiddenExpression(hiddenExpression);
         diagnostics.Add(Warn("CANMIGRDL015",
-            $"'{raw.Name}' RDL Hidden expression '{hiddenExpression}' was mapped to Canvas visibleExpression; review runtime semantics."));
+            $"'{raw.Name}' RDL Hidden expression '{hiddenExpression}' was mapped to PXA visibleExpression; review runtime semantics."));
     }
 
     private static void ApplyPaginationMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
@@ -2741,7 +2741,7 @@ public sealed class RdlToDesignConverter
         element.Style ??= [];
         element.Style["rdlPagination"] = metadata;
         diagnostics.Add(Warn("CANMIGRDL019",
-            $"'{raw.Name}' RDL pagination/repeat metadata was preserved; Canvas pagination behaviour requires review."));
+            $"'{raw.Name}' RDL pagination/repeat metadata was preserved; PXA pagination behaviour requires review."));
     }
 
     private static string InvertHiddenExpression(string hiddenExpression) =>

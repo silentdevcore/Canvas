@@ -32,7 +32,7 @@ public sealed class DevExpressPdfMigrationPxaFacadeTests
     }
 
     [Fact]
-    public void Migrate_MapsCanvasDiagnosticsToPxaDiagnostics()
+    public void Migrate_MapsPxaDiagnosticsToPxaDiagnostics()
     {
         var source = """
             using DevExpress.Pdf;

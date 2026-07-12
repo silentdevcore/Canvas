@@ -88,7 +88,7 @@ public sealed class MigrationServiceTests
     }
 
     [Fact]
-    public void Convert_ShouldUseIronPdfRoslynConverterAndReturnCanvasScaffold()
+    public void Convert_ShouldUseIronPdfRoslynConverterAndReturnPxaScaffold()
     {
         var source = """
             using IronPdf;

@@ -6,7 +6,7 @@ using PXA.Core.Contracts;
 namespace PXA.FileImporter;
 
 /// <summary>
-/// Converts an OOXML .docx file into a <see cref="DesignExportDto"/> that Canvas
+/// Converts an OOXML .docx file into a <see cref="DesignExportDto"/> that PXA
 /// can display and re-export.  Paragraphs are mapped to Text/RichText elements
 /// stacked top-to-bottom; inline images are extracted as base64 data-URIs.
 /// </summary>

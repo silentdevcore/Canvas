@@ -227,7 +227,7 @@ public sealed class FoxitPdfMigration : CSharpSourceMigration
             if (IsDeclarationWithGraphicsCall(node))
             {
                 _diagnostics.Add(Info("CANMIGFOXIT003",
-                    "GetGraphics()/StartGenerateContents() removed — Canvas draw calls target the PdfPage directly."));
+                    "GetGraphics()/StartGenerateContents() removed — PXA draw calls target the PdfPage directly."));
                 return [];
             }
 

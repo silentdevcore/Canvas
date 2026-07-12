@@ -726,13 +726,13 @@ public sealed class PdfImporterCoreTests
 
         session.ReplaceText(element, "New");
         session.Move(element, new PdfMatrix(1, 0, 0, 1, 12, 34));
-        session.SetMetadata("Author", new PdfString(Encoding.ASCII.GetBytes("Canvas"), IsHex: false));
+        session.SetMetadata("Author", new PdfString(Encoding.ASCII.GetBytes("PXA"), IsHex: false));
         session.Delete(element);
 
         Assert.Equal("New", element.Text);
         Assert.Equal(new PdfMatrix(1, 0, 0, 1, 12, 34), element.Transform);
         Assert.True(element.IsDeleted);
-        Assert.Equal("Canvas", Assert.IsType<PdfString>(document.Metadata["Author"]).ToLatin1String());
+        Assert.Equal("PXA", Assert.IsType<PdfString>(document.Metadata["Author"]).ToLatin1String());
     }
 
     [Fact]
@@ -813,10 +813,10 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasPdfGeneratorBridge_ShouldRenderAndReimportSimpleDocument()
+    public async Task PxaPdfGeneratorBridge_ShouldRenderAndReimportSimpleDocument()
     {
         var document = new PdfDocumentModel();
-        document.Metadata["Author"] = new PdfString(Encoding.ASCII.GetBytes("Canvas"), IsHex: false);
+        document.Metadata["Author"] = new PdfString(Encoding.ASCII.GetBytes("PXA"), IsHex: false);
 
         var page = new PdfPageModel(null, new PdfDictionary())
         {
@@ -861,7 +861,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasPdfGeneratorBridge_ShouldRenderAndReimportFillOnlyRectanglePath()
+    public async Task PxaPdfGeneratorBridge_ShouldRenderAndReimportFillOnlyRectanglePath()
     {
         var document = new PdfDocumentModel();
         var page = new PdfPageModel(null, new PdfDictionary())
@@ -900,7 +900,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripJpegXObjectImages()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldRoundTripJpegXObjectImages()
     {
         var graph = new PdfObjectGraph();
 
@@ -964,7 +964,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripFlateXObjectImages()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldRoundTripFlateXObjectImages()
     {
         var graph = new PdfObjectGraph();
 
@@ -1028,7 +1028,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldNormalizeFlippedImageBounds()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldNormalizeFlippedImageBounds()
     {
         var graph = new PdfObjectGraph();
 
@@ -1093,7 +1093,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripFlateXObjectImagesWithNamedColorSpace()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldRoundTripFlateXObjectImagesWithNamedColorSpace()
     {
         var graph = new PdfObjectGraph();
 
@@ -1161,7 +1161,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripFlateXObjectImagesWithIndirectNamedColorSpace()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldRoundTripFlateXObjectImagesWithIndirectNamedColorSpace()
     {
         var graph = new PdfObjectGraph();
 
@@ -1230,7 +1230,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldPreserveIndirectDecodeParametersForFlateImages()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldPreserveIndirectDecodeParametersForFlateImages()
     {
         var graph = new PdfObjectGraph();
 
@@ -1308,7 +1308,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldPreserveSingleEntryFilterArraysForFlateImages()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldPreserveSingleEntryFilterArraysForFlateImages()
     {
         var graph = new PdfObjectGraph();
 
@@ -1386,7 +1386,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldPreserveIndirectFilterForFlateImages()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldPreserveIndirectFilterForFlateImages()
     {
         var graph = new PdfObjectGraph();
 
@@ -1464,7 +1464,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripFlateXObjectImagesWithIccBasedGrayColorSpace()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldRoundTripFlateXObjectImagesWithIccBasedGrayColorSpace()
     {
         var graph = new PdfObjectGraph();
 
@@ -1533,7 +1533,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldMapIccBasedGrayImagesToDeviceGray()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldMapIccBasedGrayImagesToDeviceGray()
     {
         var graph = new PdfObjectGraph();
 
@@ -1603,7 +1603,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripFlateXObjectImagesWithIccBasedCmykColorSpace()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldRoundTripFlateXObjectImagesWithIccBasedCmykColorSpace()
     {
         var graph = new PdfObjectGraph();
 
@@ -1672,7 +1672,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldMapIccBasedCmykImagesToDeviceCmyk()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldMapIccBasedCmykImagesToDeviceCmyk()
     {
         var graph = new PdfObjectGraph();
 
@@ -1742,7 +1742,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldMapNamedIccBasedGrayImagesToDeviceGray()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldMapNamedIccBasedGrayImagesToDeviceGray()
     {
         var graph = new PdfObjectGraph();
 
@@ -1816,7 +1816,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldMapIndirectNamedIccBasedGrayImagesToDeviceGray()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldMapIndirectNamedIccBasedGrayImagesToDeviceGray()
     {
         var graph = new PdfObjectGraph();
 
@@ -1893,7 +1893,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldPreserveImageSoftMasks()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldPreserveImageSoftMasks()
     {
         var graph = new PdfObjectGraph();
 
@@ -1970,7 +1970,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasPdfGeneratorBridge_ShouldPreserveDirectShadingResources()
+    public async Task PxaPdfGeneratorBridge_ShouldPreserveDirectShadingResources()
     {
         var document = new PdfDocumentModel();
         var shadingDictionary = new PdfDictionary();
@@ -2017,7 +2017,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasPdfGeneratorBridge_ShouldNotDuplicateNonShadingContentFromMixedGroups()
+    public async Task PxaPdfGeneratorBridge_ShouldNotDuplicateNonShadingContentFromMixedGroups()
     {
         var document = new PdfDocumentModel();
         var shadingDictionary = new PdfDictionary();
@@ -2082,7 +2082,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasPdfGeneratorBridge_ShouldPreserveIndirectShadingResources()
+    public async Task PxaPdfGeneratorBridge_ShouldPreserveIndirectShadingResources()
     {
         var graph = new PdfObjectGraph();
 
@@ -2151,7 +2151,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasPdfGeneratorBridge_ShouldPreserveTextResourcesWhenShadingIsPresent()
+    public async Task PxaPdfGeneratorBridge_ShouldPreserveTextResourcesWhenShadingIsPresent()
     {
         var document = new PdfDocumentModel();
         var shadingDictionary = new PdfDictionary();
@@ -2204,7 +2204,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasPdfGeneratorBridge_ShouldIgnoreDeletedShadingElements()
+    public async Task PxaPdfGeneratorBridge_ShouldIgnoreDeletedShadingElements()
     {
         var document = new PdfDocumentModel();
         var page = new PdfPageModel(null, new PdfDictionary())
@@ -2230,7 +2230,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldPreserveImagesWhenShadingIsPresent()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldPreserveImagesWhenShadingIsPresent()
     {
         var graph = new PdfObjectGraph();
 
@@ -2311,7 +2311,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldPreserveInheritedShadingResources()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldPreserveInheritedShadingResources()
     {
         var graph = new PdfObjectGraph();
 
@@ -2377,7 +2377,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasPdfGeneratorBridge_ShouldPreserveColorSpaceResourcesRequiredByShading()
+    public async Task PxaPdfGeneratorBridge_ShouldPreserveColorSpaceResourcesRequiredByShading()
     {
         var document = new PdfDocumentModel();
 
@@ -2615,7 +2615,7 @@ public sealed class PdfImporterCoreTests
     // ── Shading + ICCBased color space remaining slices ─────────────────────
 
     [Fact]
-    public async Task CanvasPdfGeneratorBridge_ShouldPreserveShadingWithNamedIccBasedColorSpace()
+    public async Task PxaPdfGeneratorBridge_ShouldPreserveShadingWithNamedIccBasedColorSpace()
     {
         var graph = new PdfObjectGraph();
 
@@ -2677,7 +2677,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasPdfGeneratorBridge_ShouldPreserveShadingWithIndirectIccBasedColorSpace()
+    public async Task PxaPdfGeneratorBridge_ShouldPreserveShadingWithIndirectIccBasedColorSpace()
     {
         var graph = new PdfObjectGraph();
 
@@ -2743,7 +2743,7 @@ public sealed class PdfImporterCoreTests
     // ── End-to-end multi-content fixtures ───────────────────────────────────
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripDocumentWithTextPathsAndImages()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldRoundTripDocumentWithTextPathsAndImages()
     {
         // Combines text + vector path + JPEG image on a single page — verifies
         // all three element types survive the full importer→model→bridge cycle.
@@ -2819,7 +2819,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripDocumentWithInheritedResourcesAndIncremental()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldRoundTripDocumentWithInheritedResourcesAndIncremental()
     {
         // Two-page document where page-tree inherits resources and the xref
         // has an incremental update — verifies page-tree traversal, inherited
@@ -2895,7 +2895,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripDocumentCombiningTextPathsImagesAndShading()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldRoundTripDocumentCombiningTextPathsImagesAndShading()
     {
         // Most complex fixture: text + path + JPEG image + shading on one page.
         // Validates that the shading compatibility update does not erase other content.
@@ -2981,7 +2981,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldUseSceneGraphBoundsAndRotationForText()
+    public async Task PdfImporter_ShouldUseSceneGraphBoundsAndRotationForText()
     {
         var design = await ImportDesignFromSinglePageContentAsync(
             "BT /F1 12 Tf 0 1 -1 0 120 80 Tm (Rotated) Tj ET");
@@ -2997,7 +2997,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldNotDoubleScaleTextMatrixBounds()
+    public async Task PdfImporter_ShouldNotDoubleScaleTextMatrixBounds()
     {
         var design = await ImportDesignFromSinglePageContentAsync(
             "BT /F1 1 Tf 12 0 0 12 20 120 Tm (Scaled) Tj ET");
@@ -3015,7 +3015,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldUseReadingOrderInsteadOfDrawOrderForText()
+    public async Task PdfImporter_ShouldUseReadingOrderInsteadOfDrawOrderForText()
     {
         var design = await ImportDesignFromSinglePageContentAsync(
             "BT /F1 10 Tf 1 0 0 1 20 40 Tm (Second) Tj 1 0 0 1 20 160 Tm (First) Tj ET");
@@ -3030,7 +3030,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldNormalizePdfFontFamilyAndStyle()
+    public async Task PdfImporter_ShouldNormalizePdfFontFamilyAndStyle()
     {
         const string resources = "<< /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /ABCDEF+TimesNewRomanPS-BoldItalicMT >> >> >>";
         var design = await ImportDesignFromSinglePageContentAsync(
@@ -3046,7 +3046,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldUseFontDescriptorNameWhenBaseFontIsMissing()
+    public async Task PdfImporter_ShouldUseFontDescriptorNameWhenBaseFontIsMissing()
     {
         const string resources = "<< /Font << /F1 << /Type /Font /Subtype /Type1 /FontDescriptor << /FontName /ABCDEF+Arial-BoldMT >> >> >> >>";
         var design = await ImportDesignFromSinglePageContentAsync(
@@ -3062,7 +3062,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldUseFontDescriptorStyleMetadata()
+    public async Task PdfImporter_ShouldUseFontDescriptorStyleMetadata()
     {
         const string resources = "<< /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /ABCDEF+MinionPro /FontDescriptor << /FontName /ABCDEF+MinionPro /FontWeight 700 /ItalicAngle -12 >> >> >> >>";
         var design = await ImportDesignFromSinglePageContentAsync(
@@ -3077,7 +3077,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldExposeEmbeddedTrueTypeFontAssetForNonSubsetFont()
+    public async Task PdfImporter_ShouldExposeEmbeddedTrueTypeFontAssetForNonSubsetFont()
     {
         var fontBytes = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x41, 0x42, 0x43, 0x44 };
         var fontFile = new SyntheticPdfObject(5, BuildStreamObjectBody(string.Empty, fontBytes));
@@ -3097,7 +3097,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldNotUseEmbeddedSubsetFontForEditableText()
+    public async Task PdfImporter_ShouldNotUseEmbeddedSubsetFontForEditableText()
     {
         var fontBytes = new byte[] { 0x00, 0x01, 0x00, 0x00, 0x41, 0x42, 0x43, 0x44 };
         var fontFile = new SyntheticPdfObject(5, BuildStreamObjectBody(string.Empty, fontBytes));
@@ -3122,7 +3122,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldMapVectorRectanglesThroughPrimitiveShapes()
+    public async Task PdfImporter_ShouldMapVectorRectanglesThroughPrimitiveShapes()
     {
         var design = await ImportDesignFromSinglePageContentAsync("0 0 0 rg 20 30 60 40 re f");
 
@@ -3135,7 +3135,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldPreserveFillOnlyCurvePathsWithoutDefaultStroke()
+    public async Task PdfImporter_ShouldPreserveFillOnlyCurvePathsWithoutDefaultStroke()
     {
         var design = await ImportDesignFromSinglePageContentAsync(
             "0.7 0 0.25 rg 10.25 10.5 m 30.75 10.5 30.75 30.25 10.25 30.25 c f");
@@ -3154,7 +3154,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldPreserveVCurveAndYCurveOperatorsInSvg()
+    public async Task PdfImporter_ShouldPreserveVCurveAndYCurveOperatorsInSvg()
     {
         var design = await ImportDesignFromSinglePageContentAsync(
             "0.7 0 0.25 rg 10 10 m 30 10 30 30 v 10 30 10 10 y f");
@@ -3168,7 +3168,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldPreserveLineOnlyComplexPathsAsSvg()
+    public async Task PdfImporter_ShouldPreserveLineOnlyComplexPathsAsSvg()
     {
         var design = await ImportDesignFromSinglePageContentAsync(
             "0.7 0 0.25 rg 10 10 m 24 10 l 24 30 l 16 22 l 10 30 l h f");
@@ -3182,7 +3182,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldGroupAdjacentVectorGlyphOutlinesIntoOneSvg()
+    public async Task PdfImporter_ShouldGroupAdjacentVectorGlyphOutlinesIntoOneSvg()
     {
         var design = await ImportDesignFromSinglePageContentAsync(
             "0.7 0 0.25 rg " +
@@ -3200,7 +3200,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldUseInvariantSvgNumbersUnderGermanCulture()
+    public async Task PdfImporter_ShouldUseInvariantSvgNumbersUnderGermanCulture()
     {
         var previousCulture = CultureInfo.CurrentCulture;
         var previousUiCulture = CultureInfo.CurrentUICulture;
@@ -3231,7 +3231,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldUseInvariantSvgNumbersForVectorClustersUnderGermanCulture()
+    public async Task PdfImporter_ShouldUseInvariantSvgNumbersForVectorClustersUnderGermanCulture()
     {
         var previousCulture = CultureInfo.CurrentCulture;
         var previousUiCulture = CultureInfo.CurrentUICulture;
@@ -3266,7 +3266,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldEmitNonTextElementsBeforeTextElements()
+    public async Task PdfImporter_ShouldEmitNonTextElementsBeforeTextElements()
     {
         var design = await ImportDesignFromSinglePageContentAsync(
             "BT /F1 10 Tf 1 0 0 1 25 55 Tm (Inside box) Tj ET 0.9 0.9 0.9 rg 20 40 80 30 re f");
@@ -3279,7 +3279,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldMapImageXObjectsThroughPrimitiveImages()
+    public async Task PdfImporter_ShouldMapImageXObjectsThroughPrimitiveImages()
     {
         var imageObject = new SyntheticPdfObject(5, BuildStreamObjectBody(
             " /Type /XObject /Subtype /Image /Width 1 /Height 1 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode",
@@ -3299,7 +3299,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldClassifyBarcodeBarsAndKeepThemEditable()
+    public async Task PdfImporter_ShouldClassifyBarcodeBarsAndKeepThemEditable()
     {
         var bars = string.Join(' ', Enumerable.Range(0, 10).Select(static i => $"{10 + i * 3} 20 1 80 re f"));
         var design = await ImportDesignFromSinglePageContentAsync($"0 0 0 rg {bars}");
@@ -3314,7 +3314,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasImporterPdfImporter_ShouldPromoteRepeatedHeaderTextToSharedElements()
+    public async Task PdfImporter_ShouldPromoteRepeatedHeaderTextToSharedElements()
     {
         var pageOne = "BT /F1 10 Tf 1 0 0 1 20 185 Tm (Header) Tj 1 0 0 1 20 90 Tm (Page one body) Tj ET";
         var pageTwo = "BT /F1 10 Tf 1 0 0 1 20 185 Tm (Header) Tj 1 0 0 1 20 90 Tm (Page two body) Tj ET";
@@ -3591,7 +3591,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripCcittFaxXObjectImages()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldRoundTripCcittFaxXObjectImages()
     {
         var graph = new PdfObjectGraph();
 
@@ -3663,7 +3663,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task DocumentBuilder_AndCanvasPdfGeneratorBridge_ShouldRoundTripIndexedColorSpaceImages()
+    public async Task DocumentBuilder_AndPxaPdfGeneratorBridge_ShouldRoundTripIndexedColorSpaceImages()
     {
         var graph = new PdfObjectGraph();
 
@@ -3840,7 +3840,7 @@ public sealed class PdfImporterCoreTests
     }
 
     [Fact]
-    public async Task CanvasPdfGeneratorBridge_ShouldNormalizeFlippedRectangleBounds()
+    public async Task PxaPdfGeneratorBridge_ShouldNormalizeFlippedRectangleBounds()
     {
         var document = new PdfDocumentModel();
         var page = new PdfPageModel(null, new PdfDictionary())

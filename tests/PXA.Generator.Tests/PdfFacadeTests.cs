@@ -7,7 +7,7 @@ namespace PXA.Generator.Tests;
 public sealed class PdfFacadeTests
 {
     [Fact]
-    public void CreateDocument_ReturnsCanvasPdfDocument()
+    public void CreateDocument_ReturnsPxaPdfDocument()
     {
         var document = Pdf.CreateDocument();
 

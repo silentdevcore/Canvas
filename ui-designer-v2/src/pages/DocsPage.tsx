@@ -274,7 +274,7 @@ const DocsPage: React.FC = () => {
 
             <div className="docs-overview-grid">
               {[
-                { label: 'Canvas', desc: 'The central page area. Click any element to select it. Drag to move; use the blue handles at corners and edges to resize.' },
+                { label: 'Workspace', desc: 'The central page area. Click any element to select it. Drag to move; use the blue handles at corners and edges to resize.' },
                 { label: 'Toolbar', desc: 'Collapsible tool groups on the left: Basic, Word/DOCX Elements, and more. Add elements, toggle shared elements, open Find & Replace, and access Export.' },
                 { label: 'Inspector Panel', desc: 'Appears on the right when an element is selected. Every property (position, size, content, style, revision, DOCX metadata) is editable here without touching JSON.' },
                 { label: 'Pages Panel', desc: 'At the bottom of the editor. Add, delete, duplicate, and drag-to-reorder pages. Click a page thumbnail to navigate to it.' },
@@ -1389,9 +1389,9 @@ public class TemplatesController : ControllerBase
                     ['Project inventory', 'PROJECT_SUMMARY.md', 'Current project groups, endpoints, feature inventory, and test groups'],
                     ['Extension patterns', 'CONTRIBUTING_RENDERERS.md', 'Adding renderers, file importers, migration providers, report converters, and document operations'],
                     ['Testing', 'TESTING.md', 'Test project matrix, commands, CI expectations, and snapshot workflow'],
-                    ['PDF engine API', 'Canvas/TECHNICAL_DOCUMENTATION.md', 'PXA-compatible PDF usage, options, layout helpers, encryption, forms, diagnostics'],
+                    ['PDF engine API', 'PXA/TECHNICAL_DOCUMENTATION.md', 'PXA-compatible PDF usage, options, layout helpers, encryption, forms, diagnostics'],
                     ['PDF encryption', 'checklists/Pdf-Encryption.md', 'RC4-128 status, AES follow-ups, and security handler notes'],
-                    ['PDF provider gaps', 'checklists/CanvasPdf-Provider-Feature-Gaps.md', 'PXA-compatible PDF feature gaps compared with major PDF frameworks'],
+                    ['PDF provider gaps', 'checklists/PxaPdf-Provider-Feature-Gaps.md', 'PXA-compatible PDF feature gaps compared with major PDF frameworks'],
                     ['Documentation audit', 'checklists/Documentation-Audit.md', 'Source-of-truth rules and follow-up documentation tasks'],
                     ['Multi-language UI', 'ui-designer-v2/MULTILANGUAGE.md', 'Language tabs, localized properties, RTL, and export behavior'],
                     ['Migration status', 'checklists/Code-Migrations.md', 'Provider progress and migration acceptance criteria'],

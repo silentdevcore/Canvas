@@ -1,6 +1,6 @@
 # Word vs PDF Fidelity Sample Pack
 
-These samples are used by automated tests in tests/Canvas.Export.Tests/WordPdfFidelityTests.cs.
+These samples are used by automated tests in tests/PXA.Export.Tests/WordPdfFidelityTests.cs.
 
 How it works:
 - The test loads each JSON file in this folder as a DesignExportDto.
@@ -9,7 +9,7 @@ How it works:
 - If LibreOffice (soffice) is available, DOCX is converted to PDF and first-page geometry is compared.
 
 Artifacts are written to:
-- tests/Canvas.Export.Tests/Fidelity/artifacts/latest/<sample>/
+- tests/PXA.Export.Tests/Fidelity/artifacts/latest/<sample>/
 
 Current sample set:
 - text-table-basic.json

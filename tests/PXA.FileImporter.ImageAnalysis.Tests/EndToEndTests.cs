@@ -927,7 +927,7 @@ public class EndToEndTests
     }
 
     [Fact]
-    public void FullPipeline_PositionedText_MapsInkBoundsToCanvasCoordinates()
+    public void FullPipeline_PositionedText_MapsInkBoundsToPxaCoordinates()
     {
         using var bmp = new SKBitmap(360, 160, SKColorType.Rgba8888, SKAlphaType.Premul);
         using (var canvas = new SKCanvas(bmp))
@@ -995,7 +995,7 @@ public class EndToEndTests
     }
 
     [Fact]
-    public void FullPipeline_ColorRegion_MapsExpectedBoundsToCanvasShape()
+    public void FullPipeline_ColorRegion_MapsExpectedBoundsToPxaShape()
     {
         using var bmp = new SKBitmap(240, 180, SKColorType.Rgba8888, SKAlphaType.Premul);
         using (var canvas = new SKCanvas(bmp))

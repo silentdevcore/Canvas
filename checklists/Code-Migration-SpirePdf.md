@@ -1,9 +1,9 @@
-# Canvas Migration: Spire.PDF
+# PXA Migration: Spire.PDF
 
 ## V1 Pilot Analysis
 
 - [x] Spire.PDF is a good fit for simple generation flows: document, page, canvas text, shapes, and save.
-- [x] `PdfDocument` collides with Canvas.Pdf, so migration removes Spire usings and introduces `using Canvas.Pdf`.
+- [x] `PdfDocument` collides with PXA.Pdf, so migration removes Spire usings and introduces `using PXA.Pdf`.
 - [x] Direct `page.Canvas.DrawString(...)`, `DrawLine(...)`, and `DrawRectangle(...)` are deterministic enough for v1.
 - [x] Images, tables, forms, security, attachments, extraction/conversion, and existing-PDF editing remain manual in v1.
 
@@ -29,8 +29,8 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/Canvas.Migration.SpirePdf`
-- [x] Add `tests/Canvas.Migration.SpirePdf.Tests`
+- [x] Add `src/PXA.Migration.SpirePdf`
+- [x] Add `tests/PXA.Migration.SpirePdf.Tests`
 - [x] Add WebApi converter integration
 - [x] Add API service smoke test
 - [x] Rewrite deterministic document/page/text/line/rectangle/save patterns
@@ -38,9 +38,9 @@
 
 ## Mapping Table
 
-| Spire.PDF API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
+| Spire.PDF API / pattern | PXA.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `new PdfDocument()` | `new Canvas.Pdf.PdfDocument()` | Code fix in v1 | Removes Spire usings to resolve type conflict. |
+| `new PdfDocument()` | `new PXA.Pdf.PdfDocument()` | Code fix in v1 | Removes Spire usings to resolve type conflict. |
 | `document.Pages.Add(...)` | `document.AddPage()` | Code fix in v1 | Page size overloads need future mapping. |
 | `page.Canvas.DrawString(text, font, brush, x, y)` | `page.DrawTextFromTop(text, x, y, fontSize)` | Code fix in v1 | Extracts simple literal text and simple font size. |
 | `page.Canvas.DrawString(text, font, brush, new PointF(x, y))` | `page.DrawTextFromTop(text, x, y, fontSize)` | Code fix in v1 | Direct `PointF` only. |
@@ -88,10 +88,10 @@ page.Canvas.DrawRectangle(pen, 40, 620, 200, 80);
 document.SaveToFile(path);
 ```
 
-## Expected Canvas.Pdf Output Snippets
+## Expected PXA.Pdf Output Snippets
 
 ```csharp
-using Canvas.Pdf;
+using PXA.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -117,10 +117,10 @@ document.Save(path);
 - [x] Replace simple draw string calls
 - [x] Replace line/rectangle calls
 - [x] Replace save calls
-- [x] Add `using Canvas.Pdf`
+- [x] Add `using PXA.Pdf`
 - [x] Remove Spire usings
 - [ ] Convert image drawing after resource mapping is defined
-- [ ] Convert table/form/security APIs only after Canvas equivalents exist
+- [ ] Convert table/form/security APIs only after PXA equivalents exist
 
 ## Tests Checklist
 

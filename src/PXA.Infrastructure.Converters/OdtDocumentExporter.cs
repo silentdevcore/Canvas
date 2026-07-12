@@ -444,7 +444,7 @@ public sealed class OdtDocumentExporter : DocumentExporter
 
     private static string MmStr(double px)
     {
-        // Canvas uses 96 dpi pixels; 1 inch = 25.4 mm; 1 px ≈ 0.2646 mm
+        // PXA uses 96 dpi pixels; 1 inch = 25.4 mm; 1 px ≈ 0.2646 mm
         var mm = px * 25.4 / 96.0;
         return $"{mm:F3}mm";
     }

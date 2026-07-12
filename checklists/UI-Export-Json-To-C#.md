@@ -75,7 +75,7 @@ Same fix needed for the `Gray` branch.
 
 **Where:** `TemplatesController.cs` → `CsharpCodeToJson` → `TextElement` mapping
 
-**Problem:** `Canvas.Pdf.TextElement` does not store element width/height (it draws unbounded text). The backend guesses:
+**Problem:** `PXA.Pdf.TextElement` does not store element width/height (it draws unbounded text). The backend guesses:
 ```csharp
 width  = 200.0,          // hardcoded — always wrong
 height = D("FontSize") * 1.5,  // rough estimate
@@ -107,7 +107,7 @@ height = D("FontSize") * 1.5,  // rough estimate
 
 **Affected types:** `field`, `checkbox`, `button`, `dropdown`, `optionlist`, `radio`, `signature`
 
-**What happens:** `jsonToCode` decomposes semantic elements into primitive Canvas.Pdf calls:
+**What happens:** `jsonToCode` decomposes semantic elements into primitive PXA.Pdf calls:
 - `field` → `DrawRoundedRectangle + DrawText (label) + DrawText (placeholder)`
 - `checkbox` → `DrawRectangle + DrawText (checkmark)`
 - `button` → `DrawRoundedRectangle + DrawText`

@@ -29,7 +29,7 @@ public sealed class ClosedXmlSpreadsheetMigrationTests
         Assert.Contains("ws.Cell(\"A1\").Style(s => s.Bold(true))", code);
         Assert.Contains("ws.Range(\"A1:B1\").Merge()", code);
         Assert.Contains("wb.Save(\"out.xlsx\")", code);
-        // ClosedXML using removed, Canvas using added
+        // ClosedXML using removed, PXA using added
         Assert.DoesNotContain("ClosedXML", code);
         Assert.Contains("using PXA.Infrastructure.Spreadsheet;", code);
     }

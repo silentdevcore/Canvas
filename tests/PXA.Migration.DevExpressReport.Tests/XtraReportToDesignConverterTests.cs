@@ -488,7 +488,7 @@ public sealed class XtraReportToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_XRChart_BecomesCanvasChartPlaceholder()
+    public void Convert_XRChart_BecomesPxaChartPlaceholder()
     {
         var source = """
             using DevExpress.XtraReports.UI;
@@ -840,7 +840,7 @@ public sealed class XtraReportToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_XRShapeArrow_MapsToCanvasArrowWithDiagnostic()
+    public void Convert_XRShapeArrow_MapsToPxaArrowWithDiagnostic()
     {
         var source = """
             using DevExpress.XtraReports.UI;
@@ -1066,7 +1066,7 @@ public sealed class XtraReportToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_SingleFieldBinding_MapsToCanvasBinding()
+    public void Convert_SingleFieldBinding_MapsToPxaBinding()
     {
         var source = """
             using DevExpress.XtraReports.UI;

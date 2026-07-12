@@ -24,7 +24,7 @@
 - [x] Handle element removal from parent containers
 - [x] Update selection state after deletion
 
-## Canvas Interaction Enhancements
+## PXA Interaction Enhancements
 - [x] Implement multi-selection with Ctrl/Cmd+click
 - [x] Add selection rectangle (marquee selection)
 - [x] Implement element grouping and ungrouping

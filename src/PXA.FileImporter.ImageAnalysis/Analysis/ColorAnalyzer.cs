@@ -5,7 +5,7 @@ namespace PXA.FileImporter.ImageAnalysis.Analysis;
 /// <summary>
 /// Phase 2: analyses the colour content of a prepared image.
 /// Produces the background colour, a dominant colour palette, and a list of
-/// filled colour regions that will become Canvas shape elements.
+/// filled colour regions that will become PXA shape elements.
 /// </summary>
 public static class ColorAnalyzer
 {

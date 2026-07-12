@@ -6,7 +6,7 @@ namespace PXA.Migration.IronPdf.Tests;
 public sealed class IronPdfMigrationTests
 {
     [Fact]
-    public void Migrate_ShouldConvertBasicHtmlRenderWorkflowToCanvasScaffold()
+    public void Migrate_ShouldConvertBasicHtmlRenderWorkflowToPxaScaffold()
     {
         var source = """
             using IronPdf;

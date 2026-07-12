@@ -1,9 +1,9 @@
-# Canvas Migration: PDF Toolbox SDK / Toolbox Add-On
+# PXA Migration: PDF Toolbox SDK / Toolbox Add-On
 
 ## V1 Pilot Analysis
 
-- [x] Add cautious Roslyn-backed provider project: `src/Canvas.Migration.PdfToolsToolbox`
-- [x] Add provider tests: `tests/Canvas.Migration.PdfToolsToolbox.Tests`
+- [x] Add cautious Roslyn-backed provider project: `src/PXA.Migration.PdfToolsToolbox`
+- [x] Add provider tests: `tests/PXA.Migration.PdfToolsToolbox.Tests`
 - [x] Connect WebApi converter: `PXA.WebApi/Services/Converters/PdfToolsToolboxConverter.cs`
 - [x] Add UI fallback status/example as `pilot`
 - [x] Split from `PDFTools / Pdftools SDK`; Toolbox is the direct-generation/content-editing API family
@@ -58,17 +58,17 @@ References:
 
 ## Mapping Table
 
-| PDF Toolbox SDK API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
+| PDF Toolbox SDK API / pattern | PXA.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
 | `Document.Create(outStream, ..., ...)` | `var document = new PdfDocument();` | Candidate pilot code fix | Stream ownership/save semantics still need conservative handling. |
 | `Page.Create(document, PageSize.A4/Letter)` | `var page = document.AddPage(PdfPagePreset.A4/Letter, landscape)` | Pilot code fix | A4/Letter and rotated/landscape cases mapped. |
 | `Page.Create(document, customSize)` | `var page = document.AddPage()` | Warning in v1 | Unknown page sizes require manual review. |
 | `outDoc.Pages.Add(page)` | Already represented by `document.AddPage()` | Future removal/code fix | Only remove if page creation was converted. |
-| `Font.CreateFromSystem(...)` | Canvas text font settings or default font | Warning or future mapping | Canvas font API and fallback behavior need review. |
+| `Font.CreateFromSystem(...)` | PXA text font settings or default font | Warning or future mapping | PXA font API and fallback behavior need review. |
 | `Text.Create(document)` + `TextGenerator` + `ShowLine(...)` | `page.DrawTextFromTop(...)` | Future pilot code fix | Need coordinate extraction from `MoveTo(Point)` and text extraction from `ShowLine`. |
 | `ContentGenerator(...).PaintText(text)` | Already represented by `page.DrawText...` | Future removal/code fix | Only after associated text flow is converted. |
-| `Page.Copy(...)`, `PageList.Copy(...)`, `Document.Open(...)` | Manual migration | Warning in v1 | Existing-PDF copy/edit workflows are not Canvas generation. |
-| `Add annotations/forms/metadata/outlines` | Manual migration | Warning in v1 | Needs Canvas feature parity review. |
+| `Page.Copy(...)`, `PageList.Copy(...)`, `Document.Open(...)` | Manual migration | Warning in v1 | Existing-PDF copy/edit workflows are not PXA generation. |
+| `Add annotations/forms/metadata/outlines` | Manual migration | Warning in v1 | Needs PXA feature parity review. |
 
 ## Unsupported / Manual Follow-Up
 
@@ -108,10 +108,10 @@ gen.PaintText(text);
 outDoc.Pages.Add(outPage);
 ```
 
-## Expected Canvas.Pdf Output Snippets
+## Expected PXA.Pdf Output Snippets
 
 ```csharp
-using Canvas.Pdf;
+using PXA.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -146,10 +146,10 @@ document.Save(outPath);
 - [x] Remove associated `FileStream` output setup when `outPath` can be recovered safely
 - [x] Insert `document.Save(outPath)` when a safe output path is recovered
 - [x] Warn when output stream target cannot be safely mapped to a path
-- [x] Add `using Canvas.Pdf` only when Canvas code is introduced
+- [x] Add `using PXA.Pdf` only when PXA code is introduced
 - [x] Remove Toolbox usings only when no Toolbox code remains
 - [x] Preserve Toolbox usings for partially migrated snippets
-- [ ] Warn on font/style/color details until Canvas style mapping is defined
+- [ ] Warn on font/style/color details until PXA style mapping is defined
 - [ ] Warn on existing-PDF copy/edit/tag workflows
 - [ ] Warn on forms/annotations/metadata/outlines/tagging
 

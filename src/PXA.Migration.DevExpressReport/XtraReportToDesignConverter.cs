@@ -17,9 +17,9 @@ public sealed class XtraReportConvertResult
 
 /// <summary>
 /// Converts a DevExpress XtraReport — either a C# Report Designer class or a serialized
-/// <c>.repx</c> XML layout — into a Canvas <see cref="DesignExportDto"/> the visual designer can open.
+/// <c>.repx</c> XML layout — into a PXA <see cref="DesignExportDto"/> the visual designer can open.
 /// Both front-ends produce a neutral <see cref="RawReport"/> that the shared builder flattens (band
-/// stacking → absolute coordinates), unit-converts, and maps to Canvas elements.
+/// stacking → absolute coordinates), unit-converts, and maps to PXA elements.
 /// </summary>
 public sealed class XtraReportToDesignConverter
 {
@@ -452,7 +452,7 @@ public sealed class XtraReportToDesignConverter
             if (bandType == "ReportFooterBand")
                 element.PageScope = "last";
 
-            diagnostics.Add(Info("CANMIGDEVREP002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
+            diagnostics.Add(Info("CANMIGDEVREP002", $"'{raw.Name}' ({raw.Type}) → PXA {element.Type}."));
 
             var ownerBand = bandName is not null && bandByName.TryGetValue(bandName, out var ob) ? ob : null;
             // Aggregates in a group footer/header scope to the current group's row subset ($group),
@@ -470,24 +470,24 @@ public sealed class XtraReportToDesignConverter
 
         if (report.HasScripts)
             diagnostics.Add(Warn("CANMIGDEVREP012",
-                "Report contains scripts/event handlers — Canvas has no scripting; migrate that logic manually."));
+                "Report contains scripts/event handlers — PXA has no scripting; migrate that logic manually."));
 
         if (report.Bands.Any(b => b.Type == "DetailReportBand"))
             diagnostics.Add(Warn("CANMIGDEVREP014",
-                "Report contains DetailReportBand/sub-detail bands — layout is flattened, but data-repeat semantics must be wired in Canvas templates."));
+                "Report contains DetailReportBand/sub-detail bands — layout is flattened, but data-repeat semantics must be wired in PXA templates."));
 
         foreach (var groupBand in report.Bands.Where(b => b.Type is "GroupHeaderBand" or "GroupFooterBand"))
         {
             var fields = FormatFields(groupBand.GroupFields, "group");
             var sorts = FormatFields(groupBand.SortFields, "sort");
             diagnostics.Add(Warn("CANMIGDEVREP015",
-                $"'{groupBand.Name}' ({groupBand.Type}) layout was imported; {fields}; {sorts}; group repeat/sort semantics must be wired in Canvas templates."));
+                $"'{groupBand.Name}' ({groupBand.Type}) layout was imported; {fields}; {sorts}; group repeat/sort semantics must be wired in PXA templates."));
         }
 
         foreach (var multiColumnBand in report.Bands.Where(b => !string.IsNullOrWhiteSpace(b.MultiColumnMode)))
         {
             diagnostics.Add(Warn("CANMIGDEVREP022",
-                $"'{multiColumnBand.Name}' uses MultiColumn mode '{multiColumnBand.MultiColumnMode}' — Canvas flattens the band layout; review repeated column flow manually."));
+                $"'{multiColumnBand.Name}' uses MultiColumn mode '{multiColumnBand.MultiColumnMode}' — PXA flattens the band layout; review repeated column flow manually."));
         }
 
         diagnostics.Insert(0, Info("CANMIGDEVREP001",
@@ -610,7 +610,7 @@ public sealed class XtraReportToDesignConverter
                     element.ArrowDirection = "right";
                     element.EndMarker = "arrow";
                     diagnostics.Add(Warn("CANMIGDEVREP019",
-                        $"'{raw.Name}' XRShape arrow was imported as a Canvas arrow; review direction/head style."));
+                        $"'{raw.Name}' XRShape arrow was imported as a PXA arrow; review direction/head style."));
                 }
                 return element;
 
@@ -657,7 +657,7 @@ public sealed class XtraReportToDesignConverter
                 element.ChartData = CreatePlaceholderChartData(raw.Name);
                 element.Style = PlaceholderStyle("#1d4ed8");
                 diagnostics.Add(Warn("CANMIGDEVREP018",
-                    $"'{raw.Name}' is an XRChart — inserted an editable Canvas chart placeholder; wire the original series/data manually."));
+                    $"'{raw.Name}' is an XRChart — inserted an editable PXA chart placeholder; wire the original series/data manually."));
                 return element;
 
             case "XRGauge" or "XRPivotGrid":
@@ -677,7 +677,7 @@ public sealed class XtraReportToDesignConverter
                 return element;
 
             default:
-                diagnostics.Add(Warn("CANMIGDEVREP011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; skipped."));
+                diagnostics.Add(Warn("CANMIGDEVREP011", $"'{raw.Name}' is a {raw.Type} — not supported by PXA yet; skipped."));
                 return null;
         }
     }
@@ -843,13 +843,13 @@ public sealed class XtraReportToDesignConverter
         if (raw.CanGrow == true || raw.CanShrink == true)
         {
             diagnostics.Add(Warn("CANMIGDEVREP016",
-                $"'{raw.Name}' uses CanGrow/CanShrink — Canvas imports wrapping/overflow hints, but dynamic band reflow must be reviewed."));
+                $"'{raw.Name}' uses CanGrow/CanShrink — PXA imports wrapping/overflow hints, but dynamic band reflow must be reviewed."));
         }
 
         if (!string.IsNullOrWhiteSpace(raw.AnchorHorizontal) || !string.IsNullOrWhiteSpace(raw.AnchorVertical))
         {
             diagnostics.Add(Warn("CANMIGDEVREP017",
-                $"'{raw.Name}' uses DevExpress anchoring ({raw.AnchorHorizontal}/{raw.AnchorVertical}) — imported as metadata; review responsive positioning in Canvas."));
+                $"'{raw.Name}' uses DevExpress anchoring ({raw.AnchorHorizontal}/{raw.AnchorVertical}) — imported as metadata; review responsive positioning in PXA."));
         }
 
         if (!string.IsNullOrWhiteSpace(raw.TextFitMode) || !string.IsNullOrWhiteSpace(raw.TextTrimming))
@@ -922,7 +922,7 @@ public sealed class XtraReportToDesignConverter
             {
                 element.VisibleExpression = visibleExpression;
                 diagnostics.Add(Warn("CANMIGDEVREP020",
-                    $"'{raw.Name}' Visible expression '{visibleExpression}' was preserved on Canvas visibleExpression; wire runtime evaluation if needed."));
+                    $"'{raw.Name}' Visible expression '{visibleExpression}' was preserved on PXA visibleExpression; wire runtime evaluation if needed."));
             }
 
             foreach (var property in BindingPriority(element.Type))
@@ -936,7 +936,7 @@ public sealed class XtraReportToDesignConverter
         {
             var props = string.Join(", ", raw.UnmappedBindingProperties.Order(StringComparer.OrdinalIgnoreCase));
             diagnostics.Add(Warn("CANMIGDEVREP010",
-                $"'{raw.Name}' has unmapped data binding(s) for {props} — re-bind them in Canvas."));
+                $"'{raw.Name}' has unmapped data binding(s) for {props} — re-bind them in PXA."));
         }
     }
 
@@ -972,7 +972,7 @@ public sealed class XtraReportToDesignConverter
                     element.FieldName ??= field;
                     break;
             }
-            diagnostics.Add(Info("CANMIGDEVREP010", $"'{element.Name}' {property} bound to field [{field}] → Canvas binding '{field}'."));
+            diagnostics.Add(Info("CANMIGDEVREP010", $"'{element.Name}' {property} bound to field [{field}] → PXA binding '{field}'."));
         }
         else
         {
@@ -988,7 +988,7 @@ public sealed class XtraReportToDesignConverter
             element.Style ??= [];
             element.Style["devExpressExpression"] = expression;
             if (string.IsNullOrEmpty(element.Content)) element.Content = normalized;
-            diagnostics.Add(Warn("CANMIGDEVREP010", $"'{element.Name}' {property} expression '{expression}' mapped to a Canvas template with normalized field references — review the syntax."));
+            diagnostics.Add(Warn("CANMIGDEVREP010", $"'{element.Name}' {property} expression '{expression}' mapped to a PXA template with normalized field references — review the syntax."));
         }
     }
 
@@ -1228,7 +1228,7 @@ public sealed class XtraReportToDesignConverter
 
     private static HashSet<string>? ParseBorders(ExpressionSyntax? expr) => ParseBorders(expr?.ToString());
 
-    // Group bands repeat per group key: attach Canvas RepeatDto + group metadata so the band's controls
+    // Group bands repeat per group key: attach PXA RepeatDto + group metadata so the band's controls
     // can be wired as a repeating template (mirrors the RDL/Jasper group-repeat mapping).
     private static void ApplyGroupRepeatMetadata(ElementDto element, RawBand band)
     {

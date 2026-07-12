@@ -4,14 +4,14 @@ import { useDesignerStore } from './store';
 import ElementRenderer from './ElementRenderer';
 import ContextMenu from './ContextMenu';
 
-interface VirtualCanvasProps {
+interface VirtualPxaSurfaceProps {
   width?: number;
   height?: number;
   viewportWidth?: number;
   viewportHeight?: number;
 }
 
-const VirtualCanvas: React.FC<VirtualCanvasProps> = memo(({
+const VirtualPxaSurface: React.FC<VirtualPxaSurfaceProps> = memo(({
   width = 4000,
   height = 4000,
   viewportWidth = 800,
@@ -78,7 +78,7 @@ const VirtualCanvas: React.FC<VirtualCanvasProps> = memo(({
 
     // Performance monitoring: Log if culling takes too long
     if (duration > 16.67) { // More than one frame at 60fps
-      console.warn(`VirtualCanvas culling took ${duration.toFixed(2)}ms for ${rootIds.length} elements, ${visible.length} visible`);
+      console.warn(`VirtualPxaSurface culling took ${duration.toFixed(2)}ms for ${rootIds.length} elements, ${visible.length} visible`);
     }
 
     return visible;
@@ -90,7 +90,7 @@ const VirtualCanvas: React.FC<VirtualCanvasProps> = memo(({
     setScrollTop(target.scrollTop);
   }, []);
 
-  const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
+  const handleSurfaceMouseDown = useCallback((e: React.MouseEvent) => {
     // Only start selection if clicking directly on canvas, not on elements
     if (e.target !== e.currentTarget) return;
 
@@ -105,7 +105,7 @@ const VirtualCanvas: React.FC<VirtualCanvasProps> = memo(({
     setSelectionRect({ x, y, width: 0, height: 0 });
   }, [scrollLeft, scrollTop]);
 
-  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
+  const handleSurfaceMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isSelecting) return;
 
     const rect = canvasRef.current?.getBoundingClientRect();
@@ -122,7 +122,7 @@ const VirtualCanvas: React.FC<VirtualCanvasProps> = memo(({
     setSelectionRect({ x, y, width, height });
   }, [isSelecting, startPoint, scrollLeft, scrollTop]);
 
-  const handleCanvasMouseUp = useCallback(() => {
+  const handleSurfaceMouseUp = useCallback(() => {
     if (!isSelecting) return;
 
     setIsSelecting(false);
@@ -156,7 +156,7 @@ const VirtualCanvas: React.FC<VirtualCanvasProps> = memo(({
     setSelectionRect({ x: 0, y: 0, width: 0, height: 0 });
   }, [isSelecting, elements, selectionRect, selectElement]);
 
-  const handleCanvasClick = (e: React.MouseEvent) => {
+  const handleSurfaceClick = (e: React.MouseEvent) => {
     // Only clear selection if clicking directly on canvas and not selecting
     if (e.target === e.currentTarget && !isSelecting) {
       selectElement(null);
@@ -345,10 +345,10 @@ const VirtualCanvas: React.FC<VirtualCanvasProps> = memo(({
           height: height,
           backgroundColor: pageSettings.backgroundColor,
         }}
-        onMouseDown={handleCanvasMouseDown}
-        onMouseMove={handleCanvasMouseMove}
-        onMouseUp={handleCanvasMouseUp}
-        onClick={handleCanvasClick}
+        onMouseDown={handleSurfaceMouseDown}
+        onMouseMove={handleSurfaceMouseMove}
+        onMouseUp={handleSurfaceMouseUp}
+        onClick={handleSurfaceClick}
         onContextMenu={handleContextMenu}
       >
         {/* Grid Background */}
@@ -428,6 +428,6 @@ const VirtualCanvas: React.FC<VirtualCanvasProps> = memo(({
   );
 });
 
-VirtualCanvas.displayName = 'VirtualCanvas';
+VirtualPxaSurface.displayName = 'VirtualPxaSurface';
 
-export default VirtualCanvas;
+export default VirtualPxaSurface;

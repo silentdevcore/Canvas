@@ -3,7 +3,7 @@
 ## Scope
 
 This checklist tracks ideas from the **Pdftools Web Viewer** demo (`https://viewer.pdf-tools.com/v5/`)
-as a reference for Canvas viewer/review workflows and Canvas.PDF-adjacent capabilities.
+as a reference for PXA viewer/review workflows and PXA.PDF-adjacent capabilities.
 
 This is **not** a report-designer migration checklist. Pdftools Web Viewer is a browser PDF viewer and
 annotation SDK, not a format like `.rdl`, `.repx`, `.jrxml`, or `.frx`.
@@ -23,20 +23,20 @@ Observed demo/source facts:
 | Area | Belongs here? | Notes |
 | --- | --- | --- |
 | Report designer migration | No | No designer file format is involved. |
-| Canvas.PDF engine parity | Partly | Some features require PDF writer/model support, for example annotations, forms, redaction, accessibility. |
-| Canvas web viewer / review UX | Yes | Main value: viewing, searching, annotating, redacting, saving, printing. |
+| PXA.PDF engine parity | Partly | Some features require PDF writer/model support, for example annotations, forms, redaction, accessibility. |
+| PXA web viewer / review UX | Yes | Main value: viewing, searching, annotating, redacting, saving, printing. |
 | Existing PDF editing | Partly | Save/annotation/redaction workflows need imported/existing PDF support, not only generation. |
 | PDF Tools code migration | Adjacent | Separate from `Code-Migration-PdfTools.md` and `Code-Migration-PdfToolsToolbox.md`. |
 
-## Already Related In Canvas
+## Already Related In PXA
 
-- [x] Canvas can generate PDFs via `Canvas.Pdf`.
-- [x] Canvas has basic document preview/export flows.
-- [x] Canvas.PDF supports links/bookmarks/outlines and viewer preferences.
-- [x] Canvas.PDF supports basic AcroForm fields: text field, multiline text field, combo box, checkbox.
-- [x] Canvas has file importer and PDF importer foundations for existing documents.
-- [x] Canvas has a broader provider feature-gap roadmap in
-      [CanvasPdf-Provider-Feature-Gaps.md](CanvasPdf-Provider-Feature-Gaps.md).
+- [x] PXA can generate PDFs via `PXA.Pdf`.
+- [x] PXA has basic document preview/export flows.
+- [x] PXA.PDF supports links/bookmarks/outlines and viewer preferences.
+- [x] PXA.PDF supports basic AcroForm fields: text field, multiline text field, combo box, checkbox.
+- [x] PXA has file importer and PDF importer foundations for existing documents.
+- [x] PXA has a broader provider feature-gap roadmap in
+      [PxaPdf-Provider-Feature-Gaps.md](PxaPdf-Provider-Feature-Gaps.md).
 
 ## Current Implementation Status
 
@@ -113,9 +113,9 @@ Intentional remaining gaps:
 - [x] **Viewer event API** - Emit events for open, page changed, zoom changed, print started/completed/failed, save/download, and search result selected.
       Implemented as browser `pdf-viewer:event` custom events plus a small in-view event trace.
 
-## Canvas Viewer Adaptation Plan
+## PXA Viewer Adaptation Plan
 
-Goal: make the Canvas PDF viewing experience feel comparable to the PDF Tools Web Viewer while keeping
+Goal: make the PXA PDF viewing experience feel comparable to the PDF Tools Web Viewer while keeping
 our own implementation, UI language, and engine boundaries.
 
 ### Phase 1 - PDF Tools-like viewer baseline
@@ -182,12 +182,12 @@ our own implementation, UI language, and engine boundaries.
 ### Technical Decision Points
 
 - [ ] Decide whether the viewer rendering basis is PDF.js, browser-native PDF embedding, or a custom
-      Canvas rendering layer.
+      PXA rendering layer.
 - [ ] Decide how generated PDFs are passed from existing preview/export flows into the viewer route.
 - [x] Decide whether annotations are stored first as sidecar JSON, embedded PDF annotations, or both.
       Decision implemented: sidecar JSON remains the review-state source for the viewer, with a backend export path that
       embeds supported annotations as native PDF annotation objects.
-- [ ] Decide the boundary between `Canvas.Importer` existing-PDF parsing and `Canvas.Pdf` rewritten output.
+- [ ] Decide the boundary between `PXA.Importer` existing-PDF parsing and `PXA.Pdf` rewritten output.
 - [ ] Decide whether thumbnail rendering happens client-side, backend-side, or both.
 - [ ] Decide how tests verify viewer behavior: unit tests for state, Playwright smoke tests for UI, and
       PDF binary tests for saved annotations/forms later.
@@ -199,7 +199,7 @@ our own implementation, UI language, and engine boundaries.
 
 ## P1 - Review And Annotation Workflow
 
-- [x] **Annotation model** - Define Canvas-side model for PDF annotations independent from UI widgets.
+- [x] **Annotation model** - Define PXA-side model for PDF annotations independent from UI widgets.
       Baseline sidecar model includes id, type, page, relative position/size, text, author, timestamp, and color.
 - [x] **Text markup annotations** - Highlight, underline, squiggly, strikeout.
       Highlight, underline, and strikeout are implemented as movable/resizable sidecar area markups and can now be created
@@ -251,12 +251,12 @@ our own implementation, UI language, and engine boundaries.
 
 ## P2 - Engine/Backend Support
 
-- [ ] **Existing PDF save/edit bridge** - Decide how `Canvas.Importer` and `Canvas.Pdf` cooperate for editing existing PDFs.
-- [x] **Annotation writer support** - Emit PDF annotations from Canvas model.
+- [ ] **Existing PDF save/edit bridge** - Decide how `PXA.Importer` and `PXA.Pdf` cooperate for editing existing PDFs.
+- [x] **Annotation writer support** - Emit PDF annotations from PXA model.
       Baseline writer support exists for sticky note, free text, highlight, underline, strikeout, square, circle, and
       redaction annotations, wired to the viewer sidecar embed endpoint. Basic normal appearance Form XObjects are
       emitted for supported types; richer viewer-specific appearance fidelity remains open.
-- [x] **Annotation reader support** - Import existing PDF annotations into Canvas model.
+- [x] **Annotation reader support** - Import existing PDF annotations into PXA model.
       Baseline reader support extracts text, free text, highlight, underline, strikeout, square, circle, and redaction
       annotations into the viewer sidecar model. Highlight/underline/strikeout `QuadPoints` are preserved as sidecar
       text-selection quads. Rich annotation metadata, appearance stream fidelity, replies, and less common annotation
@@ -324,7 +324,7 @@ V2 should focus on hardening, configurability, collaboration boundaries, and fid
 
 ### V2 - Engine And Save Strategy
 
-- [ ] **Existing PDF edit bridge decision** - Define when we rewrite through `Canvas.Importer` + `Canvas.Pdf`, when we patch incrementally, and when we reject unsupported edits.
+- [ ] **Existing PDF edit bridge decision** - Define when we rewrite through `PXA.Importer` + `PXA.Pdf`, when we patch incrementally, and when we reject unsupported edits.
       Acceptance: architecture note documents boundaries, failure modes, and test expectations.
 - [ ] **Incremental update strategy** - Decide and implement incremental save for annotation/form changes where full rewrite is not required.
       Acceptance: simple annotation/form edits can be appended incrementally and preserve unrelated original PDF structures.
@@ -350,6 +350,6 @@ redaction and form editing.
 ## References
 
 - Pdftools Web Viewer demo: https://viewer.pdf-tools.com/v5/
-- Canvas.PDF provider gaps: [CanvasPdf-Provider-Feature-Gaps.md](CanvasPdf-Provider-Feature-Gaps.md)
+- PXA.PDF provider gaps: [PxaPdf-Provider-Feature-Gaps.md](PxaPdf-Provider-Feature-Gaps.md)
 - PDF Tools SDK migration checklist: [Code-Migration-PdfTools.md](Code-Migration-PdfTools.md)
 - PDF Toolbox migration checklist: [Code-Migration-PdfToolsToolbox.md](Code-Migration-PdfToolsToolbox.md)

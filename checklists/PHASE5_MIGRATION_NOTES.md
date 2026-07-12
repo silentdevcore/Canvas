@@ -1,7 +1,7 @@
 # Phase 5 — Public API Stabilization Notes
 
 ## Stable façade entry point
-Use `Canvas.Infrastructure.Pdf.PdfFacade` as the primary entry point for orchestration-based document generation.
+Use `PXA.Infrastructure.Pdf.PdfFacade` as the primary entry point for orchestration-based document generation.
 
 ### Facade capabilities
 - `GenerateToFile(documentModel, outputPath)`
@@ -13,7 +13,7 @@ Use `Canvas.Infrastructure.Pdf.PdfFacade` as the primary entry point for orchest
 - `GetPagesWithText/GetPagesWithImages/GetPagesWithLinks/GetPagesWithShapes(documentModel)`
 
 ## Compatibility shim guidance
-Legacy direct model APIs remain available on `Canvas.Pdf.PdfDocument` (`Save`, `ToBytes`, etc.) for compatibility.
+Legacy direct model APIs remain available on `PXA.Pdf.PdfDocument` (`Save`, `ToBytes`, etc.) for compatibility.
 
 Recommended migration path is to keep model composition code and route orchestration/output through `PdfFacade`.
 
@@ -25,4 +25,4 @@ Recommended migration path is to keep model composition code and route orchestra
 - `document.Save(path)` -> `PdfFacade.GenerateToFile(document, path)`
 
 ## Sample status
-`samples/Canvas.Demo` now uses `PdfFacade` and generates `demo-facade-output.pdf`.
+`samples/PXA.Demo` now uses `PdfFacade` and generates `demo-facade-output.pdf`.

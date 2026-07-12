@@ -167,7 +167,7 @@ public sealed class RdlToDesignConverterTests
 
     // 6 ───────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
-    public void Convert_FieldsValueBinding_BecomesCanvasBinding()
+    public void Convert_FieldsValueBinding_BecomesPxaBinding()
     {
         var r = Convert(SampleRdl);
         var customer = El(r.Design, "customer");
@@ -635,7 +635,7 @@ public sealed class RdlToDesignConverterTests
     // ActiveReports / DsReport .rdlx is plain RDL XML (Microsoft RDL namespace) — it routes and
     // converts through the same pipeline, and serializes its barcode as an RDL <CustomReportItem>.
     [Fact]
-    public void Convert_ActiveReportsRdlxBarcode_BecomesCanvasBarcode()
+    public void Convert_ActiveReportsRdlxBarcode_BecomesPxaBarcode()
     {
         var rdlx = """
             <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2010/01/reportdefinition" Name="ARReport">
@@ -682,7 +682,7 @@ public sealed class RdlToDesignConverterTests
 
     // 25 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
-    public void Convert_ChartCustomItem_BecomesCanvasChartPlaceholder()
+    public void Convert_ChartCustomItem_BecomesPxaChartPlaceholder()
     {
         var rdlx = """
             <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
@@ -744,7 +744,7 @@ public sealed class RdlToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_SparklineCustomItem_BecomesCompactCanvasChart()
+    public void Convert_SparklineCustomItem_BecomesCompactPxaChart()
     {
         var rdlx = """
             <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
@@ -778,7 +778,7 @@ public sealed class RdlToDesignConverterTests
 
     // 26 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
-    public void Convert_NativeChart_BecomesCanvasChartPlaceholder()
+    public void Convert_NativeChart_BecomesPxaChartPlaceholder()
     {
         var rdl = """
             <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
@@ -881,7 +881,7 @@ public sealed class RdlToDesignConverterTests
 
     // 29 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
-    public void Convert_ShapeCustomItem_BecomesCanvasShape()
+    public void Convert_ShapeCustomItem_BecomesPxaShape()
     {
         var rdl = """
             <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
@@ -917,7 +917,7 @@ public sealed class RdlToDesignConverterTests
 
     // 28 ──────────────────────────────────────────────────────────────────────────────────────────
     [Fact]
-    public void Convert_ArrowShapeCustomItem_BecomesCanvasArrow()
+    public void Convert_ArrowShapeCustomItem_BecomesPxaArrow()
     {
         var rdl = """
             <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
@@ -989,7 +989,7 @@ public sealed class RdlToDesignConverterTests
     }
 
     [Fact]
-    public void Convert_SignatureCustomItem_BecomesCanvasSignatureWithMetadata()
+    public void Convert_SignatureCustomItem_BecomesPxaSignatureWithMetadata()
     {
         var signatureValue = new string('B', 540);
         var rdl = $$"""

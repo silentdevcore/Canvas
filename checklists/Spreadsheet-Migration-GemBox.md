@@ -1,17 +1,17 @@
 # Spreadsheet Migration — GemBox.Spreadsheet
 
-Migrates GemBox.Spreadsheet (`ExcelFile`) authoring code → Canvas spreadsheet API (`CanvasWorkbook`).
+Migrates GemBox.Spreadsheet (`ExcelFile`) authoring code → PXA spreadsheet API (`PxaWorkbook`).
 GemBox cell indexes are **already 0-based** (no shift), bold is `Font.Weight = BoldWeight`, and a
 `SpreadsheetInfo.SetLicense(...)` call is dropped.
 
-- **Project:** `src/Canvas.Migration.GemBoxSpreadsheet/`. **Converter:** `GemBoxSpreadsheetConverter` (`GemBoxSpreadsheet`, `full`).
-- **Diagnostics:** `CANMIGGBSS`. **Tests:** `tests/Canvas.Migration.GemBoxSpreadsheet.Tests/` (2, green).
+- **Project:** `src/PXA.Migration.GemBoxSpreadsheet/`. **Converter:** `GemBoxSpreadsheetConverter` (`GemBoxSpreadsheet`, `full`).
+- **Diagnostics:** `CANMIGGBSS`. **Tests:** `tests/PXA.Migration.GemBoxSpreadsheet.Tests/` (2, green).
 
 ## API mapping
-| GemBox.Spreadsheet | Canvas |
+| GemBox.Spreadsheet | PXA |
 |---|---|
 | `SpreadsheetInfo.SetLicense(...)` | (removed) |
-| `new ExcelFile()` | `new CanvasWorkbook()` |
+| `new ExcelFile()` | `new PxaWorkbook()` |
 | `wb.Worksheets.Add("S")` | `wb.AddSheet("S")` |
 | `ws.Cells["A1"]` / `ws.Cells[0,1]` (0-based) | `ws.Cell("A1")` / `ws.Cell(0,1)` |
 | `ws.Cells["A1"].Value = v` | `ws.Cell("A1").Value(v)` |

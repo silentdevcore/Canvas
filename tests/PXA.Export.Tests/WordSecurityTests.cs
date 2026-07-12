@@ -143,7 +143,7 @@ public sealed class WordSecurityTests
     {
         // Self-signed RSA cert with private key.
         using var rsaKey = RSA.Create(2048);
-        var req = new CertificateRequest("CN=Canvas Test", rsaKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var req = new CertificateRequest("CN=PXA Test", rsaKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         using var cert = req.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1));
         var pfx = cert.Export(X509ContentType.Pfx, "pw");
 
@@ -190,7 +190,7 @@ public sealed class WordSecurityTests
     public void SignDocx_ProducesValidOpcPackageStructure()
     {
         using var rsaKey = RSA.Create(2048);
-        var req = new CertificateRequest("CN=Canvas Test", rsaKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        var req = new CertificateRequest("CN=PXA Test", rsaKey, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         using var cert = req.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1));
         var pfx = cert.Export(X509ContentType.Pfx, "pw");
 

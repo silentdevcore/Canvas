@@ -31,7 +31,7 @@ public sealed class IText7MigrationPxaFacadeTests
     }
 
     [Fact]
-    public void Migrate_MapsCanvasWarningsToPxaDiagnostics()
+    public void Migrate_MapsPxaWarningsToPxaDiagnostics()
     {
         var source = """
             using iText.Kernel.Pdf;

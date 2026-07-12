@@ -1,13 +1,13 @@
-# Designer Migration: Telerik Reporting (`.trdx`) → Canvas Designer
+# Designer Migration: Telerik Reporting (`.trdx`) → PXA Designer
 
 Per-designer companion to the roadmap [`Designer-Migration.md`](Designer-Migration.md). Tracks the
-Telerik Reporting `.trdx` → Canvas `DesignExportDto` converter.
+Telerik Reporting `.trdx` → PXA `DesignExportDto` converter.
 
 - **Designer:** Telerik Reporting · **Manufacturer:** Progress (Telerik)
 - **Format:** `.trdx` — **namespaced XML** (`http://schemas.telerik.com/reporting/<ver>`). `.trdp` is the
   same XML zipped (V2). **Sectioned** layout with Unit-string geometry.
-- **Status:** ✅ **Shipped** (`Canvas.Migration.Telerik`). Hybrid of `Canvas.Migration.Rdl` (length-string
-  units, `<Style>` elements) and `Canvas.Migration.Rpx` (section/band flatten); `<StyleSheet>` `StyleName`
+- **Status:** ✅ **Shipped** (`PXA.Migration.Telerik`). Hybrid of `PXA.Migration.Rdl` (length-string
+  units, `<Style>` elements) and `PXA.Migration.Rpx` (section/band flatten); `<StyleSheet>` `StyleName`
   resolution. Schema confirmed against real `.trdx` samples. 11 unit tests + render test.
 
 ---
@@ -59,10 +59,10 @@ Telerik Reporting `.trdx` → Canvas `DesignExportDto` converter.
 
 ## Units & coordinates
 
-- Unit strings (`in`/`cm`/`mm`/`pt`/`px`) → points — reuse a length parser like `Canvas.Migration.Rdl`'s
+- Unit strings (`in`/`cm`/`mm`/`pt`/`px`) → points — reuse a length parser like `PXA.Migration.Rdl`'s
   `LengthToPt`. Sections **stack** in canonical order accumulating `Height` (no explicit Top), so
   absolute Y = `marginTop + Σ(prior section heights) + section-relative item Top` — the
-  `Canvas.Migration.Rpx`/DevExpress band-flatten. PageHeader/PageFooter → SharedElements; footer anchored
+  `PXA.Migration.Rpx`/DevExpress band-flatten. PageHeader/PageFooter → SharedElements; footer anchored
   to page bottom.
 
 ## Detection / routing
@@ -73,7 +73,7 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 
 ## Control mapping (planned)
 
-| `.trdx` item | Canvas `ElementDto.Type` | Notes |
+| `.trdx` item | PXA `ElementDto.Type` | Notes |
 | --- | --- | --- |
 | `TextBox` / `HtmlTextBox` | `text` / `richtext` | `Value`; `=Fields.X` → binding; style from inline + `StyleName` |
 | `PictureBox` | `image` | embedded `Value`/base64 → data URL, else placeholder |
@@ -83,7 +83,7 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 | `Panel` | `rect` + flatten children | container |
 | `SubReport` / `Chart` / `Graph` / unknown | labeled placeholder | `CANMIGTRDX011` |
 
-**Bindings:** `Value="=Fields.Col"` (or `=Fields.Col.Value`) → Canvas binding; other `=…` → expression.
+**Bindings:** `Value="=Fields.Col"` (or `=Fields.Col.Value`) → PXA binding; other `=…` → expression.
 
 ## Diagnostics (planned, mirroring the others)
 
@@ -94,8 +94,8 @@ Root `<Report>` is shared with RDL/RPX/FRX, so order in `MigrationController`:
 | `CANMIGTRDX010` | Info / Warning | `=Fields.X` → binding (Info); complex expression → expression (Warning) |
 | `CANMIGTRDX011` | Warning | Unsupported item / SubReport / Chart — labeled placeholder |
 | `CANMIGTRDX012` | Warning | Picture not embeddable — placeholder inserted |
-| `CANMIGTRDX013` | Warning | `Table`/`CrossTab` mapped to a Canvas table (best-effort cell anchoring) — review |
-| `CANMIGTRDX014` | Warning | `GroupHeaderSection`/`GroupFooterSection` item mapped to Canvas repeat metadata; group runtime semantics need review |
+| `CANMIGTRDX013` | Warning | `Table`/`CrossTab` mapped to a PXA table (best-effort cell anchoring) — review |
+| `CANMIGTRDX014` | Warning | `GroupHeaderSection`/`GroupFooterSection` item mapped to PXA repeat metadata; group runtime semantics need review |
 
 ## V1 checklist
 
@@ -117,19 +117,19 @@ and unsupported visual regions. Basic `Table`/`CrossTab` extraction and table ce
       (`sourceBase64`), `ReportPackageExtractor` unzips it, picks the inner `.trdx` (first entry the
       detectors recognize), and feeds the existing parser; other text entries become sub-report resources.
       *(Backend path done + tested; a binary file picker in the migration UI is the remaining frontend piece.)*
-- [x] **P1** Group-section repeat: `GroupHeaderSection`/`GroupFooterSection` items carry Canvas `RepeatDto`
+- [x] **P1** Group-section repeat: `GroupHeaderSection`/`GroupFooterSection` items carry PXA `RepeatDto`
       (data path from the `<Grouping>` expression, e.g. `=Fields.Country`→`Country`) + `style.trdxGroup`
       (name/role/band/condition); footers inherit the paired header's group key. Diagnostic `CANMIGTRDX014`.
 - [x] **P1** `TypeSelector` stylesheet rules: `<StyleSelector Type=…>` rules apply to every control of that
       type (precedence: type → named `StyleName` → inline `<Style>`). `Panel` nesting is handled by the
       recursive `ParseItems` (offsets folded so children stay absolute; depth-guarded).
-- [x] **P1** `Table`/`CrossTab` cell extraction → Canvas table: column widths from `TableBodyColumn`,
+- [x] **P1** `Table`/`CrossTab` cell extraction → PXA table: column widths from `TableBodyColumn`,
       content items placed by attached cell-anchor properties (`*.CellRowIndex`/`*.CellColumnIndex`,
       prefix-agnostic, attribute or element), `=Fields.X`→binding tokens, sequential-fill fallback when
       no anchors are present (`CANMIGTRDX013`). ⚠️ Unverified against real `.trdx` (no local samples) —
       cell anchoring is best-effort. `Chart`/`Graph`/`Map` remain captioned placeholders.
 - [x] **P1** Telerik table `CellStyles`: named + inline content-item `<Style>` values inside table cells
-      preserve background, text alignment, font and border metadata for Canvas table rendering/export.
+      preserve background, text alignment, font and border metadata for PXA table rendering/export.
 - [x] **P1** Telerik expression dialect: single `=Fields.X` → binding; compound expressions/functions are
       preserved on `element.Expression` + `style.trdxExpression` with every `Fields.X` reference normalized
-      to a Canvas `{{X}}` token in the rendered content.
+      to a PXA `{{X}}` token in the rendered content.

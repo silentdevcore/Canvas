@@ -322,7 +322,7 @@ public class ExporterTests
     {
         var xml = Encoding.UTF8.GetString(new XmlDocumentExporter().Export(MinimalDesign()));
         Assert.Contains("Hello Export", xml);
-        Assert.Contains("CanvasDocument", xml);
+        Assert.Contains("PxaDocument", xml);
     }
 
     [Fact]

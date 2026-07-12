@@ -1,6 +1,6 @@
 # Migration: Dataset Aggregates in Migrated Expressions
 
-> **Status:** shipped — PR [#17](https://github.com/silentdevcore/Canvas/pull/17)
+> **Status:** shipped — PR [#17](https://github.com/silentdevcore/PXA/pull/17)
 > (branch `migration-dataset-aggregates`, commit `28ddb270`).
 
 Completes the expression feature for the most common real-report construct: **footer/group totals**.
@@ -9,8 +9,8 @@ Companion to [Migration_RDL+DevExpress.md](Migration_RDL+DevExpress.md) and
 
 ## Goal & approach
 
-Single-row expressions already translate (RDL/DevExpress → Canvas grammar) and evaluate in the frontend
-(`expressionEngine.ts`) and server exports (`CanvasExpressionEvaluator`). Aggregates (`Sum(Fields!Total.Value)`)
+Single-row expressions already translate (RDL/DevExpress → PXA grammar) and evaluate in the frontend
+(`expressionEngine.ts`) and server exports (`PxaExpressionEvaluator`). Aggregates (`Sum(Fields!Total.Value)`)
 were the gap — `ExpressionTranslator` returned null for them, so a footer total rendered its literal
 source text instead of a computed value.
 
@@ -47,7 +47,7 @@ reads the field per row, coerces numeric, and reduces.
 - [x] DevExpress converter (`XtraReportToDesignConverter`): pass the group footer/header `GroupDataPath`
       into `TranslateDevExpress`.
 - [x] Frontend `expressionEngine.ts`: 7 aggregate helpers over a rows array (`aggField`/`aggNums`).
-- [x] C# `CanvasExpressionEvaluator`: 7 aggregate helpers in the function dispatch; `IsNumeric`/`ToNumber`
+- [x] C# `PxaExpressionEvaluator`: 7 aggregate helpers in the function dispatch; `IsNumeric`/`ToNumber`
       extended to `long/int/short/byte/float/decimal` (JSON integers arrive as `long`).
 - [x] `DesignLayoutPlanner`: verified — non-repeat footer elements already get the full payload, so the
       named dataset is reachable; no change needed.
@@ -85,12 +85,12 @@ reads the field per row, coerces numeric, and reduces.
 - [x] **Conditional / computed-argument aggregates** — `Sum(Qty * Price)`, `Sum(IIf(...))`. The aggregate's
       second argument is no longer just a field name: the translator emits the translated inner expression
       single-quoted (`$sum(ds, 'Qty * Price')`, `$sum(ds, '$iif(Paid, Total, 0)')`) and both evaluators
-      (`CanvasExpressionEvaluator.RowValue` + frontend `aggField`) evaluate it as a per-row sub-expression
+      (`PxaExpressionEvaluator.RowValue` + frontend `aggField`) evaluate it as a per-row sub-expression
       (bare identifiers keep the fast field-read path). Tests: `TranslateRdl_ComputedAggregateArgument`,
-      `CanvasExpressionEvaluatorTests.Aggregate_Over_ComputedRowExpression`, and the frontend
+      `PxaExpressionEvaluatorTests.Aggregate_Over_ComputedRowExpression`, and the frontend
       `expressionEngine.test.ts` parity case.
 - [x] **`RunningValue`** — `RunningValue(expr, AggName[, scope])` maps to the matching aggregate over the
-      current scope (`$sum`/`$avg`/…). Canvas renders the total at the group/report footer, so the running
+      current scope (`$sum`/`$avg`/…). PXA renders the total at the group/report footer, so the running
       value through the last row equals the total; true per-row running state in detail rows is **not** modelled
       (documented approximation). Test: `TranslateRdl_RunningValue_MapsToAggregate`.
-- [ ] Custom RDL `<Code>` functions — arbitrary embedded VB, not runnable in Canvas (kept preserved).
+- [ ] Custom RDL `<Code>` functions — arbitrary embedded VB, not runnable in PXA (kept preserved).

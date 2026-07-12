@@ -134,7 +134,7 @@ public class DocumentOpsController : ControllerBase
 
     /// <summary>
     /// Imports a PDF using the PXA.Importer low-level engine (own tokenizer, object graph,
-    /// and content stream interpreter). Returns a Canvas-compatible design with text, shape, and image
+    /// and content stream interpreter). Returns a PXA-compatible design with text, shape, and image
     /// elements derived from the PDF's raw graphics scene graph.
     /// Route: POST /api/document/import-pdf-engine
     /// </summary>
@@ -260,7 +260,7 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
-    /// Imports a legacy Word 97-2003 .doc file and converts it into a Canvas design.
+    /// Imports a legacy Word 97-2003 .doc file and converts it into a PXA design.
     /// Paragraphs are extracted with basic font metadata and stacked as Text elements.
     /// </summary>
     [HttpPost("import-doc")]
@@ -288,7 +288,7 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
-    /// Imports an OOXML .docx file and converts it into a Canvas design.
+    /// Imports an OOXML .docx file and converts it into a PXA design.
     /// Paragraphs map to Text elements with typography; inline images are extracted
     /// as base64 data-URIs; tables become Table elements.
     /// </summary>
@@ -317,7 +317,7 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
-    /// Imports an OpenDocument Text (.odt) file and converts it into a Canvas design.
+    /// Imports an OpenDocument Text (.odt) file and converts it into a PXA design.
     /// Paragraphs and headings are extracted with style metadata; draw:frame images
     /// are converted to Image elements.
     /// </summary>
@@ -347,7 +347,7 @@ public class DocumentOpsController : ControllerBase
 
     /// <summary>
     /// Imports a raster image file (PNG, JPG, JPEG, GIF, WebP, BMP, TIFF) and converts it
-    /// into a Canvas design. A single page is created whose dimensions match the image's
+    /// into a PXA design. A single page is created whose dimensions match the image's
     /// native pixel size, with one full-page Image element containing the image as a
     /// base64 data-URI.
     /// </summary>
@@ -374,7 +374,7 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
-    /// Imports an SVG file and converts it into a Canvas design with full vector fidelity.
+    /// Imports an SVG file and converts it into a PXA design with full vector fidelity.
     /// Rectangles map to shape elements; text maps to text elements; embedded images map to
     /// image elements; all other vector primitives (path, circle, ellipse, line, etc.) are
     /// preserved as inline SVG data-URI image elements.
@@ -406,7 +406,7 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
-    /// Imports a PowerPoint .pptx file and converts it into a Canvas design.
+    /// Imports a PowerPoint .pptx file and converts it into a PXA design.
     /// Each slide becomes a page. Text boxes, shapes, and embedded images are extracted
     /// with full fidelity including colors, fonts, and slide backgrounds.
     /// Route: POST /api/document/import-pptx
@@ -441,7 +441,7 @@ public class DocumentOpsController : ControllerBase
     /// <summary>
     /// Imports a raster image using the custom analysis engine (Phases 1–5).
     /// Extracts text (via NCC character recognition), geometric shapes (via Sobel edges),
-    /// and colour regions into individual editable Canvas elements.
+    /// and colour regions into individual editable PXA elements.
     /// Route: POST /api/document/import-image-analysis
     /// </summary>
     [HttpPost("import-image-analysis")]

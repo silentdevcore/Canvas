@@ -1,14 +1,14 @@
-# Canvas Migration: LEADTOOLS PDF
+# PXA Migration: LEADTOOLS PDF
 
 ## V1 Pilot Analysis
 
-- [x] Added cautious Roslyn-backed provider project: `src/Canvas.Migration.LeadtoolsPdf`
-- [x] Added provider tests: `tests/Canvas.Migration.LeadtoolsPdf.Tests`
+- [x] Added cautious Roslyn-backed provider project: `src/PXA.Migration.LeadtoolsPdf`
+- [x] Added provider tests: `tests/PXA.Migration.LeadtoolsPdf.Tests`
 - [x] Connected WebApi converter: `PXA.WebApi/Services/Converters/LeadtoolsPdfConverter.cs`
 - [x] Added UI fallback status/example as `pilot`
 - [ ] Confirm exact LEADTOOLS PDF-generation package/API with a real source sample
 
-LEADTOOLS covers PDF, raster imaging, OCR, barcode, document conversion, and existing-document workflows. V1 only attempts likely direct PDF-generation patterns. Raster/OCR/conversion APIs are intentionally flagged for manual migration because Canvas.Pdf output must be recreated as vector/layout calls.
+LEADTOOLS covers PDF, raster imaging, OCR, barcode, document conversion, and existing-document workflows. V1 only attempts likely direct PDF-generation patterns. Raster/OCR/conversion APIs are intentionally flagged for manual migration because PXA.Pdf output must be recreated as vector/layout calls.
 
 ## Package / API Identification
 
@@ -33,7 +33,7 @@ LEADTOOLS covers PDF, raster imaging, OCR, barcode, document conversion, and exi
 
 ## Mapping Table
 
-| LEADTOOLS API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
+| LEADTOOLS API / pattern | PXA.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
 | `new PDFDocument()` / `new PdfDocument()` / `new PDFFile()` / `new PdfFile()` | `var document = new PdfDocument();` | Pilot code fix | API identity must be validated |
 | `document.AddPage()` / `document.NewPage()` | `var page = document.AddPage();` | Pilot code fix | Preserves assigned page variable |
@@ -68,10 +68,10 @@ page.DrawRectangle(40, 100, 200, 80);
 doc.Save(outputPath);
 ```
 
-## Expected Canvas.Pdf Output Snippets
+## Expected PXA.Pdf Output Snippets
 
 ```csharp
-using Canvas.Pdf;
+using PXA.Pdf;
 
 var document = new PdfDocument();
 var page = document.AddPage();
@@ -102,7 +102,7 @@ document.Save(outputPath);
 - [x] Replace simple text drawing
 - [x] Replace simple line/rectangle drawing
 - [x] Replace simple save/export
-- [x] Add `using Canvas.Pdf`
+- [x] Add `using PXA.Pdf`
 - [x] Remove LEADTOOLS usings
 - [x] Leave conversion/OCR flows as manual diagnostics
 - [ ] Validate mappings against real LEADTOOLS generation API before promoting beyond pilot

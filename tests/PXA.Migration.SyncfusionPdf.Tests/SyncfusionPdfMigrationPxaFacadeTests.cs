@@ -29,7 +29,7 @@ public sealed class SyncfusionPdfMigrationPxaFacadeTests
     }
 
     [Fact]
-    public void Migrate_MapsCanvasWarningsToPxaDiagnostics()
+    public void Migrate_MapsPxaWarningsToPxaDiagnostics()
     {
         var source = """
             using Syncfusion.Pdf;

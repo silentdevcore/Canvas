@@ -602,7 +602,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
 
             case "comment":
             {
-                var author = el.CommentAuthor ?? "Canvas";
+                var author = el.CommentAuthor ?? "PXA";
                 var text   = el.CommentText ?? el.Content ?? "";
                 if (string.IsNullOrWhiteSpace(text)) break;
                 var (start, end, refRunProps) = commentService.AddComment(text, author, el.CommentDate);
@@ -818,7 +818,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
             {
                 var spacer = new Paragraph();
                 var ppr = new ParagraphProperties();
-                ppr.AppendChild(new SpacingBetweenLines { Before = WordUnitConverter.CanvasToTwips(topOffset).ToString() });
+                ppr.AppendChild(new SpacingBetweenLines { Before = WordUnitConverter.PxaToTwips(topOffset).ToString() });
                 spacer.PrependChild(ppr);
                 body.AppendChild(spacer);
             }
@@ -832,12 +832,12 @@ public sealed class WordDocumentExporter : IDocumentExporter
         var zebraColor = el.ZebraEnabled == true ? NormalizeHexColor(el.ZebraColor ?? "#f9fafb", "f9fafb") : null;
         var matrixHeaders = RdlMatrixHeaders(s);
 
-        // Column widths use Canvas units converted through shared converter.
+        // Column widths use PXA units converted through shared converter.
         // Fall back to equal distribution of element width across columns.
         var colWidthsPx = el.ColumnWidths ?? [];
         var tableWidthPx = el.Width > 0 ? el.Width : 500.0;
         var equalPx = tableWidthPx / Math.Max(cols, 1);
-        int ColTwips(int c) => WordUnitConverter.CanvasToTwips(
+        int ColTwips(int c) => WordUnitConverter.PxaToTwips(
             colWidthsPx.Length > c ? colWidthsPx[c] : equalPx);
 
         var alignments = el.ColumnAlignments ?? [];
@@ -845,7 +845,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
 
         var table = new Table();
         var tblPr = new TableProperties(
-            new TableWidth { Width = WordUnitConverter.CanvasToTwips(tableWidthPx).ToString(), Type = TableWidthUnitValues.Dxa },
+            new TableWidth { Width = WordUnitConverter.PxaToTwips(tableWidthPx).ToString(), Type = TableWidthUnitValues.Dxa },
             new TableLayout { Type = TableLayoutValues.Fixed },
             new TableBorders(
                 new TopBorder    { Val = BorderValues.Single, Size = bw, Color = bc },
@@ -864,13 +864,13 @@ public sealed class WordDocumentExporter : IDocumentExporter
                 LeftFromText = 0, RightFromText = 0, TopFromText = 0, BottomFromText = 0,
                 HorizontalAnchor = HorizontalAnchorValues.Page,
                 VerticalAnchor   = VerticalAnchorValues.Page,
-                TablePositionX   = WordUnitConverter.CanvasToTwips(Math.Max(0, el.X)),
-                TablePositionY   = WordUnitConverter.CanvasToTwips(Math.Max(0, el.Y)),
+                TablePositionX   = WordUnitConverter.PxaToTwips(Math.Max(0, el.X)),
+                TablePositionY   = WordUnitConverter.PxaToTwips(Math.Max(0, el.Y)),
             });
         }
         else
         {
-            var leftTwips = WordUnitConverter.CanvasToTwips(Math.Max(0, el.X));
+            var leftTwips = WordUnitConverter.PxaToTwips(Math.Max(0, el.X));
             if (leftTwips > 0)
                 tblPr.AppendChild(new TableIndentation { Width = leftTwips, Type = TableWidthUnitValues.Dxa });
         }
@@ -1101,8 +1101,8 @@ public sealed class WordDocumentExporter : IDocumentExporter
 
         var relationshipId = mainPart.GetIdOfPart(imagePart);
 
-        long cx = WordUnitConverter.CanvasToEmu(el.Width > 0 ? el.Width : 200);
-        long cy = WordUnitConverter.CanvasToEmu(el.Height > 0 ? el.Height : 150);
+        long cx = WordUnitConverter.PxaToEmu(el.Width > 0 ? el.Width : 200);
+        long cy = WordUnitConverter.PxaToEmu(el.Height > 0 ? el.Height : 150);
         var drawingId = layout.NextDrawingId++;
         var fitMode = (el.FitMode ?? "fill").Trim().ToLowerInvariant();
         var preserveAspect = fitMode is "contain" or "cover";
@@ -1130,8 +1130,8 @@ public sealed class WordDocumentExporter : IDocumentExporter
         using (var ms = new MemoryStream(pngBytes))
             imagePart.FeedData(ms);
         var relationshipId = mainPart.GetIdOfPart(imagePart);
-        long cx = WordUnitConverter.CanvasToEmu(el.Width > 0 ? el.Width : 200);
-        long cy = WordUnitConverter.CanvasToEmu(el.Height > 0 ? el.Height : 150);
+        long cx = WordUnitConverter.PxaToEmu(el.Width > 0 ? el.Width : 200);
+        long cy = WordUnitConverter.PxaToEmu(el.Height > 0 ? el.Height : 150);
         var drawingId = layout.NextDrawingId++;
         var drawing = CreateInlineDrawing(relationshipId, el, cx, cy, drawingId, false);
         var para = new Paragraph();
@@ -1433,8 +1433,8 @@ public sealed class WordDocumentExporter : IDocumentExporter
         bool preserveAspect,
         LayoutContext layout)
     {
-        var x = WordUnitConverter.CanvasToEmu(Math.Max(0, el.X));
-        var y = WordUnitConverter.CanvasToEmu(Math.Max(0, el.Y));
+        var x = WordUnitConverter.PxaToEmu(Math.Max(0, el.X));
+        var y = WordUnitConverter.PxaToEmu(Math.Max(0, el.Y));
         var relativeHeight = (uint)Math.Min(uint.MaxValue, (uint)zIndex + layout.DrawingOrder);
         layout.DrawingOrder++;
 
@@ -1582,7 +1582,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
             var topOffset = Math.Max(0, el.Y - layout.CursorY);
             if (topOffset > 0)
             {
-                var before = WordUnitConverter.CanvasToTwips(topOffset).ToString();
+                var before = WordUnitConverter.PxaToTwips(topOffset).ToString();
                 // Merge into existing SpacingBetweenLines (e.g. from ApplyParagraphTypography) to avoid duplicates
                 var existing = ppr.GetFirstChild<SpacingBetweenLines>();
                 if (existing is not null)
@@ -1592,7 +1592,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
             }
         }
 
-        var left = WordUnitConverter.CanvasToTwips(Math.Max(0, el.X));
+        var left = WordUnitConverter.PxaToTwips(Math.Max(0, el.X));
         if (left > 0)
             ppr.AppendChild(new Indentation { Left = left.ToString() });
     }
@@ -1607,10 +1607,10 @@ public sealed class WordDocumentExporter : IDocumentExporter
         Action<TextBoxContent> populateContent,
         string? bgHex = null)
     {
-        var x  = WordUnitConverter.CanvasToEmu(Math.Max(0, el.X));
-        var y  = WordUnitConverter.CanvasToEmu(Math.Max(0, el.Y));
-        var cx = WordUnitConverter.CanvasToEmu(el.Width  > 0 ? el.Width  : 200);
-        var cy = WordUnitConverter.CanvasToEmu(el.Height > 0 ? el.Height : 24);
+        var x  = WordUnitConverter.PxaToEmu(Math.Max(0, el.X));
+        var y  = WordUnitConverter.PxaToEmu(Math.Max(0, el.Y));
+        var cx = WordUnitConverter.PxaToEmu(el.Width  > 0 ? el.Width  : 200);
+        var cy = WordUnitConverter.PxaToEmu(el.Height > 0 ? el.Height : 24);
         var id = layout.NextDrawingId++;
         var zh = (uint)(layout.DrawingOrder++);
 
@@ -1679,10 +1679,10 @@ public sealed class WordDocumentExporter : IDocumentExporter
         string strokeHex,
         int strokePx)
     {
-        var x  = WordUnitConverter.CanvasToEmu(Math.Max(0, el.X));
-        var y  = WordUnitConverter.CanvasToEmu(Math.Max(0, el.Y));
-        var cx = WordUnitConverter.CanvasToEmu(el.Width  > 0 ? el.Width  : 1);
-        var cy = WordUnitConverter.CanvasToEmu(el.Height > 0 ? el.Height : 1);
+        var x  = WordUnitConverter.PxaToEmu(Math.Max(0, el.X));
+        var y  = WordUnitConverter.PxaToEmu(Math.Max(0, el.Y));
+        var cx = WordUnitConverter.PxaToEmu(el.Width  > 0 ? el.Width  : 1);
+        var cy = WordUnitConverter.PxaToEmu(el.Height > 0 ? el.Height : 1);
         var id = layout.NextDrawingId++;
         var zh = layout.DrawingOrder++;
 
@@ -1785,8 +1785,8 @@ public sealed class WordDocumentExporter : IDocumentExporter
         var orientation = settings?.Orientation?.ToLowerInvariant() ?? "portrait";
         var isLandscape = orientation == "landscape";
 
-        var pageWidthTwips = WordUnitConverter.CanvasToTwips(widthUnits);
-        var pageHeightTwips = WordUnitConverter.CanvasToTwips(heightUnits);
+        var pageWidthTwips = WordUnitConverter.PxaToTwips(widthUnits);
+        var pageHeightTwips = WordUnitConverter.PxaToTwips(heightUnits);
 
         if (isLandscape && pageWidthTwips < pageHeightTwips)
             (pageWidthTwips, pageHeightTwips) = (pageHeightTwips, pageWidthTwips);
@@ -1803,10 +1803,10 @@ public sealed class WordDocumentExporter : IDocumentExporter
             },
             new PageMargin
             {
-                Left = new UInt32Value((uint)Math.Max(margins is null ? 0 : WordUnitConverter.CanvasToTwips(margins.Left), 0)),
-                Right = new UInt32Value((uint)Math.Max(margins is null ? 0 : WordUnitConverter.CanvasToTwips(margins.Right), 0)),
-                Top = new Int32Value(margins is null ? 0 : WordUnitConverter.CanvasToTwips(margins.Top)),
-                Bottom = new Int32Value(margins is null ? 0 : WordUnitConverter.CanvasToTwips(margins.Bottom)),
+                Left = new UInt32Value((uint)Math.Max(margins is null ? 0 : WordUnitConverter.PxaToTwips(margins.Left), 0)),
+                Right = new UInt32Value((uint)Math.Max(margins is null ? 0 : WordUnitConverter.PxaToTwips(margins.Right), 0)),
+                Top = new Int32Value(margins is null ? 0 : WordUnitConverter.PxaToTwips(margins.Top)),
+                Bottom = new Int32Value(margins is null ? 0 : WordUnitConverter.PxaToTwips(margins.Bottom)),
                 Header = new UInt32Value(0U),
                 Footer = new UInt32Value(0U),
                 Gutter = new UInt32Value(0U),
@@ -1832,7 +1832,7 @@ public sealed class WordDocumentExporter : IDocumentExporter
         if (string.IsNullOrWhiteSpace(el.RevisionType)) return para;
 
         var revId  = Math.Abs((el.RevisionId ?? el.Id).GetHashCode()) % 100000;
-        var author = el.RevisionAuthor ?? "Canvas";
+        var author = el.RevisionAuthor ?? "PXA";
         var date   = DateTime.TryParse(el.RevisionDate, out var dt) ? dt.ToUniversalTime() : DateTime.UtcNow;
 
         if (el.RevisionType == "delete")

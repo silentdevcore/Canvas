@@ -181,7 +181,7 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
 
             if (identifierNames.Contains("PdfGrid"))
             {
-                _diagnostics.Add(Warning("CANMIGSYNC005", "Syncfusion PdfGrid/table usage requires manual Canvas table migration."));
+                _diagnostics.Add(Warning("CANMIGSYNC005", "Syncfusion PdfGrid/table usage requires manual PXA table migration."));
             }
 
             if (identifierNames.Overlaps(new[]
@@ -217,35 +217,35 @@ public sealed class SyncfusionPdfMigration : CSharpSourceMigration
             if (TryMigrateDrawTextBox(invocation, graphicsPageByVariable, stringFormatsByVariable, out migrated))
             {
                 diagnosticId = "CANMIGSYNC012";
-                diagnosticMessage = "Syncfusion RectangleF DrawString call was migrated to Canvas DrawTextBoxFromTop.";
+                diagnosticMessage = "Syncfusion RectangleF DrawString call was migrated to PXA DrawTextBoxFromTop.";
                 return true;
             }
 
             if (TryMigrateDrawString(invocation, graphicsPageByVariable, out migrated))
             {
                 diagnosticId = "CANMIGSYNC003";
-                diagnosticMessage = "Simple Syncfusion DrawString call was migrated to Canvas DrawTextFromTop.";
+                diagnosticMessage = "Simple Syncfusion DrawString call was migrated to PXA DrawTextFromTop.";
                 return true;
             }
 
             if (TryMigrateDrawLine(invocation, graphicsPageByVariable, out migrated))
             {
                 diagnosticId = "CANMIGSYNC010";
-                diagnosticMessage = "Simple Syncfusion DrawLine call was migrated to Canvas DrawLineFromTop.";
+                diagnosticMessage = "Simple Syncfusion DrawLine call was migrated to PXA DrawLineFromTop.";
                 return true;
             }
 
             if (TryMigrateDrawRectangle(invocation, graphicsPageByVariable, out migrated))
             {
                 diagnosticId = "CANMIGSYNC011";
-                diagnosticMessage = "Simple Syncfusion DrawRectangle call was migrated to Canvas DrawRectangleFromTop.";
+                diagnosticMessage = "Simple Syncfusion DrawRectangle call was migrated to PXA DrawRectangleFromTop.";
                 return true;
             }
 
             if (TryMigrateDrawImage(invocation, graphicsPageByVariable, out migrated))
             {
                 diagnosticId = "CANMIGSYNC014";
-                diagnosticMessage = "Simple Syncfusion DrawImage call was migrated to Canvas DrawImageFromTop.";
+                diagnosticMessage = "Simple Syncfusion DrawImage call was migrated to PXA DrawImageFromTop.";
                 return true;
             }
 

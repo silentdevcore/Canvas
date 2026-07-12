@@ -10,7 +10,7 @@ namespace PXA.Migration.ClosedXmlSpreadsheet;
 /// Migrates ClosedXML (<c>XLWorkbook</c>) authoring code to the PXA spreadsheet API
 /// (<c>PxaWorkbook</c>, see <c>PXA.Infrastructure.Spreadsheet.PxaWorkbookBuilder</c>).
 /// Roslyn-based: rewrites workbook/worksheet/cell/value/formula/style/save calls and shifts ClosedXML's
-/// 1-based indexes to Canvas's 0-based. Charts, pivots, conditional formatting, data validation, and
+/// 1-based indexes to PXA's 0-based. Charts, pivots, conditional formatting, data validation, and
 /// auto-filter are flagged for manual review.
 /// </summary>
 public sealed class ClosedXmlSpreadsheetMigration : CSharpSourceMigration
@@ -29,7 +29,7 @@ public sealed class ClosedXmlSpreadsheetMigration : CSharpSourceMigration
         var diagnostics = new List<MigrationDiagnostic>();
         if (rewriter.AppliedIndexShift)
             diagnostics.Add(Info("CANMIGCLXL010",
-                "ClosedXML cell/column indexes are 1-based; converted numeric Cell(row,col)/Column(i) to Canvas's 0-based equivalent. Verify any computed indexes."));
+                "ClosedXML cell/column indexes are 1-based; converted numeric Cell(row,col)/Column(i) to PXA's 0-based equivalent. Verify any computed indexes."));
         diagnostics.AddRange(rewriter.Diagnostics);
         diagnostics.AddRange(ScanUnsupported(root));
 
@@ -125,7 +125,7 @@ public sealed class ClosedXmlSpreadsheetMigration : CSharpSourceMigration
             {
                 AppliedIndexShift = true;
                 if (name == "Row")
-                    Diagnostics.Add(Warn("CANMIGCLXL021", "ws.Row(i) has no direct Canvas builder method; review row height/grouping manually."));
+                    Diagnostics.Add(Warn("CANMIGCLXL021", "ws.Row(i) has no direct PXA builder method; review row height/grouping manually."));
                 return visited.WithArgumentList(ShiftArgs(visited.ArgumentList));
             }
 
@@ -149,7 +149,7 @@ public sealed class ClosedXmlSpreadsheetMigration : CSharpSourceMigration
             if (member is "FormulaA1" or "FormulaR1C1")
             {
                 if (member == "FormulaR1C1")
-                    Diagnostics.Add(Warn("CANMIGCLXL022", "R1C1 formula converted as-is; Canvas expects A1 syntax — review."));
+                    Diagnostics.Add(Warn("CANMIGCLXL022", "R1C1 formula converted as-is; PXA expects A1 syntax — review."));
                 return Call(lhs.Expression, "Formula", rhs);
             }
 
@@ -208,7 +208,7 @@ public sealed class ClosedXmlSpreadsheetMigration : CSharpSourceMigration
                 SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(lambda))));
         }
 
-        // Detects X.Style.Font.<Bold|Italic|FontSize> and returns the cell expression + Canvas style method.
+        // Detects X.Style.Font.<Bold|Italic|FontSize> and returns the cell expression + PXA style method.
         private static bool TryStyleChain(MemberAccessExpressionSyntax lhs, out ExpressionSyntax? cellExpr, out string? styleMethod)
         {
             cellExpr = null; styleMethod = null;

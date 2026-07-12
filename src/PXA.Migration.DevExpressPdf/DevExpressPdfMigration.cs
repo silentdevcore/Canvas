@@ -157,7 +157,7 @@ public sealed class DevExpressPdfMigration : CSharpSourceMigration
     //   enc.UserPasswordString = "..."; enc.OwnerPasswordString = "...";
     //   var save = new PdfSaveOptions { EncryptionOptions = enc };
     //   processor.SaveDocument(path, save);
-    // and translate the password setup so the rewriter can emit document.Save(path, Canvas options).
+    // and translate the password setup so the rewriter can emit document.Save(path, PXA options).
     private static EncryptionModel ScanEncryption(CompilationUnitSyntax root)
     {
         string? encryptionVar = null;
@@ -377,7 +377,7 @@ public sealed class DevExpressPdfMigration : CSharpSourceMigration
             if (IsDeclarationWithCall(node, "CreateGraphics"))
             {
                 _diagnostics.Add(Info("CANMIGDEVEXP003",
-                    "CreateGraphics() removed — Canvas draw calls use the PdfPage surface directly."));
+                    "CreateGraphics() removed — PXA draw calls use the PdfPage surface directly."));
                 return [];
             }
 
@@ -412,7 +412,7 @@ public sealed class DevExpressPdfMigration : CSharpSourceMigration
                 if (unmappedSize != null)
                 {
                     _diagnostics.Add(Warning("CANMIGDEVEXP026",
-                        $"PdfPaperSize.{unmappedSize} has no Canvas preset — defaulted to A4. " +
+                        $"PdfPaperSize.{unmappedSize} has no PXA preset — defaulted to A4. " +
                         "Use document.AddPage(width, height) for an exact size."));
                 }
                 var results = new List<MemberDeclarationSyntax>();
@@ -632,7 +632,7 @@ public sealed class DevExpressPdfMigration : CSharpSourceMigration
 
         private static string? MapNamedColor(string name) => name switch
         {
-            "Black" => null, // already the Canvas default
+            "Black" => null, // already the PXA default
             "White" => "PdfColor.White",
             "Gray" or "Grey" => "PdfColor.Gray",
             "Red" => "PdfColor.RedColor",
@@ -694,7 +694,7 @@ public sealed class DevExpressPdfMigration : CSharpSourceMigration
         }
 
         // Map a RenderNewPage(...) argument list to the arguments for document.AddPage(...).
-        //   RenderNewPage(PdfPaperSize.A4, graphics)     → ""                    (A4 is the Canvas default)
+        //   RenderNewPage(PdfPaperSize.A4, graphics)     → ""                    (A4 is the PXA default)
         //   RenderNewPage(PdfPaperSize.A3, graphics)     → "PdfPagePreset.A3"
         //   RenderNewPage(PdfPaperSize.Letter, graphics) → "PdfPagePreset.Letter"
         //   RenderNewPage(width, height, graphics)       → "width, height"
@@ -709,7 +709,7 @@ public sealed class DevExpressPdfMigration : CSharpSourceMigration
                     : args[0];
                 switch (name)
                 {
-                    case "A4": return "";                    // Canvas AddPage() defaults to A4
+                    case "A4": return "";                    // PXA AddPage() defaults to A4
                     case "A3": return "PdfPagePreset.A3";
                     case "Letter": return "PdfPagePreset.Letter";
                     case "Legal": return "612, 1008";        // 8.5 × 14 in

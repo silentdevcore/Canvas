@@ -5,7 +5,7 @@ Improve the element inspector and canvas toolbar with missing typography control
 
 ## Current State — Code Analysis (2026-05-15)
 
-Analysis of `src/components/Editor/SimpleCanvas.tsx` and `src/types.ts`.
+Analysis of `src/components/Editor/SimplePxaSurface.tsx` and `src/types.ts`.
 
 | Area | Status | Notes |
 |---|---|---|
@@ -146,7 +146,7 @@ Analysis of `src/components/Editor/SimpleCanvas.tsx` and `src/types.ts`.
 - [x] Add `redo()` action: pops redo stack → restores template; pushes restored template onto undo stack.
 - [x] Snapshot is taken automatically on: `addElement`, `deleteElement`, `reorderElement`, `addPage`, `deletePage`, `duplicatePage`, `movePageTo`, `addSharedElement`, `deleteSharedElement`.
 - [x] Snapshot is taken at drag **start** and resize **start** (one undo step per interaction, not per pixel).
-- [x] `⌘Z` / `Ctrl+Z` → undo; `⌘⇧Z` / `Ctrl+Y` → redo. *(global keyboard handler in SimpleCanvas)*
+- [x] `⌘Z` / `Ctrl+Z` → undo; `⌘⇧Z` / `Ctrl+Y` → redo. *(global keyboard handler in SimplePxaSurface)*
 - [x] Undo and Redo icon buttons added to the topbar.
 - [x] Switching templates resets both stacks.
 

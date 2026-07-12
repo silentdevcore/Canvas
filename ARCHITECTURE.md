@@ -7,7 +7,7 @@
 | Power Dox Automation | Product and website name |
 | PXA | Developer/API/CLI identity and reserved future `.pxa` file-format prefix |
 | `PXA.*` | Active backend namespaces, project names, and public developer-facing API |
-| `Canvas.*` | Historical project/namespace name removed by the breaking PXA rename |
+| `PXA.*` | Historical project/namespace name removed by the breaking PXA rename |
 
 ## Dependency Direction
 

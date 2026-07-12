@@ -15,7 +15,7 @@
 ### Components
 - [x] App
 - [x] Sidebar (elements)
-- [x] Canvas
+- [x] PXA
 - [x] ElementRenderer
 - [x] PropertiesPanel
 
@@ -109,8 +109,8 @@ To add styling capabilities to elements, extend the property system:
 
 1. **Add style properties** to element props in `store.ts`:
    ```typescript
-   props: { 
-     text: 'Text', 
+   props: {
+     text: 'Text',
      fontSize: 16,
      style: { backgroundColor: '#fff', color: '#000', border: '1px solid #ccc' }
    }

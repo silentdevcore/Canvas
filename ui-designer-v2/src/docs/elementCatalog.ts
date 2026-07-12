@@ -1,4 +1,4 @@
-// Element catalog — the single source of truth for Canvas element documentation.
+// Element catalog — the single source of truth for Workspace element documentation.
 //
 // One entry per frontend ElementType. Drives the in-app docs (DocsPage), the Help dialog (HelpModal),
 // the AI artifacts (llms.txt / JSON examples), and a drift-guard test that keeps this in lock-step with

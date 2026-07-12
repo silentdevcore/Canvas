@@ -1,7 +1,7 @@
 # Powerful Backend Spreadsheet Engine
 
 Grows the backend spreadsheet from an `.xlsx` round-trip into an engine (server-side calculation, rich
-Excel features, rendering, format breadth), built **in-house** on ClosedXML + Canvas.Pdf + NPOI.
+Excel features, rendering, format breadth), built **in-house** on ClosedXML + PXA.Pdf + NPOI.
 Benchmarked against GemBox.Spreadsheet and Aspose.Cells.
 
 ## Context
@@ -12,7 +12,7 @@ vs. GemBox/Aspose: server-side calc, conditional formatting, data validation, so
 protection, grouping, comments, rendering (PDF/PNG/HTML), and `.xls`/`.ods`/backend CSV/HTML.
 
 ### Decisions (confirmed)
-- **In-house:** ClosedXML + Canvas.Pdf (render) + NPOI (`.xls`). No commercial dependency.
+- **In-house:** ClosedXML + PXA.Pdf (render) + NPOI (`.xls`). No commercial dependency.
 - **Phase 1 = server-side calculation engine.**
 - **Defer charts + pivot tables.**
 
@@ -40,10 +40,10 @@ protection, grouping, comments, rendering (PDF/PNG/HTML), and `.xls`/`.ods`/back
 - [x] Tests: `RichFeatures_RoundTrip`, `SortRange_OrdersRowsByKeyColumn`, `FindReplace_ReplacesTextAndFormulas`.
       Full Export suite **198** green.
 
-## Phase 3 — Rendering (sheet → PDF / PNG / HTML) on Canvas.Pdf — DONE
+## Phase 3 — Rendering (sheet → PDF / PNG / HTML) on PXA.Pdf — DONE
 - [x] `POST /api/spreadsheet/render?format=pdf|html|png|jpeg&sheet=0` — maps the sheet to a **gridlined**
       table (`SpreadsheetToDesignConverter(..., gridlines: true)` → header row + light borders) and reuses
-      the existing renderers: PDF via `DesignJsonMapper.MapToPdfDocument` (Canvas.Pdf), html/png/jpeg via
+      the existing renderers: PDF via `DesignJsonMapper.MapToPdfDocument` (PXA.Pdf), html/png/jpeg via
       `ExportDocumentUseCase`. No new rendering code.
 - [x] Unit test for the gridlines option; **live-verified**: render → `%PDF` (1355 B), `<!DOCTYPE html>`,
       PNG (`89504e47`).
@@ -69,7 +69,7 @@ protection, grouping, comments, rendering (PDF/PNG/HTML), and `.xls`/`.ods`/back
 Charts, pivot tables, images/shapes, digital signatures, full 1M-row streaming engine.
 
 ## Verification — all phases DONE
-- `dotnet build Canvas.sln` clean; `Canvas.Export.Tests` **203** green (recalc, each rich-feature round-trip,
+- `dotnet build PXA.sln` clean; `PXA.Export.Tests` **203** green (recalc, each rich-feature round-trip,
   `.xls` + CSV, render, from-data + fill).
 - Live (`:5086`): `/calculate` computes chained deps; `/render?format=pdf` → `%PDF`; `/export?format=xls` →
   BIFF; `/from-data` builds a sheet; `/fill` resolves nested `{{user.name}}`.

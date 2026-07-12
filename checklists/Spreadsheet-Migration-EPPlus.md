@@ -1,16 +1,16 @@
 # Spreadsheet Migration — EPPlus
 
-Migrates EPPlus (`ExcelPackage`) authoring code → Canvas spreadsheet API (`CanvasWorkbook`). Clones the
+Migrates EPPlus (`ExcelPackage`) authoring code → PXA spreadsheet API (`PxaWorkbook`). Clones the
 ClosedXML reference; EPPlus differs in the cell **indexer** (`Cells[..]`), the `Merge` property, the
 `pkg.Workbook.Worksheets` path, and `SaveAs(FileInfo)`.
 
-- **Project:** `src/Canvas.Migration.EpplusSpreadsheet/`. **Converter:** `EpplusSpreadsheetConverter` (`EpplusSpreadsheet`, `full`), in `MigrationService`.
-- **Diagnostics:** `CANMIGEPPL`. **Tests:** `tests/Canvas.Migration.EpplusSpreadsheet.Tests/` (3, green).
+- **Project:** `src/PXA.Migration.EpplusSpreadsheet/`. **Converter:** `EpplusSpreadsheetConverter` (`EpplusSpreadsheet`, `full`), in `MigrationService`.
+- **Diagnostics:** `CANMIGEPPL`. **Tests:** `tests/PXA.Migration.EpplusSpreadsheet.Tests/` (3, green).
 
 ## API mapping
-| EPPlus | Canvas |
+| EPPlus | PXA |
 |---|---|
-| `new ExcelPackage()` | `new CanvasWorkbook()` |
+| `new ExcelPackage()` | `new PxaWorkbook()` |
 | `pkg.Workbook.Worksheets.Add("S")` | `pkg.AddSheet("S")` |
 | `ws.Cells["A1"]` | `ws.Cell("A1")` |
 | `ws.Cells[1,2]` (1-based) | `ws.Cell(0,1)` |

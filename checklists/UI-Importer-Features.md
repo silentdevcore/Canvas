@@ -1,86 +1,86 @@
 # Importer Project Refactoring Checklist
 
-Scope: split every file-format importer into its own self-contained project, following the `Canvas.Migration.*` pattern. Each importer gets a dedicated `src/Canvas.FileImporter.<Format>/` project and a corresponding `tests/Canvas.FileImporter.<Format>.Tests/` project.
+Scope: split every file-format importer into its own self-contained project, following the `PXA.Migration.*` pattern. Each importer gets a dedicated `src/PXA.FileImporter.<Format>/` project and a corresponding `tests/PXA.FileImporter.<Format>.Tests/` project.
 
 ---
 
 ## Abstractions
 
-- [ ] Create `src/Canvas.FileImporter.Abstractions/Canvas.FileImporter.Abstractions.csproj` (references only Canvas.Core).
+- [ ] Create `src/PXA.FileImporter.Abstractions/PXA.FileImporter.Abstractions.csproj` (references only PXA.Core).
 - [ ] Create `IFileImporter` interface with `SupportedExtensions` and `ImportAsync(Stream, string?)`.
-- [ ] Add `Canvas.FileImporter.Abstractions` to `Canvas.sln`.
+- [ ] Add `PXA.FileImporter.Abstractions` to `PXA.sln`.
 
 ---
 
-## Canvas.FileImporter.Pdf
+## PXA.FileImporter.Pdf
 
-- [ ] Create `src/Canvas.FileImporter.Pdf/Canvas.FileImporter.Pdf.csproj` (references Abstractions, Canvas.Core, Canvas.Importer).
-- [ ] Move `CanvasImporterPdfImporter.cs` → `PdfFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["pdf"]`.
-- [ ] Add project to `Canvas.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
-- [ ] Create `tests/Canvas.FileImporter.Pdf.Tests/` with basic round-trip test.
+- [ ] Create `src/PXA.FileImporter.Pdf/PXA.FileImporter.Pdf.csproj` (references Abstractions, PXA.Core, PXA.Importer).
+- [ ] Move `PdfFileImporter.cs` → `PdfFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["pdf"]`.
+- [ ] Add project to `PXA.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
+- [ ] Create `tests/PXA.FileImporter.Pdf.Tests/` with basic round-trip test.
 
 ---
 
-## Canvas.FileImporter.Docx
+## PXA.FileImporter.Docx
 
-- [ ] Create `src/Canvas.FileImporter.Docx/Canvas.FileImporter.Docx.csproj` (references Abstractions, Canvas.Core; NuGet: DocumentFormat.OpenXml).
+- [ ] Create `src/PXA.FileImporter.Docx/PXA.FileImporter.Docx.csproj` (references Abstractions, PXA.Core; NuGet: DocumentFormat.OpenXml).
 - [ ] Move `DocxImporter.cs` → `DocxFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["docx"]`.
-- [ ] Add project to `Canvas.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
-- [ ] Create `tests/Canvas.FileImporter.Docx.Tests/` with basic round-trip test.
+- [ ] Add project to `PXA.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
+- [ ] Create `tests/PXA.FileImporter.Docx.Tests/` with basic round-trip test.
 
 ---
 
-## Canvas.FileImporter.Pptx
+## PXA.FileImporter.Pptx
 
-- [ ] Create `src/Canvas.FileImporter.Pptx/Canvas.FileImporter.Pptx.csproj` (references Abstractions, Canvas.Core; NuGet: DocumentFormat.OpenXml).
+- [ ] Create `src/PXA.FileImporter.Pptx/PXA.FileImporter.Pptx.csproj` (references Abstractions, PXA.Core; NuGet: DocumentFormat.OpenXml).
 - [ ] Move `PptxImporter.cs` → `PptxFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["pptx"]`.
-- [ ] Add project to `Canvas.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
-- [ ] Create `tests/Canvas.FileImporter.Pptx.Tests/` with basic round-trip test.
+- [ ] Add project to `PXA.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
+- [ ] Create `tests/PXA.FileImporter.Pptx.Tests/` with basic round-trip test.
 
 ---
 
-## Canvas.FileImporter.Doc
+## PXA.FileImporter.Doc
 
-- [ ] Create `src/Canvas.FileImporter.Doc/Canvas.FileImporter.Doc.csproj` (references Abstractions, Canvas.Core; no extra NuGet).
+- [ ] Create `src/PXA.FileImporter.Doc/PXA.FileImporter.Doc.csproj` (references Abstractions, PXA.Core; no extra NuGet).
 - [ ] Move `DocImporter.cs` → `DocFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["doc"]`.
-- [ ] Add project to `Canvas.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
-- [ ] Create `tests/Canvas.FileImporter.Doc.Tests/` with basic round-trip test.
+- [ ] Add project to `PXA.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
+- [ ] Create `tests/PXA.FileImporter.Doc.Tests/` with basic round-trip test.
 
 ---
 
-## Canvas.FileImporter.Odt
+## PXA.FileImporter.Odt
 
-- [ ] Create `src/Canvas.FileImporter.Odt/Canvas.FileImporter.Odt.csproj` (references Abstractions, Canvas.Core; no extra NuGet).
+- [ ] Create `src/PXA.FileImporter.Odt/PXA.FileImporter.Odt.csproj` (references Abstractions, PXA.Core; no extra NuGet).
 - [ ] Move `OdtImporter.cs` → `OdtFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["odt"]`.
-- [ ] Add project to `Canvas.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
-- [ ] Create `tests/Canvas.FileImporter.Odt.Tests/` with basic round-trip test.
+- [ ] Add project to `PXA.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
+- [ ] Create `tests/PXA.FileImporter.Odt.Tests/` with basic round-trip test.
 
 ---
 
-## Canvas.FileImporter.Svg
+## PXA.FileImporter.Svg
 
-- [ ] Create `src/Canvas.FileImporter.Svg/Canvas.FileImporter.Svg.csproj` (references Abstractions, Canvas.Core; no extra NuGet).
+- [ ] Create `src/PXA.FileImporter.Svg/PXA.FileImporter.Svg.csproj` (references Abstractions, PXA.Core; no extra NuGet).
 - [ ] Move `SvgImporter.cs` → `SvgFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["svg"]`.
-- [ ] Add project to `Canvas.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
-- [ ] Create `tests/Canvas.FileImporter.Svg.Tests/` with basic round-trip test.
+- [ ] Add project to `PXA.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
+- [ ] Create `tests/PXA.FileImporter.Svg.Tests/` with basic round-trip test.
 
 ---
 
-## Canvas.FileImporter.Image
+## PXA.FileImporter.Image
 
-- [ ] Create `src/Canvas.FileImporter.Image/Canvas.FileImporter.Image.csproj` (references Abstractions, Canvas.Core; NuGet: SkiaSharp).
+- [ ] Create `src/PXA.FileImporter.Image/PXA.FileImporter.Image.csproj` (references Abstractions, PXA.Core; NuGet: SkiaSharp).
 - [ ] Move `ImageImporter.cs` → `ImageFileImporter.cs`; rename class; implement `IFileImporter`; `SupportedExtensions = ["png","jpg","jpeg","gif","webp","bmp","tiff","tif"]`.
-- [ ] Add project to `Canvas.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
-- [ ] Create `tests/Canvas.FileImporter.Image.Tests/` with basic round-trip test.
+- [ ] Add project to `PXA.sln` and `PXA.WebApi/PXA.WebApi.csproj`.
+- [ ] Create `tests/PXA.FileImporter.Image.Tests/` with basic round-trip test.
 
 ---
 
 ## Source cleanup
 
-- [ ] Delete `DocImporter.cs`, `OdtImporter.cs`, `ImageImporter.cs`, `SvgImporter.cs`, `CanvasImporterPdfImporter.cs` from `Canvas.Infrastructure.Converters`.
-- [ ] Remove `SkiaSharp` from `Canvas.Infrastructure.Converters.csproj` if no longer used.
-- [ ] Remove `Canvas.Importer` project reference from `Canvas.Infrastructure.Converters.csproj` if no longer used.
-- [ ] Delete `DocxImporter.cs`, `PptxImporter.cs` from `Canvas.Infrastructure.Word`.
+- [ ] Delete `DocImporter.cs`, `OdtImporter.cs`, `ImageImporter.cs`, `SvgImporter.cs`, `PdfFileImporter.cs` from `PXA.Infrastructure.Converters`.
+- [ ] Remove `SkiaSharp` from `PXA.Infrastructure.Converters.csproj` if no longer used.
+- [ ] Remove `PXA.Importer` project reference from `PXA.Infrastructure.Converters.csproj` if no longer used.
+- [ ] Delete `DocxImporter.cs`, `PptxImporter.cs` from `PXA.Infrastructure.Word`.
 
 ---
 
@@ -93,10 +93,10 @@ Scope: split every file-format importer into its own self-contained project, fol
 
 ## Verification
 
-- [ ] `dotnet build Canvas.sln` — 0 errors.
+- [ ] `dotnet build PXA.sln` — 0 errors.
 - [ ] Each importer project builds in isolation.
 - [ ] POST PDF to `/api/document/import-pdf-engine` → valid `DesignExportDto`.
 - [ ] POST DOCX to `/api/document/import-docx` → valid `DesignExportDto`.
 - [ ] POST PPTX to `/api/document/import-pptx` → valid `DesignExportDto`.
 - [ ] POST SVG to `/api/document/import-svg` → valid `DesignExportDto`.
-- [ ] `Canvas.Api.Tests` — all existing tests pass.
+- [ ] `PXA.Api.Tests` — all existing tests pass.

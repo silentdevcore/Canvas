@@ -327,14 +327,14 @@ describe('Document mode: warning banner logic', () => {
 
   test('shows warning when word elements on canvas in PDF mode', () => {
     const elements = [{ type: 'text' }, { type: 'footnote' }];
-    const wordOnCanvas = elements.some(el => WORD_ONLY_TYPES.has(el.type));
-    expect('pdf' === 'pdf' && wordOnCanvas).toBe(true);
+    const wordOnSurface = elements.some(el => WORD_ONLY_TYPES.has(el.type));
+    expect('pdf' === 'pdf' && wordOnSurface).toBe(true);
   });
 
   test('no warning when no word-only elements on canvas in PDF mode', () => {
     const elements = [{ type: 'text' }, { type: 'link' }, { type: 'bookmark' }];
-    const wordOnCanvas = elements.some(el => WORD_ONLY_TYPES.has(el.type));
-    expect(wordOnCanvas).toBe(false);
+    const wordOnSurface = elements.some(el => WORD_ONLY_TYPES.has(el.type));
+    expect(wordOnSurface).toBe(false);
   });
 
   test('bookmark is not classified as word-only', () => {

@@ -39,7 +39,7 @@ public sealed class DevExpressPdfMigrationTests
     }
 
     [Fact]
-    public void Migrate_LineAndRectangleDrawing_ProducesCanvasDrawCalls()
+    public void Migrate_LineAndRectangleDrawing_ProducesPxaDrawCalls()
     {
         var source = """
             using DevExpress.Pdf;
@@ -98,7 +98,7 @@ public sealed class DevExpressPdfMigrationTests
     [InlineData("PdfPaperSize.Letter", "var page = document.AddPage(PdfPagePreset.Letter);")]
     [InlineData("PdfPaperSize.Legal", "var page = document.AddPage(612, 1008);")]
     [InlineData("PdfPaperSize.A5", "var page = document.AddPage(420, 595);")]
-    public void Migrate_PaperSize_MapsToCanvasAddPage(string paperSize, string expectedAddPage)
+    public void Migrate_PaperSize_MapsToPxaAddPage(string paperSize, string expectedAddPage)
     {
         var source = $$"""
             using DevExpress.Pdf;
@@ -224,7 +224,7 @@ public sealed class DevExpressPdfMigrationTests
     }
 
     [Fact]
-    public void Migrate_NamedPenColour_MapsToCanvasColour()
+    public void Migrate_NamedPenColour_MapsToPxaColour()
     {
         var source = """
             using DevExpress.Pdf;
@@ -426,7 +426,7 @@ public sealed class DevExpressPdfMigrationTests
         // Fix 1: the DXFont declarations are removed (no leftover vendor type that won't compile).
         Assert.DoesNotContain("DXFont", code);
 
-        // Fix 2: encryption is actually applied — Save carries mapped Canvas options, not dropped.
+        // Fix 2: encryption is actually applied — Save carries mapped PXA options, not dropped.
         Assert.Contains("document.Save(outputPath, new PdfSaveOptions", code);
         Assert.Contains("Encryption = new PdfEncryptionOptions", code);
         Assert.Contains("UserPassword = \"open-sesame\"", code);

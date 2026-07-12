@@ -185,7 +185,7 @@ public sealed class IText7Migration : CSharpSourceMigration
 
             if (TryMigrateShowTextAligned(visited, out var alignedTextMigration))
             {
-                _diagnostics.Add(Info("CANMIGITEXT009", "Simple iText7 ShowTextAligned call was migrated to Canvas DrawText."));
+                _diagnostics.Add(Info("CANMIGITEXT009", "Simple iText7 ShowTextAligned call was migrated to PXA DrawText."));
                 return alignedTextMigration;
             }
 
@@ -197,7 +197,7 @@ public sealed class IText7Migration : CSharpSourceMigration
 
             if (TryMigrateParagraphAdd(visited, out var migrated))
             {
-                _diagnostics.Add(Info("CANMIGITEXT003", "Simple iText7 Paragraph addition was migrated to Canvas DrawTextFromTop."));
+                _diagnostics.Add(Info("CANMIGITEXT003", "Simple iText7 Paragraph addition was migrated to PXA DrawTextFromTop."));
                 return migrated;
             }
 
@@ -218,7 +218,7 @@ public sealed class IText7Migration : CSharpSourceMigration
 
             if (identifierNames.Contains("Table"))
             {
-                _diagnostics.Add(Warning("CANMIGITEXT005", "iText7 Table usage requires manual Canvas table migration."));
+                _diagnostics.Add(Warning("CANMIGITEXT005", "iText7 Table usage requires manual PXA table migration."));
             }
 
             if (identifierNames.Overlaps(new[]
@@ -383,7 +383,7 @@ public sealed class IText7Migration : CSharpSourceMigration
             if (TryMigratePdfCanvasLine(invocation, _pdfCanvasVariables, out migrated))
             {
                 diagnosticId = "CANMIGITEXT011";
-                diagnosticMessage = "Simple iText7 PdfCanvas line was migrated to Canvas DrawLine.";
+                diagnosticMessage = "Simple iText7 PdfCanvas line was migrated to PXA DrawLine.";
                 return true;
             }
 
@@ -391,15 +391,15 @@ public sealed class IText7Migration : CSharpSourceMigration
             {
                 diagnosticId = "CANMIGITEXT012";
                 diagnosticMessage = fill
-                    ? "Simple iText7 PdfCanvas filled rectangle was migrated to Canvas DrawRectangle."
-                    : "Simple iText7 PdfCanvas stroked rectangle was migrated to Canvas DrawRectangle.";
+                    ? "Simple iText7 PdfCanvas filled rectangle was migrated to PXA DrawRectangle."
+                    : "Simple iText7 PdfCanvas stroked rectangle was migrated to PXA DrawRectangle.";
                 return true;
             }
 
             if (TryMigratePdfCanvasText(invocation, _pdfCanvasVariables, out migrated))
             {
                 diagnosticId = "CANMIGITEXT014";
-                diagnosticMessage = "Simple iText7 PdfCanvas text chain was migrated to Canvas DrawText.";
+                diagnosticMessage = "Simple iText7 PdfCanvas text chain was migrated to PXA DrawText.";
                 return true;
             }
 
@@ -539,7 +539,7 @@ public sealed class IText7Migration : CSharpSourceMigration
                 if (TryMatchSeparatedPdfCanvasTextState(members, index, _pdfCanvasVariables, out var migrated, out var consumed))
                 {
                     rewritten.Add(SyntaxFactory.GlobalStatement(migrated));
-                    _diagnostics.Add(Info("CANMIGITEXT015", "Separated iText7 PdfCanvas text state statements were migrated to Canvas DrawText."));
+                    _diagnostics.Add(Info("CANMIGITEXT015", "Separated iText7 PdfCanvas text state statements were migrated to PXA DrawText."));
                     index += consumed - 1;
                     continue;
                 }
@@ -559,7 +559,7 @@ public sealed class IText7Migration : CSharpSourceMigration
                 if (TryMatchSeparatedPdfCanvasTextState(statements, index, _pdfCanvasVariables, out var migrated, out var consumed))
                 {
                     rewritten.Add(migrated);
-                    _diagnostics.Add(Info("CANMIGITEXT015", "Separated iText7 PdfCanvas text state statements were migrated to Canvas DrawText."));
+                    _diagnostics.Add(Info("CANMIGITEXT015", "Separated iText7 PdfCanvas text state statements were migrated to PXA DrawText."));
                     index += consumed - 1;
                     continue;
                 }
@@ -700,7 +700,7 @@ public sealed class IText7Migration : CSharpSourceMigration
                 && invocation.ArgumentList.Arguments.Count >= 4
                 && IsCenterOrRightTextAlignment(invocation.ArgumentList.Arguments[3].Expression))
             {
-                diagnostic = Warning("CANMIGITEXT010", "iText7 ShowTextAligned center/right anchor alignment needs manual Canvas positioning review.");
+                diagnostic = Warning("CANMIGITEXT010", "iText7 ShowTextAligned center/right anchor alignment needs manual PXA positioning review.");
                 return true;
             }
 

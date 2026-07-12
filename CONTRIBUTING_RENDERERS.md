@@ -26,7 +26,7 @@ Use an existing infrastructure project when the format belongs to an established
 Create `src/PXA.Infrastructure.<Format>` only when the format needs its own dependencies or boundary.
 
 When the feature is public developer-facing API, add or update the corresponding `PXA.Infrastructure.*` or
-`PXA.Generator` facade so new examples do not need to start from old Canvas names.
+`PXA.Generator` facade so new examples do not need to start from old PXA names.
 
 Dependencies:
 

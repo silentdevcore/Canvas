@@ -5,9 +5,9 @@ change; reuses existing converters/endpoints (no backend rewrite). See plan
 `~/.claude/plans/can-you-analyse-migrations-valiant-beaver.md`.
 
 ## Taxonomy
-- **Code Migration** (`/migrations/code`) — library C# → Canvas code. Sub-tabs: **PDF** (15) | **Spreadsheet** (4),
+- **Code Migration** (`/migrations/code`) — library C# → PXA code. Sub-tabs: **PDF** (15) | **Spreadsheet** (4),
   filtered by the backend `kind` field.
-- **DataSource / Format Migration** (`/migrations/format`) — a source file/format → Canvas. Sub-tabs:
+- **DataSource / Format Migration** (`/migrations/format`) — a source file/format → PXA. Sub-tabs:
   **Report designers** (→ design) | **Documents** (.pdf/.docx/.pptx/.odt/img → design) | **Spreadsheets**
   (.xlsx/.xls/.csv → workbook).
 

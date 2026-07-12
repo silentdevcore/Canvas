@@ -1,10 +1,10 @@
-# Canvas PDF Migration Handoff
+# PXA PDF Migration Handoff
 
 Stand: 2026-05-31, Europe/Berlin
 
 ## Ziel
 
-Weiterarbeit am Feature `Canvas.Migration.*`, das C#-PDF-Code aus Drittanbieter-Bibliotheken nach `Canvas.Pdf` migriert.
+Weiterarbeit am Feature `PXA.Migration.*`, das C#-PDF-Code aus Drittanbieter-Bibliotheken nach `PXA.Pdf` migriert.
 
 Der bisherige Fokus war:
 
@@ -32,10 +32,10 @@ Der bisherige Fokus war:
 Beim Erstellen dieses Handoffs zeigt `git status --short` unter anderem Änderungen, die nicht aus der Migration-Arbeit stammen bzw. nicht zurückgesetzt werden sollen:
 
 - `PXA.WebApi/Controllers/DocumentOpsController.cs`
-- `src/Canvas.Infrastructure.Converters/Canvas.Infrastructure.Converters.csproj`
+- `src/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj`
 - Gelöschte Dateien:
-  - `src/Canvas.Infrastructure.Converters/PdfImporter.cs`
-  - `src/Canvas.Infrastructure.Converters/SvgPdfImporter.cs`
+  - `src/PXA.Infrastructure.Converters/PdfImporter.cs`
+  - `src/PXA.Infrastructure.Converters/SvgPdfImporter.cs`
 - UI/Docs/Export-Dateien:
   - `ui-designer-v2/src/hooks/useTemplateLoader.ts`
   - `ui-designer-v2/src/pages/DocsPage.tsx`
@@ -54,34 +54,34 @@ Alle ursprünglich geplanten Anbieter sind inzwischen mindestens als vorsichtige
 
 Provider mit Roslyn-/Pattern-Pilot:
 
-- `Canvas.Migration.SyncfusionPdf`
-- `Canvas.Migration.iText7`
-- `Canvas.Migration.AsposePdf`
-- `Canvas.Migration.IronPdf`
-- `Canvas.Migration.DevExpressPdf`
-- `Canvas.Migration.Apryse`
-- `Canvas.Migration.FoxitPdf`
-- `Canvas.Migration.DsPdf`
-- `Canvas.Migration.GemBoxPdf`
-- `Canvas.Migration.SpirePdf`
-- `Canvas.Migration.PdfKitNet`
-- `Canvas.Migration.LeadtoolsPdf`
-- `Canvas.Migration.ActivePdf`
-- `Canvas.Migration.PdfTools`
-- `Canvas.Migration.PdfToolsToolbox`
+- `PXA.Migration.SyncfusionPdf`
+- `PXA.Migration.iText7`
+- `PXA.Migration.AsposePdf`
+- `PXA.Migration.IronPdf`
+- `PXA.Migration.DevExpressPdf`
+- `PXA.Migration.Apryse`
+- `PXA.Migration.FoxitPdf`
+- `PXA.Migration.DsPdf`
+- `PXA.Migration.GemBoxPdf`
+- `PXA.Migration.SpirePdf`
+- `PXA.Migration.PdfKitNet`
+- `PXA.Migration.LeadtoolsPdf`
+- `PXA.Migration.ActivePdf`
+- `PXA.Migration.PdfTools`
+- `PXA.Migration.PdfToolsToolbox`
 
 Aktuell relevante neue/letzte Provider-Dateien:
 
-- `src/Canvas.Migration.PdfKitNet/PdfKitNetMigration.cs`
-- `tests/Canvas.Migration.PdfKitNet.Tests/PdfKitNetMigrationTests.cs`
-- `src/Canvas.Migration.LeadtoolsPdf/LeadtoolsPdfMigration.cs`
-- `tests/Canvas.Migration.LeadtoolsPdf.Tests/LeadtoolsPdfMigrationTests.cs`
-- `src/Canvas.Migration.ActivePdf/ActivePdfMigration.cs`
-- `tests/Canvas.Migration.ActivePdf.Tests/ActivePdfMigrationTests.cs`
-- `src/Canvas.Migration.PdfTools/PdfToolsMigration.cs`
-- `tests/Canvas.Migration.PdfTools.Tests/PdfToolsMigrationTests.cs`
-- `src/Canvas.Migration.PdfToolsToolbox/PdfToolsToolboxMigration.cs`
-- `tests/Canvas.Migration.PdfToolsToolbox.Tests/PdfToolsToolboxMigrationTests.cs`
+- `src/PXA.Migration.PdfKitNet/PdfKitNetMigration.cs`
+- `tests/PXA.Migration.PdfKitNet.Tests/PdfKitNetMigrationTests.cs`
+- `src/PXA.Migration.LeadtoolsPdf/LeadtoolsPdfMigration.cs`
+- `tests/PXA.Migration.LeadtoolsPdf.Tests/LeadtoolsPdfMigrationTests.cs`
+- `src/PXA.Migration.ActivePdf/ActivePdfMigration.cs`
+- `tests/PXA.Migration.ActivePdf.Tests/ActivePdfMigrationTests.cs`
+- `src/PXA.Migration.PdfTools/PdfToolsMigration.cs`
+- `tests/PXA.Migration.PdfTools.Tests/PdfToolsMigrationTests.cs`
+- `src/PXA.Migration.PdfToolsToolbox/PdfToolsToolboxMigration.cs`
+- `tests/PXA.Migration.PdfToolsToolbox.Tests/PdfToolsToolboxMigrationTests.cs`
 
 WebApi-Konverter:
 
@@ -93,7 +93,7 @@ WebApi-Konverter:
 
 API-Smoke-Tests:
 
-- `tests/Canvas.Api.Tests/MigrationServiceTests.cs`
+- `tests/PXA.Api.Tests/MigrationServiceTests.cs`
 
 UI:
 
@@ -189,7 +189,7 @@ Wichtig:
 - Converter gibt immer `CANMIGPDFTOOLS000` als diagnostics-first-pilot-Warnung aus.
 - `Sdk.Initialize(...)` wird entfernt und mit `CANMIGPDFTOOLS001` dokumentiert.
 - Offizielle API-Referenzen zeigen: `PdfTools.Pdf.Document` wird geöffnet oder durch Operationen erzeugt; direkte PDF-Erzeugung liegt im separaten PDF Toolbox SDK/add-on (`PdfTools.Toolbox.Pdf.Document.Create`, `Page.Create`).
-- Keine automatischen `Document/AddPage/DrawText`-Canvas-Rewrites mehr für diesen SDK-Provider.
+- Keine automatischen `Document/AddPage/DrawText`-PXA-Rewrites mehr für diesen SDK-Provider.
 - Warnt bei Document.Open/Save, Conversion, Rendering/Image, Optimization, Validation/Repair, existing PDF processing, Security, Signaturen, Forms, Annotationen, Outlines/OCR.
 - Warnt mit `CANMIGPDFTOOLS022`, wenn `PdfTools.Toolbox.*` erkannt wird, damit Toolbox als eigener Sample-/Provider-Schnitt behandelt wird.
 
@@ -244,15 +244,15 @@ Empfohlene nächste Reihenfolge:
    - Build-Artefakte unter `obj/`/`bin/` vorsichtig zurücksetzen, falls sie nur generiert sind.
    - Nicht die PDF-Importer-Entfernungen oder UI/Docs-Dateien anfassen, bevor klar ist, ob sie vom User gewollt sind.
 2. Sobald Freigabe/Limit wieder verfügbar:
-   - `dotnet test tests/Canvas.Migration.ActivePdf.Tests/Canvas.Migration.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false`
-   - `dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --no-build -nodeReuse:false`
+   - `dotnet test tests/PXA.Migration.ActivePdf.Tests/PXA.Migration.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false`
+   - `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --no-build -nodeReuse:false`
 3. PDFTools gegen echte Pdftools-SDK-Samples validieren:
    - Besonders Direct-Generation-Klassen, Koordinatenursprung, Text-/Font-API und Save/Export-Semantik prüfen.
    - Danach Status ggf. von cautious pilot auf detaillierter Pilot anheben.
 4. PDF Toolbox SDK / Toolbox add-on weiter härten:
    - API-Smoke-Test und UI-Beispiel final prüfen.
    - Output-Stream/FileStream-Setup nur dann automatisch entfernen/ersetzen, wenn `outPath` sicher erkannt wurde.
-   - PageSize-Mapping und Save-Semantik für Canvas.Pdf sauber definieren.
+   - PageSize-Mapping und Save-Semantik für PXA.Pdf sauber definieren.
 5. Wenn Tests grün:
    - Checklisten final prüfen.
    - `git diff --check` auf Quelländerungen und idealerweise gesamtem Diff nach Artefakt-Cleanup.
@@ -267,15 +267,15 @@ Empfohlene nächste Reihenfolge:
 Provider-/API-Builds:
 
 ```bash
-dotnet build tests/Canvas.Migration.ActivePdf.Tests/Canvas.Migration.ActivePdf.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
-dotnet build tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
+dotnet build tests/PXA.Migration.ActivePdf.Tests/PXA.Migration.ActivePdf.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
+dotnet build tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
 ```
 
 Tests, wenn Eskalation möglich:
 
 ```bash
-dotnet test tests/Canvas.Migration.ActivePdf.Tests/Canvas.Migration.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false
-dotnet test tests/Canvas.Api.Tests/Canvas.Api.Tests.csproj --no-restore --no-build -nodeReuse:false
+dotnet test tests/PXA.Migration.ActivePdf.Tests/PXA.Migration.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false
+dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --no-build -nodeReuse:false
 ```
 
 Status/Checks:
@@ -291,8 +291,8 @@ Der Kontext ist groß geworden. Bitte nicht von vorne anfangen. Erst lokale Date
 
 - `checklists/Code-Migrations.md`
 - `checklists/Code-Migrations-UI.md`
-- `tests/Canvas.Api.Tests/MigrationServiceTests.cs`
+- `tests/PXA.Api.Tests/MigrationServiceTests.cs`
 - `PXA.WebApi/Services/Converters/*PdfConverter.cs`
-- die drei letzten Provider unter `src/Canvas.Migration.*`
+- die drei letzten Provider unter `src/PXA.Migration.*`
 
 Dann den aktuellen Working Tree sauber einordnen und erst danach weiterarbeiten.

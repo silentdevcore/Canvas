@@ -8,7 +8,7 @@ namespace PXA.FileImporter;
 
 /// <summary>
 /// Converts an SVG file into a <see cref="DesignExportDto"/> with full vector fidelity.
-/// Simple shapes (rect) become Canvas shape elements; text becomes text elements;
+/// Simple shapes (rect) become PXA shape elements; text becomes text elements;
 /// embedded images become image elements; all other vector primitives (path, circle,
 /// ellipse, line, polyline, polygon) are emitted as inline SVG data-URI image elements,
 /// preserving their exact visual appearance with all transforms applied.

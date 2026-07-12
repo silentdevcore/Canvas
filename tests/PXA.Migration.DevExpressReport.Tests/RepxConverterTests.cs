@@ -88,7 +88,7 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
-    public void ConvertRepx_MapsExpressionBindingToCanvasBinding()
+    public void ConvertRepx_MapsExpressionBindingToPxaBinding()
     {
         var title = Page(new XtraReportToDesignConverter().ConvertRepx(SampleRepx).Design, "xrTitle");
 
@@ -316,7 +316,7 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
-    public void ConvertRepx_XRShapeArrow_BecomesCanvasArrowWithDiagnostic()
+    public void ConvertRepx_XRShapeArrow_BecomesPxaArrowWithDiagnostic()
     {
         var result = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
             """
@@ -437,7 +437,7 @@ public sealed class RepxConverterTests
     }
 
     [Fact]
-    public void ConvertRepx_XRChart_BecomesCanvasChartPlaceholder()
+    public void ConvertRepx_XRChart_BecomesPxaChartPlaceholder()
     {
         var result = new XtraReportToDesignConverter().ConvertRepx(SingleControlRepx(
             """<Item1 ControlType="DevExpress.XtraReports.UI.XRChart, X" Name="sales" SizeF="300,160" LocationFloat="10,20" />"""));

@@ -22,7 +22,7 @@ public sealed class WordInfrastructureFacadeTests
     }
 
     [Fact]
-    public void Capabilities_MirrorCanvasWordRendererCapabilities()
+    public void Capabilities_MirrorPxaWordRendererCapabilities()
     {
         var capabilities = new WordRendererCapabilities();
 
@@ -34,7 +34,7 @@ public sealed class WordInfrastructureFacadeTests
     }
 
     [Fact]
-    public void DigitalSigningFacade_RejectsUnsignedCertificateBytesLikeCanvasService()
+    public void DigitalSigningFacade_RejectsUnsignedCertificateBytesLikePxaService()
     {
         using var stream = new MemoryStream(new WordDocumentExporter().Export(BuildDesign()));
 

@@ -10,7 +10,7 @@ namespace PXA.FileImporter;
 
 /// <summary>
 /// Converts a PowerPoint .pptx file into a <see cref="DesignExportDto"/>.
-/// Each slide becomes a page; shapes, text, and pictures are mapped to Canvas elements.
+/// Each slide becomes a page; shapes, text, and pictures are mapped to PXA elements.
 /// Slide backgrounds and theme colors are resolved through the slide → layout → master chain.
 /// </summary>
 public sealed class PptxFileImporter : IFileImporter

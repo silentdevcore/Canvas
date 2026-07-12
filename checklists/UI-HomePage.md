@@ -27,7 +27,7 @@ Audit and fix all navigation, links, and interactive elements on the home/galler
 > **Current:** The header shows "Log in", "Sign up", and a hamburger menu button. None have `onClick` handlers. Clicking them does nothing.
 
 - [x] **Log in** — shows a "Auth not yet implemented." toast. *(TemplateGallery.tsx)*
-- [x] **Sign up** — same toast. 
+- [x] **Sign up** — same toast.
 - [x] **Menu (hamburger)** — opens a full-screen mobile menu drawer with the four nav links and auth buttons. `mobileMenuOpen` state + `pdf-mobile-menu` overlay component.
 - [x] CSS added: `.pdf-mobile-menu`, `.pdf-mobile-menu-header`, `.pdf-mobile-nav`, `.pdf-mobile-nav-actions`, `.pdf-toast` + keyframe animation.
 
@@ -70,7 +70,7 @@ Audit and fix all navigation, links, and interactive elements on the home/galler
 
 - [x] Removed `thumbnail` property from `TEMPLATES` array and made it `optional` in `types.ts`. `TemplateCard.tsx` no longer references it. Template cards now render with category-specific colour accents in the existing `pdf-document-miniature` CSS placeholder — no broken `<img>` tags. `CATEGORY_CONFIG` map in `TemplateCard.tsx` defines accent/bg/text/icon per category (invoice=blue/FiDollarSign, receipt=green/FiShoppingBag, certificate=purple/FiAward, card=orange/FiCreditCard, letter=slate/FiMail, report=indigo/FiBarChart2, label=teal/FiTag). Category icon shown large (opacity 0.22) in miniature preview and small in the card title row.
 
-## K. No "Blank Canvas" Option
+## K. No "Blank PXA" Option
 
 - [x] Added `onBlankStart` prop to `TemplateGalleryProps` and `handleBlankStart` in `App.tsx`. Hero section now shows two side-by-side cards (`pdf-hero-cards` grid): "Start from a template" and "Blank canvas". Blank card creates a template with an empty elements array and goes straight to the editor.
 

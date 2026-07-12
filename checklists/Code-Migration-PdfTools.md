@@ -1,16 +1,16 @@
-# Canvas Migration: PDFTools / Pdftools SDK
+# PXA Migration: PDFTools / Pdftools SDK
 
 ## V1 Pilot Analysis
 
-- [x] Add cautious Roslyn-backed provider project: `src/Canvas.Migration.PdfTools`
-- [x] Add provider tests: `tests/Canvas.Migration.PdfTools.Tests`
+- [x] Add cautious Roslyn-backed provider project: `src/PXA.Migration.PdfTools`
+- [x] Add provider tests: `tests/PXA.Migration.PdfTools.Tests`
 - [x] Connect WebApi converter: `PXA.WebApi/Services/Converters/PdfToolsConverter.cs`
 - [x] Add UI fallback status/example as `pilot`
 - [x] Confirm current .NET package name from official docs: `PdfTools`
 - [x] Confirm current SDK initialization pattern from official docs: `Sdk.Initialize(...)`
 - [x] Validate from official docs/API references that direct PDF generation belongs to PDF Toolbox SDK/add-on, not this Pdftools SDK provider
 
-The official Pdftools SDK .NET getting-started guide identifies the NuGet package as `PdfTools`, requires .NET/Core 2.0+ or .NET Framework 4.6.1+, and documents optional `Sdk.Initialize("YOUR_LICENSE_KEY")` startup initialization for non-watermarked production output. The public samples emphasize PDF operations such as PDF-to-image conversion and broader SDK workflows. Official API references identify `PdfTools.Pdf.Document` as a document opened from a stream or produced by operations, while PDF creation from scratch belongs to the separate PDF Toolbox SDK/add-on (`PdfTools.Toolbox.Pdf.Document.Create`, `Page.Create`). V1 therefore removes SDK initialization where safe and reports SDK workflows as manual migration work instead of inventing direct Canvas.Pdf rewrites.
+The official Pdftools SDK .NET getting-started guide identifies the NuGet package as `PdfTools`, requires .NET/Core 2.0+ or .NET Framework 4.6.1+, and documents optional `Sdk.Initialize("YOUR_LICENSE_KEY")` startup initialization for non-watermarked production output. The public samples emphasize PDF operations such as PDF-to-image conversion and broader SDK workflows. Official API references identify `PdfTools.Pdf.Document` as a document opened from a stream or produced by operations, while PDF creation from scratch belongs to the separate PDF Toolbox SDK/add-on (`PdfTools.Toolbox.Pdf.Document.Create`, `Page.Create`). V1 therefore removes SDK initialization where safe and reports SDK workflows as manual migration work instead of inventing direct PXA.Pdf rewrites.
 
 Reference: https://www.pdf-tools.com/docs/pdf-tools-sdk/getting-started/pdftools-sdk/pdftools-sdk-dotnet/
 Reference: https://www.pdf-tools.com/docs/pdf-toolbox-sdk/use/generate/
@@ -38,14 +38,14 @@ Reference: https://www.pdf-tools.com/docs/pdf-toolbox-sdk/use/generate/
 
 ## Mapping Table
 
-| PDFTools / Pdftools SDK API / pattern | Canvas.Pdf replacement | Migration mode | Notes |
+| PDFTools / Pdftools SDK API / pattern | PXA.Pdf replacement | Migration mode | Notes |
 | --- | --- | --- | --- |
-| `Sdk.Initialize(...)` | No Canvas equivalent | Code removal in v1 | Emit info diagnostic; Canvas.Pdf has no SDK license initialization call. |
-| `PdfTools.Pdf.Document.Open(...)` | Manual Canvas.Pdf document recreation | Warning in v1 | Existing-PDF processing, not from-scratch Canvas generation. |
-| SDK conversion/optimization/validation/signing APIs | Manual Canvas.Pdf document recreation or workflow redesign | Warning in v1 | Not equivalent to Canvas.Pdf draw calls. |
+| `Sdk.Initialize(...)` | No PXA equivalent | Code removal in v1 | Emit info diagnostic; PXA.Pdf has no SDK license initialization call. |
+| `PdfTools.Pdf.Document.Open(...)` | Manual PXA.Pdf document recreation | Warning in v1 | Existing-PDF processing, not from-scratch PXA generation. |
+| SDK conversion/optimization/validation/signing APIs | Manual PXA.Pdf document recreation or workflow redesign | Warning in v1 | Not equivalent to PXA.Pdf draw calls. |
 | `PdfTools.Toolbox.Pdf.Document.Create(...)` / `Page.Create(...)` | Future Toolbox-specific migration | Warning in v1 | Separate product/add-on; collect Toolbox samples before automatic rewrites. |
-| PDF-to-image / conversion samples such as `Pdf2ImgSimple` | Manual rewrite to Canvas document generation | Warning in v1 | Not equivalent to Canvas.Pdf generation; requires product-specific redesign. |
-| Existing PDF load/process/optimize/validate/repair workflows | Manual follow-up | Warning in v1 | Canvas.Pdf migration target is generated document composition. |
+| PDF-to-image / conversion samples such as `Pdf2ImgSimple` | Manual rewrite to PXA document generation | Warning in v1 | Not equivalent to PXA.Pdf generation; requires product-specific redesign. |
+| Existing PDF load/process/optimize/validate/repair workflows | Manual follow-up | Warning in v1 | PXA.Pdf migration target is generated document composition. |
 
 ## Unsupported / Manual Follow-Up
 
@@ -109,7 +109,7 @@ document.Save(outputPath);
 - [ ] Replace simple line/rectangle drawing only after Toolbox samples are collected
 - [ ] Replace simple save/export only after Toolbox samples are collected
 - [x] Remove `Sdk.Initialize(...)`
-- [ ] Add `using Canvas.Pdf` only when a real Canvas code fix is introduced
+- [ ] Add `using PXA.Pdf` only when a real PXA code fix is introduced
 - [ ] Remove PDFTools/Pdftools usings only when source is fully rewritten
 - [x] Leave conversion/editing/processing workflows as manual diagnostics
 - [x] Validate SDK-vs-Toolbox boundary against official docs/API references

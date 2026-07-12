@@ -117,9 +117,9 @@ public sealed class GemBoxSpreadsheetMigration : CSharpSourceMigration
             if (name == "Add" && ma.Expression is MemberAccessExpressionSyntax inner && inner.Name.Identifier.ValueText == "Worksheets")
                 return visited.WithExpression(ma.WithExpression(inner.Expression).WithName(SyntaxFactory.IdentifierName("AddSheet")));
 
-            // wb.Save("x.xlsx") stays Save (Canvas has Save(string)). GemBox Save(stream/options) → diagnostic.
+            // wb.Save("x.xlsx") stays Save (PXA has Save(string)). GemBox Save(stream/options) → diagnostic.
             if (name == "Save" && !(visited.ArgumentList.Arguments.Count == 1 && visited.ArgumentList.Arguments[0].Expression is LiteralExpressionSyntax))
-                Diagnostics.Add(Warn("CANMIGGBSS024", "GemBox Save(stream/SaveOptions) → Canvas Save(string path): pass a file path."));
+                Diagnostics.Add(Warn("CANMIGGBSS024", "GemBox Save(stream/SaveOptions) → PXA Save(string path): pass a file path."));
 
             return visited;
         }

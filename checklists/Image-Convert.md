@@ -1,12 +1,12 @@
-# Image -> Canvas JSON / PDF Conversion Checklist
+# Image -> PXA JSON / PDF Conversion Checklist
 
-Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAnalysis`) that converts images into editable Canvas designs by recognizing layout, colors, shapes, and eventually text content without external OCR/CV binaries such as Tesseract. The engine should mirror the staged architecture of `Canvas.Importer`, but stay deterministic, testable, and self-contained.
+Scope: build a custom raster-image analysis engine (`PXA.FileImporter.ImageAnalysis`) that converts images into editable PXA designs by recognizing layout, colors, shapes, and eventually text content without external OCR/CV binaries such as Tesseract. The engine should mirror the staged architecture of `PXA.Importer`, but stay deterministic, testable, and self-contained.
 
 ---
 
 ## Current State
 
-- [x] `Canvas.FileImporter.ImageAnalysis` project exists and is wired into the Web API.
+- [x] `PXA.FileImporter.ImageAnalysis` project exists and is wired into the Web API.
 - [x] Smart image endpoint exists: `POST /api/document/import-image-analysis`.
 - [x] Frontend route exists through the `image-analysis` importer option.
 - [x] Preprocessing exists: scaling, grayscale conversion, global Otsu binarization.
@@ -37,7 +37,7 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 ## Phase 0 - Stabilize The No-External-OCR Baseline
 
 - [x] Replace `OcrEngine.Analyze(prepared)` with `TextEngine.Analyze(prepared)`.
-- [x] Remove the local Tesseract subprocess bridge from `Canvas.FileImporter.ImageAnalysis`.
+- [x] Remove the local Tesseract subprocess bridge from `PXA.FileImporter.ImageAnalysis`.
 - [x] Add/adjust tests so image-analysis import does not depend on local OCR output.
 - [x] Add a small engine result diagnostic model:
   - [x] input dimensions
@@ -205,9 +205,9 @@ Scope: build a custom raster-image analysis engine (`Canvas.FileImporter.ImageAn
 - [x] Expand controlled OCR tests from "element exists" to exact text content.
 - [x] Add controlled text-line ink-bounds tests.
 - [x] Add controlled word-bound splitting tests.
-- [x] Add full-pipeline Canvas coordinate mapping test for positioned text.
+- [x] Add full-pipeline PXA coordinate mapping test for positioned text.
 - [x] Add color-region bounds test.
-- [x] Add full-pipeline shape/region Canvas bounds test.
+- [x] Add full-pipeline shape/region PXA bounds test.
 - [x] Suppress duplicate filled-rect edge shape when a matching color region exists.
 - [x] Prevent filled rectangles from being classified as ellipses.
 - [x] Draft punctuation detection for dots, dashes, slashes, and colon-like dot pairs.

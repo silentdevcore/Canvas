@@ -32,7 +32,7 @@ public sealed class ApryseMigrationPxaFacadeTests
     }
 
     [Fact]
-    public void Migrate_MapsCanvasInfoDiagnosticsToPxaDiagnostics()
+    public void Migrate_MapsPxaInfoDiagnosticsToPxaDiagnostics()
     {
         var source = """
             using pdftron;

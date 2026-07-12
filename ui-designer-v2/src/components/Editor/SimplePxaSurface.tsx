@@ -89,7 +89,7 @@ import { LanguageTabBar } from './LanguageTabBar';
 import { LocalizedPropertiesPanel } from './LocalizedPropertiesPanel';
 
 
-interface SimpleCanvasProps {
+interface SimplePxaSurfaceProps {
   template: Template;
   elements: SimpleElement[];
   pages: Page[];
@@ -134,7 +134,7 @@ type DragState = {
   startPointerY: number;
   // present when dragging a multi-selection
   multi?: { id: string; startX: number; startY: number }[];
-  isRtlCanvas?: boolean;
+  isRtlSurface?: boolean;
   langKey?: string; // write to langOverrides[langKey] instead of root x/y when set
 };
 
@@ -415,7 +415,7 @@ const topGlyphWeights = (weights?: Record<string, number>) =>
     .sort((a, b) => b[1] - a[1])
     .slice(0, 2);
 
-const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
+const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   template,
   elements,
   pages,
@@ -443,7 +443,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   const [rotateState, setRotateState] = useState<RotateState | null>(null);
   const [draggingPageIndex, setDraggingPageIndex] = useState<number | null>(null);
   const [dragOverPageIndex, setDragOverPageIndex] = useState<number | null>(null);
-  const [isDragOverCanvas, setIsDragOverCanvas] = useState(false);
+  const [isDragOverSurface, setIsDragOverSurface] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(['text', 'form', 'visual', 'layout', 'advanced']);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [linkedMargins, setLinkedMargins] = useState(true);
@@ -1371,7 +1371,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     [documentMode, toolGroups]
   );
 
-  const wordElementsOnCanvas = useMemo(
+  const wordElementsOnSurface = useMemo(
     () => elements.some(el => WORD_ONLY_TYPES.has(el.type as SimpleElement['type'])),
     [elements]
   );
@@ -1384,7 +1384,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     ));
   };
 
-  const getCanvasPoint = (clientX: number, clientY: number) => {
+  const getSurfacePoint = (clientX: number, clientY: number) => {
     const rect = pageContentRef.current?.getBoundingClientRect();
     if (!rect) return { x: 0, y: 0 };
     // getBoundingClientRect returns visual (scaled) pixels; divide by zoomLevel to get pt coordinates.
@@ -1403,12 +1403,12 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     if (!dragState) return;
 
     const handlePointerMove = (event: PointerEvent) => {
-      const point = getCanvasPoint(event.clientX, event.clientY);
+      const point = getSurfacePoint(event.clientX, event.clientY);
 
       if (dragState.multi && dragState.multi.length > 1) {
         const dx = point.x - dragState.startPointerX;
         const dy = point.y - dragState.startPointerY;
-        const dxStored = dragState.isRtlCanvas ? -dx : dx;
+        const dxStored = dragState.isRtlSurface ? -dx : dx;
         dragState.multi.forEach(({ id, startX, startY }) => {
           const el = [...elements, ...sharedElements].find(e => e.id === id);
           if (!el) return;
@@ -1422,7 +1422,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
         const element = [...elements, ...sharedElements].find(item => item.id === dragState.id);
         if (!element) return;
         let patch: { x: number; y: number };
-        if (dragState.isRtlCanvas) {
+        if (dragState.isRtlSurface) {
           const displayX = point.x - dragState.pointerOffsetX;
           const storedX = pageWidth - displayX - element.width;
           patch = positionElement(element, storedX, point.y - dragState.pointerOffsetY);
@@ -1451,7 +1451,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       const element = [...elements, ...sharedElements].find(item => item.id === resizeState.id);
       if (!element) return;
 
-      const point = getCanvasPoint(event.clientX, event.clientY);
+      const point = getSurfacePoint(event.clientX, event.clientY);
       const dx = point.x - resizeState.startPointerX;
       const dy = point.y - resizeState.startPointerY;
       const { startX, startY, startWidth, startHeight } = resizeState;
@@ -1494,7 +1494,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   useEffect(() => {
     if (!rotateState) return;
     const handlePointerMove = (event: PointerEvent) => {
-      const point = getCanvasPoint(event.clientX, event.clientY);
+      const point = getSurfacePoint(event.clientX, event.clientY);
       const angle = Math.atan2(point.y - rotateState.centerY, point.x - rotateState.centerX) * (180 / Math.PI);
       const delta = angle - rotateState.initialPointerAngle;
       let newRotation = Math.round((rotateState.startAngle + delta) % 360);
@@ -1521,7 +1521,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     if (!marqueeState) return;
 
     const handlePointerMove = (event: PointerEvent) => {
-      const point = getCanvasPoint(event.clientX, event.clientY);
+      const point = getSurfacePoint(event.clientX, event.clientY);
       setMarqueeState(prev => prev ? { ...prev, currentX: point.x, currentY: point.y } : null);
     };
 
@@ -1560,7 +1560,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     if (!drawGhost || !drawingMode) return;
 
     const handlePointerMove = (event: PointerEvent) => {
-      const point = getCanvasPoint(event.clientX, event.clientY);
+      const point = getSurfacePoint(event.clientX, event.clientY);
       setDrawGhost(prev => {
         if (!prev) return null;
         if (drawingMode === 'draw') {
@@ -1660,7 +1660,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     if (event.button !== 0) return;
     if (element.locked) return;
     snapshotHistory();
-    const point = getCanvasPoint(event.clientX, event.clientY);
+    const point = getSurfacePoint(event.clientX, event.clientY);
     const effPos = getEffectivePos(element);
     const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
     setResizeState({
@@ -1685,7 +1685,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     const displayX = isCurrentRtl ? pageWidth - effPos.x - effPos.width : effPos.x;
     const centerX = displayX + effPos.width / 2;
     const centerY = effPos.y + effPos.height / 2;
-    const point = getCanvasPoint(event.clientX, event.clientY);
+    const point = getSurfacePoint(event.clientX, event.clientY);
     const initialPointerAngle = Math.atan2(point.y - centerY, point.x - centerX) * (180 / Math.PI);
     const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
     setRotateState({
@@ -1817,7 +1817,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   }, [selectedElement, deleteElementById, updateElementById, onElementAdd, pageWidth, pageHeight, undo, redo, elements, sharedElements, clipboard, drawingMode, setHelpModalOpen]);
 
   const startDrawGhost = (clientX: number, clientY: number) => {
-    const point = getCanvasPoint(clientX, clientY);
+    const point = getSurfacePoint(clientX, clientY);
     setDrawGhost({
       startX: point.x,
       startY: point.y,
@@ -1827,7 +1827,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     });
   };
 
-  const handleCanvasPointerDown = (event: React.PointerEvent) => {
+  const handleSurfacePointerDown = (event: React.PointerEvent) => {
     if (event.button !== 0) return;
     closeContextMenu();
 
@@ -1840,7 +1840,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     if (event.target !== event.currentTarget) return;
 
     if (!event.shiftKey && !event.metaKey && !event.ctrlKey) clearSelection();
-    const point = getCanvasPoint(event.clientX, event.clientY);
+    const point = getSurfacePoint(event.clientX, event.clientY);
     const additive = event.shiftKey || event.metaKey || event.ctrlKey;
     setMarqueeState({ startX: point.x, startY: point.y, currentX: point.x, currentY: point.y, additive });
   };
@@ -1927,7 +1927,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
 
   const addElementAtPoint = (tool: Tool, clientX: number, clientY: number) => {
     const raw = tool.create();
-    const point = getCanvasPoint(clientX, clientY);
+    const point = getSurfacePoint(clientX, clientY);
     // On RTL canvas the drop point is mirrored: convert display x back to stored x
     const canvasX = isCurrentRtl ? pageWidth - point.x - raw.width / 2 : point.x - raw.width / 2;
     const el = nameElement({ ...raw, ...positionElement(raw, canvasX, point.y - raw.height / 2) });
@@ -1940,9 +1940,9 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     event.dataTransfer.effectAllowed = 'copy';
   };
 
-  const handleCanvasDrop = (event: React.DragEvent) => {
+  const handleSurfaceDrop = (event: React.DragEvent) => {
     event.preventDefault();
-    setIsDragOverCanvas(false);
+    setIsDragOverSurface(false);
 
     const toolId = event.dataTransfer.getData('application/x-ui-designer-tool');
     const tool = tools.find(item => item.id === toolId);
@@ -1991,7 +1991,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     }
 
     snapshotHistory();
-    const point = getCanvasPoint(event.clientX, event.clientY);
+    const point = getSurfacePoint(event.clientX, event.clientY);
 
     const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
 
@@ -2018,7 +2018,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
       startPointerX: point.x,
       startPointerY: point.y,
       multi,
-      isRtlCanvas: isCurrentRtl,
+      isRtlSurface: isCurrentRtl,
       langKey,
     });
   };
@@ -2030,7 +2030,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
     setContextMenu({ x: event.clientX, y: event.clientY, elementId: element.id });
   };
 
-  const handleCanvasContextMenu = (event: React.MouseEvent) => {
+  const handleSurfaceContextMenu = (event: React.MouseEvent) => {
     event.preventDefault();
     setContextMenu({ x: event.clientX, y: event.clientY, elementId: null });
   };
@@ -3423,7 +3423,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
             <span>Add elements</span>
           </div>
 
-          {documentMode === 'pdf' && wordElementsOnCanvas && (
+          {documentMode === 'pdf' && wordElementsOnSurface && (
             <div className="editor-doc-mode-warning">
               Some elements on the canvas are Word-only and will not render in PDF export.
             </div>
@@ -3550,7 +3550,7 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
 
           <div style={{ display: 'flex', justifyContent: 'center', minHeight: pageHeight * zoomLevel + 48 }}>
             <div
-              className={`editor-page ${isDragOverCanvas ? 'is-drag-over' : ''}`}
+              className={`editor-page ${isDragOverSurface ? 'is-drag-over' : ''}`}
               style={{
                 width: pageWidth,
                 height: pageHeight,
@@ -3569,19 +3569,19 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                 alignSelf: 'flex-start',
                 cursor: drawingMode ? 'crosshair' : undefined,
               }}
-              onPointerDown={handleCanvasPointerDown}
-              onContextMenu={handleCanvasContextMenu}
+              onPointerDown={handleSurfacePointerDown}
+              onContextMenu={handleSurfaceContextMenu}
               onDragOver={(event) => {
                 event.preventDefault();
                 event.dataTransfer.dropEffect = 'copy';
-                setIsDragOverCanvas(true);
+                setIsDragOverSurface(true);
               }}
               onDragLeave={(event) => {
                 if (event.currentTarget === event.target) {
-                  setIsDragOverCanvas(false);
+                  setIsDragOverSurface(false);
                 }
               }}
-              onDrop={handleCanvasDrop}
+              onDrop={handleSurfaceDrop}
               role="presentation"
             >
             {pageSettings.gridVisible && (
@@ -4335,11 +4335,11 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
                   </div>
                 </div>
 
-                {/* Canvas */}
+                {/* Workspace */}
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiMonitor />
-                    <span>Canvas</span>
+                    <span>Workspace</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label className="editor-checkbox-control">
@@ -7841,4 +7841,4 @@ const SimpleCanvas: React.FC<SimpleCanvasProps> = ({
   );
 };
 
-export default SimpleCanvas;
+export default SimplePxaSurface;

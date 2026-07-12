@@ -115,14 +115,14 @@ public sealed class ActiveReportsJsToDesignConverter
                 element.Content = ValueText(item);
                 element.Style = TextStyle(item);
                 ApplyBinding(element, element.Content, diagnostics);
-                diagnostics.Add(Info("CANMIGARJS002", $"'{name}' ({type}) → Canvas text."));
+                diagnostics.Add(Info("CANMIGARJS002", $"'{name}' ({type}) → PXA text."));
                 return element;
 
             case "line":
                 element.Type = "line";
                 element.Style = new Dictionary<string, object> { ["color"] = StyleString(item, "color") ?? "#000000" };
                 if (StyleNumber(item, "strokeWidth") is { } sw) element.Style["strokeWidth"] = sw;
-                diagnostics.Add(Info("CANMIGARJS002", $"'{name}' ({type}) → Canvas line."));
+                diagnostics.Add(Info("CANMIGARJS002", $"'{name}' ({type}) → PXA line."));
                 return element;
 
             case "image":
@@ -130,7 +130,7 @@ public sealed class ActiveReportsJsToDesignConverter
                 element.Type = "image";
                 element.FitMode = "contain";
                 element.Content = GetString(item, "source") ?? GetString(item, "value") ?? GetString(item, "content");
-                diagnostics.Add(Info("CANMIGARJS002", $"'{name}' ({type}) → Canvas image."));
+                diagnostics.Add(Info("CANMIGARJS002", $"'{name}' ({type}) → PXA image."));
                 return element;
 
             case "table":
@@ -146,7 +146,7 @@ public sealed class ActiveReportsJsToDesignConverter
                 element.Type = "barcode";
                 element.BarcodeValue = ValueText(item);
                 element.BarcodeType = GetString(item, "barcodeType") ?? GetString(item, "symbology") ?? "code128";
-                diagnostics.Add(Info("CANMIGARJS002", $"'{name}' ({type}) → Canvas barcode."));
+                diagnostics.Add(Info("CANMIGARJS002", $"'{name}' ({type}) → PXA barcode."));
                 return element;
 
             default:

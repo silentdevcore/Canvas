@@ -175,7 +175,7 @@ public sealed class PdfFileImporter : IFileImporter
         double fs    = scale > 0.01 ? el.FontSize * scale : (el.FontSize > 0 ? el.FontSize : el.Bounds.Height);
         if (fs < 2) fs = 10; // guard against degenerate sizes
 
-        var (x, y, w, h) = TextCanvasFrame(el, originX, pageH);
+        var (x, y, w, h) = TextPxaFrame(el, originX, pageH);
         if (w < 1 || h < 1)
         {
             w = Math.Max(el.Text.Length * fs * 0.6, 20);
@@ -197,7 +197,7 @@ public sealed class PdfFileImporter : IFileImporter
             ["color"]      = ColorToHex(el.GraphicsState.FillColor),
             ["lineHeight"]  = ImportedTextLineHeight,
             ["whiteSpace"]  = "pre",
-            ["rotation"]   = Math.Round(ToCanvasRotation(el.Geometry.RotationDegrees), 2),
+            ["rotation"]   = Math.Round(ToPxaRotation(el.Geometry.RotationDegrees), 2),
             ["pdfFontName"] = font.PdfName,
             ["pdfClassification"] = el.Classification.ToString(),
         };
@@ -231,7 +231,7 @@ public sealed class PdfFileImporter : IFileImporter
         bool hasStroke = paint.Stroke && el.GraphicsState.LineWidth > 0;
         if (!hasFill && !hasStroke) return null;
 
-        var (x, y, w, h) = ToCanvasBounds(el.Bounds, originX, pageH);
+        var (x, y, w, h) = ToPxaBounds(el.Bounds, originX, pageH);
 
         if (w < 0.5 && h < 0.5) return null;
 
@@ -281,7 +281,7 @@ public sealed class PdfFileImporter : IFileImporter
 
     private static ElementDto? MapImage(PrimitiveImage el, double originX, double pageH, int pg, ref int seq)
     {
-        var (imgX, imgY, imgW, imgH, rotation) = TransformedCanvasFrame(new PdfRectangle(0, 0, 1, 1), el.Transform, originX, pageH);
+        var (imgX, imgY, imgW, imgH, rotation) = TransformedPxaFrame(new PdfRectangle(0, 0, 1, 1), el.Transform, originX, pageH);
 
         if (imgW < 1 || imgH < 1) return null;
 
@@ -383,7 +383,7 @@ public sealed class PdfFileImporter : IFileImporter
         {
             // localRect is in path-user space; apply CTM to get global PDF coords
             var globalRect = MatrixEngine.TransformBounds(localRect, el.Transform);
-            var (x, y, w, h) = ToCanvasBounds(globalRect, originX, pageH);
+            var (x, y, w, h) = ToPxaBounds(globalRect, originX, pageH);
             if (w < 0.1 || h < 0.1) continue;
 
             elements.Add(new ElementDto
@@ -425,7 +425,7 @@ public sealed class PdfFileImporter : IFileImporter
     /// Path segment coordinates (pre-CTM) are mapped through the full CTM and Y-flipped into
     /// canvas space so the SVG viewBox can simply match the element's width×height.
     /// This preserves logo glyph outlines and other vector artwork that would otherwise be
-    /// flattened to rectangular Canvas shapes.
+    /// flattened to rectangular PXA shapes.
     /// </summary>
     private static bool EmitSvgPath(
         PrimitivePath el,
@@ -440,7 +440,7 @@ public sealed class PdfFileImporter : IFileImporter
         bool hasStroke = paint.Stroke && el.GraphicsState.LineWidth > 0;
         if (!hasFill && !hasStroke) return false;
 
-        var (ex, ey, ew, eh) = ToCanvasBounds(el.Bounds, originX, pageH);
+        var (ex, ey, ew, eh) = ToPxaBounds(el.Bounds, originX, pageH);
         if (ew < 0.5 || eh < 0.5) return false;
 
         var d = BuildSvgPathData(el, originX, pageH, ex, ey);
@@ -457,7 +457,7 @@ public sealed class PdfFileImporter : IFileImporter
 
         var dataUri = "data:image/svg+xml;base64," + Convert.ToBase64String(Encoding.UTF8.GetBytes(svg));
 
-        var rotation = ToCanvasRotation(MatrixEngine.ExtractRotationDegrees(el.Transform));
+        var rotation = ToPxaRotation(MatrixEngine.ExtractRotationDegrees(el.Transform));
 
         elements.Add(new ElementDto
         {
@@ -492,7 +492,7 @@ public sealed class PdfFileImporter : IFileImporter
             bounds = bounds.Union(paths[i].Bounds);
         }
 
-        var (ex, ey, ew, eh) = ToCanvasBounds(bounds, originX, pageH);
+        var (ex, ey, ew, eh) = ToPxaBounds(bounds, originX, pageH);
         if (ew < 0.5 || eh < 0.5) return false;
 
         var sb = new StringBuilder();
@@ -756,7 +756,7 @@ public sealed class PdfFileImporter : IFileImporter
         }
     }
 
-    private static (double x, double y, double width, double height) ToCanvasBounds(
+    private static (double x, double y, double width, double height) ToPxaBounds(
         PdfRectangle bounds,
         double originX,
         double pageH)
@@ -768,7 +768,7 @@ public sealed class PdfFileImporter : IFileImporter
         return (x, y, width, height);
     }
 
-    private static (double x, double y, double width, double height) TextCanvasFrame(
+    private static (double x, double y, double width, double height) TextPxaFrame(
         PrimitiveText text,
         double originX,
         double pageH)
@@ -776,7 +776,7 @@ public sealed class PdfFileImporter : IFileImporter
         var fontSize = Math.Max(text.FontSize, 1d);
         var localWidth = Math.Max(fontSize * 0.35d, text.Text.Length * fontSize * 0.5d);
         var localBounds = new PdfRectangle(0, -fontSize * 0.2d, localWidth, fontSize);
-        var (x, y, width, height, _) = TransformedCanvasFrame(localBounds, text.Transform, originX, pageH);
+        var (x, y, width, height, _) = TransformedPxaFrame(localBounds, text.Transform, originX, pageH);
         return (x, y, width, height);
     }
 
@@ -796,7 +796,7 @@ public sealed class PdfFileImporter : IFileImporter
         return (x, y, targetWidth, targetHeight);
     }
 
-    private static (double x, double y, double width, double height, double rotation) TransformedCanvasFrame(
+    private static (double x, double y, double width, double height, double rotation) TransformedPxaFrame(
         PdfRectangle localBounds,
         PdfMatrix transform,
         double originX,
@@ -813,10 +813,10 @@ public sealed class PdfFileImporter : IFileImporter
             canvasCenterY - height / 2d,
             width,
             height,
-            ToCanvasRotation(MatrixEngine.ExtractRotationDegrees(transform)));
+            ToPxaRotation(MatrixEngine.ExtractRotationDegrees(transform)));
     }
 
-    private static double ToCanvasRotation(double pdfDegrees)
+    private static double ToPxaRotation(double pdfDegrees)
     {
         var degrees = -pdfDegrees % 360d;
         if (degrees <= -180d) degrees += 360d;

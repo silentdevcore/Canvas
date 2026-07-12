@@ -76,7 +76,7 @@ Complete restructuring of the UI designer with new components and simplified arc
 - `src/ui-designer-v2/components/Gallery/CategoryFilter.tsx`: Category filtering
 - `src/ui-designer-v2/components/Onboarding/OnboardingWizard.tsx`: Step-by-step onboarding
 - `src/ui-designer-v2/components/Onboarding/WelcomeScreen.tsx`: Initial welcome
-- `src/ui-designer-v2/components/Editor/SimpleCanvas.tsx`: Simplified canvas
+- `src/ui-designer-v2/components/Editor/SimplePxaSurface.tsx`: Simplified canvas
 - `src/ui-designer-v2/components/Editor/InlineEditor.tsx`: Click-to-edit interface
 - `src/ui-designer-v2/components/Editor/ElementToolbar.tsx`: Context-sensitive toolbar
 - `src/ui-designer-v2/components/Preview/LivePreview.tsx`: Real-time preview
@@ -96,8 +96,8 @@ Complete restructuring of the UI designer with new components and simplified arc
 ### Files to Remove
 - `src/Sidebar.tsx`: Replaced by inline element toolbar
 - `src/PropertiesPanel.tsx`: Replaced by inline editing
-- `src/Canvas.tsx`: Replaced by SimpleCanvas
-- `src/VirtualCanvas.tsx`: Not needed in simplified version
+- `src/PxaSurface.tsx`: Replaced by SimplePxaSurface
+- `src/VirtualPxaSurface.tsx`: Not needed in simplified version
 - Complex panels: DataPanel, JSONPanel, CodePanel, etc.
 
 ### Configuration Updates
@@ -159,7 +159,7 @@ Comprehensive testing for the new UX-focused components.
 ### New Test Files
 - `src/ui-designer-v2/components/Gallery/TemplateGallery.test.tsx`
 - `src/ui-designer-v2/components/Onboarding/OnboardingWizard.test.tsx`
-- `src/ui-designer-v2/components/Editor/SimpleCanvas.test.tsx`
+- `src/ui-designer-v2/components/Editor/SimplePxaSurface.test.tsx`
 - `src/ui-designer-v2/hooks/useOnboarding.test.ts`
 - `src/ui-designer-v2/utils/templateAdapter.test.ts`
 

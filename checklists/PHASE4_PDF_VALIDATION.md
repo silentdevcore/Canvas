@@ -1,22 +1,22 @@
 # Phase 4 — PDF Infrastructure Isolation Validation
 
 ## Scope completed
-- Moved PDF engine source compilation ownership (`Canvas/Pdf/**`) into `src/Canvas.Infrastructure.Pdf`.
-- Removed unnecessary application-layer dependency from `Canvas.Infrastructure.Pdf`.
-- Kept legacy `Canvas` as compatibility/demo shell by referencing `Canvas.Infrastructure.Pdf`.
+- Moved PDF engine source compilation ownership (`PXA/Pdf/**`) into `src/PXA.Infrastructure.Pdf`.
+- Removed unnecessary application-layer dependency from `PXA.Infrastructure.Pdf`.
+- Kept legacy `PXA` as compatibility/demo shell by referencing `PXA.Infrastructure.Pdf`.
 
 ## Dependency isolation status
-- `Canvas.Application` depends only on `Canvas.Core`.
-- `Canvas.Infrastructure.Pdf` depends on `Canvas.Core` and now owns PDF implementation compilation.
-- `Canvas` references `Canvas.Core` + `Canvas.Infrastructure.Pdf` and no longer compiles `Pdf/**` directly.
+- `PXA.Application` depends only on `PXA.Core`.
+- `PXA.Infrastructure.Pdf` depends on `PXA.Core` and now owns PDF implementation compilation.
+- `PXA` references `PXA.Core` + `PXA.Infrastructure.Pdf` and no longer compiles `Pdf/**` directly.
 
 ## Runtime validation performed
 Commands executed successfully:
 - `dotnet build`
-- `dotnet run --project Canvas/Canvas.csproj`
-- `dotnet run --project samples/Canvas.Demo/Canvas.Demo.csproj`
+- `dotnet run --project PXA/PXA.csproj`
+- `dotnet run --project samples/PXA.Demo/PXA.Demo.csproj`
 
-Observed in `Canvas` run diagnostics output:
+Observed in `PXA` run diagnostics output:
 - Links detected across pages (web links, page links, named destination links).
 - TOC pages detected.
 - Bookmarks/outlines and named destinations detected.

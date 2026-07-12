@@ -30,7 +30,7 @@ public sealed class MigrationControllerTests : IClassFixture<WebApplicationFacto
     }
 
     [Fact]
-    public async Task Convert_PxaRoute_ReturnsCanvasCompatibleMigrationResult()
+    public async Task Convert_PxaRoute_ReturnsPxaCompatibleMigrationResult()
     {
         var json = JsonSerializer.Serialize(new
         {

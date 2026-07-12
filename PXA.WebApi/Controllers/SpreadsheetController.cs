@@ -144,7 +144,7 @@ public class SpreadsheetController : ControllerBase
         }
     }
 
-    /// <summary>Converts a worksheet to a Canvas design (a <c>table</c> element) so it can be embedded in a
+    /// <summary>Converts a worksheet to a PXA design (a <c>table</c> element) so it can be embedded in a
     /// PDF/Word/HTML document via the standard exporters.</summary>
     [HttpPost("to-design")]
     [ProducesResponseType(typeof(PxaDesignExportDto), 200)]

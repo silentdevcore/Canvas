@@ -9,7 +9,7 @@ namespace PXA.Migration.EpplusSpreadsheet;
 /// <summary>
 /// Migrates EPPlus (<c>ExcelPackage</c>) authoring code to the PXA spreadsheet API (<c>PxaWorkbook</c>).
 /// Roslyn-based: rewrites the package/worksheet/cell-indexer/value/formula/merge/style/save calls and shifts
-/// EPPlus's 1-based indexes to Canvas's 0-based. Charts, pivots, conditional formatting, and data validation
+/// EPPlus's 1-based indexes to PXA's 0-based. Charts, pivots, conditional formatting, and data validation
 /// are flagged for manual review.
 /// </summary>
 public sealed class EpplusSpreadsheetMigration : CSharpSourceMigration
@@ -28,7 +28,7 @@ public sealed class EpplusSpreadsheetMigration : CSharpSourceMigration
         var diagnostics = new List<MigrationDiagnostic>();
         if (rewriter.AppliedIndexShift)
             diagnostics.Add(Info("CANMIGEPPL010",
-                "EPPlus cell/column indexes are 1-based; converted numeric Cells[row,col]/Column(i) to Canvas's 0-based equivalent. Verify any computed indexes."));
+                "EPPlus cell/column indexes are 1-based; converted numeric Cells[row,col]/Column(i) to PXA's 0-based equivalent. Verify any computed indexes."));
         diagnostics.AddRange(rewriter.Diagnostics);
         diagnostics.AddRange(ScanUnsupported(root));
 
@@ -125,7 +125,7 @@ public sealed class EpplusSpreadsheetMigration : CSharpSourceMigration
             if (name == "SaveAs")
             {
                 if (!(visited.ArgumentList.Arguments.Count == 1 && visited.ArgumentList.Arguments[0].Expression is LiteralExpressionSyntax))
-                    Diagnostics.Add(Warn("CANMIGEPPL024", "EPPlus SaveAs(FileInfo/Stream) → Canvas Save(string path): pass a file path."));
+                    Diagnostics.Add(Warn("CANMIGEPPL024", "EPPlus SaveAs(FileInfo/Stream) → PXA Save(string path): pass a file path."));
                 return visited.WithExpression(ma.WithName(SyntaxFactory.IdentifierName("Save")));
             }
 

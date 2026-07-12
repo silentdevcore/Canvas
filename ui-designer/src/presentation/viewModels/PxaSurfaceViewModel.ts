@@ -3,10 +3,10 @@ import { DependencyContainer } from '../../di';
 import { DesignerElement, ElementId } from '../../domain';
 
 /**
- * View Model for Canvas component following Clean Architecture.
+ * View Model for PxaSurface component following Clean Architecture.
  * Handles presentation logic and coordinates with application layer.
  */
-export class CanvasViewModel {
+export class PxaSurfaceViewModel {
   private container = DependencyContainer.getInstance();
 
   // UI State
@@ -154,11 +154,11 @@ export class CanvasViewModel {
 }
 
 /**
- * React hook that provides CanvasViewModel instance.
+ * React hook that provides PxaSurfaceViewModel instance.
  * Manages view model lifecycle and state synchronization.
  */
-export const useCanvasViewModel = () => {
-  const [viewModel] = useState(() => new CanvasViewModel());
+export const usePxaSurfaceViewModel = () => {
+  const [viewModel] = useState(() => new PxaSurfaceViewModel());
 
   // Initialize on mount
   useEffect(() => {

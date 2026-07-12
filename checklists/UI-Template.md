@@ -255,8 +255,8 @@ Implementation targets:
 - [x] SOLID principles throughout codebase
 
 Implementation targets:
-- [x] src/Canvas.Core/: domain entities and abstractions
-- [x] src/Canvas.Application/: use cases and business logic
+- [x] src/PXA.Core/: domain entities and abstractions
+- [x] src/PXA.Application/: use cases and business logic
 - [x] PXA.WebApi/: clean API layer
 - [x] Proper architectural boundaries and patterns
 
@@ -322,7 +322,7 @@ Implementation targets:
 Implementation targets:
 - [x] ui-designer/src/PropertiesPanel.tsx: overflow/pagination controls.
 - [x] ui-designer/src/ElementRenderer.tsx: preview overflow behavior.
-- [x] Canvas/Pdf renderer pipeline: final pagination behavior parity with preview.
+- [x] PXA/Pdf renderer pipeline: final pagination behavior parity with preview.
 
 ### 6) Image-Specific Dynamic Properties (High)
 - [x] Add imageFit mode (contain, cover, fill, none).

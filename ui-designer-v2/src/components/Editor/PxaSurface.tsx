@@ -7,7 +7,7 @@ import { Resizable } from 'react-resizable';
 const PAGE_WIDTH = 595;
 const PAGE_HEIGHT = 842;
 
-const Canvas: React.FC<{ elements: SimpleElement[] }> = ({ elements }) => {
+const PxaSurface: React.FC<{ elements: SimpleElement[] }> = ({ elements }) => {
   const { updateElement, selectedElementId, setSelectedElementId } = useEditorStore();
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [resizingId, setResizingId] = useState<string | null>(null);
@@ -108,4 +108,4 @@ const Canvas: React.FC<{ elements: SimpleElement[] }> = ({ elements }) => {
   );
 };
 
-export default Canvas;
+export default PxaSurface;

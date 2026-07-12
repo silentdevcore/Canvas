@@ -41,7 +41,7 @@ public sealed class XmlDocumentExporter : DocumentExporter
 
         var doc = new XDocument(
             new XDeclaration("1.0", "utf-8", null),
-            new XElement("CanvasDocument",
+            new XElement("PxaDocument",
                 new XAttribute("name", design.Name),
                 new XAttribute("id", design.Id),
                 new XAttribute("version", "1.0"),

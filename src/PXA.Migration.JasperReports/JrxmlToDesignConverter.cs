@@ -17,7 +17,7 @@ public sealed class JrxmlConvertResult
 /// Converts a JasperReports <c>.jrxml</c> report — namespaced XML
 /// (<c>http://jasperreports.sourceforge.net/jasperreports</c>) with a <b>banded</b> layout
 /// (<c>&lt;title&gt;</c>/<c>&lt;pageHeader&gt;</c>/<c>&lt;detail&gt;</c>/… each wrapping a
-/// <c>&lt;band&gt;</c>) — into a Canvas <see cref="DesignExportDto"/>. JasperReports coordinates are in
+/// <c>&lt;band&gt;</c>) — into a PXA <see cref="DesignExportDto"/>. JasperReports coordinates are in
 /// points (pixels = 1/72in), so no unit scaling. Bands stack and flatten to absolute page coordinates
 /// (mirroring <c>PXA.Migration.Rpx</c>); named <c>&lt;style&gt;</c> elements are resolved.
 /// Elements are matched by <see cref="XName.LocalName"/> (namespace-agnostic).
@@ -343,7 +343,7 @@ public sealed class JrxmlToDesignConverter
         var mapped = 0;
 
         // Jasper aggregates are variables: a group-reset <variable calculation="Sum"> over $F{field}
-        // referenced via $V{name} → the executable Canvas helper $sum($group, "field").
+        // referenced via $V{name} → the executable PXA helper $sum($group, "field").
         var variableAggregates = BuildVariableAggregates(report.Variables);
 
         foreach (var raw in report.Elements)
@@ -362,7 +362,7 @@ public sealed class JrxmlToDesignConverter
             var element = MapControl(raw, x, yPt, diagnostics);
             if (element is null) continue;
 
-            diagnostics.Add(Info("CANMIGJRXML002", $"'{raw.Name}' ({raw.Type}) → Canvas {element.Type}."));
+            diagnostics.Add(Info("CANMIGJRXML002", $"'{raw.Name}' ({raw.Type}) → PXA {element.Type}."));
 
             if (raw.Type == "textField" && raw.Expression is { } expr) ApplyBinding(element, expr, diagnostics, variableAggregates);
             ApplyVisibility(element, raw, diagnostics);
@@ -420,7 +420,7 @@ public sealed class JrxmlToDesignConverter
         {
             settings.CustomProperties = customProperties;
             diagnostics.Add(Warn("CANMIGJRXML015",
-                "JasperReports data declarations were preserved in PageSettings.CustomProperties; Canvas does not evaluate JRXML datasets/queries yet."));
+                "JasperReports data declarations were preserved in PageSettings.CustomProperties; PXA does not evaluate JRXML datasets/queries yet."));
         }
 
         return settings;
@@ -470,7 +470,7 @@ public sealed class JrxmlToDesignConverter
                     element.Content = dataUrl;
                     if (!string.IsNullOrWhiteSpace(raw.ImageResolvedPath))
                         diagnostics.Add(Info("CANMIGJRXML021",
-                            $"'{raw.Name}' JasperReports external image '{raw.ImageSource}' was embedded as a Canvas data URL."));
+                            $"'{raw.Name}' JasperReports external image '{raw.ImageSource}' was embedded as a PXA data URL."));
                 }
                 else
                 {
@@ -497,7 +497,7 @@ public sealed class JrxmlToDesignConverter
 
             default:
                 // componentElement (barcodes/charts), crosstab, … — full fidelity is V2.
-                diagnostics.Add(Warn("CANMIGJRXML011", $"'{raw.Name}' is a {raw.Type} — not supported by Canvas yet; inserted a placeholder."));
+                diagnostics.Add(Warn("CANMIGJRXML011", $"'{raw.Name}' is a {raw.Type} — not supported by PXA yet; inserted a placeholder."));
                 return Placeholder(element, $"[{raw.Type}: migrate manually]");
         }
     }
@@ -553,7 +553,7 @@ public sealed class JrxmlToDesignConverter
             return null;
 
         diagnostics.Add(Info("CANMIGJRXML023",
-            $"'{raw.Name}' subreport '{resolved.Key}' was inlined with {inlined.Count} Canvas element(s)."));
+            $"'{raw.Name}' subreport '{resolved.Key}' was inlined with {inlined.Count} PXA element(s)."));
         return inlined;
     }
 
@@ -622,7 +622,7 @@ public sealed class JrxmlToDesignConverter
             element.Style["jrxmlComponent"] = raw.ComponentMetadata;
 
         diagnostics.Add(Info("CANMIGJRXML013",
-            $"'{raw.Name}' JasperReports barcode component mapped to Canvas {element.Type}."));
+            $"'{raw.Name}' JasperReports barcode component mapped to PXA {element.Type}."));
         return element;
     }
 
@@ -640,7 +640,7 @@ public sealed class JrxmlToDesignConverter
             element.Style["jrxmlTable"] = raw.ComponentMetadata;
 
         diagnostics.Add(Warn("CANMIGJRXML014",
-            $"'{raw.Name}' JasperReports table component was mapped to a Canvas table with preserved dataset/cell metadata; review repeat/data semantics."));
+            $"'{raw.Name}' JasperReports table component was mapped to a PXA table with preserved dataset/cell metadata; review repeat/data semantics."));
         return element;
     }
 
@@ -674,7 +674,7 @@ public sealed class JrxmlToDesignConverter
             placeholder.Style["jrxmlPart"] = raw.ComponentMetadata;
 
         diagnostics.Add(Warn("CANMIGJRXML022",
-            $"'{raw.Name}' JasperReports book part was mapped to a positioned Canvas placeholder; subreport inlining still requires orchestration."));
+            $"'{raw.Name}' JasperReports book part was mapped to a positioned PXA placeholder; subreport inlining still requires orchestration."));
         return placeholder;
     }
 
@@ -1125,8 +1125,8 @@ public sealed class JrxmlToDesignConverter
         if (IsTrue(Attr(el, "isStrikeThrough"))) raw.Strikeout = true;
     }
 
-    // Map each group-reset aggregate variable (calculation="Sum"/… over a single $F{field}) to the Canvas
-    // helper $sum($group, "field"). Report/page-scoped variables aren't mapped (no Canvas dataset name).
+    // Map each group-reset aggregate variable (calculation="Sum"/… over a single $F{field}) to the PXA
+    // helper $sum($group, "field"). Report/page-scoped variables aren't mapped (no PXA dataset name).
     private static Dictionary<string, string> BuildVariableAggregates(List<Dictionary<string, object>> variables)
     {
         var map = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -1164,14 +1164,14 @@ public sealed class JrxmlToDesignConverter
             {
                 element.Binding = name;
                 element.Expression = null;
-                diagnostics.Add(Info("CANMIGJRXML010", $"'{element.Name}' bound to $F{{{name}}} → Canvas binding '{name}'."));
+                diagnostics.Add(Info("CANMIGJRXML010", $"'{element.Name}' bound to $F{{{name}}} → PXA binding '{name}'."));
             }
             else if (kind == "V" && variableAggregates is not null && variableAggregates.TryGetValue(name, out var agg))
             {
-                // $V{name} resolves to a group-scoped aggregate variable → executable Canvas helper.
+                // $V{name} resolves to a group-scoped aggregate variable → executable PXA helper.
                 element.Expression = agg;
                 diagnostics.Add(Info("CANMIGJRXML010",
-                    $"'{element.Name}' variable '$V{{{name}}}' → Canvas aggregate '{agg}'."));
+                    $"'{element.Name}' variable '$V{{{name}}}' → PXA aggregate '{agg}'."));
             }
             else
             {
@@ -1209,7 +1209,7 @@ public sealed class JrxmlToDesignConverter
         element.Style ??= [];
         element.Style["jrxmlPrintWhenExpression"] = expression;
         diagnostics.Add(Warn("CANMIGJRXML016",
-            $"'{raw.Name}' printWhenExpression '{expression}' was mapped to Canvas visibleExpression; review runtime semantics."));
+            $"'{raw.Name}' printWhenExpression '{expression}' was mapped to PXA visibleExpression; review runtime semantics."));
     }
 
     private static void ApplyGroupMetadata(ElementDto element, RawElement raw, RawBand? band, List<MigrationDiagnostic> diagnostics)
@@ -1254,7 +1254,7 @@ public sealed class JrxmlToDesignConverter
             TemplateId = element.Id
         };
         diagnostics.Add(Warn("CANMIGJRXML017",
-            $"'{raw.Name}' in JasperReports {band.Type} '{groupName}' was mapped to Canvas repeat metadata; review group runtime semantics."));
+            $"'{raw.Name}' in JasperReports {band.Type} '{groupName}' was mapped to PXA repeat metadata; review group runtime semantics."));
     }
 
     private static void ApplyDetailRepeatMetadata(
@@ -1297,7 +1297,7 @@ public sealed class JrxmlToDesignConverter
         element.Style ??= [];
         element.Style["jrxmlConditionalStyles"] = raw.ConditionalStyles.ToArray();
         diagnostics.Add(Warn("CANMIGJRXML019",
-            $"'{raw.Name}' has JasperReports conditional style metadata preserved; review Canvas runtime style evaluation."));
+            $"'{raw.Name}' has JasperReports conditional style metadata preserved; review PXA runtime style evaluation."));
     }
 
     private static void ApplyNavigationMetadata(ElementDto element, RawElement raw, List<MigrationDiagnostic> diagnostics)
@@ -1321,7 +1321,7 @@ public sealed class JrxmlToDesignConverter
         }
 
         diagnostics.Add(Warn("CANMIGJRXML020",
-            $"'{raw.Name}' JasperReports hyperlink/anchor metadata was preserved and mapped to Canvas navigation fields where possible."));
+            $"'{raw.Name}' JasperReports hyperlink/anchor metadata was preserved and mapped to PXA navigation fields where possible."));
     }
 
     private static string? NavigationHref(Dictionary<string, object> navigation)

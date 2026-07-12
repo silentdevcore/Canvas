@@ -13,15 +13,15 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
 ### Backend (C#)
 
 - [x] **Add `Language` and `TextDirection` to `TextConfig`**
-  File: `Canvas.Domain/ValueObjects/DesignerElement.cs`
+  File: `PXA.Domain/ValueObjects/DesignerElement.cs`
   Added to `TextConfig`, `RichTextConfig`, and `TextFieldConfig`.
 
 - [x] **Update `MigratePropsToConfig()` in `DesignerElement`**
-  File: `Canvas.Domain/ValueObjects/DesignerElement.cs`
+  File: `PXA.Domain/ValueObjects/DesignerElement.cs`
   Reads `language` and `textDirection` from the legacy `Props` dictionary.
 
 - [x] **Add `Language` and `TextDirection` to `ElementDto`**
-  File: `src/Canvas.Core/Contracts/DesignExportDto.cs`
+  File: `src/PXA.Core/Contracts/DesignExportDto.cs`
   Added alongside the existing `Locale` field.
 
 ### Frontend (TypeScript)
@@ -35,11 +35,11 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
 ## Phase 2 — PDF Backend: Embedded Font Infrastructure
 
 - [x] **Create `PdfEmbeddedFont` class**
-  New file: `Canvas/Pdf/PdfEmbeddedFont.cs`
+  New file: `PXA/Pdf/PdfEmbeddedFont.cs`
   Full TTF binary parser for `cmap` format-4 and `hmtx` tables. Exposes `GetGlyphId`, `MeasureWidth`, `BaseFontName`, `IsRtlCapable`, `FontBytes`.
 
 - [x] **Create `PdfFontLoader` class**
-  New file: `Canvas/Pdf/PdfFontLoader.cs`
+  New file: `PXA/Pdf/PdfFontLoader.cs`
   Maps BCP-47 language tags to Noto font files with in-memory caching. `TryLoad` returns false gracefully when font file is absent.
 
   Language-to-font mapping:
@@ -55,38 +55,38 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
   | `el`, `ru`, `uk`, `bg`, (default) | NotoSans-Regular.ttf | Greek / Cyrillic / Latin |
 
 - [x] **Extend `TextElement` record with embedded font fields**
-  File: `Canvas/Pdf/Layout/TextElement.cs`
+  File: `PXA/Pdf/Layout/TextElement.cs`
   Added `PdfEmbeddedFont? EmbeddedFont = null`, `string? Language = null`, `string? TextDirection = null`.
 
 - [x] **Extend `PdfDrawTextOptions` with `Language` and `TextDirection`**
-  File: `Canvas/Pdf/PdfDrawTextOptions.cs`
+  File: `PXA/Pdf/PdfDrawTextOptions.cs`
 
 - [x] **Extend `PdfParagraphOptions` with `Language` and `TextDirection`**
-  File: `Canvas/Pdf/PdfParagraphOptions.cs`
+  File: `PXA/Pdf/PdfParagraphOptions.cs`
 
 - [x] **Create `PdfTextEncoding` public utility class**
-  New file: `Canvas/Pdf/PdfTextEncoding.cs`
+  New file: `PXA/Pdf/PdfTextEncoding.cs`
   `EncodeAsHexUtf16Be(string)` → `<FEFF...>` UTF-16BE hex string with BOM.
   `ReverseForRtl(string)` → grapheme-cluster reversal via `StringInfo`.
-  (Moved out of `PdfCanvasRenderer` which is `internal`, to enable test access.)
+  (Moved out of `PdfPageContentRenderer` which is `internal`, to enable test access.)
 
-- [x] **Branch text rendering in `PdfCanvasRenderer.RenderText` on font type**
-  File: `Canvas/Pdf/Rendering/PdfCanvasRenderer.cs`
+- [x] **Branch text rendering in `PdfPageContentRenderer.RenderText` on font type**
+  File: `src/PXA.Pdf/Rendering/PdfPageContentRenderer.cs`
   Embedded font path uses `<FEFF...> Tj` hex encoding. RTL applies `ReverseForRtl()`. Width uses `EmbeddedFont.MeasureWidth()`. Type1 path unchanged.
 
 - [x] **Emit embedded font object chain in `PdfWriter`**
-  File: `Canvas/Pdf/Serialization/PdfWriter.cs`
+  File: `PXA/Pdf/Serialization/PdfWriter.cs`
   5-object chain per font: FontStream (FlateDecode), FontDescriptor, ToUnicode CMap, CIDFont (with `/W` widths array), Type0 composite font.
 
 - [x] **Include embedded font resources in page `/Font` dictionary**
-  File: `Canvas/Pdf/Serialization/PdfWriter.cs`
+  File: `PXA/Pdf/Serialization/PdfWriter.cs`
   Resource names `EF1`, `EF2` … appear alongside `F1`, `F2` …
 
-- [x] **Pass embedded font resource names to `PdfCanvasRenderer.RenderPage`**
+- [x] **Pass embedded font resource names to `PdfPageContentRenderer.RenderPage`**
   Added `IReadOnlyDictionary<PdfEmbeddedFont, string>? embeddedFontResourceNames` parameter.
 
 - [x] **Update `PdfPage.DrawText` to resolve embedded font**
-  File: `Canvas/Pdf/PdfPage.cs`
+  File: `PXA/Pdf/PdfPage.cs`
   Calls `_fontLoader?.TryLoad(options.Language, out embeddedFont)` and threads result into `TextElement`.
 
 ---
@@ -94,7 +94,7 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
 ## Phase 3 — Frontend UI Changes
 
 - [x] **Add language selector to the Typography section**
-  File: `ui-designer-v2/src/components/Editor/SimpleCanvas.tsx`
+  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`
   Dropdown with 14 languages. Auto-sets `textDirection: 'rtl'` for Arabic, Hebrew, Farsi, Urdu, Yiddish, Divehi.
 
 - [x] **Add LTR / RTL direction toggle**
@@ -128,7 +128,7 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
 ## Phase 5 — Tests
 
 - [x] **Unit tests: `PdfFontLoader` graceful failure and RTL classification**
-  File: `tests/Canvas.Export.Tests/MultiLanguagePdfTests.cs`
+  File: `tests/PXA.Export.Tests/MultiLanguagePdfTests.cs`
 
 - [x] **Unit tests: UTF-16BE hex encoding**
   `EncodeAsHexUtf16Be("A")` → `<FEFF0041>`, BOM always present, Arabic chars encoded correctly.
@@ -235,7 +235,7 @@ On export, one PDF is generated per active language. For each, the engine substi
 ### Backend (C#)
 
 - [x] **Add `SystemLanguage` and `ActiveLanguages` to `DesignExportDto`**
-  File: `src/Canvas.Core/Contracts/DesignExportDto.cs`
+  File: `src/PXA.Core/Contracts/DesignExportDto.cs`
   `SystemLanguage` is sent by the client from `navigator.language`; the backend uses it as the fallback in property resolution.
   ```csharp
   public string? SystemLanguage { get; set; }
@@ -243,7 +243,7 @@ On export, one PDF is generated per active language. For each, the engine substi
   ```
 
 - [x] **Create `LocalizedPropertyDto`**
-  File: `src/Canvas.Core/Contracts/DesignExportDto.cs`
+  File: `src/PXA.Core/Contracts/DesignExportDto.cs`
   ```csharp
   public class LocalizedPropertyDto {
       public string Key { get; set; } = "";
@@ -254,7 +254,7 @@ On export, one PDF is generated per active language. For each, the engine substi
   ```
 
 - [x] **Add `LocalizedProperties` to `DesignExportDto`**
-  File: `src/Canvas.Core/Contracts/DesignExportDto.cs`
+  File: `src/PXA.Core/Contracts/DesignExportDto.cs`
   ```csharp
   public LocalizedPropertyDto[]? LocalizedProperties { get; set; }
   ```
@@ -294,7 +294,7 @@ On export, one PDF is generated per active language. For each, the engine substi
 ## Phase 8 — UI: Language Tabs & Localized Properties Panel
 
 - [x] **Active Languages in Document Settings dialog**
-  File: `ui-designer-v2/src/components/Editor/SimpleCanvas.tsx` (Document Settings section)
+  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx` (Document Settings section)
   Add a "Languages" tab containing:
   - **System language** — read-only display of `navigator.language` (e.g. "System: Deutsch (de)"); shown as informational, not editable
   - **Active Languages** — checkboxes for each available language; checking adds to `pageSettings.activeLanguages`; unchecking removes it (with confirmation if localized values exist for that language)
@@ -306,8 +306,8 @@ On export, one PDF is generated per active language. For each, the engine substi
   - Active tab highlighted; clicking calls `setCurrentPreviewLanguage(lang)` on the store
   - RTL languages show an "RTL" badge on the tab
 
-- [x] **Canvas preview in language context**
-  File: `ui-designer-v2/src/components/Editor/SimpleCanvas.tsx`
+- [x] **PXA preview in language context**
+  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`
   When rendering element content for preview, resolve `{{KEY}}` placeholders using `currentPreviewLanguage`'s values from `localizedProperties`.
   Apply `dir="rtl"` wrapper to the entire canvas frame when `currentPreviewLanguage` is RTL.
 
@@ -500,10 +500,10 @@ public class LocalizedPropertyDto {
 
 ---
 
-### 10.3 — Frontend: Canvas Preview
+### 10.3 — Frontend: PXA Preview
 
 - [x] **Fix `resolveContent` to correctly apply own vs global scoping**
-  File: `ui-designer-v2/src/components/Editor/SimpleCanvas.tsx`
+  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`
   When building the property map for the current preview language:
   - Include Global properties: value = `localizedValues[currentPreviewLanguage] ?? localizedValues[systemLanguage] ?? ""`
   - Include Own properties: only include when `ownerLanguage === currentPreviewLanguage`; value = `localizedValues[ownerLanguage]`
@@ -517,7 +517,7 @@ public class LocalizedPropertyDto {
 ### 10.4 — Backend: Data Model
 
 - [x] **Update `LocalizedPropertyDto`**
-  File: `src/Canvas.Core/Contracts/DesignExportDto.cs`
+  File: `src/PXA.Core/Contracts/DesignExportDto.cs`
   Replace `bool Global` + `string GlobalValue` with:
   ```csharp
   public string Scope { get; set; } = "global";   // "global" | "own"
@@ -591,7 +591,7 @@ public class LocalizedPropertyDto {
 ### 11.1 — Properties Tab
 
 - [x] **Move `LocalizedPropertiesPanel` to a dedicated inspector tab**
-  File: `ui-designer-v2/src/components/Editor/SimpleCanvas.tsx`
+  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`
   Added `'properties'` to `inspectorTab` type. Tab button appears only when `activeLanguages.length >= 1`. Shows property count badge. Removed panel from the `!selectedElement` inspector section.
 
 - [x] **Fix second-property-add bug in `LocalizedPropertiesPanel`**
@@ -605,10 +605,10 @@ public class LocalizedPropertyDto {
   `undefined` = visible in all language tabs. BCP-47 tag = Own element for that language only.
 
 - [x] **Add `ElementLanguage?: string` to `ElementDto`**
-  File: `src/Canvas.Core/Contracts/DesignExportDto.cs`
+  File: `src/PXA.Core/Contracts/DesignExportDto.cs`
 
 - [x] **Auto-assign `elementLanguage` when adding elements in multi-lang mode**
-  File: `ui-designer-v2/src/components/Editor/SimpleCanvas.tsx`
+  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`
   New helper `addElementWithLangScope()`: if `activeLanguages.length >= 1` and `currentPreviewLanguage` is one of the active languages, new elements get `elementLanguage = currentPreviewLanguage`. Otherwise elements are "all languages" (no `elementLanguage`).
 
 - [x] **Auto-create RTL mirror element for LTR Own elements**
@@ -618,8 +618,8 @@ public class LocalizedPropertyDto {
   - `x = pageWidth - base.x - base.width` (horizontally mirrored)
 
 - [x] **Filter canvas rendering by `currentPreviewLanguage`**
-  File: `ui-designer-v2/src/components/Editor/SimpleCanvas.tsx`
-  Canvas renders only elements where `!el.elementLanguage || el.elementLanguage === currentPreviewLanguage`. Layers panel shows all elements with a language badge.
+  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`
+  PXA renders only elements where `!el.elementLanguage || el.elementLanguage === currentPreviewLanguage`. Layers panel shows all elements with a language badge.
 
 - [x] **Language Scope control in element inspector**
   "All languages" + one button per active language. "Create RTL mirror" button when element is LTR Own and RTL languages are active.

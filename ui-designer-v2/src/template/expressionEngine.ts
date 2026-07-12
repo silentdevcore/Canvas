@@ -19,7 +19,7 @@ export interface ExpressionResult {
 // Dataset-aggregate helpers: read a (optional) field from a row, and collect numeric column values.
 // A bare identifier is a fast field read; a computed argument (Qty * Price, $iif(Paid, Total, 0)) is
 // evaluated as a sub-expression against the row, so Sum(Qty*Price)/Sum(IIf(...)) work. Mirrors RowValue
-// in CanvasExpressionEvaluator.
+// in PxaExpressionEvaluator.
 const BARE_IDENT = /^[A-Za-z_]\w*$/;
 function aggField(row: any, field?: string): any {
   if (field == null) return row;
@@ -120,7 +120,7 @@ function createSafeContext(context: ExpressionContext): Record<string, any> {
     $coalesce: (...xs: any[]) => xs.find(x => x != null),
 
     // Dataset aggregates (rows = the dataset array, field = optional column name).
-    // $sum(DataSet, "Total"), $count(DataSet), $first(DataSet, "Name"), … mirror CanvasExpressionEvaluator.
+    // $sum(DataSet, "Total"), $count(DataSet), $first(DataSet, "Name"), … mirror PxaExpressionEvaluator.
     $sum: (rows: any, field?: string) => aggNums(rows, field).reduce((a, b) => a + b, 0),
     $avg: (rows: any, field?: string) => { const n = aggNums(rows, field); return n.length ? n.reduce((a, b) => a + b, 0) / n.length : 0; },
     $min: (rows: any, field?: string) => { const n = aggNums(rows, field); return n.length ? Math.min(...n) : 0; },
@@ -190,7 +190,7 @@ function createSafeContext(context: ExpressionContext): Record<string, any> {
 
 /**
  * Safely evaluates an expression. Literal/template/new/instanceof are handled as special cases; the rest
- * goes through a recursive-descent precedence parser that mirrors the server CanvasExpressionEvaluator.
+ * goes through a recursive-descent precedence parser that mirrors the server PxaExpressionEvaluator.
  */
 function evaluateSafeExpression(expression: string, context: Record<string, any>): ExpressionResult {
   const expr = expression.trim();
@@ -210,7 +210,7 @@ function evaluateSafeExpression(expression: string, context: Record<string, any>
   }
 }
 
-// ── Tokenizer + recursive-descent parser (mirrors src/PXA.Core/Primitives/CanvasExpressionEvaluator.cs) ──
+// ── Tokenizer + recursive-descent parser (mirrors src/PXA.Core/Primitives/PxaExpressionEvaluator.cs) ──
 
 type TokKind = 'num' | 'str' | 'ident' | 'op' | 'lparen' | 'rparen' | 'comma' | 'end';
 interface Tok { kind: TokKind; text: string; num?: number; }

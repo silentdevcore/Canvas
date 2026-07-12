@@ -1,6 +1,6 @@
 import { evaluateExpression, ExpressionContext } from '../template/expressionEngine';
 
-// Proves that the Canvas-grammar expressions emitted by the migration ExpressionTranslator
+// Proves that the PXA-grammar expressions emitted by the migration ExpressionTranslator
 // (RDL/DevExpress → $iif/$concat/$and/operators) actually evaluate in the preview engine.
 describe('expressionEngine — migrated expression helpers', () => {
   const ctx = (data: Record<string, any>): ExpressionContext => ({ data });
@@ -31,7 +31,7 @@ describe('expressionEngine — migrated expression helpers', () => {
   });
 });
 
-// Dataset aggregates emitted as $sum(DataSet, "Field") etc. — parity with CanvasExpressionEvaluator.
+// Dataset aggregates emitted as $sum(DataSet, "Field") etc. — parity with PxaExpressionEvaluator.
 describe('expressionEngine — dataset aggregates', () => {
   const data = {
     Orders: [
@@ -60,7 +60,7 @@ describe('expressionEngine — dataset aggregates', () => {
   });
 
   test('aggregate over a computed per-row sub-expression (Sum(Qty*Price) / Sum(IIf(...)))', () => {
-    // Second arg is a per-row expression, not just a field name — parity with CanvasExpressionEvaluator.RowValue.
+    // Second arg is a per-row expression, not just a field name — parity with PxaExpressionEvaluator.RowValue.
     expect(evaluateExpression('$sum(Orders, "Total * 2")', ctx).value).toBe(120);                 // (10+20+30)*2
     expect(evaluateExpression('$sum(Orders, "$iif(Total > 15, Total, 0)")', ctx).value).toBe(50); // 20 + 30 only
   });
@@ -68,7 +68,7 @@ describe('expressionEngine — dataset aggregates', () => {
   test('&& / || / ?? short-circuit the decided side (no eval, no throw)', () => {
     // The right side throws on its own (unknown function) …
     expect(evaluateExpression('boom() > 0', ctx).isValid).toBe(false);
-    // … but is not evaluated when the left already decides the result. Parity with CanvasExpressionEvaluator.
+    // … but is not evaluated when the left already decides the result. Parity with PxaExpressionEvaluator.
     expect(evaluateExpression('Missing != null && boom() > 0', ctx).value).toBe(false);
     expect(evaluateExpression('$count(Orders) > 0 || boom()', ctx).value).toBe(true);
     expect(evaluateExpression('Missing ?? "fallback"', ctx).value).toBe('fallback');
@@ -82,7 +82,7 @@ describe('expressionEngine — dataset aggregates', () => {
   });
 });
 
-// Recursive-descent precedence parser — parity with the server CanvasExpressionEvaluator.
+// Recursive-descent precedence parser — parity with the server PxaExpressionEvaluator.
 describe('expressionEngine — operator precedence', () => {
   const ctx = (data: Record<string, any>): ExpressionContext => ({ data });
   const val = (expr: string, data: Record<string, any> = {}) => evaluateExpression(expr, ctx(data)).value;

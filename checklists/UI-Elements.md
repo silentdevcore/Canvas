@@ -1,7 +1,7 @@
 # UI Elements Implementation Checklist
 
 ## Overview
-This checklist covers the implementation of additional UI elements for the Canvas PDF Designer. Each element should follow the established pattern: update types, store logic, renderer, properties panel, sidebar, and codegen.
+This checklist covers the implementation of additional UI elements for the PXA PDF Designer. Each element should follow the established pattern: update types, store logic, renderer, properties panel, sidebar, and codegen.
 
 ## Core Elements (High Priority)
 
@@ -120,7 +120,7 @@ This checklist covers the implementation of additional UI elements for the Canva
 - Provide visual feedback for selection and editing
 
 ### Code Generation
-- Generate valid C# code for the Canvas PDF library
+- Generate valid C# code for the PXA PDF library
 - Include all necessary properties and configurations
 - Maintain code readability and structure
 - Support nested element hierarchies
