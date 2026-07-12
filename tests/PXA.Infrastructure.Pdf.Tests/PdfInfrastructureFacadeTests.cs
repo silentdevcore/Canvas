@@ -1,4 +1,4 @@
-using Canvas.Pdf;
+using PXA.Pdf;
 using PXA.Infrastructure.Pdf;
 
 namespace PXA.Infrastructure.Pdf.Tests;

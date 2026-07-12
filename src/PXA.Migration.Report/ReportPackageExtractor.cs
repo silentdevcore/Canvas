@@ -1,4 +1,4 @@
-using CanvasReportPackageExtractor = Canvas.Migration.Abstractions.ReportPackageExtractor;
+using CanvasReportPackageExtractor = PXA.Migration.Abstractions.ReportPackageExtractor;
 
 namespace PXA.Migration.Report;
 

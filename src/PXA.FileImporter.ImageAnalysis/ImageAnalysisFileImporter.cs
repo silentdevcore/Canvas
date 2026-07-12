@@ -99,21 +99,6 @@ public sealed class ImageAnalysisFileImporter : PXA.FileImporter.IFileImporter
     public static ImageAnalysisImportResult ImportWithAnalysis(
         SKBitmap source,
         string   name,
-        double?  targetWidthPt  = null,
-        double?  targetHeightPt = null,
-        bool includeDebugOverlay = false)
-    {
-        return ImportWithAnalysis(
-            source,
-            name,
-            targetWidthPt,
-            targetHeightPt,
-            new ImageAnalysisOptions { IncludeDebugOverlay = includeDebugOverlay });
-    }
-
-    public static ImageAnalysisImportResult ImportWithAnalysis(
-        SKBitmap source,
-        string   name,
         double?  targetWidthPt = null,
         double?  targetHeightPt = null,
         ImageAnalysisOptions? options = null)

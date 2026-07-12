@@ -6,9 +6,9 @@ public sealed class PdfHeaderFooterService : IHeaderFooterService
 {
     public void Apply(object documentModel, object? options = null)
     {
-        if (documentModel is not Canvas.Pdf.PdfDocument document)
+        if (documentModel is not PXA.Pdf.PdfDocument document)
         {
-            throw new ArgumentException("Document model must be Canvas.Pdf.PdfDocument for PdfHeaderFooterService.", nameof(documentModel));
+            throw new ArgumentException("Document model must be PXA.Pdf.PdfDocument for PdfHeaderFooterService.", nameof(documentModel));
         }
 
         if (options is null)
@@ -17,12 +17,12 @@ public sealed class PdfHeaderFooterService : IHeaderFooterService
             return;
         }
 
-        if (options is Canvas.Pdf.PdfHeaderFooterOptions headerFooterOptions)
+        if (options is PXA.Pdf.PdfHeaderFooterOptions headerFooterOptions)
         {
             document.AddHeadersAndFooters(headerFooterOptions);
             return;
         }
 
-        throw new ArgumentException("Options must be Canvas.Pdf.PdfHeaderFooterOptions when provided.", nameof(options));
+        throw new ArgumentException("Options must be PXA.Pdf.PdfHeaderFooterOptions when provided.", nameof(options));
     }
 }

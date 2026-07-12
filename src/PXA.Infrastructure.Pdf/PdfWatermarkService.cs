@@ -6,9 +6,9 @@ public sealed class PdfWatermarkService : IWatermarkService
 {
     public void Apply(object documentModel, string text, object? options = null)
     {
-        if (documentModel is not Canvas.Pdf.PdfDocument document)
+        if (documentModel is not PXA.Pdf.PdfDocument document)
         {
-            throw new ArgumentException("Document model must be Canvas.Pdf.PdfDocument for PdfWatermarkService.", nameof(documentModel));
+            throw new ArgumentException("Document model must be PXA.Pdf.PdfDocument for PdfWatermarkService.", nameof(documentModel));
         }
 
         if (string.IsNullOrWhiteSpace(text))
@@ -22,12 +22,12 @@ public sealed class PdfWatermarkService : IWatermarkService
             return;
         }
 
-        if (options is Canvas.Pdf.PdfWatermarkOptions watermarkOptions)
+        if (options is PXA.Pdf.PdfWatermarkOptions watermarkOptions)
         {
             document.AddTextWatermark(text, watermarkOptions);
             return;
         }
 
-        throw new ArgumentException("Options must be Canvas.Pdf.PdfWatermarkOptions when provided.", nameof(options));
+        throw new ArgumentException("Options must be PXA.Pdf.PdfWatermarkOptions when provided.", nameof(options));
     }
 }

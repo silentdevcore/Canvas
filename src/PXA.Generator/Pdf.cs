@@ -1,4 +1,4 @@
-using Canvas.Pdf;
+using PXA.Pdf;
 
 namespace PXA.Generator;
 

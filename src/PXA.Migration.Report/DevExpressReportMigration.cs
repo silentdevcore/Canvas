@@ -1,4 +1,4 @@
-using Canvas.Migration.DevExpressReport;
+using PXA.Migration.DevExpressReport;
 using PXA.Core.Contracts;
 
 namespace PXA.Migration.Report;
@@ -15,8 +15,8 @@ public sealed class DevExpressReportMigration : IReportMigration
         var result = inner.ConvertAuto(source, resources);
         return new ReportMigrationResult
         {
-            Design = result.Design.ToPxa(),
-            Diagnostics = ReportDiagnosticMapper.ToPxaDiagnostics(result.Diagnostics),
+            Design = result.Design,
+            Diagnostics = result.Diagnostics,
         };
     }
 }

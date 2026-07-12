@@ -1,4 +1,4 @@
-using Canvas.Pdf;
+using PXA.Pdf;
 using PXA.Application.UseCases;
 using PXA.Infrastructure.Spreadsheet;
 using PXA.WebApi.Infrastructure;

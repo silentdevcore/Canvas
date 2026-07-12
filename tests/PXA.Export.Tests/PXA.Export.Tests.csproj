@@ -25,6 +25,15 @@
     <ProjectReference Include="../../src/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj" />
     <ProjectReference Include="../../src/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj" />
     <ProjectReference Include="../../src/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj" />
+    <ProjectReference Include="../../src/PXA.Infrastructure.Pdf/PXA.Infrastructure.Pdf.csproj" />
+    <ProjectReference Include="../../PXA.WebApi/PXA.WebApi.csproj" />
+    <ProjectReference Include="../../src/PXA.Migration.DevExpressReport/PXA.Migration.DevExpressReport.csproj" />
+    <ProjectReference Include="../../src/PXA.Migration.FastReport/PXA.Migration.FastReport.csproj" />
+    <ProjectReference Include="../../src/PXA.Migration.JasperReports/PXA.Migration.JasperReports.csproj" />
+    <ProjectReference Include="../../src/PXA.Migration.Rdl/PXA.Migration.Rdl.csproj" />
+    <ProjectReference Include="../../src/PXA.Migration.Rpx/PXA.Migration.Rpx.csproj" />
+    <ProjectReference Include="../../src/PXA.Migration.Stimulsoft/PXA.Migration.Stimulsoft.csproj" />
+    <ProjectReference Include="../../src/PXA.Migration.Telerik/PXA.Migration.Telerik.csproj" />
   </ItemGroup>
 
 </Project>

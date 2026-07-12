@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../Canvas.Migration.GemBoxPdf/Canvas.Migration.GemBoxPdf.csproj" />
     <ProjectReference Include="../PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
+    <ProjectReference Include="../PXA.Migration.Roslyn/PXA.Migration.Roslyn.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

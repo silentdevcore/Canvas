@@ -6,9 +6,9 @@ public sealed class PdfPageNumberingService : IPageNumberingService
 {
     public void Apply(object documentModel, object? options = null)
     {
-        if (documentModel is not Canvas.Pdf.PdfDocument document)
+        if (documentModel is not PXA.Pdf.PdfDocument document)
         {
-            throw new ArgumentException("Document model must be Canvas.Pdf.PdfDocument for PdfPageNumberingService.", nameof(documentModel));
+            throw new ArgumentException("Document model must be PXA.Pdf.PdfDocument for PdfPageNumberingService.", nameof(documentModel));
         }
 
         if (options is null)
@@ -17,12 +17,12 @@ public sealed class PdfPageNumberingService : IPageNumberingService
             return;
         }
 
-        if (options is Canvas.Pdf.PdfPageNumberOptions pageNumberOptions)
+        if (options is PXA.Pdf.PdfPageNumberOptions pageNumberOptions)
         {
             document.AddPageNumbers(pageNumberOptions);
             return;
         }
 
-        throw new ArgumentException("Options must be Canvas.Pdf.PdfPageNumberOptions when provided.", nameof(options));
+        throw new ArgumentException("Options must be PXA.Pdf.PdfPageNumberOptions when provided.", nameof(options));
     }
 }

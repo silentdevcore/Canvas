@@ -1,4 +1,4 @@
-using Canvas.Migration.JasperReports;
+using PXA.Migration.JasperReports;
 using PXA.Core.Contracts;
 
 namespace PXA.Migration.Report;
@@ -17,8 +17,8 @@ public sealed class JasperReportsMigration : IReportMigration
         var result = inner.Convert(source, subreportSources);
         return new ReportMigrationResult
         {
-            Design = result.Design.ToPxa(),
-            Diagnostics = ReportDiagnosticMapper.ToPxaDiagnostics(result.Diagnostics),
+            Design = result.Design,
+            Diagnostics = result.Diagnostics,
         };
     }
 }

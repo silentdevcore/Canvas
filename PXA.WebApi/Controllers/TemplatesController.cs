@@ -19,14 +19,14 @@ public class TemplatesController : ControllerBase
     private readonly UpdateTemplateUseCase _updateTemplateUseCase;
     private readonly GetTemplateUseCase _getTemplateUseCase;
     private readonly ValidateTemplateUseCase _validateTemplateUseCase;
-    private readonly Canvas.Pdf.PdfFontLoader? _fontLoader;
+    private readonly PXA.Pdf.PdfFontLoader? _fontLoader;
 
     public TemplatesController(
         CreateTemplateUseCase createTemplateUseCase,
         UpdateTemplateUseCase updateTemplateUseCase,
         GetTemplateUseCase getTemplateUseCase,
         ValidateTemplateUseCase validateTemplateUseCase,
-        Canvas.Pdf.PdfFontLoader? fontLoader = null)
+        PXA.Pdf.PdfFontLoader? fontLoader = null)
     {
         _createTemplateUseCase = createTemplateUseCase;
         _updateTemplateUseCase = updateTemplateUseCase;
@@ -263,7 +263,7 @@ public class TemplatesController : ControllerBase
         });
 
 #pragma warning disable PXA0001 // Stored-template rendering still targets the compatibility PDF engine boundary.
-        var pdfDocument = new Canvas.Pdf.PdfDocument();
+        var pdfDocument = new PXA.Pdf.PdfDocument();
 #pragma warning restore PXA0001
         var page = pdfDocument.AddPage();
         page.DrawText($"Template Rendered Successfully: {template.Name}", 100, 700, 14);
@@ -301,7 +301,7 @@ public class TemplatesController : ControllerBase
     }
 
     /// <summary>
-    /// Executes a C# script that builds a PdfDocument using the Canvas.Pdf API and returns the PDF.
+    /// Executes a C# script that builds a PdfDocument using the PXA.Pdf API and returns the PDF.
     /// The script must evaluate to a PdfDocument instance as its last expression.
     /// </summary>
     [HttpPost("csharp-code-to-pdf")]
@@ -326,9 +326,9 @@ public class TemplatesController : ControllerBase
                 .WithReferences(platformRefs)
                 .AddReferences(
                     Assembly.GetExecutingAssembly(),
-                    typeof(Canvas.Pdf.PdfDocument).Assembly)
+                    typeof(PXA.Pdf.PdfDocument).Assembly)
                 .WithImports(
-                    "Canvas.Pdf",
+                    "PXA.Pdf",
                     "PXA.WebApi.Infrastructure",
                     "System",
                     "System.IO",
@@ -466,8 +466,8 @@ public class TemplatesController : ControllerBase
 
             var options = ScriptOptions.Default
                 .WithReferences(platformRefs)
-                .AddReferences(Assembly.GetExecutingAssembly(), typeof(Canvas.Pdf.PdfDocument).Assembly)
-                .WithImports("Canvas.Pdf", "System", "System.Collections.Generic")
+                .AddReferences(Assembly.GetExecutingAssembly(), typeof(PXA.Pdf.PdfDocument).Assembly)
+                .WithImports("PXA.Pdf", "System", "System.Collections.Generic")
                 .WithEmitDebugInformation(true);
 
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));

@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../Canvas.Core/Canvas.Core.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

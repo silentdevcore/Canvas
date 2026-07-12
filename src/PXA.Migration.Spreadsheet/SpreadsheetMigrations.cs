@@ -1,67 +1,67 @@
 using PXA.Migration.Abstractions;
-using CanvasAsposeCellsMigration = Canvas.Migration.AsposeCells.AsposeCellsMigration;
-using CanvasClosedXmlSpreadsheetMigration = Canvas.Migration.ClosedXmlSpreadsheet.ClosedXmlSpreadsheetMigration;
-using CanvasEpplusSpreadsheetMigration = Canvas.Migration.EpplusSpreadsheet.EpplusSpreadsheetMigration;
-using CanvasGemBoxSpreadsheetMigration = Canvas.Migration.GemBoxSpreadsheet.GemBoxSpreadsheetMigration;
-using CanvasNpoiMigration = Canvas.Migration.Npoi.NpoiMigration;
-using CanvasSpireXlsMigration = Canvas.Migration.SpireXls.SpireXlsMigration;
-using CanvasSpreadsheetLightMigration = Canvas.Migration.SpreadsheetLight.SpreadsheetLightMigration;
-using CanvasSyncfusionXlsIoMigration = Canvas.Migration.SyncfusionXlsIo.SyncfusionXlsIoMigration;
+using CanvasAsposeCellsMigration = PXA.Migration.AsposeCells.AsposeCellsMigration;
+using CanvasClosedXmlSpreadsheetMigration = PXA.Migration.ClosedXmlSpreadsheet.ClosedXmlSpreadsheetMigration;
+using CanvasEpplusSpreadsheetMigration = PXA.Migration.EpplusSpreadsheet.EpplusSpreadsheetMigration;
+using CanvasGemBoxSpreadsheetMigration = PXA.Migration.GemBoxSpreadsheet.GemBoxSpreadsheetMigration;
+using CanvasNpoiMigration = PXA.Migration.Npoi.NpoiMigration;
+using CanvasSpireXlsMigration = PXA.Migration.SpireXls.SpireXlsMigration;
+using CanvasSpreadsheetLightMigration = PXA.Migration.SpreadsheetLight.SpreadsheetLightMigration;
+using CanvasSyncfusionXlsIoMigration = PXA.Migration.SyncfusionXlsIo.SyncfusionXlsIoMigration;
 
 namespace PXA.Migration.Spreadsheet;
 
 public sealed class AsposeCellsMigration : ISourceMigration
 {
-    private readonly ISourceMigration inner = new CanvasAsposeCellsMigration().AsPxaMigration();
+    private readonly ISourceMigration inner = new CanvasAsposeCellsMigration();
 
     public MigrationResult Migrate(string sourceCode) => inner.Migrate(sourceCode);
 }
 
 public sealed class ClosedXmlSpreadsheetMigration : ISourceMigration
 {
-    private readonly ISourceMigration inner = new CanvasClosedXmlSpreadsheetMigration().AsPxaMigration();
+    private readonly ISourceMigration inner = new CanvasClosedXmlSpreadsheetMigration();
 
     public MigrationResult Migrate(string sourceCode) => inner.Migrate(sourceCode);
 }
 
 public sealed class EpplusSpreadsheetMigration : ISourceMigration
 {
-    private readonly ISourceMigration inner = new CanvasEpplusSpreadsheetMigration().AsPxaMigration();
+    private readonly ISourceMigration inner = new CanvasEpplusSpreadsheetMigration();
 
     public MigrationResult Migrate(string sourceCode) => inner.Migrate(sourceCode);
 }
 
 public sealed class GemBoxSpreadsheetMigration : ISourceMigration
 {
-    private readonly ISourceMigration inner = new CanvasGemBoxSpreadsheetMigration().AsPxaMigration();
+    private readonly ISourceMigration inner = new CanvasGemBoxSpreadsheetMigration();
 
     public MigrationResult Migrate(string sourceCode) => inner.Migrate(sourceCode);
 }
 
 public sealed class NpoiMigration : ISourceMigration
 {
-    private readonly ISourceMigration inner = new CanvasNpoiMigration().AsPxaMigration();
+    private readonly ISourceMigration inner = new CanvasNpoiMigration();
 
     public MigrationResult Migrate(string sourceCode) => inner.Migrate(sourceCode);
 }
 
 public sealed class SpireXlsMigration : ISourceMigration
 {
-    private readonly ISourceMigration inner = new CanvasSpireXlsMigration().AsPxaMigration();
+    private readonly ISourceMigration inner = new CanvasSpireXlsMigration();
 
     public MigrationResult Migrate(string sourceCode) => inner.Migrate(sourceCode);
 }
 
 public sealed class SpreadsheetLightMigration : ISourceMigration
 {
-    private readonly ISourceMigration inner = new CanvasSpreadsheetLightMigration().AsPxaMigration();
+    private readonly ISourceMigration inner = new CanvasSpreadsheetLightMigration();
 
     public MigrationResult Migrate(string sourceCode) => inner.Migrate(sourceCode);
 }
 
 public sealed class SyncfusionXlsIoMigration : ISourceMigration
 {
-    private readonly ISourceMigration inner = new CanvasSyncfusionXlsIoMigration().AsPxaMigration();
+    private readonly ISourceMigration inner = new CanvasSyncfusionXlsIoMigration();
 
     public MigrationResult Migrate(string sourceCode) => inner.Migrate(sourceCode);
 }

@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/PXA.Generator/PXA.Generator.csproj" />
     <ProjectReference Include="../../src/PXA.Importer/PXA.Importer.csproj" />
+    <ProjectReference Include="../../src/PXA.FileImporter/PXA.FileImporter.csproj" />
   </ItemGroup>
 
 </Project>

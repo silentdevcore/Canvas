@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/PXA.Migration.Apryse/PXA.Migration.Apryse.csproj" />
+    <ProjectReference Include="../../src/PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

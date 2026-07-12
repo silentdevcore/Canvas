@@ -6,41 +6,6 @@ namespace PXA.Core.Tests;
 
 public sealed class CapabilityAdaptersTests
 {
-    [Theory]
-    [InlineData(RendererFeature.Bookmarks)]
-    [InlineData(RendererFeature.TableOfContents)]
-    [InlineData(RendererFeature.NamedDestinations)]
-    [InlineData(RendererFeature.InternalLinks)]
-    [InlineData(RendererFeature.ExternalLinks)]
-    [InlineData(RendererFeature.ImageOpacity)]
-    [InlineData(RendererFeature.PageRotation)]
-    [InlineData(RendererFeature.PageBoundaries)]
-    [InlineData(RendererFeature.Watermarks)]
-    [InlineData(RendererFeature.HeaderFooter)]
-    [InlineData(RendererFeature.SectionNumbering)]
-    [InlineData(RendererFeature.AdvancedTextDecorations)]
-    [InlineData(RendererFeature.Compression)]
-    public void RendererFeature_MapsByName(RendererFeature feature)
-    {
-        var canvasFeature = feature.ToCanvas();
-        var roundTrip = canvasFeature.ToPxa();
-
-        Assert.Equal(feature.ToString(), canvasFeature.ToString());
-        Assert.Equal(feature, roundTrip);
-    }
-
-    [Theory]
-    [InlineData(UnsupportedFeatureFallbackMode.Throw)]
-    [InlineData(UnsupportedFeatureFallbackMode.Skip)]
-    public void UnsupportedFeatureFallbackMode_MapsByName(UnsupportedFeatureFallbackMode mode)
-    {
-        var canvasMode = mode.ToCanvas();
-        var roundTrip = canvasMode.ToPxa();
-
-        Assert.Equal(mode.ToString(), canvasMode.ToString());
-        Assert.Equal(mode, roundTrip);
-    }
-
     [Fact]
     public void TryEnsureSupported_ReturnsFalse_WhenUnsupportedAndModeIsSkip()
     {

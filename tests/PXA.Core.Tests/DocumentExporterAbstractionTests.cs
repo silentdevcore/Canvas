@@ -6,10 +6,10 @@ namespace PXA.Core.Tests;
 public sealed class DocumentExporterAbstractionTests
 {
     [Fact]
-    public void DocumentExporter_DefaultCapabilitiesMatchCanvasDefaults()
+    public void DocumentExporter_DefaultCapabilitiesMatchPxaDefaults()
     {
         IDocumentExporter exporter = new TestDocumentExporter();
-        var canvasCapabilities = new Canvas.Core.Abstractions.ExporterCapabilities();
+        var canvasCapabilities = new ExporterCapabilities();
 
         Assert.Equal("test", exporter.FormatKey);
         Assert.Equal("application/test", exporter.MimeType);

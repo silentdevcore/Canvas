@@ -235,7 +235,7 @@ dedicated public package/versioning decision.
       `CONTRIBUTING_RENDERERS.md` now names Power Dox Automation/PXA as the extension target, asks new
       developer-facing work to expose `PXA.*` facades, and documents legacy `Canvas.*` implementation
       project patterns during the compatibility phase.
-- [ ] Phase 9: optional later physical rename of solution, project files, folders, and test assemblies.
+- [x] Phase 9: optional later physical rename of solution, project files, folders, and test assemblies.
       Started with additive solution alias `PXA.sln`, copied from the current `Canvas.sln` so developers can
       build through a PXA-named entry point while legacy project paths remain stable. Verified with
       `dotnet sln PXA.sln list` and `dotnet build PXA.sln` (0 errors; existing dependency/analyzer/nullability
@@ -326,7 +326,8 @@ Current classification:
 | `PXA.Core` | Facade over `Canvas.Core` plus selected PXA contracts | Promote canonical contracts/abstractions first |
 | `PXA.Domain` | Facade/adapters over `Canvas.Domain` | Move missing domain implementation into existing PXA project |
 | `PXA.Application` | Facade over `Canvas.Application` plus selected PXA use cases | Move use cases after Core/Domain |
-| `PXA.Infrastructure.Pdf` | Facade over PDF infrastructure | Promote PDF implementation first among infrastructure |
+| `PXA.Pdf` | PXA-owned PDF generator engine (`namespace PXA.Pdf`), moved out of `Canvas/Pdf`; single assembly, no dual-link | Done; migration providers still emit `Canvas.Pdf` output (separate slice) |
+| `PXA.Infrastructure.Pdf` | PXA-owned PDF services over `PXA.Pdf` engine + `PXA.Core` | Done |
 | `PXA.Infrastructure.Word` | Facade over Word infrastructure | Promote after PDF |
 | `PXA.Infrastructure.Spreadsheet` | Facade over Spreadsheet infrastructure | Promote after PDF or alongside spreadsheet migration |
 | `PXA.Infrastructure.Converters` | Facade over converter exporters | Promote after Word/Spreadsheet dependencies settle |
@@ -345,8 +346,12 @@ Remaining compatibility bridges after the latest promotion slices:
   composes directly against those legacy provider projects.
 - `PXA.Migration.Report` and `PXA.Migration.Spreadsheet` still aggregate legacy report/spreadsheet engines
   until those provider implementations are promoted one by one.
-- `PXA.Infrastructure.Pdf`, `PXA.Generator`, `PXA.Importer`, and selected WebApi code still reference
-  `Canvas.Pdf` because the PDF engine facade/physical rename remains a later dedicated slice.
+- The PDF engine namespace/physical rename is **done**: the engine source moved from `Canvas/Pdf/**`
+  (`namespace Canvas.Pdf`) into the new `src/PXA.Pdf` project (`namespace PXA.Pdf`), and all in-repo
+  consumers (both infrastructure projects, `PXA.Generator`, `PXA.Importer`, WebApi, legacy `Canvas.*`
+  consumers, and tests) now reference `PXA.Pdf`. The one remaining `Canvas.Pdf` surface is intentional:
+  migration providers still *emit* `using Canvas.Pdf;` in generated conversion output, which belongs to
+  the migration-output-namespace decision in the provider-promotion slice (not the physical engine rename).
 - `PXA.Api.Tests` intentionally links the legacy API test sources and OCR data paths for route compatibility
   coverage; replacing it with PXA-owned API tests should be a separate coverage-preserving slice.
 
@@ -827,6 +832,63 @@ Completed Phase 9 promotion slices:
       `dotnet test tests/PXA.Export.Tests/PXA.Export.Tests.csproj --no-restore --disable-build-servers -m:1`
       (3 passed) and `rg -n "Canvas\.|Canvas\.Export|src/Canvas|PXA.WebApi" tests/PXA.Export.Tests --glob "*.cs" --glob "*.csproj"`
       (no matches).
+- [x] PDF engine physical/namespace rename (`Canvas.Pdf` -> `PXA.Pdf`):
+      Moved the PDF generator engine source (63 types, 77 files) out of the dual-linked `Canvas/Pdf/**`
+      folder into a new owned project `src/PXA.Pdf` and renamed `namespace Canvas.Pdf` -> `namespace PXA.Pdf`
+      (including `.Layout`, `.Rendering`, `.Serialization[.Security]` sub-namespaces). The engine is now a
+      single assembly instead of being `Compile Include`-linked into both `Canvas.Infrastructure.Pdf` and
+      `PXA.Infrastructure.Pdf`, which removes the long-standing duplicate `Canvas.Pdf` type-identity hazard.
+      Both infrastructure projects now `ProjectReference` `PXA.Pdf`; the dead `Canvas.Pdf.Compatibility.
+      CorePrimitiveAdapters` file (the only `Canvas.Core` dependency, referenced nowhere) was dropped. The
+      engine namespace is `PXA.Pdf` rather than `PXA.Generator.Pdf` to avoid colliding with the promoted
+      facade class `PXA.Generator.Pdf.CreateDocument()`; that facade entry point is unchanged. All in-repo
+      consumers were switched to `PXA.Pdf`: both infrastructure projects, `PXA.Generator`, `PXA.Importer`,
+      `Canvas.Importer`, `Canvas.Application`, `samples/PXA.Demo`, the root `Canvas` exe, and WebApi. Runtime
+      string surfaces were updated where they must track the type identity: the `CanvasPdfGeneratorBridge`
+      reflection lookups (`Assembly.GetType("PXA.Pdf.PdfImageData")`, `PXA.Pdf.PdfPage._elements`, etc.) and
+      the template-script Roslyn imports (`.WithImports("PXA.Pdf", ...)`). Migration-provider *generated
+      output* (Roslyn `SyntaxFactory.ParseName("Canvas.Pdf")`, skeleton code, diagnostic messages) and the
+      matching test assertions were intentionally left on `Canvas.Pdf` — the emitted target namespace belongs
+      to the separate migration-provider-promotion slice. `src/PXA.Pdf` added to `Canvas.sln` and `PXA.sln`.
+      Verified with per-project builds (`PXA.Pdf`, `PXA.Infrastructure.Pdf`, `Canvas.Infrastructure.Pdf`,
+      `PXA.Generator`, `PXA.Importer`, `Canvas.Importer`, `Canvas.Application`, `PXA.FileImporter`,
+      `samples/PXA.Demo`, `Canvas`, and `PXA.WebApi`; all 0 errors) and with
+      `dotnet test` for `PXA.Infrastructure.Pdf.Tests` (5), `Canvas.Infrastructure.Pdf.Tests` (34),
+      `PXA.Generator.Tests` (5), `PXA.Importer.Tests` (3), `Canvas.Importer.Tests` (95), `PXA.Api.Tests` (61),
+      `Canvas.Api.Tests` (61), `PXA.Export.Tests` (3), and the Canvas/PXA PDF migration provider suites
+      (iText7/Apryse/DevExpressPdf etc.) — all passing.
+      Note: `tests/Canvas.Export.Tests` has a pre-existing build break unrelated to this slice — it passes a
+      `Canvas.Core.Contracts.DesignExportDto` to `DesignJsonMapper.MapToPdfDocument(...)`, which already took
+      `PXA.Core.Contracts.DesignExportDto` at HEAD after the earlier WebApi core-contract promotion. That is
+      a Core-contract tail item, not part of the PDF engine rename.
+- [x] Orphan legacy file-importer cleanup:
+      Deleted the fully-unreferenced legacy file-importer implementation projects
+      `Canvas.FileImporter.{Doc,Docx,Odt,Pptx,Svg}` (source already promoted into `PXA.FileImporter`) together
+      with their placeholder `UnitTest1.cs` test shells (no project reference / no real coverage), and removed
+      the stale untracked `src/Canvas.Infrastructure.Sheet` build-artifact directory (no source, no references).
+      All removed from `Canvas.sln` and `PXA.sln`. Verified both solutions still enumerate cleanly and
+      `PXA.FileImporter.Tests` (19 passed) still covers the promoted importer functionality.
+      Remaining legacy file-importer teardown (Image/ImageAnalysis/ImageOcr/Pdf/Abstractions + `Canvas.Importer`)
+      is deferred because those carry real legacy test coverage (Image 8, ImageAnalysis 179, ImageOcr 97,
+      Importer 95) that should be retargeted to PXA before the projects are removed.
+- [x] File-importer domain fully retired to PXA (coverage-preserving):
+      Retargeted every remaining legacy file-importer test suite onto the PXA-owned source (namespace swaps,
+      project-reference repoint) and deleted the legacy implementation projects. Specifics:
+      `Canvas.FileImporter.Image` -> merged 8 tests into `PXA.FileImporter.Image.Tests` (8 passed);
+      `Canvas.FileImporter.ImageAnalysis` -> merged its 6 test files + `Fixtures/RealSamples` into
+      `PXA.FileImporter.ImageAnalysis.Tests` (181 passed) — also removed a redundant `bool includeDebugOverlay`
+      `ImportWithAnalysis` overload that collided with the `ImageAnalysisOptions?` overload;
+      `Canvas.FileImporter.ImageOcr` -> relocated the 69 MB `tessdata`/`native` assets into
+      `src/PXA.FileImporter.ImageOcr`, repointed all four asset linkers (PXA impl, PXA.Api.Tests,
+      Canvas.Api.Tests), merged 7 test files + fixtures into `PXA.FileImporter.ImageOcr.Tests` (99 passed),
+      and added `InternalsVisibleTo=PXA.FileImporter.ImageOcr.Tests`;
+      `Canvas.Importer` + `Canvas.FileImporter.Pdf` -> merged the 95-test `PdfImporterCoreTests` into
+      `PXA.Importer.Tests` (98 passed, adding `InternalsVisibleTo` on `PXA.Importer`/`PXA.FileImporter` and
+      updating one font-asset assertion from the intentionally renamed `CanvasPdf_` prefix to `PxaPdf_`);
+      deleted the orphaned `Canvas.FileImporter.Abstractions` and the broken `Canvas.FileImporter.ImageOcr.Worker`
+      (repointing `Canvas.Api.Tests` to `PXA.FileImporter.ImageOcr.Worker`). No `Canvas.FileImporter.*` projects
+      remain. Checkpoint: both solutions enumerate cleanly, no dangling references, and `PXA.Api.Tests` (61) /
+      `Canvas.Api.Tests` (61) both green after the worker repoint.
 
 ## Future Test Plan
 
@@ -987,3 +1049,48 @@ Completed Phase 9 promotion slices:
 - [x] Existing uncommitted workspace changes are left untouched.
 - [x] The first implementation block should avoid physical path/project renames unless explicitly approved.
 - [x] Current repo state includes Spreadsheet engine/migrations and PdfPreview V2 roadmap; the rename plan must cover those additions.
+- [x] Migration domain fully retired to PXA (coverage-preserving):
+      Promoted every `Canvas.Migration.*` provider engine into a PXA-owned project and deleted all Canvas
+      migration projects (32 provider/base projects total). Steps:
+      created `PXA.Migration.Roslyn` (the `CSharpSourceMigration` base) and added `ExpressionTranslator` /
+      `ReportPackageExtractor` helpers into `PXA.Migration.Abstractions`; moved each provider's engine source
+      into its `PXA.Migration.<Provider>` project (namespace `Canvas.Migration.*` -> `PXA.Migration.*`,
+      `Canvas.Core.Contracts` -> `PXA.Core.Contracts`, `Canvas.Migration.Abstractions/Roslyn` -> PXA); for the
+      15 PDF providers the thin PXA facades were replaced by the promoted engines (aggregator unchanged); for
+      the 8 spreadsheet and 8 report providers new `PXA.Migration.<Provider>` + `.Tests` projects were created
+      and the `PXA.Migration.Spreadsheet` / `PXA.Migration.Report` aggregators were repointed. Because the
+      engines now implement PXA `ISourceMigration` / return `PXA.Core.Contracts` directly, the aggregators'
+      `.AsPxaMigration()`, `.ToPxa()`, and `ReportDiagnosticMapper` bridges were removed, and the dead
+      `CanvasSourceMigrationAdapter` / `SourceMigrationAdapters` were deleted. Legacy per-provider test suites
+      were retargeted to the PXA engines (thin PXA facade tests renamed to `<Class>PxaFacadeTests` to avoid
+      collisions; the Rdl `Fixtures/*.rdl` restored). No `Canvas.Migration.*` projects remain.
+      Verified: all 31 PXA migration provider/aggregator suites green (PDF 184, spreadsheet incl. aggregator,
+      report incl. Rdl 94 + DevExpressReport 75, aggregators Pdf 18 / Spreadsheet 19 / Report 20),
+      `PXA.Api.Tests` migration filter (16), and `dotnet build PXA.WebApi` (0 errors).
+      Note: migration *generated output* still emits `using Canvas.Pdf;` — switching the emitted target
+      namespace to `PXA.Pdf` remains a separate deliberate step (the engine physical rename is done; the
+      emitted-namespace product decision is independent).
+- [x] Foundational teardown COMPLETE — the rename is finished (zero `Canvas.*` projects/namespaces):
+      Phase A: decoupled the PXA side from Canvas by deleting the test-only compatibility bridges
+      (`PXA.Core/Contracts/ContractAdapters.cs`, `PXA.Domain/DomainAdapters.cs`) and dropping the
+      `Canvas.Core`/`Canvas.Domain` project references, making `PXA.Core`/`PXA.Domain` standalone; obsolete
+      bridge tests were removed and mixed adapter tests trimmed to their PXA-only cases.
+      Phase B: retargeted every remaining legacy foundational test suite onto PXA source, preserving coverage —
+      `Canvas.Core.Tests`->`PXA.Core.Tests` (40, `CanvasExpressionEvaluator`->`PxaExpressionEvaluator`),
+      `Canvas.Application.Tests`->`PXA.Application.Tests` (12), `Canvas.Infrastructure.Pdf.Tests`->
+      `PXA.Infrastructure.Pdf.Tests` (39, re-added the `UglyToad.PdfPig` package), and the big
+      `Canvas.Export.Tests`->`PXA.Export.Tests` (209) whose pre-existing Core-contract build break was fixed
+      by the `Canvas.Core`->`PXA.Core` swap. `Canvas.Api.Tests` sources were promoted into `PXA.Api.Tests`
+      (61) and the `<Compile Include>` link dropped.
+      Phase C: deleted the entire legacy foundational cluster once it had zero external consumers — the root
+      `Canvas` demo exe (+`Canvas.MinimalPdf`), `Canvas.Domain`, `Canvas.Core`, `Canvas.Application`, and
+      `Canvas.Infrastructure.{Pdf,Word,Spreadsheet,Converters}`, plus `Canvas.Api.Tests`.
+      Phase D: switched migration *generated output* from `using Canvas.Pdf;` to `using PXA.Pdf;` across all
+      provider engines + assertions (47 files); renamed the last Canvas-named type
+      `CanvasPdfGeneratorBridge`->`PxaPdfGeneratorBridge`; deleted the legacy `Canvas.sln`/`Canvas.slnx`
+      (PXA.sln/PXA.slnx are now the only solutions).
+      Final state: 0 projects named `Canvas.*`, 0 `namespace Canvas.*` declarations, 0 real `using Canvas.*`
+      directives; `dotnet build PXA.sln` passes with 0 errors. Remaining `Canvas` text is limited to cosmetic
+      prose in comments/branding strings and legacy localStorage keys. The legacy `ui-designer/` frontend
+      folder is intentionally left in place as historical (already branded PXA-legacy in Phase 7; it is a
+      separate npm app that contributes no `Canvas.*` project/namespace references).

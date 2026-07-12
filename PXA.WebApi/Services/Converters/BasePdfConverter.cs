@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using Canvas.Pdf;
+using PXA.Pdf;
 
 namespace PXA.WebApi.Services.Converters;
 
@@ -19,7 +19,7 @@ public abstract class BasePdfConverter : ICodeConverter
     public virtual byte[] GeneratePreview(string sourceCode)
     {
         var converted = ConvertCode(sourceCode);
-#pragma warning disable PXA0001 // Converter preview replays legacy Canvas.Pdf migration output during compatibility window.
+#pragma warning disable PXA0001 // Converter preview replays legacy PXA.Pdf migration output during compatibility window.
         var document = new PdfDocument();
 #pragma warning restore PXA0001
 
@@ -53,7 +53,7 @@ public abstract class BasePdfConverter : ICodeConverter
         return document.ToBytes();
     }
 
-    // Parses and replays recognisable Canvas.Pdf draw calls from converted source.
+    // Parses and replays recognisable PXA.Pdf draw calls from converted source.
     // Returns true if at least one call was rendered.
     protected static bool ReplayCanvasCalls(PdfPage page, string code)
     {
@@ -176,7 +176,7 @@ public abstract class BasePdfConverter : ICodeConverter
             lineWidth: 0.001, fill: true, fillColor: PdfColor.FromRgb(30, 64, 175));
 
         // Footer text
-        page.DrawText("Generated with Canvas.Pdf · The modern .NET PDF library · canvas-pdf.io",
+        page.DrawText("Generated with PXA.Pdf · The modern .NET PDF library · canvas-pdf.io",
             x: 30, y: 9,
             new PdfDrawTextOptions { FontSize = 8, FillColor = PdfColor.White });
     }
@@ -185,12 +185,12 @@ public abstract class BasePdfConverter : ICodeConverter
         $"""
         // Converted from {frameworkName} — skeleton output
         // Full conversion not yet implemented. Use the pattern below as a starting point.
-        using Canvas.Pdf;
+        using PXA.Pdf;
 
         var document = new PdfDocument();
         var page = document.AddPage();
 
-        page.DrawTextFromTop("Hello from Canvas.Pdf", x: 40, topY: 40, fontSize: 14);
+        page.DrawTextFromTop("Hello from PXA.Pdf", x: 40, topY: 40, fontSize: 14);
 
         document.Save("output.pdf");
         """;

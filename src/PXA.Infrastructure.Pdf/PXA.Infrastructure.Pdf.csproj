@@ -2,12 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../PXA.Core/PXA.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="../../Canvas/Pdf/**/*.cs"
-             Exclude="../../Canvas/Pdf/Compatibility/CorePrimitiveAdapters.cs"
-             Link="Pdf/%(RecursiveDir)%(Filename)%(Extension)" />
+    <ProjectReference Include="../PXA.Pdf/PXA.Pdf.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

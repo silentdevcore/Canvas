@@ -1,18 +1,18 @@
 using System.Text.Json;
-using Canvas.Pdf;
+using PXA.Pdf;
 using PXA.Importer;
 using PXA.Importer.Analysis;
 using PXA.Importer.Document;
 using PXA.Importer.Generation;
 using PXA.Importer.Graphics;
-using CanvasPdfColor = Canvas.Pdf.PdfColor;
-using CanvasPdfDocument = Canvas.Pdf.PdfDocument;
+using CanvasPdfColor = PXA.Pdf.PdfColor;
+using CanvasPdfDocument = PXA.Pdf.PdfDocument;
 
 namespace PXA.WebApi.Services;
 
 public sealed class PdfViewerAnnotationFlatteningService
 {
-    private readonly CanvasPdfGeneratorBridge _bridge = new();
+    private readonly PxaPdfGeneratorBridge _bridge = new();
     private readonly BoundingBoxCalculator _bounds = new();
 
     public async Task<byte[]> FlattenAsync(
@@ -444,7 +444,7 @@ public sealed class PdfViewerAnnotationFlatteningService
         ], lineWidth: 0.5, fill: true, strokeColor: color, fillColor: color);
     }
 
-    private static Canvas.Pdf.PdfPoint ToPdfPoint(PdfPage page, double x, double topY) => new(x, page.Height - topY);
+    private static PXA.Pdf.PdfPoint ToPdfPoint(PdfPage page, double x, double topY) => new(x, page.Height - topY);
 
     private static IReadOnlyList<PdfMarkupQuadPoint>? ToPdfMarkupQuads(PdfPage page, PdfViewerAnnotation annotation)
     {

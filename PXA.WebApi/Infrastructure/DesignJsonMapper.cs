@@ -2,7 +2,7 @@ using System.Globalization;
 using System.IO.Compression;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Canvas.Pdf;
+using PXA.Pdf;
 using QRCoder;
 using SkiaSharp;
 using ZXing;

@@ -1,7 +1,7 @@
 using PXA.FileImporter;
 using PXA.FileImporter.ImageAnalysis;
 using PXA.FileImporter.ImageOcr;
-using Canvas.Pdf;
+using PXA.Pdf;
 using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Middleware;
 using PxaConverters = PXA.Infrastructure.Converters;

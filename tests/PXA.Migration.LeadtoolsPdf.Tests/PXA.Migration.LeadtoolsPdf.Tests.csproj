@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/PXA.Migration.LeadtoolsPdf/PXA.Migration.LeadtoolsPdf.csproj" />
+    <ProjectReference Include="../../src/PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

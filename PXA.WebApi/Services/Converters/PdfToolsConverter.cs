@@ -8,7 +8,7 @@ public sealed class PdfToolsConverter : BasePdfConverter
     public override string FrameworkName => "PDFTools / Pdftools SDK";
     public override string Status => "pilot";
     public override string Description =>
-        "Cautious Roslyn-backed pilot for PDFTools / Pdftools SDK; removes Sdk.Initialize and flags SDK conversion/processing workflows for manual Canvas.Pdf migration.";
+        "Cautious Roslyn-backed pilot for PDFTools / Pdftools SDK; removes Sdk.Initialize and flags SDK conversion/processing workflows for manual PXA.Pdf migration.";
 
     public override string ConvertCode(string sourceCode)
     {

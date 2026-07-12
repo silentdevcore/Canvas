@@ -1,4 +1,4 @@
-using CanvasDevExpressReportResourceParser = Canvas.Migration.DevExpressReport.DevExpressReportResourceParser;
+using CanvasDevExpressReportResourceParser = PXA.Migration.DevExpressReport.DevExpressReportResourceParser;
 
 namespace PXA.Migration.Report;
 

@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/PXA.Migration.AsposePdf/PXA.Migration.AsposePdf.csproj" />
+    <ProjectReference Include="../../src/PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

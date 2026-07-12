@@ -1,0 +1,50 @@
+namespace PXA.Pdf;
+
+public sealed class PdfWatermarkOptions
+{
+    public static PdfWatermarkOptions Default { get; } = new();
+
+    public double FontSize { get; init; } = 48;
+
+    public double RotationDegrees { get; init; } = 45;
+
+    public double OffsetX { get; init; }
+
+    public double OffsetY { get; init; }
+
+    public PdfStandardFont? Font { get; init; }
+
+    public PdfFontFamily? FontFamily { get; init; }
+
+    public bool Bold { get; init; }
+
+    public bool Italic { get; init; }
+
+    public bool Underline { get; init; }
+
+    public bool Strikethrough { get; init; }
+
+    public double CharacterSpacing { get; init; }
+
+    public double HorizontalScalingPercent { get; init; } = 100;
+
+    public IPdfColor? FillColor { get; init; } = new PdfGrayColor(0.85);
+
+    public int? StartPageNumber { get; init; }
+
+    public int? EndPageNumber { get; init; }
+
+    public IReadOnlyList<int>? IncludePageNumbers { get; init; }
+
+    public IReadOnlyList<int>? ExcludePageNumbers { get; init; }
+
+    public bool ExcludeTableOfContentsPages { get; init; }
+
+    public bool SkipFirstPage { get; init; }
+
+    public bool SkipLastPage { get; init; }
+
+    public PdfPageParity PageParity { get; init; } = PdfPageParity.Both;
+
+    public double? MaxRotationDegrees { get; init; }
+}

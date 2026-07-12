@@ -24,11 +24,11 @@ public sealed class PdfPageCoverageQueryService : IPageCoverageQueryService
         return RequirePdfDocument(documentModel).GetPagesWithShapes();
     }
 
-    private static Canvas.Pdf.PdfDocument RequirePdfDocument(object documentModel)
+    private static PXA.Pdf.PdfDocument RequirePdfDocument(object documentModel)
     {
-        if (documentModel is not Canvas.Pdf.PdfDocument document)
+        if (documentModel is not PXA.Pdf.PdfDocument document)
         {
-            throw new ArgumentException("Document model must be Canvas.Pdf.PdfDocument for PdfPageCoverageQueryService.", nameof(documentModel));
+            throw new ArgumentException("Document model must be PXA.Pdf.PdfDocument for PdfPageCoverageQueryService.", nameof(documentModel));
         }
 
         return document;

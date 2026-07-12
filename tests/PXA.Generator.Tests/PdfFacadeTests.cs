@@ -1,4 +1,4 @@
-using Canvas.Pdf;
+using PXA.Pdf;
 using PXA.Core.Contracts;
 using PXA.Generator;
 

@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- Emit the XML doc file for the PXA.Generator.Pdf engine API for DocFX/IntelliSense.
+         CS1591 is suppressed so undocumented members don't flood the build while we document incrementally. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PXA.Infrastructure.Pdf" />
+    <InternalsVisibleTo Include="PXA.Infrastructure.Pdf.Tests" />
+  </ItemGroup>
+
+</Project>

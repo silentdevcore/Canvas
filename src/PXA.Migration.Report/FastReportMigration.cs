@@ -1,4 +1,4 @@
-using Canvas.Migration.FastReport;
+using PXA.Migration.FastReport;
 using PXA.Core.Contracts;
 
 namespace PXA.Migration.Report;
@@ -14,8 +14,8 @@ public sealed class FastReportMigration : IReportMigration
         var result = inner.ConvertAuto(source);
         return new ReportMigrationResult
         {
-            Design = result.Design.ToPxa(),
-            Diagnostics = ReportDiagnosticMapper.ToPxaDiagnostics(result.Diagnostics),
+            Design = result.Design,
+            Diagnostics = result.Diagnostics,
         };
     }
 }

@@ -6,36 +6,6 @@ namespace PXA.Core.Tests;
 public sealed class AbstractionAdaptersTests
 {
     [Fact]
-    public void ExporterCapabilities_DefaultsMatchCanvasDefaults()
-    {
-        var pxaCapabilities = new ExporterCapabilities();
-        var canvasCapabilities = new Canvas.Core.Abstractions.ExporterCapabilities();
-
-        Assert.Equal(canvasCapabilities.SupportsMultiPage, pxaCapabilities.SupportsMultiPage);
-        Assert.Equal(canvasCapabilities.SupportsImages, pxaCapabilities.SupportsImages);
-        Assert.Equal(canvasCapabilities.SupportsRichText, pxaCapabilities.SupportsRichText);
-        Assert.Equal(canvasCapabilities.SupportsFormFields, pxaCapabilities.SupportsFormFields);
-    }
-
-    [Fact]
-    public void ExporterCapabilities_MapsToAndFromCanvasCapabilities()
-    {
-        var pxaCapabilities = new ExporterCapabilities(
-            SupportsMultiPage: false,
-            SupportsImages: true,
-            SupportsRichText: false,
-            SupportsFormFields: true);
-
-        var canvasCapabilities = pxaCapabilities.ToCanvas();
-        var roundTrip = canvasCapabilities.ToPxa();
-
-        Assert.False(canvasCapabilities.SupportsMultiPage);
-        Assert.True(canvasCapabilities.SupportsImages);
-        Assert.False(roundTrip.SupportsRichText);
-        Assert.True(roundTrip.SupportsFormFields);
-    }
-
-    [Fact]
     public void SimpleIoAbstractions_CanBeImplementedWithPxaNamespaces()
     {
         IDiagnosticsReader diagnosticsReader = new TestDiagnosticsReader();

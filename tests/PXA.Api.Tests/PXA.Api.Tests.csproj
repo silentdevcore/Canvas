@@ -8,12 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="../Canvas.Api.Tests/**/*.cs"
-             Exclude="../Canvas.Api.Tests/bin/**;../Canvas.Api.Tests/obj/**"
-             Link="%(RecursiveDir)%(Filename)%(Extension)" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
@@ -23,11 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="../../src/Canvas.FileImporter.ImageOcr/tessdata/**/*">
+    <Content Include="../../src/PXA.FileImporter.ImageOcr/tessdata/**/*">
       <Link>tessdata/%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="../../src/Canvas.FileImporter.ImageOcr/native/**/*">
+    <Content Include="../../src/PXA.FileImporter.ImageOcr/native/**/*">
       <Link>native/%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -36,7 +30,7 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="System.Net.Http.Json" />
-    <Using Include="Canvas.Core.Contracts" />
+    <Using Include="PXA.Core.Contracts" />
   </ItemGroup>
 
   <ItemGroup>

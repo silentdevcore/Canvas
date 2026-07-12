@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,4 +24,8 @@
     <ProjectReference Include="../../src/PXA.FileImporter.ImageAnalysis/PXA.FileImporter.ImageAnalysis.csproj" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <None Include="Fixtures/RealSamples/**/*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

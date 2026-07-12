@@ -6,9 +6,9 @@ public sealed class PdfTableFlowService : ITableFlowService
 {
     public void ApplySimpleTable(object flowContext, object rows, object? options = null)
     {
-        if (flowContext is not Canvas.Pdf.PdfFlowContext flow)
+        if (flowContext is not PXA.Pdf.PdfFlowContext flow)
         {
-            throw new ArgumentException("Flow context must be Canvas.Pdf.PdfFlowContext for PdfTableFlowService.", nameof(flowContext));
+            throw new ArgumentException("Flow context must be PXA.Pdf.PdfFlowContext for PdfTableFlowService.", nameof(flowContext));
         }
 
         if (rows is not IReadOnlyList<IReadOnlyList<string>> tableRows)
@@ -22,12 +22,12 @@ public sealed class PdfTableFlowService : ITableFlowService
             return;
         }
 
-        if (options is Canvas.Pdf.PdfTableOptions tableOptions)
+        if (options is PXA.Pdf.PdfTableOptions tableOptions)
         {
             flow.AddSimpleTable(tableRows, tableOptions);
             return;
         }
 
-        throw new ArgumentException("Options must be Canvas.Pdf.PdfTableOptions when provided.", nameof(options));
+        throw new ArgumentException("Options must be PXA.Pdf.PdfTableOptions when provided.", nameof(options));
     }
 }

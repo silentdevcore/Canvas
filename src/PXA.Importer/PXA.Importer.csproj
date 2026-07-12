@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <InternalsVisibleTo Include="PXA.Importer.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../PXA.Infrastructure.Pdf/PXA.Infrastructure.Pdf.csproj" />
   </ItemGroup>
 

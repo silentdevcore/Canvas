@@ -1,4 +1,4 @@
-using Canvas.Migration.Rpx;
+using PXA.Migration.Rpx;
 using PXA.Core.Contracts;
 
 namespace PXA.Migration.Report;
@@ -17,8 +17,8 @@ public sealed class RpxReportMigration : IReportMigration
         var result = inner.Convert(source, resources);
         return new ReportMigrationResult
         {
-            Design = result.Design.ToPxa(),
-            Diagnostics = ReportDiagnosticMapper.ToPxaDiagnostics(result.Diagnostics),
+            Design = result.Design,
+            Diagnostics = result.Diagnostics,
         };
     }
 }

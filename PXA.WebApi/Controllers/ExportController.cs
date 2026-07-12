@@ -1,5 +1,5 @@
 using System.IO.Compression;
-using Canvas.Pdf;
+using PXA.Pdf;
 using PXA.Application.UseCases;
 using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;

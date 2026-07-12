@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
-using Canvas.Pdf;
+using PXA.Pdf;
 
 namespace PXA.WebApi.Infrastructure;
 
