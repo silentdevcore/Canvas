@@ -1,0 +1,19 @@
+{
+  "title": "Customer Orders",
+  "customer": {
+    "id": "C-1001",
+    "name": "Northwind Travel Desk"
+  },
+  "orders": [
+    {
+      "id": "SO-10001",
+      "date": "2026-07-10",
+      "amount": "840.00"
+    },
+    {
+      "id": "SO-10002",
+      "date": "2026-07-12",
+      "amount": "456.00"
+    }
+  ]
+}

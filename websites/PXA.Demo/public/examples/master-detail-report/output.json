@@ -1,0 +1,11 @@
+{
+  "documentType": "MasterDetailReport",
+  "bands": ["ReportHeader", "GroupHeader", "Detail", "GroupFooter"],
+  "groups": [
+    {
+      "field": "customer.id",
+      "detailRows": 2
+    }
+  ],
+  "status": "preview"
+}

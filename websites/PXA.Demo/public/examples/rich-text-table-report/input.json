@@ -1,0 +1,26 @@
+{
+  "title": "Terms Summary",
+  "sections": [
+    {
+      "type": "richText",
+      "runs": [
+        {
+          "text": "Payment terms",
+          "bold": true
+        },
+        {
+          "text": " are due within 14 days.",
+          "bold": false
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "rows": [
+        ["Element", "Mapping", "Status"],
+        ["Rich text", "Inline spans", "Planned"],
+        ["Table", "Rows and cells", "Preview"]
+      ]
+    }
+  ]
+}

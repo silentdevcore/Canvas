@@ -62,6 +62,8 @@
 - [x] Erste statisch gehostete Beispiel-Dateien fuer Booking Receipt unter `public/examples/booking-receipt`.
 - [x] Statisch gehostete Beispiel-Dateien fuer Chart Report und Spreadsheet Import/Export.
 - [x] Statisch gehostete Beispiel-Dateien fuer PDF Viewer und Provider Migration.
+- [x] Statisch gehostete Beispiel-Dateien fuer Master-detail, Rich text/Table und File importer.
+- [x] Alle Demo-Karten haben Source-, Input- und Output-Beispieldateien.
 - [x] Demo-Karten verlinken direkt auf Source-Dateien, wenn sie vorhanden sind.
 - [x] Mindestens fuenf Demo-Karten.
 - [x] Mindestens eine lauffaehige Demo fuer PDF/Designer.
@@ -84,6 +86,7 @@
 - [x] Beispiel-Dateien fuer Booking Receipt per Vite Public Path verlinken.
 - [x] Beispiel-Dateien fuer Chart und Spreadsheet per Vite Public Path verlinken.
 - [x] Beispiel-Dateien fuer PDF Viewer und Provider Migration per Vite Public Path verlinken.
+- [x] Beispiel-Dateien fuer Master-detail, Rich text/Table und File importer per Vite Public Path verlinken.
 - [x] Mobile/Desktop Smoke-Test durchfuehren.
 
 ## Offene Entscheidungen
