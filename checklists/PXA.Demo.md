@@ -52,6 +52,7 @@
 - [x] Provider migration examples
 
 ## MVP
+- [x] MVP-Basis abgeschlossen: Galerie, Detailansichten, Live Booking Receipt und Beispiel-Dateien fuer alle Demo-Karten.
 - [x] Demo-Galerie mit Kategorien und Suche.
 - [x] Zentrale statische Demo-Datenquelle in `src/demoData.js`.
 - [x] Rendering, UI-Interaktionen und Demo-State in eigene Module getrennt.
