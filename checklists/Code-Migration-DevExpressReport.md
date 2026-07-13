@@ -3,7 +3,7 @@
 ## Goal
 
 Convert a **C# DevExpress XtraReport class** (Report Designer output) into a **PXA design** that opens
-and is editable in `ui-designer-v2` — replacing the dead-end `CANMIGDEVEXP020` "report export requires
+and is editable in `pxa-designer` — replacing the dead-end `CANMIGDEVEXP020` "report export requires
 manual migration" warning emitted by the code converter
 ([DevExpressPdfMigration.cs](../src/Migrations/PDF/PXA.Migration.Pdf.Code.DevExpress/DevExpressPdfMigration.cs)).
 
@@ -60,7 +60,7 @@ the next, unstarted milestone.
 - [x] Backend `POST /api/migration/report-to-design` → `{ design, diagnostics }`
       ([MigrationController.cs](../PXA.WebApi/Controllers/MigrationController.cs)).
 - [x] Frontend **"DevExpress Reports"** entry + **Open in Designer** (loads via `bulkReplaceContent`,
-      navigates to the editor) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
+      navigates to the editor) ([MigrationsPage.tsx](../pxa-designer/src/pages/MigrationsPage.tsx)).
 
 ### Tests (17 passing)
 - [x] Band-flattened + unit-converted coordinates; label style mapping; line/rect/image.

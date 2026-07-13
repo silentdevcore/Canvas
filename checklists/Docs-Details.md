@@ -26,7 +26,7 @@ gallery, and increasingly **(d)** `llms.txt` + shipped MCP servers. We adopt all
 ---
 
 ## Phase 0 — Single source of truth: the element catalog
-- [x] Create `ui-designer-v2/src/docs/elementCatalog.ts` — one typed entry per element (all 38 frontend
+- [x] Create `pxa-designer/src/docs/elementCatalog.ts` — one typed entry per element (all 38 frontend
       `ElementType`s): `type`, `label`, `category`, `description`, `formatSupport` (pdf/word/html/excel),
       `bindable`, type-specific `properties[]`, an `example` ElementDto (+ `toDesign()` wrapper), and
       optional `csharpExample`. Shared props/style keys documented once in `COMMON_PROPERTIES`/`STYLE_KEYS`.

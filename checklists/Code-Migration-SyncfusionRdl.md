@@ -4,7 +4,7 @@
 
 Convert an **RDL report** (`.rdl` / `.rdlc`) — the XML standard emitted by Microsoft SSRS/RDLC and by
 the **Syncfusion / Bold Reports** designer — into a **PXA design** that opens and is editable in
-`ui-designer-v2`. One generic RDL converter serves every RDL-emitting vendor (Syncfusion, SSRS/RDLC,
+`pxa-designer`. One generic RDL converter serves every RDL-emitting vendor (Syncfusion, SSRS/RDLC,
 ActiveReports/DsReport plain-XML `.rdlx`), mirroring the DevExpress XtraReport → PXA converter
 ([Code-Migration-DevExpressReport.md](Code-Migration-DevExpressReport.md)). GrapeCity Section Reports
 `.rpx` are covered by the separate RPX converter.
@@ -90,7 +90,7 @@ gaps (per-cell table styling, native maps/charts) require **PXA model** changes,
       → `RdlToDesignConverter`, else falls through to the DevExpress converter
       ([MigrationController.cs](../PXA.WebApi/Controllers/MigrationController.cs)).
 - [x] Frontend **"Syncfusion / RDL Reports"** entry + **Open in Designer** (loads via
-      `bulkReplaceContent`) ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
+      `bulkReplaceContent`) ([MigrationsPage.tsx](../pxa-designer/src/pages/MigrationsPage.tsx)).
 
 ### Tests (60 passing)
 - [x] Page size from lengths; length-unit parsing; absolute positioning; textbox style; named colours;

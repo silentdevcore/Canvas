@@ -100,7 +100,7 @@ Intentional remaining gaps:
 ## P0 - Viewer Foundation
 
 - [x] **PDF viewer shell** - Dedicated viewer route/page for opening a PDF output or uploaded PDF with page navigation, zoom, fit modes, and responsive layout.
-      Implemented in `ui-designer-v2` at `/pdf-viewer`.
+      Implemented in `pxa-designer` at `/pdf-viewer`.
 - [x] **Document open sources** - Open generated PDFs, uploaded local files, and backend-served PDFs through one viewer abstraction.
       Implemented for uploaded local files, direct/backend URLs, `?src=` URL handoff, migration-preview generated PDF handoff, and normal Designer PDF export handoff.
 - [x] **Thumbnails/sidebar** - Page thumbnails with current-page state and click-to-navigate.
@@ -120,7 +120,7 @@ our own implementation, UI language, and engine boundaries.
 
 ### Phase 1 - PDF Tools-like viewer baseline
 
-- [x] Add a dedicated PDF viewer route/page in `ui-designer-v2`.
+- [x] Add a dedicated PDF viewer route/page in `pxa-designer`.
 - [x] Add a reusable viewer component that accepts a generated PDF blob, upload file, or backend URL.
       Implemented as `PdfViewer` plus a thin route page. Upload, direct URL, backend URL, and session handoff are supported through `handoff.ts`.
 - [x] Add top toolbar actions: open, save/download, print, search, thumbnails, zoom out/in, fit page,
@@ -152,7 +152,7 @@ our own implementation, UI language, and engine boundaries.
       Selection, text editing, move, resize, color, size, delete, lock, and unlock are implemented for sidecar annotations.
 - [x] Store annotations initially as a sidecar JSON model if writing them into PDF is not ready.
       Implemented import/export for annotation sidecar JSON.
-      Sidecar schema/types and parser/serializer are centralized in `ui-designer-v2/src/features/pdf-viewer/annotations.ts`.
+      Sidecar schema/types and parser/serializer are centralized in `pxa-designer/src/features/pdf-viewer/annotations.ts`.
 
 ### Phase 3 - Professional PDF workflows
 
@@ -193,7 +193,7 @@ our own implementation, UI language, and engine boundaries.
       PDF binary tests for saved annotations/forms later.
       Added focused Jest tests for `annotations.ts` sidecar parsing/serialization and `annotationApi.ts` API client behavior. Playwright smoke tests and PDF binary tests remain open.
       Added API coverage for durable sidecar reload from disk.
-      Added a Jest/jsdom PDF viewer smoke test because Playwright is not currently configured in `ui-designer-v2`.
+      Added a Jest/jsdom PDF viewer smoke test because Playwright is not currently configured in `pxa-designer`.
       Added focused Jest coverage for AcroForm read/fill helper behavior.
       Added API coverage for applying redaction marks and verifying covered text is no longer extractable.
 

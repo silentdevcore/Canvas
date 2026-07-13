@@ -10,7 +10,7 @@ rather than preserved as inert source-dialect strings. Companion to
 Migrated reports keep their source expressions raw on `ElementDto.Expression`
 (RDL `=IIf(Fields!Paid.Value,"Yes","No")`, DevExpress `[Qty] * [Price]`). The designer/preview evaluates
 `element.expression` with the **existing** frontend engine
-(`ui-designer-v2/src/template/expressionEngine.ts`), which can't parse those dialects — so they never run.
+(`pxa-designer/src/template/expressionEngine.ts`), which can't parse those dialects — so they never run.
 
 **We do not build a new engine.** A shared `ExpressionTranslator` rewrites the source dialect into the
 grammar the existing engine evaluates (function-call helper form + simple operators), so standard

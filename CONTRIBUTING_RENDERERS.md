@@ -70,12 +70,12 @@ Update:
 
 ### 4. Add the frontend format entry
 
-In `ui-designer-v2/src/services/ExportService.ts`:
+In `pxa-designer/src/services/ExportService.ts`:
 
 - add the format literal to the `ExportFormat` union
 - add the extension to the extension map
 
-In `ui-designer-v2/src/components/Editor/ExportModal.tsx`:
+In `pxa-designer/src/components/Editor/ExportModal.tsx`:
 
 - add a format option in the appropriate group
 - keep server-side/client-side behavior consistent with existing options
@@ -167,7 +167,7 @@ Current import endpoints include:
 
 ### 4. Add frontend support
 
-Update `ui-designer-v2`:
+Update `pxa-designer`:
 
 - `ExportService.ts`: service method calling the endpoint
 - `useTemplateLoader.ts`: file-extension dispatch
@@ -354,7 +354,7 @@ Add the route to the owning controller, usually `DocumentOpsController`.
 
 ### 3. Add frontend service support
 
-Add a static method in `ui-designer-v2/src/services/ExportService.ts` or a more specific service if one exists.
+Add a static method in `pxa-designer/src/services/ExportService.ts` or a more specific service if one exists.
 
 ### 4. Add tests and docs
 

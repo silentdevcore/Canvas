@@ -2,7 +2,7 @@
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that lets AI agents generate and verify
 Power Dox Automation / PXA documents. It exposes the **element catalog** (the single source of truth,
-`ui-designer-v2/src/docs/elementCatalog.ts`), the **design JSON Schema**, the docs, and **validate/render**
+`pxa-designer/src/docs/elementCatalog.ts`), the **design JSON Schema**, the docs, and **validate/render**
 tools — so an agent can query exact element properties and check its output instead of guessing.
 
 The server exposes PXA resources through the `pxa://...` scheme.

@@ -12,7 +12,7 @@
 | File importers | `tests/PXA.FileImporter.Tests`, `tests/PXA.FileImporter.ImageAnalysis.Tests`, `tests/PXA.FileImporter.ImageOcr.Tests` | File-to-`DesignExportDto` adapters, raster analysis, OCR pipeline |
 | PDF migration providers | `tests/PXA.Migration.*.Tests` provider projects | Vendor C# PDF code migration to PXA PDF code |
 | Report migration | `tests/PXA.Migration.Report.Designer.DevExpress.Tests`, `tests/PXA.Migration.Report.Designer.Rdl.Tests`, `tests/PXA.Migration.Report.Designer.Rpx.Tests`, plus the other report provider suites | Report source to editable PXA design |
-| Frontend | `ui-designer-v2` Jest tests | Editor, services, template utilities, export service, validation |
+| Frontend | `pxa-designer` Jest tests | Editor, services, template utilities, export service, validation |
 
 ## Running Tests
 
@@ -49,7 +49,7 @@ dotnet test tests/PXA.Migration.Report.Designer.Rpx.Tests
 Frontend:
 
 ```bash
-cd ui-designer-v2
+cd pxa-designer
 npm test
 npm run test:coverage
 npm run build
@@ -68,7 +68,7 @@ npm run build
 | Image analysis/OCR | image-analysis/OCR test projects plus endpoint smoke test if WebApi changed |
 | Migration provider | matching `PXA.Migration.<Provider>.Tests`, migration API smoke test if registration changed |
 | Report migration | matching report migration tests plus one end-to-end render test where practical |
-| Frontend UI/service | `cd ui-designer-v2 && npm test`, `npm run build` |
+| Frontend UI/service | `cd pxa-designer && npm test`, `npm run build` |
 
 ## Golden Snapshot Workflow
 
@@ -94,7 +94,7 @@ CI should validate:
 1. `dotnet build PXA.sln`
 2. .NET test projects relevant to the changed areas
 3. full `dotnet test PXA.sln` for shared contracts, rendering, API, importer, or migration infrastructure changes
-4. `cd ui-designer-v2 && npm run build`
+4. `cd pxa-designer && npm run build`
 5. frontend tests when UI/service/template code changes
 
 ## Notes

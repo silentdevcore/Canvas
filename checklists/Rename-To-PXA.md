@@ -54,7 +54,7 @@ terms such as editor canvas surfaces, `PdfCanvas`, `SKCanvas`, and third-party A
       documenting legacy `PXA.Pdf` compatibility. `docs/schema/openapi.json` now uses a PXA title and
       includes additive `/api/pxa/...` aliases for the documented document/export/migration/pdf-viewer/template
       routes while retaining the legacy `/api/...` paths. Auth remains on `/api/auth` by design.
-- [x] Include both frontend folders: legacy `ui-designer` and current `ui-designer-v2`.
+- [x] Include frontend folder cleanup: legacy `ui-designer` removed; active frontend folder is `pxa-designer`.
 - [x] Include package names/routes/visible branding in frontend only after backend API compatibility is protected.
 
 ## Compatibility Rules
@@ -108,7 +108,7 @@ Verification for this slice:
       SpreadsheetLight, and Syncfusion XlsIO.
 - [x] `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-build --no-restore --disable-build-servers -m:1 --filter "Migration"`
 - [x] `dotnet test tests/PXA.Infrastructure.Spreadsheet.Tests/PXA.Infrastructure.Spreadsheet.Tests.csproj --no-build --no-restore --disable-build-servers -m:1`
-- [x] `npm run build` in `ui-designer-v2`
+- [x] `npm run build` in `pxa-designer`
 
 ## Documentation Plan
 
@@ -215,8 +215,8 @@ Verification for this slice:
       while legacy `/api/pdf-viewer/*` routes remain compatible.
       Auth remains intentionally on the platform route `/api/auth`; no `/api/pxa/auth` alias is planned
       unless all public platform routes are later duplicated under PXA.
-- [x] Phase 7: update UI branding in `ui-designer-v2` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
-      Started visible branding in `ui-designer-v2`: browser title/loading text, package metadata,
+- [x] Phase 7: update UI branding in `pxa-designer` and decide whether legacy `ui-designer` is renamed, archived, or left as historical.
+      Started visible branding in `pxa-designer`: browser title/loading text, package metadata,
       app header logo/accessibility label, home hero/feature copy, importer format copy, and migrations hub
       product copy now use Power Dox Automation/PXA. The migrations conversion page now uses PXA wording
       for report-designer targets, backend error messages, spreadsheet/PDF conversion copy, and output
@@ -227,13 +227,13 @@ Verification for this slice:
       code-panel descriptions, generated PDF-code comments, starter text, and global style comments.
       Final inventory leaves only intentional technical canvas terms, legacy compatibility references,
       localStorage/sessionStorage keys, current legacy project paths, and sample content. The legacy
-      `ui-designer` folder remains historical for now and is deferred to Phase 8/9 instead of being
-      renamed in this UI-branding slice.
+      `ui-designer` folder remained historical during this slice and was deferred to Phase 8/9 instead of
+      being renamed in this UI-branding slice.
       Technical HTML canvas terms, localStorage keys, and legacy `PXA.Pdf` API references remain
       unchanged for compatibility until their specific surfaces are migrated.
-      Frontend package naming slice completed: the active `ui-designer-v2` package now publishes as
+      Frontend package naming slice completed: the active `pxa-designer` package now publishes as
       `pxa-designer`, code-editor sample/download/schema identifiers use PXA naming, and the legacy
-      `ui-designer` package/title is explicitly marked as historical compatibility rather than active PXA UI.
+      `ui-designer` package/title was explicitly marked as historical compatibility before later removal.
       Legacy localStorage keys remain unchanged so existing user drafts and preferences survive the rename.
 - [x] Phase 8: update MCP/sample/docs/package identities:
       - `tools/PXA.Mcp` -> `tools/PXA.Mcp` or package `pxa-mcp`
@@ -1043,21 +1043,21 @@ Completed Phase 9 promotion slices:
 - [x] Export compatibility tests:
       Added and verified `PXA.Export.Tests` alias with
       `dotnet test tests/PXA.Export.Tests/PXA.Export.Tests.csproj --disable-build-servers` (206 passed).
-- [x] `npm run build` in `ui-designer-v2`.
+- [x] `npm run build` in `pxa-designer`.
       Passed after adding the primary `docs/schema/pxa-workbook.schema.json` reference to the in-app docs
       (Vite chunk-size warning remains existing/non-blocking).
-- [x] Relevant Jest tests in `ui-designer-v2`.
+- [x] Relevant Jest tests in `pxa-designer`.
       `npm test -- --runTestsByPath src/__tests__/canvasWorkbookSchema.test.ts` passed for the primary PXA
       schema and legacy PXA schema alias.
 - [x] MCP smoke test if `tools/PXA.Mcp` is renamed or rebranded.
       `npx tsx smoke.ts` passed and now verifies both `pxa://schema/pxa-workbook` and
       `canvas://schema/canvas-workbook` resources.
 - [x] UI smoke test for migration page, designer open flow, export, and preview.
-      Added `ui-designer-v2/src/__tests__/appRouteSmoke.test.tsx` using the existing Jest/jsdom setup.
+      Added `pxa-designer/src/__tests__/appRouteSmoke.test.tsx` using the existing Jest/jsdom setup.
       It covers the migrations landing route, report-designer conversion handoff into `/create`, designer
       preview mode, JSON export callback, and the PDF viewer route. Verified with
       `npm test -- --runTestsByPath src/__tests__/appRouteSmoke.test.tsx src/__tests__/pdfViewerSmoke.test.tsx`
-      (4 passed) and `npm run build` in `ui-designer-v2` (passed; existing chunk-size warning remains).
+      (4 passed) and `npm run build` in `pxa-designer` (passed; existing chunk-size warning remains).
       This is a lightweight route/component smoke test; a full Playwright/Cypress browser harness with
       screenshots remains optional future hardening, not a blocker for the current PXA rename checklist.
 - [x] Documentation link check after main docs are updated.
@@ -1116,8 +1116,7 @@ Completed Phase 9 promotion slices:
       Final state: 0 projects named `PXA.*`, 0 `namespace PXA.*` declarations, 0 real `using PXA.*`
       directives; `dotnet build PXA.sln` passes with 0 errors. Remaining `PXA` text is limited to cosmetic
       prose in comments/branding strings and legacy localStorage keys. The legacy `ui-designer/` frontend
-      folder is intentionally left in place as historical (already branded PXA-legacy in Phase 7; it is a
-      separate npm app that contributes no `PXA.*` project/namespace references).
+      folder was later removed; active frontend source now lives in `pxa-designer/`.
 - [x] Physical source layout and final active-string cleanup completed:
       Moved source projects into the agreed `src/Core`, `src/Generation`, `src/Importing`,
       `src/Infrastructure`, and `src/Migrations/*` folders while keeping project names/namespaces stable.
@@ -1125,4 +1124,4 @@ Completed Phase 9 promotion slices:
       OCR/PDF-viewer temp folders). UI localStorage keys now use PXA names with Canvas legacy fallback keys
       so existing browser drafts/preferences remain readable. Verified with
       `dotnet test PXA.sln --no-restore --disable-build-servers -m:1` and `npm run build` in
-      `ui-designer-v2` (both passed; existing package/security/chunk-size warnings remain).
+      `pxa-designer` (both passed; existing package/security/chunk-size warnings remain).

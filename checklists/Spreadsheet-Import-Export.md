@@ -20,7 +20,7 @@ already exposes `toWire()` (model) and `loadWorkbook()`, and HyperFormula provid
 
 ## Phase 1 — CSV (recommended; no new dependency) — DONE
 Plain values only (CSV has no formulas/styles). Export uses HyperFormula **computed** values so the file
-matches what's on screen. Implemented in `ui-designer-v2/src/spreadsheet/io.ts`.
+matches what's on screen. Implemented in `pxa-designer/src/spreadsheet/io.ts`.
 - [x] **CSV export** (client-side): `sheetToCsv(sheet, getComputed)` — RFC 4180 quoting (wrap fields with
       `,`/`"`/newline; double embedded quotes); exports the active sheet's computed values via `downloadText`.
 - [x] **CSV import** (client-side): `parseCsv` (RFC 4180-aware) + `csvToSheet` (number vs text per cell) →

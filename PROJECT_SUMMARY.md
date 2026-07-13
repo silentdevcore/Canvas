@@ -2,7 +2,7 @@
 
 ## Overview
 
-Power Dox Automation (PXA) is a document automation platform with a visual template designer, data binding, multi-language output, multi-format export/import, PDF code migration, and report-to-design migration. The active stack is a .NET 10 API plus the `ui-designer-v2` React/TypeScript frontend. The breaking PXA-to-PXA rename has been accepted: active source projects and namespaces use `PXA.*`.
+Power Dox Automation (PXA) is a document automation platform with a visual template designer, data binding, multi-language output, multi-format export/import, PDF code migration, and report-to-design migration. The active stack is a .NET 10 API plus the `pxa-designer` React/TypeScript frontend. The breaking PXA-to-PXA rename has been accepted: active source projects and namespaces use `PXA.*`.
 
 ---
 
@@ -40,7 +40,7 @@ Power Dox Automation (PXA) is a document automation platform with a visual templ
 
 ---
 
-## Frontend Structure (`ui-designer-v2/src/`)
+## Frontend Structure (`pxa-designer/src/`)
 
 | Folder | Contents |
 |--------|----------|

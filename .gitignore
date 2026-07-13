@@ -61,6 +61,9 @@ ui-designer/tmp/
 ui-designer-v2/dist/
 ui-designer-v2/dist/assets/
 ui-designer-v2/tmp/
+pxa-designer/dist/
+pxa-designer/dist/assets/
+pxa-designer/tmp/
 
 # Local workspace state
 .claude/

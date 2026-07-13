@@ -37,11 +37,11 @@ Beim Erstellen dieses Handoffs zeigt `git status --short` unter anderem Änderun
   - `src/Infrastructure/PXA.Infrastructure.Converters/PdfImporter.cs`
   - `src/Infrastructure/PXA.Infrastructure.Converters/SvgPdfImporter.cs`
 - UI/Docs/Export-Dateien:
-  - `ui-designer-v2/src/hooks/useTemplateLoader.ts`
-  - `ui-designer-v2/src/pages/DocsPage.tsx`
-  - `ui-designer-v2/src/pages/IndexPage.tsx`
-  - `ui-designer-v2/src/pages/TemplatePage.tsx`
-  - `ui-designer-v2/src/services/ExportService.ts`
+  - `pxa-designer/src/hooks/useTemplateLoader.ts`
+  - `pxa-designer/src/pages/DocsPage.tsx`
+  - `pxa-designer/src/pages/IndexPage.tsx`
+  - `pxa-designer/src/pages/TemplatePage.tsx`
+  - `pxa-designer/src/services/ExportService.ts`
 - Untracked:
   - `Removing-PDFImporter.md`
 - Viele getrackte `obj/`-Artefakte in `samples/` und `tests/`.
@@ -97,7 +97,7 @@ API-Smoke-Tests:
 
 UI:
 
-- `ui-designer-v2/src/pages/MigrationsPage.tsx`
+- `pxa-designer/src/pages/MigrationsPage.tsx`
 
 Checklisten:
 

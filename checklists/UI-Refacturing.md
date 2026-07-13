@@ -41,7 +41,7 @@
 #### 1-A. Extract `<AppHeader>` component
 **[high]**
 
-Create `/ui-designer-v2/src/components/Layout/AppHeader.tsx`.
+Create `/pxa-designer/src/components/Layout/AppHeader.tsx`.
 
 Props: `activePage: 'home' | 'templates' | 'docs'`
 
@@ -90,7 +90,7 @@ Create `src/styles/` sub-files and import them from the root `index.css`:
   - "Organize pages" → extract pages (Phase 3-C)
   - Remove "Share" and "Protect" coming-soon cards (Document Protection is already in Page Settings)
 
-**File:** `ui-designer-v2/src/pages/IndexPage.tsx`
+**File:** `pxa-designer/src/pages/IndexPage.tsx`
 
 ---
 
@@ -99,7 +99,7 @@ Create `src/styles/` sub-files and import them from the root `index.css`:
 
 Replace "Log in" / "Sign up" with a single "GitHub" or "Learn more" link, or remove entirely from the nav.
 
-**File:** `ui-designer-v2/src/components/Layout/AppHeader.tsx` (after 1-A)
+**File:** `pxa-designer/src/components/Layout/AppHeader.tsx` (after 1-A)
 
 ---
 
@@ -246,7 +246,7 @@ Phase 4-A  → Mobile overlay                         (last — low priority)
 
 ```bash
 # TypeScript must be clean
-cd ui-designer-v2 && npm run build
+cd pxa-designer && npm run build
 
 # Dev server — check all pages visually:
 npm run dev

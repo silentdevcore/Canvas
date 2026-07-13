@@ -363,7 +363,7 @@ public sealed class DevExpressPdfMigrationTests
     }
 
     // Mirrors the "complex and complete" DevExpress sample offered in the Migrations UI
-    // (ui-designer-v2 MigrationsPage DEVEXPRESS_EXAMPLE). Exercises every V2 capability at once:
+    // (pxa-designer MigrationsPage DEVEXPRESS_EXAMPLE). Exercises every V2 capability at once:
     // font-as-variable, named colours, DXColor.FromArgb, inline RectangleF, multi-page, encryption.
     [Fact]
     public void Migrate_ComplexUiExample_ConvertsAllV2Features()

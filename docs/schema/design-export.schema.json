@@ -47,7 +47,7 @@
     },
     "element": {
       "type": "object",
-      "description": "A single positioned element. Type-specific properties are permitted in addition to the common ones (see ui-designer-v2/src/docs/elementCatalog.ts for the per-type properties).",
+      "description": "A single positioned element. Type-specific properties are permitted in addition to the common ones (see pxa-designer/src/docs/elementCatalog.ts for the per-type properties).",
       "required": ["id", "type", "x", "y", "width", "height"],
       "properties": {
         "id": { "type": "string" },

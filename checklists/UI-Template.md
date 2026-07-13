@@ -3,6 +3,9 @@
 ## Scope
 Create a dynamic template system similar to CraftMyPDF where users design reusable templates and generate final PDFs by merging template layout with runtime JSON data.
 
+> Legacy note: this checklist documents work completed in the removed `ui-designer/` implementation.
+> Active frontend work now belongs in `pxa-designer/`.
+
 ## Definition of Done
 - [x] Users can create a template visually (drag/drop + property editing).
 - [x] Template supports bindings, conditionals, loops, and formatters.

@@ -156,7 +156,7 @@ Implementation keeps legacy provider IDs and public routes compatible. For `/api
   - No old provider project directories remain under `src` or `tests`.
 - [x] API contract test updated for taxonomy metadata:
   - `/api/migration/frameworks` returns legacy `kind`, plus `domain`, `migrationKind`, `provider`.
-- [x] `npm run build` in `ui-designer-v2`.
+- [x] `npm run build` in `pxa-designer`.
 - [x] Targeted .NET migration/API tests:
   - `PXA.Api.Tests` filtered to `MigrationControllerTests|MigrationServiceTests`: 16 passed.
   - `PXA.Migration.Pdf.Tests`: 18 passed.

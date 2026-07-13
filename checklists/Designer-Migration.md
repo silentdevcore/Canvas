@@ -15,7 +15,7 @@ than adding another basic XML parser.
 
 | Status | Designers / formats | Notes |
 | --- | --- | --- |
-| ✅ Shipped | DevExpress XtraReports (`.repx`, C#), Syncfusion/Bold Reports (`.rdl`, `.rdlc`), SSRS/RDLC/Power BI Report Builder (`.rdl`, `.rdlc`), ActiveReports Page (`.rdlx`), ActiveReports Section (`.rpx`), ActiveReports JS (`.json` marked), FastReport (`.frx`), Telerik Reporting (`.trdx`), Stimulsoft (`.mrt`), JasperReports (`.jrxml`) | Openable in `ui-designer-v2` through `POST /api/migration/report-to-design`. Fidelity varies by provider; advanced regions may be preserved as metadata-rich placeholders. |
+| ✅ Shipped | DevExpress XtraReports (`.repx`, C#), Syncfusion/Bold Reports (`.rdl`, `.rdlc`), SSRS/RDLC/Power BI Report Builder (`.rdl`, `.rdlc`), ActiveReports Page (`.rdlx`), ActiveReports Section (`.rpx`), ActiveReports JS (`.json` marked), FastReport (`.frx`), Telerik Reporting (`.trdx`), Stimulsoft (`.mrt`), JasperReports (`.jrxml`) | Openable in `pxa-designer` through `POST /api/migration/report-to-design`. Fidelity varies by provider; advanced regions may be preserved as metadata-rich placeholders. |
 | ❌ Not started | List & Label (`.lst`, `.lsr`) | Best next candidate if the goal is adding a new designer family. Needs format/sample audit first. |
 | ⛔ Blocked | Crystal Reports (`.rpt`) | Proprietary binary/OLE format; practical conversion needs Windows + SAP Crystal Reports SDK or an intermediate export path. |
 | — Out of scope | iText 7, Apryse/PDFTron, Aspose.PDF, Foxit PDF SDK, IronPDF, Spire.PDF, GemBox.Pdf, PDFKit.NET, LEADTOOLS, ActivePDF, PDF Tools/Toolbox | PDF SDKs/libraries, not visual report designers. They belong to PDF-code migration or PXA.PDF feature parity, not report-designer migration. |
@@ -63,7 +63,7 @@ If we want product quality, continue with **DevExpress fidelity** and real-sampl
 
 Most major text/XML report-designer formats now have a V1 converter. The highest-value work is no
 longer adding another XML parser; it is improving layout fidelity in the converters that are already
-openable in `ui-designer-v2`.
+openable in `pxa-designer`.
 
 **Current audit, 2026-06-21:** the shared table-fidelity pass is mostly complete. RDL/Syncfusion,
 FastReport, Telerik, DevExpress table cells, and the exporter/codegen paths now preserve and render

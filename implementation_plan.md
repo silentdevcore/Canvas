@@ -70,23 +70,23 @@ interface Template {
 Complete restructuring of the UI designer with new components and simplified architecture.
 
 ### New Files to Create
-- `src/ui-designer-v2/`: New root directory for redesigned UI
-- `src/ui-designer-v2/components/Gallery/TemplateGallery.tsx`: Main gallery component
-- `src/ui-designer-v2/components/Gallery/TemplateCard.tsx`: Individual template cards
-- `src/ui-designer-v2/components/Gallery/CategoryFilter.tsx`: Category filtering
-- `src/ui-designer-v2/components/Onboarding/OnboardingWizard.tsx`: Step-by-step onboarding
-- `src/ui-designer-v2/components/Onboarding/WelcomeScreen.tsx`: Initial welcome
-- `src/ui-designer-v2/components/Editor/SimplePxaSurface.tsx`: Simplified canvas
-- `src/ui-designer-v2/components/Editor/InlineEditor.tsx`: Click-to-edit interface
-- `src/ui-designer-v2/components/Editor/ElementToolbar.tsx`: Context-sensitive toolbar
-- `src/ui-designer-v2/components/Preview/LivePreview.tsx`: Real-time preview
-- `src/ui-designer-v2/hooks/useOnboarding.ts`: Onboarding state management
-- `src/ui-designer-v2/hooks/useTemplateGallery.ts`: Gallery data management
-- `src/ui-designer-v2/data/templates.ts`: Template definitions and metadata
-- `src/ui-designer-v2/styles/gallery.css`: Gallery-specific styles
-- `src/ui-designer-v2/styles/onboarding.css`: Onboarding styles
-- `src/ui-designer-v2/styles/editor.css`: Simplified editor styles
-- `src/ui-designer-v2/utils/templateAdapter.ts`: Convert between simple and complex models
+- `pxa-designer/`: New root directory for redesigned UI
+- `pxa-designer/components/Gallery/TemplateGallery.tsx`: Main gallery component
+- `pxa-designer/components/Gallery/TemplateCard.tsx`: Individual template cards
+- `pxa-designer/components/Gallery/CategoryFilter.tsx`: Category filtering
+- `pxa-designer/components/Onboarding/OnboardingWizard.tsx`: Step-by-step onboarding
+- `pxa-designer/components/Onboarding/WelcomeScreen.tsx`: Initial welcome
+- `pxa-designer/components/Editor/SimplePxaSurface.tsx`: Simplified canvas
+- `pxa-designer/components/Editor/InlineEditor.tsx`: Click-to-edit interface
+- `pxa-designer/components/Editor/ElementToolbar.tsx`: Context-sensitive toolbar
+- `pxa-designer/components/Preview/LivePreview.tsx`: Real-time preview
+- `pxa-designer/hooks/useOnboarding.ts`: Onboarding state management
+- `pxa-designer/hooks/useTemplateGallery.ts`: Gallery data management
+- `pxa-designer/data/templates.ts`: Template definitions and metadata
+- `pxa-designer/styles/gallery.css`: Gallery-specific styles
+- `pxa-designer/styles/onboarding.css`: Onboarding styles
+- `pxa-designer/styles/editor.css`: Simplified editor styles
+- `pxa-designer/utils/templateAdapter.ts`: Convert between simple and complex models
 
 ### Existing Files to Modify
 - `src/App.tsx`: Replace with new entry point that routes between gallery and editor
@@ -157,11 +157,11 @@ New dependencies for improved UX and simplified interactions.
 Comprehensive testing for the new UX-focused components.
 
 ### New Test Files
-- `src/ui-designer-v2/components/Gallery/TemplateGallery.test.tsx`
-- `src/ui-designer-v2/components/Onboarding/OnboardingWizard.test.tsx`
-- `src/ui-designer-v2/components/Editor/SimplePxaSurface.test.tsx`
-- `src/ui-designer-v2/hooks/useOnboarding.test.ts`
-- `src/ui-designer-v2/utils/templateAdapter.test.ts`
+- `pxa-designer/components/Gallery/TemplateGallery.test.tsx`
+- `pxa-designer/components/Onboarding/OnboardingWizard.test.tsx`
+- `pxa-designer/components/Editor/SimplePxaSurface.test.tsx`
+- `pxa-designer/hooks/useOnboarding.test.ts`
+- `pxa-designer/utils/templateAdapter.test.ts`
 
 ### Integration Tests
 - Gallery to Editor workflow

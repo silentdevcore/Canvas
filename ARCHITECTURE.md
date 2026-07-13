@@ -100,7 +100,7 @@ projects. PDF code migration providers output PXA-compatible C# source; report c
 
 ## Frontend Boundaries
 
-`ui-designer-v2` is the active frontend.
+`pxa-designer` is the active frontend.
 
 - `components/Editor/`: main editor, canvas, panels, export dialogs, code editor, localized properties, and modals.
 - `components/Gallery/`: template browsing and cards.
@@ -109,7 +109,8 @@ projects. PDF code migration providers output PXA-compatible C# source; report c
 - `store.ts`: Zustand editor state, pages, shared elements, undo/redo, bulk replacement.
 - `types.ts`: frontend document and element contracts.
 
-The older `ui-designer` tree remains for historical/reference work. New UI work should target `ui-designer-v2`.
+The older `ui-designer` tree has been removed. Historical checklists may still mention it when they describe
+past implementation work, but all active frontend work belongs in `pxa-designer`.
 
 ## Boundary Rules
 
@@ -125,5 +126,5 @@ The older `ui-designer` tree remains for historical/reference work. New UI work 
 
 - `dotnet build PXA.sln` must produce 0 errors for code changes.
 - Run focused tests for the touched subsystem, then broader tests when shared contracts or endpoints change.
-- Frontend changes should validate with `cd ui-designer-v2 && npm run build` and relevant Jest tests.
+- Frontend changes should validate with `cd pxa-designer && npm run build` and relevant Jest tests.
 - Documentation changes should keep links relative and prefer `README.md`, this file, `CONTRIBUTING_RENDERERS.md`, and `TESTING.md` as stable entry points.

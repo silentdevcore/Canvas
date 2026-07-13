@@ -1322,7 +1322,7 @@ public class TemplatesController : ControllerBase
               <li><code className="docs-inline-code">llms.txt</code> / <code className="docs-inline-code">llms-full.txt</code> (repo root) — capability map + every element with properties and examples for both surfaces.</li>
               <li><code className="docs-inline-code">docs/schema/design-export.schema.json</code> — JSON Schema for design validation.</li>
               <li><code className="docs-inline-code">docs/schema/openapi.json</code> — the full HTTP API.</li>
-              <li><code className="docs-inline-code">ui-designer-v2/src/docs/elementCatalog.ts</code> — the element catalog (source of truth for all of the above).</li>
+              <li><code className="docs-inline-code">pxa-designer/src/docs/elementCatalog.ts</code> — the element catalog (source of truth for all of the above).</li>
             </ul>
             <div className="docs-callout docs-callout--tip">
               <strong>MCP:</strong> a Model Context Protocol server (<code className="docs-inline-code">tools/PXA.Mcp</code>) exposes these as tools/resources — <code className="docs-inline-code">list_elements</code>, <code className="docs-inline-code">get_element_schema</code>, <code className="docs-inline-code">get_example</code>, <code className="docs-inline-code">validate_design</code>, <code className="docs-inline-code">render_preview</code> — so an agent can query and verify without scraping docs.
@@ -1393,7 +1393,7 @@ public class TemplatesController : ControllerBase
                     ['PDF encryption', 'checklists/Pdf-Encryption.md', 'RC4-128 status, AES follow-ups, and security handler notes'],
                     ['PDF provider gaps', 'checklists/PxaPdf-Provider-Feature-Gaps.md', 'PXA-compatible PDF feature gaps compared with major PDF frameworks'],
                     ['Documentation audit', 'checklists/Documentation-Audit.md', 'Source-of-truth rules and follow-up documentation tasks'],
-                    ['Multi-language UI', 'ui-designer-v2/MULTILANGUAGE.md', 'Language tabs, localized properties, RTL, and export behavior'],
+                    ['Multi-language UI', 'pxa-designer/MULTILANGUAGE.md', 'Language tabs, localized properties, RTL, and export behavior'],
                     ['Migration status', 'checklists/Code-Migrations.md', 'Provider progress and migration acceptance criteria'],
                   ] as [string,string,string][]).map(([topic, doc, use]) => (
                     <tr key={doc}>

@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# UI-Designer Deployment Script
-# This script sets up and deploys the complete UI-Designer platform
+# PXA Designer Deployment Script
+# This script sets up and deploys the complete PXA Designer platform
 
 set -e
 
-echo "🎨 UI-Designer - Enterprise Document Automation Platform"
+echo "🎨 PXA Designer - Enterprise Document Automation Platform"
 echo "======================================================"
 echo ""
 
@@ -80,9 +80,9 @@ check_prerequisites() {
 
 # Setup frontend
 setup_frontend() {
-    print_header "Setting up UI Designer (Frontend)..."
+    print_header "Setting up PXA Designer (Frontend)..."
 
-    cd ui-designer
+    cd pxa-designer
 
     # Install dependencies
     print_status "Installing dependencies..."
@@ -127,7 +127,7 @@ run_tests() {
 
     # Frontend tests
     print_status "Running frontend tests..."
-    cd ui-designer
+    cd pxa-designer
     if npm test -- --watchAll=false --passWithNoTests; then
         print_status "Frontend tests passed ✓"
     else
@@ -168,8 +168,8 @@ start_services() {
     fi
 
     # Start frontend
-    print_status "Starting UI Designer..."
-    cd ui-designer
+    print_status "Starting PXA Designer..."
+    cd pxa-designer
     if [ "$BUILD_FRONTEND" = "true" ]; then
         # Serve built files
         npx serve -s dist -l 5173 > ../ui.log 2>&1 &
@@ -190,9 +190,9 @@ show_info() {
     print_header "Deployment Complete!"
 
     echo ""
-    echo "🎉 UI-Designer is now running!"
+    echo "🎉 PXA Designer is now running!"
     echo ""
-    echo "📱 Frontend (UI Designer): http://localhost:5173"
+    echo "📱 Frontend (PXA Designer): http://localhost:5173"
     echo "🔧 Backend (API Server):   http://localhost:5000"
     echo "📚 API Documentation:      http://localhost:5000/swagger"
     echo ""
@@ -227,7 +227,7 @@ stop_services() {
     if [ -f ui.pid ]; then
         UI_PID=$(cat ui.pid)
         if kill -0 $UI_PID 2>/dev/null; then
-            print_status "Stopping UI Designer..."
+            print_status "Stopping PXA Designer..."
             kill $UI_PID
         fi
         rm -f ui.pid
@@ -297,7 +297,7 @@ main() {
         exit 0
     fi
 
-    print_status "Starting UI-Designer deployment..."
+    print_status "Starting PXA Designer deployment..."
     echo ""
 
     check_prerequisites

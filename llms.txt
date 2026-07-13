@@ -51,7 +51,7 @@ contentcontrol, …). Each element's properties, format support, and examples ar
 - [PXA Workbook JSON Schema](/docs/schema/pxa-workbook.schema.json): the canonical spreadsheet format. Validate a `SpreadsheetDto` workbook before posting to `/api/spreadsheet/*` (export/calculate/render/sort/find-replace/fill).
 - [OpenAPI](/docs/schema/openapi.json): the full HTTP API.
 - [C# Cookbook](/docs/csharp-cookbook.md): task-oriented PXA-compatible PDF recipes.
-- Element catalog (source of truth): `ui-designer-v2/src/docs/elementCatalog.ts`.
+- Element catalog (source of truth): `pxa-designer/src/docs/elementCatalog.ts`.
 
 ## Key endpoints
 

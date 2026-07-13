@@ -14,7 +14,7 @@ PXA-compatible PDF C# API) and how AI agents consume it. Use this as the referen
 
 ## The single source of truth
 
-Everything is anchored on the **element catalog** (`ui-designer-v2/src/docs/elementCatalog.ts`): one typed
+Everything is anchored on the **element catalog** (`pxa-designer/src/docs/elementCatalog.ts`): one typed
 entry per element with properties, format support, and examples. It drives:
 
 - the in-app **Elements Reference** (`DocsPage.tsx`) and the Help dialog (`HelpModal.tsx`),

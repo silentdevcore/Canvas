@@ -132,7 +132,7 @@ adds an **additive, backward-compatible** per-cell style model and wires a **v1 
 - [x] Server image preview (`ImageDocumentExporter.DrawTable`) applies per-cell bg/borders/alignment.
 - [x] Frontend renders per-cell styles: `SimplePxaSurface` `tdStyle` + `LivePreview` `tdSt`, keyed by the
       absolute data-row index; explicit per-cell borders replace the default grid border (exporter parity).
-- [x] Frontend type mirror (`ui-designer-v2/src/types.ts`: `CellStyle` / `CellBorderSide`).
+- [x] Frontend type mirror (`pxa-designer/src/types.ts`: `CellStyle` / `CellBorderSide`).
 - [x] Tests: RDL `CellStyles` extraction + null-when-unstyled (backward-compat); image-export render diff.
 
 **Follow-up phases:**

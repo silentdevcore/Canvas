@@ -101,7 +101,7 @@ component exists in the codebase. The `DocsPage` is a separate route that requir
 leaving the editor entirely to access.
 
 - [x] Add `F1` to the keyboard shortcut handler in `SimplePxaSurface.tsx`
-- [x] Create `ui-designer-v2/src/components/Editor/HelpModal.tsx` with four tabs:
+- [x] Create `pxa-designer/src/components/Editor/HelpModal.tsx` with four tabs:
   - **Quick Start** — 5-step visual guide: open template → add elements → edit properties → preview → export
   - **Keyboard Shortcuts** — table of all shortcuts (Undo, Redo, Copy, Paste, Duplicate, Delete, Arrow nudge, Zoom, F1)
   - **Elements Reference** — list of all element types with a one-liner description and PDF / Word support badge

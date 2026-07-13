@@ -100,7 +100,7 @@ Add document editing elements for annotations, markings, page controls, and reus
 - [ ] Test mobile/tablet usability for element controls.
 
 ## Progress (2026-05-14)
-- [x] First implementation slice added all advanced element types to `ui-designer-v2`.
+- [x] First implementation slice added all advanced element types to `pxa-designer`.
 - [x] Sidebar tool group added for Watermark, Notiz, Arrow, Draw, Date, Markieren, Ankreuzen, Page Start/End, and Nummerierung.
 - [x] PXA and Live Preview renderers added for the new elements.
 - [x] Inspector controls added for the main editable properties.

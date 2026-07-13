@@ -39,7 +39,7 @@ expression engine has **no A1 cell references**. This adds a real Excel-like exp
       **`=SUM(B1:B2)` formula + cached 30**, number format, bold+bg style, merge, column width, frozen rows.
       Full Export suite **193** green; solution builds clean.
 
-## Phase 2 — Frontend foundation (`ui-designer-v2`)
+## Phase 2 — Frontend foundation (`pxa-designer`)
 - [x] `src/spreadsheet/types.ts` — wire types (`Workbook`/`SheetWire`/`Cell`, camelCase mirroring the DTOs)
       + working `SheetState` (cells keyed `"row:col"`) + `from/toWire` converters.
 - [x] `useSpreadsheetStore` (`src/spreadsheet/store.ts`): sheets, active sheet, selection, snapshot

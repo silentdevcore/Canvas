@@ -1,6 +1,6 @@
 /**
  * PXA MCP server — exposes the element catalog, design JSON Schema, docs, and validate/render tools
- * to AI agents over the Model Context Protocol. The element catalog (ui-designer-v2/src/docs/elementCatalog.ts)
+ * to AI agents over the Model Context Protocol. The element catalog (pxa-designer/src/docs/elementCatalog.ts)
  * is the single source of truth; this server imports it directly (run via tsx, which erases the type-only
  * import of ElementType). Schema/OpenAPI/llms-full/cookbook are served as resources from the repo.
  *
@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   ELEMENT_CATALOG, getElementDoc, toDesign, elementsByCategory, CATEGORY_ORDER,
-} from '../../../ui-designer-v2/src/docs/elementCatalog.ts';
+} from '../../../pxa-designer/src/docs/elementCatalog.ts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(HERE, '../../..');
@@ -101,7 +101,7 @@ server.registerTool(
 );
 
 // Structural validation against the committed JSON Schema (required fields + element type enum). Matches
-// the rules enforced by ui-designer-v2/src/__tests__/designSchema.test.ts (no external validator needed).
+// the rules enforced by pxa-designer/src/__tests__/designSchema.test.ts (no external validator needed).
 function validateDesign(design: any): string[] {
   const errors: string[] = [];
   const enumTypes: string[] = schema.$defs.element.properties.type.enum;

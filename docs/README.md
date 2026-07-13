@@ -2,7 +2,7 @@
 
 This folder holds the **generated C# API reference** (DocFX) and hand-written guides. The visual-designer
 element docs live in the app (the **Elements Reference** at `/docs`), driven by
-`ui-designer-v2/src/docs/elementCatalog.ts`.
+`pxa-designer/src/docs/elementCatalog.ts`.
 
 ## Build the C# API reference (DocFX)
 

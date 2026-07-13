@@ -8,7 +8,7 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
 - **De-facto JSON exists but is informal:** `SpreadsheetDto` serialized camelCase *is* the workbook JSON,
   but has no version field, no `$schema`, no published JSON Schema (only designs do:
   `docs/schema/design-export.schema.json`), and the frontend wire type
-  (`ui-designer-v2/src/spreadsheet/types.ts`) has drifted to a **subset** — it omits every Phase-2 field
+  (`pxa-designer/src/spreadsheet/types.ts`) has drifted to a **subset** — it omits every Phase-2 field
   (pageSetup, protection, conditionalFormats, dataValidations, column/row `outlineLevel`, cell
   `comment`/`hyperlink`). Editor-saved JSON is lossy vs. what the backend holds.
 - **Migration architecture exists — for PDF, not spreadsheets:** `PXA.Migration.Roslyn/CSharpSourceMigration.cs`
@@ -107,7 +107,7 @@ its own sub-tabs; Spreadsheet Code Migration gets its own view + a non-PDF previ
 
 ## Critical files
 - **Format:** `src/Core/PXA.Core/Contracts/SpreadsheetDto.cs`; `docs/schema/canvas-workbook.schema.json` (new);
-  `ui-designer-v2/src/spreadsheet/{types.ts,io.ts,store}`; `ui-designer-v2/src/pages/DocsPage.tsx`;
+  `pxa-designer/src/spreadsheet/{types.ts,io.ts,store}`; `pxa-designer/src/pages/DocsPage.tsx`;
   `llms.txt`; `tools/PXA.Mcp`.
 - **Authoring API:** `src/Infrastructure/PXA.Infrastructure.Spreadsheet/PxaWorkbookBuilder.cs` (new).
 - **Migration (reuse):** `src/Migrations/Common/PXA.Migration.Roslyn/CSharpSourceMigration.cs`;

@@ -3,6 +3,9 @@
 ## Scope
 Improve visual consistency and usability in ui-designer with focus on color, background, typography, and layer stacking.
 
+> Legacy note: this checklist documents work completed in the removed `ui-designer/` implementation.
+> Active frontend work now belongs in `pxa-designer/`.
+
 ## Progress (2026-05-03)
 - [x] Step 1 baseline implemented: token foundation (color, typography, spacing, layer map) added and wired into core shell and overlays.
 - [x] Step 2 complete: App shell, Page Settings panel, Export panel, Properties panel, and ElementRenderer consolidated to shared token/class patterns.

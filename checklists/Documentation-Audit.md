@@ -2,7 +2,7 @@
 
 ## Goal
 
-Keep the documentation set coherent as PXA grows across PDF generation, importers, migrations, report conversion, and the `ui-designer-v2` frontend.
+Keep the documentation set coherent as PXA grows across PDF generation, importers, migrations, report conversion, and the `pxa-designer` frontend.
 
 ## Source Of Truth Rules
 
@@ -15,8 +15,8 @@ Keep the documentation set coherent as PXA grows across PDF generation, importer
 | Test matrix and commands | `TESTING.md` |
 | PDF engine API | `PXA/TECHNICAL_DOCUMENTATION.md`, `PXA/README.md` |
 | Feature/milestone history | `checklists/*.md` |
-| Multi-language UI behavior | `ui-designer-v2/MULTILANGUAGE.md`, `checklists/multi-languages.md` |
-| **Element definitions (props, format support, examples)** | `ui-designer-v2/src/docs/elementCatalog.ts` (drives DocsPage, HelpModal, llms-full, schema enum, MCP) |
+| Multi-language UI behavior | `pxa-designer/MULTILANGUAGE.md`, `checklists/multi-languages.md` |
+| **Element definitions (props, format support, examples)** | `pxa-designer/src/docs/elementCatalog.ts` (drives DocsPage, HelpModal, llms-full, schema enum, MCP) |
 | **Design JSON contract for validation** | `docs/schema/design-export.schema.json` |
 | **AI/agent capability reference** | `llms.txt`, `llms-full.txt`, and the `tools/PXA.Mcp` MCP server |
 | **C# `PXA.Pdf` API reference + recipes** | XML doc comments + DocFX (`docs/docfx.json`), `docs/csharp-cookbook.md` |
@@ -36,7 +36,9 @@ Keep the documentation set coherent as PXA grows across PDF generation, importer
 
 ## Follow-Up Audit Items
 
-- [ ] **[medium]** Review old `ui-designer/` checklists and label which are legacy vs active `ui-designer-v2`.
+- [x] **[medium]** Review old `ui-designer/` checklists and label which are legacy vs active `pxa-designer`.
+  - The legacy `ui-designer/` implementation folder was removed during the PXA Designer folder cleanup.
+  - Historical checklists may still mention `ui-designer/` paths when documenting completed legacy work; active UI docs and commands now target `pxa-designer/`.
 - [ ] **[medium]** Review `checklists/Last-Features.md` and replace remaining old `PdfImporter.cs`/PdfPig wording with current `PXA.Importer` wording or a historical note.
 - [ ] **[medium]** Review `handoff.md` and decide whether it is still an active handoff document or should be archived.
 - [ ] **[low]** Add a short `checklists/README.md` index if checklist count keeps growing.

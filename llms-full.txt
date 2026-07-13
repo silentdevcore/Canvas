@@ -2,7 +2,7 @@
 
 Power Dox Automation (PXA) generates documents two ways: a declarative **design JSON** (`DesignExportDto`) posted to the API,
 or imperative **C# code** with the PXA-compatible PDF API. This file is a snapshot derived from the element catalog
-(`ui-designer-v2/src/docs/elementCatalog.ts`) and the API. Validate generated design JSON against
+(`pxa-designer/src/docs/elementCatalog.ts`) and the API. Validate generated design JSON against
 `docs/schema/design-export.schema.json` before posting.
 
 ## The generate → validate → render loop

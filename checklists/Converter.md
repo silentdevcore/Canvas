@@ -324,7 +324,7 @@ Frontend (ExportService.ts)
 | `PXA.Infrastructure.Word/StyleExtensions.cs` | PXA.Infrastructure.Word | ✅ done |
 | `PXA.Infrastructure.Sheet/ExcelDocumentExporter.cs` | PXA.Infrastructure.Sheet | ✅ done |
 | `PXA.Infrastructure.Sheet/StyleExtensions.cs` | PXA.Infrastructure.Sheet | ✅ done |
-| `ui-designer-v2/src/components/Editor/ExportModal.tsx` | Frontend | ✅ done |
+| `pxa-designer/src/components/Editor/ExportModal.tsx` | Frontend | ✅ done |
 
 ---
 
@@ -338,9 +338,9 @@ Frontend (ExportService.ts)
 | `PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj` | Added `DocumentFormat.OpenXml` 3.5.1 | ✅ done |
 | `PXA.Infrastructure.Sheet/PXA.Infrastructure.Sheet.csproj` | Added `ClosedXML` 0.105.0 | ✅ done |
 | `PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj` | Added `SkiaSharp` 3.119.2 | ✅ done |
-| `ui-designer-v2/src/services/ExportService.ts` | Added `ExportFormat` type, `exportViaBackend`, `listSupportedFormats` | ✅ done |
-| `ui-designer-v2/src/components/Preview/LivePreview.tsx` | Added "More formats…" entry + `ExportModal` integration | ✅ done |
-| `ui-designer-v2/src/styles/index.css` | Added `.export-modal-*` styles | ✅ done |
+| `pxa-designer/src/services/ExportService.ts` | Added `ExportFormat` type, `exportViaBackend`, `listSupportedFormats` | ✅ done |
+| `pxa-designer/src/components/Preview/LivePreview.tsx` | Added "More formats…" entry + `ExportModal` integration | ✅ done |
+| `pxa-designer/src/styles/index.css` | Added `.export-modal-*` styles | ✅ done |
 
 ---
 

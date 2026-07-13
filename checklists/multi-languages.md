@@ -27,7 +27,7 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
 ### Frontend (TypeScript)
 
 - [x] **Add `language` and `textDirection` to `SimpleElement`**
-  File: `ui-designer-v2/src/types.ts`
+  File: `pxa-designer/src/types.ts`
   Added `language?: string` and `textDirection?: 'ltr' | 'rtl'`.
 
 ---
@@ -94,7 +94,7 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
 ## Phase 3 — Frontend UI Changes
 
 - [x] **Add language selector to the Typography section**
-  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`
+  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
   Dropdown with 14 languages. Auto-sets `textDirection: 'rtl'` for Arabic, Hebrew, Farsi, Urdu, Yiddish, Divehi.
 
 - [x] **Add LTR / RTL direction toggle**
@@ -201,14 +201,14 @@ On export, one PDF is generated per active language. For each, the engine substi
 ### Frontend (TypeScript)
 
 - [x] **Add `activeLanguages` to `PageSettings`**
-  File: `ui-designer-v2/src/types.ts`
+  File: `pxa-designer/src/types.ts`
   The system language is read from `navigator.language` at runtime, never stored.
   ```typescript
   activeLanguages?: string[];    // user-selected active languages, e.g. ["de", "en", "ar"]
   ```
 
 - [x] **Add `LocalizedProperty` interface**
-  File: `ui-designer-v2/src/types.ts`
+  File: `pxa-designer/src/types.ts`
   ```typescript
   export interface LocalizedProperty {
     key: string;           // template variable name without {{ }}, e.g. "SUBJECT"
@@ -219,17 +219,17 @@ On export, one PDF is generated per active language. For each, the engine substi
   ```
 
 - [x] **Add `localizedProperties` to `PageSettings`**
-  File: `ui-designer-v2/src/types.ts`
+  File: `pxa-designer/src/types.ts`
   ```typescript
   localizedProperties?: LocalizedProperty[];
   ```
 
 - [x] **Add `currentPreviewLanguage` to editor store (ephemeral, not serialized)**
-  File: `ui-designer-v2/src/store.ts`
+  File: `pxa-designer/src/store.ts`
   Drives which language tab is active in the editor. Initialised to `navigator.language` (or its base tag). Reset when active languages change.
 
 - [x] **Update `DEFAULT_PAGE_SETTINGS`**
-  File: `ui-designer-v2/src/store.ts`
+  File: `pxa-designer/src/store.ts`
   Add `activeLanguages: []`, `localizedProperties: []`.
 
 ### Backend (C#)
@@ -294,25 +294,25 @@ On export, one PDF is generated per active language. For each, the engine substi
 ## Phase 8 — UI: Language Tabs & Localized Properties Panel
 
 - [x] **Active Languages in Document Settings dialog**
-  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx` (Document Settings section)
+  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx` (Document Settings section)
   Add a "Languages" tab containing:
   - **System language** — read-only display of `navigator.language` (e.g. "System: Deutsch (de)"); shown as informational, not editable
   - **Active Languages** — checkboxes for each available language; checking adds to `pageSettings.activeLanguages`; unchecking removes it (with confirmation if localized values exist for that language)
 
 - [x] **Language tab bar component**
-  New file: `ui-designer-v2/src/components/Editor/LanguageTabBar.tsx`
+  New file: `pxa-designer/src/components/Editor/LanguageTabBar.tsx`
   Rendered above the canvas when `pageSettings.activeLanguages.length > 1`.
   - One tab per active language (flag emoji + tag, e.g. "🇩🇪 DE"); system language tab shown first
   - Active tab highlighted; clicking calls `setCurrentPreviewLanguage(lang)` on the store
   - RTL languages show an "RTL" badge on the tab
 
 - [x] **PXA preview in language context**
-  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`
+  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
   When rendering element content for preview, resolve `{{KEY}}` placeholders using `currentPreviewLanguage`'s values from `localizedProperties`.
   Apply `dir="rtl"` wrapper to the entire canvas frame when `currentPreviewLanguage` is RTL.
 
 - [x] **Localized Properties Panel**
-  New file: `ui-designer-v2/src/components/Editor/LocalizedPropertiesPanel.tsx`
+  New file: `pxa-designer/src/components/Editor/LocalizedPropertiesPanel.tsx`
   Displayed in the right inspector panel when no element is selected (or as a dedicated drawer tab).
 
   Layout per property row:
@@ -328,7 +328,7 @@ On export, one PDF is generated per active language. For each, the engine substi
   Scan all element `content` fields for `{{KEY}}` patterns and suggest them as autocomplete options when entering a property key.
 
 - [x] **Update Export Modal for multi-language**
-  File: `ui-designer-v2/src/components/Editor/ExportModal.tsx`
+  File: `pxa-designer/src/components/Editor/ExportModal.tsx`
   When `pageSettings.activeLanguages.length > 1`:
   - "Export current language (`de`)" → `POST /api/export?format=pdf&language=de`
   - "Export all languages (ZIP)" → `POST /api/export/multilanguage?format=pdf`
@@ -462,16 +462,16 @@ public class LocalizedPropertyDto {
 ### 10.1 — Frontend: Data Model
 
 - [x] **Rename `global: boolean` → `scope: 'global' | 'own'` in `LocalizedProperty`**
-  File: `ui-designer-v2/src/types.ts`
+  File: `pxa-designer/src/types.ts`
   Remove `globalValue`. Add `ownerLanguage?: string`.
   Migration: any existing property with `global: true` → `scope: 'global'`; `global: false` → `scope: 'global'` (was per-language, same concept).
 
 - [x] **Update `upsertLocalizedProperty` in store**
-  File: `ui-designer-v2/src/store.ts`
+  File: `pxa-designer/src/store.ts`
   Adapt to new shape. When adding an Own property, automatically set `ownerLanguage` to the current preview language.
 
 - [x] **Update `DEFAULT_PAGE_SETTINGS`**
-  File: `ui-designer-v2/src/store.ts`
+  File: `pxa-designer/src/store.ts`
   `localizedProperties: []` — no change needed, shape change is backward compatible via migration.
 
 ---
@@ -479,7 +479,7 @@ public class LocalizedPropertyDto {
 ### 10.2 — Frontend: UI / LocalizedPropertiesPanel
 
 - [x] **Replace "Global / Per lang" toggle with "Global / Own" toggle**
-  File: `ui-designer-v2/src/components/Editor/LocalizedPropertiesPanel.tsx`
+  File: `pxa-designer/src/components/Editor/LocalizedPropertiesPanel.tsx`
   - **Global** = placeholder in all languages, each fills its own value
   - **Own** = placeholder only for the current language tab (shows owner badge: `"DE only"`)
 
@@ -503,7 +503,7 @@ public class LocalizedPropertyDto {
 ### 10.3 — Frontend: PXA Preview
 
 - [x] **Fix `resolveContent` to correctly apply own vs global scoping**
-  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`
+  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
   When building the property map for the current preview language:
   - Include Global properties: value = `localizedValues[currentPreviewLanguage] ?? localizedValues[systemLanguage] ?? ""`
   - Include Own properties: only include when `ownerLanguage === currentPreviewLanguage`; value = `localizedValues[ownerLanguage]`
@@ -591,24 +591,24 @@ public class LocalizedPropertyDto {
 ### 11.1 — Properties Tab
 
 - [x] **Move `LocalizedPropertiesPanel` to a dedicated inspector tab**
-  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`
+  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
   Added `'properties'` to `inspectorTab` type. Tab button appears only when `activeLanguages.length >= 1`. Shows property count badge. Removed panel from the `!selectedElement` inspector section.
 
 - [x] **Fix second-property-add bug in `LocalizedPropertiesPanel`**
-  File: `ui-designer-v2/src/components/Editor/LocalizedPropertiesPanel.tsx`
+  File: `pxa-designer/src/components/Editor/LocalizedPropertiesPanel.tsx`
   Root cause: stale closure over `newKey`/`newValue` in `onKeyDown` handler. Fix: use `useRef` for add-form input values alongside display state. `addProperty` now reads `newKeyRef.current` / `newValueRef.current` — never stale.
 
 ### 11.2 — Element-Level Language Scope
 
 - [x] **Add `elementLanguage?: string` to `SimpleElement`**
-  File: `ui-designer-v2/src/types.ts`
+  File: `pxa-designer/src/types.ts`
   `undefined` = visible in all language tabs. BCP-47 tag = Own element for that language only.
 
 - [x] **Add `ElementLanguage?: string` to `ElementDto`**
   File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
 
 - [x] **Auto-assign `elementLanguage` when adding elements in multi-lang mode**
-  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`
+  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
   New helper `addElementWithLangScope()`: if `activeLanguages.length >= 1` and `currentPreviewLanguage` is one of the active languages, new elements get `elementLanguage = currentPreviewLanguage`. Otherwise elements are "all languages" (no `elementLanguage`).
 
 - [x] **Auto-create RTL mirror element for LTR Own elements**
@@ -618,7 +618,7 @@ public class LocalizedPropertyDto {
   - `x = pageWidth - base.x - base.width` (horizontally mirrored)
 
 - [x] **Filter canvas rendering by `currentPreviewLanguage`**
-  File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`
+  File: `pxa-designer/src/components/Editor/SimplePxaSurface.tsx`
   PXA renders only elements where `!el.elementLanguage || el.elementLanguage === currentPreviewLanguage`. Layers panel shows all elements with a language badge.
 
 - [x] **Language Scope control in element inspector**
@@ -633,7 +633,7 @@ public class LocalizedPropertyDto {
   Required for use in `DesignJsonMapper`.
 
 - [x] **JSON export filters elements by target language**
-  File: `ui-designer-v2/src/services/CodeGenerator.ts`
+  File: `pxa-designer/src/services/CodeGenerator.ts`
   When `hasLanguages && targetLanguage`, elements with a non-matching `elementLanguage` are excluded from the exported JSON.
 
 - [x] **Language badge in Layers panel**

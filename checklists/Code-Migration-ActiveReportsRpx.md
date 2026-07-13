@@ -3,7 +3,7 @@
 ## Goal
 
 Convert a **GrapeCity / MESCIUS ActiveReports "Section Report"** (`.rpx`) — a **banded** XML layout —
-into a **PXA design** that opens and is editable in `ui-designer-v2`. Unlike RDL (which is
+into a **PXA design** that opens and is editable in `pxa-designer`. Unlike RDL (which is
 absolutely-positioned `Body`/`PageHeader`/`PageFooter`), `.rpx` is band-relative, so this converter
 mirrors the **DevExpress XtraReport band-flatten** approach
 ([Code-Migration-DevExpressReport.md](Code-Migration-DevExpressReport.md)) rather than the RDL one
@@ -64,7 +64,7 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 - [x] Backend `POST /api/migration/report-to-design` auto-detects `.rpx` (after RDL, before DevExpress)
       → `RpxToDesignConverter` ([MigrationController.cs](../PXA.WebApi/Controllers/MigrationController.cs)).
 - [x] Frontend **"ActiveReports (.rpx)"** entry + **Open in Designer**
-      ([MigrationsPage.tsx](../ui-designer-v2/src/pages/MigrationsPage.tsx)).
+      ([MigrationsPage.tsx](../pxa-designer/src/pages/MigrationsPage.tsx)).
 
 ### Tests (19 + 1 render)
 - [x] Sections/Letter default; inches→points band-flatten; label style; `DataField` binding; line

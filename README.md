@@ -79,7 +79,7 @@ A production-ready document automation platform with a visual template designer,
 
 ### Frontend
 ```bash
-cd ui-designer-v2
+cd pxa-designer
 npm install
 npm run dev
 ```
@@ -170,7 +170,7 @@ PXA.Infrastructure.Converters ← ODT, HTML, CSV, Markdown, Image, TIFF exporter
 PXA.Domain                  ← Template/domain models
 ```
 
-Frontend (`ui-designer-v2/`):
+Frontend (`pxa-designer/`):
 ```
 src/
   components/
@@ -210,7 +210,7 @@ src/
 dotnet test PXA.sln
 
 # Frontend
-cd ui-designer-v2 && npm test
+cd pxa-designer && npm test
 ```
 
 Test projects include `PXA.Core.Tests`, `PXA.Application.Tests`, `PXA.Infrastructure.Pdf.Tests`, `PXA.Export.Tests`, and `PXA.Api.Tests`.
@@ -221,14 +221,14 @@ Test projects include `PXA.Core.Tests`, `PXA.Application.Tests`, `PXA.Infrastruc
 
 ```bash
 # Frontend production build
-cd ui-designer-v2 && npm run build
+cd pxa-designer && npm run build
 
 # Backend publish
 cd PXA.WebApi && dotnet publish -c Release
 
 # Docker
 docker build -t pxa-api ./PXA.WebApi
-docker build -t pxa-ui ./ui-designer-v2
+docker build -t pxa-ui ./pxa-designer
 docker-compose up -d
 ```
 
@@ -245,7 +245,7 @@ To enable non-Latin PDF export, place Noto font files in the `fonts/` directory 
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Project layer diagram and responsibilities |
 | [`PROJECT_SUMMARY.md`](PROJECT_SUMMARY.md) | Compact project inventory, endpoints, project groups, and test groups |
 | [`docs/index.md`](docs/index.md) | PXA PDF engine quick start and API reference entry point |
-| [`ui-designer-v2/MULTILANGUAGE.md`](ui-designer-v2/MULTILANGUAGE.md) | UI guide for per-element language and RTL controls |
+| [`pxa-designer/MULTILANGUAGE.md`](pxa-designer/MULTILANGUAGE.md) | UI guide for per-element language and RTL controls |
 | [`fonts/README.md`](fonts/README.md) | Noto font download and deployment instructions |
 | [`CONTRIBUTING_RENDERERS.md`](CONTRIBUTING_RENDERERS.md) | How to add renderers, importers, migrations, and report converters |
 | [`TESTING.md`](TESTING.md) | Test structure and conventions |
@@ -265,4 +265,4 @@ To enable non-Latin PDF export, place Noto font files in the `fonts/` directory 
 | Report migration status | [`checklists/Code-Migration-DevExpressReport.md`](checklists/Code-Migration-DevExpressReport.md), [`checklists/Code-Migration-SyncfusionRdl.md`](checklists/Code-Migration-SyncfusionRdl.md), [`checklists/Code-Migration-ActiveReportsRpx.md`](checklists/Code-Migration-ActiveReportsRpx.md) |
 | PDF encryption | [`checklists/Pdf-Encryption.md`](checklists/Pdf-Encryption.md) |
 | Importer roadmap | [`checklists/UI-Importer-Features.md`](checklists/UI-Importer-Features.md), [`checklists/Importer-New-Featuers.md`](checklists/Importer-New-Featuers.md), [`checklists/PDF-Importer.md`](checklists/PDF-Importer.md) |
-| UI and localization | [`ui-designer-v2/MULTILANGUAGE.md`](ui-designer-v2/MULTILANGUAGE.md), [`checklists/UI-Improvements-2026.md`](checklists/UI-Improvements-2026.md), [`checklists/multi-languages.md`](checklists/multi-languages.md) |
+| UI and localization | [`pxa-designer/MULTILANGUAGE.md`](pxa-designer/MULTILANGUAGE.md), [`checklists/UI-Improvements-2026.md`](checklists/UI-Improvements-2026.md), [`checklists/multi-languages.md`](checklists/multi-languages.md) |
