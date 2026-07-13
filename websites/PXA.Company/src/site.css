@@ -106,8 +106,15 @@
   text-transform: uppercase;
 }
 
-.pxa-product-card a {
+.pxa-company-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pxa-space-3);
   margin-top: auto;
+}
+
+.pxa-company-card-actions a,
+.pxa-product-card a {
   font-weight: 700;
 }
 
@@ -181,10 +188,6 @@
 .pxa-company-showcase-card p,
 .pxa-company-pricing-card p {
   color: var(--pxa-color-muted);
-}
-
-.pxa-company-showcase-card a {
-  font-weight: 700;
 }
 
 .pxa-company-pricing-card .pxa-button {

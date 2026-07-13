@@ -39,11 +39,14 @@
 - [x] Produktuebersicht mit mindestens sechs Produktkarten.
 - [x] Use-Case-Uebersicht mit Links zu `PXA.Documentation`.
 - [x] Demo-CTA mit Link zu `PXA.Demo`.
+- [x] Produktkarten mit direkten Demo- und Documentation-Links.
+- [x] Showcase-Karten mit direkten Demo- und Documentation-Links.
 - [x] Kontakt-/Sales-Platzhalter.
 
 ## Akzeptanzkriterien
 - [x] Klare Produktnavigation ist vorhanden.
 - [x] Besucher koennen von Company zu Documentation und Demo wechseln.
+- [x] Produkt- und Beispielbereiche fuehren direkt zu passenden Demo-/Docs-Einstiegen.
 - [x] Keine alten `Canvas`-Brandingreste in neuen Website-Inhalten.
 - [x] Desktop und Mobile sind lesbar und nicht ueberladen.
 - [x] Pricing/Trial-Texte sind als Platzhalter erkennbar, bis echte Lizenzentscheidungen stehen.

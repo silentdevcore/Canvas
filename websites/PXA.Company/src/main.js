@@ -12,36 +12,48 @@ const products = [
     label: 'Generate',
     text: 'Create PDFs and document output from code, templates, structured data, and reusable layouts.',
     points: ['PDF generation', 'Template-driven output', 'Reusable document primitives'],
+    demo: 'booking-receipt',
+    docs: 'code-path',
   },
   {
     title: 'PXA Migration',
     label: 'Migrate',
     text: 'Move existing PDF code, report designs, and spreadsheet workflows from known providers into PXA.',
     points: ['Provider mapping', 'Code conversion', 'Designer migration'],
+    demo: 'provider-migration-examples',
+    docs: 'migration',
   },
   {
     title: 'PXA Importer',
     label: 'Import',
     text: 'Bring PDF, Office, image, and document inputs into normalized PXA flows.',
     points: ['File normalization', 'Office/PDF inputs', 'Import diagnostics'],
+    demo: 'file-importer-flow',
+    docs: 'editor-path',
   },
   {
     title: 'PXA Designer',
     label: 'Design',
     text: 'Design document templates, preview output, and inspect generated JSON and code.',
     points: ['Visual editing', 'Live preview', 'JSON/code inspection'],
+    demo: 'master-detail-report',
+    docs: 'editor-path',
   },
   {
     title: 'PXA PDF Viewer',
     label: 'Review',
     text: 'Review, annotate, fill forms, and inspect PDF workflows in the browser.',
     points: ['Annotations', 'Forms', 'Review workflows'],
+    demo: 'pdf-viewer-annotations-forms',
+    docs: 'pdf-viewer',
   },
   {
     title: 'PXA Spreadsheet',
     label: 'Model',
     text: 'Import, edit, map, and export workbook-driven document automation flows.',
     points: ['Workbook import', 'Formula-ready data', 'Export flows'],
+    demo: 'spreadsheet-import-export',
+    docs: 'spreadsheet',
   },
 ];
 
@@ -95,16 +107,22 @@ const showcases = [
     title: 'Invoice / Booking Receipt',
     text: 'Business document generation with structured data, reusable layout, and demo-ready preview.',
     status: 'Ready',
+    route: 'booking-receipt',
+    docs: 'demo-examples',
   },
   {
     title: 'Report migration gallery',
     text: 'Provider-focused examples for DevExpress, Syncfusion RDL, ActiveReports, JasperReports, and more.',
     status: 'Preview',
+    route: 'master-detail-report',
+    docs: 'migration',
   },
   {
     title: 'PDF viewer workflows',
     text: 'Annotation, form, and review scenarios that connect product demos with implementation docs.',
     status: 'Preview',
+    route: 'pdf-viewer-annotations-forms',
+    docs: 'pdf-viewer',
   },
 ];
 
@@ -140,7 +158,10 @@ function renderCards(items) {
           <ul>
             ${item.points.map((point) => `<li>${point}</li>`).join('')}
           </ul>
-          <a href="#contact" aria-label="Learn more about ${item.title}">Learn more</a>
+          <div class="pxa-company-card-actions">
+            <a href="${siteLinks.demo}#demo/${item.demo}" aria-label="Open ${item.title} demo">Open demo</a>
+            <a href="${siteLinks.documentation}#${item.docs}" aria-label="Read documentation for ${item.title}">Read docs</a>
+          </div>
         </article>
       `,
     )
@@ -199,7 +220,10 @@ function renderShowcases(items) {
           <span class="pxa-status ${item.status === 'Ready' ? 'pxa-status--ready' : 'pxa-status--preview'}">${item.status}</span>
           <h3>${item.title}</h3>
           <p>${item.text}</p>
-          <a href="${siteLinks.demo}">Open demo gallery</a>
+          <div class="pxa-company-card-actions">
+            <a href="${siteLinks.demo}#demo/${item.route}">Open demo</a>
+            <a href="${siteLinks.documentation}#${item.docs}">Read docs</a>
+          </div>
         </article>
       `,
     )
