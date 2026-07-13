@@ -1,0 +1,12 @@
+{
+  "name": "pxa-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PXA.Demo interactive demo gallery website",
+  "type": "module",
+  "scripts": {
+    "dev": "../../pxa-designer/node_modules/.bin/vite --host localhost --port 5175",
+    "build": "../../pxa-designer/node_modules/.bin/vite build",
+    "preview": "../../pxa-designer/node_modules/.bin/vite preview --host localhost --port 4175"
+  }
+}

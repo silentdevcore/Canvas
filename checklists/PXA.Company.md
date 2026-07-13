@@ -1,0 +1,60 @@
+# PXA.Company Website Checklist
+
+## Ziel
+`PXA.Company` ist die Marketing- und Verkaufswebsite fuer Power Dox Automation. Sie soll erklaeren, Vertrauen aufbauen und Besucher zu Demo, Documentation oder Kontakt fuehren.
+
+## Referenz
+- Aufbau orientiert sich an GemBox: Produkt-Hub, klare Produktkarten, Support, Pricing, News und Trust-Signale.
+- Keine 1:1-Kopie; PXA bleibt technisch, ruhig und B2B-orientiert.
+
+## Zielstruktur
+- [x] Website/App unter `websites/PXA.Company` planen.
+- [x] Gemeinsame Hauptnavigation definieren: Company, Documentation, Demo, Pricing, Support.
+- [x] Hero fuer Power Dox Automation erstellen.
+- [x] CTAs definieren: Demo ansehen, Documentation lesen, Sales kontaktieren.
+- [x] Produktkarten erstellen:
+  - [x] PXA Generator
+  - [x] PXA Migration
+  - [x] PXA Importer
+  - [x] PXA Designer
+  - [x] PXA PDF Viewer
+  - [x] PXA Spreadsheet
+- [x] Use-Case-Sektionen erstellen:
+  - [x] PDF-Erstellung
+  - [x] Designer-Migration
+  - [x] Code-Migration
+  - [x] Import/Export
+  - [x] Reports
+  - [x] Spreadsheet
+- [x] Trust/Proof-Sektion erstellen:
+  - [x] Unterstuetzte Provider
+  - [x] Migration-Abdeckung
+  - [ ] Beispielberichte
+  - [x] Feature-Parity Roadmap
+- [x] Pricing/Trial/Contact als vorbereitete Sektionen anlegen.
+- [x] Support/News/Roadmap-Sektionen anlegen.
+
+## MVP
+- [x] Home-Seite mit Hero, Produktuebersicht und CTAs.
+- [x] Produktuebersicht mit mindestens sechs Produktkarten.
+- [x] Use-Case-Uebersicht mit Links zu `PXA.Documentation`.
+- [x] Demo-CTA mit Link zu `PXA.Demo`.
+- [x] Kontakt-/Sales-Platzhalter.
+
+## Akzeptanzkriterien
+- [ ] Klare Produktnavigation ist vorhanden.
+- [ ] Besucher koennen von Company zu Documentation und Demo wechseln.
+- [x] Keine alten `Canvas`-Brandingreste in neuen Website-Inhalten.
+- [x] Desktop und Mobile sind lesbar und nicht ueberladen.
+- [ ] Pricing/Trial-Texte sind als Platzhalter erkennbar, bis echte Lizenzentscheidungen stehen.
+
+## Tests
+- [x] Build fuer `PXA.Company` ausfuehren, sobald die App existiert.
+- [x] Interne Links pruefen.
+- [x] Mobile/Desktop Smoke-Test durchfuehren.
+- [x] Suche nach `Canvas` in neuen Website-Dateien durchfuehren.
+
+## Offene Entscheidungen
+- [ ] Domain/Subdomain festlegen.
+- [ ] Pricing- und Trial-Modell festlegen.
+- [ ] Kontaktweg festlegen: Formular, E-Mail, CRM oder Ticket-System.

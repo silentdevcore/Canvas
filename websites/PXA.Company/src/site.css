@@ -1,0 +1,205 @@
+@import '../../shared/styles/index.css';
+
+.pxa-site--company .pxa-site-header__inner {
+  width: calc(100% - 32px);
+  max-width: 1280px;
+}
+
+.pxa-header-cta {
+  white-space: nowrap;
+}
+
+.pxa-company-hero__grid,
+.pxa-company-two-column {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  gap: var(--pxa-space-8);
+  align-items: center;
+}
+
+.pxa-company-hero .pxa-heading {
+  max-width: 760px;
+  font-size: var(--pxa-text-4xl);
+}
+
+.pxa-company-hero .pxa-lede {
+  max-width: 700px;
+}
+
+.pxa-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pxa-space-3);
+  margin-top: var(--pxa-space-6);
+}
+
+.pxa-company-proof-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 680px;
+  gap: var(--pxa-space-3);
+  margin-top: var(--pxa-space-8);
+}
+
+.pxa-company-proof-strip div {
+  padding: var(--pxa-space-4);
+  background: rgb(255 255 255 / 0.72);
+  border: 1px solid var(--pxa-color-border);
+  border-radius: var(--pxa-radius-lg);
+  box-shadow: var(--pxa-shadow-sm);
+}
+
+.pxa-company-proof-strip strong {
+  display: block;
+  color: var(--pxa-color-brand-700);
+  font-size: var(--pxa-text-2xl);
+  line-height: 1;
+}
+
+.pxa-company-proof-strip span {
+  display: block;
+  margin-top: var(--pxa-space-2);
+  color: var(--pxa-color-muted);
+  font-size: var(--pxa-text-sm);
+}
+
+.pxa-company-snapshot dl {
+  display: grid;
+  gap: var(--pxa-space-4);
+  margin: var(--pxa-space-5) 0 0;
+}
+
+.pxa-company-snapshot div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--pxa-space-4);
+  padding-bottom: var(--pxa-space-3);
+  border-bottom: 1px solid var(--pxa-color-border);
+}
+
+.pxa-company-snapshot dt {
+  color: var(--pxa-color-muted);
+}
+
+.pxa-company-snapshot dd {
+  margin: 0;
+  color: var(--pxa-color-ink);
+  font-weight: 700;
+  text-align: right;
+}
+
+.pxa-company-grid {
+  margin-top: var(--pxa-space-8);
+}
+
+.pxa-product-card__label {
+  width: fit-content;
+  padding: var(--pxa-space-1) var(--pxa-space-2);
+  color: var(--pxa-color-brand-700);
+  background: var(--pxa-color-brand-50);
+  border: 1px solid var(--pxa-color-brand-100);
+  border-radius: var(--pxa-radius-sm);
+  font-size: var(--pxa-text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pxa-product-card a {
+  margin-top: auto;
+  font-weight: 700;
+}
+
+.pxa-section--soft {
+  background: var(--pxa-color-surface);
+  border-block: 1px solid var(--pxa-color-border);
+}
+
+.pxa-company-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pxa-space-2);
+  margin-top: var(--pxa-space-5);
+}
+
+.pxa-company-roadmap {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pxa-space-5);
+  margin-top: var(--pxa-space-8);
+}
+
+.pxa-company-roadmap-card {
+  display: grid;
+  align-content: start;
+  gap: var(--pxa-space-3);
+}
+
+.pxa-company-roadmap-card h3,
+.pxa-company-roadmap-card p {
+  margin: 0;
+}
+
+.pxa-company-contact {
+  text-align: center;
+}
+
+.pxa-company-contact .pxa-lede {
+  margin-inline: auto;
+}
+
+.pxa-company-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pxa-space-4);
+  align-items: flex-start;
+}
+
+.pxa-company-footer p {
+  margin: var(--pxa-space-2) 0 0;
+}
+
+.pxa-company-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--pxa-space-4);
+}
+
+@media (max-width: 860px) {
+  .pxa-header-cta {
+    display: none;
+  }
+
+  .pxa-company-hero__grid,
+  .pxa-company-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .pxa-company-proof-strip,
+  .pxa-company-roadmap {
+    grid-template-columns: 1fr;
+  }
+
+  .pxa-company-hero .pxa-heading {
+    font-size: var(--pxa-text-3xl);
+  }
+
+  .pxa-company-footer {
+    flex-direction: column;
+  }
+
+  .pxa-company-footer nav {
+    justify-content: flex-start;
+  }
+
+  .pxa-company-snapshot div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--pxa-space-1);
+  }
+
+  .pxa-company-snapshot dd {
+    text-align: left;
+  }
+}

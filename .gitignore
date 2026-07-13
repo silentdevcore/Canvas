@@ -64,6 +64,9 @@ ui-designer-v2/tmp/
 pxa-designer/dist/
 pxa-designer/dist/assets/
 pxa-designer/tmp/
+websites/*/dist/
+websites/*/node_modules/
+websites/*/.vite/
 
 # Local workspace state
 .claude/

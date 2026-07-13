@@ -1,0 +1,81 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--pxa-font-sans);
+  line-height: var(--pxa-line-normal);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  color: var(--pxa-color-text);
+  background: var(--pxa-color-surface-alt);
+  font-size: var(--pxa-text-md);
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--pxa-color-brand-600);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--pxa-color-brand-700);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid rgb(47 128 215 / 0.35);
+  outline-offset: 2px;
+}
+
+.pxa-container {
+  width: calc(100% - 32px);
+  max-width: var(--pxa-container);
+  margin-inline: auto;
+}
+
+.pxa-docs-container {
+  width: calc(100% - 32px);
+  max-width: var(--pxa-docs-container);
+  margin-inline: auto;
+}
+
+.pxa-muted {
+  color: var(--pxa-color-muted);
+}
+
+.pxa-kicker {
+  margin: 0 0 var(--pxa-space-3);
+  color: var(--pxa-color-brand-700);
+  font-size: var(--pxa-text-sm);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.pxa-heading {
+  margin: 0;
+  color: var(--pxa-color-ink);
+  line-height: var(--pxa-line-tight);
+}
+
+.pxa-lede {
+  max-width: 760px;
+  margin: var(--pxa-space-4) 0 0;
+  color: var(--pxa-color-muted);
+  font-size: var(--pxa-text-lg);
+}

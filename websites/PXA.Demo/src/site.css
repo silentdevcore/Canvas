@@ -1,0 +1,118 @@
+@import '../../shared/styles/index.css';
+
+.pxa-demo-header,
+.pxa-demo-detail,
+.pxa-demo-source-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  gap: var(--pxa-space-8);
+  align-items: center;
+}
+
+.pxa-demo-summary {
+  display: grid;
+  gap: var(--pxa-space-3);
+}
+
+.pxa-demo-summary span {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pxa-space-4);
+  padding-bottom: var(--pxa-space-2);
+  color: var(--pxa-color-muted);
+  border-bottom: 1px solid var(--pxa-color-border);
+}
+
+.pxa-demo-summary b {
+  color: var(--pxa-color-brand-700);
+}
+
+.pxa-demo-toolbar {
+  display: grid;
+  gap: var(--pxa-space-4);
+  margin-bottom: var(--pxa-space-6);
+}
+
+.pxa-demo-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pxa-space-2);
+}
+
+.pxa-demo-filter {
+  min-height: 36px;
+  padding: var(--pxa-space-2) var(--pxa-space-3);
+  color: var(--pxa-color-text);
+  background: var(--pxa-color-surface);
+  border: 1px solid var(--pxa-color-border);
+  border-radius: var(--pxa-radius-md);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.pxa-demo-filter:hover,
+.pxa-demo-filter.is-active {
+  color: var(--pxa-color-brand-700);
+  background: var(--pxa-color-brand-50);
+  border-color: var(--pxa-color-brand-100);
+}
+
+.pxa-demo-card[hidden] {
+  display: none;
+}
+
+.pxa-demo-card__meta,
+.pxa-demo-actions,
+.pxa-demo-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pxa-space-2);
+}
+
+.pxa-demo-card__meta {
+  justify-content: space-between;
+  color: var(--pxa-color-muted);
+  font-size: var(--pxa-text-sm);
+  font-weight: 700;
+}
+
+.pxa-demo-tags span {
+  padding: var(--pxa-space-1) var(--pxa-space-2);
+  color: var(--pxa-color-muted);
+  background: var(--pxa-color-soft);
+  border-radius: var(--pxa-radius-sm);
+  font-size: var(--pxa-text-xs);
+  font-weight: 700;
+}
+
+.pxa-demo-actions {
+  margin-top: auto;
+}
+
+.pxa-demo-source {
+  font-weight: 700;
+}
+
+.pxa-demo-source-panel .pxa-card {
+  display: grid;
+  gap: var(--pxa-space-3);
+}
+
+.pxa-demo-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pxa-space-4);
+}
+
+@media (max-width: 860px) {
+  .pxa-demo-header,
+  .pxa-demo-detail,
+  .pxa-demo-source-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .pxa-demo-footer {
+    flex-direction: column;
+  }
+}

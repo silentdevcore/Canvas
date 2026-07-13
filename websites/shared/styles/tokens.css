@@ -1,0 +1,68 @@
+:root {
+  color-scheme: light;
+
+  --pxa-color-brand-700: #184e8a;
+  --pxa-color-brand-600: #2468b2;
+  --pxa-color-brand-500: #2f80d7;
+  --pxa-color-brand-100: #dcecff;
+  --pxa-color-brand-50: #f3f8ff;
+
+  --pxa-color-ink: #132033;
+  --pxa-color-text: #243449;
+  --pxa-color-muted: #657386;
+  --pxa-color-soft: #eef2f7;
+  --pxa-color-border: #d8e0ea;
+  --pxa-color-surface: #ffffff;
+  --pxa-color-surface-alt: #f7f9fc;
+
+  --pxa-color-teal-600: #0f766e;
+  --pxa-color-teal-100: #d9f4ef;
+  --pxa-color-violet-600: #7057c5;
+  --pxa-color-violet-100: #ebe7ff;
+  --pxa-color-amber-600: #b46a00;
+  --pxa-color-amber-100: #fff1cc;
+  --pxa-color-red-600: #c23b3b;
+  --pxa-color-red-100: #ffe1e1;
+
+  --pxa-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --pxa-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  --pxa-text-xs: 0.75rem;
+  --pxa-text-sm: 0.875rem;
+  --pxa-text-md: 1rem;
+  --pxa-text-lg: 1.125rem;
+  --pxa-text-xl: 1.25rem;
+  --pxa-text-2xl: 1.5rem;
+  --pxa-text-3xl: 2rem;
+  --pxa-text-4xl: 2.5rem;
+
+  --pxa-line-tight: 1.2;
+  --pxa-line-normal: 1.55;
+
+  --pxa-space-1: 0.25rem;
+  --pxa-space-2: 0.5rem;
+  --pxa-space-3: 0.75rem;
+  --pxa-space-4: 1rem;
+  --pxa-space-5: 1.25rem;
+  --pxa-space-6: 1.5rem;
+  --pxa-space-8: 2rem;
+  --pxa-space-10: 2.5rem;
+  --pxa-space-12: 3rem;
+  --pxa-space-16: 4rem;
+  --pxa-space-20: 5rem;
+
+  --pxa-radius-sm: 4px;
+  --pxa-radius-md: 6px;
+  --pxa-radius-lg: 8px;
+
+  --pxa-shadow-sm: 0 1px 2px rgb(19 32 51 / 0.08);
+  --pxa-shadow-md: 0 8px 24px rgb(19 32 51 / 0.1);
+  --pxa-shadow-lg: 0 18px 48px rgb(19 32 51 / 0.14);
+
+  --pxa-container: 1180px;
+  --pxa-docs-container: 1480px;
+  --pxa-header-height: 68px;
+
+  --pxa-transition-fast: 140ms ease;
+  --pxa-transition-normal: 220ms ease;
+}
