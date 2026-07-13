@@ -1,0 +1,10 @@
+{
+  "documentType": "ChartReport",
+  "chart": {
+    "type": "column",
+    "title": "Quarterly Revenue",
+    "seriesCount": 1,
+    "pointCount": 4
+  },
+  "status": "preview"
+}

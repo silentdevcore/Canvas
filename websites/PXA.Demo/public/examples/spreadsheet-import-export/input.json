@@ -1,0 +1,10 @@
+{
+  "workbook": "sales-summary.xlsx",
+  "sheet": "Summary",
+  "rows": [
+    ["Region", "Orders", "Revenue"],
+    ["North", "128", "42,900"],
+    ["West", "96", "31,200"],
+    ["South", "112", "38,450"]
+  ]
+}

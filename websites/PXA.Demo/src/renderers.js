@@ -187,7 +187,7 @@ function renderDemoWorkbench(demo) {
       <div class="pxa-demo-tab-panel" data-demo-panel="output">
         <div class="pxa-demo-output">
           <strong>${demo.output}</strong>
-          <span>${demo.download}</span>
+          <a class="pxa-button pxa-button--primary" href="${demo.download.startsWith('/') ? demo.download : '#source-context'}" ${demo.download.startsWith('/') ? 'target="_blank" rel="noreferrer"' : ''}>Download example</a>
         </div>
       </div>
       <div class="pxa-demo-tab-panel" data-demo-panel="code">
@@ -216,7 +216,7 @@ function renderDemoCards(items, activeDemoId) {
           <div class="pxa-demo-actions">
             <a class="pxa-button pxa-button--primary" href="#demo/${demo.id}">Open demo</a>
             <a class="pxa-button pxa-button--secondary" href="${siteLinks.documentation}">Docs</a>
-            <a class="pxa-demo-source" href="#source-context">View source</a>
+            <a class="pxa-demo-source" href="${demo.source.startsWith('/') ? demo.source : '#source-context'}" ${demo.source.startsWith('/') ? 'target="_blank" rel="noreferrer"' : ''}>View source</a>
           </div>
         </article>
       `,

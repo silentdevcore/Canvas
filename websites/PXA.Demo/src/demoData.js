@@ -70,9 +70,11 @@ export const demos = [
     tags: ['Charts', 'Designer', 'Reports'],
     input: 'Chart-capable report definition',
     output: 'Mapped chart placeholder and notes',
-    source: 'checklists/UI-Advanced-Elements.md',
+    source: '/examples/chart-report/source.js',
+    inputFile: '/examples/chart-report/input.json',
+    outputFile: '/examples/chart-report/output.json',
     checklist: 'UI-Advanced-Elements',
-    download: 'chart-report.json',
+    download: '/examples/chart-report/output.json',
     preview: {
       type: 'chart',
       series: [
@@ -132,9 +134,11 @@ export const demos = [
     tags: ['Spreadsheet', 'Import', 'Export'],
     input: 'Workbook data',
     output: 'Mapped sheet and export flow',
-    source: 'checklists/Spreadsheet-Import-Export.md',
+    source: '/examples/spreadsheet-import-export/source.js',
+    inputFile: '/examples/spreadsheet-import-export/input.json',
+    outputFile: '/examples/spreadsheet-import-export/output.json',
     checklist: 'Spreadsheet-Import-Export',
-    download: 'spreadsheet-import-export.xlsx',
+    download: '/examples/spreadsheet-import-export/output.json',
     preview: {
       type: 'sheet',
       cells: [

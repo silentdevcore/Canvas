@@ -60,6 +60,8 @@
 - [x] Live-Eingabemaske fuer Invoice / Booking Receipt mit aktualisierter Preview.
 - [x] Sichtbare Source-, Checklist- und Download-Referenzen pro Demo.
 - [x] Erste statisch gehostete Beispiel-Dateien fuer Booking Receipt unter `public/examples/booking-receipt`.
+- [x] Statisch gehostete Beispiel-Dateien fuer Chart Report und Spreadsheet Import/Export.
+- [x] Demo-Karten verlinken direkt auf Source-Dateien, wenn sie vorhanden sind.
 - [x] Mindestens fuenf Demo-Karten.
 - [x] Mindestens eine lauffaehige Demo fuer PDF/Designer.
 - [x] Mindestens eine lauffaehige Demo fuer Migration.
@@ -79,6 +81,7 @@
 - [x] Filter/Suche testen.
 - [x] Links zu Docs, Source und Checklists pruefen.
 - [x] Beispiel-Dateien fuer Booking Receipt per Vite Public Path verlinken.
+- [x] Beispiel-Dateien fuer Chart und Spreadsheet per Vite Public Path verlinken.
 - [x] Mobile/Desktop Smoke-Test durchfuehren.
 
 ## Offene Entscheidungen

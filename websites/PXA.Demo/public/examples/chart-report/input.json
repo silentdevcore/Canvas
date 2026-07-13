@@ -1,0 +1,21 @@
+{
+  "title": "Quarterly Revenue",
+  "series": [
+    {
+      "label": "Q1",
+      "value": 42
+    },
+    {
+      "label": "Q2",
+      "value": 64
+    },
+    {
+      "label": "Q3",
+      "value": 51
+    },
+    {
+      "label": "Q4",
+      "value": 78
+    }
+  ]
+}
