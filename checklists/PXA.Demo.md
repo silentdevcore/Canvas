@@ -30,6 +30,9 @@
   - [x] JSON/Code
   - [x] Download
   - [x] Links zu Docs und Checklists
+  - [x] Direkte Detail-Routen pro Demo via `#demo/<id>`
+  - [x] Demo-spezifische Preview-Flaechen fuer Receipt, Report, Chart, Table, Viewer, Migration und Importer
+  - [x] Segmentierte Detailansicht fuer Preview, Input, Output und Code
 - [x] Kategorien anlegen:
   - [x] PDF Generator
   - [x] PDF Viewer
@@ -50,6 +53,12 @@
 
 ## MVP
 - [x] Demo-Galerie mit Kategorien und Suche.
+- [x] Zentrale statische Demo-Datenquelle in `src/demoData.js`.
+- [x] Rendering, UI-Interaktionen und Demo-State in eigene Module getrennt.
+- [x] Direkte Demo-Links fuer einzelne Detailansichten.
+- [x] Erste konkrete runnable Preview fuer Invoice / Booking Receipt.
+- [x] Live-Eingabemaske fuer Invoice / Booking Receipt mit aktualisierter Preview.
+- [x] Sichtbare Source-, Checklist- und Download-Referenzen pro Demo.
 - [x] Mindestens fuenf Demo-Karten.
 - [x] Mindestens eine lauffaehige Demo fuer PDF/Designer.
 - [x] Mindestens eine lauffaehige Demo fuer Migration.
@@ -71,6 +80,6 @@
 - [x] Mobile/Desktop Smoke-Test durchfuehren.
 
 ## Offene Entscheidungen
-- [ ] Demo-Datenquelle festlegen: statische JSON-Datei, API oder gemischter Ansatz.
+- [x] Demo-Datenquelle festlegen: statische Daten im MVP, spaeter API oder gemischter Ansatz.
 - [ ] Hosting fuer Beispiel-Dateien festlegen.
 - [ ] Sicherheitsgrenzen fuer Upload-/Live-Migration-Demos festlegen.
