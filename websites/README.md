@@ -41,6 +41,8 @@ npm run dev
 
 The local cross-site links currently target the fixed dev ports above.
 
+Each site has a `vite.config.js` that allows imports from `websites/shared` during local development.
+
 ## Build
 
 ```bash
