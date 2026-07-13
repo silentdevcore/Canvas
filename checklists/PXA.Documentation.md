@@ -43,12 +43,12 @@
   - [x] Reports
   - [x] Import/export
 - [x] API Reference via DocFX/OpenAPI integrieren.
-- [ ] Bestehende Checklists als Historie verlinken, nicht als Source of Truth verwenden.
+- [x] Bestehende Checklists als Historie verlinken, nicht als Source of Truth verwenden.
 
 ## MVP
 - [x] Produktorientiertes TOC erstellen.
 - [x] Startseite mit zwei Einstiegspfaden: Editor benutzen und Code integrieren.
-- [ ] Mindestens je eine Quickstart-Seite fuer Editor und Code.
+- [x] Mindestens je eine Quickstart-Seite fuer Editor und Code.
 - [x] Migration-Uebersicht mit Links zu Provider-Guides.
 - [x] API Reference aus bestehender DocFX-Struktur erreichbar machen.
 
@@ -56,7 +56,7 @@
 - [x] "Editor benutzen" und "Code integrieren" sind klar getrennt.
 - [x] TOC ist produktorientiert statt nur dateiorientiert.
 - [x] Aktuelle PXA-Namen werden verwendet.
-- [ ] Historische Checklists behalten Kontext, ersetzen aber nicht die Docs.
+- [x] Historische Checklists behalten Kontext, ersetzen aber nicht die Docs.
 - [x] Links zu `PXA.Company` und `PXA.Demo` sind vorhanden.
 
 ## Tests

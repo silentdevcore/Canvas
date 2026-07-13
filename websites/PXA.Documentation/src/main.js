@@ -34,6 +34,48 @@ const migrationGuides = [
 
 const cookbook = ['PDF generation', 'Edit PDF', 'Forms', 'Annotations', 'Reports', 'Import/export'];
 
+const quickstarts = [
+  {
+    title: 'Editor Quickstart',
+    label: 'Editor',
+    steps: ['Open PXA Designer', 'Choose or import a template', 'Preview output and inspect JSON'],
+    command: 'npm run dev -- --host localhost',
+  },
+  {
+    title: 'Code Quickstart',
+    label: 'SDK',
+    steps: ['Reference the generator package', 'Create a document model', 'Build and export output'],
+    command: 'dotnet build',
+  },
+];
+
+const referenceLinks = [
+  {
+    title: 'DocFX API Reference',
+    text: 'Generated .NET API reference for PXA packages.',
+    href: '../../docs/api/',
+  },
+  {
+    title: 'OpenAPI Schema',
+    text: 'WebApi contract for migration, import, and export endpoints.',
+    href: '../../docs/schema/openapi.json',
+  },
+  {
+    title: 'C# Cookbook',
+    text: 'Task-oriented examples for generator and integration workflows.',
+    href: '../../docs/csharp-cookbook.md',
+  },
+];
+
+const checklistLinks = [
+  'PXA.Web-Design-System',
+  'PXA.Company',
+  'PXA.Documentation',
+  'PXA.Demo',
+  'Migration-Namespace-Taxonomy',
+  'PxaPdf-Provider-Feature-Gaps',
+];
+
 function renderNavList(items) {
   return items.map((item) => `<a href="#${slug(item)}">${item}</a>`).join('');
 }
@@ -49,6 +91,42 @@ function renderCards(items, status = 'Planned') {
         </article>
       `,
     )
+    .join('');
+}
+
+function renderQuickstarts(items) {
+  return items
+    .map(
+      (item) => `
+        <article class="pxa-card pxa-doc-quickstart-card">
+          <span class="pxa-status pxa-status--ready">${item.label}</span>
+          <h3>${item.title}</h3>
+          <ol>
+            ${item.steps.map((step) => `<li>${step}</li>`).join('')}
+          </ol>
+          <pre class="pxa-code"><code>${item.command}</code></pre>
+        </article>
+      `,
+    )
+    .join('');
+}
+
+function renderReferenceLinks(items) {
+  return items
+    .map(
+      (item) => `
+        <a class="pxa-card pxa-doc-reference-card" href="${item.href}">
+          <h3>${item.title}</h3>
+          <p>${item.text}</p>
+        </a>
+      `,
+    )
+    .join('');
+}
+
+function renderChecklistLinks(items) {
+  return items
+    .map((item) => `<span class="pxa-status pxa-status--preview">${item}</span>`)
     .join('');
 }
 
@@ -144,6 +222,14 @@ document.querySelector('#app').innerHTML = `
             </div>
           </section>
 
+          <section class="pxa-doc-section" id="quickstarts">
+            <p class="pxa-kicker">Quickstarts</p>
+            <h2 class="pxa-heading">Start with the editor or start with code</h2>
+            <div class="pxa-doc-quickstart-grid">
+              ${renderQuickstarts(quickstarts)}
+            </div>
+          </section>
+
           <section class="pxa-doc-section" id="editor-path">
             <p class="pxa-kicker">Editor documentation</p>
             <h2 class="pxa-heading">Product guides for visual document workflows</h2>
@@ -183,7 +269,22 @@ document.querySelector('#app').innerHTML = `
               The existing DocFX and OpenAPI outputs remain the source for generated reference material.
               This website provides product-first entry points that link into those generated docs.
             </p>
+            <div class="pxa-doc-reference-grid">
+              ${renderReferenceLinks(referenceLinks)}
+            </div>
             <pre class="pxa-code"><code>docfx build docs/docfx.json</code></pre>
+          </section>
+
+          <section class="pxa-doc-section" id="history">
+            <p class="pxa-kicker">History and planning</p>
+            <h2 class="pxa-heading">Checklists stay as implementation history</h2>
+            <p>
+              Product documentation should describe current behavior. Checklists remain useful for
+              roadmap decisions, migration status, implementation notes, and historical context.
+            </p>
+            <div class="pxa-company-badges">
+              ${renderChecklistLinks(checklistLinks)}
+            </div>
           </section>
         </article>
 
@@ -191,11 +292,13 @@ document.querySelector('#app').innerHTML = `
           <div class="pxa-card pxa-doc-toc">
             <strong>On this page</strong>
             <a href="#overview">Overview</a>
+            <a href="#quickstarts">Quickstarts</a>
             <a href="#editor-path">Editor path</a>
             <a href="#code-path">Code path</a>
             <a href="#migration">Migration</a>
             <a href="#cookbook">Cookbook</a>
             <a href="#api-reference">API reference</a>
+            <a href="#history">History</a>
           </div>
         </aside>
       </div>
