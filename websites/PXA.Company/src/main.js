@@ -11,41 +11,57 @@ const products = [
     title: 'PXA Generator',
     label: 'Generate',
     text: 'Create PDFs and document output from code, templates, structured data, and reusable layouts.',
+    points: ['PDF generation', 'Template-driven output', 'Reusable document primitives'],
   },
   {
     title: 'PXA Migration',
     label: 'Migrate',
     text: 'Move existing PDF code, report designs, and spreadsheet workflows from known providers into PXA.',
+    points: ['Provider mapping', 'Code conversion', 'Designer migration'],
   },
   {
     title: 'PXA Importer',
     label: 'Import',
     text: 'Bring PDF, Office, image, and document inputs into normalized PXA flows.',
+    points: ['File normalization', 'Office/PDF inputs', 'Import diagnostics'],
   },
   {
     title: 'PXA Designer',
     label: 'Design',
     text: 'Design document templates, preview output, and inspect generated JSON and code.',
+    points: ['Visual editing', 'Live preview', 'JSON/code inspection'],
   },
   {
     title: 'PXA PDF Viewer',
     label: 'Review',
     text: 'Review, annotate, fill forms, and inspect PDF workflows in the browser.',
+    points: ['Annotations', 'Forms', 'Review workflows'],
   },
   {
     title: 'PXA Spreadsheet',
     label: 'Model',
     text: 'Import, edit, map, and export workbook-driven document automation flows.',
+    points: ['Workbook import', 'Formula-ready data', 'Export flows'],
   },
 ];
 
 const useCases = [
-  'PDF generation',
-  'Designer migration',
-  'Code migration',
-  'Import and export',
-  'Report modernization',
-  'Spreadsheet automation',
+  {
+    title: 'Replace legacy PDF SDK code',
+    text: 'Plan migrations from provider-specific APIs into PXA code patterns with tracked compatibility gaps.',
+  },
+  {
+    title: 'Modernize report designers',
+    text: 'Bring report layouts, bands, charts, and data-bound elements into a unified design model.',
+  },
+  {
+    title: 'Create document workflows',
+    text: 'Combine templates, imports, spreadsheets, and generated output into repeatable automation paths.',
+  },
+  {
+    title: 'Inspect output in the browser',
+    text: 'Use viewer, demo, and designer surfaces to validate generated PDFs before integrating deeper.',
+  },
 ];
 
 const providers = ['DevExpress', 'Syncfusion', 'ActiveReports', 'JasperReports', 'GemBox', 'Aspose', 'iText', 'PDF Tools'];
@@ -74,6 +90,45 @@ const roadmap = [
   },
 ];
 
+const showcases = [
+  {
+    title: 'Invoice / Booking Receipt',
+    text: 'Business document generation with structured data, reusable layout, and demo-ready preview.',
+    status: 'Ready',
+  },
+  {
+    title: 'Report migration gallery',
+    text: 'Provider-focused examples for DevExpress, Syncfusion RDL, ActiveReports, JasperReports, and more.',
+    status: 'Preview',
+  },
+  {
+    title: 'PDF viewer workflows',
+    text: 'Annotation, form, and review scenarios that connect product demos with implementation docs.',
+    status: 'Preview',
+  },
+];
+
+const pricingTiers = [
+  {
+    title: 'Trial',
+    text: 'Explore the product family, run demos, and validate migration fit before committing.',
+    cta: 'Start with demos',
+    href: siteLinks.demo,
+  },
+  {
+    title: 'Team',
+    text: 'Adopt PXA for product teams that need generator, designer, importer, and viewer workflows.',
+    cta: 'Read docs',
+    href: siteLinks.documentation,
+  },
+  {
+    title: 'Enterprise',
+    text: 'Plan larger migrations, provider parity work, support, and rollout guidance with the PXA team.',
+    cta: 'Contact sales',
+    href: '#contact',
+  },
+];
+
 function renderCards(items) {
   return items
     .map(
@@ -82,6 +137,9 @@ function renderCards(items) {
           <span class="pxa-product-card__label">${item.label}</span>
           <h3>${item.title}</h3>
           <p>${item.text}</p>
+          <ul>
+            ${item.points.map((point) => `<li>${point}</li>`).join('')}
+          </ul>
           <a href="#contact" aria-label="Learn more about ${item.title}">Learn more</a>
         </article>
       `,
@@ -91,6 +149,19 @@ function renderCards(items) {
 
 function renderBadges(items) {
   return items.map((item) => `<span class="pxa-status pxa-status--preview">${item}</span>`).join('');
+}
+
+function renderUseCases(items) {
+  return items
+    .map(
+      (item) => `
+        <article class="pxa-card pxa-company-use-card">
+          <h3>${item.title}</h3>
+          <p>${item.text}</p>
+        </article>
+      `,
+    )
+    .join('');
 }
 
 function renderProof(items) {
@@ -114,6 +185,35 @@ function renderRoadmap(items) {
           <span class="pxa-status ${item.status === 'Ready to shape' ? 'pxa-status--ready' : 'pxa-status--planned'}">${item.status}</span>
           <h3>${item.title}</h3>
           <p>${item.text}</p>
+        </article>
+      `,
+    )
+    .join('');
+}
+
+function renderShowcases(items) {
+  return items
+    .map(
+      (item) => `
+        <article class="pxa-card pxa-company-showcase-card">
+          <span class="pxa-status ${item.status === 'Ready' ? 'pxa-status--ready' : 'pxa-status--preview'}">${item.status}</span>
+          <h3>${item.title}</h3>
+          <p>${item.text}</p>
+          <a href="${siteLinks.demo}">Open demo gallery</a>
+        </article>
+      `,
+    )
+    .join('');
+}
+
+function renderPricing(items) {
+  return items
+    .map(
+      (item) => `
+        <article class="pxa-card pxa-company-pricing-card">
+          <h3>${item.title}</h3>
+          <p>${item.text}</p>
+          <a class="pxa-button ${item.title === 'Enterprise' ? 'pxa-button--primary' : 'pxa-button--secondary'}" href="${item.href}">${item.cta}</a>
         </article>
       `,
     )
@@ -183,8 +283,8 @@ document.querySelector('#app').innerHTML = `
         <div class="pxa-container">
           <p class="pxa-kicker">Use cases</p>
           <h2 class="pxa-heading">From legacy provider migration to new document workflows</h2>
-          <div class="pxa-company-badges">
-            ${renderBadges(useCases)}
+          <div class="pxa-company-use-grid">
+            ${renderUseCases(useCases)}
           </div>
         </div>
       </section>
@@ -208,6 +308,20 @@ document.querySelector('#app').innerHTML = `
         </div>
       </section>
 
+      <section class="pxa-section pxa-section--soft" id="examples">
+        <div class="pxa-container">
+          <p class="pxa-kicker">Example reports</p>
+          <h2 class="pxa-heading">Showcases that connect sales, docs, and demos</h2>
+          <p class="pxa-lede">
+            These examples make the product concrete: each one should point to a demo,
+            documentation, and implementation status.
+          </p>
+          <div class="pxa-company-showcase-grid">
+            ${renderShowcases(showcases)}
+          </div>
+        </div>
+      </section>
+
       <section class="pxa-section pxa-section--soft" id="roadmap">
         <div class="pxa-container">
           <p class="pxa-kicker">Roadmap</p>
@@ -219,13 +333,18 @@ document.querySelector('#app').innerHTML = `
       </section>
 
       <section class="pxa-section" id="pricing">
-        <div class="pxa-container pxa-company-two-column">
+        <div class="pxa-container">
           <div>
             <p class="pxa-kicker">Pricing</p>
             <h2 class="pxa-heading">Trial, team, and enterprise paths</h2>
-            <p class="pxa-lede">Pricing is intentionally marked as pending until the product packaging is finalized.</p>
+            <p class="pxa-lede">
+              Final licensing is still pending, but the product site already separates
+              evaluation, team adoption, and migration-heavy enterprise conversations.
+            </p>
           </div>
-          <a class="pxa-button pxa-button--primary" href="#contact">Contact sales</a>
+          <div class="pxa-company-pricing-grid">
+            ${renderPricing(pricingTiers)}
+          </div>
         </div>
       </section>
 
@@ -234,7 +353,10 @@ document.querySelector('#app').innerHTML = `
           <div>
             <p class="pxa-kicker">Support</p>
             <h2 class="pxa-heading">Documentation, demos, and direct project support</h2>
-            <p class="pxa-lede">Start with docs and demos, then bring migration-specific questions to the PXA team.</p>
+            <p class="pxa-lede">
+              Start with docs and demos, then bring migration-specific questions,
+              provider parity gaps, or rollout planning to the PXA team.
+            </p>
           </div>
           <div class="pxa-action-row">
             <a class="pxa-button pxa-button--secondary" href="${siteLinks.documentation}">Open docs</a>

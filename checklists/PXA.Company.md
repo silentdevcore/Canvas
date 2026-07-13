@@ -29,7 +29,7 @@
 - [x] Trust/Proof-Sektion erstellen:
   - [x] Unterstuetzte Provider
   - [x] Migration-Abdeckung
-  - [ ] Beispielberichte
+  - [x] Beispielberichte
   - [x] Feature-Parity Roadmap
 - [x] Pricing/Trial/Contact als vorbereitete Sektionen anlegen.
 - [x] Support/News/Roadmap-Sektionen anlegen.
@@ -42,11 +42,11 @@
 - [x] Kontakt-/Sales-Platzhalter.
 
 ## Akzeptanzkriterien
-- [ ] Klare Produktnavigation ist vorhanden.
-- [ ] Besucher koennen von Company zu Documentation und Demo wechseln.
+- [x] Klare Produktnavigation ist vorhanden.
+- [x] Besucher koennen von Company zu Documentation und Demo wechseln.
 - [x] Keine alten `Canvas`-Brandingreste in neuen Website-Inhalten.
 - [x] Desktop und Mobile sind lesbar und nicht ueberladen.
-- [ ] Pricing/Trial-Texte sind als Platzhalter erkennbar, bis echte Lizenzentscheidungen stehen.
+- [x] Pricing/Trial-Texte sind als Platzhalter erkennbar, bis echte Lizenzentscheidungen stehen.
 
 ## Tests
 - [x] Build fuer `PXA.Company` ausfuehren, sobald die App existiert.
