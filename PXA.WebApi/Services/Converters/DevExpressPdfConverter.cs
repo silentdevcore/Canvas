@@ -1,4 +1,4 @@
-using PXA.Migration.DevExpressPdf;
+using PXA.Migration.Pdf.Code.DevExpress;
 
 namespace PXA.WebApi.Services.Converters;
 

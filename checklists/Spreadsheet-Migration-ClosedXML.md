@@ -4,10 +4,10 @@ Migrates ClosedXML (`XLWorkbook`) authoring code → the PXA spreadsheet API (`P
 `PXA.Infrastructure.Spreadsheet.PxaWorkbookBuilder`). The **reference** spreadsheet migration —
 the other libraries (EPPlus / GemBox / Aspose) clone this structure.
 
-- **Project:** `src/PXA.Migration.ClosedXmlSpreadsheet/` (`ClosedXmlSpreadsheetMigration : CSharpSourceMigration`, Roslyn).
+- **Project:** `src/PXA.Migration.Spreadsheet.Code.ClosedXml/` (`ClosedXmlSpreadsheetMigration : CSharpSourceMigration`, Roslyn).
 - **Converter:** `PXA.WebApi/Services/Converters/ClosedXmlSpreadsheetConverter.cs` (`FrameworkId = "ClosedXmlSpreadsheet"`, Status `full`), registered in `MigrationService`.
 - **Diagnostics prefix:** `CANMIGCLXL`.
-- **Tests:** `tests/PXA.Migration.ClosedXmlSpreadsheet.Tests/` (3, green). Live: `/api/migration/convert`.
+- **Tests:** `tests/PXA.Migration.Spreadsheet.Code.ClosedXml.Tests/` (3, green). Live: `/api/migration/convert`.
 
 ## API mapping
 | ClosedXML | PXA |

@@ -54,7 +54,7 @@ gaps (per-cell table styling, native maps/charts) require **PXA model** changes,
       accumulating offsets so children land at absolute coordinates (depth guard → `CANMIGRDL013`).
 
 ### Architecture
-- [x] Self-contained project `src/PXA.Migration.Rdl` (refs `PXA.Core` + `PXA.Migration.Abstractions`;
+- [x] Self-contained project `src/PXA.Migration.Report.Designer.Rdl` (refs `PXA.Core` + `PXA.Migration.Abstractions`;
       no Roslyn). Its own neutral `RawReport`/`RawElement` model + region-based build, adapted from the
       DevExpress converter (which is untouched). Returns a `DesignExportDto`, not a code string.
 - [x] `RdlToDesignConverter.Convert(string)` → `{ DesignExportDto Design, IReadOnlyList<MigrationDiagnostic> Diagnostics }`;
@@ -102,7 +102,7 @@ gaps (per-cell table styling, native maps/charts) require **PXA model** changes,
 - [x] Native RDL `<Chart>` items, such as Syncfusion/Bold Reports chart output, map to PXA `chart`
       placeholders with series/category/value metadata.
 - [x] Comprehensive Syncfusion/Bold Reports style fixture:
-      `tests/PXA.Migration.Rdl.Tests/Fixtures/ComprehensiveSyncfusionReport.rdl`.
+      `tests/PXA.Migration.Report.Designer.Rdl.Tests/Fixtures/ComprehensiveSyncfusionReport.rdl`.
       Covers page header/footer, embedded images, nested rectangles, mixed units (`cm`, `mm`, `in`, `pt`),
       field bindings, complex expressions, multi-run rich text, dashed lines, a multi-column Tablix with
       hierarchy/pagination metadata, visibility rules, database image binding, barcode custom item,
@@ -153,7 +153,7 @@ The remaining items are optional native PXA capabilities or blocked expression-e
       migration-UI binary file picker is the remaining frontend piece.)*
 
 ### 2. GrapeCity Section Reports `.rpx`  ✅ *(shipped — separate converter)*
-- [x] Banded format closer to XtraReports — handled by `PXA.Migration.Rpx` (sections flattened like
+- [x] Banded format closer to XtraReports — handled by `PXA.Migration.Report.Designer.Rpx` (sections flattened like
       the DevExpress band converter). See [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md).
 
 ### 3. Richer RDL fidelity
@@ -262,6 +262,6 @@ The remaining items are optional native PXA capabilities or blocked expression-e
       RDL-2005 tables.
 
 ## Assumptions
-- [x] Use `PXA.Migration.Rdl`, separate from the DevExpress converters; self-contained model + build.
+- [x] Use `PXA.Migration.Report.Designer.Rdl`, separate from the DevExpress converters; self-contained model + build.
 - [x] Output target is PXA design JSON (designer), not PXA.Pdf C# code.
 - [x] Default page size A4 when the report declares none.

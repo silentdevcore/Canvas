@@ -2,8 +2,8 @@
 
 ## V1 Pilot Analysis
 
-- [x] Added cautious Roslyn-backed provider project: `src/PXA.Migration.ActivePdf`
-- [x] Added provider tests: `tests/PXA.Migration.ActivePdf.Tests`
+- [x] Added cautious Roslyn-backed provider project: `src/PXA.Migration.Pdf.Code.ActivePdf`
+- [x] Added provider tests: `tests/PXA.Migration.Pdf.Code.ActivePdf.Tests`
 - [x] Connected WebApi converter: `PXA.WebApi/Services/Converters/ActivePdfConverter.cs`
 - [x] Added UI fallback status/example as `pilot`
 - [ ] Confirm exact ActivePDF product, NuGet package, or COM interop reference with a real source sample

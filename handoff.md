@@ -54,34 +54,34 @@ Alle ursprünglich geplanten Anbieter sind inzwischen mindestens als vorsichtige
 
 Provider mit Roslyn-/Pattern-Pilot:
 
-- `PXA.Migration.SyncfusionPdf`
-- `PXA.Migration.iText7`
-- `PXA.Migration.AsposePdf`
-- `PXA.Migration.IronPdf`
-- `PXA.Migration.DevExpressPdf`
-- `PXA.Migration.Apryse`
-- `PXA.Migration.FoxitPdf`
-- `PXA.Migration.DsPdf`
-- `PXA.Migration.GemBoxPdf`
-- `PXA.Migration.SpirePdf`
-- `PXA.Migration.PdfKitNet`
-- `PXA.Migration.LeadtoolsPdf`
-- `PXA.Migration.ActivePdf`
-- `PXA.Migration.PdfTools`
-- `PXA.Migration.PdfToolsToolbox`
+- `PXA.Migration.Pdf.Code.Syncfusion`
+- `PXA.Migration.Pdf.Code.IText7`
+- `PXA.Migration.Pdf.Code.Aspose`
+- `PXA.Migration.Pdf.Code.IronPdf`
+- `PXA.Migration.Pdf.Code.DevExpress`
+- `PXA.Migration.Pdf.Code.Apryse`
+- `PXA.Migration.Pdf.Code.Foxit`
+- `PXA.Migration.Pdf.Code.DsPdf`
+- `PXA.Migration.Pdf.Code.GemBox`
+- `PXA.Migration.Pdf.Code.Spire`
+- `PXA.Migration.Pdf.Code.PdfKitNet`
+- `PXA.Migration.Pdf.Code.Leadtools`
+- `PXA.Migration.Pdf.Code.ActivePdf`
+- `PXA.Migration.Pdf.Code.PdfTools`
+- `PXA.Migration.Pdf.Code.PdfToolsToolbox`
 
 Aktuell relevante neue/letzte Provider-Dateien:
 
-- `src/PXA.Migration.PdfKitNet/PdfKitNetMigration.cs`
-- `tests/PXA.Migration.PdfKitNet.Tests/PdfKitNetMigrationTests.cs`
-- `src/PXA.Migration.LeadtoolsPdf/LeadtoolsPdfMigration.cs`
-- `tests/PXA.Migration.LeadtoolsPdf.Tests/LeadtoolsPdfMigrationTests.cs`
-- `src/PXA.Migration.ActivePdf/ActivePdfMigration.cs`
-- `tests/PXA.Migration.ActivePdf.Tests/ActivePdfMigrationTests.cs`
-- `src/PXA.Migration.PdfTools/PdfToolsMigration.cs`
-- `tests/PXA.Migration.PdfTools.Tests/PdfToolsMigrationTests.cs`
-- `src/PXA.Migration.PdfToolsToolbox/PdfToolsToolboxMigration.cs`
-- `tests/PXA.Migration.PdfToolsToolbox.Tests/PdfToolsToolboxMigrationTests.cs`
+- `src/PXA.Migration.Pdf.Code.PdfKitNet/PdfKitNetMigration.cs`
+- `tests/PXA.Migration.Pdf.Code.PdfKitNet.Tests/PdfKitNetMigrationTests.cs`
+- `src/PXA.Migration.Pdf.Code.Leadtools/LeadtoolsPdfMigration.cs`
+- `tests/PXA.Migration.Pdf.Code.Leadtools.Tests/LeadtoolsPdfMigrationTests.cs`
+- `src/PXA.Migration.Pdf.Code.ActivePdf/ActivePdfMigration.cs`
+- `tests/PXA.Migration.Pdf.Code.ActivePdf.Tests/ActivePdfMigrationTests.cs`
+- `src/PXA.Migration.Pdf.Code.PdfTools/PdfToolsMigration.cs`
+- `tests/PXA.Migration.Pdf.Code.PdfTools.Tests/PdfToolsMigrationTests.cs`
+- `src/PXA.Migration.Pdf.Code.PdfToolsToolbox/PdfToolsToolboxMigration.cs`
+- `tests/PXA.Migration.Pdf.Code.PdfToolsToolbox.Tests/PdfToolsToolboxMigrationTests.cs`
 
 WebApi-Konverter:
 
@@ -244,7 +244,7 @@ Empfohlene nächste Reihenfolge:
    - Build-Artefakte unter `obj/`/`bin/` vorsichtig zurücksetzen, falls sie nur generiert sind.
    - Nicht die PDF-Importer-Entfernungen oder UI/Docs-Dateien anfassen, bevor klar ist, ob sie vom User gewollt sind.
 2. Sobald Freigabe/Limit wieder verfügbar:
-   - `dotnet test tests/PXA.Migration.ActivePdf.Tests/PXA.Migration.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false`
+   - `dotnet test tests/PXA.Migration.Pdf.Code.ActivePdf.Tests/PXA.Migration.Pdf.Code.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false`
    - `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --no-build -nodeReuse:false`
 3. PDFTools gegen echte Pdftools-SDK-Samples validieren:
    - Besonders Direct-Generation-Klassen, Koordinatenursprung, Text-/Font-API und Save/Export-Semantik prüfen.
@@ -267,14 +267,14 @@ Empfohlene nächste Reihenfolge:
 Provider-/API-Builds:
 
 ```bash
-dotnet build tests/PXA.Migration.ActivePdf.Tests/PXA.Migration.ActivePdf.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
+dotnet build tests/PXA.Migration.Pdf.Code.ActivePdf.Tests/PXA.Migration.Pdf.Code.ActivePdf.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
 dotnet build tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore -p:UseSharedCompilation=false -m:1 -nodeReuse:false
 ```
 
 Tests, wenn Eskalation möglich:
 
 ```bash
-dotnet test tests/PXA.Migration.ActivePdf.Tests/PXA.Migration.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false
+dotnet test tests/PXA.Migration.Pdf.Code.ActivePdf.Tests/PXA.Migration.Pdf.Code.ActivePdf.Tests.csproj --no-restore --no-build -nodeReuse:false
 dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --no-build -nodeReuse:false
 ```
 

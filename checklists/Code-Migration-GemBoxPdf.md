@@ -29,8 +29,8 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/PXA.Migration.GemBoxPdf`
-- [x] Add `tests/PXA.Migration.GemBoxPdf.Tests`
+- [x] Add `src/PXA.Migration.Pdf.Code.GemBox`
+- [x] Add `tests/PXA.Migration.Pdf.Code.GemBox.Tests`
 - [x] Add WebApi converter integration
 - [x] Add API service smoke test
 - [x] Rewrite deterministic document/page/simple text/save patterns

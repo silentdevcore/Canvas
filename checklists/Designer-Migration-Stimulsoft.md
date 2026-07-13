@@ -6,8 +6,8 @@ Stimulsoft `.mrt` → PXA `DesignExportDto` converter.
 - **Designer:** Stimulsoft Reports (Designer / Reports.JS) · **Manufacturer:** Stimulsoft
 - **Format:** `.mrt` — `StiSerializer` **XML** (the format real `.mrt` files use, incl. Stimulsoft's own
   sample repos). A newer **JSON** `.mrt` variant also exists (V2). **Banded.**
-- **Status:** ✅ **Shipped** (`PXA.Migration.Stimulsoft`). Band-flatten with explicit band positions
-  (mirrors `PXA.Migration.FastReport`); schema confirmed against real Stimulsoft sample `.mrt` files.
+- **Status:** ✅ **Shipped** (`PXA.Migration.Report.Designer.Stimulsoft`). Band-flatten with explicit band positions
+  (mirrors `PXA.Migration.Report.Designer.FastReport`); schema confirmed against real Stimulsoft sample `.mrt` files.
 
 ---
 

@@ -1,5 +1,5 @@
 using System.Text;
-using PXA.Migration.Rpx;
+using PXA.Migration.Report.Designer.Rpx;
 using PXA.WebApi.Infrastructure;
 
 namespace PXA.Export.Tests;

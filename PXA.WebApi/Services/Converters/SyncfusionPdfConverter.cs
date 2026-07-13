@@ -1,4 +1,4 @@
-using PXA.Migration.SyncfusionPdf;
+using PXA.Migration.Pdf.Code.Syncfusion;
 
 namespace PXA.WebApi.Services.Converters;
 

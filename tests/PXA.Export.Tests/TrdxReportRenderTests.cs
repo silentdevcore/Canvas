@@ -1,5 +1,5 @@
 using System.Text;
-using PXA.Migration.Telerik;
+using PXA.Migration.Report.Designer.Telerik;
 using PXA.WebApi.Infrastructure;
 
 namespace PXA.Export.Tests;

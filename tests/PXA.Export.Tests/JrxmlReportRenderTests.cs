@@ -1,5 +1,5 @@
 using System.Text;
-using PXA.Migration.JasperReports;
+using PXA.Migration.Report.Designer.JasperReports;
 using PXA.WebApi.Infrastructure;
 
 namespace PXA.Export.Tests;

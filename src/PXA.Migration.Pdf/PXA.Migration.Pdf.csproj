@@ -2,21 +2,21 @@
 
   <ItemGroup>
     <ProjectReference Include="../PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
-    <ProjectReference Include="../PXA.Migration.ActivePdf/PXA.Migration.ActivePdf.csproj" />
-    <ProjectReference Include="../PXA.Migration.Apryse/PXA.Migration.Apryse.csproj" />
-    <ProjectReference Include="../PXA.Migration.AsposePdf/PXA.Migration.AsposePdf.csproj" />
-    <ProjectReference Include="../PXA.Migration.DevExpressPdf/PXA.Migration.DevExpressPdf.csproj" />
-    <ProjectReference Include="../PXA.Migration.DsPdf/PXA.Migration.DsPdf.csproj" />
-    <ProjectReference Include="../PXA.Migration.FoxitPdf/PXA.Migration.FoxitPdf.csproj" />
-    <ProjectReference Include="../PXA.Migration.GemBoxPdf/PXA.Migration.GemBoxPdf.csproj" />
-    <ProjectReference Include="../PXA.Migration.IronPdf/PXA.Migration.IronPdf.csproj" />
-    <ProjectReference Include="../PXA.Migration.LeadtoolsPdf/PXA.Migration.LeadtoolsPdf.csproj" />
-    <ProjectReference Include="../PXA.Migration.PdfKitNet/PXA.Migration.PdfKitNet.csproj" />
-    <ProjectReference Include="../PXA.Migration.PdfTools/PXA.Migration.PdfTools.csproj" />
-    <ProjectReference Include="../PXA.Migration.PdfToolsToolbox/PXA.Migration.PdfToolsToolbox.csproj" />
-    <ProjectReference Include="../PXA.Migration.SpirePdf/PXA.Migration.SpirePdf.csproj" />
-    <ProjectReference Include="../PXA.Migration.SyncfusionPdf/PXA.Migration.SyncfusionPdf.csproj" />
-    <ProjectReference Include="../PXA.Migration.iText7/PXA.Migration.iText7.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.ActivePdf/PXA.Migration.Pdf.Code.ActivePdf.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.Apryse/PXA.Migration.Pdf.Code.Apryse.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.Aspose/PXA.Migration.Pdf.Code.Aspose.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.DevExpress/PXA.Migration.Pdf.Code.DevExpress.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.DsPdf/PXA.Migration.Pdf.Code.DsPdf.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.Foxit/PXA.Migration.Pdf.Code.Foxit.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.GemBox/PXA.Migration.Pdf.Code.GemBox.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.IronPdf/PXA.Migration.Pdf.Code.IronPdf.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.Leadtools/PXA.Migration.Pdf.Code.Leadtools.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.PdfKitNet/PXA.Migration.Pdf.Code.PdfKitNet.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.PdfTools/PXA.Migration.Pdf.Code.PdfTools.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.PdfToolsToolbox/PXA.Migration.Pdf.Code.PdfToolsToolbox.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.Spire/PXA.Migration.Pdf.Code.Spire.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.Syncfusion/PXA.Migration.Pdf.Code.Syncfusion.csproj" />
+    <ProjectReference Include="../PXA.Migration.Pdf.Code.IText7/PXA.Migration.Pdf.Code.IText7.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -28,8 +28,8 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/PXA.Migration.FoxitPdf`
-- [x] Add `tests/PXA.Migration.FoxitPdf.Tests`
+- [x] Add `src/PXA.Migration.Pdf.Code.Foxit`
+- [x] Add `tests/PXA.Migration.Pdf.Code.Foxit.Tests`
 - [x] Add WebApi converter integration
 - [x] Add API service smoke test
 - [x] Report deterministic candidates while preserving original source

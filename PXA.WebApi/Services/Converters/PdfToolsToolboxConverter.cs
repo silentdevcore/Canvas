@@ -1,4 +1,4 @@
-using PXA.Migration.PdfToolsToolbox;
+using PXA.Migration.Pdf.Code.PdfToolsToolbox;
 
 namespace PXA.WebApi.Services.Converters;
 

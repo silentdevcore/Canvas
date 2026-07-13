@@ -6,15 +6,15 @@ diagnostics, status).
 
 - **Designer:** FastReport .NET · **Manufacturer:** Fast Reports Inc.
 - **Format:** `.frx` — plain, namespace-free **XML**, **banded** report.
-- **Status:** ✅ **Shipped** (`PXA.Migration.FastReport`) — band-flatten mirroring `PXA.Migration.Rpx`;
+- **Status:** ✅ **Shipped** (`PXA.Migration.Report.Designer.FastReport`) — band-flatten mirroring `PXA.Migration.Report.Designer.Rpx`;
   schema confirmed against real `FastReports/FastReport` `Demos/Reports/*.frx`. 14 unit tests + render test.
 
 ---
 
 ## Why FastReport next
 
-- Plain XML, banded → reuses the `PXA.Migration.Rpx` band-flatten model and the
-  `PXA.Migration.DevExpressReport` `.repx` font-string parser (`"Tahoma, 9pt, style=Bold"`).
+- Plain XML, banded → reuses the `PXA.Migration.Report.Designer.Rpx` band-flatten model and the
+  `PXA.Migration.Report.Designer.DevExpress` `.repx` font-string parser (`"Tahoma, 9pt, style=Bold"`).
 - **Open-source corpus of real `.frx` files** (`FastReports/FastReport` → `Demos/Reports/*.frx`) to
   validate against genuine designer output — closes the "no real sample" gap noted for `.rpx`.
 
@@ -52,7 +52,7 @@ diagnostics, status).
 
 - Objects: pixels → points `× 72/96` (`× 0.75`). Paper/margins: mm → points `× 72/25.4`.
 - **Absolute Y** = `band.Top + object.Top` (both px → pt). PageHeader/PageFooter bands → SharedElements;
-  footer anchored to page bottom. (Same flatten as `PXA.Migration.Rpx`.)
+  footer anchored to page bottom. (Same flatten as `PXA.Migration.Report.Designer.Rpx`.)
 
 ## Detection / routing
 
@@ -97,9 +97,9 @@ namespace does **not** contain `reportdefinition`, and no `<Sections>` (RPX). Ac
 
 ## Architecture & delivery (planned)
 
-- New self-contained project `src/PXA.Migration.FastReport` (refs `PXA.Core` +
+- New self-contained project `src/PXA.Migration.Report.Designer.FastReport` (refs `PXA.Core` +
   `PXA.Migration.Abstractions`), `FrxToDesignConverter` with `Convert`/`ConvertAuto`/static
-  `LooksLikeFrx`; band-based `RawReport`/`RawBand`/`RawElement` model (adapted from `PXA.Migration.Rpx`).
+  `LooksLikeFrx`; band-based `RawReport`/`RawBand`/`RawElement` model (adapted from `PXA.Migration.Report.Designer.Rpx`).
 - Wire `report-to-design` routing (RDL → RPX → FRX → DevExpress) + WebApi ref + `PXA.sln` entries.
 - Frontend "FastReport (.frx)" entry in `MigrationsPage.tsx`.
 - Tests: detection, unit conversion, each control, binding, placeholder, invalid XML, and an

@@ -1,12 +1,12 @@
 using PXA.Migration.Abstractions;
-using PxaAsposeCellsMigration = PXA.Migration.AsposeCells.AsposeCellsMigration;
-using PxaClosedXmlSpreadsheetMigration = PXA.Migration.ClosedXmlSpreadsheet.ClosedXmlSpreadsheetMigration;
-using PxaEpplusSpreadsheetMigration = PXA.Migration.EpplusSpreadsheet.EpplusSpreadsheetMigration;
-using PxaGemBoxSpreadsheetMigration = PXA.Migration.GemBoxSpreadsheet.GemBoxSpreadsheetMigration;
-using PxaNpoiMigration = PXA.Migration.Npoi.NpoiMigration;
-using PxaSpireXlsMigration = PXA.Migration.SpireXls.SpireXlsMigration;
-using PxaSpreadsheetLightMigration = PXA.Migration.SpreadsheetLight.SpreadsheetLightMigration;
-using PxaSyncfusionXlsIoMigration = PXA.Migration.SyncfusionXlsIo.SyncfusionXlsIoMigration;
+using PxaAsposeCellsMigration = PXA.Migration.Spreadsheet.Code.Aspose.AsposeCellsMigration;
+using PxaClosedXmlSpreadsheetMigration = PXA.Migration.Spreadsheet.Code.ClosedXml.ClosedXmlSpreadsheetMigration;
+using PxaEpplusSpreadsheetMigration = PXA.Migration.Spreadsheet.Code.Epplus.EpplusSpreadsheetMigration;
+using PxaGemBoxSpreadsheetMigration = PXA.Migration.Spreadsheet.Code.GemBox.GemBoxSpreadsheetMigration;
+using PxaNpoiMigration = PXA.Migration.Spreadsheet.Code.Npoi.NpoiMigration;
+using PxaSpireXlsMigration = PXA.Migration.Spreadsheet.Code.Spire.SpireXlsMigration;
+using PxaSpreadsheetLightMigration = PXA.Migration.Spreadsheet.Code.SpreadsheetLight.SpreadsheetLightMigration;
+using PxaSyncfusionXlsIoMigration = PXA.Migration.Spreadsheet.Code.Syncfusion.SyncfusionXlsIoMigration;
 
 namespace PXA.Migration.Spreadsheet;
 

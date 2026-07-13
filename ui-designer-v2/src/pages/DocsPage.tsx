@@ -553,10 +553,10 @@ Content-Disposition: attachment; filename="contract_signed.docx"
                 <thead><tr><th>Library</th><th>Converter</th><th>Notes</th></tr></thead>
                 <tbody>
                   {([
-                    ['ClosedXML', 'PXA.Migration.Spreadsheet / historical PXA.Migration.ClosedXmlSpreadsheet', 'Reference impl; 1-based → 0-based index shift, alignment/fill colour, named ranges'],
-                    ['EPPlus', 'PXA.Migration.Spreadsheet / historical PXA.Migration.EpplusSpreadsheet', 'Cells[..] indexer → Cell(..), Merge=true → Range(..).Merge(), alignment'],
-                    ['GemBox.Spreadsheet', 'PXA.Migration.Spreadsheet / historical PXA.Migration.GemBoxSpreadsheet', 'Drops SetLicense, already 0-based, Font.Weight → Bold(), alignment'],
-                    ['Aspose.Cells', 'PXA.Migration.Spreadsheet / historical PXA.Migration.AsposeCells', 'PutValue → Value, Worksheets[0] → AddSheet, SetColumnWidth → Column().Width()'],
+                    ['ClosedXML', 'PXA.Migration.Spreadsheet / historical PXA.Migration.Spreadsheet.Code.ClosedXml', 'Reference impl; 1-based → 0-based index shift, alignment/fill colour, named ranges'],
+                    ['EPPlus', 'PXA.Migration.Spreadsheet / historical PXA.Migration.Spreadsheet.Code.Epplus', 'Cells[..] indexer → Cell(..), Merge=true → Range(..).Merge(), alignment'],
+                    ['GemBox.Spreadsheet', 'PXA.Migration.Spreadsheet / historical PXA.Migration.Spreadsheet.Code.GemBox', 'Drops SetLicense, already 0-based, Font.Weight → Bold(), alignment'],
+                    ['Aspose.Cells', 'PXA.Migration.Spreadsheet / historical PXA.Migration.Spreadsheet.Code.Aspose', 'PutValue → Value, Worksheets[0] → AddSheet, SetColumnWidth → Column().Width()'],
                   ] as [string,string,string][]).map(([lib, converter, notes]) => (
                     <tr key={lib}>
                       <td>{lib}</td>
@@ -576,9 +576,9 @@ Content-Disposition: attachment; filename="contract_signed.docx"
                 <thead><tr><th>Input</th><th>Converter</th><th>Output</th></tr></thead>
                 <tbody>
                   {([
-                    ['DevExpress XtraReport / REPX', 'PXA.Migration.Report / historical PXA.Migration.DevExpressReport', 'Band-flattened editable PXA design'],
-                    ['RDL / RDLC / Syncfusion / Bold Reports', 'PXA.Migration.Report / historical PXA.Migration.Rdl', 'Page, header/footer, textbox, line, rectangle, image, tablix/table, barcode placeholders'],
-                    ['ActiveReports / GrapeCity RPX', 'PXA.Migration.Report / historical PXA.Migration.Rpx', 'Section-report bands flattened into PXA elements'],
+                    ['DevExpress XtraReport / REPX', 'PXA.Migration.Report / historical PXA.Migration.Report.Designer.DevExpress', 'Band-flattened editable PXA design'],
+                    ['RDL / RDLC / Syncfusion / Bold Reports', 'PXA.Migration.Report / historical PXA.Migration.Report.Designer.Rdl', 'Page, header/footer, textbox, line, rectangle, image, tablix/table, barcode placeholders'],
+                    ['ActiveReports / GrapeCity RPX', 'PXA.Migration.Report / historical PXA.Migration.Report.Designer.Rpx', 'Section-report bands flattened into PXA elements'],
                   ] as [string,string,string][]).map(([input, converter, output]) => (
                     <tr key={input}>
                       <td>{input}</td>

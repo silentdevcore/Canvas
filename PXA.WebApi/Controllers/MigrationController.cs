@@ -29,7 +29,10 @@ public class MigrationController : ControllerBase
             name = f.Name,
             status = f.Status,
             description = f.Description,
-            kind = f.Kind
+            kind = f.Kind,
+            domain = f.Domain,
+            migrationKind = f.MigrationKind,
+            provider = f.Provider
         });
         return Ok(frameworks);
     }

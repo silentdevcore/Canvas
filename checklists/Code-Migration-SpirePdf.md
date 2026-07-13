@@ -29,8 +29,8 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/PXA.Migration.SpirePdf`
-- [x] Add `tests/PXA.Migration.SpirePdf.Tests`
+- [x] Add `src/PXA.Migration.Pdf.Code.Spire`
+- [x] Add `tests/PXA.Migration.Pdf.Code.Spire.Tests`
 - [x] Add WebApi converter integration
 - [x] Add API service smoke test
 - [x] Rewrite deterministic document/page/text/line/rectangle/save patterns

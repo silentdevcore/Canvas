@@ -4,21 +4,21 @@ public sealed class PdfMigrationProvidersTests
 {
     public static TheoryData<string, string> ProviderCases => new()
     {
-        { PdfMigrationProviderKeys.ActivePdf, "PXA.Migration.ActivePdf.ActivePdfMigration" },
-        { PdfMigrationProviderKeys.Apryse, "PXA.Migration.Apryse.ApryseMigration" },
-        { PdfMigrationProviderKeys.AsposePdf, "PXA.Migration.AsposePdf.AsposePdfMigration" },
-        { PdfMigrationProviderKeys.DevExpressPdf, "PXA.Migration.DevExpressPdf.DevExpressPdfMigration" },
-        { PdfMigrationProviderKeys.DsPdf, "PXA.Migration.DsPdf.DsPdfMigration" },
-        { PdfMigrationProviderKeys.FoxitPdf, "PXA.Migration.FoxitPdf.FoxitPdfMigration" },
-        { PdfMigrationProviderKeys.GemBoxPdf, "PXA.Migration.GemBoxPdf.GemBoxPdfMigration" },
-        { PdfMigrationProviderKeys.IronPdf, "PXA.Migration.IronPdf.IronPdfMigration" },
-        { PdfMigrationProviderKeys.IText7, "PXA.Migration.iText7.IText7Migration" },
-        { PdfMigrationProviderKeys.LeadtoolsPdf, "PXA.Migration.LeadtoolsPdf.LeadtoolsPdfMigration" },
-        { PdfMigrationProviderKeys.PdfKitNet, "PXA.Migration.PdfKitNet.PdfKitNetMigration" },
-        { PdfMigrationProviderKeys.PdfTools, "PXA.Migration.PdfTools.PdfToolsMigration" },
-        { PdfMigrationProviderKeys.PdfToolsToolbox, "PXA.Migration.PdfToolsToolbox.PdfToolsToolboxMigration" },
-        { PdfMigrationProviderKeys.SpirePdf, "PXA.Migration.SpirePdf.SpirePdfMigration" },
-        { PdfMigrationProviderKeys.SyncfusionPdf, "PXA.Migration.SyncfusionPdf.SyncfusionPdfMigration" },
+        { PdfMigrationProviderKeys.ActivePdf, "PXA.Migration.Pdf.Code.ActivePdf.ActivePdfMigration" },
+        { PdfMigrationProviderKeys.Apryse, "PXA.Migration.Pdf.Code.Apryse.ApryseMigration" },
+        { PdfMigrationProviderKeys.AsposePdf, "PXA.Migration.Pdf.Code.Aspose.AsposePdfMigration" },
+        { PdfMigrationProviderKeys.DevExpressPdf, "PXA.Migration.Pdf.Code.DevExpress.DevExpressPdfMigration" },
+        { PdfMigrationProviderKeys.DsPdf, "PXA.Migration.Pdf.Code.DsPdf.DsPdfMigration" },
+        { PdfMigrationProviderKeys.FoxitPdf, "PXA.Migration.Pdf.Code.Foxit.FoxitPdfMigration" },
+        { PdfMigrationProviderKeys.GemBoxPdf, "PXA.Migration.Pdf.Code.GemBox.GemBoxPdfMigration" },
+        { PdfMigrationProviderKeys.IronPdf, "PXA.Migration.Pdf.Code.IronPdf.IronPdfMigration" },
+        { PdfMigrationProviderKeys.IText7, "PXA.Migration.Pdf.Code.IText7.IText7Migration" },
+        { PdfMigrationProviderKeys.LeadtoolsPdf, "PXA.Migration.Pdf.Code.Leadtools.LeadtoolsPdfMigration" },
+        { PdfMigrationProviderKeys.PdfKitNet, "PXA.Migration.Pdf.Code.PdfKitNet.PdfKitNetMigration" },
+        { PdfMigrationProviderKeys.PdfTools, "PXA.Migration.Pdf.Code.PdfTools.PdfToolsMigration" },
+        { PdfMigrationProviderKeys.PdfToolsToolbox, "PXA.Migration.Pdf.Code.PdfToolsToolbox.PdfToolsToolboxMigration" },
+        { PdfMigrationProviderKeys.SpirePdf, "PXA.Migration.Pdf.Code.Spire.SpirePdfMigration" },
+        { PdfMigrationProviderKeys.SyncfusionPdf, "PXA.Migration.Pdf.Code.Syncfusion.SyncfusionPdfMigration" },
     };
 
     [Theory]
@@ -44,7 +44,7 @@ public sealed class PdfMigrationProvidersTests
         var created = PdfMigrationProviders.TryCreate("DEVEXPRESS-PDF", out var migration);
 
         Assert.True(created);
-        Assert.Equal("PXA.Migration.DevExpressPdf.DevExpressPdfMigration", migration.GetType().FullName);
+        Assert.Equal("PXA.Migration.Pdf.Code.DevExpress.DevExpressPdfMigration", migration.GetType().FullName);
     }
 
     [Fact]

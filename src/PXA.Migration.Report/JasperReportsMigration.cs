@@ -1,4 +1,4 @@
-using PXA.Migration.JasperReports;
+using PXA.Migration.Report.Designer.JasperReports;
 using PXA.Core.Contracts;
 
 namespace PXA.Migration.Report;

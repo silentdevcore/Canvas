@@ -6,8 +6,8 @@ Telerik Reporting `.trdx` → PXA `DesignExportDto` converter.
 - **Designer:** Telerik Reporting · **Manufacturer:** Progress (Telerik)
 - **Format:** `.trdx` — **namespaced XML** (`http://schemas.telerik.com/reporting/<ver>`). `.trdp` is the
   same XML zipped (V2). **Sectioned** layout with Unit-string geometry.
-- **Status:** ✅ **Shipped** (`PXA.Migration.Telerik`). Hybrid of `PXA.Migration.Rdl` (length-string
-  units, `<Style>` elements) and `PXA.Migration.Rpx` (section/band flatten); `<StyleSheet>` `StyleName`
+- **Status:** ✅ **Shipped** (`PXA.Migration.Report.Designer.Telerik`). Hybrid of `PXA.Migration.Report.Designer.Rdl` (length-string
+  units, `<Style>` elements) and `PXA.Migration.Report.Designer.Rpx` (section/band flatten); `<StyleSheet>` `StyleName`
   resolution. Schema confirmed against real `.trdx` samples. 11 unit tests + render test.
 
 ---
@@ -59,10 +59,10 @@ Telerik Reporting `.trdx` → PXA `DesignExportDto` converter.
 
 ## Units & coordinates
 
-- Unit strings (`in`/`cm`/`mm`/`pt`/`px`) → points — reuse a length parser like `PXA.Migration.Rdl`'s
+- Unit strings (`in`/`cm`/`mm`/`pt`/`px`) → points — reuse a length parser like `PXA.Migration.Report.Designer.Rdl`'s
   `LengthToPt`. Sections **stack** in canonical order accumulating `Height` (no explicit Top), so
   absolute Y = `marginTop + Σ(prior section heights) + section-relative item Top` — the
-  `PXA.Migration.Rpx`/DevExpress band-flatten. PageHeader/PageFooter → SharedElements; footer anchored
+  `PXA.Migration.Report.Designer.Rpx`/DevExpress band-flatten. PageHeader/PageFooter → SharedElements; footer anchored
   to page bottom.
 
 ## Detection / routing

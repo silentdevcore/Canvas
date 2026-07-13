@@ -51,8 +51,8 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/PXA.Migration.iText7`
-- [x] Add `tests/PXA.Migration.iText7.Tests`
+- [x] Add `src/PXA.Migration.Pdf.Code.IText7`
+- [x] Add `tests/PXA.Migration.Pdf.Code.IText7.Tests`
 - [x] Add projects to `PXA.sln`
 - [x] Implement first source migration entry point: `IText7Migration`
 - [x] Convert Hello World sample end to end
@@ -72,7 +72,7 @@
 - [x] Convert simple kernel `PdfCanvas.BeginText().MoveText(...).ShowText(...).EndText()` text drawing
 - [x] Convert separated kernel `PdfCanvas` text state sequence: `BeginText(); MoveText(...); ShowText(...); EndText();`
 - [x] Remove `PdfCanvas` local variables only when all usages are migrated
-- [x] Verified with `dotnet test tests/PXA.Migration.iText7.Tests/PXA.Migration.iText7.Tests.csproj --no-restore --no-build`: `15/15` passed
+- [x] Verified with `dotnet test tests/PXA.Migration.Pdf.Code.IText7.Tests/PXA.Migration.Pdf.Code.IText7.Tests.csproj --no-restore --no-build`: `15/15` passed
 - [x] Connect WebApi iText7 converter to the Roslyn migration engine
 - [x] Add support for explicit coordinate text via `ShowTextAligned(...)`
 - [x] Add support for simple kernel `PdfCanvas` drawing APIs
@@ -85,7 +85,7 @@
 - [x] `Paragraph.SetFontSize(N)` font size extraction → `CANMIGITEXT018` diagnostic
 - [x] Paragraph fluent chain unwrapping (`.SetBold()`, `.SetFont()`, etc. ignored, text and size extracted)
 - [x] `ShowTextAligned` with `SetFontSize` chaining
-- [x] Verified with `dotnet test tests/PXA.Migration.iText7.Tests`: `20/20` passed
+- [x] Verified with `dotnet test tests/PXA.Migration.Pdf.Code.IText7.Tests`: `20/20` passed
 - [x] Verified with `dotnet test tests/PXA.Api.Tests`: `22/22` passed
 - [ ] Replace syntax-only matching with semantic matching before broad rollout
 

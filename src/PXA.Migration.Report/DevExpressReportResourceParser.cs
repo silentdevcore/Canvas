@@ -1,4 +1,4 @@
-using PxaDevExpressReportResourceParser = PXA.Migration.DevExpressReport.DevExpressReportResourceParser;
+using PxaDevExpressReportResourceParser = PXA.Migration.Report.Designer.DevExpress.DevExpressReportResourceParser;
 
 namespace PXA.Migration.Report;
 

@@ -7,9 +7,9 @@ MESCIUS (GrapeCity) **ActiveReports** family of report designers.
 - **Two distinct file formats — different converters:**
   | Format | Designer kind | Layout | Converter | Companion doc |
   | --- | --- | --- | --- | --- |
-| `.rpx` | **Section** report | banded XML (inches) | `PXA.Migration.Rpx` | [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) |
-| `.rdlx` | **Page** report | RDL XML (`reportdefinition` ns) | `PXA.Migration.Rdl` | [Code-Migration-SyncfusionRdl.md](Code-Migration-SyncfusionRdl.md) |
-| `.json` | **ActiveReports JS** report | marked JSON (`reportType: ActiveReportsJS`) | `PXA.Migration.ActiveReportsJs` | this file |
+| `.rpx` | **Section** report | banded XML (inches) | `PXA.Migration.Report.Designer.Rpx` | [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md) |
+| `.rdlx` | **Page** report | RDL XML (`reportdefinition` ns) | `PXA.Migration.Report.Designer.Rdl` | [Code-Migration-SyncfusionRdl.md](Code-Migration-SyncfusionRdl.md) |
+| `.json` | **ActiveReports JS** report | marked JSON (`reportType: ActiveReportsJS`) | `PXA.Migration.Report.Designer.ActiveReportsJs` | this file |
 - **Routing:** `.rdlx` uses the Microsoft RDL `reportdefinition` namespace, so it is detected and
   routed by `LooksLikeRdl` (the RPX detector explicitly **rejects** that namespace). `.rpx` is the
   banded section format detected by `LooksLikeRpx` (root `<Report>` + `<Sections>`).
@@ -23,7 +23,7 @@ MESCIUS (GrapeCity) **ActiveReports** family of report designers.
 Local sample source: `designer-simples/ActiveReports/ReportSamples-master` (local-only test resources).
 
 Analyzed 8 `.rdlx` files — all in the RDL-2005 `reportdefinition` namespace (ActiveReports **Page**
-reports, → `PXA.Migration.Rdl`):
+reports, → `PXA.Migration.Report.Designer.Rdl`):
 
 - `Enterprise Reports - Marketing Plan Data.rdlx`
 - `Financial Reports - BalanceSheetReport.rdlx`, `…- CashFlowReport.rdlx`,
@@ -76,7 +76,7 @@ Key sample-driven conclusions:
       future group-repeat renderer; none of the current local samples exercise this.
 - [x] **P1** RPX section-report P0 metadata pass: `GroupHeader`/`GroupFooter` and `Detail` repeat metadata,
       `CanGrow`/`CanShrink`, `OutputFormat`, page-break metadata, and CrossSectionLine/CrossSectionBox
-      visual preservation are implemented in `PXA.Migration.Rpx`.
+      visual preservation are implemented in `PXA.Migration.Report.Designer.Rpx`.
 - [x] **P1** RPX subreport resource inlining: matching `.rpx` resources supplied to `report-to-design`
       are recursively converted and positioned at the parent `SubReport` placeholder.
 - [x] **P1** RPX UI resource upload: the migration page accepts multiple `.rpx` resource files for
@@ -95,7 +95,7 @@ Key sample-driven conclusions:
       (see [Code-Migration-ActiveReportsRpx.md](Code-Migration-ActiveReportsRpx.md).)
 - [x] **P2** ActiveReports **JS** JSON report model V1: explicitly marked JSON reports
       (`reportType`/`reportKind`/`designer` containing `ActiveReportsJS`) route to
-      `PXA.Migration.ActiveReportsJs`; text/line/image/barcode/simple table items map to PXA
+      `PXA.Migration.Report.Designer.ActiveReportsJs`; text/line/image/barcode/simple table items map to PXA
       elements and unsupported regions become visible placeholders. Real vendor-saved JSON samples
       are still needed for schema tuning.
 - [x] **P2** ActiveReports JS sample validation harness: tests auto-discover
@@ -104,10 +104,10 @@ Key sample-driven conclusions:
 
 ## Implementation notes
 
-- Converter: [`src/PXA.Migration.Rdl/RdlToDesignConverter.cs`](../src/PXA.Migration.Rdl/RdlToDesignConverter.cs)
+- Converter: [`src/PXA.Migration.Report.Designer.Rdl/RdlToDesignConverter.cs`](../src/PXA.Migration.Report.Designer.Rdl/RdlToDesignConverter.cs)
   — footer concat in the 2005/2008 `<Table>` branch; `case "List"` in `ParseReportItems` + recursion;
   `MapList`/`RdlListRepeatMetadata`; `ParseTablixGroups` matches `Group`|`Grouping`.
-- Tests: [`tests/PXA.Migration.Rdl.Tests/RdlToDesignConverterTests.cs`](../tests/PXA.Migration.Rdl.Tests/RdlToDesignConverterTests.cs)
+- Tests: [`tests/PXA.Migration.Report.Designer.Rdl.Tests/RdlToDesignConverterTests.cs`](../tests/PXA.Migration.Report.Designer.Rdl.Tests/RdlToDesignConverterTests.cs)
   — footer-rows, List-with-nested-table, and an 8-sample integration check (locates `designer-simples`).
 
 ## Per-cell table styling (PXA-model track)

@@ -1,4 +1,4 @@
-using PXA.Migration.iText7;
+using PXA.Migration.Pdf.Code.IText7;
 
 namespace PXA.WebApi.Services.Converters;
 

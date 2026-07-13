@@ -40,7 +40,7 @@ label/textbox/line/shape/picture/barcode/checkbox controls, fonts/colours/alignm
 - [x] **Page header/footer** → `DesignExportDto.SharedElements`; footer anchored to the page bottom.
 
 ### Architecture
-- [x] Self-contained project `src/PXA.Migration.Rpx` (refs `PXA.Core` + `PXA.Migration.Abstractions`).
+- [x] Self-contained project `src/PXA.Migration.Report.Designer.Rpx` (refs `PXA.Core` + `PXA.Migration.Abstractions`).
       Own band-based `RawReport`/`RawBand`/`RawElement` model + flatten, adapted from the DevExpress
       report converter. Returns a `DesignExportDto`.
 - [x] `RpxToDesignConverter.Convert(string)` → `{ Design, Diagnostics }`; `static LooksLikeRpx(string)`

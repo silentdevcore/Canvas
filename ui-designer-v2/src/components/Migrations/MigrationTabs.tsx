@@ -35,7 +35,7 @@ const MigrationTabs: React.FC<{ tabs: MigrationTab[] }> = ({ tabs }) => {
 /** PDF Migration sub-tabs. */
 export const pdfTabs = (active: 'code' | 'designer'): MigrationTab[] => [
   { label: 'Code Migration', to: '/migrations/pdf/code', active: active === 'code' },
-  { label: 'UI-Designer Migration', to: '/migrations/pdf/designer', active: active === 'designer' },
+  { label: 'Report Designer Migration', to: '/migrations/pdf/designer', active: active === 'designer' },
 ];
 
 /** Spreadsheet Migration sub-tabs. */

@@ -39,7 +39,19 @@ public sealed class MigrationService
     }
 
     public IEnumerable<FrameworkInfo> GetFrameworks() =>
-        _converters.Values.Select(c => new FrameworkInfo(c.FrameworkId, c.FrameworkName, c.Status, c.Description, c.Kind));
+        _converters.Values.Select(c =>
+        {
+            var taxonomy = GetTaxonomy(c);
+            return new FrameworkInfo(
+                c.FrameworkId,
+                c.FrameworkName,
+                c.Status,
+                c.Description,
+                c.Kind,
+                taxonomy.Domain,
+                taxonomy.MigrationKind,
+                taxonomy.Provider);
+        });
 
     /// <summary>Migration target kind for a framework ("pdf" | "spreadsheet"); defaults to "pdf".</summary>
     public string GetKind(string frameworkId) =>
@@ -66,6 +78,30 @@ public sealed class MigrationService
         return converter;
     }
 
+    private static MigrationTaxonomy GetTaxonomy(ICodeConverter converter)
+    {
+        var domain = string.Equals(converter.Kind, "spreadsheet", StringComparison.OrdinalIgnoreCase)
+            ? "spreadsheet"
+            : "pdf";
+
+        return new MigrationTaxonomy(domain, "code", GetProviderName(converter.FrameworkId));
+    }
+
+    private static string GetProviderName(string frameworkId) =>
+        frameworkId switch
+        {
+            "Aspose" or "AsposeCells" => "Aspose",
+            "ClosedXmlSpreadsheet" => "ClosedXml",
+            "DevExpress" => "DevExpress",
+            "EpplusSpreadsheet" => "Epplus",
+            "GemBox" or "GemBoxSpreadsheet" => "GemBox",
+            "iText7" => "IText7",
+            "Leadtools" => "Leadtools",
+            "Spire" or "SpireXls" => "Spire",
+            "Syncfusion" or "SyncfusionXlsIo" => "Syncfusion",
+            _ => frameworkId
+        };
+
     private static MigrationSummary CreateSummary(IReadOnlyList<MigrationDiagnostic> diagnostics)
     {
         var warningCount = diagnostics.Count(static diagnostic =>
@@ -81,4 +117,14 @@ public sealed class MigrationService
     }
 }
 
-public sealed record FrameworkInfo(string Id, string Name, string Status, string Description, string Kind);
+public sealed record FrameworkInfo(
+    string Id,
+    string Name,
+    string Status,
+    string Description,
+    string Kind,
+    string Domain,
+    string MigrationKind,
+    string Provider);
+
+public sealed record MigrationTaxonomy(string Domain, string MigrationKind, string Provider);

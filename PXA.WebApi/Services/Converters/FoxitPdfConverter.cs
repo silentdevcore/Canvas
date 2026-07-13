@@ -1,4 +1,4 @@
-using PXA.Migration.FoxitPdf;
+using PXA.Migration.Pdf.Code.Foxit;
 
 namespace PXA.WebApi.Services.Converters;
 

@@ -1,4 +1,4 @@
-using PXA.Migration.DevExpressReport;
+using PXA.Migration.Report.Designer.DevExpress;
 using PXA.Core.Contracts;
 
 namespace PXA.Migration.Report;

@@ -25,65 +25,65 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Importer.Tests", "tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Abstractions", "src\PXA.Migration.Abstractions\PXA.Migration.Abstractions.csproj", "{0786F6E4-8AB1-4780-8B43-89601F7E51DB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.DevExpressPdf", "src\PXA.Migration.DevExpressPdf\PXA.Migration.DevExpressPdf.csproj", "{B41730D2-514E-4951-812C-5415BADAE624}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.DevExpress", "src\PXA.Migration.Pdf.Code.DevExpress\PXA.Migration.Pdf.Code.DevExpress.csproj", "{B41730D2-514E-4951-812C-5415BADAE624}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.DevExpressPdf.Tests", "tests\PXA.Migration.DevExpressPdf.Tests\PXA.Migration.DevExpressPdf.Tests.csproj", "{008CC5C5-DA0E-43F3-9A8D-4C3E507F9B3A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.DevExpress.Tests", "tests\PXA.Migration.Pdf.Code.DevExpress.Tests\PXA.Migration.Pdf.Code.DevExpress.Tests.csproj", "{008CC5C5-DA0E-43F3-9A8D-4C3E507F9B3A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.SyncfusionPdf", "src\PXA.Migration.SyncfusionPdf\PXA.Migration.SyncfusionPdf.csproj", "{9A60508D-7CC4-420D-934D-4D69E4BE2CA2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.Syncfusion", "src\PXA.Migration.Pdf.Code.Syncfusion\PXA.Migration.Pdf.Code.Syncfusion.csproj", "{9A60508D-7CC4-420D-934D-4D69E4BE2CA2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.SyncfusionPdf.Tests", "tests\PXA.Migration.SyncfusionPdf.Tests\PXA.Migration.SyncfusionPdf.Tests.csproj", "{A4B88F54-61D8-4A53-B3FD-48E8D3A4C111}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.Syncfusion.Tests", "tests\PXA.Migration.Pdf.Code.Syncfusion.Tests\PXA.Migration.Pdf.Code.Syncfusion.Tests.csproj", "{A4B88F54-61D8-4A53-B3FD-48E8D3A4C111}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.iText7", "src\PXA.Migration.iText7\PXA.Migration.iText7.csproj", "{335DB7B8-2A43-408A-9E0B-499F1B1AD0BF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.IText7", "src\PXA.Migration.Pdf.Code.IText7\PXA.Migration.Pdf.Code.IText7.csproj", "{335DB7B8-2A43-408A-9E0B-499F1B1AD0BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.iText7.Tests", "tests\PXA.Migration.iText7.Tests\PXA.Migration.iText7.Tests.csproj", "{830B50EC-4412-4A91-A99E-8AEE085F7CD7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.IText7.Tests", "tests\PXA.Migration.Pdf.Code.IText7.Tests\PXA.Migration.Pdf.Code.IText7.Tests.csproj", "{830B50EC-4412-4A91-A99E-8AEE085F7CD7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.AsposePdf", "src\PXA.Migration.AsposePdf\PXA.Migration.AsposePdf.csproj", "{9F4F898D-F91C-4D70-8AE0-63D1881F04D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.Aspose", "src\PXA.Migration.Pdf.Code.Aspose\PXA.Migration.Pdf.Code.Aspose.csproj", "{9F4F898D-F91C-4D70-8AE0-63D1881F04D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.AsposePdf.Tests", "tests\PXA.Migration.AsposePdf.Tests\PXA.Migration.AsposePdf.Tests.csproj", "{FE956E51-0F94-465F-A224-F759891967C7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.Aspose.Tests", "tests\PXA.Migration.Pdf.Code.Aspose.Tests\PXA.Migration.Pdf.Code.Aspose.Tests.csproj", "{FE956E51-0F94-465F-A224-F759891967C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Apryse", "src\PXA.Migration.Apryse\PXA.Migration.Apryse.csproj", "{89E94032-47D0-4870-AC11-4723F41468CF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.Apryse", "src\PXA.Migration.Pdf.Code.Apryse\PXA.Migration.Pdf.Code.Apryse.csproj", "{89E94032-47D0-4870-AC11-4723F41468CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Apryse.Tests", "tests\PXA.Migration.Apryse.Tests\PXA.Migration.Apryse.Tests.csproj", "{AF603C34-D2C8-443C-B76E-02AEDFD248C9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.Apryse.Tests", "tests\PXA.Migration.Pdf.Code.Apryse.Tests\PXA.Migration.Pdf.Code.Apryse.Tests.csproj", "{AF603C34-D2C8-443C-B76E-02AEDFD248C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.DsPdf", "src\PXA.Migration.DsPdf\PXA.Migration.DsPdf.csproj", "{5D493FF8-03BF-42EC-AD4C-DDF381FBEAA9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.DsPdf", "src\PXA.Migration.Pdf.Code.DsPdf\PXA.Migration.Pdf.Code.DsPdf.csproj", "{5D493FF8-03BF-42EC-AD4C-DDF381FBEAA9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.DsPdf.Tests", "tests\PXA.Migration.DsPdf.Tests\PXA.Migration.DsPdf.Tests.csproj", "{37FC24BE-5FB7-4701-BE00-04E03D64201E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.DsPdf.Tests", "tests\PXA.Migration.Pdf.Code.DsPdf.Tests\PXA.Migration.Pdf.Code.DsPdf.Tests.csproj", "{37FC24BE-5FB7-4701-BE00-04E03D64201E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.FoxitPdf", "src\PXA.Migration.FoxitPdf\PXA.Migration.FoxitPdf.csproj", "{4ECB9330-DFED-4F06-A4B2-26CFCB1EF6F8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.Foxit", "src\PXA.Migration.Pdf.Code.Foxit\PXA.Migration.Pdf.Code.Foxit.csproj", "{4ECB9330-DFED-4F06-A4B2-26CFCB1EF6F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.FoxitPdf.Tests", "tests\PXA.Migration.FoxitPdf.Tests\PXA.Migration.FoxitPdf.Tests.csproj", "{FCD613B3-90F6-4AF8-9D0A-EC7F7492487A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.Foxit.Tests", "tests\PXA.Migration.Pdf.Code.Foxit.Tests\PXA.Migration.Pdf.Code.Foxit.Tests.csproj", "{FCD613B3-90F6-4AF8-9D0A-EC7F7492487A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.IronPdf", "src\PXA.Migration.IronPdf\PXA.Migration.IronPdf.csproj", "{11AB004E-16DE-4C66-ABDD-6954164AB194}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.IronPdf", "src\PXA.Migration.Pdf.Code.IronPdf\PXA.Migration.Pdf.Code.IronPdf.csproj", "{11AB004E-16DE-4C66-ABDD-6954164AB194}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.IronPdf.Tests", "tests\PXA.Migration.IronPdf.Tests\PXA.Migration.IronPdf.Tests.csproj", "{B6822FE5-875D-4985-9269-1B24536F15B3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.IronPdf.Tests", "tests\PXA.Migration.Pdf.Code.IronPdf.Tests\PXA.Migration.Pdf.Code.IronPdf.Tests.csproj", "{B6822FE5-875D-4985-9269-1B24536F15B3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.GemBoxPdf", "src\PXA.Migration.GemBoxPdf\PXA.Migration.GemBoxPdf.csproj", "{4F626BA6-B9B4-40AA-ABA8-C13C6C1ED727}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.GemBox", "src\PXA.Migration.Pdf.Code.GemBox\PXA.Migration.Pdf.Code.GemBox.csproj", "{4F626BA6-B9B4-40AA-ABA8-C13C6C1ED727}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.GemBoxPdf.Tests", "tests\PXA.Migration.GemBoxPdf.Tests\PXA.Migration.GemBoxPdf.Tests.csproj", "{6E12E2E6-4AE1-4951-B469-740F7FAADD1A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.GemBox.Tests", "tests\PXA.Migration.Pdf.Code.GemBox.Tests\PXA.Migration.Pdf.Code.GemBox.Tests.csproj", "{6E12E2E6-4AE1-4951-B469-740F7FAADD1A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.SpirePdf", "src\PXA.Migration.SpirePdf\PXA.Migration.SpirePdf.csproj", "{409B4E81-040B-4BA1-A458-6490E072724C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.Spire", "src\PXA.Migration.Pdf.Code.Spire\PXA.Migration.Pdf.Code.Spire.csproj", "{409B4E81-040B-4BA1-A458-6490E072724C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.SpirePdf.Tests", "tests\PXA.Migration.SpirePdf.Tests\PXA.Migration.SpirePdf.Tests.csproj", "{E8020D00-54EE-48C4-A85A-09E9D74E7BA6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.Spire.Tests", "tests\PXA.Migration.Pdf.Code.Spire.Tests\PXA.Migration.Pdf.Code.Spire.Tests.csproj", "{E8020D00-54EE-48C4-A85A-09E9D74E7BA6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.PdfKitNet", "src\PXA.Migration.PdfKitNet\PXA.Migration.PdfKitNet.csproj", "{50D1BACF-9D63-441F-A162-9D33343C4CA0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.PdfKitNet", "src\PXA.Migration.Pdf.Code.PdfKitNet\PXA.Migration.Pdf.Code.PdfKitNet.csproj", "{50D1BACF-9D63-441F-A162-9D33343C4CA0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.PdfKitNet.Tests", "tests\PXA.Migration.PdfKitNet.Tests\PXA.Migration.PdfKitNet.Tests.csproj", "{C7D20DC7-6222-40B6-8B7A-D46CF0EF46E8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.PdfKitNet.Tests", "tests\PXA.Migration.Pdf.Code.PdfKitNet.Tests\PXA.Migration.Pdf.Code.PdfKitNet.Tests.csproj", "{C7D20DC7-6222-40B6-8B7A-D46CF0EF46E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.LeadtoolsPdf", "src\PXA.Migration.LeadtoolsPdf\PXA.Migration.LeadtoolsPdf.csproj", "{215349C9-E188-415E-8AE2-BC54007534C9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.Leadtools", "src\PXA.Migration.Pdf.Code.Leadtools\PXA.Migration.Pdf.Code.Leadtools.csproj", "{215349C9-E188-415E-8AE2-BC54007534C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.LeadtoolsPdf.Tests", "tests\PXA.Migration.LeadtoolsPdf.Tests\PXA.Migration.LeadtoolsPdf.Tests.csproj", "{9ADB517D-12FB-4AD1-A657-4D3FE0E17146}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.Leadtools.Tests", "tests\PXA.Migration.Pdf.Code.Leadtools.Tests\PXA.Migration.Pdf.Code.Leadtools.Tests.csproj", "{9ADB517D-12FB-4AD1-A657-4D3FE0E17146}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.ActivePdf", "src\PXA.Migration.ActivePdf\PXA.Migration.ActivePdf.csproj", "{A99C4DE8-D593-4815-8921-51434B7FB69D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.ActivePdf", "src\PXA.Migration.Pdf.Code.ActivePdf\PXA.Migration.Pdf.Code.ActivePdf.csproj", "{A99C4DE8-D593-4815-8921-51434B7FB69D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.ActivePdf.Tests", "tests\PXA.Migration.ActivePdf.Tests\PXA.Migration.ActivePdf.Tests.csproj", "{CC3D708E-6256-4919-82D3-EE1D5F106968}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.ActivePdf.Tests", "tests\PXA.Migration.Pdf.Code.ActivePdf.Tests\PXA.Migration.Pdf.Code.ActivePdf.Tests.csproj", "{CC3D708E-6256-4919-82D3-EE1D5F106968}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.PdfTools", "src\PXA.Migration.PdfTools\PXA.Migration.PdfTools.csproj", "{E4B2F280-46F8-4412-A2D4-DCDAF6397160}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.PdfTools", "src\PXA.Migration.Pdf.Code.PdfTools\PXA.Migration.Pdf.Code.PdfTools.csproj", "{E4B2F280-46F8-4412-A2D4-DCDAF6397160}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.PdfTools.Tests", "tests\PXA.Migration.PdfTools.Tests\PXA.Migration.PdfTools.Tests.csproj", "{BC076C35-E8BE-4995-A852-E8670C9249DD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.PdfTools.Tests", "tests\PXA.Migration.Pdf.Code.PdfTools.Tests\PXA.Migration.Pdf.Code.PdfTools.Tests.csproj", "{BC076C35-E8BE-4995-A852-E8670C9249DD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.PdfToolsToolbox", "src\PXA.Migration.PdfToolsToolbox\PXA.Migration.PdfToolsToolbox.csproj", "{5C8F5A86-31B4-4F30-B348-D6C5B20059B2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.PdfToolsToolbox", "src\PXA.Migration.Pdf.Code.PdfToolsToolbox\PXA.Migration.Pdf.Code.PdfToolsToolbox.csproj", "{5C8F5A86-31B4-4F30-B348-D6C5B20059B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.PdfToolsToolbox.Tests", "tests\PXA.Migration.PdfToolsToolbox.Tests\PXA.Migration.PdfToolsToolbox.Tests.csproj", "{EC85620A-9889-47A6-9331-B45A255BB381}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf.Code.PdfToolsToolbox.Tests", "tests\PXA.Migration.Pdf.Code.PdfToolsToolbox.Tests\PXA.Migration.Pdf.Code.PdfToolsToolbox.Tests.csproj", "{EC85620A-9889-47A6-9331-B45A255BB381}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Pdf", "src\PXA.Migration.Pdf\PXA.Migration.Pdf.csproj", "{576DED45-1DD6-4F98-A9D3-CB28DD69F192}"
 EndProject
@@ -147,69 +147,69 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.FileImporter.Image.Test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Roslyn", "src\PXA.Migration.Roslyn\PXA.Migration.Roslyn.csproj", "{CB9D8467-F34C-42ED-B409-CAFBB1586152}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.AsposeCells", "src\PXA.Migration.AsposeCells\PXA.Migration.AsposeCells.csproj", "{0CFB6DCC-350F-4C9A-9C6F-BAD5CA515890}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.Aspose", "src\PXA.Migration.Spreadsheet.Code.Aspose\PXA.Migration.Spreadsheet.Code.Aspose.csproj", "{0CFB6DCC-350F-4C9A-9C6F-BAD5CA515890}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.AsposeCells.Tests", "tests\PXA.Migration.AsposeCells.Tests\PXA.Migration.AsposeCells.Tests.csproj", "{F8EE8026-161F-4E25-AC0D-B84145A8CDE6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.Aspose.Tests", "tests\PXA.Migration.Spreadsheet.Code.Aspose.Tests\PXA.Migration.Spreadsheet.Code.Aspose.Tests.csproj", "{F8EE8026-161F-4E25-AC0D-B84145A8CDE6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.ClosedXmlSpreadsheet", "src\PXA.Migration.ClosedXmlSpreadsheet\PXA.Migration.ClosedXmlSpreadsheet.csproj", "{6145B58A-19AE-4BF4-B745-6B2BC0DA0869}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.ClosedXml", "src\PXA.Migration.Spreadsheet.Code.ClosedXml\PXA.Migration.Spreadsheet.Code.ClosedXml.csproj", "{6145B58A-19AE-4BF4-B745-6B2BC0DA0869}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.ClosedXmlSpreadsheet.Tests", "tests\PXA.Migration.ClosedXmlSpreadsheet.Tests\PXA.Migration.ClosedXmlSpreadsheet.Tests.csproj", "{A7B897FF-0EA3-4FED-9D66-19687EC17045}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.ClosedXml.Tests", "tests\PXA.Migration.Spreadsheet.Code.ClosedXml.Tests\PXA.Migration.Spreadsheet.Code.ClosedXml.Tests.csproj", "{A7B897FF-0EA3-4FED-9D66-19687EC17045}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.EpplusSpreadsheet", "src\PXA.Migration.EpplusSpreadsheet\PXA.Migration.EpplusSpreadsheet.csproj", "{777BB3FA-3609-4CBA-A9CB-2321E2A6162D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.Epplus", "src\PXA.Migration.Spreadsheet.Code.Epplus\PXA.Migration.Spreadsheet.Code.Epplus.csproj", "{777BB3FA-3609-4CBA-A9CB-2321E2A6162D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.EpplusSpreadsheet.Tests", "tests\PXA.Migration.EpplusSpreadsheet.Tests\PXA.Migration.EpplusSpreadsheet.Tests.csproj", "{AFE9255A-C3FB-4EC0-9652-A477FF6C1DE8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.Epplus.Tests", "tests\PXA.Migration.Spreadsheet.Code.Epplus.Tests\PXA.Migration.Spreadsheet.Code.Epplus.Tests.csproj", "{AFE9255A-C3FB-4EC0-9652-A477FF6C1DE8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.GemBoxSpreadsheet", "src\PXA.Migration.GemBoxSpreadsheet\PXA.Migration.GemBoxSpreadsheet.csproj", "{F6FC8B90-E829-4BD5-9B11-9C79187F0C56}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.GemBox", "src\PXA.Migration.Spreadsheet.Code.GemBox\PXA.Migration.Spreadsheet.Code.GemBox.csproj", "{F6FC8B90-E829-4BD5-9B11-9C79187F0C56}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.GemBoxSpreadsheet.Tests", "tests\PXA.Migration.GemBoxSpreadsheet.Tests\PXA.Migration.GemBoxSpreadsheet.Tests.csproj", "{990A284D-D6EF-4510-A953-DC7605DA6782}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.GemBox.Tests", "tests\PXA.Migration.Spreadsheet.Code.GemBox.Tests\PXA.Migration.Spreadsheet.Code.GemBox.Tests.csproj", "{990A284D-D6EF-4510-A953-DC7605DA6782}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Npoi", "src\PXA.Migration.Npoi\PXA.Migration.Npoi.csproj", "{DF673C98-6D79-4A26-B421-CF823EDADD20}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.Npoi", "src\PXA.Migration.Spreadsheet.Code.Npoi\PXA.Migration.Spreadsheet.Code.Npoi.csproj", "{DF673C98-6D79-4A26-B421-CF823EDADD20}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Npoi.Tests", "tests\PXA.Migration.Npoi.Tests\PXA.Migration.Npoi.Tests.csproj", "{CF67A8EF-CD21-4B99-8146-C059829A281B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.Npoi.Tests", "tests\PXA.Migration.Spreadsheet.Code.Npoi.Tests\PXA.Migration.Spreadsheet.Code.Npoi.Tests.csproj", "{CF67A8EF-CD21-4B99-8146-C059829A281B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.SpireXls", "src\PXA.Migration.SpireXls\PXA.Migration.SpireXls.csproj", "{E9F42CCD-2B99-4265-BDEB-6AB4BEA8F7FF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.Spire", "src\PXA.Migration.Spreadsheet.Code.Spire\PXA.Migration.Spreadsheet.Code.Spire.csproj", "{E9F42CCD-2B99-4265-BDEB-6AB4BEA8F7FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.SpireXls.Tests", "tests\PXA.Migration.SpireXls.Tests\PXA.Migration.SpireXls.Tests.csproj", "{6BBD526F-BE5F-4E01-9969-89DB1753AAD8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.Spire.Tests", "tests\PXA.Migration.Spreadsheet.Code.Spire.Tests\PXA.Migration.Spreadsheet.Code.Spire.Tests.csproj", "{6BBD526F-BE5F-4E01-9969-89DB1753AAD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.SpreadsheetLight", "src\PXA.Migration.SpreadsheetLight\PXA.Migration.SpreadsheetLight.csproj", "{D7DD4064-FFD3-49A9-8BB8-967FE9C7B925}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.SpreadsheetLight", "src\PXA.Migration.Spreadsheet.Code.SpreadsheetLight\PXA.Migration.Spreadsheet.Code.SpreadsheetLight.csproj", "{D7DD4064-FFD3-49A9-8BB8-967FE9C7B925}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.SpreadsheetLight.Tests", "tests\PXA.Migration.SpreadsheetLight.Tests\PXA.Migration.SpreadsheetLight.Tests.csproj", "{D931E271-05A3-4B51-B1C9-C7C1E6831F8F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.SpreadsheetLight.Tests", "tests\PXA.Migration.Spreadsheet.Code.SpreadsheetLight.Tests\PXA.Migration.Spreadsheet.Code.SpreadsheetLight.Tests.csproj", "{D931E271-05A3-4B51-B1C9-C7C1E6831F8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.SyncfusionXlsIo", "src\PXA.Migration.SyncfusionXlsIo\PXA.Migration.SyncfusionXlsIo.csproj", "{084B51C3-6495-4899-86C2-9F5C5EE66125}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.Syncfusion", "src\PXA.Migration.Spreadsheet.Code.Syncfusion\PXA.Migration.Spreadsheet.Code.Syncfusion.csproj", "{084B51C3-6495-4899-86C2-9F5C5EE66125}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.SyncfusionXlsIo.Tests", "tests\PXA.Migration.SyncfusionXlsIo.Tests\PXA.Migration.SyncfusionXlsIo.Tests.csproj", "{6C73D687-8359-4188-95FF-084355A94035}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Spreadsheet.Code.Syncfusion.Tests", "tests\PXA.Migration.Spreadsheet.Code.Syncfusion.Tests\PXA.Migration.Spreadsheet.Code.Syncfusion.Tests.csproj", "{6C73D687-8359-4188-95FF-084355A94035}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.ActiveReportsJs", "src\PXA.Migration.ActiveReportsJs\PXA.Migration.ActiveReportsJs.csproj", "{3FE3D2FD-6A6A-48D2-8B54-7ABCBD7EECAF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.ActiveReportsJs", "src\PXA.Migration.Report.Designer.ActiveReportsJs\PXA.Migration.Report.Designer.ActiveReportsJs.csproj", "{3FE3D2FD-6A6A-48D2-8B54-7ABCBD7EECAF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.ActiveReportsJs.Tests", "tests\PXA.Migration.ActiveReportsJs.Tests\PXA.Migration.ActiveReportsJs.Tests.csproj", "{BCE5040C-FC72-49A3-B49E-94CB3420D8D4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.ActiveReportsJs.Tests", "tests\PXA.Migration.Report.Designer.ActiveReportsJs.Tests\PXA.Migration.Report.Designer.ActiveReportsJs.Tests.csproj", "{BCE5040C-FC72-49A3-B49E-94CB3420D8D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.DevExpressReport", "src\PXA.Migration.DevExpressReport\PXA.Migration.DevExpressReport.csproj", "{74FF86AE-986D-4614-AE78-818FACCED4DE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.DevExpress", "src\PXA.Migration.Report.Designer.DevExpress\PXA.Migration.Report.Designer.DevExpress.csproj", "{74FF86AE-986D-4614-AE78-818FACCED4DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.DevExpressReport.Tests", "tests\PXA.Migration.DevExpressReport.Tests\PXA.Migration.DevExpressReport.Tests.csproj", "{FD4BA771-A575-447D-B970-D00244DD59E4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.DevExpress.Tests", "tests\PXA.Migration.Report.Designer.DevExpress.Tests\PXA.Migration.Report.Designer.DevExpress.Tests.csproj", "{FD4BA771-A575-447D-B970-D00244DD59E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.FastReport", "src\PXA.Migration.FastReport\PXA.Migration.FastReport.csproj", "{6F56B89A-5AA6-4B49-BD82-05B506197A9C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.FastReport", "src\PXA.Migration.Report.Designer.FastReport\PXA.Migration.Report.Designer.FastReport.csproj", "{6F56B89A-5AA6-4B49-BD82-05B506197A9C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.FastReport.Tests", "tests\PXA.Migration.FastReport.Tests\PXA.Migration.FastReport.Tests.csproj", "{5CA56715-0C1F-44DC-BFCA-75495C2D548A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.FastReport.Tests", "tests\PXA.Migration.Report.Designer.FastReport.Tests\PXA.Migration.Report.Designer.FastReport.Tests.csproj", "{5CA56715-0C1F-44DC-BFCA-75495C2D548A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.JasperReports", "src\PXA.Migration.JasperReports\PXA.Migration.JasperReports.csproj", "{62937FD9-271E-43AB-B821-7F4CE73CE5FB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.JasperReports", "src\PXA.Migration.Report.Designer.JasperReports\PXA.Migration.Report.Designer.JasperReports.csproj", "{62937FD9-271E-43AB-B821-7F4CE73CE5FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.JasperReports.Tests", "tests\PXA.Migration.JasperReports.Tests\PXA.Migration.JasperReports.Tests.csproj", "{206DB0B7-99AA-46E0-84EF-E284F5554C1D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.JasperReports.Tests", "tests\PXA.Migration.Report.Designer.JasperReports.Tests\PXA.Migration.Report.Designer.JasperReports.Tests.csproj", "{206DB0B7-99AA-46E0-84EF-E284F5554C1D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Rdl", "src\PXA.Migration.Rdl\PXA.Migration.Rdl.csproj", "{78ED7FD9-6702-4CE1-BF9A-290FC62B8A1B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.Rdl", "src\PXA.Migration.Report.Designer.Rdl\PXA.Migration.Report.Designer.Rdl.csproj", "{78ED7FD9-6702-4CE1-BF9A-290FC62B8A1B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Rdl.Tests", "tests\PXA.Migration.Rdl.Tests\PXA.Migration.Rdl.Tests.csproj", "{7F6D2162-EDCE-44D0-8A44-43374F92E0C6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.Rdl.Tests", "tests\PXA.Migration.Report.Designer.Rdl.Tests\PXA.Migration.Report.Designer.Rdl.Tests.csproj", "{7F6D2162-EDCE-44D0-8A44-43374F92E0C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Rpx", "src\PXA.Migration.Rpx\PXA.Migration.Rpx.csproj", "{BB7042B7-4A96-4F58-A4DF-0E030D82DC8B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.Rpx", "src\PXA.Migration.Report.Designer.Rpx\PXA.Migration.Report.Designer.Rpx.csproj", "{BB7042B7-4A96-4F58-A4DF-0E030D82DC8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Rpx.Tests", "tests\PXA.Migration.Rpx.Tests\PXA.Migration.Rpx.Tests.csproj", "{AB6BCB79-C57F-4D14-B07A-C95B3EBA1989}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.Rpx.Tests", "tests\PXA.Migration.Report.Designer.Rpx.Tests\PXA.Migration.Report.Designer.Rpx.Tests.csproj", "{AB6BCB79-C57F-4D14-B07A-C95B3EBA1989}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Stimulsoft", "src\PXA.Migration.Stimulsoft\PXA.Migration.Stimulsoft.csproj", "{A86D2CEA-9C70-475B-A442-1C3B65BEBB22}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.Stimulsoft", "src\PXA.Migration.Report.Designer.Stimulsoft\PXA.Migration.Report.Designer.Stimulsoft.csproj", "{A86D2CEA-9C70-475B-A442-1C3B65BEBB22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Stimulsoft.Tests", "tests\PXA.Migration.Stimulsoft.Tests\PXA.Migration.Stimulsoft.Tests.csproj", "{8FB27ECC-F309-4740-B309-886EB5C30BBB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.Stimulsoft.Tests", "tests\PXA.Migration.Report.Designer.Stimulsoft.Tests\PXA.Migration.Report.Designer.Stimulsoft.Tests.csproj", "{8FB27ECC-F309-4740-B309-886EB5C30BBB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Telerik", "src\PXA.Migration.Telerik\PXA.Migration.Telerik.csproj", "{987A36EE-AA62-4D3D-8CC1-6C26D6E700D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.Telerik", "src\PXA.Migration.Report.Designer.Telerik\PXA.Migration.Report.Designer.Telerik.csproj", "{987A36EE-AA62-4D3D-8CC1-6C26D6E700D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Telerik.Tests", "tests\PXA.Migration.Telerik.Tests\PXA.Migration.Telerik.Tests.csproj", "{5CD35DF4-E48A-4B3F-8D8B-08EACA1406FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PXA.Migration.Report.Designer.Telerik.Tests", "tests\PXA.Migration.Report.Designer.Telerik.Tests\PXA.Migration.Report.Designer.Telerik.Tests.csproj", "{5CD35DF4-E48A-4B3F-8D8B-08EACA1406FC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

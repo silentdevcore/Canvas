@@ -46,21 +46,21 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 
 - [x] `src/PXA.Migration.Abstractions`
 - [x] `src/PXA.Migration.Roslyn`
-- [x] `src/PXA.Migration.iText7`
-- [x] `src/PXA.Migration.AsposePdf`
-- [x] `src/PXA.Migration.IronPdf`
-- [x] `src/PXA.Migration.Apryse`
-- [x] `src/PXA.Migration.SyncfusionPdf`
-- [x] `src/PXA.Migration.DsPdf`
-- [x] `src/PXA.Migration.GemBoxPdf`
-- [x] `src/PXA.Migration.SpirePdf`
-- [x] `src/PXA.Migration.PdfKitNet`
-- [x] `src/PXA.Migration.LeadtoolsPdf`
-- [x] `src/PXA.Migration.FoxitPdf`
-- [x] `src/PXA.Migration.DevExpressPdf`
-- [x] `src/PXA.Migration.ActivePdf`
-- [x] `src/PXA.Migration.PdfTools`
-- [x] `src/PXA.Migration.PdfToolsToolbox`
+- [x] `src/PXA.Migration.Pdf.Code.IText7`
+- [x] `src/PXA.Migration.Pdf.Code.Aspose`
+- [x] `src/PXA.Migration.Pdf.Code.IronPdf`
+- [x] `src/PXA.Migration.Pdf.Code.Apryse`
+- [x] `src/PXA.Migration.Pdf.Code.Syncfusion`
+- [x] `src/PXA.Migration.Pdf.Code.DsPdf`
+- [x] `src/PXA.Migration.Pdf.Code.GemBox`
+- [x] `src/PXA.Migration.Pdf.Code.Spire`
+- [x] `src/PXA.Migration.Pdf.Code.PdfKitNet`
+- [x] `src/PXA.Migration.Pdf.Code.Leadtools`
+- [x] `src/PXA.Migration.Pdf.Code.Foxit`
+- [x] `src/PXA.Migration.Pdf.Code.DevExpress`
+- [x] `src/PXA.Migration.Pdf.Code.ActivePdf`
+- [x] `src/PXA.Migration.Pdf.Code.PdfTools`
+- [x] `src/PXA.Migration.Pdf.Code.PdfToolsToolbox`
 
 ## Shared Roslyn Analyzer And Code Fix Tasks
 

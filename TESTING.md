@@ -11,7 +11,7 @@
 | PDF importer SDK | `tests/PXA.Importer.Tests` | Tokenizer, object parsing, stream/content parsing, graphics interpretation, editable model |
 | File importers | `tests/PXA.FileImporter.Tests`, `tests/PXA.FileImporter.ImageAnalysis.Tests`, `tests/PXA.FileImporter.ImageOcr.Tests` | File-to-`DesignExportDto` adapters, raster analysis, OCR pipeline |
 | PDF migration providers | `tests/PXA.Migration.*.Tests` provider projects | Vendor C# PDF code migration to PXA PDF code |
-| Report migration | `tests/PXA.Migration.DevExpressReport.Tests`, `tests/PXA.Migration.Rdl.Tests`, `tests/PXA.Migration.Rpx.Tests`, plus the other report provider suites | Report source to editable PXA design |
+| Report migration | `tests/PXA.Migration.Report.Designer.DevExpress.Tests`, `tests/PXA.Migration.Report.Designer.Rdl.Tests`, `tests/PXA.Migration.Report.Designer.Rpx.Tests`, plus the other report provider suites | Report source to editable PXA design |
 | Frontend | `ui-designer-v2` Jest tests | Editor, services, template utilities, export service, validation |
 
 ## Running Tests
@@ -40,10 +40,10 @@ dotnet test tests/PXA.FileImporter.ImageOcr.Tests
 dotnet test tests/PXA.Migration.Pdf.Tests
 dotnet test tests/PXA.Migration.Spreadsheet.Tests
 dotnet test tests/PXA.Migration.Report.Tests
-dotnet test tests/PXA.Migration.DevExpressPdf.Tests
-dotnet test tests/PXA.Migration.DevExpressReport.Tests
-dotnet test tests/PXA.Migration.Rdl.Tests
-dotnet test tests/PXA.Migration.Rpx.Tests
+dotnet test tests/PXA.Migration.Pdf.Code.DevExpress.Tests
+dotnet test tests/PXA.Migration.Report.Designer.DevExpress.Tests
+dotnet test tests/PXA.Migration.Report.Designer.Rdl.Tests
+dotnet test tests/PXA.Migration.Report.Designer.Rpx.Tests
 ```
 
 Frontend:

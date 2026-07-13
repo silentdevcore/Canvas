@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../PXA.Migration.ActiveReportsJs/PXA.Migration.ActiveReportsJs.csproj" />
-    <ProjectReference Include="../PXA.Migration.DevExpressReport/PXA.Migration.DevExpressReport.csproj" />
-    <ProjectReference Include="../PXA.Migration.FastReport/PXA.Migration.FastReport.csproj" />
-    <ProjectReference Include="../PXA.Migration.JasperReports/PXA.Migration.JasperReports.csproj" />
-    <ProjectReference Include="../PXA.Migration.Rdl/PXA.Migration.Rdl.csproj" />
-    <ProjectReference Include="../PXA.Migration.Rpx/PXA.Migration.Rpx.csproj" />
-    <ProjectReference Include="../PXA.Migration.Stimulsoft/PXA.Migration.Stimulsoft.csproj" />
-    <ProjectReference Include="../PXA.Migration.Telerik/PXA.Migration.Telerik.csproj" />
+    <ProjectReference Include="../PXA.Migration.Report.Designer.ActiveReportsJs/PXA.Migration.Report.Designer.ActiveReportsJs.csproj" />
+    <ProjectReference Include="../PXA.Migration.Report.Designer.DevExpress/PXA.Migration.Report.Designer.DevExpress.csproj" />
+    <ProjectReference Include="../PXA.Migration.Report.Designer.FastReport/PXA.Migration.Report.Designer.FastReport.csproj" />
+    <ProjectReference Include="../PXA.Migration.Report.Designer.JasperReports/PXA.Migration.Report.Designer.JasperReports.csproj" />
+    <ProjectReference Include="../PXA.Migration.Report.Designer.Rdl/PXA.Migration.Report.Designer.Rdl.csproj" />
+    <ProjectReference Include="../PXA.Migration.Report.Designer.Rpx/PXA.Migration.Report.Designer.Rpx.csproj" />
+    <ProjectReference Include="../PXA.Migration.Report.Designer.Stimulsoft/PXA.Migration.Report.Designer.Stimulsoft.csproj" />
+    <ProjectReference Include="../PXA.Migration.Report.Designer.Telerik/PXA.Migration.Report.Designer.Telerik.csproj" />
     <ProjectReference Include="../PXA.Core/PXA.Core.csproj" />
     <ProjectReference Include="../PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
   </ItemGroup>

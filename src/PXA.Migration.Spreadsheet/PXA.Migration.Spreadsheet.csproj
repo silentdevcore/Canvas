@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../PXA.Migration.AsposeCells/PXA.Migration.AsposeCells.csproj" />
-    <ProjectReference Include="../PXA.Migration.ClosedXmlSpreadsheet/PXA.Migration.ClosedXmlSpreadsheet.csproj" />
-    <ProjectReference Include="../PXA.Migration.EpplusSpreadsheet/PXA.Migration.EpplusSpreadsheet.csproj" />
-    <ProjectReference Include="../PXA.Migration.GemBoxSpreadsheet/PXA.Migration.GemBoxSpreadsheet.csproj" />
-    <ProjectReference Include="../PXA.Migration.Npoi/PXA.Migration.Npoi.csproj" />
-    <ProjectReference Include="../PXA.Migration.SpireXls/PXA.Migration.SpireXls.csproj" />
-    <ProjectReference Include="../PXA.Migration.SpreadsheetLight/PXA.Migration.SpreadsheetLight.csproj" />
-    <ProjectReference Include="../PXA.Migration.SyncfusionXlsIo/PXA.Migration.SyncfusionXlsIo.csproj" />
+    <ProjectReference Include="../PXA.Migration.Spreadsheet.Code.Aspose/PXA.Migration.Spreadsheet.Code.Aspose.csproj" />
+    <ProjectReference Include="../PXA.Migration.Spreadsheet.Code.ClosedXml/PXA.Migration.Spreadsheet.Code.ClosedXml.csproj" />
+    <ProjectReference Include="../PXA.Migration.Spreadsheet.Code.Epplus/PXA.Migration.Spreadsheet.Code.Epplus.csproj" />
+    <ProjectReference Include="../PXA.Migration.Spreadsheet.Code.GemBox/PXA.Migration.Spreadsheet.Code.GemBox.csproj" />
+    <ProjectReference Include="../PXA.Migration.Spreadsheet.Code.Npoi/PXA.Migration.Spreadsheet.Code.Npoi.csproj" />
+    <ProjectReference Include="../PXA.Migration.Spreadsheet.Code.Spire/PXA.Migration.Spreadsheet.Code.Spire.csproj" />
+    <ProjectReference Include="../PXA.Migration.Spreadsheet.Code.SpreadsheetLight/PXA.Migration.Spreadsheet.Code.SpreadsheetLight.csproj" />
+    <ProjectReference Include="../PXA.Migration.Spreadsheet.Code.Syncfusion/PXA.Migration.Spreadsheet.Code.Syncfusion.csproj" />
     <ProjectReference Include="../PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
   </ItemGroup>
 

@@ -48,18 +48,18 @@ interchange + migration target. Built in-house, reusing the existing Roslyn PDF-
       `Freeze`), `PxaCell` (`Value` w/ type inference, `Formula`, `NumberFormat`, `Comment`, `Hyperlink`,
       `Style(s => ...)`), `PxaCellStyle` (Bold/Italic/Background/Color/Font/FontSize/Align). Test
       `PxaWorkbook_FluentApi_BuildsCalculableWorkbook` (build → .xlsx round-trip + `/calculate` = 20).
-- [x] **B2/B3 ClosedXML** (reference impl) — `PXA.Migration.ClosedXmlSpreadsheet` (Roslyn rewriter),
+- [x] **B2/B3 ClosedXML** (reference impl) — `PXA.Migration.Spreadsheet.Code.ClosedXml` (Roslyn rewriter),
       `CANMIGCLXL`; `ClosedXmlSpreadsheetConverter` registered in `MigrationService` (Status `full`). Handles
       new workbook, AddSheet, Value/Formula/Width/Height property→method, Bold/Italic/FontSize style lambdas,
       1-based→0-based index shift, SaveAs→Save, usings swap; diagnostics for the rest. 3 tests + live convert.
       See `checklists/Spreadsheet-Migration-ClosedXML.md`.
-- [x] **B2/B3 EPPlus** — `PXA.Migration.EpplusSpreadsheet`, `CANMIGEPPL`. `Cells[..]` indexer→`Cell(..)`,
+- [x] **B2/B3 EPPlus** — `PXA.Migration.Spreadsheet.Code.Epplus`, `CANMIGEPPL`. `Cells[..]` indexer→`Cell(..)`,
       `pkg.Workbook.Worksheets.Add`→`AddSheet`, `Merge=true`→`Range(..).Merge()`, value/formula/style/SaveAs,
       index shift. Converter registered; 3 tests. See `checklists/Spreadsheet-Migration-EPPlus.md`.
-- [x] **B2/B3 GemBox.Spreadsheet** — `PXA.Migration.GemBoxSpreadsheet`, `CANMIGGBSS`. Drops SetLicense;
+- [x] **B2/B3 GemBox.Spreadsheet** — `PXA.Migration.Spreadsheet.Code.GemBox`, `CANMIGGBSS`. Drops SetLicense;
       ExcelFile→PxaWorkbook, Cells[..]→Cell(..) (0-based, no shift), Font.Weight→Bold(), value/formula/save.
       Converter registered; 2 tests. See `checklists/Spreadsheet-Migration-GemBox.md`.
-- [x] **B2/B3 Aspose.Cells** — `PXA.Migration.AsposeCells`, `CANMIGASPC`. Workbook→PxaWorkbook,
+- [x] **B2/B3 Aspose.Cells** — `PXA.Migration.Spreadsheet.Code.Aspose`, `CANMIGASPC`. Workbook→PxaWorkbook,
       `Worksheets[0]`→`AddSheet`, `Cells[..]`→`Cell(..)` (0-based), `PutValue`→`Value`, Formula→method,
       `SetColumnWidth`→`Column().Width()`, save; GetStyle/SetStyle + charts diagnosed. Registered; 2 tests.
       See `checklists/Spreadsheet-Migration-Aspose.md`.
@@ -111,7 +111,7 @@ its own sub-tabs; Spreadsheet Code Migration gets its own view + a non-PDF previ
   `llms.txt`; `tools/PXA.Mcp`.
 - **Authoring API:** `src/PXA.Infrastructure.Spreadsheet/PxaWorkbookBuilder.cs` (new).
 - **Migration (reuse):** `src/PXA.Migration.Roslyn/CSharpSourceMigration.cs`;
-  clone `src/PXA.Migration.GemBoxPdf/GemBoxPdfMigration.cs`; `PXA.Migration.Abstractions` (`MigrationDiagnostic`);
+  clone `src/PXA.Migration.Pdf.Code.GemBox/GemBoxPdfMigration.cs`; `PXA.Migration.Abstractions` (`MigrationDiagnostic`);
   new `src/PXA.Migration.<Lib>Spreadsheet/`; `PXA.WebApi/Services/{ICodeConverter.cs,MigrationService.cs,Converters/}`.
 
 ## Verification

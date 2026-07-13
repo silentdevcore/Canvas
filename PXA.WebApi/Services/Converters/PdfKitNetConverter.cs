@@ -1,4 +1,4 @@
-using PXA.Migration.PdfKitNet;
+using PXA.Migration.Pdf.Code.PdfKitNet;
 
 namespace PXA.WebApi.Services.Converters;
 

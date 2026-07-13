@@ -2,8 +2,8 @@
 
 ## V1 Pilot Analysis
 
-- [x] Add cautious Roslyn-backed provider project: `src/PXA.Migration.PdfToolsToolbox`
-- [x] Add provider tests: `tests/PXA.Migration.PdfToolsToolbox.Tests`
+- [x] Add cautious Roslyn-backed provider project: `src/PXA.Migration.Pdf.Code.PdfToolsToolbox`
+- [x] Add provider tests: `tests/PXA.Migration.Pdf.Code.PdfToolsToolbox.Tests`
 - [x] Connect WebApi converter: `PXA.WebApi/Services/Converters/PdfToolsToolboxConverter.cs`
 - [x] Add UI fallback status/example as `pilot`
 - [x] Split from `PDFTools / Pdftools SDK`; Toolbox is the direct-generation/content-editing API family

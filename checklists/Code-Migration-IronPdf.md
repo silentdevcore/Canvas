@@ -38,8 +38,8 @@
 
 ## Roslyn Implementation Status
 
-- [x] Add `src/PXA.Migration.IronPdf`
-- [x] Add `tests/PXA.Migration.IronPdf.Tests`
+- [x] Add `src/PXA.Migration.Pdf.Code.IronPdf`
+- [x] Add `tests/PXA.Migration.Pdf.Code.IronPdf.Tests`
 - [x] Add projects to `PXA.sln`
 - [x] Implement `IronPdfMigration` as a real `CSharpSyntaxRewriter`
 - [x] Pre-scan phase: find renderer var, pdf var, save target
@@ -54,7 +54,7 @@
 - [x] Warn and keep editing/security/signing calls
 - [x] Remove IronPdf usings, add `using PXA.Pdf;`
 - [x] Connect WebApi IronPDF converter to the Roslyn migration engine
-- [x] Verified with `dotnet test tests/PXA.Migration.IronPdf.Tests`: `11/11` passed
+- [x] Verified with `dotnet test tests/PXA.Migration.Pdf.Code.IronPdf.Tests`: `11/11` passed
 - [x] Verified with `dotnet test tests/PXA.Api.Tests`: `22/22` passed
 
 ## Mapping Table

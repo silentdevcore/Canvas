@@ -28,10 +28,10 @@ If we want product quality, continue with **DevExpress fidelity** and real-sampl
 
 | Designer | Manufacturer | Tech (format) | Features | Done? |
 | --- | --- | --- | --- | --- |
-| DevExpress XtraReports | DevExpress | `.repx` XML + C# (banded) | Bands (Report/Page/Group/Detail); XRLabel/Table/Line/Shape/PictureBox/BarCode/RichText/CheckBox; expression bindings | ✅ `PXA.Migration.DevExpressReport` |
-| Syncfusion Report Designer / Bold Reports | Syncfusion | `.rdl` / `.rdlc` (RDL XML, region) | Body + Page header/footer; Textbox/Tablix/Table/Line/Rectangle/Image; `=Fields!` bindings | ✅ `PXA.Migration.Rdl` |
-| ActiveReports — Page / RDLX reports | MESCIUS (GrapeCity) | `.rdlx` (RDL XML) | RDL-family; report items + `CustomReportItem` barcodes | ✅ `PXA.Migration.Rdl` — see [Designer-Migration-ActiveReports.md](Designer-Migration-ActiveReports.md) |
-| ActiveReports — Section reports | MESCIUS (GrapeCity) | `.rpx` (XML, banded) | Section bands; Label/TextBox/Line/Shape/Picture/Barcode/CheckBox/RichText/SubReport; `DataField` bindings | ✅ `PXA.Migration.Rpx` — see [Designer-Migration-ActiveReports.md](Designer-Migration-ActiveReports.md) |
+| DevExpress XtraReports | DevExpress | `.repx` XML + C# (banded) | Bands (Report/Page/Group/Detail); XRLabel/Table/Line/Shape/PictureBox/BarCode/RichText/CheckBox; expression bindings | ✅ `PXA.Migration.Report.Designer.DevExpress` |
+| Syncfusion Report Designer / Bold Reports | Syncfusion | `.rdl` / `.rdlc` (RDL XML, region) | Body + Page header/footer; Textbox/Tablix/Table/Line/Rectangle/Image; `=Fields!` bindings | ✅ `PXA.Migration.Report.Designer.Rdl` |
+| ActiveReports — Page / RDLX reports | MESCIUS (GrapeCity) | `.rdlx` (RDL XML) | RDL-family; report items + `CustomReportItem` barcodes | ✅ `PXA.Migration.Report.Designer.Rdl` — see [Designer-Migration-ActiveReports.md](Designer-Migration-ActiveReports.md) |
+| ActiveReports — Section reports | MESCIUS (GrapeCity) | `.rpx` (XML, banded) | Section bands; Label/TextBox/Line/Shape/Picture/Barcode/CheckBox/RichText/SubReport; `DataField` bindings | ✅ `PXA.Migration.Report.Designer.Rpx` — see [Designer-Migration-ActiveReports.md](Designer-Migration-ActiveReports.md) |
 | iText 7 | iText Group | C# PDF library | PDF-generation API — no visual report designer | — |
 | Apryse (PDFTron) | Apryse | C# PDF SDK | PDF SDK — no report designer | — |
 | Aspose.PDF | Aspose | C# PDF library | No banded report designer | — |
@@ -45,19 +45,19 @@ If we want product quality, continue with **DevExpress fidelity** and real-sampl
 | PDF Tools / Toolbox | PDF Tools AG | C# PDF SDK | No report designer | — |
 
 > Microsoft **SSRS**, **RDLC**, and **Power BI Report Builder** all emit the same **RDL** XML — already
-> covered by `PXA.Migration.Rdl`.
+> covered by `PXA.Migration.Report.Designer.Rdl`.
 
 ## Priority 2 — Other report designers (future candidates, outside our set)
 
 | Designer | Manufacturer | Tech (format) | Features | Done? |
 | --- | --- | --- | --- | --- |
-| FastReport .NET | Fast Reports Inc. | `.frx` (plain XML, banded) | ReportTitle/PageHeader/DataBand/…/PageFooter; TextObject/Line/Shape/Picture/Barcode/CheckBox; `[Source.Column]` bindings | ✅ `PXA.Migration.FastReport` — see [Designer-Migration-FastReport.md](Designer-Migration-FastReport.md) |
-| Telerik Reporting | Progress (Telerik) | `.trdx` (XML) / `.trdp` (zip) | Sections; TextBox/HtmlTextBox/PictureBox/Shape/Barcode/Panel; StyleSheet styles; `=Fields.X` bindings | ✅ `PXA.Migration.Telerik` — see [Designer-Migration-Telerik.md](Designer-Migration-Telerik.md) |
-| Stimulsoft Reports | Stimulsoft | `.mrt` (XML `StiSerializer`; JSON is V2) | Bands + Text/Image/Line/Rect/BarCode/Panel; `{Source.Field}` bindings | ✅ `PXA.Migration.Stimulsoft` — see [Designer-Migration-Stimulsoft.md](Designer-Migration-Stimulsoft.md) |
-| JasperReports | Cloud Software Group (Jaspersoft) | `.jrxml` (XML, banded) | title/pageHeader/detail/…; staticText/textField/line/rectangle/ellipse/image/frame; named styles; `$F{}` bindings | ✅ `PXA.Migration.JasperReports` — see [Designer-Migration-JasperReports.md](Designer-Migration-JasperReports.md) |
+| FastReport .NET | Fast Reports Inc. | `.frx` (plain XML, banded) | ReportTitle/PageHeader/DataBand/…/PageFooter; TextObject/Line/Shape/Picture/Barcode/CheckBox; `[Source.Column]` bindings | ✅ `PXA.Migration.Report.Designer.FastReport` — see [Designer-Migration-FastReport.md](Designer-Migration-FastReport.md) |
+| Telerik Reporting | Progress (Telerik) | `.trdx` (XML) / `.trdp` (zip) | Sections; TextBox/HtmlTextBox/PictureBox/Shape/Barcode/Panel; StyleSheet styles; `=Fields.X` bindings | ✅ `PXA.Migration.Report.Designer.Telerik` — see [Designer-Migration-Telerik.md](Designer-Migration-Telerik.md) |
+| Stimulsoft Reports | Stimulsoft | `.mrt` (XML `StiSerializer`; JSON is V2) | Bands + Text/Image/Line/Rect/BarCode/Panel; `{Source.Field}` bindings | ✅ `PXA.Migration.Report.Designer.Stimulsoft` — see [Designer-Migration-Stimulsoft.md](Designer-Migration-Stimulsoft.md) |
+| JasperReports | Cloud Software Group (Jaspersoft) | `.jrxml` (XML, banded) | title/pageHeader/detail/…; staticText/textField/line/rectangle/ellipse/image/frame; named styles; `$F{}` bindings | ✅ `PXA.Migration.Report.Designer.JasperReports` — see [Designer-Migration-JasperReports.md](Designer-Migration-JasperReports.md) |
 | Crystal Reports | SAP | `.rpt` (binary, proprietary) | Banded; **proprietary binary OLE format — no open parser, needs the Windows-only SAP SDK** | ⛔ Blocked — see [Designer-Migration-Crystal.md](Designer-Migration-Crystal.md) |
 | List & Label | combit | `.lst` / `.lsr` | Banded report container | ❌ |
-| ActiveReports JS | MESCIUS | JSON report model | Web/JS designer (distinct from `.rdlx`/`.rpx`) | ✅ V1 `PXA.Migration.ActiveReportsJs` — marked JSON only |
+| ActiveReports JS | MESCIUS | JSON report model | Web/JS designer (distinct from `.rdlx`/`.rpx`) | ✅ V1 `PXA.Migration.Report.Designer.ActiveReportsJs` — marked JSON only |
 
 ## Recommended next work — provider fidelity
 

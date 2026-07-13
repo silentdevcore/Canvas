@@ -2,8 +2,8 @@
 
 ## V1 Pilot Analysis
 
-- [x] Add cautious Roslyn-backed provider project: `src/PXA.Migration.PdfTools`
-- [x] Add provider tests: `tests/PXA.Migration.PdfTools.Tests`
+- [x] Add cautious Roslyn-backed provider project: `src/PXA.Migration.Pdf.Code.PdfTools`
+- [x] Add provider tests: `tests/PXA.Migration.Pdf.Code.PdfTools.Tests`
 - [x] Connect WebApi converter: `PXA.WebApi/Services/Converters/PdfToolsConverter.cs`
 - [x] Add UI fallback status/example as `pilot`
 - [x] Confirm current .NET package name from official docs: `PdfTools`

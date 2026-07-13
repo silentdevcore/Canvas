@@ -1,4 +1,4 @@
-using PXA.Migration.GemBoxPdf;
+using PXA.Migration.Pdf.Code.GemBox;
 
 namespace PXA.WebApi.Services.Converters;
 

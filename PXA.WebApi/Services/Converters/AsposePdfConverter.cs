@@ -1,4 +1,4 @@
-using PXA.Migration.AsposePdf;
+using PXA.Migration.Pdf.Code.Aspose;
 
 namespace PXA.WebApi.Services.Converters;
 

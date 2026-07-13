@@ -1,4 +1,4 @@
-using PXA.Migration.Rdl;
+using PXA.Migration.Report.Designer.Rdl;
 using PXA.Core.Contracts;
 
 namespace PXA.Migration.Report;

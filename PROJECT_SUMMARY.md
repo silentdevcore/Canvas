@@ -143,7 +143,7 @@ Default local servers: frontend `http://localhost:5173`; API ports depend on lau
 | PDF importer SDK | `PXA.Importer.Tests` |
 | File importers | `PXA.FileImporter.*.Tests` |
 | Image analysis/OCR | `PXA.FileImporter.ImageAnalysis.Tests`, `PXA.FileImporter.ImageOcr.Tests` |
-| PDF code migrations | `PXA.Migration.*Pdf.Tests`, `PXA.Migration.iText7.Tests`, provider-specific tests |
-| Report migrations | `PXA.Migration.DevExpressReport.Tests`, `PXA.Migration.Rdl.Tests`, `PXA.Migration.Rpx.Tests` |
+| PDF code migrations | `PXA.Migration.*Pdf.Tests`, `PXA.Migration.Pdf.Code.IText7.Tests`, provider-specific tests |
+| Report migrations | `PXA.Migration.Report.Designer.DevExpress.Tests`, `PXA.Migration.Report.Designer.Rdl.Tests`, `PXA.Migration.Report.Designer.Rpx.Tests` |
 
 See `TESTING.md` for command examples and validation policy.

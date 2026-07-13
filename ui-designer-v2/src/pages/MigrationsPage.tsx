@@ -1251,7 +1251,7 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
           <div className="mgr-heading-left">
             {isDesigner ? <FiLayout className="mgr-heading-icon" /> : <FiCode className="mgr-heading-icon" />}
             <div>
-              <h1>{isDesigner ? 'UI-Designer Migration' : isSpreadsheetCode ? 'Spreadsheet Code Migration' : 'PDF Code Migration'}</h1>
+              <h1>{isDesigner ? 'Report Designer Migration' : isSpreadsheetCode ? 'Spreadsheet Code Migration' : 'PDF Code Migration'}</h1>
               <p>
                 {isDesigner
                   ? 'Convert a report-designer file (DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik) into an editable PXA design, then open it in the visual designer.'

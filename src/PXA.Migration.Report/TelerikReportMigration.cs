@@ -1,4 +1,4 @@
-using PXA.Migration.Telerik;
+using PXA.Migration.Report.Designer.Telerik;
 using PXA.Core.Contracts;
 
 namespace PXA.Migration.Report;

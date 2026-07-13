@@ -28,7 +28,7 @@
 ## V2 Hardening Plan
 
 Moves the provider from "deterministic single-page V1" to a more robust V2. Work is isolated to
-`src/PXA.Migration.DevExpressPdf/DevExpressPdfMigration.cs` and its test project.
+`src/PXA.Migration.Pdf.Code.DevExpress/DevExpressPdfMigration.cs` and its test project.
 
 ### 1. Multi-page fix (correctness bug)
 

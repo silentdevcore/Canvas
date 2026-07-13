@@ -33,7 +33,7 @@ works, so **no converter is shipped**. This file records the decision.
   `PXA.Migration.CrystalXml` converter against that XML. Needs: a Windows build/runtime + the SDK +
   a binary/file upload path on the endpoint.
 - **User-side re-export.** Crystal can't export to RDL directly, but a third-party Crystal→SSRS migration
-  can produce **RDL**, which already converts via `PXA.Migration.Rdl`. Document this as the
+  can produce **RDL**, which already converts via `PXA.Migration.Report.Designer.Rdl`. Document this as the
   recommended manual workaround.
 - **Binary upload + CFB string extraction (low value).** Detect the CFB signature and extract readable
   strings (field names, captions) — but **no geometry/layout** is recoverable, so the result isn't a

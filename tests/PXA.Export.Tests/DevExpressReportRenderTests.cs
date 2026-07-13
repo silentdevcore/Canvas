@@ -1,6 +1,6 @@
 using System.Text;
 using PXA.Pdf;
-using PXA.Migration.DevExpressReport;
+using PXA.Migration.Report.Designer.DevExpress;
 using PXA.WebApi.Infrastructure;
 
 namespace PXA.Export.Tests;

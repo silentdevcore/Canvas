@@ -1,19 +1,19 @@
 using PXA.Migration.Abstractions;
-using ActivePdfMigration = PXA.Migration.ActivePdf.ActivePdfMigration;
-using ApryseMigration = PXA.Migration.Apryse.ApryseMigration;
-using AsposePdfMigration = PXA.Migration.AsposePdf.AsposePdfMigration;
-using DevExpressPdfMigration = PXA.Migration.DevExpressPdf.DevExpressPdfMigration;
-using DsPdfMigration = PXA.Migration.DsPdf.DsPdfMigration;
-using FoxitPdfMigration = PXA.Migration.FoxitPdf.FoxitPdfMigration;
-using GemBoxPdfMigration = PXA.Migration.GemBoxPdf.GemBoxPdfMigration;
-using IronPdfMigration = PXA.Migration.IronPdf.IronPdfMigration;
-using IText7Migration = PXA.Migration.iText7.IText7Migration;
-using LeadtoolsPdfMigration = PXA.Migration.LeadtoolsPdf.LeadtoolsPdfMigration;
-using PdfKitNetMigration = PXA.Migration.PdfKitNet.PdfKitNetMigration;
-using PdfToolsMigration = PXA.Migration.PdfTools.PdfToolsMigration;
-using PdfToolsToolboxMigration = PXA.Migration.PdfToolsToolbox.PdfToolsToolboxMigration;
-using SpirePdfMigration = PXA.Migration.SpirePdf.SpirePdfMigration;
-using SyncfusionPdfMigration = PXA.Migration.SyncfusionPdf.SyncfusionPdfMigration;
+using ActivePdfMigration = PXA.Migration.Pdf.Code.ActivePdf.ActivePdfMigration;
+using ApryseMigration = PXA.Migration.Pdf.Code.Apryse.ApryseMigration;
+using AsposePdfMigration = PXA.Migration.Pdf.Code.Aspose.AsposePdfMigration;
+using DevExpressPdfMigration = PXA.Migration.Pdf.Code.DevExpress.DevExpressPdfMigration;
+using DsPdfMigration = PXA.Migration.Pdf.Code.DsPdf.DsPdfMigration;
+using FoxitPdfMigration = PXA.Migration.Pdf.Code.Foxit.FoxitPdfMigration;
+using GemBoxPdfMigration = PXA.Migration.Pdf.Code.GemBox.GemBoxPdfMigration;
+using IronPdfMigration = PXA.Migration.Pdf.Code.IronPdf.IronPdfMigration;
+using IText7Migration = PXA.Migration.Pdf.Code.IText7.IText7Migration;
+using LeadtoolsPdfMigration = PXA.Migration.Pdf.Code.Leadtools.LeadtoolsPdfMigration;
+using PdfKitNetMigration = PXA.Migration.Pdf.Code.PdfKitNet.PdfKitNetMigration;
+using PdfToolsMigration = PXA.Migration.Pdf.Code.PdfTools.PdfToolsMigration;
+using PdfToolsToolboxMigration = PXA.Migration.Pdf.Code.PdfToolsToolbox.PdfToolsToolboxMigration;
+using SpirePdfMigration = PXA.Migration.Pdf.Code.Spire.SpirePdfMigration;
+using SyncfusionPdfMigration = PXA.Migration.Pdf.Code.Syncfusion.SyncfusionPdfMigration;
 
 namespace PXA.Migration.Pdf;
 

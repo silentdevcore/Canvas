@@ -4,8 +4,8 @@ Migrates EPPlus (`ExcelPackage`) authoring code → PXA spreadsheet API (`PxaWor
 ClosedXML reference; EPPlus differs in the cell **indexer** (`Cells[..]`), the `Merge` property, the
 `pkg.Workbook.Worksheets` path, and `SaveAs(FileInfo)`.
 
-- **Project:** `src/PXA.Migration.EpplusSpreadsheet/`. **Converter:** `EpplusSpreadsheetConverter` (`EpplusSpreadsheet`, `full`), in `MigrationService`.
-- **Diagnostics:** `CANMIGEPPL`. **Tests:** `tests/PXA.Migration.EpplusSpreadsheet.Tests/` (3, green).
+- **Project:** `src/PXA.Migration.Spreadsheet.Code.Epplus/`. **Converter:** `EpplusSpreadsheetConverter` (`EpplusSpreadsheet`, `full`), in `MigrationService`.
+- **Diagnostics:** `CANMIGEPPL`. **Tests:** `tests/PXA.Migration.Spreadsheet.Code.Epplus.Tests/` (3, green).
 
 ## API mapping
 | EPPlus | PXA |

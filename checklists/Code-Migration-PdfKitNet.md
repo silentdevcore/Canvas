@@ -2,8 +2,8 @@
 
 ## V1 Pilot Analysis
 
-- [x] Added cautious Roslyn-backed provider project: `src/PXA.Migration.PdfKitNet`
-- [x] Added provider tests: `tests/PXA.Migration.PdfKitNet.Tests`
+- [x] Added cautious Roslyn-backed provider project: `src/PXA.Migration.Pdf.Code.PdfKitNet`
+- [x] Added provider tests: `tests/PXA.Migration.Pdf.Code.PdfKitNet.Tests`
 - [x] Connected WebApi converter: `PXA.WebApi/Services/Converters/PdfKitNetConverter.cs`
 - [x] Added UI fallback status/example as `pilot`
 - [ ] Confirm the exact NuGet package and public API names with a real customer/source sample

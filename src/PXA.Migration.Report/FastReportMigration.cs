@@ -1,4 +1,4 @@
-using PXA.Migration.FastReport;
+using PXA.Migration.Report.Designer.FastReport;
 using PXA.Core.Contracts;
 
 namespace PXA.Migration.Report;

@@ -27,6 +27,18 @@ public sealed class MigrationControllerTests : IClassFixture<WebApplicationFacto
             framework => string.Equals(framework.GetProperty("id").GetString(), "devexpress", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(frameworks!, framework => framework.GetProperty("kind").GetString() == "pdf");
         Assert.Contains(frameworks!, framework => framework.GetProperty("kind").GetString() == "spreadsheet");
+        Assert.Contains(
+            frameworks!,
+            framework =>
+                framework.GetProperty("domain").GetString() == "pdf" &&
+                framework.GetProperty("migrationKind").GetString() == "code" &&
+                framework.GetProperty("provider").GetString() == "DevExpress");
+        Assert.Contains(
+            frameworks!,
+            framework =>
+                framework.GetProperty("domain").GetString() == "spreadsheet" &&
+                framework.GetProperty("migrationKind").GetString() == "code" &&
+                framework.GetProperty("provider").GetString() == "Aspose");
     }
 
     [Fact]

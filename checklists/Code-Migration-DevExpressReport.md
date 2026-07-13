@@ -5,7 +5,7 @@
 Convert a **C# DevExpress XtraReport class** (Report Designer output) into a **PXA design** that opens
 and is editable in `ui-designer-v2` — replacing the dead-end `CANMIGDEVEXP020` "report export requires
 manual migration" warning emitted by the code converter
-([DevExpressPdfMigration.cs](../src/PXA.Migration.DevExpressPdf/DevExpressPdfMigration.cs)).
+([DevExpressPdfMigration.cs](../src/PXA.Migration.Pdf.Code.DevExpress/DevExpressPdfMigration.cs)).
 
 - **Input**: a C# `XtraReport` subclass + designer code (`InitializeComponent()` configuring `XRLabel`,
   `XRLine`, `XRPictureBox`, `XRShape`, `XRTable`, … via `LocationF`/`SizeF`/`Text`/`Font`/`ForeColor`).
@@ -37,7 +37,7 @@ the next, unstarted milestone.
       to the page bottom (`pageHeight − bottomMargin − footerHeight`).
 
 ### Architecture
-- [x] Isolated project `src/PXA.Migration.DevExpressReport` (refs `PXA.Core` + Roslyn); returns a
+- [x] Isolated project `src/PXA.Migration.Report.Designer.DevExpress` (refs `PXA.Core` + Roslyn); returns a
       `DesignExportDto`, not a code string.
 - [x] `XtraReportToDesignConverter.Convert(string)` → `{ DesignExportDto Design, IReadOnlyList<MigrationDiagnostic> Diagnostics }`.
 - [x] Roslyn pre-scan: locate `: XtraReport`; collect control field declarations; read
@@ -173,6 +173,6 @@ before lower-value table styling.
 - [x] **P1** `MultiColumn.Mode` detection on bands with `CANMIGDEVREP022` diagnostic.
 
 ## Assumptions
-- [x] Use `PXA.Migration.DevExpressReport`, separate from `PXA.Migration.DevExpressPdf`.
+- [x] Use `PXA.Migration.Report.Designer.DevExpress`, separate from `PXA.Migration.Pdf.Code.DevExpress`.
 - [x] Output target is PXA design JSON (designer), not PXA.Pdf C# code.
 - [x] Default page size A4 when the report declares none.

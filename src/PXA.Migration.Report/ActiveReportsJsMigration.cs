@@ -1,4 +1,4 @@
-using PXA.Migration.ActiveReportsJs;
+using PXA.Migration.Report.Designer.ActiveReportsJs;
 using PXA.Core.Contracts;
 
 namespace PXA.Migration.Report;

@@ -5,8 +5,8 @@ JasperReports `.jrxml` → PXA `DesignExportDto` converter.
 
 - **Designer:** JasperReports / Jaspersoft Studio (iReport) · **Manufacturer:** Cloud Software Group (Jaspersoft)
 - **Format:** `.jrxml` — namespaced XML (`http://jasperreports.sourceforge.net/jasperreports`), **banded**.
-- **Status:** ✅ **Shipped** (`PXA.Migration.JasperReports`). Band-flatten mirroring
-  `PXA.Migration.Rpx`/`PXA.Migration.Telerik`; schema confirmed against real Jaspersoft `.jrxml` samples.
+- **Status:** ✅ **Shipped** (`PXA.Migration.Report.Designer.JasperReports`). Band-flatten mirroring
+  `PXA.Migration.Report.Designer.Rpx`/`PXA.Migration.Report.Designer.Telerik`; schema confirmed against real Jaspersoft `.jrxml` samples.
 
 ---
 
@@ -60,7 +60,7 @@ JasperReports `.jrxml` → PXA `DesignExportDto` converter.
 
 - All geometry already in **points** (×1). Sections **stack** in canonical order accumulating band
   `height`; absolute Y = `marginTop + Σ(prior band heights) + element.y`. `pageHeader`/`pageFooter` →
-  SharedElements (footer bottom-anchored). Mirrors `PXA.Migration.Rpx`.
+  SharedElements (footer bottom-anchored). Mirrors `PXA.Migration.Report.Designer.Rpx`.
 
 ## Detection / routing
 

@@ -142,16 +142,16 @@ Verification for this slice:
       Started with additive `PXA.Migration.Abstractions` project, PXA-facing migration result/diagnostic types,
       and a `PxaSourceMigrationAdapter` bridge for existing `PXA.Migration.Abstractions.ISourceMigration`
       implementations.
-      First concrete provider facade added with `PXA.Migration.DevExpressPdf`, delegating to the existing
-      `PXA.Migration.DevExpressPdf.DevExpressPdfMigration` while returning PXA migration abstractions.
-      PDF-code migration facade set expanded with `PXA.Migration.SyncfusionPdf` and `PXA.Migration.iText7`,
+      First concrete provider facade added with `PXA.Migration.Pdf.Code.DevExpress`, delegating to the existing
+      `PXA.Migration.Pdf.Code.DevExpress.DevExpressPdfMigration` while returning PXA migration abstractions.
+      PDF-code migration facade set expanded with `PXA.Migration.Pdf.Code.Syncfusion` and `PXA.Migration.Pdf.Code.IText7`,
       both delegating to existing PXA providers and preserving `CANMIG...` diagnostic IDs.
-      Additional central PDF provider facades added with `PXA.Migration.AsposePdf` and `PXA.Migration.Apryse`.
-      PDF provider facade coverage expanded with `PXA.Migration.DsPdf` and `PXA.Migration.FoxitPdf`.
-      PDF provider facade coverage expanded with `PXA.Migration.IronPdf` and `PXA.Migration.GemBoxPdf`.
-      PDF provider facade coverage expanded with `PXA.Migration.SpirePdf` and `PXA.Migration.PdfKitNet`.
-      PDF provider facade coverage expanded with `PXA.Migration.LeadtoolsPdf` and `PXA.Migration.ActivePdf`.
-      PDF provider facade coverage expanded with `PXA.Migration.PdfTools` and `PXA.Migration.PdfToolsToolbox`.
+      Additional central PDF provider facades added with `PXA.Migration.Pdf.Code.Aspose` and `PXA.Migration.Pdf.Code.Apryse`.
+      PDF provider facade coverage expanded with `PXA.Migration.Pdf.Code.DsPdf` and `PXA.Migration.Pdf.Code.Foxit`.
+      PDF provider facade coverage expanded with `PXA.Migration.Pdf.Code.IronPdf` and `PXA.Migration.Pdf.Code.GemBox`.
+      PDF provider facade coverage expanded with `PXA.Migration.Pdf.Code.Spire` and `PXA.Migration.Pdf.Code.PdfKitNet`.
+      PDF provider facade coverage expanded with `PXA.Migration.Pdf.Code.Leadtools` and `PXA.Migration.Pdf.Code.ActivePdf`.
+      PDF provider facade coverage expanded with `PXA.Migration.Pdf.Code.PdfTools` and `PXA.Migration.Pdf.Code.PdfToolsToolbox`.
       Shared PDF migration entry point added with `PXA.Migration.Pdf`, exposing provider keys and
       `PdfMigrationProviders.Create(...)` / `TryCreate(...)` for CLI/API use.
       Report migration entry point added with `PXA.Migration.Report`, PXA-facing report result/contract,
@@ -930,20 +930,20 @@ Completed Phase 9 promotion slices:
       `PXA.sln` and `PXA.sln`.
 - [x] Relevant migration tests.
       Initial `PXA.Migration.Abstractions.Tests` coverage added for PXA-to-PXA source migration adapter mapping.
-      Initial `PXA.Migration.DevExpressPdf.Tests` coverage added for the first concrete PXA migration provider facade.
-      Initial `PXA.Migration.SyncfusionPdf.Tests` and `PXA.Migration.iText7.Tests` coverage added for core PDF
+      Initial `PXA.Migration.Pdf.Code.DevExpress.Tests` coverage added for the first concrete PXA migration provider facade.
+      Initial `PXA.Migration.Pdf.Code.Syncfusion.Tests` and `PXA.Migration.Pdf.Code.IText7.Tests` coverage added for core PDF
       provider facade compatibility and warning diagnostic mapping.
-      Initial `PXA.Migration.AsposePdf.Tests` and `PXA.Migration.Apryse.Tests` coverage added for provider
+      Initial `PXA.Migration.Pdf.Code.Aspose.Tests` and `PXA.Migration.Pdf.Code.Apryse.Tests` coverage added for provider
       facade compatibility and diagnostic severity mapping.
-      Initial `PXA.Migration.DsPdf.Tests` and `PXA.Migration.FoxitPdf.Tests` coverage added for provider
+      Initial `PXA.Migration.Pdf.Code.DsPdf.Tests` and `PXA.Migration.Pdf.Code.Foxit.Tests` coverage added for provider
       facade compatibility and warning diagnostic mapping.
-      Initial `PXA.Migration.IronPdf.Tests` and `PXA.Migration.GemBoxPdf.Tests` coverage added for provider
+      Initial `PXA.Migration.Pdf.Code.IronPdf.Tests` and `PXA.Migration.Pdf.Code.GemBox.Tests` coverage added for provider
       facade compatibility and warning diagnostic mapping.
-      Initial `PXA.Migration.SpirePdf.Tests` and `PXA.Migration.PdfKitNet.Tests` coverage added for provider
+      Initial `PXA.Migration.Pdf.Code.Spire.Tests` and `PXA.Migration.Pdf.Code.PdfKitNet.Tests` coverage added for provider
       facade compatibility and warning diagnostic mapping.
-      Initial `PXA.Migration.LeadtoolsPdf.Tests` and `PXA.Migration.ActivePdf.Tests` coverage added for provider
+      Initial `PXA.Migration.Pdf.Code.Leadtools.Tests` and `PXA.Migration.Pdf.Code.ActivePdf.Tests` coverage added for provider
       facade compatibility and warning diagnostic mapping.
-      Initial `PXA.Migration.PdfTools.Tests` and `PXA.Migration.PdfToolsToolbox.Tests` coverage added for
+      Initial `PXA.Migration.Pdf.Code.PdfTools.Tests` and `PXA.Migration.Pdf.Code.PdfToolsToolbox.Tests` coverage added for
       diagnostics-first and direct-generation provider facade compatibility.
       Initial `PXA.Migration.Pdf.Tests` coverage added for provider registry keys, factory creation,
       case-insensitive lookup, and unknown-key rejection.

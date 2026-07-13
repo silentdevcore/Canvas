@@ -1,5 +1,5 @@
 using System.Text;
-using PXA.Migration.Stimulsoft;
+using PXA.Migration.Report.Designer.Stimulsoft;
 using PXA.WebApi.Infrastructure;
 
 namespace PXA.Export.Tests;

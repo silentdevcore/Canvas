@@ -1,4 +1,4 @@
-using PXA.Migration.Stimulsoft;
+using PXA.Migration.Report.Designer.Stimulsoft;
 using PXA.Core.Contracts;
 
 namespace PXA.Migration.Report;

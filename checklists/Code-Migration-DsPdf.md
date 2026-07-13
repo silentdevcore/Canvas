@@ -46,8 +46,8 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/PXA.Migration.DsPdf`
-- [x] Add `tests/PXA.Migration.DsPdf.Tests`
+- [x] Add `src/PXA.Migration.Pdf.Code.DsPdf`
+- [x] Add `tests/PXA.Migration.Pdf.Code.DsPdf.Tests`
 - [x] Add projects to `PXA.sln`
 - [x] Implement source migration entry point: `DsPdfMigration` as a real `CSharpSyntaxRewriter`
 - [x] Pre-scan phase: find document variable (from `new GcPdfDocument()`), page variables (from `doc.NewPage()/AddPage()`), save target
@@ -64,7 +64,7 @@
 - [x] Scan for unsupported identifiers (AcroForm, TableRenderer, etc.)
 - [x] Remove DS.Documents.*/GrapeCity.Documents.* usings, add `using PXA.Pdf;`
 - [x] Connect WebApi DsPdf converter to the Roslyn migration engine
-- [x] Verified with `dotnet test tests/PXA.Migration.DsPdf.Tests`: `10/10` passed
+- [x] Verified with `dotnet test tests/PXA.Migration.Pdf.Code.DsPdf.Tests`: `10/10` passed
 - [x] Verified with `dotnet test tests/PXA.Api.Tests`: `22/22` passed
 
 ## Mapping Table

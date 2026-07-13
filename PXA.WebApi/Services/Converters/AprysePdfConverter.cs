@@ -1,4 +1,4 @@
-using PXA.Migration.Apryse;
+using PXA.Migration.Pdf.Code.Apryse;
 
 namespace PXA.WebApi.Services.Converters;
 

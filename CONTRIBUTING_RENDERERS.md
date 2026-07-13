@@ -277,9 +277,9 @@ Use this pattern when a reporting framework or report file format should become 
 
 Existing examples:
 
-- `PXA.Migration.DevExpressReport`: XtraReport C# and REPX
-- `PXA.Migration.Rdl`: RDL/RDLC/Syncfusion/Bold Reports style XML
-- `PXA.Migration.Rpx`: ActiveReports/GrapeCity section reports
+- `PXA.Migration.Report.Designer.DevExpress`: XtraReport C# and REPX
+- `PXA.Migration.Report.Designer.Rdl`: RDL/RDLC/Syncfusion/Bold Reports style XML
+- `PXA.Migration.Report.Designer.Rpx`: ActiveReports/GrapeCity section reports
 
 ### 1. Target `DesignExportDto`
 

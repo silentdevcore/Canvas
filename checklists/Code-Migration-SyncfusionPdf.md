@@ -8,7 +8,7 @@
 - [x] WebApi conversion uses the same Roslyn migration engine as the tests.
 - [x] WebApi conversion returns summary counts for converted, warning, error, and total diagnostics.
 - [x] Realistic invoice-style fixture validates the end-to-end migration shape.
-- [x] Verified with `dotnet test tests/PXA.Migration.SyncfusionPdf.Tests/PXA.Migration.SyncfusionPdf.Tests.csproj --no-restore --no-build`: `20/20` passed.
+- [x] Verified with `dotnet test tests/PXA.Migration.Pdf.Code.Syncfusion.Tests/PXA.Migration.Pdf.Code.Syncfusion.Tests.csproj --no-restore --no-build`: `20/20` passed.
 - [x] Verified with `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore`.
 - [ ] Semantic symbol matching remains a post-v1 hardening task.
 - [ ] Real analyzer/codefix packaging remains a post-v1 IDE integration task.
@@ -54,8 +54,8 @@
 
 - [x] Add `src/PXA.Migration.Abstractions`
 - [x] Add `src/PXA.Migration.Roslyn`
-- [x] Add `src/PXA.Migration.SyncfusionPdf`
-- [x] Add `tests/PXA.Migration.SyncfusionPdf.Tests`
+- [x] Add `src/PXA.Migration.Pdf.Code.Syncfusion`
+- [x] Add `tests/PXA.Migration.Pdf.Code.Syncfusion.Tests`
 - [x] Implement first source migration entry point: `SyncfusionPdfMigration`
 - [x] Convert Hello World sample end to end
 - [x] Emit `CANMIGSYNC001`, `CANMIGSYNC002`, and `CANMIGSYNC003` diagnostics
