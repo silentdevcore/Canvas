@@ -1,0 +1,23 @@
+{
+  "customer": "Northwind Travel Desk",
+  "reference": "BR-2026-0713",
+  "date": "2026-07-13",
+  "items": [
+    {
+      "label": "Conference room booking",
+      "quantity": 1,
+      "amount": "840.00"
+    },
+    {
+      "label": "Catering package",
+      "quantity": 24,
+      "amount": "456.00"
+    },
+    {
+      "label": "Service and setup",
+      "quantity": 1,
+      "amount": "180.00"
+    }
+  ],
+  "total": "1,476.00"
+}

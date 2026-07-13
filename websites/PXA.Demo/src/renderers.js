@@ -1,6 +1,11 @@
 import { categories, demos, siteLinks, statusNotes } from './demoData.js';
 import { getActiveDemo, getBookingState } from './state.js';
 
+function renderReference(value) {
+  if (!value.startsWith('/')) return value;
+  return `<a href="${value}" target="_blank" rel="noreferrer">${value}</a>`;
+}
+
 export function statusClass(status) {
   if (status === 'Ready') return 'pxa-status--ready';
   if (status === 'Preview') return 'pxa-status--preview';
@@ -236,9 +241,11 @@ function renderDemoDetail(demo) {
         <dl class="pxa-demo-detail-list">
           <div><dt>Input</dt><dd>${demo.input}</dd></div>
           <div><dt>Output</dt><dd>${demo.output}</dd></div>
-          <div><dt>Source</dt><dd><a href="#source-context">${demo.source}</a></dd></div>
+          ${demo.inputFile ? `<div><dt>Input file</dt><dd>${renderReference(demo.inputFile)}</dd></div>` : ''}
+          ${demo.outputFile ? `<div><dt>Output file</dt><dd>${renderReference(demo.outputFile)}</dd></div>` : ''}
+          <div><dt>Source</dt><dd>${renderReference(demo.source)}</dd></div>
           <div><dt>Checklist</dt><dd><a href="#source-context">${demo.checklist}</a></dd></div>
-          <div><dt>Download</dt><dd>${demo.download}</dd></div>
+          <div><dt>Download</dt><dd>${renderReference(demo.download)}</dd></div>
         </dl>
       </div>
       <div class="pxa-demo-detail__side">
@@ -342,6 +349,9 @@ export function renderApp(root) {
           </div>
           <div class="pxa-card">
             <a href="${siteLinks.documentation}">Open related documentation</a>
+            ${activeDemo.inputFile ? `<a href="${activeDemo.inputFile}" target="_blank" rel="noreferrer">Open active input file</a>` : ''}
+            ${activeDemo.outputFile ? `<a href="${activeDemo.outputFile}" target="_blank" rel="noreferrer">Open active output file</a>` : ''}
+            ${activeDemo.source.startsWith('/') ? `<a href="${activeDemo.source}" target="_blank" rel="noreferrer">Open active source file</a>` : ''}
             <a href="#demo-detail">Review demo detail pattern</a>
             <a href="#status-model">Review status model</a>
             <a href="#demo/${activeDemo.id}">Open active demo route</a>

@@ -25,9 +25,11 @@ export const demos = [
     tags: ['PDF', 'Invoice', 'Preview'],
     input: 'Structured receipt data',
     output: 'Generated PDF preview',
-    source: 'websites/PXA.Demo/examples/booking-receipt',
+    source: '/examples/booking-receipt/source.js',
+    inputFile: '/examples/booking-receipt/input.json',
+    outputFile: '/examples/booking-receipt/output.json',
     checklist: 'PXA.Demo',
-    download: 'booking-receipt.pdf',
+    download: '/examples/booking-receipt/output.json',
     preview: {
       type: 'receipt',
       customer: 'Northwind Travel Desk',

@@ -1,0 +1,26 @@
+{
+  "documentType": "BookingReceipt",
+  "format": "pdf-preview",
+  "pages": [
+    {
+      "number": 1,
+      "elements": [
+        {
+          "type": "text",
+          "role": "title",
+          "text": "Booking Receipt"
+        },
+        {
+          "type": "table",
+          "role": "line-items",
+          "rows": 3
+        },
+        {
+          "type": "text",
+          "role": "total",
+          "text": "1,476.00"
+        }
+      ]
+    }
+  ]
+}

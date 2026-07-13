@@ -59,6 +59,7 @@
 - [x] Erste konkrete runnable Preview fuer Invoice / Booking Receipt.
 - [x] Live-Eingabemaske fuer Invoice / Booking Receipt mit aktualisierter Preview.
 - [x] Sichtbare Source-, Checklist- und Download-Referenzen pro Demo.
+- [x] Erste statisch gehostete Beispiel-Dateien fuer Booking Receipt unter `public/examples/booking-receipt`.
 - [x] Mindestens fuenf Demo-Karten.
 - [x] Mindestens eine lauffaehige Demo fuer PDF/Designer.
 - [x] Mindestens eine lauffaehige Demo fuer Migration.
@@ -77,6 +78,7 @@
 - [x] Demo-Routen smoke-testen.
 - [x] Filter/Suche testen.
 - [x] Links zu Docs, Source und Checklists pruefen.
+- [x] Beispiel-Dateien fuer Booking Receipt per Vite Public Path verlinken.
 - [x] Mobile/Desktop Smoke-Test durchfuehren.
 
 ## Offene Entscheidungen
