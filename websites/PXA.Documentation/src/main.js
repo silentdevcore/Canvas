@@ -34,6 +34,57 @@ const migrationGuides = [
 
 const cookbook = ['PDF generation', 'Edit PDF', 'Forms', 'Annotations', 'Reports', 'Import/export'];
 
+const demoExamples = [
+  {
+    title: 'Invoice / Booking Receipt',
+    route: 'booking-receipt',
+    docs: 'PDF generation',
+    source: '/examples/booking-receipt/source.js',
+    input: '/examples/booking-receipt/input.json',
+    output: '/examples/booking-receipt/output.json',
+  },
+  {
+    title: 'Master-detail report',
+    route: 'master-detail-report',
+    docs: 'Reports',
+    source: '/examples/master-detail-report/source.js',
+    input: '/examples/master-detail-report/input.json',
+    output: '/examples/master-detail-report/output.json',
+  },
+  {
+    title: 'Chart report',
+    route: 'chart-report',
+    docs: 'Elements',
+    source: '/examples/chart-report/source.js',
+    input: '/examples/chart-report/input.json',
+    output: '/examples/chart-report/output.json',
+  },
+  {
+    title: 'PDF viewer annotations/forms',
+    route: 'pdf-viewer-annotations-forms',
+    docs: 'PDF Viewer',
+    source: '/examples/pdf-viewer-annotations-forms/source.js',
+    input: '/examples/pdf-viewer-annotations-forms/input.json',
+    output: '/examples/pdf-viewer-annotations-forms/output.json',
+  },
+  {
+    title: 'Spreadsheet import/export',
+    route: 'spreadsheet-import-export',
+    docs: 'Spreadsheet',
+    source: '/examples/spreadsheet-import-export/source.js',
+    input: '/examples/spreadsheet-import-export/input.json',
+    output: '/examples/spreadsheet-import-export/output.json',
+  },
+  {
+    title: 'Provider migration examples',
+    route: 'provider-migration-examples',
+    docs: 'PXA.Migration',
+    source: '/examples/provider-migration-examples/source.js',
+    input: '/examples/provider-migration-examples/input.json',
+    output: '/examples/provider-migration-examples/output.json',
+  },
+];
+
 const quickstarts = [
   {
     title: 'Editor Quickstart',
@@ -127,6 +178,25 @@ function renderReferenceLinks(items) {
 function renderChecklistLinks(items) {
   return items
     .map((item) => `<span class="pxa-status pxa-status--preview">${item}</span>`)
+    .join('');
+}
+
+function renderDemoExamples(items) {
+  return items
+    .map(
+      (item) => `
+        <article class="pxa-card pxa-doc-demo-card">
+          <span class="pxa-status pxa-status--ready">${item.docs}</span>
+          <h3>${item.title}</h3>
+          <div class="pxa-doc-demo-links">
+            <a href="${siteLinks.demo}#demo/${item.route}">Open demo</a>
+            <a href="${siteLinks.demo}${item.input.slice(1)}">Input</a>
+            <a href="${siteLinks.demo}${item.output.slice(1)}">Output</a>
+            <a href="${siteLinks.demo}${item.source.slice(1)}">Source</a>
+          </div>
+        </article>
+      `,
+    )
     .join('');
 }
 
@@ -262,6 +332,18 @@ document.querySelector('#app').innerHTML = `
             </div>
           </section>
 
+          <section class="pxa-doc-section" id="demo-examples">
+            <p class="pxa-kicker">Demo examples</p>
+            <h2 class="pxa-heading">Runnable examples connect docs, input, output, and source</h2>
+            <p>
+              PXA.Demo hosts lightweight example files for every demo card. These links make
+              documentation topics directly traceable to the examples used in the demo gallery.
+            </p>
+            <div class="pxa-doc-demo-grid">
+              ${renderDemoExamples(demoExamples)}
+            </div>
+          </section>
+
           <section class="pxa-doc-section" id="api-reference">
             <p class="pxa-kicker">API reference</p>
             <h2 class="pxa-heading">Generated references stay connected</h2>
@@ -297,6 +379,7 @@ document.querySelector('#app').innerHTML = `
             <a href="#code-path">Code path</a>
             <a href="#migration">Migration</a>
             <a href="#cookbook">Cookbook</a>
+            <a href="#demo-examples">Demo examples</a>
             <a href="#api-reference">API reference</a>
             <a href="#history">History</a>
           </div>

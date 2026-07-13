@@ -81,13 +81,15 @@
 
 .pxa-doc-card,
 .pxa-doc-quickstart-card,
-.pxa-doc-reference-card {
+.pxa-doc-reference-card,
+.pxa-doc-demo-card {
   display: grid;
   gap: var(--pxa-space-3);
 }
 
 .pxa-doc-quickstart-grid,
-.pxa-doc-reference-grid {
+.pxa-doc-reference-grid,
+.pxa-doc-demo-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--pxa-space-4);
@@ -120,6 +122,25 @@
   color: var(--pxa-color-muted);
 }
 
+.pxa-doc-demo-card h3 {
+  margin: 0;
+}
+
+.pxa-doc-demo-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pxa-space-2);
+}
+
+.pxa-doc-demo-links a {
+  padding: var(--pxa-space-1) var(--pxa-space-2);
+  color: var(--pxa-color-brand-700);
+  background: var(--pxa-color-brand-50);
+  border-radius: var(--pxa-radius-sm);
+  font-size: var(--pxa-text-xs);
+  font-weight: 800;
+}
+
 .pxa-company-badges {
   display: flex;
   flex-wrap: wrap;
@@ -136,7 +157,8 @@
   .pxa-doc-hero-grid,
   .pxa-doc-card-grid,
   .pxa-doc-quickstart-grid,
-  .pxa-doc-reference-grid {
+  .pxa-doc-reference-grid,
+  .pxa-doc-demo-grid {
     grid-template-columns: 1fr;
   }
 

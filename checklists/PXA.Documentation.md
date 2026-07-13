@@ -44,6 +44,7 @@
   - [x] Import/export
 - [x] API Reference via DocFX/OpenAPI integrieren.
 - [x] Bestehende Checklists als Historie verlinken, nicht als Source of Truth verwenden.
+- [x] PXA.Demo-Beispiele als Demo-Examples-Bereich verlinken.
 
 ## MVP
 - [x] Produktorientiertes TOC erstellen.
@@ -51,6 +52,7 @@
 - [x] Mindestens je eine Quickstart-Seite fuer Editor und Code.
 - [x] Migration-Uebersicht mit Links zu Provider-Guides.
 - [x] API Reference aus bestehender DocFX-Struktur erreichbar machen.
+- [x] Demo-Beispiele mit Demo-Route, Input, Output und Source verlinken.
 
 ## Akzeptanzkriterien
 - [x] "Editor benutzen" und "Code integrieren" sind klar getrennt.
@@ -58,6 +60,7 @@
 - [x] Aktuelle PXA-Namen werden verwendet.
 - [x] Historische Checklists behalten Kontext, ersetzen aber nicht die Docs.
 - [x] Links zu `PXA.Company` und `PXA.Demo` sind vorhanden.
+- [x] Demo-Beispiele sind aus der Documentation erreichbar.
 
 ## Tests
 - [x] `docfx build docs/docfx.json` oder entsprechender Build fuer `PXA.Documentation`.
