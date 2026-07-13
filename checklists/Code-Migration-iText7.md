@@ -51,7 +51,7 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/PXA.Migration.Pdf.Code.IText7`
+- [x] Add `src/Migrations/PDF/PXA.Migration.Pdf.Code.IText7`
 - [x] Add `tests/PXA.Migration.Pdf.Code.IText7.Tests`
 - [x] Add projects to `PXA.sln`
 - [x] Implement first source migration entry point: `IText7Migration`

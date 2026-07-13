@@ -270,7 +270,7 @@ Also: PdfImporter now falls back to letter-by-letter text reconstruction when Pd
 `Word.Text` is empty (happens with PDFs whose embedded fonts lack a ToUnicode map).
 
 ### Files fixed
-- `src/PXA.Infrastructure.Converters/PdfImporter.cs` — type casing + `WordText()` fallback helper
-- `src/PXA.Infrastructure.Word/DocxImporter.cs` — "Text", "Table", "Image" → lowercase
-- `src/PXA.Infrastructure.Converters/DocImporter.cs` — "Text" → "text"
-- `src/PXA.Infrastructure.Converters/OdtImporter.cs` — "Text", "Image" → lowercase
+- `src/Infrastructure/PXA.Infrastructure.Converters/PdfImporter.cs` — type casing + `WordText()` fallback helper
+- `src/Infrastructure/PXA.Infrastructure.Word/DocxImporter.cs` — "Text", "Table", "Image" → lowercase
+- `src/Infrastructure/PXA.Infrastructure.Converters/DocImporter.cs` — "Text" → "text"
+- `src/Infrastructure/PXA.Infrastructure.Converters/OdtImporter.cs` — "Text", "Image" → lowercase

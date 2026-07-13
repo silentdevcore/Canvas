@@ -3,7 +3,7 @@
 Migrates Aspose.Cells (`Workbook`) authoring code → PXA spreadsheet API (`PxaWorkbook`). The most
 divergent source: `PutValue()` method, `Worksheets[0]` default sheet, 0-based indexes, `GetStyle/SetStyle`.
 
-- **Project:** `src/PXA.Migration.Spreadsheet.Code.Aspose/`. **Converter:** `AsposeCellsConverter` (`AsposeCells`, `full`).
+- **Project:** `src/Migrations/Spreadsheet/PXA.Migration.Spreadsheet.Code.Aspose/`. **Converter:** `AsposeCellsConverter` (`AsposeCells`, `full`).
 - **Diagnostics:** `CANMIGASPC`. **Tests:** `tests/PXA.Migration.Spreadsheet.Code.Aspose.Tests/` (2, green).
 
 ## API mapping

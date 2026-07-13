@@ -104,7 +104,7 @@ Key sample-driven conclusions:
 
 ## Implementation notes
 
-- Converter: [`src/PXA.Migration.Report.Designer.Rdl/RdlToDesignConverter.cs`](../src/PXA.Migration.Report.Designer.Rdl/RdlToDesignConverter.cs)
+- Converter: [`src/Migrations/Report/PXA.Migration.Report.Designer.Rdl/RdlToDesignConverter.cs`](../src/Migrations/Report/PXA.Migration.Report.Designer.Rdl/RdlToDesignConverter.cs)
   — footer concat in the 2005/2008 `<Table>` branch; `case "List"` in `ParseReportItems` + recursion;
   `MapList`/`RdlListRepeatMetadata`; `ParseTablixGroups` matches `Group`|`Grouping`.
 - Tests: [`tests/PXA.Migration.Report.Designer.Rdl.Tests/RdlToDesignConverterTests.cs`](../tests/PXA.Migration.Report.Designer.Rdl.Tests/RdlToDesignConverterTests.cs)
@@ -121,7 +121,7 @@ adds an **additive, backward-compatible** per-cell style model and wires a **v1 
 **Contract:** `ElementDto.CellStyles` — a sparse `CellStyleDto[]` (only styled cells listed), each with
 `Row`, `Col`, `BackgroundColor`, `TextAlign`, uniform `BorderColor`/`BorderWidth`, and per-side
 `BorderTop/Right/Bottom/Left` (`CellBorderSideDto { Color, Width }`) for per-side pens.
-[`src/PXA.Core/Contracts/DesignExportDto.cs`](../src/PXA.Core/Contracts/DesignExportDto.cs)
+[`src/Core/PXA.Core/Contracts/DesignExportDto.cs`](../src/Core/PXA.Core/Contracts/DesignExportDto.cs)
 
 **v1 scope (done):** borders + background + text-align; render/import only (no manual cell editor yet).
 

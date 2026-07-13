@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj" />
+    <ProjectReference Include="../../src/Infrastructure/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj" />
   </ItemGroup>
 
 </Project>

@@ -17,11 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="../../src/PXA.FileImporter.ImageOcr/tessdata/**/*">
+    <Content Include="../../src/Importing/PXA.FileImporter.ImageOcr/tessdata/**/*">
       <Link>tessdata/%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="../../src/PXA.FileImporter.ImageOcr/native/**/*">
+    <Content Include="../../src/Importing/PXA.FileImporter.ImageOcr/native/**/*">
       <Link>native/%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -35,16 +35,16 @@
 
   <ItemGroup>
     <ProjectReference Include="../../PXA.WebApi/PXA.WebApi.csproj" />
-    <ProjectReference Include="../../src/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj" />
-    <ProjectReference Include="../../src/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />
+    <ProjectReference Include="../../src/Importing/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj" />
+    <ProjectReference Include="../../src/Importing/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />
   </ItemGroup>
 
   <Target Name="CopyImageOcrWorker" AfterTargets="Build">
-    <MSBuild Projects="../../src/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj"
+    <MSBuild Projects="../../src/Importing/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj"
              Targets="Build"
              Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
     <ItemGroup>
-      <ImageOcrWorkerFiles Include="../../src/PXA.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />
+      <ImageOcrWorkerFiles Include="../../src/Importing/PXA.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />
     </ItemGroup>
     <Copy SourceFiles="@(ImageOcrWorkerFiles)"
           DestinationFiles="@(ImageOcrWorkerFiles->'$(OutputPath)ocr-worker/%(RecursiveDir)%(Filename)%(Extension)')"

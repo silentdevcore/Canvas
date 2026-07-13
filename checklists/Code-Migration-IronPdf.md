@@ -38,7 +38,7 @@
 
 ## Roslyn Implementation Status
 
-- [x] Add `src/PXA.Migration.Pdf.Code.IronPdf`
+- [x] Add `src/Migrations/PDF/PXA.Migration.Pdf.Code.IronPdf`
 - [x] Add `tests/PXA.Migration.Pdf.Code.IronPdf.Tests`
 - [x] Add projects to `PXA.sln`
 - [x] Implement `IronPdfMigration` as a real `CSharpSyntaxRewriter`

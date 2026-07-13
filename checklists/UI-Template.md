@@ -255,8 +255,8 @@ Implementation targets:
 - [x] SOLID principles throughout codebase
 
 Implementation targets:
-- [x] src/PXA.Core/: domain entities and abstractions
-- [x] src/PXA.Application/: use cases and business logic
+- [x] src/Core/PXA.Core/: domain entities and abstractions
+- [x] src/Core/PXA.Application/: use cases and business logic
 - [x] PXA.WebApi/: clean API layer
 - [x] Proper architectural boundaries and patterns
 

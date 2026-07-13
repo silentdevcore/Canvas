@@ -18,12 +18,12 @@ Keep new code inside the smallest project boundary that owns the feature, and up
 
 Use an existing infrastructure project when the format belongs to an established adapter family:
 
-- `src/PXA.Infrastructure.Pdf` for PDF rendering services.
-- `src/PXA.Infrastructure.Word` for DOCX/Word output.
-- `src/PXA.Infrastructure.Spreadsheet` for XLSX output.
-- `src/PXA.Infrastructure.Converters` for ODT, HTML, CSV, Markdown, image, TIFF, SVG/XML-style output.
+- `src/Infrastructure/PXA.Infrastructure.Pdf` for PDF rendering services.
+- `src/Infrastructure/PXA.Infrastructure.Word` for DOCX/Word output.
+- `src/Infrastructure/PXA.Infrastructure.Spreadsheet` for XLSX output.
+- `src/Infrastructure/PXA.Infrastructure.Converters` for ODT, HTML, CSV, Markdown, image, TIFF, SVG/XML-style output.
 
-Create `src/PXA.Infrastructure.<Format>` only when the format needs its own dependencies or boundary.
+Create `src/Infrastructure/PXA.Infrastructure.<Format>` only when the format needs its own dependencies or boundary.
 
 When the feature is public developer-facing API, add or update the corresponding `PXA.Infrastructure.*` or
 `PXA.Generator` facade so new examples do not need to start from old PXA names.
@@ -106,14 +106,14 @@ New file importers should expose a PXA-facing facade and use the dedicated PXA i
 Project layout:
 
 ```text
-src/PXA.FileImporter.<Format>/
+src/Importing/PXA.FileImporter.<Format>/
 tests/PXA.FileImporter.<Format>.Tests/
 ```
 
 Public facade target:
 
 ```text
-src/PXA.FileImporter.<Format>/
+src/Importing/PXA.FileImporter.<Format>/
 ```
 
 Dependencies:
@@ -127,7 +127,7 @@ Avoid placing new importers in `PXA.Infrastructure.Converters`; that project now
 
 ### 2. Implement `IFileImporter`
 
-Implement the importer contract from `src/PXA.FileImporter`.
+Implement the importer contract from `src/Importing/PXA.FileImporter`.
 
 Naming convention:
 
@@ -210,7 +210,7 @@ tests/PXA.Migration.<Provider>.Tests/
 Public facade target:
 
 ```text
-src/PXA.Migration.<Provider>/ or provider registry under src/PXA.Migration.Pdf/
+src/PXA.Migration.<Provider>/ or provider registry under src/Migrations/PDF/PXA.Migration.Pdf/
 ```
 
 Dependencies:
@@ -343,7 +343,7 @@ Use this pattern for operations such as clone, extract-pages, sign, find-replace
 Place orchestration in:
 
 ```text
-src/PXA.Application/UseCases/<Name>UseCase.cs
+src/Core/PXA.Application/UseCases/<Name>UseCase.cs
 ```
 
 Keep concrete file-format work in infrastructure/importer projects.

@@ -83,6 +83,40 @@ Implementation keeps legacy provider IDs and public routes compatible. For `/api
 - [x] Keep aggregator `PXA.Migration.Report`.
 - [x] Update aggregators to reference the new provider namespaces after implementation.
 
+## Physical Project Layout
+
+- [x] Use `src/Migrations` as the physical root for migration projects.
+- [x] Move shared migration infrastructure to `src/Migrations/Common`:
+  - `PXA.Migration.Abstractions`
+  - `PXA.Migration.Roslyn`
+- [x] Move PDF code migration projects to `src/Migrations/PDF`.
+- [x] Move report designer migration projects to `src/Migrations/Report`.
+- [x] Move spreadsheet code migration projects to `src/Migrations/Spreadsheet`.
+- [x] Keep project names and namespaces stable while changing physical folders.
+
+## Remaining Source Project Layout
+
+- [x] Use physical folders for non-migration projects while keeping namespaces stable.
+- [x] Group core/application projects under `src/Core`:
+  - `PXA.Core`
+  - `PXA.Domain`
+  - `PXA.Application`
+- [x] Group generation projects under `src/Generation`:
+  - `PXA.Generator`
+  - `PXA.Pdf`
+- [x] Group importer projects under `src/Importing`:
+  - `PXA.Importer`
+  - `PXA.FileImporter`
+  - `PXA.FileImporter.ImageAnalysis`
+  - `PXA.FileImporter.ImageOcr`
+  - `PXA.FileImporter.ImageOcr.Worker`
+- [x] Group infrastructure projects under `src/Infrastructure`:
+  - `PXA.Infrastructure.Converters`
+  - `PXA.Infrastructure.Pdf`
+  - `PXA.Infrastructure.Spreadsheet`
+  - `PXA.Infrastructure.Word`
+- [x] Keep `PXA.Infrastructure.Pdf` under `src/Infrastructure`, because the namespace represents the technical implementation layer.
+
 ## Compatibility Rules
 
 - [x] Existing provider IDs continue to work as aliases:
@@ -128,7 +162,8 @@ Implementation keeps legacy provider IDs and public routes compatible. For `/api
   - `PXA.Migration.Pdf.Tests`: 18 passed.
   - `PXA.Migration.Spreadsheet.Tests`: 19 passed.
   - `PXA.Migration.Report.Tests`: 20 passed.
-- [ ] Full .NET test pass after restore succeeds.
+- [x] Full .NET test pass after restore succeeds.
+  - Current result: `dotnet test PXA.sln --no-restore --disable-build-servers -m:1` passed.
 - [ ] Smoke test PDF code migration with `aspose-pdf`.
 - [ ] Smoke test spreadsheet code migration with `aspose-cells`.
 - [ ] Smoke test designer migration with DevExpress and RDL samples.

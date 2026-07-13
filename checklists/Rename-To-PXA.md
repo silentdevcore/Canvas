@@ -319,12 +319,12 @@ Recommended order:
    almost every project depends on Core DTOs and abstractions.
 3. **Promote Domain separately.**
    `PXA.Domain` currently wraps `PXA.Domain`; do not rename `PXA.Domain/` directly into
-   `src/PXA.Domain/` because that folder already exists. First move missing implementation types into the
-   existing `src/PXA.Domain` project, then keep `PXA.Domain` as a compatibility project that forwards
+   `src/Core/PXA.Domain/` because that folder already exists. First move missing implementation types into the
+   existing `src/Core/PXA.Domain` project, then keep `PXA.Domain` as a compatibility project that forwards
    to PXA.
 4. **Promote Application after Core/Domain.**
    `PXA.Application` currently references `PXA.Application`, `PXA.Core`, and `PXA.Domain`.
-   Move use cases into the existing `src/PXA.Application` project in small groups, then leave
+   Move use cases into the existing `src/Core/PXA.Application` project in small groups, then leave
    `PXA.Application` as compatibility shims.
 5. **Promote Infrastructure by capability family.**
    `PXA.Infrastructure.Pdf`, `Word`, `Spreadsheet`, and `Converters` already exist and reference the
@@ -371,7 +371,7 @@ Remaining compatibility bridges after the latest promotion slices:
 - `PXA.Migration.Report` and `PXA.Migration.Spreadsheet` still aggregate legacy report/spreadsheet engines
   until those provider implementations are promoted one by one.
 - The PDF engine namespace/physical rename is **done**: the engine source moved from `PXA/Pdf/**`
-  (`namespace PXA.Pdf`) into the new `src/PXA.Pdf` project (`namespace PXA.Pdf`), and all in-repo
+  (`namespace PXA.Pdf`) into the new `src/Generation/PXA.Pdf` project (`namespace PXA.Pdf`), and all in-repo
   consumers (both infrastructure projects, `PXA.Generator`, `PXA.Importer`, WebApi, legacy `PXA.*`
   consumers, and tests) now reference `PXA.Pdf`. The one remaining `PXA.Pdf` surface is intentional:
   migration providers still *emit* `using PXA.Pdf;` in generated conversion output, which belongs to
@@ -480,7 +480,7 @@ Completed Phase 9 promotion slices:
       type-facade/physical rename phase. `PXA.Generator` remains on `PXA.Infrastructure.Pdf` for now
       because switching it to `PXA.Infrastructure.Pdf` while Word/Spreadsheet still transitively reference
       `PXA.Infrastructure.Pdf` creates duplicate `PXA.Pdf` type identities. Verified with
-      `dotnet build src/PXA.Infrastructure.Pdf/PXA.Infrastructure.Pdf.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Infrastructure/PXA.Infrastructure.Pdf/PXA.Infrastructure.Pdf.csproj --no-restore --disable-build-servers -m:1`
       (0 warnings, 0 errors),
       `dotnet test tests/PXA.Infrastructure.Pdf.Tests/PXA.Infrastructure.Pdf.Tests.csproj --no-restore --disable-build-servers -m:1`
       (5 passed),
@@ -496,7 +496,7 @@ Completed Phase 9 promotion slices:
       OpenXML/QR/signing package dependencies directly. `PXA.Generator` remains on the legacy Word/Spreadsheet
       references until Spreadsheet and Converter infrastructure are promoted, so duplicate transitive
       `PXA.Pdf` type identities are avoided. Verified with
-      `dotnet build src/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Infrastructure/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing copied nullable warning remains),
       `dotnet test tests/PXA.Infrastructure.Word.Tests/PXA.Infrastructure.Word.Tests.csproj --no-restore --disable-build-servers -m:1`
       (3 passed),
@@ -515,11 +515,11 @@ Completed Phase 9 promotion slices:
       `PXA.Infrastructure.Word`, and `PXA.Infrastructure.Spreadsheet` instead of the legacy PXA
       infrastructure projects. The public PDF engine namespace remains `PXA.Pdf` until the later
       PDF engine type-facade/physical rename phase. Verified with
-      `dotnet build src/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Infrastructure/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing dependency/NPOI/ClosedXML/nullability warnings remain),
       `dotnet test tests/PXA.Infrastructure.Spreadsheet.Tests/PXA.Infrastructure.Spreadsheet.Tests.csproj --no-restore --disable-build-servers -m:1`
       (6 passed),
-      `dotnet build src/PXA.Generator/PXA.Generator.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Generation/PXA.Generator/PXA.Generator.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing PDF XML-doc, dependency/NPOI, and nullable warnings remain),
       `dotnet test tests/PXA.Generator.Tests/PXA.Generator.Tests.csproj --no-restore --disable-build-servers -m:1`
       (5 passed), and
@@ -533,7 +533,7 @@ Completed Phase 9 promotion slices:
       carries the same NPOI/SkiaSharp dependencies directly and keeps the PXA `DocumentExporter`
       public contract for converter facade tests. Initial WebApi export composition switching was completed
       in the follow-up Web/API export wiring slice. Verified with
-      `dotnet build src/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Infrastructure/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing dependency/NPOI warnings remain),
       `dotnet test tests/PXA.Infrastructure.Converters.Tests/PXA.Infrastructure.Converters.Tests.csproj --no-restore --disable-build-servers -m:1`
       (9 passed), and
@@ -562,7 +562,7 @@ Completed Phase 9 promotion slices:
       regeneration bridge. `PXA.Importer` no longer references `PXA.Importer`; the legacy
       `PXA.Importer` project remains for compatibility and keeps its `PXA0002` obsolete diagnostic.
       `PXA.Importer.Pdf.LoadAsync(...)` remains the preferred PXA entry point. Verified with
-      `dotnet build src/PXA.Importer/PXA.Importer.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Importing/PXA.Importer/PXA.Importer.csproj --no-restore --disable-build-servers -m:1`
       (0 warnings, 0 errors),
       `dotnet test tests/PXA.Importer.Tests/PXA.Importer.Tests.csproj --no-restore --disable-build-servers -m:1`
       (3 passed), and
@@ -574,7 +574,7 @@ Completed Phase 9 promotion slices:
       `PXA.FileImporter` no longer references `PXA.FileImporter.Pdf`; the other file importer
       providers still wrap their legacy PXA implementations until their individual promotion slices.
       Verified with
-      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Importing/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
       (0 warnings, 0 errors),
       `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
       (15 passed), and
@@ -587,7 +587,7 @@ Completed Phase 9 promotion slices:
       validation behavior. `PXA.FileImporter` no longer references `PXA.FileImporter.Image`; the other
       file importer providers still wrap their legacy PXA implementations until their individual slices.
       Verified with
-      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Importing/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing PPTX/PDF XML-doc warnings remain),
       `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
       (15 passed), and
@@ -601,7 +601,7 @@ Completed Phase 9 promotion slices:
       references `PXA.FileImporter.Svg`; DOC/DOCX/ODT/PPTX still wrap their legacy PXA implementations
       until their individual slices.
       Verified with
-      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Importing/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing PPTX nullable and PDF XML-doc warnings remain),
       `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
       (15 passed), and
@@ -614,7 +614,7 @@ Completed Phase 9 promotion slices:
       text layout behavior. `PXA.FileImporter` no longer references `PXA.FileImporter.Doc`; DOCX/ODT/PPTX
       still wrap their legacy PXA implementations until their individual slices.
       Verified with
-      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Importing/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing PPTX nullable and PDF XML-doc warnings remain),
       `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
       (16 passed after rerunning serially; the first parallel attempt hit a transient `.deps.json` file lock),
@@ -628,7 +628,7 @@ Completed Phase 9 promotion slices:
       and portrait page layout behavior. `PXA.FileImporter` no longer references `PXA.FileImporter.Odt`;
       DOCX/PPTX still wrap their legacy PXA implementations until their individual slices.
       Verified with
-      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Importing/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing PPTX nullable and PDF XML-doc warnings remain),
       `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
       (17 passed), and
@@ -641,7 +641,7 @@ Completed Phase 9 promotion slices:
       extraction, and document metadata mapping. `PXA.FileImporter` no longer references
       `PXA.FileImporter.Docx`; PPTX is the final remaining legacy PXA file importer wrapper.
       Verified with
-      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Importing/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing PPTX nullable and PDF XML-doc warnings remain),
       `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
       (18 passed), and
@@ -655,7 +655,7 @@ Completed Phase 9 promotion slices:
       references any `PXA.FileImporter.*` implementation project; all built-in file importers in the
       aggregator are now PXA-owned source.
       Verified with
-      `dotnet build src/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Importing/PXA.FileImporter/PXA.FileImporter.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing PPTX nullable and PDF XML-doc warnings remain),
       `dotnet test tests/PXA.FileImporter.Tests/PXA.FileImporter.Tests.csproj --no-restore --disable-build-servers -m:1`
       (19 passed), and
@@ -671,7 +671,7 @@ Completed Phase 9 promotion slices:
       implementation for the common PXA importer contract. `PXA.FileImporter.ImageAnalysis` no longer
       references `PXA.FileImporter.ImageAnalysis`.
       Verified with
-      `dotnet build src/PXA.FileImporter.ImageAnalysis/PXA.FileImporter.ImageAnalysis.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Importing/PXA.FileImporter.ImageAnalysis/PXA.FileImporter.ImageAnalysis.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing SkiaSharp filter-quality warnings remain),
       `dotnet test tests/PXA.FileImporter.ImageAnalysis.Tests/PXA.FileImporter.ImageAnalysis.Tests.csproj --no-restore --disable-build-servers -m:1`
       (2 passed), and
@@ -688,7 +688,7 @@ Completed Phase 9 promotion slices:
       `PXA.FileImporter.ImageOcr` no longer references the `PXA.FileImporter.ImageOcr` project. The
       large `tessdata` / `native` assets are still linked from the legacy folder to avoid duplicating data.
       Verified with
-      `dotnet build src/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Importing/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj --no-restore --disable-build-servers -m:1`
       (0 warnings, 0 errors),
       `dotnet test tests/PXA.FileImporter.ImageOcr.Tests/PXA.FileImporter.ImageOcr.Tests.csproj --no-restore --disable-build-servers -m:1`
       (2 passed), and
@@ -703,7 +703,7 @@ Completed Phase 9 promotion slices:
       OCR engine contract and converts the PXA design DTO back to the legacy PXA DTO only at the existing
       `DesignJsonMapper`/`PXA.Pdf` boundary.
       Verified with
-      `dotnet build src/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Importing/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj --no-restore --disable-build-servers -m:1`
       (0 warnings, 0 errors),
       `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing package/NPOI/nullability warnings remain),
@@ -808,7 +808,7 @@ Completed Phase 9 promotion slices:
       compatibility window, but `PXA.WebApi` no longer composes directly against those report provider
       identities.
       Verified with
-      `dotnet build src/PXA.Migration.Report/PXA.Migration.Report.csproj --disable-build-servers -m:1`
+      `dotnet build src/Migrations/Report/PXA.Migration.Report/PXA.Migration.Report.csproj --disable-build-servers -m:1`
       (0 errors; existing Stimulsoft warning remains),
       `dotnet build PXA.WebApi/PXA.WebApi.csproj --no-restore --disable-build-servers -m:1`
       (0 errors; existing dependency/NPOI/nullability warnings remain),
@@ -833,7 +833,7 @@ Completed Phase 9 promotion slices:
       facade still adapts legacy report converter outputs through `PXA.Core.Contracts`/`PXA.Core`, while
       `PXA.Core` remains only a transitive compatibility dependency during the additive rename phase.
       Verified with
-      `dotnet build src/PXA.Migration.Report/PXA.Migration.Report.csproj --no-restore --disable-build-servers -m:1`
+      `dotnet build src/Migrations/Report/PXA.Migration.Report/PXA.Migration.Report.csproj --no-restore --disable-build-servers -m:1`
       (0 errors) and
       `dotnet test tests/PXA.Migration.Report.Tests/PXA.Migration.Report.Tests.csproj --no-restore --disable-build-servers -m:1`
       (20 passed).
@@ -858,7 +858,7 @@ Completed Phase 9 promotion slices:
       (no matches).
 - [x] PDF engine physical/namespace rename (`PXA.Pdf` -> `PXA.Pdf`):
       Moved the PDF generator engine source (63 types, 77 files) out of the dual-linked `PXA/Pdf/**`
-      folder into a new owned project `src/PXA.Pdf` and renamed `namespace PXA.Pdf` -> `namespace PXA.Pdf`
+      folder into a new owned project `src/Generation/PXA.Pdf` and renamed `namespace PXA.Pdf` -> `namespace PXA.Pdf`
       (including `.Layout`, `.Rendering`, `.Serialization[.Security]` sub-namespaces). The engine is now a
       single assembly instead of being `Compile Include`-linked into both `PXA.Infrastructure.Pdf` and
       `PXA.Infrastructure.Pdf`, which removes the long-standing duplicate `PXA.Pdf` type-identity hazard.
@@ -873,7 +873,7 @@ Completed Phase 9 promotion slices:
       the template-script Roslyn imports (`.WithImports("PXA.Pdf", ...)`). Migration-provider *generated
       output* (Roslyn `SyntaxFactory.ParseName("PXA.Pdf")`, skeleton code, diagnostic messages) and the
       matching test assertions were intentionally left on `PXA.Pdf` — the emitted target namespace belongs
-      to the separate migration-provider-promotion slice. `src/PXA.Pdf` added to `PXA.sln` and `PXA.sln`.
+      to the separate migration-provider-promotion slice. `src/Generation/PXA.Pdf` added to `PXA.sln` and `PXA.sln`.
       Verified with per-project builds (`PXA.Pdf`, `PXA.Infrastructure.Pdf`, `PXA.Infrastructure.Pdf`,
       `PXA.Generator`, `PXA.Importer`, `PXA.Importer`, `PXA.Application`, `PXA.FileImporter`,
       `samples/PXA.Demo`, `PXA`, and `PXA.WebApi`; all 0 errors) and with
@@ -903,7 +903,7 @@ Completed Phase 9 promotion slices:
       `PXA.FileImporter.ImageAnalysis.Tests` (181 passed) — also removed a redundant `bool includeDebugOverlay`
       `ImportWithAnalysis` overload that collided with the `ImageAnalysisOptions?` overload;
       `PXA.FileImporter.ImageOcr` -> relocated the 69 MB `tessdata`/`native` assets into
-      `src/PXA.FileImporter.ImageOcr`, repointed all four asset linkers (PXA impl, PXA.Api.Tests,
+      `src/Importing/PXA.FileImporter.ImageOcr`, repointed all four asset linkers (PXA impl, PXA.Api.Tests,
       PXA.Api.Tests), merged 7 test files + fixtures into `PXA.FileImporter.ImageOcr.Tests` (99 passed),
       and added `InternalsVisibleTo=PXA.FileImporter.ImageOcr.Tests`;
       `PXA.Importer` + `PXA.FileImporter.Pdf` -> merged the 95-test `PdfImporterCoreTests` into
@@ -1118,3 +1118,11 @@ Completed Phase 9 promotion slices:
       prose in comments/branding strings and legacy localStorage keys. The legacy `ui-designer/` frontend
       folder is intentionally left in place as historical (already branded PXA-legacy in Phase 7; it is a
       separate npm app that contributes no `PXA.*` project/namespace references).
+- [x] Physical source layout and final active-string cleanup completed:
+      Moved source projects into the agreed `src/Core`, `src/Generation`, `src/Importing`,
+      `src/Infrastructure`, and `src/Migrations/*` folders while keeping project names/namespaces stable.
+      Updated active runtime/test strings from Canvas to PXA (`pxa-secret-key`, demo emails,
+      OCR/PDF-viewer temp folders). UI localStorage keys now use PXA names with Canvas legacy fallback keys
+      so existing browser drafts/preferences remain readable. Verified with
+      `dotnet test PXA.sln --no-restore --disable-build-servers -m:1` and `npm run build` in
+      `ui-designer-v2` (both passed; existing package/security/chunk-size warnings remain).

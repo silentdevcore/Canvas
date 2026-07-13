@@ -20,13 +20,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj" />
+    <ProjectReference Include="../../src/Importing/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj" />
     <ProjectReference Include="../../PXA.WebApi/PXA.WebApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../../src/PXA.FileImporter.ImageOcr/tessdata/*.traineddata" Link="tessdata/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../../src/PXA.FileImporter.ImageOcr/native/**" Link="native/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../src/Importing/PXA.FileImporter.ImageOcr/tessdata/*.traineddata" Link="tessdata/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../src/Importing/PXA.FileImporter.ImageOcr/native/**" Link="native/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures/TableSamples/**" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures/RealSamples/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

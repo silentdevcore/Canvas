@@ -5,7 +5,7 @@ Removes the last duplicate server-side expression implementation. Companion to
 
 ## Goal & approach
 
-`ExpressionEvaluator` (`src/PXA.Core/Primitives/ExpressionEvaluator.cs`) was the original **stub**
+`ExpressionEvaluator` (`src/Core/PXA.Core/Primitives/ExpressionEvaluator.cs`) was the original **stub**
 implementation of `IExpressionEvaluator`: regex variable substitution plus bare `==`/`!=`, returning the
 raw string for anything else. It is registered in DI (`PXA.WebApi/Program.cs`) and injected into
 `TemplateExpander` (the value/visibility-resolution path), but nothing currently consumes

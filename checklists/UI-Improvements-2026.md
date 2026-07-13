@@ -120,7 +120,7 @@ leaving the editor entirely to access.
 39 element types are available in the toolbar. The analysis below shows which are fully
 rendered in PDF export, which are placeholders, and which have no handler at all.
 Audit is based on the `case` handlers in `PXA.WebApi/Infrastructure/DesignJsonMapper.cs`
-(PDF renderer) and `src/PXA.Infrastructure.Word/WordDocumentExporter.cs` (Word renderer).
+(PDF renderer) and `src/Infrastructure/PXA.Infrastructure.Word/WordDocumentExporter.cs` (Word renderer).
 
 ### Support Matrix
 

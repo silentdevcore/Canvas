@@ -1,7 +1,7 @@
 # Phase 4 — PDF Infrastructure Isolation Validation
 
 ## Scope completed
-- Moved PDF engine source compilation ownership (`PXA/Pdf/**`) into `src/PXA.Infrastructure.Pdf`.
+- Moved PDF engine source compilation ownership (`PXA/Pdf/**`) into `src/Infrastructure/PXA.Infrastructure.Pdf`.
 - Removed unnecessary application-layer dependency from `PXA.Infrastructure.Pdf`.
 - Kept legacy `PXA` as compatibility/demo shell by referencing `PXA.Infrastructure.Pdf`.
 

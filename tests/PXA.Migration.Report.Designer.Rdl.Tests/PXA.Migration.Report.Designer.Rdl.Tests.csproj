@@ -19,9 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PXA.Migration.Report.Designer.Rdl/PXA.Migration.Report.Designer.Rdl.csproj" />
-    <ProjectReference Include="../../src/PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
-    <ProjectReference Include="../../src/PXA.Core/PXA.Core.csproj" />
+    <ProjectReference Include="../../src/Migrations/Report/PXA.Migration.Report.Designer.Rdl/PXA.Migration.Report.Designer.Rdl.csproj" />
+    <ProjectReference Include="../../src/Migrations/Common/PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Core/PXA.Core/PXA.Core.csproj" />
   </ItemGroup>
 
 

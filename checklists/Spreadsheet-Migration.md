@@ -106,12 +106,12 @@ its own sub-tabs; Spreadsheet Code Migration gets its own view + a non-PDF previ
 5. Wrap-up docs (Migration page lists the 4 new spreadsheet sources).
 
 ## Critical files
-- **Format:** `src/PXA.Core/Contracts/SpreadsheetDto.cs`; `docs/schema/canvas-workbook.schema.json` (new);
+- **Format:** `src/Core/PXA.Core/Contracts/SpreadsheetDto.cs`; `docs/schema/canvas-workbook.schema.json` (new);
   `ui-designer-v2/src/spreadsheet/{types.ts,io.ts,store}`; `ui-designer-v2/src/pages/DocsPage.tsx`;
   `llms.txt`; `tools/PXA.Mcp`.
-- **Authoring API:** `src/PXA.Infrastructure.Spreadsheet/PxaWorkbookBuilder.cs` (new).
-- **Migration (reuse):** `src/PXA.Migration.Roslyn/CSharpSourceMigration.cs`;
-  clone `src/PXA.Migration.Pdf.Code.GemBox/GemBoxPdfMigration.cs`; `PXA.Migration.Abstractions` (`MigrationDiagnostic`);
+- **Authoring API:** `src/Infrastructure/PXA.Infrastructure.Spreadsheet/PxaWorkbookBuilder.cs` (new).
+- **Migration (reuse):** `src/Migrations/Common/PXA.Migration.Roslyn/CSharpSourceMigration.cs`;
+  clone `src/Migrations/PDF/PXA.Migration.Pdf.Code.GemBox/GemBoxPdfMigration.cs`; `PXA.Migration.Abstractions` (`MigrationDiagnostic`);
   new `src/PXA.Migration.<Lib>Spreadsheet/`; `PXA.WebApi/Services/{ICodeConverter.cs,MigrationService.cs,Converters/}`.
 
 ## Verification

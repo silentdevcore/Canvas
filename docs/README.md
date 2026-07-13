@@ -14,7 +14,7 @@ XML doc comments are emitted automatically (`GenerateDocumentationFile` is enabl
 dotnet tool install -g docfx
 
 # from the repo root
-dotnet build src/PXA.Pdf/PXA.Pdf.csproj
+dotnet build src/Generation/PXA.Pdf/PXA.Pdf.csproj
 docfx metadata docs/docfx.json   # reads the csprojs + XML → docs/api/*.yml
 docfx build    docs/docfx.json   # → docs/_site (open docs/_site/index.html)
 

@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj" />
+    <ProjectReference Include="../../src/Infrastructure/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj" />
   </ItemGroup>
 
 </Project>

@@ -21,7 +21,7 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
   Reads `language` and `textDirection` from the legacy `Props` dictionary.
 
 - [x] **Add `Language` and `TextDirection` to `ElementDto`**
-  File: `src/PXA.Core/Contracts/DesignExportDto.cs`
+  File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
   Added alongside the existing `Locale` field.
 
 ### Frontend (TypeScript)
@@ -71,7 +71,7 @@ Each canvas text element can now declare a `language` (BCP-47 tag) and `textDire
   (Moved out of `PdfPageContentRenderer` which is `internal`, to enable test access.)
 
 - [x] **Branch text rendering in `PdfPageContentRenderer.RenderText` on font type**
-  File: `src/PXA.Pdf/Rendering/PdfPageContentRenderer.cs`
+  File: `src/Generation/PXA.Pdf/Rendering/PdfPageContentRenderer.cs`
   Embedded font path uses `<FEFF...> Tj` hex encoding. RTL applies `ReverseForRtl()`. Width uses `EmbeddedFont.MeasureWidth()`. Type1 path unchanged.
 
 - [x] **Emit embedded font object chain in `PdfWriter`**
@@ -235,7 +235,7 @@ On export, one PDF is generated per active language. For each, the engine substi
 ### Backend (C#)
 
 - [x] **Add `SystemLanguage` and `ActiveLanguages` to `DesignExportDto`**
-  File: `src/PXA.Core/Contracts/DesignExportDto.cs`
+  File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
   `SystemLanguage` is sent by the client from `navigator.language`; the backend uses it as the fallback in property resolution.
   ```csharp
   public string? SystemLanguage { get; set; }
@@ -243,7 +243,7 @@ On export, one PDF is generated per active language. For each, the engine substi
   ```
 
 - [x] **Create `LocalizedPropertyDto`**
-  File: `src/PXA.Core/Contracts/DesignExportDto.cs`
+  File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
   ```csharp
   public class LocalizedPropertyDto {
       public string Key { get; set; } = "";
@@ -254,7 +254,7 @@ On export, one PDF is generated per active language. For each, the engine substi
   ```
 
 - [x] **Add `LocalizedProperties` to `DesignExportDto`**
-  File: `src/PXA.Core/Contracts/DesignExportDto.cs`
+  File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
   ```csharp
   public LocalizedPropertyDto[]? LocalizedProperties { get; set; }
   ```
@@ -517,7 +517,7 @@ public class LocalizedPropertyDto {
 ### 10.4 — Backend: Data Model
 
 - [x] **Update `LocalizedPropertyDto`**
-  File: `src/PXA.Core/Contracts/DesignExportDto.cs`
+  File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
   Replace `bool Global` + `string GlobalValue` with:
   ```csharp
   public string Scope { get; set; } = "global";   // "global" | "own"
@@ -605,7 +605,7 @@ public class LocalizedPropertyDto {
   `undefined` = visible in all language tabs. BCP-47 tag = Own element for that language only.
 
 - [x] **Add `ElementLanguage?: string` to `ElementDto`**
-  File: `src/PXA.Core/Contracts/DesignExportDto.cs`
+  File: `src/Core/PXA.Core/Contracts/DesignExportDto.cs`
 
 - [x] **Auto-assign `elementLanguage` when adding elements in multi-lang mode**
   File: `ui-designer-v2/src/components/Editor/SimplePxaSurface.tsx`

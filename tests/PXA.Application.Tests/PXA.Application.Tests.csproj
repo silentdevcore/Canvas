@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PXA.Application/PXA.Application.csproj" />
+    <ProjectReference Include="../../src/Core/PXA.Application/PXA.Application.csproj" />
   </ItemGroup>
 
 </Project>

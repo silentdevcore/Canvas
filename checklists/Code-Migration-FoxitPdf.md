@@ -28,7 +28,7 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/PXA.Migration.Pdf.Code.Foxit`
+- [x] Add `src/Migrations/PDF/PXA.Migration.Pdf.Code.Foxit`
 - [x] Add `tests/PXA.Migration.Pdf.Code.Foxit.Tests`
 - [x] Add WebApi converter integration
 - [x] Add API service smoke test

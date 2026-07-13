@@ -249,19 +249,19 @@
 
 ## Existing Code To Analyze After Saving This Plan
 
-- [x] Review `src/PXA.FileImporter.Image/ImageFileImporter.cs`.
+- [x] Review `src/Importing/PXA.FileImporter.Image/ImageFileImporter.cs`.
   - [x] Reuse image decoding where appropriate.
   - [x] Reuse EXIF orientation handling where appropriate.
   - [x] Reuse data URI / image encoding logic where appropriate.
-- [ ] Review `src/PXA.FileImporter.ImageAnalysis/ImageAnalysisFileImporter.cs`.
+- [ ] Review `src/Importing/PXA.FileImporter.ImageAnalysis/ImageAnalysisFileImporter.cs`.
   - [ ] Reuse diagnostics ideas.
   - [ ] Reuse debug overlay concepts.
   - [ ] Reuse coordinate mapping ideas only if they fit the new OCR pipeline.
-- [ ] Review `src/PXA.FileImporter.ImageAnalysis/Analysis/*`.
+- [ ] Review `src/Importing/PXA.FileImporter.ImageAnalysis/Analysis/*`.
   - [ ] Reuse stable preprocessing helpers where they are general-purpose.
   - [ ] Reuse stable shape/region detection only as optional layout enrichment.
   - [ ] Do not use the current custom glyph recognition as the OCR core.
-- [x] Review `PXA/Pdf/*` and `src/PXA.Infrastructure.Pdf/*`.
+- [x] Review `PXA/Pdf/*` and `src/Infrastructure/PXA.Infrastructure.Pdf/*`.
   - [x] Reuse existing text rendering.
   - [x] Reuse existing image rendering.
   - [x] Reuse existing PDF serialization.

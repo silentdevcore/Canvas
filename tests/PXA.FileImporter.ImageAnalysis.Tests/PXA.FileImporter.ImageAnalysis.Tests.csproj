@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PXA.FileImporter.ImageAnalysis/PXA.FileImporter.ImageAnalysis.csproj" />
+    <ProjectReference Include="../../src/Importing/PXA.FileImporter.ImageAnalysis/PXA.FileImporter.ImageAnalysis.csproj" />
   </ItemGroup>
 
 

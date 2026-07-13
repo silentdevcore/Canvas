@@ -52,9 +52,9 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/PXA.Migration.Abstractions`
-- [x] Add `src/PXA.Migration.Roslyn`
-- [x] Add `src/PXA.Migration.Pdf.Code.Syncfusion`
+- [x] Add `src/Migrations/Common/PXA.Migration.Abstractions`
+- [x] Add `src/Migrations/Common/PXA.Migration.Roslyn`
+- [x] Add `src/Migrations/PDF/PXA.Migration.Pdf.Code.Syncfusion`
 - [x] Add `tests/PXA.Migration.Pdf.Code.Syncfusion.Tests`
 - [x] Implement first source migration entry point: `SyncfusionPdfMigration`
 - [x] Convert Hello World sample end to end

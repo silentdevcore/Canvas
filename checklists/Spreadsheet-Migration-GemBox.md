@@ -4,7 +4,7 @@ Migrates GemBox.Spreadsheet (`ExcelFile`) authoring code → PXA spreadsheet API
 GemBox cell indexes are **already 0-based** (no shift), bold is `Font.Weight = BoldWeight`, and a
 `SpreadsheetInfo.SetLicense(...)` call is dropped.
 
-- **Project:** `src/PXA.Migration.Spreadsheet.Code.GemBox/`. **Converter:** `GemBoxSpreadsheetConverter` (`GemBoxSpreadsheet`, `full`).
+- **Project:** `src/Migrations/Spreadsheet/PXA.Migration.Spreadsheet.Code.GemBox/`. **Converter:** `GemBoxSpreadsheetConverter` (`GemBoxSpreadsheet`, `full`).
 - **Diagnostics:** `CANMIGGBSS`. **Tests:** `tests/PXA.Migration.Spreadsheet.Code.GemBox.Tests/` (2, green).
 
 ## API mapping

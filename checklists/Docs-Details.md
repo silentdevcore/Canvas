@@ -9,7 +9,7 @@ single machine-readable **element catalog** so human docs, AI docs, and validati
 PXA has two documentable surfaces — the imperative **C# `PXA.Pdf`** engine (`PXA/Pdf/`, ~150
 public methods, ~5–10% with XML doc comments) and the declarative **`DesignExportDto` element model** (37
 types in `PXA.Domain/ValueObjects/ElementType.cs`; properties in
-`src/PXA.Core/Contracts/DesignExportDto.cs`). Element metadata is currently scattered/duplicated across
+`src/Core/PXA.Core/Contracts/DesignExportDto.cs`). Element metadata is currently scattered/duplicated across
 the enum, `ElementDto`, `HelpModal.tsx`, and `DocsPage.tsx`. No DocFX, `llms.txt`, JSON-Schema, or MCP yet.
 
 ### Decisions (confirmed)

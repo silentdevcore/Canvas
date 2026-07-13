@@ -5,7 +5,7 @@
 Convert a **C# DevExpress XtraReport class** (Report Designer output) into a **PXA design** that opens
 and is editable in `ui-designer-v2` — replacing the dead-end `CANMIGDEVEXP020` "report export requires
 manual migration" warning emitted by the code converter
-([DevExpressPdfMigration.cs](../src/PXA.Migration.Pdf.Code.DevExpress/DevExpressPdfMigration.cs)).
+([DevExpressPdfMigration.cs](../src/Migrations/PDF/PXA.Migration.Pdf.Code.DevExpress/DevExpressPdfMigration.cs)).
 
 - **Input**: a C# `XtraReport` subclass + designer code (`InitializeComponent()` configuring `XRLabel`,
   `XRLine`, `XRPictureBox`, `XRShape`, `XRTable`, … via `LocationF`/`SizeF`/`Text`/`Font`/`ForeColor`).
@@ -37,7 +37,7 @@ the next, unstarted milestone.
       to the page bottom (`pageHeight − bottomMargin − footerHeight`).
 
 ### Architecture
-- [x] Isolated project `src/PXA.Migration.Report.Designer.DevExpress` (refs `PXA.Core` + Roslyn); returns a
+- [x] Isolated project `src/Migrations/Report/PXA.Migration.Report.Designer.DevExpress` (refs `PXA.Core` + Roslyn); returns a
       `DesignExportDto`, not a code string.
 - [x] `XtraReportToDesignConverter.Convert(string)` → `{ DesignExportDto Design, IReadOnlyList<MigrationDiagnostic> Diagnostics }`.
 - [x] Roslyn pre-scan: locate `: XtraReport`; collect control field declarations; read
@@ -140,7 +140,7 @@ before lower-value table styling.
 
 ### 3. Data & layout fidelity
 - [~] ~~Translate DevExpress expression syntax to the PXA expression DSL.~~ **Not worth doing** —
-      PXA's `ExpressionEvaluator` ([src/PXA.Core/Primitives/ExpressionEvaluator.cs](../src/PXA.Core/Primitives/ExpressionEvaluator.cs))
+      PXA's `ExpressionEvaluator` ([src/Core/PXA.Core/Primitives/ExpressionEvaluator.cs](../src/Core/PXA.Core/Primitives/ExpressionEvaluator.cs))
       is a stub (bare-identifier substitution + `==`/`!=` only; no arithmetic/functions), so there's no
       richer target to translate into. Single-field `[X]` → `binding` (done); other expressions are
       preserved verbatim on `expression` with a warning.

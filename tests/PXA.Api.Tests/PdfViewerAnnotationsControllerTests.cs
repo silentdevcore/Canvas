@@ -17,7 +17,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
 
     public PdfViewerAnnotationsControllerTests(WebApplicationFactory<Program> factory)
     {
-        _storageRoot = Path.Combine(Path.GetTempPath(), "canvas-pdf-viewer-api-tests", Guid.NewGuid().ToString("N"));
+        _storageRoot = Path.Combine(Path.GetTempPath(), "pxa-pdf-viewer-api-tests", Guid.NewGuid().ToString("N"));
         _client = factory
             .WithWebHostBuilder(builder =>
             {
@@ -183,7 +183,7 @@ public sealed class PdfViewerAnnotationsControllerTests : IClassFixture<WebAppli
     [Fact]
     public void AnnotationStore_ReloadsSavedSidecarFromDisk()
     {
-        var storageRoot = Path.Combine(Path.GetTempPath(), "canvas-pdf-viewer-tests", Guid.NewGuid().ToString("N"));
+        var storageRoot = Path.Combine(Path.GetTempPath(), "pxa-pdf-viewer-tests", Guid.NewGuid().ToString("N"));
         var documentId = $"doc/{Guid.NewGuid():N}";
 
         try

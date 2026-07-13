@@ -6,8 +6,10 @@ import { ExportService } from '@/services/ExportService';
 import { jsonToCSharp } from '@/utils/jsonToCSharp';
 import { jsonToCode } from '@/utils/jsonToCode';
 
-const STORAGE_KEY = 'canvas-code-editor-draft-v2';
-const STORAGE_LANG_KEY = 'canvas-code-editor-lang-v2';
+const STORAGE_KEY = 'pxa-code-editor-draft-v2';
+const STORAGE_LANG_KEY = 'pxa-code-editor-lang-v2';
+const LEGACY_STORAGE_KEY = 'canvas-code-editor-draft-v2';
+const LEGACY_STORAGE_LANG_KEY = 'canvas-code-editor-lang-v2';
 const DEFAULT_JSON = JSON.stringify(STARTER_TEMPLATES.hello, null, 2);
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5086/api';
 
@@ -58,12 +60,15 @@ function parseAndValidate(raw: string): { validation: ValidationResult; parsed: 
 
 export default function LiveCodeEditor({ onBack }: Props) {
   const [language, setLanguage] = useState<EditorLanguage>(() => {
-    try { return (localStorage.getItem(STORAGE_LANG_KEY) as EditorLanguage) || 'json'; }
+    try {
+      const stored = localStorage.getItem(STORAGE_LANG_KEY) ?? localStorage.getItem(LEGACY_STORAGE_LANG_KEY);
+      return (stored as EditorLanguage) || 'json';
+    }
     catch { return 'json'; }
   });
 
   const [raw, setRaw] = useState<string>(() => {
-    try { return localStorage.getItem(STORAGE_KEY) || DEFAULT_JSON; }
+    try { return localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY) ?? DEFAULT_JSON; }
     catch { return DEFAULT_JSON; }
   });
 

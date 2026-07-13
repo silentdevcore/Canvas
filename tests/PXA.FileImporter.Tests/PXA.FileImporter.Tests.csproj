@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PXA.FileImporter/PXA.FileImporter.csproj" />
+    <ProjectReference Include="../../src/Importing/PXA.FileImporter/PXA.FileImporter.csproj" />
   </ItemGroup>
 
 </Project>

@@ -22,9 +22,9 @@ expression engine has **no A1 cell references**. This adds a real Excel-like exp
 
 ## Phase 0 — Backend model (`PXA.Core.Contracts`)
 - [x] `SpreadsheetDto`/`SheetDto`/`SheetColumnDto`/`SheetRowDto`/`CellDto`/`DefinedNameDto` in
-      `src/PXA.Core/Contracts/SpreadsheetDto.cs` (sparse typed cells with `formula`/`numberFormat`/style,
+      `src/Core/PXA.Core/Contracts/SpreadsheetDto.cs` (sparse typed cells with `formula`/`numberFormat`/style,
       merges, frozen panes, defined names). Reuses `CellStyleDto`/`CellBorderSideDto`.
-- [x] `A1Reference` helper in `src/PXA.Core/Primitives/A1Reference.cs` (col↔letters, A1↔row/col).
+- [x] `A1Reference` helper in `src/Core/PXA.Core/Primitives/A1Reference.cs` (col↔letters, A1↔row/col).
 
 ## Phase 1 — Backend xlsx I/O + API
 - [x] `ExcelWorkbookExporter` (SpreadsheetDto → ClosedXML): typed values, formulas via `cell.FormulaA1`,
@@ -77,7 +77,7 @@ sheets — that's correct Excel terminology, and `SheetDto`→`SpreadsheetDto` w
 type). Confirm the scope before executing.
 
 ### A) Rename the infrastructure project `PXA.Infrastructure.Sheet` → `PXA.Infrastructure.Spreadsheet` — DONE
-- [x] Folder `src/PXA.Infrastructure.Sheet/` → `src/PXA.Infrastructure.Spreadsheet/` (`git mv`).
+- [x] Folder `src/PXA.Infrastructure.Sheet/` → `src/Infrastructure/PXA.Infrastructure.Spreadsheet/` (`git mv`).
 - [x] `PXA.Infrastructure.Sheet.csproj` → `PXA.Infrastructure.Spreadsheet.csproj`.
 - [x] `namespace …Sheet` → `…Spreadsheet` in all 5 files.
 - [~] `SheetRendererCapabilities` class **left as-is** — a class identifier (scope B), not the project rename;

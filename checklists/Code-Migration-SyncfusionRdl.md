@@ -54,7 +54,7 @@ gaps (per-cell table styling, native maps/charts) require **PXA model** changes,
       accumulating offsets so children land at absolute coordinates (depth guard → `CANMIGRDL013`).
 
 ### Architecture
-- [x] Self-contained project `src/PXA.Migration.Report.Designer.Rdl` (refs `PXA.Core` + `PXA.Migration.Abstractions`;
+- [x] Self-contained project `src/Migrations/Report/PXA.Migration.Report.Designer.Rdl` (refs `PXA.Core` + `PXA.Migration.Abstractions`;
       no Roslyn). Its own neutral `RawReport`/`RawElement` model + region-based build, adapted from the
       DevExpress converter (which is untouched). Returns a `DesignExportDto`, not a code string.
 - [x] `RdlToDesignConverter.Convert(string)` → `{ DesignExportDto Design, IReadOnlyList<MigrationDiagnostic> Diagnostics }`;

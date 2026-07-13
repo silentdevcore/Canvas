@@ -15,25 +15,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../src/PXA.FileImporter/PXA.FileImporter.csproj" />
-    <ProjectReference Include="../src/PXA.FileImporter.ImageAnalysis/PXA.FileImporter.ImageAnalysis.csproj" />
-    <ProjectReference Include="../src/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj" />
-    <ProjectReference Include="../src/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />
-    <ProjectReference Include="../src/PXA.Importer/PXA.Importer.csproj" />
-    <ProjectReference Include="../src/PXA.Application/PXA.Application.csproj" />
-    <ProjectReference Include="../src/PXA.Core/PXA.Core.csproj" />
-    <ProjectReference Include="../src/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj" />
-    <ProjectReference Include="../src/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj" />
-    <ProjectReference Include="../src/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj" />
-    <ProjectReference Include="../src/PXA.Migration.Pdf/PXA.Migration.Pdf.csproj" />
-    <ProjectReference Include="../src/PXA.Migration.Report/PXA.Migration.Report.csproj" />
-    <ProjectReference Include="../src/PXA.Migration.Spreadsheet/PXA.Migration.Spreadsheet.csproj" />
+    <ProjectReference Include="../src/Importing/PXA.FileImporter/PXA.FileImporter.csproj" />
+    <ProjectReference Include="../src/Importing/PXA.FileImporter.ImageAnalysis/PXA.FileImporter.ImageAnalysis.csproj" />
+    <ProjectReference Include="../src/Importing/PXA.FileImporter.ImageOcr/PXA.FileImporter.ImageOcr.csproj" />
+    <ProjectReference Include="../src/Importing/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj" ReferenceOutputAssembly="false" OutputItemType="OcrWorkerProject" />
+    <ProjectReference Include="../src/Importing/PXA.Importer/PXA.Importer.csproj" />
+    <ProjectReference Include="../src/Core/PXA.Application/PXA.Application.csproj" />
+    <ProjectReference Include="../src/Core/PXA.Core/PXA.Core.csproj" />
+    <ProjectReference Include="../src/Infrastructure/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj" />
+    <ProjectReference Include="../src/Infrastructure/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj" />
+    <ProjectReference Include="../src/Infrastructure/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj" />
+    <ProjectReference Include="../src/Migrations/PDF/PXA.Migration.Pdf/PXA.Migration.Pdf.csproj" />
+    <ProjectReference Include="../src/Migrations/Report/PXA.Migration.Report/PXA.Migration.Report.csproj" />
+    <ProjectReference Include="../src/Migrations/Spreadsheet/PXA.Migration.Spreadsheet/PXA.Migration.Spreadsheet.csproj" />
   </ItemGroup>
 
   <Target Name="CopyImageOcrWorker" AfterTargets="Build">
-    <MSBuild Projects="../src/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj" Targets="Build" Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
+    <MSBuild Projects="../src/Importing/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj" Targets="Build" Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
     <ItemGroup>
-      <ImageOcrWorkerFiles Include="../src/PXA.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />
+      <ImageOcrWorkerFiles Include="../src/Importing/PXA.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />
     </ItemGroup>
     <Copy SourceFiles="@(ImageOcrWorkerFiles)" DestinationFiles="@(ImageOcrWorkerFiles->'$(OutputPath)ocr-worker/%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
   </Target>

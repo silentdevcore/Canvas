@@ -2,7 +2,7 @@
 
 ## V1 Pilot Analysis
 
-- [x] Add cautious Roslyn-backed provider project: `src/PXA.Migration.Pdf.Code.PdfTools`
+- [x] Add cautious Roslyn-backed provider project: `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfTools`
 - [x] Add provider tests: `tests/PXA.Migration.Pdf.Code.PdfTools.Tests`
 - [x] Connect WebApi converter: `PXA.WebApi/Services/Converters/PdfToolsConverter.cs`
 - [x] Add UI fallback status/example as `pilot`

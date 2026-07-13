@@ -29,7 +29,7 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/PXA.Migration.Pdf.Code.Spire`
+- [x] Add `src/Migrations/PDF/PXA.Migration.Pdf.Code.Spire`
 - [x] Add `tests/PXA.Migration.Pdf.Code.Spire.Tests`
 - [x] Add WebApi converter integration
 - [x] Add API service smoke test

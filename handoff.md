@@ -32,10 +32,10 @@ Der bisherige Fokus war:
 Beim Erstellen dieses Handoffs zeigt `git status --short` unter anderem Änderungen, die nicht aus der Migration-Arbeit stammen bzw. nicht zurückgesetzt werden sollen:
 
 - `PXA.WebApi/Controllers/DocumentOpsController.cs`
-- `src/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj`
+- `src/Infrastructure/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj`
 - Gelöschte Dateien:
-  - `src/PXA.Infrastructure.Converters/PdfImporter.cs`
-  - `src/PXA.Infrastructure.Converters/SvgPdfImporter.cs`
+  - `src/Infrastructure/PXA.Infrastructure.Converters/PdfImporter.cs`
+  - `src/Infrastructure/PXA.Infrastructure.Converters/SvgPdfImporter.cs`
 - UI/Docs/Export-Dateien:
   - `ui-designer-v2/src/hooks/useTemplateLoader.ts`
   - `ui-designer-v2/src/pages/DocsPage.tsx`
@@ -72,15 +72,15 @@ Provider mit Roslyn-/Pattern-Pilot:
 
 Aktuell relevante neue/letzte Provider-Dateien:
 
-- `src/PXA.Migration.Pdf.Code.PdfKitNet/PdfKitNetMigration.cs`
+- `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfKitNet/PdfKitNetMigration.cs`
 - `tests/PXA.Migration.Pdf.Code.PdfKitNet.Tests/PdfKitNetMigrationTests.cs`
-- `src/PXA.Migration.Pdf.Code.Leadtools/LeadtoolsPdfMigration.cs`
+- `src/Migrations/PDF/PXA.Migration.Pdf.Code.Leadtools/LeadtoolsPdfMigration.cs`
 - `tests/PXA.Migration.Pdf.Code.Leadtools.Tests/LeadtoolsPdfMigrationTests.cs`
-- `src/PXA.Migration.Pdf.Code.ActivePdf/ActivePdfMigration.cs`
+- `src/Migrations/PDF/PXA.Migration.Pdf.Code.ActivePdf/ActivePdfMigration.cs`
 - `tests/PXA.Migration.Pdf.Code.ActivePdf.Tests/ActivePdfMigrationTests.cs`
-- `src/PXA.Migration.Pdf.Code.PdfTools/PdfToolsMigration.cs`
+- `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfTools/PdfToolsMigration.cs`
 - `tests/PXA.Migration.Pdf.Code.PdfTools.Tests/PdfToolsMigrationTests.cs`
-- `src/PXA.Migration.Pdf.Code.PdfToolsToolbox/PdfToolsToolboxMigration.cs`
+- `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfToolsToolbox/PdfToolsToolboxMigration.cs`
 - `tests/PXA.Migration.Pdf.Code.PdfToolsToolbox.Tests/PdfToolsToolboxMigrationTests.cs`
 
 WebApi-Konverter:

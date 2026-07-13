@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PXA.Generator/PXA.Generator.csproj" />
+    <ProjectReference Include="../../src/Generation/PXA.Generator/PXA.Generator.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -97,7 +97,7 @@ namespace does **not** contain `reportdefinition`, and no `<Sections>` (RPX). Ac
 
 ## Architecture & delivery (planned)
 
-- New self-contained project `src/PXA.Migration.Report.Designer.FastReport` (refs `PXA.Core` +
+- New self-contained project `src/Migrations/Report/PXA.Migration.Report.Designer.FastReport` (refs `PXA.Core` +
   `PXA.Migration.Abstractions`), `FrxToDesignConverter` with `Convert`/`ConvertAuto`/static
   `LooksLikeFrx`; band-based `RawReport`/`RawBand`/`RawElement` model (adapted from `PXA.Migration.Report.Designer.Rpx`).
 - Wire `report-to-design` routing (RDL → RPX → FRX → DevExpress) + WebApi ref + `PXA.sln` entries.

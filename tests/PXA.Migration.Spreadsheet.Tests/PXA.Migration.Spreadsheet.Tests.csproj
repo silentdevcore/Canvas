@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PXA.Migration.Spreadsheet/PXA.Migration.Spreadsheet.csproj" />
+    <ProjectReference Include="../../src/Migrations/Spreadsheet/PXA.Migration.Spreadsheet/PXA.Migration.Spreadsheet.csproj" />
   </ItemGroup>
 
 </Project>

@@ -34,8 +34,8 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 - [ ] Do not reference migration projects from `PXA.Core`
 - [ ] Do not reference migration projects from `PXA.Infrastructure.Pdf`
 - [ ] Use `PXA.Pdf` as the target output API
-- [x] Add shared abstractions under `src/PXA.Migration.Abstractions`
-- [x] Add Roslyn migration infrastructure under `src/PXA.Migration.Roslyn`
+- [x] Add shared abstractions under `src/Migrations/Common/PXA.Migration.Abstractions`
+- [x] Add Roslyn migration infrastructure under `src/Migrations/Common/PXA.Migration.Roslyn`
 - [ ] Add one provider project per vendor under future `src/PXA.Migration.<Provider>`
 - [x] Define provider-neutral migration diagnostics
 - [ ] Define provider-neutral mapping result model
@@ -44,23 +44,23 @@ The first milestone started with checklist and architecture scaffolding. Syncfus
 
 ## Future Project Layout
 
-- [x] `src/PXA.Migration.Abstractions`
-- [x] `src/PXA.Migration.Roslyn`
-- [x] `src/PXA.Migration.Pdf.Code.IText7`
-- [x] `src/PXA.Migration.Pdf.Code.Aspose`
-- [x] `src/PXA.Migration.Pdf.Code.IronPdf`
-- [x] `src/PXA.Migration.Pdf.Code.Apryse`
-- [x] `src/PXA.Migration.Pdf.Code.Syncfusion`
-- [x] `src/PXA.Migration.Pdf.Code.DsPdf`
-- [x] `src/PXA.Migration.Pdf.Code.GemBox`
-- [x] `src/PXA.Migration.Pdf.Code.Spire`
-- [x] `src/PXA.Migration.Pdf.Code.PdfKitNet`
-- [x] `src/PXA.Migration.Pdf.Code.Leadtools`
-- [x] `src/PXA.Migration.Pdf.Code.Foxit`
-- [x] `src/PXA.Migration.Pdf.Code.DevExpress`
-- [x] `src/PXA.Migration.Pdf.Code.ActivePdf`
-- [x] `src/PXA.Migration.Pdf.Code.PdfTools`
-- [x] `src/PXA.Migration.Pdf.Code.PdfToolsToolbox`
+- [x] `src/Migrations/Common/PXA.Migration.Abstractions`
+- [x] `src/Migrations/Common/PXA.Migration.Roslyn`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.IText7`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.Aspose`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.IronPdf`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.Apryse`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.Syncfusion`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.DsPdf`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.GemBox`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.Spire`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfKitNet`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.Leadtools`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.Foxit`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.DevExpress`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.ActivePdf`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfTools`
+- [x] `src/Migrations/PDF/PXA.Migration.Pdf.Code.PdfToolsToolbox`
 
 ## Shared Roslyn Analyzer And Code Fix Tasks
 

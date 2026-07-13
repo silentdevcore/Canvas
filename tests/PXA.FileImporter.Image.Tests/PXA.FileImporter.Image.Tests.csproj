@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PXA.FileImporter/PXA.FileImporter.csproj" />
+    <ProjectReference Include="../../src/Importing/PXA.FileImporter/PXA.FileImporter.csproj" />
     <PackageReference Include="SkiaSharp" Version="3.119.2" />
   </ItemGroup>
 

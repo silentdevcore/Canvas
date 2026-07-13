@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../../Infrastructure/PXA.Infrastructure.Pdf/PXA.Infrastructure.Pdf.csproj" />
+    <ProjectReference Include="../../Infrastructure/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj" />
+    <ProjectReference Include="../../Infrastructure/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj" />
+    <ProjectReference Include="../../Core/PXA.Core/PXA.Core.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+</Project>

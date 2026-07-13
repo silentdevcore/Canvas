@@ -46,7 +46,7 @@
 
 ## Roslyn Prototype Status
 
-- [x] Add `src/PXA.Migration.Pdf.Code.DsPdf`
+- [x] Add `src/Migrations/PDF/PXA.Migration.Pdf.Code.DsPdf`
 - [x] Add `tests/PXA.Migration.Pdf.Code.DsPdf.Tests`
 - [x] Add projects to `PXA.sln`
 - [x] Implement source migration entry point: `DsPdfMigration` as a real `CSharpSyntaxRewriter`

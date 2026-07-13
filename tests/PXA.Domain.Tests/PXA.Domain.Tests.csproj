@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PXA.Domain/PXA.Domain.csproj" />
+    <ProjectReference Include="../../src/Core/PXA.Domain/PXA.Domain.csproj" />
   </ItemGroup>
 
 </Project>

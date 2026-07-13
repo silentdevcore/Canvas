@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/PXA.Migration.Spreadsheet.Code.Syncfusion/PXA.Migration.Spreadsheet.Code.Syncfusion.csproj" />
-    <ProjectReference Include="../../src/PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
+    <ProjectReference Include="../../src/Migrations/Spreadsheet/PXA.Migration.Spreadsheet.Code.Syncfusion/PXA.Migration.Spreadsheet.Code.Syncfusion.csproj" />
+    <ProjectReference Include="../../src/Migrations/Common/PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>
