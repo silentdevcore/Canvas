@@ -176,7 +176,7 @@ public abstract class BasePdfConverter : ICodeConverter
             lineWidth: 0.001, fill: true, fillColor: PdfColor.FromRgb(30, 64, 175));
 
         // Footer text
-        page.DrawText("Generated with PXA.Pdf · The modern .NET PDF library · canvas-pdf.io",
+        page.DrawText("Generated with PXA.Pdf · Power Dox Automation",
             x: 30, y: 9,
             new PdfDrawTextOptions { FontSize = 8, FillColor = PdfColor.White });
     }
