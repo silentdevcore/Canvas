@@ -1,0 +1,7 @@
+{
+  "provider": "DevExpress",
+  "domain": "PDF",
+  "kind": "Code",
+  "sourceSnippet": "var doc = new PdfDocumentProcessor(); doc.LoadDocument(path);",
+  "targetNamespace": "PXA.Migration.PDF.Code.DevExpress"
+}

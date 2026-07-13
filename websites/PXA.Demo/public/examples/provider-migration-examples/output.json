@@ -1,0 +1,16 @@
+{
+  "migrationResult": "preview",
+  "targetApi": "PXA.Generator",
+  "diagnostics": [
+    {
+      "id": "PXAMIG001",
+      "severity": "info",
+      "message": "Provider detected: DevExpress PDF code migration"
+    },
+    {
+      "id": "PXAMIG101",
+      "severity": "warning",
+      "message": "Manual review required for processor lifetime and file IO."
+    }
+  ]
+}

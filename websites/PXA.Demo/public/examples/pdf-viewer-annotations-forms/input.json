@@ -1,0 +1,27 @@
+{
+  "document": "viewer-sample.pdf",
+  "page": 1,
+  "formFields": [
+    {
+      "name": "customerName",
+      "type": "text",
+      "value": "Northwind Travel Desk"
+    },
+    {
+      "name": "approved",
+      "type": "checkbox",
+      "value": true
+    }
+  ],
+  "annotations": [
+    {
+      "type": "highlight",
+      "text": "Payment terms",
+      "color": "#f4c430"
+    },
+    {
+      "type": "note",
+      "text": "Confirm billing address before export"
+    }
+  ]
+}
