@@ -164,9 +164,13 @@ Implementation keeps legacy provider IDs and public routes compatible. For `/api
   - `PXA.Migration.Report.Tests`: 20 passed.
 - [x] Full .NET test pass after restore succeeds.
   - Current result: `dotnet test PXA.sln --no-restore --disable-build-servers -m:1` passed.
-- [ ] Smoke test PDF code migration with `aspose-pdf`.
-- [ ] Smoke test spreadsheet code migration with `aspose-cells`.
-- [ ] Smoke test designer migration with DevExpress and RDL samples.
+- [x] Smoke test PDF code migration with `aspose-pdf`.
+  - Added API smoke coverage for provider-key alias routing through `/api/pxa/migration/convert`.
+- [x] Smoke test spreadsheet code migration with `aspose-cells`.
+  - Added API smoke coverage for provider-key alias routing through `/api/pxa/migration/convert`.
+- [x] Smoke test designer migration with DevExpress and RDL samples.
+  - Added API smoke coverage for `/api/pxa/migration/report-to-design` with DevExpress `.repx` and RDL XML samples.
+  - Verified with `dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj --no-restore --disable-build-servers -m:1 --filter MigrationControllerTests` (6 passed).
 
 ## Assumptions
 

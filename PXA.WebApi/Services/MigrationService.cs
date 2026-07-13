@@ -1,9 +1,39 @@
 using PXA.WebApi.Services.Converters;
+using PXA.Migration.Pdf;
+using PXA.Migration.Spreadsheet;
 
 namespace PXA.WebApi.Services;
 
 public sealed class MigrationService
 {
+    private static readonly IReadOnlyDictionary<string, string> FrameworkAliases =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            [PdfMigrationProviderKeys.ActivePdf] = "ActivePdf",
+            [PdfMigrationProviderKeys.Apryse] = "Apryse",
+            [PdfMigrationProviderKeys.AsposePdf] = "Aspose",
+            [PdfMigrationProviderKeys.DevExpressPdf] = "DevExpress",
+            [PdfMigrationProviderKeys.DsPdf] = "DsPdf",
+            [PdfMigrationProviderKeys.FoxitPdf] = "Foxit",
+            [PdfMigrationProviderKeys.GemBoxPdf] = "GemBox",
+            [PdfMigrationProviderKeys.IronPdf] = "IronPdf",
+            [PdfMigrationProviderKeys.IText7] = "iText7",
+            [PdfMigrationProviderKeys.LeadtoolsPdf] = "Leadtools",
+            [PdfMigrationProviderKeys.PdfKitNet] = "PdfKitNet",
+            [PdfMigrationProviderKeys.PdfTools] = "PdfTools",
+            [PdfMigrationProviderKeys.PdfToolsToolbox] = "PdfToolsToolbox",
+            [PdfMigrationProviderKeys.SpirePdf] = "Spire",
+            [PdfMigrationProviderKeys.SyncfusionPdf] = "Syncfusion",
+            [SpreadsheetMigrationProviderKeys.AsposeCells] = "AsposeCells",
+            [SpreadsheetMigrationProviderKeys.ClosedXml] = "ClosedXmlSpreadsheet",
+            [SpreadsheetMigrationProviderKeys.Epplus] = "EpplusSpreadsheet",
+            [SpreadsheetMigrationProviderKeys.GemBoxSpreadsheet] = "GemBoxSpreadsheet",
+            [SpreadsheetMigrationProviderKeys.Npoi] = "Npoi",
+            [SpreadsheetMigrationProviderKeys.SpireXls] = "SpireXls",
+            [SpreadsheetMigrationProviderKeys.SpreadsheetLight] = "SpreadsheetLight",
+            [SpreadsheetMigrationProviderKeys.SyncfusionXlsIo] = "SyncfusionXlsIo",
+        };
+
     private readonly IReadOnlyDictionary<string, ICodeConverter> _converters;
 
     public MigrationService()
@@ -55,7 +85,7 @@ public sealed class MigrationService
 
     /// <summary>Migration target kind for a framework ("pdf" | "spreadsheet"); defaults to "pdf".</summary>
     public string GetKind(string frameworkId) =>
-        _converters.TryGetValue(frameworkId, out var c) ? c.Kind : "pdf";
+        _converters.TryGetValue(NormalizeFrameworkId(frameworkId), out var c) ? c.Kind : "pdf";
 
     public MigrationResult Convert(string frameworkId, string sourceCode)
     {
@@ -73,10 +103,16 @@ public sealed class MigrationService
 
     private ICodeConverter GetConverter(string frameworkId)
     {
-        if (!_converters.TryGetValue(frameworkId, out var converter))
+        var normalizedFrameworkId = NormalizeFrameworkId(frameworkId);
+        if (!_converters.TryGetValue(normalizedFrameworkId, out var converter))
             throw new ArgumentException($"Unknown framework '{frameworkId}'. Supported: {string.Join(", ", _converters.Keys)}");
         return converter;
     }
+
+    private static string NormalizeFrameworkId(string frameworkId) =>
+        FrameworkAliases.TryGetValue(frameworkId, out var normalized)
+            ? normalized
+            : frameworkId;
 
     private static MigrationTaxonomy GetTaxonomy(ICodeConverter converter)
     {
