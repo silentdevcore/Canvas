@@ -277,11 +277,11 @@ document.querySelector('#app').innerHTML = `
         </a>
         <nav class="pxa-site-nav" aria-label="Primary navigation">
           <a href="${siteLinks.company}" aria-current="page">Company</a>
-          <a href="#about">About</a>
           <a href="#products">Products</a>
           <a href="${siteLinks.documentation}">Documentation</a>
           <a href="${siteLinks.demo}">Demo</a>
           <a href="#pricing">Pricing</a>
+          <a href="#about">About</a>
           <a href="#support">Support</a>
         </nav>
         <a class="pxa-button pxa-button--primary pxa-header-cta" href="#contact">Contact sales</a>
@@ -315,26 +315,6 @@ document.querySelector('#app').innerHTML = `
               <div><dt>Current phase</dt><dd>Web platform</dd></div>
             </dl>
           </aside>
-        </div>
-      </section>
-
-      <section class="pxa-section" id="about">
-        <div class="pxa-container pxa-company-two-column">
-          <div>
-            <p class="pxa-kicker">About</p>
-            <h2 class="pxa-heading">Power Dox Automation is a product system for modern document work.</h2>
-            <p class="pxa-lede">
-              PXA exists to make document automation less fragmented: one family for generating output,
-              migrating legacy providers, importing files, reviewing PDFs, and connecting examples to docs.
-            </p>
-            <div class="pxa-action-row">
-              <a class="pxa-button pxa-button--primary" href="${siteLinks.documentation}#overview">Read docs</a>
-              <a class="pxa-button pxa-button--secondary" href="${siteLinks.demo}">Explore demos</a>
-            </div>
-          </div>
-          <div class="pxa-company-about-stack">
-            ${renderAboutPrinciples(aboutPrinciples)}
-          </div>
         </div>
       </section>
 
@@ -417,6 +397,26 @@ document.querySelector('#app').innerHTML = `
         </div>
       </section>
 
+      <section class="pxa-section pxa-section--soft" id="about">
+        <div class="pxa-container pxa-company-two-column">
+          <div>
+            <p class="pxa-kicker">About</p>
+            <h2 class="pxa-heading">Power Dox Automation is a product system for modern document work.</h2>
+            <p class="pxa-lede">
+              PXA exists to make document automation less fragmented: one family for generating output,
+              migrating legacy providers, importing files, reviewing PDFs, and connecting examples to docs.
+            </p>
+            <div class="pxa-action-row">
+              <a class="pxa-button pxa-button--primary" href="${siteLinks.documentation}#overview">Read docs</a>
+              <a class="pxa-button pxa-button--secondary" href="${siteLinks.demo}">Explore demos</a>
+            </div>
+          </div>
+          <div class="pxa-company-about-stack">
+            ${renderAboutPrinciples(aboutPrinciples)}
+          </div>
+        </div>
+      </section>
+
       <section class="pxa-section pxa-section--soft" id="support">
         <div class="pxa-container pxa-company-two-column">
           <div>
@@ -451,11 +451,11 @@ document.querySelector('#app').innerHTML = `
         </div>
         <nav aria-label="Footer navigation">
           <a href="${siteLinks.company}">Company</a>
-          <a href="#about">About</a>
           <a href="#products">Products</a>
           <a href="${siteLinks.documentation}">Documentation</a>
           <a href="${siteLinks.demo}">Demo</a>
           <a href="#pricing">Pricing</a>
+          <a href="#about">About</a>
           <a href="#support">Support</a>
         </nav>
       </div>
