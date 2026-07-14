@@ -33,9 +33,11 @@ Hosting fuer `PXA.Company`, `PXA.Documentation` und `PXA.Demo` so vorbereiten, d
 - [x] Legacy-Branding-Suche fuer `Canvas` in Website-Dateien ausfuehren.
 - [x] Lokale URLs smoke-testen.
 - [x] PXA.Demo Example-Dateien als synthetische Public Assets dokumentieren.
+- [x] Environment-aware Site URLs zentralisieren.
 
 ## Offene Post-MVP Aufgaben
-- [ ] Environment-aware Site URLs einfuehren.
+- [x] Environment-aware Site URLs einfuehren.
+- [ ] CI/build-time Env-Var-Injection fuer Production URLs einrichten.
 - [ ] CI-Build fuer alle drei Websites einrichten.
 - [ ] Link-Check fuer Cross-Site-Links und Demo-Example-Dateien einfuehren.
 - [ ] Konkretes Hosting-Ziel auswaehlen und Deployment-Konfiguration anlegen.

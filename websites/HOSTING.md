@@ -40,11 +40,19 @@ npm run build
 ## Cross-Site Links
 
 - MVP local links use fixed localhost ports.
-- Production should replace links with public host URLs:
+- Shared URL config lives in `websites/shared/siteLinks.js`.
+- Local development defaults:
+  - Company -> `http://localhost:5173/`
+  - Documentation -> `http://localhost:5174/`
+  - Demo -> `http://localhost:5175/`
+- Production defaults:
   - Company -> `https://powerdoxautomation.com/`
   - Documentation -> `https://docs.powerdoxautomation.com/`
   - Demo -> `https://demos.powerdoxautomation.com/`
-- A future environment configuration step should centralize these URLs instead of hard-coding them in each site.
+- Production can override defaults with Vite env vars:
+  - `VITE_PXA_COMPANY_URL`
+  - `VITE_PXA_DOCUMENTATION_URL`
+  - `VITE_PXA_DEMO_URL`
 
 ## Pre-Deploy Checklist
 
@@ -56,7 +64,7 @@ npm run build
 
 ## Post-MVP Hosting Work
 
-- Add environment-aware site URLs.
+- Add CI/build-time env var injection for production URLs.
 - Add CI build jobs for all three websites.
 - Add link checking for cross-site links and public example files.
 - Add real deployment configuration when the hosting target is selected.

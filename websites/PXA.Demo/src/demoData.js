@@ -1,8 +1,4 @@
-export const siteLinks = {
-  company: 'http://localhost:5173/',
-  documentation: 'http://localhost:5174/',
-  demo: 'http://localhost:5175/',
-};
+export { siteLinks } from '../../shared/siteLinks.js';
 
 export const categories = [
   'All',

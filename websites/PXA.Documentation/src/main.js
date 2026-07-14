@@ -1,10 +1,5 @@
 import './site.css';
-
-const siteLinks = {
-  company: 'http://localhost:5173/',
-  documentation: 'http://localhost:5174/',
-  demo: 'http://localhost:5175/',
-};
+import { siteLinks } from '../../shared/siteLinks.js';
 
 const editorSections = [
   'Designer',

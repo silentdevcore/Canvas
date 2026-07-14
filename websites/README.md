@@ -43,6 +43,13 @@ The local cross-site links currently target the fixed dev ports above.
 
 Each site has a `vite.config.js` that allows imports from `websites/shared` during local development.
 
+Cross-site URLs are centralized in `shared/siteLinks.js`. Local development uses the fixed
+ports above. Production builds default to the public domains and may override them with:
+
+- `VITE_PXA_COMPANY_URL`
+- `VITE_PXA_DOCUMENTATION_URL`
+- `VITE_PXA_DEMO_URL`
+
 ## Build
 
 ```bash
