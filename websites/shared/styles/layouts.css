@@ -81,6 +81,37 @@
   background: var(--pxa-color-brand-50);
 }
 
+.pxa-nav-group {
+  position: relative;
+}
+
+.pxa-nav-trigger {
+  display: inline-flex;
+}
+
+.pxa-nav-submenu {
+  position: absolute;
+  top: calc(100% + var(--pxa-space-2));
+  left: 0;
+  display: none;
+  min-width: 180px;
+  padding: var(--pxa-space-2);
+  background: var(--pxa-color-surface);
+  border: 1px solid var(--pxa-color-border);
+  border-radius: var(--pxa-radius-lg);
+  box-shadow: var(--pxa-shadow-md);
+}
+
+.pxa-nav-submenu a {
+  display: block;
+}
+
+.pxa-nav-group:hover .pxa-nav-submenu,
+.pxa-nav-group:focus-within .pxa-nav-submenu {
+  display: grid;
+  gap: var(--pxa-space-1);
+}
+
 .pxa-header-cta {
   white-space: nowrap;
 }
@@ -203,6 +234,17 @@
     gap: var(--pxa-space-1);
   }
 
+  .pxa-nav-submenu {
+    position: static;
+    display: grid;
+    min-width: 0;
+    margin-top: var(--pxa-space-1);
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
   .pxa-site-nav a {
     padding: var(--pxa-space-2);
   }
@@ -237,6 +279,10 @@
   .pxa-site-nav {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pxa-nav-group {
+    display: grid;
   }
 
   .pxa-site-nav a {

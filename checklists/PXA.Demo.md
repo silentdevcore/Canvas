@@ -9,8 +9,9 @@
 
 ## Zielstruktur
 - [x] Website/App unter `websites/PXA.Demo` planen.
-- [x] Gemeinsame Hauptnavigation definieren: Company, Documentation, Demo, Pricing, Support.
-- [x] Gemeinsame Hauptnavigation um About, Products und Contact Sales ergaenzen.
+- [x] Gemeinsame Hauptnavigation definieren: Company, Documentation, Demo.
+- [x] Company-Untermenue fuer Products, Pricing, About und Support ergaenzen.
+- [x] Contact Sales als globale Header-CTA ergaenzen.
 - [x] Demo Home erstellen:
   - [x] Kategorien
   - [x] Suche
@@ -79,6 +80,7 @@
 - [x] Jede Demo verlinkt zu passender Documentation.
 - [x] Jede Demo verlinkt zu Source oder Beispiel-Dateien, sobald vorhanden.
 - [x] About, Products und Contact Sales sind im Header vorhanden.
+- [x] Products, Pricing, About und Support sind als Company-Untermenue gruppiert.
 - [x] Gemeinsamer Footer mit Product, Resources, Company, Developers und Legal ist vorhanden.
 - [x] Footer enthaelt Copyright und AGB-Link.
 - [x] Hosting- und Sicherheitsgrenzen sind dokumentiert.

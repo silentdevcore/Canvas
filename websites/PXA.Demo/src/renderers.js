@@ -282,13 +282,17 @@ export function renderApp(root) {
           <span class="pxa-brand__name">Power Dox Automation <small>Demo</small></span>
         </a>
         <nav class="pxa-site-nav" aria-label="Primary navigation">
-          <a href="${siteLinks.company}">Company</a>
-          <a href="${companyPage('products')}">Products</a>
+          <div class="pxa-nav-group">
+            <a class="pxa-nav-trigger" href="${siteLinks.company}">Company</a>
+            <div class="pxa-nav-submenu" aria-label="Company pages">
+              <a href="${companyPage('products')}">Products</a>
+              <a href="${companyPage('pricing')}">Pricing</a>
+              <a href="${companyPage('about')}">About</a>
+              <a href="${companyPage('support')}">Support</a>
+            </div>
+          </div>
           <a href="${siteLinks.documentation}">Documentation</a>
           <a href="${siteLinks.demo}" aria-current="page">Demo</a>
-          <a href="${companyPage('pricing')}">Pricing</a>
-          <a href="${companyPage('about')}">About</a>
-          <a href="${companyPage('support')}">Support</a>
         </nav>
         <a class="pxa-button pxa-button--primary pxa-header-cta" href="${companyPage('contact')}">Contact sales</a>
       </div>
