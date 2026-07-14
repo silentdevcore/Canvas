@@ -3,12 +3,39 @@ import { renderPxaFooter } from '../../shared/footer.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 
 const companyRoutes = {
-  '/products': 'products',
-  '/pricing': 'pricing',
-  '/about': 'about',
-  '/support': 'support',
-  '/contact': 'contact',
+  '/': {
+    section: null,
+    title: 'PXA.Company | Power Dox Automation',
+    description: 'Power Dox Automation marketing site for document generation, migration, import, viewer, and spreadsheet workflows.',
+  },
+  '/products': {
+    section: 'products',
+    title: 'Products | Power Dox Automation',
+    description: 'Explore the PXA product family: Generator, Migration, Importer, Designer, PDF Viewer, and Spreadsheet workflows.',
+  },
+  '/pricing': {
+    section: 'pricing',
+    title: 'Pricing | Power Dox Automation',
+    description: 'Review placeholder Trial, Team, and Enterprise paths for Power Dox Automation.',
+  },
+  '/about': {
+    section: 'about',
+    title: 'About | Power Dox Automation',
+    description: 'Learn how Power Dox Automation connects product, documentation, demos, and migration-first document workflows.',
+  },
+  '/support': {
+    section: 'support',
+    title: 'Support | Power Dox Automation',
+    description: 'Find support paths through PXA documentation, demos, provider parity planning, and migration guidance.',
+  },
+  '/contact': {
+    section: 'contact',
+    title: 'Contact Sales | Power Dox Automation',
+    description: 'Contact the Power Dox Automation team to plan product evaluation, migration work, or enterprise rollout.',
+  },
 };
+
+const fallbackRoute = companyRoutes['/'];
 
 const products = [
   {
@@ -276,6 +303,14 @@ function renderPricing(items) {
     .join('');
 }
 
+function updateRouteMetadata(route) {
+  document.title = route.title;
+  const description = document.querySelector('meta[name="description"]');
+  if (description) {
+    description.setAttribute('content', route.description);
+  }
+}
+
 document.querySelector('#app').innerHTML = `
   <div class="pxa-site pxa-site--company">
     <header class="pxa-site-header">
@@ -457,10 +492,11 @@ document.querySelector('#app').innerHTML = `
 `;
 
 function scrollToCompanyRoute() {
-  const sectionId = companyRoutes[window.location.pathname];
-  if (!sectionId) return;
+  const route = companyRoutes[window.location.pathname] || fallbackRoute;
+  updateRouteMetadata(route);
+  if (!route.section) return;
   window.requestAnimationFrame(() => {
-    document.querySelector(`#${sectionId}`)?.scrollIntoView({ block: 'start' });
+    document.querySelector(`#${route.section}`)?.scrollIntoView({ block: 'start' });
   });
 }
 

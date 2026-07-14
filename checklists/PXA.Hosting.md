@@ -35,6 +35,7 @@ Hosting fuer `PXA.Company`, `PXA.Documentation` und `PXA.Demo` so vorbereiten, d
 - [x] PXA.Demo Example-Dateien als synthetische Public Assets dokumentieren.
 - [x] Environment-aware Site URLs zentralisieren.
 - [x] Company Clean Paths fuer Products, Pricing, About, Support und Contact vorbereiten.
+- [x] Company Clean Paths setzen Title und Meta Description im SPA-MVP.
 
 ## Offene Post-MVP Aufgaben
 - [x] Environment-aware Site URLs einfuehren.
