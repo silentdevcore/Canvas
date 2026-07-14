@@ -42,6 +42,7 @@
 - [x] Produktkarten mit direkten Demo- und Documentation-Links.
 - [x] Showcase-Karten mit direkten Demo- und Documentation-Links.
 - [x] Kontakt-/Sales-Platzhalter.
+- [x] Company-Strategie fuer Domain, Pricing/Trial und Kontaktweg dokumentieren.
 
 ## Akzeptanzkriterien
 - [x] Klare Produktnavigation ist vorhanden.
@@ -50,14 +51,16 @@
 - [x] Keine alten `Canvas`-Brandingreste in neuen Website-Inhalten.
 - [x] Desktop und Mobile sind lesbar und nicht ueberladen.
 - [x] Pricing/Trial-Texte sind als Platzhalter erkennbar, bis echte Lizenzentscheidungen stehen.
+- [x] Domain-, Pricing- und Kontaktentscheidungen sind fuer den MVP festgehalten.
 
 ## Tests
 - [x] Build fuer `PXA.Company` ausfuehren, sobald die App existiert.
 - [x] Interne Links pruefen.
 - [x] Mobile/Desktop Smoke-Test durchfuehren.
 - [x] Suche nach `Canvas` in neuen Website-Dateien durchfuehren.
+- [x] Company-Strategie-Datei pruefen.
 
 ## Offene Entscheidungen
-- [ ] Domain/Subdomain festlegen.
-- [ ] Pricing- und Trial-Modell festlegen.
-- [ ] Kontaktweg festlegen: Formular, E-Mail, CRM oder Ticket-System.
+- [x] Domain/Subdomain festlegen: empfohlen `powerdoxautomation.com`, `docs.powerdoxautomation.com`, `demos.powerdoxautomation.com`.
+- [x] Pricing- und Trial-Modell festlegen: MVP bleibt Placeholder mit Trial, Team und Enterprise Pfaden.
+- [x] Kontaktweg festlegen: MVP bleibt Sales/Contact-Placeholder; erste Umsetzung spaeter Mail/Static-Form, CRM/Ticketing post-MVP.
