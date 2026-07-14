@@ -320,17 +320,13 @@ document.querySelector('#app').innerHTML = `
           <span class="pxa-brand__name">Power Dox Automation <small>Company</small></span>
         </a>
         <nav class="pxa-site-nav" aria-label="Primary navigation">
-          <div class="pxa-nav-group">
-            <a class="pxa-nav-trigger" href="${siteLinks.company}" aria-current="page">Company</a>
-            <div class="pxa-nav-submenu" aria-label="Company pages">
-              <a href="${companyPage('products')}">Products</a>
-              <a href="${companyPage('pricing')}">Pricing</a>
-              <a href="${companyPage('about')}">About</a>
-              <a href="${companyPage('support')}">Support</a>
-            </div>
-          </div>
+          <a href="${siteLinks.company}" aria-current="page">Company</a>
+          <a href="${companyPage('products')}">Products</a>
           <a href="${siteLinks.documentation}">Documentation</a>
           <a href="${siteLinks.demo}">Demo</a>
+          <a href="${companyPage('pricing')}">Pricing</a>
+          <a href="${companyPage('about')}">About</a>
+          <a href="${companyPage('support')}">Support</a>
         </nav>
         <a class="pxa-button pxa-button--primary pxa-header-cta" href="${companyPage('contact')}">Contact sales</a>
       </div>

@@ -9,8 +9,7 @@
 
 ## Zielstruktur
 - [x] Website/App unter `websites/PXA.Company` planen.
-- [x] Gemeinsame Hauptnavigation definieren: Company, Documentation, Demo.
-- [x] Company-Untermenue fuer Products, Pricing, About und Support ergaenzen.
+- [x] Gemeinsame Hauptnavigation definieren: Company, Products, Documentation, Demo, Pricing, About, Support.
 - [x] Contact Sales als globale Header-CTA ergaenzen.
 - [x] Hero fuer Power Dox Automation erstellen.
 - [x] About-Sektion fuer Produkt-/Firmenkontext erstellen.
@@ -55,7 +54,7 @@
 - [x] Besucher koennen von Company zu Documentation und Demo wechseln.
 - [x] Products-Menuepunkt ist in allen Website-Headern vorhanden.
 - [x] About-Menuepunkt ist in allen Website-Headern vorhanden.
-- [x] Products, Pricing, About und Support sind als Company-Untermenue gruppiert.
+- [x] Products, Pricing, About und Support bleiben direkte Menuepunkte in der Hauptnavigation.
 - [x] Contact Sales ist in allen Website-Headern vorhanden.
 - [x] Gemeinsamer Footer mit Product, Resources, Company, Developers und Legal ist vorhanden.
 - [x] Footer enthaelt Copyright und AGB-Link.
