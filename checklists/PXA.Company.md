@@ -46,6 +46,7 @@
 - [x] Route-Metadaten fuer statische Company-Seiten setzen.
 - [x] Jede statische Company-Seite rendert nur ihren eigenen Hauptinhalt mit gemeinsamer Navigation und gemeinsamem Footer.
 - [x] Produktkarten fuehren zu eigener Produktseite, Demo und Documentation.
+- [x] Company Home und Products Overview mit erstem produktnahen B2B-Content ersetzen.
 - [x] Use-Case-Uebersicht mit Links zu `PXA.Documentation`.
 - [x] Demo-CTA mit Link zu `PXA.Demo`.
 - [x] Produktkarten mit direkten Demo- und Documentation-Links.

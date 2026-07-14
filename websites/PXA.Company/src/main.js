@@ -6,17 +6,17 @@ const companyRoutes = {
   '/': {
     section: null,
     title: 'PXA.Company | Power Dox Automation',
-    description: 'Power Dox Automation marketing site for document generation, migration, import, viewer, and spreadsheet workflows.',
+    description: 'Power Dox Automation helps .NET teams generate, migrate, import, review, and automate business documents with one connected platform.',
   },
   '/products': {
     section: 'products',
     title: 'Products | Power Dox Automation',
-    description: 'Explore the PXA product family: Generator, Migration, Importer, Designer, PDF Viewer, and Spreadsheet workflows.',
+    description: 'Explore the PXA product family for document generation, migration, import, design, PDF review, and spreadsheet automation.',
   },
   '/products.html': {
     section: 'products',
     title: 'Products | Power Dox Automation',
-    description: 'Explore the PXA product family: Generator, Migration, Importer, Designer, PDF Viewer, and Spreadsheet workflows.',
+    description: 'Explore the PXA product family for document generation, migration, import, design, PDF review, and spreadsheet automation.',
   },
   '/pricing': {
     section: 'pricing',
@@ -82,8 +82,8 @@ const products = [
     slug: 'generator',
     title: 'PXA Generator',
     label: 'Generate',
-    text: 'Create PDFs and document output from code, templates, structured data, and reusable layouts.',
-    points: ['PDF generation', 'Template-driven output', 'Reusable document primitives'],
+    text: 'Generate PDF and document output from structured data, reusable templates, and code-first layout primitives.',
+    points: ['PDF output from code', 'Template-backed generation', 'Reusable layout model'],
     audience: 'Engineering teams that need reliable server-side document output.',
     detail:
       'PXA Generator is the code-first foundation for producing PDF and document output from structured data, reusable templates, and shared layout primitives.',
@@ -94,8 +94,8 @@ const products = [
     slug: 'migration',
     title: 'PXA Migration',
     label: 'Migrate',
-    text: 'Move existing PDF code, report designs, and spreadsheet workflows from known providers into PXA.',
-    points: ['Provider mapping', 'Code conversion', 'Designer migration'],
+    text: 'Move provider-specific PDF code, report designs, and spreadsheet workflows into a clearer PXA target model.',
+    points: ['Provider mapping', 'Conversion diagnostics', 'Designer and code paths'],
     audience: 'Teams replacing provider-specific SDKs, reports, or document automation code.',
     detail:
       'PXA Migration tracks provider parity, diagnostics, and conversion flows so legacy document code and report designs can move toward PXA deliberately.',
@@ -106,8 +106,8 @@ const products = [
     slug: 'importer',
     title: 'PXA Importer',
     label: 'Import',
-    text: 'Bring PDF, Office, image, and document inputs into normalized PXA flows.',
-    points: ['File normalization', 'Office/PDF inputs', 'Import diagnostics'],
+    text: 'Normalize existing files so PDF, Office, image, and document inputs can enter controlled automation flows.',
+    points: ['File normalization', 'Office and PDF inputs', 'Import diagnostics'],
     audience: 'Product teams that need to accept existing files and turn them into usable document models.',
     detail:
       'PXA Importer normalizes incoming files so PDF, Office, image, and related inputs can participate in generation, migration, and designer workflows.',
@@ -118,8 +118,8 @@ const products = [
     slug: 'designer',
     title: 'PXA Designer',
     label: 'Design',
-    text: 'Design document templates, preview output, and inspect generated JSON and code.',
-    points: ['Visual editing', 'Live preview', 'JSON/code inspection'],
+    text: 'Create and inspect document templates with a visual surface connected to JSON, previews, and generated output.',
+    points: ['Visual template editing', 'Preview workflow', 'JSON and code inspection'],
     audience: 'Teams that need visual template editing connected to generated output.',
     detail:
       'PXA Designer gives document-heavy teams a visual authoring surface for templates, reports, previews, JSON inspection, and code-oriented handoff.',
@@ -130,8 +130,8 @@ const products = [
     slug: 'pdf-viewer',
     title: 'PXA PDF Viewer',
     label: 'Review',
-    text: 'Review, annotate, fill forms, and inspect PDF workflows in the browser.',
-    points: ['Annotations', 'Forms', 'Review workflows'],
+    text: 'Review generated and imported PDFs in the browser with product-focused workflows for forms and annotations.',
+    points: ['Browser PDF review', 'Forms and annotations', 'Inspection workflows'],
     audience: 'Applications that need browser review, forms, annotations, and PDF inspection.',
     detail:
       'PXA PDF Viewer is the browser-facing review surface for generated or imported PDFs, with forms, annotations, and workflow inspection as product goals.',
@@ -142,8 +142,8 @@ const products = [
     slug: 'spreadsheet',
     title: 'PXA Spreadsheet',
     label: 'Model',
-    text: 'Import, edit, map, and export workbook-driven document automation flows.',
-    points: ['Workbook import', 'Formula-ready data', 'Export flows'],
+    text: 'Connect workbook data, mappings, and spreadsheet-driven workflows to document generation and export.',
+    points: ['Workbook import', 'Data mapping', 'Document export flows'],
     audience: 'Teams whose document automation depends on workbook data, mapping, or export workflows.',
     detail:
       'PXA Spreadsheet connects workbook-driven data and document automation, covering import, editing, mapping, formulas, and export-oriented workflows.',
@@ -162,29 +162,29 @@ for (const product of products) {
 
 const useCases = [
   {
-    title: 'Replace legacy PDF SDK code',
-    text: 'Plan migrations from provider-specific APIs into PXA code patterns with tracked compatibility gaps.',
+    title: 'Replace provider-specific PDF code',
+    text: 'Turn legacy SDK calls into tracked migration tasks with diagnostics, parity notes, and a stable PXA target API.',
   },
   {
-    title: 'Modernize report designers',
-    text: 'Bring report layouts, bands, charts, and data-bound elements into a unified design model.',
+    title: 'Modernize report templates',
+    text: 'Convert report layouts, bands, charts, tables, and data-bound elements into a normalized designer model.',
   },
   {
-    title: 'Create document workflows',
-    text: 'Combine templates, imports, spreadsheets, and generated output into repeatable automation paths.',
+    title: 'Automate business documents',
+    text: 'Generate invoices, receipts, reports, statements, and internal PDFs from data and reusable templates.',
   },
   {
-    title: 'Inspect output in the browser',
-    text: 'Use viewer, demo, and designer surfaces to validate generated PDFs before integrating deeper.',
+    title: 'Validate output before rollout',
+    text: 'Use demos, previews, and viewer workflows to inspect generated files before committing them to production flows.',
   },
 ];
 
 const providers = ['DevExpress', 'Syncfusion', 'ActiveReports', 'JasperReports', 'GemBox', 'Aspose', 'iText', 'PDF Tools'];
 
 const proofPoints = [
-  { value: '3', label: 'web properties planned' },
-  { value: '20+', label: 'migration tracks documented' },
-  { value: '6', label: 'core product areas' },
+  { value: '6', label: 'connected product areas' },
+  { value: '2', label: 'migration paths: code and designer' },
+  { value: '1', label: 'shared PXA document model' },
 ];
 
 const aboutPrinciples = [
@@ -204,18 +204,18 @@ const aboutPrinciples = [
 
 const roadmap = [
   {
-    title: 'PXA.Company',
-    text: 'Marketing site for product positioning, proof, pricing paths, and contact.',
-    status: 'Ready to shape',
+    title: 'Company site',
+    text: 'Product positioning, product pages, trust signals, pricing paths, and contact entry points.',
+    status: 'Active',
   },
   {
-    title: 'PXA.Documentation',
-    text: 'Editor and SDK documentation with product-first navigation and API references.',
+    title: 'Documentation site',
+    text: 'Editor and SDK documentation with product-first navigation, migration guides, and API references.',
     status: 'Planned',
   },
   {
-    title: 'PXA.Demo',
-    text: 'Interactive examples for generator, viewer, migration, spreadsheet, and import flows.',
+    title: 'Demo site',
+    text: 'Runnable examples for generator, viewer, migration, spreadsheet, importer, and designer flows.',
     status: 'Planned',
   },
 ];
@@ -223,21 +223,21 @@ const roadmap = [
 const showcases = [
   {
     title: 'Invoice / Booking Receipt',
-    text: 'Business document generation with structured data, reusable layout, and demo-ready preview.',
+    text: 'Generate a business-ready document from structured data and reusable layout primitives.',
     status: 'Ready',
     route: 'booking-receipt',
     docs: 'demo-examples',
   },
   {
     title: 'Report migration gallery',
-    text: 'Provider-focused examples for DevExpress, Syncfusion RDL, ActiveReports, JasperReports, and more.',
+    text: 'Compare report migration behavior across providers and track remaining conversion gaps.',
     status: 'Preview',
     route: 'master-detail-report',
     docs: 'migration',
   },
   {
     title: 'PDF viewer workflows',
-    text: 'Annotation, form, and review scenarios that connect product demos with implementation docs.',
+    text: 'Review forms, annotations, and generated output in a browser workflow connected to docs.',
     status: 'Preview',
     route: 'pdf-viewer-annotations-forms',
     docs: 'pdf-viewer',
@@ -421,11 +421,12 @@ function renderHeroSection() {
     <section class="pxa-company-hero">
       <div class="pxa-container pxa-company-hero__grid">
         <div>
-          <p class="pxa-kicker">Power Dox Automation</p>
-          <h1 class="pxa-heading">Build, migrate, and sell document automation with one PXA platform.</h1>
+          <p class="pxa-kicker">Power Dox Automation for .NET teams</p>
+          <h1 class="pxa-heading">Generate, migrate, and review business documents with one connected PXA platform.</h1>
           <p class="pxa-lede">
-            PXA brings PDF generation, provider migration, file import, spreadsheet workflows,
-            and interactive document tooling into one developer-friendly product family.
+            PXA brings document generation, provider migration, file import, template design,
+            PDF review, and spreadsheet-driven automation into a single product family for teams
+            that cannot afford fragmented document workflows.
           </p>
           <div class="pxa-action-row">
             <a class="pxa-button pxa-button--primary" href="${siteLinks.demo}">View demos</a>
@@ -439,9 +440,9 @@ function renderHeroSection() {
           <strong>Platform snapshot</strong>
           <dl>
             <div><dt>Products</dt><dd>6</dd></div>
-            <div><dt>Migration focus</dt><dd>Code and designer</dd></div>
+            <div><dt>Migration</dt><dd>Code and designer</dd></div>
             <div><dt>Primary audience</dt><dd>.NET teams</dd></div>
-            <div><dt>Current phase</dt><dd>Web platform</dd></div>
+            <div><dt>Core output</dt><dd>PDF and document flows</dd></div>
           </dl>
         </aside>
       </div>
@@ -453,11 +454,11 @@ function renderProductsPage() {
   return `
     <section class="pxa-section" id="products">
       <div class="pxa-container">
-        <p class="pxa-kicker">Products</p>
-        <h1 class="pxa-heading">A focused suite for document-heavy teams</h1>
+        <p class="pxa-kicker">Product suite</p>
+        <h1 class="pxa-heading">Everything around the document lifecycle, grouped into focused PXA products.</h1>
         <p class="pxa-lede">
-          Choose the PXA product area that matches your workflow: generation, migration,
-          import, design, PDF review, or spreadsheet-backed automation.
+          Start with the product area that matches your current problem, then connect it
+          to the rest of the platform as your automation grows.
         </p>
         <div class="pxa-feature-grid pxa-company-grid">
           ${renderCards(products)}
@@ -513,10 +514,11 @@ function renderTrustSection() {
       <div class="pxa-container pxa-company-two-column">
         <div>
           <p class="pxa-kicker">Provider coverage</p>
-          <h2 class="pxa-heading">Built around practical migration targets</h2>
+          <h2 class="pxa-heading">Designed around real provider migration work</h2>
           <p class="pxa-lede">
-            PXA tracks real provider gaps and migration status through checklists,
-            demos, and documentation.
+            PXA is shaped by concrete migration scenarios from known PDF, reporting,
+            spreadsheet, and document libraries. Parity gaps become documented tasks,
+            not hidden surprises.
           </p>
         </div>
         <div class="pxa-card">
@@ -535,10 +537,10 @@ function renderExamplesSection() {
     <section class="pxa-section pxa-section--soft" id="examples">
       <div class="pxa-container">
         <p class="pxa-kicker">Example reports</p>
-        <h2 class="pxa-heading">Showcases that connect sales, docs, and demos</h2>
+        <h2 class="pxa-heading">Examples that make document automation testable</h2>
         <p class="pxa-lede">
-          These examples make the product concrete: each one should point to a demo,
-          documentation, and implementation status.
+          Each example is meant to connect a realistic business document, a runnable demo,
+          and the documentation needed to implement or migrate the workflow.
         </p>
         <div class="pxa-company-showcase-grid">
           ${renderShowcases(showcases)}
@@ -553,7 +555,7 @@ function renderRoadmapSection() {
     <section class="pxa-section pxa-section--soft" id="roadmap">
       <div class="pxa-container">
         <p class="pxa-kicker">Roadmap</p>
-        <h2 class="pxa-heading">One brand, three focused web experiences</h2>
+        <h2 class="pxa-heading">A product website connected to docs and demos</h2>
         <div class="pxa-company-roadmap">
           ${renderRoadmap(roadmap)}
         </div>
