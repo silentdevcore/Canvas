@@ -52,3 +52,15 @@ cd websites/PXA.Demo && npm run build
 ```
 
 Build output is ignored by Git via `websites/*/dist/`.
+
+## Hosting
+
+Hosting strategy lives in [`HOSTING.md`](HOSTING.md).
+
+Recommended public properties:
+
+- `powerdoxautomation.com`
+- `docs.powerdoxautomation.com`
+- `demos.powerdoxautomation.com`
+
+Each website should be deployed independently from its own `dist` folder.
