@@ -13,7 +13,17 @@ const companyRoutes = {
     title: 'Products | Power Dox Automation',
     description: 'Explore the PXA product family: Generator, Migration, Importer, Designer, PDF Viewer, and Spreadsheet workflows.',
   },
+  '/products.html': {
+    section: 'products',
+    title: 'Products | Power Dox Automation',
+    description: 'Explore the PXA product family: Generator, Migration, Importer, Designer, PDF Viewer, and Spreadsheet workflows.',
+  },
   '/pricing': {
+    section: 'pricing',
+    title: 'Pricing | Power Dox Automation',
+    description: 'Review placeholder Trial, Team, and Enterprise paths for Power Dox Automation.',
+  },
+  '/pricing.html': {
     section: 'pricing',
     title: 'Pricing | Power Dox Automation',
     description: 'Review placeholder Trial, Team, and Enterprise paths for Power Dox Automation.',
@@ -23,12 +33,27 @@ const companyRoutes = {
     title: 'About | Power Dox Automation',
     description: 'Learn how Power Dox Automation connects product, documentation, demos, and migration-first document workflows.',
   },
+  '/about.html': {
+    section: 'about',
+    title: 'About | Power Dox Automation',
+    description: 'Learn how Power Dox Automation connects product, documentation, demos, and migration-first document workflows.',
+  },
   '/support': {
     section: 'support',
     title: 'Support | Power Dox Automation',
     description: 'Find support paths through PXA documentation, demos, provider parity planning, and migration guidance.',
   },
+  '/support.html': {
+    section: 'support',
+    title: 'Support | Power Dox Automation',
+    description: 'Find support paths through PXA documentation, demos, provider parity planning, and migration guidance.',
+  },
   '/contact': {
+    section: 'contact',
+    title: 'Contact Sales | Power Dox Automation',
+    description: 'Contact the Power Dox Automation team to plan product evaluation, migration work, or enterprise rollout.',
+  },
+  '/contact.html': {
     section: 'contact',
     title: 'Contact Sales | Power Dox Automation',
     description: 'Contact the Power Dox Automation team to plan product evaluation, migration work, or enterprise rollout.',

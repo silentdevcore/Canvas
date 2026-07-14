@@ -35,5 +35,8 @@ export const siteLinkDefaults = {
 
 export function companyPage(path = '') {
   const cleanPath = path.replace(/^\/+/, '');
-  return `${siteLinks.company}${cleanPath}`;
+  if (!cleanPath) return siteLinks.company;
+  const staticPages = new Set(['products', 'pricing', 'about', 'support', 'contact']);
+  const pagePath = staticPages.has(cleanPath) ? `${cleanPath}.html` : cleanPath;
+  return `${siteLinks.company}${pagePath}`;
 }
