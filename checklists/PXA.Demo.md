@@ -80,6 +80,7 @@
 - [x] Jede Demo verlinkt zu Source oder Beispiel-Dateien, sobald vorhanden.
 - [x] About, Products und Contact Sales sind im Header vorhanden.
 - [x] Gemeinsamer Footer mit Product, Resources, Company, Developers und Legal ist vorhanden.
+- [x] Footer enthaelt Copyright und AGB-Link.
 - [x] Hosting- und Sicherheitsgrenzen sind dokumentiert.
 - [x] Keine alten `Canvas`-Brandingreste in neuen Demo-Inhalten.
 

@@ -102,6 +102,16 @@
   align-items: start;
 }
 
+.pxa-footer-bottom {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--pxa-space-4);
+  padding-top: var(--pxa-space-6);
+  border-top: 1px solid rgb(255 255 255 / 0.16);
+  font-size: var(--pxa-text-sm);
+}
+
 .pxa-footer-brand {
   display: grid;
   gap: var(--pxa-space-3);
@@ -212,6 +222,10 @@
 
   .pxa-footer {
     grid-template-columns: 1fr;
+  }
+
+  .pxa-footer-bottom {
+    flex-direction: column;
   }
 
   .pxa-footer-grid {

@@ -45,11 +45,13 @@ const footerGroups = [
     title: 'Legal',
     links: [
       { label: 'Privacy', href: `${siteLinks.company}#contact` },
-      { label: 'Terms', href: `${siteLinks.company}#contact` },
+      { label: 'AGB', href: `${siteLinks.company}#contact` },
       { label: 'License', href: `${siteLinks.company}#pricing` },
     ],
   },
 ];
+
+const currentYear = new Date().getFullYear();
 
 function renderFooterGroup(group) {
   return `
@@ -70,6 +72,10 @@ export function renderPxaFooter(siteName) {
         </div>
         <div class="pxa-footer-grid">
           ${footerGroups.map(renderFooterGroup).join('')}
+        </div>
+        <div class="pxa-footer-bottom">
+          <span>Copyright © ${currentYear} Power Dox Automation. All rights reserved.</span>
+          <span><a href="${siteLinks.company}#contact">AGB</a> · <a href="${siteLinks.company}#contact">Privacy</a></span>
         </div>
       </div>
     </footer>

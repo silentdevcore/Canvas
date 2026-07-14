@@ -65,6 +65,7 @@
 - [x] Links zu `PXA.Company` und `PXA.Demo` sind vorhanden.
 - [x] About, Products und Contact Sales sind im Header vorhanden.
 - [x] Gemeinsamer Footer mit Product, Resources, Company, Developers und Legal ist vorhanden.
+- [x] Footer enthaelt Copyright und AGB-Link.
 - [x] Demo-Beispiele sind aus der Documentation erreichbar.
 
 ## Tests
