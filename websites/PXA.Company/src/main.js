@@ -79,6 +79,21 @@ const proofPoints = [
   { value: '6', label: 'core product areas' },
 ];
 
+const aboutPrinciples = [
+  {
+    title: 'Built for document-heavy teams',
+    text: 'PXA focuses on generation, migration, import, review, and spreadsheet-backed workflows where documents are part of the product.',
+  },
+  {
+    title: 'Migration-first thinking',
+    text: 'Provider parity, diagnostics, and practical migration paths are tracked as first-class product work.',
+  },
+  {
+    title: 'Docs and demos stay connected',
+    text: 'Every public workflow should connect marketing, documentation, runnable examples, and implementation status.',
+  },
+];
+
 const roadmap = [
   {
     title: 'PXA.Company',
@@ -193,6 +208,19 @@ function renderProof(items) {
     .join('');
 }
 
+function renderAboutPrinciples(items) {
+  return items
+    .map(
+      (item) => `
+        <article class="pxa-card pxa-company-about-card">
+          <h3>${item.title}</h3>
+          <p>${item.text}</p>
+        </article>
+      `,
+    )
+    .join('');
+}
+
 function renderRoadmap(items) {
   return items
     .map(
@@ -249,6 +277,7 @@ document.querySelector('#app').innerHTML = `
         </a>
         <nav class="pxa-site-nav" aria-label="Primary navigation">
           <a href="${siteLinks.company}" aria-current="page">Company</a>
+          <a href="#about">About</a>
           <a href="#products">Products</a>
           <a href="${siteLinks.documentation}">Documentation</a>
           <a href="${siteLinks.demo}">Demo</a>
@@ -286,6 +315,26 @@ document.querySelector('#app').innerHTML = `
               <div><dt>Current phase</dt><dd>Web platform</dd></div>
             </dl>
           </aside>
+        </div>
+      </section>
+
+      <section class="pxa-section" id="about">
+        <div class="pxa-container pxa-company-two-column">
+          <div>
+            <p class="pxa-kicker">About</p>
+            <h2 class="pxa-heading">Power Dox Automation is a product system for modern document work.</h2>
+            <p class="pxa-lede">
+              PXA exists to make document automation less fragmented: one family for generating output,
+              migrating legacy providers, importing files, reviewing PDFs, and connecting examples to docs.
+            </p>
+            <div class="pxa-action-row">
+              <a class="pxa-button pxa-button--primary" href="${siteLinks.documentation}#overview">Read docs</a>
+              <a class="pxa-button pxa-button--secondary" href="${siteLinks.demo}">Explore demos</a>
+            </div>
+          </div>
+          <div class="pxa-company-about-stack">
+            ${renderAboutPrinciples(aboutPrinciples)}
+          </div>
         </div>
       </section>
 
@@ -402,6 +451,7 @@ document.querySelector('#app').innerHTML = `
         </div>
         <nav aria-label="Footer navigation">
           <a href="${siteLinks.company}">Company</a>
+          <a href="#about">About</a>
           <a href="#products">Products</a>
           <a href="${siteLinks.documentation}">Documentation</a>
           <a href="${siteLinks.demo}">Demo</a>

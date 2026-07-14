@@ -10,8 +10,9 @@
 ## Zielstruktur
 - [x] Website/App unter `websites/PXA.Company` planen.
 - [x] Gemeinsame Hauptnavigation definieren: Company, Documentation, Demo, Pricing, Support.
-- [x] Gemeinsame Hauptnavigation um Products und Contact Sales ergaenzen.
+- [x] Gemeinsame Hauptnavigation um About, Products und Contact Sales ergaenzen.
 - [x] Hero fuer Power Dox Automation erstellen.
+- [x] About-Sektion fuer Produkt-/Firmenkontext erstellen.
 - [x] CTAs definieren: Demo ansehen, Documentation lesen, Sales kontaktieren.
 - [x] Produktkarten erstellen:
   - [x] PXA Generator
@@ -38,6 +39,7 @@
 ## MVP
 - [x] Home-Seite mit Hero, Produktuebersicht und CTAs.
 - [x] Produktuebersicht mit mindestens sechs Produktkarten.
+- [x] About-Seite/-Sektion mit Produktmission und Prinzipien.
 - [x] Use-Case-Uebersicht mit Links zu `PXA.Documentation`.
 - [x] Demo-CTA mit Link zu `PXA.Demo`.
 - [x] Produktkarten mit direkten Demo- und Documentation-Links.
@@ -49,6 +51,7 @@
 - [x] Klare Produktnavigation ist vorhanden.
 - [x] Besucher koennen von Company zu Documentation und Demo wechseln.
 - [x] Products-Menuepunkt ist in allen Website-Headern vorhanden.
+- [x] About-Menuepunkt ist in allen Website-Headern vorhanden.
 - [x] Contact Sales ist in allen Website-Headern vorhanden.
 - [x] Produkt- und Beispielbereiche fuehren direkt zu passenden Demo-/Docs-Einstiegen.
 - [x] Keine alten `Canvas`-Brandingreste in neuen Website-Inhalten.

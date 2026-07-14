@@ -85,6 +85,25 @@
   text-align: right;
 }
 
+.pxa-company-about-stack {
+  display: grid;
+  gap: var(--pxa-space-4);
+}
+
+.pxa-company-about-card {
+  display: grid;
+  gap: var(--pxa-space-2);
+}
+
+.pxa-company-about-card h3,
+.pxa-company-about-card p {
+  margin: 0;
+}
+
+.pxa-company-about-card p {
+  color: var(--pxa-color-muted);
+}
+
 .pxa-company-grid {
   margin-top: var(--pxa-space-8);
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -165,7 +184,8 @@
 
 .pxa-company-use-card,
 .pxa-company-showcase-card,
-.pxa-company-pricing-card {
+.pxa-company-pricing-card,
+.pxa-company-about-card {
   display: grid;
   align-content: start;
   gap: var(--pxa-space-3);

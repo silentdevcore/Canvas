@@ -10,7 +10,7 @@
 ## Zielstruktur
 - [x] Website/App unter `websites/PXA.Documentation` planen oder bestehende `docs`-DocFX-Site dorthin ueberfuehren.
 - [x] Gemeinsame Hauptnavigation definieren: Company, Documentation, Demo, Pricing, Support.
-- [x] Gemeinsame Hauptnavigation um Products und Contact Sales ergaenzen.
+- [x] Gemeinsame Hauptnavigation um About, Products und Contact Sales ergaenzen.
 - [x] Documentation Home erstellen:
   - [x] PXA Overview
   - [x] Quickstarts
@@ -63,7 +63,7 @@
 - [x] Aktuelle PXA-Namen werden verwendet.
 - [x] Historische Checklists behalten Kontext, ersetzen aber nicht die Docs.
 - [x] Links zu `PXA.Company` und `PXA.Demo` sind vorhanden.
-- [x] Products und Contact Sales sind im Header vorhanden.
+- [x] About, Products und Contact Sales sind im Header vorhanden.
 - [x] Demo-Beispiele sind aus der Documentation erreichbar.
 
 ## Tests

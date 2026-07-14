@@ -281,6 +281,7 @@ export function renderApp(root) {
         </a>
         <nav class="pxa-site-nav" aria-label="Primary navigation">
           <a href="${siteLinks.company}">Company</a>
+          <a href="${siteLinks.company}#about">About</a>
           <a href="${siteLinks.company}#products">Products</a>
           <a href="${siteLinks.documentation}">Documentation</a>
           <a href="${siteLinks.demo}" aria-current="page">Demo</a>

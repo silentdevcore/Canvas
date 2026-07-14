@@ -10,7 +10,7 @@
 ## Zielstruktur
 - [x] Website/App unter `websites/PXA.Demo` planen.
 - [x] Gemeinsame Hauptnavigation definieren: Company, Documentation, Demo, Pricing, Support.
-- [x] Gemeinsame Hauptnavigation um Products und Contact Sales ergaenzen.
+- [x] Gemeinsame Hauptnavigation um About, Products und Contact Sales ergaenzen.
 - [x] Demo Home erstellen:
   - [x] Kategorien
   - [x] Suche
@@ -78,7 +78,7 @@
 - [x] Unfertige Demos zeigen klaren Status und naechste Schritte.
 - [x] Jede Demo verlinkt zu passender Documentation.
 - [x] Jede Demo verlinkt zu Source oder Beispiel-Dateien, sobald vorhanden.
-- [x] Products und Contact Sales sind im Header vorhanden.
+- [x] About, Products und Contact Sales sind im Header vorhanden.
 - [x] Hosting- und Sicherheitsgrenzen sind dokumentiert.
 - [x] Keine alten `Canvas`-Brandingreste in neuen Demo-Inhalten.
 
