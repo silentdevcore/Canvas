@@ -1,6 +1,7 @@
 import { categories, demos, siteLinks, statusNotes } from './demoData.js';
 import { getActiveDemo, getBookingState } from './state.js';
 import { renderPxaFooter } from '../../shared/footer.js';
+import { companyPage } from '../../shared/siteLinks.js';
 
 function renderReference(value) {
   if (!value.startsWith('/')) return value;
@@ -282,14 +283,14 @@ export function renderApp(root) {
         </a>
         <nav class="pxa-site-nav" aria-label="Primary navigation">
           <a href="${siteLinks.company}">Company</a>
-          <a href="${siteLinks.company}#products">Products</a>
+          <a href="${companyPage('products')}">Products</a>
           <a href="${siteLinks.documentation}">Documentation</a>
           <a href="${siteLinks.demo}" aria-current="page">Demo</a>
-          <a href="${siteLinks.company}#pricing">Pricing</a>
-          <a href="${siteLinks.company}#about">About</a>
-          <a href="${siteLinks.company}#support">Support</a>
+          <a href="${companyPage('pricing')}">Pricing</a>
+          <a href="${companyPage('about')}">About</a>
+          <a href="${companyPage('support')}">Support</a>
         </nav>
-        <a class="pxa-button pxa-button--primary pxa-header-cta" href="${siteLinks.company}#contact">Contact sales</a>
+        <a class="pxa-button pxa-button--primary pxa-header-cta" href="${companyPage('contact')}">Contact sales</a>
       </div>
     </header>
 

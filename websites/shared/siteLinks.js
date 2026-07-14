@@ -32,3 +32,8 @@ export const siteLinkDefaults = {
   local: defaultSiteLinks,
   production: productionSiteLinks,
 };
+
+export function companyPage(path = '') {
+  const cleanPath = path.replace(/^\/+/, '');
+  return `${siteLinks.company}${cleanPath}`;
+}

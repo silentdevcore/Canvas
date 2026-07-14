@@ -53,6 +53,8 @@ npm run build
   - `VITE_PXA_COMPANY_URL`
   - `VITE_PXA_DOCUMENTATION_URL`
   - `VITE_PXA_DEMO_URL`
+- Company page links use clean paths such as `/products`, `/pricing`, `/about`, `/support`, and `/contact`.
+- Production hosting must route those Company paths back to the Company `index.html` entry.
 
 ## Pre-Deploy Checklist
 

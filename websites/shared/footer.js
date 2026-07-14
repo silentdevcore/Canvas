@@ -1,10 +1,10 @@
-import { siteLinks } from './siteLinks.js';
+import { companyPage, siteLinks } from './siteLinks.js';
 
 const footerGroups = [
   {
     title: 'Product',
     links: [
-      { label: 'Products', href: `${siteLinks.company}#products` },
+      { label: 'Products', href: companyPage('products') },
       { label: 'Generator', href: `${siteLinks.demo}#demo/booking-receipt` },
       { label: 'Migration', href: `${siteLinks.demo}#demo/provider-migration-examples` },
       { label: 'Importer', href: `${siteLinks.demo}#demo/file-importer-flow` },
@@ -26,10 +26,10 @@ const footerGroups = [
   {
     title: 'Company',
     links: [
-      { label: 'About', href: `${siteLinks.company}#about` },
-      { label: 'Pricing', href: `${siteLinks.company}#pricing` },
-      { label: 'Support', href: `${siteLinks.company}#support` },
-      { label: 'Contact Sales', href: `${siteLinks.company}#contact` },
+      { label: 'About', href: companyPage('about') },
+      { label: 'Pricing', href: companyPage('pricing') },
+      { label: 'Support', href: companyPage('support') },
+      { label: 'Contact Sales', href: companyPage('contact') },
     ],
   },
   {
@@ -37,16 +37,16 @@ const footerGroups = [
     links: [
       { label: 'Provider Taxonomy', href: `${siteLinks.documentation}#migration` },
       { label: 'Security Notes', href: `${siteLinks.demo}SECURITY_AND_HOSTING.md` },
-      { label: 'Hosting Notes', href: `${siteLinks.company}#support` },
+      { label: 'Hosting Notes', href: companyPage('support') },
       { label: 'Release Notes', href: `${siteLinks.documentation}#history` },
     ],
   },
   {
     title: 'Legal',
     links: [
-      { label: 'Privacy', href: `${siteLinks.company}#contact` },
-      { label: 'AGB', href: `${siteLinks.company}#contact` },
-      { label: 'License', href: `${siteLinks.company}#pricing` },
+      { label: 'Privacy', href: companyPage('contact') },
+      { label: 'AGB', href: companyPage('contact') },
+      { label: 'License', href: companyPage('pricing') },
     ],
   },
 ];
@@ -75,7 +75,7 @@ export function renderPxaFooter(siteName) {
         </div>
         <div class="pxa-footer-bottom">
           <span>Copyright © ${currentYear} Power Dox Automation. All rights reserved.</span>
-          <span><a href="${siteLinks.company}#contact">AGB</a> · <a href="${siteLinks.company}#contact">Privacy</a></span>
+          <span><a href="${companyPage('contact')}">AGB</a> · <a href="${companyPage('contact')}">Privacy</a></span>
         </div>
       </div>
     </footer>

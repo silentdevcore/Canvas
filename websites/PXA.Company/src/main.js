@@ -1,6 +1,14 @@
 import './site.css';
 import { renderPxaFooter } from '../../shared/footer.js';
-import { siteLinks } from '../../shared/siteLinks.js';
+import { companyPage, siteLinks } from '../../shared/siteLinks.js';
+
+const companyRoutes = {
+  '/products': 'products',
+  '/pricing': 'pricing',
+  '/about': 'about',
+  '/support': 'support',
+  '/contact': 'contact',
+};
 
 const products = [
   {
@@ -154,7 +162,7 @@ const pricingTiers = [
     title: 'Enterprise',
     text: 'Plan larger migrations, provider parity work, support, and rollout guidance with the PXA team.',
     cta: 'Contact sales',
-    href: '#contact',
+    href: companyPage('contact'),
   },
 ];
 
@@ -278,14 +286,14 @@ document.querySelector('#app').innerHTML = `
         </a>
         <nav class="pxa-site-nav" aria-label="Primary navigation">
           <a href="${siteLinks.company}" aria-current="page">Company</a>
-          <a href="#products">Products</a>
+          <a href="${companyPage('products')}">Products</a>
           <a href="${siteLinks.documentation}">Documentation</a>
           <a href="${siteLinks.demo}">Demo</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#about">About</a>
-          <a href="#support">Support</a>
+          <a href="${companyPage('pricing')}">Pricing</a>
+          <a href="${companyPage('about')}">About</a>
+          <a href="${companyPage('support')}">Support</a>
         </nav>
-        <a class="pxa-button pxa-button--primary pxa-header-cta" href="#contact">Contact sales</a>
+        <a class="pxa-button pxa-button--primary pxa-header-cta" href="${companyPage('contact')}">Contact sales</a>
       </div>
     </header>
 
@@ -447,3 +455,13 @@ document.querySelector('#app').innerHTML = `
     ${renderPxaFooter('PXA.Company')}
   </div>
 `;
+
+function scrollToCompanyRoute() {
+  const sectionId = companyRoutes[window.location.pathname];
+  if (!sectionId) return;
+  window.requestAnimationFrame(() => {
+    document.querySelector(`#${sectionId}`)?.scrollIntoView({ block: 'start' });
+  });
+}
+
+scrollToCompanyRoute();

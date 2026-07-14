@@ -40,6 +40,7 @@
 - [x] Home-Seite mit Hero, Produktuebersicht und CTAs.
 - [x] Produktuebersicht mit mindestens sechs Produktkarten.
 - [x] About-Seite/-Sektion mit Produktmission und Prinzipien.
+- [x] Clean Paths fuer `/products`, `/pricing`, `/about`, `/support` und `/contact` vorbereiten.
 - [x] Use-Case-Uebersicht mit Links zu `PXA.Documentation`.
 - [x] Demo-CTA mit Link zu `PXA.Demo`.
 - [x] Produktkarten mit direkten Demo- und Documentation-Links.
