@@ -249,6 +249,7 @@ document.querySelector('#app').innerHTML = `
         </a>
         <nav class="pxa-site-nav" aria-label="Primary navigation">
           <a href="${siteLinks.company}" aria-current="page">Company</a>
+          <a href="#products">Products</a>
           <a href="${siteLinks.documentation}">Documentation</a>
           <a href="${siteLinks.demo}">Demo</a>
           <a href="#pricing">Pricing</a>
@@ -401,6 +402,7 @@ document.querySelector('#app').innerHTML = `
         </div>
         <nav aria-label="Footer navigation">
           <a href="${siteLinks.company}">Company</a>
+          <a href="#products">Products</a>
           <a href="${siteLinks.documentation}">Documentation</a>
           <a href="${siteLinks.demo}">Demo</a>
           <a href="#pricing">Pricing</a>

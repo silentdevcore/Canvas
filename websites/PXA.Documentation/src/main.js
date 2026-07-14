@@ -229,11 +229,13 @@ document.querySelector('#app').innerHTML = `
         </a>
         <nav class="pxa-site-nav" aria-label="Primary navigation">
           <a href="${siteLinks.company}">Company</a>
+          <a href="${siteLinks.company}#products">Products</a>
           <a href="${siteLinks.documentation}" aria-current="page">Documentation</a>
           <a href="${siteLinks.demo}">Demo</a>
           <a href="${siteLinks.company}#pricing">Pricing</a>
           <a href="${siteLinks.company}#support">Support</a>
         </nav>
+        <a class="pxa-button pxa-button--primary pxa-header-cta" href="${siteLinks.company}#contact">Contact sales</a>
       </div>
     </header>
 

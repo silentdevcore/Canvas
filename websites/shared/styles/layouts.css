@@ -81,6 +81,10 @@
   background: var(--pxa-color-brand-50);
 }
 
+.pxa-header-cta {
+  white-space: nowrap;
+}
+
 .pxa-site-footer {
   padding: var(--pxa-space-12) 0;
   color: var(--pxa-color-muted);
@@ -150,6 +154,10 @@
 
   .pxa-site-nav a {
     padding: var(--pxa-space-2);
+  }
+
+  .pxa-header-cta {
+    display: none;
   }
 
   .pxa-docs-layout {
