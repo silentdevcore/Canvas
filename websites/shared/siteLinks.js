@@ -36,7 +36,22 @@ export const siteLinkDefaults = {
 export function companyPage(path = '') {
   const cleanPath = path.replace(/^\/+/, '');
   if (!cleanPath) return siteLinks.company;
-  const staticPages = new Set(['products', 'pricing', 'about', 'support', 'contact']);
+  const staticPages = new Set([
+    'products',
+    'products/generator',
+    'products/migration',
+    'products/importer',
+    'products/designer',
+    'products/pdf-viewer',
+    'products/spreadsheet',
+    'pricing',
+    'about',
+    'support',
+    'contact',
+    'terms',
+    'privacy',
+    'license',
+  ]);
   const pagePath = staticPages.has(cleanPath) ? `${cleanPath}.html` : cleanPath;
   return `${siteLinks.company}${pagePath}`;
 }

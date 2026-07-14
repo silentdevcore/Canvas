@@ -5,12 +5,12 @@ const footerGroups = [
     title: 'Product',
     links: [
       { label: 'Products', href: companyPage('products') },
-      { label: 'Generator', href: `${siteLinks.demo}#demo/booking-receipt` },
-      { label: 'Migration', href: `${siteLinks.demo}#demo/provider-migration-examples` },
-      { label: 'Importer', href: `${siteLinks.demo}#demo/file-importer-flow` },
-      { label: 'Designer', href: `${siteLinks.demo}#demo/master-detail-report` },
-      { label: 'PDF Viewer', href: `${siteLinks.demo}#demo/pdf-viewer-annotations-forms` },
-      { label: 'Spreadsheet', href: `${siteLinks.demo}#demo/spreadsheet-import-export` },
+      { label: 'Generator', href: companyPage('products/generator') },
+      { label: 'Migration', href: companyPage('products/migration') },
+      { label: 'Importer', href: companyPage('products/importer') },
+      { label: 'Designer', href: companyPage('products/designer') },
+      { label: 'PDF Viewer', href: companyPage('products/pdf-viewer') },
+      { label: 'Spreadsheet', href: companyPage('products/spreadsheet') },
     ],
   },
   {
@@ -44,9 +44,9 @@ const footerGroups = [
   {
     title: 'Legal',
     links: [
-      { label: 'Privacy', href: companyPage('contact') },
-      { label: 'AGB', href: companyPage('contact') },
-      { label: 'License', href: companyPage('pricing') },
+      { label: 'Terms', href: companyPage('terms') },
+      { label: 'Privacy', href: companyPage('privacy') },
+      { label: 'License', href: companyPage('license') },
     ],
   },
 ];
@@ -75,7 +75,7 @@ export function renderPxaFooter(siteName) {
         </div>
         <div class="pxa-footer-bottom">
           <span>Copyright © ${currentYear} Power Dox Automation. All rights reserved.</span>
-          <span><a href="${companyPage('contact')}">AGB</a> · <a href="${companyPage('contact')}">Privacy</a></span>
+          <span><a href="${companyPage('terms')}">Terms</a> · <a href="${companyPage('privacy')}">Privacy</a></span>
         </div>
       </div>
     </footer>

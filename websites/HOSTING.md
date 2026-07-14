@@ -54,6 +54,8 @@ npm run build
   - `VITE_PXA_DOCUMENTATION_URL`
   - `VITE_PXA_DEMO_URL`
 - Company page links use static HTML entries such as `/products.html`, `/pricing.html`, `/about.html`, `/support.html`, and `/contact.html`.
+- Company legal links use `/terms.html`, `/privacy.html`, and `/license.html`.
+- Company product detail links use nested static entries such as `/products/generator.html` and `/products/pdf-viewer.html`.
 - Production hosting must publish each Company HTML entry directly.
 
 ## Pre-Deploy Checklist

@@ -41,8 +41,11 @@
 - [x] Produktuebersicht mit mindestens sechs Produktkarten.
 - [x] About-Seite/-Sektion mit Produktmission und Prinzipien.
 - [x] Statische Company-Seiten fuer `products.html`, `pricing.html`, `about.html`, `support.html` und `contact.html` vorbereiten.
+- [x] Statische Legal-Seiten fuer `terms.html`, `privacy.html` und `license.html` vorbereiten.
+- [x] Statische Produktdetailseiten unter `products/` fuer Generator, Migration, Importer, Designer, PDF Viewer und Spreadsheet vorbereiten.
 - [x] Route-Metadaten fuer statische Company-Seiten setzen.
 - [x] Jede statische Company-Seite rendert nur ihren eigenen Hauptinhalt mit gemeinsamer Navigation und gemeinsamem Footer.
+- [x] Produktkarten fuehren zu eigener Produktseite, Demo und Documentation.
 - [x] Use-Case-Uebersicht mit Links zu `PXA.Documentation`.
 - [x] Demo-CTA mit Link zu `PXA.Demo`.
 - [x] Produktkarten mit direkten Demo- und Documentation-Links.
@@ -58,7 +61,7 @@
 - [x] Products, Pricing, About und Support bleiben direkte Menuepunkte in der Hauptnavigation.
 - [x] Contact Sales ist in allen Website-Headern vorhanden.
 - [x] Gemeinsamer Footer mit Product, Resources, Company, Developers und Legal ist vorhanden.
-- [x] Footer enthaelt Copyright und AGB-Link.
+- [x] Footer enthaelt Copyright, Terms-Link und Privacy-Link.
 - [x] Produkt- und Beispielbereiche fuehren direkt zu passenden Demo-/Docs-Einstiegen.
 - [x] Keine alten `Canvas`-Brandingreste in neuen Website-Inhalten.
 - [x] Desktop und Mobile sind lesbar und nicht ueberladen.

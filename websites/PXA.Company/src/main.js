@@ -58,60 +58,107 @@ const companyRoutes = {
     title: 'Contact Sales | Power Dox Automation',
     description: 'Contact the Power Dox Automation team to plan product evaluation, migration work, or enterprise rollout.',
   },
+  '/terms.html': {
+    section: 'terms',
+    title: 'Terms | Power Dox Automation',
+    description: 'Review placeholder terms for evaluating and using Power Dox Automation.',
+  },
+  '/privacy.html': {
+    section: 'privacy',
+    title: 'Privacy | Power Dox Automation',
+    description: 'Review placeholder privacy information for Power Dox Automation.',
+  },
+  '/license.html': {
+    section: 'license',
+    title: 'License | Power Dox Automation',
+    description: 'Review placeholder license information for Power Dox Automation.',
+  },
 };
 
 const fallbackRoute = companyRoutes['/'];
 
 const products = [
   {
+    slug: 'generator',
     title: 'PXA Generator',
     label: 'Generate',
     text: 'Create PDFs and document output from code, templates, structured data, and reusable layouts.',
     points: ['PDF generation', 'Template-driven output', 'Reusable document primitives'],
+    audience: 'Engineering teams that need reliable server-side document output.',
+    detail:
+      'PXA Generator is the code-first foundation for producing PDF and document output from structured data, reusable templates, and shared layout primitives.',
     demo: 'booking-receipt',
     docs: 'code-path',
   },
   {
+    slug: 'migration',
     title: 'PXA Migration',
     label: 'Migrate',
     text: 'Move existing PDF code, report designs, and spreadsheet workflows from known providers into PXA.',
     points: ['Provider mapping', 'Code conversion', 'Designer migration'],
+    audience: 'Teams replacing provider-specific SDKs, reports, or document automation code.',
+    detail:
+      'PXA Migration tracks provider parity, diagnostics, and conversion flows so legacy document code and report designs can move toward PXA deliberately.',
     demo: 'provider-migration-examples',
     docs: 'migration',
   },
   {
+    slug: 'importer',
     title: 'PXA Importer',
     label: 'Import',
     text: 'Bring PDF, Office, image, and document inputs into normalized PXA flows.',
     points: ['File normalization', 'Office/PDF inputs', 'Import diagnostics'],
+    audience: 'Product teams that need to accept existing files and turn them into usable document models.',
+    detail:
+      'PXA Importer normalizes incoming files so PDF, Office, image, and related inputs can participate in generation, migration, and designer workflows.',
     demo: 'file-importer-flow',
     docs: 'editor-path',
   },
   {
+    slug: 'designer',
     title: 'PXA Designer',
     label: 'Design',
     text: 'Design document templates, preview output, and inspect generated JSON and code.',
     points: ['Visual editing', 'Live preview', 'JSON/code inspection'],
+    audience: 'Teams that need visual template editing connected to generated output.',
+    detail:
+      'PXA Designer gives document-heavy teams a visual authoring surface for templates, reports, previews, JSON inspection, and code-oriented handoff.',
     demo: 'master-detail-report',
     docs: 'editor-path',
   },
   {
+    slug: 'pdf-viewer',
     title: 'PXA PDF Viewer',
     label: 'Review',
     text: 'Review, annotate, fill forms, and inspect PDF workflows in the browser.',
     points: ['Annotations', 'Forms', 'Review workflows'],
+    audience: 'Applications that need browser review, forms, annotations, and PDF inspection.',
+    detail:
+      'PXA PDF Viewer is the browser-facing review surface for generated or imported PDFs, with forms, annotations, and workflow inspection as product goals.',
     demo: 'pdf-viewer-annotations-forms',
     docs: 'pdf-viewer',
   },
   {
+    slug: 'spreadsheet',
     title: 'PXA Spreadsheet',
     label: 'Model',
     text: 'Import, edit, map, and export workbook-driven document automation flows.',
     points: ['Workbook import', 'Formula-ready data', 'Export flows'],
+    audience: 'Teams whose document automation depends on workbook data, mapping, or export workflows.',
+    detail:
+      'PXA Spreadsheet connects workbook-driven data and document automation, covering import, editing, mapping, formulas, and export-oriented workflows.',
     demo: 'spreadsheet-import-export',
     docs: 'spreadsheet',
   },
 ];
+
+for (const product of products) {
+  companyRoutes[`/products/${product.slug}.html`] = {
+    section: `product:${product.slug}`,
+    title: `${product.title} | Power Dox Automation`,
+    description: product.text,
+  };
+}
 
 const useCases = [
   {
@@ -230,6 +277,7 @@ function renderCards(items) {
             ${item.points.map((point) => `<li>${point}</li>`).join('')}
           </ul>
           <div class="pxa-company-card-actions">
+            <a href="${companyPage(`products/${item.slug}`)}" aria-label="Open ${item.title} product page">Product page</a>
             <a href="${siteLinks.demo}#demo/${item.demo}" aria-label="Open ${item.title} demo">Open demo</a>
             <a href="${siteLinks.documentation}#${item.docs}" aria-label="Read documentation for ${item.title}">Read docs</a>
           </div>
@@ -341,6 +389,7 @@ updateRouteMetadata(currentRoute);
 
 function activeAttr(section) {
   if (!section && !currentRoute.section) return ' aria-current="page"';
+  if (section === 'products' && currentRoute.section?.startsWith('product:')) return ' aria-current="page"';
   return currentRoute.section === section ? ' aria-current="page"' : '';
 }
 
@@ -413,6 +462,32 @@ function renderProductsPage() {
         <div class="pxa-feature-grid pxa-company-grid">
           ${renderCards(products)}
         </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderProductDetailPage(product) {
+  if (!product) return renderProductsPage();
+  return `
+    <section class="pxa-section" id="${product.slug}">
+      <div class="pxa-container pxa-company-product-detail">
+        <div>
+          <p class="pxa-kicker">${product.label}</p>
+          <h1 class="pxa-heading">${product.title}</h1>
+          <p class="pxa-lede">${product.detail}</p>
+          <div class="pxa-action-row">
+            <a class="pxa-button pxa-button--primary" href="${siteLinks.demo}#demo/${product.demo}">Open demo</a>
+            <a class="pxa-button pxa-button--secondary" href="${siteLinks.documentation}#${product.docs}">Read docs</a>
+          </div>
+        </div>
+        <aside class="pxa-card pxa-company-product-summary">
+          <strong>Product fit</strong>
+          <p>${product.audience}</p>
+          <ul>
+            ${product.points.map((point) => `<li>${point}</li>`).join('')}
+          </ul>
+        </aside>
       </div>
     </section>
   `;
@@ -564,6 +639,45 @@ function renderContactPage() {
   `;
 }
 
+function renderLegalPage(kind) {
+  const pages = {
+    terms: {
+      kicker: 'Terms',
+      title: 'Terms for evaluating Power Dox Automation',
+      text:
+        'These placeholder terms will be replaced by the final commercial and website terms before public launch.',
+      points: ['Evaluation use', 'Sales contact path', 'Documentation and demo access'],
+    },
+    privacy: {
+      kicker: 'Privacy',
+      title: 'Privacy information for PXA web properties',
+      text:
+        'This placeholder privacy page documents the intended location for data handling, analytics, contact, and support information.',
+      points: ['Website analytics', 'Contact requests', 'Demo and documentation usage'],
+    },
+    license: {
+      kicker: 'License',
+      title: 'License model placeholder',
+      text:
+        'This placeholder license page keeps licensing expectations visible while Trial, Team, and Enterprise terms are finalized.',
+      points: ['Trial evaluation', 'Team adoption', 'Enterprise migration support'],
+    },
+  };
+  const page = pages[kind] || pages.terms;
+  return `
+    <section class="pxa-section pxa-section--compact" id="${kind}">
+      <div class="pxa-container pxa-card pxa-company-legal">
+        <p class="pxa-kicker">${page.kicker}</p>
+        <h1 class="pxa-heading">${page.title}</h1>
+        <p class="pxa-lede">${page.text}</p>
+        <ul>
+          ${page.points.map((point) => `<li>${point}</li>`).join('')}
+        </ul>
+      </div>
+    </section>
+  `;
+}
+
 function renderHomePage() {
   return `
     ${renderHeroSection()}
@@ -575,6 +689,10 @@ function renderHomePage() {
 }
 
 function renderMainContent() {
+  if (currentRoute.section?.startsWith('product:')) {
+    const slug = currentRoute.section.split(':')[1];
+    return renderProductDetailPage(products.find((product) => product.slug === slug));
+  }
   switch (currentRoute.section) {
     case 'products':
       return renderProductsPage();
@@ -586,6 +704,12 @@ function renderMainContent() {
       return renderSupportPage();
     case 'contact':
       return renderContactPage();
+    case 'terms':
+      return renderLegalPage('terms');
+    case 'privacy':
+      return renderLegalPage('privacy');
+    case 'license':
+      return renderLegalPage('license');
     default:
       return renderHomePage();
   }
