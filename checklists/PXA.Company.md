@@ -43,6 +43,7 @@
 - [x] Statische Company-Seiten fuer `products.html`, `pricing.html`, `about.html`, `support.html` und `contact.html` vorbereiten.
 - [x] Statische Legal-Seiten fuer `terms.html`, `privacy.html` und `license.html` vorbereiten.
 - [x] Statische Produktdetailseiten unter `products/` fuer Generator, Migration, Importer, Designer, PDF Viewer und Spreadsheet vorbereiten.
+- [x] Produktdetailseiten mit Hero, Best-Fit, Workflows, Capabilities und Integrationspunkten ausbauen.
 - [x] Route-Metadaten fuer statische Company-Seiten setzen.
 - [x] Jede statische Company-Seite rendert nur ihren eigenen Hauptinhalt mit gemeinsamer Navigation und gemeinsamem Footer.
 - [x] Produktkarten fuehren zu eigener Produktseite, Demo und Documentation.

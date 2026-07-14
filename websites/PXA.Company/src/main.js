@@ -87,6 +87,9 @@ const products = [
     audience: 'Engineering teams that need reliable server-side document output.',
     detail:
       'PXA Generator is the code-first foundation for producing PDF and document output from structured data, reusable templates, and shared layout primitives.',
+    workflows: ['Generate invoices, receipts, statements, and operational PDFs', 'Reuse shared layout primitives across applications', 'Connect generated output to preview and review flows'],
+    capabilities: ['Code-first document composition', 'Template-backed PDF generation', 'Structured data binding', 'Reusable typography, table, and layout primitives'],
+    integrations: ['PXA Designer for template authoring', 'PXA PDF Viewer for review', 'PXA Documentation for SDK guidance'],
     demo: 'booking-receipt',
     docs: 'code-path',
   },
@@ -99,6 +102,9 @@ const products = [
     audience: 'Teams replacing provider-specific SDKs, reports, or document automation code.',
     detail:
       'PXA Migration tracks provider parity, diagnostics, and conversion flows so legacy document code and report designs can move toward PXA deliberately.',
+    workflows: ['Assess provider-specific code and report designs', 'Convert known patterns into PXA migration targets', 'Track unsupported elements with diagnostics instead of silent loss'],
+    capabilities: ['Code migration planning', 'Designer migration mapping', 'Provider taxonomy', 'Compatibility diagnostics and parity tracking'],
+    integrations: ['DevExpress, Syncfusion, ActiveReports, and JasperReports migration work', 'PXA Demo migration examples', 'PXA Documentation migration guides'],
     demo: 'provider-migration-examples',
     docs: 'migration',
   },
@@ -111,6 +117,9 @@ const products = [
     audience: 'Product teams that need to accept existing files and turn them into usable document models.',
     detail:
       'PXA Importer normalizes incoming files so PDF, Office, image, and related inputs can participate in generation, migration, and designer workflows.',
+    workflows: ['Accept existing customer or internal files', 'Normalize inputs before mapping or migration', 'Preserve diagnostics when a file cannot map cleanly'],
+    capabilities: ['PDF and Office input normalization', 'Image and document import paths', 'Import diagnostics', 'Shared file-importer abstractions'],
+    integrations: ['PXA Designer for imported layouts', 'PXA Migration for provider conversion', 'PXA Generator for regenerated output'],
     demo: 'file-importer-flow',
     docs: 'editor-path',
   },
@@ -123,6 +132,9 @@ const products = [
     audience: 'Teams that need visual template editing connected to generated output.',
     detail:
       'PXA Designer gives document-heavy teams a visual authoring surface for templates, reports, previews, JSON inspection, and code-oriented handoff.',
+    workflows: ['Design reusable document templates visually', 'Inspect generated JSON and code-oriented output', 'Preview reports before connecting them to application workflows'],
+    capabilities: ['Template editing canvas', 'Report and element layout', 'Preview and export paths', 'JSON and code inspection'],
+    integrations: ['PXA Generator for output', 'PXA Migration for imported report designs', 'PXA Demo for runnable examples'],
     demo: 'master-detail-report',
     docs: 'editor-path',
   },
@@ -135,6 +147,9 @@ const products = [
     audience: 'Applications that need browser review, forms, annotations, and PDF inspection.',
     detail:
       'PXA PDF Viewer is the browser-facing review surface for generated or imported PDFs, with forms, annotations, and workflow inspection as product goals.',
+    workflows: ['Inspect generated PDFs before release', 'Review annotations and form scenarios in the browser', 'Connect viewer behavior to demos and documentation'],
+    capabilities: ['Browser-based PDF preview', 'Annotation workflow planning', 'Form review paths', 'Viewer feature parity tracking'],
+    integrations: ['PXA Generator output', 'PXA Importer inputs', 'PXA Demo viewer scenarios'],
     demo: 'pdf-viewer-annotations-forms',
     docs: 'pdf-viewer',
   },
@@ -147,6 +162,9 @@ const products = [
     audience: 'Teams whose document automation depends on workbook data, mapping, or export workflows.',
     detail:
       'PXA Spreadsheet connects workbook-driven data and document automation, covering import, editing, mapping, formulas, and export-oriented workflows.',
+    workflows: ['Use workbook data as document input', 'Map spreadsheet structures into repeatable document flows', 'Prepare spreadsheet-backed exports and reports'],
+    capabilities: ['Workbook import and mapping', 'Spreadsheet data modeling', 'Formula-aware workflow planning', 'Document export integration'],
+    integrations: ['PXA Generator for document output', 'PXA Importer for workbook inputs', 'PXA Migration for spreadsheet provider work'],
     demo: 'spreadsheet-import-export',
     docs: 'spreadsheet',
   },
@@ -472,23 +490,45 @@ function renderProductDetailPage(product) {
   if (!product) return renderProductsPage();
   return `
     <section class="pxa-section" id="${product.slug}">
-      <div class="pxa-container pxa-company-product-detail">
-        <div>
-          <p class="pxa-kicker">${product.label}</p>
-          <h1 class="pxa-heading">${product.title}</h1>
-          <p class="pxa-lede">${product.detail}</p>
-          <div class="pxa-action-row">
-            <a class="pxa-button pxa-button--primary" href="${siteLinks.demo}#demo/${product.demo}">Open demo</a>
-            <a class="pxa-button pxa-button--secondary" href="${siteLinks.documentation}#${product.docs}">Read docs</a>
+      <div class="pxa-container">
+        <div class="pxa-company-product-detail">
+          <div>
+            <p class="pxa-kicker">${product.label}</p>
+            <h1 class="pxa-heading">${product.title}</h1>
+            <p class="pxa-lede">${product.detail}</p>
+            <div class="pxa-action-row">
+              <a class="pxa-button pxa-button--primary" href="${siteLinks.demo}#demo/${product.demo}">Open demo</a>
+              <a class="pxa-button pxa-button--secondary" href="${siteLinks.documentation}#${product.docs}">Read docs</a>
+            </div>
           </div>
+          <aside class="pxa-card pxa-company-product-summary">
+            <strong>Best fit</strong>
+            <p>${product.audience}</p>
+            <ul>
+              ${product.points.map((point) => `<li>${point}</li>`).join('')}
+            </ul>
+          </aside>
         </div>
-        <aside class="pxa-card pxa-company-product-summary">
-          <strong>Product fit</strong>
-          <p>${product.audience}</p>
-          <ul>
-            ${product.points.map((point) => `<li>${point}</li>`).join('')}
-          </ul>
-        </aside>
+        <div class="pxa-company-product-content">
+          <article class="pxa-card">
+            <h2>Typical workflows</h2>
+            <ul>
+              ${product.workflows.map((item) => `<li>${item}</li>`).join('')}
+            </ul>
+          </article>
+          <article class="pxa-card">
+            <h2>Core capabilities</h2>
+            <ul>
+              ${product.capabilities.map((item) => `<li>${item}</li>`).join('')}
+            </ul>
+          </article>
+          <article class="pxa-card">
+            <h2>Works with</h2>
+            <ul>
+              ${product.integrations.map((item) => `<li>${item}</li>`).join('')}
+            </ul>
+          </article>
+        </div>
       </div>
     </section>
   `;

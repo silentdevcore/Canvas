@@ -254,12 +254,31 @@
 }
 
 .pxa-company-product-summary ul,
+.pxa-company-product-content ul,
 .pxa-company-legal ul {
   display: grid;
   gap: var(--pxa-space-2);
   margin: 0;
   padding-left: var(--pxa-space-5);
   color: var(--pxa-color-muted);
+}
+
+.pxa-company-product-content {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pxa-space-5);
+  margin-top: var(--pxa-space-8);
+}
+
+.pxa-company-product-content article {
+  display: grid;
+  align-content: start;
+  gap: var(--pxa-space-3);
+}
+
+.pxa-company-product-content h2 {
+  margin: 0;
+  font-size: var(--pxa-text-xl);
 }
 
 .pxa-company-legal {
@@ -284,7 +303,8 @@
   .pxa-company-grid,
   .pxa-company-use-grid,
   .pxa-company-showcase-grid,
-  .pxa-company-pricing-grid {
+  .pxa-company-pricing-grid,
+  .pxa-company-product-content {
     grid-template-columns: 1fr;
   }
 
