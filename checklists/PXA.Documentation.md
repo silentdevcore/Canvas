@@ -45,6 +45,7 @@
 - [x] API Reference via DocFX/OpenAPI integrieren.
 - [x] Bestehende Checklists als Historie verlinken, nicht als Source of Truth verwenden.
 - [x] PXA.Demo-Beispiele als Demo-Examples-Bereich verlinken.
+- [x] Documentation-Strategie fuer Docs-Einbindung, Suche und Versionierung festlegen.
 
 ## MVP
 - [x] Produktorientiertes TOC erstellen.
@@ -53,6 +54,7 @@
 - [x] Migration-Uebersicht mit Links zu Provider-Guides.
 - [x] API Reference aus bestehender DocFX-Struktur erreichbar machen.
 - [x] Demo-Beispiele mit Demo-Route, Input, Output und Source verlinken.
+- [x] MVP-Strategie fuer bestehende `docs` Inhalte dokumentieren.
 
 ## Akzeptanzkriterien
 - [x] "Editor benutzen" und "Code integrieren" sind klar getrennt.
@@ -68,8 +70,9 @@
 - [x] API Reference und OpenAPI-Seiten pruefen.
 - [x] Mobile/Desktop Smoke-Test durchfuehren.
 - [x] Suche nach veralteten `Canvas`-Aussagen in neuen Docs durchfuehren.
+- [x] Documentation-Strategie-Datei pruefen.
 
 ## Offene Entscheidungen
-- [ ] Entscheiden, ob `docs` direkt umbenannt/verschoben oder in `websites/PXA.Documentation` eingebunden wird.
-- [ ] Suchloesung festlegen.
-- [ ] Versionierungsmodell fuer Docs festlegen.
+- [x] Entscheiden, ob `docs` direkt umbenannt/verschoben oder in `websites/PXA.Documentation` eingebunden wird: bestehende `docs` bleiben im MVP an Ort und werden aus `PXA.Documentation` verlinkt.
+- [x] Suchloesung festlegen: clientseitige Suche ueber den Documentation-Homepage-Index im MVP, spaeter Fulltext fuer `docs`.
+- [x] Versionierungsmodell fuer Docs festlegen: MVP-Version ist `current`, spaeter `latest`/Release-Archiv.
