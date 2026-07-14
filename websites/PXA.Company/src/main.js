@@ -1,4 +1,5 @@
 import './site.css';
+import { renderPxaFooter } from '../../shared/footer.js';
 import { siteLinks } from '../../shared/siteLinks.js';
 
 const products = [
@@ -443,22 +444,6 @@ document.querySelector('#app').innerHTML = `
       </section>
     </main>
 
-    <footer class="pxa-site-footer">
-      <div class="pxa-container pxa-company-footer">
-        <div>
-          <strong>Power Dox Automation</strong>
-          <p>PXA.Company connects product, documentation, and demos.</p>
-        </div>
-        <nav aria-label="Footer navigation">
-          <a href="${siteLinks.company}">Company</a>
-          <a href="#products">Products</a>
-          <a href="${siteLinks.documentation}">Documentation</a>
-          <a href="${siteLinks.demo}">Demo</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#about">About</a>
-          <a href="#support">Support</a>
-        </nav>
-      </div>
-    </footer>
+    ${renderPxaFooter('PXA.Company')}
   </div>
 `;

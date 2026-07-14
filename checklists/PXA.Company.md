@@ -53,6 +53,7 @@
 - [x] Products-Menuepunkt ist in allen Website-Headern vorhanden.
 - [x] About-Menuepunkt ist in allen Website-Headern vorhanden.
 - [x] Contact Sales ist in allen Website-Headern vorhanden.
+- [x] Gemeinsamer Footer mit Product, Resources, Company, Developers und Legal ist vorhanden.
 - [x] Produkt- und Beispielbereiche fuehren direkt zu passenden Demo-/Docs-Einstiegen.
 - [x] Keine alten `Canvas`-Brandingreste in neuen Website-Inhalten.
 - [x] Desktop und Mobile sind lesbar und nicht ueberladen.

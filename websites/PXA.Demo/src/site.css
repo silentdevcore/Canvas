@@ -373,22 +373,12 @@
   color: var(--pxa-color-muted);
 }
 
-.pxa-demo-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--pxa-space-4);
-}
-
 @media (max-width: 860px) {
   .pxa-demo-header,
   .pxa-demo-detail,
   .pxa-demo-source-panel,
   .pxa-demo-status-grid {
     grid-template-columns: 1fr;
-  }
-
-  .pxa-demo-footer {
-    flex-direction: column;
   }
 
   .pxa-demo-detail-list div {

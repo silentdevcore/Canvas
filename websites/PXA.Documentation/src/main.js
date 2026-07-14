@@ -1,4 +1,5 @@
 import './site.css';
+import { renderPxaFooter } from '../../shared/footer.js';
 import { siteLinks } from '../../shared/siteLinks.js';
 
 const editorSections = [
@@ -385,11 +386,6 @@ document.querySelector('#app').innerHTML = `
       </div>
     </main>
 
-    <footer class="pxa-site-footer">
-      <div class="pxa-docs-container pxa-doc-footer">
-        <span>Power Dox Automation Documentation</span>
-        <span><a href="${siteLinks.company}">Company</a> · <a href="${siteLinks.demo}">Demo</a></span>
-      </div>
-    </footer>
+    ${renderPxaFooter('PXA.Documentation')}
   </div>
 `;

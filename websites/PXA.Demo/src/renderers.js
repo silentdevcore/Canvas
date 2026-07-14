@@ -1,5 +1,6 @@
 import { categories, demos, siteLinks, statusNotes } from './demoData.js';
 import { getActiveDemo, getBookingState } from './state.js';
+import { renderPxaFooter } from '../../shared/footer.js';
 
 function renderReference(value) {
   if (!value.startsWith('/')) return value;
@@ -364,12 +365,7 @@ export function renderApp(root) {
       </section>
     </main>
 
-    <footer class="pxa-site-footer">
-      <div class="pxa-container pxa-demo-footer">
-        <span>Power Dox Automation Demo Gallery</span>
-        <span><a href="${siteLinks.company}">Company</a> · <a href="${siteLinks.documentation}">Documentation</a></span>
-      </div>
-    </footer>
+    ${renderPxaFooter('PXA.Demo')}
   </div>
 `;
 }

@@ -147,12 +147,6 @@
   gap: var(--pxa-space-2);
 }
 
-.pxa-doc-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--pxa-space-4);
-}
-
 @media (max-width: 860px) {
   .pxa-doc-hero-grid,
   .pxa-doc-card-grid,
@@ -160,10 +154,6 @@
   .pxa-doc-reference-grid,
   .pxa-doc-demo-grid {
     grid-template-columns: 1fr;
-  }
-
-  .pxa-doc-footer {
-    flex-direction: column;
   }
 
   .pxa-doc-nav {

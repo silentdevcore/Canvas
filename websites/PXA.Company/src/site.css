@@ -236,24 +236,6 @@
   margin-inline: auto;
 }
 
-.pxa-company-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--pxa-space-4);
-  align-items: flex-start;
-}
-
-.pxa-company-footer p {
-  margin: var(--pxa-space-2) 0 0;
-}
-
-.pxa-company-footer nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--pxa-space-4);
-}
-
 @media (max-width: 860px) {
   .pxa-company-hero__grid,
   .pxa-company-two-column {
@@ -271,14 +253,6 @@
 
   .pxa-company-hero .pxa-heading {
     font-size: var(--pxa-text-3xl);
-  }
-
-  .pxa-company-footer {
-    flex-direction: column;
-  }
-
-  .pxa-company-footer nav {
-    justify-content: flex-start;
   }
 
   .pxa-company-snapshot div {
