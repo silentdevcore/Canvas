@@ -336,193 +336,268 @@ function updateRouteMetadata(route) {
   }
 }
 
-document.querySelector('#app').innerHTML = `
-  <div class="pxa-site pxa-site--company">
+const currentRoute = companyRoutes[window.location.pathname] || fallbackRoute;
+updateRouteMetadata(currentRoute);
+
+function activeAttr(section) {
+  if (!section && !currentRoute.section) return ' aria-current="page"';
+  return currentRoute.section === section ? ' aria-current="page"' : '';
+}
+
+function renderHeader() {
+  return `
     <header class="pxa-site-header">
       <div class="pxa-site-header__inner">
-        <a class="pxa-brand" href="/" aria-label="PXA.Company home">
+        <a class="pxa-brand" href="${siteLinks.company}" aria-label="PXA.Company home">
           <span class="pxa-brand__mark">PXA</span>
           <span class="pxa-brand__name">Power Dox Automation <small>Company</small></span>
         </a>
         <nav class="pxa-site-nav" aria-label="Primary navigation">
-          <a href="${siteLinks.company}" aria-current="page">Company</a>
-          <a href="${companyPage('products')}">Products</a>
+          <a href="${siteLinks.company}"${activeAttr(null)}>Company</a>
+          <a href="${companyPage('products')}"${activeAttr('products')}>Products</a>
           <a href="${siteLinks.documentation}">Documentation</a>
           <a href="${siteLinks.demo}">Demo</a>
-          <a href="${companyPage('pricing')}">Pricing</a>
-          <a href="${companyPage('about')}">About</a>
-          <a href="${companyPage('support')}">Support</a>
+          <a href="${companyPage('pricing')}"${activeAttr('pricing')}>Pricing</a>
+          <a href="${companyPage('about')}"${activeAttr('about')}>About</a>
+          <a href="${companyPage('support')}"${activeAttr('support')}>Support</a>
         </nav>
-        <a class="pxa-button pxa-button--primary pxa-header-cta" href="${companyPage('contact')}">Contact sales</a>
+        <a class="pxa-button pxa-button--primary pxa-header-cta" href="${companyPage('contact')}"${activeAttr('contact')}>Contact sales</a>
       </div>
     </header>
+  `;
+}
 
-    <main class="pxa-site-main">
-      <section class="pxa-company-hero">
-        <div class="pxa-container pxa-company-hero__grid">
-          <div>
-            <p class="pxa-kicker">Power Dox Automation</p>
-            <h1 class="pxa-heading">Build, migrate, and sell document automation with one PXA platform.</h1>
-            <p class="pxa-lede">
-              PXA brings PDF generation, provider migration, file import, spreadsheet workflows,
-              and interactive document tooling into one developer-friendly product family.
-            </p>
-            <div class="pxa-action-row">
-              <a class="pxa-button pxa-button--primary" href="${siteLinks.demo}">View demos</a>
-              <a class="pxa-button pxa-button--secondary" href="${siteLinks.documentation}">Read documentation</a>
-            </div>
-            <div class="pxa-company-proof-strip" aria-label="PXA proof points">
-              ${renderProof(proofPoints)}
-            </div>
-          </div>
-          <aside class="pxa-card pxa-company-snapshot" aria-label="PXA platform snapshot">
-            <strong>Platform snapshot</strong>
-            <dl>
-              <div><dt>Products</dt><dd>6</dd></div>
-              <div><dt>Migration focus</dt><dd>Code and designer</dd></div>
-              <div><dt>Primary audience</dt><dd>.NET teams</dd></div>
-              <div><dt>Current phase</dt><dd>Web platform</dd></div>
-            </dl>
-          </aside>
-        </div>
-      </section>
-
-      <section class="pxa-section" id="products">
-        <div class="pxa-container">
-          <p class="pxa-kicker">Products</p>
-          <h2 class="pxa-heading">A focused suite for document-heavy teams</h2>
-          <div class="pxa-feature-grid pxa-company-grid">
-            ${renderCards(products)}
-          </div>
-        </div>
-      </section>
-
-      <section class="pxa-section pxa-section--soft" id="use-cases">
-        <div class="pxa-container">
-          <p class="pxa-kicker">Use cases</p>
-          <h2 class="pxa-heading">From legacy provider migration to new document workflows</h2>
-          <div class="pxa-company-use-grid">
-            ${renderUseCases(useCases)}
-          </div>
-        </div>
-      </section>
-
-      <section class="pxa-section" id="trust">
-        <div class="pxa-container pxa-company-two-column">
-          <div>
-            <p class="pxa-kicker">Provider coverage</p>
-            <h2 class="pxa-heading">Built around practical migration targets</h2>
-            <p class="pxa-lede">
-              PXA tracks real provider gaps and migration status through checklists,
-              demos, and documentation.
-            </p>
-          </div>
-          <div class="pxa-card">
-            <strong>Tracked ecosystem</strong>
-            <div class="pxa-company-badges">
-              ${renderBadges(providers)}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="pxa-section pxa-section--soft" id="examples">
-        <div class="pxa-container">
-          <p class="pxa-kicker">Example reports</p>
-          <h2 class="pxa-heading">Showcases that connect sales, docs, and demos</h2>
+function renderHeroSection() {
+  return `
+    <section class="pxa-company-hero">
+      <div class="pxa-container pxa-company-hero__grid">
+        <div>
+          <p class="pxa-kicker">Power Dox Automation</p>
+          <h1 class="pxa-heading">Build, migrate, and sell document automation with one PXA platform.</h1>
           <p class="pxa-lede">
-            These examples make the product concrete: each one should point to a demo,
-            documentation, and implementation status.
+            PXA brings PDF generation, provider migration, file import, spreadsheet workflows,
+            and interactive document tooling into one developer-friendly product family.
           </p>
-          <div class="pxa-company-showcase-grid">
-            ${renderShowcases(showcases)}
-          </div>
-        </div>
-      </section>
-
-      <section class="pxa-section pxa-section--soft" id="roadmap">
-        <div class="pxa-container">
-          <p class="pxa-kicker">Roadmap</p>
-          <h2 class="pxa-heading">One brand, three focused web experiences</h2>
-          <div class="pxa-company-roadmap">
-            ${renderRoadmap(roadmap)}
-          </div>
-        </div>
-      </section>
-
-      <section class="pxa-section" id="pricing">
-        <div class="pxa-container">
-          <div>
-            <p class="pxa-kicker">Pricing</p>
-            <h2 class="pxa-heading">Trial, team, and enterprise paths</h2>
-            <p class="pxa-lede">
-              Final licensing is still pending, but the product site already separates
-              evaluation, team adoption, and migration-heavy enterprise conversations.
-            </p>
-          </div>
-          <div class="pxa-company-pricing-grid">
-            ${renderPricing(pricingTiers)}
-          </div>
-        </div>
-      </section>
-
-      <section class="pxa-section pxa-section--soft" id="about">
-        <div class="pxa-container pxa-company-two-column">
-          <div>
-            <p class="pxa-kicker">About</p>
-            <h2 class="pxa-heading">Power Dox Automation is a product system for modern document work.</h2>
-            <p class="pxa-lede">
-              PXA exists to make document automation less fragmented: one family for generating output,
-              migrating legacy providers, importing files, reviewing PDFs, and connecting examples to docs.
-            </p>
-            <div class="pxa-action-row">
-              <a class="pxa-button pxa-button--primary" href="${siteLinks.documentation}#overview">Read docs</a>
-              <a class="pxa-button pxa-button--secondary" href="${siteLinks.demo}">Explore demos</a>
-            </div>
-          </div>
-          <div class="pxa-company-about-stack">
-            ${renderAboutPrinciples(aboutPrinciples)}
-          </div>
-        </div>
-      </section>
-
-      <section class="pxa-section pxa-section--soft" id="support">
-        <div class="pxa-container pxa-company-two-column">
-          <div>
-            <p class="pxa-kicker">Support</p>
-            <h2 class="pxa-heading">Documentation, demos, and direct project support</h2>
-            <p class="pxa-lede">
-              Start with docs and demos, then bring migration-specific questions,
-              provider parity gaps, or rollout planning to the PXA team.
-            </p>
-          </div>
           <div class="pxa-action-row">
-            <a class="pxa-button pxa-button--secondary" href="${siteLinks.documentation}">Open docs</a>
-            <a class="pxa-button pxa-button--secondary" href="${siteLinks.demo}">Open demos</a>
+            <a class="pxa-button pxa-button--primary" href="${siteLinks.demo}">View demos</a>
+            <a class="pxa-button pxa-button--secondary" href="${siteLinks.documentation}">Read documentation</a>
+          </div>
+          <div class="pxa-company-proof-strip" aria-label="PXA proof points">
+            ${renderProof(proofPoints)}
           </div>
         </div>
-      </section>
+        <aside class="pxa-card pxa-company-snapshot" aria-label="PXA platform snapshot">
+          <strong>Platform snapshot</strong>
+          <dl>
+            <div><dt>Products</dt><dd>6</dd></div>
+            <div><dt>Migration focus</dt><dd>Code and designer</dd></div>
+            <div><dt>Primary audience</dt><dd>.NET teams</dd></div>
+            <div><dt>Current phase</dt><dd>Web platform</dd></div>
+          </dl>
+        </aside>
+      </div>
+    </section>
+  `;
+}
 
-      <section class="pxa-section pxa-section--compact" id="contact">
-        <div class="pxa-container pxa-card pxa-company-contact">
-          <p class="pxa-kicker">Contact</p>
-          <h2 class="pxa-heading">Ready to plan a PXA rollout?</h2>
-          <p class="pxa-lede">This placeholder will become the sales/contact entry once the preferred contact flow is selected.</p>
+function renderProductsPage() {
+  return `
+    <section class="pxa-section" id="products">
+      <div class="pxa-container">
+        <p class="pxa-kicker">Products</p>
+        <h1 class="pxa-heading">A focused suite for document-heavy teams</h1>
+        <p class="pxa-lede">
+          Choose the PXA product area that matches your workflow: generation, migration,
+          import, design, PDF review, or spreadsheet-backed automation.
+        </p>
+        <div class="pxa-feature-grid pxa-company-grid">
+          ${renderCards(products)}
         </div>
-      </section>
+      </div>
+    </section>
+  `;
+}
+
+function renderUseCasesSection() {
+  return `
+    <section class="pxa-section pxa-section--soft" id="use-cases">
+      <div class="pxa-container">
+        <p class="pxa-kicker">Use cases</p>
+        <h2 class="pxa-heading">From legacy provider migration to new document workflows</h2>
+        <div class="pxa-company-use-grid">
+          ${renderUseCases(useCases)}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderTrustSection() {
+  return `
+    <section class="pxa-section" id="trust">
+      <div class="pxa-container pxa-company-two-column">
+        <div>
+          <p class="pxa-kicker">Provider coverage</p>
+          <h2 class="pxa-heading">Built around practical migration targets</h2>
+          <p class="pxa-lede">
+            PXA tracks real provider gaps and migration status through checklists,
+            demos, and documentation.
+          </p>
+        </div>
+        <div class="pxa-card">
+          <strong>Tracked ecosystem</strong>
+          <div class="pxa-company-badges">
+            ${renderBadges(providers)}
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderExamplesSection() {
+  return `
+    <section class="pxa-section pxa-section--soft" id="examples">
+      <div class="pxa-container">
+        <p class="pxa-kicker">Example reports</p>
+        <h2 class="pxa-heading">Showcases that connect sales, docs, and demos</h2>
+        <p class="pxa-lede">
+          These examples make the product concrete: each one should point to a demo,
+          documentation, and implementation status.
+        </p>
+        <div class="pxa-company-showcase-grid">
+          ${renderShowcases(showcases)}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderRoadmapSection() {
+  return `
+    <section class="pxa-section pxa-section--soft" id="roadmap">
+      <div class="pxa-container">
+        <p class="pxa-kicker">Roadmap</p>
+        <h2 class="pxa-heading">One brand, three focused web experiences</h2>
+        <div class="pxa-company-roadmap">
+          ${renderRoadmap(roadmap)}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderPricingPage() {
+  return `
+    <section class="pxa-section" id="pricing">
+      <div class="pxa-container">
+        <div>
+          <p class="pxa-kicker">Pricing</p>
+          <h1 class="pxa-heading">Trial, team, and enterprise paths</h1>
+          <p class="pxa-lede">
+            Final licensing is still pending, but the product site already separates
+            evaluation, team adoption, and migration-heavy enterprise conversations.
+          </p>
+        </div>
+        <div class="pxa-company-pricing-grid">
+          ${renderPricing(pricingTiers)}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderAboutPage() {
+  return `
+    <section class="pxa-section pxa-section--soft" id="about">
+      <div class="pxa-container pxa-company-two-column">
+        <div>
+          <p class="pxa-kicker">About</p>
+          <h1 class="pxa-heading">Power Dox Automation is a product system for modern document work.</h1>
+          <p class="pxa-lede">
+            PXA exists to make document automation less fragmented: one family for generating output,
+            migrating legacy providers, importing files, reviewing PDFs, and connecting examples to docs.
+          </p>
+          <div class="pxa-action-row">
+            <a class="pxa-button pxa-button--primary" href="${siteLinks.documentation}#overview">Read docs</a>
+            <a class="pxa-button pxa-button--secondary" href="${siteLinks.demo}">Explore demos</a>
+          </div>
+        </div>
+        <div class="pxa-company-about-stack">
+          ${renderAboutPrinciples(aboutPrinciples)}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderSupportPage() {
+  return `
+    <section class="pxa-section pxa-section--soft" id="support">
+      <div class="pxa-container pxa-company-two-column">
+        <div>
+          <p class="pxa-kicker">Support</p>
+          <h1 class="pxa-heading">Documentation, demos, and direct project support</h1>
+          <p class="pxa-lede">
+            Start with docs and demos, then bring migration-specific questions,
+            provider parity gaps, or rollout planning to the PXA team.
+          </p>
+        </div>
+        <div class="pxa-action-row">
+          <a class="pxa-button pxa-button--secondary" href="${siteLinks.documentation}">Open docs</a>
+          <a class="pxa-button pxa-button--secondary" href="${siteLinks.demo}">Open demos</a>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderContactPage() {
+  return `
+    <section class="pxa-section pxa-section--compact" id="contact">
+      <div class="pxa-container pxa-card pxa-company-contact">
+        <p class="pxa-kicker">Contact</p>
+        <h1 class="pxa-heading">Ready to plan a PXA rollout?</h1>
+        <p class="pxa-lede">This placeholder will become the sales/contact entry once the preferred contact flow is selected.</p>
+      </div>
+    </section>
+  `;
+}
+
+function renderHomePage() {
+  return `
+    ${renderHeroSection()}
+    ${renderUseCasesSection()}
+    ${renderTrustSection()}
+    ${renderExamplesSection()}
+    ${renderRoadmapSection()}
+  `;
+}
+
+function renderMainContent() {
+  switch (currentRoute.section) {
+    case 'products':
+      return renderProductsPage();
+    case 'pricing':
+      return renderPricingPage();
+    case 'about':
+      return renderAboutPage();
+    case 'support':
+      return renderSupportPage();
+    case 'contact':
+      return renderContactPage();
+    default:
+      return renderHomePage();
+  }
+}
+
+document.querySelector('#app').innerHTML = `
+  <div class="pxa-site pxa-site--company">
+    ${renderHeader()}
+    <main class="pxa-site-main">
+      ${renderMainContent()}
     </main>
 
     ${renderPxaFooter('PXA.Company')}
   </div>
 `;
-
-function scrollToCompanyRoute() {
-  const route = companyRoutes[window.location.pathname] || fallbackRoute;
-  updateRouteMetadata(route);
-  if (!route.section) return;
-  window.requestAnimationFrame(() => {
-    document.querySelector(`#${route.section}`)?.scrollIntoView({ block: 'start' });
-  });
-}
-
-scrollToCompanyRoute();

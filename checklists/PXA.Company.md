@@ -42,6 +42,7 @@
 - [x] About-Seite/-Sektion mit Produktmission und Prinzipien.
 - [x] Statische Company-Seiten fuer `products.html`, `pricing.html`, `about.html`, `support.html` und `contact.html` vorbereiten.
 - [x] Route-Metadaten fuer statische Company-Seiten setzen.
+- [x] Jede statische Company-Seite rendert nur ihren eigenen Hauptinhalt mit gemeinsamer Navigation und gemeinsamem Footer.
 - [x] Use-Case-Uebersicht mit Links zu `PXA.Documentation`.
 - [x] Demo-CTA mit Link zu `PXA.Demo`.
 - [x] Produktkarten mit direkten Demo- und Documentation-Links.
