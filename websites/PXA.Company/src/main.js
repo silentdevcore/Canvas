@@ -207,17 +207,62 @@ const proofPoints = [
 
 const aboutPrinciples = [
   {
-    title: 'Built for document-heavy teams',
-    text: 'PXA focuses on generation, migration, import, review, and spreadsheet-backed workflows where documents are part of the product.',
+    title: 'Built for teams where documents are product behavior',
+    text: 'PXA treats PDFs, reports, templates, imports, and spreadsheets as part of the application architecture, not as disconnected side effects.',
   },
   {
-    title: 'Migration-first thinking',
-    text: 'Provider parity, diagnostics, and practical migration paths are tracked as first-class product work.',
+    title: 'Migration work should be explicit',
+    text: 'Provider parity, unsupported features, manual follow-ups, and conversion diagnostics are visible so teams can plan real migrations.',
   },
   {
-    title: 'Docs and demos stay connected',
-    text: 'Every public workflow should connect marketing, documentation, runnable examples, and implementation status.',
+    title: 'Docs, demos, and product surfaces stay connected',
+    text: 'Every workflow should be explainable, runnable, and traceable from product page to documentation to demo and implementation status.',
   },
+];
+
+const aboutStory = [
+  {
+    title: 'Why PXA exists',
+    text: 'Most document stacks grow by accident: one library for PDF generation, one reporting designer, one viewer, one spreadsheet workflow, and a set of migration scripts nobody wants to touch. PXA exists to make those flows deliberate and connected.',
+  },
+  {
+    title: 'Who it is for',
+    text: '.NET teams building business software, internal platforms, reporting systems, migration tooling, and document-heavy workflows where correctness and maintainability matter.',
+  },
+  {
+    title: 'How we build it',
+    text: 'The platform is organized around focused products, shared document models, provider-aware migration paths, and public demos that keep product claims testable.',
+  },
+];
+
+const supportPaths = [
+  {
+    title: 'Self-guided evaluation',
+    text: 'Use product pages, demos, and documentation to understand where PXA fits before starting a deeper implementation.',
+    cta: 'Explore demos',
+    href: siteLinks.demo,
+  },
+  {
+    title: 'Migration review',
+    text: 'Bring existing provider code, report files, or spreadsheet workflows and review them against PXA migration coverage.',
+    cta: 'Contact sales',
+    href: companyPage('contact'),
+  },
+  {
+    title: 'Implementation guidance',
+    text: 'Use the documentation path for generator, designer, viewer, importer, spreadsheet, and migration integration work.',
+    cta: 'Open docs',
+    href: siteLinks.documentation,
+  },
+];
+
+const supportTopics = [
+  'Provider migration assessment',
+  'Report designer conversion review',
+  'PDF generation architecture',
+  'Viewer and forms workflow planning',
+  'Importer and spreadsheet data mapping',
+  'Enterprise rollout and parity planning',
 ];
 
 const roadmap = [
@@ -265,19 +310,25 @@ const showcases = [
 const pricingTiers = [
   {
     title: 'Trial',
-    text: 'Explore the product family, run demos, and validate migration fit before committing.',
+    bestFor: 'Developers and teams validating product fit.',
+    text: 'Explore the product family, run demos, review documentation, and validate whether PXA fits your generation or migration scenario.',
+    features: ['Access demos and examples', 'Evaluate product areas', 'Review documentation and migration coverage'],
     cta: 'Start with demos',
     href: siteLinks.demo,
   },
   {
     title: 'Team',
-    text: 'Adopt PXA for product teams that need generator, designer, importer, and viewer workflows.',
+    bestFor: 'Product teams building document automation into applications.',
+    text: 'Adopt PXA across generator, designer, importer, viewer, and spreadsheet workflows with a shared implementation model.',
+    features: ['Build repeatable document workflows', 'Connect design, generation, and review', 'Use product documentation as the team baseline'],
     cta: 'Read docs',
     href: siteLinks.documentation,
   },
   {
     title: 'Enterprise',
-    text: 'Plan larger migrations, provider parity work, support, and rollout guidance with the PXA team.',
+    bestFor: 'Organizations planning provider migrations or broad rollout.',
+    text: 'Plan larger migration programs, provider parity work, support expectations, and rollout guidance with the PXA team.',
+    features: ['Migration assessment', 'Provider parity planning', 'Rollout and support path definition'],
     cta: 'Contact sales',
     href: companyPage('contact'),
   },
@@ -348,6 +399,20 @@ function renderAboutPrinciples(items) {
     .join('');
 }
 
+function renderTextCards(items, className = '') {
+  return items
+    .map(
+      (item) => `
+        <article class="pxa-card ${className}">
+          <h3>${item.title}</h3>
+          <p>${item.text}</p>
+          ${item.cta && item.href ? `<a href="${item.href}">${item.cta}</a>` : ''}
+        </article>
+      `,
+    )
+    .join('');
+}
+
 function renderRoadmap(items) {
   return items
     .map(
@@ -386,7 +451,11 @@ function renderPricing(items) {
       (item) => `
         <article class="pxa-card pxa-company-pricing-card">
           <h3>${item.title}</h3>
+          <strong>${item.bestFor}</strong>
           <p>${item.text}</p>
+          <ul>
+            ${item.features.map((feature) => `<li>${feature}</li>`).join('')}
+          </ul>
           <a class="pxa-button ${item.title === 'Enterprise' ? 'pxa-button--primary' : 'pxa-button--secondary'}" href="${item.href}">${item.cta}</a>
         </article>
       `,
@@ -610,14 +679,22 @@ function renderPricingPage() {
       <div class="pxa-container">
         <div>
           <p class="pxa-kicker">Pricing</p>
-          <h1 class="pxa-heading">Trial, team, and enterprise paths</h1>
+          <h1 class="pxa-heading">Choose the adoption path that matches your document workload.</h1>
           <p class="pxa-lede">
-            Final licensing is still pending, but the product site already separates
-            evaluation, team adoption, and migration-heavy enterprise conversations.
+            PXA pricing is organized around how teams adopt document automation:
+            evaluate the platform, standardize team workflows, or plan a larger migration.
+            Final commercial terms can stay flexible while the product paths remain clear.
           </p>
         </div>
         <div class="pxa-company-pricing-grid">
           ${renderPricing(pricingTiers)}
+        </div>
+        <div class="pxa-card pxa-company-pricing-note">
+          <strong>Migration-heavy projects</strong>
+          <p>
+            If your team is replacing an existing provider stack, start with an Enterprise conversation.
+            The useful first step is usually a migration assessment, not a generic license quote.
+          </p>
         </div>
       </div>
     </section>
@@ -630,10 +707,11 @@ function renderAboutPage() {
       <div class="pxa-container pxa-company-two-column">
         <div>
           <p class="pxa-kicker">About</p>
-          <h1 class="pxa-heading">Power Dox Automation is a product system for modern document work.</h1>
+          <h1 class="pxa-heading">Power Dox Automation is built for teams modernizing document-heavy software.</h1>
           <p class="pxa-lede">
             PXA exists to make document automation less fragmented: one family for generating output,
-            migrating legacy providers, importing files, reviewing PDFs, and connecting examples to docs.
+            migrating legacy providers, importing files, reviewing PDFs, and connecting spreadsheet-backed
+            workflows to product-ready examples.
           </p>
           <div class="pxa-action-row">
             <a class="pxa-button pxa-button--primary" href="${siteLinks.documentation}#overview">Read docs</a>
@@ -644,6 +722,11 @@ function renderAboutPage() {
           ${renderAboutPrinciples(aboutPrinciples)}
         </div>
       </div>
+      <div class="pxa-container">
+        <div class="pxa-company-story-grid">
+          ${renderTextCards(aboutStory, 'pxa-company-story-card')}
+        </div>
+      </div>
     </section>
   `;
 }
@@ -651,18 +734,23 @@ function renderAboutPage() {
 function renderSupportPage() {
   return `
     <section class="pxa-section pxa-section--soft" id="support">
-      <div class="pxa-container pxa-company-two-column">
+      <div class="pxa-container">
         <div>
           <p class="pxa-kicker">Support</p>
-          <h1 class="pxa-heading">Documentation, demos, and direct project support</h1>
+          <h1 class="pxa-heading">Support paths for evaluation, migration, and implementation.</h1>
           <p class="pxa-lede">
-            Start with docs and demos, then bring migration-specific questions,
-            provider parity gaps, or rollout planning to the PXA team.
+            Start with public docs and runnable demos, then bring migration-specific questions,
+            provider parity gaps, or rollout planning into a direct project conversation.
           </p>
         </div>
-        <div class="pxa-action-row">
-          <a class="pxa-button pxa-button--secondary" href="${siteLinks.documentation}">Open docs</a>
-          <a class="pxa-button pxa-button--secondary" href="${siteLinks.demo}">Open demos</a>
+        <div class="pxa-company-support-grid">
+          ${renderTextCards(supportPaths, 'pxa-company-support-card')}
+        </div>
+        <div class="pxa-card pxa-company-support-topics">
+          <strong>Common support topics</strong>
+          <ul>
+            ${supportTopics.map((topic) => `<li>${topic}</li>`).join('')}
+          </ul>
         </div>
       </div>
     </section>

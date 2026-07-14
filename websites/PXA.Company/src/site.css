@@ -171,7 +171,9 @@
 
 .pxa-company-use-grid,
 .pxa-company-showcase-grid,
-.pxa-company-pricing-grid {
+.pxa-company-pricing-grid,
+.pxa-company-story-grid,
+.pxa-company-support-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--pxa-space-5);
@@ -185,7 +187,9 @@
 .pxa-company-use-card,
 .pxa-company-showcase-card,
 .pxa-company-pricing-card,
-.pxa-company-about-card {
+.pxa-company-about-card,
+.pxa-company-story-card,
+.pxa-company-support-card {
   display: grid;
   align-content: start;
   gap: var(--pxa-space-3);
@@ -194,20 +198,59 @@
 .pxa-company-use-card h3,
 .pxa-company-showcase-card h3,
 .pxa-company-pricing-card h3,
+.pxa-company-story-card h3,
+.pxa-company-support-card h3,
 .pxa-company-use-card p,
 .pxa-company-showcase-card p,
-.pxa-company-pricing-card p {
+.pxa-company-pricing-card p,
+.pxa-company-story-card p,
+.pxa-company-support-card p {
   margin: 0;
 }
 
 .pxa-company-use-card p,
 .pxa-company-showcase-card p,
-.pxa-company-pricing-card p {
+.pxa-company-pricing-card p,
+.pxa-company-story-card p,
+.pxa-company-support-card p {
+  color: var(--pxa-color-muted);
+}
+
+.pxa-company-pricing-card strong,
+.pxa-company-pricing-note strong,
+.pxa-company-support-topics strong {
+  color: var(--pxa-color-ink);
+}
+
+.pxa-company-pricing-card ul,
+.pxa-company-support-topics ul {
+  display: grid;
+  gap: var(--pxa-space-2);
+  margin: 0;
+  padding-left: var(--pxa-space-5);
   color: var(--pxa-color-muted);
 }
 
 .pxa-company-pricing-card .pxa-button {
   margin-top: var(--pxa-space-2);
+}
+
+.pxa-company-pricing-note,
+.pxa-company-support-topics {
+  display: grid;
+  max-width: 860px;
+  gap: var(--pxa-space-3);
+  margin-top: var(--pxa-space-6);
+}
+
+.pxa-company-pricing-note p {
+  margin: 0;
+  color: var(--pxa-color-muted);
+}
+
+.pxa-company-support-card a {
+  width: fit-content;
+  font-weight: 700;
 }
 
 .pxa-company-roadmap {
@@ -304,6 +347,8 @@
   .pxa-company-use-grid,
   .pxa-company-showcase-grid,
   .pxa-company-pricing-grid,
+  .pxa-company-story-grid,
+  .pxa-company-support-grid,
   .pxa-company-product-content {
     grid-template-columns: 1fr;
   }
