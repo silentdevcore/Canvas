@@ -77,6 +77,7 @@
 - [x] Unfertige Demos zeigen klaren Status und naechste Schritte.
 - [x] Jede Demo verlinkt zu passender Documentation.
 - [x] Jede Demo verlinkt zu Source oder Beispiel-Dateien, sobald vorhanden.
+- [x] Hosting- und Sicherheitsgrenzen sind dokumentiert.
 - [x] Keine alten `Canvas`-Brandingreste in neuen Demo-Inhalten.
 
 ## Tests
@@ -88,9 +89,10 @@
 - [x] Beispiel-Dateien fuer Chart und Spreadsheet per Vite Public Path verlinken.
 - [x] Beispiel-Dateien fuer PDF Viewer und Provider Migration per Vite Public Path verlinken.
 - [x] Beispiel-Dateien fuer Master-detail, Rich text/Table und File importer per Vite Public Path verlinken.
+- [x] Security-/Hosting-Notiz fuer Demo-MVP pruefen.
 - [x] Mobile/Desktop Smoke-Test durchfuehren.
 
 ## Offene Entscheidungen
 - [x] Demo-Datenquelle festlegen: statische Daten im MVP, spaeter API oder gemischter Ansatz.
-- [ ] Hosting fuer Beispiel-Dateien festlegen.
-- [ ] Sicherheitsgrenzen fuer Upload-/Live-Migration-Demos festlegen.
+- [x] Hosting fuer Beispiel-Dateien festlegen: statische Vite Public Assets unter `websites/PXA.Demo/public/examples/<demo-id>/`.
+- [x] Sicherheitsgrenzen fuer Upload-/Live-Migration-Demos festlegen: keine Uploads/Live-Migration im statischen MVP; Details siehe `websites/PXA.Demo/SECURITY_AND_HOSTING.md`.
