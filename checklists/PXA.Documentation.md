@@ -53,6 +53,7 @@
 - [x] Produktorientiertes TOC erstellen.
 - [x] Startseite mit zwei Einstiegspfaden: Editor benutzen und Code integrieren.
 - [x] Startseite auf vier technische Einstiegspfade erweitern: Editor, Code, Migration und API Reference.
+- [x] Editor-, Code- und Migration-Bereiche mit Read-first, Common-tasks und Related-links Panels ausbauen.
 - [x] Mindestens je eine Quickstart-Seite fuer Editor und Code.
 - [x] Migration-Uebersicht mit Links zu Provider-Guides.
 - [x] API Reference aus bestehender DocFX-Struktur erreichbar machen.

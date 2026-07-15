@@ -98,6 +98,36 @@ const migrationGuides = [
 
 const cookbook = ['PDF generation', 'Edit PDF', 'Forms', 'Annotations', 'Reports', 'Import/export'];
 
+const trackGuides = {
+  editor: {
+    readFirst: ['Designer', 'Templates', 'Elements'],
+    tasks: ['Open a template in PXA Designer', 'Inspect page size, margins, and shared elements', 'Preview output and export JSON'],
+    related: [
+      { label: 'Open live designer', href: siteLinks.designer },
+      { label: 'Designer product page', href: companyPage('products/designer') },
+      { label: 'Master-detail demo', href: `${siteLinks.demo}#demo/master-detail-report` },
+    ],
+  },
+  code: {
+    readFirst: ['PXA.Generator', 'PXA.WebApi', 'API Reference'],
+    tasks: ['Start the backend API', 'Render or export a document model', 'Use diagnostics for failed imports or migrations'],
+    related: [
+      { label: 'Generator product page', href: companyPage('products/generator') },
+      { label: 'Booking receipt demo', href: `${siteLinks.demo}#demo/booking-receipt` },
+      { label: 'OpenAPI schema', href: '../../docs/schema/openapi.json' },
+    ],
+  },
+  migration: {
+    readFirst: ['Report Designer Migration', 'PDF Code Migration', 'Provider Taxonomy'],
+    tasks: ['Choose code or designer migration', 'Review converted output and diagnostics', 'Open report output in PXA Designer when available'],
+    related: [
+      { label: 'Migration product page', href: companyPage('products/migration') },
+      { label: 'Provider migration demo', href: `${siteLinks.demo}#demo/provider-migration-examples` },
+      { label: 'Designer migration route', href: `${siteLinks.designer}migrations/pdf/designer` },
+    ],
+  },
+};
+
 const docEntryPoints = [
   {
     title: 'Use the Editor',
@@ -321,6 +351,31 @@ function renderDemoExamples(items) {
     .join('');
 }
 
+function renderTrackGuide(guide) {
+  return `
+    <div class="pxa-doc-track-guide">
+      <article class="pxa-card">
+        <h3>Read first</h3>
+        <ol>
+          ${guide.readFirst.map((item) => `<li><a href="#${slug(item)}">${item}</a></li>`).join('')}
+        </ol>
+      </article>
+      <article class="pxa-card">
+        <h3>Common tasks</h3>
+        <ul>
+          ${guide.tasks.map((item) => `<li>${item}</li>`).join('')}
+        </ul>
+      </article>
+      <article class="pxa-card">
+        <h3>Related links</h3>
+        <div class="pxa-doc-related-links">
+          ${guide.related.map((item) => `<a href="${item.href}">${item.label}</a>`).join('')}
+        </div>
+      </article>
+    </div>
+  `;
+}
+
 function slug(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
@@ -421,6 +476,7 @@ document.querySelector('#app').innerHTML = `
           <section class="pxa-doc-section" id="editor-path">
             <p class="pxa-kicker">Editor documentation</p>
             <h2 class="pxa-heading">Product guides for visual document workflows</h2>
+            ${renderTrackGuide(trackGuides.editor)}
             <div class="pxa-doc-card-grid">
               ${renderCards(editorSections)}
             </div>
@@ -429,6 +485,7 @@ document.querySelector('#app').innerHTML = `
           <section class="pxa-doc-section" id="code-path">
             <p class="pxa-kicker">Code documentation</p>
             <h2 class="pxa-heading">SDK and WebApi entry points</h2>
+            ${renderTrackGuide(trackGuides.code)}
             <div class="pxa-doc-card-grid">
               ${renderCards(codeSections)}
             </div>
@@ -437,6 +494,7 @@ document.querySelector('#app').innerHTML = `
           <section class="pxa-doc-section" id="migration">
             <p class="pxa-kicker">Migration guides</p>
             <h2 class="pxa-heading">Provider-oriented migration documentation</h2>
+            ${renderTrackGuide(trackGuides.migration)}
             <div class="pxa-doc-card-grid">
               ${renderCards(migrationGuides)}
             </div>

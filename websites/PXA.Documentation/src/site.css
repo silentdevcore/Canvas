@@ -79,6 +79,42 @@
   gap: var(--pxa-space-4);
 }
 
+.pxa-doc-track-guide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pxa-space-4);
+  margin-bottom: var(--pxa-space-5);
+}
+
+.pxa-doc-track-guide h3,
+.pxa-doc-track-guide ol,
+.pxa-doc-track-guide ul {
+  margin: 0;
+}
+
+.pxa-doc-track-guide ol,
+.pxa-doc-track-guide ul {
+  display: grid;
+  gap: var(--pxa-space-2);
+  padding-left: var(--pxa-space-5);
+  color: var(--pxa-color-muted);
+}
+
+.pxa-doc-related-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pxa-space-2);
+}
+
+.pxa-doc-related-links a {
+  padding: var(--pxa-space-1) var(--pxa-space-2);
+  color: var(--pxa-color-brand-700);
+  background: var(--pxa-color-brand-50);
+  border-radius: var(--pxa-radius-sm);
+  font-size: var(--pxa-text-xs);
+  font-weight: 800;
+}
+
 .pxa-doc-card,
 .pxa-doc-quickstart-card,
 .pxa-doc-reference-card,
@@ -149,6 +185,7 @@
 
 @media (max-width: 860px) {
   .pxa-doc-hero-grid,
+  .pxa-doc-track-guide,
   .pxa-doc-card-grid,
   .pxa-doc-quickstart-grid,
   .pxa-doc-reference-grid,
