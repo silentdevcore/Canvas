@@ -55,6 +55,11 @@
 - [x] Startseite auf vier technische Einstiegspfade erweitern: Editor, Code, Migration und API Reference.
 - [x] Editor-, Code- und Migration-Bereiche mit Read-first, Common-tasks und Related-links Panels ausbauen.
 - [x] Detaillierte Editor Docs fuer Designer, Templates, Elements, PDF Viewer, Spreadsheet, Importer und Export ausbauen.
+- [x] Editor Elements Reference als echte Anwenderdoku ausbauen:
+  - [x] Gemeinsame Element-Attribute dokumentieren.
+  - [x] Gemeinsame Style-Attribute dokumentieren.
+  - [x] Text, Rich Text, Image, Table, Chart, Line/Shapes und Form Fields mit How-to-use, Use cases, Attributen und JSON-Beispielen dokumentieren.
+  - [x] Visuelle Designer-Erklaerungen/Screenshot-Panels fuer Toolbar, Arbeitsflaeche und Properties Panel ergaenzen.
 - [x] Cookbook- und API-Reference-Bereiche mit Task-Karten, Status und Referenzhinweisen ausbauen.
 - [x] Mindestens je eine Quickstart-Seite fuer Editor und Code.
 - [x] Migration-Uebersicht mit Links zu Provider-Guides.
