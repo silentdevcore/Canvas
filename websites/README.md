@@ -9,7 +9,7 @@ This folder contains the three public-facing PXA web properties and the shared d
 | `PXA.Company` | Marketing, sales, product overview | `http://localhost:5173/` |
 | `PXA.Documentation` | Editor and SDK documentation | `http://localhost:5174/` |
 | `PXA.Demo` | Interactive demo gallery | `http://localhost:5175/` |
-| `PXA Designer` | Live product designer app | `http://localhost:5173/` |
+| `PXA Designer` | Live product designer app | `http://localhost:5176/` |
 
 ## Shared Design System
 

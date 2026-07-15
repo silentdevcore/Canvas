@@ -9,7 +9,7 @@ PXA uses three separate website deployments:
 | `PXA.Company` | `websites/PXA.Company` | `websites/PXA.Company/dist` | `http://localhost:5173/` | `http://localhost:4173/` | `powerdoxautomation.com` |
 | `PXA.Documentation` | `websites/PXA.Documentation` | `websites/PXA.Documentation/dist` | `http://localhost:5174/` | `http://localhost:4174/` | `docs.powerdoxautomation.com` |
 | `PXA.Demo` | `websites/PXA.Demo` | `websites/PXA.Demo/dist` | `http://localhost:5175/` | `http://localhost:4175/` | `demos.powerdoxautomation.com` |
-| `PXA Designer` | `pxa-designer` | app build output | `http://localhost:5173/` | app preview output | `designer.powerdoxautomation.com` |
+| `PXA Designer` | `pxa-designer` | app build output | `http://localhost:5176/` | app preview output | `designer.powerdoxautomation.com` |
 
 ## Build Commands
 
@@ -46,7 +46,7 @@ npm run build
   - Company -> `http://localhost:5173/`
   - Documentation -> `http://localhost:5174/`
   - Demo -> `http://localhost:5175/`
-  - Designer -> `http://localhost:5173/`
+  - Designer -> `http://localhost:5176/`
 - Production defaults:
   - Company -> `https://powerdoxautomation.com/`
   - Documentation -> `https://docs.powerdoxautomation.com/`

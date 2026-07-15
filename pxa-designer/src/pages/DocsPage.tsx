@@ -1252,7 +1252,7 @@ builder.Services.AddScoped<ValidateTemplateUseCase>();
 
 // CORS for the React frontend
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
-    p.WithOrigins("http://localhost:5173", "http://localhost:3000")
+    p.WithOrigins("http://localhost:5176", "http://localhost:3000")
      .AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
@@ -1261,7 +1261,7 @@ app.MapControllers();
 app.Run();`}</Code>
 
             <div className="docs-callout docs-callout--info">
-              <strong>Note:</strong> The Web API is started separately from the React app. Run <code className="docs-inline-code">dotnet run</code> inside the current backend project <code className="docs-inline-code">PXA.WebApi/</code> — it defaults to <code className="docs-inline-code">http://localhost:5274</code>. The React dev server runs on port <code className="docs-inline-code">5173</code>.
+              <strong>Note:</strong> The Web API is started separately from the React app. Run <code className="docs-inline-code">dotnet run</code> inside the current backend project <code className="docs-inline-code">PXA.WebApi/</code> — it defaults to <code className="docs-inline-code">http://localhost:5274</code>. The React dev server runs on port <code className="docs-inline-code">5176</code>.
             </div>
 
             <H3>Minimal controller example</H3>

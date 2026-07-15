@@ -2,7 +2,7 @@ const defaultSiteLinks = {
   company: 'http://localhost:5173/',
   documentation: 'http://localhost:5174/',
   demo: 'http://localhost:5175/',
-  designer: 'http://localhost:5173/',
+  designer: 'http://localhost:5176/',
 };
 
 const productionSiteLinks = {
