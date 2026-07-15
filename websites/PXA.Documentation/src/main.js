@@ -3,32 +3,127 @@ import { renderPxaFooter } from '../../shared/footer.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 
 const editorSections = [
-  'Designer',
-  'Templates',
-  'Elements',
-  'PDF Viewer',
-  'Spreadsheet',
-  'Importer',
-  'Export',
+  {
+    title: 'Designer',
+    status: 'Ready',
+    text: 'Create and inspect PXA document templates in the visual designer, then preview output and review JSON.',
+  },
+  {
+    title: 'Templates',
+    status: 'Preview',
+    text: 'Understand pages, shared elements, bindings, repeats, and template structure before connecting data.',
+  },
+  {
+    title: 'Elements',
+    status: 'Preview',
+    text: 'Use text, tables, charts, images, forms, shapes, and layout primitives consistently across templates.',
+  },
+  {
+    title: 'PDF Viewer',
+    status: 'Preview',
+    text: 'Review PDFs, forms, annotations, and browser-side inspection workflows connected to demos.',
+  },
+  {
+    title: 'Spreadsheet',
+    status: 'Preview',
+    text: 'Import, map, edit, and export workbook-driven data flows for document automation.',
+  },
+  {
+    title: 'Importer',
+    status: 'Preview',
+    text: 'Normalize incoming PDF, Office, image, and document files before migration or generation.',
+  },
+  {
+    title: 'Export',
+    status: 'Preview',
+    text: 'Generate final outputs, downloadable artifacts, JSON, and code-oriented handoff files.',
+  },
 ];
 
 const codeSections = [
-  'PXA.Generator',
-  'PXA.Migration',
-  'PXA.Importer',
-  'PXA.Infrastructure',
-  'PXA.WebApi',
-  'API Reference',
+  {
+    title: 'PXA.Generator',
+    status: 'Ready',
+    text: 'Generate PDFs and business documents from .NET code, structured data, and reusable layout primitives.',
+  },
+  {
+    title: 'PXA.Migration',
+    status: 'Preview',
+    text: 'Convert provider-specific code and designer formats into PXA targets with diagnostics and follow-up notes.',
+  },
+  {
+    title: 'PXA.Importer',
+    status: 'Preview',
+    text: 'Integrate file importers into document automation, migration, and designer workflows.',
+  },
+  {
+    title: 'PXA.Infrastructure',
+    status: 'Preview',
+    text: 'Understand rendering, conversion, persistence, and integration boundaries across PXA services.',
+  },
+  {
+    title: 'PXA.WebApi',
+    status: 'Ready',
+    text: 'Use HTTP endpoints for migration, import, export, rendering, and designer handoff flows.',
+  },
+  {
+    title: 'API Reference',
+    status: 'Planned',
+    text: 'Connect generated DocFX and OpenAPI references to product-level integration guides.',
+  },
 ];
 
 const migrationGuides = [
-  'PDF Code Migration',
-  'Report Designer Migration',
-  'Spreadsheet Code Migration',
-  'Provider Taxonomy',
+  {
+    title: 'PDF Code Migration',
+    status: 'Preview',
+    text: 'Map third-party PDF SDK calls into PXA code patterns and track missing API parity explicitly.',
+  },
+  {
+    title: 'Report Designer Migration',
+    status: 'Ready',
+    text: 'Convert DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik, JasperReports, and Stimulsoft reports into editable PXA designs.',
+  },
+  {
+    title: 'Spreadsheet Code Migration',
+    status: 'Preview',
+    text: 'Plan spreadsheet provider migrations and workbook-driven automation paths.',
+  },
+  {
+    title: 'Provider Taxonomy',
+    status: 'Ready',
+    text: 'Use the PXA migration namespace taxonomy to distinguish domain, migration kind, and provider.',
+  },
 ];
 
 const cookbook = ['PDF generation', 'Edit PDF', 'Forms', 'Annotations', 'Reports', 'Import/export'];
+
+const docEntryPoints = [
+  {
+    title: 'Use the Editor',
+    label: 'Editor path',
+    href: '#editor-path',
+    text: 'Design templates, inspect elements, preview output, and move between visual workflows and generated JSON.',
+  },
+  {
+    title: 'Integrate with Code',
+    label: 'Code path',
+    href: '#code-path',
+    text: 'Start from .NET integration points: Generator, Importer, Migration, Infrastructure, WebApi, and references.',
+  },
+  {
+    title: 'Migrate to PXA',
+    label: 'Migration path',
+    href: '#migration',
+    text: 'Convert provider-specific PDF code, report designer files, and spreadsheet workflows with diagnostics.',
+  },
+  {
+    title: 'Explore APIs',
+    label: 'Reference path',
+    href: '#api-reference',
+    text: 'Find generated API reference, OpenAPI artifacts, cookbook links, and endpoint-oriented guidance.',
+  },
+];
 
 const demoExamples = [
   {
@@ -86,13 +181,19 @@ const quickstarts = [
     title: 'Editor Quickstart',
     label: 'Editor',
     steps: ['Open PXA Designer', 'Choose or import a template', 'Preview output and inspect JSON'],
-    command: 'npm run dev -- --host localhost',
+    command: 'cd pxa-designer && npm run dev',
   },
   {
     title: 'Code Quickstart',
     label: 'SDK',
-    steps: ['Reference the generator package', 'Create a document model', 'Build and export output'],
+    steps: ['Start the backend API', 'Create or load a document model', 'Render, migrate, import, or export through PXA endpoints'],
     command: 'dotnet build',
+  },
+  {
+    title: 'Migration Quickstart',
+    label: 'Migration',
+    steps: ['Choose code or designer migration', 'Upload or paste provider input', 'Review diagnostics before opening in designer'],
+    command: 'open /migrations/pdf/designer',
   },
 ];
 
@@ -123,19 +224,43 @@ const checklistLinks = [
   'PxaPdf-Provider-Feature-Gaps',
 ];
 
-function renderNavList(items) {
-  return items.map((item) => `<a href="#${slug(item)}">${item}</a>`).join('');
+function itemTitle(item) {
+  return typeof item === 'string' ? item : item.title;
 }
 
-function renderCards(items, status = 'Planned') {
+function renderNavList(items) {
+  return items.map((item) => `<a href="#${slug(itemTitle(item))}">${itemTitle(item)}</a>`).join('');
+}
+
+function statusClass(status) {
+  if (status === 'Ready') return 'pxa-status--ready';
+  if (status === 'Preview') return 'pxa-status--preview';
+  return 'pxa-status--planned';
+}
+
+function renderCards(items) {
   return items
     .map(
       (item) => `
-        <article class="pxa-card pxa-doc-card" id="${slug(item)}">
-          <span class="pxa-status ${status === 'Ready' ? 'pxa-status--ready' : 'pxa-status--planned'}">${status}</span>
-          <h3>${item}</h3>
-          <p>${descriptionFor(item)}</p>
+        <article class="pxa-card pxa-doc-card" id="${slug(itemTitle(item))}">
+          <span class="pxa-status ${statusClass(item.status ?? 'Planned')}">${item.status ?? 'Planned'}</span>
+          <h3>${itemTitle(item)}</h3>
+          <p>${item.text ?? descriptionFor(itemTitle(item))}</p>
         </article>
+      `,
+    )
+    .join('');
+}
+
+function renderEntryPoints(items) {
+  return items
+    .map(
+      (item) => `
+        <a class="pxa-card pxa-doc-entry" href="${item.href}">
+          <span class="pxa-status pxa-status--ready">${item.label}</span>
+          <h2>${item.title}</h2>
+          <p>${item.text}</p>
+        </a>
       `,
     )
     .join('');
@@ -248,10 +373,10 @@ document.querySelector('#app').innerHTML = `
       <div class="pxa-page-header">
         <div class="pxa-docs-container">
           <p class="pxa-kicker">PXA Documentation</p>
-          <h1 class="pxa-heading">Editor workflows and SDK integration in one place.</h1>
+          <h1 class="pxa-heading">Build with PXA from the editor, from code, or from a migration path.</h1>
           <p class="pxa-lede">
-            Start with product guides for the editor experience, then move into code,
-            migration, cookbook examples, and generated API references.
+            Use this documentation as the technical map for Power Dox Automation:
+            visual authoring, .NET integration, provider migration, demos, and generated references.
           </p>
         </div>
       </div>
@@ -271,32 +396,23 @@ document.querySelector('#app').innerHTML = `
 
         <article class="pxa-docs-content">
           <section class="pxa-doc-hero-grid" aria-label="Documentation entry points">
-            <a class="pxa-card pxa-doc-entry" href="#editor-path">
-              <span class="pxa-status pxa-status--ready">Editor path</span>
-              <h2>Editor benutzen</h2>
-              <p>Learn how templates, elements, viewer workflows, spreadsheets, importers, and export paths fit together.</p>
-            </a>
-            <a class="pxa-card pxa-doc-entry" href="#code-path">
-              <span class="pxa-status pxa-status--ready">Code path</span>
-              <h2>Code integrieren</h2>
-              <p>Use PXA Generator, Migration, Importer, Infrastructure, WebApi, and generated references from .NET apps.</p>
-            </a>
+            ${renderEntryPoints(docEntryPoints)}
           </section>
 
           <section class="pxa-doc-section" id="overview">
             <p class="pxa-kicker">Overview</p>
-            <h2 class="pxa-heading">Four documentation tracks</h2>
+            <h2 class="pxa-heading">Four ways into the platform</h2>
             <div class="pxa-feature-grid">
-              <article class="pxa-card"><h3>PXA Overview</h3><p>Product map, concepts, and how the PXA family fits together.</p></article>
-              <article class="pxa-card"><h3>Quickstarts</h3><p>Fast paths for editor users and SDK developers.</p></article>
-              <article class="pxa-card"><h3>Installation</h3><p>Project setup, service startup, package usage, and local workflows.</p></article>
-              <article class="pxa-card"><h3>Concepts</h3><p>Design JSON, pages, elements, migration results, and provider taxonomy.</p></article>
+              <article class="pxa-card"><h3>Product map</h3><p>Understand how Generator, Migration, Importer, Designer, PDF Viewer, and Spreadsheet connect.</p></article>
+              <article class="pxa-card"><h3>Local setup</h3><p>Run the backend, designer, documentation site, and demo gallery on separate local ports.</p></article>
+              <article class="pxa-card"><h3>Core concepts</h3><p>Learn design JSON, pages, elements, bindings, migration diagnostics, and provider taxonomy.</p></article>
+              <article class="pxa-card"><h3>Examples first</h3><p>Use demo input, output, and source links to validate workflows before deeper integration.</p></article>
             </div>
           </section>
 
           <section class="pxa-doc-section" id="quickstarts">
             <p class="pxa-kicker">Quickstarts</p>
-            <h2 class="pxa-heading">Start with the editor or start with code</h2>
+            <h2 class="pxa-heading">Start with the path closest to your task</h2>
             <div class="pxa-doc-quickstart-grid">
               ${renderQuickstarts(quickstarts)}
             </div>
@@ -306,7 +422,7 @@ document.querySelector('#app').innerHTML = `
             <p class="pxa-kicker">Editor documentation</p>
             <h2 class="pxa-heading">Product guides for visual document workflows</h2>
             <div class="pxa-doc-card-grid">
-              ${renderCards(editorSections, 'Planned')}
+              ${renderCards(editorSections)}
             </div>
           </section>
 
@@ -314,7 +430,7 @@ document.querySelector('#app').innerHTML = `
             <p class="pxa-kicker">Code documentation</p>
             <h2 class="pxa-heading">SDK and WebApi entry points</h2>
             <div class="pxa-doc-card-grid">
-              ${renderCards(codeSections, 'Planned')}
+              ${renderCards(codeSections)}
             </div>
           </section>
 
@@ -322,7 +438,7 @@ document.querySelector('#app').innerHTML = `
             <p class="pxa-kicker">Migration guides</p>
             <h2 class="pxa-heading">Provider-oriented migration documentation</h2>
             <div class="pxa-doc-card-grid">
-              ${renderCards(migrationGuides, 'Planned')}
+              ${renderCards(migrationGuides)}
             </div>
           </section>
 
