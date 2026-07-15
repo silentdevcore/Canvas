@@ -37,15 +37,58 @@
 }
 
 .pxa-doc-nav__featured {
+  display: block;
   color: var(--pxa-color-brand-700) !important;
   background: var(--pxa-color-brand-50);
 }
 
-.pxa-doc-nav__group {
-  padding: var(--pxa-space-2) var(--pxa-space-2) 0;
+.pxa-doc-nav__section {
+  display: grid;
+  gap: var(--pxa-space-1);
+}
+
+.pxa-doc-nav__section summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pxa-space-2);
+  padding: var(--pxa-space-2);
+  color: var(--pxa-color-ink);
+  border-radius: var(--pxa-radius-md);
+  cursor: pointer;
+  font-size: var(--pxa-text-sm);
+  font-weight: 800;
+  list-style: none;
+}
+
+.pxa-doc-nav__section summary::-webkit-details-marker {
+  display: none;
+}
+
+.pxa-doc-nav__section summary::after {
+  content: "+";
+  color: var(--pxa-color-muted);
+  font-weight: 900;
+}
+
+.pxa-doc-nav__section[open] > summary::after {
+  content: "-";
+}
+
+.pxa-doc-nav__section summary:hover {
+  color: var(--pxa-color-brand-700);
+  background: var(--pxa-color-brand-50);
+}
+
+.pxa-doc-nav__section--nested {
+  margin-left: var(--pxa-space-2);
+  padding-left: var(--pxa-space-2);
+  border-left: 1px solid var(--pxa-color-border);
+}
+
+.pxa-doc-nav__section--nested summary {
   color: var(--pxa-color-muted);
   font-size: var(--pxa-text-xs);
-  font-weight: 850;
   text-transform: uppercase;
 }
 

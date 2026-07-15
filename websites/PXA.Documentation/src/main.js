@@ -1679,15 +1679,23 @@ function renderNavList(items) {
 
 function renderElementNav(items) {
   const categories = [...new Set(items.map((item) => item.category))];
-  return categories
-    .map((category) => `
-      <span class="pxa-doc-nav__group">${category}</span>
-      ${items
-        .filter((item) => item.category === category)
-        .map((item) => `<a class="pxa-doc-nav__subitem" href="#${slug(item.title)}-element">${item.title}</a>`)
+  return `
+    <details class="pxa-doc-nav__section" open>
+      <summary>Element Reference</summary>
+      <a class="pxa-doc-nav__featured" href="#element-reference">Overview</a>
+      ${categories
+        .map((category) => `
+          <details class="pxa-doc-nav__section pxa-doc-nav__section--nested">
+            <summary>${category}</summary>
+            ${items
+              .filter((item) => item.category === category)
+              .map((item) => `<a class="pxa-doc-nav__subitem" href="#${slug(item.title)}-element">${item.title}</a>`)
+              .join('')}
+          </details>
+        `)
         .join('')}
-    `)
-    .join('');
+    </details>
+  `;
 }
 
 function statusClass(status) {
@@ -2057,7 +2065,6 @@ document.querySelector('#app').innerHTML = `
           <nav class="pxa-card pxa-doc-nav" aria-label="Documentation sections">
             <strong>Editor</strong>
             ${renderNavList(editorSections)}
-            <a class="pxa-doc-nav__featured" href="#element-reference">Element Reference</a>
             ${renderElementNav(elementReferenceDocs)}
             <strong>Code SDK</strong>
             ${renderNavList(codeSections)}
