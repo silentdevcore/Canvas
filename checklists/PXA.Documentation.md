@@ -59,6 +59,7 @@
   - [x] Gemeinsame Element-Attribute dokumentieren.
   - [x] Gemeinsame Style-Attribute dokumentieren.
   - [x] Text, Rich Text, Image, Table, Chart, Line/Shapes und Form Fields mit How-to-use, Use cases, Attributen und JSON-Beispielen dokumentieren.
+  - [x] Alle 38 Designer-Elementtypen aus `pxa-designer/src/types.ts` als eigene Referenzkarten abdecken.
   - [x] Visuelle Designer-Erklaerungen/Screenshot-Panels fuer Toolbar, Arbeitsflaeche und Properties Panel ergaenzen.
 - [x] Cookbook- und API-Reference-Bereiche mit Task-Karten, Status und Referenzhinweisen ausbauen.
 - [x] Mindestens je eine Quickstart-Seite fuer Editor und Code.
