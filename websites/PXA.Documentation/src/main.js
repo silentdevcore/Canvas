@@ -2209,3 +2209,55 @@ document.querySelector('#app').innerHTML = `
     ${renderPxaFooter('PXA.Documentation')}
   </div>
 `;
+
+initDocumentationScrollSpy();
+
+function initDocumentationScrollSpy() {
+  const links = [...document.querySelectorAll('.pxa-doc-nav a[href^="#"], .pxa-doc-toc a[href^="#"]')];
+  const targets = links
+    .map((link) => document.querySelector(link.getAttribute('href')))
+    .filter(Boolean);
+
+  if (!links.length || !targets.length) return;
+
+  const setActive = (id) => {
+    links.forEach((link) => {
+      const isActive = link.getAttribute('href') === `#${id}`;
+      link.classList.toggle('is-active', isActive);
+      if (isActive) {
+        link.closest('details')?.setAttribute('open', '');
+        link.closest('details')?.parentElement?.closest('details')?.setAttribute('open', '');
+      }
+    });
+  };
+
+  links.forEach((link) => {
+    link.addEventListener('click', () => {
+      const id = link.getAttribute('href')?.slice(1);
+      if (id) setActive(id);
+    });
+  });
+
+  const initialId = window.location.hash.slice(1) || 'overview';
+  if (document.getElementById(initialId)) setActive(initialId);
+
+  if (!('IntersectionObserver' in window)) return;
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+      if (visible[0]?.target?.id) {
+        setActive(visible[0].target.id);
+      }
+    },
+    {
+      rootMargin: '-18% 0px -68% 0px',
+      threshold: [0, 0.1, 0.25, 0.5],
+    },
+  );
+
+  targets.forEach((target) => observer.observe(target));
+}

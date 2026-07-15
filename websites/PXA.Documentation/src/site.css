@@ -36,6 +36,13 @@
   background: var(--pxa-color-brand-50);
 }
 
+.pxa-doc-nav a.is-active,
+.pxa-doc-toc a.is-active {
+  color: var(--pxa-color-brand-700);
+  background: var(--pxa-color-brand-100);
+  box-shadow: inset 3px 0 0 var(--pxa-color-brand-600);
+}
+
 .pxa-doc-nav__featured {
   display: block;
   color: var(--pxa-color-brand-700) !important;

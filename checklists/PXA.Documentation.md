@@ -79,6 +79,7 @@
 - [x] Gemeinsamer Footer mit Product, Resources, Company, Developers und Legal ist vorhanden.
 - [x] Footer enthaelt Copyright, Terms-Link und Privacy-Link.
 - [x] Demo-Beispiele sind aus der Documentation erreichbar.
+- [x] Documentation-Sidebar markiert den aktuell geklickten oder gescrollten Abschnitt.
 
 ## Tests
 - [x] `docfx build docs/docfx.json` oder entsprechender Build fuer `PXA.Documentation`.
