@@ -54,6 +54,7 @@
 - [x] Startseite mit zwei Einstiegspfaden: Editor benutzen und Code integrieren.
 - [x] Startseite auf vier technische Einstiegspfade erweitern: Editor, Code, Migration und API Reference.
 - [x] Editor-, Code- und Migration-Bereiche mit Read-first, Common-tasks und Related-links Panels ausbauen.
+- [x] Cookbook- und API-Reference-Bereiche mit Task-Karten, Status und Referenzhinweisen ausbauen.
 - [x] Mindestens je eine Quickstart-Seite fuer Editor und Code.
 - [x] Migration-Uebersicht mit Links zu Provider-Guides.
 - [x] API Reference aus bestehender DocFX-Struktur erreichbar machen.
@@ -69,7 +70,7 @@
 - [x] About, Products und Contact Sales sind im Header vorhanden.
 - [x] Products, Pricing, About und Support bleiben direkte Menuepunkte in der Hauptnavigation.
 - [x] Gemeinsamer Footer mit Product, Resources, Company, Developers und Legal ist vorhanden.
-- [x] Footer enthaelt Copyright und AGB-Link.
+- [x] Footer enthaelt Copyright, Terms-Link und Privacy-Link.
 - [x] Demo-Beispiele sind aus der Documentation erreichbar.
 
 ## Tests

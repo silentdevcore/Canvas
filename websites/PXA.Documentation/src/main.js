@@ -96,7 +96,50 @@ const migrationGuides = [
   },
 ];
 
-const cookbook = ['PDF generation', 'Edit PDF', 'Forms', 'Annotations', 'Reports', 'Import/export'];
+const cookbook = [
+  {
+    title: 'PDF generation',
+    status: 'Ready',
+    text: 'Create business documents from structured data and reusable layout primitives.',
+    tasks: ['Choose a template or code model', 'Bind data', 'Render or export output'],
+    href: `${siteLinks.demo}#demo/booking-receipt`,
+  },
+  {
+    title: 'Edit PDF',
+    status: 'Planned',
+    text: 'Track planned editing workflows for existing PDFs and imported document surfaces.',
+    tasks: ['Import source file', 'Inspect mapped objects', 'Export edited output'],
+    href: companyPage('products/pdf-viewer'),
+  },
+  {
+    title: 'Forms',
+    status: 'Preview',
+    text: 'Plan form review and field workflows through the PDF Viewer and generated outputs.',
+    tasks: ['Open viewer workflow', 'Inspect form fields', 'Connect to review scenarios'],
+    href: `${siteLinks.demo}#demo/pdf-viewer-annotations-forms`,
+  },
+  {
+    title: 'Annotations',
+    status: 'Preview',
+    text: 'Review annotation workflows and viewer feature gaps before implementation.',
+    tasks: ['Open viewer demo', 'Review planned tools', 'Track parity gaps'],
+    href: `${siteLinks.demo}#demo/pdf-viewer-annotations-forms`,
+  },
+  {
+    title: 'Reports',
+    status: 'Ready',
+    text: 'Work with migrated report layouts, report sections, grouped data, charts, and designer handoff.',
+    tasks: ['Choose report provider', 'Run designer migration', 'Open output in PXA Designer'],
+    href: `${siteLinks.demo}#demo/master-detail-report`,
+  },
+  {
+    title: 'Import/export',
+    status: 'Preview',
+    text: 'Normalize incoming files and export generated JSON, PDF, and demo artifacts.',
+    tasks: ['Choose input format', 'Normalize or migrate', 'Download output artifacts'],
+    href: `${siteLinks.demo}#demo/file-importer-flow`,
+  },
+];
 
 const trackGuides = {
   editor: {
@@ -230,16 +273,19 @@ const quickstarts = [
 const referenceLinks = [
   {
     title: 'DocFX API Reference',
+    status: 'Planned',
     text: 'Generated .NET API reference for PXA packages.',
     href: '../../docs/api/',
   },
   {
     title: 'OpenAPI Schema',
+    status: 'Ready',
     text: 'WebApi contract for migration, import, and export endpoints.',
     href: '../../docs/schema/openapi.json',
   },
   {
     title: 'C# Cookbook',
+    status: 'Preview',
     text: 'Task-oriented examples for generator and integration workflows.',
     href: '../../docs/csharp-cookbook.md',
   },
@@ -318,6 +364,7 @@ function renderReferenceLinks(items) {
     .map(
       (item) => `
         <a class="pxa-card pxa-doc-reference-card" href="${item.href}">
+          <span class="pxa-status ${statusClass(item.status ?? 'Planned')}">${item.status ?? 'Planned'}</span>
           <h3>${item.title}</h3>
           <p>${item.text}</p>
         </a>
@@ -329,6 +376,24 @@ function renderReferenceLinks(items) {
 function renderChecklistLinks(items) {
   return items
     .map((item) => `<span class="pxa-status pxa-status--preview">${item}</span>`)
+    .join('');
+}
+
+function renderCookbook(items) {
+  return items
+    .map(
+      (item) => `
+        <article class="pxa-card pxa-doc-cookbook-card">
+          <span class="pxa-status ${statusClass(item.status)}">${item.status}</span>
+          <h3>${item.title}</h3>
+          <p>${item.text}</p>
+          <ul>
+            ${item.tasks.map((task) => `<li>${task}</li>`).join('')}
+          </ul>
+          <a href="${item.href}">Open related resource</a>
+        </article>
+      `,
+    )
     .join('');
 }
 
@@ -503,8 +568,12 @@ document.querySelector('#app').innerHTML = `
           <section class="pxa-doc-section" id="cookbook">
             <p class="pxa-kicker">Cookbook</p>
             <h2 class="pxa-heading">Task-based examples</h2>
-            <div class="pxa-company-badges">
-              ${cookbook.map((item) => `<span class="pxa-status pxa-status--preview">${item}</span>`).join('')}
+            <p>
+              Cookbook entries explain common implementation tasks and point to the closest demo,
+              product page, or reference material while the full article set is being expanded.
+            </p>
+            <div class="pxa-doc-cookbook-grid">
+              ${renderCookbook(cookbook)}
             </div>
           </section>
 
@@ -527,6 +596,16 @@ document.querySelector('#app').innerHTML = `
               The existing DocFX and OpenAPI outputs remain the source for generated reference material.
               This website provides product-first entry points that link into those generated docs.
             </p>
+            <div class="pxa-doc-reference-note">
+              <article class="pxa-card">
+                <h3>Use references after choosing a product path</h3>
+                <p>Start from Generator, Migration, Importer, WebApi, or Designer guidance, then jump into generated API details.</p>
+              </article>
+              <article class="pxa-card">
+                <h3>Keep generated docs separate</h3>
+                <p>Generated DocFX and OpenAPI outputs stay authoritative for signatures and contracts; this site stays task-oriented.</p>
+              </article>
+            </div>
             <div class="pxa-doc-reference-grid">
               ${renderReferenceLinks(referenceLinks)}
             </div>
