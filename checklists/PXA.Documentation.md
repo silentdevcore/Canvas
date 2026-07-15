@@ -54,6 +54,7 @@
 - [x] Startseite mit zwei Einstiegspfaden: Editor benutzen und Code integrieren.
 - [x] Startseite auf vier technische Einstiegspfade erweitern: Editor, Code, Migration und API Reference.
 - [x] Editor-, Code- und Migration-Bereiche mit Read-first, Common-tasks und Related-links Panels ausbauen.
+- [x] Detaillierte Editor Docs fuer Designer, Templates, Elements, PDF Viewer, Spreadsheet, Importer und Export ausbauen.
 - [x] Cookbook- und API-Reference-Bereiche mit Task-Karten, Status und Referenzhinweisen ausbauen.
 - [x] Mindestens je eine Quickstart-Seite fuer Editor und Code.
 - [x] Migration-Uebersicht mit Links zu Provider-Guides.

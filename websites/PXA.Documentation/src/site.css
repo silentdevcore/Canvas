@@ -115,6 +115,53 @@
   font-weight: 800;
 }
 
+.pxa-doc-detail-stack {
+  display: grid;
+  gap: var(--pxa-space-5);
+  margin-top: var(--pxa-space-8);
+}
+
+.pxa-doc-detail {
+  display: grid;
+  gap: var(--pxa-space-5);
+}
+
+.pxa-doc-detail__header {
+  display: grid;
+  max-width: 860px;
+  gap: var(--pxa-space-3);
+}
+
+.pxa-doc-detail__header h3,
+.pxa-doc-detail__header p,
+.pxa-doc-detail__grid h4 {
+  margin: 0;
+}
+
+.pxa-doc-detail__header p {
+  color: var(--pxa-color-muted);
+}
+
+.pxa-doc-detail__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--pxa-space-4);
+}
+
+.pxa-doc-detail__grid article {
+  display: grid;
+  align-content: start;
+  gap: var(--pxa-space-3);
+}
+
+.pxa-doc-detail__grid ul {
+  display: grid;
+  gap: var(--pxa-space-2);
+  margin: 0;
+  padding-left: var(--pxa-space-5);
+  color: var(--pxa-color-muted);
+}
+
 .pxa-doc-card,
 .pxa-doc-quickstart-card,
 .pxa-doc-cookbook-card,
@@ -207,6 +254,7 @@
 @media (max-width: 860px) {
   .pxa-doc-hero-grid,
   .pxa-doc-track-guide,
+  .pxa-doc-detail__grid,
   .pxa-doc-card-grid,
   .pxa-doc-quickstart-grid,
   .pxa-doc-cookbook-grid,

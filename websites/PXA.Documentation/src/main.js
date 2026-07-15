@@ -40,6 +40,135 @@ const editorSections = [
   },
 ];
 
+const editorDocs = [
+  {
+    title: 'Designer',
+    status: 'Ready',
+    purpose:
+      'Use PXA Designer as the visual workspace for creating, inspecting, and validating document templates before they are generated or migrated into application workflows.',
+    whenToUse: [
+      'You need to create or inspect a document template visually.',
+      'You want to preview migrated report output before committing it to code.',
+      'You need JSON inspection for handoff between design and implementation.',
+    ],
+    concepts: ['Template canvas', 'Pages and margins', 'Preview output', 'Design JSON', 'Migration handoff'],
+    tasks: ['Open the live designer', 'Create or load a template', 'Preview output', 'Inspect JSON', 'Open a migrated report in the designer'],
+    related: [
+      { label: 'Live designer', href: siteLinks.designer },
+      { label: 'Designer product page', href: companyPage('products/designer') },
+      { label: 'Master-detail demo', href: `${siteLinks.demo}#demo/master-detail-report` },
+    ],
+  },
+  {
+    title: 'Templates',
+    status: 'Preview',
+    purpose:
+      'Templates define the reusable document model: page setup, shared content, bindings, variables, repeats, and validation expectations.',
+    whenToUse: [
+      'You are building reusable layouts for invoices, reports, statements, or receipts.',
+      'You need to connect structured data to document output.',
+      'You want shared headers, footers, or repeated sections across pages.',
+    ],
+    concepts: ['Page settings', 'Margins', 'Shared elements', 'Bindings', 'Repeats', 'Validation'],
+    tasks: ['Define page size and margins', 'Add shared header or footer content', 'Bind fields to data', 'Validate required template structure'],
+    related: [
+      { label: 'Generator product page', href: companyPage('products/generator') },
+      { label: 'Booking receipt demo', href: `${siteLinks.demo}#demo/booking-receipt` },
+      { label: 'Open designer', href: siteLinks.designer },
+    ],
+  },
+  {
+    title: 'Elements',
+    status: 'Preview',
+    purpose:
+      'Elements are the building blocks of a PXA template: text, images, tables, charts, shapes, lines, form controls, and layout primitives.',
+    whenToUse: [
+      'You need to place content precisely on a document page.',
+      'You are mapping report items from another designer into PXA.',
+      'You want consistent styling and layout behavior across generated output.',
+    ],
+    concepts: ['Text elements', 'Images', 'Tables', 'Charts', 'Shapes and lines', 'Forms', 'Absolute positioning'],
+    tasks: ['Add and position elements', 'Style text and tables', 'Map charts from report designers', 'Use lines and shapes for report fidelity'],
+    related: [
+      { label: 'Chart report demo', href: `${siteLinks.demo}#demo/chart-report` },
+      { label: 'Designer product page', href: companyPage('products/designer') },
+      { label: 'Report migration guide', href: '#report-designer-migration' },
+    ],
+  },
+  {
+    title: 'PDF Viewer',
+    status: 'Preview',
+    purpose:
+      'The PDF Viewer supports browser-side review workflows for generated or imported PDFs, including forms, annotations, and inspection scenarios.',
+    whenToUse: [
+      'You need to review generated PDF output before release.',
+      'You want to inspect forms and annotations in a browser workflow.',
+      'You are tracking viewer parity against established PDF viewer products.',
+    ],
+    concepts: ['PDF preview', 'Forms', 'Annotations', 'Review tools', 'Viewer parity'],
+    tasks: ['Open a generated PDF preview', 'Inspect form fields', 'Review annotation workflows', 'Track viewer feature gaps'],
+    related: [
+      { label: 'PDF Viewer product page', href: companyPage('products/pdf-viewer') },
+      { label: 'Viewer demo', href: `${siteLinks.demo}#demo/pdf-viewer-annotations-forms` },
+      { label: 'Feature gaps checklist', href: '../../checklists/PdfTools-WebViewer-Feature-Gaps.md' },
+    ],
+  },
+  {
+    title: 'Spreadsheet',
+    status: 'Preview',
+    purpose:
+      'Spreadsheet workflows connect workbook data, sheets, formulas, and mappings to document automation and export scenarios.',
+    whenToUse: [
+      'Your document output depends on workbook data.',
+      'You need to import, map, or inspect spreadsheet structures.',
+      'You are planning spreadsheet provider migration or export workflows.',
+    ],
+    concepts: ['Workbook import', 'Sheets', 'Cells', 'Formulas', 'Data mapping', 'Export flows'],
+    tasks: ['Import workbook data', 'Inspect mapped sheets', 'Plan formula handling', 'Connect workbook data to document output'],
+    related: [
+      { label: 'Spreadsheet product page', href: companyPage('products/spreadsheet') },
+      { label: 'Spreadsheet demo', href: `${siteLinks.demo}#demo/spreadsheet-import-export` },
+      { label: 'Migration guide', href: '#spreadsheet-code-migration' },
+    ],
+  },
+  {
+    title: 'Importer',
+    status: 'Preview',
+    purpose:
+      'Importer workflows normalize incoming files so PDF, Office, image, and document inputs can enter designer, migration, or generation flows.',
+    whenToUse: [
+      'You need to accept existing customer or internal files.',
+      'You want diagnostics for files that cannot map cleanly.',
+      'You are preparing imported content for designer or migration handoff.',
+    ],
+    concepts: ['File detection', 'Normalization', 'Importer diagnostics', 'Format-specific importers', 'Designer handoff'],
+    tasks: ['Choose an input format', 'Normalize the file', 'Review import diagnostics', 'Send imported content to Designer or Migration'],
+    related: [
+      { label: 'Importer product page', href: companyPage('products/importer') },
+      { label: 'Importer demo', href: `${siteLinks.demo}#demo/file-importer-flow` },
+      { label: 'PXA.Importer', href: '#pxa-importer' },
+    ],
+  },
+  {
+    title: 'Export',
+    status: 'Preview',
+    purpose:
+      'Export workflows turn designs, migrated reports, and generated document models into JSON, PDF output, demo artifacts, or code-oriented handoff files.',
+    whenToUse: [
+      'You need to download generated output or design JSON.',
+      'You want to compare input, output, and source artifacts from demos.',
+      'You need handoff artifacts for implementation or review.',
+    ],
+    concepts: ['Design JSON', 'PDF output', 'Demo artifacts', 'Code handoff', 'Download flows'],
+    tasks: ['Export design JSON', 'Download generated output', 'Compare demo input and output', 'Use exported artifacts for implementation handoff'],
+    related: [
+      { label: 'Demo examples', href: '#demo-examples' },
+      { label: 'Generator product page', href: companyPage('products/generator') },
+      { label: 'API Reference', href: '#api-reference' },
+    ],
+  },
+];
+
 const codeSections = [
   {
     title: 'PXA.Generator',
@@ -441,6 +570,45 @@ function renderTrackGuide(guide) {
   `;
 }
 
+function renderDetailedDocs(items) {
+  return items
+    .map(
+      (item) => `
+        <section class="pxa-card pxa-doc-detail" id="${slug(item.title)}-details">
+          <div class="pxa-doc-detail__header">
+            <span class="pxa-status ${statusClass(item.status)}">${item.status}</span>
+            <h3>${item.title}</h3>
+            <p>${item.purpose}</p>
+          </div>
+          <div class="pxa-doc-detail__grid">
+            <article>
+              <h4>When to use</h4>
+              <ul>
+                ${item.whenToUse.map((text) => `<li>${text}</li>`).join('')}
+              </ul>
+            </article>
+            <article>
+              <h4>Core concepts</h4>
+              <ul>
+                ${item.concepts.map((text) => `<li>${text}</li>`).join('')}
+              </ul>
+            </article>
+            <article>
+              <h4>Common tasks</h4>
+              <ul>
+                ${item.tasks.map((text) => `<li>${text}</li>`).join('')}
+              </ul>
+            </article>
+          </div>
+          <div class="pxa-doc-related-links">
+            ${item.related.map((link) => `<a href="${link.href}">${link.label}</a>`).join('')}
+          </div>
+        </section>
+      `,
+    )
+    .join('');
+}
+
 function slug(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
@@ -544,6 +712,9 @@ document.querySelector('#app').innerHTML = `
             ${renderTrackGuide(trackGuides.editor)}
             <div class="pxa-doc-card-grid">
               ${renderCards(editorSections)}
+            </div>
+            <div class="pxa-doc-detail-stack">
+              ${renderDetailedDocs(editorDocs)}
             </div>
           </section>
 
