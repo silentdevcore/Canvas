@@ -237,7 +237,10 @@ document.querySelector('#app').innerHTML = `
           <a href="${companyPage('about')}">About</a>
           <a href="${companyPage('support')}">Support</a>
         </nav>
-        <a class="pxa-button pxa-button--primary pxa-header-cta" href="${companyPage('contact')}">Contact sales</a>
+        <div class="pxa-header-actions">
+          <a class="pxa-button pxa-button--secondary pxa-header-cta" href="${siteLinks.designer}">Live demo</a>
+          <a class="pxa-button pxa-button--primary pxa-header-cta" href="${companyPage('contact')}">Contact sales</a>
+        </div>
       </div>
     </header>
 

@@ -81,6 +81,12 @@
   background: var(--pxa-color-brand-50);
 }
 
+.pxa-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--pxa-space-2);
+}
+
 .pxa-header-cta {
   white-space: nowrap;
 }
@@ -207,8 +213,14 @@
     padding: var(--pxa-space-2);
   }
 
+  .pxa-header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
   .pxa-header-cta {
-    display: none;
+    flex: 1 1 160px;
+    justify-content: center;
   }
 
   .pxa-docs-layout {
@@ -243,6 +255,15 @@
     min-width: 0;
     text-align: center;
     overflow-wrap: anywhere;
+  }
+
+  .pxa-header-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .pxa-header-cta {
+    width: 100%;
   }
 
   .pxa-page-header,

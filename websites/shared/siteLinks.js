@@ -2,12 +2,14 @@ const defaultSiteLinks = {
   company: 'http://localhost:5173/',
   documentation: 'http://localhost:5174/',
   demo: 'http://localhost:5175/',
+  designer: 'http://localhost:5173/',
 };
 
 const productionSiteLinks = {
   company: 'https://powerdoxautomation.com/',
   documentation: 'https://docs.powerdoxautomation.com/',
   demo: 'https://demos.powerdoxautomation.com/',
+  designer: 'https://designer.powerdoxautomation.com/',
 };
 
 function normalizeUrl(value) {
@@ -25,6 +27,7 @@ export const siteLinks =
         company: envLink('VITE_PXA_COMPANY_URL') || productionSiteLinks.company,
         documentation: envLink('VITE_PXA_DOCUMENTATION_URL') || productionSiteLinks.documentation,
         demo: envLink('VITE_PXA_DEMO_URL') || productionSiteLinks.demo,
+        designer: envLink('VITE_PXA_DESIGNER_URL') || productionSiteLinks.designer,
       }
     : defaultSiteLinks;
 

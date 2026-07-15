@@ -608,7 +608,10 @@ function renderHeader() {
           <a href="${companyPage('about')}"${activeAttr('about')}>About</a>
           <a href="${companyPage('support')}"${activeAttr('support')}>Support</a>
         </nav>
-        <a class="pxa-button pxa-button--primary pxa-header-cta" href="${companyPage('contact')}"${activeAttr('contact')}>Contact sales</a>
+        <div class="pxa-header-actions">
+          <a class="pxa-button pxa-button--secondary pxa-header-cta" href="${siteLinks.designer}">Live demo</a>
+          <a class="pxa-button pxa-button--primary pxa-header-cta" href="${companyPage('contact')}"${activeAttr('contact')}>Contact sales</a>
+        </div>
       </div>
     </header>
   `;

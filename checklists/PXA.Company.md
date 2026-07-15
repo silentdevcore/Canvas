@@ -11,6 +11,7 @@
 - [x] Website/App unter `websites/PXA.Company` planen.
 - [x] Gemeinsame Hauptnavigation definieren: Company, Products, Documentation, Demo, Pricing, About, Support.
 - [x] Contact Sales als globale Header-CTA ergaenzen.
+- [x] Live Demo als globale Header-CTA zu `PXA Designer` ergaenzen.
 - [x] Hero fuer Power Dox Automation erstellen.
 - [x] About-Sektion fuer Produkt-/Firmenkontext erstellen.
 - [x] CTAs definieren: Demo ansehen, Documentation lesen, Sales kontaktieren.

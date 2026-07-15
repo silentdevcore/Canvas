@@ -9,6 +9,7 @@ This folder contains the three public-facing PXA web properties and the shared d
 | `PXA.Company` | Marketing, sales, product overview | `http://localhost:5173/` |
 | `PXA.Documentation` | Editor and SDK documentation | `http://localhost:5174/` |
 | `PXA.Demo` | Interactive demo gallery | `http://localhost:5175/` |
+| `PXA Designer` | Live product designer app | `http://localhost:5173/` |
 
 ## Shared Design System
 
@@ -49,6 +50,7 @@ ports above. Production builds default to the public domains and may override th
 - `VITE_PXA_COMPANY_URL`
 - `VITE_PXA_DOCUMENTATION_URL`
 - `VITE_PXA_DEMO_URL`
+- `VITE_PXA_DESIGNER_URL`
 
 ## Build
 
@@ -69,5 +71,6 @@ Recommended public properties:
 - `powerdoxautomation.com`
 - `docs.powerdoxautomation.com`
 - `demos.powerdoxautomation.com`
+- `designer.powerdoxautomation.com`
 
 Each website should be deployed independently from its own `dist` folder.

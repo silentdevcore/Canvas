@@ -11,6 +11,7 @@
 - [x] Website/App unter `websites/PXA.Demo` planen.
 - [x] Gemeinsame Hauptnavigation definieren: Company, Products, Documentation, Demo, Pricing, About, Support.
 - [x] Contact Sales als globale Header-CTA ergaenzen.
+- [x] Live Demo als globale Header-CTA zu `PXA Designer` ergaenzen.
 - [x] Demo Home erstellen:
   - [x] Kategorien
   - [x] Suche

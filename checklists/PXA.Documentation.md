@@ -11,6 +11,7 @@
 - [x] Website/App unter `websites/PXA.Documentation` planen oder bestehende `docs`-DocFX-Site dorthin ueberfuehren.
 - [x] Gemeinsame Hauptnavigation definieren: Company, Products, Documentation, Demo, Pricing, About, Support.
 - [x] Contact Sales als globale Header-CTA ergaenzen.
+- [x] Live Demo als globale Header-CTA zu `PXA Designer` ergaenzen.
 - [x] Documentation Home erstellen:
   - [x] PXA Overview
   - [x] Quickstarts

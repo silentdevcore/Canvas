@@ -9,6 +9,7 @@ PXA uses three separate website deployments:
 | `PXA.Company` | `websites/PXA.Company` | `websites/PXA.Company/dist` | `http://localhost:5173/` | `http://localhost:4173/` | `powerdoxautomation.com` |
 | `PXA.Documentation` | `websites/PXA.Documentation` | `websites/PXA.Documentation/dist` | `http://localhost:5174/` | `http://localhost:4174/` | `docs.powerdoxautomation.com` |
 | `PXA.Demo` | `websites/PXA.Demo` | `websites/PXA.Demo/dist` | `http://localhost:5175/` | `http://localhost:4175/` | `demos.powerdoxautomation.com` |
+| `PXA Designer` | `pxa-designer` | app build output | `http://localhost:5173/` | app preview output | `designer.powerdoxautomation.com` |
 
 ## Build Commands
 
@@ -45,14 +46,17 @@ npm run build
   - Company -> `http://localhost:5173/`
   - Documentation -> `http://localhost:5174/`
   - Demo -> `http://localhost:5175/`
+  - Designer -> `http://localhost:5173/`
 - Production defaults:
   - Company -> `https://powerdoxautomation.com/`
   - Documentation -> `https://docs.powerdoxautomation.com/`
   - Demo -> `https://demos.powerdoxautomation.com/`
+  - Designer -> `https://designer.powerdoxautomation.com/`
 - Production can override defaults with Vite env vars:
   - `VITE_PXA_COMPANY_URL`
   - `VITE_PXA_DOCUMENTATION_URL`
   - `VITE_PXA_DEMO_URL`
+  - `VITE_PXA_DESIGNER_URL`
 - Company page links use static HTML entries such as `/products.html`, `/pricing.html`, `/about.html`, `/support.html`, and `/contact.html`.
 - Company legal links use `/terms.html`, `/privacy.html`, and `/license.html`.
 - Company product detail links use nested static entries such as `/products/generator.html` and `/products/pdf-viewer.html`.
