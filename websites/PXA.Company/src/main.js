@@ -265,6 +265,90 @@ const supportTopics = [
   'Enterprise rollout and parity planning',
 ];
 
+const contactPaths = [
+  {
+    title: 'Sales conversation',
+    text: 'For product fit, rollout scope, procurement questions, or choosing the right adoption path.',
+    cta: 'Discuss adoption',
+  },
+  {
+    title: 'Migration assessment',
+    text: 'For teams replacing DevExpress, Syncfusion, ActiveReports, JasperReports, Aspose, iText, or similar provider stacks.',
+    cta: 'Review migration scope',
+  },
+  {
+    title: 'Technical evaluation',
+    text: 'For engineering teams validating generator, designer, viewer, importer, or spreadsheet workflows before implementation.',
+    cta: 'Plan evaluation',
+  },
+];
+
+const legalPages = {
+  terms: {
+    kicker: 'Terms',
+    title: 'Terms for using PXA websites, demos, and evaluation materials',
+    text:
+      'These draft terms describe the intended structure for using Power Dox Automation web properties, documentation, demos, and evaluation materials. They are product-facing placeholders and should be reviewed before public launch.',
+    sections: [
+      {
+        title: 'Website and demo use',
+        text: 'Visitors may use public product pages, demos, and documentation to evaluate PXA capabilities and migration fit.',
+      },
+      {
+        title: 'No production commitment from demos',
+        text: 'Demo behavior is informational and may not represent final product, licensing, hosting, or support commitments.',
+      },
+      {
+        title: 'Commercial terms',
+        text: 'Pricing, licensing, support, and enterprise rollout terms should be agreed through a direct sales or evaluation process.',
+      },
+    ],
+    notice: 'Draft notice: replace this page with reviewed legal terms before using the site publicly.',
+  },
+  privacy: {
+    kicker: 'Privacy',
+    title: 'Privacy information for PXA web properties',
+    text:
+      'This draft privacy page outlines the kind of information the PXA websites may handle once public contact forms, analytics, demos, or support flows are connected.',
+    sections: [
+      {
+        title: 'Information visitors provide',
+        text: 'Contact requests may include name, company, email, project context, provider stack, and migration or evaluation notes.',
+      },
+      {
+        title: 'Technical and usage data',
+        text: 'The websites may later collect basic analytics, diagnostics, browser information, and demo usage signals to improve product content.',
+      },
+      {
+        title: 'Use of information',
+        text: 'Information should be used for responding to inquiries, planning evaluations, supporting migrations, and improving documentation or demos.',
+      },
+    ],
+    notice: 'Draft notice: align this page with the final analytics, CRM, hosting, and data retention decisions.',
+  },
+  license: {
+    kicker: 'License',
+    title: 'License and evaluation model',
+    text:
+      'This draft license page explains the intended evaluation paths for PXA while final product packaging and commercial terms are still being defined.',
+    sections: [
+      {
+        title: 'Evaluation',
+        text: 'Teams can start by reviewing demos and documentation, then validate specific workflows against product and migration requirements.',
+      },
+      {
+        title: 'Team adoption',
+        text: 'Team usage is expected to focus on shared generator, designer, importer, viewer, spreadsheet, and documentation workflows.',
+      },
+      {
+        title: 'Enterprise migration',
+        text: 'Migration-heavy adoption should include provider assessment, parity planning, conversion expectations, and support boundaries.',
+      },
+    ],
+    notice: 'Draft notice: final license language should be reviewed before external distribution.',
+  },
+};
+
 const roadmap = [
   {
     title: 'Company site',
@@ -407,6 +491,33 @@ function renderTextCards(items, className = '') {
           <h3>${item.title}</h3>
           <p>${item.text}</p>
           ${item.cta && item.href ? `<a href="${item.href}">${item.cta}</a>` : ''}
+        </article>
+      `,
+    )
+    .join('');
+}
+
+function renderContactCards(items) {
+  return items
+    .map(
+      (item) => `
+        <article class="pxa-card pxa-company-contact-card">
+          <h3>${item.title}</h3>
+          <p>${item.text}</p>
+          <span>${item.cta}</span>
+        </article>
+      `,
+    )
+    .join('');
+}
+
+function renderLegalSections(items) {
+  return items
+    .map(
+      (item) => `
+        <article class="pxa-card pxa-company-legal-section">
+          <h2>${item.title}</h2>
+          <p>${item.text}</p>
         </article>
       `,
     )
@@ -759,50 +870,47 @@ function renderSupportPage() {
 
 function renderContactPage() {
   return `
-    <section class="pxa-section pxa-section--compact" id="contact">
-      <div class="pxa-container pxa-card pxa-company-contact">
+    <section class="pxa-section" id="contact">
+      <div class="pxa-container pxa-company-contact">
         <p class="pxa-kicker">Contact</p>
-        <h1 class="pxa-heading">Ready to plan a PXA rollout?</h1>
-        <p class="pxa-lede">This placeholder will become the sales/contact entry once the preferred contact flow is selected.</p>
+        <h1 class="pxa-heading">Talk to the PXA team about product fit, migration scope, or technical evaluation.</h1>
+        <p class="pxa-lede">
+          Use this page to route the conversation before a final form or CRM integration is selected.
+          The goal is to understand what you are building, what you are replacing, and which PXA products
+          should be evaluated first.
+        </p>
+        <div class="pxa-company-contact-grid">
+          ${renderContactCards(contactPaths)}
+        </div>
+        <div class="pxa-card pxa-company-contact-note">
+          <strong>Useful context to prepare</strong>
+          <ul>
+            <li>Which provider, report designer, PDF SDK, or spreadsheet workflow you use today.</li>
+            <li>Which documents matter most: invoices, reports, forms, statements, receipts, or internal PDFs.</li>
+            <li>Whether the first goal is generation, migration, import, viewer review, or spreadsheet-backed automation.</li>
+          </ul>
+        </div>
       </div>
     </section>
   `;
 }
 
 function renderLegalPage(kind) {
-  const pages = {
-    terms: {
-      kicker: 'Terms',
-      title: 'Terms for evaluating Power Dox Automation',
-      text:
-        'These placeholder terms will be replaced by the final commercial and website terms before public launch.',
-      points: ['Evaluation use', 'Sales contact path', 'Documentation and demo access'],
-    },
-    privacy: {
-      kicker: 'Privacy',
-      title: 'Privacy information for PXA web properties',
-      text:
-        'This placeholder privacy page documents the intended location for data handling, analytics, contact, and support information.',
-      points: ['Website analytics', 'Contact requests', 'Demo and documentation usage'],
-    },
-    license: {
-      kicker: 'License',
-      title: 'License model placeholder',
-      text:
-        'This placeholder license page keeps licensing expectations visible while Trial, Team, and Enterprise terms are finalized.',
-      points: ['Trial evaluation', 'Team adoption', 'Enterprise migration support'],
-    },
-  };
-  const page = pages[kind] || pages.terms;
+  const page = legalPages[kind] || legalPages.terms;
   return `
-    <section class="pxa-section pxa-section--compact" id="${kind}">
-      <div class="pxa-container pxa-card pxa-company-legal">
-        <p class="pxa-kicker">${page.kicker}</p>
-        <h1 class="pxa-heading">${page.title}</h1>
-        <p class="pxa-lede">${page.text}</p>
-        <ul>
-          ${page.points.map((point) => `<li>${point}</li>`).join('')}
-        </ul>
+    <section class="pxa-section" id="${kind}">
+      <div class="pxa-container">
+        <div class="pxa-company-legal">
+          <p class="pxa-kicker">${page.kicker}</p>
+          <h1 class="pxa-heading">${page.title}</h1>
+          <p class="pxa-lede">${page.text}</p>
+        </div>
+        <div class="pxa-company-legal-grid">
+          ${renderLegalSections(page.sections)}
+        </div>
+        <div class="pxa-card pxa-company-legal-notice">
+          <strong>${page.notice}</strong>
+        </div>
       </div>
     </section>
   `;

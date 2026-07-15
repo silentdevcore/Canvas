@@ -49,11 +49,12 @@
 - [x] Produktkarten fuehren zu eigener Produktseite, Demo und Documentation.
 - [x] Company Home und Products Overview mit erstem produktnahen B2B-Content ersetzen.
 - [x] Pricing, About und Support mit produktnahen B2B-Inhalten ausbauen.
+- [x] Contact, Terms, Privacy und License mit strukturierten Draft-Inhalten ausbauen.
 - [x] Use-Case-Uebersicht mit Links zu `PXA.Documentation`.
 - [x] Demo-CTA mit Link zu `PXA.Demo`.
 - [x] Produktkarten mit direkten Demo- und Documentation-Links.
 - [x] Showcase-Karten mit direkten Demo- und Documentation-Links.
-- [x] Kontakt-/Sales-Platzhalter.
+- [x] Kontaktseite mit Sales-, Migration-Assessment- und Technical-Evaluation-Pfaden.
 - [x] Company-Strategie fuer Domain, Pricing/Trial und Kontaktweg dokumentieren.
 
 ## Akzeptanzkriterien

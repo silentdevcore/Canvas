@@ -173,7 +173,9 @@
 .pxa-company-showcase-grid,
 .pxa-company-pricing-grid,
 .pxa-company-story-grid,
-.pxa-company-support-grid {
+.pxa-company-support-grid,
+.pxa-company-contact-grid,
+.pxa-company-legal-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--pxa-space-5);
@@ -189,7 +191,9 @@
 .pxa-company-pricing-card,
 .pxa-company-about-card,
 .pxa-company-story-card,
-.pxa-company-support-card {
+.pxa-company-support-card,
+.pxa-company-contact-card,
+.pxa-company-legal-section {
   display: grid;
   align-content: start;
   gap: var(--pxa-space-3);
@@ -200,19 +204,29 @@
 .pxa-company-pricing-card h3,
 .pxa-company-story-card h3,
 .pxa-company-support-card h3,
+.pxa-company-contact-card h3,
+.pxa-company-legal-section h2,
 .pxa-company-use-card p,
 .pxa-company-showcase-card p,
 .pxa-company-pricing-card p,
 .pxa-company-story-card p,
-.pxa-company-support-card p {
+.pxa-company-support-card p,
+.pxa-company-contact-card p,
+.pxa-company-legal-section p {
   margin: 0;
+}
+
+.pxa-company-legal-section h2 {
+  font-size: var(--pxa-text-xl);
 }
 
 .pxa-company-use-card p,
 .pxa-company-showcase-card p,
 .pxa-company-pricing-card p,
 .pxa-company-story-card p,
-.pxa-company-support-card p {
+.pxa-company-support-card p,
+.pxa-company-contact-card p,
+.pxa-company-legal-section p {
   color: var(--pxa-color-muted);
 }
 
@@ -236,15 +250,34 @@
 }
 
 .pxa-company-pricing-note,
-.pxa-company-support-topics {
+.pxa-company-support-topics,
+.pxa-company-contact-note,
+.pxa-company-legal-notice {
   display: grid;
   max-width: 860px;
   gap: var(--pxa-space-3);
   margin-top: var(--pxa-space-6);
 }
 
-.pxa-company-pricing-note p {
+.pxa-company-pricing-note p,
+.pxa-company-contact-note ul {
   margin: 0;
+  color: var(--pxa-color-muted);
+}
+
+.pxa-company-contact-card span {
+  width: fit-content;
+  color: var(--pxa-color-brand-700);
+  font-weight: 800;
+}
+
+.pxa-company-contact-note ul {
+  display: grid;
+  gap: var(--pxa-space-2);
+  padding-left: var(--pxa-space-5);
+}
+
+.pxa-company-legal-notice strong {
   color: var(--pxa-color-muted);
 }
 
@@ -271,12 +304,13 @@
   margin: 0;
 }
 
-.pxa-company-contact {
-  text-align: center;
+.pxa-company-contact,
+.pxa-company-legal {
+  max-width: 920px;
 }
 
 .pxa-company-contact .pxa-lede {
-  margin-inline: auto;
+  margin-inline: 0;
 }
 
 .pxa-company-product-detail {
@@ -349,6 +383,8 @@
   .pxa-company-pricing-grid,
   .pxa-company-story-grid,
   .pxa-company-support-grid,
+  .pxa-company-contact-grid,
+  .pxa-company-legal-grid,
   .pxa-company-product-content {
     grid-template-columns: 1fr;
   }
