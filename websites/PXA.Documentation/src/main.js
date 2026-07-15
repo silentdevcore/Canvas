@@ -90,6 +90,8 @@ const editorDocs = [
     concepts: ['Text elements', 'Images', 'Tables', 'Charts', 'Shapes and lines', 'Forms', 'Absolute positioning'],
     tasks: ['Add and position elements', 'Style text and tables', 'Map charts from report designers', 'Use lines and shapes for report fidelity'],
     related: [
+      { label: 'Element Reference', href: '#element-reference' },
+      { label: 'Text element', href: '#text-block-element' },
       { label: 'Chart report demo', href: `${siteLinks.demo}#demo/chart-report` },
       { label: 'Designer product page', href: companyPage('products/designer') },
       { label: 'Report migration guide', href: '#report-designer-migration' },
@@ -1675,6 +1677,19 @@ function renderNavList(items) {
   return items.map((item) => `<a href="#${slug(itemTitle(item))}">${itemTitle(item)}</a>`).join('');
 }
 
+function renderElementNav(items) {
+  const categories = [...new Set(items.map((item) => item.category))];
+  return categories
+    .map((category) => `
+      <span class="pxa-doc-nav__group">${category}</span>
+      ${items
+        .filter((item) => item.category === category)
+        .map((item) => `<a class="pxa-doc-nav__subitem" href="#${slug(item.title)}-element">${item.title}</a>`)
+        .join('')}
+    `)
+    .join('');
+}
+
 function statusClass(status) {
   if (status === 'Ready') return 'pxa-status--ready';
   if (status === 'Preview') return 'pxa-status--preview';
@@ -2042,6 +2057,8 @@ document.querySelector('#app').innerHTML = `
           <nav class="pxa-card pxa-doc-nav" aria-label="Documentation sections">
             <strong>Editor</strong>
             ${renderNavList(editorSections)}
+            <a class="pxa-doc-nav__featured" href="#element-reference">Element Reference</a>
+            ${renderElementNav(elementReferenceDocs)}
             <strong>Code SDK</strong>
             ${renderNavList(codeSections)}
             <strong>Migration</strong>

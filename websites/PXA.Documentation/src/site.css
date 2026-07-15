@@ -36,6 +36,25 @@
   background: var(--pxa-color-brand-50);
 }
 
+.pxa-doc-nav__featured {
+  color: var(--pxa-color-brand-700) !important;
+  background: var(--pxa-color-brand-50);
+}
+
+.pxa-doc-nav__group {
+  padding: var(--pxa-space-2) var(--pxa-space-2) 0;
+  color: var(--pxa-color-muted);
+  font-size: var(--pxa-text-xs);
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.pxa-doc-nav a.pxa-doc-nav__subitem {
+  padding-left: var(--pxa-space-4);
+  font-size: var(--pxa-text-xs);
+  font-weight: 700;
+}
+
 .pxa-doc-hero-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
