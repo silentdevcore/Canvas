@@ -1466,6 +1466,7 @@ const elementReferenceDocs = [
 const codeSdkExamples = [
   {
     category: 'PDF SDK',
+    subcategory: 'PDF Page Content',
     title: 'Text',
     status: 'Ready',
     description: 'Draw headings, labels, paragraphs, totals, and bound text values from C#.',
@@ -1492,6 +1493,7 @@ page.Text("Invoice #1001")
   },
   {
     category: 'PDF SDK',
+    subcategory: 'PDF Page Content',
     title: 'Image',
     status: 'Ready',
     description: 'Place logos, stamps, imported image assets, and document visuals.',
@@ -1518,6 +1520,7 @@ page.Image("https://example.com/logo.png")
   },
   {
     category: 'PDF SDK',
+    subcategory: 'PDF Page Content',
     title: 'Table',
     status: 'Ready',
     description: 'Create invoice lines, report detail rows, totals, and data-driven tabular output.',
@@ -1543,6 +1546,7 @@ table.Row("Coffee", "2", "19.80");`,
   },
   {
     category: 'PDF SDK',
+    subcategory: 'PDF Page Content',
     title: 'Chart',
     status: 'Preview',
     description: 'Render simple bar, line, or pie charts from labels and datasets.',
@@ -1565,6 +1569,7 @@ table.Row("Coffee", "2", "19.80");`,
   },
   {
     category: 'PDF SDK',
+    subcategory: 'PDF Page Content',
     title: 'Barcode and QR',
     status: 'Ready',
     description: 'Generate machine-readable codes for invoices, tickets, labels, and verification workflows.',
@@ -1589,6 +1594,7 @@ page.QrCode("https://pay.example/invoice/1001")
   },
   {
     category: 'PDF SDK',
+    subcategory: 'PDF Page Content',
     title: 'Form Field',
     status: 'Preview',
     description: 'Add fillable fields, required input, placeholders, and form metadata.',
@@ -1614,6 +1620,7 @@ page.QrCode("https://pay.example/invoice/1001")
   },
   {
     category: 'PDF SDK',
+    subcategory: 'PDF Page Content',
     title: 'Line and Shape',
     status: 'Ready',
     description: 'Draw dividers, boxes, backgrounds, status markers, and report frames.',
@@ -1640,6 +1647,7 @@ page.Rectangle()
   },
   {
     category: 'PDF SDK',
+    subcategory: 'PDF Styling',
     title: 'Watermark',
     status: 'Preview',
     description: 'Apply document-level watermark behavior before generated PDF output is saved or streamed.',
@@ -1658,6 +1666,100 @@ document.Watermark("DRAFT")
   "style": { "opacity": 0.15, "rotation": -45 }
 }`,
     model: 'Document -> WatermarkElement -> PageScope -> Style',
+  },
+  {
+    category: 'PDF SDK',
+    subcategory: 'PDF Generator',
+    title: 'Document Setup and Save',
+    status: 'Ready',
+    description: 'Create a PDF document, configure page size, metadata, viewer preferences, encryption, and save or stream the result.',
+    preview: { kind: 'text', value: 'A4 invoice.pdf' },
+    csharp: `var document = PXA.Generator.Pdf.CreateDocument();
+document.Info.Title = "Invoice #1001";
+document.Info.Author = "PXA";
+
+var page = document.AddPage(PdfPagePreset.A4);
+page.DrawTextFromTop("Invoice #1001", 40, 40, 18);
+
+var bytes = document.ToBytes(new PdfSaveOptions
+{
+    Encryption = new PdfEncryptionOptions
+    {
+        UserPassword = "view",
+        OwnerPassword = "owner"
+    }
+});`,
+    json: `{
+  "type": "pdfDocument",
+  "pagePreset": "A4",
+  "metadata": { "title": "Invoice #1001", "author": "PXA" },
+  "save": { "target": "bytes", "encryption": true }
+}`,
+    model: 'PdfDocument -> Info -> Page -> PdfSaveOptions -> Bytes',
+  },
+  {
+    category: 'PDF SDK',
+    subcategory: 'PDF Styling',
+    title: 'Colors Fonts and Strokes',
+    status: 'Ready',
+    description: 'Use standard fonts, RGB/CMYK/gray colors, opacity, line joins, caps, stroke width, and text alignment.',
+    preview: { kind: 'shape', value: 'Styled text + frame' },
+    csharp: `var page = document.AddPage();
+
+page.DrawTextFromTop(
+    "Styled headline",
+    40,
+    56,
+    20,
+    new PdfDrawTextOptions
+    {
+        FillColor = PdfColor.FromRgb(17, 24, 39),
+        Font = PdfStandardFonts.FromStyle(PdfFontFamily.Helvetica, bold: true)
+    });
+
+page.DrawRectangle(
+    40,
+    96,
+    240,
+    80,
+    fill: true,
+    strokeColor: new PdfCmykColor(1, 0.4, 0, 0),
+    fillColor: new PdfGrayColor(0.95),
+    strokeStyle: new PdfStrokeStyle
+    {
+        LineWidth = 1.5,
+        LineJoin = PdfLineJoinStyle.Round
+    });`,
+    json: `{
+  "type": "style",
+  "text": { "font": "Helvetica-Bold", "color": "#111827", "fontSize": 20 },
+  "shape": { "stroke": "cmyk(1,0.4,0,0)", "fill": "gray(0.95)", "width": 1.5 }
+}`,
+    model: 'PdfPage -> Text/Shape -> PdfDrawTextOptions/PdfStrokeStyle -> Color/Font',
+  },
+  {
+    category: 'PDF SDK',
+    subcategory: 'PDF Analysis / Diagnostics',
+    title: 'Analysis and Diagnostics',
+    status: 'Ready',
+    description: 'Inspect generated documents for pages with text, images, links, shapes, rotations, watermarks, and generation diagnostics.',
+    preview: { kind: 'table', rows: [['Query', 'Result'], ['Pages with text', '1, 2'], ['Pages with links', '2']] },
+    csharp: `var document = PXA.Generator.Pdf.CreateDocument();
+var page = document.AddPage();
+page.DrawTextFromTop("Diagnostics sample", 40, 40, 12);
+
+IReadOnlyList<int> textPages = document.GetPagesWithText();
+IReadOnlyList<int> linkPages = document.GetPagesWithLinks();
+IReadOnlyList<int> shapePages = document.GetPagesWithShapes();
+
+_ = document.ToBytes(new PdfSaveOptions { CollectDiagnostics = true });
+PdfGenerationDiagnostics? diagnostics = document.LastDiagnostics;`,
+    json: `{
+  "type": "diagnostics",
+  "queries": ["GetPagesWithText", "GetPagesWithLinks", "GetPagesWithShapes"],
+  "result": { "textPages": [1], "linkPages": [], "shapePages": [] }
+}`,
+    model: 'PdfDocument -> PageCoverageQueries -> PdfGenerationDiagnostics',
   },
   {
     category: 'Spreadsheet SDK',
@@ -1726,10 +1828,33 @@ var xlsx = workbook.ToXlsx(recalculate: true);`,
   },
 ];
 
+const pdfSdkSubgroups = [
+  {
+    title: 'PDF Generator',
+    description: 'Document creation, page setup, metadata, viewer preferences, encryption, save options, streaming, bookmarks, sections, named destinations, table of contents, headers, footers, page numbers, watermarks, and flow layout.',
+  },
+  {
+    title: 'PDF Page Content',
+    description: 'Page-level content: text, paragraphs, lists, tables, images, charts, barcodes, QR codes, form fields, annotations, links, lines, rectangles, circles, polygons, and Bezier curves.',
+  },
+  {
+    title: 'PDF Styling',
+    description: 'Fonts, embedded fonts, RGB/CMYK/gray colors, opacity, stroke styles, line caps, line joins, alignment, vertical alignment, text decorations, RTL helpers, and layout styling.',
+  },
+  {
+    title: 'PDF Analysis / Diagnostics',
+    description: 'Coverage and diagnostics queries for pages with text, images, links, shapes, rotations, transparency, boundaries, bookmarks, named destinations, watermarks, headers, footers, and generation diagnostics.',
+  },
+].map((subgroup) => ({
+  ...subgroup,
+  examples: codeSdkExamples.filter((item) => item.category === 'PDF SDK' && item.subcategory === subgroup.title),
+}));
+
 const codeSdkGroups = [
   {
     title: 'PDF SDK',
     description: 'PDF generation comes first: page setup, content elements, forms, annotations, document navigation, watermarks, and save options.',
+    subgroups: pdfSdkSubgroups,
     examples: codeSdkExamples.filter((item) => item.category === 'PDF SDK'),
   },
   {
@@ -2091,10 +2216,22 @@ function renderCodeSdkNav(groups, exportItems) {
       .map((group) => `
         <details class="pxa-doc-nav__section" open>
           <summary>${group.title}</summary>
-          <a class="pxa-doc-nav__featured" href="#${slug(group.title)}">Overview</a>
-          ${group.examples
-            .map((item) => `<a class="pxa-doc-nav__subitem" href="#${slug(item.title)}">${item.title}</a>`)
-            .join('')}
+          <a class="pxa-doc-nav__featured" href="#${slug(group.title)}">${group.title} Overview</a>
+          ${group.subgroups
+            ? group.subgroups
+                .map((subgroup) => `
+                  <details class="pxa-doc-nav__section pxa-doc-nav__section--nested">
+                    <summary>${subgroup.title}</summary>
+                    <a class="pxa-doc-nav__featured pxa-doc-nav__subitem" href="#${slug(subgroup.title)}">${subgroup.title}</a>
+                    ${subgroup.examples
+                      .map((item) => `<a class="pxa-doc-nav__subitem" href="#${slug(item.title)}">${item.title}</a>`)
+                      .join('')}
+                  </details>
+                `)
+                .join('')
+            : group.examples
+                .map((item) => `<a class="pxa-doc-nav__subitem" href="#${slug(item.title)}">${item.title}</a>`)
+                .join('')}
         </details>
       `)
       .join('')}
@@ -2226,7 +2363,20 @@ function renderCodeSdkGroups(groups) {
             <h3>${group.title} examples</h3>
             <p>${group.description}</p>
           </div>
-          ${renderCodeSdkExamples(group.examples)}
+          ${group.subgroups
+            ? group.subgroups
+                .map((subgroup) => `
+                  <section class="pxa-doc-sdk-subgroup" id="${slug(subgroup.title)}">
+                    <div class="pxa-doc-sdk-subgroup__header">
+                      <p class="pxa-kicker">${group.title}</p>
+                      <h4>${subgroup.title}</h4>
+                      <p>${subgroup.description}</p>
+                    </div>
+                    ${renderCodeSdkExamples(subgroup.examples)}
+                  </section>
+                `)
+                .join('')
+            : renderCodeSdkExamples(group.examples)}
         </section>
       `,
     )
@@ -3091,10 +3241,10 @@ function initDocumentationScrollSpy() {
   const getFocusContainer = (id) => {
     const target = document.getElementById(id);
     if (!target) return null;
-    return target.closest('.pxa-doc-element-card, .pxa-doc-detail, .pxa-doc-sdk-group, .pxa-doc-card, .pxa-doc-section');
+    return target.closest('.pxa-doc-element-card, .pxa-doc-detail, .pxa-doc-sdk-subgroup, .pxa-doc-sdk-group, .pxa-doc-card, .pxa-doc-section');
   };
 
-  const focusContainers = [...document.querySelectorAll('.pxa-doc-detail, .pxa-doc-sdk-group, .pxa-doc-card, .pxa-doc-element-card')];
+  const focusContainers = [...document.querySelectorAll('.pxa-doc-detail, .pxa-doc-sdk-subgroup, .pxa-doc-sdk-group, .pxa-doc-card, .pxa-doc-element-card')];
 
   const applySidebarFocus = (id, enabled) => {
     const selected = enabled ? getFocusContainer(id) : null;
@@ -3109,7 +3259,8 @@ function initDocumentationScrollSpy() {
     focusContainers.forEach((container) => {
       const isFocused = container === selected;
       const isAncestorOfSelected = Boolean(selected && container.contains(selected));
-      const isDescendantOfSelected = Boolean(selected && selected.contains(container) && !selected.classList.contains('pxa-doc-sdk-group'));
+      const isSdkOverview = selected?.classList.contains('pxa-doc-sdk-group') || selected?.classList.contains('pxa-doc-sdk-subgroup');
+      const isDescendantOfSelected = Boolean(selected && selected.contains(container) && !isSdkOverview);
       const isHidden = Boolean(selected && !isFocused && !isAncestorOfSelected && !isDescendantOfSelected);
       container.classList.toggle('is-focused', isFocused);
       container.classList.toggle('is-hidden-by-filter', isHidden);
