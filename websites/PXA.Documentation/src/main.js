@@ -1464,18 +1464,15 @@ const elementReferenceDocs = [
 ];
 
 const codeSections = [
-  { title: 'Text', status: 'Ready' },
-  { title: 'Image', status: 'Ready' },
-  { title: 'Table', status: 'Ready' },
-  { title: 'Chart', status: 'Preview' },
-  { title: 'Barcode and QR', status: 'Ready' },
-  { title: 'Form Field', status: 'Preview' },
-  { title: 'Line and Shape', status: 'Ready' },
-  { title: 'Watermark and Export', status: 'Preview' },
+  { title: 'PDF SDK', status: 'Ready' },
+  { title: 'Spreadsheet SDK', status: 'Ready' },
+  { title: 'Word / Export', status: 'Ready' },
+  { title: 'Converter / Exporter', status: 'Ready' },
 ];
 
 const codeSdkExamples = [
   {
+    category: 'PDF SDK',
     title: 'Text',
     status: 'Ready',
     description: 'Draw headings, labels, paragraphs, totals, and bound text values from C#.',
@@ -1501,6 +1498,7 @@ page.Text("Invoice #1001")
     model: 'Document -> Page -> TextElement -> TextStyle',
   },
   {
+    category: 'PDF SDK',
     title: 'Image',
     status: 'Ready',
     description: 'Place logos, stamps, imported image assets, and document visuals.',
@@ -1526,6 +1524,7 @@ page.Image("https://example.com/logo.png")
     model: 'Document -> Page -> ImageElement -> ImageFit',
   },
   {
+    category: 'PDF SDK',
     title: 'Table',
     status: 'Ready',
     description: 'Create invoice lines, report detail rows, totals, and data-driven tabular output.',
@@ -1550,6 +1549,7 @@ table.Row("Coffee", "2", "19.80");`,
     model: 'Document -> Page -> TableElement -> Rows -> Cells',
   },
   {
+    category: 'PDF SDK',
     title: 'Chart',
     status: 'Preview',
     description: 'Render simple bar, line, or pie charts from labels and datasets.',
@@ -1571,6 +1571,7 @@ table.Row("Coffee", "2", "19.80");`,
     model: 'Document -> Page -> ChartElement -> ChartData -> Dataset',
   },
   {
+    category: 'PDF SDK',
     title: 'Barcode and QR',
     status: 'Ready',
     description: 'Generate machine-readable codes for invoices, tickets, labels, and verification workflows.',
@@ -1594,6 +1595,7 @@ page.QrCode("https://pay.example/invoice/1001")
     model: 'Document -> Page -> BarcodeElement / QrCodeElement',
   },
   {
+    category: 'PDF SDK',
     title: 'Form Field',
     status: 'Preview',
     description: 'Add fillable fields, required input, placeholders, and form metadata.',
@@ -1618,6 +1620,7 @@ page.QrCode("https://pay.example/invoice/1001")
     model: 'Document -> Page -> FormFieldElement -> Validation',
   },
   {
+    category: 'PDF SDK',
     title: 'Line and Shape',
     status: 'Ready',
     description: 'Draw dividers, boxes, backgrounds, status markers, and report frames.',
@@ -1643,18 +1646,17 @@ page.Rectangle()
     model: 'Document -> Page -> LineElement / ShapeElement -> StrokeStyle',
   },
   {
-    title: 'Watermark and Export',
+    category: 'PDF SDK',
+    title: 'Watermark',
     status: 'Preview',
-    description: 'Apply document-level watermark behavior and export generated output.',
+    description: 'Apply document-level watermark behavior before generated PDF output is saved or streamed.',
     preview: { kind: 'watermark', value: 'DRAFT' },
     csharp: `var document = PxaDocument.Create();
 
 document.Watermark("DRAFT")
     .AllPages()
     .Opacity(0.15)
-    .Rotate(-45);
-
-await document.ExportPdfAsync("invoice.pdf");`,
+    .Rotate(-45);`,
     json: `{
   "type": "watermark",
   "content": "DRAFT",
@@ -1662,7 +1664,100 @@ await document.ExportPdfAsync("invoice.pdf");`,
   "pageScope": "all",
   "style": { "opacity": 0.15, "rotation": -45 }
 }`,
-    model: 'Document -> WatermarkElement -> ExportOptions -> PdfOutput',
+    model: 'Document -> WatermarkElement -> PageScope -> Style',
+  },
+  {
+    category: 'Spreadsheet SDK',
+    title: 'Workbook and Cells',
+    status: 'Ready',
+    description: 'Create workbooks, sheets, cells, values, styles, hyperlinks, comments, and number formats from C#.',
+    preview: { kind: 'spreadsheet', value: 'Invoice workbook', rows: [['A1', 'Invoice #1001'], ['B2', '19.80']] },
+    csharp: `var workbook = PXA.Generator.Spreadsheet.CreateWorkbook("Invoice workbook");
+var sheet = workbook.AddSheet("Invoice");
+
+sheet.Cell("A1")
+    .Value("Invoice #1001")
+    .Style(style => style.Bold().FontSize(16));
+
+sheet.Cell("B2")
+    .Value(19.80)
+    .NumberFormat("#,##0.00");`,
+    json: `{
+  "type": "spreadsheet",
+  "name": "Invoice workbook",
+  "sheets": [
+    {
+      "name": "Invoice",
+      "cells": [
+        { "address": "A1", "value": "Invoice #1001", "style": { "bold": true, "fontSize": 16 } },
+        { "address": "B2", "value": 19.8, "numberFormat": "#,##0.00" }
+      ]
+    }
+  ]
+}`,
+    model: 'Workbook -> Worksheet -> Cell -> Value -> Style',
+  },
+  {
+    category: 'Spreadsheet SDK',
+    title: 'Formula and Layout',
+    status: 'Ready',
+    description: 'Use formulas, merged ranges, frozen panes, column widths, and XLSX export from C#.',
+    preview: { kind: 'spreadsheet', value: 'Summary sheet', rows: [['A1:C1', 'Merged title'], ['C4', '=SUM(C2:C3)']] },
+    csharp: `var workbook = PXA.Generator.Spreadsheet.CreateWorkbook("Monthly summary");
+var sheet = workbook.AddSheet("Summary");
+
+sheet.Range("A1:C1").Merge();
+sheet.Cell("A1").Value("Monthly summary");
+sheet.Cell("C4").Formula("SUM(C2:C3)");
+sheet.Column(1).Width(24);
+sheet.Freeze(1, 0);
+
+var xlsx = workbook.ToXlsx(recalculate: true);`,
+    json: `{
+  "type": "spreadsheet",
+  "name": "Monthly summary",
+  "sheets": [
+    {
+      "name": "Summary",
+      "merges": ["A1:C1"],
+      "frozenRows": 1,
+      "columns": [{ "index": 1, "width": 24 }],
+      "cells": [
+        { "address": "A1", "value": "Monthly summary" },
+        { "address": "C4", "formula": "SUM(C2:C3)" }
+      ]
+    }
+  ]
+}`,
+    model: 'Workbook -> Worksheet -> Range/Column/Cell -> XlsxExport',
+  },
+];
+
+const codeSdkGroups = [
+  {
+    title: 'PDF SDK',
+    description: 'PDF generation comes first: page setup, content elements, forms, annotations, document navigation, watermarks, and save options.',
+    examples: codeSdkExamples.filter((item) => item.category === 'PDF SDK'),
+  },
+  {
+    title: 'Spreadsheet SDK',
+    description: 'Spreadsheet examples come after PDF: workbook creation, cells, formulas, ranges, formatting, validation, calculation, import, and XLSX export.',
+    examples: codeSdkExamples.filter((item) => item.category === 'Spreadsheet SDK'),
+  },
+];
+
+const exportSdkDocs = [
+  {
+    title: 'Word / Export',
+    status: 'Ready',
+    text: 'Document export covers DOCX generation, rich text, comments, footnotes, custom properties, document protection, and digital signing.',
+    points: ['PXA.Generator.Word.Export(design)', 'WordDocumentExporter', 'DigitalSigningService', 'DocumentProtectionService'],
+  },
+  {
+    title: 'Converter / Exporter',
+    status: 'Ready',
+    text: 'Converter/exporter documentation belongs beside export workflows and explains DesignExportDto output into PDF, DOCX, HTML, Markdown, XML, CSV, SVG, Image, TIFF, ODT, and Excel.',
+    points: ['DocumentExporter', 'HtmlDocumentExporter', 'MarkdownDocumentExporter', 'SvgDocumentExporter', 'ImageDocumentExporter', 'ExcelDocumentExporter'],
   },
 ];
 
@@ -2059,6 +2154,7 @@ function renderCodePreview(preview) {
     field: `<label class="pxa-sdk-preview-field"><span>${safeValue}</span><input value="${escapeHtml(preview.placeholder ?? 'Enter name')}" readonly></label>`,
     shape: `<div class="pxa-sdk-preview-shape"><span></span><strong>${safeValue}</strong></div>`,
     watermark: `<div class="pxa-sdk-preview-watermark">${safeValue}</div>`,
+    spreadsheet: `<div class="pxa-sdk-preview-table pxa-sdk-preview-spreadsheet">${(preview.rows ?? [['A1', safeValue]]).flat().map((cell) => `<span>${escapeHtml(cell)}</span>`).join('')}</div>`,
   };
 
   return `
@@ -2070,8 +2166,8 @@ function renderCodePreview(preview) {
 
 function renderCodeSdkExamples(items) {
   return items
-    .map((item, index) => `
-      <section class="pxa-card pxa-doc-detail pxa-code-sdk-example" id="${slug(item.title)}" data-example-index="${index}">
+    .map((item) => `
+      <section class="pxa-card pxa-doc-detail pxa-code-sdk-example" id="${slug(item.title)}" data-example-index="${codeSdkExamples.indexOf(item)}">
         <div class="pxa-doc-detail__header">
           <span class="pxa-status ${statusClass(item.status)}">${item.status}</span>
           <h3>${item.title}</h3>
@@ -2107,6 +2203,42 @@ function renderCodeSdkExamples(items) {
         </div>
       </section>
     `)
+    .join('');
+}
+
+function renderCodeSdkGroups(groups) {
+  return groups
+    .map(
+      (group) => `
+        <section class="pxa-doc-sdk-group" id="${slug(group.title)}">
+          <div class="pxa-doc-sdk-group__header">
+            <p class="pxa-kicker">${group.title}</p>
+            <h3>${group.title} examples</h3>
+            <p>${group.description}</p>
+          </div>
+          ${renderCodeSdkExamples(group.examples)}
+        </section>
+      `,
+    )
+    .join('');
+}
+
+function renderExportSdkDocs(items) {
+  return items
+    .map(
+      (item) => `
+        <section class="pxa-card pxa-doc-detail" id="${slug(item.title)}">
+          <div class="pxa-doc-detail__header">
+            <span class="pxa-status ${statusClass(item.status)}">${item.status}</span>
+            <h3>${item.title}</h3>
+            <p>${item.text}</p>
+          </div>
+          <div class="pxa-doc-feature-list">
+            ${item.points.map((point) => `<span>${point}</span>`).join('')}
+          </div>
+        </section>
+      `,
+    )
     .join('');
 }
 
@@ -2593,10 +2725,11 @@ document.querySelector('#app').innerHTML = `
 
           <section class="pxa-doc-section" id="code-path">
             <p class="pxa-kicker">Code documentation</p>
-            <h2 class="pxa-heading">SDK examples with code, model, JSON, and preview</h2>
+            <h2 class="pxa-heading">SDK examples ordered by product area</h2>
             ${renderTrackGuide(trackGuides.code)}
             <div class="pxa-doc-detail-stack">
-              ${renderCodeSdkExamples(codeSdkExamples)}
+              ${renderCodeSdkGroups(codeSdkGroups)}
+              ${renderExportSdkDocs(exportSdkDocs)}
             </div>
           </section>
 
@@ -2830,13 +2963,47 @@ function parseCodeExample(example, code) {
     } else {
       result.warning = 'Could not find .Fill("...") or .Stroke("...").';
     }
-  } else if (example.title === 'Watermark and Export') {
+  } else if (example.title === 'Watermark') {
     const value = firstString(/\.Watermark\("([^"]+)"\)/);
     if (value) {
       result.preview.value = value;
       result.json.content = value;
     } else {
       result.warning = 'Could not find .Watermark("...").';
+    }
+  } else if (example.title === 'Workbook and Cells') {
+    const workbookName = firstString(/CreateWorkbook\("([^"]+)"\)/);
+    const sheetName = firstString(/AddSheet\("([^"]+)"\)/);
+    const firstValue = firstString(/\.Value\("([^"]+)"\)/);
+    if (workbookName || sheetName || firstValue) {
+      if (workbookName) {
+        result.preview.value = workbookName;
+        result.json.name = workbookName;
+      }
+      if (sheetName) result.json.sheets[0].name = sheetName;
+      if (firstValue) {
+        result.preview.rows = [['A1', firstValue], ['B2', '19.80']];
+        result.json.sheets[0].cells[0].value = firstValue;
+      }
+    } else {
+      result.warning = 'Could not find CreateWorkbook, AddSheet, or Value calls.';
+    }
+  } else if (example.title === 'Formula and Layout') {
+    const workbookName = firstString(/CreateWorkbook\("([^"]+)"\)/);
+    const sheetName = firstString(/AddSheet\("([^"]+)"\)/);
+    const formula = firstString(/\.Formula\("([^"]+)"\)/);
+    if (workbookName || sheetName || formula) {
+      if (workbookName) {
+        result.preview.value = workbookName;
+        result.json.name = workbookName;
+      }
+      if (sheetName) result.json.sheets[0].name = sheetName;
+      if (formula) {
+        result.preview.rows = [['A1:C1', 'Merged title'], ['C4', `=${formula}`]];
+        result.json.sheets[0].cells[1].formula = formula;
+      }
+    } else {
+      result.warning = 'Could not find CreateWorkbook, AddSheet, or Formula calls.';
     }
   }
 

@@ -26,7 +26,9 @@
   - [x] Importer
   - [x] Export
 - [x] Code-Dokumentation strukturieren:
-  - [x] SDK-Beispiele statt Solution-Struktur: Text, Image, Table, Chart, Barcode/QR, Form Field, Line/Shape, Watermark/Export.
+  - [x] Code SDK nach Produktbereich strukturieren: zuerst PDF, danach Spreadsheet.
+  - [x] Word / Export und Converter / Exporter als eigene Export-Dokumentationsbereiche fuehren.
+  - [x] SDK-Beispiele statt Solution-Struktur: Text, Image, Table, Chart, Barcode/QR, Form Field, Line/Shape, Watermark, Spreadsheet Workbook/Formulas.
   - [x] Pro SDK-Beispiel interaktiven Playground mit Sprach-Tabs, editierbarem C# Code, Run Button, JSON, Model und Preview anzeigen.
   - [x] Java/Python-Sprachen als vorbereitete Tabs mit Coming-soon-Zustand anzeigen.
 - [x] Migration Guides strukturieren:
