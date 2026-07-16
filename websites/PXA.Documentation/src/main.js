@@ -1927,6 +1927,7 @@ function renderElementReference(items) {
           This is the practical designer reference: how to add elements, which attributes matter,
           and what the generated design JSON looks like.
         </p>
+        <a class="pxa-doc-show-all-elements" href="#element-reference">Show all elements</a>
       </div>
 
       <div class="pxa-doc-element-basics">
@@ -2214,19 +2215,42 @@ initDocumentationScrollSpy();
 
 function initDocumentationScrollSpy() {
   const links = [...document.querySelectorAll('.pxa-doc-nav a[href^="#"], .pxa-doc-toc a[href^="#"]')];
+  const elementReference = document.querySelector('.pxa-doc-element-reference');
+  const elementCards = [...document.querySelectorAll('.pxa-doc-element-card')];
   const targets = links
     .map((link) => document.querySelector(link.getAttribute('href')))
     .filter(Boolean);
 
   if (!links.length || !targets.length) return;
 
+  const isElementCardId = (id) => elementCards.some((card) => card.id === id);
+
+  const applyElementFocus = (id) => {
+    const shouldFocus = isElementCardId(id);
+    elementReference?.classList.toggle('is-filtered', shouldFocus);
+    elementCards.forEach((card) => {
+      const isFocused = shouldFocus && card.id === id;
+      card.classList.toggle('is-focused', isFocused);
+      card.classList.toggle('is-hidden-by-filter', shouldFocus && !isFocused);
+    });
+  };
+
+  const closeSiblingElementGroups = (activeLink) => {
+    const activeGroup = activeLink?.closest('.pxa-doc-nav__section--nested');
+    document.querySelectorAll('.pxa-doc-nav__section--nested[open]').forEach((section) => {
+      if (section !== activeGroup) section.removeAttribute('open');
+    });
+  };
+
   const setActive = (id) => {
+    applyElementFocus(id);
     links.forEach((link) => {
       const isActive = link.getAttribute('href') === `#${id}`;
       link.classList.toggle('is-active', isActive);
       if (isActive) {
         link.closest('details')?.setAttribute('open', '');
         link.closest('details')?.parentElement?.closest('details')?.setAttribute('open', '');
+        if (isElementCardId(id)) closeSiblingElementGroups(link);
       }
     });
   };
@@ -2240,6 +2264,11 @@ function initDocumentationScrollSpy() {
 
   const initialId = window.location.hash.slice(1) || 'overview';
   if (document.getElementById(initialId)) setActive(initialId);
+
+  window.addEventListener('hashchange', () => {
+    const id = window.location.hash.slice(1) || 'overview';
+    if (document.getElementById(id)) setActive(id);
+  });
 
   if (!('IntersectionObserver' in window)) return;
 

@@ -211,6 +211,11 @@
   color: var(--pxa-color-muted);
 }
 
+.pxa-doc-show-all-elements {
+  width: fit-content;
+  font-weight: 850;
+}
+
 .pxa-doc-detail__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -274,6 +279,17 @@
 .pxa-doc-element-card {
   padding-top: var(--pxa-space-6);
   border-top: 1px solid var(--pxa-color-border);
+}
+
+.pxa-doc-element-card.is-hidden-by-filter {
+  display: none;
+}
+
+.pxa-doc-element-card.is-focused {
+  padding: var(--pxa-space-5);
+  border: 1px solid var(--pxa-color-brand-600);
+  border-radius: var(--pxa-radius-lg);
+  box-shadow: 0 0 0 4px var(--pxa-color-brand-50);
 }
 
 .pxa-doc-element-card__header {
