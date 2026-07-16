@@ -1951,6 +1951,77 @@ PdfGenerationDiagnostics? diagnostics = document.LastDiagnostics;`,
   {
     category: 'Template SDK',
     subcategory: 'Data Binding and Localization',
+    title: 'RTL and LTR Text Direction',
+    status: 'Ready',
+    description: 'Create left-to-right and right-to-left text elements from C# with explicit language tags, text direction, and language-scoped positioning.',
+    preview: { kind: 'table', rows: [['Direction', 'Example'], ['LTR', 'Invoice #1001'], ['RTL', 'فاتورة #1001']] },
+    csharp: `var design = new DesignExportDto
+{
+    Name = "Direction-aware invoice",
+    PageSettings = new PageSettingsDto
+    {
+        SystemLanguage = "en",
+        ActiveLanguages = ["en", "ar"]
+    },
+    Pages =
+    [
+        new PageDto
+        {
+            Id = "page-1",
+            Elements =
+            [
+                new ElementDto
+                {
+                    Id = "headline-en",
+                    Type = "text",
+                    Content = "Invoice #1001",
+                    Language = "en",
+                    TextDirection = "ltr",
+                    ElementLanguage = "en",
+                    X = 40,
+                    Y = 40,
+                    Width = 240,
+                    Height = 32
+                },
+                new ElementDto
+                {
+                    Id = "headline-ar",
+                    Type = "text",
+                    Content = "فاتورة #1001",
+                    Language = "ar",
+                    TextDirection = "rtl",
+                    ElementLanguage = "ar",
+                    X = 315,
+                    Y = 40,
+                    Width = 240,
+                    Height = 32,
+                    LangOverrides = new Dictionary<string, LangOverrideDto>
+                    {
+                        ["ar"] = new() { X = 315, Y = 40, Rotation = 0 }
+                    }
+                }
+            ]
+        }
+    ]
+};`,
+    json: `{
+  "ltr": {
+    "language": "en",
+    "textDirection": "ltr",
+    "elementLanguage": "en"
+  },
+  "rtl": {
+    "language": "ar",
+    "textDirection": "rtl",
+    "elementLanguage": "ar",
+    "langOverrides": { "ar": { "x": 315, "y": 40, "rotation": 0 } }
+  }
+}`,
+    model: 'DesignExportDto -> ElementDto.Language/TextDirection/ElementLanguage/LangOverrides',
+  },
+  {
+    category: 'Template SDK',
+    subcategory: 'Data Binding and Localization',
     title: 'Bound Elements and Repeated Rows',
     status: 'Ready',
     description: 'Create data-bound element definitions from C# with binding paths, expressions, conditional visibility, and repeat metadata.',
