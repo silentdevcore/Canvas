@@ -1881,6 +1881,139 @@ PdfGenerationDiagnostics? diagnostics = document.LastDiagnostics;`,
   {
     category: 'Template SDK',
     subcategory: 'Data Binding and Localization',
+    title: 'Page Settings and Metadata',
+    status: 'Ready',
+    description: 'Configure page size, orientation, units, margins, background, page numbers, metadata, watermark, and custom properties from C#.',
+    preview: { kind: 'table', rows: [['Setting', 'Value'], ['Size', 'A4 portrait'], ['Margins', '36 pt'], ['Metadata', 'Invoice']] },
+    csharp: `var design = new DesignExportDto
+{
+    Name = "Invoice template",
+    PageSettings = new PageSettingsDto
+    {
+        Width = 595,
+        Height = 842,
+        Orientation = "portrait",
+        Unit = "pt",
+        BackgroundColor = "#ffffff",
+        Margins = new MarginsDto
+        {
+            Top = 36,
+            Right = 36,
+            Bottom = 42,
+            Left = 36
+        },
+        PageNumbering = new PageNumberingDto
+        {
+            Format = "current-total",
+            Prefix = "Page ",
+            Placement = "bottom-center",
+            ShowOnFirstPage = true
+        },
+        Metadata = new PdfMetadataDto
+        {
+            Title = "Invoice #1001",
+            Author = "PXA",
+            Subject = "Customer invoice",
+            Keywords = "invoice,pdf,pxa"
+        },
+        GlobalWatermark = new GlobalWatermarkDto
+        {
+            Mode = "text",
+            Content = "DRAFT",
+            PageScope = "all",
+            Rotation = -45,
+            FontSize = 48,
+            Color = "#9ca3af"
+        },
+        CustomProperties =
+        [
+            new CustomDocumentPropertyDto
+            {
+                Name = "Department",
+                Value = "Finance",
+                Type = "text"
+            }
+        ]
+    }
+};`,
+    json: `{
+  "pageSettings": {
+    "width": 595,
+    "height": 842,
+    "orientation": "portrait",
+    "unit": "pt",
+    "margins": { "top": 36, "right": 36, "bottom": 42, "left": 36 },
+    "pageNumbering": { "format": "current-total", "placement": "bottom-center" },
+    "metadata": { "title": "Invoice #1001", "author": "PXA" },
+    "globalWatermark": { "mode": "text", "content": "DRAFT" }
+  }
+}`,
+    model: 'DesignExportDto -> PageSettingsDto -> Margins/PageNumbering/Metadata/Watermark',
+  },
+  {
+    category: 'Template SDK',
+    subcategory: 'Data Binding and Localization',
+    title: 'Document Encryption and Protection',
+    status: 'Ready',
+    description: 'Configure PDF encryption permissions and document protection settings from C# before export.',
+    preview: { kind: 'table', rows: [['Security', 'Value'], ['Encryption', 'AES128'], ['Print', 'allowed'], ['Copy', 'blocked']] },
+    csharp: `var design = new DesignExportDto
+{
+    Name = "Protected invoice",
+    PageSettings = new PageSettingsDto
+    {
+        Encryption = new PdfEncryptionDto
+        {
+            Enabled = true,
+            Algorithm = "Aes128",
+            UserPassword = "view",
+            OwnerPassword = "owner",
+            Permissions = new PdfEncryptionPermissionsDto
+            {
+                Print = true,
+                PrintHighResolution = false,
+                Modify = false,
+                Copy = false,
+                Annotate = false,
+                FillForms = true,
+                ExtractAccessibility = true,
+                Assemble = false
+            }
+        },
+        Protection = new DocumentProtectionDto
+        {
+            Enabled = true,
+            Mode = "readOnly",
+            PasswordHash = "stored-password-hash"
+        }
+    }
+};`,
+    json: `{
+  "pageSettings": {
+    "encryption": {
+      "enabled": true,
+      "algorithm": "Aes128",
+      "userPassword": "view",
+      "ownerPassword": "owner",
+      "permissions": {
+        "print": true,
+        "modify": false,
+        "copy": false,
+        "annotate": false,
+        "fillForms": true
+      }
+    },
+    "protection": {
+      "enabled": true,
+      "mode": "readOnly"
+    }
+  }
+}`,
+    model: 'DesignExportDto -> PageSettingsDto -> PdfEncryptionDto/DocumentProtectionDto',
+  },
+  {
+    category: 'Template SDK',
+    subcategory: 'Data Binding and Localization',
     title: 'Localized Template Properties',
     status: 'Ready',
     description: 'Create a localized design model from C# with active languages, localized placeholders, RTL text, and target-language export settings.',

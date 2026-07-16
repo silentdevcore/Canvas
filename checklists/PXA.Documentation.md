@@ -36,6 +36,7 @@
   - [x] Word / Export und Converter / Exporter mit konkreten C# Beispielen dokumentieren.
   - [x] Localization und Data Binding auch als C# Template-SDK Beispiele dokumentieren.
   - [x] RTL und LTR Text Direction als eigenes C# Template-SDK Beispiel dokumentieren.
+  - [x] Page Settings und Document Encryption/Protection als C# Template-SDK Beispiele dokumentieren.
   - [x] SDK-Beispiele statt Solution-Struktur: PDF Generator, Text, Image, Table, Chart, Barcode/QR, Form Field, Line/Shape, Watermark, Styling, Diagnostics, Spreadsheet Workbook/Formulas/Styles/Import/Operations/Data.
   - [x] Pro SDK-Beispiel interaktiven Playground mit Sprach-Tabs, editierbarem C# Code, Run Button, JSON, Model und Preview anzeigen.
   - [x] Java/Python-Sprachen als vorbereitete Tabs mit Coming-soon-Zustand anzeigen.
