@@ -2371,6 +2371,11 @@ function renderCodeSdkGroups(groups) {
                       <p class="pxa-kicker">${group.title}</p>
                       <h4>${subgroup.title}</h4>
                       <p>${subgroup.description}</p>
+                      <div class="pxa-doc-sdk-subgroup__links" aria-label="${subgroup.title} examples">
+                        ${subgroup.examples
+                          .map((item) => `<a href="#${slug(item.title)}">${item.title}</a>`)
+                          .join('')}
+                      </div>
                     </div>
                     ${renderCodeSdkExamples(subgroup.examples)}
                   </section>
