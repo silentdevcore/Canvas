@@ -1763,6 +1763,7 @@ PdfGenerationDiagnostics? diagnostics = document.LastDiagnostics;`,
   },
   {
     category: 'Spreadsheet SDK',
+    subcategory: 'Workbook and Sheet Authoring',
     title: 'Workbook and Cells',
     status: 'Ready',
     description: 'Create workbooks, sheets, cells, values, styles, hyperlinks, comments, and number formats from C#.',
@@ -1794,6 +1795,53 @@ sheet.Cell("B2")
   },
   {
     category: 'Spreadsheet SDK',
+    subcategory: 'Cells Styles and Columns',
+    title: 'Cell Styling and Columns',
+    status: 'Ready',
+    description: 'Style individual cells and configure worksheet columns with width, hidden state, and outline levels.',
+    preview: { kind: 'spreadsheet', value: 'Styled sheet', rows: [['A1', 'Header'], ['Column B', 'Hidden'], ['Column C', 'Outline 1']] },
+    csharp: `var workbook = PXA.Generator.Spreadsheet.CreateWorkbook("Styled workbook");
+var sheet = workbook.AddSheet("Styled");
+
+sheet.Cell("A1")
+    .Value("Header")
+    .Style(style => style
+        .Bold()
+        .Italic()
+        .Font("Inter")
+        .FontSize(14)
+        .Color("#111827")
+        .Background("#e8f2ff")
+        .Align("center"));
+
+sheet.Cell("A2").Comment("Review this value");
+sheet.Cell("A3").Hyperlink("https://powerdoxautomation.com");
+sheet.Column(2).Width(24).Hidden();
+sheet.Column(3).OutlineLevel(1);`,
+    json: `{
+  "type": "spreadsheetStyle",
+  "cell": {
+    "address": "A1",
+    "style": {
+      "bold": true,
+      "italic": true,
+      "fontFamily": "Inter",
+      "fontSize": 14,
+      "color": "#111827",
+      "backgroundColor": "#e8f2ff",
+      "textAlign": "center"
+    }
+  },
+  "columns": [
+    { "index": 2, "width": 24, "hidden": true },
+    { "index": 3, "outlineLevel": 1 }
+  ]
+}`,
+    model: 'Worksheet -> Cell/Column -> Style/Comment/Hyperlink/Layout',
+  },
+  {
+    category: 'Spreadsheet SDK',
+    subcategory: 'Formulas Layout and Ranges',
     title: 'Formula and Layout',
     status: 'Ready',
     description: 'Use formulas, merged ranges, frozen panes, column widths, and XLSX export from C#.',
@@ -1826,6 +1874,81 @@ var xlsx = workbook.ToXlsx(recalculate: true);`,
 }`,
     model: 'Workbook -> Worksheet -> Range/Column/Cell -> XlsxExport',
   },
+  {
+    category: 'Spreadsheet SDK',
+    subcategory: 'Import Export and File IO',
+    title: 'Import Export and Save',
+    status: 'Ready',
+    description: 'Import XLSX/XLS/CSV content, export workbook bytes, or save as XLSX, XLS, CSV, or TSV by file extension.',
+    preview: { kind: 'spreadsheet', value: 'File IO', rows: [['Format', 'API'], ['XLSX', 'ToXlsx / Save'], ['CSV', 'CsvSheetIo']] },
+    csharp: `var workbook = PXA.Generator.Spreadsheet.CreateWorkbook("Export sample");
+var sheet = workbook.AddSheet("Data");
+sheet.Cell("A1").Value("Customer");
+sheet.Cell("B1").Value("Total");
+
+byte[] xlsx = workbook.ToXlsx(recalculate: true);
+workbook.Save("report.xlsx");
+workbook.Save("report.xls");
+workbook.Save("report.csv");
+workbook.Save("report.tsv");
+
+var importedXlsx = new ExcelWorkbookImporter().Import(stream, "source.xlsx");
+var importedXls = new XlsWorkbookIo().Import(stream, "source.xls");
+var csvSheet = CsvSheetIo.FromCsv(csvText, "CsvData");`,
+    json: `{
+  "type": "spreadsheetFileIo",
+  "export": ["xlsx", "xls", "csv", "tsv"],
+  "import": ["xlsx", "xls", "csv"],
+  "apis": ["ToXlsx", "Save", "ExcelWorkbookImporter", "XlsWorkbookIo", "CsvSheetIo"]
+}`,
+    model: 'PxaWorkbook -> SpreadsheetDto -> Import/Export IO',
+  },
+  {
+    category: 'Spreadsheet SDK',
+    subcategory: 'Operations Validation and Calculation',
+    title: 'Operations Validation and Calculation',
+    status: 'Ready',
+    description: 'Validate workbook structure, calculate formulas, sort ranges, and run find/replace operations.',
+    preview: { kind: 'spreadsheet', value: 'Workbook checks', rows: [['Task', 'API'], ['Validate', 'SpreadsheetValidator'], ['Sort', 'SortRange'], ['Replace', 'FindReplace']] },
+    csharp: `SpreadsheetDto model = workbook.ToWorkbook();
+
+var validation = new SpreadsheetValidator().Validate(model);
+SpreadsheetDto calculated = new SpreadsheetCalculator().Calculate(model);
+
+var operations = new SpreadsheetOperations();
+operations.SortRange(model.Sheets[0], "A2:C20", keyColumnOffset: 2, ascending: false);
+int replacements = operations.FindReplace(model, "Draft", "Final", matchCase: false);`,
+    json: `{
+  "type": "spreadsheetOperations",
+  "validation": "SpreadsheetValidator.Validate",
+  "calculation": "SpreadsheetCalculator.Calculate",
+  "operations": ["SortRange", "FindReplace"]
+}`,
+    model: 'SpreadsheetDto -> Validator/Calculator/Operations -> Updated Workbook',
+  },
+  {
+    category: 'Spreadsheet SDK',
+    subcategory: 'Data and Design Conversion',
+    title: 'Data and Design Conversion',
+    status: 'Ready',
+    description: 'Create sheets from row data, fill workbook placeholders from data, and convert a sheet into editable PXA design output.',
+    preview: { kind: 'spreadsheet', value: 'Data mapping', rows: [['Source', 'Output'], ['Rows', 'SheetDto'], ['Workbook', 'DesignExportDto']] },
+    csharp: `var data = new SpreadsheetData();
+SheetDto sheet = data.FromRows(rows, "Orders");
+
+SpreadsheetDto workbookModel = workbook.ToWorkbook();
+int filledCells = data.Fill(workbookModel, payload);
+
+DesignExportDto design = new SpreadsheetToDesignConverter()
+    .Convert(workbookModel, sheetIndex: 0, gridlines: true);`,
+    json: `{
+  "type": "spreadsheetDataConversion",
+  "fromRows": "SheetDto",
+  "fill": "Dictionary data to workbook cells",
+  "convert": "SpreadsheetDto to DesignExportDto"
+}`,
+    model: 'Rows/Data -> SheetDto/SpreadsheetDto -> DesignExportDto',
+  },
 ];
 
 const pdfSdkSubgroups = [
@@ -1850,6 +1973,36 @@ const pdfSdkSubgroups = [
   examples: codeSdkExamples.filter((item) => item.category === 'PDF SDK' && item.subcategory === subgroup.title),
 }));
 
+const spreadsheetSdkSubgroups = [
+  {
+    title: 'Workbook and Sheet Authoring',
+    description: 'Workbook creation, naming, sheet creation, sheet lookup by index/name, sheet count, defined names, JSON model access, and workbook save/export entry points.',
+  },
+  {
+    title: 'Cells Styles and Columns',
+    description: 'A1 and row/column cell access, values, formulas, number formats, comments, hyperlinks, bold/italic, font, font size, text color, background color, alignment, column width, hidden columns, and outline levels.',
+  },
+  {
+    title: 'Formulas Layout and Ranges',
+    description: 'Formula cells, merged ranges, range helpers, frozen rows/columns, column layout, and recalculated XLSX export.',
+  },
+  {
+    title: 'Import Export and File IO',
+    description: 'XLSX export/import, XLS export/import, CSV/TSV save, CSV parsing, and extension-based workbook saving.',
+  },
+  {
+    title: 'Operations Validation and Calculation',
+    description: 'Workbook validation, formula calculation, range sorting, and workbook-wide find/replace operations.',
+  },
+  {
+    title: 'Data and Design Conversion',
+    description: 'Sheet creation from row data, data fill into workbook cells, and conversion from SpreadsheetDto into editable PXA design output.',
+  },
+].map((subgroup) => ({
+  ...subgroup,
+  examples: codeSdkExamples.filter((item) => item.category === 'Spreadsheet SDK' && item.subcategory === subgroup.title),
+}));
+
 const codeSdkGroups = [
   {
     title: 'PDF SDK',
@@ -1860,6 +2013,7 @@ const codeSdkGroups = [
   {
     title: 'Spreadsheet SDK',
     description: 'Spreadsheet examples come after PDF: workbook creation, cells, formulas, ranges, formatting, validation, calculation, import, and XLSX export.',
+    subgroups: spreadsheetSdkSubgroups,
     examples: codeSdkExamples.filter((item) => item.category === 'Spreadsheet SDK'),
   },
 ];
@@ -3169,6 +3323,21 @@ function parseCodeExample(example, code) {
       }
     } else {
       result.warning = 'Could not find CreateWorkbook, AddSheet, or Formula calls.';
+    }
+  } else if (example.category === 'Spreadsheet SDK') {
+    const workbookName = firstString(/CreateWorkbook\("([^"]+)"\)/);
+    const sheetName = firstString(/AddSheet\("([^"]+)"\)/);
+    const firstValue = firstString(/\.Value\("([^"]+)"\)/);
+    if (workbookName || sheetName || firstValue) {
+      if (workbookName && 'name' in result.json) result.json.name = workbookName;
+      result.preview.value = workbookName ?? sheetName ?? firstValue ?? result.preview.value;
+      result.preview.rows = [
+        ['Workbook', workbookName ?? result.preview.value],
+        ['Sheet', sheetName ?? 'Sheet1'],
+        ['Value', firstValue ?? 'Updated from code'],
+      ];
+    } else {
+      result.warning = 'Could not find a workbook, sheet, or value call.';
     }
   }
 
