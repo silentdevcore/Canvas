@@ -23,6 +23,7 @@
 
 .pxa-doc-nav a,
 .pxa-doc-toc a {
+  display: block;
   padding: var(--pxa-space-2);
   color: var(--pxa-color-text);
   border-radius: var(--pxa-radius-md);
