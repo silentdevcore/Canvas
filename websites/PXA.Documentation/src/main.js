@@ -2076,6 +2076,7 @@ document.querySelector('#app').innerHTML = `
             <strong>Migration</strong>
             ${renderNavList(migrationGuides)}
           </nav>
+          <p class="pxa-doc-search-empty" hidden>No documentation entries found.</p>
         </aside>
 
         <article class="pxa-docs-content">
@@ -2213,6 +2214,55 @@ document.querySelector('#app').innerHTML = `
 `;
 
 initDocumentationScrollSpy();
+initDocumentationSearch();
+
+function initDocumentationSearch() {
+  const search = document.querySelector('.pxa-search');
+  const nav = document.querySelector('.pxa-doc-nav');
+  const empty = document.querySelector('.pxa-doc-search-empty');
+  if (!search || !nav) return;
+
+  const links = [...nav.querySelectorAll('a')];
+  const headings = [...nav.querySelectorAll('strong')];
+  const sections = [...nav.querySelectorAll('details')];
+
+  const setHidden = (element, hidden) => {
+    element.hidden = hidden;
+  };
+
+  const applyFilter = () => {
+    const query = search.value.trim().toLowerCase();
+    let visibleLinks = 0;
+
+    links.forEach((link) => {
+      const matches = !query || link.textContent.toLowerCase().includes(query);
+      setHidden(link, !matches);
+      if (matches) visibleLinks += 1;
+    });
+
+    sections.forEach((section) => {
+      const visibleChildLinks = [...section.querySelectorAll('a')].some((link) => !link.hidden);
+      const summaryMatches = section.querySelector('summary')?.textContent.toLowerCase().includes(query) ?? false;
+      const isVisible = !query || visibleChildLinks || summaryMatches;
+      setHidden(section, !isVisible);
+      if (query && isVisible) section.setAttribute('open', '');
+    });
+
+    headings.forEach((heading) => {
+      let next = heading.nextElementSibling;
+      let hasVisibleItem = false;
+      while (next && next.tagName !== 'STRONG') {
+        if (!next.hidden) hasVisibleItem = true;
+        next = next.nextElementSibling;
+      }
+      setHidden(heading, query ? !hasVisibleItem : false);
+    });
+
+    if (empty) empty.hidden = !query || visibleLinks > 0;
+  };
+
+  search.addEventListener('input', applyFilter);
+}
 
 function initDocumentationScrollSpy() {
   const links = [...document.querySelectorAll('.pxa-doc-nav a[href^="#"], .pxa-doc-toc a[href^="#"]')];

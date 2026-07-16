@@ -106,6 +106,16 @@
   font-weight: 700;
 }
 
+.pxa-doc-search-empty {
+  margin: var(--pxa-space-3) 0 0;
+  padding: var(--pxa-space-3);
+  color: var(--pxa-color-muted);
+  background: var(--pxa-color-surface);
+  border: 1px solid var(--pxa-color-border);
+  border-radius: var(--pxa-radius-md);
+  font-size: var(--pxa-text-sm);
+}
+
 .pxa-doc-hero-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
