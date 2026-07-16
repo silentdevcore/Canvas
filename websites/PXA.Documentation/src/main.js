@@ -2223,10 +2223,13 @@ function initDocumentationScrollSpy() {
 
   if (!links.length || !targets.length) return;
 
+  let activeElementFocusId = '';
+
   const isElementCardId = (id) => elementCards.some((card) => card.id === id);
 
   const applyElementFocus = (id) => {
     const shouldFocus = isElementCardId(id);
+    activeElementFocusId = shouldFocus ? id : '';
     elementReference?.classList.toggle('is-filtered', shouldFocus);
     elementCards.forEach((card) => {
       const isFocused = shouldFocus && card.id === id;
@@ -2242,7 +2245,11 @@ function initDocumentationScrollSpy() {
     });
   };
 
-  const setActive = (id) => {
+  const setActive = (id, options = {}) => {
+    if (options.fromObserver && activeElementFocusId && !isElementCardId(id)) {
+      return;
+    }
+
     applyElementFocus(id);
     links.forEach((link) => {
       const isActive = link.getAttribute('href') === `#${id}`;
@@ -2279,7 +2286,7 @@ function initDocumentationScrollSpy() {
         .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
 
       if (visible[0]?.target?.id) {
-        setActive(visible[0].target.id);
+        setActive(visible[0].target.id, { fromObserver: true });
       }
     },
     {
