@@ -2864,6 +2864,21 @@ function renderElementVisual(visual) {
   `;
 }
 
+function renderElementJsonPlayground(item) {
+  return `
+    <div class="pxa-element-json-playground" data-element-title="${escapeHtml(item.title)}">
+      <textarea class="pxa-element-json-editor" spellcheck="false" aria-label="${item.title} design JSON">${escapeHtml(item.example)}</textarea>
+      <div class="pxa-code-playground-actions">
+        <button class="pxa-button pxa-button--primary pxa-element-json-run" type="button">Run</button>
+        <span class="pxa-code-run-status">Ready</span>
+      </div>
+      <div class="pxa-element-json-preview" data-element-preview>
+        ${renderElementVisual(item.visual)}
+      </div>
+    </div>
+  `;
+}
+
 function renderElementReference(items) {
   return `
     <section class="pxa-card pxa-doc-element-reference" id="element-reference">
@@ -2927,9 +2942,8 @@ function renderElementReference(items) {
                 ${renderAttributeTable(item.attributes)}
 
                 <h5>Design JSON example</h5>
-                <pre class="pxa-code"><code>${escapeHtml(item.example)}</code></pre>
+                ${renderElementJsonPlayground(item)}
               </div>
-              ${renderElementVisual(item.visual)}
             </div>
           </section>
         `).join('')}
@@ -3259,6 +3273,79 @@ document.querySelector('#app').innerHTML = `
 initDocumentationScrollSpy();
 initDocumentationSearch();
 initCodeSdkPlaygrounds();
+initElementJsonPlaygrounds();
+
+function initElementJsonPlaygrounds() {
+  const playgrounds = [...document.querySelectorAll('.pxa-element-json-playground')];
+  playgrounds.forEach((playground) => {
+    const item = elementReferenceDocs.find((entry) => entry.title === playground.dataset.elementTitle);
+    if (!item) return;
+
+    const editor = playground.querySelector('.pxa-element-json-editor');
+    const status = playground.querySelector('.pxa-code-run-status');
+    const preview = playground.querySelector('[data-element-preview]');
+
+    playground.querySelector('.pxa-element-json-run')?.addEventListener('click', () => {
+      try {
+        const json = JSON.parse(editor.value);
+        preview.innerHTML = renderElementVisual(elementVisualFromJson(item, json));
+        status.textContent = 'Updated';
+        status.classList.remove('is-warning');
+      } catch (error) {
+        status.textContent = `JSON error: ${error.message}`;
+        status.classList.add('is-warning');
+      }
+    });
+  });
+}
+
+function elementVisualFromJson(item, json) {
+  const style = json.style && typeof json.style === 'object' ? json.style : {};
+  const type = String(json.type ?? item.type ?? '').toLowerCase();
+  const preview =
+    json.content ??
+    json.value ??
+    json.label ??
+    json.fieldLabel ??
+    json.placeholder ??
+    json.barcodeValue ??
+    json.watermarkText ??
+    json.href ??
+    json.name ??
+    item.visual.preview;
+
+  const properties = [
+    `type: ${json.type ?? item.type}`,
+    json.x !== undefined || json.y !== undefined ? `position: ${json.x ?? 0}, ${json.y ?? 0}` : null,
+    json.width !== undefined || json.height !== undefined ? `size: ${json.width ?? '-'} x ${json.height ?? '-'}` : null,
+    style.fontSize ? `fontSize: ${style.fontSize}` : null,
+    style.color ? `color: ${style.color}` : null,
+    style.backgroundColor ? `background: ${style.backgroundColor}` : null,
+    json.binding ? `binding: ${json.binding}` : null,
+  ].filter(Boolean);
+
+  return {
+    title: `${item.title} preview`,
+    toolbar: item.visual.toolbar,
+    preview: elementPreviewMarkup(type, String(preview)),
+    properties: properties.length ? properties : item.visual.properties,
+  };
+}
+
+function elementPreviewMarkup(type, value) {
+  const safeValue = escapeHtml(value);
+  if (type.includes('image')) return `<span class="pxa-element-preview-image">${safeValue || 'Image'}</span>`;
+  if (type.includes('table')) return `<span class="pxa-element-preview-table">${safeValue || 'Table'}</span>`;
+  if (type.includes('chart')) return `<span class="pxa-element-preview-chart">${safeValue || 'Chart'}</span>`;
+  if (type.includes('barcode')) return `<span class="pxa-element-preview-barcode">|||| ||| ||||<small>${safeValue}</small></span>`;
+  if (type.includes('qr')) return `<span class="pxa-element-preview-qr">${safeValue || 'QR'}</span>`;
+  if (type.includes('checkbox')) return `<span class="pxa-element-preview-field">[x] ${safeValue || 'Checked'}</span>`;
+  if (type.includes('field') || type.includes('input') || type.includes('dropdown')) return `<span class="pxa-element-preview-field">${safeValue || 'Field'}</span>`;
+  if (type.includes('line')) return '<span class="pxa-element-preview-line"></span>';
+  if (type.includes('shape') || type.includes('rectangle') || type.includes('area') || type.includes('highlight')) return `<span class="pxa-element-preview-shape">${safeValue || 'Shape'}</span>`;
+  if (type.includes('watermark')) return `<span class="pxa-element-preview-watermark">${safeValue || 'DRAFT'}</span>`;
+  return safeValue;
+}
 
 function initCodeSdkPlaygrounds() {
   const playgrounds = [...document.querySelectorAll('.pxa-code-sdk-example')];

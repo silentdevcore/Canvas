@@ -21,6 +21,7 @@
   - [x] Designer
   - [x] Templates
   - [x] Elements
+  - [x] Element Reference mit editierbarem JSON, Run Button und Previewer unter dem JSON darstellen.
   - [x] PDF Viewer
   - [x] Spreadsheet
   - [x] Importer

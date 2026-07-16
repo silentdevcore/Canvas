@@ -731,7 +731,7 @@
 }
 
 .pxa-doc-element-card__body {
-  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  grid-template-columns: 1fr;
   align-items: start;
 }
 
@@ -777,11 +777,31 @@
   font-size: 0.92em;
 }
 
+.pxa-element-json-playground {
+  display: grid;
+  gap: var(--pxa-space-4);
+}
+
+.pxa-element-json-editor {
+  width: 100%;
+  min-height: 260px;
+  padding: var(--pxa-space-4);
+  color: #dce7f7;
+  background: #101828;
+  border: 1px solid #223047;
+  border-radius: var(--pxa-radius-md);
+  font-family: var(--pxa-font-mono);
+  font-size: var(--pxa-text-sm);
+  resize: vertical;
+}
+
+.pxa-element-json-preview {
+  display: grid;
+}
+
 .pxa-doc-element-visual {
   display: grid;
   gap: var(--pxa-space-3);
-  position: sticky;
-  top: var(--pxa-space-5);
 }
 
 .pxa-doc-element-visual__toolbar,
@@ -850,6 +870,78 @@
   border: 2px solid var(--pxa-color-brand-600);
   background: var(--pxa-color-brand-50);
   font-weight: 800;
+}
+
+.pxa-element-preview-image,
+.pxa-element-preview-shape,
+.pxa-element-preview-field,
+.pxa-element-preview-table,
+.pxa-element-preview-chart,
+.pxa-element-preview-qr,
+.pxa-element-preview-barcode,
+.pxa-element-preview-watermark {
+  display: inline-grid;
+  place-items: center;
+  min-width: 96px;
+  min-height: 36px;
+}
+
+.pxa-element-preview-image,
+.pxa-element-preview-shape {
+  color: var(--pxa-color-brand-700);
+  background: var(--pxa-color-brand-50);
+  border: 1px solid var(--pxa-color-brand-600);
+}
+
+.pxa-element-preview-field {
+  justify-items: start;
+  padding-inline: var(--pxa-space-3);
+  color: var(--pxa-color-muted);
+  background: #fff;
+  border: 1px solid var(--pxa-color-border);
+  border-radius: var(--pxa-radius-sm);
+}
+
+.pxa-element-preview-table {
+  padding: var(--pxa-space-2);
+  border: 1px solid var(--pxa-color-border);
+}
+
+.pxa-element-preview-chart {
+  color: #fff;
+  background: linear-gradient(90deg, var(--pxa-color-brand-600) 25%, #49a078 25% 55%, #f59e0b 55%);
+}
+
+.pxa-element-preview-qr {
+  color: #fff;
+  background: #111827;
+  font-weight: 900;
+}
+
+.pxa-element-preview-barcode {
+  font-family: var(--pxa-font-mono);
+  letter-spacing: 0;
+}
+
+.pxa-element-preview-barcode small {
+  display: block;
+  color: var(--pxa-color-muted);
+  font-size: var(--pxa-text-xs);
+}
+
+.pxa-element-preview-line {
+  display: block;
+  width: 160px;
+  height: 2px;
+  background: var(--pxa-color-brand-600);
+}
+
+.pxa-element-preview-watermark {
+  color: var(--pxa-color-brand-600);
+  font-size: var(--pxa-text-2xl);
+  font-weight: 900;
+  opacity: 0.25;
+  transform: rotate(-24deg);
 }
 
 .pxa-doc-card,
