@@ -2226,8 +2226,9 @@ function initDocumentationSearch() {
   const headings = [...nav.querySelectorAll('strong')];
   const sections = [...nav.querySelectorAll('details')];
 
-  const setHidden = (element, hidden) => {
-    element.hidden = hidden;
+  const setFiltered = (element, hidden) => {
+    element.classList.toggle('is-search-hidden', hidden);
+    element.setAttribute('aria-hidden', hidden ? 'true' : 'false');
   };
 
   const applyFilter = () => {
@@ -2236,15 +2237,15 @@ function initDocumentationSearch() {
 
     links.forEach((link) => {
       const matches = !query || link.textContent.toLowerCase().includes(query);
-      setHidden(link, !matches);
+      setFiltered(link, !matches);
       if (matches) visibleLinks += 1;
     });
 
     sections.forEach((section) => {
-      const visibleChildLinks = [...section.querySelectorAll('a')].some((link) => !link.hidden);
+      const visibleChildLinks = [...section.querySelectorAll('a')].some((link) => !link.classList.contains('is-search-hidden'));
       const summaryMatches = section.querySelector('summary')?.textContent.toLowerCase().includes(query) ?? false;
       const isVisible = !query || visibleChildLinks || summaryMatches;
-      setHidden(section, !isVisible);
+      setFiltered(section, !isVisible);
       if (query && isVisible) section.setAttribute('open', '');
     });
 
@@ -2252,16 +2253,18 @@ function initDocumentationSearch() {
       let next = heading.nextElementSibling;
       let hasVisibleItem = false;
       while (next && next.tagName !== 'STRONG') {
-        if (!next.hidden) hasVisibleItem = true;
+        if (!next.classList.contains('is-search-hidden')) hasVisibleItem = true;
         next = next.nextElementSibling;
       }
-      setHidden(heading, query ? !hasVisibleItem : false);
+      setFiltered(heading, query ? !hasVisibleItem : false);
     });
 
     if (empty) empty.hidden = !query || visibleLinks > 0;
   };
 
   search.addEventListener('input', applyFilter);
+  search.addEventListener('keyup', applyFilter);
+  search.addEventListener('search', applyFilter);
 }
 
 function initDocumentationScrollSpy() {

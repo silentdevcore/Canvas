@@ -106,6 +106,10 @@
   font-weight: 700;
 }
 
+.pxa-doc-nav .is-search-hidden {
+  display: none !important;
+}
+
 .pxa-doc-search-empty {
   margin: var(--pxa-space-3) 0 0;
   padding: var(--pxa-space-3);
