@@ -26,12 +26,9 @@
   - [x] Importer
   - [x] Export
 - [x] Code-Dokumentation strukturieren:
-  - [x] PXA.Generator
-  - [x] PXA.Migration
-  - [x] PXA.Importer
-  - [x] PXA.Infrastructure
-  - [x] PXA.WebApi
-  - [x] API Reference
+  - [x] SDK-Beispiele statt Solution-Struktur: Text, Image, Table, Chart, Barcode/QR, Form Field, Line/Shape, Watermark/Export.
+  - [x] Pro SDK-Beispiel C# Code, JSON, Model und visuelle Preview anzeigen.
+  - [x] Tabs fuer C#, JSON, Model sowie vorbereitete Java/Python-Sprachen anzeigen.
 - [x] Migration Guides strukturieren:
   - [x] PDF Code Migration
   - [x] Report Designer Migration

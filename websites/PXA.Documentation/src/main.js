@@ -1464,35 +1464,205 @@ const elementReferenceDocs = [
 ];
 
 const codeSections = [
+  { title: 'Text', status: 'Ready' },
+  { title: 'Image', status: 'Ready' },
+  { title: 'Table', status: 'Ready' },
+  { title: 'Chart', status: 'Preview' },
+  { title: 'Barcode and QR', status: 'Ready' },
+  { title: 'Form Field', status: 'Preview' },
+  { title: 'Line and Shape', status: 'Ready' },
+  { title: 'Watermark and Export', status: 'Preview' },
+];
+
+const codeSdkExamples = [
   {
-    title: 'PXA.Generator',
+    title: 'Text',
     status: 'Ready',
-    text: 'Generate PDFs and business documents from .NET code, structured data, and reusable layout primitives.',
+    description: 'Draw headings, labels, paragraphs, totals, and bound text values from C#.',
+    preview: { kind: 'text', value: 'Invoice #1001' },
+    csharp: `var document = PxaDocument.Create();
+var page = document.Pages.Add();
+
+page.Text("Invoice #1001")
+    .At(40, 40)
+    .Size(300, 32)
+    .FontSize(18)
+    .Bold()
+    .Color("#111827");`,
+    json: `{
+  "type": "text",
+  "x": 40,
+  "y": 40,
+  "width": 300,
+  "height": 32,
+  "content": "Invoice #1001",
+  "style": { "fontSize": 18, "fontWeight": "bold", "color": "#111827" }
+}`,
+    model: 'Document -> Page -> TextElement -> TextStyle',
   },
   {
-    title: 'PXA.Migration',
-    status: 'Preview',
-    text: 'Convert provider-specific code and designer formats into PXA targets with diagnostics and follow-up notes.',
-  },
-  {
-    title: 'PXA.Importer',
-    status: 'Preview',
-    text: 'Integrate file importers into document automation, migration, and designer workflows.',
-  },
-  {
-    title: 'PXA.Infrastructure',
-    status: 'Preview',
-    text: 'Understand rendering, conversion, persistence, and integration boundaries across PXA services.',
-  },
-  {
-    title: 'PXA.WebApi',
+    title: 'Image',
     status: 'Ready',
-    text: 'Use HTTP endpoints for migration, import, export, rendering, and designer handoff flows.',
+    description: 'Place logos, stamps, imported image assets, and document visuals.',
+    preview: { kind: 'image', value: 'LOGO' },
+    csharp: `var document = PxaDocument.Create();
+var page = document.Pages.Add();
+
+page.Image("https://example.com/logo.png")
+    .At(40, 28)
+    .Size(120, 48)
+    .Fit(ImageFit.Contain)
+    .PreserveAspectRatio();`,
+    json: `{
+  "type": "image",
+  "x": 40,
+  "y": 28,
+  "width": 120,
+  "height": 48,
+  "content": "https://example.com/logo.png",
+  "fitMode": "contain",
+  "preserveAspectRatio": true
+}`,
+    model: 'Document -> Page -> ImageElement -> ImageFit',
   },
   {
-    title: 'API Reference',
-    status: 'Planned',
-    text: 'Connect generated DocFX and OpenAPI references to product-level integration guides.',
+    title: 'Table',
+    status: 'Ready',
+    description: 'Create invoice lines, report detail rows, totals, and data-driven tabular output.',
+    preview: { kind: 'table', value: 'Item | Qty | Total' },
+    csharp: `var table = page.Table()
+    .At(40, 180)
+    .Size(500, 120)
+    .HeaderRow(true)
+    .Columns(300, 80, 120);
+
+table.Row("Item", "Qty", "Total");
+table.Row("Coffee", "2", "19.80");`,
+    json: `{
+  "type": "table",
+  "x": 40,
+  "y": 180,
+  "width": 500,
+  "height": 120,
+  "headerRow": true,
+  "cellData": [["Item", "Qty", "Total"], ["Coffee", "2", "19.80"]]
+}`,
+    model: 'Document -> Page -> TableElement -> Rows -> Cells',
+  },
+  {
+    title: 'Chart',
+    status: 'Preview',
+    description: 'Render simple bar, line, or pie charts from labels and datasets.',
+    preview: { kind: 'chart', value: 'Q1 Q2' },
+    csharp: `page.Chart(ChartType.Bar)
+    .At(40, 340)
+    .Size(320, 200)
+    .Labels("Q1", "Q2")
+    .Dataset("Sales", 10, 20);`,
+    json: `{
+  "type": "chart",
+  "x": 40,
+  "y": 340,
+  "width": 320,
+  "height": 200,
+  "chartType": "bar",
+  "chartData": { "labels": ["Q1", "Q2"], "datasets": [{ "label": "Sales", "data": [10, 20] }] }
+}`,
+    model: 'Document -> Page -> ChartElement -> ChartData -> Dataset',
+  },
+  {
+    title: 'Barcode and QR',
+    status: 'Ready',
+    description: 'Generate machine-readable codes for invoices, tickets, labels, and verification workflows.',
+    preview: { kind: 'barcode', value: '4006381333931' },
+    csharp: `page.Barcode("4006381333931", BarcodeType.Ean13)
+    .At(330, 470)
+    .Size(200, 60);
+
+page.QrCode("https://pay.example/invoice/1001")
+    .At(430, 360)
+    .Size(96, 96);`,
+    json: `{
+  "type": "barcode",
+  "x": 330,
+  "y": 470,
+  "width": 200,
+  "height": 60,
+  "barcodeValue": "4006381333931",
+  "barcodeType": "EAN13"
+}`,
+    model: 'Document -> Page -> BarcodeElement / QrCodeElement',
+  },
+  {
+    title: 'Form Field',
+    status: 'Preview',
+    description: 'Add fillable fields, required input, placeholders, and form metadata.',
+    preview: { kind: 'field', value: 'Customer name' },
+    csharp: `page.TextField("customerName")
+    .At(40, 420)
+    .Size(240, 28)
+    .Label("Customer name")
+    .Placeholder("Enter name")
+    .Required();`,
+    json: `{
+  "type": "field",
+  "x": 40,
+  "y": 420,
+  "width": 240,
+  "height": 28,
+  "fieldName": "customerName",
+  "fieldLabel": "Customer name",
+  "placeholder": "Enter name",
+  "required": true
+}`,
+    model: 'Document -> Page -> FormFieldElement -> Validation',
+  },
+  {
+    title: 'Line and Shape',
+    status: 'Ready',
+    description: 'Draw dividers, boxes, backgrounds, status markers, and report frames.',
+    preview: { kind: 'shape', value: 'Divider + box' },
+    csharp: `page.Line()
+    .From(40, 156)
+    .To(540, 156)
+    .Stroke("#9ca3af", 1);
+
+page.Rectangle()
+    .At(40, 120)
+    .Size(500, 80)
+    .Fill("#f3f8ff")
+    .Stroke("#2468b2", 1);`,
+    json: `{
+  "type": "line",
+  "x": 40,
+  "y": 156,
+  "width": 500,
+  "height": 1,
+  "style": { "borderColor": "#9ca3af", "borderWidth": 1 }
+}`,
+    model: 'Document -> Page -> LineElement / ShapeElement -> StrokeStyle',
+  },
+  {
+    title: 'Watermark and Export',
+    status: 'Preview',
+    description: 'Apply document-level watermark behavior and export generated output.',
+    preview: { kind: 'watermark', value: 'DRAFT' },
+    csharp: `var document = PxaDocument.Create();
+
+document.Watermark("DRAFT")
+    .AllPages()
+    .Opacity(0.15)
+    .Rotate(-45);
+
+await document.ExportPdfAsync("invoice.pdf");`,
+    json: `{
+  "type": "watermark",
+  "content": "DRAFT",
+  "watermarkMode": "text",
+  "pageScope": "all",
+  "style": { "opacity": 0.15, "rotation": -45 }
+}`,
+    model: 'Document -> WatermarkElement -> ExportOptions -> PdfOutput',
   },
 ];
 
@@ -1875,6 +2045,68 @@ function renderQuickstarts(items) {
         </article>
       `,
     )
+    .join('');
+}
+
+function renderCodePreview(preview) {
+  const content = {
+    text: `<div class="pxa-sdk-preview-text">${preview.value}</div>`,
+    image: `<div class="pxa-sdk-preview-image">${preview.value}</div>`,
+    table: `<div class="pxa-sdk-preview-table"><span>Item</span><span>Qty</span><span>Total</span><span>Coffee</span><span>2</span><span>19.80</span></div>`,
+    chart: `<div class="pxa-sdk-preview-chart"><i style="height:42%"></i><i style="height:78%"></i></div>`,
+    barcode: `<div class="pxa-sdk-preview-barcode">|||| ||| ||||<small>${preview.value}</small></div>`,
+    field: `<label class="pxa-sdk-preview-field"><span>${preview.value}</span><input value="Enter name" readonly></label>`,
+    shape: `<div class="pxa-sdk-preview-shape"><span></span><strong>${preview.value}</strong></div>`,
+    watermark: `<div class="pxa-sdk-preview-watermark">${preview.value}</div>`,
+  };
+
+  return `
+    <div class="pxa-sdk-preview-page">
+      ${content[preview.kind] ?? `<div>${preview.value}</div>`}
+    </div>
+  `;
+}
+
+function renderCodeSdkExamples(items) {
+  return items
+    .map((item) => `
+      <section class="pxa-card pxa-doc-detail pxa-code-sdk-example" id="${slug(item.title)}">
+        <div class="pxa-doc-detail__header">
+          <span class="pxa-status ${statusClass(item.status)}">${item.status}</span>
+          <h3>${item.title}</h3>
+          <p>${item.description}</p>
+        </div>
+        <div class="pxa-code-sdk-layout">
+          <div class="pxa-code-sdk-main">
+            <div class="pxa-code-sdk-tabs" aria-label="${item.title} code views">
+              <span class="is-active">C#</span>
+              <span>JSON</span>
+              <span>Model</span>
+              <span class="is-planned">Java</span>
+              <span class="is-planned">Python</span>
+            </div>
+            <article>
+              <h4>C#</h4>
+              <pre class="pxa-code"><code>${escapeHtml(item.csharp)}</code></pre>
+            </article>
+            <article>
+              <h4>JSON</h4>
+              <pre class="pxa-code"><code>${escapeHtml(item.json)}</code></pre>
+            </article>
+            <article>
+              <h4>Model</h4>
+              <pre class="pxa-code"><code>${escapeHtml(item.model)}</code></pre>
+            </article>
+          </div>
+          <aside class="pxa-code-sdk-preview">
+            <div class="pxa-code-sdk-tabs">
+              <span class="is-active">Preview</span>
+            </div>
+            ${renderCodePreview(item.preview)}
+          </aside>
+        </div>
+      </section>
+    `)
     .join('');
 }
 
@@ -2361,10 +2593,10 @@ document.querySelector('#app').innerHTML = `
 
           <section class="pxa-doc-section" id="code-path">
             <p class="pxa-kicker">Code documentation</p>
-            <h2 class="pxa-heading">SDK and WebApi entry points</h2>
+            <h2 class="pxa-heading">SDK examples with code, model, JSON, and preview</h2>
             ${renderTrackGuide(trackGuides.code)}
-            <div class="pxa-doc-card-grid">
-              ${renderCards(codeSections)}
+            <div class="pxa-doc-detail-stack">
+              ${renderCodeSdkExamples(codeSdkExamples)}
             </div>
           </section>
 
