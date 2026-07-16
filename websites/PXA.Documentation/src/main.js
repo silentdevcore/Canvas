@@ -1677,6 +1677,10 @@ function renderNavList(items) {
   return items.map((item) => `<a href="#${slug(itemTitle(item))}">${itemTitle(item)}</a>`).join('');
 }
 
+function renderDetailNavList(items) {
+  return items.map((item) => `<a href="#${slug(itemTitle(item))}-details">${itemTitle(item)}</a>`).join('');
+}
+
 function renderElementNav(items) {
   const categories = [...new Set(items.map((item) => item.category))];
   return `
@@ -2065,7 +2069,7 @@ document.querySelector('#app').innerHTML = `
           <input class="pxa-search" type="search" placeholder="Search documentation" aria-label="Search documentation">
           <nav class="pxa-card pxa-doc-nav" aria-label="Documentation sections">
             <strong>Editor</strong>
-            ${renderNavList(editorSections)}
+            ${renderDetailNavList(editorSections)}
             ${renderElementNav(elementReferenceDocs)}
             <strong>Code SDK</strong>
             ${renderNavList(codeSections)}
@@ -2102,9 +2106,6 @@ document.querySelector('#app').innerHTML = `
             <p class="pxa-kicker">Editor documentation</p>
             <h2 class="pxa-heading">Product guides for visual document workflows</h2>
             ${renderTrackGuide(trackGuides.editor)}
-            <div class="pxa-doc-card-grid">
-              ${renderCards(editorSections)}
-            </div>
             <div class="pxa-doc-detail-stack">
               ${renderDetailedDocs(editorDocs)}
               ${renderElementReference(elementReferenceDocs)}
