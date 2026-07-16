@@ -2376,7 +2376,6 @@ function renderCodeSdkNav(groups, exportItems) {
                 .map((subgroup) => `
                   <details class="pxa-doc-nav__section pxa-doc-nav__section--nested">
                     <summary>${subgroup.title}</summary>
-                    <a class="pxa-doc-nav__featured pxa-doc-nav__subitem" href="#${slug(subgroup.title)}">${subgroup.title}</a>
                     ${subgroup.examples
                       .map((item) => `<a class="pxa-doc-nav__subitem" href="#${slug(item.title)}">${item.title}</a>`)
                       .join('')}
