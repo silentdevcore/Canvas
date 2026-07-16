@@ -22,6 +22,8 @@
   - [x] Templates
   - [x] Elements
   - [x] Element Reference mit editierbarem JSON, Run Button und Previewer unter dem JSON darstellen.
+  - [x] Localization mit aktiven Sprachen, localizedProperties, RTL, elementLanguage und multi-language Export dokumentieren.
+  - [x] Data Binding mit binding, expression, visibleExpression und repeat dokumentieren.
   - [x] PDF Viewer
   - [x] Spreadsheet
   - [x] Importer

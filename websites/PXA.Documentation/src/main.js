@@ -19,6 +19,16 @@ const editorSections = [
     text: 'Use text, tables, charts, images, forms, shapes, and layout primitives consistently across templates.',
   },
   {
+    title: 'Localization',
+    status: 'Ready',
+    text: 'Configure active languages, localized properties, RTL text, language-scoped elements, and multi-language export behavior.',
+  },
+  {
+    title: 'Data Binding',
+    status: 'Ready',
+    text: 'Connect elements to runtime data through bindings, expressions, visibility conditions, repeats, and localized property values.',
+  },
+  {
     title: 'PDF Viewer',
     status: 'Preview',
     text: 'Review PDFs, forms, annotations, and browser-side inspection workflows connected to demos.',
@@ -95,6 +105,113 @@ const editorDocs = [
       { label: 'Chart report demo', href: `${siteLinks.demo}#demo/chart-report` },
       { label: 'Designer product page', href: companyPage('products/designer') },
       { label: 'Report migration guide', href: '#report-designer-migration' },
+    ],
+  },
+  {
+    title: 'Localization',
+    status: 'Ready',
+    purpose:
+      'Localization controls document language variants: active language tabs, localized property values, own-language content, RTL text direction, language-specific element positions, and single or multi-language export.',
+    whenToUse: [
+      'You need one template to produce multiple language versions.',
+      'You need Arabic, Hebrew, Farsi, Urdu, or other RTL output.',
+      'Some text, positions, or elements differ per language.',
+    ],
+    concepts: ['System language', 'Active languages', 'Localized properties', 'Global vs Own property scope', 'Element language scope', 'RTL direction', 'Multi-language ZIP export'],
+    tasks: ['Enable active languages', 'Add localized properties', 'Use {{KEY}} placeholders in element content', 'Set language and textDirection on text elements', 'Export current language or all languages'],
+    related: [
+      { label: 'Multi-language checklist', href: '../../checklists/multi-languages.md' },
+      { label: 'Open designer', href: siteLinks.designer },
+      { label: 'Export docs', href: '#export-details' },
+    ],
+    examples: [
+      {
+        title: 'Localized properties',
+        json: `{
+  "pageSettings": {
+    "systemLanguage": "de",
+    "activeLanguages": ["de", "en", "ar"],
+    "localizedProperties": [
+      {
+        "key": "SUBJECT",
+        "scope": "global",
+        "localizedValues": {
+          "de": "Rechnung",
+          "en": "Invoice",
+          "ar": "فاتورة"
+        }
+      },
+      {
+        "key": "LEGAL_NOTE",
+        "scope": "own",
+        "ownerLanguage": "de",
+        "localizedValues": { "de": "Pflichtangabe fuer Deutschland" }
+      }
+    ]
+  }
+}`,
+        note: 'Global means the placeholder exists in all languages, with one value per language. Own means the placeholder exists only for its owner language.',
+      },
+      {
+        title: 'Localized element content',
+        json: `{
+  "type": "text",
+  "content": "{{SUBJECT}} #1001",
+  "language": "ar",
+  "textDirection": "rtl",
+  "elementLanguage": "ar",
+  "langOverrides": {
+    "ar": { "x": 330, "y": 40, "rotation": 0 }
+  }
+}`,
+        note: 'The preview/export resolver replaces {{SUBJECT}} for the active language and hides own-language elements in other language tabs.',
+      },
+    ],
+  },
+  {
+    title: 'Data Binding',
+    status: 'Ready',
+    purpose:
+      'Data binding connects templates to runtime payloads. Elements can read values through binding paths, calculate values through expressions, hide or show through visibleExpression, and repeat tables or regions over collections.',
+    whenToUse: [
+      'Your template should render customer, invoice, order, report, or dataset values.',
+      'A field needs formatting or conditional visibility.',
+      'Tables or report sections should repeat for each row in a dataset.',
+    ],
+    concepts: ['binding path', 'expression', 'visibleExpression', 'repeat', 'localized property resolver', 'field and form binding', 'formatter locale'],
+    tasks: ['Set binding on an element', 'Use expression for calculated content', 'Use visibleExpression for conditional rendering', 'Configure repeat for data-driven rows', 'Preview with representative data'],
+    related: [
+      { label: 'Templates docs', href: '#templates-details' },
+      { label: 'Element Reference', href: '#element-reference' },
+      { label: 'Generator docs', href: '#pdf-sdk' },
+    ],
+    examples: [
+      {
+        title: 'Bound text and conditional visibility',
+        json: `{
+  "type": "text",
+  "content": "Customer: {{customer.name}}",
+  "binding": "customer.name",
+  "expression": "customer.name",
+  "visibleExpression": "customer.active == true",
+  "style": { "fontSize": 14, "fontWeight": "bold" }
+}`,
+        note: 'Use binding for the primary data path, expression for calculated values, and visibleExpression when output depends on runtime data.',
+      },
+      {
+        title: 'Repeated table rows',
+        json: `{
+  "type": "table",
+  "binding": "invoice.items",
+  "repeat": {
+    "dataPath": "invoice.items",
+    "rowTemplate": ["{{name}}", "{{quantity}}", "{{total}}"]
+  },
+  "cellData": [["Item", "Qty", "Total"]],
+  "headerRow": true
+}`,
+        note: 'Repeat configuration turns a single table template into data-driven rows while keeping header/style metadata on the element.',
+      },
     ],
   },
   {
@@ -2781,6 +2898,26 @@ function renderDetailedDocs(items) {
           <div class="pxa-doc-related-links">
             ${item.related.map((link) => `<a href="${link.href}">${link.label}</a>`).join('')}
           </div>
+          ${item.examples
+            ? `
+              <div class="pxa-export-example-grid">
+                ${item.examples
+                  .map((example) => `
+                    <article class="pxa-export-example">
+                      <h4>${example.title}</h4>
+                      <pre class="pxa-code"><code>${escapeHtml(example.json)}</code></pre>
+                      <dl>
+                        <div>
+                          <dt>How it works</dt>
+                          <dd>${example.note}</dd>
+                        </div>
+                      </dl>
+                    </article>
+                  `)
+                  .join('')}
+              </div>
+            `
+            : ''}
           ${item.title === 'Designer' ? renderDesignerWorkflow() : ''}
         </section>
       `,
