@@ -1463,13 +1463,6 @@ const elementReferenceDocs = [
   },
 ];
 
-const codeSections = [
-  { title: 'PDF SDK', status: 'Ready' },
-  { title: 'Spreadsheet SDK', status: 'Ready' },
-  { title: 'Word / Export', status: 'Ready' },
-  { title: 'Converter / Exporter', status: 'Ready' },
-];
-
 const codeSdkExamples = [
   {
     category: 'PDF SDK',
@@ -2092,6 +2085,23 @@ function renderElementNav(items) {
   `;
 }
 
+function renderCodeSdkNav(groups, exportItems) {
+  return `
+    ${groups
+      .map((group) => `
+        <details class="pxa-doc-nav__section" open>
+          <summary>${group.title}</summary>
+          <a class="pxa-doc-nav__featured" href="#${slug(group.title)}">Overview</a>
+          ${group.examples
+            .map((item) => `<a class="pxa-doc-nav__subitem" href="#${slug(item.title)}">${item.title}</a>`)
+            .join('')}
+        </details>
+      `)
+      .join('')}
+    ${exportItems.map((item) => `<a href="#${slug(item.title)}">${item.title}</a>`).join('')}
+  `;
+}
+
 function statusClass(status) {
   if (status === 'Ready') return 'pxa-status--ready';
   if (status === 'Preview') return 'pxa-status--preview';
@@ -2682,7 +2692,7 @@ document.querySelector('#app').innerHTML = `
             ${renderDetailNavList(editorSections)}
             ${renderElementNav(elementReferenceDocs)}
             <strong>Code SDK</strong>
-            ${renderNavList(codeSections)}
+            ${renderCodeSdkNav(codeSdkGroups, exportSdkDocs)}
             <strong>Migration</strong>
             ${renderNavList(migrationGuides)}
           </nav>
@@ -3099,7 +3109,7 @@ function initDocumentationScrollSpy() {
     focusContainers.forEach((container) => {
       const isFocused = container === selected;
       const isAncestorOfSelected = Boolean(selected && container.contains(selected));
-      const isDescendantOfSelected = Boolean(selected && selected.contains(container));
+      const isDescendantOfSelected = Boolean(selected && selected.contains(container) && !selected.classList.contains('pxa-doc-sdk-group'));
       const isHidden = Boolean(selected && !isFocused && !isAncestorOfSelected && !isDescendantOfSelected);
       container.classList.toggle('is-focused', isFocused);
       container.classList.toggle('is-hidden-by-filter', isHidden);
