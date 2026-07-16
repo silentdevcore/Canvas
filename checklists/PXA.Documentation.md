@@ -64,6 +64,12 @@
 - [x] Cookbook- und API-Reference-Bereiche mit Task-Karten, Status und Referenzhinweisen ausbauen.
 - [x] Mindestens je eine Quickstart-Seite fuer Editor und Code.
 - [x] Migration-Uebersicht mit Links zu Provider-Guides.
+- [x] Migration-Detaildoku ausbauen:
+  - [x] Common Migration Workflow dokumentieren.
+  - [x] PDF Code Migration mit 15 Provider-Status-/Mapping-Zeilen dokumentieren.
+  - [x] Report Designer Migration mit 8 Provider-/Format-Zeilen dokumentieren.
+  - [x] Spreadsheet Code Migration mit 8 Provider-Zeilen dokumentieren.
+  - [x] Provider Taxonomy und Migration Diagnostics als eigene Detailbereiche dokumentieren.
 - [x] API Reference aus bestehender DocFX-Struktur erreichbar machen.
 - [x] Demo-Beispiele mit Demo-Route, Input, Output und Source verlinken.
 - [x] MVP-Strategie fuer bestehende `docs` Inhalte dokumentieren.

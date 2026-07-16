@@ -1463,6 +1463,77 @@ const migrationGuides = [
     status: 'Ready',
     text: 'Use the PXA migration namespace taxonomy to distinguish domain, migration kind, and provider.',
   },
+  {
+    title: 'Migration Diagnostics',
+    status: 'Ready',
+    text: 'Understand severity, manual migration notes, and stable diagnostic IDs.',
+  },
+];
+
+const migrationWorkflowSteps = [
+  ['Choose the migration path', 'PDF Code, Report Designer, Spreadsheet Code, or Provider Taxonomy.'],
+  ['Select provider/framework', 'Use the original technology, for example iText7, DevExpress XtraReport, RDL, ClosedXML, or Aspose.Cells.'],
+  ['Submit source', 'Paste source code, upload a report designer file, or provide a spreadsheet migration sample.'],
+  ['Review converted output', 'PDF and spreadsheet code produce PXA-compatible code; report designer migration produces editable design JSON.'],
+  ['Read diagnostics', 'Warnings identify unsupported patterns, manual follow-ups, or API areas outside deterministic migration.'],
+  ['Open or export result', 'Open report output in PXA Designer, copy generated code, generate preview, or download artifacts.'],
+];
+
+const pdfCodeMigrationProviders = [
+  ['Syncfusion PDF', 'full', 'Document/page/text/line/rectangle/image/save with top-left coordinate adapter.', 'Complex tables, forms, signatures, existing-PDF editing.'],
+  ['iText7', 'full', 'PdfWriter/PdfDocument/Document, Paragraph, ShowTextAligned, PdfCanvas text/line/rectangle.', 'Advanced layout renderer model, forms, tagged PDF, signatures.'],
+  ['Apryse (PDFTron)', 'full', 'PDFDoc creation, PageCreate/PagePushBack, document save.', 'ElementBuilder rich graphics, editing workflows, annotations.'],
+  ['Aspose.PDF', 'full', 'Document, Pages.Add, TextFragment/TextBuilder positioned text.', 'Advanced DOM editing, forms, compliance, optimization.'],
+  ['DsPdf (GrapeCity)', 'full', 'GcPdfDocument, NewPage, DrawString/DrawLine/DrawRectangle/FillRectangle, Save.', 'Advanced graphics, AcroForms, image processing.'],
+  ['Foxit PDF SDK', 'full', 'PDFDoc, InsertPage/CreatePage, graphics draw calls, Save/SaveAs.', 'Runtime/library setup, editing APIs, rich annotations.'],
+  ['DevExpress PDF', 'full', 'PdfDocumentProcessor, RenderNewPage, draw calls, SaveDocument.', 'Forms/signatures/report export produce follow-up diagnostics.'],
+  ['Spire.PDF', 'full', 'PdfDocument, Pages.Add, Canvas.DrawString/DrawLine/DrawRectangle/FillRectangle, SaveToFile.', 'Tables, forms, annotations produce warnings.'],
+  ['GemBox.Pdf', 'full', 'PdfDocument, Pages.Add, Content.DrawText/DrawLine/DrawRectangle, ComponentInfo.SetLicense removal.', 'Forms, encryption, annotations produce warnings.'],
+  ['PDFKit.NET', 'full', 'Document/NewPage/Pages.Add, DrawText/DrawString/DrawLine/DrawRectangle, Save/Render.', 'Package identity must be manually verified; forms/encryption/annotations warning path.'],
+  ['LEADTOOLS', 'full', 'PDFDocument, AddPage/Pages.Add, DrawText/DrawString/DrawLine/DrawRectangle, Save/Export.', 'Raster/OCR/barcode/conversion APIs are manual.'],
+  ['IronPDF', 'pilot', 'ChromePdfRenderer scaffold, SaveAs to Save.', 'HTML/URL/Razor rendering converted to manual diagnostics.'],
+  ['ActivePDF', 'pilot', 'Likely Toolkit-style generation only.', 'DocConverter, WebGrabber, COM/server, printer, merge, stamp workflows are manual.'],
+  ['PDFTools / Pdftools SDK', 'pilot', 'Sdk.Initialize removal and cautious processing diagnostics.', 'SDK conversion/processing workflows remain manual; Toolbox direct generation is separate.'],
+  ['PDF Toolbox SDK', 'pilot', 'Document.Create/Page.Create/TextGenerator.ShowLine to PXA-compatible code.', 'Existing-PDF editing and rich styling remain manual.'],
+];
+
+const reportDesignerProviders = [
+  ['DevExpress XtraReport', '.Designer.cs / C# report class', 'Bands, labels, lines, tables, charts, barcodes, images, page header/footer.', 'PXA.Migration.Report.Designer.DevExpress'],
+  ['RDL/RDLC / Syncfusion / Bold Reports', '.rdl / .rdlc', 'Textbox, tablix/table, line, rectangle, image, page header/footer, field bindings.', 'PXA.Migration.Report.Designer.Rdl'],
+  ['ActiveReports RPX', '.rpx', 'Section bands, labels, textboxes, line, barcode, page header/footer, DataField binding.', 'PXA.Migration.Report.Designer.Rpx'],
+  ['ActiveReportsJS', 'JSON report definition', 'Designer JSON report items where supported by the converter.', 'PXA.Migration.Report.Designer.ActiveReportsJs'],
+  ['FastReport', '.frx', 'Bands, TextObject, LineObject, BarcodeObject, style/font/color basics.', 'PXA.Migration.Report.Designer.FastReport'],
+  ['Telerik Reporting', '.trdx', 'Sections, named styles, text boxes, barcodes, page header/footer.', 'PXA.Migration.Report.Designer.Telerik'],
+  ['JasperReports', '.jrxml', 'Bands, staticText/textField, images, charts where mapping is available, $F{} bindings.', 'PXA.Migration.Report.Designer.JasperReports'],
+  ['Stimulsoft Reports', '.mrt', 'Bands, text, horizontal lines, page footer/header, {Source.Field} bindings.', 'PXA.Migration.Report.Designer.Stimulsoft'],
+];
+
+const spreadsheetCodeMigrationProviders = [
+  ['Aspose.Cells', 'full', 'PXA.Migration.Spreadsheet.Code.Aspose', 'Workbook, Worksheets, Cells, values, styles, formulas.'],
+  ['ClosedXML', 'full', 'PXA.Migration.Spreadsheet.Code.ClosedXml', 'Reference implementation for workbook/sheet/cell/range authoring.'],
+  ['EPPlus', 'full', 'PXA.Migration.Spreadsheet.Code.Epplus', 'ExcelPackage, Worksheets, Cells indexers, values, formulas, styles.'],
+  ['GemBox.Spreadsheet', 'full', 'PXA.Migration.Spreadsheet.Code.GemBox', 'ExcelFile authoring and SetLicense removal.'],
+  ['NPOI', 'full', 'PXA.Migration.Spreadsheet.Code.Npoi', 'Workbook/sheet/row/cell creation patterns.'],
+  ['Spire.XLS', 'full', 'PXA.Migration.Spreadsheet.Code.Spire', 'Workbook/worksheet/range authoring patterns.'],
+  ['SpreadsheetLight', 'full', 'PXA.Migration.Spreadsheet.Code.SpreadsheetLight', 'SLDocument cells, formulas, styles where deterministic.'],
+  ['Syncfusion XlsIO', 'full', 'PXA.Migration.Spreadsheet.Code.Syncfusion', 'ExcelEngine, IWorkbook/IWorksheet/range authoring patterns.'],
+];
+
+const taxonomyRows = [
+  ['PDF code migration', 'PXA.Migration.Pdf.Code.<Provider>', 'Provider-specific C# PDF SDK code to PXA PDF generator code.'],
+  ['Report designer migration', 'PXA.Migration.Report.Designer.<Provider>', 'Report designer files/classes to editable PXA design JSON.'],
+  ['Spreadsheet code migration', 'PXA.Migration.Spreadsheet.Code.<Provider>', 'Spreadsheet library C# code to PXA spreadsheet API code.'],
+  ['Reserved spreadsheet datasource migration', 'PXA.Migration.Spreadsheet.Datasource.<Provider>', 'Reserved for concrete datasource/file migration providers; not fake-created.'],
+  ['Shared abstractions', 'PXA.Migration.Abstractions', 'Common contracts and migration result shape.'],
+  ['Roslyn infrastructure', 'PXA.Migration.Roslyn', 'Shared C# source rewriting infrastructure.'],
+];
+
+const diagnosticRows = [
+  ['Info', 'Converted deterministic pattern, removed provider setup, or noted compatibility behavior.'],
+  ['Warning', 'Output is usable, but a source pattern needs review or manual parity check.'],
+  ['Error', 'Conversion could not produce a reliable target for that input.'],
+  ['Migrate manually', 'The source feature is outside deterministic conversion, for example signatures, existing-PDF editing, advanced HTML rendering, or provider-specific runtime services.'],
+  ['Stable diagnostic IDs', 'Existing CANMIG... IDs remain stable for compatibility while namespace names move to PXA.'],
 ];
 
 const cookbook = [
@@ -1995,6 +2066,97 @@ function renderElementReference(items) {
   `;
 }
 
+function renderMigrationProviderTable(headers, rows) {
+  return `
+    <div class="pxa-doc-table-wrap">
+      <table class="pxa-doc-attribute-table">
+        <thead>
+          <tr>${headers.map((header) => `<th>${header}</th>`).join('')}</tr>
+        </thead>
+        <tbody>
+          ${rows.map((row) => `
+            <tr>${row.map((cell) => `<td>${cell}</td>`).join('')}</tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderMigrationDetails() {
+  return `
+    <section class="pxa-card pxa-doc-detail pxa-doc-migration-detail" id="pdf-code-migration">
+      <div class="pxa-doc-detail__header">
+        <span class="pxa-status pxa-status--preview">Preview</span>
+        <h3>PDF Code Migration</h3>
+        <p>Convert third-party C# PDF SDK generation code into PXA-compatible PDF generator code, then review diagnostics for unsupported provider-specific features.</p>
+      </div>
+      <div class="pxa-doc-detail__grid">
+        <article><h4>When to use</h4><ul><li>You have existing C# PDF generation code.</li><li>You want generated PXA code as a starting point.</li><li>The source mostly creates pages, draws text, lines, rectangles, images, and saves output.</li></ul></article>
+        <article><h4>Typical output</h4><ul><li>PXA-compatible PDF code.</li><li>Previewable PDF output where deterministic.</li><li>Diagnostics for manual follow-up patterns.</li></ul></article>
+        <article><h4>Manual follow-ups</h4><ul><li>Existing-PDF editing.</li><li>Digital signatures and advanced forms.</li><li>HTML/Razor/URL rendering and provider runtime services.</li></ul></article>
+      </div>
+      ${renderMigrationProviderTable(['Provider', 'Status', 'Mapped patterns', 'Manual / diagnostic areas'], pdfCodeMigrationProviders)}
+    </section>
+
+    <section class="pxa-card pxa-doc-detail pxa-doc-migration-detail" id="report-designer-migration">
+      <div class="pxa-doc-detail__header">
+        <span class="pxa-status pxa-status--ready">Ready</span>
+        <h3>Report Designer Migration</h3>
+        <p>Convert report designer formats into editable PXA design JSON so the result can be opened in PXA Designer and refined visually.</p>
+      </div>
+      <div class="pxa-doc-detail__grid">
+        <article><h4>When to use</h4><ul><li>You have visual report definitions, not hand-written PDF code.</li><li>You need editable PXA Designer output.</li><li>You want banded report layout flattened into page elements.</li></ul></article>
+        <article><h4>Common mapping</h4><ul><li>Report bands become absolute page positions.</li><li>Labels/textboxes become Text elements.</li><li>Lines, rectangles, tables, charts, barcodes, and images map to closest PXA elements.</li></ul></article>
+        <article><h4>Validation workflow</h4><ul><li>Run report-to-design migration.</li><li>Inspect diagnostics and mapping notes.</li><li>Open in Designer and compare layout fidelity.</li></ul></article>
+      </div>
+      ${renderMigrationProviderTable(['Provider', 'Input', 'Mapped surface', 'Namespace'], reportDesignerProviders)}
+    </section>
+
+    <section class="pxa-card pxa-doc-detail pxa-doc-migration-detail" id="spreadsheet-code-migration">
+      <div class="pxa-doc-detail__header">
+        <span class="pxa-status pxa-status--preview">Preview</span>
+        <h3>Spreadsheet Code Migration</h3>
+        <p>Convert C# spreadsheet library authoring code into PXA spreadsheet API code and preview workbook-like output through the spreadsheet migration flow.</p>
+      </div>
+      <div class="pxa-doc-detail__grid">
+        <article><h4>When to use</h4><ul><li>You have existing workbook generation code.</li><li>You need PXA spreadsheet API output.</li><li>You want provider-specific object models normalized into one workbook model.</li></ul></article>
+        <article><h4>Mapped patterns</h4><ul><li>Workbook and worksheet creation.</li><li>Cell values, formulas, ranges, and basic styles.</li><li>Save/export calls where deterministic.</li></ul></article>
+        <article><h4>Datasource boundary</h4><ul><li>Code migration is not datasource/file import.</li><li>Spreadsheet datasource namespace is reserved.</li><li>File import stays in spreadsheet/importer workflows.</li></ul></article>
+      </div>
+      ${renderMigrationProviderTable(['Provider', 'Status', 'Namespace', 'Mapped surface'], spreadsheetCodeMigrationProviders)}
+    </section>
+
+    <section class="pxa-card pxa-doc-detail pxa-doc-migration-detail" id="provider-taxonomy">
+      <div class="pxa-doc-detail__header">
+        <span class="pxa-status pxa-status--ready">Ready</span>
+        <h3>Provider Taxonomy</h3>
+        <p>Migration namespaces identify domain, migration kind, and provider so code migration and designer migration are not confused.</p>
+      </div>
+      ${renderMigrationProviderTable(['Area', 'Namespace pattern', 'Meaning'], taxonomyRows)}
+      <pre class="pxa-code"><code>PXA.Migration.&lt;Domain&gt;.&lt;Kind&gt;.&lt;Provider&gt;
+
+PXA.Migration.Pdf.Code.Aspose
+PXA.Migration.Report.Designer.Rdl
+PXA.Migration.Spreadsheet.Code.Syncfusion</code></pre>
+    </section>
+
+    <section class="pxa-card pxa-doc-detail pxa-doc-migration-detail" id="migration-diagnostics">
+      <div class="pxa-doc-detail__header">
+        <span class="pxa-status pxa-status--ready">Ready</span>
+        <h3>Migration Diagnostics</h3>
+        <p>Diagnostics explain what was converted, what needs review, and which provider features must be migrated manually.</p>
+      </div>
+      ${renderMigrationProviderTable(['Signal', 'Meaning'], diagnosticRows)}
+      <div class="pxa-doc-related-links">
+        <a href="../../checklists/Migration-Namespace-Taxonomy.md">Namespace taxonomy checklist</a>
+        <a href="../../checklists/Designer-Migration.md">Designer migration roadmap</a>
+        <a href="../../checklists/Spreadsheet-Migration.md">Spreadsheet migration checklist</a>
+      </div>
+    </section>
+  `;
+}
+
 function slug(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
@@ -2126,8 +2288,16 @@ document.querySelector('#app').innerHTML = `
             <p class="pxa-kicker">Migration guides</p>
             <h2 class="pxa-heading">Provider-oriented migration documentation</h2>
             ${renderTrackGuide(trackGuides.migration)}
-            <div class="pxa-doc-card-grid">
-              ${renderCards(migrationGuides)}
+            <div class="pxa-card pxa-doc-detail pxa-doc-migration-detail" id="migration-workflow">
+              <div class="pxa-doc-detail__header">
+                <span class="pxa-status pxa-status--ready">Ready</span>
+                <h3>Common Migration Workflow</h3>
+                <p>Every migration path follows the same review loop: choose the source technology, convert, inspect diagnostics, then open or export the result.</p>
+              </div>
+              ${renderMigrationProviderTable(['Step', 'What happens'], migrationWorkflowSteps)}
+            </div>
+            <div class="pxa-doc-detail-stack">
+              ${renderMigrationDetails()}
             </div>
           </section>
 
@@ -2290,9 +2460,7 @@ function initDocumentationScrollSpy() {
     return target.closest('.pxa-doc-element-card, .pxa-doc-detail, .pxa-doc-card, .pxa-doc-section');
   };
 
-  const focusContainers = [...new Set(sidebarLinks
-    .map((link) => getFocusContainer(link.getAttribute('href')?.slice(1) ?? ''))
-    .filter(Boolean))];
+  const focusContainers = [...document.querySelectorAll('.pxa-doc-detail, .pxa-doc-card, .pxa-doc-element-card')];
 
   const applySidebarFocus = (id, enabled) => {
     const selected = enabled ? getFocusContainer(id) : null;
