@@ -612,6 +612,50 @@
   font-weight: 800;
 }
 
+.pxa-export-example-grid {
+  display: grid;
+  gap: var(--pxa-space-4);
+}
+
+.pxa-export-example {
+  display: grid;
+  gap: var(--pxa-space-3);
+  padding: var(--pxa-space-4);
+  background: var(--pxa-color-surface-alt);
+  border: 1px solid var(--pxa-color-border);
+  border-radius: var(--pxa-radius-md);
+}
+
+.pxa-export-example h4 {
+  margin: 0;
+  color: var(--pxa-color-ink);
+  font-size: var(--pxa-text-lg);
+}
+
+.pxa-export-example dl {
+  display: grid;
+  gap: var(--pxa-space-3);
+  margin: 0;
+}
+
+.pxa-export-example dl > div {
+  display: grid;
+  gap: var(--pxa-space-1);
+}
+
+.pxa-export-example dt {
+  color: var(--pxa-color-ink);
+  font-size: var(--pxa-text-xs);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pxa-export-example dd {
+  margin: 0;
+  color: var(--pxa-color-muted);
+  font-size: var(--pxa-text-sm);
+}
+
 .pxa-doc-element-reference {
   display: grid;
   gap: var(--pxa-space-6);

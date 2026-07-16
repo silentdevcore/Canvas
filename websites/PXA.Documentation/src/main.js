@@ -2024,12 +2024,94 @@ const exportSdkDocs = [
     status: 'Ready',
     text: 'Document export covers DOCX generation, rich text, comments, footnotes, custom properties, document protection, and digital signing.',
     points: ['PXA.Generator.Word.Export(design)', 'WordDocumentExporter', 'DigitalSigningService', 'DocumentProtectionService'],
+    examples: [
+      {
+        title: 'Export DOCX from Design JSON',
+        csharp: `DesignExportDto design = LoadDesign();
+
+byte[] docx = PXA.Generator.Word.Export(
+    design,
+    new ExportOptions
+    {
+        Format = "docx",
+        FileName = "invoice.docx"
+    });
+
+File.WriteAllBytes("invoice.docx", docx);`,
+        output: 'DOCX bytes with pages, text, tables, images, rich text where supported, comments, footnotes, custom properties, protection, and named styles.',
+        model: 'DesignExportDto -> PXA.Generator.Word.Export -> DOCX',
+      },
+      {
+        title: 'Use WordDocumentExporter directly',
+        csharp: `DesignExportDto design = LoadDesign();
+
+var exporter = new WordDocumentExporter();
+byte[] docx = exporter.Export(design);
+
+IExporterCapabilities capabilities = exporter.Capabilities;`,
+        output: 'Direct exporter access when the application needs capabilities or dependency-injected exporter boundaries.',
+        model: 'DesignExportDto -> WordDocumentExporter -> IExporterCapabilities/DOCX',
+      },
+      {
+        title: 'Sign generated DOCX',
+        csharp: `using var docxStream = File.OpenRead("invoice.docx");
+byte[] pfx = File.ReadAllBytes("certificate.pfx");
+
+byte[] signedDocx = DigitalSigningService.SignDocx(
+    docxStream,
+    pfx,
+    pfxPassword: "secret");
+
+File.WriteAllBytes("invoice.signed.docx", signedDocx);`,
+        output: 'Signed DOCX package after generation. Use after export, because signing is applied to the final document package.',
+        model: 'DOCX stream + PFX -> DigitalSigningService -> signed DOCX',
+      },
+    ],
   },
   {
     title: 'Converter / Exporter',
     status: 'Ready',
     text: 'Converter/exporter documentation belongs beside export workflows and explains DesignExportDto output into PDF, DOCX, HTML, Markdown, XML, CSV, SVG, Image, TIFF, ODT, and Excel.',
     points: ['DocumentExporter', 'HtmlDocumentExporter', 'MarkdownDocumentExporter', 'SvgDocumentExporter', 'ImageDocumentExporter', 'ExcelDocumentExporter'],
+    examples: [
+      {
+        title: 'Export HTML Markdown XML and CSV',
+        csharp: `DesignExportDto design = LoadDesign();
+
+byte[] html = new HtmlDocumentExporter().Export(design);
+byte[] markdown = new MarkdownDocumentExporter().Export(design);
+byte[] xml = new XmlDocumentExporter().Export(design);
+byte[] csv = new CsvDocumentExporter().Export(design);`,
+        output: 'Text-oriented output for web previews, documentation, data extraction, interchange, and lightweight automation.',
+        model: 'DesignExportDto -> Text/document exporters -> HTML/Markdown/XML/CSV',
+      },
+      {
+        title: 'Export SVG Image JPEG TIFF and ODT',
+        csharp: `DesignExportDto design = LoadDesign();
+
+byte[] svg = new SvgDocumentExporter().Export(design);
+byte[] png = new ImageDocumentExporter().Export(design);
+byte[] jpeg = new JpegDocumentExporter().Export(design);
+byte[] tiff = new TiffDocumentExporter().Export(design);
+byte[] odt = new OdtDocumentExporter().Export(design);`,
+        output: 'Visual and office-document output for previews, thumbnails, archive workflows, print workflows, and OpenDocument consumers.',
+        model: 'DesignExportDto -> Visual/document exporters -> SVG/PNG/JPEG/TIFF/ODT',
+      },
+      {
+        title: 'Check exporter capabilities',
+        csharp: `IDocumentExporter exporter = new ImageDocumentExporter();
+IExporterCapabilities capabilities = exporter.Capabilities;
+
+if (!capabilities.SupportsFormFields)
+{
+    // Render form fields as visual elements or choose PDF/DOCX output.
+}
+
+byte[] output = exporter.Export(design);`,
+        output: 'Capability-aware export flow for formats that do not support every design feature.',
+        model: 'IDocumentExporter -> IExporterCapabilities -> Export decision',
+      },
+    ],
   },
 ];
 
@@ -2554,6 +2636,30 @@ function renderExportSdkDocs(items) {
           <div class="pxa-doc-feature-list">
             ${item.points.map((point) => `<span>${point}</span>`).join('')}
           </div>
+          ${item.examples
+            ? `
+              <div class="pxa-export-example-grid">
+                ${item.examples
+                  .map((example) => `
+                    <article class="pxa-export-example">
+                      <h4>${example.title}</h4>
+                      <pre class="pxa-code"><code>${escapeHtml(example.csharp)}</code></pre>
+                      <dl>
+                        <div>
+                          <dt>Output</dt>
+                          <dd>${example.output}</dd>
+                        </div>
+                        <div>
+                          <dt>Model</dt>
+                          <dd>${example.model}</dd>
+                        </div>
+                      </dl>
+                    </article>
+                  `)
+                  .join('')}
+              </div>
+            `
+            : ''}
         </section>
       `,
     )
