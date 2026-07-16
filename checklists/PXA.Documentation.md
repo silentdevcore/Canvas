@@ -55,6 +55,11 @@
 - [x] Startseite auf vier technische Einstiegspfade erweitern: Editor, Code, Migration und API Reference.
 - [x] Editor-, Code- und Migration-Bereiche mit Read-first, Common-tasks und Related-links Panels ausbauen.
 - [x] Detaillierte Editor Docs fuer Designer, Templates, Elements, PDF Viewer, Spreadsheet, Importer und Export ausbauen.
+- [x] Designer Workflow detaillieren:
+  - [x] Template erstellen/oeffnen.
+  - [x] Elemente hinzufuegen, positionieren und skalieren.
+  - [x] Properties Panel, Preview, Export und Migration-Handoff dokumentieren.
+  - [x] Designer-Bereiche Toolbar, Arbeitsflaeche, Properties, Preview, JSON/Export und Migration-Handoff erklaeren.
 - [x] Editor Elements Reference als echte Anwenderdoku ausbauen:
   - [x] Gemeinsame Element-Attribute dokumentieren.
   - [x] Gemeinsame Style-Attribute dokumentieren.

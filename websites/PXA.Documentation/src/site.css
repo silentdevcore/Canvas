@@ -251,6 +251,70 @@
   color: var(--pxa-color-muted);
 }
 
+.pxa-doc-workflow {
+  display: grid;
+  gap: var(--pxa-space-5);
+  padding-top: var(--pxa-space-5);
+  border-top: 1px solid var(--pxa-color-border);
+}
+
+.pxa-doc-workflow__header {
+  display: grid;
+  gap: var(--pxa-space-2);
+}
+
+.pxa-doc-workflow__header h4,
+.pxa-doc-workflow__header p,
+.pxa-doc-workflow-step h5,
+.pxa-doc-workflow-step p,
+.pxa-doc-workflow-step ul {
+  margin: 0;
+}
+
+.pxa-doc-workflow__header p,
+.pxa-doc-workflow-step p,
+.pxa-doc-workflow-step ul {
+  color: var(--pxa-color-muted);
+}
+
+.pxa-doc-workflow__steps {
+  display: grid;
+  gap: var(--pxa-space-4);
+}
+
+.pxa-doc-workflow-step {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: var(--pxa-space-4);
+  align-items: start;
+}
+
+.pxa-doc-workflow-step__number {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: #ffffff;
+  background: var(--pxa-color-brand-600);
+  border-radius: 999px;
+  font-weight: 850;
+}
+
+.pxa-doc-workflow-step > div {
+  display: grid;
+  gap: var(--pxa-space-3);
+}
+
+.pxa-doc-workflow-step ul {
+  display: grid;
+  gap: var(--pxa-space-2);
+  padding-left: var(--pxa-space-5);
+}
+
+.pxa-doc-workflow-step strong {
+  color: var(--pxa-color-ink);
+}
+
 .pxa-doc-element-reference {
   display: grid;
   gap: var(--pxa-space-6);
