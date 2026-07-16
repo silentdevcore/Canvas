@@ -1906,7 +1906,7 @@ var csvSheet = CsvSheetIo.FromCsv(csvText, "CsvData");`,
   {
     category: 'Spreadsheet SDK',
     subcategory: 'Operations Validation and Calculation',
-    title: 'Operations Validation and Calculation',
+    title: 'Validate Calculate and Sort',
     status: 'Ready',
     description: 'Validate workbook structure, calculate formulas, sort ranges, and run find/replace operations.',
     preview: { kind: 'spreadsheet', value: 'Workbook checks', rows: [['Task', 'API'], ['Validate', 'SpreadsheetValidator'], ['Sort', 'SortRange'], ['Replace', 'FindReplace']] },
@@ -1929,7 +1929,7 @@ int replacements = operations.FindReplace(model, "Draft", "Final", matchCase: fa
   {
     category: 'Spreadsheet SDK',
     subcategory: 'Data and Design Conversion',
-    title: 'Data and Design Conversion',
+    title: 'Rows Fill and Design Conversion',
     status: 'Ready',
     description: 'Create sheets from row data, fill workbook placeholders from data, and convert a sheet into editable PXA design output.',
     preview: { kind: 'spreadsheet', value: 'Data mapping', rows: [['Source', 'Output'], ['Rows', 'SheetDto'], ['Workbook', 'DesignExportDto']] },
@@ -3409,7 +3409,10 @@ function initDocumentationScrollSpy() {
   let activeSidebarFocusId = '';
 
   const isElementCardId = (id) => elementCards.some((card) => card.id === id);
-  const isSidebarTargetId = (id) => sidebarLinks.some((link) => link.getAttribute('href') === `#${id}`);
+  const isSidebarTargetId = (id) => {
+    if (sidebarLinks.some((link) => link.getAttribute('href') === `#${id}`)) return true;
+    return Boolean(document.getElementById(id)?.matches('.pxa-doc-sdk-group, .pxa-doc-sdk-subgroup'));
+  };
 
   const getFocusContainer = (id) => {
     const target = document.getElementById(id);
@@ -3433,7 +3436,10 @@ function initDocumentationScrollSpy() {
       const isFocused = container === selected;
       const isAncestorOfSelected = Boolean(selected && container.contains(selected));
       const isSdkOverview = selected?.classList.contains('pxa-doc-sdk-group') || selected?.classList.contains('pxa-doc-sdk-subgroup');
-      const isDescendantOfSelected = Boolean(selected && selected.contains(container) && !isSdkOverview);
+      const selectedHasSingleExample = Boolean(
+        selected?.classList.contains('pxa-doc-sdk-subgroup') && selected.querySelectorAll('.pxa-code-sdk-example').length === 1,
+      );
+      const isDescendantOfSelected = Boolean(selected && selected.contains(container) && (!isSdkOverview || selectedHasSingleExample));
       const isHidden = Boolean(selected && !isFocused && !isAncestorOfSelected && !isDescendantOfSelected);
       container.classList.toggle('is-focused', isFocused);
       container.classList.toggle('is-hidden-by-filter', isHidden);
