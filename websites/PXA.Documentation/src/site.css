@@ -296,10 +296,12 @@
   border-top: 1px solid var(--pxa-color-border);
 }
 
-.pxa-doc-element-card.is-hidden-by-filter {
+.pxa-docs-content .is-hidden-by-filter {
   display: none;
 }
 
+.pxa-doc-detail.is-focused,
+.pxa-doc-card.is-focused,
 .pxa-doc-element-card.is-focused {
   padding: var(--pxa-space-5);
   border: 1px solid var(--pxa-color-brand-600);

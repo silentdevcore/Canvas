@@ -2269,26 +2269,48 @@ function initDocumentationSearch() {
 
 function initDocumentationScrollSpy() {
   const links = [...document.querySelectorAll('.pxa-doc-nav a[href^="#"], .pxa-doc-toc a[href^="#"]')];
+  const sidebarLinks = [...document.querySelectorAll('.pxa-doc-nav a[href^="#"]')];
   const elementReference = document.querySelector('.pxa-doc-element-reference');
   const elementCards = [...document.querySelectorAll('.pxa-doc-element-card')];
+  const contentBlocks = [...document.querySelectorAll('.pxa-docs-content > .pxa-doc-hero-grid, .pxa-docs-content > .pxa-doc-section')];
   const targets = links
     .map((link) => document.querySelector(link.getAttribute('href')))
     .filter(Boolean);
 
   if (!links.length || !targets.length) return;
 
-  let activeElementFocusId = '';
+  let activeSidebarFocusId = '';
 
   const isElementCardId = (id) => elementCards.some((card) => card.id === id);
+  const isSidebarTargetId = (id) => sidebarLinks.some((link) => link.getAttribute('href') === `#${id}`);
 
-  const applyElementFocus = (id) => {
-    const shouldFocus = isElementCardId(id);
-    activeElementFocusId = shouldFocus ? id : '';
-    elementReference?.classList.toggle('is-filtered', shouldFocus);
-    elementCards.forEach((card) => {
-      const isFocused = shouldFocus && card.id === id;
-      card.classList.toggle('is-focused', isFocused);
-      card.classList.toggle('is-hidden-by-filter', shouldFocus && !isFocused);
+  const getFocusContainer = (id) => {
+    const target = document.getElementById(id);
+    if (!target) return null;
+    return target.closest('.pxa-doc-element-card, .pxa-doc-detail, .pxa-doc-card, .pxa-doc-section');
+  };
+
+  const focusContainers = [...new Set(sidebarLinks
+    .map((link) => getFocusContainer(link.getAttribute('href')?.slice(1) ?? ''))
+    .filter(Boolean))];
+
+  const applySidebarFocus = (id, enabled) => {
+    const selected = enabled ? getFocusContainer(id) : null;
+    const selectedContentBlock = selected?.closest('.pxa-doc-section, .pxa-doc-hero-grid') ?? null;
+    activeSidebarFocusId = selected ? id : '';
+    elementReference?.classList.toggle('is-filtered', Boolean(selected && isElementCardId(id)));
+    contentBlocks.forEach((block) => {
+      const isHidden = Boolean(selectedContentBlock && block !== selectedContentBlock);
+      block.classList.toggle('is-hidden-by-filter', isHidden);
+      block.setAttribute('aria-hidden', isHidden ? 'true' : 'false');
+    });
+    focusContainers.forEach((container) => {
+      const isFocused = container === selected;
+      const isAncestorOfSelected = Boolean(selected && container.contains(selected));
+      const isHidden = Boolean(selected && !isFocused && !isAncestorOfSelected);
+      container.classList.toggle('is-focused', isFocused);
+      container.classList.toggle('is-hidden-by-filter', isHidden);
+      container.setAttribute('aria-hidden', isHidden ? 'true' : 'false');
     });
   };
 
@@ -2300,11 +2322,11 @@ function initDocumentationScrollSpy() {
   };
 
   const setActive = (id, options = {}) => {
-    if (options.fromObserver && activeElementFocusId && !isElementCardId(id)) {
+    if (options.fromObserver && activeSidebarFocusId) {
       return;
     }
 
-    applyElementFocus(id);
+    applySidebarFocus(id, Boolean(options.fromSidebar));
     links.forEach((link) => {
       const isActive = link.getAttribute('href') === `#${id}`;
       link.classList.toggle('is-active', isActive);
@@ -2319,16 +2341,16 @@ function initDocumentationScrollSpy() {
   links.forEach((link) => {
     link.addEventListener('click', () => {
       const id = link.getAttribute('href')?.slice(1);
-      if (id) setActive(id);
+      if (id) setActive(id, { fromSidebar: link.closest('.pxa-doc-nav') !== null });
     });
   });
 
   const initialId = window.location.hash.slice(1) || 'overview';
-  if (document.getElementById(initialId)) setActive(initialId);
+  if (document.getElementById(initialId)) setActive(initialId, { fromSidebar: isSidebarTargetId(initialId) });
 
   window.addEventListener('hashchange', () => {
     const id = window.location.hash.slice(1) || 'overview';
-    if (document.getElementById(id)) setActive(id);
+    if (document.getElementById(id)) setActive(id, { fromSidebar: isSidebarTargetId(id) });
   });
 
   if (!('IntersectionObserver' in window)) return;

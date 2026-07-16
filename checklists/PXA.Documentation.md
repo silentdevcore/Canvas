@@ -81,6 +81,7 @@
 - [x] Demo-Beispiele sind aus der Documentation erreichbar.
 - [x] Documentation-Sidebar markiert den aktuell geklickten oder gescrollten Abschnitt.
 - [x] Element-Reference-Fokusmodus: Klick auf ein Element zeigt nur diese Elementkarte, Overview zeigt wieder alle.
+- [x] Sidebar-Fokusmodus auf alle linken Navigationseintraege erweitern: Designer, Editor-Details, Code SDK, Migration und Elemente zeigen nur den gewaehlten Content.
 
 ## Tests
 - [x] `docfx build docs/docfx.json` oder entsprechender Build fuer `PXA.Documentation`.
