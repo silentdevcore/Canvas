@@ -1879,6 +1879,143 @@ PdfGenerationDiagnostics? diagnostics = document.LastDiagnostics;`,
     model: 'PdfDocument -> PageCoverageQueries -> PdfGenerationDiagnostics',
   },
   {
+    category: 'Template SDK',
+    subcategory: 'Data Binding and Localization',
+    title: 'Localized Template Properties',
+    status: 'Ready',
+    description: 'Create a localized design model from C# with active languages, localized placeholders, RTL text, and target-language export settings.',
+    preview: { kind: 'table', rows: [['Language', 'SUBJECT'], ['de', 'Rechnung'], ['en', 'Invoice'], ['ar', 'فاتورة']] },
+    csharp: `var design = new DesignExportDto
+{
+    Name = "Localized invoice",
+    PageSettings = new PageSettingsDto
+    {
+        SystemLanguage = "de",
+        ActiveLanguages = ["de", "en", "ar"],
+        TargetLanguage = "ar",
+        LocalizedProperties =
+        [
+            new LocalizedPropertyDto
+            {
+                Key = "SUBJECT",
+                Scope = "global",
+                LocalizedValues =
+                {
+                    ["de"] = "Rechnung",
+                    ["en"] = "Invoice",
+                    ["ar"] = "فاتورة"
+                }
+            }
+        ]
+    },
+    Pages =
+    [
+        new PageDto
+        {
+            Id = "page-1",
+            Elements =
+            [
+                new ElementDto
+                {
+                    Id = "headline",
+                    Type = "text",
+                    Content = "{{SUBJECT}} #1001",
+                    Language = "ar",
+                    TextDirection = "rtl",
+                    ElementLanguage = "ar",
+                    X = 330,
+                    Y = 40,
+                    Width = 220,
+                    Height = 32
+                }
+            ]
+        }
+    ]
+};`,
+    json: `{
+  "pageSettings": {
+    "systemLanguage": "de",
+    "activeLanguages": ["de", "en", "ar"],
+    "targetLanguage": "ar",
+    "localizedProperties": [{ "key": "SUBJECT", "scope": "global" }]
+  },
+  "element": {
+    "content": "{{SUBJECT}} #1001",
+    "language": "ar",
+    "textDirection": "rtl",
+    "elementLanguage": "ar"
+  }
+}`,
+    model: 'DesignExportDto -> PageSettingsDto -> LocalizedPropertyDto -> ElementDto',
+  },
+  {
+    category: 'Template SDK',
+    subcategory: 'Data Binding and Localization',
+    title: 'Bound Elements and Repeated Rows',
+    status: 'Ready',
+    description: 'Create data-bound element definitions from C# with binding paths, expressions, conditional visibility, and repeat metadata.',
+    preview: { kind: 'table', rows: [['Binding', 'Use'], ['customer.name', 'Text'], ['invoice.items', 'Repeat']] },
+    csharp: `var design = new DesignExportDto
+{
+    Name = "Bound invoice",
+    Pages =
+    [
+        new PageDto
+        {
+            Id = "page-1",
+            Elements =
+            [
+                new ElementDto
+                {
+                    Id = "customer-name",
+                    Type = "text",
+                    Content = "Customer: {{customer.name}}",
+                    Binding = "customer.name",
+                    Expression = "customer.name",
+                    VisibleExpression = "customer.active == true",
+                    X = 40,
+                    Y = 64,
+                    Width = 260,
+                    Height = 24
+                },
+                new ElementDto
+                {
+                    Id = "items",
+                    Type = "table",
+                    Binding = "invoice.items",
+                    Repeat = new RepeatDto
+                    {
+                        DataPath = "invoice.items",
+                        TemplateId = "item-row-template"
+                    },
+                    CellData = [["Item", "Qty", "Total"]],
+                    HeaderRow = true,
+                    X = 40,
+                    Y = 120,
+                    Width = 500,
+                    Height = 160
+                }
+            ]
+        }
+    ]
+};`,
+    json: `{
+  "text": {
+    "binding": "customer.name",
+    "expression": "customer.name",
+    "visibleExpression": "customer.active == true"
+  },
+  "table": {
+    "binding": "invoice.items",
+    "repeat": {
+      "dataPath": "invoice.items",
+      "rowTemplate": ["{{name}}", "{{quantity}}", "{{total}}"]
+    }
+  }
+}`,
+    model: 'DesignExportDto -> ElementDto.Binding/Expression/VisibleExpression/Repeat',
+  },
+  {
     category: 'Spreadsheet SDK',
     subcategory: 'Workbook and Sheet Authoring',
     title: 'Workbook and Cells',
@@ -2120,6 +2257,16 @@ const spreadsheetSdkSubgroups = [
   examples: codeSdkExamples.filter((item) => item.category === 'Spreadsheet SDK' && item.subcategory === subgroup.title),
 }));
 
+const templateSdkSubgroups = [
+  {
+    title: 'Data Binding and Localization',
+    description: 'C# construction of localized DesignExportDto models, language-scoped elements, binding paths, expressions, visibility conditions, and repeat metadata.',
+  },
+].map((subgroup) => ({
+  ...subgroup,
+  examples: codeSdkExamples.filter((item) => item.category === 'Template SDK' && item.subcategory === subgroup.title),
+}));
+
 const codeSdkGroups = [
   {
     title: 'PDF SDK',
@@ -2132,6 +2279,12 @@ const codeSdkGroups = [
     description: 'Spreadsheet examples come after PDF: workbook creation, cells, formulas, ranges, formatting, validation, calculation, import, and XLSX export.',
     subgroups: spreadsheetSdkSubgroups,
     examples: codeSdkExamples.filter((item) => item.category === 'Spreadsheet SDK'),
+  },
+  {
+    title: 'Template SDK',
+    description: 'Template model examples for data binding, localization, language-specific elements, expressions, visibility rules, and repeat metadata.',
+    subgroups: templateSdkSubgroups,
+    examples: codeSdkExamples.filter((item) => item.category === 'Template SDK'),
   },
 ];
 
@@ -3652,6 +3805,21 @@ function parseCodeExample(example, code) {
       }
     } else {
       result.warning = 'Could not find CreateWorkbook, AddSheet, or Formula calls.';
+    }
+  } else if (example.category === 'Template SDK') {
+    const designName = firstString(/Name\s*=\s*"([^"]+)"/);
+    const content = firstString(/Content\s*=\s*"([^"]+)"/);
+    const binding = firstString(/Binding\s*=\s*"([^"]+)"/);
+    if (designName || content || binding) {
+      result.preview.value = designName ?? content ?? binding ?? result.preview.value;
+      result.preview.rows = [
+        ['Design', designName ?? 'Template'],
+        ['Content', content ?? 'Localized or bound content'],
+        ['Binding', binding ?? 'No binding'],
+      ];
+      result.json.summary = { designName, content, binding };
+    } else {
+      result.warning = 'Could not find DesignExportDto Name, Content, or Binding assignments.';
     }
   } else if (example.category === 'Spreadsheet SDK') {
     const workbookName = firstString(/CreateWorkbook\("([^"]+)"\)/);
