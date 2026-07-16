@@ -27,8 +27,8 @@
   - [x] Export
 - [x] Code-Dokumentation strukturieren:
   - [x] SDK-Beispiele statt Solution-Struktur: Text, Image, Table, Chart, Barcode/QR, Form Field, Line/Shape, Watermark/Export.
-  - [x] Pro SDK-Beispiel C# Code, JSON, Model und visuelle Preview anzeigen.
-  - [x] Tabs fuer C#, JSON, Model sowie vorbereitete Java/Python-Sprachen anzeigen.
+  - [x] Pro SDK-Beispiel interaktiven Playground mit Sprach-Tabs, editierbarem C# Code, Run Button, JSON, Model und Preview anzeigen.
+  - [x] Java/Python-Sprachen als vorbereitete Tabs mit Coming-soon-Zustand anzeigen.
 - [x] Migration Guides strukturieren:
   - [x] PDF Code Migration
   - [x] Report Designer Migration

@@ -2049,61 +2049,61 @@ function renderQuickstarts(items) {
 }
 
 function renderCodePreview(preview) {
+  const safeValue = escapeHtml(preview.value ?? '');
   const content = {
-    text: `<div class="pxa-sdk-preview-text">${preview.value}</div>`,
-    image: `<div class="pxa-sdk-preview-image">${preview.value}</div>`,
-    table: `<div class="pxa-sdk-preview-table"><span>Item</span><span>Qty</span><span>Total</span><span>Coffee</span><span>2</span><span>19.80</span></div>`,
-    chart: `<div class="pxa-sdk-preview-chart"><i style="height:42%"></i><i style="height:78%"></i></div>`,
-    barcode: `<div class="pxa-sdk-preview-barcode">|||| ||| ||||<small>${preview.value}</small></div>`,
-    field: `<label class="pxa-sdk-preview-field"><span>${preview.value}</span><input value="Enter name" readonly></label>`,
-    shape: `<div class="pxa-sdk-preview-shape"><span></span><strong>${preview.value}</strong></div>`,
-    watermark: `<div class="pxa-sdk-preview-watermark">${preview.value}</div>`,
+    text: `<div class="pxa-sdk-preview-text">${safeValue}</div>`,
+    image: `<div class="pxa-sdk-preview-image">${safeValue}</div>`,
+    table: `<div class="pxa-sdk-preview-table">${(preview.rows ?? [['Item', 'Qty', 'Total'], ['Coffee', '2', '19.80']]).flat().map((cell) => `<span>${escapeHtml(cell)}</span>`).join('')}</div>`,
+    chart: `<div class="pxa-sdk-preview-chart">${(preview.values ?? [10, 20]).map((value) => `<i style="height:${Math.max(18, Math.min(92, Number(value) * 4))}%"></i>`).join('')}</div>`,
+    barcode: `<div class="pxa-sdk-preview-barcode">|||| ||| ||||<small>${safeValue}</small></div>`,
+    field: `<label class="pxa-sdk-preview-field"><span>${safeValue}</span><input value="${escapeHtml(preview.placeholder ?? 'Enter name')}" readonly></label>`,
+    shape: `<div class="pxa-sdk-preview-shape"><span></span><strong>${safeValue}</strong></div>`,
+    watermark: `<div class="pxa-sdk-preview-watermark">${safeValue}</div>`,
   };
 
   return `
     <div class="pxa-sdk-preview-page">
-      ${content[preview.kind] ?? `<div>${preview.value}</div>`}
+      ${content[preview.kind] ?? `<div>${safeValue}</div>`}
     </div>
   `;
 }
 
 function renderCodeSdkExamples(items) {
   return items
-    .map((item) => `
-      <section class="pxa-card pxa-doc-detail pxa-code-sdk-example" id="${slug(item.title)}">
+    .map((item, index) => `
+      <section class="pxa-card pxa-doc-detail pxa-code-sdk-example" id="${slug(item.title)}" data-example-index="${index}">
         <div class="pxa-doc-detail__header">
           <span class="pxa-status ${statusClass(item.status)}">${item.status}</span>
           <h3>${item.title}</h3>
           <p>${item.description}</p>
         </div>
-        <div class="pxa-code-sdk-layout">
-          <div class="pxa-code-sdk-main">
-            <div class="pxa-code-sdk-tabs" aria-label="${item.title} code views">
-              <span class="is-active">C#</span>
-              <span>JSON</span>
-              <span>Model</span>
-              <span class="is-planned">Java</span>
-              <span class="is-planned">Python</span>
-            </div>
-            <article>
-              <h4>C#</h4>
-              <pre class="pxa-code"><code>${escapeHtml(item.csharp)}</code></pre>
-            </article>
-            <article>
-              <h4>JSON</h4>
-              <pre class="pxa-code"><code>${escapeHtml(item.json)}</code></pre>
-            </article>
-            <article>
-              <h4>Model</h4>
-              <pre class="pxa-code"><code>${escapeHtml(item.model)}</code></pre>
-            </article>
+        <div class="pxa-code-playground">
+          <div class="pxa-code-sdk-tabs pxa-code-language-tabs" aria-label="${item.title} language tabs">
+            <button class="is-active" type="button" data-language="csharp">C#</button>
+            <button type="button" data-language="java">Java</button>
+            <button type="button" data-language="python">Python</button>
           </div>
-          <aside class="pxa-code-sdk-preview">
-            <div class="pxa-code-sdk-tabs">
-              <span class="is-active">Preview</span>
+          <div class="pxa-code-editor-shell">
+            <textarea class="pxa-code-editor" spellcheck="false" aria-label="${item.title} C# code">${escapeHtml(item.csharp)}</textarea>
+            <div class="pxa-code-playground-actions">
+              <button class="pxa-button pxa-button--primary pxa-code-run" type="button">Run</button>
+              <span class="pxa-code-run-status">Ready</span>
             </div>
+          </div>
+          <div class="pxa-code-sdk-tabs pxa-code-output-tabs" aria-label="${item.title} output tabs">
+            <button class="is-active" type="button" data-output="preview">Preview</button>
+            <button type="button" data-output="json">JSON</button>
+            <button type="button" data-output="model">Model</button>
+          </div>
+          <div class="pxa-code-output-panel is-active" data-output-panel="preview">
             ${renderCodePreview(item.preview)}
-          </aside>
+          </div>
+          <div class="pxa-code-output-panel" data-output-panel="json">
+            <pre class="pxa-code"><code>${escapeHtml(item.json)}</code></pre>
+          </div>
+          <div class="pxa-code-output-panel" data-output-panel="model">
+            <pre class="pxa-code"><code>${escapeHtml(item.model)}</code></pre>
+          </div>
         </div>
       </section>
     `)
@@ -2701,6 +2701,147 @@ document.querySelector('#app').innerHTML = `
 
 initDocumentationScrollSpy();
 initDocumentationSearch();
+initCodeSdkPlaygrounds();
+
+function initCodeSdkPlaygrounds() {
+  const playgrounds = [...document.querySelectorAll('.pxa-code-sdk-example')];
+  playgrounds.forEach((playground) => {
+    const example = codeSdkExamples[Number(playground.dataset.exampleIndex)];
+    if (!example) return;
+
+    const editor = playground.querySelector('.pxa-code-editor');
+    const status = playground.querySelector('.pxa-code-run-status');
+    const languageButtons = [...playground.querySelectorAll('[data-language]')];
+    const outputButtons = [...playground.querySelectorAll('[data-output]')];
+    const outputPanels = [...playground.querySelectorAll('[data-output-panel]')];
+
+    const setOutput = (name) => {
+      outputButtons.forEach((button) => button.classList.toggle('is-active', button.dataset.output === name));
+      outputPanels.forEach((panel) => panel.classList.toggle('is-active', panel.dataset.outputPanel === name));
+    };
+
+    const run = () => {
+      const state = parseCodeExample(example, editor.value);
+      playground.querySelector('[data-output-panel="preview"]').innerHTML = renderCodePreview(state.preview);
+      playground.querySelector('[data-output-panel="json"] code').textContent = JSON.stringify(state.json, null, 2);
+      playground.querySelector('[data-output-panel="model"] code').textContent = state.model;
+      status.textContent = state.warning ? `Parser warning: ${state.warning}` : 'Updated';
+      status.classList.toggle('is-warning', Boolean(state.warning));
+      setOutput('preview');
+    };
+
+    languageButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        languageButtons.forEach((item) => item.classList.toggle('is-active', item === button));
+        if (button.dataset.language === 'csharp') {
+          editor.value = example.csharp;
+          editor.disabled = false;
+          status.textContent = 'Ready';
+        } else {
+          editor.value = `${button.textContent} examples are coming soon.`;
+          editor.disabled = true;
+          status.textContent = `${button.textContent} coming soon`;
+        }
+      });
+    });
+
+    outputButtons.forEach((button) => {
+      button.addEventListener('click', () => setOutput(button.dataset.output));
+    });
+
+    playground.querySelector('.pxa-code-run')?.addEventListener('click', run);
+  });
+}
+
+function parseCodeExample(example, code) {
+  const baseJson = JSON.parse(example.json);
+  const result = {
+    preview: { ...example.preview },
+    json: baseJson,
+    model: example.model,
+    warning: '',
+  };
+
+  const firstString = (pattern) => code.match(pattern)?.[1];
+  const allRows = [...code.matchAll(/\.Row\(([^)]+)\)/g)]
+    .map((match) => [...match[1].matchAll(/"([^"]*)"/g)].map((item) => item[1]))
+    .filter((row) => row.length);
+  const dataset = code.match(/\.Dataset\("([^"]+)",\s*([\d.]+),\s*([\d.]+)\)/);
+
+  if (example.title === 'Text') {
+    const value = firstString(/\.Text\("([^"]+)"\)/);
+    if (value) {
+      result.preview.value = value;
+      result.json.content = value;
+    } else {
+      result.warning = 'Could not find .Text("...").';
+    }
+  } else if (example.title === 'Image') {
+    const value = firstString(/\.Image\("([^"]+)"\)/);
+    if (value) {
+      result.preview.value = value.includes('logo') ? 'LOGO' : 'IMAGE';
+      result.json.content = value;
+    } else {
+      result.warning = 'Could not find .Image("...").';
+    }
+  } else if (example.title === 'Table') {
+    if (allRows.length) {
+      result.preview.rows = allRows;
+      result.json.cellData = allRows;
+    } else {
+      result.warning = 'Could not find table.Row(...).';
+    }
+  } else if (example.title === 'Chart') {
+    if (dataset) {
+      const values = [Number(dataset[2]), Number(dataset[3])];
+      result.preview.values = values;
+      result.json.chartData.datasets[0].label = dataset[1];
+      result.json.chartData.datasets[0].data = values;
+    } else {
+      result.warning = 'Could not find .Dataset("Label", n, n).';
+    }
+  } else if (example.title === 'Barcode and QR') {
+    const value = firstString(/\.Barcode\("([^"]+)"\s*,/);
+    if (value) {
+      result.preview.value = value;
+      result.json.barcodeValue = value;
+    } else {
+      result.warning = 'Could not find .Barcode("...").';
+    }
+  } else if (example.title === 'Form Field') {
+    const fieldName = firstString(/\.TextField\("([^"]+)"\)/);
+    const label = firstString(/\.Label\("([^"]+)"\)/);
+    const placeholder = firstString(/\.Placeholder\("([^"]+)"\)/);
+    if (fieldName || label || placeholder) {
+      result.preview.value = label ?? fieldName ?? result.preview.value;
+      result.preview.placeholder = placeholder ?? result.preview.placeholder;
+      if (fieldName) result.json.fieldName = fieldName;
+      if (label) result.json.fieldLabel = label;
+      if (placeholder) result.json.placeholder = placeholder;
+    } else {
+      result.warning = 'Could not find TextField, Label, or Placeholder calls.';
+    }
+  } else if (example.title === 'Line and Shape') {
+    const fill = firstString(/\.Fill\("([^"]+)"\)/);
+    const stroke = firstString(/\.Stroke\("([^"]+)"/);
+    if (fill || stroke) {
+      result.preview.value = fill ? `Fill ${fill}` : `Stroke ${stroke}`;
+      if (stroke) result.json.style.borderColor = stroke;
+    } else {
+      result.warning = 'Could not find .Fill("...") or .Stroke("...").';
+    }
+  } else if (example.title === 'Watermark and Export') {
+    const value = firstString(/\.Watermark\("([^"]+)"\)/);
+    if (value) {
+      result.preview.value = value;
+      result.json.content = value;
+    } else {
+      result.warning = 'Could not find .Watermark("...").';
+    }
+  }
+
+  return result;
+}
 
 function initDocumentationSearch() {
   const search = document.querySelector('.pxa-search');

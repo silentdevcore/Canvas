@@ -319,16 +319,8 @@
   margin: 0;
 }
 
-.pxa-code-sdk-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
-  gap: var(--pxa-space-5);
-  align-items: start;
-}
-
-.pxa-code-sdk-main,
-.pxa-code-sdk-main article,
-.pxa-code-sdk-preview {
+.pxa-code-playground,
+.pxa-code-editor-shell {
   display: grid;
   gap: var(--pxa-space-4);
 }
@@ -339,29 +331,66 @@
   gap: var(--pxa-space-2);
 }
 
-.pxa-code-sdk-tabs span {
+.pxa-code-sdk-tabs button {
   padding: var(--pxa-space-1) var(--pxa-space-2);
   color: var(--pxa-color-muted);
   background: var(--pxa-color-surface-alt);
   border: 1px solid var(--pxa-color-border);
   border-radius: var(--pxa-radius-sm);
+  cursor: pointer;
   font-size: var(--pxa-text-xs);
   font-weight: 850;
 }
 
-.pxa-code-sdk-tabs span.is-active {
+.pxa-code-sdk-tabs button.is-active {
   color: var(--pxa-color-brand-700);
   background: var(--pxa-color-brand-50);
   border-color: var(--pxa-color-brand-100);
 }
 
-.pxa-code-sdk-tabs span.is-planned {
-  opacity: 0.62;
+.pxa-code-editor {
+  width: 100%;
+  min-height: 260px;
+  padding: var(--pxa-space-4);
+  color: #dce7f7;
+  background: #101828;
+  border: 1px solid #223047;
+  border-radius: var(--pxa-radius-lg);
+  font-family: var(--pxa-font-mono);
+  font-size: var(--pxa-text-sm);
+  resize: vertical;
+}
+
+.pxa-code-editor:disabled {
+  opacity: 0.68;
+}
+
+.pxa-code-playground-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pxa-space-3);
+}
+
+.pxa-code-run-status {
+  color: var(--pxa-color-muted);
+  font-size: var(--pxa-text-sm);
+  font-weight: 800;
+}
+
+.pxa-code-run-status.is-warning {
+  color: var(--pxa-color-amber-600);
+}
+
+.pxa-code-output-panel {
+  display: none;
+}
+
+.pxa-code-output-panel.is-active {
+  display: block;
 }
 
 .pxa-sdk-preview-page {
-  position: sticky;
-  top: var(--pxa-space-5);
   display: grid;
   min-height: 360px;
   padding: var(--pxa-space-6);
@@ -772,7 +801,6 @@
   .pxa-doc-hero-grid,
   .pxa-doc-track-guide,
   .pxa-doc-detail__grid,
-  .pxa-code-sdk-layout,
   .pxa-doc-element-card__body,
   .pxa-doc-card-grid,
   .pxa-doc-quickstart-grid,
