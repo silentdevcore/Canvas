@@ -3081,10 +3081,10 @@ function initDocumentationScrollSpy() {
   const getFocusContainer = (id) => {
     const target = document.getElementById(id);
     if (!target) return null;
-    return target.closest('.pxa-doc-element-card, .pxa-doc-detail, .pxa-doc-card, .pxa-doc-section');
+    return target.closest('.pxa-doc-element-card, .pxa-doc-detail, .pxa-doc-sdk-group, .pxa-doc-card, .pxa-doc-section');
   };
 
-  const focusContainers = [...document.querySelectorAll('.pxa-doc-detail, .pxa-doc-card, .pxa-doc-element-card')];
+  const focusContainers = [...document.querySelectorAll('.pxa-doc-detail, .pxa-doc-sdk-group, .pxa-doc-card, .pxa-doc-element-card')];
 
   const applySidebarFocus = (id, enabled) => {
     const selected = enabled ? getFocusContainer(id) : null;
@@ -3099,7 +3099,8 @@ function initDocumentationScrollSpy() {
     focusContainers.forEach((container) => {
       const isFocused = container === selected;
       const isAncestorOfSelected = Boolean(selected && container.contains(selected));
-      const isHidden = Boolean(selected && !isFocused && !isAncestorOfSelected);
+      const isDescendantOfSelected = Boolean(selected && selected.contains(container));
+      const isHidden = Boolean(selected && !isFocused && !isAncestorOfSelected && !isDescendantOfSelected);
       container.classList.toggle('is-focused', isFocused);
       container.classList.toggle('is-hidden-by-filter', isHidden);
       container.setAttribute('aria-hidden', isHidden ? 'true' : 'false');
