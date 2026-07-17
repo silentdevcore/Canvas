@@ -3446,6 +3446,63 @@ function renderElementReference(items) {
   `;
 }
 
+function renderPageToc() {
+  const tocGroups = [
+    {
+      title: 'Start',
+      links: [
+        ['Overview', '#overview'],
+        ['Quickstarts', '#quickstarts'],
+      ],
+    },
+    {
+      title: 'Editor',
+      links: [
+        ['Editor path', '#editor-path'],
+        ...editorSections.map((item) => [itemTitle(item), `#${slug(itemTitle(item))}-details`]),
+        ['Element Reference', '#element-reference'],
+      ],
+    },
+    {
+      title: 'Code SDK',
+      links: [
+        ['Code path', '#code-path'],
+        ...codeSdkGroups.map((group) => [group.title, `#${slug(group.title)}`]),
+        ...exportSdkDocs.map((item) => [item.title, `#${slug(item.title)}`]),
+      ],
+    },
+    {
+      title: 'Migration',
+      links: [
+        ['Migration overview', '#migration'],
+        ['Common workflow', '#migration-workflow'],
+        ...migrationGuides.map((item) => [item.title, `#${slug(item.title)}`]),
+      ],
+    },
+    {
+      title: 'Reference',
+      links: [
+        ['Cookbook', '#cookbook'],
+        ['Demo examples', '#demo-examples'],
+        ['API reference', '#api-reference'],
+        ['History', '#history'],
+      ],
+    },
+  ];
+
+  return `
+    <strong>On this page</strong>
+    ${tocGroups.map((group) => `
+      <details class="pxa-doc-toc__group" open>
+        <summary>${group.title}</summary>
+        <div>
+          ${group.links.map(([label, href]) => `<a href="${href}">${label}</a>`).join('')}
+        </div>
+      </details>
+    `).join('')}
+  `;
+}
+
 function renderMigrationProviderTable(headers, rows) {
   return `
     <div class="pxa-doc-table-wrap">
@@ -3744,17 +3801,7 @@ document.querySelector('#app').innerHTML = `
 
         <aside class="pxa-docs-toc">
           <div class="pxa-card pxa-doc-toc">
-            <strong>On this page</strong>
-            <a href="#overview">Overview</a>
-            <a href="#quickstarts">Quickstarts</a>
-            <a href="#editor-path">Editor path</a>
-            <a href="#element-reference">Element reference</a>
-            <a href="#code-path">Code path</a>
-            <a href="#migration">Migration</a>
-            <a href="#cookbook">Cookbook</a>
-            <a href="#demo-examples">Demo examples</a>
-            <a href="#api-reference">API reference</a>
-            <a href="#history">History</a>
+            ${renderPageToc()}
           </div>
         </aside>
       </div>
