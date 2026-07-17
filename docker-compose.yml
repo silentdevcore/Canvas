@@ -1,0 +1,20 @@
+services:
+  pxa-database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: pxa
+      POSTGRES_USER: pxa
+      POSTGRES_PASSWORD: pxa-local
+    ports:
+      - "5432:5432"
+    volumes:
+      - pxa-database-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pxa -d pxa"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  pxa-database-data:

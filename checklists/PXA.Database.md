@@ -18,17 +18,17 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 - [ ] Align editions, entitlements, usage, and offline licenses with `PXA.Subscription-Licensing.md`.
 - [ ] Align outbox, delivery, consent, and suppression entities with `PXA.Mail-Service.md`.
 - [ ] Align container health, volumes, secrets, and startup behavior with `PXA.Api-Docker.md`.
-- [ ] Confirm a PostgreSQL EF Core provider version compatible with the repository's .NET 10 target before implementation.
+- [x] Confirm a PostgreSQL EF Core provider version compatible with the repository's .NET 10 target before implementation.
 
 ## Technology Baseline
 
-- [ ] Use PostgreSQL as the primary relational database for Cloud and On-Premise.
-- [ ] Use EF Core for mappings, transactions, migrations, and application persistence.
-- [ ] Run PostgreSQL as a dedicated service in the local and On-Premise Docker Compose bundles.
+- [x] Use PostgreSQL as the primary relational database for Cloud and On-Premise.
+- [x] Use EF Core for mappings, transactions, migrations, and application persistence.
+- [x] Run PostgreSQL as a dedicated service in the local and On-Premise Docker Compose bundles.
 - [ ] Prefer a managed PostgreSQL service for Cloud production.
-- [ ] Use production-like PostgreSQL containers for integration tests instead of relying on the EF in-memory provider.
-- [ ] Allow SQLite only for isolated unit tests that do not validate relational behavior.
-- [ ] Keep database-provider-specific behavior behind the infrastructure boundary.
+- [x] Use production-like PostgreSQL containers for integration tests instead of relying on the EF in-memory provider.
+- [x] Allow SQLite only for isolated unit tests that do not validate relational behavior.
+- [x] Keep database-provider-specific behavior behind the infrastructure boundary.
 
 ## Storage Boundaries
 
@@ -43,7 +43,7 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 
 - [ ] Define bounded persistence areas for Identity, Administration, Subscription, Licensing, Usage, Audit, Mail, Templates, Jobs, and Storage Metadata.
 - [ ] Use explicit table, column, index, constraint, and foreign-key naming conventions.
-- [ ] Use stable opaque identifiers and UTC timestamps.
+- [x] Use stable opaque identifiers and UTC timestamps.
 - [ ] Add optimistic concurrency tokens to administrator-editable records.
 - [ ] Add creation, update, actor, tenant, and soft-delete metadata where required.
 - [ ] Avoid generic key-value storage for domain data that requires validation, filtering, or constraints.
@@ -51,7 +51,7 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 
 ## Identity And Administration Data
 
-- [ ] Persist ASP.NET Core Identity users, credentials, claims, roles, external logins, and security tokens.
+- [x] Persist ASP.NET Core Identity users, credentials, claims, roles, external logins, and security tokens.
 - [ ] Persist organizations, memberships, teams, role assignments, and permission grants.
 - [ ] Persist invitations, email verification state, active sessions, and session revocation.
 - [ ] Persist service accounts, hashed API-key material, scopes, expiry, rotation, and last-used metadata.
@@ -99,14 +99,14 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 
 ## Migrations And Initialization
 
-- [ ] Store versioned EF Core migrations in source control.
+- [x] Store versioned EF Core migrations in source control.
 - [ ] Generate migration scripts in CI and review destructive or data-rewriting operations.
 - [ ] Separate schema migration from normal API startup in production.
 - [ ] Provide an explicit migration command or deployment job for Cloud and On-Premise.
 - [ ] Make migrations safe for rolling deployment where supported.
 - [ ] Define rollback or forward-fix procedures for failed migrations.
 - [ ] Seed only required system roles, permissions, edition definitions, and a controlled initial administrator flow.
-- [ ] Never seed production with default passwords or demo credentials.
+- [x] Never seed production with default passwords or demo credentials.
 - [ ] Record applied application and schema versions for support diagnostics.
 
 ## Security And Privacy
@@ -126,7 +126,7 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 - [ ] Add indexes based on documented Admin, API, worker, audit, and usage query patterns.
 - [ ] Require server-side pagination for unbounded lists.
 - [ ] Avoid N+1 queries and loading large binary data through EF entities.
-- [ ] Add database readiness checks without exposing credentials or schema details.
+- [x] Add database readiness checks without exposing credentials or schema details.
 - [ ] Monitor connections, query latency, locks, deadlocks, storage growth, replication lag, and migration state.
 - [ ] Define capacity thresholds and alerts before storage or connection exhaustion.
 - [ ] Establish a query-performance review process before adding caches or replicas.
@@ -152,8 +152,15 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 
 ## Tests
 
+Current verification status:
+
+- [x] Verify that the EF Core model matches the checked-in migration snapshot.
+- [x] Verify persistence mappings and constraints with fast model tests.
+- [x] Provide a Testcontainers test that creates PostgreSQL, applies all migrations, and persists an identity user with an organization membership.
+- [x] Execute the Testcontainers PostgreSQL test locally through Rancher Desktop.
+
 - [ ] Unit-test domain and application rules independently from EF Core where appropriate.
-- [ ] Run repository and migration tests against a real version-pinned PostgreSQL container.
+- [x] Run repository and migration tests against a real version-pinned PostgreSQL container.
 - [ ] Apply every migration from an empty database and from the latest supported previous release.
 - [ ] Test constraints, concurrency, transactions, idempotency, pagination, and cancellation.
 - [ ] Test tenant isolation for Identity, Admin, Subscription, Licensing, Usage, Mail, Templates, Jobs, and Storage Metadata.

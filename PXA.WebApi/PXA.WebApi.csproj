@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.5" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.3.0" />
     <PackageReference Include="QRCoder" Version="1.6.0" />
     <PackageReference Include="SkiaSharp" Version="3.119.2" />
@@ -23,6 +24,7 @@
     <ProjectReference Include="../src/Core/PXA.Application/PXA.Application.csproj" />
     <ProjectReference Include="../src/Core/PXA.Core/PXA.Core.csproj" />
     <ProjectReference Include="../src/Infrastructure/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj" />
+    <ProjectReference Include="../src/Infrastructure/PXA.Infrastructure.Persistence/PXA.Infrastructure.Persistence.csproj" />
     <ProjectReference Include="../src/Infrastructure/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj" />
     <ProjectReference Include="../src/Infrastructure/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj" />
     <ProjectReference Include="../src/Migrations/PDF/PXA.Migration.Pdf/PXA.Migration.Pdf.csproj" />

@@ -1,6 +1,7 @@
 using PXA.FileImporter;
 using PXA.FileImporter.ImageAnalysis;
 using PXA.FileImporter.ImageOcr;
+using PXA.Infrastructure.Persistence;
 using PXA.Pdf;
 using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Middleware;
@@ -13,6 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddPxaPersistence(
+    builder.Configuration.GetConnectionString("PxaDatabase")
+        ?? throw new InvalidOperationException("Connection string 'PxaDatabase' is required."));
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<PxaDbContext>("pxa-database", tags: ["ready"]);
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -115,6 +121,14 @@ app.UseHttpsRedirection();
 app.UseCors();
 // app.UseAuthenticationMiddleware();
 app.MapControllers();
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => false,
+});
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+});
 
 app.Run();
 

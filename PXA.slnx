@@ -1,2 +1,9 @@
 <Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Core/PXA.Domain/PXA.Domain.csproj" />
+    <Project Path="src/Infrastructure/PXA.Infrastructure.Persistence/PXA.Infrastructure.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PXA.Infrastructure.Persistence.Tests/PXA.Infrastructure.Persistence.Tests.csproj" />
+  </Folder>
 </Solution>
