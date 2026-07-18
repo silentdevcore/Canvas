@@ -55,7 +55,7 @@ public sealed class PxaMailProcessor
 
     public async Task<int> ProcessPendingAsync(CancellationToken cancellationToken)
     {
-        if (!options.Enabled)
+        if (!options.IsDeliveryEnabled)
             return 0;
 
         var now = DateTimeOffset.UtcNow;

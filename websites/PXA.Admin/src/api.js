@@ -134,6 +134,18 @@ export async function getAdminMail({ status = '', page = 1, pageSize = 25 } = {}
   return request(`/api/pxa/v1/admin/mail?${query}`);
 }
 
+export async function getAdminMailStatus() {
+  return request('/api/pxa/v1/admin/mail/status');
+}
+
+export async function retryAdminMail(messageId) {
+  return adminMutation(`/api/pxa/v1/admin/mail/${encodeURIComponent(messageId)}/retry`, 'POST');
+}
+
+export async function cancelAdminMail(messageId) {
+  return adminMutation(`/api/pxa/v1/admin/mail/${encodeURIComponent(messageId)}/cancel`, 'POST');
+}
+
 export async function acceptInvitation(token, password, displayName) {
   return adminMutation(`${authBase}/accept-invitation`, 'POST', { token, password, displayName });
 }

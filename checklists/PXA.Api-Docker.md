@@ -35,7 +35,8 @@ Deliver `PXA.WebApi` as a secure, observable, and offline-capable Linux containe
 - [ ] Map API, storage, OCR, font, logging, upload, timeout, and license settings to environment variables.
 - [ ] Support Docker secrets or read-only mounted files for credentials and license material.
 - [ ] Keep secrets and customer documents out of image layers and logs.
-- [ ] Add `/health/live` and `/health/ready` endpoints with meaningful dependency checks.
+- [x] Add `/health/live` and `/health/ready` endpoints with database and configured SMTP dependency checks.
+- [ ] Mount the Data Protection key directory on persistent encrypted storage in the API container.
 - [ ] Add graceful shutdown and bounded request/job cancellation.
 - [ ] Define cleanup rules for temporary uploads, generated files, and failed OCR jobs.
 

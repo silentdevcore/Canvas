@@ -5,16 +5,19 @@ import {
   addAdminOrganizationMember,
   createAdminOrganization,
   createAdminInvitation,
+  cancelAdminMail,
   getAdminOrganization,
   getAdminOrganizationMembers,
   getAdminOrganizations,
   getAdminMail,
+  getAdminMailStatus,
   getAdminUser,
   getAdminUsers,
   login,
   logout,
   removeAdminOrganizationMember,
   requestPasswordReset,
+  retryAdminMail,
   confirmPasswordReset,
   switchOrganization,
   updateAdminOrganization,
@@ -80,7 +83,8 @@ const state = {
     id: null, data: null, members: [], loading: false, error: null, saving: false,
   },
   mail: {
-    items: [], total: 0, page: 1, pageSize: 25, status: '', loading: false, loaded: false, error: null,
+    items: [], total: 0, page: 1, pageSize: 25, status: '', summary: null,
+    loading: false, loaded: false, saving: false, error: null,
   },
 };
 
@@ -538,23 +542,30 @@ function organizationDetailPage() {
 function mailPage() {
   const mail = state.mail;
   const totalPages = Math.max(1, Math.ceil(mail.total / mail.pageSize));
-  const rows = mail.items.map((message) => `
+  const rows = mail.items.map((message) => {
+    const canRetry = message.status === 'Failed' || message.status === 'DeadLetter';
+    const canCancel = ['Pending', 'Scheduled', 'Failed', 'DeadLetter'].includes(message.status);
+    return `
     <tr>
       <td>${escapeHtml(message.recipientEmail)}</td>
       <td>${escapeHtml(message.templateKey)}</td>
       <td><span class="admin-status ${message.status === 'Delivered' ? 'admin-status--ready' : message.status === 'DeadLetter' || message.status === 'Failed' ? 'admin-status--inactive' : 'admin-status--planned'}">${escapeHtml(message.status)}</span></td>
       <td>${message.attempts}</td>
       <td>${escapeHtml(formatDate(message.deliveredAt || message.createdAt))}</td>
-    </tr>`).join('');
+      <td><div class="admin-row-actions">${canRetry ? `<button class="mail-retry" data-message-id="${message.id}" type="button" ${mail.saving ? 'disabled' : ''}>Retry</button>` : ''}${canCancel ? `<button class="mail-cancel" data-message-id="${message.id}" type="button" ${mail.saving ? 'disabled' : ''}>Cancel</button>` : ''}</div></td>
+    </tr>`;
+  }).join('');
+  const summary = mail.summary;
   return `
     <header class="admin-page-header"><div><p class="pxa-kicker">Operations</p><h1>Mail delivery</h1><p>Inspect tenant-scoped transactional delivery metadata without exposing tokens or message bodies.</p></div><span class="admin-record-count">${mail.total} messages</span></header>
+    ${summary ? `<section class="admin-summary-grid" aria-label="Mail transport summary"><article><span>Transport</span><strong>${escapeHtml(summary.transport)}</strong></article><article><span>Delivery</span><strong>${summary.deliveryEnabled ? 'Enabled' : 'Disabled'}</strong></article><article><span>Pending</span><strong>${summary.pending}</strong></article><article><span>Needs attention</span><strong>${summary.failed + summary.deadLetter}</strong></article></section>` : ''}
     <section class="admin-table-section" aria-busy="${mail.loading}">
       <form class="admin-table-toolbar" id="mail-filter-form">
-        <select name="status" aria-label="Filter delivery status"><option value="">All statuses</option>${['Pending', 'Sending', 'Delivered', 'Failed', 'DeadLetter'].map((status) => `<option ${mail.status === status ? 'selected' : ''}>${status}</option>`).join('')}</select>
+        <select name="status" aria-label="Filter delivery status"><option value="">All statuses</option>${['Pending', 'Scheduled', 'Sending', 'Delivered', 'Failed', 'DeadLetter', 'Cancelled', 'Suppressed'].map((status) => `<option ${mail.status === status ? 'selected' : ''}>${status}</option>`).join('')}</select>
         <button type="submit">Apply</button>
       </form>
       ${mail.error ? `<div class="admin-alert admin-alert--error admin-inline-alert">${escapeHtml(mail.error)}</div>` : ''}
-      ${mail.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading delivery status...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>Recipient</th><th>Template</th><th>Status</th><th>Attempts</th><th>Updated</th></tr></thead><tbody>${rows}</tbody></table></div>${mail.items.length ? '' : '<div class="admin-empty-state"><strong>No mail messages</strong><p>Transactional messages for this organization will appear here.</p></div>'}<footer class="admin-pagination"><span>Page ${mail.page} of ${totalPages}</span><div><button id="mail-previous" type="button" ${mail.page <= 1 ? 'disabled' : ''}>Previous</button><button id="mail-next" type="button" ${mail.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer>`}
+      ${mail.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading delivery status...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>Recipient</th><th>Template</th><th>Status</th><th>Attempts</th><th>Updated</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>${mail.items.length ? '' : '<div class="admin-empty-state"><strong>No mail messages</strong><p>Transactional messages for this organization will appear here.</p></div>'}<footer class="admin-pagination"><span>Page ${mail.page} of ${totalPages}</span><div><button id="mail-previous" type="button" ${mail.page <= 1 ? 'disabled' : ''}>Previous</button><button id="mail-next" type="button" ${mail.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer>`}
     </section>`;
 }
 
@@ -852,8 +863,8 @@ async function loadMail() {
   state.mail.error = null;
   render();
   try {
-    const response = await getAdminMail(state.mail);
-    Object.assign(state.mail, response, { loaded: true });
+    const [response, summary] = await Promise.all([getAdminMail(state.mail), getAdminMailStatus()]);
+    Object.assign(state.mail, response, { summary, loaded: true });
   } catch (error) {
     state.mail.error = error.message;
     state.mail.loaded = true;
@@ -878,6 +889,30 @@ function bindMailEvents() {
     state.mail.page += 1;
     loadMail();
   });
+  document.querySelectorAll('.mail-retry').forEach((button) => {
+    button.addEventListener('click', () => runMailMutation(() => retryAdminMail(button.dataset.messageId)));
+  });
+  document.querySelectorAll('.mail-cancel').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (window.confirm('Cancel this queued mail message?'))
+        runMailMutation(() => cancelAdminMail(button.dataset.messageId));
+    });
+  });
+}
+
+async function runMailMutation(operation) {
+  state.mail.saving = true;
+  state.mail.error = null;
+  render();
+  try {
+    await operation();
+    state.mail.saving = false;
+    await loadMail();
+  } catch (error) {
+    state.mail.error = error.message;
+    state.mail.saving = false;
+    render();
+  }
 }
 
 async function handleLogout(event) {

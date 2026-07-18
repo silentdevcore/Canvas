@@ -23,11 +23,12 @@ Deliver one application-level mail service for identity, security, subscription,
 
 - [x] Define one mail application interface independent of SMTP and provider SDKs.
 - [ ] Add a replaceable Cloud transactional-provider adapter.
-- [ ] Add customer-configured SMTP transport for On-Premise installations.
+- [x] Add customer-configured SMTP transport for On-Premise installations.
 - [x] Add a development mail catcher or in-memory transport.
 - [x] Add mail-disabled mode for isolated deployments with explicit administrative status.
 - [ ] Keep provider credentials, SMTP credentials, and signing secrets in external secret storage.
 - [x] Separate message composition, queueing, transport, and delivery-status processing.
+- [x] Persist ASP.NET Core Data Protection keys so queued payloads survive API restarts.
 
 ## Transactional Email
 
@@ -85,15 +86,17 @@ Deliver one application-level mail service for identity, security, subscription,
 - [ ] Process delivery, delay, bounce, complaint, and suppression events idempotently.
 - [ ] Reject replayed, malformed, unsigned, and cross-tenant callback events.
 - [x] Expose tenant-scoped delivery status and sanitized failure metadata to authorized administrators.
+- [x] Add tenant-scoped, authorized manual retry and cancellation with audit events.
 - [ ] Add alerts for queue backlog, provider outage, authentication failure, and abnormal bounce rates.
 - [ ] Keep recipient addresses and provider payloads out of general application logs.
 
 ## Configuration
 
 - [x] Configure sender name, sender address, Admin action URL, and enabled state by environment.
-- [ ] Configure SMTP host, port, TLS mode, authentication, timeout, and certificate validation for On-Premise.
+- [x] Configure SMTP host, port, TLS mode, authentication, and timeout for On-Premise.
 - [ ] Configure Cloud provider credentials and webhook secrets externally.
-- [ ] Validate configuration at startup and expose safe readiness diagnostics.
+- [x] Validate configuration at startup and expose safe readiness diagnostics.
+- [x] Add a Mailpit service for local SMTP capture without delivering messages externally.
 - [ ] Document operation when mail is disabled and the administrative alternatives for invitation and reset workflows.
 
 ## Tests
@@ -103,11 +106,13 @@ Current identity-mail verification:
 - [x] Test invitation creation, encrypted outbox payload, delivery, activation, and token reuse rejection against PostgreSQL.
 - [x] Test neutral unknown-account reset requests, password reset, password-changed mail, and new-password login.
 - [x] Verify that stored token hashes, protected payloads, and Admin mail responses do not expose action tokens.
+- [x] Verify SMTP delivery against local Mailpit and check SMTP reachability through API readiness.
+- [x] Test manual retry, cancellation, tenant scoping, and audit creation against PostgreSQL.
 
 - [ ] Unit-test template selection, localization, token creation, consent, suppression, and retry classification.
-- [ ] Integration-test SMTP, development transport, and the selected Cloud provider adapter.
+- [ ] Automate SMTP and selected Cloud-provider transport integration tests in CI.
 - [ ] Test invitation, verification, password-reset, subscription, and security-notification flows.
-- [ ] Test retry, duplicate prevention, scheduling, dead-letter, manual retry, and disabled-mail behavior.
+- [ ] Complete retry, duplicate prevention, scheduling, dead-letter, and disabled-mail edge-case coverage.
 - [ ] Test valid and invalid provider callbacks, replay protection, bounces, and complaints.
 - [ ] Test double opt-in, unsubscribe, preference updates, and transactional delivery after marketing opt-out.
 - [ ] Test HTML and plain-text rendering in left-to-right and right-to-left languages.

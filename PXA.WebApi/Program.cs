@@ -38,14 +38,42 @@ builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
 builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IPxaTenantContext, PxaTenantContext>();
-builder.Services.AddDataProtection().SetApplicationName("PowerDoxAutomation");
-builder.Services.Configure<PxaMailOptions>(builder.Configuration.GetSection("Mail"));
+var dataProtectionKeysDirectory = builder.Configuration["DataProtection:KeysDirectory"]
+    ?? Path.Combine("App_Data", "data-protection-keys");
+var dataProtectionKeysPath = Path.IsPathRooted(dataProtectionKeysDirectory)
+    ? dataProtectionKeysDirectory
+    : Path.Combine(builder.Environment.ContentRootPath, dataProtectionKeysDirectory);
+Directory.CreateDirectory(dataProtectionKeysPath);
+builder.Services.AddDataProtection()
+    .SetApplicationName("PowerDoxAutomation")
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
+builder.Services.AddOptions<PxaMailOptions>()
+    .Bind(builder.Configuration.GetSection("Mail"))
+    .Validate(options => new[] { "Development", "Smtp", "Disabled" }.Contains(
+        options.Transport,
+        StringComparer.OrdinalIgnoreCase), "Mail transport must be Development, Smtp, or Disabled.")
+    .Validate(options => !string.Equals(options.Transport, "Smtp", StringComparison.OrdinalIgnoreCase) ||
+                         (!string.IsNullOrWhiteSpace(options.SmtpHost) &&
+                          options.SmtpPort is > 0 and <= 65535 &&
+                          options.SmtpTimeoutSeconds is > 0 and <= 300),
+        "SMTP host, port, or timeout is invalid.")
+    .ValidateOnStart();
 builder.Services.AddScoped<IdentityActionTokenService>();
 builder.Services.AddScoped<IPxaMailQueue, PxaMailQueue>();
 builder.Services.AddScoped<PxaMailProcessor>();
 builder.Services.AddSingleton<DevelopmentMailTransport>();
+builder.Services.AddSingleton<SmtpMailTransport>();
+builder.Services.AddSingleton<DisabledMailTransport>();
 builder.Services.AddSingleton<IPxaMailTransport>(services =>
-    services.GetRequiredService<DevelopmentMailTransport>());
+{
+    var options = services.GetRequiredService<Microsoft.Extensions.Options.IOptions<PxaMailOptions>>().Value;
+    return options.Transport.ToLowerInvariant() switch
+    {
+        "smtp" => services.GetRequiredService<SmtpMailTransport>(),
+        "disabled" => services.GetRequiredService<DisabledMailTransport>(),
+        _ => services.GetRequiredService<DevelopmentMailTransport>(),
+    };
+});
 if (!builder.Environment.IsEnvironment("Testing"))
     builder.Services.AddHostedService<PxaMailWorker>();
 builder.Services.AddAuthorization(options =>
@@ -64,7 +92,8 @@ builder.Services.AddAntiforgery(options =>
     options.HeaderName = "X-PXA-CSRF";
 });
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<PxaDbContext>("pxa-database", tags: ["ready"]);
+    .AddDbContextCheck<PxaDbContext>("pxa-database", tags: ["ready"])
+    .AddCheck<PxaMailHealthCheck>("pxa-mail", tags: ["ready"], timeout: TimeSpan.FromSeconds(5));
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>

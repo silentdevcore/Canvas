@@ -114,6 +114,67 @@ public sealed class IdentityMailFlowTests
         Assert.DoesNotContain("protectedPayload", mailJson, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(invitationToken, mailJson, StringComparison.Ordinal);
         Assert.DoesNotContain(resetToken, mailJson, StringComparison.Ordinal);
+
+        Guid retryMessageId;
+        await using (var retryScope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = retryScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var failedMessage = await dbContext.MailOutboxMessages.FirstAsync();
+            failedMessage.Status = MailDeliveryStatus.DeadLetter;
+            failedMessage.FailureReason = "Integration-test failure";
+            failedMessage.Attempts = 5;
+            retryMessageId = failedMessage.Id;
+            await dbContext.SaveChangesAsync();
+        }
+
+        using var retryRequest = CreateCsrfRequest(
+            HttpMethod.Post,
+            $"/api/pxa/v1/admin/mail/{retryMessageId}/retry",
+            await GetCsrfAsync(adminClient),
+            new { });
+        Assert.Equal(HttpStatusCode.NoContent, (await adminClient.SendAsync(retryRequest)).StatusCode);
+
+        resetCsrf = await GetCsrfAsync(resetClient);
+        using var cancellableReset = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/password-reset/request",
+            resetCsrf,
+            new { email = "invited@pxa.test" });
+        Assert.Equal(HttpStatusCode.Accepted, (await resetClient.SendAsync(cancellableReset)).StatusCode);
+
+        Guid cancelMessageId;
+        await using (var cancelScope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = cancelScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            cancelMessageId = await dbContext.MailOutboxMessages
+                .Where(message => message.Status == MailDeliveryStatus.Pending && message.Id != retryMessageId)
+                .OrderByDescending(message => message.CreatedAt)
+                .Select(message => message.Id)
+                .FirstAsync();
+        }
+        using var cancelRequest = CreateCsrfRequest(
+            HttpMethod.Post,
+            $"/api/pxa/v1/admin/mail/{cancelMessageId}/cancel",
+            await GetCsrfAsync(adminClient),
+            new { });
+        Assert.Equal(HttpStatusCode.NoContent, (await adminClient.SendAsync(cancelRequest)).StatusCode);
+
+        await using (var actionScope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = actionScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            Assert.Equal(MailDeliveryStatus.Pending,
+                (await dbContext.MailOutboxMessages.FindAsync(retryMessageId))!.Status);
+            Assert.Equal(MailDeliveryStatus.Cancelled,
+                (await dbContext.MailOutboxMessages.FindAsync(cancelMessageId))!.Status);
+            Assert.Contains(await dbContext.AuditEvents.ToListAsync(), audit =>
+                audit.Action == "mail.retry" && audit.TargetId == retryMessageId.ToString());
+            Assert.Contains(await dbContext.AuditEvents.ToListAsync(), audit =>
+                audit.Action == "mail.cancel" && audit.TargetId == cancelMessageId.ToString());
+        }
+
+        var statusResponse = await adminClient.GetFromJsonAsync<JsonElement>("/api/pxa/v1/admin/mail/status");
+        Assert.Equal("Development", statusResponse.GetProperty("transport").GetString());
+        Assert.True(statusResponse.GetProperty("deliveryEnabled").GetBoolean());
     }
 
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>
@@ -125,6 +186,7 @@ public sealed class IdentityMailFlowTests
                 {
                     ["ConnectionStrings:PxaDatabase"] = connectionString,
                     ["Mail:Enabled"] = "true",
+                    ["Mail:Transport"] = "Development",
                     ["Mail:AdminBaseUrl"] = "https://admin.pxa.test",
                 }));
             builder.ConfigureServices(services =>

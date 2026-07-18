@@ -65,7 +65,7 @@ Current identity implementation:
 ## Roles And Policies
 
 - [ ] Provide System Administrator, Organization Administrator, Manager, Editor, and Viewer roles.
-- [x] Define policies including `users.read`, `users.create`, `users.update`, `users.disable`, `roles.assign`, `subscriptions.manage`, `licenses.manage`, and `audit.read`.
+- [x] Define policies including `users.read`, `users.create`, `users.update`, `users.disable`, `roles.assign`, `subscriptions.manage`, `licenses.manage`, `audit.read`, `mail.read`, and `mail.manage`.
 - [x] Define separate `organizations.read` and `organizations.manage` policies for tenant administration.
 - [ ] Keep roles independent from subscription and product entitlements.
 - [ ] Restrict System Administrator capabilities to explicitly authorized PXA operators.
@@ -82,7 +82,7 @@ Current identity implementation:
 - [ ] Add subscription assignment, Trial extension, seat management, suspension, renewal, and usage inspection.
 - [ ] Add offline-license generation, replacement, revocation, and download as audited actions.
 - [ ] Add service-account and API-key creation, rotation, revocation, and last-used metadata.
-- [ ] Add mail queue, delivery status, and failure inspection without exposing message bodies or secrets by default.
+- [x] Add mail queue, delivery status, failure inspection, retry, and cancellation without exposing message bodies or secrets.
 - [ ] Add immutable, paginated audit-event search and export.
 - [ ] Return consistent Problem Details errors and stable authorization diagnostics.
 
@@ -144,6 +144,7 @@ Current invitation and recovery implementation:
 - [x] Add enumeration-resistant password-reset request and single-use reset confirmation endpoints.
 - [x] Add Invite user, Accept invitation, Forgot password, and Choose password views.
 - [x] Add tenant-scoped Mail delivery status UI without payload or token exposure.
+- [x] Add transport summary, delivery filters, authorized Retry/Cancel actions, and destructive confirmation to Mail delivery.
 
 ## Deployment And Operations
 
