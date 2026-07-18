@@ -135,6 +135,7 @@ public sealed class AdminRolesController : ControllerBase
     [HttpPut("{roleKey}/members/{userId:guid}")]
     [Authorize(Policy = PxaPermissions.RolesAssign)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("roles.member.assign")]
     public async Task<IActionResult> AssignMember(
         string roleKey,
         Guid userId,
@@ -176,6 +177,7 @@ public sealed class AdminRolesController : ControllerBase
     [HttpDelete("{roleKey}/members/{userId:guid}")]
     [Authorize(Policy = PxaPermissions.RolesAssign)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("roles.member.revoke")]
     public async Task<IActionResult> RevokeMember(
         string roleKey,
         Guid userId,

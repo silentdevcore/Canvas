@@ -17,8 +17,8 @@ Deliver a standalone, tenant-aware PXA administration application for users, org
 
 ## Priorities
 
-- [ ] P0: Replace demo authentication and establish persistent identity, tenancy, roles, and audit.
-- [ ] P0: Deliver secure user and organization administration.
+- [x] P0: Replace demo authentication and establish persistent identity, tenancy, roles, and audit.
+- [x] P0: Deliver secure user and organization administration.
 - [ ] P1: Deliver subscription, license, service-account, and mail administration.
 - [ ] P2: Add enterprise identity federation, SCIM, advanced teams, and custom roles.
 
@@ -70,7 +70,7 @@ Current identity implementation:
 - [x] Keep roles independent from subscription and product entitlements.
 - [ ] Restrict System Administrator capabilities to explicitly authorized PXA operators.
 - [x] Prevent administrators from changing their own active organization role or removing the last active Organization Administrator.
-- [ ] Audit every privileged role, permission, subscription, and license change.
+- [x] Audit every privileged role, permission, subscription, and license change.
 
 ## Admin API
 
@@ -212,6 +212,14 @@ Current audit administration implementation:
 - [x] Restrict CSV and JSON export to Enterprise subscriptions and audit each successful export.
 - [x] Add event detail, loading, empty, failure, pagination, filter reset, and export states to PXA Admin.
 
+Current privileged-mutation audit contract:
+
+- [x] Declare the expected audit action on all 32 Admin `POST`, `PUT`, `PATCH`, and `DELETE` endpoints.
+- [x] Require authorization, CSRF validation, and audit metadata for every discovered Admin mutation through a reflection contract test.
+- [x] Keep audit action keys stable and grouped by resource, including explicit alternatives and dynamic bulk-action families.
+- [x] Exercise successful user, session, role, organization, membership, invitation, subscription, seat, license, service-account, API-key, mail, and audit-export mutations against PostgreSQL.
+- [x] Verify that successful state changes persist actor-attributed audit events while rejected and cross-tenant requests do not mutate foreign data.
+
 ## Deployment And Operations
 
 - [x] Produce an independent Admin build.
@@ -236,7 +244,7 @@ Current audit administration implementation:
 - [x] Test license, service-account, API-key authentication/revocation, product enforcement, and usage workflows against PostgreSQL.
 - [x] Test audit filtering, details, anonymous rejection, cross-tenant isolation, Enterprise CSV/JSON export, and export auditing against PostgreSQL.
 - [x] Test protected role catalog, permission metadata, member counts, cross-tenant isolation, assignment, revocation, self-protection, and role audit events against PostgreSQL.
-- [ ] Verify that every privileged mutation creates an audit event.
+- [x] Verify that every privileged mutation creates an audit event.
 - [ ] Test keyboard navigation, focus management, screen-reader labels, and responsive layouts.
 - [ ] Run end-to-end tests for System Administrator and Organization Administrator journeys.
 - [x] Verify that Manager, Editor, Viewer, anonymous, and suspended users cannot access unauthorized Admin data.
@@ -246,6 +254,6 @@ Current audit administration implementation:
 - [ ] PXA Admin is deployed independently from PXA Designer.
 - [x] Non-admin users cannot load or invoke unauthorized Admin capabilities.
 - [ ] Every query and mutation respects organization isolation.
-- [ ] Every privileged change is attributable through immutable audit metadata.
+- [x] Every privileged change is attributable through immutable audit metadata.
 - [ ] Subscription access, application roles, and product entitlements remain distinct.
 - [ ] No password, reset token, invitation token, API-key secret, or mail credential is exposed in logs or normal API responses.

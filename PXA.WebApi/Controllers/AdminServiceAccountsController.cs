@@ -57,6 +57,7 @@ public sealed class AdminServiceAccountsController : ControllerBase
     [HttpPost]
     [Authorize(Policy = PxaPermissions.ServiceAccountsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("service_accounts.create")]
     public async Task<ActionResult<ServiceAccountResponse>> Create(
         CreateServiceAccountRequest request,
         CancellationToken cancellationToken)
@@ -86,6 +87,7 @@ public sealed class AdminServiceAccountsController : ControllerBase
     [HttpPost("{accountId:guid}/keys")]
     [Authorize(Policy = PxaPermissions.ServiceAccountsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("api_keys.create")]
     public async Task<ActionResult<CreateApiKeyResponse>> CreateKey(
         Guid accountId,
         CreateApiKeyRequest request,
@@ -123,6 +125,7 @@ public sealed class AdminServiceAccountsController : ControllerBase
     [HttpPost("{accountId:guid}/keys/{keyId:guid}/revoke")]
     [Authorize(Policy = PxaPermissions.ServiceAccountsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("api_keys.revoke")]
     public async Task<IActionResult> RevokeKey(
         Guid accountId,
         Guid keyId,
@@ -148,6 +151,7 @@ public sealed class AdminServiceAccountsController : ControllerBase
     [HttpPost("{accountId:guid}/revoke")]
     [Authorize(Policy = PxaPermissions.ServiceAccountsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("service_accounts.revoke")]
     public async Task<IActionResult> Revoke(Guid accountId, CancellationToken cancellationToken)
     {
         var account = await FindAccount(accountId, cancellationToken);

@@ -33,6 +33,16 @@ public sealed class AdminOrganizationsControllerTests
             "/api/pxa/v1/admin/organizations?page=1&pageSize=20");
         Assert.Equal(2, organizations.GetProperty("total").GetInt32());
 
+        using var createOrganization = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/admin/organizations",
+            await GetCsrfAsync(systemClient),
+            new { name = "Tenant Three", slug = "tenant-three" });
+        var createOrganizationResponse = await systemClient.SendAsync(createOrganization);
+        Assert.Equal(HttpStatusCode.Created, createOrganizationResponse.StatusCode);
+        var createdOrganizationId = (await createOrganizationResponse.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("id").GetGuid();
+
         var csrf = await GetCsrfAsync(systemClient);
         using var switchOrganization = CreateCsrfRequest(
             HttpMethod.Post,
@@ -70,6 +80,13 @@ public sealed class AdminOrganizationsControllerTests
             new { name = "Tenant Two Updated" });
         Assert.Equal(HttpStatusCode.OK, (await systemClient.SendAsync(updateOrganization)).StatusCode);
 
+        using var removeMember = CreateCsrfRequest(
+            HttpMethod.Delete,
+            $"/api/pxa/v1/admin/organizations/{seeded.SecondOrganizationId}/members/{seeded.CandidateUserId}",
+            csrf,
+            new { });
+        Assert.Equal(HttpStatusCode.NoContent, (await systemClient.SendAsync(removeMember)).StatusCode);
+
         using var removeLastAdministrator = CreateCsrfRequest(
             HttpMethod.Delete,
             $"/api/pxa/v1/admin/organizations/{seeded.FirstOrganizationId}/members/{seeded.OrganizationAdministratorUserId}",
@@ -99,7 +116,10 @@ public sealed class AdminOrganizationsControllerTests
             .Select(value => value.Action)
             .ToListAsync();
         Assert.Contains("memberships.add", auditActions);
+        Assert.Contains("memberships.remove", auditActions);
         Assert.Contains("organizations.update", auditActions);
+        Assert.True(await dbContext.AuditEvents.AnyAsync(value =>
+            value.OrganizationId == createdOrganizationId && value.Action == "organizations.create"));
     }
 
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>

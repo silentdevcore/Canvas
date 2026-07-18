@@ -73,6 +73,7 @@ public sealed class AdminAuditController : ControllerBase
 
     [HttpPost("export")]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("audit.export")]
     public async Task<IActionResult> Export(
         AuditExportRequest request,
         CancellationToken cancellationToken)

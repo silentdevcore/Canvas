@@ -43,6 +43,8 @@ public sealed class IdentityMailFlowTests
             });
         var invitationResponse = await adminClient.SendAsync(invitation);
         Assert.Equal(HttpStatusCode.Accepted, invitationResponse.StatusCode);
+        var invitedUserId = (await invitationResponse.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("userId").GetGuid();
 
         var transport = factory.Services.GetRequiredService<DevelopmentMailTransport>();
         await ProcessMailAsync(factory.Services);
@@ -170,6 +172,8 @@ public sealed class IdentityMailFlowTests
                 audit.Action == "mail.retry" && audit.TargetId == retryMessageId.ToString());
             Assert.Contains(await dbContext.AuditEvents.ToListAsync(), audit =>
                 audit.Action == "mail.cancel" && audit.TargetId == cancelMessageId.ToString());
+            Assert.Contains(await dbContext.AuditEvents.ToListAsync(), audit =>
+                audit.Action == "invitations.create" && audit.TargetId == invitedUserId.ToString());
         }
 
         var statusResponse = await adminClient.GetFromJsonAsync<JsonElement>("/api/pxa/v1/admin/mail/status");

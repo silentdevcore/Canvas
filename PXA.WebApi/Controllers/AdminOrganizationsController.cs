@@ -103,6 +103,7 @@ public sealed partial class AdminOrganizationsController : ControllerBase
     [HttpPost]
     [Authorize(Roles = PxaRoles.SystemAdministrator)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("organizations.create")]
     public async Task<ActionResult<AdminOrganizationResponse>> CreateOrganization(
         CreateAdminOrganizationRequest request,
         CancellationToken cancellationToken)
@@ -138,6 +139,7 @@ public sealed partial class AdminOrganizationsController : ControllerBase
     [HttpPatch("{organizationId:guid}")]
     [Authorize(Policy = PxaPermissions.OrganizationsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("organizations.update")]
     public async Task<ActionResult<AdminOrganizationResponse>> UpdateOrganization(
         Guid organizationId,
         UpdateAdminOrganizationRequest request,
@@ -214,6 +216,7 @@ public sealed partial class AdminOrganizationsController : ControllerBase
     [HttpPost("{organizationId:guid}/members")]
     [Authorize(Policy = PxaPermissions.UsersCreate)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("memberships.add")]
     public async Task<ActionResult<AdminOrganizationMemberResponse>> AddMember(
         Guid organizationId,
         AddAdminOrganizationMemberRequest request,
@@ -271,6 +274,7 @@ public sealed partial class AdminOrganizationsController : ControllerBase
     [HttpDelete("{organizationId:guid}/members/{userId:guid}")]
     [Authorize(Policy = PxaPermissions.UsersDisable)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("memberships.remove")]
     public async Task<IActionResult> RemoveMember(
         Guid organizationId,
         Guid userId,

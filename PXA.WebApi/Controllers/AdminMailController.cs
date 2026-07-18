@@ -87,6 +87,7 @@ public sealed class AdminMailController : ControllerBase
     [HttpPost("{messageId:guid}/retry")]
     [Authorize(Policy = PxaPermissions.MailManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("mail.retry")]
     public async Task<IActionResult> Retry(Guid messageId, CancellationToken cancellationToken)
     {
         if (tenantContext.OrganizationId is null)
@@ -112,6 +113,7 @@ public sealed class AdminMailController : ControllerBase
     [HttpPost("{messageId:guid}/cancel")]
     [Authorize(Policy = PxaPermissions.MailManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("mail.cancel")]
     public async Task<IActionResult> Cancel(Guid messageId, CancellationToken cancellationToken)
     {
         if (tenantContext.OrganizationId is null)

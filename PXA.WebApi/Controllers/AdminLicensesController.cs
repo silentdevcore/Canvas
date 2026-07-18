@@ -46,6 +46,7 @@ public sealed class AdminLicensesController : ControllerBase
     [HttpPost]
     [Authorize(Policy = PxaPermissions.LicensesManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("licenses.issue")]
     public async Task<ActionResult<AdminLicenseResponse>> IssueLicense(
         IssueOfflineLicenseRequest request,
         CancellationToken cancellationToken)
@@ -157,6 +158,7 @@ public sealed class AdminLicensesController : ControllerBase
     [HttpPost("{licenseId:guid}/revoke")]
     [Authorize(Policy = PxaPermissions.LicensesManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("licenses.revoke")]
     public async Task<IActionResult> RevokeLicense(
         Guid licenseId,
         RevokeOfflineLicenseRequest request,

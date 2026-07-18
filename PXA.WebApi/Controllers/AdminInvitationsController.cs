@@ -53,6 +53,7 @@ public sealed class AdminInvitationsController : ControllerBase
     [HttpPost]
     [Authorize(Policy = PxaPermissions.UsersCreate)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("invitations.create")]
     [EnableRateLimiting("invitations")]
     public async Task<ActionResult<AdminInvitationResponse>> CreateInvitation(
         CreateAdminInvitationRequest request,

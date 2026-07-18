@@ -149,12 +149,21 @@ public sealed class AdminSubscriptionsControllerTests
         Assert.Equal(1200, usage.GetProperty("totalQuantity").GetInt64());
         Assert.Equal(2, usage.GetProperty("items").GetArrayLength());
 
+        using var revokeSeat = CreateCsrfRequest(HttpMethod.Delete,
+            $"/api/pxa/v1/admin/subscriptions/{subscriptionId}/seats/{seeded.OrganizationAdminMembershipId}",
+            await GetCsrfAsync(systemClient), new { });
+        Assert.Equal(HttpStatusCode.NoContent, (await systemClient.SendAsync(revokeSeat)).StatusCode);
+
         using var revokeApiKey = CreateCsrfRequest(HttpMethod.Post,
             $"/api/pxa/v1/admin/service-accounts/{accountId}/keys/{keyId}/revoke",
             await GetCsrfAsync(organizationClient), new { });
         Assert.Equal(HttpStatusCode.NoContent, (await organizationClient.SendAsync(revokeApiKey)).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized,
             (await apiClient.GetAsync("/api/pxa/v1/account/entitlements/api")).StatusCode);
+        using var revokeServiceAccount = CreateCsrfRequest(HttpMethod.Post,
+            $"/api/pxa/v1/admin/service-accounts/{accountId}/revoke",
+            await GetCsrfAsync(organizationClient), new { });
+        Assert.Equal(HttpStatusCode.NoContent, (await organizationClient.SendAsync(revokeServiceAccount)).StatusCode);
 
         using var activate = CreateCsrfRequest(HttpMethod.Patch,
             $"/api/pxa/v1/admin/subscriptions/{subscriptionId}",
@@ -237,12 +246,21 @@ public sealed class AdminSubscriptionsControllerTests
         Assert.Single(await dbContext.OfflineLicenses.ToListAsync());
         Assert.Single(await dbContext.ServiceAccounts.ToListAsync());
         Assert.Single(await dbContext.ApiKeys.ToListAsync());
-        Assert.Contains(await dbContext.AuditEvents.ToListAsync(), value => value.Action == "subscriptions.create");
-        Assert.Contains(await dbContext.AuditEvents.ToListAsync(), value => value.Action == "subscriptions.update");
-        Assert.Contains(await dbContext.AuditEvents.ToListAsync(), value => value.Action == "subscriptions.seat.assign");
-        Assert.Contains(await dbContext.AuditEvents.ToListAsync(), value => value.Action == "subscription.renewed");
-        Assert.Contains(await dbContext.AuditEvents.ToListAsync(), value => value.Action == "licenses.issue");
-        Assert.Contains(await dbContext.AuditEvents.ToListAsync(), value => value.Action == "licenses.revoke");
+        var auditActions = await dbContext.AuditEvents.Select(value => value.Action).ToListAsync();
+        Assert.Contains("subscriptions.create", auditActions);
+        Assert.Contains("subscriptions.update", auditActions);
+        Assert.Contains("subscriptions.seat.assign", auditActions);
+        Assert.Contains("subscriptions.seat.revoke", auditActions);
+        Assert.Contains("subscription.trial.extended", auditActions);
+        Assert.Contains("subscription.renewed", auditActions);
+        Assert.Contains("subscription.grace-period.started", auditActions);
+        Assert.Contains("subscription.cancellation.scheduled", auditActions);
+        Assert.Contains("service_accounts.create", auditActions);
+        Assert.Contains("service_accounts.revoke", auditActions);
+        Assert.Contains("api_keys.create", auditActions);
+        Assert.Contains("api_keys.revoke", auditActions);
+        Assert.Contains("licenses.issue", auditActions);
+        Assert.Contains("licenses.revoke", auditActions);
 
         var foreignOrganization = new Organization { Name = "Foreign Audit Tenant", Slug = "foreign-audit-tenant" };
         var foreignAuditEvent = new AuditEvent

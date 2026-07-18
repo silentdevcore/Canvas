@@ -124,6 +124,29 @@ public sealed class AdminUsersControllerTests
             new { });
         Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(revokeSession)).StatusCode);
 
+        await using (var additionalSessionScope = factory.Services.CreateAsyncScope())
+        {
+            var additionalSessionDbContext = additionalSessionScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            additionalSessionDbContext.UserSessions.Add(new UserSession
+            {
+                UserId = seeded.ManagedUserId,
+                OrganizationId = seeded.OrganizationId,
+                IpAddressHash = new string('b', 64),
+                UserAgent = "PXA second integration browser",
+                ExpiresAt = DateTimeOffset.UtcNow.AddHours(8),
+            });
+            await additionalSessionDbContext.SaveChangesAsync();
+        }
+        using var revokeAllSessions = CreateCsrfRequest(
+            HttpMethod.Post,
+            $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/sessions/revoke-all",
+            authenticatedCsrf,
+            new { });
+        var revokeAllResponse = await client.SendAsync(revokeAllSessions);
+        Assert.Equal(HttpStatusCode.OK, revokeAllResponse.StatusCode);
+        Assert.Equal(1, (await revokeAllResponse.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("revokedCount").GetInt32());
+
         using var updateProfile = CreateCsrfRequest(
             HttpMethod.Patch,
             $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/profile",
@@ -186,6 +209,19 @@ public sealed class AdminUsersControllerTests
         Assert.False(disabledUser.GetProperty("isActive").GetBoolean());
         Assert.Equal("Suspended", disabledUser.GetProperty("membershipStatus").GetString());
 
+        using var enable = CreateCsrfRequest(
+            HttpMethod.Patch,
+            $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/status",
+            authenticatedCsrf,
+            new { isActive = true });
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(enable)).StatusCode);
+        using var disableAgain = CreateCsrfRequest(
+            HttpMethod.Patch,
+            $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/status",
+            authenticatedCsrf,
+            new { isActive = false });
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(disableAgain)).StatusCode);
+
         using var assignRoles = CreateCsrfRequest(
             HttpMethod.Put,
             $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/roles",
@@ -247,6 +283,8 @@ public sealed class AdminUsersControllerTests
         Assert.Contains("roles.member.assign", auditActions);
         Assert.Contains("roles.member.revoke", auditActions);
         Assert.Contains("sessions.revoke", auditActions);
+        Assert.Contains("sessions.revoke-all", auditActions);
+        Assert.Contains("users.enable", auditActions);
         Assert.Contains("users.update", auditActions);
         Assert.Contains("users.password-reset.request", auditActions);
         Assert.Contains("users.delete", auditActions);

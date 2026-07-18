@@ -169,6 +169,7 @@ public sealed class AdminUsersController : ControllerBase
     [HttpPatch("{userId:guid}/profile")]
     [Authorize(Policy = PxaPermissions.UsersUpdate)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("users.update")]
     [EnableRateLimiting("invitations")]
     public async Task<ActionResult<AdminUserResponse>> UpdateProfile(
         Guid userId,
@@ -237,6 +238,7 @@ public sealed class AdminUsersController : ControllerBase
     [HttpPost("{userId:guid}/password-reset")]
     [Authorize(Policy = PxaPermissions.UsersUpdate)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("users.password-reset.request")]
     [EnableRateLimiting("invitations")]
     public async Task<ActionResult<AdminPasswordResetResponse>> RequestPasswordReset(
         Guid userId,
@@ -282,6 +284,7 @@ public sealed class AdminUsersController : ControllerBase
     [HttpPatch("{userId:guid}/deletion")]
     [Authorize(Policy = PxaPermissions.UsersDisable)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("users.delete|users.restore")]
     public async Task<ActionResult<AdminUserResponse>> UpdateDeletion(
         Guid userId,
         UpdateAdminUserDeletionRequest request,
@@ -359,6 +362,7 @@ public sealed class AdminUsersController : ControllerBase
     [HttpPost("bulk")]
     [Authorize(Policy = PxaPermissions.UsersDisable)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("users.bulk.*")]
     public async Task<ActionResult<AdminBulkUserResponse>> BulkUpdate(
         BulkAdminUserRequest request,
         CancellationToken cancellationToken)
@@ -457,6 +461,7 @@ public sealed class AdminUsersController : ControllerBase
     [HttpPost("{userId:guid}/sessions/{sessionId:guid}/revoke")]
     [Authorize(Policy = PxaPermissions.UsersDisable)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("sessions.revoke")]
     public async Task<IActionResult> RevokeSession(
         Guid userId,
         Guid sessionId,
@@ -493,6 +498,7 @@ public sealed class AdminUsersController : ControllerBase
     [HttpPost("{userId:guid}/sessions/revoke-all")]
     [Authorize(Policy = PxaPermissions.UsersDisable)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("sessions.revoke-all")]
     public async Task<ActionResult<RevokeSessionsResponse>> RevokeAllSessions(
         Guid userId,
         CancellationToken cancellationToken)
@@ -528,6 +534,7 @@ public sealed class AdminUsersController : ControllerBase
     [HttpPatch("{userId:guid}/status")]
     [Authorize(Policy = PxaPermissions.UsersDisable)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("users.enable|users.disable")]
     public async Task<ActionResult<AdminUserResponse>> UpdateStatus(
         Guid userId,
         UpdateAdminUserStatusRequest request,
@@ -586,6 +593,7 @@ public sealed class AdminUsersController : ControllerBase
     [HttpPut("{userId:guid}/roles")]
     [Authorize(Policy = PxaPermissions.RolesAssign)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("roles.assign")]
     public async Task<ActionResult<AdminUserResponse>> UpdateRoles(
         Guid userId,
         UpdateAdminUserRolesRequest request,

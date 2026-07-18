@@ -92,6 +92,7 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
     [HttpPost]
     [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("subscriptions.create")]
     public async Task<ActionResult<AdminSubscriptionResponse>> CreateSubscription(
         CreateAdminSubscriptionRequest request,
         CancellationToken cancellationToken)
@@ -138,6 +139,7 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
     [HttpPatch("{subscriptionId:guid}")]
     [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("subscriptions.update")]
     public async Task<ActionResult<AdminSubscriptionResponse>> UpdateSubscription(
         Guid subscriptionId,
         UpdateAdminSubscriptionRequest request,
@@ -184,6 +186,7 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
     [HttpPost("{subscriptionId:guid}/seats/{membershipId:guid}")]
     [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("subscriptions.seat.assign")]
     public async Task<IActionResult> AssignSeat(Guid subscriptionId, Guid membershipId, CancellationToken cancellationToken)
     {
         if (!IsSystemAdministrator())
@@ -324,6 +327,7 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
     [HttpPost("{subscriptionId:guid}/trial/extend")]
     [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("subscription.trial.extended")]
     public async Task<ActionResult<AdminSubscriptionResponse>> ExtendTrial(
         Guid subscriptionId,
         ExtendTrialRequest request,
@@ -350,6 +354,7 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
     [HttpPost("{subscriptionId:guid}/renew")]
     [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("subscription.renewed")]
     public async Task<ActionResult<AdminSubscriptionResponse>> Renew(
         Guid subscriptionId,
         RenewSubscriptionRequest request,
@@ -379,6 +384,7 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
     [HttpPost("{subscriptionId:guid}/grace-period")]
     [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("subscription.grace-period.started")]
     public async Task<ActionResult<AdminSubscriptionResponse>> StartGracePeriod(
         Guid subscriptionId,
         GracePeriodRequest request,
@@ -404,6 +410,7 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
     [HttpPost("{subscriptionId:guid}/cancel")]
     [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("subscription.cancellation.scheduled")]
     public async Task<ActionResult<AdminSubscriptionResponse>> CancelSubscription(
         Guid subscriptionId,
         CancelSubscriptionRequest request,
@@ -430,6 +437,7 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
     [HttpDelete("{subscriptionId:guid}/seats/{membershipId:guid}")]
     [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("subscriptions.seat.revoke")]
     public async Task<IActionResult> RevokeSeat(Guid subscriptionId, Guid membershipId, CancellationToken cancellationToken)
     {
         if (!IsSystemAdministrator())
