@@ -1,0 +1,442 @@
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using PXA.Domain.Entities;
+using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Security;
+
+namespace PXA.WebApi.Controllers;
+
+[ApiController]
+[Authorize]
+[Route("api/pxa/v1/admin/subscriptions")]
+public sealed partial class AdminSubscriptionsController : ControllerBase
+{
+    private readonly PxaDbContext dbContext;
+    private readonly IPxaTenantContext tenantContext;
+
+    public AdminSubscriptionsController(PxaDbContext dbContext, IPxaTenantContext tenantContext)
+    {
+        this.dbContext = dbContext;
+        this.tenantContext = tenantContext;
+    }
+
+    [HttpGet]
+    [Authorize(Policy = PxaPermissions.SubscriptionsRead)]
+    public async Task<ActionResult<AdminSubscriptionPage>> GetSubscriptions(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        [FromQuery] string? status = null,
+        [FromQuery] string? edition = null,
+        CancellationToken cancellationToken = default)
+    {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+        var query = dbContext.OrganizationSubscriptions.AsNoTracking();
+        if (!IsSystemAdministrator())
+        {
+            if (tenantContext.OrganizationId is not { } organizationId)
+                return MissingOrganization();
+            query = query.Where(value => value.OrganizationId == organizationId);
+        }
+        if (Enum.TryParse<SubscriptionStatus>(status, true, out var parsedStatus))
+            query = query.Where(value => value.Status == parsedStatus);
+        if (Enum.TryParse<SubscriptionEdition>(edition, true, out var parsedEdition))
+            query = query.Where(value => value.Edition == parsedEdition);
+
+        var total = await query.CountAsync(cancellationToken);
+        var items = await (
+                from subscription in query
+                join organization in dbContext.Organizations.AsNoTracking()
+                    on subscription.OrganizationId equals organization.Id
+                orderby organization.Name
+                select new AdminSubscriptionSummary(
+                    subscription.Id,
+                    organization.Id,
+                    organization.Name,
+                    subscription.Edition.ToString(),
+                    subscription.AccountType.ToString(),
+                    subscription.Status.ToString(),
+                    subscription.BillingPeriod.ToString(),
+                    subscription.DeploymentMode.ToString(),
+                    subscription.SeatLimit,
+                    dbContext.SubscriptionSeatAssignments.Count(seat =>
+                        seat.SubscriptionId == subscription.Id && seat.RevokedAt == null),
+                    subscription.TrialEndsAt,
+                    subscription.CurrentPeriodEndsAt,
+                    subscription.UpdatedAt))
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+        return Ok(new AdminSubscriptionPage(items, page, pageSize, total));
+    }
+
+    [HttpGet("{subscriptionId:guid}")]
+    [Authorize(Policy = PxaPermissions.SubscriptionsRead)]
+    public async Task<ActionResult<AdminSubscriptionResponse>> GetSubscription(
+        Guid subscriptionId,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = await dbContext.OrganizationSubscriptions.AsNoTracking()
+            .Where(value => value.Id == subscriptionId)
+            .Select(value => (Guid?)value.OrganizationId)
+            .SingleOrDefaultAsync(cancellationToken);
+        if (organizationId is null || !CanAccess(organizationId.Value))
+            return NotFound();
+        var response = await BuildResponse(subscriptionId, cancellationToken);
+        return response is null ? NotFound() : Ok(response);
+    }
+
+    [HttpPost]
+    [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
+    [PxaValidateAntiforgery]
+    public async Task<ActionResult<AdminSubscriptionResponse>> CreateSubscription(
+        CreateAdminSubscriptionRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!IsSystemAdministrator())
+            return Forbid();
+        if (tenantContext.UserId is not { } actorUserId)
+            return Unauthorized();
+        if (!await dbContext.Organizations.AnyAsync(value => value.Id == request.OrganizationId, cancellationToken))
+            return NotFoundProblem("Organization does not exist.");
+        if (await dbContext.OrganizationSubscriptions.AnyAsync(
+                value => value.OrganizationId == request.OrganizationId,
+                cancellationToken))
+            return ConflictProblem("The organization already has a subscription.");
+        if (!TryParseRequest(request, out var values, out var validationError))
+            return ValidationProblem(validationError);
+
+        var now = DateTimeOffset.UtcNow;
+        var subscription = new OrganizationSubscription
+        {
+            OrganizationId = request.OrganizationId,
+            Edition = values.Edition,
+            AccountType = values.AccountType,
+            Status = values.Status,
+            BillingPeriod = values.BillingPeriod,
+            DeploymentMode = values.DeploymentMode,
+            SeatLimit = values.AccountType == SubscriptionAccountType.IndividualDeveloper ? 1 : request.SeatLimit,
+            StartsAt = request.StartsAt ?? now,
+            TrialEndsAt = values.Edition == SubscriptionEdition.Trial
+                ? request.TrialEndsAt ?? (request.StartsAt ?? now).AddDays(30)
+                : request.TrialEndsAt,
+            CurrentPeriodEndsAt = request.CurrentPeriodEndsAt,
+        };
+        dbContext.OrganizationSubscriptions.Add(subscription);
+        dbContext.SubscriptionEntitlements.AddRange(CreateEntitlements(subscription.Id, request.Entitlements, now));
+        AddLifecycleEvent(subscription, actorUserId, "subscription.created", null, new { subscription.Edition, subscription.AccountType });
+        AddAuditEvent(subscription, actorUserId, "subscriptions.create");
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return CreatedAtAction(nameof(GetSubscription), new { subscriptionId = subscription.Id },
+            await BuildResponse(subscription.Id, cancellationToken));
+    }
+
+    [HttpPatch("{subscriptionId:guid}")]
+    [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
+    [PxaValidateAntiforgery]
+    public async Task<ActionResult<AdminSubscriptionResponse>> UpdateSubscription(
+        Guid subscriptionId,
+        UpdateAdminSubscriptionRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!IsSystemAdministrator())
+            return Forbid();
+        if (tenantContext.UserId is not { } actorUserId)
+            return Unauthorized();
+        var subscription = await dbContext.OrganizationSubscriptions.SingleOrDefaultAsync(
+            value => value.Id == subscriptionId,
+            cancellationToken);
+        if (subscription is null)
+            return NotFound();
+
+        var previousStatus = subscription.Status;
+        if (!TryApplyUpdate(subscription, request, out var validationError))
+            return ValidationProblem(validationError);
+        if (subscription.Status != previousStatus && !CanTransition(previousStatus, subscription.Status))
+            return ConflictProblem($"Transition from {previousStatus} to {subscription.Status} is not allowed.");
+        var activeSeats = await dbContext.SubscriptionSeatAssignments.CountAsync(
+            value => value.SubscriptionId == subscriptionId && value.RevokedAt == null,
+            cancellationToken);
+        if (subscription.SeatLimit is { } seatLimit && activeSeats > seatLimit)
+            return ConflictProblem("The seat limit cannot be lower than the number of assigned seats.");
+
+        if (request.Entitlements is not null)
+        {
+            var existing = await dbContext.SubscriptionEntitlements
+                .Where(value => value.SubscriptionId == subscriptionId)
+                .ToListAsync(cancellationToken);
+            dbContext.SubscriptionEntitlements.RemoveRange(existing);
+            dbContext.SubscriptionEntitlements.AddRange(
+                CreateEntitlements(subscriptionId, request.Entitlements, DateTimeOffset.UtcNow));
+        }
+        subscription.UpdatedAt = DateTimeOffset.UtcNow;
+        AddLifecycleEvent(subscription, actorUserId, "subscription.updated", previousStatus,
+            new { subscription.Edition, subscription.Status, subscription.SeatLimit });
+        AddAuditEvent(subscription, actorUserId, "subscriptions.update");
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Ok(await BuildResponse(subscriptionId, cancellationToken));
+    }
+
+    [HttpPost("{subscriptionId:guid}/seats/{membershipId:guid}")]
+    [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
+    [PxaValidateAntiforgery]
+    public async Task<IActionResult> AssignSeat(Guid subscriptionId, Guid membershipId, CancellationToken cancellationToken)
+    {
+        if (!IsSystemAdministrator())
+            return Forbid();
+        var subscription = await dbContext.OrganizationSubscriptions.FindAsync([subscriptionId], cancellationToken);
+        if (subscription is null || tenantContext.UserId is not { } actorUserId)
+            return NotFound();
+        var membershipExists = await dbContext.OrganizationMemberships.AnyAsync(value =>
+            value.Id == membershipId && value.OrganizationId == subscription.OrganizationId &&
+            value.Status == OrganizationMembershipStatus.Active, cancellationToken);
+        if (!membershipExists)
+            return NotFoundProblem("An active membership in this organization is required.");
+        var assignment = await dbContext.SubscriptionSeatAssignments.SingleOrDefaultAsync(value =>
+            value.SubscriptionId == subscriptionId && value.OrganizationMembershipId == membershipId,
+            cancellationToken);
+        if (assignment?.RevokedAt is null && assignment is not null)
+            return NoContent();
+        var assignedCount = await dbContext.SubscriptionSeatAssignments.CountAsync(value =>
+            value.SubscriptionId == subscriptionId && value.RevokedAt == null, cancellationToken);
+        if (subscription.SeatLimit is { } seatLimit && assignedCount >= seatLimit)
+            return ConflictProblem("The subscription seat limit has been reached.");
+        if (assignment is null)
+        {
+            dbContext.SubscriptionSeatAssignments.Add(new SubscriptionSeatAssignment
+            {
+                SubscriptionId = subscriptionId,
+                OrganizationMembershipId = membershipId,
+                AssignedByUserId = actorUserId,
+            });
+        }
+        else
+        {
+            assignment.RevokedAt = null;
+            assignment.AssignedAt = DateTimeOffset.UtcNow;
+            assignment.AssignedByUserId = actorUserId;
+        }
+        AddAuditEvent(subscription, actorUserId, "subscriptions.seat.assign");
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("{subscriptionId:guid}/seats/{membershipId:guid}")]
+    [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
+    [PxaValidateAntiforgery]
+    public async Task<IActionResult> RevokeSeat(Guid subscriptionId, Guid membershipId, CancellationToken cancellationToken)
+    {
+        if (!IsSystemAdministrator())
+            return Forbid();
+        var subscription = await dbContext.OrganizationSubscriptions.FindAsync([subscriptionId], cancellationToken);
+        var assignment = await dbContext.SubscriptionSeatAssignments.SingleOrDefaultAsync(value =>
+            value.SubscriptionId == subscriptionId && value.OrganizationMembershipId == membershipId && value.RevokedAt == null,
+            cancellationToken);
+        if (subscription is null || assignment is null || tenantContext.UserId is not { } actorUserId)
+            return NotFound();
+        assignment.RevokedAt = DateTimeOffset.UtcNow;
+        AddAuditEvent(subscription, actorUserId, "subscriptions.seat.revoke");
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return NoContent();
+    }
+
+    private async Task<AdminSubscriptionResponse?> BuildResponse(Guid subscriptionId, CancellationToken cancellationToken)
+    {
+        var subscription = await dbContext.OrganizationSubscriptions.AsNoTracking()
+            .SingleOrDefaultAsync(value => value.Id == subscriptionId, cancellationToken);
+        if (subscription is null)
+            return null;
+        var organizationName = await dbContext.Organizations.Where(value => value.Id == subscription.OrganizationId)
+            .Select(value => value.Name).SingleAsync(cancellationToken);
+        var entitlements = await dbContext.SubscriptionEntitlements.AsNoTracking()
+            .Where(value => value.SubscriptionId == subscriptionId)
+            .OrderBy(value => value.Capability)
+            .Select(value => new AdminEntitlementResponse(
+                value.Capability, value.Enabled, value.Limit, value.Unit, value.Source.ToString(), value.ExpiresAt))
+            .ToListAsync(cancellationToken);
+        var assignedSeats = await dbContext.SubscriptionSeatAssignments.AsNoTracking()
+            .CountAsync(value => value.SubscriptionId == subscriptionId && value.RevokedAt == null, cancellationToken);
+        return new AdminSubscriptionResponse(
+            subscription.Id, subscription.OrganizationId, organizationName, subscription.Edition.ToString(),
+            subscription.AccountType.ToString(), subscription.Status.ToString(), subscription.BillingPeriod.ToString(),
+            subscription.DeploymentMode.ToString(), subscription.SeatLimit, assignedSeats, subscription.StartsAt,
+            subscription.TrialEndsAt, subscription.CurrentPeriodEndsAt, subscription.CancellationEffectiveAt,
+            subscription.GracePeriodEndsAt, entitlements, subscription.CreatedAt, subscription.UpdatedAt);
+    }
+
+    private bool CanAccess(Guid organizationId) => IsSystemAdministrator() || tenantContext.OrganizationId == organizationId;
+    private bool IsSystemAdministrator() => User.IsInRole(PxaRoles.SystemAdministrator);
+
+    private static bool TryParseRequest(CreateAdminSubscriptionRequest request, out ParsedValues values, out string error)
+    {
+        if (!Enum.TryParse<SubscriptionEdition>(request.Edition, true, out var edition) ||
+            !Enum.TryParse<SubscriptionAccountType>(request.AccountType, true, out var accountType) ||
+            !Enum.TryParse<SubscriptionStatus>(request.Status, true, out var status) ||
+            !Enum.TryParse<SubscriptionBillingPeriod>(request.BillingPeriod, true, out var billingPeriod) ||
+            !Enum.TryParse<SubscriptionDeploymentMode>(request.DeploymentMode, true, out var deploymentMode) ||
+            request.SeatLimit is < 1)
+        {
+            values = default;
+            error = "Edition, account type, lifecycle status, billing period, deployment mode, or seat limit is invalid.";
+            return false;
+        }
+        if (!ValidateEntitlements(request.Entitlements, out error))
+        {
+            values = default;
+            return false;
+        }
+        values = new ParsedValues(edition, accountType, status, billingPeriod, deploymentMode);
+        return true;
+    }
+
+    private static bool TryApplyUpdate(
+        OrganizationSubscription subscription,
+        UpdateAdminSubscriptionRequest request,
+        out string error)
+    {
+        if (request.Edition is not null)
+        {
+            if (!Enum.TryParse(request.Edition, true, out SubscriptionEdition edition))
+                return Fail("Edition is invalid.", out error);
+            subscription.Edition = edition;
+        }
+        if (request.Status is not null)
+        {
+            if (!Enum.TryParse(request.Status, true, out SubscriptionStatus status))
+                return Fail("Lifecycle status is invalid.", out error);
+            subscription.Status = status;
+        }
+        if (request.BillingPeriod is not null)
+        {
+            if (!Enum.TryParse(request.BillingPeriod, true, out SubscriptionBillingPeriod period))
+                return Fail("Billing period is invalid.", out error);
+            subscription.BillingPeriod = period;
+        }
+        if (request.DeploymentMode is not null)
+        {
+            if (!Enum.TryParse(request.DeploymentMode, true, out SubscriptionDeploymentMode mode))
+                return Fail("Deployment mode is invalid.", out error);
+            subscription.DeploymentMode = mode;
+        }
+        if (request.SeatLimit is < 1)
+            return Fail("Seat limit must be positive.", out error);
+        if (request.SeatLimit is not null)
+            subscription.SeatLimit = subscription.AccountType == SubscriptionAccountType.IndividualDeveloper ? 1 : request.SeatLimit;
+        if (!ValidateEntitlements(request.Entitlements, out error))
+            return false;
+        subscription.TrialEndsAt = request.TrialEndsAt ?? subscription.TrialEndsAt;
+        subscription.CurrentPeriodEndsAt = request.CurrentPeriodEndsAt ?? subscription.CurrentPeriodEndsAt;
+        subscription.CancellationEffectiveAt = request.CancellationEffectiveAt ?? subscription.CancellationEffectiveAt;
+        subscription.GracePeriodEndsAt = request.GracePeriodEndsAt ?? subscription.GracePeriodEndsAt;
+        error = string.Empty;
+        return true;
+    }
+
+    private static bool ValidateEntitlements(IReadOnlyList<AdminEntitlementRequest>? entitlements, out string error)
+    {
+        if (entitlements is null)
+        {
+            error = string.Empty;
+            return true;
+        }
+        if (entitlements.Select(value => value.Capability).Distinct(StringComparer.OrdinalIgnoreCase).Count() != entitlements.Count ||
+            entitlements.Any(value => !CapabilityPattern().IsMatch(value.Capability) || value.Limit is < 0 ||
+                value.Unit?.Length > 40 || value.Source is not null &&
+                !Enum.TryParse<EntitlementSource>(value.Source, true, out _)))
+        {
+            error = "Entitlement capabilities must be unique stable keys with valid non-negative limits.";
+            return false;
+        }
+        error = string.Empty;
+        return true;
+    }
+
+    private static bool CanTransition(SubscriptionStatus from, SubscriptionStatus to) => from switch
+    {
+        SubscriptionStatus.Pending => to is SubscriptionStatus.Trialing or SubscriptionStatus.Active or SubscriptionStatus.Cancelled,
+        SubscriptionStatus.Trialing => to is SubscriptionStatus.Active or SubscriptionStatus.Suspended or SubscriptionStatus.Cancelled or SubscriptionStatus.Expired,
+        SubscriptionStatus.Active => to is SubscriptionStatus.PastDue or SubscriptionStatus.Suspended or SubscriptionStatus.Cancelled,
+        SubscriptionStatus.PastDue => to is SubscriptionStatus.Active or SubscriptionStatus.GracePeriod or SubscriptionStatus.Suspended or SubscriptionStatus.Cancelled,
+        SubscriptionStatus.GracePeriod => to is SubscriptionStatus.Active or SubscriptionStatus.Suspended or SubscriptionStatus.Cancelled or SubscriptionStatus.Expired,
+        SubscriptionStatus.Suspended => to is SubscriptionStatus.Active or SubscriptionStatus.Cancelled or SubscriptionStatus.Expired,
+        SubscriptionStatus.Cancelled => to is SubscriptionStatus.Expired,
+        SubscriptionStatus.Expired => false,
+        _ => false,
+    };
+
+    private static IEnumerable<SubscriptionEntitlement> CreateEntitlements(
+        Guid subscriptionId, IReadOnlyList<AdminEntitlementRequest> entitlements, DateTimeOffset now) =>
+        entitlements.Select(value => new SubscriptionEntitlement
+        {
+            SubscriptionId = subscriptionId,
+            Capability = value.Capability.ToLowerInvariant(),
+            Enabled = value.Enabled,
+            Limit = value.Limit,
+            Unit = value.Unit,
+            Source = Enum.TryParse<EntitlementSource>(value.Source, true, out var source)
+                ? source : EntitlementSource.EditionDefault,
+            ExpiresAt = value.ExpiresAt,
+            CreatedAt = now,
+            UpdatedAt = now,
+        });
+
+    private void AddLifecycleEvent(
+        OrganizationSubscription subscription, Guid actorUserId, string action,
+        SubscriptionStatus? previousStatus, object details) =>
+        dbContext.SubscriptionLifecycleEvents.Add(new SubscriptionLifecycleEvent
+        {
+            SubscriptionId = subscription.Id,
+            OrganizationId = subscription.OrganizationId,
+            ActorUserId = actorUserId,
+            Action = action,
+            PreviousStatus = previousStatus,
+            CurrentStatus = subscription.Status,
+            DetailsJson = JsonSerializer.Serialize(details),
+        });
+
+    private void AddAuditEvent(OrganizationSubscription subscription, Guid actorUserId, string action) =>
+        dbContext.AuditEvents.Add(new AuditEvent
+        {
+            OrganizationId = subscription.OrganizationId,
+            ActorUserId = actorUserId,
+            Action = action,
+            TargetType = "subscription",
+            TargetId = subscription.Id.ToString(),
+            Outcome = "succeeded",
+            DetailsJson = JsonSerializer.Serialize(new { subscription.Edition, subscription.Status }),
+        });
+
+    private static bool Fail(string message, out string error) { error = message; return false; }
+    private ObjectResult MissingOrganization() => Problem(statusCode: 403, title: "Organization context required");
+    private ObjectResult ConflictProblem(string detail) => Problem(statusCode: 409, title: "Subscription change rejected", detail: detail);
+    private ObjectResult NotFoundProblem(string detail) => Problem(statusCode: 404, title: "Subscription resource not found", detail: detail);
+    private BadRequestObjectResult ValidationProblem(string detail) => BadRequest(new ProblemDetails { Status = 400, Title = "Invalid subscription request", Detail = detail });
+
+    [GeneratedRegex("^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$", RegexOptions.CultureInvariant)]
+    private static partial Regex CapabilityPattern();
+    private readonly record struct ParsedValues(SubscriptionEdition Edition, SubscriptionAccountType AccountType,
+        SubscriptionStatus Status, SubscriptionBillingPeriod BillingPeriod, SubscriptionDeploymentMode DeploymentMode);
+}
+
+public sealed record AdminSubscriptionPage(IReadOnlyList<AdminSubscriptionSummary> Items, int Page, int PageSize, int Total);
+public sealed record AdminSubscriptionSummary(Guid Id, Guid OrganizationId, string OrganizationName, string Edition,
+    string AccountType, string Status, string BillingPeriod, string DeploymentMode, int? SeatLimit, int AssignedSeats,
+    DateTimeOffset? TrialEndsAt, DateTimeOffset? CurrentPeriodEndsAt, DateTimeOffset UpdatedAt);
+public sealed record AdminSubscriptionResponse(Guid Id, Guid OrganizationId, string OrganizationName, string Edition,
+    string AccountType, string Status, string BillingPeriod, string DeploymentMode, int? SeatLimit, int AssignedSeats,
+    DateTimeOffset StartsAt, DateTimeOffset? TrialEndsAt, DateTimeOffset? CurrentPeriodEndsAt,
+    DateTimeOffset? CancellationEffectiveAt, DateTimeOffset? GracePeriodEndsAt,
+    IReadOnlyList<AdminEntitlementResponse> Entitlements, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);
+public sealed record AdminEntitlementResponse(string Capability, bool Enabled, long? Limit, string? Unit, string Source, DateTimeOffset? ExpiresAt);
+public sealed record AdminEntitlementRequest(string Capability, bool Enabled, long? Limit = null, string? Unit = null,
+    string? Source = null, DateTimeOffset? ExpiresAt = null);
+public sealed record CreateAdminSubscriptionRequest(Guid OrganizationId, string Edition, string AccountType, string Status,
+    string BillingPeriod, string DeploymentMode, int? SeatLimit, DateTimeOffset? StartsAt, DateTimeOffset? TrialEndsAt,
+    DateTimeOffset? CurrentPeriodEndsAt, IReadOnlyList<AdminEntitlementRequest> Entitlements);
+public sealed record UpdateAdminSubscriptionRequest(string? Edition, string? Status, string? BillingPeriod,
+    string? DeploymentMode, int? SeatLimit, DateTimeOffset? TrialEndsAt, DateTimeOffset? CurrentPeriodEndsAt,
+    DateTimeOffset? CancellationEffectiveAt, DateTimeOffset? GracePeriodEndsAt,
+    IReadOnlyList<AdminEntitlementRequest>? Entitlements);

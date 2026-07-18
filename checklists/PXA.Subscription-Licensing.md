@@ -6,48 +6,48 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 
 ## Priorities
 
-- [ ] P0: Define editions, account types, lifecycle states, and entitlement semantics.
+- [x] P0: Define editions, account types, lifecycle states, and entitlement semantics.
 - [ ] P0: Define server-side enforcement and signed offline licenses.
 - [ ] P1: Add usage metering, subscription administration, and customer-facing status.
 - [ ] P2: Integrate a billing provider after commercial pricing is approved.
 
 ## Dependencies
 
-- [ ] Align organization, user, membership, and administrator ownership with `PXA.Admin.md`.
+- [x] Align organization, user, membership, and administrator ownership with `PXA.Admin.md`.
 - [ ] Align offline deployment and license mounting with `PXA.Api-Docker.md`.
 - [ ] Align SDK entitlement behavior with `PXA.SDK-Roadmap.md`.
 - [ ] Define exact prices and numeric usage limits before enabling paid checkout.
 
 ## Subscription Dimensions
 
-- [ ] Keep subscription edition independent from account type.
-- [ ] Support the `Individual Developer` account type with one owner and a personal workspace.
-- [ ] Support the `Company` account type with organizations, multiple seats, shared resources, administrators, teams, and centralized billing.
-- [ ] Support monthly and annual billing periods where an edition is billable.
-- [ ] Support Cloud, On-Premise, and future hybrid deployment entitlements.
+- [x] Keep subscription edition independent from account type.
+- [x] Model the `Individual Developer` account type with a single seat.
+- [x] Model the `Company` account type with organizations and configurable seats.
+- [x] Support none, monthly, and annual billing periods independently from pricing.
+- [x] Support Cloud, On-Premise, and hybrid deployment modes.
 
 ## Editions
 
-- [ ] Define `Free` as restricted entry-level Cloud usage with configurable product and usage limits.
-- [ ] Define `Trial` as 30 days of Premium capabilities with evaluation limits and a clear expiry path.
-- [ ] Define `Premium` as paid production usage with API and public SDK access.
-- [ ] Define `Enterprise` as negotiated Cloud or On-Premise usage with offline licensing, SSO, audit, SLA, and advanced administration.
-- [ ] Keep exact prices and Free/Premium numeric quotas out of code until approved commercially.
+- [x] Model `Free` with explicit configurable entitlements instead of hard-coded quotas.
+- [x] Model `Trial` with an automatic 30-day default period and explicit entitlements.
+- [x] Model `Premium` as an independently configurable edition.
+- [x] Model `Enterprise` with Cloud, On-Premise, or hybrid deployment mode.
+- [x] Keep exact prices and Free/Premium numeric quotas out of code until approved commercially.
 - [ ] Define allowed upgrade, downgrade, and conversion paths between editions.
 
 ## Lifecycle
 
-- [ ] Define `pending`, `trialing`, `active`, `past_due`, `grace_period`, `suspended`, `cancelled`, and `expired` states.
-- [ ] Define start, renewal, cancellation-effective, grace-period, suspension, and expiry timestamps.
-- [ ] Define immediate versus end-of-period effects for upgrades, downgrades, and cancellation.
-- [ ] Define Trial expiry, extension, conversion, and duplicate-Trial prevention rules.
-- [ ] Preserve an immutable history of subscription and license state transitions.
+- [x] Define `pending`, `trialing`, `active`, `past_due`, `grace_period`, `suspended`, `cancelled`, and `expired` states.
+- [x] Persist start, period-end, cancellation-effective, grace-period, and Trial-expiry timestamps.
+- [x] Enforce an explicit lifecycle transition matrix in the Admin API.
+- [x] Default Trial expiry to 30 days and prevent multiple current subscriptions per organization.
+- [x] Preserve append-only subscription lifecycle events for implemented mutations.
 
 ## Entitlements
 
-- [ ] Model product access for Generator, Designer, Migration, Importer, PDF Viewer, Spreadsheet, API, and SDK capabilities.
-- [ ] Model seat limits and seat assignment for Company accounts.
-- [ ] Model processed pages or operations, concurrent jobs, maximum file size, data retention, support level, and offline permission.
+- [x] Model stable capability keys for Generator, Designer, Migration, Importer, PDF Viewer, Spreadsheet, API, and SDK access.
+- [x] Model seat limits, assignment, revocation, and active-seat counts.
+- [x] Model optional numeric limits and units without selecting commercial quota values.
 - [ ] Distinguish hard limits, soft warnings, overage-capable limits, and informational usage.
 - [ ] Define entitlement precedence for edition defaults, negotiated overrides, and temporary grants.
 - [ ] Return stable entitlement-denied and quota-exceeded error codes from the API.
@@ -56,9 +56,9 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 
 ## Organization And Seat Management
 
-- [ ] Assign each Company subscription to exactly one organization.
+- [x] Assign each current Company subscription to exactly one organization.
 - [ ] Define owner, billing contact, technical contact, and organization administrator responsibilities.
-- [ ] Prevent active seat assignments from exceeding the effective seat entitlement.
+- [x] Prevent normal Admin API seat assignment from exceeding the configured seat entitlement.
 - [ ] Define seat invitation, assignment, transfer, removal, and deactivated-user behavior.
 - [ ] Preserve organization resources when a user loses a seat.
 - [ ] Define account-owner transfer and organization closure workflows.
@@ -85,14 +85,20 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 
 ## Administration And Customer Experience
 
-- [ ] Add subscription, entitlement, usage, seat, and license views to PXA Admin.
-- [ ] Support Trial extension, suspension, renewal, entitlement override, and license generation as audited privileged actions.
+- [x] Add a live subscription list, creation form, filters, lifecycle control, seats, and explicit capability selection to PXA Admin.
+- [ ] Add detail workflows for Trial extension, renewal dates, entitlement overrides, seat assignment, and license generation.
 - [ ] Show customers their edition, renewal or expiry date, limits, usage, and upgrade path.
 - [ ] Send lifecycle notifications through `PXA.Mail-Service.md`.
 - [ ] Update PXA.Company pricing and license content after commercial decisions are approved.
 - [ ] Keep billing-provider integration behind an application abstraction.
 
 ## Tests
+
+Current subscription foundation verification:
+
+- [x] Test Trial creation, automatic 30-day expiry, explicit entitlements, duplicate prevention, and lifecycle audit events.
+- [x] Test seat assignment and configured seat-limit rejection against PostgreSQL.
+- [x] Test tenant-scoped read access and System-Administrator-only mutation access.
 
 - [ ] Test every edition and account-type combination.
 - [ ] Test lifecycle transitions, grace periods, cancellation, suspension, expiry, and Trial conversion.
@@ -104,7 +110,7 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 
 ## Acceptance Criteria
 
-- [ ] Edition, account type, deployment mode, role, and product entitlement are separate concepts.
+- [x] Edition, account type, deployment mode, role, and product entitlement are separate persisted concepts.
 - [ ] Trial provides Premium capabilities for 30 days unless an audited extension exists.
 - [ ] Enterprise supports signed offline licenses without a permanent internet connection.
 - [ ] All protected operations enforce effective entitlements on the server.

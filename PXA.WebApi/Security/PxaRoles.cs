@@ -21,7 +21,7 @@ public static class PxaRoles
                 PxaPermissions.RolesAssign,
                 PxaPermissions.OrganizationsRead,
                 PxaPermissions.OrganizationsManage,
-                PxaPermissions.SubscriptionsManage,
+                PxaPermissions.SubscriptionsRead,
                 PxaPermissions.LicensesManage,
                 PxaPermissions.AuditRead,
                 PxaPermissions.MailRead,

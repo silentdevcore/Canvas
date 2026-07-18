@@ -65,7 +65,7 @@ Current identity implementation:
 ## Roles And Policies
 
 - [ ] Provide System Administrator, Organization Administrator, Manager, Editor, and Viewer roles.
-- [x] Define policies including `users.read`, `users.create`, `users.update`, `users.disable`, `roles.assign`, `subscriptions.manage`, `licenses.manage`, `audit.read`, `mail.read`, and `mail.manage`.
+- [x] Define policies including `users.read`, `users.create`, `users.update`, `users.disable`, `roles.assign`, `subscriptions.read`, `subscriptions.manage`, `licenses.manage`, `audit.read`, `mail.read`, and `mail.manage`.
 - [x] Define separate `organizations.read` and `organizations.manage` policies for tenant administration.
 - [ ] Keep roles independent from subscription and product entitlements.
 - [ ] Restrict System Administrator capabilities to explicitly authorized PXA operators.
@@ -79,7 +79,8 @@ Current identity implementation:
 - [ ] Add user detail, invitation, creation, update, activation, deactivation, soft deletion, and bulk operations.
 - [ ] Add password-reset initiation and active-session revocation without returning secret tokens.
 - [ ] Add organization, membership, role, and permission administration.
-- [ ] Add subscription assignment, Trial extension, seat management, suspension, renewal, and usage inspection.
+- [x] Add subscription creation, tenant-scoped inspection, lifecycle changes, explicit entitlements, and seat assignment/revocation.
+- [ ] Add Trial extension, renewal workflow, usage inspection, and billing integration.
 - [ ] Add offline-license generation, replacement, revocation, and download as audited actions.
 - [ ] Add service-account and API-key creation, rotation, revocation, and last-used metadata.
 - [x] Add mail queue, delivery status, failure inspection, retry, and cancellation without exposing message bodies or secrets.
@@ -145,6 +146,13 @@ Current invitation and recovery implementation:
 - [x] Add Invite user, Accept invitation, Forgot password, and Choose password views.
 - [x] Add tenant-scoped Mail delivery status UI without payload or token exposure.
 - [x] Add transport summary, delivery filters, authorized Retry/Cancel actions, and destructive confirmation to Mail delivery.
+
+Current subscription administration implementation:
+
+- [x] Separate subscription read access from System-Administrator-only lifecycle mutation access.
+- [x] Add PostgreSQL models and migration for current subscriptions, entitlements, seats, and lifecycle events.
+- [x] Add a real Subscription page with organization selection, filters, capability selection, seat limits, and lifecycle controls.
+- [x] Audit subscription creation, updates, and seat changes without coupling roles to entitlements.
 
 ## Deployment And Operations
 

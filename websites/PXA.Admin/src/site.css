@@ -497,6 +497,15 @@ tbody tr:hover { background: #f8fafc; }
   border-radius: var(--pxa-radius-md);
   font-weight: 700;
 }
+.admin-subscription-create { margin-bottom: var(--pxa-space-5); }
+.admin-subscription-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pxa-space-4); }
+.admin-capability-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--pxa-space-2); padding: var(--pxa-space-4); border: 1px solid var(--pxa-color-border); border-radius: var(--pxa-radius-md); }
+.admin-capability-options legend { padding: 0 var(--pxa-space-2); color: var(--pxa-color-ink); font-weight: 700; }
+.admin-capability-options label { display: flex; align-items: center; gap: var(--pxa-space-2); }
+.admin-capability-options input { width: 18px; height: 18px; }
+.admin-table-scroll td small { display: block; margin-top: var(--pxa-space-1); color: var(--pxa-color-muted); }
+.subscription-status { min-width: 120px; }
+.subscription-save-status { min-height: 34px; padding: 0 var(--pxa-space-3); background: white; border: 1px solid var(--pxa-color-border); border-radius: var(--pxa-radius-md); font-weight: 700; }
 
 .admin-back-link { display: inline-block; margin-bottom: var(--pxa-space-2); color: var(--pxa-color-brand-600); font-weight: 700; }
 .admin-header-actions { display: flex; align-items: center; gap: var(--pxa-space-3); }
@@ -574,6 +583,8 @@ tbody tr:hover { background: #f8fafc; }
   .admin-status-list p { grid-column: 1 / -1; }
   .admin-detail-grid { grid-template-columns: 1fr; }
   .admin-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-subscription-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-capability-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin-inline-form { grid-template-columns: 1fr 1fr; }
   .admin-inline-form .pxa-button { grid-column: 1 / -1; }
   .admin-invitation-form { grid-template-columns: 1fr 1fr; }
@@ -600,4 +611,5 @@ tbody tr:hover { background: #f8fafc; }
   .admin-invitation-form .pxa-button { grid-column: auto; }
   .admin-header-actions { align-items: flex-start; flex-direction: column; }
   .admin-summary-grid { grid-template-columns: 1fr; }
+  .admin-subscription-fields, .admin-capability-options { grid-template-columns: 1fr; }
 }

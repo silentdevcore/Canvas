@@ -1,6 +1,7 @@
 const authBase = '/api/pxa/v1/auth';
 const adminUsersBase = '/api/pxa/v1/admin/users';
 const adminOrganizationsBase = '/api/pxa/v1/admin/organizations';
+const adminSubscriptionsBase = '/api/pxa/v1/admin/subscriptions';
 
 async function request(path, options = {}) {
   const response = await fetch(path, {
@@ -132,6 +133,21 @@ export async function getAdminMail({ status = '', page = 1, pageSize = 25 } = {}
   const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
   if (status) query.set('status', status);
   return request(`/api/pxa/v1/admin/mail?${query}`);
+}
+
+export async function getAdminSubscriptions({ status = '', edition = '', page = 1, pageSize = 25 } = {}) {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  if (status) query.set('status', status);
+  if (edition) query.set('edition', edition);
+  return request(`${adminSubscriptionsBase}?${query}`);
+}
+
+export async function createAdminSubscription(subscription) {
+  return adminMutation(adminSubscriptionsBase, 'POST', subscription);
+}
+
+export async function updateAdminSubscription(subscriptionId, changes) {
+  return adminMutation(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}`, 'PATCH', changes);
 }
 
 export async function getAdminMailStatus() {

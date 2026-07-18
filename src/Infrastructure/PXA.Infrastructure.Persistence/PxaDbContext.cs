@@ -20,6 +20,10 @@ public sealed class PxaDbContext
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
     public DbSet<IdentityActionToken> IdentityActionTokens => Set<IdentityActionToken>();
     public DbSet<MailOutboxMessage> MailOutboxMessages => Set<MailOutboxMessage>();
+    public DbSet<OrganizationSubscription> OrganizationSubscriptions => Set<OrganizationSubscription>();
+    public DbSet<SubscriptionEntitlement> SubscriptionEntitlements => Set<SubscriptionEntitlement>();
+    public DbSet<SubscriptionSeatAssignment> SubscriptionSeatAssignments => Set<SubscriptionSeatAssignment>();
+    public DbSet<SubscriptionLifecycleEvent> SubscriptionLifecycleEvents => Set<SubscriptionLifecycleEvent>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

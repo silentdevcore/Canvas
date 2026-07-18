@@ -4,11 +4,13 @@ import {
   acceptInvitation,
   addAdminOrganizationMember,
   createAdminOrganization,
+  createAdminSubscription,
   createAdminInvitation,
   cancelAdminMail,
   getAdminOrganization,
   getAdminOrganizationMembers,
   getAdminOrganizations,
+  getAdminSubscriptions,
   getAdminMail,
   getAdminMailStatus,
   getAdminUser,
@@ -21,6 +23,7 @@ import {
   confirmPasswordReset,
   switchOrganization,
   updateAdminOrganization,
+  updateAdminSubscription,
   updateAdminUserRoles,
   updateAdminUserStatus,
 } from './api.js';
@@ -44,7 +47,6 @@ const pageDetails = {
   '/users': ['Users', 'Manage user status, memberships, roles, and active sessions.', ['Name', 'Email', 'Organization', 'Role', 'Status', 'Last login']],
   '/organizations': ['Organizations', 'Manage tenant ownership, memberships, and organization status.', ['Organization', 'Status', 'Members', 'Subscription', 'Updated']],
   '/roles': ['Roles & permissions', 'Review role definitions and the permissions granted to each role.', ['Role', 'Scope', 'Users', 'Permissions', 'Updated']],
-  '/subscriptions': ['Subscriptions', 'Inspect editions, lifecycle state, seats, and renewal information.', ['Customer', 'Edition', 'State', 'Seats', 'Renewal']],
   '/licenses': ['Licenses', 'Issue and inspect signed licenses for approved On-Premise deployments.', ['License', 'Customer', 'Products', 'Valid until', 'State']],
   '/service-accounts': ['Service accounts', 'Manage non-interactive access and API-key rotation.', ['Name', 'Organization', 'Scopes', 'Last used', 'State']],
   '/mail': ['Mail delivery', 'Inspect transactional delivery state without exposing message secrets.', ['Recipient', 'Template', 'State', 'Attempts', 'Updated']],
@@ -86,9 +88,28 @@ const state = {
     items: [], total: 0, page: 1, pageSize: 25, status: '', summary: null,
     loading: false, loaded: false, saving: false, error: null,
   },
+  subscriptions: {
+    items: [], total: 0, page: 1, pageSize: 25, status: '', edition: '',
+    loading: false, loaded: false, saving: false, error: null,
+  },
 };
 
 const organizationRoles = ['Organization Administrator', 'Manager', 'Editor', 'Viewer'];
+const subscriptionCapabilities = [
+  ['generator', 'Generator'], ['designer', 'Designer'], ['migration', 'Migration'],
+  ['importer', 'Importer'], ['pdf-viewer', 'PDF Viewer'], ['spreadsheet', 'Spreadsheet'],
+  ['api', 'API'], ['sdk', 'SDK'],
+];
+const subscriptionTransitions = {
+  Pending: ['Trialing', 'Active', 'Cancelled'],
+  Trialing: ['Active', 'Suspended', 'Cancelled', 'Expired'],
+  Active: ['PastDue', 'Suspended', 'Cancelled'],
+  PastDue: ['Active', 'GracePeriod', 'Suspended', 'Cancelled'],
+  GracePeriod: ['Active', 'Suspended', 'Cancelled', 'Expired'],
+  Suspended: ['Active', 'Cancelled', 'Expired'],
+  Cancelled: ['Expired'],
+  Expired: [],
+};
 
 function escapeHtml(value = '') {
   return String(value)
@@ -569,6 +590,28 @@ function mailPage() {
     </section>`;
 }
 
+function subscriptionsPage() {
+  const subscriptions = state.subscriptions;
+  const totalPages = Math.max(1, Math.ceil(subscriptions.total / subscriptions.pageSize));
+  const rows = subscriptions.items.map((subscription) => `
+    <tr>
+      <td><strong>${escapeHtml(subscription.organizationName)}</strong><small>${escapeHtml(subscription.accountType.replace('IndividualDeveloper', 'Individual Developer'))}</small></td>
+      <td>${escapeHtml(subscription.edition)}</td>
+      <td>${isSystemAdministrator() ? `<select class="subscription-status" data-subscription-id="${subscription.id}" aria-label="Status for ${escapeHtml(subscription.organizationName)}">${[subscription.status, ...(subscriptionTransitions[subscription.status] || [])].map((status) => `<option ${subscription.status === status ? 'selected' : ''}>${status}</option>`).join('')}</select>` : `<span class="admin-status ${subscription.status === 'Active' || subscription.status === 'Trialing' ? 'admin-status--ready' : 'admin-status--planned'}">${escapeHtml(subscription.status)}</span>`}</td>
+      <td>${escapeHtml(subscription.deploymentMode)}</td>
+      <td>${subscription.assignedSeats} / ${subscription.seatLimit ?? 'unlimited'}</td>
+      <td>${escapeHtml(formatDate(subscription.trialEndsAt || subscription.currentPeriodEndsAt))}</td>
+      <td>${isSystemAdministrator() ? `<button class="subscription-save-status" data-subscription-id="${subscription.id}" type="button" ${subscriptions.saving ? 'disabled' : ''}>Save</button>` : ''}</td>
+    </tr>`).join('');
+  const availableOrganizations = state.organizations.items.filter((organization) =>
+    !subscriptions.items.some((subscription) => subscription.organizationId === organization.id));
+  return `
+    <header class="admin-page-header"><div><p class="pxa-kicker">Commercial</p><h1>Subscriptions</h1><p>Manage edition, lifecycle, deployment, seats, and explicit product entitlements independently from application roles.</p></div><span class="admin-record-count">${subscriptions.total} subscriptions</span></header>
+    ${subscriptions.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(subscriptions.error)}</div>` : ''}
+    ${isSystemAdministrator() ? `<section class="admin-section admin-subscription-create"><div class="admin-section-heading"><h2>Create subscription</h2><p>No prices or quotas are inferred. Select only the capabilities approved for this organization.</p></div><form id="subscription-create-form" class="admin-form-stack"><div class="admin-subscription-fields"><label class="admin-field"><span>Organization</span><select name="organizationId" required><option value="">Select organization</option>${availableOrganizations.map((organization) => `<option value="${organization.id}">${escapeHtml(organization.name)}</option>`).join('')}</select></label><label class="admin-field"><span>Edition</span><select name="edition">${['Free', 'Trial', 'Premium', 'Enterprise'].map((value) => `<option>${value}</option>`).join('')}</select></label><label class="admin-field"><span>Account type</span><select name="accountType"><option value="Company">Company</option><option value="IndividualDeveloper">Individual Developer</option></select></label><label class="admin-field"><span>Status</span><select name="status"><option>Active</option><option>Trialing</option><option>Pending</option></select></label><label class="admin-field"><span>Billing</span><select name="billingPeriod"><option>None</option><option>Monthly</option><option>Annual</option></select></label><label class="admin-field"><span>Deployment</span><select name="deploymentMode"><option>Cloud</option><option>OnPremise</option><option>Hybrid</option></select></label><label class="admin-field"><span>Seat limit</span><input name="seatLimit" type="number" min="1" placeholder="No fixed limit"></label></div><fieldset class="admin-capability-options"><legend>Enabled capabilities</legend>${subscriptionCapabilities.map(([key, label]) => `<label><input type="checkbox" name="capability" value="${key}"><span>${label}</span></label>`).join('')}</fieldset><div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${subscriptions.saving || !availableOrganizations.length ? 'disabled' : ''}>Create subscription</button></div></form></section>` : ''}
+    <section class="admin-table-section" aria-busy="${subscriptions.loading}"><form class="admin-table-toolbar" id="subscription-filter-form"><select name="edition" aria-label="Filter edition"><option value="">All editions</option>${['Free', 'Trial', 'Premium', 'Enterprise'].map((value) => `<option ${subscriptions.edition === value ? 'selected' : ''}>${value}</option>`).join('')}</select><select name="status" aria-label="Filter lifecycle"><option value="">All states</option>${['Pending', 'Trialing', 'Active', 'PastDue', 'GracePeriod', 'Suspended', 'Cancelled', 'Expired'].map((value) => `<option ${subscriptions.status === value ? 'selected' : ''}>${value}</option>`).join('')}</select><button type="submit">Apply</button></form>${subscriptions.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading subscriptions...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>Organization</th><th>Edition</th><th>State</th><th>Deployment</th><th>Seats</th><th>Renewal / expiry</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${subscriptions.items.length ? '' : '<div class="admin-empty-state"><strong>No subscriptions</strong><p>Create the first organization subscription to define licensed capabilities.</p></div>'}<footer class="admin-pagination"><span>Page ${subscriptions.page} of ${totalPages}</span><div><button id="subscription-previous" type="button" ${subscriptions.page <= 1 ? 'disabled' : ''}>Previous</button><button id="subscription-next" type="button" ${subscriptions.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer>`}</section>`;
+}
+
 function dataPage(path) {
   const [title, description, columns] = pageDetails[path];
   return `
@@ -874,6 +917,70 @@ async function loadMail() {
   }
 }
 
+async function loadSubscriptions() {
+  state.subscriptions.loading = true;
+  state.subscriptions.error = null;
+  render();
+  try {
+    const tasks = [getAdminSubscriptions(state.subscriptions)];
+    if (isSystemAdministrator())
+      tasks.push(getAdminOrganizations({ pageSize: 100 }));
+    const [response, organizations] = await Promise.all(tasks);
+    Object.assign(state.subscriptions, response, { loaded: true });
+    if (organizations) Object.assign(state.organizations, organizations, { loaded: true });
+  } catch (error) {
+    state.subscriptions.error = error.message;
+    state.subscriptions.loaded = true;
+  } finally {
+    state.subscriptions.loading = false;
+    render();
+  }
+}
+
+function bindSubscriptionEvents() {
+  document.querySelector('#subscription-filter-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    state.subscriptions.edition = String(data.get('edition') || '');
+    state.subscriptions.status = String(data.get('status') || '');
+    state.subscriptions.page = 1;
+    loadSubscriptions();
+  });
+  document.querySelector('#subscription-previous')?.addEventListener('click', () => { state.subscriptions.page -= 1; loadSubscriptions(); });
+  document.querySelector('#subscription-next')?.addEventListener('click', () => { state.subscriptions.page += 1; loadSubscriptions(); });
+  document.querySelector('#subscription-create-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const seatLimit = data.get('seatLimit');
+    await runSubscriptionMutation(() => createAdminSubscription({
+      organizationId: data.get('organizationId'), edition: data.get('edition'), accountType: data.get('accountType'),
+      status: data.get('status'), billingPeriod: data.get('billingPeriod'), deploymentMode: data.get('deploymentMode'),
+      seatLimit: seatLimit ? Number(seatLimit) : null, startsAt: null, trialEndsAt: null, currentPeriodEndsAt: null,
+      entitlements: data.getAll('capability').map((capability) => ({ capability, enabled: true })),
+    }));
+  });
+  document.querySelectorAll('.subscription-save-status').forEach((button) => button.addEventListener('click', () => {
+    const select = document.querySelector(`.subscription-status[data-subscription-id="${button.dataset.subscriptionId}"]`);
+    runSubscriptionMutation(() => updateAdminSubscription(button.dataset.subscriptionId, { status: select.value }));
+  }));
+}
+
+async function runSubscriptionMutation(operation) {
+  state.subscriptions.saving = true;
+  state.subscriptions.error = null;
+  render();
+  try {
+    await operation();
+    state.subscriptions.loaded = false;
+    state.subscriptions.saving = false;
+    await loadSubscriptions();
+  } catch (error) {
+    state.subscriptions.error = error.message;
+    state.subscriptions.saving = false;
+    render();
+  }
+}
+
 function bindMailEvents() {
   document.querySelector('#mail-filter-form')?.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -991,6 +1098,13 @@ function render() {
     renderShell(mailPage(), 'Mail delivery');
     bindMailEvents();
     if (!state.mail.loaded && !state.mail.loading) loadMail();
+    return;
+  }
+
+  if (location.pathname === '/subscriptions') {
+    renderShell(subscriptionsPage(), 'Subscriptions');
+    bindSubscriptionEvents();
+    if (!state.subscriptions.loaded && !state.subscriptions.loading) loadSubscriptions();
     return;
   }
 
