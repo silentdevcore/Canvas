@@ -12,6 +12,7 @@ using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Mail;
 using Testcontainers.PostgreSql;
 
 namespace PXA.Api.Tests;
@@ -137,6 +138,30 @@ public sealed class AuthControllerTests
         var secondLoginResponse = await client.SendAsync(secondLogin);
         Assert.Equal(HttpStatusCode.OK, secondLoginResponse.StatusCode);
 
+        var emailChangeToken = await IssueEmailChangeAsync(
+            factory.Services,
+            userId,
+            organizationId,
+            "new-admin@pxa.test");
+        var emailChangeCsrfResponse = await client.GetAsync("/api/pxa/v1/auth/csrf");
+        var emailChangeCsrf = await emailChangeCsrfResponse.Content.ReadFromJsonAsync<JsonElement>();
+        using var confirmEmail = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/email-change/confirm",
+            emailChangeCsrf.GetProperty("token").GetString()!,
+            new { token = emailChangeToken });
+        Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(confirmEmail)).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/pxa/v1/auth/me")).StatusCode);
+
+        var thirdCsrfResponse = await client.GetAsync("/api/pxa/v1/auth/csrf");
+        var thirdCsrf = await thirdCsrfResponse.Content.ReadFromJsonAsync<JsonElement>();
+        using var thirdLogin = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/login",
+            thirdCsrf.GetProperty("token").GetString()!,
+            new { identifier = "new-admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(thirdLogin)).StatusCode);
+
         await RevokeSessionsAsync(factory.Services, userId);
         var revokedSessionResponse = await client.GetAsync("/api/pxa/v1/auth/me");
         Assert.Equal(HttpStatusCode.Unauthorized, revokedSessionResponse.StatusCode);
@@ -213,6 +238,29 @@ public sealed class AuthControllerTests
         Assert.NotNull(user);
         var result = await userManager.UpdateSecurityStampAsync(user!);
         Assert.True(result.Succeeded, Describe(result));
+    }
+
+    private static async Task<string> IssueEmailChangeAsync(
+        IServiceProvider services,
+        Guid userId,
+        Guid organizationId,
+        string email)
+    {
+        await using var scope = services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var user = await dbContext.Users.SingleAsync(value => value.Id == userId);
+        user.PendingEmail = email;
+        var tokens = scope.ServiceProvider.GetRequiredService<IdentityActionTokenService>();
+        var issued = await tokens.IssueAsync(
+            userId,
+            organizationId,
+            email,
+            IdentityActionTokenService.EmailChangePurpose,
+            new { },
+            TimeSpan.FromHours(1),
+            CancellationToken.None);
+        await dbContext.SaveChangesAsync();
+        return issued.RawToken;
     }
 
     private static string Describe(IdentityResult result) =>

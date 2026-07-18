@@ -12,6 +12,7 @@ using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Mail;
 using Testcontainers.PostgreSql;
 
 namespace PXA.Api.Tests;
@@ -118,6 +119,58 @@ public sealed class AdminUsersControllerTests
             authenticatedCsrf,
             new { });
         Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(revokeSession)).StatusCode);
+
+        using var updateProfile = CreateCsrfRequest(
+            HttpMethod.Patch,
+            $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/profile",
+            authenticatedCsrf,
+            new { displayName = "Updated Managed User", email = "updated-member@pxa.test" });
+        var profileResponse = await client.SendAsync(updateProfile);
+        Assert.Equal(HttpStatusCode.OK, profileResponse.StatusCode);
+        var updatedProfile = await profileResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Updated Managed User", updatedProfile.GetProperty("displayName").GetString());
+        Assert.Equal("updated-member@pxa.test", updatedProfile.GetProperty("pendingEmail").GetString());
+
+        using var resetPassword = CreateCsrfRequest(
+            HttpMethod.Post,
+            $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/password-reset",
+            authenticatedCsrf,
+            new { });
+        Assert.Equal(HttpStatusCode.Accepted, (await client.SendAsync(resetPassword)).StatusCode);
+
+        using var softDelete = CreateCsrfRequest(
+            HttpMethod.Patch,
+            $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/deletion",
+            authenticatedCsrf,
+            new { isDeleted = true });
+        var deletedResponse = await client.SendAsync(softDelete);
+        Assert.Equal(HttpStatusCode.OK, deletedResponse.StatusCode);
+        Assert.Equal("Removed", (await deletedResponse.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("membershipStatus").GetString());
+
+        using var restore = CreateCsrfRequest(
+            HttpMethod.Patch,
+            $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/deletion",
+            authenticatedCsrf,
+            new { isDeleted = false });
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(restore)).StatusCode);
+
+        using var bulkEnable = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/admin/users/bulk",
+            authenticatedCsrf,
+            new { userIds = new[] { seeded.ManagedUserId, seeded.AdministratorUserId }, action = "enable" });
+        var bulkResponse = await client.SendAsync(bulkEnable);
+        Assert.Equal(HttpStatusCode.OK, bulkResponse.StatusCode);
+        Assert.Equal(2, (await bulkResponse.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("succeededUserIds").GetArrayLength());
+
+        var userAudit = await client.GetFromJsonAsync<JsonElement>(
+            $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/audit");
+        Assert.Contains(userAudit.EnumerateArray(), value => value.GetProperty("action").GetString() == "users.update");
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            (await client.GetAsync($"/api/pxa/v1/admin/users/{seeded.ForeignUserId}/audit")).StatusCode);
         using var disable = CreateCsrfRequest(
             HttpMethod.Patch,
             $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/status",
@@ -190,7 +243,17 @@ public sealed class AdminUsersControllerTests
         Assert.Contains("roles.member.assign", auditActions);
         Assert.Contains("roles.member.revoke", auditActions);
         Assert.Contains("sessions.revoke", auditActions);
+        Assert.Contains("users.update", auditActions);
+        Assert.Contains("users.password-reset.request", auditActions);
+        Assert.Contains("users.delete", auditActions);
+        Assert.Contains("users.restore", auditActions);
+        Assert.Contains("users.bulk.enable", auditActions);
         Assert.NotNull((await dbContext.UserSessions.SingleAsync(value => value.Id == managedSessionId)).RevokedAt);
+        Assert.Equal("updated-member@pxa.test", (await dbContext.Users.SingleAsync(value => value.Id == seeded.ManagedUserId)).PendingEmail);
+        Assert.Contains(await dbContext.MailOutboxMessages.ToListAsync(), value =>
+            value.RecipientUserId == seeded.ManagedUserId && value.TemplateKey == "identity.email-verification");
+        Assert.Contains(await dbContext.MailOutboxMessages.ToListAsync(), value =>
+            value.RecipientUserId == seeded.ManagedUserId && value.TemplateKey == "identity.password-reset");
     }
 
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>

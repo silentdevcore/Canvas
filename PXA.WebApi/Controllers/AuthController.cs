@@ -401,6 +401,76 @@ public sealed class AuthController : ControllerBase
         return NoContent();
     }
 
+    [AllowAnonymous]
+    [HttpPost("email-change/confirm")]
+    [PxaValidateAntiforgery]
+    [EnableRateLimiting("identity-action")]
+    public async Task<IActionResult> ConfirmEmailChange(
+        ConfirmEmailChangeRequest request,
+        CancellationToken cancellationToken)
+    {
+        var actionToken = await actionTokens.FindValidAsync(
+            request.Token,
+            IdentityActionTokenService.EmailChangePurpose,
+            cancellationToken);
+        if (actionToken is null)
+            return InvalidActionToken();
+
+        var user = await userManager.FindByIdAsync(actionToken.UserId.ToString());
+        if (user is null ||
+            string.IsNullOrWhiteSpace(user.PendingEmail) ||
+            !string.Equals(user.PendingEmail, actionToken.RecipientEmail, StringComparison.OrdinalIgnoreCase))
+        {
+            return InvalidActionToken();
+        }
+        var existingUser = await userManager.FindByEmailAsync(user.PendingEmail);
+        if (existingUser is not null && existingUser.Id != user.Id)
+            return InvalidActionToken();
+
+        var oldEmail = user.Email;
+        var newEmail = user.PendingEmail;
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var emailResult = await userManager.SetEmailAsync(user, newEmail);
+        if (!emailResult.Succeeded)
+            return IdentityFailure(emailResult);
+        var usernameResult = await userManager.SetUserNameAsync(user, newEmail);
+        if (!usernameResult.Succeeded)
+            return IdentityFailure(usernameResult);
+        user.EmailConfirmed = true;
+        user.PendingEmail = null;
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+        actionToken.UsedAt = DateTimeOffset.UtcNow;
+
+        var sessions = await dbContext.UserSessions
+            .Where(value => value.UserId == user.Id && value.RevokedAt == null)
+            .ToListAsync(cancellationToken);
+        foreach (var session in sessions)
+        {
+            session.RevokedAt = DateTimeOffset.UtcNow;
+            session.RevokedByUserId = user.Id;
+            session.RevocationReason = "email-change";
+        }
+        AddSecurityAudit(
+            actionToken.OrganizationId,
+            user.Id,
+            "security.email-change.confirm",
+            actionToken.Id,
+            new { RevokedSessions = sessions.Count });
+        if (!string.IsNullOrWhiteSpace(oldEmail))
+        {
+            mailQueue.Enqueue(
+                actionToken.OrganizationId,
+                user.Id,
+                oldEmail,
+                "identity.email-changed",
+                new { displayName = user.DisplayName },
+                $"email-changed:{actionToken.Id}");
+        }
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return NoContent();
+    }
+
     private async Task<bool> HasValidCsrfTokenAsync()
     {
         try
@@ -622,6 +692,8 @@ public sealed record RequestPasswordResetRequest([Required, EmailAddress] string
 public sealed record ConfirmPasswordResetRequest(
     [Required] string Token,
     [Required] string NewPassword);
+
+public sealed record ConfirmEmailChangeRequest([Required] string Token);
 
 public sealed record LoginResponse(UserInfo User);
 

@@ -126,6 +126,18 @@ public sealed class PxaMailProcessor
                 "Your Power Dox Automation password changed",
                 $"<p>Hello {displayName},</p><p>Your password was changed. Contact support immediately if this was not you.</p>",
                 "Your Power Dox Automation password was changed. Contact support immediately if this was not you."),
+            "identity.email-verification" => new RenderedMail(
+                message.Id,
+                message.RecipientEmail,
+                "Verify your new Power Dox Automation email address",
+                $"<p>Hello {displayName},</p><p><a href=\"{actionUrl}\">Verify email address</a></p>",
+                $"Verify your new Power Dox Automation email address: {payload.GetValueOrDefault("actionUrl", string.Empty)}"),
+            "identity.email-changed" => new RenderedMail(
+                message.Id,
+                message.RecipientEmail,
+                "Your Power Dox Automation email address changed",
+                $"<p>Hello {displayName},</p><p>Your account email address was changed. Contact support immediately if this was not expected.</p>",
+                "Your Power Dox Automation account email address was changed. Contact support immediately if this was not expected."),
             _ => throw new InvalidOperationException("Unknown transactional mail template."),
         };
     }

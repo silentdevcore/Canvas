@@ -72,6 +72,26 @@ export async function getAdminUserSessions(userId) {
   return request(`${adminUsersBase}/${encodeURIComponent(userId)}/sessions`);
 }
 
+export async function getAdminUserAudit(userId) {
+  return request(`${adminUsersBase}/${encodeURIComponent(userId)}/audit`);
+}
+
+export async function updateAdminUserProfile(userId, displayName, email) {
+  return adminMutation(`${adminUsersBase}/${encodeURIComponent(userId)}/profile`, 'PATCH', { displayName, email });
+}
+
+export async function requestAdminUserPasswordReset(userId) {
+  return adminMutation(`${adminUsersBase}/${encodeURIComponent(userId)}/password-reset`, 'POST', {});
+}
+
+export async function updateAdminUserDeletion(userId, isDeleted) {
+  return adminMutation(`${adminUsersBase}/${encodeURIComponent(userId)}/deletion`, 'PATCH', { isDeleted });
+}
+
+export async function bulkUpdateAdminUsers(userIds, action) {
+  return adminMutation(`${adminUsersBase}/bulk`, 'POST', { userIds, action });
+}
+
 async function adminMutation(path, method, body) {
   const { token } = await request(`${authBase}/csrf`);
   return request(path, {
@@ -98,6 +118,10 @@ export async function revokeAdminUserSession(userId, sessionId) {
 
 export async function revokeAllAdminUserSessions(userId) {
   return adminMutation(`${adminUsersBase}/${encodeURIComponent(userId)}/sessions/revoke-all`, 'POST', {});
+}
+
+export async function confirmEmailChange(token) {
+  return adminMutation(`${authBase}/email-change/confirm`, 'POST', { token });
 }
 
 export async function getAdminOrganizations({ search = '', status = '', page = 1, pageSize = 25 } = {}) {

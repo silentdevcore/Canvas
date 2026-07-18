@@ -51,6 +51,7 @@ public sealed class PxaDbContext
         builder.Entity<PxaIdentityUser>(user =>
         {
             user.Property(value => value.DisplayName).HasMaxLength(200).IsRequired();
+            user.Property(value => value.PendingEmail).HasMaxLength(320);
             user.Property(value => value.CreatedAt).IsRequired();
             user.Property(value => value.UpdatedAt).IsRequired();
         });

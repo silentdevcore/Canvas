@@ -37,7 +37,7 @@ Deliver a standalone, tenant-aware PXA administration application for users, org
 - [x] Use secure host-only HttpOnly, Secure, SameSite browser cookies.
 - [x] Add CSRF protection for state-changing browser requests.
 - [x] Support tenant-bound API keys for SDKs and service accounts; delegated tokens remain future work.
-- [ ] Implement login, logout, current-user, password reset, email verification, and session revocation flows.
+- [x] Implement login, logout, current-user, password reset, email verification, and session revocation flows.
 - [x] Apply rate limits, lockout, password policy, token expiry, and security-event logging.
 
 Current identity implementation:
@@ -50,17 +50,17 @@ Current identity implementation:
 - [x] Return organization memberships and roles from the current-user endpoint.
 - [x] Verify login, logout, cookie flags, CSRF, organization context, and session revocation against PostgreSQL.
 - [x] Connect invitations and password reset to the persistent mail outbox.
-- [ ] Connect email verification changes for existing accounts to the persistent mail outbox.
+- [x] Connect email verification changes for existing accounts to the persistent mail outbox.
 - [x] Add security-event audit records and authentication rate limiting.
 
 ## Tenant And Data Model
 
 - [x] Model organizations, users, memberships, roles, permissions, invitations, and sessions.
-- [ ] Model service accounts, API keys, subscriptions, licenses, entitlements, and audit events.
+- [x] Model service accounts, API keys, subscriptions, licenses, entitlements, and audit events.
 - [ ] Use a default organization for single-customer On-Premise installations.
 - [ ] Enforce tenant scoping in repositories, application services, API policies, and tests.
 - [ ] Prevent tenant identifiers supplied by clients from bypassing the authenticated tenant context.
-- [ ] Use soft deletion and retention rules for identities referenced by audit records.
+- [x] Use organization-membership soft deletion and retain identities referenced by audit records.
 
 ## Roles And Policies
 
@@ -76,7 +76,7 @@ Current identity implementation:
 
 - [x] Add versioned Admin endpoints under `/api/pxa/v1/admin`.
 - [x] Add paginated user listing with server-side search, filter, and sorting.
-- [ ] Add user detail, invitation, creation, update, activation, deactivation, soft deletion, and bulk operations.
+- [x] Add user detail, invitation, creation, update, activation, deactivation, soft deletion, and bulk operations.
 - [x] Add password-reset initiation and active-session revocation without returning secret tokens.
 - [ ] Add organization, membership, role, and permission administration.
 - [x] Add subscription creation, tenant-scoped inspection, lifecycle changes, explicit entitlements, and seat assignment/revocation.
@@ -92,8 +92,8 @@ Current identity implementation:
 - [x] Add routes for dashboard, users, user details, organizations, roles, subscriptions, licenses, service accounts, mail delivery, audit, and settings.
 - [x] Build a work-focused admin shell with restrained navigation and responsive layouts.
 - [ ] Add user tables with name, email, organization, role, status, products, and last login.
-- [ ] Add server-driven search, filters, sorting, pagination, selection, and bulk actions.
-- [ ] Add invitation and edit forms with inline validation and accessible error summaries.
+- [x] Add server-driven search, filters, sorting, pagination, selection, and bulk actions.
+- [x] Add invitation and edit forms with inline validation and accessible error summaries.
 - [ ] Add role, membership, product entitlement, and seat controls appropriate to the current administrator.
 - [x] Add subscription detail, Trial extension, renewal, grace-period, cancellation, entitlement, seat, and lifecycle-history views.
 - [x] Add usage and offline-license views.
@@ -128,6 +128,13 @@ Current user administration implementation:
 - [x] Connect the Users table to server-side search, status filtering, and pagination.
 - [x] Add a user detail view with account metadata, status control, and organization-role controls.
 - [x] Add loading, empty, API-failure, and destructive-confirmation states to user administration.
+- [x] Edit display names and queue verification before changing an existing account email address.
+- [x] Confirm pending email changes through a hashed, expiring, single-use token and notify the previous address.
+- [x] Queue administrator-requested password resets without returning reset tokens.
+- [x] Soft delete and restore organization memberships without deleting shared identities or audit history.
+- [x] Apply tenant-scoped bulk enable, disable, restore, delete, and session-revocation actions with administrator protections.
+- [x] Display the latest tenant-scoped audit events directly on each user detail page.
+- [x] Rate-limit administrator-triggered email verification and password-reset delivery.
 
 Current session and identity-security implementation:
 
@@ -215,6 +222,7 @@ Current audit administration implementation:
 - [ ] Test cross-tenant access attempts and identifier tampering.
 - [ ] Test login, logout, invitation, verification, reset, lockout, expiry, and session revocation.
 - [x] Test persistent login/logout sessions, cookie-to-session validation, tenant-scoped session inspection, and administrator revocation against PostgreSQL.
+- [x] Test profile updates, pending email verification, administrator password reset, soft deletion, restoration, bulk actions, user audit history, and cross-tenant rejection against PostgreSQL.
 - [x] Test implemented subscription lifecycle, entitlement, seat, tenant, and audit workflows against PostgreSQL.
 - [x] Test license, service-account, API-key authentication/revocation, product enforcement, and usage workflows against PostgreSQL.
 - [x] Test audit filtering, details, anonymous rejection, cross-tenant isolation, Enterprise CSV/JSON export, and export auditing against PostgreSQL.

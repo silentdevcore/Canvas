@@ -1,11 +1,16 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Mail;
 
 namespace PXA.WebApi.Controllers;
 
@@ -24,11 +29,25 @@ public sealed class AdminUsersController : ControllerBase
 
     private readonly PxaDbContext dbContext;
     private readonly IPxaTenantContext tenantContext;
+    private readonly UserManager<PxaIdentityUser> userManager;
+    private readonly IdentityActionTokenService actionTokens;
+    private readonly IPxaMailQueue mailQueue;
+    private readonly PxaMailOptions mailOptions;
 
-    public AdminUsersController(PxaDbContext dbContext, IPxaTenantContext tenantContext)
+    public AdminUsersController(
+        PxaDbContext dbContext,
+        IPxaTenantContext tenantContext,
+        UserManager<PxaIdentityUser> userManager,
+        IdentityActionTokenService actionTokens,
+        IPxaMailQueue mailQueue,
+        IOptions<PxaMailOptions> mailOptions)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
+        this.userManager = userManager;
+        this.actionTokens = actionTokens;
+        this.mailQueue = mailQueue;
+        this.mailOptions = mailOptions.Value;
     }
 
     [HttpGet]
@@ -52,8 +71,7 @@ public sealed class AdminUsersController : ControllerBase
         var query =
             from membership in dbContext.OrganizationMemberships.AsNoTracking()
             join user in dbContext.Users.AsNoTracking() on membership.UserId equals user.Id
-            where membership.OrganizationId == organizationId &&
-                  membership.Status != OrganizationMembershipStatus.Removed
+            where membership.OrganizationId == organizationId
             select new { membership, user };
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -74,6 +92,8 @@ public sealed class AdminUsersController : ControllerBase
                 value.membership.Status == OrganizationMembershipStatus.Suspended),
             "invited" => query.Where(value =>
                 value.membership.Status == OrganizationMembershipStatus.Invited),
+            "deleted" => query.Where(value =>
+                value.membership.Status == OrganizationMembershipStatus.Removed),
             _ => query,
         };
 
@@ -100,6 +120,7 @@ public sealed class AdminUsersController : ControllerBase
                 value.user.DisplayName,
                 value.user.Email ?? string.Empty,
                 value.user.UserName ?? string.Empty,
+                value.user.PendingEmail,
                 value.user.IsActive,
                 value.membership.Status,
                 value.user.LastLoginAt,
@@ -125,14 +146,14 @@ public sealed class AdminUsersController : ControllerBase
                 from membership in dbContext.OrganizationMemberships.AsNoTracking()
                 join user in dbContext.Users.AsNoTracking() on membership.UserId equals user.Id
                 where membership.OrganizationId == organizationId &&
-                      membership.UserId == userId &&
-                      membership.Status != OrganizationMembershipStatus.Removed
+                      membership.UserId == userId
                 select new UserRecord(
                     user.Id,
                     membership.Id,
                     user.DisplayName,
                     user.Email ?? string.Empty,
                     user.UserName ?? string.Empty,
+                    user.PendingEmail,
                     user.IsActive,
                     membership.Status,
                     user.LastLoginAt,
@@ -145,6 +166,263 @@ public sealed class AdminUsersController : ControllerBase
         return Ok(ToResponse(record, roles.GetValueOrDefault(userId, [])));
     }
 
+    [HttpPatch("{userId:guid}/profile")]
+    [Authorize(Policy = PxaPermissions.UsersUpdate)]
+    [PxaValidateAntiforgery]
+    [EnableRateLimiting("invitations")]
+    public async Task<ActionResult<AdminUserResponse>> UpdateProfile(
+        Guid userId,
+        UpdateAdminUserProfileRequest request,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = tenantContext.OrganizationId;
+        var actorUserId = tenantContext.UserId;
+        if (organizationId is null || actorUserId is null)
+            return MissingOrganization();
+
+        var membership = await dbContext.OrganizationMemberships.SingleOrDefaultAsync(value =>
+            value.OrganizationId == organizationId &&
+            value.UserId == userId &&
+            value.Status != OrganizationMembershipStatus.Removed,
+            cancellationToken);
+        var user = await dbContext.Users.SingleOrDefaultAsync(value => value.Id == userId, cancellationToken);
+        if (membership is null || user is null)
+            return NotFound();
+
+        var displayName = request.DisplayName.Trim();
+        var email = request.Email.Trim();
+        if (displayName.Length is < 2 or > 200 || !new EmailAddressAttribute().IsValid(email))
+            return ValidationProblem("Provide a valid display name and email address.");
+
+        var emailChanged = !string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase);
+        if (emailChanged)
+        {
+            var existing = await userManager.FindByEmailAsync(email);
+            if (existing is not null && existing.Id != user.Id)
+                return ConflictProblem("The email address is already assigned to another PXA account.");
+
+            user.PendingEmail = email;
+            var issued = await actionTokens.IssueAsync(
+                user.Id,
+                organizationId,
+                email,
+                IdentityActionTokenService.EmailChangePurpose,
+                new { },
+                TimeSpan.FromHours(24),
+                cancellationToken);
+            var actionUrl = $"{mailOptions.AdminBaseUrl.TrimEnd('/')}/confirm-email?token={Uri.EscapeDataString(issued.RawToken)}";
+            mailQueue.Enqueue(
+                organizationId,
+                user.Id,
+                email,
+                "identity.email-verification",
+                new { displayName, actionUrl },
+                $"email-change:{issued.Entity.Id}");
+        }
+
+        user.DisplayName = displayName;
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+        AddAuditEvent(
+            organizationId.Value,
+            actorUserId.Value,
+            "users.update",
+            userId,
+            new { EmailVerificationQueued = emailChanged });
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var roles = await GetRolesAsync([userId], organizationId.Value, cancellationToken);
+        return Ok(ToResponse(ToRecord(user, membership), roles.GetValueOrDefault(userId, [])));
+    }
+
+    [HttpPost("{userId:guid}/password-reset")]
+    [Authorize(Policy = PxaPermissions.UsersUpdate)]
+    [PxaValidateAntiforgery]
+    [EnableRateLimiting("invitations")]
+    public async Task<ActionResult<AdminPasswordResetResponse>> RequestPasswordReset(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = tenantContext.OrganizationId;
+        var actorUserId = tenantContext.UserId;
+        if (organizationId is null || actorUserId is null)
+            return MissingOrganization();
+        if (!await IsOrganizationUserAsync(userId, organizationId.Value, cancellationToken))
+            return NotFound();
+
+        var user = await dbContext.Users.SingleOrDefaultAsync(value => value.Id == userId, cancellationToken);
+        if (user is null || string.IsNullOrWhiteSpace(user.Email) || !user.EmailConfirmed)
+            return ConflictProblem("Password reset requires a verified email address.");
+
+        var issued = await actionTokens.IssueAsync(
+            user.Id,
+            organizationId,
+            user.Email,
+            IdentityActionTokenService.PasswordResetPurpose,
+            new { RequestedByAdministrator = true },
+            TimeSpan.FromHours(1),
+            cancellationToken);
+        var actionUrl = $"{mailOptions.AdminBaseUrl.TrimEnd('/')}/reset-password?token={Uri.EscapeDataString(issued.RawToken)}";
+        var message = mailQueue.Enqueue(
+            organizationId,
+            user.Id,
+            user.Email,
+            "identity.password-reset",
+            new { displayName = user.DisplayName, actionUrl },
+            $"password-reset:{issued.Entity.Id}");
+        AddAuditEvent(
+            organizationId.Value,
+            actorUserId.Value,
+            "users.password-reset.request",
+            userId,
+            new { MailMessageId = message.Id });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Accepted(new AdminPasswordResetResponse(message.Id, issued.Entity.ExpiresAt));
+    }
+
+    [HttpPatch("{userId:guid}/deletion")]
+    [Authorize(Policy = PxaPermissions.UsersDisable)]
+    [PxaValidateAntiforgery]
+    public async Task<ActionResult<AdminUserResponse>> UpdateDeletion(
+        Guid userId,
+        UpdateAdminUserDeletionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = tenantContext.OrganizationId;
+        var actorUserId = tenantContext.UserId;
+        if (organizationId is null || actorUserId is null)
+            return MissingOrganization();
+        if (request.IsDeleted && userId == actorUserId)
+            return ConflictProblem("Administrators cannot delete their own active membership.");
+
+        var membership = await dbContext.OrganizationMemberships.SingleOrDefaultAsync(value =>
+            value.OrganizationId == organizationId && value.UserId == userId,
+            cancellationToken);
+        var user = await dbContext.Users.SingleOrDefaultAsync(value => value.Id == userId, cancellationToken);
+        if (membership is null || user is null)
+            return NotFound();
+        if (request.IsDeleted && await IsLastOrganizationAdministratorAsync(membership, cancellationToken))
+            return ConflictProblem("The last active Organization Administrator cannot be deleted.");
+
+        membership.Status = request.IsDeleted
+            ? OrganizationMembershipStatus.Removed
+            : user.EmailConfirmed ? OrganizationMembershipStatus.Active : OrganizationMembershipStatus.Invited;
+        membership.UpdatedAt = DateTimeOffset.UtcNow;
+        if (!request.IsDeleted && user.EmailConfirmed)
+            user.IsActive = true;
+        if (request.IsDeleted)
+            await RevokeOrganizationSessionsAsync(userId, organizationId.Value, actorUserId.Value, "membership-deleted", cancellationToken);
+
+        AddAuditEvent(
+            organizationId.Value,
+            actorUserId.Value,
+            request.IsDeleted ? "users.delete" : "users.restore",
+            userId,
+            new { });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        var roles = await GetRolesAsync([userId], organizationId.Value, cancellationToken);
+        return Ok(ToResponse(ToRecord(user, membership), roles.GetValueOrDefault(userId, [])));
+    }
+
+    [HttpGet("{userId:guid}/audit")]
+    [Authorize(Policy = PxaPermissions.AuditRead)]
+    public async Task<ActionResult<IReadOnlyList<AdminUserAuditResponse>>> GetUserAudit(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = tenantContext.OrganizationId;
+        if (organizationId is null)
+            return MissingOrganization();
+        if (!await dbContext.OrganizationMemberships.AnyAsync(value =>
+                value.OrganizationId == organizationId && value.UserId == userId,
+                cancellationToken))
+            return NotFound();
+
+        var events = await (
+                from audit in dbContext.AuditEvents.AsNoTracking()
+                join actor in dbContext.Users.AsNoTracking() on audit.ActorUserId equals actor.Id into actors
+                from actor in actors.DefaultIfEmpty()
+                where audit.OrganizationId == organizationId &&
+                      ((audit.TargetType == "user" && audit.TargetId == userId.ToString()) ||
+                       (audit.ActorUserId == userId && audit.Action.StartsWith("security.")))
+                orderby audit.CreatedAt descending
+                select new AdminUserAuditResponse(
+                    audit.Id,
+                    audit.Action,
+                    audit.Outcome,
+                    actor == null ? "System" : actor.DisplayName,
+                    audit.CreatedAt))
+            .Take(50)
+            .ToListAsync(cancellationToken);
+        return Ok(events);
+    }
+
+    [HttpPost("bulk")]
+    [Authorize(Policy = PxaPermissions.UsersDisable)]
+    [PxaValidateAntiforgery]
+    public async Task<ActionResult<AdminBulkUserResponse>> BulkUpdate(
+        BulkAdminUserRequest request,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = tenantContext.OrganizationId;
+        var actorUserId = tenantContext.UserId;
+        if (organizationId is null || actorUserId is null)
+            return MissingOrganization();
+        var userIds = request.UserIds.Distinct().Take(100).ToArray();
+        if (userIds.Length == 0 || !new[] { "enable", "disable", "delete", "restore", "revoke-sessions" }.Contains(request.Action))
+            return ValidationProblem("Select users and a supported bulk action.");
+
+        var memberships = await dbContext.OrganizationMemberships
+            .Where(value => value.OrganizationId == organizationId && userIds.Contains(value.UserId))
+            .ToListAsync(cancellationToken);
+        var users = await dbContext.Users
+            .Where(value => userIds.Contains(value.Id))
+            .ToDictionaryAsync(value => value.Id, cancellationToken);
+        var succeeded = new List<Guid>();
+        var rejected = new List<Guid>();
+        foreach (var membership in memberships)
+        {
+            if (!users.TryGetValue(membership.UserId, out var user) ||
+                ((request.Action is "disable" or "delete") && membership.UserId == actorUserId) ||
+                ((request.Action is "disable" or "delete") && await IsLastOrganizationAdministratorAsync(membership, cancellationToken)))
+            {
+                rejected.Add(membership.UserId);
+                continue;
+            }
+
+            switch (request.Action)
+            {
+                case "enable":
+                    user.IsActive = true;
+                    membership.Status = OrganizationMembershipStatus.Active;
+                    break;
+                case "disable":
+                    user.IsActive = false;
+                    membership.Status = OrganizationMembershipStatus.Suspended;
+                    await RevokeActiveSessionsAsync(user.Id, actorUserId.Value, "bulk-disable", cancellationToken);
+                    break;
+                case "delete":
+                    membership.Status = OrganizationMembershipStatus.Removed;
+                    await RevokeOrganizationSessionsAsync(user.Id, organizationId.Value, actorUserId.Value, "bulk-delete", cancellationToken);
+                    break;
+                case "restore":
+                    membership.Status = user.EmailConfirmed
+                        ? OrganizationMembershipStatus.Active
+                        : OrganizationMembershipStatus.Invited;
+                    if (user.EmailConfirmed) user.IsActive = true;
+                    break;
+                case "revoke-sessions":
+                    await RevokeOrganizationSessionsAsync(user.Id, organizationId.Value, actorUserId.Value, "bulk-revoke", cancellationToken);
+                    break;
+            }
+            membership.UpdatedAt = DateTimeOffset.UtcNow;
+            user.UpdatedAt = membership.UpdatedAt;
+            AddAuditEvent(organizationId.Value, actorUserId.Value, $"users.bulk.{request.Action}", user.Id, new { });
+            succeeded.Add(user.Id);
+        }
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Ok(new AdminBulkUserResponse(succeeded, rejected));
+    }
+
     [HttpGet("{userId:guid}/sessions")]
     [Authorize(Policy = PxaPermissions.UsersRead)]
     public async Task<ActionResult<IReadOnlyList<AdminUserSessionResponse>>> GetSessions(
@@ -154,7 +432,7 @@ public sealed class AdminUsersController : ControllerBase
         var organizationId = tenantContext.OrganizationId;
         if (organizationId is null)
             return MissingOrganization();
-        if (!await IsOrganizationUserAsync(userId, organizationId.Value, cancellationToken))
+        if (!await IsOrganizationUserAsync(userId, organizationId.Value, cancellationToken, includeRemoved: true))
             return NotFound();
 
         PxaSessionService.TryGetSessionId(User, out var currentSessionId);
@@ -298,6 +576,7 @@ public sealed class AdminUsersController : ControllerBase
             user.DisplayName,
             user.Email ?? string.Empty,
             user.UserName ?? string.Empty,
+            user.PendingEmail,
             user.IsActive,
             membership.Status,
             user.LastLoginAt,
@@ -382,6 +661,7 @@ public sealed class AdminUsersController : ControllerBase
             user.DisplayName,
             user.Email ?? string.Empty,
             user.UserName ?? string.Empty,
+            user.PendingEmail,
             user.IsActive,
             membership.Status,
             user.LastLoginAt,
@@ -454,11 +734,12 @@ public sealed class AdminUsersController : ControllerBase
     private Task<bool> IsOrganizationUserAsync(
         Guid userId,
         Guid organizationId,
-        CancellationToken cancellationToken) =>
+        CancellationToken cancellationToken,
+        bool includeRemoved = false) =>
         dbContext.OrganizationMemberships.AnyAsync(value =>
             value.UserId == userId &&
             value.OrganizationId == organizationId &&
-            value.Status != OrganizationMembershipStatus.Removed,
+            (includeRemoved || value.Status != OrganizationMembershipStatus.Removed),
             cancellationToken);
 
     private async Task RevokeActiveSessionsAsync(
@@ -469,6 +750,23 @@ public sealed class AdminUsersController : ControllerBase
     {
         var sessions = await dbContext.UserSessions
             .Where(value => value.UserId == userId && value.RevokedAt == null)
+            .ToListAsync(cancellationToken);
+        foreach (var session in sessions)
+            Revoke(session, actorUserId, reason);
+    }
+
+    private async Task RevokeOrganizationSessionsAsync(
+        Guid userId,
+        Guid organizationId,
+        Guid actorUserId,
+        string reason,
+        CancellationToken cancellationToken)
+    {
+        var sessions = await dbContext.UserSessions
+            .Where(value =>
+                value.UserId == userId &&
+                value.OrganizationId == organizationId &&
+                value.RevokedAt == null)
             .ToListAsync(cancellationToken);
         foreach (var session in sessions)
             Revoke(session, actorUserId, reason);
@@ -517,9 +815,25 @@ public sealed class AdminUsersController : ControllerBase
             user.DisplayName,
             user.Email,
             user.Username,
+            user.PendingEmail,
             user.IsActive,
             user.MembershipStatus.ToString(),
             roles,
+            user.LastLoginAt,
+            user.CreatedAt);
+
+    private static UserRecord ToRecord(
+        PxaIdentityUser user,
+        OrganizationMembership membership) =>
+        new(
+            user.Id,
+            membership.Id,
+            user.DisplayName,
+            user.Email ?? string.Empty,
+            user.UserName ?? string.Empty,
+            user.PendingEmail,
+            user.IsActive,
+            membership.Status,
             user.LastLoginAt,
             user.CreatedAt);
 
@@ -529,6 +843,7 @@ public sealed class AdminUsersController : ControllerBase
         string DisplayName,
         string Email,
         string Username,
+        string? PendingEmail,
         bool IsActive,
         OrganizationMembershipStatus MembershipStatus,
         DateTimeOffset? LastLoginAt,
@@ -547,6 +862,7 @@ public sealed record AdminUserResponse(
     string DisplayName,
     string Email,
     string Username,
+    string? PendingEmail,
     bool IsActive,
     string MembershipStatus,
     IReadOnlyList<string> Roles,
@@ -556,6 +872,29 @@ public sealed record AdminUserResponse(
 public sealed record UpdateAdminUserStatusRequest(bool IsActive);
 
 public sealed record UpdateAdminUserRolesRequest(IReadOnlyList<string> Roles);
+
+public sealed record UpdateAdminUserProfileRequest(
+    [Required] string DisplayName,
+    [Required, EmailAddress] string Email);
+
+public sealed record UpdateAdminUserDeletionRequest(bool IsDeleted);
+
+public sealed record BulkAdminUserRequest(
+    [Required] IReadOnlyList<Guid> UserIds,
+    [Required] string Action);
+
+public sealed record AdminBulkUserResponse(
+    IReadOnlyList<Guid> SucceededUserIds,
+    IReadOnlyList<Guid> RejectedUserIds);
+
+public sealed record AdminPasswordResetResponse(Guid MailMessageId, DateTimeOffset ExpiresAt);
+
+public sealed record AdminUserAuditResponse(
+    Guid Id,
+    string Action,
+    string Outcome,
+    string Actor,
+    DateTimeOffset CreatedAt);
 
 public sealed record AdminUserSessionResponse(
     Guid Id,

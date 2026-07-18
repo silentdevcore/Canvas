@@ -12,6 +12,7 @@ public sealed class IdentityActionTokenService
 {
     public const string InvitationPurpose = "user-invitation";
     public const string PasswordResetPurpose = "password-reset";
+    public const string EmailChangePurpose = "email-change";
 
     private readonly PxaDbContext dbContext;
 

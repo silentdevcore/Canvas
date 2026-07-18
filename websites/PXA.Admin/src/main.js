@@ -41,6 +41,12 @@ import {
   revokeAdminServiceAccount,
   retryAdminMail,
   confirmPasswordReset,
+  confirmEmailChange,
+  bulkUpdateAdminUsers,
+  getAdminUserAudit,
+  requestAdminUserPasswordReset,
+  updateAdminUserDeletion,
+  updateAdminUserProfile,
   switchOrganization,
   startAdminGracePeriod,
   updateAdminOrganization,
@@ -93,12 +99,12 @@ const state = {
     loading: false,
     loaded: false,
     error: null,
-    notice: null,
+    notice: null, selected: [],
   },
   userDetail: {
     id: null,
     data: null,
-    sessions: [],
+    sessions: [], audit: [], notice: null,
     loading: false,
     error: null,
     saving: false,
@@ -231,7 +237,8 @@ function publicActionPage(kind) {
   const token = new URLSearchParams(location.search).get('token') || '';
   const invitation = kind === 'invitation';
   const resetRequest = kind === 'request-reset';
-  const title = invitation ? 'Accept invitation' : resetRequest ? 'Reset your password' : 'Choose a new password';
+  const emailChange = kind === 'email-change';
+  const title = invitation ? 'Accept invitation' : resetRequest ? 'Reset your password' : emailChange ? 'Verify email address' : 'Choose a new password';
   return `
     <main class="admin-public-shell">
       <form class="admin-login-form admin-public-form" id="public-action-form">
@@ -239,14 +246,14 @@ function publicActionPage(kind) {
         <div><p class="pxa-kicker">Power Dox Automation</p><h1>${title}</h1></div>
         <div class="admin-alert admin-alert--error" id="public-action-error" hidden></div>
         <div class="admin-alert admin-alert--success" id="public-action-success" hidden></div>
-        ${resetRequest ? `
+        ${emailChange ? `<p>Confirm the new email address for your Power Dox Automation account.</p><input name="token" type="hidden" value="${escapeHtml(token)}">` : resetRequest ? `
           <label class="admin-field"><span>Email</span><input name="email" type="email" autocomplete="email" required></label>
         ` : `
           ${invitation ? '<label class="admin-field"><span>Display name</span><input name="displayName" autocomplete="name"></label>' : ''}
           <label class="admin-field"><span>New password</span><input name="password" type="password" autocomplete="new-password" minlength="12" required></label>
           <input name="token" type="hidden" value="${escapeHtml(token)}">
         `}
-        <button class="pxa-button pxa-button--primary" type="submit">${resetRequest ? 'Send reset link' : invitation ? 'Activate account' : 'Change password'}</button>
+        <button class="pxa-button pxa-button--primary" type="submit">${resetRequest ? 'Send reset link' : invitation ? 'Activate account' : emailChange ? 'Verify email' : 'Change password'}</button>
         <a class="admin-back-link" href="/login">Return to sign in</a>
       </form>
     </main>`;
@@ -270,6 +277,9 @@ function bindPublicAction(kind) {
       } else if (kind === 'invitation') {
         await acceptInvitation(data.get('token'), data.get('password'), data.get('displayName'));
         success.textContent = 'Your account is active. You can now sign in.';
+      } else if (kind === 'email-change') {
+        await confirmEmailChange(data.get('token'));
+        success.textContent = 'Your email address was updated. Sign in again with the new address.';
       } else {
         await confirmPasswordReset(data.get('token'), data.get('password'));
         success.textContent = 'Your password was changed. You can now sign in.';
@@ -405,6 +415,7 @@ function usersPage() {
   const totalPages = Math.max(1, Math.ceil(users.total / users.pageSize));
   const rows = users.items.map((user) => `
     <tr>
+      <td><input class="admin-user-select" type="checkbox" value="${user.id}" aria-label="Select ${escapeHtml(user.displayName)}" ${users.selected.includes(user.id) ? 'checked' : ''}></td>
       <td><a class="admin-user-link" href="/users/${user.id}"><strong>${escapeHtml(user.displayName)}</strong><small>${escapeHtml(user.username)}</small></a></td>
       <td>${escapeHtml(user.email)}</td>
       <td><div class="admin-role-list">${user.roles.length ? user.roles.map((role) => `<span>${escapeHtml(role)}</span>`).join('') : '<span>Unassigned</span>'}</div></td>
@@ -437,14 +448,22 @@ function usersPage() {
           <option value="disabled" ${users.status === 'disabled' ? 'selected' : ''}>Disabled</option>
           <option value="suspended" ${users.status === 'suspended' ? 'selected' : ''}>Suspended</option>
           <option value="invited" ${users.status === 'invited' ? 'selected' : ''}>Invited</option>
+          <option value="deleted" ${users.status === 'deleted' ? 'selected' : ''}>Deleted</option>
         </select>
         <button type="submit">Apply</button>
       </form>
       ${users.error ? `<div class="admin-alert admin-alert--error admin-inline-alert" role="alert">${escapeHtml(users.error)}</div>` : ''}
+      <form class="admin-table-toolbar admin-bulk-toolbar" id="users-bulk-form">
+        <strong>${users.selected.length} selected</strong>
+        <select name="action" aria-label="Bulk action" required>
+          <option value="">Choose action</option><option value="enable">Enable</option><option value="disable">Disable</option><option value="delete">Soft delete</option><option value="restore">Restore</option><option value="revoke-sessions">Revoke sessions</option>
+        </select>
+        <button type="submit" ${users.selected.length === 0 ? 'disabled' : ''}>Apply</button>
+      </form>
       ${users.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading users...</p></div>' : `
         <div class="admin-table-scroll">
           <table>
-            <thead><tr><th>User</th><th>Email</th><th>Roles</th><th>Status</th><th>Last login</th></tr></thead>
+            <thead><tr><th><input id="users-select-page" type="checkbox" aria-label="Select page"></th><th>User</th><th>Email</th><th>Roles</th><th>Status</th><th>Last login</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
@@ -481,15 +500,25 @@ function userDetailPage() {
       <td><span class="admin-status ${session.isActive ? 'admin-status--ready' : 'admin-status--inactive'}">${session.isActive ? 'Active' : 'Ended'}</span></td>
       <td>${session.isActive && !session.isCurrent ? `<button class="admin-text-button admin-session-revoke" data-session-id="${session.id}" type="button" ${detail.saving ? 'disabled' : ''}>Revoke</button>` : ''}</td>
     </tr>`).join('');
+  const auditRows = detail.audit.map((event) => `<tr><td>${escapeHtml(formatDate(event.createdAt))}</td><td><strong>${escapeHtml(event.action)}</strong></td><td>${escapeHtml(event.actor)}</td><td>${escapeHtml(event.outcome)}</td></tr>`).join('');
+  const isDeleted = user.membershipStatus === 'Removed';
+  const isSelf = user.id === state.user?.id;
   return `
     <header class="admin-page-header">
       <div><a class="admin-back-link" href="/users">Users</a><h1>${escapeHtml(user.displayName)}</h1><p>${escapeHtml(user.email)}</p></div>
       <span class="admin-status ${userStatusClass(user)}">${escapeHtml(userStatus(user))}</span>
     </header>
     ${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert" role="alert">${escapeHtml(detail.error)}</div>` : ''}
+    ${detail.notice ? `<div class="admin-alert admin-alert--success admin-detail-alert" role="status">${escapeHtml(detail.notice)}</div>` : ''}
     <div class="admin-detail-grid">
       <section class="admin-section">
-        <div class="admin-section-heading"><h2>Account</h2><p>Identity and access state for this organization.</p></div>
+        <form id="user-profile-form" class="admin-form-stack">
+          <div class="admin-section-heading"><h2>Account profile</h2><p>Changing the email address requires verification before it becomes active.</p></div>
+          <label class="admin-field"><span>Display name</span><input name="displayName" value="${escapeHtml(user.displayName)}" required maxlength="200"></label>
+          <label class="admin-field"><span>Email</span><input name="email" type="email" value="${escapeHtml(user.email)}" required></label>
+          ${user.pendingEmail ? `<div class="admin-alert admin-alert--success">Verification pending for ${escapeHtml(user.pendingEmail)}.</div>` : ''}
+          <div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving || isDeleted ? 'disabled' : ''}>Save profile</button></div>
+        </form>
         <dl class="admin-detail-list">
           <div><dt>Username</dt><dd>${escapeHtml(user.username)}</dd></div>
           <div><dt>Created</dt><dd>${escapeHtml(formatDate(user.createdAt))}</dd></div>
@@ -498,17 +527,25 @@ function userDetailPage() {
         </dl>
         <div class="admin-detail-action">
           <div><strong>${user.isActive ? 'Disable account' : 'Enable account'}</strong><p>${user.isActive ? 'Revoke this user\'s active access and sessions.' : 'Restore access to this organization.'}</p></div>
-          <button class="pxa-button ${user.isActive ? 'admin-danger-button' : 'pxa-button--primary'}" id="user-status-button" type="button" ${detail.saving ? 'disabled' : ''}>${user.isActive ? 'Disable' : 'Enable'}</button>
+          <button class="pxa-button ${user.isActive ? 'admin-danger-button' : 'pxa-button--primary'}" id="user-status-button" type="button" ${detail.saving || isDeleted || isSelf ? 'disabled' : ''}>${user.isActive ? 'Disable' : 'Enable'}</button>
+        </div>
+        <div class="admin-detail-action">
+          <div><strong>Password reset</strong><p>Queue a single-use reset link without exposing its token.</p></div>
+          <button class="pxa-button pxa-button--secondary" id="user-password-reset" type="button" ${detail.saving || isDeleted ? 'disabled' : ''}>Send reset</button>
+        </div>
+        <div class="admin-detail-action">
+          <div><strong>${isDeleted ? 'Restore membership' : 'Soft delete membership'}</strong><p>${isDeleted ? 'Restore this user inside the active organization.' : 'Retain audit history while removing tenant access.'}</p></div>
+          <button class="pxa-button ${isDeleted ? 'pxa-button--primary' : 'admin-danger-button'}" id="user-deletion-button" type="button" ${detail.saving || (!isDeleted && isSelf) ? 'disabled' : ''}>${isDeleted ? 'Restore' : 'Delete'}</button>
         </div>
       </section>
       <section class="admin-section">
         <form id="user-roles-form">
           <div class="admin-section-heading"><h2>Organization roles</h2><p>Roles apply only inside the active organization.</p></div>
           <div class="admin-role-options">
-            ${organizationRoles.map((role) => `<label><input type="checkbox" name="roles" value="${role}" ${user.roles.includes(role) ? 'checked' : ''}><span><strong>${role}</strong></span></label>`).join('')}
+            ${organizationRoles.map((role) => `<label><input type="checkbox" name="roles" value="${role}" ${user.roles.includes(role) ? 'checked' : ''} ${isDeleted || isSelf ? 'disabled' : ''}><span><strong>${role}</strong></span></label>`).join('')}
           </div>
           ${globalRoles.length ? `<div class="admin-global-roles"><span>System roles</span><strong>${globalRoles.map(escapeHtml).join(', ')}</strong></div>` : ''}
-          <div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving ? 'disabled' : ''}>Save roles</button></div>
+          <div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving || isDeleted || isSelf ? 'disabled' : ''}>Save roles</button></div>
         </form>
       </section>
     </div>
@@ -519,6 +556,11 @@ function userDetailPage() {
       </div>
       <div class="admin-table-scroll"><table><thead><tr><th>Client</th><th>Last seen</th><th>Expires</th><th>Status</th><th></th></tr></thead><tbody>${sessionRows}</tbody></table></div>
       ${sessionRows ? '' : '<div class="admin-empty-state"><strong>No sessions recorded</strong><p>This user has not established a persistent browser session.</p></div>'}
+    </section>
+    <section class="admin-table-section admin-members-section">
+      <div class="admin-section-heading"><h2>User audit history</h2><p>The latest tenant-scoped lifecycle and security events targeting this user.</p></div>
+      <div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Action</th><th>Actor</th><th>Outcome</th></tr></thead><tbody>${auditRows}</tbody></table></div>
+      ${auditRows ? '' : '<div class="admin-empty-state"><strong>No user events</strong></div>'}
     </section>
   `;
 }
@@ -830,15 +872,17 @@ async function loadUsers() {
 }
 
 async function loadUserDetail(userId) {
-  Object.assign(state.userDetail, { id: userId, data: null, sessions: [], loading: true, error: null });
+  Object.assign(state.userDetail, { id: userId, data: null, sessions: [], audit: [], loading: true, error: null, notice: null });
   render();
   try {
-    const [user, sessions] = await Promise.all([
+    const [user, sessions, audit] = await Promise.all([
       getAdminUser(userId),
       getAdminUserSessions(userId),
+      getAdminUserAudit(userId),
     ]);
     state.userDetail.data = user;
     state.userDetail.sessions = sessions;
+    state.userDetail.audit = audit;
   } catch (error) {
     state.userDetail.error = error.message;
   } finally {
@@ -848,6 +892,34 @@ async function loadUserDetail(userId) {
 }
 
 function bindUsersEvents() {
+  document.querySelectorAll('.admin-user-select').forEach((checkbox) => checkbox.addEventListener('change', () => {
+    state.users.selected = checkbox.checked
+      ? [...new Set([...state.users.selected, checkbox.value])]
+      : state.users.selected.filter((id) => id !== checkbox.value);
+    render();
+  }));
+  document.querySelector('#users-select-page')?.addEventListener('change', (event) => {
+    const pageIds = state.users.items.map((user) => user.id);
+    state.users.selected = event.currentTarget.checked
+      ? [...new Set([...state.users.selected, ...pageIds])]
+      : state.users.selected.filter((id) => !pageIds.includes(id));
+    render();
+  });
+  document.querySelector('#users-bulk-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const action = new FormData(event.currentTarget).get('action');
+    if (!action || !window.confirm(`Apply ${action} to ${state.users.selected.length} selected users?`)) return;
+    state.users.error = null;
+    try {
+      const result = await bulkUpdateAdminUsers(state.users.selected, action);
+      state.users.notice = `${result.succeededUserIds.length} users updated${result.rejectedUserIds.length ? `; ${result.rejectedUserIds.length} protected users skipped` : ''}.`;
+      state.users.selected = [];
+      await loadUsers();
+    } catch (error) {
+      state.users.error = error.message;
+      render();
+    }
+  });
   document.querySelector('#user-invitation-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -889,6 +961,69 @@ function bindUsersEvents() {
 }
 
 function bindUserDetailEvents() {
+  document.querySelector('#user-profile-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    state.userDetail.notice = null;
+    render();
+    try {
+      state.userDetail.data = await updateAdminUserProfile(
+        state.userDetail.id,
+        data.get('displayName'),
+        data.get('email'));
+      state.userDetail.audit = await getAdminUserAudit(state.userDetail.id);
+      state.users.loaded = false;
+      state.mail.loaded = false;
+      state.userDetail.notice = 'Profile saved. Email verification is queued when the address changed.';
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelector('#user-password-reset')?.addEventListener('click', async () => {
+    if (!window.confirm('Queue a password-reset message for this user?')) return;
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    state.userDetail.notice = null;
+    render();
+    try {
+      await requestAdminUserPasswordReset(state.userDetail.id);
+      state.userDetail.audit = await getAdminUserAudit(state.userDetail.id);
+      state.mail.loaded = false;
+      state.userDetail.notice = 'Password-reset message queued.';
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelector('#user-deletion-button')?.addEventListener('click', async () => {
+    const isDeleted = state.userDetail.data.membershipStatus === 'Removed';
+    if (!isDeleted && !window.confirm('Soft delete this organization membership and revoke its sessions?')) return;
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    state.userDetail.notice = null;
+    render();
+    try {
+      state.userDetail.data = await updateAdminUserDeletion(state.userDetail.id, !isDeleted);
+      state.userDetail.sessions = isDeleted
+        ? await getAdminUserSessions(state.userDetail.id)
+        : state.userDetail.sessions.map((session) => ({ ...session, isActive: false }));
+      state.userDetail.audit = await getAdminUserAudit(state.userDetail.id);
+      state.users.loaded = false;
+      state.userDetail.notice = isDeleted ? 'Organization membership restored.' : 'Organization membership soft deleted.';
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
   document.querySelectorAll('.admin-session-revoke').forEach((button) => button.addEventListener('click', async () => {
     const sessionId = button.dataset.sessionId;
     if (!window.confirm('Revoke this browser session?')) return;
@@ -1621,6 +1756,13 @@ function render() {
     document.title = 'Choose password | PXA Admin';
     app.innerHTML = publicActionPage('confirm-reset');
     bindPublicAction('confirm-reset');
+    return;
+  }
+
+  if (location.pathname === '/confirm-email') {
+    document.title = 'Verify email | PXA Admin';
+    app.innerHTML = publicActionPage('email-change');
+    bindPublicAction('email-change');
     return;
   }
 
