@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using PXA.FileImporter;
 using PXA.FileImporter.ImageAnalysis;
 using PXA.FileImporter.ImageOcr;
 using PXA.Infrastructure.Persistence;
 using PXA.Pdf;
 using PXA.WebApi.Infrastructure;
-using PXA.WebApi.Middleware;
+using PXA.WebApi.Security;
 using PxaConverters = PXA.Infrastructure.Converters;
 using PxaSpreadsheet = PXA.Infrastructure.Spreadsheet;
 using PxaWord = PXA.Infrastructure.Word;
@@ -17,6 +19,31 @@ builder.Services.AddOpenApi();
 builder.Services.AddPxaPersistence(
     builder.Configuration.GetConnectionString("PxaDatabase")
         ?? throw new InvalidOperationException("Connection string 'PxaDatabase' is required."));
+builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
+    .AddCookie(IdentityConstants.ApplicationScheme, options =>
+    {
+        options.Cookie.Name = "__Host-PXA.Session";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+        options.EventsType = typeof(PxaCookieAuthenticationEvents);
+    });
+builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
+builder.Services.AddAuthorization(options =>
+{
+    foreach (var permission in PxaPermissions.All)
+        options.AddPolicy(permission, policy => policy.RequireClaim(PxaClaimTypes.Permission, permission));
+});
+builder.Services.AddAntiforgery(options =>
+{
+    options.Cookie.Name = "__Host-PXA.Antiforgery";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.HeaderName = "X-PXA-CSRF";
+});
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<PxaDbContext>("pxa-database", tags: ["ready"]);
 builder.Services.AddCors(options =>
@@ -32,7 +59,8 @@ builder.Services.AddCors(options =>
                   "http://localhost:3000",
                   "http://localhost:4173")
               .AllowAnyHeader()
-              .AllowAnyMethod());
+              .AllowAnyMethod()
+              .AllowCredentials());
 });
 
 // Register template rendering services
@@ -104,7 +132,6 @@ builder.Services.AddScoped<PXA.Application.UseCases.CreateTemplateUseCase>();
 builder.Services.AddScoped<PXA.Application.UseCases.UpdateTemplateUseCase>();
 builder.Services.AddScoped<PXA.Application.UseCases.GetTemplateUseCase>();
 builder.Services.AddScoped<PXA.Application.UseCases.ValidateTemplateUseCase>();
-builder.Services.AddScoped<PXA.Application.UseCases.AuthenticateUserUseCase>();
 builder.Services.AddScoped<PXA.Application.UseCases.FindAndReplaceUseCase>();
 builder.Services.AddScoped<PXA.Application.UseCases.CloneTemplateUseCase>();
 builder.Services.AddScoped<PXA.Application.UseCases.ExtractPagesUseCase>();
@@ -119,7 +146,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
-// app.UseAuthenticationMiddleware();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {

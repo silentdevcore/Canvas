@@ -26,18 +26,30 @@ Deliver a standalone, tenant-aware PXA administration application for users, org
 - [ ] Use the subscription and entitlement model from `PXA.Subscription-Licensing.md`.
 - [ ] Use invitation, reset, and notification delivery from `PXA.Mail-Service.md`.
 - [ ] Integrate the Admin container with `PXA.Api-Docker.md` and the shared PXA Server bundle.
-- [ ] Define the production database and migration strategy before replacing in-memory identity data.
+- [x] Define the production database and migration strategy before replacing in-memory identity data.
 
 ## Identity Foundation
 
-- [ ] Replace hard-coded demo users with ASP.NET Core Identity and EF Core persistence.
-- [ ] Remove the custom token format and fixed signing secret.
-- [ ] Add standard authentication and authorization middleware to the production pipeline.
-- [ ] Use secure host-only HttpOnly, Secure, SameSite browser cookies.
-- [ ] Add CSRF protection for state-changing browser requests.
+- [x] Replace hard-coded demo users with ASP.NET Core Identity and EF Core persistence.
+- [x] Remove the custom token format and fixed signing secret.
+- [x] Add standard authentication and authorization middleware to the production pipeline.
+- [x] Use secure host-only HttpOnly, Secure, SameSite browser cookies.
+- [x] Add CSRF protection for state-changing browser requests.
 - [ ] Support API keys or standards-based delegated tokens for SDKs and service accounts.
 - [ ] Implement login, logout, current-user, password reset, email verification, and session revocation flows.
 - [ ] Apply rate limits, lockout, password policy, token expiry, and security-event logging.
+
+Current identity implementation:
+
+- [x] Add versioned and legacy-compatible login, logout, current-user, and CSRF endpoints.
+- [x] Require confirmed email and active-user status during login.
+- [x] Configure password complexity, failed-login lockout, and bounded cookie expiry.
+- [x] Revalidate active-user status and the Identity security stamp on authenticated requests.
+- [x] Support immediate cookie-session revocation through security-stamp rotation.
+- [x] Return organization memberships and roles from the current-user endpoint.
+- [x] Verify login, logout, cookie flags, CSRF, organization context, and session revocation against PostgreSQL.
+- [ ] Connect password reset and email verification to the persistent mail outbox.
+- [ ] Add security-event audit records and authentication rate limiting.
 
 ## Tenant And Data Model
 
@@ -51,7 +63,7 @@ Deliver a standalone, tenant-aware PXA administration application for users, org
 ## Roles And Policies
 
 - [ ] Provide System Administrator, Organization Administrator, Manager, Editor, and Viewer roles.
-- [ ] Define policies including `users.read`, `users.create`, `users.update`, `users.disable`, `roles.assign`, `subscriptions.manage`, `licenses.manage`, and `audit.read`.
+- [x] Define policies including `users.read`, `users.create`, `users.update`, `users.disable`, `roles.assign`, `subscriptions.manage`, `licenses.manage`, and `audit.read`.
 - [ ] Keep roles independent from subscription and product entitlements.
 - [ ] Restrict System Administrator capabilities to explicitly authorized PXA operators.
 - [ ] Prevent administrators from removing their own last required administrative membership.
