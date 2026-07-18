@@ -65,6 +65,7 @@ Current identity implementation:
 
 - [ ] Provide System Administrator, Organization Administrator, Manager, Editor, and Viewer roles.
 - [x] Define policies including `users.read`, `users.create`, `users.update`, `users.disable`, `roles.assign`, `subscriptions.manage`, `licenses.manage`, and `audit.read`.
+- [x] Define separate `organizations.read` and `organizations.manage` policies for tenant administration.
 - [ ] Keep roles independent from subscription and product entitlements.
 - [ ] Restrict System Administrator capabilities to explicitly authorized PXA operators.
 - [ ] Prevent administrators from removing their own last required administrative membership.
@@ -122,6 +123,18 @@ Current user administration implementation:
 - [x] Add a user detail view with account metadata, status control, and organization-role controls.
 - [x] Add loading, empty, API-failure, and destructive-confirmation states to user administration.
 
+Current organization administration implementation:
+
+- [x] Add tenant-scoped organization list, detail, update, and member-list endpoints.
+- [x] Allow System Administrators to list, create, update, and select any active organization.
+- [x] Restrict Organization Administrators to their authenticated active organization.
+- [x] Add CSRF-protected membership attachment and soft-removal for existing PXA users.
+- [x] Prevent self-removal and removal of the last active Organization Administrator.
+- [x] Reissue the authenticated cookie with the selected tenant and tenant-specific role claims.
+- [x] Preserve System Administrator access while deriving organization roles only from the selected tenant.
+- [x] Add organization list and detail views with search, status filtering, creation, editing, membership management, and tenant switching.
+- [x] Persist audit events for organization creation/update and membership add/remove operations.
+
 ## Deployment And Operations
 
 - [x] Produce an independent Admin build.
@@ -137,6 +150,7 @@ Current user administration implementation:
 - [ ] Unit-test identity, authorization policies, tenant resolution, and privileged application services.
 - [x] Integration-test the implemented user Admin endpoints against real PostgreSQL.
 - [x] Test user-list and detail cross-tenant isolation, CSRF enforcement, status changes, role assignment, last-administrator protection, and audit creation.
+- [x] Test organization scoping, System Administrator tenant switching, membership attachment, updates, and audit creation against PostgreSQL.
 - [ ] Test cross-tenant access attempts and identifier tampering.
 - [ ] Test login, logout, invitation, verification, reset, lockout, expiry, and session revocation.
 - [ ] Test role, seat, subscription, license, service-account, and API-key workflows.

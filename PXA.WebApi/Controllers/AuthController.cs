@@ -91,7 +91,7 @@ public sealed class AuthController : ControllerBase
         if (!updateResult.Succeeded)
             return IdentityFailure(updateResult);
 
-        var principal = await CreatePrincipalAsync(user, cancellationToken);
+        var principal = await CreatePrincipalAsync(user, null, cancellationToken);
         var properties = new AuthenticationProperties
         {
             AllowRefresh = true,
@@ -100,7 +100,7 @@ public sealed class AuthController : ControllerBase
         };
 
         await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, principal, properties);
-        return Ok(new LoginResponse(await CreateUserInfoAsync(user, cancellationToken)));
+        return Ok(new LoginResponse(await CreateUserInfoAsync(user, null, cancellationToken)));
     }
 
     [Authorize]
@@ -113,7 +113,47 @@ public sealed class AuthController : ControllerBase
         if (user is null || !user.IsActive)
             return Unauthorized();
 
-        return Ok(await CreateUserInfoAsync(user, cancellationToken));
+        var activeOrganizationId = Guid.TryParse(
+            User.FindFirstValue(PxaClaimTypes.ActiveOrganization),
+            out var parsedOrganizationId)
+            ? parsedOrganizationId
+            : (Guid?)null;
+        return Ok(await CreateUserInfoAsync(user, activeOrganizationId, cancellationToken));
+    }
+
+    [Authorize]
+    [HttpPost("switch-organization")]
+    [PxaValidateAntiforgery]
+    public async Task<ActionResult<LoginResponse>> SwitchOrganization(
+        SwitchOrganizationRequest request,
+        CancellationToken cancellationToken)
+    {
+        var user = await userManager.GetUserAsync(User);
+        if (user is null || !user.IsActive)
+            return Unauthorized();
+
+        var principal = await CreatePrincipalAsync(user, request.OrganizationId, cancellationToken);
+        var selectedOrganization = principal.FindFirstValue(PxaClaimTypes.ActiveOrganization);
+        if (!Guid.TryParse(selectedOrganization, out var selectedOrganizationId) ||
+            selectedOrganizationId != request.OrganizationId)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Organization access denied",
+                detail: "The organization is unavailable to this administrator.");
+        }
+
+        await HttpContext.SignInAsync(
+            IdentityConstants.ApplicationScheme,
+            principal,
+            new AuthenticationProperties
+            {
+                AllowRefresh = true,
+                IsPersistent = false,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(8),
+            });
+        return Ok(new LoginResponse(
+            await CreateUserInfoAsync(user, request.OrganizationId, cancellationToken)));
     }
 
     [Authorize]
@@ -148,6 +188,7 @@ public sealed class AuthController : ControllerBase
 
     private async Task<ClaimsPrincipal> CreatePrincipalAsync(
         PxaIdentityUser user,
+        Guid? requestedOrganizationId,
         CancellationToken cancellationToken)
     {
         var principal = await principalFactory.CreateAsync(user);
@@ -157,7 +198,14 @@ public sealed class AuthController : ControllerBase
         foreach (var membership in memberships)
             identity.AddClaim(new Claim(PxaClaimTypes.Organization, membership.OrganizationId.ToString()));
 
-        var activeMembership = memberships.FirstOrDefault();
+        var activeMembership = requestedOrganizationId is null
+            ? memberships.FirstOrDefault()
+            : memberships.FirstOrDefault(value => value.OrganizationId == requestedOrganizationId);
+        if (activeMembership is null && requestedOrganizationId is not null &&
+            await userManager.IsInRoleAsync(user, PxaRoles.SystemAdministrator))
+        {
+            activeMembership = await GetSystemOrganizationAsync(requestedOrganizationId.Value, cancellationToken);
+        }
         if (activeMembership is not null)
             identity.AddClaim(new Claim(PxaClaimTypes.ActiveOrganization, activeMembership.OrganizationId.ToString()));
 
@@ -174,10 +222,20 @@ public sealed class AuthController : ControllerBase
 
     private async Task<UserInfo> CreateUserInfoAsync(
         PxaIdentityUser user,
+        Guid? activeOrganizationId,
         CancellationToken cancellationToken)
     {
         var memberships = await GetActiveMembershipsAsync(user.Id, cancellationToken);
-        var activeMembership = memberships.FirstOrDefault();
+        var activeMembership = activeOrganizationId is null
+            ? memberships.FirstOrDefault()
+            : memberships.FirstOrDefault(value => value.OrganizationId == activeOrganizationId);
+        if (activeMembership is null && activeOrganizationId is not null &&
+            await userManager.IsInRoleAsync(user, PxaRoles.SystemAdministrator))
+        {
+            activeMembership = await GetSystemOrganizationAsync(activeOrganizationId.Value, cancellationToken);
+            if (activeMembership is not null)
+                memberships.Add(activeMembership);
+        }
         var roles = await GetSessionRolesAsync(user, activeMembership?.MembershipId, cancellationToken);
         var organizations = memberships
             .Select(value => new OrganizationInfo(value.OrganizationId, value.OrganizationName, value.OrganizationSlug))
@@ -190,7 +248,7 @@ public sealed class AuthController : ControllerBase
             user.DisplayName,
             roles,
             organizations,
-            organizations.FirstOrDefault()?.Id,
+            activeMembership?.OrganizationId,
             user.LastLoginAt);
     }
 
@@ -201,7 +259,8 @@ public sealed class AuthController : ControllerBase
          join organization in dbContext.Organizations.AsNoTracking()
              on membership.OrganizationId equals organization.Id
          where membership.UserId == userId &&
-               membership.Status == OrganizationMembershipStatus.Active
+               membership.Status == OrganizationMembershipStatus.Active &&
+               organization.Status == OrganizationStatus.Active
          orderby membership.CreatedAt
          select new ActiveMembership(
              membership.Id,
@@ -209,6 +268,19 @@ public sealed class AuthController : ControllerBase
              organization.Name,
              organization.Slug))
         .ToListAsync(cancellationToken);
+
+    private Task<ActiveMembership?> GetSystemOrganizationAsync(
+        Guid organizationId,
+        CancellationToken cancellationToken) =>
+        dbContext.Organizations.AsNoTracking()
+            .Where(organization =>
+                organization.Id == organizationId && organization.Status == OrganizationStatus.Active)
+            .Select(organization => new ActiveMembership(
+                Guid.Empty,
+                organization.Id,
+                organization.Name,
+                organization.Slug))
+            .SingleOrDefaultAsync(cancellationToken);
 
     private async Task<IReadOnlyList<string>> GetSessionRolesAsync(
         PxaIdentityUser user,
@@ -253,6 +325,8 @@ public sealed record LoginRequest(
     [Required] string Identifier,
     [Required] string Password,
     bool RememberMe = false);
+
+public sealed record SwitchOrganizationRequest(Guid OrganizationId);
 
 public sealed record LoginResponse(UserInfo User);
 

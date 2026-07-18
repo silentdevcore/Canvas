@@ -19,6 +19,8 @@ public static class PxaRoles
                 PxaPermissions.UsersUpdate,
                 PxaPermissions.UsersDisable,
                 PxaPermissions.RolesAssign,
+                PxaPermissions.OrganizationsRead,
+                PxaPermissions.OrganizationsManage,
                 PxaPermissions.SubscriptionsManage,
                 PxaPermissions.LicensesManage,
                 PxaPermissions.AuditRead,

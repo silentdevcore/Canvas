@@ -162,6 +162,7 @@ Current verification status:
 - [x] Add organization-owned audit events for privileged user-status and role changes.
 - [x] Apply the tenant-role and audit migration to the local PostgreSQL development database.
 - [x] Verify user administration tenant isolation and mutation auditing against Testcontainers PostgreSQL.
+- [x] Verify organization administration, cross-tenant denial, and switched System Administrator context against Testcontainers PostgreSQL.
 
 - [ ] Unit-test domain and application rules independently from EF Core where appropriate.
 - [x] Run repository and migration tests against a real version-pinned PostgreSQL container.

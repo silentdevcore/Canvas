@@ -1,10 +1,18 @@
 import './site.css';
 import {
   currentUser,
+  addAdminOrganizationMember,
+  createAdminOrganization,
+  getAdminOrganization,
+  getAdminOrganizationMembers,
+  getAdminOrganizations,
   getAdminUser,
   getAdminUsers,
   login,
   logout,
+  removeAdminOrganizationMember,
+  switchOrganization,
+  updateAdminOrganization,
   updateAdminUserRoles,
   updateAdminUserStatus,
 } from './api.js';
@@ -58,6 +66,13 @@ const state = {
     error: null,
     saving: false,
   },
+  organizations: {
+    items: [], total: 0, page: 1, pageSize: 25, search: '', status: '',
+    loading: false, loaded: false, error: null,
+  },
+  organizationDetail: {
+    id: null, data: null, members: [], loading: false, error: null, saving: false,
+  },
 };
 
 const organizationRoles = ['Organization Administrator', 'Manager', 'Editor', 'Viewer'];
@@ -80,6 +95,10 @@ function navigate(path, replace = false) {
 function isAdministrator(user) {
   return user?.roles?.some((role) =>
     role === 'System Administrator' || role === 'Organization Administrator');
+}
+
+function isSystemAdministrator(user = state.user) {
+  return user?.roles?.includes('System Administrator');
 }
 
 function renderLogin() {
@@ -339,6 +358,107 @@ function userDetailPage() {
   `;
 }
 
+function organizationsPage() {
+  const organizations = state.organizations;
+  const totalPages = Math.max(1, Math.ceil(organizations.total / organizations.pageSize));
+  const rows = organizations.items.map((organization) => `
+    <tr>
+      <td><a class="admin-user-link" href="/organizations/${organization.id}"><strong>${escapeHtml(organization.name)}</strong><small>${escapeHtml(organization.slug)}</small></a></td>
+      <td><span class="admin-status ${organization.status === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(organization.status)}</span></td>
+      <td>${organization.memberCount}</td>
+      <td>${escapeHtml(formatDate(organization.updatedAt))}</td>
+    </tr>`).join('');
+
+  return `
+    <header class="admin-page-header">
+      <div><p class="pxa-kicker">Identity</p><h1>Organizations</h1><p>Manage tenant ownership, membership, status, and active administration context.</p></div>
+      <span class="admin-record-count">${organizations.total} ${organizations.total === 1 ? 'organization' : 'organizations'}</span>
+    </header>
+    ${isSystemAdministrator() ? `
+      <details class="admin-section admin-create-panel">
+        <summary>Create organization</summary>
+        <form class="admin-inline-form" id="organization-create-form">
+          <label class="admin-field"><span>Name</span><input name="name" required maxlength="200"></label>
+          <label class="admin-field"><span>Slug</span><input name="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="customer-name"></label>
+          <button class="pxa-button pxa-button--primary" type="submit">Create</button>
+        </form>
+      </details>` : ''}
+    <section class="admin-table-section" aria-busy="${organizations.loading}">
+      <form class="admin-table-toolbar" id="organizations-filter-form">
+        <label><span class="visually-hidden">Search organizations</span><input name="search" type="search" placeholder="Search name or slug" value="${escapeHtml(organizations.search)}"></label>
+        <select name="status" aria-label="Filter by status">
+          <option value="">All statuses</option>
+          ${['Active', 'Suspended', 'Closed'].map((status) => `<option value="${status}" ${organizations.status === status ? 'selected' : ''}>${status}</option>`).join('')}
+        </select>
+        <button type="submit">Apply</button>
+      </form>
+      ${organizations.error ? `<div class="admin-alert admin-alert--error admin-inline-alert">${escapeHtml(organizations.error)}</div>` : ''}
+      ${organizations.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading organizations...</p></div>' : `
+        <div class="admin-table-scroll"><table>
+          <thead><tr><th>Organization</th><th>Status</th><th>Members</th><th>Updated</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table></div>
+        ${organizations.items.length ? '' : '<div class="admin-empty-state"><strong>No organizations found</strong><p>Change the search or status filter.</p></div>'}
+        <footer class="admin-pagination"><span>Page ${organizations.page} of ${totalPages}</span><div>
+          <button id="organizations-previous" type="button" ${organizations.page <= 1 ? 'disabled' : ''}>Previous</button>
+          <button id="organizations-next" type="button" ${organizations.page >= totalPages ? 'disabled' : ''}>Next</button>
+        </div></footer>`}
+    </section>`;
+}
+
+function organizationDetailPage() {
+  const detail = state.organizationDetail;
+  if (detail.loading) return '<section class="admin-message-page"><div class="admin-spinner"></div><p>Loading organization...</p></section>';
+  if (!detail.data) return `<section class="admin-message-page"><span class="admin-error-code">!</span><h1>Organization unavailable</h1><p>${escapeHtml(detail.error || 'The organization could not be loaded.')}</p><a class="pxa-button pxa-button--secondary" href="/organizations">Return to organizations</a></section>`;
+  const organization = detail.data;
+  const active = state.user.activeOrganizationId === organization.id;
+  const memberRows = detail.members.map((member) => `
+    <tr>
+      <td><a class="admin-user-link" href="/users/${member.userId}"><strong>${escapeHtml(member.displayName)}</strong><small>${escapeHtml(member.email)}</small></a></td>
+      <td><div class="admin-role-list">${member.roles.length ? member.roles.map((role) => `<span>${escapeHtml(role)}</span>`).join('') : '<span>Unassigned</span>'}</div></td>
+      <td><span class="admin-status ${member.membershipStatus === 'Active' && member.isActive ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(member.membershipStatus)}</span></td>
+      <td><button class="admin-text-danger organization-remove-member" type="button" data-user-id="${member.userId}" data-user-name="${escapeHtml(member.displayName)}" ${detail.saving ? 'disabled' : ''}>Remove</button></td>
+    </tr>`).join('');
+
+  return `
+    <header class="admin-page-header">
+      <div><a class="admin-back-link" href="/organizations">Organizations</a><h1>${escapeHtml(organization.name)}</h1><p>${escapeHtml(organization.slug)}</p></div>
+      <div class="admin-header-actions">
+        <span class="admin-status ${organization.status === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(organization.status)}</span>
+        <button class="pxa-button pxa-button--secondary" id="organization-switch-button" type="button" ${active || organization.status !== 'Active' || detail.saving ? 'disabled' : ''}>${active ? 'Current organization' : 'Work in organization'}</button>
+      </div>
+    </header>
+    ${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(detail.error)}</div>` : ''}
+    <div class="admin-detail-grid">
+      <section class="admin-section">
+        <form id="organization-edit-form">
+          <div class="admin-section-heading"><h2>Organization details</h2><p>Update tenant identity and operational state.</p></div>
+          <div class="admin-form-stack">
+            <label class="admin-field"><span>Name</span><input name="name" value="${escapeHtml(organization.name)}" required maxlength="200"></label>
+            ${isSystemAdministrator() ? `<label class="admin-field"><span>Status</span><select name="status">${['Active', 'Suspended', 'Closed'].map((status) => `<option ${organization.status === status ? 'selected' : ''}>${status}</option>`).join('')}</select></label>` : ''}
+            <dl class="admin-detail-list admin-detail-list--compact"><div><dt>Created</dt><dd>${escapeHtml(formatDate(organization.createdAt))}</dd></div><div><dt>Members</dt><dd>${organization.memberCount}</dd></div></dl>
+          </div>
+          <div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving ? 'disabled' : ''}>Save details</button></div>
+        </form>
+      </section>
+      <section class="admin-section">
+        <form id="organization-add-member-form">
+          <div class="admin-section-heading"><h2>Add existing user</h2><p>Attach a verified PXA account to this organization.</p></div>
+          <div class="admin-form-stack">
+            <label class="admin-field"><span>Email</span><input name="email" type="email" required></label>
+            <label class="admin-field"><span>Initial role</span><select name="role">${organizationRoles.map((role) => `<option>${role}</option>`).join('')}</select></label>
+          </div>
+          <div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving ? 'disabled' : ''}>Add member</button></div>
+        </form>
+      </section>
+    </div>
+    <section class="admin-table-section admin-members-section">
+      <div class="admin-section-heading"><h2>Members</h2><p>Active and suspended memberships in this tenant.</p></div>
+      <div class="admin-table-scroll"><table><thead><tr><th>User</th><th>Roles</th><th>Status</th><th></th></tr></thead><tbody>${memberRows}</tbody></table></div>
+      ${detail.members.length ? '' : '<div class="admin-empty-state"><strong>No members</strong><p>Add an existing PXA user to begin.</p></div>'}
+    </section>`;
+}
+
 function dataPage(path) {
   const [title, description, columns] = pageDetails[path];
   return `
@@ -481,6 +601,131 @@ function bindUserDetailEvents() {
   });
 }
 
+async function loadOrganizations() {
+  state.organizations.loading = true;
+  state.organizations.error = null;
+  render();
+  try {
+    const response = await getAdminOrganizations(state.organizations);
+    Object.assign(state.organizations, response, { loaded: true });
+  } catch (error) {
+    state.organizations.error = error.message;
+    state.organizations.loaded = true;
+  } finally {
+    state.organizations.loading = false;
+    render();
+  }
+}
+
+async function loadOrganizationDetail(organizationId) {
+  Object.assign(state.organizationDetail, { id: organizationId, data: null, members: [], loading: true, error: null, saving: false });
+  render();
+  try {
+    const [organization, members] = await Promise.all([
+      getAdminOrganization(organizationId),
+      getAdminOrganizationMembers(organizationId),
+    ]);
+    state.organizationDetail.data = organization;
+    state.organizationDetail.members = members;
+  } catch (error) {
+    state.organizationDetail.error = error.message;
+  } finally {
+    state.organizationDetail.loading = false;
+    render();
+  }
+}
+
+function bindOrganizationsEvents() {
+  document.querySelector('#organizations-filter-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    state.organizations.search = String(data.get('search') || '').trim();
+    state.organizations.status = String(data.get('status') || '');
+    state.organizations.page = 1;
+    loadOrganizations();
+  });
+  document.querySelector('#organizations-previous')?.addEventListener('click', () => {
+    state.organizations.page -= 1;
+    loadOrganizations();
+  });
+  document.querySelector('#organizations-next')?.addEventListener('click', () => {
+    state.organizations.page += 1;
+    loadOrganizations();
+  });
+  document.querySelector('#organization-create-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    try {
+      const organization = await createAdminOrganization(data.get('name'), data.get('slug'));
+      state.organizations.loaded = false;
+      navigate(`/organizations/${organization.id}`);
+    } catch (error) {
+      state.organizations.error = error.message;
+      render();
+    }
+  });
+}
+
+async function runOrganizationDetailMutation(operation) {
+  state.organizationDetail.saving = true;
+  state.organizationDetail.error = null;
+  render();
+  try {
+    await operation();
+    state.organizations.loaded = false;
+    state.organizationDetail.saving = false;
+    await loadOrganizationDetail(state.organizationDetail.id);
+  } catch (error) {
+    state.organizationDetail.error = error.message;
+    state.organizationDetail.saving = false;
+    render();
+  }
+}
+
+function bindOrganizationDetailEvents() {
+  document.querySelector('#organization-switch-button')?.addEventListener('click', async () => {
+    state.organizationDetail.saving = true;
+    render();
+    try {
+      const response = await switchOrganization(state.organizationDetail.id);
+      state.user = response.user;
+      state.users.loaded = false;
+      state.organizationDetail.saving = false;
+      render();
+    } catch (error) {
+      state.organizationDetail.error = error.message;
+      state.organizationDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelector('#organization-edit-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runOrganizationDetailMutation(async () => {
+      state.organizationDetail.data = await updateAdminOrganization(state.organizationDetail.id, {
+        name: data.get('name'),
+        ...(data.has('status') ? { status: data.get('status') } : {}),
+      });
+    });
+  });
+  document.querySelector('#organization-add-member-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runOrganizationDetailMutation(() => addAdminOrganizationMember(
+      state.organizationDetail.id,
+      data.get('email'),
+      [data.get('role')]));
+  });
+  document.querySelectorAll('.organization-remove-member').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!window.confirm(`Remove ${button.dataset.userName} from this organization?`)) return;
+      runOrganizationDetailMutation(() => removeAdminOrganizationMember(
+        state.organizationDetail.id,
+        button.dataset.userId));
+    });
+  });
+}
+
 async function handleLogout(event) {
   event.currentTarget.disabled = true;
   try {
@@ -522,6 +767,23 @@ function render() {
     renderShell(usersPage(), 'Users');
     bindUsersEvents();
     if (!state.users.loaded && !state.users.loading) loadUsers();
+    return;
+  }
+
+  if (location.pathname === '/organizations') {
+    renderShell(organizationsPage(), 'Organizations');
+    bindOrganizationsEvents();
+    if (!state.organizations.loaded && !state.organizations.loading) loadOrganizations();
+    return;
+  }
+
+  const organizationDetailMatch = location.pathname.match(/^\/organizations\/([0-9a-f-]+)$/i);
+  if (organizationDetailMatch) {
+    renderShell(organizationDetailPage(), state.organizationDetail.data?.name || 'Organization');
+    bindOrganizationDetailEvents();
+    if (state.organizationDetail.id !== organizationDetailMatch[1] && !state.organizationDetail.loading) {
+      loadOrganizationDetail(organizationDetailMatch[1]);
+    }
     return;
   }
 
