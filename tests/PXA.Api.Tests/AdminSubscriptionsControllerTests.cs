@@ -62,6 +62,27 @@ public sealed class AdminSubscriptionsControllerTests
             });
         Assert.Equal(HttpStatusCode.Conflict, (await systemClient.SendAsync(duplicate)).StatusCode);
 
+        using var updateEntitlements = CreateCsrfRequest(HttpMethod.Patch,
+            $"/api/pxa/v1/admin/subscriptions/{subscriptionId}",
+            await GetCsrfAsync(systemClient), new
+            {
+                entitlements = new object[]
+                {
+                    new { capability = "generator", enabled = true },
+                    new { capability = "api", enabled = true, limit = 2000, unit = "operations" },
+                    new { capability = "preview.experimental", enabled = false, source = "TemporaryGrant" },
+                },
+            });
+        Assert.Equal(HttpStatusCode.OK, (await systemClient.SendAsync(updateEntitlements)).StatusCode);
+
+        using var extendTrial = CreateCsrfRequest(HttpMethod.Post,
+            $"/api/pxa/v1/admin/subscriptions/{subscriptionId}/trial/extend",
+            await GetCsrfAsync(systemClient), new { days = 7 });
+        var extendedResponse = await systemClient.SendAsync(extendTrial);
+        Assert.Equal(HttpStatusCode.OK, extendedResponse.StatusCode);
+        var extended = await extendedResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(extended.GetProperty("trialEndsAt").GetDateTimeOffset() > trialEndsAt);
+
         using var assignSeat = CreateCsrfRequest(HttpMethod.Post,
             $"/api/pxa/v1/admin/subscriptions/{subscriptionId}/seats/{seeded.OrganizationAdminMembershipId}",
             await GetCsrfAsync(systemClient), new { });
@@ -71,17 +92,47 @@ public sealed class AdminSubscriptionsControllerTests
             await GetCsrfAsync(systemClient), new { });
         Assert.Equal(HttpStatusCode.Conflict, (await systemClient.SendAsync(exceedSeats)).StatusCode);
 
-        using var suspend = CreateCsrfRequest(HttpMethod.Patch,
+        var seats = await systemClient.GetFromJsonAsync<JsonElement>(
+            $"/api/pxa/v1/admin/subscriptions/{subscriptionId}/seats");
+        Assert.Equal(2, seats.GetArrayLength());
+        Assert.Single(seats.EnumerateArray(), value => value.GetProperty("assigned").GetBoolean());
+
+        using var organizationClient = CreateClient(factory);
+        await LoginAsync(organizationClient, "organization@pxa.test", "Pxa-Organization-Subscription-42!");
+        var allowed = await organizationClient.GetFromJsonAsync<JsonElement>(
+            "/api/pxa/v1/account/entitlements/api?quantity=1999");
+        Assert.True(allowed.GetProperty("allowed").GetBoolean());
+        var denied = await organizationClient.GetFromJsonAsync<JsonElement>(
+            "/api/pxa/v1/account/entitlements/api?quantity=2001");
+        Assert.False(denied.GetProperty("allowed").GetBoolean());
+        Assert.Equal("PXA_ENTITLEMENT_LIMIT_EXCEEDED", denied.GetProperty("code").GetString());
+
+        using var activate = CreateCsrfRequest(HttpMethod.Patch,
             $"/api/pxa/v1/admin/subscriptions/{subscriptionId}",
-            await GetCsrfAsync(systemClient), new { status = "Suspended" });
-        Assert.Equal(HttpStatusCode.OK, (await systemClient.SendAsync(suspend)).StatusCode);
+            await GetCsrfAsync(systemClient), new { edition = "Premium", status = "Active", billingPeriod = "Annual" });
+        Assert.Equal(HttpStatusCode.OK, (await systemClient.SendAsync(activate)).StatusCode);
+        var renewalEnd = DateTimeOffset.UtcNow.AddYears(1);
+        using var renew = CreateCsrfRequest(HttpMethod.Post,
+            $"/api/pxa/v1/admin/subscriptions/{subscriptionId}/renew",
+            await GetCsrfAsync(systemClient), new { periodEndsAt = renewalEnd });
+        Assert.Equal(HttpStatusCode.OK, (await systemClient.SendAsync(renew)).StatusCode);
+        using var pastDue = CreateCsrfRequest(HttpMethod.Patch,
+            $"/api/pxa/v1/admin/subscriptions/{subscriptionId}",
+            await GetCsrfAsync(systemClient), new { status = "PastDue" });
+        Assert.Equal(HttpStatusCode.OK, (await systemClient.SendAsync(pastDue)).StatusCode);
+        using var gracePeriod = CreateCsrfRequest(HttpMethod.Post,
+            $"/api/pxa/v1/admin/subscriptions/{subscriptionId}/grace-period",
+            await GetCsrfAsync(systemClient), new { endsAt = DateTimeOffset.UtcNow.AddDays(14) });
+        Assert.Equal(HttpStatusCode.OK, (await systemClient.SendAsync(gracePeriod)).StatusCode);
+        using var scheduleCancellation = CreateCsrfRequest(HttpMethod.Post,
+            $"/api/pxa/v1/admin/subscriptions/{subscriptionId}/cancel",
+            await GetCsrfAsync(systemClient), new { effectiveAt = DateTimeOffset.UtcNow.AddDays(10) });
+        Assert.Equal(HttpStatusCode.OK, (await systemClient.SendAsync(scheduleCancellation)).StatusCode);
         using var invalidTransition = CreateCsrfRequest(HttpMethod.Patch,
             $"/api/pxa/v1/admin/subscriptions/{subscriptionId}",
             await GetCsrfAsync(systemClient), new { status = "Trialing" });
         Assert.Equal(HttpStatusCode.Conflict, (await systemClient.SendAsync(invalidTransition)).StatusCode);
 
-        using var organizationClient = CreateClient(factory);
-        await LoginAsync(organizationClient, "organization@pxa.test", "Pxa-Organization-Subscription-42!");
         var tenantPage = await organizationClient.GetFromJsonAsync<JsonElement>("/api/pxa/v1/admin/subscriptions");
         Assert.Equal(1, tenantPage.GetProperty("total").GetInt32());
         using var forbiddenUpdate = CreateCsrfRequest(HttpMethod.Patch,
@@ -91,12 +142,16 @@ public sealed class AdminSubscriptionsControllerTests
 
         await using var scope = factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
-        Assert.Equal(SubscriptionStatus.Suspended,
+        Assert.Equal(SubscriptionStatus.GracePeriod,
             (await dbContext.OrganizationSubscriptions.FindAsync(subscriptionId))!.Status);
-        Assert.Equal(2, await dbContext.SubscriptionLifecycleEvents.CountAsync());
+        Assert.Equal(8, await dbContext.SubscriptionLifecycleEvents.CountAsync());
+        var history = await systemClient.GetFromJsonAsync<JsonElement>(
+            $"/api/pxa/v1/admin/subscriptions/{subscriptionId}/history");
+        Assert.Equal(8, history.GetArrayLength());
         Assert.Contains(await dbContext.AuditEvents.ToListAsync(), value => value.Action == "subscriptions.create");
         Assert.Contains(await dbContext.AuditEvents.ToListAsync(), value => value.Action == "subscriptions.update");
         Assert.Contains(await dbContext.AuditEvents.ToListAsync(), value => value.Action == "subscriptions.seat.assign");
+        Assert.Contains(await dbContext.AuditEvents.ToListAsync(), value => value.Action == "subscription.renewed");
     }
 
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>

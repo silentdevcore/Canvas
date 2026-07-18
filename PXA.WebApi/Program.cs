@@ -9,6 +9,7 @@ using PXA.Pdf;
 using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
+using PXA.WebApi.Services.Entitlements;
 using PxaConverters = PXA.Infrastructure.Converters;
 using PxaSpreadsheet = PXA.Infrastructure.Spreadsheet;
 using PxaWord = PXA.Infrastructure.Word;
@@ -38,6 +39,7 @@ builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
 builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IPxaTenantContext, PxaTenantContext>();
+builder.Services.AddScoped<IPxaEntitlementService, PxaEntitlementService>();
 var dataProtectionKeysDirectory = builder.Configuration["DataProtection:KeysDirectory"]
     ?? Path.Combine("App_Data", "data-protection-keys");
 var dataProtectionKeysPath = Path.IsPathRooted(dataProtectionKeysDirectory)

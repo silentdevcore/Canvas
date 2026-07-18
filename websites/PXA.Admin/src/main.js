@@ -3,6 +3,8 @@ import {
   currentUser,
   acceptInvitation,
   addAdminOrganizationMember,
+  assignAdminSubscriptionSeat,
+  cancelAdminSubscription,
   createAdminOrganization,
   createAdminSubscription,
   createAdminInvitation,
@@ -11,6 +13,9 @@ import {
   getAdminOrganizationMembers,
   getAdminOrganizations,
   getAdminSubscriptions,
+  getAdminSubscription,
+  getAdminSubscriptionHistory,
+  getAdminSubscriptionSeats,
   getAdminMail,
   getAdminMailStatus,
   getAdminUser,
@@ -19,13 +24,17 @@ import {
   logout,
   removeAdminOrganizationMember,
   requestPasswordReset,
+  renewAdminSubscription,
+  revokeAdminSubscriptionSeat,
   retryAdminMail,
   confirmPasswordReset,
   switchOrganization,
+  startAdminGracePeriod,
   updateAdminOrganization,
   updateAdminSubscription,
   updateAdminUserRoles,
   updateAdminUserStatus,
+  extendAdminTrial,
 } from './api.js';
 
 const app = document.querySelector('#app');
@@ -92,6 +101,9 @@ const state = {
     items: [], total: 0, page: 1, pageSize: 25, status: '', edition: '',
     loading: false, loaded: false, saving: false, error: null,
   },
+  subscriptionDetail: {
+    id: null, data: null, seats: [], history: [], loading: false, saving: false, error: null,
+  },
 };
 
 const organizationRoles = ['Organization Administrator', 'Manager', 'Editor', 'Viewer'];
@@ -118,6 +130,13 @@ function escapeHtml(value = '') {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#039;');
+}
+
+function dateInputValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
 }
 
 function navigate(path, replace = false) {
@@ -595,7 +614,7 @@ function subscriptionsPage() {
   const totalPages = Math.max(1, Math.ceil(subscriptions.total / subscriptions.pageSize));
   const rows = subscriptions.items.map((subscription) => `
     <tr>
-      <td><strong>${escapeHtml(subscription.organizationName)}</strong><small>${escapeHtml(subscription.accountType.replace('IndividualDeveloper', 'Individual Developer'))}</small></td>
+      <td><a class="admin-table-link" href="/subscriptions/${subscription.id}"><strong>${escapeHtml(subscription.organizationName)}</strong></a><small>${escapeHtml(subscription.accountType.replace('IndividualDeveloper', 'Individual Developer'))}</small></td>
       <td>${escapeHtml(subscription.edition)}</td>
       <td>${isSystemAdministrator() ? `<select class="subscription-status" data-subscription-id="${subscription.id}" aria-label="Status for ${escapeHtml(subscription.organizationName)}">${[subscription.status, ...(subscriptionTransitions[subscription.status] || [])].map((status) => `<option ${subscription.status === status ? 'selected' : ''}>${status}</option>`).join('')}</select>` : `<span class="admin-status ${subscription.status === 'Active' || subscription.status === 'Trialing' ? 'admin-status--ready' : 'admin-status--planned'}">${escapeHtml(subscription.status)}</span>`}</td>
       <td>${escapeHtml(subscription.deploymentMode)}</td>
@@ -610,6 +629,28 @@ function subscriptionsPage() {
     ${subscriptions.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(subscriptions.error)}</div>` : ''}
     ${isSystemAdministrator() ? `<section class="admin-section admin-subscription-create"><div class="admin-section-heading"><h2>Create subscription</h2><p>No prices or quotas are inferred. Select only the capabilities approved for this organization.</p></div><form id="subscription-create-form" class="admin-form-stack"><div class="admin-subscription-fields"><label class="admin-field"><span>Organization</span><select name="organizationId" required><option value="">Select organization</option>${availableOrganizations.map((organization) => `<option value="${organization.id}">${escapeHtml(organization.name)}</option>`).join('')}</select></label><label class="admin-field"><span>Edition</span><select name="edition">${['Free', 'Trial', 'Premium', 'Enterprise'].map((value) => `<option>${value}</option>`).join('')}</select></label><label class="admin-field"><span>Account type</span><select name="accountType"><option value="Company">Company</option><option value="IndividualDeveloper">Individual Developer</option></select></label><label class="admin-field"><span>Status</span><select name="status"><option>Active</option><option>Trialing</option><option>Pending</option></select></label><label class="admin-field"><span>Billing</span><select name="billingPeriod"><option>None</option><option>Monthly</option><option>Annual</option></select></label><label class="admin-field"><span>Deployment</span><select name="deploymentMode"><option>Cloud</option><option>OnPremise</option><option>Hybrid</option></select></label><label class="admin-field"><span>Seat limit</span><input name="seatLimit" type="number" min="1" placeholder="No fixed limit"></label></div><fieldset class="admin-capability-options"><legend>Enabled capabilities</legend>${subscriptionCapabilities.map(([key, label]) => `<label><input type="checkbox" name="capability" value="${key}"><span>${label}</span></label>`).join('')}</fieldset><div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${subscriptions.saving || !availableOrganizations.length ? 'disabled' : ''}>Create subscription</button></div></form></section>` : ''}
     <section class="admin-table-section" aria-busy="${subscriptions.loading}"><form class="admin-table-toolbar" id="subscription-filter-form"><select name="edition" aria-label="Filter edition"><option value="">All editions</option>${['Free', 'Trial', 'Premium', 'Enterprise'].map((value) => `<option ${subscriptions.edition === value ? 'selected' : ''}>${value}</option>`).join('')}</select><select name="status" aria-label="Filter lifecycle"><option value="">All states</option>${['Pending', 'Trialing', 'Active', 'PastDue', 'GracePeriod', 'Suspended', 'Cancelled', 'Expired'].map((value) => `<option ${subscriptions.status === value ? 'selected' : ''}>${value}</option>`).join('')}</select><button type="submit">Apply</button></form>${subscriptions.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading subscriptions...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>Organization</th><th>Edition</th><th>State</th><th>Deployment</th><th>Seats</th><th>Renewal / expiry</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${subscriptions.items.length ? '' : '<div class="admin-empty-state"><strong>No subscriptions</strong><p>Create the first organization subscription to define licensed capabilities.</p></div>'}<footer class="admin-pagination"><span>Page ${subscriptions.page} of ${totalPages}</span><div><button id="subscription-previous" type="button" ${subscriptions.page <= 1 ? 'disabled' : ''}>Previous</button><button id="subscription-next" type="button" ${subscriptions.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer>`}</section>`;
+}
+
+function subscriptionDetailPage() {
+  const detail = state.subscriptionDetail;
+  if (detail.loading && !detail.data)
+    return '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading subscription...</p></div>';
+  if (!detail.data)
+    return `<div class="admin-alert admin-alert--error">${escapeHtml(detail.error || 'Subscription not found.')}</div>`;
+  const subscription = detail.data;
+  const entitlementKeys = [...new Set([
+    ...subscriptionCapabilities.map(([key]) => key),
+    ...subscription.entitlements.map((item) => item.capability),
+  ])];
+  const entitlementRows = entitlementKeys.map((capability) => {
+    const entitlement = subscription.entitlements.find((item) => item.capability === capability);
+    const label = subscriptionCapabilities.find(([key]) => key === capability)?.[1] || capability;
+    return `<tr data-entitlement-capability="${escapeHtml(capability)}"><td><strong>${escapeHtml(label)}</strong><small>${escapeHtml(capability)}</small></td><td><input class="entitlement-enabled" type="checkbox" ${entitlement?.enabled ? 'checked' : ''} ${detail.saving || !isSystemAdministrator() ? 'disabled' : ''}></td><td><input class="entitlement-limit" type="number" min="0" value="${entitlement?.limit ?? ''}" placeholder="No limit" ${detail.saving || !isSystemAdministrator() ? 'disabled' : ''}></td><td><input class="entitlement-unit" value="${escapeHtml(entitlement?.unit || '')}" placeholder="operations" maxlength="40" ${detail.saving || !isSystemAdministrator() ? 'disabled' : ''}></td><td><select class="entitlement-source" ${detail.saving || !isSystemAdministrator() ? 'disabled' : ''}>${['EditionDefault', 'NegotiatedOverride', 'TemporaryGrant'].map((source) => `<option ${entitlement?.source === source ? 'selected' : ''}>${source}</option>`).join('')}</select></td><td><input class="entitlement-expiry" type="datetime-local" value="${dateInputValue(entitlement?.expiresAt)}" ${detail.saving || !isSystemAdministrator() ? 'disabled' : ''}></td></tr>`;
+  }).join('');
+  const seatRows = detail.seats.map((seat) => `<tr><td><strong>${escapeHtml(seat.displayName)}</strong><small>${escapeHtml(seat.email)}</small></td><td>${escapeHtml(seat.membershipStatus)}</td><td><span class="admin-status ${seat.assigned ? 'admin-status--ready' : 'admin-status--planned'}">${seat.assigned ? 'Assigned' : 'Not assigned'}</span></td><td>${isSystemAdministrator() ? `<button class="${seat.assigned ? 'subscription-revoke-seat' : 'subscription-assign-seat'}" data-membership-id="${seat.membershipId}" type="button" ${detail.saving || seat.membershipStatus !== 'Active' ? 'disabled' : ''}>${seat.assigned ? 'Revoke' : 'Assign'}</button>` : ''}</td></tr>`).join('');
+  const historyRows = detail.history.map((event) => `<tr><td>${escapeHtml(formatDate(event.createdAt))}</td><td>${escapeHtml(event.action)}</td><td>${escapeHtml(event.previousStatus || 'New')} → ${escapeHtml(event.currentStatus)}</td><td><strong>${escapeHtml(event.actorName)}</strong><small>${escapeHtml(event.actorUserId)}</small></td></tr>`).join('');
+  const lifecycleActions = isSystemAdministrator() ? `<section class="admin-section admin-subscription-actions"><div class="admin-section-heading"><h2>Lifecycle actions</h2><p>Each operation is validated and written to subscription history and the audit log.</p></div><div class="admin-action-grid">${subscription.edition === 'Trial' && !['Cancelled', 'Expired'].includes(subscription.status) ? `<form id="subscription-trial-form" class="admin-compact-action"><label class="admin-field"><span>Extend Trial by days</span><input name="days" type="number" min="1" max="365" value="7" required></label><button type="submit" ${detail.saving ? 'disabled' : ''}>Extend Trial</button></form>` : ''}${!['Trialing', 'Cancelled', 'Expired'].includes(subscription.status) ? `<form id="subscription-renew-form" class="admin-compact-action"><label class="admin-field"><span>Renew until</span><input name="periodEndsAt" type="datetime-local" required></label><button type="submit" ${detail.saving ? 'disabled' : ''}>Renew</button></form>` : ''}${['PastDue', 'GracePeriod'].includes(subscription.status) ? `<form id="subscription-grace-form" class="admin-compact-action"><label class="admin-field"><span>Grace period until</span><input name="endsAt" type="datetime-local" required></label><button type="submit" ${detail.saving ? 'disabled' : ''}>Apply grace period</button></form>` : ''}${!['Cancelled', 'Expired'].includes(subscription.status) ? `<form id="subscription-cancel-form" class="admin-compact-action"><label class="admin-field"><span>Cancellation effective</span><input name="effectiveAt" type="datetime-local" value="${dateInputValue(subscription.currentPeriodEndsAt)}"></label><button class="admin-danger-button" type="submit" ${detail.saving ? 'disabled' : ''}>Schedule cancellation</button></form>` : ''}</div></section>` : '';
+  return `<header class="admin-page-header"><div><a class="admin-back-link" href="/subscriptions">Subscriptions</a><h1>${escapeHtml(subscription.organizationName)}</h1><p>${escapeHtml(subscription.edition)} · ${escapeHtml(subscription.accountType.replace('IndividualDeveloper', 'Individual Developer'))} · ${escapeHtml(subscription.deploymentMode)}</p></div><span class="admin-status ${subscription.status === 'Active' || subscription.status === 'Trialing' ? 'admin-status--ready' : 'admin-status--planned'}">${escapeHtml(subscription.status)}</span></header>${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(detail.error)}</div>` : ''}<section class="admin-summary-grid"><article><span>Billing</span><strong>${escapeHtml(subscription.billingPeriod)}</strong></article><article><span>Seats</span><strong>${subscription.assignedSeats} / ${subscription.seatLimit ?? 'unlimited'}</strong></article><article><span>Trial ends</span><strong>${escapeHtml(formatDate(subscription.trialEndsAt))}</strong></article><article><span>Period ends</span><strong>${escapeHtml(formatDate(subscription.currentPeriodEndsAt))}</strong></article></section>${lifecycleActions}<section class="admin-table-section"><form id="subscription-entitlements-form"><div class="admin-section-heading"><h2>Effective capability grants</h2><p>Limits and expiry are explicit. Application roles do not grant these products.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Capability</th><th>Enabled</th><th>Limit</th><th>Unit</th><th>Source</th><th>Expires</th></tr></thead><tbody>${entitlementRows}</tbody></table></div>${isSystemAdministrator() ? `<div class="admin-form-stack"><label class="admin-field"><span>Additional capability key</span><input id="subscription-custom-capability" pattern="[a-z][a-z0-9.-]*" placeholder="feature.capability"></label></div><div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving ? 'disabled' : ''}>Save entitlements</button></div>` : ''}</form></section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Seat assignments</h2><p>Only active memberships in this organization can receive a seat.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Member</th><th>Membership</th><th>Seat</th><th></th></tr></thead><tbody>${seatRows}</tbody></table></div>${detail.seats.length ? '' : '<div class="admin-empty-state"><strong>No memberships</strong></div>'}</section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Lifecycle history</h2><p>Append-only commercial state transitions.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Action</th><th>Transition</th><th>Actor</th></tr></thead><tbody>${historyRows}</tbody></table></div></section>`;
 }
 
 function dataPage(path) {
@@ -937,6 +978,26 @@ async function loadSubscriptions() {
   }
 }
 
+async function loadSubscriptionDetail(subscriptionId) {
+  Object.assign(state.subscriptionDetail, {
+    id: subscriptionId, data: null, seats: [], history: [], loading: true, error: null,
+  });
+  render();
+  try {
+    const [data, seats, history] = await Promise.all([
+      getAdminSubscription(subscriptionId),
+      getAdminSubscriptionSeats(subscriptionId),
+      getAdminSubscriptionHistory(subscriptionId),
+    ]);
+    Object.assign(state.subscriptionDetail, { data, seats, history });
+  } catch (error) {
+    state.subscriptionDetail.error = error.message;
+  } finally {
+    state.subscriptionDetail.loading = false;
+    render();
+  }
+}
+
 function bindSubscriptionEvents() {
   document.querySelector('#subscription-filter-form')?.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -979,6 +1040,69 @@ async function runSubscriptionMutation(operation) {
     state.subscriptions.saving = false;
     render();
   }
+}
+
+async function runSubscriptionDetailMutation(operation) {
+  state.subscriptionDetail.saving = true;
+  state.subscriptionDetail.error = null;
+  render();
+  try {
+    await operation();
+    state.subscriptions.loaded = false;
+    state.subscriptionDetail.saving = false;
+    await loadSubscriptionDetail(state.subscriptionDetail.id);
+  } catch (error) {
+    state.subscriptionDetail.error = error.message;
+    state.subscriptionDetail.saving = false;
+    render();
+  }
+}
+
+function bindSubscriptionDetailEvents() {
+  const detail = state.subscriptionDetail;
+  document.querySelector('#subscription-entitlements-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const entitlements = [...document.querySelectorAll('[data-entitlement-capability]')].map((row) => ({
+      capability: row.dataset.entitlementCapability,
+      enabled: row.querySelector('.entitlement-enabled').checked,
+      limit: row.querySelector('.entitlement-limit').value ? Number(row.querySelector('.entitlement-limit').value) : null,
+      unit: row.querySelector('.entitlement-unit').value || null,
+      source: row.querySelector('.entitlement-source').value,
+      expiresAt: row.querySelector('.entitlement-expiry').value
+        ? new Date(row.querySelector('.entitlement-expiry').value).toISOString() : null,
+    }));
+    const customCapability = document.querySelector('#subscription-custom-capability')?.value.trim();
+    if (customCapability && !entitlements.some((item) => item.capability === customCapability))
+      entitlements.push({ capability: customCapability, enabled: true, limit: null, unit: null, source: 'NegotiatedOverride', expiresAt: null });
+    runSubscriptionDetailMutation(() => updateAdminSubscription(detail.id, { entitlements }));
+  });
+  document.querySelectorAll('.subscription-assign-seat').forEach((button) => button.addEventListener('click', () =>
+    runSubscriptionDetailMutation(() => assignAdminSubscriptionSeat(detail.id, button.dataset.membershipId))));
+  document.querySelectorAll('.subscription-revoke-seat').forEach((button) => button.addEventListener('click', () => {
+    if (window.confirm('Revoke this subscription seat?'))
+      runSubscriptionDetailMutation(() => revokeAdminSubscriptionSeat(detail.id, button.dataset.membershipId));
+  }));
+  document.querySelector('#subscription-trial-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    runSubscriptionDetailMutation(() => extendAdminTrial(detail.id, Number(new FormData(event.currentTarget).get('days'))));
+  });
+  document.querySelector('#subscription-renew-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const value = new FormData(event.currentTarget).get('periodEndsAt');
+    runSubscriptionDetailMutation(() => renewAdminSubscription(detail.id, new Date(value).toISOString()));
+  });
+  document.querySelector('#subscription-grace-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const value = new FormData(event.currentTarget).get('endsAt');
+    runSubscriptionDetailMutation(() => startAdminGracePeriod(detail.id, new Date(value).toISOString()));
+  });
+  document.querySelector('#subscription-cancel-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!window.confirm('Schedule cancellation for this subscription?')) return;
+    const value = new FormData(event.currentTarget).get('effectiveAt');
+    runSubscriptionDetailMutation(() => cancelAdminSubscription(
+      detail.id, value ? new Date(value).toISOString() : null));
+  });
 }
 
 function bindMailEvents() {
@@ -1105,6 +1229,15 @@ function render() {
     renderShell(subscriptionsPage(), 'Subscriptions');
     bindSubscriptionEvents();
     if (!state.subscriptions.loaded && !state.subscriptions.loading) loadSubscriptions();
+    return;
+  }
+
+  const subscriptionDetailMatch = location.pathname.match(/^\/subscriptions\/([0-9a-f-]+)$/i);
+  if (subscriptionDetailMatch) {
+    renderShell(subscriptionDetailPage(), state.subscriptionDetail.data?.organizationName || 'Subscription');
+    bindSubscriptionDetailEvents();
+    if (state.subscriptionDetail.id !== subscriptionDetailMatch[1] && !state.subscriptionDetail.loading)
+      loadSubscriptionDetail(subscriptionDetailMatch[1]);
     return;
   }
 

@@ -49,17 +49,18 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 - [x] Model seat limits, assignment, revocation, and active-seat counts.
 - [x] Model optional numeric limits and units without selecting commercial quota values.
 - [ ] Distinguish hard limits, soft warnings, overage-capable limits, and informational usage.
-- [ ] Define entitlement precedence for edition defaults, negotiated overrides, and temporary grants.
-- [ ] Return stable entitlement-denied and quota-exceeded error codes from the API.
-- [ ] Expose effective entitlements and current usage to authorized Admin users.
-- [ ] Never infer product entitlement from an application role.
+- [x] Define entitlement sources for edition defaults, negotiated overrides, and temporary grants.
+- [x] Return stable entitlement decision and limit-exceeded codes from the central evaluator API.
+- [x] Expose effective entitlements, limits, units, sources, and expiry to authorized Admin users.
+- [x] Never infer product entitlement from an application role.
 
 ## Organization And Seat Management
 
 - [x] Assign each current Company subscription to exactly one organization.
 - [ ] Define owner, billing contact, technical contact, and organization administrator responsibilities.
 - [x] Prevent normal Admin API seat assignment from exceeding the configured seat entitlement.
-- [ ] Define seat invitation, assignment, transfer, removal, and deactivated-user behavior.
+- [x] Add seat assignment and revocation for active organization memberships.
+- [ ] Define seat transfer automation and deactivated-user cleanup behavior.
 - [ ] Preserve organization resources when a user loses a seat.
 - [ ] Define account-owner transfer and organization closure workflows.
 
@@ -75,8 +76,8 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 
 ## Enforcement And Metering
 
-- [ ] Centralize entitlement evaluation in one application service used by API endpoints and workers.
-- [ ] Enforce entitlements server-side regardless of Designer or SDK behavior.
+- [x] Centralize subscription, state, expiry, capability, and requested-quantity evaluation in one scoped service usable by API endpoints and hosted workers.
+- [ ] Apply mandatory entitlement enforcement to every protected product endpoint before public API authentication rollout.
 - [ ] Record usage with tenant, product, operation, quantity, timestamp, request ID, and source.
 - [ ] Make usage recording idempotent for retried jobs.
 - [ ] Avoid storing document content or customer secrets in usage events.
@@ -86,7 +87,8 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 ## Administration And Customer Experience
 
 - [x] Add a live subscription list, creation form, filters, lifecycle control, seats, and explicit capability selection to PXA Admin.
-- [ ] Add detail workflows for Trial extension, renewal dates, entitlement overrides, seat assignment, and license generation.
+- [x] Add a detail view for Trial extension, renewal, grace period, cancellation, entitlement overrides, seat assignment, and lifecycle history.
+- [ ] Add offline-license generation and usage-metering views.
 - [ ] Show customers their edition, renewal or expiry date, limits, usage, and upgrade path.
 - [ ] Send lifecycle notifications through `PXA.Mail-Service.md`.
 - [ ] Update PXA.Company pricing and license content after commercial decisions are approved.
@@ -99,6 +101,7 @@ Current subscription foundation verification:
 - [x] Test Trial creation, automatic 30-day expiry, explicit entitlements, duplicate prevention, and lifecycle audit events.
 - [x] Test seat assignment and configured seat-limit rejection against PostgreSQL.
 - [x] Test tenant-scoped read access and System-Administrator-only mutation access.
+- [x] Test entitlement evaluation, configured limit rejection, Trial extension, renewal, grace period, scheduled cancellation, detail data, and lifecycle history.
 
 - [ ] Test every edition and account-type combination.
 - [ ] Test lifecycle transitions, grace periods, cancellation, suspension, expiry, and Trial conversion.
@@ -114,5 +117,5 @@ Current subscription foundation verification:
 - [ ] Trial provides Premium capabilities for 30 days unless an audited extension exists.
 - [ ] Enterprise supports signed offline licenses without a permanent internet connection.
 - [ ] All protected operations enforce effective entitlements on the server.
-- [ ] Customers and administrators can explain every access denial from visible subscription state and stable diagnostics.
+- [x] Administrators can inspect subscription state and receive stable entitlement decision codes without exposing billing internals.
 - [ ] No exact public price or unapproved numeric quota is hard-coded during roadmap implementation.

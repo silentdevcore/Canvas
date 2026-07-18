@@ -146,8 +146,47 @@ export async function createAdminSubscription(subscription) {
   return adminMutation(adminSubscriptionsBase, 'POST', subscription);
 }
 
+export async function getAdminSubscription(subscriptionId) {
+  return request(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}`);
+}
+
+export async function getAdminSubscriptionSeats(subscriptionId) {
+  return request(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}/seats`);
+}
+
+export async function getAdminSubscriptionHistory(subscriptionId) {
+  return request(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}/history`);
+}
+
 export async function updateAdminSubscription(subscriptionId, changes) {
   return adminMutation(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}`, 'PATCH', changes);
+}
+
+export async function assignAdminSubscriptionSeat(subscriptionId, membershipId) {
+  return adminMutation(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}/seats/${encodeURIComponent(membershipId)}`, 'POST');
+}
+
+export async function revokeAdminSubscriptionSeat(subscriptionId, membershipId) {
+  const { token } = await request(`${authBase}/csrf`);
+  return request(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}/seats/${encodeURIComponent(membershipId)}`, {
+    method: 'DELETE', headers: { 'X-PXA-CSRF': token },
+  });
+}
+
+export async function extendAdminTrial(subscriptionId, days) {
+  return adminMutation(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}/trial/extend`, 'POST', { days });
+}
+
+export async function renewAdminSubscription(subscriptionId, periodEndsAt) {
+  return adminMutation(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}/renew`, 'POST', { periodEndsAt });
+}
+
+export async function startAdminGracePeriod(subscriptionId, endsAt) {
+  return adminMutation(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}/grace-period`, 'POST', { endsAt });
+}
+
+export async function cancelAdminSubscription(subscriptionId, effectiveAt) {
+  return adminMutation(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}/cancel`, 'POST', { effectiveAt });
 }
 
 export async function getAdminMailStatus() {

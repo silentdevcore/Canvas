@@ -224,6 +224,169 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("{subscriptionId:guid}/seats")]
+    [Authorize(Policy = PxaPermissions.SubscriptionsRead)]
+    public async Task<ActionResult<IReadOnlyList<AdminSubscriptionSeatResponse>>> GetSeats(
+        Guid subscriptionId,
+        CancellationToken cancellationToken)
+    {
+        var subscription = await dbContext.OrganizationSubscriptions.AsNoTracking()
+            .SingleOrDefaultAsync(value => value.Id == subscriptionId, cancellationToken);
+        if (subscription is null || !CanAccess(subscription.OrganizationId))
+            return NotFound();
+        var seats = await (
+                from membership in dbContext.OrganizationMemberships.AsNoTracking()
+                join user in dbContext.Users.AsNoTracking() on membership.UserId equals user.Id
+                where membership.OrganizationId == subscription.OrganizationId &&
+                      membership.Status != OrganizationMembershipStatus.Removed
+                orderby user.DisplayName
+                select new AdminSubscriptionSeatResponse(
+                    membership.Id,
+                    user.Id,
+                    user.DisplayName,
+                    user.Email ?? string.Empty,
+                    membership.Status.ToString(),
+                    dbContext.SubscriptionSeatAssignments.Any(assignment =>
+                        assignment.SubscriptionId == subscriptionId &&
+                        assignment.OrganizationMembershipId == membership.Id &&
+                        assignment.RevokedAt == null)))
+            .ToListAsync(cancellationToken);
+        return Ok(seats);
+    }
+
+    [HttpGet("{subscriptionId:guid}/history")]
+    [Authorize(Policy = PxaPermissions.SubscriptionsRead)]
+    public async Task<ActionResult<IReadOnlyList<AdminSubscriptionHistoryResponse>>> GetHistory(
+        Guid subscriptionId,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = await dbContext.OrganizationSubscriptions.AsNoTracking()
+            .Where(value => value.Id == subscriptionId)
+            .Select(value => (Guid?)value.OrganizationId)
+            .SingleOrDefaultAsync(cancellationToken);
+        if (organizationId is null || !CanAccess(organizationId.Value))
+            return NotFound();
+        return Ok(await (
+                from lifecycleEvent in dbContext.SubscriptionLifecycleEvents.AsNoTracking()
+                join actor in dbContext.Users.AsNoTracking() on lifecycleEvent.ActorUserId equals actor.Id
+                where lifecycleEvent.SubscriptionId == subscriptionId
+                orderby lifecycleEvent.CreatedAt descending
+                select new AdminSubscriptionHistoryResponse(
+                    lifecycleEvent.Id,
+                    lifecycleEvent.Action,
+                    lifecycleEvent.PreviousStatus == null ? null : lifecycleEvent.PreviousStatus.ToString(),
+                    lifecycleEvent.CurrentStatus.ToString(),
+                    lifecycleEvent.ActorUserId,
+                    actor.DisplayName,
+                    lifecycleEvent.CreatedAt))
+            .ToListAsync(cancellationToken));
+    }
+
+    [HttpPost("{subscriptionId:guid}/trial/extend")]
+    [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
+    [PxaValidateAntiforgery]
+    public async Task<ActionResult<AdminSubscriptionResponse>> ExtendTrial(
+        Guid subscriptionId,
+        ExtendTrialRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.Days is < 1 or > 365)
+            return ValidationProblem("Trial extension must be between 1 and 365 days.");
+        var subscription = await GetMutableSubscription(subscriptionId, cancellationToken);
+        if (subscription is null)
+            return NotFound();
+        if (subscription.Edition != SubscriptionEdition.Trial ||
+            subscription.Status is SubscriptionStatus.Cancelled or SubscriptionStatus.Expired)
+            return ConflictProblem("Only a current Trial subscription can be extended.");
+        var previousEnd = subscription.TrialEndsAt;
+        var baseline = previousEnd > DateTimeOffset.UtcNow ? previousEnd.Value : DateTimeOffset.UtcNow;
+        subscription.TrialEndsAt = baseline.AddDays(request.Days);
+        subscription.UpdatedAt = DateTimeOffset.UtcNow;
+        RecordLifecycleMutation(subscription, "subscription.trial.extended", subscription.Status,
+            new { request.Days, PreviousEnd = previousEnd, subscription.TrialEndsAt });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Ok(await BuildResponse(subscriptionId, cancellationToken));
+    }
+
+    [HttpPost("{subscriptionId:guid}/renew")]
+    [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
+    [PxaValidateAntiforgery]
+    public async Task<ActionResult<AdminSubscriptionResponse>> Renew(
+        Guid subscriptionId,
+        RenewSubscriptionRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.PeriodEndsAt <= DateTimeOffset.UtcNow)
+            return ValidationProblem("Renewal period end must be in the future.");
+        var subscription = await GetMutableSubscription(subscriptionId, cancellationToken);
+        if (subscription is null)
+            return NotFound();
+        if (subscription.Edition == SubscriptionEdition.Trial ||
+            subscription.Status is SubscriptionStatus.Cancelled or SubscriptionStatus.Expired or SubscriptionStatus.Trialing)
+            return ConflictProblem("This subscription cannot be renewed in its current state.");
+        var previousStatus = subscription.Status;
+        subscription.Status = SubscriptionStatus.Active;
+        subscription.CurrentPeriodEndsAt = request.PeriodEndsAt;
+        subscription.CancellationEffectiveAt = null;
+        subscription.GracePeriodEndsAt = null;
+        subscription.UpdatedAt = DateTimeOffset.UtcNow;
+        RecordLifecycleMutation(subscription, "subscription.renewed", previousStatus,
+            new { request.PeriodEndsAt });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Ok(await BuildResponse(subscriptionId, cancellationToken));
+    }
+
+    [HttpPost("{subscriptionId:guid}/grace-period")]
+    [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
+    [PxaValidateAntiforgery]
+    public async Task<ActionResult<AdminSubscriptionResponse>> StartGracePeriod(
+        Guid subscriptionId,
+        GracePeriodRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.EndsAt <= DateTimeOffset.UtcNow)
+            return ValidationProblem("Grace-period end must be in the future.");
+        var subscription = await GetMutableSubscription(subscriptionId, cancellationToken);
+        if (subscription is null)
+            return NotFound();
+        if (subscription.Status is not (SubscriptionStatus.PastDue or SubscriptionStatus.GracePeriod))
+            return ConflictProblem("A grace period requires a past-due or existing grace-period subscription.");
+        var previousStatus = subscription.Status;
+        subscription.Status = SubscriptionStatus.GracePeriod;
+        subscription.GracePeriodEndsAt = request.EndsAt;
+        subscription.UpdatedAt = DateTimeOffset.UtcNow;
+        RecordLifecycleMutation(subscription, "subscription.grace-period.started", previousStatus,
+            new { request.EndsAt });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Ok(await BuildResponse(subscriptionId, cancellationToken));
+    }
+
+    [HttpPost("{subscriptionId:guid}/cancel")]
+    [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
+    [PxaValidateAntiforgery]
+    public async Task<ActionResult<AdminSubscriptionResponse>> CancelSubscription(
+        Guid subscriptionId,
+        CancelSubscriptionRequest request,
+        CancellationToken cancellationToken)
+    {
+        var subscription = await GetMutableSubscription(subscriptionId, cancellationToken);
+        if (subscription is null)
+            return NotFound();
+        if (subscription.Status is SubscriptionStatus.Cancelled or SubscriptionStatus.Expired)
+            return ConflictProblem("This subscription is already closed.");
+        var now = DateTimeOffset.UtcNow;
+        var effectiveAt = request.EffectiveAt ?? now;
+        var previousStatus = subscription.Status;
+        subscription.CancellationEffectiveAt = effectiveAt;
+        if (effectiveAt <= now)
+            subscription.Status = SubscriptionStatus.Cancelled;
+        subscription.UpdatedAt = now;
+        RecordLifecycleMutation(subscription, "subscription.cancellation.scheduled", previousStatus,
+            new { EffectiveAt = effectiveAt, Immediate = effectiveAt <= now });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Ok(await BuildResponse(subscriptionId, cancellationToken));
+    }
+
     [HttpDelete("{subscriptionId:guid}/seats/{membershipId:guid}")]
     [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
     [PxaValidateAntiforgery]
@@ -269,6 +432,28 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
 
     private bool CanAccess(Guid organizationId) => IsSystemAdministrator() || tenantContext.OrganizationId == organizationId;
     private bool IsSystemAdministrator() => User.IsInRole(PxaRoles.SystemAdministrator);
+
+    private async Task<OrganizationSubscription?> GetMutableSubscription(
+        Guid subscriptionId,
+        CancellationToken cancellationToken)
+    {
+        if (!IsSystemAdministrator() || tenantContext.UserId is null)
+            return null;
+        return await dbContext.OrganizationSubscriptions.SingleOrDefaultAsync(
+            value => value.Id == subscriptionId,
+            cancellationToken);
+    }
+
+    private void RecordLifecycleMutation(
+        OrganizationSubscription subscription,
+        string action,
+        SubscriptionStatus previousStatus,
+        object details)
+    {
+        var actorUserId = tenantContext.UserId!.Value;
+        AddLifecycleEvent(subscription, actorUserId, action, previousStatus, details);
+        AddAuditEvent(subscription, actorUserId, action);
+    }
 
     private static bool TryParseRequest(CreateAdminSubscriptionRequest request, out ParsedValues values, out string error)
     {
@@ -440,3 +625,11 @@ public sealed record UpdateAdminSubscriptionRequest(string? Edition, string? Sta
     string? DeploymentMode, int? SeatLimit, DateTimeOffset? TrialEndsAt, DateTimeOffset? CurrentPeriodEndsAt,
     DateTimeOffset? CancellationEffectiveAt, DateTimeOffset? GracePeriodEndsAt,
     IReadOnlyList<AdminEntitlementRequest>? Entitlements);
+public sealed record AdminSubscriptionSeatResponse(Guid MembershipId, Guid UserId, string DisplayName, string Email,
+    string MembershipStatus, bool Assigned);
+public sealed record AdminSubscriptionHistoryResponse(Guid Id, string Action, string? PreviousStatus,
+    string CurrentStatus, Guid ActorUserId, string ActorName, DateTimeOffset CreatedAt);
+public sealed record ExtendTrialRequest(int Days);
+public sealed record RenewSubscriptionRequest(DateTimeOffset PeriodEndsAt);
+public sealed record GracePeriodRequest(DateTimeOffset EndsAt);
+public sealed record CancelSubscriptionRequest(DateTimeOffset? EffectiveAt);

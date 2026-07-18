@@ -67,7 +67,7 @@ Current identity implementation:
 - [ ] Provide System Administrator, Organization Administrator, Manager, Editor, and Viewer roles.
 - [x] Define policies including `users.read`, `users.create`, `users.update`, `users.disable`, `roles.assign`, `subscriptions.read`, `subscriptions.manage`, `licenses.manage`, `audit.read`, `mail.read`, and `mail.manage`.
 - [x] Define separate `organizations.read` and `organizations.manage` policies for tenant administration.
-- [ ] Keep roles independent from subscription and product entitlements.
+- [x] Keep roles independent from subscription and product entitlements.
 - [ ] Restrict System Administrator capabilities to explicitly authorized PXA operators.
 - [ ] Prevent administrators from removing their own last required administrative membership.
 - [ ] Audit every privileged role, permission, subscription, and license change.
@@ -95,9 +95,11 @@ Current identity implementation:
 - [ ] Add server-driven search, filters, sorting, pagination, selection, and bulk actions.
 - [ ] Add invitation and edit forms with inline validation and accessible error summaries.
 - [ ] Add role, membership, product entitlement, and seat controls appropriate to the current administrator.
-- [ ] Add subscription, usage, Trial, renewal, expiry, and offline-license views.
+- [x] Add subscription detail, Trial extension, renewal, grace-period, cancellation, entitlement, seat, and lifecycle-history views.
+- [ ] Add usage and offline-license views.
 - [ ] Add service-account and API-key workflows that reveal a new secret only once.
-- [ ] Add audit history to relevant user, organization, subscription, and license detail views.
+- [x] Add lifecycle and actor history to subscription detail views.
+- [ ] Add audit history to user, organization, and license detail views.
 - [ ] Add explicit loading, empty, forbidden, offline, stale, failure, and destructive-confirmation states.
 - [ ] Prevent UI visibility rules from replacing server-side authorization.
 
@@ -153,6 +155,8 @@ Current subscription administration implementation:
 - [x] Add PostgreSQL models and migration for current subscriptions, entitlements, seats, and lifecycle events.
 - [x] Add a real Subscription page with organization selection, filters, capability selection, seat limits, and lifecycle controls.
 - [x] Audit subscription creation, updates, and seat changes without coupling roles to entitlements.
+- [x] Add explicit Trial extension, renewal, grace-period, cancellation, entitlement editing, seat controls, and actor-attributed history.
+- [x] Add a central tenant-aware entitlement evaluator with stable decision codes for API and hosted-worker use.
 
 ## Deployment And Operations
 
@@ -172,7 +176,8 @@ Current subscription administration implementation:
 - [x] Test organization scoping, System Administrator tenant switching, membership attachment, updates, and audit creation against PostgreSQL.
 - [ ] Test cross-tenant access attempts and identifier tampering.
 - [ ] Test login, logout, invitation, verification, reset, lockout, expiry, and session revocation.
-- [ ] Test role, seat, subscription, license, service-account, and API-key workflows.
+- [x] Test implemented subscription lifecycle, entitlement, seat, tenant, and audit workflows against PostgreSQL.
+- [ ] Test role, license, service-account, API-key, and usage workflows.
 - [ ] Verify that every privileged mutation creates an audit event.
 - [ ] Test keyboard navigation, focus management, screen-reader labels, and responsive layouts.
 - [ ] Run end-to-end tests for System Administrator and Organization Administrator journeys.

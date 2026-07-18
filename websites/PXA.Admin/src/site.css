@@ -506,6 +506,21 @@ tbody tr:hover { background: #f8fafc; }
 .admin-table-scroll td small { display: block; margin-top: var(--pxa-space-1); color: var(--pxa-color-muted); }
 .subscription-status { min-width: 120px; }
 .subscription-save-status { min-height: 34px; padding: 0 var(--pxa-space-3); background: white; border: 1px solid var(--pxa-color-border); border-radius: var(--pxa-radius-md); font-weight: 700; }
+.admin-table-link { color: var(--pxa-color-brand-600); }
+.admin-subscription-actions { margin-bottom: var(--pxa-space-5); }
+.admin-action-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--pxa-space-4); padding: var(--pxa-space-5); }
+.admin-compact-action { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--pxa-space-3); padding: var(--pxa-space-4); border: 1px solid var(--pxa-color-border); border-radius: var(--pxa-radius-md); }
+.admin-compact-action button,
+.subscription-assign-seat,
+.subscription-revoke-seat {
+  min-height: 40px;
+  padding: 0 var(--pxa-space-3);
+  background: white;
+  border: 1px solid var(--pxa-color-border);
+  border-radius: var(--pxa-radius-md);
+  font-weight: 700;
+}
+.admin-compact-action .admin-danger-button { color: white; background: #a83232; border-color: #a83232; }
 
 .admin-back-link { display: inline-block; margin-bottom: var(--pxa-space-2); color: var(--pxa-color-brand-600); font-weight: 700; }
 .admin-header-actions { display: flex; align-items: center; gap: var(--pxa-space-3); }
@@ -585,6 +600,7 @@ tbody tr:hover { background: #f8fafc; }
   .admin-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin-subscription-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin-capability-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-action-grid { grid-template-columns: 1fr; }
   .admin-inline-form { grid-template-columns: 1fr 1fr; }
   .admin-inline-form .pxa-button { grid-column: 1 / -1; }
   .admin-invitation-form { grid-template-columns: 1fr 1fr; }
@@ -612,4 +628,5 @@ tbody tr:hover { background: #f8fafc; }
   .admin-header-actions { align-items: flex-start; flex-direction: column; }
   .admin-summary-grid { grid-template-columns: 1fr; }
   .admin-subscription-fields, .admin-capability-options { grid-template-columns: 1fr; }
+  .admin-compact-action { grid-template-columns: 1fr; }
 }
