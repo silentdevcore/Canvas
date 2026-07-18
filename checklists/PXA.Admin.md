@@ -6,13 +6,14 @@ Deliver a standalone, tenant-aware PXA administration application for users, org
 
 ## Application Identity
 
-- [ ] Create the standalone application under `websites/PXA.Admin`.
+- [x] Create the standalone application under `websites/PXA.Admin`.
 - [ ] Use `https://admin.powerdoxautomation.com` as the public Cloud host.
 - [ ] Support `https://admin.{customer-host}` for customer-managed deployments.
-- [ ] Use `http://localhost:5177` for local development.
+- [x] Use `http://localhost:5177` for local development.
 - [ ] Reserve `powerdox/pxa-admin` as the future container image.
-- [ ] Access the backend through same-origin `/api` routing.
-- [ ] Share PXA design tokens and navigation conventions without coupling the Admin build to PXA Designer.
+- [x] Access the backend through same-origin `/api` routing.
+- [x] Share PXA design tokens and navigation conventions without coupling the Admin build to PXA Designer.
+- [x] Keep Admin out of PXA.Company navigation; administrators enter the dedicated Admin host directly.
 
 ## Priorities
 
@@ -86,7 +87,7 @@ Current identity implementation:
 ## Admin User Interface
 
 - [ ] Add routes for dashboard, users, user details, organizations, roles, subscriptions, licenses, service accounts, mail delivery, audit, and settings.
-- [ ] Build a work-focused admin shell with restrained navigation and responsive layouts.
+- [x] Build a work-focused admin shell with restrained navigation and responsive layouts.
 - [ ] Add user tables with name, email, organization, role, status, products, and last login.
 - [ ] Add server-driven search, filters, sorting, pagination, selection, and bulk actions.
 - [ ] Add invitation and edit forms with inline validation and accessible error summaries.
@@ -97,10 +98,22 @@ Current identity implementation:
 - [ ] Add explicit loading, empty, forbidden, offline, stale, failure, and destructive-confirmation states.
 - [ ] Prevent UI visibility rules from replacing server-side authorization.
 
+Current Admin shell implementation:
+
+- [x] Add a dedicated login route with session discovery and authenticated redirects.
+- [x] Connect login, logout, current-user, and CSRF flows to `/api/pxa/v1/auth`.
+- [x] Reject authenticated users without System Administrator or Organization Administrator roles in the Admin shell.
+- [x] Add dashboard, users, organizations, roles, subscriptions, licenses, service accounts, mail, audit, and settings routes.
+- [x] Show explicit unavailable states for areas whose tenant-scoped Admin APIs are not implemented.
+- [x] Add responsive sidebar, organization context, account context, loading, login-error, forbidden, and not-found states.
+- [x] Add an opt-in Development-only administrator bootstrap without source-controlled credentials or production seeds.
+- [ ] Add user detail routes after the user administration API is available.
+
 ## Deployment And Operations
 
-- [ ] Produce an independent Admin build and future static web-server image.
-- [ ] Add runtime API configuration and remove hard-coded development hosts.
+- [x] Produce an independent Admin build.
+- [ ] Produce the future static web-server image.
+- [x] Use relative same-origin API paths and a development-only Vite proxy without hard-coded hosts in application code.
 - [ ] Route the customer Admin host to the Admin application and `/api` to PXA API.
 - [ ] Add compatibility checks between Admin and API versions.
 - [ ] Add CSP, security headers, cache rules, health visibility, and structured client-error reporting.

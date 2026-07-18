@@ -19,13 +19,16 @@ builder.Services.AddOpenApi();
 builder.Services.AddPxaPersistence(
     builder.Configuration.GetConnectionString("PxaDatabase")
         ?? throw new InvalidOperationException("Connection string 'PxaDatabase' is required."));
+var requireSecureCookies = !builder.Environment.IsDevelopment();
 builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
     .AddCookie(IdentityConstants.ApplicationScheme, options =>
     {
-        options.Cookie.Name = "__Host-PXA.Session";
+        options.Cookie.Name = requireSecureCookies ? "__Host-PXA.Session" : "PXA.Session.Development";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Strict;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SecurePolicy = requireSecureCookies
+            ? CookieSecurePolicy.Always
+            : CookieSecurePolicy.SameAsRequest;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
         options.EventsType = typeof(PxaCookieAuthenticationEvents);
@@ -38,10 +41,12 @@ builder.Services.AddAuthorization(options =>
 });
 builder.Services.AddAntiforgery(options =>
 {
-    options.Cookie.Name = "__Host-PXA.Antiforgery";
+    options.Cookie.Name = requireSecureCookies ? "__Host-PXA.Antiforgery" : "PXA.Antiforgery.Development";
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Strict;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SecurePolicy = requireSecureCookies
+        ? CookieSecurePolicy.Always
+        : CookieSecurePolicy.SameAsRequest;
     options.HeaderName = "X-PXA-CSRF";
 });
 builder.Services.AddHealthChecks()
@@ -137,6 +142,8 @@ builder.Services.AddScoped<PXA.Application.UseCases.CloneTemplateUseCase>();
 builder.Services.AddScoped<PXA.Application.UseCases.ExtractPagesUseCase>();
 
 var app = builder.Build();
+
+await PxaDevelopmentIdentityBootstrapper.InitializeAsync(app);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

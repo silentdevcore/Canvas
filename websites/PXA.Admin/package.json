@@ -1,0 +1,15 @@
+{
+  "name": "pxa-admin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Power Dox Automation administration application",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host localhost --port 5177",
+    "build": "vite build",
+    "preview": "vite preview --host localhost --port 4177"
+  },
+  "devDependencies": {
+    "vite": "8.1.5"
+  }
+}
