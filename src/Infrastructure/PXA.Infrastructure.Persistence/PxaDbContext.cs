@@ -16,6 +16,8 @@ public sealed class PxaDbContext
 
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<OrganizationMembership> OrganizationMemberships => Set<OrganizationMembership>();
+    public DbSet<OrganizationMembershipRole> OrganizationMembershipRoles => Set<OrganizationMembershipRole>();
+    public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

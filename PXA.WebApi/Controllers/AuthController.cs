@@ -152,21 +152,16 @@ public sealed class AuthController : ControllerBase
     {
         var principal = await principalFactory.CreateAsync(user);
         var identity = (ClaimsIdentity)principal.Identity!;
-        var organizationIds = await dbContext.OrganizationMemberships
-            .Where(membership =>
-                membership.UserId == user.Id &&
-                membership.Status == OrganizationMembershipStatus.Active)
-            .OrderBy(membership => membership.CreatedAt)
-            .Select(membership => membership.OrganizationId)
-            .ToListAsync(cancellationToken);
+        var memberships = await GetActiveMembershipsAsync(user.Id, cancellationToken);
 
-        foreach (var organizationId in organizationIds)
-            identity.AddClaim(new Claim(PxaClaimTypes.Organization, organizationId.ToString()));
+        foreach (var membership in memberships)
+            identity.AddClaim(new Claim(PxaClaimTypes.Organization, membership.OrganizationId.ToString()));
 
-        if (organizationIds.Count > 0)
-            identity.AddClaim(new Claim(PxaClaimTypes.ActiveOrganization, organizationIds[0].ToString()));
+        var activeMembership = memberships.FirstOrDefault();
+        if (activeMembership is not null)
+            identity.AddClaim(new Claim(PxaClaimTypes.ActiveOrganization, activeMembership.OrganizationId.ToString()));
 
-        var roles = await userManager.GetRolesAsync(user);
+        var roles = await GetSessionRolesAsync(user, activeMembership?.MembershipId, cancellationToken);
         foreach (var permission in roles
                      .SelectMany(role => PxaRoles.Permissions.GetValueOrDefault(role, []))
                      .Distinct(StringComparer.Ordinal))
@@ -181,26 +176,58 @@ public sealed class AuthController : ControllerBase
         PxaIdentityUser user,
         CancellationToken cancellationToken)
     {
-        var roles = await userManager.GetRolesAsync(user);
-        var organizations = await (
-                from membership in dbContext.OrganizationMemberships
-                join organization in dbContext.Organizations
-                    on membership.OrganizationId equals organization.Id
-                where membership.UserId == user.Id &&
-                      membership.Status == OrganizationMembershipStatus.Active
-                orderby membership.CreatedAt
-                select new OrganizationInfo(organization.Id, organization.Name, organization.Slug))
-            .ToListAsync(cancellationToken);
+        var memberships = await GetActiveMembershipsAsync(user.Id, cancellationToken);
+        var activeMembership = memberships.FirstOrDefault();
+        var roles = await GetSessionRolesAsync(user, activeMembership?.MembershipId, cancellationToken);
+        var organizations = memberships
+            .Select(value => new OrganizationInfo(value.OrganizationId, value.OrganizationName, value.OrganizationSlug))
+            .ToArray();
 
         return new UserInfo(
             user.Id,
             user.UserName ?? string.Empty,
             user.Email ?? string.Empty,
             user.DisplayName,
-            roles.ToArray(),
+            roles,
             organizations,
             organizations.FirstOrDefault()?.Id,
             user.LastLoginAt);
+    }
+
+    private Task<List<ActiveMembership>> GetActiveMembershipsAsync(
+        Guid userId,
+        CancellationToken cancellationToken) =>
+        (from membership in dbContext.OrganizationMemberships.AsNoTracking()
+         join organization in dbContext.Organizations.AsNoTracking()
+             on membership.OrganizationId equals organization.Id
+         where membership.UserId == userId &&
+               membership.Status == OrganizationMembershipStatus.Active
+         orderby membership.CreatedAt
+         select new ActiveMembership(
+             membership.Id,
+             organization.Id,
+             organization.Name,
+             organization.Slug))
+        .ToListAsync(cancellationToken);
+
+    private async Task<IReadOnlyList<string>> GetSessionRolesAsync(
+        PxaIdentityUser user,
+        Guid? membershipId,
+        CancellationToken cancellationToken)
+    {
+        var globalRoles = await userManager.GetRolesAsync(user);
+        var organizationRoles = membershipId is null
+            ? []
+            : await (from membershipRole in dbContext.OrganizationMembershipRoles.AsNoTracking()
+                     join role in dbContext.Roles.AsNoTracking() on membershipRole.RoleId equals role.Id
+                     where membershipRole.OrganizationMembershipId == membershipId
+                     select role.Name!)
+                .ToListAsync(cancellationToken);
+
+        return globalRoles.Concat(organizationRoles)
+            .Distinct(StringComparer.Ordinal)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
     }
 
     private ObjectResult InvalidCredentials() => Problem(
@@ -212,6 +239,12 @@ public sealed class AuthController : ControllerBase
         statusCode: StatusCodes.Status500InternalServerError,
         title: "Identity update failed",
         detail: string.Join(" ", result.Errors.Select(error => error.Description)));
+
+    private sealed record ActiveMembership(
+        Guid MembershipId,
+        Guid OrganizationId,
+        string OrganizationName,
+        string OrganizationSlug);
 }
 
 public sealed record CsrfResponse(string Token);

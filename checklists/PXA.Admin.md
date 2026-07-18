@@ -72,8 +72,8 @@ Current identity implementation:
 
 ## Admin API
 
-- [ ] Add versioned Admin endpoints under `/api/pxa/v1/admin`.
-- [ ] Add paginated user listing with server-side search, filter, and sorting.
+- [x] Add versioned Admin endpoints under `/api/pxa/v1/admin`.
+- [x] Add paginated user listing with server-side search, filter, and sorting.
 - [ ] Add user detail, invitation, creation, update, activation, deactivation, soft deletion, and bulk operations.
 - [ ] Add password-reset initiation and active-session revocation without returning secret tokens.
 - [ ] Add organization, membership, role, and permission administration.
@@ -107,7 +107,20 @@ Current Admin shell implementation:
 - [x] Show explicit unavailable states for areas whose tenant-scoped Admin APIs are not implemented.
 - [x] Add responsive sidebar, organization context, account context, loading, login-error, forbidden, and not-found states.
 - [x] Add an opt-in Development-only administrator bootstrap without source-controlled credentials or production seeds.
-- [ ] Add user detail routes after the user administration API is available.
+- [x] Add user detail routes after the user administration API is available.
+
+Current user administration implementation:
+
+- [x] Resolve the active organization exclusively from authenticated claims for user queries and mutations.
+- [x] Add tenant-scoped user listing and detail endpoints with stable Problem Details failures.
+- [x] Add CSRF-protected activation, deactivation, and organization-role assignment endpoints.
+- [x] Prevent self-deactivation and removal or deactivation of the last active Organization Administrator.
+- [x] Rotate the affected user's security stamp after status changes to revoke active sessions.
+- [x] Persist organization-role assignments separately from global Identity roles.
+- [x] Persist audit events for successful user-status and role mutations.
+- [x] Connect the Users table to server-side search, status filtering, and pagination.
+- [x] Add a user detail view with account metadata, status control, and organization-role controls.
+- [x] Add loading, empty, API-failure, and destructive-confirmation states to user administration.
 
 ## Deployment And Operations
 
@@ -122,7 +135,8 @@ Current Admin shell implementation:
 ## Tests
 
 - [ ] Unit-test identity, authorization policies, tenant resolution, and privileged application services.
-- [ ] Integration-test Admin endpoints against a real relational database.
+- [x] Integration-test the implemented user Admin endpoints against real PostgreSQL.
+- [x] Test user-list and detail cross-tenant isolation, CSRF enforcement, status changes, role assignment, last-administrator protection, and audit creation.
 - [ ] Test cross-tenant access attempts and identifier tampering.
 - [ ] Test login, logout, invitation, verification, reset, lockout, expiry, and session revocation.
 - [ ] Test role, seat, subscription, license, service-account, and API-key workflows.

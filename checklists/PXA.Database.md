@@ -158,6 +158,10 @@ Current verification status:
 - [x] Verify persistence mappings and constraints with fast model tests.
 - [x] Provide a Testcontainers test that creates PostgreSQL, applies all migrations, and persists an identity user with an organization membership.
 - [x] Execute the Testcontainers PostgreSQL test locally through Rancher Desktop.
+- [x] Add tenant-scoped organization-role assignments with relational uniqueness and foreign-key constraints.
+- [x] Add organization-owned audit events for privileged user-status and role changes.
+- [x] Apply the tenant-role and audit migration to the local PostgreSQL development database.
+- [x] Verify user administration tenant isolation and mutation auditing against Testcontainers PostgreSQL.
 
 - [ ] Unit-test domain and application rules independently from EF Core where appropriate.
 - [x] Run repository and migration tests against a real version-pinned PostgreSQL container.

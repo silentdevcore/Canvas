@@ -34,6 +34,8 @@ builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
         options.EventsType = typeof(PxaCookieAuthenticationEvents);
     });
 builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IPxaTenantContext, PxaTenantContext>();
 builder.Services.AddAuthorization(options =>
 {
     foreach (var permission in PxaPermissions.All)

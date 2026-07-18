@@ -1,5 +1,13 @@
 import './site.css';
-import { currentUser, login, logout } from './api.js';
+import {
+  currentUser,
+  getAdminUser,
+  getAdminUsers,
+  login,
+  logout,
+  updateAdminUserRoles,
+  updateAdminUserStatus,
+} from './api.js';
 
 const app = document.querySelector('#app');
 
@@ -32,7 +40,27 @@ const state = {
   user: null,
   loading: true,
   notice: null,
+  users: {
+    items: [],
+    total: 0,
+    page: 1,
+    pageSize: 25,
+    search: '',
+    status: '',
+    loading: false,
+    loaded: false,
+    error: null,
+  },
+  userDetail: {
+    id: null,
+    data: null,
+    loading: false,
+    error: null,
+    saving: false,
+  },
 };
+
+const organizationRoles = ['Organization Administrator', 'Manager', 'Editor', 'Viewer'];
 
 function escapeHtml(value = '') {
   return String(value)
@@ -131,7 +159,7 @@ function renderNavigation() {
     <div class="admin-nav-group">
       <span>${group}</span>
       ${navigation.filter((item) => item.group === group).map((item) => `
-        <a href="${item.path}" ${location.pathname === item.path ? 'aria-current="page"' : ''}>
+        <a href="${item.path}" ${location.pathname === item.path || location.pathname.startsWith(`${item.path}/`) ? 'aria-current="page"' : ''}>
           ${item.label}
         </a>
       `).join('')}
@@ -194,10 +222,120 @@ function dashboardPage() {
       <div class="admin-status-list">
         <div><strong>Persistent identity</strong><span class="admin-status admin-status--ready">Ready</span><p>PostgreSQL-backed users, roles, and claims.</p></div>
         <div><strong>Organization context</strong><span class="admin-status admin-status--ready">Ready</span><p>Active memberships are carried in the authenticated session.</p></div>
-        <div><strong>User administration API</strong><span class="admin-status admin-status--planned">Next</span><p>Lists and mutations remain unavailable until tenant policies are complete.</p></div>
+        <div><strong>User administration API</strong><span class="admin-status admin-status--ready">Ready</span><p>Tenant-scoped search, status, roles, and audit-protected mutations.</p></div>
         <div><strong>Mail and recovery</strong><span class="admin-status admin-status--planned">Planned</span><p>Password recovery depends on the transactional mail outbox.</p></div>
       </div>
     </section>
+  `;
+}
+
+function formatDate(value) {
+  if (!value) return 'Never';
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+}
+
+function userStatus(user) {
+  if (!user.isActive) return 'Disabled';
+  return user.membershipStatus === 'Active' ? 'Active' : user.membershipStatus;
+}
+
+function userStatusClass(user) {
+  return user.isActive && user.membershipStatus === 'Active' ? 'admin-status--ready' : 'admin-status--inactive';
+}
+
+function usersPage() {
+  const users = state.users;
+  const totalPages = Math.max(1, Math.ceil(users.total / users.pageSize));
+  const rows = users.items.map((user) => `
+    <tr>
+      <td><a class="admin-user-link" href="/users/${user.id}"><strong>${escapeHtml(user.displayName)}</strong><small>${escapeHtml(user.username)}</small></a></td>
+      <td>${escapeHtml(user.email)}</td>
+      <td><div class="admin-role-list">${user.roles.length ? user.roles.map((role) => `<span>${escapeHtml(role)}</span>`).join('') : '<span>Unassigned</span>'}</div></td>
+      <td><span class="admin-status ${userStatusClass(user)}">${escapeHtml(userStatus(user))}</span></td>
+      <td>${escapeHtml(formatDate(user.lastLoginAt))}</td>
+    </tr>
+  `).join('');
+
+  return `
+    <header class="admin-page-header">
+      <div><p class="pxa-kicker">Identity</p><h1>Users</h1><p>Manage user status, organization roles, and access within the active tenant.</p></div>
+      <span class="admin-record-count">${users.total} ${users.total === 1 ? 'user' : 'users'}</span>
+    </header>
+    <section class="admin-table-section" aria-busy="${users.loading}">
+      <form class="admin-table-toolbar" id="users-filter-form">
+        <label><span class="visually-hidden">Search users</span><input name="search" type="search" placeholder="Search name, email, or username" value="${escapeHtml(users.search)}"></label>
+        <select name="status" aria-label="Filter by status">
+          <option value="" ${users.status === '' ? 'selected' : ''}>All statuses</option>
+          <option value="active" ${users.status === 'active' ? 'selected' : ''}>Active</option>
+          <option value="disabled" ${users.status === 'disabled' ? 'selected' : ''}>Disabled</option>
+          <option value="suspended" ${users.status === 'suspended' ? 'selected' : ''}>Suspended</option>
+          <option value="invited" ${users.status === 'invited' ? 'selected' : ''}>Invited</option>
+        </select>
+        <button type="submit">Apply</button>
+      </form>
+      ${users.error ? `<div class="admin-alert admin-alert--error admin-inline-alert" role="alert">${escapeHtml(users.error)}</div>` : ''}
+      ${users.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading users...</p></div>' : `
+        <div class="admin-table-scroll">
+          <table>
+            <thead><tr><th>User</th><th>Email</th><th>Roles</th><th>Status</th><th>Last login</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        ${users.items.length === 0 ? '<div class="admin-empty-state"><strong>No users found</strong><p>Change the search or status filter to broaden the result.</p></div>' : ''}
+        <footer class="admin-pagination">
+          <span>Page ${users.page} of ${totalPages}</span>
+          <div>
+            <button id="users-previous" type="button" ${users.page <= 1 ? 'disabled' : ''}>Previous</button>
+            <button id="users-next" type="button" ${users.page >= totalPages ? 'disabled' : ''}>Next</button>
+          </div>
+        </footer>
+      `}
+    </section>
+  `;
+}
+
+function userDetailPage() {
+  const detail = state.userDetail;
+  if (detail.loading) {
+    return '<section class="admin-message-page"><div class="admin-spinner"></div><p>Loading user...</p></section>';
+  }
+  if (!detail.data) {
+    return `<section class="admin-message-page"><span class="admin-error-code">!</span><h1>User unavailable</h1><p>${escapeHtml(detail.error || 'The user could not be loaded.')}</p><a class="pxa-button pxa-button--secondary" href="/users">Return to users</a></section>`;
+  }
+
+  const user = detail.data;
+  const globalRoles = user.roles.filter((role) => !organizationRoles.includes(role));
+  return `
+    <header class="admin-page-header">
+      <div><a class="admin-back-link" href="/users">Users</a><h1>${escapeHtml(user.displayName)}</h1><p>${escapeHtml(user.email)}</p></div>
+      <span class="admin-status ${userStatusClass(user)}">${escapeHtml(userStatus(user))}</span>
+    </header>
+    ${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert" role="alert">${escapeHtml(detail.error)}</div>` : ''}
+    <div class="admin-detail-grid">
+      <section class="admin-section">
+        <div class="admin-section-heading"><h2>Account</h2><p>Identity and access state for this organization.</p></div>
+        <dl class="admin-detail-list">
+          <div><dt>Username</dt><dd>${escapeHtml(user.username)}</dd></div>
+          <div><dt>Created</dt><dd>${escapeHtml(formatDate(user.createdAt))}</dd></div>
+          <div><dt>Last login</dt><dd>${escapeHtml(formatDate(user.lastLoginAt))}</dd></div>
+          <div><dt>Membership</dt><dd>${escapeHtml(user.membershipStatus)}</dd></div>
+        </dl>
+        <div class="admin-detail-action">
+          <div><strong>${user.isActive ? 'Disable account' : 'Enable account'}</strong><p>${user.isActive ? 'Revoke this user\'s active access and sessions.' : 'Restore access to this organization.'}</p></div>
+          <button class="pxa-button ${user.isActive ? 'admin-danger-button' : 'pxa-button--primary'}" id="user-status-button" type="button" ${detail.saving ? 'disabled' : ''}>${user.isActive ? 'Disable' : 'Enable'}</button>
+        </div>
+      </section>
+      <section class="admin-section">
+        <form id="user-roles-form">
+          <div class="admin-section-heading"><h2>Organization roles</h2><p>Roles apply only inside the active organization.</p></div>
+          <div class="admin-role-options">
+            ${organizationRoles.map((role) => `<label><input type="checkbox" name="roles" value="${role}" ${user.roles.includes(role) ? 'checked' : ''}><span><strong>${role}</strong></span></label>`).join('')}
+          </div>
+          ${globalRoles.length ? `<div class="admin-global-roles"><span>System roles</span><strong>${globalRoles.map(escapeHtml).join(', ')}</strong></div>` : ''}
+          <div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving ? 'disabled' : ''}>Save roles</button></div>
+        </form>
+      </section>
+    </div>
   `;
 }
 
@@ -259,6 +397,90 @@ function bindShellEvents() {
   document.querySelector('#forbidden-signout')?.addEventListener('click', handleLogout);
 }
 
+async function loadUsers() {
+  state.users.loading = true;
+  state.users.error = null;
+  render();
+  try {
+    const response = await getAdminUsers(state.users);
+    Object.assign(state.users, response, { loaded: true });
+  } catch (error) {
+    state.users.error = error.message;
+    state.users.loaded = true;
+  } finally {
+    state.users.loading = false;
+    render();
+  }
+}
+
+async function loadUserDetail(userId) {
+  Object.assign(state.userDetail, { id: userId, data: null, loading: true, error: null });
+  render();
+  try {
+    state.userDetail.data = await getAdminUser(userId);
+  } catch (error) {
+    state.userDetail.error = error.message;
+  } finally {
+    state.userDetail.loading = false;
+    render();
+  }
+}
+
+function bindUsersEvents() {
+  document.querySelector('#users-filter-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    state.users.search = String(data.get('search') || '').trim();
+    state.users.status = String(data.get('status') || '');
+    state.users.page = 1;
+    loadUsers();
+  });
+  document.querySelector('#users-previous')?.addEventListener('click', () => {
+    state.users.page -= 1;
+    loadUsers();
+  });
+  document.querySelector('#users-next')?.addEventListener('click', () => {
+    state.users.page += 1;
+    loadUsers();
+  });
+}
+
+function bindUserDetailEvents() {
+  document.querySelector('#user-status-button')?.addEventListener('click', async () => {
+    const user = state.userDetail.data;
+    if (!user) return;
+    if (user.isActive && !window.confirm(`Disable ${user.displayName}? Their current sessions will be revoked.`)) return;
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    render();
+    try {
+      state.userDetail.data = await updateAdminUserStatus(user.id, !user.isActive);
+      state.users.loaded = false;
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelector('#user-roles-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const roles = new FormData(event.currentTarget).getAll('roles');
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    render();
+    try {
+      state.userDetail.data = await updateAdminUserRoles(state.userDetail.id, roles);
+      state.users.loaded = false;
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
+}
+
 async function handleLogout(event) {
   event.currentTarget.disabled = true;
   try {
@@ -293,6 +515,23 @@ function render() {
 
   if (location.pathname === '/dashboard') {
     renderShell(dashboardPage(), 'Dashboard');
+    return;
+  }
+
+  if (location.pathname === '/users') {
+    renderShell(usersPage(), 'Users');
+    bindUsersEvents();
+    if (!state.users.loaded && !state.users.loading) loadUsers();
+    return;
+  }
+
+  const userDetailMatch = location.pathname.match(/^\/users\/([0-9a-f-]+)$/i);
+  if (userDetailMatch) {
+    renderShell(userDetailPage(), state.userDetail.data?.displayName || 'User');
+    bindUserDetailEvents();
+    if (state.userDetail.id !== userDetailMatch[1] && !state.userDetail.loading) {
+      loadUserDetail(userDetailMatch[1]);
+    }
     return;
   }
 

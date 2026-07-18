@@ -38,6 +38,29 @@ public sealed class PxaDbContextModelTests
         Assert.True(uniqueIndex.IsUnique);
     }
 
+    [Fact]
+    public void Model_scopes_membership_roles_and_audit_events_to_administration()
+    {
+        using var context = CreateContext();
+
+        var membershipRole = context.Model.FindEntityType(typeof(OrganizationMembershipRole));
+        var auditEvent = context.Model.FindEntityType(typeof(AuditEvent));
+
+        Assert.Equal(DatabaseSchemas.Administration, membershipRole?.GetSchema());
+        Assert.Equal("organization_membership_roles", membershipRole?.GetTableName());
+        Assert.Equal(DatabaseSchemas.Administration, auditEvent?.GetSchema());
+        Assert.Equal("audit_events", auditEvent?.GetTableName());
+
+        var uniqueIndex = Assert.Single(
+            membershipRole!.GetIndexes(),
+            index => index.Properties.Select(property => property.Name)
+                .SequenceEqual([
+                    nameof(OrganizationMembershipRole.OrganizationMembershipId),
+                    nameof(OrganizationMembershipRole.RoleId),
+                ]));
+        Assert.True(uniqueIndex.IsUnique);
+    }
+
     private static PxaDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<PxaDbContext>()
