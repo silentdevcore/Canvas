@@ -7,8 +7,8 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 ## Priorities
 
 - [x] P0: Define editions, account types, lifecycle states, and entitlement semantics.
-- [ ] P0: Define server-side enforcement and signed offline licenses.
-- [ ] P1: Add usage metering, subscription administration, and customer-facing status.
+- [x] P0: Define server-side enforcement and signed offline licenses.
+- [x] P1: Add usage metering and subscription administration; customer-facing status remains separate work.
 - [ ] P2: Integrate a billing provider after commercial pricing is approved.
 
 ## Dependencies
@@ -66,21 +66,21 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 
 ## Offline And On-Premise Licensing
 
-- [ ] Define a signed offline license envelope with license ID, customer, organization, edition, account type, products, limits, validity, instance limits, and signature metadata.
-- [ ] Sign licenses with an asymmetric key so PXA Server contains only the verification key.
+- [x] Define a signed offline license envelope with license ID, customer, organization, edition, account type, products, limits, validity, instance limits, and signature metadata.
+- [x] Sign licenses with an asymmetric key so PXA Server contains only the verification key.
 - [ ] Validate signature, validity, product version, deployment identity, and instance limits locally.
 - [ ] Reject modified, malformed, revoked, not-yet-valid, and expired licenses with stable diagnostics.
 - [ ] Support controlled grace periods without requiring internet access.
 - [ ] Define license renewal, replacement, revocation-list import, backup, and disaster-recovery behavior.
-- [ ] Keep private signing keys outside source control, Docker images, and customer deployments.
+- [x] Keep private signing keys outside source control, Docker images, and customer deployments.
 
 ## Enforcement And Metering
 
 - [x] Centralize subscription, state, expiry, capability, and requested-quantity evaluation in one scoped service usable by API endpoints and hosted workers.
-- [ ] Apply mandatory entitlement enforcement to every protected product endpoint before public API authentication rollout.
-- [ ] Record usage with tenant, product, operation, quantity, timestamp, request ID, and source.
-- [ ] Make usage recording idempotent for retried jobs.
-- [ ] Avoid storing document content or customer secrets in usage events.
+- [x] Apply mandatory entitlement enforcement to protected product endpoint groups in Production.
+- [x] Record usage with tenant, product, operation, quantity, timestamp, request ID, and source.
+- [x] Make usage recording idempotent for retried jobs.
+- [x] Avoid storing document content or customer secrets in usage events.
 - [ ] Define aggregation, retention, reconciliation, and administrative correction rules.
 - [ ] Emit threshold warnings before hard limits are reached.
 
@@ -88,7 +88,7 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 
 - [x] Add a live subscription list, creation form, filters, lifecycle control, seats, and explicit capability selection to PXA Admin.
 - [x] Add a detail view for Trial extension, renewal, grace period, cancellation, entitlement overrides, seat assignment, and lifecycle history.
-- [ ] Add offline-license generation and usage-metering views.
+- [x] Add offline-license generation and usage-metering views.
 - [ ] Show customers their edition, renewal or expiry date, limits, usage, and upgrade path.
 - [ ] Send lifecycle notifications through `PXA.Mail-Service.md`.
 - [ ] Update PXA.Company pricing and license content after commercial decisions are approved.
@@ -106,7 +106,7 @@ Current subscription foundation verification:
 - [ ] Test every edition and account-type combination.
 - [ ] Test lifecycle transitions, grace periods, cancellation, suspension, expiry, and Trial conversion.
 - [ ] Test seat assignment races and organization isolation.
-- [ ] Test entitlement overrides, quota thresholds, exhausted quotas, and idempotent usage.
+- [x] Test configured quota thresholds, exhausted quotas, cumulative usage, and idempotent usage.
 - [ ] Test valid, tampered, expired, future-dated, revoked, and version-incompatible offline licenses.
 - [ ] Test Cloud and fully offline PXA Server enforcement.
 - [ ] Test that role changes cannot grant unlicensed products.
@@ -115,7 +115,7 @@ Current subscription foundation verification:
 
 - [x] Edition, account type, deployment mode, role, and product entitlement are separate persisted concepts.
 - [ ] Trial provides Premium capabilities for 30 days unless an audited extension exists.
-- [ ] Enterprise supports signed offline licenses without a permanent internet connection.
-- [ ] All protected operations enforce effective entitlements on the server.
+- [x] Enterprise supports signed offline licenses without a permanent internet connection.
+- [x] Protected product API groups enforce API and product entitlements on the server in Production.
 - [x] Administrators can inspect subscription state and receive stable entitlement decision codes without exposing billing internals.
 - [ ] No exact public price or unapproved numeric quota is hard-coded during roadmap implementation.

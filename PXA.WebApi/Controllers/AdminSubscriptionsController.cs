@@ -120,6 +120,7 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             DeploymentMode = values.DeploymentMode,
             SeatLimit = values.AccountType == SubscriptionAccountType.IndividualDeveloper ? 1 : request.SeatLimit,
             StartsAt = request.StartsAt ?? now,
+            CurrentPeriodStartsAt = request.StartsAt ?? now,
             TrialEndsAt = values.Edition == SubscriptionEdition.Trial
                 ? request.TrialEndsAt ?? (request.StartsAt ?? now).AddDays(30)
                 : request.TrialEndsAt,
@@ -282,6 +283,44 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             .ToListAsync(cancellationToken));
     }
 
+    [HttpGet("{subscriptionId:guid}/usage")]
+    [Authorize(Policy = PxaPermissions.SubscriptionsRead)]
+    public async Task<ActionResult<AdminSubscriptionUsageResponse>> GetUsage(
+        Guid subscriptionId,
+        CancellationToken cancellationToken)
+    {
+        var subscription = await dbContext.OrganizationSubscriptions.AsNoTracking()
+            .SingleOrDefaultAsync(value => value.Id == subscriptionId, cancellationToken);
+        if (subscription is null || !CanAccess(subscription.OrganizationId))
+            return NotFound();
+        var aggregates = await dbContext.SubscriptionUsageEvents.AsNoTracking()
+            .Where(value => value.SubscriptionId == subscriptionId &&
+                            value.OccurredAt >= subscription.CurrentPeriodStartsAt)
+            .GroupBy(value => new { value.Capability, value.Operation, value.Source })
+            .Select(group => new
+            {
+                group.Key.Capability,
+                group.Key.Operation,
+                group.Key.Source,
+                Quantity = group.Sum(value => value.Quantity),
+                EventCount = group.Count(),
+                LastOccurredAt = group.Max(value => value.OccurredAt),
+            })
+            .ToListAsync(cancellationToken);
+        var items = aggregates
+            .OrderBy(value => value.Capability)
+            .ThenBy(value => value.Operation)
+            .Select(value => new AdminSubscriptionUsageItem(
+                value.Capability, value.Operation, value.Source, value.Quantity,
+                value.EventCount, value.LastOccurredAt))
+            .ToArray();
+        return Ok(new AdminSubscriptionUsageResponse(
+            subscription.CurrentPeriodStartsAt,
+            subscription.CurrentPeriodEndsAt,
+            items.Sum(value => value.Quantity),
+            items));
+    }
+
     [HttpPost("{subscriptionId:guid}/trial/extend")]
     [Authorize(Policy = PxaPermissions.SubscriptionsManage)]
     [PxaValidateAntiforgery]
@@ -326,6 +365,7 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             return ConflictProblem("This subscription cannot be renewed in its current state.");
         var previousStatus = subscription.Status;
         subscription.Status = SubscriptionStatus.Active;
+        subscription.CurrentPeriodStartsAt = DateTimeOffset.UtcNow;
         subscription.CurrentPeriodEndsAt = request.PeriodEndsAt;
         subscription.CancellationEffectiveAt = null;
         subscription.GracePeriodEndsAt = null;
@@ -426,7 +466,7 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             subscription.Id, subscription.OrganizationId, organizationName, subscription.Edition.ToString(),
             subscription.AccountType.ToString(), subscription.Status.ToString(), subscription.BillingPeriod.ToString(),
             subscription.DeploymentMode.ToString(), subscription.SeatLimit, assignedSeats, subscription.StartsAt,
-            subscription.TrialEndsAt, subscription.CurrentPeriodEndsAt, subscription.CancellationEffectiveAt,
+            subscription.CurrentPeriodStartsAt, subscription.TrialEndsAt, subscription.CurrentPeriodEndsAt, subscription.CancellationEffectiveAt,
             subscription.GracePeriodEndsAt, entitlements, subscription.CreatedAt, subscription.UpdatedAt);
     }
 
@@ -612,7 +652,7 @@ public sealed record AdminSubscriptionSummary(Guid Id, Guid OrganizationId, stri
     DateTimeOffset? TrialEndsAt, DateTimeOffset? CurrentPeriodEndsAt, DateTimeOffset UpdatedAt);
 public sealed record AdminSubscriptionResponse(Guid Id, Guid OrganizationId, string OrganizationName, string Edition,
     string AccountType, string Status, string BillingPeriod, string DeploymentMode, int? SeatLimit, int AssignedSeats,
-    DateTimeOffset StartsAt, DateTimeOffset? TrialEndsAt, DateTimeOffset? CurrentPeriodEndsAt,
+    DateTimeOffset StartsAt, DateTimeOffset CurrentPeriodStartsAt, DateTimeOffset? TrialEndsAt, DateTimeOffset? CurrentPeriodEndsAt,
     DateTimeOffset? CancellationEffectiveAt, DateTimeOffset? GracePeriodEndsAt,
     IReadOnlyList<AdminEntitlementResponse> Entitlements, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt);
 public sealed record AdminEntitlementResponse(string Capability, bool Enabled, long? Limit, string? Unit, string Source, DateTimeOffset? ExpiresAt);
@@ -633,3 +673,7 @@ public sealed record ExtendTrialRequest(int Days);
 public sealed record RenewSubscriptionRequest(DateTimeOffset PeriodEndsAt);
 public sealed record GracePeriodRequest(DateTimeOffset EndsAt);
 public sealed record CancelSubscriptionRequest(DateTimeOffset? EffectiveAt);
+public sealed record AdminSubscriptionUsageResponse(DateTimeOffset PeriodStartsAt,
+    DateTimeOffset? PeriodEndsAt, long TotalQuantity, IReadOnlyList<AdminSubscriptionUsageItem> Items);
+public sealed record AdminSubscriptionUsageItem(string Capability, string Operation, string Source,
+    long Quantity, int EventCount, DateTimeOffset LastOccurredAt);

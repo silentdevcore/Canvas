@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -10,6 +11,7 @@ using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 using PXA.WebApi.Services.Entitlements;
+using PXA.WebApi.Services.Licensing;
 using PxaConverters = PXA.Infrastructure.Converters;
 using PxaSpreadsheet = PXA.Infrastructure.Spreadsheet;
 using PxaWord = PXA.Infrastructure.Word;
@@ -23,7 +25,22 @@ builder.Services.AddPxaPersistence(
     builder.Configuration.GetConnectionString("PxaDatabase")
         ?? throw new InvalidOperationException("Connection string 'PxaDatabase' is required."));
 var requireSecureCookies = !builder.Environment.IsDevelopment();
-builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = PxaAuthenticationSchemes.Combined;
+        options.DefaultChallengeScheme = PxaAuthenticationSchemes.Combined;
+        options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
+    })
+    .AddPolicyScheme(PxaAuthenticationSchemes.Combined, PxaAuthenticationSchemes.Combined, options =>
+    {
+        options.ForwardDefaultSelector = context =>
+            context.Request.Headers.ContainsKey("X-PXA-API-Key") ||
+            context.Request.Headers.Authorization.ToString().StartsWith("Bearer pxa_", StringComparison.Ordinal)
+                ? PxaAuthenticationSchemes.ApiKey
+                : IdentityConstants.ApplicationScheme;
+    })
+    .AddScheme<AuthenticationSchemeOptions, PxaApiKeyAuthenticationHandler>(
+        PxaAuthenticationSchemes.ApiKey, _ => { })
     .AddCookie(IdentityConstants.ApplicationScheme, options =>
     {
         options.Cookie.Name = requireSecureCookies ? "__Host-PXA.Session" : "PXA.Session.Development";
@@ -40,6 +57,17 @@ builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IPxaTenantContext, PxaTenantContext>();
 builder.Services.AddScoped<IPxaEntitlementService, PxaEntitlementService>();
+builder.Services.AddScoped<IPxaUsageService, PxaUsageService>();
+builder.Services.AddOptions<PxaProductAccessOptions>()
+    .Bind(builder.Configuration.GetSection("ProductAccess"));
+builder.Services.AddOptions<PxaLicensingOptions>()
+    .Bind(builder.Configuration.GetSection("Licensing"))
+    .Validate(options => !string.IsNullOrWhiteSpace(options.KeyId) &&
+                         !string.IsNullOrWhiteSpace(options.PrivateKeyPath) &&
+                         !string.IsNullOrWhiteSpace(options.PublicKeyPath),
+        "Licensing key ID and key paths are required.")
+    .ValidateOnStart();
+builder.Services.AddSingleton<IPxaLicenseSigningService, PxaLicenseSigningService>();
 var dataProtectionKeysDirectory = builder.Configuration["DataProtection:KeysDirectory"]
     ?? Path.Combine("App_Data", "data-protection-keys");
 var dataProtectionKeysPath = Path.IsPathRooted(dataProtectionKeysDirectory)
@@ -199,6 +227,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication();
+app.UseMiddleware<PxaProductAccessMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions

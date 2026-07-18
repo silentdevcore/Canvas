@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PXA.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using PXA.Infrastructure.Persistence;
 namespace PXA.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(PxaDbContext))]
-    partial class PxaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260718193351_AddOfflineLicensing")]
+    partial class AddOfflineLicensing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -123,60 +126,6 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("user_tokens", "identity");
-                });
-
-            modelBuilder.Entity("PXA.Domain.Entities.ApiKey", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset?>("LastUsedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)");
-
-                    b.Property<Guid>("OrganizationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Prefix")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<DateTimeOffset?>("RevokedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("SecretHash")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character(64)")
-                        .IsFixedLength();
-
-                    b.Property<Guid>("ServiceAccountId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Prefix");
-
-                    b.HasIndex("SecretHash")
-                        .IsUnique();
-
-                    b.HasIndex("ServiceAccountId");
-
-                    b.HasIndex("OrganizationId", "ServiceAccountId", "RevokedAt");
-
-                    b.ToTable("api_keys", "administration");
                 });
 
             modelBuilder.Entity("PXA.Domain.Entities.AuditEvent", b =>
@@ -609,45 +558,6 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.ToTable("subscriptions", "administration");
                 });
 
-            modelBuilder.Entity("PXA.Domain.Entities.ServiceAccount", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)");
-
-                    b.Property<Guid>("OrganizationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset?>("RevokedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("OrganizationId", "Name")
-                        .IsUnique();
-
-                    b.ToTable("service_accounts", "administration");
-                });
-
             modelBuilder.Entity("PXA.Domain.Entities.SubscriptionEntitlement", b =>
                 {
                     b.Property<Guid>("Id")
@@ -985,21 +895,6 @@ namespace PXA.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PXA.Domain.Entities.ApiKey", b =>
-                {
-                    b.HasOne("PXA.Domain.Entities.Organization", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PXA.Domain.Entities.ServiceAccount", null)
-                        .WithMany()
-                        .HasForeignKey("ServiceAccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("PXA.Domain.Entities.AuditEvent", b =>
                 {
                     b.HasOne("PXA.Infrastructure.Persistence.Identity.PxaIdentityUser", null)
@@ -1096,20 +991,6 @@ namespace PXA.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("PXA.Domain.Entities.ServiceAccount", b =>
-                {
-                    b.HasOne("PXA.Infrastructure.Persistence.Identity.PxaIdentityUser", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("PXA.Domain.Entities.Organization", null)
-                        .WithMany()
-                        .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

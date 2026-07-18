@@ -55,8 +55,14 @@ public sealed class PxaEntitlementService : IPxaEntitlementService
             return Denied("PXA_ENTITLEMENT_EXPIRED", "The capability grant has expired.", subscription, entitlement);
         if (quantity < 0)
             return Denied("PXA_ENTITLEMENT_QUANTITY_INVALID", "Requested quantity cannot be negative.", subscription, entitlement);
-        if (entitlement.Limit is { } limit && quantity > limit)
-            return Denied("PXA_ENTITLEMENT_LIMIT_EXCEEDED", "Requested quantity exceeds the configured limit.", subscription, entitlement);
+        var used = await dbContext.SubscriptionUsageEvents.AsNoTracking()
+            .Where(value => value.SubscriptionId == subscription.Id &&
+                            value.Capability == normalizedCapability &&
+                            value.OccurredAt >= subscription.CurrentPeriodStartsAt)
+            .SumAsync(value => (long?)value.Quantity, cancellationToken) ?? 0;
+        if (entitlement.Limit is { } limit && used + quantity > limit)
+            return Denied("PXA_ENTITLEMENT_LIMIT_EXCEEDED", "Requested quantity exceeds the remaining configured limit.",
+                subscription, entitlement, used);
 
         return new PxaEntitlementDecision(
             true,
@@ -67,16 +73,20 @@ public sealed class PxaEntitlementService : IPxaEntitlementService
             entitlement.Capability,
             entitlement.Limit,
             entitlement.Unit,
-            entitlement.ExpiresAt);
+            entitlement.ExpiresAt,
+            used,
+            entitlement.Limit is { } allowedLimit ? Math.Max(0, allowedLimit - used) : null);
     }
 
     private static PxaEntitlementDecision Denied(
         string code,
         string reason,
         OrganizationSubscription? subscription = null,
-        SubscriptionEntitlement? entitlement = null) =>
+        SubscriptionEntitlement? entitlement = null,
+        long used = 0) =>
         new(false, code, reason, subscription?.Id, subscription?.Edition.ToString(),
-            entitlement?.Capability, entitlement?.Limit, entitlement?.Unit, entitlement?.ExpiresAt);
+            entitlement?.Capability, entitlement?.Limit, entitlement?.Unit, entitlement?.ExpiresAt,
+            used, entitlement?.Limit is { } limit ? Math.Max(0, limit - used) : null);
 }
 
 public sealed record PxaEntitlementDecision(
@@ -88,4 +98,6 @@ public sealed record PxaEntitlementDecision(
     string? Capability,
     long? Limit,
     string? Unit,
-    DateTimeOffset? ExpiresAt);
+    DateTimeOffset? ExpiresAt,
+    long Used,
+    long? Remaining);

@@ -11,6 +11,7 @@ public sealed class OrganizationSubscription
     public SubscriptionDeploymentMode DeploymentMode { get; set; } = SubscriptionDeploymentMode.Cloud;
     public int? SeatLimit { get; set; }
     public DateTimeOffset StartsAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset CurrentPeriodStartsAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? TrialEndsAt { get; set; }
     public DateTimeOffset? CurrentPeriodEndsAt { get; set; }
     public DateTimeOffset? CancellationEffectiveAt { get; set; }

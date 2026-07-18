@@ -2,6 +2,9 @@ const authBase = '/api/pxa/v1/auth';
 const adminUsersBase = '/api/pxa/v1/admin/users';
 const adminOrganizationsBase = '/api/pxa/v1/admin/organizations';
 const adminSubscriptionsBase = '/api/pxa/v1/admin/subscriptions';
+const adminLicensesBase = '/api/pxa/v1/admin/licenses';
+const adminServiceAccountsBase = '/api/pxa/v1/admin/service-accounts';
+const adminAuditBase = '/api/pxa/v1/admin/audit';
 
 async function request(path, options = {}) {
   const response = await fetch(path, {
@@ -158,6 +161,10 @@ export async function getAdminSubscriptionHistory(subscriptionId) {
   return request(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}/history`);
 }
 
+export async function getAdminSubscriptionUsage(subscriptionId) {
+  return request(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}/usage`);
+}
+
 export async function updateAdminSubscription(subscriptionId, changes) {
   return adminMutation(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}`, 'PATCH', changes);
 }
@@ -187,6 +194,90 @@ export async function startAdminGracePeriod(subscriptionId, endsAt) {
 
 export async function cancelAdminSubscription(subscriptionId, effectiveAt) {
   return adminMutation(`${adminSubscriptionsBase}/${encodeURIComponent(subscriptionId)}/cancel`, 'POST', { effectiveAt });
+}
+
+export async function getAdminLicenses() {
+  return request(adminLicensesBase);
+}
+
+export async function issueAdminLicense(license) {
+  return adminMutation(adminLicensesBase, 'POST', license);
+}
+
+export async function validateAdminLicense(licenseId) {
+  return request(`${adminLicensesBase}/${encodeURIComponent(licenseId)}/validate`);
+}
+
+export async function revokeAdminLicense(licenseId, reason) {
+  return adminMutation(`${adminLicensesBase}/${encodeURIComponent(licenseId)}/revoke`, 'POST', { reason });
+}
+
+export async function getAdminServiceAccounts() {
+  return request(adminServiceAccountsBase);
+}
+
+export async function createAdminServiceAccount(name) {
+  return adminMutation(adminServiceAccountsBase, 'POST', { name });
+}
+
+export async function createAdminApiKey(serviceAccountId, name, expiresAt) {
+  return adminMutation(`${adminServiceAccountsBase}/${encodeURIComponent(serviceAccountId)}/keys`, 'POST', {
+    name, expiresAt: expiresAt || null,
+  });
+}
+
+export async function revokeAdminApiKey(serviceAccountId, keyId) {
+  return adminMutation(`${adminServiceAccountsBase}/${encodeURIComponent(serviceAccountId)}/keys/${encodeURIComponent(keyId)}/revoke`, 'POST');
+}
+
+export async function revokeAdminServiceAccount(serviceAccountId) {
+  return adminMutation(`${adminServiceAccountsBase}/${encodeURIComponent(serviceAccountId)}/revoke`, 'POST');
+}
+
+function auditQuery(filters = {}) {
+  const query = new URLSearchParams({
+    page: String(filters.page || 1),
+    pageSize: String(filters.pageSize || 25),
+  });
+  for (const key of ['search', 'action', 'targetType', 'outcome', 'actorUserId', 'from', 'to', 'direction']) {
+    if (filters[key]) query.set(key, filters[key]);
+  }
+  return query;
+}
+
+export async function getAdminAudit(filters) {
+  return request(`${adminAuditBase}?${auditQuery(filters)}`);
+}
+
+export async function getAdminAuditEvent(eventId) {
+  return request(`${adminAuditBase}/${encodeURIComponent(eventId)}`);
+}
+
+export async function exportAdminAudit(format, filter) {
+  const { token } = await request(`${authBase}/csrf`);
+  const response = await fetch(`${adminAuditBase}/export`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      Accept: format === 'json' ? 'application/json' : 'text/csv',
+      'Content-Type': 'application/json',
+      'X-PXA-CSRF': token,
+    },
+    body: JSON.stringify({ format, filter }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    const error = new Error(body?.detail || body?.title || `Export failed with status ${response.status}.`);
+    error.status = response.status;
+    throw error;
+  }
+  const disposition = response.headers.get('content-disposition') || '';
+  const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  const plainName = disposition.match(/filename="?([^";]+)"?/i)?.[1];
+  return {
+    blob: await response.blob(),
+    filename: encodedName ? decodeURIComponent(encodedName) : (plainName || `pxa-audit.${format}`),
+  };
 }
 
 export async function getAdminMailStatus() {

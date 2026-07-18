@@ -24,6 +24,10 @@ public sealed class PxaDbContext
     public DbSet<SubscriptionEntitlement> SubscriptionEntitlements => Set<SubscriptionEntitlement>();
     public DbSet<SubscriptionSeatAssignment> SubscriptionSeatAssignments => Set<SubscriptionSeatAssignment>();
     public DbSet<SubscriptionLifecycleEvent> SubscriptionLifecycleEvents => Set<SubscriptionLifecycleEvent>();
+    public DbSet<SubscriptionUsageEvent> SubscriptionUsageEvents => Set<SubscriptionUsageEvent>();
+    public DbSet<OfflineLicense> OfflineLicenses => Set<OfflineLicense>();
+    public DbSet<ServiceAccount> ServiceAccounts => Set<ServiceAccount>();
+    public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

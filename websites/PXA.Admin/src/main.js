@@ -7,6 +7,8 @@ import {
   cancelAdminSubscription,
   createAdminOrganization,
   createAdminSubscription,
+  createAdminServiceAccount,
+  createAdminApiKey,
   createAdminInvitation,
   cancelAdminMail,
   getAdminOrganization,
@@ -16,16 +18,23 @@ import {
   getAdminSubscription,
   getAdminSubscriptionHistory,
   getAdminSubscriptionSeats,
+  getAdminSubscriptionUsage,
+  getAdminLicenses,
+  getAdminServiceAccounts,
   getAdminMail,
   getAdminMailStatus,
   getAdminUser,
   getAdminUsers,
   login,
   logout,
+  issueAdminLicense,
   removeAdminOrganizationMember,
   requestPasswordReset,
   renewAdminSubscription,
   revokeAdminSubscriptionSeat,
+  revokeAdminLicense,
+  revokeAdminApiKey,
+  revokeAdminServiceAccount,
   retryAdminMail,
   confirmPasswordReset,
   switchOrganization,
@@ -35,6 +44,10 @@ import {
   updateAdminUserRoles,
   updateAdminUserStatus,
   extendAdminTrial,
+  exportAdminAudit,
+  getAdminAudit,
+  getAdminAuditEvent,
+  validateAdminLicense,
 } from './api.js';
 
 const app = document.querySelector('#app');
@@ -56,10 +69,7 @@ const pageDetails = {
   '/users': ['Users', 'Manage user status, memberships, roles, and active sessions.', ['Name', 'Email', 'Organization', 'Role', 'Status', 'Last login']],
   '/organizations': ['Organizations', 'Manage tenant ownership, memberships, and organization status.', ['Organization', 'Status', 'Members', 'Subscription', 'Updated']],
   '/roles': ['Roles & permissions', 'Review role definitions and the permissions granted to each role.', ['Role', 'Scope', 'Users', 'Permissions', 'Updated']],
-  '/licenses': ['Licenses', 'Issue and inspect signed licenses for approved On-Premise deployments.', ['License', 'Customer', 'Products', 'Valid until', 'State']],
-  '/service-accounts': ['Service accounts', 'Manage non-interactive access and API-key rotation.', ['Name', 'Organization', 'Scopes', 'Last used', 'State']],
   '/mail': ['Mail delivery', 'Inspect transactional delivery state without exposing message secrets.', ['Recipient', 'Template', 'State', 'Attempts', 'Updated']],
-  '/audit': ['Audit', 'Trace privileged administration and security events.', ['Time', 'Actor', 'Action', 'Target', 'Result']],
   '/settings': ['Settings', 'Configure organization defaults and operational administration settings.', ['Setting', 'Value', 'Scope', 'Updated']],
 };
 
@@ -102,7 +112,14 @@ const state = {
     loading: false, loaded: false, saving: false, error: null,
   },
   subscriptionDetail: {
-    id: null, data: null, seats: [], history: [], loading: false, saving: false, error: null,
+    id: null, data: null, seats: [], history: [], usage: null, loading: false, saving: false, error: null,
+  },
+  licenses: { items: [], loading: false, loaded: false, saving: false, error: null, notice: null },
+  serviceAccounts: { items: [], loading: false, loaded: false, saving: false, error: null, secret: null },
+  audit: {
+    items: [], total: 0, page: 1, pageSize: 25, search: '', action: '', targetType: '', outcome: '',
+    from: '', to: '', direction: 'desc', actions: [], targetTypes: [], outcomes: [], canExport: false,
+    selected: null, loading: false, loaded: false, detailLoading: false, exporting: false, error: null,
   },
 };
 
@@ -649,8 +666,39 @@ function subscriptionDetailPage() {
   }).join('');
   const seatRows = detail.seats.map((seat) => `<tr><td><strong>${escapeHtml(seat.displayName)}</strong><small>${escapeHtml(seat.email)}</small></td><td>${escapeHtml(seat.membershipStatus)}</td><td><span class="admin-status ${seat.assigned ? 'admin-status--ready' : 'admin-status--planned'}">${seat.assigned ? 'Assigned' : 'Not assigned'}</span></td><td>${isSystemAdministrator() ? `<button class="${seat.assigned ? 'subscription-revoke-seat' : 'subscription-assign-seat'}" data-membership-id="${seat.membershipId}" type="button" ${detail.saving || seat.membershipStatus !== 'Active' ? 'disabled' : ''}>${seat.assigned ? 'Revoke' : 'Assign'}</button>` : ''}</td></tr>`).join('');
   const historyRows = detail.history.map((event) => `<tr><td>${escapeHtml(formatDate(event.createdAt))}</td><td>${escapeHtml(event.action)}</td><td>${escapeHtml(event.previousStatus || 'New')} → ${escapeHtml(event.currentStatus)}</td><td><strong>${escapeHtml(event.actorName)}</strong><small>${escapeHtml(event.actorUserId)}</small></td></tr>`).join('');
+  const usageRows = (detail.usage?.items || []).map((item) => `<tr><td>${escapeHtml(item.capability)}</td><td>${escapeHtml(item.operation)}</td><td>${escapeHtml(item.source)}</td><td>${item.quantity}</td><td>${item.eventCount}</td><td>${escapeHtml(formatDate(item.lastOccurredAt))}</td></tr>`).join('');
   const lifecycleActions = isSystemAdministrator() ? `<section class="admin-section admin-subscription-actions"><div class="admin-section-heading"><h2>Lifecycle actions</h2><p>Each operation is validated and written to subscription history and the audit log.</p></div><div class="admin-action-grid">${subscription.edition === 'Trial' && !['Cancelled', 'Expired'].includes(subscription.status) ? `<form id="subscription-trial-form" class="admin-compact-action"><label class="admin-field"><span>Extend Trial by days</span><input name="days" type="number" min="1" max="365" value="7" required></label><button type="submit" ${detail.saving ? 'disabled' : ''}>Extend Trial</button></form>` : ''}${!['Trialing', 'Cancelled', 'Expired'].includes(subscription.status) ? `<form id="subscription-renew-form" class="admin-compact-action"><label class="admin-field"><span>Renew until</span><input name="periodEndsAt" type="datetime-local" required></label><button type="submit" ${detail.saving ? 'disabled' : ''}>Renew</button></form>` : ''}${['PastDue', 'GracePeriod'].includes(subscription.status) ? `<form id="subscription-grace-form" class="admin-compact-action"><label class="admin-field"><span>Grace period until</span><input name="endsAt" type="datetime-local" required></label><button type="submit" ${detail.saving ? 'disabled' : ''}>Apply grace period</button></form>` : ''}${!['Cancelled', 'Expired'].includes(subscription.status) ? `<form id="subscription-cancel-form" class="admin-compact-action"><label class="admin-field"><span>Cancellation effective</span><input name="effectiveAt" type="datetime-local" value="${dateInputValue(subscription.currentPeriodEndsAt)}"></label><button class="admin-danger-button" type="submit" ${detail.saving ? 'disabled' : ''}>Schedule cancellation</button></form>` : ''}</div></section>` : '';
-  return `<header class="admin-page-header"><div><a class="admin-back-link" href="/subscriptions">Subscriptions</a><h1>${escapeHtml(subscription.organizationName)}</h1><p>${escapeHtml(subscription.edition)} · ${escapeHtml(subscription.accountType.replace('IndividualDeveloper', 'Individual Developer'))} · ${escapeHtml(subscription.deploymentMode)}</p></div><span class="admin-status ${subscription.status === 'Active' || subscription.status === 'Trialing' ? 'admin-status--ready' : 'admin-status--planned'}">${escapeHtml(subscription.status)}</span></header>${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(detail.error)}</div>` : ''}<section class="admin-summary-grid"><article><span>Billing</span><strong>${escapeHtml(subscription.billingPeriod)}</strong></article><article><span>Seats</span><strong>${subscription.assignedSeats} / ${subscription.seatLimit ?? 'unlimited'}</strong></article><article><span>Trial ends</span><strong>${escapeHtml(formatDate(subscription.trialEndsAt))}</strong></article><article><span>Period ends</span><strong>${escapeHtml(formatDate(subscription.currentPeriodEndsAt))}</strong></article></section>${lifecycleActions}<section class="admin-table-section"><form id="subscription-entitlements-form"><div class="admin-section-heading"><h2>Effective capability grants</h2><p>Limits and expiry are explicit. Application roles do not grant these products.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Capability</th><th>Enabled</th><th>Limit</th><th>Unit</th><th>Source</th><th>Expires</th></tr></thead><tbody>${entitlementRows}</tbody></table></div>${isSystemAdministrator() ? `<div class="admin-form-stack"><label class="admin-field"><span>Additional capability key</span><input id="subscription-custom-capability" pattern="[a-z][a-z0-9.-]*" placeholder="feature.capability"></label></div><div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving ? 'disabled' : ''}>Save entitlements</button></div>` : ''}</form></section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Seat assignments</h2><p>Only active memberships in this organization can receive a seat.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Member</th><th>Membership</th><th>Seat</th><th></th></tr></thead><tbody>${seatRows}</tbody></table></div>${detail.seats.length ? '' : '<div class="admin-empty-state"><strong>No memberships</strong></div>'}</section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Lifecycle history</h2><p>Append-only commercial state transitions.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Action</th><th>Transition</th><th>Actor</th></tr></thead><tbody>${historyRows}</tbody></table></div></section>`;
+  return `<header class="admin-page-header"><div><a class="admin-back-link" href="/subscriptions">Subscriptions</a><h1>${escapeHtml(subscription.organizationName)}</h1><p>${escapeHtml(subscription.edition)} · ${escapeHtml(subscription.accountType.replace('IndividualDeveloper', 'Individual Developer'))} · ${escapeHtml(subscription.deploymentMode)}</p></div><span class="admin-status ${subscription.status === 'Active' || subscription.status === 'Trialing' ? 'admin-status--ready' : 'admin-status--planned'}">${escapeHtml(subscription.status)}</span></header>${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(detail.error)}</div>` : ''}<section class="admin-summary-grid"><article><span>Billing</span><strong>${escapeHtml(subscription.billingPeriod)}</strong></article><article><span>Seats</span><strong>${subscription.assignedSeats} / ${subscription.seatLimit ?? 'unlimited'}</strong></article><article><span>Trial ends</span><strong>${escapeHtml(formatDate(subscription.trialEndsAt))}</strong></article><article><span>Period ends</span><strong>${escapeHtml(formatDate(subscription.currentPeriodEndsAt))}</strong></article></section>${lifecycleActions}<section class="admin-table-section"><form id="subscription-entitlements-form"><div class="admin-section-heading"><h2>Effective capability grants</h2><p>Limits and expiry are explicit. Application roles do not grant these products.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Capability</th><th>Enabled</th><th>Limit</th><th>Unit</th><th>Source</th><th>Expires</th></tr></thead><tbody>${entitlementRows}</tbody></table></div>${isSystemAdministrator() ? `<div class="admin-form-stack"><label class="admin-field"><span>Additional capability key</span><input id="subscription-custom-capability" pattern="[a-z][a-z0-9.-]*" placeholder="feature.capability"></label></div><div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving ? 'disabled' : ''}>Save entitlements</button></div>` : ''}</form></section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Usage this period</h2><p>${escapeHtml(formatDate(detail.usage?.periodStartsAt))} to ${escapeHtml(formatDate(detail.usage?.periodEndsAt))} · ${detail.usage?.totalQuantity || 0} total units</p></div><div class="admin-table-scroll"><table><thead><tr><th>Capability</th><th>Operation</th><th>Source</th><th>Quantity</th><th>Events</th><th>Last activity</th></tr></thead><tbody>${usageRows}</tbody></table></div>${usageRows ? '' : '<div class="admin-empty-state"><strong>No usage recorded</strong><p>Metered product operations will appear here.</p></div>'}</section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Seat assignments</h2><p>Only active memberships in this organization can receive a seat.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Member</th><th>Membership</th><th>Seat</th><th></th></tr></thead><tbody>${seatRows}</tbody></table></div>${detail.seats.length ? '' : '<div class="admin-empty-state"><strong>No memberships</strong></div>'}</section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Lifecycle history</h2><p>Append-only commercial state transitions.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Action</th><th>Transition</th><th>Actor</th></tr></thead><tbody>${historyRows}</tbody></table></div></section>`;
+}
+
+function licensesPage() {
+  const licenses = state.licenses;
+  const eligible = state.subscriptions.items.filter((item) => item.edition === 'Enterprise' && ['OnPremise', 'Hybrid'].includes(item.deploymentMode));
+  const rows = licenses.items.map((license) => `<tr><td><strong>${escapeHtml(license.licenseNumber)}</strong><small>${escapeHtml(license.keyId)}</small></td><td>${escapeHtml(license.organizationName)}</td><td>${escapeHtml(license.deploymentMode)}</td><td>${license.instanceLimit}</td><td>${escapeHtml(formatDate(license.validUntil))}</td><td><span class="admin-status ${license.status === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(license.status)}</span></td><td><div class="admin-row-actions"><a href="/api/pxa/v1/admin/licenses/${license.id}/download">Download</a><button class="license-validate" data-license-id="${license.id}" type="button">Validate</button>${isSystemAdministrator() && license.status === 'Active' ? `<button class="license-revoke" data-license-id="${license.id}" type="button">Revoke</button>` : ''}</div></td></tr>`).join('');
+  const from = dateInputValue(new Date());
+  const until = dateInputValue(new Date(Date.now() + 365 * 86400000));
+  return `<header class="admin-page-header"><div><p class="pxa-kicker">Commercial</p><h1>Offline licenses</h1><p>Issue and verify signed licenses for approved Enterprise On-Premise and Hybrid deployments.</p></div><span class="admin-record-count">${licenses.items.length} licenses</span></header>${licenses.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(licenses.error)}</div>` : ''}${licenses.notice ? `<div class="admin-alert admin-detail-alert">${escapeHtml(licenses.notice)}</div>` : ''}${isSystemAdministrator() ? `<section class="admin-section admin-subscription-create"><div class="admin-section-heading"><h2>Issue license</h2><p>Capabilities and limits are copied from the selected subscription into the signed envelope.</p></div><form id="license-issue-form" class="admin-form-stack"><div class="admin-subscription-fields"><label class="admin-field"><span>Subscription</span><select name="subscriptionId" required><option value="">Select Enterprise subscription</option>${eligible.map((item) => `<option value="${item.id}">${escapeHtml(item.organizationName)}</option>`).join('')}</select></label><label class="admin-field"><span>Valid from</span><input name="validFrom" type="datetime-local" value="${from}" required></label><label class="admin-field"><span>Valid until</span><input name="validUntil" type="datetime-local" value="${until}" required></label><label class="admin-field"><span>Instance limit</span><input name="instanceLimit" type="number" min="1" max="1000" value="1" required></label></div><div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${licenses.saving || !eligible.length ? 'disabled' : ''}>Issue signed license</button></div></form></section>` : ''}<section class="admin-table-section" aria-busy="${licenses.loading}">${licenses.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading licenses...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>License</th><th>Organization</th><th>Deployment</th><th>Instances</th><th>Valid until</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>${rows ? '' : '<div class="admin-empty-state"><strong>No offline licenses</strong><p>Eligible Enterprise subscriptions can receive a signed license.</p></div>'}`}</section>`;
+}
+
+function serviceAccountsPage() {
+  const view = state.serviceAccounts;
+  const rows = view.items.flatMap((account) => {
+    const accountRow = `<tr><td><strong>${escapeHtml(account.name)}</strong><small>${account.id}</small></td><td><span class="admin-status ${account.isActive ? 'admin-status--ready' : 'admin-status--inactive'}">${account.isActive ? 'Active' : 'Revoked'}</span></td><td>${account.keys.length}</td><td>${escapeHtml(formatDate(account.createdAt))}</td><td>${account.isActive ? `<button class="service-account-revoke" data-account-id="${account.id}" type="button">Revoke account</button>` : ''}</td></tr>`;
+    const keyRows = account.keys.map((key) => `<tr class="admin-subrow"><td><span>API key</span><strong>${escapeHtml(key.name)}</strong><small>${escapeHtml(key.prefix)}...</small></td><td><span class="admin-status ${key.revokedAt ? 'admin-status--inactive' : 'admin-status--ready'}">${key.revokedAt ? 'Revoked' : 'Active'}</span></td><td>${escapeHtml(formatDate(key.lastUsedAt))}</td><td>${escapeHtml(formatDate(key.expiresAt))}</td><td>${!key.revokedAt && account.isActive ? `<button class="api-key-revoke" data-account-id="${account.id}" data-key-id="${key.id}" type="button">Revoke key</button>` : ''}</td></tr>`).join('');
+    const keyForm = account.isActive ? `<tr class="admin-subrow"><td colspan="5"><form class="api-key-create-form admin-inline-form" data-account-id="${account.id}"><label class="admin-field"><span>Key name</span><input name="name" maxlength="160" placeholder="Production SDK" required></label><label class="admin-field"><span>Expires</span><input name="expiresAt" type="datetime-local"></label><button type="submit" ${view.saving ? 'disabled' : ''}>Create key</button></form></td></tr>` : '';
+    return [accountRow, keyRows, keyForm];
+  }).join('');
+  const secret = view.secret ? `<section class="admin-section admin-secret-once"><div class="admin-section-heading"><h2>New API key</h2><p>This secret is shown once. Store it in a secret manager before leaving this page.</p></div><code>${escapeHtml(view.secret)}</code><button id="api-key-secret-dismiss" type="button">I have stored the key</button></section>` : '';
+  return `<header class="admin-page-header"><div><p class="pxa-kicker">Access</p><h1>Service accounts</h1><p>Create tenant-bound credentials for SDKs and automation. API keys never receive Admin permissions.</p></div><span class="admin-record-count">${view.items.length} accounts</span></header>${view.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(view.error)}</div>` : ''}${secret}<section class="admin-section"><div class="admin-section-heading"><h2>Create service account</h2><p>Use one account per application or deployment so access can be revoked independently.</p></div><form id="service-account-create-form" class="admin-inline-form"><label class="admin-field"><span>Name</span><input name="name" maxlength="160" placeholder="Production integration" required></label><button class="pxa-button pxa-button--primary" type="submit" ${view.saving ? 'disabled' : ''}>Create account</button></form></section><section class="admin-table-section" aria-busy="${view.loading}">${view.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading service accounts...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>Account / key</th><th>State</th><th>Keys / last used</th><th>Created / expires</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>${rows ? '' : '<div class="admin-empty-state"><strong>No service accounts</strong><p>Create an account before issuing an API key.</p></div>'}`}</section>`;
+}
+
+function auditPage() {
+  const audit = state.audit;
+  const totalPages = Math.max(1, Math.ceil(audit.total / audit.pageSize));
+  const rows = audit.items.map((event) => `<tr class="${audit.selected?.id === event.id ? 'admin-row-selected' : ''}"><td>${escapeHtml(formatDate(event.createdAt))}</td><td><strong>${escapeHtml(event.actorName)}</strong><small>${escapeHtml(event.actorEmail || 'System operation')}</small></td><td><strong>${escapeHtml(event.action)}</strong></td><td>${escapeHtml(event.targetType)}<small>${escapeHtml(event.targetId)}</small></td><td><span class="admin-status ${event.outcome === 'succeeded' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(event.outcome)}</span></td><td><button class="audit-detail-button" data-event-id="${event.id}" type="button">${audit.selected?.id === event.id ? 'Close' : 'Details'}</button></td></tr>`).join('');
+  const selected = audit.selected;
+  const details = selected ? `<section class="admin-section admin-audit-detail"><div class="admin-section-heading"><div><h2>Event details</h2><p>${escapeHtml(selected.action)} at ${escapeHtml(formatDate(selected.createdAt))}</p></div><button id="audit-detail-close" type="button">Close</button></div>${audit.detailLoading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading event...</p></div>' : `<dl class="admin-detail-list"><div><dt>Actor</dt><dd>${escapeHtml(selected.actorName)}${selected.actorEmail ? ` (${escapeHtml(selected.actorEmail)})` : ''}</dd></div><div><dt>Target</dt><dd>${escapeHtml(selected.targetType)} / ${escapeHtml(selected.targetId)}</dd></div><div><dt>Outcome</dt><dd>${escapeHtml(selected.outcome)}</dd></div><div><dt>Event ID</dt><dd>${selected.id}</dd></div></dl><div class="admin-audit-json"><span>Recorded details</span><pre>${escapeHtml(selected.details ? JSON.stringify(selected.details, null, 2) : 'No additional details were recorded.')}</pre></div>`}</section>` : '';
+  return `<header class="admin-page-header"><div><p class="pxa-kicker">Operations</p><h1>Audit</h1><p>Trace privileged changes within the active organization. Events are read-only and ordered by their recorded timestamp.</p></div><span class="admin-record-count">${audit.total} events</span></header>${audit.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(audit.error)}</div>` : ''}<section class="admin-table-section"><form id="audit-filter-form" class="admin-audit-filters"><label class="admin-field admin-audit-search"><span>Search</span><input name="search" type="search" value="${escapeHtml(audit.search)}" placeholder="Actor, action, target, or ID"></label><label class="admin-field"><span>Action</span><select name="action"><option value="">All actions</option>${audit.actions.map((value) => `<option value="${escapeHtml(value)}" ${audit.action === value ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('')}</select></label><label class="admin-field"><span>Target</span><select name="targetType"><option value="">All targets</option>${audit.targetTypes.map((value) => `<option value="${escapeHtml(value)}" ${audit.targetType === value ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('')}</select></label><label class="admin-field"><span>Outcome</span><select name="outcome"><option value="">All outcomes</option>${audit.outcomes.map((value) => `<option value="${escapeHtml(value)}" ${audit.outcome === value ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('')}</select></label><label class="admin-field"><span>From</span><input name="from" type="datetime-local" value="${escapeHtml(audit.from)}"></label><label class="admin-field"><span>To</span><input name="to" type="datetime-local" value="${escapeHtml(audit.to)}"></label><label class="admin-field"><span>Order</span><select name="direction"><option value="desc" ${audit.direction === 'desc' ? 'selected' : ''}>Newest first</option><option value="asc" ${audit.direction === 'asc' ? 'selected' : ''}>Oldest first</option></select></label><div class="admin-audit-filter-actions"><button type="submit">Apply filters</button><button id="audit-clear-filters" type="button">Clear</button></div></form><div class="admin-audit-export"><div><strong>Export audit evidence</strong><p>${audit.canExport ? 'Download the current filtered result. The export itself is audited.' : 'CSV and JSON export require an Enterprise subscription.'}</p></div><div><button class="audit-export" data-format="csv" type="button" ${!audit.canExport || audit.exporting ? 'disabled' : ''}>Export CSV</button><button class="audit-export" data-format="json" type="button" ${!audit.canExport || audit.exporting ? 'disabled' : ''}>Export JSON</button></div></div>${audit.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading audit events...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Outcome</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${rows ? '' : '<div class="admin-empty-state"><strong>No matching events</strong><p>Adjust the filters or perform an administrative operation.</p></div>'}<footer class="admin-pagination"><span>Page ${audit.page} of ${totalPages}</span><div><button id="audit-previous" type="button" ${audit.page <= 1 ? 'disabled' : ''}>Previous</button><button id="audit-next" type="button" ${audit.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer>`}</section>${details}`;
 }
 
 function dataPage(path) {
@@ -984,18 +1032,255 @@ async function loadSubscriptionDetail(subscriptionId) {
   });
   render();
   try {
-    const [data, seats, history] = await Promise.all([
+    const [data, seats, history, usage] = await Promise.all([
       getAdminSubscription(subscriptionId),
       getAdminSubscriptionSeats(subscriptionId),
       getAdminSubscriptionHistory(subscriptionId),
+      getAdminSubscriptionUsage(subscriptionId),
     ]);
-    Object.assign(state.subscriptionDetail, { data, seats, history });
+    Object.assign(state.subscriptionDetail, { data, seats, history, usage });
   } catch (error) {
     state.subscriptionDetail.error = error.message;
   } finally {
     state.subscriptionDetail.loading = false;
     render();
   }
+}
+
+async function loadLicenses() {
+  state.licenses.loading = true;
+  state.licenses.error = null;
+  render();
+  try {
+    const tasks = [getAdminLicenses()];
+    if (isSystemAdministrator()) tasks.push(getAdminSubscriptions({ pageSize: 100 }));
+    const [items, subscriptions] = await Promise.all(tasks);
+    Object.assign(state.licenses, { items, loaded: true });
+    if (subscriptions) Object.assign(state.subscriptions, subscriptions, { loaded: true });
+  } catch (error) {
+    state.licenses.error = error.message;
+    state.licenses.loaded = true;
+  } finally {
+    state.licenses.loading = false;
+    render();
+  }
+}
+
+async function runLicenseMutation(operation) {
+  state.licenses.saving = true;
+  state.licenses.error = null;
+  state.licenses.notice = null;
+  render();
+  try {
+    await operation();
+    state.licenses.saving = false;
+    await loadLicenses();
+  } catch (error) {
+    state.licenses.error = error.message;
+    state.licenses.saving = false;
+    render();
+  }
+}
+
+async function loadServiceAccounts() {
+  Object.assign(state.serviceAccounts, { loading: true, error: null });
+  render();
+  try {
+    state.serviceAccounts.items = await getAdminServiceAccounts();
+    state.serviceAccounts.loaded = true;
+  } catch (error) {
+    state.serviceAccounts.error = error.message;
+    state.serviceAccounts.loaded = true;
+  } finally {
+    state.serviceAccounts.loading = false;
+    render();
+  }
+}
+
+async function runServiceAccountMutation(operation, revealSecret = false) {
+  Object.assign(state.serviceAccounts, { saving: true, error: null });
+  render();
+  try {
+    const result = await operation();
+    if (revealSecret) state.serviceAccounts.secret = result.secret;
+    state.serviceAccounts.saving = false;
+    await loadServiceAccounts();
+  } catch (error) {
+    Object.assign(state.serviceAccounts, { saving: false, error: error.message });
+    render();
+  }
+}
+
+function bindServiceAccountEvents() {
+  document.querySelector('#service-account-create-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runServiceAccountMutation(() => createAdminServiceAccount(String(data.get('name') || '').trim()));
+  });
+  document.querySelectorAll('.api-key-create-form').forEach((form) => form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const expires = data.get('expiresAt');
+    runServiceAccountMutation(() => createAdminApiKey(
+      event.currentTarget.dataset.accountId,
+      String(data.get('name') || '').trim(),
+      expires ? new Date(expires).toISOString() : null), true);
+  }));
+  document.querySelectorAll('.api-key-revoke').forEach((button) => button.addEventListener('click', () => {
+    if (window.confirm('Revoke this API key immediately?'))
+      runServiceAccountMutation(() => revokeAdminApiKey(button.dataset.accountId, button.dataset.keyId));
+  }));
+  document.querySelectorAll('.service-account-revoke').forEach((button) => button.addEventListener('click', () => {
+    if (window.confirm('Revoke this service account and all of its API keys?'))
+      runServiceAccountMutation(() => revokeAdminServiceAccount(button.dataset.accountId));
+  }));
+  document.querySelector('#api-key-secret-dismiss')?.addEventListener('click', () => {
+    state.serviceAccounts.secret = null;
+    render();
+  });
+}
+
+function auditApiFilters() {
+  const audit = state.audit;
+  return {
+    search: audit.search,
+    action: audit.action,
+    targetType: audit.targetType,
+    outcome: audit.outcome,
+    from: audit.from ? new Date(audit.from).toISOString() : '',
+    to: audit.to ? new Date(audit.to).toISOString() : '',
+    direction: audit.direction,
+    page: audit.page,
+    pageSize: audit.pageSize,
+  };
+}
+
+async function loadAudit() {
+  Object.assign(state.audit, { loading: true, error: null });
+  render();
+  try {
+    const response = await getAdminAudit(auditApiFilters());
+    Object.assign(state.audit, response, { loaded: true });
+  } catch (error) {
+    Object.assign(state.audit, { error: error.message, loaded: true });
+  } finally {
+    state.audit.loading = false;
+    render();
+  }
+}
+
+async function loadAuditDetail(eventId) {
+  if (state.audit.selected?.id === eventId) {
+    state.audit.selected = null;
+    render();
+    return;
+  }
+  state.audit.selected = state.audit.items.find((item) => item.id === eventId) || { id: eventId };
+  state.audit.detailLoading = true;
+  state.audit.error = null;
+  render();
+  try {
+    state.audit.selected = await getAdminAuditEvent(eventId);
+  } catch (error) {
+    state.audit.error = error.message;
+    state.audit.selected = null;
+  } finally {
+    state.audit.detailLoading = false;
+    render();
+  }
+}
+
+async function runAuditExport(format) {
+  Object.assign(state.audit, { exporting: true, error: null });
+  render();
+  try {
+    const result = await exportAdminAudit(format, auditApiFilters());
+    const url = URL.createObjectURL(result.blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = result.filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    await loadAudit();
+  } catch (error) {
+    state.audit.error = error.message;
+  } finally {
+    state.audit.exporting = false;
+    render();
+  }
+}
+
+function bindAuditEvents() {
+  document.querySelector('#audit-filter-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    Object.assign(state.audit, {
+      search: String(data.get('search') || '').trim(),
+      action: String(data.get('action') || ''),
+      targetType: String(data.get('targetType') || ''),
+      outcome: String(data.get('outcome') || ''),
+      from: String(data.get('from') || ''),
+      to: String(data.get('to') || ''),
+      direction: String(data.get('direction') || 'desc'),
+      page: 1,
+      selected: null,
+    });
+    loadAudit();
+  });
+  document.querySelector('#audit-clear-filters')?.addEventListener('click', () => {
+    Object.assign(state.audit, {
+      search: '', action: '', targetType: '', outcome: '', from: '', to: '', direction: 'desc',
+      page: 1, selected: null,
+    });
+    loadAudit();
+  });
+  document.querySelector('#audit-previous')?.addEventListener('click', () => {
+    state.audit.page -= 1;
+    state.audit.selected = null;
+    loadAudit();
+  });
+  document.querySelector('#audit-next')?.addEventListener('click', () => {
+    state.audit.page += 1;
+    state.audit.selected = null;
+    loadAudit();
+  });
+  document.querySelectorAll('.audit-detail-button').forEach((button) =>
+    button.addEventListener('click', () => loadAuditDetail(button.dataset.eventId)));
+  document.querySelector('#audit-detail-close')?.addEventListener('click', () => {
+    state.audit.selected = null;
+    render();
+  });
+  document.querySelectorAll('.audit-export').forEach((button) =>
+    button.addEventListener('click', () => runAuditExport(button.dataset.format)));
+}
+
+function bindLicenseEvents() {
+  document.querySelector('#license-issue-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runLicenseMutation(() => issueAdminLicense({
+      subscriptionId: data.get('subscriptionId'),
+      validFrom: new Date(data.get('validFrom')).toISOString(),
+      validUntil: new Date(data.get('validUntil')).toISOString(),
+      instanceLimit: Number(data.get('instanceLimit')),
+    }));
+  });
+  document.querySelectorAll('.license-validate').forEach((button) => button.addEventListener('click', async () => {
+    try {
+      const result = await validateAdminLicense(button.dataset.licenseId);
+      state.licenses.notice = `${result.code}: signature ${result.signatureValid ? 'valid' : 'invalid'}`;
+      render();
+    } catch (error) {
+      state.licenses.error = error.message;
+      render();
+    }
+  }));
+  document.querySelectorAll('.license-revoke').forEach((button) => button.addEventListener('click', () => {
+    const reason = window.prompt('Reason for revoking this offline license:');
+    if (reason?.trim()) runLicenseMutation(() => revokeAdminLicense(button.dataset.licenseId, reason.trim()));
+  }));
 }
 
 function bindSubscriptionEvents() {
@@ -1229,6 +1514,27 @@ function render() {
     renderShell(subscriptionsPage(), 'Subscriptions');
     bindSubscriptionEvents();
     if (!state.subscriptions.loaded && !state.subscriptions.loading) loadSubscriptions();
+    return;
+  }
+
+  if (location.pathname === '/licenses') {
+    renderShell(licensesPage(), 'Offline licenses');
+    bindLicenseEvents();
+    if (!state.licenses.loaded && !state.licenses.loading) loadLicenses();
+    return;
+  }
+
+  if (location.pathname === '/service-accounts') {
+    renderShell(serviceAccountsPage(), 'Service accounts');
+    bindServiceAccountEvents();
+    if (!state.serviceAccounts.loaded && !state.serviceAccounts.loading) loadServiceAccounts();
+    return;
+  }
+
+  if (location.pathname === '/audit') {
+    renderShell(auditPage(), 'Audit');
+    bindAuditEvents();
+    if (!state.audit.loaded && !state.audit.loading) loadAudit();
     return;
   }
 

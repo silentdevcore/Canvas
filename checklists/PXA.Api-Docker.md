@@ -15,7 +15,7 @@ Deliver `PXA.WebApi` as a secure, observable, and offline-capable Linux containe
 
 - [ ] Stabilize the public API contract tracked in `PXA.SDK-Roadmap.md`.
 - [ ] Replace the in-memory template repository with a persistent implementation.
-- [ ] Define the signed offline-license format and validation policy.
+- [x] Define the signed offline-license format and local signature/validity validation policy.
 - [ ] Inventory native OCR, font, image, and PDF runtime dependencies.
 
 ## Container Image
@@ -43,11 +43,12 @@ Deliver `PXA.WebApi` as a secure, observable, and offline-capable Linux containe
 ## Security And Licensing
 
 - [ ] Enable production authentication and authorization instead of the disabled development middleware.
-- [ ] Support API-key and bearer-token authentication without changing SDK behavior.
+- [x] Support API keys through a dedicated header or Bearer transport without changing SDK behavior.
 - [ ] Restrict CORS to configured origins.
 - [ ] Apply request-body, multipart-upload, decompression, and execution limits.
 - [ ] Disable or protect debug, diagnostics, OpenAPI, and migration execution endpoints in production.
-- [ ] Validate signed offline licenses without requiring internet access.
+- [x] Validate signed offline-license signatures and validity without requiring internet access.
+- [ ] Mount the private issuing key only in trusted Cloud/Admin deployments and distribute only the public verification key to customer servers.
 - [ ] Enforce licensed products, expiry, tenant, and instance limits in the API.
 - [ ] Produce structured audit events without document contents or credentials.
 

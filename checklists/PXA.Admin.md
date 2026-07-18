@@ -36,7 +36,7 @@ Deliver a standalone, tenant-aware PXA administration application for users, org
 - [x] Add standard authentication and authorization middleware to the production pipeline.
 - [x] Use secure host-only HttpOnly, Secure, SameSite browser cookies.
 - [x] Add CSRF protection for state-changing browser requests.
-- [ ] Support API keys or standards-based delegated tokens for SDKs and service accounts.
+- [x] Support tenant-bound API keys for SDKs and service accounts; delegated tokens remain future work.
 - [ ] Implement login, logout, current-user, password reset, email verification, and session revocation flows.
 - [ ] Apply rate limits, lockout, password policy, token expiry, and security-event logging.
 
@@ -81,24 +81,25 @@ Current identity implementation:
 - [ ] Add organization, membership, role, and permission administration.
 - [x] Add subscription creation, tenant-scoped inspection, lifecycle changes, explicit entitlements, and seat assignment/revocation.
 - [ ] Add Trial extension, renewal workflow, usage inspection, and billing integration.
-- [ ] Add offline-license generation, replacement, revocation, and download as audited actions.
-- [ ] Add service-account and API-key creation, rotation, revocation, and last-used metadata.
+- [x] Add offline-license generation, revocation, validation, and download as audited actions; replacement remains future work.
+- [x] Add service-account and API-key creation, rotation through replacement keys, revocation, and last-used metadata.
 - [x] Add mail queue, delivery status, failure inspection, retry, and cancellation without exposing message bodies or secrets.
-- [ ] Add immutable, paginated audit-event search and export.
+- [x] Add immutable, paginated audit-event search and Enterprise CSV/JSON export.
 - [ ] Return consistent Problem Details errors and stable authorization diagnostics.
 
 ## Admin User Interface
 
-- [ ] Add routes for dashboard, users, user details, organizations, roles, subscriptions, licenses, service accounts, mail delivery, audit, and settings.
+- [x] Add routes for dashboard, users, user details, organizations, roles, subscriptions, licenses, service accounts, mail delivery, audit, and settings.
 - [x] Build a work-focused admin shell with restrained navigation and responsive layouts.
 - [ ] Add user tables with name, email, organization, role, status, products, and last login.
 - [ ] Add server-driven search, filters, sorting, pagination, selection, and bulk actions.
 - [ ] Add invitation and edit forms with inline validation and accessible error summaries.
 - [ ] Add role, membership, product entitlement, and seat controls appropriate to the current administrator.
 - [x] Add subscription detail, Trial extension, renewal, grace-period, cancellation, entitlement, seat, and lifecycle-history views.
-- [ ] Add usage and offline-license views.
-- [ ] Add service-account and API-key workflows that reveal a new secret only once.
+- [x] Add usage and offline-license views.
+- [x] Add service-account and API-key workflows that reveal a new secret only once.
 - [x] Add lifecycle and actor history to subscription detail views.
+- [x] Add an Audit workspace with server-side search, action/target/outcome/time filters, details, pagination, and export.
 - [ ] Add audit history to user, organization, and license detail views.
 - [ ] Add explicit loading, empty, forbidden, offline, stale, failure, and destructive-confirmation states.
 - [ ] Prevent UI visibility rules from replacing server-side authorization.
@@ -157,6 +158,21 @@ Current subscription administration implementation:
 - [x] Audit subscription creation, updates, and seat changes without coupling roles to entitlements.
 - [x] Add explicit Trial extension, renewal, grace-period, cancellation, entitlement editing, seat controls, and actor-attributed history.
 - [x] Add a central tenant-aware entitlement evaluator with stable decision codes for API and hosted-worker use.
+- [x] Persist idempotent period-scoped usage events and expose operation-level usage summaries.
+- [x] Issue, verify, download, list, and revoke ECDSA-signed Enterprise offline licenses.
+- [x] Add tenant-scoped service accounts and hashed API keys with immediate revocation and last-used tracking.
+- [x] Accept API keys through `X-PXA-API-Key` or Bearer authentication without granting Admin permissions.
+- [x] Enforce API and product entitlements for protected product routes when Production enforcement is enabled.
+
+Current audit administration implementation:
+
+- [x] Scope every audit list, detail, filter, and export query to the authenticated active organization.
+- [x] Resolve actor names and email addresses without exposing identity or event data from another tenant.
+- [x] Add server-side search plus action, target type, outcome, actor, time range, and direction filters.
+- [x] Keep audit events read-only and return malformed historical details as unavailable structured data.
+- [x] Limit exports to 50,000 filtered rows and neutralize spreadsheet formula prefixes in CSV fields.
+- [x] Restrict CSV and JSON export to Enterprise subscriptions and audit each successful export.
+- [x] Add event detail, loading, empty, failure, pagination, filter reset, and export states to PXA Admin.
 
 ## Deployment And Operations
 
@@ -177,7 +193,8 @@ Current subscription administration implementation:
 - [ ] Test cross-tenant access attempts and identifier tampering.
 - [ ] Test login, logout, invitation, verification, reset, lockout, expiry, and session revocation.
 - [x] Test implemented subscription lifecycle, entitlement, seat, tenant, and audit workflows against PostgreSQL.
-- [ ] Test role, license, service-account, API-key, and usage workflows.
+- [x] Test license, service-account, API-key authentication/revocation, product enforcement, and usage workflows against PostgreSQL.
+- [x] Test audit filtering, details, anonymous rejection, cross-tenant isolation, Enterprise CSV/JSON export, and export auditing against PostgreSQL.
 - [ ] Verify that every privileged mutation creates an audit event.
 - [ ] Test keyboard navigation, focus management, screen-reader labels, and responsive layouts.
 - [ ] Run end-to-end tests for System Administrator and Organization Administrator journeys.
