@@ -8,16 +8,29 @@ const adminAuditBase = '/api/pxa/v1/admin/audit';
 const adminRolesBase = '/api/pxa/v1/admin/roles';
 
 async function request(path, options = {}) {
-  const response = await fetch(path, {
-    credentials: 'include',
-    ...options,
-    headers: {
-      Accept: 'application/json',
-      ...options.headers,
-    },
-  });
+  let response;
+  try {
+    response = await fetch(path, {
+      credentials: 'include',
+      ...options,
+      headers: {
+        Accept: 'application/json',
+        ...options.headers,
+      },
+    });
+  } catch (cause) {
+    const error = new Error('PXA Admin cannot reach the API. Previously loaded data may be stale.');
+    error.code = 'PXAUI001';
+    error.isOffline = true;
+    error.cause = cause;
+    window.dispatchEvent(new CustomEvent('pxa:api-offline', { detail: error }));
+    throw error;
+  }
 
-  if (response.status === 204) return null;
+  if (response.status === 204) {
+    window.dispatchEvent(new Event('pxa:api-online'));
+    return null;
+  }
 
   const contentType = response.headers.get('content-type') || '';
   const body = contentType.includes('application/json') ? await response.json() : null;
@@ -25,8 +38,16 @@ async function request(path, options = {}) {
     const error = new Error(body?.detail || body?.title || `Request failed with status ${response.status}.`);
     error.status = response.status;
     error.body = body;
+    error.code = body?.code;
+    error.traceId = body?.traceId;
+    if (response.status === 401)
+      window.dispatchEvent(new CustomEvent('pxa:session-expired', { detail: error }));
+    else if (response.status === 403)
+      window.dispatchEvent(new CustomEvent('pxa:access-denied', { detail: error }));
     throw error;
   }
+
+  window.dispatchEvent(new Event('pxa:api-online'));
 
   return body;
 }

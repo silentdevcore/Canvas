@@ -89,6 +89,8 @@ const state = {
   user: null,
   loading: true,
   notice: null,
+  connection: { offline: !navigator.onLine, stale: false },
+  accessDenied: null,
   users: {
     items: [],
     total: 0,
@@ -211,6 +213,7 @@ function renderLogin() {
             <p class="admin-form-copy">Use your verified administrator account.</p>
           </div>
           <div class="admin-alert admin-alert--error" id="login-error" role="alert" hidden></div>
+          ${state.notice ? `<div class="admin-alert admin-alert--success" role="status">${escapeHtml(state.notice)}</div>` : ''}
           <label class="admin-field">
             <span>Email or username</span>
             <input name="identifier" type="text" autocomplete="username" required autofocus>
@@ -362,6 +365,7 @@ function renderShell(content, title) {
           </div>
           <button class="admin-signout" id="signout-button" type="button">Sign out</button>
         </header>
+        ${state.connection.offline ? `<div class="admin-connection-banner" role="status"><div><strong>API unavailable</strong><span>Showing the last loaded data. It may be stale.</span></div><button id="admin-retry-connection" type="button">Retry</button></div>` : ''}
         <main class="admin-content">${content}</main>
       </div>
     </div>
@@ -824,11 +828,13 @@ function dataPage(path) {
 }
 
 function forbiddenPage() {
+  const error = state.accessDenied;
   return `
     <section class="admin-message-page">
       <span class="admin-error-code">403</span>
       <h1>Administrator access required</h1>
-      <p>Your account is authenticated but does not have an administrative role.</p>
+      <p>${escapeHtml(error?.message || 'Your account is authenticated but does not have permission to use this administrative capability.')}</p>
+      ${error?.code ? `<code>${escapeHtml(error.code)}${error.traceId ? ` · ${escapeHtml(error.traceId)}` : ''}</code>` : ''}
       <button class="pxa-button pxa-button--secondary" id="forbidden-signout" type="button">Sign out</button>
     </section>
   `;
@@ -853,6 +859,7 @@ function bindShellEvents() {
   });
   document.querySelector('#signout-button')?.addEventListener('click', handleLogout);
   document.querySelector('#forbidden-signout')?.addEventListener('click', handleLogout);
+  document.querySelector('#admin-retry-connection')?.addEventListener('click', () => window.location.reload());
 }
 
 async function loadUsers() {
@@ -1777,6 +1784,11 @@ function render() {
     return;
   }
 
+  if (location.pathname === '/forbidden') {
+    renderShell(forbiddenPage(), 'Access denied');
+    return;
+  }
+
   if (location.pathname === '/' || location.pathname === '/login') {
     navigate('/dashboard', true);
     return;
@@ -1896,6 +1908,28 @@ document.addEventListener('click', (event) => {
 });
 
 window.addEventListener('popstate', render);
+window.addEventListener('pxa:session-expired', () => {
+  if (!state.user) return;
+  state.user = null;
+  state.notice = 'Your secure session expired or was revoked. Sign in again.';
+  navigate('/login', true);
+});
+window.addEventListener('pxa:access-denied', (event) => {
+  if (!state.user) return;
+  state.accessDenied = event.detail;
+  navigate('/forbidden', true);
+});
+window.addEventListener('pxa:api-offline', () => {
+  state.connection = { offline: true, stale: true };
+  if (state.user) render();
+});
+window.addEventListener('pxa:api-online', () => {
+  if (!state.connection.offline) return;
+  state.connection = { offline: false, stale: false };
+  if (state.user) render();
+});
+window.addEventListener('offline', () => window.dispatchEvent(new Event('pxa:api-offline')));
+window.addEventListener('online', () => window.dispatchEvent(new Event('pxa:api-online')));
 
 async function bootstrap() {
   try {

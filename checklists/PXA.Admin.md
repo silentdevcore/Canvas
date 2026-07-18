@@ -59,7 +59,7 @@ Current identity implementation:
 - [x] Model service accounts, API keys, subscriptions, licenses, entitlements, and audit events.
 - [ ] Use a default organization for single-customer On-Premise installations.
 - [ ] Enforce tenant scoping in repositories, application services, API policies, and tests.
-- [ ] Prevent tenant identifiers supplied by clients from bypassing the authenticated tenant context.
+- [x] Prevent tenant identifiers supplied by clients from bypassing the authenticated tenant context.
 - [x] Use organization-membership soft deletion and retain identities referenced by audit records.
 
 ## Roles And Policies
@@ -85,7 +85,7 @@ Current identity implementation:
 - [x] Add service-account and API-key creation, rotation through replacement keys, revocation, and last-used metadata.
 - [x] Add mail queue, delivery status, failure inspection, retry, and cancellation without exposing message bodies or secrets.
 - [x] Add immutable, paginated audit-event search and Enterprise CSV/JSON export.
-- [ ] Return consistent Problem Details errors and stable authorization diagnostics.
+- [x] Return consistent Problem Details errors and stable authorization diagnostics.
 
 ## Admin User Interface
 
@@ -102,8 +102,8 @@ Current identity implementation:
 - [x] Add an Audit workspace with server-side search, action/target/outcome/time filters, details, pagination, and export.
 - [x] Add a Roles & Permissions workspace with protected definitions, permission matrix, member details, assignment, and revocation.
 - [ ] Add audit history to user, organization, and license detail views.
-- [ ] Add explicit loading, empty, forbidden, offline, stale, failure, and destructive-confirmation states.
-- [ ] Prevent UI visibility rules from replacing server-side authorization.
+- [x] Add explicit loading, empty, forbidden, offline, stale, failure, and destructive-confirmation states.
+- [x] Prevent UI visibility rules from replacing server-side authorization.
 
 Current Admin shell implementation:
 
@@ -146,6 +146,15 @@ Current session and identity-security implementation:
 - [x] Revoke stale sessions after account-status, role, and password changes.
 - [x] Audit successful login, logout, invitation acceptance, password reset, failed login, lockout, and administrator session revocation events.
 - [x] Apply separate IP- or tenant-partitioned rate limits to login, identity-action, and invitation endpoints.
+
+Current authorization-boundary implementation:
+
+- [x] Normalize controller, authentication, authorization, CSRF, and rate-limit failures as `application/problem+json`.
+- [x] Publish stable `PXAAPI001` through `PXAAPI008` diagnostics with a request trace identifier.
+- [x] Redirect expired or revoked browser sessions to login with an explicit explanation.
+- [x] Display API permission failures on a dedicated forbidden route without relying on hidden navigation alone.
+- [x] Preserve loaded Admin data as explicitly stale while the API or browser connection is offline.
+- [x] Verify anonymous, Manager, Editor, Viewer, and suspended-user boundaries against PostgreSQL.
 
 Current organization administration implementation:
 
@@ -219,7 +228,7 @@ Current audit administration implementation:
 - [x] Integration-test the implemented user Admin endpoints against real PostgreSQL.
 - [x] Test user-list and detail cross-tenant isolation, CSRF enforcement, status changes, role assignment, last-administrator protection, and audit creation.
 - [x] Test organization scoping, System Administrator tenant switching, membership attachment, updates, and audit creation against PostgreSQL.
-- [ ] Test cross-tenant access attempts and identifier tampering.
+- [x] Test cross-tenant access attempts and identifier tampering.
 - [ ] Test login, logout, invitation, verification, reset, lockout, expiry, and session revocation.
 - [x] Test persistent login/logout sessions, cookie-to-session validation, tenant-scoped session inspection, and administrator revocation against PostgreSQL.
 - [x] Test profile updates, pending email verification, administrator password reset, soft deletion, restoration, bulk actions, user audit history, and cross-tenant rejection against PostgreSQL.
@@ -230,12 +239,12 @@ Current audit administration implementation:
 - [ ] Verify that every privileged mutation creates an audit event.
 - [ ] Test keyboard navigation, focus management, screen-reader labels, and responsive layouts.
 - [ ] Run end-to-end tests for System Administrator and Organization Administrator journeys.
-- [ ] Verify that Manager, Editor, Viewer, anonymous, and suspended users cannot access unauthorized Admin data.
+- [x] Verify that Manager, Editor, Viewer, anonymous, and suspended users cannot access unauthorized Admin data.
 
 ## Acceptance Criteria
 
 - [ ] PXA Admin is deployed independently from PXA Designer.
-- [ ] Non-admin users cannot load or invoke unauthorized Admin capabilities.
+- [x] Non-admin users cannot load or invoke unauthorized Admin capabilities.
 - [ ] Every query and mutation respects organization isolation.
 - [ ] Every privileged change is attributable through immutable audit metadata.
 - [ ] Subscription access, application roles, and product entitlements remain distinct.

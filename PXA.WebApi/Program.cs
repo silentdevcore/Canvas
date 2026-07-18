@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Authorization.Policy;
 using System.Threading.RateLimiting;
 using PXA.FileImporter;
 using PXA.FileImporter.ImageAnalysis;
@@ -21,7 +23,7 @@ using PxaWord = PXA.Infrastructure.Word;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers(options => options.Filters.Add<PxaProblemDetailsResultFilter>());
 builder.Services.AddOpenApi();
 builder.Services.AddPxaPersistence(
     builder.Configuration.GetConnectionString("PxaDatabase")
@@ -57,9 +59,23 @@ builder.Services.AddAuthentication(options =>
     });
 builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
 builder.Services.AddScoped<PxaSessionService>();
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, PxaAuthorizationMiddlewareResultHandler>();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.ContentType = "application/problem+json";
+        var problem = PxaApiProblems.Create(
+            context.HttpContext,
+            StatusCodes.Status429TooManyRequests,
+            detail: "The request rate limit was exceeded. Retry after the current limit window.");
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            problem,
+            options: null,
+            contentType: "application/problem+json",
+            cancellationToken: cancellationToken);
+    };
     options.AddPolicy("authentication", context => RateLimitPartition.GetFixedWindowLimiter(
         context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions
@@ -69,7 +85,7 @@ builder.Services.AddRateLimiter(options =>
             QueueLimit = 0,
         }));
     options.AddPolicy("identity-action", context => RateLimitPartition.GetFixedWindowLimiter(
-        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        $"{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}:{context.Request.Path}",
         _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = 5,

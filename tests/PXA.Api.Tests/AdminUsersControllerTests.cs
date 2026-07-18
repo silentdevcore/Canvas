@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 using Testcontainers.PostgreSql;
@@ -80,8 +81,9 @@ public sealed class AdminUsersControllerTests
             BaseAddress = new Uri("https://localhost"),
             HandleCookies = true,
         });
-        Assert.Equal(HttpStatusCode.Unauthorized,
-            (await anonymousClient.GetAsync("/api/pxa/v1/admin/roles")).StatusCode);
+        var anonymousResponse = await anonymousClient.GetAsync("/api/pxa/v1/admin/roles");
+        Assert.Equal(HttpStatusCode.Unauthorized, anonymousResponse.StatusCode);
+        await AssertProblemCodeAsync(anonymousResponse, PxaApiProblems.AuthenticationRequired);
         var roleCatalog = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/admin/roles");
         Assert.Equal(4, roleCatalog.GetProperty("roles").GetArrayLength());
         var managerRole = roleCatalog.GetProperty("roles").EnumerateArray()
@@ -100,6 +102,7 @@ public sealed class AdminUsersControllerTests
 
         var foreignResponse = await client.GetAsync($"/api/pxa/v1/admin/users/{seeded.ForeignUserId}");
         Assert.Equal(HttpStatusCode.NotFound, foreignResponse.StatusCode);
+        await AssertProblemCodeAsync(foreignResponse, PxaApiProblems.ResourceNotFound);
         Assert.Equal(
             HttpStatusCode.NotFound,
             (await client.GetAsync($"/api/pxa/v1/admin/users/{seeded.ForeignUserId}/sessions")).StatusCode);
@@ -108,6 +111,7 @@ public sealed class AdminUsersControllerTests
             $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/status",
             new { isActive = false });
         Assert.Equal(HttpStatusCode.BadRequest, missingCsrf.StatusCode);
+        await AssertProblemCodeAsync(missingCsrf, PxaApiProblems.InvalidCsrf);
 
         var authenticatedCsrf = await GetCsrfAsync(client);
         var managedSessions = await client.GetFromJsonAsync<JsonElement>(
@@ -227,9 +231,9 @@ public sealed class AdminUsersControllerTests
             $"/api/pxa/v1/admin/users/{seeded.AdministratorUserId}/roles",
             authenticatedCsrf,
             new { roles = new[] { PxaRoles.Viewer } });
-        Assert.Equal(
-            HttpStatusCode.Conflict,
-            (await client.SendAsync(removeLastAdministrator)).StatusCode);
+        var removeLastAdministratorResponse = await client.SendAsync(removeLastAdministrator);
+        Assert.Equal(HttpStatusCode.Conflict, removeLastAdministratorResponse.StatusCode);
+        await AssertProblemCodeAsync(removeLastAdministratorResponse, PxaApiProblems.Conflict);
 
         await using var verificationScope = factory.Services.CreateAsyncScope();
         var dbContext = verificationScope.ServiceProvider.GetRequiredService<PxaDbContext>();
@@ -256,6 +260,81 @@ public sealed class AdminUsersControllerTests
             value.RecipientUserId == seeded.ManagedUserId && value.TemplateKey == "identity.password-reset");
     }
 
+    [PostgreSqlFact]
+    public async Task Admin_permissions_reject_unauthorized_roles_and_suspended_users()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        var seeded = await SeedAsync(factory.Services);
+
+        using var anonymousClient = CreateClient(factory);
+        var anonymousResponse = await anonymousClient.GetAsync("/api/pxa/v1/admin/users");
+        Assert.Equal(HttpStatusCode.Unauthorized, anonymousResponse.StatusCode);
+        await AssertProblemCodeAsync(anonymousResponse, PxaApiProblems.AuthenticationRequired);
+
+        using var managerClient = CreateClient(factory);
+        Assert.Equal(HttpStatusCode.OK, await LoginAsync(
+            managerClient,
+            "member@pxa.test",
+            "Pxa-Member-Integration-42!"));
+        Assert.Equal(HttpStatusCode.OK,
+            (await managerClient.GetAsync("/api/pxa/v1/admin/users")).StatusCode);
+        var managerCsrf = await GetCsrfAsync(managerClient);
+        using var managerMutation = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/admin/users/bulk",
+            managerCsrf,
+            new { userIds = new[] { seeded.ManagedUserId }, action = "disable" });
+        var managerMutationResponse = await managerClient.SendAsync(managerMutation);
+        Assert.Equal(HttpStatusCode.Forbidden, managerMutationResponse.StatusCode);
+        await AssertProblemCodeAsync(managerMutationResponse, PxaApiProblems.PermissionDenied);
+
+        using var administratorClient = CreateClient(factory);
+        Assert.Equal(HttpStatusCode.OK, await LoginAsync(
+            administratorClient,
+            "system-admin@pxa.test",
+            "Pxa-Admin-Integration-42!"));
+        var administratorCsrf = await GetCsrfAsync(administratorClient);
+
+        await AssignRoleAsync(administratorClient, administratorCsrf, seeded.ManagedUserId, PxaRoles.Editor);
+        using var editorClient = CreateClient(factory);
+        Assert.Equal(HttpStatusCode.OK, await LoginAsync(
+            editorClient,
+            "member@pxa.test",
+            "Pxa-Member-Integration-42!"));
+        var editorResponse = await editorClient.GetAsync("/api/pxa/v1/admin/users");
+        Assert.Equal(HttpStatusCode.Forbidden, editorResponse.StatusCode);
+        await AssertProblemCodeAsync(editorResponse, PxaApiProblems.PermissionDenied);
+
+        await AssignRoleAsync(administratorClient, administratorCsrf, seeded.ManagedUserId, PxaRoles.Viewer);
+        using var viewerClient = CreateClient(factory);
+        Assert.Equal(HttpStatusCode.OK, await LoginAsync(
+            viewerClient,
+            "member@pxa.test",
+            "Pxa-Member-Integration-42!"));
+        var viewerResponse = await viewerClient.GetAsync("/api/pxa/v1/admin/users");
+        Assert.Equal(HttpStatusCode.Forbidden, viewerResponse.StatusCode);
+        await AssertProblemCodeAsync(viewerResponse, PxaApiProblems.PermissionDenied);
+
+        using var disableUser = CreateCsrfRequest(
+            HttpMethod.Patch,
+            $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/status",
+            administratorCsrf,
+            new { isActive = false });
+        Assert.Equal(HttpStatusCode.OK, (await administratorClient.SendAsync(disableUser)).StatusCode);
+
+        using var suspendedClient = CreateClient(factory);
+        Assert.Equal(HttpStatusCode.Unauthorized, await LoginAsync(
+            suspendedClient,
+            "member@pxa.test",
+            "Pxa-Member-Integration-42!"));
+        var suspendedResponse = await suspendedClient.GetAsync("/api/pxa/v1/admin/users");
+        Assert.Equal(HttpStatusCode.Unauthorized, suspendedResponse.StatusCode);
+        await AssertProblemCodeAsync(suspendedResponse, PxaApiProblems.AuthenticationRequired);
+    }
+
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>
         new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -274,6 +353,50 @@ public sealed class AdminUsersControllerTests
                     services.AddDbContext<PxaDbContext>(options => options.UseNpgsql(connectionString));
                 });
             });
+
+    private static HttpClient CreateClient(WebApplicationFactory<Program> factory) =>
+        factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false,
+            BaseAddress = new Uri("https://localhost"),
+            HandleCookies = true,
+        });
+
+    private static async Task<HttpStatusCode> LoginAsync(
+        HttpClient client,
+        string identifier,
+        string password)
+    {
+        var csrf = await GetCsrfAsync(client);
+        using var login = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/login",
+            csrf,
+            new { identifier, password });
+        return (await client.SendAsync(login)).StatusCode;
+    }
+
+    private static async Task AssignRoleAsync(
+        HttpClient client,
+        string csrf,
+        Guid userId,
+        string role)
+    {
+        using var request = CreateCsrfRequest(
+            HttpMethod.Put,
+            $"/api/pxa/v1/admin/users/{userId}/roles",
+            csrf,
+            new { roles = new[] { role } });
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(request)).StatusCode);
+    }
+
+    private static async Task AssertProblemCodeAsync(HttpResponseMessage response, string expectedCode)
+    {
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(expectedCode, problem.GetProperty("code").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(problem.GetProperty("traceId").GetString()));
+    }
 
     private static async Task<SeededData> SeedAsync(IServiceProvider services)
     {

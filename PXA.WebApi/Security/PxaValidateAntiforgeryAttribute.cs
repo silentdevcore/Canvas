@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using PXA.WebApi.Infrastructure;
 
 namespace PXA.WebApi.Security;
 
@@ -16,14 +17,15 @@ public sealed class PxaValidateAntiforgeryAttribute : Attribute, IAsyncAuthoriza
         }
         catch (AntiforgeryValidationException)
         {
-            context.Result = new ObjectResult(new ProblemDetails
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Invalid CSRF token",
-                Detail = "Request a fresh CSRF token before performing this administration action.",
-            })
+            context.Result = new ObjectResult(PxaApiProblems.Create(
+                context.HttpContext,
+                StatusCodes.Status400BadRequest,
+                "Invalid CSRF token",
+                "Request a fresh CSRF token before performing this administration action.",
+                PxaApiProblems.InvalidCsrf))
             {
                 StatusCode = StatusCodes.Status400BadRequest,
+                ContentTypes = { "application/problem+json" },
             };
         }
     }
