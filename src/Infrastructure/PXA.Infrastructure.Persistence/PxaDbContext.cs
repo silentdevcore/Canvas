@@ -28,6 +28,7 @@ public sealed class PxaDbContext
     public DbSet<OfflineLicense> OfflineLicenses => Set<OfflineLicense>();
     public DbSet<ServiceAccount> ServiceAccounts => Set<ServiceAccount>();
     public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
+    public DbSet<UserSession> UserSessions => Set<UserSession>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

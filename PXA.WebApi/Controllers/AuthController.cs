@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
@@ -26,6 +28,7 @@ public sealed class AuthController : ControllerBase
     private readonly IdentityActionTokenService actionTokens;
     private readonly IPxaMailQueue mailQueue;
     private readonly PxaMailOptions mailOptions;
+    private readonly PxaSessionService sessionService;
 
     public AuthController(
         UserManager<PxaIdentityUser> userManager,
@@ -34,7 +37,8 @@ public sealed class AuthController : ControllerBase
         IAntiforgery antiforgery,
         IdentityActionTokenService actionTokens,
         IPxaMailQueue mailQueue,
-        Microsoft.Extensions.Options.IOptions<PxaMailOptions> mailOptions)
+        Microsoft.Extensions.Options.IOptions<PxaMailOptions> mailOptions,
+        PxaSessionService sessionService)
     {
         this.userManager = userManager;
         this.principalFactory = principalFactory;
@@ -43,6 +47,7 @@ public sealed class AuthController : ControllerBase
         this.actionTokens = actionTokens;
         this.mailQueue = mailQueue;
         this.mailOptions = mailOptions.Value;
+        this.sessionService = sessionService;
     }
 
     [AllowAnonymous]
@@ -56,6 +61,7 @@ public sealed class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("login")]
+    [EnableRateLimiting("authentication")]
     [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
@@ -77,11 +83,17 @@ public sealed class AuthController : ControllerBase
             ? await userManager.FindByEmailAsync(identifier)
             : await userManager.FindByNameAsync(identifier);
 
-        if (user is null || !user.IsActive || !user.EmailConfirmed)
+        if (user is null)
             return InvalidCredentials();
+        if (!user.IsActive || !user.EmailConfirmed)
+        {
+            await AddIdentitySecurityAuditAsync(user, "security.login.failed", "rejected", cancellationToken);
+            return InvalidCredentials();
+        }
 
         if (await userManager.IsLockedOutAsync(user))
         {
+            await AddIdentitySecurityAuditAsync(user, "security.login.locked", "rejected", cancellationToken);
             return Problem(
                 statusCode: StatusCodes.Status423Locked,
                 title: "Account locked",
@@ -91,6 +103,12 @@ public sealed class AuthController : ControllerBase
         if (!await userManager.CheckPasswordAsync(user, request.Password))
         {
             await userManager.AccessFailedAsync(user);
+            var lockedOut = await userManager.IsLockedOutAsync(user);
+            await AddIdentitySecurityAuditAsync(
+                user,
+                lockedOut ? "security.login.lockout" : "security.login.failed",
+                "rejected",
+                cancellationToken);
             return InvalidCredentials();
         }
 
@@ -101,12 +119,31 @@ public sealed class AuthController : ControllerBase
         if (!updateResult.Succeeded)
             return IdentityFailure(updateResult);
 
-        var principal = await CreatePrincipalAsync(user, null, cancellationToken);
+        var expiresAt = DateTimeOffset.UtcNow.Add(request.RememberMe ? TimeSpan.FromDays(30) : TimeSpan.FromHours(8));
+        var principal = await CreatePrincipalAsync(user, null, null, cancellationToken);
+        var organizationId = Guid.TryParse(
+            principal.FindFirstValue(PxaClaimTypes.ActiveOrganization),
+            out var activeOrganizationId)
+            ? activeOrganizationId
+            : (Guid?)null;
+        var session = await sessionService.CreateAsync(
+            user.Id,
+            organizationId,
+            expiresAt,
+            HttpContext,
+            cancellationToken);
+        ((ClaimsIdentity)principal.Identity!).AddClaim(new Claim(PxaClaimTypes.Session, session.Id.ToString()));
+        AddSecurityAudit(organizationId, user.Id, "security.login", session.Id, new
+        {
+            AuthenticationMethod = "password",
+            Client = session.UserAgent,
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
         var properties = new AuthenticationProperties
         {
             AllowRefresh = true,
             IsPersistent = request.RememberMe,
-            ExpiresUtc = DateTimeOffset.UtcNow.Add(request.RememberMe ? TimeSpan.FromDays(30) : TimeSpan.FromHours(8)),
+            ExpiresUtc = expiresAt,
         };
 
         await HttpContext.SignInAsync(IdentityConstants.ApplicationScheme, principal, properties);
@@ -142,7 +179,10 @@ public sealed class AuthController : ControllerBase
         if (user is null || !user.IsActive)
             return Unauthorized();
 
-        var principal = await CreatePrincipalAsync(user, request.OrganizationId, cancellationToken);
+        if (!PxaSessionService.TryGetSessionId(User, out var sessionId))
+            return Unauthorized();
+
+        var principal = await CreatePrincipalAsync(user, request.OrganizationId, sessionId, cancellationToken);
         var selectedOrganization = principal.FindFirstValue(PxaClaimTypes.ActiveOrganization);
         if (!Guid.TryParse(selectedOrganization, out var selectedOrganizationId) ||
             selectedOrganizationId != request.OrganizationId)
@@ -152,6 +192,16 @@ public sealed class AuthController : ControllerBase
                 title: "Organization access denied",
                 detail: "The organization is unavailable to this administrator.");
         }
+
+        var session = await dbContext.UserSessions.SingleOrDefaultAsync(
+            value => value.Id == sessionId && value.UserId == user.Id && value.RevokedAt == null,
+            cancellationToken);
+        if (session is null)
+            return Unauthorized();
+        session.OrganizationId = request.OrganizationId;
+        session.ExpiresAt = DateTimeOffset.UtcNow.AddHours(8);
+        session.LastSeenAt = DateTimeOffset.UtcNow;
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         await HttpContext.SignInAsync(
             IdentityConstants.ApplicationScheme,
@@ -169,7 +219,7 @@ public sealed class AuthController : ControllerBase
     [Authorize]
     [HttpPost("logout")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
         if (!await HasValidCsrfTokenAsync())
         {
@@ -179,6 +229,19 @@ public sealed class AuthController : ControllerBase
                 detail: "Request a fresh CSRF token before ending the session.");
         }
 
+        var actorUserId = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var parsedUserId)
+            ? parsedUserId
+            : (Guid?)null;
+        var organizationId = Guid.TryParse(User.FindFirstValue(PxaClaimTypes.ActiveOrganization), out var parsedOrganizationId)
+            ? parsedOrganizationId
+            : (Guid?)null;
+        var hasSession = PxaSessionService.TryGetSessionId(User, out var sessionId);
+        await sessionService.RevokeCurrentAsync(User, actorUserId, "logout", cancellationToken);
+        if (actorUserId is not null && hasSession)
+        {
+            AddSecurityAudit(organizationId, actorUserId.Value, "security.logout", sessionId, new { });
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
         await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
         return NoContent();
     }
@@ -186,6 +249,7 @@ public sealed class AuthController : ControllerBase
     [AllowAnonymous]
     [HttpPost("accept-invitation")]
     [PxaValidateAntiforgery]
+    [EnableRateLimiting("identity-action")]
     public async Task<IActionResult> AcceptInvitation(
         AcceptInvitationRequest request,
         CancellationToken cancellationToken)
@@ -225,6 +289,12 @@ public sealed class AuthController : ControllerBase
         membership.Status = OrganizationMembershipStatus.Active;
         membership.UpdatedAt = DateTimeOffset.UtcNow;
         actionToken.UsedAt = DateTimeOffset.UtcNow;
+        AddSecurityAudit(
+            actionToken.OrganizationId,
+            user.Id,
+            "security.invitation.accept",
+            actionToken.Id,
+            new { });
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return NoContent();
@@ -233,6 +303,7 @@ public sealed class AuthController : ControllerBase
     [AllowAnonymous]
     [HttpPost("password-reset/request")]
     [PxaValidateAntiforgery]
+    [EnableRateLimiting("identity-action")]
     public async Task<IActionResult> RequestPasswordReset(
         RequestPasswordResetRequest request,
         CancellationToken cancellationToken)
@@ -263,6 +334,12 @@ public sealed class AuthController : ControllerBase
                 "identity.password-reset",
                 new { displayName = user.DisplayName, actionUrl },
                 $"password-reset:{issued.Entity.Id}");
+            AddSecurityAudit(
+                organizationId,
+                user.Id,
+                "security.password-reset.request",
+                issued.Entity.Id,
+                new { });
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -272,6 +349,7 @@ public sealed class AuthController : ControllerBase
     [AllowAnonymous]
     [HttpPost("password-reset/confirm")]
     [PxaValidateAntiforgery]
+    [EnableRateLimiting("identity-action")]
     public async Task<IActionResult> ConfirmPasswordReset(
         ConfirmPasswordResetRequest request,
         CancellationToken cancellationToken)
@@ -296,6 +374,21 @@ public sealed class AuthController : ControllerBase
             return IdentityFailure(addPassword);
 
         actionToken.UsedAt = DateTimeOffset.UtcNow;
+        var sessions = await dbContext.UserSessions
+            .Where(value => value.UserId == user.Id && value.RevokedAt == null)
+            .ToListAsync(cancellationToken);
+        foreach (var session in sessions)
+        {
+            session.RevokedAt = DateTimeOffset.UtcNow;
+            session.RevokedByUserId = user.Id;
+            session.RevocationReason = "password-reset";
+        }
+        AddSecurityAudit(
+            actionToken.OrganizationId,
+            user.Id,
+            "security.password-reset.complete",
+            actionToken.Id,
+            new { RevokedSessions = sessions.Count });
         mailQueue.Enqueue(
             actionToken.OrganizationId,
             user.Id,
@@ -324,10 +417,13 @@ public sealed class AuthController : ControllerBase
     private async Task<ClaimsPrincipal> CreatePrincipalAsync(
         PxaIdentityUser user,
         Guid? requestedOrganizationId,
+        Guid? sessionId,
         CancellationToken cancellationToken)
     {
         var principal = await principalFactory.CreateAsync(user);
         var identity = (ClaimsIdentity)principal.Identity!;
+        if (sessionId is not null)
+            identity.AddClaim(new Claim(PxaClaimTypes.Session, sessionId.Value.ToString()));
         var memberships = await GetActiveMembershipsAsync(user.Id, cancellationToken);
 
         foreach (var membership in memberships)
@@ -353,6 +449,54 @@ public sealed class AuthController : ControllerBase
         }
 
         return principal;
+    }
+
+    private void AddSecurityAudit(
+        Guid? organizationId,
+        Guid actorUserId,
+        string action,
+        Guid sessionId,
+        object details)
+    {
+        dbContext.AuditEvents.Add(new AuditEvent
+        {
+            OrganizationId = organizationId,
+            ActorUserId = actorUserId,
+            Action = action,
+            TargetType = "session",
+            TargetId = sessionId.ToString(),
+            Outcome = "succeeded",
+            DetailsJson = JsonSerializer.Serialize(details),
+        });
+    }
+
+    private async Task AddIdentitySecurityAuditAsync(
+        PxaIdentityUser user,
+        string action,
+        string outcome,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = await dbContext.OrganizationMemberships.AsNoTracking()
+            .Where(value =>
+                value.UserId == user.Id &&
+                value.Status != OrganizationMembershipStatus.Removed)
+            .OrderBy(value => value.CreatedAt)
+            .Select(value => (Guid?)value.OrganizationId)
+            .FirstOrDefaultAsync(cancellationToken);
+        dbContext.AuditEvents.Add(new AuditEvent
+        {
+            OrganizationId = organizationId,
+            ActorUserId = user.Id,
+            Action = action,
+            TargetType = "user",
+            TargetId = user.Id.ToString(),
+            Outcome = outcome,
+            DetailsJson = JsonSerializer.Serialize(new
+            {
+                Client = PxaSessionService.ReduceUserAgent(Request.Headers.UserAgent.ToString()),
+            }),
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<UserInfo> CreateUserInfoAsync(

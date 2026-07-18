@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 using PXA.FileImporter;
 using PXA.FileImporter.ImageAnalysis;
 using PXA.FileImporter.ImageOcr;
@@ -54,6 +56,36 @@ builder.Services.AddAuthentication(options =>
         options.EventsType = typeof(PxaCookieAuthenticationEvents);
     });
 builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
+builder.Services.AddScoped<PxaSessionService>();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("authentication", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+        }));
+    options.AddPolicy("identity-action", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(15),
+            QueueLimit = 0,
+        }));
+    options.AddPolicy("invitations", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.User.FindFirst(PxaClaimTypes.ActiveOrganization)?.Value ??
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 20,
+            Window = TimeSpan.FromHours(1),
+            QueueLimit = 0,
+        }));
+});
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IPxaTenantContext, PxaTenantContext>();
 builder.Services.AddScoped<IPxaEntitlementService, PxaEntitlementService>();
@@ -227,6 +259,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseMiddleware<PxaProductAccessMiddleware>();
 app.UseAuthorization();
 app.MapControllers();

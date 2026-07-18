@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
@@ -52,6 +53,7 @@ public sealed class AdminInvitationsController : ControllerBase
     [HttpPost]
     [Authorize(Policy = PxaPermissions.UsersCreate)]
     [PxaValidateAntiforgery]
+    [EnableRateLimiting("invitations")]
     public async Task<ActionResult<AdminInvitationResponse>> CreateInvitation(
         CreateAdminInvitationRequest request,
         CancellationToken cancellationToken)

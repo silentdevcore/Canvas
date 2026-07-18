@@ -145,6 +145,108 @@ public sealed class AdminUsersController : ControllerBase
         return Ok(ToResponse(record, roles.GetValueOrDefault(userId, [])));
     }
 
+    [HttpGet("{userId:guid}/sessions")]
+    [Authorize(Policy = PxaPermissions.UsersRead)]
+    public async Task<ActionResult<IReadOnlyList<AdminUserSessionResponse>>> GetSessions(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = tenantContext.OrganizationId;
+        if (organizationId is null)
+            return MissingOrganization();
+        if (!await IsOrganizationUserAsync(userId, organizationId.Value, cancellationToken))
+            return NotFound();
+
+        PxaSessionService.TryGetSessionId(User, out var currentSessionId);
+        var now = DateTimeOffset.UtcNow;
+        var sessions = await dbContext.UserSessions.AsNoTracking()
+            .Where(session => session.UserId == userId && session.OrganizationId == organizationId)
+            .OrderByDescending(session => session.LastSeenAt)
+            .Select(session => new AdminUserSessionResponse(
+                session.Id,
+                session.UserAgent,
+                session.CreatedAt,
+                session.LastSeenAt,
+                session.ExpiresAt,
+                session.RevokedAt,
+                session.RevocationReason,
+                session.Id == currentSessionId,
+                session.RevokedAt == null && session.ExpiresAt > now))
+            .ToListAsync(cancellationToken);
+        return Ok(sessions);
+    }
+
+    [HttpPost("{userId:guid}/sessions/{sessionId:guid}/revoke")]
+    [Authorize(Policy = PxaPermissions.UsersDisable)]
+    [PxaValidateAntiforgery]
+    public async Task<IActionResult> RevokeSession(
+        Guid userId,
+        Guid sessionId,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = tenantContext.OrganizationId;
+        var actorUserId = tenantContext.UserId;
+        if (organizationId is null || actorUserId is null)
+            return MissingOrganization();
+        if (!await IsOrganizationUserAsync(userId, organizationId.Value, cancellationToken))
+            return NotFound();
+
+        var session = await dbContext.UserSessions.SingleOrDefaultAsync(value =>
+            value.Id == sessionId &&
+            value.UserId == userId &&
+            value.OrganizationId == organizationId,
+            cancellationToken);
+        if (session is null)
+            return NotFound();
+        if (session.RevokedAt is null)
+        {
+            Revoke(session, actorUserId.Value, "administrator");
+            AddAuditEvent(
+                organizationId.Value,
+                actorUserId.Value,
+                "sessions.revoke",
+                userId,
+                new { SessionId = session.Id });
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        return NoContent();
+    }
+
+    [HttpPost("{userId:guid}/sessions/revoke-all")]
+    [Authorize(Policy = PxaPermissions.UsersDisable)]
+    [PxaValidateAntiforgery]
+    public async Task<ActionResult<RevokeSessionsResponse>> RevokeAllSessions(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = tenantContext.OrganizationId;
+        var actorUserId = tenantContext.UserId;
+        if (organizationId is null || actorUserId is null)
+            return MissingOrganization();
+        if (!await IsOrganizationUserAsync(userId, organizationId.Value, cancellationToken))
+            return NotFound();
+
+        PxaSessionService.TryGetSessionId(User, out var currentSessionId);
+        var sessions = await dbContext.UserSessions
+            .Where(value =>
+                value.UserId == userId &&
+                value.OrganizationId == organizationId &&
+                value.RevokedAt == null &&
+                (userId != actorUserId || value.Id != currentSessionId))
+            .ToListAsync(cancellationToken);
+        foreach (var session in sessions)
+            Revoke(session, actorUserId.Value, "administrator-bulk");
+
+        AddAuditEvent(
+            organizationId.Value,
+            actorUserId.Value,
+            "sessions.revoke-all",
+            userId,
+            new { Count = sessions.Count, CurrentSessionPreserved = userId == actorUserId });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Ok(new RevokeSessionsResponse(sessions.Count));
+    }
+
     [HttpPatch("{userId:guid}/status")]
     [Authorize(Policy = PxaPermissions.UsersDisable)]
     [PxaValidateAntiforgery]
@@ -175,6 +277,7 @@ public sealed class AdminUsersController : ControllerBase
         user.IsActive = request.IsActive;
         user.UpdatedAt = DateTimeOffset.UtcNow;
         user.SecurityStamp = Guid.NewGuid().ToString();
+        await RevokeActiveSessionsAsync(userId, actorUserId.Value, "account-status-change", cancellationToken);
         membership.Status = request.IsActive
             ? OrganizationMembershipStatus.Active
             : OrganizationMembershipStatus.Suspended;
@@ -262,6 +365,7 @@ public sealed class AdminUsersController : ControllerBase
 
         user.SecurityStamp = Guid.NewGuid().ToString();
         user.UpdatedAt = DateTimeOffset.UtcNow;
+        await RevokeActiveSessionsAsync(userId, actorUserId.Value, "role-change", cancellationToken);
 
         AddAuditEvent(
             organizationId.Value,
@@ -347,6 +451,36 @@ public sealed class AdminUsersController : ControllerBase
         return activeAdministratorCount <= 1;
     }
 
+    private Task<bool> IsOrganizationUserAsync(
+        Guid userId,
+        Guid organizationId,
+        CancellationToken cancellationToken) =>
+        dbContext.OrganizationMemberships.AnyAsync(value =>
+            value.UserId == userId &&
+            value.OrganizationId == organizationId &&
+            value.Status != OrganizationMembershipStatus.Removed,
+            cancellationToken);
+
+    private async Task RevokeActiveSessionsAsync(
+        Guid userId,
+        Guid actorUserId,
+        string reason,
+        CancellationToken cancellationToken)
+    {
+        var sessions = await dbContext.UserSessions
+            .Where(value => value.UserId == userId && value.RevokedAt == null)
+            .ToListAsync(cancellationToken);
+        foreach (var session in sessions)
+            Revoke(session, actorUserId, reason);
+    }
+
+    private static void Revoke(UserSession session, Guid actorUserId, string reason)
+    {
+        session.RevokedAt = DateTimeOffset.UtcNow;
+        session.RevokedByUserId = actorUserId;
+        session.RevocationReason = reason;
+    }
+
     private void AddAuditEvent(
         Guid organizationId,
         Guid actorUserId,
@@ -422,3 +556,16 @@ public sealed record AdminUserResponse(
 public sealed record UpdateAdminUserStatusRequest(bool IsActive);
 
 public sealed record UpdateAdminUserRolesRequest(IReadOnlyList<string> Roles);
+
+public sealed record AdminUserSessionResponse(
+    Guid Id,
+    string UserAgent,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset LastSeenAt,
+    DateTimeOffset ExpiresAt,
+    DateTimeOffset? RevokedAt,
+    string? RevocationReason,
+    bool IsCurrent,
+    bool IsActive);
+
+public sealed record RevokeSessionsResponse(int RevokedCount);

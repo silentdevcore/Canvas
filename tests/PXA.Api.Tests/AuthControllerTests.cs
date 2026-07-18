@@ -97,6 +97,14 @@ public sealed class AuthControllerTests
 
         var currentResponse = await client.GetAsync("/api/pxa/v1/auth/me");
         Assert.Equal(HttpStatusCode.OK, currentResponse.StatusCode);
+        await using (var sessionScope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = sessionScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var session = await dbContext.UserSessions.SingleAsync(value => value.UserId == userId);
+            Assert.Equal(organizationId, session.OrganizationId);
+            Assert.Null(session.RevokedAt);
+            Assert.Contains("security.login", await dbContext.AuditEvents.Select(value => value.Action).ToListAsync());
+        }
 
         var authenticatedCsrfResponse = await client.GetAsync("/api/pxa/v1/auth/csrf");
         var authenticatedCsrf = await authenticatedCsrfResponse.Content.ReadFromJsonAsync<JsonElement>();
@@ -108,6 +116,13 @@ public sealed class AuthControllerTests
             authenticatedToken!);
         var logoutResponse = await client.SendAsync(logout);
         Assert.Equal(HttpStatusCode.NoContent, logoutResponse.StatusCode);
+        await using (var sessionScope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = sessionScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var session = await dbContext.UserSessions.SingleAsync(value => value.UserId == userId);
+            Assert.NotNull(session.RevokedAt);
+            Assert.Equal("logout", session.RevocationReason);
+        }
 
         var signedOutResponse = await client.GetAsync("/api/pxa/v1/auth/me");
         Assert.Equal(HttpStatusCode.Unauthorized, signedOutResponse.StatusCode);

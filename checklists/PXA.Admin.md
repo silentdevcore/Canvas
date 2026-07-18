@@ -38,7 +38,7 @@ Deliver a standalone, tenant-aware PXA administration application for users, org
 - [x] Add CSRF protection for state-changing browser requests.
 - [x] Support tenant-bound API keys for SDKs and service accounts; delegated tokens remain future work.
 - [ ] Implement login, logout, current-user, password reset, email verification, and session revocation flows.
-- [ ] Apply rate limits, lockout, password policy, token expiry, and security-event logging.
+- [x] Apply rate limits, lockout, password policy, token expiry, and security-event logging.
 
 Current identity implementation:
 
@@ -51,11 +51,11 @@ Current identity implementation:
 - [x] Verify login, logout, cookie flags, CSRF, organization context, and session revocation against PostgreSQL.
 - [x] Connect invitations and password reset to the persistent mail outbox.
 - [ ] Connect email verification changes for existing accounts to the persistent mail outbox.
-- [ ] Add security-event audit records and authentication rate limiting.
+- [x] Add security-event audit records and authentication rate limiting.
 
 ## Tenant And Data Model
 
-- [ ] Model organizations, users, memberships, roles, permissions, invitations, and sessions.
+- [x] Model organizations, users, memberships, roles, permissions, invitations, and sessions.
 - [ ] Model service accounts, API keys, subscriptions, licenses, entitlements, and audit events.
 - [ ] Use a default organization for single-customer On-Premise installations.
 - [ ] Enforce tenant scoping in repositories, application services, API policies, and tests.
@@ -77,7 +77,7 @@ Current identity implementation:
 - [x] Add versioned Admin endpoints under `/api/pxa/v1/admin`.
 - [x] Add paginated user listing with server-side search, filter, and sorting.
 - [ ] Add user detail, invitation, creation, update, activation, deactivation, soft deletion, and bulk operations.
-- [ ] Add password-reset initiation and active-session revocation without returning secret tokens.
+- [x] Add password-reset initiation and active-session revocation without returning secret tokens.
 - [ ] Add organization, membership, role, and permission administration.
 - [x] Add subscription creation, tenant-scoped inspection, lifecycle changes, explicit entitlements, and seat assignment/revocation.
 - [ ] Add Trial extension, renewal workflow, usage inspection, and billing integration.
@@ -128,6 +128,17 @@ Current user administration implementation:
 - [x] Connect the Users table to server-side search, status filtering, and pagination.
 - [x] Add a user detail view with account metadata, status control, and organization-role controls.
 - [x] Add loading, empty, API-failure, and destructive-confirmation states to user administration.
+
+Current session and identity-security implementation:
+
+- [x] Persist browser sessions with user, active organization, bounded expiry, reduced client metadata, and a one-way IP-address hash.
+- [x] Bind each authentication cookie to a server-side session identifier and reject missing, expired, revoked, or mismatched sessions.
+- [x] Refresh session activity with a bounded write interval instead of writing on every authenticated request.
+- [x] List tenant-scoped sessions on user detail pages without exposing raw IP addresses or authentication secrets.
+- [x] Revoke individual sessions and all revocable sessions while preserving an administrator's current session during self-service bulk revocation.
+- [x] Revoke stale sessions after account-status, role, and password changes.
+- [x] Audit successful login, logout, invitation acceptance, password reset, failed login, lockout, and administrator session revocation events.
+- [x] Apply separate IP- or tenant-partitioned rate limits to login, identity-action, and invitation endpoints.
 
 Current organization administration implementation:
 
@@ -203,6 +214,7 @@ Current audit administration implementation:
 - [x] Test organization scoping, System Administrator tenant switching, membership attachment, updates, and audit creation against PostgreSQL.
 - [ ] Test cross-tenant access attempts and identifier tampering.
 - [ ] Test login, logout, invitation, verification, reset, lockout, expiry, and session revocation.
+- [x] Test persistent login/logout sessions, cookie-to-session validation, tenant-scoped session inspection, and administrator revocation against PostgreSQL.
 - [x] Test implemented subscription lifecycle, entitlement, seat, tenant, and audit workflows against PostgreSQL.
 - [x] Test license, service-account, API-key authentication/revocation, product enforcement, and usage workflows against PostgreSQL.
 - [x] Test audit filtering, details, anonymous rejection, cross-tenant isolation, Enterprise CSV/JSON export, and export auditing against PostgreSQL.

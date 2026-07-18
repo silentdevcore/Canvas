@@ -41,6 +41,27 @@ public sealed class AdminUsersControllerTests
             new { identifier = "system-admin@pxa.test", password = "Pxa-Admin-Integration-42!" });
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(login)).StatusCode);
 
+        var ownSessions = await client.GetFromJsonAsync<JsonElement>(
+            $"/api/pxa/v1/admin/users/{seeded.AdministratorUserId}/sessions");
+        Assert.True(ownSessions.EnumerateArray().Single().GetProperty("isCurrent").GetBoolean());
+
+        Guid managedSessionId;
+        await using (var sessionScope = factory.Services.CreateAsyncScope())
+        {
+            var sessionDbContext = sessionScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var managedSession = new UserSession
+            {
+                UserId = seeded.ManagedUserId,
+                OrganizationId = seeded.OrganizationId,
+                IpAddressHash = new string('a', 64),
+                UserAgent = "PXA integration browser",
+                ExpiresAt = DateTimeOffset.UtcNow.AddHours(8),
+            };
+            sessionDbContext.UserSessions.Add(managedSession);
+            await sessionDbContext.SaveChangesAsync();
+            managedSessionId = managedSession.Id;
+        }
+
         var listResponse = await client.GetAsync("/api/pxa/v1/admin/users?page=1&pageSize=20");
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
         var page = await listResponse.Content.ReadFromJsonAsync<JsonElement>();
@@ -78,6 +99,9 @@ public sealed class AdminUsersControllerTests
 
         var foreignResponse = await client.GetAsync($"/api/pxa/v1/admin/users/{seeded.ForeignUserId}");
         Assert.Equal(HttpStatusCode.NotFound, foreignResponse.StatusCode);
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            (await client.GetAsync($"/api/pxa/v1/admin/users/{seeded.ForeignUserId}/sessions")).StatusCode);
 
         var missingCsrf = await client.PatchAsJsonAsync(
             $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/status",
@@ -85,6 +109,15 @@ public sealed class AdminUsersControllerTests
         Assert.Equal(HttpStatusCode.BadRequest, missingCsrf.StatusCode);
 
         var authenticatedCsrf = await GetCsrfAsync(client);
+        var managedSessions = await client.GetFromJsonAsync<JsonElement>(
+            $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/sessions");
+        Assert.Equal(managedSessionId, managedSessions.EnumerateArray().Single().GetProperty("id").GetGuid());
+        using var revokeSession = CreateCsrfRequest(
+            HttpMethod.Post,
+            $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/sessions/{managedSessionId}/revoke",
+            authenticatedCsrf,
+            new { });
+        Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(revokeSession)).StatusCode);
         using var disable = CreateCsrfRequest(
             HttpMethod.Patch,
             $"/api/pxa/v1/admin/users/{seeded.ManagedUserId}/status",
@@ -156,6 +189,8 @@ public sealed class AdminUsersControllerTests
         Assert.Contains("roles.assign", auditActions);
         Assert.Contains("roles.member.assign", auditActions);
         Assert.Contains("roles.member.revoke", auditActions);
+        Assert.Contains("sessions.revoke", auditActions);
+        Assert.NotNull((await dbContext.UserSessions.SingleAsync(value => value.Id == managedSessionId)).RevokedAt);
     }
 
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>

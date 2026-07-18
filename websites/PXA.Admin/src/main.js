@@ -25,9 +25,12 @@ import {
   getAdminMail,
   getAdminMailStatus,
   getAdminUser,
+  getAdminUserSessions,
   getAdminUsers,
   login,
   logout,
+  revokeAdminUserSession,
+  revokeAllAdminUserSessions,
   issueAdminLicense,
   removeAdminOrganizationMember,
   requestPasswordReset,
@@ -95,6 +98,7 @@ const state = {
   userDetail: {
     id: null,
     data: null,
+    sessions: [],
     loading: false,
     error: null,
     saving: false,
@@ -468,6 +472,15 @@ function userDetailPage() {
 
   const user = detail.data;
   const globalRoles = user.roles.filter((role) => !organizationRoles.includes(role));
+  const activeSessions = detail.sessions.filter((session) => session.isActive);
+  const sessionRows = detail.sessions.map((session) => `
+    <tr>
+      <td><strong>${escapeHtml(session.userAgent)}</strong>${session.isCurrent ? '<small>Current session</small>' : ''}</td>
+      <td>${escapeHtml(formatDate(session.lastSeenAt))}</td>
+      <td>${escapeHtml(formatDate(session.expiresAt))}</td>
+      <td><span class="admin-status ${session.isActive ? 'admin-status--ready' : 'admin-status--inactive'}">${session.isActive ? 'Active' : 'Ended'}</span></td>
+      <td>${session.isActive && !session.isCurrent ? `<button class="admin-text-button admin-session-revoke" data-session-id="${session.id}" type="button" ${detail.saving ? 'disabled' : ''}>Revoke</button>` : ''}</td>
+    </tr>`).join('');
   return `
     <header class="admin-page-header">
       <div><a class="admin-back-link" href="/users">Users</a><h1>${escapeHtml(user.displayName)}</h1><p>${escapeHtml(user.email)}</p></div>
@@ -499,6 +512,14 @@ function userDetailPage() {
         </form>
       </section>
     </div>
+    <section class="admin-table-section admin-members-section">
+      <div class="admin-section-heading admin-section-heading--action">
+        <div><h2>Active sessions</h2><p>Server-validated browser sessions for this user in the active organization.</p></div>
+        <button class="pxa-button pxa-button--secondary" id="user-sessions-revoke-all" type="button" ${detail.saving || activeSessions.filter((session) => !session.isCurrent).length === 0 ? 'disabled' : ''}>Revoke ${user.id === state.user?.id ? 'other sessions' : 'all sessions'}</button>
+      </div>
+      <div class="admin-table-scroll"><table><thead><tr><th>Client</th><th>Last seen</th><th>Expires</th><th>Status</th><th></th></tr></thead><tbody>${sessionRows}</tbody></table></div>
+      ${sessionRows ? '' : '<div class="admin-empty-state"><strong>No sessions recorded</strong><p>This user has not established a persistent browser session.</p></div>'}
+    </section>
   `;
 }
 
@@ -809,10 +830,15 @@ async function loadUsers() {
 }
 
 async function loadUserDetail(userId) {
-  Object.assign(state.userDetail, { id: userId, data: null, loading: true, error: null });
+  Object.assign(state.userDetail, { id: userId, data: null, sessions: [], loading: true, error: null });
   render();
   try {
-    state.userDetail.data = await getAdminUser(userId);
+    const [user, sessions] = await Promise.all([
+      getAdminUser(userId),
+      getAdminUserSessions(userId),
+    ]);
+    state.userDetail.data = user;
+    state.userDetail.sessions = sessions;
   } catch (error) {
     state.userDetail.error = error.message;
   } finally {
@@ -863,6 +889,37 @@ function bindUsersEvents() {
 }
 
 function bindUserDetailEvents() {
+  document.querySelectorAll('.admin-session-revoke').forEach((button) => button.addEventListener('click', async () => {
+    const sessionId = button.dataset.sessionId;
+    if (!window.confirm('Revoke this browser session?')) return;
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    render();
+    try {
+      await revokeAdminUserSession(state.userDetail.id, sessionId);
+      state.userDetail.sessions = await getAdminUserSessions(state.userDetail.id);
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  }));
+  document.querySelector('#user-sessions-revoke-all')?.addEventListener('click', async () => {
+    if (!window.confirm('Revoke all revocable sessions for this user?')) return;
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    render();
+    try {
+      await revokeAllAdminUserSessions(state.userDetail.id);
+      state.userDetail.sessions = await getAdminUserSessions(state.userDetail.id);
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
   document.querySelector('#user-status-button')?.addEventListener('click', async () => {
     const user = state.userDetail.data;
     if (!user) return;

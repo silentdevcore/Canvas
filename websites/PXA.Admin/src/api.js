@@ -68,6 +68,10 @@ export async function getAdminUser(userId) {
   return request(`${adminUsersBase}/${encodeURIComponent(userId)}`);
 }
 
+export async function getAdminUserSessions(userId) {
+  return request(`${adminUsersBase}/${encodeURIComponent(userId)}/sessions`);
+}
+
 async function adminMutation(path, method, body) {
   const { token } = await request(`${authBase}/csrf`);
   return request(path, {
@@ -86,6 +90,14 @@ export async function updateAdminUserStatus(userId, isActive) {
 
 export async function updateAdminUserRoles(userId, roles) {
   return adminMutation(`${adminUsersBase}/${encodeURIComponent(userId)}/roles`, 'PUT', { roles });
+}
+
+export async function revokeAdminUserSession(userId, sessionId) {
+  return adminMutation(`${adminUsersBase}/${encodeURIComponent(userId)}/sessions/${encodeURIComponent(sessionId)}/revoke`, 'POST', {});
+}
+
+export async function revokeAllAdminUserSessions(userId) {
+  return adminMutation(`${adminUsersBase}/${encodeURIComponent(userId)}/sessions/revoke-all`, 'POST', {});
 }
 
 export async function getAdminOrganizations({ search = '', status = '', page = 1, pageSize = 25 } = {}) {
