@@ -70,10 +70,10 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 
 ## Mail And Outbox Data
 
-- [ ] Persist an application outbox in the same transaction as identity or subscription state changes.
-- [ ] Persist mail queue state, template version, recipient reference, delivery attempts, provider message ID, and sanitized failure reason.
+- [x] Persist an application outbox in the same transaction as user invitations.
+- [x] Persist mail queue state, template version, recipient reference, delivery attempts, provider message ID, and sanitized failure reason.
 - [ ] Persist marketing consent, confirmation, withdrawal, preferences, bounce, complaint, and suppression state separately from transactional mail.
-- [ ] Enforce unique idempotency keys for queued messages and provider events.
+- [x] Enforce unique idempotency keys for queued messages.
 - [ ] Define retention and deletion rules that preserve required audit evidence without retaining full message bodies unnecessarily.
 - [ ] Prevent mail workers from reading or updating another tenant's records.
 

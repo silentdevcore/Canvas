@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using PXA.FileImporter;
 using PXA.FileImporter.ImageAnalysis;
@@ -7,6 +8,7 @@ using PXA.Infrastructure.Persistence;
 using PXA.Pdf;
 using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Mail;
 using PxaConverters = PXA.Infrastructure.Converters;
 using PxaSpreadsheet = PXA.Infrastructure.Spreadsheet;
 using PxaWord = PXA.Infrastructure.Word;
@@ -36,6 +38,16 @@ builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
 builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IPxaTenantContext, PxaTenantContext>();
+builder.Services.AddDataProtection().SetApplicationName("PowerDoxAutomation");
+builder.Services.Configure<PxaMailOptions>(builder.Configuration.GetSection("Mail"));
+builder.Services.AddScoped<IdentityActionTokenService>();
+builder.Services.AddScoped<IPxaMailQueue, PxaMailQueue>();
+builder.Services.AddScoped<PxaMailProcessor>();
+builder.Services.AddSingleton<DevelopmentMailTransport>();
+builder.Services.AddSingleton<IPxaMailTransport>(services =>
+    services.GetRequiredService<DevelopmentMailTransport>());
+if (!builder.Environment.IsEnvironment("Testing"))
+    builder.Services.AddHostedService<PxaMailWorker>();
 builder.Services.AddAuthorization(options =>
 {
     foreach (var permission in PxaPermissions.All)

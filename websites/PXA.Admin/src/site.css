@@ -187,6 +187,30 @@ input:disabled {
   border-color: #efb1b1;
 }
 
+.admin-alert--success {
+  color: var(--pxa-color-teal-600);
+  background: var(--pxa-color-teal-100);
+  border-color: #92d5c2;
+}
+
+.admin-public-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--pxa-space-6);
+  background: #f4f6f9;
+}
+
+.admin-public-form {
+  padding: var(--pxa-space-8);
+  background: white;
+  border: 1px solid var(--pxa-color-border);
+  border-radius: var(--pxa-radius-lg);
+  box-shadow: var(--pxa-shadow-md);
+}
+
+.admin-public-form h1 { margin: 0; color: var(--pxa-color-ink); font-size: var(--pxa-text-2xl); }
+
 .admin-app-shell {
   min-height: 100vh;
   display: grid;
@@ -414,6 +438,20 @@ tbody tr:hover { background: #f8fafc; }
   gap: var(--pxa-space-4);
   padding: 0 var(--pxa-space-5) var(--pxa-space-5);
 }
+.admin-invitation-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.2fr) minmax(190px, 0.8fr) auto;
+  align-items: end;
+  gap: var(--pxa-space-4);
+  padding: 0 var(--pxa-space-5) var(--pxa-space-5);
+}
+.admin-invitation-form select {
+  min-height: 44px;
+  padding: 0 var(--pxa-space-3);
+  background: white;
+  border: 1px solid var(--pxa-color-border);
+  border-radius: var(--pxa-radius-md);
+}
 .admin-inline-alert { margin: var(--pxa-space-4); }
 .admin-pagination {
   display: flex;
@@ -511,6 +549,8 @@ tbody tr:hover { background: #f8fafc; }
   .admin-detail-grid { grid-template-columns: 1fr; }
   .admin-inline-form { grid-template-columns: 1fr 1fr; }
   .admin-inline-form .pxa-button { grid-column: 1 / -1; }
+  .admin-invitation-form { grid-template-columns: 1fr 1fr; }
+  .admin-invitation-form .pxa-button { grid-column: 1 / -1; }
 }
 
 @media (max-width: 700px) {
@@ -529,5 +569,7 @@ tbody tr:hover { background: #f8fafc; }
   .admin-pagination { align-items: flex-start; flex-direction: column; }
   .admin-inline-form { grid-template-columns: 1fr; }
   .admin-inline-form .pxa-button { grid-column: auto; }
+  .admin-invitation-form { grid-template-columns: 1fr; }
+  .admin-invitation-form .pxa-button { grid-column: auto; }
   .admin-header-actions { align-items: flex-start; flex-direction: column; }
 }

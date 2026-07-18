@@ -49,7 +49,8 @@ Current identity implementation:
 - [x] Support immediate cookie-session revocation through security-stamp rotation.
 - [x] Return organization memberships and roles from the current-user endpoint.
 - [x] Verify login, logout, cookie flags, CSRF, organization context, and session revocation against PostgreSQL.
-- [ ] Connect password reset and email verification to the persistent mail outbox.
+- [x] Connect invitations and password reset to the persistent mail outbox.
+- [ ] Connect email verification changes for existing accounts to the persistent mail outbox.
 - [ ] Add security-event audit records and authentication rate limiting.
 
 ## Tenant And Data Model
@@ -134,6 +135,15 @@ Current organization administration implementation:
 - [x] Preserve System Administrator access while deriving organization roles only from the selected tenant.
 - [x] Add organization list and detail views with search, status filtering, creation, editing, membership management, and tenant switching.
 - [x] Persist audit events for organization creation/update and membership add/remove operations.
+
+Current invitation and recovery implementation:
+
+- [x] Add a CSRF-protected administrator invitation endpoint for the active organization.
+- [x] Create invited Identity users, memberships, organization roles, action tokens, outbox messages, and audit events transactionally.
+- [x] Add public invitation acceptance with password policy enforcement and membership activation.
+- [x] Add enumeration-resistant password-reset request and single-use reset confirmation endpoints.
+- [x] Add Invite user, Accept invitation, Forgot password, and Choose password views.
+- [x] Add tenant-scoped Mail delivery status UI without payload or token exposure.
 
 ## Deployment And Operations
 

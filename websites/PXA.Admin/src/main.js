@@ -1,16 +1,21 @@
 import './site.css';
 import {
   currentUser,
+  acceptInvitation,
   addAdminOrganizationMember,
   createAdminOrganization,
+  createAdminInvitation,
   getAdminOrganization,
   getAdminOrganizationMembers,
   getAdminOrganizations,
+  getAdminMail,
   getAdminUser,
   getAdminUsers,
   login,
   logout,
   removeAdminOrganizationMember,
+  requestPasswordReset,
+  confirmPasswordReset,
   switchOrganization,
   updateAdminOrganization,
   updateAdminUserRoles,
@@ -58,6 +63,7 @@ const state = {
     loading: false,
     loaded: false,
     error: null,
+    notice: null,
   },
   userDetail: {
     id: null,
@@ -72,6 +78,9 @@ const state = {
   },
   organizationDetail: {
     id: null, data: null, members: [], loading: false, error: null, saving: false,
+  },
+  mail: {
+    items: [], total: 0, page: 1, pageSize: 25, status: '', loading: false, loaded: false, error: null,
   },
 };
 
@@ -137,13 +146,70 @@ function renderLogin() {
             <span>Keep me signed in on this device</span>
           </label>
           <button class="pxa-button pxa-button--primary admin-submit" type="submit">Sign in</button>
-          <p class="admin-login-help">Password reset will become available when the transactional mail service is connected.</p>
+          <p class="admin-login-help"><a href="/forgot-password">Forgot your password?</a></p>
         </form>
       </section>
     </main>
   `;
 
   document.querySelector('#login-form').addEventListener('submit', handleLogin);
+}
+
+function publicActionPage(kind) {
+  const token = new URLSearchParams(location.search).get('token') || '';
+  const invitation = kind === 'invitation';
+  const resetRequest = kind === 'request-reset';
+  const title = invitation ? 'Accept invitation' : resetRequest ? 'Reset your password' : 'Choose a new password';
+  return `
+    <main class="admin-public-shell">
+      <form class="admin-login-form admin-public-form" id="public-action-form">
+        <div class="admin-brand-mark">PXA</div>
+        <div><p class="pxa-kicker">Power Dox Automation</p><h1>${title}</h1></div>
+        <div class="admin-alert admin-alert--error" id="public-action-error" hidden></div>
+        <div class="admin-alert admin-alert--success" id="public-action-success" hidden></div>
+        ${resetRequest ? `
+          <label class="admin-field"><span>Email</span><input name="email" type="email" autocomplete="email" required></label>
+        ` : `
+          ${invitation ? '<label class="admin-field"><span>Display name</span><input name="displayName" autocomplete="name"></label>' : ''}
+          <label class="admin-field"><span>New password</span><input name="password" type="password" autocomplete="new-password" minlength="12" required></label>
+          <input name="token" type="hidden" value="${escapeHtml(token)}">
+        `}
+        <button class="pxa-button pxa-button--primary" type="submit">${resetRequest ? 'Send reset link' : invitation ? 'Activate account' : 'Change password'}</button>
+        <a class="admin-back-link" href="/login">Return to sign in</a>
+      </form>
+    </main>`;
+}
+
+function bindPublicAction(kind) {
+  document.querySelector('#public-action-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const button = form.querySelector('button');
+    const error = document.querySelector('#public-action-error');
+    const success = document.querySelector('#public-action-success');
+    error.hidden = true;
+    success.hidden = true;
+    button.disabled = true;
+    try {
+      if (kind === 'request-reset') {
+        await requestPasswordReset(data.get('email'));
+        success.textContent = 'If the account exists, a password-reset message has been queued.';
+      } else if (kind === 'invitation') {
+        await acceptInvitation(data.get('token'), data.get('password'), data.get('displayName'));
+        success.textContent = 'Your account is active. You can now sign in.';
+      } else {
+        await confirmPasswordReset(data.get('token'), data.get('password'));
+        success.textContent = 'Your password was changed. You can now sign in.';
+      }
+      success.hidden = false;
+      form.querySelectorAll('input').forEach((input) => { if (input.type !== 'hidden') input.disabled = true; });
+    } catch (requestError) {
+      error.textContent = requestError.message;
+      error.hidden = false;
+      button.disabled = false;
+    }
+  });
 }
 
 async function handleLogin(event) {
@@ -280,6 +346,16 @@ function usersPage() {
       <div><p class="pxa-kicker">Identity</p><h1>Users</h1><p>Manage user status, organization roles, and access within the active tenant.</p></div>
       <span class="admin-record-count">${users.total} ${users.total === 1 ? 'user' : 'users'}</span>
     </header>
+    <details class="admin-section admin-create-panel">
+      <summary>Invite user</summary>
+      <form class="admin-invitation-form" id="user-invitation-form">
+        <label class="admin-field"><span>Display name</span><input name="displayName" required maxlength="200"></label>
+        <label class="admin-field"><span>Email</span><input name="email" type="email" required></label>
+        <label class="admin-field"><span>Initial role</span><select name="role">${organizationRoles.map((role) => `<option>${role}</option>`).join('')}</select></label>
+        <button class="pxa-button pxa-button--primary" type="submit">Send invitation</button>
+      </form>
+    </details>
+    ${users.notice ? `<div class="admin-alert admin-alert--success admin-detail-alert">${escapeHtml(users.notice)}</div>` : ''}
     <section class="admin-table-section" aria-busy="${users.loading}">
       <form class="admin-table-toolbar" id="users-filter-form">
         <label><span class="visually-hidden">Search users</span><input name="search" type="search" placeholder="Search name, email, or username" value="${escapeHtml(users.search)}"></label>
@@ -459,6 +535,29 @@ function organizationDetailPage() {
     </section>`;
 }
 
+function mailPage() {
+  const mail = state.mail;
+  const totalPages = Math.max(1, Math.ceil(mail.total / mail.pageSize));
+  const rows = mail.items.map((message) => `
+    <tr>
+      <td>${escapeHtml(message.recipientEmail)}</td>
+      <td>${escapeHtml(message.templateKey)}</td>
+      <td><span class="admin-status ${message.status === 'Delivered' ? 'admin-status--ready' : message.status === 'DeadLetter' || message.status === 'Failed' ? 'admin-status--inactive' : 'admin-status--planned'}">${escapeHtml(message.status)}</span></td>
+      <td>${message.attempts}</td>
+      <td>${escapeHtml(formatDate(message.deliveredAt || message.createdAt))}</td>
+    </tr>`).join('');
+  return `
+    <header class="admin-page-header"><div><p class="pxa-kicker">Operations</p><h1>Mail delivery</h1><p>Inspect tenant-scoped transactional delivery metadata without exposing tokens or message bodies.</p></div><span class="admin-record-count">${mail.total} messages</span></header>
+    <section class="admin-table-section" aria-busy="${mail.loading}">
+      <form class="admin-table-toolbar" id="mail-filter-form">
+        <select name="status" aria-label="Filter delivery status"><option value="">All statuses</option>${['Pending', 'Sending', 'Delivered', 'Failed', 'DeadLetter'].map((status) => `<option ${mail.status === status ? 'selected' : ''}>${status}</option>`).join('')}</select>
+        <button type="submit">Apply</button>
+      </form>
+      ${mail.error ? `<div class="admin-alert admin-alert--error admin-inline-alert">${escapeHtml(mail.error)}</div>` : ''}
+      ${mail.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading delivery status...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>Recipient</th><th>Template</th><th>Status</th><th>Attempts</th><th>Updated</th></tr></thead><tbody>${rows}</tbody></table></div>${mail.items.length ? '' : '<div class="admin-empty-state"><strong>No mail messages</strong><p>Transactional messages for this organization will appear here.</p></div>'}<footer class="admin-pagination"><span>Page ${mail.page} of ${totalPages}</span><div><button id="mail-previous" type="button" ${mail.page <= 1 ? 'disabled' : ''}>Previous</button><button id="mail-next" type="button" ${mail.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer>`}
+    </section>`;
+}
+
 function dataPage(path) {
   const [title, description, columns] = pageDetails[path];
   return `
@@ -547,6 +646,28 @@ async function loadUserDetail(userId) {
 }
 
 function bindUsersEvents() {
+  document.querySelector('#user-invitation-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    const button = form.querySelector('button');
+    button.disabled = true;
+    state.users.error = null;
+    state.users.notice = null;
+    try {
+      await createAdminInvitation(
+        data.get('email'),
+        data.get('displayName'),
+        [data.get('role')]);
+      state.users.notice = `Invitation queued for ${data.get('email')}.`;
+      state.users.loaded = false;
+      state.mail.loaded = false;
+      await loadUsers();
+    } catch (error) {
+      state.users.error = error.message;
+      render();
+    }
+  });
   document.querySelector('#users-filter-form')?.addEventListener('submit', (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -726,6 +847,39 @@ function bindOrganizationDetailEvents() {
   });
 }
 
+async function loadMail() {
+  state.mail.loading = true;
+  state.mail.error = null;
+  render();
+  try {
+    const response = await getAdminMail(state.mail);
+    Object.assign(state.mail, response, { loaded: true });
+  } catch (error) {
+    state.mail.error = error.message;
+    state.mail.loaded = true;
+  } finally {
+    state.mail.loading = false;
+    render();
+  }
+}
+
+function bindMailEvents() {
+  document.querySelector('#mail-filter-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    state.mail.status = String(new FormData(event.currentTarget).get('status') || '');
+    state.mail.page = 1;
+    loadMail();
+  });
+  document.querySelector('#mail-previous')?.addEventListener('click', () => {
+    state.mail.page -= 1;
+    loadMail();
+  });
+  document.querySelector('#mail-next')?.addEventListener('click', () => {
+    state.mail.page += 1;
+    loadMail();
+  });
+}
+
 async function handleLogout(event) {
   event.currentTarget.disabled = true;
   try {
@@ -739,6 +893,27 @@ async function handleLogout(event) {
 function render() {
   if (state.loading) {
     app.innerHTML = '<main class="admin-loading"><div class="admin-spinner" aria-hidden="true"></div><p>Checking secure session...</p></main>';
+    return;
+  }
+
+  if (!state.user && location.pathname === '/accept-invitation') {
+    document.title = 'Accept invitation | PXA Admin';
+    app.innerHTML = publicActionPage('invitation');
+    bindPublicAction('invitation');
+    return;
+  }
+
+  if (!state.user && location.pathname === '/forgot-password') {
+    document.title = 'Reset password | PXA Admin';
+    app.innerHTML = publicActionPage('request-reset');
+    bindPublicAction('request-reset');
+    return;
+  }
+
+  if (!state.user && location.pathname === '/reset-password') {
+    document.title = 'Choose password | PXA Admin';
+    app.innerHTML = publicActionPage('confirm-reset');
+    bindPublicAction('confirm-reset');
     return;
   }
 
@@ -774,6 +949,13 @@ function render() {
     renderShell(organizationsPage(), 'Organizations');
     bindOrganizationsEvents();
     if (!state.organizations.loaded && !state.organizations.loading) loadOrganizations();
+    return;
+  }
+
+  if (location.pathname === '/mail') {
+    renderShell(mailPage(), 'Mail delivery');
+    bindMailEvents();
+    if (!state.mail.loaded && !state.mail.loading) loadMail();
     return;
   }
 

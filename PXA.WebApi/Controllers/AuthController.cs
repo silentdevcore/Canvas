@@ -10,6 +10,7 @@ using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Mail;
 
 namespace PXA.WebApi.Controllers;
 
@@ -22,17 +23,26 @@ public sealed class AuthController : ControllerBase
     private readonly IUserClaimsPrincipalFactory<PxaIdentityUser> principalFactory;
     private readonly PxaDbContext dbContext;
     private readonly IAntiforgery antiforgery;
+    private readonly IdentityActionTokenService actionTokens;
+    private readonly IPxaMailQueue mailQueue;
+    private readonly PxaMailOptions mailOptions;
 
     public AuthController(
         UserManager<PxaIdentityUser> userManager,
         IUserClaimsPrincipalFactory<PxaIdentityUser> principalFactory,
         PxaDbContext dbContext,
-        IAntiforgery antiforgery)
+        IAntiforgery antiforgery,
+        IdentityActionTokenService actionTokens,
+        IPxaMailQueue mailQueue,
+        Microsoft.Extensions.Options.IOptions<PxaMailOptions> mailOptions)
     {
         this.userManager = userManager;
         this.principalFactory = principalFactory;
         this.dbContext = dbContext;
         this.antiforgery = antiforgery;
+        this.actionTokens = actionTokens;
+        this.mailQueue = mailQueue;
+        this.mailOptions = mailOptions.Value;
     }
 
     [AllowAnonymous]
@@ -170,6 +180,131 @@ public sealed class AuthController : ControllerBase
         }
 
         await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+        return NoContent();
+    }
+
+    [AllowAnonymous]
+    [HttpPost("accept-invitation")]
+    [PxaValidateAntiforgery]
+    public async Task<IActionResult> AcceptInvitation(
+        AcceptInvitationRequest request,
+        CancellationToken cancellationToken)
+    {
+        var actionToken = await actionTokens.FindValidAsync(
+            request.Token,
+            IdentityActionTokenService.InvitationPurpose,
+            cancellationToken);
+        if (actionToken is null)
+            return InvalidActionToken();
+
+        var user = await userManager.FindByIdAsync(actionToken.UserId.ToString());
+        var membership = actionToken.OrganizationId is null
+            ? null
+            : await dbContext.OrganizationMemberships.SingleOrDefaultAsync(value =>
+                value.OrganizationId == actionToken.OrganizationId &&
+                value.UserId == actionToken.UserId &&
+                value.Status == OrganizationMembershipStatus.Invited,
+                cancellationToken);
+        if (user is null || membership is null || await userManager.HasPasswordAsync(user))
+            return InvalidActionToken();
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var passwordResult = await userManager.AddPasswordAsync(user, request.Password);
+        if (!passwordResult.Succeeded)
+            return IdentityFailure(passwordResult);
+
+        user.EmailConfirmed = true;
+        user.IsActive = true;
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+        if (!string.IsNullOrWhiteSpace(request.DisplayName))
+            user.DisplayName = request.DisplayName.Trim();
+        var userUpdate = await userManager.UpdateAsync(user);
+        if (!userUpdate.Succeeded)
+            return IdentityFailure(userUpdate);
+
+        membership.Status = OrganizationMembershipStatus.Active;
+        membership.UpdatedAt = DateTimeOffset.UtcNow;
+        actionToken.UsedAt = DateTimeOffset.UtcNow;
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return NoContent();
+    }
+
+    [AllowAnonymous]
+    [HttpPost("password-reset/request")]
+    [PxaValidateAntiforgery]
+    public async Task<IActionResult> RequestPasswordReset(
+        RequestPasswordResetRequest request,
+        CancellationToken cancellationToken)
+    {
+        var user = await userManager.FindByEmailAsync(request.Email.Trim());
+        if (user is { IsActive: true, EmailConfirmed: true })
+        {
+            var organizationId = await dbContext.OrganizationMemberships.AsNoTracking()
+                .Where(membership =>
+                    membership.UserId == user.Id &&
+                    membership.Status == OrganizationMembershipStatus.Active)
+                .OrderBy(membership => membership.CreatedAt)
+                .Select(membership => (Guid?)membership.OrganizationId)
+                .FirstOrDefaultAsync(cancellationToken);
+            var issued = await actionTokens.IssueAsync(
+                user.Id,
+                organizationId,
+                user.Email!,
+                IdentityActionTokenService.PasswordResetPurpose,
+                new { },
+                TimeSpan.FromHours(1),
+                cancellationToken);
+            var actionUrl = $"{mailOptions.AdminBaseUrl.TrimEnd('/')}/reset-password?token={Uri.EscapeDataString(issued.RawToken)}";
+            mailQueue.Enqueue(
+                organizationId,
+                user.Id,
+                user.Email!,
+                "identity.password-reset",
+                new { displayName = user.DisplayName, actionUrl },
+                $"password-reset:{issued.Entity.Id}");
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return Accepted();
+    }
+
+    [AllowAnonymous]
+    [HttpPost("password-reset/confirm")]
+    [PxaValidateAntiforgery]
+    public async Task<IActionResult> ConfirmPasswordReset(
+        ConfirmPasswordResetRequest request,
+        CancellationToken cancellationToken)
+    {
+        var actionToken = await actionTokens.FindValidAsync(
+            request.Token,
+            IdentityActionTokenService.PasswordResetPurpose,
+            cancellationToken);
+        if (actionToken is null)
+            return InvalidActionToken();
+
+        var user = await userManager.FindByIdAsync(actionToken.UserId.ToString());
+        if (user is null || !user.IsActive)
+            return InvalidActionToken();
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var removePassword = await userManager.RemovePasswordAsync(user);
+        if (!removePassword.Succeeded)
+            return IdentityFailure(removePassword);
+        var addPassword = await userManager.AddPasswordAsync(user, request.NewPassword);
+        if (!addPassword.Succeeded)
+            return IdentityFailure(addPassword);
+
+        actionToken.UsedAt = DateTimeOffset.UtcNow;
+        mailQueue.Enqueue(
+            actionToken.OrganizationId,
+            user.Id,
+            user.Email!,
+            "identity.password-changed",
+            new { displayName = user.DisplayName },
+            $"password-changed:{actionToken.Id}");
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
         return NoContent();
     }
 
@@ -312,6 +447,11 @@ public sealed class AuthController : ControllerBase
         title: "Identity update failed",
         detail: string.Join(" ", result.Errors.Select(error => error.Description)));
 
+    private ObjectResult InvalidActionToken() => Problem(
+        statusCode: StatusCodes.Status400BadRequest,
+        title: "Invalid or expired action",
+        detail: "Request a new invitation or password-reset message.");
+
     private sealed record ActiveMembership(
         Guid MembershipId,
         Guid OrganizationId,
@@ -327,6 +467,17 @@ public sealed record LoginRequest(
     bool RememberMe = false);
 
 public sealed record SwitchOrganizationRequest(Guid OrganizationId);
+
+public sealed record AcceptInvitationRequest(
+    [Required] string Token,
+    [Required] string Password,
+    string? DisplayName = null);
+
+public sealed record RequestPasswordResetRequest([Required, EmailAddress] string Email);
+
+public sealed record ConfirmPasswordResetRequest(
+    [Required] string Token,
+    [Required] string NewPassword);
 
 public sealed record LoginResponse(UserInfo User);
 

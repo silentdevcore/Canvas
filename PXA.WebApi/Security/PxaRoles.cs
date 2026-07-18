@@ -24,6 +24,7 @@ public static class PxaRoles
                 PxaPermissions.SubscriptionsManage,
                 PxaPermissions.LicensesManage,
                 PxaPermissions.AuditRead,
+                PxaPermissions.MailRead,
             ],
             [Manager] =
             [

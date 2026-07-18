@@ -21,19 +21,19 @@ Deliver one application-level mail service for identity, security, subscription,
 
 ## Service Architecture
 
-- [ ] Define one mail application interface independent of SMTP and provider SDKs.
+- [x] Define one mail application interface independent of SMTP and provider SDKs.
 - [ ] Add a replaceable Cloud transactional-provider adapter.
 - [ ] Add customer-configured SMTP transport for On-Premise installations.
-- [ ] Add a development mail catcher or in-memory transport.
-- [ ] Add mail-disabled mode for isolated deployments with explicit administrative status.
+- [x] Add a development mail catcher or in-memory transport.
+- [x] Add mail-disabled mode for isolated deployments with explicit administrative status.
 - [ ] Keep provider credentials, SMTP credentials, and signing secrets in external secret storage.
-- [ ] Separate message composition, queueing, transport, and delivery-status processing.
+- [x] Separate message composition, queueing, transport, and delivery-status processing.
 
 ## Transactional Email
 
-- [ ] Send user invitation and invitation-expiry messages.
+- [x] Send user invitation messages with seven-day expiry.
 - [ ] Send email-verification messages.
-- [ ] Send password-reset and password-changed notifications.
+- [x] Send password-reset and password-changed notifications.
 - [ ] Send new-login, lockout, credential-change, and security warnings.
 - [ ] Send Trial start, Trial expiry warning, subscription change, suspension, renewal, and license-expiry messages.
 - [ ] Send seat, role, organization, API-key, and service-account security notifications.
@@ -51,8 +51,8 @@ Deliver one application-level mail service for identity, security, subscription,
 
 ## Templates And Localization
 
-- [ ] Create versioned templates with stable template keys.
-- [ ] Provide HTML and plain-text variants for every message.
+- [x] Create versioned templates with stable template keys for implemented identity messages.
+- [x] Provide HTML and plain-text variants for implemented identity messages.
 - [ ] Support localized subject, body, dates, numbers, links, and directionality.
 - [ ] Select language from user preference with organization and system fallbacks.
 - [ ] Add consistent PXA branding, accessible structure, and meaningful link labels.
@@ -61,42 +61,48 @@ Deliver one application-level mail service for identity, security, subscription,
 
 ## Queue And Delivery Lifecycle
 
-- [ ] Use an outbox or durable queue so business transactions and mail intent cannot diverge.
-- [ ] Define `pending`, `scheduled`, `sending`, `delivered`, `failed`, `suppressed`, `cancelled`, and `dead_letter` states.
-- [ ] Add idempotency keys to prevent duplicate messages after retries.
-- [ ] Add bounded exponential retry for transient failures.
-- [ ] Move permanently failed messages to a dead-letter state with safe administrative retry.
-- [ ] Store provider message ID, template version, recipient reference, attempts, timestamps, and sanitized failure reason.
+- [x] Use a PostgreSQL outbox so invitation transactions and mail intent cannot diverge.
+- [x] Define `pending`, `scheduled`, `sending`, `delivered`, `failed`, `suppressed`, `cancelled`, and `dead_letter` states.
+- [x] Add unique idempotency keys to prevent duplicate queued messages.
+- [x] Add bounded exponential retry for transient failures.
+- [x] Move permanently failed messages to a dead-letter state.
+- [x] Store provider message ID, template version, recipient reference, attempts, timestamps, and sanitized failure reason.
 - [ ] Avoid storing message bodies longer than required for delivery and support.
 - [ ] Add retention and deletion rules for queue, delivery, consent, and audit metadata.
 
 ## Secure Action Tokens
 
-- [ ] Generate cryptographically strong, purpose-bound invitation, verification, reset, consent, and unsubscribe tokens.
-- [ ] Store only hashed action tokens where server-side persistence is required.
-- [ ] Make sensitive action tokens single-use and short-lived.
-- [ ] Bind tokens to recipient, tenant, purpose, and expiry.
-- [ ] Invalidate superseded tokens and all relevant tokens after successful completion.
-- [ ] Avoid revealing whether an email address exists during public reset requests.
+- [x] Generate cryptographically strong, purpose-bound invitation and password-reset tokens.
+- [x] Store only SHA-256 hashes of action tokens while encrypting required outbox payloads with Data Protection.
+- [x] Make invitation and password-reset tokens single-use and short-lived.
+- [x] Bind implemented tokens to recipient, tenant, purpose, and expiry.
+- [x] Invalidate superseded invitation/reset tokens and consume successful tokens.
+- [x] Avoid revealing whether an email address exists during public reset requests.
 
 ## Provider Events And Operations
 
 - [ ] Validate webhook signatures, timestamps, event IDs, and expected providers.
 - [ ] Process delivery, delay, bounce, complaint, and suppression events idempotently.
 - [ ] Reject replayed, malformed, unsigned, and cross-tenant callback events.
-- [ ] Expose queue health, delivery status, failure rate, and dead-letter count to authorized administrators.
+- [x] Expose tenant-scoped delivery status and sanitized failure metadata to authorized administrators.
 - [ ] Add alerts for queue backlog, provider outage, authentication failure, and abnormal bounce rates.
 - [ ] Keep recipient addresses and provider payloads out of general application logs.
 
 ## Configuration
 
-- [ ] Configure sender name, sender address, reply-to address, public URLs, and support contact by environment.
+- [x] Configure sender name, sender address, Admin action URL, and enabled state by environment.
 - [ ] Configure SMTP host, port, TLS mode, authentication, timeout, and certificate validation for On-Premise.
 - [ ] Configure Cloud provider credentials and webhook secrets externally.
 - [ ] Validate configuration at startup and expose safe readiness diagnostics.
 - [ ] Document operation when mail is disabled and the administrative alternatives for invitation and reset workflows.
 
 ## Tests
+
+Current identity-mail verification:
+
+- [x] Test invitation creation, encrypted outbox payload, delivery, activation, and token reuse rejection against PostgreSQL.
+- [x] Test neutral unknown-account reset requests, password reset, password-changed mail, and new-password login.
+- [x] Verify that stored token hashes, protected payloads, and Admin mail responses do not expose action tokens.
 
 - [ ] Unit-test template selection, localization, token creation, consent, suppression, and retry classification.
 - [ ] Integration-test SMTP, development transport, and the selected Cloud provider adapter.

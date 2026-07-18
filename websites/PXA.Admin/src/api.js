@@ -123,3 +123,25 @@ export async function removeAdminOrganizationMember(organizationId, userId) {
 export async function switchOrganization(organizationId) {
   return adminMutation(`${authBase}/switch-organization`, 'POST', { organizationId });
 }
+
+export async function createAdminInvitation(email, displayName, roles) {
+  return adminMutation('/api/pxa/v1/admin/invitations', 'POST', { email, displayName, roles });
+}
+
+export async function getAdminMail({ status = '', page = 1, pageSize = 25 } = {}) {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  if (status) query.set('status', status);
+  return request(`/api/pxa/v1/admin/mail?${query}`);
+}
+
+export async function acceptInvitation(token, password, displayName) {
+  return adminMutation(`${authBase}/accept-invitation`, 'POST', { token, password, displayName });
+}
+
+export async function requestPasswordReset(email) {
+  return adminMutation(`${authBase}/password-reset/request`, 'POST', { email });
+}
+
+export async function confirmPasswordReset(token, newPassword) {
+  return adminMutation(`${authBase}/password-reset/confirm`, 'POST', { token, newPassword });
+}

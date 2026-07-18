@@ -61,6 +61,24 @@ public sealed class PxaDbContextModelTests
         Assert.True(uniqueIndex.IsUnique);
     }
 
+    [Fact]
+    public void Model_enforces_unique_action_tokens_and_mail_idempotency()
+    {
+        using var context = CreateContext();
+        var actionToken = context.Model.FindEntityType(typeof(IdentityActionToken));
+        var mailMessage = context.Model.FindEntityType(typeof(MailOutboxMessage));
+
+        Assert.Equal("identity_action_tokens", actionToken?.GetTableName());
+        Assert.Equal(DatabaseSchemas.Administration, actionToken?.GetSchema());
+        Assert.Contains(actionToken!.GetIndexes(), index =>
+            index.IsUnique && index.Properties.Single().Name == nameof(IdentityActionToken.TokenHash));
+
+        Assert.Equal("mail_outbox", mailMessage?.GetTableName());
+        Assert.Equal(DatabaseSchemas.Administration, mailMessage?.GetSchema());
+        Assert.Contains(mailMessage!.GetIndexes(), index =>
+            index.IsUnique && index.Properties.Single().Name == nameof(MailOutboxMessage.IdempotencyKey));
+    }
+
     private static PxaDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<PxaDbContext>()

@@ -18,6 +18,8 @@ public sealed class PxaDbContext
     public DbSet<OrganizationMembership> OrganizationMemberships => Set<OrganizationMembership>();
     public DbSet<OrganizationMembershipRole> OrganizationMembershipRoles => Set<OrganizationMembershipRole>();
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
+    public DbSet<IdentityActionToken> IdentityActionTokens => Set<IdentityActionToken>();
+    public DbSet<MailOutboxMessage> MailOutboxMessages => Set<MailOutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

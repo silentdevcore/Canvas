@@ -12,6 +12,7 @@ public static class PxaPermissions
     public const string SubscriptionsManage = "subscriptions.manage";
     public const string LicensesManage = "licenses.manage";
     public const string AuditRead = "audit.read";
+    public const string MailRead = "mail.read";
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -25,5 +26,6 @@ public static class PxaPermissions
         SubscriptionsManage,
         LicensesManage,
         AuditRead,
+        MailRead,
     ];
 }
