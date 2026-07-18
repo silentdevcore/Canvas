@@ -4,6 +4,7 @@ import {
   acceptInvitation,
   addAdminOrganizationMember,
   assignAdminSubscriptionSeat,
+  assignAdminRoleMember,
   cancelAdminSubscription,
   createAdminOrganization,
   createAdminSubscription,
@@ -47,6 +48,9 @@ import {
   exportAdminAudit,
   getAdminAudit,
   getAdminAuditEvent,
+  getAdminRole,
+  getAdminRoles,
+  revokeAdminRoleMember,
   validateAdminLicense,
 } from './api.js';
 
@@ -68,7 +72,6 @@ const navigation = [
 const pageDetails = {
   '/users': ['Users', 'Manage user status, memberships, roles, and active sessions.', ['Name', 'Email', 'Organization', 'Role', 'Status', 'Last login']],
   '/organizations': ['Organizations', 'Manage tenant ownership, memberships, and organization status.', ['Organization', 'Status', 'Members', 'Subscription', 'Updated']],
-  '/roles': ['Roles & permissions', 'Review role definitions and the permissions granted to each role.', ['Role', 'Scope', 'Users', 'Permissions', 'Updated']],
   '/mail': ['Mail delivery', 'Inspect transactional delivery state without exposing message secrets.', ['Recipient', 'Template', 'State', 'Attempts', 'Updated']],
   '/settings': ['Settings', 'Configure organization defaults and operational administration settings.', ['Setting', 'Value', 'Scope', 'Updated']],
 };
@@ -120,6 +123,10 @@ const state = {
     items: [], total: 0, page: 1, pageSize: 25, search: '', action: '', targetType: '', outcome: '',
     from: '', to: '', direction: 'desc', actions: [], targetTypes: [], outcomes: [], canExport: false,
     selected: null, loading: false, loaded: false, detailLoading: false, exporting: false, error: null,
+  },
+  roles: { items: [], permissions: [], loading: false, loaded: false, error: null },
+  roleDetail: {
+    key: null, data: null, users: [], page: 1, pageSize: 25, loading: false, saving: false, error: null,
   },
 };
 
@@ -701,6 +708,32 @@ function auditPage() {
   return `<header class="admin-page-header"><div><p class="pxa-kicker">Operations</p><h1>Audit</h1><p>Trace privileged changes within the active organization. Events are read-only and ordered by their recorded timestamp.</p></div><span class="admin-record-count">${audit.total} events</span></header>${audit.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(audit.error)}</div>` : ''}<section class="admin-table-section"><form id="audit-filter-form" class="admin-audit-filters"><label class="admin-field admin-audit-search"><span>Search</span><input name="search" type="search" value="${escapeHtml(audit.search)}" placeholder="Actor, action, target, or ID"></label><label class="admin-field"><span>Action</span><select name="action"><option value="">All actions</option>${audit.actions.map((value) => `<option value="${escapeHtml(value)}" ${audit.action === value ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('')}</select></label><label class="admin-field"><span>Target</span><select name="targetType"><option value="">All targets</option>${audit.targetTypes.map((value) => `<option value="${escapeHtml(value)}" ${audit.targetType === value ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('')}</select></label><label class="admin-field"><span>Outcome</span><select name="outcome"><option value="">All outcomes</option>${audit.outcomes.map((value) => `<option value="${escapeHtml(value)}" ${audit.outcome === value ? 'selected' : ''}>${escapeHtml(value)}</option>`).join('')}</select></label><label class="admin-field"><span>From</span><input name="from" type="datetime-local" value="${escapeHtml(audit.from)}"></label><label class="admin-field"><span>To</span><input name="to" type="datetime-local" value="${escapeHtml(audit.to)}"></label><label class="admin-field"><span>Order</span><select name="direction"><option value="desc" ${audit.direction === 'desc' ? 'selected' : ''}>Newest first</option><option value="asc" ${audit.direction === 'asc' ? 'selected' : ''}>Oldest first</option></select></label><div class="admin-audit-filter-actions"><button type="submit">Apply filters</button><button id="audit-clear-filters" type="button">Clear</button></div></form><div class="admin-audit-export"><div><strong>Export audit evidence</strong><p>${audit.canExport ? 'Download the current filtered result. The export itself is audited.' : 'CSV and JSON export require an Enterprise subscription.'}</p></div><div><button class="audit-export" data-format="csv" type="button" ${!audit.canExport || audit.exporting ? 'disabled' : ''}>Export CSV</button><button class="audit-export" data-format="json" type="button" ${!audit.canExport || audit.exporting ? 'disabled' : ''}>Export JSON</button></div></div>${audit.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading audit events...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Outcome</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${rows ? '' : '<div class="admin-empty-state"><strong>No matching events</strong><p>Adjust the filters or perform an administrative operation.</p></div>'}<footer class="admin-pagination"><span>Page ${audit.page} of ${totalPages}</span><div><button id="audit-previous" type="button" ${audit.page <= 1 ? 'disabled' : ''}>Previous</button><button id="audit-next" type="button" ${audit.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer>`}</section>${details}`;
 }
 
+function rolesPage() {
+  const roles = state.roles;
+  const roleRows = roles.items.map((role) => `<tr><td><a class="admin-table-link" href="/roles/${role.key}"><strong>${escapeHtml(role.name)}</strong></a><small>${escapeHtml(role.description)}</small></td><td><span class="admin-status admin-status--ready">Protected</span></td><td>${role.memberCount}</td><td>${role.permissions.length}</td><td><a href="/roles/${role.key}">View role</a></td></tr>`).join('');
+  const permissionRows = roles.permissions.map((permission) => `<tr><td><strong>${escapeHtml(permission.key)}</strong><small>${escapeHtml(permission.description)}</small></td><td>${escapeHtml(permission.group)}</td>${roles.items.map((role) => `<td class="admin-permission-cell"><span class="${role.permissions.some((item) => item.key === permission.key) ? 'admin-permission-granted' : 'admin-permission-none'}" aria-label="${role.permissions.some((item) => item.key === permission.key) ? 'Granted' : 'Not granted'}">${role.permissions.some((item) => item.key === permission.key) ? 'Granted' : '—'}</span></td>`).join('')}</tr>`).join('');
+  return `<header class="admin-page-header"><div><p class="pxa-kicker">Identity</p><h1>Roles & permissions</h1><p>Review protected organization roles and the exact Admin permissions they grant inside the active tenant.</p></div><span class="admin-record-count">${roles.items.length} protected roles</span></header>${roles.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(roles.error)}</div>` : ''}${roles.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading roles...</p></div>' : `<section class="admin-table-section"><div class="admin-table-scroll"><table><thead><tr><th>Role</th><th>Definition</th><th>Members</th><th>Permissions</th><th></th></tr></thead><tbody>${roleRows}</tbody></table></div></section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Permission matrix</h2><p>Product entitlements remain separate and cannot be granted by an application role.</p></div><div class="admin-table-scroll"><table class="admin-permission-matrix"><thead><tr><th>Permission</th><th>Area</th>${roles.items.map((role) => `<th>${escapeHtml(role.name)}</th>`).join('')}</tr></thead><tbody>${permissionRows}</tbody></table></div></section>`}`;
+}
+
+function roleDetailPage() {
+  const detail = state.roleDetail;
+  if (detail.loading && !detail.data)
+    return '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading role...</p></div>';
+  if (!detail.data)
+    return `<section class="admin-message-page"><span class="admin-error-code">!</span><h1>Role unavailable</h1><p>${escapeHtml(detail.error || 'The role could not be loaded.')}</p><a class="pxa-button pxa-button--secondary" href="/roles">Return to roles</a></section>`;
+  const { role, members, total } = detail.data;
+  const totalPages = Math.max(1, Math.ceil(total / detail.pageSize));
+  const eligibleUsers = detail.users.filter((user) =>
+    user.id !== state.user?.id && !user.roles.includes(role.name) && user.membershipStatus !== 'Removed');
+  const groupedPermissions = Object.entries(role.permissions.reduce((groups, permission) => {
+    (groups[permission.group] ||= []).push(permission);
+    return groups;
+  }, {}));
+  const permissionSections = groupedPermissions.map(([group, permissions]) => `<section><h3>${escapeHtml(group)}</h3>${permissions.map((permission) => `<div class="admin-role-permission"><strong>${escapeHtml(permission.key)}</strong><p>${escapeHtml(permission.description)}</p></div>`).join('')}</section>`).join('');
+  const memberRows = members.map((member) => `<tr><td><a class="admin-table-link" href="/users/${member.userId}"><strong>${escapeHtml(member.displayName)}</strong></a><small>${escapeHtml(member.email)}</small></td><td><span class="admin-status ${member.isActive && member.membershipStatus === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(member.membershipStatus)}</span></td><td>${escapeHtml(formatDate(member.assignedAt))}<small>by ${escapeHtml(member.assignedByName)}</small></td><td><button class="role-member-revoke" data-user-id="${member.userId}" type="button" ${detail.saving ? 'disabled' : ''}>Revoke</button></td></tr>`).join('');
+  return `<header class="admin-page-header"><div><a class="admin-back-link" href="/roles">Roles & permissions</a><h1>${escapeHtml(role.name)}</h1><p>${escapeHtml(role.description)}</p></div><span class="admin-status admin-status--ready">Protected definition</span></header>${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(detail.error)}</div>` : ''}<div class="admin-detail-grid"><section class="admin-section"><div class="admin-section-heading"><h2>Granted permissions</h2><p>${role.permissions.length} explicit Admin permissions. Subscription entitlements are evaluated separately.</p></div><div class="admin-role-permission-groups">${permissionSections || '<div class="admin-empty-state"><strong>No Admin permissions</strong><p>This role only participates in licensed product workflows.</p></div>'}</div></section><section class="admin-section"><div class="admin-section-heading"><h2>Assign member</h2><p>Role changes revoke the user’s active sessions so new claims take effect immediately.</p></div><form id="role-member-assign-form" class="admin-form-stack"><label class="admin-field"><span>Organization user</span><select name="userId" required><option value="">Select user</option>${eligibleUsers.map((user) => `<option value="${user.id}">${escapeHtml(user.displayName)} (${escapeHtml(user.email)})</option>`).join('')}</select></label><div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${detail.saving || !eligibleUsers.length ? 'disabled' : ''}>Assign role</button></div></form></section></div><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>Role members</h2><p>${total} assignments in the active organization.</p></div><div class="admin-table-scroll"><table><thead><tr><th>User</th><th>Membership</th><th>Assigned</th><th></th></tr></thead><tbody>${memberRows}</tbody></table></div>${memberRows ? '' : '<div class="admin-empty-state"><strong>No role members</strong><p>Assign an organization user to this protected role.</p></div>'}<footer class="admin-pagination"><span>Page ${detail.page} of ${totalPages}</span><div><button id="role-members-previous" type="button" ${detail.page <= 1 ? 'disabled' : ''}>Previous</button><button id="role-members-next" type="button" ${detail.page >= totalPages ? 'disabled' : ''}>Next</button></div></footer></section>`;
+}
+
 function dataPage(path) {
   const [title, description, columns] = pageDetails[path];
   return `
@@ -1256,6 +1289,72 @@ function bindAuditEvents() {
     button.addEventListener('click', () => runAuditExport(button.dataset.format)));
 }
 
+async function loadRoles() {
+  Object.assign(state.roles, { loading: true, error: null });
+  render();
+  try {
+    const response = await getAdminRoles();
+    Object.assign(state.roles, { items: response.roles, permissions: response.permissions, loaded: true });
+  } catch (error) {
+    Object.assign(state.roles, { error: error.message, loaded: true });
+  } finally {
+    state.roles.loading = false;
+    render();
+  }
+}
+
+async function loadRoleDetail(roleKey) {
+  const page = state.roleDetail.key === roleKey ? state.roleDetail.page : 1;
+  Object.assign(state.roleDetail, { key: roleKey, page, data: null, users: [], loading: true, error: null });
+  render();
+  try {
+    const [data, users] = await Promise.all([
+      getAdminRole(roleKey, state.roleDetail),
+      getAdminUsers({ pageSize: 100 }),
+    ]);
+    Object.assign(state.roleDetail, { data, users: users.items, page: data.page, pageSize: data.pageSize });
+  } catch (error) {
+    state.roleDetail.error = error.message;
+  } finally {
+    state.roleDetail.loading = false;
+    render();
+  }
+}
+
+async function runRoleMutation(operation) {
+  Object.assign(state.roleDetail, { saving: true, error: null });
+  render();
+  try {
+    await operation();
+    state.roleDetail.saving = false;
+    state.roles.loaded = false;
+    await loadRoleDetail(state.roleDetail.key);
+  } catch (error) {
+    Object.assign(state.roleDetail, { saving: false, error: error.message });
+    render();
+  }
+}
+
+function bindRoleDetailEvents() {
+  document.querySelector('#role-member-assign-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const userId = new FormData(event.currentTarget).get('userId');
+    if (userId) runRoleMutation(() => assignAdminRoleMember(state.roleDetail.key, userId));
+  });
+  document.querySelectorAll('.role-member-revoke').forEach((button) => button.addEventListener('click', () => {
+    if (window.confirm('Revoke this organization role from the selected user?'))
+      runRoleMutation(() => revokeAdminRoleMember(state.roleDetail.key, button.dataset.userId));
+  }));
+  document.querySelector('#role-members-previous')?.addEventListener('click', () => {
+    state.roleDetail.page -= 1;
+    loadRoleDetail(state.roleDetail.key);
+  });
+  document.querySelector('#role-members-next')?.addEventListener('click', () => {
+    state.roleDetail.page += 1;
+    loadRoleDetail(state.roleDetail.key);
+  });
+}
+
 function bindLicenseEvents() {
   document.querySelector('#license-issue-form')?.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -1535,6 +1634,21 @@ function render() {
     renderShell(auditPage(), 'Audit');
     bindAuditEvents();
     if (!state.audit.loaded && !state.audit.loading) loadAudit();
+    return;
+  }
+
+  if (location.pathname === '/roles') {
+    renderShell(rolesPage(), 'Roles & permissions');
+    if (!state.roles.loaded && !state.roles.loading) loadRoles();
+    return;
+  }
+
+  const roleDetailMatch = location.pathname.match(/^\/roles\/([a-z-]+)$/i);
+  if (roleDetailMatch) {
+    renderShell(roleDetailPage(), state.roleDetail.data?.role?.name || 'Role');
+    bindRoleDetailEvents();
+    if (state.roleDetail.key !== roleDetailMatch[1] && !state.roleDetail.loading)
+      loadRoleDetail(roleDetailMatch[1]);
     return;
   }
 

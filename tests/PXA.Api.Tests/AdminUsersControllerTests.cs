@@ -52,6 +52,30 @@ public sealed class AdminUsersControllerTests
             page.GetProperty("items").EnumerateArray(),
             user => user.GetProperty("id").GetGuid() == seeded.ForeignUserId);
 
+        using var anonymousClient = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false,
+            BaseAddress = new Uri("https://localhost"),
+            HandleCookies = true,
+        });
+        Assert.Equal(HttpStatusCode.Unauthorized,
+            (await anonymousClient.GetAsync("/api/pxa/v1/admin/roles")).StatusCode);
+        var roleCatalog = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/admin/roles");
+        Assert.Equal(4, roleCatalog.GetProperty("roles").GetArrayLength());
+        var managerRole = roleCatalog.GetProperty("roles").EnumerateArray()
+            .Single(role => role.GetProperty("key").GetString() == "manager");
+        Assert.Equal(1, managerRole.GetProperty("memberCount").GetInt32());
+        Assert.Contains(managerRole.GetProperty("permissions").EnumerateArray(),
+            permission => permission.GetProperty("key").GetString() == PxaPermissions.AuditRead);
+        var managerDetail = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/admin/roles/manager");
+        Assert.Equal(1, managerDetail.GetProperty("total").GetInt32());
+        Assert.Equal(seeded.ManagedUserId,
+            managerDetail.GetProperty("members").EnumerateArray().Single().GetProperty("userId").GetGuid());
+        Assert.DoesNotContain(seeded.ForeignUserId,
+            managerDetail.GetProperty("members").EnumerateArray().Select(value => value.GetProperty("userId").GetGuid()));
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await client.GetAsync("/api/pxa/v1/admin/roles/system-administrator")).StatusCode);
+
         var foreignResponse = await client.GetAsync($"/api/pxa/v1/admin/users/{seeded.ForeignUserId}");
         Assert.Equal(HttpStatusCode.NotFound, foreignResponse.StatusCode);
 
@@ -84,6 +108,34 @@ public sealed class AdminUsersControllerTests
             roleUser.GetProperty("roles").EnumerateArray(),
             role => role.GetString() == PxaRoles.Viewer);
 
+        using var foreignRoleAssignment = CreateCsrfRequest(
+            HttpMethod.Put,
+            $"/api/pxa/v1/admin/roles/editor/members/{seeded.ForeignUserId}",
+            authenticatedCsrf,
+            new { });
+        Assert.Equal(HttpStatusCode.NotFound, (await client.SendAsync(foreignRoleAssignment)).StatusCode);
+        using var selfRoleAssignment = CreateCsrfRequest(
+            HttpMethod.Put,
+            $"/api/pxa/v1/admin/roles/editor/members/{seeded.AdministratorUserId}",
+            authenticatedCsrf,
+            new { });
+        Assert.Equal(HttpStatusCode.Conflict, (await client.SendAsync(selfRoleAssignment)).StatusCode);
+        using var assignEditor = CreateCsrfRequest(
+            HttpMethod.Put,
+            $"/api/pxa/v1/admin/roles/editor/members/{seeded.ManagedUserId}",
+            authenticatedCsrf,
+            new { });
+        Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(assignEditor)).StatusCode);
+        var editorDetail = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/admin/roles/editor");
+        Assert.Equal(1, editorDetail.GetProperty("total").GetInt32());
+        using var revokeEditor = new HttpRequestMessage(
+            HttpMethod.Delete,
+            $"/api/pxa/v1/admin/roles/editor/members/{seeded.ManagedUserId}");
+        revokeEditor.Headers.Add("X-PXA-CSRF", authenticatedCsrf);
+        Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(revokeEditor)).StatusCode);
+        editorDetail = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/admin/roles/editor");
+        Assert.Equal(0, editorDetail.GetProperty("total").GetInt32());
+
         using var removeLastAdministrator = CreateCsrfRequest(
             HttpMethod.Put,
             $"/api/pxa/v1/admin/users/{seeded.AdministratorUserId}/roles",
@@ -102,6 +154,8 @@ public sealed class AdminUsersControllerTests
             .ToListAsync();
         Assert.Contains("users.disable", auditActions);
         Assert.Contains("roles.assign", auditActions);
+        Assert.Contains("roles.member.assign", auditActions);
+        Assert.Contains("roles.member.revoke", auditActions);
     }
 
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>
@@ -186,6 +240,12 @@ public sealed class AdminUsersControllerTests
             new OrganizationMembershipRole
             {
                 OrganizationMembershipId = managedMembership.Id,
+                RoleId = roleIds[PxaRoles.Manager],
+                AssignedByUserId = administrator.Id,
+            },
+            new OrganizationMembershipRole
+            {
+                OrganizationMembershipId = foreignMembership.Id,
                 RoleId = roleIds[PxaRoles.Manager],
                 AssignedByUserId = administrator.Id,
             });

@@ -260,6 +260,9 @@ public sealed class AdminUsersController : ControllerBase
                 AssignedByUserId = actorUserId,
             }));
 
+        user.SecurityStamp = Guid.NewGuid().ToString();
+        user.UpdatedAt = DateTimeOffset.UtcNow;
+
         AddAuditEvent(
             organizationId.Value,
             actorUserId.Value,

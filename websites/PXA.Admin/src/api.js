@@ -5,6 +5,7 @@ const adminSubscriptionsBase = '/api/pxa/v1/admin/subscriptions';
 const adminLicensesBase = '/api/pxa/v1/admin/licenses';
 const adminServiceAccountsBase = '/api/pxa/v1/admin/service-accounts';
 const adminAuditBase = '/api/pxa/v1/admin/audit';
+const adminRolesBase = '/api/pxa/v1/admin/roles';
 
 async function request(path, options = {}) {
   const response = await fetch(path, {
@@ -278,6 +279,26 @@ export async function exportAdminAudit(format, filter) {
     blob: await response.blob(),
     filename: encodedName ? decodeURIComponent(encodedName) : (plainName || `pxa-audit.${format}`),
   };
+}
+
+export async function getAdminRoles() {
+  return request(adminRolesBase);
+}
+
+export async function getAdminRole(roleKey, { page = 1, pageSize = 25 } = {}) {
+  const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+  return request(`${adminRolesBase}/${encodeURIComponent(roleKey)}?${query}`);
+}
+
+export async function assignAdminRoleMember(roleKey, userId) {
+  return adminMutation(`${adminRolesBase}/${encodeURIComponent(roleKey)}/members/${encodeURIComponent(userId)}`, 'PUT');
+}
+
+export async function revokeAdminRoleMember(roleKey, userId) {
+  const { token } = await request(`${authBase}/csrf`);
+  return request(`${adminRolesBase}/${encodeURIComponent(roleKey)}/members/${encodeURIComponent(userId)}`, {
+    method: 'DELETE', headers: { 'X-PXA-CSRF': token },
+  });
 }
 
 export async function getAdminMailStatus() {

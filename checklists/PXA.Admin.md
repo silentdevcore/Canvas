@@ -64,12 +64,12 @@ Current identity implementation:
 
 ## Roles And Policies
 
-- [ ] Provide System Administrator, Organization Administrator, Manager, Editor, and Viewer roles.
+- [x] Provide System Administrator, Organization Administrator, Manager, Editor, and Viewer roles.
 - [x] Define policies including `users.read`, `users.create`, `users.update`, `users.disable`, `roles.assign`, `subscriptions.read`, `subscriptions.manage`, `licenses.manage`, `audit.read`, `mail.read`, and `mail.manage`.
 - [x] Define separate `organizations.read` and `organizations.manage` policies for tenant administration.
 - [x] Keep roles independent from subscription and product entitlements.
 - [ ] Restrict System Administrator capabilities to explicitly authorized PXA operators.
-- [ ] Prevent administrators from removing their own last required administrative membership.
+- [x] Prevent administrators from changing their own active organization role or removing the last active Organization Administrator.
 - [ ] Audit every privileged role, permission, subscription, and license change.
 
 ## Admin API
@@ -100,6 +100,7 @@ Current identity implementation:
 - [x] Add service-account and API-key workflows that reveal a new secret only once.
 - [x] Add lifecycle and actor history to subscription detail views.
 - [x] Add an Audit workspace with server-side search, action/target/outcome/time filters, details, pagination, and export.
+- [x] Add a Roles & Permissions workspace with protected definitions, permission matrix, member details, assignment, and revocation.
 - [ ] Add audit history to user, organization, and license detail views.
 - [ ] Add explicit loading, empty, forbidden, offline, stale, failure, and destructive-confirmation states.
 - [ ] Prevent UI visibility rules from replacing server-side authorization.
@@ -139,6 +140,16 @@ Current organization administration implementation:
 - [x] Preserve System Administrator access while deriving organization roles only from the selected tenant.
 - [x] Add organization list and detail views with search, status filtering, creation, editing, membership management, and tenant switching.
 - [x] Persist audit events for organization creation/update and membership add/remove operations.
+
+Current role administration implementation:
+
+- [x] Expose only the four protected organization roles through stable route keys; keep System Administrator outside tenant assignment APIs.
+- [x] Return tenant-scoped member counts, paginated members, assignment actor, and grouped permission metadata.
+- [x] Display the complete role-permission matrix while keeping product entitlements explicitly separate.
+- [x] Assign and revoke roles only for memberships in the authenticated active organization.
+- [x] Reject self-role changes, foreign users, unknown roles, and removal of the last active Organization Administrator.
+- [x] Rotate the affected user's security stamp after every role change so stale claims cannot remain active.
+- [x] Audit role assignment and revocation with actor, role, target user, tenant, and outcome metadata.
 
 Current invitation and recovery implementation:
 
@@ -195,6 +206,7 @@ Current audit administration implementation:
 - [x] Test implemented subscription lifecycle, entitlement, seat, tenant, and audit workflows against PostgreSQL.
 - [x] Test license, service-account, API-key authentication/revocation, product enforcement, and usage workflows against PostgreSQL.
 - [x] Test audit filtering, details, anonymous rejection, cross-tenant isolation, Enterprise CSV/JSON export, and export auditing against PostgreSQL.
+- [x] Test protected role catalog, permission metadata, member counts, cross-tenant isolation, assignment, revocation, self-protection, and role audit events against PostgreSQL.
 - [ ] Verify that every privileged mutation creates an audit event.
 - [ ] Test keyboard navigation, focus management, screen-reader labels, and responsive layouts.
 - [ ] Run end-to-end tests for System Administrator and Organization Administrator journeys.
