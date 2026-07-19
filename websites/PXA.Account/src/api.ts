@@ -1,6 +1,8 @@
 const authBase = '/api/pxa/v1/auth';
 const accountProfileBase = '/api/pxa/v1/account/profile';
 const accountOrganizationBase = '/api/pxa/v1/account/organization';
+const accountSubscriptionBase = '/api/pxa/v1/account/subscription';
+const accountLicensesBase = '/api/pxa/v1/account/licenses';
 
 export interface OrganizationInfo {
   id: string;
@@ -66,6 +68,79 @@ export interface AccountOrganizationMemberResponse {
   membershipStatus: string;
   roles: string[];
   createdAt: string;
+}
+
+export interface AccountEntitlementResponse {
+  capability: string;
+  enabled: boolean;
+  limit: number | null;
+  unit: string | null;
+  expiresAt: string | null;
+}
+
+export interface AccountSubscriptionResponse {
+  id: string;
+  organizationName: string;
+  edition: string;
+  accountType: string;
+  status: string;
+  billingPeriod: string;
+  deploymentMode: string;
+  seatLimit: number | null;
+  assignedSeats: number;
+  startsAt: string;
+  currentPeriodStartsAt: string;
+  trialEndsAt: string | null;
+  currentPeriodEndsAt: string | null;
+  cancellationEffectiveAt: string | null;
+  gracePeriodEndsAt: string | null;
+  entitlements: AccountEntitlementResponse[];
+}
+
+export interface AccountSubscriptionSeatResponse {
+  membershipId: string;
+  userId: string;
+  displayName: string;
+  email: string;
+  membershipStatus: string;
+  assigned: boolean;
+}
+
+export interface AccountSubscriptionUsageItem {
+  capability: string;
+  operation: string;
+  quantity: number;
+  eventCount: number;
+  lastOccurredAt: string;
+}
+
+export interface AccountSubscriptionUsageResponse {
+  periodStartsAt: string;
+  periodEndsAt: string | null;
+  totalQuantity: number;
+  items: AccountSubscriptionUsageItem[];
+}
+
+export interface AccountLicenseResponse {
+  id: string;
+  licenseNumber: string;
+  edition: string;
+  deploymentMode: string;
+  status: string;
+  validFrom: string;
+  validUntil: string;
+  instanceLimit: number;
+  issuedAt: string;
+  revokedAt: string | null;
+  revocationReason: string | null;
+}
+
+export interface AccountLicenseValidationResponse {
+  valid: boolean;
+  status: string;
+  validFrom: string;
+  validUntil: string;
+  code: string;
 }
 
 export class ApiError extends Error {
@@ -168,3 +243,15 @@ export const updateAccountOrganizationMemberRoles = (userId: string, roles: stri
     `${accountOrganizationBase}/members/${encodeURIComponent(userId)}/roles`, { roles }, 'PUT');
 export const removeAccountOrganizationMember = (userId: string) =>
   mutation(`${accountOrganizationBase}/members/${encodeURIComponent(userId)}`, {}, 'DELETE');
+
+export const getAccountSubscription = () => request<AccountSubscriptionResponse>(accountSubscriptionBase);
+export const getAccountSubscriptionSeats = () =>
+  request<AccountSubscriptionSeatResponse[]>(`${accountSubscriptionBase}/seats`);
+export const getAccountSubscriptionUsage = () =>
+  request<AccountSubscriptionUsageResponse>(`${accountSubscriptionBase}/usage`);
+
+export const getAccountLicenses = () => request<AccountLicenseResponse[]>(accountLicensesBase);
+export const validateAccountLicense = (licenseId: string) =>
+  request<AccountLicenseValidationResponse>(`${accountLicensesBase}/${encodeURIComponent(licenseId)}/validate`);
+export const accountLicenseDownloadUrl = (licenseId: string) =>
+  `${accountLicensesBase}/${encodeURIComponent(licenseId)}/download`;

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Application.Subscriptions;
 using PXA.WebApi.Security;
 
 namespace PXA.WebApi.Controllers;
@@ -16,11 +17,16 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
 {
     private readonly PxaDbContext dbContext;
     private readonly IPxaTenantContext tenantContext;
+    private readonly SubscriptionQueryService queryService;
 
-    public AdminSubscriptionsController(PxaDbContext dbContext, IPxaTenantContext tenantContext)
+    public AdminSubscriptionsController(
+        PxaDbContext dbContext,
+        IPxaTenantContext tenantContext,
+        SubscriptionQueryService queryService)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
+        this.queryService = queryService;
     }
 
     [HttpGet]
@@ -238,24 +244,9 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             .SingleOrDefaultAsync(value => value.Id == subscriptionId, cancellationToken);
         if (subscription is null || !CanAccess(subscription.OrganizationId))
             return NotFound();
-        var seats = await (
-                from membership in dbContext.OrganizationMemberships.AsNoTracking()
-                join user in dbContext.Users.AsNoTracking() on membership.UserId equals user.Id
-                where membership.OrganizationId == subscription.OrganizationId &&
-                      membership.Status != OrganizationMembershipStatus.Removed
-                orderby user.DisplayName
-                select new AdminSubscriptionSeatResponse(
-                    membership.Id,
-                    user.Id,
-                    user.DisplayName,
-                    user.Email ?? string.Empty,
-                    membership.Status.ToString(),
-                    dbContext.SubscriptionSeatAssignments.Any(assignment =>
-                        assignment.SubscriptionId == subscriptionId &&
-                        assignment.OrganizationMembershipId == membership.Id &&
-                        assignment.RevokedAt == null)))
-            .ToListAsync(cancellationToken);
-        return Ok(seats);
+        var seats = await queryService.GetSeatsAsync(subscriptionId, subscription.OrganizationId, cancellationToken);
+        return Ok(seats.Select(seat => new AdminSubscriptionSeatResponse(
+            seat.MembershipId, seat.UserId, seat.DisplayName, seat.Email, seat.MembershipStatus, seat.Assigned)).ToArray());
     }
 
     [HttpGet("{subscriptionId:guid}/history")]
@@ -270,20 +261,10 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             .SingleOrDefaultAsync(cancellationToken);
         if (organizationId is null || !CanAccess(organizationId.Value))
             return NotFound();
-        return Ok(await (
-                from lifecycleEvent in dbContext.SubscriptionLifecycleEvents.AsNoTracking()
-                join actor in dbContext.Users.AsNoTracking() on lifecycleEvent.ActorUserId equals actor.Id
-                where lifecycleEvent.SubscriptionId == subscriptionId
-                orderby lifecycleEvent.CreatedAt descending
-                select new AdminSubscriptionHistoryResponse(
-                    lifecycleEvent.Id,
-                    lifecycleEvent.Action,
-                    lifecycleEvent.PreviousStatus == null ? null : lifecycleEvent.PreviousStatus.ToString(),
-                    lifecycleEvent.CurrentStatus.ToString(),
-                    lifecycleEvent.ActorUserId,
-                    actor.DisplayName,
-                    lifecycleEvent.CreatedAt))
-            .ToListAsync(cancellationToken));
+        var history = await queryService.GetHistoryAsync(subscriptionId, cancellationToken);
+        return Ok(history.Select(entry => new AdminSubscriptionHistoryResponse(
+            entry.Id, entry.Action, entry.PreviousStatus, entry.CurrentStatus,
+            entry.ActorUserId, entry.ActorName, entry.CreatedAt)).ToArray());
     }
 
     [HttpGet("{subscriptionId:guid}/usage")]
@@ -296,32 +277,13 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             .SingleOrDefaultAsync(value => value.Id == subscriptionId, cancellationToken);
         if (subscription is null || !CanAccess(subscription.OrganizationId))
             return NotFound();
-        var aggregates = await dbContext.SubscriptionUsageEvents.AsNoTracking()
-            .Where(value => value.SubscriptionId == subscriptionId &&
-                            value.OccurredAt >= subscription.CurrentPeriodStartsAt)
-            .GroupBy(value => new { value.Capability, value.Operation, value.Source })
-            .Select(group => new
-            {
-                group.Key.Capability,
-                group.Key.Operation,
-                group.Key.Source,
-                Quantity = group.Sum(value => value.Quantity),
-                EventCount = group.Count(),
-                LastOccurredAt = group.Max(value => value.OccurredAt),
-            })
-            .ToListAsync(cancellationToken);
-        var items = aggregates
-            .OrderBy(value => value.Capability)
-            .ThenBy(value => value.Operation)
-            .Select(value => new AdminSubscriptionUsageItem(
-                value.Capability, value.Operation, value.Source, value.Quantity,
-                value.EventCount, value.LastOccurredAt))
-            .ToArray();
+        var usage = await queryService.GetUsageAsync(subscriptionId, cancellationToken);
         return Ok(new AdminSubscriptionUsageResponse(
-            subscription.CurrentPeriodStartsAt,
-            subscription.CurrentPeriodEndsAt,
-            items.Sum(value => value.Quantity),
-            items));
+            usage.PeriodStartsAt,
+            usage.PeriodEndsAt,
+            usage.TotalQuantity,
+            usage.Items.Select(item => new AdminSubscriptionUsageItem(
+                item.Capability, item.Operation, item.Source, item.Quantity, item.EventCount, item.LastOccurredAt)).ToArray()));
     }
 
     [HttpPost("{subscriptionId:guid}/trial/extend")]
@@ -456,26 +418,19 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
 
     private async Task<AdminSubscriptionResponse?> BuildResponse(Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var subscription = await dbContext.OrganizationSubscriptions.AsNoTracking()
-            .SingleOrDefaultAsync(value => value.Id == subscriptionId, cancellationToken);
+        var subscription = await queryService.GetSubscriptionAsync(subscriptionId, cancellationToken);
         if (subscription is null)
             return null;
-        var organizationName = await dbContext.Organizations.Where(value => value.Id == subscription.OrganizationId)
-            .Select(value => value.Name).SingleAsync(cancellationToken);
-        var entitlements = await dbContext.SubscriptionEntitlements.AsNoTracking()
-            .Where(value => value.SubscriptionId == subscriptionId)
-            .OrderBy(value => value.Capability)
-            .Select(value => new AdminEntitlementResponse(
-                value.Capability, value.Enabled, value.Limit, value.Unit, value.Source.ToString(), value.ExpiresAt))
-            .ToListAsync(cancellationToken);
-        var assignedSeats = await dbContext.SubscriptionSeatAssignments.AsNoTracking()
-            .CountAsync(value => value.SubscriptionId == subscriptionId && value.RevokedAt == null, cancellationToken);
         return new AdminSubscriptionResponse(
-            subscription.Id, subscription.OrganizationId, organizationName, subscription.Edition.ToString(),
-            subscription.AccountType.ToString(), subscription.Status.ToString(), subscription.BillingPeriod.ToString(),
-            subscription.DeploymentMode.ToString(), subscription.SeatLimit, assignedSeats, subscription.StartsAt,
-            subscription.CurrentPeriodStartsAt, subscription.TrialEndsAt, subscription.CurrentPeriodEndsAt, subscription.CancellationEffectiveAt,
-            subscription.GracePeriodEndsAt, entitlements, subscription.CreatedAt, subscription.UpdatedAt);
+            subscription.Id, subscription.OrganizationId, subscription.OrganizationName, subscription.Edition,
+            subscription.AccountType, subscription.Status, subscription.BillingPeriod,
+            subscription.DeploymentMode, subscription.SeatLimit, subscription.AssignedSeats, subscription.StartsAt,
+            subscription.CurrentPeriodStartsAt, subscription.TrialEndsAt, subscription.CurrentPeriodEndsAt,
+            subscription.CancellationEffectiveAt, subscription.GracePeriodEndsAt,
+            subscription.Entitlements.Select(entitlement => new AdminEntitlementResponse(
+                entitlement.Capability, entitlement.Enabled, entitlement.Limit, entitlement.Unit,
+                entitlement.Source, entitlement.ExpiresAt)).ToArray(),
+            subscription.CreatedAt, subscription.UpdatedAt);
     }
 
     private bool CanAccess(Guid organizationId) => IsSystemAdministrator() || tenantContext.OrganizationId == organizationId;

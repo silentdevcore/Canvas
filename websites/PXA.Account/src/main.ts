@@ -17,7 +17,7 @@ import type { UserInfo } from './api';
 import { bindShellEvents, closeAccountNavigation, navigation, renderShell } from './shell';
 import { dashboardPage } from './pages/dashboard';
 import { developerAccessPage } from './pages/developerAccess';
-import { licensesPage } from './pages/licenses';
+import { bindLicensesEvents, licensesPage } from './pages/licenses';
 import { bindOrganizationEvents, organizationPage } from './pages/organization';
 import { bindProfileEvents, profilePage } from './pages/profile';
 import { securityPage } from './pages/security';
@@ -40,7 +40,7 @@ const portalPages: Record<string, PortalPage> = {
   '/organization': { render: organizationPage, bind: bindOrganizationEvents, title: 'Organization' },
   '/subscription': { render: subscriptionPage, title: 'Subscription' },
   '/usage': { render: usagePage, title: 'Usage' },
-  '/licenses': { render: licensesPage, title: 'Licenses' },
+  '/licenses': { render: licensesPage, bind: bindLicensesEvents, title: 'Licenses' },
   '/developer-access': { render: developerAccessPage, title: 'Developer access' },
   '/security': { render: securityPage, title: 'Security' },
   '/support': { render: supportPage, title: 'Support' },

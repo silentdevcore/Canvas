@@ -262,15 +262,29 @@ time.
 
 ## Phase 6 — Subscription, usage, licenses (read views)
 
-- [ ] `PXA.WebApi/Application/Subscriptions/SubscriptionQueryService.cs`
-      shared read logic.
-- [ ] `AccountSubscriptionController.cs` / `AccountLicensesController.cs`,
-      scoped by construction to `tenantContext.OrganizationId` (no id route
-      parameter).
-- [ ] Customer-safe response DTOs (not reused verbatim from Admin's DTOs).
-- [ ] `tests/PXA.Api.Tests/AccountSubscriptionControllerTests.cs`,
-      `AccountLicensesControllerTests.cs`.
-- [ ] Closes: Customer Portal → "Show edition... seats, limits, current
+- [x] `PXA.WebApi/Application/Subscriptions/SubscriptionQueryService.cs`
+      shared read logic (subscription+entitlements, seats, lifecycle
+      history, usage aggregation). `AdminSubscriptionsController` refactored
+      to call it (existing test stays green, regression-verified) — same
+      pattern as Phase 5's `OrganizationMembershipService`.
+- [x] `AccountSubscriptionController.cs` (`GET`/`/seats`/`/history`/`/usage`)
+      and `AccountLicensesController.cs` (`GET`/`/{id}`/`/{id}/download`/
+      `/{id}/validate`), both scoped by construction to
+      `tenantContext.OrganizationId` (no id route parameter). Licenses kept
+      as its own self-contained query, no shared-service extraction — no
+      correctness-critical invariant to protect from drift there.
+- [x] Customer-safe response DTOs: drop entitlement `Source`, usage `Source`,
+      and raw `ActorUserId` (fine for an operator, not load-bearing for a
+      customer) — not reused verbatim from Admin's DTOs.
+- [x] `tests/PXA.Api.Tests/AccountSubscriptionAndLicensesControllerTests.cs`
+      (3 tests): subscription/seats/history/usage for the caller's own
+      Trial; unauthenticated 401; license cross-tenant isolation (404 for a
+      license id belonging to another org) using a real signed license
+      (resolved `IPxaLicenseSigningService` directly from the existing
+      `App_Data/licensing/*.pem` keys, no test-only key infra needed).
+- [x] Frontend: real `pages/subscription.ts`, `pages/usage.ts`,
+      `pages/licenses.ts` (inline validate button + native download link).
+- [x] Closes: Customer Portal → "Show edition... seats, limits, current
       usage" and "Show offline licenses..." bullets.
 
 ## Phase 7 — Developer access + security sessions
