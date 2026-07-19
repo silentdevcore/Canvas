@@ -29,6 +29,7 @@ public sealed class PxaDbContext
     public DbSet<ServiceAccount> ServiceAccounts => Set<ServiceAccount>();
     public DbSet<ApiKey> ApiKeys => Set<ApiKey>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
+    public DbSet<AccountClosureRequest> AccountClosureRequests => Set<AccountClosureRequest>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -52,6 +53,8 @@ public sealed class PxaDbContext
         {
             user.Property(value => value.DisplayName).HasMaxLength(200).IsRequired();
             user.Property(value => value.PendingEmail).HasMaxLength(320);
+            user.Property(value => value.Locale).HasMaxLength(16).IsRequired();
+            user.Property(value => value.Country).HasMaxLength(2);
             user.Property(value => value.CreatedAt).IsRequired();
             user.Property(value => value.UpdatedAt).IsRequired();
         });

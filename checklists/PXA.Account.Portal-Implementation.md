@@ -1,0 +1,213 @@
+# PXA Account — Customer Portal & Remaining Checklist Implementation
+
+Tracking checklist for closing every remaining unchecked item in
+[PXA.Account.md](PXA.Account.md). That checklist defines the *what*; this one
+tracks the *how*, phased so each step is independently shippable with green
+tests. Branch: `pxa-account-all-open-points`.
+
+## Goal & approach
+
+`PXA.Account.md` has registration, verification, and Trial creation done and
+integration-tested. Everything downstream of login — the Customer Portal
+(profile, organization/members, subscription, usage, licenses, developer
+access, security sessions, closure), the canonical `/api/pxa/v1/account/*`
+API surface, `returnUrl` handling, and most tests — is unbuilt.
+`websites/PXA.Admin` and its `Admin*Controller`s already implement almost
+every Customer Portal capability system-wide. Strategy: **extract shared
+logic into services once, mirror it into a tenant-scoped `Account*Controller`,
+and have the Admin controller call the same service** — never duplicate
+last-owner-protection, one-time-secret, or session-revocation logic a second
+time.
+
+## Judgment calls (recorded, not re-litigated per phase)
+
+1. Application-service layer lives in `PXA.WebApi/Application/`, not
+   `src/Core/PXA.Application` (the latter has zero Identity/EF/Mail coupling
+   today).
+2. One extended `PxaApiProblems` registry (new `PXAAPI009`–`014` constants),
+   not a second class.
+3. New `PxaAccountPermissions` policy set, mapped from the same org-scoped
+   role claims Admin already uses.
+4. `returnUrl` validation is frontend-only (`websites/shared/returnUrl.js`) —
+   no backend redirect surface exists or should be created.
+5. Account's portal shell mirrors Admin's shape but does not import a shared
+   runtime module — only pure/stateless code is actually shared.
+6. `websites/PXA.Account/src/main.js` splits into a router + per-page modules
+   from day one, not a single ~2000-line file.
+7. Login states: "verification-required" gets its own code; "administratively
+   disabled" stays folded into generic invalid-credentials; "suspended" is a
+   dashboard banner, not a login-blocking branch.
+8. Localization scope = mail-template-body only (locale-keyed variant with
+   English fallback), not a locale-aware URL/router scheme.
+9. Account closure implements request/cancel only; an automated purge
+   executor is explicitly out of scope for this pass.
+10. New rate-limit policy added only for service-account/API-key creation —
+    the one genuinely new abuse vector customer self-service introduces.
+
+## Phase 0 — Schema & cross-cutting infrastructure
+
+- [x] Add `Locale`/`Country` columns to `PxaIdentityUser` + EF migration
+      (`20260719162518_AddAccountLocaleCountryAndClosureRequests`).
+- [x] New `AccountClosureRequest` entity + `DbSet` on `PxaDbContext` + migration
+      (same migration as above; table `administration.account_closure_requests`).
+- [x] Extend `PxaApiProblems.cs`: fixed `ResolveCode` missing `423 Locked` case;
+      added `AccountLocked`, `VerificationRequired`, `TrialAlreadyClaimed`,
+      `OrganizationSlugUnavailable`, `LastOwnerProtected`, `ClosureConflict`
+      (`PXAAPI009`–`014`).
+- [x] New `PxaAccountPermissions.cs` + role mapping in `PxaRoles.cs`
+      (OrganizationAdministrator/Manager/Editor/Viewer each get an appropriate
+      subset; Editor/Viewer now carry the self-scoped Account permissions every
+      member needs) + registration loop in `Program.cs`.
+- [x] Unit tests: `PxaApiProblemsTests.cs` (new) + `PxaSecurityContractsTests.cs`
+      (extended — Admin/Account permission vocabularies verified disjoint,
+      every `PxaAccountPermissions` entry verified mapped to a role). 15 tests
+      green with `dotnet test --filter PxaSecurityContractsTests|PxaApiProblemsTests`;
+      `AdminMutationContractTests` regression-checked, still passes.
+
+## Phase 1 — Application-service extraction for registration/Trial
+
+- [ ] `PXA.WebApi/Application/Identity/RegistrationValidation.cs` (pure,
+      unit-testable) extracted from `AccountRegistrationController.Register`.
+- [ ] `CustomerRegistrationService.cs` + `TrialActivationService.cs` — own the
+      transaction, entity writes, token issue, mail enqueue.
+- [ ] `AccountRegistrationController` becomes thin (parse → service → map result).
+- [ ] `tests/PXA.Api.Tests/RegistrationValidationTests.cs` (no database).
+- [ ] Existing `AccountRegistrationControllerTests.cs` still green (regression check).
+- [ ] Closes: API-And-Data → "Use application services for registration and
+      Trial orchestration rather than controller-owned transactions."
+
+## Phase 2 — `returnUrl` validation + explicit auth-state UI
+
+- [ ] `websites/shared/returnUrl.js`: `sanitizeReturnUrl()` allowlisting
+      Designer/Demo/Documentation/Account origins only.
+- [ ] Wire into `websites/PXA.Account/src/main.js` login flow; silent fallback
+      to `/dashboard` on rejection.
+- [ ] `AuthController.Login`: distinct `403`/`VerificationRequired` response
+      for unconfirmed email (currently folded into generic invalid-credentials).
+- [ ] Adopt Admin's `pxa:session-expired`/`pxa:access-denied` CustomEvent
+      pattern in `websites/PXA.Account/src/api.js`.
+- [ ] New `POST /api/pxa/v1/auth/resend-verification` (enumeration-safe).
+- [ ] `websites/PXA.Account/tests/returnUrl.test.js`.
+- [ ] Closes: Customer Authentication → returnUrl + explicit state bullets.
+
+## Phase 3 — Customer Portal shell (frontend architecture)
+
+- [ ] `websites/PXA.Account/src/shell.js` (`renderShell`/`renderNavigation`/
+      `bindShellEvents`, Account-branded).
+- [ ] `websites/PXA.Account/src/pages/{dashboard,profile,organization,
+      subscription,licenses,developerAccess,security,support,closure}.js`.
+- [ ] Real dashboard data via existing `AccountEntitlementsController`.
+- [ ] `websites/PXA.Account/tests/accessibility-contract.test.js`.
+- [ ] Closes: Customer Portal → "Add dashboard... routes" (scaffold only;
+      per-resource pages close in Phases 4–8).
+
+## Phase 4 — Profile self-service
+
+- [ ] `AccountProfileController.cs` (`/api/pxa/v1/account/profile`): `GET`
+      self, `PATCH /display-name`, `PATCH /locale`, `POST /email-change/request`
+      (reuses existing `AuthController.ConfirmEmailChange` for confirm side),
+      `POST /password-change` (revokes other sessions).
+- [ ] Frontend `pages/profile.js` + `api.js` additions.
+- [ ] `tests/PXA.Api.Tests/AccountProfileControllerTests.cs`.
+- [ ] Closes: Customer Portal → "Let customers update display name, locale,
+      email, and password through verified flows."
+
+## Phase 5 — Organization & members
+
+- [ ] Extract `AdminOrganizationsController`'s member logic (incl.
+      `IsLastOrganizationAdministratorAsync`) into
+      `PXA.WebApi/Application/Organizations/OrganizationMembershipService.cs`,
+      shared by Admin and Account.
+- [ ] `AccountOrganizationController.cs` (`/api/pxa/v1/account/organization`):
+      `GET`/`PATCH` org profile, `GET`/`POST /members`, `DELETE /members/{userId}`.
+- [ ] Role assignment restricted to customer-facing role allowlist (never
+      `System Administrator`).
+- [ ] `tests/PXA.Api.Tests/AccountOrganizationControllerTests.cs` incl.
+      last-owner-protection and cross-tenant 404 cases.
+- [ ] Closes: Customer Portal → invite/remove/assign roles + last-owner
+      protection bullets.
+
+## Phase 6 — Subscription, usage, licenses (read views)
+
+- [ ] `PXA.WebApi/Application/Subscriptions/SubscriptionQueryService.cs`
+      shared read logic.
+- [ ] `AccountSubscriptionController.cs` / `AccountLicensesController.cs`,
+      scoped by construction to `tenantContext.OrganizationId` (no id route
+      parameter).
+- [ ] Customer-safe response DTOs (not reused verbatim from Admin's DTOs).
+- [ ] `tests/PXA.Api.Tests/AccountSubscriptionControllerTests.cs`,
+      `AccountLicensesControllerTests.cs`.
+- [ ] Closes: Customer Portal → "Show edition... seats, limits, current
+      usage" and "Show offline licenses..." bullets.
+
+## Phase 7 — Developer access + security sessions
+
+- [ ] `AccountServiceAccountsController.cs` mirroring
+      `AdminServiceAccountsController`'s one-time-secret pattern, org-scoped.
+- [ ] New rate-limit policy `"account-service-accounts"` (partitioned by
+      active-org claim).
+- [ ] `AccountSecurityController.cs` mirroring `AdminUsersController`
+      session list/revoke, scoped to self only.
+- [ ] `tests/PXA.Api.Tests/AccountServiceAccountsControllerTests.cs`,
+      `AccountSecurityControllerTests.cs`.
+- [ ] Closes: Customer Portal → developer-access and sessions bullets.
+
+## Phase 8 — Account & organization closure requests
+
+- [ ] `AccountClosureController.cs`: `POST /account`, `POST /organization`
+      (owner-only), `POST /{requestId}/cancel`.
+- [ ] Config-driven retention window.
+- [ ] `tests/PXA.Api.Tests/AccountClosureControllerTests.cs`.
+- [ ] Closes: Customer Portal → "Provide account closure and organization
+      closure requests with retention-safe workflows."
+
+## Phase 9 — Mail: notifications, Trial-expiry, localization, newsletter
+
+- [ ] Enqueue `identity.new-login`, `identity.lockout`,
+      `identity.credential-changed` at their respective call sites.
+- [ ] `TrialExpiryNotificationService.cs` — verify `PxaMailProcessor`'s
+      hosting model first before adding a new hosted service.
+- [ ] `RegisterAccountRequest.SubscribeToNewsletter` (optional, unchecked by
+      default, stored separately from required transactional mail).
+- [ ] Locale-keyed template variants (`{templateKey}.{locale}` + English
+      fallback) using Phase 0's `Locale` column.
+- [ ] Closes: all four remaining Mail bullets.
+
+## Phase 10 — Company integration: campaign attribution
+
+- [ ] Allowlisted `utm_source`/`utm_medium`/`utm_campaign` passthrough,
+      Company → Account registration link → `RegisterAccountRequest.
+      CampaignContext` → re-validated server-side → stored only in
+      `AuditEvent.DetailsJson`.
+- [ ] `AccountRegistrationControllerTests.cs` case: non-allowlisted key dropped.
+- [ ] Closes: Company Integration → campaign attribution bullet. (Pricing/Trial
+      copy stays deferred — not in scope.)
+
+## Phase 11 — Cross-cutting hardening: audit & logging
+
+- [ ] `[PxaAuditedMutation]` on every mutation endpoint added in Phases 4–8.
+- [ ] `tests/PXA.Api.Tests/AccountMutationContractTests.cs` (reflection
+      contract, sibling to `AdminMutationContractTests.cs`).
+- [ ] Logging sweep of new code for raw secret/token/password leakage.
+- [ ] Closes: Security-And-Privacy → remaining audit + structured-logging bullets.
+
+## Phase 12 — Final test-matrix consolidation
+
+- [ ] `RegistrationConflictTests.cs`: Individual Developer path, duplicate
+      org slug, repeated Trial, concurrent same-email registration race.
+- [ ] `CrossTenantAccessMatrixTests.cs`: table-driven sweep across every
+      Phase 4–8 endpoint.
+- [ ] Company→Account return-flow DOM-level test.
+- [ ] Build+smoke check for `websites/PXA.Account`.
+- [ ] Re-read `PXA.Account.md` top to bottom; confirm every box checked
+      except the four Deferred Decisions and the deferred pricing-copy line.
+
+## Notes
+
+- Reuse rather than duplicate: `AdminOrganizationsController`,
+  `AdminSubscriptionsController`, `AdminLicensesController`,
+  `AdminServiceAccountsController`, `AdminUsersController` are the extraction
+  sources for Phases 5–7.
+- Shared infra reused as-is: `IPxaTenantContext`, `PxaValidateAntiforgeryAttribute`,
+  existing rate-limit policies (`"registration"`, `"identity-action"`,
+  `"invitations"`), `IPxaMailQueue.Enqueue(...)`.

@@ -1,5 +1,8 @@
 # PXA Account Checklist
 
+> Implementation plan and phase tracking for all remaining open items:
+> [PXA.Account.Portal-Implementation.md](PXA.Account.Portal-Implementation.md).
+
 ## Goal
 
 Deliver a standalone customer identity and self-service portal for registration, sign-in, Trial activation, organizations, subscriptions, usage, licenses, and developer access. PXA Account is separate from both the public Company website and privileged PXA Admin.

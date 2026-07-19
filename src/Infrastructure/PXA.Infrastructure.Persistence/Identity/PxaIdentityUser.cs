@@ -10,4 +10,6 @@ public sealed class PxaIdentityUser : IdentityUser<Guid>
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? LastLoginAt { get; set; }
     public string? PendingEmail { get; set; }
+    public string Locale { get; set; } = "en";
+    public string? Country { get; set; }
 }

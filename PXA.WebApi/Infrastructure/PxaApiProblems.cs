@@ -12,6 +12,12 @@ public static class PxaApiProblems
     public const string Conflict = "PXAAPI006";
     public const string RateLimited = "PXAAPI007";
     public const string InvalidCsrf = "PXAAPI008";
+    public const string AccountLocked = "PXAAPI009";
+    public const string VerificationRequired = "PXAAPI010";
+    public const string TrialAlreadyClaimed = "PXAAPI011";
+    public const string OrganizationSlugUnavailable = "PXAAPI012";
+    public const string LastOwnerProtected = "PXAAPI013";
+    public const string ClosureConflict = "PXAAPI014";
 
     public static ProblemDetails Create(
         HttpContext context,
@@ -60,6 +66,7 @@ public static class PxaApiProblems
             StatusCodes.Status403Forbidden => PermissionDenied,
             StatusCodes.Status404NotFound => ResourceNotFound,
             StatusCodes.Status409Conflict => Conflict,
+            StatusCodes.Status423Locked => AccountLocked,
             StatusCodes.Status429TooManyRequests => RateLimited,
             _ => InvalidRequest,
         };

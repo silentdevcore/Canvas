@@ -40,18 +40,42 @@ public sealed class PxaSecurityContractsTests
     [Fact]
     public void Built_in_roles_use_only_registered_permissions_and_keep_commercial_access_separate()
     {
-        var registeredPermissions = PxaPermissions.All.ToHashSet(StringComparer.Ordinal);
+        var registeredPermissions = PxaPermissions.All
+            .Concat(PxaAccountPermissions.All)
+            .ToHashSet(StringComparer.Ordinal);
         foreach (var permission in PxaRoles.Permissions.SelectMany(value => value.Value))
             Assert.Contains(permission, registeredPermissions);
 
         Assert.Equal(
-            registeredPermissions.Order(StringComparer.Ordinal),
+            PxaPermissions.All.ToHashSet(StringComparer.Ordinal).Order(StringComparer.Ordinal),
             PxaRoles.Permissions[PxaRoles.SystemAdministrator].Order(StringComparer.Ordinal));
         Assert.Contains(PxaPermissions.SubscriptionsRead,
             PxaRoles.Permissions[PxaRoles.OrganizationAdministrator]);
         Assert.DoesNotContain(PxaPermissions.SubscriptionsManage,
             PxaRoles.Permissions[PxaRoles.OrganizationAdministrator]);
-        Assert.Empty(PxaRoles.Permissions[PxaRoles.Editor]);
-        Assert.Empty(PxaRoles.Permissions[PxaRoles.Viewer]);
+
+        // Editor/Viewer are customer-facing member roles: no Admin-app permissions,
+        // but they do get the self-scoped Account permissions every member needs.
+        Assert.DoesNotContain(PxaRoles.Permissions[PxaRoles.Editor], PxaPermissions.All.Contains);
+        Assert.DoesNotContain(PxaRoles.Permissions[PxaRoles.Viewer], PxaPermissions.All.Contains);
+        Assert.Contains(PxaAccountPermissions.ProfileManage, PxaRoles.Permissions[PxaRoles.Editor]);
+        Assert.Contains(PxaAccountPermissions.ProfileManage, PxaRoles.Permissions[PxaRoles.Viewer]);
+        Assert.DoesNotContain(PxaAccountPermissions.MembersInvite, PxaRoles.Permissions[PxaRoles.Editor]);
+        Assert.DoesNotContain(PxaAccountPermissions.MembersInvite, PxaRoles.Permissions[PxaRoles.Viewer]);
+    }
+
+    [Fact]
+    public void Account_permissions_are_all_registered_and_mapped_to_at_least_one_role()
+    {
+        var mappedPermissions = PxaRoles.Permissions.SelectMany(value => value.Value).ToHashSet(StringComparer.Ordinal);
+        foreach (var permission in PxaAccountPermissions.All)
+            Assert.Contains(permission, mappedPermissions);
+
+        // The privileged System Administrator vocabulary and the customer Account
+        // vocabulary must not overlap, so Admin authorization can never be satisfied
+        // by an Account-only permission claim (checklist: keep customer authorization
+        // separate from System Administrator access).
+        Assert.Empty(PxaAccountPermissions.All.ToHashSet(StringComparer.Ordinal)
+            .Intersect(PxaPermissions.All, StringComparer.Ordinal));
     }
 }
