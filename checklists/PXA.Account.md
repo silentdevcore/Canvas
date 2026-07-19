@@ -69,7 +69,7 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 - [ ] Add canonical customer endpoints under `/api/pxa/v1/account`.
 - [x] Add registration endpoints under `/api/pxa/v1/auth/register` and `/verify-email`.
-- [ ] Use application services for registration and Trial orchestration rather than controller-owned transactions.
+- [x] Use application services for registration and Trial orchestration rather than controller-owned transactions.
 - [x] Keep account type, application roles, subscription edition, and product entitlements as separate concepts.
 - [ ] Resolve organization scope from the authenticated server context after login.
 - [ ] Return stable Account-specific Problem Details codes for validation, conflicts, authentication, authorization, and lifecycle failures.

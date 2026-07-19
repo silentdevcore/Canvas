@@ -11,6 +11,7 @@ using PXA.FileImporter.ImageAnalysis;
 using PXA.FileImporter.ImageOcr;
 using PXA.Infrastructure.Persistence;
 using PXA.Pdf;
+using PXA.WebApi.Application.Identity;
 using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
@@ -148,6 +149,8 @@ builder.Services.AddOptions<PxaMailOptions>()
         "SMTP host, port, or timeout is invalid.")
     .ValidateOnStart();
 builder.Services.AddScoped<IdentityActionTokenService>();
+builder.Services.AddScoped<TrialActivationService>();
+builder.Services.AddScoped<CustomerRegistrationService>();
 builder.Services.AddScoped<IPxaMailQueue, PxaMailQueue>();
 builder.Services.AddScoped<PxaMailProcessor>();
 builder.Services.AddSingleton<DevelopmentMailTransport>();

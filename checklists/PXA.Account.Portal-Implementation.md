@@ -66,14 +66,22 @@ time.
 
 ## Phase 1 — Application-service extraction for registration/Trial
 
-- [ ] `PXA.WebApi/Application/Identity/RegistrationValidation.cs` (pure,
+- [x] `PXA.WebApi/Application/Identity/RegistrationValidation.cs` (pure,
       unit-testable) extracted from `AccountRegistrationController.Register`.
-- [ ] `CustomerRegistrationService.cs` + `TrialActivationService.cs` — own the
-      transaction, entity writes, token issue, mail enqueue.
-- [ ] `AccountRegistrationController` becomes thin (parse → service → map result).
-- [ ] `tests/PXA.Api.Tests/RegistrationValidationTests.cs` (no database).
-- [ ] Existing `AccountRegistrationControllerTests.cs` still green (regression check).
-- [ ] Closes: API-And-Data → "Use application services for registration and
+      Request/response DTOs moved alongside it into
+      `CustomerRegistrationContracts.cs` so the Application layer owns its
+      own contracts instead of depending on the Controllers namespace.
+- [x] `CustomerRegistrationService.cs` + `TrialActivationService.cs` — own the
+      transaction, entity writes, token issue, mail enqueue. Registration now
+      also persists `user.Locale`/`user.Country` (previously only written to
+      `AuditEvent.DetailsJson`), using the Phase 0 columns.
+- [x] `AccountRegistrationController` reduced from ~250 lines to a thin
+      parse → service → map-result mapper (56 lines).
+- [x] `tests/PXA.Api.Tests/RegistrationValidationTests.cs` (12 tests, no database).
+- [x] Existing `AccountRegistrationControllerTests.cs`,
+      `AuthControllerTests`, `IdentityMailFlowTests` still green against real
+      Postgres (`PXA_RUN_POSTGRES_TESTS=1`) — refactor is behavior-preserving.
+- [x] Closes: API-And-Data → "Use application services for registration and
       Trial orchestration rather than controller-owned transactions."
 
 ## Phase 2 — `returnUrl` validation + explicit auth-state UI
