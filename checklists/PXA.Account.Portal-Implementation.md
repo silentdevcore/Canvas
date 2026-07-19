@@ -289,15 +289,35 @@ time.
 
 ## Phase 7 — Developer access + security sessions
 
-- [ ] `AccountServiceAccountsController.cs` mirroring
-      `AdminServiceAccountsController`'s one-time-secret pattern, org-scoped.
-- [ ] New rate-limit policy `"account-service-accounts"` (partitioned by
-      active-org claim).
-- [ ] `AccountSecurityController.cs` mirroring `AdminUsersController`
-      session list/revoke, scoped to self only.
-- [ ] `tests/PXA.Api.Tests/AccountServiceAccountsControllerTests.cs`,
-      `AccountSecurityControllerTests.cs`.
-- [ ] Closes: Customer Portal → developer-access and sessions bullets.
+- [x] `AccountServiceAccountsController.cs` mirroring
+      `AdminServiceAccountsController`'s one-time-secret pattern almost
+      verbatim — that controller was already org-scoped by construction with
+      no cross-tenant admin branch at all, so no behavior stripping was
+      needed, just a new route/permissions/audit-action-name set. Kept as
+      its own controller rather than a shared service extraction (same
+      reasoning as Phase 6's licenses: no correctness-critical invariant to
+      protect from drift).
+- [x] New rate-limit policy `"account-service-accounts"` (partitioned by
+      active-org claim, 10/hour), applied to `Create`/`CreateKey` only.
+- [x] `AccountSecurityController.cs` mirroring `AdminUsersController`
+      session list/revoke, scoped to self only (`tenantContext.UserId`, no
+      `userId` route parameter — eliminates cross-user session access by
+      construction). Single-session revoke allows revoking your own current
+      session (matches Admin's behavior; the next request 401s via the
+      existing `PxaCookieAuthenticationEvents` revocation check).
+- [x] `tests/PXA.Api.Tests/AccountServiceAccountsAndSecurityControllerTests.cs`
+      (4 tests): one-time-secret revealed exactly once and never returned by
+      a subsequent list call; service-account cross-tenant isolation
+      (zero visibility + 404 on revoke); session list marks the current
+      session and revoke-all preserves it while the other client 401s on
+      its next request; unauthenticated 401.
+- [x] Frontend: `api.ts` additions for both resource groups; real
+      `pages/developerAccess.ts` (service-account/key management, one-time
+      secret shown inline with a "won't be shown again" notice, cleared once
+      the key is revoked) and `pages/security.ts` (session table, per-session
+      sign-out, "sign out all other sessions"). Type-check/unit tests/build
+      all clean.
+- [x] Closes: Customer Portal → developer-access and sessions bullets.
 
 ## Phase 8 — Account & organization closure requests
 

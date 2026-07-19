@@ -3,6 +3,8 @@ const accountProfileBase = '/api/pxa/v1/account/profile';
 const accountOrganizationBase = '/api/pxa/v1/account/organization';
 const accountSubscriptionBase = '/api/pxa/v1/account/subscription';
 const accountLicensesBase = '/api/pxa/v1/account/licenses';
+const accountServiceAccountsBase = '/api/pxa/v1/account/service-accounts';
+const accountSecurityBase = '/api/pxa/v1/account/security';
 
 export interface OrganizationInfo {
   id: string;
@@ -143,6 +145,45 @@ export interface AccountLicenseValidationResponse {
   code: string;
 }
 
+export interface AccountApiKeyResponse {
+  id: string;
+  serviceAccountId: string;
+  name: string;
+  prefix: string;
+  expiresAt: string | null;
+  lastUsedAt: string | null;
+  createdAt: string;
+  revokedAt: string | null;
+}
+
+export interface AccountServiceAccountResponse {
+  id: string;
+  name: string;
+  isActive: boolean;
+  createdAt: string;
+  revokedAt: string | null;
+  keys: AccountApiKeyResponse[];
+}
+
+export interface CreateAccountApiKeyResponse extends AccountApiKeyResponse {
+  secret: string;
+}
+
+export interface AccountSessionResponse {
+  id: string;
+  userAgent: string;
+  createdAt: string;
+  lastSeenAt: string;
+  expiresAt: string;
+  revokedAt: string | null;
+  isCurrent: boolean;
+  isActive: boolean;
+}
+
+export interface AccountRevokeSessionsResponse {
+  revokedCount: number;
+}
+
 export class ApiError extends Error {
   status?: number;
   body?: unknown;
@@ -255,3 +296,21 @@ export const validateAccountLicense = (licenseId: string) =>
   request<AccountLicenseValidationResponse>(`${accountLicensesBase}/${encodeURIComponent(licenseId)}/validate`);
 export const accountLicenseDownloadUrl = (licenseId: string) =>
   `${accountLicensesBase}/${encodeURIComponent(licenseId)}/download`;
+
+export const getAccountServiceAccounts = () =>
+  request<AccountServiceAccountResponse[]>(accountServiceAccountsBase);
+export const createAccountServiceAccount = (name: string) =>
+  mutation<AccountServiceAccountResponse>(accountServiceAccountsBase, { name });
+export const createAccountApiKey = (serviceAccountId: string, name: string, expiresAt: string | null) =>
+  mutation<CreateAccountApiKeyResponse>(
+    `${accountServiceAccountsBase}/${encodeURIComponent(serviceAccountId)}/keys`, { name, expiresAt });
+export const revokeAccountApiKey = (serviceAccountId: string, keyId: string) =>
+  mutation(`${accountServiceAccountsBase}/${encodeURIComponent(serviceAccountId)}/keys/${encodeURIComponent(keyId)}/revoke`, {});
+export const revokeAccountServiceAccount = (serviceAccountId: string) =>
+  mutation(`${accountServiceAccountsBase}/${encodeURIComponent(serviceAccountId)}/revoke`, {});
+
+export const getAccountSessions = () => request<AccountSessionResponse[]>(`${accountSecurityBase}/sessions`);
+export const revokeAccountSession = (sessionId: string) =>
+  mutation(`${accountSecurityBase}/sessions/${encodeURIComponent(sessionId)}/revoke`, {});
+export const revokeAllAccountSessions = () =>
+  mutation<AccountRevokeSessionsResponse>(`${accountSecurityBase}/sessions/revoke-all`, {});

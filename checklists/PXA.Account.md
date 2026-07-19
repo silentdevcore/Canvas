@@ -53,8 +53,8 @@ Deliver a standalone customer identity and self-service portal for registration,
 - [x] Prevent removal of the last owner or organization administrator.
 - [x] Show edition, Trial/renewal/expiry dates, products, seats, limits, and current usage.
 - [x] Show offline licenses and customer-safe validation/download metadata.
-- [ ] Create and revoke customer-owned service accounts and API keys with one-time secret display.
-- [ ] List and revoke active browser sessions.
+- [x] Create and revoke customer-owned service accounts and API keys with one-time secret display.
+- [x] List and revoke active browser sessions.
 - [ ] Provide account closure and organization closure requests with retention-safe workflows.
 
 ## Company Integration

@@ -46,7 +46,7 @@ public sealed partial class AccountMutationContractTests
             .ThenBy(value => value.Method.Name, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(8, mutations.Length);
+        Assert.Equal(14, mutations.Length);
         foreach (var mutation in mutations)
         {
             var displayName = $"{mutation.Controller.Name}.{mutation.Method.Name}";

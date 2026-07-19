@@ -16,11 +16,11 @@ import {
 import type { UserInfo } from './api';
 import { bindShellEvents, closeAccountNavigation, navigation, renderShell } from './shell';
 import { dashboardPage } from './pages/dashboard';
-import { developerAccessPage } from './pages/developerAccess';
+import { bindDeveloperAccessEvents, developerAccessPage } from './pages/developerAccess';
 import { bindLicensesEvents, licensesPage } from './pages/licenses';
 import { bindOrganizationEvents, organizationPage } from './pages/organization';
 import { bindProfileEvents, profilePage } from './pages/profile';
-import { securityPage } from './pages/security';
+import { bindSecurityEvents, securityPage } from './pages/security';
 import { subscriptionPage } from './pages/subscription';
 import { supportPage } from './pages/support';
 import { usagePage } from './pages/usage';
@@ -41,8 +41,8 @@ const portalPages: Record<string, PortalPage> = {
   '/subscription': { render: subscriptionPage, title: 'Subscription' },
   '/usage': { render: usagePage, title: 'Usage' },
   '/licenses': { render: licensesPage, bind: bindLicensesEvents, title: 'Licenses' },
-  '/developer-access': { render: developerAccessPage, title: 'Developer access' },
-  '/security': { render: securityPage, title: 'Security' },
+  '/developer-access': { render: developerAccessPage, bind: bindDeveloperAccessEvents, title: 'Developer access' },
+  '/security': { render: securityPage, bind: bindSecurityEvents, title: 'Security' },
   '/support': { render: supportPage, title: 'Support' },
 };
 const portalPaths = new Set(navigation.map((item) => item.path));
