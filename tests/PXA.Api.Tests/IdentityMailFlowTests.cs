@@ -110,6 +110,37 @@ public sealed class IdentityMailFlowTests
         await ProcessMailAsync(factory.Services);
         await LoginAsync(CreateClient(factory), "invited@pxa.test", "Pxa-Reset-Password-42!", HttpStatusCode.OK);
 
+        resetCsrf = await GetCsrfAsync(resetClient);
+        using var reuseReset = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/password-reset/confirm",
+            resetCsrf,
+            new { token = resetToken, newPassword = "Pxa-Reused-Password-42!" });
+        Assert.Equal(HttpStatusCode.BadRequest, (await resetClient.SendAsync(reuseReset)).StatusCode);
+
+        string expiredResetToken;
+        await using (var expiredTokenScope = factory.Services.CreateAsyncScope())
+        {
+            var tokens = expiredTokenScope.ServiceProvider.GetRequiredService<IdentityActionTokenService>();
+            var issued = await tokens.IssueAsync(
+                invitedUserId,
+                null,
+                "invited@pxa.test",
+                IdentityActionTokenService.PasswordResetPurpose,
+                new { },
+                TimeSpan.FromMinutes(-1),
+                CancellationToken.None);
+            expiredResetToken = issued.RawToken;
+            await expiredTokenScope.ServiceProvider.GetRequiredService<PxaDbContext>().SaveChangesAsync();
+        }
+        resetCsrf = await GetCsrfAsync(resetClient);
+        using var expiredReset = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/password-reset/confirm",
+            resetCsrf,
+            new { token = expiredResetToken, newPassword = "Pxa-Expired-Password-42!" });
+        Assert.Equal(HttpStatusCode.BadRequest, (await resetClient.SendAsync(expiredReset)).StatusCode);
+
         var mailPage = await adminClient.GetAsync("/api/pxa/v1/admin/mail?status=Delivered");
         Assert.Equal(HttpStatusCode.OK, mailPage.StatusCode);
         var mailJson = await mailPage.Content.ReadAsStringAsync();

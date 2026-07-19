@@ -24,8 +24,8 @@ Deliver a standalone, tenant-aware PXA administration application for users, org
 
 ## Dependencies
 
-- [ ] Use the subscription and entitlement model from `PXA.Subscription-Licensing.md`.
-- [ ] Use invitation, reset, and notification delivery from `PXA.Mail-Service.md`.
+- [x] Use the subscription and entitlement model from `PXA.Subscription-Licensing.md`.
+- [x] Use invitation, reset, and notification delivery from `PXA.Mail-Service.md`.
 - [ ] Integrate the Admin container with `PXA.Api-Docker.md` and the shared PXA Server bundle.
 - [x] Define the production database and migration strategy before replacing in-memory identity data.
 
@@ -78,9 +78,10 @@ Current identity implementation:
 - [x] Add paginated user listing with server-side search, filter, and sorting.
 - [x] Add user detail, invitation, creation, update, activation, deactivation, soft deletion, and bulk operations.
 - [x] Add password-reset initiation and active-session revocation without returning secret tokens.
-- [ ] Add organization, membership, role, and permission administration.
+- [x] Add organization, membership, role, and permission administration.
 - [x] Add subscription creation, tenant-scoped inspection, lifecycle changes, explicit entitlements, and seat assignment/revocation.
-- [ ] Add Trial extension, renewal workflow, usage inspection, and billing integration.
+- [x] Add Trial extension, renewal workflow, and usage inspection.
+- [ ] Add billing-provider integration after commercial provider selection.
 - [x] Add offline-license generation, revocation, validation, and download as audited actions; replacement remains future work.
 - [x] Add service-account and API-key creation, rotation through replacement keys, revocation, and last-used metadata.
 - [x] Add mail queue, delivery status, failure inspection, retry, and cancellation without exposing message bodies or secrets.
@@ -251,12 +252,12 @@ All deployment and operations tasks are intentionally deferred until the applica
 
 ## Tests
 
-- [ ] Unit-test identity, authorization policies, tenant resolution, and privileged application services.
+- [x] Unit-test identity, authorization policies, tenant resolution, and privileged application services.
 - [x] Integration-test the implemented user Admin endpoints against real PostgreSQL.
 - [x] Test user-list and detail cross-tenant isolation, CSRF enforcement, status changes, role assignment, last-administrator protection, and audit creation.
 - [x] Test organization scoping, System Administrator tenant switching, membership attachment, updates, and audit creation against PostgreSQL.
 - [x] Test cross-tenant access attempts and identifier tampering.
-- [ ] Test login, logout, invitation, verification, reset, lockout, expiry, and session revocation.
+- [x] Test login, logout, invitation, verification, reset, lockout, expiry, and session revocation.
 - [x] Test persistent login/logout sessions, cookie-to-session validation, tenant-scoped session inspection, and administrator revocation against PostgreSQL.
 - [x] Test profile updates, pending email verification, administrator password reset, soft deletion, restoration, bulk actions, user audit history, and cross-tenant rejection against PostgreSQL.
 - [x] Test implemented subscription lifecycle, entitlement, seat, tenant, and audit workflows against PostgreSQL.

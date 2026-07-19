@@ -25,24 +25,7 @@ public sealed class AuthControllerTests
         await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
         await postgres.StartAsync();
 
-        using var factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.UseEnvironment("Testing");
-                builder.ConfigureAppConfiguration((_, configuration) =>
-                {
-                    configuration.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["ConnectionStrings:PxaDatabase"] = postgres.GetConnectionString(),
-                    });
-                });
-                builder.ConfigureServices(services =>
-                {
-                    services.RemoveAll<DbContextOptions<PxaDbContext>>();
-                    services.AddDbContext<PxaDbContext>(options =>
-                        options.UseNpgsql(postgres.GetConnectionString()));
-                });
-            });
+        using var factory = CreateFactory(postgres.GetConnectionString());
 
         var userId = Guid.NewGuid();
         var organizationId = Guid.NewGuid();
@@ -162,10 +145,83 @@ public sealed class AuthControllerTests
             new { identifier = "new-admin@pxa.test", password = "Pxa-Integration-Password-42!" });
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(thirdLogin)).StatusCode);
 
+        await ExpireSessionsAsync(factory.Services, userId);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/pxa/v1/auth/me")).StatusCode);
+
+        var fourthCsrfResponse = await client.GetAsync("/api/pxa/v1/auth/csrf");
+        var fourthCsrf = await fourthCsrfResponse.Content.ReadFromJsonAsync<JsonElement>();
+        using var fourthLogin = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/login",
+            fourthCsrf.GetProperty("token").GetString()!,
+            new { identifier = "new-admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(fourthLogin)).StatusCode);
+
         await RevokeSessionsAsync(factory.Services, userId);
         var revokedSessionResponse = await client.GetAsync("/api/pxa/v1/auth/me");
         Assert.Equal(HttpStatusCode.Unauthorized, revokedSessionResponse.StatusCode);
     }
+
+    [PostgreSqlFact]
+    public async Task Repeated_invalid_passwords_lock_the_account_and_create_security_audit_events()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        var userId = Guid.NewGuid();
+        await SeedIdentityAsync(factory.Services, userId, Guid.NewGuid());
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false,
+            BaseAddress = new Uri("https://localhost"),
+            HandleCookies = true,
+        });
+
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            var csrf = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/auth/csrf");
+            using var invalidLogin = CreateCsrfRequest(
+                HttpMethod.Post,
+                "/api/pxa/v1/auth/login",
+                csrf.GetProperty("token").GetString()!,
+                new { identifier = "admin@pxa.test", password = $"Invalid-password-{attempt}!" });
+            Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(invalidLogin)).StatusCode);
+        }
+
+        var lockedCsrf = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/auth/csrf");
+        using var lockedLogin = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/login",
+            lockedCsrf.GetProperty("token").GetString()!,
+            new { identifier = "admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+        Assert.Equal(HttpStatusCode.Locked, (await client.SendAsync(lockedLogin)).StatusCode);
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var user = await dbContext.Users.SingleAsync(value => value.Id == userId);
+        Assert.True(user.LockoutEnd > DateTimeOffset.UtcNow);
+        Assert.Contains("security.login.lockout",
+            await dbContext.AuditEvents.Select(value => value.Action).ToListAsync());
+        Assert.Contains("security.login.locked",
+            await dbContext.AuditEvents.Select(value => value.Action).ToListAsync());
+    }
+
+    private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>
+        new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.UseEnvironment("Testing");
+                builder.ConfigureAppConfiguration((_, configuration) =>
+                    configuration.AddInMemoryCollection(new Dictionary<string, string?>
+                    {
+                        ["ConnectionStrings:PxaDatabase"] = connectionString,
+                    }));
+                builder.ConfigureServices(services =>
+                {
+                    services.RemoveAll<DbContextOptions<PxaDbContext>>();
+                    services.AddDbContext<PxaDbContext>(options => options.UseNpgsql(connectionString));
+                });
+            });
 
     private static async Task SeedIdentityAsync(
         IServiceProvider services,
@@ -238,6 +294,19 @@ public sealed class AuthControllerTests
         Assert.NotNull(user);
         var result = await userManager.UpdateSecurityStampAsync(user!);
         Assert.True(result.Succeeded, Describe(result));
+    }
+
+    private static async Task ExpireSessionsAsync(IServiceProvider services, Guid userId)
+    {
+        await using var scope = services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var sessions = await dbContext.UserSessions
+            .Where(value => value.UserId == userId && value.RevokedAt == null)
+            .ToListAsync();
+        Assert.NotEmpty(sessions);
+        foreach (var session in sessions)
+            session.ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+        await dbContext.SaveChangesAsync();
     }
 
     private static async Task<string> IssueEmailChangeAsync(
