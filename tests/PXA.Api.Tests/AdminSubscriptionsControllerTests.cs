@@ -214,6 +214,9 @@ public sealed class AdminSubscriptionsControllerTests
         Assert.Equal(HttpStatusCode.Created, issueResponse.StatusCode);
         var license = await issueResponse.Content.ReadFromJsonAsync<JsonElement>();
         var licenseId = license.GetProperty("id").GetGuid();
+        var licenseDetail = await organizationClient.GetFromJsonAsync<JsonElement>(
+            $"/api/pxa/v1/admin/licenses/{licenseId}");
+        Assert.Equal(licenseId, licenseDetail.GetProperty("id").GetGuid());
         var validation = await systemClient.GetFromJsonAsync<JsonElement>(
             $"/api/pxa/v1/admin/licenses/{licenseId}/validate");
         Assert.True(validation.GetProperty("valid").GetBoolean());
@@ -272,12 +275,20 @@ public sealed class AdminSubscriptionsControllerTests
             Outcome = "succeeded",
             DetailsJson = JsonSerializer.Serialize(new { Value = "tenant-isolated" }),
         };
+        var siblingLicenseAuditEvent = new AuditEvent
+        {
+            OrganizationId = seeded.OrganizationId,
+            Action = "licenses.issue",
+            TargetType = "offline-license",
+            TargetId = Guid.NewGuid().ToString(),
+            Outcome = "succeeded",
+        };
         dbContext.Organizations.Add(foreignOrganization);
-        dbContext.AuditEvents.Add(foreignAuditEvent);
+        dbContext.AuditEvents.AddRange(foreignAuditEvent, siblingLicenseAuditEvent);
         await dbContext.SaveChangesAsync();
 
         var auditPage = await organizationClient.GetFromJsonAsync<JsonElement>(
-            "/api/pxa/v1/admin/audit?action=licenses.issue&pageSize=10");
+            $"/api/pxa/v1/admin/audit?action=licenses.issue&targetId={licenseId}&pageSize=10");
         Assert.Equal(1, auditPage.GetProperty("total").GetInt32());
         Assert.True(auditPage.GetProperty("canExport").GetBoolean());
         var issuedAudit = auditPage.GetProperty("items").EnumerateArray().Single();

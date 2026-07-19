@@ -258,6 +258,10 @@ export async function getAdminLicenses() {
   return request(adminLicensesBase);
 }
 
+export async function getAdminLicense(licenseId) {
+  return request(`${adminLicensesBase}/${encodeURIComponent(licenseId)}`);
+}
+
 export async function issueAdminLicense(license) {
   return adminMutation(adminLicensesBase, 'POST', license);
 }
@@ -297,7 +301,7 @@ function auditQuery(filters = {}) {
     page: String(filters.page || 1),
     pageSize: String(filters.pageSize || 25),
   });
-  for (const key of ['search', 'action', 'targetType', 'outcome', 'actorUserId', 'from', 'to', 'direction']) {
+  for (const key of ['search', 'action', 'targetType', 'targetId', 'outcome', 'actorUserId', 'from', 'to', 'direction']) {
     if (filters[key]) query.set(key, filters[key]);
   }
   return query;

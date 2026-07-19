@@ -20,6 +20,7 @@ import {
   getAdminSubscriptionHistory,
   getAdminSubscriptionSeats,
   getAdminSubscriptionUsage,
+  getAdminLicense,
   getAdminLicenses,
   getAdminServiceAccounts,
   getAdminMail,
@@ -101,12 +102,12 @@ const state = {
     loading: false,
     loaded: false,
     error: null,
-    notice: null, selected: [],
+    notice: null, selected: [], access: null,
   },
   userDetail: {
     id: null,
     data: null,
-    sessions: [], audit: [], notice: null,
+    sessions: [], audit: [], access: null, notice: null,
     loading: false,
     error: null,
     saving: false,
@@ -116,7 +117,7 @@ const state = {
     loading: false, loaded: false, error: null,
   },
   organizationDetail: {
-    id: null, data: null, members: [], loading: false, error: null, saving: false,
+    id: null, data: null, members: [], audit: [], loading: false, error: null, saving: false,
   },
   mail: {
     items: [], total: 0, page: 1, pageSize: 25, status: '', summary: null,
@@ -130,6 +131,7 @@ const state = {
     id: null, data: null, seats: [], history: [], usage: null, loading: false, saving: false, error: null,
   },
   licenses: { items: [], loading: false, loaded: false, saving: false, error: null, notice: null },
+  licenseDetail: { id: null, data: null, audit: [], loading: false, saving: false, error: null, notice: null },
   serviceAccounts: { items: [], loading: false, loaded: false, saving: false, error: null, secret: null },
   audit: {
     items: [], total: 0, page: 1, pageSize: 25, search: '', action: '', targetType: '', outcome: '',
@@ -405,6 +407,35 @@ function formatDate(value) {
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 }
 
+function activeOrganization() {
+  return state.user.organizations?.find((organization) =>
+    organization.id === state.user.activeOrganizationId) || state.user.organizations?.[0] || null;
+}
+
+async function loadActiveProductAccess() {
+  const organization = activeOrganization();
+  if (!organization) return { organizationName: 'System scope', subscription: null, products: [], seats: [] };
+  const subscriptions = await getAdminSubscriptions({ pageSize: 100 });
+  const subscription = subscriptions.items.find((item) => item.organizationId === organization.id) || null;
+  if (!subscription) return { organizationName: organization.name, subscription: null, products: [], seats: [] };
+  const seats = await getAdminSubscriptionSeats(subscription.id);
+  return {
+    organizationName: organization.name,
+    subscription,
+    products: subscription.entitlements.filter((item) => item.enabled).map((item) => item.capability),
+    seats,
+  };
+}
+
+function productAccessMarkup(access, membershipId) {
+  if (!access?.subscription) return '<span class="admin-status admin-status--planned">No subscription</span>';
+  const assigned = access.seats.some((seat) => seat.membershipId === membershipId && seat.assigned);
+  const products = access.products.length
+    ? access.products.map((product) => `<span>${escapeHtml(product)}</span>`).join('')
+    : '<span>No products</span>';
+  return `<div class="admin-product-access"><div class="admin-role-list">${products}</div><small>${assigned ? 'Seat assigned' : 'No seat assigned'}</small></div>`;
+}
+
 function userStatus(user) {
   if (!user.isActive) return 'Disabled';
   return user.membershipStatus === 'Active' ? 'Active' : user.membershipStatus;
@@ -422,7 +453,9 @@ function usersPage() {
       <td><input class="admin-user-select" type="checkbox" value="${user.id}" aria-label="Select ${escapeHtml(user.displayName)}" ${users.selected.includes(user.id) ? 'checked' : ''}></td>
       <td><a class="admin-user-link" href="/users/${user.id}"><strong>${escapeHtml(user.displayName)}</strong><small>${escapeHtml(user.username)}</small></a></td>
       <td>${escapeHtml(user.email)}</td>
+      <td>${escapeHtml(users.access?.organizationName || 'Active organization')}</td>
       <td><div class="admin-role-list">${user.roles.length ? user.roles.map((role) => `<span>${escapeHtml(role)}</span>`).join('') : '<span>Unassigned</span>'}</div></td>
+      <td>${productAccessMarkup(users.access, user.membershipId)}</td>
       <td><span class="admin-status ${userStatusClass(user)}">${escapeHtml(userStatus(user))}</span></td>
       <td>${escapeHtml(formatDate(user.lastLoginAt))}</td>
     </tr>
@@ -467,7 +500,7 @@ function usersPage() {
       ${users.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading users...</p></div>' : `
         <div class="admin-table-scroll">
           <table>
-            <thead><tr><th><input id="users-select-page" type="checkbox" aria-label="Select page"></th><th>User</th><th>Email</th><th>Roles</th><th>Status</th><th>Last login</th></tr></thead>
+            <thead><tr><th><input id="users-select-page" type="checkbox" aria-label="Select page"></th><th>User</th><th>Email</th><th>Organization</th><th>Roles</th><th>Product access</th><th>Status</th><th>Last login</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </div>
@@ -494,6 +527,8 @@ function userDetailPage() {
   }
 
   const user = detail.data;
+  const access = detail.access;
+  const assignedSeat = access?.seats.some((seat) => seat.membershipId === user.membershipId && seat.assigned) || false;
   const globalRoles = user.roles.filter((role) => !organizationRoles.includes(role));
   const activeSessions = detail.sessions.filter((session) => session.isActive);
   const sessionRows = detail.sessions.map((session) => `
@@ -553,6 +588,13 @@ function userDetailPage() {
         </form>
       </section>
     </div>
+    <section class="admin-section admin-user-product-access">
+      <div class="admin-section-heading admin-section-heading--action">
+        <div><h2>Licensed product access</h2><p>Subscription entitlements and seat assignment remain independent from organization roles.</p></div>
+        ${access?.subscription ? `<span class="admin-status ${assignedSeat ? 'admin-status--ready' : 'admin-status--planned'}">${assignedSeat ? 'Seat assigned' : 'No seat'}</span>` : ''}
+      </div>
+      ${access?.subscription ? `<dl class="admin-detail-list admin-detail-list--compact"><div><dt>Organization</dt><dd>${escapeHtml(access.organizationName)}</dd></div><div><dt>Edition</dt><dd>${escapeHtml(access.subscription.edition)}</dd></div><div><dt>Products</dt><dd><div class="admin-role-list">${access.products.length ? access.products.map((product) => `<span>${escapeHtml(product)}</span>`).join('') : '<span>No enabled products</span>'}</div></dd></div></dl>${isSystemAdministrator() ? `<div class="admin-form-actions"><button class="pxa-button ${assignedSeat ? 'admin-danger-button' : 'pxa-button--primary'}" id="user-seat-button" type="button" ${detail.saving || user.membershipStatus !== 'Active' ? 'disabled' : ''}>${assignedSeat ? 'Revoke seat' : 'Assign seat'}</button></div>` : ''}` : '<div class="admin-empty-state"><strong>No subscription</strong><p>This organization has no configured product entitlements.</p></div>'}
+    </section>
     <section class="admin-table-section admin-members-section">
       <div class="admin-section-heading admin-section-heading--action">
         <div><h2>Active sessions</h2><p>Server-validated browser sessions for this user in the active organization.</p></div>
@@ -630,6 +672,7 @@ function organizationDetailPage() {
       <td><span class="admin-status ${member.membershipStatus === 'Active' && member.isActive ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(member.membershipStatus)}</span></td>
       <td><button class="admin-text-danger organization-remove-member" type="button" data-user-id="${member.userId}" data-user-name="${escapeHtml(member.displayName)}" ${detail.saving ? 'disabled' : ''}>Remove</button></td>
     </tr>`).join('');
+  const auditRows = detail.audit.map((event) => `<tr><td>${escapeHtml(formatDate(event.createdAt))}</td><td><strong>${escapeHtml(event.action)}</strong></td><td>${escapeHtml(event.actorName)}</td><td>${escapeHtml(event.outcome)}</td></tr>`).join('');
 
   return `
     <header class="admin-page-header">
@@ -667,6 +710,11 @@ function organizationDetailPage() {
       <div class="admin-section-heading"><h2>Members</h2><p>Active and suspended memberships in this tenant.</p></div>
       <div class="admin-table-scroll"><table><thead><tr><th>User</th><th>Roles</th><th>Status</th><th></th></tr></thead><tbody>${memberRows}</tbody></table></div>
       ${detail.members.length ? '' : '<div class="admin-empty-state"><strong>No members</strong><p>Add an existing PXA user to begin.</p></div>'}
+    </section>
+    <section class="admin-table-section admin-members-section">
+      <div class="admin-section-heading"><h2>Organization audit history</h2><p>Tenant-scoped changes targeting this organization record.</p></div>
+      <div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Action</th><th>Actor</th><th>Outcome</th></tr></thead><tbody>${auditRows}</tbody></table></div>
+      ${auditRows ? '' : '<div class="admin-empty-state"><strong>No organization events</strong></div>'}
     </section>`;
 }
 
@@ -748,10 +796,19 @@ function subscriptionDetailPage() {
 function licensesPage() {
   const licenses = state.licenses;
   const eligible = state.subscriptions.items.filter((item) => item.edition === 'Enterprise' && ['OnPremise', 'Hybrid'].includes(item.deploymentMode));
-  const rows = licenses.items.map((license) => `<tr><td><strong>${escapeHtml(license.licenseNumber)}</strong><small>${escapeHtml(license.keyId)}</small></td><td>${escapeHtml(license.organizationName)}</td><td>${escapeHtml(license.deploymentMode)}</td><td>${license.instanceLimit}</td><td>${escapeHtml(formatDate(license.validUntil))}</td><td><span class="admin-status ${license.status === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(license.status)}</span></td><td><div class="admin-row-actions"><a href="/api/pxa/v1/admin/licenses/${license.id}/download">Download</a><button class="license-validate" data-license-id="${license.id}" type="button">Validate</button>${isSystemAdministrator() && license.status === 'Active' ? `<button class="license-revoke" data-license-id="${license.id}" type="button">Revoke</button>` : ''}</div></td></tr>`).join('');
+  const rows = licenses.items.map((license) => `<tr><td><a class="admin-user-link" href="/licenses/${license.id}"><strong>${escapeHtml(license.licenseNumber)}</strong><small>${escapeHtml(license.keyId)}</small></a></td><td>${escapeHtml(license.organizationName)}</td><td>${escapeHtml(license.deploymentMode)}</td><td>${license.instanceLimit}</td><td>${escapeHtml(formatDate(license.validUntil))}</td><td><span class="admin-status ${license.status === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(license.status)}</span></td><td><div class="admin-row-actions"><a data-native href="/api/pxa/v1/admin/licenses/${license.id}/download">Download</a><button class="license-validate" data-license-id="${license.id}" type="button">Validate</button>${isSystemAdministrator() && license.status === 'Active' ? `<button class="license-revoke" data-license-id="${license.id}" type="button">Revoke</button>` : ''}</div></td></tr>`).join('');
   const from = dateInputValue(new Date());
   const until = dateInputValue(new Date(Date.now() + 365 * 86400000));
   return `<header class="admin-page-header"><div><p class="pxa-kicker">Commercial</p><h1>Offline licenses</h1><p>Issue and verify signed licenses for approved Enterprise On-Premise and Hybrid deployments.</p></div><span class="admin-record-count">${licenses.items.length} licenses</span></header>${licenses.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(licenses.error)}</div>` : ''}${licenses.notice ? `<div class="admin-alert admin-detail-alert">${escapeHtml(licenses.notice)}</div>` : ''}${isSystemAdministrator() ? `<section class="admin-section admin-subscription-create"><div class="admin-section-heading"><h2>Issue license</h2><p>Capabilities and limits are copied from the selected subscription into the signed envelope.</p></div><form id="license-issue-form" class="admin-form-stack"><div class="admin-subscription-fields"><label class="admin-field"><span>Subscription</span><select name="subscriptionId" required><option value="">Select Enterprise subscription</option>${eligible.map((item) => `<option value="${item.id}">${escapeHtml(item.organizationName)}</option>`).join('')}</select></label><label class="admin-field"><span>Valid from</span><input name="validFrom" type="datetime-local" value="${from}" required></label><label class="admin-field"><span>Valid until</span><input name="validUntil" type="datetime-local" value="${until}" required></label><label class="admin-field"><span>Instance limit</span><input name="instanceLimit" type="number" min="1" max="1000" value="1" required></label></div><div class="admin-form-actions"><button class="pxa-button pxa-button--primary" type="submit" ${licenses.saving || !eligible.length ? 'disabled' : ''}>Issue signed license</button></div></form></section>` : ''}<section class="admin-table-section" aria-busy="${licenses.loading}">${licenses.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading licenses...</p></div>' : `<div class="admin-table-scroll"><table><thead><tr><th>License</th><th>Organization</th><th>Deployment</th><th>Instances</th><th>Valid until</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>${rows ? '' : '<div class="admin-empty-state"><strong>No offline licenses</strong><p>Eligible Enterprise subscriptions can receive a signed license.</p></div>'}`}</section>`;
+}
+
+function licenseDetailPage() {
+  const detail = state.licenseDetail;
+  if (detail.loading) return '<section class="admin-message-page"><div class="admin-spinner"></div><p>Loading license...</p></section>';
+  if (!detail.data) return `<section class="admin-message-page"><span class="admin-error-code">!</span><h1>License unavailable</h1><p>${escapeHtml(detail.error || 'The license could not be loaded.')}</p><a class="pxa-button pxa-button--secondary" href="/licenses">Return to licenses</a></section>`;
+  const license = detail.data;
+  const auditRows = detail.audit.map((event) => `<tr><td>${escapeHtml(formatDate(event.createdAt))}</td><td><strong>${escapeHtml(event.action)}</strong></td><td>${escapeHtml(event.actorName)}</td><td>${escapeHtml(event.outcome)}</td></tr>`).join('');
+  return `<header class="admin-page-header"><div><a class="admin-back-link" href="/licenses">Offline licenses</a><h1>${escapeHtml(license.licenseNumber)}</h1><p>${escapeHtml(license.organizationName)} · ${escapeHtml(license.edition)} · ${escapeHtml(license.deploymentMode)}</p></div><span class="admin-status ${license.status === 'Active' ? 'admin-status--ready' : 'admin-status--inactive'}">${escapeHtml(license.status)}</span></header>${detail.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(detail.error)}</div>` : ''}${detail.notice ? `<div class="admin-alert admin-detail-alert">${escapeHtml(detail.notice)}</div>` : ''}<section class="admin-summary-grid"><article><span>Valid from</span><strong>${escapeHtml(formatDate(license.validFrom))}</strong></article><article><span>Valid until</span><strong>${escapeHtml(formatDate(license.validUntil))}</strong></article><article><span>Instance limit</span><strong>${license.instanceLimit}</strong></article><article><span>Algorithm</span><strong>${escapeHtml(license.algorithm)}</strong></article></section><section class="admin-section"><div class="admin-section-heading admin-section-heading--action"><div><h2>License operations</h2><p>Validate the signature, download the signed artifact, or revoke active access.</p></div><div class="admin-row-actions"><a data-native class="pxa-button pxa-button--secondary" href="/api/pxa/v1/admin/licenses/${license.id}/download">Download</a><button id="license-detail-validate" type="button" ${detail.saving ? 'disabled' : ''}>Validate</button>${isSystemAdministrator() && license.status === 'Active' ? `<button class="admin-danger-button" id="license-detail-revoke" type="button" ${detail.saving ? 'disabled' : ''}>Revoke</button>` : ''}</div></div><dl class="admin-detail-list admin-detail-list--compact"><div><dt>Key ID</dt><dd>${escapeHtml(license.keyId)}</dd></div><div><dt>Issued</dt><dd>${escapeHtml(formatDate(license.issuedAt))}</dd></div>${license.revokedAt ? `<div><dt>Revoked</dt><dd>${escapeHtml(formatDate(license.revokedAt))}</dd></div><div><dt>Reason</dt><dd>${escapeHtml(license.revocationReason || 'Not provided')}</dd></div>` : ''}</dl></section><section class="admin-table-section admin-members-section"><div class="admin-section-heading"><h2>License audit history</h2><p>Issue and revocation evidence for this signed artifact.</p></div><div class="admin-table-scroll"><table><thead><tr><th>Time</th><th>Action</th><th>Actor</th><th>Outcome</th></tr></thead><tbody>${auditRows}</tbody></table></div>${auditRows ? '' : '<div class="admin-empty-state"><strong>No license events</strong></div>'}</section>`;
 }
 
 function serviceAccountsPage() {
@@ -867,8 +924,11 @@ async function loadUsers() {
   state.users.error = null;
   render();
   try {
-    const response = await getAdminUsers(state.users);
-    Object.assign(state.users, response, { loaded: true });
+    const [response, access] = await Promise.all([
+      getAdminUsers(state.users),
+      loadActiveProductAccess(),
+    ]);
+    Object.assign(state.users, response, { access, loaded: true });
   } catch (error) {
     state.users.error = error.message;
     state.users.loaded = true;
@@ -879,17 +939,19 @@ async function loadUsers() {
 }
 
 async function loadUserDetail(userId) {
-  Object.assign(state.userDetail, { id: userId, data: null, sessions: [], audit: [], loading: true, error: null, notice: null });
+  Object.assign(state.userDetail, { id: userId, data: null, sessions: [], audit: [], access: null, loading: true, error: null, notice: null });
   render();
   try {
-    const [user, sessions, audit] = await Promise.all([
+    const [user, sessions, audit, access] = await Promise.all([
       getAdminUser(userId),
       getAdminUserSessions(userId),
       getAdminUserAudit(userId),
+      loadActiveProductAccess(),
     ]);
     state.userDetail.data = user;
     state.userDetail.sessions = sessions;
     state.userDetail.audit = audit;
+    state.userDetail.access = access;
   } catch (error) {
     state.userDetail.error = error.message;
   } finally {
@@ -1095,6 +1157,30 @@ function bindUserDetailEvents() {
       render();
     }
   });
+  document.querySelector('#user-seat-button')?.addEventListener('click', async () => {
+    const access = state.userDetail.access;
+    const user = state.userDetail.data;
+    if (!access?.subscription || !user) return;
+    const assigned = access.seats.some((seat) => seat.membershipId === user.membershipId && seat.assigned);
+    if (assigned && !window.confirm(`Revoke ${user.displayName}'s subscription seat?`)) return;
+    state.userDetail.saving = true;
+    state.userDetail.error = null;
+    render();
+    try {
+      if (assigned)
+        await revokeAdminSubscriptionSeat(access.subscription.id, user.membershipId);
+      else
+        await assignAdminSubscriptionSeat(access.subscription.id, user.membershipId);
+      state.userDetail.access = await loadActiveProductAccess();
+      state.users.loaded = false;
+      state.userDetail.notice = assigned ? 'Subscription seat revoked.' : 'Subscription seat assigned.';
+    } catch (error) {
+      state.userDetail.error = error.message;
+    } finally {
+      state.userDetail.saving = false;
+      render();
+    }
+  });
 }
 
 async function loadOrganizations() {
@@ -1114,15 +1200,17 @@ async function loadOrganizations() {
 }
 
 async function loadOrganizationDetail(organizationId) {
-  Object.assign(state.organizationDetail, { id: organizationId, data: null, members: [], loading: true, error: null, saving: false });
+  Object.assign(state.organizationDetail, { id: organizationId, data: null, members: [], audit: [], loading: true, error: null, saving: false });
   render();
   try {
-    const [organization, members] = await Promise.all([
+    const [organization, members, audit] = await Promise.all([
       getAdminOrganization(organizationId),
       getAdminOrganizationMembers(organizationId),
+      getAdminAudit({ targetType: 'organization', targetId: organizationId, pageSize: 20 }),
     ]);
     state.organizationDetail.data = organization;
     state.organizationDetail.members = members;
+    state.organizationDetail.audit = audit.items;
   } catch (error) {
     state.organizationDetail.error = error.message;
   } finally {
@@ -1296,6 +1384,57 @@ async function loadLicenses() {
     state.licenses.loading = false;
     render();
   }
+}
+
+async function loadLicenseDetail(licenseId) {
+  Object.assign(state.licenseDetail, { id: licenseId, data: null, audit: [], loading: true, error: null, notice: null });
+  render();
+  try {
+    const [license, audit] = await Promise.all([
+      getAdminLicense(licenseId),
+      getAdminAudit({ targetType: 'offline-license', targetId: licenseId, pageSize: 20 }),
+    ]);
+    state.licenseDetail.data = license;
+    state.licenseDetail.audit = audit.items;
+  } catch (error) {
+    state.licenseDetail.error = error.message;
+  } finally {
+    state.licenseDetail.loading = false;
+    render();
+  }
+}
+
+function bindLicenseDetailEvents() {
+  document.querySelector('#license-detail-validate')?.addEventListener('click', async () => {
+    state.licenseDetail.saving = true;
+    state.licenseDetail.error = null;
+    render();
+    try {
+      const result = await validateAdminLicense(state.licenseDetail.id);
+      state.licenseDetail.notice = `${result.code}: signature ${result.signatureValid ? 'valid' : 'invalid'}`;
+    } catch (error) {
+      state.licenseDetail.error = error.message;
+    } finally {
+      state.licenseDetail.saving = false;
+      render();
+    }
+  });
+  document.querySelector('#license-detail-revoke')?.addEventListener('click', async () => {
+    const reason = window.prompt('Reason for revoking this offline license:');
+    if (!reason?.trim()) return;
+    state.licenseDetail.saving = true;
+    state.licenseDetail.error = null;
+    render();
+    try {
+      await revokeAdminLicense(state.licenseDetail.id, reason.trim());
+      state.licenses.loaded = false;
+      await loadLicenseDetail(state.licenseDetail.id);
+    } catch (error) {
+      state.licenseDetail.error = error.message;
+      state.licenseDetail.saving = false;
+      render();
+    }
+  });
 }
 
 async function runLicenseMutation(operation) {
@@ -1872,6 +2011,15 @@ function render() {
     return;
   }
 
+  const licenseDetailMatch = location.pathname.match(/^\/licenses\/([0-9a-f-]+)$/i);
+  if (licenseDetailMatch) {
+    renderShell(licenseDetailPage(), state.licenseDetail.data?.licenseNumber || 'Offline license');
+    bindLicenseDetailEvents();
+    if (state.licenseDetail.id !== licenseDetailMatch[1] && !state.licenseDetail.loading)
+      loadLicenseDetail(licenseDetailMatch[1]);
+    return;
+  }
+
   const organizationDetailMatch = location.pathname.match(/^\/organizations\/([0-9a-f-]+)$/i);
   if (organizationDetailMatch) {
     renderShell(organizationDetailPage(), state.organizationDetail.data?.name || 'Organization');
@@ -1902,7 +2050,7 @@ function render() {
 
 document.addEventListener('click', (event) => {
   const link = event.target.closest('a[href^="/"]');
-  if (!link || link.target || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  if (!link || link.hasAttribute('data-native') || link.target || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
   navigate(link.getAttribute('href'));
 });

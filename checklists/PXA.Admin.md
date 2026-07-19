@@ -19,7 +19,7 @@ Deliver a standalone, tenant-aware PXA administration application for users, org
 
 - [x] P0: Replace demo authentication and establish persistent identity, tenancy, roles, and audit.
 - [x] P0: Deliver secure user and organization administration.
-- [ ] P1: Deliver subscription, license, service-account, and mail administration.
+- [x] P1: Deliver subscription, license, service-account, and mail administration.
 - [ ] P2: Add enterprise identity federation, SCIM, advanced teams, and custom roles.
 
 ## Dependencies
@@ -91,17 +91,17 @@ Current identity implementation:
 
 - [x] Add routes for dashboard, users, user details, organizations, roles, subscriptions, licenses, service accounts, mail delivery, audit, and settings.
 - [x] Build a work-focused admin shell with restrained navigation and responsive layouts.
-- [ ] Add user tables with name, email, organization, role, status, products, and last login.
+- [x] Add user tables with name, email, organization, role, status, products, and last login.
 - [x] Add server-driven search, filters, sorting, pagination, selection, and bulk actions.
 - [x] Add invitation and edit forms with inline validation and accessible error summaries.
-- [ ] Add role, membership, product entitlement, and seat controls appropriate to the current administrator.
+- [x] Add role, membership, product entitlement, and seat controls appropriate to the current administrator.
 - [x] Add subscription detail, Trial extension, renewal, grace-period, cancellation, entitlement, seat, and lifecycle-history views.
 - [x] Add usage and offline-license views.
 - [x] Add service-account and API-key workflows that reveal a new secret only once.
 - [x] Add lifecycle and actor history to subscription detail views.
 - [x] Add an Audit workspace with server-side search, action/target/outcome/time filters, details, pagination, and export.
 - [x] Add a Roles & Permissions workspace with protected definitions, permission matrix, member details, assignment, and revocation.
-- [ ] Add audit history to user, organization, and license detail views.
+- [x] Add audit history to user, organization, and license detail views.
 - [x] Add explicit loading, empty, forbidden, offline, stale, failure, and destructive-confirmation states.
 - [x] Prevent UI visibility rules from replacing server-side authorization.
 
@@ -115,6 +115,14 @@ Current Admin shell implementation:
 - [x] Add responsive sidebar, organization context, account context, loading, login-error, forbidden, and not-found states.
 - [x] Add an opt-in Development-only administrator bootstrap without source-controlled credentials or production seeds.
 - [x] Add user detail routes after the user administration API is available.
+
+Current Admin UI completeness implementation:
+
+- [x] Show organization, organization roles, enabled product capabilities, seat status, account status, and last login in the user table.
+- [x] Keep product entitlements separate from application roles and resolve them through the active organization's subscription.
+- [x] Assign or revoke subscription seats from user detail while retaining the complete seat workspace on subscription detail.
+- [x] Add target-specific organization and offline-license audit histories.
+- [x] Add a tenant-protected offline-license detail route with validation, native download, and revocation actions.
 
 Current user administration implementation:
 

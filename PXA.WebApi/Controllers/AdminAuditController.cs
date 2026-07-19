@@ -155,6 +155,8 @@ public sealed class AdminAuditController : ControllerBase
             query = query.Where(value => value.Action == filter.Action.Trim());
         if (!string.IsNullOrWhiteSpace(filter.TargetType))
             query = query.Where(value => value.TargetType == filter.TargetType.Trim());
+        if (!string.IsNullOrWhiteSpace(filter.TargetId))
+            query = query.Where(value => value.TargetId == filter.TargetId.Trim());
         if (!string.IsNullOrWhiteSpace(filter.Outcome))
             query = query.Where(value => value.Outcome == filter.Outcome.Trim());
         if (filter.ActorUserId is { } actorUserId)
@@ -180,7 +182,8 @@ public sealed class AdminAuditController : ControllerBase
         if (filter.From is { } from && filter.To is { } to && from > to)
             error = "The start timestamp must be before the end timestamp.";
         else if (filter.Search?.Length > 200 || filter.Action?.Length > 160 ||
-                 filter.TargetType?.Length > 100 || filter.Outcome?.Length > 32)
+                 filter.TargetType?.Length > 100 || filter.TargetId?.Length > 200 ||
+                 filter.Outcome?.Length > 32)
             error = "One or more audit filters exceed their allowed length.";
         else if (!string.IsNullOrWhiteSpace(filter.Direction) &&
                  !new[] { "asc", "desc" }.Contains(filter.Direction, StringComparer.OrdinalIgnoreCase))
@@ -271,6 +274,7 @@ public sealed class AuditFilter
     public string? Search { get; init; }
     public string? Action { get; init; }
     public string? TargetType { get; init; }
+    public string? TargetId { get; init; }
     public string? Outcome { get; init; }
     public Guid? ActorUserId { get; init; }
     public DateTimeOffset? From { get; init; }

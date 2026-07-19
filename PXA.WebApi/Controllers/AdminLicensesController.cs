@@ -43,6 +43,19 @@ public sealed class AdminLicensesController : ControllerBase
         return Ok(await BuildQuery(query.OrderByDescending(value => value.IssuedAt)).ToListAsync(cancellationToken));
     }
 
+    [HttpGet("{licenseId:guid}")]
+    [Authorize(Policy = PxaPermissions.LicensesRead)]
+    public async Task<ActionResult<AdminLicenseResponse>> GetLicense(
+        Guid licenseId,
+        CancellationToken cancellationToken)
+    {
+        var license = await FindAccessibleLicense(licenseId, cancellationToken);
+        if (license is null)
+            return NotFound();
+        return Ok(await BuildQuery(dbContext.OfflineLicenses.AsNoTracking().Where(value => value.Id == licenseId))
+            .SingleAsync(cancellationToken));
+    }
+
     [HttpPost]
     [Authorize(Policy = PxaPermissions.LicensesManage)]
     [PxaValidateAntiforgery]

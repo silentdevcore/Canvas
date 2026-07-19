@@ -58,6 +58,20 @@ input:disabled {
   flex: 0 0 auto;
 }
 
+.admin-product-access {
+  min-width: 180px;
+}
+
+.admin-product-access small {
+  display: block;
+  margin-top: var(--pxa-space-2);
+  color: var(--pxa-color-muted);
+}
+
+.admin-user-product-access {
+  margin-top: var(--pxa-space-6);
+}
+
 .admin-spinner {
   width: 28px;
   height: 28px;
