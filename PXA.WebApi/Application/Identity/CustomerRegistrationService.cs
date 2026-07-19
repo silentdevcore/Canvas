@@ -107,7 +107,8 @@ public sealed class CustomerRegistrationService(
             validation.Email,
             "identity.registration-verification",
             new { displayName = validation.DisplayName, actionUrl },
-            $"registration-verification:{issued.Entity.Id}");
+            $"registration-verification:{issued.Entity.Id}",
+            user.Locale);
 
         dbContext.AuditEvents.Add(new AuditEvent
         {
@@ -124,6 +125,7 @@ public sealed class CustomerRegistrationService(
                 request.Locale,
                 TermsVersion = "draft-v1",
                 PrivacyVersion = "draft-v1",
+                NewsletterConsent = request.SubscribeToNewsletter ?? false,
             }),
         });
 
@@ -161,7 +163,8 @@ public sealed class CustomerRegistrationService(
             user.Email!,
             "identity.registration-verification",
             new { displayName = user.DisplayName, actionUrl },
-            $"registration-verification-resend:{issued.Entity.Id}");
+            $"registration-verification-resend:{issued.Entity.Id}",
+            user.Locale);
         dbContext.AuditEvents.Add(new AuditEvent
         {
             OrganizationId = organizationId,
@@ -208,7 +211,8 @@ public sealed class CustomerRegistrationService(
             user.Email!,
             "identity.welcome",
             new { displayName = user.DisplayName, actionUrl = $"{mailOptions.AccountBaseUrl.TrimEnd('/')}/login" },
-            $"account-welcome:{actionToken.Id}");
+            $"account-welcome:{actionToken.Id}",
+            user.Locale);
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return EmailVerificationOutcome.Succeeded();

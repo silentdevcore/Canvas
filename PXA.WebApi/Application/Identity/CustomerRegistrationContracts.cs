@@ -14,7 +14,12 @@ public sealed record RegisterAccountRequest(
     string? Country,
     string? Locale,
     bool AcceptTerms,
-    bool AcceptPrivacy);
+    bool AcceptPrivacy,
+    // Optional and deliberately separate from AcceptTerms/AcceptPrivacy:
+    // never gates registration, verification, or Trial creation, and is
+    // recorded only as audit metadata, not a first-class marketing-consent
+    // record.
+    bool? SubscribeToNewsletter = null);
 
 public sealed record VerifyRegistrationRequest([Required] string Token);
 

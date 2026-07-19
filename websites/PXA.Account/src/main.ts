@@ -161,6 +161,7 @@ function registerPage(): string {
       <label>Password<input name="password" type="password" autocomplete="new-password" minlength="12" required><small>At least 12 characters with uppercase, lowercase, number, and symbol.</small></label>
       <label class="account-checkbox"><input name="acceptTerms" type="checkbox" required> I accept the <a href="${companyPage('terms')}" target="_blank">Terms</a>.</label>
       <label class="account-checkbox"><input name="acceptPrivacy" type="checkbox" required> I acknowledge the <a href="${companyPage('privacy')}" target="_blank">Privacy notice</a>.</label>
+      <label class="account-checkbox"><input name="subscribeToNewsletter" type="checkbox"> Send me product news and updates (optional).</label>
       <div class="account-form-error" id="form-error" role="alert" hidden></div>
       <button class="pxa-button pxa-button--primary" type="submit">Create account and Trial</button>
     </form>
@@ -281,6 +282,7 @@ function bindEvents(): void {
       locale: formStringOrNull(data, 'locale'),
       acceptTerms: data.get('acceptTerms') === 'on',
       acceptPrivacy: data.get('acceptPrivacy') === 'on',
+      subscribeToNewsletter: data.get('subscribeToNewsletter') === 'on',
     });
     state.notice = response!.message; navigate('/login', true);
   });

@@ -106,6 +106,8 @@ public sealed class PxaMailProcessor
     {
         var displayName = WebUtility.HtmlEncode(payload.GetValueOrDefault("displayName", "PXA user"));
         var actionUrl = WebUtility.HtmlEncode(payload.GetValueOrDefault("actionUrl", string.Empty));
+        var rawActionUrl = payload.GetValueOrDefault("actionUrl", string.Empty);
+        var isGerman = string.Equals(message.Locale, "de", StringComparison.OrdinalIgnoreCase);
         return message.TemplateKey switch
         {
             "identity.invitation" => new RenderedMail(
@@ -138,18 +140,48 @@ public sealed class PxaMailProcessor
                 "Your Power Dox Automation email address changed",
                 $"<p>Hello {displayName},</p><p>Your account email address was changed. Contact support immediately if this was not expected.</p>",
                 "Your Power Dox Automation account email address was changed. Contact support immediately if this was not expected."),
+            "identity.registration-verification" when isGerman => new RenderedMail(
+                message.Id,
+                message.RecipientEmail,
+                "Bestätigen Sie Ihr Power Dox Automation-Konto",
+                $"<p>Hallo {displayName},</p><p><a href=\"{actionUrl}\">Konto bestätigen</a></p>",
+                $"Bestätigen Sie Ihr Power Dox Automation-Konto: {rawActionUrl}"),
             "identity.registration-verification" => new RenderedMail(
                 message.Id,
                 message.RecipientEmail,
                 "Verify your Power Dox Automation account",
                 $"<p>Hello {displayName},</p><p><a href=\"{actionUrl}\">Verify your account</a></p>",
-                $"Verify your Power Dox Automation account: {payload.GetValueOrDefault("actionUrl", string.Empty)}"),
+                $"Verify your Power Dox Automation account: {rawActionUrl}"),
+            "identity.welcome" when isGerman => new RenderedMail(
+                message.Id,
+                message.RecipientEmail,
+                "Willkommen bei Power Dox Automation",
+                $"<p>Hallo {displayName},</p><p>Ihr Power Dox Automation-Konto und Ihre Testphase sind bereit.</p><p><a href=\"{actionUrl}\">Konto öffnen</a></p>",
+                $"Ihr Power Dox Automation-Konto und Ihre Testphase sind bereit: {rawActionUrl}"),
             "identity.welcome" => new RenderedMail(
                 message.Id,
                 message.RecipientEmail,
                 "Welcome to Power Dox Automation",
                 $"<p>Hello {displayName},</p><p>Your Power Dox Automation account and Trial are ready.</p><p><a href=\"{actionUrl}\">Open your account</a></p>",
-                $"Your Power Dox Automation account and Trial are ready: {payload.GetValueOrDefault("actionUrl", string.Empty)}"),
+                $"Your Power Dox Automation account and Trial are ready: {rawActionUrl}"),
+            "identity.new-login" => new RenderedMail(
+                message.Id,
+                message.RecipientEmail,
+                "New sign-in to your Power Dox Automation account",
+                $"<p>Hello {displayName},</p><p>Your account was just signed in to{(payload.TryGetValue("client", out var loginClient) && loginClient.Length > 0 ? $" from {WebUtility.HtmlEncode(loginClient)}" : string.Empty)}. Contact support immediately if this was not you.</p>",
+                $"Your Power Dox Automation account was just signed in to{(payload.TryGetValue("client", out var loginClientText) && loginClientText.Length > 0 ? $" from {loginClientText}" : string.Empty)}. Contact support immediately if this was not you."),
+            "identity.lockout" => new RenderedMail(
+                message.Id,
+                message.RecipientEmail,
+                "Your Power Dox Automation account was locked",
+                $"<p>Hello {displayName},</p><p>Your account was temporarily locked after too many unsuccessful sign-in attempts. Contact support if this was not you.</p>",
+                "Your Power Dox Automation account was temporarily locked after too many unsuccessful sign-in attempts. Contact support if this was not you."),
+            "identity.trial-expiring" => new RenderedMail(
+                message.Id,
+                message.RecipientEmail,
+                "Your Power Dox Automation Trial is ending soon",
+                $"<p>Hello {displayName},</p><p>Your Trial ends on {WebUtility.HtmlEncode(payload.GetValueOrDefault("trialEndsAt", string.Empty))}. Upgrade to keep access to your workspace.</p>",
+                $"Your Power Dox Automation Trial ends on {payload.GetValueOrDefault("trialEndsAt", string.Empty)}. Upgrade to keep access to your workspace."),
             _ => throw new InvalidOperationException("Unknown transactional mail template."),
         };
     }

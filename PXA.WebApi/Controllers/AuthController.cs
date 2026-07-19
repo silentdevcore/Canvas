@@ -112,6 +112,17 @@ public sealed class AuthController : ControllerBase
         {
             await userManager.AccessFailedAsync(user);
             var lockedOut = await userManager.IsLockedOutAsync(user);
+            if (lockedOut && !string.IsNullOrWhiteSpace(user.Email))
+            {
+                mailQueue.Enqueue(
+                    null,
+                    user.Id,
+                    user.Email,
+                    "identity.lockout",
+                    new { displayName = user.DisplayName },
+                    $"lockout:{user.Id}:{DateTimeOffset.UtcNow:yyyyMMddHHmm}",
+                    user.Locale);
+            }
             await AddIdentitySecurityAuditAsync(
                 user,
                 lockedOut ? "security.login.lockout" : "security.login.failed",
@@ -146,6 +157,17 @@ public sealed class AuthController : ControllerBase
             AuthenticationMethod = "password",
             Client = session.UserAgent,
         });
+        if (!string.IsNullOrWhiteSpace(user.Email))
+        {
+            mailQueue.Enqueue(
+                organizationId,
+                user.Id,
+                user.Email,
+                "identity.new-login",
+                new { displayName = user.DisplayName, client = session.UserAgent },
+                $"new-login:{session.Id}",
+                user.Locale);
+        }
         await dbContext.SaveChangesAsync(cancellationToken);
         var properties = new AuthenticationProperties
         {

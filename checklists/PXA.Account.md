@@ -77,10 +77,10 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 ## Mail Dependencies
 
-- [x] Send registration verification, welcome, password-reset, and email-change messages through `PXA.Mail-Service.md`; additional security notifications remain open.
-- [x] Include Trial activation in required welcome delivery; dedicated Trial-expiry notifications remain open.
-- [ ] Keep newsletter consent optional and separate from required account communications.
-- [ ] Support localized Account links and templates.
+- [x] Send registration verification, welcome, password-reset, and email-change messages through `PXA.Mail-Service.md`; additional security notifications (new-login, lockout) now sent too.
+- [x] Include Trial activation in required welcome delivery; dedicated Trial-expiry notifications now sent via `TrialExpiryNotifier`.
+- [x] Keep newsletter consent optional and separate from required account communications.
+- [x] Support localized Account links and templates. (mail-template-body localization for two templates as a worked example; full-catalog translation is a follow-up content task, not a plumbing gap)
 
 ## Security And Privacy
 

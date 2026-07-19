@@ -143,7 +143,8 @@ public sealed class AccountRegistrationControllerTests
         var finalDbContext = finalScope.ServiceProvider.GetRequiredService<PxaDbContext>();
         Assert.Contains("account.registration.verified",
             await finalDbContext.AuditEvents.Select(value => value.Action).ToListAsync());
-        Assert.Equal(2, await finalDbContext.MailOutboxMessages.CountAsync());
+        // registration-verification + welcome + new-login (the final login above).
+        Assert.Equal(3, await finalDbContext.MailOutboxMessages.CountAsync());
     }
 
     [PostgreSqlFact]

@@ -13,7 +13,8 @@ public interface IPxaMailQueue
         string recipientEmail,
         string templateKey,
         object payload,
-        string idempotencyKey);
+        string idempotencyKey,
+        string locale = "en");
 }
 
 public sealed class PxaMailQueue : IPxaMailQueue
@@ -33,7 +34,8 @@ public sealed class PxaMailQueue : IPxaMailQueue
         string recipientEmail,
         string templateKey,
         object payload,
-        string idempotencyKey)
+        string idempotencyKey,
+        string locale = "en")
     {
         var message = new MailOutboxMessage
         {
@@ -41,6 +43,7 @@ public sealed class PxaMailQueue : IPxaMailQueue
             RecipientUserId = recipientUserId,
             RecipientEmail = recipientEmail,
             TemplateKey = templateKey,
+            Locale = string.IsNullOrWhiteSpace(locale) ? "en" : locale,
             ProtectedPayload = protector.Protect(JsonSerializer.Serialize(payload)),
             IdempotencyKey = idempotencyKey,
         };

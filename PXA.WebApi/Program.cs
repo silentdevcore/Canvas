@@ -181,8 +181,12 @@ builder.Services.AddSingleton<IPxaMailTransport>(services =>
         _ => services.GetRequiredService<DevelopmentMailTransport>(),
     };
 });
+builder.Services.AddScoped<TrialExpiryNotifier>();
 if (!builder.Environment.IsEnvironment("Testing"))
+{
     builder.Services.AddHostedService<PxaMailWorker>();
+    builder.Services.AddHostedService<TrialExpiryWorker>();
+}
 builder.Services.AddAuthorization(options =>
 {
     foreach (var permission in PxaPermissions.All)

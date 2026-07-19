@@ -360,15 +360,54 @@ time.
 
 ## Phase 9 — Mail: notifications, Trial-expiry, localization, newsletter
 
-- [ ] Enqueue `identity.new-login`, `identity.lockout`,
-      `identity.credential-changed` at their respective call sites.
-- [ ] `TrialExpiryNotificationService.cs` — verify `PxaMailProcessor`'s
-      hosting model first before adding a new hosted service.
-- [ ] `RegisterAccountRequest.SubscribeToNewsletter` (optional, unchecked by
-      default, stored separately from required transactional mail).
-- [ ] Locale-keyed template variants (`{templateKey}.{locale}` + English
-      fallback) using Phase 0's `Locale` column.
-- [ ] Closes: all four remaining Mail bullets.
+- [x] Enqueue `identity.new-login` (every successful password login, in
+      `AuthController.Login`, idempotency key tied to the new session id)
+      and `identity.lockout` (when a failed attempt actually triggers
+      lockout, not on every subsequent locked-out attempt, since those are
+      short-circuited earlier by the existing `IsLockedOutAsync` branch).
+      **Scope note**: `identity.credential-changed` is not a new template —
+      Phase 4's password-change already reuses the existing
+      `identity.password-changed` template (same one password-reset-complete
+      uses), which is the credential-changed notification; no separate
+      template was needed.
+- [x] `TrialExpiryNotifier` (`PXA.WebApi/Services/Mail/TrialExpiryNotifier.cs`)
+      + thin `TrialExpiryWorker : BackgroundService` wrapper (6-hour poll),
+      mirroring `PxaMailProcessor`/`PxaMailWorker`'s split so the actual
+      logic is directly testable without a real background loop. Notifies
+      every active Organization Administrator at the 7/3/1-day thresholds,
+      using the *tightest* crossed threshold (fixed a bug caught while
+      writing this: an early draft used `Max()` and would have kept
+      reporting "7 days" forever instead of escalating to 3 then 1).
+      Idempotency checked explicitly before enqueueing (not just relying on
+      the unique-index backstop) so a re-run is a cheap no-op.
+- [x] `RegisterAccountRequest.SubscribeToNewsletter` (optional, `null`/unset
+      defaults to unchecked, stored only in `AuditEvent.DetailsJson` as
+      `NewsletterConsent` — never gates registration, verification, or Trial
+      creation). Frontend: new unchecked-by-default checkbox on the register
+      form, separate from the required Terms/Privacy checkboxes.
+- [x] Localization, scoped per the plan's judgment call to mail-template-body
+      only: `IPxaMailQueue.Enqueue` gained an optional `locale` parameter
+      (default `"en"`, backward-compatible - existing call sites unchanged);
+      `MailOutboxMessage.Locale` (already existed on the entity, previously
+      unused) is now actually set from the recipient's `PxaIdentityUser.Locale`
+      at the two highest-value call sites (registration-verification,
+      welcome). `PxaMailDelivery.Render` branches on `message.Locale == "de"`
+      with an English fallback for every other locale. **Scope note**: only
+      these two templates got a German variant as the worked proof of the
+      mechanism, not all ~10 templates — translating the rest is now a
+      content-authoring task, not an engineering one, and can happen
+      incrementally without touching the plumbing again.
+- [x] `tests/PXA.Api.Tests/AccountMailNotificationsTests.cs` (5 tests):
+      new-login enqueued on successful login; exactly one lockout mail across
+      5 failed attempts (not one per attempt); German-locale registration
+      renders German subjects for both localized templates; newsletter
+      consent recorded in audit metadata without blocking registration;
+      `TrialExpiryNotifier` notifies once at the correct threshold and is a
+      no-op on a second run. Existing
+      `AccountRegistrationControllerTests` mail-count assertion updated
+      (2 → 3) since its final login step now legitimately enqueues a
+      new-login mail too - regression-verified, not a silent behavior change.
+- [x] Closes: all four remaining Mail bullets.
 
 ## Phase 10 — Company integration: campaign attribution
 

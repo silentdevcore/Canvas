@@ -43,6 +43,7 @@ export interface RegisterAccountValues {
   locale: string | null;
   acceptTerms: boolean;
   acceptPrivacy: boolean;
+  subscribeToNewsletter: boolean;
 }
 
 export interface AccountProfileResponse {
