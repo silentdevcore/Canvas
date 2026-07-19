@@ -65,6 +65,8 @@ builder.Services.AddScoped<PxaSessionService>();
 builder.Services.AddOptions<PxaAdminSecurityOptions>()
     .Bind(builder.Configuration.GetSection(PxaAdminSecurityOptions.SectionName));
 builder.Services.AddScoped<PxaSystemOperatorAccess>();
+builder.Services.AddOptions<PxaAccountClosureOptions>()
+    .Bind(builder.Configuration.GetSection(PxaAccountClosureOptions.SectionName));
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, PxaAuthorizationMiddlewareResultHandler>();
 builder.Services.AddRateLimiter(options =>
 {

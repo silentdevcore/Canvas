@@ -55,7 +55,7 @@ Deliver a standalone customer identity and self-service portal for registration,
 - [x] Show offline licenses and customer-safe validation/download metadata.
 - [x] Create and revoke customer-owned service accounts and API keys with one-time secret display.
 - [x] List and revoke active browser sessions.
-- [ ] Provide account closure and organization closure requests with retention-safe workflows.
+- [x] Provide account closure and organization closure requests with retention-safe workflows.
 
 ## Company Integration
 

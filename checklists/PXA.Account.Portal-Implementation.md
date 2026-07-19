@@ -321,11 +321,41 @@ time.
 
 ## Phase 8 — Account & organization closure requests
 
-- [ ] `AccountClosureController.cs`: `POST /account`, `POST /organization`
-      (owner-only), `POST /{requestId}/cancel`.
-- [ ] Config-driven retention window.
-- [ ] `tests/PXA.Api.Tests/AccountClosureControllerTests.cs`.
-- [ ] Closes: Customer Portal → "Provide account closure and organization
+- [x] `AccountClosureController.cs`: `GET` (own pending/past requests),
+      `POST /account` (any authenticated member, self-scoped — revokes all
+      own sessions), `POST /organization` (owner-only via
+      `PxaAccountPermissions.ClosureRequest`, sets `Organization.Status =
+      Closed` immediately), `POST /{requestId}/cancel` (restores
+      `Organization.Status = Active` for an org-target cancel; the
+      cancel endpoint itself also requires `ClosureRequest` when the target
+      is the organization, checked via `User.HasClaim` since the underlying
+      permission only needs to gate one branch of one action, not the whole
+      endpoint).
+- [x] **Fixed a scope gap introduced in Phase 0**: `ClosureRequest` was
+      originally mapped to `OrganizationAdministrator` only, which would
+      have made even *closing your own personal account* an admin-only
+      action. Controller now uses class-level `[Authorize]` (any
+      authenticated member) with `[Authorize(Policy = ClosureRequest)]`
+      applied only to the organization-closure endpoint specifically.
+- [x] Config-driven retention window: new `PxaAccountClosureOptions`
+      (`RetentionPeriod`, default 30 days) bound from configuration, same
+      pattern as the existing `PxaAdminSecurityOptions`.
+- [x] **Scope decision**: no confirmation mail sent on closure request in
+      this pass (no `identity.account-closure-*` template exists yet, and
+      adding one belongs with Phase 9's other new mail types rather than
+      duplicating that work here). No automated purge executor either, per
+      the original plan — only the request/cancel workflow.
+- [x] `tests/PXA.Api.Tests/AccountClosureControllerTests.cs` (3 tests):
+      organization closure request → duplicate-conflict → cancel → re-cancel
+      conflict, with `Organization.Status` verified Closed then Active
+      again; account closure revokes the caller's other sessions;
+      unauthenticated 401.
+- [x] Frontend: `pages/closure.ts` (request list with cancel action, two
+      confirm-then-request buttons) reachable via a link from `/support`
+      (not in the primary nav, per the original plan) but still a full
+      shell-rendered, login-gated portal route. `api.ts` additions.
+      Type-check/unit tests/build all clean.
+- [x] Closes: Customer Portal → "Provide account closure and organization
       closure requests with retention-safe workflows."
 
 ## Phase 9 — Mail: notifications, Trial-expiry, localization, newsletter

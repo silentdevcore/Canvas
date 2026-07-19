@@ -5,6 +5,7 @@ const accountSubscriptionBase = '/api/pxa/v1/account/subscription';
 const accountLicensesBase = '/api/pxa/v1/account/licenses';
 const accountServiceAccountsBase = '/api/pxa/v1/account/service-accounts';
 const accountSecurityBase = '/api/pxa/v1/account/security';
+const accountClosureBase = '/api/pxa/v1/account/closure';
 
 export interface OrganizationInfo {
   id: string;
@@ -184,6 +185,16 @@ export interface AccountRevokeSessionsResponse {
   revokedCount: number;
 }
 
+export interface AccountClosureResponse {
+  id: string;
+  targetType: string;
+  status: string;
+  reason: string | null;
+  requestedAt: string;
+  scheduledPurgeAt: string;
+  resolvedAt: string | null;
+}
+
 export class ApiError extends Error {
   status?: number;
   body?: unknown;
@@ -314,3 +325,11 @@ export const revokeAccountSession = (sessionId: string) =>
   mutation(`${accountSecurityBase}/sessions/${encodeURIComponent(sessionId)}/revoke`, {});
 export const revokeAllAccountSessions = () =>
   mutation<AccountRevokeSessionsResponse>(`${accountSecurityBase}/sessions/revoke-all`, {});
+
+export const getAccountClosureRequests = () => request<AccountClosureResponse[]>(accountClosureBase);
+export const requestAccountClosure = (reason: string | null) =>
+  mutation<AccountClosureResponse>(`${accountClosureBase}/account`, { reason });
+export const requestOrganizationClosure = (reason: string | null) =>
+  mutation<AccountClosureResponse>(`${accountClosureBase}/organization`, { reason });
+export const cancelAccountClosure = (requestId: string) =>
+  mutation<AccountClosureResponse>(`${accountClosureBase}/${encodeURIComponent(requestId)}/cancel`, {});

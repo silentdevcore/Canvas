@@ -15,6 +15,7 @@ import {
 } from './api';
 import type { UserInfo } from './api';
 import { bindShellEvents, closeAccountNavigation, navigation, renderShell } from './shell';
+import { bindClosureEvents, closurePage } from './pages/closure';
 import { dashboardPage } from './pages/dashboard';
 import { bindDeveloperAccessEvents, developerAccessPage } from './pages/developerAccess';
 import { bindLicensesEvents, licensesPage } from './pages/licenses';
@@ -44,8 +45,12 @@ const portalPages: Record<string, PortalPage> = {
   '/developer-access': { render: developerAccessPage, bind: bindDeveloperAccessEvents, title: 'Developer access' },
   '/security': { render: securityPage, bind: bindSecurityEvents, title: 'Security' },
   '/support': { render: supportPage, title: 'Support' },
+  // Not in the primary nav (reached via a link on /support) but still a
+  // full portal route: shell-rendered when authenticated, login-redirected
+  // when not.
+  '/closure': { render: closurePage, bind: bindClosureEvents, title: 'Account closure' },
 };
-const portalPaths = new Set(navigation.map((item) => item.path));
+const portalPaths = new Set([...navigation.map((item) => item.path), '/closure']);
 
 interface AccountState {
   user: UserInfo | null;
