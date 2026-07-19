@@ -1,4 +1,5 @@
 const authBase = '/api/pxa/v1/auth';
+const accountProfileBase = '/api/pxa/v1/account/profile';
 
 export interface OrganizationInfo {
   id: string;
@@ -36,6 +37,16 @@ export interface RegisterAccountValues {
   locale: string | null;
   acceptTerms: boolean;
   acceptPrivacy: boolean;
+}
+
+export interface AccountProfileResponse {
+  id: string;
+  displayName: string;
+  email: string;
+  pendingEmail: string | null;
+  locale: string;
+  country: string | null;
+  roles: string[];
 }
 
 export class ApiError extends Error {
@@ -92,9 +103,9 @@ async function csrf(): Promise<string> {
   return response!.token;
 }
 
-async function mutation<T>(path: string, body: unknown): Promise<T | null> {
+async function mutation<T>(path: string, body: unknown, method = 'POST'): Promise<T | null> {
   return request<T>(path, {
-    method: 'POST',
+    method,
     headers: { 'Content-Type': 'application/json', 'X-PXA-CSRF': await csrf() },
     body: JSON.stringify(body),
   });
@@ -113,3 +124,15 @@ export const requestPasswordReset = (email: string) =>
   mutation(`${authBase}/password-reset/request`, { email });
 export const confirmPasswordReset = (token: string, newPassword: string) =>
   mutation(`${authBase}/password-reset/confirm`, { token, newPassword });
+export const confirmEmailChange = (token: string) =>
+  mutation(`${authBase}/email-change/confirm`, { token });
+
+export const getAccountProfile = () => request<AccountProfileResponse>(accountProfileBase);
+export const updateDisplayName = (displayName: string) =>
+  mutation<AccountProfileResponse>(`${accountProfileBase}/display-name`, { displayName }, 'PATCH');
+export const updateLocale = (locale: string) =>
+  mutation<AccountProfileResponse>(`${accountProfileBase}/locale`, { locale }, 'PATCH');
+export const requestEmailChange = (newEmail: string) =>
+  mutation<RegistrationAcceptedResponse>(`${accountProfileBase}/email-change/request`, { newEmail });
+export const changePassword = (currentPassword: string, newPassword: string) =>
+  mutation(`${accountProfileBase}/password-change`, { currentPassword, newPassword });

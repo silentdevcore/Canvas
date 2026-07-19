@@ -174,13 +174,41 @@ time.
 
 ## Phase 4 — Profile self-service
 
-- [ ] `AccountProfileController.cs` (`/api/pxa/v1/account/profile`): `GET`
+- [x] `AccountProfileController.cs` (`/api/pxa/v1/account/profile`): `GET`
       self, `PATCH /display-name`, `PATCH /locale`, `POST /email-change/request`
-      (reuses existing `AuthController.ConfirmEmailChange` for confirm side),
-      `POST /password-change` (revokes other sessions).
-- [ ] Frontend `pages/profile.js` + `api.js` additions.
-- [ ] `tests/PXA.Api.Tests/AccountProfileControllerTests.cs`.
-- [ ] Closes: Customer Portal → "Let customers update display name, locale,
+      (reuses the existing `AuthController.ConfirmEmailChange` for the confirm
+      side and the existing `"identity.email-verification"` mail template —
+      the same one `AdminUsersController.UpdateProfile` already uses for an
+      admin-driven email change; no new template needed). `POST
+      /password-change` revokes every other active session (reusing the same
+      inline revocation pattern already used by password-reset-complete and
+      email-change-confirm in `AuthController`) and reuses the existing
+      `"identity.password-changed"` template.
+- [x] Email-change deliberately made enumeration-safe (identical response for
+      self/taken/free target address) — a self-service, authenticated
+      endpoint could otherwise be used to probe whether an arbitrary address
+      is registered anywhere, unlike the Admin operator-facing version of
+      this same flow which reveals the conflict directly.
+- [x] Pulled forward part of Phase 11: `AccountMutationContractTests.cs`
+      (sibling to `AdminMutationContractTests`, scoped to authenticated
+      `Account*Controller`s — `AccountRegistrationController` is excluded by
+      design since it is anonymous and already manually audited from Phase 1).
+- [x] Frontend: `api.ts` additions (`getAccountProfile`, `updateDisplayName`,
+      `updateLocale`, `requestEmailChange`, `changePassword`,
+      `confirmEmailChange`); real `pages/profile.ts` (loads on mount, four
+      forms with per-field error handling); new `/confirm-email` route +
+      confirmation flow in `main.ts` (the frontend page the email-verification
+      mail links to). `main.ts`'s portal-page dispatch gained an optional
+      `bind()` hook and a `pxa:rerender` event so async-loading pages don't
+      need a circular import back into the router.
+- [x] `tests/PXA.Api.Tests/AccountProfileControllerTests.cs` (6 tests):
+      get-own-profile + roles, anonymous 401, display-name validation +
+      audit, locale update, email-change enumeration-safety end-to-end
+      through the real confirm endpoint, password-change wrong-password
+      rejection + cross-session revocation. All green against real Postgres;
+      full existing regression suite (registration/auth/mail/admin) still
+      green; frontend type-check/unit tests/build all clean.
+- [x] Closes: Customer Portal → "Let customers update display name, locale,
       email, and password through verified flows."
 
 ## Phase 5 — Organization & members

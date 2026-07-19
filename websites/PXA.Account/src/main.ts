@@ -3,6 +3,7 @@ import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import { sanitizeReturnUrl } from '../../shared/returnUrl.js';
 import {
   ApiError,
+  confirmEmailChange,
   confirmPasswordReset,
   currentUser,
   login,
@@ -18,7 +19,7 @@ import { dashboardPage } from './pages/dashboard';
 import { developerAccessPage } from './pages/developerAccess';
 import { licensesPage } from './pages/licenses';
 import { organizationPage } from './pages/organization';
-import { profilePage } from './pages/profile';
+import { bindProfileEvents, profilePage } from './pages/profile';
 import { securityPage } from './pages/security';
 import { subscriptionPage } from './pages/subscription';
 import { supportPage } from './pages/support';
@@ -29,12 +30,13 @@ const PROBLEM_CODE_VERIFICATION_REQUIRED = 'PXAAPI010';
 
 interface PortalPage {
   render: (user: UserInfo) => string;
+  bind?: () => void;
   title: string;
 }
 
 const portalPages: Record<string, PortalPage> = {
   '/dashboard': { render: dashboardPage, title: 'Dashboard' },
-  '/profile': { render: profilePage, title: 'Profile' },
+  '/profile': { render: profilePage, bind: bindProfileEvents, title: 'Profile' },
   '/organization': { render: organizationPage, title: 'Organization' },
   '/subscription': { render: subscriptionPage, title: 'Subscription' },
   '/usage': { render: usagePage, title: 'Usage' },
@@ -198,6 +200,17 @@ function verificationPage(): string {
   `, 'Verify your account', 'Complete the secure registration step before signing in.');
 }
 
+function confirmEmailChangePage(): string {
+  return authLayout(`
+    <div class="account-result" id="confirm-email-result">
+      <span class="account-progress" aria-hidden="true"></span>
+      <p class="pxa-kicker">Email address change</p>
+      <h2>Confirming your new email address</h2>
+      <p>Please wait while PXA updates your customer identity.</p>
+    </div>
+  `, 'Confirm your new email', 'The confirmation link is single-use and expires automatically.');
+}
+
 function bindForm(formId: string, handler: (data: FormData) => Promise<void>): void {
   document.querySelector(formId)?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -292,6 +305,18 @@ async function runVerification(): Promise<void> {
   bindEvents();
 }
 
+async function runEmailChangeConfirmation(): Promise<void> {
+  const result = document.querySelector<HTMLElement>('#confirm-email-result')!;
+  try {
+    await confirmEmailChange(new URLSearchParams(location.search).get('token') || '');
+    result.innerHTML = '<p class="pxa-kicker">Email address updated</p><h2>Sign in with your new address</h2><p>Your other sessions were signed out as a precaution.</p><a class="pxa-button pxa-button--primary" href="/login">Sign in</a>';
+  } catch (error) {
+    const apiError = error as ApiError;
+    result.innerHTML = `<p class="pxa-kicker">Confirmation failed</p><h2>We could not confirm this link</h2><p>${escapeHtml(apiError.message)}</p><a class="pxa-button pxa-button--secondary" href="/profile">Back to profile</a>`;
+  }
+  bindEvents();
+}
+
 function render(): void {
   if (state.loading) { app.innerHTML = '<main class="account-loading"><span class="account-progress"></span><p>Loading your account</p></main>'; return; }
   const path = location.pathname;
@@ -306,18 +331,26 @@ function render(): void {
     renderShell(app, state.user, portalPage.render(state.user), portalPage.title);
     bindShellEvents(handleLogout);
     bindEvents();
+    portalPage.bind?.();
     return;
   }
   app.innerHTML = path === '/register' ? registerPage()
     : path === '/verify-email' ? verificationPage()
-      : path === '/forgot-password' ? forgotPasswordPage()
-        : path === '/reset-password' ? resetPasswordPage()
-          : loginPage();
+      : path === '/confirm-email' ? confirmEmailChangePage()
+        : path === '/forgot-password' ? forgotPasswordPage()
+          : path === '/reset-password' ? resetPasswordPage()
+            : loginPage();
   bindEvents();
   if (path === '/verify-email') runVerification();
+  if (path === '/confirm-email') runEmailChangeConfirmation();
 }
 
 window.addEventListener('popstate', render);
+
+// Page modules that load their own data asynchronously (e.g. profile.ts)
+// dispatch this after a fetch/mutation completes to re-render in place,
+// without importing main.ts and creating a circular module dependency.
+window.addEventListener('pxa:rerender', render);
 
 document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return;
