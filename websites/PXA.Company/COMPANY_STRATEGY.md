@@ -7,11 +7,13 @@
   - `PXA.Company` -> main marketing website
   - `PXA.Documentation` -> documentation website
   - `PXA.Demo` -> demo gallery
+  - `PXA.Account` -> customer registration and self-service
 - Recommended public structure:
   - `powerdoxautomation.com` for Company
   - `docs.powerdoxautomation.com` for Documentation
   - `demos.powerdoxautomation.com` for Demo
-- Keep local development ports unchanged for now: Company `5173`, Documentation `5174`, Demo `5175`.
+  - `account.powerdoxautomation.com` for Account
+- Keep local development ports unchanged for now: Company `5173`, Documentation `5174`, Demo `5175`, Account `5178`.
 
 ## Pricing And Trial
 - MVP pricing remains placeholder content.
@@ -19,7 +21,7 @@
   - Trial: evaluation path into demos and docs
   - Team: product adoption path for engineering teams
   - Enterprise: migration-heavy/support-led path
-- No paid checkout, license enforcement, or trial signup is implemented in the MVP.
+- Trial signup and email verification start in PXA.Account. Paid checkout, customer license management, and production license enforcement remain open.
 - Future pricing work should define edition boundaries, support levels, and license terms before adding forms or payments.
 
 ## Contact Path
@@ -32,3 +34,4 @@
 - Company pages should link to concrete Demo routes whenever possible.
 - Company pages should link to Documentation sections for product proof.
 - Pricing text must stay clearly placeholder until licensing is decided.
+- Customer sign-in and Trial calls to action must route to PXA.Account; PXA Admin must not be linked from Company pages.

@@ -398,7 +398,7 @@ const pricingTiers = [
     text: 'Explore the product family, run demos, review documentation, and validate whether PXA fits your generation or migration scenario.',
     features: ['Access demos and examples', 'Evaluate product areas', 'Review documentation and migration coverage'],
     cta: 'Start with demos',
-    href: siteLinks.demo,
+    href: `${siteLinks.account}register`,
   },
   {
     title: 'Team',
@@ -610,6 +610,8 @@ function renderHeader() {
         </nav>
         <div class="pxa-header-actions">
           <a class="pxa-button pxa-button--secondary pxa-header-cta" href="${siteLinks.designer}">Live demo</a>
+          <a class="pxa-header-account-link" href="${siteLinks.account}login">Sign in</a>
+          <a class="pxa-button pxa-button--primary pxa-header-cta" href="${siteLinks.account}register">Start free trial</a>
           <a class="pxa-button pxa-button--primary pxa-header-cta" href="${companyPage('contact')}"${activeAttr('contact')}>Contact sales</a>
         </div>
       </div>

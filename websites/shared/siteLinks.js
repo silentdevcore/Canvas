@@ -3,6 +3,7 @@ const defaultSiteLinks = {
   documentation: 'http://localhost:5174/',
   demo: 'http://localhost:5175/',
   designer: 'http://localhost:5176/',
+  account: 'http://localhost:5178/',
 };
 
 const productionSiteLinks = {
@@ -10,6 +11,7 @@ const productionSiteLinks = {
   documentation: 'https://docs.powerdoxautomation.com/',
   demo: 'https://demos.powerdoxautomation.com/',
   designer: 'https://designer.powerdoxautomation.com/',
+  account: 'https://account.powerdoxautomation.com/',
 };
 
 function normalizeUrl(value) {
@@ -28,6 +30,7 @@ export const siteLinks =
         documentation: envLink('VITE_PXA_DOCUMENTATION_URL') || productionSiteLinks.documentation,
         demo: envLink('VITE_PXA_DEMO_URL') || productionSiteLinks.demo,
         designer: envLink('VITE_PXA_DESIGNER_URL') || productionSiteLinks.designer,
+        account: envLink('VITE_PXA_ACCOUNT_URL') || productionSiteLinks.account,
       }
     : defaultSiteLinks;
 

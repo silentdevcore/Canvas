@@ -5,8 +5,9 @@ This folder contains shared layout and styling foundations for the PXA web prope
 - `PXA.Company`
 - `PXA.Documentation`
 - `PXA.Demo`
+- `PXA.Account`
 
-The goal is to keep the three sites visually consistent while allowing each site to optimize for its own workflow: marketing, documentation, or demos.
+The goal is to keep the sites visually consistent while allowing each site to optimize for its own workflow: marketing, documentation, demos, or customer self-service.
 
 ## Style Entry
 
@@ -25,6 +26,7 @@ Use these root classes on the page shell:
 - `pxa-site pxa-site--company`
 - `pxa-site pxa-site--documentation`
 - `pxa-site pxa-site--demo`
+- Account uses the same tokens and components inside its authentication and portal shells.
 
 Each site should use the same header/footer pattern and the same token names. Site-specific styling should be layered after the shared CSS.
 

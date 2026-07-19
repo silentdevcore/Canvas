@@ -1,5 +1,13 @@
 @import '../../shared/styles/index.css';
 
+.pxa-header-account-link {
+  padding: var(--pxa-space-2);
+  color: var(--pxa-color-brand-700);
+  font-size: var(--pxa-text-sm);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .pxa-site--company .pxa-site-header__inner {
   width: calc(100% - 32px);
   max-width: 1280px;

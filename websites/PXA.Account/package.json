@@ -1,0 +1,12 @@
+{
+  "name": "pxa-account",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Power Dox Automation customer account portal",
+  "type": "module",
+  "scripts": {
+    "dev": "../../pxa-designer/node_modules/.bin/vite --host localhost --port 5178",
+    "build": "../../pxa-designer/node_modules/.bin/vite build",
+    "preview": "../../pxa-designer/node_modules/.bin/vite preview --host localhost --port 4178"
+  }
+}

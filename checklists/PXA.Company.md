@@ -65,6 +65,7 @@
 - [x] About-Menuepunkt ist in allen Website-Headern vorhanden.
 - [x] Products, Pricing, About und Support bleiben direkte Menuepunkte in der Hauptnavigation.
 - [x] Contact Sales ist in allen Website-Headern vorhanden.
+- [x] Sign in und Start free trial fuehren von allen Company-Seiten zu PXA.Account.
 - [x] Gemeinsamer Footer mit Product, Resources, Company, Developers und Legal ist vorhanden.
 - [x] Footer enthaelt Copyright, Terms-Link und Privacy-Link.
 - [x] Produkt- und Beispielbereiche fuehren direkt zu passenden Demo-/Docs-Einstiegen.

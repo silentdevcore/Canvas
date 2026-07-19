@@ -4,6 +4,7 @@ public sealed class PxaMailOptions
 {
     public string Transport { get; set; } = "Disabled";
     public string AdminBaseUrl { get; set; } = "http://localhost:5177";
+    public string AccountBaseUrl { get; set; } = "http://localhost:5178";
     public string SenderName { get; set; } = "Power Dox Automation";
     public string SenderAddress { get; set; } = "no-reply@powerdoxautomation.com";
     public string? ReplyToAddress { get; set; }
