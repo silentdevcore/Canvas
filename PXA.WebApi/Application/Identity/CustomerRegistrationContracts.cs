@@ -19,7 +19,29 @@ public sealed record RegisterAccountRequest(
     // never gates registration, verification, or Trial creation, and is
     // recorded only as audit metadata, not a first-class marketing-consent
     // record.
-    bool? SubscribeToNewsletter = null);
+    bool? SubscribeToNewsletter = null,
+    // Privacy-safe campaign attribution (utm_source/utm_medium/utm_campaign
+    // only - see CampaignAttribution.AllowedKeys). Re-validated server-side
+    // against the same allowlist the client already applied, never trusted
+    // as-is, and stored only in AuditEvent.DetailsJson - never a first-class
+    // field on the user or organization.
+    IReadOnlyDictionary<string, string>? CampaignContext = null);
+
+public static class CampaignAttribution
+{
+    public static readonly string[] AllowedKeys = ["utm_source", "utm_medium", "utm_campaign"];
+
+    public static IReadOnlyDictionary<string, string>? Sanitize(IReadOnlyDictionary<string, string>? context)
+    {
+        if (context is null || context.Count == 0)
+            return null;
+        var allowed = context
+            .Where(pair => AllowedKeys.Contains(pair.Key, StringComparer.Ordinal) &&
+                           !string.IsNullOrWhiteSpace(pair.Value))
+            .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+        return allowed.Count == 0 ? null : allowed;
+    }
+}
 
 public sealed record VerifyRegistrationRequest([Required] string Token);
 

@@ -126,6 +126,7 @@ public sealed class CustomerRegistrationService(
                 TermsVersion = "draft-v1",
                 PrivacyVersion = "draft-v1",
                 NewsletterConsent = request.SubscribeToNewsletter ?? false,
+                CampaignContext = CampaignAttribution.Sanitize(request.CampaignContext),
             }),
         });
 

@@ -62,7 +62,7 @@ Deliver a standalone customer identity and self-service portal for registration,
 - [x] Add `Sign in` to every PXA.Company header.
 - [x] Add `Start free trial` to the shared Company header and Trial pricing path.
 - [x] Route Company buttons to PXA.Account rather than rendering authentication inside the static marketing site.
-- [ ] Preserve campaign attribution with an allowlisted, privacy-safe registration context.
+- [x] Preserve campaign attribution with an allowlisted, privacy-safe registration context.
 - [ ] Update pricing and Trial copy only after commercial limits are approved.
 
 ## API And Data

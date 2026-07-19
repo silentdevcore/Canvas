@@ -212,6 +212,52 @@ public sealed class AccountRegistrationControllerTests
             await finalDbContext.AuditEvents.Select(value => value.Action).ToListAsync());
     }
 
+    [PostgreSqlFact]
+    public async Task Registration_drops_non_allowlisted_campaign_context_keys_before_auditing()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        await SeedRolesAsync(factory.Services);
+        using var client = CreateClient(factory);
+
+        using var register = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/register",
+            await GetCsrfAsync(client),
+            new
+            {
+                email = "owner@campaign.test",
+                displayName = "Campaign Owner",
+                password = "Pxa-Customer-Password-42!",
+                accountType = "Company",
+                companyName = "Campaign GmbH",
+                organizationSlug = "campaign-co",
+                acceptTerms = true,
+                acceptPrivacy = true,
+                campaignContext = new Dictionary<string, string>
+                {
+                    ["utm_source"] = "newsletter",
+                    ["utm_campaign"] = "spring-launch",
+                    ["password"] = "smuggled-value",
+                    ["email"] = "smuggled@evil.test",
+                },
+            });
+        Assert.Equal(HttpStatusCode.Accepted, (await client.SendAsync(register)).StatusCode);
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var audit = await dbContext.AuditEvents.SingleAsync(value => value.Action == "account.registration.created");
+        using var details = JsonDocument.Parse(audit.DetailsJson!);
+        var campaignContext = details.RootElement.GetProperty("CampaignContext");
+        var keys = campaignContext.EnumerateObject().Select(property => property.Name).ToArray();
+        Assert.Equal(2, keys.Length);
+        Assert.Contains("utm_source", keys);
+        Assert.Contains("utm_campaign", keys);
+        Assert.DoesNotContain("password", keys);
+        Assert.DoesNotContain("email", keys);
+    }
+
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {

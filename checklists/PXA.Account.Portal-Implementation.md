@@ -411,12 +411,29 @@ time.
 
 ## Phase 10 — Company integration: campaign attribution
 
-- [ ] Allowlisted `utm_source`/`utm_medium`/`utm_campaign` passthrough,
-      Company → Account registration link → `RegisterAccountRequest.
-      CampaignContext` → re-validated server-side → stored only in
-      `AuditEvent.DetailsJson`.
-- [ ] `AccountRegistrationControllerTests.cs` case: non-allowlisted key dropped.
-- [ ] Closes: Company Integration → campaign attribution bullet. (Pricing/Trial
+- [x] New `websites/shared/campaignAttribution.js`: single shared allowlist
+      (`utm_source`/`utm_medium`/`utm_campaign`) plus `appendCampaignParams`
+      (Company → outgoing Account links) and `extractCampaignContext`
+      (Account → registration payload), so both ends of the flow can never
+      drift out of sync with each other the way two independently-maintained
+      allowlists could.
+- [x] `websites/PXA.Company/src/main.js`: both "Start free trial" links (the
+      pricing-tier CTA and the shared header CTA) now append allowlisted
+      params read from Company's own incoming URL via `appendCampaignParams`.
+      The "Sign in" link is untouched — attribution only matters for the
+      new-registration path, not the returning-customer path.
+- [x] Backend: `RegisterAccountRequest.CampaignContext` (optional dictionary)
+      + new `CampaignAttribution.Sanitize` helper (re-validates against the
+      same allowlist server-side — the client-side filter is never trusted
+      alone) → stored only in `AuditEvent.DetailsJson`, never a first-class
+      field on the user or organization.
+- [x] `tests/PXA.Api.Tests/AccountRegistrationControllerTests.cs`: new case
+      asserting a smuggled `password`/`email` key is dropped while
+      `utm_source`/`utm_campaign` survive into the audit record.
+      `websites/PXA.Account/tests/campaignAttribution.test.ts` (5 tests) for
+      the shared module directly. Both `PXA.Company` and `PXA.Account`
+      production builds verified clean after the change.
+- [x] Closes: Company Integration → campaign attribution bullet. (Pricing/Trial
       copy stays deferred — not in scope.)
 
 ## Phase 11 — Cross-cutting hardening: audit & logging

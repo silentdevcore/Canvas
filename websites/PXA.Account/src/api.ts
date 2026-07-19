@@ -44,6 +44,7 @@ export interface RegisterAccountValues {
   acceptTerms: boolean;
   acceptPrivacy: boolean;
   subscribeToNewsletter: boolean;
+  campaignContext: Record<string, string> | null;
 }
 
 export interface AccountProfileResponse {

@@ -1,4 +1,5 @@
 import './site.css';
+import { extractCampaignContext } from '../../shared/campaignAttribution.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import { sanitizeReturnUrl } from '../../shared/returnUrl.js';
 import {
@@ -283,6 +284,7 @@ function bindEvents(): void {
       acceptTerms: data.get('acceptTerms') === 'on',
       acceptPrivacy: data.get('acceptPrivacy') === 'on',
       subscribeToNewsletter: data.get('subscribeToNewsletter') === 'on',
+      campaignContext: extractCampaignContext() as Record<string, string> | null,
     });
     state.notice = response!.message; navigate('/login', true);
   });
