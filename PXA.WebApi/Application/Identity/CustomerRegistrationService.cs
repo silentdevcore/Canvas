@@ -61,7 +61,20 @@ public sealed class CustomerRegistrationService(
             Locale = string.IsNullOrWhiteSpace(request.Locale) ? "en" : request.Locale,
             Country = request.Country,
         };
-        var creation = await userManager.CreateAsync(user, request.Password);
+        IdentityResult creation;
+        try
+        {
+            creation = await userManager.CreateAsync(user, request.Password);
+        }
+        catch (DbUpdateException)
+        {
+            // A concurrent request for the same email won the race between our
+            // FindByEmailAsync pre-check above and this insert - Identity's EF store
+            // does not always convert the resulting unique-constraint violation into
+            // a graceful "Duplicate" IdentityError, so the exception itself is the
+            // signal. Treated the same as the pre-check duplicate path: enumeration-safe.
+            return CustomerRegistrationOutcome.Accepted();
+        }
         if (!creation.Succeeded)
         {
             if (creation.Errors.Any(error => error.Code.Contains("Duplicate", StringComparison.OrdinalIgnoreCase)))

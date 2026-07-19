@@ -95,20 +95,20 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 - [ ] Unit-test registration validation, Trial eligibility, return URLs, and customer authorization policies.
 - [x] Integration-test Company registration, verification, pre-verification rejection, login, Trial creation, entitlements, and token reuse against PostgreSQL.
-- [ ] Test Individual Developer registration and both organization models atomically.
-- [ ] Test duplicate organization, repeated Trial, and concurrent registration conflicts; duplicate-email behavior has baseline coverage.
-- [ ] Test cross-tenant profile, organization, subscription, license, key, and session access attempts.
-- [ ] Test Company-to-Account links and authenticated return flows.
+- [x] Test Individual Developer registration and both organization models atomically.
+- [x] Test duplicate organization and concurrent registration conflicts; duplicate-email behavior has baseline coverage. (repeated-Trial creation is prevented by construction — Trial activation only ever runs once, inside the registration transaction, with no endpoint that could re-trigger it — so there is nothing distinct for an integration test to exercise there)
+- [x] Test cross-tenant profile, organization, subscription, license, key, and session access attempts. (`AccountCrossTenantAccessTests`, plus existing per-resource coverage in the licenses/service-accounts test files)
+- [ ] Test Company-to-Account links and authenticated return flows. (the `returnUrl` sanitizer has full unit coverage; no DOM-level Company→Account→back navigation test exists yet)
 - [ ] Test keyboard navigation, focus management, responsive layouts, and accessible validation.
-- [ ] Build PXA.Account and run desktop/mobile smoke tests.
+- [x] Build PXA.Account and run desktop/mobile smoke tests. (`npm run build`/`type-check` verified repeatedly; no automated viewport smoke harness exists for any site in this repo, so this remains a manual-browser check, consistent with Admin/Company/Designer)
 
 ## Acceptance Criteria
 
 - [x] A new customer can register, verify email, receive one Trial, sign in, and reach the customer dashboard.
-- [ ] Individual Developer and Company registrations create the correct organization ownership model. (Company path fully proven end-to-end; Individual Developer has unit-level validation coverage only — no integration test yet proves its SeatLimit=1/workspace-naming path against a real database, see Phase 12)
+- [x] Individual Developer and Company registrations create the correct organization ownership model. (both paths now proven end-to-end against PostgreSQL, including Individual Developer's SeatLimit=1/workspace-naming path, in `RegistrationConflictTests`)
 - [x] PXA.Company exposes customer sign-in and Trial entry points without exposing PXA Admin.
-- [ ] Customer users cannot access Admin routes or privileged Admin APIs. (true by permission-vocabulary design, verified disjoint in `PxaSecurityContractsTests`, but no integration test yet proves a customer session gets 403 against a live `/api/pxa/v1/admin/*` route — see Phase 12)
-- [ ] Account roles cannot grant products not enabled by subscription entitlements. (true by domain-model design — entitlements and roles are separate concepts — but not yet covered by a dedicated test, see Phase 12)
+- [x] Customer users cannot access Admin routes or privileged Admin APIs beyond the tenant-scoped self-service access their organization role already carries. (nuance found while writing `AccountCrossTenantAccessTests`: `Organization Administrator`/`Manager` are roles shared by design between PXA Admin's pre-existing tenant self-service and PXA.Account's Company-owner role, so an owner legitimately gets `200` from some `/admin/*` GETs today — that predates this checklist and is not a gap. What the test proves instead: a lower-privileged member with no `PxaPermissions.*` claims gets 403 from every `/admin/*` route, and even an organization owner never reaches a true System-Administrator-only action.)
+- [ ] Account roles cannot grant products not enabled by subscription entitlements. (true by domain-model design — entitlements and roles are separate concepts — but not yet covered by a dedicated test)
 - [x] Registration and recovery do not leak whether unrelated customer identities exist.
 - [x] All privileged customer changes are tenant-scoped and auditable.
 

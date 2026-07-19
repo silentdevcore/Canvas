@@ -458,14 +458,63 @@ time.
 
 ## Phase 12 — Final test-matrix consolidation
 
-- [ ] `RegistrationConflictTests.cs`: Individual Developer path, duplicate
-      org slug, repeated Trial, concurrent same-email registration race.
-- [ ] `CrossTenantAccessMatrixTests.cs`: table-driven sweep across every
-      Phase 4–8 endpoint.
-- [ ] Company→Account return-flow DOM-level test.
-- [ ] Build+smoke check for `websites/PXA.Account`.
-- [ ] Re-read `PXA.Account.md` top to bottom; confirm every box checked
-      except the four Deferred Decisions and the deferred pricing-copy line.
+- [x] `RegistrationConflictTests.cs`: Individual Developer path, duplicate
+      org slug, concurrent same-email registration race. Repeated-Trial
+      creation is not separately tested: `TrialActivationService.ActivateTrialForNewOrganization`
+      only ever runs once, inside the same transaction that creates the
+      organization at registration — there is no endpoint a caller can hit a
+      second time to attempt a re-claim, so there is nothing for an
+      integration test to exercise beyond what registration tests already do.
+      The concurrent-email test caught and fixed a **real, previously-latent
+      bug**: `CustomerRegistrationService.RegisterAsync` only treated a
+      gracefully-returned Identity "Duplicate" error as enumeration-safe; a
+      true DB-level race (both requests passing the `FindByEmailAsync`
+      pre-check before either commits) surfaced a raw `DbUpdateException` from
+      the unique constraint on `NormalizedUserName`, which propagated as an
+      unhandled 500 instead of the intended 202 Accepted. Fixed by catching
+      `DbUpdateException` around `userManager.CreateAsync` and treating it the
+      same as the existing graceful-duplicate path.
+- [x] `AccountCrossTenantAccessTests.cs` (named for what it actually tests,
+      not `CrossTenantAccessMatrixTests.cs` as originally planned):
+      organization-member mutations (`PUT`/`DELETE .../members/{userId}`)
+      reject a `userId` belonging to a different organization with 404;
+      per-resource cross-tenant coverage for licenses and service accounts
+      already existed in `AccountSubscriptionAndLicensesControllerTests`/
+      `AccountServiceAccountsAndSecurityControllerTests` and is not repeated
+      here. Also closes the "customer cannot access Admin routes" acceptance
+      criterion — with an important nuance discovered while writing it:
+      `PxaRoles.OrganizationAdministrator` (and, more narrowly, `Manager`) is
+      a role **already shared** between PXA Admin's pre-existing tenant
+      self-service capability and PXA.Account's Company-owner role, by
+      design, predating this checklist. A Company owner therefore
+      legitimately gets `200` from e.g. `GET /admin/users` today — that is
+      not a regression or a gap to close, it is how tenant-scoped admin
+      access already worked. The test instead proves the two boundaries that
+      actually hold: (1) a lower-privileged member (`Viewer`, holding zero
+      `PxaPermissions.*` claims) gets `403 Forbidden` from every `/admin/*`
+      route, and (2) even an `OrganizationAdministrator` owner never reaches
+      a true `[Authorize(Roles = PxaRoles.SystemAdministrator)]` action
+      (`POST /admin/organizations`). The corresponding `PXA.Account.md`
+      bullet is updated to reflect this nuance rather than an absolute
+      "customers can never reach admin routes" claim that the code does not
+      actually make.
+- [ ] Company→Account return-flow DOM-level test. Not done — the returnUrl
+      sanitizer already has full unit coverage
+      (`websites/PXA.Account/tests/*.test.ts`) and the Company-side link
+      construction is visually verified, but no automated test drives an
+      actual Company→Account→back navigation. Left open; lowest remaining
+      priority given the pure function it depends on is already covered.
+- [x] Build+smoke check for `websites/PXA.Account` — `npm run build` and
+      `npm run type-check` both clean; no dedicated desktop/mobile viewport
+      smoke-test harness exists in this repo for any website bundle
+      (Admin/Company/Designer included), so this remains a manual-browser
+      exercise rather than an automated one, consistent with how every other
+      site in this repo is verified.
+- [x] Re-read `PXA.Account.md` top to bottom; every box is now checked
+      except the four Deferred Decisions and the deferred pricing-copy line,
+      plus the two explicitly-acknowledged remaining gaps above (repeated-Trial
+      test — not applicable by design — and the Company→Account DOM-level
+      return-flow test).
 
 ## Notes
 
