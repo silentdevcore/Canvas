@@ -438,11 +438,23 @@ time.
 
 ## Phase 11 — Cross-cutting hardening: audit & logging
 
-- [ ] `[PxaAuditedMutation]` on every mutation endpoint added in Phases 4–8.
-- [ ] `tests/PXA.Api.Tests/AccountMutationContractTests.cs` (reflection
-      contract, sibling to `AdminMutationContractTests.cs`).
-- [ ] Logging sweep of new code for raw secret/token/password leakage.
-- [ ] Closes: Security-And-Privacy → remaining audit + structured-logging bullets.
+- [x] `[PxaAuditedMutation]` on every mutation endpoint added in Phases 4–8 —
+      enforced continuously, not just checked once, by the contract test
+      below (its hardcoded count was bumped at every phase: 4 → 8 → 14 → 17).
+- [x] `tests/PXA.Api.Tests/AccountMutationContractTests.cs` (reflection
+      contract, sibling to `AdminMutationContractTests.cs`) — **pulled
+      forward into Phase 4** rather than left for this phase, so every
+      Account mutation added from Phase 4 onward was already covered as it
+      landed instead of being audited after the fact.
+- [x] Logging sweep of all Phases 4–10 Account code: exactly one `ILogger`
+      call exists (`TrialExpiryWorker`'s catch block, logs the exception
+      object + a static string — same pattern as the pre-existing
+      `PxaMailWorker`, not a new risk). Every `AuditEvent.DetailsJson`
+      payload across every new controller checked by hand: IDs, names, key
+      *prefixes* (never the secret itself), counts, and timestamps only —
+      no raw password, token, or API-key secret ever reaches an audit
+      record, a `Detail` string, or a log call.
+- [x] Closes: Security-And-Privacy → remaining audit + structured-logging bullets.
 
 ## Phase 12 — Final test-matrix consolidation
 

@@ -18,9 +18,9 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 ## Priorities
 
-- [ ] P0: Deliver secure customer registration, verification, sign-in, recovery, and Trial creation.
-- [ ] P0: Deliver personal and organization account management.
-- [ ] P1: Deliver subscriptions, usage, licenses, API keys, downloads, and security sessions.
+- [x] P0: Deliver secure customer registration, verification, sign-in, recovery, and Trial creation.
+- [x] P0: Deliver personal and organization account management.
+- [x] P1: Deliver subscriptions, usage, licenses, API keys, downloads, and security sessions.
 - [ ] P2: Add MFA, SSO, social identity, account linking, and advanced enterprise onboarding.
 
 ## Registration And Trial
@@ -47,7 +47,7 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 ## Customer Portal
 
-- [ ] Add dashboard, profile, organization, members, subscription, usage, licenses, developer access, security, and support routes.
+- [x] Add dashboard, profile, organization, members, subscription, usage, licenses, developer access, security, and support routes.
 - [x] Let customers update display name, locale, email, and password through verified flows.
 - [x] Let Company owners invite, remove, and assign supported organization roles to members.
 - [x] Prevent removal of the last owner or organization administrator.
@@ -67,12 +67,12 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 ## API And Data
 
-- [ ] Add canonical customer endpoints under `/api/pxa/v1/account`.
+- [x] Add canonical customer endpoints under `/api/pxa/v1/account`.
 - [x] Add registration endpoints under `/api/pxa/v1/auth/register` and `/verify-email`.
 - [x] Use application services for registration and Trial orchestration rather than controller-owned transactions.
 - [x] Keep account type, application roles, subscription edition, and product entitlements as separate concepts.
-- [ ] Resolve organization scope from the authenticated server context after login.
-- [ ] Return stable Account-specific Problem Details codes for validation, conflicts, authentication, authorization, and lifecycle failures.
+- [x] Resolve organization scope from the authenticated server context after login.
+- [x] Return stable Account-specific Problem Details codes for validation, conflicts, authentication, authorization, and lifecycle failures.
 - [x] Never return password hashes, action-token hashes, API-key hashes, mail payloads, or private license material.
 
 ## Mail Dependencies
@@ -87,9 +87,9 @@ Deliver a standalone customer identity and self-service portal for registration,
 - [x] Use HttpOnly, Secure, SameSite cookies and antiforgery protection for browser mutations.
 - [x] Add login, registration, reset, and verification rate limits.
 - [x] Record versioned Terms and Privacy acceptance in audit metadata without treating it as marketing consent.
-- [ ] Protect customer data through tenant isolation and least-privilege policies.
-- [x] Add audit records for registration, verification, Trial creation, and existing identity/session changes; customer license and key actions remain open.
-- [ ] Add structured logs without credentials, tokens, document contents, or unnecessary personal data.
+- [x] Protect customer data through tenant isolation and least-privilege policies.
+- [x] Add audit records for registration, verification, Trial creation, and existing identity/session changes; customer license and key actions are now audited too (`account.serviceaccounts.*`).
+- [x] Add structured logs without credentials, tokens, document contents, or unnecessary personal data.
 
 ## Tests
 
@@ -104,13 +104,13 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 ## Acceptance Criteria
 
-- [ ] A new customer can register, verify email, receive one Trial, sign in, and reach the customer dashboard.
-- [ ] Individual Developer and Company registrations create the correct organization ownership model.
-- [ ] PXA.Company exposes customer sign-in and Trial entry points without exposing PXA Admin.
-- [ ] Customer users cannot access Admin routes or privileged Admin APIs.
-- [ ] Account roles cannot grant products not enabled by subscription entitlements.
-- [ ] Registration and recovery do not leak whether unrelated customer identities exist.
-- [ ] All privileged customer changes are tenant-scoped and auditable.
+- [x] A new customer can register, verify email, receive one Trial, sign in, and reach the customer dashboard.
+- [ ] Individual Developer and Company registrations create the correct organization ownership model. (Company path fully proven end-to-end; Individual Developer has unit-level validation coverage only — no integration test yet proves its SeatLimit=1/workspace-naming path against a real database, see Phase 12)
+- [x] PXA.Company exposes customer sign-in and Trial entry points without exposing PXA Admin.
+- [ ] Customer users cannot access Admin routes or privileged Admin APIs. (true by permission-vocabulary design, verified disjoint in `PxaSecurityContractsTests`, but no integration test yet proves a customer session gets 403 against a live `/api/pxa/v1/admin/*` route — see Phase 12)
+- [ ] Account roles cannot grant products not enabled by subscription entitlements. (true by domain-model design — entitlements and roles are separate concepts — but not yet covered by a dedicated test, see Phase 12)
+- [x] Registration and recovery do not leak whether unrelated customer identities exist.
+- [x] All privileged customer changes are tenant-scoped and auditable.
 
 ## Deferred Decisions
 
