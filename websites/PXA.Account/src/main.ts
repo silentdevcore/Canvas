@@ -2,6 +2,7 @@ import './site.css';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import { sanitizeReturnUrl } from '../../shared/returnUrl.js';
 import {
+  ApiError,
   confirmPasswordReset,
   currentUser,
   login,
@@ -10,19 +11,61 @@ import {
   requestPasswordReset,
   resendVerification,
   verifyEmail,
-} from './api.js';
+} from './api';
+import type { UserInfo } from './api';
+import { bindShellEvents, closeAccountNavigation, navigation, renderShell } from './shell';
+import { dashboardPage } from './pages/dashboard';
+import { developerAccessPage } from './pages/developerAccess';
+import { licensesPage } from './pages/licenses';
+import { organizationPage } from './pages/organization';
+import { profilePage } from './pages/profile';
+import { securityPage } from './pages/security';
+import { subscriptionPage } from './pages/subscription';
+import { supportPage } from './pages/support';
+import { usagePage } from './pages/usage';
 
 // Stable Problem Details codes from PXA.WebApi.Infrastructure.PxaApiProblems.
 const PROBLEM_CODE_VERIFICATION_REQUIRED = 'PXAAPI010';
 
-const app = document.querySelector('#app');
-const state = { user: null, loading: true, notice: '', verificationStarted: false };
+interface PortalPage {
+  render: (user: UserInfo) => string;
+  title: string;
+}
 
-function consumeReturnUrl() {
+const portalPages: Record<string, PortalPage> = {
+  '/dashboard': { render: dashboardPage, title: 'Dashboard' },
+  '/profile': { render: profilePage, title: 'Profile' },
+  '/organization': { render: organizationPage, title: 'Organization' },
+  '/subscription': { render: subscriptionPage, title: 'Subscription' },
+  '/usage': { render: usagePage, title: 'Usage' },
+  '/licenses': { render: licensesPage, title: 'Licenses' },
+  '/developer-access': { render: developerAccessPage, title: 'Developer access' },
+  '/security': { render: securityPage, title: 'Security' },
+  '/support': { render: supportPage, title: 'Support' },
+};
+const portalPaths = new Set(navigation.map((item) => item.path));
+
+interface AccountState {
+  user: UserInfo | null;
+  loading: boolean;
+  notice: string;
+  verificationStarted: boolean;
+}
+
+const app = document.querySelector<HTMLElement>('#app')!;
+const state: AccountState = { user: null, loading: true, notice: '', verificationStarted: false };
+
+async function handleLogout(): Promise<void> {
+  await logout();
+  state.user = null;
+  navigate('/login', true);
+}
+
+function consumeReturnUrl(): string | null {
   return sanitizeReturnUrl(new URLSearchParams(location.search).get('returnUrl'));
 }
 
-function escapeHtml(value = '') {
+function escapeHtml(value: unknown = ''): string {
   return String(value)
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -31,12 +74,21 @@ function escapeHtml(value = '') {
     .replaceAll("'", '&#039;');
 }
 
-function navigate(path, replace = false) {
+function formString(data: FormData, name: string): string {
+  return String(data.get(name) ?? '');
+}
+
+function formStringOrNull(data: FormData, name: string): string | null {
+  const value = data.get(name);
+  return value ? String(value) : null;
+}
+
+function navigate(path: string, replace = false): void {
   history[replace ? 'replaceState' : 'pushState']({}, '', path);
   render();
 }
 
-function authLayout(content, title, description) {
+function authLayout(content: string, title: string, description: string): string {
   document.title = `${title} | PXA Account`;
   return `
     <main class="account-auth-shell">
@@ -59,11 +111,11 @@ function authLayout(content, title, description) {
     </main>`;
 }
 
-function message(kind, text) {
+function message(kind: 'info' | 'error', text: string): string {
   return text ? `<div class="account-message account-message--${kind}" role="${kind === 'error' ? 'alert' : 'status'}">${escapeHtml(text)}</div>` : '';
 }
 
-function loginPage() {
+function loginPage(): string {
   return authLayout(`
     <header><p class="pxa-kicker">Welcome back</p><h2>Sign in</h2><p>Access your PXA workspace, Trial, and developer resources.</p></header>
     ${message('info', state.notice)}
@@ -78,7 +130,7 @@ function loginPage() {
   `, 'Sign in to PXA', 'Continue your document automation work with one secure customer identity.');
 }
 
-function registerPage() {
+function registerPage(): string {
   return authLayout(`
     <header><p class="pxa-kicker">30-day Trial</p><h2>Create your account</h2><p>Choose a personal workspace or create a workspace for your company.</p></header>
     <form class="account-form" id="register-form">
@@ -109,7 +161,7 @@ function registerPage() {
   `, 'Start with Power Dox Automation', 'Create a verified customer account and evaluate the connected PXA product family.');
 }
 
-function forgotPasswordPage() {
+function forgotPasswordPage(): string {
   return authLayout(`
     <header><p class="pxa-kicker">Account recovery</p><h2>Reset password</h2><p>We will send recovery instructions when the account is eligible.</p></header>
     ${message('info', state.notice)}
@@ -122,7 +174,7 @@ function forgotPasswordPage() {
   `, 'Recover your account', 'Secure recovery uses a short-lived, single-use action link.');
 }
 
-function resetPasswordPage() {
+function resetPasswordPage(): string {
   const token = new URLSearchParams(location.search).get('token') || '';
   return authLayout(`
     <header><p class="pxa-kicker">Secure action</p><h2>Choose a new password</h2></header>
@@ -135,7 +187,7 @@ function resetPasswordPage() {
   `, 'Set a new password', 'The reset link is single-use and expires automatically.');
 }
 
-function verificationPage() {
+function verificationPage(): string {
   return authLayout(`
     <div class="account-result" id="verification-result">
       <span class="account-progress" aria-hidden="true"></span>
@@ -146,47 +198,26 @@ function verificationPage() {
   `, 'Verify your account', 'Complete the secure registration step before signing in.');
 }
 
-function dashboardPage() {
-  const organizations = state.user.organizations || [];
-  const active = organizations.find((item) => item.id === state.user.activeOrganizationId) || organizations[0];
-  document.title = 'Dashboard | PXA Account';
-  return `
-    <div class="account-portal">
-      <header class="account-header">
-        <a class="account-brand" href="/dashboard"><span>PXA</span> Account</a>
-        <nav aria-label="Account"><a aria-current="page" href="/dashboard">Overview</a><a href="${siteLinks.designer}">Designer</a><a href="${siteLinks.documentation}">Documentation</a></nav>
-        <button class="pxa-button pxa-button--secondary" id="logout-button" type="button">Sign out</button>
-      </header>
-      <main class="account-content" id="main-content">
-        <header class="account-page-header"><div><p class="pxa-kicker">Customer workspace</p><h1>${escapeHtml(active?.name || 'Your PXA account')}</h1><p>Manage your customer identity and continue into PXA products.</p></div><span class="account-status">Trial workspace</span></header>
-        <section class="account-summary" aria-label="Account summary">
-          <article><span>Account</span><strong>${escapeHtml(state.user.displayName)}</strong><small>${escapeHtml(state.user.email)}</small></article>
-          <article><span>Role</span><strong>${escapeHtml(state.user.roles.join(', ') || 'Customer')}</strong><small>Application access remains separate from product entitlements</small></article>
-          <article><span>Organizations</span><strong>${organizations.length}</strong><small>${escapeHtml(active?.slug || 'No active workspace')}</small></article>
-        </section>
-        <section class="account-section"><div><h2>Continue working</h2><p>Open the product surface or guidance that matches your next task.</p></div><div class="account-actions"><a class="pxa-button pxa-button--primary" href="${siteLinks.designer}">Open Designer</a><a class="pxa-button pxa-button--secondary" href="${siteLinks.demo}">Explore demos</a><a class="pxa-button pxa-button--secondary" href="${siteLinks.documentation}">Read documentation</a></div></section>
-      </main>
-    </div>`;
-}
-
-function bindForm(formId, handler) {
+function bindForm(formId: string, handler: (data: FormData) => Promise<void>): void {
   document.querySelector(formId)?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const form = event.currentTarget;
-    const error = form.querySelector('#form-error');
-    const button = form.querySelector('button[type="submit"]');
+    const form = event.currentTarget as HTMLFormElement;
+    const error = form.querySelector<HTMLElement>('#form-error')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
     error.hidden = true;
     error.innerHTML = '';
     button.disabled = true;
-    try { await handler(new FormData(form)); }
-    catch (requestError) {
+    try {
+      await handler(new FormData(form));
+    } catch (requestError) {
+      const apiError = requestError as ApiError;
       error.hidden = false;
       button.disabled = false;
-      if (requestError.code === PROBLEM_CODE_VERIFICATION_REQUIRED) {
-        const email = new FormData(form).get('identifier') || '';
-        error.innerHTML = `${escapeHtml(requestError.message)} <button type="button" class="account-link-button" id="resend-verification-button">Resend verification email</button>`;
+      if (apiError.code === PROBLEM_CODE_VERIFICATION_REQUIRED) {
+        const email = formString(new FormData(form), 'identifier');
+        error.innerHTML = `${escapeHtml(apiError.message)} <button type="button" class="account-link-button" id="resend-verification-button">Resend verification email</button>`;
         document.querySelector('#resend-verification-button')?.addEventListener('click', async (clickEvent) => {
-          clickEvent.currentTarget.disabled = true;
+          (clickEvent.currentTarget as HTMLButtonElement).disabled = true;
           try { await resendVerification(email); }
           finally {
             state.notice = 'If the account is eligible, a new verification message will be sent shortly.';
@@ -195,66 +226,73 @@ function bindForm(formId, handler) {
         });
         return;
       }
-      error.textContent = requestError.message;
+      error.textContent = apiError.message;
     }
   });
 }
 
-function bindEvents() {
-  document.querySelectorAll('a[href^="/"]').forEach((link) => link.addEventListener('click', (event) => {
+function bindEvents(): void {
+  document.querySelectorAll<HTMLAnchorElement>('a[href^="/"]').forEach((link) => link.addEventListener('click', (event) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    event.preventDefault(); navigate(link.getAttribute('href'));
+    event.preventDefault();
+    closeAccountNavigation();
+    navigate(link.getAttribute('href')!);
   }));
-  document.querySelectorAll('input[name="accountType"]').forEach((input) => input.addEventListener('change', () => {
-    const company = document.querySelector('input[name="accountType"]:checked')?.value === 'Company';
-    const fields = document.querySelector('#company-fields');
+  document.querySelectorAll<HTMLInputElement>('input[name="accountType"]').forEach((input) => input.addEventListener('change', () => {
+    const company = document.querySelector<HTMLInputElement>('input[name="accountType"]:checked')?.value === 'Company';
+    const fields = document.querySelector<HTMLElement>('#company-fields')!;
     fields.hidden = !company;
-    fields.querySelector('input[name="companyName"]').required = company;
+    fields.querySelector<HTMLInputElement>('input[name="companyName"]')!.required = company;
   }));
   bindForm('#login-form', async (data) => {
-    const response = await login(data.get('identifier'), data.get('password'), data.get('rememberMe') === 'on');
-    state.user = response.user;
+    const response = await login(formString(data, 'identifier'), formString(data, 'password'), data.get('rememberMe') === 'on');
+    state.user = response!.user;
     const target = consumeReturnUrl();
     if (target) { window.location.href = target; return; }
     navigate('/dashboard', true);
   });
   bindForm('#register-form', async (data) => {
     const response = await register({
-      accountType: data.get('accountType'), displayName: data.get('displayName'), email: data.get('email'),
-      password: data.get('password'), companyName: data.get('companyName') || null,
-      organizationSlug: data.get('organizationSlug') || null, country: data.get('country') || null,
-      locale: data.get('locale'), acceptTerms: data.get('acceptTerms') === 'on', acceptPrivacy: data.get('acceptPrivacy') === 'on',
+      accountType: formString(data, 'accountType'),
+      displayName: formString(data, 'displayName'),
+      email: formString(data, 'email'),
+      password: formString(data, 'password'),
+      companyName: formStringOrNull(data, 'companyName'),
+      organizationSlug: formStringOrNull(data, 'organizationSlug'),
+      country: formStringOrNull(data, 'country'),
+      locale: formStringOrNull(data, 'locale'),
+      acceptTerms: data.get('acceptTerms') === 'on',
+      acceptPrivacy: data.get('acceptPrivacy') === 'on',
     });
-    state.notice = response.message; navigate('/login', true);
+    state.notice = response!.message; navigate('/login', true);
   });
   bindForm('#forgot-form', async (data) => {
-    await requestPasswordReset(data.get('email'));
+    await requestPasswordReset(formString(data, 'email'));
     state.notice = 'If the account is eligible, reset instructions will arrive shortly.'; render();
   });
   bindForm('#reset-form', async (data) => {
     if (data.get('password') !== data.get('confirmation')) throw new Error('Passwords do not match.');
-    await confirmPasswordReset(document.querySelector('#reset-form').dataset.token, data.get('password'));
+    const token = document.querySelector<HTMLFormElement>('#reset-form')!.dataset.token ?? '';
+    await confirmPasswordReset(token, formString(data, 'password'));
     state.notice = 'Your password was updated. Sign in with the new password.'; navigate('/login', true);
-  });
-  document.querySelector('#logout-button')?.addEventListener('click', async () => {
-    await logout(); state.user = null; navigate('/login', true);
   });
 }
 
-async function runVerification() {
+async function runVerification(): Promise<void> {
   if (state.verificationStarted) return;
   state.verificationStarted = true;
-  const result = document.querySelector('#verification-result');
+  const result = document.querySelector<HTMLElement>('#verification-result')!;
   try {
     await verifyEmail(new URLSearchParams(location.search).get('token') || '');
     result.innerHTML = '<p class="pxa-kicker">Account verified</p><h2>Your Trial is ready</h2><p>You can now sign in to your PXA account.</p><a class="pxa-button pxa-button--primary" href="/login">Sign in</a>';
   } catch (error) {
-    result.innerHTML = `<p class="pxa-kicker">Verification failed</p><h2>We could not verify this link</h2><p>${escapeHtml(error.message)}</p><a class="pxa-button pxa-button--secondary" href="/register">Register again</a>`;
+    const apiError = error as ApiError;
+    result.innerHTML = `<p class="pxa-kicker">Verification failed</p><h2>We could not verify this link</h2><p>${escapeHtml(apiError.message)}</p><a class="pxa-button pxa-button--secondary" href="/register">Register again</a>`;
   }
   bindEvents();
 }
 
-function render() {
+function render(): void {
   if (state.loading) { app.innerHTML = '<main class="account-loading"><span class="account-progress"></span><p>Loading your account</p></main>'; return; }
   const path = location.pathname;
   if (state.user && ['/login', '/register', '/'].includes(path)) {
@@ -262,18 +300,29 @@ function render() {
     if (target) { window.location.href = target; return; }
     navigate('/dashboard', true); return;
   }
-  if (!state.user && path === '/dashboard') { navigate('/login', true); return; }
+  if (!state.user && portalPaths.has(path)) { navigate('/login', true); return; }
+  const portalPage = portalPages[path];
+  if (state.user && portalPage) {
+    renderShell(app, state.user, portalPage.render(state.user), portalPage.title);
+    bindShellEvents(handleLogout);
+    bindEvents();
+    return;
+  }
   app.innerHTML = path === '/register' ? registerPage()
     : path === '/verify-email' ? verificationPage()
       : path === '/forgot-password' ? forgotPasswordPage()
         : path === '/reset-password' ? resetPasswordPage()
-          : path === '/dashboard' ? dashboardPage()
-            : loginPage();
+          : loginPage();
   bindEvents();
   if (path === '/verify-email') runVerification();
 }
 
 window.addEventListener('popstate', render);
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  closeAccountNavigation(true);
+});
 
 window.addEventListener('pxa:session-expired', () => {
   if (!state.user) return;
@@ -282,9 +331,9 @@ window.addEventListener('pxa:session-expired', () => {
   navigate('/login', true);
 });
 
-async function initialize() {
+async function initialize(): Promise<void> {
   try { state.user = await currentUser(); }
-  catch (error) { if (error.status !== 401) state.notice = 'PXA Account cannot reach the API.'; }
+  catch (error) { if ((error as ApiError).status !== 401) state.notice = 'PXA Account cannot reach the API.'; }
   state.loading = false;
   render();
 }

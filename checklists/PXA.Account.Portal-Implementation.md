@@ -43,6 +43,11 @@ time.
    executor is explicitly out of scope for this pass.
 10. New rate-limit policy added only for service-account/API-key creation —
     the one genuinely new abuse vector customer self-service introduces.
+11. **Mid-Phase-3 pivot: PXA.Account frontend is TypeScript, not JavaScript**
+    (explicit user request). Applied retroactively to all of PXA.Account's
+    `src`/`tests`, not just files written after the request. `websites/shared/*`
+    stays plain JS by explicit choice (Admin/Company still import it as-is);
+    only Account's own files converted.
 
 ## Phase 0 — Schema & cross-cutting infrastructure
 
@@ -128,14 +133,44 @@ time.
 
 ## Phase 3 — Customer Portal shell (frontend architecture)
 
-- [ ] `websites/PXA.Account/src/shell.js` (`renderShell`/`renderNavigation`/
-      `bindShellEvents`, Account-branded).
-- [ ] `websites/PXA.Account/src/pages/{dashboard,profile,organization,
-      subscription,licenses,developerAccess,security,support,closure}.js`.
-- [ ] Real dashboard data via existing `AccountEntitlementsController`.
-- [ ] `websites/PXA.Account/tests/accessibility-contract.test.js`.
-- [ ] Closes: Customer Portal → "Add dashboard... routes" (scaffold only;
-      per-resource pages close in Phases 4–8).
+- [x] **Mid-phase pivot: PXA.Account converted from JS to TypeScript** (user
+      request, applied to the whole app, not just new code). Added
+      `tsconfig.json` (vanilla TS, DOM lib, `moduleResolution: bundler`,
+      `allowJs: true` so the still-JS `websites/shared/*.js` imports keep
+      resolving, `strict: true`); `type-check` npm script (`tsc --noEmit`,
+      reusing `tsc` from `pxa-designer/node_modules` the same way `vite` is
+      already borrowed — no new install). `@types/node` resolved via
+      `typeRoots` pointed at `pxa-designer/node_modules/@types` (no local
+      node_modules needed for types). `src/global.d.ts` declares `*.css` for
+      the side-effect import. All of Phase 0–2's `api.js`/`main.js` and this
+      phase's new files renamed `.ts`; `websites/shared/siteLinks.js` and
+      `returnUrl.js` intentionally stay `.js` (out of scope per this decision).
+      `index.html` script tag and `package.json` `test` script
+      (`node --experimental-strip-types --test tests/*.test.ts`) updated to match.
+- [x] `websites/PXA.Account/src/shell.ts` (`renderShell`/`renderNavigation`/
+      `bindShellEvents`/`closeAccountNavigation`, Account-branded, typed
+      against `UserInfo` from `api.ts`).
+- [x] `websites/PXA.Account/src/pages/{dashboard,profile,organization,
+      subscription,usage,licenses,developerAccess,security,support}.ts` —
+      `dashboard.ts` is real (org identity/role/org-count from the existing
+      `/auth/me` response, already available; no new backend endpoint needed
+      since `AccountEntitlementsController` only checks one capability at a
+      time and can't back a summary view — deferred to Phase 6's
+      subscription/entitlement endpoints as originally planned). The other
+      eight are intentionally thin "coming soon" pages via a shared
+      `stub.ts` helper, reachable through real navigation/routing, filled in
+      by Phases 4–8. `closure.ts` deferred to Phase 8 (not in primary nav).
+- [x] `main.ts` restructured into router + shell + page-module dispatch
+      (`portalPages` map + `portalPaths` set) instead of growing a single
+      flat file; added a document-level Escape-key handler and mobile-nav
+      close-on-navigate, mirroring Admin's accessibility pattern.
+- [x] `websites/PXA.Account/tests/accessibility-contract.test.ts` (adapted
+      from Admin's, account-namespaced assertions) + existing
+      `returnUrl.test.ts` still green. `npm run type-check` clean; `npm run
+      build` clean (19 modules); dev-server smoke check confirmed every new
+      module loads (200) through Vite.
+- [x] Closes: Customer Portal → "Add dashboard... routes" (scaffold + real
+      dashboard; per-resource functional pages close in Phases 4–8).
 
 ## Phase 4 — Profile self-service
 
