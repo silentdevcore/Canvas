@@ -49,8 +49,8 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 - [ ] Add dashboard, profile, organization, members, subscription, usage, licenses, developer access, security, and support routes.
 - [x] Let customers update display name, locale, email, and password through verified flows.
-- [ ] Let Company owners invite, remove, and assign supported organization roles to members.
-- [ ] Prevent removal of the last owner or organization administrator.
+- [x] Let Company owners invite, remove, and assign supported organization roles to members.
+- [x] Prevent removal of the last owner or organization administrator.
 - [ ] Show edition, Trial/renewal/expiry dates, products, seats, limits, and current usage.
 - [ ] Show offline licenses and customer-safe validation/download metadata.
 - [ ] Create and revoke customer-owned service accounts and API keys with one-time secret display.

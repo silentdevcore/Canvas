@@ -213,17 +213,51 @@ time.
 
 ## Phase 5 — Organization & members
 
-- [ ] Extract `AdminOrganizationsController`'s member logic (incl.
-      `IsLastOrganizationAdministratorAsync`) into
+- [x] Extracted `AdminOrganizationsController`'s member logic (incl.
+      `IsLastOrganizationAdministratorAsync`, role replacement, member
+      queries) into
       `PXA.WebApi/Application/Organizations/OrganizationMembershipService.cs`,
-      shared by Admin and Account.
-- [ ] `AccountOrganizationController.cs` (`/api/pxa/v1/account/organization`):
-      `GET`/`PATCH` org profile, `GET`/`POST /members`, `DELETE /members/{userId}`.
-- [ ] Role assignment restricted to customer-facing role allowlist (never
+      shared by Admin and Account. Also added `ReplaceMemberRolesAsync` (not
+      present in Admin's original code — Admin exposes role reassignment
+      through a separate `AdminRolesController` resource shape; Account
+      exposes it as a member-scoped `PUT .../members/{userId}/roles` instead,
+      simpler for the checkbox-style UI). `AdminOrganizationsController`
+      refactored to call the service; its existing test still green
+      (regression-verified, behavior-preserving).
+- [x] `AccountOrganizationController.cs` (`/api/pxa/v1/account/organization`):
+      `GET`/`PATCH` org profile (name only — status changes stay
+      System-Administrator-only, matching Admin), `GET`/`POST /members`
+      (invite), `PUT /members/{userId}/roles`, `DELETE /members/{userId}`.
+- [x] **Scope decision**: `POST /members` implements the *invite* flow only
+      (new person, no existing PXA account — mirrors
+      `AdminInvitationsController.CreateInvitation` directly rather than
+      extracting a shared `InvitationService`, a time-boxed simplification
+      from the original plan). Adding an *already-registered* PXA user
+      directly to an organization (Admin's separate `AddMember` behavior) is
+      not covered — deferred as a follow-up, consistent with Admin itself
+      treating "invite a new person" and "add an existing user" as two
+      different resources.
+- [x] Role assignment restricted to the existing customer-facing role
+      allowlist (`OrganizationMembershipService.OrganizationRoles` — never
       `System Administrator`).
-- [ ] `tests/PXA.Api.Tests/AccountOrganizationControllerTests.cs` incl.
-      last-owner-protection and cross-tenant 404 cases.
-- [ ] Closes: Customer Portal → invite/remove/assign roles + last-owner
+- [x] `tests/PXA.Api.Tests/AccountOrganizationControllerTests.cs` (5 tests):
+      org profile get/update + validation, unauthenticated 401, invite →
+      accept-invitation → appears active with roles, duplicate-invite
+      conflict, last-owner protection on self-demotion via the roles
+      endpoint, self-removal blocked vs. removing a second administrator
+      succeeds. Noted: `LastOwnerProtected` on `DELETE /members/{userId}`
+      is unreachable in Account's permission model specifically (only
+      Organization Administrators can remove members, so the sole admin
+      trying to remove "the last admin" is always removing *themselves*,
+      which trips `CannotRemoveSelf` first) — covered instead via the roles
+      endpoint, where self-demotion has no such prior check.
+- [x] Frontend: `api.ts` additions (`getAccountOrganization`,
+      `updateAccountOrganizationName`, `getAccountOrganizationMembers`,
+      `inviteAccountOrganizationMember`, `updateAccountOrganizationMemberRoles`,
+      `removeAccountOrganizationMember`); real `pages/organization.ts`
+      (org-name form, member table with per-member role checkboxes and
+      remove button, invite form). Type-check/unit tests/build all clean.
+- [x] Closes: Customer Portal → invite/remove/assign roles + last-owner
       protection bullets.
 
 ## Phase 6 — Subscription, usage, licenses (read views)

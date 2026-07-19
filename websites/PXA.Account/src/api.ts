@@ -1,5 +1,6 @@
 const authBase = '/api/pxa/v1/auth';
 const accountProfileBase = '/api/pxa/v1/account/profile';
+const accountOrganizationBase = '/api/pxa/v1/account/organization';
 
 export interface OrganizationInfo {
   id: string;
@@ -47,6 +48,24 @@ export interface AccountProfileResponse {
   locale: string;
   country: string | null;
   roles: string[];
+}
+
+export interface AccountOrganizationResponse {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+}
+
+export interface AccountOrganizationMemberResponse {
+  userId: string;
+  membershipId: string;
+  displayName: string;
+  email: string;
+  isActive: boolean;
+  membershipStatus: string;
+  roles: string[];
+  createdAt: string;
 }
 
 export class ApiError extends Error {
@@ -136,3 +155,16 @@ export const requestEmailChange = (newEmail: string) =>
   mutation<RegistrationAcceptedResponse>(`${accountProfileBase}/email-change/request`, { newEmail });
 export const changePassword = (currentPassword: string, newPassword: string) =>
   mutation(`${accountProfileBase}/password-change`, { currentPassword, newPassword });
+
+export const getAccountOrganization = () => request<AccountOrganizationResponse>(accountOrganizationBase);
+export const updateAccountOrganizationName = (name: string) =>
+  mutation<AccountOrganizationResponse>(accountOrganizationBase, { name }, 'PATCH');
+export const getAccountOrganizationMembers = () =>
+  request<AccountOrganizationMemberResponse[]>(`${accountOrganizationBase}/members`);
+export const inviteAccountOrganizationMember = (email: string, displayName: string, roles: string[]) =>
+  mutation<AccountOrganizationMemberResponse>(`${accountOrganizationBase}/members`, { email, displayName, roles });
+export const updateAccountOrganizationMemberRoles = (userId: string, roles: string[]) =>
+  mutation<AccountOrganizationMemberResponse>(
+    `${accountOrganizationBase}/members/${encodeURIComponent(userId)}/roles`, { roles }, 'PUT');
+export const removeAccountOrganizationMember = (userId: string) =>
+  mutation(`${accountOrganizationBase}/members/${encodeURIComponent(userId)}`, {}, 'DELETE');

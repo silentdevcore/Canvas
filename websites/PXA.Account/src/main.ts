@@ -18,7 +18,7 @@ import { bindShellEvents, closeAccountNavigation, navigation, renderShell } from
 import { dashboardPage } from './pages/dashboard';
 import { developerAccessPage } from './pages/developerAccess';
 import { licensesPage } from './pages/licenses';
-import { organizationPage } from './pages/organization';
+import { bindOrganizationEvents, organizationPage } from './pages/organization';
 import { bindProfileEvents, profilePage } from './pages/profile';
 import { securityPage } from './pages/security';
 import { subscriptionPage } from './pages/subscription';
@@ -37,7 +37,7 @@ interface PortalPage {
 const portalPages: Record<string, PortalPage> = {
   '/dashboard': { render: dashboardPage, title: 'Dashboard' },
   '/profile': { render: profilePage, bind: bindProfileEvents, title: 'Profile' },
-  '/organization': { render: organizationPage, title: 'Organization' },
+  '/organization': { render: organizationPage, bind: bindOrganizationEvents, title: 'Organization' },
   '/subscription': { render: subscriptionPage, title: 'Subscription' },
   '/usage': { render: usagePage, title: 'Usage' },
   '/licenses': { render: licensesPage, title: 'Licenses' },

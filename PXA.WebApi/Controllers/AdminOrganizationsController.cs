@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Application.Organizations;
 using PXA.WebApi.Security;
 
 namespace PXA.WebApi.Controllers;
@@ -15,21 +16,18 @@ namespace PXA.WebApi.Controllers;
 [Route("api/pxa/v1/admin/organizations")]
 public sealed partial class AdminOrganizationsController : ControllerBase
 {
-    private static readonly string[] OrganizationRoles =
-    [
-        PxaRoles.OrganizationAdministrator,
-        PxaRoles.Manager,
-        PxaRoles.Editor,
-        PxaRoles.Viewer,
-    ];
-
     private readonly PxaDbContext dbContext;
     private readonly IPxaTenantContext tenantContext;
+    private readonly OrganizationMembershipService membershipService;
 
-    public AdminOrganizationsController(PxaDbContext dbContext, IPxaTenantContext tenantContext)
+    public AdminOrganizationsController(
+        PxaDbContext dbContext,
+        IPxaTenantContext tenantContext,
+        OrganizationMembershipService membershipService)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
+        this.membershipService = membershipService;
     }
 
     [HttpGet]
@@ -192,25 +190,8 @@ public sealed partial class AdminOrganizationsController : ControllerBase
         if (!CanAccess(organizationId))
             return NotFound();
 
-        var records = await (
-                from membership in dbContext.OrganizationMemberships.AsNoTracking()
-                join user in dbContext.Users.AsNoTracking() on membership.UserId equals user.Id
-                where membership.OrganizationId == organizationId &&
-                      membership.Status != OrganizationMembershipStatus.Removed
-                orderby user.DisplayName
-                select new MemberRecord(
-                    membership.Id,
-                    user.Id,
-                    user.DisplayName,
-                    user.Email ?? string.Empty,
-                    user.IsActive,
-                    membership.Status,
-                    membership.CreatedAt))
-            .ToListAsync(cancellationToken);
-        var roles = await GetMemberRolesAsync(records.Select(record => record.MembershipId).ToArray(), cancellationToken);
-        return Ok(records.Select(record => ToMemberResponse(
-            record,
-            roles.GetValueOrDefault(record.MembershipId, []))).ToArray());
+        var members = await membershipService.GetMembersAsync(organizationId, cancellationToken);
+        return Ok(members.Select(ToMemberResponse).ToArray());
     }
 
     [HttpPost("{organizationId:guid}/members")]
@@ -225,50 +206,20 @@ public sealed partial class AdminOrganizationsController : ControllerBase
         var actorUserId = tenantContext.UserId;
         if (actorUserId is null || !CanAccess(organizationId))
             return NotFound();
-        var requestedRoles = NormalizeRoles(request.Roles);
+        var requestedRoles = OrganizationMembershipService.NormalizeRoles(request.Roles);
         if (requestedRoles is null)
             return ValidationProblem("Only organization-scoped roles can be assigned.");
 
-        var normalizedEmail = request.Email.Trim().ToUpperInvariant();
-        var user = await dbContext.Users.SingleOrDefaultAsync(
-            value => value.NormalizedEmail == normalizedEmail,
-            cancellationToken);
-        if (user is null)
+        var result = await membershipService.AddMemberAsync(
+            organizationId, request.Email, requestedRoles, actorUserId.Value, cancellationToken);
+        if (result.Outcome == MembershipMutationOutcome.UserNotFound)
             return NotFoundProblem("No existing PXA user has this email address.");
+        if (result.Outcome == MembershipMutationOutcome.AlreadyMember)
+            return ConflictProblem("This user already belongs to the organization.");
 
-        var membership = await dbContext.OrganizationMemberships.SingleOrDefaultAsync(value =>
-            value.OrganizationId == organizationId && value.UserId == user.Id,
-            cancellationToken);
-        if (membership is null)
-        {
-            membership = new OrganizationMembership
-            {
-                OrganizationId = organizationId,
-                UserId = user.Id,
-            };
-            dbContext.OrganizationMemberships.Add(membership);
-        }
-        else
-        {
-            if (membership.Status != OrganizationMembershipStatus.Removed)
-                return ConflictProblem("This user already belongs to the organization.");
-            membership.Status = OrganizationMembershipStatus.Active;
-            membership.UpdatedAt = DateTimeOffset.UtcNow;
-        }
-
-        await ReplaceRolesAsync(membership, requestedRoles, actorUserId.Value, cancellationToken);
-        AddAuditEvent(organizationId, actorUserId.Value, "memberships.add", user.Id, new { Roles = requestedRoles });
+        AddAuditEvent(organizationId, actorUserId.Value, "memberships.add", result.Member!.UserId, new { Roles = requestedRoles });
         await dbContext.SaveChangesAsync(cancellationToken);
-        return Ok(ToMemberResponse(
-            new MemberRecord(
-                membership.Id,
-                user.Id,
-                user.DisplayName,
-                user.Email ?? string.Empty,
-                user.IsActive,
-                membership.Status,
-                membership.CreatedAt),
-            requestedRoles));
+        return Ok(ToMemberResponse(result.Member));
     }
 
     [HttpDelete("{organizationId:guid}/members/{userId:guid}")]
@@ -283,21 +234,23 @@ public sealed partial class AdminOrganizationsController : ControllerBase
         var actorUserId = tenantContext.UserId;
         if (actorUserId is null || !CanAccess(organizationId))
             return NotFound();
-        if (actorUserId == userId && tenantContext.OrganizationId == organizationId)
-            return ConflictProblem("Administrators cannot remove their own active organization membership.");
 
-        var membership = await dbContext.OrganizationMemberships.SingleOrDefaultAsync(value =>
-            value.OrganizationId == organizationId &&
-            value.UserId == userId &&
-            value.Status != OrganizationMembershipStatus.Removed,
+        var result = await membershipService.RemoveMemberAsync(
+            organizationId,
+            userId,
+            actorUserId.Value,
+            actorIsRemovingOwnActiveMembership: tenantContext.OrganizationId == organizationId,
             cancellationToken);
-        if (membership is null)
-            return NotFound();
-        if (await IsLastOrganizationAdministratorAsync(membership, cancellationToken))
-            return ConflictProblem("The last active Organization Administrator cannot be removed.");
+        switch (result.Outcome)
+        {
+            case MembershipMutationOutcome.CannotRemoveSelf:
+                return ConflictProblem("Administrators cannot remove their own active organization membership.");
+            case MembershipMutationOutcome.MembershipNotFound:
+                return NotFound();
+            case MembershipMutationOutcome.LastOwnerProtected:
+                return ConflictProblem("The last active Organization Administrator cannot be removed.");
+        }
 
-        membership.Status = OrganizationMembershipStatus.Removed;
-        membership.UpdatedAt = DateTimeOffset.UtcNow;
         AddAuditEvent(organizationId, actorUserId.Value, "memberships.remove", userId, new { });
         await dbContext.SaveChangesAsync(cancellationToken);
         return NoContent();
@@ -322,74 +275,6 @@ public sealed partial class AdminOrganizationsController : ControllerBase
                     membership.OrganizationId == organization.Id &&
                     membership.Status != OrganizationMembershipStatus.Removed)))
             .SingleOrDefaultAsync(cancellationToken);
-
-    private async Task<Dictionary<Guid, IReadOnlyList<string>>> GetMemberRolesAsync(
-        Guid[] membershipIds,
-        CancellationToken cancellationToken)
-    {
-        var roles = await (
-                from membershipRole in dbContext.OrganizationMembershipRoles.AsNoTracking()
-                join role in dbContext.Roles.AsNoTracking() on membershipRole.RoleId equals role.Id
-                where membershipIds.Contains(membershipRole.OrganizationMembershipId)
-                select new { membershipRole.OrganizationMembershipId, Role = role.Name! })
-            .ToListAsync(cancellationToken);
-        return roles.GroupBy(value => value.OrganizationMembershipId)
-            .ToDictionary(
-                group => group.Key,
-                group => (IReadOnlyList<string>)group.Select(value => value.Role).Order().ToArray());
-    }
-
-    private static string[]? NormalizeRoles(IReadOnlyList<string> roles)
-    {
-        var result = roles.Distinct(StringComparer.Ordinal).ToArray();
-        return result.All(role => OrganizationRoles.Contains(role, StringComparer.Ordinal)) ? result : null;
-    }
-
-    private async Task ReplaceRolesAsync(
-        OrganizationMembership membership,
-        IReadOnlyList<string> roles,
-        Guid actorUserId,
-        CancellationToken cancellationToken)
-    {
-        var existing = await dbContext.OrganizationMembershipRoles
-            .Where(value => value.OrganizationMembershipId == membership.Id)
-            .ToListAsync(cancellationToken);
-        dbContext.OrganizationMembershipRoles.RemoveRange(existing);
-        var roleEntities = await dbContext.Roles.Where(role => roles.Contains(role.Name!)).ToListAsync(cancellationToken);
-        dbContext.OrganizationMembershipRoles.AddRange(roleEntities.Select(role => new OrganizationMembershipRole
-        {
-            OrganizationMembershipId = membership.Id,
-            RoleId = role.Id,
-            AssignedByUserId = actorUserId,
-        }));
-    }
-
-    private async Task<bool> IsLastOrganizationAdministratorAsync(
-        OrganizationMembership membership,
-        CancellationToken cancellationToken)
-    {
-        var roleId = await dbContext.Roles
-            .Where(role => role.Name == PxaRoles.OrganizationAdministrator)
-            .Select(role => (Guid?)role.Id)
-            .SingleOrDefaultAsync(cancellationToken);
-        if (roleId is null || !await dbContext.OrganizationMembershipRoles.AnyAsync(value =>
-                value.OrganizationMembershipId == membership.Id && value.RoleId == roleId,
-                cancellationToken))
-            return false;
-
-        return await (
-                from membershipRole in dbContext.OrganizationMembershipRoles
-                join candidate in dbContext.OrganizationMemberships
-                    on membershipRole.OrganizationMembershipId equals candidate.Id
-                join user in dbContext.Users on candidate.UserId equals user.Id
-                where candidate.OrganizationId == membership.OrganizationId &&
-                      membershipRole.RoleId == roleId &&
-                      candidate.Status == OrganizationMembershipStatus.Active &&
-                      user.IsActive
-                select candidate.UserId)
-            .Distinct()
-            .CountAsync(cancellationToken) <= 1;
-    }
 
     private void AddAuditEvent(Guid organizationId, Guid actorUserId, string action, Guid targetId, object details) =>
         dbContext.AuditEvents.Add(new AuditEvent
@@ -434,16 +319,14 @@ public sealed partial class AdminOrganizationsController : ControllerBase
         organization.CreatedAt,
         organization.UpdatedAt);
 
-    private static AdminOrganizationMemberResponse ToMemberResponse(
-        MemberRecord member,
-        IReadOnlyList<string> roles) => new(
+    private static AdminOrganizationMemberResponse ToMemberResponse(OrganizationMemberRecord member) => new(
         member.UserId,
         member.MembershipId,
         member.DisplayName,
         member.Email,
         member.IsActive,
         member.Status.ToString(),
-        roles,
+        member.Roles,
         member.CreatedAt);
 
     [GeneratedRegex("^[a-z0-9]+(?:-[a-z0-9]+)*$", RegexOptions.CultureInvariant)]
@@ -457,15 +340,6 @@ public sealed partial class AdminOrganizationsController : ControllerBase
         DateTimeOffset CreatedAt,
         DateTimeOffset UpdatedAt,
         int MemberCount);
-
-    private sealed record MemberRecord(
-        Guid MembershipId,
-        Guid UserId,
-        string DisplayName,
-        string Email,
-        bool IsActive,
-        OrganizationMembershipStatus Status,
-        DateTimeOffset CreatedAt);
 }
 
 public sealed record AdminOrganizationPage(

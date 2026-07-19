@@ -12,6 +12,7 @@ using PXA.FileImporter.ImageOcr;
 using PXA.Infrastructure.Persistence;
 using PXA.Pdf;
 using PXA.WebApi.Application.Identity;
+using PXA.WebApi.Application.Organizations;
 using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
@@ -151,6 +152,7 @@ builder.Services.AddOptions<PxaMailOptions>()
 builder.Services.AddScoped<IdentityActionTokenService>();
 builder.Services.AddScoped<TrialActivationService>();
 builder.Services.AddScoped<CustomerRegistrationService>();
+builder.Services.AddScoped<OrganizationMembershipService>();
 builder.Services.AddScoped<IPxaMailQueue, PxaMailQueue>();
 builder.Services.AddScoped<PxaMailProcessor>();
 builder.Services.AddSingleton<DevelopmentMailTransport>();
