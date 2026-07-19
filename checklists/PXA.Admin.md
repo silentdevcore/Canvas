@@ -109,6 +109,7 @@ Current Admin shell implementation:
 
 - [x] Add a dedicated login route with session discovery and authenticated redirects.
 - [x] Connect login, logout, current-user, and CSRF flows to `/api/pxa/v1/auth`.
+- [x] Keep the opt-in Development bootstrap idempotent by synchronizing an existing local administrator password with the configured bootstrap password.
 - [x] Reject authenticated users without System Administrator or Organization Administrator roles in the Admin shell.
 - [x] Add dashboard, users, organizations, roles, subscriptions, licenses, service accounts, mail, audit, and settings routes.
 - [x] Show explicit unavailable states for areas whose tenant-scoped Admin APIs are not implemented.

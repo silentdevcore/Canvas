@@ -65,6 +65,27 @@ public static class PxaDevelopmentIdentityBootstrapper
             var creation = await userManager.CreateAsync(user, password);
             ThrowIfFailed(creation, "create the development administrator");
         }
+        else if (!await userManager.CheckPasswordAsync(user, password))
+        {
+            var passwordErrors = new List<IdentityError>();
+            foreach (var validator in userManager.PasswordValidators)
+            {
+                var validation = await validator.ValidateAsync(userManager, user, password);
+                if (!validation.Succeeded)
+                    passwordErrors.AddRange(validation.Errors);
+            }
+            if (passwordErrors.Count > 0)
+            {
+                ThrowIfFailed(IdentityResult.Failed([.. passwordErrors]),
+                    "validate the development administrator password");
+            }
+
+            user.PasswordHash = userManager.PasswordHasher.HashPassword(user, password);
+            user.SecurityStamp = Guid.NewGuid().ToString();
+            user.UpdatedAt = DateTimeOffset.UtcNow;
+            ThrowIfFailed(await userManager.UpdateAsync(user),
+                "synchronize the development administrator password");
+        }
 
         if (!await userManager.IsInRoleAsync(user, PxaRoles.SystemAdministrator))
         {
