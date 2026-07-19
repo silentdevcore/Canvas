@@ -371,6 +371,19 @@ public sealed class AdminUsersControllerTests
         var suspendedResponse = await suspendedClient.GetAsync("/api/pxa/v1/admin/users");
         Assert.Equal(HttpStatusCode.Unauthorized, suspendedResponse.StatusCode);
         await AssertProblemCodeAsync(suspendedResponse, PxaApiProblems.AuthenticationRequired);
+
+        using var unapprovedOperatorClient = CreateClient(factory);
+        Assert.Equal(HttpStatusCode.OK, await LoginAsync(
+            unapprovedOperatorClient,
+            "unapproved-operator@pxa.test",
+            "Pxa-Unapproved-Operator-42!"));
+        var unapprovedUser = await unapprovedOperatorClient.GetFromJsonAsync<JsonElement>("/api/pxa/v1/auth/me");
+        Assert.DoesNotContain(
+            unapprovedUser.GetProperty("roles").EnumerateArray(),
+            role => role.GetString() == PxaRoles.SystemAdministrator);
+        var unapprovedAdminResponse = await unapprovedOperatorClient.GetAsync("/api/pxa/v1/admin/users");
+        Assert.Equal(HttpStatusCode.Forbidden, unapprovedAdminResponse.StatusCode);
+        await AssertProblemCodeAsync(unapprovedAdminResponse, PxaApiProblems.PermissionDenied);
     }
 
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>
@@ -383,6 +396,8 @@ public sealed class AdminUsersControllerTests
                     configuration.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["ConnectionStrings:PxaDatabase"] = connectionString,
+                        ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
+                        ["AdminSecurity:SystemOperatorEmails:0"] = "system-admin@pxa.test",
                     });
                 });
                 builder.ConfigureServices(services =>
@@ -465,6 +480,12 @@ public sealed class AdminUsersControllerTests
             "System Administrator",
             "Pxa-Admin-Integration-42!");
         Assert.True((await userManager.AddToRoleAsync(administrator, PxaRoles.SystemAdministrator)).Succeeded);
+        var unapprovedOperator = await CreateUserAsync(
+            userManager,
+            "unapproved-operator@pxa.test",
+            "Unapproved Operator",
+            "Pxa-Unapproved-Operator-42!");
+        Assert.True((await userManager.AddToRoleAsync(unapprovedOperator, PxaRoles.SystemAdministrator)).Succeeded);
         var managedUser = await CreateUserAsync(userManager, "member@pxa.test", "Managed User");
         var foreignUser = await CreateUserAsync(userManager, "foreign@pxa.test", "Foreign User");
 

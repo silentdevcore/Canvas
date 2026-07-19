@@ -10,6 +10,26 @@ body {
   background: #f4f6f9;
 }
 
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--pxa-color-brand-600);
+  outline-offset: 3px;
+}
+
+.admin-skip-link {
+  position: fixed;
+  z-index: 100;
+  top: var(--pxa-space-3);
+  left: var(--pxa-space-3);
+  padding: var(--pxa-space-3) var(--pxa-space-4);
+  color: #fff;
+  background: var(--pxa-color-ink);
+  transform: translateY(-160%);
+}
+
+.admin-skip-link:focus {
+  transform: translateY(0);
+}
+
 button:disabled,
 input:disabled {
   cursor: not-allowed;

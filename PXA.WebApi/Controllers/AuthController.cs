@@ -29,6 +29,7 @@ public sealed class AuthController : ControllerBase
     private readonly IPxaMailQueue mailQueue;
     private readonly PxaMailOptions mailOptions;
     private readonly PxaSessionService sessionService;
+    private readonly PxaSystemOperatorAccess systemOperatorAccess;
 
     public AuthController(
         UserManager<PxaIdentityUser> userManager,
@@ -38,7 +39,8 @@ public sealed class AuthController : ControllerBase
         IdentityActionTokenService actionTokens,
         IPxaMailQueue mailQueue,
         Microsoft.Extensions.Options.IOptions<PxaMailOptions> mailOptions,
-        PxaSessionService sessionService)
+        PxaSessionService sessionService,
+        PxaSystemOperatorAccess systemOperatorAccess)
     {
         this.userManager = userManager;
         this.principalFactory = principalFactory;
@@ -48,6 +50,7 @@ public sealed class AuthController : ControllerBase
         this.mailQueue = mailQueue;
         this.mailOptions = mailOptions.Value;
         this.sessionService = sessionService;
+        this.systemOperatorAccess = systemOperatorAccess;
     }
 
     [AllowAnonymous]
@@ -492,6 +495,18 @@ public sealed class AuthController : ControllerBase
     {
         var principal = await principalFactory.CreateAsync(user);
         var identity = (ClaimsIdentity)principal.Identity!;
+        if (!systemOperatorAccess.IsAuthorized(user))
+        {
+            foreach (var claim in identity.FindAll(identity.RoleClaimType)
+                         .Where(claim => string.Equals(
+                             claim.Value,
+                             PxaRoles.SystemAdministrator,
+                             StringComparison.Ordinal))
+                         .ToArray())
+            {
+                identity.RemoveClaim(claim);
+            }
+        }
         if (sessionId is not null)
             identity.AddClaim(new Claim(PxaClaimTypes.Session, sessionId.Value.ToString()));
         var memberships = await GetActiveMembershipsAsync(user.Id, cancellationToken);
@@ -503,7 +518,7 @@ public sealed class AuthController : ControllerBase
             ? memberships.FirstOrDefault()
             : memberships.FirstOrDefault(value => value.OrganizationId == requestedOrganizationId);
         if (activeMembership is null && requestedOrganizationId is not null &&
-            await userManager.IsInRoleAsync(user, PxaRoles.SystemAdministrator))
+            await IsAuthorizedSystemOperatorAsync(user))
         {
             activeMembership = await GetSystemOrganizationAsync(requestedOrganizationId.Value, cancellationToken);
         }
@@ -579,7 +594,7 @@ public sealed class AuthController : ControllerBase
             ? memberships.FirstOrDefault()
             : memberships.FirstOrDefault(value => value.OrganizationId == activeOrganizationId);
         if (activeMembership is null && activeOrganizationId is not null &&
-            await userManager.IsInRoleAsync(user, PxaRoles.SystemAdministrator))
+            await IsAuthorizedSystemOperatorAsync(user))
         {
             activeMembership = await GetSystemOrganizationAsync(activeOrganizationId.Value, cancellationToken);
             if (activeMembership is not null)
@@ -637,6 +652,12 @@ public sealed class AuthController : ControllerBase
         CancellationToken cancellationToken)
     {
         var globalRoles = await userManager.GetRolesAsync(user);
+        if (!systemOperatorAccess.IsAuthorized(user))
+        {
+            globalRoles = globalRoles
+                .Where(role => !string.Equals(role, PxaRoles.SystemAdministrator, StringComparison.Ordinal))
+                .ToArray();
+        }
         var organizationRoles = membershipId is null
             ? []
             : await (from membershipRole in dbContext.OrganizationMembershipRoles.AsNoTracking()
@@ -650,6 +671,10 @@ public sealed class AuthController : ControllerBase
             .Order(StringComparer.Ordinal)
             .ToArray();
     }
+
+    private async Task<bool> IsAuthorizedSystemOperatorAsync(PxaIdentityUser user) =>
+        systemOperatorAccess.IsAuthorized(user) &&
+        await userManager.IsInRoleAsync(user, PxaRoles.SystemAdministrator);
 
     private ObjectResult InvalidCredentials() => Problem(
         statusCode: StatusCodes.Status401Unauthorized,

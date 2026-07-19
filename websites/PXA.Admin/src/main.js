@@ -345,6 +345,7 @@ function renderShell(content, title) {
 
   document.title = `${title} | PXA Admin`;
   app.innerHTML = `
+    <a class="admin-skip-link" href="#admin-content">Skip to content</a>
     <div class="admin-app-shell">
       <aside class="admin-sidebar" id="admin-sidebar">
         <div class="admin-sidebar-brand">
@@ -368,7 +369,7 @@ function renderShell(content, title) {
           <button class="admin-signout" id="signout-button" type="button">Sign out</button>
         </header>
         ${state.connection.offline ? `<div class="admin-connection-banner" role="status"><div><strong>API unavailable</strong><span>Showing the last loaded data. It may be stale.</span></div><button id="admin-retry-connection" type="button">Retry</button></div>` : ''}
-        <main class="admin-content">${content}</main>
+        <main class="admin-content" id="admin-content" tabindex="-1">${content}</main>
       </div>
     </div>
   `;
@@ -917,6 +918,15 @@ function bindShellEvents() {
   document.querySelector('#signout-button')?.addEventListener('click', handleLogout);
   document.querySelector('#forbidden-signout')?.addEventListener('click', handleLogout);
   document.querySelector('#admin-retry-connection')?.addEventListener('click', () => window.location.reload());
+}
+
+function closeAdminSidebar(restoreFocus = false) {
+  const sidebar = document.querySelector('#admin-sidebar');
+  const menuButton = document.querySelector('#menu-button');
+  if (!sidebar?.classList.contains('admin-sidebar--open')) return;
+  sidebar.classList.remove('admin-sidebar--open');
+  menuButton?.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) menuButton?.focus();
 }
 
 async function loadUsers() {
@@ -2052,7 +2062,13 @@ document.addEventListener('click', (event) => {
   const link = event.target.closest('a[href^="/"]');
   if (!link || link.hasAttribute('data-native') || link.target || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
+  closeAdminSidebar();
   navigate(link.getAttribute('href'));
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  closeAdminSidebar(true);
 });
 
 window.addEventListener('popstate', render);

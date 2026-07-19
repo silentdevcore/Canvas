@@ -12,13 +12,16 @@ public sealed class PxaCookieAuthenticationEvents : CookieAuthenticationEvents
 {
     private readonly UserManager<PxaIdentityUser> userManager;
     private readonly PxaDbContext dbContext;
+    private readonly PxaSystemOperatorAccess systemOperatorAccess;
 
     public PxaCookieAuthenticationEvents(
         UserManager<PxaIdentityUser> userManager,
-        PxaDbContext dbContext)
+        PxaDbContext dbContext,
+        PxaSystemOperatorAccess systemOperatorAccess)
     {
         this.userManager = userManager;
         this.dbContext = dbContext;
+        this.systemOperatorAccess = systemOperatorAccess;
     }
 
     public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
@@ -35,10 +38,15 @@ public sealed class PxaCookieAuthenticationEvents : CookieAuthenticationEvents
                 value.Id == sessionId && value.UserId == user.Id);
         var now = DateTimeOffset.UtcNow;
 
+        var hasUnauthorizedSystemRole = user is not null &&
+            context.Principal?.IsInRole(PxaRoles.SystemAdministrator) == true &&
+            !systemOperatorAccess.IsAuthorized(user);
+
         if (user is not { IsActive: true } ||
             string.IsNullOrEmpty(principalStamp) ||
             !string.Equals(principalStamp, currentStamp, StringComparison.Ordinal) ||
-            session is null || session.RevokedAt is not null || session.ExpiresAt <= now)
+            session is null || session.RevokedAt is not null || session.ExpiresAt <= now ||
+            hasUnauthorizedSystemRole)
         {
             context.RejectPrincipal();
             await context.HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);

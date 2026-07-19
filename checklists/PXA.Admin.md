@@ -58,7 +58,7 @@ Current identity implementation:
 - [x] Model organizations, users, memberships, roles, permissions, invitations, and sessions.
 - [x] Model service accounts, API keys, subscriptions, licenses, entitlements, and audit events.
 - [ ] Use a default organization for single-customer On-Premise installations.
-- [ ] Enforce tenant scoping in repositories, application services, API policies, and tests.
+- [x] Enforce tenant scoping in repositories, application services, API policies, and tests.
 - [x] Prevent tenant identifiers supplied by clients from bypassing the authenticated tenant context.
 - [x] Use organization-membership soft deletion and retain identities referenced by audit records.
 
@@ -68,7 +68,7 @@ Current identity implementation:
 - [x] Define policies including `users.read`, `users.create`, `users.update`, `users.disable`, `roles.assign`, `subscriptions.read`, `subscriptions.manage`, `licenses.manage`, `audit.read`, `mail.read`, and `mail.manage`.
 - [x] Define separate `organizations.read` and `organizations.manage` policies for tenant administration.
 - [x] Keep roles independent from subscription and product entitlements.
-- [ ] Restrict System Administrator capabilities to explicitly authorized PXA operators.
+- [x] Restrict System Administrator capabilities to explicitly authorized PXA operators.
 - [x] Prevent administrators from changing their own active organization role or removing the last active Organization Administrator.
 - [x] Audit every privileged role, permission, subscription, and license change.
 
@@ -123,6 +123,14 @@ Current Admin UI completeness implementation:
 - [x] Assign or revoke subscription seats from user detail while retaining the complete seat workspace on subscription detail.
 - [x] Add target-specific organization and offline-license audit histories.
 - [x] Add a tenant-protected offline-license detail route with validation, native download, and revocation actions.
+
+Current Admin security and accessibility implementation:
+
+- [x] Require an explicit production `AdminSecurity:SystemOperatorEmails` allowlist before an Identity System Administrator receives system role claims or permissions.
+- [x] Remove unauthorized system claims during principal creation and reject already-issued privileged cookies when operator authorization is removed.
+- [x] Verify at the HTTP boundary that an unapproved System Administrator cannot invoke Admin APIs while an approved PXA operator retains system access.
+- [x] Add a keyboard-accessible skip link, visible focus treatment, Escape-to-close sidebar behavior, and responsive shell contracts.
+- [x] Verify that API-key secrets are revealed only by the creation response and never by normal service-account list responses.
 
 Current user administration implementation:
 
@@ -230,13 +238,15 @@ Current privileged-mutation audit contract:
 
 ## Deployment And Operations
 
-- [x] Produce an independent Admin build.
+- [ ] Produce an independent Admin build for deployment.
 - [ ] Produce the future static web-server image.
-- [x] Use relative same-origin API paths and a development-only Vite proxy without hard-coded hosts in application code.
+- [ ] Validate relative same-origin API routing and the development-only Vite proxy in the target deployment.
 - [ ] Route the customer Admin host to the Admin application and `/api` to PXA API.
 - [ ] Add compatibility checks between Admin and API versions.
 - [ ] Add CSP, security headers, cache rules, health visibility, and structured client-error reporting.
 - [ ] Add the Admin service to Cloud hosting and optional PXA Server Docker Compose profiles.
+
+All deployment and operations tasks are intentionally deferred until the application feature and quality work is complete.
 
 ## Tests
 
@@ -253,15 +263,15 @@ Current privileged-mutation audit contract:
 - [x] Test audit filtering, details, anonymous rejection, cross-tenant isolation, Enterprise CSV/JSON export, and export auditing against PostgreSQL.
 - [x] Test protected role catalog, permission metadata, member counts, cross-tenant isolation, assignment, revocation, self-protection, and role audit events against PostgreSQL.
 - [x] Verify that every privileged mutation creates an audit event.
-- [ ] Test keyboard navigation, focus management, screen-reader labels, and responsive layouts.
-- [ ] Run end-to-end tests for System Administrator and Organization Administrator journeys.
+- [x] Test keyboard navigation, focus management, screen-reader labels, and responsive layouts through dependency-free Admin UI contract tests.
+- [x] Run PostgreSQL-backed API end-to-end tests for System Administrator and Organization Administrator journeys.
 - [x] Verify that Manager, Editor, Viewer, anonymous, and suspended users cannot access unauthorized Admin data.
 
 ## Acceptance Criteria
 
 - [ ] PXA Admin is deployed independently from PXA Designer.
 - [x] Non-admin users cannot load or invoke unauthorized Admin capabilities.
-- [ ] Every query and mutation respects organization isolation.
+- [x] Every query and mutation respects organization isolation.
 - [x] Every privileged change is attributable through immutable audit metadata.
-- [ ] Subscription access, application roles, and product entitlements remain distinct.
-- [ ] No password, reset token, invitation token, API-key secret, or mail credential is exposed in logs or normal API responses.
+- [x] Subscription access, application roles, and product entitlements remain distinct.
+- [x] No password, reset token, invitation token, API-key secret, or mail credential is exposed in logs or normal API responses.

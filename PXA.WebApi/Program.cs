@@ -59,6 +59,9 @@ builder.Services.AddAuthentication(options =>
     });
 builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
 builder.Services.AddScoped<PxaSessionService>();
+builder.Services.AddOptions<PxaAdminSecurityOptions>()
+    .Bind(builder.Configuration.GetSection(PxaAdminSecurityOptions.SectionName));
+builder.Services.AddScoped<PxaSystemOperatorAccess>();
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, PxaAuthorizationMiddlewareResultHandler>();
 builder.Services.AddRateLimiter(options =>
 {

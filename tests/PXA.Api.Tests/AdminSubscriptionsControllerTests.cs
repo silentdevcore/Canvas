@@ -93,6 +93,11 @@ public sealed class AdminSubscriptionsControllerTests
         var key = await keyResponse.Content.ReadFromJsonAsync<JsonElement>();
         var keyId = key.GetProperty("id").GetGuid();
         var secret = key.GetProperty("secret").GetString()!;
+        var serviceAccounts = await organizationClient.GetFromJsonAsync<JsonElement>(
+            "/api/pxa/v1/admin/service-accounts");
+        Assert.DoesNotContain(secret, serviceAccounts.GetRawText(), StringComparison.Ordinal);
+        Assert.DoesNotContain("\"secret\"", serviceAccounts.GetRawText(), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("\"keyHash\"", serviceAccounts.GetRawText(), StringComparison.OrdinalIgnoreCase);
         using var apiClient = CreateClient(factory);
         apiClient.DefaultRequestHeaders.Add("X-PXA-API-Key", secret);
         using var productRequest = new HttpRequestMessage(HttpMethod.Post, "/api/pxa/templates")
@@ -332,6 +337,8 @@ public sealed class AdminSubscriptionsControllerTests
                 {
                     ["ConnectionStrings:PxaDatabase"] = connectionString,
                     ["ProductAccess:Enabled"] = "true",
+                    ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
+                    ["AdminSecurity:SystemOperatorEmails:0"] = "system@pxa.test",
                 }));
             builder.ConfigureServices(services =>
             {

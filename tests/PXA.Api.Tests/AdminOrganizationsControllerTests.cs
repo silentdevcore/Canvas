@@ -131,6 +131,8 @@ public sealed class AdminOrganizationsControllerTests
                     configuration.AddInMemoryCollection(new Dictionary<string, string?>
                     {
                         ["ConnectionStrings:PxaDatabase"] = connectionString,
+                        ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
+                        ["AdminSecurity:SystemOperatorEmails:0"] = "system-admin@pxa.test",
                     }));
                 builder.ConfigureServices(services =>
                 {
