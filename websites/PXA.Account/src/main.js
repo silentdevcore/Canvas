@@ -1,5 +1,6 @@
 import './site.css';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
+import { sanitizeReturnUrl } from '../../shared/returnUrl.js';
 import {
   confirmPasswordReset,
   currentUser,
@@ -7,11 +8,19 @@ import {
   logout,
   register,
   requestPasswordReset,
+  resendVerification,
   verifyEmail,
 } from './api.js';
 
+// Stable Problem Details codes from PXA.WebApi.Infrastructure.PxaApiProblems.
+const PROBLEM_CODE_VERIFICATION_REQUIRED = 'PXAAPI010';
+
 const app = document.querySelector('#app');
 const state = { user: null, loading: true, notice: '', verificationStarted: false };
+
+function consumeReturnUrl() {
+  return sanitizeReturnUrl(new URLSearchParams(location.search).get('returnUrl'));
+}
 
 function escapeHtml(value = '') {
   return String(value)
@@ -167,9 +176,27 @@ function bindForm(formId, handler) {
     const error = form.querySelector('#form-error');
     const button = form.querySelector('button[type="submit"]');
     error.hidden = true;
+    error.innerHTML = '';
     button.disabled = true;
     try { await handler(new FormData(form)); }
-    catch (requestError) { error.textContent = requestError.message; error.hidden = false; button.disabled = false; }
+    catch (requestError) {
+      error.hidden = false;
+      button.disabled = false;
+      if (requestError.code === PROBLEM_CODE_VERIFICATION_REQUIRED) {
+        const email = new FormData(form).get('identifier') || '';
+        error.innerHTML = `${escapeHtml(requestError.message)} <button type="button" class="account-link-button" id="resend-verification-button">Resend verification email</button>`;
+        document.querySelector('#resend-verification-button')?.addEventListener('click', async (clickEvent) => {
+          clickEvent.currentTarget.disabled = true;
+          try { await resendVerification(email); }
+          finally {
+            state.notice = 'If the account is eligible, a new verification message will be sent shortly.';
+            navigate('/login', true);
+          }
+        });
+        return;
+      }
+      error.textContent = requestError.message;
+    }
   });
 }
 
@@ -186,7 +213,10 @@ function bindEvents() {
   }));
   bindForm('#login-form', async (data) => {
     const response = await login(data.get('identifier'), data.get('password'), data.get('rememberMe') === 'on');
-    state.user = response.user; navigate('/dashboard', true);
+    state.user = response.user;
+    const target = consumeReturnUrl();
+    if (target) { window.location.href = target; return; }
+    navigate('/dashboard', true);
   });
   bindForm('#register-form', async (data) => {
     const response = await register({
@@ -227,7 +257,11 @@ async function runVerification() {
 function render() {
   if (state.loading) { app.innerHTML = '<main class="account-loading"><span class="account-progress"></span><p>Loading your account</p></main>'; return; }
   const path = location.pathname;
-  if (state.user && ['/login', '/register', '/'].includes(path)) { navigate('/dashboard', true); return; }
+  if (state.user && ['/login', '/register', '/'].includes(path)) {
+    const target = consumeReturnUrl();
+    if (target) { window.location.href = target; return; }
+    navigate('/dashboard', true); return;
+  }
   if (!state.user && path === '/dashboard') { navigate('/login', true); return; }
   app.innerHTML = path === '/register' ? registerPage()
     : path === '/verify-email' ? verificationPage()
@@ -240,6 +274,13 @@ function render() {
 }
 
 window.addEventListener('popstate', render);
+
+window.addEventListener('pxa:session-expired', () => {
+  if (!state.user) return;
+  state.user = null;
+  state.notice = 'Your session expired. Sign in again.';
+  navigate('/login', true);
+});
 
 async function initialize() {
   try { state.user = await currentUser(); }

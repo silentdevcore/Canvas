@@ -40,6 +40,17 @@ public sealed class AccountRegistrationController : ControllerBase
         };
     }
 
+    [HttpPost("resend-verification")]
+    [PxaValidateAntiforgery]
+    [EnableRateLimiting("registration")]
+    public async Task<ActionResult<RegistrationAcceptedResponse>> ResendVerification(
+        ResendVerificationRequest request,
+        CancellationToken cancellationToken)
+    {
+        await registrationService.ResendVerificationAsync(request.Email, cancellationToken);
+        return Accepted(AcceptedResponse());
+    }
+
     [HttpPost("verify-email")]
     [PxaValidateAntiforgery]
     [EnableRateLimiting("identity-action")]

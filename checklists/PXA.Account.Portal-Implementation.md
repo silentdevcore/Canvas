@@ -86,17 +86,45 @@ time.
 
 ## Phase 2 — `returnUrl` validation + explicit auth-state UI
 
-- [ ] `websites/shared/returnUrl.js`: `sanitizeReturnUrl()` allowlisting
-      Designer/Demo/Documentation/Account origins only.
-- [ ] Wire into `websites/PXA.Account/src/main.js` login flow; silent fallback
-      to `/dashboard` on rejection.
-- [ ] `AuthController.Login`: distinct `403`/`VerificationRequired` response
-      for unconfirmed email (currently folded into generic invalid-credentials).
-- [ ] Adopt Admin's `pxa:session-expired`/`pxa:access-denied` CustomEvent
-      pattern in `websites/PXA.Account/src/api.js`.
-- [ ] New `POST /api/pxa/v1/auth/resend-verification` (enumeration-safe).
-- [ ] `websites/PXA.Account/tests/returnUrl.test.js`.
-- [ ] Closes: Customer Authentication → returnUrl + explicit state bullets.
+- [x] `websites/shared/returnUrl.js`: `sanitizeReturnUrl()` allowlisting
+      Designer/Demo/Documentation/Account origins only (both local and
+      production tables; Company and Admin are never in the allowlist).
+- [x] Wired into `websites/PXA.Account/src/main.js`: consumed on successful
+      login and on the already-authenticated redirect from `/login`,
+      `/register`, `/`; silent fallback to `/dashboard` on rejection.
+- [x] `AuthController.Login`: split unconfirmed-email into its own
+      `403`/`VerificationRequired` response (previously folded into the
+      generic invalid-credentials response alongside disabled accounts,
+      which stay generic). New title-sniff case in
+      `PxaApiProblems.ResolveCode` ("Email verification") mirrors the
+      existing CSRF/"Organization context" convention.
+- [x] Adopted Admin's `pxa:session-expired`/`pxa:access-denied`/
+      `pxa:api-offline` CustomEvent pattern in `websites/PXA.Account/src/api.js`
+      (code/traceId now captured too); `main.js` listens for
+      `pxa:session-expired` and shows the expired-session state.
+- [x] New `POST /api/pxa/v1/auth/resend-verification` on
+      `AccountRegistrationController`/`CustomerRegistrationService.ResendVerificationAsync`
+      (enumeration-safe: identical response for known/unknown email; superseds
+      the prior token via the existing `IdentityActionTokenService` semantics).
+      Login form now offers a "Resend verification email" action on the
+      verification-required response.
+- [x] "Account locked" (423) already had a distinct backend message; fixed a
+      latent gap where `ResolveCode` had no `423` case (now maps to
+      `AccountLocked`, `PXAAPI009`, Phase 0).
+- [x] "Suspended-account" state deferred to Phase 3/6 — it needs real
+      organization/subscription status data the dashboard doesn't fetch yet;
+      will render as a dashboard banner per the plan's judgment call, not a
+      login-blocking branch.
+- [x] `websites/PXA.Account/tests/returnUrl.test.js` (8 tests) +
+      `package.json` `"test"` script (`node --test tests/*.test.js`).
+- [x] Backend tests: `PxaApiProblemsTests` extended (title-sniff case);
+      `AccountRegistrationControllerTests` updated (pre-verification login now
+      expects 403 + `VerificationRequired` code) and extended with a new
+      `Resend_verification_is_enumeration_safe_and_reissues_a_usable_token`
+      integration test. All Postgres-backed regression tests green.
+- [x] Closes: Customer Authentication → returnUrl bullet fully; explicit-state
+      bullet closes for expired-session/locked-account/verification-required
+      (suspended-account carries over to Phase 3/6).
 
 ## Phase 3 — Customer Portal shell (frontend architecture)
 

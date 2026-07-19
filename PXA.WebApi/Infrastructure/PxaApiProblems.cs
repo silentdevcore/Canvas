@@ -60,6 +60,8 @@ public static class PxaApiProblems
             return InvalidCsrf;
         if (title?.Contains("Organization context", StringComparison.OrdinalIgnoreCase) == true)
             return OrganizationRequired;
+        if (title?.Contains("Email verification", StringComparison.OrdinalIgnoreCase) == true)
+            return VerificationRequired;
         return status switch
         {
             StatusCodes.Status401Unauthorized => AuthenticationRequired,

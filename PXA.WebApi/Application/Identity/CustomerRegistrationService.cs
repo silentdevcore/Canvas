@@ -132,6 +132,48 @@ public sealed class CustomerRegistrationService(
         return CustomerRegistrationOutcome.Accepted();
     }
 
+    public async Task ResendVerificationAsync(string email, CancellationToken cancellationToken)
+    {
+        var user = await userManager.FindByEmailAsync(email.Trim());
+        if (user is not { IsActive: true, EmailConfirmed: false })
+            return;
+
+        var organizationId = await dbContext.OrganizationMemberships.AsNoTracking()
+            .Where(membership =>
+                membership.UserId == user.Id &&
+                membership.Status == OrganizationMembershipStatus.Active)
+            .OrderBy(membership => membership.CreatedAt)
+            .Select(membership => (Guid?)membership.OrganizationId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var issued = await actionTokens.IssueAsync(
+            user.Id,
+            organizationId,
+            user.Email!,
+            IdentityActionTokenService.RegistrationVerificationPurpose,
+            new { organizationId },
+            TimeSpan.FromHours(24),
+            cancellationToken);
+        var actionUrl = $"{mailOptions.AccountBaseUrl.TrimEnd('/')}/verify-email?token={Uri.EscapeDataString(issued.RawToken)}";
+        mailQueue.Enqueue(
+            organizationId,
+            user.Id,
+            user.Email!,
+            "identity.registration-verification",
+            new { displayName = user.DisplayName, actionUrl },
+            $"registration-verification-resend:{issued.Entity.Id}");
+        dbContext.AuditEvents.Add(new AuditEvent
+        {
+            OrganizationId = organizationId,
+            ActorUserId = user.Id,
+            Action = "account.verification.resent",
+            TargetType = "identity_action_token",
+            TargetId = issued.Entity.Id.ToString(),
+            Outcome = "succeeded",
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<EmailVerificationOutcome> VerifyEmailAsync(string token, CancellationToken cancellationToken)
     {
         var actionToken = await actionTokens.FindValidAsync(

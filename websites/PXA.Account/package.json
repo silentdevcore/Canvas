@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "../../pxa-designer/node_modules/.bin/vite --host localhost --port 5178",
     "build": "../../pxa-designer/node_modules/.bin/vite build",
-    "preview": "../../pxa-designer/node_modules/.bin/vite preview --host localhost --port 4178"
+    "preview": "../../pxa-designer/node_modules/.bin/vite preview --host localhost --port 4178",
+    "test": "node --test tests/*.test.js"
   }
 }

@@ -19,6 +19,14 @@ public sealed class PxaApiProblemsTests
     }
 
     [Fact]
+    public void ResolveCode_recognizes_the_email_verification_title_on_a_403()
+    {
+        Assert.Equal(
+            PxaApiProblems.VerificationRequired,
+            PxaApiProblems.ResolveCode(StatusCodes.Status403Forbidden, "Email verification required"));
+    }
+
+    [Fact]
     public void Create_stamps_type_instance_and_trace_id()
     {
         var context = new DefaultHttpContext();

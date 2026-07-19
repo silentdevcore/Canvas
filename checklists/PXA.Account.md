@@ -41,9 +41,9 @@ Deliver a standalone customer identity and self-service portal for registration,
 - [x] Reuse the secure PXA cookie, session, lockout, password policy, and security-stamp infrastructure.
 - [x] Add Account login, logout, current-user, password-reset, and email-verification routes.
 - [x] Keep customer authorization separate from System Administrator access; dedicated customer policies remain open.
-- [ ] Support safe `returnUrl` redirects to Designer, Demo, Documentation, or Account routes.
-- [ ] Reject external, protocol-relative, and untrusted return URLs.
-- [ ] Display explicit expired-session, locked-account, verification-required, and suspended-account states.
+- [x] Support safe `returnUrl` redirects to Designer, Demo, Documentation, or Account routes.
+- [x] Reject external, protocol-relative, and untrusted return URLs.
+- [ ] Display explicit expired-session, locked-account, verification-required, and suspended-account states. (expired-session/locked-account/verification-required done; suspended-account deferred to the dashboard work in Phase 3/6 of [PXA.Account.Portal-Implementation.md](PXA.Account.Portal-Implementation.md))
 
 ## Customer Portal
 

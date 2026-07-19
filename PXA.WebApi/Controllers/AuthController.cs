@@ -88,10 +88,15 @@ public sealed class AuthController : ControllerBase
 
         if (user is null)
             return InvalidCredentials();
-        if (!user.IsActive || !user.EmailConfirmed)
+        if (!user.IsActive)
         {
             await AddIdentitySecurityAuditAsync(user, "security.login.failed", "rejected", cancellationToken);
             return InvalidCredentials();
+        }
+        if (!user.EmailConfirmed)
+        {
+            await AddIdentitySecurityAuditAsync(user, "security.login.unverified", "rejected", cancellationToken);
+            return VerificationRequired();
         }
 
         if (await userManager.IsLockedOutAsync(user))
@@ -680,6 +685,11 @@ public sealed class AuthController : ControllerBase
         statusCode: StatusCodes.Status401Unauthorized,
         title: "Invalid credentials",
         detail: "The supplied username or password is invalid.");
+
+    private ObjectResult VerificationRequired() => Problem(
+        statusCode: StatusCodes.Status403Forbidden,
+        title: "Email verification required",
+        detail: "Verify your email address before signing in.");
 
     private ObjectResult IdentityFailure(IdentityResult result) => Problem(
         statusCode: StatusCodes.Status500InternalServerError,

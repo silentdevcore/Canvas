@@ -18,6 +18,8 @@ public sealed record RegisterAccountRequest(
 
 public sealed record VerifyRegistrationRequest([Required] string Token);
 
+public sealed record ResendVerificationRequest([Required, EmailAddress] string Email);
+
 public sealed record RegistrationAcceptedResponse(string Message);
 
 public sealed record RegistrationValidationResult(
