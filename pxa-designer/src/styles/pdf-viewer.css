@@ -2,15 +2,15 @@
   display: grid;
   min-height: 100vh;
   place-items: center;
-  background: var(--color-bg, #f5f7fb);
-  color: var(--color-text, #172033);
+  background: var(--color-bg, #fafaf9);
+  color: var(--color-text, #1c1917);
   font-weight: 700;
 }
 
 .pdfv-page {
   min-height: 100vh;
-  background: var(--color-bg, #f5f7fb);
-  color: var(--color-text, #172033);
+  background: var(--color-bg, #fafaf9);
+  color: var(--color-text, #1c1917);
 }
 
 .pdfv-shell {
@@ -29,7 +29,7 @@
   gap: 12px;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(23, 32, 51, 0.1);
+  border-bottom: 1px solid rgba(28, 25, 23, 0.1);
   background: rgba(255, 255, 255, 0.96);
   padding: 12px 20px;
 }
@@ -55,7 +55,7 @@
 
 .pdfv-url-form,
 .pdfv-search-form {
-  border: 1px solid rgba(23, 32, 51, 0.14);
+  border: 1px solid rgba(28, 25, 23, 0.14);
   border-radius: 8px;
   background: #fff;
   padding: 6px 8px;
@@ -64,7 +64,7 @@
 .pdfv-url-form svg,
 .pdfv-search-form svg {
   flex: 0 0 auto;
-  color: #667085;
+  color: #57534e;
 }
 
 .pdfv-url-form input,
@@ -85,10 +85,10 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border: 1px solid rgba(23, 32, 51, 0.14);
+  border: 1px solid rgba(28, 25, 23, 0.14);
   border-radius: 8px;
   background: #fff;
-  color: #1d2939;
+  color: #292524;
   cursor: pointer;
   font: inherit;
   font-size: 0.9rem;
@@ -104,8 +104,8 @@
 
 .pdfv-button:hover:not(:disabled),
 .pdfv-icon-button:hover:not(:disabled) {
-  border-color: rgba(14, 116, 144, 0.46);
-  box-shadow: 0 8px 18px rgba(16, 24, 40, 0.08);
+  border-color: rgba(217, 119, 6, 0.46);
+  box-shadow: 0 8px 18px rgba(23, 23, 23, 0.08);
   transform: translateY(-1px);
 }
 
@@ -116,15 +116,15 @@
 }
 
 .pdfv-button-primary {
-  border-color: #0e7490;
-  background: #0e7490;
+  border-color: #d97706;
+  background: #d97706;
   color: #fff;
 }
 
 .pdfv-button.is-active {
-  border-color: #0e7490;
-  background: #ecfeff;
-  color: #155e75;
+  border-color: #d97706;
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .pdfv-page-jump {
@@ -132,7 +132,7 @@
   height: 36px;
   align-items: center;
   gap: 6px;
-  border: 1px solid rgba(23, 32, 51, 0.14);
+  border: 1px solid rgba(28, 25, 23, 0.14);
   border-radius: 8px;
   background: #fff;
   padding: 0 9px;
@@ -152,7 +152,7 @@
 
 .pdfv-zoom-value,
 .pdfv-result-summary {
-  color: #475467;
+  color: #44403c;
   font-size: 0.88rem;
   font-weight: 650;
   white-space: nowrap;
@@ -162,7 +162,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #475467;
+  color: #44403c;
   font-size: 0.88rem;
   white-space: nowrap;
 }
@@ -177,10 +177,10 @@
   height: 36px;
   align-items: center;
   gap: 7px;
-  border: 1px solid rgba(23, 32, 51, 0.14);
+  border: 1px solid rgba(28, 25, 23, 0.14);
   border-radius: 8px;
   background: #fff;
-  color: #475467;
+  color: #44403c;
   cursor: pointer;
   font-size: 0.88rem;
   font-weight: 650;
@@ -189,15 +189,15 @@
 }
 
 .pdfv-radio.is-active {
-  border-color: #0e7490;
-  background: #ecfeff;
-  color: #155e75;
+  border-color: #d97706;
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .pdfv-range-input {
   height: 36px;
   width: 132px;
-  border: 1px solid rgba(23, 32, 51, 0.14);
+  border: 1px solid rgba(28, 25, 23, 0.14);
   border-radius: 8px;
   background: #fff;
   color: inherit;
@@ -236,7 +236,7 @@
 .pdfv-form-field {
   display: grid;
   gap: 6px;
-  border: 1px solid rgba(23, 32, 51, 0.14);
+  border: 1px solid rgba(28, 25, 23, 0.14);
   border-radius: 8px;
   background: #fff;
   padding: 10px;
@@ -250,7 +250,7 @@
 
 .pdfv-form-field strong {
   overflow: hidden;
-  color: #1d2939;
+  color: #292524;
   font-size: 0.88rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -258,7 +258,7 @@
 
 .pdfv-form-field small,
 .pdfv-form-field em {
-  color: #667085;
+  color: #57534e;
   font-size: 0.75rem;
   font-style: normal;
   font-weight: 650;
@@ -269,10 +269,10 @@
 .pdfv-form-field textarea {
   min-height: 34px;
   width: 100%;
-  border: 1px solid rgba(23, 32, 51, 0.14);
+  border: 1px solid rgba(28, 25, 23, 0.14);
   border-radius: 7px;
-  background: #f8fafc;
-  color: #1d2939;
+  background: #fafaf9;
+  color: #292524;
   font: inherit;
   padding: 6px 8px;
   outline: 0;
@@ -289,13 +289,13 @@
 }
 
 .pdfv-form-empty {
-  color: #667085;
+  color: #57534e;
   font-size: 0.88rem;
   font-weight: 650;
 }
 
 .pdfv-api-status {
-  color: #475467;
+  color: #44403c;
   font-size: 0.86rem;
   font-weight: 650;
   max-width: 260px;
@@ -314,10 +314,10 @@
   height: 36px;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(23, 32, 51, 0.14);
+  border: 1px solid rgba(28, 25, 23, 0.14);
   border-radius: 8px;
   background: #fff;
-  color: #475467;
+  color: #44403c;
   font-size: 0.86rem;
   font-weight: 650;
   padding: 0 10px;
@@ -327,7 +327,7 @@
   width: 112px;
   border: 0;
   background: transparent;
-  color: #1d2939;
+  color: #292524;
   font: inherit;
   outline: 0;
 }
@@ -341,10 +341,10 @@
   height: 36px;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(23, 32, 51, 0.14);
+  border: 1px solid rgba(28, 25, 23, 0.14);
   border-radius: 8px;
   background: #fff;
-  color: #475467;
+  color: #44403c;
   font-size: 0.86rem;
   font-weight: 650;
   padding: 0 10px;
@@ -353,13 +353,13 @@
 .pdfv-stamp-select select {
   border: 0;
   background: transparent;
-  color: #1d2939;
+  color: #292524;
   font: inherit;
   outline: 0;
 }
 
 .pdfv-annotation-controls {
-  border-left: 1px solid rgba(23, 32, 51, 0.12);
+  border-left: 1px solid rgba(28, 25, 23, 0.12);
   padding-left: 12px;
 }
 
@@ -373,10 +373,10 @@
   height: 36px;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(23, 32, 51, 0.14);
+  border: 1px solid rgba(28, 25, 23, 0.14);
   border-radius: 8px;
   background: #fff;
-  color: #475467;
+  color: #44403c;
   font-size: 0.86rem;
   font-weight: 650;
   padding: 0 10px;
@@ -401,7 +401,7 @@
   width: 54px;
   border: 0;
   background: transparent;
-  color: #1d2939;
+  color: #292524;
   font: inherit;
   outline: 0;
 }
@@ -412,7 +412,7 @@
 
 .pdfv-slider-input small {
   min-width: 34px;
-  color: #667085;
+  color: #57534e;
   font-size: 0.74rem;
   text-align: right;
 }
@@ -438,7 +438,7 @@
 .pdfv-empty svg {
   width: 56px;
   height: 56px;
-  color: #0e7490;
+  color: #d97706;
 }
 
 .pdfv-empty h1 {
@@ -450,7 +450,7 @@
 .pdfv-empty p {
   max-width: 620px;
   margin: 0;
-  color: #475467;
+  color: #44403c;
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -466,14 +466,14 @@
   width: 180px;
   min-width: 180px;
   flex-direction: column;
-  border-right: 1px solid rgba(23, 32, 51, 0.1);
+  border-right: 1px solid rgba(28, 25, 23, 0.1);
   background: #fff;
 }
 
 .pdfv-sidebar-header {
   display: grid;
   gap: 4px;
-  border-bottom: 1px solid rgba(23, 32, 51, 0.1);
+  border-bottom: 1px solid rgba(28, 25, 23, 0.1);
   padding: 14px;
 }
 
@@ -485,7 +485,7 @@
 }
 
 .pdfv-sidebar-header span {
-  color: #667085;
+  color: #57534e;
   font-size: 0.82rem;
 }
 
@@ -500,10 +500,10 @@
   display: grid;
   justify-items: center;
   gap: 8px;
-  border: 1px solid rgba(23, 32, 51, 0.12);
+  border: 1px solid rgba(28, 25, 23, 0.12);
   border-radius: 8px;
-  background: #f8fafc;
-  color: #475467;
+  background: #fafaf9;
+  color: #44403c;
   cursor: pointer;
   font: inherit;
   font-size: 0.82rem;
@@ -512,17 +512,17 @@
 }
 
 .pdfv-thumbnail.is-active {
-  border-color: #0e7490;
-  background: #ecfeff;
-  color: #155e75;
-  box-shadow: inset 0 0 0 1px #0e7490;
+  border-color: #d97706;
+  background: #fef3c7;
+  color: #b45309;
+  box-shadow: inset 0 0 0 1px #d97706;
 }
 
 .pdfv-thumbnail .react-pdf__Page {
   overflow: hidden;
   border-radius: 4px;
   background: #fff;
-  box-shadow: 0 4px 10px rgba(16, 24, 40, 0.12);
+  box-shadow: 0 4px 10px rgba(23, 23, 23, 0.12);
 }
 
 .pdfv-thumb-loading {
@@ -531,7 +531,7 @@
   height: 140px;
   align-items: center;
   justify-content: center;
-  color: #667085;
+  color: #57534e;
 }
 
 .pdfv-stage {
@@ -539,7 +539,7 @@
   flex: 1;
   min-width: 0;
   overflow: auto;
-  background: #e8edf4;
+  background: #e7e5e4;
   padding: 24px;
 }
 
@@ -566,7 +566,7 @@
 
 .pdfv-page-frame .react-pdf__Page {
   background: #fff;
-  box-shadow: 0 18px 38px rgba(16, 24, 40, 0.18);
+  box-shadow: 0 18px 38px rgba(23, 23, 23, 0.18);
 }
 
 .pdfv-page-frame .pdfv-text-match {
@@ -600,7 +600,7 @@
 }
 
 .pdfv-ink-layer polyline.is-selected {
-  filter: drop-shadow(0 0 4px rgba(14, 116, 144, 0.8));
+  filter: drop-shadow(0 0 4px rgba(217, 119, 6, 0.8));
 }
 
 .pdfv-ink-layer polyline.is-erasable {
@@ -621,7 +621,7 @@
   border: 2px solid #facc15;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 12px 28px rgba(16, 24, 40, 0.18);
+  box-shadow: 0 12px 28px rgba(23, 23, 23, 0.18);
   padding: 8px;
   pointer-events: auto;
 }
@@ -632,10 +632,10 @@
   left: 10px;
   width: 32px;
   height: 14px;
-  border: 1px solid rgba(23, 32, 51, 0.16);
+  border: 1px solid rgba(28, 25, 23, 0.16);
   border-radius: 999px;
   background:
-    radial-gradient(circle, #667085 1px, transparent 2px) 6px 5px / 8px 4px repeat-x,
+    radial-gradient(circle, #57534e 1px, transparent 2px) 6px 5px / 8px 4px repeat-x,
     #fff;
   cursor: grab;
 }
@@ -645,7 +645,7 @@
 }
 
 .pdfv-annotation.is-selected {
-  outline: 2px solid #0e7490;
+  outline: 2px solid #d97706;
   outline-offset: 2px;
 }
 
@@ -657,10 +657,10 @@
   position: absolute;
   top: -12px;
   right: 8px;
-  border: 1px solid rgba(23, 32, 51, 0.12);
+  border: 1px solid rgba(28, 25, 23, 0.12);
   border-radius: 999px;
   background: #fff;
-  color: #475467;
+  color: #44403c;
   content: 'Locked';
   font-size: 0.68rem;
   font-weight: 800;
@@ -833,7 +833,7 @@
   resize: vertical;
   border: 0;
   background: transparent;
-  color: #1d2939;
+  color: #292524;
   font: inherit;
   font-size: 0.86rem;
   line-height: 1.35;
@@ -850,7 +850,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  color: #667085;
+  color: #57534e;
   font-size: 0.74rem;
   font-weight: 700;
 }
@@ -864,7 +864,7 @@
   border: 0;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.6);
-  color: #667085;
+  color: #57534e;
   cursor: pointer;
 }
 
@@ -882,7 +882,7 @@
 
 .pdfv-annotation-meta button:disabled:hover {
   background: rgba(255, 255, 255, 0.6);
-  color: #667085;
+  color: #57534e;
 }
 
 .pdfv-annotation-resize {
@@ -893,8 +893,8 @@
   height: 16px;
   border: 2px solid #fff;
   border-radius: 4px;
-  background: #0e7490;
-  box-shadow: 0 4px 10px rgba(16, 24, 40, 0.2);
+  background: #d97706;
+  box-shadow: 0 4px 10px rgba(23, 23, 23, 0.2);
   cursor: nwse-resize;
 }
 
@@ -906,17 +906,17 @@
   gap: 2px;
   max-width: 780px;
   margin: 0 auto 14px;
-  border: 1px solid rgba(14, 116, 144, 0.3);
+  border: 1px solid rgba(217, 119, 6, 0.3);
   border-radius: 8px;
-  background: #ecfeff;
-  color: #155e75;
+  background: #fef3c7;
+  color: #b45309;
   padding: 10px 12px;
-  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.12);
+  box-shadow: 0 10px 24px rgba(23, 23, 23, 0.12);
 }
 
 .pdfv-match-banner span {
   overflow: hidden;
-  color: #475467;
+  color: #44403c;
   font-size: 0.86rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -926,7 +926,7 @@
   display: grid;
   min-height: 240px;
   place-items: center;
-  color: #475467;
+  color: #44403c;
   font-weight: 700;
 }
 
@@ -941,17 +941,17 @@
   display: grid;
   gap: 4px;
   width: min(220px, calc(100% - 36px));
-  border: 1px solid rgba(23, 32, 51, 0.12);
+  border: 1px solid rgba(28, 25, 23, 0.12);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.94);
-  color: #475467;
+  color: #44403c;
   font-size: 0.78rem;
   padding: 10px;
   pointer-events: none;
 }
 
 .pdfv-events strong {
-  color: #1d2939;
+  color: #292524;
   font-size: 0.82rem;
 }
 
@@ -982,7 +982,7 @@
 
   .pdfv-annotation-controls {
     border-left: 0;
-    border-top: 1px solid rgba(23, 32, 51, 0.12);
+    border-top: 1px solid rgba(28, 25, 23, 0.12);
     padding-left: 0;
     padding-top: 10px;
   }
@@ -1018,7 +1018,7 @@
     min-width: 0;
     max-height: 180px;
     border-right: 0;
-    border-bottom: 1px solid rgba(23, 32, 51, 0.1);
+    border-bottom: 1px solid rgba(28, 25, 23, 0.1);
   }
 
   .pdfv-thumbnails {

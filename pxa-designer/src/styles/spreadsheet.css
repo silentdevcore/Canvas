@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #f8fafc;
+  background: #fafaf9;
 }
 
 .spreadsheet-toolbar {
@@ -11,7 +11,7 @@
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e7e5e4;
   background: #fff;
 }
 .ss-tool {
@@ -23,15 +23,15 @@
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
-  color: #334155;
+  color: #292524;
   cursor: pointer;
   font-size: 13px;
 }
-.ss-tool:hover { background: #f1f5f9; }
+.ss-tool:hover { background: #f5f5f4; }
 .ss-tool--text { padding: 0 12px; }
-.ss-tool--primary { background: #2563eb; color: #fff; }
-.ss-tool--primary:hover { background: #1d4ed8; }
-.ss-sep { width: 1px; height: 20px; background: #e2e8f0; margin: 0 4px; }
+.ss-tool--primary { background: #d97706; color: #fff; }
+.ss-tool--primary:hover { background: #b45309; }
+.ss-sep { width: 1px; height: 20px; background: #e7e5e4; margin: 0 4px; }
 
 .ss-export { position: relative; }
 .ss-menu {
@@ -42,9 +42,9 @@
   min-width: 150px;
   padding: 4px;
   background: #fff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e7e5e4;
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 8px 24px rgba(28, 25, 23, 0.12);
   display: flex;
   flex-direction: column;
 }
@@ -55,56 +55,56 @@
   background: transparent;
   border-radius: 6px;
   font-size: 13px;
-  color: #334155;
+  color: #292524;
   cursor: pointer;
 }
-.ss-menu button:hover { background: #f1f5f9; }
+.ss-menu button:hover { background: #f5f5f4; }
 .ss-spacer { flex: 1; }
 
 /* Cell / Sheet settings popovers */
 .ss-menu--panel { min-width: 240px; gap: 8px; padding: 12px; }
-.ss-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #475569; }
+.ss-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #44403c; }
 .ss-field--row { flex-direction: row; align-items: center; gap: 8px; }
 .ss-field input[type="text"], .ss-field textarea, .ss-field select {
-  font-size: 13px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px; color: #0f172a; width: 100%;
+  font-size: 13px; padding: 6px 8px; border: 1px solid #d6d3d1; border-radius: 6px; color: #1c1917; width: 100%;
 }
 .ss-field textarea { resize: vertical; font-family: inherit; }
 .ss-field--row input[type="checkbox"] { width: auto; }
 
 /* Conditional-formatting / data-validation rule editor */
 .ss-menu--wide { min-width: 320px; }
-.ss-rule-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #64748b; margin-top: 4px; }
-.ss-rule-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #334155; }
-.ss-rule-swatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #cbd5e1; flex: 0 0 auto; }
+.ss-rule-head { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #78716c; margin-top: 4px; }
+.ss-rule-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #292524; }
+.ss-rule-swatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #d6d3d1; flex: 0 0 auto; }
 .ss-rule-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ss-rule-del { border: none; background: transparent; color: #94a3b8; cursor: pointer; padding: 2px; display: flex; }
+.ss-rule-del { border: none; background: transparent; color: #a8a29e; cursor: pointer; padding: 2px; display: flex; }
 .ss-rule-del:hover { color: #ef4444; }
 .ss-rule-form { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
-.ss-rule-form select, .ss-rule-form input[type="text"] { font-size: 12px; padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 6px; flex: 1 1 70px; min-width: 60px; }
-.ss-rule-form input[type="color"] { width: 28px; height: 28px; padding: 0; border: 1px solid #cbd5e1; border-radius: 6px; flex: 0 0 auto; }
-.ss-rule-add { flex: 1 1 100%; padding: 6px; border: none; border-radius: 6px; background: #2563eb; color: #fff; font-size: 12px; cursor: pointer; }
-.ss-rule-add:hover { background: #1d4ed8; }
+.ss-rule-form select, .ss-rule-form input[type="text"] { font-size: 12px; padding: 4px 6px; border: 1px solid #d6d3d1; border-radius: 6px; flex: 1 1 70px; min-width: 60px; }
+.ss-rule-form input[type="color"] { width: 28px; height: 28px; padding: 0; border: 1px solid #d6d3d1; border-radius: 6px; flex: 0 0 auto; }
+.ss-rule-add { flex: 1 1 100%; padding: 6px; border: none; border-radius: 6px; background: #d97706; color: #fff; font-size: 12px; cursor: pointer; }
+.ss-rule-add:hover { background: #b45309; }
 
 /* Validation result banner */
-.ss-validation { position: relative; padding: 8px 32px 8px 12px; font-size: 13px; border-bottom: 1px solid #e2e8f0; }
+.ss-validation { position: relative; padding: 8px 32px 8px 12px; font-size: 13px; border-bottom: 1px solid #e7e5e4; }
 .ss-validation.is-valid { background: #ecfdf5; color: #047857; }
 .ss-validation.is-invalid { background: #fef2f2; color: #b91c1c; }
 .ss-validation-summary { font-weight: 600; }
 .ss-validation-list { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
-.ss-issue { font-size: 12px; color: #475569; }
+.ss-issue { font-size: 12px; color: #44403c; }
 .ss-issue--error { color: #b91c1c; }
 .ss-issue--warning { color: #b45309; }
 .ss-issue code { background: rgba(0,0,0,.06); padding: 0 4px; border-radius: 4px; }
 .ss-validation-close { position: absolute; top: 6px; right: 6px; border: none; background: transparent; color: inherit; cursor: pointer; padding: 2px; display: flex; opacity: .6; }
 .ss-validation-close:hover { opacity: 1; }
-.ss-busy { font-size: 12px; color: #64748b; margin-right: 8px; }
+.ss-busy { font-size: 12px; color: #78716c; margin-right: 8px; }
 .ss-format {
   height: 30px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e7e5e4;
   border-radius: 6px;
   padding: 0 8px;
   font-size: 13px;
-  color: #334155;
+  color: #292524;
   background: #fff;
 }
 
@@ -113,28 +113,28 @@
   align-items: center;
   gap: 8px;
   padding: 4px 12px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e7e5e4;
   background: #fff;
 }
 .ss-namebox {
   min-width: 64px;
   padding: 4px 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e7e5e4;
   border-radius: 6px;
   font: 600 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
-  color: #475569;
+  color: #44403c;
   text-align: center;
 }
 .ss-formula-input {
   flex: 1;
   height: 30px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e7e5e4;
   border-radius: 6px;
   padding: 0 10px;
   font: 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
-  color: #1e293b;
+  color: #292524;
 }
-.ss-formula-input:focus { outline: none; border-color: #2563eb; }
+.ss-formula-input:focus { outline: none; border-color: #d97706; }
 
 .spreadsheet-grid-wrap {
   flex: 1;
@@ -147,7 +147,7 @@
   align-items: center;
   gap: 2px;
   padding: 4px 8px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e7e5e4;
   background: #fff;
   overflow-x: auto;
 }
@@ -157,22 +157,22 @@
   border: 1px solid transparent;
   border-radius: 6px 6px 0 0;
 }
-.ss-tab.is-active { background: #eff6ff; border-color: #bfdbfe; }
+.ss-tab.is-active { background: #fef3c7; border-color: #fde9c7; }
 .ss-tab-name {
   padding: 6px 10px;
   border: none;
   background: transparent;
   font-size: 13px;
-  color: #334155;
+  color: #292524;
   cursor: pointer;
 }
-.ss-tab.is-active .ss-tab-name { color: #1d4ed8; font-weight: 600; }
+.ss-tab.is-active .ss-tab-name { color: #b45309; font-weight: 600; }
 .ss-tab-close {
   display: inline-flex;
   align-items: center;
   border: none;
   background: transparent;
-  color: #94a3b8;
+  color: #a8a29e;
   cursor: pointer;
   padding: 2px 6px 2px 0;
 }
@@ -182,11 +182,11 @@
   align-items: center;
   border: none;
   background: transparent;
-  color: #64748b;
+  color: #78716c;
   cursor: pointer;
   padding: 6px 8px;
 }
-.ss-tab-add:hover { color: #2563eb; }
+.ss-tab-add:hover { color: #d97706; }
 
 /* v2: font/color controls + status bar */
 .ss-format--sm { min-width: 56px; }
@@ -199,10 +199,10 @@
   border-radius: 6px;
   cursor: pointer;
   position: relative;
-  color: #334155;
+  color: #292524;
   font-weight: 700;
 }
-.ss-color:hover { background: #f1f5f9; }
+.ss-color:hover { background: #f5f5f4; }
 .ss-color input[type="color"] {
   position: absolute;
   inset: auto 2px 2px 2px;
@@ -220,8 +220,8 @@
   margin-left: auto;
   padding: 0 8px;
   font-size: 12px;
-  color: #475569;
+  color: #44403c;
   white-space: nowrap;
 }
-.ss-stats strong { color: #1e293b; }
-.ss-stats-range { font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; color: #94a3b8; }
+.ss-stats strong { color: #292524; }
+.ss-stats-range { font: 600 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; color: #a8a29e; }

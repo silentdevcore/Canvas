@@ -2,7 +2,7 @@
 
 .importer-page {
   min-height: 100vh;
-  background: #f8fafc;
+  background: #fafaf9;
 }
 
 .importer-main {
@@ -23,8 +23,8 @@
   gap: 6px;
   margin-bottom: 16px;
   padding: 6px 14px;
-  color: #1d6fff;
-  background: #eef6ff;
+  color: #d97706;
+  background: #fef3c7;
   border-radius: 999px;
   font-size: 13px;
   font-weight: 700;
@@ -36,7 +36,7 @@
   margin: 0 0 12px;
   font-size: clamp(28px, 4vw, 40px);
   font-weight: 800;
-  color: #101828;
+  color: #171717;
   line-height: 1.15;
 }
 
@@ -44,7 +44,7 @@
   max-width: 520px;
   margin: 0 auto;
   font-size: 16px;
-  color: #475467;
+  color: #44403c;
   line-height: 1.6;
 }
 
@@ -63,7 +63,7 @@
   gap: 8px;
   padding: 24px;
   background: #ffffff;
-  border: 1.5px solid #e3e8ef;
+  border: 1.5px solid #e7e5e4;
   border-radius: 12px;
   cursor: pointer;
   text-align: left;
@@ -71,8 +71,8 @@
 }
 
 .importer-card:hover:not(:disabled) {
-  border-color: #1d6fff;
-  box-shadow: 0 4px 20px rgba(29, 111, 255, 0.10);
+  border-color: #d97706;
+  box-shadow: 0 4px 20px rgba(217, 119, 6, 0.10);
   transform: translateY(-3px);
 }
 
@@ -82,13 +82,13 @@
 }
 
 .importer-card.is-loading {
-  border-color: #1d6fff;
-  background: #f0f7ff;
+  border-color: #d97706;
+  background: #fef3c7;
 }
 
 .importer-card.is-selected {
-  border-color: #1d6fff;
-  box-shadow: 0 0 0 3px rgba(29, 111, 255, 0.12);
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
 }
 
 /* ── Inline config panel (page size selector) ─────────────────────────────── */
@@ -100,8 +100,8 @@
 }
 
 .importer-config-panel {
-  background: #f0f7ff;
-  border: 1.5px solid #1d6fff;
+  background: #fef3c7;
+  border: 1.5px solid #d97706;
   border-top: none;
   border-radius: 0 0 12px 12px;
   padding: 16px 20px 18px;
@@ -124,24 +124,24 @@
 .importer-config-label {
   font-size: 12px;
   font-weight: 700;
-  color: #344054;
+  color: #44403c;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .importer-config-hint {
   font-size: 11px;
-  color: #667085;
+  color: #57534e;
   margin-top: 4px;
 }
 
 .importer-config-select {
   width: 100%;
   padding: 8px 10px;
-  border: 1.5px solid #c8d8f8;
+  border: 1.5px solid #fde9c7;
   border-radius: 8px;
   font-size: 14px;
-  color: #101828;
+  color: #171717;
   background: #ffffff;
   cursor: pointer;
   outline: none;
@@ -150,27 +150,27 @@
 .importer-config-input {
   width: 100%;
   padding: 8px 10px;
-  border: 1.5px solid #c8d8f8;
+  border: 1.5px solid #fde9c7;
   border-radius: 8px;
   font-size: 14px;
-  color: #101828;
+  color: #171717;
   background: #ffffff;
   outline: none;
 }
 
 .importer-config-input:focus {
-  border-color: #1d6fff;
+  border-color: #d97706;
 }
 
 .importer-config-select:focus {
-  border-color: #1d6fff;
+  border-color: #d97706;
 }
 
 .importer-config-check {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #344054;
+  color: #44403c;
   font-size: 13px;
   font-weight: 600;
 }
@@ -178,7 +178,7 @@
 .importer-config-check input {
   width: 16px;
   height: 16px;
-  accent-color: #1d6fff;
+  accent-color: #d97706;
 }
 
 .importer-config-actions {
@@ -191,16 +191,16 @@
   flex: 1;
   padding: 8px 12px;
   background: #ffffff;
-  border: 1.5px solid #d0d5dd;
+  border: 1.5px solid #d6d3d1;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #344054;
+  color: #44403c;
   cursor: pointer;
 }
 
 .importer-config-cancel:hover {
-  background: #f9fafb;
+  background: #fafaf9;
 }
 
 .importer-config-confirm {
@@ -210,7 +210,7 @@
   justify-content: center;
   gap: 4px;
   padding: 8px 14px;
-  background: #1d6fff;
+  background: #d97706;
   border: none;
   border-radius: 8px;
   font-size: 13px;
@@ -220,7 +220,7 @@
 }
 
 .importer-config-confirm:hover {
-  background: #1558e0;
+  background: #b45309;
 }
 
 .importer-config-download {
@@ -230,7 +230,7 @@
   justify-content: center;
   gap: 5px;
   padding: 8px 12px;
-  background: #101828;
+  background: #171717;
   border: none;
   border-radius: 8px;
   font-size: 13px;
@@ -240,7 +240,7 @@
 }
 
 .importer-config-download:hover {
-  background: #344054;
+  background: #44403c;
 }
 
 .importer-card-icon {
@@ -249,8 +249,8 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  color: #1d6fff;
-  background: #eef6ff;
+  color: #d97706;
+  background: #fef3c7;
   border-radius: 10px;
   margin-bottom: 4px;
   flex-shrink: 0;
@@ -259,19 +259,19 @@
 .importer-card-label {
   font-size: 17px;
   font-weight: 700;
-  color: #101828;
+  color: #171717;
 }
 
 .importer-card-desc {
   font-size: 13px;
-  color: #667085;
+  color: #57534e;
   line-height: 1.5;
 }
 
 .importer-card-ext {
   font-size: 11px;
   font-weight: 600;
-  color: #98a2b3;
+  color: #a8a29e;
   font-family: 'Courier New', monospace;
   letter-spacing: 0.02em;
   margin-top: 2px;
@@ -283,7 +283,7 @@
   gap: 4px;
   margin-top: 12px;
   padding: 8px 16px;
-  background: #1d6fff;
+  background: #d97706;
   color: #ffffff;
   border-radius: 8px;
   font-size: 13px;
@@ -291,7 +291,7 @@
 }
 
 .importer-card.is-loading .importer-card-action {
-  background: #2563eb;
+  background: #d97706;
 }
 
 /* Error message */
@@ -314,10 +314,10 @@
   gap: 10px;
   margin: 24px auto 0;
   padding: 10px 14px;
-  background: #f0f7ff;
-  border: 1px solid #b8d7ff;
+  background: #fef3c7;
+  border: 1px solid #fde9c7;
   border-radius: 8px;
-  color: #1558e0;
+  color: #b45309;
   font-size: 13px;
   font-weight: 700;
 }
@@ -331,8 +331,8 @@
 }
 
 .importer-status-spinner {
-  border: 2px solid #b8d7ff;
-  border-top-color: #1558e0;
+  border: 2px solid #fde9c7;
+  border-top-color: #b45309;
   animation: importer-spin 0.8s linear infinite;
 }
 

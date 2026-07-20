@@ -4,7 +4,7 @@
 
 .docs-root {
   min-height: 100vh;
-  background: #f8fafc;
+  background: #fafaf9;
   display: flex;
   flex-direction: column;
 }
@@ -39,20 +39,20 @@
   display: flex;
   flex-direction: column;
   background: #fff;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1px solid #e7e5e4;
   padding: 24px 0 32px;
 }
 
 .docs-sidebar-header {
   padding: 0 20px 16px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f5f5f4;
   margin-bottom: 8px;
 }
 
 .docs-sidebar-title {
   font-size: 11px;
   font-weight: 700;
-  color: #94a3b8;
+  color: #a8a29e;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -74,7 +74,7 @@
   text-align: left;
   padding: 8px 20px;
   font-size: 13.5px;
-  color: #64748b;
+  color: #78716c;
   background: none;
   border: none;
   border-left: 2px solid transparent;
@@ -84,26 +84,26 @@
 }
 
 .docs-sidebar-link:hover {
-  color: #1e293b;
-  background: #f8fafc;
+  color: #292524;
+  background: #fafaf9;
 }
 
 .docs-sidebar-link.is-active {
-  color: #1d6fff;
-  border-left-color: #1d6fff;
-  background: #eff6ff;
+  color: #d97706;
+  border-left-color: #d97706;
+  background: #fef3c7;
   font-weight: 600;
 }
 
 .docs-sidebar-footer {
   padding: 16px 20px 0;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid #f5f5f4;
   margin-top: 8px;
 }
 
 .docs-sidebar-back {
   font-size: 13px;
-  color: #64748b;
+  color: #78716c;
   background: none;
   border: none;
   cursor: pointer;
@@ -111,7 +111,7 @@
   transition: color 0.15s;
 }
 
-.docs-sidebar-back:hover { color: #1d6fff; }
+.docs-sidebar-back:hover { color: #d97706; }
 
 /* ── Main content ─────────────────────────────────────────────────────────── */
 
@@ -131,10 +131,10 @@
   gap: 8px;
   width: 100%;
   padding: 10px 18px;
-  color: #1e293b;
+  color: #292524;
   background: #fff;
   border: 0;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e7e5e4;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -149,13 +149,13 @@
 }
 
 .docs-section + .docs-section {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e7e5e4;
   margin-top: 12px;
 }
 
 .docs-lead {
   font-size: 17px;
-  color: #475569;
+  color: #44403c;
   margin: 12px 0 28px;
   line-height: 1.65;
 }
@@ -165,7 +165,7 @@
 .docs-h2 {
   font-size: 26px;
   font-weight: 700;
-  color: #101828;
+  color: #171717;
   letter-spacing: -0.02em;
   margin: 0 0 20px;
   line-height: 1.2;
@@ -175,14 +175,14 @@
 .docs-h3 {
   font-size: 16px;
   font-weight: 700;
-  color: #1e293b;
+  color: #292524;
   margin: 32px 0 12px;
   letter-spacing: -0.01em;
 }
 
 .docs-section p {
   font-size: 14.5px;
-  color: #475569;
+  color: #44403c;
   line-height: 1.7;
   margin: 0 0 16px;
 }
@@ -192,11 +192,11 @@
 .docs-inline-code {
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
   font-size: 12.5px;
-  background: #f1f5f9;
-  color: #1d4ed8;
+  background: #f5f5f4;
+  color: #b45309;
   padding: 1px 5px;
   border-radius: 4px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e7e5e4;
 }
 
 /* ── Code blocks ──────────────────────────────────────────────────────────── */
@@ -206,7 +206,7 @@
   margin: 16px 0 24px;
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #1e293b;
+  border: 1px solid #292524;
 }
 
 .docs-code-lang {
@@ -215,7 +215,7 @@
   left: 14px;
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
+  color: #78716c;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
@@ -233,7 +233,7 @@
   padding: 4px 10px;
   font-size: 12px;
   font-weight: 500;
-  color: #94a3b8;
+  color: #a8a29e;
   background: rgba(255,255,255,0.07);
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 6px;
@@ -243,15 +243,15 @@
 }
 
 .docs-copy-btn:hover {
-  color: #e2e8f0;
+  color: #e7e5e4;
   background: rgba(255,255,255,0.13);
 }
 
 .docs-code-block {
   margin: 0;
   padding: 42px 20px 20px;
-  background: #0f172a;
-  color: #e2e8f0;
+  background: #1c1917;
+  color: #e7e5e4;
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
   font-size: 12.5px;
   line-height: 1.7;
@@ -279,9 +279,9 @@
   gap: 14px;
   align-items: flex-start;
   padding: 12px 0;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f5f5f4;
   font-size: 14.5px;
-  color: #374151;
+  color: #44403c;
   line-height: 1.6;
 }
 
@@ -293,7 +293,7 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: #1d6fff;
+  background: #d97706;
   color: #fff;
   font-size: 12px;
   font-weight: 700;
@@ -301,7 +301,7 @@
   margin-top: 1px;
 }
 
-.docs-steps li strong { color: #111827; }
+.docs-steps li strong { color: #171717; }
 
 /* ── Callouts ─────────────────────────────────────────────────────────────── */
 
@@ -339,7 +339,7 @@
 
 .docs-overview-card {
   background: #fff;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid #e7e5e4;
   border-radius: 12px;
   padding: 16px 18px;
 }
@@ -348,13 +348,13 @@
   display: inline-block;
   font-size: 13px;
   font-weight: 700;
-  color: #1d6fff;
+  color: #d97706;
   margin-bottom: 6px;
 }
 
 .docs-overview-card p {
   font-size: 13.5px;
-  color: #64748b;
+  color: #78716c;
   margin: 0;
   line-height: 1.55;
 }
@@ -366,7 +366,7 @@
   overflow-x: auto;
   margin: 16px 0 24px;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e7e5e4;
 }
 
 .docs-elem-table {
@@ -377,7 +377,7 @@
 }
 
 .docs-elem-table thead tr {
-  background: #f8fafc;
+  background: #fafaf9;
 }
 
 .docs-elem-table th {
@@ -387,33 +387,33 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #64748b;
-  border-bottom: 1px solid #e2e8f0;
+  color: #78716c;
+  border-bottom: 1px solid #e7e5e4;
   white-space: nowrap;
 }
 
 .docs-elem-table td {
   padding: 10px 14px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #374151;
+  border-bottom: 1px solid #f5f5f4;
+  color: #44403c;
   vertical-align: top;
   line-height: 1.5;
 }
 
 .docs-elem-table tbody tr:last-child td { border-bottom: none; }
 
-.docs-elem-table tbody tr:hover td { background: #fafbfc; }
+.docs-elem-table tbody tr:hover td { background: #fafaf9; }
 
 .docs-props-cell {
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
   font-size: 11.5px;
-  color: #475569;
+  color: #44403c;
   max-width: 280px;
 }
 
 .docs-note-cell {
   font-size: 12px;
-  color: #94a3b8;
+  color: #a8a29e;
   max-width: 180px;
 }
 
@@ -431,7 +431,7 @@
   align-items: flex-start;
   gap: 12px;
   background: #fff;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid #e7e5e4;
   border-radius: 10px;
   padding: 14px 16px;
 }
@@ -451,14 +451,14 @@
 .docs-method--put  { background: #fef9c3; color: #a16207; }
 
 .docs-endpoint-path {
-  color: #374151 !important;
+  color: #44403c !important;
   font-size: 13px !important;
 }
 
 .docs-endpoint-card p {
   margin: 4px 0 0;
   font-size: 13px;
-  color: #64748b;
+  color: #78716c;
   line-height: 1.5;
 }
 
@@ -468,7 +468,7 @@
   margin-top: 48px;
   padding: 32px;
   background: #fff;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid #e7e5e4;
   border-radius: 16px;
   text-align: center;
 }
@@ -476,7 +476,7 @@
 .docs-section-end p {
   margin: 0 0 20px;
   font-size: 15px;
-  color: #64748b;
+  color: #78716c;
 }
 
 .docs-end-actions {
@@ -495,7 +495,7 @@
   z-index: 300;
   background: #fff;
   overflow-y: auto;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1px solid #e7e5e4;
   box-shadow: 4px 0 24px rgba(0,0,0,0.12);
 }
 
@@ -545,7 +545,7 @@
 
 /* ── Element reference cards (catalog-driven) ──────────────────────────────── */
 .docs-elem-card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e7e5e4;
   border-radius: 10px;
   padding: 16px 18px;
   margin: 14px 0;
@@ -563,7 +563,7 @@
   font-size: 16px;
   font-weight: 650;
   margin: 0;
-  color: #111827;
+  color: #171717;
 }
 .docs-elem-card-formats { display: inline-flex; gap: 6px; flex-wrap: wrap; }
 .docs-badge {
@@ -595,10 +595,10 @@
   width: 100%;
   height: 420px;
   margin-top: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e7e5e4;
   border-radius: 8px;
-  background: #f9fafb;
+  background: #fafaf9;
 }
-.docs-elem-note { font-size: 13px; color: #6b7280; font-style: italic; margin-top: 8px; }
+.docs-elem-note { font-size: 13px; color: #57534e; font-style: italic; margin-top: 8px; }
 .docs-elem-link { text-decoration: none; }
 .docs-elem-link:hover { text-decoration: underline; }
