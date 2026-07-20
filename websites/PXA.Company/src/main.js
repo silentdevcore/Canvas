@@ -2,6 +2,30 @@ import './site.css';
 import { appendCampaignParams } from '../../shared/campaignAttribution.js';
 import { renderPxaFooter } from '../../shared/footer.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
+import { consumeSignedInSignal } from '../../shared/signedInSignal.js';
+
+// PXA.Company has no session of its own and never will - the signal itself
+// is a purely cosmetic one-time marker (see shared/signedInSignal.js),
+// persisted to localStorage so the header can show "My account" instead of
+// "Sign in" on this and later Company page loads. It is never treated as
+// proof of an active session; there is no "Sign out" affordance here because
+// Company cannot actually end an Account session without the cross-origin
+// credentialed request this project deliberately does not build.
+const SIGNED_IN_STORAGE_KEY = 'pxa_signed_in';
+
+function captureSignedInSignal() {
+  const result = consumeSignedInSignal(window.location.search);
+  if (!result) return;
+  localStorage.setItem(SIGNED_IN_STORAGE_KEY, '1');
+  const query = result.cleanedSearch;
+  history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
+}
+
+captureSignedInSignal();
+
+function isSignedIn() {
+  return localStorage.getItem(SIGNED_IN_STORAGE_KEY) === '1';
+}
 
 const companyRoutes = {
   '/': {
@@ -592,6 +616,10 @@ function activeAttr(section) {
   return currentRoute.section === section ? ' aria-current="page"' : '';
 }
 
+function signInUrl() {
+  return `${siteLinks.account}login?returnUrl=${encodeURIComponent(window.location.href)}`;
+}
+
 function renderHeader() {
   return `
     <header class="pxa-site-header">
@@ -611,8 +639,10 @@ function renderHeader() {
         </nav>
         <div class="pxa-header-actions">
           <a class="pxa-button pxa-button--secondary pxa-header-cta" href="${siteLinks.designer}">Live demo</a>
-          <a class="pxa-header-account-link" href="${siteLinks.account}login">Sign in</a>
-          <a class="pxa-button pxa-button--primary pxa-header-cta" href="${appendCampaignParams(`${siteLinks.account}register`)}">Start free trial</a>
+          ${isSignedIn()
+            ? `<a class="pxa-header-account-link" href="${siteLinks.account}dashboard">My account</a>`
+            : `<a class="pxa-header-account-link" href="${signInUrl()}">Sign in</a>
+          <a class="pxa-header-account-link" href="${appendCampaignParams(`${siteLinks.account}register`)}">Register</a>`}
           <a class="pxa-button pxa-button--primary pxa-header-cta" href="${companyPage('contact')}"${activeAttr('contact')}>Contact sales</a>
         </div>
       </div>
@@ -633,9 +663,11 @@ function renderHeroSection() {
             that cannot afford fragmented document workflows.
           </p>
           <div class="pxa-action-row">
-            <a class="pxa-button pxa-button--primary" href="${siteLinks.demo}">View demos</a>
+            <a class="pxa-button pxa-button--primary" href="${appendCampaignParams(`${siteLinks.account}register`)}">Start free trial</a>
+            <a class="pxa-button pxa-button--secondary" href="${siteLinks.demo}">View demos</a>
             <a class="pxa-button pxa-button--secondary" href="${siteLinks.documentation}">Read documentation</a>
           </div>
+          <p class="pxa-company-trial-note">30-day Premium Trial, full product access, no credit card required.</p>
           <div class="pxa-company-proof-strip" aria-label="PXA proof points">
             ${renderProof(proofPoints)}
           </div>

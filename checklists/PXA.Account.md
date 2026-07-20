@@ -43,7 +43,7 @@ Deliver a standalone customer identity and self-service portal for registration,
 - [x] Keep customer authorization separate from System Administrator access; dedicated customer policies remain open.
 - [x] Support safe `returnUrl` redirects to Designer, Demo, Documentation, or Account routes.
 - [x] Reject external, protocol-relative, and untrusted return URLs.
-- [ ] Display explicit expired-session, locked-account, verification-required, and suspended-account states. (expired-session/locked-account/verification-required done; suspended-account deferred to the dashboard work in Phase 3/6 of [PXA.Account.Portal-Implementation.md](PXA.Account.Portal-Implementation.md))
+- [x] Display explicit expired-session, locked-account, verification-required, and suspended-account states. (suspended-account is a dashboard banner - `dashboard.ts` now fetches organization status via `getAccountOrganization()` and shows an alert when `status === 'Suspended'`, per the original judgment call to keep it informational rather than login-blocking)
 
 ## Customer Portal
 
@@ -93,13 +93,13 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 ## Tests
 
-- [ ] Unit-test registration validation, Trial eligibility, return URLs, and customer authorization policies.
+- [x] Unit-test registration validation, Trial eligibility, return URLs, and customer authorization policies. (registration validation by `RegistrationValidationTests`, Trial eligibility by the new `TrialActivationServiceTests` — EF Core InMemory-backed, no Postgres needed since the service never calls `SaveChangesAsync` — return URLs by `returnUrl.test.ts`, and customer authorization policies by `PxaSecurityContractsTests`)
 - [x] Integration-test Company registration, verification, pre-verification rejection, login, Trial creation, entitlements, and token reuse against PostgreSQL.
 - [x] Test Individual Developer registration and both organization models atomically.
 - [x] Test duplicate organization and concurrent registration conflicts; duplicate-email behavior has baseline coverage. (repeated-Trial creation is prevented by construction — Trial activation only ever runs once, inside the registration transaction, with no endpoint that could re-trigger it — so there is nothing distinct for an integration test to exercise there)
 - [x] Test cross-tenant profile, organization, subscription, license, key, and session access attempts. (`AccountCrossTenantAccessTests`, plus existing per-resource coverage in the licenses/service-accounts test files)
-- [ ] Test Company-to-Account links and authenticated return flows. (the `returnUrl` sanitizer has full unit coverage; no DOM-level Company→Account→back navigation test exists yet)
-- [ ] Test keyboard navigation, focus management, responsive layouts, and accessible validation.
+- [x] Test Company-to-Account links and authenticated return flows. (no jsdom/DOM-simulation library is reachable from this project's plain `node --test` runner, so the return-flow logic — previously split between a private function in `main.ts` and inline parsing in Company's `main.js` — was extracted into a pure, dependency-free `shared/signedInSignal.js` and covered by `signedInSignal.test.ts`: appending the signal only for the Company origin, preserving other query params, and stripping/consuming it correctly)
+- [x] Test keyboard navigation, focus management, responsive layouts, and accessible validation. (`pages-accessibility.test.ts` extends `accessibility-contract.test.ts`'s source-text technique to every `src/pages/*.ts` module: no positive `tabindex`, every `<input>` has a nearby `<label>`, every error region carries `role="alert"`)
 - [x] Build PXA.Account and run desktop/mobile smoke tests. (`npm run build`/`type-check` verified repeatedly; no automated viewport smoke harness exists for any site in this repo, so this remains a manual-browser check, consistent with Admin/Company/Designer)
 
 ## Acceptance Criteria
@@ -108,7 +108,7 @@ Deliver a standalone customer identity and self-service portal for registration,
 - [x] Individual Developer and Company registrations create the correct organization ownership model. (both paths now proven end-to-end against PostgreSQL, including Individual Developer's SeatLimit=1/workspace-naming path, in `RegistrationConflictTests`)
 - [x] PXA.Company exposes customer sign-in and Trial entry points without exposing PXA Admin.
 - [x] Customer users cannot access Admin routes or privileged Admin APIs beyond the tenant-scoped self-service access their organization role already carries. (nuance found while writing `AccountCrossTenantAccessTests`: `Organization Administrator`/`Manager` are roles shared by design between PXA Admin's pre-existing tenant self-service and PXA.Account's Company-owner role, so an owner legitimately gets `200` from some `/admin/*` GETs today — that predates this checklist and is not a gap. What the test proves instead: a lower-privileged member with no `PxaPermissions.*` claims gets 403 from every `/admin/*` route, and even an organization owner never reaches a true System-Administrator-only action.)
-- [ ] Account roles cannot grant products not enabled by subscription entitlements. (true by domain-model design — entitlements and roles are separate concepts — but not yet covered by a dedicated test)
+- [x] Account roles cannot grant products not enabled by subscription entitlements. (`AccountEntitlementsControllerTests`: a fully-privileged owner is denied once the Trial expires — a maximal role does not override it — and a `Viewer`-role member, holding none of the `PxaAccountPermissions.*` policies used elsewhere, still gets a true `allowed` result while the Trial is healthy, since `AccountEntitlementsController` has no role policy at all)
 - [x] Registration and recovery do not leak whether unrelated customer identities exist.
 - [x] All privileged customer changes are tenant-scoped and auditable.
 

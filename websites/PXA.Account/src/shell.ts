@@ -1,4 +1,4 @@
-import type { UserInfo } from './api';
+import { siteLinks } from '../../shared/siteLinks.js';
 
 export interface NavigationItem {
   path: string;
@@ -32,38 +32,47 @@ function renderNavigation(): string {
   `).join('');
 }
 
-export function renderShell(app: HTMLElement, user: UserInfo, content: string, title: string): void {
+export function renderShell(app: HTMLElement, content: string, title: string): void {
   document.title = `${title} | PXA Account`;
   app.innerHTML = `
     <a class="account-skip-link" href="#account-content">Skip to content</a>
-    <div class="account-portal">
-      <header class="account-header">
+    <div class="account-app-shell">
+      <div class="account-sidebar-backdrop" id="account-sidebar-backdrop"></div>
+      <aside class="account-sidebar" id="account-sidebar">
         <a class="account-brand" href="/dashboard"><span>PXA</span> Account</a>
-        <button class="account-menu-button" id="account-menu-button" type="button" aria-controls="account-navigation" aria-expanded="false">Menu</button>
         <nav class="account-navigation" id="account-navigation" aria-label="Account">${renderNavigation()}</nav>
-        <div class="account-header-actions">
-          <span class="account-header-user">${escapeHtml(user.displayName)}</span>
+        <div class="account-sidebar-footer">
+          <a class="account-header-company-link" href="${siteLinks.company}">Back to Company site</a>
           <button class="pxa-button pxa-button--secondary" id="logout-button" type="button">Sign out</button>
         </div>
-      </header>
-      <main class="account-content" id="account-content" tabindex="-1">${content}</main>
+      </aside>
+      <div class="account-workspace">
+        <header class="account-mobile-bar">
+          <button class="account-menu-button" id="account-menu-button" type="button" aria-controls="account-navigation" aria-expanded="false">Menu</button>
+          <a class="account-mobile-brand" href="/dashboard">PXA Account</a>
+        </header>
+        <main class="account-content" id="account-content" tabindex="-1">${content}</main>
+      </div>
     </div>`;
 }
 
 export function bindShellEvents(onLogout: () => void): void {
   document.querySelector('#account-menu-button')?.addEventListener('click', (event) => {
-    const nav = document.querySelector('#account-navigation');
-    const expanded = nav?.classList.toggle('account-navigation--open') ?? false;
+    const sidebar = document.querySelector('#account-sidebar');
+    const expanded = sidebar?.classList.toggle('account-sidebar--open') ?? false;
+    document.querySelector('#account-sidebar-backdrop')?.classList.toggle('account-sidebar-backdrop--visible', expanded);
     (event.currentTarget as HTMLElement).setAttribute('aria-expanded', String(expanded));
   });
+  document.querySelector('#account-sidebar-backdrop')?.addEventListener('click', () => closeAccountNavigation(true));
   document.querySelector('#logout-button')?.addEventListener('click', onLogout);
 }
 
 export function closeAccountNavigation(restoreFocus = false): void {
-  const nav = document.querySelector('#account-navigation');
+  const sidebar = document.querySelector('#account-sidebar');
   const menuButton = document.querySelector<HTMLButtonElement>('#account-menu-button');
-  if (!nav?.classList.contains('account-navigation--open')) return;
-  nav.classList.remove('account-navigation--open');
+  if (!sidebar?.classList.contains('account-sidebar--open')) return;
+  sidebar.classList.remove('account-sidebar--open');
+  document.querySelector('#account-sidebar-backdrop')?.classList.remove('account-sidebar-backdrop--visible');
   menuButton?.setAttribute('aria-expanded', 'false');
   if (restoreFocus) menuButton?.focus();
 }

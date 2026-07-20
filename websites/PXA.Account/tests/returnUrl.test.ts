@@ -7,6 +7,7 @@ test('accepts absolute URLs on allowlisted local product origins', () => {
   assert.equal(sanitizeReturnUrl('http://localhost:5175/'), 'http://localhost:5175/');
   assert.equal(sanitizeReturnUrl('http://localhost:5174/getting-started'), 'http://localhost:5174/getting-started');
   assert.equal(sanitizeReturnUrl('http://localhost:5178/organization'), 'http://localhost:5178/organization');
+  assert.equal(sanitizeReturnUrl('http://localhost:5173/pricing'), 'http://localhost:5173/pricing');
 });
 
 test('accepts absolute URLs on allowlisted production product origins', () => {
@@ -17,6 +18,10 @@ test('accepts absolute URLs on allowlisted production product origins', () => {
   assert.equal(
     sanitizeReturnUrl('https://account.powerdoxautomation.com/profile'),
     'https://account.powerdoxautomation.com/profile',
+  );
+  assert.equal(
+    sanitizeReturnUrl('https://powerdoxautomation.com/pricing'),
+    'https://powerdoxautomation.com/pricing',
   );
 });
 
@@ -40,10 +45,9 @@ test('rejects relative paths (no scheme/host to validate against)', () => {
   assert.equal(sanitizeReturnUrl('dashboard'), null);
 });
 
-test('rejects the Company marketing origin and any Admin-shaped origin', () => {
-  assert.equal(sanitizeReturnUrl('http://localhost:5173/'), null);
-  assert.equal(sanitizeReturnUrl('https://powerdoxautomation.com/'), null);
+test('rejects any Admin-shaped origin', () => {
   assert.equal(sanitizeReturnUrl('http://localhost:5177/'), null);
+  assert.equal(sanitizeReturnUrl('https://admin.powerdoxautomation.com/'), null);
 });
 
 test('rejects empty, missing, or non-string values', () => {

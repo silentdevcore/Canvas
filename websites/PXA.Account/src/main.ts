@@ -2,6 +2,7 @@ import './site.css';
 import { extractCampaignContext } from '../../shared/campaignAttribution.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import { sanitizeReturnUrl } from '../../shared/returnUrl.js';
+import { appendSignedInSignal } from '../../shared/signedInSignal.js';
 import {
   ApiError,
   confirmEmailChange,
@@ -71,6 +72,10 @@ async function handleLogout(): Promise<void> {
 
 function consumeReturnUrl(): string | null {
   return sanitizeReturnUrl(new URLSearchParams(location.search).get('returnUrl'));
+}
+
+function withSignedInSignal(url: string): string {
+  return appendSignedInSignal(url, new URL(siteLinks.company).origin);
 }
 
 function escapeHtml(value: unknown = ''): string {
@@ -268,7 +273,7 @@ function bindEvents(): void {
     const response = await login(formString(data, 'identifier'), formString(data, 'password'), data.get('rememberMe') === 'on');
     state.user = response!.user;
     const target = consumeReturnUrl();
-    if (target) { window.location.href = target; return; }
+    if (target) { window.location.href = withSignedInSignal(target); return; }
     navigate('/dashboard', true);
   });
   bindForm('#register-form', async (data) => {
@@ -331,13 +336,13 @@ function render(): void {
   const path = location.pathname;
   if (state.user && ['/login', '/register', '/'].includes(path)) {
     const target = consumeReturnUrl();
-    if (target) { window.location.href = target; return; }
+    if (target) { window.location.href = withSignedInSignal(target); return; }
     navigate('/dashboard', true); return;
   }
   if (!state.user && portalPaths.has(path)) { navigate('/login', true); return; }
   const portalPage = portalPages[path];
   if (state.user && portalPage) {
-    renderShell(app, state.user, portalPage.render(state.user), portalPage.title);
+    renderShell(app, portalPage.render(state.user), portalPage.title);
     bindShellEvents(handleLogout);
     bindEvents();
     portalPage.bind?.();
