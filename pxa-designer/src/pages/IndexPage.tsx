@@ -5,12 +5,16 @@ import {
   FiActivity,
   FiCheckCircle,
   FiChevronRight,
+  FiCode,
   FiFileText,
   FiFilePlus,
+  FiGitMerge,
   FiGrid,
   FiLayout,
+  FiRefreshCw,
   FiShield,
   FiUpload,
+  FiEye,
 } from 'react-icons/fi';
 import { CATEGORIES, CATEGORY_CONFIG, TEMPLATES } from '@/data/templates';
 import { useTemplateLoader } from '@/hooks/useTemplateLoader';
@@ -33,14 +37,21 @@ const FEATURE_CARDS = [
     copy: 'DOCX output includes named styles, footnotes, bookmarks, track changes, document protection, custom properties and X.509 digital signatures.',
     icon: FiShield,
   },
+  {
+    title: 'Spreadsheet formulas & formatting',
+    copy: 'Edit a full grid with live formulas, cell styles, and merges — import Excel/CSV or a native PXA Workbook, and export back out with formatting intact.',
+    icon: FiGrid,
+  },
 ];
 
-const TOOL_LINKS = [
-  { label: 'Edit PDF',          copy: 'Change text, images and layout.',                icon: FiFileText, comingSoon: false },
-  { label: 'Create form',       copy: 'Add fields, QR codes and signatures.',           icon: FiFilePlus, comingSoon: false },
-  { label: 'Import document',   copy: 'Open a PDF, DOCX, DOC, ODT or image file.',     icon: FiUpload,   comingSoon: false },
-  { label: 'Sign DOCX',         copy: 'Apply an X.509 digital signature to a DOCX.',   icon: FiShield,   comingSoon: false },
-];
+interface ToolLink {
+  label: string;
+  copy: string;
+  icon: React.ElementType;
+  path?: string;
+  disabled?: boolean;
+  onClick?: () => void;
+}
 
 const IndexPage: React.FC = () => {
   const navigate = useNavigate();
@@ -66,17 +77,59 @@ const IndexPage: React.FC = () => {
     }
   };
 
-  const handleToolClick = (label: string) => {
-    if (label === 'Edit PDF') {
-      navigate('/template');
-    } else if (label === 'Create form') {
-      loadBlank();
-    } else if (label === 'Import document') {
-      navigate('/importer');
-    } else if (label === 'Sign DOCX') {
-      showToast('Export your design as DOCX first, then use the Sign button in the Export modal.');
-    }
+  // One card per PDF hub sidebar item (see PdfLayout.tsx), plus "Sign DOCX"
+  // which has no hub-sidebar/route equivalent — it's an Export-modal action.
+  const PDF_TOOLS: ToolLink[] = [
+    { label: 'Create PDF', copy: 'Start a blank document and build it visually.', icon: FiFilePlus, path: '/pdf/create' },
+    { label: 'Edit PDF', copy: 'Paste JSON or C# code and adjust it live in the designer.', icon: FiCode, path: '/pdf/edit' },
+    { label: 'Use Template', copy: `Browse ${TEMPLATES.length} ready-made invoices, receipts, certificates and more.`, icon: FiLayout, path: '/pdf/template' },
+    { label: 'Import PDF', copy: 'Open an existing PDF, Word, ODT, PowerPoint, SVG or image as an editable design.', icon: FiUpload, path: '/pdf/import' },
+    { label: 'Convert to PDF', copy: 'Turn a scanned or photographed image into a searchable PDF with OCR.', icon: FiEye, path: '/pdf/convert' },
+    { label: 'PDF Viewer', copy: 'Open, review and annotate a PDF without leaving the browser.', icon: FiFileText, path: '/pdf/viewer' },
+    { label: 'Migrations', copy: 'Convert vendor C# code or report-designer files (RDL, DevExpress, Crystal, and more) to PXA.', icon: FiGitMerge, path: '/pdf/migrations' },
+    { label: 'Sign DOCX', copy: 'Apply an X.509 digital signature to a DOCX.', icon: FiShield, onClick: () => showToast('Export your design as DOCX first, then use the Sign button in the Export modal.') },
+  ];
+
+  // One card per Spreadsheet hub sidebar item — Spreadsheet's first appearance on Home.
+  const SPREADSHEET_TOOLS: ToolLink[] = [
+    { label: 'Create Spreadsheet', copy: 'Start a blank spreadsheet with the full grid editor.', icon: FiGrid, path: '/spreadsheet/create' },
+    { label: 'Edit Spreadsheet', copy: 'Open a PXA Workbook JSON file to edit in the grid.', icon: FiCode, path: '/spreadsheet/edit' },
+    { label: 'Import Spreadsheet', copy: 'Import an Excel or CSV file, preserving formulas and formatting.', icon: FiUpload, path: '/spreadsheet/import' },
+    { label: 'Convert to Spreadsheet', copy: 'Turn an external format into a spreadsheet.', icon: FiRefreshCw, disabled: true },
+    { label: 'Migrations', copy: 'Convert vendor C# spreadsheet code (ClosedXML, EPPlus, GemBox, Aspose.Cells) to PXA.', icon: FiGitMerge, path: '/spreadsheet/migrations' },
+  ];
+
+  const handleToolClick = (tool: ToolLink) => {
+    if (tool.disabled) return;
+    if (tool.onClick) { tool.onClick(); return; }
+    if (tool.path) navigate(tool.path);
   };
+
+  const renderToolGrid = (tools: ToolLink[]) => (
+    <div className="pdf-tool-grid">
+      {tools.map(tool => {
+        const Icon = tool.icon;
+        return (
+          <motion.button
+            key={tool.label}
+            className={`pdf-tool-card${tool.disabled ? ' is-coming-soon' : ''}`}
+            onClick={() => handleToolClick(tool)}
+            disabled={tool.disabled}
+            whileHover={tool.disabled ? {} : { y: -3 }}
+            whileTap={tool.disabled ? {} : { scale: 0.98 }}
+          >
+            <Icon />
+            <strong>{tool.label}</strong>
+            <small>{tool.copy}</small>
+            <span>
+              {tool.disabled ? 'Coming soon' : 'Start now'}
+              {!tool.disabled && <FiChevronRight />}
+            </span>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="pdf-home">
@@ -114,7 +167,7 @@ const IndexPage: React.FC = () => {
           <div className="pdf-hero-cards">
             <motion.button
               className="pdf-upload-card"
-              onClick={() => navigate('/template')}
+              onClick={() => navigate('/pdf/template')}
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.99 }}
             >
@@ -145,7 +198,7 @@ const IndexPage: React.FC = () => {
               whileTap={{ scale: 0.99 }}
             >
               <span className="pdf-upload-icon"><FiFilePlus /></span>
-              <strong>Blank canvas</strong>
+              <strong>Blank document</strong>
               <small>Open the editor with an empty page — no starter elements</small>
               <span className="pdf-upload-action">Start blank <FiChevronRight /></span>
             </motion.button>
@@ -164,34 +217,22 @@ const IndexPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Tools */}
+        {/* PDF tools */}
         <section className="pdf-tools-section" id="tools">
           <div className="pdf-section-heading">
-            <span>Every tool you need</span>
+            <span>Every PDF tool you need</span>
             <h2>Try these tools to get your PDFs done</h2>
           </div>
-          <div className="pdf-tool-grid">
-            {TOOL_LINKS.map(tool => {
-              const Icon = tool.icon;
-              return (
-                <motion.button
-                  key={tool.label}
-                  className={`pdf-tool-card${tool.comingSoon ? ' is-coming-soon' : ''}`}
-                  onClick={() => handleToolClick(tool.label)}
-                  whileHover={tool.comingSoon ? {} : { y: -3 }}
-                  whileTap={tool.comingSoon ? {} : { scale: 0.98 }}
-                >
-                  <Icon />
-                  <strong>{tool.label}</strong>
-                  <small>{tool.copy}</small>
-                  <span>
-                    {tool.comingSoon ? 'Coming soon' : 'Start now'}
-                    {!tool.comingSoon && <FiChevronRight />}
-                  </span>
-                </motion.button>
-              );
-            })}
+          {renderToolGrid(PDF_TOOLS)}
+        </section>
+
+        {/* Spreadsheet tools */}
+        <section className="pdf-tools-section" id="spreadsheet-tools">
+          <div className="pdf-section-heading">
+            <span>Every spreadsheet tool you need</span>
+            <h2>Build and import spreadsheets just as easily</h2>
           </div>
+          {renderToolGrid(SPREADSHEET_TOOLS)}
         </section>
 
         {/* Trust band */}
@@ -223,7 +264,7 @@ const IndexPage: React.FC = () => {
             </div>
             <button
               className="pdf-outline-button"
-              onClick={() => navigate('/template')}
+              onClick={() => navigate('/pdf/template')}
             >
               Browse all templates
               <FiChevronRight style={{ marginLeft: 4 }} />
@@ -239,7 +280,7 @@ const IndexPage: React.FC = () => {
                 <motion.button
                   key={cat.id}
                   className="idx-category-card"
-                  onClick={() => navigate(`/template?category=${cat.id}`)}
+                  onClick={() => navigate(`/pdf/template?category=${cat.id}`)}
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.04, duration: 0.2 }}
@@ -271,7 +312,7 @@ const IndexPage: React.FC = () => {
         <section className="pdf-feature-section" id="features">
           <div className="pdf-section-heading">
             <span>Power Dox Automation</span>
-            <h2>Everything you need to manage PDF templates</h2>
+            <h2>Everything you need to manage documents and spreadsheets</h2>
           </div>
           <div className="pdf-feature-grid">
             {FEATURE_CARDS.map(feature => {
@@ -294,7 +335,7 @@ const IndexPage: React.FC = () => {
             <h2>Designed for sensitive business documents</h2>
             <p>Keep the interface calm, structured and predictable for contracts, invoices, HR documents and approvals.</p>
           </div>
-          <button className="pdf-outline-button" onClick={() => navigate('/template')}>
+          <button className="pdf-outline-button" onClick={() => navigate('/pdf/template')}>
             Start designing
           </button>
         </section>
@@ -307,8 +348,13 @@ const IndexPage: React.FC = () => {
 };
 
 const UsageStrip: React.FC = () => {
-  const count = parseInt(localStorage.getItem('canvas_docs_opened') ?? '0', 10);
-  const lastName = localStorage.getItem('canvas_last_template');
+  // `pxa_*` are the current keys; `canvas_*` are read as a fallback so a
+  // count/name saved before the rename isn't lost.
+  const count = parseInt(
+    localStorage.getItem('pxa_docs_opened') ?? localStorage.getItem('canvas_docs_opened') ?? '0',
+    10,
+  );
+  const lastName = localStorage.getItem('pxa_last_template') ?? localStorage.getItem('canvas_last_template');
 
   if (count === 0) return null;
 

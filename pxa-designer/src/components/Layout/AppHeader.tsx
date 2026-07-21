@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiX } from 'react-icons/fi';
 
 interface AppHeaderProps {
-  activePage: 'home' | 'templates' | 'docs' | 'migrations' | 'importer' | 'viewer' | 'spreadsheet';
+  activePage: 'home' | 'pdf' | 'spreadsheet' | 'docs';
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
@@ -32,22 +32,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
               Home
             </button>
             <button
-              className={activePage === 'templates' ? 'is-active' : ''}
-              onClick={() => { navigate('/template'); setMobileMenuOpen(false); }}
+              className={activePage === 'pdf' ? 'is-active' : ''}
+              onClick={() => { navigate('/pdf'); setMobileMenuOpen(false); }}
             >
-              Templates
-            </button>
-            <button
-              className={activePage === 'importer' ? 'is-active' : ''}
-              onClick={() => { navigate('/importer'); setMobileMenuOpen(false); }}
-            >
-              Importer
-            </button>
-            <button
-              className={activePage === 'viewer' ? 'is-active' : ''}
-              onClick={() => { navigate('/pdf-viewer'); setMobileMenuOpen(false); }}
-            >
-              PDF Viewer
+              PDF
             </button>
             <button
               className={activePage === 'spreadsheet' ? 'is-active' : ''}
@@ -59,13 +47,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
               className={activePage === 'docs' ? 'is-active' : ''}
               onClick={() => { navigate('/docs'); setMobileMenuOpen(false); }}
             >
-              Docs
-            </button>
-            <button
-              className={activePage === 'migrations' ? 'is-active' : ''}
-              onClick={() => { navigate('/migrations'); setMobileMenuOpen(false); }}
-            >
-              Migrations
+              Documentation
             </button>
           </nav>
         </div>
@@ -81,23 +63,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
           <button className={activePage === 'home' ? 'is-active' : ''} onClick={() => navigate('/')}>
             Home
           </button>
-          <button className={activePage === 'templates' ? 'is-active' : ''} onClick={() => navigate('/template')}>
-            Templates
-          </button>
-          <button className={activePage === 'importer' ? 'is-active' : ''} onClick={() => navigate('/importer')}>
-            Importer
-          </button>
-          <button className={activePage === 'viewer' ? 'is-active' : ''} onClick={() => navigate('/pdf-viewer')}>
-            PDF Viewer
+          <button className={activePage === 'pdf' ? 'is-active' : ''} onClick={() => navigate('/pdf')}>
+            PDF
           </button>
           <button className={activePage === 'spreadsheet' ? 'is-active' : ''} onClick={() => navigate('/spreadsheet')}>
             Spreadsheet
           </button>
           <button className={activePage === 'docs' ? 'is-active' : ''} onClick={() => navigate('/docs')}>
-            Docs
-          </button>
-          <button className={activePage === 'migrations' ? 'is-active' : ''} onClick={() => navigate('/migrations')}>
-            Migrations
+            Documentation
           </button>
         </nav>
 

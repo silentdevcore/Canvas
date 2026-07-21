@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
 import {
   SheetState, Cell, CellType, CellStyle, cellKey, emptySheet,
   Workbook, workbookFromWire, workbookToWire, toA1Range, parseA1Range,
@@ -168,6 +168,14 @@ export function parseInput(raw: string): { type: CellType; value?: Cell['value']
 }
 
 const MAX_HISTORY = 50;
+
+// `pxa-spreadsheet` is the current key; `canvas-spreadsheet` is read as a
+// fallback so a draft saved before this rename isn't lost.
+const spreadsheetStorage: StateStorage = {
+  getItem: (name) => localStorage.getItem(name) ?? localStorage.getItem('canvas-spreadsheet'),
+  setItem: (name, value) => localStorage.setItem(name, value),
+  removeItem: (name) => localStorage.removeItem(name),
+};
 
 export const useSpreadsheetStore = create<SpreadsheetState>()(
   persist(
@@ -440,7 +448,11 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
       },
     }),
     {
-      name: 'canvas-spreadsheet',
+      name: 'pxa-spreadsheet',
+      storage: createJSONStorage(() => {
+        if (typeof localStorage === 'undefined') throw new Error('localStorage unavailable');
+        return spreadsheetStorage;
+      }),
       partialize: (s) => ({ name: s.name, sheets: s.sheets, active: s.active }),
       onRehydrateStorage: () => (state) => { if (state) sheetEngine.rebuild(state.sheets); },
     },

@@ -5,6 +5,17 @@ import type { TemplateDefinition } from '@/data/templates';
 import type { SimpleElement } from '@/types';
 import ExportService from '@/services/ExportService';
 
+// `pxa_docs_opened`/`pxa_last_template` are the current keys; `canvas_*` are
+// read as a fallback so a count/name saved before this rename isn't lost.
+function recordDocOpened(name: string): void {
+  const prev = parseInt(
+    localStorage.getItem('pxa_docs_opened') ?? localStorage.getItem('canvas_docs_opened') ?? '0',
+    10,
+  );
+  localStorage.setItem('pxa_docs_opened', String(prev + 1));
+  localStorage.setItem('pxa_last_template', name);
+}
+
 function createStarterElements(template: TemplateDefinition): SimpleElement[] {
   const now = Date.now();
   const isFormTemplate = ['invoice', 'receipt', 'certificate', 'letter'].includes(template.category);
@@ -110,10 +121,8 @@ export function useTemplateLoader() {
     } else if (def.pageWidth && def.pageHeight) {
       updatePageSettings({ width: def.pageWidth, height: def.pageHeight });
     }
-    const prev = parseInt(localStorage.getItem('canvas_docs_opened') ?? '0', 10);
-    localStorage.setItem('canvas_docs_opened', String(prev + 1));
-    localStorage.setItem('canvas_last_template', def.name);
-    navigate('/create');
+    recordDocOpened(def.name);
+    navigate('/pdf/create');
   };
 
   const loadBlank = (mode: 'editor' | 'code' = 'editor') => {
@@ -126,10 +135,8 @@ export function useTemplateLoader() {
       sharedElements: [],
       data: {}
     });
-    const prev = parseInt(localStorage.getItem('canvas_docs_opened') ?? '0', 10);
-    localStorage.setItem('canvas_docs_opened', String(prev + 1));
-    localStorage.setItem('canvas_last_template', 'Blank canvas');
-    navigate(mode === 'code' ? '/create?mode=code' : '/create');
+    recordDocOpened('Blank document');
+    navigate(mode === 'code' ? '/pdf/create?mode=code' : '/pdf/create');
   };
 
   const loadFromFile = async (
@@ -279,7 +286,7 @@ export function useTemplateLoader() {
         orientation: design.pageSettings.orientation ?? 'portrait',
       });
     }
-    navigate('/create');
+    navigate('/pdf/create');
   };
 
   return { loadTemplate, loadBlank, loadFromFile };

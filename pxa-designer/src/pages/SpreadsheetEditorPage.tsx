@@ -3,7 +3,6 @@ import {
   FiBold, FiItalic, FiAlignLeft, FiAlignCenter, FiAlignRight,
   FiRotateCcw, FiRotateCw, FiUpload, FiDownload, FiPlus, FiX,
 } from 'react-icons/fi';
-import AppHeader from '../components/Layout/AppHeader';
 import { SpreadsheetGrid, colName } from '../spreadsheet/SpreadsheetGrid';
 import { useSpreadsheetStore } from '../spreadsheet/store';
 import { SpreadsheetService, type ValidationResult } from '../services/SpreadsheetService';
@@ -141,8 +140,6 @@ const SpreadsheetEditorPage: React.FC = () => {
 
   return (
     <div className="spreadsheet-root">
-      <AppHeader activePage="spreadsheet" />
-
       <div className="spreadsheet-toolbar">
         <button className="ss-tool" title="Undo" onClick={undo}><FiRotateCcw /></button>
         <button className="ss-tool" title="Redo" onClick={redo}><FiRotateCw /></button>

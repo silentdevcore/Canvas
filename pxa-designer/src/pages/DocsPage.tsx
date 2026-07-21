@@ -247,7 +247,7 @@ const DocsPage: React.FC = () => {
 
             <H3>Option A — Start from scratch</H3>
             <ol className="docs-steps">
-              <li><strong>Open the home page</strong> and click <em>Blank canvas</em>. The editor opens with an empty A4 page.</li>
+              <li><strong>Open the home page</strong> and click <em>Blank document</em>. The editor opens with an empty A4 page.</li>
               <li><strong>Add elements</strong> using the toolbar at the top of the editor: text blocks, tables, images, QR codes, signatures, and more.</li>
               <li><strong>Resize and position</strong> each element by dragging its handles. The inspector panel on the right lets you set exact values.</li>
               <li><strong>Style each element</strong> — font, colour, border, background — in the inspector.</li>

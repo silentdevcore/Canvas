@@ -7,13 +7,9 @@ import {
   FiPenTool,
   FiUpload,
   FiChevronRight,
-  FiDownload,
-  FiEye,
   FiZap,
 } from 'react-icons/fi';
-import AppHeader from '@/components/Layout/AppHeader';
 import { useTemplateLoader } from '@/hooks/useTemplateLoader';
-import ExportService from '@/services/ExportService';
 
 interface PageSizeOption {
   id: string;
@@ -30,31 +26,6 @@ const PAGE_SIZES: PageSizeOption[] = [
   { id: 'letter',   label: 'Letter (8.5×11 in)', widthPt: 612, heightPt: 792 },
 ];
 
-// OCR languages whose Tesseract data files (tessdata_fast) ship with the app. The codes are
-// combinable — selecting several joins them with '+', e.g. 'deu+eng+fra'.
-const OCR_LANGUAGES: { code: string; label: string }[] = [
-  { code: 'eng',     label: 'English' },
-  { code: 'deu',     label: 'German' },
-  { code: 'fra',     label: 'French' },
-  { code: 'spa',     label: 'Spanish' },
-  { code: 'ita',     label: 'Italian' },
-  { code: 'por',     label: 'Portuguese' },
-  { code: 'nld',     label: 'Dutch' },
-  { code: 'pol',     label: 'Polish' },
-  { code: 'swe',     label: 'Swedish' },
-  { code: 'dan',     label: 'Danish' },
-  { code: 'nor',     label: 'Norwegian' },
-  { code: 'fin',     label: 'Finnish' },
-  { code: 'ces',     label: 'Czech' },
-  { code: 'rus',     label: 'Russian' },
-  { code: 'ukr',     label: 'Ukrainian' },
-  { code: 'ell',     label: 'Greek' },
-  { code: 'chi_sim', label: 'Chinese (Simplified)' },
-  { code: 'jpn',     label: 'Japanese' },
-  { code: 'kor',     label: 'Korean' },
-  { code: 'ara',     label: 'Arabic' },
-];
-
 interface FormatCard {
   id: string;
   label: string;
@@ -63,7 +34,6 @@ interface FormatCard {
   description: string;
   Icon: React.ElementType;
   supportsPageSize?: boolean;
-  mode?: 'import' | 'ocr';
 }
 
 const FORMATS: FormatCard[] = [
@@ -132,16 +102,6 @@ const FORMATS: FormatCard[] = [
     Icon: FiZap,
     supportsPageSize: true,
   },
-  {
-    id: 'image-ocr',
-    label: 'Image OCR to PDF',
-    extDisplay: '.png .jpg .jpeg .webp .bmp .tiff',
-    accept: '.png,.jpg,.jpeg,.webp,.bmp,.tiff,.tif,image/png,image/jpeg,image/webp,image/bmp,image/tiff',
-    description: 'Embedded Tesseract OCR with editable text and an optional original image layer.',
-    Icon: FiEye,
-    supportsPageSize: true,
-    mode: 'ocr',
-  },
 ];
 
 const ImporterPage: React.FC = () => {
@@ -154,13 +114,6 @@ const ImporterPage: React.FC = () => {
   const [includeDiagnostics, setIncludeDiagnostics] = useState(true);
   const [includeDebugOverlay, setIncludeDebugOverlay] = useState(true);
   const [includeFallbackLayer, setIncludeFallbackLayer] = useState(false);
-  const [ocrLanguages, setOcrLanguages] = useState('deu+eng');
-  const [includeOcrDiagnostics, setIncludeOcrDiagnostics] = useState(true);
-  const [includeOcrDebugOverlay, setIncludeOcrDebugOverlay] = useState(false);
-  const [enableOcrPreprocessing, setEnableOcrPreprocessing] = useState(true);
-  const [ocrLowConfidenceThreshold, setOcrLowConfidenceThreshold] = useState(0.5);
-  const [ocrLayoutMode, setOcrLayoutMode] = useState<'text-background' | 'text-only'>('text-background');
-  const [pendingAction, setPendingAction] = useState<'open' | 'download'>('open');
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
@@ -180,8 +133,7 @@ const ImporterPage: React.FC = () => {
     }
   };
 
-  const handleConfirmConfig = (action: 'open' | 'download' = 'open') => {
-    setPendingAction(action);
+  const handleConfirmConfig = () => {
     setConfiguring(null);
     setTimeout(() => inputRef.current?.click(), 0);
   };
@@ -192,30 +144,9 @@ const ImporterPage: React.FC = () => {
     e.target.value = '';
     setImporting(true);
     setError('');
-    setStatus(activeId === 'image-ocr' ? 'Uploading image for OCR…' : 'Uploading file…');
+    setStatus('Uploading file…');
     try {
       const pageOpt = PAGE_SIZES.find(p => p.id === selectedPageSize);
-      if (activeId === 'image-ocr' && pendingAction === 'download') {
-        setStatus('Running OCR and generating PDF…');
-        await ExportService.downloadImageOcrPdf(
-          file,
-          pageOpt?.widthPt,
-          pageOpt?.heightPt,
-          {
-            languages: ocrLanguages,
-            includeBackgroundImage: false,
-            enablePreprocessing: enableOcrPreprocessing,
-            lowConfidenceThreshold: ocrLowConfidenceThreshold,
-            layoutMode: ocrLayoutMode,
-          },
-        );
-        setImporting(false);
-        setActiveId(null);
-        setStatus('PDF download started.');
-        return;
-      }
-
-      if (activeId === 'image-ocr') setStatus('Running OCR and building editable design…');
       await loadFromFile(
         file,
         activeId ?? undefined,
@@ -225,13 +156,6 @@ const ImporterPage: React.FC = () => {
           includeImageAnalysisDiagnostics: activeId === 'image-analysis' && includeDiagnostics,
           includeImageAnalysisDebugOverlay: activeId === 'image-analysis' && includeDebugOverlay,
           includeImageAnalysisFallbackLayer: activeId === 'image-analysis' && includeFallbackLayer,
-          imageOcrLanguages: activeId === 'image-ocr' ? ocrLanguages : undefined,
-          includeImageOcrBackgroundImage: activeId === 'image-ocr' ? false : undefined,
-          includeImageOcrDiagnostics: activeId === 'image-ocr' && includeOcrDiagnostics,
-          includeImageOcrDebugOverlay: activeId === 'image-ocr' && includeOcrDebugOverlay,
-          enableImageOcrPreprocessing: activeId === 'image-ocr' && enableOcrPreprocessing,
-          imageOcrLowConfidenceThreshold: activeId === 'image-ocr' ? ocrLowConfidenceThreshold : undefined,
-          imageOcrLayoutMode: activeId === 'image-ocr' ? ocrLayoutMode : undefined,
         },
       );
     } catch (err) {
@@ -244,8 +168,6 @@ const ImporterPage: React.FC = () => {
 
   return (
     <div className="importer-page">
-      <AppHeader activePage="importer" />
-
       <main className="importer-main">
         <header className="importer-header">
           <span className="importer-eyebrow">
@@ -298,113 +220,31 @@ const ImporterPage: React.FC = () => {
                       </select>
                     </div>
 
-                    {fmt.id === 'image-ocr' ? (
-                      <>
-                        <div className="importer-config-field">
-                          <label className="importer-config-label" htmlFor="ocr-layout-select">
-                            Layout
-                          </label>
-                          <select
-                            id="ocr-layout-select"
-                            className="importer-config-select"
-                            value={ocrLayoutMode}
-                            onChange={e => setOcrLayoutMode(e.target.value as 'text-background' | 'text-only')}
-                          >
-                            <option value="text-background">Full layout (text + background colors)</option>
-                            <option value="text-only">Text only</option>
-                          </select>
-                        </div>
-                        <div className="importer-config-field">
-                          <label className="importer-config-label" htmlFor="ocr-language-select">
-                            OCR language(s)
-                          </label>
-                          <select
-                            id="ocr-language-select"
-                            className="importer-config-select"
-                            multiple
-                            size={6}
-                            value={ocrLanguages.split('+').filter(Boolean)}
-                            onChange={e => {
-                              const codes = Array.from(e.target.selectedOptions, o => o.value);
-                              setOcrLanguages(codes.join('+') || 'eng');
-                            }}
-                          >
-                            {OCR_LANGUAGES.map(l => (
-                              <option key={l.code} value={l.code}>{l.label}</option>
-                            ))}
-                          </select>
-                          <span className="importer-config-hint">
-                            Hold ⌘/Ctrl to select several — they’re combined (e.g. German + English).
-                          </span>
-                        </div>
-                        <label className="importer-config-check">
-                          <input
-                            type="checkbox"
-                            checked={includeOcrDiagnostics}
-                            onChange={e => setIncludeOcrDiagnostics(e.target.checked)}
-                          />
-                          <span>Diagnostics</span>
-                        </label>
-                        <label className="importer-config-check">
-                          <input
-                            type="checkbox"
-                            checked={includeOcrDebugOverlay}
-                            onChange={e => setIncludeOcrDebugOverlay(e.target.checked)}
-                          />
-                          <span>Debug overlay page</span>
-                        </label>
-                        <label className="importer-config-check">
-                          <input
-                            type="checkbox"
-                            checked={enableOcrPreprocessing}
-                            onChange={e => setEnableOcrPreprocessing(e.target.checked)}
-                          />
-                          <span>Preprocess image</span>
-                        </label>
-                        <div className="importer-config-field">
-                          <label className="importer-config-label" htmlFor="ocr-confidence-input">
-                            Low confidence
-                          </label>
-                          <input
-                            id="ocr-confidence-input"
-                            className="importer-config-input"
-                            type="number"
-                            min="0"
-                            max="1"
-                            step="0.05"
-                            value={ocrLowConfidenceThreshold}
-                            onChange={e => setOcrLowConfidenceThreshold(Number(e.target.value))}
-                          />
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <label className="importer-config-check">
-                          <input
-                            type="checkbox"
-                            checked={includeDiagnostics}
-                            onChange={e => setIncludeDiagnostics(e.target.checked)}
-                          />
-                          <span>Diagnostics</span>
-                        </label>
-                        <label className="importer-config-check">
-                          <input
-                            type="checkbox"
-                            checked={includeDebugOverlay}
-                            onChange={e => setIncludeDebugOverlay(e.target.checked)}
-                          />
-                          <span>Debug overlay page</span>
-                        </label>
-                        <label className="importer-config-check">
-                          <input
-                            type="checkbox"
-                            checked={includeFallbackLayer}
-                            onChange={e => setIncludeFallbackLayer(e.target.checked)}
-                          />
-                          <span>Fallback image layer</span>
-                        </label>
-                      </>
-                    )}
+                    <label className="importer-config-check">
+                      <input
+                        type="checkbox"
+                        checked={includeDiagnostics}
+                        onChange={e => setIncludeDiagnostics(e.target.checked)}
+                      />
+                      <span>Diagnostics</span>
+                    </label>
+                    <label className="importer-config-check">
+                      <input
+                        type="checkbox"
+                        checked={includeDebugOverlay}
+                        onChange={e => setIncludeDebugOverlay(e.target.checked)}
+                      />
+                      <span>Debug overlay page</span>
+                    </label>
+                    <label className="importer-config-check">
+                      <input
+                        type="checkbox"
+                        checked={includeFallbackLayer}
+                        onChange={e => setIncludeFallbackLayer(e.target.checked)}
+                      />
+                      <span>Fallback image layer</span>
+                    </label>
+
                     <div className="importer-config-actions">
                       <button
                         className="importer-config-cancel"
@@ -414,18 +254,10 @@ const ImporterPage: React.FC = () => {
                       </button>
                       <button
                         className="importer-config-confirm"
-                        onClick={() => handleConfirmConfig('open')}
+                        onClick={() => handleConfirmConfig()}
                       >
                         Choose file <FiChevronRight size={13} />
                       </button>
-                      {fmt.id === 'image-ocr' && (
-                        <button
-                          className="importer-config-download"
-                          onClick={() => handleConfirmConfig('download')}
-                        >
-                          <FiDownload size={13} /> PDF
-                        </button>
-                      )}
                     </div>
                   </div>
                 )}

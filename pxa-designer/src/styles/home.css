@@ -182,7 +182,7 @@
   cursor: pointer;
 }
 
-/* Blank canvas card — same layout and treatment as .pdf-upload-card */
+/* Blank document card — same layout and treatment as .pdf-upload-card */
 .pdf-blank-card {
   display: flex;
   flex-direction: column;

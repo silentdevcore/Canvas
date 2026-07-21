@@ -6,7 +6,6 @@ import {
   FiSearch,
   FiX,
 } from 'react-icons/fi';
-import AppHeader from '@/components/Layout/AppHeader';
 import CategoryFilter from '@/components/Gallery/CategoryFilter';
 import TemplateCard from '@/components/Gallery/TemplateCard';
 import TemplateMiniPreview from '@/components/Gallery/TemplateMiniPreview';
@@ -132,8 +131,6 @@ const TemplatePage: React.FC = () => {
 
   return (
     <div className="pdf-home">
-      <AppHeader activePage="templates" />
-
       <main>
         {/* Toolbar */}
         <section className="tpl-toolbar">

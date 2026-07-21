@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiCode, FiCopy, FiDownload, FiExternalLink, FiPlay, FiRefreshCw, FiGitMerge, FiLayout, FiUpload } from 'react-icons/fi';
 import Editor, { DiffEditor, type OnMount } from '@monaco-editor/react';
-import AppHeader from '@/components/Layout/AppHeader';
 import MigrationTabs, { pdfTabs, sheetTabs } from '@/components/Migrations/MigrationTabs';
 import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { DEFAULT_PAGE_SETTINGS, normalizePageSettings, useEditorStore, type Template } from '@/store';
@@ -1240,7 +1239,6 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
   const isSpreadsheetCode = !isDesigner && kindFilter === 'spreadsheet';
   return (
     <div className="mgr-page">
-      <AppHeader activePage="migrations" />
       {isSpreadsheetCode
         ? <MigrationTabs tabs={sheetTabs('code')} />
         : <MigrationTabs tabs={pdfTabs(isDesigner ? 'designer' : 'code')} />}

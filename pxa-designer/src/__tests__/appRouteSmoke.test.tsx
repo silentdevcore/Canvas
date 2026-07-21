@@ -230,12 +230,67 @@ describe('app route smoke tests', () => {
     container.remove();
   });
 
-  test('opens the migrations landing page', async () => {
+  test('old /migrations bookmark redirects into the PDF hub\'s migrations view', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    // MigrationsPage in "code" mode fetches the frameworks list on mount.
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => [] });
+
     root = await renderRoute(container, '/migrations');
 
-    expect(getByText(container, 'Migrations')).toBeTruthy();
-    expect(getByText(container, 'PDF Migration')).toBeTruthy();
-    expect(getByText(container, 'Spreadsheet Migration')).toBeTruthy();
+    await waitUntil(() => {
+      expect(getByText(container, 'PDF Code Migration')).toBeTruthy();
+    });
+  });
+
+  test('PDF hub sidebar lists every PDF sidebar item', async () => {
+    // /pdf/import (ImporterPage) has no unmocked fetch-on-mount dependency,
+    // unlike the /pdf index redirect into the real CreatePage/editor store.
+    root = await renderRoute(container, '/pdf/import');
+
+    await waitUntil(() => {
+      expect(getByText(container, 'Create PDF')).toBeTruthy();
+      expect(getByText(container, 'Edit PDF')).toBeTruthy();
+      expect(getByText(container, 'Use Template')).toBeTruthy();
+      expect(getByText(container, 'Import PDF')).toBeTruthy();
+      expect(getByText(container, 'Convert to PDF')).toBeTruthy();
+      expect(getByText(container, 'PDF Viewer')).toBeTruthy();
+      expect(getByText(container, 'Migrations')).toBeTruthy();
+    });
+  });
+
+  test('Spreadsheet hub sidebar lists every spreadsheet sidebar item', async () => {
+    // /spreadsheet/import (SpreadsheetImportPage) is already mocked above;
+    // the /spreadsheet index redirect instead lazy-loads the real, heavy
+    // SpreadsheetEditorPage, which pulls in @glideapps/glide-data-grid — a
+    // package this project's Jest config doesn't transform (ESM-only, same
+    // as it doesn't transform framer-motion/monaco, which is why those are
+    // mocked above too).
+    root = await renderRoute(container, '/spreadsheet/import');
+
+    await waitUntil(() => {
+      expect(getByText(container, 'Create Spreadsheet')).toBeTruthy();
+      expect(getByText(container, 'Edit Spreadsheet')).toBeTruthy();
+      expect(getByText(container, 'Import Spreadsheet')).toBeTruthy();
+      // Disabled item renders "Convert to Spreadsheet" alongside a "Coming
+      // soon" child <small>, so the two concatenate in textContent — match
+      // the label as a substring rather than requiring an exact-text node.
+      expect(getByText(container, /Convert to Spreadsheet/)).toBeTruthy();
+    });
+  });
+
+  test('Home shows both the PDF tools and Spreadsheet tools sections', async () => {
+    root = await renderRoute(container, '/');
+
+    await waitUntil(() => {
+      expect(getByText(container, 'Every PDF tool you need')).toBeTruthy();
+      expect(getByText(container, 'Every spreadsheet tool you need')).toBeTruthy();
+      expect(getByText(container, 'Edit PDF')).toBeTruthy();
+      expect(getByText(container, 'Create Spreadsheet')).toBeTruthy();
+      expect(getByText(container, 'Edit Spreadsheet')).toBeTruthy();
+      expect(getByText(container, 'Import Spreadsheet')).toBeTruthy();
+      expect(getByText(container, /Convert to Spreadsheet/)).toBeTruthy();
+      expect(getByText(container, 'Migrations')).toBeTruthy();
+    });
   });
 
   test('converts a report design, opens it in the designer, previews it, and exports JSON', async () => {

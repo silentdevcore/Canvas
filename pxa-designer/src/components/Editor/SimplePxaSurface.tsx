@@ -472,7 +472,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
 
   useEffect(() => {
     installImportedFontFaces(
-      'canvas-imported-font-faces-editor',
+      'pxa-imported-font-faces-editor',
       [...pages.flatMap(page => page.elements), ...sharedElements]
     );
   }, [pages, sharedElements]);

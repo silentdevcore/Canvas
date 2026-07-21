@@ -63,7 +63,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
 
   useEffect(() => {
     installImportedFontFaces(
-      'canvas-imported-font-faces-preview',
+      'pxa-imported-font-faces-preview',
       [...pages.flatMap(page => page.elements), ...sharedElements]
     );
   }, [pages, sharedElements]);

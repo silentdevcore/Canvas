@@ -4,10 +4,12 @@ import IndexPage from '@/pages/IndexPage';
 import TemplatePage from '@/pages/TemplatePage';
 import CreatePage from '@/pages/CreatePage';
 import DocsPage from '@/pages/DocsPage';
-import MigrationsHubPage from '@/pages/MigrationsHubPage';
 import MigrationsPage from '@/pages/MigrationsPage';
 import ImporterPage from '@/pages/ImporterPage';
+import ConvertToPdfPage from '@/pages/ConvertToPdfPage';
 import SpreadsheetImportPage from '@/pages/SpreadsheetImportPage';
+import PdfLayout from '@/components/Layout/PdfLayout';
+import SpreadsheetLayout from '@/components/Layout/SpreadsheetLayout';
 
 const PdfViewerPage = React.lazy(() => import('@/features/pdf-viewer/PdfViewerPage'));
 const SpreadsheetEditorPage = React.lazy(() => import('@/pages/SpreadsheetEditorPage'));
@@ -15,46 +17,66 @@ const SpreadsheetEditorPage = React.lazy(() => import('@/pages/SpreadsheetEditor
 const App: React.FC = () => (
   <Routes>
     <Route path="/" element={<IndexPage />} />
-    <Route path="/template" element={<TemplatePage />} />
-    <Route path="/create" element={<CreatePage />} />
     <Route path="/docs" element={<DocsPage />} />
-    <Route path="/migrations" element={<MigrationsHubPage />} />
-    {/* Domain 1 — PDF Migration. Distinct `key` per route forces a fresh MigrationsPage instance so each
-        sub-tab is its own view (no cross-route state bleed). */}
-    <Route path="/migrations/pdf" element={<Navigate to="/migrations/pdf/code" replace />} />
-    <Route path="/migrations/pdf/code" element={<MigrationsPage key="pdf-code" mode="code" codeKind="pdf" />} />
-    <Route path="/migrations/pdf/designer" element={<MigrationsPage key="pdf-designer" mode="designer" />} />
-    {/* Domain 2 — Spreadsheet Migration */}
-    <Route path="/migrations/spreadsheet" element={<Navigate to="/migrations/spreadsheet/code" replace />} />
-    <Route path="/migrations/spreadsheet/code" element={<MigrationsPage key="spreadsheet-code" mode="code" codeKind="spreadsheet" />} />
-    <Route path="/migrations/spreadsheet/datasource" element={<SpreadsheetImportPage />} />
-    {/* Document importer — standalone */}
-    <Route path="/importer" element={<ImporterPage />} />
-    {/* Back-compat redirects */}
-    <Route path="/migrations/code" element={<Navigate to="/migrations/pdf/code" replace />} />
-    <Route path="/migrations/code/pdf" element={<Navigate to="/migrations/pdf/code" replace />} />
-    <Route path="/migrations/code/spreadsheet" element={<Navigate to="/migrations/spreadsheet/code" replace />} />
-    <Route path="/migrations/designer" element={<Navigate to="/migrations/pdf/designer" replace />} />
-    <Route path="/migrations/format" element={<Navigate to="/migrations/pdf/designer" replace />} />
-    <Route path="/migrations/format/designer" element={<Navigate to="/migrations/pdf/designer" replace />} />
-    <Route path="/migrations/format/spreadsheet" element={<Navigate to="/migrations/spreadsheet/datasource" replace />} />
-    <Route path="/migrations/format/documents" element={<Navigate to="/importer" replace />} />
-    <Route
-      path="/pdf-viewer"
-      element={(
-        <Suspense fallback={<div className="route-loading">Loading PDF viewer...</div>}>
-          <PdfViewerPage />
-        </Suspense>
-      )}
-    />
-    <Route
-      path="/spreadsheet"
-      element={(
-        <Suspense fallback={<div className="route-loading">Loading spreadsheet...</div>}>
-          <SpreadsheetEditorPage />
-        </Suspense>
-      )}
-    />
+
+    <Route path="/pdf" element={<PdfLayout />}>
+      <Route index element={<Navigate to="create" replace />} />
+      <Route path="create" element={<CreatePage />} />
+      <Route path="edit" element={<Navigate to="/pdf/create?mode=code" replace />} />
+      <Route path="template" element={<TemplatePage />} />
+      <Route path="import" element={<ImporterPage />} />
+      <Route path="convert" element={<ConvertToPdfPage />} />
+      <Route
+        path="viewer"
+        element={(
+          <Suspense fallback={<div className="route-loading">Loading PDF viewer...</div>}>
+            <PdfViewerPage />
+          </Suspense>
+        )}
+      />
+      {/* Distinct `key` per route forces a fresh MigrationsPage instance so each
+          sub-tab is its own view (no cross-route state bleed). */}
+      <Route path="migrations" element={<Navigate to="/pdf/migrations/code" replace />} />
+      <Route path="migrations/code" element={<MigrationsPage key="pdf-code" mode="code" codeKind="pdf" />} />
+      <Route path="migrations/designer" element={<MigrationsPage key="pdf-designer" mode="designer" />} />
+    </Route>
+
+    <Route path="/spreadsheet" element={<SpreadsheetLayout />}>
+      <Route index element={<Navigate to="create" replace />} />
+      <Route
+        path="create"
+        element={(
+          <Suspense fallback={<div className="route-loading">Loading spreadsheet...</div>}>
+            <SpreadsheetEditorPage />
+          </Suspense>
+        )}
+      />
+      <Route path="edit" element={<SpreadsheetImportPage variant="edit" />} />
+      <Route path="import" element={<SpreadsheetImportPage variant="import" />} />
+      <Route path="migrations" element={<Navigate to="/spreadsheet/migrations/code" replace />} />
+      <Route path="migrations/code" element={<MigrationsPage key="spreadsheet-code" mode="code" codeKind="spreadsheet" />} />
+    </Route>
+
+    {/* Back-compat redirects from the old flat route tree */}
+    <Route path="/template" element={<Navigate to="/pdf/template" replace />} />
+    <Route path="/create" element={<Navigate to="/pdf/create" replace />} />
+    <Route path="/importer" element={<Navigate to="/pdf/import" replace />} />
+    <Route path="/pdf-viewer" element={<Navigate to="/pdf/viewer" replace />} />
+    <Route path="/migrations" element={<Navigate to="/pdf/migrations" replace />} />
+    <Route path="/migrations/pdf" element={<Navigate to="/pdf/migrations/code" replace />} />
+    <Route path="/migrations/pdf/code" element={<Navigate to="/pdf/migrations/code" replace />} />
+    <Route path="/migrations/pdf/designer" element={<Navigate to="/pdf/migrations/designer" replace />} />
+    <Route path="/migrations/spreadsheet" element={<Navigate to="/spreadsheet/migrations/code" replace />} />
+    <Route path="/migrations/spreadsheet/code" element={<Navigate to="/spreadsheet/migrations/code" replace />} />
+    <Route path="/migrations/spreadsheet/datasource" element={<Navigate to="/spreadsheet/import" replace />} />
+    <Route path="/migrations/code" element={<Navigate to="/pdf/migrations/code" replace />} />
+    <Route path="/migrations/code/pdf" element={<Navigate to="/pdf/migrations/code" replace />} />
+    <Route path="/migrations/code/spreadsheet" element={<Navigate to="/spreadsheet/migrations/code" replace />} />
+    <Route path="/migrations/designer" element={<Navigate to="/pdf/migrations/designer" replace />} />
+    <Route path="/migrations/format" element={<Navigate to="/pdf/migrations/designer" replace />} />
+    <Route path="/migrations/format/designer" element={<Navigate to="/pdf/migrations/designer" replace />} />
+    <Route path="/migrations/format/spreadsheet" element={<Navigate to="/spreadsheet/import" replace />} />
+    <Route path="/migrations/format/documents" element={<Navigate to="/pdf/import" replace />} />
   </Routes>
 );
 
