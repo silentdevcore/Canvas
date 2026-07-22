@@ -1,0 +1,38 @@
+{
+  "toolbar": {
+    "heading": "Templates",
+    "count": "{{filtered}} of {{total}}",
+    "searchPlaceholder": "Search templates…",
+    "clearSearch": "Clear search",
+    "formatFilterLabel": "Filter by format",
+    "format": {
+      "all": "All formats",
+      "portrait": "Portrait",
+      "landscape": "Landscape",
+      "square": "Square",
+      "widescreen": "Widescreen"
+    },
+    "sortLabel": "Sort templates",
+    "sort": {
+      "default": "Default order",
+      "alpha": "A – Z",
+      "category": "By category"
+    }
+  },
+  "categoryFilter": {
+    "ariaLabel": "Template categories"
+  },
+  "emptyResults": {
+    "title": "No templates found",
+    "copy": "Try a different search term or category.",
+    "showAll": "Show all templates"
+  },
+  "card": {
+    "useTemplateHover": "Use template",
+    "useTemplate": "Use this template"
+  },
+  "detail": {
+    "close": "Close",
+    "useTemplate": "Use this template"
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "pageSizes": {
+    "original": "Conserver l'original",
+    "a4": "A4 (210×297 mm)",
+    "a5": "A5 (148×210 mm)",
+    "a3": "A3 (297×420 mm)",
+    "letter": "Letter (8,5×11 po)"
+  },
+  "eyebrow": "Convertir et importer",
+  "heading": "Convertir en PDF",
+  "subheading": "Transformez n'importe quel fichier en une conception PXA modifiable, ou convertissez une image scannée en PDF consultable.",
+  "sections": {
+    "import": {
+      "eyebrow": "Ouvrir un fichier existant",
+      "heading": "Importer un fichier",
+      "subheading": "Choisissez le format, puis sélectionnez un fichier — il s'ouvre comme une conception PXA modifiable.",
+      "formats": {
+        "pdf": {
+          "label": "PDF",
+          "description": "Texte, formes et images extraits de tout fichier PDF."
+        },
+        "docx": {
+          "label": "Word DOCX",
+          "description": "Paragraphes, tableaux et images intégrées depuis Word Open XML."
+        },
+        "pptx": {
+          "label": "PowerPoint",
+          "description": "Chaque diapositive devient une page PXA avec formes, texte et images."
+        },
+        "doc": {
+          "label": "Word DOC",
+          "description": "Ancien format binaire Word 97-2003 — texte extrait en éléments modifiables."
+        },
+        "odt": {
+          "label": "OpenDocument",
+          "description": "Texte ODF avec styles de paragraphe, titres et images intégrées."
+        },
+        "svg": {
+          "label": "SVG",
+          "description": "Fidélité vectorielle complète — chemins, groupes, texte et images intégrées."
+        },
+        "image": {
+          "label": "Image",
+          "description": "Image matricielle placée comme conception PXA pleine page."
+        },
+        "image-analysis": {
+          "label": "Image (Intelligente)",
+          "description": "Moteur OCR personnalisé — reconnaît le texte, les formes et les couleurs comme éléments modifiables individuels."
+        }
+      },
+      "importAriaLabel": "Importer le fichier {{label}}",
+      "importing": "Importation en cours…",
+      "chooseFile": "Choisir un fichier",
+      "config": {
+        "pageSize": "Taille de la page",
+        "diagnostics": "Diagnostics",
+        "debugOverlay": "Page de superposition de débogage",
+        "fallbackLayer": "Calque image de secours",
+        "cancel": "Annuler",
+        "chooseFile": "Choisir un fichier"
+      },
+      "uploadingFile": "Téléversement du fichier…",
+      "importFailed": "Échec de l'importation. Veuillez vérifier le fichier et réessayer."
+    },
+    "ocr": {
+      "eyebrow": "Image vers PDF",
+      "heading": "Convertir une image en PDF",
+      "subheading": "L'OCR Tesseract intégré transforme une page scannée ou photographiée en PDF consultable.",
+      "pageSize": "Taille de page",
+      "layout": "Mise en page",
+      "layoutFull": "Mise en page complète (texte + couleurs de fond)",
+      "layoutTextOnly": "Texte uniquement",
+      "ocrLanguageLabel": "Langue(s) OCR",
+      "ocrLanguageHint": "Maintenez ⌘/Ctrl pour en sélectionner plusieurs — elles sont combinées (ex. allemand + anglais).",
+      "preprocessImage": "Prétraiter l'image",
+      "lowConfidence": "Faible confiance",
+      "converting": "Conversion en cours…",
+      "chooseImageAndConvert": "Choisir l'image et convertir",
+      "runningOcr": "OCR en cours et génération du PDF…",
+      "downloadStarted": "Téléchargement du PDF démarré.",
+      "conversionFailed": "Échec de la conversion. Veuillez vérifier le fichier et réessayer.",
+      "ocrLanguages": {
+        "eng": "Anglais",
+        "deu": "Allemand",
+        "fra": "Français",
+        "spa": "Espagnol",
+        "ita": "Italien",
+        "por": "Portugais",
+        "nld": "Néerlandais",
+        "pol": "Polonais",
+        "swe": "Suédois",
+        "dan": "Danois",
+        "nor": "Norvégien",
+        "fin": "Finnois",
+        "ces": "Tchèque",
+        "rus": "Russe",
+        "ukr": "Ukrainien",
+        "ell": "Grec",
+        "chi_sim": "Chinois (simplifié)",
+        "jpn": "Japonais",
+        "kor": "Coréen",
+        "ara": "Arabe"
+      }
+    }
+  }
+}

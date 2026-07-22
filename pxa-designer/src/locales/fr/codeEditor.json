@@ -1,0 +1,31 @@
+{
+  "back": "← Retour",
+  "title": "Éditeur de code",
+  "lang": {
+    "json": "JSON",
+    "csharpCode": "Code C#",
+    "csharpDto": "DTO C#"
+  },
+  "converting": "Conversion en cours…",
+  "generating": "Génération en cours…",
+  "exportPdf": "Exporter en PDF",
+  "errors": {
+    "syntaxError": "Erreur de syntaxe : {{message}}",
+    "pagesMustBeArray": "« pages » doit être un tableau.",
+    "pagesMustHaveOne": "« pages » doit contenir au moins une page.",
+    "pageIdRequired": "pages[{{i}}] : « id » est requis.",
+    "pageElementsMustBeArray": "pages[{{i}}] : « elements » doit être un tableau.",
+    "elementIdRequired": "pages[{{i}}].elements[{{j}}] : « id » est requis.",
+    "elementTypeRequired": "pages[{{i}}].elements[{{j}}] : « type » est requis.",
+    "elementXMustBeNumber": "pages[{{i}}].elements[{{j}}] : « x » doit être un nombre.",
+    "elementYMustBeNumber": "pages[{{i}}].elements[{{j}}] : « y » doit être un nombre.",
+    "elementWidthMustBeNumber": "pages[{{i}}].elements[{{j}}] : « width » doit être un nombre.",
+    "elementHeightMustBeNumber": "pages[{{i}}].elements[{{j}}] : « height » doit être un nombre.",
+    "pageSettingsWidthMustBeNumber": "« pageSettings.width » doit être un nombre.",
+    "pageSettingsHeightMustBeNumber": "« pageSettings.height » doit être un nombre.",
+    "generic": "Erreur",
+    "conversionFailed": "Échec de la conversion.",
+    "runFailed": "Échec de l'exécution.",
+    "exportFailed": "Échec de l'exportation."
+  }
+}

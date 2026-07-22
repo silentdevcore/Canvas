@@ -1,0 +1,40 @@
+/* ── RTL polish ───────────────────────────────────────────────────────────
+   Loaded last so these [dir="rtl"] overrides win the cascade. Most of the
+   layout mirrors automatically once the rest of src/styles/*.css uses CSS
+   logical properties (margin-inline-*, inset-inline-*, border-inline-*,
+   text-align: start/end) and `dir="rtl"` is set on <html> by LocaleProvider.
+   What's left here is the handful of things logical properties can't cover:
+   flipping "forward" chevron icons, and loading an Arabic-capable font. */
+
+/* Directional "forward/next" chevrons — flipping them turns a right-pointing
+   chevron into a left-pointing one (and vice versa), which is exactly the
+   mirrored affordance RTL needs (e.g. HubSidebar's collapse/expand toggle
+   already swaps FiChevronLeft/FiChevronRight per state; flipping the
+   rendered icon achieves the same result as swapping which icon renders). */
+[dir="rtl"] .pdf-tool-card span svg,
+[dir="rtl"] .pdf-upload-action svg,
+[dir="rtl"] .idx-category-arrow svg,
+[dir="rtl"] .pdf-outline-button svg,
+[dir="rtl"] .hub-sidebar-toggle svg,
+[dir="rtl"] .tpl-use-button svg,
+[dir="rtl"] .pdf-template-action svg,
+[dir="rtl"] .importer-card-action svg,
+[dir="rtl"] .importer-config-confirm svg,
+[dir="rtl"] .mgr-arrow {
+  transform: scaleX(-1);
+}
+
+/* The language switcher's custom chevron is baked into a background-image
+   with a physical `right` offset (background-position can't use logical
+   inline-end keywords), so it has to be flipped explicitly here rather than
+   relying on logical properties like the rest of this stylesheet. */
+[dir="rtl"] .pdf-language-switcher {
+  background-position: left 12px center;
+  padding-inline: 34px 14px;
+}
+
+/* Arabic web font — index.html's Google Fonts list is Latin-only. */
+[dir="rtl"] body {
+  font-family: 'Noto Sans Arabic', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}

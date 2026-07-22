@@ -1,0 +1,9 @@
+{
+  "eyebrow": "Importación rápida",
+  "heading": "Importar un PDF",
+  "subheading": "Elige un archivo PDF — se abrirá como un diseño editable en el editor visual.",
+  "chooseFile": "Elegir archivo PDF",
+  "importing": "Importando…",
+  "uploadingFile": "Subiendo archivo…",
+  "importFailed": "Error al importar. Comprueba el archivo e inténtalo de nuevo."
+}

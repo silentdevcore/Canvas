@@ -1,0 +1,106 @@
+{
+  "pageSizes": {
+    "original": "Keep original",
+    "a4": "A4 (210×297 mm)",
+    "a5": "A5 (148×210 mm)",
+    "a3": "A3 (297×420 mm)",
+    "letter": "Letter (8.5×11 in)"
+  },
+  "eyebrow": "Convert & import",
+  "heading": "Convert to PDF",
+  "subheading": "Turn any file into an editable PXA design, or convert a scanned image into a searchable PDF.",
+  "sections": {
+    "import": {
+      "eyebrow": "Open an existing file",
+      "heading": "Import a file",
+      "subheading": "Choose the format, then select a file — it opens as an editable PXA design.",
+      "formats": {
+        "pdf": {
+          "label": "PDF",
+          "description": "Text, shapes, and images extracted from any PDF file."
+        },
+        "docx": {
+          "label": "Word DOCX",
+          "description": "Paragraphs, tables, and inline images from Word Open XML."
+        },
+        "pptx": {
+          "label": "PowerPoint",
+          "description": "Each slide becomes a PXA page with shapes, text, and images."
+        },
+        "doc": {
+          "label": "Word DOC",
+          "description": "Legacy Word 97-2003 binary format — text extracted as editable elements."
+        },
+        "odt": {
+          "label": "OpenDocument",
+          "description": "ODF text with paragraph styles, headings, and embedded images."
+        },
+        "svg": {
+          "label": "SVG",
+          "description": "Full vector fidelity — paths, groups, text, and embedded images."
+        },
+        "image": {
+          "label": "Image",
+          "description": "Raster image placed as a full-page PXA design."
+        },
+        "image-analysis": {
+          "label": "Image (Smart)",
+          "description": "Custom OCR engine — recognises text, shapes, and colours as individual editable elements."
+        }
+      },
+      "importAriaLabel": "Import {{label}} file",
+      "importing": "Importing…",
+      "chooseFile": "Choose file",
+      "config": {
+        "pageSize": "Page size",
+        "diagnostics": "Diagnostics",
+        "debugOverlay": "Debug overlay page",
+        "fallbackLayer": "Fallback image layer",
+        "cancel": "Cancel",
+        "chooseFile": "Choose file"
+      },
+      "uploadingFile": "Uploading file…",
+      "importFailed": "Import failed. Please check the file and try again."
+    },
+    "ocr": {
+      "eyebrow": "Image to PDF",
+      "heading": "Convert an image to PDF",
+      "subheading": "Embedded Tesseract OCR turns a scanned or photographed page into a searchable PDF.",
+      "pageSize": "Page size",
+      "layout": "Layout",
+      "layoutFull": "Full layout (text + background colors)",
+      "layoutTextOnly": "Text only",
+      "ocrLanguageLabel": "OCR language(s)",
+      "ocrLanguageHint": "Hold ⌘/Ctrl to select several — they’re combined (e.g. German + English).",
+      "preprocessImage": "Preprocess image",
+      "lowConfidence": "Low confidence",
+      "converting": "Converting…",
+      "chooseImageAndConvert": "Choose image and convert",
+      "runningOcr": "Running OCR and generating PDF…",
+      "downloadStarted": "PDF download started.",
+      "conversionFailed": "Conversion failed. Please check the file and try again.",
+      "ocrLanguages": {
+        "eng": "English",
+        "deu": "German",
+        "fra": "French",
+        "spa": "Spanish",
+        "ita": "Italian",
+        "por": "Portuguese",
+        "nld": "Dutch",
+        "pol": "Polish",
+        "swe": "Swedish",
+        "dan": "Danish",
+        "nor": "Norwegian",
+        "fin": "Finnish",
+        "ces": "Czech",
+        "rus": "Russian",
+        "ukr": "Ukrainian",
+        "ell": "Greek",
+        "chi_sim": "Chinese (Simplified)",
+        "jpn": "Japanese",
+        "kor": "Korean",
+        "ara": "Arabic"
+      }
+    }
+  }
+}

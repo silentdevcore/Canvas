@@ -1,0 +1,31 @@
+{
+  "back": "← رجوع",
+  "title": "محرر الكود",
+  "lang": {
+    "json": "JSON",
+    "csharpCode": "كود C#",
+    "csharpDto": "C# DTO"
+  },
+  "converting": "جارٍ التحويل…",
+  "generating": "جارٍ الإنشاء…",
+  "exportPdf": "تصدير PDF",
+  "errors": {
+    "syntaxError": "خطأ في الصياغة: {{message}}",
+    "pagesMustBeArray": "يجب أن يكون \"pages\" مصفوفة.",
+    "pagesMustHaveOne": "يجب أن يحتوي \"pages\" على صفحة واحدة على الأقل.",
+    "pageIdRequired": "pages[{{i}}]: الحقل \"id\" مطلوب.",
+    "pageElementsMustBeArray": "pages[{{i}}]: يجب أن يكون \"elements\" مصفوفة.",
+    "elementIdRequired": "pages[{{i}}].elements[{{j}}]: الحقل \"id\" مطلوب.",
+    "elementTypeRequired": "pages[{{i}}].elements[{{j}}]: الحقل \"type\" مطلوب.",
+    "elementXMustBeNumber": "pages[{{i}}].elements[{{j}}]: يجب أن يكون \"x\" رقمًا.",
+    "elementYMustBeNumber": "pages[{{i}}].elements[{{j}}]: يجب أن يكون \"y\" رقمًا.",
+    "elementWidthMustBeNumber": "pages[{{i}}].elements[{{j}}]: يجب أن يكون \"width\" رقمًا.",
+    "elementHeightMustBeNumber": "pages[{{i}}].elements[{{j}}]: يجب أن يكون \"height\" رقمًا.",
+    "pageSettingsWidthMustBeNumber": "يجب أن يكون \"pageSettings.width\" رقمًا.",
+    "pageSettingsHeightMustBeNumber": "يجب أن يكون \"pageSettings.height\" رقمًا.",
+    "generic": "خطأ",
+    "conversionFailed": "فشل التحويل.",
+    "runFailed": "فشل التشغيل.",
+    "exportFailed": "فشل التصدير."
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "hero": {
+    "eyebrow": "صمّم واستورد وصدّر المستندات في مكان واحد",
+    "title": "أنشئ واملأ وجهّز مستندات الأعمال بشكل أسرع",
+    "description": "يساعدك Power Dox Automation على البدء من قالب أو استيراد ملف PDF أو Word أو ODT موجود. أضف الحقول والتوقيعات وارتباطات البيانات — ثم صدّر إلى PDF وDOCX وODT وTIFF والمزيد.",
+    "templateCard": {
+      "title": "البدء من قالب",
+      "copy": "تصفّح {{count}} قالب مستند جاهز",
+      "action": "تصفّح القوالب"
+    },
+    "importCard": {
+      "title": "استيراد ملف",
+      "importing": "جارٍ الاستيراد…",
+      "copy": "افتح ملف PDF أو Word أو ODT أو صورة كتصميم قابل للتحرير",
+      "action": "اختيار ملف",
+      "tooltip": "استيراد PDF أو Word .doc/.docx أو ODT أو صورة (PNG/JPG/WebP/…) كتصميم PXA",
+      "importFailed": "فشل الاستيراد"
+    },
+    "blankCard": {
+      "title": "مستند فارغ",
+      "copy": "افتح المحرر بصفحة فارغة — بدون عناصر ابتدائية",
+      "action": "البدء فارغًا"
+    },
+    "codeCard": {
+      "title": "محرر الكود",
+      "copy": "اكتب JSON مباشرة وشاهد معاينة PDF مباشرة أثناء الكتابة",
+      "action": "فتح المحرر"
+    }
+  },
+  "pdfTools": {
+    "sectionLabel": "كل أداة PDF تحتاجها",
+    "sectionTitle": "جرّب هذه الأدوات لإنجاز ملفات PDF الخاصة بك",
+    "createPdf": {
+      "label": "إنشاء PDF",
+      "copy": "ابدأ بمستند فارغ وأنشئه بصريًا."
+    },
+    "editPdf": {
+      "label": "تحرير PDF",
+      "copy": "ألصق كود JSON أو C# واضبطه مباشرة في المصمم."
+    },
+    "useTemplate": {
+      "label": "استخدام قالب",
+      "copy": "تصفّح {{count}} فاتورة وإيصال وشهادة جاهزة والمزيد."
+    },
+    "importPdf": {
+      "label": "استيراد PDF",
+      "copy": "افتح ملف PDF بسرعة كتصميم قابل للتحرير في المحرر المرئي."
+    },
+    "convertToPdf": {
+      "label": "التحويل إلى PDF",
+      "copy": "حوّل PDF أو Word أو PowerPoint أو صورة أو SVG إلى تصميم قابل للتحرير — أو استخدم OCR لتحويل صورة ممسوحة ضوئيًا إلى PDF قابل للبحث."
+    },
+    "pdfViewer": {
+      "label": "عارض PDF",
+      "copy": "افتح راجع وعلّق على ملف PDF دون مغادرة المتصفح."
+    },
+    "migrations": {
+      "label": "عمليات الترحيل",
+      "copy": "حوّل كود C# لموردين آخرين أو ملفات مصمم التقارير (RDL وDevExpress وCrystal والمزيد) إلى PXA."
+    },
+    "signDocx": {
+      "label": "توقيع DOCX",
+      "copy": "طبّق توقيعًا رقميًا X.509 على ملف DOCX.",
+      "toast": "صدّر تصميمك أولًا كملف DOCX، ثم استخدم زر التوقيع في نافذة التصدير."
+    }
+  },
+  "spreadsheetTools": {
+    "sectionLabel": "كل أداة جداول بيانات تحتاجها",
+    "sectionTitle": "أنشئ واستورد جداول البيانات بنفس السهولة",
+    "createSpreadsheet": {
+      "label": "إنشاء جدول بيانات",
+      "copy": "ابدأ جدول بيانات فارغًا باستخدام محرر الشبكة الكامل."
+    },
+    "editSpreadsheet": {
+      "label": "تحرير جدول بيانات",
+      "copy": "افتح ملف JSON لمصنّف PXA لتحريره في الشبكة."
+    },
+    "importSpreadsheet": {
+      "label": "استيراد جدول بيانات",
+      "copy": "استورد ملف Excel أو CSV مع الحفاظ على الصيغ والتنسيق."
+    },
+    "convertToSpreadsheet": {
+      "label": "التحويل إلى جدول بيانات",
+      "copy": "حوّل تنسيقًا خارجيًا إلى جدول بيانات."
+    },
+    "migrations": {
+      "label": "عمليات الترحيل",
+      "copy": "حوّل كود جداول بيانات C# لموردين آخرين (ClosedXML وEPPlus وGemBox وAspose.Cells) إلى PXA."
+    }
+  },
+  "toolGrid": {
+    "startNow": "ابدأ الآن",
+    "comingSoon": "قريبًا"
+  },
+  "trustBand": {
+    "templatesCount": "{{count}} قالب",
+    "templatesSub": "جاهزة للفتح في المحرر",
+    "exportFormats": "10 تنسيقات تصدير",
+    "exportFormatsSub": "PDF وDOCX وODT وTIFF وHTML والمزيد",
+    "importFormats": "7 تنسيقات استيراد",
+    "importFormatsSub": "PDF وDOCX وPPTX وDOC وODT وSVG والصور",
+    "browserBased": "100% عبر المتصفح",
+    "browserBasedSub": "لا حاجة إلى حساب"
+  },
+  "categories": {
+    "sectionLabel": "فئات القوالب",
+    "sectionTitle": "اختر نوع مستند لاستكشافه",
+    "browseAll": "تصفّح جميع القوالب"
+  },
+  "features": {
+    "sectionLabel": "Power Dox Automation",
+    "sectionTitle": "كل ما تحتاجه لإدارة المستندات وجداول البيانات"
+  },
+  "featureCards": {
+    "multiFormat": {
+      "title": "محرر متعدد التنسيقات",
+      "copy": "صمّم القوالب بصريًا، ثم صدّرها إلى PDF وDOCX وODT وXLSX وTIFF والمزيد — أو استورد ملفات PDF ومستندات Word الموجودة كتصاميم قابلة للتحرير."
+    },
+    "templateWorkflows": {
+      "title": "سير عمل القوالب",
+      "copy": "ابدأ من الفواتير والإيصالات والشهادات ومستندات الأعمال. أضف ارتباطات البيانات والحلقات والتعبيرات لإنشاء محتوى ديناميكي."
+    },
+    "wordFidelity": {
+      "title": "تصدير دقيق مطابق لـ Word",
+      "copy": "يتضمن إخراج DOCX أنماطًا مسمّاة وحواشي سفلية وإشارات مرجعية وتتبع التغييرات وحماية المستند وخصائص مخصصة وتوقيعات رقمية X.509."
+    },
+    "spreadsheetFormulas": {
+      "title": "صيغ وتنسيق جداول البيانات",
+      "copy": "حرّر شبكة كاملة بصيغ مباشرة وأنماط خلايا ودمج — استورد Excel/CSV أو مصنّف PXA أصلي، وصدّر مرة أخرى مع الحفاظ على التنسيق."
+    }
+  },
+  "security": {
+    "title": "مصمم لمستندات الأعمال الحساسة",
+    "copy": "حافظ على واجهة هادئة ومنظمة ويمكن التنبؤ بها للعقود والفواتير ومستندات الموارد البشرية والموافقات.",
+    "action": "ابدأ التصميم"
+  },
+  "usage": {
+    "documentSingular": "مستند",
+    "documentPlural": "مستندات",
+    "openedThisSession": "تم فتحه في هذه الجلسة",
+    "lastOpenedTemplate": "آخر قالب تم فتحه"
+  }
+}

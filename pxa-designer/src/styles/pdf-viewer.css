@@ -168,7 +168,7 @@
 }
 
 .pdfv-print-options strong {
-  margin-right: 2px;
+  margin-inline-end: 2px;
   white-space: nowrap;
 }
 
@@ -305,7 +305,7 @@
 }
 
 .pdfv-review-tools strong {
-  margin-right: 2px;
+  margin-inline-end: 2px;
   white-space: nowrap;
 }
 
@@ -359,8 +359,8 @@
 }
 
 .pdfv-annotation-controls {
-  border-left: 1px solid rgba(28, 25, 23, 0.12);
-  padding-left: 12px;
+  border-inline-start: 1px solid rgba(28, 25, 23, 0.12);
+  padding-inline-start: 12px;
 }
 
 .pdfv-annotation-controls strong {
@@ -414,7 +414,7 @@
   min-width: 34px;
   color: #57534e;
   font-size: 0.74rem;
-  text-align: right;
+  text-align: end;
 }
 
 .pdfv-workspace {
@@ -466,7 +466,7 @@
   width: 180px;
   min-width: 180px;
   flex-direction: column;
-  border-right: 1px solid rgba(28, 25, 23, 0.1);
+  border-inline-end: 1px solid rgba(28, 25, 23, 0.1);
   background: #fff;
 }
 
@@ -629,7 +629,7 @@
 .pdfv-annotation-drag {
   position: absolute;
   top: -10px;
-  left: 10px;
+  inset-inline-start: 10px;
   width: 32px;
   height: 14px;
   border: 1px solid rgba(28, 25, 23, 0.16);
@@ -656,7 +656,7 @@
 .pdfv-annotation.is-locked::after {
   position: absolute;
   top: -12px;
-  right: 8px;
+  inset-inline-end: 8px;
   border: 1px solid rgba(28, 25, 23, 0.12);
   border-radius: 999px;
   background: #fff;
@@ -744,7 +744,7 @@
 .pdfv-markup-underline::before,
 .pdfv-markup-strikeout::before {
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   width: 100%;
   height: var(--pdfv-stroke-width, 3px);
   background: currentColor;
@@ -887,7 +887,7 @@
 
 .pdfv-annotation-resize {
   position: absolute;
-  right: -7px;
+  inset-inline-end: -7px;
   bottom: -7px;
   width: 16px;
   height: 16px;
@@ -936,7 +936,7 @@
 
 .pdfv-events {
   position: absolute;
-  right: 18px;
+  inset-inline-end: 18px;
   bottom: 18px;
   display: grid;
   gap: 4px;
@@ -981,9 +981,9 @@
   }
 
   .pdfv-annotation-controls {
-    border-left: 0;
+    border-inline-start: 0;
     border-top: 1px solid rgba(28, 25, 23, 0.12);
-    padding-left: 0;
+    padding-inline-start: 0;
     padding-top: 10px;
   }
 
@@ -1017,7 +1017,7 @@
     width: 100%;
     min-width: 0;
     max-height: 180px;
-    border-right: 0;
+    border-inline-end: 0;
     border-bottom: 1px solid rgba(28, 25, 23, 0.1);
   }
 

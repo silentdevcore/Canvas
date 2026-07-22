@@ -109,6 +109,30 @@
   border-color: #f3c77a;
 }
 
+.pdf-language-switcher {
+  height: 40px;
+  padding-inline: 14px 34px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-hairline);
+  background: var(--color-white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 700;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.pdf-language-switcher:hover {
+  border-color: #f3c77a;
+}
+
+.pdf-language-switcher:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+}
+
 .pdf-menu-button {
   display: none;
   width: 40px;
@@ -282,7 +306,7 @@
   gap: 10px;
   min-height: 190px;
   padding: 24px;
-  text-align: left;
+  text-align: start;
   color: #171717;
   background: #ffffff;
   border: 1px solid #e7e5e4;
@@ -517,7 +541,7 @@
 
 .pdf-document-miniature strong {
   position: absolute;
-  right: 12px;
+  inset-inline-end: 12px;
   bottom: 10px;
   color: #a8a29e;
   font-size: 28px;
@@ -526,7 +550,7 @@
 .pdf-pro-badge {
   position: absolute;
   top: 12px;
-  right: 12px;
+  inset-inline-end: 12px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -664,7 +688,7 @@
 .pdf-toast {
   position: fixed;
   bottom: 28px;
-  left: 50%;
+  inset-inline-start: 50%;
   transform: translateX(-50%);
   z-index: 10000;
   padding: 12px 22px;
@@ -730,7 +754,7 @@
   background: none;
   border: none;
   border-bottom: 1px solid #f5f5f4;
-  text-align: left;
+  text-align: start;
   font: inherit;
   font-size: 17px;
   font-weight: 700;
@@ -743,6 +767,12 @@
   display: flex;
   gap: 12px;
   margin-top: 28px;
+}
+
+.pdf-mobile-language-switcher {
+  margin-top: 14px;
+  width: auto;
+  align-self: flex-start;
 }
 
 .pdf-feature-grid {
@@ -942,14 +972,14 @@
 .code-panel {
   position: fixed;
   top: 0;
-  right: 0;
+  inset-inline-end: 0;
   bottom: 0;
   z-index: 200;
   display: flex;
   flex-direction: column;
   width: min(580px, 92vw);
   background: #ffffff;
-  border-left: 1px solid #e7e5e4;
+  border-inline-start: 1px solid #e7e5e4;
   box-shadow: -8px 0 40px rgba(0, 0, 0, 0.12);
 }
 
@@ -1081,7 +1111,7 @@
 .code-panel-copy {
   position: absolute;
   top: 12px;
-  right: 12px;
+  inset-inline-end: 12px;
   z-index: 1;
   display: inline-flex;
   align-items: center;
@@ -1447,7 +1477,7 @@
   gap: 14px;
   align-items: center;
   padding: 18px;
-  text-align: left;
+  text-align: start;
   color: #171717;
   background: #ffffff;
   border: 1px solid #e7e5e4;
@@ -1598,8 +1628,8 @@
 
   .pdf-security-strip {
     grid-template-columns: 1fr;
-    margin-right: 18px;
-    margin-left: 18px;
+    margin-inline-end: 18px;
+    margin-inline-start: 18px;
   }
 
   .form-field-grid,
@@ -1621,8 +1651,8 @@
 
   .form-cta-strip {
     grid-template-columns: 1fr;
-    margin-right: 18px;
-    margin-left: 18px;
+    margin-inline-end: 18px;
+    margin-inline-start: 18px;
   }
 }
 

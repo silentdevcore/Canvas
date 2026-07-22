@@ -1,0 +1,9 @@
+{
+  "eyebrow": "Schnellimport",
+  "heading": "PDF importieren",
+  "subheading": "Wählen Sie eine PDF-Datei — sie öffnet sich als bearbeitbares Design im visuellen Editor.",
+  "chooseFile": "PDF-Datei wählen",
+  "importing": "Wird importiert…",
+  "uploadingFile": "Datei wird hochgeladen…",
+  "importFailed": "Import fehlgeschlagen. Bitte überprüfen Sie die Datei und versuchen Sie es erneut."
+}

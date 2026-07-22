@@ -1,0 +1,106 @@
+{
+  "pageSizes": {
+    "original": "Mantener original",
+    "a4": "A4 (210×297 mm)",
+    "a5": "A5 (148×210 mm)",
+    "a3": "A3 (297×420 mm)",
+    "letter": "Carta (8,5×11 pulg.)"
+  },
+  "eyebrow": "Convertir e importar",
+  "heading": "Convertir a PDF",
+  "subheading": "Convierte cualquier archivo en un diseño PXA editable, o convierte una imagen escaneada en un PDF con texto buscable.",
+  "sections": {
+    "import": {
+      "eyebrow": "Abrir un archivo existente",
+      "heading": "Importar un archivo",
+      "subheading": "Elige el formato y luego selecciona un archivo — se abrirá como un diseño PXA editable.",
+      "formats": {
+        "pdf": {
+          "label": "PDF",
+          "description": "Texto, formas e imágenes extraídos de cualquier archivo PDF."
+        },
+        "docx": {
+          "label": "Word DOCX",
+          "description": "Párrafos, tablas e imágenes incrustadas de Word Open XML."
+        },
+        "pptx": {
+          "label": "PowerPoint",
+          "description": "Cada diapositiva se convierte en una página PXA con formas, texto e imágenes."
+        },
+        "doc": {
+          "label": "Word DOC",
+          "description": "Formato binario antiguo de Word 97-2003 — el texto se extrae como elementos editables."
+        },
+        "odt": {
+          "label": "OpenDocument",
+          "description": "Texto ODF con estilos de párrafo, encabezados e imágenes incrustadas."
+        },
+        "svg": {
+          "label": "SVG",
+          "description": "Fidelidad vectorial completa — trazados, grupos, texto e imágenes incrustadas."
+        },
+        "image": {
+          "label": "Imagen",
+          "description": "Imagen rasterizada colocada como diseño PXA de página completa."
+        },
+        "image-analysis": {
+          "label": "Imagen (Inteligente)",
+          "description": "Motor OCR personalizado — reconoce texto, formas y colores como elementos editables individuales."
+        }
+      },
+      "importAriaLabel": "Importar archivo {{label}}",
+      "importing": "Importando…",
+      "chooseFile": "Elegir archivo",
+      "config": {
+        "pageSize": "Tamaño de página",
+        "diagnostics": "Diagnósticos",
+        "debugOverlay": "Página de superposición de depuración",
+        "fallbackLayer": "Capa de imagen de respaldo",
+        "cancel": "Cancelar",
+        "chooseFile": "Elegir archivo"
+      },
+      "uploadingFile": "Subiendo archivo…",
+      "importFailed": "Error al importar. Comprueba el archivo e inténtalo de nuevo."
+    },
+    "ocr": {
+      "eyebrow": "Imagen a PDF",
+      "heading": "Convertir una imagen a PDF",
+      "subheading": "El OCR Tesseract integrado convierte una página escaneada o fotografiada en un PDF con texto buscable.",
+      "pageSize": "Tamaño de página",
+      "layout": "Diseño",
+      "layoutFull": "Diseño completo (texto + colores de fondo)",
+      "layoutTextOnly": "Solo texto",
+      "ocrLanguageLabel": "Idioma(s) de OCR",
+      "ocrLanguageHint": "Mantén ⌘/Ctrl para seleccionar varios — se combinan (p. ej. alemán + inglés).",
+      "preprocessImage": "Preprocesar imagen",
+      "lowConfidence": "Confianza baja",
+      "converting": "Convirtiendo…",
+      "chooseImageAndConvert": "Elegir imagen y convertir",
+      "runningOcr": "Ejecutando OCR y generando PDF…",
+      "downloadStarted": "Descarga del PDF iniciada.",
+      "conversionFailed": "Error de conversión. Comprueba el archivo e inténtalo de nuevo.",
+      "ocrLanguages": {
+        "eng": "Inglés",
+        "deu": "Alemán",
+        "fra": "Francés",
+        "spa": "Español",
+        "ita": "Italiano",
+        "por": "Portugués",
+        "nld": "Neerlandés",
+        "pol": "Polaco",
+        "swe": "Sueco",
+        "dan": "Danés",
+        "nor": "Noruego",
+        "fin": "Finlandés",
+        "ces": "Checo",
+        "rus": "Ruso",
+        "ukr": "Ucraniano",
+        "ell": "Griego",
+        "chi_sim": "Chino (simplificado)",
+        "jpn": "Japonés",
+        "kor": "Coreano",
+        "ara": "Árabe"
+      }
+    }
+  }
+}

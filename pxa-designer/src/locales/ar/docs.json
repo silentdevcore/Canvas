@@ -1,0 +1,52 @@
+{
+  "copy": "نسخ",
+  "copied": "تم النسخ",
+  "copyAriaLabel": "نسخ الكود",
+  "propertyTable": {
+    "property": "الخاصية",
+    "type": "النوع",
+    "default": "الافتراضي",
+    "description": "الوصف"
+  },
+  "elementCard": {
+    "renderFailedHttp": "فشل العرض ({{status}})",
+    "renderFailed": "فشل العرض — هل الخادم الخلفي يعمل على المنفذ :5086؟",
+    "rendering": "جارٍ العرض…",
+    "renderPreview": "عرض المعاينة",
+    "previewTitle": "معاينة {{label}}",
+    "designerOnlyNote": "دليل خاص بالمصمم فقط — لا يُعرض في تنسيقات الإخراج.",
+    "badges": {
+      "pdf": "PDF",
+      "word": "Word",
+      "html": "HTML",
+      "excel": "Excel",
+      "bindable": "قابل للربط"
+    }
+  },
+  "sidebar": {
+    "title": "التوثيق",
+    "backToHome": "← العودة إلى الرئيسية"
+  },
+  "mobileNav": {
+    "ariaLabel": "فتح تنقل التوثيق",
+    "sections": "الأقسام"
+  },
+  "sections": {
+    "quick-start": "البدء السريع",
+    "editor-overview": "نظرة عامة على المحرر",
+    "elements": "مرجع العناصر",
+    "data-binding": "ربط البيانات والتعبيرات",
+    "import-export": "الاستيراد والتصدير",
+    "document-ops": "عمليات المستند",
+    "migrations": "عمليات الترحيل",
+    "word-features": "ميزات Word / DOCX",
+    "json-schema": "مخطط JSON",
+    "csharp-models": "نماذج C#",
+    "csharp-examples": "أمثلة كود C#",
+    "json-to-csharp": "تحويل JSON إلى C#",
+    "rest-api": "واجهة REST API",
+    "ai-codegen": "الذكاء الاصطناعي وتوليد الكود",
+    "spreadsheets": "جداول البيانات",
+    "documentation-map": "خريطة التوثيق"
+  }
+}

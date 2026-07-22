@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   FiCheck,
   FiChevronRight,
@@ -17,6 +18,7 @@ const BACKEND_URL = 'http://localhost:5086';
 // ─── Copy Button ──────────────────────────────────────────────────────────────
 
 const CopyButton: React.FC<{ code: string }> = ({ code }) => {
+  const { t } = useTranslation('docs');
   const [copied, setCopied] = useState(false);
   const copy = () => {
     navigator.clipboard.writeText(code).then(() => {
@@ -25,9 +27,9 @@ const CopyButton: React.FC<{ code: string }> = ({ code }) => {
     });
   };
   return (
-    <button className="docs-copy-btn" onClick={copy} aria-label="Copy code">
+    <button className="docs-copy-btn" onClick={copy} aria-label={t('copyAriaLabel')}>
       {copied ? <FiCheck size={14} /> : <FiCopy size={14} />}
-      {copied ? 'Copied' : 'Copy'}
+      {copied ? t('copied') : t('copy')}
     </button>
   );
 };
@@ -54,11 +56,13 @@ const H3: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 // ─── Element reference (catalog-driven) ───────────────────────────────────────
 
-const PropertyTable: React.FC<{ rows: ElementProperty[] }> = ({ rows }) => (
+const PropertyTable: React.FC<{ rows: ElementProperty[] }> = ({ rows }) => {
+  const { t } = useTranslation('docs');
+  return (
   <div className="docs-elem-table-wrap">
     <table className="docs-elem-table">
       <thead>
-        <tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        <tr><th>{t('propertyTable.property')}</th><th>{t('propertyTable.type')}</th><th>{t('propertyTable.default')}</th><th>{t('propertyTable.description')}</th></tr>
       </thead>
       <tbody>
         {rows.map(p => (
@@ -72,11 +76,14 @@ const PropertyTable: React.FC<{ rows: ElementProperty[] }> = ({ rows }) => (
       </tbody>
     </table>
   </div>
-);
+  );
+};
 
 // One per-element card: description, property table, copy-paste design JSON, optional C#, and a live
 // preview rendered by the backend (POST /api/templates/render-design → PDF shown in an iframe).
 const ElementCard: React.FC<{ doc: ElementDoc }> = ({ doc }) => {
+  const { t } = useTranslation('docs');
+  const { t: tEditor } = useTranslation('editor');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,45 +99,47 @@ const ElementCard: React.FC<{ doc: ElementDoc }> = ({ doc }) => {
         headers: { 'Content-Type': 'application/json' },
         body: designJson,
       });
-      if (!res.ok) throw new Error(`Render failed (${res.status})`);
+      if (!res.ok) throw new Error(t('elementCard.renderFailedHttp', { status: res.status }));
       const blob = await res.blob();
       setPreviewUrl(prev => {
         if (prev) URL.revokeObjectURL(prev);
         return URL.createObjectURL(blob);
       });
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Render failed — is the backend running on :5086?');
+      setError(e instanceof Error ? e.message : t('elementCard.renderFailed'));
     } finally {
       setLoading(false);
     }
   };
 
+  const label = tEditor(`elements.${doc.type}.label`, { defaultValue: doc.label });
+
   return (
     <div className="docs-elem-card" id={`element-${doc.type}`}>
       <div className="docs-elem-card-head">
-        <h4 className="docs-elem-card-title">{doc.label} <code className="docs-inline-code">{doc.type}</code></h4>
+        <h4 className="docs-elem-card-title">{label} <code className="docs-inline-code">{doc.type}</code></h4>
         <span className="docs-elem-card-formats">
-          {fmt.pdf && <span className="docs-badge">PDF</span>}
-          {fmt.word && <span className="docs-badge">Word</span>}
-          {fmt.html && <span className="docs-badge">HTML</span>}
-          {fmt.excel && <span className="docs-badge">Excel</span>}
-          {doc.bindable && <span className="docs-badge docs-badge--bind">Bindable</span>}
+          {fmt.pdf && <span className="docs-badge">{t('elementCard.badges.pdf')}</span>}
+          {fmt.word && <span className="docs-badge">{t('elementCard.badges.word')}</span>}
+          {fmt.html && <span className="docs-badge">{t('elementCard.badges.html')}</span>}
+          {fmt.excel && <span className="docs-badge">{t('elementCard.badges.excel')}</span>}
+          {doc.bindable && <span className="docs-badge docs-badge--bind">{t('elementCard.badges.bindable')}</span>}
         </span>
       </div>
-      <p>{doc.description}</p>
+      <p>{tEditor(`elements.${doc.type}.description`, { defaultValue: doc.description })}</p>
       {doc.properties.length > 0 && <PropertyTable rows={doc.properties} />}
       <Code lang="json">{designJson}</Code>
       {doc.csharpExample && <Code lang="csharp">{doc.csharpExample}</Code>}
       {fmt.pdf ? (
         <div className="docs-elem-demo">
           <button className="docs-demo-btn" onClick={renderPreview} disabled={loading}>
-            {loading ? 'Rendering…' : 'Render preview'}
+            {loading ? t('elementCard.rendering') : t('elementCard.renderPreview')}
           </button>
           {error && <span className="docs-demo-error">{error}</span>}
-          {previewUrl && <iframe className="docs-demo-frame" title={`${doc.label} preview`} src={previewUrl} />}
+          {previewUrl && <iframe className="docs-demo-frame" title={t('elementCard.previewTitle', { label })} src={previewUrl} />}
         </div>
       ) : (
-        <p className="docs-elem-note">Designer-only guide — not rendered to output formats.</p>
+        <p className="docs-elem-note">{t('elementCard.designerOnlyNote')}</p>
       )}
     </div>
   );
@@ -138,28 +147,17 @@ const ElementCard: React.FC<{ doc: ElementDoc }> = ({ doc }) => {
 
 // ─── Nav sections ─────────────────────────────────────────────────────────────
 
-const SECTIONS = [
-  { id: 'quick-start',     label: 'Quick Start' },
-  { id: 'editor-overview', label: 'Editor Overview' },
-  { id: 'elements',        label: 'Elements Reference' },
-  { id: 'data-binding',    label: 'Data Binding & Expressions' },
-  { id: 'import-export',   label: 'Import & Export' },
-  { id: 'document-ops',    label: 'Document Operations' },
-  { id: 'migrations',      label: 'Migrations' },
-  { id: 'word-features',   label: 'Word / DOCX Features' },
-  { id: 'json-schema',     label: 'JSON Schema' },
-  { id: 'csharp-models',   label: 'C# Models' },
-  { id: 'csharp-examples', label: 'C# Code Examples' },
-  { id: 'json-to-csharp',  label: 'JSON → C# Mapping' },
-  { id: 'rest-api',        label: 'REST API' },
-  { id: 'ai-codegen',      label: 'AI & Codegen' },
-  { id: 'spreadsheets',    label: 'Spreadsheets' },
-  { id: 'documentation-map', label: 'Documentation Map' },
+const SECTION_IDS = [
+  'quick-start', 'editor-overview', 'elements', 'data-binding', 'import-export',
+  'document-ops', 'migrations', 'word-features', 'json-schema', 'csharp-models',
+  'csharp-examples', 'json-to-csharp', 'rest-api', 'ai-codegen', 'spreadsheets',
+  'documentation-map',
 ];
 
 // ─── DocsPage ─────────────────────────────────────────────────────────────────
 
 const DocsPage: React.FC = () => {
+  const { t } = useTranslation('docs');
   const navigate = useNavigate();
   const [activeId, setActiveId] = useState('quick-start');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -175,8 +173,8 @@ const DocsPage: React.FC = () => {
       },
       { rootMargin: '-20% 0px -60% 0px' }
     );
-    SECTIONS.forEach(s => {
-      const el = document.getElementById(s.id);
+    SECTION_IDS.forEach(id => {
+      const el = document.getElementById(id);
       if (el) observerRef.current!.observe(el);
     });
     return () => observerRef.current?.disconnect();
@@ -190,23 +188,23 @@ const DocsPage: React.FC = () => {
   const sidebar = (
     <nav className="docs-sidebar">
       <div className="docs-sidebar-header">
-        <span className="docs-sidebar-title">Documentation</span>
+        <span className="docs-sidebar-title">{t('sidebar.title')}</span>
       </div>
       <ul className="docs-sidebar-list">
-        {SECTIONS.map(s => (
-          <li key={s.id}>
+        {SECTION_IDS.map(id => (
+          <li key={id}>
             <button
-              className={`docs-sidebar-link${activeId === s.id ? ' is-active' : ''}`}
-              onClick={() => scrollTo(s.id)}
+              className={`docs-sidebar-link${activeId === id ? ' is-active' : ''}`}
+              onClick={() => scrollTo(id)}
             >
-              {s.label}
+              {t(`sections.${id}`)}
             </button>
           </li>
         ))}
       </ul>
       <div className="docs-sidebar-footer">
         <button className="docs-sidebar-back" onClick={() => navigate('/')}>
-          ← Back to home
+          {t('sidebar.backToHome')}
         </button>
       </div>
     </nav>
@@ -234,10 +232,10 @@ const DocsPage: React.FC = () => {
           <button
             className="docs-mobile-nav-toggle"
             onClick={() => setMobileNavOpen(true)}
-            aria-label="Open documentation navigation"
+            aria-label={t('mobileNav.ariaLabel')}
           >
             <FiMenu size={16} />
-            Sections
+            {t('mobileNav.sections')}
           </button>
 
           {/* ── Quick Start ─────────────────────────────────────────────── */}

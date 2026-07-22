@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
 import JsBarcode from 'jsbarcode';
 import {
@@ -55,6 +56,7 @@ const borderStyleForZoom = (s: Record<string, any>, zoom: number): React.CSSProp
 };
 
 const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElements = [], pageSettings, onBack, onExport, hideBackButton, exportLabel }) => {
+  const { t } = useTranslation('preview');
   const navigate = useNavigate();
   const [zoom, setZoom] = useState(1);
   const pageWidth  = pageSettings?.width  ?? 595;
@@ -118,7 +120,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
         setTimeout(() => setExportDone(null), 2500);
       } catch (err) {
         setExportingFormat(null);
-        setExportError(err instanceof Error ? err.message : 'Image export failed');
+        setExportError(err instanceof Error ? err.message : t('exportImageFailed'));
       }
       return;
     }
@@ -142,7 +144,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       setTimeout(() => setExportDone(null), 2500);
     } catch (err) {
       setExportingFormat(null);
-      setExportError(err instanceof Error ? err.message : 'Export failed');
+      setExportError(err instanceof Error ? err.message : t('exportFailed'));
     }
   };
 
@@ -846,7 +848,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       <div key={page.id} style={{ marginBottom: pages.length > 1 ? 40 : 0 }}>
         {pages.length > 1 && (
           <p style={{ textAlign: 'center', marginBottom: 8, fontSize: 12, color: '#6b7280', fontWeight: 500 }}>
-            Page {pageIndex + 1}
+            {t('pageLabel', { number: pageIndex + 1 })}
           </p>
         )}
         <div
@@ -896,7 +898,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
                   {pageSettings.globalWatermark.content}
                 </span>
               ) : (
-                <img src={pageSettings.globalWatermark.content} alt="Watermark" style={{
+                <img src={pageSettings.globalWatermark.content} alt={t('watermarkAlt')} style={{
                   maxWidth: '60%', maxHeight: '60%',
                   opacity: pageSettings.globalWatermark.opacity ?? 0.18,
                   transform: `rotate(${pageSettings.globalWatermark.rotation ?? -24}deg)`,
@@ -908,7 +910,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
 
           {visiblePageElements.length === 0 && visibleShared.length === 0 && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
-              <p style={{ fontSize: 14 }}>No elements on this page</p>
+              <p style={{ fontSize: 14 }}>{t('noElementsOnPage')}</p>
             </div>
           )}
         </div>
@@ -926,21 +928,21 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           {!hideBackButton && (
             <button onClick={onBack} style={{ color: '#475569', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-              ← Back to Editor
+              {t('backToEditor')}
             </button>
           )}
           <div>
-            <h1 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: '#0f172a' }}>Preview: {template.name}</h1>
-            <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>{pages.length} page{pages.length !== 1 ? 's' : ''} · {totalElements} elements</p>
+            <h1 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: '#0f172a' }}>{t('heading', { name: template.name })}</h1>
+            <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>{t('pageCount', { count: pages.length })} · {t('elementCount', { count: totalElements })}</p>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Zoom */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '4px 8px' }}>
-            <button onClick={handleZoomOut} disabled={zoom <= 0.5} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: 18, lineHeight: 1 }}>−</button>
+            <button onClick={handleZoomOut} disabled={zoom <= 0.5} aria-label={t('zoomOut')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: 18, lineHeight: 1 }}>−</button>
             <span style={{ minWidth: 48, textAlign: 'center', fontSize: 13, fontWeight: 500, color: '#374151' }}>{Math.round(zoom * 100)}%</span>
-            <button onClick={handleZoomIn} disabled={zoom >= 2} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: 18, lineHeight: 1 }}>+</button>
-            <button onClick={handleResetZoom} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: 14, marginLeft: 4 }}>⟲</button>
+            <button onClick={handleZoomIn} disabled={zoom >= 2} aria-label={t('zoomIn')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: 18, lineHeight: 1 }}>+</button>
+            <button onClick={handleResetZoom} aria-label={t('resetZoom')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: 14, marginInlineStart: 4 }}>⟲</button>
           </div>
           {/* Export dropdown */}
           <div ref={menuRef} style={{ position: 'relative' }}>
@@ -955,7 +957,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
               }}
             >
               {exportDone ? <FiCheck size={15} /> : exportingFormat ? null : <FiDownload size={15} />}
-              {exportingFormat ? 'Exporting…' : exportDone ? 'Exported!' : (exportLabel ?? 'Export')}
+              {exportingFormat ? t('exporting') : exportDone ? t('exported') : (exportLabel ?? t('export'))}
               {!exportingFormat && !exportDone && <FiChevronDown size={14} />}
             </button>
 
@@ -966,10 +968,10 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
                 boxShadow: '0 8px 24px rgba(0,0,0,0.12)', minWidth: 200, overflow: 'hidden',
               }}>
                 {([
-                  { format: 'pdf'   as ExportFormat, icon: <FiDownload size={14} />, label: 'Export PDF',   sub: 'Render via backend (localhost:5086)' },
-                  { format: 'image' as ExportFormat, icon: <FiLayers   size={14} />, label: 'Export Image', sub: 'Save as PNG (all pages)' },
-                  { format: 'json'  as ExportFormat, icon: <FiFileText size={14} />, label: 'Export JSON',  sub: 'Download template file' },
-                  { format: 'print' as ExportFormat, icon: <FiPrinter  size={14} />, label: 'Print',        sub: 'Browser print dialog'   },
+                  { format: 'pdf'   as ExportFormat, icon: <FiDownload size={14} />, label: t('exportMenu.pdf.label'),   sub: t('exportMenu.pdf.sub') },
+                  { format: 'image' as ExportFormat, icon: <FiLayers   size={14} />, label: t('exportMenu.image.label'), sub: t('exportMenu.image.sub') },
+                  { format: 'json'  as ExportFormat, icon: <FiFileText size={14} />, label: t('exportMenu.json.label'),  sub: t('exportMenu.json.sub') },
+                  { format: 'print' as ExportFormat, icon: <FiPrinter  size={14} />, label: t('exportMenu.print.label'), sub: t('exportMenu.print.sub') },
                 ] as const).map(({ format, icon, label, sub }) => (
                   <button
                     key={format}
@@ -1002,8 +1004,8 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
                 >
                   <span style={{ color: '#6366f1', flexShrink: 0 }}><FiDownload size={14} /></span>
                   <span>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#6366f1' }}>More formats…</div>
-                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 1 }}>Word, Excel, HTML, XML, SVG, CSV, Markdown</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#6366f1' }}>{t('exportMenu.more.label')}</div>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 1 }}>{t('exportMenu.more.sub')}</div>
                   </span>
                 </button>
               </div>
@@ -1020,7 +1022,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
               }}
             >
               <FiExternalLink size={15} />
-              Open in PDF Viewer
+              {t('openInPdfViewer')}
             </button>
           )}
 
@@ -1039,10 +1041,10 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       <div style={{ maxWidth: 700, margin: '0 auto 48px', background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 1px 8px rgba(0,0,0,0.08)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
           {[
-            { label: 'Template', value: template.name, bg: '#eff6ff', fg: '#1d4ed8' },
-            { label: 'Pages', value: `${pages.length}`, bg: '#f5f3ff', fg: '#6d28d9' },
-            { label: 'Page Size', value: `${pageWidth} × ${pageHeight} px`, bg: '#f0fdf4', fg: '#15803d' },
-            { label: 'Quality', value: pageSettings?.exportDefaults?.quality ?? 'printer', bg: '#fff7ed', fg: '#c2410c' },
+            { label: t('footer.template'), value: template.name, bg: '#eff6ff', fg: '#1d4ed8' },
+            { label: t('footer.pages'), value: `${pages.length}`, bg: '#f5f3ff', fg: '#6d28d9' },
+            { label: t('footer.pageSize'), value: t('footer.pageSizeValue', { width: pageWidth, height: pageHeight }), bg: '#f0fdf4', fg: '#15803d' },
+            { label: t('footer.quality'), value: pageSettings?.exportDefaults?.quality ?? t('footer.qualityDefault'), bg: '#fff7ed', fg: '#c2410c' },
           ].map(({ label, value, bg, fg }) => (
             <div key={label} style={{ background: bg, borderRadius: 8, padding: '10px 14px' }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: fg, marginBottom: 2 }}>{label}</div>
@@ -1053,9 +1055,9 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
         <div style={{ background: '#fefce8', border: '1px solid #fde68a', borderRadius: 8, padding: '12px 16px', display: 'flex', gap: 10 }}>
           <span>⚠️</span>
           <div>
-            <strong style={{ fontSize: 13, color: '#92400e' }}>Preview Mode</strong>
+            <strong style={{ fontSize: 13, color: '#92400e' }}>{t('footer.previewModeTitle')}</strong>
             <p style={{ margin: '4px 0 0', fontSize: 12, color: '#b45309' }}>
-              QR codes, barcodes, and exact font rendering will be finalised in the PDF export.
+              {t('footer.previewModeBody')}
             </p>
           </div>
         </div>

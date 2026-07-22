@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 
 interface Category {
@@ -18,8 +19,9 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({
   selectedCategory,
   onCategoryChange
 }) => {
+  const { t } = useTranslation('gallery');
   return (
-    <div className="pdf-category-filter" role="tablist" aria-label="Template categories">
+    <div className="pdf-category-filter" role="tablist" aria-label={t('categoryFilter.ariaLabel')}>
       {categories.map(category => {
         const isActive = selectedCategory === category.id;
 

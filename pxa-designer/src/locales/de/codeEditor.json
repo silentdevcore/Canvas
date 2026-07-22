@@ -1,0 +1,31 @@
+{
+  "back": "← Zurück",
+  "title": "Code-Editor",
+  "lang": {
+    "json": "JSON",
+    "csharpCode": "C#-Code",
+    "csharpDto": "C#-DTO"
+  },
+  "converting": "Wird konvertiert…",
+  "generating": "Wird erstellt…",
+  "exportPdf": "PDF exportieren",
+  "errors": {
+    "syntaxError": "Syntaxfehler: {{message}}",
+    "pagesMustBeArray": "\"pages\" muss ein Array sein.",
+    "pagesMustHaveOne": "\"pages\" muss mindestens eine Seite enthalten.",
+    "pageIdRequired": "pages[{{i}}]: \"id\" ist erforderlich.",
+    "pageElementsMustBeArray": "pages[{{i}}]: \"elements\" muss ein Array sein.",
+    "elementIdRequired": "pages[{{i}}].elements[{{j}}]: \"id\" ist erforderlich.",
+    "elementTypeRequired": "pages[{{i}}].elements[{{j}}]: \"type\" ist erforderlich.",
+    "elementXMustBeNumber": "pages[{{i}}].elements[{{j}}]: \"x\" muss eine Zahl sein.",
+    "elementYMustBeNumber": "pages[{{i}}].elements[{{j}}]: \"y\" muss eine Zahl sein.",
+    "elementWidthMustBeNumber": "pages[{{i}}].elements[{{j}}]: \"width\" muss eine Zahl sein.",
+    "elementHeightMustBeNumber": "pages[{{i}}].elements[{{j}}]: \"height\" muss eine Zahl sein.",
+    "pageSettingsWidthMustBeNumber": "\"pageSettings.width\" muss eine Zahl sein.",
+    "pageSettingsHeightMustBeNumber": "\"pageSettings.height\" muss eine Zahl sein.",
+    "generic": "Fehler",
+    "conversionFailed": "Konvertierung fehlgeschlagen.",
+    "runFailed": "Ausführung fehlgeschlagen.",
+    "exportFailed": "Export fehlgeschlagen."
+  }
+}

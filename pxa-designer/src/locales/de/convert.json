@@ -1,0 +1,106 @@
+{
+  "pageSizes": {
+    "original": "Original beibehalten",
+    "a4": "A4 (210×297 mm)",
+    "a5": "A5 (148×210 mm)",
+    "a3": "A3 (297×420 mm)",
+    "letter": "Letter (8,5×11 Zoll)"
+  },
+  "eyebrow": "Konvertieren & importieren",
+  "heading": "In PDF konvertieren",
+  "subheading": "Verwandeln Sie jede Datei in ein bearbeitbares PXA-Design oder konvertieren Sie ein gescanntes Bild in ein durchsuchbares PDF.",
+  "sections": {
+    "import": {
+      "eyebrow": "Vorhandene Datei öffnen",
+      "heading": "Datei importieren",
+      "subheading": "Format wählen und dann eine Datei auswählen — sie öffnet als bearbeitbares PXA-Design.",
+      "formats": {
+        "pdf": {
+          "label": "PDF",
+          "description": "Text, Formen und Bilder aus einer beliebigen PDF-Datei extrahiert."
+        },
+        "docx": {
+          "label": "Word DOCX",
+          "description": "Absätze, Tabellen und eingebettete Bilder aus Word Open XML."
+        },
+        "pptx": {
+          "label": "PowerPoint",
+          "description": "Jede Folie wird zu einer PXA-Seite mit Formen, Text und Bildern."
+        },
+        "doc": {
+          "label": "Word DOC",
+          "description": "Altes Word-97-2003-Binärformat — Text wird als bearbeitbare Elemente extrahiert."
+        },
+        "odt": {
+          "label": "OpenDocument",
+          "description": "ODF-Text mit Absatzformaten, Überschriften und eingebetteten Bildern."
+        },
+        "svg": {
+          "label": "SVG",
+          "description": "Volle Vektortreue — Pfade, Gruppen, Text und eingebettete Bilder."
+        },
+        "image": {
+          "label": "Bild",
+          "description": "Rasterbild als vollflächiges PXA-Design platziert."
+        },
+        "image-analysis": {
+          "label": "Bild (Intelligent)",
+          "description": "Eigene OCR-Engine — erkennt Text, Formen und Farben als einzelne bearbeitbare Elemente."
+        }
+      },
+      "importAriaLabel": "{{label}}-Datei importieren",
+      "importing": "Wird importiert…",
+      "chooseFile": "Datei auswählen",
+      "config": {
+        "pageSize": "Seitengröße",
+        "diagnostics": "Diagnose",
+        "debugOverlay": "Debug-Overlay-Seite",
+        "fallbackLayer": "Fallback-Bildebene",
+        "cancel": "Abbrechen",
+        "chooseFile": "Datei auswählen"
+      },
+      "uploadingFile": "Datei wird hochgeladen…",
+      "importFailed": "Import fehlgeschlagen. Bitte überprüfen Sie die Datei und versuchen Sie es erneut."
+    },
+    "ocr": {
+      "eyebrow": "Bild zu PDF",
+      "heading": "Bild in PDF konvertieren",
+      "subheading": "Eingebettetes Tesseract-OCR verwandelt eine gescannte oder fotografierte Seite in ein durchsuchbares PDF.",
+      "pageSize": "Seitengröße",
+      "layout": "Layout",
+      "layoutFull": "Vollständiges Layout (Text + Hintergrundfarben)",
+      "layoutTextOnly": "Nur Text",
+      "ocrLanguageLabel": "OCR-Sprache(n)",
+      "ocrLanguageHint": "⌘/Strg gedrückt halten, um mehrere auszuwählen — sie werden kombiniert (z. B. Deutsch + Englisch).",
+      "preprocessImage": "Bild vorverarbeiten",
+      "lowConfidence": "Geringe Zuverlässigkeit",
+      "converting": "Wird konvertiert…",
+      "chooseImageAndConvert": "Bild wählen und konvertieren",
+      "runningOcr": "OCR wird ausgeführt und PDF erstellt…",
+      "downloadStarted": "PDF-Download gestartet.",
+      "conversionFailed": "Konvertierung fehlgeschlagen. Bitte überprüfen Sie die Datei und versuchen Sie es erneut.",
+      "ocrLanguages": {
+        "eng": "Englisch",
+        "deu": "Deutsch",
+        "fra": "Französisch",
+        "spa": "Spanisch",
+        "ita": "Italienisch",
+        "por": "Portugiesisch",
+        "nld": "Niederländisch",
+        "pol": "Polnisch",
+        "swe": "Schwedisch",
+        "dan": "Dänisch",
+        "nor": "Norwegisch",
+        "fin": "Finnisch",
+        "ces": "Tschechisch",
+        "rus": "Russisch",
+        "ukr": "Ukrainisch",
+        "ell": "Griechisch",
+        "chi_sim": "Chinesisch (Vereinfacht)",
+        "jpn": "Japanisch",
+        "kor": "Koreanisch",
+        "ara": "Arabisch"
+      }
+    }
+  }
+}

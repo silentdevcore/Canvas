@@ -39,7 +39,7 @@
   display: flex;
   flex-direction: column;
   background: #fff;
-  border-right: 1px solid #e7e5e4;
+  border-inline-end: 1px solid #e7e5e4;
   padding: 24px 0 32px;
 }
 
@@ -71,13 +71,13 @@
 .docs-sidebar-link {
   display: block;
   width: 100%;
-  text-align: left;
+  text-align: start;
   padding: 8px 20px;
   font-size: 13.5px;
   color: #78716c;
   background: none;
   border: none;
-  border-left: 2px solid transparent;
+  border-inline-start: 2px solid transparent;
   cursor: pointer;
   transition: color 0.15s, background 0.15s, border-color 0.15s;
   line-height: 1.4;
@@ -90,7 +90,7 @@
 
 .docs-sidebar-link.is-active {
   color: #d97706;
-  border-left-color: #d97706;
+  border-inline-start-color: #d97706;
   background: #fef3c7;
   font-weight: 600;
 }
@@ -212,7 +212,7 @@
 .docs-code-lang {
   position: absolute;
   top: 10px;
-  left: 14px;
+  inset-inline-start: 14px;
   font-size: 11px;
   font-weight: 600;
   color: #78716c;
@@ -226,7 +226,7 @@
 .docs-copy-btn {
   position: absolute;
   top: 8px;
-  right: 10px;
+  inset-inline-end: 10px;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -311,10 +311,10 @@
   font-size: 14px;
   line-height: 1.6;
   margin: 20px 0;
-  border-left: 4px solid transparent;
+  border-inline-start: 4px solid transparent;
 }
 
-.docs-callout strong { margin-right: 4px; }
+.docs-callout strong { margin-inline-end: 4px; }
 
 .docs-callout--tip {
   background: #f0fdf4;
@@ -382,7 +382,7 @@
 
 .docs-elem-table th {
   padding: 10px 14px;
-  text-align: left;
+  text-align: start;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -495,7 +495,7 @@
   z-index: 300;
   background: #fff;
   overflow-y: auto;
-  border-right: 1px solid #e7e5e4;
+  border-inline-end: 1px solid #e7e5e4;
   box-shadow: 4px 0 24px rgba(0,0,0,0.12);
 }
 
@@ -589,7 +589,7 @@
   cursor: pointer;
 }
 .docs-demo-btn:disabled { opacity: 0.6; cursor: default; }
-.docs-demo-error { margin-left: 10px; color: #b91c1c; font-size: 12.5px; }
+.docs-demo-error { margin-inline-start: 10px; color: #b91c1c; font-size: 12.5px; }
 .docs-demo-frame {
   display: block;
   width: 100%;

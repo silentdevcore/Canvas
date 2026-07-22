@@ -1,4 +1,7 @@
 import React, { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import '@/i18n';
+import { SUPPORTED_LANGUAGES } from '@/i18n';
 import { PDFDocument as PdfLibDocument } from 'pdf-lib';
 import { Document, Page } from 'react-pdf';
 import type { PDFDocumentProxy, TextItem, TextMarkedContent } from 'pdfjs-dist/types/src/display/api';
@@ -45,7 +48,6 @@ import {
   type StampLabel,
 } from './annotations';
 import { applyRedactions, deleteSavedAnnotations, embedAnnotations, extractNativeAnnotations, flattenAnnotations, loadAnnotations, saveAnnotations } from './annotationApi';
-import { pdfViewerLabels, resolvePdfViewerLocale, type PdfViewerLocale } from './i18n';
 import { fillPdfFormFields, readPdfFormFields, sameFormValue, type PdfFormFieldInfo, type PdfFormFieldValue } from './pdfForms';
 import { configurePdfWorker } from './pdfWorker';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -243,7 +245,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const [selectedStamp, setSelectedStamp] = useState<StampLabel>('Draft');
   const [customStampText, setCustomStampText] = useState('');
   const [pendingImageDataUrl, setPendingImageDataUrl] = useState<string | null>(null);
-  const [viewerLocale, setViewerLocale] = useState<PdfViewerLocale>(() => resolvePdfViewerLocale());
+  const { t, i18n } = useTranslation('pdfViewer', { useSuspense: false });
   const [annotationApiStatus, setAnnotationApiStatus] = useState<string | null>(null);
   const [formPanelOpen, setFormPanelOpen] = useState(false);
   const [formFields, setFormFields] = useState<PdfFormFieldInfo[]>([]);
@@ -261,7 +263,103 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
   const currentPageBoxAnnotations = currentPageAnnotations.filter(annotation => annotation.type !== 'ink');
   const selectedAnnotation = annotations.find(annotation => annotation.id === selectedAnnotationId) ?? null;
   const documentId = useMemo(() => documentIdFromSource(source), [source]);
-  const labels = pdfViewerLabels[viewerLocale];
+  const labels = {
+    openPdf: t('openPdf'),
+    openUrl: t('openUrl'),
+    pdfUrl: t('pdfUrl'),
+    thumbnails: t('thumbnails'),
+    search: t('search'),
+    previousPage: t('previousPage'),
+    nextPage: t('nextPage'),
+    pageNumber: t('pageNumber'),
+    zoomOut: t('zoomOut'),
+    zoomIn: t('zoomIn'),
+    fitPage: t('fitPage'),
+    fitWidth: t('fitWidth'),
+    download: t('download'),
+    print: t('print'),
+    review: t('review'),
+    forms: t('forms'),
+    language: t('language'),
+    searchDocumentText: t('searchDocumentText'),
+    caseSensitive: t('caseSensitive'),
+    noSearchQuery: t('noSearchQuery'),
+    searching: t('searching'),
+    result: t('result'),
+    results: t('results'),
+    previousResult: t('previousResult'),
+    nextResult: t('nextResult'),
+    printAllPages: t('printAllPages'),
+    printCurrentPage: t('printCurrentPage'),
+    printRange: t('printRange'),
+    pageRange: t('pageRange'),
+    cancel: t('cancel'),
+    view: t('view'),
+    note: t('note'),
+    text: t('text'),
+    stamp: t('stamp'),
+    image: t('image'),
+    line: t('line'),
+    rect: t('rect'),
+    circle: t('circle'),
+    ink: t('ink'),
+    eraser: t('eraser'),
+    highlight: t('highlight'),
+    underline: t('underline'),
+    strike: t('strike'),
+    redact: t('redact'),
+    custom: t('custom'),
+    author: t('author'),
+    annotation: t('annotation'),
+    annotations: t('annotations'),
+    selected: t('selected'),
+    color: t('color'),
+    opacity: t('opacity'),
+    stroke: t('stroke'),
+    fill: t('fill'),
+    fillColor: t('fillColor'),
+    start: t('start'),
+    end: t('end'),
+    none: t('none'),
+    arrow: t('arrow'),
+    square: t('square'),
+    width: t('width'),
+    height: t('height'),
+    lock: t('lock'),
+    unlock: t('unlock'),
+    delete: t('delete'),
+    importSidecar: t('importSidecar'),
+    importNativeAnnotations: t('importNativeAnnotations'),
+    exportSidecar: t('exportSidecar'),
+    flattenPdf: t('flattenPdf'),
+    embedAnnotations: t('embedAnnotations'),
+    applyRedactions: t('applyRedactions'),
+    save: t('save'),
+    loadSaved: t('loadSaved'),
+    deleteSaved: t('deleteSaved'),
+    formFields: t('formFields'),
+    formField: t('formField'),
+    formFieldsPlural: t('formFieldsPlural'),
+    formChanged: t('formChanged'),
+    multiline: t('multiline'),
+    formNoFields: t('formNoFields'),
+    formLoading: t('formLoading'),
+    formNone: t('formNone'),
+    formLoadFailed: t('formLoadFailed'),
+    formSaving: t('formSaving'),
+    formDownloaded: t('formDownloaded'),
+    formFlattened: t('formFlattened'),
+    formSaveFailed: t('formSaveFailed'),
+    downloadFilledPdf: t('downloadFilledPdf'),
+    resetForms: t('resetForms'),
+    flattenFields: t('flattenFields'),
+    unsupportedField: t('unsupportedField'),
+    emptyTitle: t('emptyTitle'),
+    emptyDescription: t('emptyDescription'),
+    pages: t('pages'),
+    loadingPdf: t('loadingPdf'),
+    renderingPage: t('renderingPage'),
+  };
   const changedFormFields = formFields.filter(field => !sameFormValue(field.value, field.originalValue));
   const redactionAnnotations = annotations.filter(annotation => annotation.type === 'redaction');
 
@@ -1363,9 +1461,10 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ initialSource = null }) => {
             </button>
             <label className="pdfv-stamp-select">
               <span>{labels.language}</span>
-              <select value={viewerLocale} onChange={event => setViewerLocale(event.target.value as PdfViewerLocale)}>
-                <option value="en">EN</option>
-                <option value="de">DE</option>
+              <select value={i18n.language} onChange={event => i18n.changeLanguage(event.target.value)}>
+                {SUPPORTED_LANGUAGES.map(code => (
+                  <option key={code} value={code}>{code.toUpperCase()}</option>
+                ))}
               </select>
             </label>
           </div>

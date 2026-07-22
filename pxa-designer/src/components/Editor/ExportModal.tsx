@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   FiX, FiDownload, FiLoader, FiCheck, FiAlertCircle,
   FiCode, FiFileText, FiImage, FiGrid, FiHash, FiShield, FiGlobe,
@@ -17,9 +18,7 @@ interface Props {
 
 interface FormatCard {
   format: ExportFormat;
-  label: string;
   ext: string;
-  description: string;
   group: string;
   icon: React.ReactNode;
   serverSide: boolean;
@@ -27,22 +26,22 @@ interface FormatCard {
 
 const FORMAT_CARDS: FormatCard[] = [
   // Documents
-  { format: 'pdf',   label: 'PDF',              ext: '.pdf',  description: 'Pixel-perfect document via backend renderer', group: 'Documents', icon: <FiFileText />, serverSide: false },
-  { format: 'word',  label: 'Word (.docx)',      ext: '.docx', description: 'Editable Microsoft Word document',           group: 'Documents', icon: <FiFileText />, serverSide: true },
-  { format: 'odt',   label: 'ODT',              ext: '.odt',  description: 'OpenDocument Text (LibreOffice / Google Docs)', group: 'Documents', icon: <FiFileText />, serverSide: true },
-  { format: 'html',  label: 'HTML',             ext: '.html', description: 'Positioned HTML with inline CSS',            group: 'Documents', icon: <FiCode />,     serverSide: true },
+  { format: 'pdf',   ext: '.pdf',  group: 'Documents', icon: <FiFileText />, serverSide: false },
+  { format: 'word',  ext: '.docx', group: 'Documents', icon: <FiFileText />, serverSide: true },
+  { format: 'odt',   ext: '.odt',  group: 'Documents', icon: <FiFileText />, serverSide: true },
+  { format: 'html',  ext: '.html', group: 'Documents', icon: <FiCode />,     serverSide: true },
   // Data
-  { format: 'json',  label: 'JSON',             ext: '.json', description: 'Full template definition (client-side)',      group: 'Data',      icon: <FiCode />,     serverSide: false },
-  { format: 'xml',   label: 'XML',              ext: '.xml',  description: 'Structured element data',                    group: 'Data',      icon: <FiCode />,     serverSide: true },
-  { format: 'excel', label: 'Excel (.xlsx)',     ext: '.xlsx', description: 'Tables as worksheets, text as summary',      group: 'Data',      icon: <FiGrid />,     serverSide: true },
-  { format: 'csv',   label: 'CSV',              ext: '.csv',  description: 'Comma-separated, Excel-compatible',          group: 'Data',      icon: <FiHash />,     serverSide: true },
+  { format: 'json',  ext: '.json', group: 'Data',      icon: <FiCode />,     serverSide: false },
+  { format: 'xml',   ext: '.xml',  group: 'Data',      icon: <FiCode />,     serverSide: true },
+  { format: 'excel', ext: '.xlsx', group: 'Data',      icon: <FiGrid />,     serverSide: true },
+  { format: 'csv',   ext: '.csv',  group: 'Data',      icon: <FiHash />,     serverSide: true },
   // Images
-  { format: 'png',   label: 'PNG',              ext: '.png',  description: 'Raster image at 150 dpi via SkiaSharp',      group: 'Images',    icon: <FiImage />,    serverSide: true },
-  { format: 'jpeg',  label: 'JPEG',             ext: '.jpg',  description: 'Compressed image, smaller file size',        group: 'Images',    icon: <FiImage />,    serverSide: true },
-  { format: 'tiff',  label: 'TIFF',             ext: '.tiff', description: 'Multi-page TIFF for print and archival',     group: 'Images',    icon: <FiImage />,    serverSide: true },
-  { format: 'svg',   label: 'SVG',              ext: '.svg',  description: 'Scalable vector, multi-page as zip',         group: 'Images',    icon: <FiImage />,    serverSide: true },
+  { format: 'png',   ext: '.png',  group: 'Images',    icon: <FiImage />,    serverSide: true },
+  { format: 'jpeg',  ext: '.jpg',  group: 'Images',    icon: <FiImage />,    serverSide: true },
+  { format: 'tiff',  ext: '.tiff', group: 'Images',    icon: <FiImage />,    serverSide: true },
+  { format: 'svg',   ext: '.svg',  group: 'Images',    icon: <FiImage />,    serverSide: true },
   // Text
-  { format: 'md',    label: 'Markdown',         ext: '.md',   description: 'Reading-order prose, GFM tables',            group: 'Text',      icon: <FiFileText />, serverSide: true },
+  { format: 'md',    ext: '.md',   group: 'Text',      icon: <FiFileText />, serverSide: true },
 ];
 
 const GROUPS = ['Documents', 'Data', 'Images', 'Text'];
@@ -53,6 +52,7 @@ const LAST_FORMAT_KEY = 'pxa_export_format';
 const LEGACY_LAST_FORMAT_KEY = 'canvas_export_format';
 
 const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSettings, onClose }) => {
+  const { t } = useTranslation('editor');
   const [states, setStates] = useState<Record<string, ExportState>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [progress, setProgress] = useState<Record<string, string>>({});
@@ -87,11 +87,11 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
       setLastUsed(card.format);
       setTimeout(() => setStates(s => ({ ...s, [card.format]: 'idle' })), 2500);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Export failed';
+      const msg = err instanceof Error ? err.message : t('export.exportFailed');
       setStates(s => ({ ...s, [card.format]: 'error' }));
       setErrors(e => ({ ...e, [card.format]: msg }));
     }
-  }, [template, pages, sharedElements, pageSettings]);
+  }, [template, pages, sharedElements, pageSettings, t]);
 
   const handleExportAllLanguages = useCallback(async () => {
     setMultiLangState('loading');
@@ -101,17 +101,17 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
       setMultiLangState('done');
       setTimeout(() => setMultiLangState('idle'), 2500);
     } catch (err) {
-      setMultiLangError(err instanceof Error ? err.message : 'Export failed');
+      setMultiLangError(err instanceof Error ? err.message : t('export.exportFailed'));
       setMultiLangState('error');
     }
-  }, [template, pages, sharedElements, pageSettings]);
+  }, [template, pages, sharedElements, pageSettings, t]);
 
   return (
     <div className="export-modal-backdrop" onClick={onClose}>
-      <div className="export-modal" onClick={e => e.stopPropagation()} role="dialog" aria-label="Export design">
+      <div className="export-modal" onClick={e => e.stopPropagation()} role="dialog" aria-label={t('export.ariaLabel')}>
         <div className="export-modal-header">
-          <h2 className="export-modal-title">Export</h2>
-          <button className="export-modal-close" onClick={onClose} aria-label="Close"><FiX size={18} /></button>
+          <h2 className="export-modal-title">{t('export.title')}</h2>
+          <button className="export-modal-close" onClick={onClose} aria-label={t('export.close')}><FiX size={18} /></button>
         </div>
 
         <div className="export-modal-body">
@@ -120,29 +120,29 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
           {/* Multi-language export section */}
           {hasMultiLang && (
             <div className="export-group">
-              <h3 className="export-group-label">Multi-Language</h3>
+              <h3 className="export-group-label">{t('export.multiLanguage.sectionLabel')}</h3>
               <div className="export-cards">
                 <div className={`export-card ${multiLangState === 'error' ? 'export-card--error' : ''}`}>
                   <div className="export-card-icon"><FiGlobe /></div>
                   <div className="export-card-info">
-                    <span className="export-card-label">All Languages (ZIP)</span>
+                    <span className="export-card-label">{t('export.multiLanguage.cardLabel')}</span>
                     <span className="export-card-desc">
                       {multiLangState === 'error' && multiLangError
                         ? multiLangError
-                        : `Export one PDF per language: ${activeLangs.join(', ')}`}
+                        : t('export.multiLanguage.cardDescription', { languages: activeLangs.join(', ') })}
                     </span>
                   </div>
                   <button
                     className={`export-card-btn export-card-btn--${multiLangState}`}
                     onClick={handleExportAllLanguages}
                     disabled={multiLangState === 'loading'}
-                    aria-label="Export all languages as ZIP"
+                    aria-label={t('export.multiLanguage.exportZipAriaLabel')}
                   >
                     {multiLangState === 'loading' ? <FiLoader className="spin" size={15} />
                      : multiLangState === 'done'  ? <FiCheck size={15} />
                      : multiLangState === 'error' ? <FiAlertCircle size={15} />
                      : <FiDownload size={15} />}
-                    <span>{multiLangState === 'done' ? 'Done!' : multiLangState === 'error' ? 'Retry' : 'Export ZIP'}</span>
+                    <span>{multiLangState === 'done' ? t('export.done') : multiLangState === 'error' ? t('export.retry') : t('export.multiLanguage.exportZip')}</span>
                   </button>
                 </div>
               </div>
@@ -153,35 +153,36 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
             const cards = FORMAT_CARDS.filter(c => c.group === group);
             return (
               <div key={group} className="export-group">
-                <h3 className="export-group-label">{group}</h3>
+                <h3 className="export-group-label">{t(`export.groups.${group}`)}</h3>
                 <div className="export-cards">
                   {cards.map(card => {
                     const state = states[card.format] ?? 'idle';
                     const err   = errors[card.format] ?? '';
                     const prog  = progress[card.format] ?? '';
+                    const label = t(`export.formats.${card.format}.label`);
                     return (
                       <div key={card.format} className={`export-card ${state === 'error' ? 'export-card--error' : ''}`}>
                         <div className="export-card-icon">{card.icon}</div>
                         <div className="export-card-info">
                           <span className="export-card-label">
-                            {card.label}
-                            {lastUsed === card.format && <span className="export-card-last-badge">Last used</span>}
+                            {label}
+                            {lastUsed === card.format && <span className="export-card-last-badge">{t('export.lastUsed')}</span>}
                           </span>
                           <span className="export-card-desc">
-                            {state === 'loading' && prog ? prog : err || card.description}
+                            {state === 'loading' && prog ? prog : err || t(`export.formats.${card.format}.description`)}
                           </span>
                         </div>
                         <button
                           className={`export-card-btn export-card-btn--${state}`}
                           onClick={() => handleExport(card)}
                           disabled={state === 'loading'}
-                          aria-label={`Export as ${card.label}`}
+                          aria-label={t('export.exportAriaLabel', { label })}
                         >
                           {state === 'loading' ? <FiLoader className="spin" size={15} />
                            : state === 'done'    ? <FiCheck size={15} />
                            : state === 'error'   ? <FiAlertCircle size={15} />
                            : <FiDownload size={15} />}
-                          <span>{state === 'done' ? 'Done!' : state === 'error' ? 'Retry' : 'Export'}</span>
+                          <span>{state === 'done' ? t('export.done') : state === 'error' ? t('export.retry') : t('export.exportAction')}</span>
                         </button>
                       </div>
                     );
@@ -196,10 +197,10 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
           <button
             className="export-sign-btn"
             onClick={() => setSignOpen(true)}
-            title="Apply an X.509 digital signature to a DOCX file"
+            title={t('export.signDocx.tooltip')}
           >
             <FiShield size={14} />
-            Sign DOCX…
+            {t('export.signDocx.button')}
           </button>
         </div>
       </div>

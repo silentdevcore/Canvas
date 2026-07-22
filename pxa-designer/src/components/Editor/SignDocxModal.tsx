@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FiX, FiUpload, FiShield, FiLoader, FiCheck, FiAlertCircle } from 'react-icons/fi';
 import ExportService from '@/services/ExportService';
 
@@ -9,6 +10,7 @@ interface Props {
 type SignState = 'idle' | 'signing' | 'done' | 'error';
 
 const SignDocxModal: React.FC<Props> = ({ onClose }) => {
+  const { t } = useTranslation('editor');
   const docxRef = useRef<HTMLInputElement>(null);
   const certRef = useRef<HTMLInputElement>(null);
 
@@ -40,29 +42,28 @@ const SignDocxModal: React.FC<Props> = ({ onClose }) => {
 
       setState('done');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Signing failed');
+      setError(err instanceof Error ? err.message : t('signDocxModal.signingFailed'));
       setState('error');
     }
   };
 
   return (
     <div className="sign-modal-backdrop" onClick={onClose}>
-      <div className="sign-modal" onClick={e => e.stopPropagation()} role="dialog" aria-label="Sign DOCX">
+      <div className="sign-modal" onClick={e => e.stopPropagation()} role="dialog" aria-label={t('signDocxModal.ariaLabel')}>
         <div className="sign-modal-header">
           <span className="sign-modal-icon"><FiShield size={18} /></span>
-          <h2>Sign DOCX</h2>
-          <button className="sign-modal-close" onClick={onClose} aria-label="Close"><FiX size={18} /></button>
+          <h2>{t('signDocxModal.title')}</h2>
+          <button className="sign-modal-close" onClick={onClose} aria-label={t('signDocxModal.close')}><FiX size={18} /></button>
         </div>
 
         <div className="sign-modal-body">
           <p className="sign-modal-intro">
-            Apply an X.509 digital signature to a DOCX file using your PFX/P12 certificate.
-            The signed file will be downloaded automatically.
+            {t('signDocxModal.intro')}
           </p>
 
           {/* DOCX file */}
           <div className="sign-modal-field">
-            <label>DOCX file</label>
+            <label>{t('signDocxModal.docxFile')}</label>
             <input
               ref={docxRef}
               type="file"
@@ -76,13 +77,13 @@ const SignDocxModal: React.FC<Props> = ({ onClose }) => {
               type="button"
             >
               <FiUpload size={14} />
-              {docxFile ? docxFile.name : 'Choose DOCX file…'}
+              {docxFile ? docxFile.name : t('signDocxModal.chooseDocx')}
             </button>
           </div>
 
           {/* Certificate */}
           <div className="sign-modal-field">
-            <label>PFX / P12 certificate</label>
+            <label>{t('signDocxModal.certificate')}</label>
             <input
               ref={certRef}
               type="file"
@@ -96,19 +97,19 @@ const SignDocxModal: React.FC<Props> = ({ onClose }) => {
               type="button"
             >
               <FiUpload size={14} />
-              {certFile ? certFile.name : 'Choose certificate…'}
+              {certFile ? certFile.name : t('signDocxModal.chooseCertificate')}
             </button>
           </div>
 
           {/* Password */}
           <div className="sign-modal-field">
-            <label>Certificate password <span className="sign-optional">(optional)</span></label>
+            <label>{t('signDocxModal.password')} <span className="sign-optional">{t('signDocxModal.passwordOptional')}</span></label>
             <input
               type="password"
               className="sign-password-input"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder="Leave blank if certificate has no password"
+              placeholder={t('signDocxModal.passwordPlaceholder')}
             />
           </div>
 
@@ -124,20 +125,20 @@ const SignDocxModal: React.FC<Props> = ({ onClose }) => {
           {state === 'done' && (
             <div className="sign-success">
               <FiCheck size={14} />
-              Signed and downloaded ({(signedSize / 1024).toFixed(1)} KB)
+              {t('signDocxModal.signedAndDownloaded', { sizeKb: (signedSize / 1024).toFixed(1) })}
             </div>
           )}
         </div>
 
         <div className="sign-modal-footer">
-          <button className="sign-cancel-btn" onClick={onClose}>Cancel</button>
+          <button className="sign-cancel-btn" onClick={onClose}>{t('signDocxModal.cancel')}</button>
           <button
             className={`sign-action-btn sign-action-btn--${state}`}
             onClick={handleSign}
             disabled={!canSign}
           >
             {state === 'signing' ? <FiLoader className="spin" size={15} /> : <FiShield size={15} />}
-            {state === 'signing' ? 'Signing…' : state === 'done' ? 'Sign again' : 'Sign & Download'}
+            {state === 'signing' ? t('signDocxModal.signing') : state === 'done' ? t('signDocxModal.signAgain') : t('signDocxModal.signAndDownload')}
           </button>
         </div>
       </div>

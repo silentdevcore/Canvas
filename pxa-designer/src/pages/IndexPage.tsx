@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   FiActivity,
@@ -21,29 +22,6 @@ import { useTemplateLoader } from '@/hooks/useTemplateLoader';
 
 import AppHeader from '@/components/Layout/AppHeader';
 
-const FEATURE_CARDS = [
-  {
-    title: 'Multi-format editor',
-    copy: 'Design templates visually, then export to PDF, DOCX, ODT, XLSX, TIFF and more — or import existing PDFs and Word documents as editable designs.',
-    icon: FiFileText,
-  },
-  {
-    title: 'Template workflows',
-    copy: 'Start from invoices, receipts, certificates and business documents. Add data bindings, loops, and expressions for dynamic content generation.',
-    icon: FiGrid,
-  },
-  {
-    title: 'Word-fidelity export',
-    copy: 'DOCX output includes named styles, footnotes, bookmarks, track changes, document protection, custom properties and X.509 digital signatures.',
-    icon: FiShield,
-  },
-  {
-    title: 'Spreadsheet formulas & formatting',
-    copy: 'Edit a full grid with live formulas, cell styles, and merges — import Excel/CSV or a native PXA Workbook, and export back out with formatting intact.',
-    icon: FiGrid,
-  },
-];
-
 interface ToolLink {
   label: string;
   copy: string;
@@ -55,12 +33,20 @@ interface ToolLink {
 
 const IndexPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('home');
   const { loadBlank, loadFromFile } = useTemplateLoader();
   const [toast, setToast] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
 
   const displayCategories = CATEGORIES.filter(c => c.id !== 'all');
+
+  const FEATURE_CARDS = [
+    { title: t('featureCards.multiFormat.title'), copy: t('featureCards.multiFormat.copy'), icon: FiFileText },
+    { title: t('featureCards.templateWorkflows.title'), copy: t('featureCards.templateWorkflows.copy'), icon: FiGrid },
+    { title: t('featureCards.wordFidelity.title'), copy: t('featureCards.wordFidelity.copy'), icon: FiShield },
+    { title: t('featureCards.spreadsheetFormulas.title'), copy: t('featureCards.spreadsheetFormulas.copy'), icon: FiGrid },
+  ];
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -73,30 +59,30 @@ const IndexPage: React.FC = () => {
       await loadFromFile(file);
     } catch (err) {
       setImporting(false);
-      showToast(err instanceof Error ? err.message : 'Import failed');
+      showToast(err instanceof Error ? err.message : t('hero.importCard.importFailed'));
     }
   };
 
   // One card per PDF hub sidebar item (see PdfLayout.tsx), plus "Sign DOCX"
   // which has no hub-sidebar/route equivalent — it's an Export-modal action.
   const PDF_TOOLS: ToolLink[] = [
-    { label: 'Create PDF', copy: 'Start a blank document and build it visually.', icon: FiFilePlus, path: '/pdf/create' },
-    { label: 'Edit PDF', copy: 'Paste JSON or C# code and adjust it live in the designer.', icon: FiCode, path: '/pdf/edit' },
-    { label: 'Use Template', copy: `Browse ${TEMPLATES.length} ready-made invoices, receipts, certificates and more.`, icon: FiLayout, path: '/pdf/template' },
-    { label: 'Import PDF', copy: 'Open an existing PDF, Word, ODT, PowerPoint, SVG or image as an editable design.', icon: FiUpload, path: '/pdf/import' },
-    { label: 'Convert to PDF', copy: 'Turn a scanned or photographed image into a searchable PDF with OCR.', icon: FiEye, path: '/pdf/convert' },
-    { label: 'PDF Viewer', copy: 'Open, review and annotate a PDF without leaving the browser.', icon: FiFileText, path: '/pdf/viewer' },
-    { label: 'Migrations', copy: 'Convert vendor C# code or report-designer files (RDL, DevExpress, Crystal, and more) to PXA.', icon: FiGitMerge, path: '/pdf/migrations' },
-    { label: 'Sign DOCX', copy: 'Apply an X.509 digital signature to a DOCX.', icon: FiShield, onClick: () => showToast('Export your design as DOCX first, then use the Sign button in the Export modal.') },
+    { label: t('pdfTools.createPdf.label'), copy: t('pdfTools.createPdf.copy'), icon: FiFilePlus, onClick: () => loadBlank() },
+    { label: t('pdfTools.editPdf.label'), copy: t('pdfTools.editPdf.copy'), icon: FiCode, onClick: () => loadBlank('code') },
+    { label: t('pdfTools.useTemplate.label'), copy: t('pdfTools.useTemplate.copy', { count: TEMPLATES.length }), icon: FiLayout, path: '/pdf/template' },
+    { label: t('pdfTools.importPdf.label'), copy: t('pdfTools.importPdf.copy'), icon: FiUpload, path: '/pdf/import' },
+    { label: t('pdfTools.convertToPdf.label'), copy: t('pdfTools.convertToPdf.copy'), icon: FiEye, path: '/pdf/convert' },
+    { label: t('pdfTools.pdfViewer.label'), copy: t('pdfTools.pdfViewer.copy'), icon: FiFileText, path: '/pdf/viewer' },
+    { label: t('pdfTools.migrations.label'), copy: t('pdfTools.migrations.copy'), icon: FiGitMerge, path: '/pdf/migrations' },
+    { label: t('pdfTools.signDocx.label'), copy: t('pdfTools.signDocx.copy'), icon: FiShield, onClick: () => showToast(t('pdfTools.signDocx.toast')) },
   ];
 
   // One card per Spreadsheet hub sidebar item — Spreadsheet's first appearance on Home.
   const SPREADSHEET_TOOLS: ToolLink[] = [
-    { label: 'Create Spreadsheet', copy: 'Start a blank spreadsheet with the full grid editor.', icon: FiGrid, path: '/spreadsheet/create' },
-    { label: 'Edit Spreadsheet', copy: 'Open a PXA Workbook JSON file to edit in the grid.', icon: FiCode, path: '/spreadsheet/edit' },
-    { label: 'Import Spreadsheet', copy: 'Import an Excel or CSV file, preserving formulas and formatting.', icon: FiUpload, path: '/spreadsheet/import' },
-    { label: 'Convert to Spreadsheet', copy: 'Turn an external format into a spreadsheet.', icon: FiRefreshCw, disabled: true },
-    { label: 'Migrations', copy: 'Convert vendor C# spreadsheet code (ClosedXML, EPPlus, GemBox, Aspose.Cells) to PXA.', icon: FiGitMerge, path: '/spreadsheet/migrations' },
+    { label: t('spreadsheetTools.createSpreadsheet.label'), copy: t('spreadsheetTools.createSpreadsheet.copy'), icon: FiGrid, path: '/spreadsheet/create' },
+    { label: t('spreadsheetTools.editSpreadsheet.label'), copy: t('spreadsheetTools.editSpreadsheet.copy'), icon: FiCode, path: '/spreadsheet/edit' },
+    { label: t('spreadsheetTools.importSpreadsheet.label'), copy: t('spreadsheetTools.importSpreadsheet.copy'), icon: FiUpload, path: '/spreadsheet/import' },
+    { label: t('spreadsheetTools.convertToSpreadsheet.label'), copy: t('spreadsheetTools.convertToSpreadsheet.copy'), icon: FiRefreshCw, disabled: true },
+    { label: t('spreadsheetTools.migrations.label'), copy: t('spreadsheetTools.migrations.copy'), icon: FiGitMerge, path: '/spreadsheet/migrations' },
   ];
 
   const handleToolClick = (tool: ToolLink) => {
@@ -122,7 +108,7 @@ const IndexPage: React.FC = () => {
             <strong>{tool.label}</strong>
             <small>{tool.copy}</small>
             <span>
-              {tool.disabled ? 'Coming soon' : 'Start now'}
+              {tool.disabled ? t('toolGrid.comingSoon') : t('toolGrid.startNow')}
               {!tool.disabled && <FiChevronRight />}
             </span>
           </motion.button>
@@ -148,11 +134,11 @@ const IndexPage: React.FC = () => {
           <div className="pdf-hero-copy">
             <div className="pdf-eyebrow">
               <FiCheckCircle />
-              <span>Design, import and export documents in one place</span>
+              <span>{t('hero.eyebrow')}</span>
             </div>
-            <h1>Build, fill, and prepare business documents faster</h1>
+            <h1>{t('hero.title')}</h1>
             <p>
-              Power Dox Automation helps you start from a template or import an existing PDF, Word, or ODT file. Add fields, signatures, and data bindings — then export to PDF, DOCX, ODT, TIFF and more.
+              {t('hero.description')}
             </p>
           </div>
 
@@ -172,23 +158,23 @@ const IndexPage: React.FC = () => {
               whileTap={{ scale: 0.99 }}
             >
               <span className="pdf-upload-icon"><FiLayout /></span>
-              <strong>Start from a template</strong>
-              <small>Browse {TEMPLATES.length} ready-made document templates</small>
-              <span className="pdf-upload-action">Browse templates <FiChevronRight /></span>
+              <strong>{t('hero.templateCard.title')}</strong>
+              <small>{t('hero.templateCard.copy', { count: TEMPLATES.length })}</small>
+              <span className="pdf-upload-action">{t('hero.templateCard.action')} <FiChevronRight /></span>
             </motion.button>
 
             <motion.button
               className="pdf-upload-card"
               onClick={() => importInputRef.current?.click()}
               disabled={importing}
-              title="Import a PDF, Word .doc/.docx, ODT, or image (PNG/JPG/WebP/…) as a PXA design"
+              title={t('hero.importCard.tooltip')}
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.99 }}
             >
               <span className="pdf-upload-icon"><FiUpload /></span>
-              <strong>{importing ? 'Importing…' : 'Import file'}</strong>
-              <small>Open a PDF, Word, ODT or image file as an editable design</small>
-              <span className="pdf-upload-action">Choose file <FiChevronRight /></span>
+              <strong>{importing ? t('hero.importCard.importing') : t('hero.importCard.title')}</strong>
+              <small>{t('hero.importCard.copy')}</small>
+              <span className="pdf-upload-action">{t('hero.importCard.action')} <FiChevronRight /></span>
             </motion.button>
 
             <motion.button
@@ -198,9 +184,9 @@ const IndexPage: React.FC = () => {
               whileTap={{ scale: 0.99 }}
             >
               <span className="pdf-upload-icon"><FiFilePlus /></span>
-              <strong>Blank document</strong>
-              <small>Open the editor with an empty page — no starter elements</small>
-              <span className="pdf-upload-action">Start blank <FiChevronRight /></span>
+              <strong>{t('hero.blankCard.title')}</strong>
+              <small>{t('hero.blankCard.copy')}</small>
+              <span className="pdf-upload-action">{t('hero.blankCard.action')} <FiChevronRight /></span>
             </motion.button>
 
             <motion.button
@@ -210,9 +196,9 @@ const IndexPage: React.FC = () => {
               whileTap={{ scale: 0.99 }}
             >
               <span className="pdf-upload-icon" style={{ fontSize: 22 }}>{'{ }'}</span>
-              <strong>Code Editor</strong>
-              <small>Write JSON directly and see a live PDF preview as you type</small>
-              <span className="pdf-upload-action">Open editor <FiChevronRight /></span>
+              <strong>{t('hero.codeCard.title')}</strong>
+              <small>{t('hero.codeCard.copy')}</small>
+              <span className="pdf-upload-action">{t('hero.codeCard.action')} <FiChevronRight /></span>
             </motion.button>
           </div>
         </section>
@@ -220,8 +206,8 @@ const IndexPage: React.FC = () => {
         {/* PDF tools */}
         <section className="pdf-tools-section" id="tools">
           <div className="pdf-section-heading">
-            <span>Every PDF tool you need</span>
-            <h2>Try these tools to get your PDFs done</h2>
+            <span>{t('pdfTools.sectionLabel')}</span>
+            <h2>{t('pdfTools.sectionTitle')}</h2>
           </div>
           {renderToolGrid(PDF_TOOLS)}
         </section>
@@ -229,8 +215,8 @@ const IndexPage: React.FC = () => {
         {/* Spreadsheet tools */}
         <section className="pdf-tools-section" id="spreadsheet-tools">
           <div className="pdf-section-heading">
-            <span>Every spreadsheet tool you need</span>
-            <h2>Build and import spreadsheets just as easily</h2>
+            <span>{t('spreadsheetTools.sectionLabel')}</span>
+            <h2>{t('spreadsheetTools.sectionTitle')}</h2>
           </div>
           {renderToolGrid(SPREADSHEET_TOOLS)}
         </section>
@@ -238,20 +224,20 @@ const IndexPage: React.FC = () => {
         {/* Trust band */}
         <section className="pdf-trust-band">
           <div>
-            <strong>{TEMPLATES.length} templates</strong>
-            <span>ready to open in the editor</span>
+            <strong>{t('trustBand.templatesCount', { count: TEMPLATES.length })}</strong>
+            <span>{t('trustBand.templatesSub')}</span>
           </div>
           <div>
-            <strong>10 export formats</strong>
-            <span>PDF, DOCX, ODT, TIFF, HTML &amp; more</span>
+            <strong>{t('trustBand.exportFormats')}</strong>
+            <span>{t('trustBand.exportFormatsSub')}</span>
           </div>
           <div>
-            <strong>7 import formats</strong>
-            <span>PDF, DOCX, PPTX, DOC, ODT, SVG, images</span>
+            <strong>{t('trustBand.importFormats')}</strong>
+            <span>{t('trustBand.importFormatsSub')}</span>
           </div>
           <div>
-            <strong>100% browser-based</strong>
-            <span>no account required</span>
+            <strong>{t('trustBand.browserBased')}</strong>
+            <span>{t('trustBand.browserBasedSub')}</span>
           </div>
         </section>
 
@@ -259,15 +245,15 @@ const IndexPage: React.FC = () => {
         <section className="pdf-template-section" id="categories">
           <div className="pdf-template-toolbar">
             <div className="pdf-section-heading">
-              <span>Template categories</span>
-              <h2>Choose a document type to explore</h2>
+              <span>{t('categories.sectionLabel')}</span>
+              <h2>{t('categories.sectionTitle')}</h2>
             </div>
             <button
               className="pdf-outline-button"
               onClick={() => navigate('/pdf/template')}
             >
-              Browse all templates
-              <FiChevronRight style={{ marginLeft: 4 }} />
+              {t('categories.browseAll')}
+              <FiChevronRight style={{ marginInlineStart: 4 }} />
             </button>
           </div>
 
@@ -295,10 +281,10 @@ const IndexPage: React.FC = () => {
                     <Icon size={22} />
                   </span>
                   <div className="idx-category-info">
-                    <span className="idx-category-name">{cat.name}</span>
+                    <span className="idx-category-name">{t(`templates:category.${cat.id}.name`, { defaultValue: cat.name })}</span>
                     <span className="idx-category-count">{cat.count}</span>
                   </div>
-                  <p className="idx-category-desc">{cfg.description}</p>
+                  <p className="idx-category-desc">{t(`templates:category.${cat.id}.description`, { defaultValue: cfg.description })}</p>
                   <span className="idx-category-arrow">
                     <FiChevronRight size={16} />
                   </span>
@@ -311,8 +297,8 @@ const IndexPage: React.FC = () => {
         {/* Features */}
         <section className="pdf-feature-section" id="features">
           <div className="pdf-section-heading">
-            <span>Power Dox Automation</span>
-            <h2>Everything you need to manage documents and spreadsheets</h2>
+            <span>{t('features.sectionLabel')}</span>
+            <h2>{t('features.sectionTitle')}</h2>
           </div>
           <div className="pdf-feature-grid">
             {FEATURE_CARDS.map(feature => {
@@ -332,11 +318,11 @@ const IndexPage: React.FC = () => {
         <section className="pdf-security-strip" id="security">
           <FiShield />
           <div>
-            <h2>Designed for sensitive business documents</h2>
-            <p>Keep the interface calm, structured and predictable for contracts, invoices, HR documents and approvals.</p>
+            <h2>{t('security.title')}</h2>
+            <p>{t('security.copy')}</p>
           </div>
           <button className="pdf-outline-button" onClick={() => navigate('/pdf/template')}>
-            Start designing
+            {t('security.action')}
           </button>
         </section>
 
@@ -348,6 +334,7 @@ const IndexPage: React.FC = () => {
 };
 
 const UsageStrip: React.FC = () => {
+  const { t } = useTranslation('home');
   // `pxa_*` are the current keys; `canvas_*` are read as a fallback so a
   // count/name saved before the rename isn't lost.
   const count = parseInt(
@@ -363,12 +350,12 @@ const UsageStrip: React.FC = () => {
       <FiActivity />
       <div className="pdf-usage-stat">
         <strong>{count}</strong>
-        <span>{count === 1 ? 'document' : 'documents'} opened this session</span>
+        <span>{count === 1 ? t('usage.documentSingular') : t('usage.documentPlural')} {t('usage.openedThisSession')}</span>
       </div>
       {lastName && (
         <div className="pdf-usage-stat">
           <strong>{lastName}</strong>
-          <span>last opened template</span>
+          <span>{t('usage.lastOpenedTemplate')}</span>
         </div>
       )}
     </section>

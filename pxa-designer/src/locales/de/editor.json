@@ -1,0 +1,1276 @@
+{
+  "help": {
+    "ariaLabel": "Hilfe",
+    "title": "Hilfe & Referenz",
+    "close": "Schließen",
+    "docsLink": "Vollständige Dokumentation öffnen",
+    "tabs": {
+      "quickstart": "Schnellstart",
+      "shortcuts": "Tastenkürzel",
+      "elements": "Elemente",
+      "faq": "FAQ"
+    },
+    "shortcutsTable": {
+      "shortcut": "Tastenkürzel",
+      "action": "Aktion"
+    },
+    "elementsTable": {
+      "element": "Element",
+      "description": "Beschreibung",
+      "pdf": "PDF",
+      "word": "Word"
+    },
+    "quickSteps": {
+      "1": {
+        "title": "Eine Vorlage öffnen",
+        "desc": "Durchsuchen Sie die Vorlagengalerie und klicken Sie auf „Diese Vorlage verwenden“, um zu starten."
+      },
+      "2": {
+        "title": "Elemente hinzufügen",
+        "desc": "Klicken Sie auf ein Werkzeug in der linken Werkzeugleiste, um es auf der Leinwand zu platzieren, oder ziehen Sie es an eine bestimmte Position."
+      },
+      "3": {
+        "title": "Eigenschaften bearbeiten",
+        "desc": "Wählen Sie ein Element aus und passen Sie Inhalt, Stil und Layout im rechten Inspektorbereich an."
+      },
+      "4": {
+        "title": "Dokument-Vorschau",
+        "desc": "Klicken Sie in der oberen Leiste auf „Vorschau“, um eine Live-Darstellung Ihrer Vorlage mit Beispieldaten zu sehen."
+      },
+      "5": {
+        "title": "Exportieren",
+        "desc": "Klicken Sie auf das Export-Symbol, um als PDF, Word, JSON, Bild oder andere Formate herunterzuladen."
+      }
+    },
+    "shortcuts": {
+      "undo": "Rückgängig",
+      "redo": "Wiederholen",
+      "selectAll": "Alle Elemente auswählen",
+      "copy": "Ausgewähltes Element kopieren",
+      "paste": "Element einfügen",
+      "duplicate": "Element duplizieren",
+      "delete": "Ausgewähltes Element löschen",
+      "moveOnePx": "Element um 1 px verschieben",
+      "moveTenPx": "Element um 10 px verschieben",
+      "zoomIn": "Vergrößern",
+      "zoomOut": "Verkleinern",
+      "zoomReset": "Zoom auf 100 % zurücksetzen",
+      "deselect": "Auswahl aufheben / Zeichnen abbrechen",
+      "openHelp": "Diesen Hilfedialog öffnen"
+    },
+    "faq": {
+      "exportPdf": {
+        "q": "Wie exportiere ich ein PDF?",
+        "a": "Klicken Sie auf das Export-Symbol (⬆) in der oberen Leiste, wählen Sie „PDF“ aus der Formatliste und klicken Sie dann auf Herunterladen."
+      },
+      "backgroundImage": {
+        "q": "Wie füge ich ein Hintergrundbild hinzu?",
+        "a": "Klicken Sie auf das Seiteneinstellungssymbol (⚙), wenn nichts ausgewählt ist, und legen Sie dann „Hintergrundbild“ im Inspektor fest."
+      },
+      "templateVariables": {
+        "q": "Wie verwende ich Vorlagenvariablen?",
+        "a": "Geben Sie {{VARIABLE_NAME}} in ein beliebiges Textelement ein. Variablen werden zur Renderzeit aus Ihren JSON-Daten gefüllt."
+      },
+      "secondPage": {
+        "q": "Wie füge ich eine zweite Seite hinzu?",
+        "a": "Klicken Sie auf die Schaltfläche + im Seitenstreifen am unteren Rand des Leinwandbereichs."
+      },
+      "multiLanguage": {
+        "q": "Wie richte ich Mehrsprachigkeit ein?",
+        "a": "Fügen Sie in den Seiteneinstellungen Sprachen im Abschnitt „Sprachen“ hinzu. Über der Leinwand erscheint ein Tab pro Sprache."
+      },
+      "drawLine": {
+        "q": "Wie zeichne ich eine Linie oder einen Pfeil?",
+        "a": "Klicken Sie auf das Werkzeug Linie, Pfeil oder Zeichnen in der Werkzeugleiste — ein blaues Abzeichen erscheint. Ziehen Sie dann auf der Leinwand, um das Element zu platzieren."
+      },
+      "tableOfContents": {
+        "q": "Wie erstelle ich ein Inhaltsverzeichnis?",
+        "a": "Fügen Sie ein „Inhaltsverzeichnis“-Element hinzu und legen Sie dann die Überschriftenebene für Ihre Textelemente fest. Klicken Sie im Inspektor auf „Inhaltsverzeichnis aktualisieren“."
+      },
+      "addressForm": {
+        "q": "Wie füge ich ein Adressformular ein?",
+        "a": "Klicken Sie unten in der linken Werkzeugleiste auf „Formularblock einfügen“ und wählen Sie Adressblock."
+      }
+    }
+  },
+  "export": {
+    "ariaLabel": "Design exportieren",
+    "title": "Export",
+    "close": "Schließen",
+    "groups": {
+      "Documents": "Dokumente",
+      "Data": "Daten",
+      "Images": "Bilder",
+      "Text": "Text"
+    },
+    "formats": {
+      "pdf": {
+        "label": "PDF",
+        "description": "Pixelgenaues Dokument über Backend-Renderer"
+      },
+      "word": {
+        "label": "Word (.docx)",
+        "description": "Bearbeitbares Microsoft-Word-Dokument"
+      },
+      "odt": {
+        "label": "ODT",
+        "description": "OpenDocument Text (LibreOffice / Google Docs)"
+      },
+      "html": {
+        "label": "HTML",
+        "description": "Positioniertes HTML mit Inline-CSS"
+      },
+      "json": {
+        "label": "JSON",
+        "description": "Vollständige Vorlagendefinition (clientseitig)"
+      },
+      "xml": {
+        "label": "XML",
+        "description": "Strukturierte Elementdaten"
+      },
+      "excel": {
+        "label": "Excel (.xlsx)",
+        "description": "Tabellen als Arbeitsblätter, Text als Zusammenfassung"
+      },
+      "csv": {
+        "label": "CSV",
+        "description": "Kommagetrennt, Excel-kompatibel"
+      },
+      "png": {
+        "label": "PNG",
+        "description": "Rasterbild mit 150 dpi über SkiaSharp"
+      },
+      "jpeg": {
+        "label": "JPEG",
+        "description": "Komprimiertes Bild, kleinere Dateigröße"
+      },
+      "tiff": {
+        "label": "TIFF",
+        "description": "Mehrseitiges TIFF für Druck und Archivierung"
+      },
+      "svg": {
+        "label": "SVG",
+        "description": "Skalierbarer Vektor, mehrseitig als ZIP"
+      },
+      "md": {
+        "label": "Markdown",
+        "description": "Text in Lesereihenfolge, GFM-Tabellen"
+      }
+    },
+    "lastUsed": "Zuletzt verwendet",
+    "exportFailed": "Export fehlgeschlagen",
+    "done": "Fertig!",
+    "retry": "Erneut versuchen",
+    "exportAction": "Exportieren",
+    "exportAriaLabel": "Als {{label}} exportieren",
+    "multiLanguage": {
+      "sectionLabel": "Mehrsprachig",
+      "cardLabel": "Alle Sprachen (ZIP)",
+      "cardDescription": "Ein PDF pro Sprache exportieren: {{languages}}",
+      "exportZipAriaLabel": "Alle Sprachen als ZIP exportieren",
+      "exportZip": "ZIP exportieren"
+    },
+    "signDocx": {
+      "button": "DOCX signieren…",
+      "tooltip": "Eine X.509-digitale Signatur auf eine DOCX-Datei anwenden"
+    }
+  },
+  "findReplace": {
+    "ariaLabel": "Suchen und Ersetzen",
+    "title": "Suchen & Ersetzen",
+    "close": "Schließen",
+    "find": "Suchen",
+    "findPlaceholderRegex": "Regulärer Ausdruck…",
+    "findPlaceholderText": "Zu suchender Text…",
+    "replaceWith": "Ersetzen durch",
+    "replacePlaceholder": "Ersatztext…",
+    "caseSensitive": "Groß-/Kleinschreibung beachten",
+    "wholeWord": "Ganzes Wort",
+    "regex": "Regex",
+    "failed": "Suchen & Ersetzen fehlgeschlagen",
+    "noMatches": "Keine Treffer gefunden.",
+    "replacedSummary": "{{count}} Vorkommen in {{elementCount}} Elementen ersetzt.",
+    "replacedSummary_plural": "{{count}} Vorkommen in {{elementCount}} Elementen ersetzt.",
+    "cancel": "Abbrechen",
+    "replaceAll": "Alle ersetzen"
+  },
+  "formBlock": {
+    "ariaLabel": "Formularblock einfügen",
+    "title": "Formularblock einfügen",
+    "close": "Schließen",
+    "fieldLabelsHeading": "Feldbezeichnungen",
+    "addField": "+ Feld hinzufügen",
+    "startX": "Start X (px)",
+    "startY": "Start Y (px)",
+    "fieldsToInsert": "Einzufügende Felder",
+    "cancel": "Abbrechen",
+    "insertBlock": "Block einfügen",
+    "blocks": {
+      "address": {
+        "title": "Adressblock",
+        "description": "Vollständige Postanschrift: Name, Straße, Stadt, Postleitzahl, Land.",
+        "fields": {
+          "name": "Vollständiger Name",
+          "street": "Straße",
+          "city": "Stadt",
+          "postalCode": "Postleitzahl",
+          "country": "Land"
+        }
+      },
+      "contact": {
+        "title": "Kontaktblock",
+        "description": "Telefonnummer, E-Mail-Adresse und Website.",
+        "fields": {
+          "phone": "Telefon",
+          "email": "E-Mail",
+          "website": "Website"
+        }
+      },
+      "personal": {
+        "title": "Persönlicher Block",
+        "description": "Geburtsdatum, Geschlecht und Nationalität.",
+        "fields": {
+          "dob": "Geburtsdatum",
+          "gender": "Geschlecht",
+          "nationality": "Nationalität"
+        },
+        "genderOptions": {
+          "male": "Männlich",
+          "female": "Weiblich",
+          "nonBinary": "Nicht-binär",
+          "preferNotToSay": "Keine Angabe"
+        }
+      },
+      "custom": {
+        "title": "Benutzerdefinierter Block",
+        "description": "Wählen Sie die Anzahl der Felder und geben Sie deren Bezeichnungen ein.",
+        "fieldPlaceholder": "Feld {{number}}"
+      }
+    }
+  },
+  "signDocxModal": {
+    "ariaLabel": "DOCX signieren",
+    "title": "DOCX signieren",
+    "close": "Schließen",
+    "intro": "Wenden Sie mit Ihrem PFX/P12-Zertifikat eine X.509-digitale Signatur auf eine DOCX-Datei an. Die signierte Datei wird automatisch heruntergeladen.",
+    "docxFile": "DOCX-Datei",
+    "chooseDocx": "DOCX-Datei wählen…",
+    "certificate": "PFX/P12-Zertifikat",
+    "chooseCertificate": "Zertifikat wählen…",
+    "password": "Zertifikatspasswort",
+    "passwordOptional": "(optional)",
+    "passwordPlaceholder": "Leer lassen, wenn das Zertifikat kein Passwort hat",
+    "signingFailed": "Signieren fehlgeschlagen",
+    "signedAndDownloaded": "Signiert und heruntergeladen ({{sizeKb}} KB)",
+    "cancel": "Abbrechen",
+    "signing": "Wird signiert…",
+    "signAgain": "Erneut signieren",
+    "signAndDownload": "Signieren & Herunterladen"
+  },
+  "tools": {
+    "text": {
+      "label": "Text",
+      "hint": "Einzeiliger Textblock"
+    },
+    "qrcode": {
+      "label": "QR-Code",
+      "hint": "Scanbarer Link-Block"
+    },
+    "barcode": {
+      "label": "Barcode",
+      "hint": "Produkt- oder Bestellcode"
+    },
+    "signature": {
+      "label": "Signatur",
+      "hint": "Genehmigungslinie"
+    },
+    "richtext": {
+      "label": "Rich-Text",
+      "hint": "Formatierte HTML-Kopie"
+    },
+    "field": {
+      "label": "Textfeld",
+      "hint": "Ausfüllbares Formularfeld"
+    },
+    "textarea": {
+      "label": "Textbereich",
+      "hint": "Mehrzeiliges ausfüllbares Textfeld"
+    },
+    "checkbox": {
+      "label": "Kontrollkästchen",
+      "hint": "Einzelauswahlfeld"
+    },
+    "image": {
+      "label": "Bild",
+      "hint": "Bildplatzhalter"
+    },
+    "shape": {
+      "label": "Form",
+      "hint": "Allgemeiner Formblock"
+    },
+    "table": {
+      "label": "Tabelle",
+      "hint": "Tabellarischer Inhaltsbereich"
+    },
+    "line": {
+      "label": "Linie",
+      "hint": "Trennelement"
+    },
+    "rect": {
+      "label": "Rechteck",
+      "hint": "Gefülltes Rechteck"
+    },
+    "circle": {
+      "label": "Kreis",
+      "hint": "Kreisform"
+    },
+    "chart": {
+      "label": "Diagramm",
+      "hint": "Datendiagrammblock"
+    },
+    "subsection": {
+      "label": "Unterabschnitt",
+      "hint": "Verschachtelter Inhaltsabschnitt"
+    },
+    "area": {
+      "label": "Bereich",
+      "hint": "Layoutbereich-Container"
+    },
+    "button": {
+      "label": "Schaltfläche",
+      "hint": "Aktionsschaltfläche"
+    },
+    "dropdown": {
+      "label": "Dropdown",
+      "hint": "Auswahleingabe"
+    },
+    "optionlist": {
+      "label": "Optionsliste",
+      "hint": "Liste von Auswahlmöglichkeiten"
+    },
+    "radio": {
+      "label": "Radiogruppe",
+      "hint": "Einzelauswahloptionen"
+    },
+    "watermark": {
+      "label": "Wasserzeichen",
+      "hint": "Globales Text- oder Bildzeichen"
+    },
+    "note": {
+      "label": "Notiz",
+      "hint": "Dokumentanmerkung"
+    },
+    "arrow": {
+      "label": "Pfeil",
+      "hint": "Richtungsmarker"
+    },
+    "draw": {
+      "label": "Zeichnen",
+      "hint": "Freihand-Vektorstrich"
+    },
+    "date": {
+      "label": "Datum",
+      "hint": "Statisches oder dynamisches Datum"
+    },
+    "highlight": {
+      "label": "Markierung",
+      "hint": "Transparente Hervorhebung"
+    },
+    "checkmark": {
+      "label": "Häkchen",
+      "hint": "Häkchen-, Kreuz- oder Punktmarkierung"
+    },
+    "pageboundary": {
+      "label": "Seitenanfang/-ende",
+      "hint": "Seitengrenzenmarker"
+    },
+    "pagenumber": {
+      "label": "Seitenzahl",
+      "hint": "Seitenzahl-Platzhalter"
+    },
+    "toc": {
+      "label": "Inhaltsverzeichnis",
+      "hint": "Automatisch generiertes Inhaltsverzeichnis aus Überschriften"
+    },
+    "link": {
+      "label": "Link",
+      "hint": "Hyperlink-Element"
+    },
+    "number": {
+      "label": "Zahl",
+      "hint": "Formatierter Zahlenwert"
+    },
+    "footnote": {
+      "label": "Fußnote",
+      "hint": "DOCX-Fußnotenverweis"
+    },
+    "endnote": {
+      "label": "Endnote",
+      "hint": "DOCX-Endnotenverweis"
+    },
+    "bookmark": {
+      "label": "Lesezeichen",
+      "hint": "Benannter Anker für Querverweise"
+    },
+    "comment": {
+      "label": "Kommentar",
+      "hint": "Word-natives Randkommentar"
+    },
+    "contentcontrol": {
+      "label": "Inhaltssteuerelement",
+      "hint": "Strukturiertes Word-Inhaltssteuerelement (SDT)"
+    }
+  },
+  "toolGroups": {
+    "text": "Textelemente",
+    "form": "Formularelemente",
+    "visual": "Visuelle Elemente",
+    "layout": "Formen und Layout",
+    "advanced": "Erweiterte Dokumentelemente",
+    "word": "Word-/DOCX-Elemente"
+  },
+  "toasts": {
+    "designCloned": "Design mit neuer ID geklont",
+    "cloneFailed": "Klonen fehlgeschlagen",
+    "pageExtracted": "Seite {{number}} extrahiert",
+    "extractFailed": "Extrahieren fehlgeschlagen"
+  },
+  "warnings": {
+    "pageRangeNeeded": "Der ausgewählte Bereich benötigt einen Seitenbereichswert.",
+    "bindingPathNeeded": "Der Bindungsmodus benötigt einen Datenbindungspfad.",
+    "drawPathNeeded": "Das Zeichenelement benötigt SVG-Pfaddaten.",
+    "opacityRange": "Die Deckkraft sollte zwischen 0 und 1 liegen."
+  },
+  "placeholders": {
+    "qrCode": "QR-Code",
+    "barcode": "Barcode",
+    "signatureLine": "Signaturlinie",
+    "requiredField": "Pflichtfeld",
+    "required": "Erforderlich",
+    "optional": "Optional",
+    "image": "Bild"
+  },
+  "pagePanel": {
+    "pageTitle": "Seite {{number}}",
+    "duplicatePage": "Seite duplizieren",
+    "extractPageToJson": "Seite als JSON extrahieren",
+    "deletePage": "Seite löschen",
+    "deletePageConfirm": "Seite {{number}} löschen?",
+    "addPage": "Seite hinzufügen"
+  },
+  "inspector": {
+    "ariaLabel": "Elementeigenschaften",
+    "inspectorTab": "Inspektor",
+    "pageSettingsTab": "Seiteneinstellungen",
+    "layersTab": "Ebenen",
+    "propertiesTab": "Eigenschaften",
+    "elementNamePlaceholder": "Elementname…",
+    "outsideMarginWarning": "Das Element befindet sich außerhalb des Randsicherheitsbereichs.",
+    "layerOf": "Ebene {{current}} von {{total}}",
+    "sendToBack": "In den Hintergrund",
+    "sendBackward": "Eine Ebene nach hinten",
+    "bringForward": "Eine Ebene nach vorne",
+    "bringToFront": "In den Vordergrund",
+    "locked": "Gesperrt",
+    "editable": "Bearbeitbar",
+    "languageScope": "Sprachbereich",
+    "positionAppliesToLangOnly": "Positionsänderungen gelten nur für {{lang}}",
+    "switchToLangOnlyEditing": "Zu nur-{{lang}}-Bearbeitung wechseln",
+    "positionAppliesToAll": "Positionsänderungen gelten für alle Sprach-Tabs",
+    "switchToAllLanguagesEditing": "Zur Bearbeitung aller Sprachen wechseln",
+    "all": "Alle",
+    "x": "X",
+    "y": "Y",
+    "width": "Breite",
+    "height": "Höhe",
+    "rotation": "Rotation °",
+    "resetRotation": "Rotation zurücksetzen",
+    "reset": "Zurücksetzen",
+    "align": "Ausrichten",
+    "alignLeftTitle": "Linke Kanten am Rand ausrichten",
+    "alignHCenterTitle": "Horizontale Mitten ausrichten",
+    "alignRightTitle": "Rechte Kanten am Rand ausrichten",
+    "alignTopTitle": "Obere Kanten am Rand ausrichten",
+    "alignVCenterTitle": "Vertikale Mitten ausrichten",
+    "alignBottomTitle": "Untere Kanten am Rand ausrichten",
+    "distribute": "Verteilen",
+    "distributeHorizontally": "Horizontal verteilen",
+    "distributeVertically": "Vertikal verteilen",
+    "headingLevel": "Überschriftenebene",
+    "headingNone": "Keine (Fließtext)",
+    "heading1": "Überschrift 1",
+    "heading2": "Überschrift 2",
+    "heading3": "Überschrift 3",
+    "headingTocNote": "Überschriften werden in das Inhaltsverzeichnis-Element aufgenommen.",
+    "formValidation": "Formular & Validierung",
+    "tabIndex": "Tab-Index",
+    "tabIndexPlaceholder": "auto",
+    "minLength": "Min. Länge",
+    "maxLength": "Max. Länge",
+    "lengthPlaceholder": "—",
+    "patternRegex": "Muster (Regex)",
+    "patternPlaceholder": "z. B. \\d{5}"
+  },
+  "layers": {
+    "allPagesHeaderFooter": "Alle Seiten (Kopf-/Fußzeile)",
+    "pageHeading": "Seite {{number}}",
+    "show": "Anzeigen",
+    "hide": "Ausblenden",
+    "lock": "Sperren",
+    "unlock": "Entsperren",
+    "noElementsYet": "Noch keine Elemente. Fügen Sie eines aus der Werkzeugleiste hinzu.",
+    "noElementsOnPageYet": "Noch keine Elemente auf dieser Seite.",
+    "shiftClickMultiSelect": "Umschalt+Klick für Mehrfachauswahl",
+    "duplicate": "Duplizieren"
+  },
+  "contextMenu": {
+    "copy": "Kopieren",
+    "duplicate": "Duplizieren",
+    "paste": "Einfügen",
+    "unlock": "Entsperren",
+    "lock": "Sperren",
+    "show": "Anzeigen",
+    "hide": "Ausblenden",
+    "bringToFront": "In den Vordergrund",
+    "bringForward": "Eine Ebene nach vorne",
+    "sendBackward": "Eine Ebene nach hinten",
+    "sendToBack": "In den Hintergrund",
+    "deleteFromAllLanguagesTitle": "Dieses Element aus allen Sprach-Tabs löschen",
+    "deleteFromAllLanguages": "Aus allen Sprachen löschen",
+    "delete": "Löschen",
+    "selectAll": "Alle auswählen"
+  },
+  "mobileOverlay": {
+    "title": "Desktop erforderlich",
+    "body": "Der Editor ist für größere Bildschirme konzipiert. Bitte öffnen Sie ihn auf einem Desktop oder Tablet."
+  },
+  "topbar": {
+    "backToGallery": "Zurück zur Galerie",
+    "kicker": "UI-Designer",
+    "designActions": "Design-Aktionen",
+    "cloneDesign": "Design klonen",
+    "pageDimensions": "{{width}} × {{height}} px",
+    "undo": "Rückgängig (⌘Z)",
+    "redo": "Wiederholen (⌘⇧Z)",
+    "pageSettingsPending": "Seiteneinstellungen — Änderungen noch nicht exportiert",
+    "pageSettings": "Seiteneinstellungen",
+    "findReplace": "Suchen & Ersetzen",
+    "exportCode": "Code exportieren (JSON / C#)",
+    "outputModeTitle": "Ausgabemodus: beeinflusst, welche Elemente in der Werkzeugleiste angezeigt werden",
+    "pdf": "PDF",
+    "word": "Word",
+    "help": "Hilfe (F1)",
+    "preview": "Vorschau"
+  },
+  "toolPanel": {
+    "addElements": "Elemente hinzufügen",
+    "wordOnlyWarning": "Einige Elemente auf der Leinwand sind nur für Word und werden im PDF-Export nicht dargestellt.",
+    "insertFormBlockTitle": "Eine vorgefertigte Gruppe von Formularfeldern einfügen (Adresse, Kontakt usw.)",
+    "insertFormBlock": "Formularblock einfügen",
+    "layers": "Ebenen"
+  },
+  "canvasStage": {
+    "ariaLabel": "Dokumentleinwand",
+    "pageOfTotal": "Seite {{current}} / {{total}}",
+    "pageDimensions": "{{width}} × {{height}} px",
+    "customSize": "Benutzerdefiniert",
+    "zoomOut": "Verkleinern (⌘−)",
+    "zoomIn": "Vergrößern (⌘+)",
+    "drawingLine": "Linie wird gezeichnet",
+    "drawingArrow": "Pfeil wird gezeichnet",
+    "freehandDrawing": "Freihandzeichnung",
+    "drawInstructions": "— auf der Leinwand klicken und ziehen",
+    "cancelHint": "zum Abbrechen",
+    "headerGuide": "Kopfzeile",
+    "footerGuide": "Fußzeile",
+    "watermarkAlt": "Wasserzeichen"
+  },
+  "emptyState": {
+    "title": "Mit einem Element beginnen",
+    "body": "Ziehen Sie ein Werkzeug von links auf die PDF-Seite, oder klicken Sie auf ein Werkzeug, um es automatisch hinzuzufügen."
+  },
+  "pageSettings": {
+    "paper": {
+      "heading": "Papier",
+      "size": "Größe",
+      "customOption": "Benutzerdefiniert",
+      "unit": "Einheit",
+      "units": {
+        "px": "px",
+        "pt": "pt",
+        "mm": "mm",
+        "cm": "cm",
+        "in": "Zoll"
+      },
+      "width": "Breite ({{unit}})",
+      "height": "Höhe ({{unit}})",
+      "portrait": "Hochformat",
+      "landscape": "Querformat"
+    },
+    "background": {
+      "heading": "Hintergrund",
+      "color": "Farbe",
+      "fit": "Anpassung",
+      "fitOptions": {
+        "cover": "Ausfüllen",
+        "contain": "Einpassen",
+        "fill": "Strecken",
+        "tile": "Kacheln"
+      },
+      "imageUrl": "Bild-URL",
+      "imageUrlPlaceholder": "https://…",
+      "removeImage": "Bild entfernen"
+    },
+    "margins": {
+      "heading": "Ränder",
+      "unlinkMargins": "Ränder trennen",
+      "linkMargins": "Ränder verbinden",
+      "presets": {
+        "none": "Keine",
+        "narrow": "Schmal",
+        "normal": "Normal",
+        "wide": "Breit"
+      },
+      "sideLabel": "{{side}} ({{unit}})",
+      "sides": {
+        "top": "Oben",
+        "right": "Rechts",
+        "bottom": "Unten",
+        "left": "Links"
+      }
+    },
+    "workspace": {
+      "heading": "Arbeitsbereich",
+      "showGrid": "Raster anzeigen",
+      "snapToGrid": "Am Raster ausrichten",
+      "gridSize": "Rastergröße (px)",
+      "showMarginGuide": "Randführung anzeigen",
+      "showSafeAreaGuide": "Sicherheitsbereich-Führung anzeigen"
+    },
+    "headerFooter": {
+      "heading": "Kopf- & Fußzeile",
+      "enableHeader": "Kopfzeile aktivieren",
+      "headerHeight": "Kopfzeilenhöhe (px)",
+      "headerFirstPageDifferent": "Andere Kopfzeile auf erster Seite",
+      "headerOddEvenDifferent": "Andere Kopfzeile auf geraden/ungeraden Seiten",
+      "insertIntoHeader": "In Kopfzeile einfügen",
+      "enableFooter": "Fußzeile aktivieren",
+      "footerHeight": "Fußzeilenhöhe (px)",
+      "footerFirstPageDifferent": "Andere Fußzeile auf erster Seite",
+      "footerOddEvenDifferent": "Andere Fußzeile auf geraden/ungeraden Seiten",
+      "insertIntoFooter": "In Fußzeile einfügen",
+      "insertText": "Text",
+      "insertPageNumber": "Seiten-№",
+      "insertDate": "Datum",
+      "insertLogo": "Logo"
+    },
+    "bleed": {
+      "heading": "Beschnitt",
+      "bleedSize": "Beschnittgröße (px) — 0 = aus",
+      "bleedNote": "Die rote Schnittlinie zeigt, wo das Papier geschnitten wird. Hintergrundelemente bis zum Seitenrand erweitern.",
+      "showCropMarks": "Schnittmarken anzeigen"
+    },
+    "watermark": {
+      "heading": "Globales Wasserzeichen",
+      "enable": "Wasserzeichen aktivieren",
+      "modeText": "Text",
+      "modeImageUrl": "Bild-URL",
+      "textPlaceholder": "z. B. ENTWURF",
+      "urlPlaceholder": "https://...",
+      "opacity": "Deckkraft (0–1)",
+      "rotation": "Rotation (°)",
+      "fontSize": "Schriftgröße (px)",
+      "color": "Farbe",
+      "pageScope": "Seitenbereich",
+      "scopeAll": "Alle Seiten",
+      "scopeFirst": "Nur erste Seite",
+      "scopeOdd": "Ungerade Seiten",
+      "scopeEven": "Gerade Seiten",
+      "scopeRange": "Seitenbereich",
+      "pageRange": "Seitenbereich (z. B. 2-5)",
+      "pageRangePlaceholder": "z. B. 2-5"
+    },
+    "pageNumbering": {
+      "heading": "Seitennummerierung",
+      "enable": "Seitenzahlen aktivieren",
+      "format": "Format",
+      "formatPageOfTotal": "Seite X von Y",
+      "formatCurrent": "Nur Seitenzahl",
+      "formatTotal": "Nur Gesamtseitenzahl",
+      "formatRoman": "Römische Zahlen",
+      "formatAlphabetic": "Alphabetisch",
+      "startAt": "Beginnen bei",
+      "prefix": "Präfix",
+      "prefixPlaceholder": "z. B. Seite ",
+      "suffix": "Suffix",
+      "suffixPlaceholder": "z. B.  | Entwurf",
+      "showOnFirstPage": "Auf erster Seite anzeigen",
+      "placement": "Platzierung",
+      "placements": {
+        "top-left": "oben links",
+        "top-center": "oben mittig",
+        "top-right": "oben rechts",
+        "bottom-left": "unten links",
+        "bottom-center": "unten mittig",
+        "bottom-right": "unten rechts"
+      },
+      "placeOnCanvas": "Auf Leinwand platzieren"
+    },
+    "exportMetadata": {
+      "heading": "Export-Metadaten",
+      "fields": {
+        "title": "Titel",
+        "author": "Autor",
+        "subject": "Betreff",
+        "keywords": "Schlüsselwörter"
+      },
+      "keywordsPlaceholder": "kommagetrennt"
+    },
+    "exportDefaults": {
+      "heading": "Export-Standardwerte",
+      "pdfQuality": "PDF-Qualität",
+      "qualityScreen": "Bildschirm (72 dpi)",
+      "qualityEbook": "E-Book (150 dpi)",
+      "qualityPrinter": "Drucker (300 dpi)",
+      "qualityPrepress": "Druckvorstufe (400 dpi)",
+      "embedFonts": "Schriften einbetten",
+      "compressImages": "Bilder komprimieren",
+      "accessibilityTagged": "Barrierefreiheit (getaggtes PDF)"
+    },
+    "pagination": {
+      "heading": "Paginierung",
+      "pageBreaks": "Seitenumbrüche",
+      "breaksAutomatic": "Automatisch",
+      "breaksManual": "Nur manuell (Seitengrenz-Elemente)",
+      "sectionStart": "Abschnittsbeginn",
+      "sectionContinue": "Auf derselben Seite fortsetzen",
+      "sectionNewPage": "Auf neuer Seite beginnen",
+      "sectionOddPage": "Auf ungerader Seite beginnen",
+      "sectionEvenPage": "Auf gerader Seite beginnen",
+      "repeatTableHeader": "Tabellenkopf auf jeder Seite wiederholen",
+      "keepWithNext": "Überschriften mit folgendem Inhalt zusammenhalten",
+      "orphanLines": "Schusterjungen (min.)",
+      "widowLines": "Hurenkinder (min.)"
+    },
+    "trackChanges": {
+      "heading": "Änderungsverfolgung",
+      "enable": "Revisionsverfolgung im DOCX-Export aktivieren"
+    },
+    "protection": {
+      "heading": "Dokumentschutz",
+      "enable": "Schutz aktivieren",
+      "restrictionMode": "Einschränkungsmodus",
+      "modeReadOnly": "Schreibgeschützt",
+      "modeComments": "Nur Kommentare",
+      "modeTrackedChanges": "Nur verfolgte Änderungen",
+      "modeFormFields": "Nur Formularfelder",
+      "passwordHash": "Passwort-Hash (optional)",
+      "passwordHashPlaceholder": "Leer lassen für kein Passwort"
+    },
+    "encryption": {
+      "heading": "PDF-Verschlüsselung",
+      "enable": "PDF mit Passwort verschlüsseln",
+      "userPassword": "Benutzerpasswort (zum Öffnen)",
+      "userPasswordPlaceholder": "Leer lassen, um ohne Aufforderung zu öffnen",
+      "ownerPassword": "Eigentümerpasswort (Berechtigungen)",
+      "ownerPasswordPlaceholder": "Standardmäßig das Benutzerpasswort",
+      "algorithm": "Algorithmus",
+      "algorithmRc4": "RC4 128-Bit",
+      "algorithmAes128": "AES 128-Bit (demnächst verfügbar)",
+      "permissionsHeading": "Berechtigungen",
+      "permissions": {
+        "print": "Drucken",
+        "copy": "Kopieren / Text extrahieren",
+        "modify": "Inhalte ändern",
+        "annotate": "Kommentieren & Formulare ausfüllen",
+        "fillForms": "Nur Formularfelder ausfüllen",
+        "extractAccessibility": "Für Barrierefreiheit extrahieren",
+        "assemble": "Zusammenstellen (Seiten einfügen/drehen/löschen)",
+        "printHighResolution": "Hochauflösender Druck"
+      }
+    },
+    "customProperties": {
+      "heading": "Benutzerdefinierte Eigenschaften",
+      "namePlaceholder": "Name",
+      "valuePlaceholder": "Wert",
+      "typeText": "Text",
+      "typeNumber": "Zahl",
+      "typeBoolean": "boolesch",
+      "typeDate": "Datum",
+      "remove": "Entfernen",
+      "addProperty": "Eigenschaft hinzufügen"
+    },
+    "languages": {
+      "heading": "Sprachen",
+      "systemLanguage": "Systemsprache:",
+      "systemLanguageNote": "(automatisch erkannt, als Fallback verwendet)"
+    },
+    "namedStyles": {
+      "heading": "Benannte Formatvorlagen",
+      "idPlaceholder": "ID",
+      "displayNamePlaceholder": "Anzeigename",
+      "typeParagraph": "Absatz",
+      "typeCharacter": "Zeichen",
+      "typeList": "Liste",
+      "typeTable": "Tabelle",
+      "remove": "Entfernen",
+      "basedOnPlaceholder": "Basiert auf (ID)",
+      "nextStylePlaceholder": "Nächste Formatvorlage (ID)",
+      "addStyle": "Formatvorlage hinzufügen"
+    },
+    "reset": "Auf Standardwerte zurücksetzen"
+  },
+  "elementInspector": {
+    "toc": {
+      "heading": "Inhaltsverzeichnis",
+      "title": "Titel",
+      "titlePlaceholder": "Inhaltsverzeichnis",
+      "minLevel": "Min. Ebene",
+      "maxLevel": "Max. Ebene",
+      "showPageNumbers": "Seitenzahlen anzeigen",
+      "showLeaderDots": "Führungspunkte anzeigen",
+      "noHeadingsWarning": "Keine Überschriften-Elemente gefunden. Wählen Sie ein Textelement aus und legen Sie im Inspektor eine Überschriftenebene fest.",
+      "entriesSummary": "{{count}} Eintrag (H{{min}}–H{{max}}) auf {{pages}} Seite",
+      "entriesSummary_plural": "{{count}} Einträge (H{{min}}–H{{max}}) auf {{pages}} Seiten",
+      "lastUpdated": "· zuletzt aktualisiert: {{count}} Einträge",
+      "assignHeadingLevelsFirst": "Weisen Sie zuerst Textelementen Überschriftenebenen zu",
+      "rebuildTocTitle": "Alle Seiten scannen und die Inhaltsverzeichnisliste neu erstellen",
+      "updateToc": "Inhaltsverzeichnis aktualisieren"
+    },
+    "content": {
+      "heading": "Inhalt",
+      "placeholder": "Textinhalt oder {{KEY}}",
+      "globalBadge": "GLOBAL",
+      "insertGlobalPropertyTitle": "{{tag}} einfügen — globale Eigenschaft",
+      "ownBadge": "EIGEN · {{lang}}",
+      "insertOwnPropertyTitle": "{{tag}} einfügen — eigene Eigenschaft für {{lang}}"
+    },
+    "imageAnalysisGlyphs": {
+      "heading": "Bildanalyse-Glyphen",
+      "unknownMethod": "unbekannt"
+    },
+    "richtext": {
+      "htmlContent": "HTML-Inhalt",
+      "htmlPlaceholder": "<p>Ihr <strong>formatierter</strong> Text hier</p>"
+    },
+    "field": {
+      "fieldLabel": "Feldbezeichnung",
+      "fieldLabelPlaceholder": "Bezeichnungstext oder {{key}}",
+      "localizedValuesHint": "Verwenden Sie {{key}} für lokalisierte Werte",
+      "fieldName": "Feldname",
+      "fillBackground": "Hintergrund füllen"
+    },
+    "common": {
+      "fontSize": "Schriftgröße",
+      "textColor": "Textfarbe",
+      "color": "Farbe"
+    },
+    "textarea": {
+      "fieldLabel": "Feldbezeichnung",
+      "fieldLabelPlaceholder": "Bezeichnungstext oder {{key}}",
+      "localizedValuesHint": "Verwenden Sie {{key}} für lokalisierte Werte",
+      "fieldName": "Feldname",
+      "placeholderText": "Platzhaltertext",
+      "fillBackground": "Hintergrund füllen"
+    },
+    "checkbox": {
+      "label": "Kontrollkästchen-Bezeichnung",
+      "labelPlaceholder": "Bezeichnung oder {{key}}",
+      "localizedValuesHint": "Verwenden Sie {{key}} für lokalisierte Werte",
+      "fieldName": "Feldname"
+    },
+    "button": {
+      "label": "Bezeichnung",
+      "actionType": "Aktionstyp",
+      "actionNone": "— Keine —",
+      "actionOpenUrl": "URL öffnen",
+      "actionGoToPage": "Zu Seite springen",
+      "actionSubmitForm": "Formular absenden",
+      "actionResetForm": "Formular zurücksetzen",
+      "url": "URL",
+      "urlPlaceholder": "https://example.com",
+      "pageNumber": "Seitennummer",
+      "background": "Hintergrund",
+      "radius": "Radius"
+    },
+    "dropdown": {
+      "options": "Optionen (eine pro Zeile)",
+      "optionsPlaceholder": "Option 1\nOption 2\nOption 3",
+      "multiSelect": "Mehrfachauswahl"
+    },
+    "optionlist": {
+      "listStyle": "Listenstil",
+      "styleBulletDisc": "• Aufzählung (Punkt)",
+      "styleCircle": "○ Kreis",
+      "styleSquare": "▪ Quadrat",
+      "styleDash": "– Bindestrich",
+      "styleAsterisk": "* Sternchen",
+      "styleNone": "Kein Zeichen",
+      "styleDecimal": "1. Dezimal",
+      "styleLowerAlpha": "a. Kleinbuchstaben",
+      "styleUpperAlpha": "A. Großbuchstaben",
+      "styleLowerRoman": "i. Kleine römische Zahlen",
+      "styleUpperRoman": "I. Große römische Zahlen",
+      "items": "Elemente (eines pro Zeile)",
+      "itemsPlaceholder": "Element 1\nElement 2\nElement 3"
+    },
+    "radio": {
+      "options": "Optionen",
+      "optionPlaceholder": "Option {{number}}",
+      "removeOption": "Option entfernen",
+      "addOption": "+ Option hinzufügen"
+    },
+    "checkmark": {
+      "label": "Bezeichnung",
+      "labelPlaceholder": "Bezeichnung oder {{key}}",
+      "localizedValuesHint": "Verwenden Sie {{key}} für lokalisierte Werte",
+      "state": "Status",
+      "stateChecked": "Angehakt",
+      "stateCross": "Kreuz",
+      "stateDot": "Punkt",
+      "stateEmpty": "Leer",
+      "markColor": "Markierungsfarbe",
+      "stroke": "Strichstärke"
+    },
+    "watermark": {
+      "mode": "Modus",
+      "modeText": "Text",
+      "modeImage": "Bild",
+      "imageUrl": "Bild-URL",
+      "text": "Text",
+      "color": "Farbe",
+      "opacity": "Deckkraft",
+      "rotation": "Rotation",
+      "scale": "Skalierung",
+      "pageScope": "Seitenbereich",
+      "scopeAll": "Alle Seiten",
+      "scopeCurrent": "Aktuelle Seite",
+      "scopeFirst": "Nur erste Seite",
+      "scopeLast": "Nur letzte Seite",
+      "scopeRange": "Ausgewählter Bereich",
+      "pageRange": "Seitenbereich",
+      "pageRangePlaceholder": "1-3, 5"
+    },
+    "note": {
+      "title": "Titel",
+      "body": "Text",
+      "author": "Autor",
+      "noteColor": "Notizfarbe",
+      "collapsed": "Eingeklappte Notiz"
+    },
+    "date": {
+      "mode": "Modus",
+      "modeStatic": "Statisches Datum",
+      "modeRender": "Renderdatum",
+      "modeBinding": "Datenbindung",
+      "staticValue": "Statischer Wert / Fallback",
+      "locale": "Gebietsschema",
+      "timezone": "Zeitzone",
+      "format": "Format",
+      "color": "Farbe"
+    },
+    "pagenumber": {
+      "format": "Format",
+      "formatCurrent": "Aktuelle Seite",
+      "formatTotal": "Gesamtseiten",
+      "formatPageOfTotal": "Seite X von Y",
+      "formatRoman": "Römisch",
+      "formatAlphabetic": "Alphabetisch",
+      "start": "Start",
+      "pageScope": "Seitenbereich",
+      "scopeAll": "Alle",
+      "scopeCurrent": "Aktuell",
+      "scopeFirst": "Erste",
+      "scopeLast": "Letzte",
+      "scopeOdd": "Ungerade",
+      "scopeEven": "Gerade",
+      "scopeRange": "Bereich",
+      "pageRange": "Seitenbereich",
+      "pageRangePlaceholder": "1-3, 5",
+      "prefix": "Präfix",
+      "suffix": "Suffix"
+    },
+    "arrow": {
+      "direction": "Richtung",
+      "directions": {
+        "up": "Oben",
+        "down": "Unten",
+        "left": "Links",
+        "right": "Rechts"
+      },
+      "rotation": "Rotation (°)",
+      "arrowMode": "Pfeilmodus",
+      "modeStraight": "Gerade",
+      "modeElbow": "Winkel",
+      "modeCurved": "Gebogen",
+      "startHead": "Startspitze",
+      "endHead": "Endspitze",
+      "markerNone": "Keine",
+      "markerFilled": "▶ Gefüllt",
+      "markerOpen": "▷ Offen",
+      "markerDot": "● Punkt",
+      "markerDiamond": "◆ Raute",
+      "markerSquare": "■ Quadrat",
+      "markerCircle": "○ Kreis",
+      "color": "Farbe",
+      "stroke": "Strichstärke",
+      "dashStyle": "Strichart",
+      "dashSolid": "Durchgezogen",
+      "dashDashed": "Gestrichelt",
+      "dashDotted": "Gepunktet"
+    },
+    "typography": {
+      "heading": "Typografie",
+      "fontFamily": "Schriftfamilie",
+      "language": "Sprache",
+      "languageNone": "(keine)",
+      "languages": {
+        "en": "Englisch",
+        "de": "Deutsch",
+        "fr": "Französisch",
+        "es": "Spanisch",
+        "it": "Italienisch",
+        "pt": "Portugiesisch",
+        "ru": "Russisch",
+        "el": "Griechisch",
+        "ar": "Arabisch (RTL)",
+        "he": "Hebräisch (RTL)",
+        "fa": "Persisch (RTL)",
+        "zh-CN": "Chinesisch (vereinfacht)",
+        "zh-TW": "Chinesisch (traditionell)",
+        "ja": "Japanisch",
+        "ko": "Koreanisch",
+        "hi": "Hindi",
+        "th": "Thailändisch"
+      },
+      "direction": "Richtung",
+      "directionLtrTitle": "Von links nach rechts",
+      "directionRtlTitle": "Von rechts nach links",
+      "color": "Farbe",
+      "lineHeight": "Zeilenhöhe",
+      "letterSpacing": "Zeichenabstand",
+      "bold": "Fett",
+      "italic": "Kursiv",
+      "underline": "Unterstrichen",
+      "alignLeft": "Linksbündig",
+      "alignCenter": "Zentriert",
+      "alignRight": "Rechtsbündig",
+      "alignJustify": "Blocksatz"
+    },
+    "background": {
+      "heading": "Hintergrund",
+      "color": "Farbe",
+      "opacityPercent": "Deckkraft %",
+      "transparent": "Transparent (kein Hintergrund)"
+    },
+    "border": {
+      "heading": "Rahmen",
+      "width": "Breite",
+      "color": "Farbe",
+      "style": "Stil",
+      "styleNone": "Kein",
+      "styleSolid": "Durchgezogen",
+      "styleDashed": "Gestrichelt",
+      "styleDotted": "Gepunktet",
+      "styleDouble": "Doppelt",
+      "radius": "Radius"
+    },
+    "padding": {
+      "heading": "Abstand",
+      "unlinkTitle": "Seiten trennen",
+      "linkTitle": "Alle Seiten verbinden",
+      "allSides": "Alle Seiten",
+      "top": "Oben",
+      "right": "Rechts",
+      "bottom": "Unten",
+      "left": "Links"
+    },
+    "qrcode": {
+      "value": "QR-Code-Wert",
+      "valuePlaceholder": "https://example.com",
+      "size": "Größe"
+    },
+    "barcode": {
+      "value": "Barcode-Wert",
+      "valuePlaceholder": "123456789012",
+      "type": "Typ",
+      "typeCode128": "Code 128",
+      "typeCode39": "Code 39",
+      "typeEan13": "EAN-13",
+      "typeUpc": "UPC"
+    },
+    "signature": {
+      "label": "Signaturbezeichnung",
+      "labelPlaceholder": "Signatur oder {{key}}",
+      "localizedValuesHint": "Verwenden Sie {{key}} für lokalisierte Werte"
+    },
+    "image": {
+      "dropHere": "Bild hier ablegen oder",
+      "browse": "Durchsuchen",
+      "sourceUrl": "Quell-URL",
+      "fitMode": "Anpassungsmodus",
+      "fitContain": "Einpassen",
+      "fitCover": "Ausfüllen",
+      "fitFill": "Strecken",
+      "fitNone": "Keine",
+      "cropX": "Zuschnitt X",
+      "cropY": "Zuschnitt Y",
+      "cropWidth": "Zuschnittbreite",
+      "cropHeight": "Zuschnitthöhe",
+      "focalX": "Fokus X (%)",
+      "focalY": "Fokus Y (%)",
+      "preserveAspectRatio": "Seitenverhältnis beibehalten"
+    },
+    "table": {
+      "rows": "Zeilen",
+      "columns": "Spalten",
+      "borderWidth": "Rahmenbreite",
+      "borderColor": "Rahmenfarbe",
+      "cellPadding": "Zellenabstand",
+      "cellFontSize": "Zellen-Schriftgröße",
+      "cellFont": "Zellenschrift",
+      "cellTextColor": "Zellen-Textfarbe",
+      "boldCellText": "Fetter Zellentext",
+      "headerRow": "Kopfzeile",
+      "headerBackground": "Kopfzeilenhintergrund",
+      "footerRow": "Fußzeile",
+      "alternatingRows": "Abwechselnde Zeilen",
+      "evenRowColor": "Farbe gerade Zeilen",
+      "columnAlignment": "Spaltenausrichtung",
+      "col": "Sp. {{number}}",
+      "columnWidths": "Spaltenbreiten (px, 0 = auto)",
+      "widthPlaceholder": "Auto",
+      "cellContent": "Zelleninhalt",
+      "cellStyle": "Zellenformat",
+      "row": "Zeile",
+      "colLabel": "Sp.",
+      "cellTitle": "Zelle {{row}}:{{col}}",
+      "cellTitleStyled": "Zelle {{row}}:{{col}} formatiert",
+      "background": "Hintergrund",
+      "textColor": "Textfarbe",
+      "fontSize": "Schriftgröße",
+      "padding": "Abstand",
+      "fontFamily": "Schriftfamilie",
+      "fontFamilyDefault": "Standard",
+      "alignTitle": "{{align}} ausrichten",
+      "bold": "Fett",
+      "italic": "Kursiv",
+      "clearCellStyle": "Zellenformat löschen"
+    },
+    "chart": {
+      "chartType": "Diagrammtyp",
+      "typeBar": "Balken",
+      "typeLine": "Linie",
+      "typePie": "Kreis",
+      "chartData": "Diagrammdaten (JSON)"
+    },
+    "line": {
+      "color": "Farbe",
+      "thickness": "Dicke (px)"
+    },
+    "link": {
+      "displayText": "Anzeigetext",
+      "displayTextPlaceholder": "Hier klicken",
+      "url": "URL (href)",
+      "urlPlaceholder": "https://example.com",
+      "target": "Ziel",
+      "targetBlank": "Neuer Tab (_blank)",
+      "targetSelf": "Gleicher Tab (_self)",
+      "color": "Farbe"
+    },
+    "number": {
+      "value": "Wert",
+      "style": "Stil",
+      "styleDecimal": "Dezimal (1.234,56)",
+      "styleCurrency": "Währung (1.234,56 €)",
+      "stylePercent": "Prozent (12,5 %)",
+      "styleScientific": "Wissenschaftlich (1,23e+3)",
+      "styleOrdinal": "Ordinal (1., 2. …)",
+      "decimals": "Dezimalstellen",
+      "locale": "Gebietsschema",
+      "currency": "Währung",
+      "color": "Farbe",
+      "prefix": "Präfix",
+      "prefixPlaceholder": "z. B. ~",
+      "suffix": "Suffix",
+      "suffixPlaceholder": "z. B. Pkt."
+    },
+    "draw": {
+      "tool": "Werkzeug",
+      "toolPen": "Stift",
+      "toolHighlighter": "Textmarker",
+      "toolEraser": "Radierer",
+      "pathData": "Pfaddaten",
+      "color": "Farbe",
+      "stroke": "Strichstärke",
+      "opacity": "Deckkraft"
+    },
+    "highlight": {
+      "mode": "Modus",
+      "modeRectangle": "Rechteck",
+      "modeText": "Textmarkierung",
+      "color": "Farbe",
+      "opacity": "Deckkraft",
+      "radius": "Radius"
+    },
+    "pageboundary": {
+      "boundary": "Grenze",
+      "boundaryStart": "Seitenanfang",
+      "boundaryEnd": "Seitenende",
+      "label": "Bezeichnung",
+      "color": "Farbe"
+    },
+    "footnote": {
+      "footnoteText": "Fußnotentext",
+      "endnoteText": "Endnotentext",
+      "placeholder": "Notiztext…"
+    },
+    "bookmark": {
+      "name": "Lesezeichenname",
+      "namePlaceholder": "z. B. abschnitt-einleitung",
+      "linkTarget": "Linkziel (optional)",
+      "linkTargetPlaceholder": "Lesezeichenname, auf den verlinkt werden soll"
+    },
+    "comment": {
+      "text": "Kommentartext",
+      "textPlaceholder": "Kommentar…",
+      "author": "Autor",
+      "date": "Datum",
+      "id": "Kommentar-ID",
+      "idPlaceholder": "Automatisch generiert, falls leer"
+    },
+    "contentcontrol": {
+      "controlType": "Steuerelementtyp",
+      "typeRichText": "Rich-Text",
+      "typePlainText": "Nur-Text",
+      "typeDate": "Datumsauswahl",
+      "typeComboBox": "Kombinationsfeld",
+      "typePicture": "Bild",
+      "title": "Titel",
+      "tag": "Tag",
+      "placeholderText": "Platzhaltertext",
+      "defaultContent": "Standardinhalt"
+    },
+    "visibility": {
+      "heading": "Sichtbarkeit",
+      "visibleInOutput": "Sichtbar in der Ausgabe",
+      "visibleExpression": "Sichtbarkeitsausdruck"
+    },
+    "wordDocx": {
+      "heading": "Word / DOCX",
+      "paragraphStyle": "Absatzformat",
+      "none": "— Keine —",
+      "characterStyle": "Zeichenformat",
+      "autoHyphenation": "Automatische Silbentrennung",
+      "revisionType": "Überarbeitungstyp",
+      "revisionInsert": "Einfügen",
+      "revisionDelete": "Löschen",
+      "revisionFormat": "Formatänderung",
+      "revisionAuthor": "Überarbeitungsautor",
+      "revisionDate": "Überarbeitungsdatum",
+      "revisionId": "Überarbeitungs-ID",
+      "autoGenerated": "Automatisch generiert, falls leer"
+    },
+    "deleteElement": "Element löschen"
+  }
+}

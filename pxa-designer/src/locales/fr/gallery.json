@@ -1,0 +1,38 @@
+{
+  "toolbar": {
+    "heading": "Modèles",
+    "count": "{{filtered}} sur {{total}}",
+    "searchPlaceholder": "Rechercher des modèles…",
+    "clearSearch": "Effacer la recherche",
+    "formatFilterLabel": "Filtrer par format",
+    "format": {
+      "all": "Tous les formats",
+      "portrait": "Portrait",
+      "landscape": "Paysage",
+      "square": "Carré",
+      "widescreen": "Écran large"
+    },
+    "sortLabel": "Trier les modèles",
+    "sort": {
+      "default": "Ordre par défaut",
+      "alpha": "A – Z",
+      "category": "Par catégorie"
+    }
+  },
+  "categoryFilter": {
+    "ariaLabel": "Catégories de modèles"
+  },
+  "emptyResults": {
+    "title": "Aucun modèle trouvé",
+    "copy": "Essayez un autre terme de recherche ou une autre catégorie.",
+    "showAll": "Afficher tous les modèles"
+  },
+  "card": {
+    "useTemplateHover": "Utiliser le modèle",
+    "useTemplate": "Utiliser ce modèle"
+  },
+  "detail": {
+    "close": "Fermer",
+    "useTemplate": "Utiliser ce modèle"
+  }
+}

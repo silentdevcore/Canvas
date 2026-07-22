@@ -1,0 +1,34 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "pdf": "PDF",
+    "spreadsheet": "جدول بيانات",
+    "docs": "التوثيق",
+    "logoHome": "الصفحة الرئيسية لـ Power Dox Automation",
+    "openMenu": "فتح القائمة",
+    "closeMenu": "إغلاق القائمة",
+    "mobileMenu": "قائمة الجوال"
+  },
+  "sidebar": {
+    "expand": "توسيع الشريط الجانبي",
+    "collapse": "طي الشريط الجانبي",
+    "sectionNav": "التنقل بين الأقسام",
+    "comingSoon": "قريبًا"
+  },
+  "pdfSidebar": {
+    "createPdf": "إنشاء PDF",
+    "editPdf": "تحرير PDF",
+    "useTemplate": "استخدام قالب",
+    "importPdf": "استيراد PDF",
+    "convertToPdf": "التحويل إلى PDF",
+    "pdfViewer": "عارض PDF",
+    "migrations": "عمليات الترحيل"
+  },
+  "spreadsheetSidebar": {
+    "createSpreadsheet": "إنشاء جدول بيانات",
+    "editSpreadsheet": "تحرير جدول بيانات",
+    "importSpreadsheet": "استيراد جدول بيانات",
+    "convertToSpreadsheet": "التحويل إلى جدول بيانات",
+    "migrations": "عمليات الترحيل"
+  }
+}

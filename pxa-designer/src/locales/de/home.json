@@ -1,0 +1,143 @@
+{
+  "hero": {
+    "eyebrow": "Dokumente an einem Ort gestalten, importieren und exportieren",
+    "title": "Geschäftsdokumente schneller erstellen, ausfüllen und vorbereiten",
+    "description": "Power Dox Automation hilft Ihnen, mit einer Vorlage zu beginnen oder eine vorhandene PDF-, Word- oder ODT-Datei zu importieren. Fügen Sie Felder, Signaturen und Datenbindungen hinzu — exportieren Sie dann nach PDF, DOCX, ODT, TIFF und mehr.",
+    "templateCard": {
+      "title": "Mit einer Vorlage beginnen",
+      "copy": "{{count}} fertige Dokumentvorlagen durchsuchen",
+      "action": "Vorlagen durchsuchen"
+    },
+    "importCard": {
+      "title": "Datei importieren",
+      "importing": "Wird importiert…",
+      "copy": "Öffnen Sie eine PDF-, Word-, ODT- oder Bilddatei als bearbeitbares Design",
+      "action": "Datei auswählen",
+      "tooltip": "Eine PDF-, Word-.doc/.docx-, ODT- oder Bilddatei (PNG/JPG/WebP/…) als PXA-Design importieren",
+      "importFailed": "Import fehlgeschlagen"
+    },
+    "blankCard": {
+      "title": "Leeres Dokument",
+      "copy": "Editor mit einer leeren Seite öffnen — ohne Starterelemente",
+      "action": "Leer beginnen"
+    },
+    "codeCard": {
+      "title": "Code-Editor",
+      "copy": "JSON direkt schreiben und beim Tippen eine Live-PDF-Vorschau sehen",
+      "action": "Editor öffnen"
+    }
+  },
+  "pdfTools": {
+    "sectionLabel": "Jedes benötigte PDF-Werkzeug",
+    "sectionTitle": "Nutzen Sie diese Werkzeuge, um Ihre PDFs fertigzustellen",
+    "createPdf": {
+      "label": "PDF erstellen",
+      "copy": "Ein leeres Dokument starten und visuell gestalten."
+    },
+    "editPdf": {
+      "label": "PDF bearbeiten",
+      "copy": "JSON- oder C#-Code einfügen und live im Designer anpassen."
+    },
+    "useTemplate": {
+      "label": "Vorlage verwenden",
+      "copy": "{{count}} fertige Rechnungen, Quittungen, Zertifikate und mehr durchsuchen."
+    },
+    "importPdf": {
+      "label": "PDF importieren",
+      "copy": "Öffnen Sie schnell ein PDF als bearbeitbares Design im visuellen Editor."
+    },
+    "convertToPdf": {
+      "label": "In PDF konvertieren",
+      "copy": "Verwandeln Sie PDF, Word, PowerPoint, Bilder oder SVG in ein bearbeitbares Design — oder wandeln Sie ein gescanntes Bild per OCR in ein durchsuchbares PDF um."
+    },
+    "pdfViewer": {
+      "label": "PDF-Betrachter",
+      "copy": "Ein PDF öffnen, prüfen und kommentieren, ohne den Browser zu verlassen."
+    },
+    "migrations": {
+      "label": "Migrationen",
+      "copy": "Hersteller-C#-Code oder Report-Designer-Dateien (RDL, DevExpress, Crystal und mehr) in PXA umwandeln."
+    },
+    "signDocx": {
+      "label": "DOCX signieren",
+      "copy": "Eine X.509-digitale Signatur auf eine DOCX anwenden.",
+      "toast": "Exportieren Sie Ihr Design zuerst als DOCX und verwenden Sie dann die Schaltfläche „Signieren“ im Exportdialog."
+    }
+  },
+  "spreadsheetTools": {
+    "sectionLabel": "Jedes benötigte Tabellenwerkzeug",
+    "sectionTitle": "Erstellen und importieren Sie Tabellen genauso einfach",
+    "createSpreadsheet": {
+      "label": "Tabelle erstellen",
+      "copy": "Eine leere Tabelle mit dem vollständigen Rastereditor starten."
+    },
+    "editSpreadsheet": {
+      "label": "Tabelle bearbeiten",
+      "copy": "Eine PXA-Arbeitsmappen-JSON-Datei im Raster bearbeiten."
+    },
+    "importSpreadsheet": {
+      "label": "Tabelle importieren",
+      "copy": "Eine Excel- oder CSV-Datei importieren, Formeln und Formatierung bleiben erhalten."
+    },
+    "convertToSpreadsheet": {
+      "label": "In Tabelle konvertieren",
+      "copy": "Ein externes Format in eine Tabelle umwandeln."
+    },
+    "migrations": {
+      "label": "Migrationen",
+      "copy": "Hersteller-C#-Tabellencode (ClosedXML, EPPlus, GemBox, Aspose.Cells) in PXA umwandeln."
+    }
+  },
+  "toolGrid": {
+    "startNow": "Jetzt starten",
+    "comingSoon": "Demnächst verfügbar"
+  },
+  "trustBand": {
+    "templatesCount": "{{count}} Vorlagen",
+    "templatesSub": "bereit zum Öffnen im Editor",
+    "exportFormats": "10 Exportformate",
+    "exportFormatsSub": "PDF, DOCX, ODT, TIFF, HTML & mehr",
+    "importFormats": "7 Importformate",
+    "importFormatsSub": "PDF, DOCX, PPTX, DOC, ODT, SVG, Bilder",
+    "browserBased": "100 % browserbasiert",
+    "browserBasedSub": "kein Konto erforderlich"
+  },
+  "categories": {
+    "sectionLabel": "Vorlagenkategorien",
+    "sectionTitle": "Wählen Sie einen Dokumenttyp zum Erkunden",
+    "browseAll": "Alle Vorlagen durchsuchen"
+  },
+  "features": {
+    "sectionLabel": "Power Dox Automation",
+    "sectionTitle": "Alles, was Sie für die Verwaltung von Dokumenten und Tabellen benötigen"
+  },
+  "featureCards": {
+    "multiFormat": {
+      "title": "Multi-Format-Editor",
+      "copy": "Vorlagen visuell gestalten und dann nach PDF, DOCX, ODT, XLSX, TIFF und mehr exportieren — oder vorhandene PDFs und Word-Dokumente als bearbeitbare Designs importieren."
+    },
+    "templateWorkflows": {
+      "title": "Vorlagen-Workflows",
+      "copy": "Beginnen Sie mit Rechnungen, Quittungen, Zertifikaten und Geschäftsdokumenten. Fügen Sie Datenbindungen, Schleifen und Ausdrücke für dynamische Inhaltserstellung hinzu."
+    },
+    "wordFidelity": {
+      "title": "Word-getreuer Export",
+      "copy": "Die DOCX-Ausgabe enthält benannte Formatvorlagen, Fußnoten, Lesezeichen, Änderungsverfolgung, Dokumentschutz, benutzerdefinierte Eigenschaften und X.509-digitale Signaturen."
+    },
+    "spreadsheetFormulas": {
+      "title": "Tabellenformeln & -formatierung",
+      "copy": "Bearbeiten Sie ein vollständiges Raster mit Live-Formeln, Zellformaten und Verbindungen — importieren Sie Excel/CSV oder eine native PXA-Arbeitsmappe und exportieren Sie mit erhaltener Formatierung wieder zurück."
+    }
+  },
+  "security": {
+    "title": "Konzipiert für sensible Geschäftsdokumente",
+    "copy": "Halten Sie die Oberfläche ruhig, strukturiert und vorhersehbar für Verträge, Rechnungen, HR-Dokumente und Freigaben.",
+    "action": "Mit dem Gestalten beginnen"
+  },
+  "usage": {
+    "documentSingular": "Dokument",
+    "documentPlural": "Dokumente",
+    "openedThisSession": "in dieser Sitzung geöffnet",
+    "lastOpenedTemplate": "zuletzt geöffnete Vorlage"
+  }
+}

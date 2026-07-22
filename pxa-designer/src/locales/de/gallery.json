@@ -1,0 +1,38 @@
+{
+  "toolbar": {
+    "heading": "Vorlagen",
+    "count": "{{filtered}} von {{total}}",
+    "searchPlaceholder": "Vorlagen durchsuchen…",
+    "clearSearch": "Suche löschen",
+    "formatFilterLabel": "Nach Format filtern",
+    "format": {
+      "all": "Alle Formate",
+      "portrait": "Hochformat",
+      "landscape": "Querformat",
+      "square": "Quadratisch",
+      "widescreen": "Breitbild"
+    },
+    "sortLabel": "Vorlagen sortieren",
+    "sort": {
+      "default": "Standardreihenfolge",
+      "alpha": "A – Z",
+      "category": "Nach Kategorie"
+    }
+  },
+  "categoryFilter": {
+    "ariaLabel": "Vorlagenkategorien"
+  },
+  "emptyResults": {
+    "title": "Keine Vorlagen gefunden",
+    "copy": "Versuchen Sie einen anderen Suchbegriff oder eine andere Kategorie.",
+    "showAll": "Alle Vorlagen anzeigen"
+  },
+  "card": {
+    "useTemplateHover": "Vorlage verwenden",
+    "useTemplate": "Diese Vorlage verwenden"
+  },
+  "detail": {
+    "close": "Schließen",
+    "useTemplate": "Diese Vorlage verwenden"
+  }
+}

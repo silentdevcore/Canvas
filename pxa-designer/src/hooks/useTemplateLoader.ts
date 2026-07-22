@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useEditorStore } from '@/store';
-import { getTemplateElements, getTemplatePages } from '@/data/templateContent';
+import { getTemplateElementsLocalized, getTemplatePagesLocalized } from '@/data/templateContent.i18n';
 import type { TemplateDefinition } from '@/data/templates';
 import type { SimpleElement } from '@/types';
 import ExportService from '@/services/ExportService';
@@ -94,12 +95,13 @@ function createStarterElements(template: TemplateDefinition): SimpleElement[] {
 export function useTemplateLoader() {
   const { setCurrentTemplate, updatePageSettings } = useEditorStore();
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
 
   const loadTemplate = (def: TemplateDefinition) => {
-    const multiPages = getTemplatePages(def.id);
+    const multiPages = getTemplatePagesLocalized(def.id, i18n.language);
     const pages = multiPages
       ?? (() => {
-           const specificElements = getTemplateElements(def.id);
+           const specificElements = getTemplateElementsLocalized(def.id, i18n.language);
            const elements = specificElements.length > 0 ? specificElements : createStarterElements(def);
            return [{ id: 'page-1', elements }];
          })();

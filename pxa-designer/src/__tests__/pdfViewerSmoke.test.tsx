@@ -81,9 +81,12 @@ describe('pdf viewer smoke test', () => {
       .find(label => label.textContent?.includes('Language'))
       ?.querySelector('select');
     expect(languageSelect).toBeTruthy();
-    act(() => {
+    // Language now switches via the global i18next instance (i18n.changeLanguage),
+    // which is async — flush pending microtasks so the re-render lands before asserting.
+    await act(async () => {
       languageSelect!.value = 'de';
       languageSelect!.dispatchEvent(new Event('change', { bubbles: true }));
+      await new Promise(resolve => window.setTimeout(resolve, 0));
     });
     expect(container.textContent).toContain('PDF öffnen');
 

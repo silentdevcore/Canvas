@@ -1,0 +1,88 @@
+{
+  "tabs": {
+    "codeMigration": "Migrazione del codice",
+    "reportDesignerMigration": "Migrazione del report designer",
+    "datasourceMigration": "Migrazione dell'origine dati"
+  },
+  "heading": {
+    "designer": "Migrazione del report designer",
+    "spreadsheetCode": "Migrazione codice foglio di calcolo",
+    "pdfCode": "Migrazione codice PDF",
+    "designerDescription": "Converti un file di report designer (DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik) in un design PXA modificabile, quindi aprilo nel designer visuale.",
+    "spreadsheetCodeDescription": "Incolla il codice di un'altra libreria per fogli di calcolo (ClosedXML, EPPlus, GemBox, Aspose.Cells), convertilo nell'API foglio di calcolo PXA e visualizza in anteprima il risultato come griglia.",
+    "pdfCodeDescription": "Incolla il codice di un'altra libreria PDF, convertilo in codice PDF compatibile con PXA e visualizza in anteprima il risultato all'istante."
+  },
+  "backToMigrations": "← Migrazioni",
+  "backToMigrationsTitle": "Torna a Migrazioni",
+  "sourceFramework": "Framework di origine",
+  "status": {
+    "full": "Completo",
+    "pilot": "Pilota",
+    "skeleton": "Scheletro"
+  },
+  "loadExampleTitle": "Carica esempio {{name}}",
+  "loadExample": "Carica esempio",
+  "sourceCodeHeader": "Codice sorgente — {{name}}",
+  "resources": {
+    "header": "Risorse",
+    "noResxLoaded": "Nessun .resx caricato",
+    "loadResx": "Carica .resx",
+    "clear": "Cancella",
+    "packageHeader": "Pacchetto report (zip)",
+    "noPackageLoaded": "Nessun .trdp / .rdlx pacchettizzato caricato",
+    "loadPackage": "Carica .trdp / .rdlx",
+    "jrxmlSubreports": "Sottoreport JRXML",
+    "noJrxmlLoaded": "Nessuna risorsa .jrxml caricata",
+    "jrxmlLoadedCount": "{{count}} caricato/i",
+    "loadJrxmlFiles": "Carica file .jrxml",
+    "rpxSubreports": "Sottoreport RPX",
+    "noRpxLoaded": "Nessuna risorsa .rpx caricata",
+    "rpxLoadedCount": "{{count}} caricato/i",
+    "loadRpxFiles": "Carica file .rpx",
+    "resourceJsonOverrides": "Override JSON delle risorse"
+  },
+  "converting": "Conversione in corso…",
+  "convert": "Converti",
+  "dragToResize": "Trascina per ridimensionare",
+  "output": {
+    "design": "Design PXA (JSON)",
+    "spreadsheetCode": "Codice foglio di calcolo PXA",
+    "pdfCode": "Codice PDF compatibile con PXA"
+  },
+  "toggleDiff": "Attiva/disattiva vista diff",
+  "diff": "Diff",
+  "copyToClipboard": "Copia negli appunti",
+  "copy": "Copia",
+  "copied": "Copiato!",
+  "downloadCsFile": "Scarica come file .cs",
+  "downloadCs": "Scarica .cs",
+  "openInDesignerTitle": "Carica il report convertito nel designer visuale",
+  "openInDesigner": "Apri nel designer",
+  "generating": "Generazione in corso…",
+  "generatePreview": "Genera anteprima",
+  "diagnostics": {
+    "label": "Diagnostica",
+    "converted": "✓ {{count}} convertito/i",
+    "warning": "⚠ {{count}} avviso",
+    "warning_plural": "⚠ {{count}} avvisi",
+    "noIssues": "Nessun problema",
+    "hideDetails": "▲ Nascondi dettagli",
+    "showDetails": "▼ Mostra dettagli"
+  },
+  "preview": {
+    "spreadsheetHeader": "Anteprima foglio di calcolo",
+    "pdfHeader": "Anteprima PDF",
+    "openInPdfViewer": "Apri nel visualizzatore PDF",
+    "emptyPromptGrid": "Fai clic su <strong>{{action}}</strong> per visualizzare la cartella di lavoro convertita come griglia",
+    "emptyPromptPdf": "Fai clic su <strong>{{action}}</strong> per visualizzare il PDF convertito"
+  },
+  "errors": {
+    "resourceJsonMustBeObject": "Il JSON delle risorse deve essere un oggetto come { \"logo.ImageSource\": \"...\" }.",
+    "couldNotReadFile": "Impossibile leggere {{fileName}}.",
+    "couldNotReadJrxml": "Impossibile leggere uno o più file di risorse .jrxml.",
+    "couldNotReadRpx": "Impossibile leggere uno o più file di risorse .rpx.",
+    "couldNotReadPackage": "Impossibile leggere il file del pacchetto report.",
+    "conversionFailed": "Conversione non riuscita — il backend di Power Dox Automation è in esecuzione sulla porta 5086?",
+    "previewFailed": "Anteprima non riuscita — il backend di Power Dox Automation è in esecuzione sulla porta 5086?"
+  }
+}

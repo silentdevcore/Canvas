@@ -258,6 +258,50 @@ describe('app route smoke tests', () => {
     });
   });
 
+  test('PDF sidebar switches cleanly between Create PDF and Edit PDF, back and forth', async () => {
+    // Regression test: /pdf/create and /pdf/edit (-> /pdf/create?mode=code) are
+    // the same matched route, so React Router doesn't remount CreatePage when
+    // switching between them via the sidebar — only the `mode` query param
+    // changes. Two related bugs used to happen: (1) CreatePage's `subView`
+    // state was set once from the URL at mount and never re-synced, so the
+    // view got stuck on whichever one loaded first; (2) the sidebar highlight
+    // is driven by NavLink's pathname-only matching, which can't tell /pdf/edit
+    // apart from /pdf/create (both resolve to the same pathname), so "Create
+    // PDF" stayed highlighted even while viewing the Edit/code view.
+    root = await renderRoute(container, '/pdf/create');
+
+    await waitUntil(() => {
+      expect(getByText(container, /Designer: Untitled document/)).toBeTruthy();
+    });
+
+    const createLink = () => container.querySelector('a[href="/pdf/create"]') as HTMLAnchorElement;
+    const editLink = () => container.querySelector('a[href="/pdf/edit"]') as HTMLAnchorElement;
+
+    expect(createLink().className).toContain('is-active');
+    expect(editLink().className).not.toContain('is-active');
+
+    await click(editLink());
+    await waitUntil(() => {
+      expect(getByText(container, 'Code editor')).toBeTruthy();
+    });
+    expect(editLink().className).toContain('is-active');
+    expect(createLink().className).not.toContain('is-active');
+
+    await click(createLink());
+    await waitUntil(() => {
+      expect(getByText(container, /Designer: Untitled document/)).toBeTruthy();
+    });
+    expect(createLink().className).toContain('is-active');
+    expect(editLink().className).not.toContain('is-active');
+
+    // And back again, to prove it isn't a one-shot fix that only works once.
+    await click(editLink());
+    await waitUntil(() => {
+      expect(getByText(container, 'Code editor')).toBeTruthy();
+    });
+    expect(editLink().className).toContain('is-active');
+  });
+
   test('Spreadsheet hub sidebar lists every spreadsheet sidebar item', async () => {
     // /spreadsheet/import (SpreadsheetImportPage) is already mocked above;
     // the /spreadsheet index redirect instead lazy-loads the real, heavy
@@ -290,6 +334,47 @@ describe('app route smoke tests', () => {
       expect(getByText(container, 'Import Spreadsheet')).toBeTruthy();
       expect(getByText(container, /Convert to Spreadsheet/)).toBeTruthy();
       expect(getByText(container, 'Migrations')).toBeTruthy();
+    });
+  });
+
+  test('Home\'s "Create PDF" tool card opens a blank document in the editor', async () => {
+    // Regression test: this card used to `navigate('/pdf/create')` directly with
+    // no template in the store, which made CreatePage's guard bounce straight
+    // back to "/" — clicking looked like it did nothing. It must go through
+    // loadBlank() (like the hero "Blank document" card) so a template exists
+    // before CreatePage ever mounts.
+    root = await renderRoute(container, '/');
+
+    await waitUntil(() => {
+      expect(getByText(container, 'Every PDF tool you need')).toBeTruthy();
+    });
+
+    const label = Array.from(container.querySelectorAll('strong'))
+      .find(el => el.textContent?.trim() === 'Create PDF');
+    const card = label?.closest('.pdf-tool-card') as HTMLElement | undefined;
+    if (!card) throw new Error('"Create PDF" tool card not found');
+    await click(card);
+
+    await waitUntil(() => {
+      expect(getByText(container, /Designer: Untitled document/)).toBeTruthy();
+    });
+  });
+
+  test('Home\'s "Edit PDF" tool card opens the code editor with a blank document', async () => {
+    root = await renderRoute(container, '/');
+
+    await waitUntil(() => {
+      expect(getByText(container, 'Every PDF tool you need')).toBeTruthy();
+    });
+
+    const label = Array.from(container.querySelectorAll('strong'))
+      .find(el => el.textContent?.trim() === 'Edit PDF');
+    const card = label?.closest('.pdf-tool-card') as HTMLElement | undefined;
+    if (!card) throw new Error('"Edit PDF" tool card not found');
+    await click(card);
+
+    await waitUntil(() => {
+      expect(getByText(container, 'Code editor')).toBeTruthy();
     });
   });
 

@@ -1,0 +1,143 @@
+{
+  "hero": {
+    "eyebrow": "Diseña, importa y exporta documentos en un solo lugar",
+    "title": "Crea, completa y prepara documentos empresariales más rápido",
+    "description": "Power Dox Automation te ayuda a empezar desde una plantilla o a importar un archivo PDF, Word u ODT existente. Añade campos, firmas y enlaces de datos — luego exporta a PDF, DOCX, ODT, TIFF y más.",
+    "templateCard": {
+      "title": "Empezar con una plantilla",
+      "copy": "Explora {{count}} plantillas de documentos listas para usar",
+      "action": "Explorar plantillas"
+    },
+    "importCard": {
+      "title": "Importar archivo",
+      "importing": "Importando…",
+      "copy": "Abre un archivo PDF, Word, ODT o de imagen como diseño editable",
+      "action": "Elegir archivo",
+      "tooltip": "Importar un PDF, Word .doc/.docx, ODT o imagen (PNG/JPG/WebP/…) como diseño PXA",
+      "importFailed": "Error al importar"
+    },
+    "blankCard": {
+      "title": "Documento en blanco",
+      "copy": "Abrir el editor con una página vacía — sin elementos iniciales",
+      "action": "Empezar en blanco"
+    },
+    "codeCard": {
+      "title": "Editor de código",
+      "copy": "Escribe JSON directamente y observa una vista previa de PDF en vivo mientras escribes",
+      "action": "Abrir editor"
+    }
+  },
+  "pdfTools": {
+    "sectionLabel": "Todas las herramientas de PDF que necesitas",
+    "sectionTitle": "Prueba estas herramientas para completar tus PDF",
+    "createPdf": {
+      "label": "Crear PDF",
+      "copy": "Inicia un documento en blanco y constrúyelo visualmente."
+    },
+    "editPdf": {
+      "label": "Editar PDF",
+      "copy": "Pega código JSON o C# y ajústalo en vivo en el diseñador."
+    },
+    "useTemplate": {
+      "label": "Usar plantilla",
+      "copy": "Explora {{count}} facturas, recibos, certificados listos para usar y más."
+    },
+    "importPdf": {
+      "label": "Importar PDF",
+      "copy": "Abre rápidamente un PDF como diseño editable en el editor visual."
+    },
+    "convertToPdf": {
+      "label": "Convertir a PDF",
+      "copy": "Convierte un PDF, Word, PowerPoint, imagen o SVG en un diseño editable — o usa OCR para convertir una imagen escaneada en un PDF con texto buscable."
+    },
+    "pdfViewer": {
+      "label": "Visor de PDF",
+      "copy": "Abre, revisa y anota un PDF sin salir del navegador."
+    },
+    "migrations": {
+      "label": "Migraciones",
+      "copy": "Convierte código C# de terceros o archivos de diseñador de informes (RDL, DevExpress, Crystal y más) a PXA."
+    },
+    "signDocx": {
+      "label": "Firmar DOCX",
+      "copy": "Aplica una firma digital X.509 a un DOCX.",
+      "toast": "Exporta primero tu diseño como DOCX y luego usa el botón Firmar en el cuadro de exportación."
+    }
+  },
+  "spreadsheetTools": {
+    "sectionLabel": "Todas las herramientas de hojas de cálculo que necesitas",
+    "sectionTitle": "Crea e importa hojas de cálculo con la misma facilidad",
+    "createSpreadsheet": {
+      "label": "Crear hoja de cálculo",
+      "copy": "Inicia una hoja de cálculo en blanco con el editor de cuadrícula completo."
+    },
+    "editSpreadsheet": {
+      "label": "Editar hoja de cálculo",
+      "copy": "Abre un archivo JSON de libro PXA para editarlo en la cuadrícula."
+    },
+    "importSpreadsheet": {
+      "label": "Importar hoja de cálculo",
+      "copy": "Importa un archivo de Excel o CSV conservando fórmulas y formato."
+    },
+    "convertToSpreadsheet": {
+      "label": "Convertir a hoja de cálculo",
+      "copy": "Convierte un formato externo en una hoja de cálculo."
+    },
+    "migrations": {
+      "label": "Migraciones",
+      "copy": "Convierte código de hoja de cálculo C# de terceros (ClosedXML, EPPlus, GemBox, Aspose.Cells) a PXA."
+    }
+  },
+  "toolGrid": {
+    "startNow": "Empezar ahora",
+    "comingSoon": "Próximamente"
+  },
+  "trustBand": {
+    "templatesCount": "{{count}} plantillas",
+    "templatesSub": "listas para abrir en el editor",
+    "exportFormats": "10 formatos de exportación",
+    "exportFormatsSub": "PDF, DOCX, ODT, TIFF, HTML y más",
+    "importFormats": "7 formatos de importación",
+    "importFormatsSub": "PDF, DOCX, PPTX, DOC, ODT, SVG, imágenes",
+    "browserBased": "100 % basado en el navegador",
+    "browserBasedSub": "no requiere cuenta"
+  },
+  "categories": {
+    "sectionLabel": "Categorías de plantillas",
+    "sectionTitle": "Elige un tipo de documento para explorar",
+    "browseAll": "Explorar todas las plantillas"
+  },
+  "features": {
+    "sectionLabel": "Power Dox Automation",
+    "sectionTitle": "Todo lo que necesitas para gestionar documentos y hojas de cálculo"
+  },
+  "featureCards": {
+    "multiFormat": {
+      "title": "Editor multiformato",
+      "copy": "Diseña plantillas visualmente y luego expórtalas a PDF, DOCX, ODT, XLSX, TIFF y más — o importa PDFs y documentos Word existentes como diseños editables."
+    },
+    "templateWorkflows": {
+      "title": "Flujos de trabajo de plantillas",
+      "copy": "Empieza con facturas, recibos, certificados y documentos empresariales. Añade enlaces de datos, bucles y expresiones para generar contenido dinámico."
+    },
+    "wordFidelity": {
+      "title": "Exportación fiel a Word",
+      "copy": "La salida DOCX incluye estilos con nombre, notas al pie, marcadores, control de cambios, protección de documentos, propiedades personalizadas y firmas digitales X.509."
+    },
+    "spreadsheetFormulas": {
+      "title": "Fórmulas y formato de hoja de cálculo",
+      "copy": "Edita una cuadrícula completa con fórmulas en vivo, estilos de celda y combinaciones — importa Excel/CSV o un libro PXA nativo, y exporta de nuevo con el formato intacto."
+    }
+  },
+  "security": {
+    "title": "Diseñado para documentos empresariales sensibles",
+    "copy": "Mantén la interfaz calmada, estructurada y predecible para contratos, facturas, documentos de RR. HH. y aprobaciones.",
+    "action": "Empezar a diseñar"
+  },
+  "usage": {
+    "documentSingular": "documento",
+    "documentPlural": "documentos",
+    "openedThisSession": "abierto(s) en esta sesión",
+    "lastOpenedTemplate": "última plantilla abierta"
+  }
+}

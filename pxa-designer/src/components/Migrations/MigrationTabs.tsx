@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { TFunction } from 'i18next';
 
 export interface MigrationTab {
   label: string;
@@ -33,15 +34,15 @@ const MigrationTabs: React.FC<{ tabs: MigrationTab[] }> = ({ tabs }) => {
 };
 
 /** PDF Migration sub-tabs. */
-export const pdfTabs = (active: 'code' | 'designer'): MigrationTab[] => [
-  { label: 'Code Migration', to: '/migrations/pdf/code', active: active === 'code' },
-  { label: 'Report Designer Migration', to: '/migrations/pdf/designer', active: active === 'designer' },
+export const pdfTabs = (active: 'code' | 'designer', t: TFunction): MigrationTab[] => [
+  { label: t('tabs.codeMigration', { ns: 'migrations' }), to: '/migrations/pdf/code', active: active === 'code' },
+  { label: t('tabs.reportDesignerMigration', { ns: 'migrations' }), to: '/migrations/pdf/designer', active: active === 'designer' },
 ];
 
 /** Spreadsheet Migration sub-tabs. */
-export const sheetTabs = (active: 'code' | 'datasource'): MigrationTab[] => [
-  { label: 'Code Migration', to: '/migrations/spreadsheet/code', active: active === 'code' },
-  { label: 'Datasource Migration', to: '/migrations/spreadsheet/datasource', active: active === 'datasource' },
+export const sheetTabs = (active: 'code' | 'datasource', t: TFunction): MigrationTab[] => [
+  { label: t('tabs.codeMigration', { ns: 'migrations' }), to: '/migrations/spreadsheet/code', active: active === 'code' },
+  { label: t('tabs.datasourceMigration', { ns: 'migrations' }), to: '/migrations/spreadsheet/datasource', active: active === 'datasource' },
 ];
 
 export default MigrationTabs;

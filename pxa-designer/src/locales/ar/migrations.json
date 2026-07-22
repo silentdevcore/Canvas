@@ -1,0 +1,88 @@
+{
+  "tabs": {
+    "codeMigration": "ترحيل الكود",
+    "reportDesignerMigration": "ترحيل مصمم التقارير",
+    "datasourceMigration": "ترحيل مصدر البيانات"
+  },
+  "heading": {
+    "designer": "ترحيل مصمم التقارير",
+    "spreadsheetCode": "ترحيل كود جدول البيانات",
+    "pdfCode": "ترحيل كود PDF",
+    "designerDescription": "حوّل ملف مصمم تقارير (DevExpress أو RDL/RDLC أو ActiveReports أو FastReport أو Telerik) إلى تصميم PXA قابل للتحرير، ثم افتحه في المصمم المرئي.",
+    "spreadsheetCodeDescription": "ألصق الكود من مكتبة جداول بيانات أخرى (ClosedXML أو EPPlus أو GemBox أو Aspose.Cells)، وحوّله إلى واجهة برمجة جداول بيانات PXA، وعاين النتيجة كشبكة.",
+    "pdfCodeDescription": "ألصق الكود من مكتبة PDF أخرى، وحوّله إلى كود PDF متوافق مع PXA، وعاين النتيجة فورًا."
+  },
+  "backToMigrations": "← عمليات الترحيل",
+  "backToMigrationsTitle": "العودة إلى عمليات الترحيل",
+  "sourceFramework": "إطار العمل المصدر",
+  "status": {
+    "full": "كامل",
+    "pilot": "تجريبي",
+    "skeleton": "هيكلي"
+  },
+  "loadExampleTitle": "تحميل مثال {{name}}",
+  "loadExample": "تحميل مثال",
+  "sourceCodeHeader": "الكود المصدري — {{name}}",
+  "resources": {
+    "header": "الموارد",
+    "noResxLoaded": "لم يتم تحميل أي .resx",
+    "loadResx": "تحميل .resx",
+    "clear": "مسح",
+    "packageHeader": "حزمة التقرير (zip)",
+    "noPackageLoaded": "لم يتم تحميل أي .trdp / .rdlx مُحزَّم",
+    "loadPackage": "تحميل .trdp / .rdlx",
+    "jrxmlSubreports": "تقارير JRXML الفرعية",
+    "noJrxmlLoaded": "لم يتم تحميل موارد .jrxml",
+    "jrxmlLoadedCount": "تم تحميل {{count}}",
+    "loadJrxmlFiles": "تحميل ملفات .jrxml",
+    "rpxSubreports": "تقارير RPX الفرعية",
+    "noRpxLoaded": "لم يتم تحميل موارد .rpx",
+    "rpxLoadedCount": "تم تحميل {{count}}",
+    "loadRpxFiles": "تحميل ملفات .rpx",
+    "resourceJsonOverrides": "تجاوزات JSON للموارد"
+  },
+  "converting": "جارٍ التحويل…",
+  "convert": "تحويل",
+  "dragToResize": "اسحب لتغيير الحجم",
+  "output": {
+    "design": "تصميم PXA (JSON)",
+    "spreadsheetCode": "كود جدول بيانات PXA",
+    "pdfCode": "كود PDF متوافق مع PXA"
+  },
+  "toggleDiff": "تبديل عرض الفروقات",
+  "diff": "الفروقات",
+  "copyToClipboard": "نسخ إلى الحافظة",
+  "copy": "نسخ",
+  "copied": "تم النسخ!",
+  "downloadCsFile": "تنزيل كملف .cs",
+  "downloadCs": "تنزيل .cs",
+  "openInDesignerTitle": "تحميل التقرير المحوَّل في المصمم المرئي",
+  "openInDesigner": "فتح في المصمم",
+  "generating": "جارٍ الإنشاء…",
+  "generatePreview": "إنشاء معاينة",
+  "diagnostics": {
+    "label": "التشخيصات",
+    "converted": "✓ تم تحويل {{count}}",
+    "warning": "⚠ تحذير {{count}}",
+    "warning_plural": "⚠ {{count}} تحذيرات",
+    "noIssues": "لا توجد مشكلات",
+    "hideDetails": "▲ إخفاء التفاصيل",
+    "showDetails": "▼ إظهار التفاصيل"
+  },
+  "preview": {
+    "spreadsheetHeader": "معاينة جدول البيانات",
+    "pdfHeader": "معاينة PDF",
+    "openInPdfViewer": "فتح في عارض PDF",
+    "emptyPromptGrid": "انقر فوق <strong>{{action}}</strong> لعرض المصنّف المحوَّل كشبكة",
+    "emptyPromptPdf": "انقر فوق <strong>{{action}}</strong> لعرض ملف PDF المحوَّل"
+  },
+  "errors": {
+    "resourceJsonMustBeObject": "يجب أن يكون JSON الموارد كائنًا مثل { \"logo.ImageSource\": \"...\" }.",
+    "couldNotReadFile": "تعذّرت قراءة {{fileName}}.",
+    "couldNotReadJrxml": "تعذّرت قراءة ملف واحد أو أكثر من موارد .jrxml.",
+    "couldNotReadRpx": "تعذّرت قراءة ملف واحد أو أكثر من موارد .rpx.",
+    "couldNotReadPackage": "تعذّرت قراءة ملف حزمة التقرير.",
+    "conversionFailed": "فشل التحويل — هل يعمل خادم Power Dox Automation الخلفي على المنفذ 5086؟",
+    "previewFailed": "فشلت المعاينة — هل يعمل خادم Power Dox Automation الخلفي على المنفذ 5086؟"
+  }
+}

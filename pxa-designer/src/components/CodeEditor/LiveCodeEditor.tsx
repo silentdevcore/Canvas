@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import JsonEditorPane from './JsonEditorPane';
 import CodePreviewPane, { type ParsedDesign, type ValidationResult } from './CodePreviewPane';
 import { STARTER_TEMPLATES, CSHARP_CODE_STARTER } from './starterTemplates';
@@ -19,38 +21,38 @@ interface Props {
   onBack: () => void;
 }
 
-function parseAndValidate(raw: string): { validation: ValidationResult; parsed: ParsedDesign | null } {
+function parseAndValidate(raw: string, t: TFunction): { validation: ValidationResult; parsed: ParsedDesign | null } {
   if (raw.trim() === '') return { validation: { valid: false, errors: [] }, parsed: null };
 
   let obj: any;
   try { obj = JSON.parse(raw); }
   catch (e: any) {
-    return { validation: { valid: false, errors: [`Syntax error: ${e.message}`] }, parsed: null };
+    return { validation: { valid: false, errors: [t('errors.syntaxError', { message: e.message })] }, parsed: null };
   }
 
   const errors: string[] = [];
   if (!obj.pages || !Array.isArray(obj.pages)) {
-    errors.push('"pages" must be an array.');
+    errors.push(t('errors.pagesMustBeArray'));
   } else if (obj.pages.length === 0) {
-    errors.push('"pages" must contain at least one page.');
+    errors.push(t('errors.pagesMustHaveOne'));
   } else {
     obj.pages.forEach((p: any, i: number) => {
-      if (typeof p.id !== 'string' || !p.id) errors.push(`pages[${i}]: "id" is required.`);
-      if (!Array.isArray(p.elements))        errors.push(`pages[${i}]: "elements" must be an array.`);
+      if (typeof p.id !== 'string' || !p.id) errors.push(t('errors.pageIdRequired', { i }));
+      if (!Array.isArray(p.elements))        errors.push(t('errors.pageElementsMustBeArray', { i }));
       else p.elements.forEach((el: any, j: number) => {
-        if (!el.id)                       errors.push(`pages[${i}].elements[${j}]: "id" is required.`);
-        if (!el.type)                     errors.push(`pages[${i}].elements[${j}]: "type" is required.`);
-        if (typeof el.x !== 'number')     errors.push(`pages[${i}].elements[${j}]: "x" must be a number.`);
-        if (typeof el.y !== 'number')     errors.push(`pages[${i}].elements[${j}]: "y" must be a number.`);
-        if (typeof el.width !== 'number') errors.push(`pages[${i}].elements[${j}]: "width" must be a number.`);
-        if (typeof el.height !== 'number') errors.push(`pages[${i}].elements[${j}]: "height" must be a number.`);
+        if (!el.id)                       errors.push(t('errors.elementIdRequired', { i, j }));
+        if (!el.type)                     errors.push(t('errors.elementTypeRequired', { i, j }));
+        if (typeof el.x !== 'number')     errors.push(t('errors.elementXMustBeNumber', { i, j }));
+        if (typeof el.y !== 'number')     errors.push(t('errors.elementYMustBeNumber', { i, j }));
+        if (typeof el.width !== 'number') errors.push(t('errors.elementWidthMustBeNumber', { i, j }));
+        if (typeof el.height !== 'number') errors.push(t('errors.elementHeightMustBeNumber', { i, j }));
       });
     });
   }
   const ps = obj.pageSettings;
   if (ps) {
-    if (ps.width !== undefined && typeof ps.width !== 'number')  errors.push('"pageSettings.width" must be a number.');
-    if (ps.height !== undefined && typeof ps.height !== 'number') errors.push('"pageSettings.height" must be a number.');
+    if (ps.width !== undefined && typeof ps.width !== 'number')  errors.push(t('errors.pageSettingsWidthMustBeNumber'));
+    if (ps.height !== undefined && typeof ps.height !== 'number') errors.push(t('errors.pageSettingsHeightMustBeNumber'));
   }
   return {
     validation: { valid: errors.length === 0, errors },
@@ -59,6 +61,7 @@ function parseAndValidate(raw: string): { validation: ValidationResult; parsed: 
 }
 
 export default function LiveCodeEditor({ onBack }: Props) {
+  const { t } = useTranslation('codeEditor');
   const [language, setLanguage] = useState<EditorLanguage>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_LANG_KEY) ?? localStorage.getItem(LEGACY_STORAGE_LANG_KEY);
@@ -103,7 +106,7 @@ export default function LiveCodeEditor({ onBack }: Props) {
 
   useEffect(() => {
     if (language === 'json') {
-      const { validation: v, parsed: p } = parseAndValidate(raw);
+      const { validation: v, parsed: p } = parseAndValidate(raw, t);
       setValidation(v);
       setParsed(p);
     }
@@ -119,11 +122,11 @@ export default function LiveCodeEditor({ onBack }: Props) {
     setExportError(null);
     setConvertError(null);
     if (language === 'json') {
-      const { validation: v, parsed: p } = parseAndValidate(value);
+      const { validation: v, parsed: p } = parseAndValidate(value, t);
       setValidation(v);
       setParsed(p);
     }
-  }, [language]);
+  }, [language, t]);
 
   // ── Language switching ────────────────────────────────────────
 
@@ -138,7 +141,7 @@ export default function LiveCodeEditor({ onBack }: Props) {
 
     const finishJson = (content: string) => {
       finish(content);
-      const { validation: v, parsed: p } = parseAndValidate(content);
+      const { validation: v, parsed: p } = parseAndValidate(content, t);
       setValidation(v);
       setParsed(p);
     };
@@ -153,10 +156,10 @@ export default function LiveCodeEditor({ onBack }: Props) {
       })
         .then(r => r.json().then(d => ({ ok: r.ok, d })))
         .then(({ ok, d }) => {
-          if (!ok) throw new Error(Array.isArray(d.details) ? d.details.join('\n') : (d.details || d.error || 'Error'));
+          if (!ok) throw new Error(Array.isArray(d.details) ? d.details.join('\n') : (d.details || d.error || t('errors.generic')));
           onJson(JSON.stringify(d, null, 2));
         })
-        .catch(e => setConvertError(e.message ?? 'Conversion failed.'))
+        .catch(e => setConvertError(e.message ?? t('errors.conversionFailed')))
         .finally(() => setIsConverting(false));
     };
 
@@ -193,7 +196,7 @@ export default function LiveCodeEditor({ onBack }: Props) {
     setPdfUrl(null);
     setLanguage(lang);
     try { localStorage.setItem(STORAGE_LANG_KEY, lang); } catch {}
-  }, [language, raw, parsed, setPdfUrl]);
+  }, [language, raw, parsed, setPdfUrl, t]);
 
   // ── C# Code: run script → PDF ────────────────────────────────
 
@@ -214,11 +217,11 @@ export default function LiveCodeEditor({ onBack }: Props) {
       const blob = await res.blob();
       setPdfUrl(URL.createObjectURL(blob));
     } catch (e: any) {
-      setConvertError(e.message ?? 'Run failed.');
+      setConvertError(e.message ?? t('errors.runFailed'));
     } finally {
       setIsConverting(false);
     }
-  }, [setPdfUrl]);
+  }, [setPdfUrl, t]);
 
   // ── C# DTO: convert → JSON preview ───────────────────────────
 
@@ -236,17 +239,17 @@ export default function LiveCodeEditor({ onBack }: Props) {
         const msg = Array.isArray(data.details) ? data.details.join('\n') : (data.error ?? `HTTP ${res.status}`);
         throw new Error(msg);
       }
-      const { validation: v, parsed: p } = parseAndValidate(JSON.stringify(data));
+      const { validation: v, parsed: p } = parseAndValidate(JSON.stringify(data), t);
       setValidation(v);
       setParsed(p);
     } catch (e: any) {
-      setConvertError(e.message ?? 'Conversion failed.');
-      setValidation({ valid: false, errors: [e.message ?? 'Conversion failed.'] });
+      setConvertError(e.message ?? t('errors.conversionFailed'));
+      setValidation({ valid: false, errors: [e.message ?? t('errors.conversionFailed')] });
       setParsed(null);
     } finally {
       setIsConverting(false);
     }
-  }, []);
+  }, [t]);
 
   const handleCsharpConvert = language === 'csharp-code' ? handleCsharpCodeRun : handleCsharpDtoConvert;
 
@@ -276,7 +279,7 @@ export default function LiveCodeEditor({ onBack }: Props) {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } catch (e: any) {
-        setExportError(e.message ?? 'Export failed.');
+        setExportError(e.message ?? t('errors.exportFailed'));
       } finally {
         setIsExporting(false);
       }
@@ -295,7 +298,7 @@ export default function LiveCodeEditor({ onBack }: Props) {
         if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
         await ExportService.exportJsonToPDF(data, data.name ?? 'document');
       } catch (e: any) {
-        setExportError(e.message ?? 'Export failed.');
+        setExportError(e.message ?? t('errors.exportFailed'));
       } finally {
         setIsExporting(false);
       }
@@ -307,7 +310,7 @@ export default function LiveCodeEditor({ onBack }: Props) {
     try {
       await ExportService.exportJsonToPDF(JSON.parse(raw), parsed.name ?? 'document');
     } catch (e: any) {
-      setExportError(e.message ?? 'Export failed.');
+      setExportError(e.message ?? t('errors.exportFailed'));
     } finally {
       setIsExporting(false);
     }
@@ -335,17 +338,17 @@ export default function LiveCodeEditor({ onBack }: Props) {
     <div className="live-code-editor">
       {/* Top bar */}
       <div className="live-code-editor-topbar">
-        <button className="live-code-topbar-back" onClick={onBack}>← Back</button>
-        <span className="live-code-topbar-title">Code Editor</span>
+        <button className="live-code-topbar-back" onClick={onBack}>{t('back')}</button>
+        <span className="live-code-topbar-title">{t('title')}</span>
 
         {/* 3-way language toggle */}
         <div className="live-code-lang-toggle">
           <button className={`live-code-lang-btn${language === 'json' ? ' is-active' : ''}`}
-            onClick={() => switchTo('json')} disabled={isConverting}>JSON</button>
+            onClick={() => switchTo('json')} disabled={isConverting}>{t('lang.json')}</button>
           <button className={`live-code-lang-btn${language === 'csharp-code' ? ' is-active' : ''}`}
-            onClick={() => switchTo('csharp-code')} disabled={isConverting}>C# Code</button>
+            onClick={() => switchTo('csharp-code')} disabled={isConverting}>{t('lang.csharpCode')}</button>
           <button className={`live-code-lang-btn${language === 'csharp-dto' ? ' is-active' : ''}`}
-            onClick={() => switchTo('csharp-dto')} disabled={isConverting}>C# DTO</button>
+            onClick={() => switchTo('csharp-dto')} disabled={isConverting}>{t('lang.csharpDto')}</button>
         </div>
 
         <div className="live-code-topbar-right">
@@ -354,13 +357,13 @@ export default function LiveCodeEditor({ onBack }: Props) {
               {(exportError || convertError || '').split('\n')[0]}
             </span>
           )}
-          {isConverting && <span className="live-code-converting">Converting…</span>}
+          {isConverting && <span className="live-code-converting">{t('converting')}</span>}
           <button
             className={`live-code-export-btn${!canExport ? ' is-disabled' : ''}`}
             onClick={handleExport}
             disabled={!canExport}
           >
-            {isExporting ? 'Generating…' : 'Export PDF'}
+            {isExporting ? t('generating') : t('exportPdf')}
           </button>
         </div>
       </div>

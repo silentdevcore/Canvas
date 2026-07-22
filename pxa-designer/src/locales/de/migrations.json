@@ -1,0 +1,88 @@
+{
+  "tabs": {
+    "codeMigration": "Code-Migration",
+    "reportDesignerMigration": "Report-Designer-Migration",
+    "datasourceMigration": "Datenquellen-Migration"
+  },
+  "heading": {
+    "designer": "Report-Designer-Migration",
+    "spreadsheetCode": "Tabellen-Code-Migration",
+    "pdfCode": "PDF-Code-Migration",
+    "designerDescription": "Konvertieren Sie eine Report-Designer-Datei (DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik) in ein bearbeitbares PXA-Design und öffnen Sie es im visuellen Designer.",
+    "spreadsheetCodeDescription": "Fügen Sie Code aus einer anderen Tabellenbibliothek ein (ClosedXML, EPPlus, GemBox, Aspose.Cells), konvertieren Sie ihn in die PXA-Tabellen-API und sehen Sie das Ergebnis als Raster in der Vorschau.",
+    "pdfCodeDescription": "Fügen Sie Code aus einer anderen PDF-Bibliothek ein, konvertieren Sie ihn in PXA-kompatiblen PDF-Code und sehen Sie das Ergebnis sofort in der Vorschau."
+  },
+  "backToMigrations": "← Migrationen",
+  "backToMigrationsTitle": "Zurück zu Migrationen",
+  "sourceFramework": "Quell-Framework",
+  "status": {
+    "full": "Vollständig",
+    "pilot": "Pilot",
+    "skeleton": "Gerüst"
+  },
+  "loadExampleTitle": "{{name}}-Beispiel laden",
+  "loadExample": "Beispiel laden",
+  "sourceCodeHeader": "Quellcode — {{name}}",
+  "resources": {
+    "header": "Ressourcen",
+    "noResxLoaded": "Keine .resx geladen",
+    "loadResx": ".resx laden",
+    "clear": "Leeren",
+    "packageHeader": "Report-Paket (zip)",
+    "noPackageLoaded": "Keine .trdp / verpackte .rdlx geladen",
+    "loadPackage": ".trdp / .rdlx laden",
+    "jrxmlSubreports": "JRXML-Unterberichte",
+    "noJrxmlLoaded": "Keine .jrxml-Ressourcen geladen",
+    "jrxmlLoadedCount": "{{count}} geladen",
+    "loadJrxmlFiles": ".jrxml-Dateien laden",
+    "rpxSubreports": "RPX-Unterberichte",
+    "noRpxLoaded": "Keine .rpx-Ressourcen geladen",
+    "rpxLoadedCount": "{{count}} geladen",
+    "loadRpxFiles": ".rpx-Dateien laden",
+    "resourceJsonOverrides": "Ressourcen-JSON-Überschreibungen"
+  },
+  "converting": "Wird konvertiert…",
+  "convert": "Konvertieren",
+  "dragToResize": "Ziehen zum Ändern der Größe",
+  "output": {
+    "design": "PXA-Design (JSON)",
+    "spreadsheetCode": "PXA-Tabellen-Code",
+    "pdfCode": "PXA-kompatibler PDF-Code"
+  },
+  "toggleDiff": "Diff-Ansicht umschalten",
+  "diff": "Diff",
+  "copyToClipboard": "In die Zwischenablage kopieren",
+  "copy": "Kopieren",
+  "copied": "Kopiert!",
+  "downloadCsFile": "Als .cs-Datei herunterladen",
+  "downloadCs": ".cs herunterladen",
+  "openInDesignerTitle": "Den konvertierten Report im visuellen Designer laden",
+  "openInDesigner": "Im Designer öffnen",
+  "generating": "Wird erstellt…",
+  "generatePreview": "Vorschau erstellen",
+  "diagnostics": {
+    "label": "Diagnose",
+    "converted": "✓ {{count}} konvertiert",
+    "warning": "⚠ {{count}} Warnung",
+    "warning_plural": "⚠ {{count}} Warnungen",
+    "noIssues": "Keine Probleme",
+    "hideDetails": "▲ Details ausblenden",
+    "showDetails": "▼ Details anzeigen"
+  },
+  "preview": {
+    "spreadsheetHeader": "Tabellenvorschau",
+    "pdfHeader": "PDF-Vorschau",
+    "openInPdfViewer": "Im PDF-Betrachter öffnen",
+    "emptyPromptGrid": "Klicken Sie auf <strong>{{action}}</strong>, um die konvertierte Arbeitsmappe als Raster darzustellen",
+    "emptyPromptPdf": "Klicken Sie auf <strong>{{action}}</strong>, um das konvertierte PDF darzustellen"
+  },
+  "errors": {
+    "resourceJsonMustBeObject": "Die Ressourcen-JSON muss ein Objekt sein, z. B. { \"logo.ImageSource\": \"...\" }.",
+    "couldNotReadFile": "{{fileName}} konnte nicht gelesen werden.",
+    "couldNotReadJrxml": "Eine oder mehrere .jrxml-Ressourcendateien konnten nicht gelesen werden.",
+    "couldNotReadRpx": "Eine oder mehrere .rpx-Ressourcendateien konnten nicht gelesen werden.",
+    "couldNotReadPackage": "Die Report-Paketdatei konnte nicht gelesen werden.",
+    "conversionFailed": "Konvertierung fehlgeschlagen — läuft das Power-Dox-Automation-Backend auf Port 5086?",
+    "previewFailed": "Vorschau fehlgeschlagen — läuft das Power-Dox-Automation-Backend auf Port 5086?"
+  }
+}

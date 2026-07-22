@@ -82,7 +82,7 @@
 }
 .help-shortcuts-table thead tr { background: #fafaf9; }
 .help-shortcuts-table th {
-  text-align: left; padding: 8px 12px;
+  text-align: start; padding: 8px 12px;
   font-size: 11px; font-weight: 700; color: #a8a29e;
   text-transform: uppercase; letter-spacing: 0.05em;
   border-bottom: 1px solid #e7e5e4;
@@ -104,7 +104,7 @@
 }
 .help-elements-table thead tr { background: #fafaf9; }
 .help-elements-table th {
-  text-align: left; padding: 8px 12px;
+  text-align: start; padding: 8px 12px;
   font-size: 11px; font-weight: 700; color: #a8a29e;
   text-transform: uppercase; letter-spacing: 0.05em;
   border-bottom: 1px solid #e7e5e4;
@@ -138,7 +138,7 @@
 .help-docs-link {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 13px; color: #6366f1; text-decoration: none; font-weight: 500;
-  margin-right: auto;
+  margin-inline-end: auto;
 }
 .help-docs-link:hover { text-decoration: underline; }
 
@@ -340,7 +340,7 @@
 
 .export-card-last-badge {
   font-size: 10px; font-weight: 600; color: #6366f1;
-  background: #e0e7ff; border-radius: 4px; padding: 1px 6px; margin-left: 6px;
+  background: #e0e7ff; border-radius: 4px; padding: 1px 6px; margin-inline-start: 6px;
   vertical-align: middle;
 }
 
@@ -390,7 +390,7 @@
   display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
   background: #fafaf9; border: 1.5px dashed #d6d3d1; color: #78716c; cursor: pointer;
-  transition: border-color .15s, background .15s; text-align: left; width: 100%;
+  transition: border-color .15s, background .15s; text-align: start; width: 100%;
 }
 .sign-file-btn:hover { border-color: #6366f1; background: #eef2ff; color: #4f46e5; }
 .sign-file-btn--set { border-style: solid; border-color: #a5b4fc; background: #eef2ff; color: #3730a3; }

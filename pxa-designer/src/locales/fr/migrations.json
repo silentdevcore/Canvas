@@ -1,0 +1,88 @@
+{
+  "tabs": {
+    "codeMigration": "Migration de code",
+    "reportDesignerMigration": "Migration du concepteur de rapports",
+    "datasourceMigration": "Migration de source de données"
+  },
+  "heading": {
+    "designer": "Migration du concepteur de rapports",
+    "spreadsheetCode": "Migration de code de feuille de calcul",
+    "pdfCode": "Migration de code PDF",
+    "designerDescription": "Convertissez un fichier de concepteur de rapports (DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik) en une conception PXA modifiable, puis ouvrez-la dans le concepteur visuel.",
+    "spreadsheetCodeDescription": "Collez du code d'une autre bibliothèque de feuilles de calcul (ClosedXML, EPPlus, GemBox, Aspose.Cells), convertissez-le vers l'API de feuille de calcul PXA et prévisualisez le résultat sous forme de grille.",
+    "pdfCodeDescription": "Collez du code d'une autre bibliothèque PDF, convertissez-le en code PDF compatible PXA et prévisualisez le résultat instantanément."
+  },
+  "backToMigrations": "← Migrations",
+  "backToMigrationsTitle": "Retour aux migrations",
+  "sourceFramework": "Framework source",
+  "status": {
+    "full": "Complet",
+    "pilot": "Pilote",
+    "skeleton": "Squelette"
+  },
+  "loadExampleTitle": "Charger l'exemple {{name}}",
+  "loadExample": "Charger l'exemple",
+  "sourceCodeHeader": "Code source — {{name}}",
+  "resources": {
+    "header": "Ressources",
+    "noResxLoaded": "Aucun .resx chargé",
+    "loadResx": "Charger .resx",
+    "clear": "Effacer",
+    "packageHeader": "Paquet de rapport (zip)",
+    "noPackageLoaded": "Aucun .trdp / .rdlx empaqueté chargé",
+    "loadPackage": "Charger .trdp / .rdlx",
+    "jrxmlSubreports": "Sous-rapports JRXML",
+    "noJrxmlLoaded": "Aucune ressource .jrxml chargée",
+    "jrxmlLoadedCount": "{{count}} chargé(s)",
+    "loadJrxmlFiles": "Charger des fichiers .jrxml",
+    "rpxSubreports": "Sous-rapports RPX",
+    "noRpxLoaded": "Aucune ressource .rpx chargée",
+    "rpxLoadedCount": "{{count}} chargé(s)",
+    "loadRpxFiles": "Charger des fichiers .rpx",
+    "resourceJsonOverrides": "Substitutions JSON de ressources"
+  },
+  "converting": "Conversion en cours…",
+  "convert": "Convertir",
+  "dragToResize": "Faire glisser pour redimensionner",
+  "output": {
+    "design": "Conception PXA (JSON)",
+    "spreadsheetCode": "Code de feuille de calcul PXA",
+    "pdfCode": "Code PDF compatible PXA"
+  },
+  "toggleDiff": "Basculer la vue des différences",
+  "diff": "Diff",
+  "copyToClipboard": "Copier dans le presse-papiers",
+  "copy": "Copier",
+  "copied": "Copié !",
+  "downloadCsFile": "Télécharger en tant que fichier .cs",
+  "downloadCs": "Télécharger .cs",
+  "openInDesignerTitle": "Charger le rapport converti dans le concepteur visuel",
+  "openInDesigner": "Ouvrir dans le concepteur",
+  "generating": "Génération en cours…",
+  "generatePreview": "Générer l'aperçu",
+  "diagnostics": {
+    "label": "Diagnostics",
+    "converted": "✓ {{count}} converti(s)",
+    "warning": "⚠ {{count}} avertissement",
+    "warning_plural": "⚠ {{count}} avertissements",
+    "noIssues": "Aucun problème",
+    "hideDetails": "▲ Masquer les détails",
+    "showDetails": "▼ Afficher les détails"
+  },
+  "preview": {
+    "spreadsheetHeader": "Aperçu de la feuille de calcul",
+    "pdfHeader": "Aperçu du PDF",
+    "openInPdfViewer": "Ouvrir dans la visionneuse PDF",
+    "emptyPromptGrid": "Cliquez sur <strong>{{action}}</strong> pour afficher le classeur converti sous forme de grille",
+    "emptyPromptPdf": "Cliquez sur <strong>{{action}}</strong> pour afficher le PDF converti"
+  },
+  "errors": {
+    "resourceJsonMustBeObject": "Le JSON de ressources doit être un objet du type { \"logo.ImageSource\": \"...\" }.",
+    "couldNotReadFile": "Impossible de lire {{fileName}}.",
+    "couldNotReadJrxml": "Impossible de lire un ou plusieurs fichiers de ressources .jrxml.",
+    "couldNotReadRpx": "Impossible de lire un ou plusieurs fichiers de ressources .rpx.",
+    "couldNotReadPackage": "Impossible de lire le fichier de paquet de rapport.",
+    "conversionFailed": "Échec de la conversion — le backend Power Dox Automation fonctionne-t-il sur le port 5086 ?",
+    "previewFailed": "Échec de l'aperçu — le backend Power Dox Automation fonctionne-t-il sur le port 5086 ?"
+  }
+}

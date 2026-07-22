@@ -15,6 +15,15 @@ const CreatePage: React.FC = () => {
   const initialMode = searchParams.get('mode') === 'code' ? 'code' : 'editor';
   const [subView, setSubView] = useState<SubView>(initialMode);
 
+  // /pdf/create and /pdf/edit (an alias that redirects to /pdf/create?mode=code)
+  // are the same matched route, so switching between them via the sidebar only
+  // changes the `mode` query param — React Router does not remount this
+  // component for that, so `subView` would otherwise stay frozen at whatever
+  // it was on first mount. Re-sync it whenever the URL's mode actually changes.
+  useEffect(() => {
+    setSubView(prev => (prev === 'preview' ? prev : (searchParams.get('mode') === 'code' ? 'code' : 'editor')));
+  }, [searchParams]);
+
   const {
     currentTemplate,
     currentPageIndex,
@@ -54,9 +63,20 @@ const CreatePage: React.FC = () => {
           sessionStorage.removeItem('pxa_migration_designer_handoff');
         }
       }
-      navigate('/', { replace: true });
+      // Any direct link to /pdf/create (nav bar, sidebar, browser history, a
+      // deep link) should just open a blank document rather than bouncing
+      // back to "/" — matches the Home page's "Blank document" behavior.
+      setCurrentTemplate({
+        id: `blank-${Date.now()}`,
+        name: 'Untitled document',
+        category: 'blank',
+        description: '',
+        pages: [{ id: 'page-1', elements: [] }],
+        sharedElements: [],
+        data: {},
+      });
     }
-  }, [currentTemplate, navigate, setCurrentTemplate, updatePageSettings]);
+  }, [currentTemplate, setCurrentTemplate, updatePageSettings]);
 
   if (!currentTemplate) return null;
 

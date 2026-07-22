@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Template, SimpleElement, CellStyle, LayerDirection, PageSettings, Page, PdfEncryption, PdfEncryptionPermissions } from '@/types';
 import { useEditorStore, DEFAULT_PAGE_SETTINGS } from '@/store';
 import { toDisplay, fromDisplay } from '@/utils/units';
@@ -436,6 +437,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   onSharedElementUpdate,
   onSharedElementDelete,
 }) => {
+  const { t } = useTranslation('editor');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [selectedElementIds, setSelectedElementIds] = useState<Set<string>>(new Set());
   const [dragState, setDragState] = useState<DragState | null>(null);
@@ -493,9 +495,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
       const newPages: Page[] = cloned.pages ?? pages;
       const newShared: SimpleElement[] = cloned.sharedElements ?? sharedElements;
       bulkReplaceContent(newPages, newShared);
-      showTopbarToast('Design cloned with new ID');
+      showTopbarToast(t('toasts.designCloned'));
     } catch (err) {
-      showTopbarToast(err instanceof Error ? err.message : 'Clone failed');
+      showTopbarToast(err instanceof Error ? err.message : t('toasts.cloneFailed'));
     }
   };
 
@@ -513,9 +515,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showTopbarToast(`Page ${pageIndex + 1} extracted`);
+      showTopbarToast(t('toasts.pageExtracted', { number: pageIndex + 1 }));
     } catch (err) {
-      showTopbarToast(err instanceof Error ? err.message : 'Extract failed');
+      showTopbarToast(err instanceof Error ? err.message : t('toasts.extractFailed'));
     } finally {
       setExtractingPage(null);
     }
@@ -638,8 +640,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   const tools: Tool[] = [
     {
       id: 'text',
-      label: 'Text',
-      hint: 'Single line text block',
+      label: t('tools.text.label'),
+      hint: t('tools.text.hint'),
       icon: FiType,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -659,8 +661,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'qrcode',
-      label: 'QR Code',
-      hint: 'Scannable link block',
+      label: t('tools.qrcode.label'),
+      hint: t('tools.qrcode.hint'),
       icon: FiHash,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -676,8 +678,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'barcode',
-      label: 'Barcode',
-      hint: 'Product or order code',
+      label: t('tools.barcode.label'),
+      hint: t('tools.barcode.hint'),
       icon: FiCreditCard,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -693,8 +695,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'signature',
-      label: 'Signature',
-      hint: 'Approval line',
+      label: t('tools.signature.label'),
+      hint: t('tools.signature.hint'),
       icon: FiEdit3,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -709,8 +711,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'richtext',
-      label: 'Rich Text',
-      hint: 'Formatted HTML copy',
+      label: t('tools.richtext.label'),
+      hint: t('tools.richtext.hint'),
       icon: FiFileText,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -725,8 +727,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'field',
-      label: 'Text Field',
-      hint: 'Fillable form input',
+      label: t('tools.field.label'),
+      hint: t('tools.field.hint'),
       icon: FiFileText,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -743,8 +745,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'textarea',
-      label: 'Text Area',
-      hint: 'Multi-line fillable text input',
+      label: t('tools.textarea.label'),
+      hint: t('tools.textarea.hint'),
       icon: FiAlignLeft,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -762,8 +764,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'checkbox',
-      label: 'Checkbox',
-      hint: 'Single-choice field',
+      label: t('tools.checkbox.label'),
+      hint: t('tools.checkbox.hint'),
       icon: FiCheckSquare,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -780,8 +782,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'image',
-      label: 'Image',
-      hint: 'Image placeholder',
+      label: t('tools.image.label'),
+      hint: t('tools.image.hint'),
       icon: FiBox,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -796,8 +798,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'shape',
-      label: 'Shape',
-      hint: 'Generic shape block',
+      label: t('tools.shape.label'),
+      hint: t('tools.shape.hint'),
       icon: FiBox,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -812,8 +814,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'table',
-      label: 'Table',
-      hint: 'Tabular content area',
+      label: t('tools.table.label'),
+      hint: t('tools.table.hint'),
       icon: FiLayers,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -834,8 +836,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'line',
-      label: 'Line',
-      hint: 'Divider element',
+      label: t('tools.line.label'),
+      hint: t('tools.line.hint'),
       icon: FiBox,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -850,8 +852,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'rect',
-      label: 'Rectangle',
-      hint: 'Filled rectangle',
+      label: t('tools.rect.label'),
+      hint: t('tools.rect.hint'),
       icon: FiBox,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -866,8 +868,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'circle',
-      label: 'Circle',
-      hint: 'Circular shape',
+      label: t('tools.circle.label'),
+      hint: t('tools.circle.hint'),
       icon: FiBox,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -882,8 +884,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'chart',
-      label: 'Chart',
-      hint: 'Data chart block',
+      label: t('tools.chart.label'),
+      hint: t('tools.chart.hint'),
       icon: FiLayers,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -899,8 +901,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'subsection',
-      label: 'Subsection',
-      hint: 'Nested content section',
+      label: t('tools.subsection.label'),
+      hint: t('tools.subsection.hint'),
       icon: FiLayers,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -914,8 +916,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'area',
-      label: 'Area',
-      hint: 'Layout area container',
+      label: t('tools.area.label'),
+      hint: t('tools.area.hint'),
       icon: FiBox,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -929,8 +931,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'button',
-      label: 'Button',
-      hint: 'Action button',
+      label: t('tools.button.label'),
+      hint: t('tools.button.hint'),
       icon: FiPlay,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -945,8 +947,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'dropdown',
-      label: 'Dropdown',
-      hint: 'Select input',
+      label: t('tools.dropdown.label'),
+      hint: t('tools.dropdown.hint'),
       icon: FiChevronDown,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -961,8 +963,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'optionlist',
-      label: 'Option List',
-      hint: 'List of choices',
+      label: t('tools.optionlist.label'),
+      hint: t('tools.optionlist.hint'),
       icon: FiList,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -977,8 +979,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'radio',
-      label: 'Radio Group',
-      hint: 'Single-select options',
+      label: t('tools.radio.label'),
+      hint: t('tools.radio.hint'),
       icon: FiCircle,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -993,8 +995,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'watermark',
-      label: 'Watermark',
-      hint: 'Global text or image mark',
+      label: t('tools.watermark.label'),
+      hint: t('tools.watermark.hint'),
       icon: FiDroplet,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1018,8 +1020,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'note',
-      label: 'Notiz',
-      hint: 'Document annotation',
+      label: t('tools.note.label'),
+      hint: t('tools.note.hint'),
       icon: FiBookmark,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1038,8 +1040,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'arrow',
-      label: 'Arrow',
-      hint: 'Direction marker',
+      label: t('tools.arrow.label'),
+      hint: t('tools.arrow.hint'),
       icon: FiArrowUp,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1059,8 +1061,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'draw',
-      label: 'Draw',
-      hint: 'Freehand vector stroke',
+      label: t('tools.draw.label'),
+      hint: t('tools.draw.hint'),
       icon: FiPenTool,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1077,8 +1079,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'date',
-      label: 'Date',
-      hint: 'Static or dynamic date',
+      label: t('tools.date.label'),
+      hint: t('tools.date.hint'),
       icon: FiCalendar,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1099,8 +1101,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'highlight',
-      label: 'Highlight',
-      hint: 'Transparent highlight',
+      label: t('tools.highlight.label'),
+      hint: t('tools.highlight.hint'),
       icon: FiEdit3,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1116,8 +1118,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'checkmark',
-      label: 'Checkmark',
-      hint: 'Check, cross or dot mark',
+      label: t('tools.checkmark.label'),
+      hint: t('tools.checkmark.hint'),
       icon: FiCheck,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1135,8 +1137,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'pageboundary',
-      label: 'Page Start/End',
-      hint: 'Page boundary marker',
+      label: t('tools.pageboundary.label'),
+      hint: t('tools.pageboundary.hint'),
       icon: FiMaximize2,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1153,8 +1155,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'pagenumber',
-      label: 'Nummerierung',
-      hint: 'Page number placeholder',
+      label: t('tools.pagenumber.label'),
+      hint: t('tools.pagenumber.hint'),
       icon: FiHash,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1174,8 +1176,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'toc',
-      label: 'Table of Contents',
-      hint: 'Auto-generated TOC from headings',
+      label: t('tools.toc.label'),
+      hint: t('tools.toc.hint'),
       icon: FiBookOpen,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1191,8 +1193,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'link',
-      label: 'Link',
-      hint: 'Hyperlink element',
+      label: t('tools.link.label'),
+      hint: t('tools.link.hint'),
       icon: FiLink,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1210,8 +1212,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'number',
-      label: 'Number',
-      hint: 'Formatted number value',
+      label: t('tools.number.label'),
+      hint: t('tools.number.hint'),
       icon: FiHash,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1233,8 +1235,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'footnote',
-      label: 'Footnote',
-      hint: 'DOCX footnote reference',
+      label: t('tools.footnote.label'),
+      hint: t('tools.footnote.hint'),
       icon: FiFileText,
       supportedOutputs: ['word'],
       create: () => ({
@@ -1250,8 +1252,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'endnote',
-      label: 'Endnote',
-      hint: 'DOCX endnote reference',
+      label: t('tools.endnote.label'),
+      hint: t('tools.endnote.hint'),
       icon: FiFileText,
       supportedOutputs: ['word'],
       create: () => ({
@@ -1267,8 +1269,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'bookmark',
-      label: 'Bookmark',
-      hint: 'Named anchor for cross-references',
+      label: t('tools.bookmark.label'),
+      hint: t('tools.bookmark.hint'),
       icon: FiBookmark,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1285,8 +1287,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'comment',
-      label: 'Comment',
-      hint: 'Word-native margin comment',
+      label: t('tools.comment.label'),
+      hint: t('tools.comment.hint'),
       icon: FiEdit3,
       supportedOutputs: ['pdf', 'word'] as const,
       create: () => ({
@@ -1305,8 +1307,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     },
     {
       id: 'contentcontrol',
-      label: 'Content Control',
-      hint: 'Structured Word content control (SDT)',
+      label: t('tools.contentcontrol.label'),
+      hint: t('tools.contentcontrol.hint'),
       icon: FiCode,
       supportedOutputs: ['word'],
       create: () => ({
@@ -1329,32 +1331,32 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   const toolGroups: ToolGroup[] = [
     {
       id: 'text',
-      label: 'Text Elements',
+      label: t('toolGroups.text'),
       toolIds: ['text', 'richtext', 'link']
     },
     {
       id: 'form',
-      label: 'Form Elements',
+      label: t('toolGroups.form'),
       toolIds: ['field', 'textarea', 'checkbox', 'button', 'dropdown', 'optionlist', 'radio', 'signature', 'number']
     },
     {
       id: 'visual',
-      label: 'Visual Elements',
+      label: t('toolGroups.visual'),
       toolIds: ['image', 'qrcode', 'barcode', 'chart']
     },
     {
       id: 'layout',
-      label: 'Shapes and Layout',
+      label: t('toolGroups.layout'),
       toolIds: ['shape', 'rect', 'circle', 'line', 'table', 'subsection', 'area']
     },
     {
       id: 'advanced',
-      label: 'Advanced Document Elements',
+      label: t('toolGroups.advanced'),
       toolIds: ['watermark', 'note', 'arrow', 'draw', 'date', 'highlight', 'checkmark', 'pageboundary', 'pagenumber', 'toc']
     },
     {
       id: 'word',
-      label: 'Word / DOCX Elements',
+      label: t('toolGroups.word'),
       toolIds: ['footnote', 'endnote', 'bookmark', 'comment', 'contentcontrol']
     }
   ];
@@ -2167,19 +2169,19 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     const warnings: string[] = [];
 
     if (element.pageScope === 'range' && !element.pageRange?.trim()) {
-      warnings.push('Selected range needs a page range value.');
+      warnings.push(t('warnings.pageRangeNeeded'));
     }
 
     if (element.type === 'date' && element.dateMode === 'binding' && !element.binding?.trim()) {
-      warnings.push('Binding mode needs a data binding path.');
+      warnings.push(t('warnings.bindingPathNeeded'));
     }
 
     if (element.type === 'draw' && !element.pathData?.trim()) {
-      warnings.push('Draw element needs SVG path data.');
+      warnings.push(t('warnings.drawPathNeeded'));
     }
 
     if (element.style?.opacity !== undefined && (element.style.opacity < 0 || element.style.opacity > 1)) {
-      warnings.push('Opacity should be between 0 and 1.');
+      warnings.push(t('warnings.opacityRange'));
     }
 
     return warnings;
@@ -2262,7 +2264,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
       return (
         <div className="editor-placeholder">
           <FiHash className="editor-placeholder-icon" />
-          <span>QR Code</span>
+          <span>{t('placeholders.qrCode')}</span>
           <small>{element.qrValue}</small>
         </div>
       );
@@ -2290,7 +2292,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
       return (
         <div className="editor-placeholder editor-placeholder-wide">
           <FiCreditCard className="editor-placeholder-icon" />
-          <span>Barcode</span>
+          <span>{t('placeholders.barcode')}</span>
           <small>{element.barcodeValue}</small>
         </div>
       );
@@ -2302,7 +2304,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           <FiEdit3 className="editor-placeholder-icon" />
           <span>{resolveContent(element.signatureLabel)}</span>
           <div className="editor-signature-line" />
-          <small>Signature Line</small>
+          <small>{t('placeholders.signatureLine')}</small>
         </div>
       );
     }
@@ -2321,9 +2323,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
         <div className="editor-form-field">
           <span>
             {resolveContent(element.fieldLabel)}
-            {element.required && <span className="editor-field-required-badge" title="Required field">*</span>}
+            {element.required && <span className="editor-field-required-badge" title={t('placeholders.requiredField')}>*</span>}
           </span>
-          <strong>{element.required ? 'Required' : 'Optional'}</strong>
+          <strong>{element.required ? t('placeholders.required') : t('placeholders.optional')}</strong>
         </div>
       );
     }
@@ -2333,7 +2335,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
         <div className="editor-form-field editor-form-field--textarea">
           <span>
             {resolveContent(element.fieldLabel)}
-            {element.required && <span className="editor-field-required-badge" title="Required field">*</span>}
+            {element.required && <span className="editor-field-required-badge" title={t('placeholders.requiredField')}>*</span>}
           </span>
           <div className="editor-textarea-preview">
             {element.placeholder && (
@@ -2374,7 +2376,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
         }}>
           <img
             src={element.content || 'https://via.placeholder.com/220x140'}
-            alt="Image"
+            alt={t('placeholders.image')}
             style={imgStyle}
           />
         </div>
@@ -3295,8 +3297,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
       <div className="editor-mobile-overlay" aria-hidden="true">
         <div className="editor-mobile-overlay-inner">
           <span className="editor-mobile-overlay-icon">🖥</span>
-          <h2>Desktop required</h2>
-          <p>The editor is designed for larger screens. Please open it on a desktop or tablet.</p>
+          <h2>{t('mobileOverlay.title')}</h2>
+          <p>{t('mobileOverlay.body')}</p>
         </div>
       </div>
 
@@ -3306,19 +3308,19 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
 
       <header className="editor-topbar">
         <div className="editor-brand">
-          <button className="editor-icon-button" onClick={onBack} aria-label="Back to gallery" title="Back to gallery">
+          <button className="editor-icon-button" onClick={onBack} aria-label={t('topbar.backToGallery')} title={t('topbar.backToGallery')}>
             <FiArrowLeft />
           </button>
           <div>
-            <div className="editor-kicker">UI Designer</div>
+            <div className="editor-kicker">{t('topbar.kicker')}</div>
             <h1>{template.name}</h1>
           </div>
           <div className="editor-brand-menu-wrap">
             <button
               className="editor-icon-button"
-              title="Design actions"
+              title={t('topbar.designActions')}
               onClick={() => setTopbarMenuOpen(v => !v)}
-              aria-label="Design actions"
+              aria-label={t('topbar.designActions')}
             >
               <FiMoreVertical size={15} />
             </button>
@@ -3328,7 +3330,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-brand-menu">
                   <button onClick={handleCloneDesign}>
                     <FiCopy size={13} />
-                    Clone design
+                    {t('topbar.cloneDesign')}
                   </button>
                 </div>
               </>
@@ -3339,19 +3341,19 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
         <div className="editor-topbar-actions">
           <div className="editor-status-pill">
             <FiMonitor />
-            <span>{pageWidth} × {pageHeight} px</span>
+            <span>{t('topbar.pageDimensions', { width: pageWidth, height: pageHeight })}</span>
           </div>
           <div className="editor-undo-redo">
             <button
               className="editor-icon-button"
-              title="Undo (⌘Z)"
+              title={t('topbar.undo')}
               onClick={undo}
             >
               <FiRefreshCw style={{ transform: 'scaleX(-1)' }} />
             </button>
             <button
               className="editor-icon-button"
-              title="Redo (⌘⇧Z)"
+              title={t('topbar.redo')}
               onClick={redo}
             >
               <FiRefreshCw />
@@ -3359,7 +3361,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           </div>
           <motion.button
             className={`editor-icon-button ${settingsModifiedSinceExport ? 'editor-icon-button--pending' : ''}`}
-            title={settingsModifiedSinceExport ? 'Page Settings — changes not yet exported' : 'Page Settings'}
+            title={settingsModifiedSinceExport ? t('topbar.pageSettingsPending') : t('topbar.pageSettings')}
             onClick={() => setSelectedElementId(null)}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}
@@ -3369,7 +3371,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           </motion.button>
           <motion.button
             className="editor-icon-button"
-            title="Find &amp; Replace"
+            title={t('topbar.findReplace')}
             onClick={() => setFindReplaceOpen(true)}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}
@@ -3378,26 +3380,26 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           </motion.button>
           <motion.button
             className="editor-icon-button"
-            title="Export code (JSON / C#)"
+            title={t('topbar.exportCode')}
             onClick={() => setCodeViewerOpen(true)}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}
           >
             <FiCode />
           </motion.button>
-          <div className="editor-doc-mode-toggle" title="Output mode: affects which elements are shown in the toolbar">
+          <div className="editor-doc-mode-toggle" title={t('topbar.outputModeTitle')}>
             <button
               className={`editor-doc-mode-btn${documentMode === 'pdf' ? ' editor-doc-mode-btn--active' : ''}`}
               onClick={() => setDocumentMode('pdf')}
-            >PDF</button>
+            >{t('topbar.pdf')}</button>
             <button
               className={`editor-doc-mode-btn${documentMode === 'word' ? ' editor-doc-mode-btn--active' : ''}`}
               onClick={() => setDocumentMode('word')}
-            >Word</button>
+            >{t('topbar.word')}</button>
           </div>
           <motion.button
             className="editor-icon-button"
-            title="Help (F1)"
+            title={t('topbar.help')}
             onClick={() => setHelpModalOpen(true)}
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.98 }}
@@ -3411,7 +3413,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
             whileTap={{ scale: 0.98 }}
           >
             <FiEye />
-            <span>Preview</span>
+            <span>{t('topbar.preview')}</span>
           </motion.button>
         </div>
       </header>
@@ -3420,12 +3422,12 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
         <aside className="editor-panel editor-tool-panel" aria-label="Element tools">
           <div className="editor-panel-heading">
             <FiPlus />
-            <span>Add elements</span>
+            <span>{t('toolPanel.addElements')}</span>
           </div>
 
           {documentMode === 'pdf' && wordElementsOnSurface && (
             <div className="editor-doc-mode-warning">
-              Some elements on the canvas are Word-only and will not render in PDF export.
+              {t('toolPanel.wordOnlyWarning')}
             </div>
           )}
           <div className="editor-tool-list">
@@ -3492,41 +3494,41 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           <button
             className="editor-form-block-btn"
             onClick={() => setFormBlockModalOpen(true)}
-            title="Insert a pre-built group of form fields (address, contact, etc.)"
+            title={t('toolPanel.insertFormBlockTitle')}
           >
             <FiGrid size={14} />
-            Insert Form Block
+            {t('toolPanel.insertFormBlock')}
           </button>
 
           <div className="editor-layer-summary">
             <div>
               <FiLayers />
-              <span>Layers</span>
+              <span>{t('toolPanel.layers')}</span>
             </div>
             <strong>{elements.length}</strong>
           </div>
         </aside>
 
-        <section className="editor-stage" aria-label="Document canvas">
+        <section className="editor-stage" aria-label={t('canvasStage.ariaLabel')}>
           <LanguageTabBar />
           <div className="editor-stage-header">
             <div>
-              <span>Page {currentPageIndex + 1} / {pages.length}</span>
-              <strong>{pageWidth} × {pageHeight} px</strong>
+              <span>{t('canvasStage.pageOfTotal', { current: currentPageIndex + 1, total: pages.length })}</span>
+              <strong>{t('canvasStage.pageDimensions', { width: pageWidth, height: pageHeight })}</strong>
               {(() => {
                 const a4 = PAGE_PRESETS['A4'];
                 const isA4 = pageWidth === a4.width && pageHeight === a4.height;
                 if (isA4) return null;
                 const preset = Object.entries(PAGE_PRESETS).find(([, p]) => p.width === pageWidth && p.height === pageHeight);
                 return (
-                  <span className="editor-page-size-badge">{preset ? preset[0] : 'Custom'}</span>
+                  <span className="editor-page-size-badge">{preset ? preset[0] : t('canvasStage.customSize')}</span>
                 );
               })()}
             </div>
             <div className="editor-stage-zoom">
               <button
                 className="editor-zoom-btn"
-                title="Zoom out (⌘−)"
+                title={t('canvasStage.zoomOut')}
                 onClick={() => setZoomLevel(z => Math.max(0.25, parseFloat((z - 0.25).toFixed(2))))}
               >
                 <FiZoomOut />
@@ -3534,7 +3536,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               <span>{Math.round(zoomLevel * 100)}%</span>
               <button
                 className="editor-zoom-btn"
-                title="Zoom in (⌘+)"
+                title={t('canvasStage.zoomIn')}
                 onClick={() => setZoomLevel(z => Math.min(2, parseFloat((z + 0.25).toFixed(2))))}
               >
                 <FiZoomIn />
@@ -3544,7 +3546,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
 
           {drawingMode && (
             <div className="editor-draw-badge">
-              {drawingMode === 'line' ? 'Drawing line' : drawingMode === 'arrow' ? 'Drawing arrow' : 'Freehand drawing'} — click and drag on the canvas &nbsp;·&nbsp; <kbd>Esc</kbd> to cancel
+              {drawingMode === 'line' ? t('canvasStage.drawingLine') : drawingMode === 'arrow' ? t('canvasStage.drawingArrow') : t('canvasStage.freehandDrawing')} {t('canvasStage.drawInstructions')} &nbsp;·&nbsp; <kbd>Esc</kbd> {t('canvasStage.cancelHint')}
             </div>
           )}
 
@@ -3633,7 +3635,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   className="editor-header-guide"
                   style={{ height: pageSettings.headerHeight }}
                 >
-                  <span className="editor-guide-label">Header</span>
+                  <span className="editor-guide-label">{t('canvasStage.headerGuide')}</span>
                 </div>
               )}
               {/* Footer area band */}
@@ -3645,7 +3647,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     top: pageHeight - pageSettings.footerHeight,
                   }}
                 >
-                  <span className="editor-guide-label">Footer</span>
+                  <span className="editor-guide-label">{t('canvasStage.footerGuide')}</span>
                 </div>
               )}
               {/* Crop marks at page corners */}
@@ -3697,7 +3699,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   ) : (
                     <img
                       src={pageSettings.globalWatermark.content}
-                      alt="Watermark"
+                      alt={t('canvasStage.watermarkAlt')}
                       style={{
                         maxWidth: '60%',
                         maxHeight: '60%',
@@ -3804,8 +3806,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   <span>
                     <FiMousePointer />
                   </span>
-                  <h2>Start with an element</h2>
-                  <p>Drag a tool from the left onto the PDF page, or click a tool to add it automatically.</p>
+                  <h2>{t('emptyState.title')}</h2>
+                  <p>{t('emptyState.body')}</p>
                 </div>
               )}
 
@@ -3885,41 +3887,41 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <button
                   className="editor-page-thumb-btn"
                   onClick={() => onPageSelect(index)}
-                  title={`Page ${index + 1}`}
+                  title={t('pagePanel.pageTitle', { number: index + 1 })}
                 >
                   <span className="editor-page-thumb-num">{index + 1}</span>
                 </button>
                 <div className="editor-page-thumb-actions">
-                  <button title="Duplicate page" onClick={() => onPageDuplicate(index)}><FiCopy size={10} /></button>
+                  <button title={t('pagePanel.duplicatePage')} onClick={() => onPageDuplicate(index)}><FiCopy size={10} /></button>
                   <button
-                    title="Extract page to JSON"
+                    title={t('pagePanel.extractPageToJson')}
                     onClick={() => handleExtractPage(index)}
                     disabled={extractingPage === index}
                   >
                     {extractingPage === index ? '…' : <FiScissors size={10} />}
                   </button>
                   {pages.length > 1 && (
-                    <button title="Delete page" onClick={() => {
-                      if (window.confirm(`Delete page ${index + 1}?`)) onPageDelete(index);
+                    <button title={t('pagePanel.deletePage')} onClick={() => {
+                      if (window.confirm(t('pagePanel.deletePageConfirm', { number: index + 1 }))) onPageDelete(index);
                     }}>×</button>
                   )}
                 </div>
               </div>
             ))}
-            <button className="editor-page-add-btn" onClick={onPageAdd} title="Add page">
+            <button className="editor-page-add-btn" onClick={onPageAdd} title={t('pagePanel.addPage')}>
               <FiPlus size={14} />
             </button>
           </div>
         </section>
 
-        <aside className="editor-panel editor-inspector-panel" aria-label="Element properties">
+        <aside className="editor-panel editor-inspector-panel" aria-label={t('inspector.ariaLabel')}>
           <div className="editor-inspector-tabs">
             <button
               className={`editor-inspector-tab${inspectorTab === 'inspector' ? ' active' : ''}`}
               onClick={() => setInspectorTab('inspector')}
             >
               {selectedElement ? <FiMousePointer size={12} /> : <FiSettings size={12} />}
-              {selectedElement ? 'Inspector' : 'Page Settings'}
+              {selectedElement ? t('inspector.inspectorTab') : t('inspector.pageSettingsTab')}
               {!selectedElement && JSON.stringify(pageSettings) !== JSON.stringify(DEFAULT_PAGE_SETTINGS) && (
                 <span className="editor-settings-badge">●</span>
               )}
@@ -3928,7 +3930,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               className={`editor-inspector-tab${inspectorTab === 'layers' ? ' active' : ''}`}
               onClick={() => setInspectorTab('layers')}
             >
-              <FiLayers size={12} /> Layers
+              <FiLayers size={12} /> {t('inspector.layersTab')}
               {elements.length > 0 && <span className="editor-layer-count">{elements.length}</span>}
             </button>
             {(pageSettings.activeLanguages ?? []).length >= 1 && (
@@ -3936,7 +3938,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 className={`editor-inspector-tab${inspectorTab === 'properties' ? ' active' : ''}`}
                 onClick={() => setInspectorTab('properties')}
               >
-                <FiGlobe size={12} /> Properties
+                <FiGlobe size={12} /> {t('inspector.propertiesTab')}
                 {(pageSettings.localizedProperties ?? []).length > 0 && (
                   <span className="editor-layer-count">{(pageSettings.localizedProperties ?? []).length}</span>
                 )}
@@ -3951,7 +3953,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {sharedElements.length > 0 && (
                 <>
                   <div className="editor-layers-section-header">
-                    <FiLink size={10} /> All pages (header / footer)
+                    <FiLink size={10} /> {t('layers.allPagesHeaderFooter')}
                   </div>
                   {[...sharedElements].reverse().map((el, i) => {
                     const isPrimary = el.id === selectedElementId;
@@ -3963,11 +3965,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         <span className="editor-layer-row-index">S{sharedElements.length - i}</span>
                         <span className="editor-layer-row-name">{el.name || ELEMENT_TYPE_LABELS[el.type] || el.type}</span>
                         <div className="editor-layer-row-actions">
-                          <button title={el.hidden ? 'Show' : 'Hide'}
+                          <button title={el.hidden ? t('layers.show') : t('layers.hide')}
                             className={`editor-layer-icon-btn${el.hidden ? ' dimmed' : ''}`}
                             onClick={(e) => { e.stopPropagation(); updateElementById(el.id, { hidden: !el.hidden }); }}>
                             <FiEye size={12} /></button>
-                          <button title={el.locked ? 'Unlock' : 'Lock'}
+                          <button title={el.locked ? t('layers.unlock') : t('layers.lock')}
                             className={`editor-layer-icon-btn${el.locked ? ' dimmed' : ''}`}
                             onClick={(e) => { e.stopPropagation(); updateElementById(el.id, { locked: !el.locked }); }}>
                             {el.locked ? <FiLock size={12} /> : <FiUnlock size={12} />}</button>
@@ -3976,15 +3978,15 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     );
                   })}
                   <div className="editor-layers-section-header" style={{ marginTop: 4 }}>
-                    <FiFileText size={10} /> Page {currentPageIndex + 1}
+                    <FiFileText size={10} /> {t('layers.pageHeading', { number: currentPageIndex + 1 })}
                   </div>
                 </>
               )}
               {elements.length === 0 && sharedElements.length === 0 && (
-                <p className="editor-layers-empty">No elements yet. Add one from the toolbar.</p>
+                <p className="editor-layers-empty">{t('layers.noElementsYet')}</p>
               )}
               {elements.length === 0 && sharedElements.length > 0 && (
-                <p className="editor-layers-empty" style={{ fontSize: 10 }}>No elements on this page yet.</p>
+                <p className="editor-layers-empty" style={{ fontSize: 10 }}>{t('layers.noElementsOnPageYet')}</p>
               )}
               {[...elements].reverse().map((el, i) => {
                 const isPrimary = el.id === selectedElementId;
@@ -3994,7 +3996,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     key={el.id}
                     className={`editor-layer-row${isPrimary ? ' is-primary' : isInMulti ? ' is-multi' : ''}`}
                     onClick={(e) => e.shiftKey ? toggleMultiSelect(el.id) : selectOne(el.id)}
-                    title="Shift+click to multi-select"
+                    title={t('layers.shiftClickMultiSelect')}
                   >
                     <span className="editor-layer-row-index">{elements.length - i}</span>
                     <span className="editor-layer-row-name">
@@ -4010,12 +4012,12 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     </span>
                     <div className="editor-layer-row-actions">
                       <button
-                        title={el.hidden ? 'Show' : 'Hide'}
+                        title={el.hidden ? t('layers.show') : t('layers.hide')}
                         className={`editor-layer-icon-btn${el.hidden ? ' dimmed' : ''}`}
                         onClick={(e) => { e.stopPropagation(); updateElementById(el.id, { hidden: !el.hidden }); }}
                       ><FiEye size={12} /></button>
                       <button
-                        title={el.locked ? 'Unlock' : 'Lock'}
+                        title={el.locked ? t('layers.unlock') : t('layers.lock')}
                         className={`editor-layer-icon-btn${el.locked ? ' dimmed' : ''}`}
                         onClick={(e) => { e.stopPropagation(); updateElementById(el.id, { locked: !el.locked }); }}
                       >{el.locked ? <FiLock size={12} /> : <FiUnlock size={12} />}</button>
@@ -4158,11 +4160,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiFileText />
-                    <span>Paper</span>
+                    <span>{t('pageSettings.paper.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label>
-                      <span>Size</span>
+                      <span>{t('pageSettings.paper.size')}</span>
                       <select
                         value={currentPreset}
                         onChange={(e) => {
@@ -4176,25 +4178,25 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         }}
                       >
                         {Object.keys(PAGE_PRESETS).map(k => <option key={k}>{k}</option>)}
-                        {currentPreset === 'Custom' && <option value="Custom">Custom</option>}
+                        {currentPreset === 'Custom' && <option value="Custom">{t('pageSettings.paper.customOption')}</option>}
                       </select>
                     </label>
                     <label>
-                      <span>Unit</span>
+                      <span>{t('pageSettings.paper.unit')}</span>
                       <select
                         value={pageSettings.unit}
                         onChange={(e) => updatePageSettings({ unit: e.target.value as PageSettings['unit'] })}
                       >
-                        <option value="px">px</option>
-                        <option value="pt">pt</option>
-                        <option value="mm">mm</option>
-                        <option value="cm">cm</option>
-                        <option value="in">inch</option>
+                        <option value="px">{t('pageSettings.paper.units.px')}</option>
+                        <option value="pt">{t('pageSettings.paper.units.pt')}</option>
+                        <option value="mm">{t('pageSettings.paper.units.mm')}</option>
+                        <option value="cm">{t('pageSettings.paper.units.cm')}</option>
+                        <option value="in">{t('pageSettings.paper.units.in')}</option>
                       </select>
                     </label>
                     <div className="editor-form-grid">
                       <label>
-                        <span>Width ({pageSettings.unit})</span>
+                        <span>{t('pageSettings.paper.width', { unit: pageSettings.unit })}</span>
                         <input
                           type="number"
                           value={toDisplay(pageSettings.width, pageSettings.unit)}
@@ -4204,7 +4206,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         />
                       </label>
                       <label>
-                        <span>Height ({pageSettings.unit})</span>
+                        <span>{t('pageSettings.paper.height', { unit: pageSettings.unit })}</span>
                         <input
                           type="number"
                           value={toDisplay(pageSettings.height, pageSettings.unit)}
@@ -4226,7 +4228,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             });
                           }
                         }}
-                      >Portrait</button>
+                      >{t('pageSettings.paper.portrait')}</button>
                       <button
                         className={`editor-orient-btn ${pageSettings.orientation === 'landscape' ? 'is-active' : ''}`}
                         onClick={() => {
@@ -4238,7 +4240,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             });
                           }
                         }}
-                      >Landscape</button>
+                      >{t('pageSettings.paper.landscape')}</button>
                     </div>
                   </div>
                 </div>
@@ -4247,12 +4249,12 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiDroplet />
-                    <span>Background</span>
+                    <span>{t('pageSettings.background.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <div className="editor-form-grid">
                       <label>
-                        <span>Color</span>
+                        <span>{t('pageSettings.background.color')}</span>
                         <input
                           type="color"
                           value={pageSettings.backgroundColor}
@@ -4260,23 +4262,23 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         />
                       </label>
                       <label>
-                        <span>Fit</span>
+                        <span>{t('pageSettings.background.fit')}</span>
                         <select
                           value={pageSettings.backgroundImageFit}
                           onChange={(e) => updatePageSettings({ backgroundImageFit: e.target.value as PageSettings['backgroundImageFit'] })}
                         >
-                          <option value="cover">Cover</option>
-                          <option value="contain">Contain</option>
-                          <option value="fill">Stretch</option>
-                          <option value="tile">Tile</option>
+                          <option value="cover">{t('pageSettings.background.fitOptions.cover')}</option>
+                          <option value="contain">{t('pageSettings.background.fitOptions.contain')}</option>
+                          <option value="fill">{t('pageSettings.background.fitOptions.fill')}</option>
+                          <option value="tile">{t('pageSettings.background.fitOptions.tile')}</option>
                         </select>
                       </label>
                     </div>
                     <label>
-                      <span>Image URL</span>
+                      <span>{t('pageSettings.background.imageUrl')}</span>
                       <input
                         type="url"
-                        placeholder="https://…"
+                        placeholder={t('pageSettings.background.imageUrlPlaceholder')}
                         value={pageSettings.backgroundImage}
                         onChange={(e) => updatePageSettings({ backgroundImage: e.target.value })}
                       />
@@ -4287,7 +4289,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         style={{ fontSize: 12, minHeight: 32 }}
                         onClick={() => updatePageSettings({ backgroundImage: '' })}
                       >
-                        Remove image
+                        {t('pageSettings.background.removeImage')}
                       </button>
                     )}
                   </div>
@@ -4297,10 +4299,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiMaximize2 />
-                    <span>Margins</span>
+                    <span>{t('pageSettings.margins.heading')}</span>
                     <button
                       className={`editor-link-btn ${linkedMargins ? 'is-linked' : ''}`}
-                      title={linkedMargins ? 'Unlink margins' : 'Link margins'}
+                      title={linkedMargins ? t('pageSettings.margins.unlinkMargins') : t('pageSettings.margins.linkMargins')}
                       onClick={() => setLinkedMargins(l => !l)}
                     >
                       {linkedMargins ? <FiLink /> : <FiLink2 />}
@@ -4308,20 +4310,20 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <div className="editor-preset-buttons">
-                      {([['None', 0], ['Narrow', 24], ['Normal', 48], ['Wide', 72]] as [string, number][]).map(([label, value]) => (
+                      {([['none', 0], ['narrow', 24], ['normal', 48], ['wide', 72]] as [string, number][]).map(([labelKey, value]) => (
                         <button
-                          key={label}
+                          key={labelKey}
                           className={`editor-preset-btn ${Object.values(pageSettings.margins).every(v => v === value) ? 'is-active' : ''}`}
                           onClick={() => updatePageSettings({ margins: { top: value, right: value, bottom: value, left: value } })}
                         >
-                          {label}
+                          {t(`pageSettings.margins.presets.${labelKey}`)}
                         </button>
                       ))}
                     </div>
                     <div className="editor-form-grid">
                       {(['top', 'right', 'bottom', 'left'] as const).map(side => (
                         <label key={side}>
-                          <span>{side.charAt(0).toUpperCase() + side.slice(1)} ({pageSettings.unit})</span>
+                          <span>{t('pageSettings.margins.sideLabel', { side: t(`pageSettings.margins.sides.${side}`), unit: pageSettings.unit })}</span>
                           <input
                             type="number"
                             value={toDisplay(pageSettings.margins[side], pageSettings.unit)}
@@ -4339,7 +4341,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiMonitor />
-                    <span>Workspace</span>
+                    <span>{t('pageSettings.workspace.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label className="editor-checkbox-control">
@@ -4348,7 +4350,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.gridVisible}
                         onChange={(e) => updatePageSettings({ gridVisible: e.target.checked })}
                       />
-                      <span>Show grid</span>
+                      <span>{t('pageSettings.workspace.showGrid')}</span>
                     </label>
                     <label className="editor-checkbox-control">
                       <input
@@ -4356,10 +4358,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.snapToGrid}
                         onChange={(e) => updatePageSettings({ snapToGrid: e.target.checked })}
                       />
-                      <span>Snap to grid</span>
+                      <span>{t('pageSettings.workspace.snapToGrid')}</span>
                     </label>
                     <label>
-                      <span>Grid size (px)</span>
+                      <span>{t('pageSettings.workspace.gridSize')}</span>
                       <input
                         type="number"
                         value={pageSettings.gridSize}
@@ -4374,7 +4376,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.showMarginGuide}
                         onChange={(e) => updatePageSettings({ showMarginGuide: e.target.checked })}
                       />
-                      <span>Show margin guide</span>
+                      <span>{t('pageSettings.workspace.showMarginGuide')}</span>
                     </label>
                     <label className="editor-checkbox-control">
                       <input
@@ -4382,7 +4384,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.showSafeArea}
                         onChange={(e) => updatePageSettings({ showSafeArea: e.target.checked })}
                       />
-                      <span>Show safe area guide</span>
+                      <span>{t('pageSettings.workspace.showSafeAreaGuide')}</span>
                     </label>
                   </div>
                 </div>
@@ -4391,7 +4393,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiLayers />
-                    <span>Header &amp; Footer</span>
+                    <span>{t('pageSettings.headerFooter.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label className="editor-checkbox-control">
@@ -4400,12 +4402,12 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.headerEnabled}
                         onChange={(e) => updatePageSettings({ headerEnabled: e.target.checked })}
                       />
-                      <span>Enable header</span>
+                      <span>{t('pageSettings.headerFooter.enableHeader')}</span>
                     </label>
                     {pageSettings.headerEnabled && (
                       <>
                         <label>
-                          <span>Header height (px)</span>
+                          <span>{t('pageSettings.headerFooter.headerHeight')}</span>
                           <input
                             type="number"
                             value={pageSettings.headerHeight}
@@ -4420,7 +4422,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             checked={pageSettings.headerFirstPageDifferent}
                             onChange={(e) => updatePageSettings({ headerFirstPageDifferent: e.target.checked })}
                           />
-                          <span>Different header on first page</span>
+                          <span>{t('pageSettings.headerFooter.headerFirstPageDifferent')}</span>
                         </label>
                         <label className="editor-checkbox-control">
                           <input
@@ -4428,15 +4430,15 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             checked={pageSettings.headerOddEvenDifferent}
                             onChange={(e) => updatePageSettings({ headerOddEvenDifferent: e.target.checked })}
                           />
-                          <span>Different header on odd/even pages</span>
+                          <span>{t('pageSettings.headerFooter.headerOddEvenDifferent')}</span>
                         </label>
                         <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 8, marginTop: 2 }}>
-                          <span style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 6 }}>Insert into header</span>
+                          <span style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 6 }}>{t('pageSettings.headerFooter.insertIntoHeader')}</span>
                           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                            <button className="editor-secondary-button" onClick={() => insertIntoZone('header', 'text')}>Text</button>
-                            <button className="editor-secondary-button" onClick={() => insertIntoZone('header', 'pagenumber')}>Page №</button>
-                            <button className="editor-secondary-button" onClick={() => insertIntoZone('header', 'date')}>Date</button>
-                            <button className="editor-secondary-button" onClick={() => insertIntoZone('header', 'image')}>Logo</button>
+                            <button className="editor-secondary-button" onClick={() => insertIntoZone('header', 'text')}>{t('pageSettings.headerFooter.insertText')}</button>
+                            <button className="editor-secondary-button" onClick={() => insertIntoZone('header', 'pagenumber')}>{t('pageSettings.headerFooter.insertPageNumber')}</button>
+                            <button className="editor-secondary-button" onClick={() => insertIntoZone('header', 'date')}>{t('pageSettings.headerFooter.insertDate')}</button>
+                            <button className="editor-secondary-button" onClick={() => insertIntoZone('header', 'image')}>{t('pageSettings.headerFooter.insertLogo')}</button>
                           </div>
                         </div>
                       </>
@@ -4447,12 +4449,12 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.footerEnabled}
                         onChange={(e) => updatePageSettings({ footerEnabled: e.target.checked })}
                       />
-                      <span>Enable footer</span>
+                      <span>{t('pageSettings.headerFooter.enableFooter')}</span>
                     </label>
                     {pageSettings.footerEnabled && (
                       <>
                         <label>
-                          <span>Footer height (px)</span>
+                          <span>{t('pageSettings.headerFooter.footerHeight')}</span>
                           <input
                             type="number"
                             value={pageSettings.footerHeight}
@@ -4467,7 +4469,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             checked={pageSettings.footerFirstPageDifferent}
                             onChange={(e) => updatePageSettings({ footerFirstPageDifferent: e.target.checked })}
                           />
-                          <span>Different footer on first page</span>
+                          <span>{t('pageSettings.headerFooter.footerFirstPageDifferent')}</span>
                         </label>
                         <label className="editor-checkbox-control">
                           <input
@@ -4475,15 +4477,15 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             checked={pageSettings.footerOddEvenDifferent}
                             onChange={(e) => updatePageSettings({ footerOddEvenDifferent: e.target.checked })}
                           />
-                          <span>Different footer on odd/even pages</span>
+                          <span>{t('pageSettings.headerFooter.footerOddEvenDifferent')}</span>
                         </label>
                         <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 8, marginTop: 2 }}>
-                          <span style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 6 }}>Insert into footer</span>
+                          <span style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 6 }}>{t('pageSettings.headerFooter.insertIntoFooter')}</span>
                           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                            <button className="editor-secondary-button" onClick={() => insertIntoZone('footer', 'text')}>Text</button>
-                            <button className="editor-secondary-button" onClick={() => insertIntoZone('footer', 'pagenumber')}>Page №</button>
-                            <button className="editor-secondary-button" onClick={() => insertIntoZone('footer', 'date')}>Date</button>
-                            <button className="editor-secondary-button" onClick={() => insertIntoZone('footer', 'image')}>Logo</button>
+                            <button className="editor-secondary-button" onClick={() => insertIntoZone('footer', 'text')}>{t('pageSettings.headerFooter.insertText')}</button>
+                            <button className="editor-secondary-button" onClick={() => insertIntoZone('footer', 'pagenumber')}>{t('pageSettings.headerFooter.insertPageNumber')}</button>
+                            <button className="editor-secondary-button" onClick={() => insertIntoZone('footer', 'date')}>{t('pageSettings.headerFooter.insertDate')}</button>
+                            <button className="editor-secondary-button" onClick={() => insertIntoZone('footer', 'image')}>{t('pageSettings.headerFooter.insertLogo')}</button>
                           </div>
                         </div>
                       </>
@@ -4495,11 +4497,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiMaximize2 />
-                    <span>Bleed</span>
+                    <span>{t('pageSettings.bleed.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label>
-                      <span>Bleed size (px) — 0 = off</span>
+                      <span>{t('pageSettings.bleed.bleedSize')}</span>
                       <input
                         type="number"
                         value={pageSettings.bleedSize}
@@ -4510,7 +4512,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     </label>
                     {pageSettings.bleedSize > 0 && (
                       <p style={{ margin: 0, fontSize: 11, color: '#64748b', lineHeight: 1.4 }}>
-                        Red trim line shows where paper will be cut. Extend background elements to the page edge.
+                        {t('pageSettings.bleed.bleedNote')}
                       </p>
                     )}
                     <label className="editor-checkbox-control">
@@ -4519,7 +4521,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.cropMarks}
                         onChange={(e) => updatePageSettings({ cropMarks: e.target.checked })}
                       />
-                      <span>Show crop marks</span>
+                      <span>{t('pageSettings.bleed.showCropMarks')}</span>
                     </label>
                   </div>
                 </div>
@@ -4528,7 +4530,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiEyeOff />
-                    <span>Global Watermark</span>
+                    <span>{t('pageSettings.watermark.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label className="editor-checkbox-control">
@@ -4537,7 +4539,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.globalWatermark.enabled}
                         onChange={(e) => updatePageSettings({ globalWatermark: { ...pageSettings.globalWatermark, enabled: e.target.checked } })}
                       />
-                      <span>Enable watermark</span>
+                      <span>{t('pageSettings.watermark.enable')}</span>
                     </label>
                     {pageSettings.globalWatermark.enabled && (
                       <>
@@ -4545,24 +4547,24 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           <button
                             className={`editor-orient-btn ${pageSettings.globalWatermark.mode === 'text' ? 'is-active' : ''}`}
                             onClick={() => updatePageSettings({ globalWatermark: { ...pageSettings.globalWatermark, mode: 'text' } })}
-                          >Text</button>
+                          >{t('pageSettings.watermark.modeText')}</button>
                           <button
                             className={`editor-orient-btn ${pageSettings.globalWatermark.mode === 'image' ? 'is-active' : ''}`}
                             onClick={() => updatePageSettings({ globalWatermark: { ...pageSettings.globalWatermark, mode: 'image' } })}
-                          >Image URL</button>
+                          >{t('pageSettings.watermark.modeImageUrl')}</button>
                         </div>
                         <label>
-                          <span>{pageSettings.globalWatermark.mode === 'text' ? 'Text' : 'Image URL'}</span>
+                          <span>{pageSettings.globalWatermark.mode === 'text' ? t('pageSettings.watermark.modeText') : t('pageSettings.watermark.modeImageUrl')}</span>
                           <input
                             type="text"
                             value={pageSettings.globalWatermark.content}
-                            placeholder={pageSettings.globalWatermark.mode === 'text' ? 'e.g. DRAFT' : 'https://...'}
+                            placeholder={pageSettings.globalWatermark.mode === 'text' ? t('pageSettings.watermark.textPlaceholder') : t('pageSettings.watermark.urlPlaceholder')}
                             onChange={(e) => updatePageSettings({ globalWatermark: { ...pageSettings.globalWatermark, content: e.target.value } })}
                           />
                         </label>
                         <div className="editor-form-grid">
                           <label>
-                            <span>Opacity (0–1)</span>
+                            <span>{t('pageSettings.watermark.opacity')}</span>
                             <input
                               type="number"
                               step={0.01}
@@ -4573,7 +4575,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             />
                           </label>
                           <label>
-                            <span>Rotation (°)</span>
+                            <span>{t('pageSettings.watermark.rotation')}</span>
                             <input
                               type="number"
                               min={-180}
@@ -4585,7 +4587,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           {pageSettings.globalWatermark.mode === 'text' && (
                             <>
                               <label>
-                                <span>Font size (px)</span>
+                                <span>{t('pageSettings.watermark.fontSize')}</span>
                                 <input
                                   type="number"
                                   min={12}
@@ -4595,7 +4597,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                                 />
                               </label>
                               <label>
-                                <span>Color</span>
+                                <span>{t('pageSettings.watermark.color')}</span>
                                 <input
                                   type="color"
                                   value={pageSettings.globalWatermark.color}
@@ -4606,25 +4608,25 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           )}
                         </div>
                         <label>
-                          <span>Page scope</span>
+                          <span>{t('pageSettings.watermark.pageScope')}</span>
                           <select
                             value={pageSettings.globalWatermark.pageScope}
                             onChange={(e) => updatePageSettings({ globalWatermark: { ...pageSettings.globalWatermark, pageScope: e.target.value as PageSettings['globalWatermark']['pageScope'] } })}
                           >
-                            <option value="all">All pages</option>
-                            <option value="first">First page only</option>
-                            <option value="odd">Odd pages</option>
-                            <option value="even">Even pages</option>
-                            <option value="range">Page range</option>
+                            <option value="all">{t('pageSettings.watermark.scopeAll')}</option>
+                            <option value="first">{t('pageSettings.watermark.scopeFirst')}</option>
+                            <option value="odd">{t('pageSettings.watermark.scopeOdd')}</option>
+                            <option value="even">{t('pageSettings.watermark.scopeEven')}</option>
+                            <option value="range">{t('pageSettings.watermark.scopeRange')}</option>
                           </select>
                         </label>
                         {pageSettings.globalWatermark.pageScope === 'range' && (
                           <label>
-                            <span>Page range (e.g. 2-5)</span>
+                            <span>{t('pageSettings.watermark.pageRange')}</span>
                             <input
                               type="text"
                               value={pageSettings.globalWatermark.pageRange}
-                              placeholder="e.g. 2-5"
+                              placeholder={t('pageSettings.watermark.pageRangePlaceholder')}
                               onChange={(e) => updatePageSettings({ globalWatermark: { ...pageSettings.globalWatermark, pageRange: e.target.value } })}
                             />
                           </label>
@@ -4638,7 +4640,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiHash />
-                    <span>Page Numbering</span>
+                    <span>{t('pageSettings.pageNumbering.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label className="editor-checkbox-control">
@@ -4649,28 +4651,28 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           pageNumbering: { ...pageSettings.pageNumbering, enabled: e.target.checked }
                         })}
                       />
-                      <span>Enable page numbers</span>
+                      <span>{t('pageSettings.pageNumbering.enable')}</span>
                     </label>
                     {pageSettings.pageNumbering.enabled && (
                       <>
                         <label>
-                          <span>Format</span>
+                          <span>{t('pageSettings.pageNumbering.format')}</span>
                           <select
                             value={pageSettings.pageNumbering.format}
                             onChange={(e) => updatePageSettings({
                               pageNumbering: { ...pageSettings.pageNumbering, format: e.target.value as PageSettings['pageNumbering']['format'] }
                             })}
                           >
-                            <option value="pageOfTotal">Page X of Y</option>
-                            <option value="current">Page number only</option>
-                            <option value="total">Total pages only</option>
-                            <option value="roman">Roman numerals</option>
-                            <option value="alphabetic">Alphabetic</option>
+                            <option value="pageOfTotal">{t('pageSettings.pageNumbering.formatPageOfTotal')}</option>
+                            <option value="current">{t('pageSettings.pageNumbering.formatCurrent')}</option>
+                            <option value="total">{t('pageSettings.pageNumbering.formatTotal')}</option>
+                            <option value="roman">{t('pageSettings.pageNumbering.formatRoman')}</option>
+                            <option value="alphabetic">{t('pageSettings.pageNumbering.formatAlphabetic')}</option>
                           </select>
                         </label>
                         <div className="editor-form-grid">
                           <label>
-                            <span>Start at</span>
+                            <span>{t('pageSettings.pageNumbering.startAt')}</span>
                             <input
                               type="number"
                               min={1}
@@ -4681,22 +4683,22 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             />
                           </label>
                           <label>
-                            <span>Prefix</span>
+                            <span>{t('pageSettings.pageNumbering.prefix')}</span>
                             <input
                               type="text"
                               value={pageSettings.pageNumbering.prefix}
-                              placeholder="e.g. Page "
+                              placeholder={t('pageSettings.pageNumbering.prefixPlaceholder')}
                               onChange={(e) => updatePageSettings({
                                 pageNumbering: { ...pageSettings.pageNumbering, prefix: e.target.value }
                               })}
                             />
                           </label>
                           <label>
-                            <span>Suffix</span>
+                            <span>{t('pageSettings.pageNumbering.suffix')}</span>
                             <input
                               type="text"
                               value={pageSettings.pageNumbering.suffix}
-                              placeholder="e.g.  | Draft"
+                              placeholder={t('pageSettings.pageNumbering.suffixPlaceholder')}
                               onChange={(e) => updatePageSettings({
                                 pageNumbering: { ...pageSettings.pageNumbering, suffix: e.target.value }
                               })}
@@ -4711,17 +4713,17 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                               pageNumbering: { ...pageSettings.pageNumbering, showOnFirstPage: e.target.checked }
                             })}
                           />
-                          <span>Show on first page</span>
+                          <span>{t('pageSettings.pageNumbering.showOnFirstPage')}</span>
                         </label>
                         <div>
-                          <span style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 6 }}>Placement</span>
+                          <span style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 6 }}>{t('pageSettings.pageNumbering.placement')}</span>
                           <div className="editor-placement-grid">
                             {(['top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right'] as const).map(pos => (
                               <button
                                 key={pos}
                                 type="button"
                                 className={`editor-placement-btn ${pageSettings.pageNumbering.placement === pos ? 'is-active' : ''}`}
-                                title={pos.replace(/-/g, ' ')}
+                                title={t(`pageSettings.pageNumbering.placements.${pos}`)}
                                 onClick={() => updatePageSettings({
                                   pageNumbering: { ...pageSettings.pageNumbering, placement: pos }
                                 })}
@@ -4780,7 +4782,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           }}
                         >
                           <FiHash />
-                          Place on canvas
+                          {t('pageSettings.pageNumbering.placeOnCanvas')}
                         </button>
                       </>
                     )}
@@ -4791,16 +4793,16 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiFileText />
-                    <span>Export Metadata</span>
+                    <span>{t('pageSettings.exportMetadata.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     {(['title', 'author', 'subject', 'keywords'] as const).map(key => (
                       <label key={key}>
-                        <span>{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                        <span>{t(`pageSettings.exportMetadata.fields.${key}`)}</span>
                         <input
                           type="text"
                           value={pageSettings.metadata[key]}
-                          placeholder={key === 'keywords' ? 'comma-separated' : ''}
+                          placeholder={key === 'keywords' ? t('pageSettings.exportMetadata.keywordsPlaceholder') : ''}
                           onChange={(e) => updatePageSettings({
                             metadata: { ...pageSettings.metadata, [key]: e.target.value }
                           })}
@@ -4814,19 +4816,19 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiSliders />
-                    <span>Export Defaults</span>
+                    <span>{t('pageSettings.exportDefaults.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label>
-                      <span>PDF quality</span>
+                      <span>{t('pageSettings.exportDefaults.pdfQuality')}</span>
                       <select
                         value={pageSettings.exportDefaults.quality}
                         onChange={(e) => updatePageSettings({ exportDefaults: { ...pageSettings.exportDefaults, quality: e.target.value as PageSettings['exportDefaults']['quality'] } })}
                       >
-                        <option value="screen">Screen (72 dpi)</option>
-                        <option value="ebook">eBook (150 dpi)</option>
-                        <option value="printer">Printer (300 dpi)</option>
-                        <option value="prepress">Prepress (400 dpi)</option>
+                        <option value="screen">{t('pageSettings.exportDefaults.qualityScreen')}</option>
+                        <option value="ebook">{t('pageSettings.exportDefaults.qualityEbook')}</option>
+                        <option value="printer">{t('pageSettings.exportDefaults.qualityPrinter')}</option>
+                        <option value="prepress">{t('pageSettings.exportDefaults.qualityPrepress')}</option>
                       </select>
                     </label>
                     <label className="editor-checkbox-control">
@@ -4835,7 +4837,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.exportDefaults.embedFonts}
                         onChange={(e) => updatePageSettings({ exportDefaults: { ...pageSettings.exportDefaults, embedFonts: e.target.checked } })}
                       />
-                      <span>Embed fonts</span>
+                      <span>{t('pageSettings.exportDefaults.embedFonts')}</span>
                     </label>
                     <label className="editor-checkbox-control">
                       <input
@@ -4843,7 +4845,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.exportDefaults.compressImages}
                         onChange={(e) => updatePageSettings({ exportDefaults: { ...pageSettings.exportDefaults, compressImages: e.target.checked } })}
                       />
-                      <span>Compress images</span>
+                      <span>{t('pageSettings.exportDefaults.compressImages')}</span>
                     </label>
                     <label className="editor-checkbox-control">
                       <input
@@ -4851,7 +4853,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.exportDefaults.accessibilityTagged}
                         onChange={(e) => updatePageSettings({ exportDefaults: { ...pageSettings.exportDefaults, accessibilityTagged: e.target.checked } })}
                       />
-                      <span>Accessibility (tagged PDF)</span>
+                      <span>{t('pageSettings.exportDefaults.accessibilityTagged')}</span>
                     </label>
                   </div>
                 </div>
@@ -4860,29 +4862,29 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiList />
-                    <span>Pagination</span>
+                    <span>{t('pageSettings.pagination.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label>
-                      <span>Page breaks</span>
+                      <span>{t('pageSettings.pagination.pageBreaks')}</span>
                       <select
                         value={pageSettings.pagination.autoBreaks ? 'auto' : 'manual'}
                         onChange={(e) => updatePageSettings({ pagination: { ...pageSettings.pagination, autoBreaks: e.target.value === 'auto' } })}
                       >
-                        <option value="auto">Automatic</option>
-                        <option value="manual">Manual only (page boundary elements)</option>
+                        <option value="auto">{t('pageSettings.pagination.breaksAutomatic')}</option>
+                        <option value="manual">{t('pageSettings.pagination.breaksManual')}</option>
                       </select>
                     </label>
                     <label>
-                      <span>Section start</span>
+                      <span>{t('pageSettings.pagination.sectionStart')}</span>
                       <select
                         value={pageSettings.pagination.sectionStartBehavior}
                         onChange={(e) => updatePageSettings({ pagination: { ...pageSettings.pagination, sectionStartBehavior: e.target.value as PageSettings['pagination']['sectionStartBehavior'] } })}
                       >
-                        <option value="continue">Continue on same page</option>
-                        <option value="new-page">Start on new page</option>
-                        <option value="odd-page">Start on odd page</option>
-                        <option value="even-page">Start on even page</option>
+                        <option value="continue">{t('pageSettings.pagination.sectionContinue')}</option>
+                        <option value="new-page">{t('pageSettings.pagination.sectionNewPage')}</option>
+                        <option value="odd-page">{t('pageSettings.pagination.sectionOddPage')}</option>
+                        <option value="even-page">{t('pageSettings.pagination.sectionEvenPage')}</option>
                       </select>
                     </label>
                     <label className="editor-checkbox-control">
@@ -4891,7 +4893,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.pagination.repeatTableHeader}
                         onChange={(e) => updatePageSettings({ pagination: { ...pageSettings.pagination, repeatTableHeader: e.target.checked } })}
                       />
-                      <span>Repeat table header on each page</span>
+                      <span>{t('pageSettings.pagination.repeatTableHeader')}</span>
                     </label>
                     <label className="editor-checkbox-control">
                       <input
@@ -4899,11 +4901,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.pagination.keepWithNext}
                         onChange={(e) => updatePageSettings({ pagination: { ...pageSettings.pagination, keepWithNext: e.target.checked } })}
                       />
-                      <span>Keep headings with following content</span>
+                      <span>{t('pageSettings.pagination.keepWithNext')}</span>
                     </label>
                     <div className="editor-form-grid">
                       <label>
-                        <span>Orphan lines (min)</span>
+                        <span>{t('pageSettings.pagination.orphanLines')}</span>
                         <input
                           type="number"
                           min={1}
@@ -4913,7 +4915,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         />
                       </label>
                       <label>
-                        <span>Widow lines (min)</span>
+                        <span>{t('pageSettings.pagination.widowLines')}</span>
                         <input
                           type="number"
                           min={1}
@@ -4930,7 +4932,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiEdit3 />
-                    <span>Track Changes</span>
+                    <span>{t('pageSettings.trackChanges.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label className="editor-checkbox-control">
@@ -4939,7 +4941,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={pageSettings.trackChanges ?? false}
                         onChange={(e) => updatePageSettings({ trackChanges: e.target.checked })}
                       />
-                      <span>Enable revision tracking in DOCX export</span>
+                      <span>{t('pageSettings.trackChanges.enable')}</span>
                     </label>
                   </div>
                 </div>
@@ -4948,7 +4950,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiLock />
-                    <span>Document Protection</span>
+                    <span>{t('pageSettings.protection.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label className="editor-checkbox-control">
@@ -4961,29 +4963,29 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             : undefined,
                         })}
                       />
-                      <span>Enable protection</span>
+                      <span>{t('pageSettings.protection.enable')}</span>
                     </label>
                     {pageSettings.protection?.enabled && (
                       <>
                         <label>
-                          <span>Restriction mode</span>
+                          <span>{t('pageSettings.protection.restrictionMode')}</span>
                           <select
                             value={pageSettings.protection.mode}
                             onChange={(e) => updatePageSettings({
                               protection: { ...pageSettings.protection!, mode: e.target.value as any },
                             })}
                           >
-                            <option value="readOnly">Read-only</option>
-                            <option value="comments">Comments only</option>
-                            <option value="trackedChanges">Tracked changes only</option>
-                            <option value="formFields">Form fields only</option>
+                            <option value="readOnly">{t('pageSettings.protection.modeReadOnly')}</option>
+                            <option value="comments">{t('pageSettings.protection.modeComments')}</option>
+                            <option value="trackedChanges">{t('pageSettings.protection.modeTrackedChanges')}</option>
+                            <option value="formFields">{t('pageSettings.protection.modeFormFields')}</option>
                           </select>
                         </label>
                         <label>
-                          <span>Password hash (optional)</span>
+                          <span>{t('pageSettings.protection.passwordHash')}</span>
                           <input
                             type="text"
-                            placeholder="Leave blank for no password"
+                            placeholder={t('pageSettings.protection.passwordHashPlaceholder')}
                             value={pageSettings.protection.passwordHash ?? ''}
                             onChange={(e) => updatePageSettings({
                               protection: { ...pageSettings.protection!, passwordHash: e.target.value || undefined },
@@ -4999,7 +5001,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiLock />
-                    <span>PDF Encryption</span>
+                    <span>{t('pageSettings.encryption.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label className="editor-checkbox-control">
@@ -5021,15 +5023,15 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             : undefined,
                         })}
                       />
-                      <span>Encrypt PDF with a password</span>
+                      <span>{t('pageSettings.encryption.enable')}</span>
                     </label>
                     {pageSettings.encryption?.enabled && (
                       <>
                         <label>
-                          <span>User password (to open)</span>
+                          <span>{t('pageSettings.encryption.userPassword')}</span>
                           <input
                             type="password"
-                            placeholder="Leave blank to open without a prompt"
+                            placeholder={t('pageSettings.encryption.userPasswordPlaceholder')}
                             value={pageSettings.encryption.userPassword}
                             onChange={(e) => updatePageSettings({
                               encryption: { ...pageSettings.encryption!, userPassword: e.target.value },
@@ -5037,10 +5039,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           />
                         </label>
                         <label>
-                          <span>Owner password (permissions)</span>
+                          <span>{t('pageSettings.encryption.ownerPassword')}</span>
                           <input
                             type="password"
-                            placeholder="Defaults to the user password"
+                            placeholder={t('pageSettings.encryption.ownerPasswordPlaceholder')}
                             value={pageSettings.encryption.ownerPassword}
                             onChange={(e) => updatePageSettings({
                               encryption: { ...pageSettings.encryption!, ownerPassword: e.target.value },
@@ -5048,28 +5050,22 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           />
                         </label>
                         <label>
-                          <span>Algorithm</span>
+                          <span>{t('pageSettings.encryption.algorithm')}</span>
                           <select
                             value={pageSettings.encryption.algorithm}
                             onChange={(e) => updatePageSettings({
                               encryption: { ...pageSettings.encryption!, algorithm: e.target.value as PdfEncryption['algorithm'] },
                             })}
                           >
-                            <option value="Rc4_128">RC4 128-bit</option>
-                            <option value="Aes128" disabled>AES 128-bit (coming soon)</option>
+                            <option value="Rc4_128">{t('pageSettings.encryption.algorithmRc4')}</option>
+                            <option value="Aes128" disabled>{t('pageSettings.encryption.algorithmAes128')}</option>
                           </select>
                         </label>
-                        <div className="editor-settings-subheading" style={{ marginTop: 4 }}>Permissions</div>
+                        <div className="editor-settings-subheading" style={{ marginTop: 4 }}>{t('pageSettings.encryption.permissionsHeading')}</div>
                         {([
-                          ['print', 'Printing'],
-                          ['copy', 'Copy / extract text'],
-                          ['modify', 'Modify contents'],
-                          ['annotate', 'Annotate & fill forms'],
-                          ['fillForms', 'Fill form fields only'],
-                          ['extractAccessibility', 'Extract for accessibility'],
-                          ['assemble', 'Assemble (insert/rotate/delete pages)'],
-                          ['printHighResolution', 'High-resolution printing'],
-                        ] as [keyof PdfEncryptionPermissions, string][]).map(([key, label]) => (
+                          'print', 'copy', 'modify', 'annotate',
+                          'fillForms', 'extractAccessibility', 'assemble', 'printHighResolution',
+                        ] as (keyof PdfEncryptionPermissions)[]).map((key) => (
                           <label key={key} className="editor-checkbox-control">
                             <input
                               type="checkbox"
@@ -5081,7 +5077,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                                 },
                               })}
                             />
-                            <span>{label}</span>
+                            <span>{t(`pageSettings.encryption.permissions.${key}`)}</span>
                           </label>
                         ))}
                       </>
@@ -5093,14 +5089,14 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiSliders />
-                    <span>Custom Properties</span>
+                    <span>{t('pageSettings.customProperties.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     {(pageSettings.customProperties ?? []).map((prop, i) => (
                       <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 80px 28px', gap: 4, alignItems: 'center' }}>
                         <input
                           type="text"
-                          placeholder="Name"
+                          placeholder={t('pageSettings.customProperties.namePlaceholder')}
                           value={prop.name}
                           onChange={(e) => {
                             const next = [...(pageSettings.customProperties ?? [])];
@@ -5110,7 +5106,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         />
                         <input
                           type="text"
-                          placeholder="Value"
+                          placeholder={t('pageSettings.customProperties.valuePlaceholder')}
                           value={prop.value}
                           onChange={(e) => {
                             const next = [...(pageSettings.customProperties ?? [])];
@@ -5126,14 +5122,14 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             updatePageSettings({ customProperties: next });
                           }}
                         >
-                          <option value="text">text</option>
-                          <option value="number">number</option>
-                          <option value="boolean">boolean</option>
-                          <option value="date">date</option>
+                          <option value="text">{t('pageSettings.customProperties.typeText')}</option>
+                          <option value="number">{t('pageSettings.customProperties.typeNumber')}</option>
+                          <option value="boolean">{t('pageSettings.customProperties.typeBoolean')}</option>
+                          <option value="date">{t('pageSettings.customProperties.typeDate')}</option>
                         </select>
                         <button
                           className="editor-icon-button"
-                          title="Remove"
+                          title={t('pageSettings.customProperties.remove')}
                           onClick={() => {
                             const next = (pageSettings.customProperties ?? []).filter((_, idx) => idx !== i);
                             updatePageSettings({ customProperties: next });
@@ -5149,7 +5145,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         customProperties: [...(pageSettings.customProperties ?? []), { name: '', value: '', type: 'text' }],
                       })}
                     >
-                      <FiPlus size={13} /> Add property
+                      <FiPlus size={13} /> {t('pageSettings.customProperties.addProperty')}
                     </button>
                   </div>
                 </div>
@@ -5158,11 +5154,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiGlobe />
-                    <span>Languages</span>
+                    <span>{t('pageSettings.languages.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>
-                      System language: <strong>{navigator.language}</strong> (auto-detected, used as fallback)
+                      {t('pageSettings.languages.systemLanguage')} <strong>{navigator.language}</strong> {t('pageSettings.languages.systemLanguageNote')}
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                       {LOCALIZATION_LANGUAGES.map(({ tag, label }) => {
@@ -5198,7 +5194,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiType />
-                    <span>Named Styles</span>
+                    <span>{t('pageSettings.namedStyles.heading')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     {(pageSettings.namedStyles ?? []).map((ns, i) => (
@@ -5206,7 +5202,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 28px', gap: 4, marginBottom: 4 }}>
                           <input
                             type="text"
-                            placeholder="ID"
+                            placeholder={t('pageSettings.namedStyles.idPlaceholder')}
                             value={ns.id}
                             onChange={(e) => {
                               const next = [...(pageSettings.namedStyles ?? [])];
@@ -5216,7 +5212,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           />
                           <input
                             type="text"
-                            placeholder="Display name"
+                            placeholder={t('pageSettings.namedStyles.displayNamePlaceholder')}
                             value={ns.name}
                             onChange={(e) => {
                               const next = [...(pageSettings.namedStyles ?? [])];
@@ -5232,14 +5228,14 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                               updatePageSettings({ namedStyles: next });
                             }}
                           >
-                            <option value="paragraph">paragraph</option>
-                            <option value="character">character</option>
-                            <option value="list">list</option>
-                            <option value="table">table</option>
+                            <option value="paragraph">{t('pageSettings.namedStyles.typeParagraph')}</option>
+                            <option value="character">{t('pageSettings.namedStyles.typeCharacter')}</option>
+                            <option value="list">{t('pageSettings.namedStyles.typeList')}</option>
+                            <option value="table">{t('pageSettings.namedStyles.typeTable')}</option>
                           </select>
                           <button
                             className="editor-icon-button"
-                            title="Remove"
+                            title={t('pageSettings.namedStyles.remove')}
                             onClick={() => {
                               const next = (pageSettings.namedStyles ?? []).filter((_, idx) => idx !== i);
                               updatePageSettings({ namedStyles: next });
@@ -5251,7 +5247,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
                           <input
                             type="text"
-                            placeholder="Based on (ID)"
+                            placeholder={t('pageSettings.namedStyles.basedOnPlaceholder')}
                             value={ns.basedOn ?? ''}
                             onChange={(e) => {
                               const next = [...(pageSettings.namedStyles ?? [])];
@@ -5261,7 +5257,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           />
                           <input
                             type="text"
-                            placeholder="Next style (ID)"
+                            placeholder={t('pageSettings.namedStyles.nextStylePlaceholder')}
                             value={ns.nextStyle ?? ''}
                             onChange={(e) => {
                               const next = [...(pageSettings.namedStyles ?? [])];
@@ -5278,7 +5274,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         namedStyles: [...(pageSettings.namedStyles ?? []), { id: '', name: '', type: 'paragraph', style: {} }],
                       })}
                     >
-                      <FiPlus size={13} /> Add style
+                      <FiPlus size={13} /> {t('pageSettings.namedStyles.addStyle')}
                     </button>
                   </div>
                 </div>
@@ -5289,7 +5285,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   onClick={() => updatePageSettings(DEFAULT_PAGE_SETTINGS)}
                 >
                   <FiRefreshCw />
-                  Reset to defaults
+                  {t('pageSettings.reset')}
                 </button>
 
               </div>
@@ -5305,7 +5301,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <input
                   className="editor-element-name-input"
                   type="text"
-                  placeholder="Element name…"
+                  placeholder={t('inspector.elementNamePlaceholder')}
                   value={selectedElement.name ?? ''}
                   onChange={(e) => updateSelectedElement({ name: e.target.value })}
                 />
@@ -5313,7 +5309,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
 
               {isOutsideMargins(selectedElement) && (
                 <div className="editor-validation-panel">
-                  <span>Element is outside the margin safe area.</span>
+                  <span>{t('inspector.outsideMarginWarning')}</span>
                 </div>
               )}
 
@@ -5333,13 +5329,13 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   <div className="editor-layer-controls">
                     <span className="editor-layer-label">
                       <FiLayers />
-                      Layer {idx + 1} of {elements.length}
+                      {t('inspector.layerOf', { current: idx + 1, total: elements.length })}
                     </span>
                     <div className="editor-layer-buttons">
-                      <button className="editor-layer-btn" title="Send to back" disabled={isBottom} onClick={() => onElementReorder(selectedElement.id, 'back')}><FiChevronsDown /></button>
-                      <button className="editor-layer-btn" title="Send backward" disabled={isBottom} onClick={() => onElementReorder(selectedElement.id, 'backward')}><FiArrowDown /></button>
-                      <button className="editor-layer-btn" title="Bring forward" disabled={isTop} onClick={() => onElementReorder(selectedElement.id, 'forward')}><FiArrowUp /></button>
-                      <button className="editor-layer-btn" title="Bring to front" disabled={isTop} onClick={() => onElementReorder(selectedElement.id, 'front')}><FiChevronsUp /></button>
+                      <button className="editor-layer-btn" title={t('inspector.sendToBack')} disabled={isBottom} onClick={() => onElementReorder(selectedElement.id, 'back')}><FiChevronsDown /></button>
+                      <button className="editor-layer-btn" title={t('inspector.sendBackward')} disabled={isBottom} onClick={() => onElementReorder(selectedElement.id, 'backward')}><FiArrowDown /></button>
+                      <button className="editor-layer-btn" title={t('inspector.bringForward')} disabled={isTop} onClick={() => onElementReorder(selectedElement.id, 'forward')}><FiArrowUp /></button>
+                      <button className="editor-layer-btn" title={t('inspector.bringToFront')} disabled={isTop} onClick={() => onElementReorder(selectedElement.id, 'front')}><FiChevronsUp /></button>
                     </div>
                   </div>
                 );
@@ -5348,19 +5344,19 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               <div className="editor-layer-controls">
                 <span className="editor-layer-label">
                   {selectedElement.locked ? <FiLock /> : <FiUnlock />}
-                  {selectedElement.locked ? 'Locked' : 'Editable'}
+                  {selectedElement.locked ? t('inspector.locked') : t('inspector.editable')}
                 </span>
                 <div className="editor-layer-buttons">
                   <button
                     className="editor-layer-btn"
-                    title="Duplicate"
+                    title={t('layers.duplicate')}
                     onClick={() => duplicateElement(selectedElement)}
                   >
                     <FiCopy />
                   </button>
                   <button
                     className="editor-layer-btn"
-                    title={selectedElement.locked ? 'Unlock' : 'Lock'}
+                    title={selectedElement.locked ? t('layers.unlock') : t('layers.lock')}
                     onClick={() => updateSelectedElement({ locked: !selectedElement.locked })}
                   >
                     {selectedElement.locked ? <FiUnlock /> : <FiLock />}
@@ -5372,7 +5368,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
                     <FiGlobe />
-                    <span>Language Scope</span>
+                    <span>{t('inspector.languageScope')}</span>
                   </div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <div style={{ display: 'flex', gap: 4 }}>
@@ -5387,8 +5383,8 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         }}
                         onClick={() => setScopeShowAll(false)}
                         title={!scopeShowAll
-                          ? `Position edits apply to ${currentPreviewLanguage.toUpperCase()} only`
-                          : `Switch to ${currentPreviewLanguage.toUpperCase()}-only editing`}
+                          ? t('inspector.positionAppliesToLangOnly', { lang: currentPreviewLanguage.toUpperCase() })
+                          : t('inspector.switchToLangOnlyEditing', { lang: currentPreviewLanguage.toUpperCase() })}
                       >
                         {currentPreviewLanguage.toUpperCase()}
                       </button>
@@ -5402,9 +5398,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           cursor: scopeShowAll ? 'default' : 'pointer',
                         }}
                         onClick={() => setScopeShowAll(true)}
-                        title={scopeShowAll ? 'Position edits apply to all language tabs' : 'Switch to all-languages editing'}
+                        title={scopeShowAll ? t('inspector.positionAppliesToAll') : t('inspector.switchToAllLanguagesEditing')}
                       >
-                        All
+                        {t('inspector.all')}
                       </button>
                     </div>
                   </div>
@@ -5413,7 +5409,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
 
               <div className="editor-form-grid">
                 <label>
-                  <span>X</span>
+                  <span>{t('inspector.x')}</span>
                   <input
                     type="number"
                     value={getEffectivePos(selectedElement).x}
@@ -5421,7 +5417,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   />
                 </label>
                 <label>
-                  <span>Y</span>
+                  <span>{t('inspector.y')}</span>
                   <input
                     type="number"
                     value={getEffectivePos(selectedElement).y}
@@ -5429,7 +5425,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   />
                 </label>
                 <label>
-                  <span>Width</span>
+                  <span>{t('inspector.width')}</span>
                   <input
                     type="number"
                     value={getEffectivePos(selectedElement).width}
@@ -5437,7 +5433,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   />
                 </label>
                 <label>
-                  <span>Height</span>
+                  <span>{t('inspector.height')}</span>
                   <input
                     type="number"
                     value={getEffectivePos(selectedElement).height}
@@ -5445,7 +5441,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   />
                 </label>
                 <label>
-                  <span>Rotation °</span>
+                  <span>{t('inspector.rotation')}</span>
                   <input
                     type="number"
                     value={getEffectiveRotation(selectedElement)}
@@ -5464,7 +5460,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   <span>&nbsp;</span>
                   <button
                     className="editor-secondary-button"
-                    title="Reset rotation"
+                    title={t('inspector.resetRotation')}
                     onClick={() => {
                       const langKey = isMultilingual && !scopeShowAll && currentPreviewLanguage ? currentPreviewLanguage : undefined;
                       if (langKey) {
@@ -5474,28 +5470,28 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       }
                     }}
                   >
-                    <FiRotateCw size={13} /> Reset
+                    <FiRotateCw size={13} /> {t('inspector.reset')}
                   </button>
                 </label>
               </div>
 
               {/* Alignment toolbar */}
               <div className="editor-align-toolbar">
-                <span className="editor-align-label">Align</span>
+                <span className="editor-align-label">{t('inspector.align')}</span>
                 <div className="editor-align-buttons">
-                  <button title="Align left edges to margin" onClick={() => alignSelected('left')}><FiAlignLeft size={14} /></button>
-                  <button title="Align horizontal centers" onClick={() => alignSelected('hcenter')}><FiAlignCenter size={14} /></button>
-                  <button title="Align right edges to margin" onClick={() => alignSelected('right')}><FiAlignRight size={14} /></button>
-                  <button title="Align top edges to margin" onClick={() => alignSelected('top')}><FiAlignLeft size={14} style={{ transform: 'rotate(90deg)' }} /></button>
-                  <button title="Align vertical centers" onClick={() => alignSelected('vcenter')}><FiAlignJustify size={14} style={{ transform: 'rotate(90deg)' }} /></button>
-                  <button title="Align bottom edges to margin" onClick={() => alignSelected('bottom')}><FiAlignRight size={14} style={{ transform: 'rotate(90deg)' }} /></button>
+                  <button title={t('inspector.alignLeftTitle')} onClick={() => alignSelected('left')}><FiAlignLeft size={14} /></button>
+                  <button title={t('inspector.alignHCenterTitle')} onClick={() => alignSelected('hcenter')}><FiAlignCenter size={14} /></button>
+                  <button title={t('inspector.alignRightTitle')} onClick={() => alignSelected('right')}><FiAlignRight size={14} /></button>
+                  <button title={t('inspector.alignTopTitle')} onClick={() => alignSelected('top')}><FiAlignLeft size={14} style={{ transform: 'rotate(90deg)' }} /></button>
+                  <button title={t('inspector.alignVCenterTitle')} onClick={() => alignSelected('vcenter')}><FiAlignJustify size={14} style={{ transform: 'rotate(90deg)' }} /></button>
+                  <button title={t('inspector.alignBottomTitle')} onClick={() => alignSelected('bottom')}><FiAlignRight size={14} style={{ transform: 'rotate(90deg)' }} /></button>
                 </div>
                 {selectedElementIds.size >= 3 && (
                   <>
-                    <span className="editor-align-label" style={{ marginLeft: 4 }}>Distribute</span>
+                    <span className="editor-align-label" style={{ marginLeft: 4 }}>{t('inspector.distribute')}</span>
                     <div className="editor-align-buttons">
-                      <button title="Distribute horizontally" onClick={() => distributeSelected('horizontal')}><FiAlignJustify size={14} /></button>
-                      <button title="Distribute vertically" onClick={() => distributeSelected('vertical')}><FiAlignJustify size={14} style={{ transform: 'rotate(90deg)' }} /></button>
+                      <button title={t('inspector.distributeHorizontally')} onClick={() => distributeSelected('horizontal')}><FiAlignJustify size={14} /></button>
+                      <button title={t('inspector.distributeVertically')} onClick={() => distributeSelected('vertical')}><FiAlignJustify size={14} style={{ transform: 'rotate(90deg)' }} /></button>
                     </div>
                   </>
                 )}
@@ -5504,18 +5500,18 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {/* ── Heading Level (text / richtext) ── */}
               {(selectedElement.type === 'text' || selectedElement.type === 'richtext') && (
                 <div className="editor-settings-section">
-                  <div className="editor-settings-heading"><FiBookOpen /><span>Heading Level</span></div>
+                  <div className="editor-settings-heading"><FiBookOpen /><span>{t('inspector.headingLevel')}</span></div>
                   <div className="editor-form-stack" style={{ padding: '8px 12px' }}>
                     <select
                       value={selectedElement.headingLevel ?? ''}
                       onChange={e => updateSelectedElement({ headingLevel: e.target.value === '' ? null : Number(e.target.value) as 1 | 2 | 3 })}
                     >
-                      <option value="">None (body text)</option>
-                      <option value="1">Heading 1</option>
-                      <option value="2">Heading 2</option>
-                      <option value="3">Heading 3</option>
+                      <option value="">{t('inspector.headingNone')}</option>
+                      <option value="1">{t('inspector.heading1')}</option>
+                      <option value="2">{t('inspector.heading2')}</option>
+                      <option value="3">{t('inspector.heading3')}</option>
                     </select>
-                    <small style={{ color: '#64748b', fontSize: 11 }}>Headings are included in the Table of Contents element.</small>
+                    <small style={{ color: '#64748b', fontSize: 11 }}>{t('inspector.headingTocNote')}</small>
                   </div>
                 </div>
               )}
@@ -5523,39 +5519,39 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {/* ── Form field: tab order + validation ── */}
               {(['field', 'checkbox', 'radio', 'dropdown', 'optionlist', 'signature'] as const).includes(selectedElement.type as any) && (
                 <div className="editor-settings-section">
-                  <div className="editor-settings-heading"><FiGrid /><span>Form & Validation</span></div>
+                  <div className="editor-settings-heading"><FiGrid /><span>{t('inspector.formValidation')}</span></div>
                   <div className="editor-form-stack" style={{ padding: '8px 12px', gap: 6 }}>
                     <label className="editor-prop-row">
-                      <span>Tab index</span>
+                      <span>{t('inspector.tabIndex')}</span>
                       <input type="number" min={0} step={1}
                         value={selectedElement.tabIndex ?? ''}
-                        placeholder="auto"
+                        placeholder={t('inspector.tabIndexPlaceholder')}
                         onChange={e => updateSelectedElement({ tabIndex: e.target.value === '' ? undefined : Number(e.target.value) })}
                       />
                     </label>
                     {(selectedElement.type === 'field' || selectedElement.type === 'textarea') && (
                       <>
                         <label className="editor-prop-row">
-                          <span>Min length</span>
+                          <span>{t('inspector.minLength')}</span>
                           <input type="number" min={0} step={1}
                             value={selectedElement.validationMin ?? ''}
-                            placeholder="—"
+                            placeholder={t('inspector.lengthPlaceholder')}
                             onChange={e => updateSelectedElement({ validationMin: e.target.value === '' ? undefined : Number(e.target.value) })}
                           />
                         </label>
                         <label className="editor-prop-row">
-                          <span>Max length</span>
+                          <span>{t('inspector.maxLength')}</span>
                           <input type="number" min={0} step={1}
                             value={selectedElement.validationMax ?? ''}
-                            placeholder="—"
+                            placeholder={t('inspector.lengthPlaceholder')}
                             onChange={e => updateSelectedElement({ validationMax: e.target.value === '' ? undefined : Number(e.target.value) })}
                           />
                         </label>
                         <label className="editor-prop-row">
-                          <span>Pattern (regex)</span>
+                          <span>{t('inspector.patternRegex')}</span>
                           <input type="text"
                             value={selectedElement.validationPattern ?? ''}
-                            placeholder="e.g. \\d{5}"
+                            placeholder={t('inspector.patternPlaceholder')}
                             onChange={e => updateSelectedElement({ validationPattern: e.target.value || undefined })}
                           />
                         </label>
@@ -5587,25 +5583,25 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
 
                 return (
                   <div className="editor-settings-section">
-                    <div className="editor-settings-heading"><FiBookOpen /><span>Table of Contents</span></div>
+                    <div className="editor-settings-heading"><FiBookOpen /><span>{t('elementInspector.toc.heading')}</span></div>
                     <div className="editor-form-stack" style={{ padding: '8px 12px', gap: 10 }}>
 
                       {/* Title */}
                       <label className="editor-label">
-                        <span>Title</span>
+                        <span>{t('elementInspector.toc.title')}</span>
                         <input
                           className="editor-input"
                           type="text"
-                          value={selectedElement.tocTitle ?? 'Table of Contents'}
+                          value={selectedElement.tocTitle ?? t('elementInspector.toc.titlePlaceholder')}
                           onChange={e => updateSelectedElement({ tocTitle: e.target.value })}
-                          placeholder="Table of Contents"
+                          placeholder={t('elementInspector.toc.titlePlaceholder')}
                         />
                       </label>
 
                       {/* Heading level range */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                         <label className="editor-label">
-                          <span>Min level</span>
+                          <span>{t('elementInspector.toc.minLevel')}</span>
                           <select className="editor-select"
                             value={minLevel}
                             onChange={e => updateSelectedElement({ tocMinLevel: Number(e.target.value) as 1 | 2 | 3 })}
@@ -5616,7 +5612,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           </select>
                         </label>
                         <label className="editor-label">
-                          <span>Max level</span>
+                          <span>{t('elementInspector.toc.maxLevel')}</span>
                           <select className="editor-select"
                             value={maxLevel}
                             onChange={e => updateSelectedElement({ tocMaxLevel: Number(e.target.value) as 1 | 2 | 3 })}
@@ -5636,7 +5632,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             checked={selectedElement.tocShowPageNumbers ?? true}
                             onChange={e => updateSelectedElement({ tocShowPageNumbers: e.target.checked })}
                           />
-                          Show page numbers
+                          {t('elementInspector.toc.showPageNumbers')}
                         </label>
                         <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
                           <input
@@ -5644,20 +5640,20 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             checked={selectedElement.tocShowLeaderDots ?? true}
                             onChange={e => updateSelectedElement({ tocShowLeaderDots: e.target.checked })}
                           />
-                          Show leader dots
+                          {t('elementInspector.toc.showLeaderDots')}
                         </label>
                       </div>
 
                       {/* Status */}
                       {!hasHeadings ? (
                         <div className="editor-toc-warning">
-                          No heading-level elements found. Select a text element and set a Heading Level in the inspector.
+                          {t('elementInspector.toc.noHeadingsWarning')}
                         </div>
                       ) : (
                         <small style={{ color: '#64748b', fontSize: 11 }}>
-                          {filteredCount} entr{filteredCount !== 1 ? 'ies' : 'y'} (H{minLevel}–H{maxLevel}) across {pages.length} page{pages.length !== 1 ? 's' : ''}
+                          {t('elementInspector.toc.entriesSummary', { count: filteredCount, min: minLevel, max: maxLevel, pages: pages.length })}
                           {(selectedElement.tocEntries?.length ?? 0) > 0 && (
-                            <> · last updated: {selectedElement.tocEntries!.length} entries</>
+                            <> {t('elementInspector.toc.lastUpdated', { count: selectedElement.tocEntries!.length })}</>
                           )}
                         </small>
                       )}
@@ -5667,9 +5663,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         className="editor-toc-update-btn"
                         onClick={updateToc}
                         disabled={!hasHeadings}
-                        title={!hasHeadings ? 'Assign heading levels to text elements first' : 'Scan all pages and rebuild the TOC entry list'}
+                        title={!hasHeadings ? t('elementInspector.toc.assignHeadingLevelsFirst') : t('elementInspector.toc.rebuildTocTitle')}
                       >
-                        <FiBookOpen size={14} /> Update TOC
+                        <FiBookOpen size={14} /> {t('elementInspector.toc.updateToc')}
                       </button>
 
                     </div>
@@ -5699,12 +5695,12 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 };
                 return (
                   <div className="editor-settings-section">
-                    <div className="editor-settings-heading"><FiType /><span>Content</span></div>
+                    <div className="editor-settings-heading"><FiType /><span>{t('elementInspector.content.heading')}</span></div>
                     <div className="editor-form-stack" style={{ padding: 12 }}>
                       <input
                         ref={contentInputRef}
                         type="text"
-                        placeholder="Text content or {{KEY}}"
+                        placeholder={t('elementInspector.content.placeholder')}
                         value={selectedElement.content || ''}
                         onChange={(e) => updateSelectedElement({ content: e.target.value })}
                       />
@@ -5712,13 +5708,13 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         <div style={{ marginTop: 6 }}>
                           {globalProps.length > 0 && (
                             <div style={{ marginBottom: 4 }}>
-                              <div style={{ fontSize: 10, color: '#64748b', marginBottom: 3, fontWeight: 600, letterSpacing: '0.04em' }}>GLOBAL</div>
+                              <div style={{ fontSize: 10, color: '#64748b', marginBottom: 3, fontWeight: 600, letterSpacing: '0.04em' }}>{t('elementInspector.content.globalBadge')}</div>
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                                 {globalProps.map(p => (
                                   <button
                                     key={p.key}
                                     onClick={() => insertProperty(p.key)}
-                                    title={`Insert {{${p.key}}} — global property`}
+                                    title={t('elementInspector.content.insertGlobalPropertyTitle', { tag: `{{${p.key}}}` })}
                                     style={{
                                       fontSize: 11, padding: '2px 7px', borderRadius: 4, cursor: 'pointer',
                                       border: '1px solid #c7d2fe', background: '#ede9fe', color: '#4c1d95',
@@ -5734,14 +5730,14 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           {ownProps.length > 0 && (
                             <div>
                               <div style={{ fontSize: 10, color: '#64748b', marginBottom: 3, fontWeight: 600, letterSpacing: '0.04em' }}>
-                                OWN · {curLang.toUpperCase()}
+                                {t('elementInspector.content.ownBadge', { lang: curLang.toUpperCase() })}
                               </div>
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                                 {ownProps.map(p => (
                                   <button
                                     key={p.key}
                                     onClick={() => insertProperty(p.key)}
-                                    title={`Insert {{${p.key}}} — own property for ${curLang}`}
+                                    title={t('elementInspector.content.insertOwnPropertyTitle', { tag: `{{${p.key}}}`, lang: curLang })}
                                     style={{
                                       fontSize: 11, padding: '2px 7px', borderRadius: 4, cursor: 'pointer',
                                       border: '1px solid #fde68a', background: '#fef3c7', color: '#92400e',
@@ -5763,7 +5759,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
 
               {selectedElement.type === 'text' && getGlyphDiagnostics(selectedElement).length > 0 && (
                 <div className="editor-settings-section">
-                  <div className="editor-settings-heading"><FiSliders /><span>Image Analysis Glyphs</span></div>
+                  <div className="editor-settings-heading"><FiSliders /><span>{t('elementInspector.imageAnalysisGlyphs.heading')}</span></div>
                   <div className="editor-glyph-debug-list">
                     {getGlyphDiagnostics(selectedElement).map((glyph, index) => {
                       const weights = topGlyphWeights(glyph.decisionWeights);
@@ -5772,7 +5768,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           <div className="editor-glyph-debug-main">
                             <span className="editor-glyph-debug-char">{glyph.value || '?'}</span>
                             <div>
-                              <strong>{glyph.method || 'unknown'}</strong>
+                              <strong>{glyph.method || t('elementInspector.imageAnalysisGlyphs.unknownMethod')}</strong>
                               <span>
                                 {glyph.initialCandidate || '?'} → {glyph.selectedCandidate || glyph.value || '?'}
                               </span>
@@ -5795,12 +5791,12 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'richtext' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>HTML content</span>
+                    <span>{t('elementInspector.richtext.htmlContent')}</span>
                     <textarea
                       rows={5}
                       value={selectedElement.htmlContent || ''}
                       onChange={(event) => updateSelectedElement({ htmlContent: event.target.value })}
-                      placeholder="<p>Your <strong>rich</strong> text here</p>"
+                      placeholder={t('elementInspector.richtext.htmlPlaceholder')}
                     />
                   </label>
                 </div>
@@ -5809,17 +5805,17 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'field' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Field label</span>
+                    <span>{t('elementInspector.field.fieldLabel')}</span>
                     <input
                       type="text"
                       value={selectedElement.fieldLabel || ''}
                       onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
-                      placeholder="Label text or {{key}}"
+                      placeholder={t('elementInspector.field.fieldLabelPlaceholder')}
                     />
-                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>{t('elementInspector.field.localizedValuesHint')}</small>
                   </label>
                   <label>
-                    <span>Field name</span>
+                    <span>{t('elementInspector.field.fieldName')}</span>
                     <input
                       type="text"
                       value={selectedElement.fieldName || ''}
@@ -5832,7 +5828,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       checked={Boolean(selectedElement.required)}
                       onChange={(event) => updateSelectedElement({ required: event.target.checked })}
                     />
-                    <span>Required field</span>
+                    <span>{t('placeholders.requiredField')}</span>
                   </label>
                   <label className="editor-checkbox-control">
                     <input
@@ -5840,7 +5836,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       checked={(selectedElement.style?.backgroundColor ?? '#ffffff') !== 'transparent'}
                       onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.checked ? '#ffffff' : 'transparent' } })}
                     />
-                    <span>Fill background</span>
+                    <span>{t('elementInspector.field.fillBackground')}</span>
                   </label>
                 </div>
               )}
@@ -5848,17 +5844,17 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'textarea' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Field label</span>
+                    <span>{t('elementInspector.textarea.fieldLabel')}</span>
                     <input
                       type="text"
                       value={selectedElement.fieldLabel || ''}
                       onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
-                      placeholder="Label text or {{key}}"
+                      placeholder={t('elementInspector.textarea.fieldLabelPlaceholder')}
                     />
-                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>{t('elementInspector.textarea.localizedValuesHint')}</small>
                   </label>
                   <label>
-                    <span>Field name</span>
+                    <span>{t('elementInspector.textarea.fieldName')}</span>
                     <input
                       type="text"
                       value={selectedElement.fieldName || ''}
@@ -5866,7 +5862,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     />
                   </label>
                   <label>
-                    <span>Placeholder text</span>
+                    <span>{t('elementInspector.textarea.placeholderText')}</span>
                     <input
                       type="text"
                       value={selectedElement.placeholder || ''}
@@ -5879,7 +5875,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       checked={Boolean(selectedElement.required)}
                       onChange={(event) => updateSelectedElement({ required: event.target.checked })}
                     />
-                    <span>Required field</span>
+                    <span>{t('placeholders.requiredField')}</span>
                   </label>
                   <label className="editor-checkbox-control">
                     <input
@@ -5887,7 +5883,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       checked={(selectedElement.style?.backgroundColor ?? '#ffffff') !== 'transparent'}
                       onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.checked ? '#ffffff' : 'transparent' } })}
                     />
-                    <span>Fill background</span>
+                    <span>{t('elementInspector.textarea.fillBackground')}</span>
                   </label>
                 </div>
               )}
@@ -5895,17 +5891,17 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'checkbox' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Checkbox label</span>
+                    <span>{t('elementInspector.checkbox.label')}</span>
                     <input
                       type="text"
                       value={selectedElement.fieldLabel || ''}
                       onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })}
-                      placeholder="Label or {{key}}"
+                      placeholder={t('elementInspector.checkbox.labelPlaceholder')}
                     />
-                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>{t('elementInspector.checkbox.localizedValuesHint')}</small>
                   </label>
                   <label>
-                    <span>Field name</span>
+                    <span>{t('elementInspector.checkbox.fieldName')}</span>
                     <input
                       type="text"
                       value={selectedElement.fieldName || ''}
@@ -5918,7 +5914,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       checked={Boolean(selectedElement.required)}
                       onChange={(event) => updateSelectedElement({ required: event.target.checked })}
                     />
-                    <span>Required field</span>
+                    <span>{t('placeholders.requiredField')}</span>
                   </label>
                 </div>
               )}
@@ -5932,7 +5928,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 return (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Label</span>
+                    <span>{t('elementInspector.button.label')}</span>
                     <input
                       type="text"
                       value={selectedElement.content || ''}
@@ -5940,7 +5936,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     />
                   </label>
                   <label>
-                    <span>Action type</span>
+                    <span>{t('elementInspector.button.actionType')}</span>
                     <select
                       value={actionType}
                       onChange={(event) => {
@@ -5951,27 +5947,27 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         else updateSelectedElement({ buttonAction: t });
                       }}
                     >
-                      <option value="none">— None —</option>
-                      <option value="url">Open URL</option>
-                      <option value="page">Go to page</option>
-                      <option value="submit">Submit form</option>
-                      <option value="reset">Reset form</option>
+                      <option value="none">{t('elementInspector.button.actionNone')}</option>
+                      <option value="url">{t('elementInspector.button.actionOpenUrl')}</option>
+                      <option value="page">{t('elementInspector.button.actionGoToPage')}</option>
+                      <option value="submit">{t('elementInspector.button.actionSubmitForm')}</option>
+                      <option value="reset">{t('elementInspector.button.actionResetForm')}</option>
                     </select>
                   </label>
                   {actionType === 'url' && (
                     <label>
-                      <span>URL</span>
+                      <span>{t('elementInspector.button.url')}</span>
                       <input
                         type="text"
                         value={selectedElement.buttonAction || ''}
                         onChange={(event) => updateSelectedElement({ buttonAction: event.target.value })}
-                        placeholder="https://example.com"
+                        placeholder={t('elementInspector.button.urlPlaceholder')}
                       />
                     </label>
                   )}
                   {actionType === 'page' && (
                     <label>
-                      <span>Page number</span>
+                      <span>{t('elementInspector.button.pageNumber')}</span>
                       <input
                         type="number"
                         min="1"
@@ -5982,7 +5978,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   )}
                   <div className="editor-form-grid">
                     <label>
-                      <span>Background</span>
+                      <span>{t('elementInspector.button.background')}</span>
                       <input
                         type="color"
                         value={selectedElement.style?.backgroundColor || '#3b82f6'}
@@ -5990,7 +5986,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Text color</span>
+                      <span>{t('elementInspector.common.textColor')}</span>
                       <input
                         type="color"
                         value={selectedElement.style?.color || '#ffffff'}
@@ -6000,7 +5996,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   </div>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Font size</span>
+                      <span>{t('elementInspector.common.fontSize')}</span>
                       <input
                         type="number"
                         value={selectedElement.style?.fontSize || 14}
@@ -6008,7 +6004,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Radius</span>
+                      <span>{t('elementInspector.button.radius')}</span>
                       <input
                         type="number"
                         min="0"
@@ -6024,12 +6020,12 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'dropdown' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Options (one per line)</span>
+                    <span>{t('elementInspector.dropdown.options')}</span>
                     <textarea
                       rows={4}
                       value={(selectedElement.options || []).join('\n')}
                       onChange={(event) => updateSelectedElement({ options: event.target.value.split('\n').filter(Boolean) })}
-                      placeholder={'Option 1\nOption 2\nOption 3'}
+                      placeholder={t('elementInspector.dropdown.optionsPlaceholder')}
                     />
                   </label>
                   <label className="editor-checkbox-control">
@@ -6038,11 +6034,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       checked={Boolean(selectedElement.multiSelect)}
                       onChange={(event) => updateSelectedElement({ multiSelect: event.target.checked })}
                     />
-                    <span>Multi-select</span>
+                    <span>{t('elementInspector.dropdown.multiSelect')}</span>
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Font size</span>
+                      <span>{t('elementInspector.common.fontSize')}</span>
                       <input
                         type="number"
                         value={selectedElement.style?.fontSize || 14}
@@ -6050,7 +6046,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Text color</span>
+                      <span>{t('elementInspector.common.textColor')}</span>
                       <input
                         type="color"
                         value={selectedElement.style?.color || '#000000'}
@@ -6064,7 +6060,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'optionlist' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>List style</span>
+                    <span>{t('elementInspector.optionlist.listStyle')}</span>
                     <select
                       value={selectedElement.listStyle || (selectedElement.ordered ? 'decimal' : 'disc')}
                       onChange={(e) => updateSelectedElement({
@@ -6072,31 +6068,31 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         ordered: ['decimal', 'lower-alpha', 'upper-alpha', 'lower-roman', 'upper-roman'].includes(e.target.value),
                       })}
                     >
-                      <option value="disc">• Bullet (disc)</option>
-                      <option value="circle">○ Circle</option>
-                      <option value="square">▪ Square</option>
-                      <option value="dash">– Dash</option>
-                      <option value="asterisk">* Asterisk</option>
-                      <option value="none">No marker</option>
-                      <option value="decimal">1. Decimal</option>
-                      <option value="lower-alpha">a. Lowercase alpha</option>
-                      <option value="upper-alpha">A. Uppercase alpha</option>
-                      <option value="lower-roman">i. Lowercase roman</option>
-                      <option value="upper-roman">I. Uppercase roman</option>
+                      <option value="disc">{t('elementInspector.optionlist.styleBulletDisc')}</option>
+                      <option value="circle">{t('elementInspector.optionlist.styleCircle')}</option>
+                      <option value="square">{t('elementInspector.optionlist.styleSquare')}</option>
+                      <option value="dash">{t('elementInspector.optionlist.styleDash')}</option>
+                      <option value="asterisk">{t('elementInspector.optionlist.styleAsterisk')}</option>
+                      <option value="none">{t('elementInspector.optionlist.styleNone')}</option>
+                      <option value="decimal">{t('elementInspector.optionlist.styleDecimal')}</option>
+                      <option value="lower-alpha">{t('elementInspector.optionlist.styleLowerAlpha')}</option>
+                      <option value="upper-alpha">{t('elementInspector.optionlist.styleUpperAlpha')}</option>
+                      <option value="lower-roman">{t('elementInspector.optionlist.styleLowerRoman')}</option>
+                      <option value="upper-roman">{t('elementInspector.optionlist.styleUpperRoman')}</option>
                     </select>
                   </label>
                   <label>
-                    <span>Items (one per line)</span>
+                    <span>{t('elementInspector.optionlist.items')}</span>
                     <textarea
                       rows={4}
                       value={(selectedElement.options || []).join('\n')}
                       onChange={(event) => updateSelectedElement({ options: event.target.value.split('\n').filter(Boolean) })}
-                      placeholder={'Item 1\nItem 2\nItem 3'}
+                      placeholder={t('elementInspector.optionlist.itemsPlaceholder')}
                     />
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Font size</span>
+                      <span>{t('elementInspector.common.fontSize')}</span>
                       <input
                         type="number"
                         value={selectedElement.style?.fontSize || 14}
@@ -6104,7 +6100,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Text color</span>
+                      <span>{t('elementInspector.common.textColor')}</span>
                       <input
                         type="color"
                         value={selectedElement.style?.color || '#000000'}
@@ -6117,7 +6113,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
 
               {selectedElement.type === 'radio' && (
                 <div className="editor-form-stack">
-                  <span className="editor-form-label">Options</span>
+                  <span className="editor-form-label">{t('elementInspector.radio.options')}</span>
                   {(selectedElement.options || ['Yes', 'No']).map((opt, idx) => (
                     <div key={idx} className="editor-option-row">
                       <input
@@ -6128,11 +6124,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           next[idx] = e.target.value;
                           updateSelectedElement({ options: next });
                         }}
-                        placeholder={`Option ${idx + 1}`}
+                        placeholder={t('elementInspector.radio.optionPlaceholder', { number: idx + 1 })}
                       />
                       <button
                         className="editor-option-remove"
-                        title="Remove option"
+                        title={t('elementInspector.radio.removeOption')}
                         onClick={() => {
                           const next = (selectedElement.options || []).filter((_, i) => i !== idx);
                           if (next.length < 1) return;
@@ -6144,14 +6140,14 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   <button
                     className="editor-option-add"
                     onClick={() => updateSelectedElement({
-                      options: [...(selectedElement.options || []), `Option ${(selectedElement.options || []).length + 1}`]
+                      options: [...(selectedElement.options || []), t('elementInspector.radio.optionPlaceholder', { number: (selectedElement.options || []).length + 1 })]
                     })}
                   >
-                    + Add option
+                    {t('elementInspector.radio.addOption')}
                   </button>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Font size</span>
+                      <span>{t('elementInspector.common.fontSize')}</span>
                       <input
                         type="number"
                         value={selectedElement.style?.fontSize || 14}
@@ -6159,7 +6155,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Text color</span>
+                      <span>{t('elementInspector.common.textColor')}</span>
                       <input
                         type="color"
                         value={selectedElement.style?.color || '#000000'}
@@ -6173,26 +6169,26 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'checkmark' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Label</span>
-                    <input type="text" value={selectedElement.fieldLabel || ''} onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })} placeholder="Label or {{key}}" />
-                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
+                    <span>{t('elementInspector.checkmark.label')}</span>
+                    <input type="text" value={selectedElement.fieldLabel || ''} onChange={(event) => updateSelectedElement({ fieldLabel: event.target.value })} placeholder={t('elementInspector.checkmark.labelPlaceholder')} />
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>{t('elementInspector.checkmark.localizedValuesHint')}</small>
                   </label>
                   <label>
-                    <span>State</span>
+                    <span>{t('elementInspector.checkmark.state')}</span>
                     <select value={selectedElement.checkState || 'checked'} onChange={(event) => updateSelectedElement({ checkState: event.target.value as SimpleElement['checkState'] })}>
-                      <option value="checked">Checked</option>
-                      <option value="cross">Cross</option>
-                      <option value="dot">Dot</option>
-                      <option value="empty">Empty</option>
+                      <option value="checked">{t('elementInspector.checkmark.stateChecked')}</option>
+                      <option value="cross">{t('elementInspector.checkmark.stateCross')}</option>
+                      <option value="dot">{t('elementInspector.checkmark.stateDot')}</option>
+                      <option value="empty">{t('elementInspector.checkmark.stateEmpty')}</option>
                     </select>
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Mark color</span>
+                      <span>{t('elementInspector.checkmark.markColor')}</span>
                       <input type="color" value={selectedElement.style?.color || '#16a34a'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
                     </label>
                     <label>
-                      <span>Stroke</span>
+                      <span>{t('elementInspector.checkmark.stroke')}</span>
                       <input type="number" min="1" value={selectedElement.style?.strokeWidth || 3} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, strokeWidth: Number(event.target.value) } })} />
                     </label>
                   </div>
@@ -6202,17 +6198,17 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'watermark' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Mode</span>
+                    <span>{t('elementInspector.watermark.mode')}</span>
                     <select
                       value={selectedElement.watermarkMode || 'text'}
                       onChange={(event) => updateSelectedElement({ watermarkMode: event.target.value as 'text' | 'image' })}
                     >
-                      <option value="text">Text</option>
-                      <option value="image">Image</option>
+                      <option value="text">{t('elementInspector.watermark.modeText')}</option>
+                      <option value="image">{t('elementInspector.watermark.modeImage')}</option>
                     </select>
                   </label>
                   <label>
-                    <span>{selectedElement.watermarkMode === 'image' ? 'Image URL' : 'Text'}</span>
+                    <span>{selectedElement.watermarkMode === 'image' ? t('elementInspector.watermark.imageUrl') : t('elementInspector.watermark.text')}</span>
                     <input
                       type="text"
                       value={selectedElement.content || ''}
@@ -6221,7 +6217,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Color</span>
+                      <span>{t('elementInspector.watermark.color')}</span>
                       <input
                         type="color"
                         value={selectedElement.style?.color || '#64748b'}
@@ -6229,7 +6225,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Opacity</span>
+                      <span>{t('elementInspector.watermark.opacity')}</span>
                       <input
                         type="number"
                         min="0"
@@ -6240,7 +6236,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Rotation</span>
+                      <span>{t('elementInspector.watermark.rotation')}</span>
                       <input
                         type="number"
                         value={selectedElement.style?.rotation ?? -24}
@@ -6248,7 +6244,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Scale</span>
+                      <span>{t('elementInspector.watermark.scale')}</span>
                       <input
                         type="number"
                         min="0.1"
@@ -6258,7 +6254,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Font size</span>
+                      <span>{t('elementInspector.common.fontSize')}</span>
                       <input
                         type="number"
                         value={selectedElement.style?.fontSize || 42}
@@ -6267,26 +6263,26 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     </label>
                   </div>
                   <label>
-                    <span>Page scope</span>
+                    <span>{t('elementInspector.watermark.pageScope')}</span>
                     <select
                       value={selectedElement.pageScope || 'all'}
                       onChange={(event) => updateSelectedElement({ pageScope: event.target.value as SimpleElement['pageScope'] })}
                     >
-                      <option value="all">All pages</option>
-                      <option value="current">Current page</option>
-                      <option value="first">First page only</option>
-                      <option value="last">Last page only</option>
-                      <option value="range">Selected range</option>
+                      <option value="all">{t('elementInspector.watermark.scopeAll')}</option>
+                      <option value="current">{t('elementInspector.watermark.scopeCurrent')}</option>
+                      <option value="first">{t('elementInspector.watermark.scopeFirst')}</option>
+                      <option value="last">{t('elementInspector.watermark.scopeLast')}</option>
+                      <option value="range">{t('elementInspector.watermark.scopeRange')}</option>
                     </select>
                   </label>
                   {selectedElement.pageScope === 'range' && (
                     <label>
-                      <span>Page range</span>
+                      <span>{t('elementInspector.watermark.pageRange')}</span>
                       <input
                         type="text"
                         value={selectedElement.pageRange || ''}
                         onChange={(event) => updateSelectedElement({ pageRange: event.target.value })}
-                        placeholder="1-3, 5"
+                        placeholder={t('elementInspector.watermark.pageRangePlaceholder')}
                       />
                     </label>
                   )}
@@ -6296,20 +6292,20 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'note' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Title</span>
+                    <span>{t('elementInspector.note.title')}</span>
                     <input type="text" value={selectedElement.noteTitle || ''} onChange={(event) => updateSelectedElement({ noteTitle: event.target.value })} />
                   </label>
                   <label>
-                    <span>Body</span>
+                    <span>{t('elementInspector.note.body')}</span>
                     <textarea rows={4} value={selectedElement.noteBody || ''} onChange={(event) => updateSelectedElement({ noteBody: event.target.value })} />
                   </label>
                   <label>
-                    <span>Author</span>
+                    <span>{t('elementInspector.note.author')}</span>
                     <input type="text" value={selectedElement.noteAuthor || ''} onChange={(event) => updateSelectedElement({ noteAuthor: event.target.value })} />
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Note color</span>
+                      <span>{t('elementInspector.note.noteColor')}</span>
                       <input
                         type="color"
                         value={selectedElement.style?.backgroundColor || '#fef3c7'}
@@ -6317,7 +6313,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Text color</span>
+                      <span>{t('elementInspector.common.textColor')}</span>
                       <input
                         type="color"
                         value={selectedElement.style?.color || '#78350f'}
@@ -6331,7 +6327,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       checked={Boolean(selectedElement.noteCollapsed)}
                       onChange={(event) => updateSelectedElement({ noteCollapsed: event.target.checked })}
                     />
-                    <span>Collapsed note</span>
+                    <span>{t('elementInspector.note.collapsed')}</span>
                   </label>
                 </div>
               )}
@@ -6339,32 +6335,32 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'date' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Mode</span>
+                    <span>{t('elementInspector.date.mode')}</span>
                     <select value={selectedElement.dateMode || 'static'} onChange={(event) => updateSelectedElement({ dateMode: event.target.value as SimpleElement['dateMode'] })}>
-                      <option value="static">Static date</option>
-                      <option value="render">Render date</option>
-                      <option value="binding">Data binding</option>
+                      <option value="static">{t('elementInspector.date.modeStatic')}</option>
+                      <option value="render">{t('elementInspector.date.modeRender')}</option>
+                      <option value="binding">{t('elementInspector.date.modeBinding')}</option>
                     </select>
                   </label>
                   <label>
-                    <span>Static value / fallback</span>
+                    <span>{t('elementInspector.date.staticValue')}</span>
                     <input type="text" value={selectedElement.content || ''} onChange={(event) => updateSelectedElement({ content: event.target.value })} />
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Locale</span>
+                      <span>{t('elementInspector.date.locale')}</span>
                       <input type="text" value={selectedElement.locale || 'de-DE'} onChange={(event) => updateSelectedElement({ locale: event.target.value })} />
                     </label>
                     <label>
-                      <span>Timezone</span>
+                      <span>{t('elementInspector.date.timezone')}</span>
                       <input type="text" value={selectedElement.timezone || 'Europe/Berlin'} onChange={(event) => updateSelectedElement({ timezone: event.target.value })} />
                     </label>
                     <label>
-                      <span>Format</span>
+                      <span>{t('elementInspector.date.format')}</span>
                       <input type="text" value={selectedElement.dateFormat || 'yyyy-MM-dd'} onChange={(event) => updateSelectedElement({ dateFormat: event.target.value })} />
                     </label>
                     <label>
-                      <span>Color</span>
+                      <span>{t('elementInspector.date.color')}</span>
                       <input type="color" value={selectedElement.style?.color || '#111827'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
                     </label>
                   </div>
@@ -6374,44 +6370,44 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'pagenumber' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Format</span>
+                    <span>{t('elementInspector.pagenumber.format')}</span>
                     <select value={selectedElement.numberingFormat || 'pageOfTotal'} onChange={(event) => updateSelectedElement({ numberingFormat: event.target.value as SimpleElement['numberingFormat'] })}>
-                      <option value="current">Current page</option>
-                      <option value="total">Total pages</option>
-                      <option value="pageOfTotal">Page X of Y</option>
-                      <option value="roman">Roman</option>
-                      <option value="alphabetic">Alphabetic</option>
+                      <option value="current">{t('elementInspector.pagenumber.formatCurrent')}</option>
+                      <option value="total">{t('elementInspector.pagenumber.formatTotal')}</option>
+                      <option value="pageOfTotal">{t('elementInspector.pagenumber.formatPageOfTotal')}</option>
+                      <option value="roman">{t('elementInspector.pagenumber.formatRoman')}</option>
+                      <option value="alphabetic">{t('elementInspector.pagenumber.formatAlphabetic')}</option>
                     </select>
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Start</span>
+                      <span>{t('elementInspector.pagenumber.start')}</span>
                       <input type="number" min="1" value={selectedElement.startNumber || 1} onChange={(event) => updateSelectedElement({ startNumber: Number(event.target.value) || 1 })} />
                     </label>
                     <label>
-                      <span>Page scope</span>
+                      <span>{t('elementInspector.pagenumber.pageScope')}</span>
                       <select value={selectedElement.pageScope || 'all'} onChange={(event) => updateSelectedElement({ pageScope: event.target.value as SimpleElement['pageScope'] })}>
-                        <option value="all">All</option>
-                        <option value="current">Current</option>
-                        <option value="first">First</option>
-                        <option value="last">Last</option>
-                        <option value="odd">Odd</option>
-                        <option value="even">Even</option>
-                        <option value="range">Range</option>
+                        <option value="all">{t('elementInspector.pagenumber.scopeAll')}</option>
+                        <option value="current">{t('elementInspector.pagenumber.scopeCurrent')}</option>
+                        <option value="first">{t('elementInspector.pagenumber.scopeFirst')}</option>
+                        <option value="last">{t('elementInspector.pagenumber.scopeLast')}</option>
+                        <option value="odd">{t('elementInspector.pagenumber.scopeOdd')}</option>
+                        <option value="even">{t('elementInspector.pagenumber.scopeEven')}</option>
+                        <option value="range">{t('elementInspector.pagenumber.scopeRange')}</option>
                       </select>
                     </label>
                     {selectedElement.pageScope === 'range' && (
                       <label>
-                        <span>Page range</span>
-                        <input type="text" value={selectedElement.pageRange || ''} onChange={(event) => updateSelectedElement({ pageRange: event.target.value })} placeholder="1-3, 5" />
+                        <span>{t('elementInspector.pagenumber.pageRange')}</span>
+                        <input type="text" value={selectedElement.pageRange || ''} onChange={(event) => updateSelectedElement({ pageRange: event.target.value })} placeholder={t('elementInspector.pagenumber.pageRangePlaceholder')} />
                       </label>
                     )}
                     <label>
-                      <span>Prefix</span>
+                      <span>{t('elementInspector.pagenumber.prefix')}</span>
                       <input type="text" value={selectedElement.prefix || ''} onChange={(event) => updateSelectedElement({ prefix: event.target.value })} />
                     </label>
                     <label>
-                      <span>Suffix</span>
+                      <span>{t('elementInspector.pagenumber.suffix')}</span>
                       <input type="text" value={selectedElement.suffix || ''} onChange={(event) => updateSelectedElement({ suffix: event.target.value })} />
                     </label>
                   </div>
@@ -6420,21 +6416,21 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
 
               {selectedElement.type === 'arrow' && (
                 <div className="editor-form-stack">
-                  <span className="editor-form-label">Direction</span>
+                  <span className="editor-form-label">{t('elementInspector.arrow.direction')}</span>
                   <div className="editor-arrow-direction-grid">
                     {(['up', 'left', 'right', 'down'] as const).map(dir => (
                       <button
                         key={dir}
                         className={`editor-arrow-dir-btn${(selectedElement.arrowDirection || 'right') === dir ? ' is-active' : ''}`}
                         onClick={() => updateSelectedElement({ arrowDirection: dir })}
-                        title={dir.charAt(0).toUpperCase() + dir.slice(1)}
+                        title={t(`elementInspector.arrow.directions.${dir}`)}
                       >
                         {dir === 'up' ? '↑' : dir === 'down' ? '↓' : dir === 'left' ? '←' : '→'}
                       </button>
                     ))}
                   </div>
                   <label>
-                    <span>Rotation (°)</span>
+                    <span>{t('elementInspector.arrow.rotation')}</span>
                     <input
                       type="number"
                       value={selectedElement.arrowRotation ?? 0}
@@ -6442,53 +6438,53 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     />
                   </label>
                   <label>
-                    <span>Arrow mode</span>
+                    <span>{t('elementInspector.arrow.arrowMode')}</span>
                     <select value={selectedElement.arrowMode || 'straight'} onChange={(event) => updateSelectedElement({ arrowMode: event.target.value as SimpleElement['arrowMode'] })}>
-                      <option value="straight">Straight</option>
-                      <option value="elbow">Elbow</option>
-                      <option value="curved">Curved</option>
+                      <option value="straight">{t('elementInspector.arrow.modeStraight')}</option>
+                      <option value="elbow">{t('elementInspector.arrow.modeElbow')}</option>
+                      <option value="curved">{t('elementInspector.arrow.modeCurved')}</option>
                     </select>
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Start head</span>
+                      <span>{t('elementInspector.arrow.startHead')}</span>
                       <select value={selectedElement.startMarker || 'none'} onChange={(event) => updateSelectedElement({ startMarker: event.target.value as SimpleElement['startMarker'] })}>
-                        <option value="none">None</option>
-                        <option value="filled">▶ Filled</option>
-                        <option value="open">▷ Open</option>
-                        <option value="dot">● Dot</option>
-                        <option value="diamond">◆ Diamond</option>
-                        <option value="square">■ Square</option>
-                        <option value="circle">○ Circle</option>
+                        <option value="none">{t('elementInspector.arrow.markerNone')}</option>
+                        <option value="filled">{t('elementInspector.arrow.markerFilled')}</option>
+                        <option value="open">{t('elementInspector.arrow.markerOpen')}</option>
+                        <option value="dot">{t('elementInspector.arrow.markerDot')}</option>
+                        <option value="diamond">{t('elementInspector.arrow.markerDiamond')}</option>
+                        <option value="square">{t('elementInspector.arrow.markerSquare')}</option>
+                        <option value="circle">{t('elementInspector.arrow.markerCircle')}</option>
                       </select>
                     </label>
                     <label>
-                      <span>End head</span>
+                      <span>{t('elementInspector.arrow.endHead')}</span>
                       <select value={selectedElement.endMarker || 'filled'} onChange={(event) => updateSelectedElement({ endMarker: event.target.value as SimpleElement['endMarker'] })}>
-                        <option value="none">None</option>
-                        <option value="filled">▶ Filled</option>
-                        <option value="open">▷ Open</option>
-                        <option value="dot">● Dot</option>
-                        <option value="diamond">◆ Diamond</option>
-                        <option value="square">■ Square</option>
-                        <option value="circle">○ Circle</option>
+                        <option value="none">{t('elementInspector.arrow.markerNone')}</option>
+                        <option value="filled">{t('elementInspector.arrow.markerFilled')}</option>
+                        <option value="open">{t('elementInspector.arrow.markerOpen')}</option>
+                        <option value="dot">{t('elementInspector.arrow.markerDot')}</option>
+                        <option value="diamond">{t('elementInspector.arrow.markerDiamond')}</option>
+                        <option value="square">{t('elementInspector.arrow.markerSquare')}</option>
+                        <option value="circle">{t('elementInspector.arrow.markerCircle')}</option>
                       </select>
                     </label>
                     <label>
-                      <span>Color</span>
+                      <span>{t('elementInspector.arrow.color')}</span>
                       <input type="color" value={selectedElement.style?.color || '#dc2626'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
                     </label>
                     <label>
-                      <span>Stroke</span>
+                      <span>{t('elementInspector.arrow.stroke')}</span>
                       <input type="number" min="1" value={selectedElement.style?.strokeWidth || 4} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, strokeWidth: Number(event.target.value) } })} />
                     </label>
                   </div>
                   <label>
-                    <span>Dash style</span>
+                    <span>{t('elementInspector.arrow.dashStyle')}</span>
                     <select value={selectedElement.style?.dashStyle || 'solid'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, dashStyle: event.target.value } })}>
-                      <option value="solid">Solid</option>
-                      <option value="dashed">Dashed</option>
-                      <option value="dotted">Dotted</option>
+                      <option value="solid">{t('elementInspector.arrow.dashSolid')}</option>
+                      <option value="dashed">{t('elementInspector.arrow.dashDashed')}</option>
+                      <option value="dotted">{t('elementInspector.arrow.dashDotted')}</option>
                     </select>
                   </label>
                 </div>
@@ -6497,10 +6493,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {/* ── Shared: Typography ── */}
               {TYPOGRAPHY_TYPES.has(selectedElement.type) && (
                 <div className="editor-settings-section">
-                  <div className="editor-settings-heading"><FiType /><span>Typography</span></div>
+                  <div className="editor-settings-heading"><FiType /><span>{t('elementInspector.typography.heading')}</span></div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <label>
-                      <span>Font family</span>
+                      <span>{t('elementInspector.typography.fontFamily')}</span>
                       <select
                         value={selectedElement.style?.fontFamily || 'Arial'}
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, fontFamily: e.target.value } })}
@@ -6509,7 +6505,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       </select>
                     </label>
                     <label>
-                      <span>Language</span>
+                      <span>{t('elementInspector.typography.language')}</span>
                       <select
                         value={selectedElement.language || ''}
                         onChange={(e) => {
@@ -6522,41 +6518,41 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           });
                         }}
                       >
-                        <option value="">(none)</option>
-                        <option value="en">English</option>
-                        <option value="de">German</option>
-                        <option value="fr">French</option>
-                        <option value="es">Spanish</option>
-                        <option value="it">Italian</option>
-                        <option value="pt">Portuguese</option>
-                        <option value="ru">Russian</option>
-                        <option value="el">Greek</option>
-                        <option value="ar">Arabic (RTL)</option>
-                        <option value="he">Hebrew (RTL)</option>
-                        <option value="fa">Persian (RTL)</option>
-                        <option value="zh-CN">Chinese (Simplified)</option>
-                        <option value="zh-TW">Chinese (Traditional)</option>
-                        <option value="ja">Japanese</option>
-                        <option value="ko">Korean</option>
-                        <option value="hi">Hindi</option>
-                        <option value="th">Thai</option>
+                        <option value="">{t('elementInspector.typography.languageNone')}</option>
+                        <option value="en">{t('elementInspector.typography.languages.en')}</option>
+                        <option value="de">{t('elementInspector.typography.languages.de')}</option>
+                        <option value="fr">{t('elementInspector.typography.languages.fr')}</option>
+                        <option value="es">{t('elementInspector.typography.languages.es')}</option>
+                        <option value="it">{t('elementInspector.typography.languages.it')}</option>
+                        <option value="pt">{t('elementInspector.typography.languages.pt')}</option>
+                        <option value="ru">{t('elementInspector.typography.languages.ru')}</option>
+                        <option value="el">{t('elementInspector.typography.languages.el')}</option>
+                        <option value="ar">{t('elementInspector.typography.languages.ar')}</option>
+                        <option value="he">{t('elementInspector.typography.languages.he')}</option>
+                        <option value="fa">{t('elementInspector.typography.languages.fa')}</option>
+                        <option value="zh-CN">{t('elementInspector.typography.languages.zh-CN')}</option>
+                        <option value="zh-TW">{t('elementInspector.typography.languages.zh-TW')}</option>
+                        <option value="ja">{t('elementInspector.typography.languages.ja')}</option>
+                        <option value="ko">{t('elementInspector.typography.languages.ko')}</option>
+                        <option value="hi">{t('elementInspector.typography.languages.hi')}</option>
+                        <option value="th">{t('elementInspector.typography.languages.th')}</option>
                       </select>
                     </label>
                     <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                      <span style={{ fontSize: 11, color: '#64748b', minWidth: 72 }}>Direction</span>
+                      <span style={{ fontSize: 11, color: '#64748b', minWidth: 72 }}>{t('elementInspector.typography.direction')}</span>
                       {(['ltr', 'rtl'] as const).map(dir => (
                         <button
                           key={dir}
                           className={`editor-toggle-btn${(selectedElement.textDirection || 'ltr') === dir ? ' active' : ''}`}
                           style={{ flex: 1, fontFamily: 'monospace', fontSize: 11 }}
-                          title={dir === 'ltr' ? 'Left to right' : 'Right to left'}
+                          title={dir === 'ltr' ? t('elementInspector.typography.directionLtrTitle') : t('elementInspector.typography.directionRtlTitle')}
                           onClick={() => updateSelectedElement({ textDirection: dir })}
                         >{dir.toUpperCase()}</button>
                       ))}
                     </div>
                     <div className="editor-form-grid">
                       <label>
-                        <span>Font size</span>
+                        <span>{t('elementInspector.common.fontSize')}</span>
                         <input
                           type="number"
                           min={6}
@@ -6566,7 +6562,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         />
                       </label>
                       <label>
-                        <span>Color</span>
+                        <span>{t('elementInspector.typography.color')}</span>
                         <input
                           type="color"
                           value={selectedElement.style?.color || '#111827'}
@@ -6574,7 +6570,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         />
                       </label>
                       <label>
-                        <span>Line height</span>
+                        <span>{t('elementInspector.typography.lineHeight')}</span>
                         <input
                           type="number"
                           min={0.8}
@@ -6585,7 +6581,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         />
                       </label>
                       <label>
-                        <span>Letter spacing</span>
+                        <span>{t('elementInspector.typography.letterSpacing')}</span>
                         <input
                           type="number"
                           min={-5}
@@ -6599,17 +6595,17 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     <div className="editor-toggle-group">
                       <button
                         className={`editor-toggle-btn${selectedElement.style?.fontWeight === 'bold' ? ' active' : ''}`}
-                        title="Bold"
+                        title={t('elementInspector.typography.bold')}
                         onClick={() => updateSelectedElement({ style: { ...selectedElement.style, fontWeight: selectedElement.style?.fontWeight === 'bold' ? 'normal' : 'bold' } })}
                       ><FiBold size={14} /></button>
                       <button
                         className={`editor-toggle-btn${selectedElement.style?.fontStyle === 'italic' ? ' active' : ''}`}
-                        title="Italic"
+                        title={t('elementInspector.typography.italic')}
                         onClick={() => updateSelectedElement({ style: { ...selectedElement.style, fontStyle: selectedElement.style?.fontStyle === 'italic' ? 'normal' : 'italic' } })}
                       ><FiItalic size={14} /></button>
                       <button
                         className={`editor-toggle-btn${selectedElement.style?.textDecoration === 'underline' ? ' active' : ''}`}
-                        title="Underline"
+                        title={t('elementInspector.typography.underline')}
                         onClick={() => updateSelectedElement({ style: { ...selectedElement.style, textDecoration: selectedElement.style?.textDecoration === 'underline' ? 'none' : 'underline' } })}
                       ><FiUnderline size={14} /></button>
                       <div className="editor-toggle-separator" />
@@ -6619,7 +6615,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           <button
                             key={align}
                             className={`editor-toggle-btn${selectedElement.style?.textAlign === align ? ' active' : ''}`}
-                            title={`Align ${align}`}
+                            title={t(`elementInspector.typography.align${align.charAt(0).toUpperCase()}${align.slice(1)}`)}
                             onClick={() => updateSelectedElement({ style: { ...selectedElement.style, textAlign: align } })}
                           ><Icon size={14} /></button>
                         );
@@ -6632,11 +6628,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {/* ── Shared: Background ── */}
               {BACKGROUND_TYPES.has(selectedElement.type) && (
                 <div className="editor-settings-section">
-                  <div className="editor-settings-heading"><FiDroplet /><span>Background</span></div>
+                  <div className="editor-settings-heading"><FiDroplet /><span>{t('elementInspector.background.heading')}</span></div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <div className="editor-form-grid">
                       <label>
-                        <span>Color</span>
+                        <span>{t('elementInspector.background.color')}</span>
                         <input
                           type="color"
                           value={selectedElement.style?.backgroundColor && selectedElement.style.backgroundColor !== 'transparent' ? selectedElement.style.backgroundColor : '#ffffff'}
@@ -6644,7 +6640,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         />
                       </label>
                       <label>
-                        <span>Opacity %</span>
+                        <span>{t('elementInspector.background.opacityPercent')}</span>
                         <input
                           type="number"
                           min={0}
@@ -6660,7 +6656,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         checked={selectedElement.style?.backgroundColor === 'transparent' || selectedElement.style?.backgroundOpacity === 0}
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: e.target.checked ? 'transparent' : '#ffffff', backgroundOpacity: e.target.checked ? 0 : 1 } })}
                       />
-                      <span>Transparent (no background)</span>
+                      <span>{t('elementInspector.background.transparent')}</span>
                     </label>
                   </div>
                 </div>
@@ -6669,11 +6665,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {/* ── Shared: Border ── */}
               {BORDER_TYPES.has(selectedElement.type) && (
                 <div className="editor-settings-section">
-                  <div className="editor-settings-heading"><FiBox /><span>Border</span></div>
+                  <div className="editor-settings-heading"><FiBox /><span>{t('elementInspector.border.heading')}</span></div>
                   <div className="editor-form-stack" style={{ padding: 12 }}>
                     <div className="editor-form-grid">
                       <label>
-                        <span>Width</span>
+                        <span>{t('elementInspector.border.width')}</span>
                         <input
                           type="number"
                           min={0}
@@ -6683,7 +6679,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         />
                       </label>
                       <label>
-                        <span>Color</span>
+                        <span>{t('elementInspector.border.color')}</span>
                         <input
                           type="color"
                           value={selectedElement.style?.borderColor || '#000000'}
@@ -6691,20 +6687,20 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         />
                       </label>
                       <label>
-                        <span>Style</span>
+                        <span>{t('elementInspector.border.style')}</span>
                         <select
                           value={selectedElement.style?.borderStyle || 'solid'}
                           onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, borderStyle: e.target.value } })}
                         >
-                          <option value="none">None</option>
-                          <option value="solid">Solid</option>
-                          <option value="dashed">Dashed</option>
-                          <option value="dotted">Dotted</option>
-                          <option value="double">Double</option>
+                          <option value="none">{t('elementInspector.border.styleNone')}</option>
+                          <option value="solid">{t('elementInspector.border.styleSolid')}</option>
+                          <option value="dashed">{t('elementInspector.border.styleDashed')}</option>
+                          <option value="dotted">{t('elementInspector.border.styleDotted')}</option>
+                          <option value="double">{t('elementInspector.border.styleDouble')}</option>
                         </select>
                       </label>
                       <label>
-                        <span>Radius</span>
+                        <span>{t('elementInspector.border.radius')}</span>
                         <input
                           type="number"
                           min={0}
@@ -6722,10 +6718,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {PADDING_TYPES.has(selectedElement.type) && (
                 <div className="editor-settings-section">
                   <div className="editor-settings-heading">
-                    <FiMaximize2 /><span>Padding</span>
+                    <FiMaximize2 /><span>{t('elementInspector.padding.heading')}</span>
                     <button
                       className={`editor-link-btn${linkedPadding ? ' active' : ''}`}
-                      title={linkedPadding ? 'Unlink sides' : 'Link all sides'}
+                      title={linkedPadding ? t('elementInspector.padding.unlinkTitle') : t('elementInspector.padding.linkTitle')}
                       onClick={() => setLinkedPadding(p => !p)}
                       style={{ marginLeft: 'auto' }}
                     >
@@ -6735,7 +6731,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   <div className="editor-form-grid" style={{ padding: 12 }}>
                     {linkedPadding ? (
                       <label style={{ gridColumn: '1 / -1' }}>
-                        <span>All sides</span>
+                        <span>{t('elementInspector.padding.allSides')}</span>
                         <input
                           type="number" min={0} max={200}
                           value={selectedElement.style?.paddingTop ?? 0}
@@ -6747,19 +6743,19 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       </label>
                     ) : (
                       <>
-                        <label><span>Top</span>
+                        <label><span>{t('elementInspector.padding.top')}</span>
                           <input type="number" min={0} max={200} value={selectedElement.style?.paddingTop ?? 0}
                             onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, paddingTop: Number(e.target.value) } })} />
                         </label>
-                        <label><span>Right</span>
+                        <label><span>{t('elementInspector.padding.right')}</span>
                           <input type="number" min={0} max={200} value={selectedElement.style?.paddingRight ?? 0}
                             onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, paddingRight: Number(e.target.value) } })} />
                         </label>
-                        <label><span>Bottom</span>
+                        <label><span>{t('elementInspector.padding.bottom')}</span>
                           <input type="number" min={0} max={200} value={selectedElement.style?.paddingBottom ?? 0}
                             onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, paddingBottom: Number(e.target.value) } })} />
                         </label>
-                        <label><span>Left</span>
+                        <label><span>{t('elementInspector.padding.left')}</span>
                           <input type="number" min={0} max={200} value={selectedElement.style?.paddingLeft ?? 0}
                             onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, paddingLeft: Number(e.target.value) } })} />
                         </label>
@@ -6772,16 +6768,16 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'qrcode' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>QR code value</span>
+                    <span>{t('elementInspector.qrcode.value')}</span>
                     <input
                       type="text"
                       value={selectedElement.qrValue || ''}
                       onChange={(event) => updateSelectedElement({ qrValue: event.target.value })}
-                      placeholder="https://example.com"
+                      placeholder={t('elementInspector.qrcode.valuePlaceholder')}
                     />
                   </label>
                   <label>
-                    <span>Size</span>
+                    <span>{t('elementInspector.qrcode.size')}</span>
                     <input
                       type="number"
                       value={selectedElement.qrSize || 100}
@@ -6794,24 +6790,24 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'barcode' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Barcode value</span>
+                    <span>{t('elementInspector.barcode.value')}</span>
                     <input
                       type="text"
                       value={selectedElement.barcodeValue || ''}
                       onChange={(event) => updateSelectedElement({ barcodeValue: event.target.value })}
-                      placeholder="123456789012"
+                      placeholder={t('elementInspector.barcode.valuePlaceholder')}
                     />
                   </label>
                   <label>
-                    <span>Type</span>
+                    <span>{t('elementInspector.barcode.type')}</span>
                     <select
                       value={selectedElement.barcodeType || 'CODE128'}
                       onChange={(event) => updateSelectedElement({ barcodeType: event.target.value })}
                     >
-                      <option value="CODE128">Code 128</option>
-                      <option value="CODE39">Code 39</option>
-                      <option value="EAN13">EAN-13</option>
-                      <option value="UPC">UPC</option>
+                      <option value="CODE128">{t('elementInspector.barcode.typeCode128')}</option>
+                      <option value="CODE39">{t('elementInspector.barcode.typeCode39')}</option>
+                      <option value="EAN13">{t('elementInspector.barcode.typeEan13')}</option>
+                      <option value="UPC">{t('elementInspector.barcode.typeUpc')}</option>
                     </select>
                   </label>
                 </div>
@@ -6820,14 +6816,14 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'signature' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Signature label</span>
+                    <span>{t('elementInspector.signature.label')}</span>
                     <input
                       type="text"
                       value={selectedElement.signatureLabel || ''}
                       onChange={(event) => updateSelectedElement({ signatureLabel: event.target.value })}
-                      placeholder="Signature or {{key}}"
+                      placeholder={t('elementInspector.signature.labelPlaceholder')}
                     />
-                    <small style={{ color: '#6b7280', fontSize: 10 }}>Use {'{{key}}'} for localized values</small>
+                    <small style={{ color: '#6b7280', fontSize: 10 }}>{t('elementInspector.signature.localizedValuesHint')}</small>
                   </label>
                 </div>
               )}
@@ -6846,9 +6842,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       reader.readAsDataURL(file);
                     }}
                   >
-                    <span>Drop image here or</span>
+                    <span>{t('elementInspector.image.dropHere')}</span>
                     <label className="editor-image-upload-btn">
-                      Browse
+                      {t('elementInspector.image.browse')}
                       <input
                         type="file"
                         accept="image/*"
@@ -6864,7 +6860,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     </label>
                   </div>
                   <label>
-                    <span>Source URL</span>
+                    <span>{t('elementInspector.image.sourceUrl')}</span>
                     <input
                       type="text"
                       value={selectedElement.content || ''}
@@ -6872,20 +6868,20 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     />
                   </label>
                   <label>
-                    <span>Fit Mode</span>
+                    <span>{t('elementInspector.image.fitMode')}</span>
                     <select
                       value={selectedElement.fitMode || 'contain'}
                       onChange={(event) => updateSelectedElement({ fitMode: event.target.value as 'contain' | 'cover' | 'fill' | 'none' })}
                     >
-                      <option value="contain">Contain</option>
-                      <option value="cover">Cover</option>
-                      <option value="fill">Fill</option>
-                      <option value="none">None</option>
+                      <option value="contain">{t('elementInspector.image.fitContain')}</option>
+                      <option value="cover">{t('elementInspector.image.fitCover')}</option>
+                      <option value="fill">{t('elementInspector.image.fitFill')}</option>
+                      <option value="none">{t('elementInspector.image.fitNone')}</option>
                     </select>
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Crop X</span>
+                      <span>{t('elementInspector.image.cropX')}</span>
                       <input
                         type="number"
                         value={selectedElement.cropX || 0}
@@ -6893,7 +6889,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Crop Y</span>
+                      <span>{t('elementInspector.image.cropY')}</span>
                       <input
                         type="number"
                         value={selectedElement.cropY || 0}
@@ -6901,7 +6897,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Crop Width</span>
+                      <span>{t('elementInspector.image.cropWidth')}</span>
                       <input
                         type="number"
                         value={selectedElement.cropWidth || 0}
@@ -6909,7 +6905,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Crop Height</span>
+                      <span>{t('elementInspector.image.cropHeight')}</span>
                       <input
                         type="number"
                         value={selectedElement.cropHeight || 0}
@@ -6919,7 +6915,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   </div>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Focal X (%)</span>
+                      <span>{t('elementInspector.image.focalX')}</span>
                       <input
                         type="number"
                         value={selectedElement.focalX || 50}
@@ -6927,7 +6923,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       />
                     </label>
                     <label>
-                      <span>Focal Y (%)</span>
+                      <span>{t('elementInspector.image.focalY')}</span>
                       <input
                         type="number"
                         value={selectedElement.focalY || 50}
@@ -6941,7 +6937,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       checked={Boolean(selectedElement.preserveAspectRatio)}
                       onChange={(event) => updateSelectedElement({ preserveAspectRatio: event.target.checked })}
                     />
-                    <span>Preserve Aspect Ratio</span>
+                    <span>{t('elementInspector.image.preserveAspectRatio')}</span>
                   </label>
                 </div>
               )}
@@ -6978,62 +6974,62 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 return (
                   <div className="editor-form-stack">
                     <label>
-                      <span>Rows</span>
+                      <span>{t('elementInspector.table.rows')}</span>
                       <input type="number" min="1" value={rows}
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, rows: Number(e.target.value) } })} />
                     </label>
                     <label>
-                      <span>Columns</span>
+                      <span>{t('elementInspector.table.columns')}</span>
                       <input type="number" min="1" value={cols}
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, columns: Number(e.target.value) } })} />
                     </label>
                     <label>
-                      <span>Border Width</span>
+                      <span>{t('elementInspector.table.borderWidth')}</span>
                       <input type="number" min="0" value={selectedElement.style?.borderWidth ?? 1}
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, borderWidth: Number(e.target.value) } })} />
                     </label>
                     <label>
-                      <span>Border Color</span>
+                      <span>{t('elementInspector.table.borderColor')}</span>
                       <input type="color" value={selectedElement.style?.borderColor || '#000000'}
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, borderColor: e.target.value } })} />
                     </label>
                     <label>
-                      <span>Cell Padding</span>
+                      <span>{t('elementInspector.table.cellPadding')}</span>
                       <input type="number" min="0" value={selectedElement.style?.cellPadding ?? 5}
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellPadding: Number(e.target.value) } })} />
                     </label>
 
                     <label>
-                      <span>Cell Font Size</span>
+                      <span>{t('elementInspector.table.cellFontSize')}</span>
                       <input type="number" min="1" value={selectedElement.style?.cellFontSize ?? 10}
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellFontSize: Number(e.target.value) } })} />
                     </label>
                     <label>
-                      <span>Cell Font</span>
+                      <span>{t('elementInspector.table.cellFont')}</span>
                       <select value={selectedElement.style?.cellFontFamily || 'Arial'}
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellFontFamily: e.target.value } })}>
                         {FONT_FAMILIES.map(f => <option key={f} value={f}>{f}</option>)}
                       </select>
                     </label>
                     <label>
-                      <span>Cell Text Color</span>
+                      <span>{t('elementInspector.table.cellTextColor')}</span>
                       <input type="color" value={selectedElement.style?.cellColor || '#555555'}
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellColor: e.target.value } })} />
                     </label>
                     <label style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       <input type="checkbox" checked={selectedElement.style?.cellFontWeight === 'bold'}
                         onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, cellFontWeight: e.target.checked ? 'bold' : 'normal' } })} />
-                      <span>Bold cell text</span>
+                      <span>{t('elementInspector.table.boldCellText')}</span>
                     </label>
 
                     <label style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       <input type="checkbox" checked={selectedElement.headerRow ?? false}
                         onChange={(e) => updateSelectedElement({ headerRow: e.target.checked })} />
-                      <span>Header row</span>
+                      <span>{t('elementInspector.table.headerRow')}</span>
                     </label>
                     {(selectedElement.headerRow) && (
                       <label>
-                        <span>Header Background</span>
+                        <span>{t('elementInspector.table.headerBackground')}</span>
                         <input type="color" value={selectedElement.headerBgColor || '#f1f5f9'}
                           onChange={(e) => updateSelectedElement({ headerBgColor: e.target.value })} />
                       </label>
@@ -7041,27 +7037,27 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     <label style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       <input type="checkbox" checked={selectedElement.footerRow ?? false}
                         onChange={(e) => updateSelectedElement({ footerRow: e.target.checked })} />
-                      <span>Footer row</span>
+                      <span>{t('elementInspector.table.footerRow')}</span>
                     </label>
                     <label style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       <input type="checkbox" checked={selectedElement.zebraEnabled ?? false}
                         onChange={(e) => updateSelectedElement({ zebraEnabled: e.target.checked })} />
-                      <span>Alternating rows</span>
+                      <span>{t('elementInspector.table.alternatingRows')}</span>
                     </label>
                     {(selectedElement.zebraEnabled) && (
                       <label>
-                        <span>Even Row Color</span>
+                        <span>{t('elementInspector.table.evenRowColor')}</span>
                         <input type="color" value={selectedElement.zebraColor || '#f9fafb'}
                           onChange={(e) => updateSelectedElement({ zebraColor: e.target.value })} />
                       </label>
                     )}
 
                     <div className="editor-form-group">
-                      <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Column Alignment</span>
+                      <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{t('elementInspector.table.columnAlignment')}</span>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
                         {Array.from({ length: cols }).map((_, i) => (
                           <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: 10, color: '#94a3b8', minWidth: 42 }}>Col {i + 1}</span>
+                            <span style={{ fontSize: 10, color: '#94a3b8', minWidth: 42 }}>{t('elementInspector.table.col', { number: i + 1 })}</span>
                             <div className="editor-toggle-group">
                               {(['left', 'center', 'right'] as const).map((align) => (
                                 <button key={align}
@@ -7082,10 +7078,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     </div>
 
                     <div className="editor-form-group">
-                      <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Column Widths (px, 0 = auto)</span>
+                      <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{t('elementInspector.table.columnWidths')}</span>
                       <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
                         {Array.from({ length: cols }).map((_, i) => (
-                          <input key={i} type="number" min="0" placeholder="Auto" style={{ width: 52 }}
+                          <input key={i} type="number" min="0" placeholder={t('elementInspector.table.widthPlaceholder')} style={{ width: 52 }}
                             value={colWidths[i] || ''}
                             onChange={(e) => {
                               const next = [...colWidths];
@@ -7098,7 +7094,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     </div>
 
                     <div className="editor-form-group">
-                      <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Cell Content</span>
+                      <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{t('elementInspector.table.cellContent')}</span>
                       <div style={{ overflowX: 'auto', marginTop: 4 }}>
                         <table style={{ borderCollapse: 'collapse', width: '100%' }}>
                           <tbody>
@@ -7127,15 +7123,15 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     </div>
 
                     <div className="editor-form-group">
-                      <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Cell Style</span>
+                      <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{t('elementInspector.table.cellStyle')}</span>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginTop: 4 }}>
                         <label>
-                          <span>Row</span>
+                          <span>{t('elementInspector.table.row')}</span>
                           <input type="number" min="1" max={rows} value={selectedCellRow + 1}
                             onChange={(e) => setSelectedCell(Math.min(Math.max(Number(e.target.value) - 1, 0), rows - 1), selectedCellCol)} />
                         </label>
                         <label>
-                          <span>Col</span>
+                          <span>{t('elementInspector.table.colLabel')}</span>
                           <input type="number" min="1" max={cols} value={selectedCellCol + 1}
                             onChange={(e) => setSelectedCell(selectedCellRow, Math.min(Math.max(Number(e.target.value) - 1, 0), cols - 1))} />
                         </label>
@@ -7148,7 +7144,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                             return (
                               <button key={`${r}-${c}`} type="button"
                                 className={`editor-toggle-btn${active ? ' active' : ''}`}
-                                title={`Cell ${r + 1}:${c + 1}${hasStyle ? ' styled' : ''}`}
+                                title={hasStyle ? t('elementInspector.table.cellTitleStyled', { row: r + 1, col: c + 1 }) : t('elementInspector.table.cellTitle', { row: r + 1, col: c + 1 })}
                                 onClick={() => setSelectedCell(r, c)}
                                 style={{ minWidth: 28, height: 24, borderColor: hasStyle ? '#7c3aed' : undefined }}>
                                 {r + 1}:{c + 1}
@@ -7159,41 +7155,41 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       </div>
                       <div className="editor-form-grid" style={{ marginTop: 8 }}>
                         <label>
-                          <span>Background</span>
+                          <span>{t('elementInspector.table.background')}</span>
                           <input type="color" value={activeCellStyle?.backgroundColor || '#ffffff'}
                             onChange={(e) => updateCellStyle({ backgroundColor: e.target.value })} />
                         </label>
                         <label>
-                          <span>Text Color</span>
+                          <span>{t('elementInspector.table.textColor')}</span>
                           <input type="color" value={activeCellStyle?.color || '#111827'}
                             onChange={(e) => updateCellStyle({ color: e.target.value })} />
                         </label>
                         <label>
-                          <span>Font Size</span>
+                          <span>{t('elementInspector.table.fontSize')}</span>
                           <input type="number" min="1" value={activeCellStyle?.fontSize ?? ''}
                             onChange={(e) => updateCellStyle({ fontSize: e.target.value === '' ? undefined : Number(e.target.value) })} />
                         </label>
                         <label>
-                          <span>Padding</span>
+                          <span>{t('elementInspector.table.padding')}</span>
                           <input type="number" min="0" value={activeCellStyle?.padding ?? ''}
                             onChange={(e) => updateCellStyle({ padding: e.target.value === '' ? undefined : Number(e.target.value) })} />
                         </label>
                         <label>
-                          <span>Border Color</span>
+                          <span>{t('elementInspector.table.borderColor')}</span>
                           <input type="color" value={activeCellStyle?.borderColor || '#e2e8f0'}
                             onChange={(e) => updateCellStyle({ borderColor: e.target.value })} />
                         </label>
                         <label>
-                          <span>Border Width</span>
+                          <span>{t('elementInspector.table.borderWidth')}</span>
                           <input type="number" min="0" value={activeCellStyle?.borderWidth ?? ''}
                             onChange={(e) => updateCellStyle({ borderWidth: e.target.value === '' ? undefined : Number(e.target.value) })} />
                         </label>
                       </div>
                       <label style={{ marginTop: 6 }}>
-                        <span>Font Family</span>
+                        <span>{t('elementInspector.table.fontFamily')}</span>
                         <select value={activeCellStyle?.fontFamily || ''}
                           onChange={(e) => updateCellStyle({ fontFamily: e.target.value || undefined })}>
-                          <option value="">Default</option>
+                          <option value="">{t('elementInspector.table.fontFamilyDefault')}</option>
                           {FONT_FAMILIES.map(f => <option key={f} value={f}>{f}</option>)}
                         </select>
                       </label>
@@ -7202,21 +7198,21 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                           {(['left', 'center', 'right'] as const).map((align) => (
                             <button key={align} type="button"
                               className={`editor-toggle-btn${activeCellStyle?.textAlign === align ? ' active' : ''}`}
-                              title={`Align ${align}`}
+                              title={t('elementInspector.table.alignTitle', { align })}
                               onClick={() => updateCellStyle({ textAlign: activeCellStyle?.textAlign === align ? undefined : align })}>
                               {align === 'left' ? <FiAlignLeft size={11} /> : align === 'center' ? <FiAlignCenter size={11} /> : <FiAlignRight size={11} />}
                             </button>
                           ))}
                         </div>
                         <button type="button" className={`editor-toggle-btn${activeCellStyle?.bold ? ' active' : ''}`}
-                          title="Bold" onClick={() => updateCellStyle({ bold: activeCellStyle?.bold ? undefined : true })}>
+                          title={t('elementInspector.table.bold')} onClick={() => updateCellStyle({ bold: activeCellStyle?.bold ? undefined : true })}>
                           <FiBold size={11} />
                         </button>
                         <button type="button" className={`editor-toggle-btn${activeCellStyle?.italic ? ' active' : ''}`}
-                          title="Italic" onClick={() => updateCellStyle({ italic: activeCellStyle?.italic ? undefined : true })}>
+                          title={t('elementInspector.table.italic')} onClick={() => updateCellStyle({ italic: activeCellStyle?.italic ? undefined : true })}>
                           <FiItalic size={11} />
                         </button>
-                        <button type="button" className="editor-toggle-btn" title="Clear cell style" onClick={clearCellStyle}>
+                        <button type="button" className="editor-toggle-btn" title={t('elementInspector.table.clearCellStyle')} onClick={clearCellStyle}>
                           <FiTrash2 size={11} />
                         </button>
                       </div>
@@ -7228,18 +7224,18 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'chart' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Chart Type</span>
+                    <span>{t('elementInspector.chart.chartType')}</span>
                     <select
                       value={selectedElement.chartType || 'bar'}
                       onChange={(event) => updateSelectedElement({ chartType: event.target.value as 'bar' | 'line' | 'pie' })}
                     >
-                      <option value="bar">Bar</option>
-                      <option value="line">Line</option>
-                      <option value="pie">Pie</option>
+                      <option value="bar">{t('elementInspector.chart.typeBar')}</option>
+                      <option value="line">{t('elementInspector.chart.typeLine')}</option>
+                      <option value="pie">{t('elementInspector.chart.typePie')}</option>
                     </select>
                   </label>
                   <label>
-                    <span>Chart Data (JSON)</span>
+                    <span>{t('elementInspector.chart.chartData')}</span>
                     <textarea
                       rows={5}
                       value={JSON.stringify(selectedElement.chartData || createDefaultChartData(), null, 2)}
@@ -7259,7 +7255,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'line' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Color</span>
+                    <span>{t('elementInspector.line.color')}</span>
                     <input
                       type="color"
                       value={selectedElement.style?.backgroundColor || '#9ca3af'}
@@ -7267,7 +7263,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     />
                   </label>
                   <label>
-                    <span>Thickness (px)</span>
+                    <span>{t('elementInspector.line.thickness')}</span>
                     <input
                       type="number"
                       min="1"
@@ -7281,40 +7277,40 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'link' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Display text</span>
+                    <span>{t('elementInspector.link.displayText')}</span>
                     <input
                       type="text"
                       value={selectedElement.content || ''}
                       onChange={(e) => updateSelectedElement({ content: e.target.value })}
-                      placeholder="Click here"
+                      placeholder={t('elementInspector.link.displayTextPlaceholder')}
                     />
                   </label>
                   <label>
-                    <span>URL (href)</span>
+                    <span>{t('elementInspector.link.url')}</span>
                     <input
                       type="text"
                       value={selectedElement.href || ''}
                       onChange={(e) => updateSelectedElement({ href: e.target.value })}
-                      placeholder="https://example.com"
+                      placeholder={t('elementInspector.link.urlPlaceholder')}
                     />
                   </label>
                   <label>
-                    <span>Target</span>
+                    <span>{t('elementInspector.link.target')}</span>
                     <select
                       value={selectedElement.linkTarget || '_blank'}
                       onChange={(e) => updateSelectedElement({ linkTarget: e.target.value as '_blank' | '_self' })}
                     >
-                      <option value="_blank">New tab (_blank)</option>
-                      <option value="_self">Same tab (_self)</option>
+                      <option value="_blank">{t('elementInspector.link.targetBlank')}</option>
+                      <option value="_self">{t('elementInspector.link.targetSelf')}</option>
                     </select>
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Font size</span>
+                      <span>{t('elementInspector.common.fontSize')}</span>
                       <input type="number" value={selectedElement.style?.fontSize || 14} onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(e.target.value) } })} />
                     </label>
                     <label>
-                      <span>Color</span>
+                      <span>{t('elementInspector.link.color')}</span>
                       <input type="color" value={selectedElement.style?.color || '#2563eb'} onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, color: e.target.value } })} />
                     </label>
                   </div>
@@ -7324,7 +7320,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'number' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Value</span>
+                    <span>{t('elementInspector.number.value')}</span>
                     <input
                       type="number"
                       step="any"
@@ -7333,50 +7329,50 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     />
                   </label>
                   <label>
-                    <span>Style</span>
+                    <span>{t('elementInspector.number.style')}</span>
                     <select
                       value={selectedElement.numberStyle || 'decimal'}
                       onChange={(e) => updateSelectedElement({ numberStyle: e.target.value as SimpleElement['numberStyle'] })}
                     >
-                      <option value="decimal">Decimal (1,234.56)</option>
-                      <option value="currency">Currency (€ 1.234,56)</option>
-                      <option value="percent">Percent (12.5 %)</option>
-                      <option value="scientific">Scientific (1.23e+3)</option>
-                      <option value="ordinal">Ordinal (1st, 2nd…)</option>
+                      <option value="decimal">{t('elementInspector.number.styleDecimal')}</option>
+                      <option value="currency">{t('elementInspector.number.styleCurrency')}</option>
+                      <option value="percent">{t('elementInspector.number.stylePercent')}</option>
+                      <option value="scientific">{t('elementInspector.number.styleScientific')}</option>
+                      <option value="ordinal">{t('elementInspector.number.styleOrdinal')}</option>
                     </select>
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Decimals</span>
+                      <span>{t('elementInspector.number.decimals')}</span>
                       <input type="number" min="0" max="10" value={selectedElement.numberDecimals ?? 2} onChange={(e) => updateSelectedElement({ numberDecimals: Number(e.target.value) })} />
                     </label>
                     <label>
-                      <span>Locale</span>
+                      <span>{t('elementInspector.number.locale')}</span>
                       <input type="text" value={selectedElement.numberLocale || 'de-DE'} onChange={(e) => updateSelectedElement({ numberLocale: e.target.value })} placeholder="de-DE" />
                     </label>
                     {selectedElement.numberStyle === 'currency' && (
                       <label>
-                        <span>Currency</span>
+                        <span>{t('elementInspector.number.currency')}</span>
                         <input type="text" value={selectedElement.numberCurrency || 'EUR'} onChange={(e) => updateSelectedElement({ numberCurrency: e.target.value })} placeholder="EUR" />
                       </label>
                     )}
                     <label>
-                      <span>Font size</span>
+                      <span>{t('elementInspector.common.fontSize')}</span>
                       <input type="number" value={selectedElement.style?.fontSize || 18} onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, fontSize: Number(e.target.value) } })} />
                     </label>
                     <label>
-                      <span>Color</span>
+                      <span>{t('elementInspector.number.color')}</span>
                       <input type="color" value={selectedElement.style?.color || '#111827'} onChange={(e) => updateSelectedElement({ style: { ...selectedElement.style, color: e.target.value } })} />
                     </label>
                   </div>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Prefix</span>
-                      <input type="text" value={selectedElement.prefix || ''} onChange={(e) => updateSelectedElement({ prefix: e.target.value })} placeholder="e.g. ~" />
+                      <span>{t('elementInspector.number.prefix')}</span>
+                      <input type="text" value={selectedElement.prefix || ''} onChange={(e) => updateSelectedElement({ prefix: e.target.value })} placeholder={t('elementInspector.number.prefixPlaceholder')} />
                     </label>
                     <label>
-                      <span>Suffix</span>
-                      <input type="text" value={selectedElement.suffix || ''} onChange={(e) => updateSelectedElement({ suffix: e.target.value })} placeholder="e.g. pts" />
+                      <span>{t('elementInspector.number.suffix')}</span>
+                      <input type="text" value={selectedElement.suffix || ''} onChange={(e) => updateSelectedElement({ suffix: e.target.value })} placeholder={t('elementInspector.number.suffixPlaceholder')} />
                     </label>
                   </div>
                 </div>
@@ -7385,28 +7381,28 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'draw' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Tool</span>
+                    <span>{t('elementInspector.draw.tool')}</span>
                     <select value={selectedElement.drawTool || 'pen'} onChange={(event) => updateSelectedElement({ drawTool: event.target.value as SimpleElement['drawTool'] })}>
-                      <option value="pen">Pen</option>
-                      <option value="highlighter">Highlighter</option>
-                      <option value="eraser">Eraser</option>
+                      <option value="pen">{t('elementInspector.draw.toolPen')}</option>
+                      <option value="highlighter">{t('elementInspector.draw.toolHighlighter')}</option>
+                      <option value="eraser">{t('elementInspector.draw.toolEraser')}</option>
                     </select>
                   </label>
                   <label>
-                    <span>Path data</span>
+                    <span>{t('elementInspector.draw.pathData')}</span>
                     <textarea rows={3} value={selectedElement.pathData || ''} onChange={(event) => updateSelectedElement({ pathData: event.target.value })} />
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Color</span>
+                      <span>{t('elementInspector.draw.color')}</span>
                       <input type="color" value={selectedElement.style?.color || '#1d4ed8'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
                     </label>
                     <label>
-                      <span>Stroke</span>
+                      <span>{t('elementInspector.draw.stroke')}</span>
                       <input type="number" min="1" value={selectedElement.style?.strokeWidth || 4} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, strokeWidth: Number(event.target.value) } })} />
                     </label>
                     <label>
-                      <span>Opacity</span>
+                      <span>{t('elementInspector.draw.opacity')}</span>
                       <input type="number" min="0" max="1" step="0.05" value={selectedElement.style?.opacity ?? 1} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, opacity: Number(event.target.value) } })} />
                     </label>
                   </div>
@@ -7416,23 +7412,23 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'highlight' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Mode</span>
+                    <span>{t('elementInspector.highlight.mode')}</span>
                     <select value={selectedElement.markMode || 'rectangle'} onChange={(event) => updateSelectedElement({ markMode: event.target.value as SimpleElement['markMode'] })}>
-                      <option value="rectangle">Rectangle</option>
-                      <option value="text">Text marker</option>
+                      <option value="rectangle">{t('elementInspector.highlight.modeRectangle')}</option>
+                      <option value="text">{t('elementInspector.highlight.modeText')}</option>
                     </select>
                   </label>
                   <div className="editor-form-grid">
                     <label>
-                      <span>Color</span>
+                      <span>{t('elementInspector.highlight.color')}</span>
                       <input type="color" value={selectedElement.style?.backgroundColor || '#fde047'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, backgroundColor: event.target.value } })} />
                     </label>
                     <label>
-                      <span>Opacity</span>
+                      <span>{t('elementInspector.highlight.opacity')}</span>
                       <input type="number" min="0" max="1" step="0.05" value={selectedElement.style?.opacity ?? 0.45} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, opacity: Number(event.target.value) } })} />
                     </label>
                     <label>
-                      <span>Radius</span>
+                      <span>{t('elementInspector.highlight.radius')}</span>
                       <input type="number" min="0" value={selectedElement.style?.borderRadius ?? 4} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, borderRadius: Number(event.target.value) } })} />
                     </label>
                   </div>
@@ -7442,18 +7438,18 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'pageboundary' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Boundary</span>
+                    <span>{t('elementInspector.pageboundary.boundary')}</span>
                     <select value={selectedElement.pageBoundaryMode || 'start'} onChange={(event) => updateSelectedElement({ pageBoundaryMode: event.target.value as SimpleElement['pageBoundaryMode'] })}>
-                      <option value="start">Page start</option>
-                      <option value="end">Page end</option>
+                      <option value="start">{t('elementInspector.pageboundary.boundaryStart')}</option>
+                      <option value="end">{t('elementInspector.pageboundary.boundaryEnd')}</option>
                     </select>
                   </label>
                   <label>
-                    <span>Label</span>
+                    <span>{t('elementInspector.pageboundary.label')}</span>
                     <input type="text" value={selectedElement.content || ''} onChange={(event) => updateSelectedElement({ content: event.target.value })} />
                   </label>
                   <label>
-                    <span>Color</span>
+                    <span>{t('elementInspector.pageboundary.color')}</span>
                     <input type="color" value={selectedElement.style?.color || '#7c3aed'} onChange={(event) => updateSelectedElement({ style: { ...selectedElement.style, color: event.target.value } })} />
                   </label>
                 </div>
@@ -7462,12 +7458,12 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {(selectedElement.type === 'footnote' || selectedElement.type === 'endnote') && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>{selectedElement.type === 'footnote' ? 'Footnote' : 'Endnote'} text</span>
+                    <span>{selectedElement.type === 'footnote' ? t('elementInspector.footnote.footnoteText') : t('elementInspector.footnote.endnoteText')}</span>
                     <textarea
                       rows={4}
                       value={selectedElement.footnoteText || ''}
                       onChange={(e) => updateSelectedElement({ footnoteText: e.target.value })}
-                      placeholder="Note text…"
+                      placeholder={t('elementInspector.footnote.placeholder')}
                     />
                   </label>
                 </div>
@@ -7476,21 +7472,21 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'bookmark' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Bookmark name</span>
+                    <span>{t('elementInspector.bookmark.name')}</span>
                     <input
                       type="text"
                       value={selectedElement.bookmarkName || ''}
                       onChange={(e) => updateSelectedElement({ bookmarkName: e.target.value })}
-                      placeholder="e.g. section-intro"
+                      placeholder={t('elementInspector.bookmark.namePlaceholder')}
                     />
                   </label>
                   <label>
-                    <span>Link target (optional)</span>
+                    <span>{t('elementInspector.bookmark.linkTarget')}</span>
                     <input
                       type="text"
                       value={selectedElement.bookmarkTarget || ''}
                       onChange={(e) => updateSelectedElement({ bookmarkTarget: e.target.value })}
-                      placeholder="Bookmark name to link to"
+                      placeholder={t('elementInspector.bookmark.linkTargetPlaceholder')}
                     />
                   </label>
                 </div>
@@ -7499,16 +7495,16 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'comment' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Comment text</span>
+                    <span>{t('elementInspector.comment.text')}</span>
                     <textarea
                       rows={4}
                       value={selectedElement.commentText || ''}
                       onChange={(e) => updateSelectedElement({ commentText: e.target.value })}
-                      placeholder="Comment…"
+                      placeholder={t('elementInspector.comment.textPlaceholder')}
                     />
                   </label>
                   <label>
-                    <span>Author</span>
+                    <span>{t('elementInspector.comment.author')}</span>
                     <input
                       type="text"
                       value={selectedElement.commentAuthor || ''}
@@ -7516,7 +7512,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     />
                   </label>
                   <label>
-                    <span>Date</span>
+                    <span>{t('elementInspector.comment.date')}</span>
                     <input
                       type="date"
                       value={selectedElement.commentDate || ''}
@@ -7524,12 +7520,12 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     />
                   </label>
                   <label>
-                    <span>Comment ID</span>
+                    <span>{t('elementInspector.comment.id')}</span>
                     <input
                       type="text"
                       value={selectedElement.commentId || ''}
                       onChange={(e) => updateSelectedElement({ commentId: e.target.value })}
-                      placeholder="Auto-generated if blank"
+                      placeholder={t('elementInspector.comment.idPlaceholder')}
                     />
                   </label>
                 </div>
@@ -7538,20 +7534,20 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               {selectedElement.type === 'contentcontrol' && (
                 <div className="editor-form-stack">
                   <label>
-                    <span>Control type</span>
+                    <span>{t('elementInspector.contentcontrol.controlType')}</span>
                     <select
                       value={selectedElement.contentControlType || 'richText'}
                       onChange={(e) => updateSelectedElement({ contentControlType: e.target.value as any })}
                     >
-                      <option value="richText">Rich text</option>
-                      <option value="plainText">Plain text</option>
-                      <option value="date">Date picker</option>
-                      <option value="comboBox">Combo box</option>
-                      <option value="picture">Picture</option>
+                      <option value="richText">{t('elementInspector.contentcontrol.typeRichText')}</option>
+                      <option value="plainText">{t('elementInspector.contentcontrol.typePlainText')}</option>
+                      <option value="date">{t('elementInspector.contentcontrol.typeDate')}</option>
+                      <option value="comboBox">{t('elementInspector.contentcontrol.typeComboBox')}</option>
+                      <option value="picture">{t('elementInspector.contentcontrol.typePicture')}</option>
                     </select>
                   </label>
                   <label>
-                    <span>Title</span>
+                    <span>{t('elementInspector.contentcontrol.title')}</span>
                     <input
                       type="text"
                       value={selectedElement.contentControlTitle || ''}
@@ -7559,7 +7555,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     />
                   </label>
                   <label>
-                    <span>Tag</span>
+                    <span>{t('elementInspector.contentcontrol.tag')}</span>
                     <input
                       type="text"
                       value={selectedElement.contentControlTag || ''}
@@ -7567,7 +7563,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     />
                   </label>
                   <label>
-                    <span>Placeholder text</span>
+                    <span>{t('elementInspector.contentcontrol.placeholderText')}</span>
                     <input
                       type="text"
                       value={selectedElement.contentControlPlaceholder || ''}
@@ -7575,7 +7571,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     />
                   </label>
                   <label>
-                    <span>Default content</span>
+                    <span>{t('elementInspector.contentcontrol.defaultContent')}</span>
                     <textarea
                       rows={3}
                       value={selectedElement.content || ''}
@@ -7589,7 +7585,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               <div className="editor-settings-section">
                 <div className="editor-settings-heading">
                   <FiEye />
-                  <span>Visibility</span>
+                  <span>{t('elementInspector.visibility.heading')}</span>
                 </div>
                 <div className="editor-form-stack" style={{ padding: 12 }}>
                   <label className="editor-checkbox-control">
@@ -7598,10 +7594,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       checked={!selectedElement.hidden}
                       onChange={(e) => updateSelectedElement({ hidden: !e.target.checked })}
                     />
-                    <span>Visible in output</span>
+                    <span>{t('elementInspector.visibility.visibleInOutput')}</span>
                   </label>
                   <label>
-                    <span>Visible expression</span>
+                    <span>{t('elementInspector.visibility.visibleExpression')}</span>
                     <textarea
                       rows={2}
                       value={selectedElement.visibleExpression || ''}
@@ -7615,28 +7611,28 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               <div className="editor-settings-section">
                 <div className="editor-settings-heading">
                   <FiFileText />
-                  <span>Word / DOCX</span>
+                  <span>{t('elementInspector.wordDocx.heading')}</span>
                 </div>
                 <div className="editor-form-stack" style={{ padding: 12 }}>
                   <label>
-                    <span>Paragraph style</span>
+                    <span>{t('elementInspector.wordDocx.paragraphStyle')}</span>
                     <select
                       value={selectedElement.styleName ?? ''}
                       onChange={(e) => updateSelectedElement({ styleName: e.target.value || undefined })}
                     >
-                      <option value="">— None —</option>
+                      <option value="">{t('elementInspector.wordDocx.none')}</option>
                       {(pageSettings.namedStyles ?? [])
                         .filter(s => s.type === 'paragraph' || s.type === 'list')
                         .map(s => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
                     </select>
                   </label>
                   <label>
-                    <span>Character style</span>
+                    <span>{t('elementInspector.wordDocx.characterStyle')}</span>
                     <select
                       value={selectedElement.characterStyle ?? ''}
                       onChange={(e) => updateSelectedElement({ characterStyle: e.target.value || undefined })}
                     >
-                      <option value="">— None —</option>
+                      <option value="">{t('elementInspector.wordDocx.none')}</option>
                       {(pageSettings.namedStyles ?? [])
                         .filter(s => s.type === 'character')
                         .map(s => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
@@ -7648,24 +7644,24 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       checked={selectedElement.autoHyphenation ?? true}
                       onChange={(e) => updateSelectedElement({ autoHyphenation: e.target.checked })}
                     />
-                    <span>Auto-hyphenation</span>
+                    <span>{t('elementInspector.wordDocx.autoHyphenation')}</span>
                   </label>
                   <label>
-                    <span>Revision type</span>
+                    <span>{t('elementInspector.wordDocx.revisionType')}</span>
                     <select
                       value={selectedElement.revisionType ?? ''}
                       onChange={(e) => updateSelectedElement({ revisionType: e.target.value as any || undefined })}
                     >
-                      <option value="">— None —</option>
-                      <option value="insert">Insert</option>
-                      <option value="delete">Delete</option>
-                      <option value="format">Format change</option>
+                      <option value="">{t('elementInspector.wordDocx.none')}</option>
+                      <option value="insert">{t('elementInspector.wordDocx.revisionInsert')}</option>
+                      <option value="delete">{t('elementInspector.wordDocx.revisionDelete')}</option>
+                      <option value="format">{t('elementInspector.wordDocx.revisionFormat')}</option>
                     </select>
                   </label>
                   {selectedElement.revisionType && (
                     <>
                       <label>
-                        <span>Revision author</span>
+                        <span>{t('elementInspector.wordDocx.revisionAuthor')}</span>
                         <input
                           type="text"
                           value={selectedElement.revisionAuthor ?? ''}
@@ -7673,7 +7669,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         />
                       </label>
                       <label>
-                        <span>Revision date</span>
+                        <span>{t('elementInspector.wordDocx.revisionDate')}</span>
                         <input
                           type="date"
                           value={selectedElement.revisionDate ?? ''}
@@ -7681,12 +7677,12 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         />
                       </label>
                       <label>
-                        <span>Revision ID</span>
+                        <span>{t('elementInspector.wordDocx.revisionId')}</span>
                         <input
                           type="text"
                           value={selectedElement.revisionId ?? ''}
                           onChange={(e) => updateSelectedElement({ revisionId: e.target.value })}
-                          placeholder="Auto-generated if blank"
+                          placeholder={t('elementInspector.wordDocx.autoGenerated')}
                         />
                       </label>
                     </>
@@ -7702,7 +7698,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                 }}
               >
                 <FiTrash2 />
-                <span>Delete element</span>
+                <span>{t('elementInspector.deleteElement')}</span>
               </button>
             </div>
           )}
@@ -7722,36 +7718,36 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               return (
                 <>
                   <button className="editor-context-menu-item" onClick={() => contextMenuAction('copy')}>
-                    Copy<span className="editor-context-menu-shortcut">⌘C</span>
+                    {t('contextMenu.copy')}<span className="editor-context-menu-shortcut">⌘C</span>
                   </button>
                   <button className="editor-context-menu-item" onClick={() => contextMenuAction('duplicate')}>
-                    Duplicate<span className="editor-context-menu-shortcut">⌘D</span>
+                    {t('contextMenu.duplicate')}<span className="editor-context-menu-shortcut">⌘D</span>
                   </button>
                   <button
                     className={`editor-context-menu-item${!clipboard ? ' disabled' : ''}`}
                     onClick={() => contextMenuAction('paste')}
                   >
-                    Paste<span className="editor-context-menu-shortcut">⌘V</span>
+                    {t('contextMenu.paste')}<span className="editor-context-menu-shortcut">⌘V</span>
                   </button>
                   <div className="editor-context-menu-separator" />
                   <button className="editor-context-menu-item" onClick={() => contextMenuAction('lock')}>
-                    {el?.locked ? 'Unlock' : 'Lock'}
+                    {el?.locked ? t('contextMenu.unlock') : t('contextMenu.lock')}
                   </button>
                   <button className="editor-context-menu-item" onClick={() => contextMenuAction('hide')}>
-                    {el?.hidden ? 'Show' : 'Hide'}
+                    {el?.hidden ? t('contextMenu.show') : t('contextMenu.hide')}
                   </button>
                   <div className="editor-context-menu-separator" />
                   <button className="editor-context-menu-item" onClick={() => contextMenuAction('front')}>
-                    Bring to Front
+                    {t('contextMenu.bringToFront')}
                   </button>
                   <button className="editor-context-menu-item" onClick={() => contextMenuAction('forward')}>
-                    Bring Forward
+                    {t('contextMenu.bringForward')}
                   </button>
                   <button className="editor-context-menu-item" onClick={() => contextMenuAction('backward')}>
-                    Send Backward
+                    {t('contextMenu.sendBackward')}
                   </button>
                   <button className="editor-context-menu-item" onClick={() => contextMenuAction('back')}>
-                    Send to Back
+                    {t('contextMenu.sendToBack')}
                   </button>
                   <div className="editor-context-menu-separator" />
                   {(pageSettings.activeLanguages ?? []).length >= 1 && (
@@ -7769,13 +7765,13 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         }
                         closeContextMenu();
                       }}
-                      title="Delete this element from all language tabs"
+                      title={t('contextMenu.deleteFromAllLanguagesTitle')}
                     >
-                      Delete from all languages<span className="editor-context-menu-shortcut">Del</span>
+                      {t('contextMenu.deleteFromAllLanguages')}<span className="editor-context-menu-shortcut">Del</span>
                     </button>
                   )}
                   <button className="editor-context-menu-item danger" onClick={() => contextMenuAction('delete')}>
-                    Delete<span className="editor-context-menu-shortcut">Del</span>
+                    {t('contextMenu.delete')}<span className="editor-context-menu-shortcut">Del</span>
                   </button>
                 </>
               );
@@ -7785,10 +7781,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   className={`editor-context-menu-item${!clipboard ? ' disabled' : ''}`}
                   onClick={() => contextMenuAction('paste')}
                 >
-                  Paste<span className="editor-context-menu-shortcut">⌘V</span>
+                  {t('contextMenu.paste')}<span className="editor-context-menu-shortcut">⌘V</span>
                 </button>
                 <button className="editor-context-menu-item" onClick={() => contextMenuAction('selectAll')}>
-                  Select All<span className="editor-context-menu-shortcut">⌘A</span>
+                  {t('contextMenu.selectAll')}<span className="editor-context-menu-shortcut">⌘A</span>
                 </button>
               </>
             )}

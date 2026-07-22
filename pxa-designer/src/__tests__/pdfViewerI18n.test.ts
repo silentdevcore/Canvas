@@ -1,20 +1,20 @@
-import { pdfViewerLabels, resolvePdfViewerLocale } from '../features/pdf-viewer/i18n';
+import i18n from '../i18n';
 
 describe('pdf viewer i18n', () => {
-  test('resolves German browser language to de', () => {
-    expect(resolvePdfViewerLocale('de-DE')).toBe('de');
-    expect(resolvePdfViewerLocale('de')).toBe('de');
-  });
-
-  test('falls back to English for non-German languages', () => {
-    expect(resolvePdfViewerLocale('en-US')).toBe('en');
-    expect(resolvePdfViewerLocale('fr-FR')).toBe('en');
+  beforeEach(async () => {
+    await i18n.changeLanguage('en');
   });
 
   test('contains core labels in English and German', () => {
-    expect(pdfViewerLabels.en.openPdf).toBe('Open PDF');
-    expect(pdfViewerLabels.de.openPdf).toBe('PDF öffnen');
-    expect(pdfViewerLabels.en.redact).toBe('Redact');
-    expect(pdfViewerLabels.de.redact).toBe('Schwärzen');
+    expect(i18n.getFixedT('en', 'pdfViewer')('openPdf')).toBe('Open PDF');
+    expect(i18n.getFixedT('de', 'pdfViewer')('openPdf')).toBe('PDF öffnen');
+    expect(i18n.getFixedT('en', 'pdfViewer')('redact')).toBe('Redact');
+    expect(i18n.getFixedT('de', 'pdfViewer')('redact')).toBe('Schwärzen');
+  });
+
+  test('switching i18n language changes t() output for the pdfViewer namespace', async () => {
+    expect(i18n.t('pdfViewer:openPdf')).toBe('Open PDF');
+    await i18n.changeLanguage('de');
+    expect(i18n.t('pdfViewer:openPdf')).toBe('PDF öffnen');
   });
 });

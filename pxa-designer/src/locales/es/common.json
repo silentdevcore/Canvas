@@ -1,0 +1,34 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "pdf": "PDF",
+    "spreadsheet": "Hoja de cálculo",
+    "docs": "Documentación",
+    "logoHome": "Inicio de Power Dox Automation",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "mobileMenu": "Menú móvil"
+  },
+  "sidebar": {
+    "expand": "Expandir barra lateral",
+    "collapse": "Contraer barra lateral",
+    "sectionNav": "Navegación de sección",
+    "comingSoon": "Próximamente"
+  },
+  "pdfSidebar": {
+    "createPdf": "Crear PDF",
+    "editPdf": "Editar PDF",
+    "useTemplate": "Usar plantilla",
+    "importPdf": "Importar PDF",
+    "convertToPdf": "Convertir a PDF",
+    "pdfViewer": "Visor de PDF",
+    "migrations": "Migraciones"
+  },
+  "spreadsheetSidebar": {
+    "createSpreadsheet": "Crear hoja de cálculo",
+    "editSpreadsheet": "Editar hoja de cálculo",
+    "importSpreadsheet": "Importar hoja de cálculo",
+    "convertToSpreadsheet": "Convertir a hoja de cálculo",
+    "migrations": "Migraciones"
+  }
+}

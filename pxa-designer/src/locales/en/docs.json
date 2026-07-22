@@ -1,0 +1,52 @@
+{
+  "copy": "Copy",
+  "copied": "Copied",
+  "copyAriaLabel": "Copy code",
+  "propertyTable": {
+    "property": "Property",
+    "type": "Type",
+    "default": "Default",
+    "description": "Description"
+  },
+  "elementCard": {
+    "renderFailedHttp": "Render failed ({{status}})",
+    "renderFailed": "Render failed — is the backend running on :5086?",
+    "rendering": "Rendering…",
+    "renderPreview": "Render preview",
+    "previewTitle": "{{label}} preview",
+    "designerOnlyNote": "Designer-only guide — not rendered to output formats.",
+    "badges": {
+      "pdf": "PDF",
+      "word": "Word",
+      "html": "HTML",
+      "excel": "Excel",
+      "bindable": "Bindable"
+    }
+  },
+  "sidebar": {
+    "title": "Documentation",
+    "backToHome": "← Back to home"
+  },
+  "mobileNav": {
+    "ariaLabel": "Open documentation navigation",
+    "sections": "Sections"
+  },
+  "sections": {
+    "quick-start": "Quick Start",
+    "editor-overview": "Editor Overview",
+    "elements": "Elements Reference",
+    "data-binding": "Data Binding & Expressions",
+    "import-export": "Import & Export",
+    "document-ops": "Document Operations",
+    "migrations": "Migrations",
+    "word-features": "Word / DOCX Features",
+    "json-schema": "JSON Schema",
+    "csharp-models": "C# Models",
+    "csharp-examples": "C# Code Examples",
+    "json-to-csharp": "JSON → C# Mapping",
+    "rest-api": "REST API",
+    "ai-codegen": "AI & Codegen",
+    "spreadsheets": "Spreadsheets",
+    "documentation-map": "Documentation Map"
+  }
+}

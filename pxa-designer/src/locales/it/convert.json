@@ -1,0 +1,106 @@
+{
+  "pageSizes": {
+    "original": "Mantieni originale",
+    "a4": "A4 (210×297 mm)",
+    "a5": "A5 (148×210 mm)",
+    "a3": "A3 (297×420 mm)",
+    "letter": "Letter (8,5×11 poll.)"
+  },
+  "eyebrow": "Converti e importa",
+  "heading": "Converti in PDF",
+  "subheading": "Trasforma qualsiasi file in un design PXA modificabile, oppure converti un'immagine scansionata in un PDF ricercabile.",
+  "sections": {
+    "import": {
+      "eyebrow": "Apri un file esistente",
+      "heading": "Importa un file",
+      "subheading": "Scegli il formato, quindi seleziona un file — si aprirà come design PXA modificabile.",
+      "formats": {
+        "pdf": {
+          "label": "PDF",
+          "description": "Testo, forme e immagini estratti da qualsiasi file PDF."
+        },
+        "docx": {
+          "label": "Word DOCX",
+          "description": "Paragrafi, tabelle e immagini incorporate da Word Open XML."
+        },
+        "pptx": {
+          "label": "PowerPoint",
+          "description": "Ogni diapositiva diventa una pagina PXA con forme, testo e immagini."
+        },
+        "doc": {
+          "label": "Word DOC",
+          "description": "Formato binario legacy Word 97-2003 — il testo viene estratto come elementi modificabili."
+        },
+        "odt": {
+          "label": "OpenDocument",
+          "description": "Testo ODF con stili di paragrafo, intestazioni e immagini incorporate."
+        },
+        "svg": {
+          "label": "SVG",
+          "description": "Piena fedeltà vettoriale — percorsi, gruppi, testo e immagini incorporate."
+        },
+        "image": {
+          "label": "Immagine",
+          "description": "Immagine raster inserita come design PXA a pagina intera."
+        },
+        "image-analysis": {
+          "label": "Immagine (Smart)",
+          "description": "Motore OCR personalizzato — riconosce testo, forme e colori come singoli elementi modificabili."
+        }
+      },
+      "importAriaLabel": "Importa file {{label}}",
+      "importing": "Importazione in corso…",
+      "chooseFile": "Scegli file",
+      "config": {
+        "pageSize": "Dimensione pagina",
+        "diagnostics": "Diagnostica",
+        "debugOverlay": "Pagina overlay di debug",
+        "fallbackLayer": "Livello immagine di fallback",
+        "cancel": "Annulla",
+        "chooseFile": "Scegli file"
+      },
+      "uploadingFile": "Caricamento file…",
+      "importFailed": "Importazione non riuscita. Controlla il file e riprova."
+    },
+    "ocr": {
+      "eyebrow": "Da immagine a PDF",
+      "heading": "Converti un'immagine in PDF",
+      "subheading": "Il motore OCR Tesseract integrato trasforma una pagina scansionata o fotografata in un PDF ricercabile.",
+      "pageSize": "Dimensione pagina",
+      "layout": "Layout",
+      "layoutFull": "Layout completo (testo + colori di sfondo)",
+      "layoutTextOnly": "Solo testo",
+      "ocrLanguageLabel": "Lingua/e OCR",
+      "ocrLanguageHint": "Tieni premuto ⌘/Ctrl per selezionarne più di una — vengono combinate (es. tedesco + inglese).",
+      "preprocessImage": "Preelabora immagine",
+      "lowConfidence": "Bassa affidabilità",
+      "converting": "Conversione in corso…",
+      "chooseImageAndConvert": "Scegli immagine e converti",
+      "runningOcr": "OCR in esecuzione e generazione PDF…",
+      "downloadStarted": "Download del PDF avviato.",
+      "conversionFailed": "Conversione non riuscita. Controlla il file e riprova.",
+      "ocrLanguages": {
+        "eng": "Inglese",
+        "deu": "Tedesco",
+        "fra": "Francese",
+        "spa": "Spagnolo",
+        "ita": "Italiano",
+        "por": "Portoghese",
+        "nld": "Olandese",
+        "pol": "Polacco",
+        "swe": "Svedese",
+        "dan": "Danese",
+        "nor": "Norvegese",
+        "fin": "Finlandese",
+        "ces": "Ceco",
+        "rus": "Russo",
+        "ukr": "Ucraino",
+        "ell": "Greco",
+        "chi_sim": "Cinese (semplificato)",
+        "jpn": "Giapponese",
+        "kor": "Coreano",
+        "ara": "Arabo"
+      }
+    }
+  }
+}

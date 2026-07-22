@@ -1,0 +1,36 @@
+{
+  "backToEditor": "← Back to Editor",
+  "heading": "Preview: {{name}}",
+  "pageCount": "{{count}} page",
+  "pageCount_plural": "{{count}} pages",
+  "elementCount": "{{count}} elements",
+  "pageLabel": "Page {{number}}",
+  "noElementsOnPage": "No elements on this page",
+  "zoomOut": "Zoom out",
+  "zoomIn": "Zoom in",
+  "resetZoom": "Reset zoom",
+  "exportImageFailed": "Image export failed",
+  "exportFailed": "Export failed",
+  "exporting": "Exporting…",
+  "exported": "Exported!",
+  "export": "Export",
+  "exportMenu": {
+    "pdf": { "label": "Export PDF", "sub": "Render via backend (localhost:5086)" },
+    "image": { "label": "Export Image", "sub": "Save as PNG (all pages)" },
+    "json": { "label": "Export JSON", "sub": "Download template file" },
+    "print": { "label": "Print", "sub": "Browser print dialog" },
+    "more": { "label": "More formats…", "sub": "Word, Excel, HTML, XML, SVG, CSV, Markdown" }
+  },
+  "openInPdfViewer": "Open in PDF Viewer",
+  "watermarkAlt": "Watermark",
+  "footer": {
+    "template": "Template",
+    "pages": "Pages",
+    "pageSize": "Page Size",
+    "pageSizeValue": "{{width}} × {{height}} px",
+    "quality": "Quality",
+    "qualityDefault": "printer",
+    "previewModeTitle": "Preview Mode",
+    "previewModeBody": "QR codes, barcodes, and exact font rendering will be finalised in the PDF export."
+  }
+}

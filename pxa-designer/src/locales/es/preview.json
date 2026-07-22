@@ -1,0 +1,51 @@
+{
+  "backToEditor": "← Volver al editor",
+  "heading": "Vista previa: {{name}}",
+  "pageCount": "{{count}} página",
+  "pageCount_plural": "{{count}} páginas",
+  "elementCount": "{{count}} elementos",
+  "pageLabel": "Página {{number}}",
+  "noElementsOnPage": "No hay elementos en esta página",
+  "zoomOut": "Alejar",
+  "zoomIn": "Acercar",
+  "resetZoom": "Restablecer zoom",
+  "exportImageFailed": "Error al exportar imagen",
+  "exportFailed": "Error al exportar",
+  "exporting": "Exportando…",
+  "exported": "¡Exportado!",
+  "export": "Exportar",
+  "exportMenu": {
+    "pdf": {
+      "label": "Exportar PDF",
+      "sub": "Renderizado mediante backend (localhost:5086)"
+    },
+    "image": {
+      "label": "Exportar imagen",
+      "sub": "Guardar como PNG (todas las páginas)"
+    },
+    "json": {
+      "label": "Exportar JSON",
+      "sub": "Descargar archivo de plantilla"
+    },
+    "print": {
+      "label": "Imprimir",
+      "sub": "Cuadro de diálogo de impresión del navegador"
+    },
+    "more": {
+      "label": "Más formatos…",
+      "sub": "Word, Excel, HTML, XML, SVG, CSV, Markdown"
+    }
+  },
+  "openInPdfViewer": "Abrir en el visor de PDF",
+  "watermarkAlt": "Marca de agua",
+  "footer": {
+    "template": "Plantilla",
+    "pages": "Páginas",
+    "pageSize": "Tamaño de página",
+    "pageSizeValue": "{{width}} × {{height}} px",
+    "quality": "Calidad",
+    "qualityDefault": "impresora",
+    "previewModeTitle": "Modo de vista previa",
+    "previewModeBody": "Los códigos QR, los códigos de barras y el renderizado exacto de fuentes se finalizarán en la exportación a PDF."
+  }
+}

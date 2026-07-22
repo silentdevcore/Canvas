@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   FiBold, FiItalic, FiAlignLeft, FiAlignCenter, FiAlignRight,
   FiRotateCcw, FiRotateCw, FiUpload, FiDownload, FiPlus, FiX,
@@ -10,20 +11,24 @@ import { workbookToWire, toA1, toA1Range } from '../spreadsheet/types';
 import { sheetToCsv, csvToSheet, workbookToJson, jsonToWorkbook, downloadText } from '../spreadsheet/io';
 import '../styles/spreadsheet.css';
 
-const NUMBER_FORMATS: { label: string; value: string | undefined }[] = [
-  { label: 'General', value: undefined },
-  { label: 'Number', value: '#,##0.00' },
-  { label: 'Currency', value: '"€"#,##0.00' },
-  { label: 'Percent', value: '0.00%' },
-  { label: 'Date', value: 'dd.MM.yyyy' },
+const NUMBER_FORMAT_DEFS: { key: string; value: string | undefined }[] = [
+  { key: 'general', value: undefined },
+  { key: 'number', value: '#,##0.00' },
+  { key: 'currency', value: '"€"#,##0.00' },
+  { key: 'percent', value: '0.00%' },
+  { key: 'date', value: 'dd.MM.yyyy' },
 ];
 
 const FONT_FAMILIES = ['Arial', 'Helvetica', 'Times New Roman', 'Georgia', 'Courier New', 'Verdana', 'Calibri'];
 const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 36];
+const CF_OPERATORS = ['greaterThan', 'lessThan', 'equalTo', 'between', 'contains'];
+const DV_OPERATORS = ['between', 'greaterThan', 'lessThan', 'equalTo'];
+const DV_TYPES = ['list', 'wholeNumber', 'decimal', 'textLength'];
 
 const round = (n: number) => (Number.isInteger(n) ? n : Math.round(n * 10000) / 10000);
 
 const SpreadsheetEditorPage: React.FC = () => {
+  const { t } = useTranslation('spreadsheet');
   const sheets = useSpreadsheetStore((s) => s.sheets);
   const active = useSpreadsheetStore((s) => s.active);
   const name = useSpreadsheetStore((s) => s.name);
@@ -88,7 +93,7 @@ const SpreadsheetEditorPage: React.FC = () => {
   const onImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setBusy('Importing…');
+    setBusy(t('editor.importing'));
     try {
       const ext = file.name.toLowerCase().split('.').pop();
       if (ext === 'xlsx') {
@@ -99,10 +104,10 @@ const SpreadsheetEditorPage: React.FC = () => {
       } else if (ext === 'json') {
         loadWorkbook(jsonToWorkbook(await file.text()));
       } else {
-        alert('Unsupported file. Use .xlsx, .csv, or .json.');
+        alert(t('editor.unsupportedFile'));
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Import failed');
+      alert(err instanceof Error ? err.message : t('editor.importFailed'));
     } finally {
       setBusy(null);
       if (fileInput.current) fileInput.current.value = '';
@@ -111,7 +116,7 @@ const SpreadsheetEditorPage: React.FC = () => {
 
   const exportAs = async (fmt: 'xlsx' | 'csv' | 'json') => {
     setExportMenu(false);
-    setBusy('Exporting…');
+    setBusy(t('editor.exporting'));
     try {
       if (fmt === 'xlsx') {
         await SpreadsheetService.exportXlsx(toWire());
@@ -121,18 +126,18 @@ const SpreadsheetEditorPage: React.FC = () => {
         downloadText(workbookToJson(toWire()), `${safeName}.json`, 'application/json');
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Export failed');
+      alert(err instanceof Error ? err.message : t('editor.exportFailed'));
     } finally {
       setBusy(null);
     }
   };
 
   const validate = async () => {
-    setBusy('Validating…');
+    setBusy(t('editor.validating'));
     try {
       setValidation(await SpreadsheetService.validate(toWire()));
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Validation failed');
+      alert(err instanceof Error ? err.message : t('editor.validationFailed'));
     } finally {
       setBusy(null);
     }
@@ -141,112 +146,112 @@ const SpreadsheetEditorPage: React.FC = () => {
   return (
     <div className="spreadsheet-root">
       <div className="spreadsheet-toolbar">
-        <button className="ss-tool" title="Undo" onClick={undo}><FiRotateCcw /></button>
-        <button className="ss-tool" title="Redo" onClick={redo}><FiRotateCw /></button>
+        <button className="ss-tool" title={t('editor.undo')} onClick={undo}><FiRotateCcw /></button>
+        <button className="ss-tool" title={t('editor.redo')} onClick={redo}><FiRotateCw /></button>
         <span className="ss-sep" />
-        <select className="ss-format" title="Font" value={cell?.style?.fontFamily ?? ''} onChange={(e) => applyStyle({ fontFamily: e.target.value || undefined })}>
-          <option value="">Font</option>
+        <select className="ss-format" title={t('editor.font')} value={cell?.style?.fontFamily ?? ''} onChange={(e) => applyStyle({ fontFamily: e.target.value || undefined })}>
+          <option value="">{t('editor.font')}</option>
           {FONT_FAMILIES.map((f) => <option key={f} value={f}>{f}</option>)}
         </select>
-        <select className="ss-format ss-format--sm" title="Font size" value={cell?.style?.fontSize ?? ''} onChange={(e) => applyStyle({ fontSize: e.target.value ? Number(e.target.value) : undefined })}>
-          <option value="">Size</option>
+        <select className="ss-format ss-format--sm" title={t('editor.fontSize')} value={cell?.style?.fontSize ?? ''} onChange={(e) => applyStyle({ fontSize: e.target.value ? Number(e.target.value) : undefined })}>
+          <option value="">{t('editor.size')}</option>
           {FONT_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
-        <button className="ss-tool" title="Bold" onClick={() => applyStyle({ bold: !cell?.style?.bold })}><FiBold /></button>
-        <button className="ss-tool" title="Italic" onClick={() => applyStyle({ italic: !cell?.style?.italic })}><FiItalic /></button>
-        <label className="ss-color" title="Text color"><span>A</span>
+        <button className="ss-tool" title={t('editor.bold')} onClick={() => applyStyle({ bold: !cell?.style?.bold })}><FiBold /></button>
+        <button className="ss-tool" title={t('editor.italic')} onClick={() => applyStyle({ italic: !cell?.style?.italic })}><FiItalic /></button>
+        <label className="ss-color" title={t('editor.textColor')}><span>A</span>
           <input type="color" value={cell?.style?.color ?? '#111827'} onChange={(e) => applyStyle({ color: e.target.value })} />
         </label>
-        <label className="ss-color ss-color--fill" title="Fill color"><span>▦</span>
+        <label className="ss-color ss-color--fill" title={t('editor.fillColor')}><span>▦</span>
           <input type="color" value={cell?.style?.backgroundColor ?? '#ffffff'} onChange={(e) => applyStyle({ backgroundColor: e.target.value })} />
         </label>
         <span className="ss-sep" />
-        <button className="ss-tool" title="Align left" onClick={() => applyStyle({ textAlign: 'left' })}><FiAlignLeft /></button>
-        <button className="ss-tool" title="Align center" onClick={() => applyStyle({ textAlign: 'center' })}><FiAlignCenter /></button>
-        <button className="ss-tool" title="Align right" onClick={() => applyStyle({ textAlign: 'right' })}><FiAlignRight /></button>
+        <button className="ss-tool" title={t('editor.alignLeft')} onClick={() => applyStyle({ textAlign: 'left' })}><FiAlignLeft /></button>
+        <button className="ss-tool" title={t('editor.alignCenter')} onClick={() => applyStyle({ textAlign: 'center' })}><FiAlignCenter /></button>
+        <button className="ss-tool" title={t('editor.alignRight')} onClick={() => applyStyle({ textAlign: 'right' })}><FiAlignRight /></button>
         <span className="ss-sep" />
         <select
           className="ss-format"
-          title="Number format"
+          title={t('editor.numberFormat')}
           value={cell?.numberFormat ?? ''}
           onChange={(e) => applyNumberFormat(e.target.value || undefined)}
         >
-          {NUMBER_FORMATS.map((f) => <option key={f.label} value={f.value ?? ''}>{f.label}</option>)}
+          {NUMBER_FORMAT_DEFS.map((f) => <option key={f.key} value={f.value ?? ''}>{t(`editor.numberFormats.${f.key}`)}</option>)}
         </select>
         <span className="ss-sep" />
-        <button className="ss-tool ss-tool--text" title="Insert row above" onClick={() => insertRow(row)}>+Row</button>
-        <button className="ss-tool ss-tool--text" title="Delete row" onClick={() => deleteRow(row)}>−Row</button>
-        <button className="ss-tool ss-tool--text" title="Insert column left" onClick={() => insertCol(col)}>+Col</button>
-        <button className="ss-tool ss-tool--text" title="Delete column" onClick={() => deleteCol(col)}>−Col</button>
+        <button className="ss-tool ss-tool--text" title={t('editor.insertRowAbove')} onClick={() => insertRow(row)}>{t('editor.insertRow')}</button>
+        <button className="ss-tool ss-tool--text" title={t('editor.deleteRowTitle')} onClick={() => deleteRow(row)}>{t('editor.deleteRow')}</button>
+        <button className="ss-tool ss-tool--text" title={t('editor.insertColLeft')} onClick={() => insertCol(col)}>{t('editor.insertCol')}</button>
+        <button className="ss-tool ss-tool--text" title={t('editor.deleteColTitle')} onClick={() => deleteCol(col)}>{t('editor.deleteCol')}</button>
         <span className="ss-sep" />
-        <button className="ss-tool ss-tool--text" title="Merge selected cells" onClick={mergeSelection}>Merge</button>
-        <button className="ss-tool ss-tool--text" title="Unmerge" onClick={unmergeSelection}>Unmerge</button>
-        <button className="ss-tool ss-tool--text" title="Freeze rows/columns up to the selection" onClick={() => setFrozen(row, col)}>Freeze</button>
-        <button className="ss-tool ss-tool--text" title="Unfreeze" onClick={() => setFrozen(0, 0)}>Unfreeze</button>
+        <button className="ss-tool ss-tool--text" title={t('editor.mergeSelectedCells')} onClick={mergeSelection}>{t('editor.merge')}</button>
+        <button className="ss-tool ss-tool--text" title={t('editor.unmerge')} onClick={unmergeSelection}>{t('editor.unmerge')}</button>
+        <button className="ss-tool ss-tool--text" title={t('editor.freezeTitle')} onClick={() => setFrozen(row, col)}>{t('editor.freeze')}</button>
+        <button className="ss-tool ss-tool--text" title={t('editor.unfreeze')} onClick={() => setFrozen(0, 0)}>{t('editor.unfreeze')}</button>
         <span className="ss-sep" />
         <div className="ss-export">
-          <button className="ss-tool ss-tool--text" title="Cell comment & hyperlink" onClick={() => { setCellMenu((v) => !v); setSheetMenu(false); }}>Cell ▾</button>
+          <button className="ss-tool ss-tool--text" title={t('editor.cellMenuTitle')} onClick={() => { setCellMenu((v) => !v); setSheetMenu(false); }}>{t('editor.cellMenu')}</button>
           {cellMenu && (
             <div className="ss-menu ss-menu--panel" onMouseLeave={() => setCellMenu(false)}>
-              <label className="ss-field">Comment
+              <label className="ss-field">{t('editor.comment')}
                 <textarea rows={2} value={cell?.comment ?? ''} onChange={(e) => setCellMeta(row, col, { comment: e.target.value, hyperlink: cell?.hyperlink })} />
               </label>
-              <label className="ss-field">Hyperlink
-                <input type="text" placeholder="https://… or Sheet!A1" value={cell?.hyperlink ?? ''} onChange={(e) => setCellMeta(row, col, { hyperlink: e.target.value, comment: cell?.comment })} />
+              <label className="ss-field">{t('editor.hyperlink')}
+                <input type="text" placeholder={t('editor.hyperlinkPlaceholder')} value={cell?.hyperlink ?? ''} onChange={(e) => setCellMeta(row, col, { hyperlink: e.target.value, comment: cell?.comment })} />
               </label>
             </div>
           )}
         </div>
         <div className="ss-export">
-          <button className="ss-tool ss-tool--text" title="Sheet settings (page setup, protection, auto-filter)" onClick={() => { setSheetMenu((v) => !v); setCellMenu(false); }}>Sheet ▾</button>
+          <button className="ss-tool ss-tool--text" title={t('editor.sheetMenuTitle')} onClick={() => { setSheetMenu((v) => !v); setCellMenu(false); }}>{t('editor.sheetMenu')}</button>
           {sheetMenu && (
             <div className="ss-menu ss-menu--panel" onMouseLeave={() => setSheetMenu(false)}>
-              <label className="ss-field">Orientation
+              <label className="ss-field">{t('editor.orientation')}
                 <select value={pageSetup.orientation ?? 'portrait'} onChange={(e) => patchSheet({ pageSetup: { ...pageSetup, orientation: e.target.value } })}>
-                  <option value="portrait">Portrait</option>
-                  <option value="landscape">Landscape</option>
+                  <option value="portrait">{t('editor.portrait')}</option>
+                  <option value="landscape">{t('editor.landscape')}</option>
                 </select>
               </label>
-              <label className="ss-field">Header
+              <label className="ss-field">{t('editor.header')}
                 <input type="text" value={pageSetup.header ?? ''} onChange={(e) => patchSheet({ pageSetup: { ...pageSetup, header: e.target.value } })} />
               </label>
-              <label className="ss-field">Footer
+              <label className="ss-field">{t('editor.footer')}
                 <input type="text" value={pageSetup.footer ?? ''} onChange={(e) => patchSheet({ pageSetup: { ...pageSetup, footer: e.target.value } })} />
               </label>
-              <label className="ss-field">Auto-filter range
+              <label className="ss-field">{t('editor.autoFilterRange')}
                 <input type="text" placeholder="A1:D20" value={sheet?.autoFilterRange ?? ''} onChange={(e) => patchSheet({ autoFilterRange: e.target.value || undefined })} />
               </label>
               <label className="ss-field ss-field--row">
                 <input type="checkbox" checked={sheet?.protection?.protected ?? false} onChange={(e) => patchSheet({ protection: e.target.checked ? { protected: true } : undefined })} />
-                Protect sheet
+                {t('editor.protectSheet')}
               </label>
             </div>
           )}
         </div>
         <div className="ss-export">
-          <button className="ss-tool ss-tool--text" title="Conditional formatting & data validation rules" onClick={() => { setRulesMenu((v) => !v); setCellMenu(false); setSheetMenu(false); }}>Rules ▾</button>
+          <button className="ss-tool ss-tool--text" title={t('editor.rulesMenuTitle')} onClick={() => { setRulesMenu((v) => !v); setCellMenu(false); setSheetMenu(false); }}>{t('editor.rulesMenu')}</button>
           {rulesMenu && (
             <div className="ss-menu ss-menu--panel ss-menu--wide" onMouseLeave={() => setRulesMenu(false)}>
-              <div className="ss-rule-head">Conditional formatting</div>
+              <div className="ss-rule-head">{t('editor.conditionalFormatting')}</div>
               {(sheet?.conditionalFormats ?? []).map((r, i) => (
                 <div key={i} className="ss-rule-row">
                   <span className="ss-rule-swatch" style={{ background: r.color ?? '#ccc' }} />
                   <span className="ss-rule-text">{r.range} · {r.type}{r.operator ? ` ${r.operator}` : ''}{r.value ? ` ${r.value}` : ''}</span>
-                  <button className="ss-rule-del" title="Remove" onClick={() => removeConditionalFormat(i)}><FiX /></button>
+                  <button className="ss-rule-del" title={t('editor.removeRule')} onClick={() => removeConditionalFormat(i)}><FiX /></button>
                 </div>
               ))}
               <div className="ss-rule-form">
                 <select value={cf.type} onChange={(e) => setCf({ ...cf, type: e.target.value })}>
-                  <option value="cellIs">Cell is</option>
-                  <option value="colorScale">Color scale</option>
+                  <option value="cellIs">{t('editor.cellIs')}</option>
+                  <option value="colorScale">{t('editor.colorScale')}</option>
                 </select>
                 {cf.type === 'cellIs' && (
                   <select value={cf.operator} onChange={(e) => setCf({ ...cf, operator: e.target.value })}>
-                    {['greaterThan', 'lessThan', 'equalTo', 'between', 'contains'].map((o) => <option key={o} value={o}>{o}</option>)}
+                    {CF_OPERATORS.map((o) => <option key={o} value={o}>{t(`editor.operators.${o}`)}</option>)}
                   </select>
                 )}
-                {cf.type === 'cellIs' && <input type="text" placeholder="value" value={cf.value} onChange={(e) => setCf({ ...cf, value: e.target.value })} />}
-                {cf.type === 'cellIs' && cf.operator === 'between' && <input type="text" placeholder="and" value={cf.value2} onChange={(e) => setCf({ ...cf, value2: e.target.value })} />}
+                {cf.type === 'cellIs' && <input type="text" placeholder={t('editor.valuePlaceholder')} value={cf.value} onChange={(e) => setCf({ ...cf, value: e.target.value })} />}
+                {cf.type === 'cellIs' && cf.operator === 'between' && <input type="text" placeholder={t('editor.andPlaceholder')} value={cf.value2} onChange={(e) => setCf({ ...cf, value2: e.target.value })} />}
                 <input type="color" value={cf.color} onChange={(e) => setCf({ ...cf, color: e.target.value })} />
                 <button className="ss-rule-add" onClick={() => addConditionalFormat({
                   range: selRange, type: cf.type,
@@ -254,29 +259,29 @@ const SpreadsheetEditorPage: React.FC = () => {
                   value: cf.type === 'cellIs' ? (cf.value || undefined) : undefined,
                   value2: cf.type === 'cellIs' && cf.operator === 'between' ? (cf.value2 || undefined) : undefined,
                   color: cf.color,
-                })}>Add to {selRange}</button>
+                })}>{t('editor.addRuleTo', { range: selRange })}</button>
               </div>
 
-              <div className="ss-rule-head">Data validation</div>
+              <div className="ss-rule-head">{t('editor.dataValidation')}</div>
               {(sheet?.dataValidations ?? []).map((r, i) => (
                 <div key={i} className="ss-rule-row">
                   <span className="ss-rule-text">{r.range} · {r.type}{r.listSource ? ` [${r.listSource}]` : r.operator ? ` ${r.operator}` : ''}</span>
-                  <button className="ss-rule-del" title="Remove" onClick={() => removeDataValidation(i)}><FiX /></button>
+                  <button className="ss-rule-del" title={t('editor.removeRule')} onClick={() => removeDataValidation(i)}><FiX /></button>
                 </div>
               ))}
               <div className="ss-rule-form">
                 <select value={dv.type} onChange={(e) => setDv({ ...dv, type: e.target.value })}>
-                  {['list', 'wholeNumber', 'decimal', 'textLength'].map((t) => <option key={t} value={t}>{t}</option>)}
+                  {DV_TYPES.map((ty) => <option key={ty} value={ty}>{t(`editor.validationTypes.${ty}`)}</option>)}
                 </select>
                 {dv.type === 'list'
-                  ? <input type="text" placeholder="a,b,c" value={dv.listSource} onChange={(e) => setDv({ ...dv, listSource: e.target.value })} />
+                  ? <input type="text" placeholder={t('editor.listPlaceholder')} value={dv.listSource} onChange={(e) => setDv({ ...dv, listSource: e.target.value })} />
                   : (
                     <>
                       <select value={dv.operator} onChange={(e) => setDv({ ...dv, operator: e.target.value })}>
-                        {['between', 'greaterThan', 'lessThan', 'equalTo'].map((o) => <option key={o} value={o}>{o}</option>)}
+                        {DV_OPERATORS.map((o) => <option key={o} value={o}>{t(`editor.operators.${o}`)}</option>)}
                       </select>
-                      <input type="text" placeholder="value" value={dv.value1} onChange={(e) => setDv({ ...dv, value1: e.target.value })} />
-                      {dv.operator === 'between' && <input type="text" placeholder="and" value={dv.value2} onChange={(e) => setDv({ ...dv, value2: e.target.value })} />}
+                      <input type="text" placeholder={t('editor.valuePlaceholder')} value={dv.value1} onChange={(e) => setDv({ ...dv, value1: e.target.value })} />
+                      {dv.operator === 'between' && <input type="text" placeholder={t('editor.andPlaceholder')} value={dv.value2} onChange={(e) => setDv({ ...dv, value2: e.target.value })} />}
                     </>
                   )}
                 <button className="ss-rule-add" onClick={() => addDataValidation({
@@ -285,22 +290,22 @@ const SpreadsheetEditorPage: React.FC = () => {
                   operator: dv.type !== 'list' ? dv.operator : undefined,
                   value1: dv.type !== 'list' ? (dv.value1 || undefined) : undefined,
                   value2: dv.type !== 'list' && dv.operator === 'between' ? (dv.value2 || undefined) : undefined,
-                })}>Add to {selRange}</button>
+                })}>{t('editor.addRuleTo', { range: selRange })}</button>
               </div>
             </div>
           )}
         </div>
         <span className="ss-spacer" />
         {busy && <span className="ss-busy">{busy}</span>}
-        <button className="ss-tool ss-tool--text" title="Validate the workbook" onClick={validate}>Validate</button>
-        <button className="ss-tool ss-tool--text" onClick={() => fileInput.current?.click()}><FiUpload /> Import</button>
+        <button className="ss-tool ss-tool--text" title={t('editor.validateTitle')} onClick={validate}>{t('editor.validate')}</button>
+        <button className="ss-tool ss-tool--text" onClick={() => fileInput.current?.click()}><FiUpload /> {t('editor.import')}</button>
         <div className="ss-export">
-          <button className="ss-tool ss-tool--text ss-tool--primary" onClick={() => setExportMenu((v) => !v)}><FiDownload /> Export ▾</button>
+          <button className="ss-tool ss-tool--text ss-tool--primary" onClick={() => setExportMenu((v) => !v)}><FiDownload /> {t('editor.export')}</button>
           {exportMenu && (
             <div className="ss-menu" onMouseLeave={() => setExportMenu(false)}>
-              <button onClick={() => exportAs('xlsx')}>Excel (.xlsx)</button>
-              <button onClick={() => exportAs('csv')}>CSV (.csv)</button>
-              <button onClick={() => exportAs('json')}>JSON (.json)</button>
+              <button onClick={() => exportAs('xlsx')}>{t('editor.exportExcel')}</button>
+              <button onClick={() => exportAs('csv')}>{t('editor.exportCsv')}</button>
+              <button onClick={() => exportAs('json')}>{t('editor.exportJson')}</button>
             </div>
           )}
         </div>
@@ -311,18 +316,21 @@ const SpreadsheetEditorPage: React.FC = () => {
         <div className={`ss-validation${validation.valid ? ' is-valid' : ' is-invalid'}`}>
           <span className="ss-validation-summary">
             {validation.valid
-              ? '✓ Workbook is valid'
-              : `✕ ${validation.issues.filter((i) => i.severity === 'error').length} error(s), ${validation.issues.filter((i) => i.severity === 'warning').length} warning(s)`}
+              ? t('editor.workbookValid')
+              : t('editor.validationSummary', {
+                  errorCount: validation.issues.filter((i) => i.severity === 'error').length,
+                  warningCount: validation.issues.filter((i) => i.severity === 'warning').length,
+                })}
           </span>
           {!validation.valid && (
             <ul className="ss-validation-list">
               {validation.issues.slice(0, 8).map((i, k) => (
                 <li key={k} className={`ss-issue ss-issue--${i.severity}`}><code>{i.path}</code> {i.message}</li>
               ))}
-              {validation.issues.length > 8 && <li className="ss-issue">…and {validation.issues.length - 8} more</li>}
+              {validation.issues.length > 8 && <li className="ss-issue">{t('editor.andMoreIssues', { count: validation.issues.length - 8 })}</li>}
             </ul>
           )}
-          <button className="ss-validation-close" title="Dismiss" onClick={() => setValidation(null)}><FiX /></button>
+          <button className="ss-validation-close" title={t('editor.dismiss')} onClick={() => setValidation(null)}><FiX /></button>
         </div>
       )}
 
@@ -331,7 +339,7 @@ const SpreadsheetEditorPage: React.FC = () => {
         <input
           className="ss-formula-input"
           value={barValue}
-          placeholder="Enter a value or =formula"
+          placeholder={t('editor.formulaPlaceholder')}
           onChange={(e) => setEditing(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { commitBar(); (e.target as HTMLInputElement).blur(); } if (e.key === 'Escape') setEditing(null); }}
           onBlur={commitBar}
@@ -348,23 +356,23 @@ const SpreadsheetEditorPage: React.FC = () => {
             <button
               className="ss-tab-name"
               onClick={() => setActive(i)}
-              onDoubleClick={() => { const n = prompt('Rename sheet', s.name); if (n) renameSheet(i, n); }}
+              onDoubleClick={() => { const n = prompt(t('editor.renameSheetPrompt'), s.name); if (n) renameSheet(i, n); }}
             >
               {s.name}
             </button>
             {sheets.length > 1 && (
-              <button className="ss-tab-close" title="Delete sheet" onClick={() => { if (confirm(`Delete "${s.name}"?`)) deleteSheet(i); }}><FiX /></button>
+              <button className="ss-tab-close" title={t('editor.deleteSheetTitle')} onClick={() => { if (confirm(t('editor.deleteSheetConfirm', { name: s.name }))) deleteSheet(i); }}><FiX /></button>
             )}
           </div>
         ))}
-        <button className="ss-tab-add" title="Add sheet" onClick={addSheet}><FiPlus /></button>
+        <button className="ss-tab-add" title={t('editor.addSheetTitle')} onClick={addSheet}><FiPlus /></button>
         <span className="ss-spacer" />
         {stats.count > 0 && (
           <span className="ss-stats">
             {rangeLabel && <span className="ss-stats-range">{rangeLabel}</span>}
-            <span>Sum: <strong>{round(stats.sum)}</strong></span>
-            <span>Avg: <strong>{stats.avg != null ? round(stats.avg) : '—'}</strong></span>
-            <span>Count: <strong>{stats.count}</strong></span>
+            <span>{t('editor.sum')} <strong>{round(stats.sum)}</strong></span>
+            <span>{t('editor.avg')} <strong>{stats.avg != null ? round(stats.avg) : '—'}</strong></span>
+            <span>{t('editor.count')} <strong>{stats.count}</strong></span>
           </span>
         )}
       </div>

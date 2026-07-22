@@ -1,0 +1,143 @@
+{
+  "hero": {
+    "eyebrow": "Design, import and export documents in one place",
+    "title": "Build, fill, and prepare business documents faster",
+    "description": "Power Dox Automation helps you start from a template or import an existing PDF, Word, or ODT file. Add fields, signatures, and data bindings — then export to PDF, DOCX, ODT, TIFF and more.",
+    "templateCard": {
+      "title": "Start from a template",
+      "copy": "Browse {{count}} ready-made document templates",
+      "action": "Browse templates"
+    },
+    "importCard": {
+      "title": "Import file",
+      "importing": "Importing…",
+      "copy": "Open a PDF, Word, ODT or image file as an editable design",
+      "action": "Choose file",
+      "tooltip": "Import a PDF, Word .doc/.docx, ODT, or image (PNG/JPG/WebP/…) as a PXA design",
+      "importFailed": "Import failed"
+    },
+    "blankCard": {
+      "title": "Blank document",
+      "copy": "Open the editor with an empty page — no starter elements",
+      "action": "Start blank"
+    },
+    "codeCard": {
+      "title": "Code Editor",
+      "copy": "Write JSON directly and see a live PDF preview as you type",
+      "action": "Open editor"
+    }
+  },
+  "pdfTools": {
+    "sectionLabel": "Every PDF tool you need",
+    "sectionTitle": "Try these tools to get your PDFs done",
+    "createPdf": {
+      "label": "Create PDF",
+      "copy": "Start a blank document and build it visually."
+    },
+    "editPdf": {
+      "label": "Edit PDF",
+      "copy": "Paste JSON or C# code and adjust it live in the designer."
+    },
+    "useTemplate": {
+      "label": "Use Template",
+      "copy": "Browse {{count}} ready-made invoices, receipts, certificates and more."
+    },
+    "importPdf": {
+      "label": "Import PDF",
+      "copy": "Quickly open a PDF as an editable design in the visual editor."
+    },
+    "convertToPdf": {
+      "label": "Convert to PDF",
+      "copy": "Turn PDF, Word, PowerPoint, images, or SVG into an editable design — or OCR a scanned image into a searchable PDF."
+    },
+    "pdfViewer": {
+      "label": "PDF Viewer",
+      "copy": "Open, review and annotate a PDF without leaving the browser."
+    },
+    "migrations": {
+      "label": "Migrations",
+      "copy": "Convert vendor C# code or report-designer files (RDL, DevExpress, Crystal, and more) to PXA."
+    },
+    "signDocx": {
+      "label": "Sign DOCX",
+      "copy": "Apply an X.509 digital signature to a DOCX.",
+      "toast": "Export your design as DOCX first, then use the Sign button in the Export modal."
+    }
+  },
+  "spreadsheetTools": {
+    "sectionLabel": "Every spreadsheet tool you need",
+    "sectionTitle": "Build and import spreadsheets just as easily",
+    "createSpreadsheet": {
+      "label": "Create Spreadsheet",
+      "copy": "Start a blank spreadsheet with the full grid editor."
+    },
+    "editSpreadsheet": {
+      "label": "Edit Spreadsheet",
+      "copy": "Open a PXA Workbook JSON file to edit in the grid."
+    },
+    "importSpreadsheet": {
+      "label": "Import Spreadsheet",
+      "copy": "Import an Excel or CSV file, preserving formulas and formatting."
+    },
+    "convertToSpreadsheet": {
+      "label": "Convert to Spreadsheet",
+      "copy": "Turn an external format into a spreadsheet."
+    },
+    "migrations": {
+      "label": "Migrations",
+      "copy": "Convert vendor C# spreadsheet code (ClosedXML, EPPlus, GemBox, Aspose.Cells) to PXA."
+    }
+  },
+  "toolGrid": {
+    "startNow": "Start now",
+    "comingSoon": "Coming soon"
+  },
+  "trustBand": {
+    "templatesCount": "{{count}} templates",
+    "templatesSub": "ready to open in the editor",
+    "exportFormats": "10 export formats",
+    "exportFormatsSub": "PDF, DOCX, ODT, TIFF, HTML & more",
+    "importFormats": "7 import formats",
+    "importFormatsSub": "PDF, DOCX, PPTX, DOC, ODT, SVG, images",
+    "browserBased": "100% browser-based",
+    "browserBasedSub": "no account required"
+  },
+  "categories": {
+    "sectionLabel": "Template categories",
+    "sectionTitle": "Choose a document type to explore",
+    "browseAll": "Browse all templates"
+  },
+  "features": {
+    "sectionLabel": "Power Dox Automation",
+    "sectionTitle": "Everything you need to manage documents and spreadsheets"
+  },
+  "featureCards": {
+    "multiFormat": {
+      "title": "Multi-format editor",
+      "copy": "Design templates visually, then export to PDF, DOCX, ODT, XLSX, TIFF and more — or import existing PDFs and Word documents as editable designs."
+    },
+    "templateWorkflows": {
+      "title": "Template workflows",
+      "copy": "Start from invoices, receipts, certificates and business documents. Add data bindings, loops, and expressions for dynamic content generation."
+    },
+    "wordFidelity": {
+      "title": "Word-fidelity export",
+      "copy": "DOCX output includes named styles, footnotes, bookmarks, track changes, document protection, custom properties and X.509 digital signatures."
+    },
+    "spreadsheetFormulas": {
+      "title": "Spreadsheet formulas & formatting",
+      "copy": "Edit a full grid with live formulas, cell styles, and merges — import Excel/CSV or a native PXA Workbook, and export back out with formatting intact."
+    }
+  },
+  "security": {
+    "title": "Designed for sensitive business documents",
+    "copy": "Keep the interface calm, structured and predictable for contracts, invoices, HR documents and approvals.",
+    "action": "Start designing"
+  },
+  "usage": {
+    "documentSingular": "document",
+    "documentPlural": "documents",
+    "openedThisSession": "opened this session",
+    "lastOpenedTemplate": "last opened template"
+  }
+}

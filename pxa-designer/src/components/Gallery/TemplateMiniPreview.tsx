@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
 import { FiEdit3, FiCheckSquare } from 'react-icons/fi';
-import { getTemplateElements } from '@/data/templateContent';
+import { getTemplateElementsLocalized } from '@/data/templateContent.i18n';
 import type { SimpleElement } from '@/types';
 
 interface Props {
@@ -191,10 +192,11 @@ function wrapperStyle(el: SimpleElement): React.CSSProperties {
 }
 
 const TemplateMiniPreview: React.FC<Props> = ({ templateId }) => {
+  const { i18n } = useTranslation();
   const elements = useMemo(() => {
-    const els = getTemplateElements(templateId);
+    const els = getTemplateElementsLocalized(templateId, i18n.language);
     return els;
-  }, [templateId]);
+  }, [templateId, i18n.language]);
 
   const outerW = Math.round(PAGE_W * SCALE);
   const outerH = Math.round(PAGE_H * SCALE);

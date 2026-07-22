@@ -1,0 +1,1276 @@
+{
+  "help": {
+    "ariaLabel": "Help",
+    "title": "Help & Reference",
+    "close": "Close",
+    "docsLink": "Open full documentation",
+    "tabs": {
+      "quickstart": "Quick Start",
+      "shortcuts": "Shortcuts",
+      "elements": "Elements",
+      "faq": "FAQ"
+    },
+    "shortcutsTable": {
+      "shortcut": "Shortcut",
+      "action": "Action"
+    },
+    "elementsTable": {
+      "element": "Element",
+      "description": "Description",
+      "pdf": "PDF",
+      "word": "Word"
+    },
+    "quickSteps": {
+      "1": {
+        "title": "Open a template",
+        "desc": "Browse the template gallery and click \"Use this template\" to start."
+      },
+      "2": {
+        "title": "Add elements",
+        "desc": "Click any tool in the left toolbar to place it on the canvas, or drag it to a specific position."
+      },
+      "3": {
+        "title": "Edit properties",
+        "desc": "Select an element and adjust its content, style, and layout in the right inspector panel."
+      },
+      "4": {
+        "title": "Preview your document",
+        "desc": "Click \"Preview\" in the top bar to see a live render of your template with sample data."
+      },
+      "5": {
+        "title": "Export",
+        "desc": "Click the export icon to download as PDF, Word, JSON, image, or other formats."
+      }
+    },
+    "shortcuts": {
+      "undo": "Undo",
+      "redo": "Redo",
+      "selectAll": "Select all elements",
+      "copy": "Copy selected element",
+      "paste": "Paste element",
+      "duplicate": "Duplicate element",
+      "delete": "Delete selected element",
+      "moveOnePx": "Move element 1 px",
+      "moveTenPx": "Move element 10 px",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "zoomReset": "Reset zoom to 100 %",
+      "deselect": "Deselect / cancel drawing",
+      "openHelp": "Open this help dialog"
+    },
+    "faq": {
+      "exportPdf": {
+        "q": "How do I export a PDF?",
+        "a": "Click the export icon (⬆) in the top bar, select \"PDF\" from the format list, then click Download."
+      },
+      "backgroundImage": {
+        "q": "How do I add a background image?",
+        "a": "Click the page settings icon (⚙) when nothing is selected, then set \"Background Image\" in the inspector."
+      },
+      "templateVariables": {
+        "q": "How do I use template variables?",
+        "a": "Type {{VARIABLE_NAME}} inside any text element. Variables are filled at render time from your JSON data."
+      },
+      "secondPage": {
+        "q": "How do I add a second page?",
+        "a": "Click the + button in the page strip at the bottom of the canvas area."
+      },
+      "multiLanguage": {
+        "q": "How do I set up multi-language?",
+        "a": "In Page Settings, add languages under the \"Languages\" section. A tab per language appears above the canvas."
+      },
+      "drawLine": {
+        "q": "How do I draw a line or arrow?",
+        "a": "Click the Line, Arrow, or Draw tool in the toolbar — a blue badge appears. Then drag on the canvas to place the element."
+      },
+      "tableOfContents": {
+        "q": "How do I generate a Table of Contents?",
+        "a": "Add a \"Table of Contents\" element, then set Heading Level on your text elements. Click \"Update TOC\" in the inspector."
+      },
+      "addressForm": {
+        "q": "How do I insert an address form?",
+        "a": "Click \"Insert Form Block\" at the bottom of the left toolbar and choose Address Block."
+      }
+    }
+  },
+  "export": {
+    "ariaLabel": "Export design",
+    "title": "Export",
+    "close": "Close",
+    "groups": {
+      "Documents": "Documents",
+      "Data": "Data",
+      "Images": "Images",
+      "Text": "Text"
+    },
+    "formats": {
+      "pdf": {
+        "label": "PDF",
+        "description": "Pixel-perfect document via backend renderer"
+      },
+      "word": {
+        "label": "Word (.docx)",
+        "description": "Editable Microsoft Word document"
+      },
+      "odt": {
+        "label": "ODT",
+        "description": "OpenDocument Text (LibreOffice / Google Docs)"
+      },
+      "html": {
+        "label": "HTML",
+        "description": "Positioned HTML with inline CSS"
+      },
+      "json": {
+        "label": "JSON",
+        "description": "Full template definition (client-side)"
+      },
+      "xml": {
+        "label": "XML",
+        "description": "Structured element data"
+      },
+      "excel": {
+        "label": "Excel (.xlsx)",
+        "description": "Tables as worksheets, text as summary"
+      },
+      "csv": {
+        "label": "CSV",
+        "description": "Comma-separated, Excel-compatible"
+      },
+      "png": {
+        "label": "PNG",
+        "description": "Raster image at 150 dpi via SkiaSharp"
+      },
+      "jpeg": {
+        "label": "JPEG",
+        "description": "Compressed image, smaller file size"
+      },
+      "tiff": {
+        "label": "TIFF",
+        "description": "Multi-page TIFF for print and archival"
+      },
+      "svg": {
+        "label": "SVG",
+        "description": "Scalable vector, multi-page as zip"
+      },
+      "md": {
+        "label": "Markdown",
+        "description": "Reading-order prose, GFM tables"
+      }
+    },
+    "lastUsed": "Last used",
+    "exportFailed": "Export failed",
+    "done": "Done!",
+    "retry": "Retry",
+    "exportAction": "Export",
+    "exportAriaLabel": "Export as {{label}}",
+    "multiLanguage": {
+      "sectionLabel": "Multi-Language",
+      "cardLabel": "All Languages (ZIP)",
+      "cardDescription": "Export one PDF per language: {{languages}}",
+      "exportZipAriaLabel": "Export all languages as ZIP",
+      "exportZip": "Export ZIP"
+    },
+    "signDocx": {
+      "button": "Sign DOCX…",
+      "tooltip": "Apply an X.509 digital signature to a DOCX file"
+    }
+  },
+  "findReplace": {
+    "ariaLabel": "Find and Replace",
+    "title": "Find & Replace",
+    "close": "Close",
+    "find": "Find",
+    "findPlaceholderRegex": "Regular expression…",
+    "findPlaceholderText": "Text to find…",
+    "replaceWith": "Replace with",
+    "replacePlaceholder": "Replacement text…",
+    "caseSensitive": "Case sensitive",
+    "wholeWord": "Whole word",
+    "regex": "Regex",
+    "failed": "Find & Replace failed",
+    "noMatches": "No matches found.",
+    "replacedSummary": "Replaced {{count}} occurrence in {{elementCount}} elements.",
+    "replacedSummary_plural": "Replaced {{count}} occurrences in {{elementCount}} elements.",
+    "cancel": "Cancel",
+    "replaceAll": "Replace all"
+  },
+  "formBlock": {
+    "ariaLabel": "Insert Form Block",
+    "title": "Insert Form Block",
+    "close": "Close",
+    "fieldLabelsHeading": "Field labels",
+    "addField": "+ Add field",
+    "startX": "Start X (px)",
+    "startY": "Start Y (px)",
+    "fieldsToInsert": "Fields to insert",
+    "cancel": "Cancel",
+    "insertBlock": "Insert Block",
+    "blocks": {
+      "address": {
+        "title": "Address Block",
+        "description": "Full postal address: name, street, city, postal code, country.",
+        "fields": {
+          "name": "Full Name",
+          "street": "Street",
+          "city": "City",
+          "postalCode": "Postal Code",
+          "country": "Country"
+        }
+      },
+      "contact": {
+        "title": "Contact Block",
+        "description": "Phone number, email address and website.",
+        "fields": {
+          "phone": "Phone",
+          "email": "Email",
+          "website": "Website"
+        }
+      },
+      "personal": {
+        "title": "Personal Block",
+        "description": "Date of birth, gender and nationality.",
+        "fields": {
+          "dob": "Date of Birth",
+          "gender": "Gender",
+          "nationality": "Nationality"
+        },
+        "genderOptions": {
+          "male": "Male",
+          "female": "Female",
+          "nonBinary": "Non-binary",
+          "preferNotToSay": "Prefer not to say"
+        }
+      },
+      "custom": {
+        "title": "Custom Block",
+        "description": "Choose the number of fields and enter their labels.",
+        "fieldPlaceholder": "Field {{number}}"
+      }
+    }
+  },
+  "signDocxModal": {
+    "ariaLabel": "Sign DOCX",
+    "title": "Sign DOCX",
+    "close": "Close",
+    "intro": "Apply an X.509 digital signature to a DOCX file using your PFX/P12 certificate. The signed file will be downloaded automatically.",
+    "docxFile": "DOCX file",
+    "chooseDocx": "Choose DOCX file…",
+    "certificate": "PFX / P12 certificate",
+    "chooseCertificate": "Choose certificate…",
+    "password": "Certificate password",
+    "passwordOptional": "(optional)",
+    "passwordPlaceholder": "Leave blank if certificate has no password",
+    "signingFailed": "Signing failed",
+    "signedAndDownloaded": "Signed and downloaded ({{sizeKb}} KB)",
+    "cancel": "Cancel",
+    "signing": "Signing…",
+    "signAgain": "Sign again",
+    "signAndDownload": "Sign & Download"
+  },
+  "tools": {
+    "text": {
+      "label": "Text",
+      "hint": "Single line text block"
+    },
+    "qrcode": {
+      "label": "QR Code",
+      "hint": "Scannable link block"
+    },
+    "barcode": {
+      "label": "Barcode",
+      "hint": "Product or order code"
+    },
+    "signature": {
+      "label": "Signature",
+      "hint": "Approval line"
+    },
+    "richtext": {
+      "label": "Rich Text",
+      "hint": "Formatted HTML copy"
+    },
+    "field": {
+      "label": "Text Field",
+      "hint": "Fillable form input"
+    },
+    "textarea": {
+      "label": "Text Area",
+      "hint": "Multi-line fillable text input"
+    },
+    "checkbox": {
+      "label": "Checkbox",
+      "hint": "Single-choice field"
+    },
+    "image": {
+      "label": "Image",
+      "hint": "Image placeholder"
+    },
+    "shape": {
+      "label": "Shape",
+      "hint": "Generic shape block"
+    },
+    "table": {
+      "label": "Table",
+      "hint": "Tabular content area"
+    },
+    "line": {
+      "label": "Line",
+      "hint": "Divider element"
+    },
+    "rect": {
+      "label": "Rectangle",
+      "hint": "Filled rectangle"
+    },
+    "circle": {
+      "label": "Circle",
+      "hint": "Circular shape"
+    },
+    "chart": {
+      "label": "Chart",
+      "hint": "Data chart block"
+    },
+    "subsection": {
+      "label": "Subsection",
+      "hint": "Nested content section"
+    },
+    "area": {
+      "label": "Area",
+      "hint": "Layout area container"
+    },
+    "button": {
+      "label": "Button",
+      "hint": "Action button"
+    },
+    "dropdown": {
+      "label": "Dropdown",
+      "hint": "Select input"
+    },
+    "optionlist": {
+      "label": "Option List",
+      "hint": "List of choices"
+    },
+    "radio": {
+      "label": "Radio Group",
+      "hint": "Single-select options"
+    },
+    "watermark": {
+      "label": "Watermark",
+      "hint": "Global text or image mark"
+    },
+    "note": {
+      "label": "Note",
+      "hint": "Document annotation"
+    },
+    "arrow": {
+      "label": "Arrow",
+      "hint": "Direction marker"
+    },
+    "draw": {
+      "label": "Draw",
+      "hint": "Freehand vector stroke"
+    },
+    "date": {
+      "label": "Date",
+      "hint": "Static or dynamic date"
+    },
+    "highlight": {
+      "label": "Highlight",
+      "hint": "Transparent highlight"
+    },
+    "checkmark": {
+      "label": "Checkmark",
+      "hint": "Check, cross or dot mark"
+    },
+    "pageboundary": {
+      "label": "Page Start/End",
+      "hint": "Page boundary marker"
+    },
+    "pagenumber": {
+      "label": "Page Number",
+      "hint": "Page number placeholder"
+    },
+    "toc": {
+      "label": "Table of Contents",
+      "hint": "Auto-generated TOC from headings"
+    },
+    "link": {
+      "label": "Link",
+      "hint": "Hyperlink element"
+    },
+    "number": {
+      "label": "Number",
+      "hint": "Formatted number value"
+    },
+    "footnote": {
+      "label": "Footnote",
+      "hint": "DOCX footnote reference"
+    },
+    "endnote": {
+      "label": "Endnote",
+      "hint": "DOCX endnote reference"
+    },
+    "bookmark": {
+      "label": "Bookmark",
+      "hint": "Named anchor for cross-references"
+    },
+    "comment": {
+      "label": "Comment",
+      "hint": "Word-native margin comment"
+    },
+    "contentcontrol": {
+      "label": "Content Control",
+      "hint": "Structured Word content control (SDT)"
+    }
+  },
+  "toolGroups": {
+    "text": "Text Elements",
+    "form": "Form Elements",
+    "visual": "Visual Elements",
+    "layout": "Shapes and Layout",
+    "advanced": "Advanced Document Elements",
+    "word": "Word / DOCX Elements"
+  },
+  "toasts": {
+    "designCloned": "Design cloned with new ID",
+    "cloneFailed": "Clone failed",
+    "pageExtracted": "Page {{number}} extracted",
+    "extractFailed": "Extract failed"
+  },
+  "warnings": {
+    "pageRangeNeeded": "Selected range needs a page range value.",
+    "bindingPathNeeded": "Binding mode needs a data binding path.",
+    "drawPathNeeded": "Draw element needs SVG path data.",
+    "opacityRange": "Opacity should be between 0 and 1."
+  },
+  "placeholders": {
+    "qrCode": "QR Code",
+    "barcode": "Barcode",
+    "signatureLine": "Signature Line",
+    "requiredField": "Required field",
+    "required": "Required",
+    "optional": "Optional",
+    "image": "Image"
+  },
+  "pagePanel": {
+    "pageTitle": "Page {{number}}",
+    "duplicatePage": "Duplicate page",
+    "extractPageToJson": "Extract page to JSON",
+    "deletePage": "Delete page",
+    "deletePageConfirm": "Delete page {{number}}?",
+    "addPage": "Add page"
+  },
+  "inspector": {
+    "ariaLabel": "Element properties",
+    "inspectorTab": "Inspector",
+    "pageSettingsTab": "Page Settings",
+    "layersTab": "Layers",
+    "propertiesTab": "Properties",
+    "elementNamePlaceholder": "Element name…",
+    "outsideMarginWarning": "Element is outside the margin safe area.",
+    "layerOf": "Layer {{current}} of {{total}}",
+    "sendToBack": "Send to back",
+    "sendBackward": "Send backward",
+    "bringForward": "Bring forward",
+    "bringToFront": "Bring to front",
+    "locked": "Locked",
+    "editable": "Editable",
+    "languageScope": "Language Scope",
+    "positionAppliesToLangOnly": "Position edits apply to {{lang}} only",
+    "switchToLangOnlyEditing": "Switch to {{lang}}-only editing",
+    "positionAppliesToAll": "Position edits apply to all language tabs",
+    "switchToAllLanguagesEditing": "Switch to all-languages editing",
+    "all": "All",
+    "x": "X",
+    "y": "Y",
+    "width": "Width",
+    "height": "Height",
+    "rotation": "Rotation °",
+    "resetRotation": "Reset rotation",
+    "reset": "Reset",
+    "align": "Align",
+    "alignLeftTitle": "Align left edges to margin",
+    "alignHCenterTitle": "Align horizontal centers",
+    "alignRightTitle": "Align right edges to margin",
+    "alignTopTitle": "Align top edges to margin",
+    "alignVCenterTitle": "Align vertical centers",
+    "alignBottomTitle": "Align bottom edges to margin",
+    "distribute": "Distribute",
+    "distributeHorizontally": "Distribute horizontally",
+    "distributeVertically": "Distribute vertically",
+    "headingLevel": "Heading Level",
+    "headingNone": "None (body text)",
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "headingTocNote": "Headings are included in the Table of Contents element.",
+    "formValidation": "Form & Validation",
+    "tabIndex": "Tab index",
+    "tabIndexPlaceholder": "auto",
+    "minLength": "Min length",
+    "maxLength": "Max length",
+    "lengthPlaceholder": "—",
+    "patternRegex": "Pattern (regex)",
+    "patternPlaceholder": "e.g. \\d{5}"
+  },
+  "layers": {
+    "allPagesHeaderFooter": "All pages (header / footer)",
+    "pageHeading": "Page {{number}}",
+    "show": "Show",
+    "hide": "Hide",
+    "lock": "Lock",
+    "unlock": "Unlock",
+    "noElementsYet": "No elements yet. Add one from the toolbar.",
+    "noElementsOnPageYet": "No elements on this page yet.",
+    "shiftClickMultiSelect": "Shift+click to multi-select",
+    "duplicate": "Duplicate"
+  },
+  "contextMenu": {
+    "copy": "Copy",
+    "duplicate": "Duplicate",
+    "paste": "Paste",
+    "unlock": "Unlock",
+    "lock": "Lock",
+    "show": "Show",
+    "hide": "Hide",
+    "bringToFront": "Bring to Front",
+    "bringForward": "Bring Forward",
+    "sendBackward": "Send Backward",
+    "sendToBack": "Send to Back",
+    "deleteFromAllLanguagesTitle": "Delete this element from all language tabs",
+    "deleteFromAllLanguages": "Delete from all languages",
+    "delete": "Delete",
+    "selectAll": "Select All"
+  },
+  "mobileOverlay": {
+    "title": "Desktop required",
+    "body": "The editor is designed for larger screens. Please open it on a desktop or tablet."
+  },
+  "topbar": {
+    "backToGallery": "Back to gallery",
+    "kicker": "UI Designer",
+    "designActions": "Design actions",
+    "cloneDesign": "Clone design",
+    "pageDimensions": "{{width}} × {{height}} px",
+    "undo": "Undo (⌘Z)",
+    "redo": "Redo (⌘⇧Z)",
+    "pageSettingsPending": "Page Settings — changes not yet exported",
+    "pageSettings": "Page Settings",
+    "findReplace": "Find & Replace",
+    "exportCode": "Export code (JSON / C#)",
+    "outputModeTitle": "Output mode: affects which elements are shown in the toolbar",
+    "pdf": "PDF",
+    "word": "Word",
+    "help": "Help (F1)",
+    "preview": "Preview"
+  },
+  "toolPanel": {
+    "addElements": "Add elements",
+    "wordOnlyWarning": "Some elements on the canvas are Word-only and will not render in PDF export.",
+    "insertFormBlockTitle": "Insert a pre-built group of form fields (address, contact, etc.)",
+    "insertFormBlock": "Insert Form Block",
+    "layers": "Layers"
+  },
+  "canvasStage": {
+    "ariaLabel": "Document canvas",
+    "pageOfTotal": "Page {{current}} / {{total}}",
+    "pageDimensions": "{{width}} × {{height}} px",
+    "customSize": "Custom",
+    "zoomOut": "Zoom out (⌘−)",
+    "zoomIn": "Zoom in (⌘+)",
+    "drawingLine": "Drawing line",
+    "drawingArrow": "Drawing arrow",
+    "freehandDrawing": "Freehand drawing",
+    "drawInstructions": "— click and drag on the canvas",
+    "cancelHint": "to cancel",
+    "headerGuide": "Header",
+    "footerGuide": "Footer",
+    "watermarkAlt": "Watermark"
+  },
+  "emptyState": {
+    "title": "Start with an element",
+    "body": "Drag a tool from the left onto the PDF page, or click a tool to add it automatically."
+  },
+  "pageSettings": {
+    "paper": {
+      "heading": "Paper",
+      "size": "Size",
+      "customOption": "Custom",
+      "unit": "Unit",
+      "units": {
+        "px": "px",
+        "pt": "pt",
+        "mm": "mm",
+        "cm": "cm",
+        "in": "inch"
+      },
+      "width": "Width ({{unit}})",
+      "height": "Height ({{unit}})",
+      "portrait": "Portrait",
+      "landscape": "Landscape"
+    },
+    "background": {
+      "heading": "Background",
+      "color": "Color",
+      "fit": "Fit",
+      "fitOptions": {
+        "cover": "Cover",
+        "contain": "Contain",
+        "fill": "Stretch",
+        "tile": "Tile"
+      },
+      "imageUrl": "Image URL",
+      "imageUrlPlaceholder": "https://…",
+      "removeImage": "Remove image"
+    },
+    "margins": {
+      "heading": "Margins",
+      "unlinkMargins": "Unlink margins",
+      "linkMargins": "Link margins",
+      "presets": {
+        "none": "None",
+        "narrow": "Narrow",
+        "normal": "Normal",
+        "wide": "Wide"
+      },
+      "sideLabel": "{{side}} ({{unit}})",
+      "sides": {
+        "top": "Top",
+        "right": "Right",
+        "bottom": "Bottom",
+        "left": "Left"
+      }
+    },
+    "workspace": {
+      "heading": "Workspace",
+      "showGrid": "Show grid",
+      "snapToGrid": "Snap to grid",
+      "gridSize": "Grid size (px)",
+      "showMarginGuide": "Show margin guide",
+      "showSafeAreaGuide": "Show safe area guide"
+    },
+    "headerFooter": {
+      "heading": "Header & Footer",
+      "enableHeader": "Enable header",
+      "headerHeight": "Header height (px)",
+      "headerFirstPageDifferent": "Different header on first page",
+      "headerOddEvenDifferent": "Different header on odd/even pages",
+      "insertIntoHeader": "Insert into header",
+      "enableFooter": "Enable footer",
+      "footerHeight": "Footer height (px)",
+      "footerFirstPageDifferent": "Different footer on first page",
+      "footerOddEvenDifferent": "Different footer on odd/even pages",
+      "insertIntoFooter": "Insert into footer",
+      "insertText": "Text",
+      "insertPageNumber": "Page №",
+      "insertDate": "Date",
+      "insertLogo": "Logo"
+    },
+    "bleed": {
+      "heading": "Bleed",
+      "bleedSize": "Bleed size (px) — 0 = off",
+      "bleedNote": "Red trim line shows where paper will be cut. Extend background elements to the page edge.",
+      "showCropMarks": "Show crop marks"
+    },
+    "watermark": {
+      "heading": "Global Watermark",
+      "enable": "Enable watermark",
+      "modeText": "Text",
+      "modeImageUrl": "Image URL",
+      "textPlaceholder": "e.g. DRAFT",
+      "urlPlaceholder": "https://...",
+      "opacity": "Opacity (0–1)",
+      "rotation": "Rotation (°)",
+      "fontSize": "Font size (px)",
+      "color": "Color",
+      "pageScope": "Page scope",
+      "scopeAll": "All pages",
+      "scopeFirst": "First page only",
+      "scopeOdd": "Odd pages",
+      "scopeEven": "Even pages",
+      "scopeRange": "Page range",
+      "pageRange": "Page range (e.g. 2-5)",
+      "pageRangePlaceholder": "e.g. 2-5"
+    },
+    "pageNumbering": {
+      "heading": "Page Numbering",
+      "enable": "Enable page numbers",
+      "format": "Format",
+      "formatPageOfTotal": "Page X of Y",
+      "formatCurrent": "Page number only",
+      "formatTotal": "Total pages only",
+      "formatRoman": "Roman numerals",
+      "formatAlphabetic": "Alphabetic",
+      "startAt": "Start at",
+      "prefix": "Prefix",
+      "prefixPlaceholder": "e.g. Page ",
+      "suffix": "Suffix",
+      "suffixPlaceholder": "e.g.  | Draft",
+      "showOnFirstPage": "Show on first page",
+      "placement": "Placement",
+      "placements": {
+        "top-left": "top left",
+        "top-center": "top center",
+        "top-right": "top right",
+        "bottom-left": "bottom left",
+        "bottom-center": "bottom center",
+        "bottom-right": "bottom right"
+      },
+      "placeOnCanvas": "Place on canvas"
+    },
+    "exportMetadata": {
+      "heading": "Export Metadata",
+      "fields": {
+        "title": "Title",
+        "author": "Author",
+        "subject": "Subject",
+        "keywords": "Keywords"
+      },
+      "keywordsPlaceholder": "comma-separated"
+    },
+    "exportDefaults": {
+      "heading": "Export Defaults",
+      "pdfQuality": "PDF quality",
+      "qualityScreen": "Screen (72 dpi)",
+      "qualityEbook": "eBook (150 dpi)",
+      "qualityPrinter": "Printer (300 dpi)",
+      "qualityPrepress": "Prepress (400 dpi)",
+      "embedFonts": "Embed fonts",
+      "compressImages": "Compress images",
+      "accessibilityTagged": "Accessibility (tagged PDF)"
+    },
+    "pagination": {
+      "heading": "Pagination",
+      "pageBreaks": "Page breaks",
+      "breaksAutomatic": "Automatic",
+      "breaksManual": "Manual only (page boundary elements)",
+      "sectionStart": "Section start",
+      "sectionContinue": "Continue on same page",
+      "sectionNewPage": "Start on new page",
+      "sectionOddPage": "Start on odd page",
+      "sectionEvenPage": "Start on even page",
+      "repeatTableHeader": "Repeat table header on each page",
+      "keepWithNext": "Keep headings with following content",
+      "orphanLines": "Orphan lines (min)",
+      "widowLines": "Widow lines (min)"
+    },
+    "trackChanges": {
+      "heading": "Track Changes",
+      "enable": "Enable revision tracking in DOCX export"
+    },
+    "protection": {
+      "heading": "Document Protection",
+      "enable": "Enable protection",
+      "restrictionMode": "Restriction mode",
+      "modeReadOnly": "Read-only",
+      "modeComments": "Comments only",
+      "modeTrackedChanges": "Tracked changes only",
+      "modeFormFields": "Form fields only",
+      "passwordHash": "Password hash (optional)",
+      "passwordHashPlaceholder": "Leave blank for no password"
+    },
+    "encryption": {
+      "heading": "PDF Encryption",
+      "enable": "Encrypt PDF with a password",
+      "userPassword": "User password (to open)",
+      "userPasswordPlaceholder": "Leave blank to open without a prompt",
+      "ownerPassword": "Owner password (permissions)",
+      "ownerPasswordPlaceholder": "Defaults to the user password",
+      "algorithm": "Algorithm",
+      "algorithmRc4": "RC4 128-bit",
+      "algorithmAes128": "AES 128-bit (coming soon)",
+      "permissionsHeading": "Permissions",
+      "permissions": {
+        "print": "Printing",
+        "copy": "Copy / extract text",
+        "modify": "Modify contents",
+        "annotate": "Annotate & fill forms",
+        "fillForms": "Fill form fields only",
+        "extractAccessibility": "Extract for accessibility",
+        "assemble": "Assemble (insert/rotate/delete pages)",
+        "printHighResolution": "High-resolution printing"
+      }
+    },
+    "customProperties": {
+      "heading": "Custom Properties",
+      "namePlaceholder": "Name",
+      "valuePlaceholder": "Value",
+      "typeText": "text",
+      "typeNumber": "number",
+      "typeBoolean": "boolean",
+      "typeDate": "date",
+      "remove": "Remove",
+      "addProperty": "Add property"
+    },
+    "languages": {
+      "heading": "Languages",
+      "systemLanguage": "System language:",
+      "systemLanguageNote": "(auto-detected, used as fallback)"
+    },
+    "namedStyles": {
+      "heading": "Named Styles",
+      "idPlaceholder": "ID",
+      "displayNamePlaceholder": "Display name",
+      "typeParagraph": "paragraph",
+      "typeCharacter": "character",
+      "typeList": "list",
+      "typeTable": "table",
+      "remove": "Remove",
+      "basedOnPlaceholder": "Based on (ID)",
+      "nextStylePlaceholder": "Next style (ID)",
+      "addStyle": "Add style"
+    },
+    "reset": "Reset to defaults"
+  },
+  "elementInspector": {
+    "toc": {
+      "heading": "Table of Contents",
+      "title": "Title",
+      "titlePlaceholder": "Table of Contents",
+      "minLevel": "Min level",
+      "maxLevel": "Max level",
+      "showPageNumbers": "Show page numbers",
+      "showLeaderDots": "Show leader dots",
+      "noHeadingsWarning": "No heading-level elements found. Select a text element and set a Heading Level in the inspector.",
+      "entriesSummary": "{{count}} entry (H{{min}}–H{{max}}) across {{pages}} page",
+      "entriesSummary_plural": "{{count}} entries (H{{min}}–H{{max}}) across {{pages}} pages",
+      "lastUpdated": "· last updated: {{count}} entries",
+      "assignHeadingLevelsFirst": "Assign heading levels to text elements first",
+      "rebuildTocTitle": "Scan all pages and rebuild the TOC entry list",
+      "updateToc": "Update TOC"
+    },
+    "content": {
+      "heading": "Content",
+      "placeholder": "Text content or {{KEY}}",
+      "globalBadge": "GLOBAL",
+      "insertGlobalPropertyTitle": "Insert {{tag}} — global property",
+      "ownBadge": "OWN · {{lang}}",
+      "insertOwnPropertyTitle": "Insert {{tag}} — own property for {{lang}}"
+    },
+    "imageAnalysisGlyphs": {
+      "heading": "Image Analysis Glyphs",
+      "unknownMethod": "unknown"
+    },
+    "richtext": {
+      "htmlContent": "HTML content",
+      "htmlPlaceholder": "<p>Your <strong>rich</strong> text here</p>"
+    },
+    "field": {
+      "fieldLabel": "Field label",
+      "fieldLabelPlaceholder": "Label text or {{key}}",
+      "localizedValuesHint": "Use {{key}} for localized values",
+      "fieldName": "Field name",
+      "fillBackground": "Fill background"
+    },
+    "common": {
+      "fontSize": "Font size",
+      "textColor": "Text color",
+      "color": "Color"
+    },
+    "textarea": {
+      "fieldLabel": "Field label",
+      "fieldLabelPlaceholder": "Label text or {{key}}",
+      "localizedValuesHint": "Use {{key}} for localized values",
+      "fieldName": "Field name",
+      "placeholderText": "Placeholder text",
+      "fillBackground": "Fill background"
+    },
+    "checkbox": {
+      "label": "Checkbox label",
+      "labelPlaceholder": "Label or {{key}}",
+      "localizedValuesHint": "Use {{key}} for localized values",
+      "fieldName": "Field name"
+    },
+    "button": {
+      "label": "Label",
+      "actionType": "Action type",
+      "actionNone": "— None —",
+      "actionOpenUrl": "Open URL",
+      "actionGoToPage": "Go to page",
+      "actionSubmitForm": "Submit form",
+      "actionResetForm": "Reset form",
+      "url": "URL",
+      "urlPlaceholder": "https://example.com",
+      "pageNumber": "Page number",
+      "background": "Background",
+      "radius": "Radius"
+    },
+    "dropdown": {
+      "options": "Options (one per line)",
+      "optionsPlaceholder": "Option 1\nOption 2\nOption 3",
+      "multiSelect": "Multi-select"
+    },
+    "optionlist": {
+      "listStyle": "List style",
+      "styleBulletDisc": "• Bullet (disc)",
+      "styleCircle": "○ Circle",
+      "styleSquare": "▪ Square",
+      "styleDash": "– Dash",
+      "styleAsterisk": "* Asterisk",
+      "styleNone": "No marker",
+      "styleDecimal": "1. Decimal",
+      "styleLowerAlpha": "a. Lowercase alpha",
+      "styleUpperAlpha": "A. Uppercase alpha",
+      "styleLowerRoman": "i. Lowercase roman",
+      "styleUpperRoman": "I. Uppercase roman",
+      "items": "Items (one per line)",
+      "itemsPlaceholder": "Item 1\nItem 2\nItem 3"
+    },
+    "radio": {
+      "options": "Options",
+      "optionPlaceholder": "Option {{number}}",
+      "removeOption": "Remove option",
+      "addOption": "+ Add option"
+    },
+    "checkmark": {
+      "label": "Label",
+      "labelPlaceholder": "Label or {{key}}",
+      "localizedValuesHint": "Use {{key}} for localized values",
+      "state": "State",
+      "stateChecked": "Checked",
+      "stateCross": "Cross",
+      "stateDot": "Dot",
+      "stateEmpty": "Empty",
+      "markColor": "Mark color",
+      "stroke": "Stroke"
+    },
+    "watermark": {
+      "mode": "Mode",
+      "modeText": "Text",
+      "modeImage": "Image",
+      "imageUrl": "Image URL",
+      "text": "Text",
+      "color": "Color",
+      "opacity": "Opacity",
+      "rotation": "Rotation",
+      "scale": "Scale",
+      "pageScope": "Page scope",
+      "scopeAll": "All pages",
+      "scopeCurrent": "Current page",
+      "scopeFirst": "First page only",
+      "scopeLast": "Last page only",
+      "scopeRange": "Selected range",
+      "pageRange": "Page range",
+      "pageRangePlaceholder": "1-3, 5"
+    },
+    "note": {
+      "title": "Title",
+      "body": "Body",
+      "author": "Author",
+      "noteColor": "Note color",
+      "collapsed": "Collapsed note"
+    },
+    "date": {
+      "mode": "Mode",
+      "modeStatic": "Static date",
+      "modeRender": "Render date",
+      "modeBinding": "Data binding",
+      "staticValue": "Static value / fallback",
+      "locale": "Locale",
+      "timezone": "Timezone",
+      "format": "Format",
+      "color": "Color"
+    },
+    "pagenumber": {
+      "format": "Format",
+      "formatCurrent": "Current page",
+      "formatTotal": "Total pages",
+      "formatPageOfTotal": "Page X of Y",
+      "formatRoman": "Roman",
+      "formatAlphabetic": "Alphabetic",
+      "start": "Start",
+      "pageScope": "Page scope",
+      "scopeAll": "All",
+      "scopeCurrent": "Current",
+      "scopeFirst": "First",
+      "scopeLast": "Last",
+      "scopeOdd": "Odd",
+      "scopeEven": "Even",
+      "scopeRange": "Range",
+      "pageRange": "Page range",
+      "pageRangePlaceholder": "1-3, 5",
+      "prefix": "Prefix",
+      "suffix": "Suffix"
+    },
+    "arrow": {
+      "direction": "Direction",
+      "directions": {
+        "up": "Up",
+        "down": "Down",
+        "left": "Left",
+        "right": "Right"
+      },
+      "rotation": "Rotation (°)",
+      "arrowMode": "Arrow mode",
+      "modeStraight": "Straight",
+      "modeElbow": "Elbow",
+      "modeCurved": "Curved",
+      "startHead": "Start head",
+      "endHead": "End head",
+      "markerNone": "None",
+      "markerFilled": "▶ Filled",
+      "markerOpen": "▷ Open",
+      "markerDot": "● Dot",
+      "markerDiamond": "◆ Diamond",
+      "markerSquare": "■ Square",
+      "markerCircle": "○ Circle",
+      "color": "Color",
+      "stroke": "Stroke",
+      "dashStyle": "Dash style",
+      "dashSolid": "Solid",
+      "dashDashed": "Dashed",
+      "dashDotted": "Dotted"
+    },
+    "typography": {
+      "heading": "Typography",
+      "fontFamily": "Font family",
+      "language": "Language",
+      "languageNone": "(none)",
+      "languages": {
+        "en": "English",
+        "de": "German",
+        "fr": "French",
+        "es": "Spanish",
+        "it": "Italian",
+        "pt": "Portuguese",
+        "ru": "Russian",
+        "el": "Greek",
+        "ar": "Arabic (RTL)",
+        "he": "Hebrew (RTL)",
+        "fa": "Persian (RTL)",
+        "zh-CN": "Chinese (Simplified)",
+        "zh-TW": "Chinese (Traditional)",
+        "ja": "Japanese",
+        "ko": "Korean",
+        "hi": "Hindi",
+        "th": "Thai"
+      },
+      "direction": "Direction",
+      "directionLtrTitle": "Left to right",
+      "directionRtlTitle": "Right to left",
+      "color": "Color",
+      "lineHeight": "Line height",
+      "letterSpacing": "Letter spacing",
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "alignLeft": "Align left",
+      "alignCenter": "Align center",
+      "alignRight": "Align right",
+      "alignJustify": "Align justify"
+    },
+    "background": {
+      "heading": "Background",
+      "color": "Color",
+      "opacityPercent": "Opacity %",
+      "transparent": "Transparent (no background)"
+    },
+    "border": {
+      "heading": "Border",
+      "width": "Width",
+      "color": "Color",
+      "style": "Style",
+      "styleNone": "None",
+      "styleSolid": "Solid",
+      "styleDashed": "Dashed",
+      "styleDotted": "Dotted",
+      "styleDouble": "Double",
+      "radius": "Radius"
+    },
+    "padding": {
+      "heading": "Padding",
+      "unlinkTitle": "Unlink sides",
+      "linkTitle": "Link all sides",
+      "allSides": "All sides",
+      "top": "Top",
+      "right": "Right",
+      "bottom": "Bottom",
+      "left": "Left"
+    },
+    "qrcode": {
+      "value": "QR code value",
+      "valuePlaceholder": "https://example.com",
+      "size": "Size"
+    },
+    "barcode": {
+      "value": "Barcode value",
+      "valuePlaceholder": "123456789012",
+      "type": "Type",
+      "typeCode128": "Code 128",
+      "typeCode39": "Code 39",
+      "typeEan13": "EAN-13",
+      "typeUpc": "UPC"
+    },
+    "signature": {
+      "label": "Signature label",
+      "labelPlaceholder": "Signature or {{key}}",
+      "localizedValuesHint": "Use {{key}} for localized values"
+    },
+    "image": {
+      "dropHere": "Drop image here or",
+      "browse": "Browse",
+      "sourceUrl": "Source URL",
+      "fitMode": "Fit Mode",
+      "fitContain": "Contain",
+      "fitCover": "Cover",
+      "fitFill": "Fill",
+      "fitNone": "None",
+      "cropX": "Crop X",
+      "cropY": "Crop Y",
+      "cropWidth": "Crop Width",
+      "cropHeight": "Crop Height",
+      "focalX": "Focal X (%)",
+      "focalY": "Focal Y (%)",
+      "preserveAspectRatio": "Preserve Aspect Ratio"
+    },
+    "table": {
+      "rows": "Rows",
+      "columns": "Columns",
+      "borderWidth": "Border Width",
+      "borderColor": "Border Color",
+      "cellPadding": "Cell Padding",
+      "cellFontSize": "Cell Font Size",
+      "cellFont": "Cell Font",
+      "cellTextColor": "Cell Text Color",
+      "boldCellText": "Bold cell text",
+      "headerRow": "Header row",
+      "headerBackground": "Header Background",
+      "footerRow": "Footer row",
+      "alternatingRows": "Alternating rows",
+      "evenRowColor": "Even Row Color",
+      "columnAlignment": "Column Alignment",
+      "col": "Col {{number}}",
+      "columnWidths": "Column Widths (px, 0 = auto)",
+      "widthPlaceholder": "Auto",
+      "cellContent": "Cell Content",
+      "cellStyle": "Cell Style",
+      "row": "Row",
+      "colLabel": "Col",
+      "cellTitle": "Cell {{row}}:{{col}}",
+      "cellTitleStyled": "Cell {{row}}:{{col}} styled",
+      "background": "Background",
+      "textColor": "Text Color",
+      "fontSize": "Font Size",
+      "padding": "Padding",
+      "fontFamily": "Font Family",
+      "fontFamilyDefault": "Default",
+      "alignTitle": "Align {{align}}",
+      "bold": "Bold",
+      "italic": "Italic",
+      "clearCellStyle": "Clear cell style"
+    },
+    "chart": {
+      "chartType": "Chart Type",
+      "typeBar": "Bar",
+      "typeLine": "Line",
+      "typePie": "Pie",
+      "chartData": "Chart Data (JSON)"
+    },
+    "line": {
+      "color": "Color",
+      "thickness": "Thickness (px)"
+    },
+    "link": {
+      "displayText": "Display text",
+      "displayTextPlaceholder": "Click here",
+      "url": "URL (href)",
+      "urlPlaceholder": "https://example.com",
+      "target": "Target",
+      "targetBlank": "New tab (_blank)",
+      "targetSelf": "Same tab (_self)",
+      "color": "Color"
+    },
+    "number": {
+      "value": "Value",
+      "style": "Style",
+      "styleDecimal": "Decimal (1,234.56)",
+      "styleCurrency": "Currency (€ 1.234,56)",
+      "stylePercent": "Percent (12.5 %)",
+      "styleScientific": "Scientific (1.23e+3)",
+      "styleOrdinal": "Ordinal (1st, 2nd…)",
+      "decimals": "Decimals",
+      "locale": "Locale",
+      "currency": "Currency",
+      "color": "Color",
+      "prefix": "Prefix",
+      "prefixPlaceholder": "e.g. ~",
+      "suffix": "Suffix",
+      "suffixPlaceholder": "e.g. pts"
+    },
+    "draw": {
+      "tool": "Tool",
+      "toolPen": "Pen",
+      "toolHighlighter": "Highlighter",
+      "toolEraser": "Eraser",
+      "pathData": "Path data",
+      "color": "Color",
+      "stroke": "Stroke",
+      "opacity": "Opacity"
+    },
+    "highlight": {
+      "mode": "Mode",
+      "modeRectangle": "Rectangle",
+      "modeText": "Text marker",
+      "color": "Color",
+      "opacity": "Opacity",
+      "radius": "Radius"
+    },
+    "pageboundary": {
+      "boundary": "Boundary",
+      "boundaryStart": "Page start",
+      "boundaryEnd": "Page end",
+      "label": "Label",
+      "color": "Color"
+    },
+    "footnote": {
+      "footnoteText": "Footnote text",
+      "endnoteText": "Endnote text",
+      "placeholder": "Note text…"
+    },
+    "bookmark": {
+      "name": "Bookmark name",
+      "namePlaceholder": "e.g. section-intro",
+      "linkTarget": "Link target (optional)",
+      "linkTargetPlaceholder": "Bookmark name to link to"
+    },
+    "comment": {
+      "text": "Comment text",
+      "textPlaceholder": "Comment…",
+      "author": "Author",
+      "date": "Date",
+      "id": "Comment ID",
+      "idPlaceholder": "Auto-generated if blank"
+    },
+    "contentcontrol": {
+      "controlType": "Control type",
+      "typeRichText": "Rich text",
+      "typePlainText": "Plain text",
+      "typeDate": "Date picker",
+      "typeComboBox": "Combo box",
+      "typePicture": "Picture",
+      "title": "Title",
+      "tag": "Tag",
+      "placeholderText": "Placeholder text",
+      "defaultContent": "Default content"
+    },
+    "visibility": {
+      "heading": "Visibility",
+      "visibleInOutput": "Visible in output",
+      "visibleExpression": "Visible expression"
+    },
+    "wordDocx": {
+      "heading": "Word / DOCX",
+      "paragraphStyle": "Paragraph style",
+      "none": "— None —",
+      "characterStyle": "Character style",
+      "autoHyphenation": "Auto-hyphenation",
+      "revisionType": "Revision type",
+      "revisionInsert": "Insert",
+      "revisionDelete": "Delete",
+      "revisionFormat": "Format change",
+      "revisionAuthor": "Revision author",
+      "revisionDate": "Revision date",
+      "revisionId": "Revision ID",
+      "autoGenerated": "Auto-generated if blank"
+    },
+    "deleteElement": "Delete element"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "eyebrow": "Quick import",
+  "heading": "Import a PDF",
+  "subheading": "Pick a PDF file — it opens as an editable design in the visual editor.",
+  "chooseFile": "Choose PDF file",
+  "importing": "Importing…",
+  "uploadingFile": "Uploading file…",
+  "importFailed": "Import failed. Please check the file and try again."
+}

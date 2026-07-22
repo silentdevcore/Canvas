@@ -1,0 +1,1276 @@
+{
+  "help": {
+    "ariaLabel": "مساعدة",
+    "title": "المساعدة والمرجع",
+    "close": "إغلاق",
+    "docsLink": "فتح التوثيق الكامل",
+    "tabs": {
+      "quickstart": "البدء السريع",
+      "shortcuts": "اختصارات",
+      "elements": "العناصر",
+      "faq": "الأسئلة الشائعة"
+    },
+    "shortcutsTable": {
+      "shortcut": "الاختصار",
+      "action": "الإجراء"
+    },
+    "elementsTable": {
+      "element": "العنصر",
+      "description": "الوصف",
+      "pdf": "PDF",
+      "word": "Word"
+    },
+    "quickSteps": {
+      "1": {
+        "title": "فتح قالب",
+        "desc": "تصفّح معرض القوالب وانقر على \"استخدام هذا القالب\" للبدء."
+      },
+      "2": {
+        "title": "إضافة عناصر",
+        "desc": "انقر على أي أداة في شريط الأدوات الأيسر لوضعها على اللوحة، أو اسحبها إلى موضع معين."
+      },
+      "3": {
+        "title": "تحرير الخصائص",
+        "desc": "حدد عنصرًا واضبط محتواه ونمطه وتخطيطه في لوحة الفحص اليمنى."
+      },
+      "4": {
+        "title": "معاينة مستندك",
+        "desc": "انقر على \"معاينة\" في الشريط العلوي لرؤية عرض مباشر لقالبك ببيانات نموذجية."
+      },
+      "5": {
+        "title": "التصدير",
+        "desc": "انقر على أيقونة التصدير للتنزيل بصيغة PDF أو Word أو JSON أو صورة أو تنسيقات أخرى."
+      }
+    },
+    "shortcuts": {
+      "undo": "تراجع",
+      "redo": "إعادة",
+      "selectAll": "تحديد جميع العناصر",
+      "copy": "نسخ العنصر المحدد",
+      "paste": "لصق العنصر",
+      "duplicate": "تكرار العنصر",
+      "delete": "حذف العنصر المحدد",
+      "moveOnePx": "تحريك العنصر بمقدار 1 بكسل",
+      "moveTenPx": "تحريك العنصر بمقدار 10 بكسل",
+      "zoomIn": "تكبير",
+      "zoomOut": "تصغير",
+      "zoomReset": "إعادة تعيين التكبير إلى 100%",
+      "deselect": "إلغاء التحديد / إلغاء الرسم",
+      "openHelp": "فتح مربع حوار المساعدة هذا"
+    },
+    "faq": {
+      "exportPdf": {
+        "q": "كيف أُصدّر ملف PDF؟",
+        "a": "انقر على أيقونة التصدير (⬆) في الشريط العلوي، واختر \"PDF\" من قائمة التنسيقات، ثم انقر على تنزيل."
+      },
+      "backgroundImage": {
+        "q": "كيف أضيف صورة خلفية؟",
+        "a": "انقر على أيقونة إعدادات الصفحة (⚙) عندما لا يكون هناك تحديد، ثم اضبط \"صورة الخلفية\" في لوحة الفحص."
+      },
+      "templateVariables": {
+        "q": "كيف أستخدم متغيرات القالب؟",
+        "a": "اكتب {{VARIABLE_NAME}} داخل أي عنصر نصي. تُملأ المتغيرات وقت العرض من بيانات JSON الخاصة بك."
+      },
+      "secondPage": {
+        "q": "كيف أضيف صفحة ثانية؟",
+        "a": "انقر على زر + في شريط الصفحات أسفل منطقة اللوحة."
+      },
+      "multiLanguage": {
+        "q": "كيف أُعِدّ تعدد اللغات؟",
+        "a": "في إعدادات الصفحة، أضف لغات ضمن قسم \"اللغات\". يظهر تبويب لكل لغة فوق اللوحة."
+      },
+      "drawLine": {
+        "q": "كيف أرسم خطًا أو سهمًا؟",
+        "a": "انقر على أداة الخط أو السهم أو الرسم في شريط الأدوات — تظهر شارة زرقاء. ثم اسحب على اللوحة لوضع العنصر."
+      },
+      "tableOfContents": {
+        "q": "كيف أُنشئ جدول محتويات؟",
+        "a": "أضف عنصر \"جدول المحتويات\"، ثم اضبط مستوى العنوان على عناصرك النصية. انقر على \"تحديث جدول المحتويات\" في لوحة الفحص."
+      },
+      "addressForm": {
+        "q": "كيف أُدرج نموذج عنوان؟",
+        "a": "انقر على \"إدراج كتلة نموذج\" أسفل شريط الأدوات الأيسر واختر كتلة العنوان."
+      }
+    }
+  },
+  "export": {
+    "ariaLabel": "تصدير التصميم",
+    "title": "تصدير",
+    "close": "إغلاق",
+    "groups": {
+      "Documents": "مستندات",
+      "Data": "بيانات",
+      "Images": "صور",
+      "Text": "نص"
+    },
+    "formats": {
+      "pdf": {
+        "label": "PDF",
+        "description": "مستند دقيق بكسليًا عبر محرك العرض الخلفي"
+      },
+      "word": {
+        "label": "Word (.docx)",
+        "description": "مستند Microsoft Word قابل للتحرير"
+      },
+      "odt": {
+        "label": "ODT",
+        "description": "نص OpenDocument (LibreOffice / Google Docs)"
+      },
+      "html": {
+        "label": "HTML",
+        "description": "HTML موضّع مع CSS مضمّن"
+      },
+      "json": {
+        "label": "JSON",
+        "description": "تعريف القالب الكامل (من جانب العميل)"
+      },
+      "xml": {
+        "label": "XML",
+        "description": "بيانات عناصر منظَّمة"
+      },
+      "excel": {
+        "label": "Excel (.xlsx)",
+        "description": "الجداول كأوراق عمل، النص كملخص"
+      },
+      "csv": {
+        "label": "CSV",
+        "description": "مفصول بفواصل، متوافق مع Excel"
+      },
+      "png": {
+        "label": "PNG",
+        "description": "صورة نقطية بدقة 150 نقطة في البوصة عبر SkiaSharp"
+      },
+      "jpeg": {
+        "label": "JPEG",
+        "description": "صورة مضغوطة، حجم ملف أصغر"
+      },
+      "tiff": {
+        "label": "TIFF",
+        "description": "TIFF متعدد الصفحات للطباعة والأرشفة"
+      },
+      "svg": {
+        "label": "SVG",
+        "description": "متجه قابل للتحجيم، متعدد الصفحات كملف zip"
+      },
+      "md": {
+        "label": "Markdown",
+        "description": "نص بترتيب القراءة، جداول GFM"
+      }
+    },
+    "lastUsed": "آخر استخدام",
+    "exportFailed": "فشل التصدير",
+    "done": "تم!",
+    "retry": "إعادة المحاولة",
+    "exportAction": "تصدير",
+    "exportAriaLabel": "تصدير كـ {{label}}",
+    "multiLanguage": {
+      "sectionLabel": "تعدد اللغات",
+      "cardLabel": "جميع اللغات (ZIP)",
+      "cardDescription": "تصدير ملف PDF لكل لغة: {{languages}}",
+      "exportZipAriaLabel": "تصدير جميع اللغات كملف ZIP",
+      "exportZip": "تصدير ZIP"
+    },
+    "signDocx": {
+      "button": "توقيع DOCX…",
+      "tooltip": "تطبيق توقيع رقمي X.509 على ملف DOCX"
+    }
+  },
+  "findReplace": {
+    "ariaLabel": "البحث والاستبدال",
+    "title": "البحث والاستبدال",
+    "close": "إغلاق",
+    "find": "بحث",
+    "findPlaceholderRegex": "تعبير عادي…",
+    "findPlaceholderText": "نص للبحث عنه…",
+    "replaceWith": "الاستبدال بـ",
+    "replacePlaceholder": "نص الاستبدال…",
+    "caseSensitive": "مطابقة حالة الأحرف",
+    "wholeWord": "الكلمة كاملة",
+    "regex": "تعبير عادي",
+    "failed": "فشل البحث والاستبدال",
+    "noMatches": "لم يتم العثور على تطابقات.",
+    "replacedSummary": "تم استبدال {{count}} تكرار في {{elementCount}} عنصر.",
+    "replacedSummary_plural": "تم استبدال {{count}} تكرارات في {{elementCount}} عنصر.",
+    "cancel": "إلغاء",
+    "replaceAll": "استبدال الكل"
+  },
+  "formBlock": {
+    "ariaLabel": "إدراج كتلة نموذج",
+    "title": "إدراج كتلة نموذج",
+    "close": "إغلاق",
+    "fieldLabelsHeading": "تسميات الحقول",
+    "addField": "+ إضافة حقل",
+    "startX": "بداية X (بكسل)",
+    "startY": "بداية Y (بكسل)",
+    "fieldsToInsert": "الحقول المراد إدراجها",
+    "cancel": "إلغاء",
+    "insertBlock": "إدراج الكتلة",
+    "blocks": {
+      "address": {
+        "title": "كتلة العنوان",
+        "description": "العنوان البريدي الكامل: الاسم، الشارع، المدينة، الرمز البريدي، البلد.",
+        "fields": {
+          "name": "الاسم الكامل",
+          "street": "الشارع",
+          "city": "المدينة",
+          "postalCode": "الرمز البريدي",
+          "country": "البلد"
+        }
+      },
+      "contact": {
+        "title": "كتلة الاتصال",
+        "description": "رقم الهاتف والبريد الإلكتروني والموقع الإلكتروني.",
+        "fields": {
+          "phone": "الهاتف",
+          "email": "البريد الإلكتروني",
+          "website": "الموقع الإلكتروني"
+        }
+      },
+      "personal": {
+        "title": "الكتلة الشخصية",
+        "description": "تاريخ الميلاد والجنس والجنسية.",
+        "fields": {
+          "dob": "تاريخ الميلاد",
+          "gender": "الجنس",
+          "nationality": "الجنسية"
+        },
+        "genderOptions": {
+          "male": "ذكر",
+          "female": "أنثى",
+          "nonBinary": "غير ثنائي",
+          "preferNotToSay": "تفضيل عدم الذكر"
+        }
+      },
+      "custom": {
+        "title": "كتلة مخصصة",
+        "description": "اختر عدد الحقول وأدخل تسمياتها.",
+        "fieldPlaceholder": "حقل {{number}}"
+      }
+    }
+  },
+  "signDocxModal": {
+    "ariaLabel": "توقيع DOCX",
+    "title": "توقيع DOCX",
+    "close": "إغلاق",
+    "intro": "طبّق توقيعًا رقميًا X.509 على ملف DOCX باستخدام شهادة PFX/P12 الخاصة بك. سيتم تنزيل الملف الموقّع تلقائيًا.",
+    "docxFile": "ملف DOCX",
+    "chooseDocx": "اختيار ملف DOCX…",
+    "certificate": "شهادة PFX / P12",
+    "chooseCertificate": "اختيار شهادة…",
+    "password": "كلمة مرور الشهادة",
+    "passwordOptional": "(اختياري)",
+    "passwordPlaceholder": "اتركه فارغًا إذا لم يكن للشهادة كلمة مرور",
+    "signingFailed": "فشل التوقيع",
+    "signedAndDownloaded": "تم التوقيع والتنزيل ({{sizeKb}} كيلوبايت)",
+    "cancel": "إلغاء",
+    "signing": "جارٍ التوقيع…",
+    "signAgain": "توقيع مرة أخرى",
+    "signAndDownload": "توقيع وتنزيل"
+  },
+  "tools": {
+    "text": {
+      "label": "نص",
+      "hint": "كتلة نص بسطر واحد"
+    },
+    "qrcode": {
+      "label": "رمز QR",
+      "hint": "كتلة رابط قابل للمسح"
+    },
+    "barcode": {
+      "label": "باركود",
+      "hint": "كود المنتج أو الطلب"
+    },
+    "signature": {
+      "label": "توقيع",
+      "hint": "سطر الموافقة"
+    },
+    "richtext": {
+      "label": "نص منسق",
+      "hint": "نسخة HTML منسقة"
+    },
+    "field": {
+      "label": "حقل نصي",
+      "hint": "إدخال نموذج قابل للتعبئة"
+    },
+    "textarea": {
+      "label": "منطقة نص",
+      "hint": "إدخال نص متعدد الأسطر قابل للتعبئة"
+    },
+    "checkbox": {
+      "label": "خانة اختيار",
+      "hint": "حقل اختيار واحد"
+    },
+    "image": {
+      "label": "صورة",
+      "hint": "عنصر نائب للصورة"
+    },
+    "shape": {
+      "label": "شكل",
+      "hint": "كتلة شكل عام"
+    },
+    "table": {
+      "label": "جدول",
+      "hint": "منطقة محتوى جدولي"
+    },
+    "line": {
+      "label": "خط",
+      "hint": "عنصر فاصل"
+    },
+    "rect": {
+      "label": "مستطيل",
+      "hint": "مستطيل ممتلئ"
+    },
+    "circle": {
+      "label": "دائرة",
+      "hint": "شكل دائري"
+    },
+    "chart": {
+      "label": "مخطط",
+      "hint": "كتلة مخطط بيانات"
+    },
+    "subsection": {
+      "label": "قسم فرعي",
+      "hint": "قسم محتوى متداخل"
+    },
+    "area": {
+      "label": "منطقة",
+      "hint": "حاوية منطقة تخطيط"
+    },
+    "button": {
+      "label": "زر",
+      "hint": "زر إجراء"
+    },
+    "dropdown": {
+      "label": "قائمة منسدلة",
+      "hint": "إدخال تحديد"
+    },
+    "optionlist": {
+      "label": "قائمة خيارات",
+      "hint": "قائمة خيارات"
+    },
+    "radio": {
+      "label": "مجموعة اختيار",
+      "hint": "خيارات اختيار واحد"
+    },
+    "watermark": {
+      "label": "علامة مائية",
+      "hint": "علامة نص أو صورة عامة"
+    },
+    "note": {
+      "label": "ملاحظة",
+      "hint": "تعليق توضيحي على المستند"
+    },
+    "arrow": {
+      "label": "سهم",
+      "hint": "علامة اتجاه"
+    },
+    "draw": {
+      "label": "رسم",
+      "hint": "رسم متجه حر"
+    },
+    "date": {
+      "label": "تاريخ",
+      "hint": "تاريخ ثابت أو ديناميكي"
+    },
+    "highlight": {
+      "label": "تمييز",
+      "hint": "تمييز شفاف"
+    },
+    "checkmark": {
+      "label": "علامة صح",
+      "hint": "علامة صح أو إكس أو نقطة"
+    },
+    "pageboundary": {
+      "label": "بداية/نهاية الصفحة",
+      "hint": "علامة حد الصفحة"
+    },
+    "pagenumber": {
+      "label": "رقم الصفحة",
+      "hint": "عنصر نائب لرقم الصفحة"
+    },
+    "toc": {
+      "label": "جدول المحتويات",
+      "hint": "جدول محتويات يُنشأ تلقائيًا من العناوين"
+    },
+    "link": {
+      "label": "رابط",
+      "hint": "عنصر رابط تشعبي"
+    },
+    "number": {
+      "label": "رقم",
+      "hint": "قيمة رقمية منسقة"
+    },
+    "footnote": {
+      "label": "حاشية سفلية",
+      "hint": "مرجع حاشية سفلية DOCX"
+    },
+    "endnote": {
+      "label": "حاشيةختامية",
+      "hint": "مرجع حاشية ختامية DOCX"
+    },
+    "bookmark": {
+      "label": "إشارة مرجعية",
+      "hint": "مرساة مسمّاة للإحالات المرجعية"
+    },
+    "comment": {
+      "label": "تعليق",
+      "hint": "تعليق هامشي أصلي في Word"
+    },
+    "contentcontrol": {
+      "label": "عنصر تحكم بالمحتوى",
+      "hint": "عنصر تحكم بمحتوى Word منظَّم (SDT)"
+    }
+  },
+  "toolGroups": {
+    "text": "عناصر نصية",
+    "form": "عناصر النموذج",
+    "visual": "عناصر مرئية",
+    "layout": "الأشكال والتخطيط",
+    "advanced": "عناصر مستند متقدمة",
+    "word": "عناصر Word / DOCX"
+  },
+  "toasts": {
+    "designCloned": "تم استنساخ التصميم بمعرّف جديد",
+    "cloneFailed": "فشل الاستنساخ",
+    "pageExtracted": "تم استخراج الصفحة {{number}}",
+    "extractFailed": "فشل الاستخراج"
+  },
+  "warnings": {
+    "pageRangeNeeded": "يحتاج النطاق المحدد إلى قيمة نطاق صفحات.",
+    "bindingPathNeeded": "يحتاج وضع الربط إلى مسار ربط بيانات.",
+    "drawPathNeeded": "يحتاج عنصر الرسم إلى بيانات مسار SVG.",
+    "opacityRange": "يجب أن تكون العتامة بين 0 و1."
+  },
+  "placeholders": {
+    "qrCode": "رمز QR",
+    "barcode": "باركود",
+    "signatureLine": "سطر التوقيع",
+    "requiredField": "حقل مطلوب",
+    "required": "مطلوب",
+    "optional": "اختياري",
+    "image": "صورة"
+  },
+  "pagePanel": {
+    "pageTitle": "صفحة {{number}}",
+    "duplicatePage": "تكرار الصفحة",
+    "extractPageToJson": "استخراج الصفحة إلى JSON",
+    "deletePage": "حذف الصفحة",
+    "deletePageConfirm": "حذف الصفحة {{number}}؟",
+    "addPage": "إضافة صفحة"
+  },
+  "inspector": {
+    "ariaLabel": "خصائص العنصر",
+    "inspectorTab": "الفحص",
+    "pageSettingsTab": "إعدادات الصفحة",
+    "layersTab": "الطبقات",
+    "propertiesTab": "الخصائص",
+    "elementNamePlaceholder": "اسم العنصر…",
+    "outsideMarginWarning": "العنصر خارج منطقة الأمان الهامشية.",
+    "layerOf": "الطبقة {{current}} من {{total}}",
+    "sendToBack": "إرسال إلى الخلف",
+    "sendBackward": "إرسال للخلف خطوة",
+    "bringForward": "إحضار للأمام خطوة",
+    "bringToFront": "إحضار إلى الأمام",
+    "locked": "مقفل",
+    "editable": "قابل للتحرير",
+    "languageScope": "نطاق اللغة",
+    "positionAppliesToLangOnly": "تطبَّق تعديلات الموضع على {{lang}} فقط",
+    "switchToLangOnlyEditing": "التبديل إلى التحرير الخاص بـ {{lang}} فقط",
+    "positionAppliesToAll": "تطبَّق تعديلات الموضع على جميع تبويبات اللغة",
+    "switchToAllLanguagesEditing": "التبديل إلى تحرير جميع اللغات",
+    "all": "الكل",
+    "x": "X",
+    "y": "Y",
+    "width": "العرض",
+    "height": "الارتفاع",
+    "rotation": "الدوران °",
+    "resetRotation": "إعادة تعيين الدوران",
+    "reset": "إعادة تعيين",
+    "align": "محاذاة",
+    "alignLeftTitle": "محاذاة الحواف اليسرى مع الهامش",
+    "alignHCenterTitle": "محاذاة المراكز الأفقية",
+    "alignRightTitle": "محاذاة الحواف اليمنى مع الهامش",
+    "alignTopTitle": "محاذاة الحواف العلوية مع الهامش",
+    "alignVCenterTitle": "محاذاة المراكز الرأسية",
+    "alignBottomTitle": "محاذاة الحواف السفلية مع الهامش",
+    "distribute": "توزيع",
+    "distributeHorizontally": "توزيع أفقي",
+    "distributeVertically": "توزيع رأسي",
+    "headingLevel": "مستوى العنوان",
+    "headingNone": "بلا (نص أساسي)",
+    "heading1": "عنوان 1",
+    "heading2": "عنوان 2",
+    "heading3": "عنوان 3",
+    "headingTocNote": "تُدرَج العناوين في عنصر جدول المحتويات.",
+    "formValidation": "النموذج والتحقق",
+    "tabIndex": "فهرس التبويب",
+    "tabIndexPlaceholder": "تلقائي",
+    "minLength": "الحد الأدنى للطول",
+    "maxLength": "الحد الأقصى للطول",
+    "lengthPlaceholder": "—",
+    "patternRegex": "النمط (تعبير عادي)",
+    "patternPlaceholder": "مثال: \\d{5}"
+  },
+  "layers": {
+    "allPagesHeaderFooter": "كل الصفحات (رأس/تذييل الصفحة)",
+    "pageHeading": "صفحة {{number}}",
+    "show": "إظهار",
+    "hide": "إخفاء",
+    "lock": "قفل",
+    "unlock": "إلغاء القفل",
+    "noElementsYet": "لا توجد عناصر بعد. أضف عنصرًا من شريط الأدوات.",
+    "noElementsOnPageYet": "لا توجد عناصر في هذه الصفحة بعد.",
+    "shiftClickMultiSelect": "Shift+نقر للتحديد المتعدد",
+    "duplicate": "تكرار"
+  },
+  "contextMenu": {
+    "copy": "نسخ",
+    "duplicate": "تكرار",
+    "paste": "لصق",
+    "unlock": "إلغاء القفل",
+    "lock": "قفل",
+    "show": "إظهار",
+    "hide": "إخفاء",
+    "bringToFront": "إحضار إلى الأمام",
+    "bringForward": "إحضار للأمام خطوة",
+    "sendBackward": "إرسال للخلف خطوة",
+    "sendToBack": "إرسال إلى الخلف",
+    "deleteFromAllLanguagesTitle": "حذف هذا العنصر من جميع تبويبات اللغة",
+    "deleteFromAllLanguages": "الحذف من جميع اللغات",
+    "delete": "حذف",
+    "selectAll": "تحديد الكل"
+  },
+  "mobileOverlay": {
+    "title": "مطلوب جهاز كمبيوتر مكتبي",
+    "body": "المحرر مصمم للشاشات الأكبر. يرجى فتحه على جهاز كمبيوتر مكتبي أو جهاز لوحي."
+  },
+  "topbar": {
+    "backToGallery": "العودة إلى المعرض",
+    "kicker": "مصمم الواجهة",
+    "designActions": "إجراءات التصميم",
+    "cloneDesign": "استنساخ التصميم",
+    "pageDimensions": "{{width}} × {{height}} بكسل",
+    "undo": "تراجع (⌘Z)",
+    "redo": "إعادة (⌘⇧Z)",
+    "pageSettingsPending": "إعدادات الصفحة — لم يتم تصدير التغييرات بعد",
+    "pageSettings": "إعدادات الصفحة",
+    "findReplace": "البحث والاستبدال",
+    "exportCode": "تصدير الكود (JSON / C#)",
+    "outputModeTitle": "وضع الإخراج: يؤثر في العناصر المعروضة في شريط الأدوات",
+    "pdf": "PDF",
+    "word": "Word",
+    "help": "مساعدة (F1)",
+    "preview": "معاينة"
+  },
+  "toolPanel": {
+    "addElements": "إضافة عناصر",
+    "wordOnlyWarning": "بعض العناصر على اللوحة خاصة بـ Word فقط ولن تُعرض في تصدير PDF.",
+    "insertFormBlockTitle": "إدراج مجموعة جاهزة من حقول النموذج (عنوان، اتصال، إلخ)",
+    "insertFormBlock": "إدراج كتلة نموذج",
+    "layers": "الطبقات"
+  },
+  "canvasStage": {
+    "ariaLabel": "لوحة المستند",
+    "pageOfTotal": "صفحة {{current}} / {{total}}",
+    "pageDimensions": "{{width}} × {{height}} بكسل",
+    "customSize": "مخصص",
+    "zoomOut": "تصغير (⌘−)",
+    "zoomIn": "تكبير (⌘+)",
+    "drawingLine": "جارٍ رسم خط",
+    "drawingArrow": "جارٍ رسم سهم",
+    "freehandDrawing": "رسم حر",
+    "drawInstructions": "— انقر واسحب على اللوحة",
+    "cancelHint": "للإلغاء",
+    "headerGuide": "رأس الصفحة",
+    "footerGuide": "تذييل الصفحة",
+    "watermarkAlt": "علامة مائية"
+  },
+  "emptyState": {
+    "title": "ابدأ بعنصر",
+    "body": "اسحب أداة من اليسار إلى صفحة PDF، أو انقر على أداة لإضافتها تلقائيًا."
+  },
+  "pageSettings": {
+    "paper": {
+      "heading": "الورق",
+      "size": "الحجم",
+      "customOption": "مخصص",
+      "unit": "الوحدة",
+      "units": {
+        "px": "بكسل",
+        "pt": "نقطة",
+        "mm": "مم",
+        "cm": "سم",
+        "in": "بوصة"
+      },
+      "width": "العرض ({{unit}})",
+      "height": "الارتفاع ({{unit}})",
+      "portrait": "عمودي",
+      "landscape": "أفقي"
+    },
+    "background": {
+      "heading": "الخلفية",
+      "color": "اللون",
+      "fit": "الملاءمة",
+      "fitOptions": {
+        "cover": "تغطية",
+        "contain": "احتواء",
+        "fill": "تمدد",
+        "tile": "تجانب"
+      },
+      "imageUrl": "رابط الصورة",
+      "imageUrlPlaceholder": "https://…",
+      "removeImage": "إزالة الصورة"
+    },
+    "margins": {
+      "heading": "الهوامش",
+      "unlinkMargins": "فصل الهوامش",
+      "linkMargins": "ربط الهوامش",
+      "presets": {
+        "none": "بلا",
+        "narrow": "ضيق",
+        "normal": "عادي",
+        "wide": "واسع"
+      },
+      "sideLabel": "{{side}} ({{unit}})",
+      "sides": {
+        "top": "أعلى",
+        "right": "يمين",
+        "bottom": "أسفل",
+        "left": "يسار"
+      }
+    },
+    "workspace": {
+      "heading": "مساحة العمل",
+      "showGrid": "إظهار الشبكة",
+      "snapToGrid": "الالتصاق بالشبكة",
+      "gridSize": "حجم الشبكة (بكسل)",
+      "showMarginGuide": "إظهار دليل الهامش",
+      "showSafeAreaGuide": "إظهار دليل المنطقة الآمنة"
+    },
+    "headerFooter": {
+      "heading": "الرأس والتذييل",
+      "enableHeader": "تفعيل الرأس",
+      "headerHeight": "ارتفاع الرأس (بكسل)",
+      "headerFirstPageDifferent": "رأس مختلف في الصفحة الأولى",
+      "headerOddEvenDifferent": "رأس مختلف في الصفحات الفردية/الزوجية",
+      "insertIntoHeader": "إدراج في الرأس",
+      "enableFooter": "تفعيل التذييل",
+      "footerHeight": "ارتفاع التذييل (بكسل)",
+      "footerFirstPageDifferent": "تذييل مختلف في الصفحة الأولى",
+      "footerOddEvenDifferent": "تذييل مختلف في الصفحات الفردية/الزوجية",
+      "insertIntoFooter": "إدراج في التذييل",
+      "insertText": "نص",
+      "insertPageNumber": "رقم الصفحة",
+      "insertDate": "تاريخ",
+      "insertLogo": "شعار"
+    },
+    "bleed": {
+      "heading": "منطقة القص",
+      "bleedSize": "حجم منطقة القص (بكسل) — 0 = إيقاف",
+      "bleedNote": "يوضّح خط القص الأحمر مكان قص الورق. مدّد عناصر الخلفية حتى حافة الصفحة.",
+      "showCropMarks": "إظهار علامات القص"
+    },
+    "watermark": {
+      "heading": "علامة مائية عامة",
+      "enable": "تفعيل العلامة المائية",
+      "modeText": "نص",
+      "modeImageUrl": "رابط الصورة",
+      "textPlaceholder": "مثال: مسودة",
+      "urlPlaceholder": "https://...",
+      "opacity": "العتامة (0–1)",
+      "rotation": "الدوران (°)",
+      "fontSize": "حجم الخط (بكسل)",
+      "color": "اللون",
+      "pageScope": "نطاق الصفحات",
+      "scopeAll": "كل الصفحات",
+      "scopeFirst": "الصفحة الأولى فقط",
+      "scopeOdd": "الصفحات الفردية",
+      "scopeEven": "الصفحات الزوجية",
+      "scopeRange": "نطاق الصفحات",
+      "pageRange": "نطاق الصفحات (مثل 2-5)",
+      "pageRangePlaceholder": "مثال: 2-5"
+    },
+    "pageNumbering": {
+      "heading": "ترقيم الصفحات",
+      "enable": "تفعيل أرقام الصفحات",
+      "format": "التنسيق",
+      "formatPageOfTotal": "صفحة X من Y",
+      "formatCurrent": "رقم الصفحة فقط",
+      "formatTotal": "إجمالي الصفحات فقط",
+      "formatRoman": "أرقام رومانية",
+      "formatAlphabetic": "أبجدي",
+      "startAt": "البدء من",
+      "prefix": "بادئة",
+      "prefixPlaceholder": "مثال: صفحة ",
+      "suffix": "لاحقة",
+      "suffixPlaceholder": "مثال:  | مسودة",
+      "showOnFirstPage": "إظهار في الصفحة الأولى",
+      "placement": "الموضع",
+      "placements": {
+        "top-left": "أعلى اليسار",
+        "top-center": "أعلى الوسط",
+        "top-right": "أعلى اليمين",
+        "bottom-left": "أسفل اليسار",
+        "bottom-center": "أسفل الوسط",
+        "bottom-right": "أسفل اليمين"
+      },
+      "placeOnCanvas": "وضع على اللوحة"
+    },
+    "exportMetadata": {
+      "heading": "بيانات تعريف التصدير",
+      "fields": {
+        "title": "العنوان",
+        "author": "المؤلف",
+        "subject": "الموضوع",
+        "keywords": "الكلمات المفتاحية"
+      },
+      "keywordsPlaceholder": "مفصولة بفواصل"
+    },
+    "exportDefaults": {
+      "heading": "إعدادات التصدير الافتراضية",
+      "pdfQuality": "جودة PDF",
+      "qualityScreen": "الشاشة (72 dpi)",
+      "qualityEbook": "الكتاب الإلكتروني (150 dpi)",
+      "qualityPrinter": "الطابعة (300 dpi)",
+      "qualityPrepress": "ما قبل الطباعة (400 dpi)",
+      "embedFonts": "تضمين الخطوط",
+      "compressImages": "ضغط الصور",
+      "accessibilityTagged": "إمكانية الوصول (PDF موسوم)"
+    },
+    "pagination": {
+      "heading": "التقسيم إلى صفحات",
+      "pageBreaks": "فواصل الصفحات",
+      "breaksAutomatic": "تلقائي",
+      "breaksManual": "يدوي فقط (عناصر حدود الصفحة)",
+      "sectionStart": "بداية القسم",
+      "sectionContinue": "المتابعة في نفس الصفحة",
+      "sectionNewPage": "البدء في صفحة جديدة",
+      "sectionOddPage": "البدء في صفحة فردية",
+      "sectionEvenPage": "البدء في صفحة زوجية",
+      "repeatTableHeader": "تكرار رأس الجدول في كل صفحة",
+      "keepWithNext": "إبقاء العناوين مع المحتوى التالي",
+      "orphanLines": "الأسطر اليتيمة (الحد الأدنى)",
+      "widowLines": "الأسطر الأرملة (الحد الأدنى)"
+    },
+    "trackChanges": {
+      "heading": "تتبع التغييرات",
+      "enable": "تفعيل تتبع المراجعات في تصدير DOCX"
+    },
+    "protection": {
+      "heading": "حماية المستند",
+      "enable": "تفعيل الحماية",
+      "restrictionMode": "وضع التقييد",
+      "modeReadOnly": "للقراءة فقط",
+      "modeComments": "التعليقات فقط",
+      "modeTrackedChanges": "التغييرات المتتبعة فقط",
+      "modeFormFields": "حقول النموذج فقط",
+      "passwordHash": "تجزئة كلمة المرور (اختياري)",
+      "passwordHashPlaceholder": "اتركه فارغًا لعدم وجود كلمة مرور"
+    },
+    "encryption": {
+      "heading": "تشفير PDF",
+      "enable": "تشفير PDF بكلمة مرور",
+      "userPassword": "كلمة مرور المستخدم (للفتح)",
+      "userPasswordPlaceholder": "اتركه فارغًا للفتح دون طلب",
+      "ownerPassword": "كلمة مرور المالك (الأذونات)",
+      "ownerPasswordPlaceholder": "تُستخدم كلمة مرور المستخدم افتراضيًا",
+      "algorithm": "الخوارزمية",
+      "algorithmRc4": "RC4 128-بت",
+      "algorithmAes128": "AES 128-بت (قريبًا)",
+      "permissionsHeading": "الأذونات",
+      "permissions": {
+        "print": "الطباعة",
+        "copy": "النسخ / استخراج النص",
+        "modify": "تعديل المحتوى",
+        "annotate": "التعليق التوضيحي وملء النماذج",
+        "fillForms": "ملء حقول النموذج فقط",
+        "extractAccessibility": "الاستخراج لإمكانية الوصول",
+        "assemble": "التجميع (إدراج/تدوير/حذف الصفحات)",
+        "printHighResolution": "طباعة عالية الدقة"
+      }
+    },
+    "customProperties": {
+      "heading": "خصائص مخصصة",
+      "namePlaceholder": "الاسم",
+      "valuePlaceholder": "القيمة",
+      "typeText": "نص",
+      "typeNumber": "رقم",
+      "typeBoolean": "منطقي",
+      "typeDate": "تاريخ",
+      "remove": "إزالة",
+      "addProperty": "إضافة خاصية"
+    },
+    "languages": {
+      "heading": "اللغات",
+      "systemLanguage": "لغة النظام:",
+      "systemLanguageNote": "(يتم اكتشافها تلقائيًا وتُستخدم كبديل)"
+    },
+    "namedStyles": {
+      "heading": "الأنماط المسمّاة",
+      "idPlaceholder": "المعرّف",
+      "displayNamePlaceholder": "اسم العرض",
+      "typeParagraph": "فقرة",
+      "typeCharacter": "حرف",
+      "typeList": "قائمة",
+      "typeTable": "جدول",
+      "remove": "إزالة",
+      "basedOnPlaceholder": "مبني على (معرّف)",
+      "nextStylePlaceholder": "النمط التالي (معرّف)",
+      "addStyle": "إضافة نمط"
+    },
+    "reset": "إعادة التعيين إلى الافتراضي"
+  },
+  "elementInspector": {
+    "toc": {
+      "heading": "جدول المحتويات",
+      "title": "العنوان",
+      "titlePlaceholder": "جدول المحتويات",
+      "minLevel": "الحد الأدنى للمستوى",
+      "maxLevel": "الحد الأقصى للمستوى",
+      "showPageNumbers": "إظهار أرقام الصفحات",
+      "showLeaderDots": "إظهار نقاط التوجيه",
+      "noHeadingsWarning": "لم يتم العثور على عناصر عناوين. حدد عنصرًا نصيًا واضبط مستوى العنوان في لوحة الفحص.",
+      "entriesSummary": "{{count}} إدخال (H{{min}}–H{{max}}) عبر {{pages}} صفحة",
+      "entriesSummary_plural": "{{count}} إدخالات (H{{min}}–H{{max}}) عبر {{pages}} صفحات",
+      "lastUpdated": "· آخر تحديث: {{count}} إدخالات",
+      "assignHeadingLevelsFirst": "قم أولًا بتعيين مستويات العناوين للعناصر النصية",
+      "rebuildTocTitle": "فحص كل الصفحات وإعادة بناء قائمة جدول المحتويات",
+      "updateToc": "تحديث جدول المحتويات"
+    },
+    "content": {
+      "heading": "المحتوى",
+      "placeholder": "محتوى نصي أو {{KEY}}",
+      "globalBadge": "عام",
+      "insertGlobalPropertyTitle": "إدراج {{tag}} — خاصية عامة",
+      "ownBadge": "خاص · {{lang}}",
+      "insertOwnPropertyTitle": "إدراج {{tag}} — خاصية خاصة بـ {{lang}}"
+    },
+    "imageAnalysisGlyphs": {
+      "heading": "رموز تحليل الصورة",
+      "unknownMethod": "غير معروف"
+    },
+    "richtext": {
+      "htmlContent": "محتوى HTML",
+      "htmlPlaceholder": "<p>نصك <strong>المنسّق</strong> هنا</p>"
+    },
+    "field": {
+      "fieldLabel": "تسمية الحقل",
+      "fieldLabelPlaceholder": "نص التسمية أو {{key}}",
+      "localizedValuesHint": "استخدم {{key}} للقيم المترجمة",
+      "fieldName": "اسم الحقل",
+      "fillBackground": "تعبئة الخلفية"
+    },
+    "common": {
+      "fontSize": "حجم الخط",
+      "textColor": "لون النص",
+      "color": "اللون"
+    },
+    "textarea": {
+      "fieldLabel": "تسمية الحقل",
+      "fieldLabelPlaceholder": "نص التسمية أو {{key}}",
+      "localizedValuesHint": "استخدم {{key}} للقيم المترجمة",
+      "fieldName": "اسم الحقل",
+      "placeholderText": "نص العنصر النائب",
+      "fillBackground": "تعبئة الخلفية"
+    },
+    "checkbox": {
+      "label": "تسمية خانة الاختيار",
+      "labelPlaceholder": "تسمية أو {{key}}",
+      "localizedValuesHint": "استخدم {{key}} للقيم المترجمة",
+      "fieldName": "اسم الحقل"
+    },
+    "button": {
+      "label": "التسمية",
+      "actionType": "نوع الإجراء",
+      "actionNone": "— بلا —",
+      "actionOpenUrl": "فتح رابط",
+      "actionGoToPage": "الانتقال إلى صفحة",
+      "actionSubmitForm": "إرسال النموذج",
+      "actionResetForm": "إعادة تعيين النموذج",
+      "url": "الرابط",
+      "urlPlaceholder": "https://example.com",
+      "pageNumber": "رقم الصفحة",
+      "background": "الخلفية",
+      "radius": "نصف القطر"
+    },
+    "dropdown": {
+      "options": "خيارات (واحد في كل سطر)",
+      "optionsPlaceholder": "خيار 1\nخيار 2\nخيار 3",
+      "multiSelect": "تحديد متعدد"
+    },
+    "optionlist": {
+      "listStyle": "نمط القائمة",
+      "styleBulletDisc": "• نقطة (قرص)",
+      "styleCircle": "○ دائرة",
+      "styleSquare": "▪ مربع",
+      "styleDash": "– شرطة",
+      "styleAsterisk": "* نجمة",
+      "styleNone": "بلا علامة",
+      "styleDecimal": "1. عشري",
+      "styleLowerAlpha": "a. أبجدي صغير",
+      "styleUpperAlpha": "A. أبجدي كبير",
+      "styleLowerRoman": "i. روماني صغير",
+      "styleUpperRoman": "I. روماني كبير",
+      "items": "عناصر (واحد في كل سطر)",
+      "itemsPlaceholder": "عنصر 1\nعنصر 2\nعنصر 3"
+    },
+    "radio": {
+      "options": "خيارات",
+      "optionPlaceholder": "خيار {{number}}",
+      "removeOption": "إزالة الخيار",
+      "addOption": "+ إضافة خيار"
+    },
+    "checkmark": {
+      "label": "التسمية",
+      "labelPlaceholder": "تسمية أو {{key}}",
+      "localizedValuesHint": "استخدم {{key}} للقيم المترجمة",
+      "state": "الحالة",
+      "stateChecked": "محدد",
+      "stateCross": "علامة إكس",
+      "stateDot": "نقطة",
+      "stateEmpty": "فارغ",
+      "markColor": "لون العلامة",
+      "stroke": "سُمك الخط"
+    },
+    "watermark": {
+      "mode": "الوضع",
+      "modeText": "نص",
+      "modeImage": "صورة",
+      "imageUrl": "رابط الصورة",
+      "text": "نص",
+      "color": "اللون",
+      "opacity": "العتامة",
+      "rotation": "الدوران",
+      "scale": "المقياس",
+      "pageScope": "نطاق الصفحات",
+      "scopeAll": "كل الصفحات",
+      "scopeCurrent": "الصفحة الحالية",
+      "scopeFirst": "الصفحة الأولى فقط",
+      "scopeLast": "الصفحة الأخيرة فقط",
+      "scopeRange": "النطاق المحدد",
+      "pageRange": "نطاق الصفحات",
+      "pageRangePlaceholder": "1-3, 5"
+    },
+    "note": {
+      "title": "العنوان",
+      "body": "النص",
+      "author": "المؤلف",
+      "noteColor": "لون الملاحظة",
+      "collapsed": "ملاحظة مطوية"
+    },
+    "date": {
+      "mode": "الوضع",
+      "modeStatic": "تاريخ ثابت",
+      "modeRender": "تاريخ العرض",
+      "modeBinding": "ربط البيانات",
+      "staticValue": "قيمة ثابتة / احتياطية",
+      "locale": "المنطقة المحلية",
+      "timezone": "المنطقة الزمنية",
+      "format": "التنسيق",
+      "color": "اللون"
+    },
+    "pagenumber": {
+      "format": "التنسيق",
+      "formatCurrent": "الصفحة الحالية",
+      "formatTotal": "إجمالي الصفحات",
+      "formatPageOfTotal": "صفحة X من Y",
+      "formatRoman": "روماني",
+      "formatAlphabetic": "أبجدي",
+      "start": "البداية",
+      "pageScope": "نطاق الصفحات",
+      "scopeAll": "الكل",
+      "scopeCurrent": "الحالية",
+      "scopeFirst": "الأولى",
+      "scopeLast": "الأخيرة",
+      "scopeOdd": "فردية",
+      "scopeEven": "زوجية",
+      "scopeRange": "نطاق",
+      "pageRange": "نطاق الصفحات",
+      "pageRangePlaceholder": "1-3, 5",
+      "prefix": "بادئة",
+      "suffix": "لاحقة"
+    },
+    "arrow": {
+      "direction": "الاتجاه",
+      "directions": {
+        "up": "أعلى",
+        "down": "أسفل",
+        "left": "يسار",
+        "right": "يمين"
+      },
+      "rotation": "الدوران (°)",
+      "arrowMode": "وضع السهم",
+      "modeStraight": "مستقيم",
+      "modeElbow": "زاوية",
+      "modeCurved": "منحنٍ",
+      "startHead": "رأس البداية",
+      "endHead": "رأس النهاية",
+      "markerNone": "بلا",
+      "markerFilled": "▶ ممتلئ",
+      "markerOpen": "▷ مفتوح",
+      "markerDot": "● نقطة",
+      "markerDiamond": "◆ معين",
+      "markerSquare": "■ مربع",
+      "markerCircle": "○ دائرة",
+      "color": "اللون",
+      "stroke": "السُمك",
+      "dashStyle": "نمط الشرطات",
+      "dashSolid": "متصل",
+      "dashDashed": "متقطع",
+      "dashDotted": "منقّط"
+    },
+    "typography": {
+      "heading": "الطباعة",
+      "fontFamily": "عائلة الخط",
+      "language": "اللغة",
+      "languageNone": "(بلا)",
+      "languages": {
+        "en": "الإنجليزية",
+        "de": "الألمانية",
+        "fr": "الفرنسية",
+        "es": "الإسبانية",
+        "it": "الإيطالية",
+        "pt": "البرتغالية",
+        "ru": "الروسية",
+        "el": "اليونانية",
+        "ar": "العربية (RTL)",
+        "he": "العبرية (RTL)",
+        "fa": "الفارسية (RTL)",
+        "zh-CN": "الصينية (المبسطة)",
+        "zh-TW": "الصينية (التقليدية)",
+        "ja": "اليابانية",
+        "ko": "الكورية",
+        "hi": "الهندية",
+        "th": "التايلاندية"
+      },
+      "direction": "الاتجاه",
+      "directionLtrTitle": "من اليسار إلى اليمين",
+      "directionRtlTitle": "من اليمين إلى اليسار",
+      "color": "اللون",
+      "lineHeight": "ارتفاع السطر",
+      "letterSpacing": "تباعد الأحرف",
+      "bold": "غامق",
+      "italic": "مائل",
+      "underline": "تسطير",
+      "alignLeft": "محاذاة لليسار",
+      "alignCenter": "توسيط",
+      "alignRight": "محاذاة لليمين",
+      "alignJustify": "ضبط"
+    },
+    "background": {
+      "heading": "الخلفية",
+      "color": "اللون",
+      "opacityPercent": "العتامة %",
+      "transparent": "شفاف (بلا خلفية)"
+    },
+    "border": {
+      "heading": "الحدود",
+      "width": "العرض",
+      "color": "اللون",
+      "style": "النمط",
+      "styleNone": "بلا",
+      "styleSolid": "متصل",
+      "styleDashed": "متقطع",
+      "styleDotted": "منقّط",
+      "styleDouble": "مزدوج",
+      "radius": "نصف القطر"
+    },
+    "padding": {
+      "heading": "الحشو",
+      "unlinkTitle": "فصل الجوانب",
+      "linkTitle": "ربط جميع الجوانب",
+      "allSides": "جميع الجوانب",
+      "top": "أعلى",
+      "right": "يمين",
+      "bottom": "أسفل",
+      "left": "يسار"
+    },
+    "qrcode": {
+      "value": "قيمة رمز QR",
+      "valuePlaceholder": "https://example.com",
+      "size": "الحجم"
+    },
+    "barcode": {
+      "value": "قيمة الباركود",
+      "valuePlaceholder": "123456789012",
+      "type": "النوع",
+      "typeCode128": "Code 128",
+      "typeCode39": "Code 39",
+      "typeEan13": "EAN-13",
+      "typeUpc": "UPC"
+    },
+    "signature": {
+      "label": "تسمية التوقيع",
+      "labelPlaceholder": "توقيع أو {{key}}",
+      "localizedValuesHint": "استخدم {{key}} للقيم المترجمة"
+    },
+    "image": {
+      "dropHere": "أسقط الصورة هنا أو",
+      "browse": "استعراض",
+      "sourceUrl": "رابط المصدر",
+      "fitMode": "وضع الملاءمة",
+      "fitContain": "احتواء",
+      "fitCover": "تغطية",
+      "fitFill": "تمدد",
+      "fitNone": "بلا",
+      "cropX": "قص X",
+      "cropY": "قص Y",
+      "cropWidth": "عرض القص",
+      "cropHeight": "ارتفاع القص",
+      "focalX": "النقطة البؤرية X (%)",
+      "focalY": "النقطة البؤرية Y (%)",
+      "preserveAspectRatio": "الحفاظ على نسبة العرض إلى الارتفاع"
+    },
+    "table": {
+      "rows": "الصفوف",
+      "columns": "الأعمدة",
+      "borderWidth": "عرض الحد",
+      "borderColor": "لون الحد",
+      "cellPadding": "حشو الخلية",
+      "cellFontSize": "حجم خط الخلية",
+      "cellFont": "خط الخلية",
+      "cellTextColor": "لون نص الخلية",
+      "boldCellText": "نص الخلية غامق",
+      "headerRow": "صف الرأس",
+      "headerBackground": "خلفية الرأس",
+      "footerRow": "صف التذييل",
+      "alternatingRows": "صفوف متناوبة",
+      "evenRowColor": "لون الصفوف الزوجية",
+      "columnAlignment": "محاذاة الأعمدة",
+      "col": "عمود {{number}}",
+      "columnWidths": "عرض الأعمدة (بكسل، 0 = تلقائي)",
+      "widthPlaceholder": "تلقائي",
+      "cellContent": "محتوى الخلية",
+      "cellStyle": "نمط الخلية",
+      "row": "الصف",
+      "colLabel": "عمود",
+      "cellTitle": "الخلية {{row}}:{{col}}",
+      "cellTitleStyled": "الخلية {{row}}:{{col}} منسّقة",
+      "background": "الخلفية",
+      "textColor": "لون النص",
+      "fontSize": "حجم الخط",
+      "padding": "الحشو",
+      "fontFamily": "عائلة الخط",
+      "fontFamilyDefault": "افتراضي",
+      "alignTitle": "محاذاة {{align}}",
+      "bold": "غامق",
+      "italic": "مائل",
+      "clearCellStyle": "مسح نمط الخلية"
+    },
+    "chart": {
+      "chartType": "نوع المخطط",
+      "typeBar": "أعمدة",
+      "typeLine": "خط",
+      "typePie": "دائري",
+      "chartData": "بيانات المخطط (JSON)"
+    },
+    "line": {
+      "color": "اللون",
+      "thickness": "السُمك (بكسل)"
+    },
+    "link": {
+      "displayText": "النص المعروض",
+      "displayTextPlaceholder": "انقر هنا",
+      "url": "الرابط (href)",
+      "urlPlaceholder": "https://example.com",
+      "target": "الهدف",
+      "targetBlank": "علامة تبويب جديدة (_blank)",
+      "targetSelf": "نفس علامة التبويب (_self)",
+      "color": "اللون"
+    },
+    "number": {
+      "value": "القيمة",
+      "style": "النمط",
+      "styleDecimal": "عشري (1,234.56)",
+      "styleCurrency": "عملة (1,234.56 €)",
+      "stylePercent": "نسبة مئوية (12.5%)",
+      "styleScientific": "علمي (1.23e+3)",
+      "styleOrdinal": "ترتيبي (الأول، الثاني…)",
+      "decimals": "الخانات العشرية",
+      "locale": "المنطقة المحلية",
+      "currency": "العملة",
+      "color": "اللون",
+      "prefix": "بادئة",
+      "prefixPlaceholder": "مثال: ~",
+      "suffix": "لاحقة",
+      "suffixPlaceholder": "مثال: نقاط"
+    },
+    "draw": {
+      "tool": "الأداة",
+      "toolPen": "قلم",
+      "toolHighlighter": "قلم تمييز",
+      "toolEraser": "ممحاة",
+      "pathData": "بيانات المسار",
+      "color": "اللون",
+      "stroke": "السُمك",
+      "opacity": "العتامة"
+    },
+    "highlight": {
+      "mode": "الوضع",
+      "modeRectangle": "مستطيل",
+      "modeText": "علامة نصية",
+      "color": "اللون",
+      "opacity": "العتامة",
+      "radius": "نصف القطر"
+    },
+    "pageboundary": {
+      "boundary": "الحد",
+      "boundaryStart": "بداية الصفحة",
+      "boundaryEnd": "نهاية الصفحة",
+      "label": "التسمية",
+      "color": "اللون"
+    },
+    "footnote": {
+      "footnoteText": "نص الحاشية السفلية",
+      "endnoteText": "نص الحاشية الختامية",
+      "placeholder": "نص الملاحظة…"
+    },
+    "bookmark": {
+      "name": "اسم الإشارة المرجعية",
+      "namePlaceholder": "مثال: مقدمة-القسم",
+      "linkTarget": "هدف الرابط (اختياري)",
+      "linkTargetPlaceholder": "اسم الإشارة المرجعية المراد الربط بها"
+    },
+    "comment": {
+      "text": "نص التعليق",
+      "textPlaceholder": "تعليق…",
+      "author": "المؤلف",
+      "date": "التاريخ",
+      "id": "معرّف التعليق",
+      "idPlaceholder": "يُنشأ تلقائيًا إذا تُرك فارغًا"
+    },
+    "contentcontrol": {
+      "controlType": "نوع عنصر التحكم",
+      "typeRichText": "نص منسق",
+      "typePlainText": "نص عادي",
+      "typeDate": "منتقي التاريخ",
+      "typeComboBox": "مربع تحرير وسرد",
+      "typePicture": "صورة",
+      "title": "العنوان",
+      "tag": "الوسم",
+      "placeholderText": "نص العنصر النائب",
+      "defaultContent": "المحتوى الافتراضي"
+    },
+    "visibility": {
+      "heading": "الظهور",
+      "visibleInOutput": "ظاهر في الإخراج",
+      "visibleExpression": "تعبير الظهور"
+    },
+    "wordDocx": {
+      "heading": "Word / DOCX",
+      "paragraphStyle": "نمط الفقرة",
+      "none": "— بلا —",
+      "characterStyle": "نمط الحرف",
+      "autoHyphenation": "الفصل الآلي للمقاطع",
+      "revisionType": "نوع المراجعة",
+      "revisionInsert": "إدراج",
+      "revisionDelete": "حذف",
+      "revisionFormat": "تغيير التنسيق",
+      "revisionAuthor": "مؤلف المراجعة",
+      "revisionDate": "تاريخ المراجعة",
+      "revisionId": "معرّف المراجعة",
+      "autoGenerated": "يُنشأ تلقائيًا إذا تُرك فارغًا"
+    },
+    "deleteElement": "حذف العنصر"
+  }
+}

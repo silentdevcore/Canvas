@@ -1,0 +1,88 @@
+{
+  "tabs": {
+    "codeMigration": "Code Migration",
+    "reportDesignerMigration": "Report Designer Migration",
+    "datasourceMigration": "Datasource Migration"
+  },
+  "heading": {
+    "designer": "Report Designer Migration",
+    "spreadsheetCode": "Spreadsheet Code Migration",
+    "pdfCode": "PDF Code Migration",
+    "designerDescription": "Convert a report-designer file (DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik) into an editable PXA design, then open it in the visual designer.",
+    "spreadsheetCodeDescription": "Paste code from another spreadsheet library (ClosedXML, EPPlus, GemBox, Aspose.Cells), convert it to the PXA spreadsheet API, and preview the result as a grid.",
+    "pdfCodeDescription": "Paste code from another PDF library, convert it to PXA-compatible PDF code, and preview the result instantly."
+  },
+  "backToMigrations": "← Migrations",
+  "backToMigrationsTitle": "Back to Migrations",
+  "sourceFramework": "Source framework",
+  "status": {
+    "full": "Full",
+    "pilot": "Pilot",
+    "skeleton": "Skeleton"
+  },
+  "loadExampleTitle": "Load {{name}} example",
+  "loadExample": "Load example",
+  "sourceCodeHeader": "Source Code — {{name}}",
+  "resources": {
+    "header": "Resources",
+    "noResxLoaded": "No .resx loaded",
+    "loadResx": "Load .resx",
+    "clear": "Clear",
+    "packageHeader": "Report package (zip)",
+    "noPackageLoaded": "No .trdp / packaged .rdlx loaded",
+    "loadPackage": "Load .trdp / .rdlx",
+    "jrxmlSubreports": "JRXML subreports",
+    "noJrxmlLoaded": "No .jrxml resources loaded",
+    "jrxmlLoadedCount": "{{count}} loaded",
+    "loadJrxmlFiles": "Load .jrxml files",
+    "rpxSubreports": "RPX subreports",
+    "noRpxLoaded": "No .rpx resources loaded",
+    "rpxLoadedCount": "{{count}} loaded",
+    "loadRpxFiles": "Load .rpx files",
+    "resourceJsonOverrides": "Resource JSON overrides"
+  },
+  "converting": "Converting…",
+  "convert": "Convert",
+  "dragToResize": "Drag to resize",
+  "output": {
+    "design": "PXA Design (JSON)",
+    "spreadsheetCode": "PXA Spreadsheet Code",
+    "pdfCode": "PXA-compatible PDF Code"
+  },
+  "toggleDiff": "Toggle diff view",
+  "diff": "Diff",
+  "copyToClipboard": "Copy to clipboard",
+  "copy": "Copy",
+  "copied": "Copied!",
+  "downloadCsFile": "Download as .cs file",
+  "downloadCs": "Download .cs",
+  "openInDesignerTitle": "Load the converted report into the visual designer",
+  "openInDesigner": "Open in Designer",
+  "generating": "Generating…",
+  "generatePreview": "Generate Preview",
+  "diagnostics": {
+    "label": "Diagnostics",
+    "converted": "✓ {{count}} converted",
+    "warning": "⚠ {{count}} warning",
+    "warning_plural": "⚠ {{count}} warnings",
+    "noIssues": "No issues",
+    "hideDetails": "▲ Hide details",
+    "showDetails": "▼ Show details"
+  },
+  "preview": {
+    "spreadsheetHeader": "Spreadsheet Preview",
+    "pdfHeader": "PDF Preview",
+    "openInPdfViewer": "Open in PDF Viewer",
+    "emptyPromptGrid": "Click <strong>{{action}}</strong> to render the converted workbook as a grid",
+    "emptyPromptPdf": "Click <strong>{{action}}</strong> to render the converted PDF"
+  },
+  "errors": {
+    "resourceJsonMustBeObject": "Resource JSON must be an object like { \"logo.ImageSource\": \"...\" }.",
+    "couldNotReadFile": "Could not read {{fileName}}.",
+    "couldNotReadJrxml": "Could not read one or more .jrxml resource files.",
+    "couldNotReadRpx": "Could not read one or more .rpx resource files.",
+    "couldNotReadPackage": "Could not read the report package file.",
+    "conversionFailed": "Conversion failed — is the Power Dox Automation backend running on port 5086?",
+    "previewFailed": "Preview failed — is the Power Dox Automation backend running on port 5086?"
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "hero": {
+    "eyebrow": "Concevez, importez et exportez des documents en un seul endroit",
+    "title": "Créez, remplissez et préparez des documents professionnels plus rapidement",
+    "description": "Power Dox Automation vous aide à démarrer à partir d'un modèle ou à importer un fichier PDF, Word ou ODT existant. Ajoutez des champs, des signatures et des liaisons de données — puis exportez vers PDF, DOCX, ODT, TIFF et plus encore.",
+    "templateCard": {
+      "title": "Démarrer à partir d'un modèle",
+      "copy": "Parcourir {{count}} modèles de documents prêts à l'emploi",
+      "action": "Parcourir les modèles"
+    },
+    "importCard": {
+      "title": "Importer un fichier",
+      "importing": "Importation en cours…",
+      "copy": "Ouvrez un fichier PDF, Word, ODT ou image comme conception modifiable",
+      "action": "Choisir un fichier",
+      "tooltip": "Importer un PDF, Word .doc/.docx, ODT, ou une image (PNG/JPG/WebP/…) en tant que conception PXA",
+      "importFailed": "Échec de l'importation"
+    },
+    "blankCard": {
+      "title": "Document vierge",
+      "copy": "Ouvrir l'éditeur avec une page vide — sans éléments de départ",
+      "action": "Commencer à vide"
+    },
+    "codeCard": {
+      "title": "Éditeur de code",
+      "copy": "Écrivez du JSON directement et voyez un aperçu PDF en direct pendant que vous tapez",
+      "action": "Ouvrir l'éditeur"
+    }
+  },
+  "pdfTools": {
+    "sectionLabel": "Tous les outils PDF dont vous avez besoin",
+    "sectionTitle": "Essayez ces outils pour finaliser vos PDF",
+    "createPdf": {
+      "label": "Créer un PDF",
+      "copy": "Démarrer un document vierge et le construire visuellement."
+    },
+    "editPdf": {
+      "label": "Modifier le PDF",
+      "copy": "Collez du code JSON ou C# et ajustez-le en direct dans le concepteur."
+    },
+    "useTemplate": {
+      "label": "Utiliser un modèle",
+      "copy": "Parcourez {{count}} factures, reçus, certificats prêts à l'emploi et plus encore."
+    },
+    "importPdf": {
+      "label": "Importer un PDF",
+      "copy": "Ouvrez rapidement un PDF comme conception modifiable dans l'éditeur visuel."
+    },
+    "convertToPdf": {
+      "label": "Convertir en PDF",
+      "copy": "Transformez un PDF, Word, PowerPoint, une image ou un SVG en conception modifiable — ou convertissez une image scannée en PDF consultable grâce à l'OCR."
+    },
+    "pdfViewer": {
+      "label": "Visionneuse PDF",
+      "copy": "Ouvrez, examinez et annotez un PDF sans quitter le navigateur."
+    },
+    "migrations": {
+      "label": "Migrations",
+      "copy": "Convertissez du code C# tiers ou des fichiers de concepteur de rapports (RDL, DevExpress, Crystal et plus) vers PXA."
+    },
+    "signDocx": {
+      "label": "Signer un DOCX",
+      "copy": "Appliquer une signature numérique X.509 à un DOCX.",
+      "toast": "Exportez d'abord votre conception en DOCX, puis utilisez le bouton Signer dans la fenêtre d'exportation."
+    }
+  },
+  "spreadsheetTools": {
+    "sectionLabel": "Tous les outils de feuille de calcul dont vous avez besoin",
+    "sectionTitle": "Créez et importez des feuilles de calcul tout aussi facilement",
+    "createSpreadsheet": {
+      "label": "Créer une feuille de calcul",
+      "copy": "Démarrer une feuille de calcul vierge avec l'éditeur de grille complet."
+    },
+    "editSpreadsheet": {
+      "label": "Modifier la feuille de calcul",
+      "copy": "Ouvrez un fichier JSON de classeur PXA pour l'éditer dans la grille."
+    },
+    "importSpreadsheet": {
+      "label": "Importer une feuille de calcul",
+      "copy": "Importez un fichier Excel ou CSV en conservant les formules et la mise en forme."
+    },
+    "convertToSpreadsheet": {
+      "label": "Convertir en feuille de calcul",
+      "copy": "Transformez un format externe en feuille de calcul."
+    },
+    "migrations": {
+      "label": "Migrations",
+      "copy": "Convertissez du code de feuille de calcul C# tiers (ClosedXML, EPPlus, GemBox, Aspose.Cells) vers PXA."
+    }
+  },
+  "toolGrid": {
+    "startNow": "Commencer maintenant",
+    "comingSoon": "Bientôt disponible"
+  },
+  "trustBand": {
+    "templatesCount": "{{count}} modèles",
+    "templatesSub": "prêts à ouvrir dans l'éditeur",
+    "exportFormats": "10 formats d'exportation",
+    "exportFormatsSub": "PDF, DOCX, ODT, TIFF, HTML et plus",
+    "importFormats": "7 formats d'importation",
+    "importFormatsSub": "PDF, DOCX, PPTX, DOC, ODT, SVG, images",
+    "browserBased": "100 % dans le navigateur",
+    "browserBasedSub": "aucun compte requis"
+  },
+  "categories": {
+    "sectionLabel": "Catégories de modèles",
+    "sectionTitle": "Choisissez un type de document à explorer",
+    "browseAll": "Parcourir tous les modèles"
+  },
+  "features": {
+    "sectionLabel": "Power Dox Automation",
+    "sectionTitle": "Tout ce dont vous avez besoin pour gérer documents et feuilles de calcul"
+  },
+  "featureCards": {
+    "multiFormat": {
+      "title": "Éditeur multi-formats",
+      "copy": "Concevez des modèles visuellement, puis exportez vers PDF, DOCX, ODT, XLSX, TIFF et plus — ou importez des PDF et documents Word existants comme conceptions modifiables."
+    },
+    "templateWorkflows": {
+      "title": "Flux de travail de modèles",
+      "copy": "Partez de factures, reçus, certificats et documents professionnels. Ajoutez des liaisons de données, des boucles et des expressions pour générer du contenu dynamique."
+    },
+    "wordFidelity": {
+      "title": "Export fidèle à Word",
+      "copy": "La sortie DOCX inclut des styles nommés, des notes de bas de page, des signets, le suivi des modifications, la protection du document, des propriétés personnalisées et des signatures numériques X.509."
+    },
+    "spreadsheetFormulas": {
+      "title": "Formules et mise en forme de feuille de calcul",
+      "copy": "Modifiez une grille complète avec des formules en direct, des styles de cellules et des fusions — importez Excel/CSV ou un classeur PXA natif, et exportez à nouveau avec la mise en forme intacte."
+    }
+  },
+  "security": {
+    "title": "Conçu pour les documents professionnels sensibles",
+    "copy": "Gardez l'interface calme, structurée et prévisible pour les contrats, factures, documents RH et approbations.",
+    "action": "Commencer à concevoir"
+  },
+  "usage": {
+    "documentSingular": "document",
+    "documentPlural": "documents",
+    "openedThisSession": "ouvert(s) durant cette session",
+    "lastOpenedTemplate": "dernier modèle ouvert"
+  }
+}

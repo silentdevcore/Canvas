@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   FiChevronRight,
@@ -15,6 +16,7 @@ interface TemplateCardProps {
 }
 
 const TemplateCard: React.FC<TemplateCardProps> = ({ template, onSelect }) => {
+  const { t } = useTranslation(['gallery', 'templates']);
   const cfg = CATEGORY_CONFIG[template.category] ?? CATEGORY_CONFIG['letter'];
   const Icon = cfg.icon;
 
@@ -35,16 +37,16 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onSelect }) => {
 
         <div className="pdf-template-hover">
           <FiEye />
-          <span>Use template</span>
+          <span>{t('card.useTemplateHover', { ns: 'gallery' })}</span>
         </div>
       </div>
 
       <div className="pdf-template-body">
         <div className="pdf-template-title-row">
           <Icon size={14} color={cfg.accent} />
-          <h3>{template.name}</h3>
+          <h3>{t(`template.${template.id}.name`, { ns: 'templates', defaultValue: template.name })}</h3>
         </div>
-        <p>{template.description}</p>
+        <p>{t(`template.${template.id}.description`, { ns: 'templates', defaultValue: template.description })}</p>
 
         <div className="pdf-template-tags">
           {template.tags.slice(0, 3).map(tag => (
@@ -59,7 +61,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onSelect }) => {
             onSelect();
           }}
         >
-          Use this template
+          {t('card.useTemplate', { ns: 'gallery' })}
           <FiChevronRight />
         </button>
       </div>

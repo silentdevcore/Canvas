@@ -48,11 +48,51 @@
   line-height: 1.6;
 }
 
+/* ── Page sections (ConvertToPdfPage: multi-format import + OCR, stacked) ──── */
+.importer-section {
+  margin-top: 56px;
+  padding-top: 56px;
+  border-top: 1.5px solid #e7e5e4;
+}
+
+.importer-section:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.importer-section-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.importer-section-header h2 {
+  margin: 0 0 10px;
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 800;
+  color: #171717;
+  line-height: 1.2;
+}
+
+.importer-section-header p {
+  max-width: 480px;
+  margin: 0 auto;
+  font-size: 14px;
+  color: #44403c;
+  line-height: 1.6;
+}
+
 /* Grid */
 .importer-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 20px;
+}
+
+/* Single-action variant (ImporterPage: one PDF-only card, centered) */
+.importer-grid--single {
+  grid-template-columns: minmax(0, 360px);
+  justify-content: center;
 }
 
 /* Card */
@@ -66,7 +106,7 @@
   border: 1.5px solid #e7e5e4;
   border-radius: 12px;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 

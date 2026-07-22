@@ -1,0 +1,52 @@
+{
+  "copy": "Kopieren",
+  "copied": "Kopiert",
+  "copyAriaLabel": "Code kopieren",
+  "propertyTable": {
+    "property": "Eigenschaft",
+    "type": "Typ",
+    "default": "Standard",
+    "description": "Beschreibung"
+  },
+  "elementCard": {
+    "renderFailedHttp": "Rendern fehlgeschlagen ({{status}})",
+    "renderFailed": "Rendern fehlgeschlagen — läuft das Backend auf :5086?",
+    "rendering": "Wird gerendert…",
+    "renderPreview": "Vorschau rendern",
+    "previewTitle": "{{label}}-Vorschau",
+    "designerOnlyNote": "Nur für den Designer — wird nicht in Ausgabeformate gerendert.",
+    "badges": {
+      "pdf": "PDF",
+      "word": "Word",
+      "html": "HTML",
+      "excel": "Excel",
+      "bindable": "Bindbar"
+    }
+  },
+  "sidebar": {
+    "title": "Dokumentation",
+    "backToHome": "← Zurück zur Startseite"
+  },
+  "mobileNav": {
+    "ariaLabel": "Dokumentationsnavigation öffnen",
+    "sections": "Abschnitte"
+  },
+  "sections": {
+    "quick-start": "Schnellstart",
+    "editor-overview": "Editor-Überblick",
+    "elements": "Elementreferenz",
+    "data-binding": "Datenbindung & Ausdrücke",
+    "import-export": "Import & Export",
+    "document-ops": "Dokumentvorgänge",
+    "migrations": "Migrationen",
+    "word-features": "Word-/DOCX-Funktionen",
+    "json-schema": "JSON-Schema",
+    "csharp-models": "C#-Modelle",
+    "csharp-examples": "C#-Codebeispiele",
+    "json-to-csharp": "JSON → C#-Zuordnung",
+    "rest-api": "REST-API",
+    "ai-codegen": "KI & Codegenerierung",
+    "spreadsheets": "Tabellenkalkulationen",
+    "documentation-map": "Dokumentationsübersicht"
+  }
+}

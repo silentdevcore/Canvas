@@ -1,0 +1,38 @@
+{
+  "toolbar": {
+    "heading": "Plantillas",
+    "count": "{{filtered}} de {{total}}",
+    "searchPlaceholder": "Buscar plantillas…",
+    "clearSearch": "Borrar búsqueda",
+    "formatFilterLabel": "Filtrar por formato",
+    "format": {
+      "all": "Todos los formatos",
+      "portrait": "Vertical",
+      "landscape": "Horizontal",
+      "square": "Cuadrado",
+      "widescreen": "Panorámico"
+    },
+    "sortLabel": "Ordenar plantillas",
+    "sort": {
+      "default": "Orden predeterminado",
+      "alpha": "A – Z",
+      "category": "Por categoría"
+    }
+  },
+  "categoryFilter": {
+    "ariaLabel": "Categorías de plantillas"
+  },
+  "emptyResults": {
+    "title": "No se encontraron plantillas",
+    "copy": "Prueba con otro término de búsqueda o categoría.",
+    "showAll": "Mostrar todas las plantillas"
+  },
+  "card": {
+    "useTemplateHover": "Usar plantilla",
+    "useTemplate": "Usar esta plantilla"
+  },
+  "detail": {
+    "close": "Cerrar",
+    "useTemplate": "Usar esta plantilla"
+  }
+}

@@ -37,7 +37,7 @@
 .ss-menu {
   position: absolute;
   top: calc(100% + 4px);
-  right: 0;
+  inset-inline-end: 0;
   z-index: 20;
   min-width: 150px;
   padding: 4px;
@@ -49,7 +49,7 @@
   flex-direction: column;
 }
 .ss-menu button {
-  text-align: left;
+  text-align: start;
   padding: 8px 10px;
   border: none;
   background: transparent;
@@ -90,14 +90,14 @@
 .ss-validation.is-valid { background: #ecfdf5; color: #047857; }
 .ss-validation.is-invalid { background: #fef2f2; color: #b91c1c; }
 .ss-validation-summary { font-weight: 600; }
-.ss-validation-list { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 2px; }
+.ss-validation-list { margin: 6px 0 0; padding-inline-start: 18px; display: flex; flex-direction: column; gap: 2px; }
 .ss-issue { font-size: 12px; color: #44403c; }
 .ss-issue--error { color: #b91c1c; }
 .ss-issue--warning { color: #b45309; }
 .ss-issue code { background: rgba(0,0,0,.06); padding: 0 4px; border-radius: 4px; }
-.ss-validation-close { position: absolute; top: 6px; right: 6px; border: none; background: transparent; color: inherit; cursor: pointer; padding: 2px; display: flex; opacity: .6; }
+.ss-validation-close { position: absolute; top: 6px; inset-inline-end: 6px; border: none; background: transparent; color: inherit; cursor: pointer; padding: 2px; display: flex; opacity: .6; }
 .ss-validation-close:hover { opacity: 1; }
-.ss-busy { font-size: 12px; color: #78716c; margin-right: 8px; }
+.ss-busy { font-size: 12px; color: #78716c; margin-inline-end: 8px; }
 .ss-format {
   height: 30px;
   border: 1px solid #e7e5e4;
@@ -217,7 +217,7 @@
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  margin-left: auto;
+  margin-inline-start: auto;
   padding: 0 8px;
   font-size: 12px;
   color: #44403c;

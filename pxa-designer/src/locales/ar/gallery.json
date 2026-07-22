@@ -1,0 +1,38 @@
+{
+  "toolbar": {
+    "heading": "القوالب",
+    "count": "{{filtered}} من {{total}}",
+    "searchPlaceholder": "ابحث في القوالب…",
+    "clearSearch": "مسح البحث",
+    "formatFilterLabel": "التصفية حسب التنسيق",
+    "format": {
+      "all": "جميع التنسيقات",
+      "portrait": "عمودي",
+      "landscape": "أفقي",
+      "square": "مربع",
+      "widescreen": "شاشة عريضة"
+    },
+    "sortLabel": "ترتيب القوالب",
+    "sort": {
+      "default": "الترتيب الافتراضي",
+      "alpha": "أ – ي",
+      "category": "حسب الفئة"
+    }
+  },
+  "categoryFilter": {
+    "ariaLabel": "فئات القوالب"
+  },
+  "emptyResults": {
+    "title": "لم يتم العثور على قوالب",
+    "copy": "جرّب مصطلح بحث أو فئة مختلفة.",
+    "showAll": "عرض كل القوالب"
+  },
+  "card": {
+    "useTemplateHover": "استخدام القالب",
+    "useTemplate": "استخدام هذا القالب"
+  },
+  "detail": {
+    "close": "إغلاق",
+    "useTemplate": "استخدام هذا القالب"
+  }
+}

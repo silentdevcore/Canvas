@@ -1,0 +1,51 @@
+{
+  "backToEditor": "← العودة إلى المحرر",
+  "heading": "معاينة: {{name}}",
+  "pageCount": "{{count}} صفحة",
+  "pageCount_plural": "{{count}} صفحات",
+  "elementCount": "{{count}} عناصر",
+  "pageLabel": "صفحة {{number}}",
+  "noElementsOnPage": "لا توجد عناصر في هذه الصفحة",
+  "zoomOut": "تصغير",
+  "zoomIn": "تكبير",
+  "resetZoom": "إعادة تعيين التكبير",
+  "exportImageFailed": "فشل تصدير الصورة",
+  "exportFailed": "فشل التصدير",
+  "exporting": "جارٍ التصدير…",
+  "exported": "تم التصدير!",
+  "export": "تصدير",
+  "exportMenu": {
+    "pdf": {
+      "label": "تصدير PDF",
+      "sub": "العرض عبر الخادم الخلفي (localhost:5086)"
+    },
+    "image": {
+      "label": "تصدير صورة",
+      "sub": "الحفظ بصيغة PNG (كل الصفحات)"
+    },
+    "json": {
+      "label": "تصدير JSON",
+      "sub": "تنزيل ملف القالب"
+    },
+    "print": {
+      "label": "طباعة",
+      "sub": "مربع حوار الطباعة في المتصفح"
+    },
+    "more": {
+      "label": "تنسيقات أخرى…",
+      "sub": "Word, Excel, HTML, XML, SVG, CSV, Markdown"
+    }
+  },
+  "openInPdfViewer": "فتح في عارض PDF",
+  "watermarkAlt": "علامة مائية",
+  "footer": {
+    "template": "القالب",
+    "pages": "الصفحات",
+    "pageSize": "حجم الصفحة",
+    "pageSizeValue": "{{width}} × {{height}} بكسل",
+    "quality": "الجودة",
+    "qualityDefault": "الطباعة",
+    "previewModeTitle": "وضع المعاينة",
+    "previewModeBody": "سيتم وضع اللمسات الأخيرة على رموز QR والباركود وعرض الخطوط الدقيق عند التصدير إلى PDF."
+  }
+}

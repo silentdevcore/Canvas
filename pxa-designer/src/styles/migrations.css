@@ -172,7 +172,7 @@
 }
 
 .mgr-example-btn {
-  margin-left: auto;
+  margin-inline-start: auto;
   font-size: var(--font-size-sm);
   color: var(--color-primary);
   background: none;
@@ -515,7 +515,7 @@
 }
 
 .mgr-diag-toggle {
-  margin-left: auto;
+  margin-inline-start: auto;
   font-size: var(--font-size-xs);
   color: var(--color-gray-500);
   background: none;
@@ -657,7 +657,7 @@
   display: flex;
   align-items: flex-start;
   gap: var(--space-4);
-  text-align: left;
+  text-align: start;
   padding: var(--space-5);
   background: var(--color-white, #fff);
   border: 1px solid var(--color-gray-200);

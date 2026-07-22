@@ -1,0 +1,88 @@
+{
+  "tabs": {
+    "codeMigration": "Migración de código",
+    "reportDesignerMigration": "Migración del diseñador de informes",
+    "datasourceMigration": "Migración de origen de datos"
+  },
+  "heading": {
+    "designer": "Migración del diseñador de informes",
+    "spreadsheetCode": "Migración de código de hoja de cálculo",
+    "pdfCode": "Migración de código PDF",
+    "designerDescription": "Convierte un archivo de diseñador de informes (DevExpress, RDL/RDLC, ActiveReports, FastReport, Telerik) en un diseño PXA editable y ábrelo en el diseñador visual.",
+    "spreadsheetCodeDescription": "Pega código de otra biblioteca de hojas de cálculo (ClosedXML, EPPlus, GemBox, Aspose.Cells), conviértelo a la API de hojas de cálculo PXA y previsualiza el resultado como cuadrícula.",
+    "pdfCodeDescription": "Pega código de otra biblioteca de PDF, conviértelo a código PDF compatible con PXA y previsualiza el resultado al instante."
+  },
+  "backToMigrations": "← Migraciones",
+  "backToMigrationsTitle": "Volver a migraciones",
+  "sourceFramework": "Framework de origen",
+  "status": {
+    "full": "Completo",
+    "pilot": "Piloto",
+    "skeleton": "Esqueleto"
+  },
+  "loadExampleTitle": "Cargar ejemplo de {{name}}",
+  "loadExample": "Cargar ejemplo",
+  "sourceCodeHeader": "Código fuente — {{name}}",
+  "resources": {
+    "header": "Recursos",
+    "noResxLoaded": "No se cargó ningún .resx",
+    "loadResx": "Cargar .resx",
+    "clear": "Borrar",
+    "packageHeader": "Paquete de informe (zip)",
+    "noPackageLoaded": "No se cargó ningún .trdp / .rdlx empaquetado",
+    "loadPackage": "Cargar .trdp / .rdlx",
+    "jrxmlSubreports": "Subinformes JRXML",
+    "noJrxmlLoaded": "No se cargaron recursos .jrxml",
+    "jrxmlLoadedCount": "{{count}} cargado(s)",
+    "loadJrxmlFiles": "Cargar archivos .jrxml",
+    "rpxSubreports": "Subinformes RPX",
+    "noRpxLoaded": "No se cargaron recursos .rpx",
+    "rpxLoadedCount": "{{count}} cargado(s)",
+    "loadRpxFiles": "Cargar archivos .rpx",
+    "resourceJsonOverrides": "Anulaciones de JSON de recursos"
+  },
+  "converting": "Convirtiendo…",
+  "convert": "Convertir",
+  "dragToResize": "Arrastrar para redimensionar",
+  "output": {
+    "design": "Diseño PXA (JSON)",
+    "spreadsheetCode": "Código de hoja de cálculo PXA",
+    "pdfCode": "Código PDF compatible con PXA"
+  },
+  "toggleDiff": "Alternar vista de diferencias",
+  "diff": "Diff",
+  "copyToClipboard": "Copiar al portapapeles",
+  "copy": "Copiar",
+  "copied": "¡Copiado!",
+  "downloadCsFile": "Descargar como archivo .cs",
+  "downloadCs": "Descargar .cs",
+  "openInDesignerTitle": "Cargar el informe convertido en el diseñador visual",
+  "openInDesigner": "Abrir en el diseñador",
+  "generating": "Generando…",
+  "generatePreview": "Generar vista previa",
+  "diagnostics": {
+    "label": "Diagnósticos",
+    "converted": "✓ {{count}} convertido(s)",
+    "warning": "⚠ {{count}} advertencia",
+    "warning_plural": "⚠ {{count}} advertencias",
+    "noIssues": "Sin problemas",
+    "hideDetails": "▲ Ocultar detalles",
+    "showDetails": "▼ Mostrar detalles"
+  },
+  "preview": {
+    "spreadsheetHeader": "Vista previa de la hoja de cálculo",
+    "pdfHeader": "Vista previa del PDF",
+    "openInPdfViewer": "Abrir en el visor de PDF",
+    "emptyPromptGrid": "Haz clic en <strong>{{action}}</strong> para renderizar el libro convertido como una cuadrícula",
+    "emptyPromptPdf": "Haz clic en <strong>{{action}}</strong> para renderizar el PDF convertido"
+  },
+  "errors": {
+    "resourceJsonMustBeObject": "El JSON de recursos debe ser un objeto como { \"logo.ImageSource\": \"...\" }.",
+    "couldNotReadFile": "No se pudo leer {{fileName}}.",
+    "couldNotReadJrxml": "No se pudieron leer uno o más archivos de recursos .jrxml.",
+    "couldNotReadRpx": "No se pudieron leer uno o más archivos de recursos .rpx.",
+    "couldNotReadPackage": "No se pudo leer el archivo del paquete de informe.",
+    "conversionFailed": "Error de conversión — ¿está el backend de Power Dox Automation ejecutándose en el puerto 5086?",
+    "previewFailed": "Error en la vista previa — ¿está el backend de Power Dox Automation ejecutándose en el puerto 5086?"
+  }
+}

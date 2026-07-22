@@ -1,0 +1,51 @@
+{
+  "backToEditor": "← Torna all'editor",
+  "heading": "Anteprima: {{name}}",
+  "pageCount": "{{count}} pagina",
+  "pageCount_plural": "{{count}} pagine",
+  "elementCount": "{{count}} elementi",
+  "pageLabel": "Pagina {{number}}",
+  "noElementsOnPage": "Nessun elemento in questa pagina",
+  "zoomOut": "Riduci zoom",
+  "zoomIn": "Aumenta zoom",
+  "resetZoom": "Ripristina zoom",
+  "exportImageFailed": "Esportazione immagine non riuscita",
+  "exportFailed": "Esportazione non riuscita",
+  "exporting": "Esportazione in corso…",
+  "exported": "Esportato!",
+  "export": "Esporta",
+  "exportMenu": {
+    "pdf": {
+      "label": "Esporta PDF",
+      "sub": "Rendering tramite backend (localhost:5086)"
+    },
+    "image": {
+      "label": "Esporta immagine",
+      "sub": "Salva come PNG (tutte le pagine)"
+    },
+    "json": {
+      "label": "Esporta JSON",
+      "sub": "Scarica file modello"
+    },
+    "print": {
+      "label": "Stampa",
+      "sub": "Finestra di dialogo di stampa del browser"
+    },
+    "more": {
+      "label": "Altri formati…",
+      "sub": "Word, Excel, HTML, XML, SVG, CSV, Markdown"
+    }
+  },
+  "openInPdfViewer": "Apri nel visualizzatore PDF",
+  "watermarkAlt": "Filigrana",
+  "footer": {
+    "template": "Modello",
+    "pages": "Pagine",
+    "pageSize": "Dimensione pagina",
+    "pageSizeValue": "{{width}} × {{height}} px",
+    "quality": "Qualità",
+    "qualityDefault": "stampante",
+    "previewModeTitle": "Modalità anteprima",
+    "previewModeBody": "Codici QR, codici a barre e il rendering esatto dei font verranno finalizzati nell'esportazione PDF."
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiChevronRight,
@@ -24,9 +25,11 @@ interface DetailPanelProps {
 }
 
 const TemplateDetailPanel: React.FC<DetailPanelProps> = ({ template, onClose, onUse }) => {
+  const { t } = useTranslation(['gallery', 'templates']);
   if (!template) return null;
   const cfg = CATEGORY_CONFIG[template.category] ?? CATEGORY_CONFIG['letter'];
   const Icon = cfg.icon;
+  const categoryName = CATEGORIES.find(c => c.id === template.category)?.name ?? template.category;
 
   return (
     <>
@@ -39,7 +42,7 @@ const TemplateDetailPanel: React.FC<DetailPanelProps> = ({ template, onClose, on
         transition={{ type: 'spring', stiffness: 320, damping: 34 }}
       >
         <div className="tpl-detail-header">
-          <button className="tpl-detail-close" onClick={onClose} aria-label="Close">
+          <button className="tpl-detail-close" onClick={onClose} aria-label={t('detail.close', { ns: 'gallery' })}>
             <FiX size={18} />
           </button>
         </div>
@@ -54,11 +57,11 @@ const TemplateDetailPanel: React.FC<DetailPanelProps> = ({ template, onClose, on
             style={{ background: cfg.bg, color: cfg.text, borderColor: cfg.accent + '33' }}
           >
             <Icon size={12} color={cfg.text} />
-            {CATEGORIES.find(c => c.id === template.category)?.name ?? template.category}
+            {t(`category.${template.category}.name`, { ns: 'templates', defaultValue: categoryName })}
           </span>
 
-          <h2 className="tpl-detail-name">{template.name}</h2>
-          <p className="tpl-detail-desc">{template.description}</p>
+          <h2 className="tpl-detail-name">{t(`template.${template.id}.name`, { ns: 'templates', defaultValue: template.name })}</h2>
+          <p className="tpl-detail-desc">{t(`template.${template.id}.description`, { ns: 'templates', defaultValue: template.description })}</p>
 
           <div className="tpl-detail-tags">
             {template.tags.slice(0, 4).map(tag => (
@@ -70,7 +73,7 @@ const TemplateDetailPanel: React.FC<DetailPanelProps> = ({ template, onClose, on
             className="tpl-use-button"
             onClick={() => onUse(template)}
           >
-            Use this template
+            {t('detail.useTemplate', { ns: 'gallery' })}
             <FiChevronRight size={18} />
           </button>
         </div>
@@ -82,6 +85,7 @@ const TemplateDetailPanel: React.FC<DetailPanelProps> = ({ template, onClose, on
 // ─── Template Page ────────────────────────────────────────────────────────────
 
 const TemplatePage: React.FC = () => {
+  const { t } = useTranslation(['gallery', 'templates']);
   const [searchParams, setSearchParams] = useSearchParams();
   const { loadTemplate } = useTemplateLoader();
 
@@ -129,15 +133,20 @@ const TemplatePage: React.FC = () => {
     setSelectedTemplate(null);
   };
 
+  const translatedCategories = CATEGORIES.map(cat => ({
+    ...cat,
+    name: t(`category.${cat.id}.name`, { ns: 'templates', defaultValue: cat.name }),
+  }));
+
   return (
     <div className="pdf-home">
       <main>
         {/* Toolbar */}
         <section className="tpl-toolbar">
           <div className="tpl-toolbar-left">
-            <h1 className="tpl-toolbar-heading">Templates</h1>
+            <h1 className="tpl-toolbar-heading">{t('toolbar.heading')}</h1>
             <span className="tpl-toolbar-count">
-              {filteredTemplates.length} of {TEMPLATES.length}
+              {t('toolbar.count', { filtered: filteredTemplates.length, total: TEMPLATES.length })}
             </span>
           </div>
           <div className="tpl-toolbar-right">
@@ -145,12 +154,12 @@ const TemplatePage: React.FC = () => {
               <FiSearch />
               <input
                 type="text"
-                placeholder="Search templates…"
+                placeholder={t('toolbar.searchPlaceholder')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
               />
               {searchQuery && (
-                <button className="pdf-search-clear" onClick={() => setSearchQuery('')} aria-label="Clear search">
+                <button className="pdf-search-clear" onClick={() => setSearchQuery('')} aria-label={t('toolbar.clearSearch')}>
                   <FiX size={14} />
                 </button>
               )}
@@ -159,23 +168,23 @@ const TemplatePage: React.FC = () => {
               className="pdf-sort-select"
               value={selectedFormat}
               onChange={e => setSelectedFormat(e.target.value)}
-              aria-label="Filter by format"
+              aria-label={t('toolbar.formatFilterLabel')}
             >
-              <option value="all">All formats</option>
-              <option value="portrait">Portrait</option>
-              <option value="landscape">Landscape</option>
-              <option value="square">Square</option>
-              <option value="widescreen">Widescreen</option>
+              <option value="all">{t('toolbar.format.all')}</option>
+              <option value="portrait">{t('toolbar.format.portrait')}</option>
+              <option value="landscape">{t('toolbar.format.landscape')}</option>
+              <option value="square">{t('toolbar.format.square')}</option>
+              <option value="widescreen">{t('toolbar.format.widescreen')}</option>
             </select>
             <select
               className="pdf-sort-select"
               value={sortOrder}
               onChange={e => setSortOrder(e.target.value as SortOrder)}
-              aria-label="Sort templates"
+              aria-label={t('toolbar.sortLabel')}
             >
-              <option value="default">Default order</option>
-              <option value="alpha">A – Z</option>
-              <option value="category">By category</option>
+              <option value="default">{t('toolbar.sort.default')}</option>
+              <option value="alpha">{t('toolbar.sort.alpha')}</option>
+              <option value="category">{t('toolbar.sort.category')}</option>
             </select>
           </div>
         </section>
@@ -183,7 +192,7 @@ const TemplatePage: React.FC = () => {
         {/* Category filter */}
         <div className="tpl-category-wrap">
           <CategoryFilter
-            categories={CATEGORIES}
+            categories={translatedCategories}
             selectedCategory={selectedCategory}
             onCategoryChange={handleCategoryChange}
           />
@@ -212,10 +221,10 @@ const TemplatePage: React.FC = () => {
           ) : (
             <div className="pdf-empty-results">
               <FiSearch />
-              <h3>No templates found</h3>
-              <p>Try a different search term or category.</p>
+              <h3>{t('emptyResults.title')}</h3>
+              <p>{t('emptyResults.copy')}</p>
               <button className="pdf-outline-button" onClick={clearSearch}>
-                Show all templates
+                {t('emptyResults.showAll')}
               </button>
             </div>
           )}
