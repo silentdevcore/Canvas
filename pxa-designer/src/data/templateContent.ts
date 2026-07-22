@@ -23,6 +23,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'invoice-international': return buildInternationalInvoice(id);
     case 'invoice-credit-note':   return buildCreditNote(id);
     case 'invoice-proforma':      return buildProformaInvoice(id);
+    case 'invoice-arabic':        return buildArabicInvoice(id);
     // ── Receipts ───────────────────────────────────────────────
     case 'receipt-pos':           return buildPosReceipt(id);
     case 'receipt-restaurant':    return buildRestaurantReceipt(id);
@@ -32,6 +33,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'receipt-donation':      return buildDonationReceipt(id);
     case 'receipt-parking':       return buildParkingReceipt(id);
     case 'receipt-pharmacy':      return buildPharmacyReceipt(id);
+    case 'receipt-arabic':        return buildReceiptArabic(id);
     // ── Certificates ───────────────────────────────────────────
     case 'cert-course':           return buildCourseCertificate(id);
     case 'cert-employee-month':   return buildEmployeeOfMonth(id);
@@ -42,6 +44,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'cert-kids':             return buildKidsCertificate(id);
     case 'cert-workshop':         return buildWorkshopCertificate(id);
     case 'cert-sales':            return buildSalesCertificate(id);
+    case 'cert-arabic':           return buildCertificateArabic(id);
     // ── Business Cards ─────────────────────────────────────────
     case 'card-minimalist':       return buildMinimalistCard(id);
     case 'card-double-sided':     return buildDoubleSidedCard(id);
@@ -52,6 +55,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'card-freelancer':       return buildFreelancerCard(id);
     case 'card-qr-only':          return buildQrOnlyCard(id);
     case 'card-company':          return buildCompanyCard(id);
+    case 'card-arabic':           return buildCardArabic(id);
     // ── Letterheads ────────────────────────────────────────────
     case 'letterhead-standard':   return buildStandardLetterhead(id);
     case 'letterhead-executive':  return buildExecutiveLetterhead(id);
@@ -61,6 +65,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'letterhead-govt':       return buildGovtLetterhead(id);
     case 'letterhead-confidential': return buildConfidentialLetterhead(id);
     case 'letterhead-multilang':  return buildMultilangLetterhead(id);
+    case 'letter-arabic':         return buildLetterArabic(id);
     // ── Reports ────────────────────────────────────────────────
     case 'report-kpi':            return buildKpiReport(id);
     case 'report-financial':      return buildFinancialReport(id);
@@ -72,6 +77,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'report-sustainability': return buildSustainabilityReport(id);
     case 'report-summary':        return buildExecutiveSummary(id);
     case 'report-board':          return buildAnnualBoardReport(id);
+    case 'report-arabic':         return buildReportArabic(id);
     // ── Labels ─────────────────────────────────────────────────
     case 'label-food':            return buildFoodLabel(id);
     case 'label-cosmetics':       return buildCosmeticsLabel(id);
@@ -82,6 +88,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'label-shipping':        return buildShippingLabel(id);
     case 'label-asset':           return buildAssetLabel(id);
     case 'label-price':           return buildPriceTag(id);
+    case 'label-arabic':          return buildLabelArabic(id);
     // ── Resumes ────────────────────────────────────────────────
     case 'resume-classic':        return buildClassicResume(id);
     case 'resume-two-column':     return buildTwoColumnResume(id);
@@ -93,6 +100,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'resume-minimalist':     return buildMinimalistResume(id);
     case 'resume-functional':     return buildFunctionalResume(id);
     case 'resume-multilingual':   return buildMultilingualCv(id);
+    case 'resume-arabic':         return buildResumeArabic(id);
     // ── Proposals ──────────────────────────────────────────────
     case 'proposal-service':      return buildServiceProposal(id);
     case 'proposal-quotation':    return buildProductQuotation(id);
@@ -103,6 +111,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'proposal-event':        return buildEventProposal(id);
     case 'proposal-grant':        return buildGrantProposal(id);
     case 'proposal-insurance':    return buildInsuranceQuotation(id);
+    case 'proposal-arabic':       return buildProposalArabic(id);
     // ── Contracts ──────────────────────────────────────────────
     case 'contract-freelance':    return buildFreelanceAgreement(id);
     case 'contract-employment':   return buildEmploymentContract(id);
@@ -114,6 +123,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'contract-loan':         return buildLoanAgreement(id);
     case 'contract-licensing':    return buildLicensingAgreement(id);
     case 'contract-settlement':   return buildSettlementAgreement(id);
+    case 'contract-arabic':       return buildContractArabic(id);
     // ── Forms ──────────────────────────────────────────────────
     case 'form-job-application':  return buildJobApplicationForm(id);
     case 'form-leave-request':    return buildLeaveRequestForm(id);
@@ -125,6 +135,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'form-medical-history':  return buildMedicalHistoryForm(id);
     case 'form-supplier':         return buildSupplierRegistrationForm(id);
     case 'form-loan':             return buildLoanApplicationForm(id);
+    case 'form-arabic':           return buildFormArabic(id);
     // ── Newsletter / Brochure ──────────────────────────────────
     case 'newsletter-company':    return buildCompanyNewsletter(id);
     case 'newsletter-product-launch': return buildProductLaunchFlyer(id);
@@ -135,6 +146,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'newsletter-realestate': return buildRealEstateFlyer(id);
     case 'newsletter-event':      return buildEventInvitation(id);
     case 'newsletter-hr':         return buildHrNewsletter(id);
+    case 'newsletter-arabic':     return buildNewsletterArabic(id);
     // ── ID Cards ───────────────────────────────────────────────
     case 'id-employee':           return buildEmployeeId(id);
     case 'id-conference':         return buildConferenceBadge(id);
@@ -145,6 +157,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'id-press':              return buildPressCredential(id);
     case 'id-healthcare':         return buildHealthcareStaffBadge(id);
     case 'id-lanyard':            return buildLanyardInsert(id);
+    case 'id-arabic':             return buildIdArabic(id);
     // ── Delivery Notes ─────────────────────────────────────────
     case 'delivery-packing-slip': return buildPackingSlip(id);
     case 'delivery-note':         return buildDeliveryNote(id);
@@ -154,6 +167,7 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'delivery-rma':          return buildRmaSlip(id);
     case 'delivery-multipackage': return buildMultipackageShipment(id);
     case 'delivery-coldchain':    return buildColdChainDelivery(id);
+    case 'delivery-arabic':       return buildDeliveryArabic(id);
     // ── Meeting ────────────────────────────────────────────────
     case 'meeting-agenda':        return buildSimpleAgenda(id);
     case 'meeting-minutes':       return buildFormalMinutes(id);
@@ -165,10 +179,12 @@ export function getTemplateElements(templateId: string): SimpleElement[] {
     case 'meeting-client-status': return buildClientStatusMeeting(id);
     case 'meeting-committee':     return buildCommitteeMinutes(id);
     case 'meeting-townhall':      return buildTownHallNotes(id);
+    case 'meeting-arabic':        return buildMeetingArabic(id);
     // ── Books / Chapters ───────────────────────────────────────
     case 'book-chapter-cover':    return buildBookChapterCover(id);
     case 'book-body-text':        return buildBookBodyText(id);
     case 'book-bibliography':     return buildBookBibliography(id);
+    case 'book-arabic':           return buildBookArabic(id);
     default:                      return [];
   }
 }
@@ -250,6 +266,82 @@ function buildCourseCertificate(id: (k: string) => string): SimpleElement[] {
       style: { backgroundColor: 'transparent', borderWidth: 2, borderColor: '#bfdbfe' } },
     { id: id('seal-txt'), type: 'text', x: 258, y: 452, width: 80, height: 16,
       content: 'OFFICIAL\nSEAL', style: { fontSize: 8, color: '#93c5fd', textAlign: 'center' } },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Arabic Certificate — mirrored from buildCourseCertificate. Most of the
+// layout is already centered (x'=595-x-width resolves to the same x for
+// centered blocks), so only the two signature blocks and the QR/credential
+// block — which sit on one fixed side in the original — actually move.
+// ─────────────────────────────────────────────────────────────
+function buildCertificateArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('border-outer'), type: 'rect', x: 16, y: 16, width: 563, height: 810,
+      style: { backgroundColor: 'transparent', borderWidth: 3, borderColor: '#1e3a5f', borderRadius: 4 } },
+    { id: id('border-inner'), type: 'rect', x: 24, y: 24, width: 547, height: 794,
+      style: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#93c5fd', borderRadius: 2 } },
+    { id: id('top-band'), type: 'rect', x: 16, y: 16, width: 563, height: 8,
+      style: { backgroundColor: '#1e3a5f', borderWidth: 0 } },
+    { id: id('bot-band'), type: 'rect', x: 16, y: 818, width: 563, height: 8,
+      style: { backgroundColor: '#1e3a5f', borderWidth: 0 } },
+
+    { id: id('issuer'), type: 'text', x: 60, y: 52, width: 475, height: 18,
+      content: 'معهد التقنية للتعليم', style: { fontSize: 11, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('div1'), type: 'rect', x: 200, y: 76, width: 195, height: 2,
+      style: { backgroundColor: '#bfdbfe', borderWidth: 0 } },
+    { id: id('cert-title'), type: 'text', x: 60, y: 90, width: 475, height: 30,
+      content: 'شهادة إتمام', style: { fontSize: 22, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('awarded-to'), type: 'text', x: 60, y: 136, width: 475, height: 18,
+      content: 'نشهد بأن', style: { fontSize: 12, color: '#64748b', textAlign: 'center' }, ...rtl },
+
+    { id: id('name-line'), type: 'rect', x: 100, y: 188, width: 395, height: 2,
+      style: { backgroundColor: '#1e3a5f', borderWidth: 0 } },
+    { id: id('name'), type: 'text', x: 60, y: 154, width: 475, height: 36,
+      content: 'نورة عبدالله السالم', style: { fontSize: 28, color: '#0f172a', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+
+    { id: id('has-completed'), type: 'text', x: 60, y: 200, width: 475, height: 18,
+      content: 'قد أكملت بنجاح دورة', style: { fontSize: 12, color: '#64748b', textAlign: 'center' }, ...rtl },
+    { id: id('course-name'), type: 'text', x: 60, y: 228, width: 475, height: 28,
+      content: 'علم البيانات المتقدم والتعلم الآلي', style: { fontSize: 20, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('course-hours'), type: 'text', x: 60, y: 262, width: 475, height: 18,
+      content: '40 ساعة تدريبية  ·  18 مايو 2024', style: { fontSize: 11, color: '#64748b', textAlign: 'center' }, ...rtl },
+
+    { id: id('div2'), type: 'rect', x: 60, y: 292, width: 475, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+
+    { id: id('desc'), type: 'richtext', x: 80, y: 308, width: 435, height: 80,
+      htmlContent: '<div style="text-align:center; direction:rtl"><p>تُمنح هذه الشهادة تقديرًا لإتمام جميع الوحدات والتقييمات والمشاريع التطبيقية المطلوبة بنجاح. وقد أظهرت الحاصلة عليها كفاءة في النمذجة الإحصائية والشبكات العصبية وتقنيات التعلم الآلي التطبيقية.</p></div>',
+      ...rtl },
+
+    // Signature blocks swapped: sig1 now on the right (was left), sig2 on the left (was right)
+    { id: id('sig1-line'), type: 'rect', x: 355, y: 530, width: 160, height: 1,
+      style: { backgroundColor: '#334155', borderWidth: 0 } },
+    { id: id('sig1-name'), type: 'text', x: 355, y: 538, width: 160, height: 18,
+      content: 'د. سارة المطيري', style: { fontSize: 11, color: '#0f172a', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('sig1-title'), type: 'text', x: 355, y: 558, width: 160, height: 14,
+      content: 'مدربة الدورة', style: { fontSize: 9, color: '#64748b', textAlign: 'center' }, ...rtl },
+
+    { id: id('sig2-line'), type: 'rect', x: 78, y: 530, width: 160, height: 1,
+      style: { backgroundColor: '#334155', borderWidth: 0 } },
+    { id: id('sig2-name'), type: 'text', x: 78, y: 538, width: 160, height: 18,
+      content: 'أ. خالد الحربي', style: { fontSize: 11, color: '#0f172a', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('sig2-title'), type: 'text', x: 78, y: 558, width: 160, height: 14,
+      content: 'المدير الأكاديمي', style: { fontSize: 9, color: '#64748b', textAlign: 'center' }, ...rtl },
+
+    // Credential/QR block moved from the right side to the left
+    { id: id('cred-id'), type: 'text', x: 125, y: 600, width: 410, height: 14,
+      content: 'رقم الشهادة: LIT-DS-2024-8821  ·  للتحقق: lit.edu/verify', style: { fontSize: 9, color: '#94a3b8', textAlign: 'center' }, ...rtl },
+    { id: id('qr'), type: 'qrcode', x: 40, y: 520, width: 65, height: 65,
+      qrValue: 'https://lit.edu/verify/LIT-DS-2024-8821' },
+    { id: id('qr-lbl'), type: 'text', x: 40, y: 588, width: 65, height: 12,
+      content: 'تحقق', style: { fontSize: 7, color: '#94a3b8', textAlign: 'center' }, ...rtl },
+
+    { id: id('seal'), type: 'circle', x: 257, y: 420, width: 80, height: 80,
+      style: { backgroundColor: 'transparent', borderWidth: 2, borderColor: '#bfdbfe' } },
+    { id: id('seal-txt'), type: 'text', x: 257, y: 452, width: 80, height: 16,
+      content: 'ختم\nرسمي', style: { fontSize: 8, color: '#93c5fd', textAlign: 'center' }, ...rtl },
   ];
 }
 
@@ -896,6 +988,255 @@ function buildFreelancerInvoice(id: (key: string) => string): SimpleElement[] {
       x: 40, y: 812, width: 515, height: 18,
       content: 'Thank you for your business · Payment due within 30 days · Late payments subject to 1.5% monthly interest',
       style: { fontSize: 9, color: '#9ca3af', textAlign: 'center' },
+    },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Arabic Invoice — genuine RTL: layout mirrored from buildFreelancerInvoice
+// (x' = 595 - x - width per element), every text element carries real
+// language/textDirection fields (not just style.textAlign), and the line-item
+// table's column order is reversed so it visually reads right-to-left too
+// (the table/richtext renderers don't consume textDirection themselves, so
+// their RTL appearance comes from mirrored positions + right-aligned content
+// instead).
+// ─────────────────────────────────────────────────────────────
+function buildArabicInvoice(id: (key: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    // ── Header bar ──────────────────────────────────────────────
+    {
+      id: id('header-bg'),
+      type: 'rect',
+      x: 0, y: 0, width: 595, height: 100,
+      style: { backgroundColor: '#1e293b', borderWidth: 0 },
+    },
+    {
+      id: id('title'),
+      type: 'text',
+      x: 355, y: 28, width: 200, height: 44,
+      content: 'فاتورة',
+      style: { fontSize: 32, color: '#ffffff', fontWeight: 'bold', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('inv-num'),
+      type: 'text',
+      x: 40, y: 32, width: 195, height: 20,
+      content: 'رقم الفاتورة: INV-2024-001',
+      style: { fontSize: 12, color: '#94a3b8', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('inv-date'),
+      type: 'text',
+      x: 40, y: 56, width: 195, height: 18,
+      content: 'التاريخ: 18 مايو 2024',
+      style: { fontSize: 11, color: '#94a3b8', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('inv-due'),
+      type: 'text',
+      x: 40, y: 76, width: 195, height: 18,
+      content: 'تاريخ الاستحقاق: 17 يونيو 2024',
+      style: { fontSize: 11, color: '#64748b', textAlign: 'right' },
+      ...rtl,
+    },
+
+    // ── FROM section (mirrored to the right side) ────────────────
+    {
+      id: id('from-label'),
+      type: 'text',
+      x: 475, y: 120, width: 80, height: 16,
+      content: 'من',
+      style: { fontSize: 9, color: '#9ca3af', fontWeight: 'bold', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('from-name'),
+      type: 'text',
+      x: 335, y: 140, width: 220, height: 24,
+      content: 'شركة الأفق للاستشارات',
+      style: { fontSize: 14, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('from-detail'),
+      type: 'richtext',
+      x: 335, y: 166, width: 220, height: 70,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>info@alofoq-consulting.com</p><p>+966 11 234 5678</p><p>الرياض، المملكة العربية السعودية</p></div>',
+      ...rtl,
+    },
+
+    // ── BILL TO section (mirrored to the left side) ───────────────
+    {
+      id: id('to-label'),
+      type: 'text',
+      x: 175, y: 120, width: 80, height: 16,
+      content: 'إلى',
+      style: { fontSize: 9, color: '#9ca3af', fontWeight: 'bold', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('to-name'),
+      type: 'text',
+      x: 40, y: 140, width: 215, height: 24,
+      content: 'مؤسسة النخبة التجارية',
+      style: { fontSize: 14, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('to-detail'),
+      type: 'richtext',
+      x: 40, y: 166, width: 215, height: 70,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>billing@alnukhba-trading.com</p><p>شارع الملك فهد</p><p>جدة 21589، المملكة العربية السعودية</p></div>',
+      ...rtl,
+    },
+
+    // ── Divider ──────────────────────────────────────────────────
+    {
+      id: id('divider-1'),
+      type: 'rect',
+      x: 40, y: 246, width: 515, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 },
+    },
+
+    // ── Line items table — column order reversed (amount first in
+    //    the array so it renders in the visually-leftmost column,
+    //    description last so it renders rightmost) ─────────────────
+    {
+      id: id('table'),
+      type: 'table',
+      x: 40, y: 260, width: 515, height: 196,
+      style: {
+        rows: 5,
+        columns: 4,
+        borderWidth: 1,
+        borderColor: '#e2e8f0',
+        cellPadding: 9,
+      },
+      headerRow: true,
+      headerBgColor: '#f1f5f9',
+      zebraEnabled: true,
+      zebraColor: '#f8fafc',
+      columnWidths: [115, 95, 65, 240],
+      columnAlignments: ['right', 'right', 'right', 'right'],
+      cellData: [
+        ['المبلغ', 'السعر', 'الساعات', 'الوصف'],
+        ['600.00 ر.س', '150 ر.س / ساعة', '4 ساعات', 'تخطيط المشروع وتحديد المتطلبات'],
+        ['1,200.00 ر.س', '150 ر.س / ساعة', '8 ساعات', 'تصميم واجهة وتجربة المستخدم'],
+        ['2,400.00 ر.س', '150 ر.س / ساعة', '16 ساعة', 'تطوير الواجهة الأمامية'],
+        ['300.00 ر.س', '150 ر.س / ساعة', '2 ساعة', 'مراجعة الكود والاختبار'],
+      ],
+      ...rtl,
+    },
+
+    // ── Totals (mirrored to the left side) ────────────────────────
+    {
+      id: id('subtotal-label'),
+      type: 'text',
+      x: 135, y: 476, width: 110, height: 20,
+      content: 'المجموع الفرعي (30 ساعة)',
+      style: { fontSize: 11, color: '#6b7280', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('subtotal-val'),
+      type: 'text',
+      x: 40, y: 476, width: 85, height: 20,
+      content: '4,500.00 ر.س',
+      style: { fontSize: 11, color: '#0f172a', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('tax-label'),
+      type: 'text',
+      x: 135, y: 500, width: 110, height: 20,
+      content: 'الضريبة (10%)',
+      style: { fontSize: 11, color: '#6b7280', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('tax-val'),
+      type: 'text',
+      x: 40, y: 500, width: 85, height: 20,
+      content: '450.00 ر.س',
+      style: { fontSize: 11, color: '#0f172a', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('divider-2'),
+      type: 'rect',
+      x: 40, y: 526, width: 205, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 },
+    },
+    {
+      id: id('total-bg'),
+      type: 'rect',
+      x: 40, y: 534, width: 205, height: 50,
+      style: { backgroundColor: '#1e293b', borderWidth: 0, borderRadius: 6 },
+    },
+    {
+      id: id('total-label'),
+      type: 'text',
+      x: 52, y: 542, width: 181, height: 14,
+      content: 'الإجمالي المستحق',
+      style: { fontSize: 8, color: '#94a3b8', fontWeight: 'bold', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('total-val'),
+      type: 'text',
+      x: 52, y: 558, width: 181, height: 22,
+      content: '4,950.00 ر.س',
+      style: { fontSize: 16, color: '#ffffff', fontWeight: 'bold', textAlign: 'right' },
+      ...rtl,
+    },
+
+    // ── Payment details ──────────────────────────────────────────
+    {
+      id: id('divider-3'),
+      type: 'rect',
+      x: 40, y: 600, width: 515, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 },
+    },
+    {
+      id: id('bank-label'),
+      type: 'text',
+      x: 355, y: 616, width: 200, height: 16,
+      content: 'بيانات الدفع',
+      style: { fontSize: 9, color: '#9ca3af', fontWeight: 'bold', textAlign: 'right' },
+      ...rtl,
+    },
+    {
+      id: id('bank-bg'),
+      type: 'rect',
+      x: 40, y: 638, width: 515, height: 108,
+      style: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 6 },
+    },
+    {
+      id: id('bank-detail'),
+      type: 'richtext',
+      x: 56, y: 648, width: 480, height: 88,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p><strong>البنك:</strong> البنك الأهلي السعودي</p><p><strong>اسم الحساب:</strong> شركة الأفق للاستشارات</p><p><strong>رقم الحساب (IBAN):</strong> SA00 0000 0000 0000 0000 0000</p><p><strong>مرجع الدفع:</strong> INV-2024-001</p></div>',
+      ...rtl,
+    },
+
+    // ── Footer ───────────────────────────────────────────────────
+    {
+      id: id('footer-line'),
+      type: 'rect',
+      x: 0, y: 800, width: 595, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 },
+    },
+    {
+      id: id('footer-text'),
+      type: 'text',
+      x: 40, y: 812, width: 515, height: 18,
+      content: 'شكراً لتعاملكم معنا · الدفع مستحق خلال 30 يومًا · تُطبق فائدة شهرية 1.5% على الدفعات المتأخرة',
+      style: { fontSize: 9, color: '#9ca3af', textAlign: 'center' },
+      ...rtl,
     },
   ];
 }
@@ -1776,6 +2117,97 @@ function buildPosReceipt(id: (k: string) => string): SimpleElement[] {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Arabic Receipt — mirrored from buildPosReceipt. The receipt card itself is
+// already centered (RX/RW symmetric around the page), so it needs no x
+// repositioning — what changes is the table's column order (reversed so
+// item/description reads rightmost) and the totals rows, which the LTR
+// original fakes as single strings with manual space-padding; that trick
+// doesn't survive translation, so these are reformatted as clean right-
+// aligned "label: value" lines instead.
+// ─────────────────────────────────────────────────────────────
+function buildReceiptArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('pg-bg'), type: 'rect', x: 0, y: 0, width: 595, height: 842,
+      style: { backgroundColor: '#f3f4f6', borderWidth: 0 } },
+    { id: id('card'), type: 'rect', x: RX, y: 30, width: RW, height: 760,
+      style: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 4 } },
+
+    { id: id('store'), type: 'text', x: RX, y: 52, width: RW, height: 22,
+      content: 'سوبر ماركت الواحة', style: { fontSize: 16, color: '#111827', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('store-addr'), type: 'text', x: RX, y: 76, width: RW, height: 14,
+      content: 'شارع الملك عبدالعزيز · فرع رقم 007', style: { fontSize: 9, color: '#6b7280', textAlign: 'center' }, ...rtl },
+    { id: id('store-tel'), type: 'text', x: RX, y: 92, width: RW, height: 14,
+      content: 'هاتف: 011 234 5678', style: { fontSize: 9, color: '#6b7280', textAlign: 'center' }, ...rtl },
+    { id: id('div0'), type: 'rect', x: RX + 10, y: 114, width: RW - 20, height: 1,
+      style: { backgroundColor: '#d1d5db', borderWidth: 0 } },
+    { id: id('meta'), type: 'text', x: RX, y: 122, width: RW, height: 12,
+      content: 'رقم الإيصال: 0018-2094  ·  18/05/2024 14:32  ·  الكاشير: طارق مالك',
+      style: { fontSize: 8, color: '#9ca3af', textAlign: 'center' }, ...rtl },
+    { id: id('div1'), type: 'rect', x: RX + 10, y: 140, width: RW - 20, height: 1,
+      style: { backgroundColor: '#d1d5db', borderWidth: 0 } },
+
+    { id: id('col-h'), type: 'text', x: RX + 10, y: 148, width: RW - 20, height: 14,
+      content: 'الصنف / الرمز    الكمية    السعر',
+      style: { fontSize: 8, color: '#6b7280', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('div2'), type: 'rect', x: RX + 10, y: 164, width: RW - 20, height: 1,
+      style: { backgroundColor: '#e5e7eb', borderWidth: 0 } },
+
+    // Column order reversed: price | qty | item (renders price leftmost, item rightmost)
+    { id: id('tbl'), type: 'table', x: RX + 10, y: 168, width: RW - 20, height: 296,
+      style: { rows: 8, columns: 3, borderWidth: 0, borderColor: '#e5e7eb', cellPadding: 5 },
+      headerRow: false, zebraEnabled: true, zebraColor: '#f9fafb',
+      columnWidths: [85, 40, 140], columnAlignments: ['right', 'center', 'right'],
+      cellData: [
+        ['2.49 ر.س', '1', 'حليب كامل الدسم 2 لتر — الرمز 00441'],
+        ['7.98 ر.س', '2', 'خبز الصامولي — الرمز 01182'],
+        ['4.99 ر.س', '1', 'بيض بلدي 12 حبة — الرمز 00872'],
+        ['3.49 ر.س', '1', 'زبادي يوناني 500 جم — الرمز 03341'],
+        ['3.29 ر.س', '1', 'عصير برتقال 1 لتر — الرمز 00553'],
+        ['5.07 ر.س', '3', 'معكرونة 500 جم (منتج المتجر) — الرمز 02210'],
+        ['5.58 ر.س', '2', 'صلصة معكرونة — طماطم — الرمز 02218'],
+        ['-1.00 ر.س', '', '—  خصم الولاء  —'],
+      ],
+      ...rtl },
+
+    { id: id('div3'), type: 'rect', x: RX + 10, y: 470, width: RW - 20, height: 1,
+      style: { backgroundColor: '#d1d5db', borderWidth: 0 } },
+    { id: id('sub-row'), type: 'text', x: RX + 10, y: 478, width: RW - 20, height: 16,
+      content: 'المجموع الفرعي:  31.89 ر.س',
+      style: { fontSize: 10, color: '#374151', textAlign: 'right' }, ...rtl },
+    { id: id('tax-row'), type: 'text', x: RX + 10, y: 496, width: RW - 20, height: 16,
+      content: 'الضريبة (0% على الأغذية):  0.00 ر.س',
+      style: { fontSize: 10, color: '#374151', textAlign: 'right' }, ...rtl },
+    { id: id('div4'), type: 'rect', x: RX + 10, y: 516, width: RW - 20, height: 1,
+      style: { backgroundColor: '#d1d5db', borderWidth: 0 } },
+    { id: id('tot-row'), type: 'text', x: RX + 10, y: 524, width: RW - 20, height: 22,
+      content: 'الإجمالي:  31.89 ر.س',
+      style: { fontSize: 14, color: '#111827', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('paid-row'), type: 'text', x: RX + 10, y: 548, width: RW - 20, height: 16,
+      content: 'فيزا ····4291:  31.89 ر.س',
+      style: { fontSize: 10, color: '#374151', textAlign: 'right' }, ...rtl },
+    { id: id('change-row'), type: 'text', x: RX + 10, y: 566, width: RW - 20, height: 16,
+      content: 'الباقي:  0.00 ر.س',
+      style: { fontSize: 10, color: '#374151', textAlign: 'right' }, ...rtl },
+
+    { id: id('div5'), type: 'rect', x: RX + 10, y: 590, width: RW - 20, height: 1,
+      style: { backgroundColor: '#e5e7eb', borderWidth: 0 } },
+    { id: id('loyalty'), type: 'text', x: RX, y: 598, width: RW, height: 14,
+      content: 'نقاط الولاء المكتسبة: 31 نقطة  ·  الرصيد: 1,204 نقطة',
+      style: { fontSize: 8, color: '#6b7280', textAlign: 'center' }, ...rtl },
+
+    { id: id('bc'), type: 'barcode', x: RX + 30, y: 622, width: RW - 60, height: 60,
+      barcodeValue: '0018209420240518', barcodeType: 'code128' },
+    { id: id('bc-num'), type: 'text', x: RX, y: 686, width: RW, height: 12,
+      content: '0018-2094 · 2024-05-18', style: { fontSize: 8, color: '#9ca3af', textAlign: 'center' }, ...rtl },
+
+    { id: id('ft'), type: 'text', x: RX, y: 710, width: RW, height: 28,
+      content: 'شكراً لتسوقكم في سوبر ماركت الواحة!\nalwaha-market.com  ·  الإرجاع خلال 30 يومًا مع الإيصال',
+      style: { fontSize: 8, color: '#9ca3af', textAlign: 'center' }, ...rtl },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
 // Restaurant Receipt — table, covers, seat orders, tip lines
 // ─────────────────────────────────────────────────────────────
 function buildRestaurantReceipt(id: (k: string) => string): SimpleElement[] {
@@ -2434,6 +2866,33 @@ function buildMinimalistCard(id: (k: string) => string): SimpleElement[] {
   ];
 }
 
+// ─────────────────────────────────────────────────────────────
+// Arabic Business Card — mirrored from buildMinimalistCard: accent bar
+// moves from the card's left edge to its right edge, and all text
+// (previously left-aligned, no textAlign set) becomes right-aligned.
+// ─────────────────────────────────────────────────────────────
+function buildCardArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('bg'), type: 'rect', x: 0, y: 0, width: 595, height: 842,
+      style: { backgroundColor: '#f8fafc', borderWidth: 0 } },
+    { id: id('card'), type: 'rect', x: 172, y: 330, width: 252, height: 144,
+      style: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 3 } },
+    { id: id('acc'), type: 'rect', x: 420, y: 330, width: 4, height: 144,
+      style: { backgroundColor: '#3b82f6', borderWidth: 0 } },
+    { id: id('name'), type: 'text', x: 180, y: 356, width: 230, height: 22,
+      content: 'سارة عبدالرحمن', style: { fontSize: 16, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('ttl'), type: 'text', x: 180, y: 380, width: 230, height: 16,
+      content: 'مصممة منتجات', style: { fontSize: 10, color: '#3b82f6', textAlign: 'right' }, ...rtl },
+    { id: id('div'), type: 'rect', x: 290, y: 402, width: 120, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('eml'), type: 'text', x: 180, y: 410, width: 230, height: 14,
+      content: 'sara.abdulrahman@example.com', style: { fontSize: 8.5, color: '#475569', textAlign: 'right' }, ...rtl },
+    { id: id('ph'), type: 'text', x: 180, y: 426, width: 230, height: 14,
+      content: '+966 50 123 4567', style: { fontSize: 8.5, color: '#475569', textAlign: 'right' }, ...rtl },
+  ];
+}
+
 function buildDoubleSidedCard(id: (k: string) => string): SimpleElement[] {
   return [
     { id: id('bg'), type: 'rect', x: 0, y: 0, width: 595, height: 842,
@@ -2739,6 +3198,64 @@ function buildStandardLetterhead(id: (k: string) => string): SimpleElement[] {
     { id: id('ft'), type: 'text', x: 0, y: 788, width: 595, height: 14,
       content: '100 Innovation Drive, London, EC1A 1BB  ·  Tel: +44 20 7123 4567  ·  info@acme.com  ·  www.acme.com',
       style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'center' } },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Arabic Letterhead — mirrored from buildStandardLetterhead: logo/company
+// block swaps from the left header to the right, date/ref swaps from right
+// to left; recipient block moves from left to right; signature moves from
+// left to right. Subject/body already span nearly the full symmetric width
+// so they don't need repositioning, just right-aligned text.
+// ─────────────────────────────────────────────────────────────
+function buildLetterArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('hdr'), type: 'rect', x: 0, y: 0, width: 595, height: 108,
+      style: { backgroundColor: '#1e3a5f', borderWidth: 0 } },
+    { id: id('logo-bg'), type: 'rect', x: 507, y: 22, width: 48, height: 48,
+      style: { backgroundColor: '#3b82f6', borderWidth: 0, borderRadius: 4 } },
+    { id: id('logo'), type: 'text', x: 507, y: 22, width: 48, height: 48,
+      content: 'شم', style: { fontSize: 18, color: '#ffffff', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('co-name'), type: 'text', x: 195, y: 26, width: 300, height: 24,
+      content: 'شركة المسار المحدودة', style: { fontSize: 17, color: '#ffffff', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('co-tag'), type: 'text', x: 195, y: 52, width: 300, height: 14,
+      content: 'حلول مؤسسية واستشارات', style: { fontSize: 10, color: '#93c5fd', textAlign: 'right' }, ...rtl },
+    { id: id('co-reg'), type: 'text', x: 195, y: 68, width: 300, height: 12,
+      content: 'رقم السجل: 12345678  ·  الرقم الضريبي: SA123456789', style: { fontSize: 8, color: '#60a5fa', textAlign: 'right' }, ...rtl },
+    { id: id('date-l'), type: 'text', x: 40, y: 32, width: 115, height: 14,
+      content: 'التاريخ', style: { fontSize: 7.5, color: '#93c5fd', textAlign: 'left' }, ...rtl },
+    { id: id('date-v'), type: 'text', x: 40, y: 48, width: 115, height: 18,
+      content: '18 مايو 2026', style: { fontSize: 11, color: '#ffffff', textAlign: 'left' }, ...rtl },
+    { id: id('ref'), type: 'text', x: 40, y: 68, width: 115, height: 12,
+      content: 'المرجع: ACM-2026-001', style: { fontSize: 8, color: '#93c5fd', textAlign: 'left' }, ...rtl },
+    { id: id('acc'), type: 'rect', x: 0, y: 108, width: 595, height: 4,
+      style: { backgroundColor: '#3b82f6', borderWidth: 0 } },
+    { id: id('to-l'), type: 'text', x: 475, y: 130, width: 80, height: 14,
+      content: 'إلى:', style: { fontSize: 9, color: '#94a3b8', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('to-name'), type: 'text', x: 255, y: 148, width: 300, height: 18,
+      content: 'الأستاذ/ محمد العتيبي', style: { fontSize: 13, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('to-co'), type: 'text', x: 255, y: 168, width: 300, height: 14,
+      content: 'مؤسسة العتيبي وشركاه', style: { fontSize: 10, color: '#475569', textAlign: 'right' }, ...rtl },
+    { id: id('to-addr'), type: 'richtext', x: 295, y: 184, width: 260, height: 56,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>مجمع الأعمال، الطابق الثاني<br>الرياض 12211<br>المملكة العربية السعودية</p></div>',
+      ...rtl },
+    { id: id('subj-l'), type: 'text', x: 475, y: 256, width: 80, height: 14,
+      content: 'الموضوع:', style: { fontSize: 9, color: '#94a3b8', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('subj'), type: 'text', x: 40, y: 274, width: 515, height: 18,
+      content: 'بخصوص: مقترح لتنفيذ نظام برمجي مؤسسي', style: { fontSize: 13, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('body'), type: 'richtext', x: 40, y: 308, width: 515, height: 380,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>الأستاذ الفاضل/ محمد العتيبي المحترم،</p><p>يسرنا أن نتقدم بمقترحنا لتنفيذ مشروع النظام البرمجي المؤسسي الذي تمت مناقشته خلال اجتماعنا بتاريخ 10 مايو 2026. توضح هذه الرسالة الشروط الرئيسية ونطاق العمل والتزامنا بتقديم حل يتناسب مع متطلبات أعمالكم.</p><p>يمتلك فريقنا خبرة تزيد عن 15 عامًا في تنفيذ الأنظمة البرمجية المؤسسية، ونحن واثقون من أن النهج المقترح سيتوافق مع أهدافكم الاستراتيجية مع تحقيق عائد استثمار ملموس خلال الأشهر الاثني عشر الأولى.</p><p>نتطلع لمناقشة هذا الأمر معكم، ولا تترددوا في التواصل معنا في حال احتجتم لأي معلومات إضافية.</p><p>وتفضلوا بقبول فائق الاحترام والتقدير،</p></div>',
+      ...rtl },
+    { id: id('sig-name'), type: 'text', x: 355, y: 710, width: 200, height: 18,
+      content: 'خالد الفهد', style: { fontSize: 12, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('sig-ttl'), type: 'text', x: 355, y: 730, width: 200, height: 14,
+      content: 'المدير العام', style: { fontSize: 9, color: '#64748b', textAlign: 'right' }, ...rtl },
+    { id: id('ft-line'), type: 'rect', x: 0, y: 778, width: 595, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('ft'), type: 'text', x: 0, y: 788, width: 595, height: 14,
+      content: 'طريق الابتكار 100، الرياض 12211، المملكة العربية السعودية  ·  هاتف: +966 11 234 5678  ·  info@almasar.com  ·  www.almasar.com',
+      style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'center' }, ...rtl },
   ];
 }
 
@@ -3054,6 +3571,96 @@ function buildKpiReport(id: (k: string) => string): SimpleElement[] {
     { id: id('ft'), type: 'text', x: 0, y: 810, width: 595, height: 14,
       content: 'CONFIDENTIAL  ·  Monthly KPI Dashboard  ·  Acme Corp  ·  Page 1 of 1',
       style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'center' } },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Arabic Report — mirrored from buildKpiReport. Each KPI card's own x is
+// mirrored individually, which automatically reverses their reading order
+// too (revenue ends up rightmost, matching where it read first in the LTR
+// original). The trend table's columns are rotated so the label column
+// ends up rightmost while the month columns keep their internal
+// chronological order (a common bidi convention — dates/numbers often stay
+// left-to-right even inside an RTL document).
+// ─────────────────────────────────────────────────────────────
+function buildReportArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('hdr'), type: 'rect', x: 0, y: 0, width: 595, height: 70,
+      style: { backgroundColor: '#0f172a', borderWidth: 0 } },
+    { id: id('title'), type: 'text', x: 205, y: 16, width: 350, height: 24,
+      content: 'لوحة مؤشرات الأداء الشهرية', style: { fontSize: 18, color: '#ffffff', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('period'), type: 'text', x: 205, y: 42, width: 350, height: 16,
+      content: 'الفترة: مايو 2026', style: { fontSize: 10, color: '#94a3b8', textAlign: 'right' }, ...rtl },
+    { id: id('ts'), type: 'text', x: 40, y: 28, width: 115, height: 16,
+      content: 'تاريخ الإنشاء: 18 مايو 2026', style: { fontSize: 8, color: '#64748b', textAlign: 'left' }, ...rtl },
+
+    { id: id('kpi1-bg'), type: 'rect', x: 437, y: 90, width: 118, height: 72,
+      style: { backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#bbf7d0', borderRadius: 6 } },
+    { id: id('kpi1-l'), type: 'text', x: 445, y: 98, width: 102, height: 14,
+      content: 'الإيرادات', style: { fontSize: 7.5, color: '#16a34a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('kpi1-v'), type: 'text', x: 445, y: 114, width: 102, height: 24,
+      content: '842 ألف ر.س', style: { fontSize: 16, color: '#14532d', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('kpi1-d'), type: 'text', x: 445, y: 140, width: 102, height: 14,
+      content: '▲ +12% عن المستهدف', style: { fontSize: 8, color: '#16a34a', textAlign: 'right' }, ...rtl },
+
+    { id: id('kpi2-bg'), type: 'rect', x: 311, y: 90, width: 118, height: 72,
+      style: { backgroundColor: '#fef9c3', borderWidth: 1, borderColor: '#fde047', borderRadius: 6 } },
+    { id: id('kpi2-l'), type: 'text', x: 319, y: 98, width: 102, height: 14,
+      content: 'عملاء جدد', style: { fontSize: 7.5, color: '#ca8a04', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('kpi2-v'), type: 'text', x: 319, y: 114, width: 102, height: 24,
+      content: '1,240', style: { fontSize: 18, color: '#713f12', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('kpi2-d'), type: 'text', x: 319, y: 140, width: 102, height: 14,
+      content: '▼ -3% عن المستهدف', style: { fontSize: 8, color: '#ca8a04', textAlign: 'right' }, ...rtl },
+
+    { id: id('kpi3-bg'), type: 'rect', x: 193, y: 90, width: 118, height: 72,
+      style: { backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 6 } },
+    { id: id('kpi3-l'), type: 'text', x: 201, y: 98, width: 102, height: 14,
+      content: 'معدل التسرب', style: { fontSize: 7.5, color: '#dc2626', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('kpi3-v'), type: 'text', x: 201, y: 114, width: 102, height: 24,
+      content: '4.8%', style: { fontSize: 18, color: '#7f1d1d', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('kpi3-d'), type: 'text', x: 201, y: 140, width: 102, height: 14,
+      content: '▲ +1.2% عن المستهدف', style: { fontSize: 8, color: '#dc2626', textAlign: 'right' }, ...rtl },
+
+    { id: id('kpi4-bg'), type: 'rect', x: 40, y: 90, width: 137, height: 72,
+      style: { backgroundColor: '#f0f9ff', borderWidth: 1, borderColor: '#bae6fd', borderRadius: 6 } },
+    { id: id('kpi4-l'), type: 'text', x: 48, y: 98, width: 121, height: 14,
+      content: 'مؤشر رضا العملاء', style: { fontSize: 7.5, color: '#0284c7', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('kpi4-v'), type: 'text', x: 48, y: 114, width: 121, height: 24,
+      content: '72', style: { fontSize: 18, color: '#0c4a6e', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('kpi4-d'), type: 'text', x: 48, y: 140, width: 121, height: 14,
+      content: '▲ +4 نقاط عن المستهدف', style: { fontSize: 8, color: '#0284c7', textAlign: 'right' }, ...rtl },
+
+    { id: id('trend-l'), type: 'text', x: 305, y: 182, width: 250, height: 18,
+      content: 'اتجاه الإيرادات (يناير – مايو 2026)', style: { fontSize: 12, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('tbl'), type: 'table', x: 40, y: 204, width: 515, height: 152,
+      style: { rows: 6, columns: 6, borderWidth: 1, borderColor: '#e2e8f0', cellPadding: 8 },
+      headerRow: true, headerBgColor: '#0f172a', zebraEnabled: true, zebraColor: '#f8fafc',
+      columnWidths: [87, 87, 87, 87, 87, 80], columnAlignments: ['right', 'right', 'right', 'right', 'right', 'right'],
+      cellData: [
+        ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'المؤشر'],
+        ['695', '712', '758', '810', '842', 'الإيرادات (بالآلاف)'],
+        ['980', '1,040', '1,110', '1,180', '1,240', 'عملاء جدد'],
+        ['3.2', '3.5', '3.8', '4.1', '4.8', 'معدل التسرب (%)'],
+        ['68', '69', '70', '71', '72', 'مؤشر رضا العملاء'],
+        ['4,200', '4,350', '4,480', '4,600', '4,720', 'متوسط قيمة الصفقة (ر.س)'],
+      ], ...rtl },
+
+    { id: id('off-target'), type: 'rect', x: 40, y: 376, width: 515, height: 36,
+      style: { backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 4 } },
+    { id: id('off-t'), type: 'richtext', x: 52, y: 380, width: 491, height: 28,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p><strong>⚠ تنبيه — خارج المستهدف:</strong> تجاوز معدل التسرب المستهدف بمقدار 1.2 نقطة مئوية في مايو. سيقوم فريق الاحتفاظ بالعملاء بمراجعة بيانات الفئات ووضع خطة عمل بحلول 25 مايو 2026.</p></div>',
+      ...rtl },
+    { id: id('commentary-l'), type: 'text', x: 255, y: 432, width: 300, height: 18,
+      content: 'التعليق التنفيذي', style: { fontSize: 12, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('commentary'), type: 'richtext', x: 40, y: 454, width: 515, height: 120,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>كان الأداء العام في مايو قويًا، حيث تجاوزت الإيرادات المستهدف الشهري بنسبة 12%، ووصل مؤشر رضا العملاء إلى أعلى مستوى له عند 72. ظل اكتساب العملاء الجدد في مستوى جيد، رغم أنه كان أقل قليلًا من الهدف الطموح البالغ 1,280.</p><p>يبقى معدل التسرب هو المجال الأهم للقلق، حيث اتجه للارتفاع خلال الربع. وقد بدأ فريق النمو مبادرة مكثفة للاحتفاظ بالعملاء تستهدف الحسابات المعرضة للخطر في قطاع الشركات الصغيرة والمتوسطة.</p></div>',
+      ...rtl },
+    { id: id('ft-line'), type: 'rect', x: 0, y: 800, width: 595, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('ft'), type: 'text', x: 0, y: 810, width: 595, height: 14,
+      content: 'سري  ·  لوحة مؤشرات الأداء الشهرية  ·  شركة المسار  ·  صفحة 1 من 1',
+      style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'center' }, ...rtl },
   ];
 }
 
@@ -3537,6 +4144,56 @@ function buildFoodLabel(id: (k: string) => string): SimpleElement[] {
   ];
 }
 
+// ─────────────────────────────────────────────────────────────
+// Arabic Label — mirrored from buildFoodLabel. This label is nearly
+// symmetric already (centered on the page), so positions barely move —
+// the main change is the nutrition table's 2 columns swapping order and
+// every label going right-aligned.
+// ─────────────────────────────────────────────────────────────
+function buildLabelArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('pg'), type: 'rect', x: 0, y: 0, width: 595, height: 842,
+      style: { backgroundColor: '#f1f5f9', borderWidth: 0 } },
+    { id: id('lbl'), type: 'rect', x: 198, y: 266, width: 200, height: 310,
+      style: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 4 } },
+    { id: id('header'), type: 'rect', x: 198, y: 266, width: 200, height: 60,
+      style: { backgroundColor: '#dc2626', borderWidth: 0, borderRadius: 4 } },
+    { id: id('brand'), type: 'text', x: 198, y: 272, width: 200, height: 22,
+      content: 'VERDE', style: { fontSize: 16, color: '#ffffff', fontWeight: 'bold', textAlign: 'center' } },
+    { id: id('prod'), type: 'text', x: 198, y: 296, width: 200, height: 14,
+      content: 'شاي أخضر عضوي', style: { fontSize: 10, color: '#fecaca', textAlign: 'center' }, ...rtl },
+    { id: id('wt'), type: 'text', x: 198, y: 312, width: 200, height: 14,
+      content: 'الوزن الصافي: 100 جم / 3.5 أونصة', style: { fontSize: 8, color: '#fee2e2', textAlign: 'center' }, ...rtl },
+    { id: id('div1'), type: 'rect', x: 208, y: 334, width: 180, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('ing-l'), type: 'text', x: 208, y: 340, width: 180, height: 14,
+      content: 'المكونات', style: { fontSize: 7.5, color: '#dc2626', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('ing-t'), type: 'richtext', x: 208, y: 356, width: 180, height: 44,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p style="font-size:7.5px">أوراق الشاي الأخضر (كاميليا سينينسيس)، نكهة الليمون الطبيعية. <strong>معلومات الحساسية:</strong> قد يحتوي على آثار من المكسرات.</p></div>',
+      ...rtl },
+    { id: id('nutr-l'), type: 'text', x: 208, y: 408, width: 180, height: 14,
+      content: 'القيمة الغذائية (لكل 100 مل)', style: { fontSize: 7.5, color: '#dc2626', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('nutr-tbl'), type: 'table', x: 208, y: 424, width: 180, height: 88,
+      style: { rows: 5, columns: 2, borderWidth: 1, borderColor: '#e2e8f0', cellPadding: 4 },
+      headerRow: true, headerBgColor: '#fee2e2',
+      columnWidths: [80, 100], columnAlignments: ['right', 'right'],
+      cellData: [
+        ['لكل 100 مل', 'العنصر الغذائي'],
+        ['2 سعرة', 'الطاقة'],
+        ['0 جم (0 جم)', 'الدهون (منها المشبعة)'],
+        ['0.3 جم (0 جم)', 'الكربوهيدرات (السكريات)'],
+        ['0.1 جم', 'البروتين'],
+      ], ...rtl },
+    { id: id('allergen'), type: 'rect', x: 208, y: 520, width: 180, height: 20,
+      style: { backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 2 } },
+    { id: id('allerg-t'), type: 'text', x: 208, y: 523, width: 180, height: 14,
+      content: '⚠ يحتوي على: لا شيء مصرّح به', style: { fontSize: 7, color: '#dc2626', textAlign: 'center' }, ...rtl },
+    { id: id('bc'), type: 'barcode', x: 226, y: 548, width: 144, height: 24,
+      barcodeValue: '5900123456789' },
+  ];
+}
+
 function buildCosmeticsLabel(id: (k: string) => string): SimpleElement[] {
   return [
     { id: id('pg'), type: 'rect', x: 0, y: 0, width: 595, height: 842,
@@ -3873,6 +4530,62 @@ function buildClassicResume(id: (k: string) => string): SimpleElement[] {
       style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
     { id: id('skills'), type: 'richtext', x: 40, y: 440, width: 515, height: 40,
       htmlContent: '<p>Product Strategy  ·  Agile / Scrum  ·  Data Analysis  ·  OKRs  ·  Stakeholder Management  ·  SQL  ·  Tableau  ·  Figma  ·  JIRA  ·  A/B Testing  ·  Roadmapping</p>' },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Arabic Resume — mirrored from buildClassicResume. The repeated
+// title-left/date-right pattern (job entries, education) swaps to
+// title-right/date-left; header/section-label text spans the full
+// symmetric width so it doesn't need repositioning, just right-alignment.
+// ─────────────────────────────────────────────────────────────
+function buildResumeArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('name'), type: 'text', x: 40, y: 36, width: 515, height: 34,
+      content: 'عبدالله سالم القحطاني', style: { fontSize: 26, color: '#0f172a', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('contact'), type: 'text', x: 40, y: 74, width: 515, height: 16,
+      content: 'abdullah.qahtani@email.com  ·  +966 50 123 4567  ·  الرياض، السعودية  ·  linkedin.com/in/aqahtani',
+      style: { fontSize: 9, color: '#64748b', textAlign: 'center' }, ...rtl },
+    { id: id('div-hdr'), type: 'rect', x: 40, y: 96, width: 515, height: 2,
+      style: { backgroundColor: '#0f172a', borderWidth: 0 } },
+    { id: id('exp-l'), type: 'text', x: 40, y: 108, width: 515, height: 18,
+      content: 'الخبرة المهنية', style: { fontSize: 11, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('div-exp'), type: 'rect', x: 40, y: 128, width: 515, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('job1-co'), type: 'text', x: 175, y: 136, width: 380, height: 18,
+      content: 'شركة أكمي للتقنية  —  مدير منتج أول', style: { fontSize: 12, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('job1-dt'), type: 'text', x: 40, y: 136, width: 135, height: 18,
+      content: 'مارس 2022 – حتى الآن', style: { fontSize: 9, color: '#64748b', textAlign: 'left' }, ...rtl },
+    { id: id('job1-desc'), type: 'richtext', x: 40, y: 156, width: 515, height: 72,
+      htmlContent: '<div style="text-align:right; direction:rtl"><ul><li>قاد فريقًا متعدد التخصصات مكونًا من 14 شخصًا لتقديم منصة SaaS مؤسسية، محققًا 140% من مستهدف الإيرادات السنوية (4.2 مليون دولار).</li><li>وضع خارطة طريق المنتج لثلاثة منتجات رئيسية؛ وقاد تحسنًا بنسبة 28% في الاحتفاظ بالعملاء عبر إعطاء الأولوية القائمة على البيانات.</li><li>أطلق حزمة تطوير برمجي للجوال اعتمدتها أكثر من 200 شركة خلال 90 يومًا من الإطلاق الرسمي.</li></ul></div>',
+      ...rtl },
+    { id: id('job2-co'), type: 'text', x: 175, y: 236, width: 380, height: 18,
+      content: 'مختبرات نيكسس  —  مدير منتج', style: { fontSize: 12, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('job2-dt'), type: 'text', x: 40, y: 236, width: 135, height: 18,
+      content: 'يونيو 2019 – فبراير 2022', style: { fontSize: 9, color: '#64748b', textAlign: 'left' }, ...rtl },
+    { id: id('job2-desc'), type: 'richtext', x: 40, y: 256, width: 515, height: 56,
+      htmlContent: '<div style="text-align:right; direction:rtl"><ul><li>تولى مسؤولية قطاع منتجات المستهلكين (إيرادات 18 مليون دولار)، بإدارة دورة الحياة الكاملة من الفكرة حتى الإطلاق.</li><li>طبّق إطار اختبار A/B حسّن التحويل بنسبة 22% عبر مسار الدفع.</li></ul></div>',
+      ...rtl },
+    { id: id('edu-l'), type: 'text', x: 40, y: 326, width: 515, height: 18,
+      content: 'التعليم', style: { fontSize: 11, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('div-edu'), type: 'rect', x: 40, y: 346, width: 515, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('edu1'), type: 'text', x: 175, y: 354, width: 380, height: 18,
+      content: 'جامعة كاليفورنيا، بيركلي  —  ماجستير إدارة الأعمال، إدارة التقنية', style: { fontSize: 11, color: '#0f172a', textAlign: 'right' }, ...rtl },
+    { id: id('edu1-dt'), type: 'text', x: 40, y: 354, width: 135, height: 18,
+      content: '2017 – 2019', style: { fontSize: 9, color: '#64748b', textAlign: 'left' }, ...rtl },
+    { id: id('edu2'), type: 'text', x: 175, y: 376, width: 380, height: 18,
+      content: 'جامعة ستانفورد  —  بكالوريوس علوم الحاسب (المعدل: 3.8)', style: { fontSize: 11, color: '#0f172a', textAlign: 'right' }, ...rtl },
+    { id: id('edu2-dt'), type: 'text', x: 40, y: 376, width: 135, height: 18,
+      content: '2013 – 2017', style: { fontSize: 9, color: '#64748b', textAlign: 'left' }, ...rtl },
+    { id: id('skills-l'), type: 'text', x: 40, y: 412, width: 515, height: 18,
+      content: 'المهارات', style: { fontSize: 11, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('div-sk'), type: 'rect', x: 40, y: 432, width: 515, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('skills'), type: 'richtext', x: 40, y: 440, width: 515, height: 40,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>استراتيجية المنتج  ·  أجايل / سكرم  ·  تحليل البيانات  ·  مؤشرات الأداء (OKRs)  ·  إدارة أصحاب المصلحة  ·  SQL  ·  Tableau  ·  Figma  ·  JIRA  ·  اختبار A/B  ·  التخطيط الاستراتيجي</p></div>',
+      ...rtl },
   ];
 }
 
@@ -4355,6 +5068,88 @@ function buildServiceProposal(id: (k: string) => string): SimpleElement[] {
   ];
 }
 
+// ─────────────────────────────────────────────────────────────
+// Arabic Proposal — mirrored from buildServiceProposal. Cover header
+// (logo/company left, client/title block) mirrors to the right; the total-
+// value bar swaps its label/value pair; both tables have their column
+// order reversed. Body sections already span the full symmetric width.
+// ─────────────────────────────────────────────────────────────
+function buildProposalArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('cover-bg'), type: 'rect', x: 0, y: 0, width: 595, height: 220,
+      style: { backgroundColor: '#0f172a', borderWidth: 0 } },
+    { id: id('acc'), type: 'rect', x: 0, y: 0, width: 595, height: 6,
+      style: { backgroundColor: '#3b82f6', borderWidth: 0 } },
+    { id: id('logo-bg'), type: 'rect', x: 507, y: 32, width: 48, height: 48,
+      style: { backgroundColor: '#3b82f6', borderWidth: 0, borderRadius: 6 } },
+    { id: id('logo-t'), type: 'text', x: 507, y: 32, width: 48, height: 48,
+      content: 'أك', style: { fontSize: 18, color: '#ffffff', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('co-name'), type: 'text', x: 195, y: 40, width: 300, height: 22,
+      content: 'مجموعة أكمي للاستشارات', style: { fontSize: 16, color: '#ffffff', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('co-tag'), type: 'text', x: 195, y: 64, width: 300, height: 14,
+      content: 'الاستراتيجية  ·  التقنية  ·  النمو', style: { fontSize: 9, color: '#93c5fd', textAlign: 'right' }, ...rtl },
+    { id: id('for-lbl'), type: 'text', x: 355, y: 108, width: 200, height: 14,
+      content: 'المقترح مُعد لـ', style: { fontSize: 8, color: '#64748b', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('client-name'), type: 'text', x: 155, y: 126, width: 400, height: 34,
+      content: 'شركة ميريديان كابيتال المحدودة', style: { fontSize: 22, color: '#ffffff', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('proposal-title'), type: 'text', x: 55, y: 162, width: 500, height: 22,
+      content: 'استراتيجية التحول الرقمي وتنفيذها', style: { fontSize: 14, color: '#93c5fd', textAlign: 'right' }, ...rtl },
+    { id: id('date'), type: 'text', x: 255, y: 188, width: 300, height: 14,
+      content: 'تاريخ الإعداد: 19 مايو 2026  ·  صالح حتى: 19 يونيو 2026', style: { fontSize: 8.5, color: '#64748b', textAlign: 'right' }, ...rtl },
+    { id: id('exec-l'), type: 'text', x: 40, y: 242, width: 515, height: 16,
+      content: 'الملخص التنفيذي', style: { fontSize: 10, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('exec-div'), type: 'rect', x: 40, y: 260, width: 515, height: 2,
+      style: { backgroundColor: '#3b82f6', borderWidth: 0 } },
+    { id: id('exec-t'), type: 'richtext', x: 40, y: 268, width: 515, height: 68,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>تقترح أكمي للاستشارات مشروع تحول رقمي مدته 9 أشهر لتحديث الأنظمة التشغيلية الأساسية لشركة ميريديان كابيتال، وأتمتة سير العمل اليدوي، وترسيخ ثقافة اتخاذ القرار القائمة على البيانات. حقق نهجنا في المتوسط تحسنًا بنسبة 34% في الكفاءة التشغيلية لعملاء مماثلين في قطاع الخدمات المالية.</p></div>',
+      ...rtl },
+    { id: id('scope-l'), type: 'text', x: 40, y: 354, width: 515, height: 16,
+      content: 'نطاق العمل', style: { fontSize: 10, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('scope-div'), type: 'rect', x: 40, y: 372, width: 515, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('scope-t'), type: 'richtext', x: 40, y: 380, width: 515, height: 80,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p><strong>المرحلة الأولى — الاكتشاف والاستراتيجية (الشهر 1–2):</strong> تقييم الوضع الحالي، مقابلات أصحاب المصلحة، تصميم نموذج التشغيل المستهدف.</p><p><strong>المرحلة الثانية — التنفيذ (الشهر 3–7):</strong> تكامل الأنظمة، أتمتة العمليات، برنامج إدارة التغيير.</p><p><strong>المرحلة الثالثة — التحسين (الشهر 8–9):</strong> قياس الأداء، تدريب المستخدمين، توثيق التسليم.</p></div>',
+      ...rtl },
+    { id: id('timeline-l'), type: 'text', x: 40, y: 478, width: 515, height: 16,
+      content: 'الجدول الزمني العام', style: { fontSize: 10, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('timeline-div'), type: 'rect', x: 40, y: 496, width: 515, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('tbl-tl'), type: 'table', x: 40, y: 504, width: 515, height: 82,
+      style: { rows: 3, columns: 4, borderWidth: 1, borderColor: '#e2e8f0', cellPadding: 8 },
+      headerRow: true, headerBgColor: '#0f172a',
+      columnWidths: [115, 100, 100, 200], columnAlignments: ['center', 'center', 'center', 'right'],
+      cellData: [
+        ['المدة', 'النهاية', 'البداية', 'المرحلة'],
+        ['شهران', 'يوليو 2026', 'يونيو 2026', 'المرحلة الأولى — الاكتشاف والاستراتيجية'],
+        ['5 أشهر', 'ديسمبر 2026', 'أغسطس 2026', 'المرحلة الثانية — التنفيذ'],
+      ], ...rtl },
+    { id: id('price-l'), type: 'text', x: 40, y: 604, width: 515, height: 16,
+      content: 'ملخص الاستثمار', style: { fontSize: 10, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('price-div'), type: 'rect', x: 40, y: 622, width: 515, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('tbl-price'), type: 'table', x: 40, y: 630, width: 515, height: 102,
+      style: { rows: 4, columns: 3, borderWidth: 1, borderColor: '#e2e8f0', cellPadding: 8 },
+      headerRow: true, headerBgColor: '#f8fafc',
+      columnWidths: [130, 115, 270], columnAlignments: ['right', 'right', 'right'],
+      cellData: [
+        ['الإجمالي', 'السعر', 'الخدمة'],
+        ['48,000 ر.س', '24,000 ر.س / شهر', 'المرحلة الأولى — الاكتشاف والاستراتيجية'],
+        ['160,000 ر.س', '32,000 ر.س / شهر', 'المرحلة الثانية — التنفيذ'],
+        ['48,000 ر.س', '24,000 ر.س / شهر', 'المرحلة الثالثة — التحسين'],
+      ], ...rtl },
+    { id: id('total-bg'), type: 'rect', x: 40, y: 740, width: 515, height: 36,
+      style: { backgroundColor: '#0f172a', borderWidth: 0, borderRadius: 4 } },
+    { id: id('total-l'), type: 'text', x: 243, y: 746, width: 300, height: 24,
+      content: 'إجمالي قيمة المشروع', style: { fontSize: 9, color: '#93c5fd', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('total-v'), type: 'text', x: 51, y: 746, width: 194, height: 24,
+      content: '256,000 ر.س', style: { fontSize: 16, color: '#ffffff', fontWeight: 'bold', textAlign: 'left' }, ...rtl },
+    { id: id('cta'), type: 'richtext', x: 40, y: 786, width: 515, height: 36,
+      htmlContent: '<div style="text-align:center; direction:rtl"><p>لقبول هذا المقترح، يُرجى التوقيع وإعادته بحلول <strong>19 يونيو 2026</strong>. للتواصل: proposals@acmeconsulting.com  ·  +966 11 234 5678</p></div>',
+      ...rtl },
+  ];
+}
+
 function buildProductQuotation(id: (k: string) => string): SimpleElement[] {
   return [
     { id: id('hdr'), type: 'rect', x: 0, y: 0, width: 595, height: 90,
@@ -4663,6 +5458,72 @@ function buildJobApplicationForm(id: (k: string) => string): SimpleElement[] {
   ];
 }
 
+// ─────────────────────────────────────────────────────────────
+// Arabic Form — mirrored from buildJobApplicationForm. The cleanest mirror
+// of the whole set: the entire body is a strict 2-column field grid at
+// x:40/x:307, so mirroring is exactly swapping those two x values pair by
+// pair — no other repositioning logic needed. Full-width fields/dividers
+// are already symmetric.
+// ─────────────────────────────────────────────────────────────
+function buildFormArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('hdr'), type: 'rect', x: 0, y: 0, width: 595, height: 80,
+      style: { backgroundColor: '#1e3a5f', borderWidth: 0 } },
+    { id: id('title'), type: 'text', x: 40, y: 18, width: 515, height: 26,
+      content: 'نموذج طلب توظيف', style: { fontSize: 20, color: '#ffffff', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('sub'), type: 'text', x: 40, y: 48, width: 515, height: 14,
+      content: 'شركة أكمي  ·  إدارة الموارد البشرية', style: { fontSize: 9, color: '#93c5fd', textAlign: 'center' }, ...rtl },
+    { id: id('s1-l'), type: 'text', x: 40, y: 100, width: 515, height: 16,
+      content: 'البيانات الشخصية', style: { fontSize: 10, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('s1-div'), type: 'rect', x: 40, y: 118, width: 515, height: 2,
+      style: { backgroundColor: '#1e3a5f', borderWidth: 0 } },
+    { id: id('f-fname'), type: 'field', x: 307, y: 130, width: 248, height: 52,
+      fieldLabel: 'الاسم الأول', fieldName: 'first_name', required: true, ...rtl },
+    { id: id('f-lname'), type: 'field', x: 40, y: 130, width: 248, height: 52,
+      fieldLabel: 'اسم العائلة', fieldName: 'last_name', required: true, ...rtl },
+    { id: id('f-email'), type: 'field', x: 307, y: 194, width: 248, height: 52,
+      fieldLabel: 'البريد الإلكتروني', fieldName: 'email', required: true, ...rtl },
+    { id: id('f-phone'), type: 'field', x: 40, y: 194, width: 248, height: 52,
+      fieldLabel: 'رقم الهاتف', fieldName: 'phone', required: true, ...rtl },
+    { id: id('f-addr'), type: 'field', x: 40, y: 258, width: 515, height: 52,
+      fieldLabel: 'عنوان السكن', fieldName: 'address', required: false, ...rtl },
+    { id: id('s2-l'), type: 'text', x: 40, y: 326, width: 515, height: 16,
+      content: 'الوظيفة المتقدم لها', style: { fontSize: 10, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('s2-div'), type: 'rect', x: 40, y: 344, width: 515, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('f-pos'), type: 'field', x: 215, y: 354, width: 340, height: 52,
+      fieldLabel: 'المسمى الوظيفي', fieldName: 'position', required: true, ...rtl },
+    { id: id('f-dept'), type: 'field', x: 40, y: 354, width: 161, height: 52,
+      fieldLabel: 'القسم', fieldName: 'department', required: false, ...rtl },
+    { id: id('s3-l'), type: 'text', x: 40, y: 422, width: 515, height: 16,
+      content: 'المؤهل التعليمي', style: { fontSize: 10, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('s3-div'), type: 'rect', x: 40, y: 440, width: 515, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('f-edu1-inst'), type: 'field', x: 307, y: 450, width: 248, height: 52,
+      fieldLabel: 'اسم المؤسسة التعليمية', fieldName: 'edu_institution', required: false, ...rtl },
+    { id: id('f-edu1-deg'), type: 'field', x: 40, y: 450, width: 248, height: 52,
+      fieldLabel: 'المؤهل / الدرجة العلمية', fieldName: 'edu_qualification', required: false, ...rtl },
+    { id: id('f-edu1-yr'), type: 'field', x: 435, y: 514, width: 120, height: 52,
+      fieldLabel: 'سنة التخرج', fieldName: 'edu_year', required: false, ...rtl },
+    { id: id('s4-l'), type: 'text', x: 40, y: 582, width: 515, height: 16,
+      content: 'المراجع', style: { fontSize: 10, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('s4-div'), type: 'rect', x: 40, y: 600, width: 515, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('f-ref1'), type: 'field', x: 307, y: 610, width: 248, height: 52,
+      fieldLabel: 'المرجع 1 — الاسم وبيانات التواصل', fieldName: 'ref1', required: false, ...rtl },
+    { id: id('f-ref2'), type: 'field', x: 40, y: 610, width: 248, height: 52,
+      fieldLabel: 'المرجع 2 — الاسم وبيانات التواصل', fieldName: 'ref2', required: false, ...rtl },
+    { id: id('cb-decl'), type: 'checkbox', x: 40, y: 678, width: 515, height: 36,
+      fieldLabel: 'أقر بأن المعلومات المقدمة دقيقة وكاملة على حد علمي.',
+      fieldName: 'declaration', required: true, ...rtl },
+    { id: id('sig'), type: 'signature', x: 275, y: 726, width: 280, height: 64,
+      signatureLabel: 'توقيع المتقدم', ...rtl },
+    { id: id('sig-date'), type: 'field', x: 40, y: 748, width: 195, height: 52,
+      fieldLabel: 'التاريخ', fieldName: 'signature_date', required: true, ...rtl },
+  ];
+}
+
 function buildLeaveRequestForm(id: (k: string) => string): SimpleElement[] {
   return [
     { id: id('hdr'), type: 'rect', x: 0, y: 0, width: 595, height: 72,
@@ -4938,6 +5799,45 @@ function buildEmployeeId(id: (k: string) => string): SimpleElement[] {
   ];
 }
 
+// ─────────────────────────────────────────────────────────────
+// Arabic ID Card — mirrored from buildEmployeeId. Photo moves from the
+// card's left side to the right, the name/title detail block moves from
+// right to left, and the small corner logo badge moves from the header's
+// right side to its left (with the company-name text truncated on the
+// opposite side to leave room for it, same as the original).
+// ─────────────────────────────────────────────────────────────
+function buildIdArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('pg'), type: 'rect', x: 0, y: 0, width: 595, height: 842,
+      style: { backgroundColor: '#f1f5f9', borderWidth: 0 } },
+    { id: id('card'), type: 'rect', x: 176, y: 344, width: 244, height: 154,
+      style: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 6 } },
+    { id: id('hdr'), type: 'rect', x: 176, y: 344, width: 244, height: 40,
+      style: { backgroundColor: '#1e3a5f', borderWidth: 0, borderRadius: 6 } },
+    { id: id('co-name'), type: 'text', x: 234, y: 344, width: 186, height: 40,
+      content: 'شركة أكمي', style: { fontSize: 12, color: '#ffffff', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('photo-bg'), type: 'rect', x: 358, y: 392, width: 52, height: 64,
+      style: { backgroundColor: '#94a3b8', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 2 } },
+    { id: id('photo-t'), type: 'text', x: 358, y: 414, width: 52, height: 20,
+      content: 'صورة', style: { fontSize: 8, color: '#f1f5f9', textAlign: 'center' }, ...rtl },
+    { id: id('name'), type: 'text', x: 185, y: 394, width: 162, height: 18,
+      content: 'سارة الشهري', style: { fontSize: 13, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('ttl'), type: 'text', x: 185, y: 414, width: 162, height: 14,
+      content: 'مديرة منتج', style: { fontSize: 8.5, color: '#3b82f6', textAlign: 'right' }, ...rtl },
+    { id: id('dept'), type: 'text', x: 185, y: 430, width: 162, height: 14,
+      content: 'القسم: الهندسة', style: { fontSize: 8, color: '#64748b', textAlign: 'right' }, ...rtl },
+    { id: id('emp-no'), type: 'text', x: 185, y: 446, width: 162, height: 14,
+      content: 'الرقم الوظيفي: 004821', style: { fontSize: 8, color: '#64748b', textAlign: 'right' }, ...rtl },
+    { id: id('bc'), type: 'barcode', x: 210, y: 462, width: 200, height: 28,
+      barcodeValue: 'ACME-EMP-004821' },
+    { id: id('logo-bg'), type: 'rect', x: 182, y: 354, width: 22, height: 22,
+      style: { backgroundColor: '#3b82f6', borderWidth: 0, borderRadius: 2 } },
+    { id: id('logo-t'), type: 'text', x: 182, y: 354, width: 22, height: 22,
+      content: 'أك', style: { fontSize: 7, color: '#ffffff', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+  ];
+}
+
 function buildConferenceBadge(id: (k: string) => string): SimpleElement[] {
   // Larger badge: 220×280, portrait, centered (x=187, y=281)
   return [
@@ -5117,6 +6017,67 @@ function buildPackingSlip(id: (k: string) => string): SimpleElement[] {
     { id: id('ft'), type: 'text', x: 0, y: 790, width: 595, height: 14,
       content: 'SupplyLink Distribution Ltd.  ·  45 Trade Park, Manchester M1 2AB  ·  +44 161 555 0200  ·  supplylink.co.uk',
       style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'center' } },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Arabic Delivery Note — mirrored from buildPackingSlip. Header logo/
+// company block swaps sides with the document-title/order-info block; the
+// one-sided "SHIP TO" box moves to the mirrored side; the item table's
+// columns are reversed.
+// ─────────────────────────────────────────────────────────────
+function buildDeliveryArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('hdr'), type: 'rect', x: 0, y: 0, width: 595, height: 80,
+      style: { backgroundColor: '#f8fafc', borderWidth: 0 } },
+    { id: id('logo-bg'), type: 'rect', x: 511, y: 18, width: 44, height: 44,
+      style: { backgroundColor: '#0f172a', borderWidth: 0, borderRadius: 4 } },
+    { id: id('logo-t'), type: 'text', x: 511, y: 18, width: 44, height: 44,
+      content: 'سل', style: { fontSize: 16, color: '#ffffff', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('co-name'), type: 'text', x: 249, y: 22, width: 250, height: 20,
+      content: 'سبلاي لينك للتوزيع', style: { fontSize: 15, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('doc-title'), type: 'text', x: 40, y: 22, width: 175, height: 22,
+      content: 'إذن استلام البضاعة', style: { fontSize: 14, color: '#0f172a', fontWeight: 'bold', textAlign: 'left' }, ...rtl },
+    { id: id('order-no'), type: 'text', x: 40, y: 48, width: 175, height: 14,
+      content: 'رقم الطلب: ORD-2026-08421', style: { fontSize: 9, color: '#64748b', textAlign: 'left' }, ...rtl },
+    { id: id('date'), type: 'text', x: 40, y: 64, width: 175, height: 12,
+      content: 'تاريخ الشحن: 19 مايو 2026', style: { fontSize: 8.5, color: '#94a3b8', textAlign: 'left' }, ...rtl },
+    { id: id('hdr-line'), type: 'rect', x: 0, y: 80, width: 595, height: 2,
+      style: { backgroundColor: '#0f172a', borderWidth: 0 } },
+    { id: id('ship-to-bg'), type: 'rect', x: 305, y: 96, width: 250, height: 80,
+      style: { backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 4 } },
+    { id: id('ship-to-l'), type: 'text', x: 317, y: 104, width: 226, height: 14,
+      content: 'الشحن إلى:', style: { fontSize: 8, color: '#94a3b8', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('ship-to-name'), type: 'text', x: 317, y: 120, width: 226, height: 18,
+      content: 'مؤسسة البناء المتين المحدودة', style: { fontSize: 12, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('ship-to-addr'), type: 'richtext', x: 317, y: 140, width: 226, height: 32,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p style="font-size:8.5px">طريق البنائين 12، الرياض<br>عناية: محمد العتيبي</p></div>',
+      ...rtl },
+    { id: id('tbl'), type: 'table', x: 40, y: 196, width: 515, height: 232,
+      style: { rows: 7, columns: 4, borderWidth: 1, borderColor: '#e2e8f0', cellPadding: 8 },
+      headerRow: true, headerBgColor: '#0f172a', zebraEnabled: true, zebraColor: '#f8fafc',
+      columnWidths: [100, 100, 235, 80], columnAlignments: ['center', 'center', 'right', 'center'],
+      cellData: [
+        ['المشحون', 'المطلوب', 'الوصف', 'رمز الصنف'],
+        ['20', '20', 'وحدة رفوف للخدمة الشاقة 2000×1000 مم', 'SL-SHV-2000'],
+        ['10', '10', 'خزانة تخزين فولاذية قابلة للقفل', 'SL-CAB-LK'],
+        ['5', '5', 'قاعدة تخزين بالطبليات', 'SL-PRK-STR'],
+        ['8', '8', 'طاولة عمل صناعية 1800 مم', 'SL-WBN-1800'],
+        ['28', '30', 'كشاف إضاءة LED بقوة 200 واط IP65', 'SL-LED-200W'],
+        ['', '', '(وحدتان معلقتان — ستصلان خلال 5 أيام)', ''],
+      ], ...rtl },
+    { id: id('pkg-info'), type: 'richtext', x: 40, y: 446, width: 515, height: 36,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p><strong>عدد الطرود:</strong> 4 من 4 &nbsp;&nbsp;|&nbsp;&nbsp; <strong>الوزن الإجمالي:</strong> 284 كجم &nbsp;&nbsp;|&nbsp;&nbsp; <strong>شركة الشحن:</strong> سويفت إكسبرس &nbsp;&nbsp;|&nbsp;&nbsp; <strong>رقم التتبع:</strong> 1Z999AA10123456784</p></div>',
+      ...rtl },
+    { id: id('note'), type: 'richtext', x: 40, y: 494, width: 515, height: 36,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p style="font-size:8px"><strong>ملاحظة:</strong> لا تظهر الأسعار في هذا المستند. للاطلاع على الفاتورة، يُرجى الرجوع إلى INV-2026-0892. يُرجى فحص جميع الأصناف عند الاستلام والإبلاغ عن أي تناقضات خلال 48 ساعة إلى returns@supplylink.com.</p></div>',
+      ...rtl },
+    { id: id('ft-line'), type: 'rect', x: 0, y: 780, width: 595, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('ft'), type: 'text', x: 0, y: 790, width: 595, height: 14,
+      content: 'شركة سبلاي لينك للتوزيع المحدودة  ·  طريق التجارة 45، الرياض  ·  +966 11 555 0200  ·  supplylink.com',
+      style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'center' }, ...rtl },
   ];
 }
 
@@ -5332,6 +6293,73 @@ function buildSimpleAgenda(id: (k: string) => string): SimpleElement[] {
     { id: id('ft'), type: 'text', x: 0, y: 810, width: 595, height: 14,
       content: 'Meeting Agenda  ·  Q2 Planning Session  ·  19 May 2026  ·  Circulated by: Sarah Chen',
       style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'center' } },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Arabic Meeting Agenda — mirrored from buildSimpleAgenda. Every element
+// already spans the full symmetric page width, so nothing needs x
+// repositioning — the mirroring here is entirely about reversing each
+// table's column order (whole rows reversed, so scanning strictly right-
+// to-left reproduces the original left-to-right reading order) and right-
+// aligning text that was previously left-aligned by default.
+// ─────────────────────────────────────────────────────────────
+function buildMeetingArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('hdr'), type: 'rect', x: 0, y: 0, width: 595, height: 72,
+      style: { backgroundColor: '#1e3a5f', borderWidth: 0 } },
+    { id: id('title'), type: 'text', x: 40, y: 14, width: 515, height: 24,
+      content: 'جدول أعمال الاجتماع', style: { fontSize: 18, color: '#ffffff', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('meeting-name'), type: 'text', x: 40, y: 42, width: 515, height: 16,
+      content: 'جلسة تخطيط الربع الثاني 2026 — المنتج والهندسة', style: { fontSize: 10, color: '#93c5fd', textAlign: 'center' }, ...rtl },
+    { id: id('meta-tbl'), type: 'table', x: 40, y: 92, width: 515, height: 82,
+      style: { rows: 3, columns: 4, borderWidth: 1, borderColor: '#e2e8f0', cellPadding: 8 },
+      headerRow: false, zebraEnabled: true, zebraColor: '#f0f9ff',
+      columnWidths: [180, 80, 175, 80], columnAlignments: ['right', 'right', 'right', 'right'],
+      cellData: [
+        ['قاعة الاجتماعات 3، الطابق 4', 'الموقع:', '19 مايو 2026', 'التاريخ:'],
+        ['سارة الشهري', 'الميسر:', '10:00 – 12:00', 'الوقت:'],
+        ['ماجد العتيبي', 'مدوّن الملاحظات:', 'ساعتان', 'المدة:'],
+      ], ...rtl },
+    { id: id('att-l'), type: 'text', x: 40, y: 192, width: 515, height: 14,
+      content: 'الحضور', style: { fontSize: 9, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('att-div'), type: 'rect', x: 40, y: 208, width: 515, height: 1,
+      style: { backgroundColor: '#bfdbfe', borderWidth: 0 } },
+    { id: id('att-t'), type: 'richtext', x: 40, y: 216, width: 515, height: 36,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>سارة الشهري (رئيسة الاجتماع) · ماجد العتيبي · بريا كابور · جيمس أوكافور · راشيل كيم · لوكاس فيريرا · آنا مولينا<br><em>اعتذار عن الحضور:</em> توماس باور (إجازة)</p></div>',
+      ...rtl },
+    { id: id('agenda-l'), type: 'text', x: 40, y: 268, width: 515, height: 14,
+      content: 'بنود جدول الأعمال', style: { fontSize: 9, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('agenda-div'), type: 'rect', x: 40, y: 284, width: 515, height: 1,
+      style: { backgroundColor: '#bfdbfe', borderWidth: 0 } },
+    { id: id('tbl-agenda'), type: 'table', x: 40, y: 292, width: 515, height: 302,
+      style: { rows: 9, columns: 4, borderWidth: 1, borderColor: '#e2e8f0', cellPadding: 8 },
+      headerRow: true, headerBgColor: '#1e3a5f', zebraEnabled: true, zebraColor: '#f0f9ff',
+      columnWidths: [125, 80, 270, 40], columnAlignments: ['right', 'center', 'right', 'center'],
+      cellData: [
+        ['بواسطة', 'المدة', 'بند جدول الأعمال', '#'],
+        ['سارة الشهري', '5 دقائق', 'الترحيب والتعريف بالحضور', '1'],
+        ['ماجد العتيبي', '20 دقيقة', 'مراجعة نتائج مؤشرات الأداء للربع الأول 2026', '2'],
+        ['بريا كابور', '25 دقيقة', 'مراجعة خارطة طريق المنتج للربع الثاني 2026', '3'],
+        ['جيمس أوكافور', '20 دقيقة', 'تخطيط الطاقة الهندسية', '4'],
+        ['آنا مولينا', '15 دقيقة', 'تحديثات نظام التصميم', '5'],
+        ['سارة الشهري', '10 دقائق', 'مراجعة المخاطر والتبعيات', '6'],
+        ['الجميع', '15 دقيقة', 'مواضيع أخرى', '7'],
+        ['سارة الشهري', '10 دقائق', 'الملخص وبنود العمل', '8'],
+      ], ...rtl },
+    { id: id('pre-l'), type: 'text', x: 40, y: 612, width: 515, height: 14,
+      content: 'القراءة المسبقة', style: { fontSize: 9, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('pre-div'), type: 'rect', x: 40, y: 628, width: 515, height: 1,
+      style: { backgroundColor: '#bfdbfe', borderWidth: 0 } },
+    { id: id('pre-t'), type: 'richtext', x: 40, y: 636, width: 515, height: 36,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>يُرجى من الحضور مراجعة متتبع مؤشرات الأداء للربع الأول (الرابط في دعوة التقويم) وشرائح خارطة طريق الربع الثاني المسودة قبل الاجتماع.</p></div>',
+      ...rtl },
+    { id: id('ft-line'), type: 'rect', x: 0, y: 800, width: 595, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('ft'), type: 'text', x: 0, y: 810, width: 595, height: 14,
+      content: 'جدول أعمال الاجتماع  ·  جلسة تخطيط الربع الثاني  ·  19 مايو 2026  ·  التوزيع: سارة الشهري',
+      style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'center' }, ...rtl },
   ];
 }
 
@@ -6038,6 +7066,76 @@ function buildFreelanceAgreement(id: (k: string) => string): SimpleElement[] {
       signatureLabel: 'Client Signature & Date' },
     { id: id('sig-freelancer'), type: 'signature', x: 335, y: 692, width: 230, height: 70,
       signatureLabel: 'Freelancer Signature & Date' },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Arabic Contract — mirrored from buildFreelanceAgreement. The body is a
+// single full-width legal-text column already symmetric on the page, so it
+// needs no repositioning — only right-alignment, translation, and reversing
+// the payment table's columns. The two signature blocks are the one
+// genuinely asymmetric pair and swap sides.
+// ─────────────────────────────────────────────────────────────
+function buildContractArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('hdr-bg'), type: 'rect', x: 0, y: 0, width: 595, height: 60,
+      style: { backgroundColor: '#0f172a', borderWidth: 0 } },
+    { id: id('title'), type: 'text', x: 30, y: 18, width: 535, height: 24,
+      content: 'اتفاقية خدمات مستقل', style: { fontSize: 15, color: '#ffffff', fontWeight: 'bold', textAlign: 'center' }, ...rtl },
+    { id: id('parties-lbl'), type: 'text', x: 30, y: 80, width: 495, height: 14,
+      content: 'الأطراف', style: { fontSize: 9, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('parties-div'), type: 'rect', x: 30, y: 96, width: 535, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('parties'), type: 'richtext', x: 30, y: 102, width: 535, height: 72,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p><strong>مقدم الخدمة ("المستقل"):</strong> [اسم المستقل]، [العنوان]، [البريد الإلكتروني]، [الهاتف]</p><p><strong>العميل ("الشركة"):</strong> [اسم الشركة]، [العنوان المسجل]، [رقم السجل]، ويمثلها [الاسم، المنصب]</p><p>أُبرمت هذه الاتفاقية بتاريخ <strong>[التاريخ]</strong>.</p></div>',
+      ...rtl },
+    { id: id('scope-lbl'), type: 'text', x: 30, y: 184, width: 495, height: 14,
+      content: '1. نطاق الخدمات', style: { fontSize: 9, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('scope-div'), type: 'rect', x: 30, y: 200, width: 535, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('scope'), type: 'richtext', x: 30, y: 206, width: 535, height: 72,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>يوافق المستقل على تقديم الخدمات التالية ("الخدمات"):<br/><br/>[وصف تفصيلي للخدمات المقدَّمة، والمخرجات، والصيغة، وأي متطلبات فنية محددة]<br/><br/>يجب الاتفاق كتابيًا على أي عمل إضافي خارج هذا النطاق، وقد يترتب عليه رسوم إضافية.</p></div>',
+      ...rtl },
+    { id: id('payment-lbl'), type: 'text', x: 30, y: 288, width: 495, height: 14,
+      content: '2. جدول الدفعات', style: { fontSize: 9, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('payment-div'), type: 'rect', x: 30, y: 304, width: 535, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('payment-tbl'), type: 'table', x: 30, y: 310, width: 535, height: 86,
+      style: { rows: 4, columns: 3, borderWidth: 1, borderColor: '#e2e8f0', cellPadding: 8 },
+      headerRow: true, headerBgColor: '#1e293b',
+      columnWidths: [150, 175, 210], columnAlignments: ['right', 'center', 'right'],
+      cellData: [
+        ['المبلغ', 'تاريخ الاستحقاق', 'المرحلة'],
+        ['[المبلغ]', 'عند التوقيع', 'بدء المشروع (دفعة مقدمة)'],
+        ['[المبلغ]', '[التاريخ]', 'تسليم منتصف المشروع'],
+        ['[المبلغ]', 'عند الإنجاز', 'التسليم النهائي والاعتماد'],
+      ], ...rtl },
+    { id: id('ip-lbl'), type: 'text', x: 30, y: 408, width: 495, height: 14,
+      content: '3. ملكية الحقوق الفكرية', style: { fontSize: 9, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('ip-div'), type: 'rect', x: 30, y: 424, width: 535, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('ip'), type: 'richtext', x: 30, y: 430, width: 535, height: 60,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>عند استلام كامل المبلغ، يتنازل المستقل للعميل عن جميع حقوق الملكية الفكرية (بما في ذلك حقوق النشر) في المخرجات. يحتفظ المستقل بحق عرض العمل في ملفه الشخصي ما لم يُتفق كتابيًا على خلاف ذلك.</p></div>',
+      ...rtl },
+    { id: id('termination-lbl'), type: 'text', x: 30, y: 502, width: 495, height: 14,
+      content: '4. الإنهاء', style: { fontSize: 9, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('termination-div'), type: 'rect', x: 30, y: 518, width: 535, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('termination'), type: 'richtext', x: 30, y: 524, width: 535, height: 60,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>يجوز لأي من الطرفين إنهاء هذه الاتفاقية بإشعار كتابي مدته [14] يومًا. في حال الإنهاء، يلتزم العميل بدفع مقابل جميع الأعمال المنجزة حتى تاريخه بالمعدل المتفق عليه. إذا تم الإنهاء من قبل العميل دون سبب بعد بدء العمل، فإن الدفعة المقدمة غير قابلة للاسترداد.</p></div>',
+      ...rtl },
+    { id: id('confidentiality-lbl'), type: 'text', x: 30, y: 596, width: 495, height: 14,
+      content: '5. السرية والقانون الحاكم', style: { fontSize: 9, color: '#0f172a', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('confidentiality-div'), type: 'rect', x: 30, y: 612, width: 535, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('confidentiality'), type: 'richtext', x: 30, y: 618, width: 535, height: 52,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>يوافق الطرفان على الحفاظ على سرية جميع المعلومات غير العلنية. تخضع هذه الاتفاقية لقوانين [الجهة القضائية]. تُحل النزاعات عن طريق التفاوض، وإن تعذر ذلك فعبر الوساطة.</p></div>',
+      ...rtl },
+    { id: id('sig-client'), type: 'signature', x: 335, y: 692, width: 230, height: 70,
+      signatureLabel: 'توقيع العميل والتاريخ', ...rtl },
+    { id: id('sig-freelancer'), type: 'signature', x: 30, y: 692, width: 230, height: 70,
+      signatureLabel: 'توقيع المستقل والتاريخ', ...rtl },
   ];
 }
 
@@ -6796,6 +7894,74 @@ function buildCompanyNewsletter(id: (k: string) => string): SimpleElement[] {
     { id: id('ft'), type: 'text', x: 0, y: 820, width: 595, height: 12,
       content: 'The Acme Insider is an internal publication. To unsubscribe from email delivery, contact comms@acme.com.',
       style: { fontSize: 7, color: '#94a3b8', textAlign: 'center' } },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Arabic Newsletter — mirrored from buildCompanyNewsletter, the most
+// asymmetric template in this set: lead article + sidebar callout swap
+// sides, the two-column body (col1/col2) swaps, and the events table's
+// columns are reversed.
+// ─────────────────────────────────────────────────────────────
+function buildNewsletterArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('hdr-bg'), type: 'rect', x: 0, y: 0, width: 595, height: 80,
+      style: { backgroundColor: '#1e3a5f', borderWidth: 0 } },
+    { id: id('title'), type: 'text', x: 165, y: 14, width: 400, height: 28,
+      content: 'نشرة أكمي الداخلية', style: { fontSize: 20, color: '#ffffff', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('issue'), type: 'text', x: 165, y: 46, width: 400, height: 14,
+      content: 'النشرة الشهرية للشركة', style: { fontSize: 9, color: '#93c5fd', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('date'), type: 'text', x: 30, y: 46, width: 115, height: 14,
+      content: 'مايو 2026 | العدد 42', style: { fontSize: 8, color: '#93c5fd', textAlign: 'left' }, ...rtl },
+    { id: id('hero-lbl'), type: 'rect', x: 0, y: 80, width: 595, height: 4,
+      style: { backgroundColor: '#f59e0b', borderWidth: 0 } },
+    { id: id('lead-art'), type: 'richtext', x: 215, y: 100, width: 350, height: 120,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p><strong style="font-size:14px">نتائج الربع الأول: ربع بأعلى إيرادات</strong></p><p>يسعدنا الإعلان أن الربع الأول من عام 2026 حقق أقوى أداء ربعي في تاريخ الشركة، بارتفاع الإيرادات بنسبة 18% على أساس سنوي. تشارككم الرئيسة التنفيذية جين سميث ما يعنيه ذلك لخططنا الطموحة للنمو في المرحلة القادمة...</p></div>',
+      ...rtl },
+    { id: id('callout-bg'), type: 'rect', x: 30, y: 100, width: 165, height: 120,
+      style: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe' } },
+    { id: id('callout'), type: 'richtext', x: 40, y: 110, width: 145, height: 100,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p><strong>في هذا العدد</strong></p><ul style="font-size:8px"><li>نتائج الربع الأول</li><li>افتتاح مكتب جديد</li><li>تسليط الضوء على موظف</li><li>الفعاليات القادمة</li><li>تحديث المزايا</li></ul></div>',
+      ...rtl },
+    { id: id('div1'), type: 'rect', x: 0, y: 232, width: 595, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('col1-lbl'), type: 'text', x: 310, y: 244, width: 255, height: 14,
+      content: 'افتتاح مكتب جديد — مانشستر', style: { fontSize: 8, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('col1'), type: 'richtext', x: 310, y: 260, width: 255, height: 120,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>يسعدنا الإعلان عن افتتاح مكتبنا الجديد في مانشستر بموقع 42 سبينينج فيلدز سكوير، المقرر افتتاحه في 1 يوليو 2026. ستستوعب المساحة البالغة 8,000 قدم مربع 80 زميلاً من فريق عمليات الشمال...</p><p>[عنصر نائب للصورة: صورة خارجية للمكتب]</p></div>',
+      ...rtl },
+    { id: id('col2-lbl'), type: 'text', x: 30, y: 244, width: 255, height: 14,
+      content: 'تسليط الضوء على موظف', style: { fontSize: 8, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('col2'), type: 'richtext', x: 30, y: 260, width: 255, height: 120,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p><strong>تعرّف على سارة الشهري، مصممة تجربة المستخدم الرئيسية</strong></p><p>[عنصر نائب للصورة]</p><p>«العمل هنا يشعرني وكأنني جزء من عائلة تهتم فعليًا بالابتكار. في كل يوم أحل مشكلات حقيقية لأشخاص حقيقيين.» انضمت سارة عام 2022 وأطلقت 14 ميزة منتج...</p></div>',
+      ...rtl },
+    { id: id('div2'), type: 'rect', x: 0, y: 392, width: 595, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('events-lbl'), type: 'text', x: 70, y: 404, width: 495, height: 14,
+      content: 'الفعاليات القادمة', style: { fontSize: 8, color: '#1e3a5f', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('events-tbl'), type: 'table', x: 30, y: 420, width: 535, height: 86,
+      style: { rows: 4, columns: 3, borderWidth: 1, borderColor: '#dbeafe', cellPadding: 8 },
+      headerRow: true, headerBgColor: '#1e3a5f', zebraEnabled: true, zebraColor: '#eff6ff',
+      columnWidths: [135, 280, 120], columnAlignments: ['right', 'right', 'center'],
+      cellData: [
+        ['الموقع', 'الفعالية', 'التاريخ'],
+        ['كل المكاتب (نظام مختلط)', 'اجتماع عام: مراجعة الربع الأول ومعاينة الربع الثاني', '5 يونيو 2026'],
+        ['المقر الرئيسي بلندن + افتراضي', 'انطلاق أسبوع الرفاهية', '12 يونيو 2026'],
+        ['السطح، المقر الرئيسي بلندن', 'التجمع الصيفي', '20 يونيو 2026'],
+      ], ...rtl },
+    { id: id('div3'), type: 'rect', x: 0, y: 518, width: 595, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('benefits-lbl'), type: 'text', x: 70, y: 530, width: 495, height: 14,
+      content: 'تذكير بالمزايا: تحسين إجازة الأمومة والأبوة اعتبارًا من يونيو', style: { fontSize: 8, color: '#dc2626', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('benefits'), type: 'richtext', x: 30, y: 546, width: 535, height: 52,
+      htmlContent: '<div style="text-align:right; direction:rtl"><p>اعتبارًا من 1 يونيو 2026، نعمل على تحسين سياسة إجازة الأمومة والأبوة إلى 26 أسبوعًا بأجر كامل لمقدم الرعاية الأساسي (ارتفاعًا من 16 أسبوعًا). يحصل مقدم الرعاية الثانوي على 4 أسابيع بأجر كامل. سترسل الموارد البشرية التفاصيل الكاملة عبر البريد الإلكتروني. أسئلة؟ تواصل مع people@acme.com.</p></div>',
+      ...rtl },
+    { id: id('ft-bg'), type: 'rect', x: 0, y: 812, width: 595, height: 30,
+      style: { backgroundColor: '#0f172a', borderWidth: 0 } },
+    { id: id('ft'), type: 'text', x: 0, y: 820, width: 595, height: 12,
+      content: 'نشرة أكمي الداخلية هي منشور داخلي. لإلغاء الاشتراك في التسليم عبر البريد الإلكتروني، تواصل مع comms@acme.com.',
+      style: { fontSize: 7, color: '#94a3b8', textAlign: 'center' }, ...rtl },
   ];
 }
 
@@ -8117,6 +9283,63 @@ function buildBookChapterCover(id: (k: string) => string): SimpleElement[] {
     { id: id('ft-page'), type: 'text', x: 0, y: 582, width: 384, height: 12,
       content: '1',
       style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'right' } },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Arabic Book Chapter Cover — mirrored from buildBookChapterCover. This is
+// the one template in the set on a custom A5 page (420×595, not the
+// default 595×842), so the mirror formula uses 420. The left accent bar
+// moves to the right edge, and the footer's page-number box swaps from
+// the right side to the left.
+// ─────────────────────────────────────────────────────────────
+function buildBookArabic(id: (k: string) => string): SimpleElement[] {
+  const rtl = { language: 'ar', textDirection: 'rtl' as const };
+  return [
+    { id: id('hdr-bg'), type: 'rect', x: 0, y: 0, width: 420, height: 230,
+      style: { backgroundColor: '#1e293b', borderWidth: 0 } },
+    { id: id('accent-bar'), type: 'rect', x: 414, y: 0, width: 6, height: 230,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    { id: id('ch-label'), type: 'text', x: 190, y: 44, width: 180, height: 14,
+      content: 'الفصل',
+      style: { fontSize: 9, color: '#a855f7', fontWeight: 'bold', letterSpacing: 4, textAlign: 'right' }, ...rtl },
+    { id: id('ch-num'), type: 'text', x: 170, y: 62, width: 200, height: 72,
+      content: '01',
+      style: { fontSize: 72, color: '#ffffff', fontWeight: 'bold', lineHeight: 1, textAlign: 'right' }, ...rtl },
+    { id: id('ch-rule'), type: 'rect', x: 322, y: 144, width: 48, height: 3,
+      style: { backgroundColor: '#a855f7', borderWidth: 0 } },
+    { id: id('ch-title'), type: 'text', x: 50, y: 158, width: 320, height: 52,
+      content: 'بنية الأفكار',
+      style: { fontSize: 22, color: '#ffffff', fontWeight: 'bold', lineHeight: 1.25, textAlign: 'right' }, ...rtl },
+    { id: id('ch-sub'), type: 'text', x: 50, y: 215, width: 320, height: 26,
+      content: 'استكشاف أسس الفكر الحديث',
+      style: { fontSize: 10.5, color: '#94a3b8', fontStyle: 'italic', textAlign: 'right' }, ...rtl },
+    { id: id('author'), type: 'text', x: 90, y: 270, width: 280, height: 16,
+      content: 'إلياس هارتمان',
+      style: { fontSize: 11.5, color: '#1e293b', fontWeight: 'bold', textAlign: 'right' }, ...rtl },
+    { id: id('book-title'), type: 'text', x: 90, y: 288, width: 280, height: 14,
+      content: 'منظورات في التصميم — الجزء الثاني',
+      style: { fontSize: 9, color: '#64748b', textAlign: 'right' }, ...rtl },
+    { id: id('intro'), type: 'richtext', x: 36, y: 322, width: 334, height: 188,
+      htmlContent:
+        '<div style="text-align:right; direction:rtl">' +
+        '<p style="font-size:11px;line-height:1.7;color:#334155">' +
+        'يبدأ كل عمل تصميمي عظيم بسؤال لا يمكن الإجابة عنه بعد. ' +
+        'وتقع على عاتق المصمم مهمة — وعبء — إبقاء هذا السؤال مفتوحًا وقتًا كافيًا حتى تظهر ' +
+        'الإجابة الصحيحة، دون إكراه، من المادة نفسها.</p>' +
+        '<p style="font-size:11px;line-height:1.7;color:#334155;margin-top:10px">' +
+        'نتناول في هذا الفصل البنية المفاهيمية التي تدعم التفكير الأصيل: ' +
+        'كيف تتحول القيود إلى محرك للإبداع، وكيف يشكّل الصمت التكوين، ولماذا تحمل المساحة ' +
+        'بين العناصر معنى لا يقل عن العناصر نفسها.</p></div>',
+      ...rtl },
+    { id: id('ft-line'), type: 'rect', x: 0, y: 578, width: 420, height: 1,
+      style: { backgroundColor: '#e2e8f0', borderWidth: 0 } },
+    { id: id('ft-book'), type: 'text', x: 170, y: 582, width: 200, height: 12,
+      content: 'منظورات في التصميم',
+      style: { fontSize: 7.5, color: '#94a3b8', fontStyle: 'italic', textAlign: 'right' }, ...rtl },
+    { id: id('ft-page'), type: 'text', x: 36, y: 582, width: 384, height: 12,
+      content: '1',
+      style: { fontSize: 7.5, color: '#94a3b8', textAlign: 'left' }, ...rtl },
   ];
 }
 

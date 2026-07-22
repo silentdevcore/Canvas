@@ -39,7 +39,7 @@ const IndexPage: React.FC = () => {
   const importInputRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
 
-  const displayCategories = CATEGORIES.filter(c => c.id !== 'all');
+  const displayCategories = CATEGORIES.filter(c => c.id !== 'all' && c.id !== 'arabic');
 
   const FEATURE_CARDS = [
     { title: t('featureCards.multiFormat.title'), copy: t('featureCards.multiFormat.copy'), icon: FiFileText },

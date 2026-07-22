@@ -17,6 +17,7 @@ import {
   FiTruck,
   FiMonitor,
   FiBookOpen,
+  FiGlobe,
 } from 'react-icons/fi';
 
 export interface TemplateDefinition {
@@ -57,6 +58,7 @@ export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
   blank:        { accent: '#6b7280', bg: '#f9fafb', text: '#374151', icon: FiPackage,    description: '' },
   presentation: { accent: '#0ea5e9', bg: '#f0f9ff', text: '#0c4a6e', icon: FiMonitor,    description: 'Slide decks for presentations, pitches and talks' },
   book:         { accent: '#a855f7', bg: '#faf5ff', text: '#6b21a8', icon: FiBookOpen,   description: 'Book chapters, manuals and long-form documents' },
+  arabic:       { accent: '#be123c', bg: '#fff1f2', text: '#881337', icon: FiGlobe,      description: 'Right-to-left Arabic templates across every document type' },
 };
 
 export const TEMPLATES: TemplateDefinition[] = [
@@ -91,6 +93,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'invoice-proforma',     name: 'Pro-forma Invoice',        category: 'invoice',
     description: 'Customs and advance-payment pro-forma with validity period and "not a tax document" badge',
     tags: ['proforma', 'export', 'customs', 'import'] },
+  { id: 'invoice-arabic',       name: 'Arabic Invoice',           category: 'arabic',
+    description: 'Fully right-to-left invoice with Arabic company details, itemized table, and a mirrored layout',
+    tags: ['arabic', 'rtl', 'international', 'business'] },
 
   // ── Receipts ─────────────────────────────────────────────────────────────────
   { id: 'receipt-modern',       name: 'Modern Receipt',           category: 'receipt',
@@ -120,6 +125,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'receipt-pharmacy',     name: 'Pharmacy Receipt',         category: 'receipt',
     description: 'Pharmacy receipt with prescription items, insurance coverage and patient copay',
     tags: ['pharmacy', 'healthcare', 'insurance', 'prescription'] },
+  { id: 'receipt-arabic',       name: 'Arabic Receipt',           category: 'arabic',
+    description: 'Fully right-to-left POS receipt with Arabic line items and a mirrored layout',
+    tags: ['arabic', 'rtl', 'retail', 'pos'] },
 
   // ── Certificates ──────────────────────────────────────────────────────────────
   { id: 'certificate-achievement', name: 'Achievement Certificate',    category: 'certificate',
@@ -152,6 +160,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'cert-sales',           name: 'Sales Achievement Certificate', category: 'certificate',
     description: 'Dark premium certificate with revenue milestone, leaderboard rank and CEO signature',
     tags: ['sales', 'revenue', 'milestone', 'achievement'] },
+  { id: 'cert-arabic',          name: 'Arabic Certificate',       category: 'arabic',
+    description: 'Fully right-to-left course completion certificate with Arabic recipient details and a mirrored layout',
+    tags: ['arabic', 'rtl', 'education', 'course'] },
 
   // ── Business Cards ────────────────────────────────────────────────────────────
   { id: 'business-card-clean',  name: 'Clean Business Card',      category: 'card',
@@ -184,6 +195,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'card-company',         name: 'Company Generic Card',     category: 'card',
     description: 'Front: company brand; back: blank fields for any staff member',
     tags: ['company', 'generic', 'team'] },
+  { id: 'card-arabic',          name: 'Arabic Business Card',     category: 'arabic',
+    description: 'Fully right-to-left business card with Arabic name and title, mirrored accent bar',
+    tags: ['arabic', 'rtl', 'business', 'contact'] },
 
   // ── Letterheads ───────────────────────────────────────────────────────────────
   { id: 'letterhead-corporate',    name: 'Corporate Letterhead',          category: 'letter',
@@ -213,6 +227,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'letterhead-multilang',    name: 'Multi-language Letterhead',    category: 'letter',
     description: 'Two-column mirrored layout for LTR + RTL languages, dual-colour header',
     tags: ['multilingual', 'bilingual', 'RTL', 'international'] },
+  { id: 'letter-arabic',           name: 'Arabic Letterhead',            category: 'arabic',
+    description: 'Fully right-to-left corporate letterhead with Arabic body text and a mirrored header',
+    tags: ['arabic', 'rtl', 'letterhead', 'corporate'] },
 
   // ── Reports ───────────────────────────────────────────────────────────────────
   { id: 'report-executive',     name: 'Executive Report',                category: 'report',
@@ -248,6 +265,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'report-summary',       name: 'Executive Summary (1-Pager)',     category: 'report',
     description: 'Single page: situation, findings, recommendation, next steps',
     tags: ['executive', 'summary', 'one-pager'] },
+  { id: 'report-arabic',        name: 'Arabic Report',                   category: 'arabic',
+    description: 'Fully right-to-left KPI dashboard report with Arabic metrics and a mirrored layout',
+    tags: ['arabic', 'rtl', 'kpi', 'dashboard'] },
 
   // ── Product Labels ────────────────────────────────────────────────────────────
   { id: 'label-product',        name: 'Product Label',            category: 'label',
@@ -280,6 +300,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'label-price',          name: 'Price Tag / Hang Tag',     category: 'label',
     description: 'Large price display, product name, size/colour variant, brand logo, punch hole at top',
     tags: ['price', 'retail', 'hang tag'] },
+  { id: 'label-arabic',         name: 'Arabic Label',             category: 'arabic',
+    description: 'Fully right-to-left food label with Arabic ingredients and nutrition table, mirrored layout',
+    tags: ['arabic', 'rtl', 'food', 'nutrition'] },
 
   // ── CV / Resume ───────────────────────────────────────────────────────────────
   { id: 'resume-classic',       name: 'Classic Single-Column Resume', category: 'resume',
@@ -312,6 +335,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'resume-multilingual',  name: 'Multilingual CV',          category: 'resume',
     description: 'Two-language parallel columns, language proficiency badges, international format',
     tags: ['multilingual', 'bilingual', 'international', 'CV'] },
+  { id: 'resume-arabic',        name: 'Arabic Resume',            category: 'arabic',
+    description: 'Fully right-to-left resume with Arabic work history and education, mirrored layout',
+    tags: ['arabic', 'rtl', 'resume', 'CV'] },
 
   // ── Proposals / Quotations ────────────────────────────────────────────────────
   { id: 'proposal-service',     name: 'Service Proposal',         category: 'proposal',
@@ -341,6 +367,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'proposal-insurance',   name: 'Insurance Quotation',      category: 'proposal',
     description: 'Coverage summary card, premium breakdown, excess/deductibles, policy start date',
     tags: ['insurance', 'quotation', 'coverage', 'premium'] },
+  { id: 'proposal-arabic',      name: 'Arabic Proposal',          category: 'arabic',
+    description: 'Fully right-to-left service proposal with Arabic scope and pricing, mirrored layout',
+    tags: ['arabic', 'rtl', 'proposal', 'consulting'] },
 
   // ── Contracts / Agreements ────────────────────────────────────────────────────
   { id: 'contract-freelance',   name: 'Freelance Service Agreement', category: 'contract',
@@ -373,6 +402,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'contract-settlement',  name: 'Settlement Agreement',     category: 'contract',
     description: 'Dispute summary, settlement amount, full release of claims, confidentiality',
     tags: ['settlement', 'dispute', 'legal', 'release'] },
+  { id: 'contract-arabic',      name: 'Arabic Contract',          category: 'arabic',
+    description: 'Fully right-to-left freelance service agreement with Arabic legal text, mirrored signatures',
+    tags: ['arabic', 'rtl', 'contract', 'freelance'] },
 
   // ── Forms ─────────────────────────────────────────────────────────────────────
   { id: 'form-job-application',    name: 'Job Application Form',        category: 'form',
@@ -405,6 +437,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'form-loan',               name: 'Loan / Credit Application Form', category: 'form',
     description: 'Applicant info, employment/income details, collateral, declaration + signature',
     tags: ['loan', 'credit', 'application', 'finance'] },
+  { id: 'form-arabic',             name: 'Arabic Form',                 category: 'arabic',
+    description: 'Fully right-to-left job application form with Arabic field labels, mirrored 2-column grid',
+    tags: ['arabic', 'rtl', 'form', 'application'] },
 
   // ── Newsletter / Brochure ─────────────────────────────────────────────────────
   { id: 'newsletter-company',          name: 'Company Newsletter (A4)',        category: 'newsletter',
@@ -434,6 +469,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'newsletter-hr',               name: 'Internal HR Newsletter',         category: 'newsletter',
     description: 'Employee spotlight, upcoming events calendar, benefits reminder, policy updates',
     tags: ['HR', 'internal', 'newsletter', 'people'] },
+  { id: 'newsletter-arabic',           name: 'Arabic Newsletter',              category: 'arabic',
+    description: 'Fully right-to-left company newsletter with Arabic articles, mirrored two-column layout',
+    tags: ['arabic', 'rtl', 'newsletter', 'company'] },
 
   // ── ID Cards / Badges ─────────────────────────────────────────────────────────
   { id: 'id-employee',   name: 'Employee ID Card',          category: 'id-card',
@@ -463,6 +501,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'id-lanyard',    name: 'Lanyard / Badge Insert',    category: 'id-card',
     description: 'Double-sided: front with name/role/QR, back with schedule + floor map',
     tags: ['lanyard', 'badge', 'conference', 'double-sided'] },
+  { id: 'id-arabic',     name: 'Arabic ID Card',            category: 'arabic',
+    description: 'Fully right-to-left employee ID card with Arabic name and title, mirrored photo/logo placement',
+    tags: ['arabic', 'rtl', 'ID', 'employee'] },
 
   // ── Delivery Notes ────────────────────────────────────────────────────────────
   { id: 'delivery-packing-slip', name: 'Standard Packing Slip',       category: 'delivery',
@@ -489,6 +530,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'delivery-coldchain',    name: 'Cold-Chain Delivery Note',     category: 'delivery',
     description: 'Temperature range badge, chain-of-custody log, breach protocol instructions',
     tags: ['cold chain', 'temperature', 'pharmaceutical', 'logistics'] },
+  { id: 'delivery-arabic',       name: 'Arabic Delivery Note',         category: 'arabic',
+    description: 'Fully right-to-left packing slip with Arabic ship-to details and mirrored item table',
+    tags: ['arabic', 'rtl', 'delivery', 'logistics'] },
 
   // ── Meeting Agenda / Minutes ──────────────────────────────────────────────────
   { id: 'meeting-agenda',        name: 'Simple Meeting Agenda',        category: 'meeting',
@@ -521,6 +565,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'meeting-townhall',      name: 'Town Hall / All-Hands Notes',  category: 'meeting',
     description: 'Speaker topic summaries, Q&A captured, follow-up commitments list',
     tags: ['town hall', 'all-hands', 'company'] },
+  { id: 'meeting-arabic',        name: 'Arabic Meeting Agenda',        category: 'arabic',
+    description: 'Fully right-to-left meeting agenda with mirrored attendee and agenda-item tables',
+    tags: ['arabic', 'rtl', 'meeting', 'agenda'] },
 
   // ── Presentations ────────────────────────────────────────────────────────────
   { id: 'presentation-title',   name: 'Title Slide',          category: 'presentation', format: 'widescreen', pageWidth: 1280, pageHeight: 720,
@@ -552,6 +599,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   { id: 'book-10page',          name: '10-Page Book',         category: 'book', format: 'portrait', pageWidth: 420, pageHeight: 595,
     description: '10-page A5 book with title page, linked table of contents, three chapters, conclusion and bibliography',
     tags: ['book', 'multi-page', 'toc', 'chapters', 'a5', 'complete'] },
+  { id: 'book-arabic',          name: 'Arabic Chapter Cover', category: 'arabic', format: 'portrait', pageWidth: 420, pageHeight: 595,
+    description: 'Fully right-to-left A5 chapter opener with mirrored accent bar and Arabic chapter title',
+    tags: ['arabic', 'rtl', 'book', 'chapter', 'a5'] },
 ];
 
 export interface CategoryItem {
@@ -579,6 +629,7 @@ export const CATEGORIES: CategoryItem[] = [
   { id: 'meeting',      name: 'Meetings',           count: TEMPLATES.filter(t => t.category === 'meeting').length },
   { id: 'presentation', name: 'Presentations',      count: TEMPLATES.filter(t => t.category === 'presentation').length },
   { id: 'book',         name: 'Books / Chapters',   count: TEMPLATES.filter(t => t.category === 'book').length },
+  { id: 'arabic',       name: 'Arabic / RTL',       count: TEMPLATES.filter(t => t.category === 'arabic').length },
 ];
 
 export function getTemplatesByCategory(cat: string): TemplateDefinition[] {
