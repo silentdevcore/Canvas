@@ -35,6 +35,10 @@
           "label": "OpenDocument",
           "description": "Texte ODF avec styles de paragraphe, titres et images intégrées."
         },
+        "markdown": {
+          "label": "Markdown",
+          "description": "Titres, listes, tableaux et texte mis en forme à partir d'un fichier .md."
+        },
         "svg": {
           "label": "SVG",
           "description": "Fidélité vectorielle complète — chemins, groupes, texte et images intégrées."

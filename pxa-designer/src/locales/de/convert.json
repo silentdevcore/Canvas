@@ -35,6 +35,10 @@
           "label": "OpenDocument",
           "description": "ODF-Text mit Absatzformaten, Überschriften und eingebetteten Bildern."
         },
+        "markdown": {
+          "label": "Markdown",
+          "description": "Überschriften, Listen, Tabellen und formatierter Text aus einer .md-Datei."
+        },
         "svg": {
           "label": "SVG",
           "description": "Volle Vektortreue — Pfade, Gruppen, Text und eingebettete Bilder."

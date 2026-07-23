@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   FiFile,
   FiFileText,
+  FiHash,
   FiImage,
   FiLayout,
   FiPenTool,
@@ -67,6 +68,12 @@ const FORMATS: FormatCard[] = [
     extDisplay: '.odt',
     accept: '.odt,application/vnd.oasis.opendocument.text',
     Icon: FiFile,
+  },
+  {
+    id: 'markdown',
+    extDisplay: '.md',
+    accept: '.md,.markdown,text/markdown',
+    Icon: FiHash,
   },
   {
     id: 'svg',

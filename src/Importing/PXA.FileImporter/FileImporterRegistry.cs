@@ -11,6 +11,7 @@ public static class FileImporterRegistry
             [FileImporterKeys.Doc] = static () => new DocFileImporter(),
             [FileImporterKeys.Docx] = static () => new DocxFileImporter(),
             [FileImporterKeys.Image] = static () => new ImageFileImporter(),
+            [FileImporterKeys.Markdown] = static () => new MarkdownFileImporter(),
             [FileImporterKeys.Odt] = static () => new OdtFileImporter(),
             [FileImporterKeys.Pdf] = static () => new PdfFileImporter(),
             [FileImporterKeys.Pptx] = static () => new PptxFileImporter(),

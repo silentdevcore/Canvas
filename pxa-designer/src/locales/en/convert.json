@@ -35,6 +35,10 @@
           "label": "OpenDocument",
           "description": "ODF text with paragraph styles, headings, and embedded images."
         },
+        "markdown": {
+          "label": "Markdown",
+          "description": "Headings, lists, tables, and formatted text from a .md file."
+        },
         "svg": {
           "label": "SVG",
           "description": "Full vector fidelity — paths, groups, text, and embedded images."

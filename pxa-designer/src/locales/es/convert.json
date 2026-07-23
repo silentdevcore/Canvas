@@ -35,6 +35,10 @@
           "label": "OpenDocument",
           "description": "Texto ODF con estilos de párrafo, encabezados e imágenes incrustadas."
         },
+        "markdown": {
+          "label": "Markdown",
+          "description": "Encabezados, listas, tablas y texto con formato de un archivo .md."
+        },
         "svg": {
           "label": "SVG",
           "description": "Fidelidad vectorial completa — trazados, grupos, texto e imágenes incrustadas."

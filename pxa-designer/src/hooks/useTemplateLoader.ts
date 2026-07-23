@@ -217,6 +217,7 @@ export function useTemplateLoader() {
     else if (ext === 'doc')             design = await ExportService.importDoc(file);
     else if (ext === 'docx')            design = await ExportService.importDocx(file);
     else if (ext === 'odt')             design = await ExportService.importOdt(file);
+    else if (ext === 'md' || ext === 'markdown') design = await ExportService.importMarkdown(file);
     else if (ext === 'svg')             design = await ExportService.importSvg(file);
     else if (ext === 'pptx')            design = await ExportService.importPptx(file);
     else if (imageExts.includes(ext))   design = await ExportService.importImage(file);

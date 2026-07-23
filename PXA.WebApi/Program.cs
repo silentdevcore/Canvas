@@ -263,6 +263,7 @@ builder.Services.AddTransient<IFileImporter, PdfFileImporter>();
 builder.Services.AddTransient<IFileImporter, DocxFileImporter>();
 builder.Services.AddTransient<IFileImporter, PptxFileImporter>();
 builder.Services.AddTransient<IFileImporter, DocFileImporter>();
+builder.Services.AddTransient<IFileImporter, MarkdownFileImporter>();
 builder.Services.AddTransient<IFileImporter, OdtFileImporter>();
 builder.Services.AddTransient<IFileImporter, SvgFileImporter>();
 builder.Services.AddTransient<IFileImporter, ImageFileImporter>();

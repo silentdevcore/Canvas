@@ -810,6 +810,10 @@ export class ExportService {
     return this._importFile(file, 'import-odt');
   }
 
+  static async importMarkdown(file: File): Promise<object> {
+    return this._importFile(file, 'import-markdown');
+  }
+
   static async importImage(file: File): Promise<object> {
     return this._importFile(file, 'import-image');
   }

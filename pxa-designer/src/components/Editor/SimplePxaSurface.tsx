@@ -29,6 +29,7 @@ import {
   FiArrowDown,
   FiBox,
   FiCheckSquare,
+  FiSquare,
   FiCreditCard,
   FiEdit3,
   FiEye,
@@ -2347,11 +2348,20 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
     }
 
     if (element.type === 'checkbox') {
+      const isChecked = (element.checkState ?? 'checked') === 'checked';
+      const CheckboxIcon = isChecked ? FiCheckSquare : FiSquare;
       return (
         <div className="editor-checkbox-field">
-          <FiCheckSquare />
+          <CheckboxIcon />
           <span>{resolveContent(element.fieldLabel)}</span>
         </div>
+      );
+    }
+
+    if (element.type === 'line') {
+      const color = element.style?.backgroundColor || element.style?.borderColor || element.style?.color || '#9ca3af';
+      return (
+        <div style={{ width: '100%', height: '100%', backgroundColor: color }} />
       );
     }
 

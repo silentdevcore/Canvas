@@ -317,6 +317,37 @@ public class DocumentOpsController : ControllerBase
     }
 
     /// <summary>
+    /// Imports a Markdown (.md/.markdown) file and converts it into a PXA design.
+    /// Headings, paragraphs (with bold/italic/links), tables, lists, task-list
+    /// checkboxes, blockquotes, horizontal rules, code blocks, and images are
+    /// each converted into the corresponding PXA element type.
+    /// </summary>
+    [HttpPost("import-markdown")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(DesignExportDto), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> ImportMarkdown(IFormFile? file)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { error = "A .md file is required." });
+
+        if (!file.FileName.EndsWith(".md", StringComparison.OrdinalIgnoreCase) &&
+            !file.FileName.EndsWith(".markdown", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { error = "Only .md/.markdown (Markdown) files are accepted." });
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var design = await Importer("md").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
+            return Ok(design);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = $"Could not parse Markdown: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
     /// Imports an OpenDocument Text (.odt) file and converts it into a PXA design.
     /// Paragraphs and headings are extracted with style metadata; draw:frame images
     /// are converted to Image elements.
