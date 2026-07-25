@@ -65,9 +65,9 @@ This checklist covers corrective work only. Product roadmap items remain in
 ## Branch Hygiene
 
 - [x] Keep Account commits `76ae0f97` through `16d64574` together; the audited history contains the complete contiguous Phase 0-12 sequence.
-- [ ] Extract Designer redesign commits `e319afeb` and `3ec60517` to a dedicated branch before merging this mixed branch.
-- [ ] Extract localization and template commits `df1764ec` and `dd411030` to a dedicated branch before merging this mixed branch.
-- [ ] Extract Markdown importer commit `03071fab` to a dedicated branch before merging this mixed branch.
+- [x] Preserve Designer redesign commits `e319afeb` and `3ec60517` on the stacked topic branch `pxa-designer-redesign-topic`.
+- [x] Preserve localization and template commits `df1764ec` and `dd411030` on the stacked topic branch `pxa-designer-localization-topic`.
+- [x] Preserve Markdown importer commit `03071fab` on the stacked topic branch `pxa-markdown-importer-topic`.
 - [x] Confirm that the Admin platform base commit `a719476b` is intentional: Account reuses its persistent identity, mail, subscription, and administration foundation.
 
 ## Validation

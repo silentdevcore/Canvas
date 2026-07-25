@@ -498,21 +498,18 @@ time.
       bullet is updated to reflect this nuance rather than an absolute
       "customers can never reach admin routes" claim that the code does not
       actually make.
-- [ ] Company→Account return-flow DOM-level test. Not done — the returnUrl
-      sanitizer already has full unit coverage
-      (`websites/PXA.Account/tests/*.test.ts`) and the Company-side link
-      construction is visually verified, but no automated test drives an
-      actual Company→Account→back navigation. Left open; lowest remaining
-      priority given the pure function it depends on is already covered.
+- [x] Company-to-Account return-flow browser test. Playwright opens the real
+      Company pricing page, follows its Sign in link, completes a mocked
+      CSRF-protected Account login, returns to the original query and hash,
+      removes the one-time URL signal, and verifies the My account header
+      state in `company-account-flow.spec.ts`.
 - [x] Build+smoke check for `websites/PXA.Account` — `npm run build` and
       `npm run type-check` both clean; desktop and mobile Account-to-Designer,
       entitlement-denial, keyboard, focus, and forbidden-state scenarios now
       run through `pxa-designer/e2e/account-designer-flow.spec.ts` and
       `pxa-designer/e2e/account-accessibility.spec.ts`.
 - [x] Re-read `PXA.Account.md` top to bottom; every box is now checked
-      except the four Deferred Decisions and the deferred pricing-copy line,
-      plus the explicitly acknowledged Company-to-Account DOM-level
-      return-flow test above.
+      except the four Deferred Decisions and the deferred pricing-copy line.
 
 ## Notes
 
