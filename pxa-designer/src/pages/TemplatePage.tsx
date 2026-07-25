@@ -1,11 +1,13 @@
-import React, { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiChevronRight,
   FiSearch,
   FiX,
+  FiClock,
+  FiFileText,
 } from 'react-icons/fi';
 import CategoryFilter from '@/components/Gallery/CategoryFilter';
 import TemplateCard from '@/components/Gallery/TemplateCard';
@@ -13,6 +15,10 @@ import TemplateMiniPreview from '@/components/Gallery/TemplateMiniPreview';
 import { TEMPLATES, CATEGORIES, CATEGORY_CONFIG } from '@/data/templates';
 import type { TemplateDefinition } from '@/data/templates';
 import { useTemplateLoader } from '@/hooks/useTemplateLoader';
+import {
+  listDesignerTemplates,
+  type DesignerTemplateSummary,
+} from '@/services/designerTemplateApi';
 
 type SortOrder = 'default' | 'alpha' | 'category';
 
@@ -87,7 +93,10 @@ const TemplateDetailPanel: React.FC<DetailPanelProps> = ({ template, onClose, on
 const TemplatePage: React.FC = () => {
   const { t } = useTranslation(['gallery', 'templates']);
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { loadTemplate } = useTemplateLoader();
+  const [savedTemplates, setSavedTemplates] = useState<DesignerTemplateSummary[]>([]);
+  const [savedTemplatesLoading, setSavedTemplatesLoading] = useState(true);
 
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get('category') ?? 'all'
@@ -96,6 +105,15 @@ const TemplatePage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateDefinition | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void listDesignerTemplates('', false, controller.signal)
+      .then(result => setSavedTemplates(result.items))
+      .catch(() => setSavedTemplates([]))
+      .finally(() => setSavedTemplatesLoading(false));
+    return () => controller.abort();
+  }, []);
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
     setSelectedTemplate(null);
@@ -141,6 +159,40 @@ const TemplatePage: React.FC = () => {
   return (
     <div className="pdf-home">
       <main>
+        {(savedTemplatesLoading || savedTemplates.length > 0) && (
+          <section className="saved-template-band" aria-labelledby="saved-template-heading">
+            <div className="saved-template-heading">
+              <div>
+                <span>Your workspace</span>
+                <h1 id="saved-template-heading">Saved templates</h1>
+              </div>
+              <small>{savedTemplates.length} saved</small>
+            </div>
+            {savedTemplatesLoading ? (
+              <p className="saved-template-loading">Loading your templates...</p>
+            ) : (
+              <div className="saved-template-list">
+                {savedTemplates.map(template => (
+                  <button
+                    key={template.id}
+                    type="button"
+                    onClick={() => navigate(`/pdf/create?templateId=${encodeURIComponent(template.id)}`)}
+                  >
+                    <FiFileText aria-hidden="true" />
+                    <span>
+                      <strong>{template.name}</strong>
+                      <small>
+                        <FiClock aria-hidden="true" />
+                        Updated {new Date(template.updatedAt).toLocaleString()}
+                      </small>
+                    </span>
+                    <FiChevronRight aria-hidden="true" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
         {/* Toolbar */}
         <section className="tpl-toolbar">
           <div className="tpl-toolbar-left">

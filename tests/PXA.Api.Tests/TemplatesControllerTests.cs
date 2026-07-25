@@ -15,16 +15,11 @@ public sealed class TemplatesControllerTests : IClassFixture<WebApplicationFacto
     }
 
     [Fact]
-    public async Task GetTemplateNames_PxaRoute_ReturnsSampleTemplate()
+    public async Task GetTemplateNames_PxaRoute_RequiresAuthentication()
     {
         var response = await client.GetAsync("/api/pxa/templates");
-        var templates = await response.Content.ReadFromJsonAsync<JsonElement[]>();
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.NotNull(templates);
-        Assert.Contains(
-            templates!,
-            template => template.GetProperty("id").GetString() == "sample-invoice");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Fact]

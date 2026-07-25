@@ -148,25 +148,6 @@ const makePage = (elements: SimpleElement[] = []): Page => ({
   elements,
 });
 
-const MAX_PERSISTED_TEMPLATE_CHARS = 1_500_000;
-
-function tryMeasureJson(value: unknown): number {
-  try {
-    return JSON.stringify(value).length;
-  } catch {
-    return Number.POSITIVE_INFINITY;
-  }
-}
-
-function persistableTemplate(template: Template | null): Template | null {
-  if (!template) return null;
-  return tryMeasureJson(template) <= MAX_PERSISTED_TEMPLATE_CHARS ? template : null;
-}
-
-function persistableTemplates(templates: Template[]): Template[] {
-  return templates.filter(template => tryMeasureJson(template) <= MAX_PERSISTED_TEMPLATE_CHARS);
-}
-
 export const useEditorStore = create<EditorState>()(
   persist(
     (set, get) => ({
@@ -434,20 +415,25 @@ export const useEditorStore = create<EditorState>()(
     }),
     {
       name: 'editor-storage',
-      version: 6,
+      version: 7,
       partialize: (state) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { undoStack, redoStack, snapshotHistory, undo, redo, currentPreviewLanguage, setCurrentPreviewLanguage, upsertLocalizedProperty, deleteLocalizedProperty, helpModalOpen, setHelpModalOpen, ...rest } = state;
+        // Customer documents are server-owned and must not become persistent
+        // offline copies in shared browser storage.
         return {
-          ...rest,
-          currentTemplate: persistableTemplate(rest.currentTemplate),
-          templates: persistableTemplates(rest.templates),
-          backgroundPdf: null,
+          documentMode: state.documentMode,
         };
       },
       migrate: (persisted: unknown, version: number) => {
         // v5→v6: LocalizedProperty shape: global+globalValue → scope+ownerLanguage
         const state = persisted as any;
+        if (version < 7) {
+          delete state.currentTemplate;
+          delete state.templates;
+          delete state.jsonData;
+          delete state.generatedCode;
+          delete state.pageSettings;
+          delete state.backgroundPdf;
+        }
         if (version < 6 && state?.pageSettings?.localizedProperties) {
           state.pageSettings.localizedProperties = (state.pageSettings.localizedProperties as any[]).map((p: any) => {
             if ('scope' in p) return p; // already migrated

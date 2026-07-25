@@ -12,6 +12,17 @@ import { useEditorStore, DEFAULT_PAGE_SETTINGS } from '@/store';
 const globalWithAct = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean };
 globalWithAct.IS_REACT_ACT_ENVIRONMENT = true;
 
+const authenticatedDesignerUser = {
+  id: 'user-1',
+  username: 'designer@example.test',
+  email: 'designer@example.test',
+  displayName: 'Designer User',
+  roles: ['Editor'],
+  organizations: [{ id: 'org-1', name: 'Test Organization', slug: 'test' }],
+  activeOrganizationId: 'org-1',
+  lastLoginAt: null,
+};
+
 // Same minimal mock set as appRouteSmoke.test.tsx — needed to render the full
 // <App> tree (Home pulls in the editor/preview/code-editor components transitively).
 jest.mock('framer-motion', () => {
@@ -132,7 +143,12 @@ describe('localization', () => {
       settingsModifiedSinceExport: false,
       templates: [],
     });
-    global.fetch = jest.fn();
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => authenticatedDesignerUser,
+      });
   });
 
   afterEach(async () => {

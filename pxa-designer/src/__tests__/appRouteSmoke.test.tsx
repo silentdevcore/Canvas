@@ -12,6 +12,17 @@ import { ExportService } from '@/services/ExportService';
 const globalWithAct = globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean };
 globalWithAct.IS_REACT_ACT_ENVIRONMENT = true;
 
+const authenticatedDesignerUser = {
+  id: 'user-1',
+  username: 'designer@example.test',
+  email: 'designer@example.test',
+  displayName: 'Designer User',
+  roles: ['Editor'],
+  organizations: [{ id: 'org-1', name: 'Test Organization', slug: 'test' }],
+  activeOrganizationId: 'org-1',
+  lastLoginAt: null,
+};
+
 jest.mock('framer-motion', () => {
   const passthrough = ({ children, ...props }: { children?: React.ReactNode }) => (
     <div {...props}>{children}</div>
@@ -218,7 +229,12 @@ describe('app route smoke tests', () => {
     localStorage.clear();
     sessionStorage.clear();
     resetEditorStore();
-    global.fetch = jest.fn();
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => authenticatedDesignerUser,
+      });
   });
 
   afterEach(() => {

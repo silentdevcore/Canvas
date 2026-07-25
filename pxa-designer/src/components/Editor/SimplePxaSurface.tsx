@@ -90,6 +90,7 @@ import HelpModal from './HelpModal';
 import ExportService from '@/services/ExportService';
 import { LanguageTabBar } from './LanguageTabBar';
 import { LocalizedPropertiesPanel } from './LocalizedPropertiesPanel';
+import type { AutosaveState } from '@/hooks/useDesignerTemplateAutosave';
 
 
 interface SimplePxaSurfaceProps {
@@ -112,6 +113,11 @@ interface SimplePxaSurfaceProps {
   onSharedElementAdd: (element: SimpleElement) => void;
   onSharedElementUpdate: (id: string, updates: Partial<SimpleElement>) => void;
   onSharedElementDelete: (id: string) => void;
+  autosaveState?: AutosaveState;
+  autosaveMessage?: string;
+  onCreateVersion?: () => Promise<string>;
+  onPublish?: () => Promise<string>;
+  onArchive?: () => Promise<string>;
 }
 
 type Tool = {
@@ -453,6 +459,11 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   onSharedElementAdd,
   onSharedElementUpdate,
   onSharedElementDelete,
+  autosaveState = 'idle',
+  autosaveMessage = '',
+  onCreateVersion,
+  onPublish,
+  onArchive,
 }) => {
   const { t } = useTranslation('editor');
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
@@ -478,6 +489,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   const [formBlockModalOpen, setFormBlockModalOpen] = useState(false);
   const [topbarMenuOpen, setTopbarMenuOpen] = useState(false);
   const [topbarToast, setTopbarToast] = useState('');
+  const [templateActionPending, setTemplateActionPending] = useState(false);
   const [extractingPage, setExtractingPage] = useState<number | null>(null);
   // Language Scope UI selection: 'lang' = current tab selected, 'all' = All selected
   const [scopeShowAll, setScopeShowAll] = useState(false);
@@ -487,6 +499,18 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   const showTopbarToast = (msg: string) => {
     setTopbarToast(msg);
     setTimeout(() => setTopbarToast(''), 3000);
+  };
+
+  const runTemplateAction = async (action: () => Promise<string>) => {
+    setTemplateActionPending(true);
+    setTopbarMenuOpen(false);
+    try {
+      showTopbarToast(await action());
+    } catch (error) {
+      showTopbarToast(error instanceof Error ? error.message : 'The template action failed.');
+    } finally {
+      setTemplateActionPending(false);
+    }
   };
 
   useEffect(() => {
@@ -3361,6 +3385,33 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     <FiCopy size={13} />
                     {t('topbar.cloneDesign')}
                   </button>
+                  {onCreateVersion && (
+                    <button
+                      disabled={templateActionPending || autosaveState !== 'saved'}
+                      onClick={() => void runTemplateAction(onCreateVersion)}
+                    >
+                      <FiBookmark size={13} />
+                      Create version
+                    </button>
+                  )}
+                  {onPublish && (
+                    <button
+                      disabled={templateActionPending || autosaveState !== 'saved'}
+                      onClick={() => void runTemplateAction(onPublish)}
+                    >
+                      <FiCheck size={13} />
+                      Publish
+                    </button>
+                  )}
+                  {onArchive && (
+                    <button
+                      disabled={templateActionPending || autosaveState !== 'saved'}
+                      onClick={() => void runTemplateAction(onArchive)}
+                    >
+                      <FiTrash2 size={13} />
+                      Archive
+                    </button>
+                  )}
                 </div>
               </>
             )}
@@ -3368,6 +3419,17 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
         </div>
 
         <div className="editor-topbar-actions">
+          {autosaveState !== 'idle' && (
+            <div
+              className={`editor-save-status is-${autosaveState}`}
+              role="status"
+              aria-live="polite"
+              title={autosaveMessage}
+            >
+              <span aria-hidden="true" />
+              {autosaveMessage}
+            </div>
+          )}
           <div className="editor-status-pill">
             <FiMonitor />
             <span>{t('topbar.pageDimensions', { width: pageWidth, height: pageHeight })}</span>

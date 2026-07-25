@@ -396,4 +396,98 @@
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   }
 }
+.saved-template-band {
+  padding: 28px clamp(18px, 4vw, 56px);
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.saved-template-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1280px;
+  margin: 0 auto 14px;
+}
+
+.saved-template-heading span {
+  color: #1769aa;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.saved-template-heading h1 {
+  margin: 3px 0 0;
+  color: #172033;
+  font-size: 22px;
+  letter-spacing: 0;
+}
+
+.saved-template-heading > small,
+.saved-template-loading {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.saved-template-loading {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.saved-template-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 10px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.saved-template-list > button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 64px;
+  padding: 10px 12px;
+  color: #172033;
+  background: #fff;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.saved-template-list > button:hover {
+  border-color: #1769aa;
+}
+
+.saved-template-list > button > svg {
+  flex: 0 0 auto;
+  color: #1769aa;
+}
+
+.saved-template-list > button > span {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 4px;
+}
+
+.saved-template-list strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.saved-template-list small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #64748b;
+  font-size: 10px;
+}
 

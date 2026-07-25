@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FiMenu, FiX } from 'react-icons/fi';
 import LanguageSwitcher from '@/components/Layout/LanguageSwitcher';
+import DesignerUserMenu from '@/components/Layout/DesignerUserMenu';
 
 interface AppHeaderProps {
   activePage: 'home' | 'pdf' | 'spreadsheet' | 'docs';
@@ -53,6 +54,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
               {t('nav.docs')}
             </button>
             <LanguageSwitcher className="pdf-mobile-language-switcher" />
+            <DesignerUserMenu mobile onNavigate={() => setMobileMenuOpen(false)} />
           </nav>
         </div>
       )}
@@ -80,6 +82,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ activePage }) => {
 
         <div className="pdf-nav-actions">
           <LanguageSwitcher />
+          <DesignerUserMenu />
           <button className="pdf-menu-button" aria-label={t('nav.openMenu')} onClick={() => setMobileMenuOpen(true)}>
             <FiMenu />
           </button>

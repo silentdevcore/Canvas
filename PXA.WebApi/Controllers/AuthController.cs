@@ -12,6 +12,7 @@ using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Entitlements;
 using PXA.WebApi.Services.Mail;
 
 namespace PXA.WebApi.Controllers;
@@ -30,6 +31,7 @@ public sealed class AuthController : ControllerBase
     private readonly PxaMailOptions mailOptions;
     private readonly PxaSessionService sessionService;
     private readonly PxaSystemOperatorAccess systemOperatorAccess;
+    private readonly IPxaEntitlementService entitlementService;
 
     public AuthController(
         UserManager<PxaIdentityUser> userManager,
@@ -40,7 +42,8 @@ public sealed class AuthController : ControllerBase
         IPxaMailQueue mailQueue,
         Microsoft.Extensions.Options.IOptions<PxaMailOptions> mailOptions,
         PxaSessionService sessionService,
-        PxaSystemOperatorAccess systemOperatorAccess)
+        PxaSystemOperatorAccess systemOperatorAccess,
+        IPxaEntitlementService entitlementService)
     {
         this.userManager = userManager;
         this.principalFactory = principalFactory;
@@ -51,6 +54,7 @@ public sealed class AuthController : ControllerBase
         this.mailOptions = mailOptions.Value;
         this.sessionService = sessionService;
         this.systemOperatorAccess = systemOperatorAccess;
+        this.entitlementService = entitlementService;
     }
 
     [AllowAnonymous]
@@ -223,6 +227,22 @@ public sealed class AuthController : ControllerBase
                 detail: "The organization is unavailable to this administrator.");
         }
 
+        if (IsDesignerRequest())
+        {
+            var entitlement = await entitlementService.EvaluateAsync(
+                selectedOrganizationId,
+                "designer",
+                cancellationToken: cancellationToken);
+            if (!entitlement.Allowed)
+            {
+                return Problem(
+                    statusCode: StatusCodes.Status403Forbidden,
+                    title: "Designer access denied",
+                    detail: entitlement.Reason,
+                    extensions: new Dictionary<string, object?> { ["code"] = entitlement.Code });
+            }
+        }
+
         var session = await dbContext.UserSessions.SingleOrDefaultAsync(
             value => value.Id == sessionId && value.UserId == user.Id && value.RevokedAt == null,
             cancellationToken);
@@ -234,7 +254,7 @@ public sealed class AuthController : ControllerBase
         await dbContext.SaveChangesAsync(cancellationToken);
 
         await HttpContext.SignInAsync(
-            IdentityConstants.ApplicationScheme,
+            ResolveCookieScheme(),
             principal,
             new AuthenticationProperties
             {
@@ -272,7 +292,7 @@ public sealed class AuthController : ControllerBase
             AddSecurityAudit(organizationId, actorUserId.Value, "security.logout", sessionId, new { });
             await dbContext.SaveChangesAsync(cancellationToken);
         }
-        await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+        await HttpContext.SignOutAsync(ResolveCookieScheme());
         return NoContent();
     }
 
@@ -528,6 +548,17 @@ public sealed class AuthController : ControllerBase
             return false;
         }
     }
+
+    private string ResolveCookieScheme() =>
+        IsDesignerRequest()
+            ? PxaAuthenticationSchemes.DesignerCookie
+            : IdentityConstants.ApplicationScheme;
+
+    private bool IsDesignerRequest() =>
+        string.Equals(
+            Request.Headers["X-PXA-Application"].ToString(),
+            "designer",
+            StringComparison.OrdinalIgnoreCase);
 
     private async Task<ClaimsPrincipal> CreatePrincipalAsync(
         PxaIdentityUser user,

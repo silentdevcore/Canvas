@@ -5,11 +5,9 @@ using PXA.Infrastructure.Persistence;
 namespace PXA.WebApi.Application.Identity;
 
 /// <summary>
-/// Owns the entitlement/seat/lifecycle-event shape of a Trial. Queues entity
-/// writes on the caller's <see cref="PxaDbContext"/> without saving or
-/// committing, so <see cref="CustomerRegistrationService"/> (and any future
-/// caller needing to (re)activate a Trial for an existing organization) stays
-/// in control of the transaction boundary.
+/// Owns the pending and activated Trial shapes. Entity writes remain on the
+/// caller's context so registration and verification control their respective
+/// transaction boundaries.
 /// </summary>
 public sealed class TrialActivationService(PxaDbContext dbContext)
 {
@@ -19,9 +17,8 @@ public sealed class TrialActivationService(PxaDbContext dbContext)
         "pdf-viewer", "spreadsheet", "api", "sdk",
     ];
 
-    public OrganizationSubscription ActivateTrialForNewOrganization(
+    public OrganizationSubscription CreatePendingTrialForNewOrganization(
         Organization organization,
-        OrganizationMembership membership,
         SubscriptionAccountType accountType,
         DateTimeOffset now)
     {
@@ -30,15 +27,30 @@ public sealed class TrialActivationService(PxaDbContext dbContext)
             OrganizationId = organization.Id,
             Edition = SubscriptionEdition.Trial,
             AccountType = accountType,
-            Status = SubscriptionStatus.Trialing,
+            Status = SubscriptionStatus.Pending,
             BillingPeriod = SubscriptionBillingPeriod.None,
             DeploymentMode = SubscriptionDeploymentMode.Cloud,
             SeatLimit = accountType == SubscriptionAccountType.IndividualDeveloper ? 1 : null,
             StartsAt = now,
             CurrentPeriodStartsAt = now,
-            TrialEndsAt = now.AddDays(30),
         };
         dbContext.OrganizationSubscriptions.Add(subscription);
+        return subscription;
+    }
+
+    public void ActivatePendingTrial(
+        OrganizationSubscription subscription,
+        OrganizationMembership membership,
+        DateTimeOffset now)
+    {
+        if (subscription.Status != SubscriptionStatus.Pending)
+            throw new InvalidOperationException("Only a pending subscription can be activated as a Trial.");
+
+        subscription.Status = SubscriptionStatus.Trialing;
+        subscription.StartsAt = now;
+        subscription.CurrentPeriodStartsAt = now;
+        subscription.TrialEndsAt = now.AddDays(30);
+        subscription.UpdatedAt = now;
         dbContext.SubscriptionEntitlements.AddRange(TrialCapabilities.Select(capability =>
             new SubscriptionEntitlement
             {
@@ -57,12 +69,11 @@ public sealed class TrialActivationService(PxaDbContext dbContext)
         dbContext.SubscriptionLifecycleEvents.Add(new SubscriptionLifecycleEvent
         {
             SubscriptionId = subscription.Id,
-            OrganizationId = organization.Id,
+            OrganizationId = subscription.OrganizationId,
             ActorUserId = membership.UserId,
             Action = "subscription.trial.started",
             CurrentStatus = SubscriptionStatus.Trialing,
-            DetailsJson = JsonSerializer.Serialize(new { AccountType = accountType, TrialDays = 30 }),
+            DetailsJson = JsonSerializer.Serialize(new { subscription.AccountType, TrialDays = 30 }),
         });
-        return subscription;
     }
 }

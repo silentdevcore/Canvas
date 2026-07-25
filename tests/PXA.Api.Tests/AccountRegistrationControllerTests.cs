@@ -46,6 +46,7 @@ public sealed class AccountRegistrationControllerTests
                 locale = "de",
                 acceptTerms = true,
                 acceptPrivacy = true,
+                subscribeToNewsletter = true,
             });
         var registrationResponse = await client.SendAsync(register);
         Assert.Equal(HttpStatusCode.Accepted, registrationResponse.StatusCode);
@@ -79,6 +80,13 @@ public sealed class AccountRegistrationControllerTests
             Assert.False(user.EmailConfirmed);
             Assert.Equal("de", user.Locale);
             Assert.Equal("DE", user.Country);
+            Assert.Equal("terms-test-v2", user.TermsAcceptedVersion);
+            Assert.NotNull(user.TermsAcceptedAt);
+            Assert.Equal("privacy-test-v3", user.PrivacyAcknowledgedVersion);
+            Assert.NotNull(user.PrivacyAcknowledgedAt);
+            Assert.NotNull(user.MarketingConsentGrantedAt);
+            Assert.Null(user.MarketingConsentWithdrawnAt);
+            Assert.Equal("registration", user.MarketingConsentSource);
             var organization = await dbContext.Organizations.SingleAsync();
             organizationId = organization.Id;
             Assert.Equal("customer-documents", organization.Slug);
@@ -88,15 +96,12 @@ public sealed class AccountRegistrationControllerTests
             Assert.Single(await dbContext.OrganizationMembershipRoles.ToListAsync());
             var subscription = await dbContext.OrganizationSubscriptions.SingleAsync();
             Assert.Equal(SubscriptionEdition.Trial, subscription.Edition);
-            Assert.Equal(SubscriptionStatus.Trialing, subscription.Status);
+            Assert.Equal(SubscriptionStatus.Pending, subscription.Status);
             Assert.Equal(SubscriptionAccountType.Company, subscription.AccountType);
-            Assert.InRange(subscription.TrialEndsAt!.Value,
-                DateTimeOffset.UtcNow.AddDays(29), DateTimeOffset.UtcNow.AddDays(31));
-            Assert.Equal(8, await dbContext.SubscriptionEntitlements.CountAsync(value =>
-                value.SubscriptionId == subscription.Id && value.Enabled));
-            Assert.Single(await dbContext.SubscriptionSeatAssignments.ToListAsync());
-            Assert.Contains("subscription.trial.started",
-                await dbContext.SubscriptionLifecycleEvents.Select(value => value.Action).ToListAsync());
+            Assert.Null(subscription.TrialEndsAt);
+            Assert.Empty(await dbContext.SubscriptionEntitlements.ToListAsync());
+            Assert.Empty(await dbContext.SubscriptionSeatAssignments.ToListAsync());
+            Assert.Empty(await dbContext.SubscriptionLifecycleEvents.ToListAsync());
             Assert.Contains("account.registration.created",
                 await dbContext.AuditEvents.Select(value => value.Action).ToListAsync());
             var outbox = await dbContext.MailOutboxMessages.SingleAsync();
@@ -143,6 +148,15 @@ public sealed class AccountRegistrationControllerTests
         var finalDbContext = finalScope.ServiceProvider.GetRequiredService<PxaDbContext>();
         Assert.Contains("account.registration.verified",
             await finalDbContext.AuditEvents.Select(value => value.Action).ToListAsync());
+        var activatedSubscription = await finalDbContext.OrganizationSubscriptions.SingleAsync();
+        Assert.Equal(SubscriptionStatus.Trialing, activatedSubscription.Status);
+        Assert.InRange(activatedSubscription.TrialEndsAt!.Value,
+            DateTimeOffset.UtcNow.AddDays(29), DateTimeOffset.UtcNow.AddDays(31));
+        Assert.Equal(8, await finalDbContext.SubscriptionEntitlements.CountAsync(value =>
+            value.SubscriptionId == activatedSubscription.Id && value.Enabled));
+        Assert.Single(await finalDbContext.SubscriptionSeatAssignments.ToListAsync());
+        Assert.Contains("subscription.trial.started",
+            await finalDbContext.SubscriptionLifecycleEvents.Select(value => value.Action).ToListAsync());
         // registration-verification + welcome + new-login (the final login above).
         Assert.Equal(3, await finalDbContext.MailOutboxMessages.CountAsync());
     }
@@ -269,6 +283,8 @@ public sealed class AccountRegistrationControllerTests
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
                     ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
+                    ["Registration:TermsVersion"] = "terms-test-v2",
+                    ["Registration:PrivacyVersion"] = "privacy-test-v3",
                 }));
             builder.ConfigureServices(services =>
             {

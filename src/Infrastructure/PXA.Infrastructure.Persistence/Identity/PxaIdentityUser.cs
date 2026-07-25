@@ -12,4 +12,11 @@ public sealed class PxaIdentityUser : IdentityUser<Guid>
     public string? PendingEmail { get; set; }
     public string Locale { get; set; } = "en";
     public string? Country { get; set; }
+    public string? TermsAcceptedVersion { get; set; }
+    public DateTimeOffset? TermsAcceptedAt { get; set; }
+    public string? PrivacyAcknowledgedVersion { get; set; }
+    public DateTimeOffset? PrivacyAcknowledgedAt { get; set; }
+    public DateTimeOffset? MarketingConsentGrantedAt { get; set; }
+    public DateTimeOffset? MarketingConsentWithdrawnAt { get; set; }
+    public string? MarketingConsentSource { get; set; }
 }

@@ -11,13 +11,15 @@ import SpreadsheetImportPage from '@/pages/SpreadsheetImportPage';
 import PdfLayout from '@/components/Layout/PdfLayout';
 import SpreadsheetLayout from '@/components/Layout/SpreadsheetLayout';
 import LocaleProvider from '@/components/Layout/LocaleProvider';
+import DesignerAuthGate from '@/auth/DesignerAuthGate';
 
 const PdfViewerPage = React.lazy(() => import('@/features/pdf-viewer/PdfViewerPage'));
 const SpreadsheetEditorPage = React.lazy(() => import('@/pages/SpreadsheetEditorPage'));
 
 const App: React.FC = () => (
   <LocaleProvider>
-    <Routes>
+    <DesignerAuthGate>
+      <Routes>
       <Route path="/" element={<IndexPage />} />
       <Route path="/docs" element={<DocsPage />} />
 
@@ -79,7 +81,8 @@ const App: React.FC = () => (
       <Route path="/migrations/format/designer" element={<Navigate to="/pdf/migrations/designer" replace />} />
       <Route path="/migrations/format/spreadsheet" element={<Navigate to="/spreadsheet/import" replace />} />
       <Route path="/migrations/format/documents" element={<Navigate to="/pdf/import" replace />} />
-    </Routes>
+      </Routes>
+    </DesignerAuthGate>
   </LocaleProvider>
 );
 

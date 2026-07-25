@@ -231,6 +231,11 @@ export interface Template {
   thumbnail?: string;
   description: string;
   data?: Record<string, any>;
+  persistence?: {
+    id: string;
+    revision: number;
+    status: string;
+  };
 }
 
 export type LayerDirection = 'front' | 'forward' | 'backward' | 'back';

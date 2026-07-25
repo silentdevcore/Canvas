@@ -23,6 +23,9 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5086',
         changeOrigin: true,
+        headers: {
+          'X-PXA-Application': 'designer',
+        },
       },
     },
   },

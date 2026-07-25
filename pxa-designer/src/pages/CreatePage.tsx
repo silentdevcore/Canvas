@@ -6,6 +6,14 @@ import LivePreview from '@/components/Preview/LivePreview';
 import LiveCodeEditor from '@/components/CodeEditor/LiveCodeEditor';
 import { normalizePageSettings, useEditorStore } from '@/store';
 import { ExportService } from '@/services/ExportService';
+import {
+  archiveDesignerTemplate,
+  createDesignerTemplateVersion,
+  getDesignerTemplate,
+  publishDesignerTemplate,
+} from '@/services/designerTemplateApi';
+import { useDesignerTemplateAutosave } from '@/hooks/useDesignerTemplateAutosave';
+import type { Template } from '@/store';
 
 type SubView = 'editor' | 'preview' | 'code';
 
@@ -13,7 +21,10 @@ const CreatePage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialMode = searchParams.get('mode') === 'code' ? 'code' : 'editor';
+  const persistedTemplateId = searchParams.get('templateId');
   const [subView, setSubView] = useState<SubView>(initialMode);
+  const [loadingPersistedTemplate, setLoadingPersistedTemplate] = useState(Boolean(persistedTemplateId));
+  const [loadError, setLoadError] = useState('');
 
   // /pdf/create and /pdf/edit (an alias that redirects to /pdf/create?mode=code)
   // are the same matched route, so switching between them via the sidebar only
@@ -44,9 +55,48 @@ const CreatePage: React.FC = () => {
     deleteSharedElement,
     movePageTo,
   } = useEditorStore();
+  const autosave = useDesignerTemplateAutosave(!loadingPersistedTemplate && !loadError);
 
   useEffect(() => {
-    if (!currentTemplate) {
+    if (!persistedTemplateId) {
+      setLoadingPersistedTemplate(false);
+      return;
+    }
+    const controller = new AbortController();
+    setLoadingPersistedTemplate(true);
+    setLoadError('');
+    void getDesignerTemplate(persistedTemplateId, controller.signal)
+      .then(serverDocument => {
+        const design = serverDocument.designDocument;
+        const template = design.template as unknown as Template;
+        useEditorStore.setState({
+          currentTemplate: {
+            ...template,
+            persistence: {
+              id: serverDocument.id,
+              revision: serverDocument.revision,
+              status: serverDocument.status,
+            },
+          },
+          currentPageIndex: design.currentPageIndex ?? 0,
+          pageSettings: normalizePageSettings(design.pageSettings),
+          jsonData: design.jsonData ?? {},
+          documentMode: design.documentMode ?? 'pdf',
+          undoStack: [],
+          redoStack: [],
+        });
+        setLoadingPersistedTemplate(false);
+      })
+      .catch(error => {
+        if (controller.signal.aborted) return;
+        setLoadError(error instanceof Error ? error.message : 'The saved template could not be loaded.');
+        setLoadingPersistedTemplate(false);
+      });
+    return () => controller.abort();
+  }, [persistedTemplateId]);
+
+  useEffect(() => {
+    if (!loadingPersistedTemplate && !persistedTemplateId && !currentTemplate) {
       const handoffJson = sessionStorage.getItem('pxa_migration_designer_handoff');
       if (handoffJson) {
         try {
@@ -76,8 +126,20 @@ const CreatePage: React.FC = () => {
         data: {},
       });
     }
-  }, [currentTemplate, setCurrentTemplate, updatePageSettings]);
+  }, [currentTemplate, loadingPersistedTemplate, persistedTemplateId, setCurrentTemplate, updatePageSettings]);
 
+  if (loadingPersistedTemplate) {
+    return <main className="designer-document-state" aria-busy="true">Loading saved template...</main>;
+  }
+  if (loadError) {
+    return (
+      <main className="designer-document-state">
+        <h1>Template unavailable</h1>
+        <p>{loadError}</p>
+        <button type="button" onClick={() => navigate('/pdf/template')}>Back to templates</button>
+      </main>
+    );
+  }
   if (!currentTemplate) return null;
 
   const pages = currentTemplate.pages ?? [];
@@ -87,6 +149,47 @@ const CreatePage: React.FC = () => {
   const handleBack = () => {
     setCurrentTemplate(null);
     navigate('/template');
+  };
+
+  const requirePersistence = () => {
+    const persistence = useEditorStore.getState().currentTemplate?.persistence;
+    if (!persistence) throw new Error('Wait until the template has been saved.');
+    return persistence;
+  };
+
+  const applyPersistence = (revision: number, status: string) => {
+    const active = useEditorStore.getState().currentTemplate;
+    if (!active?.persistence) return;
+    useEditorStore.setState({
+      currentTemplate: {
+        ...active,
+        persistence: { ...active.persistence, revision, status },
+      },
+    });
+  };
+
+  const handleCreateVersion = async () => {
+    const persistence = requirePersistence();
+    const result = await createDesignerTemplateVersion(persistence.id, persistence.revision);
+    return result.created
+      ? `Version ${result.version.versionNumber} created`
+      : `Version ${result.version.versionNumber} already matches the current draft`;
+  };
+
+  const handlePublish = async () => {
+    const persistence = requirePersistence();
+    const result = await publishDesignerTemplate(persistence.id, persistence.revision);
+    applyPersistence(result.revision, result.status);
+    return 'Template published';
+  };
+
+  const handleArchive = async () => {
+    const persistence = requirePersistence();
+    const result = await archiveDesignerTemplate(persistence.id, persistence.revision);
+    applyPersistence(result.revision, result.status);
+    setCurrentTemplate(null);
+    navigate('/pdf/template');
+    return 'Template archived';
   };
 
   return (
@@ -119,7 +222,23 @@ const CreatePage: React.FC = () => {
             onSharedElementUpdate={updateSharedElement}
             onSharedElementDelete={deleteSharedElement}
             onPageMove={movePageTo}
+            autosaveState={autosave.state}
+            autosaveMessage={autosave.message}
+            onCreateVersion={currentTemplate.persistence ? handleCreateVersion : undefined}
+            onPublish={currentTemplate.persistence ? handlePublish : undefined}
+            onArchive={currentTemplate.persistence ? handleArchive : undefined}
           />
+          {autosave.state === 'conflict' && (
+            <aside className="designer-save-conflict" role="alert">
+              <strong>A newer server draft exists</strong>
+              <p>Your local work was not overwritten.</p>
+              <div>
+                <button type="button" onClick={() => void autosave.reloadServer()}>Reload server version</button>
+                <button type="button" onClick={() => void autosave.saveAsNew()}>Save as new template</button>
+                <button type="button" onClick={autosave.downloadLocal}>Download local JSON</button>
+              </div>
+            </aside>
+          )}
         </motion.div>
       )}
 

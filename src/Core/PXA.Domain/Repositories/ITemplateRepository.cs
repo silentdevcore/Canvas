@@ -29,3 +29,18 @@ public class TemplateNameInfo
     public required string Id { get; set; }
     public required string Name { get; set; }
 }
+
+public sealed class TemplateConcurrencyException : Exception
+{
+    public TemplateConcurrencyException(string templateId, long expectedRevision, long currentRevision)
+        : base($"Template '{templateId}' changed from revision {expectedRevision} to {currentRevision}.")
+    {
+        TemplateId = templateId;
+        ExpectedRevision = expectedRevision;
+        CurrentRevision = currentRevision;
+    }
+
+    public string TemplateId { get; }
+    public long ExpectedRevision { get; }
+    public long CurrentRevision { get; }
+}

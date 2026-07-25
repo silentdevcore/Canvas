@@ -1234,8 +1234,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-// Core domain services
-builder.Services.AddScoped<ITemplateRepository, InMemoryTemplateRepository>();
+// Tenant-aware PostgreSQL template persistence
+builder.Services.AddPxaPersistence(builder.Configuration.GetConnectionString("PxaDatabase")!);
+builder.Services.AddScoped<ITemplateRepository, PostgreSqlTemplateRepository>();
 builder.Services.AddScoped<ITemplateExpander,  TemplateExpander>();
 builder.Services.AddScoped<IExpressionEvaluator, ExpressionEvaluator>();
 

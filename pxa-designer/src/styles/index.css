@@ -13,3 +13,78 @@
 @import './pdf-viewer.css';
 @import './hub-layout.css';
 @import './rtl.css';
+
+.designer-auth-state {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #172033;
+  background: #f4f7fa;
+}
+
+.designer-auth-state section {
+  width: min(100%, 460px);
+  padding: 32px;
+  background: #fff;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgb(23 32 51 / 10%);
+}
+
+.designer-auth-state h1 {
+  margin: 8px 0 12px;
+  font-size: 28px;
+  letter-spacing: 0;
+}
+
+.designer-auth-state p {
+  line-height: 1.6;
+}
+
+.designer-auth-kicker {
+  margin: 0;
+  color: #1769aa;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.designer-auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.designer-auth-actions button {
+  min-height: 40px;
+  padding: 0 16px;
+  color: #fff;
+  font-weight: 700;
+  background: #1769aa;
+  border: 1px solid #1769aa;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.designer-auth-actions button.secondary {
+  color: #172033;
+  background: #fff;
+  border-color: #aeb9c7;
+}
+
+.designer-auth-spinner {
+  display: block;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 20px;
+  border: 3px solid #dbe2ea;
+  border-top-color: #1769aa;
+  border-radius: 50%;
+  animation: designer-auth-spin 700ms linear infinite;
+}
+
+@keyframes designer-auth-spin {
+  to { transform: rotate(360deg); }
+}

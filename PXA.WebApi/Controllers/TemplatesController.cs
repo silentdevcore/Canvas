@@ -1,6 +1,8 @@
 using System.Reflection;
 using PXA.WebApi.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
@@ -43,6 +45,7 @@ public class TemplatesController : ControllerBase
     /// <param name="templateVersion">Optional template version</param>
     /// <returns>The generated PDF file</returns>
     [HttpPost("render")]
+    [Authorize]
     [ProducesResponseType(typeof(FileResult), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -85,6 +88,7 @@ public class TemplatesController : ControllerBase
     /// <param name="request">The async render request</param>
     /// <returns>Job ID for tracking the async render operation</returns>
     [HttpPost("render/async")]
+    [Authorize]
     [ProducesResponseType(typeof(RenderJobResponse), 202)]
     [ProducesResponseType(400)]
     public async Task<IActionResult> RenderTemplateAsync([FromBody] TemplateRenderRequest request)
@@ -121,6 +125,7 @@ public class TemplatesController : ControllerBase
     /// <param name="request">The template creation request</param>
     /// <returns>The created template</returns>
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(typeof(DesignTemplate), 201)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
@@ -149,6 +154,7 @@ public class TemplatesController : ControllerBase
     /// <param name="version">Optional version</param>
     /// <returns>The template</returns>
     [HttpGet("{id}")]
+    [Authorize]
     [ProducesResponseType(typeof(DesignTemplate), 200)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
@@ -177,6 +183,7 @@ public class TemplatesController : ControllerBase
     /// <param name="request">The update request</param>
     /// <returns>The updated template</returns>
     [HttpPut("{id}")]
+    [Authorize]
     [ProducesResponseType(typeof(DesignTemplate), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -198,6 +205,30 @@ public class TemplatesController : ControllerBase
         catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
         {
             return NotFound(ex.Message);
+        }
+        catch (TemplateConcurrencyException ex)
+        {
+            return Conflict(new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "Template revision conflict",
+                Detail = ex.Message,
+                Extensions =
+                {
+                    ["templateId"] = ex.TemplateId,
+                    ["expectedRevision"] = ex.ExpectedRevision,
+                    ["currentRevision"] = ex.CurrentRevision,
+                },
+            });
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Conflict(new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "Template revision conflict",
+                Detail = "The template changed while the update was being saved. Reload it and retry.",
+            });
         }
         catch (Exception ex)
         {
@@ -237,6 +268,7 @@ public class TemplatesController : ControllerBase
     /// </summary>
     /// <returns>List of template names</returns>
     [HttpGet]
+    [Authorize]
     [ProducesResponseType(typeof(IEnumerable<TemplateNameInfo>), 200)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetTemplateNames()

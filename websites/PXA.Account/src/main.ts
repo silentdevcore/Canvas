@@ -7,6 +7,7 @@ import {
   ApiError,
   confirmEmailChange,
   confirmPasswordReset,
+  createDesignerHandoff,
   currentUser,
   login,
   logout,
@@ -59,6 +60,7 @@ interface AccountState {
   loading: boolean;
   notice: string;
   verificationStarted: boolean;
+  designerAuthorizationStarted: boolean;
 }
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -69,6 +71,7 @@ const state: AccountState = {
     ? 'Your session expired. Sign in again.'
     : '',
   verificationStarted: false,
+  designerAuthorizationStarted: false,
 };
 
 async function handleLogout(): Promise<void> {
@@ -145,8 +148,9 @@ function loginPage(): string {
       <label class="account-checkbox"><input name="rememberMe" type="checkbox"> Keep me signed in</label>
       <div class="account-form-error" id="form-error" role="alert" hidden></div>
       <button class="pxa-button pxa-button--primary" type="submit">Sign in</button>
+      <a class="pxa-button pxa-button--secondary" href="/register">Create account</a>
     </form>
-    <div class="account-form-links"><a href="/forgot-password">Forgot password?</a><span>New to PXA? <a href="/register">Start free trial</a></span></div>
+    <div class="account-form-links"><a href="/forgot-password">Forgot password?</a></div>
   `, 'Sign in to PXA', 'Continue your document automation work with one secure customer identity.');
 }
 
@@ -228,6 +232,17 @@ function confirmEmailChangePage(): string {
       <p>Please wait while PXA updates your customer identity.</p>
     </div>
   `, 'Confirm your new email', 'The confirmation link is single-use and expires automatically.');
+}
+
+function designerAuthorizationPage(): string {
+  return authLayout(`
+    <div class="account-result" id="designer-authorization-result">
+      <span class="account-progress" aria-hidden="true"></span>
+      <p class="pxa-kicker">Secure connection</p>
+      <h2>Opening PXA Designer</h2>
+      <p>Checking your organization and Designer access.</p>
+    </div>
+  `, 'Connect to PXA Designer', 'PXA Account securely transfers access without sharing your account cookie.');
 }
 
 function bindForm(formId: string, handler: (data: FormData) => Promise<void>): void {
@@ -338,6 +353,26 @@ async function runEmailChangeConfirmation(): Promise<void> {
   bindEvents();
 }
 
+async function runDesignerAuthorization(): Promise<void> {
+  if (state.designerAuthorizationStarted) return;
+  state.designerAuthorizationStarted = true;
+  const result = document.querySelector<HTMLElement>('#designer-authorization-result')!;
+  const parameters = new URLSearchParams(location.search);
+  try {
+    const response = await createDesignerHandoff({
+      designerOrigin: parameters.get('designerOrigin') ?? '',
+      returnPath: parameters.get('returnPath') ?? '',
+      codeChallenge: parameters.get('codeChallenge') ?? '',
+      state: parameters.get('state') ?? '',
+    });
+    window.location.replace(response!.redirectUrl);
+  } catch (error) {
+    const apiError = error as ApiError;
+    result.innerHTML = `<p class="pxa-kicker">Designer unavailable</p><h2>Access could not be transferred</h2><p>${escapeHtml(apiError.message)}</p><a class="pxa-button pxa-button--secondary" href="/dashboard">Back to Account</a>`;
+    bindEvents();
+  }
+}
+
 function render(): void {
   if (state.loading) { app.innerHTML = '<main class="account-loading"><span class="account-progress"></span><p>Loading your account</p></main>'; return; }
   const path = location.pathname;
@@ -346,7 +381,11 @@ function render(): void {
     if (target) { window.location.href = withSignedInSignal(target); return; }
     navigate('/dashboard', true); return;
   }
-  if (!state.user && portalPaths.has(path)) { navigate('/login', true); return; }
+  if (!state.user && (portalPaths.has(path) || path === '/designer-authorize')) {
+    const returnUrl = path === '/designer-authorize' ? location.href : null;
+    navigate(returnUrl ? `/login?returnUrl=${encodeURIComponent(returnUrl)}` : '/login', true);
+    return;
+  }
   const portalPage = portalPages[path];
   if (state.user && portalPage) {
     renderShell(app, portalPage.render(state.user), portalPage.title);
@@ -358,12 +397,14 @@ function render(): void {
   app.innerHTML = path === '/register' ? registerPage()
     : path === '/verify-email' ? verificationPage()
       : path === '/confirm-email' ? confirmEmailChangePage()
+        : path === '/designer-authorize' ? designerAuthorizationPage()
         : path === '/forgot-password' ? forgotPasswordPage()
           : path === '/reset-password' ? resetPasswordPage()
             : loginPage();
   bindEvents();
   if (path === '/verify-email') runVerification();
   if (path === '/confirm-email') runEmailChangeConfirmation();
+  if (path === '/designer-authorize') runDesignerAuthorization();
 }
 
 window.addEventListener('popstate', render);

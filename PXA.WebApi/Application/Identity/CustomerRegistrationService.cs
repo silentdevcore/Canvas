@@ -22,9 +22,11 @@ public sealed class CustomerRegistrationService(
     IdentityActionTokenService actionTokens,
     IPxaMailQueue mailQueue,
     IOptions<PxaMailOptions> mailOptions,
+    IOptions<PxaRegistrationOptions> registrationOptions,
     TrialActivationService trialActivation)
 {
     private readonly PxaMailOptions mailOptions = mailOptions.Value;
+    private readonly PxaRegistrationOptions registrationOptions = registrationOptions.Value;
 
     public async Task<CustomerRegistrationOutcome> RegisterAsync(
         RegisterAccountRequest request,
@@ -60,6 +62,12 @@ public sealed class CustomerRegistrationService(
             IsActive = true,
             Locale = validation.Locale,
             Country = validation.Country,
+            TermsAcceptedVersion = registrationOptions.TermsVersion,
+            TermsAcceptedAt = now,
+            PrivacyAcknowledgedVersion = registrationOptions.PrivacyVersion,
+            PrivacyAcknowledgedAt = now,
+            MarketingConsentGrantedAt = request.SubscribeToNewsletter == true ? now : null,
+            MarketingConsentSource = request.SubscribeToNewsletter == true ? "registration" : null,
         };
         IdentityResult creation;
         try
@@ -103,7 +111,7 @@ public sealed class CustomerRegistrationService(
             AssignedByUserId = user.Id,
         });
 
-        trialActivation.ActivateTrialForNewOrganization(organization, membership, validation.AccountType, now);
+        trialActivation.CreatePendingTrialForNewOrganization(organization, validation.AccountType, now);
 
         var issued = await actionTokens.IssueAsync(
             user.Id,
@@ -136,9 +144,12 @@ public sealed class CustomerRegistrationService(
                 AccountType = validation.AccountType,
                 validation.Country,
                 validation.Locale,
-                TermsVersion = "draft-v1",
-                PrivacyVersion = "draft-v1",
+                TermsVersion = registrationOptions.TermsVersion,
+                TermsAcceptedAt = now,
+                PrivacyVersion = registrationOptions.PrivacyVersion,
+                PrivacyAcknowledgedAt = now,
                 NewsletterConsent = request.SubscribeToNewsletter ?? false,
+                NewsletterConsentSource = request.SubscribeToNewsletter == true ? "registration" : null,
                 CampaignContext = CampaignAttribution.Sanitize(request.CampaignContext),
             }),
         });
@@ -204,12 +215,29 @@ public sealed class CustomerRegistrationService(
             return EmailVerificationOutcome.Invalid();
 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var subscription = actionToken.OrganizationId is { } organizationId
+            ? await dbContext.OrganizationSubscriptions.SingleOrDefaultAsync(
+                value => value.OrganizationId == organizationId,
+                cancellationToken)
+            : null;
+        var membership = actionToken.OrganizationId is { } membershipOrganizationId
+            ? await dbContext.OrganizationMemberships.SingleOrDefaultAsync(
+                value => value.OrganizationId == membershipOrganizationId &&
+                         value.UserId == user.Id &&
+                         value.Status == OrganizationMembershipStatus.Active,
+                cancellationToken)
+            : null;
+        if (subscription is null || membership is null || subscription.Status != SubscriptionStatus.Pending)
+            return EmailVerificationOutcome.Invalid();
+
+        var now = DateTimeOffset.UtcNow;
         user.EmailConfirmed = true;
-        user.UpdatedAt = DateTimeOffset.UtcNow;
+        user.UpdatedAt = now;
         var update = await userManager.UpdateAsync(user);
         if (!update.Succeeded)
             return EmailVerificationOutcome.Invalid();
-        actionToken.UsedAt = DateTimeOffset.UtcNow;
+        trialActivation.ActivatePendingTrial(subscription, membership, now);
+        actionToken.UsedAt = now;
         dbContext.AuditEvents.Add(new AuditEvent
         {
             OrganizationId = actionToken.OrganizationId,

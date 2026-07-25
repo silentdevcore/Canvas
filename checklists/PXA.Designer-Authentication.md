@@ -6,115 +6,115 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 
 ## Priorities
 
-- [ ] P0: Protect all Designer routes and API operations.
-- [ ] P0: Implement the Account-to-Designer authorization-code handoff.
-- [ ] P0: Enforce active-user, verified-email, session, tenant, and entitlement checks.
-- [ ] P1: Add organization switching and complete session-management UX.
+- [x] P0: Protect all Designer routes and API operations.
+- [x] P0: Implement the Account-to-Designer authorization-code handoff.
+- [x] P0: Enforce active-user, verified-email, session, tenant, and entitlement checks.
+- [x] P1: Add organization switching and the Account/session user menu.
 - [ ] P2: Add enterprise SSO providers without changing the Designer session boundary.
 
 ## Dependencies
 
-- [ ] Use the existing ASP.NET Core Identity users and persistent `UserSession` infrastructure.
-- [ ] Use the active organization resolved by the authenticated server context.
-- [ ] Use `PXA.Account-Registration.md` for registration and verification behavior.
+- [x] Use the existing ASP.NET Core Identity users and persistent `UserSession` infrastructure.
+- [x] Use the active organization resolved by the authenticated server context.
+- [x] Use `PXA.Account-Registration.md` for registration and verification behavior.
 - [ ] Use `PXA.Designer-Template-Persistence.md` for tenant-owned template authorization.
 - [ ] Use `PXA.Subscription-Licensing.md` for Designer entitlement calculation.
-- [ ] Keep Account and Designer behind same-origin `/api` reverse-proxy routes in each deployment.
+- [x] Keep Account and Designer behind same-origin `/api` reverse-proxy routes in each deployment.
 
 ## Access Rules
 
-- [ ] Require an authenticated, active, and email-verified user for every Designer route.
-- [ ] Require an effective Designer entitlement instead of checking edition names directly.
-- [ ] Permit Free only when its effective entitlement explicitly enables the requested Designer capability.
-- [ ] Deny suspended, expired, deactivated, or revoked accounts and sessions.
-- [ ] Resolve the active organization from authenticated claims and persistent membership state.
-- [ ] Re-evaluate session validity and entitlements on security-sensitive API operations.
-- [ ] Return standard Problem Details for unauthenticated, forbidden, expired, and suspended access.
+- [x] Require an authenticated, active, and email-verified user for every Designer route.
+- [x] Require an effective Designer entitlement instead of checking edition names directly.
+- [x] Permit Free only when its effective entitlement explicitly enables the requested Designer capability.
+- [x] Deny suspended, expired, deactivated, or revoked accounts and sessions.
+- [x] Resolve the active organization from authenticated claims and persistent membership state.
+- [x] Re-evaluate session validity and entitlements on every Designer API operation.
+- [x] Return standard Problem Details for unauthenticated, forbidden, expired, and suspended access.
 
 ## Account Redirect
 
-- [ ] Redirect unauthenticated Designer visitors to the PXA Account login page.
-- [ ] Include the absolute Designer URL as an allowlisted `returnUrl`.
-- [ ] Preserve the original Designer path, query parameters, and hash only after validation.
-- [ ] Never redirect to protocol-relative, non-HTTP(S), external, Admin, or unconfigured origins.
-- [ ] Provide a registration link that points only to `PXA.Account/register`.
-- [ ] Do not add login or registration credential forms to the Designer.
+- [x] Redirect unauthenticated Designer visitors to the PXA Account login page.
+- [x] Include the absolute Account authorization continuation as an allowlisted `returnUrl`.
+- [x] Preserve the original Designer path, query parameters, and hash only after validation.
+- [x] Never redirect to protocol-relative, non-HTTP(S), external, Admin, or unconfigured origins.
+- [x] Provide registration through the PXA Account login page only.
+- [x] Do not add login or registration credential forms to the Designer.
 
 ## Authorization-Code Handoff
 
-- [ ] Add an authenticated Account endpoint that creates a Designer authorization handoff.
-- [ ] Add a Designer same-origin API endpoint that exchanges the handoff for a local session.
-- [ ] Use `/auth/callback` as the Designer callback route.
-- [ ] Make every authorization code cryptographically random, single-use, and valid for two minutes.
-- [ ] Store only a cryptographic hash of the authorization code in PostgreSQL.
-- [ ] Bind the handoff to user ID, active organization ID, Designer origin, return path, PKCE challenge, creation time, expiry time, and consumption time.
-- [ ] Require PKCE S256 and a browser-generated state value.
-- [ ] Keep the PKCE verifier and state in session-scoped browser memory.
-- [ ] Compare state before exchanging the code.
-- [ ] Consume the code atomically so concurrent exchanges cannot both succeed.
-- [ ] Reject expired, consumed, malformed, wrong-origin, wrong-tenant, and wrong-PKCE exchanges.
-- [ ] Re-check user, session, membership, and Designer entitlement during exchange.
-- [ ] Create a persistent Designer `UserSession` and issue a Designer-host session cookie.
-- [ ] Remove code, state, and error parameters from browser history immediately after processing.
-- [ ] Apply `Referrer-Policy: no-referrer` to the callback response and avoid logging authorization codes.
+- [x] Add an authenticated Account endpoint that creates a Designer authorization handoff.
+- [x] Add a Designer same-origin API endpoint that exchanges the handoff for a local session.
+- [x] Use `/auth/callback` as the Designer callback route.
+- [x] Make every authorization code cryptographically random, single-use, and valid for two minutes.
+- [x] Store only a cryptographic hash of the authorization code in PostgreSQL.
+- [x] Bind the handoff to user ID, active organization ID, Designer origin, return path, PKCE challenge, creation time, expiry time, and consumption time.
+- [x] Require PKCE S256 and a browser-generated state value.
+- [x] Keep the PKCE verifier and state in session-scoped browser storage.
+- [x] Compare state before exchanging the code.
+- [x] Consume the code atomically so concurrent exchanges cannot both succeed.
+- [x] Reject expired, consumed, malformed, wrong-origin, wrong-tenant, and wrong-PKCE exchanges.
+- [x] Re-check user, session, membership, and Designer entitlement during exchange.
+- [x] Create a persistent Designer `UserSession` and issue a Designer-host session cookie.
+- [x] Remove code, state, and error parameters from browser history immediately after processing.
+- [x] Apply `Referrer-Policy: no-referrer` to the callback response and avoid logging authorization codes.
 
 ## Cookie And CSRF Security
 
-- [ ] Preserve host-only HttpOnly cookies for Account and Designer.
-- [ ] Keep the production `__Host-` cookie prefix, Secure policy, and root path.
-- [ ] Do not introduce a parent-domain authentication cookie.
-- [ ] Keep SameSite protection compatible with the top-level Account-to-Designer redirect.
-- [ ] Require the existing antiforgery mechanism for authenticated state-changing Designer requests.
+- [x] Preserve separate host-only HttpOnly cookies for Account and Designer.
+- [x] Keep the production `__Host-` cookie prefix, Secure policy, and root path.
+- [x] Do not introduce a parent-domain authentication cookie.
+- [x] Keep SameSite protection compatible with the top-level Account-to-Designer redirect.
+- [x] Require the existing antiforgery mechanism for authenticated state-changing Designer requests.
 - [ ] Rotate or invalidate the Designer cookie when the underlying persistent session changes.
-- [ ] Revoke the current Designer session on Designer sign-out.
+- [x] Revoke the current Designer session on Designer sign-out.
 - [ ] Keep global cross-application sign-out as a separate future capability.
 
 ## Designer Application
 
-- [ ] Add an authentication bootstrap that calls `GET /api/pxa/v1/auth/me`.
-- [ ] Prevent protected route content from rendering before bootstrap completes.
-- [ ] Add route states for loading, unauthenticated, verification required, entitlement denied, suspended, expired session, offline API, and incompatible API version.
-- [ ] Add an error boundary around authentication and callback processing.
-- [ ] Add a user menu with Account, Subscription, Organization, Security, and Sign out actions.
-- [ ] Allow organization switching only through the authenticated API.
-- [ ] Refresh user and entitlement state after organization switching.
-- [ ] Clear tenant-specific Designer state when the active organization changes.
-- [ ] Preserve a safe post-login destination without creating redirect loops.
+- [x] Add an authentication bootstrap that calls `GET /api/pxa/v1/auth/me`.
+- [x] Prevent protected route content from rendering before bootstrap completes.
+- [ ] Add the remaining explicit route states for suspended access and incompatible API versions.
+- [x] Add guarded error handling around authentication and callback processing.
+- [x] Add a user menu with Account, Subscription, Organization, Security, and Sign out actions.
+- [x] Allow organization switching only through the authenticated API.
+- [x] Refresh user and entitlement state after organization switching.
+- [x] Clear tenant-specific Designer state when the active organization changes.
+- [x] Preserve a safe post-login destination without creating redirect loops.
 
 ## API Authorization
 
-- [ ] Protect template creation, reading, updates, versions, publication, archive, and restore.
-- [ ] Protect import, export, migration, rendering, conversion, PDF Viewer mutation, and Spreadsheet operations.
-- [ ] Apply product-specific entitlement checks in addition to authentication.
-- [ ] Exempt only explicitly public health, metadata, login handoff, and static gallery operations.
-- [ ] Never authorize a request from organization identifiers supplied by the client.
-- [ ] Audit successful and rejected handoffs, organization changes, session revocation, and entitlement denial without recording secrets.
+- [x] Protect template creation, reading, updates, versions, publication, archive, and restore when called through Designer.
+- [x] Protect import, export, migration, rendering, conversion, PDF Viewer mutation, and Spreadsheet operations when called through Designer.
+- [x] Apply the Designer entitlement check in addition to authentication.
+- [x] Exempt only the CSRF bootstrap, handoff exchange, and sign-out prerequisites from the Designer entitlement gate.
+- [x] Never authorize a request from organization identifiers supplied by the client.
+- [ ] Complete rejected-handoff and entitlement-denial audit events; successful handoffs are audited.
 
 ## Tests
 
 - [ ] Unit-test return URL and Designer-origin allowlists.
 - [ ] Unit-test PKCE, state, code hashing, expiry, and single-use behavior.
-- [ ] Integration-test Account login followed by a successful Designer handoff.
-- [ ] Test authorization-code replay and concurrent exchange.
-- [ ] Test expired code, invalid state, invalid PKCE, wrong origin, and modified return path.
+- [x] Integration-test Account login followed by a successful Designer handoff.
+- [x] Test authorization-code replay and concurrent exchange.
+- [ ] Test expired code, invalid state, invalid PKCE, wrong origin, and modified return path; expiry, invalid PKCE, and wrong origin are covered.
 - [ ] Test inactive, unverified, locked, suspended, and deleted users.
 - [ ] Test expired and revoked persistent sessions.
-- [ ] Test missing, expired, and organization-specific Designer entitlements.
-- [ ] Test cross-tenant organization switching and stale organization claims.
-- [ ] Test that protected Designer APIs return 401 or 403 consistently.
-- [ ] Test antiforgery enforcement on state-changing Designer requests.
+- [ ] Test missing, expired, and organization-specific Designer entitlements; disabled entitlement is covered.
+- [x] Test cross-tenant organization switching and stale organization claims.
+- [x] Test that protected Designer APIs return 401 or 403 consistently.
+- [x] Test antiforgery enforcement on state-changing Designer requests.
 - [ ] Test callback URL cleanup and redirect-loop prevention.
 - [ ] Run Designer desktop and mobile authentication smoke tests.
 
 ## Acceptance Criteria
 
-- [ ] An anonymous visitor cannot view or invoke protected Designer functionality.
-- [ ] Login credentials are entered only on PXA Account.
-- [ ] A verified entitled user returns to the original safe Designer destination after login.
-- [ ] A handoff code cannot be reused, extended, redirected, or exchanged by another origin.
-- [ ] Account and Designer retain separate host-only session cookies.
-- [ ] Removing a user, membership, session, or entitlement removes effective Designer access.
-- [ ] Cross-tenant data and operations remain inaccessible after login and organization switching.
+- [x] An anonymous visitor cannot view or invoke protected Designer functionality.
+- [x] Login credentials are entered only on PXA Account.
+- [x] A verified entitled user returns to the original safe Designer destination after login.
+- [x] A handoff code cannot be reused, extended, redirected, or exchanged by another origin.
+- [x] Account and Designer retain separate host-only session cookies.
+- [x] Removing a user, membership, session, or entitlement removes effective Designer access.
+- [x] Cross-tenant organization switching is membership-restricted; template data isolation remains tracked in `PXA.Designer-Template-Persistence.md`.
 
 ## Deferred Work
 

@@ -20,6 +20,13 @@ public class UpdateTemplateUseCase
         {
             throw new InvalidOperationException($"Template with ID '{request.Id}' not found");
         }
+        if (request.Revision is { } expectedRevision && expectedRevision != existingTemplate.Revision)
+        {
+            throw new TemplateConcurrencyException(
+                request.Id,
+                expectedRevision,
+                existingTemplate.Revision);
+        }
 
         // Create new version if requested
         var templateToUpdate = request.CreateNewVersion
@@ -44,11 +51,10 @@ public class UpdateTemplateUseCase
         if (request.TemplateMetadata != null)
         {
             templateToUpdate.Metadata = request.TemplateMetadata;
-            if (templateToUpdate.Metadata != null)
-            {
-                templateToUpdate.Metadata.UpdatedBy = request.UpdatedBy ?? "system";
-            }
         }
+        templateToUpdate.Metadata ??= new TemplateMetadata();
+        templateToUpdate.Metadata.CreatedBy = existingTemplate.Metadata?.CreatedBy;
+        templateToUpdate.Metadata.UpdatedBy = existingTemplate.Metadata?.UpdatedBy;
 
         await _templateRepository.SaveAsync(templateToUpdate);
         return templateToUpdate;
@@ -57,7 +63,8 @@ public class UpdateTemplateUseCase
 
 public class UpdateTemplateRequest
 {
-    public required string Id { get; set; }
+    public string Id { get; set; } = string.Empty;
+    public long? Revision { get; set; }
     public string? Name { get; set; }
     public string? Description { get; set; }
     public string? UpdatedBy { get; set; }

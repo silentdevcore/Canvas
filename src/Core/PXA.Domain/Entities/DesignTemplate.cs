@@ -9,6 +9,7 @@ public class DesignTemplate
     public string? Description { get; set; }
     public required List<DesignerElement> Elements { get; set; } = new();
     public required PageSettings PageSettings { get; set; }
+    public long Revision { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public List<string>? Tags { get; set; }

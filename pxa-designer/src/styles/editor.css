@@ -111,6 +111,112 @@
   font-weight: 700;
 }
 
+.editor-save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  max-width: 220px;
+  padding: 0 10px;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #dbe2ea;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.editor-save-status > span {
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  background: #94a3b8;
+  border-radius: 50%;
+}
+
+.editor-save-status.is-saving > span,
+.editor-save-status.is-retrying > span {
+  background: #d97706;
+  animation: designer-save-pulse 900ms ease-in-out infinite;
+}
+
+.editor-save-status.is-saved > span {
+  background: #15803d;
+}
+
+.editor-save-status.is-conflict,
+.editor-save-status.is-failed,
+.editor-save-status.is-offline {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.editor-save-status.is-conflict > span,
+.editor-save-status.is-failed > span,
+.editor-save-status.is-offline > span {
+  background: #dc2626;
+}
+
+@keyframes designer-save-pulse {
+  50% { opacity: 0.35; }
+}
+
+.designer-save-conflict {
+  position: fixed;
+  inset-inline-end: 20px;
+  bottom: 20px;
+  z-index: 500;
+  width: min(440px, calc(100vw - 40px));
+  padding: 18px;
+  color: #7f1d1d;
+  background: #fff;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  box-shadow: 0 18px 50px rgb(127 29 29 / 18%);
+}
+
+.designer-save-conflict p {
+  margin: 6px 0 14px;
+}
+
+.designer-save-conflict > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.designer-save-conflict button,
+.designer-document-state button {
+  min-height: 36px;
+  padding: 0 12px;
+  color: #292524;
+  background: #fff;
+  border: 1px solid #d6d3d1;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.designer-document-state {
+  min-height: calc(100vh - 72px);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px;
+  color: #292524;
+  background: #f8fafc;
+  text-align: center;
+}
+
+.designer-document-state h1,
+.designer-document-state p {
+  margin: 0;
+}
+
 .editor-primary-button {
   display: inline-flex;
   align-items: center;

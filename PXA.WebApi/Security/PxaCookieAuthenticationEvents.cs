@@ -50,14 +50,14 @@ public sealed class PxaCookieAuthenticationEvents : CookieAuthenticationEvents
                 context.Principal!, user.Id, session.OrganizationId, isAuthorizedSystemOperator,
                 context.HttpContext.RequestAborted);
 
-        if (user is not { IsActive: true } ||
+        if (user is not { IsActive: true, EmailConfirmed: true } ||
             string.IsNullOrEmpty(principalStamp) ||
             !string.Equals(principalStamp, currentStamp, StringComparison.Ordinal) ||
             session is null || session.RevokedAt is not null || session.ExpiresAt <= now ||
             hasUnauthorizedSystemRole || !organizationAccessIsValid)
         {
             context.RejectPrincipal();
-            await context.HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+            await context.HttpContext.SignOutAsync(context.Scheme.Name);
             return;
         }
 

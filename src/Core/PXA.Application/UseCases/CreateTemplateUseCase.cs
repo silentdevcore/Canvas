@@ -35,13 +35,15 @@ public class CreateTemplateUseCase
             {
                 Version = "1.0.0",
                 SchemaVersion = "1.0.0",
-                CreatedBy = request.CreatedBy ?? "system",
-                UpdatedBy = request.CreatedBy ?? "system",
+                CreatedBy = null,
+                UpdatedBy = null,
                 Locale = "en-US",
                 Currency = "USD",
                 Timezone = "UTC"
             }
         };
+        template.Metadata.CreatedBy = null;
+        template.Metadata.UpdatedBy = null;
 
         await _templateRepository.SaveAsync(template);
         return template;

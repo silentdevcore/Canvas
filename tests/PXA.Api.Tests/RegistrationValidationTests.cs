@@ -30,6 +30,15 @@ public sealed class RegistrationValidationTests
         Assert.Contains("Terms and Privacy", result.Error);
     }
 
+    [Fact]
+    public void Optional_marketing_consent_does_not_gate_registration()
+    {
+        var result = RegistrationValidation.Validate(
+            ValidCompanyRequest() with { SubscribeToNewsletter = false });
+
+        Assert.True(result.IsValid);
+    }
+
     [Theory]
     [InlineData("A")]
     [InlineData("")]

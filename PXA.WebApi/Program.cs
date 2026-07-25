@@ -12,6 +12,7 @@ using PXA.FileImporter.ImageOcr;
 using PXA.Infrastructure.Persistence;
 using PXA.Pdf;
 using PXA.WebApi.Application.Identity;
+using PXA.WebApi.Application.Designer;
 using PXA.WebApi.Application.Organizations;
 using PXA.WebApi.Application.Subscriptions;
 using PXA.WebApi.Infrastructure;
@@ -44,13 +45,32 @@ builder.Services.AddAuthentication(options =>
             context.Request.Headers.ContainsKey("X-PXA-API-Key") ||
             context.Request.Headers.Authorization.ToString().StartsWith("Bearer pxa_", StringComparison.Ordinal)
                 ? PxaAuthenticationSchemes.ApiKey
-                : IdentityConstants.ApplicationScheme;
+                : string.Equals(
+                    context.Request.Headers["X-PXA-Application"].ToString(),
+                    "designer",
+                    StringComparison.OrdinalIgnoreCase)
+                    ? PxaAuthenticationSchemes.DesignerCookie
+                    : IdentityConstants.ApplicationScheme;
     })
     .AddScheme<AuthenticationSchemeOptions, PxaApiKeyAuthenticationHandler>(
         PxaAuthenticationSchemes.ApiKey, _ => { })
     .AddCookie(IdentityConstants.ApplicationScheme, options =>
     {
         options.Cookie.Name = requireSecureCookies ? "__Host-PXA.Session" : "PXA.Session.Development";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SecurePolicy = requireSecureCookies
+            ? CookieSecurePolicy.Always
+            : CookieSecurePolicy.SameAsRequest;
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+        options.EventsType = typeof(PxaCookieAuthenticationEvents);
+    })
+    .AddCookie(PxaAuthenticationSchemes.DesignerCookie, options =>
+    {
+        options.Cookie.Name = requireSecureCookies
+            ? "__Host-PXA.Designer.Session"
+            : "PXA.Designer.Session.Development";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Strict;
         options.Cookie.SecurePolicy = requireSecureCookies
@@ -67,6 +87,27 @@ builder.Services.AddOptions<PxaAdminSecurityOptions>()
 builder.Services.AddScoped<PxaSystemOperatorAccess>();
 builder.Services.AddOptions<PxaAccountClosureOptions>()
     .Bind(builder.Configuration.GetSection(PxaAccountClosureOptions.SectionName));
+builder.Services.AddOptions<PxaRegistrationOptions>()
+    .Bind(builder.Configuration.GetSection(PxaRegistrationOptions.SectionName))
+    .Validate(options =>
+            !string.IsNullOrWhiteSpace(options.TermsVersion) &&
+            options.TermsVersion.Length <= 64 &&
+            !string.IsNullOrWhiteSpace(options.PrivacyVersion) &&
+            options.PrivacyVersion.Length <= 64,
+        "Registration Terms and Privacy versions are required and must not exceed 64 characters.")
+    .ValidateOnStart();
+builder.Services.AddOptions<PxaDesignerAuthenticationOptions>()
+    .Bind(builder.Configuration.GetSection(PxaDesignerAuthenticationOptions.SectionName))
+    .Validate(options => options.AllowedOrigins.Length > 0,
+        "At least one Designer origin must be configured.")
+    .ValidateOnStart();
+builder.Services.AddOptions<PxaDesignerTemplateOptions>()
+    .Bind(builder.Configuration.GetSection(PxaDesignerTemplateOptions.SectionName))
+    .Validate(options =>
+            options.MaximumDesignJsonBytes is >= 1024 and <= 100 * 1024 * 1024 &&
+            options.MaximumPageSize is >= 1 and <= 500,
+        "Designer template limits are outside the supported range.")
+    .ValidateOnStart();
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, PxaAuthorizationMiddlewareResultHandler>();
 builder.Services.AddRateLimiter(options =>
 {
@@ -164,6 +205,7 @@ builder.Services.AddOptions<PxaMailOptions>()
 builder.Services.AddScoped<IdentityActionTokenService>();
 builder.Services.AddScoped<TrialActivationService>();
 builder.Services.AddScoped<CustomerRegistrationService>();
+builder.Services.AddScoped<DesignerAuthorizationCodeService>();
 builder.Services.AddScoped<OrganizationMembershipService>();
 builder.Services.AddScoped<SubscriptionQueryService>();
 builder.Services.AddScoped<IPxaMailQueue, PxaMailQueue>();
@@ -225,7 +267,7 @@ builder.Services.AddCors(options =>
 });
 
 // Register template rendering services
-builder.Services.AddScoped<PXA.Domain.Repositories.ITemplateRepository, InMemoryTemplateRepository>();
+builder.Services.AddScoped<PXA.Domain.Repositories.ITemplateRepository, PostgreSqlTemplateRepository>();
 
 // Register font loader for multi-language PDF support (optional: gracefully absent if fonts dir missing)
 builder.Services.AddSingleton<PdfFontLoader>(sp =>
@@ -312,6 +354,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors();
 app.UseAuthentication();
+app.UseMiddleware<PxaDesignerAccessMiddleware>();
 app.UseRateLimiter();
 app.UseMiddleware<PxaProductAccessMiddleware>();
 app.UseAuthorization();

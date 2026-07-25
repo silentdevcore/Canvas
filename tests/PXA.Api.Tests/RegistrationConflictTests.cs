@@ -59,6 +59,7 @@ public sealed class RegistrationConflictTests
                 value => value.OrganizationId == organization.Id);
             Assert.Equal(1, subscription.SeatLimit);
             Assert.Equal(SubscriptionAccountType.IndividualDeveloper, subscription.AccountType);
+            Assert.Equal(SubscriptionStatus.Pending, subscription.Status);
             var membership = await dbContext.OrganizationMemberships.SingleAsync(value => value.UserId == user.Id);
             Assert.Single(await dbContext.OrganizationMembershipRoles
                 .Where(value => value.OrganizationMembershipId == membership.Id)
@@ -75,6 +76,15 @@ public sealed class RegistrationConflictTests
         using var verify = CreateCsrfRequest(
             HttpMethod.Post, "/api/pxa/v1/auth/verify-email", await GetCsrfAsync(client), new { token });
         Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(verify)).StatusCode);
+
+        await using (var trialScope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = trialScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var subscription = await dbContext.OrganizationSubscriptions.SingleAsync();
+            Assert.Equal(SubscriptionStatus.Trialing, subscription.Status);
+            Assert.InRange(subscription.TrialEndsAt!.Value,
+                DateTimeOffset.UtcNow.AddDays(29), DateTimeOffset.UtcNow.AddDays(31));
+        }
 
         using var login = CreateCsrfRequest(
             HttpMethod.Post, "/api/pxa/v1/auth/login", await GetCsrfAsync(client),

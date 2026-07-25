@@ -32,6 +32,13 @@ export interface RegistrationAcceptedResponse {
   message: string;
 }
 
+export interface DesignerHandoffValues {
+  designerOrigin: string;
+  returnPath: string;
+  codeChallenge: string;
+  state: string;
+}
+
 export interface RegisterAccountValues {
   accountType: string;
   displayName: string;
@@ -268,6 +275,8 @@ export const register = (values: RegisterAccountValues) =>
 export const verifyEmail = (token: string) => mutation(`${authBase}/verify-email`, { token });
 export const resendVerification = (email: string) =>
   mutation<RegistrationAcceptedResponse>(`${authBase}/resend-verification`, { email });
+export const createDesignerHandoff = (values: DesignerHandoffValues) =>
+  mutation<{ redirectUrl: string }>(`${authBase}/designer-handoff`, values);
 export const requestPasswordReset = (email: string) =>
   mutation(`${authBase}/password-reset/request`, { email });
 export const confirmPasswordReset = (token: string, newPassword: string) =>
