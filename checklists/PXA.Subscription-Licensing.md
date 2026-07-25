@@ -89,7 +89,7 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 - [x] Add a live subscription list, creation form, filters, lifecycle control, seats, and explicit capability selection to PXA Admin.
 - [x] Add a detail view for Trial extension, renewal, grace period, cancellation, entitlement overrides, seat assignment, and lifecycle history.
 - [x] Add offline-license generation and usage-metering views.
-- [ ] Show customers their edition, renewal or expiry date, limits, usage, and upgrade path.
+- [x] Show customers their edition, renewal or expiry date, seats, entitlements, limits, usage, and a Pricing or Sales upgrade path.
 - [x] Send implemented subscription lifecycle, seat, and offline-license notifications through `PXA.Mail-Service.md`.
 - [ ] Update PXA.Company pricing and license content after commercial decisions are approved.
 - [ ] Keep billing-provider integration behind an application abstraction.
@@ -107,6 +107,7 @@ Current subscription foundation verification:
 - [x] Test lifecycle transitions, grace periods, cancellation, suspension, expiry, and Trial conversion.
 - [ ] Test seat assignment races and organization isolation.
 - [x] Test configured quota thresholds, exhausted quotas, cumulative usage, and idempotent usage.
+- [x] Test Account subscription lifecycle presentation, centralized Pricing and Sales links, and usage-to-limit presentation.
 - [x] Test valid, tampered, malformed, expired, future-dated, revoked, deployment-mismatched, instance-limited, and version-incompatible offline licenses.
 - [ ] Test Cloud and fully offline PXA Server enforcement.
 - [ ] Test that role changes cannot grant unlicensed products.

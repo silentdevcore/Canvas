@@ -9,7 +9,8 @@ Maintain one prioritized index of product work outside PXA Admin. Detailed imple
 - [x] Deliver customer registration, sign-in, Trial activation, organization ownership, and core self-service account management through `PXA.Account.md`.
 - [ ] Complete transactional and security email flows tracked in `PXA.Mail-Service.md`.
 - [x] Harden the subscription lifecycle, entitlement checks, seat management, and signed offline-license validation through `PXA.Subscription-Licensing.md`.
-- [ ] Complete customer subscription visibility, commercial quota decisions, billing integration, and operational offline-license workflows.
+- [x] Complete customer subscription visibility for edition, lifecycle dates, seats, entitlements, usage against limits, and a truthful upgrade path.
+- [ ] Approve commercial quotas, integrate billing, and complete operational offline-license workflows.
 - [x] Replace in-memory Designer templates with tenant-scoped PostgreSQL drafts and immutable versions from `PXA.Database.md`.
 - [ ] Add persistent asynchronous jobs and object-storage boundaries for source files, results, previews, and attachments.
 
