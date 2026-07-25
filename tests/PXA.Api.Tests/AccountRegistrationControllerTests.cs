@@ -88,6 +88,19 @@ public sealed class AccountRegistrationControllerTests
             Assert.NotNull(user.MarketingConsentGrantedAt);
             Assert.Null(user.MarketingConsentWithdrawnAt);
             Assert.Equal("registration", user.MarketingConsentSource);
+            var consentEvents = await dbContext.UserConsentEvents
+                .Where(value => value.UserId == user.Id)
+                .OrderBy(value => value.ConsentType)
+                .ToListAsync();
+            Assert.Equal(3, consentEvents.Count);
+            Assert.Contains(consentEvents, value =>
+                value.ConsentType == "terms" && value.Decision == "accepted" &&
+                value.PolicyVersion == "terms-test-v2");
+            Assert.Contains(consentEvents, value =>
+                value.ConsentType == "privacy" && value.Decision == "acknowledged" &&
+                value.PolicyVersion == "privacy-test-v3");
+            Assert.Contains(consentEvents, value =>
+                value.ConsentType == "marketing" && value.Decision == "granted");
             var organization = await dbContext.Organizations.SingleAsync();
             organizationId = organization.Id;
             Assert.Equal("customer-documents", organization.Slug);

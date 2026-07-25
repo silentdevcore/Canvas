@@ -10,7 +10,7 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 - [x] P0: Complete secure Individual Developer and Company registration.
 - [x] P0: Require email verification before authentication and Trial activation.
 - [x] P0: Integrate safe Designer return and authorization-code handoff.
-- [ ] P1: Add policy-consent history and invitation acceptance.
+- [x] P1: Add policy-consent history and invitation acceptance.
 - [ ] P2: Add configurable bot protection, enterprise SSO onboarding, and paid checkout.
 
 ## Dependencies
@@ -47,9 +47,9 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 
 - [x] Store the accepted Terms version and UTC acceptance timestamp.
 - [x] Store the acknowledged Privacy version and UTC acknowledgement timestamp.
-- [ ] Store marketing consent, withdrawal, and source separately.
+- [x] Store marketing consent, withdrawal, and source separately.
 - [x] Do not preselect optional marketing consent.
-- [ ] Require renewed acceptance only when a policy version explicitly requires it.
+- [x] Require renewed acceptance only when a policy version explicitly requires it.
 - [x] Avoid storing raw secrets or unnecessary personal data in consent audit records.
 
 ## Security And Privacy
@@ -61,7 +61,7 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 - [x] Use cryptographically secure, hashed, single-use email-verification tokens.
 - [x] Expire verification tokens and reject replay.
 - [x] Do not create an authenticated session before email verification.
-- [ ] Audit registration, verification, Trial activation, invitation acceptance, and rejected abuse without recording passwords or tokens.
+- [x] Audit registration, verification, Trial activation, invitation acceptance, and rejected abuse without recording passwords or tokens.
 - [ ] Add configurable CAPTCHA or equivalent bot protection before public launch without coupling domain logic to one provider.
 
 ## Organization Creation
@@ -94,7 +94,7 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 - [x] Create a Designer authorization-code handoff after login when the validated target is PXA Designer.
 - [x] Return directly to other allowlisted PXA surfaces only according to their authentication contract.
 - [x] Fall back to the Account dashboard when the destination is missing or invalid.
-- [ ] Show verification-required, expired-link, already-used, suspended, and service-unavailable states without leaking account existence.
+- [x] Show verification-required, expired-link, already-used, suspended, and service-unavailable states without leaking account existence.
 
 ## Invitation Acceptance
 
@@ -105,7 +105,7 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 - [x] Do not create a second personal or company organization for invitation acceptance.
 - [x] Do not activate a second Trial through invitation acceptance.
 - [x] Enforce invitation expiry, single use, intended email, role bounds, and tenant ownership.
-- [ ] Audit successful and rejected invitation acceptance.
+- [x] Audit successful and rejected invitation acceptance.
 
 ## User Experience
 
@@ -116,7 +116,7 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 - [x] Show Terms, Privacy, and marketing choices independently.
 - [x] Add loading, submitted, verification-pending, resend, unavailable, and completion states.
 - [x] Support desktop and mobile layouts.
-- [ ] Localize registration, verification, and recovery content consistently with Account locale support.
+- [x] Localize registration, verification, and recovery content consistently with Account locale support.
 
 ## Tests
 
@@ -135,7 +135,8 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 - [x] Test invitation acceptance for existing and new users.
 - [x] Test that invitations create neither another organization nor another Trial.
 - [x] Test Designer return through the authorization-code handoff.
-- [ ] Test accessibility, keyboard navigation, responsive layout, and localized messages.
+- [x] Run the Account registration, email verification, login, and Designer return flow in a real browser against PostgreSQL and the development mail service.
+- [x] Test accessibility, keyboard navigation, responsive layout, and localized messages.
 
 ## Acceptance Criteria
 

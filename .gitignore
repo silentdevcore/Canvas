@@ -64,6 +64,9 @@ ui-designer-v2/tmp/
 pxa-designer/dist/
 pxa-designer/dist/assets/
 pxa-designer/tmp/
+pxa-designer/test-results/
+pxa-designer/playwright-report/
+pxa-designer/blob-report/
 websites/*/dist/
 websites/*/node_modules/
 websites/*/.vite/

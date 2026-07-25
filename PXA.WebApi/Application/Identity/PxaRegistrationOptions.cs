@@ -7,4 +7,6 @@ public sealed class PxaRegistrationOptions
     public string TermsVersion { get; set; } = string.Empty;
     public string PrivacyVersion { get; set; } = string.Empty;
     public string[] AllowedReturnOrigins { get; set; } = [];
+    public bool RequireCurrentTermsAcceptance { get; set; }
+    public bool RequireCurrentPrivacyAcknowledgement { get; set; }
 }

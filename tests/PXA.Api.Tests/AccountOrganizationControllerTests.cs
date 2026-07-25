@@ -169,6 +169,10 @@ public sealed class AccountOrganizationControllerTests
                           membership.Status == OrganizationMembershipStatus.Active));
         Assert.Equal(2, await dbContext.Organizations.CountAsync());
         Assert.Equal(2, await dbContext.OrganizationSubscriptions.CountAsync());
+        Assert.Contains(await dbContext.AuditEvents.ToListAsync(), audit =>
+            audit.Action == "security.invitation.accept" &&
+            audit.Outcome == "rejected" &&
+            audit.TargetType == "identity_action_token");
     }
 
     [PostgreSqlFact]

@@ -33,6 +33,7 @@ public sealed class PxaDbContext
     public DbSet<DesignerTemplate> DesignerTemplates => Set<DesignerTemplate>();
     public DbSet<DesignerTemplateVersion> DesignerTemplateVersions => Set<DesignerTemplateVersion>();
     public DbSet<AccountClosureRequest> AccountClosureRequests => Set<AccountClosureRequest>();
+    public DbSet<UserConsentEvent> UserConsentEvents => Set<UserConsentEvent>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -18,7 +18,7 @@ export type AutosaveState =
   | 'offline'
   | 'failed';
 
-interface AutosaveResult {
+export interface AutosaveResult {
   state: AutosaveState;
   message: string;
   reloadServer: () => Promise<void>;
@@ -51,6 +51,8 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saving = useRef(false);
   const queued = useRef(false);
+  const blocked = useRef(false);
+  const activeDocumentKey = useRef('');
   const mounted = useRef(true);
 
   const snapshot = useMemo<PersistedDesignDocument | null>(() => {
@@ -100,10 +102,12 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
   }, []);
 
   const persist = useCallback(async (forceNew = false) => {
-    if (saving.current || !latestSnapshot.current || !currentTemplate) {
+    const sourceTemplate = useEditorStore.getState().currentTemplate;
+    if (saving.current || !latestSnapshot.current || !sourceTemplate) {
       queued.current = true;
       return;
     }
+    const attemptedDocumentKey = sourceTemplate.persistence?.id || sourceTemplate.id;
     saving.current = true;
     queued.current = false;
     const attemptedSnapshot = latestSnapshot.current;
@@ -124,8 +128,8 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
                 attemptedSnapshot,
               )
             : await createDesignerTemplate(
-                currentTemplate.name || 'Untitled document',
-                currentTemplate.description || '',
+                sourceTemplate.name || 'Untitled document',
+                sourceTemplate.description || '',
                 attemptedSnapshot,
               );
           break;
@@ -143,6 +147,8 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
 
       if (!mounted.current) return;
       const active = useEditorStore.getState().currentTemplate;
+      const activeKey = active?.persistence?.id || active?.id;
+      if (activeKey !== attemptedDocumentKey) return;
       if (active) {
         useEditorStore.setState({
           currentTemplate: {
@@ -173,6 +179,8 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
         setMessage('Offline - changes are not saved');
       } else {
         terminalFailure = true;
+        if (error.status === 401 || error.status === 403)
+          blocked.current = true;
         setState('failed');
         setMessage(error.message || 'Save failed');
       }
@@ -186,22 +194,39 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
         timer.current = setTimeout(() => void persist(), 2000);
       }
     }
-  }, [currentTemplate]);
+  }, []);
 
   useEffect(() => {
     latestSnapshot.current = snapshot;
     latestSerialized.current = serialized;
     if (!snapshot) {
+      activeDocumentKey.current = '';
+      savedSerialized.current = '';
+      blocked.current = false;
       setState('idle');
       return;
     }
-    if (!savedSerialized.current && currentTemplate?.persistence)
+
+    const documentKey = currentTemplate?.persistence?.id || currentTemplate?.id || '';
+    if (documentKey !== activeDocumentKey.current) {
+      if (timer.current) clearTimeout(timer.current);
+      activeDocumentKey.current = documentKey;
+      savedSerialized.current = currentTemplate?.persistence ? serialized : '';
+      blocked.current = false;
+      queued.current = false;
+      if (currentTemplate?.persistence) {
+        setState('saved');
+        setMessage('Saved');
+      }
+    } else if (!savedSerialized.current && currentTemplate?.persistence) {
       savedSerialized.current = serialized;
+    }
     if (serialized === savedSerialized.current) return;
     setState(previous => previous === 'conflict' ? previous : 'changed');
     setMessage(previous => previous === 'conflict' ? 'Conflict: a newer server draft exists' : 'Unsaved changes');
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => void persist(), 2000);
+    if (!blocked.current)
+      timer.current = setTimeout(() => void persist(), 2000);
     return () => {
       if (timer.current) clearTimeout(timer.current);
     };
@@ -239,6 +264,7 @@ export function useDesignerTemplateAutosave(enabled = true): AutosaveResult {
 
   const saveAsNew = useCallback(async () => {
     savedSerialized.current = '';
+    blocked.current = false;
     setState('changed');
     await persist(true);
   }, [persist]);

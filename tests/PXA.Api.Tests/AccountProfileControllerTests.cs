@@ -102,6 +102,58 @@ public sealed class AccountProfileControllerTests
     }
 
     [PostgreSqlFact]
+    public async Task Update_consent_appends_history_and_preserves_current_policy_versions()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString(), requireCurrentPolicies: true);
+        await SeedRolesAsync(factory.Services);
+        using var client = CreateClient(factory);
+        await RegisterVerifiedCompanyAsync(factory, client, "owner@consent.test", "Consent Owner");
+        await using (var stalePolicyScope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = stalePolicyScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var user = await dbContext.Users.SingleAsync();
+            user.TermsAcceptedVersion = "previous-terms";
+            user.PrivacyAcknowledgedVersion = "previous-privacy";
+            await dbContext.SaveChangesAsync();
+        }
+        await LoginAsync(client, "owner@consent.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+
+        var profile = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/account/profile");
+        Assert.True(profile.GetProperty("requiresTermsAcceptance").GetBoolean());
+        Assert.True(profile.GetProperty("requiresPrivacyAcknowledgement").GetBoolean());
+
+        using var grant = CreateCsrfRequest(
+            HttpMethod.Patch, "/api/pxa/v1/account/profile/consent",
+            await GetCsrfAsync(client),
+            new { acceptTerms = true, acceptPrivacy = true, marketingConsent = true });
+        var grantResponse = await client.SendAsync(grant);
+        Assert.Equal(HttpStatusCode.OK, grantResponse.StatusCode);
+        var granted = await grantResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(granted.GetProperty("marketingConsent").GetBoolean());
+
+        using var withdraw = CreateCsrfRequest(
+            HttpMethod.Patch, "/api/pxa/v1/account/profile/consent",
+            await GetCsrfAsync(client),
+            new { acceptTerms = true, acceptPrivacy = true, marketingConsent = false });
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(withdraw)).StatusCode);
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var finalDbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var events = await finalDbContext.UserConsentEvents.OrderBy(value => value.CreatedAt).ToListAsync();
+        Assert.Equal(7, events.Count);
+        Assert.Equal(2, events.Count(value => value.ConsentType == "terms"));
+        Assert.Equal(2, events.Count(value => value.ConsentType == "privacy"));
+        Assert.Equal(new[] { "declined", "granted", "withdrawn" },
+            events.Where(value => value.ConsentType == "marketing").Select(value => value.Decision));
+        var finalUser = await finalDbContext.Users.SingleAsync();
+        Assert.NotNull(finalUser.MarketingConsentGrantedAt);
+        Assert.NotNull(finalUser.MarketingConsentWithdrawnAt);
+        Assert.Equal("account-profile", finalUser.MarketingConsentSource);
+    }
+
+    [PostgreSqlFact]
     public async Task Request_email_change_is_enumeration_safe_and_the_issued_token_confirms()
     {
         await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
@@ -221,7 +273,9 @@ public sealed class AccountProfileControllerTests
         Assert.Equal(HttpStatusCode.NoContent, (await client.SendAsync(verify)).StatusCode);
     }
 
-    private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>
+    private static WebApplicationFactory<Program> CreateFactory(
+        string connectionString,
+        bool requireCurrentPolicies = false) =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Testing");
@@ -232,6 +286,8 @@ public sealed class AccountProfileControllerTests
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
                     ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
+                    ["Registration:RequireCurrentTermsAcceptance"] = requireCurrentPolicies.ToString(),
+                    ["Registration:RequireCurrentPrivacyAcknowledgement"] = requireCurrentPolicies.ToString(),
                 }));
             builder.ConfigureServices(services =>
             {

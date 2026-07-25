@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 using Testcontainers.PostgreSql;
@@ -163,6 +164,57 @@ public sealed class AuthControllerTests
     }
 
     [PostgreSqlFact]
+    public async Task Correct_credentials_receive_explicit_disabled_and_suspended_statuses()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        var userId = Guid.NewGuid();
+        var organizationId = Guid.NewGuid();
+        await SeedIdentityAsync(factory.Services, userId, organizationId);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false,
+            BaseAddress = new Uri("https://localhost"),
+            HandleCookies = true,
+        });
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            (await dbContext.Users.SingleAsync()).IsActive = false;
+            await dbContext.SaveChangesAsync();
+        }
+        using var wrongDisabled = CreateCsrfRequest(
+            HttpMethod.Post, "/api/pxa/v1/auth/login", await GetCsrfAsync(client),
+            new { identifier = "admin@pxa.test", password = "wrong-password" });
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(wrongDisabled)).StatusCode);
+
+        using var disabled = CreateCsrfRequest(
+            HttpMethod.Post, "/api/pxa/v1/auth/login", await GetCsrfAsync(client),
+            new { identifier = "admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+        var disabledResponse = await client.SendAsync(disabled);
+        Assert.Equal(HttpStatusCode.Forbidden, disabledResponse.StatusCode);
+        Assert.Equal(PxaApiProblems.AccountDisabled,
+            (await disabledResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            (await dbContext.Users.SingleAsync()).IsActive = true;
+            (await dbContext.Organizations.SingleAsync()).Status = OrganizationStatus.Suspended;
+            await dbContext.SaveChangesAsync();
+        }
+        using var suspended = CreateCsrfRequest(
+            HttpMethod.Post, "/api/pxa/v1/auth/login", await GetCsrfAsync(client),
+            new { identifier = "admin@pxa.test", password = "Pxa-Integration-Password-42!" });
+        var suspendedResponse = await client.SendAsync(suspended);
+        Assert.Equal(HttpStatusCode.Forbidden, suspendedResponse.StatusCode);
+        Assert.Equal(PxaApiProblems.OrganizationSuspended,
+            (await suspendedResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+    }
+
+    [PostgreSqlFact]
     public async Task Repeated_invalid_passwords_lock_the_account_and_create_security_audit_events()
     {
         await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
@@ -284,6 +336,12 @@ public sealed class AuthControllerTests
             request.Content = JsonContent.Create(body);
 
         return request;
+    }
+
+    private static async Task<string> GetCsrfAsync(HttpClient client)
+    {
+        var response = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/auth/csrf");
+        return response.GetProperty("token").GetString()!;
     }
 
     private static async Task RevokeSessionsAsync(IServiceProvider services, Guid userId)

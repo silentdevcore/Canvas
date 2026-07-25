@@ -58,7 +58,7 @@ This checklist covers corrective work only. Product roadmap items remain in
 
 - [x] Reopen Account-specific Problem Details completion until all endpoint contracts are verified.
 - [x] Reopen responsive and accessibility testing claims that currently rely only on source-text checks.
-- [ ] Add automated desktop and mobile browser smoke tests.
+- [x] Add automated desktop and mobile browser smoke tests for Account-to-Designer onboarding and access-denial states.
 - [ ] Add DOM-level keyboard, focus, validation, and signed-in return-flow tests.
 - [ ] Update `PXA.Account.md` only when each corrected behavior is verified.
 

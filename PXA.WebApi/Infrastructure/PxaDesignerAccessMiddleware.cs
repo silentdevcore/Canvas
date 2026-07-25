@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Antiforgery;
+using PXA.Domain.Entities;
+using PXA.Infrastructure.Persistence;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Entitlements;
 
@@ -10,6 +12,7 @@ public sealed class PxaDesignerAccessMiddleware(RequestDelegate next)
     public async Task InvokeAsync(
         HttpContext context,
         IPxaEntitlementService entitlementService,
+        PxaDbContext dbContext,
         IAntiforgery antiforgery)
     {
         if (!IsDesignerRequest(context) || IsPublicDesignerRequest(context.Request.Path))
@@ -53,6 +56,24 @@ public sealed class PxaDesignerAccessMiddleware(RequestDelegate next)
                 cancellationToken: context.RequestAborted);
             if (!entitlement.Allowed)
             {
+                dbContext.AuditEvents.Add(new AuditEvent
+                {
+                    OrganizationId = organizationId,
+                    ActorUserId = Guid.TryParse(
+                        context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId)
+                        ? userId
+                        : null,
+                    Action = "security.designer-entitlement.denied",
+                    TargetType = "entitlement",
+                    TargetId = $"{organizationId}:designer",
+                    Outcome = "rejected",
+                    DetailsJson = System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        Capability = "designer",
+                        entitlement.Code,
+                    }),
+                });
+                await dbContext.SaveChangesAsync(context.RequestAborted);
                 await WriteProblemAsync(
                     context,
                     StatusCodes.Status403Forbidden,

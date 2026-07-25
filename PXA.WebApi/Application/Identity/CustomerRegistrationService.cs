@@ -112,6 +112,16 @@ public sealed class CustomerRegistrationService(
         });
 
         trialActivation.CreatePendingTrialForNewOrganization(organization, validation.AccountType, now);
+        dbContext.UserConsentEvents.AddRange(
+            NewConsentEvent(user.Id, "terms", "accepted", registrationOptions.TermsVersion, "registration", now),
+            NewConsentEvent(user.Id, "privacy", "acknowledged", registrationOptions.PrivacyVersion, "registration", now),
+            NewConsentEvent(
+                user.Id,
+                "marketing",
+                request.SubscribeToNewsletter == true ? "granted" : "declined",
+                null,
+                "registration",
+                now));
 
         var issued = await actionTokens.IssueAsync(
             user.Id,
@@ -289,4 +299,21 @@ public sealed class CustomerRegistrationService(
             ? value.AbsoluteUri
             : null;
     }
+
+    private static UserConsentEvent NewConsentEvent(
+        Guid userId,
+        string consentType,
+        string decision,
+        string? policyVersion,
+        string source,
+        DateTimeOffset createdAt) =>
+        new()
+        {
+            UserId = userId,
+            ConsentType = consentType,
+            Decision = decision,
+            PolicyVersion = policyVersion,
+            Source = source,
+            CreatedAt = createdAt,
+        };
 }

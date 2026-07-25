@@ -18,6 +18,9 @@ public static class PxaApiProblems
     public const string OrganizationSlugUnavailable = "PXAAPI012";
     public const string LastOwnerProtected = "PXAAPI013";
     public const string ClosureConflict = "PXAAPI014";
+    public const string AccountDisabled = "PXAAPI015";
+    public const string OrganizationSuspended = "PXAAPI016";
+    public const string PolicyAcceptanceRequired = "PXAAPI017";
 
     public static ProblemDetails Create(
         HttpContext context,

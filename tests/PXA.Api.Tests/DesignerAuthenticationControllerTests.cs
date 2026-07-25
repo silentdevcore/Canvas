@@ -150,7 +150,32 @@ public sealed class DesignerAuthenticationControllerTests
         await dbContext.SaveChangesAsync();
         using var deniedMe = new HttpRequestMessage(HttpMethod.Get, "/api/pxa/v1/auth/me");
         deniedMe.Headers.Add("X-PXA-Application", "designer");
-        Assert.Equal(HttpStatusCode.Forbidden, (await designerClient.SendAsync(deniedMe)).StatusCode);
+        var deniedMeResponse = await designerClient.SendAsync(deniedMe);
+        Assert.Equal(HttpStatusCode.Forbidden, deniedMeResponse.StatusCode);
+        Assert.Equal(
+            "PXA_ENTITLEMENT_DENIED",
+            (await deniedMeResponse.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("code")
+            .GetString());
+
+        dbContext.ChangeTracker.Clear();
+        Assert.True(await dbContext.AuditEvents.AnyAsync(value =>
+            value.Action == "security.designer-entitlement.denied" &&
+            value.Outcome == "rejected"));
+
+        designerEntitlement = await dbContext.SubscriptionEntitlements.SingleAsync(
+            value => value.Capability == "designer");
+        designerEntitlement.Enabled = true;
+        var sourceSessionId = handoff.SourceSessionId;
+        var designerSession = await dbContext.UserSessions.SingleAsync(
+            value => value.Id != sourceSessionId);
+        designerSession.RevokedAt = DateTimeOffset.UtcNow;
+        designerSession.RevocationReason = "test";
+        await dbContext.SaveChangesAsync();
+
+        using var revokedMe = new HttpRequestMessage(HttpMethod.Get, "/api/pxa/v1/auth/me");
+        revokedMe.Headers.Add("X-PXA-Application", "designer");
+        Assert.Equal(HttpStatusCode.Unauthorized, (await designerClient.SendAsync(revokedMe)).StatusCode);
     }
 
     [PostgreSqlFact]
@@ -170,6 +195,13 @@ public sealed class DesignerAuthenticationControllerTests
         using var wrongPkce = await CreateExchangeRequestAsync(
             wrongPkceClient, wrongPkceHandoff, wrongVerifier);
         Assert.Equal(HttpStatusCode.BadRequest, (await wrongPkceClient.SendAsync(wrongPkce)).StatusCode);
+
+        var wrongStateHandoff = await CreateHandoffAsync(accountClient, "/pdf/create");
+        using var wrongStateClient = CreateClient(factory);
+        using var wrongState = await CreateExchangeRequestAsync(
+            wrongStateClient,
+            wrongStateHandoff with { State = wrongStateHandoff.State + "A" });
+        Assert.Equal(HttpStatusCode.BadRequest, (await wrongStateClient.SendAsync(wrongState)).StatusCode);
 
         var wrongOriginHandoff = await CreateHandoffAsync(accountClient, "/pdf/template");
         using var wrongOriginClient = CreateClient(factory);
@@ -191,6 +223,21 @@ public sealed class DesignerAuthenticationControllerTests
         using var expiredClient = CreateClient(factory);
         using var expired = await CreateExchangeRequestAsync(expiredClient, expiredHandoff);
         Assert.Equal(HttpStatusCode.BadRequest, (await expiredClient.SendAsync(expired)).StatusCode);
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var rejectedHandoffs = await dbContext.AuditEvents.CountAsync(value =>
+                value.Action == "security.designer-handoff.exchanged" &&
+                value.Outcome == "rejected");
+            Assert.True(rejectedHandoffs >= 4);
+            Assert.DoesNotContain(
+                await dbContext.AuditEvents
+                    .Where(value => value.Action == "security.designer-handoff.exchanged")
+                    .Select(value => value.DetailsJson)
+                    .ToListAsync(),
+                details => details?.Contains(wrongPkceHandoff.Code, StringComparison.Ordinal) == true);
+        }
 
         var concurrentHandoff = await CreateHandoffAsync(accountClient, "/spreadsheet/create");
         using var firstExchangeClient = CreateClient(factory);
@@ -264,6 +311,76 @@ public sealed class DesignerAuthenticationControllerTests
             new { organizationId = Guid.NewGuid() },
             designer: true);
         Assert.Equal(HttpStatusCode.Forbidden, (await designerClient.SendAsync(foreignSwitch)).StatusCode);
+    }
+
+    [PostgreSqlFact]
+    public async Task Handoff_rechecks_user_organization_and_entitlement_before_exchange()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        var seeded = await SeedCustomerAsync(factory.Services);
+
+        using var accountClient = CreateClient(factory);
+        await LoginAsync(accountClient);
+        var unverifiedHandoff = await CreateHandoffAsync(accountClient, "/pdf/create");
+        var suspendedHandoff = await CreateHandoffAsync(accountClient, "/spreadsheet/create");
+        var expiredEntitlementHandoff = await CreateHandoffAsync(accountClient, "/migrations");
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var user = await dbContext.Users.SingleAsync(value => value.Id == seeded.UserId);
+        user.EmailConfirmed = false;
+        await dbContext.SaveChangesAsync();
+
+        using (var client = CreateClient(factory))
+        using (var exchange = await CreateExchangeRequestAsync(client, unverifiedHandoff))
+        {
+            var response = await client.SendAsync(exchange);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Equal(
+                "PXA_DESIGNER_VERIFICATION_REQUIRED",
+                (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+        }
+
+        user.EmailConfirmed = true;
+        var organization = await dbContext.Organizations.SingleAsync(
+            value => value.Id == seeded.OrganizationId);
+        organization.Status = OrganizationStatus.Suspended;
+        await dbContext.SaveChangesAsync();
+
+        using (var client = CreateClient(factory))
+        using (var exchange = await CreateExchangeRequestAsync(client, suspendedHandoff))
+        {
+            var response = await client.SendAsync(exchange);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Equal(
+                "PXA_ORGANIZATION_INACTIVE",
+                (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+        }
+
+        organization.Status = OrganizationStatus.Active;
+        var entitlement = await dbContext.SubscriptionEntitlements.SingleAsync(
+            value => value.Capability == "designer");
+        entitlement.ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+        await dbContext.SaveChangesAsync();
+
+        using (var client = CreateClient(factory))
+        using (var exchange = await CreateExchangeRequestAsync(client, expiredEntitlementHandoff))
+        {
+            var response = await client.SendAsync(exchange);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Equal(
+                "PXA_ENTITLEMENT_EXPIRED",
+                (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+        }
+
+        dbContext.ChangeTracker.Clear();
+        Assert.Equal(
+            3,
+            await dbContext.AuditEvents.CountAsync(value =>
+                value.Action == "security.designer-handoff.exchanged" &&
+                value.Outcome == "rejected"));
     }
 
     [PostgreSqlFact]
@@ -492,10 +609,60 @@ public sealed class DesignerAuthenticationControllerTests
         foreignRead.Headers.Add("X-PXA-Application", "designer");
         Assert.Equal(HttpStatusCode.NotFound, (await designerClient.SendAsync(foreignRead)).StatusCode);
 
+        using (var foreignList = DesignerGet("/api/pxa/v1/designer/templates"))
+        {
+            var response = await designerClient.SendAsync(foreignList);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(
+                0,
+                (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("total").GetInt32());
+        }
+
+        using (var foreignUpdate = await CreateCsrfRequestAsync(
+                   designerClient,
+                   HttpMethod.Put,
+                   $"/api/pxa/v1/designer/templates/{templateId}/draft",
+                   new { revision = 5, designDocument = initialDesign },
+                   designer: true))
+        {
+            foreignUpdate.Headers.TryAddWithoutValidation("If-Match", "\"5\"");
+            Assert.Equal(HttpStatusCode.NotFound, (await designerClient.SendAsync(foreignUpdate)).StatusCode);
+        }
+
+        using (var foreignVersions = DesignerGet(
+                   $"/api/pxa/v1/designer/templates/{templateId}/versions"))
+        {
+            Assert.Equal(HttpStatusCode.NotFound, (await designerClient.SendAsync(foreignVersions)).StatusCode);
+        }
+
+        using (var foreignArchive = await CreateCsrfRequestAsync(
+                   designerClient,
+                   HttpMethod.Post,
+                   $"/api/pxa/v1/designer/templates/{templateId}/archive",
+                   new { revision = 5 },
+                   designer: true))
+        {
+            Assert.Equal(HttpStatusCode.NotFound, (await designerClient.SendAsync(foreignArchive)).StatusCode);
+        }
+
+        using (var foreignRender = await CreateCsrfRequestAsync(
+                   designerClient,
+                   HttpMethod.Post,
+                   $"/api/pxa/templates/render?templateId={templateId}",
+                   new { customer = "Other tenant" },
+                   designer: true))
+        {
+            Assert.Equal(HttpStatusCode.NotFound, (await designerClient.SendAsync(foreignRender)).StatusCode);
+        }
+
         await using var scope = factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
         Assert.Equal(seeded.OrganizationId, (await dbContext.DesignerTemplates.SingleAsync()).OrganizationId);
         Assert.Single(await dbContext.DesignerTemplateVersions.ToListAsync());
+        Assert.True(await dbContext.AuditEvents.AnyAsync(value =>
+            value.Action == "designer.templates.conflict" &&
+            value.Outcome == "rejected" &&
+            value.OrganizationId == seeded.OrganizationId));
     }
 
     [PostgreSqlFact]

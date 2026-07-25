@@ -17,8 +17,8 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 - [x] Use the existing ASP.NET Core Identity users and persistent `UserSession` infrastructure.
 - [x] Use the active organization resolved by the authenticated server context.
 - [x] Use `PXA.Account-Registration.md` for registration and verification behavior.
-- [ ] Use `PXA.Designer-Template-Persistence.md` for tenant-owned template authorization.
-- [ ] Use `PXA.Subscription-Licensing.md` for Designer entitlement calculation.
+- [x] Use `PXA.Designer-Template-Persistence.md` for tenant-owned template authorization.
+- [x] Use `PXA.Subscription-Licensing.md` for Designer entitlement calculation.
 - [x] Keep Account and Designer behind same-origin `/api` reverse-proxy routes in each deployment.
 
 ## Access Rules
@@ -65,7 +65,7 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 - [x] Do not introduce a parent-domain authentication cookie.
 - [x] Keep SameSite protection compatible with the top-level Account-to-Designer redirect.
 - [x] Require the existing antiforgery mechanism for authenticated state-changing Designer requests.
-- [ ] Rotate or invalidate the Designer cookie when the underlying persistent session changes.
+- [x] Rotate or invalidate the Designer cookie when the underlying persistent session changes.
 - [x] Revoke the current Designer session on Designer sign-out.
 - [ ] Keep global cross-application sign-out as a separate future capability.
 
@@ -73,7 +73,7 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 
 - [x] Add an authentication bootstrap that calls `GET /api/pxa/v1/auth/me`.
 - [x] Prevent protected route content from rendering before bootstrap completes.
-- [ ] Add the remaining explicit route states for suspended access and incompatible API versions.
+- [x] Add explicit route states for verification, disabled accounts, suspended organizations, expired subscriptions, missing entitlements, offline access, and incompatible API versions.
 - [x] Add guarded error handling around authentication and callback processing.
 - [x] Add a user menu with Account, Subscription, Organization, Security, and Sign out actions.
 - [x] Allow organization switching only through the authenticated API.
@@ -88,7 +88,7 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 - [x] Apply the Designer entitlement check in addition to authentication.
 - [x] Exempt only the CSRF bootstrap, handoff exchange, and sign-out prerequisites from the Designer entitlement gate.
 - [x] Never authorize a request from organization identifiers supplied by the client.
-- [ ] Complete rejected-handoff and entitlement-denial audit events; successful handoffs are audited.
+- [x] Audit successful and rejected handoffs plus Designer entitlement denials without storing raw codes or PKCE values.
 
 ## Tests
 
@@ -96,15 +96,15 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 - [ ] Unit-test PKCE, state, code hashing, expiry, and single-use behavior.
 - [x] Integration-test Account login followed by a successful Designer handoff.
 - [x] Test authorization-code replay and concurrent exchange.
-- [ ] Test expired code, invalid state, invalid PKCE, wrong origin, and modified return path; expiry, invalid PKCE, and wrong origin are covered.
-- [ ] Test inactive, unverified, locked, suspended, and deleted users.
-- [ ] Test expired and revoked persistent sessions.
-- [ ] Test missing, expired, and organization-specific Designer entitlements; disabled entitlement is covered.
+- [x] Test expired code, invalid state, invalid PKCE, wrong origin, and server-owned return-path restoration.
+- [ ] Test inactive, unverified, locked, suspended, and deleted users; unverified users and suspended organizations are covered.
+- [ ] Test expired and revoked persistent sessions; revoked Designer sessions are covered.
+- [ ] Test missing, expired, and organization-specific Designer entitlements; disabled and expired entitlements plus organization switching are covered.
 - [x] Test cross-tenant organization switching and stale organization claims.
 - [x] Test that protected Designer APIs return 401 or 403 consistently.
 - [x] Test antiforgery enforcement on state-changing Designer requests.
 - [ ] Test callback URL cleanup and redirect-loop prevention.
-- [ ] Run Designer desktop and mobile authentication smoke tests.
+- [x] Run Designer desktop and mobile authentication smoke tests.
 
 ## Acceptance Criteria
 

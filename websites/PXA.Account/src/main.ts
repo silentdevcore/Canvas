@@ -3,6 +3,7 @@ import { extractCampaignContext } from '../../shared/campaignAttribution.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import { sanitizeReturnUrl } from '../../shared/returnUrl.js';
 import { appendSignedInSignal } from '../../shared/signedInSignal.js';
+import { accountLocale, accountLocales, setAccountLocale, tr } from './authI18n';
 import {
   acceptInvitation,
   ApiError,
@@ -32,6 +33,8 @@ import { usagePage } from './pages/usage';
 
 // Stable Problem Details codes from PXA.WebApi.Infrastructure.PxaApiProblems.
 const PROBLEM_CODE_VERIFICATION_REQUIRED = 'PXAAPI010';
+const PROBLEM_CODE_ACCOUNT_DISABLED = 'PXAAPI015';
+const PROBLEM_CODE_ORGANIZATION_SUSPENDED = 'PXAAPI016';
 
 interface PortalPage {
   render: (user: UserInfo) => string;
@@ -132,7 +135,7 @@ function authLayout(content: string, title: string, description: string): string
       <section class="account-brand-panel" aria-label="Power Dox Automation">
         <a class="account-brand" href="${siteLinks.company}"><span>PXA</span> Power Dox Automation</a>
         <div>
-          <p class="pxa-kicker">Customer account</p>
+          <p class="pxa-kicker">${tr('customerAccount')}</p>
           <h1>${title}</h1>
           <p>${description}</p>
         </div>
@@ -154,76 +157,81 @@ function message(kind: 'info' | 'error', text: string): string {
 
 function loginPage(): string {
   return authLayout(`
-    <header><p class="pxa-kicker">Welcome back</p><h2>Sign in</h2><p>Access your PXA workspace, Trial, and developer resources.</p></header>
+    <header><p class="pxa-kicker">${tr('customerAccount')}</p><h2>${tr('loginHeading')}</h2><p>${tr('loginDescription')}</p></header>
     ${message('info', state.notice)}
     <form class="account-form" id="login-form">
-      <label>Email<input name="identifier" type="email" autocomplete="username" required autofocus></label>
-      <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
-      <label class="account-checkbox"><input name="rememberMe" type="checkbox"> Keep me signed in</label>
+      <label>${tr('email')}<input name="identifier" type="email" autocomplete="username" required autofocus></label>
+      <label>${tr('password')}<input name="password" type="password" autocomplete="current-password" required></label>
+      <label class="account-checkbox"><input name="rememberMe" type="checkbox"> ${tr('rememberMe')}</label>
       <div class="account-form-error" id="form-error" role="alert" hidden></div>
-      <button class="pxa-button pxa-button--primary" type="submit">Sign in</button>
-      <a class="pxa-button pxa-button--secondary" href="${escapeHtml(authPath('/register', true))}">Create account</a>
+      <button class="pxa-button pxa-button--primary" type="submit">${tr('signIn')}</button>
+      <a class="pxa-button pxa-button--secondary" href="${escapeHtml(authPath('/register', true))}">${tr('createAccount')}</a>
     </form>
-    <div class="account-form-links"><a href="/forgot-password">Forgot password?</a></div>
-  `, 'Sign in to PXA', 'Continue your document automation work with one secure customer identity.');
+    <div class="account-form-links"><a href="/forgot-password">${tr('forgotPassword')}</a></div>
+  `, tr('loginTitle'), tr('loginDescription'));
 }
 
 function registerPage(): string {
+  const locale = accountLocale();
+  const languageNames: Record<string, string> = {
+    en: 'English', de: 'Deutsch', fr: 'Français', es: 'Español', it: 'Italiano', ar: 'العربية',
+  };
   return authLayout(`
-    <header><p class="pxa-kicker">30-day Trial</p><h2>Create your account</h2><p>Choose a personal workspace or create a workspace for your company.</p></header>
+    <header><p class="pxa-kicker">30-day Trial</p><h2>${tr('registerHeading')}</h2><p>${tr('registerDescription')}</p></header>
     <form class="account-form" id="register-form">
       <fieldset class="account-account-type">
-        <legend>Account type</legend>
-        <label><input name="accountType" type="radio" value="IndividualDeveloper" checked><span><strong>Individual Developer</strong><small>One personal workspace and seat</small></span></label>
-        <label><input name="accountType" type="radio" value="Company"><span><strong>Company</strong><small>A shared organization for your team</small></span></label>
+        <legend>${tr('accountType')}</legend>
+        <label><input name="accountType" type="radio" value="IndividualDeveloper" checked><span><strong>${tr('individual')}</strong><small>${tr('individualDescription')}</small></span></label>
+        <label><input name="accountType" type="radio" value="Company"><span><strong>${tr('company')}</strong><small>${tr('companyDescription')}</small></span></label>
       </fieldset>
       <div class="account-form-grid">
-        <label>Full name<input name="displayName" autocomplete="name" required maxlength="200"></label>
-        <label>Work email<input name="email" type="email" autocomplete="email" required></label>
+        <label>${tr('fullName')}<input name="displayName" autocomplete="name" required maxlength="200"></label>
+        <label>${tr('workEmail')}<input name="email" type="email" autocomplete="email" required></label>
       </div>
       <div class="account-company-fields" id="company-fields" hidden>
-        <label>Company name<input name="companyName" autocomplete="organization" maxlength="200"></label>
-        <label>Workspace identifier<input name="organizationSlug" pattern="[A-Za-z0-9-]{3,80}" placeholder="example-company"></label>
+        <label>${tr('companyName')}<input name="companyName" autocomplete="organization" maxlength="200"></label>
+        <label>${tr('workspaceId')}<input name="organizationSlug" pattern="[A-Za-z0-9-]{3,80}" placeholder="example-company"></label>
       </div>
       <div class="account-form-grid">
-        <label>Country code<input name="country" inputmode="text" pattern="[A-Za-z]{2}" maxlength="2" placeholder="DE"></label>
-        <label>Language<select name="locale"><option value="en">English</option><option value="de">Deutsch</option></select></label>
+        <label>${tr('country')}<input name="country" inputmode="text" pattern="[A-Za-z]{2}" maxlength="2" placeholder="DE"></label>
+        <label>${tr('language')}<select name="locale">${accountLocales.map((value) =>
+          `<option value="${value}" ${locale === value ? 'selected' : ''}>${languageNames[value]}</option>`).join('')}</select></label>
       </div>
-      <label>Password<input name="password" type="password" autocomplete="new-password" minlength="12" required><small>At least 12 characters with uppercase, lowercase, number, and symbol.</small></label>
-      <label class="account-checkbox"><input name="acceptTerms" type="checkbox" required> I accept the <a href="${companyPage('terms')}" target="_blank">Terms</a>.</label>
-      <label class="account-checkbox"><input name="acceptPrivacy" type="checkbox" required> I acknowledge the <a href="${companyPage('privacy')}" target="_blank">Privacy notice</a>.</label>
-      <label class="account-checkbox"><input name="subscribeToNewsletter" type="checkbox"> Send me product news and updates (optional).</label>
+      <label>${tr('password')}<input name="password" type="password" autocomplete="new-password" minlength="12" required><small>${tr('passwordHelp')}</small></label>
+      <label class="account-checkbox"><input name="acceptTerms" type="checkbox" required> <a href="${companyPage('terms')}" target="_blank">${tr('acceptTerms')}</a></label>
+      <label class="account-checkbox"><input name="acceptPrivacy" type="checkbox" required> <a href="${companyPage('privacy')}" target="_blank">${tr('acceptPrivacy')}</a></label>
+      <label class="account-checkbox"><input name="subscribeToNewsletter" type="checkbox"> ${tr('marketing')}</label>
       <div class="account-form-error" id="form-error" role="alert" hidden></div>
-      <button class="pxa-button pxa-button--primary" type="submit">Create account and Trial</button>
+      <button class="pxa-button pxa-button--primary" type="submit">${tr('startTrial')}</button>
     </form>
-    <div class="account-form-links"><span>Already registered? <a href="${escapeHtml(authPath('/login'))}">Sign in</a></span></div>
-  `, 'Start with Power Dox Automation', 'Create a verified customer account and evaluate the connected PXA product family.');
+    <div class="account-form-links"><span>${tr('alreadyRegistered')} <a href="${escapeHtml(authPath('/login'))}">${tr('signIn')}</a></span></div>
+  `, tr('registerTitle'), tr('registerDescription'));
 }
 
 function registrationPendingPage(): string {
   return authLayout(`
-    <header><p class="pxa-kicker">Verification required</p><h2>Check your email</h2><p>If the registration is eligible, PXA has sent a single-use verification link.</p></header>
+    <header><p class="pxa-kicker">${tr('verificationTitle')}</p><h2>${tr('verificationHeading')}</h2><p>${tr('verificationDescription')}</p></header>
     ${message('info', state.notice)}
     <form class="account-form" id="resend-form">
-      <label>Email<input name="email" type="email" autocomplete="email" value="${escapeHtml(state.registrationEmail)}" required autofocus></label>
+      <label>${tr('email')}<input name="email" type="email" autocomplete="email" value="${escapeHtml(state.registrationEmail)}" required autofocus></label>
       <div class="account-form-error" id="form-error" role="alert" tabindex="-1" hidden></div>
-      <button class="pxa-button pxa-button--secondary" type="submit">Resend verification email</button>
+      <button class="pxa-button pxa-button--secondary" type="submit">${tr('resend')}</button>
     </form>
-    <div class="account-form-links"><a href="${escapeHtml(authPath('/login'))}">Return to sign in</a></div>
-  `, 'Verify your email', 'Account access begins only after the email address has been verified.');
+    <div class="account-form-links"><a href="${escapeHtml(authPath('/login'))}">${tr('backToLogin')}</a></div>
+  `, tr('verificationTitle'), tr('verificationDescription'));
 }
 
 function forgotPasswordPage(): string {
   return authLayout(`
-    <header><p class="pxa-kicker">Account recovery</p><h2>Reset password</h2><p>We will send recovery instructions when the account is eligible.</p></header>
+    <header><p class="pxa-kicker">${tr('recoveryTitle')}</p><h2>${tr('recoveryHeading')}</h2><p>${tr('recoveryDescription')}</p></header>
     ${message('info', state.notice)}
     <form class="account-form" id="forgot-form">
-      <label>Email<input name="email" type="email" autocomplete="email" required autofocus></label>
+      <label>${tr('email')}<input name="email" type="email" autocomplete="email" required autofocus></label>
       <div class="account-form-error" id="form-error" role="alert" hidden></div>
-      <button class="pxa-button pxa-button--primary" type="submit">Send reset instructions</button>
+      <button class="pxa-button pxa-button--primary" type="submit">${tr('sendReset')}</button>
     </form>
-    <div class="account-form-links"><a href="/login">Return to sign in</a></div>
-  `, 'Recover your account', 'Secure recovery uses a short-lived, single-use action link.');
+    <div class="account-form-links"><a href="/login">${tr('backToLogin')}</a></div>
+  `, tr('recoveryTitle'), tr('recoveryDescription'));
 }
 
 function resetPasswordPage(): string {
@@ -231,10 +239,10 @@ function resetPasswordPage(): string {
   return authLayout(`
     <header><p class="pxa-kicker">Secure action</p><h2>Choose a new password</h2></header>
     <form class="account-form" id="reset-form" data-token="${escapeHtml(token)}">
-      <label>New password<input name="password" type="password" autocomplete="new-password" minlength="12" required autofocus></label>
-      <label>Confirm password<input name="confirmation" type="password" autocomplete="new-password" minlength="12" required></label>
+      <label>${tr('newPassword')}<input name="password" type="password" autocomplete="new-password" minlength="12" required autofocus></label>
+      <label>${tr('confirmPassword')}<input name="confirmation" type="password" autocomplete="new-password" minlength="12" required></label>
       <div class="account-form-error" id="form-error" role="alert" hidden></div>
-      <button class="pxa-button pxa-button--primary" type="submit">Update password</button>
+      <button class="pxa-button pxa-button--primary" type="submit">${tr('updatePassword')}</button>
     </form>
   `, 'Set a new password', 'The reset link is single-use and expires automatically.');
 }
@@ -244,8 +252,8 @@ function verificationPage(): string {
     <div class="account-result" id="verification-result">
       <span class="account-progress" aria-hidden="true"></span>
       <p class="pxa-kicker">Email verification</p>
-      <h2>Verifying your account</h2>
-      <p>Please wait while PXA activates your customer identity.</p>
+      <h2>${tr('verifying')}</h2>
+      <p>${tr('verifyingDescription')}</p>
     </div>
   `, 'Verify your account', 'Complete the secure registration step before signing in.');
 }
@@ -315,7 +323,7 @@ function bindForm(formId: string, handler: (data: FormData) => Promise<void>): v
     error.innerHTML = '';
     form.setAttribute('aria-busy', 'true');
     button.disabled = true;
-    button.textContent = 'Working...';
+    button.textContent = tr('working');
     try {
       await handler(new FormData(form));
     } catch (requestError) {
@@ -340,6 +348,14 @@ function bindForm(formId: string, handler: (data: FormData) => Promise<void>): v
         });
         return;
       }
+      if (apiError.code === PROBLEM_CODE_ACCOUNT_DISABLED) {
+        error.innerHTML = `${escapeHtml(apiError.message)} <a href="${companyPage('support')}">Contact support</a>.`;
+        return;
+      }
+      if (apiError.code === PROBLEM_CODE_ORGANIZATION_SUSPENDED) {
+        error.innerHTML = `${escapeHtml(apiError.message)} <a href="${companyPage('support')}">Contact your administrator</a>.`;
+        return;
+      }
       error.textContent = apiError.message;
     }
   });
@@ -358,6 +374,9 @@ function bindEvents(): void {
     fields.hidden = !company;
     fields.querySelector<HTMLInputElement>('input[name="companyName"]')!.required = company;
   }));
+  document.querySelector<HTMLSelectElement>('select[name="locale"]')?.addEventListener('change', (event) => {
+    setAccountLocale((event.currentTarget as HTMLSelectElement).value);
+  });
   bindForm('#login-form', async (data) => {
     const response = await login(formString(data, 'identifier'), formString(data, 'password'), data.get('rememberMe') === 'on');
     state.user = response!.user;
@@ -408,13 +427,13 @@ function bindEvents(): void {
   });
   bindForm('#forgot-form', async (data) => {
     await requestPasswordReset(formString(data, 'email'));
-    state.notice = 'If the account is eligible, reset instructions will arrive shortly.'; render();
+    state.notice = tr('resetSent'); render();
   });
   bindForm('#reset-form', async (data) => {
-    if (data.get('password') !== data.get('confirmation')) throw new Error('Passwords do not match.');
+    if (data.get('password') !== data.get('confirmation')) throw new Error(tr('passwordMismatch'));
     const token = document.querySelector<HTMLFormElement>('#reset-form')!.dataset.token ?? '';
     await confirmPasswordReset(token, formString(data, 'password'));
-    state.notice = 'Your password was updated. Sign in with the new password.'; navigate('/login', true);
+    state.notice = tr('passwordUpdated'); navigate('/login', true);
   });
 }
 
@@ -424,19 +443,19 @@ async function runVerification(): Promise<void> {
   const result = document.querySelector<HTMLElement>('#verification-result')!;
   const token = new URLSearchParams(location.search).get('token') || '';
   if (!token) {
-    result.innerHTML = `<p class="pxa-kicker">Verification link incomplete</p><h2>The token is missing</h2><p>Open the complete link from your verification email or request a new message.</p><a class="pxa-button pxa-button--secondary" href="${escapeHtml(authPath('/registration-pending'))}">Request another email</a>`;
+    result.innerHTML = `<p class="pxa-kicker">${tr('incompleteLink')}</p><h2>${tr('missingToken')}</h2><p>${tr('missingTokenDescription')}</p><a class="pxa-button pxa-button--secondary" href="${escapeHtml(authPath('/registration-pending'))}">${tr('requestAnother')}</a>`;
     bindEvents();
     return;
   }
   try {
     await verifyEmail(token);
     state.registrationEmail = '';
-    result.innerHTML = `<p class="pxa-kicker">Account verified</p><h2>Your Trial is ready</h2><p>You can now sign in to your PXA account.</p><a class="pxa-button pxa-button--primary" href="${escapeHtml(authPath('/login'))}">Sign in</a>`;
+    result.innerHTML = `<p class="pxa-kicker">${tr('verified')}</p><h2>${tr('trialReady')}</h2><p>${tr('verifiedDescription')}</p><a class="pxa-button pxa-button--primary" href="${escapeHtml(authPath('/login'))}">${tr('signIn')}</a>`;
   } catch (error) {
     const apiError = error as ApiError;
     result.innerHTML = apiError.isOffline || apiError.status === 503
-      ? `<p class="pxa-kicker">Service unavailable</p><h2>Verification is temporarily unavailable</h2><p>Your link was not consumed. Check the connection and try again.</p><button class="pxa-button pxa-button--primary" id="retry-verification" type="button">Try again</button>`
-      : `<p class="pxa-kicker">Link expired or already used</p><h2>We could not verify this link</h2><p>The verification link is invalid, expired, or has already been used.</p><a class="pxa-button pxa-button--secondary" href="${escapeHtml(authPath('/registration-pending'))}">Request another email</a>`;
+      ? `<p class="pxa-kicker">${tr('serviceUnavailable')}</p><h2>${tr('verificationUnavailable')}</h2><p>${tr('verificationUnavailableDescription')}</p><button class="pxa-button pxa-button--primary" id="retry-verification" type="button">${tr('retry')}</button>`
+      : `<p class="pxa-kicker">${tr('expiredLink')}</p><h2>${tr('verificationFailed')}</h2><p>${tr('expiredLinkDescription')}</p><a class="pxa-button pxa-button--secondary" href="${escapeHtml(authPath('/registration-pending'))}">${tr('requestAnother')}</a>`;
   }
   bindEvents();
   document.querySelector('#retry-verification')?.addEventListener('click', () => {

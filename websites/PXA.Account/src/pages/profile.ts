@@ -5,6 +5,7 @@ import {
   requestEmailChange,
   updateDisplayName,
   updateLocale,
+  updateAccountConsent,
 } from '../api';
 import type { ApiError, AccountProfileResponse } from '../api';
 
@@ -76,9 +77,27 @@ export function profilePage(): string {
         <label>Language<select name="locale">
           <option value="en" ${data.locale === 'en' ? 'selected' : ''}>English</option>
           <option value="de" ${data.locale === 'de' ? 'selected' : ''}>Deutsch</option>
+          <option value="fr" ${data.locale === 'fr' ? 'selected' : ''}>Français</option>
+          <option value="es" ${data.locale === 'es' ? 'selected' : ''}>Español</option>
+          <option value="it" ${data.locale === 'it' ? 'selected' : ''}>Italiano</option>
+          <option value="ar" ${data.locale === 'ar' ? 'selected' : ''}>العربية</option>
         </select></label>
         <div class="account-form-error" role="alert" hidden></div>
         <button class="pxa-button pxa-button--primary" type="submit">Save language</button>
+      </form>
+      <form class="account-form" id="profile-consent-form">
+        <h2>Privacy and communication</h2>
+        ${data.requiresTermsAcceptance ? `
+          <p class="account-message account-message--info">Updated Terms ${escapeHtml(data.currentTermsVersion)} require your acceptance.</p>
+          <label class="account-checkbox"><input name="acceptTerms" type="checkbox" required> I accept the current Terms.</label>
+        ` : `<p>Terms accepted: ${escapeHtml(data.termsAcceptedVersion ?? 'Not recorded')}</p>`}
+        ${data.requiresPrivacyAcknowledgement ? `
+          <p class="account-message account-message--info">The Privacy notice ${escapeHtml(data.currentPrivacyVersion)} has changed.</p>
+          <label class="account-checkbox"><input name="acceptPrivacy" type="checkbox" required> I acknowledge the current Privacy notice.</label>
+        ` : `<p>Privacy notice acknowledged: ${escapeHtml(data.privacyAcknowledgedVersion ?? 'Not recorded')}</p>`}
+        <label class="account-checkbox"><input name="marketingConsent" type="checkbox" ${data.marketingConsent ? 'checked' : ''}> Send me product news and updates.</label>
+        <div class="account-form-error" role="alert" hidden></div>
+        <button class="pxa-button pxa-button--secondary" type="submit">Save preferences</button>
       </form>
       <form class="account-form" id="profile-email-form">
         <h2>Email address</h2>
@@ -126,6 +145,14 @@ export function bindProfileEvents(): void {
   });
   bindProfileForm('#profile-locale-form', async (data) => {
     state.data = await updateLocale(String(data.get('locale') ?? ''));
+    rerender();
+  });
+  bindProfileForm('#profile-consent-form', async (data) => {
+    state.data = await updateAccountConsent(
+      state.data?.requiresTermsAcceptance ? data.get('acceptTerms') === 'on' : null,
+      state.data?.requiresPrivacyAcknowledgement ? data.get('acceptPrivacy') === 'on' : null,
+      data.get('marketingConsent') === 'on',
+    );
     rerender();
   });
   bindProfileForm('#profile-email-form', async (data) => {

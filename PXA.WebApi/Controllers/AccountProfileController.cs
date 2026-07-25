@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Application.Identity;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 
@@ -24,6 +25,7 @@ public sealed class AccountProfileController : ControllerBase
     private readonly IdentityActionTokenService actionTokens;
     private readonly IPxaMailQueue mailQueue;
     private readonly PxaMailOptions mailOptions;
+    private readonly PxaRegistrationOptions registrationOptions;
 
     public AccountProfileController(
         PxaDbContext dbContext,
@@ -31,7 +33,8 @@ public sealed class AccountProfileController : ControllerBase
         UserManager<PxaIdentityUser> userManager,
         IdentityActionTokenService actionTokens,
         IPxaMailQueue mailQueue,
-        IOptions<PxaMailOptions> mailOptions)
+        IOptions<PxaMailOptions> mailOptions,
+        IOptions<PxaRegistrationOptions> registrationOptions)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
@@ -39,6 +42,7 @@ public sealed class AccountProfileController : ControllerBase
         this.actionTokens = actionTokens;
         this.mailQueue = mailQueue;
         this.mailOptions = mailOptions.Value;
+        this.registrationOptions = registrationOptions.Value;
     }
 
     [HttpGet]
@@ -212,6 +216,73 @@ public sealed class AccountProfileController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("consent")]
+    [PxaValidateAntiforgery]
+    [PxaAuditedMutation("account.profile.consent")]
+    public async Task<ActionResult<AccountProfileResponse>> UpdateConsent(
+        UpdateAccountConsentRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = tenantContext.UserId;
+        if (userId is null)
+            return Unauthorized();
+        if (registrationOptions.RequireCurrentTermsAcceptance && request.AcceptTerms != true)
+            return ValidationProblem("The current Terms must be accepted.");
+        if (registrationOptions.RequireCurrentPrivacyAcknowledgement && request.AcceptPrivacy != true)
+            return ValidationProblem("The current Privacy notice must be acknowledged.");
+
+        var user = await dbContext.Users.SingleOrDefaultAsync(value => value.Id == userId, cancellationToken);
+        if (user is null)
+            return Unauthorized();
+
+        var now = DateTimeOffset.UtcNow;
+        if (request.AcceptTerms == true &&
+            !string.Equals(user.TermsAcceptedVersion, registrationOptions.TermsVersion, StringComparison.Ordinal))
+        {
+            user.TermsAcceptedVersion = registrationOptions.TermsVersion;
+            user.TermsAcceptedAt = now;
+            dbContext.UserConsentEvents.Add(NewConsentEvent(
+                user.Id, "terms", "accepted", registrationOptions.TermsVersion, now));
+        }
+        if (request.AcceptPrivacy == true &&
+            !string.Equals(user.PrivacyAcknowledgedVersion, registrationOptions.PrivacyVersion, StringComparison.Ordinal))
+        {
+            user.PrivacyAcknowledgedVersion = registrationOptions.PrivacyVersion;
+            user.PrivacyAcknowledgedAt = now;
+            dbContext.UserConsentEvents.Add(NewConsentEvent(
+                user.Id, "privacy", "acknowledged", registrationOptions.PrivacyVersion, now));
+        }
+
+        var marketingGranted = user.MarketingConsentGrantedAt is not null &&
+                               user.MarketingConsentWithdrawnAt is null;
+        if (request.MarketingConsent != marketingGranted)
+        {
+            if (request.MarketingConsent)
+            {
+                user.MarketingConsentGrantedAt = now;
+                user.MarketingConsentWithdrawnAt = null;
+            }
+            else
+            {
+                user.MarketingConsentWithdrawnAt = now;
+            }
+            user.MarketingConsentSource = "account-profile";
+            dbContext.UserConsentEvents.Add(NewConsentEvent(
+                user.Id, "marketing", request.MarketingConsent ? "granted" : "withdrawn", null, now));
+        }
+
+        user.UpdatedAt = now;
+        dbContext.AuditEvents.Add(NewAuditEvent(user.Id, "account.profile.consent-updated", new
+        {
+            TermsVersion = user.TermsAcceptedVersion,
+            PrivacyVersion = user.PrivacyAcknowledgedVersion,
+            request.MarketingConsent,
+        }));
+        await dbContext.SaveChangesAsync(cancellationToken);
+        var roles = await GetActiveOrganizationRolesAsync(user.Id, cancellationToken);
+        return Ok(ToResponse(user, roles));
+    }
+
     private async Task<IReadOnlyList<string>> GetActiveOrganizationRolesAsync(
         Guid userId,
         CancellationToken cancellationToken)
@@ -245,14 +316,39 @@ public sealed class AccountProfileController : ControllerBase
         DetailsJson = details is null ? null : System.Text.Json.JsonSerializer.Serialize(details),
     };
 
-    private static AccountProfileResponse ToResponse(PxaIdentityUser user, IReadOnlyList<string> roles) => new(
+    private UserConsentEvent NewConsentEvent(
+        Guid userId,
+        string consentType,
+        string decision,
+        string? policyVersion,
+        DateTimeOffset createdAt) =>
+        new()
+        {
+            UserId = userId,
+            ConsentType = consentType,
+            Decision = decision,
+            PolicyVersion = policyVersion,
+            Source = "account-profile",
+            CreatedAt = createdAt,
+        };
+
+    private AccountProfileResponse ToResponse(PxaIdentityUser user, IReadOnlyList<string> roles) => new(
         user.Id,
         user.DisplayName,
         user.Email ?? string.Empty,
         user.PendingEmail,
         user.Locale,
         user.Country,
-        roles);
+        roles,
+        user.TermsAcceptedVersion,
+        registrationOptions.TermsVersion,
+        registrationOptions.RequireCurrentTermsAcceptance &&
+            !string.Equals(user.TermsAcceptedVersion, registrationOptions.TermsVersion, StringComparison.Ordinal),
+        user.PrivacyAcknowledgedVersion,
+        registrationOptions.PrivacyVersion,
+        registrationOptions.RequireCurrentPrivacyAcknowledgement &&
+            !string.Equals(user.PrivacyAcknowledgedVersion, registrationOptions.PrivacyVersion, StringComparison.Ordinal),
+        user.MarketingConsentGrantedAt is not null && user.MarketingConsentWithdrawnAt is null);
 
     private ActionResult ValidationProblem(string detail) => Problem(
         statusCode: StatusCodes.Status400BadRequest,
@@ -267,7 +363,14 @@ public sealed record AccountProfileResponse(
     string? PendingEmail,
     string Locale,
     string? Country,
-    IReadOnlyList<string> Roles);
+    IReadOnlyList<string> Roles,
+    string? TermsAcceptedVersion,
+    string CurrentTermsVersion,
+    bool RequiresTermsAcceptance,
+    string? PrivacyAcknowledgedVersion,
+    string CurrentPrivacyVersion,
+    bool RequiresPrivacyAcknowledgement,
+    bool MarketingConsent);
 
 public sealed record UpdateDisplayNameRequest([Required] string DisplayName);
 
@@ -278,5 +381,10 @@ public sealed record RequestEmailChangeRequest([Required, EmailAddress] string N
 public sealed record ChangePasswordRequest(
     [Required] string CurrentPassword,
     [Required] string NewPassword);
+
+public sealed record UpdateAccountConsentRequest(
+    bool? AcceptTerms,
+    bool? AcceptPrivacy,
+    bool MarketingConsent);
 
 public sealed record AccountProfileActionAccepted(string Message);

@@ -72,7 +72,7 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 - [x] Return not found for inaccessible cross-tenant template identifiers.
 - [x] Map persistence records to domain and API contracts without exposing EF entities.
 - [x] Return standard Problem Details instead of internal exception messages.
-- [ ] Add audit events for create, update, version, publish, archive, restore, and rejected conflicts.
+- [x] Add audit events for create, update, version, publish, archive, restore, and rejected conflicts.
 
 ## API Contract
 
@@ -128,14 +128,14 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 - [x] Test create, read, update, list, search, archive, restore, version, and publish operations.
 - [x] Test optimistic concurrency and simultaneous draft updates.
 - [x] Test no-op saves and checksum equality.
-- [ ] Test 10 MiB request limits and malformed JSON.
+- [ ] Test 10 MiB request limits and malformed JSON; configured payload-limit rejection is covered.
 - [x] Test server-derived ownership and ignored client tenant identifiers.
-- [ ] Test cross-tenant read, list, update, render, version, and archive attempts.
+- [x] Test cross-tenant read, list, update, render, version, and archive attempts.
 - [ ] Test removed memberships, revoked sessions, and expired entitlements.
 - [ ] Test pagination, cancellation, and stable ordering.
-- [ ] Test autosave debounce, request coalescing, transient retry, and unload warning.
-- [ ] Test conflict recovery without silent data loss.
-- [ ] Run Designer template-library and editor end-to-end smoke tests.
+- [x] Test autosave debounce, request coalescing, transient retry, document switching, authorization loss, and unload warning.
+- [x] Test conflict recovery without silent data loss.
+- [x] Run Designer template-library and editor end-to-end smoke tests.
 
 ## Acceptance Criteria
 

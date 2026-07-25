@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
   currentDesignerUser,
+  describeDesignerAuthError,
   DesignerAuthError,
   type DesignerUser,
   exchangeCallback,
@@ -10,7 +11,13 @@ import {
 type GateState =
   | { kind: 'loading' }
   | { kind: 'ready'; user: DesignerUser }
-  | { kind: 'error'; title: string; message: string; retry: boolean };
+  | {
+      kind: 'error';
+      title: string;
+      message: string;
+      retry: boolean;
+      openAccount: boolean;
+    };
 
 interface DesignerAuthContextValue {
   user: DesignerUser;
@@ -48,11 +55,10 @@ const DesignerAuthGate: React.FC<React.PropsWithChildren> = ({ children }) => {
           return;
         }
         if (!active) return;
+        const presentation = describeDesignerAuthError(error);
         setState({
           kind: 'error',
-          title: error.status === 403 ? 'Designer access denied' : 'Designer unavailable',
-          message: error.message,
-          retry: error.offline || error.status === 400,
+          ...presentation,
         });
       }
     };
@@ -89,9 +95,11 @@ const DesignerAuthGate: React.FC<React.PropsWithChildren> = ({ children }) => {
           <p>{state.message}</p>
           <div className="designer-auth-actions">
             {state.retry && <button type="button" onClick={() => location.reload()}>Try again</button>}
-            <button type="button" className="secondary" onClick={() => void redirectToAccount()}>
-              Open PXA Account
-            </button>
+            {state.openAccount && (
+              <button type="button" className="secondary" onClick={() => void redirectToAccount()}>
+                Open PXA Account
+              </button>
+            )}
           </div>
         </section>
       </main>

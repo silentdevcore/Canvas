@@ -15,6 +15,7 @@ export interface DesignerUser {
   organizations: DesignerOrganization[];
   activeOrganizationId: string | null;
   lastLoginAt: string | null;
+  apiVersion?: string;
 }
 
 export interface DesignerOrganization {
@@ -35,6 +36,92 @@ export class DesignerAuthError extends Error {
   code?: string;
   offline = false;
   cause?: unknown;
+}
+
+export interface DesignerAccessPresentation {
+  title: string;
+  message: string;
+  retry: boolean;
+  openAccount: boolean;
+}
+
+export function describeDesignerAuthError(error: DesignerAuthError): DesignerAccessPresentation {
+  if (error.offline) {
+    return {
+      title: 'Designer offline',
+      message: 'PXA Designer cannot reach the API. Check the connection and try again.',
+      retry: true,
+      openAccount: false,
+    };
+  }
+
+  switch (error.code) {
+    case 'PXA_DESIGNER_VERIFICATION_REQUIRED':
+    case 'PXAAPI010':
+      return {
+        title: 'Email verification required',
+        message: 'Verify your email address in PXA Account before opening the Designer.',
+        retry: true,
+        openAccount: true,
+      };
+    case 'PXA_DESIGNER_ACCOUNT_DISABLED':
+    case 'PXAAPI015':
+      return {
+        title: 'Account disabled',
+        message: 'This account is disabled. Contact your organization administrator.',
+        retry: false,
+        openAccount: true,
+      };
+    case 'PXA_DESIGNER_MEMBERSHIP_INACTIVE':
+    case 'PXA_ORGANIZATION_INACTIVE':
+    case 'PXAAPI016':
+      return {
+        title: 'Organization unavailable',
+        message: 'Your organization or membership is suspended. Contact an organization administrator.',
+        retry: false,
+        openAccount: true,
+      };
+    case 'PXA_SUBSCRIPTION_CANCELLED':
+    case 'PXA_SUBSCRIPTION_INACTIVE':
+    case 'PXA_TRIAL_EXPIRED':
+    case 'PXA_GRACE_PERIOD_EXPIRED':
+    case 'PXA_ENTITLEMENT_EXPIRED':
+      return {
+        title: 'Designer subscription expired',
+        message: error.message,
+        retry: false,
+        openAccount: true,
+      };
+    case 'PXA_ENTITLEMENT_MISSING':
+    case 'PXA_ENTITLEMENT_DENIED':
+      return {
+        title: 'Designer access not included',
+        message: error.message,
+        retry: false,
+        openAccount: true,
+      };
+    case 'PXA_API_VERSION_INCOMPATIBLE':
+      return {
+        title: 'Designer update required',
+        message: 'This Designer version is not compatible with the connected PXA API.',
+        retry: true,
+        openAccount: false,
+      };
+    case 'PXA_DESIGNER_SESSION_EXPIRED':
+      return {
+        title: 'Session expired',
+        message: 'Your Account session expired before Designer sign-in completed. Sign in again.',
+        retry: false,
+        openAccount: true,
+      };
+    default:
+      return {
+        title: error.status === 403 ? 'Designer access denied' : 'Designer unavailable',
+        message: error.message,
+        retry: error.status === 400,
+        openAccount: true,
+      };
+  }
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -177,8 +264,16 @@ export async function exchangeCallback(): Promise<string> {
   return response.returnPath;
 }
 
-export function currentDesignerUser(): Promise<DesignerUser> {
-  return request<DesignerUser>(`${authBase}/me`);
+export async function currentDesignerUser(): Promise<DesignerUser> {
+  const user = await request<DesignerUser>(`${authBase}/me`);
+  if (user.apiVersion && user.apiVersion !== '1') {
+    const error = new DesignerAuthError(
+      `PXA Designer requires API v1, but the server reported v${user.apiVersion || 'unknown'}.`);
+    error.status = 409;
+    error.code = 'PXA_API_VERSION_INCOMPATIBLE';
+    throw error;
+  }
+  return user;
 }
 
 export async function switchDesignerOrganization(organizationId: string): Promise<DesignerUser> {

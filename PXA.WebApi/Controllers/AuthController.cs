@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Entitlements;
 using PXA.WebApi.Services.Mail;
@@ -92,16 +93,6 @@ public sealed class AuthController : ControllerBase
 
         if (user is null)
             return InvalidCredentials();
-        if (!user.IsActive)
-        {
-            await AddIdentitySecurityAuditAsync(user, "security.login.failed", "rejected", cancellationToken);
-            return InvalidCredentials();
-        }
-        if (!user.EmailConfirmed)
-        {
-            await AddIdentitySecurityAuditAsync(user, "security.login.unverified", "rejected", cancellationToken);
-            return VerificationRequired();
-        }
 
         if (await userManager.IsLockedOutAsync(user))
         {
@@ -133,6 +124,31 @@ public sealed class AuthController : ControllerBase
                 "rejected",
                 cancellationToken);
             return InvalidCredentials();
+        }
+
+        if (!user.IsActive)
+        {
+            await AddIdentitySecurityAuditAsync(user, "security.login.disabled", "rejected", cancellationToken);
+            return StatusProblem(
+                StatusCodes.Status403Forbidden,
+                "Account disabled",
+                "This account is disabled. Contact your organization administrator.",
+                PxaApiProblems.AccountDisabled);
+        }
+        if (!user.EmailConfirmed)
+        {
+            await AddIdentitySecurityAuditAsync(user, "security.login.unverified", "rejected", cancellationToken);
+            return VerificationRequired();
+        }
+        if (!(await GetActiveMembershipsAsync(user.Id, cancellationToken)).Any() &&
+            !await IsAuthorizedSystemOperatorAsync(user))
+        {
+            await AddIdentitySecurityAuditAsync(user, "security.login.organization-suspended", "rejected", cancellationToken);
+            return StatusProblem(
+                StatusCodes.Status403Forbidden,
+                "Organization unavailable",
+                "No active organization is available for this account.",
+                PxaApiProblems.OrganizationSuspended);
         }
 
         await userManager.ResetAccessFailedCountAsync(user);
@@ -309,7 +325,10 @@ public sealed class AuthController : ControllerBase
             IdentityActionTokenService.InvitationPurpose,
             cancellationToken);
         if (actionToken is null)
+        {
+            await AddRejectedInvitationAuditAsync(null, null, "invalid-or-expired", cancellationToken);
             return InvalidActionToken();
+        }
 
         var user = await userManager.FindByIdAsync(actionToken.UserId.ToString());
         var membership = actionToken.OrganizationId is null
@@ -320,7 +339,10 @@ public sealed class AuthController : ControllerBase
                 value.Status == OrganizationMembershipStatus.Invited,
                 cancellationToken);
         if (user is null || membership is null)
+        {
+            await AddRejectedInvitationAuditAsync(actionToken, user, "target-unavailable", cancellationToken);
             return InvalidActionToken();
+        }
 
         var hasPassword = await userManager.HasPasswordAsync(user);
         if (hasPassword)
@@ -329,15 +351,25 @@ public sealed class AuthController : ControllerBase
                 ? parsedUserId
                 : (Guid?)null;
             if (signedInUserId != user.Id)
+            {
+                await AddRejectedInvitationAuditAsync(actionToken, user, "authentication-required", cancellationToken);
                 return Unauthorized();
+            }
+        }
+
+        if (!hasPassword)
+        {
+            if (string.IsNullOrWhiteSpace(request.Password))
+            {
+                await AddRejectedInvitationAuditAsync(actionToken, user, "password-required", cancellationToken);
+                return Problem(statusCode: 400, title: "Password required");
+            }
         }
 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         if (!hasPassword)
         {
-            if (string.IsNullOrWhiteSpace(request.Password))
-                return Problem(statusCode: 400, title: "Password required");
-            var passwordResult = await userManager.AddPasswordAsync(user, request.Password);
+            var passwordResult = await userManager.AddPasswordAsync(user, request.Password!);
             if (!passwordResult.Succeeded)
                 return IdentityFailure(passwordResult);
             user.EmailConfirmed = true;
@@ -354,12 +386,15 @@ public sealed class AuthController : ControllerBase
         membership.Status = OrganizationMembershipStatus.Active;
         membership.UpdatedAt = DateTimeOffset.UtcNow;
         actionToken.UsedAt = DateTimeOffset.UtcNow;
-        AddSecurityAudit(
-            actionToken.OrganizationId,
-            user.Id,
-            "security.invitation.accept",
-            actionToken.Id,
-            new { });
+        dbContext.AuditEvents.Add(new AuditEvent
+        {
+            OrganizationId = actionToken.OrganizationId,
+            ActorUserId = user.Id,
+            Action = "security.invitation.accept",
+            TargetType = "identity_action_token",
+            TargetId = actionToken.Id.ToString(),
+            Outcome = "succeeded",
+        });
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return NoContent();
@@ -701,7 +736,8 @@ public sealed class AuthController : ControllerBase
             roles,
             organizations,
             activeMembership?.OrganizationId,
-            user.LastLoginAt);
+            user.LastLoginAt,
+            "1");
     }
 
     private Task<List<ActiveMembership>> GetActiveMembershipsAsync(
@@ -784,6 +820,32 @@ public sealed class AuthController : ControllerBase
         title: "Invalid or expired action",
         detail: "Request a new invitation or password-reset message.");
 
+    private ObjectResult StatusProblem(int status, string title, string detail, string code) =>
+        StatusCode(status, PxaApiProblems.Create(HttpContext, status, title, detail, code));
+
+    private async Task AddRejectedInvitationAuditAsync(
+        IdentityActionToken? actionToken,
+        PxaIdentityUser? user,
+        string reason,
+        CancellationToken cancellationToken)
+    {
+        dbContext.AuditEvents.Add(new AuditEvent
+        {
+            OrganizationId = actionToken?.OrganizationId,
+            ActorUserId = user?.Id,
+            Action = "security.invitation.accept",
+            TargetType = "identity_action_token",
+            TargetId = actionToken?.Id.ToString() ?? "unknown",
+            Outcome = "rejected",
+            DetailsJson = JsonSerializer.Serialize(new
+            {
+                Reason = reason,
+                Client = PxaSessionService.ReduceUserAgent(Request.Headers.UserAgent.ToString()),
+            }),
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     private sealed record ActiveMembership(
         Guid MembershipId,
         Guid OrganizationId,
@@ -823,6 +885,7 @@ public sealed record UserInfo(
     IReadOnlyList<string> Roles,
     IReadOnlyList<OrganizationInfo> Organizations,
     Guid? ActiveOrganizationId,
-    DateTimeOffset? LastLoginAt);
+    DateTimeOffset? LastLoginAt,
+    string ApiVersion);
 
 public sealed record OrganizationInfo(Guid Id, string Name, string Slug);

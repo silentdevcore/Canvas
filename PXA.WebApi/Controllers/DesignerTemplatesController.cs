@@ -141,7 +141,7 @@ public sealed class DesignerTemplatesController(
         if (template is null)
             return NotFound();
         if (template.Revision != expectedRevision)
-            return await ConflictAsync(template, cancellationToken);
+            return await ConflictAsync(template, userId, cancellationToken);
 
         template.Name = name;
         template.Description = NormalizeDescription(request.Description);
@@ -167,7 +167,7 @@ public sealed class DesignerTemplatesController(
         if (template is null)
             return NotFound();
         if (template.Revision != expectedRevision)
-            return await ConflictAsync(template, cancellationToken);
+            return await ConflictAsync(template, userId, cancellationToken);
         if (string.Equals(template.DraftChecksum, checksum, StringComparison.Ordinal))
         {
             SetRevisionHeader(template.Revision);
@@ -250,7 +250,7 @@ public sealed class DesignerTemplatesController(
         if (template is null)
             return NotFound();
         if (template.Revision != request.Revision)
-            return await VersionConflictAsync(template, cancellationToken);
+            return await VersionConflictAsync(template, userId, cancellationToken);
 
         var result = await CreateVersionInternalAsync(template, userId, request.Label, cancellationToken);
         var response = new CreateDesignerTemplateVersionResponse(
@@ -275,7 +275,7 @@ public sealed class DesignerTemplatesController(
         if (template is null)
             return NotFound();
         if (template.Revision != request.Revision)
-            return await ConflictAsync(template, cancellationToken);
+            return await ConflictAsync(template, userId, cancellationToken);
 
         DesignerTemplateVersion? version;
         if (request.VersionNumber is { } versionNumber)
@@ -315,7 +315,7 @@ public sealed class DesignerTemplatesController(
         if (template is null)
             return NotFound();
         if (template.Revision != revision)
-            return await ConflictAsync(template, cancellationToken);
+            return await ConflictAsync(template, userId, cancellationToken);
         var targetStatus = archived ? DesignerTemplateStatus.Archived : DesignerTemplateStatus.Draft;
         if (template.Status != targetStatus)
         {
@@ -347,7 +347,7 @@ public sealed class DesignerTemplatesController(
             dbContext.ChangeTracker.Clear();
             var current = await FindTemplateAsync(
                 template.Id, template.OrganizationId, tracked: false, cancellationToken);
-            return current is null ? NotFound() : await ConflictAsync(current, cancellationToken);
+            return current is null ? NotFound() : await ConflictAsync(current, userId, cancellationToken);
         }
         SetRevisionHeader(template.Revision);
         return Ok(ToDocument(template));
@@ -412,13 +412,34 @@ public sealed class DesignerTemplatesController(
 
     private async Task<ActionResult<DesignerTemplateDocument>> ConflictAsync(
         DesignerTemplate template,
+        Guid userId,
         CancellationToken cancellationToken) =>
-        Conflict(await CreateConflictBodyAsync(template, cancellationToken));
+        Conflict(await CreateAuditedConflictBodyAsync(template, userId, cancellationToken));
 
     private async Task<ActionResult<CreateDesignerTemplateVersionResponse>> VersionConflictAsync(
         DesignerTemplate template,
+        Guid userId,
         CancellationToken cancellationToken) =>
-        Conflict(await CreateConflictBodyAsync(template, cancellationToken));
+        Conflict(await CreateAuditedConflictBodyAsync(template, userId, cancellationToken));
+
+    private async Task<object> CreateAuditedConflictBodyAsync(
+        DesignerTemplate template,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        dbContext.AuditEvents.Add(new AuditEvent
+        {
+            OrganizationId = template.OrganizationId,
+            ActorUserId = userId,
+            Action = "designer.templates.conflict",
+            TargetType = "designer_template",
+            TargetId = template.Id.ToString(),
+            Outcome = "rejected",
+            DetailsJson = JsonSerializer.Serialize(new { template.Revision }),
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return await CreateConflictBodyAsync(template, cancellationToken);
+    }
 
     private async Task<object> CreateConflictBodyAsync(
         DesignerTemplate template,

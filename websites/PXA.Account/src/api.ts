@@ -63,6 +63,13 @@ export interface AccountProfileResponse {
   locale: string;
   country: string | null;
   roles: string[];
+  termsAcceptedVersion: string | null;
+  currentTermsVersion: string;
+  requiresTermsAcceptance: boolean;
+  privacyAcknowledgedVersion: string | null;
+  currentPrivacyVersion: string;
+  requiresPrivacyAcknowledgement: boolean;
+  marketingConsent: boolean;
 }
 
 export interface AccountOrganizationResponse {
@@ -296,6 +303,15 @@ export const requestEmailChange = (newEmail: string) =>
   mutation<RegistrationAcceptedResponse>(`${accountProfileBase}/email-change/request`, { newEmail });
 export const changePassword = (currentPassword: string, newPassword: string) =>
   mutation(`${accountProfileBase}/password-change`, { currentPassword, newPassword });
+export const updateAccountConsent = (
+  acceptTerms: boolean | null,
+  acceptPrivacy: boolean | null,
+  marketingConsent: boolean,
+) => mutation<AccountProfileResponse>(
+  `${accountProfileBase}/consent`,
+  { acceptTerms, acceptPrivacy, marketingConsent },
+  'PATCH',
+);
 
 export const getAccountOrganization = () => request<AccountOrganizationResponse>(accountOrganizationBase);
 export const updateAccountOrganizationName = (name: string) =>

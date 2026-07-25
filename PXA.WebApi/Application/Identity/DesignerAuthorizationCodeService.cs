@@ -34,14 +34,30 @@ public sealed class DesignerAuthorizationCodeService(
         CreateDesignerHandoffRequest request,
         CancellationToken cancellationToken)
     {
+        var hasSession = PxaSessionService.TryGetSessionId(principal, out var sourceSessionId);
+        var hasUser = Guid.TryParse(
+            principal.FindFirstValue(ClaimTypes.NameIdentifier), out var userId);
+        var hasOrganization = Guid.TryParse(
+            principal.FindFirstValue(PxaClaimTypes.ActiveOrganization), out var organizationId);
         if (!TryValidateOrigin(request.DesignerOrigin, out var designerOrigin) ||
             !TryValidateReturnPath(request.ReturnPath, out var returnPath) ||
             !IsValidPkceChallenge(request.CodeChallenge) ||
             !IsValidState(request.State) ||
-            !PxaSessionService.TryGetSessionId(principal, out var sourceSessionId) ||
-            !Guid.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ||
-            !Guid.TryParse(principal.FindFirstValue(PxaClaimTypes.ActiveOrganization), out var organizationId))
+            !hasSession ||
+            !hasUser ||
+            !hasOrganization)
         {
+            if (hasUser && hasOrganization)
+            {
+                AddAudit(
+                    organizationId,
+                    userId,
+                    "security.designer-handoff.created",
+                    hasSession ? sourceSessionId : Guid.Empty,
+                    "rejected",
+                    "invalid-request");
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
             return DesignerHandoffResult.Invalid();
         }
 
@@ -66,7 +82,17 @@ public sealed class DesignerAuthorizationCodeService(
             !membershipIsActive ||
             !entitlement.Allowed)
         {
-            return DesignerHandoffResult.Denied(entitlement.Code, entitlement.Reason);
+            var denial = ResolveAccessDenial(
+                user, sourceSession is not null, membershipIsActive, true, entitlement);
+            AddAudit(
+                organizationId,
+                userId,
+                "security.designer-handoff.created",
+                sourceSessionId,
+                "rejected",
+                denial.Code);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return DesignerHandoffResult.Denied(denial.Code, denial.Reason);
         }
 
         var rawCode = WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
@@ -104,29 +130,35 @@ public sealed class DesignerAuthorizationCodeService(
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
-        if (!TryValidateOrigin(request.DesignerOrigin, out var designerOrigin) ||
-            !string.Equals(NormalizeOrigin(requestOrigin), designerOrigin, StringComparison.Ordinal) ||
-            !IsValidState(request.State) ||
-            !IsValidVerifier(request.CodeVerifier) ||
-            string.IsNullOrWhiteSpace(request.Code))
-        {
+        if (string.IsNullOrWhiteSpace(request.Code) || request.Code.Length > 256)
             return DesignerExchangeResult.Invalid();
-        }
 
         var now = DateTimeOffset.UtcNow;
         var codeHash = Hash(request.Code);
         var entity = await dbContext.DesignerAuthorizationCodes.AsNoTracking().SingleOrDefaultAsync(
-            value => value.CodeHash == codeHash &&
-                     value.DesignerOrigin == designerOrigin &&
-                     value.ConsumedAt == null &&
-                     value.ExpiresAt > now,
+            value => value.CodeHash == codeHash,
             cancellationToken);
-        if (entity is null ||
-            !CryptographicOperations.FixedTimeEquals(
+        if (entity is null)
+            return DesignerExchangeResult.Invalid();
+
+        if (!TryValidateOrigin(request.DesignerOrigin, out var designerOrigin) ||
+            !string.Equals(NormalizeOrigin(requestOrigin), designerOrigin, StringComparison.Ordinal) ||
+            !IsValidState(request.State) ||
+            !IsValidVerifier(request.CodeVerifier) ||
+            !string.Equals(entity.DesignerOrigin, designerOrigin, StringComparison.Ordinal) ||
+            entity.ConsumedAt is not null ||
+            entity.ExpiresAt <= now)
+        {
+            await AddRejectedExchangeAuditAsync(entity, "invalid-or-expired", cancellationToken);
+            return DesignerExchangeResult.Invalid();
+        }
+
+        if (!CryptographicOperations.FixedTimeEquals(
                 Convert.FromHexString(entity.StateHash),
                 Convert.FromHexString(Hash(request.State))) ||
             !string.Equals(CreatePkceChallenge(request.CodeVerifier), entity.PkceChallenge, StringComparison.Ordinal))
         {
+            await AddRejectedExchangeAuditAsync(entity, "state-or-pkce-invalid", cancellationToken);
             return DesignerExchangeResult.Invalid();
         }
 
@@ -154,7 +186,21 @@ public sealed class DesignerAuthorizationCodeService(
             !organizationIsActive ||
             !entitlement.Allowed)
         {
-            return DesignerExchangeResult.Denied(entitlement.Code, entitlement.Reason);
+            var denial = ResolveAccessDenial(
+                user,
+                sourceSessionIsActive,
+                membership is not null,
+                organizationIsActive,
+                entitlement);
+            AddAudit(
+                entity.OrganizationId,
+                entity.UserId,
+                "security.designer-handoff.exchanged",
+                entity.Id,
+                "rejected",
+                denial.Code);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return DesignerExchangeResult.Denied(denial.Code, denial.Reason);
         }
 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
@@ -174,7 +220,7 @@ public sealed class DesignerAuthorizationCodeService(
         var principal = await CreateDesignerPrincipalAsync(
             user, membership.Id, entity.OrganizationId, designerSession.Id, cancellationToken);
         AddAudit(entity.OrganizationId, user.Id, "security.designer-handoff.exchanged",
-            designerSession.Id, "succeeded");
+            entity.Id, "succeeded");
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
@@ -260,22 +306,58 @@ public sealed class DesignerAuthorizationCodeService(
     private static string Hash(string value) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 
+    private async Task AddRejectedExchangeAuditAsync(
+        DesignerAuthorizationCode entity,
+        string reason,
+        CancellationToken cancellationToken)
+    {
+        AddAudit(
+            entity.OrganizationId,
+            entity.UserId,
+            "security.designer-handoff.exchanged",
+            entity.Id,
+            "rejected",
+            reason);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private static (string Code, string Reason) ResolveAccessDenial(
+        PxaIdentityUser? user,
+        bool sessionIsActive,
+        bool membershipIsActive,
+        bool organizationIsActive,
+        PxaEntitlementDecision entitlement)
+    {
+        if (user is null or { IsActive: false })
+            return ("PXA_DESIGNER_ACCOUNT_DISABLED", "The account is disabled.");
+        if (!user.EmailConfirmed)
+            return ("PXA_DESIGNER_VERIFICATION_REQUIRED", "Verify the account email before using PXA Designer.");
+        if (!sessionIsActive)
+            return ("PXA_DESIGNER_SESSION_EXPIRED", "The Account session is expired or revoked.");
+        if (!membershipIsActive)
+            return ("PXA_DESIGNER_MEMBERSHIP_INACTIVE", "The organization membership is not active.");
+        if (!organizationIsActive)
+            return ("PXA_ORGANIZATION_INACTIVE", "The organization is not active.");
+        return (entitlement.Code, entitlement.Reason);
+    }
+
     private void AddAudit(
         Guid organizationId,
         Guid userId,
         string action,
         Guid targetId,
-        string outcome)
+        string outcome,
+        string? reason = null)
     {
         dbContext.AuditEvents.Add(new AuditEvent
         {
             OrganizationId = organizationId,
             ActorUserId = userId,
             Action = action,
-            TargetType = "designer_session",
+            TargetType = "designer_handoff",
             TargetId = targetId.ToString(),
             Outcome = outcome,
-            DetailsJson = JsonSerializer.Serialize(new { }),
+            DetailsJson = JsonSerializer.Serialize(new { Reason = reason }),
         });
     }
 }
