@@ -16,6 +16,7 @@ public sealed class PxaMailTemplatePolicyTests
     [Theory]
     [InlineData("")]
     [InlineData("identity.")]
+    [InlineData("identity.unsupported")]
     [InlineData("marketing.newsletter")]
     [InlineData("newsletter.release")]
     public void Non_transactional_templates_are_rejected(string templateKey)

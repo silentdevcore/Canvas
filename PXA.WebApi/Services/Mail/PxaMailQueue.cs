@@ -7,12 +7,22 @@ namespace PXA.WebApi.Services.Mail;
 
 internal static class PxaMailTemplatePolicy
 {
-    private const string TransactionalPrefix = "identity.";
+    private static readonly HashSet<string> TransactionalTemplates = new(StringComparer.Ordinal)
+    {
+        "identity.invitation",
+        "identity.password-reset",
+        "identity.password-changed",
+        "identity.email-verification",
+        "identity.email-changed",
+        "identity.registration-verification",
+        "identity.welcome",
+        "identity.new-login",
+        "identity.lockout",
+        "identity.trial-expiring",
+    };
 
     public static bool IsTransactional(string templateKey) =>
-        !string.IsNullOrWhiteSpace(templateKey) &&
-        templateKey.StartsWith(TransactionalPrefix, StringComparison.Ordinal) &&
-        templateKey.Length > TransactionalPrefix.Length;
+        !string.IsNullOrWhiteSpace(templateKey) && TransactionalTemplates.Contains(templateKey);
 }
 
 public interface IPxaMailQueue

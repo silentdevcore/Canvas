@@ -16,6 +16,8 @@ public sealed record RenderedMail(
     string HtmlBody,
     string TextBody);
 
+internal sealed class PxaPermanentMailException(string message) : Exception(message);
+
 public interface IPxaMailTransport
 {
     Task<string> SendAsync(RenderedMail message, CancellationToken cancellationToken);
@@ -85,6 +87,11 @@ public sealed class PxaMailProcessor
                 message.Status = MailDeliveryStatus.Delivered;
                 message.DeliveredAt = DateTimeOffset.UtcNow;
                 message.FailureReason = null;
+            }
+            catch (PxaPermanentMailException exception)
+            {
+                message.Status = MailDeliveryStatus.DeadLetter;
+                message.FailureReason = $"{exception.GetType().Name}: Mail delivery cannot be retried.";
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
@@ -182,7 +189,7 @@ public sealed class PxaMailProcessor
                 "Your Power Dox Automation Trial is ending soon",
                 $"<p>Hello {displayName},</p><p>Your Trial ends on {WebUtility.HtmlEncode(payload.GetValueOrDefault("trialEndsAt", string.Empty))}. Upgrade to keep access to your workspace.</p>",
                 $"Your Power Dox Automation Trial ends on {payload.GetValueOrDefault("trialEndsAt", string.Empty)}. Upgrade to keep access to your workspace."),
-            _ => throw new InvalidOperationException("Unknown transactional mail template."),
+            _ => throw new PxaPermanentMailException("Unknown transactional mail template."),
         };
     }
 }

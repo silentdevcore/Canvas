@@ -7,7 +7,7 @@ Deliver one application-level mail service for identity, security, subscription,
 ## Priorities
 
 - [x] P0: Deliver secure transactional email for invitations, verification, and password reset.
-- [ ] P0: Add reliable queued delivery, templates, audit metadata, and operational visibility.
+- [x] P0: Add reliable queued delivery, templates, audit metadata, and operational visibility.
 - [ ] P1: Add subscription and security notifications.
 - [ ] P1: Add isolated marketing consent, newsletter, and suppression workflows.
 - [ ] P2: Add additional provider adapters and advanced campaign analytics.
@@ -112,7 +112,7 @@ Current identity-mail verification:
 - [ ] Unit-test template selection, localization, token creation, consent, suppression, and retry classification.
 - [ ] Automate SMTP and selected Cloud-provider transport integration tests in CI.
 - [ ] Test invitation, verification, password-reset, subscription, and security-notification flows.
-- [ ] Complete retry, duplicate prevention, scheduling, dead-letter, and disabled-mail edge-case coverage.
+- [x] Complete retry, duplicate prevention, scheduling, dead-letter, permanent-template-failure, and disabled-mail edge-case coverage against PostgreSQL.
 - [ ] Test valid and invalid provider callbacks, replay protection, bounces, and complaints.
 - [ ] Test double opt-in, unsubscribe, preference updates, and transactional delivery after marketing opt-out.
 - [x] Test transactional password-reset delivery when marketing consent is absent.
@@ -122,8 +122,8 @@ Current identity-mail verification:
 ## Acceptance Criteria
 
 - [ ] Cloud and On-Premise use the same application mail interface.
-- [ ] On-Premise can use customer SMTP or operate explicitly with mail disabled.
+- [x] On-Premise can use customer SMTP or operate explicitly with mail disabled.
 - [x] Transactional delivery is independent from newsletter consent.
-- [ ] Password-reset and invitation tokens are secure, single-use, purpose-bound, and expiring.
+- [x] Password-reset and invitation tokens are secure, single-use, purpose-bound, and expiring.
 - [ ] Delivery retries do not create duplicate customer messages.
-- [ ] Administrators can diagnose delivery failures without seeing sensitive message data.
+- [x] Administrators can diagnose delivery failures without seeing sensitive message data.
