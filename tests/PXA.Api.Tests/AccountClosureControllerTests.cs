@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 using Testcontainers.PostgreSql;
@@ -103,7 +104,7 @@ public sealed class AccountClosureControllerTests
         var duplicateResponse = await client.SendAsync(duplicate);
         Assert.Equal(HttpStatusCode.Conflict, duplicateResponse.StatusCode);
         Assert.Equal(
-            "PXAAPI014",
+            PxaApiProblems.ClosureConflict,
             (await duplicateResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
 
         using var cancel = CreateCsrfRequest(
@@ -122,7 +123,11 @@ public sealed class AccountClosureControllerTests
 
         using var recancel = CreateCsrfRequest(
             HttpMethod.Post, $"/api/pxa/v1/account/closure/{closureId}/cancel", await GetCsrfAsync(client), new { });
-        Assert.Equal(HttpStatusCode.Conflict, (await client.SendAsync(recancel)).StatusCode);
+        var recancelResponse = await client.SendAsync(recancel);
+        Assert.Equal(HttpStatusCode.Conflict, recancelResponse.StatusCode);
+        Assert.Equal(
+            PxaApiProblems.ClosureConflict,
+            (await recancelResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
     }
 
     [PostgreSqlFact]

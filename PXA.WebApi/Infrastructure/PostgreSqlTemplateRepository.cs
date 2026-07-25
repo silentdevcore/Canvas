@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -57,7 +58,7 @@ public sealed class PostgreSqlTemplateRepository(
     public async Task SaveAsync(DesignTemplate template)
     {
         var organizationId = RequireOrganization();
-        var userId = RequireUser();
+        var userId = await RequireUserAsync();
         var externalId = NormalizeExternalId(template.Id);
         var entity = await FindEntity(template.Id, organizationId, tracked: true);
         var draftJson = BuildDesignerDocument(template);
@@ -156,7 +157,7 @@ public sealed class PostgreSqlTemplateRepository(
     public async Task<DesignTemplate> CreateVersionAsync(string id, string? versionName = null)
     {
         var organizationId = RequireOrganization();
-        var userId = RequireUser();
+        var userId = await RequireUserAsync();
         var template = await FindEntity(id, organizationId, tracked: true)
             ?? throw new InvalidOperationException($"Template '{id}' not found");
         var latest = await dbContext.DesignerTemplateVersions
@@ -218,9 +219,28 @@ public sealed class PostgreSqlTemplateRepository(
         tenantContext.OrganizationId ??
         throw new UnauthorizedAccessException("An active organization is required.");
 
-    private Guid RequireUser() =>
-        tenantContext.UserId ??
-        throw new UnauthorizedAccessException("An authenticated user is required.");
+    private async Task<Guid> RequireUserAsync()
+    {
+        if (tenantContext.UserId is { } userId)
+            return userId;
+
+        var serviceAccountClaim = httpContextAccessor.HttpContext?.User
+            .FindFirstValue(PxaClaimTypes.ServiceAccount);
+        if (Guid.TryParse(serviceAccountClaim, out var serviceAccountId))
+        {
+            var creatorId = await dbContext.ServiceAccounts.AsNoTracking()
+                .Where(value =>
+                    value.Id == serviceAccountId &&
+                    value.OrganizationId == tenantContext.OrganizationId &&
+                    value.IsActive)
+                .Select(value => value.CreatedByUserId)
+                .SingleOrDefaultAsync(CancellationToken);
+            if (creatorId is not null)
+                return creatorId.Value;
+        }
+
+        throw new UnauthorizedAccessException("An authenticated user or attributed service account is required.");
+    }
 
     private void AddAudit(DesignerTemplate template, Guid userId, string action, object details) =>
         dbContext.AuditEvents.Add(new AuditEvent

@@ -13,6 +13,7 @@ using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Application.Organizations;
+using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 using Testcontainers.PostgreSql;
@@ -196,7 +197,7 @@ public sealed class AccountOrganizationControllerTests
         var demoteResponse = await client.SendAsync(demoteSelf);
         Assert.Equal(HttpStatusCode.Conflict, demoteResponse.StatusCode);
         Assert.Equal(
-            "PXAAPI013",
+            PxaApiProblems.LastOwnerProtected,
             (await demoteResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
 
         using var promoteSelf = CreateCsrfRequest(

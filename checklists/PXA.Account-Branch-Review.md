@@ -36,7 +36,7 @@ This checklist covers corrective work only. Product roadmap items remain in
 - [x] Validate and normalize locale within the persisted 16-character limit.
 - [x] Replace the free-form country field with a constrained UI control or two-character input.
 - [x] Return the documented Account-specific Problem Details codes from real endpoints for slug, last-owner, and closure conflicts.
-- [ ] Add endpoint-level tests for Trial, slug, last-owner, and closure conflict codes.
+- [x] Add endpoint-level tests for Trial, slug, last-owner, and closure conflict codes.
 - [x] Restrict `returnUrl` origins to the active runtime environment.
 - [x] Add production tests that reject localhost return URLs.
 
@@ -59,8 +59,8 @@ This checklist covers corrective work only. Product roadmap items remain in
 - [x] Reopen Account-specific Problem Details completion until all endpoint contracts are verified.
 - [x] Reopen responsive and accessibility testing claims that currently rely only on source-text checks.
 - [x] Add automated desktop and mobile browser smoke tests for Account-to-Designer onboarding and access-denial states.
-- [ ] Add DOM-level keyboard, focus, validation, and signed-in return-flow tests.
-- [ ] Update `PXA.Account.md` only when each corrected behavior is verified.
+- [x] Add DOM-level keyboard, focus, validation, and signed-in return-flow tests.
+- [x] Update `PXA.Account.md` only when each corrected behavior is verified.
 
 ## Branch Hygiene
 
@@ -86,6 +86,6 @@ This checklist covers corrective work only. Product roadmap items remain in
 - [x] Account data from one identity is never rendered for another identity because logout and expiry replace the SPA document.
 - [x] Account password-reset messages always lead to PXA Account.
 - [x] Registration rejects invalid country and locale values without a database exception.
-- [ ] Public error responses use stable, tested Account-specific codes for every reserved lifecycle condition.
+- [x] Public error responses use stable, tested Account-specific codes for every reserved lifecycle condition.
 - [x] Production return URLs cannot redirect to localhost or another environment.
-- [ ] Checklist completion reflects automated evidence rather than manual assumptions.
+- [x] Checklist completion reflects automated evidence rather than manual assumptions.

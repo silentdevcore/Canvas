@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Entitlements;
 using Testcontainers.PostgreSql;
@@ -61,7 +62,11 @@ public sealed class AdminSubscriptionsControllerTests
                 status = "Active", billingPeriod = "None", deploymentMode = "Cloud",
                 entitlements = Array.Empty<object>(),
             });
-        Assert.Equal(HttpStatusCode.Conflict, (await systemClient.SendAsync(duplicate)).StatusCode);
+        var duplicateResponse = await systemClient.SendAsync(duplicate);
+        Assert.Equal(HttpStatusCode.Conflict, duplicateResponse.StatusCode);
+        Assert.Equal(
+            PxaApiProblems.TrialAlreadyClaimed,
+            (await duplicateResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
 
         using var updateEntitlements = CreateCsrfRequest(HttpMethod.Patch,
             $"/api/pxa/v1/admin/subscriptions/{subscriptionId}",
@@ -105,7 +110,11 @@ public sealed class AdminSubscriptionsControllerTests
             Content = JsonContent.Create(new { name = "API-key template" }),
         };
         productRequest.Headers.Add("Idempotency-Key", "template-create-1");
-        Assert.Equal(HttpStatusCode.Created, (await apiClient.SendAsync(productRequest)).StatusCode);
+        var productResponse = await apiClient.SendAsync(productRequest);
+        Assert.True(
+            productResponse.StatusCode == HttpStatusCode.Created,
+            $"Expected template creation to return 201 but received {(int)productResponse.StatusCode}: " +
+            await productResponse.Content.ReadAsStringAsync());
 
         using var extendTrial = CreateCsrfRequest(HttpMethod.Post,
             $"/api/pxa/v1/admin/subscriptions/{subscriptionId}/trial/extend",

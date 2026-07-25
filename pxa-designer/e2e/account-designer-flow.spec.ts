@@ -80,6 +80,8 @@ test('customer can register, verify, enter Designer, persist and version a templ
   await page.locator('#login-form').getByRole('button', { name: 'Sign in' }).click();
 
   await expect(page).toHaveURL(new RegExp(`^${designerUrl.replaceAll('.', '\\.')}/pdf/create`));
+  expect(new URL(page.url()).searchParams.has('code')).toBe(false);
+  expect(new URL(page.url()).searchParams.has('state')).toBe(false);
   await expect(page.getByRole('heading', { name: 'Untitled document' })).toBeVisible();
   await waitUntilSaved(page);
 

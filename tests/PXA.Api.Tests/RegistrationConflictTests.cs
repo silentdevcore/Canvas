@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Infrastructure;
 using Testcontainers.PostgreSql;
 
 namespace PXA.Api.Tests;
@@ -136,7 +137,7 @@ public sealed class RegistrationConflictTests
         var conflictResponse = await secondClient.SendAsync(secondRegister);
         Assert.Equal(HttpStatusCode.Conflict, conflictResponse.StatusCode);
         Assert.Equal(
-            "PXAAPI012",
+            PxaApiProblems.OrganizationSlugUnavailable,
             (await conflictResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
 
         await using var scope = factory.Services.CreateAsyncScope();

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.WebApi.Application.Subscriptions;
+using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 
 namespace PXA.WebApi.Controllers;
@@ -109,9 +110,13 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             return Unauthorized();
         if (!await dbContext.Organizations.AnyAsync(value => value.Id == request.OrganizationId, cancellationToken))
             return NotFoundProblem("Organization does not exist.");
-        if (await dbContext.OrganizationSubscriptions.AnyAsync(
-                value => value.OrganizationId == request.OrganizationId,
-                cancellationToken))
+        var existingEdition = await dbContext.OrganizationSubscriptions.AsNoTracking()
+            .Where(value => value.OrganizationId == request.OrganizationId)
+            .Select(value => (SubscriptionEdition?)value.Edition)
+            .SingleOrDefaultAsync(cancellationToken);
+        if (existingEdition == SubscriptionEdition.Trial)
+            return TrialAlreadyClaimedProblem();
+        if (existingEdition is not null)
             return ConflictProblem("The organization already has a subscription.");
         if (!TryParseRequest(request, out var values, out var validationError))
             return ValidationProblem(validationError);
@@ -600,6 +605,14 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
     private static bool Fail(string message, out string error) { error = message; return false; }
     private ObjectResult MissingOrganization() => Problem(statusCode: 403, title: "Organization context required");
     private ObjectResult ConflictProblem(string detail) => Problem(statusCode: 409, title: "Subscription change rejected", detail: detail);
+    private ObjectResult TrialAlreadyClaimedProblem() => StatusCode(
+        StatusCodes.Status409Conflict,
+        PxaApiProblems.Create(
+            HttpContext,
+            StatusCodes.Status409Conflict,
+            "Trial already claimed",
+            "The organization already has a Trial subscription.",
+            PxaApiProblems.TrialAlreadyClaimed));
     private ObjectResult NotFoundProblem(string detail) => Problem(statusCode: 404, title: "Subscription resource not found", detail: detail);
     private BadRequestObjectResult ValidationProblem(string detail) => BadRequest(new ProblemDetails { Status = 400, Title = "Invalid subscription request", Detail = detail });
 
