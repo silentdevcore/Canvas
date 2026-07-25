@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Scripting;
 using PXA.Application.UseCases;
 using PXA.Domain.Entities;
 using PXA.Domain.Repositories;
+using PXA.WebApi.Services.Jobs;
 
 namespace PXA.WebApi.Controllers;
 
@@ -21,6 +22,7 @@ public class TemplatesController : ControllerBase
     private readonly UpdateTemplateUseCase _updateTemplateUseCase;
     private readonly GetTemplateUseCase _getTemplateUseCase;
     private readonly ValidateTemplateUseCase _validateTemplateUseCase;
+    private readonly IPxaJobQueue _jobQueue;
     private readonly PXA.Pdf.PdfFontLoader? _fontLoader;
 
     public TemplatesController(
@@ -28,12 +30,14 @@ public class TemplatesController : ControllerBase
         UpdateTemplateUseCase updateTemplateUseCase,
         GetTemplateUseCase getTemplateUseCase,
         ValidateTemplateUseCase validateTemplateUseCase,
+        IPxaJobQueue jobQueue,
         PXA.Pdf.PdfFontLoader? fontLoader = null)
     {
         _createTemplateUseCase = createTemplateUseCase;
         _updateTemplateUseCase = updateTemplateUseCase;
         _getTemplateUseCase = getTemplateUseCase;
         _validateTemplateUseCase = validateTemplateUseCase;
+        _jobQueue = jobQueue;
         _fontLoader = fontLoader;
     }
 
@@ -91,31 +95,33 @@ public class TemplatesController : ControllerBase
     [Authorize]
     [ProducesResponseType(typeof(RenderJobResponse), 202)]
     [ProducesResponseType(400)]
-    public async Task<IActionResult> RenderTemplateAsync([FromBody] TemplateRenderRequest request)
+    public async Task<IActionResult> RenderTemplateAsync(
+        [FromBody] TemplateRenderRequest request,
+        CancellationToken cancellationToken)
     {
         if (request == null)
         {
             return BadRequest("Request body is required");
         }
 
-        // For now, implement synchronous rendering
-        // In production, this would queue the job and return immediately
         try
         {
-            var pdfBytes = await RenderStoredTemplateAsync(request.TemplateId, request.Payload, request.TemplateVersion);
-            return File(pdfBytes, "application/pdf", $"template_{request.TemplateId}.pdf");
+            var job = await _jobQueue.EnqueueTemplateRenderAsync(
+                request.TemplateId,
+                request.Payload,
+                request.TemplateVersion,
+                cancellationToken);
+            var statusUrl = $"/api/pxa/v1/jobs/{job.Id}";
+            return Accepted(statusUrl, new RenderJobResponse
+            {
+                JobId = job.Id.ToString(),
+                Status = job.Status.ToString(),
+                CreatedAt = job.CreatedAt.UtcDateTime,
+            });
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        catch (UnauthorizedAccessException)
         {
-            return NotFound(ex.Message);
-        }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("validation failed"))
-        {
-            return BadRequest(new { error = "Template validation failed", details = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = "Internal server error", details = ex.Message });
+            return Unauthorized();
         }
     }
 

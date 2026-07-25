@@ -56,4 +56,64 @@ public sealed class PostgreSqlPersistenceTests
             Assert.Equal(userId, membership.UserId);
         }
     }
+
+    [PostgreSqlFact]
+    public async Task Migration_persists_tenant_scoped_job_and_object_metadata()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        var options = new DbContextOptionsBuilder<PxaDbContext>()
+            .UseNpgsql(postgres.GetConnectionString())
+            .Options;
+        var organizationId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var objectId = Guid.NewGuid();
+
+        await using (var context = new PxaDbContext(options))
+        {
+            await context.Database.MigrateAsync();
+            context.Users.Add(new PxaIdentityUser
+            {
+                Id = userId,
+                UserName = "job-test",
+                NormalizedUserName = "JOB-TEST",
+                Email = "job-test@pxa.local",
+                NormalizedEmail = "JOB-TEST@PXA.LOCAL",
+                DisplayName = "Job Test",
+            });
+            context.Organizations.Add(new Organization
+            {
+                Id = organizationId,
+                Name = "Job Test Organization",
+                Slug = "job-test",
+            });
+            context.StoredObjects.Add(new PxaStoredObject
+            {
+                Id = objectId,
+                OrganizationId = organizationId,
+                CreatedByUserId = userId,
+                ObjectKey = $"{organizationId:N}/{objectId:N}",
+                Purpose = "job-result",
+                ContentType = "application/pdf",
+                Length = 3,
+                Checksum = new string('a', 64),
+            });
+            context.BackgroundJobs.Add(new PxaBackgroundJob
+            {
+                OrganizationId = organizationId,
+                CreatedByUserId = userId,
+                Type = "test",
+                PayloadJson = "{}",
+                Status = PxaBackgroundJobStatus.Completed,
+                ResultObjectId = objectId,
+            });
+            await context.SaveChangesAsync();
+        }
+
+        await using var verification = new PxaDbContext(options);
+        var job = await verification.BackgroundJobs.SingleAsync();
+        Assert.Equal(organizationId, job.OrganizationId);
+        Assert.Equal(objectId, job.ResultObjectId);
+        Assert.Single(await verification.StoredObjects.ToListAsync());
+    }
 }

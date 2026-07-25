@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PXA.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using PXA.Infrastructure.Persistence;
 namespace PXA.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(PxaDbContext))]
-    partial class PxaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260725202912_AddBackgroundJobsAndStoredObjects")]
+    partial class AddBackgroundJobsAndStoredObjects
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -891,18 +894,9 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("CreatedByUserId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("DiagnosticsJson")
-                        .HasColumnType("jsonb");
-
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("FailureReason")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
-
-                    b.Property<Guid?>("InputObjectId")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset?>("LeaseExpiresAt")
                         .HasColumnType("timestamp with time zone");
@@ -919,9 +913,6 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.Property<string>("PayloadJson")
                         .IsRequired()
                         .HasColumnType("jsonb");
-
-                    b.Property<int>("ProgressPercent")
-                        .HasColumnType("integer");
 
                     b.Property<Guid?>("ResultObjectId")
                         .HasColumnType("uuid");
@@ -948,10 +939,6 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("ExpiresAt");
-
-                    b.HasIndex("InputObjectId");
 
                     b.HasIndex("LeaseExpiresAt");
 
@@ -1734,11 +1721,6 @@ namespace PXA.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("PXA.Domain.Entities.PxaStoredObject", null)
-                        .WithMany()
-                        .HasForeignKey("InputObjectId")
-                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("PXA.Domain.Entities.Organization", null)
                         .WithMany()

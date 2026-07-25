@@ -34,6 +34,8 @@ public sealed class PxaDbContext
     public DbSet<DesignerTemplateVersion> DesignerTemplateVersions => Set<DesignerTemplateVersion>();
     public DbSet<AccountClosureRequest> AccountClosureRequests => Set<AccountClosureRequest>();
     public DbSet<UserConsentEvent> UserConsentEvents => Set<UserConsentEvent>();
+    public DbSet<PxaBackgroundJob> BackgroundJobs => Set<PxaBackgroundJob>();
+    public DbSet<PxaStoredObject> StoredObjects => Set<PxaStoredObject>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

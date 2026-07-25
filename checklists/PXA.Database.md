@@ -35,17 +35,19 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 ## Storage Boundaries
 
 - [x] Store users, organizations, subscriptions, entitlements, audit events, mail state, and Designer template metadata in PostgreSQL.
-- [ ] Store asynchronous jobs and general document metadata in PostgreSQL.
-- [ ] Store large PDF, DOCX, spreadsheet, image, export, and temporary processing files outside PostgreSQL.
-- [ ] Define an object-storage abstraction for Cloud object storage and On-Premise filesystem or S3-compatible storage.
+- [x] Store asynchronous jobs and general stored-object metadata in PostgreSQL.
+- [x] Store asynchronous job inputs and results outside PostgreSQL, including imported documents, design exports, and migration sources/results.
+- [ ] Move remaining synchronous PDF, DOCX, spreadsheet, image, preview, and attachment payloads behind the same storage boundary.
+- [x] Define an object-storage abstraction and provide the first atomic On-Premise filesystem adapter.
 - [ ] Store immutable object keys, content type, size, checksum, tenant, ownership, retention, and lifecycle state in the database.
-- [ ] Prevent database transactions from depending on uncommitted object-storage writes without compensation or outbox handling.
-- [ ] Define cleanup and reconciliation for orphaned database records and storage objects.
+- [x] Compensate failed stored-object metadata commits by deleting the newly written object.
+- [x] Expire job inputs/results through bounded cleanup and mark missing filesystem objects as orphaned during reconciliation.
+- [ ] Add provider-side orphan enumeration and reconciliation for objects that have no database record.
 
 ## Schema Ownership
 
 - [x] Define implemented persistence areas across the `identity`, `administration`, and `designer` schemas.
-- [ ] Add explicit persistence ownership for future Jobs and Storage Metadata.
+- [x] Add explicit administration-schema persistence ownership for Jobs and Storage Metadata.
 - [ ] Use explicit table, column, index, constraint, and foreign-key naming conventions.
 - [x] Use stable opaque identifiers and UTC timestamps.
 - [x] Add revision-based optimistic concurrency to mutable Designer template drafts.
@@ -91,9 +93,11 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 - [x] Replace the in-memory Designer template repository with a PostgreSQL implementation.
 - [x] Persist template identity, owner, organization, status, tags, timestamps, revision, checksum, and JSON design document.
 - [x] Define immutable Designer template versions and controlled publication state transitions.
-- [ ] Persist asynchronous job state, progress, cancellation, result reference, diagnostics, and expiry.
-- [ ] Keep large source and result files in object storage and store only metadata and references in PostgreSQL.
-- [ ] Define cleanup behavior for expired jobs, temporary files, abandoned uploads, and deleted templates.
+- [x] Persist asynchronous job state, attempts, scheduling, cancellation, leases, failure details, and result references.
+- [x] Add progress reporting, structured diagnostics, and expiry/retention metadata to asynchronous jobs.
+- [x] Keep asynchronous job source and result files in object storage and store only metadata and references in PostgreSQL.
+- [x] Define and implement cleanup for expired job inputs and results.
+- [ ] Add cleanup policies for abandoned uploads and deleted-template assets.
 
 ## Tenant Isolation
 

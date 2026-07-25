@@ -114,6 +114,8 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 
 ## Asset Boundary
 
+- [x] Establish tenant-owned stored-object metadata and an object-storage abstraction with an atomic filesystem adapter.
+- [x] Store asynchronous template-render results outside PostgreSQL and expose them through tenant-filtered job downloads.
 - [ ] Keep large previews, source documents, images, and attachments outside PostgreSQL.
 - [ ] Store only tenant-safe object keys, content type, size, checksum, timestamps, and lifecycle state in PostgreSQL.
 - [ ] Use Cloud object storage or customer-configured filesystem/S3-compatible storage through one abstraction.

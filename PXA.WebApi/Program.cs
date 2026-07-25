@@ -21,6 +21,8 @@ using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 using PXA.WebApi.Services.Entitlements;
 using PXA.WebApi.Services.Licensing;
+using PXA.WebApi.Services.Jobs;
+using PXA.WebApi.Services.Storage;
 using PxaConverters = PXA.Infrastructure.Converters;
 using PxaSpreadsheet = PXA.Infrastructure.Spreadsheet;
 using PxaWord = PXA.Infrastructure.Word;
@@ -116,6 +118,25 @@ builder.Services.AddOptions<PxaDesignerTemplateOptions>()
             options.MaximumDesignJsonBytes is >= 1024 and <= 100 * 1024 * 1024 &&
             options.MaximumPageSize is >= 1 and <= 500,
         "Designer template limits are outside the supported range.")
+    .ValidateOnStart();
+builder.Services.AddOptions<PxaStorageOptions>()
+    .Bind(builder.Configuration.GetSection(PxaStorageOptions.SectionName))
+    .Validate(options =>
+            string.Equals(options.Provider, "FileSystem", StringComparison.OrdinalIgnoreCase) &&
+            !string.IsNullOrWhiteSpace(options.RootPath) &&
+            options.MaximumObjectBytes is >= 1024 and <= 5L * 1024 * 1024 * 1024,
+        "Storage provider, root path, or object-size limit is invalid.")
+    .ValidateOnStart();
+builder.Services.AddOptions<PxaJobOptions>()
+    .Bind(builder.Configuration.GetSection(PxaJobOptions.SectionName))
+    .Validate(options =>
+            options.PollIntervalSeconds is >= 1 and <= 300 &&
+            options.LeaseMinutes is >= 1 and <= 1440 &&
+            options.MaximumAttempts is >= 1 and <= 20 &&
+            options.ResultRetentionDays is >= 1 and <= 3650 &&
+            options.CleanupIntervalMinutes is >= 1 and <= 1440 &&
+            options.CleanupBatchSize is >= 1 and <= 10000,
+        "Background job timing or retry settings are invalid.")
     .ValidateOnStart();
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, PxaAuthorizationMiddlewareResultHandler>();
 builder.Services.AddRateLimiter(options =>
@@ -260,10 +281,17 @@ builder.Services.AddSingleton<IPxaMailTransport>(services =>
     };
 });
 builder.Services.AddScoped<TrialExpiryNotifier>();
+builder.Services.AddSingleton<IPxaObjectStorage, FileSystemPxaObjectStorage>();
+builder.Services.AddScoped<PxaStoredObjectService>();
+builder.Services.AddScoped<IPxaJobQueue, PxaJobQueue>();
+builder.Services.AddScoped<PxaJobProcessor>();
+builder.Services.AddScoped<PxaJobRetentionService>();
 if (!builder.Environment.IsEnvironment("Testing"))
 {
     builder.Services.AddHostedService<PxaMailWorker>();
     builder.Services.AddHostedService<TrialExpiryWorker>();
+    builder.Services.AddHostedService<PxaJobWorker>();
+    builder.Services.AddHostedService<PxaJobRetentionWorker>();
 }
 builder.Services.AddAuthorization(options =>
 {

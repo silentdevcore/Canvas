@@ -12,7 +12,9 @@ Maintain one prioritized index of product work outside PXA Admin. Detailed imple
 - [x] Complete customer subscription visibility for edition, lifecycle dates, seats, entitlements, usage against limits, and a truthful upgrade path.
 - [ ] Approve commercial quotas, integrate billing, and complete operational offline-license workflows.
 - [x] Replace in-memory Designer templates with tenant-scoped PostgreSQL drafts and immutable versions from `PXA.Database.md`.
-- [ ] Add persistent asynchronous jobs and object-storage boundaries for source files, results, previews, and attachments.
+- [x] Establish persistent asynchronous jobs, leased worker execution, and tenant-owned result storage with filesystem support.
+- [x] Extend persistent jobs and external storage to document imports, design exports, code migrations, diagnostics, retention, and reconciliation.
+- [ ] Extend object storage to previews and attachments, then add Cloud/S3-compatible providers.
 
 ## P0 - Product Quality
 

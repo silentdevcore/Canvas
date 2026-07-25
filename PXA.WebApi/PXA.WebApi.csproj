@@ -40,7 +40,7 @@
     <ProjectReference Include="../src/Migrations/Spreadsheet/PXA.Migration.Spreadsheet/PXA.Migration.Spreadsheet.csproj" />
   </ItemGroup>
 
-  <Target Name="CopyImageOcrWorker" AfterTargets="Build">
+  <Target Name="CopyImageOcrWorker" AfterTargets="Build" Condition="'$(SkipOcrWorkerPackaging)' != 'true'">
     <MSBuild Projects="../src/Importing/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj" Targets="Build" Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework)" />
     <ItemGroup>
       <ImageOcrWorkerFiles Include="../src/Importing/PXA.FileImporter.ImageOcr.Worker/bin/$(Configuration)/$(TargetFramework)/**/*" />

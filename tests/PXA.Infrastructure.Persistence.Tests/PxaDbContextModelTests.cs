@@ -79,6 +79,33 @@ public sealed class PxaDbContextModelTests
             index.IsUnique && index.Properties.Single().Name == nameof(MailOutboxMessage.IdempotencyKey));
     }
 
+    [Fact]
+    public void Model_scopes_background_jobs_and_stored_objects_to_organizations()
+    {
+        using var context = CreateContext();
+        var job = context.Model.FindEntityType(typeof(PxaBackgroundJob));
+        var storedObject = context.Model.FindEntityType(typeof(PxaStoredObject));
+
+        Assert.Equal("background_jobs", job?.GetTableName());
+        Assert.Equal(DatabaseSchemas.Administration, job?.GetSchema());
+        Assert.Contains(job!.GetIndexes(), index =>
+            index.Properties.Select(property => property.Name)
+                .SequenceEqual([nameof(PxaBackgroundJob.OrganizationId), nameof(PxaBackgroundJob.CreatedAt)]));
+
+        Assert.Equal("stored_objects", storedObject?.GetTableName());
+        Assert.Equal(DatabaseSchemas.Administration, storedObject?.GetSchema());
+        Assert.Contains(storedObject!.GetIndexes(), index =>
+            index.IsUnique &&
+            index.Properties.Single().Name == nameof(PxaStoredObject.ObjectKey));
+        Assert.Contains(storedObject.GetIndexes(), index =>
+            index.Properties.Select(property => property.Name)
+                .SequenceEqual([
+                    nameof(PxaStoredObject.OrganizationId),
+                    nameof(PxaStoredObject.Purpose),
+                    nameof(PxaStoredObject.CreatedAt),
+                ]));
+    }
+
     private static PxaDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<PxaDbContext>()
