@@ -1,6 +1,7 @@
 import { escapeHtml } from '../shell';
 import { getAccountSessions, revokeAccountSession, revokeAllAccountSessions } from '../api';
 import type { ApiError, AccountSessionResponse } from '../api';
+import { registerAccountStateReset } from '../accountContext';
 
 interface SecurityPageState {
   sessions: AccountSessionResponse[];
@@ -11,6 +12,15 @@ interface SecurityPageState {
 }
 
 const state: SecurityPageState = { sessions: [], loading: false, loaded: false, error: null, notice: null };
+registerAccountStateReset(() => {
+  Object.assign(state, {
+    sessions: [],
+    loading: false,
+    loaded: false,
+    error: null,
+    notice: null,
+  });
+});
 
 function rerender(): void {
   window.dispatchEvent(new Event('pxa:rerender'));

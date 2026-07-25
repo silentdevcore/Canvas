@@ -724,6 +724,12 @@ public sealed class AuthController : ControllerBase
                 memberships.Add(activeMembership);
         }
         var roles = await GetSessionRolesAsync(user, activeMembership?.MembershipId, cancellationToken);
+        var permissions = roles
+            .SelectMany(role => PxaRoles.Permissions.GetValueOrDefault(role, []))
+            .Where(PxaAccountPermissions.All.Contains)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(permission => permission, StringComparer.Ordinal)
+            .ToArray();
         var organizations = memberships
             .Select(value => new OrganizationInfo(value.OrganizationId, value.OrganizationName, value.OrganizationSlug))
             .ToArray();
@@ -734,6 +740,7 @@ public sealed class AuthController : ControllerBase
             user.Email ?? string.Empty,
             user.DisplayName,
             roles,
+            permissions,
             organizations,
             activeMembership?.OrganizationId,
             user.LastLoginAt,
@@ -883,6 +890,7 @@ public sealed record UserInfo(
     string Email,
     string DisplayName,
     IReadOnlyList<string> Roles,
+    IReadOnlyList<string> Permissions,
     IReadOnlyList<OrganizationInfo> Organizations,
     Guid? ActiveOrganizationId,
     DateTimeOffset? LastLoginAt,

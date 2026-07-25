@@ -78,10 +78,21 @@ public sealed class AuthControllerTests
         Assert.Contains(
             user.GetProperty("roles").EnumerateArray(),
             role => role.GetString() == PxaRoles.OrganizationAdministrator);
+        var permissions = user.GetProperty("permissions").EnumerateArray()
+            .Select(value => value.GetString())
+            .ToArray();
+        Assert.Contains(PxaAccountPermissions.OrganizationManage, permissions);
+        Assert.Contains(PxaAccountPermissions.MembersInvite, permissions);
+        Assert.Contains(PxaAccountPermissions.ServiceAccountsManage, permissions);
+        Assert.Equal(permissions.Order(StringComparer.Ordinal), permissions);
         Assert.Equal(organizationId, user.GetProperty("activeOrganizationId").GetGuid());
 
         var currentResponse = await client.GetAsync("/api/pxa/v1/auth/me");
         Assert.Equal(HttpStatusCode.OK, currentResponse.StatusCode);
+        var currentUser = await currentResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(
+            permissions,
+            currentUser.GetProperty("permissions").EnumerateArray().Select(value => value.GetString()).ToArray());
         await using (var sessionScope = factory.Services.CreateAsyncScope())
         {
             var dbContext = sessionScope.ServiceProvider.GetRequiredService<PxaDbContext>();

@@ -1,6 +1,7 @@
 import { escapeHtml } from '../shell';
 import { getAccountSubscriptionUsage } from '../api';
 import type { ApiError, AccountSubscriptionUsageResponse } from '../api';
+import { registerAccountStateReset } from '../accountContext';
 
 interface UsagePageState {
   usage: AccountSubscriptionUsageResponse | null;
@@ -10,6 +11,9 @@ interface UsagePageState {
 }
 
 const state: UsagePageState = { usage: null, loading: false, loaded: false, error: null };
+registerAccountStateReset(() => {
+  Object.assign(state, { usage: null, loading: false, loaded: false, error: null });
+});
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleString();

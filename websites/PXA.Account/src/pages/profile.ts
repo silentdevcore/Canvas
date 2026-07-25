@@ -8,6 +8,7 @@ import {
   updateAccountConsent,
 } from '../api';
 import type { ApiError, AccountProfileResponse } from '../api';
+import { registerAccountStateReset } from '../accountContext';
 
 interface ProfilePageState {
   data: AccountProfileResponse | null;
@@ -24,6 +25,15 @@ const state: ProfilePageState = {
   error: null,
   emailChangeNotice: null,
 };
+registerAccountStateReset(() => {
+  Object.assign(state, {
+    data: null,
+    loading: false,
+    loaded: false,
+    error: null,
+    emailChangeNotice: null,
+  });
+});
 
 function rerender(): void {
   window.dispatchEvent(new Event('pxa:rerender'));

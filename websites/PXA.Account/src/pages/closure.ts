@@ -5,7 +5,9 @@ import {
   requestAccountClosure,
   requestOrganizationClosure,
 } from '../api';
-import type { ApiError, AccountClosureResponse } from '../api';
+import type { ApiError, AccountClosureResponse, UserInfo } from '../api';
+import { registerAccountStateReset } from '../accountContext';
+import { accountPermissions, hasAccountPermission } from '../permissions';
 
 interface ClosurePageState {
   requests: AccountClosureResponse[];
@@ -15,6 +17,9 @@ interface ClosurePageState {
 }
 
 const state: ClosurePageState = { requests: [], loading: false, loaded: false, error: null };
+registerAccountStateReset(() => {
+  Object.assign(state, { requests: [], loading: false, loaded: false, error: null });
+});
 
 function rerender(): void {
   window.dispatchEvent(new Event('pxa:rerender'));
@@ -35,21 +40,24 @@ async function loadRequests(): Promise<void> {
   }
 }
 
-function requestRow(request: AccountClosureResponse): string {
+function requestRow(request: AccountClosureResponse, canManageOrganization: boolean): string {
+  const canCancel = request.status === 'Pending' &&
+    (request.targetType.toLowerCase() !== 'organization' || canManageOrganization);
   return `
     <tr>
       <td>${escapeHtml(request.targetType)}</td>
       <td>${escapeHtml(request.status)}</td>
       <td>${new Date(request.requestedAt).toLocaleDateString()}</td>
       <td>${new Date(request.scheduledPurgeAt).toLocaleDateString()}</td>
-      <td>${request.status === 'Pending'
+      <td>${canCancel
         ? `<button class="pxa-button pxa-button--secondary account-closure-cancel" type="button" data-request-id="${escapeHtml(request.id)}">Cancel</button>`
         : ''}</td>
     </tr>
   `;
 }
 
-export function closurePage(): string {
+export function closurePage(user: UserInfo): string {
+  const canManageOrganization = hasAccountPermission(user, accountPermissions.closureRequest);
   if (!state.loaded && !state.loading) loadRequests();
 
   return `
@@ -64,11 +72,11 @@ export function closurePage(): string {
       ${state.error ? `<p role="alert">${escapeHtml(state.error)}</p>` : ''}
       <table class="account-table">
         <thead><tr><th>Target</th><th>Status</th><th>Requested</th><th>Scheduled for</th><th></th></tr></thead>
-        <tbody>${state.requests.map(requestRow).join('') || `<tr><td colspan="5">${state.loading ? 'Loading…' : 'No closure requests.'}</td></tr>`}</tbody>
+        <tbody>${state.requests.map((request) => requestRow(request, canManageOrganization)).join('') || `<tr><td colspan="5">${state.loading ? 'Loading…' : 'No closure requests.'}</td></tr>`}</tbody>
       </table>
       <div class="account-actions" style="margin-top: var(--pxa-space-6)">
         <button class="pxa-button pxa-button--secondary" id="request-account-closure-button" type="button">Request account closure</button>
-        <button class="pxa-button pxa-button--secondary" id="request-organization-closure-button" type="button">Request organization closure</button>
+        ${canManageOrganization ? '<button class="pxa-button pxa-button--secondary" id="request-organization-closure-button" type="button">Request organization closure</button>' : ''}
       </div>
     </section>
   `;

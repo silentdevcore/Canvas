@@ -2,6 +2,7 @@ import { siteLinks } from '../../../shared/siteLinks.js';
 import { getAccountOrganization } from '../api';
 import type { AccountOrganizationResponse, ApiError, UserInfo } from '../api';
 import { escapeHtml } from '../shell';
+import { registerAccountStateReset } from '../accountContext';
 
 interface DashboardPageState {
   organization: AccountOrganizationResponse | null;
@@ -10,6 +11,9 @@ interface DashboardPageState {
 }
 
 const state: DashboardPageState = { organization: null, loading: false, loaded: false };
+registerAccountStateReset(() => {
+  Object.assign(state, { organization: null, loading: false, loaded: false });
+});
 
 async function loadOrganizationStatus(): Promise<void> {
   if (state.loading || state.loaded) return;

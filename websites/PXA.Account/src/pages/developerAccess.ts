@@ -6,7 +6,9 @@ import {
   revokeAccountApiKey,
   revokeAccountServiceAccount,
 } from '../api';
-import type { ApiError, AccountApiKeyResponse, AccountServiceAccountResponse } from '../api';
+import type { ApiError, AccountApiKeyResponse, AccountServiceAccountResponse, UserInfo } from '../api';
+import { registerAccountStateReset } from '../accountContext';
+import { accountPermissions, hasAccountPermission } from '../permissions';
 
 interface DeveloperAccessPageState {
   accounts: AccountServiceAccountResponse[];
@@ -23,6 +25,15 @@ const state: DeveloperAccessPageState = {
   error: null,
   revealedSecret: null,
 };
+registerAccountStateReset(() => {
+  Object.assign(state, {
+    accounts: [],
+    loading: false,
+    loaded: false,
+    error: null,
+    revealedSecret: null,
+  });
+});
 
 function rerender(): void {
   window.dispatchEvent(new Event('pxa:rerender'));
@@ -43,7 +54,7 @@ async function loadServiceAccounts(): Promise<void> {
   }
 }
 
-function keyRow(serviceAccountId: string, key: AccountApiKeyResponse): string {
+function keyRow(serviceAccountId: string, key: AccountApiKeyResponse, canManage: boolean): string {
   const revealed = state.revealedSecret?.keyId === key.id ? state.revealedSecret.secret : null;
   return `
     <tr>
@@ -52,21 +63,21 @@ function keyRow(serviceAccountId: string, key: AccountApiKeyResponse): string {
       <td>${key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString() : 'Never'}</td>
       <td>
         ${revealed ? `<code class="account-secret-reveal">${escapeHtml(revealed)}</code><p><small>Copy this now — it will not be shown again.</small></p>` : ''}
-        ${key.revokedAt ? '' : `<button class="pxa-button pxa-button--secondary account-key-revoke" type="button" data-service-account-id="${escapeHtml(serviceAccountId)}" data-key-id="${escapeHtml(key.id)}">Revoke</button>`}
+        ${canManage && !key.revokedAt ? `<button class="pxa-button pxa-button--secondary account-key-revoke" type="button" data-service-account-id="${escapeHtml(serviceAccountId)}" data-key-id="${escapeHtml(key.id)}">Revoke</button>` : ''}
       </td>
     </tr>
   `;
 }
 
-function accountBlock(account: AccountServiceAccountResponse): string {
+function accountBlock(account: AccountServiceAccountResponse, canManage: boolean): string {
   return `
     <div class="account-form">
       <h2>${escapeHtml(account.name)} ${account.isActive ? '' : '<span class="account-status">Revoked</span>'}</h2>
       <table class="account-table">
         <thead><tr><th>Key</th><th>Status</th><th>Last used</th><th></th></tr></thead>
-        <tbody>${account.keys.map((key) => keyRow(account.id, key)).join('') || '<tr><td colspan="4">No keys yet.</td></tr>'}</tbody>
+        <tbody>${account.keys.map((key) => keyRow(account.id, key, canManage)).join('') || '<tr><td colspan="4">No keys yet.</td></tr>'}</tbody>
       </table>
-      ${account.isActive ? `
+      ${canManage && account.isActive ? `
         <form class="account-create-key-form" data-service-account-id="${escapeHtml(account.id)}">
           <label>New key name<input name="name" required maxlength="160"></label>
           <button class="pxa-button pxa-button--secondary" type="submit">Create key</button>
@@ -77,7 +88,8 @@ function accountBlock(account: AccountServiceAccountResponse): string {
   `;
 }
 
-export function developerAccessPage(): string {
+export function developerAccessPage(user: UserInfo): string {
+  const canManage = hasAccountPermission(user, accountPermissions.serviceAccountsManage);
   if (!state.loaded && !state.loading) loadServiceAccounts();
 
   return `
@@ -90,13 +102,13 @@ export function developerAccessPage(): string {
     </header>
     <section class="account-profile-forms">
       ${state.error ? `<p role="alert">${escapeHtml(state.error)}</p>` : ''}
-      ${state.accounts.map(accountBlock).join('') || (state.loading ? '<p>Loading…</p>' : '')}
-      <form class="account-form" id="create-service-account-form">
+      ${state.accounts.map((account) => accountBlock(account, canManage)).join('') || (state.loading ? '<p>Loading…</p>' : '')}
+      ${canManage ? `<form class="account-form" id="create-service-account-form">
         <h2>New service account</h2>
         <label>Name<input name="name" required maxlength="160"></label>
         <div class="account-form-error" role="alert" hidden></div>
         <button class="pxa-button pxa-button--primary" type="submit">Create service account</button>
-      </form>
+      </form>` : '<p class="account-message account-message--info">Your role has read-only developer access.</p>'}
     </section>
   `;
 }

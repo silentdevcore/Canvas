@@ -7,7 +7,9 @@ import {
   updateAccountOrganizationMemberRoles,
   updateAccountOrganizationName,
 } from '../api';
-import type { ApiError, AccountOrganizationMemberResponse, AccountOrganizationResponse } from '../api';
+import type { ApiError, AccountOrganizationMemberResponse, AccountOrganizationResponse, UserInfo } from '../api';
+import { registerAccountStateReset } from '../accountContext';
+import { accountPermissions, hasAccountPermission } from '../permissions';
 
 const ORGANIZATION_ROLES = ['Organization Administrator', 'Manager', 'Editor', 'Viewer'];
 
@@ -28,19 +30,29 @@ const state: OrganizationPageState = {
   error: null,
   inviteNotice: null,
 };
+registerAccountStateReset(() => {
+  Object.assign(state, {
+    organization: null,
+    members: [],
+    loading: false,
+    loaded: false,
+    error: null,
+    inviteNotice: null,
+  });
+});
 
 function rerender(): void {
   window.dispatchEvent(new Event('pxa:rerender'));
 }
 
-async function loadOrganization(): Promise<void> {
+async function loadOrganization(canReadMembers = true): Promise<void> {
   if (state.loading) return;
   state.loading = true;
   state.error = null;
   try {
     const [organization, members] = await Promise.all([
       getAccountOrganization(),
-      getAccountOrganizationMembers(),
+      canReadMembers ? getAccountOrganizationMembers() : Promise.resolve([]),
     ]);
     state.organization = organization;
     state.members = members ?? [];
@@ -62,24 +74,28 @@ function roleCheckboxes(name: string, checked: readonly string[] = []): string {
   `).join('');
 }
 
-function memberRow(member: AccountOrganizationMemberResponse): string {
+function memberRow(member: AccountOrganizationMemberResponse, canAssignRoles: boolean, canRemove: boolean): string {
   return `
     <tr>
       <td>${escapeHtml(member.displayName)}<br><small>${escapeHtml(member.email)}</small></td>
       <td>${escapeHtml(member.membershipStatus)}</td>
       <td>
-        <form class="account-member-roles-form" data-user-id="${escapeHtml(member.userId)}">
+        ${canAssignRoles ? `<form class="account-member-roles-form" data-user-id="${escapeHtml(member.userId)}">
           <div class="account-role-checkboxes">${roleCheckboxes('roles', member.roles)}</div>
           <button class="pxa-button pxa-button--secondary" type="submit">Save roles</button>
-        </form>
+        </form>` : escapeHtml(member.roles.join(', ') || 'No role')}
       </td>
-      <td><button class="pxa-button pxa-button--secondary account-member-remove" type="button" data-user-id="${escapeHtml(member.userId)}">Remove</button></td>
+      <td>${canRemove ? `<button class="pxa-button pxa-button--secondary account-member-remove" type="button" data-user-id="${escapeHtml(member.userId)}">Remove</button>` : ''}</td>
     </tr>
   `;
 }
 
-export function organizationPage(): string {
-  if (!state.loaded && !state.loading) loadOrganization();
+export function organizationPage(user: UserInfo): string {
+  const canManageOrganization = hasAccountPermission(user, accountPermissions.organizationManage);
+  const canReadMembers = hasAccountPermission(user, accountPermissions.membersRead);
+  const canInviteMembers = hasAccountPermission(user, accountPermissions.membersInvite);
+  const canRemoveMembers = hasAccountPermission(user, accountPermissions.membersRemove);
+  if (!state.loaded && !state.loading) loadOrganization(canReadMembers);
 
   if (!state.organization) {
     return `
@@ -99,20 +115,20 @@ export function organizationPage(): string {
       </div>
     </header>
     <section class="account-profile-forms">
-      <form class="account-form" id="organization-name-form">
+      ${canManageOrganization ? `<form class="account-form" id="organization-name-form">
         <h2>Organization name</h2>
         <label>Name<input name="name" value="${escapeHtml(state.organization.name)}" required minlength="2" maxlength="200"></label>
         <div class="account-form-error" role="alert" hidden></div>
         <button class="pxa-button pxa-button--primary" type="submit">Save name</button>
-      </form>
-      <div class="account-form">
+      </form>` : ''}
+      ${canReadMembers ? `<div class="account-form">
         <h2>Members</h2>
         <table class="account-table">
           <thead><tr><th>Member</th><th>Status</th><th>Roles</th><th></th></tr></thead>
-          <tbody>${state.members.map(memberRow).join('') || '<tr><td colspan="4">No members yet.</td></tr>'}</tbody>
+          <tbody>${state.members.map((member) => memberRow(member, canInviteMembers, canRemoveMembers)).join('') || '<tr><td colspan="4">No members yet.</td></tr>'}</tbody>
         </table>
-      </div>
-      <form class="account-form" id="organization-invite-form">
+      </div>` : ''}
+      ${canInviteMembers ? `<form class="account-form" id="organization-invite-form">
         <h2>Invite a teammate</h2>
         ${state.inviteNotice ? `<p class="account-message account-message--info">${escapeHtml(state.inviteNotice)}</p>` : ''}
         <label>Full name<input name="displayName" required maxlength="200"></label>
@@ -120,7 +136,7 @@ export function organizationPage(): string {
         <div class="account-role-checkboxes">${roleCheckboxes('roles')}</div>
         <div class="account-form-error" role="alert" hidden></div>
         <button class="pxa-button pxa-button--primary" type="submit">Send invitation</button>
-      </form>
+      </form>` : ''}
     </section>
   `;
 }

@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-// @ts-expect-error Node's strip-types runner loads this source module directly.
 import { accountLocales, setAccountLocale, tr } from '../src/authI18n.ts';
 
 const storage = new Map<string, string>();

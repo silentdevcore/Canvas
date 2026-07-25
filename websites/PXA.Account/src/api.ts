@@ -19,6 +19,7 @@ export interface UserInfo {
   email: string;
   displayName: string;
   roles: string[];
+  permissions: string[];
   organizations: OrganizationInfo[];
   activeOrganizationId: string | null;
   lastLoginAt: string | null;
@@ -278,6 +279,8 @@ export const currentUser = () => request<UserInfo>(`${authBase}/me`);
 export const login = (identifier: string, password: string, rememberMe: boolean) =>
   mutation<LoginResponse>(`${authBase}/login`, { identifier, password, rememberMe });
 export const logout = () => mutation(`${authBase}/logout`, {});
+export const switchOrganization = (organizationId: string) =>
+  mutation<LoginResponse>(`${authBase}/switch-organization`, { organizationId });
 export const register = (values: RegisterAccountValues) =>
   mutation<RegistrationAcceptedResponse>(`${authBase}/register`, values);
 export const verifyEmail = (token: string) => mutation(`${authBase}/verify-email`, { token });

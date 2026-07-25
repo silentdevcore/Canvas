@@ -21,8 +21,8 @@ This checklist covers corrective work only. Product roadmap items remain in
 
 - [x] Reset every page-level data cache after logout by replacing the SPA document.
 - [x] Reset every page-level data cache after session expiry by replacing the SPA document.
-- [ ] Reset organization-scoped data after organization or identity changes.
-- [ ] Add a regression test for user A logout followed by user B login in the same SPA runtime.
+- [x] Reset organization-scoped data after organization or identity changes.
+- [x] Add a regression test for user A logout followed by user B login in the same SPA runtime.
 
 ## P0 Account Recovery
 
@@ -43,10 +43,10 @@ This checklist covers corrective work only. Product roadmap items remain in
 ## P1 Authorization And UX
 
 - [ ] Decide whether customer organization roles may intentionally access tenant-scoped Admin APIs.
-- [ ] Separate customer and Admin permissions if the applications must have strict authorization boundaries.
-- [ ] Expose effective Account capabilities to the frontend.
-- [ ] Hide or disable organization and developer-access mutations for users without the required permission.
-- [ ] Provide a consistent forbidden state for inaccessible Account routes.
+- [x] Separate customer and Admin permissions if the applications must have strict authorization boundaries.
+- [x] Expose effective Account capabilities to the frontend.
+- [x] Hide or disable organization and developer-access mutations for users without the required permission.
+- [x] Provide a consistent forbidden state for inaccessible Account routes.
 
 ## P1 Privacy And Mail
 

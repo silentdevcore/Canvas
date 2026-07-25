@@ -1,6 +1,7 @@
 import { escapeHtml } from '../shell';
 import { accountLicenseDownloadUrl, getAccountLicenses, validateAccountLicense } from '../api';
 import type { ApiError, AccountLicenseResponse } from '../api';
+import { registerAccountStateReset } from '../accountContext';
 
 interface LicensesPageState {
   licenses: AccountLicenseResponse[];
@@ -11,6 +12,15 @@ interface LicensesPageState {
 }
 
 const state: LicensesPageState = { licenses: [], loading: false, loaded: false, error: null, validation: {} };
+registerAccountStateReset(() => {
+  Object.assign(state, {
+    licenses: [],
+    loading: false,
+    loaded: false,
+    error: null,
+    validation: {},
+  });
+});
 
 async function loadLicenses(): Promise<void> {
   if (state.loading) return;

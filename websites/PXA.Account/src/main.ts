@@ -16,9 +16,12 @@ import {
   register,
   requestPasswordReset,
   resendVerification,
+  switchOrganization,
   verifyEmail,
 } from './api';
 import type { UserInfo } from './api';
+import { clearAccountContext, updateAccountContext } from './accountContext';
+import { accountPermissions, hasAccountPermission, type AccountPermission } from './permissions';
 import { bindShellEvents, closeAccountNavigation, navigation, renderShell } from './shell';
 import { bindClosureEvents, closurePage } from './pages/closure';
 import { dashboardPage } from './pages/dashboard';
@@ -40,17 +43,18 @@ interface PortalPage {
   render: (user: UserInfo) => string;
   bind?: () => void;
   title: string;
+  permission?: AccountPermission;
 }
 
 const portalPages: Record<string, PortalPage> = {
   '/dashboard': { render: dashboardPage, title: 'Dashboard' },
-  '/profile': { render: profilePage, bind: bindProfileEvents, title: 'Profile' },
-  '/organization': { render: organizationPage, bind: bindOrganizationEvents, title: 'Organization' },
-  '/subscription': { render: subscriptionPage, title: 'Subscription' },
-  '/usage': { render: usagePage, title: 'Usage' },
-  '/licenses': { render: licensesPage, bind: bindLicensesEvents, title: 'Licenses' },
-  '/developer-access': { render: developerAccessPage, bind: bindDeveloperAccessEvents, title: 'Developer access' },
-  '/security': { render: securityPage, bind: bindSecurityEvents, title: 'Security' },
+  '/profile': { render: profilePage, bind: bindProfileEvents, title: 'Profile', permission: accountPermissions.profileManage },
+  '/organization': { render: organizationPage, bind: bindOrganizationEvents, title: 'Organization', permission: accountPermissions.organizationRead },
+  '/subscription': { render: subscriptionPage, title: 'Subscription', permission: accountPermissions.subscriptionRead },
+  '/usage': { render: usagePage, title: 'Usage', permission: accountPermissions.subscriptionRead },
+  '/licenses': { render: licensesPage, bind: bindLicensesEvents, title: 'Licenses', permission: accountPermissions.licensesRead },
+  '/developer-access': { render: developerAccessPage, bind: bindDeveloperAccessEvents, title: 'Developer access', permission: accountPermissions.serviceAccountsRead },
+  '/security': { render: securityPage, bind: bindSecurityEvents, title: 'Security', permission: accountPermissions.sessionsManage },
   '/support': { render: supportPage, title: 'Support' },
   // Not in the primary nav (reached via a link on /support) but still a
   // full portal route: shell-rendered when authenticated, login-redirected
@@ -66,6 +70,7 @@ interface AccountState {
   registrationEmail: string;
   verificationStarted: boolean;
   designerAuthorizationStarted: boolean;
+  accessDenied: ApiError | null;
 }
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -78,12 +83,27 @@ const state: AccountState = {
   registrationEmail: '',
   verificationStarted: false,
   designerAuthorizationStarted: false,
+  accessDenied: null,
 };
 
 async function handleLogout(): Promise<void> {
   await logout();
+  clearAccountContext();
   state.user = null;
   window.location.replace('/login');
+}
+
+async function handleOrganizationSwitch(organizationId: string): Promise<void> {
+  try {
+    const response = await switchOrganization(organizationId);
+    state.user = response!.user;
+    updateAccountContext(state.user);
+    state.accessDenied = null;
+    navigate('/dashboard', true);
+  } catch (error) {
+    state.accessDenied = error as ApiError;
+    render();
+  }
 }
 
 function consumeReturnUrl(): string | null {
@@ -124,8 +144,22 @@ function formStringOrNull(data: FormData, name: string): string | null {
 }
 
 function navigate(path: string, replace = false): void {
+  state.accessDenied = null;
   history[replace ? 'replaceState' : 'pushState']({}, '', path);
   render();
+}
+
+function forbiddenPage(error?: ApiError | null): string {
+  return `
+    <header class="account-page-header">
+      <div><p class="pxa-kicker">Access restricted</p><h1>You do not have access to this page</h1></div>
+    </header>
+    <section class="account-section account-forbidden" role="alert">
+      <div>
+        <p>${escapeHtml(error?.message || 'Your current organization role does not include the required permission.')}</p>
+        <a class="pxa-button pxa-button--primary" href="/dashboard">Back to overview</a>
+      </div>
+    </section>`;
 }
 
 function authLayout(content: string, title: string, description: string): string {
@@ -380,6 +414,7 @@ function bindEvents(): void {
   bindForm('#login-form', async (data) => {
     const response = await login(formString(data, 'identifier'), formString(data, 'password'), data.get('rememberMe') === 'on');
     state.user = response!.user;
+    updateAccountContext(state.user);
     const target = consumeReturnUrl();
     if (target) { window.location.href = withSignedInSignal(target); return; }
     navigate('/dashboard', true);
@@ -511,10 +546,12 @@ function render(): void {
   }
   const portalPage = portalPages[path];
   if (state.user && portalPage) {
-    renderShell(app, portalPage.render(state.user), portalPage.title);
-    bindShellEvents(handleLogout);
+    const permitted = !portalPage.permission || hasAccountPermission(state.user, portalPage.permission);
+    const content = state.accessDenied || !permitted ? forbiddenPage(state.accessDenied) : portalPage.render(state.user);
+    renderShell(app, content, permitted && !state.accessDenied ? portalPage.title : 'Access restricted', state.user);
+    bindShellEvents(handleLogout, handleOrganizationSwitch);
     bindEvents();
-    portalPage.bind?.();
+    if (permitted && !state.accessDenied) portalPage.bind?.();
     return;
   }
   app.innerHTML = path === '/register' ? registerPage()
@@ -546,12 +583,21 @@ document.addEventListener('keydown', (event) => {
 
 window.addEventListener('pxa:session-expired', () => {
   if (!state.user) return;
+  clearAccountContext();
   state.user = null;
   window.location.replace('/login?reason=session-expired');
 });
 
+window.addEventListener('pxa:access-denied', (event) => {
+  state.accessDenied = (event as CustomEvent<ApiError>).detail;
+  render();
+});
+
 async function initialize(): Promise<void> {
-  try { state.user = await currentUser(); }
+  try {
+    state.user = await currentUser();
+    updateAccountContext(state.user);
+  }
   catch (error) { if ((error as ApiError).status !== 401) state.notice = 'PXA Account cannot reach the API.'; }
   state.loading = false;
   render();

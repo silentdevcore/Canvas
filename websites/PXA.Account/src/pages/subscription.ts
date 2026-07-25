@@ -1,6 +1,7 @@
 import { escapeHtml } from '../shell';
 import { getAccountSubscription, getAccountSubscriptionSeats } from '../api';
 import type { ApiError, AccountSubscriptionResponse, AccountSubscriptionSeatResponse } from '../api';
+import { registerAccountStateReset } from '../accountContext';
 
 interface SubscriptionPageState {
   subscription: AccountSubscriptionResponse | null;
@@ -17,6 +18,15 @@ const state: SubscriptionPageState = {
   loaded: false,
   error: null,
 };
+registerAccountStateReset(() => {
+  Object.assign(state, {
+    subscription: null,
+    seats: [],
+    loading: false,
+    loaded: false,
+    error: null,
+  });
+});
 
 function formatDate(value: string | null): string {
   return value ? new Date(value).toLocaleDateString() : '—';
