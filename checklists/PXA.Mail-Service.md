@@ -16,7 +16,7 @@ Deliver one application-level mail service for identity, security, subscription,
 
 - [x] Consume implemented identity and administrator events from `PXA.Admin.md`.
 - [x] Consume implemented subscription lifecycle events from `PXA.Subscription-Licensing.md`.
-- [ ] Define public Company, Admin, Designer, and support callback URLs per environment.
+- [x] Define typed, startup-validated Company, Admin, Account, Designer, and Support URLs with environment overrides.
 - [ ] Select the first Cloud transactional provider before production rollout.
 
 ## Service Architecture
@@ -54,9 +54,10 @@ Deliver one application-level mail service for identity, security, subscription,
 
 - [x] Create versioned templates with stable template keys for implemented identity messages.
 - [x] Provide HTML and plain-text variants for implemented identity messages.
-- [ ] Support localized subject, body, dates, numbers, links, and directionality.
-- [ ] Select language from user preference with organization and system fallbacks.
-- [ ] Add consistent PXA branding, accessible structure, and meaningful link labels.
+- [x] Support localized subjects, bodies, dates, links, and directionality for English, German, French, Spanish, Italian, and Arabic transactional mail.
+- [x] Select language from the user locale with regional-tag normalization and an English system fallback.
+- [ ] Add an organization-level mail-language fallback when organization preferences are implemented.
+- [x] Add consistent PXA branding, accessible table structure, meaningful link labels, and HTML/text variants.
 - [ ] Preview templates with synthetic data before activation.
 - [x] Never include passwords, full API keys, license signing material, or document contents in implemented transactional templates.
 
@@ -93,7 +94,7 @@ Deliver one application-level mail service for identity, security, subscription,
 
 ## Configuration
 
-- [x] Configure sender name, sender address, Admin action URL, and enabled state by environment.
+- [x] Configure sender name, sender address, Company, Admin, Account, Designer, Support URLs, and enabled state by environment.
 - [x] Configure SMTP host, port, TLS mode, authentication, and timeout for On-Premise.
 - [ ] Configure Cloud provider credentials and webhook secrets externally.
 - [x] Validate configuration at startup and expose safe readiness diagnostics.
@@ -118,7 +119,7 @@ Current identity-mail verification:
 - [ ] Test valid and invalid provider callbacks, replay protection, bounces, and complaints.
 - [ ] Test double opt-in, unsubscribe, preference updates, and transactional delivery after marketing opt-out.
 - [x] Test transactional password-reset delivery when marketing consent is absent.
-- [ ] Test HTML and plain-text rendering in left-to-right and right-to-left languages.
+- [x] Test every transactional HTML and plain-text template in all six supported languages, including Arabic right-to-left rendering.
 - [x] Verify that logs and Admin responses contain no secret tokens, credentials, complete recipient addresses, or message bodies.
 
 ## Acceptance Criteria

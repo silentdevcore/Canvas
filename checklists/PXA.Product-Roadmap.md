@@ -7,7 +7,7 @@ Maintain one prioritized index of product work outside PXA Admin. Detailed imple
 ## P0 - Customer Platform
 
 - [x] Deliver customer registration, sign-in, Trial activation, organization ownership, and core self-service account management through `PXA.Account.md`.
-- [ ] Complete transactional and security email flows tracked in `PXA.Mail-Service.md`.
+- [x] Complete localized transactional and security email flows tracked in `PXA.Mail-Service.md`.
 - [x] Harden the subscription lifecycle, entitlement checks, seat management, and signed offline-license validation through `PXA.Subscription-Licensing.md`.
 - [x] Complete customer subscription visibility for edition, lifecycle dates, seats, entitlements, usage against limits, and a truthful upgrade path.
 - [ ] Approve commercial quotas, integrate billing, and complete operational offline-license workflows.

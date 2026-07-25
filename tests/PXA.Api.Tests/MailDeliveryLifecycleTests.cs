@@ -51,7 +51,8 @@ public sealed class MailDeliveryLifecycleTests
                 disabledScope.ServiceProvider.GetRequiredService<PxaDbContext>(),
                 disabledScope.ServiceProvider.GetRequiredService<IPxaMailTransport>(),
                 disabledScope.ServiceProvider.GetRequiredService<IDataProtectionProvider>(),
-                Options.Create(new PxaMailOptions { Enabled = false, Transport = "Disabled" }));
+                Options.Create(new PxaMailOptions { Enabled = false, Transport = "Disabled" }),
+                new PxaMailTemplateRenderer(Options.Create(new PxaMailOptions())));
             Assert.Equal(0, await processor.ProcessPendingAsync(CancellationToken.None));
         }
 

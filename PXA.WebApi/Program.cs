@@ -222,6 +222,18 @@ builder.Services.AddOptions<PxaMailOptions>()
             options.RetentionCleanupIntervalMinutes is > 0 and <= 1440 &&
             options.RetentionBatchSize is > 0 and <= 10000,
         "Mail retention settings are invalid.")
+    .Validate(options => new[]
+        {
+            options.AdminBaseUrl,
+            options.AccountBaseUrl,
+            options.CompanyBaseUrl,
+            options.DesignerBaseUrl,
+            options.SupportUrl,
+        }.All(value =>
+            Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
+            (string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))),
+        "Mail public URLs must be absolute HTTP or HTTPS URLs.")
     .ValidateOnStart();
 builder.Services.AddScoped<IdentityActionTokenService>();
 builder.Services.AddScoped<TrialActivationService>();
@@ -233,6 +245,7 @@ builder.Services.AddScoped<IPxaMailQueue, PxaMailQueue>();
 builder.Services.AddScoped<PxaMailProcessor>();
 builder.Services.AddScoped<PxaMailRetentionService>();
 builder.Services.AddScoped<OrganizationNotificationService>();
+builder.Services.AddSingleton<PxaMailTemplateRenderer>();
 builder.Services.AddSingleton<DevelopmentMailTransport>();
 builder.Services.AddSingleton<SmtpMailTransport>();
 builder.Services.AddSingleton<DisabledMailTransport>();
