@@ -122,13 +122,13 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 
 ## Tests
 
-- [ ] Unit-test draft, version, publication, archive, and checksum rules.
+- [x] Unit-test draft, immutable version, publication, archive, restore, no-op, and checksum rules.
 - [x] Test EF mappings, constraints, indexes, and migration snapshot.
 - [x] Apply migrations to an empty PostgreSQL database.
 - [x] Test create, read, update, list, search, archive, restore, version, and publish operations.
 - [x] Test optimistic concurrency and simultaneous draft updates.
 - [x] Test no-op saves and checksum equality.
-- [ ] Test 10 MiB request limits and malformed JSON; configured payload-limit rejection is covered.
+- [x] Test the exact 10 MiB boundary, one-byte overflow, missing/null documents, and malformed HTTP JSON.
 - [x] Test server-derived ownership and ignored client tenant identifiers.
 - [x] Test cross-tenant read, list, update, render, version, and archive attempts.
 - [x] Test removed memberships, revoked sessions, and expired entitlements against the real template endpoint.

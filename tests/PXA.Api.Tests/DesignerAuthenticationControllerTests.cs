@@ -662,6 +662,29 @@ public sealed class DesignerAuthenticationControllerTests
             HttpStatusCode.RequestEntityTooLarge,
             (await designerClient.SendAsync(oversized)).StatusCode);
 
+        using (var malformed = new HttpRequestMessage(
+                   HttpMethod.Post,
+                   "/api/pxa/v1/designer/templates"))
+        {
+            using var csrfRequest = new HttpRequestMessage(
+                HttpMethod.Get,
+                "/api/pxa/v1/auth/csrf");
+            csrfRequest.Headers.Add("X-PXA-Application", "designer");
+            var csrfResponse = await designerClient.SendAsync(csrfRequest);
+            var csrf = (await csrfResponse.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("token")
+                .GetString()!;
+            malformed.Headers.Add("X-PXA-Application", "designer");
+            malformed.Headers.Add("X-PXA-CSRF", csrf);
+            malformed.Content = new StringContent(
+                "{\"name\":\"Broken\",\"designDocument\":",
+                Encoding.UTF8,
+                "application/json");
+            Assert.Equal(
+                HttpStatusCode.BadRequest,
+                (await designerClient.SendAsync(malformed)).StatusCode);
+        }
+
         var secondOrganizationId = await AddEntitledOrganizationAsync(
             factory.Services, seeded.UserId, "Other Customer", "other-customer");
         using var switchOrganization = await CreateCsrfRequestAsync(
