@@ -5,6 +5,16 @@ using PXA.Infrastructure.Persistence;
 
 namespace PXA.WebApi.Services.Mail;
 
+internal static class PxaMailTemplatePolicy
+{
+    private const string TransactionalPrefix = "identity.";
+
+    public static bool IsTransactional(string templateKey) =>
+        !string.IsNullOrWhiteSpace(templateKey) &&
+        templateKey.StartsWith(TransactionalPrefix, StringComparison.Ordinal) &&
+        templateKey.Length > TransactionalPrefix.Length;
+}
+
 public interface IPxaMailQueue
 {
     MailOutboxMessage Enqueue(
@@ -37,6 +47,13 @@ public sealed class PxaMailQueue : IPxaMailQueue
         string idempotencyKey,
         string locale = "en")
     {
+        if (!PxaMailTemplatePolicy.IsTransactional(templateKey))
+        {
+            throw new ArgumentException(
+                "The transactional mail queue accepts identity templates only. Marketing messages require a separate consent and suppression workflow.",
+                nameof(templateKey));
+        }
+
         var message = new MailOutboxMessage
         {
             OrganizationId = organizationId,

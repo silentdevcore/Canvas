@@ -6,7 +6,7 @@ Deliver one application-level mail service for identity, security, subscription,
 
 ## Priorities
 
-- [ ] P0: Deliver secure transactional email for invitations, verification, and password reset.
+- [x] P0: Deliver secure transactional email for invitations, verification, and password reset.
 - [ ] P0: Add reliable queued delivery, templates, audit metadata, and operational visibility.
 - [ ] P1: Add subscription and security notifications.
 - [ ] P1: Add isolated marketing consent, newsletter, and suppression workflows.
@@ -33,16 +33,16 @@ Deliver one application-level mail service for identity, security, subscription,
 ## Transactional Email
 
 - [x] Send user invitation messages with seven-day expiry.
-- [ ] Send email-verification messages.
+- [x] Send email-verification messages.
 - [x] Send password-reset and password-changed notifications.
-- [ ] Send new-login, lockout, credential-change, and security warnings.
+- [x] Send new-login, lockout, credential-change, and security warnings for implemented account credentials.
 - [ ] Send Trial start, Trial expiry warning, subscription change, suspension, renewal, and license-expiry messages.
 - [ ] Send seat, role, organization, API-key, and service-account security notifications.
-- [ ] Deliver required transactional messages independently from marketing consent.
+- [x] Deliver required transactional messages independently from marketing consent.
 
 ## Marketing Email
 
-- [ ] Keep marketing recipients, consent, preferences, and templates separate from transactional delivery.
+- [x] Keep marketing consent and templates separate from transactional delivery; reject marketing templates from the transactional queue.
 - [ ] Support newsletter subscription with explicit consent and double opt-in.
 - [ ] Support product news, release announcements, events, and approved commercial messages.
 - [ ] Add one-click unsubscribe and preference-management links.
@@ -115,6 +115,7 @@ Current identity-mail verification:
 - [ ] Complete retry, duplicate prevention, scheduling, dead-letter, and disabled-mail edge-case coverage.
 - [ ] Test valid and invalid provider callbacks, replay protection, bounces, and complaints.
 - [ ] Test double opt-in, unsubscribe, preference updates, and transactional delivery after marketing opt-out.
+- [x] Test transactional password-reset delivery when marketing consent is absent.
 - [ ] Test HTML and plain-text rendering in left-to-right and right-to-left languages.
 - [ ] Verify that logs and Admin responses contain no secret tokens, credentials, or complete message bodies.
 
@@ -122,7 +123,7 @@ Current identity-mail verification:
 
 - [ ] Cloud and On-Premise use the same application mail interface.
 - [ ] On-Premise can use customer SMTP or operate explicitly with mail disabled.
-- [ ] Transactional delivery is independent from newsletter consent.
+- [x] Transactional delivery is independent from newsletter consent.
 - [ ] Password-reset and invitation tokens are secure, single-use, purpose-bound, and expiring.
 - [ ] Delivery retries do not create duplicate customer messages.
 - [ ] Administrators can diagnose delivery failures without seeing sensitive message data.

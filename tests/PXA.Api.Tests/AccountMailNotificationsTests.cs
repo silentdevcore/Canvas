@@ -112,6 +112,60 @@ public sealed class AccountMailNotificationsTests
     }
 
     [PostgreSqlFact]
+    public async Task Password_reset_is_delivered_without_marketing_consent()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        await SeedRolesAsync(factory.Services);
+        using var client = CreateClient(factory);
+        const string email = "owner@transactional.test";
+        await RegisterVerifiedCompanyAsync(
+            factory,
+            client,
+            email,
+            "Owner",
+            "Transactional GmbH",
+            "transactional-co",
+            locale: null);
+
+        await using (var consentScope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = consentScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var user = await dbContext.Users.SingleAsync(value => value.Email == email);
+            Assert.Null(user.MarketingConsentGrantedAt);
+            Assert.Null(user.MarketingConsentWithdrawnAt);
+        }
+
+        using var reset = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/password-reset/request",
+            await GetCsrfAsync(client),
+            new { email });
+        Assert.Equal(HttpStatusCode.Accepted, (await client.SendAsync(reset)).StatusCode);
+
+        await using (var deliveryScope = factory.Services.CreateAsyncScope())
+        {
+            await deliveryScope.ServiceProvider.GetRequiredService<PxaMailProcessor>()
+                .ProcessPendingAsync(CancellationToken.None);
+        }
+
+        var messages = factory.Services.GetRequiredService<DevelopmentMailTransport>().Messages;
+        Assert.Contains(messages, message =>
+            message.RecipientEmail == email &&
+            message.Subject == "Reset your Power Dox Automation password");
+
+        await using var assertScope = factory.Services.CreateAsyncScope();
+        var finalDbContext = assertScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var templates = await finalDbContext.MailOutboxMessages
+            .Where(value => value.RecipientEmail == email)
+            .Select(value => value.TemplateKey)
+            .ToListAsync();
+        Assert.Contains("identity.password-reset", templates);
+        Assert.All(templates, template => Assert.StartsWith("identity.", template, StringComparison.Ordinal));
+    }
+
+    [PostgreSqlFact]
     public async Task Trial_expiry_notifier_notifies_administrators_once_per_threshold()
     {
         await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();

@@ -50,9 +50,9 @@ This checklist covers corrective work only. Product roadmap items remain in
 
 ## P1 Privacy And Mail
 
-- [ ] Store marketing consent as a first-class preference rather than only audit metadata.
-- [ ] Keep transactional delivery independent from marketing consent.
-- [ ] Leave newsletter delivery disabled until double opt-in, unsubscribe, and suppression handling exist.
+- [x] Store marketing consent as a first-class user preference with grant and withdrawal timestamps, source, and immutable consent history.
+- [x] Keep transactional delivery independent from marketing consent and verify password-reset delivery without consent.
+- [x] Leave newsletter delivery disabled and reject marketing templates from the transactional queue until double opt-in, unsubscribe, and suppression handling exist.
 
 ## P1 Checklist And Test Accuracy
 
