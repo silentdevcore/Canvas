@@ -131,8 +131,8 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 - [ ] Test 10 MiB request limits and malformed JSON; configured payload-limit rejection is covered.
 - [x] Test server-derived ownership and ignored client tenant identifiers.
 - [x] Test cross-tenant read, list, update, render, version, and archive attempts.
-- [ ] Test removed memberships, revoked sessions, and expired entitlements.
-- [ ] Test pagination, cancellation, and stable ordering.
+- [x] Test removed memberships, revoked sessions, and expired entitlements against the real template endpoint.
+- [x] Test pagination, cancellation, and stable ordering, including equal-timestamp page boundaries.
 - [x] Test autosave debounce, request coalescing, transient retry, document switching, authorization loss, and unload warning.
 - [x] Test conflict recovery without silent data loss.
 - [x] Run Designer template-library and editor end-to-end smoke tests.

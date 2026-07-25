@@ -72,6 +72,13 @@ export function describeDesignerAuthError(error: DesignerAuthError): DesignerAcc
         retry: false,
         openAccount: true,
       };
+    case 'PXA_DESIGNER_ACCOUNT_LOCKED':
+      return {
+        title: 'Account locked',
+        message: 'This account is temporarily locked. Wait before trying again or reset the password in PXA Account.',
+        retry: false,
+        openAccount: true,
+      };
     case 'PXA_DESIGNER_MEMBERSHIP_INACTIVE':
     case 'PXA_ORGANIZATION_INACTIVE':
     case 'PXAAPI016':
@@ -210,6 +217,10 @@ export function accountBaseUrl(): string {
 
 export function accountPageUrl(path: string): string {
   return new URL(path.replace(/^\//, ''), accountBaseUrl()).toString();
+}
+
+export function shouldRedirectToAccount(pathname: string, error: DesignerAuthError): boolean {
+  return error.status === 401 && pathname !== '/auth/callback';
 }
 
 function safeCurrentPath(): string {

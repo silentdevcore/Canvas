@@ -30,6 +30,7 @@ public sealed class PxaCookieAuthenticationEvents : CookieAuthenticationEvents
         var principalStamp = context.Principal?.FindFirstValue(
             userManager.Options.ClaimsIdentity.SecurityStampClaimType);
         var currentStamp = user is null ? null : await userManager.GetSecurityStampAsync(user);
+        var userIsLocked = user is not null && await userManager.IsLockedOutAsync(user);
 
         var hasSession = PxaSessionService.TryGetSessionId(context.Principal!, out var sessionId);
         var session = !hasSession || user is null
@@ -51,6 +52,7 @@ public sealed class PxaCookieAuthenticationEvents : CookieAuthenticationEvents
                 context.HttpContext.RequestAborted);
 
         if (user is not { IsActive: true, EmailConfirmed: true } ||
+            userIsLocked ||
             string.IsNullOrEmpty(principalStamp) ||
             !string.Equals(principalStamp, currentStamp, StringComparison.Ordinal) ||
             session is null || session.RevokedAt is not null || session.ExpiresAt <= now ||

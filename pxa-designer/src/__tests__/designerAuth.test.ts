@@ -1,6 +1,7 @@
 import {
   describeDesignerAuthError,
   DesignerAuthError,
+  shouldRedirectToAccount,
 } from '@/auth/designerAuth';
 
 function error(code?: string, status = 403, message = 'Denied'): DesignerAuthError {
@@ -14,6 +15,7 @@ describe('Designer authentication states', () => {
   test.each([
     ['PXA_DESIGNER_VERIFICATION_REQUIRED', 'Email verification required'],
     ['PXA_DESIGNER_ACCOUNT_DISABLED', 'Account disabled'],
+    ['PXA_DESIGNER_ACCOUNT_LOCKED', 'Account locked'],
     ['PXA_ORGANIZATION_INACTIVE', 'Organization unavailable'],
     ['PXA_TRIAL_EXPIRED', 'Designer subscription expired'],
     ['PXA_ENTITLEMENT_DENIED', 'Designer access not included'],
@@ -32,5 +34,13 @@ describe('Designer authentication states', () => {
       retry: true,
       openAccount: false,
     }));
+  });
+
+  test('redirects anonymous routes to Account without looping failed callbacks', () => {
+    const unauthorized = error(undefined, 401);
+
+    expect(shouldRedirectToAccount('/pdf/create', unauthorized)).toBe(true);
+    expect(shouldRedirectToAccount('/auth/callback', unauthorized)).toBe(false);
+    expect(shouldRedirectToAccount('/pdf/create', error(undefined, 403))).toBe(false);
   });
 });

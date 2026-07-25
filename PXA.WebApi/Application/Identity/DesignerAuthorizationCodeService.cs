@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -24,7 +23,7 @@ public sealed class DesignerAuthorizationCodeService(
     IOptions<PxaDesignerAuthenticationOptions> options)
 {
     private readonly HashSet<string> allowedOrigins = options.Value.AllowedOrigins
-        .Select(NormalizeOrigin)
+        .Select(DesignerAuthorizationSecurity.NormalizeOrigin)
         .Where(value => value is not null)
         .Select(value => value!)
         .ToHashSet(StringComparer.Ordinal);
@@ -40,9 +39,9 @@ public sealed class DesignerAuthorizationCodeService(
         var hasOrganization = Guid.TryParse(
             principal.FindFirstValue(PxaClaimTypes.ActiveOrganization), out var organizationId);
         if (!TryValidateOrigin(request.DesignerOrigin, out var designerOrigin) ||
-            !TryValidateReturnPath(request.ReturnPath, out var returnPath) ||
-            !IsValidPkceChallenge(request.CodeChallenge) ||
-            !IsValidState(request.State) ||
+            !DesignerAuthorizationSecurity.TryValidateReturnPath(request.ReturnPath, out var returnPath) ||
+            !DesignerAuthorizationSecurity.IsValidPkceChallenge(request.CodeChallenge) ||
+            !DesignerAuthorizationSecurity.IsValidState(request.State) ||
             !hasSession ||
             !hasUser ||
             !hasOrganization)
@@ -63,6 +62,7 @@ public sealed class DesignerAuthorizationCodeService(
 
         var now = DateTimeOffset.UtcNow;
         var user = await userManager.FindByIdAsync(userId.ToString());
+        var userIsLocked = user is not null && await userManager.IsLockedOutAsync(user);
         var sourceSession = await dbContext.UserSessions.AsNoTracking().SingleOrDefaultAsync(
             value => value.Id == sourceSessionId &&
                      value.UserId == userId &&
@@ -78,12 +78,13 @@ public sealed class DesignerAuthorizationCodeService(
         var entitlement = await entitlementService.EvaluateAsync(
             organizationId, "designer", cancellationToken: cancellationToken);
         if (user is not { IsActive: true, EmailConfirmed: true } ||
+            userIsLocked ||
             sourceSession is null ||
             !membershipIsActive ||
             !entitlement.Allowed)
         {
             var denial = ResolveAccessDenial(
-                user, sourceSession is not null, membershipIsActive, true, entitlement);
+                user, userIsLocked, sourceSession is not null, membershipIsActive, true, entitlement);
             AddAudit(
                 organizationId,
                 userId,
@@ -101,8 +102,8 @@ public sealed class DesignerAuthorizationCodeService(
             UserId = userId,
             OrganizationId = organizationId,
             SourceSessionId = sourceSessionId,
-            CodeHash = Hash(rawCode),
-            StateHash = Hash(request.State),
+            CodeHash = DesignerAuthorizationSecurity.Hash(rawCode),
+            StateHash = DesignerAuthorizationSecurity.Hash(request.State),
             PkceChallenge = request.CodeChallenge,
             DesignerOrigin = designerOrigin,
             ReturnPath = returnPath,
@@ -134,7 +135,7 @@ public sealed class DesignerAuthorizationCodeService(
             return DesignerExchangeResult.Invalid();
 
         var now = DateTimeOffset.UtcNow;
-        var codeHash = Hash(request.Code);
+        var codeHash = DesignerAuthorizationSecurity.Hash(request.Code);
         var entity = await dbContext.DesignerAuthorizationCodes.AsNoTracking().SingleOrDefaultAsync(
             value => value.CodeHash == codeHash,
             cancellationToken);
@@ -142,9 +143,12 @@ public sealed class DesignerAuthorizationCodeService(
             return DesignerExchangeResult.Invalid();
 
         if (!TryValidateOrigin(request.DesignerOrigin, out var designerOrigin) ||
-            !string.Equals(NormalizeOrigin(requestOrigin), designerOrigin, StringComparison.Ordinal) ||
-            !IsValidState(request.State) ||
-            !IsValidVerifier(request.CodeVerifier) ||
+            !string.Equals(
+                DesignerAuthorizationSecurity.NormalizeOrigin(requestOrigin),
+                designerOrigin,
+                StringComparison.Ordinal) ||
+            !DesignerAuthorizationSecurity.IsValidState(request.State) ||
+            !DesignerAuthorizationSecurity.IsValidVerifier(request.CodeVerifier) ||
             !string.Equals(entity.DesignerOrigin, designerOrigin, StringComparison.Ordinal) ||
             entity.ConsumedAt is not null ||
             entity.ExpiresAt <= now)
@@ -155,14 +159,18 @@ public sealed class DesignerAuthorizationCodeService(
 
         if (!CryptographicOperations.FixedTimeEquals(
                 Convert.FromHexString(entity.StateHash),
-                Convert.FromHexString(Hash(request.State))) ||
-            !string.Equals(CreatePkceChallenge(request.CodeVerifier), entity.PkceChallenge, StringComparison.Ordinal))
+                Convert.FromHexString(DesignerAuthorizationSecurity.Hash(request.State))) ||
+            !string.Equals(
+                DesignerAuthorizationSecurity.CreatePkceChallenge(request.CodeVerifier),
+                entity.PkceChallenge,
+                StringComparison.Ordinal))
         {
             await AddRejectedExchangeAuditAsync(entity, "state-or-pkce-invalid", cancellationToken);
             return DesignerExchangeResult.Invalid();
         }
 
         var user = await userManager.FindByIdAsync(entity.UserId.ToString());
+        var userIsLocked = user is not null && await userManager.IsLockedOutAsync(user);
         var sourceSessionIsActive = await dbContext.UserSessions.AsNoTracking().AnyAsync(
             value => value.Id == entity.SourceSessionId &&
                      value.UserId == entity.UserId &&
@@ -181,6 +189,7 @@ public sealed class DesignerAuthorizationCodeService(
         var entitlement = await entitlementService.EvaluateAsync(
             entity.OrganizationId, "designer", cancellationToken: cancellationToken);
         if (user is not { IsActive: true, EmailConfirmed: true } ||
+            userIsLocked ||
             !sourceSessionIsActive ||
             membership is null ||
             !organizationIsActive ||
@@ -188,6 +197,7 @@ public sealed class DesignerAuthorizationCodeService(
         {
             var denial = ResolveAccessDenial(
                 user,
+                userIsLocked,
                 sourceSessionIsActive,
                 membership is not null,
                 organizationIsActive,
@@ -262,49 +272,9 @@ public sealed class DesignerAuthorizationCodeService(
 
     private bool TryValidateOrigin(string value, out string normalized)
     {
-        normalized = NormalizeOrigin(value) ?? string.Empty;
+        normalized = DesignerAuthorizationSecurity.NormalizeOrigin(value) ?? string.Empty;
         return allowedOrigins.Contains(normalized);
     }
-
-    private static string? NormalizeOrigin(string? value)
-    {
-        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri) ||
-            uri.Scheme is not ("http" or "https") ||
-            !string.IsNullOrEmpty(uri.UserInfo) ||
-            uri.AbsolutePath != "/" ||
-            !string.IsNullOrEmpty(uri.Query) ||
-            !string.IsNullOrEmpty(uri.Fragment))
-        {
-            return null;
-        }
-        return uri.GetLeftPart(UriPartial.Authority);
-    }
-
-    private static bool TryValidateReturnPath(string value, out string normalized)
-    {
-        normalized = value.Trim();
-        return normalized.Length is > 0 and <= 2048 &&
-               normalized.StartsWith('/') &&
-               !normalized.StartsWith("//", StringComparison.Ordinal) &&
-               !normalized.Contains('\r') &&
-               !normalized.Contains('\n');
-    }
-
-    private static bool IsValidPkceChallenge(string value) =>
-        value.Length is >= 43 and <= 128 &&
-        value.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_' or '.' or '~');
-
-    private static bool IsValidVerifier(string value) => IsValidPkceChallenge(value);
-
-    private static bool IsValidState(string value) =>
-        value.Length is >= 32 and <= 256 &&
-        value.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_');
-
-    private static string CreatePkceChallenge(string verifier) =>
-        WebEncoders.Base64UrlEncode(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)));
-
-    private static string Hash(string value) =>
-        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 
     private async Task AddRejectedExchangeAuditAsync(
         DesignerAuthorizationCode entity,
@@ -323,6 +293,7 @@ public sealed class DesignerAuthorizationCodeService(
 
     private static (string Code, string Reason) ResolveAccessDenial(
         PxaIdentityUser? user,
+        bool userIsLocked,
         bool sessionIsActive,
         bool membershipIsActive,
         bool organizationIsActive,
@@ -330,6 +301,8 @@ public sealed class DesignerAuthorizationCodeService(
     {
         if (user is null or { IsActive: false })
             return ("PXA_DESIGNER_ACCOUNT_DISABLED", "The account is disabled.");
+        if (userIsLocked)
+            return ("PXA_DESIGNER_ACCOUNT_LOCKED", "The account is temporarily locked.");
         if (!user.EmailConfirmed)
             return ("PXA_DESIGNER_VERIFICATION_REQUIRED", "Verify the account email before using PXA Designer.");
         if (!sessionIsActive)

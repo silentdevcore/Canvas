@@ -6,6 +6,7 @@ import {
   type DesignerUser,
   exchangeCallback,
   redirectToAccount,
+  shouldRedirectToAccount,
 } from './designerAuth';
 
 type GateState =
@@ -50,7 +51,7 @@ const DesignerAuthGate: React.FC<React.PropsWithChildren> = ({ children }) => {
         if (active) setState({ kind: 'ready', user });
       } catch (caught) {
         const error = caught as DesignerAuthError;
-        if (error.status === 401) {
+        if (shouldRedirectToAccount(location.pathname, error)) {
           await redirectToAccount();
           return;
         }

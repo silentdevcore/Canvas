@@ -12,9 +12,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Application.Designer;
+using PXA.WebApi.Controllers;
 using PXA.WebApi.Security;
 using Testcontainers.PostgreSql;
 
@@ -384,6 +387,71 @@ public sealed class DesignerAuthenticationControllerTests
     }
 
     [PostgreSqlFact]
+    public async Task Handoff_rejects_locked_inactive_expired_session_and_missing_entitlement()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        var seeded = await SeedCustomerAsync(factory.Services);
+
+        using var accountClient = CreateClient(factory);
+        await LoginAsync(accountClient);
+        var existingSessionHandoff = await CreateHandoffAsync(accountClient, "/pdf/create");
+        var lockedHandoff = await CreateHandoffAsync(accountClient, "/pdf/create");
+        var inactiveHandoff = await CreateHandoffAsync(accountClient, "/pdf/create");
+        var missingEntitlementHandoff = await CreateHandoffAsync(accountClient, "/pdf/create");
+        var expiredSessionHandoff = await CreateHandoffAsync(accountClient, "/pdf/create");
+
+        using var existingSessionClient = CreateClient(factory);
+        using (var exchange = await CreateExchangeRequestAsync(
+                   existingSessionClient, existingSessionHandoff))
+        {
+            Assert.Equal(HttpStatusCode.OK, (await existingSessionClient.SendAsync(exchange)).StatusCode);
+        }
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var user = await dbContext.Users.SingleAsync(value => value.Id == seeded.UserId);
+
+        user.LockoutEnabled = true;
+        user.LockoutEnd = DateTimeOffset.UtcNow.AddMinutes(10);
+        await dbContext.SaveChangesAsync();
+        using (var me = DesignerGet("/api/pxa/v1/auth/me"))
+        {
+            Assert.Equal(
+                HttpStatusCode.Unauthorized,
+                (await existingSessionClient.SendAsync(me)).StatusCode);
+        }
+        await AssertExchangeDeniedAsync(
+            factory, lockedHandoff, "PXA_DESIGNER_ACCOUNT_LOCKED");
+
+        user.LockoutEnd = null;
+        user.IsActive = false;
+        await dbContext.SaveChangesAsync();
+        await AssertExchangeDeniedAsync(
+            factory, inactiveHandoff, "PXA_DESIGNER_ACCOUNT_DISABLED");
+
+        user.IsActive = true;
+        var entitlement = await dbContext.SubscriptionEntitlements.SingleAsync(
+            value => value.Capability == "designer");
+        dbContext.SubscriptionEntitlements.Remove(entitlement);
+        await dbContext.SaveChangesAsync();
+        await AssertExchangeDeniedAsync(
+            factory, missingEntitlementHandoff, "PXA_ENTITLEMENT_MISSING");
+
+        var sourceSessionId = await dbContext.DesignerAuthorizationCodes
+            .Where(value => value.CodeHash == Hash(expiredSessionHandoff.Code))
+            .Select(value => value.SourceSessionId)
+            .SingleAsync();
+        var sourceSession = await dbContext.UserSessions.SingleAsync(
+            value => value.Id == sourceSessionId);
+        sourceSession.ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+        await dbContext.SaveChangesAsync();
+        await AssertExchangeDeniedAsync(
+            factory, expiredSessionHandoff, "PXA_DESIGNER_SESSION_EXPIRED");
+    }
+
+    [PostgreSqlFact]
     public async Task Designer_templates_are_persistent_concurrent_versioned_and_tenant_isolated()
     {
         await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
@@ -663,6 +731,122 @@ public sealed class DesignerAuthenticationControllerTests
             value.Action == "designer.templates.conflict" &&
             value.Outcome == "rejected" &&
             value.OrganizationId == seeded.OrganizationId));
+    }
+
+    [PostgreSqlFact]
+    public async Task Template_listing_is_stably_paginated_and_tracks_access_revocation()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        var seeded = await SeedCustomerAsync(factory.Services);
+
+        using var accountClient = CreateClient(factory);
+        await LoginAsync(accountClient);
+        var membershipHandoff = await CreateHandoffAsync(accountClient, "/pdf/templates");
+        var revokedSessionHandoff = await CreateHandoffAsync(accountClient, "/pdf/templates");
+        var expiredEntitlementHandoff = await CreateHandoffAsync(accountClient, "/pdf/templates");
+
+        using var membershipClient = CreateClient(factory);
+        using var revokedSessionClient = CreateClient(factory);
+        using var expiredEntitlementClient = CreateClient(factory);
+        await ExchangeSuccessfullyAsync(membershipClient, membershipHandoff);
+        var revokedSessionId = await ExchangeAndFindSessionAsync(
+            factory, revokedSessionClient, revokedSessionHandoff);
+        await ExchangeSuccessfullyAsync(expiredEntitlementClient, expiredEntitlementHandoff);
+
+        var commonUpdatedAt = new DateTimeOffset(2026, 7, 25, 12, 0, 0, TimeSpan.Zero);
+        var orderedIds = new[]
+        {
+            Guid.Parse("00000000-0000-0000-0000-000000000004"),
+            Guid.Parse("00000000-0000-0000-0000-000000000001"),
+            Guid.Parse("00000000-0000-0000-0000-000000000002"),
+            Guid.Parse("00000000-0000-0000-0000-000000000003"),
+        };
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            dbContext.DesignerTemplates.AddRange(
+                CreateTemplate(orderedIds[1], seeded, "Alpha", commonUpdatedAt),
+                CreateTemplate(orderedIds[2], seeded, "Bravo", commonUpdatedAt),
+                CreateTemplate(orderedIds[3], seeded, "Charlie", commonUpdatedAt),
+                CreateTemplate(orderedIds[0], seeded, "Newest", commonUpdatedAt.AddMinutes(1)));
+            await dbContext.SaveChangesAsync();
+        }
+
+        var firstPage = await GetTemplatePageAsync(membershipClient, page: 1, pageSize: 2);
+        var secondPage = await GetTemplatePageAsync(membershipClient, page: 2, pageSize: 2);
+        Assert.Equal(4, firstPage.GetProperty("total").GetInt32());
+        Assert.Equal(orderedIds.Take(2), ReadTemplateIds(firstPage));
+        Assert.Equal(orderedIds.Skip(2), ReadTemplateIds(secondPage));
+        Assert.Empty(ReadTemplateIds(firstPage).Intersect(ReadTemplateIds(secondPage)));
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var controller = new DesignerTemplatesController(
+                scope.ServiceProvider.GetRequiredService<PxaDbContext>(),
+                new TestTenantContext(seeded.UserId, seeded.OrganizationId),
+                Options.Create(new PxaDesignerTemplateOptions()));
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                controller.List(page: 1, pageSize: 2, cancellationToken: cancellation.Token));
+        }
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var membership = await dbContext.OrganizationMemberships.SingleAsync(value =>
+                value.OrganizationId == seeded.OrganizationId &&
+                value.UserId == seeded.UserId);
+            membership.Status = OrganizationMembershipStatus.Removed;
+            await dbContext.SaveChangesAsync();
+        }
+        using (var list = DesignerGet("/api/pxa/v1/designer/templates"))
+        {
+            Assert.Equal(
+                HttpStatusCode.Unauthorized,
+                (await membershipClient.SendAsync(list)).StatusCode);
+        }
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var membership = await dbContext.OrganizationMemberships.SingleAsync(value =>
+                value.OrganizationId == seeded.OrganizationId &&
+                value.UserId == seeded.UserId);
+            membership.Status = OrganizationMembershipStatus.Active;
+            var revokedSession = await dbContext.UserSessions.SingleAsync(
+                value => value.Id == revokedSessionId);
+            revokedSession.RevokedAt = DateTimeOffset.UtcNow;
+            revokedSession.RevocationReason = "template-access-test";
+            await dbContext.SaveChangesAsync();
+        }
+        using (var list = DesignerGet("/api/pxa/v1/designer/templates"))
+        {
+            Assert.Equal(
+                HttpStatusCode.Unauthorized,
+                (await revokedSessionClient.SendAsync(list)).StatusCode);
+        }
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var entitlement = await dbContext.SubscriptionEntitlements.SingleAsync(
+                value => value.Capability == "designer");
+            entitlement.ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+            await dbContext.SaveChangesAsync();
+        }
+        using (var list = DesignerGet("/api/pxa/v1/designer/templates"))
+        {
+            var response = await expiredEntitlementClient.SendAsync(list);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Equal(
+                "PXA_ENTITLEMENT_EXPIRED",
+                (await response.Content.ReadFromJsonAsync<JsonElement>())
+                .GetProperty("code")
+                .GetString());
+        }
     }
 
     [PostgreSqlFact]
@@ -968,6 +1152,95 @@ public sealed class DesignerAuthenticationControllerTests
             },
             designer: true,
             designerOrigin: requestOrigin);
+
+    private static async Task AssertExchangeDeniedAsync(
+        WebApplicationFactory<Program> factory,
+        DesignerHandoff handoff,
+        string expectedCode)
+    {
+        using var client = CreateClient(factory);
+        using var exchange = await CreateExchangeRequestAsync(client, handoff);
+        var response = await client.SendAsync(exchange);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal(
+            expectedCode,
+            (await response.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("code")
+            .GetString());
+    }
+
+    private static async Task ExchangeSuccessfullyAsync(
+        HttpClient client,
+        DesignerHandoff handoff)
+    {
+        using var exchange = await CreateExchangeRequestAsync(client, handoff);
+        Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(exchange)).StatusCode);
+    }
+
+    private static async Task<Guid> ExchangeAndFindSessionAsync(
+        WebApplicationFactory<Program> factory,
+        HttpClient client,
+        DesignerHandoff handoff)
+    {
+        HashSet<Guid> before;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            before = await scope.ServiceProvider.GetRequiredService<PxaDbContext>()
+                .UserSessions
+                .Select(value => value.Id)
+                .ToHashSetAsync();
+        }
+
+        await ExchangeSuccessfullyAsync(client, handoff);
+
+        await using var afterScope = factory.Services.CreateAsyncScope();
+        var created = await afterScope.ServiceProvider.GetRequiredService<PxaDbContext>()
+            .UserSessions
+            .Where(value => !before.Contains(value.Id))
+            .Select(value => value.Id)
+            .ToArrayAsync();
+        return Assert.Single(created);
+    }
+
+    private static DesignerTemplate CreateTemplate(
+        Guid id,
+        SeededCustomer customer,
+        string name,
+        DateTimeOffset updatedAt) =>
+        new()
+        {
+            Id = id,
+            OrganizationId = customer.OrganizationId,
+            CreatedByUserId = customer.UserId,
+            UpdatedByUserId = customer.UserId,
+            Name = name,
+            DraftJson = "{}",
+            DraftChecksum = Hash("{}"),
+            SchemaVersion = "1.0",
+            DesignerVersion = "1.0",
+            CreatedAt = updatedAt,
+            UpdatedAt = updatedAt,
+        };
+
+    private static async Task<JsonElement> GetTemplatePageAsync(
+        HttpClient client,
+        int page,
+        int pageSize)
+    {
+        using var request = DesignerGet(
+            $"/api/pxa/v1/designer/templates?page={page}&pageSize={pageSize}");
+        var response = await client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        return await response.Content.ReadFromJsonAsync<JsonElement>();
+    }
+
+    private static Guid[] ReadTemplateIds(JsonElement page) =>
+        page.GetProperty("items")
+            .EnumerateArray()
+            .Select(value => value.GetProperty("id").GetGuid())
+            .ToArray();
+
+    private sealed record TestTenantContext(Guid? UserId, Guid? OrganizationId) : IPxaTenantContext;
 
     private static async Task<Guid> AddEntitledOrganizationAsync(
         IServiceProvider services,

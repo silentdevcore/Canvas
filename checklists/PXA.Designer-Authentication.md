@@ -92,18 +92,18 @@ Protect every PXA Designer workflow so that only active, email-verified users wi
 
 ## Tests
 
-- [ ] Unit-test return URL and Designer-origin allowlists.
-- [ ] Unit-test PKCE, state, code hashing, expiry, and single-use behavior.
+- [x] Unit-test return URL and Designer-origin allowlists.
+- [x] Unit-test PKCE, state, and code hashing; verify expiry and single-use behavior through PostgreSQL integration tests.
 - [x] Integration-test Account login followed by a successful Designer handoff.
 - [x] Test authorization-code replay and concurrent exchange.
 - [x] Test expired code, invalid state, invalid PKCE, wrong origin, and server-owned return-path restoration.
-- [ ] Test inactive, unverified, locked, suspended, and deleted users; unverified users and suspended organizations are covered.
-- [ ] Test expired and revoked persistent sessions; revoked Designer sessions are covered.
-- [ ] Test missing, expired, and organization-specific Designer entitlements; disabled and expired entitlements plus organization switching are covered.
+- [x] Test inactive, unverified, locked, suspended, and deleted-account access; account deletion uses the inactive-account boundary.
+- [x] Test expired and revoked persistent sessions, including immediate rejection of an existing Designer cookie after account lockout.
+- [x] Test missing, expired, and organization-specific Designer entitlements.
 - [x] Test cross-tenant organization switching and stale organization claims.
 - [x] Test that protected Designer APIs return 401 or 403 consistently.
 - [x] Test antiforgery enforcement on state-changing Designer requests.
-- [ ] Test callback URL cleanup and redirect-loop prevention.
+- [x] Test callback URL cleanup and redirect-loop prevention.
 - [x] Run Designer desktop and mobile authentication smoke tests.
 
 ## Acceptance Criteria
