@@ -10,8 +10,11 @@ namespace PXA.WebApi.Controllers;
 public sealed class LicensePublicKeyController : ControllerBase
 {
     [HttpGet("public-key")]
-    public ActionResult<LicensePublicKeyResponse> GetPublicKey([FromServices] IPxaLicenseSigningService signingService) =>
-        Ok(new LicensePublicKeyResponse(signingService.KeyId, "ECDSA_P256_SHA256", signingService.PublicKeyPem));
+    public ActionResult<LicensePublicKeyResponse> GetPublicKey([FromServices] IPxaLicenseSignatureVerifier signatureVerifier) =>
+        Ok(new LicensePublicKeyResponse(
+            signatureVerifier.KeyId,
+            "ECDSA_P256_SHA256",
+            signatureVerifier.PublicKeyPem));
 }
 
 public sealed record LicensePublicKeyResponse(string KeyId, string Algorithm, string PublicKeyPem);

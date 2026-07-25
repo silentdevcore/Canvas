@@ -33,7 +33,7 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 - [x] Model `Premium` as an independently configurable edition.
 - [x] Model `Enterprise` with Cloud, On-Premise, or hybrid deployment mode.
 - [x] Keep exact prices and Free/Premium numeric quotas out of code until approved commercially.
-- [ ] Define allowed upgrade, downgrade, and conversion paths between editions.
+- [x] Define allowed upgrade, downgrade, and conversion paths between editions.
 
 ## Lifecycle
 
@@ -68,8 +68,8 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 
 - [x] Define a signed offline license envelope with license ID, customer, organization, edition, account type, products, limits, validity, instance limits, and signature metadata.
 - [x] Sign licenses with an asymmetric key so PXA Server contains only the verification key.
-- [ ] Validate signature, validity, product version, deployment identity, and instance limits locally.
-- [ ] Reject modified, malformed, revoked, not-yet-valid, and expired licenses with stable diagnostics.
+- [x] Validate signature, validity, product version, deployment identity, and instance limits through one local validator.
+- [x] Reject modified, malformed, revoked, not-yet-valid, expired, replaced, and mismatched licenses with stable diagnostics.
 - [ ] Support controlled grace periods without requiring internet access.
 - [ ] Define license renewal, replacement, revocation-list import, backup, and disaster-recovery behavior.
 - [x] Keep private signing keys outside source control, Docker images, and customer deployments.
@@ -104,10 +104,10 @@ Current subscription foundation verification:
 - [x] Test entitlement evaluation, configured limit rejection, Trial extension, renewal, grace period, scheduled cancellation, detail data, and lifecycle history.
 
 - [ ] Test every edition and account-type combination.
-- [ ] Test lifecycle transitions, grace periods, cancellation, suspension, expiry, and Trial conversion.
+- [x] Test lifecycle transitions, grace periods, cancellation, suspension, expiry, and Trial conversion.
 - [ ] Test seat assignment races and organization isolation.
 - [x] Test configured quota thresholds, exhausted quotas, cumulative usage, and idempotent usage.
-- [ ] Test valid, tampered, expired, future-dated, revoked, and version-incompatible offline licenses.
+- [x] Test valid, tampered, malformed, expired, future-dated, revoked, deployment-mismatched, instance-limited, and version-incompatible offline licenses.
 - [ ] Test Cloud and fully offline PXA Server enforcement.
 - [ ] Test that role changes cannot grant unlicensed products.
 

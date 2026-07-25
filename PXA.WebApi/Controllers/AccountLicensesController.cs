@@ -17,16 +17,16 @@ public sealed class AccountLicensesController : ControllerBase
 {
     private readonly PxaDbContext dbContext;
     private readonly IPxaTenantContext tenantContext;
-    private readonly IPxaLicenseSigningService signingService;
+    private readonly PxaOfflineLicenseValidator licenseValidator;
 
     public AccountLicensesController(
         PxaDbContext dbContext,
         IPxaTenantContext tenantContext,
-        IPxaLicenseSigningService signingService)
+        PxaOfflineLicenseValidator licenseValidator)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
-        this.signingService = signingService;
+        this.licenseValidator = licenseValidator;
     }
 
     [HttpGet]
@@ -73,21 +73,25 @@ public sealed class AccountLicensesController : ControllerBase
 
     [HttpGet("{licenseId:guid}/validate")]
     public async Task<ActionResult<AccountLicenseValidationResponse>> ValidateLicense(
-        Guid licenseId, CancellationToken cancellationToken)
+        Guid licenseId,
+        [FromQuery] string? productVersion,
+        [FromQuery] string? deploymentId,
+        [FromQuery] int activeInstances = 1,
+        CancellationToken cancellationToken = default)
     {
         var license = await FindOwnLicenseAsync(licenseId, cancellationToken);
         if (license is null)
             return NotFound();
-        var now = DateTimeOffset.UtcNow;
-        var signatureValid = signingService.Verify(license.EnvelopeJson, license.Signature);
-        var valid = signatureValid && license.Status == OfflineLicenseStatus.Active &&
-                    license.ValidFrom <= now && license.ValidUntil > now;
+        var subscription = await dbContext.OrganizationSubscriptions.AsNoTracking()
+            .SingleAsync(value => value.Id == license.SubscriptionId, cancellationToken);
+        var validation = licenseValidator.Validate(
+            license, subscription, DateTimeOffset.UtcNow, productVersion, deploymentId, activeInstances);
         return Ok(new AccountLicenseValidationResponse(
-            valid,
+            validation.Valid,
             license.Status.ToString(),
             license.ValidFrom,
             license.ValidUntil,
-            valid ? "PXA_LICENSE_VALID" : GetValidationCode(license, signatureValid, now)));
+            validation.Code));
     }
 
     private IQueryable<AccountLicenseResponse> BuildQuery(IQueryable<OfflineLicense> query) =>
@@ -106,12 +110,6 @@ public sealed class AccountLicensesController : ControllerBase
         return await dbContext.OfflineLicenses.AsNoTracking()
             .SingleOrDefaultAsync(value => value.Id == licenseId && value.OrganizationId == organizationId, cancellationToken);
     }
-
-    private static string GetValidationCode(OfflineLicense license, bool signatureValid, DateTimeOffset now) =>
-        !signatureValid ? "PXA_LICENSE_SIGNATURE_INVALID" :
-        license.Status == OfflineLicenseStatus.Revoked ? "PXA_LICENSE_REVOKED" :
-        license.ValidFrom > now ? "PXA_LICENSE_NOT_YET_VALID" :
-        license.ValidUntil <= now ? "PXA_LICENSE_EXPIRED" : "PXA_LICENSE_INACTIVE";
 
     private ObjectResult MissingOrganization() => Problem(
         statusCode: StatusCodes.Status403Forbidden,

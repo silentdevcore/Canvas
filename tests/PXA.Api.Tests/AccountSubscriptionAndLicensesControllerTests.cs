@@ -83,6 +83,12 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
             var organization = await dbContext.Organizations.SingleAsync(value => value.Slug == "license-co");
             var subscription = await dbContext.OrganizationSubscriptions.SingleAsync(value => value.OrganizationId == organization.Id);
             var owner = await dbContext.Users.SingleAsync(value => value.Email == "owner@license.test");
+            subscription.Edition = SubscriptionEdition.Enterprise;
+            subscription.Status = SubscriptionStatus.Active;
+            subscription.BillingPeriod = SubscriptionBillingPeriod.Annual;
+            subscription.DeploymentMode = SubscriptionDeploymentMode.Hybrid;
+            subscription.TrialEndsAt = null;
+            subscription.CurrentPeriodEndsAt = DateTimeOffset.UtcNow.AddYears(1);
 
             var license = new OfflineLicense
             {
@@ -99,9 +105,10 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
                 IssuedByUserId = owner.Id,
             };
             var envelope = new PxaOfflineLicenseEnvelope(
-                1, license.Id, license.LicenseNumber, organization.Id, organization.Name,
+                2, license.Id, license.LicenseNumber, organization.Id, organization.Name,
                 subscription.Edition.ToString(), subscription.AccountType.ToString(), subscription.DeploymentMode.ToString(),
-                license.ValidFrom, license.ValidUntil, license.InstanceLimit, [], license.IssuedAt);
+                license.ValidFrom, license.ValidUntil, license.InstanceLimit,
+                "1.0.0", "license-co-prod", [], license.IssuedAt);
             var artifact = signing.Sign(envelope);
             license.EnvelopeJson = artifact.EnvelopeJson;
             license.Signature = artifact.Signature;

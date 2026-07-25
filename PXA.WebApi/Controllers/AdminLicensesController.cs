@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,15 +19,18 @@ public sealed class AdminLicensesController : ControllerBase
     private readonly PxaDbContext dbContext;
     private readonly IPxaTenantContext tenantContext;
     private readonly IPxaLicenseSigningService signingService;
+    private readonly PxaOfflineLicenseValidator licenseValidator;
 
     public AdminLicensesController(
         PxaDbContext dbContext,
         IPxaTenantContext tenantContext,
-        IPxaLicenseSigningService signingService)
+        IPxaLicenseSigningService signingService,
+        PxaOfflineLicenseValidator licenseValidator)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
         this.signingService = signingService;
+        this.licenseValidator = licenseValidator;
     }
 
     [HttpGet]
@@ -71,6 +75,11 @@ public sealed class AdminLicensesController : ControllerBase
         if (request.ValidFrom >= request.ValidUntil || request.ValidUntil <= DateTimeOffset.UtcNow ||
             request.InstanceLimit is < 1 or > 1000)
             return ValidationProblem("Validity and instance limit are invalid.");
+        if (!Version.TryParse(request.ProductVersion, out _) ||
+            string.IsNullOrWhiteSpace(request.DeploymentId) ||
+            request.DeploymentId.Length > 160 ||
+            !Regex.IsMatch(request.DeploymentId, "^[A-Za-z0-9][A-Za-z0-9._:-]*$"))
+            return ValidationProblem("Product version or deployment ID is invalid.");
         var subscription = await dbContext.OrganizationSubscriptions.SingleOrDefaultAsync(
             value => value.Id == request.SubscriptionId, cancellationToken);
         if (subscription is null)
@@ -112,9 +121,10 @@ public sealed class AdminLicensesController : ControllerBase
             IssuedByUserId = actorUserId,
         };
         var envelope = new PxaOfflineLicenseEnvelope(
-            1, license.Id, license.LicenseNumber, subscription.OrganizationId, organizationName,
+            2, license.Id, license.LicenseNumber, subscription.OrganizationId, organizationName,
             subscription.Edition.ToString(), subscription.AccountType.ToString(), subscription.DeploymentMode.ToString(),
-            license.ValidFrom, license.ValidUntil, license.InstanceLimit, entitlements, license.IssuedAt);
+            license.ValidFrom, license.ValidUntil, license.InstanceLimit,
+            request.ProductVersion, request.DeploymentId, entitlements, license.IssuedAt);
         var artifact = signingService.Sign(envelope);
         license.EnvelopeJson = artifact.EnvelopeJson;
         license.Signature = artifact.Signature;
@@ -150,22 +160,25 @@ public sealed class AdminLicensesController : ControllerBase
     [Authorize(Policy = PxaPermissions.LicensesRead)]
     public async Task<ActionResult<AdminLicenseValidationResponse>> ValidateLicense(
         Guid licenseId,
-        CancellationToken cancellationToken)
+        [FromQuery] string? productVersion,
+        [FromQuery] string? deploymentId,
+        [FromQuery] int activeInstances = 1,
+        CancellationToken cancellationToken = default)
     {
         var license = await FindAccessibleLicense(licenseId, cancellationToken);
         if (license is null)
             return NotFound();
-        var now = DateTimeOffset.UtcNow;
-        var signatureValid = signingService.Verify(license.EnvelopeJson, license.Signature);
-        var valid = signatureValid && license.Status == OfflineLicenseStatus.Active &&
-                    license.ValidFrom <= now && license.ValidUntil > now;
+        var subscription = await dbContext.OrganizationSubscriptions.AsNoTracking()
+            .SingleAsync(value => value.Id == license.SubscriptionId, cancellationToken);
+        var validation = licenseValidator.Validate(
+            license, subscription, DateTimeOffset.UtcNow, productVersion, deploymentId, activeInstances);
         return Ok(new AdminLicenseValidationResponse(
-            valid,
-            signatureValid,
+            validation.Valid,
+            validation.SignatureValid,
             license.Status.ToString(),
             license.ValidFrom,
             license.ValidUntil,
-            valid ? "PXA_LICENSE_VALID" : GetValidationCode(license, signatureValid, now)));
+            validation.Code));
     }
 
     [HttpPost("{licenseId:guid}/revoke")]
@@ -223,11 +236,6 @@ public sealed class AdminLicensesController : ControllerBase
             TargetType = "offline-license", TargetId = license.Id.ToString(), Outcome = "succeeded",
             DetailsJson = JsonSerializer.Serialize(new { license.LicenseNumber, Reason = reason }),
         });
-    private static string GetValidationCode(OfflineLicense license, bool signatureValid, DateTimeOffset now) =>
-        !signatureValid ? "PXA_LICENSE_SIGNATURE_INVALID" :
-        license.Status == OfflineLicenseStatus.Revoked ? "PXA_LICENSE_REVOKED" :
-        license.ValidFrom > now ? "PXA_LICENSE_NOT_YET_VALID" :
-        license.ValidUntil <= now ? "PXA_LICENSE_EXPIRED" : "PXA_LICENSE_INACTIVE";
     private ObjectResult ConflictProblem(string detail) => Problem(statusCode: 409, title: "License operation rejected", detail: detail);
     private BadRequestObjectResult ValidationProblem(string detail) => BadRequest(new ProblemDetails { Status = 400, Title = "Invalid license request", Detail = detail });
 }
@@ -237,7 +245,7 @@ public sealed record AdminLicenseResponse(Guid Id, string LicenseNumber, Guid Or
     int InstanceLimit, string KeyId, string Algorithm, DateTimeOffset IssuedAt, DateTimeOffset? RevokedAt,
     string? RevocationReason);
 public sealed record IssueOfflineLicenseRequest(Guid SubscriptionId, DateTimeOffset ValidFrom,
-    DateTimeOffset ValidUntil, int InstanceLimit);
+    DateTimeOffset ValidUntil, int InstanceLimit, string ProductVersion, string DeploymentId);
 public sealed record RevokeOfflineLicenseRequest(string Reason);
 public sealed record AdminLicenseValidationResponse(bool Valid, bool SignatureValid, string Status,
     DateTimeOffset ValidFrom, DateTimeOffset ValidUntil, string Code);

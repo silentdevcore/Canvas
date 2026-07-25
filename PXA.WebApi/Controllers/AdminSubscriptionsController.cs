@@ -120,6 +120,9 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             return ConflictProblem("The organization already has a subscription.");
         if (!TryParseRequest(request, out var values, out var validationError))
             return ValidationProblem(validationError);
+        if (!SubscriptionEditionPolicy.TryValidateConfiguration(
+                values.Edition, values.Status, values.BillingPeriod, values.DeploymentMode, out validationError))
+            return ValidationProblem(validationError);
 
         var now = DateTimeOffset.UtcNow;
         var subscription = new OrganizationSubscription
@@ -167,10 +170,21 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             return NotFound();
 
         var previousStatus = subscription.Status;
+        var previousEdition = subscription.Edition;
         if (!TryApplyUpdate(subscription, request, out var validationError))
             return ValidationProblem(validationError);
-        if (subscription.Status != previousStatus && !CanTransition(previousStatus, subscription.Status))
+        if (!SubscriptionEditionPolicy.CanConvert(previousEdition, subscription.Edition))
+            return ConflictProblem($"Conversion from {previousEdition} to {subscription.Edition} is not allowed.");
+        if (subscription.Status != previousStatus &&
+            !SubscriptionEditionPolicy.CanTransition(previousStatus, subscription.Status))
             return ConflictProblem($"Transition from {previousStatus} to {subscription.Status} is not allowed.");
+        if (!SubscriptionEditionPolicy.TryValidateConfiguration(
+                subscription.Edition,
+                subscription.Status,
+                subscription.BillingPeriod,
+                subscription.DeploymentMode,
+                out validationError))
+            return ValidationProblem(validationError);
         var activeSeats = await dbContext.SubscriptionSeatAssignments.CountAsync(
             value => value.SubscriptionId == subscriptionId && value.RevokedAt == null,
             cancellationToken);
@@ -186,9 +200,31 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             dbContext.SubscriptionEntitlements.AddRange(
                 CreateEntitlements(subscriptionId, request.Entitlements, DateTimeOffset.UtcNow));
         }
+        else if (previousEdition == SubscriptionEdition.Trial &&
+                 subscription.Edition != SubscriptionEdition.Trial)
+        {
+            var inheritedEntitlements = await dbContext.SubscriptionEntitlements
+                .Where(value => value.SubscriptionId == subscriptionId &&
+                                value.Source == EntitlementSource.EditionDefault)
+                .ToListAsync(cancellationToken);
+            foreach (var entitlement in inheritedEntitlements)
+            {
+                entitlement.ExpiresAt = null;
+                entitlement.UpdatedAt = DateTimeOffset.UtcNow;
+            }
+        }
+        if (previousEdition == SubscriptionEdition.Trial &&
+            subscription.Edition != SubscriptionEdition.Trial)
+        {
+            subscription.TrialEndsAt = null;
+            subscription.CurrentPeriodStartsAt = DateTimeOffset.UtcNow;
+        }
         subscription.UpdatedAt = DateTimeOffset.UtcNow;
-        AddLifecycleEvent(subscription, actorUserId, "subscription.updated", previousStatus,
-            new { subscription.Edition, subscription.Status, subscription.SeatLimit });
+        var action = subscription.Edition == previousEdition
+            ? "subscription.updated"
+            : "subscription.edition.converted";
+        AddLifecycleEvent(subscription, actorUserId, action, previousStatus,
+            new { PreviousEdition = previousEdition, subscription.Edition, subscription.Status, subscription.SeatLimit });
         AddAuditEvent(subscription, actorUserId, "subscriptions.update");
         await dbContext.SaveChangesAsync(cancellationToken);
         return Ok(await BuildResponse(subscriptionId, cancellationToken));
@@ -546,19 +582,6 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
         error = string.Empty;
         return true;
     }
-
-    private static bool CanTransition(SubscriptionStatus from, SubscriptionStatus to) => from switch
-    {
-        SubscriptionStatus.Pending => to is SubscriptionStatus.Trialing or SubscriptionStatus.Active or SubscriptionStatus.Cancelled,
-        SubscriptionStatus.Trialing => to is SubscriptionStatus.Active or SubscriptionStatus.Suspended or SubscriptionStatus.Cancelled or SubscriptionStatus.Expired,
-        SubscriptionStatus.Active => to is SubscriptionStatus.PastDue or SubscriptionStatus.Suspended or SubscriptionStatus.Cancelled,
-        SubscriptionStatus.PastDue => to is SubscriptionStatus.Active or SubscriptionStatus.GracePeriod or SubscriptionStatus.Suspended or SubscriptionStatus.Cancelled,
-        SubscriptionStatus.GracePeriod => to is SubscriptionStatus.Active or SubscriptionStatus.Suspended or SubscriptionStatus.Cancelled or SubscriptionStatus.Expired,
-        SubscriptionStatus.Suspended => to is SubscriptionStatus.Active or SubscriptionStatus.Cancelled or SubscriptionStatus.Expired,
-        SubscriptionStatus.Cancelled => to is SubscriptionStatus.Expired,
-        SubscriptionStatus.Expired => false,
-        _ => false,
-    };
 
     private static IEnumerable<SubscriptionEntitlement> CreateEntitlements(
         Guid subscriptionId, IReadOnlyList<AdminEntitlementRequest> entitlements, DateTimeOffset now) =>

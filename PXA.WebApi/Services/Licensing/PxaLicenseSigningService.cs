@@ -12,12 +12,16 @@ public sealed class PxaLicensingOptions
     public string PublicKeyPath { get; set; } = "App_Data/licensing/public-key.pem";
 }
 
-public interface IPxaLicenseSigningService
+public interface IPxaLicenseSignatureVerifier
 {
-    PxaSignedLicenseArtifact Sign(PxaOfflineLicenseEnvelope envelope);
     bool Verify(string envelopeJson, string signature);
     string PublicKeyPem { get; }
     string KeyId { get; }
+}
+
+public interface IPxaLicenseSigningService : IPxaLicenseSignatureVerifier
+{
+    PxaSignedLicenseArtifact Sign(PxaOfflineLicenseEnvelope envelope);
 }
 
 public sealed class PxaLicenseSigningService : IPxaLicenseSigningService
@@ -101,6 +105,8 @@ public sealed record PxaOfflineLicenseEnvelope(
     DateTimeOffset ValidFrom,
     DateTimeOffset ValidUntil,
     int InstanceLimit,
+    string ProductVersion,
+    string DeploymentId,
     IReadOnlyList<PxaOfflineLicenseEntitlement> Entitlements,
     DateTimeOffset IssuedAt);
 

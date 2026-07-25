@@ -74,9 +74,9 @@ public sealed class AdminSubscriptionsControllerTests
             {
                 entitlements = new object[]
                 {
-                    new { capability = "generator", enabled = true },
-                    new { capability = "api", enabled = true, limit = 2000, unit = "operations" },
-                    new { capability = "preview.experimental", enabled = false, source = "TemporaryGrant" },
+                    new { capability = "generator", enabled = true, expiresAt = trialEndsAt },
+                    new { capability = "api", enabled = true, limit = 2000, unit = "operations", expiresAt = trialEndsAt },
+                    new { capability = "preview.experimental", enabled = false, source = "TemporaryGrant", expiresAt = trialEndsAt },
                 },
             });
         Assert.Equal(HttpStatusCode.OK, (await systemClient.SendAsync(updateEntitlements)).StatusCode);
@@ -204,6 +204,11 @@ public sealed class AdminSubscriptionsControllerTests
             $"/api/pxa/v1/admin/subscriptions/{subscriptionId}",
             await GetCsrfAsync(systemClient), new { status = "Trialing" });
         Assert.Equal(HttpStatusCode.Conflict, (await systemClient.SendAsync(invalidTransition)).StatusCode);
+        using var forbiddenTrialConversion = CreateCsrfRequest(HttpMethod.Patch,
+            $"/api/pxa/v1/admin/subscriptions/{subscriptionId}",
+            await GetCsrfAsync(systemClient),
+            new { edition = "Trial", status = "Trialing", billingPeriod = "None" });
+        Assert.Equal(HttpStatusCode.Conflict, (await systemClient.SendAsync(forbiddenTrialConversion)).StatusCode);
 
         var tenantPage = await organizationClient.GetFromJsonAsync<JsonElement>("/api/pxa/v1/admin/subscriptions");
         Assert.Equal(1, tenantPage.GetProperty("total").GetInt32());
@@ -223,6 +228,8 @@ public sealed class AdminSubscriptionsControllerTests
                 validFrom = DateTimeOffset.UtcNow.AddMinutes(-1),
                 validUntil = DateTimeOffset.UtcNow.AddDays(7),
                 instanceLimit = 3,
+                productVersion = "1.0.0",
+                deploymentId = "subscription-tenant-prod",
             });
         var issueResponse = await systemClient.SendAsync(issueLicense);
         Assert.Equal(HttpStatusCode.Created, issueResponse.StatusCode);
@@ -235,6 +242,16 @@ public sealed class AdminSubscriptionsControllerTests
             $"/api/pxa/v1/admin/licenses/{licenseId}/validate");
         Assert.True(validation.GetProperty("valid").GetBoolean());
         Assert.True(validation.GetProperty("signatureValid").GetBoolean());
+        var versionMismatch = await systemClient.GetFromJsonAsync<JsonElement>(
+            $"/api/pxa/v1/admin/licenses/{licenseId}/validate?productVersion=2.0.0");
+        Assert.False(versionMismatch.GetProperty("valid").GetBoolean());
+        Assert.Equal("PXA_LICENSE_VERSION_INCOMPATIBLE", versionMismatch.GetProperty("code").GetString());
+        var deploymentMismatch = await systemClient.GetFromJsonAsync<JsonElement>(
+            $"/api/pxa/v1/admin/licenses/{licenseId}/validate?deploymentId=another-deployment");
+        Assert.Equal("PXA_LICENSE_DEPLOYMENT_MISMATCH", deploymentMismatch.GetProperty("code").GetString());
+        var instanceLimit = await systemClient.GetFromJsonAsync<JsonElement>(
+            $"/api/pxa/v1/admin/licenses/{licenseId}/validate?activeInstances=4");
+        Assert.Equal("PXA_LICENSE_INSTANCE_LIMIT_EXCEEDED", instanceLimit.GetProperty("code").GetString());
         var download = await systemClient.GetAsync($"/api/pxa/v1/admin/licenses/{licenseId}/download");
         Assert.Equal(HttpStatusCode.OK, download.StatusCode);
         var artifact = await download.Content.ReadAsStringAsync();
@@ -263,6 +280,13 @@ public sealed class AdminSubscriptionsControllerTests
         Assert.Single(await dbContext.OfflineLicenses.ToListAsync());
         Assert.Single(await dbContext.ServiceAccounts.ToListAsync());
         Assert.Single(await dbContext.ApiKeys.ToListAsync());
+        var convertedEntitlements = await dbContext.SubscriptionEntitlements
+            .Where(value => value.SubscriptionId == subscriptionId)
+            .ToListAsync();
+        Assert.All(convertedEntitlements.Where(value => value.Source == EntitlementSource.EditionDefault),
+            value => Assert.Null(value.ExpiresAt));
+        Assert.All(convertedEntitlements.Where(value => value.Source == EntitlementSource.TemporaryGrant),
+            value => Assert.Equal(trialEndsAt, value.ExpiresAt));
         var auditActions = await dbContext.AuditEvents.Select(value => value.Action).ToListAsync();
         Assert.Contains("subscriptions.create", auditActions);
         Assert.Contains("subscriptions.update", auditActions);

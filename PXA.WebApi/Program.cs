@@ -190,7 +190,12 @@ builder.Services.AddOptions<PxaLicensingOptions>()
                          !string.IsNullOrWhiteSpace(options.PublicKeyPath),
         "Licensing key ID and key paths are required.")
     .ValidateOnStart();
-builder.Services.AddSingleton<IPxaLicenseSigningService, PxaLicenseSigningService>();
+builder.Services.AddSingleton<PxaLicenseSigningService>();
+builder.Services.AddSingleton<IPxaLicenseSigningService>(
+    services => services.GetRequiredService<PxaLicenseSigningService>());
+builder.Services.AddSingleton<IPxaLicenseSignatureVerifier>(
+    services => services.GetRequiredService<PxaLicenseSigningService>());
+builder.Services.AddSingleton<PxaOfflineLicenseValidator>();
 var dataProtectionKeysDirectory = builder.Configuration["DataProtection:KeysDirectory"]
     ?? Path.Combine("App_Data", "data-protection-keys");
 var dataProtectionKeysPath = Path.IsPathRooted(dataProtectionKeysDirectory)
