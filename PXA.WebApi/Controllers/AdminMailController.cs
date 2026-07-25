@@ -47,12 +47,25 @@ public sealed class AdminMailController : ControllerBase
             query = query.Where(message => message.Status == parsedStatus);
 
         var total = await query.CountAsync(cancellationToken);
-        var items = await query.OrderByDescending(message => message.CreatedAt)
+        var rows = await query.OrderByDescending(message => message.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(message => new AdminMailResponse(
+            .Select(message => new
+            {
                 message.Id,
                 message.RecipientEmail,
+                message.TemplateKey,
+                message.Status,
+                message.Attempts,
+                message.ProviderMessageId,
+                message.FailureReason,
+                message.CreatedAt,
+                message.DeliveredAt,
+            })
+            .ToListAsync(cancellationToken);
+        var items = rows.Select(message => new AdminMailResponse(
+                message.Id,
+                MaskRecipientEmail(message.RecipientEmail),
                 message.TemplateKey,
                 message.Status.ToString(),
                 message.Attempts,
@@ -60,7 +73,7 @@ public sealed class AdminMailController : ControllerBase
                 message.FailureReason,
                 message.CreatedAt,
                 message.DeliveredAt))
-            .ToListAsync(cancellationToken);
+            .ToList();
         return Ok(new AdminMailPage(items, page, pageSize, total));
     }
 
@@ -163,6 +176,20 @@ public sealed class AdminMailController : ControllerBase
         statusCode: StatusCodes.Status409Conflict,
         title: "Mail operation rejected",
         detail: detail);
+
+    internal static string MaskRecipientEmail(string recipientEmail)
+    {
+        var separator = recipientEmail.LastIndexOf('@');
+        if (separator <= 0 || separator == recipientEmail.Length - 1)
+            return "***";
+
+        var local = recipientEmail[..separator];
+        var domain = recipientEmail[(separator + 1)..];
+        var domainSeparator = domain.LastIndexOf('.');
+        var domainName = domainSeparator > 0 ? domain[..domainSeparator] : domain;
+        var suffix = domainSeparator > 0 ? domain[domainSeparator..] : string.Empty;
+        return $"{local[0]}***@{domainName[0]}***{suffix}";
+    }
 }
 
 public sealed record AdminMailPage(IReadOnlyList<AdminMailResponse> Items, int Page, int PageSize, int Total);

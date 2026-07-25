@@ -198,11 +198,17 @@ public sealed class PxaMailWorker : BackgroundService
 {
     private readonly IServiceScopeFactory scopeFactory;
     private readonly ILogger<PxaMailWorker> logger;
+    private readonly PxaMailOptions options;
+    private DateTimeOffset nextRetentionCleanupAt = DateTimeOffset.MinValue;
 
-    public PxaMailWorker(IServiceScopeFactory scopeFactory, ILogger<PxaMailWorker> logger)
+    public PxaMailWorker(
+        IServiceScopeFactory scopeFactory,
+        ILogger<PxaMailWorker> logger,
+        IOptions<PxaMailOptions> options)
     {
         this.scopeFactory = scopeFactory;
         this.logger = logger;
+        this.options = options.Value;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -214,6 +220,13 @@ public sealed class PxaMailWorker : BackgroundService
                 await using var scope = scopeFactory.CreateAsyncScope();
                 await scope.ServiceProvider.GetRequiredService<PxaMailProcessor>()
                     .ProcessPendingAsync(stoppingToken);
+                var now = DateTimeOffset.UtcNow;
+                if (now >= nextRetentionCleanupAt)
+                {
+                    await scope.ServiceProvider.GetRequiredService<PxaMailRetentionService>()
+                        .DeleteExpiredAsync(now, stoppingToken);
+                    nextRetentionCleanupAt = now.AddMinutes(options.RetentionCleanupIntervalMinutes);
+                }
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {

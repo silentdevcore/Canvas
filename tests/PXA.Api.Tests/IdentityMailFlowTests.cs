@@ -160,6 +160,8 @@ public sealed class IdentityMailFlowTests
         Assert.DoesNotContain("protectedPayload", mailJson, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(invitationToken, mailJson, StringComparison.Ordinal);
         Assert.DoesNotContain(resetToken, mailJson, StringComparison.Ordinal);
+        Assert.DoesNotContain("invited@pxa.test", mailJson, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("i***@p***.test", mailJson, StringComparison.Ordinal);
 
         Guid retryMessageId;
         await using (var retryScope = factory.Services.CreateAsyncScope())

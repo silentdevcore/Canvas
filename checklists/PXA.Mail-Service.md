@@ -68,8 +68,9 @@ Deliver one application-level mail service for identity, security, subscription,
 - [x] Add bounded exponential retry for transient failures.
 - [x] Move permanently failed messages to a dead-letter state.
 - [x] Store provider message ID, template version, recipient reference, attempts, timestamps, and sanitized failure reason.
-- [ ] Avoid storing message bodies longer than required for delivery and support.
-- [ ] Add retention and deletion rules for queue, delivery, consent, and audit metadata.
+- [x] Render message bodies only during delivery and do not persist them in the outbox.
+- [x] Add configurable retention and bounded deletion for terminal queue and delivery records.
+- [ ] Define separate retention and deletion rules for consent and audit metadata.
 
 ## Secure Action Tokens
 
@@ -88,7 +89,7 @@ Deliver one application-level mail service for identity, security, subscription,
 - [x] Expose tenant-scoped delivery status and sanitized failure metadata to authorized administrators.
 - [x] Add tenant-scoped, authorized manual retry and cancellation with audit events.
 - [ ] Add alerts for queue backlog, provider outage, authentication failure, and abnormal bounce rates.
-- [ ] Keep recipient addresses and provider payloads out of general application logs.
+- [x] Keep recipient addresses and provider payloads out of general application logs.
 
 ## Configuration
 
@@ -97,7 +98,7 @@ Deliver one application-level mail service for identity, security, subscription,
 - [ ] Configure Cloud provider credentials and webhook secrets externally.
 - [x] Validate configuration at startup and expose safe readiness diagnostics.
 - [x] Add a Mailpit service for local SMTP capture without delivering messages externally.
-- [ ] Document operation when mail is disabled and the administrative alternatives for invitation and reset workflows.
+- [x] Document operation when mail is disabled and the administrative alternatives for invitation and reset workflows.
 
 ## Tests
 
@@ -117,7 +118,7 @@ Current identity-mail verification:
 - [ ] Test double opt-in, unsubscribe, preference updates, and transactional delivery after marketing opt-out.
 - [x] Test transactional password-reset delivery when marketing consent is absent.
 - [ ] Test HTML and plain-text rendering in left-to-right and right-to-left languages.
-- [ ] Verify that logs and Admin responses contain no secret tokens, credentials, or complete message bodies.
+- [x] Verify that logs and Admin responses contain no secret tokens, credentials, complete recipient addresses, or message bodies.
 
 ## Acceptance Criteria
 

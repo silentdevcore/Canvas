@@ -116,6 +116,33 @@ public sealed class MailDeliveryLifecycleTests
             await Assert.ThrowsAsync<DbUpdateException>(() => dbContext.SaveChangesAsync());
         }
 
+        var now = DateTimeOffset.UtcNow;
+        Guid recentDeliveredId;
+        Guid oldPendingId;
+        await using (var retentionScope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = retentionScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            SeedMessage(dbContext, MailDeliveryStatus.Delivered, now.AddDays(-31), "expired-delivered");
+            SeedMessage(dbContext, MailDeliveryStatus.Suppressed, now.AddDays(-31), "expired-suppressed");
+            SeedMessage(dbContext, MailDeliveryStatus.Cancelled, now.AddDays(-15), "expired-cancelled");
+            SeedMessage(dbContext, MailDeliveryStatus.DeadLetter, now.AddDays(-91), "expired-dead-letter");
+            recentDeliveredId = SeedMessage(
+                dbContext,
+                MailDeliveryStatus.Delivered,
+                now.AddDays(-29),
+                "recent-delivered").Id;
+            oldPendingId = SeedMessage(
+                dbContext,
+                MailDeliveryStatus.Pending,
+                now.AddDays(-365),
+                "old-pending").Id;
+            await dbContext.SaveChangesAsync();
+
+            var deleted = await retentionScope.ServiceProvider.GetRequiredService<PxaMailRetentionService>()
+                .DeleteExpiredAsync(now, CancellationToken.None);
+            Assert.Equal(4, deleted);
+        }
+
         await using var assertScope = factory.Services.CreateAsyncScope();
         var finalDbContext = assertScope.ServiceProvider.GetRequiredService<PxaDbContext>();
         Assert.Equal(
@@ -124,7 +151,30 @@ public sealed class MailDeliveryLifecycleTests
         Assert.Equal(
             MailDeliveryStatus.DeadLetter,
             (await finalDbContext.MailOutboxMessages.FindAsync(unsupportedMessageId))!.Status);
+        Assert.NotNull(await finalDbContext.MailOutboxMessages.FindAsync(recentDeliveredId));
+        Assert.NotNull(await finalDbContext.MailOutboxMessages.FindAsync(oldPendingId));
         Assert.Empty(assertScope.ServiceProvider.GetRequiredService<AlwaysFailingMailTransport>().Messages);
+    }
+
+    private static MailOutboxMessage SeedMessage(
+        PxaDbContext dbContext,
+        MailDeliveryStatus status,
+        DateTimeOffset updatedAt,
+        string idempotencyKey)
+    {
+        var message = new MailOutboxMessage
+        {
+            RecipientEmail = "retention@pxa.test",
+            TemplateKey = "identity.password-changed",
+            ProtectedPayload = "protected",
+            IdempotencyKey = $"mail-lifecycle:{idempotencyKey}",
+            Status = status,
+            CreatedAt = updatedAt,
+            UpdatedAt = updatedAt,
+            ScheduledAt = updatedAt,
+        };
+        dbContext.MailOutboxMessages.Add(message);
+        return message;
     }
 
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>

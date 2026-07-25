@@ -210,6 +210,13 @@ builder.Services.AddOptions<PxaMailOptions>()
                           options.SmtpPort is > 0 and <= 65535 &&
                           options.SmtpTimeoutSeconds is > 0 and <= 300),
         "SMTP host, port, or timeout is invalid.")
+    .Validate(options =>
+            options.DeliveredRetentionDays is > 0 and <= 3650 &&
+            options.CancelledRetentionDays is > 0 and <= 3650 &&
+            options.DeadLetterRetentionDays is > 0 and <= 3650 &&
+            options.RetentionCleanupIntervalMinutes is > 0 and <= 1440 &&
+            options.RetentionBatchSize is > 0 and <= 10000,
+        "Mail retention settings are invalid.")
     .ValidateOnStart();
 builder.Services.AddScoped<IdentityActionTokenService>();
 builder.Services.AddScoped<TrialActivationService>();
@@ -219,6 +226,7 @@ builder.Services.AddScoped<OrganizationMembershipService>();
 builder.Services.AddScoped<SubscriptionQueryService>();
 builder.Services.AddScoped<IPxaMailQueue, PxaMailQueue>();
 builder.Services.AddScoped<PxaMailProcessor>();
+builder.Services.AddScoped<PxaMailRetentionService>();
 builder.Services.AddSingleton<DevelopmentMailTransport>();
 builder.Services.AddSingleton<SmtpMailTransport>();
 builder.Services.AddSingleton<DisabledMailTransport>();

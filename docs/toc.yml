@@ -4,3 +4,7 @@
   href: csharp-cookbook.md
 - name: API Reference
   href: api/
+- name: Operations
+  items:
+  - name: Mail Service
+    href: operations/mail-service.md

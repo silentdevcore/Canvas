@@ -15,6 +15,11 @@ public sealed class PxaMailOptions
     public string? SmtpUsername { get; set; }
     public string? SmtpPassword { get; set; }
     public int SmtpTimeoutSeconds { get; set; } = 30;
+    public int DeliveredRetentionDays { get; set; } = 30;
+    public int CancelledRetentionDays { get; set; } = 14;
+    public int DeadLetterRetentionDays { get; set; } = 90;
+    public int RetentionCleanupIntervalMinutes { get; set; } = 60;
+    public int RetentionBatchSize { get; set; } = 500;
 
     public bool IsDeliveryEnabled =>
         Enabled && !string.Equals(Transport, "Disabled", StringComparison.OrdinalIgnoreCase);
