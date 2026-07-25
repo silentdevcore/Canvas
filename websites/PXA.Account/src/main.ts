@@ -62,12 +62,19 @@ interface AccountState {
 }
 
 const app = document.querySelector<HTMLElement>('#app')!;
-const state: AccountState = { user: null, loading: true, notice: '', verificationStarted: false };
+const state: AccountState = {
+  user: null,
+  loading: true,
+  notice: new URLSearchParams(location.search).get('reason') === 'session-expired'
+    ? 'Your session expired. Sign in again.'
+    : '',
+  verificationStarted: false,
+};
 
 async function handleLogout(): Promise<void> {
   await logout();
   state.user = null;
-  navigate('/login', true);
+  window.location.replace('/login');
 }
 
 function consumeReturnUrl(): string | null {
@@ -161,7 +168,7 @@ function registerPage(): string {
         <label>Workspace identifier<input name="organizationSlug" pattern="[A-Za-z0-9-]{3,80}" placeholder="example-company"></label>
       </div>
       <div class="account-form-grid">
-        <label>Country<input name="country" autocomplete="country-name"></label>
+        <label>Country code<input name="country" inputmode="text" pattern="[A-Za-z]{2}" maxlength="2" placeholder="DE"></label>
         <label>Language<select name="locale"><option value="en">English</option><option value="de">Deutsch</option></select></label>
       </div>
       <label>Password<input name="password" type="password" autocomplete="new-password" minlength="12" required><small>At least 12 characters with uppercase, lowercase, number, and symbol.</small></label>
@@ -374,8 +381,7 @@ document.addEventListener('keydown', (event) => {
 window.addEventListener('pxa:session-expired', () => {
   if (!state.user) return;
   state.user = null;
-  state.notice = 'Your session expired. Sign in again.';
-  navigate('/login', true);
+  window.location.replace('/login?reason=session-expired');
 });
 
 async function initialize(): Promise<void> {

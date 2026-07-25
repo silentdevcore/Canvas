@@ -70,8 +70,8 @@
   "embedAnnotations": "Incorpora annotazioni",
   "applyRedactions": "Applica oscuramenti",
   "save": "Salva",
-  "loadSaved": "Carica salvato",
-  "deleteSaved": "Elimina salvato",
+  "loadSaved": "Carica la versione salvata",
+  "deleteSaved": "Elimina la versione salvata",
   "formFields": "Campi modulo",
   "formField": "campo",
   "formFieldsPlural": "campi",
@@ -93,5 +93,5 @@
   "emptyDescription": "Apri un PDF locale o usa un URL di PDF servito dal backend per ispezionare le pagine, cercare testo, stampare o scaricare.",
   "pages": "pagine",
   "loadingPdf": "Caricamento PDF...",
-  "renderingPage": "Rendering pagina..."
+  "renderingPage": "Visualizzazione della pagina..."
 }

@@ -810,8 +810,12 @@ export class ExportService {
     return this._importFile(file, 'import-odt');
   }
 
-  static async importMarkdown(file: File): Promise<object> {
-    return this._importFile(file, 'import-markdown');
+  static async importMarkdown(file: File, assetBaseUri?: string): Promise<object> {
+    return this._importFile(
+      file,
+      'import-markdown',
+      assetBaseUri?.trim() ? { assetBaseUri: assetBaseUri.trim() } : undefined,
+    );
   }
 
   static async importImage(file: File): Promise<object> {
@@ -939,9 +943,14 @@ export class ExportService {
     URL.revokeObjectURL(url);
   }
 
-  private static async _importFile(file: File, endpoint: string): Promise<object> {
+  private static async _importFile(
+    file: File,
+    endpoint: string,
+    fields?: Record<string, string>,
+  ): Promise<object> {
     const form = new FormData();
     form.append('file', file);
+    Object.entries(fields ?? {}).forEach(([key, value]) => form.append(key, value));
     const response = await fetch(`${this.API_BASE_URL}/document/${endpoint}`, {
       method: 'POST',
       body: form,

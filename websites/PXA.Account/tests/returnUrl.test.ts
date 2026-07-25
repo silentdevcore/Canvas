@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { sanitizeReturnUrl } from '../../shared/returnUrl.js';
+import { siteLinkDefaults } from '../../shared/siteLinks.js';
 
 test('accepts absolute URLs on allowlisted local product origins', () => {
   assert.equal(sanitizeReturnUrl('http://localhost:5176/templates/42'), 'http://localhost:5176/templates/42');
@@ -10,18 +11,29 @@ test('accepts absolute URLs on allowlisted local product origins', () => {
   assert.equal(sanitizeReturnUrl('http://localhost:5173/pricing'), 'http://localhost:5173/pricing');
 });
 
-test('accepts absolute URLs on allowlisted production product origins', () => {
+test('accepts absolute URLs on allowlisted production product origins in production', () => {
   assert.equal(
-    sanitizeReturnUrl('https://designer.powerdoxautomation.com/doc/1'),
+    sanitizeReturnUrl('https://designer.powerdoxautomation.com/doc/1', siteLinkDefaults.production),
     'https://designer.powerdoxautomation.com/doc/1',
   );
   assert.equal(
-    sanitizeReturnUrl('https://account.powerdoxautomation.com/profile'),
+    sanitizeReturnUrl('https://account.powerdoxautomation.com/profile', siteLinkDefaults.production),
     'https://account.powerdoxautomation.com/profile',
   );
   assert.equal(
-    sanitizeReturnUrl('https://powerdoxautomation.com/pricing'),
+    sanitizeReturnUrl('https://powerdoxautomation.com/pricing', siteLinkDefaults.production),
     'https://powerdoxautomation.com/pricing',
+  );
+});
+
+test('does not mix local and production origins', () => {
+  assert.equal(
+    sanitizeReturnUrl('http://localhost:5176/templates/42', siteLinkDefaults.production),
+    null,
+  );
+  assert.equal(
+    sanitizeReturnUrl('https://designer.powerdoxautomation.com/doc/1', siteLinkDefaults.local),
+    null,
   );
 });
 

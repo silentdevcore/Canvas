@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { FiEdit3, FiCheckSquare } from 'react-icons/fi';
 import { getTemplateElementsLocalized } from '@/data/templateContent.i18n';
 import type { SimpleElement } from '@/types';
+import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
 
 interface Props {
   templateId: string;
@@ -40,7 +41,7 @@ function renderMiniEl(el: SimpleElement): React.ReactNode {
     return (
       <div
         style={{ width: '100%', height: '100%', overflow: 'hidden', fontSize: 8 }}
-        dangerouslySetInnerHTML={{ __html: el.htmlContent || '' }}
+        dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(el.htmlContent || '') }}
       />
     );
   }

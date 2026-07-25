@@ -1,4 +1,67 @@
 {
+  "languageTabs": {
+    "language": "Sprache"
+  },
+  "localizedProperties": {
+    "heading": "Lokalisierte Eigenschaften",
+    "editing": "Bearbeitete Sprache:",
+    "empty": "Für diese Sprache sind noch keine Eigenschaften vorhanden. Fügen Sie unten eine hinzu.",
+    "own": "Sprachspezifisch",
+    "ownTitle": "Sprachspezifische Eigenschaft — nur in dieser Sprache sichtbar",
+    "global": "Global",
+    "globalTitle": "Globale Eigenschaft — in allen Sprachen verfügbar",
+    "globalModeTitle": "In allen Sprachen mit jeweils eigenem Wert verfügbar",
+    "ownModeTitle": "Nur für {{language}}",
+    "delete": "Eigenschaft löschen",
+    "valueOwn": "Wert nur für {{language}}",
+    "notExported": "Wird für andere Sprachen nicht exportiert.",
+    "value": "Wert für {{language}}",
+    "languageMissing": "{{language}}: fehlt",
+    "missing": "Fehlend: {{languages}}",
+    "add": "Eigenschaft hinzufügen",
+    "globalAll": "Global (alle Sprachen)",
+    "ownOnly": "Sprachspezifisch (nur {{language}})",
+    "keyPlaceholder": "SCHLÜSSEL",
+    "valuePlaceholder": "Wert ({{language}})",
+    "usageBefore": "Verwenden Sie",
+    "usageAfter": "im Elementinhalt, um den Wert einzufügen."
+  },
+  "diagnostics": {
+    "chart": "Diagramm",
+    "noChartData": "Keine Diagrammdaten",
+    "imageAnalysis": "Bildanalyse",
+    "elements": "Elemente",
+    "glyphs": "Glyphen",
+    "lowConfidence": "Niedrige Erkennungssicherheit",
+    "source": "Quelle",
+    "working": "Arbeitsbild",
+    "scale": "Skalierung",
+    "regions": "Regionen",
+    "shapes": "Formen",
+    "textLines": "Textzeilen",
+    "words": "Wörter",
+    "imageOcr": "Bild-OCR",
+    "lines": "Zeilen",
+    "confidence": "Erkennungssicherheit",
+    "pages": "Seiten",
+    "languages": "Sprachen",
+    "engine": "Engine",
+    "runtime": "Laufzeit",
+    "markdownImport": "Markdown-Import",
+    "importIssue": "Importhinweis",
+    "markdownCodes": {
+      "PXA-MD-001": "Unsichere Markdown-Linkziele wurden entfernt.",
+      "PXA-MD-002": "Ein eingebettetes Bild war ungültig oder nicht unterstützt und wurde entfernt.",
+      "PXA-MD-003": "Inline-Bilder innerhalb von Text werden nicht unterstützt und wurden ausgelassen.",
+      "PXA-MD-004": "Ein nicht unterstützter Markdown-Block wurde übersprungen.",
+      "PXA-MD-005": "Beim Aufteilen eines übergroßen Absatzes wurde die Inline-Formatierung vereinfacht.",
+      "PXA-MD-006": "Ein ungültiger YAML-Front-Matter-Wert wurde ignoriert.",
+      "PXA-MD-100": "Das Markdown-Dokument wurde auf mehrere Seiten verteilt.",
+      "PXA-MD-201": "Ein relatives Bild konnte ohne Basis-URL für Ressourcen nicht aufgelöst werden.",
+      "PXA-MD-202": "Ein Bild wurde abgelehnt, da nur HTTP(S)-Ressourcen unterstützt werden.",
+      "PXA-MD-203": "Ein entferntes Bild konnte nicht heruntergeladen oder validiert werden."
+    }
+  },
   "help": {
     "ariaLabel": "Hilfe",
     "title": "Hilfe & Referenz",
@@ -27,7 +90,7 @@
       },
       "2": {
         "title": "Elemente hinzufügen",
-        "desc": "Klicken Sie auf ein Werkzeug in der linken Werkzeugleiste, um es auf der Leinwand zu platzieren, oder ziehen Sie es an eine bestimmte Position."
+        "desc": "Klicken Sie auf ein Werkzeug in der linken Werkzeugleiste, um es auf der Zeichenfläche zu platzieren, oder ziehen Sie es an eine bestimmte Position."
       },
       "3": {
         "title": "Eigenschaften bearbeiten",
@@ -73,15 +136,15 @@
       },
       "secondPage": {
         "q": "Wie füge ich eine zweite Seite hinzu?",
-        "a": "Klicken Sie auf die Schaltfläche + im Seitenstreifen am unteren Rand des Leinwandbereichs."
+        "a": "Klicken Sie auf die Schaltfläche + im Seitenstreifen am unteren Rand der Zeichenfläche."
       },
       "multiLanguage": {
         "q": "Wie richte ich Mehrsprachigkeit ein?",
-        "a": "Fügen Sie in den Seiteneinstellungen Sprachen im Abschnitt „Sprachen“ hinzu. Über der Leinwand erscheint ein Tab pro Sprache."
+        "a": "Fügen Sie in den Seiteneinstellungen Sprachen im Abschnitt „Sprachen“ hinzu. Über der Zeichenfläche erscheint ein Tab pro Sprache."
       },
       "drawLine": {
         "q": "Wie zeichne ich eine Linie oder einen Pfeil?",
-        "a": "Klicken Sie auf das Werkzeug Linie, Pfeil oder Zeichnen in der Werkzeugleiste — ein blaues Abzeichen erscheint. Ziehen Sie dann auf der Leinwand, um das Element zu platzieren."
+        "a": "Klicken Sie auf das Werkzeug Linie, Pfeil oder Zeichnen in der Werkzeugleiste — eine blaue Markierung erscheint. Ziehen Sie dann auf der Zeichenfläche, um das Element zu platzieren."
       },
       "tableOfContents": {
         "q": "Wie erstelle ich ein Inhaltsverzeichnis?",
@@ -564,7 +627,7 @@
   },
   "toolPanel": {
     "addElements": "Elemente hinzufügen",
-    "wordOnlyWarning": "Einige Elemente auf der Leinwand sind nur für Word und werden im PDF-Export nicht dargestellt.",
+    "wordOnlyWarning": "Einige Elemente auf der Zeichenfläche sind nur für Word und werden im PDF-Export nicht dargestellt.",
     "insertFormBlockTitle": "Eine vorgefertigte Gruppe von Formularfeldern einfügen (Adresse, Kontakt usw.)",
     "insertFormBlock": "Formularblock einfügen",
     "layers": "Ebenen"
@@ -579,7 +642,7 @@
     "drawingLine": "Linie wird gezeichnet",
     "drawingArrow": "Pfeil wird gezeichnet",
     "freehandDrawing": "Freihandzeichnung",
-    "drawInstructions": "— auf der Leinwand klicken und ziehen",
+    "drawInstructions": "— auf der Zeichenfläche klicken und ziehen",
     "cancelHint": "zum Abbrechen",
     "headerGuide": "Kopfzeile",
     "footerGuide": "Fußzeile",
@@ -714,7 +777,7 @@
         "bottom-center": "unten mittig",
         "bottom-right": "unten rechts"
       },
-      "placeOnCanvas": "Auf Leinwand platzieren"
+      "placeOnCanvas": "Auf der Zeichenfläche platzieren"
     },
     "exportMetadata": {
       "heading": "Export-Metadaten",

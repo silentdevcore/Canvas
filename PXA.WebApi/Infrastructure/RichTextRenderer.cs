@@ -17,7 +17,8 @@ internal static partial class RichTextRenderer
         bool Italic,
         bool Underline,
         bool Strikethrough,
-        PdfColor Color
+        PdfColor Color,
+        string? Href
     );
 
     // ── Public entry point ────────────────────────────────────────────────────
@@ -74,7 +75,17 @@ internal static partial class RichTextRenderer
                         Strikethrough = span.Strikethrough,
                         FillColor = span.Color
                     });
-                    cx += SpanWidth(word, span.FontSize, span.Bold);
+                    var wordWidth = SpanWidth(word, span.FontSize, span.Bold);
+                    if (span.Href is not null)
+                    {
+                        page.AddWebLink(
+                            cx,
+                            currentY - span.FontSize * 0.25,
+                            wordWidth,
+                            span.FontSize * 1.2,
+                            span.Href);
+                    }
+                    cx += wordWidth;
                 }
                 currentY -= lineH;
             }
@@ -100,6 +111,7 @@ internal static partial class RichTextRenderer
         var strikeStack = new Stack<bool>();      strikeStack.Push(false);
         var colorStack = new Stack<PdfColor>();   colorStack.Push(baseColor);
         var sizeStack = new Stack<double>();      sizeStack.Push(baseFontSize);
+        var hrefStack = new Stack<string?>();      hrefStack.Push(null);
 
         // Tokenise: either a tag or a text node
         foreach (Match m in TokenRegex().Matches(html))
@@ -108,7 +120,7 @@ internal static partial class RichTextRenderer
             {
                 ProcessTag(m.Groups[1].Value,
                     boldStack, italicStack, underlineStack, strikeStack,
-                    colorStack, sizeStack, baseFontSize,
+                    colorStack, sizeStack, hrefStack, baseFontSize,
                     ref current, paragraphs);
             }
             else if (m.Groups[2].Success)
@@ -123,7 +135,8 @@ internal static partial class RichTextRenderer
                         italicStack.Peek(),
                         underlineStack.Peek(),
                         strikeStack.Peek(),
-                        colorStack.Peek()
+                        colorStack.Peek(),
+                        hrefStack.Peek()
                     ));
                 }
             }
@@ -143,6 +156,7 @@ internal static partial class RichTextRenderer
         Stack<bool> strikeStack,
         Stack<PdfColor> colorStack,
         Stack<double> sizeStack,
+        Stack<string?> hrefStack,
         double baseFontSize,
         ref List<SpanRun> current,
         List<List<SpanRun>> paragraphs)
@@ -169,6 +183,9 @@ internal static partial class RichTextRenderer
                 case "span":
                     if (colorStack.Count > 1) colorStack.Pop();
                     if (sizeStack.Count > 1) sizeStack.Pop();
+                    break;
+                case "a":
+                    if (hrefStack.Count > 1) hrefStack.Pop();
                     break;
                 case "h1" or "h2" or "h3" or "h4" or "h5" or "h6":
                     if (sizeStack.Count > 1) sizeStack.Pop();
@@ -202,7 +219,18 @@ internal static partial class RichTextRenderer
                 case "li":
                     FlushParagraph(ref current, paragraphs);
                     // Prepend bullet using base style
-                    current.Add(new SpanRun("• ", sizeStack.Peek(), boldStack.Peek(), false, false, false, colorStack.Peek()));
+                    current.Add(new SpanRun(
+                        "• ",
+                        sizeStack.Peek(),
+                        boldStack.Peek(),
+                        false,
+                        false,
+                        false,
+                        colorStack.Peek(),
+                        hrefStack.Peek()));
+                    break;
+                case "a":
+                    hrefStack.Push(ParseSafeHref(tag));
                     break;
                 case "span":
                     var inlineStyle = InlineStyleRegex().Match(tag).Groups[1].Value;
@@ -345,6 +373,23 @@ internal static partial class RichTextRenderer
             .Replace("&quot;",  "\"")
             .Replace("&#39;",   "'");
 
+    private static string? ParseSafeHref(string tag)
+    {
+        var match = HrefRegex().Match(tag);
+        if (!match.Success)
+            return null;
+
+        var href = DecodeEntities(match.Groups[1].Value).Trim();
+        if (!Uri.TryCreate(href, UriKind.Absolute, out var uri))
+            return null;
+
+        return uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) ||
+               uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+               uri.Scheme.Equals(Uri.UriSchemeMailto, StringComparison.OrdinalIgnoreCase)
+            ? href
+            : null;
+    }
+
     // ── Compiled regexes ──────────────────────────────────────────────────────
 
     [System.Text.RegularExpressions.GeneratedRegex(@"(<[^>]+>)|([^<]+)", RegexOptions.None)]
@@ -355,6 +400,9 @@ internal static partial class RichTextRenderer
 
     [System.Text.RegularExpressions.GeneratedRegex(@"style=""([^""]*?)""", RegexOptions.None)]
     private static partial Regex InlineStyleRegex();
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"\bhref=""([^""]*?)""", RegexOptions.IgnoreCase)]
+    private static partial Regex HrefRegex();
 
     [System.Text.RegularExpressions.GeneratedRegex(@"color:\s*([^;]+)", RegexOptions.IgnoreCase)]
     private static partial Regex ColorInStyleRegex();

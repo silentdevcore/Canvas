@@ -1,4 +1,67 @@
 {
+  "languageTabs": {
+    "language": "Lingua"
+  },
+  "localizedProperties": {
+    "heading": "Proprietà localizzate",
+    "editing": "Lingua modificata:",
+    "empty": "Non sono ancora presenti proprietà per questa lingua. Aggiungine una qui sotto.",
+    "own": "Specifica",
+    "ownTitle": "Proprietà specifica — visibile solo in questa lingua",
+    "global": "Globale",
+    "globalTitle": "Proprietà globale — disponibile in tutte le lingue",
+    "globalModeTitle": "Disponibile in tutte le lingue, ciascuna con il proprio valore",
+    "ownModeTitle": "Solo per {{language}}",
+    "delete": "Elimina proprietà",
+    "valueOwn": "Valore solo per {{language}}",
+    "notExported": "Non viene esportata per le altre lingue.",
+    "value": "Valore per {{language}}",
+    "languageMissing": "{{language}}: mancante",
+    "missing": "Mancanti: {{languages}}",
+    "add": "Aggiungi proprietà",
+    "globalAll": "Globale (tutte le lingue)",
+    "ownOnly": "Specifica (solo {{language}})",
+    "keyPlaceholder": "CHIAVE",
+    "valuePlaceholder": "Valore ({{language}})",
+    "usageBefore": "Usa",
+    "usageAfter": "nel contenuto dell'elemento per inserire il valore."
+  },
+  "diagnostics": {
+    "chart": "Grafico",
+    "noChartData": "Nessun dato per il grafico",
+    "imageAnalysis": "Analisi dell'immagine",
+    "elements": "Elementi",
+    "glyphs": "Glifi",
+    "lowConfidence": "Bassa affidabilità",
+    "source": "Origine",
+    "working": "Immagine di lavoro",
+    "scale": "Scala",
+    "regions": "Regioni",
+    "shapes": "Forme",
+    "textLines": "Righe di testo",
+    "words": "Parole",
+    "imageOcr": "OCR dell'immagine",
+    "lines": "Righe",
+    "confidence": "Affidabilità",
+    "pages": "Pagine",
+    "languages": "Lingue",
+    "engine": "Motore",
+    "runtime": "Tempo di esecuzione",
+    "markdownImport": "Importazione Markdown",
+    "importIssue": "Problema di importazione",
+    "markdownCodes": {
+      "PXA-MD-001": "Sono state rimosse destinazioni di collegamenti Markdown non sicure.",
+      "PXA-MD-002": "È stata rimossa un’immagine incorporata non valida o non supportata.",
+      "PXA-MD-003": "Le immagini inserite nel testo non sono supportate e sono state omesse.",
+      "PXA-MD-004": "È stato ignorato un blocco Markdown non supportato.",
+      "PXA-MD-005": "La formattazione è stata semplificata durante la suddivisione di un paragrafo troppo grande.",
+      "PXA-MD-006": "È stato ignorato un valore YAML front matter non valido.",
+      "PXA-MD-100": "Il documento Markdown è stato suddiviso su più pagine.",
+      "PXA-MD-201": "Non è stato possibile risolvere un’immagine relativa senza un URL di base delle risorse.",
+      "PXA-MD-202": "Un’immagine è stata rifiutata perché sono supportate solo risorse HTTP(S).",
+      "PXA-MD-203": "Non è stato possibile scaricare o convalidare un’immagine remota."
+    }
+  },
   "help": {
     "ariaLabel": "Guida",
     "title": "Guida e riferimento",
@@ -27,7 +90,7 @@
       },
       "2": {
         "title": "Aggiungi elementi",
-        "desc": "Fai clic su uno strumento nella barra degli strumenti a sinistra per posizionarlo sulla tela, oppure trascinalo in una posizione specifica."
+        "desc": "Fai clic su uno strumento nella barra degli strumenti a sinistra per posizionarlo nell'area di lavoro, oppure trascinalo in una posizione specifica."
       },
       "3": {
         "title": "Modifica le proprietà",
@@ -73,15 +136,15 @@
       },
       "secondPage": {
         "q": "Come aggiungo una seconda pagina?",
-        "a": "Fai clic sul pulsante + nella striscia delle pagine in fondo all'area della tela."
+        "a": "Fai clic sul pulsante + nella striscia delle pagine in fondo all'area di lavoro."
       },
       "multiLanguage": {
         "q": "Come imposto il multilingua?",
-        "a": "In Impostazioni pagina, aggiungi lingue nella sezione \"Lingue\". Sopra la tela appare una scheda per lingua."
+        "a": "In Impostazioni pagina, aggiungi lingue nella sezione \"Lingue\". Sopra l'area di lavoro appare una scheda per lingua."
       },
       "drawLine": {
         "q": "Come disegno una linea o una freccia?",
-        "a": "Fai clic sullo strumento Linea, Freccia o Disegna nella barra degli strumenti — appare un badge blu. Quindi trascina sulla tela per posizionare l'elemento."
+        "a": "Fai clic sullo strumento Linea, Freccia o Disegna nella barra degli strumenti — appare un indicatore blu. Quindi trascina nell'area di lavoro per posizionare l'elemento."
       },
       "tableOfContents": {
         "q": "Come genero un sommario?",
@@ -508,7 +571,7 @@
     "minLength": "Lunghezza min.",
     "maxLength": "Lunghezza max.",
     "lengthPlaceholder": "—",
-    "patternRegex": "Pattern (regex)",
+    "patternRegex": "Schema (espressione regolare)",
     "patternPlaceholder": "es. \\d{5}"
   },
   "layers": {
@@ -564,7 +627,7 @@
   },
   "toolPanel": {
     "addElements": "Aggiungi elementi",
-    "wordOnlyWarning": "Alcuni elementi sulla tela sono solo per Word e non verranno renderizzati nell'esportazione PDF.",
+    "wordOnlyWarning": "Alcuni elementi nell'area di lavoro sono disponibili solo per Word e non verranno visualizzati nell'esportazione PDF.",
     "insertFormBlockTitle": "Inserisci un gruppo precostituito di campi modulo (indirizzo, contatto, ecc.)",
     "insertFormBlock": "Inserisci blocco modulo",
     "layers": "Livelli"
@@ -579,7 +642,7 @@
     "drawingLine": "Disegno linea",
     "drawingArrow": "Disegno freccia",
     "freehandDrawing": "Disegno a mano libera",
-    "drawInstructions": "— fai clic e trascina sulla tela",
+    "drawInstructions": "— fai clic e trascina nell'area di lavoro",
     "cancelHint": "per annullare",
     "headerGuide": "Intestazione",
     "footerGuide": "Piè di pagina",
@@ -714,7 +777,7 @@
         "bottom-center": "in basso al centro",
         "bottom-right": "in basso a destra"
       },
-      "placeOnCanvas": "Posiziona sulla tela"
+      "placeOnCanvas": "Posiziona nell'area di lavoro"
     },
     "exportMetadata": {
       "heading": "Metadati di esportazione",

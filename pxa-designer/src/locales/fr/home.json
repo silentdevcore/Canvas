@@ -13,7 +13,7 @@
       "importing": "Importation en cours…",
       "copy": "Ouvrez un fichier PDF, Word, ODT ou image comme conception modifiable",
       "action": "Choisir un fichier",
-      "tooltip": "Importer un PDF, Word .doc/.docx, ODT, ou une image (PNG/JPG/WebP/…) en tant que conception PXA",
+      "tooltip": "Importer un fichier PDF, un document Word (.doc/.docx), un fichier ODT ou une image (PNG/JPG/WebP/…) en tant que conception PXA",
       "importFailed": "Échec de l'importation"
     },
     "blankCard": {
@@ -126,7 +126,7 @@
     },
     "spreadsheetFormulas": {
       "title": "Formules et mise en forme de feuille de calcul",
-      "copy": "Modifiez une grille complète avec des formules en direct, des styles de cellules et des fusions — importez Excel/CSV ou un classeur PXA natif, et exportez à nouveau avec la mise en forme intacte."
+      "copy": "Modifiez une grille complète avec des formules recalculées en temps réel, des styles de cellule et des cellules fusionnées — importez Excel/CSV ou un classeur PXA natif, puis exportez-le en conservant sa mise en forme."
     }
   },
   "security": {

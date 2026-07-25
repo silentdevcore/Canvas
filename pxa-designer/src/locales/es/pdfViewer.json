@@ -42,7 +42,7 @@
   "highlight": "Resaltar",
   "underline": "Subrayar",
   "strike": "Tachar",
-  "redact": "Redactar",
+  "redact": "Censurar",
   "custom": "Personalizado",
   "author": "Autor",
   "annotation": "anotación",
@@ -68,10 +68,10 @@
   "exportSidecar": "Exportar sidecar",
   "flattenPdf": "Aplanar PDF",
   "embedAnnotations": "Incrustar anotaciones",
-  "applyRedactions": "Aplicar redacciones",
+  "applyRedactions": "Aplicar censuras",
   "save": "Guardar",
-  "loadSaved": "Cargar guardado",
-  "deleteSaved": "Eliminar guardado",
+  "loadSaved": "Cargar la versión guardada",
+  "deleteSaved": "Eliminar la versión guardada",
   "formFields": "Campos de formulario",
   "formField": "campo",
   "formFieldsPlural": "campos",
@@ -93,5 +93,5 @@
   "emptyDescription": "Abre un PDF local o usa una URL de PDF servida por el backend para inspeccionar páginas, buscar texto, imprimir o descargar.",
   "pages": "páginas",
   "loadingPdf": "Cargando PDF...",
-  "renderingPage": "Renderizando página..."
+  "renderingPage": "Procesando la página..."
 }

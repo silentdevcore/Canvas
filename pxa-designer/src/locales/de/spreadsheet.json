@@ -3,7 +3,7 @@
     "editHeading": "Arbeitsmappen-JSON bearbeiten",
     "importHeading": "Tabelle importieren",
     "editSubheading": "Öffnen Sie eine PXA-Arbeitsmappen-<code>.json</code>-Datei, um sie im Tabellenraster zu bearbeiten.",
-    "importSubheading": "Importieren Sie eine Excel- oder CSV-Datei (<code>.xlsx</code>, <code>.xls</code>, <code>.csv</code>, <code>.tsv</code>) — oder eine PXA-Arbeitsmappen-<code>.json</code> — in den Tabelleneditor, wobei Formeln, typisierte Werte, Formate und Verbindungen erhalten bleiben.",
+    "importSubheading": "Importieren Sie eine Excel- oder CSV-Datei (<code>.xlsx</code>, <code>.xls</code>, <code>.csv</code>, <code>.tsv</code>) — oder eine PXA-Arbeitsmappen-<code>.json</code> — in den Tabelleneditor, wobei Formeln, typisierte Werte, Formatierungen und Zellzusammenführungen erhalten bleiben.",
     "importing": "Wird importiert…",
     "chooseWorkbookJson": "Eine Arbeitsmappen-JSON-Datei auswählen",
     "chooseSpreadsheetFile": "Eine zu importierende Tabellendatei auswählen",

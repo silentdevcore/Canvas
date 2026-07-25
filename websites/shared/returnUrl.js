@@ -1,16 +1,14 @@
-import { siteLinkDefaults } from './siteLinks.js';
+import { siteLinks } from './siteLinks.js';
 
 // Only these product surfaces are valid post-login return destinations.
 // PXA Admin has no entry in siteLinks.js at all, so it can never appear here.
 const ALLOWED_KEYS = ['designer', 'demo', 'documentation', 'account', 'company'];
 
-function allowedOrigins() {
+function allowedOrigins(links) {
   const origins = new Set();
-  for (const table of Object.values(siteLinkDefaults)) {
-    for (const key of ALLOWED_KEYS) {
-      const url = table[key];
-      if (url) origins.add(new URL(url).origin);
-    }
+  for (const key of ALLOWED_KEYS) {
+    const url = links[key];
+    if (url) origins.add(new URL(url).origin);
   }
   return origins;
 }
@@ -18,13 +16,13 @@ function allowedOrigins() {
 /**
  * Returns the given value if it is a safe, absolute http(s) URL pointing at
  * an allowlisted PXA product origin (Designer, Demo, Documentation, Company,
- * or Account itself) in either the local or production environment table.
+ * or Account itself) in the active runtime environment.
  * Rejects everything else — protocol-relative ("//host/..."), external
  * hosts, non-http(s) schemes, and relative paths — and returns null so
  * callers can fall back to a default destination without ever reflecting
  * the rejected value back to the user.
  */
-export function sanitizeReturnUrl(rawValue) {
+export function sanitizeReturnUrl(rawValue, links = siteLinks) {
   if (typeof rawValue !== 'string') return null;
   const trimmed = rawValue.trim();
   if (!trimmed || !/^https?:\/\//i.test(trimmed)) return null;
@@ -36,7 +34,7 @@ export function sanitizeReturnUrl(rawValue) {
     return null;
   }
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
-  if (!allowedOrigins().has(parsed.origin)) return null;
+  if (!allowedOrigins(links).has(parsed.origin)) return null;
 
   return parsed.toString();
 }

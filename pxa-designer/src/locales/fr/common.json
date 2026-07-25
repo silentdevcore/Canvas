@@ -1,4 +1,7 @@
 {
+  "languageSwitcher": {
+    "chooseLanguage": "Choisir la langue"
+  },
   "nav": {
     "home": "Accueil",
     "pdf": "PDF",

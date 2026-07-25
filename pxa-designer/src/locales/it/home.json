@@ -13,7 +13,7 @@
       "importing": "Importazione in corso…",
       "copy": "Apri un file PDF, Word, ODT o immagine come design modificabile",
       "action": "Scegli file",
-      "tooltip": "Importa un PDF, Word .doc/.docx, ODT o immagine (PNG/JPG/WebP/…) come design PXA",
+      "tooltip": "Importa un file PDF, un documento Word (.doc/.docx), un file ODT o un'immagine (PNG/JPG/WebP/…) come design PXA",
       "importFailed": "Importazione non riuscita"
     },
     "blankCard": {
@@ -126,7 +126,7 @@
     },
     "spreadsheetFormulas": {
       "title": "Formule e formattazione dei fogli di calcolo",
-      "copy": "Modifica una griglia completa con formule dal vivo, stili di cella e unioni — importa Excel/CSV o una cartella di lavoro PXA nativa, ed esporta di nuovo con la formattazione intatta."
+      "copy": "Modifica una griglia completa con formule ricalcolate in tempo reale, stili di cella e celle unite — importa Excel/CSV o una cartella di lavoro PXA nativa ed esportala mantenendo la formattazione."
     }
   },
   "security": {

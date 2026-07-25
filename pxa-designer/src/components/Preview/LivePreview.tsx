@@ -13,6 +13,7 @@ import ExportModal from '../Editor/ExportModal';
 import type { Template, SimpleElement, PageSettings, Page } from '@/types';
 import { blobToDataUrl, writePdfViewerHandoff } from '@/features/pdf-viewer/handoff';
 import { installImportedFontFaces } from '@/utils/importedFonts';
+import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
 
 interface LivePreviewProps {
   template: Template;
@@ -296,7 +297,7 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       return (
         <div
           style={{ width: '100%', height: '100%', overflow: 'hidden' }}
-          dangerouslySetInnerHTML={{ __html: element.htmlContent || '' }}
+          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(element.htmlContent || '') }}
         />
       );
     }
@@ -521,7 +522,10 @@ const LivePreview: React.FC<LivePreviewProps> = ({ template, pages, sharedElemen
       const isOrdered = ['decimal', 'lower-alpha', 'upper-alpha', 'lower-roman', 'upper-roman'].includes(ls);
       const Tag = isOrdered ? 'ol' : 'ul';
       return (
-        <Tag style={{ ...baseStyle, listStyleType: ls, paddingLeft: 20, margin: 0 }}>
+        <Tag
+          start={isOrdered ? element.startNumber ?? 1 : undefined}
+          style={{ ...baseStyle, listStyleType: ls, paddingLeft: 20, margin: 0 }}
+        >
           {(element.options || []).map((item, i) => <li key={i}>{item}</li>)}
         </Tag>
       );

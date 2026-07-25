@@ -9,6 +9,15 @@ public sealed class DesignExportDto
     public List<PageDto> Pages { get; set; } = [];
     public List<ElementDto> SharedElements { get; set; } = [];
     public PageSettingsDto? PageSettings { get; set; }
+    public List<ImportDiagnosticDto>? ImportDiagnostics { get; set; }
+}
+
+public sealed class ImportDiagnosticDto
+{
+    public string Code { get; set; } = "";
+    public string Severity { get; set; } = "warning";
+    public string Message { get; set; } = "";
+    public string? Source { get; set; }
 }
 
 public sealed class PageDto

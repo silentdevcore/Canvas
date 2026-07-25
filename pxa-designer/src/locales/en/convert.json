@@ -60,6 +60,8 @@
         "diagnostics": "Diagnostics",
         "debugOverlay": "Debug overlay page",
         "fallbackLayer": "Fallback image layer",
+        "assetBaseUri": "Asset base URL",
+        "assetBaseUriHint": "Optional public HTTP(S) folder used to resolve relative Markdown images.",
         "cancel": "Cancel",
         "chooseFile": "Choose file"
       },

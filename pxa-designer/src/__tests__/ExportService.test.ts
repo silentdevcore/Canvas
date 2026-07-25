@@ -233,6 +233,39 @@ describe('validateForExport', () => {
   });
 });
 
+describe('Markdown import service', () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    jest.restoreAllMocks();
+  });
+
+  test('posts an optional asset base URI with the Markdown file', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: 'markdown-design', pages: [] }),
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+    const file = new File(['![image](asset.png)'], 'sample.md', {
+      type: 'text/markdown',
+    });
+
+    await ExportService.importMarkdown(file, ' https://cdn.example/docs/ ');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/document/import-markdown',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.any(FormData),
+      }),
+    );
+    const form = fetchMock.mock.calls[0][1].body as FormData;
+    expect(form.get('file')).toBe(file);
+    expect(form.get('assetBaseUri')).toBe('https://cdn.example/docs/');
+  });
+});
+
 describe('image OCR import service', () => {
   const originalFetch = global.fetch;
   const originalDocument = global.document;

@@ -3,6 +3,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 
 namespace PXA.WebApi.Security;
@@ -36,8 +37,13 @@ public sealed class PxaApiKeyAuthenticationHandler : AuthenticationHandler<Authe
                 key => key.ServiceAccountId,
                 account => account.Id,
                 (key, account) => new { Key = key, Account = account })
+            .Join(dbContext.Organizations,
+                value => value.Key.OrganizationId,
+                organization => organization.Id,
+                (value, organization) => new { value.Key, value.Account, Organization = organization })
             .SingleOrDefaultAsync(value => value.Key.SecretHash == hash, Context.RequestAborted);
         if (apiKey is null || apiKey.Key.RevokedAt is not null || !apiKey.Account.IsActive ||
+            apiKey.Organization.Status != OrganizationStatus.Active ||
             apiKey.Key.ExpiresAt is { } expiresAt && expiresAt <= now)
         {
             return AuthenticateResult.Fail("Invalid or inactive PXA API key.");

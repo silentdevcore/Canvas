@@ -29,6 +29,14 @@ public sealed class PxaEntitlementService : IPxaEntitlementService
         CancellationToken cancellationToken = default)
     {
         var now = DateTimeOffset.UtcNow;
+        var organizationIsActive = await dbContext.Organizations.AsNoTracking()
+            .AnyAsync(value =>
+                value.Id == organizationId &&
+                value.Status == OrganizationStatus.Active,
+                cancellationToken);
+        if (!organizationIsActive)
+            return Denied("PXA_ORGANIZATION_INACTIVE", "The organization is not active.");
+
         var subscription = await dbContext.OrganizationSubscriptions.AsNoTracking()
             .SingleOrDefaultAsync(value => value.OrganizationId == organizationId, cancellationToken);
         if (subscription is null)

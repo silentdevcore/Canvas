@@ -123,7 +123,11 @@ public sealed class RegistrationConflictTests
                 acceptTerms = true,
                 acceptPrivacy = true,
             });
-        Assert.Equal(HttpStatusCode.Conflict, (await secondClient.SendAsync(secondRegister)).StatusCode);
+        var conflictResponse = await secondClient.SendAsync(secondRegister);
+        Assert.Equal(HttpStatusCode.Conflict, conflictResponse.StatusCode);
+        Assert.Equal(
+            "PXAAPI012",
+            (await conflictResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
 
         await using var scope = factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();

@@ -1,11 +1,13 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { FiGlobe, FiTrash2, FiPlus } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
 import { useEditorStore } from '@/store';
 import type { LocalizedProperty } from '@/types';
 
 const RTL_LANGS = new Set(['ar', 'he', 'fa', 'ur', 'yi', 'dv']);
 
 export const LocalizedPropertiesPanel: React.FC = () => {
+  const { t } = useTranslation('editor');
   const {
     pageSettings,
     currentPreviewLanguage,
@@ -64,20 +66,20 @@ export const LocalizedPropertiesPanel: React.FC = () => {
     <div className="editor-settings-section">
       <div className="editor-settings-heading">
         <FiGlobe />
-        <span>Localized Properties</span>
+        <span>{t('localizedProperties.heading')}</span>
       </div>
       <div className="editor-form-stack" style={{ padding: 12 }}>
 
         {langs.length > 1 && (
           <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>
-            Editing: <strong>{activeLang.toUpperCase()}</strong>
+            {t('localizedProperties.editing')} <strong>{activeLang.toUpperCase()}</strong>
             {isRtl && <span style={{ marginLeft: 4, color: '#f59e0b' }}>RTL</span>}
           </div>
         )}
 
         {visibleProps.length === 0 && (
           <div style={{ fontSize: 12, color: '#94a3b8', padding: '4px 0' }}>
-            No properties for this language yet. Add one below.
+            {t('localizedProperties.empty')}
           </div>
         )}
 
@@ -94,17 +96,17 @@ export const LocalizedPropertiesPanel: React.FC = () => {
 
                 {isOwn ? (
                   <span
-                    title="Own property — only visible in this language"
+                    title={t('localizedProperties.ownTitle')}
                     style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: '#fef3c7', color: '#92400e' }}
                   >
-                    Own · {activeLang.toUpperCase()}
+                    {t('localizedProperties.own')} · {activeLang.toUpperCase()}
                   </span>
                 ) : (
                   <span
-                    title="Global property — appears in all languages"
+                    title={t('localizedProperties.globalTitle')}
                     style={{ fontSize: 10, padding: '2px 6px', borderRadius: 4, background: '#ede9fe', color: '#4c1d95' }}
                   >
-                    Global
+                    {t('localizedProperties.global')}
                   </span>
                 )}
 
@@ -115,7 +117,9 @@ export const LocalizedPropertiesPanel: React.FC = () => {
                       <button
                         key={mode}
                         onClick={() => setScope(prop, mode)}
-                        title={mode === 'global' ? 'Appears in all languages (each with its own value)' : `Only for ${activeLang.toUpperCase()}`}
+                        title={mode === 'global'
+                          ? t('localizedProperties.globalModeTitle')
+                          : t('localizedProperties.ownModeTitle', { language: activeLang.toUpperCase() })}
                         style={{
                           padding: '2px 6px', border: 'none',
                           background: active ? 'var(--editor-accent, #6366f1)' : 'white',
@@ -123,7 +127,7 @@ export const LocalizedPropertiesPanel: React.FC = () => {
                           cursor: 'pointer', fontSize: 10,
                         }}
                       >
-                        {mode === 'global' ? 'Global' : 'Own'}
+                        {mode === 'global' ? t('localizedProperties.global') : t('localizedProperties.own')}
                       </button>
                     );
                   })}
@@ -131,7 +135,7 @@ export const LocalizedPropertiesPanel: React.FC = () => {
 
                 <button
                   className="editor-icon-button"
-                  title="Delete property"
+                  title={t('localizedProperties.delete')}
                   onClick={() => deleteLocalizedProperty(prop.key)}
                 >
                   <FiTrash2 size={12} />
@@ -142,21 +146,21 @@ export const LocalizedPropertiesPanel: React.FC = () => {
                 <div>
                   <input
                     type="text"
-                    placeholder={`Value for ${activeLang.toUpperCase()} only`}
+                    placeholder={t('localizedProperties.valueOwn', { language: activeLang.toUpperCase() })}
                     value={prop.localizedValues[activeLang] ?? ''}
                     dir={isRtl ? 'rtl' : 'ltr'}
                     onChange={(e) => setLocalizedValue(prop, activeLang, e.target.value)}
                     style={{ width: '100%', boxSizing: 'border-box' }}
                   />
                   <div style={{ fontSize: 10, color: '#92400e', marginTop: 3 }}>
-                    Not exported for other languages.
+                    {t('localizedProperties.notExported')}
                   </div>
                 </div>
               ) : (
                 <div>
                   <input
                     type="text"
-                    placeholder={`Value for ${activeLang.toUpperCase()}`}
+                    placeholder={t('localizedProperties.value', { language: activeLang.toUpperCase() })}
                     value={prop.localizedValues[activeLang] ?? ''}
                     dir={isRtl ? 'rtl' : 'ltr'}
                     onChange={(e) => setLocalizedValue(prop, activeLang, e.target.value)}
@@ -168,7 +172,9 @@ export const LocalizedPropertiesPanel: React.FC = () => {
                       return (
                         <span
                           key={lang}
-                          title={hasValue ? `${lang}: "${prop.localizedValues[lang]}"` : `${lang}: missing`}
+                          title={hasValue
+                            ? `${lang}: "${prop.localizedValues[lang]}"`
+                            : t('localizedProperties.languageMissing', { language: lang })}
                           style={{
                             fontSize: 10, padding: '1px 5px', borderRadius: 3,
                             background: hasValue ? '#d1fae5' : '#fee2e2',
@@ -183,7 +189,7 @@ export const LocalizedPropertiesPanel: React.FC = () => {
                   </div>
                   {missingLangs.length > 0 && (
                     <div style={{ fontSize: 10, color: '#ef4444', marginTop: 3 }}>
-                      Missing: {missingLangs.join(', ')}
+                      {t('localizedProperties.missing', { languages: missingLangs.join(', ') })}
                     </div>
                   )}
                 </div>
@@ -194,7 +200,9 @@ export const LocalizedPropertiesPanel: React.FC = () => {
 
         {/* Add new property */}
         <div style={{ marginTop: 8, borderTop: '1px solid var(--editor-border, #e2e8f0)', paddingTop: 8 }}>
-          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>Add property</div>
+          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>
+            {t('localizedProperties.add')}
+          </div>
 
           <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
             {(['global', 'own'] as const).map((mode) => (
@@ -209,7 +217,9 @@ export const LocalizedPropertiesPanel: React.FC = () => {
                   flex: 1,
                 }}
               >
-                {mode === 'global' ? 'Global (all languages)' : `Own (${activeLang.toUpperCase()} only)`}
+                {mode === 'global'
+                  ? t('localizedProperties.globalAll')
+                  : t('localizedProperties.ownOnly', { language: activeLang.toUpperCase() })}
               </button>
             ))}
           </div>
@@ -217,7 +227,7 @@ export const LocalizedPropertiesPanel: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 4 }}>
             <input
               type="text"
-              placeholder="KEY"
+              placeholder={t('localizedProperties.keyPlaceholder')}
               value={newKeyDisplay}
               onChange={(e) => {
                 newKeyRef.current = e.target.value;
@@ -227,7 +237,7 @@ export const LocalizedPropertiesPanel: React.FC = () => {
             />
             <input
               type="text"
-              placeholder={`Value (${activeLang.toUpperCase()})`}
+              placeholder={t('localizedProperties.valuePlaceholder', { language: activeLang.toUpperCase() })}
               value={newValueDisplay}
               dir={isRtl ? 'rtl' : 'ltr'}
               onChange={(e) => {
@@ -236,12 +246,13 @@ export const LocalizedPropertiesPanel: React.FC = () => {
               }}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addProperty(); } }}
             />
-            <button className="editor-primary-button" onClick={addProperty} title="Add property">
+            <button className="editor-primary-button" onClick={addProperty} title={t('localizedProperties.add')}>
               <FiPlus size={13} />
             </button>
           </div>
           <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>
-            Use <code>{'{{KEY}}'}</code> in element content to insert the value.
+            {t('localizedProperties.usageBefore')} <code>{'{{KEY}}'}</code>{' '}
+            {t('localizedProperties.usageAfter')}
           </div>
         </div>
       </div>

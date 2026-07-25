@@ -36,6 +36,7 @@ interface FormatCard {
   accept: string;
   Icon: React.ElementType;
   supportsPageSize?: boolean;
+  supportsAssetBase?: boolean;
 }
 
 const FORMATS: FormatCard[] = [
@@ -74,6 +75,7 @@ const FORMATS: FormatCard[] = [
     extDisplay: '.md',
     accept: '.md,.markdown,text/markdown',
     Icon: FiHash,
+    supportsAssetBase: true,
   },
   {
     id: 'svg',
@@ -118,13 +120,14 @@ const ConvertToPdfPage: React.FC = () => {
   const [includeDiagnostics, setIncludeDiagnostics] = useState(true);
   const [includeDebugOverlay, setIncludeDebugOverlay] = useState(true);
   const [includeFallbackLayer, setIncludeFallbackLayer] = useState(false);
+  const [markdownAssetBaseUri, setMarkdownAssetBaseUri] = useState('');
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState('');
   const [importStatus, setImportStatus] = useState('');
 
   const handleFormatCardClick = (fmt: FormatCard) => {
     setImportError('');
-    if (fmt.supportsPageSize) {
+    if (fmt.supportsPageSize || fmt.supportsAssetBase) {
       // Show inline configuration panel instead of immediately opening file picker
       setImportConfiguring(fmt.id);
       setImportActiveId(fmt.id);
@@ -160,6 +163,9 @@ const ConvertToPdfPage: React.FC = () => {
           includeImageAnalysisDiagnostics: importActiveId === 'image-analysis' && includeDiagnostics,
           includeImageAnalysisDebugOverlay: importActiveId === 'image-analysis' && includeDebugOverlay,
           includeImageAnalysisFallbackLayer: importActiveId === 'image-analysis' && includeFallbackLayer,
+          markdownAssetBaseUri: importActiveId === 'markdown'
+            ? markdownAssetBaseUri
+            : undefined,
         },
       );
     } catch (err) {
@@ -256,46 +262,70 @@ const ConvertToPdfPage: React.FC = () => {
 
                   {isConfig && (
                     <div className="importer-config-panel">
-                      <div className="importer-config-field">
-                        <label className="importer-config-label" htmlFor={`${fmt.id}-page-size-select`}>
-                          {t('sections.import.config.pageSize')}
-                        </label>
-                        <select
-                          id={`${fmt.id}-page-size-select`}
-                          className="importer-config-select"
-                          value={importSelectedPageSize}
-                          onChange={e => setImportSelectedPageSize(e.target.value)}
-                        >
-                          {PAGE_SIZES.map(p => (
-                            <option key={p.id} value={p.id}>{t(`pageSizes.${p.id}`)}</option>
-                          ))}
-                        </select>
-                      </div>
+                      {fmt.supportsPageSize && (
+                        <>
+                          <div className="importer-config-field">
+                            <label className="importer-config-label" htmlFor={`${fmt.id}-page-size-select`}>
+                              {t('sections.import.config.pageSize')}
+                            </label>
+                            <select
+                              id={`${fmt.id}-page-size-select`}
+                              className="importer-config-select"
+                              value={importSelectedPageSize}
+                              onChange={e => setImportSelectedPageSize(e.target.value)}
+                            >
+                              {PAGE_SIZES.map(p => (
+                                <option key={p.id} value={p.id}>{t(`pageSizes.${p.id}`)}</option>
+                              ))}
+                            </select>
+                          </div>
 
-                      <label className="importer-config-check">
-                        <input
-                          type="checkbox"
-                          checked={includeDiagnostics}
-                          onChange={e => setIncludeDiagnostics(e.target.checked)}
-                        />
-                        <span>{t('sections.import.config.diagnostics')}</span>
-                      </label>
-                      <label className="importer-config-check">
-                        <input
-                          type="checkbox"
-                          checked={includeDebugOverlay}
-                          onChange={e => setIncludeDebugOverlay(e.target.checked)}
-                        />
-                        <span>{t('sections.import.config.debugOverlay')}</span>
-                      </label>
-                      <label className="importer-config-check">
-                        <input
-                          type="checkbox"
-                          checked={includeFallbackLayer}
-                          onChange={e => setIncludeFallbackLayer(e.target.checked)}
-                        />
-                        <span>{t('sections.import.config.fallbackLayer')}</span>
-                      </label>
+                          <label className="importer-config-check">
+                            <input
+                              type="checkbox"
+                              checked={includeDiagnostics}
+                              onChange={e => setIncludeDiagnostics(e.target.checked)}
+                            />
+                            <span>{t('sections.import.config.diagnostics')}</span>
+                          </label>
+                          <label className="importer-config-check">
+                            <input
+                              type="checkbox"
+                              checked={includeDebugOverlay}
+                              onChange={e => setIncludeDebugOverlay(e.target.checked)}
+                            />
+                            <span>{t('sections.import.config.debugOverlay')}</span>
+                          </label>
+                          <label className="importer-config-check">
+                            <input
+                              type="checkbox"
+                              checked={includeFallbackLayer}
+                              onChange={e => setIncludeFallbackLayer(e.target.checked)}
+                            />
+                            <span>{t('sections.import.config.fallbackLayer')}</span>
+                          </label>
+                        </>
+                      )}
+
+                      {fmt.supportsAssetBase && (
+                        <div className="importer-config-field">
+                          <label className="importer-config-label" htmlFor={`${fmt.id}-asset-base`}>
+                            {t('sections.import.config.assetBaseUri')}
+                          </label>
+                          <input
+                            id={`${fmt.id}-asset-base`}
+                            className="importer-config-input"
+                            type="url"
+                            inputMode="url"
+                            value={markdownAssetBaseUri}
+                            placeholder="https://cdn.example.com/docs/"
+                            onChange={event => setMarkdownAssetBaseUri(event.target.value)}
+                          />
+                          <span className="importer-config-hint">
+                            {t('sections.import.config.assetBaseUriHint')}
+                          </span>
+                        </div>
+                      )}
 
                       <div className="importer-config-actions">
                         <button

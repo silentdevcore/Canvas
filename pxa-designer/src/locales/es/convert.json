@@ -60,6 +60,8 @@
         "diagnostics": "Diagnósticos",
         "debugOverlay": "Página de superposición de depuración",
         "fallbackLayer": "Capa de imagen de respaldo",
+        "assetBaseUri": "URL base de recursos",
+        "assetBaseUriHint": "Carpeta HTTP(S) pública opcional para resolver imágenes relativas de Markdown.",
         "cancel": "Cancelar",
         "chooseFile": "Elegir archivo"
       },

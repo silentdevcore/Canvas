@@ -60,6 +60,8 @@
         "diagnostics": "التشخيصات",
         "debugOverlay": "صفحة تراكب التصحيح",
         "fallbackLayer": "طبقة الصورة الاحتياطية",
+        "assetBaseUri": "عنوان URL الأساسي للموارد",
+        "assetBaseUriHint": "مجلد HTTP(S) عام اختياري يُستخدم لحل صور Markdown النسبية.",
         "cancel": "إلغاء",
         "chooseFile": "اختيار ملف"
       },

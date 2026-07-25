@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using PXA.WebApi.Application.Identity;
+using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 
 namespace PXA.WebApi.Controllers;
@@ -29,12 +30,14 @@ public sealed class AccountRegistrationController : ControllerBase
         return outcome.Status switch
         {
             CustomerRegistrationStatus.Accepted => Accepted(AcceptedResponse()),
-            CustomerRegistrationStatus.SlugConflict => Conflict(new ProblemDetails
-            {
-                Status = StatusCodes.Status409Conflict,
-                Title = "Organization unavailable",
-                Detail = outcome.Detail,
-            }),
+            CustomerRegistrationStatus.SlugConflict => StatusCode(
+                StatusCodes.Status409Conflict,
+                PxaApiProblems.Create(
+                    HttpContext,
+                    StatusCodes.Status409Conflict,
+                    "Organization unavailable",
+                    outcome.Detail,
+                    PxaApiProblems.OrganizationSlugUnavailable)),
             CustomerRegistrationStatus.Unavailable => Problem(statusCode: 503, title: outcome.Detail),
             _ => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid registration", detail: outcome.Detail),
         };

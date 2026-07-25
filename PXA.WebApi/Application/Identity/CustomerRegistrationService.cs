@@ -58,8 +58,8 @@ public sealed class CustomerRegistrationService(
             EmailConfirmed = false,
             DisplayName = validation.DisplayName,
             IsActive = true,
-            Locale = string.IsNullOrWhiteSpace(request.Locale) ? "en" : request.Locale,
-            Country = request.Country,
+            Locale = validation.Locale,
+            Country = validation.Country,
         };
         IdentityResult creation;
         try
@@ -134,8 +134,8 @@ public sealed class CustomerRegistrationService(
             DetailsJson = JsonSerializer.Serialize(new
             {
                 AccountType = validation.AccountType,
-                request.Country,
-                request.Locale,
+                validation.Country,
+                validation.Locale,
                 TermsVersion = "draft-v1",
                 PrivacyVersion = "draft-v1",
                 NewsletterConsent = request.SubscribeToNewsletter ?? false,

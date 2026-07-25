@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useEditorStore } from '@/store';
 
 const RTL_LANGS = new Set(['ar', 'he', 'fa', 'ur', 'yi', 'dv']);
@@ -10,6 +11,7 @@ const LANG_LABELS: Record<string, string> = {
 };
 
 export const LanguageTabBar: React.FC = () => {
+  const { t } = useTranslation('editor');
   const { pageSettings, currentPreviewLanguage, setCurrentPreviewLanguage } = useEditorStore();
   const langs = pageSettings.activeLanguages ?? [];
 
@@ -25,7 +27,9 @@ export const LanguageTabBar: React.FC = () => {
       borderBottom: '1px solid var(--editor-border, #e2e8f0)',
       flexShrink: 0,
     }}>
-      <span style={{ fontSize: 11, color: '#64748b', marginRight: 6 }}>Language:</span>
+      <span style={{ fontSize: 11, color: '#64748b', marginRight: 6 }}>
+        {t('languageTabs.language')}:
+      </span>
       {langs.map(lang => {
         const isActive = currentPreviewLanguage === lang;
         const isRtl = RTL_LANGS.has(lang);

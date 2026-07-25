@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useEditorStore, SimpleElement } from '../../store';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Resizable } from 'react-resizable';
+import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
 
 const PAGE_WIDTH = 595;
 const PAGE_HEIGHT = 842;
@@ -58,7 +59,7 @@ const PxaSurface: React.FC<{ elements: SimpleElement[] }> = ({ elements }) => {
       case 'signature':
         return <div>Signature</div>;
       case 'richtext':
-        return <div dangerouslySetInnerHTML={{ __html: element.htmlContent || '' }} />;
+        return <div dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(element.htmlContent || '') }} />;
       case 'field':
         return <input type="text" placeholder={element.fieldLabel} style={element.style} />;
       case 'checkbox':

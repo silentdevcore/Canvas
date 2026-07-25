@@ -10,6 +10,7 @@ using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Application.Organizations;
+using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 
@@ -206,7 +207,7 @@ public sealed class AccountOrganizationController : ControllerBase
             case MembershipMutationOutcome.MembershipNotFound:
                 return NotFound();
             case MembershipMutationOutcome.LastOwnerProtected:
-                return ConflictProblem("The last active Organization Administrator role cannot be removed.");
+                return LastOwnerProblem("The last active Organization Administrator role cannot be removed.");
         }
 
         dbContext.AuditEvents.Add(NewAuditEvent(organizationId.Value, actorUserId.Value,
@@ -235,7 +236,7 @@ public sealed class AccountOrganizationController : ControllerBase
             case MembershipMutationOutcome.MembershipNotFound:
                 return NotFound();
             case MembershipMutationOutcome.LastOwnerProtected:
-                return ConflictProblem("The last active Organization Administrator cannot be removed.");
+                return LastOwnerProblem("The last active Organization Administrator cannot be removed.");
         }
 
         dbContext.AuditEvents.Add(NewAuditEvent(organizationId.Value, actorUserId.Value,
@@ -272,6 +273,15 @@ public sealed class AccountOrganizationController : ControllerBase
         statusCode: StatusCodes.Status409Conflict,
         title: "Organization change rejected",
         detail: detail);
+
+    private ObjectResult LastOwnerProblem(string detail) => StatusCode(
+        StatusCodes.Status409Conflict,
+        PxaApiProblems.Create(
+            HttpContext,
+            StatusCodes.Status409Conflict,
+            "Organization change rejected",
+            detail,
+            PxaApiProblems.LastOwnerProtected));
 
     private ObjectResult ValidationProblem(string detail) => Problem(
         statusCode: StatusCodes.Status400BadRequest,

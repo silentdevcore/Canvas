@@ -13,7 +13,7 @@
       "importing": "Importando…",
       "copy": "Abre un archivo PDF, Word, ODT o de imagen como diseño editable",
       "action": "Elegir archivo",
-      "tooltip": "Importar un PDF, Word .doc/.docx, ODT o imagen (PNG/JPG/WebP/…) como diseño PXA",
+      "tooltip": "Importar un archivo PDF, un documento de Word (.doc/.docx), un archivo ODT o una imagen (PNG/JPG/WebP/…) como diseño PXA",
       "importFailed": "Error al importar"
     },
     "blankCard": {
@@ -126,7 +126,7 @@
     },
     "spreadsheetFormulas": {
       "title": "Fórmulas y formato de hoja de cálculo",
-      "copy": "Edita una cuadrícula completa con fórmulas en vivo, estilos de celda y combinaciones — importa Excel/CSV o un libro PXA nativo, y exporta de nuevo con el formato intacto."
+      "copy": "Edite una cuadrícula completa con fórmulas recalculadas en tiempo real, estilos de celda y celdas combinadas — importe Excel/CSV o un libro PXA nativo y expórtelo conservando el formato."
     }
   },
   "security": {

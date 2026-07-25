@@ -118,4 +118,45 @@ public sealed class RegistrationValidationTests
         Assert.Equal("ada@example.com", result.Email);
         Assert.Equal("Ada Lovelace", result.DisplayName);
     }
+
+    [Theory]
+    [InlineData("Germany")]
+    [InlineData("D")]
+    [InlineData("D3")]
+    public void Rejects_invalid_country_codes(string country)
+    {
+        var result = RegistrationValidation.Validate(ValidCompanyRequest() with { Country = country });
+        Assert.False(result.IsValid);
+        Assert.Contains("Country", result.Error);
+    }
+
+    [Fact]
+    public void Normalizes_a_valid_country_code()
+    {
+        var result = RegistrationValidation.Validate(ValidCompanyRequest() with { Country = " de " });
+        Assert.True(result.IsValid);
+        Assert.Equal("DE", result.Country);
+    }
+
+    [Theory]
+    [InlineData("english")]
+    [InlineData("de_DE")]
+    [InlineData("en-123456789")]
+    public void Rejects_invalid_locale_tags(string locale)
+    {
+        var result = RegistrationValidation.Validate(ValidCompanyRequest() with { Locale = locale });
+        Assert.False(result.IsValid);
+        Assert.Contains("Locale", result.Error);
+    }
+
+    [Theory]
+    [InlineData("en")]
+    [InlineData("de-DE")]
+    [InlineData("zh-Hant")]
+    public void Accepts_valid_locale_tags(string locale)
+    {
+        var result = RegistrationValidation.Validate(ValidCompanyRequest() with { Locale = locale });
+        Assert.True(result.IsValid);
+        Assert.Equal(locale, result.Locale);
+    }
 }

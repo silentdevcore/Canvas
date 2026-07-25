@@ -60,6 +60,8 @@
         "diagnostics": "Diagnose",
         "debugOverlay": "Debug-Overlay-Seite",
         "fallbackLayer": "Fallback-Bildebene",
+        "assetBaseUri": "Basis-URL für Ressourcen",
+        "assetBaseUriHint": "Optionaler öffentlicher HTTP(S)-Ordner zum Auflösen relativer Markdown-Bilder.",
         "cancel": "Abbrechen",
         "chooseFile": "Datei auswählen"
       },

@@ -157,6 +157,7 @@ export function useTemplateLoader() {
       enableImageOcrPreprocessing?: boolean;
       imageOcrLowConfidenceThreshold?: number;
       imageOcrLayoutMode?: string;
+      markdownAssetBaseUri?: string;
     } = {},
   ): Promise<void> => {
     const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
@@ -164,6 +165,7 @@ export function useTemplateLoader() {
     let design: any;
     let imageAnalysisMeta: any = null;
     let imageOcrMeta: any = null;
+    let markdownImportMeta: any = null;
     if (formatId === 'image-analysis') {
       const result: any = await ExportService.importImageAnalysis(
         file,
@@ -217,7 +219,16 @@ export function useTemplateLoader() {
     else if (ext === 'doc')             design = await ExportService.importDoc(file);
     else if (ext === 'docx')            design = await ExportService.importDocx(file);
     else if (ext === 'odt')             design = await ExportService.importOdt(file);
-    else if (ext === 'md' || ext === 'markdown') design = await ExportService.importMarkdown(file);
+    else if (ext === 'md' || ext === 'markdown') {
+      design = await ExportService.importMarkdown(file, options.markdownAssetBaseUri);
+      if (Array.isArray(design?.importDiagnostics) && design.importDiagnostics.length > 0) {
+        markdownImportMeta = {
+          diagnostics: design.importDiagnostics,
+          assetBaseUri: options.markdownAssetBaseUri?.trim() || null,
+          importedAt: new Date().toISOString(),
+        };
+      }
+    }
     else if (ext === 'svg')             design = await ExportService.importSvg(file);
     else if (ext === 'pptx')            design = await ExportService.importPptx(file);
     else if (imageExts.includes(ext))   design = await ExportService.importImage(file);
@@ -279,6 +290,7 @@ export function useTemplateLoader() {
       data: {
         ...(imageAnalysisMeta ? { imageAnalysis: imageAnalysisMeta } : {}),
         ...(imageOcrMeta ? { imageOcr: imageOcrMeta } : {}),
+        ...(markdownImportMeta ? { markdownImport: markdownImportMeta } : {}),
       },
     });
     // Apply page dimensions returned by the backend so the canvas matches the import

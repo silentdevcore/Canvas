@@ -1066,6 +1066,46 @@
   font-size: 11px;
 }
 
+.editor-import-diagnostics {
+  display: grid;
+  gap: 6px;
+}
+
+.editor-import-diagnostic {
+  display: grid;
+  gap: 3px;
+  padding: 8px;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  background: #fffbeb;
+  color: #78350f;
+  font-size: 11px;
+}
+
+.editor-import-diagnostic.is-info {
+  border-color: #bae6fd;
+  background: #f0f9ff;
+  color: #075985;
+}
+
+.editor-import-diagnostic.is-error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.editor-import-diagnostic strong {
+  font-size: 10px;
+}
+
+.editor-import-diagnostic code {
+  overflow: hidden;
+  color: inherit;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .editor-selection-title {
   padding: 12px;
   background: #fafaf9;

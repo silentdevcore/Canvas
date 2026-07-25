@@ -5,6 +5,7 @@ import { useEditorStore, DEFAULT_PAGE_SETTINGS } from '@/store';
 import { toDisplay, fromDisplay } from '@/utils/units';
 import { getPageSettingsWarnings } from '@/utils/pageValidation';
 import { installImportedFontFaces } from '@/utils/importedFonts';
+import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import JsBarcode from 'jsbarcode';
@@ -381,6 +382,13 @@ type ImageOcrDiagnostics = {
   managedMemoryBytes?: number;
 };
 
+type ImportDiagnostic = {
+  code?: string;
+  severity?: 'info' | 'warning' | 'error';
+  message?: string;
+  source?: string;
+};
+
 const getGlyphDiagnostics = (element: SimpleElement): GlyphDiagnostic[] => {
   const glyphs = element.style?.imageAnalysisGlyphs;
   return Array.isArray(glyphs) ? glyphs as GlyphDiagnostic[] : [];
@@ -399,6 +407,14 @@ const getImageOcrDiagnostics = (template: Template): ImageOcrDiagnostics | null 
 const getImageOcrWarnings = (template: Template): string[] => {
   const warnings = template.data?.imageOcr?.warnings;
   return Array.isArray(warnings) ? warnings.filter((w): w is string => typeof w === 'string') : [];
+};
+
+const getMarkdownImportDiagnostics = (template: Template): ImportDiagnostic[] => {
+  const diagnostics = template.data?.markdownImport?.diagnostics;
+  return Array.isArray(diagnostics)
+    ? diagnostics.filter((diagnostic): diagnostic is ImportDiagnostic =>
+        diagnostic !== null && typeof diagnostic === 'object')
+    : [];
 };
 
 const formatPercent = (value: unknown) => {
@@ -2314,7 +2330,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
       return (
         <div
           className="editor-richtext"
-          dangerouslySetInnerHTML={{ __html: element.htmlContent || '' }}
+          dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(element.htmlContent || '') }}
         />
       );
     }
@@ -2652,7 +2668,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
       const isOrdered = ['decimal', 'lower-alpha', 'upper-alpha', 'lower-roman', 'upper-roman'].includes(style);
       const ListTag = isOrdered ? 'ol' : 'ul';
       return (
-        <ListTag style={{ ...baseStyle, listStyleType: style, paddingLeft: '20px', margin: 0 }}>
+        <ListTag
+          start={isOrdered ? element.startNumber ?? 1 : undefined}
+          style={{ ...baseStyle, listStyleType: style, paddingLeft: '20px', margin: 0 }}
+        >
           {(element.options || []).map((item, index) => (
             <li key={index}>{item}</li>
           ))}
@@ -2789,7 +2808,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: '#1e3a8a' }}>
-              {firstDataset?.label || 'Chart'}
+              {firstDataset?.label || t('diagnostics.chart')}
             </span>
             <small style={{ fontSize: 10, color: '#475569' }}>{element.chartType || 'bar'}</small>
           </div>
@@ -2797,7 +2816,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           {!hasValues && (
             <div className="editor-placeholder editor-placeholder-wide" style={{ flex: 1 }}>
               <FiLayers className="editor-placeholder-icon" />
-              <span>No chart data</span>
+              <span>{t('diagnostics.noChartData')}</span>
             </div>
           )}
 
@@ -4052,6 +4071,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
             const imageAnalysisDiagnostics = getImageAnalysisDiagnostics(template);
             const imageOcrDiagnostics = getImageOcrDiagnostics(template);
             const imageOcrWarnings = getImageOcrWarnings(template);
+            const markdownImportDiagnostics = getMarkdownImportDiagnostics(template);
             const lowConfidenceShare = imageAnalysisDiagnostics?.glyphCount
               ? (imageAnalysisDiagnostics.lowConfidenceGlyphCount ?? 0) / imageAnalysisDiagnostics.glyphCount
               : 0;
@@ -4072,41 +4092,68 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   ) : null;
                 })()}
 
+                {markdownImportDiagnostics.length > 0 && (
+                  <div className="editor-settings-section">
+                    <div className="editor-settings-heading">
+                      <FiHash />
+                      <span>{t('diagnostics.markdownImport')}</span>
+                    </div>
+                    <div className="editor-import-diagnostics" role="status" aria-live="polite">
+                      {markdownImportDiagnostics.map((diagnostic, index) => (
+                        <div
+                          className={`editor-import-diagnostic is-${diagnostic.severity ?? 'warning'}`}
+                          key={`${diagnostic.code ?? 'markdown'}-${index}`}
+                        >
+                          <strong>{diagnostic.code ?? t('diagnostics.importIssue')}</strong>
+                          <span>
+                            {diagnostic.code
+                              ? t(`diagnostics.markdownCodes.${diagnostic.code}`, {
+                                  defaultValue: diagnostic.message ?? t('diagnostics.importIssue'),
+                                })
+                              : diagnostic.message ?? t('diagnostics.importIssue')}
+                          </span>
+                          {diagnostic.source && <code>{diagnostic.source}</code>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {imageAnalysisDiagnostics && (
                   <div className="editor-settings-section">
                     <div className="editor-settings-heading">
                       <FiSliders />
-                      <span>Image Analysis</span>
+                      <span>{t('diagnostics.imageAnalysis')}</span>
                     </div>
                     <div className="editor-image-analysis-panel">
                       <div className="editor-image-analysis-summary">
                         <div>
                           <strong>{formatNumber(imageAnalysisDiagnostics.elementCount)}</strong>
-                          <span>Elements</span>
+                          <span>{t('diagnostics.elements')}</span>
                         </div>
                         <div>
                           <strong>{formatNumber(imageAnalysisDiagnostics.glyphCount)}</strong>
-                          <span>Glyphs</span>
+                          <span>{t('diagnostics.glyphs')}</span>
                         </div>
                         <div>
                           <strong>{formatPercent(lowConfidenceShare)}</strong>
-                          <span>Low confidence</span>
+                          <span>{t('diagnostics.lowConfidence')}</span>
                         </div>
                       </div>
                       <div className="editor-image-analysis-grid">
-                        <span>Source</span>
+                        <span>{t('diagnostics.source')}</span>
                         <strong>{formatNumber(imageAnalysisDiagnostics.sourceWidthPx)} x {formatNumber(imageAnalysisDiagnostics.sourceHeightPx)} px</strong>
-                        <span>Working</span>
+                        <span>{t('diagnostics.working')}</span>
                         <strong>{formatNumber(imageAnalysisDiagnostics.workingWidthPx)} x {formatNumber(imageAnalysisDiagnostics.workingHeightPx)} px</strong>
-                        <span>Scale</span>
+                        <span>{t('diagnostics.scale')}</span>
                         <strong>{Number(imageAnalysisDiagnostics.scaleFactor ?? 1).toFixed(3)}</strong>
-                        <span>Regions</span>
+                        <span>{t('diagnostics.regions')}</span>
                         <strong>{formatNumber(imageAnalysisDiagnostics.colorRegionCount)}</strong>
-                        <span>Shapes</span>
+                        <span>{t('diagnostics.shapes')}</span>
                         <strong>{formatNumber(imageAnalysisDiagnostics.shapeCount)}</strong>
-                        <span>Text lines</span>
+                        <span>{t('diagnostics.textLines')}</span>
                         <strong>{formatNumber(imageAnalysisDiagnostics.textLineCount)}</strong>
-                        <span>Words</span>
+                        <span>{t('diagnostics.words')}</span>
                         <strong>{formatNumber(imageAnalysisDiagnostics.wordCount)}</strong>
                       </div>
                       {(imageAnalysisDiagnostics.warnings ?? []).length > 0 && (
@@ -4124,35 +4171,35 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   <div className="editor-settings-section">
                     <div className="editor-settings-heading">
                       <FiEye />
-                      <span>Image OCR</span>
+                      <span>{t('diagnostics.imageOcr')}</span>
                     </div>
                     <div className="editor-image-analysis-panel">
                       <div className="editor-image-analysis-summary">
                         <div>
                           <strong>{formatNumber(imageOcrDiagnostics.wordCount)}</strong>
-                          <span>Words</span>
+                          <span>{t('diagnostics.words')}</span>
                         </div>
                         <div>
                           <strong>{formatNumber(imageOcrDiagnostics.lineCount)}</strong>
-                          <span>Lines</span>
+                          <span>{t('diagnostics.lines')}</span>
                         </div>
                         <div>
                           <strong>{formatPercent(imageOcrDiagnostics.averageConfidence)}</strong>
-                          <span>Confidence</span>
+                          <span>{t('diagnostics.confidence')}</span>
                         </div>
                       </div>
                       <div className="editor-image-analysis-grid">
-                        <span>Source</span>
+                        <span>{t('diagnostics.source')}</span>
                         <strong>{formatNumber(imageOcrDiagnostics.sourceWidthPx)} x {formatNumber(imageOcrDiagnostics.sourceHeightPx)} px</strong>
-                        <span>Pages</span>
+                        <span>{t('diagnostics.pages')}</span>
                         <strong>{formatNumber(imageOcrDiagnostics.pageCount)}</strong>
-                        <span>Languages</span>
+                        <span>{t('diagnostics.languages')}</span>
                         <strong>{imageOcrDiagnostics.languages ?? 'deu+eng'}</strong>
-                        <span>Engine</span>
+                        <span>{t('diagnostics.engine')}</span>
                         <strong>{imageOcrDiagnostics.ocrEngine ?? 'OCR'} {imageOcrDiagnostics.ocrEngineVersion ?? ''}</strong>
-                        <span>Low confidence</span>
+                        <span>{t('diagnostics.lowConfidence')}</span>
                         <strong>{formatPercent(lowConfidenceWordShare)}</strong>
-                        <span>Runtime</span>
+                        <span>{t('diagnostics.runtime')}</span>
                         <strong>{formatNumber(imageOcrDiagnostics.elapsedMs)} ms</strong>
                       </div>
                       {imageOcrWarnings.length > 0 && (

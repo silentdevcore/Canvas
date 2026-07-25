@@ -37,7 +37,18 @@ public static partial class RegistrationValidation
         if (accountType == SubscriptionAccountType.Company && requestedSlug is { Length: < 3 })
             return RegistrationValidationResult.Invalid("Organization slug must contain at least three letters or numbers.");
 
-        return RegistrationValidationResult.Valid(email, displayName, accountType, companyName, requestedSlug);
+        var country = request.Country?.Trim().ToUpperInvariant();
+        if (!string.IsNullOrEmpty(country) && !CountryCode().IsMatch(country))
+            return RegistrationValidationResult.Invalid("Country must be a two-letter ISO country code.");
+
+        var locale = string.IsNullOrWhiteSpace(request.Locale) ? "en" : request.Locale.Trim();
+        if (locale.Length > 16 || !LocaleTag().IsMatch(locale))
+            return RegistrationValidationResult.Invalid("Locale must be a valid language tag of at most 16 characters.");
+
+        return RegistrationValidationResult.Valid(
+            email, displayName, accountType, companyName, requestedSlug,
+            string.IsNullOrEmpty(country) ? null : country,
+            locale);
     }
 
     public static string Slugify(string value)
@@ -48,4 +59,10 @@ public static partial class RegistrationValidation
 
     [GeneratedRegex("[^a-z0-9]+", RegexOptions.CultureInvariant)]
     private static partial Regex InvalidSlugCharacters();
+
+    [GeneratedRegex("^[A-Z]{2}$", RegexOptions.CultureInvariant)]
+    private static partial Regex CountryCode();
+
+    [GeneratedRegex("^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$", RegexOptions.CultureInvariant)]
+    private static partial Regex LocaleTag();
 }

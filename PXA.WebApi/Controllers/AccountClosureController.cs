@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 
 namespace PXA.WebApi.Controllers;
@@ -142,8 +143,44 @@ public sealed class AccountClosureController : ControllerBase
         organization.Status = OrganizationStatus.Closed;
         organization.UpdatedAt = now;
 
+        PxaSessionService.TryGetSessionId(User, out var currentSessionId);
+        var sessions = await dbContext.UserSessions
+            .Where(value =>
+                value.OrganizationId == organizationId &&
+                value.RevokedAt == null &&
+                value.Id != currentSessionId)
+            .ToListAsync(cancellationToken);
+        foreach (var session in sessions)
+        {
+            session.RevokedAt = now;
+            session.RevokedByUserId = userId;
+            session.RevocationReason = "organization-closure-requested";
+        }
+
+        var serviceAccounts = await dbContext.ServiceAccounts
+            .Where(value => value.OrganizationId == organizationId && value.IsActive)
+            .ToListAsync(cancellationToken);
+        foreach (var serviceAccount in serviceAccounts)
+        {
+            serviceAccount.IsActive = false;
+            serviceAccount.RevokedAt = now;
+            serviceAccount.UpdatedAt = now;
+        }
+
+        var apiKeys = await dbContext.ApiKeys
+            .Where(value => value.OrganizationId == organizationId && value.RevokedAt == null)
+            .ToListAsync(cancellationToken);
+        foreach (var apiKey in apiKeys)
+            apiKey.RevokedAt = now;
+
         dbContext.AuditEvents.Add(NewAuditEvent(
-            organizationId.Value, userId.Value, "account.closure.organization-requested", closure.Id, "organization", new { }));
+            organizationId.Value, userId.Value, "account.closure.organization-requested", closure.Id, "organization",
+            new
+            {
+                RevokedSessions = sessions.Count,
+                RevokedServiceAccounts = serviceAccounts.Count,
+                RevokedApiKeys = apiKeys.Count,
+            }));
         await dbContext.SaveChangesAsync(cancellationToken);
         return Ok(ToResponse(closure));
     }
@@ -210,10 +247,14 @@ public sealed class AccountClosureController : ControllerBase
         title: "Organization context required",
         detail: "The authenticated session does not contain an active organization.");
 
-    private ObjectResult ClosureConflict(string detail) => Problem(
-        statusCode: StatusCodes.Status409Conflict,
-        title: "Closure request rejected",
-        detail: detail);
+    private ObjectResult ClosureConflict(string detail) => StatusCode(
+        StatusCodes.Status409Conflict,
+        PxaApiProblems.Create(
+            HttpContext,
+            StatusCodes.Status409Conflict,
+            "Closure request rejected",
+            detail,
+            PxaApiProblems.ClosureConflict));
 }
 
 public sealed record RequestAccountClosureRequest(string? Reason);

@@ -259,6 +259,7 @@ builder.Services.AddScoped<PxaSpreadsheet.SpreadsheetData>();
 builder.Services.AddScoped<PxaSpreadsheet.SpreadsheetValidator>();
 
 // Register file importers
+builder.Services.AddSingleton<IRemoteImageResolver, SafeRemoteImageResolver>();
 builder.Services.AddTransient<IFileImporter, PdfFileImporter>();
 builder.Services.AddTransient<IFileImporter, DocxFileImporter>();
 builder.Services.AddTransient<IFileImporter, PptxFileImporter>();

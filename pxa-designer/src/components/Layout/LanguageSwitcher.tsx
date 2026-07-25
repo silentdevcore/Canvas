@@ -16,12 +16,12 @@ interface LanguageSwitcherProps {
 }
 
 const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ className }) => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('common');
 
   return (
     <select
       className={className ? `pdf-language-switcher ${className}` : 'pdf-language-switcher'}
-      aria-label="Choose language"
+      aria-label={t('languageSwitcher.chooseLanguage')}
       value={i18n.language}
       onChange={(event) => i18n.changeLanguage(event.target.value)}
     >

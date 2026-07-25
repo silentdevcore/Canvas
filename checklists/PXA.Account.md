@@ -72,7 +72,7 @@ Deliver a standalone customer identity and self-service portal for registration,
 - [x] Use application services for registration and Trial orchestration rather than controller-owned transactions.
 - [x] Keep account type, application roles, subscription edition, and product entitlements as separate concepts.
 - [x] Resolve organization scope from the authenticated server context after login.
-- [x] Return stable Account-specific Problem Details codes for validation, conflicts, authentication, authorization, and lifecycle failures.
+- [ ] Return stable Account-specific Problem Details codes for validation, conflicts, authentication, authorization, and lifecycle failures. Slug, last-owner, and closure conflicts are verified; the reserved Trial lifecycle code still needs an applicable public contract or removal.
 - [x] Never return password hashes, action-token hashes, API-key hashes, mail payloads, or private license material.
 
 ## Mail Dependencies
@@ -99,8 +99,8 @@ Deliver a standalone customer identity and self-service portal for registration,
 - [x] Test duplicate organization and concurrent registration conflicts; duplicate-email behavior has baseline coverage. (repeated-Trial creation is prevented by construction — Trial activation only ever runs once, inside the registration transaction, with no endpoint that could re-trigger it — so there is nothing distinct for an integration test to exercise there)
 - [x] Test cross-tenant profile, organization, subscription, license, key, and session access attempts. (`AccountCrossTenantAccessTests`, plus existing per-resource coverage in the licenses/service-accounts test files)
 - [x] Test Company-to-Account links and authenticated return flows. (no jsdom/DOM-simulation library is reachable from this project's plain `node --test` runner, so the return-flow logic — previously split between a private function in `main.ts` and inline parsing in Company's `main.js` — was extracted into a pure, dependency-free `shared/signedInSignal.js` and covered by `signedInSignal.test.ts`: appending the signal only for the Company origin, preserving other query params, and stripping/consuming it correctly)
-- [x] Test keyboard navigation, focus management, responsive layouts, and accessible validation. (`pages-accessibility.test.ts` extends `accessibility-contract.test.ts`'s source-text technique to every `src/pages/*.ts` module: no positive `tabindex`, every `<input>` has a nearby `<label>`, every error region carries `role="alert"`)
-- [x] Build PXA.Account and run desktop/mobile smoke tests. (`npm run build`/`type-check` verified repeatedly; no automated viewport smoke harness exists for any site in this repo, so this remains a manual-browser check, consistent with Admin/Company/Designer)
+- [ ] Test keyboard navigation, focus management, responsive layouts, and accessible validation. Source-text contracts exist, but DOM-level focus and viewport behavior remain unverified.
+- [ ] Build PXA.Account and run desktop/mobile smoke tests. Build and type-check are verified; automated browser viewport smoke tests remain open.
 
 ## Acceptance Criteria
 

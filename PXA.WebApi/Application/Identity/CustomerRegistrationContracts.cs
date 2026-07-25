@@ -55,20 +55,24 @@ public sealed record RegistrationValidationResult(
     string DisplayName,
     SubscriptionAccountType AccountType,
     string? CompanyName,
-    string? RequestedSlug)
+    string? RequestedSlug,
+    string? Country,
+    string Locale)
 {
     public bool IsValid => Error is null;
 
     public static RegistrationValidationResult Invalid(string error) =>
-        new(error, string.Empty, string.Empty, default, null, null);
+        new(error, string.Empty, string.Empty, default, null, null, null, "en");
 
     public static RegistrationValidationResult Valid(
         string email,
         string displayName,
         SubscriptionAccountType accountType,
         string? companyName,
-        string? requestedSlug) =>
-        new(null, email, displayName, accountType, companyName, requestedSlug);
+        string? requestedSlug,
+        string? country,
+        string locale) =>
+        new(null, email, displayName, accountType, companyName, requestedSlug, country, locale);
 }
 
 public enum CustomerRegistrationStatus

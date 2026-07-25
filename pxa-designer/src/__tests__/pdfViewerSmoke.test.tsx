@@ -92,7 +92,7 @@ describe('pdf viewer smoke test', () => {
 
     const buttons = Array.from(container.querySelectorAll('button')) as HTMLButtonElement[];
     const reviewButton = buttons
-      .find(button => button.textContent === 'Review');
+      .find(button => button.textContent === 'Überprüfen');
     expect(reviewButton).toBeTruthy();
     act(() => {
       reviewButton!.dispatchEvent(new MouseEvent('click', { bubbles: true }));

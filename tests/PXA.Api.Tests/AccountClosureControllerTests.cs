@@ -9,8 +9,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 using Testcontainers.PostgreSql;
 
@@ -29,6 +31,38 @@ public sealed class AccountClosureControllerTests
         await RegisterVerifiedCompanyAsync(factory, client, "owner@closure.test", "Owner", "Closure GmbH", "closure-co");
         await LoginAsync(client, "owner@closure.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
 
+        using var secondaryClient = CreateClient(factory);
+        await LoginAsync(secondaryClient, "owner@closure.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        var apiKeySecret = PxaApiKeySecret.Create();
+        await using (var setupScope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = setupScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var organizationId = await dbContext.Organizations
+                .Where(value => value.Slug == "closure-co")
+                .Select(value => value.Id)
+                .SingleAsync();
+            var serviceAccount = new ServiceAccount
+            {
+                OrganizationId = organizationId,
+                Name = "Closure integration",
+            };
+            dbContext.ServiceAccounts.Add(serviceAccount);
+            dbContext.ApiKeys.Add(new ApiKey
+            {
+                OrganizationId = organizationId,
+                ServiceAccountId = serviceAccount.Id,
+                Name = "Closure key",
+                Prefix = apiKeySecret.Prefix,
+                SecretHash = apiKeySecret.Hash,
+            });
+            await dbContext.SaveChangesAsync();
+        }
+        using var apiKeyClient = CreateClient(factory);
+        apiKeyClient.DefaultRequestHeaders.Add("X-PXA-API-Key", apiKeySecret.Secret);
+        Assert.Equal(
+            HttpStatusCode.OK,
+            (await apiKeyClient.GetAsync("/api/pxa/v1/account/entitlements/pdf.generator")).StatusCode);
+
         using var request = CreateCsrfRequest(
             HttpMethod.Post, "/api/pxa/v1/account/closure/organization", await GetCsrfAsync(client), new { reason = "No longer needed" });
         var response = await client.SendAsync(request);
@@ -42,11 +76,35 @@ public sealed class AccountClosureControllerTests
             var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
             var organization = await dbContext.Organizations.SingleAsync(value => value.Slug == "closure-co");
             Assert.Equal("Closed", organization.Status.ToString());
+            Assert.All(
+                await dbContext.ServiceAccounts.Where(value => value.OrganizationId == organization.Id).ToListAsync(),
+                value =>
+                {
+                    Assert.False(value.IsActive);
+                    Assert.NotNull(value.RevokedAt);
+                });
+            Assert.All(
+                await dbContext.ApiKeys.Where(value => value.OrganizationId == organization.Id).ToListAsync(),
+                value => Assert.NotNull(value.RevokedAt));
         }
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await secondaryClient.GetAsync("/api/pxa/v1/auth/me")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await apiKeyClient.GetAsync("/api/pxa/v1/account/entitlements/pdf.generator")).StatusCode);
+        var entitlement = await client.GetFromJsonAsync<JsonElement>(
+            "/api/pxa/v1/account/entitlements/pdf.generator");
+        Assert.False(entitlement.GetProperty("allowed").GetBoolean());
+        Assert.Equal("PXA_ORGANIZATION_INACTIVE", entitlement.GetProperty("code").GetString());
 
         using var duplicate = CreateCsrfRequest(
             HttpMethod.Post, "/api/pxa/v1/account/closure/organization", await GetCsrfAsync(client), new { reason = "again" });
-        Assert.Equal(HttpStatusCode.Conflict, (await client.SendAsync(duplicate)).StatusCode);
+        var duplicateResponse = await client.SendAsync(duplicate);
+        Assert.Equal(HttpStatusCode.Conflict, duplicateResponse.StatusCode);
+        Assert.Equal(
+            "PXAAPI014",
+            (await duplicateResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
 
         using var cancel = CreateCsrfRequest(
             HttpMethod.Post, $"/api/pxa/v1/account/closure/{closureId}/cancel", await GetCsrfAsync(client), new { });

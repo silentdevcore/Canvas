@@ -60,6 +60,8 @@
         "diagnostics": "Diagnostics",
         "debugOverlay": "Page de superposition de débogage",
         "fallbackLayer": "Calque image de secours",
+        "assetBaseUri": "URL de base des ressources",
+        "assetBaseUriHint": "Dossier HTTP(S) public facultatif utilisé pour résoudre les images Markdown relatives.",
         "cancel": "Annuler",
         "chooseFile": "Choisir un fichier"
       },

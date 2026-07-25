@@ -1,4 +1,67 @@
 {
+  "languageTabs": {
+    "language": "Langue"
+  },
+  "localizedProperties": {
+    "heading": "Propriétés localisées",
+    "editing": "Langue modifiée :",
+    "empty": "Aucune propriété pour cette langue. Ajoutez-en une ci-dessous.",
+    "own": "Spécifique",
+    "ownTitle": "Propriété spécifique — visible uniquement dans cette langue",
+    "global": "Globale",
+    "globalTitle": "Propriété globale — disponible dans toutes les langues",
+    "globalModeTitle": "Disponible dans toutes les langues avec une valeur propre à chacune",
+    "ownModeTitle": "Uniquement pour {{language}}",
+    "delete": "Supprimer la propriété",
+    "valueOwn": "Valeur uniquement pour {{language}}",
+    "notExported": "Non exportée pour les autres langues.",
+    "value": "Valeur pour {{language}}",
+    "languageMissing": "{{language}} : manquante",
+    "missing": "Manquantes : {{languages}}",
+    "add": "Ajouter une propriété",
+    "globalAll": "Globale (toutes les langues)",
+    "ownOnly": "Spécifique ({{language}} uniquement)",
+    "keyPlaceholder": "CLÉ",
+    "valuePlaceholder": "Valeur ({{language}})",
+    "usageBefore": "Utilisez",
+    "usageAfter": "dans le contenu de l'élément pour insérer la valeur."
+  },
+  "diagnostics": {
+    "chart": "Graphique",
+    "noChartData": "Aucune donnée de graphique",
+    "imageAnalysis": "Analyse d'image",
+    "elements": "Éléments",
+    "glyphs": "Glyphes",
+    "lowConfidence": "Faible niveau de confiance",
+    "source": "Source",
+    "working": "Image de travail",
+    "scale": "Échelle",
+    "regions": "Régions",
+    "shapes": "Formes",
+    "textLines": "Lignes de texte",
+    "words": "Mots",
+    "imageOcr": "OCR de l'image",
+    "lines": "Lignes",
+    "confidence": "Niveau de confiance",
+    "pages": "Pages",
+    "languages": "Langues",
+    "engine": "Moteur",
+    "runtime": "Durée d'exécution",
+    "markdownImport": "Import Markdown",
+    "importIssue": "Problème d'importation",
+    "markdownCodes": {
+      "PXA-MD-001": "Des cibles de liens Markdown non sécurisées ont été supprimées.",
+      "PXA-MD-002": "Une image intégrée non valide ou non prise en charge a été supprimée.",
+      "PXA-MD-003": "Les images intégrées dans le texte ne sont pas prises en charge et ont été omises.",
+      "PXA-MD-004": "Un bloc Markdown non pris en charge a été ignoré.",
+      "PXA-MD-005": "La mise en forme a été simplifiée lors du fractionnement d’un paragraphe trop grand.",
+      "PXA-MD-006": "Une valeur YAML front matter non valide a été ignorée.",
+      "PXA-MD-100": "Le document Markdown a été réparti sur plusieurs pages.",
+      "PXA-MD-201": "Une image relative n’a pas pu être résolue sans URL de base des ressources.",
+      "PXA-MD-202": "Une image a été rejetée, car seules les ressources HTTP(S) sont prises en charge.",
+      "PXA-MD-203": "Une image distante n’a pas pu être téléchargée ou validée."
+    }
+  },
   "help": {
     "ariaLabel": "Aide",
     "title": "Aide & Référence",
@@ -27,7 +90,7 @@
       },
       "2": {
         "title": "Ajouter des éléments",
-        "desc": "Cliquez sur un outil dans la barre d'outils de gauche pour le placer sur le canevas, ou faites-le glisser à un endroit précis."
+        "desc": "Cliquez sur un outil dans la barre d'outils de gauche pour le placer dans la zone de travail, ou faites-le glisser à un endroit précis."
       },
       "3": {
         "title": "Modifier les propriétés",
@@ -73,15 +136,15 @@
       },
       "secondPage": {
         "q": "Comment ajouter une deuxième page ?",
-        "a": "Cliquez sur le bouton + dans la bande de pages en bas de la zone de canevas."
+        "a": "Cliquez sur le bouton + dans la bande de pages en bas de la zone de travail."
       },
       "multiLanguage": {
         "q": "Comment configurer le multilingue ?",
-        "a": "Dans les paramètres de page, ajoutez des langues dans la section « Langues ». Un onglet par langue apparaît au-dessus du canevas."
+        "a": "Dans les paramètres de page, ajoutez des langues dans la section « Langues ». Un onglet par langue apparaît au-dessus de la zone de travail."
       },
       "drawLine": {
         "q": "Comment dessiner une ligne ou une flèche ?",
-        "a": "Cliquez sur l'outil Ligne, Flèche ou Dessin dans la barre d'outils — un badge bleu apparaît. Faites ensuite glisser sur le canevas pour placer l'élément."
+        "a": "Cliquez sur l'outil Ligne, Flèche ou Dessin dans la barre d'outils — un indicateur bleu apparaît. Faites ensuite glisser dans la zone de travail pour placer l'élément."
       },
       "tableOfContents": {
         "q": "Comment générer une table des matières ?",
@@ -564,7 +627,7 @@
   },
   "toolPanel": {
     "addElements": "Ajouter des éléments",
-    "wordOnlyWarning": "Certains éléments du canevas sont réservés à Word et ne seront pas rendus dans l'export PDF.",
+    "wordOnlyWarning": "Certains éléments de la zone de travail sont réservés à Word et ne seront pas rendus dans l'export PDF.",
     "insertFormBlockTitle": "Insérer un groupe préconstruit de champs de formulaire (adresse, contact, etc.)",
     "insertFormBlock": "Insérer un bloc de formulaire",
     "layers": "Calques"
@@ -579,7 +642,7 @@
     "drawingLine": "Dessin d'une ligne",
     "drawingArrow": "Dessin d'une flèche",
     "freehandDrawing": "Dessin à main levée",
-    "drawInstructions": "— cliquez et faites glisser sur le canevas",
+    "drawInstructions": "— cliquez et faites glisser dans la zone de travail",
     "cancelHint": "pour annuler",
     "headerGuide": "En-tête",
     "footerGuide": "Pied de page",
@@ -714,7 +777,7 @@
         "bottom-center": "bas centre",
         "bottom-right": "bas droite"
       },
-      "placeOnCanvas": "Placer sur le canevas"
+      "placeOnCanvas": "Placer dans la zone de travail"
     },
     "exportMetadata": {
       "heading": "Métadonnées d'exportation",

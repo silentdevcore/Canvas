@@ -126,7 +126,11 @@ public sealed class AccountOrganizationControllerTests
         using var demoteSelf = CreateCsrfRequest(
             HttpMethod.Put, $"/api/pxa/v1/account/organization/members/{ownerUserId}/roles",
             await GetCsrfAsync(client), new { roles = new[] { PxaRoles.Editor } });
-        Assert.Equal(HttpStatusCode.Conflict, (await client.SendAsync(demoteSelf)).StatusCode);
+        var demoteResponse = await client.SendAsync(demoteSelf);
+        Assert.Equal(HttpStatusCode.Conflict, demoteResponse.StatusCode);
+        Assert.Equal(
+            "PXAAPI013",
+            (await demoteResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
 
         using var promoteSelf = CreateCsrfRequest(
             HttpMethod.Put, $"/api/pxa/v1/account/organization/members/{ownerUserId}/roles",
@@ -135,6 +139,9 @@ public sealed class AccountOrganizationControllerTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(2, body.GetProperty("roles").GetArrayLength());
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await client.GetAsync("/api/pxa/v1/auth/me")).StatusCode);
     }
 
     [PostgreSqlFact]
@@ -167,6 +174,7 @@ public sealed class AccountOrganizationControllerTests
             HttpMethod.Post, "/api/pxa/v1/auth/accept-invitation",
             await GetCsrfAsync(coOwnerClient), new { token, password = "Pxa-CoOwner-Password-42!" });
         Assert.Equal(HttpStatusCode.NoContent, (await coOwnerClient.SendAsync(accept)).StatusCode);
+        await LoginAsync(coOwnerClient, "co-owner@remove.test", "Pxa-CoOwner-Password-42!", HttpStatusCode.OK);
 
         await using var scope = factory.Services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
@@ -188,6 +196,9 @@ public sealed class AccountOrganizationControllerTests
             HttpMethod.Delete, $"/api/pxa/v1/account/organization/members/{coOwnerUserId}",
             await GetCsrfAsync(ownerClient), new { });
         Assert.Equal(HttpStatusCode.NoContent, (await ownerClient.SendAsync(removeCoOwner)).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await coOwnerClient.GetAsync("/api/pxa/v1/auth/me")).StatusCode);
     }
 
     private static async Task RegisterVerifiedCompanyAsync(

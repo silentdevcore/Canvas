@@ -18,6 +18,8 @@ namespace PXA.WebApi.Controllers;
 [Route("api/pxa/document")]
 public class DocumentOpsController : ControllerBase
 {
+    private const long MaxMarkdownUploadBytes = 4L * 1024 * 1024;
+
     private readonly FindAndReplaceUseCase      _findReplace;
     private readonly CloneTemplateUseCase       _clone;
     private readonly ExtractPagesUseCase        _extractPages;
@@ -324,9 +326,13 @@ public class DocumentOpsController : ControllerBase
     /// </summary>
     [HttpPost("import-markdown")]
     [Consumes("multipart/form-data")]
+    [RequestSizeLimit(MaxMarkdownUploadBytes)]
     [ProducesResponseType(typeof(DesignExportDto), 200)]
     [ProducesResponseType(400)]
-    public async Task<IActionResult> ImportMarkdown(IFormFile? file)
+    [ProducesResponseType(413)]
+    public async Task<IActionResult> ImportMarkdown(
+        IFormFile? file,
+        [FromForm] string? assetBaseUri = null)
     {
         if (file is null || file.Length == 0)
             return BadRequest(new { error = "A .md file is required." });
@@ -335,15 +341,66 @@ public class DocumentOpsController : ControllerBase
             !file.FileName.EndsWith(".markdown", StringComparison.OrdinalIgnoreCase))
             return BadRequest(new { error = "Only .md/.markdown (Markdown) files are accepted." });
 
+        if (file.Length > MaxMarkdownUploadBytes)
+            return StatusCode(StatusCodes.Status413PayloadTooLarge, new ProblemDetails
+            {
+                Status = StatusCodes.Status413PayloadTooLarge,
+                Title = "Markdown file is too large.",
+                Detail = $"The maximum supported upload size is {MaxMarkdownUploadBytes / (1024 * 1024)} MiB.",
+            });
+
+        Uri? parsedAssetBaseUri = null;
+        if (!string.IsNullOrWhiteSpace(assetBaseUri) &&
+            (!Uri.TryCreate(assetBaseUri, UriKind.Absolute, out parsedAssetBaseUri) ||
+             (parsedAssetBaseUri.Scheme != Uri.UriSchemeHttp &&
+              parsedAssetBaseUri.Scheme != Uri.UriSchemeHttps) ||
+             !string.IsNullOrEmpty(parsedAssetBaseUri.UserInfo)))
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Invalid Markdown asset base URI.",
+                Detail = "The asset base URI must be an absolute HTTP(S) URL without embedded credentials.",
+            });
+        }
+
         try
         {
             await using var stream = file.OpenReadStream();
-            var design = await Importer("md").ImportAsync(stream, Path.GetFileNameWithoutExtension(file.FileName));
+            var importer = Importer("md");
+            var design = importer is MarkdownFileImporter markdownImporter
+                ? await markdownImporter.ImportAsync(
+                    stream,
+                    Path.GetFileNameWithoutExtension(file.FileName),
+                    parsedAssetBaseUri,
+                    HttpContext.RequestAborted)
+                : await importer.ImportAsync(
+                    stream,
+                    Path.GetFileNameWithoutExtension(file.FileName),
+                    HttpContext.RequestAborted);
             return Ok(design);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) when (HttpContext.RequestAborted.IsCancellationRequested)
         {
-            return BadRequest(new { error = $"Could not parse Markdown: {ex.Message}" });
+            throw;
+        }
+        catch (InvalidDataException)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Markdown import rejected.",
+                Detail = "The document exceeds supported Markdown complexity limits.",
+            });
+        }
+        catch (Exception)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Could not parse Markdown.",
+                Detail = "The uploaded document is invalid or unsupported.",
+            });
         }
     }
 

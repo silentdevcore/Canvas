@@ -905,7 +905,7 @@ public static class DesignJsonMapper
                     var isSelected = options[i] == el.SelectedValue;
                     var bullet = el.Type == "radio"
                         ? (isSelected ? "* " : "o ")
-                        : MarkerForStyle(markerStyle, i + 1);
+                        : MarkerForStyle(markerStyle, (el.StartNumber ?? 1) + i);
                     page.DrawText($"{bullet}{options[i]}", elX, TextY(pageH, optCssY, fs),
                         new PdfDrawTextOptions { FontSize = fs, Bold = isSelected, FillColor = textColor });
                 }
@@ -1058,7 +1058,7 @@ public static class DesignJsonMapper
                 {
                     var fnFs  = markerFs * 0.9;
                     var fnX   = elX;
-                    var fnY   = 32.0; // bottom margin area in PDF units
+                    var fnY   = 32.0 + GetDouble(style, "footnoteBottomOffset", 0);
                     var fnColor = ParseColor("#6b7280");
                     var fullNote = $"{refText} {fnText}";
                     page.DrawParagraph(fullNote, fnX, fnY, w, new PdfParagraphOptions { FontSize = fnFs, FillColor = fnColor });

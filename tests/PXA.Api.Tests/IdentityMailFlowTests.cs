@@ -98,6 +98,7 @@ public sealed class IdentityMailFlowTests
         Assert.Equal(HttpStatusCode.Accepted, (await resetClient.SendAsync(requestReset)).StatusCode);
         await ProcessMailAsync(factory.Services);
         var resetMail = await WaitForMessageAsync(transport, "identity.password-reset");
+        Assert.Contains("https://account.pxa.test/reset-password", resetMail.TextBody, StringComparison.Ordinal);
         var resetToken = GetToken(resetMail.TextBody);
 
         resetCsrf = await GetCsrfAsync(resetClient);
@@ -117,6 +118,18 @@ public sealed class IdentityMailFlowTests
             resetCsrf,
             new { token = resetToken, newPassword = "Pxa-Reused-Password-42!" });
         Assert.Equal(HttpStatusCode.BadRequest, (await resetClient.SendAsync(reuseReset)).StatusCode);
+
+        resetCsrf = await GetCsrfAsync(resetClient);
+        using var requestAdminReset = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/admin/password-reset/request",
+            resetCsrf,
+            new { email = "invited@pxa.test" });
+        Assert.Equal(HttpStatusCode.Accepted, (await resetClient.SendAsync(requestAdminReset)).StatusCode);
+        await ProcessMailAsync(factory.Services);
+        var adminResetMail = transport.Messages.Last(value =>
+            value.Subject.Contains("Reset", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("https://admin.pxa.test/reset-password", adminResetMail.TextBody, StringComparison.Ordinal);
 
         string expiredResetToken;
         await using (var expiredTokenScope = factory.Services.CreateAsyncScope())
@@ -223,6 +236,7 @@ public sealed class IdentityMailFlowTests
                     ["Mail:Enabled"] = "true",
                     ["Mail:Transport"] = "Development",
                     ["Mail:AdminBaseUrl"] = "https://admin.pxa.test",
+                    ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
                 }));
             builder.ConfigureServices(services =>
             {

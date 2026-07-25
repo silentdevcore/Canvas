@@ -1,10 +1,13 @@
 {
+  "languageSwitcher": {
+    "chooseLanguage": "Scegli la lingua"
+  },
   "nav": {
-    "home": "Home",
+    "home": "Pagina iniziale",
     "pdf": "PDF",
     "spreadsheet": "Foglio di calcolo",
     "docs": "Documentazione",
-    "logoHome": "Home di Power Dox Automation",
+    "logoHome": "Pagina iniziale di Power Dox Automation",
     "openMenu": "Apri menu",
     "closeMenu": "Chiudi menu",
     "mobileMenu": "Menu mobile"

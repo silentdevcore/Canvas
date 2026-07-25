@@ -379,7 +379,7 @@ export async function acceptInvitation(token, password, displayName) {
 }
 
 export async function requestPasswordReset(email) {
-  return adminMutation(`${authBase}/password-reset/request`, 'POST', { email });
+  return adminMutation(`${authBase}/admin/password-reset/request`, 'POST', { email });
 }
 
 export async function confirmPasswordReset(token, newPassword) {

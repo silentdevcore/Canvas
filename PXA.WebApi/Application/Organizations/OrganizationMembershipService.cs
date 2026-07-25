@@ -121,6 +121,8 @@ public sealed class OrganizationMembershipService(PxaDbContext dbContext)
         }
 
         await ReplaceRolesAsync(membership, roles, actorUserId, cancellationToken);
+        await RevokeOrganizationSessionsAsync(
+            organizationId, userId, actorUserId, "organization-roles-changed", cancellationToken);
         var user = await dbContext.Users.SingleAsync(value => value.Id == userId, cancellationToken);
         return MembershipMutationResult.Succeeded(new OrganizationMemberRecord(
             membership.Id,
@@ -155,6 +157,8 @@ public sealed class OrganizationMembershipService(PxaDbContext dbContext)
 
         membership.Status = OrganizationMembershipStatus.Removed;
         membership.UpdatedAt = DateTimeOffset.UtcNow;
+        await RevokeOrganizationSessionsAsync(
+            organizationId, userId, actorUserId, "organization-membership-removed", cancellationToken);
         return MembershipMutationResult.Succeeded();
     }
 
@@ -202,6 +206,28 @@ public sealed class OrganizationMembershipService(PxaDbContext dbContext)
             RoleId = role.Id,
             AssignedByUserId = actorUserId,
         }));
+    }
+
+    private async Task RevokeOrganizationSessionsAsync(
+        Guid organizationId,
+        Guid userId,
+        Guid actorUserId,
+        string reason,
+        CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var sessions = await dbContext.UserSessions
+            .Where(value =>
+                value.OrganizationId == organizationId &&
+                value.UserId == userId &&
+                value.RevokedAt == null)
+            .ToListAsync(cancellationToken);
+        foreach (var session in sessions)
+        {
+            session.RevokedAt = now;
+            session.RevokedByUserId = actorUserId;
+            session.RevocationReason = reason;
+        }
     }
 
     private async Task<Dictionary<Guid, IReadOnlyList<string>>> GetMemberRolesAsync(

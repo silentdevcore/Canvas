@@ -60,6 +60,8 @@
         "diagnostics": "Diagnostica",
         "debugOverlay": "Pagina overlay di debug",
         "fallbackLayer": "Livello immagine di fallback",
+        "assetBaseUri": "URL di base delle risorse",
+        "assetBaseUriHint": "Cartella HTTP(S) pubblica facoltativa usata per risolvere le immagini Markdown relative.",
         "cancel": "Annulla",
         "chooseFile": "Scegli file"
       },

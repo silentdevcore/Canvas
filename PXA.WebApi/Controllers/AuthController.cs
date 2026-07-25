@@ -336,6 +336,21 @@ public sealed class AuthController : ControllerBase
     [EnableRateLimiting("identity-action")]
     public async Task<IActionResult> RequestPasswordReset(
         RequestPasswordResetRequest request,
+        CancellationToken cancellationToken) =>
+        await RequestPasswordResetAsync(request, mailOptions.AccountBaseUrl, cancellationToken);
+
+    [AllowAnonymous]
+    [HttpPost("admin/password-reset/request")]
+    [PxaValidateAntiforgery]
+    [EnableRateLimiting("identity-action")]
+    public async Task<IActionResult> RequestAdminPasswordReset(
+        RequestPasswordResetRequest request,
+        CancellationToken cancellationToken) =>
+        await RequestPasswordResetAsync(request, mailOptions.AdminBaseUrl, cancellationToken);
+
+    private async Task<IActionResult> RequestPasswordResetAsync(
+        RequestPasswordResetRequest request,
+        string applicationBaseUrl,
         CancellationToken cancellationToken)
     {
         var user = await userManager.FindByEmailAsync(request.Email.Trim());
@@ -356,7 +371,7 @@ public sealed class AuthController : ControllerBase
                 new { },
                 TimeSpan.FromHours(1),
                 cancellationToken);
-            var actionUrl = $"{mailOptions.AdminBaseUrl.TrimEnd('/')}/reset-password?token={Uri.EscapeDataString(issued.RawToken)}";
+            var actionUrl = $"{applicationBaseUrl.TrimEnd('/')}/reset-password?token={Uri.EscapeDataString(issued.RawToken)}";
             mailQueue.Enqueue(
                 organizationId,
                 user.Id,
