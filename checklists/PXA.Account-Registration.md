@@ -17,9 +17,9 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 
 - [x] Use the existing ASP.NET Core Identity, PostgreSQL, mail outbox, and action-token infrastructure.
 - [x] Use `PXA.Designer-Authentication.md` for post-login Designer handoff.
-- [ ] Use `PXA.Subscription-Licensing.md` for Trial and entitlement definitions.
-- [ ] Use `PXA.Mail-Service.md` for verification and security mail delivery.
-- [ ] Keep PXA Admin registration and administrator bootstrap outside this customer flow.
+- [x] Use `PXA.Subscription-Licensing.md` for Trial and entitlement definitions.
+- [x] Use `PXA.Mail-Service.md` for verification and security mail delivery.
+- [x] Keep PXA Admin registration and administrator bootstrap outside this customer flow.
 
 ## Account-Only Entry Points
 
@@ -39,7 +39,7 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 - [x] Require company name only for Company registration.
 - [x] Normalize and validate email addresses before persistence.
 - [x] Validate display and organization names with documented length and character limits.
-- [ ] Apply the existing secure password and breached-password policy.
+- [x] Apply the Identity complexity policy and configurable offline breached-password fingerprint policy.
 - [x] Allow locale and country to be captured through validated values.
 - [x] Keep marketing consent optional and independent from contractual acceptance.
 
@@ -123,7 +123,7 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 - [x] Unit-test registration validation for both account types.
 - [x] Test policy-version and marketing-consent separation.
 - [x] Test safe campaign and return-URL preservation.
-- [ ] Test that Company and Designer expose links but no registration forms.
+- [x] Test that Company and Designer delegate registration to Account and contain no registration forms or registration API calls.
 - [x] Integration-test Individual Developer registration against PostgreSQL.
 - [x] Integration-test Company registration against PostgreSQL.
 - [x] Test atomic user, organization, membership, role, outbox, and Trial creation.

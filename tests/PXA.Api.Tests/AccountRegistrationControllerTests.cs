@@ -30,6 +30,30 @@ public sealed class AccountRegistrationControllerTests
         await SeedRolesAsync(factory.Services);
         using var client = CreateClient(factory);
 
+        using (var breachedPassword = CreateCsrfRequest(
+                   HttpMethod.Post,
+                   "/api/pxa/v1/auth/register",
+                   await GetCsrfAsync(client),
+                   new
+                   {
+                       email = "breached@customer.test",
+                       displayName = "Breached Password",
+                       password = "Password123!",
+                       accountType = "Company",
+                       companyName = "Rejected Registration",
+                       organizationSlug = "rejected-registration",
+                       acceptTerms = true,
+                       acceptPrivacy = true,
+                   }))
+        {
+            var response = await client.SendAsync(breachedPassword);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains(
+                "known compromised-password list",
+                await response.Content.ReadAsStringAsync(),
+                StringComparison.Ordinal);
+        }
+
         using var register = CreateCsrfRequest(
             HttpMethod.Post,
             "/api/pxa/v1/auth/register",

@@ -30,7 +30,8 @@ public static class PersistenceServiceCollectionExtensions
                 options.SignIn.RequireConfirmedEmail = true;
             })
             .AddRoles<PxaIdentityRole>()
-            .AddEntityFrameworkStores<PxaDbContext>();
+            .AddEntityFrameworkStores<PxaDbContext>()
+            .AddPasswordValidator<PxaBreachedPasswordValidator>();
 
         return services;
     }

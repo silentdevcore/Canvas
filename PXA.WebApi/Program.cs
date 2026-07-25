@@ -10,6 +10,7 @@ using PXA.FileImporter;
 using PXA.FileImporter.ImageAnalysis;
 using PXA.FileImporter.ImageOcr;
 using PXA.Infrastructure.Persistence;
+using PXA.Infrastructure.Persistence.Identity;
 using PXA.Pdf;
 using PXA.WebApi.Application.Identity;
 using PXA.WebApi.Application.Designer;
@@ -82,6 +83,13 @@ builder.Services.AddAuthentication(options =>
     });
 builder.Services.AddScoped<PxaCookieAuthenticationEvents>();
 builder.Services.AddScoped<PxaSessionService>();
+builder.Services.AddOptions<PxaPasswordSecurityOptions>()
+    .Bind(builder.Configuration.GetSection(PxaPasswordSecurityOptions.SectionName))
+    .Validate(
+        options => options.BreachedPasswordSha256.All(value =>
+            value.Length == 64 && value.All(Uri.IsHexDigit)),
+        "Every breached-password fingerprint must be a SHA-256 hexadecimal value.")
+    .ValidateOnStart();
 builder.Services.AddOptions<PxaAdminSecurityOptions>()
     .Bind(builder.Configuration.GetSection(PxaAdminSecurityOptions.SectionName));
 builder.Services.AddScoped<PxaSystemOperatorAccess>();
