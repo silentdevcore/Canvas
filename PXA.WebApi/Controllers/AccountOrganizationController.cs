@@ -122,22 +122,31 @@ public sealed class AccountOrganizationController : ControllerBase
         var roles = OrganizationMembershipService.NormalizeRoles(request.Roles);
         if (displayName.Length is < 2 or > 200 || roles is null || roles.Length == 0)
             return ValidationProblem("Provide a display name and at least one valid organization role.");
-        if (await userManager.FindByEmailAsync(email) is not null)
-            return ConflictProblem("A PXA account with this email address already exists.");
+        var user = await userManager.FindByEmailAsync(email);
+        if (user is not null && await dbContext.OrganizationMemberships.AnyAsync(
+                value => value.OrganizationId == organizationId &&
+                         value.UserId == user.Id,
+                cancellationToken))
+        {
+            return ConflictProblem("This PXA account is already a member or has a pending invitation.");
+        }
 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        var user = new PxaIdentityUser
+        if (user is null)
         {
-            UserName = email,
-            Email = email,
-            EmailConfirmed = false,
-            DisplayName = displayName,
-            IsActive = false,
-        };
-        var creation = await userManager.CreateAsync(user);
-        if (!creation.Succeeded)
-        {
-            return ValidationProblem(string.Join(" ", creation.Errors.Select(error => error.Description)));
+            user = new PxaIdentityUser
+            {
+                UserName = email,
+                Email = email,
+                EmailConfirmed = false,
+                DisplayName = displayName,
+                IsActive = false,
+            };
+            var creation = await userManager.CreateAsync(user);
+            if (!creation.Succeeded)
+            {
+                return ValidationProblem(string.Join(" ", creation.Errors.Select(error => error.Description)));
+            }
         }
 
         var membership = new OrganizationMembership
@@ -165,7 +174,8 @@ public sealed class AccountOrganizationController : ControllerBase
             new { organizationId, roles },
             TimeSpan.FromDays(7),
             cancellationToken);
-        var actionUrl = $"{mailOptions.AccountBaseUrl.TrimEnd('/')}/accept-invitation?token={Uri.EscapeDataString(issued.RawToken)}";
+        var actionUrl =
+            $"{mailOptions.AccountBaseUrl.TrimEnd('/')}/accept-invitation?token={Uri.EscapeDataString(issued.RawToken)}";
         mailQueue.Enqueue(
             organizationId,
             user.Id,

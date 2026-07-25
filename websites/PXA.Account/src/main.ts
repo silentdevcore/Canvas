@@ -4,6 +4,7 @@ import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import { sanitizeReturnUrl } from '../../shared/returnUrl.js';
 import { appendSignedInSignal } from '../../shared/signedInSignal.js';
 import {
+  acceptInvitation,
   ApiError,
   confirmEmailChange,
   confirmPasswordReset,
@@ -59,6 +60,7 @@ interface AccountState {
   user: UserInfo | null;
   loading: boolean;
   notice: string;
+  registrationEmail: string;
   verificationStarted: boolean;
   designerAuthorizationStarted: boolean;
 }
@@ -70,6 +72,7 @@ const state: AccountState = {
   notice: new URLSearchParams(location.search).get('reason') === 'session-expired'
     ? 'Your session expired. Sign in again.'
     : '',
+  registrationEmail: '',
   verificationStarted: false,
   designerAuthorizationStarted: false,
 };
@@ -82,6 +85,17 @@ async function handleLogout(): Promise<void> {
 
 function consumeReturnUrl(): string | null {
   return sanitizeReturnUrl(new URLSearchParams(location.search).get('returnUrl'));
+}
+
+function authPath(path: string, includeCampaign = false): string {
+  const target = new URL(path, location.origin);
+  const returnUrl = consumeReturnUrl();
+  if (returnUrl) target.searchParams.set('returnUrl', returnUrl);
+  if (includeCampaign) {
+    const campaign = extractCampaignContext();
+    Object.entries(campaign ?? {}).forEach(([key, value]) => target.searchParams.set(key, value));
+  }
+  return `${target.pathname}${target.search}`;
 }
 
 function withSignedInSignal(url: string): string {
@@ -148,7 +162,7 @@ function loginPage(): string {
       <label class="account-checkbox"><input name="rememberMe" type="checkbox"> Keep me signed in</label>
       <div class="account-form-error" id="form-error" role="alert" hidden></div>
       <button class="pxa-button pxa-button--primary" type="submit">Sign in</button>
-      <a class="pxa-button pxa-button--secondary" href="/register">Create account</a>
+      <a class="pxa-button pxa-button--secondary" href="${escapeHtml(authPath('/register', true))}">Create account</a>
     </form>
     <div class="account-form-links"><a href="/forgot-password">Forgot password?</a></div>
   `, 'Sign in to PXA', 'Continue your document automation work with one secure customer identity.');
@@ -182,8 +196,21 @@ function registerPage(): string {
       <div class="account-form-error" id="form-error" role="alert" hidden></div>
       <button class="pxa-button pxa-button--primary" type="submit">Create account and Trial</button>
     </form>
-    <div class="account-form-links"><span>Already registered? <a href="/login">Sign in</a></span></div>
+    <div class="account-form-links"><span>Already registered? <a href="${escapeHtml(authPath('/login'))}">Sign in</a></span></div>
   `, 'Start with Power Dox Automation', 'Create a verified customer account and evaluate the connected PXA product family.');
+}
+
+function registrationPendingPage(): string {
+  return authLayout(`
+    <header><p class="pxa-kicker">Verification required</p><h2>Check your email</h2><p>If the registration is eligible, PXA has sent a single-use verification link.</p></header>
+    ${message('info', state.notice)}
+    <form class="account-form" id="resend-form">
+      <label>Email<input name="email" type="email" autocomplete="email" value="${escapeHtml(state.registrationEmail)}" required autofocus></label>
+      <div class="account-form-error" id="form-error" role="alert" tabindex="-1" hidden></div>
+      <button class="pxa-button pxa-button--secondary" type="submit">Resend verification email</button>
+    </form>
+    <div class="account-form-links"><a href="${escapeHtml(authPath('/login'))}">Return to sign in</a></div>
+  `, 'Verify your email', 'Account access begins only after the email address has been verified.');
 }
 
 function forgotPasswordPage(): string {
@@ -223,6 +250,38 @@ function verificationPage(): string {
   `, 'Verify your account', 'Complete the secure registration step before signing in.');
 }
 
+function invitationPage(): string {
+  const token = new URLSearchParams(location.search).get('token') || '';
+  const returnToInvitation = sanitizeReturnUrl(location.href);
+  if (state.user) {
+    return authLayout(`
+      <div class="account-result" id="invitation-result">
+        <p class="pxa-kicker">Organization invitation</p>
+        <h2>Join the organization</h2>
+        <p>Accept this invitation as ${escapeHtml(state.user.email)}.</p>
+        <form class="account-form" id="invitation-form" data-token="${escapeHtml(token)}">
+          <div class="account-form-error" id="form-error" role="alert" tabindex="-1" hidden></div>
+          <button class="pxa-button pxa-button--primary" type="submit">Accept invitation</button>
+        </form>
+      </div>
+    `, 'Accept your invitation', 'Membership is added to your existing PXA account without creating another workspace or Trial.');
+  }
+  const signInPath = returnToInvitation
+    ? `/login?returnUrl=${encodeURIComponent(returnToInvitation)}`
+    : '/login';
+  return authLayout(`
+    <header><p class="pxa-kicker">Organization invitation</p><h2>Complete your PXA account</h2><p>Set your name and password to accept the invitation.</p></header>
+    <form class="account-form" id="invitation-form" data-token="${escapeHtml(token)}">
+      <label>Full name<input name="displayName" autocomplete="name" maxlength="200"></label>
+      <label>Password<input name="password" type="password" autocomplete="new-password" minlength="12" required></label>
+      <label>Confirm password<input name="confirmation" type="password" autocomplete="new-password" minlength="12" required></label>
+      <div class="account-form-error" id="form-error" role="alert" tabindex="-1" hidden></div>
+      <button class="pxa-button pxa-button--primary" type="submit">Accept invitation</button>
+    </form>
+    <div class="account-form-links"><span>Already have a PXA account? <a href="${escapeHtml(signInPath)}">Sign in first</a></span></div>
+  `, 'Accept your invitation', 'Join the inviting organization without creating a separate workspace or Trial.');
+}
+
 function confirmEmailChangePage(): string {
   return authLayout(`
     <div class="account-result" id="confirm-email-result">
@@ -251,24 +310,32 @@ function bindForm(formId: string, handler: (data: FormData) => Promise<void>): v
     const form = event.currentTarget as HTMLFormElement;
     const error = form.querySelector<HTMLElement>('#form-error')!;
     const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const originalButtonText = button.textContent ?? '';
     error.hidden = true;
     error.innerHTML = '';
+    form.setAttribute('aria-busy', 'true');
     button.disabled = true;
+    button.textContent = 'Working...';
     try {
       await handler(new FormData(form));
     } catch (requestError) {
       const apiError = requestError as ApiError;
+      form.querySelectorAll<HTMLInputElement>('input[type="password"]').forEach((input) => { input.value = ''; });
       error.hidden = false;
+      error.tabIndex = -1;
+      error.focus();
+      form.removeAttribute('aria-busy');
       button.disabled = false;
+      button.textContent = originalButtonText;
       if (apiError.code === PROBLEM_CODE_VERIFICATION_REQUIRED) {
         const email = formString(new FormData(form), 'identifier');
         error.innerHTML = `${escapeHtml(apiError.message)} <button type="button" class="account-link-button" id="resend-verification-button">Resend verification email</button>`;
         document.querySelector('#resend-verification-button')?.addEventListener('click', async (clickEvent) => {
           (clickEvent.currentTarget as HTMLButtonElement).disabled = true;
-          try { await resendVerification(email); }
+          try { await resendVerification(email, consumeReturnUrl()); }
           finally {
             state.notice = 'If the account is eligible, a new verification message will be sent shortly.';
-            navigate('/login', true);
+            navigate(authPath('/login'), true);
           }
         });
         return;
@@ -312,8 +379,32 @@ function bindEvents(): void {
       acceptPrivacy: data.get('acceptPrivacy') === 'on',
       subscribeToNewsletter: data.get('subscribeToNewsletter') === 'on',
       campaignContext: extractCampaignContext() as Record<string, string> | null,
+      returnUrl: consumeReturnUrl(),
     });
-    state.notice = response!.message; navigate('/login', true);
+    state.registrationEmail = formString(data, 'email');
+    state.notice = response!.message;
+    navigate(authPath('/registration-pending'), true);
+  });
+  bindForm('#resend-form', async (data) => {
+    const email = formString(data, 'email');
+    const response = await resendVerification(email, consumeReturnUrl());
+    state.registrationEmail = email;
+    state.notice = response!.message;
+    render();
+  });
+  bindForm('#invitation-form', async (data) => {
+    const password = formStringOrNull(data, 'password');
+    if (password && password !== data.get('confirmation')) throw new Error('Passwords do not match.');
+    const token = document.querySelector<HTMLFormElement>('#invitation-form')!.dataset.token ?? '';
+    await acceptInvitation(token, password, formStringOrNull(data, 'displayName'));
+    const result = document.querySelector<HTMLElement>('#invitation-result');
+    if (result) {
+      result.innerHTML = '<p class="pxa-kicker">Invitation accepted</p><h2>You joined the organization</h2><p>The organization is now available in your PXA account.</p><a class="pxa-button pxa-button--primary" href="/dashboard">Open Account</a>';
+      bindEvents();
+      return;
+    }
+    state.notice = 'Invitation accepted. Sign in with your new password.';
+    navigate('/login', true);
   });
   bindForm('#forgot-form', async (data) => {
     await requestPasswordReset(formString(data, 'email'));
@@ -331,14 +422,27 @@ async function runVerification(): Promise<void> {
   if (state.verificationStarted) return;
   state.verificationStarted = true;
   const result = document.querySelector<HTMLElement>('#verification-result')!;
+  const token = new URLSearchParams(location.search).get('token') || '';
+  if (!token) {
+    result.innerHTML = `<p class="pxa-kicker">Verification link incomplete</p><h2>The token is missing</h2><p>Open the complete link from your verification email or request a new message.</p><a class="pxa-button pxa-button--secondary" href="${escapeHtml(authPath('/registration-pending'))}">Request another email</a>`;
+    bindEvents();
+    return;
+  }
   try {
-    await verifyEmail(new URLSearchParams(location.search).get('token') || '');
-    result.innerHTML = '<p class="pxa-kicker">Account verified</p><h2>Your Trial is ready</h2><p>You can now sign in to your PXA account.</p><a class="pxa-button pxa-button--primary" href="/login">Sign in</a>';
+    await verifyEmail(token);
+    state.registrationEmail = '';
+    result.innerHTML = `<p class="pxa-kicker">Account verified</p><h2>Your Trial is ready</h2><p>You can now sign in to your PXA account.</p><a class="pxa-button pxa-button--primary" href="${escapeHtml(authPath('/login'))}">Sign in</a>`;
   } catch (error) {
     const apiError = error as ApiError;
-    result.innerHTML = `<p class="pxa-kicker">Verification failed</p><h2>We could not verify this link</h2><p>${escapeHtml(apiError.message)}</p><a class="pxa-button pxa-button--secondary" href="/register">Register again</a>`;
+    result.innerHTML = apiError.isOffline || apiError.status === 503
+      ? `<p class="pxa-kicker">Service unavailable</p><h2>Verification is temporarily unavailable</h2><p>Your link was not consumed. Check the connection and try again.</p><button class="pxa-button pxa-button--primary" id="retry-verification" type="button">Try again</button>`
+      : `<p class="pxa-kicker">Link expired or already used</p><h2>We could not verify this link</h2><p>The verification link is invalid, expired, or has already been used.</p><a class="pxa-button pxa-button--secondary" href="${escapeHtml(authPath('/registration-pending'))}">Request another email</a>`;
   }
   bindEvents();
+  document.querySelector('#retry-verification')?.addEventListener('click', () => {
+    state.verificationStarted = false;
+    render();
+  });
 }
 
 async function runEmailChangeConfirmation(): Promise<void> {
@@ -395,7 +499,9 @@ function render(): void {
     return;
   }
   app.innerHTML = path === '/register' ? registerPage()
-    : path === '/verify-email' ? verificationPage()
+    : path === '/registration-pending' ? registrationPendingPage()
+      : path === '/verify-email' ? verificationPage()
+      : path === '/accept-invitation' ? invitationPage()
       : path === '/confirm-email' ? confirmEmailChangePage()
         : path === '/designer-authorize' ? designerAuthorizationPage()
         : path === '/forgot-password' ? forgotPasswordPage()

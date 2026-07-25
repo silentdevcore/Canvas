@@ -50,7 +50,7 @@ public sealed class AccountRegistrationController : ControllerBase
         ResendVerificationRequest request,
         CancellationToken cancellationToken)
     {
-        await registrationService.ResendVerificationAsync(request.Email, cancellationToken);
+        await registrationService.ResendVerificationAsync(request.Email, request.ReturnUrl, cancellationToken);
         return Accepted(AcceptedResponse());
     }
 

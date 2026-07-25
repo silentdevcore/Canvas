@@ -6,4 +6,5 @@ public sealed class PxaRegistrationOptions
 
     public string TermsVersion { get; set; } = string.Empty;
     public string PrivacyVersion { get; set; } = string.Empty;
+    public string[] AllowedReturnOrigins { get; set; } = [];
 }

@@ -319,19 +319,34 @@ public sealed class AuthController : ControllerBase
                 value.UserId == actionToken.UserId &&
                 value.Status == OrganizationMembershipStatus.Invited,
                 cancellationToken);
-        if (user is null || membership is null || await userManager.HasPasswordAsync(user))
+        if (user is null || membership is null)
             return InvalidActionToken();
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        var passwordResult = await userManager.AddPasswordAsync(user, request.Password);
-        if (!passwordResult.Succeeded)
-            return IdentityFailure(passwordResult);
+        var hasPassword = await userManager.HasPasswordAsync(user);
+        if (hasPassword)
+        {
+            var signedInUserId = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var parsedUserId)
+                ? parsedUserId
+                : (Guid?)null;
+            if (signedInUserId != user.Id)
+                return Unauthorized();
+        }
 
-        user.EmailConfirmed = true;
-        user.IsActive = true;
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        if (!hasPassword)
+        {
+            if (string.IsNullOrWhiteSpace(request.Password))
+                return Problem(statusCode: 400, title: "Password required");
+            var passwordResult = await userManager.AddPasswordAsync(user, request.Password);
+            if (!passwordResult.Succeeded)
+                return IdentityFailure(passwordResult);
+            user.EmailConfirmed = true;
+            user.IsActive = true;
+            if (!string.IsNullOrWhiteSpace(request.DisplayName))
+                user.DisplayName = request.DisplayName.Trim();
+        }
+
         user.UpdatedAt = DateTimeOffset.UtcNow;
-        if (!string.IsNullOrWhiteSpace(request.DisplayName))
-            user.DisplayName = request.DisplayName.Trim();
         var userUpdate = await userManager.UpdateAsync(user);
         if (!userUpdate.Succeeded)
             return IdentityFailure(userUpdate);
@@ -787,7 +802,7 @@ public sealed record SwitchOrganizationRequest(Guid OrganizationId);
 
 public sealed record AcceptInvitationRequest(
     [Required] string Token,
-    [Required] string Password,
+    string? Password = null,
     string? DisplayName = null);
 
 public sealed record RequestPasswordResetRequest([Required, EmailAddress] string Email);

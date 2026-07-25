@@ -47,6 +47,7 @@ public sealed class AccountRegistrationControllerTests
                 acceptTerms = true,
                 acceptPrivacy = true,
                 subscribeToNewsletter = true,
+                returnUrl = "https://designer.powerdoxautomation.com/auth/callback?document=42",
             });
         var registrationResponse = await client.SendAsync(register);
         Assert.Equal(HttpStatusCode.Accepted, registrationResponse.StatusCode);
@@ -122,6 +123,10 @@ public sealed class AccountRegistrationControllerTests
                 .ProcessPendingAsync(CancellationToken.None);
         }
         var mail = Assert.Single(factory.Services.GetRequiredService<DevelopmentMailTransport>().Messages);
+        Assert.Contains(
+            "returnUrl=https%3A%2F%2Fdesigner.powerdoxautomation.com%2Fauth%2Fcallback%3Fdocument%3D42",
+            mail.TextBody,
+            StringComparison.Ordinal);
         var verificationToken = GetToken(mail.TextBody);
         using var verify = CreateCsrfRequest(
             HttpMethod.Post,
@@ -197,7 +202,7 @@ public sealed class AccountRegistrationControllerTests
             HttpMethod.Post,
             "/api/pxa/v1/auth/resend-verification",
             await GetCsrfAsync(client),
-            new { email = "resend@customer.test" });
+            new { email = "resend@customer.test", returnUrl = "https://evil.example/phishing" });
         var knownResponse = await client.SendAsync(known);
         Assert.Equal(HttpStatusCode.Accepted, knownResponse.StatusCode);
         Assert.Equal(
@@ -211,6 +216,7 @@ public sealed class AccountRegistrationControllerTests
         }
         var messages = factory.Services.GetRequiredService<DevelopmentMailTransport>().Messages;
         Assert.Equal(2, messages.Count);
+        Assert.DoesNotContain("evil.example", messages.Last().TextBody, StringComparison.Ordinal);
         var resendToken = GetToken(messages.Last().TextBody);
 
         using var verify = CreateCsrfRequest(
@@ -353,6 +359,10 @@ public sealed class AccountRegistrationControllerTests
         const string marker = "token=";
         var start = body.IndexOf(marker, StringComparison.Ordinal);
         Assert.True(start >= 0);
-        return Uri.UnescapeDataString(body[(start + marker.Length)..].Trim());
+        var encodedToken = body[(start + marker.Length)..].Trim();
+        var separator = encodedToken.IndexOf('&');
+        if (separator >= 0)
+            encodedToken = encodedToken[..separator];
+        return Uri.UnescapeDataString(encodedToken);
     }
 }

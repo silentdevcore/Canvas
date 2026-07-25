@@ -121,7 +121,7 @@ public sealed class CustomerRegistrationService(
             new { organizationId = organization.Id },
             TimeSpan.FromHours(24),
             cancellationToken);
-        var actionUrl = $"{mailOptions.AccountBaseUrl.TrimEnd('/')}/verify-email?token={Uri.EscapeDataString(issued.RawToken)}";
+        var actionUrl = BuildVerificationUrl(issued.RawToken, request.ReturnUrl);
         mailQueue.Enqueue(
             organization.Id,
             user.Id,
@@ -159,7 +159,10 @@ public sealed class CustomerRegistrationService(
         return CustomerRegistrationOutcome.Accepted();
     }
 
-    public async Task ResendVerificationAsync(string email, CancellationToken cancellationToken)
+    public async Task ResendVerificationAsync(
+        string email,
+        string? returnUrl,
+        CancellationToken cancellationToken)
     {
         var user = await userManager.FindByEmailAsync(email.Trim());
         if (user is not { IsActive: true, EmailConfirmed: false })
@@ -181,7 +184,7 @@ public sealed class CustomerRegistrationService(
             new { organizationId },
             TimeSpan.FromHours(24),
             cancellationToken);
-        var actionUrl = $"{mailOptions.AccountBaseUrl.TrimEnd('/')}/verify-email?token={Uri.EscapeDataString(issued.RawToken)}";
+        var actionUrl = BuildVerificationUrl(issued.RawToken, returnUrl);
         mailQueue.Enqueue(
             organizationId,
             user.Id,
@@ -258,5 +261,32 @@ public sealed class CustomerRegistrationService(
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return EmailVerificationOutcome.Succeeded();
+    }
+
+    private string BuildVerificationUrl(string rawToken, string? requestedReturnUrl)
+    {
+        var actionUrl =
+            $"{mailOptions.AccountBaseUrl.TrimEnd('/')}/verify-email?token={Uri.EscapeDataString(rawToken)}";
+        var safeReturnUrl = SanitizeReturnUrl(requestedReturnUrl);
+        return safeReturnUrl is null
+            ? actionUrl
+            : $"{actionUrl}&returnUrl={Uri.EscapeDataString(safeReturnUrl)}";
+    }
+
+    private string? SanitizeReturnUrl(string? rawValue)
+    {
+        if (!Uri.TryCreate(rawValue, UriKind.Absolute, out var value) ||
+            (value.Scheme != Uri.UriSchemeHttp && value.Scheme != Uri.UriSchemeHttps))
+        {
+            return null;
+        }
+
+        return registrationOptions.AllowedReturnOrigins.Any(rawOrigin =>
+                Uri.TryCreate(rawOrigin, UriKind.Absolute, out var origin) &&
+                string.Equals(value.Scheme, origin.Scheme, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(value.Host, origin.Host, StringComparison.OrdinalIgnoreCase) &&
+                value.Port == origin.Port)
+            ? value.AbsoluteUri
+            : null;
     }
 }

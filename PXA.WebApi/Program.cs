@@ -93,8 +93,9 @@ builder.Services.AddOptions<PxaRegistrationOptions>()
             !string.IsNullOrWhiteSpace(options.TermsVersion) &&
             options.TermsVersion.Length <= 64 &&
             !string.IsNullOrWhiteSpace(options.PrivacyVersion) &&
-            options.PrivacyVersion.Length <= 64,
-        "Registration Terms and Privacy versions are required and must not exceed 64 characters.")
+            options.PrivacyVersion.Length <= 64 &&
+            options.AllowedReturnOrigins.Length > 0,
+        "Registration Terms, Privacy versions, and at least one return origin are required.")
     .ValidateOnStart();
 builder.Services.AddOptions<PxaDesignerAuthenticationOptions>()
     .Bind(builder.Configuration.GetSection(PxaDesignerAuthenticationOptions.SectionName))

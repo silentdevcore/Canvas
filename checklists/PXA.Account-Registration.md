@@ -83,38 +83,38 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 - [x] Mark the user email as confirmed only after successful token validation.
 - [x] Activate exactly one 30-day Premium Trial after successful verification.
 - [x] Create the Trial subscription and effective product entitlements atomically.
-- [ ] Prevent Trial duplication through token replay, resend, invitation, or concurrent requests.
+- [x] Prevent Trial duplication through token replay, resend, invitation, or concurrent requests.
 - [x] Do not hard-code Designer access by edition; expose it through the resulting entitlement set.
 - [x] Direct the verified user to PXA Account login with only a safe preserved destination.
 
 ## Login And Product Return
 
 - [x] Keep login credentials exclusively on PXA Account.
-- [ ] Preserve a safe Designer destination through registration, verification, and login.
+- [x] Preserve a safe Designer destination through registration, verification, and login.
 - [x] Create a Designer authorization-code handoff after login when the validated target is PXA Designer.
-- [ ] Return directly to other allowlisted PXA surfaces only according to their authentication contract.
+- [x] Return directly to other allowlisted PXA surfaces only according to their authentication contract.
 - [x] Fall back to the Account dashboard when the destination is missing or invalid.
 - [ ] Show verification-required, expired-link, already-used, suspended, and service-unavailable states without leaking account existence.
 
 ## Invitation Acceptance
 
-- [ ] Route invitation acceptance through PXA Account.
-- [ ] Allow an existing user to authenticate before accepting an invitation.
-- [ ] Allow a new invited user to set credentials and verify ownership through the invitation flow.
-- [ ] Add the user only to the inviting organization.
-- [ ] Do not create a second personal or company organization for invitation acceptance.
-- [ ] Do not activate a second Trial through invitation acceptance.
-- [ ] Enforce invitation expiry, single use, intended email, role bounds, and tenant ownership.
+- [x] Route invitation acceptance through PXA Account.
+- [x] Allow an existing user to authenticate before accepting an invitation.
+- [x] Allow a new invited user to set credentials and verify ownership through the invitation flow.
+- [x] Add the user only to the inviting organization.
+- [x] Do not create a second personal or company organization for invitation acceptance.
+- [x] Do not activate a second Trial through invitation acceptance.
+- [x] Enforce invitation expiry, single use, intended email, role bounds, and tenant ownership.
 - [ ] Audit successful and rejected invitation acceptance.
 
 ## User Experience
 
-- [ ] Provide accessible field labels, inline validation, error summaries, and keyboard focus management.
-- [ ] Preserve entered non-secret values after recoverable validation failures.
-- [ ] Never repopulate password fields.
+- [x] Provide accessible field labels, inline validation, error summaries, and keyboard focus management.
+- [x] Preserve entered non-secret values after recoverable validation failures.
+- [x] Never repopulate password fields.
 - [x] Provide clear Individual Developer and Company explanations.
 - [x] Show Terms, Privacy, and marketing choices independently.
-- [ ] Add loading, submitted, verification-pending, resend, unavailable, and completion states.
+- [x] Add loading, submitted, verification-pending, resend, unavailable, and completion states.
 - [x] Support desktop and mobile layouts.
 - [ ] Localize registration, verification, and recovery content consistently with Account locale support.
 
@@ -122,18 +122,18 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 
 - [x] Unit-test registration validation for both account types.
 - [x] Test policy-version and marketing-consent separation.
-- [ ] Test safe campaign and return-URL preservation.
+- [x] Test safe campaign and return-URL preservation.
 - [ ] Test that Company and Designer expose links but no registration forms.
 - [x] Integration-test Individual Developer registration against PostgreSQL.
 - [x] Integration-test Company registration against PostgreSQL.
 - [x] Test atomic user, organization, membership, role, outbox, and Trial creation.
 - [x] Test duplicate email and organization behavior without enumeration.
-- [ ] Test concurrent registration submissions and transaction rollback.
-- [ ] Test verification success, expiry, malformed token, replay, and resend.
+- [x] Test concurrent registration submissions and transaction rollback.
+- [x] Test verification success, expiry, malformed token, replay, and resend.
 - [x] Test exactly one Trial and correct entitlement assignment.
 - [x] Test that login is rejected before verification.
-- [ ] Test invitation acceptance for existing and new users.
-- [ ] Test that invitations create neither another organization nor another Trial.
+- [x] Test invitation acceptance for existing and new users.
+- [x] Test that invitations create neither another organization nor another Trial.
 - [x] Test Designer return through the authorization-code handoff.
 - [ ] Test accessibility, keyboard navigation, responsive layout, and localized messages.
 
@@ -144,8 +144,8 @@ Provide one secure customer-registration flow exclusively through PXA Account. R
 - [x] No user can sign in before email verification.
 - [x] Verification creates exactly one 30-day Premium Trial and its entitlements.
 - [x] Registration and recovery responses do not reveal unrelated account existence.
-- [ ] Designer registration links return verified entitled users through the secure handoff.
-- [ ] Invitation acceptance never creates an unintended organization or Trial.
+- [x] Designer registration links return verified entitled users through the secure handoff.
+- [x] Invitation acceptance never creates an unintended organization or Trial.
 - [x] Contractual acceptance and optional marketing consent remain separate and auditable.
 
 ## Deferred Work

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Application.Organizations;
@@ -106,6 +107,68 @@ public sealed class AccountOrganizationControllerTests
         var teammate = members.EnumerateArray().Single(member => member.GetProperty("email").GetString() == "teammate@invite.test");
         Assert.Equal("Active", teammate.GetProperty("membershipStatus").GetString());
         Assert.Contains(teammate.GetProperty("roles").EnumerateArray(), role => role.GetString() == PxaRoles.Manager);
+    }
+
+    [PostgreSqlFact]
+    public async Task Existing_user_must_sign_in_to_accept_without_creating_another_workspace_or_trial()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        await SeedRolesAsync(factory.Services);
+        using var ownerClient = CreateClient(factory);
+        using var existingClient = CreateClient(factory);
+        await RegisterVerifiedCompanyAsync(
+            factory, ownerClient, "owner@existing-invite.test", "Owner", "Inviting GmbH", "inviting-co");
+        await RegisterVerifiedCompanyAsync(
+            factory, existingClient, "existing@existing-invite.test", "Existing", "Existing GmbH", "existing-co");
+        await LoginAsync(ownerClient, "owner@existing-invite.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+
+        using var invite = CreateCsrfRequest(
+            HttpMethod.Post, "/api/pxa/v1/account/organization/members",
+            await GetCsrfAsync(ownerClient),
+            new
+            {
+                email = "existing@existing-invite.test",
+                displayName = "Existing",
+                roles = new[] { PxaRoles.Editor },
+            });
+        Assert.Equal(HttpStatusCode.Accepted, (await ownerClient.SendAsync(invite)).StatusCode);
+
+        await using (var mailScope = factory.Services.CreateAsyncScope())
+        {
+            await mailScope.ServiceProvider.GetRequiredService<PxaMailProcessor>()
+                .ProcessPendingAsync(CancellationToken.None);
+        }
+        var invitationMail = factory.Services.GetRequiredService<DevelopmentMailTransport>().Messages.Last(message =>
+            message.RecipientEmail == "existing@existing-invite.test" &&
+            message.TextBody.Contains("/accept-invitation?", StringComparison.Ordinal));
+        var token = GetToken(invitationMail.TextBody);
+
+        using var anonymousClient = CreateClient(factory);
+        using var anonymousAccept = CreateCsrfRequest(
+            HttpMethod.Post, "/api/pxa/v1/auth/accept-invitation",
+            await GetCsrfAsync(anonymousClient), new { token });
+        Assert.Equal(HttpStatusCode.Unauthorized, (await anonymousClient.SendAsync(anonymousAccept)).StatusCode);
+
+        await LoginAsync(
+            existingClient, "existing@existing-invite.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        using var authenticatedAccept = CreateCsrfRequest(
+            HttpMethod.Post, "/api/pxa/v1/auth/accept-invitation",
+            await GetCsrfAsync(existingClient), new { token });
+        Assert.Equal(HttpStatusCode.NoContent, (await existingClient.SendAsync(authenticatedAccept)).StatusCode);
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var existingUserId = await dbContext.Users
+            .Where(user => user.Email == "existing@existing-invite.test")
+            .Select(user => user.Id)
+            .SingleAsync();
+        Assert.Equal(2, await dbContext.OrganizationMemberships.CountAsync(
+            membership => membership.UserId == existingUserId &&
+                          membership.Status == OrganizationMembershipStatus.Active));
+        Assert.Equal(2, await dbContext.Organizations.CountAsync());
+        Assert.Equal(2, await dbContext.OrganizationSubscriptions.CountAsync());
     }
 
     [PostgreSqlFact]

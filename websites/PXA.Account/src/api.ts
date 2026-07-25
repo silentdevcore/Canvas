@@ -52,6 +52,7 @@ export interface RegisterAccountValues {
   acceptPrivacy: boolean;
   subscribeToNewsletter: boolean;
   campaignContext: Record<string, string> | null;
+  returnUrl: string | null;
 }
 
 export interface AccountProfileResponse {
@@ -273,8 +274,10 @@ export const logout = () => mutation(`${authBase}/logout`, {});
 export const register = (values: RegisterAccountValues) =>
   mutation<RegistrationAcceptedResponse>(`${authBase}/register`, values);
 export const verifyEmail = (token: string) => mutation(`${authBase}/verify-email`, { token });
-export const resendVerification = (email: string) =>
-  mutation<RegistrationAcceptedResponse>(`${authBase}/resend-verification`, { email });
+export const resendVerification = (email: string, returnUrl: string | null = null) =>
+  mutation<RegistrationAcceptedResponse>(`${authBase}/resend-verification`, { email, returnUrl });
+export const acceptInvitation = (token: string, password: string | null, displayName: string | null = null) =>
+  mutation(`${authBase}/accept-invitation`, { token, password, displayName });
 export const createDesignerHandoff = (values: DesignerHandoffValues) =>
   mutation<{ redirectUrl: string }>(`${authBase}/designer-handoff`, values);
 export const requestPasswordReset = (email: string) =>

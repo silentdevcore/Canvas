@@ -25,7 +25,8 @@ public sealed record RegisterAccountRequest(
     // against the same allowlist the client already applied, never trusted
     // as-is, and stored only in AuditEvent.DetailsJson - never a first-class
     // field on the user or organization.
-    IReadOnlyDictionary<string, string>? CampaignContext = null);
+    IReadOnlyDictionary<string, string>? CampaignContext = null,
+    string? ReturnUrl = null);
 
 public static class CampaignAttribution
 {
@@ -45,7 +46,9 @@ public static class CampaignAttribution
 
 public sealed record VerifyRegistrationRequest([Required] string Token);
 
-public sealed record ResendVerificationRequest([Required, EmailAddress] string Email);
+public sealed record ResendVerificationRequest(
+    [Required, EmailAddress] string Email,
+    string? ReturnUrl = null);
 
 public sealed record RegistrationAcceptedResponse(string Message);
 
