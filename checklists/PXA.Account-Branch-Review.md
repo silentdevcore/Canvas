@@ -42,7 +42,7 @@ This checklist covers corrective work only. Product roadmap items remain in
 
 ## P1 Authorization And UX
 
-- [ ] Decide whether customer organization roles may intentionally access tenant-scoped Admin APIs.
+- [x] Keep intentional tenant-scoped Admin API access for Organization Administrator and Manager roles while reserving system operations for explicitly allowlisted System Administrators.
 - [x] Separate customer and Admin permissions if the applications must have strict authorization boundaries.
 - [x] Expose effective Account capabilities to the frontend.
 - [x] Hide or disable organization and developer-access mutations for users without the required permission.
@@ -64,11 +64,11 @@ This checklist covers corrective work only. Product roadmap items remain in
 
 ## Branch Hygiene
 
-- [ ] Keep Account commits `76ae0f97` through `16d64574` together.
-- [ ] Move Designer redesign commits `e319afeb` and `3ec60517` to a dedicated branch.
-- [ ] Move localization and template commits `df1764ec` and `dd411030` to a dedicated branch.
-- [ ] Move Markdown importer commit `03071fab` to a dedicated branch.
-- [ ] Confirm that the Admin platform base commit `a719476b` is intended before merging Account work.
+- [x] Keep Account commits `76ae0f97` through `16d64574` together; the audited history contains the complete contiguous Phase 0-12 sequence.
+- [ ] Extract Designer redesign commits `e319afeb` and `3ec60517` to a dedicated branch before merging this mixed branch.
+- [ ] Extract localization and template commits `df1764ec` and `dd411030` to a dedicated branch before merging this mixed branch.
+- [ ] Extract Markdown importer commit `03071fab` to a dedicated branch before merging this mixed branch.
+- [x] Confirm that the Admin platform base commit `a719476b` is intentional: Account reuses its persistent identity, mail, subscription, and administration foundation.
 
 ## Validation
 
@@ -77,7 +77,7 @@ This checklist covers corrective work only. Product roadmap items remain in
 - [x] Run the PXA Company build after shared return-URL changes.
 - [x] Run `git diff --check`.
 - [x] Confirm that the worktree contains no generated build output.
-- [ ] Run the complete solution build or document any remaining build-process blocker.
+- [x] Run the complete solution build. `dotnet build PXA.sln --no-restore -p:UseSharedCompilation=false -m:1` completed with 0 errors; existing dependency, analyzer, obsolete-API, nullable, and license warnings remain.
 
 ## Acceptance Criteria
 

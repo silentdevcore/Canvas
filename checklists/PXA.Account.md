@@ -40,7 +40,7 @@ Deliver a standalone customer identity and self-service portal for registration,
 
 - [x] Reuse the secure PXA cookie, session, lockout, password policy, and security-stamp infrastructure.
 - [x] Add Account login, logout, current-user, password-reset, and email-verification routes.
-- [x] Keep customer authorization separate from System Administrator access; dedicated customer policies remain open.
+- [x] Keep customer authorization separate from System Administrator access through dedicated Account permissions; Organization Administrator and Manager intentionally retain tenant-scoped Admin self-service APIs, while system operations require an explicitly allowlisted System Administrator.
 - [x] Support safe `returnUrl` redirects to Designer, Demo, Documentation, or Account routes.
 - [x] Reject external, protocol-relative, and untrusted return URLs.
 - [x] Display explicit expired-session, locked-account, verification-required, and suspended-account states. (suspended-account is a dashboard banner - `dashboard.ts` now fetches organization status via `getAccountOrganization()` and shows an alert when `status === 'Suspended'`, per the original judgment call to keep it informational rather than login-blocking)
@@ -100,7 +100,7 @@ Deliver a standalone customer identity and self-service portal for registration,
 - [x] Test cross-tenant profile, organization, subscription, license, key, and session access attempts. (`AccountCrossTenantAccessTests`, plus existing per-resource coverage in the licenses/service-accounts test files)
 - [x] Test Company-to-Account links and authenticated return flows. (no jsdom/DOM-simulation library is reachable from this project's plain `node --test` runner, so the return-flow logic — previously split between a private function in `main.ts` and inline parsing in Company's `main.js` — was extracted into a pure, dependency-free `shared/signedInSignal.js` and covered by `signedInSignal.test.ts`: appending the signal only for the Company origin, preserving other query params, and stripping/consuming it correctly)
 - [x] Test keyboard navigation, focus management, responsive layouts, and accessible validation through Playwright desktop and mobile browser scenarios.
-- [ ] Build PXA.Account and run desktop/mobile smoke tests. Build and type-check are verified; automated browser viewport smoke tests remain open.
+- [x] Build and type-check PXA Account and run automated desktop/mobile browser smoke scenarios through `account-designer-flow.spec.ts` and `account-accessibility.spec.ts`.
 
 ## Acceptance Criteria
 

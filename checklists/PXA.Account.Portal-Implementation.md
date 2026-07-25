@@ -505,16 +505,14 @@ time.
       actual Company→Account→back navigation. Left open; lowest remaining
       priority given the pure function it depends on is already covered.
 - [x] Build+smoke check for `websites/PXA.Account` — `npm run build` and
-      `npm run type-check` both clean; no dedicated desktop/mobile viewport
-      smoke-test harness exists in this repo for any website bundle
-      (Admin/Company/Designer included), so this remains a manual-browser
-      exercise rather than an automated one, consistent with how every other
-      site in this repo is verified.
+      `npm run type-check` both clean; desktop and mobile Account-to-Designer,
+      entitlement-denial, keyboard, focus, and forbidden-state scenarios now
+      run through `pxa-designer/e2e/account-designer-flow.spec.ts` and
+      `pxa-designer/e2e/account-accessibility.spec.ts`.
 - [x] Re-read `PXA.Account.md` top to bottom; every box is now checked
       except the four Deferred Decisions and the deferred pricing-copy line,
-      plus the two explicitly-acknowledged remaining gaps above (repeated-Trial
-      test — not applicable by design — and the Company→Account DOM-level
-      return-flow test).
+      plus the explicitly acknowledged Company-to-Account DOM-level
+      return-flow test above.
 
 ## Notes
 
