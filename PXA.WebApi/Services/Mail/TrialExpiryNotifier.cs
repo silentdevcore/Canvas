@@ -17,7 +17,10 @@ namespace PXA.WebApi.Services.Mail;
 /// but this checks first so a re-run is a cheap no-op rather than a caught
 /// database exception.
 /// </summary>
-public sealed class TrialExpiryNotifier(PxaDbContext dbContext, IPxaMailQueue mailQueue)
+public sealed class TrialExpiryNotifier(
+    PxaDbContext dbContext,
+    IPxaMailQueue mailQueue,
+    OrganizationNotificationService notifications)
 {
     private static readonly int[] WarningDaysBeforeExpiry = [7, 3, 1];
 
@@ -89,6 +92,50 @@ public sealed class TrialExpiryNotifier(PxaDbContext dbContext, IPxaMailQueue ma
             await dbContext.SaveChangesAsync(cancellationToken);
         return notified;
     }
+
+    public async Task<int> NotifyExpiringLicensesAsync(CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var horizon = now.AddDays(WarningDaysBeforeExpiry.Max());
+        var licenses = await dbContext.OfflineLicenses.AsNoTracking()
+            .Where(value =>
+                value.Status == OfflineLicenseStatus.Active &&
+                value.ValidUntil > now &&
+                value.ValidUntil <= horizon)
+            .ToListAsync(cancellationToken);
+
+        var notified = 0;
+        foreach (var license in licenses)
+        {
+            var daysRemaining = WarningDaysBeforeExpiry
+                .Where(days => license.ValidUntil <= now.AddDays(days))
+                .DefaultIfEmpty(-1)
+                .Min();
+            if (daysRemaining < 0)
+                continue;
+
+            var eventKey = $"license-expiring:{license.Id}:{daysRemaining}";
+            if (await dbContext.MailOutboxMessages.AsNoTracking()
+                    .AnyAsync(value => value.IdempotencyKey.StartsWith($"{eventKey}:"),
+                        cancellationToken))
+                continue;
+
+            notified += await notifications.QueueAdministratorsAsync(
+                license.OrganizationId,
+                "license.changed",
+                eventKey,
+                new Dictionary<string, string>
+                {
+                    ["summary"] =
+                        $"Offline license {license.LicenseNumber} expires on {license.ValidUntil:yyyy-MM-dd}.",
+                },
+                cancellationToken);
+        }
+
+        if (notified > 0)
+            await dbContext.SaveChangesAsync(cancellationToken);
+        return notified;
+    }
 }
 
 public sealed class TrialExpiryWorker(IServiceScopeFactory scopeFactory, ILogger<TrialExpiryWorker> logger)
@@ -101,8 +148,9 @@ public sealed class TrialExpiryWorker(IServiceScopeFactory scopeFactory, ILogger
             try
             {
                 await using var scope = scopeFactory.CreateAsyncScope();
-                await scope.ServiceProvider.GetRequiredService<TrialExpiryNotifier>()
-                    .NotifyExpiringTrialsAsync(stoppingToken);
+                var notifier = scope.ServiceProvider.GetRequiredService<TrialExpiryNotifier>();
+                await notifier.NotifyExpiringTrialsAsync(stoppingToken);
+                await notifier.NotifyExpiringLicensesAsync(stoppingToken);
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {

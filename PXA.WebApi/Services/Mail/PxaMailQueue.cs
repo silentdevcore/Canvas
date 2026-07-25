@@ -19,6 +19,9 @@ internal static class PxaMailTemplatePolicy
         "identity.new-login",
         "identity.lockout",
         "identity.trial-expiring",
+        "subscription.changed",
+        "license.changed",
+        "security.organization-changed",
     };
 
     public static bool IsTransactional(string templateKey) =>
@@ -60,7 +63,7 @@ public sealed class PxaMailQueue : IPxaMailQueue
         if (!PxaMailTemplatePolicy.IsTransactional(templateKey))
         {
             throw new ArgumentException(
-                "The transactional mail queue accepts identity templates only. Marketing messages require a separate consent and suppression workflow.",
+                "The transactional mail queue accepts approved transactional templates only. Marketing messages require a separate consent and suppression workflow.",
                 nameof(templateKey));
         }
 

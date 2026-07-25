@@ -62,6 +62,19 @@ public sealed class AccountServiceAccountsAndSecurityControllerTests
 
         var afterRevoke = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/account/service-accounts");
         Assert.False(afterRevoke[0].GetProperty("isActive").GetBoolean());
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<PxaMailProcessor>()
+            .ProcessPendingAsync(CancellationToken.None);
+        Assert.Equal(4, factory.Services.GetRequiredService<DevelopmentMailTransport>().Messages.Count(value =>
+            value.Subject == "Security change in your Power Dox Automation organization"));
+        var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var securityMessages = await dbContext.MailOutboxMessages.AsNoTracking()
+            .Where(value => value.TemplateKey == "security.organization-changed")
+            .ToListAsync();
+        Assert.Equal(4, securityMessages.Count);
+        Assert.Equal(4, securityMessages.Select(value => value.IdempotencyKey).Distinct().Count());
+        Assert.All(securityMessages, value => Assert.DoesNotContain(secret!, value.ProtectedPayload));
     }
 
     [PostgreSqlFact]

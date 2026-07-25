@@ -6,17 +6,19 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 
 ## Priorities
 
-- [ ] P0: Establish PostgreSQL, EF Core persistence, schema ownership, and migrations.
-- [ ] P0: Persist identity, organizations, authorization, subscriptions, licenses, audit, and mail outbox data.
+- [x] P0: Establish PostgreSQL, EF Core persistence, implemented schema ownership, and migrations.
+- [x] P0: Persist identity, organizations, authorization, subscriptions, licenses, audit, and mail outbox data.
 - [ ] P0: Enforce tenant isolation and production security boundaries.
-- [ ] P1: Add template metadata, usage aggregation, retention, backup, restore, and operational monitoring.
+- [x] P1: Add tenant-scoped Designer template metadata, immutable versions, raw usage events, and mail-outbox retention.
+- [ ] P1: Add usage aggregation where justified, backup, restore, and operational monitoring.
 - [ ] P2: Add scale-out read models, archival, and advanced disaster-recovery options when required.
 
 ## Dependencies
 
-- [ ] Align identity and administration entities with `PXA.Admin.md`.
-- [ ] Align editions, entitlements, usage, and offline licenses with `PXA.Subscription-Licensing.md`.
-- [ ] Align outbox, delivery, consent, and suppression entities with `PXA.Mail-Service.md`.
+- [x] Align implemented identity and administration entities with `PXA.Admin.md`.
+- [x] Align editions, entitlements, raw usage, and offline licenses with `PXA.Subscription-Licensing.md`.
+- [x] Align transactional outbox and delivery entities with `PXA.Mail-Service.md`.
+- [ ] Add the marketing consent, preference, bounce, complaint, and suppression entities planned in `PXA.Mail-Service.md`.
 - [ ] Align container health, volumes, secrets, and startup behavior with `PXA.Api-Docker.md`.
 - [x] Confirm a PostgreSQL EF Core provider version compatible with the repository's .NET 10 target before implementation.
 
@@ -32,7 +34,8 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 
 ## Storage Boundaries
 
-- [ ] Store users, organizations, subscriptions, entitlements, audit events, jobs, mail state, and document metadata in PostgreSQL.
+- [x] Store users, organizations, subscriptions, entitlements, audit events, mail state, and Designer template metadata in PostgreSQL.
+- [ ] Store asynchronous jobs and general document metadata in PostgreSQL.
 - [ ] Store large PDF, DOCX, spreadsheet, image, export, and temporary processing files outside PostgreSQL.
 - [ ] Define an object-storage abstraction for Cloud object storage and On-Premise filesystem or S3-compatible storage.
 - [ ] Store immutable object keys, content type, size, checksum, tenant, ownership, retention, and lifecycle state in the database.
@@ -41,10 +44,12 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 
 ## Schema Ownership
 
-- [ ] Define bounded persistence areas for Identity, Administration, Subscription, Licensing, Usage, Audit, Mail, Templates, Jobs, and Storage Metadata.
+- [x] Define implemented persistence areas across the `identity`, `administration`, and `designer` schemas.
+- [ ] Add explicit persistence ownership for future Jobs and Storage Metadata.
 - [ ] Use explicit table, column, index, constraint, and foreign-key naming conventions.
 - [x] Use stable opaque identifiers and UTC timestamps.
-- [ ] Add optimistic concurrency tokens to administrator-editable records.
+- [x] Add revision-based optimistic concurrency to mutable Designer template drafts.
+- [ ] Add optimistic concurrency tokens to remaining administrator-editable records where concurrent updates are unsafe.
 - [ ] Add creation, update, actor, tenant, and soft-delete metadata where required.
 - [ ] Avoid generic key-value storage for domain data that requires validation, filtering, or constraints.
 - [ ] Document ownership of every table and prohibit direct cross-boundary writes outside application services.
@@ -52,19 +57,22 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 ## Identity And Administration Data
 
 - [x] Persist ASP.NET Core Identity users, credentials, claims, roles, external logins, and security tokens.
-- [ ] Persist organizations, memberships, teams, role assignments, and permission grants.
-- [ ] Persist invitations, email verification state, active sessions, and session revocation.
-- [ ] Persist service accounts, hashed API-key material, scopes, expiry, rotation, and last-used metadata.
+- [x] Persist organizations, memberships, role assignments, and permission grants.
+- [ ] Add organization teams when the team model is selected.
+- [x] Persist invitations, email verification state, active sessions, and session revocation.
+- [x] Persist service accounts, hashed API-key material, expiry, revocation, and last-used metadata.
+- [ ] Add explicit API-key scopes and rotation workflows.
 - [ ] Preserve identity references needed by immutable audit events after user deactivation or soft deletion.
-- [ ] Apply normalized unique constraints for usernames and email addresses according to tenant policy.
+- [x] Apply ASP.NET Core Identity normalization and unique constraints for usernames and email addresses.
 
 ## Subscription And Licensing Data
 
-- [ ] Persist account type, edition, billing period, lifecycle state, dates, and organization ownership.
-- [ ] Persist edition defaults, negotiated entitlement overrides, seats, assignments, quotas, and current effective grants.
-- [ ] Persist subscription state transitions as immutable events.
-- [ ] Persist offline-license metadata, public verification data, issuance, replacement, revocation, and expiry without storing private signing keys.
-- [ ] Persist idempotent usage events with tenant, product, operation, quantity, request ID, and timestamp.
+- [x] Persist account type, edition, billing period, lifecycle state, dates, and organization ownership.
+- [x] Persist edition defaults, entitlement overrides, seats, assignments, quotas, and current effective grants.
+- [x] Persist subscription state transitions as immutable events.
+- [x] Persist offline-license metadata, public verification data, issuance, revocation, and expiry without storing private signing keys.
+- [ ] Add an explicit offline-license replacement workflow.
+- [x] Persist idempotent usage events with tenant, capability, operation, quantity, request ID, and timestamp.
 - [ ] Add aggregation tables or materialized read models only after correctness of raw usage events is established.
 - [ ] Protect subscription, license, and usage mutations with transactions and concurrency checks.
 
@@ -74,14 +82,15 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 - [x] Persist mail queue state, template version, recipient reference, delivery attempts, provider message ID, and sanitized failure reason.
 - [ ] Persist marketing consent, confirmation, withdrawal, preferences, bounce, complaint, and suppression state separately from transactional mail.
 - [x] Enforce unique idempotency keys for queued messages.
-- [ ] Define retention and deletion rules that preserve required audit evidence without retaining full message bodies unnecessarily.
+- [x] Define and implement bounded retention for terminal mail-outbox records without persisting rendered message bodies.
+- [ ] Define retention and deletion rules for future consent and suppression records.
 - [ ] Prevent mail workers from reading or updating another tenant's records.
 
 ## Templates, Documents, And Jobs
 
-- [ ] Replace the current in-memory template repository with a persistent implementation.
-- [ ] Persist template identity, version, owner, tenant, locale, status, timestamps, and storage reference.
-- [ ] Define immutable template versions and controlled publication state transitions.
+- [x] Replace the in-memory Designer template repository with a PostgreSQL implementation.
+- [x] Persist template identity, owner, organization, status, tags, timestamps, revision, checksum, and JSON design document.
+- [x] Define immutable Designer template versions and controlled publication state transitions.
 - [ ] Persist asynchronous job state, progress, cancellation, result reference, diagnostics, and expiry.
 - [ ] Keep large source and result files in object storage and store only metadata and references in PostgreSQL.
 - [ ] Define cleanup behavior for expired jobs, temporary files, abandoned uploads, and deleted templates.
@@ -89,10 +98,10 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 ## Tenant Isolation
 
 - [ ] Require an organization or tenant identifier on all tenant-owned records.
-- [ ] Resolve the active tenant from authenticated server context rather than trusting arbitrary request values.
-- [ ] Apply tenant filters in repositories and application services.
+- [x] Resolve the active tenant from authenticated server context rather than trusting arbitrary request values.
+- [x] Apply tenant filters in implemented repositories and application services.
 - [ ] Add database constraints and composite unique indexes that include tenant identity where appropriate.
-- [ ] Define the limited set of global System Administrator records explicitly.
+- [x] Define System Administrator access explicitly and keep organization roles tenant-scoped.
 - [ ] Prevent cross-tenant joins, exports, background jobs, cache keys, and object-storage references.
 - [ ] Add automated cross-tenant isolation tests for every repository and privileged query path.
 - [ ] Evaluate PostgreSQL row-level security as an additional defense after application-level isolation is correct.
@@ -143,8 +152,9 @@ Provide one secure, tenant-aware, and operationally reliable persistence platfor
 
 ## Docker And Local Development
 
-- [ ] Add a version-pinned PostgreSQL service to Docker Compose with a named data volume.
-- [ ] Add a health check and make API readiness depend on database availability and schema compatibility.
+- [x] Add a version-pinned PostgreSQL service to Docker Compose with a named data volume.
+- [x] Add a PostgreSQL container health check and database readiness reporting.
+- [ ] Make production API startup and readiness enforce schema compatibility.
 - [ ] Provide safe local-development credentials through ignored environment files or secret tooling.
 - [ ] Provide commands for migration, reset of disposable local data, backup, and restore.
 - [ ] Keep destructive development reset commands explicitly scoped and unavailable in production images.
@@ -165,10 +175,13 @@ Current verification status:
 - [x] Verify organization administration, cross-tenant denial, and switched System Administrator context against Testcontainers PostgreSQL.
 
 - [ ] Unit-test domain and application rules independently from EF Core where appropriate.
+- [x] Unit-test implemented subscription policy and offline-license validation independently from EF Core.
 - [x] Run repository and migration tests against a real version-pinned PostgreSQL container.
-- [ ] Apply every migration from an empty database and from the latest supported previous release.
+- [x] Apply every migration from an empty PostgreSQL database in integration tests.
+- [ ] Apply migrations from the latest supported previous release.
 - [ ] Test constraints, concurrency, transactions, idempotency, pagination, and cancellation.
-- [ ] Test tenant isolation for Identity, Admin, Subscription, Licensing, Usage, Mail, Templates, Jobs, and Storage Metadata.
+- [x] Test tenant isolation for implemented Identity, Admin, Subscription, Licensing, Usage, Mail, and Designer Template paths.
+- [ ] Test tenant isolation for future Jobs and Storage Metadata.
 - [ ] Test outbox atomicity and worker recovery after interruption.
 - [ ] Test backup and restore with database and object-storage reconciliation.
 - [ ] Test expired retention records, soft deletion, anonymization, and hard-deletion workflows.
@@ -178,7 +191,7 @@ Current verification status:
 ## Acceptance Criteria
 
 - [ ] Cloud and On-Premise use the same logical PostgreSQL schema and migration history.
-- [ ] No production identity, subscription, license, audit, or mail state depends on in-memory storage.
+- [x] No production identity, subscription, license, audit, mail, or Designer template state depends on in-memory storage.
 - [ ] Large customer documents are stored outside PostgreSQL with tenant-safe metadata references.
 - [ ] Every tenant-owned query and mutation enforces organization isolation.
 - [ ] Schema changes are versioned, reviewable, repeatable, and recoverable.

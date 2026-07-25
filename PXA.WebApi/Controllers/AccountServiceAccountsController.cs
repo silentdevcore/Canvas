@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Mail;
 
 namespace PXA.WebApi.Controllers;
 
@@ -16,11 +17,16 @@ public sealed class AccountServiceAccountsController : ControllerBase
 {
     private readonly PxaDbContext dbContext;
     private readonly IPxaTenantContext tenantContext;
+    private readonly OrganizationNotificationService notifications;
 
-    public AccountServiceAccountsController(PxaDbContext dbContext, IPxaTenantContext tenantContext)
+    public AccountServiceAccountsController(
+        PxaDbContext dbContext,
+        IPxaTenantContext tenantContext,
+        OrganizationNotificationService notifications)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
+        this.notifications = notifications;
     }
 
     [HttpGet]
@@ -74,6 +80,11 @@ public sealed class AccountServiceAccountsController : ControllerBase
         };
         dbContext.ServiceAccounts.Add(account);
         AddAudit(account, "account.serviceaccounts.created");
+        await QueueSecurityNotification(
+            account,
+            $"account-service-account-created:{account.Id}",
+            $"Service account \"{account.Name}\" was created.",
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return CreatedAtAction(nameof(GetAll), new AccountServiceAccountResponse(
             account.Id, account.Name, account.IsActive, account.CreatedAt, account.RevokedAt, []));
@@ -112,6 +123,11 @@ public sealed class AccountServiceAccountsController : ControllerBase
         };
         dbContext.ApiKeys.Add(apiKey);
         AddAudit(account, "account.serviceaccounts.key-created", new { apiKey.Id, apiKey.Name, apiKey.Prefix, apiKey.ExpiresAt });
+        await QueueSecurityNotification(
+            account,
+            $"account-api-key-created:{apiKey.Id}",
+            $"API key \"{apiKey.Name}\" was created for service account \"{account.Name}\".",
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return CreatedAtAction(nameof(GetAll), new CreateAccountApiKeyResponse(
             apiKey.Id, account.Id, apiKey.Name, apiKey.Prefix, generated.Secret,
@@ -139,6 +155,15 @@ public sealed class AccountServiceAccountsController : ControllerBase
             key.RevokedAt = DateTimeOffset.UtcNow;
             AddAudit(new ServiceAccount { Id = accountId, OrganizationId = organizationId, Name = string.Empty },
                 "account.serviceaccounts.key-revoked", new { key.Id, key.Name, key.Prefix });
+            await notifications.QueueAdministratorsAsync(
+                organizationId,
+                "security.organization-changed",
+                $"account-api-key-revoked:{key.Id}:{key.RevokedAt.Value.UtcDateTime.Ticks}",
+                new Dictionary<string, string>
+                {
+                    ["summary"] = $"API key \"{key.Name}\" was revoked.",
+                },
+                cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
         return NoContent();
@@ -159,9 +184,17 @@ public sealed class AccountServiceAccountsController : ControllerBase
             account.IsActive = false;
             account.RevokedAt = now;
             account.UpdatedAt = now;
-            await dbContext.ApiKeys.Where(value => value.ServiceAccountId == account.Id && value.RevokedAt == null)
-                .ExecuteUpdateAsync(setters => setters.SetProperty(value => value.RevokedAt, now), cancellationToken);
+            var activeKeys = await dbContext.ApiKeys
+                .Where(value => value.ServiceAccountId == account.Id && value.RevokedAt == null)
+                .ToListAsync(cancellationToken);
+            foreach (var key in activeKeys)
+                key.RevokedAt = now;
             AddAudit(account, "account.serviceaccounts.revoked");
+            await QueueSecurityNotification(
+                account,
+                $"account-service-account-revoked:{account.Id}:{now.UtcDateTime.Ticks}",
+                $"Service account \"{account.Name}\" was revoked.",
+                cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
         }
         return NoContent();
@@ -184,6 +217,18 @@ public sealed class AccountServiceAccountsController : ControllerBase
             Outcome = "succeeded",
             DetailsJson = details is null ? null : JsonSerializer.Serialize(details),
         });
+
+    private Task<int> QueueSecurityNotification(
+        ServiceAccount account,
+        string eventKey,
+        string summary,
+        CancellationToken cancellationToken) =>
+        notifications.QueueAdministratorsAsync(
+            account.OrganizationId,
+            "security.organization-changed",
+            eventKey,
+            new Dictionary<string, string> { ["summary"] = summary },
+            cancellationToken);
 
     private ObjectResult MissingOrganization() => Problem(
         statusCode: StatusCodes.Status403Forbidden, title: "Organization context required");

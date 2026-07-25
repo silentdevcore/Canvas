@@ -90,7 +90,7 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 - [x] Add a detail view for Trial extension, renewal, grace period, cancellation, entitlement overrides, seat assignment, and lifecycle history.
 - [x] Add offline-license generation and usage-metering views.
 - [ ] Show customers their edition, renewal or expiry date, limits, usage, and upgrade path.
-- [ ] Send lifecycle notifications through `PXA.Mail-Service.md`.
+- [x] Send implemented subscription lifecycle, seat, and offline-license notifications through `PXA.Mail-Service.md`.
 - [ ] Update PXA.Company pricing and license content after commercial decisions are approved.
 - [ ] Keep billing-provider integration behind an application abstraction.
 

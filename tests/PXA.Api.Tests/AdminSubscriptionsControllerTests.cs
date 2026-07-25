@@ -14,6 +14,7 @@ using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Entitlements;
+using PXA.WebApi.Services.Mail;
 using Testcontainers.PostgreSql;
 
 namespace PXA.Api.Tests;
@@ -257,6 +258,12 @@ public sealed class AdminSubscriptionsControllerTests
         var artifact = await download.Content.ReadAsStringAsync();
         Assert.Contains("ECDSA_P256_SHA256", artifact, StringComparison.Ordinal);
         Assert.DoesNotContain("PRIVATE KEY", artifact, StringComparison.Ordinal);
+        await using (var notificationScope = factory.Services.CreateAsyncScope())
+        {
+            var notifier = notificationScope.ServiceProvider.GetRequiredService<TrialExpiryNotifier>();
+            Assert.Equal(1, await notifier.NotifyExpiringLicensesAsync(default));
+            Assert.Equal(0, await notifier.NotifyExpiringLicensesAsync(default));
+        }
         using var revoke = CreateCsrfRequest(HttpMethod.Post,
             $"/api/pxa/v1/admin/licenses/{licenseId}/revoke",
             await GetCsrfAsync(systemClient), new { reason = "Integration test replacement" });
@@ -302,6 +309,26 @@ public sealed class AdminSubscriptionsControllerTests
         Assert.Contains("api_keys.revoke", auditActions);
         Assert.Contains("licenses.issue", auditActions);
         Assert.Contains("licenses.revoke", auditActions);
+        var transactionalTemplates = await dbContext.MailOutboxMessages.AsNoTracking()
+            .Select(value => value.TemplateKey)
+            .ToListAsync();
+        Assert.Contains("subscription.changed", transactionalTemplates);
+        Assert.Contains("license.changed", transactionalTemplates);
+        Assert.Contains("security.organization-changed", transactionalTemplates);
+        Assert.Equal(
+            await dbContext.MailOutboxMessages.CountAsync(),
+            await dbContext.MailOutboxMessages.Select(value => value.IdempotencyKey).Distinct().CountAsync());
+        var mailProcessor = scope.ServiceProvider.GetRequiredService<PxaMailProcessor>();
+        while (await mailProcessor.ProcessPendingAsync(CancellationToken.None) > 0)
+        {
+        }
+        var deliveredMessages = factory.Services.GetRequiredService<DevelopmentMailTransport>().Messages;
+        Assert.Contains(deliveredMessages, value =>
+            value.Subject == "Your Power Dox Automation subscription changed");
+        Assert.Contains(deliveredMessages, value =>
+            value.Subject == "Your Power Dox Automation license changed");
+        Assert.Contains(deliveredMessages, value =>
+            value.Subject == "Security change in your Power Dox Automation organization");
 
         var foreignOrganization = new Organization { Name = "Foreign Audit Tenant", Slug = "foreign-audit-tenant" };
         var foreignAuditEvent = new AuditEvent
@@ -372,6 +399,8 @@ public sealed class AdminSubscriptionsControllerTests
                     ["ProductAccess:Enabled"] = "true",
                     ["AdminSecurity:RequireExplicitSystemOperators"] = "true",
                     ["AdminSecurity:SystemOperatorEmails:0"] = "system@pxa.test",
+                    ["Mail:Enabled"] = "true",
+                    ["Mail:Transport"] = "Development",
                 }));
             builder.ConfigureServices(services =>
             {

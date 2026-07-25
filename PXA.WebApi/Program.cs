@@ -232,6 +232,7 @@ builder.Services.AddScoped<SubscriptionQueryService>();
 builder.Services.AddScoped<IPxaMailQueue, PxaMailQueue>();
 builder.Services.AddScoped<PxaMailProcessor>();
 builder.Services.AddScoped<PxaMailRetentionService>();
+builder.Services.AddScoped<OrganizationNotificationService>();
 builder.Services.AddSingleton<DevelopmentMailTransport>();
 builder.Services.AddSingleton<SmtpMailTransport>();
 builder.Services.AddSingleton<DisabledMailTransport>();

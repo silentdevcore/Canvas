@@ -6,10 +6,12 @@ Maintain one prioritized index of product work outside PXA Admin. Detailed imple
 
 ## P0 - Customer Platform
 
-- [ ] Deliver customer registration, sign-in, Trial activation, organization ownership, and self-service account management through `PXA.Account.md`.
+- [x] Deliver customer registration, sign-in, Trial activation, organization ownership, and core self-service account management through `PXA.Account.md`.
 - [ ] Complete transactional and security email flows tracked in `PXA.Mail-Service.md`.
-- [ ] Harden subscription lifecycle, limits, offline licensing, and customer visibility through `PXA.Subscription-Licensing.md`.
-- [ ] Replace in-memory templates and jobs with persistent metadata and object-storage boundaries from `PXA.Database.md`.
+- [x] Harden the subscription lifecycle, entitlement checks, seat management, and signed offline-license validation through `PXA.Subscription-Licensing.md`.
+- [ ] Complete customer subscription visibility, commercial quota decisions, billing integration, and operational offline-license workflows.
+- [x] Replace in-memory Designer templates with tenant-scoped PostgreSQL drafts and immutable versions from `PXA.Database.md`.
+- [ ] Add persistent asynchronous jobs and object-storage boundaries for source files, results, previews, and attachments.
 
 ## P0 - Product Quality
 

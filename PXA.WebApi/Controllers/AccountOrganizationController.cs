@@ -28,6 +28,7 @@ public sealed class AccountOrganizationController : ControllerBase
     private readonly IdentityActionTokenService actionTokens;
     private readonly IPxaMailQueue mailQueue;
     private readonly PxaMailOptions mailOptions;
+    private readonly OrganizationNotificationService notifications;
 
     public AccountOrganizationController(
         PxaDbContext dbContext,
@@ -36,7 +37,8 @@ public sealed class AccountOrganizationController : ControllerBase
         UserManager<PxaIdentityUser> userManager,
         IdentityActionTokenService actionTokens,
         IPxaMailQueue mailQueue,
-        IOptions<PxaMailOptions> mailOptions)
+        IOptions<PxaMailOptions> mailOptions,
+        OrganizationNotificationService notifications)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
@@ -45,6 +47,7 @@ public sealed class AccountOrganizationController : ControllerBase
         this.actionTokens = actionTokens;
         this.mailQueue = mailQueue;
         this.mailOptions = mailOptions.Value;
+        this.notifications = notifications;
     }
 
     [HttpGet]
@@ -84,8 +87,14 @@ public sealed class AccountOrganizationController : ControllerBase
 
         organization.Name = name;
         organization.UpdatedAt = DateTimeOffset.UtcNow;
-        dbContext.AuditEvents.Add(NewAuditEvent(organizationId.Value, actorUserId.Value,
-            "account.organization.updated", organization.Id, "organization", new { organization.Name }));
+        var auditEvent = NewAuditEvent(organizationId.Value, actorUserId.Value,
+            "account.organization.updated", organization.Id, "organization", new { organization.Name });
+        dbContext.AuditEvents.Add(auditEvent);
+        await QueueSecurityNotification(
+            organizationId.Value,
+            $"organization-updated:{auditEvent.Id}",
+            $"Your organization name was changed to \"{organization.Name}\".",
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return Ok(ToResponse(organization));
     }
@@ -220,8 +229,15 @@ public sealed class AccountOrganizationController : ControllerBase
                 return LastOwnerProblem("The last active Organization Administrator role cannot be removed.");
         }
 
-        dbContext.AuditEvents.Add(NewAuditEvent(organizationId.Value, actorUserId.Value,
-            "account.members.roles-updated", userId, "membership", new { Roles = roles }));
+        var auditEvent = NewAuditEvent(organizationId.Value, actorUserId.Value,
+            "account.members.roles-updated", userId, "membership", new { Roles = roles });
+        dbContext.AuditEvents.Add(auditEvent);
+        await QueueSecurityNotification(
+            organizationId.Value,
+            $"member-roles-updated:{auditEvent.Id}",
+            "Organization roles were changed for a member.",
+            cancellationToken,
+            [userId]);
         await dbContext.SaveChangesAsync(cancellationToken);
         return Ok(ToMemberResponse(result.Member!));
     }
@@ -273,6 +289,20 @@ public sealed class AccountOrganizationController : ControllerBase
     private static AccountOrganizationMemberResponse ToMemberResponse(OrganizationMemberRecord member) => new(
         member.UserId, member.MembershipId, member.DisplayName, member.Email,
         member.IsActive, member.Status.ToString(), member.Roles, member.CreatedAt);
+
+    private Task<int> QueueSecurityNotification(
+        Guid organizationId,
+        string eventKey,
+        string summary,
+        CancellationToken cancellationToken,
+        IReadOnlyCollection<Guid>? additionalUserIds = null) =>
+        notifications.QueueAdministratorsAsync(
+            organizationId,
+            "security.organization-changed",
+            eventKey,
+            new Dictionary<string, string> { ["summary"] = summary },
+            cancellationToken,
+            additionalUserIds);
 
     private ObjectResult MissingOrganization() => Problem(
         statusCode: StatusCodes.Status403Forbidden,

@@ -8,6 +8,7 @@ using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Licensing;
+using PXA.WebApi.Services.Mail;
 
 namespace PXA.WebApi.Controllers;
 
@@ -20,17 +21,20 @@ public sealed class AdminLicensesController : ControllerBase
     private readonly IPxaTenantContext tenantContext;
     private readonly IPxaLicenseSigningService signingService;
     private readonly PxaOfflineLicenseValidator licenseValidator;
+    private readonly OrganizationNotificationService notifications;
 
     public AdminLicensesController(
         PxaDbContext dbContext,
         IPxaTenantContext tenantContext,
         IPxaLicenseSigningService signingService,
-        PxaOfflineLicenseValidator licenseValidator)
+        PxaOfflineLicenseValidator licenseValidator,
+        OrganizationNotificationService notifications)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
         this.signingService = signingService;
         this.licenseValidator = licenseValidator;
+        this.notifications = notifications;
     }
 
     [HttpGet]
@@ -132,6 +136,11 @@ public sealed class AdminLicensesController : ControllerBase
         license.Algorithm = artifact.Algorithm;
         dbContext.OfflineLicenses.Add(license);
         AddAuditEvent(license, actorUserId, "licenses.issue", null);
+        await QueueLicenseNotification(
+            license,
+            $"license-issued:{license.Id}",
+            $"Offline license {license.LicenseNumber} was issued through {license.ValidUntil:yyyy-MM-dd}.",
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return CreatedAtAction(nameof(DownloadLicense), new { licenseId = license.Id },
             await BuildQuery(dbContext.OfflineLicenses.Where(value => value.Id == license.Id)).SingleAsync(cancellationToken));
@@ -203,6 +212,11 @@ public sealed class AdminLicensesController : ControllerBase
         license.RevokedAt = DateTimeOffset.UtcNow;
         license.RevocationReason = request.Reason.Trim();
         AddAuditEvent(license, actorUserId, "licenses.revoke", license.RevocationReason);
+        await QueueLicenseNotification(
+            license,
+            $"license-revoked:{license.Id}:{license.RevokedAt.Value.UtcDateTime.Ticks}",
+            $"Offline license {license.LicenseNumber} was revoked.",
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return NoContent();
     }
@@ -229,6 +243,18 @@ public sealed class AdminLicensesController : ControllerBase
     }
 
     private bool IsSystemAdministrator() => User.IsInRole(PxaRoles.SystemAdministrator);
+    private Task<int> QueueLicenseNotification(
+        OfflineLicense license,
+        string eventKey,
+        string summary,
+        CancellationToken cancellationToken) =>
+        notifications.QueueAdministratorsAsync(
+            license.OrganizationId,
+            "license.changed",
+            eventKey,
+            new Dictionary<string, string> { ["summary"] = summary },
+            cancellationToken);
+
     private void AddAuditEvent(OfflineLicense license, Guid actorUserId, string action, string? reason) =>
         dbContext.AuditEvents.Add(new AuditEvent
         {

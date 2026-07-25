@@ -47,6 +47,11 @@ public sealed class AccountOrganizationControllerTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("Renamed GmbH", body.GetProperty("name").GetString());
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        Assert.Single(await dbContext.MailOutboxMessages.AsNoTracking().Where(value =>
+            value.TemplateKey == "security.organization-changed").ToListAsync());
     }
 
     [PostgreSqlFact]
@@ -207,6 +212,8 @@ public sealed class AccountOrganizationControllerTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(2, body.GetProperty("roles").GetArrayLength());
+        Assert.Single(await dbContext.MailOutboxMessages.AsNoTracking().Where(value =>
+            value.TemplateKey == "security.organization-changed").ToListAsync());
         Assert.Equal(
             HttpStatusCode.Unauthorized,
             (await client.GetAsync("/api/pxa/v1/auth/me")).StatusCode);

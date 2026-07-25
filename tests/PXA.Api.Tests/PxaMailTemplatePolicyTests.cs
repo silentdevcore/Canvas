@@ -8,7 +8,10 @@ public sealed class PxaMailTemplatePolicyTests
     [InlineData("identity.invitation")]
     [InlineData("identity.password-reset")]
     [InlineData("identity.registration-verification")]
-    public void Transactional_identity_templates_are_allowed(string templateKey)
+    [InlineData("subscription.changed")]
+    [InlineData("license.changed")]
+    [InlineData("security.organization-changed")]
+    public void Approved_transactional_templates_are_allowed(string templateKey)
     {
         Assert.True(PxaMailTemplatePolicy.IsTransactional(templateKey));
     }

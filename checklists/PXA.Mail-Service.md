@@ -8,14 +8,14 @@ Deliver one application-level mail service for identity, security, subscription,
 
 - [x] P0: Deliver secure transactional email for invitations, verification, and password reset.
 - [x] P0: Add reliable queued delivery, templates, audit metadata, and operational visibility.
-- [ ] P1: Add subscription and security notifications.
+- [x] P1: Add subscription and security notifications.
 - [ ] P1: Add isolated marketing consent, newsletter, and suppression workflows.
 - [ ] P2: Add additional provider adapters and advanced campaign analytics.
 
 ## Dependencies
 
-- [ ] Consume identity and administrator events from `PXA.Admin.md`.
-- [ ] Consume subscription lifecycle events from `PXA.Subscription-Licensing.md`.
+- [x] Consume implemented identity and administrator events from `PXA.Admin.md`.
+- [x] Consume implemented subscription lifecycle events from `PXA.Subscription-Licensing.md`.
 - [ ] Define public Company, Admin, Designer, and support callback URLs per environment.
 - [ ] Select the first Cloud transactional provider before production rollout.
 
@@ -36,8 +36,8 @@ Deliver one application-level mail service for identity, security, subscription,
 - [x] Send email-verification messages.
 - [x] Send password-reset and password-changed notifications.
 - [x] Send new-login, lockout, credential-change, and security warnings for implemented account credentials.
-- [ ] Send Trial start, Trial expiry warning, subscription change, suspension, renewal, and license-expiry messages.
-- [ ] Send seat, role, organization, API-key, and service-account security notifications.
+- [x] Send Trial start, Trial expiry warning, subscription change, suspension, renewal, and license-expiry messages.
+- [x] Send seat, role, organization, API-key, and service-account security notifications.
 - [x] Deliver required transactional messages independently from marketing consent.
 
 ## Marketing Email
@@ -58,7 +58,7 @@ Deliver one application-level mail service for identity, security, subscription,
 - [ ] Select language from user preference with organization and system fallbacks.
 - [ ] Add consistent PXA branding, accessible structure, and meaningful link labels.
 - [ ] Preview templates with synthetic data before activation.
-- [ ] Never include passwords, full API keys, license signing material, or document contents.
+- [x] Never include passwords, full API keys, license signing material, or document contents in implemented transactional templates.
 
 ## Queue And Delivery Lifecycle
 
@@ -110,9 +110,10 @@ Current identity-mail verification:
 - [x] Verify SMTP delivery against local Mailpit and check SMTP reachability through API readiness.
 - [x] Test manual retry, cancellation, tenant scoping, and audit creation against PostgreSQL.
 
-- [ ] Unit-test template selection, localization, token creation, consent, suppression, and retry classification.
+- [ ] Unit-test localization, consent, suppression, and all provider-specific retry classifications.
+- [x] Unit-test the approved transactional template policy and secure token behavior.
 - [ ] Automate SMTP and selected Cloud-provider transport integration tests in CI.
-- [ ] Test invitation, verification, password-reset, subscription, and security-notification flows.
+- [x] Test invitation, verification, password-reset, subscription, and implemented security-notification flows.
 - [x] Complete retry, duplicate prevention, scheduling, dead-letter, permanent-template-failure, and disabled-mail edge-case coverage against PostgreSQL.
 - [ ] Test valid and invalid provider callbacks, replay protection, bounces, and complaints.
 - [ ] Test double opt-in, unsubscribe, preference updates, and transactional delivery after marketing opt-out.

@@ -189,8 +189,45 @@ public sealed class PxaMailProcessor
                 "Your Power Dox Automation Trial is ending soon",
                 $"<p>Hello {displayName},</p><p>Your Trial ends on {WebUtility.HtmlEncode(payload.GetValueOrDefault("trialEndsAt", string.Empty))}. Upgrade to keep access to your workspace.</p>",
                 $"Your Power Dox Automation Trial ends on {payload.GetValueOrDefault("trialEndsAt", string.Empty)}. Upgrade to keep access to your workspace."),
+            "subscription.changed" => RenderChange(
+                message,
+                payload,
+                displayName,
+                "Your Power Dox Automation subscription changed",
+                "Subscription"),
+            "license.changed" => RenderChange(
+                message,
+                payload,
+                displayName,
+                "Your Power Dox Automation license changed",
+                "License"),
+            "security.organization-changed" => RenderChange(
+                message,
+                payload,
+                displayName,
+                "Security change in your Power Dox Automation organization",
+                "Security"),
             _ => throw new PxaPermanentMailException("Unknown transactional mail template."),
         };
+    }
+
+    private static RenderedMail RenderChange(
+        MailOutboxMessage message,
+        IReadOnlyDictionary<string, string> payload,
+        string displayName,
+        string subject,
+        string category)
+    {
+        var summary = payload.GetValueOrDefault("summary", $"{category} settings changed.");
+        var safeSummary = WebUtility.HtmlEncode(summary);
+        var actionUrl = payload.GetValueOrDefault("actionUrl", string.Empty);
+        var safeActionUrl = WebUtility.HtmlEncode(actionUrl);
+        return new RenderedMail(
+            message.Id,
+            message.RecipientEmail,
+            subject,
+            $"<p>Hello {displayName},</p><p>{safeSummary}</p><p><a href=\"{safeActionUrl}\">Open your account</a></p>",
+            $"Hello {payload.GetValueOrDefault("displayName", "PXA user")}, {summary} Open your account: {actionUrl}");
     }
 }
 

@@ -8,6 +8,7 @@ using PXA.Infrastructure.Persistence;
 using PXA.WebApi.Application.Subscriptions;
 using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Security;
+using PXA.WebApi.Services.Mail;
 
 namespace PXA.WebApi.Controllers;
 
@@ -19,15 +20,18 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
     private readonly PxaDbContext dbContext;
     private readonly IPxaTenantContext tenantContext;
     private readonly SubscriptionQueryService queryService;
+    private readonly OrganizationNotificationService notifications;
 
     public AdminSubscriptionsController(
         PxaDbContext dbContext,
         IPxaTenantContext tenantContext,
-        SubscriptionQueryService queryService)
+        SubscriptionQueryService queryService,
+        OrganizationNotificationService notifications)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
         this.queryService = queryService;
+        this.notifications = notifications;
     }
 
     [HttpGet]
@@ -145,6 +149,11 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
         dbContext.SubscriptionEntitlements.AddRange(CreateEntitlements(subscription.Id, request.Entitlements, now));
         AddLifecycleEvent(subscription, actorUserId, "subscription.created", null, new { subscription.Edition, subscription.AccountType });
         AddAuditEvent(subscription, actorUserId, "subscriptions.create");
+        await QueueSubscriptionNotification(
+            subscription,
+            $"subscription-created:{subscription.Id}",
+            $"A {subscription.Edition} subscription was created with status {subscription.Status}.",
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return CreatedAtAction(nameof(GetSubscription), new { subscriptionId = subscription.Id },
             await BuildResponse(subscription.Id, cancellationToken));
@@ -226,6 +235,13 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
         AddLifecycleEvent(subscription, actorUserId, action, previousStatus,
             new { PreviousEdition = previousEdition, subscription.Edition, subscription.Status, subscription.SeatLimit });
         AddAuditEvent(subscription, actorUserId, "subscriptions.update");
+        await QueueSubscriptionNotification(
+            subscription,
+            $"subscription-updated:{subscription.Id}:{subscription.UpdatedAt.UtcDateTime.Ticks}",
+            previousEdition == subscription.Edition
+                ? $"Your {subscription.Edition} subscription settings changed. Current status: {subscription.Status}."
+                : $"Your subscription changed from {previousEdition} to {subscription.Edition}.",
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return Ok(await BuildResponse(subscriptionId, cancellationToken));
     }
@@ -271,6 +287,15 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             assignment.AssignedByUserId = actorUserId;
         }
         AddAuditEvent(subscription, actorUserId, "subscriptions.seat.assign");
+        await notifications.QueueAdministratorsAsync(
+            subscription.OrganizationId,
+            "security.organization-changed",
+            $"subscription-seat-assigned:{subscription.Id}:{membershipId}",
+            new Dictionary<string, string>
+            {
+                ["summary"] = "A Designer subscription seat was assigned in your organization.",
+            },
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return NoContent();
     }
@@ -350,6 +375,11 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
         subscription.UpdatedAt = DateTimeOffset.UtcNow;
         RecordLifecycleMutation(subscription, "subscription.trial.extended", subscription.Status,
             new { request.Days, PreviousEnd = previousEnd, subscription.TrialEndsAt });
+        await QueueSubscriptionNotification(
+            subscription,
+            $"trial-extended:{subscription.Id}:{subscription.TrialEndsAt.Value.UtcDateTime.Ticks}",
+            $"Your Trial was extended through {subscription.TrialEndsAt.Value:yyyy-MM-dd}.",
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return Ok(await BuildResponse(subscriptionId, cancellationToken));
     }
@@ -380,6 +410,11 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
         subscription.UpdatedAt = DateTimeOffset.UtcNow;
         RecordLifecycleMutation(subscription, "subscription.renewed", previousStatus,
             new { request.PeriodEndsAt });
+        await QueueSubscriptionNotification(
+            subscription,
+            $"subscription-renewed:{subscription.Id}:{request.PeriodEndsAt.UtcDateTime.Ticks}",
+            $"Your {subscription.Edition} subscription was renewed through {request.PeriodEndsAt:yyyy-MM-dd}.",
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return Ok(await BuildResponse(subscriptionId, cancellationToken));
     }
@@ -406,6 +441,11 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
         subscription.UpdatedAt = DateTimeOffset.UtcNow;
         RecordLifecycleMutation(subscription, "subscription.grace-period.started", previousStatus,
             new { request.EndsAt });
+        await QueueSubscriptionNotification(
+            subscription,
+            $"subscription-grace:{subscription.Id}:{request.EndsAt.UtcDateTime.Ticks}",
+            $"Your subscription entered a grace period through {request.EndsAt:yyyy-MM-dd}.",
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return Ok(await BuildResponse(subscriptionId, cancellationToken));
     }
@@ -433,6 +473,13 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
         subscription.UpdatedAt = now;
         RecordLifecycleMutation(subscription, "subscription.cancellation.scheduled", previousStatus,
             new { EffectiveAt = effectiveAt, Immediate = effectiveAt <= now });
+        await QueueSubscriptionNotification(
+            subscription,
+            $"subscription-cancel:{subscription.Id}:{effectiveAt.UtcDateTime.Ticks}",
+            effectiveAt <= now
+                ? "Your subscription was cancelled."
+                : $"Your subscription is scheduled for cancellation on {effectiveAt:yyyy-MM-dd}.",
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return Ok(await BuildResponse(subscriptionId, cancellationToken));
     }
@@ -453,6 +500,15 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
             return NotFound();
         assignment.RevokedAt = DateTimeOffset.UtcNow;
         AddAuditEvent(subscription, actorUserId, "subscriptions.seat.revoke");
+        await notifications.QueueAdministratorsAsync(
+            subscription.OrganizationId,
+            "security.organization-changed",
+            $"subscription-seat-revoked:{subscription.Id}:{membershipId}:{assignment.RevokedAt.Value.UtcDateTime.Ticks}",
+            new Dictionary<string, string>
+            {
+                ["summary"] = "A Designer subscription seat was revoked in your organization.",
+            },
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return NoContent();
     }
@@ -498,6 +554,23 @@ public sealed partial class AdminSubscriptionsController : ControllerBase
         AddLifecycleEvent(subscription, actorUserId, action, previousStatus, details);
         AddAuditEvent(subscription, actorUserId, action);
     }
+
+    private Task<int> QueueSubscriptionNotification(
+        OrganizationSubscription subscription,
+        string eventKey,
+        string summary,
+        CancellationToken cancellationToken) =>
+        notifications.QueueAdministratorsAsync(
+            subscription.OrganizationId,
+            "subscription.changed",
+            eventKey,
+            new Dictionary<string, string>
+            {
+                ["summary"] = summary,
+                ["edition"] = subscription.Edition.ToString(),
+                ["status"] = subscription.Status.ToString(),
+            },
+            cancellationToken);
 
     private static bool TryParseRequest(CreateAdminSubscriptionRequest request, out ParsedValues values, out string error)
     {
