@@ -45,6 +45,7 @@
   - [x] Report Designer Migration
   - [x] Spreadsheet Code Migration
   - [x] Provider Taxonomy
+- [x] Admin-Dokumentation bewusst aus der oeffentlichen PXA.Documentation ausschliessen; sie liegt geschuetzt unter `PXA.Admin/documentation`.
 - [x] Cookbook-Seiten planen:
   - [x] PDF generation
   - [x] Edit PDF
@@ -109,6 +110,7 @@
 - [x] Mobile/Desktop Smoke-Test durchfuehren.
 - [x] Suche nach veralteten `Canvas`-Aussagen in neuen Docs durchfuehren.
 - [x] Documentation-Strategie-Datei pruefen.
+- [x] Pruefen, dass keine Admin-Dokumentation oder Admin-Screenshots im Public Build enthalten sind.
 
 ## Offene Entscheidungen
 - [x] Entscheiden, ob `docs` direkt umbenannt/verschoben oder in `websites/PXA.Documentation` eingebunden wird: bestehende `docs` bleiben im MVP an Ort und werden aus `PXA.Documentation` verlinkt.

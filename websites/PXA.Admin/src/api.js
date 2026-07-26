@@ -366,6 +366,10 @@ export async function getAdminMailStatus() {
   return request('/api/pxa/v1/admin/mail/status');
 }
 
+export async function getAdminDocumentation() {
+  return request('/api/pxa/v1/admin/documentation');
+}
+
 export async function retryAdminMail(messageId) {
   return adminMutation(`/api/pxa/v1/admin/mail/${encodeURIComponent(messageId)}/retry`, 'POST');
 }

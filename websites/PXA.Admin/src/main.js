@@ -58,6 +58,7 @@ import {
   exportAdminAudit,
   getAdminAudit,
   getAdminAuditEvent,
+  getAdminDocumentation,
   getAdminRole,
   getAdminRoles,
   revokeAdminRoleMember,
@@ -77,6 +78,7 @@ const navigation = [
   { path: '/mail', label: 'Mail delivery', group: 'Operations' },
   { path: '/audit', label: 'Audit', group: 'Operations' },
   { path: '/settings', label: 'Settings', group: 'Operations' },
+  { path: '/documentation', label: 'Admin documentation', group: 'Reference' },
 ];
 
 const pageDetails = {
@@ -141,6 +143,9 @@ const state = {
   roles: { items: [], permissions: [], loading: false, loaded: false, error: null },
   roleDetail: {
     key: null, data: null, users: [], page: 1, pageSize: 25, loading: false, saving: false, error: null,
+  },
+  documentation: {
+    groups: [], routeCoverage: [], loading: false, loaded: false, error: null,
   },
 };
 
@@ -401,6 +406,196 @@ function dashboardPage() {
       </div>
     </section>
   `;
+}
+
+function documentationSlug(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+function documentationPage() {
+  if (state.documentation.loading && !state.documentation.loaded) {
+    return '<section class="admin-message-page"><div class="admin-spinner"></div><p>Loading protected Admin documentation...</p></section>';
+  }
+  if (state.documentation.error && !state.documentation.loaded) {
+    return `<section class="admin-message-page"><span class="admin-error-code">!</span><h1>Documentation unavailable</h1><p>${escapeHtml(state.documentation.error)}</p><button class="pxa-button pxa-button--secondary" id="admin-help-retry" type="button">Retry</button></section>`;
+  }
+
+  const adminDocGroups = state.documentation.groups;
+  const adminRouteCoverage = state.documentation.routeCoverage;
+  const topics = adminDocGroups.flatMap((group) => group.topics);
+  if (!topics.length) {
+    return '<section class="admin-message-page"><span class="admin-error-code">!</span><h1>Documentation unavailable</h1><p>The protected handbook contains no topics.</p></section>';
+  }
+  const requestedId = location.hash.replace(/^#/, '');
+  const selected = topics.find((topic) => `admin-${documentationSlug(topic.title)}` === requestedId) || topics[0];
+  const selectedIndex = topics.indexOf(selected);
+  const previous = topics[selectedIndex - 1];
+  const next = topics[selectedIndex + 1];
+  const related = topics
+    .filter((topic) => topic !== selected && topic.group === selected.group)
+    .slice(0, 2);
+
+  return `
+    <header class="admin-page-header">
+      <div>
+        <p class="pxa-kicker">Protected reference</p>
+        <h1>Admin documentation</h1>
+        <p>Administration workflows and integration guidance for authenticated PXA administrators.</p>
+      </div>
+      <span class="admin-status admin-status--ready">Admin access only</span>
+    </header>
+    <div class="admin-help-boundary" role="note">
+      <strong>Protected content</strong>
+      <p>This handbook is available only inside PXA.Admin. Deployment recovery and emergency procedures remain in the separately restricted operator runbook.</p>
+    </div>
+    <div class="admin-help-layout">
+      <aside class="admin-help-sidebar">
+        <label class="admin-field">
+          <span>Search handbook</span>
+          <input id="admin-help-search" type="search" placeholder="Search Admin topics">
+        </label>
+        <nav id="admin-help-navigation" aria-label="Admin documentation topics">
+          ${adminDocGroups.map((group) => `
+            <details open>
+              <summary>${escapeHtml(group.title)}</summary>
+              <div>
+                ${group.topics.map((topic) => {
+                  const id = `admin-${documentationSlug(topic.title)}`;
+                  return `<a href="/documentation#${id}" ${topic === selected ? 'aria-current="page"' : ''}>${escapeHtml(topic.title)}</a>`;
+                }).join('')}
+              </div>
+            </details>
+          `).join('')}
+        </nav>
+        <p id="admin-help-search-empty" class="admin-help-search-empty" hidden>No matching Admin topics.</p>
+      </aside>
+      <article class="admin-help-topic" id="admin-${documentationSlug(selected.title)}">
+        <header>
+          <span class="admin-status admin-status--ready">${escapeHtml(selected.group)}</span>
+          <h2>${escapeHtml(selected.title)}</h2>
+          <p>${escapeHtml(selected.summary)}</p>
+        </header>
+        <div class="admin-help-permission">
+          <strong>Permission required</strong>
+          <span>${escapeHtml(selected.permission)}</span>
+        </div>
+        <div class="admin-help-procedure">
+          <section>
+            <h3>Prerequisites</h3>
+            <ul>${selected.prerequisites.map((value) => `<li>${escapeHtml(value)}</li>`).join('')}</ul>
+          </section>
+          <section>
+            <h3>Procedure</h3>
+            <ol>${selected.steps.map((value) => `<li>${escapeHtml(value)}</li>`).join('')}</ol>
+          </section>
+        </div>
+        <div class="admin-help-outcomes">
+          <section>
+            <h3>Expected result</h3>
+            <p>${escapeHtml(selected.result)}</p>
+          </section>
+          <section class="admin-help-warning">
+            <h3>Failure states and safeguards</h3>
+            <ul>${selected.failures.map((value) => `<li>${escapeHtml(value)}</li>`).join('')}</ul>
+          </section>
+          <section class="admin-help-audit">
+            <h3>Audit effect</h3>
+            <p>${escapeHtml(selected.audit)}</p>
+          </section>
+        </div>
+        ${selected.notes.length ? `
+          <section class="admin-help-notes">
+            <h3>Operational and technical notes</h3>
+            <ul>${selected.notes.map((value) => `<li>${escapeHtml(value)}</li>`).join('')}</ul>
+          </section>
+        ` : ''}
+        ${selected.apiExample ? `
+          <section class="admin-help-api">
+            <h3>Synthetic request and response</h3>
+            <div>
+              <pre><code>${escapeHtml(selected.apiExample.request)}</code></pre>
+              <pre><code>${escapeHtml(selected.apiExample.response)}</code></pre>
+            </div>
+          </section>
+        ` : ''}
+        <figure class="admin-help-screenshot">
+          <img src="/api/pxa/v1/admin/documentation/images/${encodeURIComponent(selected.screenshot)}" alt="${escapeHtml(selected.title)} workspace with synthetic masked data">
+          <figcaption>PXA.Admin with synthetic organization and user data. Identifiers and secret material are not shown.</figcaption>
+        </figure>
+        <div class="admin-help-endpoint">
+          <strong>Related API</strong>
+          <code>${escapeHtml(selected.endpoint)}</code>
+        </div>
+        ${selected.title === 'Admin overview' ? `
+          <section class="admin-help-coverage">
+            <h3>Admin workspace coverage</h3>
+            <div class="admin-table-scroll">
+              <table>
+                <thead><tr><th>Admin route</th><th>Handbook topic</th></tr></thead>
+                <tbody>${adminRouteCoverage.map(([route, topic]) => `<tr><td><code>${escapeHtml(route)}</code></td><td>${escapeHtml(topic)}</td></tr>`).join('')}</tbody>
+              </table>
+            </div>
+          </section>
+        ` : ''}
+        ${related.length || selected.references.length ? `
+          <section class="admin-help-related">
+            <h3>Related topics</h3>
+            <div>
+              ${related.map((topic) => `<a href="/documentation#admin-${documentationSlug(topic.title)}">${escapeHtml(topic.title)}</a>`).join('')}
+              ${selected.references.map((reference) => `<a href="${reference.href}" data-native>${escapeHtml(reference.label)}</a>`).join('')}
+            </div>
+          </section>
+        ` : ''}
+        <nav class="admin-help-pagination" aria-label="Admin documentation topic navigation">
+          ${previous
+            ? `<a href="/documentation#admin-${documentationSlug(previous.title)}"><span>Previous</span><strong>${escapeHtml(previous.title)}</strong></a>`
+            : '<span></span>'}
+          ${next
+            ? `<a href="/documentation#admin-${documentationSlug(next.title)}"><span>Next</span><strong>${escapeHtml(next.title)}</strong></a>`
+            : '<span></span>'}
+        </nav>
+      </article>
+    </div>
+  `;
+}
+
+function bindDocumentationEvents() {
+  document.querySelector('#admin-help-retry')?.addEventListener('click', () => loadDocumentation());
+  const search = document.querySelector('#admin-help-search');
+  const navigation = document.querySelector('#admin-help-navigation');
+  const empty = document.querySelector('#admin-help-search-empty');
+  if (!search || !navigation) return;
+
+  search.addEventListener('input', () => {
+    const query = search.value.trim().toLowerCase();
+    const links = [...navigation.querySelectorAll('a')];
+    let visible = 0;
+    links.forEach((link) => {
+      const matches = !query || link.textContent.toLowerCase().includes(query);
+      link.hidden = !matches;
+      if (matches) visible += 1;
+    });
+    navigation.querySelectorAll('details').forEach((group) => {
+      const hasVisibleTopic = [...group.querySelectorAll('a')].some((link) => !link.hidden);
+      group.hidden = !hasVisibleTopic;
+      if (query && hasVisibleTopic) group.open = true;
+    });
+    empty.hidden = visible > 0;
+  });
+}
+
+async function loadDocumentation() {
+  Object.assign(state.documentation, { loading: true, error: null });
+  render();
+  try {
+    const response = await getAdminDocumentation();
+    Object.assign(state.documentation, response, { loaded: true });
+  } catch (error) {
+    state.documentation.error = error.message;
+  } finally {
+    state.documentation.loading = false;
+    render();
+  }
 }
 
 function formatDate(value) {
@@ -1947,6 +2142,13 @@ function render() {
 
   if (location.pathname === '/dashboard') {
     renderShell(dashboardPage(), 'Dashboard');
+    return;
+  }
+
+  if (location.pathname === '/documentation') {
+    renderShell(documentationPage(), 'Admin documentation');
+    bindDocumentationEvents();
+    if (!state.documentation.loaded && !state.documentation.loading) loadDocumentation();
     return;
   }
 

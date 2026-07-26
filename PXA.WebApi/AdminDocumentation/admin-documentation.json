@@ -1,0 +1,521 @@
+{
+  "groups": [
+    {
+      "title": "Start",
+      "topics": [
+        {
+          "title": "Admin overview",
+          "group": "Overview",
+          "permission": "System Administrator or Organization Administrator",
+          "summary": "Understand the dedicated Admin host, organization context, dashboard, and access boundary.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: System Administrator or Organization Administrator."
+          ],
+          "steps": [
+            "Use the dedicated Admin URL supplied by your deployment administrator.",
+            "Sign in with a verified, active account.",
+            "Confirm the active organization before making changes."
+          ],
+          "result": "The dashboard loads only the workspaces allowed by your effective role.",
+          "failures": [
+            "A non-admin account is sent to Access denied.",
+            "An expired or revoked session returns to login."
+          ],
+          "audit": "Authentication success and failure events are audited.",
+          "endpoint": "GET /api/pxa/v1/auth/me",
+          "screenshot": "dashboard.png",
+          "notes": [
+            "Use the dedicated Admin host: admin.powerdoxautomation.com for PXA Cloud or admin.{customer-host} for a customer deployment.",
+            "The browser calls the API through same-origin /api; PXA.Company intentionally does not expose an Admin navigation link.",
+            "The active organization controls tenant-scoped lists and mutations."
+          ],
+          "references": [],
+          "apiExample": null
+        }
+      ]
+    },
+    {
+      "title": "Identity",
+      "topics": [
+        {
+          "title": "Users and invitations",
+          "group": "Identity",
+          "permission": "Organization Administrator",
+          "summary": "Invite users, search memberships, edit profiles, change status, and run safe bulk actions.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: Organization Administrator."
+          ],
+          "steps": [
+            "Open Users and select Invite user.",
+            "Enter display name, email, and organization roles.",
+            "Send the invitation and wait for email verification.",
+            "Open the user detail page to manage status, seats, sessions, or password reset."
+          ],
+          "result": "The user receives a single-use invitation and appears in the organization membership list.",
+          "failures": [
+            "Duplicate invitations return a generic conflict.",
+            "Self-deactivation and removal of the last administrator are blocked."
+          ],
+          "audit": "Invitation, profile, status, role, seat, session, and bulk actions create actor-attributed audit events.",
+          "endpoint": "GET/POST /api/pxa/v1/admin/users and /invitations",
+          "screenshot": "users.png",
+          "notes": [
+            "Deactivation blocks access and revokes sessions; soft deletion also removes the organization membership while retaining audit history.",
+            "Restoration reactivates the retained membership but does not silently restore old sessions.",
+            "Bulk actions report protected or rejected users instead of partially hiding failures."
+          ],
+          "references": [],
+          "apiExample": null
+        },
+        {
+          "title": "Organizations",
+          "group": "Identity",
+          "permission": "Organization Administrator; System Administrator for cross-tenant work",
+          "summary": "Create and maintain organizations, memberships, status, and active tenant context.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: Organization Administrator; System Administrator for cross-tenant work."
+          ],
+          "steps": [
+            "Open Organizations.",
+            "Select an organization or create one if you are a System Administrator.",
+            "Edit its name or status.",
+            "Attach existing users or remove memberships.",
+            "Use Switch organization before managing another tenant."
+          ],
+          "result": "All subsequent Admin queries are scoped to the selected organization.",
+          "failures": [
+            "Organization Administrators cannot browse other tenants.",
+            "Self-removal and last-administrator removal are rejected."
+          ],
+          "audit": "Creation, updates, membership changes, and tenant selection are audited.",
+          "endpoint": "GET/POST /api/pxa/v1/admin/organizations",
+          "screenshot": "organizations.png",
+          "notes": [
+            "System Administrators can create organizations and work across tenants; Organization Administrators remain tenant-scoped.",
+            "Switching the active organization refreshes authorization context and invalidates stale workspace assumptions.",
+            "The final active Organization Administrator cannot remove or demote themselves."
+          ],
+          "references": [],
+          "apiExample": null
+        },
+        {
+          "title": "Roles and permissions",
+          "group": "Identity",
+          "permission": "Organization Administrator",
+          "summary": "Assign protected organization roles while keeping product access separate.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: Organization Administrator."
+          ],
+          "steps": [
+            "Open Roles & permissions.",
+            "Inspect the permission matrix.",
+            "Open Manager, Editor, Viewer, or Organization Administrator.",
+            "Assign or revoke the role for an active membership."
+          ],
+          "result": "The affected user receives updated organization permissions after session refresh.",
+          "failures": [
+            "System Administrator is never assignable through tenant role APIs.",
+            "Self-role changes and removal of the last administrator are blocked."
+          ],
+          "audit": "Every assignment and revocation records actor, role, target user, tenant, and outcome.",
+          "endpoint": "GET /api/pxa/v1/admin/roles",
+          "screenshot": "roles.png",
+          "notes": [
+            "System Administrator is an operator role and is never assignable from an organization role screen.",
+            "Organization roles grant permissions; product entitlements and seat assignments are evaluated independently.",
+            "Role changes revoke stale sessions so refreshed claims become authoritative."
+          ],
+          "references": [],
+          "apiExample": null
+        }
+      ]
+    },
+    {
+      "title": "Commercial",
+      "topics": [
+        {
+          "title": "Subscriptions and entitlements",
+          "group": "Commercial",
+          "permission": "System Administrator for mutations; Organization Administrator for read access",
+          "summary": "Manage edition, lifecycle, seats, usage, and product entitlements without confusing them with roles.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: System Administrator for mutations; Organization Administrator for read access."
+          ],
+          "steps": [
+            "Open Subscriptions and select an organization.",
+            "Review edition, lifecycle dates, deployment, and seat limit.",
+            "Apply an approved lifecycle action.",
+            "Edit capability grants and limits.",
+            "Assign seats to active memberships.",
+            "Review usage and lifecycle history."
+          ],
+          "result": "The subscription policy immediately exposes the new effective entitlements to protected product operations.",
+          "failures": [
+            "Unsupported lifecycle transitions are rejected.",
+            "A role never grants a missing product entitlement.",
+            "Seat limits and inactive memberships block assignment."
+          ],
+          "audit": "Subscription, entitlement, lifecycle, and seat mutations are audited and added to lifecycle history.",
+          "endpoint": "GET/POST /api/pxa/v1/admin/subscriptions",
+          "screenshot": "subscriptions.png",
+          "notes": [
+            "Edition, lifecycle state, account type, deployment mode, seats, and entitlements are separate subscription properties.",
+            "Trial extension, renewal, grace period, cancellation, suspension, and expiry use validated lifecycle transitions.",
+            "Usage is read-only evidence and does not itself grant an entitlement."
+          ],
+          "references": [],
+          "apiExample": null
+        },
+        {
+          "title": "Offline licenses",
+          "group": "Commercial",
+          "permission": "System Administrator",
+          "summary": "Issue, validate, download, and revoke signed Enterprise licenses for approved deployments.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: System Administrator."
+          ],
+          "steps": [
+            "Open Offline licenses.",
+            "Select an eligible Enterprise subscription.",
+            "Enter product version, deployment ID, validity, and instance limit.",
+            "Issue and download the signed artifact.",
+            "Validate before delivery and revoke when required."
+          ],
+          "result": "A signed license contains the approved products and limits without exposing the private signing key.",
+          "failures": [
+            "Non-Enterprise subscriptions are ineligible.",
+            "Tampered, expired, mismatched, or revoked licenses fail validation."
+          ],
+          "audit": "Issuance, validation-sensitive changes, download context, and revocation are auditable.",
+          "endpoint": "GET/POST /api/pxa/v1/admin/licenses",
+          "screenshot": "licenses.png",
+          "notes": [
+            "Only approved Enterprise On-Premise or Hybrid subscriptions can receive an offline license.",
+            "Replacement means issuing a new signed artifact and revoking the superseded license; private signing keys never enter Admin.",
+            "Expired, revoked, deployment-mismatched, or tampered artifacts fail validation."
+          ],
+          "references": [],
+          "apiExample": null
+        }
+      ]
+    },
+    {
+      "title": "Access",
+      "topics": [
+        {
+          "title": "Service accounts and API keys",
+          "group": "Access",
+          "permission": "Organization Administrator",
+          "summary": "Create non-human identities and short-lived or revocable API credentials for automation.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: Organization Administrator."
+          ],
+          "steps": [
+            "Open Service accounts.",
+            "Create an account with an explicit name and expiry.",
+            "Create an API key.",
+            "Store the secret immediately because it is shown once.",
+            "Revoke keys or the service account when access changes."
+          ],
+          "result": "SDK and automation calls can authenticate without receiving Admin permissions.",
+          "failures": [
+            "A lost secret cannot be displayed again; create a replacement.",
+            "Expired or revoked credentials are rejected immediately."
+          ],
+          "audit": "Service-account creation, key creation, use metadata, and revocation are audited without storing raw secrets.",
+          "endpoint": "GET/POST /api/pxa/v1/admin/service-accounts",
+          "screenshot": "service-accounts.png",
+          "notes": [
+            "A service account is a non-human organization identity; an API key is one revocable credential owned by that identity.",
+            "The raw key is displayed exactly once. PXA stores only the protected verification material and a non-secret prefix.",
+            "Rotation creates a replacement key, updates the consumer, verifies it, and then revokes the old key."
+          ],
+          "references": [],
+          "apiExample": null
+        }
+      ]
+    },
+    {
+      "title": "Operations",
+      "topics": [
+        {
+          "title": "Mail delivery",
+          "group": "Operations",
+          "permission": "Organization Administrator",
+          "summary": "Inspect transactional mail state and safely retry or cancel queued messages.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: Organization Administrator."
+          ],
+          "steps": [
+            "Open Mail delivery.",
+            "Filter by state, template, or recipient-safe metadata.",
+            "Inspect attempts and sanitized failure reason.",
+            "Retry a recoverable failure or cancel a pending message after confirmation."
+          ],
+          "result": "The queue records the next delivery state without exposing protected payloads or action tokens.",
+          "failures": [
+            "Permanent failures move to dead letter.",
+            "Disabled transports retain a truthful non-delivered state.",
+            "Delivered messages cannot be resent accidentally."
+          ],
+          "audit": "Retry and cancellation actions are audited; message bodies and tokens are never placed in audit details.",
+          "endpoint": "GET/POST /api/pxa/v1/admin/mail",
+          "screenshot": "mail.png",
+          "notes": [
+            "The workspace exposes sanitized delivery metadata, never message bodies, reset links, invitation tokens, or provider credentials.",
+            "Retry is limited to failed or dead-letter messages; cancellation is limited to undelivered terminal-safe states.",
+            "Marketing consent does not control transactional security delivery."
+          ],
+          "references": [],
+          "apiExample": null
+        },
+        {
+          "title": "Audit workspace",
+          "group": "Operations",
+          "permission": "Organization Administrator; Enterprise required for export",
+          "summary": "Search immutable privileged activity and export a tenant-scoped evidence set.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: Organization Administrator; Enterprise required for export."
+          ],
+          "steps": [
+            "Open Audit.",
+            "Filter by action, target, outcome, actor, or time range.",
+            "Open an event to inspect structured details.",
+            "Export the filtered result as CSV or JSON when entitled."
+          ],
+          "result": "Results remain limited to the active organization and preserve stable action keys.",
+          "failures": [
+            "Malformed historical details appear as unavailable.",
+            "Exports are limited to 50,000 rows.",
+            "Spreadsheet formula prefixes are neutralized."
+          ],
+          "audit": "Successful audit exports create their own audit event; audit records cannot be edited.",
+          "endpoint": "GET /api/pxa/v1/admin/audit",
+          "screenshot": "audit.png",
+          "notes": [
+            "Audit results and exports are always scoped to the active tenant unless explicit system authorization applies.",
+            "CSV exports neutralize spreadsheet-formula prefixes and are capped at 50,000 rows.",
+            "Retention is deployment policy; immutable records cannot be edited from Admin."
+          ],
+          "references": [],
+          "apiExample": null
+        },
+        {
+          "title": "Settings and common states",
+          "group": "Operations",
+          "permission": "Organization Administrator",
+          "summary": "Recognize loading, empty, forbidden, offline, stale, failure, and confirmation states.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: Organization Administrator."
+          ],
+          "steps": [
+            "Check the active organization and connection state.",
+            "Retry transient API failures.",
+            "Refresh stale data after reconnecting.",
+            "Use the request trace ID when escalating a persistent failure."
+          ],
+          "result": "The UI preserves already loaded data as stale instead of presenting it as current.",
+          "failures": [
+            "Forbidden means the effective role lacks permission.",
+            "Unavailable means the API capability is not deployed.",
+            "Offline means no mutation should be assumed successful."
+          ],
+          "audit": "No audit event is created when a rejected request does not change state.",
+          "endpoint": "GET /health/ready and Problem Details responses",
+          "screenshot": "dashboard-mobile.png",
+          "notes": [
+            "Loading has no prior value; stale preserves a prior value after a connectivity loss; empty is a successful query with no records.",
+            "Forbidden is an authorization result, while unavailable indicates a missing or disabled server capability.",
+            "Destructive operations always require explicit confirmation and a truthful final result."
+          ],
+          "references": [],
+          "apiExample": null
+        }
+      ]
+    },
+    {
+      "title": "Security",
+      "topics": [
+        {
+          "title": "Security model",
+          "group": "Security",
+          "permission": "Application integrator or administrator",
+          "summary": "Understand sessions, CSRF, tenant isolation, and the difference between roles and entitlements.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: Application integrator or administrator."
+          ],
+          "steps": [
+            "Use the host-only HttpOnly Admin session cookie.",
+            "Send the CSRF header on every browser mutation.",
+            "Resolve organization context from authenticated claims.",
+            "Treat server authorization as authoritative."
+          ],
+          "result": "Browser, API-key, tenant, and product-access boundaries remain independent and auditable.",
+          "failures": [
+            "Hidden navigation is not authorization.",
+            "API keys do not grant Admin permissions.",
+            "Changing role or status revokes stale sessions."
+          ],
+          "audit": "Authentication, authorization-sensitive changes, and session revocation produce security audit events.",
+          "endpoint": "GET /api/pxa/v1/auth/csrf and /me",
+          "screenshot": "user-detail.png",
+          "notes": [
+            "Admin uses a host-only HttpOnly Secure SameSite cookie. Do not introduce a parent-domain authentication cookie.",
+            "Browser mutations require a fresh CSRF token and X-PXA-CSRF header; API keys are for service clients, not Admin browser elevation.",
+            "The server resolves organization context from the authenticated session and never trusts a tenant ID in a request body."
+          ],
+          "references": [],
+          "apiExample": null
+        }
+      ]
+    },
+    {
+      "title": "API",
+      "topics": [
+        {
+          "title": "Admin API and diagnostics",
+          "group": "API",
+          "permission": "Application integrator",
+          "summary": "Use the versioned Admin API, standard pagination, Problem Details, and stable diagnostics.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: Application integrator."
+          ],
+          "steps": [
+            "Authenticate through the Admin session.",
+            "Fetch a CSRF token before a mutation.",
+            "Call routes under /api/pxa/v1/admin.",
+            "Handle application/problem+json and retain the trace identifier."
+          ],
+          "result": "Clients receive bounded tenant-scoped data and stable error contracts.",
+          "failures": [
+            "PXAAPI001-008 distinguish validation, authentication, authorization, CSRF, conflict, rate limit, unavailable, and internal failures.",
+            "Never log cookies, raw API keys, reset tokens, or mail payloads."
+          ],
+          "audit": "Every successful privileged mutation declares and persists its expected audit action.",
+          "endpoint": "/api/pxa/v1/admin and /openapi/v1.json",
+          "screenshot": "audit.png",
+          "notes": [
+            "Public Admin operations use /api/pxa/v1/admin and bounded pagination. OpenAPI is available from the deployment API reference.",
+            "Problem Details diagnostics remain stable: PXAAPI001 validation, 002 authentication, 003 authorization, 004 CSRF, 005 conflict, 006 rate limit, 007 unavailable, and 008 internal failure.",
+            "Retain the diagnostic code and trace ID for support, but never log cookies, raw keys, tokens, or customer document data."
+          ],
+          "references": [
+            {
+              "label": "Admin OpenAPI document",
+              "href": "https://admin.powerdoxautomation.com/openapi/v1.json"
+            }
+          ],
+          "apiExample": {
+            "request": "GET /api/pxa/v1/admin/users?page=1&pageSize=25\nAccept: application/json",
+            "response": "{\n  \"items\": [\n    {\n      \"id\": \"synthetic-user-id\",\n      \"displayName\": \"Alex Morgan\",\n      \"email\": \"a***@example.test\",\n      \"membershipStatus\": \"Active\",\n      \"roles\": [\"Organization Administrator\"]\n    }\n  ],\n  \"page\": 1,\n  \"pageSize\": 25,\n  \"total\": 1\n}"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Troubleshooting",
+      "topics": [
+        {
+          "title": "Troubleshooting and support",
+          "group": "Troubleshooting",
+          "permission": "Administrator",
+          "summary": "Diagnose access, tenant, mail, subscription, license, and stale-session problems safely.",
+          "prerequisites": [
+            "Use an active, email-verified account.",
+            "Select the intended organization.",
+            "Required access: Administrator."
+          ],
+          "steps": [
+            "Record the timestamp, route, active organization, diagnostic code, and trace ID.",
+            "Confirm account, membership, subscription, and session status.",
+            "Retry only operations documented as idempotent.",
+            "Escalate without attaching secrets or customer documents."
+          ],
+          "result": "Support receives enough metadata to correlate logs without receiving credentials or protected content.",
+          "failures": [
+            "Repeated 401 indicates an invalid session.",
+            "403 indicates missing permission or operator authorization.",
+            "409 indicates a protected business or concurrency rule.",
+            "429 requires waiting for the retry window."
+          ],
+          "audit": "Troubleshooting reads do not create mutation events; corrective privileged actions do.",
+          "endpoint": "Problem Details and Support",
+          "screenshot": "mail.png",
+          "notes": [
+            "Capture the UTC time, route, active organization name, diagnostic code, and trace ID before escalation.",
+            "Do not send screenshots containing unmasked email addresses, IDs, API keys, tokens, license artifacts, or customer data.",
+            "Emergency access and platform recovery belong to the protected operator publication, not this public site."
+          ],
+          "references": [],
+          "apiExample": null
+        }
+      ]
+    }
+  ],
+  "routeCoverage": [
+    [
+      "/dashboard",
+      "Admin overview"
+    ],
+    [
+      "/users and /users/{id}",
+      "Users and invitations"
+    ],
+    [
+      "/organizations and /organizations/{id}",
+      "Organizations"
+    ],
+    [
+      "/roles and /roles/{key}",
+      "Roles and permissions"
+    ],
+    [
+      "/subscriptions and /subscriptions/{id}",
+      "Subscriptions and entitlements"
+    ],
+    [
+      "/licenses and /licenses/{id}",
+      "Offline licenses"
+    ],
+    [
+      "/service-accounts",
+      "Service accounts and API keys"
+    ],
+    [
+      "/mail",
+      "Mail delivery"
+    ],
+    [
+      "/audit",
+      "Audit workspace"
+    ],
+    [
+      "/settings",
+      "Settings and common states"
+    ]
+  ]
+}

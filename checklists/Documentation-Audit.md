@@ -21,6 +21,8 @@ Keep the documentation set coherent as PXA grows across PDF generation, importer
 | **AI/agent capability reference** | `llms.txt`, `llms-full.txt`, and the `tools/PXA.Mcp` MCP server |
 | **C# `PXA.Pdf` API reference + recipes** | XML doc comments + DocFX (`docs/docfx.json`), `docs/csharp-cookbook.md` |
 | **Documentation strategy** | `docs/Documentation-Approach.md` |
+| **PXA.Admin customer and integration guidance** | Protected `/documentation` route in `websites/PXA.Admin`; content served by the authorized Admin documentation API |
+| **Restricted PXA.Admin operations** | Protected deployment sourced from `operator-docs/PXA.Admin-Operations.md` |
 
 ## Completed In This Audit
 
@@ -33,6 +35,8 @@ Keep the documentation set coherent as PXA grows across PDF generation, importer
 - [x] **[high]** Expand `TESTING.md` with file importer, PDF importer, image analysis/OCR, migration, report migration, and frontend test groups.
 - [x] **[medium]** Link `PXA/README.md` and `PXA/TECHNICAL_DOCUMENTATION.md` to PDF encryption and provider feature-gap roadmaps.
 - [x] **[medium]** Add `checklists/PxaPdf-Provider-Feature-Gaps.md`.
+- [x] **[high]** Add complete protected PXA.Admin workflows, technical reference, route coverage, sanitized screenshots, and contract tests to `PXA.Admin`.
+- [x] **[high]** Exclude Admin handbook content and operator guidance from the public Documentation build and navigation.
 
 ## Follow-Up Audit Items
 
@@ -43,6 +47,7 @@ Keep the documentation set coherent as PXA grows across PDF generation, importer
 - [ ] **[medium]** Review `handoff.md` and decide whether it is still an active handoff document or should be archived.
 - [ ] **[low]** Add a short `checklists/README.md` index if checklist count keeps growing.
 - [ ] **[low]** Add a generated docs/link check script if broken links become recurring.
+- [ ] **[medium]** Deploy `operator-docs/PXA.Admin-Operations.md` through a separately authenticated operator documentation pipeline.
 
 ## Documentation Change Checklist
 

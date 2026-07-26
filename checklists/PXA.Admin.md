@@ -91,6 +91,9 @@ Current identity implementation:
 ## Admin User Interface
 
 - [x] Add routes for dashboard, users, user details, organizations, roles, subscriptions, licenses, service accounts, mail delivery, audit, and settings.
+- [x] Add a protected `/documentation` handbook route for authenticated System and Organization Administrators.
+- [x] Deliver handbook content and screenshots only through role-protected, non-cacheable Admin API endpoints.
+- [x] Keep Admin handbook content, screenshots, and navigation out of public PXA.Documentation and PXA.Company.
 - [x] Build a work-focused admin shell with restrained navigation and responsive layouts.
 - [x] Add user tables with name, email, organization, role, status, products, and last login.
 - [x] Add server-driven search, filters, sorting, pagination, selection, and bulk actions.
@@ -128,6 +131,8 @@ Current Admin UI completeness implementation:
 
 Current Admin security and accessibility implementation:
 
+- [x] Enforce authentication and Administrator-role checks before rendering the protected Admin handbook.
+- [x] Keep deployment recovery and emergency procedures in a separate restricted operator runbook.
 - [x] Require an explicit production `AdminSecurity:SystemOperatorEmails` allowlist before an Identity System Administrator receives system role claims or permissions.
 - [x] Remove unauthorized system claims during principal creation and reject already-issued privileged cookies when operator authorization is removed.
 - [x] Verify at the HTTP boundary that an unapproved System Administrator cannot invoke Admin APIs while an approved PXA operator retains system access.
