@@ -519,7 +519,11 @@
     "extractPageToJson": "Extraire la page en JSON",
     "deletePage": "Supprimer la page",
     "deletePageConfirm": "Supprimer la page {{number}} ?",
-    "addPage": "Ajouter une page"
+    "addPage": "Ajouter une page",
+    "workspaceHorizontalScroll": "Défilement horizontal de l’espace de page",
+    "navigationHorizontalScroll": "Défilement horizontal de la navigation des pages",
+    "scrollLeft": "Faire défiler vers la gauche",
+    "scrollRight": "Faire défiler vers la droite"
   },
   "inspector": {
     "ariaLabel": "Propriétés de l'élément",
@@ -866,7 +870,13 @@
     "languages": {
       "heading": "Langues",
       "systemLanguage": "Langue système :",
-      "systemLanguageNote": "(détectée automatiquement, utilisée en repli)"
+      "systemLanguageNote": "(détectée automatiquement, utilisée en repli)",
+      "chooseLanguages": "Choisir les langues",
+      "selectedCount": "{{count}} langue sélectionnée",
+      "selectedCount_plural": "{{count}} langues sélectionnées",
+      "selectedLanguages": "Langues sélectionnées",
+      "noneSelected": "Aucune langue sélectionnée",
+      "removeLanguage": "Supprimer {{language}}"
     },
     "namedStyles": {
       "heading": "Styles nommés",
@@ -1097,8 +1107,6 @@
         "ru": "Russe",
         "el": "Grec",
         "ar": "Arabe (RTL)",
-        "he": "Hébreu (RTL)",
-        "fa": "Persan (RTL)",
         "zh-CN": "Chinois (simplifié)",
         "zh-TW": "Chinois (traditionnel)",
         "ja": "Japonais",

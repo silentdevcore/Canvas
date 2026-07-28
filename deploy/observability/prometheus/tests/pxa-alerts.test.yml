@@ -1,0 +1,259 @@
+rule_files:
+  - ../rules/pxa-alerts.yml
+
+evaluation_interval: 1m
+
+tests:
+  - name: Telemetry pipeline outage fires and recovers
+    interval: 1m
+    input_series:
+      - series: up{job="pxa-otel-collector"}
+        values: 1 0 0 0 1
+      - series: pxa_dependencies_health{service_name="pxa-webapi",deployment_environment_name="test"}
+        values: 1 1 1 1 1
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: PxaTelemetryPipelineUnavailable
+        exp_alerts:
+          - exp_labels:
+              alertname: PxaTelemetryPipelineUnavailable
+              environment: local-evaluation
+              job: pxa-otel-collector
+              service: pxa-observability
+              severity: critical
+            exp_annotations:
+              summary: PXA telemetry pipeline is unavailable
+              description: Prometheus cannot scrape the PXA OpenTelemetry Collector for two minutes.
+              dashboard_path: /d/pxa-platform-overview/pxa-platform-overview
+              runbook_id: PXA-OBS-001
+      - eval_time: 4m
+        alertname: PxaTelemetryPipelineUnavailable
+        exp_alerts: []
+
+  - name: PostgreSQL outage fires after two minutes
+    interval: 1m
+    input_series:
+      - series: pg_up{instance="pxa-postgres-exporter:9187",job="pxa-postgresql"}
+        values: 1 0 0 0
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: PxaPostgreSqlUnavailable
+        exp_alerts:
+          - exp_labels:
+              alertname: PxaPostgreSqlUnavailable
+              environment: local-evaluation
+              instance: pxa-postgres-exporter:9187
+              job: pxa-postgresql
+              service: pxa-postgresql
+              severity: critical
+            exp_annotations:
+              summary: PXA PostgreSQL is unavailable
+              description: The PostgreSQL exporter cannot connect to the PXA database for two minutes.
+              dashboard_path: /d/pxa-infrastructure/pxa-infrastructure
+              runbook_id: PXA-OBS-009
+
+  - name: Mail dead letter fires immediately
+    interval: 1m
+    input_series:
+      - series: pxa_mail_deliveries_total{mail_outcome="dead_letter"}
+        values: 0 0 1 1 1 1
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: PxaMailDeadLetter
+        exp_alerts:
+          - exp_labels:
+              alertname: PxaMailDeadLetter
+              environment: local-evaluation
+              mail_outcome: dead_letter
+              service: pxa-mail
+              severity: critical
+            exp_annotations:
+              summary: A PXA mail delivery entered the dead-letter state
+              description: At least one mail message exhausted its retry policy during the last five minutes.
+              dashboard_path: /d/pxa-operations/pxa-operations
+              runbook_id: PXA-OBS-015
+
+  - name: Repeated OCR failures fire at three operations
+    interval: 1m
+    input_series:
+      - series: pxa_ocr_operations_total{ocr_outcome="timeout",ocr_language="eng"}
+        values: 0 1 2 3
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: PxaOcrRepeatedFailures
+        exp_alerts:
+          - exp_labels:
+              alertname: PxaOcrRepeatedFailures
+              environment: local-evaluation
+              service: pxa-ocr
+              severity: warning
+            exp_annotations:
+              summary: PXA OCR has repeated failures
+              description: At least three OCR operations failed, timed out, or lost their dependency in ten minutes.
+              dashboard_path: /d/pxa-operations/pxa-operations
+              runbook_id: PXA-OBS-017
+
+  - name: Old document job queue fires after five minutes
+    interval: 1m
+    input_series:
+      - series: pxa_jobs_queue_oldest_age_seconds{job_type="document.import"}
+        values: 601 601 601 601 601 601
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: PxaJobQueueOld
+        exp_alerts:
+          - exp_labels:
+              alertname: PxaJobQueueOld
+              environment: local-evaluation
+              job_type: document.import
+              service: pxa-jobs
+              severity: warning
+            exp_annotations:
+              summary: The oldest PXA background job is over ten minutes old
+              description: A pending document job remained queued for more than ten minutes.
+              dashboard_path: /d/pxa-document-operations/pxa-document-operations
+              runbook_id: PXA-OBS-020
+
+  - name: Authorization denial spike fires above twenty
+    interval: 1m
+    input_series:
+      - series: pxa_api_failures_total{failure_type="authorization",api_surface="admin"}
+        values: 0 5 10 15 21
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: PxaAuthorizationDenialSpike
+        exp_alerts:
+          - exp_labels:
+              alertname: PxaAuthorizationDenialSpike
+              environment: local-evaluation
+              service: pxa-security
+              severity: warning
+            exp_annotations:
+              summary: PXA authorization denials increased sharply
+              description: More than 20 authorization denials occurred during the last five minutes.
+              dashboard_path: /d/pxa-document-operations/pxa-document-operations
+              runbook_id: PXA-OBS-023
+
+  - name: Storage failure rate fires after sustained failures
+    interval: 1m
+    input_series:
+      - series: pxa_storage_operations_total{storage_operation="put",storage_outcome="completed"}
+        values: 0 9 18 27 36 45 54 63
+      - series: pxa_storage_operations_total{storage_operation="put",storage_outcome="failed"}
+        values: 0 2 4 6 8 10 12 14
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: PxaStorageFailureRateHigh
+        exp_alerts:
+          - exp_labels:
+              alertname: PxaStorageFailureRateHigh
+              environment: local-evaluation
+              service: pxa-storage
+              severity: critical
+            exp_annotations:
+              summary: PXA object-storage failure rate is above ten percent
+              description: At least ten storage operations ran and more than ten percent failed during the last ten minutes.
+              dashboard_path: /d/pxa-document-operations/pxa-document-operations
+              runbook_id: PXA-OBS-025
+
+  - name: Critical license validation failure fires immediately
+    interval: 1m
+    input_series:
+      - series: pxa_licensing_operations_total{licensing_operation="offline_validation",licensing_outcome="signature_invalid"}
+        values: 0 1
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: PxaLicenseValidationFailure
+        exp_alerts:
+          - exp_labels:
+              alertname: PxaLicenseValidationFailure
+              environment: local-evaluation
+              service: pxa-licensing
+              severity: critical
+            exp_annotations:
+              summary: PXA detected a critical offline-license validation failure
+              description: An offline license failed cryptographic or structural validation during the last five minutes.
+              dashboard_path: /d/pxa-document-operations/pxa-document-operations
+              runbook_id: PXA-OBS-026
+
+  - name: Offline license expiry states fire
+    interval: 1m
+    input_series:
+      - series: pxa_licensing_licenses{license_state="expiring_14d"}
+        values: 1
+      - series: pxa_licensing_licenses{license_state="expired_active"}
+        values: 1
+    alert_rule_test:
+      - eval_time: 0m
+        alertname: PxaOfflineLicenseExpiringSoon
+        exp_alerts:
+          - exp_labels:
+              alertname: PxaOfflineLicenseExpiringSoon
+              environment: local-evaluation
+              license_state: expiring_14d
+              service: pxa-licensing
+              severity: warning
+            exp_annotations:
+              summary: A PXA offline license expires within 14 days
+              description: At least one active offline license reaches its validity date within the next 14 days.
+              dashboard_path: /d/pxa-document-operations/pxa-document-operations
+              runbook_id: PXA-OBS-027
+      - eval_time: 0m
+        alertname: PxaOfflineLicenseExpiredActive
+        exp_alerts:
+          - exp_labels:
+              alertname: PxaOfflineLicenseExpiredActive
+              environment: local-evaluation
+              license_state: expired_active
+              service: pxa-licensing
+              severity: critical
+            exp_annotations:
+              summary: An expired PXA offline license is still marked active
+              description: At least one active license record is already beyond its validity date.
+              dashboard_path: /d/pxa-document-operations/pxa-document-operations
+              runbook_id: PXA-OBS-028
+
+  - name: Browser error spike fires at five privacy-safe events
+    interval: 1m
+    input_series:
+      - series: pxa_browser_events_total{browser_application="designer",browser_event="error",browser_outcome="failed",browser_route="designer"}
+        values: 0 1 2 3 4 5
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: PxaBrowserErrorSpike
+        exp_alerts:
+          - exp_labels:
+              alertname: PxaBrowserErrorSpike
+              browser_application: designer
+              environment: local-evaluation
+              service: pxa-browser
+              severity: warning
+            exp_annotations:
+              summary: A PXA browser application has repeated JavaScript failures
+              description: At least five privacy-safe browser error events occurred in one application during five minutes.
+              dashboard_path: /d/pxa-browser-health/pxa-browser-health
+              runbook_id: PXA-OBS-029
+
+  - name: TLS certificate expiry fires inside fourteen days
+    interval: 1m
+    input_series:
+      - series: probe_success{job="pxa-tls",instance="https://admin.example.test"}
+        values: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+      - series: probe_ssl_earliest_cert_expiry{job="pxa-tls",instance="https://admin.example.test"}
+        values: 1200000 1200000 1200000 1200000 1200000 1200000 1200000 1200000 1200000 1200000 1200000 1200000 1200000 1200000 1200000 1200000
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: PxaTlsCertificateExpiringSoon
+        exp_alerts:
+          - exp_labels:
+              alertname: PxaTlsCertificateExpiringSoon
+              environment: local-evaluation
+              instance: https://admin.example.test
+              job: pxa-tls
+              service: pxa-edge
+              severity: warning
+            exp_annotations:
+              summary: A monitored PXA TLS certificate expires within 14 days
+              description: A deployment-configured HTTPS endpoint has less than 14 days of certificate validity remaining.
+              dashboard_path: /d/pxa-infrastructure/pxa-infrastructure
+              runbook_id: PXA-OBS-032

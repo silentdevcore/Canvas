@@ -1,0 +1,19 @@
+groups:
+  - name: pxa-api-container
+    rules:
+      - alert: PxaWebApiContainerTelemetryMissing
+        expr: |
+          time() - max(
+            pxa_service_heartbeat_seconds{
+              service_instance_id="pxa-webapi-container"
+            }
+          ) > 120
+        labels:
+          severity: critical
+          service: pxa-webapi
+          environment: container
+        annotations:
+          summary: The PXA WebApi container telemetry is missing
+          description: No dependency-health metric arrived from the expected WebApi container for two minutes.
+          dashboard_path: /d/pxa-platform-overview/pxa-platform-overview
+          runbook_id: PXA-OBS-034

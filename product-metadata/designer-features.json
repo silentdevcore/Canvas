@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "product": "PXA Designer",
+  "features": [
+    {
+      "id": "designer.release-notes",
+      "titleKey": "features.releaseNotes.title",
+      "descriptionKey": "features.releaseNotes.description",
+      "fallbackTitle": "Release notes",
+      "fallbackDescription": "Review new, improved, and fixed Designer capabilities.",
+      "maturity": "stable",
+      "introducedIn": "1.0.0",
+      "newUntilVersion": "1.1.0",
+      "defaultEnabled": true,
+      "documentationPath": "/#release-notes"
+    },
+    {
+      "id": "designer.notifications",
+      "titleKey": "features.notifications.title",
+      "descriptionKey": "features.notifications.description",
+      "fallbackTitle": "Notification center",
+      "fallbackDescription": "Keep releases and important product messages available after transient feedback disappears.",
+      "maturity": "beta",
+      "introducedIn": "1.0.0",
+      "newUntilVersion": "1.1.0",
+      "defaultEnabled": true,
+      "documentationPath": "/#designer-notifications"
+    },
+    {
+      "id": "designer.experimental-features",
+      "titleKey": "features.experimental.title",
+      "descriptionKey": "features.experimental.description",
+      "fallbackTitle": "Experimental features",
+      "fallbackDescription": "Opt in to organization-approved Alpha capabilities.",
+      "maturity": "beta",
+      "introducedIn": "1.0.0",
+      "newUntilVersion": "1.1.0",
+      "defaultEnabled": true,
+      "documentationPath": "/#designer-feature-status"
+    },
+    {
+      "id": "designer.pdf-viewer",
+      "titleKey": "features.pdfViewer.title",
+      "descriptionKey": "features.pdfViewer.description",
+      "fallbackTitle": "PDF Viewer",
+      "fallbackDescription": "Inspect PDFs, annotations, forms, outlines, and related document data.",
+      "maturity": "beta",
+      "introducedIn": "1.0.0",
+      "newUntilVersion": "1.1.0",
+      "defaultEnabled": true,
+      "requiredEntitlement": "designer",
+      "documentationPath": "/#pdf-viewer-details"
+    },
+    {
+      "id": "designer.spreadsheet",
+      "titleKey": "features.spreadsheet.title",
+      "descriptionKey": "features.spreadsheet.description",
+      "fallbackTitle": "Spreadsheet",
+      "fallbackDescription": "Author, import, calculate, and export workbook-based content.",
+      "maturity": "beta",
+      "introducedIn": "1.0.0",
+      "newUntilVersion": "1.1.0",
+      "defaultEnabled": true,
+      "requiredEntitlement": "designer",
+      "documentationPath": "/#spreadsheet"
+    },
+    {
+      "id": "designer.ai-layout-assistant",
+      "titleKey": "features.aiLayout.title",
+      "descriptionKey": "features.aiLayout.description",
+      "fallbackTitle": "AI layout assistant",
+      "fallbackDescription": "Preview an experimental assisted-layout workflow when enabled by your organization.",
+      "maturity": "alpha",
+      "introducedIn": "1.0.0-alpha.1",
+      "newUntilVersion": "1.1.0",
+      "defaultEnabled": false,
+      "documentationPath": "/#designer-feature-status"
+    }
+  ]
+}

@@ -1,8 +1,11 @@
 import './site.css';
+import { initializeBrowserTelemetry } from '../../shared/browserTelemetry.js';
 import { appendCampaignParams } from '../../shared/campaignAttribution.js';
 import { renderPxaFooter } from '../../shared/footer.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import { consumeSignedInSignal } from '../../shared/signedInSignal.js';
+
+initializeBrowserTelemetry({ application: 'company' });
 
 // PXA.Company has no session of its own and never will - the signal itself
 // is a purely cosmetic one-time marker (see shared/signedInSignal.js),

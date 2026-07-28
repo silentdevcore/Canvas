@@ -1,0 +1,60 @@
+global:
+  resolve_timeout: 5m
+  smtp_from: pxa-alerts@powerdox.local
+  smtp_smarthost: pxa-mailpit:1025
+  smtp_require_tls: false
+
+templates:
+  - /etc/alertmanager/templates/*.tmpl
+
+route:
+  receiver: operator-email
+  group_by: [alertname, service, environment]
+  group_wait: 30s
+  group_interval: 1m
+  repeat_interval: 4h
+  routes:
+    - receiver: operator-email
+      matchers:
+        - severity="critical"
+      mute_time_intervals: [pxa-maintenance-window]
+      repeat_interval: 30m
+    - receiver: operator-email
+      matchers:
+        - severity="warning"
+      mute_time_intervals: [pxa-maintenance-window]
+      repeat_interval: 2h
+    - receiver: operator-email
+      matchers:
+        - severity="info"
+      mute_time_intervals: [pxa-maintenance-window]
+      repeat_interval: 12h
+
+inhibit_rules:
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity=~"warning|info"
+    equal: [service, environment]
+
+time_intervals:
+  - name: pxa-maintenance-window
+    time_intervals:
+      - weekdays: [saturday, sunday]
+        times:
+          - start_time: "01:00"
+            end_time: "03:00"
+        location: Europe/Berlin
+
+receivers:
+  - name: operator-email
+    email_configs:
+      - to: pxa-operators@powerdox.local
+        send_resolved: true
+        headers:
+          Subject: '{{ template "pxa.email.subject" . }}'
+        html: '{{ template "pxa.email.html" . }}'
+        text: '{{ template "pxa.email.text" . }}'
+        threading:
+          enabled: true
+          thread_by_date: none

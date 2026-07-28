@@ -319,6 +319,102 @@
           "apiExample": null
         },
         {
+          "title": "System status and telemetry",
+          "group": "Operations",
+          "permission": "System Administrator",
+          "summary": "Inspect sanitized service health and open protected metrics, logs, and traces without exposing operator telemetry to organization administrators.",
+          "prerequisites": [
+            "Use an active, email-verified System Administrator account.",
+            "Use the Admin and operator hosts configured for the same deployment.",
+            "Confirm that the optional observability profile is healthy."
+          ],
+          "steps": [
+            "Open System status in PXA.Admin and review the coarse component and queue states.",
+            "Select Open dashboards to enter the protected operator gateway.",
+            "Use Platform Overview first, then open the infrastructure, operations, document, or browser dashboard for the affected surface.",
+            "Use Grafana Explore only when dashboard evidence requires a correlated metric, sanitized log, or Tempo trace.",
+            "Record the UTC time, dashboard, alert name, runbook ID, and W3C trace ID when escalating."
+          ],
+          "result": "Authorized system operators can correlate sanitized platform health, metrics, logs, traces, and alerts while customer administrators see no raw telemetry.",
+          "failures": [
+            "Anonymous access receives 401 and Organization Administrators receive 403 from the operator gateway.",
+            "A healthy Admin status page does not replace liveness, readiness, or alert evidence.",
+            "Mailpit, Collector health, and container health URLs are local evaluation endpoints and must not be exposed publicly."
+          ],
+          "audit": "Opening telemetry is a protected read. Remediation performed through Admin or deployment tooling remains separately auditable.",
+          "endpoint": "GET /api/pxa/v1/admin/system/health, /health/live, and /health/ready",
+          "screenshot": "dashboard.png",
+          "notes": [
+            "PXA.Admin exposes only sanitized status. Raw Grafana data remains behind the System Administrator operator gateway.",
+            "Prometheus, Loki, Tempo, Alertmanager, cAdvisor, and PostgreSQL Exporter have no direct public host ports.",
+            "Use local links only for Rancher Desktop evaluation. Production links require TLS and the deployment operator allowlist.",
+            "Never paste customer documents, credentials, mail payloads, license material, or arbitrary query attributes into telemetry tools."
+          ],
+          "references": [
+            {
+              "label": "Production Admin system status",
+              "href": "https://admin.powerdoxautomation.com/system-status"
+            },
+            {
+              "label": "Local Admin system status",
+              "href": "http://localhost:5177/system-status"
+            },
+            {
+              "label": "Production operator dashboards",
+              "href": "https://operator.powerdoxautomation.com/operator/grafana/"
+            },
+            {
+              "label": "Local operator dashboards",
+              "href": "http://localhost:3001/operator/grafana/"
+            },
+            {
+              "label": "Platform overview dashboard",
+              "href": "http://localhost:3001/operator/grafana/d/pxa-platform-overview/pxa-platform-overview"
+            },
+            {
+              "label": "Infrastructure dashboard",
+              "href": "http://localhost:3001/operator/grafana/d/pxa-infrastructure/pxa-infrastructure"
+            },
+            {
+              "label": "Mail and OCR operations dashboard",
+              "href": "http://localhost:3001/operator/grafana/d/pxa-operations/pxa-operations"
+            },
+            {
+              "label": "Document operations dashboard",
+              "href": "http://localhost:3001/operator/grafana/d/pxa-document-operations/pxa-document-operations"
+            },
+            {
+              "label": "Browser health dashboard",
+              "href": "http://localhost:3001/operator/grafana/d/pxa-browser-health/pxa-browser-health"
+            },
+            {
+              "label": "Local operator gateway health",
+              "href": "http://localhost:3001/operator-health"
+            },
+            {
+              "label": "Local Collector health",
+              "href": "http://localhost:13133/"
+            },
+            {
+              "label": "Containerized API liveness",
+              "href": "http://localhost:5087/health/live"
+            },
+            {
+              "label": "Containerized API readiness",
+              "href": "http://localhost:5087/health/ready"
+            },
+            {
+              "label": "Local Alertmanager mail inbox",
+              "href": "http://localhost:8025/"
+            },
+            {
+              "label": "Containerized API OpenAPI document",
+              "href": "http://localhost:5087/openapi/v1.json"
+            }
+          ],
+          "apiExample": null
+        },
+        {
           "title": "Settings and common states",
           "group": "Operations",
           "permission": "Organization Administrator",
@@ -512,6 +608,10 @@
     [
       "/audit",
       "Audit workspace"
+    ],
+    [
+      "/system-status",
+      "System status and telemetry"
     ],
     [
       "/settings",

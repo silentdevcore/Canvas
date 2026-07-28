@@ -1,10 +1,12 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Observability;
 
 namespace PXA.WebApi.Services.Mail;
 
@@ -59,10 +61,25 @@ public sealed class PxaMailProcessor
 
     public async Task<int> ProcessPendingAsync(CancellationToken cancellationToken)
     {
+        var now = DateTimeOffset.UtcNow;
+        var queueState = await dbContext.MailOutboxMessages
+            .Where(message =>
+                message.Status == MailDeliveryStatus.Pending ||
+                message.Status == MailDeliveryStatus.Failed)
+            .GroupBy(_ => 1)
+            .Select(messages => new
+            {
+                Count = messages.LongCount(),
+                OldestCreatedAt = messages.Min(message => message.CreatedAt),
+            })
+            .SingleOrDefaultAsync(cancellationToken);
+        PxaTelemetry.RecordMailQueue(
+            queueState?.Count ?? 0,
+            queueState is null ? TimeSpan.Zero : now - queueState.OldestCreatedAt);
+
         if (!options.IsDeliveryEnabled)
             return 0;
 
-        var now = DateTimeOffset.UtcNow;
         var messages = await dbContext.MailOutboxMessages
             .Where(message =>
                 (message.Status == MailDeliveryStatus.Pending || message.Status == MailDeliveryStatus.Failed) &&
@@ -74,6 +91,11 @@ public sealed class PxaMailProcessor
 
         foreach (var message in messages)
         {
+            using var activity = PxaTelemetry.StartMailDelivery(
+                message.Attempts + 1,
+                message.TraceParent,
+                message.TraceState);
+            var deliveryStopwatch = Stopwatch.StartNew();
             message.Status = MailDeliveryStatus.Sending;
             message.Attempts++;
             message.LastAttemptAt = now;
@@ -106,6 +128,24 @@ public sealed class PxaMailProcessor
 
             message.UpdatedAt = DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
+            deliveryStopwatch.Stop();
+            PxaTelemetry.RecordMailDelivery(
+                message.Status switch
+                {
+                    MailDeliveryStatus.Delivered => "delivered",
+                    MailDeliveryStatus.DeadLetter => "dead_letter",
+                    _ => "retry",
+                },
+                deliveryStopwatch.Elapsed,
+                now - message.CreatedAt);
+            PxaTelemetry.CompleteMailOperation(
+                activity,
+                message.Status switch
+                {
+                    MailDeliveryStatus.Delivered => "delivered",
+                    MailDeliveryStatus.DeadLetter => "dead_letter",
+                    _ => "retry",
+                });
         }
 
         return messages.Count;
@@ -149,7 +189,10 @@ public sealed class PxaMailWorker : BackgroundService
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
-                logger.LogWarning(exception, "PXA mail processing is temporarily unavailable.");
+                logger.LogWarning(
+                    PxaLogEvents.MailProcessingFailed,
+                    exception,
+                    "PXA mail processing is temporarily unavailable.");
             }
             await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
         }

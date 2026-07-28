@@ -4,6 +4,7 @@ import {
   FiChevronDown,
   FiCreditCard,
   FiLogOut,
+  FiFlag,
   FiSettings,
   FiShield,
   FiUser,
@@ -17,6 +18,8 @@ import {
   switchDesignerOrganization,
 } from '@/auth/designerAuth';
 import { clearDesignerTenantState } from '@/auth/designerTenantState';
+import { useProductExperience } from '@/product/ProductExperienceProvider';
+import { designerCommit, designerVersion } from '@/product/productMetadata';
 
 interface DesignerUserMenuProps {
   mobile?: boolean;
@@ -32,6 +35,7 @@ const accountLinks = [
 
 const DesignerUserMenu: React.FC<DesignerUserMenuProps> = ({ mobile = false, onNavigate }) => {
   const { user } = useDesignerAuth();
+  const { openPanel } = useProductExperience();
   const [open, setOpen] = useState(false);
   const [switchingId, setSwitchingId] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -132,6 +136,22 @@ const DesignerUserMenu: React.FC<DesignerUserMenuProps> = ({ mobile = false, onN
       )}
 
       <div className="designer-user-section">
+        <button type="button" onClick={() => {
+          setOpen(false);
+          onNavigate?.();
+          openPanel('releases');
+        }}>
+          <FiFlag aria-hidden="true" />
+          What's New
+        </button>
+        <button type="button" onClick={() => {
+          setOpen(false);
+          onNavigate?.();
+          openPanel('features');
+        }}>
+          <FiSettings aria-hidden="true" />
+          Experimental features
+        </button>
         {accountLinks.map(link => (
           <button key={link.path} type="button" onClick={() => openAccountPage(link.path)}>
             <link.icon aria-hidden="true" />
@@ -145,6 +165,9 @@ const DesignerUserMenu: React.FC<DesignerUserMenuProps> = ({ mobile = false, onN
       </div>
 
       {error && <p className="designer-user-error" role="alert">{error}</p>}
+      <div className="designer-version-info" title={`Commit ${designerCommit}`}>
+        PXA Designer {designerVersion}
+      </div>
       <button className="designer-signout-button" type="button" onClick={() => void signOut()}>
         <FiLogOut aria-hidden="true" />
         Sign out of Designer

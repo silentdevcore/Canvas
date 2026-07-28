@@ -3,8 +3,7 @@ import { FiGlobe, FiTrash2, FiPlus } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
 import { useEditorStore } from '@/store';
 import type { LocalizedProperty } from '@/types';
-
-const RTL_LANGS = new Set(['ar', 'he', 'fa', 'ur', 'yi', 'dv']);
+import { isDocumentRtlLanguage } from '@/utils/documentDirection';
 
 export const LocalizedPropertiesPanel: React.FC = () => {
   const { t } = useTranslation('editor');
@@ -26,7 +25,7 @@ export const LocalizedPropertiesPanel: React.FC = () => {
   const langs = pageSettings.activeLanguages ?? [];
   const sysLang = navigator.language.split('-')[0];
   const activeLang = currentPreviewLanguage || sysLang;
-  const isRtl = RTL_LANGS.has(activeLang);
+  const isRtl = isDocumentRtlLanguage(activeLang);
 
   const visibleProps = props.filter(
     p => p.scope === 'global' || p.ownerLanguage === activeLang

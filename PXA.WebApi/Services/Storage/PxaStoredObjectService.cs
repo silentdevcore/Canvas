@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Observability;
 
 namespace PXA.WebApi.Services.Storage;
 
@@ -25,6 +27,8 @@ public sealed class PxaStoredObjectService(
         ArgumentException.ThrowIfNullOrWhiteSpace(purpose);
         ArgumentException.ThrowIfNullOrWhiteSpace(contentType);
 
+        using var activity = PxaTelemetry.StartStorageOperation("put");
+        var stopwatch = Stopwatch.StartNew();
         var temporaryPath = Path.Combine(Path.GetTempPath(), $"pxa-object-{Guid.NewGuid():N}.tmp");
         long length = 0;
         string checksum;
@@ -83,6 +87,8 @@ public sealed class PxaStoredObjectService(
             try
             {
                 await dbContext.SaveChangesAsync(cancellationToken);
+                PxaTelemetry.CompleteStorageOperation(activity, "completed", length);
+                PxaTelemetry.RecordStorageOperation("put", "completed", stopwatch.Elapsed, length);
                 return entity;
             }
             catch
@@ -90,6 +96,25 @@ public sealed class PxaStoredObjectService(
                 await storage.DeleteAsync(objectKey, CancellationToken.None);
                 throw;
             }
+        }
+        catch (OperationCanceledException)
+        {
+            PxaTelemetry.CompleteStorageOperation(activity, "cancelled");
+            PxaTelemetry.RecordStorageOperation("put", "cancelled", stopwatch.Elapsed);
+            throw;
+        }
+        catch (InvalidOperationException exception)
+            when (exception.Message.Contains("size limit", StringComparison.Ordinal))
+        {
+            PxaTelemetry.CompleteStorageOperation(activity, "rejected");
+            PxaTelemetry.RecordStorageOperation("put", "rejected", stopwatch.Elapsed);
+            throw;
+        }
+        catch
+        {
+            PxaTelemetry.CompleteStorageOperation(activity, "failed");
+            PxaTelemetry.RecordStorageOperation("put", "failed", stopwatch.Elapsed);
+            throw;
         }
         finally
         {
@@ -103,47 +128,126 @@ public sealed class PxaStoredObjectService(
         Guid organizationId,
         CancellationToken cancellationToken)
     {
-        var metadata = await dbContext.StoredObjects.AsNoTracking().SingleOrDefaultAsync(
-            value => value.Id == id &&
-                     value.OrganizationId == organizationId &&
-                     value.Status == PxaStoredObjectStatus.Available,
-            cancellationToken);
-        if (metadata is null)
-            return null;
-        return (metadata, await storage.OpenReadAsync(metadata.ObjectKey, cancellationToken));
+        using var activity = PxaTelemetry.StartStorageOperation("get");
+        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            var metadata = await dbContext.StoredObjects.AsNoTracking().SingleOrDefaultAsync(
+                value => value.Id == id &&
+                         value.OrganizationId == organizationId &&
+                         value.Status == PxaStoredObjectStatus.Available,
+                cancellationToken);
+            if (metadata is null)
+            {
+                PxaTelemetry.CompleteStorageOperation(activity, "not_found");
+                PxaTelemetry.RecordStorageOperation("get", "not_found", stopwatch.Elapsed);
+                return null;
+            }
+
+            var content = await storage.OpenReadAsync(metadata.ObjectKey, cancellationToken);
+            PxaTelemetry.CompleteStorageOperation(activity, "completed", metadata.Length);
+            PxaTelemetry.RecordStorageOperation("get", "completed", stopwatch.Elapsed, metadata.Length);
+            return (metadata, content);
+        }
+        catch (OperationCanceledException)
+        {
+            PxaTelemetry.CompleteStorageOperation(activity, "cancelled");
+            PxaTelemetry.RecordStorageOperation("get", "cancelled", stopwatch.Elapsed);
+            throw;
+        }
+        catch
+        {
+            PxaTelemetry.CompleteStorageOperation(activity, "failed");
+            PxaTelemetry.RecordStorageOperation("get", "failed", stopwatch.Elapsed);
+            throw;
+        }
     }
 
     public async Task DeleteAsync(Guid id, Guid organizationId, CancellationToken cancellationToken)
     {
-        var metadata = await dbContext.StoredObjects.SingleOrDefaultAsync(
-            value => value.Id == id && value.OrganizationId == organizationId,
-            cancellationToken);
-        if (metadata is null || metadata.Status == PxaStoredObjectStatus.Deleted)
-            return;
-        await storage.DeleteAsync(metadata.ObjectKey, cancellationToken);
-        metadata.Status = PxaStoredObjectStatus.Deleted;
-        metadata.DeletedAt = DateTimeOffset.UtcNow;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        using var activity = PxaTelemetry.StartStorageOperation("delete");
+        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            var metadata = await dbContext.StoredObjects.SingleOrDefaultAsync(
+                value => value.Id == id && value.OrganizationId == organizationId,
+                cancellationToken);
+            if (metadata is null)
+            {
+                PxaTelemetry.CompleteStorageOperation(activity, "not_found");
+                PxaTelemetry.RecordStorageOperation("delete", "not_found", stopwatch.Elapsed);
+                return;
+            }
+            if (metadata.Status == PxaStoredObjectStatus.Deleted)
+            {
+                PxaTelemetry.CompleteStorageOperation(activity, "skipped");
+                PxaTelemetry.RecordStorageOperation("delete", "skipped", stopwatch.Elapsed);
+                return;
+            }
+
+            await storage.DeleteAsync(metadata.ObjectKey, cancellationToken);
+            metadata.Status = PxaStoredObjectStatus.Deleted;
+            metadata.DeletedAt = DateTimeOffset.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            PxaTelemetry.CompleteStorageOperation(activity, "completed");
+            PxaTelemetry.RecordStorageOperation("delete", "completed", stopwatch.Elapsed);
+        }
+        catch (OperationCanceledException)
+        {
+            PxaTelemetry.CompleteStorageOperation(activity, "cancelled");
+            PxaTelemetry.RecordStorageOperation("delete", "cancelled", stopwatch.Elapsed);
+            throw;
+        }
+        catch
+        {
+            PxaTelemetry.CompleteStorageOperation(activity, "failed");
+            PxaTelemetry.RecordStorageOperation("delete", "failed", stopwatch.Elapsed);
+            throw;
+        }
     }
 
     public async Task<int> ReconcileMissingAsync(int batchSize, CancellationToken cancellationToken)
     {
-        var candidates = await dbContext.StoredObjects
-            .Where(value => value.Status == PxaStoredObjectStatus.Available)
-            .OrderBy(value => EF.Functions.Random())
-            .Take(batchSize)
-            .ToArrayAsync(cancellationToken);
-        var missing = 0;
-        foreach (var metadata in candidates)
+        using var activity = PxaTelemetry.StartStorageOperation("reconcile");
+        var stopwatch = Stopwatch.StartNew();
+        try
         {
-            if (await storage.ExistsAsync(metadata.ObjectKey, cancellationToken))
-                continue;
-            metadata.Status = PxaStoredObjectStatus.Orphaned;
-            missing++;
+            var candidates = await dbContext.StoredObjects
+                .Where(value => value.Status == PxaStoredObjectStatus.Available)
+                .OrderBy(value => EF.Functions.Random())
+                .Take(batchSize)
+                .ToArrayAsync(cancellationToken);
+            var missing = 0;
+            foreach (var metadata in candidates)
+            {
+                if (await storage.ExistsAsync(metadata.ObjectKey, cancellationToken))
+                    continue;
+                metadata.Status = PxaStoredObjectStatus.Orphaned;
+                missing++;
+            }
+            if (missing > 0)
+                await dbContext.SaveChangesAsync(cancellationToken);
+            PxaTelemetry.CompleteStorageOperation(
+                activity,
+                missing > 0 ? "missing_found" : "completed");
+            PxaTelemetry.RecordStorageOperation(
+                "reconcile",
+                missing > 0 ? "missing_found" : "completed",
+                stopwatch.Elapsed);
+            return missing;
         }
-        if (missing > 0)
-            await dbContext.SaveChangesAsync(cancellationToken);
-        return missing;
+        catch (OperationCanceledException)
+        {
+            PxaTelemetry.CompleteStorageOperation(activity, "cancelled");
+            PxaTelemetry.RecordStorageOperation("reconcile", "cancelled", stopwatch.Elapsed);
+            throw;
+        }
+        catch
+        {
+            PxaTelemetry.CompleteStorageOperation(activity, "failed");
+            PxaTelemetry.RecordStorageOperation("reconcile", "failed", stopwatch.Elapsed);
+            throw;
+        }
     }
 
     private static string? NormalizeFileName(string? fileName)

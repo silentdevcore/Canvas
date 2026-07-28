@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using PXA.FileImporter.ImageOcr;
 
@@ -48,6 +49,54 @@ public sealed class ProcessIsolatedTesseractOcrEngineTests
         Assert.Equal(100, page.WidthPx);
         Assert.Equal(50, page.HeightPx);
         Assert.False(Directory.Exists(runner.LastWorkingDirectory));
+    }
+
+    [Fact]
+    public async Task RecognizeAsync_Propagates_the_worker_span_as_W3C_context()
+    {
+        Activity? workerSpan = null;
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source =>
+                source.Name == ProcessIsolatedTesseractOcrEngine.ActivitySourceName,
+            Sample = static (ref ActivityCreationOptions<ActivityContext> _) =>
+                ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStarted = activity => workerSpan = activity,
+        };
+        ActivitySource.AddActivityListener(listener);
+        using var parent = new Activity("request")
+            .SetIdFormat(ActivityIdFormat.W3C)
+            .Start();
+        var runner = new FakeRunner(async context =>
+        {
+            var request = await ReadRequestAsync(context.RequestPath);
+            Assert.Equal(workerSpan!.Id, request.TraceParent);
+            Assert.True(ActivityContext.TryParse(
+                request.TraceParent,
+                request.TraceState,
+                isRemote: true,
+                out var propagated));
+            Assert.Equal(parent.TraceId, propagated.TraceId);
+
+            await WriteResponseAsync(context.ResponsePath, new OcrWorkerResponse
+            {
+                Success = true,
+            });
+            return new OcrWorkerProcessResult(0, TimedOut: false, "", "");
+        });
+        using var tempRoot = new TestTempDirectory();
+        var engine = new ProcessIsolatedTesseractOcrEngine(
+            "/fake/worker.dll",
+            tempRoot: tempRoot.Path,
+            runner: runner);
+
+        await engine.RecognizeAsync(
+            [new OcrImagePage(0, 10, 10, [1])],
+            new ImageToPdfConversionOptions());
+
+        Assert.NotNull(workerSpan);
+        Assert.Equal(parent.TraceId, workerSpan.TraceId);
+        Assert.Equal(parent.SpanId, workerSpan.ParentSpanId);
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using PXA.FileImporter.ImageOcr;
 
@@ -14,12 +15,28 @@ if (args.Length != 2)
 
 var requestPath = args[0];
 var responsePath = args[1];
+Activity? workerActivity = null;
 
 try
 {
     var requestJson = await File.ReadAllTextAsync(requestPath);
     var request = JsonSerializer.Deserialize<OcrWorkerRequest>(requestJson, jsonOptions)
         ?? throw new InvalidOperationException("OCR worker request is invalid.");
+    workerActivity = new Activity("pxa.ocr.worker.process");
+    workerActivity.SetIdFormat(ActivityIdFormat.W3C);
+    if (ActivityContext.TryParse(
+        request.TraceParent,
+        request.TraceState,
+        isRemote: true,
+        out var parentContext))
+    {
+        workerActivity.SetParentId(
+            parentContext.TraceId,
+            parentContext.SpanId,
+            parentContext.TraceFlags);
+        workerActivity.TraceStateString = parentContext.TraceState;
+    }
+    workerActivity.Start();
 
     var engine = new EmbeddedTesseractOcrEngine(request.TessDataPath, request.NativeLibraryPath);
     var pages = request.Pages
@@ -38,6 +55,7 @@ try
     };
 
     var ocrPages = await engine.RecognizeAsync(pages, options);
+    workerActivity.SetStatus(ActivityStatusCode.Ok);
     await WriteResponseAsync(new OcrWorkerResponse
     {
         Success = true,
@@ -48,6 +66,7 @@ try
 }
 catch (Exception ex)
 {
+    workerActivity?.SetStatus(ActivityStatusCode.Error, ex.GetType().Name);
     await WriteResponseAsync(new OcrWorkerResponse
     {
         Success = false,
@@ -55,6 +74,10 @@ catch (Exception ex)
     });
     Console.Error.WriteLine(ex);
     return 1;
+}
+finally
+{
+    workerActivity?.Dispose();
 }
 
 async Task WriteResponseAsync(OcrWorkerResponse response)

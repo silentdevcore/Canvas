@@ -88,3 +88,19 @@ Full reasoning and design detail live in the approved plan; this checklist track
 - [x] `npm run build` clean.
 - [x] `npm run test` — full suite passes: 21 suites, 215 tests, including the two new test files.
 - [ ] Manual (no browser in this environment, recommend for the user): switch through all 6 languages via the switcher on Home; confirm Arabic flips the whole layout RTL (sidebar side, chevrons, text alignment) and loads the Arabic font; confirm a template loads correctly in a non-English locale (falls back to English content since overrides are empty initially); confirm the language choice persists across a reload.
+
+## Phase 8 — Page Settings Language Multi-Select
+
+- [x] Replace the permanently expanded Page Settings language checkbox list with a compact multi-select dropdown.
+- [x] Keep all document languages independently selectable without closing the dropdown after each choice.
+- [x] Show only selected document languages as removable chips below the dropdown.
+- [x] Keep `PageSettings.activeLanguages` as the persisted source of truth.
+- [x] Keep `LanguageTabBar`, localized properties, RTL positioning, and export behavior synchronized through `activeLanguages`.
+- [x] Move the current preview language to a remaining selected language when its chip is removed.
+- [x] Add translated dropdown, selection-count, empty-state, and remove labels for all six Designer UI languages.
+- [x] Add unit coverage for ordered, duplicate-safe language selection and removal.
+- [x] Limit automatic document RTL behavior to Arabic (`ar` and regional `ar-*` tags).
+- [x] Remove Hebrew and Persian from Page Settings, element-language options, language-tab labels, and selectable font families.
+- [x] Preserve unknown legacy language tags in saved documents without offering them for new selection or applying RTL automatically.
+- [x] Centralize document-direction detection and add regression coverage proving Hebrew, Persian, and Urdu remain LTR.
+- [ ] Manually verify selecting and removing multiple LTR/RTL languages in Page Settings and the resulting editor language tabs.

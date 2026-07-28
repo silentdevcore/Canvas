@@ -1,0 +1,55 @@
+{{ define "pxa.email.subject" -}}
+[PXA][{{ toUpper .Status }}][{{ toUpper .CommonLabels.severity }}] {{ .GroupLabels.alertname }} - {{ .CommonLabels.service }} in {{ .CommonLabels.environment }}
+{{- end }}
+
+{{ define "pxa.email.text" -}}
+PXA operational alert
+
+Status: {{ toUpper .Status }}
+Severity: {{ toUpper .CommonLabels.severity }}
+Service: {{ .CommonLabels.service }}
+Environment: {{ .CommonLabels.environment }}
+
+{{ range .Alerts -}}
+Alert: {{ .Labels.alertname }}
+Started: {{ date "2006-01-02T15:04:05Z07:00" .StartsAt }}
+Summary: {{ .Annotations.summary }}
+Description: {{ .Annotations.description }}
+Dashboard: http://localhost:3001/operator/grafana{{ .Annotations.dashboard_path }}
+Runbook: {{ .Annotations.runbook_id }}
+
+{{ end -}}
+This notification intentionally excludes customer, tenant, user, document, template, and request data.
+{{- end }}
+
+{{ define "pxa.email.html" -}}
+<!doctype html>
+<html lang="en">
+<body style="background:#f4f6f8;color:#17212b;font-family:Arial,sans-serif;margin:0;padding:24px">
+  <main style="background:#ffffff;border:1px solid #d7dde3;max-width:720px;margin:0 auto;padding:24px">
+    <h1 style="font-size:22px;margin:0 0 20px">PXA operational alert</h1>
+    <table role="presentation" style="border-collapse:collapse;margin-bottom:24px;width:100%">
+      <tr><th align="left" style="padding:6px 12px 6px 0">Status</th><td>{{ toUpper .Status }}</td></tr>
+      <tr><th align="left" style="padding:6px 12px 6px 0">Severity</th><td>{{ toUpper .CommonLabels.severity }}</td></tr>
+      <tr><th align="left" style="padding:6px 12px 6px 0">Service</th><td>{{ .CommonLabels.service }}</td></tr>
+      <tr><th align="left" style="padding:6px 12px 6px 0">Environment</th><td>{{ .CommonLabels.environment }}</td></tr>
+    </table>
+    {{ range .Alerts }}
+    <section style="border-top:1px solid #d7dde3;padding-top:18px;margin-top:18px">
+      <h2 style="font-size:18px;margin:0 0 12px">{{ .Labels.alertname }}</h2>
+      <p><strong>Started:</strong> {{ date "2006-01-02T15:04:05Z07:00" .StartsAt }}</p>
+      <p><strong>Summary:</strong> {{ .Annotations.summary }}</p>
+      <p><strong>Description:</strong> {{ .Annotations.description }}</p>
+      <p>
+        <a href="http://localhost:3001/operator/grafana{{ .Annotations.dashboard_path }}">Open protected dashboard</a>
+        &nbsp;|&nbsp; Runbook {{ .Annotations.runbook_id }}
+      </p>
+    </section>
+    {{ end }}
+    <p style="border-top:1px solid #d7dde3;color:#52606d;font-size:12px;margin-top:24px;padding-top:16px">
+      This notification intentionally excludes customer, tenant, user, document, template, and request data.
+    </p>
+  </main>
+</body>
+</html>
+{{- end }}

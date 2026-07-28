@@ -1,20 +1,31 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using PXA.Infrastructure.Persistence.Identity;
 
 namespace PXA.Infrastructure.Persistence;
 
 public static class PersistenceServiceCollectionExtensions
 {
+    public const string DataSourceName = "pxa-database";
+
     public static IServiceCollection AddPxaPersistence(
         this IServiceCollection services,
         string connectionString)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
-        services.AddDbContext<PxaDbContext>(options =>
-            options.UseNpgsql(connectionString, postgres =>
-                postgres.MigrationsHistoryTable("__ef_migrations_history", DatabaseSchemas.Administration)));
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString)
+        {
+            Name = DataSourceName,
+        };
+        services.AddSingleton(dataSourceBuilder.Build());
+        services.AddDbContext<PxaDbContext>((serviceProvider, options) =>
+            options.UseNpgsql(
+                serviceProvider.GetRequiredService<NpgsqlDataSource>(),
+                postgres => postgres.MigrationsHistoryTable(
+                    "__ef_migrations_history",
+                    DatabaseSchemas.Administration)));
 
         services.AddIdentityCore<PxaIdentityUser>(options =>
             {

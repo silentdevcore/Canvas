@@ -519,7 +519,11 @@
     "extractPageToJson": "Estrai pagina in JSON",
     "deletePage": "Elimina pagina",
     "deletePageConfirm": "Eliminare la pagina {{number}}?",
-    "addPage": "Aggiungi pagina"
+    "addPage": "Aggiungi pagina",
+    "workspaceHorizontalScroll": "Scorrimento orizzontale dell’area pagina",
+    "navigationHorizontalScroll": "Scorrimento orizzontale della navigazione pagine",
+    "scrollLeft": "Scorri a sinistra",
+    "scrollRight": "Scorri a destra"
   },
   "inspector": {
     "ariaLabel": "Proprietà elemento",
@@ -866,7 +870,13 @@
     "languages": {
       "heading": "Lingue",
       "systemLanguage": "Lingua di sistema:",
-      "systemLanguageNote": "(rilevata automaticamente, usata come fallback)"
+      "systemLanguageNote": "(rilevata automaticamente, usata come fallback)",
+      "chooseLanguages": "Seleziona lingue",
+      "selectedCount": "{{count}} lingua selezionata",
+      "selectedCount_plural": "{{count}} lingue selezionate",
+      "selectedLanguages": "Lingue selezionate",
+      "noneSelected": "Nessuna lingua selezionata",
+      "removeLanguage": "Rimuovi {{language}}"
     },
     "namedStyles": {
       "heading": "Stili denominati",
@@ -1097,8 +1107,6 @@
         "ru": "Russo",
         "el": "Greco",
         "ar": "Arabo (RTL)",
-        "he": "Ebraico (RTL)",
-        "fa": "Persiano (RTL)",
         "zh-CN": "Cinese (semplificato)",
         "zh-TW": "Cinese (tradizionale)",
         "ja": "Giapponese",

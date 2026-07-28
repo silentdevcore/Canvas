@@ -36,6 +36,25 @@ public sealed class PxaDbContext
     public DbSet<UserConsentEvent> UserConsentEvents => Set<UserConsentEvent>();
     public DbSet<PxaBackgroundJob> BackgroundJobs => Set<PxaBackgroundJob>();
     public DbSet<PxaStoredObject> StoredObjects => Set<PxaStoredObject>();
+    public DbSet<DesignerFeaturePreference> DesignerFeaturePreferences => Set<DesignerFeaturePreference>();
+    public DbSet<DesignerFeaturePolicy> DesignerFeaturePolicies => Set<DesignerFeaturePolicy>();
+    public DbSet<DesignerReleaseRead> DesignerReleaseReads => Set<DesignerReleaseRead>();
+    public DbSet<DesignerNotification> DesignerNotifications => Set<DesignerNotification>();
+    public DbSet<DesignerNotificationState> DesignerNotificationStates => Set<DesignerNotificationState>();
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        EnsureAuditEventsAreAppendOnly();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureAuditEventsAreAppendOnly();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -73,5 +92,15 @@ public sealed class PxaDbContext
             role.Property(value => value.Description).HasMaxLength(500);
             role.Property(value => value.IsSystemRole).IsRequired();
         });
+    }
+
+    private void EnsureAuditEventsAreAppendOnly()
+    {
+        if (ChangeTracker.Entries<AuditEvent>().Any(entry =>
+                entry.State is EntityState.Modified or EntityState.Deleted))
+        {
+            throw new InvalidOperationException(
+                "Audit events are append-only and cannot be modified or deleted.");
+        }
     }
 }

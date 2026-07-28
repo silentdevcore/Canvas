@@ -33,5 +33,21 @@
     "importSpreadsheet": "Import Spreadsheet",
     "convertToSpreadsheet": "Convert to Spreadsheet",
     "migrations": "Migrations"
+  },
+  "productExperience": {
+    "whatsNew": "What's New",
+    "notifications": "Notifications",
+    "experimentalFeatures": "Experimental features",
+    "openNotifications": "Open notifications ({{count}} unread)",
+    "close": "Close panel",
+    "openDocumentation": "Open documentation",
+    "markAllRead": "Mark all as read",
+    "markRead": "Mark as read",
+    "dismiss": "Dismiss",
+    "allCaughtUp": "You're all caught up",
+    "featuresIntro": "Alpha features require organization approval and your explicit opt-in. Beta features are available but may change.",
+    "featureEnabled": "Experimental feature enabled.",
+    "featureDisabled": "Experimental feature disabled.",
+    "refreshFailed": "Some product updates could not be loaded. Existing Designer workflows remain available."
   }
 }

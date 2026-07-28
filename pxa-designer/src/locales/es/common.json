@@ -33,5 +33,21 @@
     "importSpreadsheet": "Importar hoja de cálculo",
     "convertToSpreadsheet": "Convertir a hoja de cálculo",
     "migrations": "Migraciones"
+  },
+  "productExperience": {
+    "whatsNew": "Novedades",
+    "notifications": "Notificaciones",
+    "experimentalFeatures": "Funciones experimentales",
+    "openNotifications": "Abrir notificaciones ({{count}} sin leer)",
+    "close": "Cerrar panel",
+    "openDocumentation": "Abrir documentación",
+    "markAllRead": "Marcar todo como leído",
+    "markRead": "Marcar como leído",
+    "dismiss": "Descartar",
+    "allCaughtUp": "Todo está al día",
+    "featuresIntro": "Las funciones Alpha requieren la aprobación de la organización y tu aceptación explícita. Las funciones Beta están disponibles, pero pueden cambiar.",
+    "featureEnabled": "Función experimental activada.",
+    "featureDisabled": "Función experimental desactivada.",
+    "refreshFailed": "No se pudieron cargar algunas actualizaciones del producto. Los flujos existentes del Designer siguen disponibles."
   }
 }

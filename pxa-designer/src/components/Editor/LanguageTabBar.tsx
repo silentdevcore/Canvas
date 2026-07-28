@@ -1,13 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useEditorStore } from '@/store';
-
-const RTL_LANGS = new Set(['ar', 'he', 'fa', 'ur', 'yi', 'dv']);
+import { isDocumentRtlLanguage } from '@/utils/documentDirection';
 
 const LANG_LABELS: Record<string, string> = {
   en: '🇬🇧 EN', de: '🇩🇪 DE', fr: '🇫🇷 FR', es: '🇪🇸 ES', it: '🇮🇹 IT',
-  pt: '🇧🇷 PT', ru: '🇷🇺 RU', el: '🇬🇷 EL', ar: '🇸🇦 AR', he: '🇮🇱 HE',
-  fa: '🇮🇷 FA', zh: '🇨🇳 ZH', ja: '🇯🇵 JA', ko: '🇰🇷 KO', hi: '🇮🇳 HI', th: '🇹🇭 TH',
+  pt: '🇧🇷 PT', ru: '🇷🇺 RU', el: '🇬🇷 EL', ar: '🇸🇦 AR',
+  zh: '🇨🇳 ZH', ja: '🇯🇵 JA', ko: '🇰🇷 KO', hi: '🇮🇳 HI', th: '🇹🇭 TH',
 };
 
 export const LanguageTabBar: React.FC = () => {
@@ -32,7 +31,7 @@ export const LanguageTabBar: React.FC = () => {
       </span>
       {langs.map(lang => {
         const isActive = currentPreviewLanguage === lang;
-        const isRtl = RTL_LANGS.has(lang);
+        const isRtl = isDocumentRtlLanguage(lang);
         return (
           <button
             key={lang}

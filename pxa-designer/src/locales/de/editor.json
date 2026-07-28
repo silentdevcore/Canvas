@@ -519,7 +519,11 @@
     "extractPageToJson": "Seite als JSON extrahieren",
     "deletePage": "Seite löschen",
     "deletePageConfirm": "Seite {{number}} löschen?",
-    "addPage": "Seite hinzufügen"
+    "addPage": "Seite hinzufügen",
+    "workspaceHorizontalScroll": "Horizontaler Bildlauf im Seitenbereich",
+    "navigationHorizontalScroll": "Horizontaler Bildlauf in der Seitennavigation",
+    "scrollLeft": "Nach links scrollen",
+    "scrollRight": "Nach rechts scrollen"
   },
   "inspector": {
     "ariaLabel": "Elementeigenschaften",
@@ -866,7 +870,13 @@
     "languages": {
       "heading": "Sprachen",
       "systemLanguage": "Systemsprache:",
-      "systemLanguageNote": "(automatisch erkannt, als Fallback verwendet)"
+      "systemLanguageNote": "(automatisch erkannt, als Fallback verwendet)",
+      "chooseLanguages": "Sprachen auswählen",
+      "selectedCount": "{{count}} Sprache ausgewählt",
+      "selectedCount_plural": "{{count}} Sprachen ausgewählt",
+      "selectedLanguages": "Ausgewählte Sprachen",
+      "noneSelected": "Keine Sprache ausgewählt",
+      "removeLanguage": "{{language}} entfernen"
     },
     "namedStyles": {
       "heading": "Benannte Formatvorlagen",
@@ -1097,8 +1107,6 @@
         "ru": "Russisch",
         "el": "Griechisch",
         "ar": "Arabisch (RTL)",
-        "he": "Hebräisch (RTL)",
-        "fa": "Persisch (RTL)",
         "zh-CN": "Chinesisch (vereinfacht)",
         "zh-TW": "Chinesisch (traditionell)",
         "ja": "Japanisch",

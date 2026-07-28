@@ -19,6 +19,8 @@ internal sealed class MailOutboxMessageConfiguration : IEntityTypeConfiguration<
         builder.Property(message => message.ProviderMessageId).HasMaxLength(200);
         builder.Property(message => message.FailureReason).HasMaxLength(1000);
         builder.Property(message => message.IdempotencyKey).HasMaxLength(200).IsRequired();
+        builder.Property(message => message.TraceParent).HasMaxLength(128);
+        builder.Property(message => message.TraceState).HasMaxLength(512);
         builder.HasIndex(message => message.IdempotencyKey).IsUnique();
         builder.HasIndex(message => new { message.Status, message.ScheduledAt });
         builder.HasIndex(message => new { message.OrganizationId, message.CreatedAt });

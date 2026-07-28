@@ -1,0 +1,11 @@
+[
+  {
+    "targets": [
+      "https://admin.example.invalid",
+      "https://api.example.invalid"
+    ],
+    "labels": {
+      "environment": "production"
+    }
+  }
+]

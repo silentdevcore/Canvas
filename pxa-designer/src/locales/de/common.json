@@ -33,5 +33,21 @@
     "importSpreadsheet": "Tabelle importieren",
     "convertToSpreadsheet": "In Tabelle konvertieren",
     "migrations": "Migrationen"
+  },
+  "productExperience": {
+    "whatsNew": "Neuigkeiten",
+    "notifications": "Benachrichtigungen",
+    "experimentalFeatures": "Experimentelle Funktionen",
+    "openNotifications": "Benachrichtigungen öffnen ({{count}} ungelesen)",
+    "close": "Bereich schließen",
+    "openDocumentation": "Dokumentation öffnen",
+    "markAllRead": "Alle als gelesen markieren",
+    "markRead": "Als gelesen markieren",
+    "dismiss": "Ausblenden",
+    "allCaughtUp": "Alles ist gelesen",
+    "featuresIntro": "Alpha-Funktionen benötigen die Freigabe der Organisation und Ihre ausdrückliche Zustimmung. Beta-Funktionen sind verfügbar, können sich aber ändern.",
+    "featureEnabled": "Experimentelle Funktion aktiviert.",
+    "featureDisabled": "Experimentelle Funktion deaktiviert.",
+    "refreshFailed": "Einige Produktaktualisierungen konnten nicht geladen werden. Die bestehenden Designer-Abläufe bleiben verfügbar."
   }
 }

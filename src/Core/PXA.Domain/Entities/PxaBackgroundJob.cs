@@ -7,6 +7,8 @@ public sealed class PxaBackgroundJob
     public Guid CreatedByUserId { get; set; }
     public required string Type { get; set; }
     public required string PayloadJson { get; set; }
+    public string? TraceParent { get; set; }
+    public string? TraceState { get; set; }
     public PxaBackgroundJobStatus Status { get; set; } = PxaBackgroundJobStatus.Pending;
     public int Attempts { get; set; }
     public int MaximumAttempts { get; set; } = 3;

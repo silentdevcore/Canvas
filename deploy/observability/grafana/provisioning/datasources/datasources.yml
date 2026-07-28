@@ -1,0 +1,57 @@
+apiVersion: 1
+
+deleteDatasources:
+  - name: PXA Prometheus
+    orgId: 1
+  - name: PXA Loki
+    orgId: 1
+  - name: PXA Tempo
+    orgId: 1
+  - name: PXA Alertmanager
+    orgId: 1
+
+datasources:
+  - name: PXA Prometheus
+    uid: pxa-prometheus
+    type: prometheus
+    access: proxy
+    url: http://pxa-prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: pxa-tempo
+
+  - name: PXA Loki
+    uid: pxa-loki
+    type: loki
+    access: proxy
+    url: http://pxa-loki:3100
+    editable: false
+    jsonData:
+      derivedFields:
+        - name: Trace ID
+          matcherRegex: '"TraceId":"([a-f0-9]{32})"'
+          datasourceUid: pxa-tempo
+          url: "$${__value.raw}"
+
+  - name: PXA Tempo
+    uid: pxa-tempo
+    type: tempo
+    access: proxy
+    url: http://pxa-tempo:3200
+    editable: false
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: pxa-loki
+        spanStartTimeShift: "-1m"
+        spanEndTimeShift: "1m"
+        filterByTraceID: true
+      tracesToMetrics:
+        datasourceUid: pxa-prometheus
+      serviceMap:
+        datasourceUid: pxa-prometheus
+      streamingEnabled:
+        search: false
+        metrics: false

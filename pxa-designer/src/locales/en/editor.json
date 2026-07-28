@@ -519,7 +519,11 @@
     "extractPageToJson": "Extract page to JSON",
     "deletePage": "Delete page",
     "deletePageConfirm": "Delete page {{number}}?",
-    "addPage": "Add page"
+    "addPage": "Add page",
+    "workspaceHorizontalScroll": "Page workspace horizontal scroll",
+    "navigationHorizontalScroll": "Page navigation horizontal scroll",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right"
   },
   "inspector": {
     "ariaLabel": "Element properties",
@@ -866,7 +870,13 @@
     "languages": {
       "heading": "Languages",
       "systemLanguage": "System language:",
-      "systemLanguageNote": "(auto-detected, used as fallback)"
+      "systemLanguageNote": "(auto-detected, used as fallback)",
+      "chooseLanguages": "Choose languages",
+      "selectedCount": "{{count}} language selected",
+      "selectedCount_plural": "{{count}} languages selected",
+      "selectedLanguages": "Selected languages",
+      "noneSelected": "No languages selected",
+      "removeLanguage": "Remove {{language}}"
     },
     "namedStyles": {
       "heading": "Named Styles",
@@ -1097,8 +1107,6 @@
         "ru": "Russian",
         "el": "Greek",
         "ar": "Arabic (RTL)",
-        "he": "Hebrew (RTL)",
-        "fa": "Persian (RTL)",
         "zh-CN": "Chinese (Simplified)",
         "zh-TW": "Chinese (Traditional)",
         "ja": "Japanese",

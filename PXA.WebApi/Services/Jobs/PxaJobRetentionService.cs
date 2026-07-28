@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Observability;
 using PXA.WebApi.Services.Storage;
 
 namespace PXA.WebApi.Services.Jobs;
@@ -41,7 +42,11 @@ public sealed class PxaJobRetentionService(
                 await storedObjects.DeleteAsync(objectId, job.OrganizationId, cancellationToken);
         }
 
-        await storedObjects.ReconcileMissingAsync(settings.CleanupBatchSize, cancellationToken);
+        var missing = await storedObjects.ReconcileMissingAsync(
+            settings.CleanupBatchSize,
+            cancellationToken);
+        PxaTelemetry.RecordJobRetention("expired", jobs.Length);
+        PxaTelemetry.RecordJobRetention("storage_missing", missing);
         return jobs.Length;
     }
 }
@@ -70,7 +75,10 @@ public sealed class PxaJobRetentionWorker(
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "PXA job retention and storage reconciliation failed.");
+                logger.LogError(
+                    PxaLogEvents.JobRetentionFailed,
+                    exception,
+                    "PXA job retention and storage reconciliation failed.");
             }
         }
     }

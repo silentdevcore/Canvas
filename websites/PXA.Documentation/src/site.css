@@ -1103,3 +1103,90 @@
     position: static;
   }
 }
+.pxa-doc-release-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0;
+}
+
+.pxa-doc-release-filters button {
+  min-height: 34px;
+  padding: 0 13px;
+  color: #475569;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pxa-doc-release-filters button.is-active {
+  color: #fff;
+  background: #1769aa;
+  border-color: #1769aa;
+}
+
+.pxa-doc-release.is-release-filtered {
+  display: none;
+}
+
+.pxa-doc-release-changes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.pxa-doc-release-changes section,
+.pxa-doc-release-status-grid section {
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.pxa-doc-release-changes h4,
+.pxa-doc-release-status-grid h4 {
+  margin: 0 0 8px;
+}
+
+.pxa-doc-release-changes ul {
+  margin: 0;
+  padding-inline-start: 20px;
+}
+
+.pxa-doc-release-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.pxa-doc-release-status-grid p {
+  margin: 0;
+}
+
+.pxa-status--alpha {
+  color: #9a3412;
+  background: #ffedd5;
+}
+
+.pxa-status--beta {
+  color: #5b21b6;
+  background: #ede9fe;
+}
+
+.pxa-status--stable {
+  color: #166534;
+  background: #dcfce7;
+}
+
+@media (max-width: 720px) {
+  .pxa-doc-release-changes,
+  .pxa-doc-release-status-grid {
+    grid-template-columns: 1fr;
+  }
+}

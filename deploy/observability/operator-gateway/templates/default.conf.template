@@ -1,0 +1,96 @@
+map $http_upgrade $pxa_connection_upgrade {
+    default upgrade;
+    "" close;
+}
+
+server {
+    listen 8080;
+    server_name ${PXA_OPERATOR_SERVER_NAME};
+    server_tokens off;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header Cache-Control "no-store" always;
+
+    location = /operator-health {
+        access_log off;
+        default_type text/plain;
+        return 200 "healthy\n";
+    }
+
+    location = /_pxa_operator_auth {
+        internal;
+        proxy_pass ${PXA_OPERATOR_API_UPSTREAM}/api/pxa/v1/admin/operator/access;
+        proxy_pass_request_body off;
+        proxy_set_header Content-Length "";
+        proxy_set_header Cookie $http_cookie;
+        proxy_set_header Authorization "";
+        proxy_set_header X-PXA-API-Key "";
+        proxy_set_header X-PXA-Application "";
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /api/ {
+        proxy_pass ${PXA_OPERATOR_API_UPSTREAM};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-WEBAUTH-USER "";
+        proxy_set_header X-WEBAUTH-ROLE "";
+        proxy_hide_header Server;
+    }
+
+    location /operator/grafana/ {
+        auth_request /_pxa_operator_auth;
+        auth_request_set $pxa_operator $upstream_http_x_pxa_operator;
+
+        proxy_pass http://pxa-grafana:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-WEBAUTH-USER $pxa_operator;
+        proxy_set_header X-WEBAUTH-ROLE "Admin";
+        proxy_set_header Authorization "";
+        proxy_set_header Cookie "";
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $pxa_connection_upgrade;
+        proxy_hide_header Server;
+        proxy_cookie_path / /operator/grafana/;
+    }
+
+    location = / {
+        return 302 /login;
+    }
+
+    location ~ ^/(login|forgot-password|reset-password|confirm-email|accept-invitation)$ {
+        proxy_pass ${PXA_OPERATOR_UI_UPSTREAM};
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_hide_header Server;
+    }
+
+    location /assets/ {
+        proxy_pass ${PXA_OPERATOR_UI_UPSTREAM};
+        proxy_set_header Host $host;
+        proxy_hide_header Server;
+    }
+
+    location / {
+        auth_request /_pxa_operator_auth;
+        proxy_pass ${PXA_OPERATOR_UI_UPSTREAM};
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_hide_header Server;
+    }
+}

@@ -1,0 +1,305 @@
+{
+  "id": "observability-performance",
+  "name": "Synthetic observability performance document",
+  "pageSettings": {
+    "width": 595,
+    "height": 842
+  },
+  "pages": [
+    {
+      "id": "page-1",
+      "elements": [
+        {
+          "id": "p1-heading",
+          "type": "text",
+          "x": 32,
+          "y": 32,
+          "width": 500,
+          "height": 32,
+          "content": "PXA synthetic performance check - page 1"
+        },
+        {
+          "id": "p1-body-1",
+          "type": "text",
+          "x": 32,
+          "y": 86,
+          "width": 500,
+          "height": 72,
+          "content": "This synthetic document contains no customer or production data."
+        },
+        {
+          "id": "p1-body-2",
+          "type": "text",
+          "x": 32,
+          "y": 178,
+          "width": 500,
+          "height": 72,
+          "content": "It exercises repeated text layout, pagination, and PDF serialization."
+        },
+        {
+          "id": "p1-body-3",
+          "type": "text",
+          "x": 32,
+          "y": 270,
+          "width": 500,
+          "height": 72,
+          "content": "The same release build handles baseline and instrumented requests."
+        },
+        {
+          "id": "p1-body-4",
+          "type": "text",
+          "x": 32,
+          "y": 362,
+          "width": 500,
+          "height": 72,
+          "content": "Only the observability configuration differs between processes."
+        },
+        {
+          "id": "p1-footer",
+          "type": "text",
+          "x": 32,
+          "y": 770,
+          "width": 500,
+          "height": 24,
+          "content": "Synthetic page 1 of 5"
+        }
+      ]
+    },
+    {
+      "id": "page-2",
+      "elements": [
+        {
+          "id": "p2-heading",
+          "type": "text",
+          "x": 32,
+          "y": 32,
+          "width": 500,
+          "height": 32,
+          "content": "PXA synthetic performance check - page 2"
+        },
+        {
+          "id": "p2-body-1",
+          "type": "text",
+          "x": 32,
+          "y": 86,
+          "width": 500,
+          "height": 72,
+          "content": "Operational telemetry must remain independent from document output."
+        },
+        {
+          "id": "p2-body-2",
+          "type": "text",
+          "x": 32,
+          "y": 178,
+          "width": 500,
+          "height": 72,
+          "content": "Metrics use bounded labels and traces exclude customer identifiers."
+        },
+        {
+          "id": "p2-body-3",
+          "type": "text",
+          "x": 32,
+          "y": 270,
+          "width": 500,
+          "height": 72,
+          "content": "Logs omit request bodies, document content, and secret material."
+        },
+        {
+          "id": "p2-body-4",
+          "type": "text",
+          "x": 32,
+          "y": 362,
+          "width": 500,
+          "height": 72,
+          "content": "This content is static, public, bounded, and safe for repeatable tests."
+        },
+        {
+          "id": "p2-footer",
+          "type": "text",
+          "x": 32,
+          "y": 770,
+          "width": 500,
+          "height": 24,
+          "content": "Synthetic page 2 of 5"
+        }
+      ]
+    },
+    {
+      "id": "page-3",
+      "elements": [
+        {
+          "id": "p3-heading",
+          "type": "text",
+          "x": 32,
+          "y": 32,
+          "width": 500,
+          "height": 32,
+          "content": "PXA synthetic performance check - page 3"
+        },
+        {
+          "id": "p3-body-1",
+          "type": "text",
+          "x": 32,
+          "y": 86,
+          "width": 500,
+          "height": 72,
+          "content": "Prometheus receives metrics through the OpenTelemetry Collector."
+        },
+        {
+          "id": "p3-body-2",
+          "type": "text",
+          "x": 32,
+          "y": 178,
+          "width": 500,
+          "height": 72,
+          "content": "Loki and Tempo remain replaceable deployment storage services."
+        },
+        {
+          "id": "p3-body-3",
+          "type": "text",
+          "x": 32,
+          "y": 270,
+          "width": 500,
+          "height": 72,
+          "content": "Collector failure cannot make this PDF generation request fail."
+        },
+        {
+          "id": "p3-body-4",
+          "type": "text",
+          "x": 32,
+          "y": 362,
+          "width": 500,
+          "height": 72,
+          "content": "The benchmark records both response latency and process CPU time."
+        },
+        {
+          "id": "p3-footer",
+          "type": "text",
+          "x": 32,
+          "y": 770,
+          "width": 500,
+          "height": 24,
+          "content": "Synthetic page 3 of 5"
+        }
+      ]
+    },
+    {
+      "id": "page-4",
+      "elements": [
+        {
+          "id": "p4-heading",
+          "type": "text",
+          "x": 32,
+          "y": 32,
+          "width": 500,
+          "height": 32,
+          "content": "PXA synthetic performance check - page 4"
+        },
+        {
+          "id": "p4-body-1",
+          "type": "text",
+          "x": 32,
+          "y": 86,
+          "width": 500,
+          "height": 72,
+          "content": "Cloud and On-Premise share one instrumentation contract."
+        },
+        {
+          "id": "p4-body-2",
+          "type": "text",
+          "x": 32,
+          "y": 178,
+          "width": 500,
+          "height": 72,
+          "content": "Storage, retention, resource limits, and routing remain configurable."
+        },
+        {
+          "id": "p4-body-3",
+          "type": "text",
+          "x": 32,
+          "y": 270,
+          "width": 500,
+          "height": 72,
+          "content": "Alerts retain stable names, severities, and protected runbook links."
+        },
+        {
+          "id": "p4-body-4",
+          "type": "text",
+          "x": 32,
+          "y": 362,
+          "width": 500,
+          "height": 72,
+          "content": "External webhook payloads are sanitized and signed before delivery."
+        },
+        {
+          "id": "p4-footer",
+          "type": "text",
+          "x": 32,
+          "y": 770,
+          "width": 500,
+          "height": 24,
+          "content": "Synthetic page 4 of 5"
+        }
+      ]
+    },
+    {
+      "id": "page-5",
+      "elements": [
+        {
+          "id": "p5-heading",
+          "type": "text",
+          "x": 32,
+          "y": 32,
+          "width": 500,
+          "height": 32,
+          "content": "PXA synthetic performance check - page 5"
+        },
+        {
+          "id": "p5-body-1",
+          "type": "text",
+          "x": 32,
+          "y": 86,
+          "width": 500,
+          "height": 72,
+          "content": "This page completes the representative multi-page PDF workload."
+        },
+        {
+          "id": "p5-body-2",
+          "type": "text",
+          "x": 32,
+          "y": 178,
+          "width": 500,
+          "height": 72,
+          "content": "Every request executes mapping, layout, serialization, and download."
+        },
+        {
+          "id": "p5-body-3",
+          "type": "text",
+          "x": 32,
+          "y": 270,
+          "width": 500,
+          "height": 72,
+          "content": "No generated file is persisted and all responses are discarded."
+        },
+        {
+          "id": "p5-body-4",
+          "type": "text",
+          "x": 32,
+          "y": 362,
+          "width": 500,
+          "height": 72,
+          "content": "The measured overhead must remain within the configured five percent."
+        },
+        {
+          "id": "p5-footer",
+          "type": "text",
+          "x": 32,
+          "y": 770,
+          "width": 500,
+          "height": 24,
+          "content": "Synthetic page 5 of 5"
+        }
+      ]
+    }
+  ]
+}

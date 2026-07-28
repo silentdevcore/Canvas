@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Observability;
 using PXA.WebApi.Security;
 
 namespace PXA.WebApi.Services.Jobs;
@@ -29,6 +30,13 @@ public sealed class PxaJobQueue(
     public const string DocumentImportType = "document.import";
     public const string DocumentExportType = "document.export";
     public const string CodeMigrationType = "migration.code";
+    public static IReadOnlyList<string> SupportedTypes { get; } =
+    [
+        TemplateRenderType,
+        DocumentImportType,
+        DocumentExportType,
+        CodeMigrationType,
+    ];
 
     public async Task<PxaBackgroundJob> EnqueueTemplateRenderAsync(
         string templateId,
@@ -40,6 +48,8 @@ public sealed class PxaJobQueue(
             throw new UnauthorizedAccessException("An active organization is required.");
         var userId = tenantContext.UserId ??
             throw new UnauthorizedAccessException("An authenticated user is required.");
+        using var activity = PxaTelemetry.StartJobEnqueue(TemplateRenderType);
+        var traceContext = PxaTelemetry.CaptureTraceContext();
         var job = new PxaBackgroundJob
         {
             OrganizationId = organizationId,
@@ -49,11 +59,14 @@ public sealed class PxaJobQueue(
                 templateId,
                 JsonSerializer.SerializeToElement(payload),
                 templateVersion)),
+            TraceParent = traceContext.TraceParent,
+            TraceState = traceContext.TraceState,
             MaximumAttempts = options.Value.MaximumAttempts,
             ExpiresAt = DateTimeOffset.UtcNow.AddDays(options.Value.ResultRetentionDays),
         };
         dbContext.BackgroundJobs.Add(job);
         await dbContext.SaveChangesAsync(cancellationToken);
+        PxaTelemetry.RecordJobEnqueued(job.Type);
         return job;
     }
 
@@ -77,6 +90,8 @@ public sealed class PxaJobQueue(
         if (!ownsInput)
             throw new InvalidOperationException("The input object is unavailable.");
 
+        using var activity = PxaTelemetry.StartJobEnqueue(type);
+        var traceContext = PxaTelemetry.CaptureTraceContext();
         var job = new PxaBackgroundJob
         {
             OrganizationId = organizationId,
@@ -84,11 +99,14 @@ public sealed class PxaJobQueue(
             Type = type,
             InputObjectId = inputObjectId,
             PayloadJson = JsonSerializer.Serialize(payload),
+            TraceParent = traceContext.TraceParent,
+            TraceState = traceContext.TraceState,
             MaximumAttempts = options.Value.MaximumAttempts,
             ExpiresAt = DateTimeOffset.UtcNow.AddDays(options.Value.ResultRetentionDays),
         };
         dbContext.BackgroundJobs.Add(job);
         await dbContext.SaveChangesAsync(cancellationToken);
+        PxaTelemetry.RecordJobEnqueued(job.Type);
         return job;
     }
 }

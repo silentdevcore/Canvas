@@ -10,7 +10,7 @@
     "preview": "vite preview --host localhost --port 4177",
     "capture:documentation": "node scripts/capture-documentation-screenshots.mjs",
     "smoke:documentation": "node scripts/smoke-documentation.mjs",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test ../shared/browserTelemetry.test.js tests/*.test.js"
   },
   "devDependencies": {
     "vite": "8.1.5"

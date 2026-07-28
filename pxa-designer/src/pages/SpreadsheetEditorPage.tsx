@@ -9,6 +9,7 @@ import { useSpreadsheetStore } from '../spreadsheet/store';
 import { SpreadsheetService, type ValidationResult } from '../services/SpreadsheetService';
 import { workbookToWire, toA1, toA1Range } from '../spreadsheet/types';
 import { sheetToCsv, csvToSheet, workbookToJson, jsonToWorkbook, downloadText } from '../spreadsheet/io';
+import { notify } from '@/notifications/toast';
 import '../styles/spreadsheet.css';
 
 const NUMBER_FORMAT_DEFS: { key: string; value: string | undefined }[] = [
@@ -104,10 +105,10 @@ const SpreadsheetEditorPage: React.FC = () => {
       } else if (ext === 'json') {
         loadWorkbook(jsonToWorkbook(await file.text()));
       } else {
-        alert(t('editor.unsupportedFile'));
+        notify.warning(t('editor.unsupportedFile'));
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : t('editor.importFailed'));
+      notify.error(err instanceof Error ? err.message : t('editor.importFailed'));
     } finally {
       setBusy(null);
       if (fileInput.current) fileInput.current.value = '';
@@ -126,7 +127,7 @@ const SpreadsheetEditorPage: React.FC = () => {
         downloadText(workbookToJson(toWire()), `${safeName}.json`, 'application/json');
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : t('editor.exportFailed'));
+      notify.error(err instanceof Error ? err.message : t('editor.exportFailed'));
     } finally {
       setBusy(null);
     }
@@ -137,7 +138,7 @@ const SpreadsheetEditorPage: React.FC = () => {
     try {
       setValidation(await SpreadsheetService.validate(toWire()));
     } catch (err) {
-      alert(err instanceof Error ? err.message : t('editor.validationFailed'));
+      notify.error(err instanceof Error ? err.message : t('editor.validationFailed'));
     } finally {
       setBusy(null);
     }

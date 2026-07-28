@@ -1,6 +1,14 @@
 import './site.css';
+import { initializeBrowserTelemetry } from '../../shared/browserTelemetry.js';
 import { renderPxaFooter } from '../../shared/footer.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
+import designerReleaseManifest from '../../../product-metadata/designer-releases.json';
+import designerFeatureManifest from '../../../product-metadata/designer-features.json';
+
+initializeBrowserTelemetry({ application: 'documentation' });
+
+const designerReleases = designerReleaseManifest.releases;
+const designerFeatures = designerFeatureManifest.features;
 
 const editorSections = [
   {
@@ -2899,6 +2907,69 @@ function renderDetailNavList(items) {
   return items.map((item) => `<a href="#${slug(itemTitle(item))}-details">${itemTitle(item)}</a>`).join('');
 }
 
+function renderReleaseNav() {
+  return `
+    <details class="pxa-doc-nav__section">
+      <summary>Release Notes</summary>
+      <a class="pxa-doc-nav__featured" href="#release-notes">Overview</a>
+      <a href="#designer-feature-status">Feature status</a>
+      <a href="#designer-notifications">Notifications</a>
+      ${designerReleases
+        .map((release) => `<a href="#release-notes-${slug(release.version)}">PXA Designer ${release.version}</a>`)
+        .join('')}
+    </details>
+  `;
+}
+
+function renderDesignerReleaseNotes() {
+  const categories = [
+    ['added', 'Added'],
+    ['improved', 'Improved'],
+    ['fixed', 'Fixed'],
+    ['security', 'Security'],
+    ['deprecated', 'Deprecated'],
+    ['breaking', 'Breaking'],
+  ];
+  return `
+    <div class="pxa-doc-release-filters" role="group" aria-label="Filter releases">
+      <button class="is-active" type="button" data-release-filter="all">All</button>
+      <button type="button" data-release-filter="stable">Stable</button>
+      <button type="button" data-release-filter="beta">Beta</button>
+      <button type="button" data-release-filter="alpha">Alpha</button>
+    </div>
+    <div class="pxa-doc-detail-stack pxa-doc-release-list">
+      ${designerReleases.map((release) => `
+        <article
+          class="pxa-card pxa-doc-detail pxa-doc-release"
+          id="release-notes-${slug(release.version)}"
+          data-release-channel="${escapeHtml(release.channel)}"
+        >
+          <div class="pxa-doc-detail__header">
+            <span class="pxa-status pxa-status--${escapeHtml(release.channel)}">${escapeHtml(release.channel)}</span>
+            <p class="pxa-kicker">${escapeHtml(release.publishedAt)}</p>
+            <h3>${escapeHtml(release.title)}</h3>
+            <p>${escapeHtml(release.summary)}</p>
+          </div>
+          <div class="pxa-doc-release-changes">
+            ${categories.map(([key, label]) => release.changes[key]?.length ? `
+              <section>
+                <h4>${label}</h4>
+                <ul>${release.changes[key].map((entry) => `<li>${escapeHtml(entry)}</li>`).join('')}</ul>
+              </section>
+            ` : '').join('')}
+          </div>
+          <div class="pxa-doc-feature-list">
+            ${release.featureIds.map((featureId) => {
+              const feature = designerFeatures.find((item) => item.id === featureId);
+              return `<span>${escapeHtml(feature?.fallbackTitle ?? featureId)}</span>`;
+            }).join('')}
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
+
 function renderElementNav(items) {
   const categories = [...new Set(items.map((item) => item.category))];
   return `
@@ -3674,6 +3745,8 @@ document.querySelector('#app').innerHTML = `
             ${renderCodeSdkNav(codeSdkGroups, exportSdkDocs)}
             <strong>Migration</strong>
             ${renderNavList(migrationGuides)}
+            <strong>Product updates</strong>
+            ${renderReleaseNav()}
           </nav>
           <p class="pxa-doc-search-empty" hidden>No documentation entries found.</p>
         </aside>
@@ -3700,6 +3773,39 @@ document.querySelector('#app').innerHTML = `
             <div class="pxa-doc-quickstart-grid">
               ${renderQuickstarts(quickstarts)}
             </div>
+          </section>
+
+          <section class="pxa-doc-section" id="release-notes">
+            <p class="pxa-kicker">Product updates</p>
+            <h2 class="pxa-heading">PXA Designer release notes</h2>
+            <p class="pxa-lede">Review curated Designer changes by version and release channel. API compatibility versions are managed separately from the Designer product version.</p>
+            ${renderDesignerReleaseNotes()}
+            <article class="pxa-card pxa-doc-detail" id="designer-feature-status">
+              <div class="pxa-doc-detail__header">
+                <span class="pxa-status pxa-status--ready">Reference</span>
+                <h3>Designer feature status</h3>
+                <p>Feature maturity describes expected stability. It does not replace subscription entitlements or provider coverage statuses.</p>
+              </div>
+              <div class="pxa-doc-release-status-grid">
+                <section><h4>New</h4><p>A temporary marker for a recently introduced capability. It can appear together with Alpha or Beta.</p></section>
+                <section><h4>Alpha</h4><p>Disabled by default. The organization must allow access and each user must opt in explicitly.</p></section>
+                <section><h4>Beta</h4><p>Enabled by default and suitable for evaluation, but its behavior or contract may still change.</p></section>
+                <section><h4>Stable</h4><p>Supported production behavior. Stable features do not display a maturity badge.</p></section>
+              </div>
+            </article>
+            <article class="pxa-card pxa-doc-detail" id="designer-notifications">
+              <div class="pxa-doc-detail__header">
+                <span class="pxa-status pxa-status--ready">Ready</span>
+                <h3>Toasts and notifications</h3>
+                <p>Toasts confirm immediate actions. Releases and important system, security, subscription, or action-required messages remain available in the notification center.</p>
+              </div>
+              <ol>
+                <li>Use the bell in the Designer header to open the notification center.</li>
+                <li>Open a message to mark it as read, or use Mark all as read.</li>
+                <li>Dismiss only messages that explicitly permit dismissal.</li>
+                <li>Use What's New in the user menu to reopen release notes at any time.</li>
+              </ol>
+            </article>
           </section>
 
           <section class="pxa-doc-section" id="editor-path">
@@ -3813,8 +3919,26 @@ document.querySelector('#app').innerHTML = `
 
 initDocumentationScrollSpy();
 initDocumentationSearch();
+initReleaseFilters();
 initCodeSdkPlaygrounds();
 initElementJsonPlaygrounds();
+
+function initReleaseFilters() {
+  const buttons = [...document.querySelectorAll('[data-release-filter]')];
+  const releases = [...document.querySelectorAll('[data-release-channel]')];
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const channel = button.dataset.releaseFilter;
+      buttons.forEach((item) => item.classList.toggle('is-active', item === button));
+      releases.forEach((release) => {
+        release.classList.toggle(
+          'is-release-filtered',
+          channel !== 'all' && release.dataset.releaseChannel !== channel,
+        );
+      });
+    });
+  });
+}
 
 function initElementJsonPlaygrounds() {
   const playgrounds = [...document.querySelectorAll('.pxa-element-json-playground')];

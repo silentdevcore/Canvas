@@ -1,0 +1,38 @@
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+
+common:
+  path_prefix: /loki
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: s3
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  aws:
+    endpoint: ${PXA_S3_ENDPOINT}
+    region: ${PXA_S3_REGION}
+    bucketnames: ${PXA_LOKI_S3_BUCKET}
+    s3forcepathstyle: ${PXA_S3_FORCE_PATH_STYLE}
+    insecure: ${PXA_S3_INSECURE}
+
+compactor:
+  working_directory: /loki/compactor
+  retention_enabled: true
+  delete_request_store: s3
+
+limits_config:
+  allow_structured_metadata: true
+  retention_period: ${PXA_LOG_RETENTION:-720h}

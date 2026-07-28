@@ -3,6 +3,7 @@ using PXA.Core.Contracts;
 using PXA.WebApi.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using PXA.FileImporter.ImageOcr;
+using PXA.WebApi.Observability;
 using System.Diagnostics;
 
 namespace PXA.WebApi.Controllers;
@@ -61,6 +62,9 @@ public sealed class ImageConversionController : ControllerBase
         [FromForm] string? layoutMode = null,
         CancellationToken cancellationToken = default)
     {
+        var normalizedLanguages = string.IsNullOrWhiteSpace(languages) ? "deu+eng" : languages;
+        var stopwatch = Stopwatch.StartNew();
+
         if (file is null || file.Length == 0)
             return BadRequest(new { error = "An image file is required." });
 
@@ -76,10 +80,9 @@ public sealed class ImageConversionController : ControllerBase
 
         try
         {
-            var stopwatch = Stopwatch.StartNew();
             _logger?.LogInformation(
-                "Starting image OCR import for {FileName} ({FileLength} bytes), debug={Debug}, diagnostics={Diagnostics}, overlay={Overlay}, ocrPages={OcrPages}",
-                file.FileName,
+                PxaLogEvents.OcrImportStarted,
+                "Starting image OCR import ({FileLength} bytes), debug={Debug}, diagnostics={Diagnostics}, overlay={Overlay}, ocrPages={OcrPages}",
                 file.Length,
                 debug,
                 includeDiagnostics,
@@ -92,7 +95,7 @@ public sealed class ImageConversionController : ControllerBase
                 file.FileName,
                 new ImageToPdfConversionOptions
                 {
-                    Languages = string.IsNullOrWhiteSpace(languages) ? "deu+eng" : languages,
+                    Languages = normalizedLanguages,
                     PageWidthPt = pageWidthPt,
                     PageHeightPt = pageHeightPt,
                     IncludeBackgroundImage = includeBackgroundImage,
@@ -108,9 +111,13 @@ public sealed class ImageConversionController : ControllerBase
                 },
                 cancellationToken);
             stopwatch.Stop();
+            PxaTelemetry.RecordOcrOperation(
+                normalizedLanguages,
+                "completed",
+                stopwatch.Elapsed);
             _logger?.LogInformation(
-                "Finished image OCR import for {FileName} in {ElapsedMs} ms with {WordCount} words and {ElementCount} elements",
-                file.FileName,
+                PxaLogEvents.OcrImportCompleted,
+                "Finished image OCR import in {ElapsedMs} ms with {WordCount} words and {ElementCount} elements",
                 Math.Round(stopwatch.Elapsed.TotalMilliseconds, 0),
                 result.Diagnostics.WordCount,
                 result.Design.Pages.Sum(page => page.Elements.Count));
@@ -136,14 +143,31 @@ public sealed class ImageConversionController : ControllerBase
         }
         catch (OcrLanguageDataMissingException ex)
         {
+            stopwatch.Stop();
+            PxaTelemetry.RecordOcrOperation(
+                normalizedLanguages,
+                "language_unavailable",
+                stopwatch.Elapsed);
             return BadRequest(new { error = ex.Message });
         }
         catch (OcrNativeDependencyMissingException ex)
         {
+            stopwatch.Stop();
+            PxaTelemetry.RecordOcrOperation(
+                normalizedLanguages,
+                "dependency_unavailable",
+                stopwatch.Elapsed);
             return BadRequest(new { error = ex.Message, detail = ex.InnerException?.Message });
         }
         catch (InvalidOperationException ex)
         {
+            stopwatch.Stop();
+            var timedOut = ex.Message.Contains("did not finish", StringComparison.OrdinalIgnoreCase);
+            PxaTelemetry.RecordOcrOperation(
+                normalizedLanguages,
+                timedOut ? "timeout" : "failed",
+                stopwatch.Elapsed,
+                workerTerminated: timedOut);
             return BadRequest(new { error = ex.Message });
         }
     }

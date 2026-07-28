@@ -18,6 +18,8 @@ public sealed class MailOutboxMessage
     public string? ProviderMessageId { get; set; }
     public string? FailureReason { get; set; }
     public required string IdempotencyKey { get; set; }
+    public string? TraceParent { get; set; }
+    public string? TraceState { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

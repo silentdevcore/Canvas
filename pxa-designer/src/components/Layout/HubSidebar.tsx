@@ -8,6 +8,7 @@ export interface HubSidebarItem {
   label: string;
   icon: React.ElementType;
   disabled?: boolean;
+  badge?: React.ReactNode;
   // Overrides the default pathname-only active check. Needed for items whose
   // `path` is really just a redirect alias into another route's query string
   // (e.g. /pdf/edit -> /pdf/create?mode=code) — NavLink's own matching only
@@ -47,7 +48,7 @@ const HubSidebar: React.FC<HubSidebarProps> = ({ items, collapsed, onToggle }) =
               <span key={item.path} className="hub-sidebar-link is-disabled" title={item.label}>
                 <Icon className="hub-sidebar-link-icon" />
                 <span className="hub-sidebar-link-label">
-                  <span>{item.label}</span>
+                  <span>{item.label}{item.badge}</span>
                   <small>{t('sidebar.comingSoon')}</small>
                 </span>
               </span>
@@ -62,7 +63,7 @@ const HubSidebar: React.FC<HubSidebarProps> = ({ items, collapsed, onToggle }) =
                 }}
               >
                 <Icon className="hub-sidebar-link-icon" />
-                <span className="hub-sidebar-link-label">{item.label}</span>
+                <span className="hub-sidebar-link-label">{item.label}{item.badge}</span>
               </NavLink>
             );
           })}

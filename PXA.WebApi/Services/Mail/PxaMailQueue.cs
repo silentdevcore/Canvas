@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.DataProtection;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Observability;
 
 namespace PXA.WebApi.Services.Mail;
 
@@ -67,6 +68,8 @@ public sealed class PxaMailQueue : IPxaMailQueue
                 nameof(templateKey));
         }
 
+        using var activity = PxaTelemetry.StartMailEnqueue();
+        var traceContext = PxaTelemetry.CaptureTraceContext();
         var message = new MailOutboxMessage
         {
             OrganizationId = organizationId,
@@ -76,8 +79,11 @@ public sealed class PxaMailQueue : IPxaMailQueue
             Locale = string.IsNullOrWhiteSpace(locale) ? "en" : locale,
             ProtectedPayload = protector.Protect(JsonSerializer.Serialize(payload)),
             IdempotencyKey = idempotencyKey,
+            TraceParent = traceContext.TraceParent,
+            TraceState = traceContext.TraceState,
         };
         dbContext.MailOutboxMessages.Add(message);
+        PxaTelemetry.CompleteMailOperation(activity, "queued");
         return message;
     }
 }

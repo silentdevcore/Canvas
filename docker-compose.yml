@@ -15,6 +15,9 @@ services:
       timeout: 3s
       retries: 10
       start_period: 5s
+    networks:
+      - default
+      - pxa-observability
 
   pxa-mailpit:
     image: axllent/mailpit:v1.30.0
@@ -25,7 +28,327 @@ services:
       - "8025:8025"
     volumes:
       - pxa-mailpit-data:/data
+    networks:
+      - default
+      - pxa-observability
+
+  pxa-otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.157.0
+    command: ["--config=/etc/otelcol-contrib/config.yml"]
+    profiles: ["observability"]
+    depends_on:
+      - pxa-loki
+      - pxa-tempo
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+      - "127.0.0.1:13133:13133"
+    environment:
+      PXA_TRACE_SAMPLE_PERCENTAGE: ${PXA_TRACE_SAMPLE_PERCENTAGE:-10}
+      PXA_OTEL_MEMORY_LIMIT_MIB: ${PXA_OTEL_MEMORY_LIMIT_MIB:-384}
+      PXA_OTEL_MEMORY_SPIKE_LIMIT_MIB: ${PXA_OTEL_MEMORY_SPIKE_LIMIT_MIB:-96}
+    volumes:
+      - ./deploy/observability/otel-collector/config.yml:/etc/otelcol-contrib/config.yml:ro
+    networks:
+      - pxa-observability
+      - pxa-observability-ingress
+      - pxa-observability-host
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_OTEL_CPU_LIMIT:-1.0}"
+          memory: ${PXA_OTEL_MEMORY_LIMIT:-512M}
+    restart: unless-stopped
+
+  pxa-postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.19.1
+    profiles: ["observability"]
+    depends_on:
+      pxa-database:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_URI: pxa-database:5432/pxa?sslmode=disable
+      DATA_SOURCE_USER: pxa
+      DATA_SOURCE_PASS: pxa-local
+      PG_EXPORTER_COLLECTION_TIMEOUT: 10s
+    networks:
+      - pxa-observability
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9187/metrics"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_POSTGRES_EXPORTER_CPU_LIMIT:-0.25}"
+          memory: ${PXA_POSTGRES_EXPORTER_MEMORY_LIMIT:-128M}
+    restart: unless-stopped
+
+  pxa-cadvisor:
+    image: ghcr.io/google/cadvisor:0.55.1
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=15s
+    profiles: ["observability"]
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/docker/containerd:/run/containerd:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    networks:
+      - pxa-observability
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_CADVISOR_CPU_LIMIT:-0.5}"
+          memory: ${PXA_CADVISOR_MEMORY_LIMIT:-256M}
+    restart: unless-stopped
+
+  pxa-blackbox-exporter:
+    image: prom/blackbox-exporter:v0.26.0
+    command:
+      - --config.file=/etc/blackbox_exporter/config.yml
+    profiles: ["observability"]
+    volumes:
+      - ./deploy/observability/blackbox/config.yml:/etc/blackbox_exporter/config.yml:ro
+    networks:
+      - pxa-observability
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9115/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_BLACKBOX_CPU_LIMIT:-0.25}"
+          memory: ${PXA_BLACKBOX_MEMORY_LIMIT:-128M}
+    restart: unless-stopped
+
+  pxa-prometheus:
+    image: prom/prometheus:v3.12.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=${PXA_METRIC_RETENTION:-90d}
+      - --storage.tsdb.retention.size=${PXA_METRIC_RETENTION_SIZE:-0B}
+      - --web.enable-lifecycle
+    profiles: ["observability"]
+    depends_on:
+      - pxa-otel-collector
+      - pxa-alertmanager
+      - pxa-postgres-exporter
+      - pxa-cadvisor
+      - pxa-blackbox-exporter
+    volumes:
+      - ./deploy/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deploy/observability/prometheus/rules:/etc/prometheus/rules:ro
+      - ./deploy/observability/prometheus/tests:/etc/prometheus/tests:ro
+      - ${PXA_TLS_TARGETS_PATH:-./deploy/observability/prometheus/targets}:/etc/prometheus/targets:ro
+      - ${PXA_PROMETHEUS_DATA_PATH:-pxa-prometheus-data}:/prometheus
+    networks:
+      - pxa-observability
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_PROMETHEUS_CPU_LIMIT:-1.0}"
+          memory: ${PXA_PROMETHEUS_MEMORY_LIMIT:-1G}
+    restart: unless-stopped
+
+  pxa-alertmanager:
+    image: prom/alertmanager:v0.32.1
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+      - --data.retention=${PXA_ALERT_RETENTION:-120h}
+      - --web.external-url=${PXA_ALERTMANAGER_ROOT_URL:-http://pxa-alertmanager:9093}
+    profiles: ["observability"]
+    depends_on:
+      pxa-mailpit:
+        condition: service_healthy
+    volumes:
+      - ./deploy/observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./deploy/observability/alertmanager/templates:/etc/alertmanager/templates:ro
+      - ${PXA_ALERTMANAGER_DATA_PATH:-pxa-alertmanager-data}:/alertmanager
+    networks:
+      - pxa-observability
+      - pxa-observability-ingress
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9093/-/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_ALERTMANAGER_CPU_LIMIT:-0.5}"
+          memory: ${PXA_ALERTMANAGER_MEMORY_LIMIT:-256M}
+    restart: unless-stopped
+
+  pxa-loki:
+    image: grafana/loki:3.7.2
+    command:
+      - -config.file=/etc/loki/config.yml
+      - -config.expand-env=true
+    profiles: ["observability"]
+    environment:
+      PXA_LOG_RETENTION: ${PXA_LOG_RETENTION:-720h}
+      PXA_S3_ENDPOINT: ${PXA_S3_ENDPOINT:-}
+      PXA_S3_REGION: ${PXA_S3_REGION:-}
+      PXA_S3_FORCE_PATH_STYLE: ${PXA_S3_FORCE_PATH_STYLE:-false}
+      PXA_S3_INSECURE: ${PXA_S3_INSECURE:-false}
+      PXA_LOKI_S3_BUCKET: ${PXA_LOKI_S3_BUCKET:-}
+    volumes:
+      - ${PXA_LOKI_CONFIG_PATH:-./deploy/observability/loki/config.yml}:/etc/loki/config.yml:ro
+      - ${PXA_LOKI_DATA_PATH:-pxa-loki-data}:/loki
+    networks:
+      - pxa-observability
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_LOKI_CPU_LIMIT:-1.0}"
+          memory: ${PXA_LOKI_MEMORY_LIMIT:-1G}
+    restart: unless-stopped
+
+  pxa-tempo:
+    image: grafana/tempo:2.10.5
+    command:
+      - -config.file=/etc/tempo/config.yml
+      - -config.expand-env=true
+    profiles: ["observability"]
+    environment:
+      PXA_TRACE_RETENTION: ${PXA_TRACE_RETENTION:-336h}
+      PXA_S3_ENDPOINT: ${PXA_S3_ENDPOINT:-}
+      PXA_S3_REGION: ${PXA_S3_REGION:-}
+      PXA_S3_FORCE_PATH_STYLE: ${PXA_S3_FORCE_PATH_STYLE:-false}
+      PXA_S3_INSECURE: ${PXA_S3_INSECURE:-false}
+      PXA_TEMPO_S3_BUCKET: ${PXA_TEMPO_S3_BUCKET:-}
+    volumes:
+      - ${PXA_TEMPO_CONFIG_PATH:-./deploy/observability/tempo/config.yml}:/etc/tempo/config.yml:ro
+      - ${PXA_TEMPO_DATA_PATH:-pxa-tempo-data}:/var/tempo
+    networks:
+      - pxa-observability
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_TEMPO_CPU_LIMIT:-1.0}"
+          memory: ${PXA_TEMPO_MEMORY_LIMIT:-1G}
+    restart: unless-stopped
+
+  pxa-grafana:
+    image: grafana/grafana:13.1.0
+    profiles: ["observability"]
+    depends_on:
+      - pxa-prometheus
+      - pxa-alertmanager
+      - pxa-loki
+      - pxa-tempo
+    environment:
+      GF_SECURITY_ADMIN_USER: ${PXA_GRAFANA_ADMIN_USER:-pxa-operator}
+      GF_SECURITY_ADMIN_PASSWORD: ${PXA_GRAFANA_ADMIN_PASSWORD:-pxa-local-observability}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_AUTH_BASIC_ENABLED: "false"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_AUTH_PROXY_ENABLED: "true"
+      GF_AUTH_PROXY_HEADER_NAME: X-WEBAUTH-USER
+      GF_AUTH_PROXY_HEADER_PROPERTY: username
+      GF_AUTH_PROXY_AUTO_SIGN_UP: "true"
+      GF_AUTH_PROXY_SYNC_TTL: "0"
+      GF_AUTH_PROXY_WHITELIST: 172.30.50.10
+      GF_AUTH_PROXY_HEADERS: Role:X-WEBAUTH-ROLE
+      GF_AUTH_PROXY_ENABLE_LOGIN_TOKEN: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_USERS_AUTO_ASSIGN_ORG: "true"
+      GF_USERS_AUTO_ASSIGN_ORG_ROLE: Admin
+      GF_SERVER_ROOT_URL: ${PXA_OPERATOR_PUBLIC_URL:-http://localhost:3001}/operator/grafana/
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - ./deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ${PXA_GRAFANA_DATA_PATH:-pxa-grafana-data}:/var/lib/grafana
+    networks:
+      pxa-observability:
+      pxa-observability-ingress:
+        ipv4_address: 172.30.50.11
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_GRAFANA_CPU_LIMIT:-1.0}"
+          memory: ${PXA_GRAFANA_MEMORY_LIMIT:-768M}
+    restart: unless-stopped
+
+  pxa-operator-gateway:
+    image: nginx:1.29-alpine
+    profiles: ["observability"]
+    depends_on:
+      pxa-grafana:
+        condition: service_healthy
+    environment:
+      PXA_OPERATOR_SERVER_NAME: ${PXA_OPERATOR_SERVER_NAME:-localhost}
+      PXA_OPERATOR_API_UPSTREAM: ${PXA_OPERATOR_API_UPSTREAM:-http://host.docker.internal:5086}
+      PXA_OPERATOR_UI_UPSTREAM: ${PXA_OPERATOR_UI_UPSTREAM:-http://host.docker.internal:5177}
+    ports:
+      - "127.0.0.1:3001:8080"
+    volumes:
+      - ./deploy/observability/operator-gateway/templates:/etc/nginx/templates:ro
+    networks:
+      pxa-observability-ingress:
+        ipv4_address: 172.30.50.10
+      pxa-operator-egress:
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/operator-health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_OPERATOR_GATEWAY_CPU_LIMIT:-0.25}"
+          memory: ${PXA_OPERATOR_GATEWAY_MEMORY_LIMIT:-128M}
+    restart: unless-stopped
 
 volumes:
   pxa-database-data:
   pxa-mailpit-data:
+  pxa-prometheus-data:
+  pxa-loki-data:
+  pxa-tempo-data:
+  pxa-grafana-data:
+  pxa-alertmanager-data:
+
+networks:
+  pxa-observability:
+    internal: true
+  pxa-observability-ingress:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.30.50.0/24
+  pxa-observability-host:
+  pxa-operator-egress:

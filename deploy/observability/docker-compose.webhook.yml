@@ -1,0 +1,35 @@
+services:
+  pxa-webhook-relay:
+    build:
+      context: .
+      dockerfile: src/Observability/PXA.Observability.WebhookRelay/Dockerfile
+    environment:
+      WebhookRelay__Destination: ${PXA_ALERT_WEBHOOK_URL:?Set PXA_ALERT_WEBHOOK_URL}
+      WebhookRelay__SecretFile: /run/secrets/pxa_alert_webhook_signing_key
+      WebhookRelay__MaxPayloadBytes: ${PXA_ALERT_WEBHOOK_MAX_PAYLOAD_BYTES:-262144}
+      WebhookRelay__RequestTimeoutSeconds: ${PXA_ALERT_WEBHOOK_TIMEOUT_SECONDS:-15}
+    secrets:
+      - pxa_alert_webhook_signing_key
+    networks:
+      - pxa-observability
+      - pxa-operator-egress
+    healthcheck:
+      test:
+        - CMD
+        - dotnet
+        - PXA.Observability.WebhookRelay.dll
+        - --health-check
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_ALERT_WEBHOOK_CPU_LIMIT:-0.25}"
+          memory: ${PXA_ALERT_WEBHOOK_MEMORY_LIMIT:-128M}
+    restart: unless-stopped
+
+secrets:
+  pxa_alert_webhook_signing_key:
+    file: ${PXA_ALERT_WEBHOOK_SIGNING_KEY_FILE:?Set PXA_ALERT_WEBHOOK_SIGNING_KEY_FILE}

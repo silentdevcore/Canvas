@@ -1,0 +1,57 @@
+services:
+  pxa-webapi:
+    build:
+      context: .
+      dockerfile: PXA.WebApi/Dockerfile
+    environment:
+      HOSTNAME: pxa-webapi-container
+      ASPNETCORE_ENVIRONMENT: ${PXA_API_ENVIRONMENT:-Production}
+      ConnectionStrings__PxaDatabase: Host=pxa-database;Port=5432;Database=pxa;Username=pxa;Password=${PXA_DATABASE_PASSWORD:-pxa-local}
+      Mail__Transport: ${PXA_API_MAIL_TRANSPORT:-Disabled}
+      Observability__Enabled: "true"
+      Observability__OtlpEndpoint: http://pxa-otel-collector:4317
+      DataProtection__KeysDirectory: /app/data/data-protection-keys
+      Storage__RootPath: /app/data/objects
+      PdfViewer__AnnotationStoragePath: /app/data/pdf-viewer
+      Pdf__FontsDirectory: /app/fonts
+      Ocr__UseIsolatedWorker: "true"
+      Ocr__WorkerPath: /app/ocr-worker/PXA.FileImporter.ImageOcr.Worker.dll
+      Ocr__TessDataPath: /usr/share/tesseract-ocr/5/tessdata
+      Licensing__PrivateKeyPath: /run/secrets/pxa_license_private_key
+      Licensing__PublicKeyPath: /run/secrets/pxa_license_public_key
+    ports:
+      - "${PXA_API_HOST_IP:-127.0.0.1}:${PXA_API_HOST_PORT:-5087}:8080"
+    volumes:
+      - pxa-api-data:/app/data
+      - ${PXA_API_FONTS_PATH:-./deploy/api/fonts}:/app/fonts:ro
+    secrets:
+      - pxa_license_private_key
+      - pxa_license_public_key
+    depends_on:
+      pxa-database:
+        condition: service_healthy
+      pxa-otel-collector:
+        condition: service_started
+    networks:
+      - default
+      - pxa-observability
+      - pxa-api-host
+    deploy:
+      resources:
+        limits:
+          cpus: "${PXA_API_CPU_LIMIT:-2.0}"
+          memory: ${PXA_API_MEMORY_LIMIT:-2G}
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+secrets:
+  pxa_license_private_key:
+    file: ${PXA_LICENSE_PRIVATE_KEY_FILE:?Set PXA_LICENSE_PRIVATE_KEY_FILE}
+  pxa_license_public_key:
+    file: ${PXA_LICENSE_PUBLIC_KEY_FILE:?Set PXA_LICENSE_PUBLIC_KEY_FILE}
+
+volumes:
+  pxa-api-data:
+
+networks:
+  pxa-api-host:

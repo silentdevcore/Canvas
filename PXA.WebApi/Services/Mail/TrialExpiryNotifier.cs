@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Observability;
 using PXA.WebApi.Security;
 
 namespace PXA.WebApi.Services.Mail;
@@ -154,7 +155,10 @@ public sealed class TrialExpiryWorker(IServiceScopeFactory scopeFactory, ILogger
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
-                logger.LogWarning(exception, "Trial-expiry notification check failed.");
+                logger.LogWarning(
+                    PxaLogEvents.TrialExpiryCheckFailed,
+                    exception,
+                    "Trial-expiry notification check failed.");
             }
             await Task.Delay(TimeSpan.FromHours(6), stoppingToken);
         }

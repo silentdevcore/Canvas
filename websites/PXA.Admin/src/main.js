@@ -1,4 +1,6 @@
 import './site.css';
+import { initializeBrowserTelemetry } from '../../shared/browserTelemetry.js';
+import { siteLinks } from '../../shared/siteLinks.js';
 import {
   currentUser,
   acceptInvitation,
@@ -25,6 +27,7 @@ import {
   getAdminServiceAccounts,
   getAdminMail,
   getAdminMailStatus,
+  getAdminSystemHealth,
   getAdminUser,
   getAdminUserSessions,
   getAdminUsers,
@@ -65,6 +68,8 @@ import {
   validateAdminLicense,
 } from './api.js';
 
+initializeBrowserTelemetry({ application: 'admin' });
+
 const app = document.querySelector('#app');
 
 const navigation = [
@@ -77,6 +82,7 @@ const navigation = [
   { path: '/service-accounts', label: 'Service accounts', group: 'Access' },
   { path: '/mail', label: 'Mail delivery', group: 'Operations' },
   { path: '/audit', label: 'Audit', group: 'Operations' },
+  { path: '/system-status', label: 'System status', group: 'Operations', systemOnly: true },
   { path: '/settings', label: 'Settings', group: 'Operations' },
   { path: '/documentation', label: 'Admin documentation', group: 'Reference' },
 ];
@@ -146,6 +152,9 @@ const state = {
   },
   documentation: {
     groups: [], routeCoverage: [], loading: false, loaded: false, error: null,
+  },
+  systemHealth: {
+    data: null, loading: false, loaded: false, error: null,
   },
 };
 
@@ -331,11 +340,13 @@ async function handleLogin(event) {
 }
 
 function renderNavigation() {
-  const groups = [...new Set(navigation.map((item) => item.group))];
+  const visibleNavigation = navigation.filter((item) =>
+    !item.systemOnly || isSystemAdministrator());
+  const groups = [...new Set(visibleNavigation.map((item) => item.group))];
   return groups.map((group) => `
     <div class="admin-nav-group">
       <span>${group}</span>
-      ${navigation.filter((item) => item.group === group).map((item) => `
+      ${visibleNavigation.filter((item) => item.group === group).map((item) => `
         <a href="${item.path}" ${location.pathname === item.path || location.pathname.startsWith(`${item.path}/`) ? 'aria-current="page"' : ''}>
           ${item.label}
         </a>
@@ -406,6 +417,82 @@ function dashboardPage() {
       </div>
     </section>
   `;
+}
+
+function formatSystemAge(seconds) {
+  if (seconds == null) return 'None waiting';
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+}
+
+function systemStatusPage() {
+  const health = state.systemHealth;
+  if (health.loading && !health.data) {
+    return '<section class="admin-empty-state"><div class="admin-spinner" aria-hidden="true"></div><p>Checking protected system status...</p></section>';
+  }
+  if (health.error && !health.data) {
+    return `<section class="admin-message-page"><span class="admin-error-code">!</span><h1>System status unavailable</h1><p>${escapeHtml(health.error)}</p><button class="pxa-button pxa-button--secondary" id="system-health-retry" type="button">Retry</button></section>`;
+  }
+
+  const data = health.data;
+  if (!data) return '';
+  const statusClass = (status) => ({
+    Healthy: 'admin-status--ready',
+    Degraded: 'admin-status--planned',
+    Unhealthy: 'admin-status--inactive',
+    Disabled: 'admin-status--neutral',
+  })[status] || 'admin-status--neutral';
+  const jobs = data.components.find((component) => component.key === 'jobs');
+  const componentRows = data.components.map((component) => `
+    <div>
+      <strong>${escapeHtml(component.name)}</strong>
+      <span class="admin-status ${statusClass(component.status)}">${escapeHtml(component.status)}</span>
+      <p>${escapeHtml(component.summary)}</p>
+    </div>
+  `).join('');
+  return `
+    <header class="admin-page-header">
+      <div><p class="pxa-kicker">Operator workspace</p><h1>System status</h1><p>Sanitized service availability and global queue signals for authorized system operators.</p></div>
+      <div class="admin-header-actions">
+        <a class="pxa-button pxa-button--primary" href="${siteLinks.operator}operator/grafana/" data-native>Open dashboards</a>
+        <button class="pxa-button pxa-button--secondary" id="system-health-refresh" type="button" ${health.loading ? 'disabled' : ''}>${health.loading ? 'Checking...' : 'Refresh'}</button>
+      </div>
+    </header>
+    ${health.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(health.error)} Showing the last successful result.</div>` : ''}
+    <section class="admin-summary-grid" aria-label="System summary">
+      <article><span>Overall status</span><strong><span class="admin-status ${statusClass(data.status)}">${escapeHtml(data.status)}</span></strong></article>
+      <article><span>Pending jobs</span><strong>${jobs?.pendingJobs ?? 0}</strong></article>
+      <article><span>Processing jobs</span><strong>${jobs?.processingJobs ?? 0}</strong></article>
+      <article><span>Dead-letter jobs</span><strong>${jobs?.deadLetterJobs ?? 0}</strong></article>
+      <article><span>Oldest pending</span><strong>${escapeHtml(formatSystemAge(jobs?.oldestPendingSeconds))}</strong></article>
+      <article><span>Checked</span><strong>${escapeHtml(new Date(data.checkedAt).toLocaleString())}</strong></article>
+    </section>
+    <section class="admin-section">
+      <div class="admin-section-heading"><h2>Components</h2><p>Descriptions are intentionally coarse. Raw logs, traces, identifiers, and configuration secrets are never returned here.</p></div>
+      <div class="admin-status-list">${componentRows}</div>
+    </section>
+  `;
+}
+
+function bindSystemStatusEvents() {
+  document.querySelector('#system-health-refresh')?.addEventListener('click', () => loadSystemHealth());
+  document.querySelector('#system-health-retry')?.addEventListener('click', () => loadSystemHealth());
+}
+
+async function loadSystemHealth() {
+  state.systemHealth.loading = true;
+  state.systemHealth.error = null;
+  render();
+  try {
+    state.systemHealth.data = await getAdminSystemHealth();
+    state.systemHealth.loaded = true;
+  } catch (error) {
+    state.systemHealth.error = error.message;
+  } finally {
+    state.systemHealth.loading = false;
+    render();
+  }
 }
 
 function documentationSlug(value) {
@@ -2142,6 +2229,17 @@ function render() {
 
   if (location.pathname === '/dashboard') {
     renderShell(dashboardPage(), 'Dashboard');
+    return;
+  }
+
+  if (location.pathname === '/system-status') {
+    if (!isSystemAdministrator()) {
+      renderShell(forbiddenPage(), 'Access denied');
+      return;
+    }
+    renderShell(systemStatusPage(), 'System status');
+    bindSystemStatusEvents();
+    if (!state.systemHealth.loaded && !state.systemHealth.loading) loadSystemHealth();
     return;
   }
 

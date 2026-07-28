@@ -5,6 +5,8 @@ namespace PXA.FileImporter.ImageOcr;
 
 public sealed class ProcessIsolatedTesseractOcrEngine : IOcrEngine
 {
+    public const string ActivitySourceName = "PXA.ImageOcr";
+    private static readonly ActivitySource Activities = new(ActivitySourceName);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
@@ -49,6 +51,10 @@ public sealed class ProcessIsolatedTesseractOcrEngine : IOcrEngine
         var timeout = TimeSpan.FromSeconds(Math.Clamp(options.MaxOcrRuntimeSeconds, 5, 180));
         var workDir = Path.Combine(_tempRoot, $"pxa-image-ocr-{Guid.NewGuid():N}");
         Directory.CreateDirectory(workDir);
+        using var activity = Activities.StartActivity(
+            "pxa.ocr.worker.execute",
+            ActivityKind.Client);
+        activity?.SetTag("ocr.worker.type", "process");
 
         try
         {
@@ -60,6 +66,7 @@ public sealed class ProcessIsolatedTesseractOcrEngine : IOcrEngine
             var result = await _runner.RunAsync(_workerPath, requestPath, responsePath, workDir, timeout, cancellationToken);
             if (result.TimedOut)
             {
+                activity?.SetStatus(ActivityStatusCode.Error, "timeout");
                 throw new InvalidOperationException(
                     $"OCR did not finish within {Math.Round(timeout.TotalSeconds)} seconds. The isolated OCR worker was terminated.");
             }
@@ -78,9 +85,24 @@ public sealed class ProcessIsolatedTesseractOcrEngine : IOcrEngine
                 ?? throw new InvalidOperationException("OCR worker produced an invalid response.");
 
             if (!response.Success)
+            {
+                activity?.SetStatus(ActivityStatusCode.Error, "worker_error");
                 throw new InvalidOperationException(response.Error ?? "OCR worker failed.");
+            }
 
+            activity?.SetStatus(ActivityStatusCode.Ok);
             return response.Pages;
+        }
+        catch (OperationCanceledException)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, "cancelled");
+            throw;
+        }
+        catch
+        {
+            if (activity?.Status != ActivityStatusCode.Error)
+                activity?.SetStatus(ActivityStatusCode.Error);
+            throw;
         }
         finally
         {
@@ -110,6 +132,10 @@ public sealed class ProcessIsolatedTesseractOcrEngine : IOcrEngine
 
         return new OcrWorkerRequest
         {
+            TraceParent = Activity.Current?.IdFormat == ActivityIdFormat.W3C
+                ? Activity.Current.Id
+                : null,
+            TraceState = Activity.Current?.TraceStateString,
             Languages = options.Languages,
             TessDataPath = _tessDataPath,
             NativeLibraryPath = options.NativeLibraryPath ?? _nativeLibraryPath,

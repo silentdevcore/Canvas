@@ -1,7 +1,9 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
+using PXA.WebApi.Observability;
 
 namespace PXA.WebApi.Services.Licensing;
 
@@ -10,6 +12,7 @@ public sealed class PxaLicensingOptions
     public string KeyId { get; set; } = "pxa-development-1";
     public string PrivateKeyPath { get; set; } = "App_Data/licensing/private-key.pem";
     public string PublicKeyPath { get; set; } = "App_Data/licensing/public-key.pem";
+    public int MetricsIntervalSeconds { get; set; } = 60;
 }
 
 public interface IPxaLicenseSignatureVerifier
@@ -47,11 +50,27 @@ public sealed class PxaLicenseSigningService : IPxaLicenseSigningService
 
     public PxaSignedLicenseArtifact Sign(PxaOfflineLicenseEnvelope envelope)
     {
-        var envelopeJson = JsonSerializer.Serialize(envelope, JsonOptions);
-        using var signer = ECDsa.Create();
-        signer.ImportFromPem(privateKeyPem);
-        var signature = signer.SignData(Encoding.UTF8.GetBytes(envelopeJson), HashAlgorithmName.SHA256);
-        return new PxaSignedLicenseArtifact(envelopeJson, Convert.ToBase64String(signature), KeyId, "ECDSA_P256_SHA256");
+        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            var envelopeJson = JsonSerializer.Serialize(envelope, JsonOptions);
+            using var signer = ECDsa.Create();
+            signer.ImportFromPem(privateKeyPem);
+            var signature = signer.SignData(
+                Encoding.UTF8.GetBytes(envelopeJson),
+                HashAlgorithmName.SHA256);
+            PxaTelemetry.RecordLicensingOperation("sign", "completed", stopwatch.Elapsed);
+            return new PxaSignedLicenseArtifact(
+                envelopeJson,
+                Convert.ToBase64String(signature),
+                KeyId,
+                "ECDSA_P256_SHA256");
+        }
+        catch
+        {
+            PxaTelemetry.RecordLicensingOperation("sign", "failed", stopwatch.Elapsed);
+            throw;
+        }
     }
 
     public bool Verify(string envelopeJson, string signature)

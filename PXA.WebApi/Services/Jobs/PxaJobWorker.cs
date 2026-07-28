@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using PXA.WebApi.Observability;
 
 namespace PXA.WebApi.Services.Jobs;
 
@@ -28,7 +29,10 @@ public sealed class PxaJobWorker(
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "The PXA background-job polling cycle failed.");
+                logger.LogError(
+                    PxaLogEvents.JobPollingFailed,
+                    exception,
+                    "The PXA background-job polling cycle failed.");
             }
 
             try

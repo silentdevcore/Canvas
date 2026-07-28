@@ -17,6 +17,8 @@ internal sealed class PxaBackgroundJobConfiguration : IEntityTypeConfiguration<P
         builder.HasOne<PxaStoredObject>().WithMany().HasForeignKey(value => value.ResultObjectId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(value => value.Type).HasMaxLength(100).IsRequired();
         builder.Property(value => value.PayloadJson).HasColumnType("jsonb").IsRequired();
+        builder.Property(value => value.TraceParent).HasMaxLength(128);
+        builder.Property(value => value.TraceState).HasMaxLength(512);
         builder.Property(value => value.Status).HasConversion<string>().HasMaxLength(24).IsRequired();
         builder.Property(value => value.DiagnosticsJson).HasColumnType("jsonb");
         builder.Property(value => value.FailureReason).HasMaxLength(2000);

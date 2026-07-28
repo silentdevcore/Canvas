@@ -126,7 +126,7 @@ export const createDesignerTemplate = (
       tags: [],
       designDocument,
       schemaVersion: '1.0',
-      designerVersion: '1.0.0',
+      designerVersion,
     }),
   });
 
@@ -142,7 +142,7 @@ export const updateDesignerTemplateDraft = (
       revision,
       designDocument,
       schemaVersion: '1.0',
-      designerVersion: '1.0.0',
+      designerVersion,
     }),
   });
 
@@ -177,3 +177,4 @@ export const archiveDesignerTemplate = (
     body: JSON.stringify({ revision }),
   });
 import type { PageSettings } from '@/types';
+import { designerVersion } from '@/product/productMetadata';

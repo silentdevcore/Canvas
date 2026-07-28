@@ -1,5 +1,7 @@
+using System.Diagnostics.Metrics;
 using System.Text.Json;
 using PXA.Domain.Entities;
+using PXA.WebApi.Observability;
 using PXA.WebApi.Services.Licensing;
 
 namespace PXA.Api.Tests;
@@ -76,6 +78,19 @@ public sealed class PxaOfflineLicenseValidatorTests
     [Fact]
     public void Invalid_signature_is_rejected_before_envelope_data_is_trusted()
     {
+        var outcomes = new List<string>();
+        using var listener = new MeterListener();
+        listener.InstrumentPublished = (instrument, meterListener) =>
+        {
+            if (instrument.Name == "pxa.licensing.operations")
+                meterListener.EnableMeasurementEvents(instrument);
+        };
+        listener.SetMeasurementEventCallback<long>((_, _, tags, _) =>
+        {
+            var outcome = tags.ToArray().Single(tag => tag.Key == "licensing.outcome").Value;
+            outcomes.Add(Assert.IsType<string>(outcome));
+        });
+        listener.Start();
         var scenario = CreateScenario(signatureValid: false);
         scenario.License.EnvelopeJson = "{not-json";
 
@@ -85,6 +100,7 @@ public sealed class PxaOfflineLicenseValidatorTests
         Assert.False(result.SignatureValid);
         Assert.Equal("PXA_LICENSE_SIGNATURE_INVALID", result.Code);
         Assert.Null(result.Envelope);
+        Assert.Contains("signature_invalid", outcomes);
     }
 
     [Fact]

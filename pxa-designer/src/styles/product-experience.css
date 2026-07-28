@@ -1,0 +1,428 @@
+.pxa-notification-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: #44403c;
+  background: #fff;
+  border: 1px solid #d6d3d1;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pxa-notification-trigger:hover {
+  color: #1769aa;
+  border-color: #1769aa;
+}
+
+.pxa-notification-trigger > span {
+  position: absolute;
+  top: -6px;
+  inset-inline-end: -6px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  color: #fff;
+  background: #b42318;
+  border: 2px solid #fff;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 15px;
+}
+
+.designer-version-info {
+  padding: 8px;
+  color: #78716c;
+  border-top: 1px solid #e7e5e4;
+  font-size: 11px;
+}
+
+.pxa-feature-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: 7px;
+  vertical-align: middle;
+}
+
+.pxa-feature-badge,
+.pxa-release-channel {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.pxa-feature-badge.is-new {
+  color: #075985;
+  background: #e0f2fe;
+}
+
+.pxa-feature-badge.is-alpha,
+.pxa-release-channel.is-alpha {
+  color: #9a3412;
+  background: #ffedd5;
+}
+
+.pxa-feature-badge.is-beta,
+.pxa-release-channel.is-beta {
+  color: #5b21b6;
+  background: #ede9fe;
+}
+
+.pxa-release-channel.is-stable {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.pxa-product-overlay {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  background: rgb(15 23 42 / 36%);
+}
+
+.pxa-product-panel {
+  width: min(620px, 100vw);
+  height: 100%;
+  overflow: hidden;
+  color: #172033;
+  background: #f8fafc;
+  box-shadow: -18px 0 50px rgb(15 23 42 / 20%);
+  outline: none;
+}
+
+.pxa-product-panel > header {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  padding: 14px 18px;
+  background: #fff;
+  border-bottom: 1px solid #dbe2ea;
+}
+
+.pxa-product-panel > header small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.pxa-product-panel > header h2 {
+  margin: 2px 0 0;
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.pxa-product-panel > header > button,
+.pxa-product-panel-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+}
+
+.pxa-product-panel-icon {
+  color: #1769aa;
+  background: #e8f2fa;
+}
+
+.pxa-product-panel > header > button {
+  color: #475569;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.pxa-product-panel-body {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  height: calc(100% - 76px);
+  overflow: hidden;
+}
+
+.pxa-release-selector {
+  padding: 14px 10px;
+  overflow-y: auto;
+  background: #fff;
+  border-inline-end: 1px solid #dbe2ea;
+}
+
+.pxa-release-selector button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  color: #475569;
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.pxa-release-selector button.is-active {
+  color: #1769aa;
+  background: #e8f2fa;
+  font-weight: 800;
+}
+
+.pxa-release-selector i {
+  width: 7px;
+  height: 7px;
+  background: #1769aa;
+  border-radius: 50%;
+}
+
+.pxa-release-notes {
+  padding: 28px;
+  overflow-y: auto;
+}
+
+.pxa-release-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.pxa-release-notes h3 {
+  margin: 12px 0 8px;
+  font-size: 25px;
+  letter-spacing: 0;
+}
+
+.pxa-release-notes h4 {
+  margin: 24px 0 8px;
+  font-size: 14px;
+}
+
+.pxa-release-notes p,
+.pxa-release-notes li,
+.pxa-feature-setting p,
+.pxa-notification-item p {
+  color: #526174;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.pxa-release-notes ul {
+  margin: 0;
+  padding-inline-start: 20px;
+}
+
+.pxa-release-notes > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 24px;
+  color: #1769aa;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.pxa-release-notes footer {
+  margin-top: 28px;
+  padding-top: 14px;
+  color: #94a3b8;
+  border-top: 1px solid #dbe2ea;
+  font-size: 10px;
+}
+
+.pxa-product-panel-list {
+  height: calc(100% - 76px);
+  padding: 18px;
+  overflow-y: auto;
+}
+
+.pxa-panel-intro {
+  margin: 0 0 14px;
+  color: #526174;
+  font-size: 13px;
+}
+
+.pxa-feature-setting,
+.pxa-notification-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #dbe2ea;
+  border-radius: 6px;
+}
+
+.pxa-feature-setting + .pxa-feature-setting,
+.pxa-notification-item + .pxa-notification-item {
+  margin-top: 10px;
+}
+
+.pxa-feature-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pxa-feature-setting p,
+.pxa-notification-item p {
+  margin: 5px 0 0;
+}
+
+.pxa-feature-setting small {
+  display: block;
+  margin-top: 6px;
+  color: #9a3412;
+}
+
+.pxa-feature-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pxa-feature-toggle input {
+  width: 18px;
+  height: 18px;
+}
+
+.pxa-notification-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.pxa-notification-actions button,
+.pxa-notification-item button,
+.pxa-notification-item a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #1769aa;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pxa-notification-item {
+  grid-template-columns: 34px 1fr;
+  opacity: .82;
+}
+
+.pxa-notification-item.is-unread {
+  opacity: 1;
+  border-inline-start: 3px solid #1769aa;
+}
+
+.pxa-notification-item > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: #1769aa;
+  background: #e8f2fa;
+  border-radius: 50%;
+}
+
+.pxa-notification-item small {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pxa-notification-item > div > button {
+  display: flex;
+  margin-top: 3px;
+  padding: 0;
+  color: #172033;
+  text-align: start;
+}
+
+.pxa-notification-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 10px;
+  font-size: 11px;
+}
+
+.pxa-notification-empty {
+  display: grid;
+  place-items: center;
+  padding: 64px 20px;
+  color: #64748b;
+}
+
+.pxa-toast {
+  max-width: min(440px, calc(100vw - 24px));
+}
+
+.pxa-toast-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pxa-toast-content button {
+  color: #1769aa;
+  background: transparent;
+  border: 0;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .pxa-product-panel-body {
+    display: block;
+    overflow-y: auto;
+  }
+
+  .pxa-release-selector {
+    display: flex;
+    gap: 6px;
+    padding: 10px;
+    overflow-x: auto;
+    border-inline-end: 0;
+    border-bottom: 1px solid #dbe2ea;
+  }
+
+  .pxa-release-selector button {
+    flex: 0 0 auto;
+    width: auto;
+    gap: 10px;
+  }
+
+  .pxa-release-notes {
+    overflow: visible;
+  }
+
+  .designer-user-trigger-copy {
+    display: none;
+  }
+
+  .designer-user-trigger {
+    min-width: 44px;
+    padding: 5px;
+  }
+}

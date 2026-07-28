@@ -109,3 +109,5 @@ TestResults/
 appsettings.Development.json
 appsettings.Local.json
 secrets.json
+deploy/observability/secrets/
+deploy/api/secrets/

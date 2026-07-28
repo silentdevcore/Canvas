@@ -400,6 +400,7 @@ input:disabled {
 .admin-status--ready { color: var(--pxa-color-teal-600); background: var(--pxa-color-teal-100); }
 .admin-status--planned { color: var(--pxa-color-amber-600); background: var(--pxa-color-amber-100); }
 .admin-status--inactive { color: #8f2525; background: var(--pxa-color-red-100); }
+.admin-status--neutral { color: var(--pxa-color-muted); background: var(--pxa-color-surface); }
 
 .admin-metrics {
   display: grid;

@@ -269,7 +269,7 @@ describe('app route smoke tests', () => {
       expect(getByText(container, 'Use Template')).toBeTruthy();
       expect(getByText(container, 'Import PDF')).toBeTruthy();
       expect(getByText(container, 'Convert to PDF')).toBeTruthy();
-      expect(getByText(container, 'PDF Viewer')).toBeTruthy();
+      expect(getByText(container, /PDF Viewer/)).toBeTruthy();
       expect(getByText(container, 'Migrations')).toBeTruthy();
     });
   });
@@ -328,7 +328,7 @@ describe('app route smoke tests', () => {
     root = await renderRoute(container, '/spreadsheet/import');
 
     await waitUntil(() => {
-      expect(getByText(container, 'Create Spreadsheet')).toBeTruthy();
+      expect(getByText(container, /Create Spreadsheet/)).toBeTruthy();
       expect(getByText(container, 'Edit Spreadsheet')).toBeTruthy();
       expect(getByText(container, 'Import Spreadsheet')).toBeTruthy();
       // Disabled item renders "Convert to Spreadsheet" alongside a "Coming

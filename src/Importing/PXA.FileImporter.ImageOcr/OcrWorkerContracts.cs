@@ -2,6 +2,8 @@ namespace PXA.FileImporter.ImageOcr;
 
 public sealed class OcrWorkerRequest
 {
+    public string? TraceParent { get; init; }
+    public string? TraceState { get; init; }
     public string Languages { get; init; } = "deu+eng";
     public string? TessDataPath { get; init; }
     public string? NativeLibraryPath { get; init; }

@@ -17,6 +17,7 @@ using PXA.WebApi.Application.Designer;
 using PXA.WebApi.Application.Organizations;
 using PXA.WebApi.Application.Subscriptions;
 using PXA.WebApi.Infrastructure;
+using PXA.WebApi.Observability;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 using PXA.WebApi.Services.Entitlements;
@@ -27,7 +28,25 @@ using PxaConverters = PXA.Infrastructure.Converters;
 using PxaSpreadsheet = PXA.Infrastructure.Spreadsheet;
 using PxaWord = PXA.Infrastructure.Word;
 
+if (args is ["--health-check"])
+{
+    using var healthClient = new HttpClient { Timeout = TimeSpan.FromSeconds(3) };
+    try
+    {
+        using var response = await healthClient.GetAsync("http://127.0.0.1:8080/health/live");
+        Environment.ExitCode = response.IsSuccessStatusCode ? 0 : 1;
+    }
+    catch (Exception exception) when (
+        exception is HttpRequestException or TaskCanceledException)
+    {
+        Environment.ExitCode = 1;
+    }
+
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
+builder.AddPxaObservability();
 
 // Add services to the container.
 builder.Services.AddControllers(options => options.Filters.Add<PxaProblemDetailsResultFilter>());
@@ -135,7 +154,8 @@ builder.Services.AddOptions<PxaJobOptions>()
             options.MaximumAttempts is >= 1 and <= 20 &&
             options.ResultRetentionDays is >= 1 and <= 3650 &&
             options.CleanupIntervalMinutes is >= 1 and <= 1440 &&
-            options.CleanupBatchSize is >= 1 and <= 10000,
+            options.CleanupBatchSize is >= 1 and <= 10000 &&
+            options.MetricsIntervalSeconds is >= 5 and <= 300,
         "Background job timing or retry settings are invalid.")
     .ValidateOnStart();
 builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, PxaAuthorizationMiddlewareResultHandler>();
@@ -197,19 +217,30 @@ builder.Services.AddRateLimiter(options =>
             Window = TimeSpan.FromHours(1),
             QueueLimit = 0,
         }));
+    options.AddPolicy("browser-telemetry", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 120,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+        }));
 });
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IPxaTenantContext, PxaTenantContext>();
 builder.Services.AddScoped<IPxaEntitlementService, PxaEntitlementService>();
 builder.Services.AddScoped<IPxaUsageService, PxaUsageService>();
+builder.Services.AddSingleton<PxaDesignerProductMetadata>();
+builder.Services.AddScoped<IPxaDesignerFeatureGate, PxaDesignerFeatureGate>();
 builder.Services.AddOptions<PxaProductAccessOptions>()
     .Bind(builder.Configuration.GetSection("ProductAccess"));
 builder.Services.AddOptions<PxaLicensingOptions>()
     .Bind(builder.Configuration.GetSection("Licensing"))
     .Validate(options => !string.IsNullOrWhiteSpace(options.KeyId) &&
                          !string.IsNullOrWhiteSpace(options.PrivateKeyPath) &&
-                         !string.IsNullOrWhiteSpace(options.PublicKeyPath),
-        "Licensing key ID and key paths are required.")
+                         !string.IsNullOrWhiteSpace(options.PublicKeyPath) &&
+                         options.MetricsIntervalSeconds is >= 15 and <= 3600,
+        "Licensing key paths and a metrics interval between 15 and 3600 seconds are required.")
     .ValidateOnStart();
 builder.Services.AddSingleton<PxaLicenseSigningService>();
 builder.Services.AddSingleton<IPxaLicenseSigningService>(
@@ -292,6 +323,8 @@ if (!builder.Environment.IsEnvironment("Testing"))
     builder.Services.AddHostedService<TrialExpiryWorker>();
     builder.Services.AddHostedService<PxaJobWorker>();
     builder.Services.AddHostedService<PxaJobRetentionWorker>();
+    builder.Services.AddHostedService<PxaJobMetricsPublisher>();
+    builder.Services.AddHostedService<PxaLicensingMetricsPublisher>();
 }
 builder.Services.AddAuthorization(options =>
 {
@@ -313,6 +346,7 @@ builder.Services.AddAntiforgery(options =>
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<PxaDbContext>("pxa-database", tags: ["ready"])
     .AddCheck<PxaMailHealthCheck>("pxa-mail", tags: ["ready"], timeout: TimeSpan.FromSeconds(5));
+builder.Services.AddScoped<PxaSystemHealthService>();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -380,11 +414,25 @@ builder.Services.AddSingleton<IOcrEngine>(sp =>
     var tessDataPath = builder.Configuration["Ocr:TessDataPath"];
     var nativeLibraryPath = builder.Configuration["Ocr:NativeLibraryPath"];
     var useIsolatedWorker = builder.Configuration.GetValue("Ocr:UseIsolatedWorker", true);
+    IOcrEngine engine;
     if (!useIsolatedWorker)
-        return new EmbeddedTesseractOcrEngine(tessDataPath, nativeLibraryPath);
+    {
+        engine = new EmbeddedTesseractOcrEngine(tessDataPath, nativeLibraryPath);
+    }
+    else
+    {
+        var workerPath = builder.Configuration["Ocr:WorkerPath"];
+        engine = new ProcessIsolatedTesseractOcrEngine(
+            workerPath,
+            tessDataPath,
+            nativeLibraryPath);
+    }
 
-    var workerPath = builder.Configuration["Ocr:WorkerPath"];
-    return new ProcessIsolatedTesseractOcrEngine(workerPath, tessDataPath, nativeLibraryPath);
+    var observability = sp.GetRequiredService<
+        Microsoft.Extensions.Options.IOptions<PxaObservabilityOptions>>().Value;
+    return observability.EnableOcrFailureInjection
+        ? new PxaFaultInjectingOcrEngine(engine, observability.OcrFailureInjectionCount)
+        : engine;
 });
 builder.Services.AddTransient<ImageToPdfConverter>();
 
@@ -417,8 +465,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
+app.UseMiddleware<PxaOperationMetricsMiddleware>();
 app.UseAuthentication();
 app.UseMiddleware<PxaDesignerAccessMiddleware>();
+app.UseMiddleware<PxaDesignerFeatureGateMiddleware>();
 app.UseRateLimiter();
 app.UseMiddleware<PxaProductAccessMiddleware>();
 app.UseAuthorization();

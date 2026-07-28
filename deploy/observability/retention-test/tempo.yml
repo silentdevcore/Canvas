@@ -1,0 +1,29 @@
+server:
+  http_listen_port: 3200
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: 0.0.0.0:4318
+
+ingester:
+  trace_idle_period: 1s
+  max_block_duration: 5s
+  complete_block_timeout: 10s
+
+compactor:
+  compaction:
+    compaction_window: 1h
+    block_retention: ${PXA_TEST_TRACE_RETENTION}
+    compacted_block_retention: 10s
+
+storage:
+  trace:
+    backend: local
+    blocklist_poll: 5s
+    wal:
+      path: /var/tempo/wal
+    local:
+      path: /var/tempo/blocks

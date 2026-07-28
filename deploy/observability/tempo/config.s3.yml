@@ -1,0 +1,32 @@
+server:
+  http_listen_port: 3200
+
+stream_over_http_enabled: true
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+ingester:
+  max_block_duration: 5m
+
+compactor:
+  compaction:
+    block_retention: ${PXA_TRACE_RETENTION:-336h}
+
+storage:
+  trace:
+    backend: s3
+    wal:
+      path: /var/tempo/wal
+    s3:
+      bucket: ${PXA_TEMPO_S3_BUCKET}
+      endpoint: ${PXA_S3_ENDPOINT}
+      region: ${PXA_S3_REGION}
+      forcepathstyle: ${PXA_S3_FORCE_PATH_STYLE}
+      insecure: ${PXA_S3_INSECURE}

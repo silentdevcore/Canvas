@@ -1,0 +1,11 @@
+services:
+  pxa-alertmanager:
+    volumes:
+      - ${PXA_ALERTMANAGER_CONFIG_FILE:?Set PXA_ALERTMANAGER_CONFIG_FILE}:/etc/alertmanager/alertmanager.yml:ro
+      - ${PXA_ALERTMANAGER_TEMPLATES_DIR:?Set PXA_ALERTMANAGER_TEMPLATES_DIR}:/etc/alertmanager/templates:ro
+    secrets:
+      - pxa_alertmanager_smtp_password
+
+secrets:
+  pxa_alertmanager_smtp_password:
+    file: ${PXA_ALERTMANAGER_SMTP_PASSWORD_FILE:?Set PXA_ALERTMANAGER_SMTP_PASSWORD_FILE}

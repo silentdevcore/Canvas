@@ -1,0 +1,44 @@
+services:
+  prometheus:
+    image: prom/prometheus:v3.12.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=${PXA_TEST_METRIC_RETENTION}
+    ports:
+      - "127.0.0.1:19090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+
+  loki:
+    image: grafana/loki:3.7.2
+    command:
+      - -config.file=/etc/loki/config.yml
+      - -config.expand-env=true
+    environment:
+      PXA_TEST_LOG_RETENTION: ${PXA_TEST_LOG_RETENTION}
+    ports:
+      - "127.0.0.1:13101:3100"
+    volumes:
+      - ./loki.yml:/etc/loki/config.yml:ro
+      - loki-data:/loki
+
+  tempo:
+    image: grafana/tempo:2.10.5
+    command:
+      - -config.file=/etc/tempo/config.yml
+      - -config.expand-env=true
+    environment:
+      PXA_TEST_TRACE_RETENTION: ${PXA_TEST_TRACE_RETENTION}
+    ports:
+      - "127.0.0.1:13201:3200"
+      - "127.0.0.1:14318:4318"
+    volumes:
+      - ./tempo.yml:/etc/tempo/config.yml:ro
+      - tempo-data:/var/tempo
+
+volumes:
+  prometheus-data:
+  loki-data:
+  tempo-data:

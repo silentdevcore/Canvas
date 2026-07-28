@@ -1,0 +1,122 @@
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: ${env:PXA_OTEL_MEMORY_LIMIT_MIB:-384}
+    spike_limit_mib: ${env:PXA_OTEL_MEMORY_SPIKE_LIMIT_MIB:-96}
+  resource/privacy:
+    attributes:
+      - key: http.request.header.authorization
+        action: delete
+      - key: http.request.header.cookie
+        action: delete
+      - key: http.response.header.set-cookie
+        action: delete
+      - key: enduser.id
+        action: delete
+      - key: user.email
+        action: delete
+      - key: tenant.id
+        action: delete
+      - key: document.id
+        action: delete
+      - key: document.name
+        action: delete
+      - key: file.name
+        action: delete
+      - key: url.query
+        action: delete
+  transform/privacy:
+    error_mode: ignore
+    trace_statements:
+      - context: span
+        statements:
+          - delete_key(span.attributes, "http.request.header.authorization")
+          - delete_key(span.attributes, "http.request.header.cookie")
+          - delete_key(span.attributes, "http.response.header.set-cookie")
+          - delete_key(span.attributes, "enduser.id")
+          - delete_key(span.attributes, "user.email")
+          - delete_key(span.attributes, "tenant.id")
+          - delete_key(span.attributes, "document.id")
+          - delete_key(span.attributes, "document.name")
+          - delete_key(span.attributes, "file.name")
+          - delete_key(span.attributes, "url.query")
+    log_statements:
+      - context: log
+        statements:
+          - delete_key(log.attributes, "http.request.header.authorization")
+          - delete_key(log.attributes, "http.request.header.cookie")
+          - delete_key(log.attributes, "http.response.header.set-cookie")
+          - delete_key(log.attributes, "user.email")
+          - delete_key(log.attributes, "tenant.id")
+          - delete_key(log.attributes, "document.id")
+          - delete_key(log.attributes, "document.name")
+          - delete_key(log.attributes, "file.name")
+          - delete_key(log.attributes, "url.query")
+    metric_statements:
+      - context: datapoint
+        statements:
+          - delete_key(datapoint.attributes, "user.email")
+          - delete_key(datapoint.attributes, "tenant.id")
+          - delete_key(datapoint.attributes, "document.id")
+          - delete_key(datapoint.attributes, "document.name")
+          - delete_key(datapoint.attributes, "file.name")
+  tail_sampling:
+    decision_wait: 10s
+    num_traces: 50000
+    expected_new_traces_per_sec: 100
+    policies:
+      - name: errors
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+      - name: slow-requests
+        type: latency
+        latency:
+          threshold_ms: 2000
+      - name: baseline
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: ${env:PXA_TRACE_SAMPLE_PERCENTAGE:-10}
+  batch:
+    send_batch_size: 1024
+    timeout: 5s
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    resource_to_telemetry_conversion:
+      enabled: true
+  otlp_http/loki:
+    endpoint: http://pxa-loki:3100/otlp
+  otlp_grpc/tempo:
+    endpoint: pxa-tempo:4317
+    tls:
+      insecure: true
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resource/privacy, transform/privacy, tail_sampling, batch]
+      exporters: [otlp_grpc/tempo]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, resource/privacy, transform/privacy, batch]
+      exporters: [prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resource/privacy, transform/privacy, batch]
+      exporters: [otlp_http/loki]

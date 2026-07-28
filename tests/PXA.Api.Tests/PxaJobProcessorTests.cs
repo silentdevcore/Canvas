@@ -1,13 +1,19 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Observability;
 using PXA.WebApi.Services.Jobs;
+using PXA.WebApi.Services.Licensing;
 using PXA.WebApi.Services.Storage;
 using Testcontainers.PostgreSql;
 
@@ -27,6 +33,8 @@ public sealed class PxaJobProcessorTests
         var userId = Guid.NewGuid();
         var templateId = Guid.NewGuid();
         var jobId = Guid.NewGuid();
+        var subscriptionId = Guid.NewGuid();
+        var traceParent = $"00-{ActivityTraceId.CreateRandom()}-{ActivitySpanId.CreateRandom()}-01";
         var root = Path.Combine(Path.GetTempPath(), $"pxa-job-storage-{Guid.NewGuid():N}");
 
         try
@@ -48,6 +56,29 @@ public sealed class PxaJobProcessorTests
                 Name = "Job Processor Organization",
                 Slug = "job-processor",
             });
+            context.OrganizationSubscriptions.Add(new OrganizationSubscription
+            {
+                Id = subscriptionId,
+                OrganizationId = organizationId,
+                Edition = SubscriptionEdition.Enterprise,
+                AccountType = SubscriptionAccountType.Company,
+                Status = SubscriptionStatus.Active,
+                BillingPeriod = SubscriptionBillingPeriod.Annual,
+                DeploymentMode = SubscriptionDeploymentMode.OnPremise,
+            });
+            context.OfflineLicenses.Add(new OfflineLicense
+            {
+                OrganizationId = organizationId,
+                SubscriptionId = subscriptionId,
+                LicenseNumber = "PXA-METRICS-TEST",
+                EnvelopeJson = "{}",
+                Signature = "signature",
+                KeyId = "test",
+                Algorithm = "ECDSA_P256_SHA256",
+                ValidFrom = DateTimeOffset.UtcNow.AddDays(-1),
+                ValidUntil = DateTimeOffset.UtcNow.AddDays(5),
+                IssuedByUserId = userId,
+            });
             context.DesignerTemplates.Add(new DesignerTemplate
             {
                 Id = templateId,
@@ -66,12 +97,56 @@ public sealed class PxaJobProcessorTests
                 OrganizationId = organizationId,
                 CreatedByUserId = userId,
                 Type = PxaJobQueue.TemplateRenderType,
+                TraceParent = traceParent,
+                TraceState = "pxa=integration-test",
                 PayloadJson = JsonSerializer.Serialize(new TemplateRenderJobPayload(
                     templateId.ToString(),
                     JsonSerializer.SerializeToElement(new { invoiceNumber = "PXA-1" }),
                     null)),
             });
             await context.SaveChangesAsync();
+
+            var queueMeasurements = new List<Measurement>();
+            using var listener = new MeterListener();
+            listener.InstrumentPublished = (instrument, meterListener) =>
+            {
+                if (instrument.Meter.Name == PxaTelemetry.MeterName)
+                    meterListener.EnableMeasurementEvents(instrument);
+            };
+            listener.SetMeasurementEventCallback<long>((instrument, value, tags, _) =>
+                queueMeasurements.Add(new Measurement(instrument.Name, value, tags.ToArray())));
+            listener.SetMeasurementEventCallback<double>((instrument, value, tags, _) =>
+                queueMeasurements.Add(new Measurement(instrument.Name, value, tags.ToArray())));
+            listener.Start();
+
+            var services = new ServiceCollection();
+            services.AddDbContext<PxaDbContext>(builder =>
+                builder.UseNpgsql(postgres.GetConnectionString()));
+            await using var serviceProvider = services.BuildServiceProvider();
+            var metricsPublisher = new PxaJobMetricsPublisher(
+                serviceProvider.GetRequiredService<IServiceScopeFactory>(),
+                Options.Create(new PxaJobOptions()),
+                NullLogger<PxaJobMetricsPublisher>.Instance);
+            await metricsPublisher.PublishAsync(CancellationToken.None);
+            var licensingPublisher = new PxaLicensingMetricsPublisher(
+                serviceProvider.GetRequiredService<IServiceScopeFactory>(),
+                Options.Create(new PxaLicensingOptions()),
+                NullLogger<PxaLicensingMetricsPublisher>.Instance);
+            await licensingPublisher.PublishAsync(CancellationToken.None);
+
+            Assert.Contains(
+                queueMeasurements,
+                value => value.Name == "pxa.jobs.queue.depth" && value.Value == 1);
+            Assert.Contains(
+                queueMeasurements,
+                value => value.Name == "pxa.jobs.queue.oldest.age" && value.Value >= 0);
+            Assert.Contains(
+                queueMeasurements,
+                value => value.Name == "pxa.licensing.licenses" &&
+                         value.Value == 1 &&
+                         value.Tags.Any(tag =>
+                             tag.Key == "license.state" &&
+                             Equals(tag.Value, "expiring_14d")));
 
             var storageOptions = Options.Create(new PxaStorageOptions { RootPath = root });
             var storage = new FileSystemPxaObjectStorage(
@@ -88,11 +163,55 @@ public sealed class PxaJobProcessorTests
                 Options.Create(new PxaJobOptions()),
                 NullLogger<PxaJobProcessor>.Instance);
 
+            var traceActivities = new ConcurrentBag<ActivitySnapshot>();
+            using var activityListener = new ActivityListener
+            {
+                ShouldListenTo = source =>
+                    source.Name == PxaTelemetry.ActivitySourceName ||
+                    source.Name.Contains("Npgsql", StringComparison.OrdinalIgnoreCase),
+                Sample = static (ref ActivityCreationOptions<ActivityContext> _) =>
+                    ActivitySamplingResult.AllDataAndRecorded,
+                ActivityStopped = activity => traceActivities.Add(new ActivitySnapshot(
+                    activity.Source.Name,
+                    activity.OperationName,
+                    activity.TraceId,
+                    activity.SpanId,
+                    activity.ParentSpanId,
+                    activity.TagObjects.ToArray())),
+            };
+            ActivitySource.AddActivityListener(activityListener);
+
             Assert.True(await processor.ProcessNextAsync(CancellationToken.None));
+
+            Assert.True(ActivityContext.TryParse(
+                traceParent,
+                null,
+                isRemote: true,
+                out var persistedTraceContext));
+            var processingActivity = Assert.Single(
+                traceActivities,
+                value => value.OperationName == "pxa.job.process");
+            var documentActivity = Assert.Single(
+                traceActivities,
+                value => value.OperationName == "pxa.document.operation");
+            Assert.Equal(persistedTraceContext.TraceId, processingActivity.TraceId);
+            Assert.Equal(processingActivity.TraceId, documentActivity.TraceId);
+            Assert.Equal(processingActivity.SpanId, documentActivity.ParentSpanId);
+            Assert.Contains(
+                traceActivities,
+                value =>
+                    value.Source.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) &&
+                    value.TraceId == documentActivity.TraceId &&
+                    value.ParentSpanId == documentActivity.SpanId);
+            Assert.DoesNotContain(
+                documentActivity.Tags,
+                tag => PxaTelemetrySanitizingProcessor.IsForbiddenAttribute(tag.Key));
 
             context.ChangeTracker.Clear();
             var completed = await context.BackgroundJobs.SingleAsync(value => value.Id == jobId);
             Assert.Equal(PxaBackgroundJobStatus.Completed, completed.Status);
+            Assert.Equal(traceParent, completed.TraceParent);
+            Assert.Equal("pxa=integration-test", completed.TraceState);
             Assert.NotNull(completed.ResultObjectId);
             var result = await storedObjects.OpenAsync(
                 completed.ResultObjectId.Value,
@@ -117,6 +236,12 @@ public sealed class PxaJobProcessorTests
             Assert.Equal(PxaBackgroundJobStatus.Expired, expired.Status);
             Assert.Null(expired.ResultObjectId);
             Assert.Equal(PxaStoredObjectStatus.Deleted, deletedResult.Status);
+            Assert.Contains(
+                queueMeasurements,
+                value => value.Name == "pxa.storage.operations");
+            Assert.Contains(
+                queueMeasurements,
+                value => value.Name == "pxa.storage.bytes" && value.Value > 0);
         }
         finally
         {
@@ -124,6 +249,19 @@ public sealed class PxaJobProcessorTests
                 Directory.Delete(root, recursive: true);
         }
     }
+
+    private sealed record Measurement(
+        string Name,
+        double Value,
+        KeyValuePair<string, object?>[] Tags);
+
+    private sealed record ActivitySnapshot(
+        string Source,
+        string OperationName,
+        ActivityTraceId TraceId,
+        ActivitySpanId SpanId,
+        ActivitySpanId ParentSpanId,
+        KeyValuePair<string, object?>[] Tags);
 
     private sealed class TestWebHostEnvironment : IWebHostEnvironment
     {

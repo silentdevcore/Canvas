@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -8,6 +9,7 @@ using PXA.Application.UseCases;
 using PXA.Core.Contracts;
 using PXA.FileImporter;
 using PXA.WebApi.Services;
+using PXA.WebApi.Observability;
 
 namespace PXA.WebApi.Services.Jobs;
 
@@ -29,6 +31,16 @@ public sealed class PxaJobProcessor(
         if (job is null)
             return false;
 
+        using var activity = PxaTelemetry.StartJobProcessing(
+            job.Type,
+            job.Attempts,
+            job.TraceParent,
+            job.TraceState);
+        using var operationActivity = PxaTelemetry.StartDocumentOperation(
+            ClassifyDocumentOperation(job.Type));
+        var stopwatch = Stopwatch.StartNew();
+        PxaTelemetry.RecordJobQueueDuration(job.Type, DateTimeOffset.UtcNow - job.CreatedAt);
+        var outcome = "completed";
         try
         {
             var execution = job.Type switch
@@ -50,6 +62,7 @@ public sealed class PxaJobProcessor(
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+            PxaTelemetry.CompleteDocumentOperation(operationActivity, "cancelled");
             throw;
         }
         catch (Exception exception)
@@ -61,17 +74,27 @@ public sealed class PxaJobProcessor(
             {
                 job.Status = PxaBackgroundJobStatus.DeadLetter;
                 job.CompletedAt = DateTimeOffset.UtcNow;
+                outcome = "dead_letter";
             }
             else
             {
                 job.Status = PxaBackgroundJobStatus.Pending;
                 job.ScheduledAt = DateTimeOffset.UtcNow.AddSeconds(Math.Min(60, 5 * job.Attempts));
+                outcome = "retry";
             }
-            logger.LogWarning(exception, "PXA background job {JobId} failed on attempt {Attempt}.", job.Id, job.Attempts);
+            activity?.SetStatus(ActivityStatusCode.Error, exception.GetType().Name);
+            logger.LogWarning(
+                PxaLogEvents.JobProcessingFailed,
+                exception,
+                "PXA background job {JobId} failed on attempt {Attempt}.",
+                job.Id,
+                job.Attempts);
         }
 
         job.UpdatedAt = DateTimeOffset.UtcNow;
         await dbContext.SaveChangesAsync(cancellationToken);
+        PxaTelemetry.CompleteDocumentOperation(operationActivity, outcome);
+        PxaTelemetry.RecordJobProcessed(job.Type, outcome, stopwatch.Elapsed);
         return true;
     }
 
@@ -106,10 +129,10 @@ public sealed class PxaJobProcessor(
         return job;
     }
 
-    private Task RecoverExpiredLeasesAsync(CancellationToken cancellationToken)
+    private async Task RecoverExpiredLeasesAsync(CancellationToken cancellationToken)
     {
         var now = DateTimeOffset.UtcNow;
-        return dbContext.BackgroundJobs
+        var recovered = await dbContext.BackgroundJobs
             .Where(value =>
                 value.Status == PxaBackgroundJobStatus.Processing &&
                 value.LeaseExpiresAt < now)
@@ -119,6 +142,7 @@ public sealed class PxaJobProcessor(
                 .SetProperty(value => value.LeaseExpiresAt, (DateTimeOffset?)null)
                 .SetProperty(value => value.ScheduledAt, now)
                 .SetProperty(value => value.UpdatedAt, now), cancellationToken);
+        PxaTelemetry.RecordJobLeaseRecoveries(recovered);
     }
 
     private async Task<JobExecutionResult> RenderTemplateAsync(
@@ -304,6 +328,16 @@ public sealed class PxaJobProcessor(
 
     private static string Truncate(string value, int maximumLength) =>
         value.Length <= maximumLength ? value : value[..maximumLength];
+
+    private static string ClassifyDocumentOperation(string jobType) =>
+        jobType switch
+        {
+            PxaJobQueue.TemplateRenderType => "rendering",
+            PxaJobQueue.DocumentImportType => "import",
+            PxaJobQueue.DocumentExportType => "export",
+            PxaJobQueue.CodeMigrationType => "migration",
+            _ => "other",
+        };
 }
 
 internal sealed record JobExecutionResult(PxaStoredObject Result, string? DiagnosticsJson);

@@ -13,10 +13,14 @@ import {
 import AppHeader from './AppHeader';
 import HubSidebar, { type HubSidebarItem } from './HubSidebar';
 import { useSidebarCollapsed } from '@/hooks/useSidebarCollapsed';
+import FeatureBadge from '@/product/FeatureBadge';
+import { useProductExperience } from '@/product/ProductExperienceProvider';
 
 const PdfLayout: React.FC = () => {
   const { t } = useTranslation('common');
   const [collapsed, toggleCollapsed] = useSidebarCollapsed('pxa-designer:pdf-sidebar-collapsed');
+  const { features } = useProductExperience();
+  const pdfViewerFeature = features.find(feature => feature.id === 'designer.pdf-viewer');
 
   const pdfSidebarItems: HubSidebarItem[] = [
     {
@@ -37,7 +41,13 @@ const PdfLayout: React.FC = () => {
     { path: '/pdf/template', label: t('pdfSidebar.useTemplate'), icon: FiLayoutIcon },
     { path: '/pdf/import', label: t('pdfSidebar.importPdf'), icon: FiUpload },
     { path: '/pdf/convert', label: t('pdfSidebar.convertToPdf'), icon: FiEye },
-    { path: '/pdf/viewer', label: t('pdfSidebar.pdfViewer'), icon: FiFileText },
+    {
+      path: '/pdf/viewer',
+      label: t('pdfSidebar.pdfViewer'),
+      icon: FiFileText,
+      badge: pdfViewerFeature ? <FeatureBadge feature={pdfViewerFeature} /> : undefined,
+      disabled: pdfViewerFeature ? !pdfViewerFeature.enabled : false,
+    },
     { path: '/pdf/migrations', label: t('pdfSidebar.migrations'), icon: FiGitMerge },
   ];
 

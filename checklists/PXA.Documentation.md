@@ -57,6 +57,9 @@
 - [x] Bestehende Checklists als Historie verlinken, nicht als Source of Truth verwenden.
 - [x] PXA.Demo-Beispiele als Demo-Examples-Bereich verlinken.
 - [x] Documentation-Strategie fuer Docs-Einbindung, Suche und Versionierung festlegen.
+- [x] Public Designer Release Notes aus dem gemeinsamen kuratierten Release-Manifest anzeigen.
+- [x] Release-Kanaele Stable, Beta und Alpha filtern und Feature-Reifegrade erklaeren.
+- [x] Designer Toasts, Notification Center und "What's New" als Anwenderworkflow dokumentieren.
 
 ## MVP
 - [x] Produktorientiertes TOC erstellen.

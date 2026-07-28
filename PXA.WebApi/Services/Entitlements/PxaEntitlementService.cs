@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Observability;
 
 namespace PXA.WebApi.Services.Entitlements;
 
@@ -27,6 +29,44 @@ public sealed class PxaEntitlementService : IPxaEntitlementService
         string capability,
         long quantity = 0,
         CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            var decision = await EvaluateCoreAsync(
+                organizationId,
+                capability,
+                quantity,
+                cancellationToken);
+            PxaTelemetry.RecordLicensingOperation(
+                "entitlement",
+                decision.Allowed ? "allowed" : "denied",
+                stopwatch.Elapsed);
+            return decision;
+        }
+        catch (OperationCanceledException)
+        {
+            PxaTelemetry.RecordLicensingOperation(
+                "entitlement",
+                "cancelled",
+                stopwatch.Elapsed);
+            throw;
+        }
+        catch
+        {
+            PxaTelemetry.RecordLicensingOperation(
+                "entitlement",
+                "failed",
+                stopwatch.Elapsed);
+            throw;
+        }
+    }
+
+    private async Task<PxaEntitlementDecision> EvaluateCoreAsync(
+        Guid organizationId,
+        string capability,
+        long quantity,
+        CancellationToken cancellationToken)
     {
         var now = DateTimeOffset.UtcNow;
         var organizationIsActive = await dbContext.Organizations.AsNoTracking()

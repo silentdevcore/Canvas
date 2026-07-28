@@ -1,0 +1,68 @@
+# Copy this file to deployment-owned configuration and replace the example
+# addresses, host, and username. Never place the SMTP password in this file.
+global:
+  resolve_timeout: 5m
+  smtp_from: alerts@example.invalid
+  smtp_smarthost: smtp.example.invalid:587
+  smtp_auth_username: replace-me
+  smtp_auth_password_file: /run/secrets/pxa_alertmanager_smtp_password
+  smtp_require_tls: true
+
+templates:
+  - /etc/alertmanager/templates/*.tmpl
+
+route:
+  receiver: operator-email
+  group_by: [alertname, service, environment]
+  group_wait: 30s
+  group_interval: 1m
+  repeat_interval: 4h
+  routes:
+    - receiver: operator-email
+      matchers:
+        - severity="critical"
+      mute_time_intervals: [pxa-maintenance-window]
+      repeat_interval: 30m
+    - receiver: operator-email
+      matchers:
+        - severity="warning"
+      mute_time_intervals: [pxa-maintenance-window]
+      repeat_interval: 2h
+    - receiver: operator-email
+      matchers:
+        - severity="info"
+      mute_time_intervals: [pxa-maintenance-window]
+      repeat_interval: 12h
+
+inhibit_rules:
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity=~"warning|info"
+    equal: [service, environment]
+
+time_intervals:
+  - name: pxa-maintenance-window
+    time_intervals:
+      - weekdays: [saturday, sunday]
+        times:
+          - start_time: "01:00"
+            end_time: "03:00"
+        location: Europe/Berlin
+
+receivers:
+  - name: operator-email
+    email_configs:
+      - to: operators@example.invalid
+        send_resolved: true
+        headers:
+          Subject: '{{ template "pxa.email.subject" . }}'
+        html: '{{ template "pxa.email.html" . }}'
+        text: '{{ template "pxa.email.text" . }}'
+        threading:
+          enabled: true
+          thread_by_date: none
+    webhook_configs:
+      - url: http://pxa-webhook-relay:8080/alerts
+        send_resolved: true
+        max_alerts: 100

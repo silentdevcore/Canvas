@@ -1,4 +1,5 @@
 import './site.css';
+import { initializeBrowserTelemetry } from '../../shared/browserTelemetry.js';
 import { extractCampaignContext } from '../../shared/campaignAttribution.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import { sanitizeReturnUrl } from '../../shared/returnUrl.js';
@@ -33,6 +34,8 @@ import { bindSecurityEvents, securityPage } from './pages/security';
 import { subscriptionPage } from './pages/subscription';
 import { supportPage } from './pages/support';
 import { usagePage } from './pages/usage';
+
+initializeBrowserTelemetry({ application: 'account' });
 
 // Stable Problem Details codes from PXA.WebApi.Infrastructure.PxaApiProblems.
 const PROBLEM_CODE_VERIFICATION_REQUIRED = 'PXAAPI010';

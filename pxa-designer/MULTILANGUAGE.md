@@ -58,8 +58,7 @@ To render non-Latin scripts correctly in the browser preview, select a Noto font
 |---|---|
 | Noto Sans | Latin, Greek, Cyrillic |
 | Noto Serif | Latin, Greek, Cyrillic (serif) |
-| Noto Sans Arabic | Arabic, Persian, Urdu |
-| Noto Sans Hebrew | Hebrew, Yiddish |
+| Noto Sans Arabic | Arabic |
 | Noto Sans SC | Chinese Simplified |
 | Noto Sans TC | Chinese Traditional |
 | Noto Sans JP | Japanese |

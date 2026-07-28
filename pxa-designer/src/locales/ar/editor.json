@@ -519,7 +519,11 @@
     "extractPageToJson": "استخراج الصفحة إلى JSON",
     "deletePage": "حذف الصفحة",
     "deletePageConfirm": "حذف الصفحة {{number}}؟",
-    "addPage": "إضافة صفحة"
+    "addPage": "إضافة صفحة",
+    "workspaceHorizontalScroll": "التمرير الأفقي لمساحة الصفحة",
+    "navigationHorizontalScroll": "التمرير الأفقي للتنقل بين الصفحات",
+    "scrollLeft": "التمرير إلى اليسار",
+    "scrollRight": "التمرير إلى اليمين"
   },
   "inspector": {
     "ariaLabel": "خصائص العنصر",
@@ -866,7 +870,13 @@
     "languages": {
       "heading": "اللغات",
       "systemLanguage": "لغة النظام:",
-      "systemLanguageNote": "(يتم اكتشافها تلقائيًا وتُستخدم كبديل)"
+      "systemLanguageNote": "(يتم اكتشافها تلقائيًا وتُستخدم كبديل)",
+      "chooseLanguages": "اختيار اللغات",
+      "selectedCount": "تم اختيار {{count}} لغة",
+      "selectedCount_plural": "تم اختيار {{count}} لغات",
+      "selectedLanguages": "اللغات المختارة",
+      "noneSelected": "لم يتم اختيار أي لغة",
+      "removeLanguage": "إزالة {{language}}"
     },
     "namedStyles": {
       "heading": "الأنماط المسمّاة",
@@ -1097,8 +1107,6 @@
         "ru": "الروسية",
         "el": "اليونانية",
         "ar": "العربية (RTL)",
-        "he": "العبرية (RTL)",
-        "fa": "الفارسية (RTL)",
         "zh-CN": "الصينية (المبسطة)",
         "zh-TW": "الصينية (التقليدية)",
         "ja": "اليابانية",

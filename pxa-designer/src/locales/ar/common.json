@@ -33,5 +33,21 @@
     "importSpreadsheet": "استيراد جدول بيانات",
     "convertToSpreadsheet": "التحويل إلى جدول بيانات",
     "migrations": "عمليات الترحيل"
+  },
+  "productExperience": {
+    "whatsNew": "ما الجديد",
+    "notifications": "الإشعارات",
+    "experimentalFeatures": "الميزات التجريبية",
+    "openNotifications": "فتح الإشعارات ({{count}} غير مقروءة)",
+    "close": "إغلاق اللوحة",
+    "openDocumentation": "فتح الوثائق",
+    "markAllRead": "تعليم الكل كمقروء",
+    "markRead": "تعليم كمقروء",
+    "dismiss": "تجاهل",
+    "allCaughtUp": "اطلعت على كل جديد",
+    "featuresIntro": "تتطلب ميزات Alpha موافقة المؤسسة وتفعيلك الصريح. ميزات Beta متاحة ولكنها قد تتغير.",
+    "featureEnabled": "تم تفعيل الميزة التجريبية.",
+    "featureDisabled": "تم تعطيل الميزة التجريبية.",
+    "refreshFailed": "تعذر تحميل بعض تحديثات المنتج. تظل مهام Designer الحالية متاحة."
   }
 }

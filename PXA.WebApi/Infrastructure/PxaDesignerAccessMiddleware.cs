@@ -117,7 +117,8 @@ public sealed class PxaDesignerAccessMiddleware(RequestDelegate next)
     private static bool IsPublicDesignerRequest(PathString path) =>
         path.Equals("/api/pxa/v1/auth/csrf") ||
         path.Equals("/api/pxa/v1/auth/designer-handoff/exchange") ||
-        path.Equals("/api/pxa/v1/auth/logout");
+        path.Equals("/api/pxa/v1/auth/logout") ||
+        path.Equals("/api/pxa/v1/telemetry/browser");
 
     private static bool IsDesignerOrganizationSwitch(PathString path) =>
         path.Equals("/api/pxa/v1/auth/switch-organization");

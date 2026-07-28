@@ -1,6 +1,9 @@
 import './site.css';
+import { initializeBrowserTelemetry } from '../../shared/browserTelemetry.js';
 import { bindDemoInteractions } from './interactions.js';
 import { renderApp } from './renderers.js';
+
+initializeBrowserTelemetry({ application: 'demo' });
 
 function mount() {
   renderApp(document.querySelector('#app'));

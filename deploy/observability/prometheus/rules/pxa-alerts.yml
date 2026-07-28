@@ -1,0 +1,516 @@
+groups:
+  - name: pxa-platform
+    rules:
+      - alert: PxaTelemetryPipelineUnavailable
+        expr: up{job="pxa-otel-collector"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: pxa-observability
+          environment: local-evaluation
+        annotations:
+          summary: PXA telemetry pipeline is unavailable
+          description: Prometheus cannot scrape the PXA OpenTelemetry Collector for two minutes.
+          dashboard_path: /d/pxa-platform-overview/pxa-platform-overview
+          runbook_id: PXA-OBS-001
+
+      - alert: PxaDependencyReadinessUnavailable
+        expr: min by (service_name, deployment_environment_name) (pxa_dependencies_health) == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: pxa-webapi
+          environment: local-evaluation
+        annotations:
+          summary: A required PXA dependency is unavailable
+          description: A dependency reported an unhealthy readiness state for two minutes.
+          dashboard_path: /d/pxa-platform-overview/pxa-platform-overview
+          runbook_id: PXA-OBS-002
+
+      - alert: PxaServiceTelemetryMissing
+        expr: absent_over_time(pxa_dependencies_health[5m]) == 1
+        labels:
+          severity: warning
+          service: pxa-webapi
+          environment: local-evaluation
+        annotations:
+          summary: PXA WebApi telemetry is missing
+          description: No WebApi dependency-health metric has arrived for five minutes.
+          dashboard_path: /d/pxa-platform-overview/pxa-platform-overview
+          runbook_id: PXA-OBS-003
+
+      - alert: PxaWebApiHighErrorRate
+        expr: |
+          (
+            sum(rate(http_server_request_duration_seconds_count{
+              http_response_status_code=~"5.."
+            }[5m]))
+            /
+            clamp_min(sum(rate(http_server_request_duration_seconds_count[5m])), 1)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: pxa-webapi
+          environment: local-evaluation
+        annotations:
+          summary: PXA WebApi HTTP 5xx rate is above five percent
+          description: More than five percent of WebApi requests failed during the last five minutes.
+          dashboard_path: /d/pxa-platform-overview/pxa-platform-overview
+          runbook_id: PXA-OBS-004
+
+      - alert: PxaWebApiHighLatency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(http_server_request_duration_seconds_bucket[5m]))
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+          service: pxa-webapi
+          environment: local-evaluation
+        annotations:
+          summary: PXA WebApi p95 latency is above two seconds
+          description: The WebApi p95 request duration exceeded two seconds for ten minutes.
+          dashboard_path: /d/pxa-platform-overview/pxa-platform-overview
+          runbook_id: PXA-OBS-005
+
+      - alert: PxaJobRetryObserved
+        expr: increase(pxa_jobs_failures_total{job_outcome="retry"}[10m]) > 0
+        labels:
+          severity: info
+          service: pxa-webapi
+          environment: local-evaluation
+        annotations:
+          summary: A PXA background job was retried
+          description: At least one background job entered retry handling during the last ten minutes.
+          dashboard_path: /d/pxa-platform-overview/pxa-platform-overview
+          runbook_id: PXA-OBS-006
+
+      - alert: PxaDeadLetterJob
+        expr: increase(pxa_jobs_failures_total{job_outcome="dead_letter"}[5m]) > 0
+        labels:
+          severity: critical
+          service: pxa-webapi
+          environment: local-evaluation
+        annotations:
+          summary: A PXA background job entered the dead-letter state
+          description: At least one background job exhausted its retry policy during the last five minutes.
+          dashboard_path: /d/pxa-platform-overview/pxa-platform-overview
+          runbook_id: PXA-OBS-007
+
+      - alert: PxaPostgreSqlExporterUnavailable
+        expr: up{job="pxa-postgresql"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: pxa-postgresql
+          environment: local-evaluation
+        annotations:
+          summary: PXA PostgreSQL monitoring is unavailable
+          description: Prometheus cannot scrape the PostgreSQL exporter for two minutes.
+          dashboard_path: /d/pxa-infrastructure/pxa-infrastructure
+          runbook_id: PXA-OBS-008
+
+      - alert: PxaPostgreSqlUnavailable
+        expr: pg_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: pxa-postgresql
+          environment: local-evaluation
+        annotations:
+          summary: PXA PostgreSQL is unavailable
+          description: The PostgreSQL exporter cannot connect to the PXA database for two minutes.
+          dashboard_path: /d/pxa-infrastructure/pxa-infrastructure
+          runbook_id: PXA-OBS-009
+
+      - alert: PxaPostgreSqlConnectionsHigh
+        expr: sum(pg_stat_activity_count) / max(pg_settings_max_connections) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: pxa-postgresql
+          environment: local-evaluation
+        annotations:
+          summary: PXA PostgreSQL connection usage is above 80 percent
+          description: PostgreSQL connection usage exceeded 80 percent for ten minutes.
+          dashboard_path: /d/pxa-infrastructure/pxa-infrastructure
+          runbook_id: PXA-OBS-010
+
+      - alert: PxaContainerMetricsUnavailable
+        expr: up{job="pxa-containers"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          service: pxa-infrastructure
+          environment: local-evaluation
+        annotations:
+          summary: PXA container metrics are unavailable
+          description: Prometheus cannot scrape cAdvisor for two minutes.
+          dashboard_path: /d/pxa-infrastructure/pxa-infrastructure
+          runbook_id: PXA-OBS-011
+
+      - alert: PxaContainerCpuHigh
+        expr: |
+          (
+            sum by (container_label_com_docker_compose_service) (
+              rate(container_cpu_usage_seconds_total{
+                container_label_com_docker_compose_service=~"pxa-.+",
+                cpu="total"
+              }[5m])
+            )
+            /
+            max by (container_label_com_docker_compose_service) (
+              container_spec_cpu_quota{
+                container_label_com_docker_compose_service=~"pxa-.+"
+              }
+              /
+              container_spec_cpu_period{
+                container_label_com_docker_compose_service=~"pxa-.+"
+              }
+            )
+          ) > 0.85
+        for: 15m
+        labels:
+          severity: warning
+          service: pxa-infrastructure
+          environment: local-evaluation
+        annotations:
+          summary: A PXA container is above 85 percent CPU
+          description: A resource-limited PXA container exceeded 85 percent of its CPU quota for 15 minutes.
+          dashboard_path: /d/pxa-infrastructure/pxa-infrastructure
+          runbook_id: PXA-OBS-012
+
+      - alert: PxaContainerMemoryHigh
+        expr: |
+          (
+            container_memory_working_set_bytes{
+              container_label_com_docker_compose_service=~"pxa-.+"
+            }
+            /
+            container_spec_memory_limit_bytes{
+              container_label_com_docker_compose_service=~"pxa-.+"
+            }
+          ) > 0.85
+        for: 15m
+        labels:
+          severity: warning
+          service: pxa-infrastructure
+          environment: local-evaluation
+        annotations:
+          summary: A PXA container is above 85 percent memory
+          description: A resource-limited PXA container exceeded 85 percent of its memory limit for 15 minutes.
+          dashboard_path: /d/pxa-infrastructure/pxa-infrastructure
+          runbook_id: PXA-OBS-013
+
+      - alert: PxaContainerDiskLow
+        expr: |
+          container_fs_usage_bytes{id="/",device="/dev/vda1"}
+          /
+          container_fs_limit_bytes{id="/",device="/dev/vda1"} > 0.85
+        for: 15m
+        labels:
+          severity: warning
+          service: pxa-infrastructure
+          environment: local-evaluation
+        annotations:
+          summary: PXA container host disk has less than 15 percent free
+          description: The container runtime data disk remained above 85 percent usage for 15 minutes.
+          dashboard_path: /d/pxa-infrastructure/pxa-infrastructure
+          runbook_id: PXA-OBS-014
+
+      - alert: PxaMailDeadLetter
+        expr: increase(pxa_mail_deliveries_total{mail_outcome="dead_letter"}[5m]) > 0
+        labels:
+          severity: critical
+          service: pxa-mail
+          environment: local-evaluation
+        annotations:
+          summary: A PXA mail delivery entered the dead-letter state
+          description: At least one mail message exhausted its retry policy during the last five minutes.
+          dashboard_path: /d/pxa-operations/pxa-operations
+          runbook_id: PXA-OBS-015
+
+      - alert: PxaMailQueueOld
+        expr: pxa_mail_queue_oldest_age_seconds > 600
+        for: 5m
+        labels:
+          severity: warning
+          service: pxa-mail
+          environment: local-evaluation
+        annotations:
+          summary: The oldest PXA mail message is over ten minutes old
+          description: A pending or failed mail message remained queued for more than ten minutes.
+          dashboard_path: /d/pxa-operations/pxa-operations
+          runbook_id: PXA-OBS-016
+
+      - alert: PxaOcrRepeatedFailures
+        expr: |
+          sum(increase(pxa_ocr_operations_total{
+            ocr_outcome=~"timeout|failed|dependency_unavailable"
+          }[10m])) >= 3
+        labels:
+          severity: warning
+          service: pxa-ocr
+          environment: local-evaluation
+        annotations:
+          summary: PXA OCR has repeated failures
+          description: At least three OCR operations failed, timed out, or lost their dependency in ten minutes.
+          dashboard_path: /d/pxa-operations/pxa-operations
+          runbook_id: PXA-OBS-017
+
+      - alert: PxaDocumentOperationFailureRateHigh
+        expr: |
+          (
+            sum(rate(pxa_document_operations_total{operation_outcome="failed"}[10m]))
+            /
+            clamp_min(sum(rate(pxa_document_operations_total[10m])), 0.001)
+          ) > 0.1
+          and
+          sum(increase(pxa_document_operations_total[10m])) >= 10
+        for: 10m
+        labels:
+          severity: warning
+          service: pxa-document-operations
+          environment: local-evaluation
+        annotations:
+          summary: PXA document operation failure rate is above ten percent
+          description: At least ten operations ran and more than ten percent failed during the last ten minutes.
+          dashboard_path: /d/pxa-document-operations/pxa-document-operations
+          runbook_id: PXA-OBS-018
+
+      - alert: PxaDocumentOperationLatencyHigh
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le, operation_type) (
+              rate(pxa_document_operation_duration_seconds_bucket[10m])
+            )
+          ) > 30
+        for: 10m
+        labels:
+          severity: warning
+          service: pxa-document-operations
+          environment: local-evaluation
+        annotations:
+          summary: A PXA document operation p95 latency is above 30 seconds
+          description: Import, export, migration, or rendering p95 latency exceeded 30 seconds for ten minutes.
+          dashboard_path: /d/pxa-document-operations/pxa-document-operations
+          runbook_id: PXA-OBS-019
+
+      - alert: PxaJobQueueOld
+        expr: pxa_jobs_queue_oldest_age_seconds > 600
+        for: 5m
+        labels:
+          severity: warning
+          service: pxa-jobs
+          environment: local-evaluation
+        annotations:
+          summary: The oldest PXA background job is over ten minutes old
+          description: A pending document job remained queued for more than ten minutes.
+          dashboard_path: /d/pxa-document-operations/pxa-document-operations
+          runbook_id: PXA-OBS-020
+
+      - alert: PxaJobQueueDepthHigh
+        expr: pxa_jobs_queue_depth > 50
+        for: 10m
+        labels:
+          severity: warning
+          service: pxa-jobs
+          environment: local-evaluation
+        annotations:
+          summary: A PXA background-job queue contains more than 50 jobs
+          description: A document job type remained above 50 pending jobs for ten minutes.
+          dashboard_path: /d/pxa-document-operations/pxa-document-operations
+          runbook_id: PXA-OBS-021
+
+      - alert: PxaJobLeaseRecoveryObserved
+        expr: increase(pxa_jobs_lease_recoveries_total[10m]) > 0
+        labels:
+          severity: info
+          service: pxa-jobs
+          environment: local-evaluation
+        annotations:
+          summary: A PXA background-job lease was recovered
+          description: At least one abandoned processing lease was returned to the pending queue.
+          dashboard_path: /d/pxa-document-operations/pxa-document-operations
+          runbook_id: PXA-OBS-022
+
+      - alert: PxaAuthorizationDenialSpike
+        expr: sum(increase(pxa_api_failures_total{failure_type="authorization"}[5m])) > 20
+        labels:
+          severity: warning
+          service: pxa-security
+          environment: local-evaluation
+        annotations:
+          summary: PXA authorization denials increased sharply
+          description: More than 20 authorization denials occurred during the last five minutes.
+          dashboard_path: /d/pxa-document-operations/pxa-document-operations
+          runbook_id: PXA-OBS-023
+
+      - alert: PxaRateLimitSpike
+        expr: sum(increase(pxa_api_failures_total{failure_type="rate_limit"}[5m])) > 20
+        labels:
+          severity: info
+          service: pxa-security
+          environment: local-evaluation
+        annotations:
+          summary: PXA rate-limit rejections increased sharply
+          description: More than 20 API requests were rate-limited during the last five minutes.
+          dashboard_path: /d/pxa-document-operations/pxa-document-operations
+          runbook_id: PXA-OBS-024
+
+      - alert: PxaStorageFailureRateHigh
+        expr: |
+          (
+            sum(increase(pxa_storage_operations_total{storage_outcome="failed"}[10m]))
+            /
+            clamp_min(sum(increase(pxa_storage_operations_total[10m])), 1)
+          ) > 0.1
+          and
+          sum(increase(pxa_storage_operations_total[10m])) >= 10
+        for: 5m
+        labels:
+          severity: critical
+          service: pxa-storage
+          environment: local-evaluation
+        annotations:
+          summary: PXA object-storage failure rate is above ten percent
+          description: At least ten storage operations ran and more than ten percent failed during the last ten minutes.
+          dashboard_path: /d/pxa-document-operations/pxa-document-operations
+          runbook_id: PXA-OBS-025
+
+      - alert: PxaLicenseValidationFailure
+        expr: |
+          sum(increase(pxa_licensing_operations_total{
+            licensing_operation="offline_validation",
+            licensing_outcome=~"failed|signature_invalid|malformed"
+          }[5m])) > 0
+        labels:
+          severity: critical
+          service: pxa-licensing
+          environment: local-evaluation
+        annotations:
+          summary: PXA detected a critical offline-license validation failure
+          description: An offline license failed cryptographic or structural validation during the last five minutes.
+          dashboard_path: /d/pxa-document-operations/pxa-document-operations
+          runbook_id: PXA-OBS-026
+
+      - alert: PxaOfflineLicenseExpiringSoon
+        expr: pxa_licensing_licenses{license_state="expiring_14d"} > 0
+        labels:
+          severity: warning
+          service: pxa-licensing
+          environment: local-evaluation
+        annotations:
+          summary: A PXA offline license expires within 14 days
+          description: At least one active offline license reaches its validity date within the next 14 days.
+          dashboard_path: /d/pxa-document-operations/pxa-document-operations
+          runbook_id: PXA-OBS-027
+
+      - alert: PxaOfflineLicenseExpiredActive
+        expr: pxa_licensing_licenses{license_state="expired_active"} > 0
+        labels:
+          severity: critical
+          service: pxa-licensing
+          environment: local-evaluation
+        annotations:
+          summary: An expired PXA offline license is still marked active
+          description: At least one active license record is already beyond its validity date.
+          dashboard_path: /d/pxa-document-operations/pxa-document-operations
+          runbook_id: PXA-OBS-028
+
+      - alert: PxaBrowserErrorSpike
+        expr: |
+          sum by (browser_application) (
+            increase(pxa_browser_events_total{
+              browser_event=~"error|unhandled_rejection"
+            }[5m])
+          ) >= 5
+        labels:
+          severity: warning
+          service: pxa-browser
+          environment: local-evaluation
+        annotations:
+          summary: A PXA browser application has repeated JavaScript failures
+          description: At least five privacy-safe browser error events occurred in one application during five minutes.
+          dashboard_path: /d/pxa-browser-health/pxa-browser-health
+          runbook_id: PXA-OBS-029
+
+      - alert: PxaBrowserApiFailureSpike
+        expr: |
+          sum by (browser_application) (
+            increase(pxa_browser_events_total{browser_event="api_failure"}[5m])
+          ) >= 10
+        labels:
+          severity: warning
+          service: pxa-browser
+          environment: local-evaluation
+        annotations:
+          summary: A PXA browser application has repeated API failures
+          description: At least ten browser API failures occurred in one application during five minutes.
+          dashboard_path: /d/pxa-browser-health/pxa-browser-health
+          runbook_id: PXA-OBS-030
+
+      - alert: PxaBrowserWebVitalsPoor
+        expr: |
+          (
+            sum by (browser_application) (
+              increase(pxa_browser_events_total{
+                browser_event="web_vital",
+                browser_outcome="poor"
+              }[15m])
+            )
+            /
+            clamp_min(
+              sum by (browser_application) (
+                increase(pxa_browser_events_total{browser_event="web_vital"}[15m])
+              ),
+              1
+            )
+          ) > 0.2
+          and
+          sum by (browser_application) (
+            increase(pxa_browser_events_total{browser_event="web_vital"}[15m])
+          ) >= 10
+        for: 10m
+        labels:
+          severity: warning
+          service: pxa-browser
+          environment: local-evaluation
+        annotations:
+          summary: A PXA browser application has poor Web Vitals
+          description: More than twenty percent of at least ten Web Vital measurements were poor for ten minutes.
+          dashboard_path: /d/pxa-browser-health/pxa-browser-health
+          runbook_id: PXA-OBS-031
+
+      - alert: PxaTlsCertificateExpiringSoon
+        expr: |
+          probe_success{job="pxa-tls"} == 1
+          and
+          probe_ssl_earliest_cert_expiry{job="pxa-tls"} - time() < 14 * 24 * 60 * 60
+        for: 15m
+        labels:
+          severity: warning
+          service: pxa-edge
+          environment: local-evaluation
+        annotations:
+          summary: A monitored PXA TLS certificate expires within 14 days
+          description: A deployment-configured HTTPS endpoint has less than 14 days of certificate validity remaining.
+          dashboard_path: /d/pxa-infrastructure/pxa-infrastructure
+          runbook_id: PXA-OBS-032
+
+      - alert: PxaTlsProbeUnavailable
+        expr: probe_success{job="pxa-tls"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          service: pxa-edge
+          environment: local-evaluation
+        annotations:
+          summary: A monitored PXA HTTPS endpoint is unavailable
+          description: A deployment-configured HTTPS endpoint failed its TLS and HTTP probe for five minutes.
+          dashboard_path: /d/pxa-infrastructure/pxa-infrastructure
+          runbook_id: PXA-OBS-033

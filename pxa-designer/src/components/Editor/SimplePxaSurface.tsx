@@ -5,6 +5,9 @@ import { useEditorStore, DEFAULT_PAGE_SETTINGS } from '@/store';
 import { toDisplay, fromDisplay } from '@/utils/units';
 import { getPageSettingsWarnings } from '@/utils/pageValidation';
 import { installImportedFontFaces } from '@/utils/importedFonts';
+import { applyVerticalWheelToHorizontalScroll } from '@/utils/editorScrolling';
+import { updateLanguageSelection } from '@/utils/languageSelection';
+import { isDocumentRtlLanguage } from '@/utils/documentDirection';
 import { sanitizeRichTextHtml } from '@/utils/sanitizeRichTextHtml';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -44,6 +47,9 @@ import {
   FiTrash2,
   FiType,
   FiChevronDown,
+  FiChevronLeft,
+  FiChevronRight,
+  FiX,
   FiChevronsUp,
   FiChevronsDown,
   FiList,
@@ -91,6 +97,7 @@ import ExportService from '@/services/ExportService';
 import { LanguageTabBar } from './LanguageTabBar';
 import { LocalizedPropertiesPanel } from './LocalizedPropertiesPanel';
 import type { AutosaveState } from '@/hooks/useDesignerTemplateAutosave';
+import { notify } from '@/notifications/toast';
 
 
 interface SimplePxaSurfaceProps {
@@ -172,7 +179,6 @@ type RotateState = {
 
 const createElementId = (type: string) => `${type}-${Date.now()}`;
 const MIN_ELEMENT_SIZE = 16;
-const RTL_LANGS = new Set(['ar', 'he', 'fa', 'ur', 'yi', 'dv']);
 const BORDER_SIDES = ['Top', 'Right', 'Bottom', 'Left'] as const;
 
 const ELEMENT_TYPE_LABELS: Record<string, string> = {
@@ -248,7 +254,7 @@ const FONT_FAMILIES = [
   'Sora', 'Lexend', 'Red Hat Display', 'Red Hat Text',
   'Dancing Script', 'Pacifico', 'Lobster', 'Comfortaa', 'Righteous',
   // Noto — multi-script coverage
-  'Noto Sans Arabic', 'Noto Sans Hebrew', 'Noto Sans SC', 'Noto Sans TC',
+  'Noto Sans Arabic', 'Noto Sans SC', 'Noto Sans TC',
   'Noto Sans JP', 'Noto Sans KR', 'Noto Sans Devanagari', 'Noto Sans Thai',
 ];
 
@@ -293,8 +299,6 @@ const LOCALIZATION_LANGUAGES: { tag: string; label: string; rtl?: boolean }[] = 
   { tag: 'ru', label: '🇷🇺 Русский' },
   { tag: 'el', label: '🇬🇷 Ελληνικά' },
   { tag: 'ar', label: '🇸🇦 العربية', rtl: true },
-  { tag: 'he', label: '🇮🇱 עברית', rtl: true },
-  { tag: 'fa', label: '🇮🇷 فارسی', rtl: true },
   { tag: 'zh', label: '🇨🇳 中文' },
   { tag: 'ja', label: '🇯🇵 日本語' },
   { tag: 'ko', label: '🇰🇷 한국어' },
@@ -439,6 +443,105 @@ const topGlyphWeights = (weights?: Record<string, number>) =>
     .sort((a, b) => b[1] - a[1])
     .slice(0, 2);
 
+interface PersistentHorizontalScrollbarProps {
+  targetRef: React.RefObject<HTMLElement | null>;
+  refreshKey: string;
+  label: string;
+  scrollLeftLabel: string;
+  scrollRightLabel: string;
+}
+
+const PersistentHorizontalScrollbar: React.FC<PersistentHorizontalScrollbarProps> = ({
+  targetRef,
+  refreshKey,
+  label,
+  scrollLeftLabel,
+  scrollRightLabel,
+}) => {
+  const [metrics, setMetrics] = useState({ left: 0, maximum: 0 });
+
+  useEffect(() => {
+    const target = targetRef.current;
+    if (!target) return;
+
+    const sync = () => {
+      setMetrics({
+        left: Math.max(0, target.scrollLeft),
+        maximum: Math.max(0, target.scrollWidth - target.clientWidth),
+      });
+    };
+
+    sync();
+    target.addEventListener('scroll', sync, { passive: true });
+
+    const resizeObserver = typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(sync);
+    resizeObserver?.observe(target);
+    if (target.firstElementChild instanceof HTMLElement) {
+      resizeObserver?.observe(target.firstElementChild);
+    }
+
+    const mutationObserver = typeof MutationObserver === 'undefined'
+      ? null
+      : new MutationObserver(sync);
+    mutationObserver?.observe(target, { childList: true, subtree: true });
+
+    return () => {
+      target.removeEventListener('scroll', sync);
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
+    };
+  }, [targetRef, refreshKey]);
+
+  const scrollByPage = (direction: -1 | 1) => {
+    const target = targetRef.current;
+    if (!target) return;
+    target.scrollBy({
+      left: direction * Math.max(80, target.clientWidth * 0.6),
+      behavior: 'smooth',
+    });
+  };
+
+  const maximum = Math.max(1, metrics.maximum);
+  const disabled = metrics.maximum <= 0;
+
+  return (
+    <div className={`editor-persistent-scrollbar${disabled ? ' is-disabled' : ''}`}>
+      <button
+        type="button"
+        onClick={() => scrollByPage(-1)}
+        disabled={disabled || metrics.left <= 0}
+        aria-label={scrollLeftLabel}
+      >
+        <FiChevronLeft />
+      </button>
+      <input
+        type="range"
+        min={0}
+        max={maximum}
+        step={1}
+        value={Math.min(metrics.left, maximum)}
+        disabled={disabled}
+        onChange={(event) => {
+          if (targetRef.current) {
+            targetRef.current.scrollLeft = Number(event.currentTarget.value);
+          }
+        }}
+        aria-label={label}
+      />
+      <button
+        type="button"
+        onClick={() => scrollByPage(1)}
+        disabled={disabled || metrics.left >= metrics.maximum}
+        aria-label={scrollRightLabel}
+      >
+        <FiChevronRight />
+      </button>
+    </div>
+  );
+};
+
 const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   template,
   elements,
@@ -488,26 +591,25 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
   const [formBlockModalOpen, setFormBlockModalOpen] = useState(false);
   const [topbarMenuOpen, setTopbarMenuOpen] = useState(false);
-  const [topbarToast, setTopbarToast] = useState('');
   const [templateActionPending, setTemplateActionPending] = useState(false);
   const [extractingPage, setExtractingPage] = useState<number | null>(null);
   // Language Scope UI selection: 'lang' = current tab selected, 'all' = All selected
   const [scopeShowAll, setScopeShowAll] = useState(false);
+  const workspaceRef = useRef<HTMLElement | null>(null);
+  const stageRef = useRef<HTMLElement | null>(null);
+  const pageViewportRef = useRef<HTMLDivElement | null>(null);
   const pageContentRef = useRef<HTMLDivElement | null>(null);
+  const pageStripRef = useRef<HTMLDivElement | null>(null);
+  const activePageThumbRef = useRef<HTMLDivElement | null>(null);
   const contentInputRef = useRef<HTMLInputElement>(null);
-
-  const showTopbarToast = (msg: string) => {
-    setTopbarToast(msg);
-    setTimeout(() => setTopbarToast(''), 3000);
-  };
 
   const runTemplateAction = async (action: () => Promise<string>) => {
     setTemplateActionPending(true);
     setTopbarMenuOpen(false);
     try {
-      showTopbarToast(await action());
+      notify.success(await action());
     } catch (error) {
-      showTopbarToast(error instanceof Error ? error.message : 'The template action failed.');
+      notify.error(error instanceof Error ? error.message : 'The template action failed.');
     } finally {
       setTemplateActionPending(false);
     }
@@ -519,6 +621,44 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
       [...pages.flatMap(page => page.elements), ...sharedElements]
     );
   }, [pages, sharedElements]);
+
+  useEffect(() => {
+    activePageThumbRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    });
+  }, [currentPageIndex, pages.length]);
+
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    const stage = stageRef.current;
+    if (!workspace || !stage) return;
+
+    const syncPanelHeight = () => {
+      workspace.style.setProperty('--editor-stage-height', `${stage.offsetHeight}px`);
+    };
+
+    syncPanelHeight();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', syncPanelHeight);
+      return () => window.removeEventListener('resize', syncPanelHeight);
+    }
+
+    const observer = new ResizeObserver(syncPanelHeight);
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, []);
+
+  const handlePageStripWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (applyVerticalWheelToHorizontalScroll(
+      event.currentTarget,
+      event.deltaX,
+      event.deltaY,
+    )) {
+      event.preventDefault();
+    }
+  };
 
 
   const buildDesign = () => ({
@@ -536,9 +676,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
       const newPages: Page[] = cloned.pages ?? pages;
       const newShared: SimpleElement[] = cloned.sharedElements ?? sharedElements;
       bulkReplaceContent(newPages, newShared);
-      showTopbarToast(t('toasts.designCloned'));
+      notify.success(t('toasts.designCloned'));
     } catch (err) {
-      showTopbarToast(err instanceof Error ? err.message : t('toasts.cloneFailed'));
+      notify.error(err instanceof Error ? err.message : t('toasts.cloneFailed'));
     }
   };
 
@@ -556,9 +696,9 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showTopbarToast(t('toasts.pageExtracted', { number: pageIndex + 1 }));
+      notify.success(t('toasts.pageExtracted', { number: pageIndex + 1 }));
     } catch (err) {
-      showTopbarToast(err instanceof Error ? err.message : t('toasts.extractFailed'));
+      notify.error(err instanceof Error ? err.message : t('toasts.extractFailed'));
     } finally {
       setExtractingPage(null);
     }
@@ -567,7 +707,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   const { pageSettings, updatePageSettings, settingsModifiedSinceExport, snapshotHistory, undo, redo, bulkReplaceContent, currentPreviewLanguage, setCurrentPreviewLanguage, helpModalOpen, setHelpModalOpen, documentMode, setDocumentMode } = useEditorStore();
   const pageWidth = pageSettings.width;
   const pageHeight = pageSettings.height;
-  const isCurrentRtl = RTL_LANGS.has((currentPreviewLanguage || '').split('-')[0]);
+  const isCurrentRtl = isDocumentRtlLanguage(currentPreviewLanguage);
   // Only route position writes to langOverrides when the document has 2+ active languages.
   const isMultilingual = (pageSettings.activeLanguages?.length ?? 0) > 1;
 
@@ -585,6 +725,20 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
   const getEffectiveRotation = (el: SimpleElement): number => {
     const ov = isMultilingual && currentPreviewLanguage ? el.langOverrides?.[currentPreviewLanguage] : undefined;
     return ov?.rotation ?? el.style?.rotation ?? 0;
+  };
+
+  const setLanguageSelected = (tag: string, selected: boolean) => {
+    const current = pageSettings.activeLanguages ?? [];
+    const next = updateLanguageSelection(current, tag, selected);
+    updatePageSettings({ activeLanguages: next });
+
+    if (selected) {
+      if (!currentPreviewLanguage || currentPreviewLanguage === navigator.language.split('-')[0]) {
+        setCurrentPreviewLanguage(tag);
+      }
+    } else if (currentPreviewLanguage === tag) {
+      setCurrentPreviewLanguage(next[0] ?? navigator.language.split('-')[0]);
+    }
   };
 
   // When not in "All" mode, writes go to langOverrides[currentPreviewLanguage].
@@ -3355,10 +3509,6 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
         </div>
       </div>
 
-      {topbarToast && (
-        <div className="editor-toast" role="status" aria-live="polite">{topbarToast}</div>
-      )}
-
       <header className="editor-topbar">
         <div className="editor-brand">
           <button className="editor-icon-button" onClick={onBack} aria-label={t('topbar.backToGallery')} title={t('topbar.backToGallery')}>
@@ -3509,7 +3659,10 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
         </div>
       </header>
 
-      <main className="editor-workspace">
+      <main
+        ref={workspaceRef}
+        className="editor-workspace"
+      >
         <aside className="editor-panel editor-tool-panel" aria-label="Element tools">
           <div className="editor-panel-heading">
             <FiPlus />
@@ -3600,7 +3753,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
           </div>
         </aside>
 
-        <section className="editor-stage" aria-label={t('canvasStage.ariaLabel')}>
+        <section ref={stageRef} className="editor-stage" aria-label={t('canvasStage.ariaLabel')}>
           <LanguageTabBar />
           <div className="editor-stage-header">
             <div>
@@ -3641,42 +3794,54 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
             </div>
           )}
 
-          <div style={{ display: 'flex', justifyContent: 'center', minHeight: pageHeight * zoomLevel + 48 }}>
-            <div
-              className={`editor-page ${isDragOverSurface ? 'is-drag-over' : ''}`}
-              style={{
-                width: pageWidth,
-                height: pageHeight,
-                backgroundColor: pageSettings.backgroundColor,
-                ...(pageSettings.backgroundImage ? {
-                  backgroundImage: `url(${pageSettings.backgroundImage})`,
-                  backgroundRepeat: pageSettings.backgroundImageFit === 'tile' ? 'repeat' : 'no-repeat',
-                  backgroundSize: pageSettings.backgroundImageFit === 'fill' ? '100% 100%'
-                    : pageSettings.backgroundImageFit === 'tile' ? 'auto'
-                    : pageSettings.backgroundImageFit,
-                  backgroundPosition: 'center',
-                } : {}),
-                transform: `scale(${zoomLevel})`,
-                transformOrigin: 'top center',
-                flexShrink: 0,
-                alignSelf: 'flex-start',
-                cursor: drawingMode ? 'crosshair' : undefined,
-              }}
-              onPointerDown={handleSurfacePointerDown}
-              onContextMenu={handleSurfaceContextMenu}
-              onDragOver={(event) => {
-                event.preventDefault();
-                event.dataTransfer.dropEffect = 'copy';
-                setIsDragOverSurface(true);
-              }}
-              onDragLeave={(event) => {
-                if (event.currentTarget === event.target) {
-                  setIsDragOverSurface(false);
-                }
-              }}
-              onDrop={handleSurfaceDrop}
-              role="presentation"
-            >
+          <div
+            ref={pageViewportRef}
+            className="editor-page-viewport"
+            tabIndex={0}
+            dir="ltr"
+            aria-label={t('canvasStage.ariaLabel')}
+          >
+            <div className="editor-page-scroll-content">
+              <div
+                className="editor-page-scale-frame"
+                style={{
+                  width: pageWidth * zoomLevel,
+                  height: pageHeight * zoomLevel,
+                }}
+              >
+                <div
+                  className={`editor-page ${isDragOverSurface ? 'is-drag-over' : ''}`}
+                  style={{
+                    width: pageWidth,
+                    height: pageHeight,
+                    backgroundColor: pageSettings.backgroundColor,
+                    ...(pageSettings.backgroundImage ? {
+                      backgroundImage: `url(${pageSettings.backgroundImage})`,
+                      backgroundRepeat: pageSettings.backgroundImageFit === 'tile' ? 'repeat' : 'no-repeat',
+                      backgroundSize: pageSettings.backgroundImageFit === 'fill' ? '100% 100%'
+                        : pageSettings.backgroundImageFit === 'tile' ? 'auto'
+                        : pageSettings.backgroundImageFit,
+                      backgroundPosition: 'center',
+                    } : {}),
+                    transform: `scale(${zoomLevel})`,
+                    transformOrigin: 'top left',
+                    cursor: drawingMode ? 'crosshair' : undefined,
+                  }}
+                  onPointerDown={handleSurfacePointerDown}
+                  onContextMenu={handleSurfaceContextMenu}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'copy';
+                    setIsDragOverSurface(true);
+                  }}
+                  onDragLeave={(event) => {
+                    if (event.currentTarget === event.target) {
+                      setIsDragOverSurface(false);
+                    }
+                  }}
+                  onDrop={handleSurfaceDrop}
+                  role="presentation"
+                >
             {pageSettings.gridVisible && (
               <div
                 className="editor-page-grid"
@@ -3947,15 +4112,31 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   )}
                 </svg>
               )}
+                </div>
+              </div>
             </div>
             </div>
           </div>
+          <PersistentHorizontalScrollbar
+            targetRef={pageViewportRef}
+            refreshKey={`${pageWidth}:${pageHeight}:${zoomLevel}`}
+            label={t('pagePanel.workspaceHorizontalScroll')}
+            scrollLeftLabel={t('pagePanel.scrollLeft')}
+            scrollRightLabel={t('pagePanel.scrollRight')}
+          />
 
           {/* Page navigation strip */}
-          <div className={`editor-page-strip${pageWidth / pageHeight > 1.5 && pages.length > 1 ? ' editor-page-strip--widescreen' : ''}`}>
+          <div
+            ref={pageStripRef}
+            className={`editor-page-strip${pageWidth / pageHeight > 1.5 && pages.length > 1 ? ' editor-page-strip--widescreen' : ''}`}
+            onWheel={handlePageStripWheel}
+            tabIndex={0}
+            dir="ltr"
+          >
             {pages.map((page, index) => (
               <div
                 key={page.id}
+                ref={index === currentPageIndex ? activePageThumbRef : undefined}
                 className={[
                   'editor-page-thumb',
                   index === currentPageIndex ? 'is-active' : '',
@@ -4003,6 +4184,13 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
               <FiPlus size={14} />
             </button>
           </div>
+          <PersistentHorizontalScrollbar
+            targetRef={pageStripRef}
+            refreshKey={`${pages.length}:${currentPageIndex}:${pageWidth}:${pageHeight}`}
+            label={t('pagePanel.navigationHorizontalScroll')}
+            scrollLeftLabel={t('pagePanel.scrollLeft')}
+            scrollRightLabel={t('pagePanel.scrollRight')}
+          />
         </section>
 
         <aside className="editor-panel editor-inspector-panel" aria-label={t('inspector.ariaLabel')}>
@@ -5279,32 +5467,67 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6 }}>
                       {t('pageSettings.languages.systemLanguage')} <strong>{navigator.language}</strong> {t('pageSettings.languages.systemLanguageNote')}
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {LOCALIZATION_LANGUAGES.map(({ tag, label }) => {
-                        const active = (pageSettings.activeLanguages ?? []).includes(tag);
-                        return (
-                          <label key={tag} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={active}
-                              onChange={(e) => {
-                                const current = pageSettings.activeLanguages ?? [];
-                                if (e.target.checked) {
-                                  updatePageSettings({ activeLanguages: [...current, tag] });
-                                  if (!currentPreviewLanguage || currentPreviewLanguage === navigator.language.split('-')[0])
-                                    setCurrentPreviewLanguage(tag);
-                                } else {
-                                  const next = current.filter(l => l !== tag);
-                                  updatePageSettings({ activeLanguages: next });
-                                  if (currentPreviewLanguage === tag)
-                                    setCurrentPreviewLanguage(next[0] ?? navigator.language.split('-')[0]);
-                                }
-                              }}
-                            />
-                            {label}
-                          </label>
-                        );
-                      })}
+                    <details className="editor-language-multiselect">
+                      <summary>
+                        <span>
+                          {(pageSettings.activeLanguages ?? []).length === 0
+                            ? t('pageSettings.languages.chooseLanguages')
+                            : t('pageSettings.languages.selectedCount', {
+                              count: (pageSettings.activeLanguages ?? []).length,
+                            })}
+                        </span>
+                        <FiChevronDown aria-hidden="true" />
+                      </summary>
+                      <div
+                        className="editor-language-options"
+                        role="group"
+                        aria-label={t('pageSettings.languages.chooseLanguages')}
+                      >
+                        {LOCALIZATION_LANGUAGES.map(({ tag, label, rtl }) => {
+                          const active = (pageSettings.activeLanguages ?? []).includes(tag);
+                          return (
+                            <label key={tag} className={active ? 'is-selected' : ''}>
+                              <input
+                                type="checkbox"
+                                checked={active}
+                                onChange={(event) => setLanguageSelected(tag, event.target.checked)}
+                              />
+                              <span>{label}</span>
+                              {rtl && <small>RTL</small>}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </details>
+                    <div className="editor-selected-languages" aria-live="polite">
+                      <span className="editor-selected-languages-label">
+                        {t('pageSettings.languages.selectedLanguages')}
+                      </span>
+                      {(pageSettings.activeLanguages ?? []).length === 0 ? (
+                        <span className="editor-selected-languages-empty">
+                          {t('pageSettings.languages.noneSelected')}
+                        </span>
+                      ) : (
+                        <div className="editor-selected-language-chips">
+                          {(pageSettings.activeLanguages ?? []).map(tag => {
+                            const language = LOCALIZATION_LANGUAGES.find(candidate => candidate.tag === tag);
+                            const label = language?.label ?? tag.toUpperCase();
+                            return (
+                              <span key={tag} className="editor-selected-language-chip">
+                                <span>{label}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setLanguageSelected(tag, false)}
+                                  title={t('pageSettings.languages.removeLanguage', { language: label })}
+                                  aria-label={t('pageSettings.languages.removeLanguage', { language: label })}
+                                >
+                                  <FiX aria-hidden="true" />
+                                </button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -6629,8 +6852,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         value={selectedElement.language || ''}
                         onChange={(e) => {
                           const lang = e.target.value;
-                          const rtlLangs = new Set(['ar', 'he', 'fa', 'ur', 'yi', 'dv']);
-                          const dir = rtlLangs.has(lang.split('-')[0]) ? 'rtl' : 'ltr';
+                          const dir = isDocumentRtlLanguage(lang) ? 'rtl' : 'ltr';
                           updateSelectedElement({
                             language: lang || undefined,
                             textDirection: lang ? dir : undefined,
@@ -6647,8 +6869,6 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                         <option value="ru">{t('elementInspector.typography.languages.ru')}</option>
                         <option value="el">{t('elementInspector.typography.languages.el')}</option>
                         <option value="ar">{t('elementInspector.typography.languages.ar')}</option>
-                        <option value="he">{t('elementInspector.typography.languages.he')}</option>
-                        <option value="fa">{t('elementInspector.typography.languages.fa')}</option>
                         <option value="zh-CN">{t('elementInspector.typography.languages.zh-CN')}</option>
                         <option value="zh-TW">{t('elementInspector.typography.languages.zh-TW')}</option>
                         <option value="ja">{t('elementInspector.typography.languages.ja')}</option>
