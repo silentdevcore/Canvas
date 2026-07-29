@@ -62,7 +62,7 @@ jobs:
           dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName~VersionControllerTests|FullyQualifiedName~DesignerProductExperienceTests"
+          --filter "FullyQualifiedName~PXA.Api.Tests.VersionControllerTests.|FullyQualifiedName~PXA.Api.Tests.DesignerProductExperienceTests."
           -p:SkipOcrWorkerPackaging=true
 
   frontend:
