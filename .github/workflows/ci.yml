@@ -23,6 +23,9 @@ jobs:
         run: node --test tools/versioning/pxa-version.test.mjs
       - name: Check synchronized version metadata
         run: node tools/versioning/pxa-version.mjs check
+      - name: Require a release fragment for develop pull requests
+        if: github.event_name == 'pull_request' && github.base_ref == 'develop'
+        run: node tools/versioning/pxa-version.mjs validate-change --base-ref origin/develop
       - name: Validate stable release pull request
         if: github.event_name == 'pull_request' && github.base_ref == 'main'
         env:

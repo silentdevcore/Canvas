@@ -1,0 +1,81 @@
+name: PXA Release Dry Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      summary:
+        description: Customer-facing release summary
+        required: true
+        type: string
+      title:
+        description: Optional release title
+        required: false
+        type: string
+      publication_date:
+        description: Optional publication date in YYYY-MM-DD format
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pxa-release-dry-run
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate release tooling and repository state
+        run: |
+          node --test tools/versioning/pxa-version.test.mjs
+          node tools/versioning/pxa-version.mjs check
+          node tools/versioning/pxa-version.mjs fragments
+          STABLE_VERSION="$(git tag --list 'v[0-9]*' --sort=-v:refname | head -1 | sed 's/^v//')"
+          if [ -z "$STABLE_VERSION" ] || [ "$(cat VERSION)" != "$STABLE_VERSION" ]; then
+            echo "develop VERSION must match the latest stable tag before a release dry run."
+            exit 1
+          fi
+      - name: Generate immutable release preview
+        env:
+          RELEASE_SUMMARY: ${{ inputs.summary }}
+          RELEASE_TITLE: ${{ inputs.title }}
+          PUBLICATION_DATE: ${{ inputs.publication_date }}
+        run: |
+          mkdir -p artifacts/release-dry-run
+          ARGS=(prepare-fragments --dry-run --summary "$RELEASE_SUMMARY")
+          if [ -n "$RELEASE_TITLE" ]; then
+            ARGS+=(--title "$RELEASE_TITLE")
+          fi
+          if [ -n "$PUBLICATION_DATE" ]; then
+            ARGS+=(--date "$PUBLICATION_DATE")
+          fi
+          node tools/versioning/pxa-version.mjs "${ARGS[@]}" --format json \
+            > artifacts/release-dry-run/release.json
+          node tools/versioning/pxa-version.mjs "${ARGS[@]}" --format markdown \
+            > artifacts/release-dry-run/RELEASE_NOTES.md
+          {
+            printf 'commit=%s\n' "$GITHUB_SHA"
+            printf 'workflow_run=%s\n' "$GITHUB_RUN_ID"
+            printf 'generated_at=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > artifacts/release-dry-run/build.env
+          cat artifacts/release-dry-run/RELEASE_NOTES.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify dry run did not modify release state
+        run: |
+          git diff --exit-code
+          node tools/versioning/pxa-version.mjs check
+          node tools/versioning/pxa-version.mjs fragments
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pxa-release-dry-run-${{ github.run_number }}-${{ github.sha }}
+          path: artifacts/release-dry-run
+          if-no-files-found: error
+          retention-days: 30

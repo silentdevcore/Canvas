@@ -1,0 +1,7 @@
+interface:
+  display_name: "PXA Release Author"
+  short_description: "Draft validated PXA release fragments"
+  default_prompt: "Use $pxa-release-author to review this change and create its validated release fragment."
+
+policy:
+  allow_implicit_invocation: true
