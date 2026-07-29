@@ -1,6 +1,6 @@
 {
   "name": "pxa-mcp",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "MCP server exposing Power Dox Automation's element catalog, design schema, docs, and validate/render tools to AI agents.",

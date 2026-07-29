@@ -1,5 +1,6 @@
 import './site.css';
 import { initializeBrowserTelemetry } from '../../shared/browserTelemetry.js';
+import { pxaCommit, pxaVersion } from '../../shared/buildInfo.js';
 import { siteLinks } from '../../shared/siteLinks.js';
 import {
   currentUser,
@@ -373,6 +374,7 @@ function renderShell(content, title) {
           <span>Signed in as</span>
           <strong>${escapeHtml(state.user.displayName)}</strong>
           <small>${escapeHtml(state.user.email)}</small>
+          <small title="Commit ${escapeHtml(pxaCommit)}">PXA ${escapeHtml(pxaVersion)}</small>
         </div>
       </aside>
       <div class="admin-workspace">

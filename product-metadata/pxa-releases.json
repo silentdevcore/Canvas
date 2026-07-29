@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "product": "PXA",
+  "releases": [
+    {
+      "version": "1.0.0",
+      "publishedAt": "2026-07-28",
+      "channel": "stable",
+      "title": "PXA 1.0.0",
+      "summary": "The first versioned Power Dox Automation release combines authenticated document design, persistent templates, PDF and spreadsheet workflows, migration tooling, administration, localization, and production observability.",
+      "documentationPath": "/#release-notes-1-0-0",
+      "components": [
+        "account",
+        "admin",
+        "api",
+        "company",
+        "demo",
+        "designer",
+        "documentation",
+        "observability"
+      ],
+      "featureIds": [
+        "designer.release-notes",
+        "designer.notifications",
+        "designer.experimental-features",
+        "designer.pdf-viewer",
+        "designer.spreadsheet"
+      ],
+      "changes": {
+        "added": [
+          "Versioned product release notes and build information.",
+          "Central feature maturity metadata for Alpha, Beta, and Stable capabilities.",
+          "A notification center for releases and important account or system events.",
+          "Production logging, metrics, tracing, dashboards, and alerting foundations."
+        ],
+        "improved": [
+          "Designer navigation, authentication, template persistence, localization, and scrollable editing workflows.",
+          "Account, administration, licensing, mail, documentation, and deployment workflows."
+        ],
+        "fixed": [],
+        "security": [
+          "Feature preferences and notifications are evaluated in the authenticated user and organization context.",
+          "Operational telemetry applies tenant-safe privacy and sanitization boundaries."
+        ],
+        "deprecated": [],
+        "breaking": []
+      }
+    }
+  ]
+}

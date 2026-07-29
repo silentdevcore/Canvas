@@ -1,4 +1,7 @@
+import { pxaVersionDefines } from '../shared/vitePxaVersion.js';
+
 export default {
+  define: pxaVersionDefines(),
   server: {
     port: 5177,
     strictPort: true,

@@ -17,8 +17,8 @@
              CopyToPublishDirectory="PreserveNewest" />
     <EmbeddedResource Include="../product-metadata/designer-features.json"
                       LogicalName="PXA.ProductMetadata.designer-features.json" />
-    <EmbeddedResource Include="../product-metadata/designer-releases.json"
-                      LogicalName="PXA.ProductMetadata.designer-releases.json" />
+    <EmbeddedResource Include="../product-metadata/pxa-releases.json"
+                      LogicalName="PXA.ProductMetadata.pxa-releases.json" />
   </ItemGroup>
 
   <ItemGroup>

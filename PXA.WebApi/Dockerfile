@@ -1,4 +1,5 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG PXA_COMMIT=unknown
 WORKDIR /src
 
 COPY . .
@@ -8,6 +9,7 @@ RUN dotnet publish PXA.WebApi/PXA.WebApi.csproj \
     --no-restore \
     --output /app/publish \
     /p:UseAppHost=false \
+    /p:PxaBuildMetadata=$PXA_COMMIT \
     /p:SkipOcrWorkerPackaging=true
 RUN dotnet publish src/Importing/PXA.FileImporter.ImageOcr.Worker/PXA.FileImporter.ImageOcr.Worker.csproj \
     --configuration Release \
@@ -16,6 +18,14 @@ RUN dotnet publish src/Importing/PXA.FileImporter.ImageOcr.Worker/PXA.FileImport
     /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+ARG PXA_VERSION=1.0.0
+ARG PXA_COMMIT=unknown
+ARG PXA_BUILD_TIME=unknown
+
+LABEL org.opencontainers.image.title="PXA WebApi" \
+      org.opencontainers.image.version="$PXA_VERSION" \
+      org.opencontainers.image.revision="$PXA_COMMIT" \
+      org.opencontainers.image.created="$PXA_BUILD_TIME"
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
@@ -37,6 +47,8 @@ RUN mkdir -p \
     && chown -R "$APP_UID:$APP_UID" /app/data /app/fonts /app/tmp
 
 ENV ASPNETCORE_HTTP_PORTS=8080 \
+    PXA_BUILD_COMMIT=$PXA_COMMIT \
+    PXA_BUILD_TIME=$PXA_BUILD_TIME \
     DOTNET_EnableDiagnostics=0 \
     TMPDIR=/app/tmp \
     DataProtection__KeysDirectory=/app/data/data-protection-keys \

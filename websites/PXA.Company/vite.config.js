@@ -1,9 +1,11 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { pxaVersionDefines } from '../shared/vitePxaVersion.js';
 
 const rootDir = dirname(fileURLToPath(import.meta.url));
 
 export default {
+  define: pxaVersionDefines(),
   server: {
     proxy: {
       '/api': {

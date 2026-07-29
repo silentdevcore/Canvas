@@ -2,12 +2,12 @@ import './site.css';
 import { initializeBrowserTelemetry } from '../../shared/browserTelemetry.js';
 import { renderPxaFooter } from '../../shared/footer.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
-import designerReleaseManifest from '../../../product-metadata/designer-releases.json';
+import pxaReleaseManifest from '../../../product-metadata/pxa-releases.json';
 import designerFeatureManifest from '../../../product-metadata/designer-features.json';
 
 initializeBrowserTelemetry({ application: 'documentation' });
 
-const designerReleases = designerReleaseManifest.releases;
+const pxaReleases = pxaReleaseManifest.releases;
 const designerFeatures = designerFeatureManifest.features;
 
 const editorSections = [
@@ -2914,7 +2914,7 @@ function renderReleaseNav() {
       <a class="pxa-doc-nav__featured" href="#release-notes">Overview</a>
       <a href="#designer-feature-status">Feature status</a>
       <a href="#designer-notifications">Notifications</a>
-      ${designerReleases
+      ${pxaReleases
         .map((release) => `<a href="#release-notes-${slug(release.version)}">PXA Designer ${release.version}</a>`)
         .join('')}
     </details>
@@ -2938,7 +2938,7 @@ function renderDesignerReleaseNotes() {
       <button type="button" data-release-filter="alpha">Alpha</button>
     </div>
     <div class="pxa-doc-detail-stack pxa-doc-release-list">
-      ${designerReleases.map((release) => `
+      ${pxaReleases.map((release) => `
         <article
           class="pxa-card pxa-doc-detail pxa-doc-release"
           id="release-notes-${slug(release.version)}"

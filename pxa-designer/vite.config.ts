@@ -2,7 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import { execFileSync } from 'node:child_process'
-import packageJson from './package.json'
+import { readFileSync } from 'node:fs'
+
+const version = readFileSync(path.resolve(__dirname, '../VERSION'), 'utf8').trim()
 
 const commit = (() => {
   try {
@@ -20,9 +22,9 @@ const buildTime = new Date().toISOString()
 export default defineConfig({
   plugins: [react()],
   define: {
-    __PXA_DESIGNER_VERSION__: JSON.stringify(packageJson.version),
-    __PXA_DESIGNER_COMMIT__: JSON.stringify(commit),
-    __PXA_DESIGNER_BUILD_TIME__: JSON.stringify(buildTime),
+    __PXA_VERSION__: JSON.stringify(version),
+    __PXA_BUILD_COMMIT__: JSON.stringify(process.env.PXA_BUILD_COMMIT ?? commit),
+    __PXA_BUILD_TIME__: JSON.stringify(process.env.PXA_BUILD_TIME ?? buildTime),
     __PXA_DOCUMENTATION_URL__: JSON.stringify(
       process.env.VITE_PXA_DOCUMENTATION_URL ?? 'http://localhost:5174',
     ),
