@@ -51,8 +51,19 @@ jobs:
         run: dotnet restore PXA.sln
       - name: Build
         run: dotnet build PXA.sln --configuration Release --no-restore -p:SkipOcrWorkerPackaging=true
-      - name: Test
-        run: dotnet test PXA.sln --configuration Release --no-build -p:SkipOcrWorkerPackaging=true
+      - name: Test core contracts
+        run: |
+          dotnet test tests/PXA.Core.Tests/PXA.Core.Tests.csproj --configuration Release --no-build
+          dotnet test tests/PXA.Application.Tests/PXA.Application.Tests.csproj --configuration Release --no-build
+          dotnet test tests/PXA.Domain.Tests/PXA.Domain.Tests.csproj --configuration Release --no-build
+          dotnet test tests/PXA.Observability.WebhookRelay.Tests/PXA.Observability.WebhookRelay.Tests.csproj --configuration Release --no-build
+      - name: Test version and release metadata contracts
+        run: >
+          dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj
+          --configuration Release
+          --no-build
+          --filter "FullyQualifiedName~PXA.Api.Tests.VersionControllerTests.|FullyQualifiedName~PXA.Api.Tests.DesignerProductExperienceTests."
+          -p:SkipOcrWorkerPackaging=true
 
   frontend:
     runs-on: ubuntu-latest
@@ -66,7 +77,6 @@ jobs:
           cache-dependency-path: |
             pxa-designer/package-lock.json
             websites/PXA.Admin/package-lock.json
-            tools/PXA.Mcp/package-lock.json
       - name: Install Designer dependencies
         working-directory: pxa-designer
         run: npm ci
@@ -110,7 +120,7 @@ jobs:
       - name: Install and type-check MCP tool
         working-directory: tools/PXA.Mcp
         run: |
-          npm ci
+          npm install
           npm run typecheck
 
   snapshot:

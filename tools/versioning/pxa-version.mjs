@@ -18,7 +18,6 @@ const PACKAGE_MANIFESTS = [
 const PACKAGE_LOCKS = [
   'pxa-designer/package-lock.json',
   'websites/PXA.Admin/package-lock.json',
-  'tools/PXA.Mcp/package-lock.json',
 ];
 const DOCKERFILES = [
   'PXA.WebApi/Dockerfile',

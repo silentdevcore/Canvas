@@ -26,7 +26,6 @@ const packagePaths = [
 const lockPaths = [
   'pxa-designer/package-lock.json',
   'websites/PXA.Admin/package-lock.json',
-  'tools/PXA.Mcp/package-lock.json',
 ];
 const dockerPaths = [
   'PXA.WebApi/Dockerfile',
