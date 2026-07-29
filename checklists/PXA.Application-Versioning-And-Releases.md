@@ -4,7 +4,7 @@
 
 - [x] Use one Semantic Version for the complete PXA monorepo.
 - [x] Treat every merge to `main` as one immutable stable release.
-- [ ] Use `develop` as the default integration branch.
+- [x] Use `develop` as the default integration branch.
 
 ## P0 - Version Source
 
@@ -19,13 +19,13 @@
 
 - [x] Publish baseline tag `v1.0.0` on commit `f53975c8c797`.
 - [x] Create and publish `develop` from `v1.0.0`.
-- [ ] Make `develop` the GitHub default branch.
-- [ ] Protect `develop` and `main` from direct and force pushes.
+- [x] Make `develop` the GitHub default branch.
+- [x] Protect `develop` and `main` from direct and force pushes.
 - [x] Require feature and fix pull requests to target `develop`.
 - [x] Allow `main` pull requests only from `develop` or `hotfix/*`.
 - [x] Require exactly one `release:major`, `release:minor`, or `release:patch` label.
 - [x] Require the version increase to match the release label.
-- [ ] Require hotfixes to be merged back into `develop`.
+- [x] Require hotfixes to be merged back into `develop`.
 
 ## P0 - Automation
 
@@ -53,8 +53,9 @@
 - [x] Build and test the WebApi and relevant .NET projects.
 - [x] Type-check, test, and build PXA Designer.
 - [x] Test and build all PXA websites.
-- [ ] Dry-run snapshot and stable-release workflows.
-- [ ] Verify branch settings and required GitHub checks.
+- [x] Verify the `develop` snapshot workflow and uploaded artifacts.
+- [ ] Dry-run the stable-release workflow with the first prepared version increase.
+- [x] Verify branch settings and required GitHub checks.
 
 ## Later Work
 
@@ -65,7 +66,7 @@
 ## Acceptance Criteria
 
 - [x] One file determines the release version of every PXA component.
-- [ ] A merge to `main` cannot succeed without exactly one valid version increase.
+- [x] A merge to `main` cannot succeed without exactly one valid version increase.
 - [x] A successful `main` merge produces one immutable tag and release.
 - [x] `develop` builds are traceable but never presented as stable releases.
 - [x] Released versions and API contract versions remain separate concepts.
