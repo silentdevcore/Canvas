@@ -12,7 +12,7 @@ export default {
       },
     },
     fs: {
-      allow: ['..'],
+      allow: ['../..'],
     },
   },
 };
