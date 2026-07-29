@@ -42,6 +42,7 @@
 - [x] Add anonymous `GET /api/pxa/v1/version`.
 - [x] Keep API contract version independent from the PXA product version.
 - [x] Show the shared product version and commit in Designer and administrative applications.
+- [x] Show authenticated release notes in PXA Admin from the shared release manifest.
 - [x] Generate Documentation release pages from the shared release manifest.
 - [x] Add version and source-revision OCI labels to first-party containers.
 

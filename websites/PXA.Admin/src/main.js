@@ -2,6 +2,7 @@ import './site.css';
 import { initializeBrowserTelemetry } from '../../shared/browserTelemetry.js';
 import { pxaCommit, pxaVersion } from '../../shared/buildInfo.js';
 import { siteLinks } from '../../shared/siteLinks.js';
+import pxaReleaseManifest from '../../../product-metadata/pxa-releases.json';
 import {
   currentUser,
   acceptInvitation,
@@ -85,7 +86,17 @@ const navigation = [
   { path: '/audit', label: 'Audit', group: 'Operations' },
   { path: '/system-status', label: 'System status', group: 'Operations', systemOnly: true },
   { path: '/settings', label: 'Settings', group: 'Operations' },
+  { path: '/release-notes', label: 'Release notes', group: 'Reference' },
   { path: '/documentation', label: 'Admin documentation', group: 'Reference' },
+];
+
+const releaseChangeCategories = [
+  ['added', 'Added'],
+  ['improved', 'Improved'],
+  ['fixed', 'Fixed'],
+  ['security', 'Security'],
+  ['deprecated', 'Deprecated'],
+  ['breaking', 'Breaking'],
 ];
 
 const pageDetails = {
@@ -417,6 +428,63 @@ function dashboardPage() {
         <div><strong>User administration API</strong><span class="admin-status admin-status--ready">Ready</span><p>Tenant-scoped search, status, roles, and audit-protected mutations.</p></div>
         <div><strong>Mail and recovery</strong><span class="admin-status admin-status--planned">Planned</span><p>Password recovery depends on the transactional mail outbox.</p></div>
       </div>
+    </section>
+  `;
+}
+
+function releaseNotesPage() {
+  const releases = pxaReleaseManifest.releases;
+  return `
+    <header class="admin-page-header">
+      <div>
+        <p class="pxa-kicker">Product updates</p>
+        <h1>Release notes</h1>
+        <p>Review shipped PXA capabilities, improvements, fixes, and compatibility changes.</p>
+      </div>
+      <span class="admin-status admin-status--active">PXA ${escapeHtml(pxaVersion)}</span>
+    </header>
+    <section class="admin-release-list" aria-label="PXA release history">
+      ${releases.map((release) => {
+        const current = release.version === pxaVersion;
+        const statusClass = release.channel === 'stable'
+          ? 'admin-status--active'
+          : release.channel === 'beta'
+            ? 'admin-status--planned'
+            : 'admin-status--inactive';
+        const populatedCategories = releaseChangeCategories
+          .filter(([key]) => release.changes[key].length > 0);
+        return `
+          <article class="admin-release" id="release-${escapeHtml(release.version.replaceAll('.', '-'))}">
+            <header class="admin-release-header">
+              <div>
+                <div class="admin-release-title">
+                  <h2>${escapeHtml(release.title)}</h2>
+                  <span class="admin-status ${statusClass}">${escapeHtml(release.channel)}</span>
+                  ${current ? '<span class="admin-status admin-status--neutral">Current</span>' : ''}
+                </div>
+                <p>${escapeHtml(release.summary)}</p>
+              </div>
+              <time datetime="${escapeHtml(release.publishedAt)}">${escapeHtml(release.publishedAt)}</time>
+            </header>
+            <div class="admin-release-components" aria-label="Affected components">
+              ${release.components.map((component) => `<span>${escapeHtml(component)}</span>`).join('')}
+            </div>
+            <div class="admin-release-changes">
+              ${populatedCategories.map(([key, label]) => `
+                <section>
+                  <h3>${label}</h3>
+                  <ul>${release.changes[key].map((change) => `<li>${escapeHtml(change)}</li>`).join('')}</ul>
+                </section>
+              `).join('')}
+            </div>
+            <footer class="admin-release-footer">
+              <a href="${siteLinks.documentation}${release.documentationPath.replace(/^\/+/, '')}" target="_blank" rel="noreferrer">
+                Open detailed documentation
+              </a>
+            </footer>
+          </article>
+        `;
+      }).join('')}
     </section>
   `;
 }
@@ -2242,6 +2310,11 @@ function render() {
     renderShell(systemStatusPage(), 'System status');
     bindSystemStatusEvents();
     if (!state.systemHealth.loaded && !state.systemHealth.loading) loadSystemHealth();
+    return;
+  }
+
+  if (location.pathname === '/release-notes') {
+    renderShell(releaseNotesPage(), 'Release notes');
     return;
   }
 
