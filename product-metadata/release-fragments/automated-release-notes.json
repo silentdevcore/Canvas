@@ -1,0 +1,16 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "automated-release-notes",
+  "impact": "minor",
+  "components": [
+    "documentation",
+    "infrastructure"
+  ],
+  "category": "added",
+  "summary": "Structured change fragments, safe previews, and agent-assisted authoring prepare consistent PXA release notes.",
+  "featureIds": [],
+  "documentation": [
+    "/#release-notes"
+  ],
+  "breaking": false
+}

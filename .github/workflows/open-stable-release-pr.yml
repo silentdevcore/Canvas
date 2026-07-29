@@ -1,0 +1,63 @@
+name: Open PXA Stable Release Pull Request
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [closed]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  open:
+    if: >
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'release/prepare-v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate prepared release
+        id: release
+        run: |
+          BASE_VERSION="$(git show origin/main:VERSION)"
+          node tools/versioning/pxa-version.mjs validate-next --base "$BASE_VERSION"
+          IMPACT="$(node tools/versioning/pxa-version.mjs release-impact --base "$BASE_VERSION")"
+          echo "impact=$IMPACT" >> "$GITHUB_OUTPUT"
+          echo "version=$(cat VERSION)" >> "$GITHUB_OUTPUT"
+          node tools/versioning/pxa-version.mjs notes > /tmp/pxa-release-notes.md
+      - name: Open stable release pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+          IMPACT: ${{ steps.release.outputs.impact }}
+        run: |
+          EXISTING="$(gh pr list --base main --head develop --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$EXISTING" ]; then
+            for LABEL in $(gh pr view "$EXISTING" --json labels --jq '.labels[].name | select(startswith("release:"))'); do
+              gh pr edit "$EXISTING" --remove-label "$LABEL"
+            done
+            gh pr edit "$EXISTING" \
+              --title "Release PXA $VERSION" \
+              --body-file /tmp/pxa-stable-pr.md \
+              --add-label "release:$IMPACT"
+            echo "Updated stable release pull request #$EXISTING."
+            exit 0
+          fi
+          {
+            printf 'Publishes the reviewed PXA %s release.\n\n' "$VERSION"
+            cat /tmp/pxa-release-notes.md
+          } > /tmp/pxa-stable-pr.md
+          gh pr create \
+            --base main \
+            --head develop \
+            --title "Release PXA $VERSION" \
+            --label "release:$IMPACT" \
+            --body-file /tmp/pxa-stable-pr.md

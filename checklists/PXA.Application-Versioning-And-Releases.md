@@ -1,5 +1,11 @@
 # PXA Application Versioning and Releases
 
+## Related Roadmap
+
+Automated change fragments, agent-assisted authoring, release preparation, and
+deployment controls are tracked in
+[PXA.Automated-Release-Notes.md](PXA.Automated-Release-Notes.md).
+
 ## Goal
 
 - [x] Use one Semantic Version for the complete PXA monorepo.
