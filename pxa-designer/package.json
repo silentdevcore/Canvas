@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "jest",
     "test:e2e": "playwright test",
+    "test:e2e:legal": "playwright test --config playwright.legal.config.ts",
     "test:e2e:headed": "playwright test --headed",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

@@ -66,6 +66,7 @@ test('protected handbook covers every Admin workspace', () => {
     '/service-accounts',
     '/mail',
     '/audit',
+    '/legal',
     '/system-status',
     '/settings',
   ]);

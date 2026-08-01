@@ -26,7 +26,9 @@ public sealed record RegisterAccountRequest(
     // as-is, and stored only in AuditEvent.DetailsJson - never a first-class
     // field on the user or organization.
     IReadOnlyDictionary<string, string>? CampaignContext = null,
-    string? ReturnUrl = null);
+    string? ReturnUrl = null,
+    Guid? TermsVersionId = null,
+    Guid? PrivacyVersionId = null);
 
 public static class CampaignAttribution
 {
@@ -51,6 +53,19 @@ public sealed record ResendVerificationRequest(
     string? ReturnUrl = null);
 
 public sealed record RegistrationAcceptedResponse(string Message);
+
+public sealed record RegistrationPolicyDocumentResponse(
+    Guid? Id,
+    string Version,
+    string Locale,
+    string? ContentHash,
+    DateTimeOffset? EffectiveAt);
+
+public sealed record RegistrationPolicyResponse(
+    bool Available,
+    bool DatabaseBacked,
+    RegistrationPolicyDocumentResponse? Terms,
+    RegistrationPolicyDocumentResponse? Privacy);
 
 public sealed record RegistrationValidationResult(
     string? Error,
@@ -83,6 +98,7 @@ public enum CustomerRegistrationStatus
     Accepted,
     Invalid,
     SlugConflict,
+    PolicyMismatch,
     Unavailable,
 }
 
@@ -99,6 +115,11 @@ public sealed record CustomerRegistrationOutcome(CustomerRegistrationStatus Stat
 
     public static CustomerRegistrationOutcome SlugConflict() =>
         new(CustomerRegistrationStatus.SlugConflict, "Choose another organization identifier.");
+
+    public static CustomerRegistrationOutcome PolicyMismatch() =>
+        new(
+            CustomerRegistrationStatus.PolicyMismatch,
+            "The legal documents changed. Review the current Terms and Privacy Notice before continuing.");
 
     public static CustomerRegistrationOutcome Unavailable() =>
         new(CustomerRegistrationStatus.Unavailable, "Account registration is temporarily unavailable.");

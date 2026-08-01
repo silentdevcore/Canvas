@@ -162,6 +162,8 @@ export function bindProfileEvents(): void {
       state.data?.requiresTermsAcceptance ? data.get('acceptTerms') === 'on' : null,
       state.data?.requiresPrivacyAcknowledgement ? data.get('acceptPrivacy') === 'on' : null,
       data.get('marketingConsent') === 'on',
+      state.data?.currentTermsVersionId ?? null,
+      state.data?.currentPrivacyVersionId ?? null,
     );
     rerender();
   });

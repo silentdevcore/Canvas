@@ -4,22 +4,17 @@ import { appendCampaignParams } from '../../shared/campaignAttribution.js';
 import { renderPxaFooter } from '../../shared/footer.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import { consumeSignedInSignal } from '../../shared/signedInSignal.js';
+import { initializeStorageNotice } from '../../shared/storageNotice.js';
+import { loadPublishedLegalDocument } from './legalSnapshot.js';
 
 initializeBrowserTelemetry({ application: 'company' });
 
-// PXA.Company has no session of its own and never will - the signal itself
-// is a purely cosmetic one-time marker (see shared/signedInSignal.js),
-// persisted to localStorage so the header can show "My account" instead of
-// "Sign in" on this and later Company page loads. It is never treated as
-// proof of an active session; there is no "Sign out" affordance here because
-// Company cannot actually end an Account session without the cross-origin
-// credentialed request this project deliberately does not build.
 const SIGNED_IN_STORAGE_KEY = 'pxa_signed_in';
 
 function captureSignedInSignal() {
   const result = consumeSignedInSignal(window.location.search);
   if (!result) return;
-  localStorage.setItem(SIGNED_IN_STORAGE_KEY, '1');
+  sessionStorage.setItem(SIGNED_IN_STORAGE_KEY, '1');
   const query = result.cleanedSearch;
   history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
 }
@@ -27,7 +22,7 @@ function captureSignedInSignal() {
 captureSignedInSignal();
 
 function isSignedIn() {
-  return localStorage.getItem(SIGNED_IN_STORAGE_KEY) === '1';
+  return sessionStorage.getItem(SIGNED_IN_STORAGE_KEY) === '1';
 }
 
 const companyRoutes = {
@@ -100,6 +95,26 @@ const companyRoutes = {
     section: 'license',
     title: 'License | Power Dox Automation',
     description: 'Review placeholder license information for Power Dox Automation.',
+  },
+  '/cookie-storage.html': {
+    section: 'cookie-storage',
+    title: 'Cookie & Storage Policy | Power Dox Automation',
+    description: 'Understand the necessary cookies and browser storage used by PXA.',
+  },
+  '/imprint.html': {
+    section: 'imprint',
+    title: 'Imprint | Power Dox Automation',
+    description: 'Provider information for Power Dox Automation.',
+  },
+  '/withdrawal.html': {
+    section: 'withdrawal',
+    title: 'Consumer Withdrawal | Power Dox Automation',
+    description: 'Consumer withdrawal information for Power Dox Automation.',
+  },
+  '/dpa.html': {
+    section: 'dpa',
+    title: 'Data Processing Agreement | Power Dox Automation',
+    description: 'Data processing agreement information for Power Dox Automation.',
   },
 };
 
@@ -374,6 +389,60 @@ const legalPages = {
       },
     ],
     notice: 'Draft notice: final license language should be reviewed before external distribution.',
+  },
+  'cookie-storage': {
+    kicker: 'Cookie and storage policy',
+    title: 'Necessary browser storage used by PXA',
+    text:
+      'PXA currently uses only first-party storage required for security, sessions, language, and application preferences explicitly requested by the user.',
+    sections: [
+      {
+        title: 'Security and sessions',
+        text: 'Host-only, HttpOnly cookies protect authenticated sessions and anti-forgery requests. Application code cannot read their contents.',
+      },
+      {
+        title: 'Preferences and workflow state',
+        text: 'Language, interface preferences, and temporary workflow state may be stored locally so requested application behavior remains usable.',
+      },
+      {
+        title: 'No optional tracking at launch',
+        text: 'PXA does not load optional analytics or marketing storage. A consent center will be introduced before that changes.',
+      },
+    ],
+    notice: 'This operational inventory requires final review before production launch.',
+  },
+  imprint: {
+    kicker: 'Imprint',
+    title: 'Provider information',
+    text: 'The legally required operator details must be completed and approved before public production launch.',
+    sections: [
+      { title: 'Operator', text: '[Legal company name and legal form]' },
+      { title: 'Address and representation', text: '[Registered address and authorized representative]' },
+      { title: 'Register and tax details', text: '[Commercial register, registration number, and VAT ID]' },
+    ],
+    notice: 'Launch blocker: replace every bracketed placeholder with verified company information.',
+  },
+  withdrawal: {
+    kicker: 'Consumer withdrawal',
+    title: 'Withdrawal information for consumers',
+    text: 'Paid consumer checkout remains unavailable until the withdrawal process and durable confirmation have been approved.',
+    sections: [
+      { title: 'Withdrawal right', text: 'The final period, conditions, and exercise instructions require counsel-approved wording.' },
+      { title: 'Digital performance', text: 'Any request to begin digital performance early must be captured separately and explicitly.' },
+      { title: 'Model form', text: 'A counsel-approved model withdrawal form will be provided before consumer sales begin.' },
+    ],
+    notice: 'No paid B2C contract may be concluded from this draft page.',
+  },
+  dpa: {
+    kicker: 'Data Processing Agreement',
+    title: 'Processing customer documents on behalf of organizations',
+    text: 'PXA will provide an Article 28 agreement for business customers before production document processing.',
+    sections: [
+      { title: 'Processing scope', text: 'Products, data categories, purposes, duration, and controller instructions will be documented.' },
+      { title: 'Security measures', text: 'Approved technical and organizational measures will accompany the agreement.' },
+      { title: 'Subprocessors and transfers', text: 'Approved providers, processing regions, and transfer safeguards will be listed transparently.' },
+    ],
+    notice: 'The DPA, security measures, and subprocessor list require legal and operational approval.',
   },
 };
 
@@ -946,7 +1015,7 @@ function renderLegalPage(kind) {
           <h1 class="pxa-heading">${page.title}</h1>
           <p class="pxa-lede">${page.text}</p>
         </div>
-        <div class="pxa-company-legal-grid">
+        <div class="pxa-company-legal-grid" data-legal-content>
           ${renderLegalSections(page.sections)}
         </div>
         <div class="pxa-card pxa-company-legal-notice">
@@ -989,6 +1058,14 @@ function renderMainContent() {
       return renderLegalPage('privacy');
     case 'license':
       return renderLegalPage('license');
+    case 'cookie-storage':
+      return renderLegalPage('cookie-storage');
+    case 'imprint':
+      return renderLegalPage('imprint');
+    case 'withdrawal':
+      return renderLegalPage('withdrawal');
+    case 'dpa':
+      return renderLegalPage('dpa');
     default:
       return renderHomePage();
   }
@@ -1004,3 +1081,27 @@ document.querySelector('#app').innerHTML = `
     ${renderPxaFooter('PXA.Company')}
   </div>
 `;
+
+async function hydratePublishedLegalDocument(kind) {
+  if (!legalPages[kind]) return;
+  try {
+    const result = await loadPublishedLegalDocument({ kind, locale: 'en' });
+    const legalDocument = result.document;
+    const content = document.querySelector('[data-legal-content]');
+    if (!content) return;
+    content.className = 'pxa-company-legal-document';
+    content.innerHTML = legalDocument.renderedHtml;
+    const notice = document.querySelector('.pxa-company-legal-notice strong');
+    if (notice) {
+      const version = `Version ${legalDocument.version} · Effective ${new Date(legalDocument.effectiveAt).toLocaleDateString()}${legalDocument.isAuthoritative ? ' · Authoritative' : ' · Convenience translation'}`;
+      notice.textContent = result.source === 'live'
+        ? version
+        : `${version} · Archived copy from ${new Date(result.generatedAt).toLocaleString()}${result.stale ? ' · Snapshot older than 30 days' : ''}. The Legal API is unavailable; transactions requiring current-version verification remain disabled.`;
+    }
+  } catch {
+    // Draft launch-blocker copy remains visible only when neither verified source is available.
+  }
+}
+
+initializeStorageNotice();
+hydratePublishedLegalDocument(currentRoute.section);

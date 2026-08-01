@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Application.Legal;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Entitlements;
 
@@ -20,6 +21,7 @@ public sealed class DesignerAuthorizationCodeService(
     IUserClaimsPrincipalFactory<PxaIdentityUser> principalFactory,
     PxaSessionService sessionService,
     IPxaEntitlementService entitlementService,
+    AccountLegalObligationService legalObligations,
     IOptions<PxaDesignerAuthenticationOptions> options)
 {
     private readonly HashSet<string> allowedOrigins = options.Value.AllowedOrigins
@@ -77,12 +79,37 @@ public sealed class DesignerAuthorizationCodeService(
             cancellationToken);
         var entitlement = await entitlementService.EvaluateAsync(
             organizationId, "designer", cancellationToken: cancellationToken);
+        var legalReviewRequired = false;
+        if (user is not null)
+        {
+            var obligations = await legalObligations.ResolveAsync(
+                user, organizationId, cancellationToken);
+            legalReviewRequired =
+                !obligations.Available ||
+                obligations.Terms?.ActionRequired == true ||
+                obligations.Privacy?.ActionRequired == true;
+        }
         if (user is not { IsActive: true, EmailConfirmed: true } ||
             userIsLocked ||
             sourceSession is null ||
             !membershipIsActive ||
-            !entitlement.Allowed)
+            !entitlement.Allowed ||
+            legalReviewRequired)
         {
+            if (legalReviewRequired)
+            {
+                AddAudit(
+                    organizationId,
+                    userId,
+                    "security.designer-handoff.created",
+                    sourceSessionId,
+                    "rejected",
+                    "legal-review-required");
+                await dbContext.SaveChangesAsync(cancellationToken);
+                return DesignerHandoffResult.Denied(
+                    "PXAAPI017",
+                    "Review the current legal documents in PXA Account before opening Designer.");
+            }
             var denial = ResolveAccessDenial(
                 user, userIsLocked, sourceSession is not null, membershipIsActive, true, entitlement);
             AddAudit(

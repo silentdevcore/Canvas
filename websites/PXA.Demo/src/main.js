@@ -2,6 +2,7 @@ import './site.css';
 import { initializeBrowserTelemetry } from '../../shared/browserTelemetry.js';
 import { bindDemoInteractions } from './interactions.js';
 import { renderApp } from './renderers.js';
+import { initializeStorageNotice } from '../../shared/storageNotice.js';
 
 initializeBrowserTelemetry({ application: 'demo' });
 
@@ -17,3 +18,4 @@ function mount() {
 window.addEventListener('hashchange', mount);
 
 mount();
+initializeStorageNotice();

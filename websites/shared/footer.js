@@ -46,6 +46,10 @@ const footerGroups = [
     links: [
       { label: 'Terms', href: companyPage('terms') },
       { label: 'Privacy', href: companyPage('privacy') },
+      { label: 'Cookie & storage', href: companyPage('cookie-storage') },
+      { label: 'Imprint', href: companyPage('imprint') },
+      { label: 'Consumer withdrawal', href: companyPage('withdrawal') },
+      { label: 'Data processing agreement', href: companyPage('dpa') },
       { label: 'License', href: companyPage('license') },
     ],
   },
@@ -75,7 +79,11 @@ export function renderPxaFooter(siteName) {
         </div>
         <div class="pxa-footer-bottom">
           <span>Copyright © ${currentYear} Power Dox Automation. All rights reserved.</span>
-          <span><a href="${companyPage('terms')}">Terms</a> · <a href="${companyPage('privacy')}">Privacy</a></span>
+          <span>
+            <a href="${companyPage('terms')}">Terms</a> ·
+            <a href="${companyPage('privacy')}">Privacy</a> ·
+            <button type="button" class="pxa-footer-link-button" data-pxa-storage-settings>Storage settings</button>
+          </span>
         </div>
       </div>
     </footer>

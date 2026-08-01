@@ -95,16 +95,23 @@ jobs:
           npm ci
           npm test
           npm run build
-      - name: Test Account and Documentation
+      - name: Test Account, Company, and Documentation
         run: |
           npm --prefix websites/PXA.Account test
           npm --prefix websites/PXA.Account run type-check
+          npm --prefix websites/PXA.Company test
           npm --prefix websites/PXA.Documentation test
       - name: Build PXA websites
         run: |
           for site in PXA.Account PXA.Company PXA.Demo PXA.Documentation; do
             npm --prefix "websites/$site" run build
           done
+      - name: Install Playwright Chromium
+        working-directory: pxa-designer
+        run: npx playwright install --with-deps chromium
+      - name: Test legal browser workflows
+        working-directory: pxa-designer
+        run: npm run test:e2e:legal
       - name: Collect frontend snapshots
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
         run: |

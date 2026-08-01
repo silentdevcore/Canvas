@@ -13,10 +13,28 @@ namespace PXA.WebApi.Controllers;
 public sealed class AccountRegistrationController : ControllerBase
 {
     private readonly CustomerRegistrationService registrationService;
+    private readonly RegistrationLegalPolicyService legalPolicy;
 
-    public AccountRegistrationController(CustomerRegistrationService registrationService)
+    public AccountRegistrationController(
+        CustomerRegistrationService registrationService,
+        RegistrationLegalPolicyService legalPolicy)
     {
         this.registrationService = registrationService;
+        this.legalPolicy = legalPolicy;
+    }
+
+    [HttpGet("registration-policy")]
+    public async Task<ActionResult<RegistrationPolicyResponse>> GetRegistrationPolicy(
+        [FromQuery] string? locale,
+        CancellationToken cancellationToken)
+    {
+        var policy = await legalPolicy.ResolveAsync(locale, cancellationToken);
+        return policy.Available
+            ? Ok(policy.ToResponse())
+            : Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Registration policy unavailable",
+                detail: "The current legal documents could not be verified.");
     }
 
     [HttpPost("register")]
@@ -38,6 +56,14 @@ public sealed class AccountRegistrationController : ControllerBase
                     "Organization unavailable",
                     outcome.Detail,
                     PxaApiProblems.OrganizationSlugUnavailable)),
+            CustomerRegistrationStatus.PolicyMismatch => StatusCode(
+                StatusCodes.Status409Conflict,
+                PxaApiProblems.Create(
+                    HttpContext,
+                    StatusCodes.Status409Conflict,
+                    "Legal documents changed",
+                    outcome.Detail,
+                    PxaApiProblems.PolicyAcceptanceRequired)),
             CustomerRegistrationStatus.Unavailable => Problem(statusCode: 503, title: outcome.Detail),
             _ => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid registration", detail: outcome.Detail),
         };

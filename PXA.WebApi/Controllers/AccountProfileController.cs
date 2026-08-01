@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Application.Identity;
+using PXA.WebApi.Application.Legal;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 
@@ -26,6 +28,7 @@ public sealed class AccountProfileController : ControllerBase
     private readonly IPxaMailQueue mailQueue;
     private readonly PxaMailOptions mailOptions;
     private readonly PxaRegistrationOptions registrationOptions;
+    private readonly AccountLegalObligationService legalObligations;
 
     public AccountProfileController(
         PxaDbContext dbContext,
@@ -34,7 +37,8 @@ public sealed class AccountProfileController : ControllerBase
         IdentityActionTokenService actionTokens,
         IPxaMailQueue mailQueue,
         IOptions<PxaMailOptions> mailOptions,
-        IOptions<PxaRegistrationOptions> registrationOptions)
+        IOptions<PxaRegistrationOptions> registrationOptions,
+        AccountLegalObligationService legalObligations)
     {
         this.dbContext = dbContext;
         this.tenantContext = tenantContext;
@@ -43,6 +47,7 @@ public sealed class AccountProfileController : ControllerBase
         this.mailQueue = mailQueue;
         this.mailOptions = mailOptions.Value;
         this.registrationOptions = registrationOptions.Value;
+        this.legalObligations = legalObligations;
     }
 
     [HttpGet]
@@ -58,7 +63,7 @@ public sealed class AccountProfileController : ControllerBase
             return Unauthorized();
 
         var roles = await GetActiveOrganizationRolesAsync(userId.Value, cancellationToken);
-        return Ok(ToResponse(user, roles));
+        return Ok(await ToResponseAsync(user, roles, cancellationToken));
     }
 
     [HttpPatch("display-name")]
@@ -86,7 +91,7 @@ public sealed class AccountProfileController : ControllerBase
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var roles = await GetActiveOrganizationRolesAsync(userId.Value, cancellationToken);
-        return Ok(ToResponse(user, roles));
+        return Ok(await ToResponseAsync(user, roles, cancellationToken));
     }
 
     [HttpPatch("locale")]
@@ -114,7 +119,7 @@ public sealed class AccountProfileController : ControllerBase
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var roles = await GetActiveOrganizationRolesAsync(userId.Value, cancellationToken);
-        return Ok(ToResponse(user, roles));
+        return Ok(await ToResponseAsync(user, roles, cancellationToken));
     }
 
     [HttpPost("email-change/request")]
@@ -226,31 +231,56 @@ public sealed class AccountProfileController : ControllerBase
         var userId = tenantContext.UserId;
         if (userId is null)
             return Unauthorized();
-        if (registrationOptions.RequireCurrentTermsAcceptance && request.AcceptTerms != true)
-            return ValidationProblem("The current Terms must be accepted.");
-        if (registrationOptions.RequireCurrentPrivacyAcknowledgement && request.AcceptPrivacy != true)
-            return ValidationProblem("The current Privacy notice must be acknowledged.");
+
+        IDbContextTransaction? transaction = null;
+        if (dbContext.Database.IsRelational())
+        {
+            transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            await dbContext.Database.ExecuteSqlInterpolatedAsync(
+                $"SELECT 1 FROM identity.users WHERE \"Id\" = {userId.Value} FOR UPDATE",
+                cancellationToken);
+        }
+        await using var transactionScope = transaction;
 
         var user = await dbContext.Users.SingleOrDefaultAsync(value => value.Id == userId, cancellationToken);
         if (user is null)
             return Unauthorized();
 
-        var now = DateTimeOffset.UtcNow;
-        if (request.AcceptTerms == true &&
-            !string.Equals(user.TermsAcceptedVersion, registrationOptions.TermsVersion, StringComparison.Ordinal))
+        var obligations = await legalObligations.ResolveAsync(
+            user, tenantContext.OrganizationId, cancellationToken);
+        if (!obligations.Available || obligations.Terms is null || obligations.Privacy is null)
+            return LegalPolicyUnavailable();
+        if (obligations.Terms.ActionRequired &&
+            (request.AcceptTerms != true || request.TermsVersionId != obligations.Terms.Id))
         {
-            user.TermsAcceptedVersion = registrationOptions.TermsVersion;
-            user.TermsAcceptedAt = now;
-            dbContext.UserConsentEvents.Add(NewConsentEvent(
-                user.Id, "terms", "accepted", registrationOptions.TermsVersion, now));
+            return StaleLegalPolicy(
+                "The exact current Terms version must be accepted.");
         }
-        if (request.AcceptPrivacy == true &&
-            !string.Equals(user.PrivacyAcknowledgedVersion, registrationOptions.PrivacyVersion, StringComparison.Ordinal))
+        if (obligations.Privacy.ActionRequired &&
+            (request.AcceptPrivacy != true || request.PrivacyVersionId != obligations.Privacy.Id))
         {
-            user.PrivacyAcknowledgedVersion = registrationOptions.PrivacyVersion;
-            user.PrivacyAcknowledgedAt = now;
+            return StaleLegalPolicy(
+                "The exact current Privacy notice must be acknowledged.");
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        if (obligations.Terms.ActionRequired && request.AcceptTerms == true)
+        {
+            user.TermsAcceptedVersion = obligations.Terms.Version;
+            user.TermsAcceptedAt = now;
+            AddLegalAcceptance(
+                user.Id, obligations.Terms, "TermsAndConditions", "accepted", now);
             dbContext.UserConsentEvents.Add(NewConsentEvent(
-                user.Id, "privacy", "acknowledged", registrationOptions.PrivacyVersion, now));
+                user.Id, "terms", "accepted", obligations.Terms.Version, now));
+        }
+        if (obligations.Privacy.ActionRequired && request.AcceptPrivacy == true)
+        {
+            user.PrivacyAcknowledgedVersion = obligations.Privacy.Version;
+            user.PrivacyAcknowledgedAt = now;
+            AddLegalAcceptance(
+                user.Id, obligations.Privacy, "PrivacyNotice", "acknowledged", now);
+            dbContext.UserConsentEvents.Add(NewConsentEvent(
+                user.Id, "privacy", "acknowledged", obligations.Privacy.Version, now));
         }
 
         var marketingGranted = user.MarketingConsentGrantedAt is not null &&
@@ -279,8 +309,10 @@ public sealed class AccountProfileController : ControllerBase
             request.MarketingConsent,
         }));
         await dbContext.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+            await transaction.CommitAsync(cancellationToken);
         var roles = await GetActiveOrganizationRolesAsync(user.Id, cancellationToken);
-        return Ok(ToResponse(user, roles));
+        return Ok(await ToResponseAsync(user, roles, cancellationToken));
     }
 
     private async Task<IReadOnlyList<string>> GetActiveOrganizationRolesAsync(
@@ -332,23 +364,70 @@ public sealed class AccountProfileController : ControllerBase
             CreatedAt = createdAt,
         };
 
-    private AccountProfileResponse ToResponse(PxaIdentityUser user, IReadOnlyList<string> roles) => new(
-        user.Id,
-        user.DisplayName,
-        user.Email ?? string.Empty,
-        user.PendingEmail,
-        user.Locale,
-        user.Country,
-        roles,
-        user.TermsAcceptedVersion,
-        registrationOptions.TermsVersion,
-        registrationOptions.RequireCurrentTermsAcceptance &&
-            !string.Equals(user.TermsAcceptedVersion, registrationOptions.TermsVersion, StringComparison.Ordinal),
-        user.PrivacyAcknowledgedVersion,
-        registrationOptions.PrivacyVersion,
-        registrationOptions.RequireCurrentPrivacyAcknowledgement &&
-            !string.Equals(user.PrivacyAcknowledgedVersion, registrationOptions.PrivacyVersion, StringComparison.Ordinal),
-        user.MarketingConsentGrantedAt is not null && user.MarketingConsentWithdrawnAt is null);
+    private async Task<AccountProfileResponse> ToResponseAsync(
+        PxaIdentityUser user,
+        IReadOnlyList<string> roles,
+        CancellationToken cancellationToken)
+    {
+        var obligations = await legalObligations.ResolveAsync(
+            user, tenantContext.OrganizationId, cancellationToken);
+        return new AccountProfileResponse(
+            user.Id,
+            user.DisplayName,
+            user.Email ?? string.Empty,
+            user.PendingEmail,
+            user.Locale,
+            user.Country,
+            roles,
+            user.TermsAcceptedVersion,
+            obligations.Terms?.Id,
+            obligations.Terms?.Version ?? registrationOptions.TermsVersion,
+            obligations.Terms?.ActionRequired ?? true,
+            user.PrivacyAcknowledgedVersion,
+            obligations.Privacy?.Id,
+            obligations.Privacy?.Version ?? registrationOptions.PrivacyVersion,
+            obligations.Privacy?.ActionRequired ?? true,
+            obligations.Available,
+            user.MarketingConsentGrantedAt is not null &&
+            user.MarketingConsentWithdrawnAt is null);
+    }
+
+    private void AddLegalAcceptance(
+        Guid userId,
+        AccountLegalObligationDocument document,
+        string documentType,
+        string decision,
+        DateTimeOffset createdAt)
+    {
+        if (document.Id is null || document.ContentHash is null)
+            return;
+        dbContext.LegalAcceptanceEvents.Add(new LegalAcceptanceEvent
+        {
+            UserId = userId,
+            OrganizationId = tenantContext.OrganizationId,
+            LegalDocumentVersionId = document.Id.Value,
+            DocumentType = documentType,
+            Decision = decision,
+            ContentHash = document.ContentHash,
+            Locale = document.Locale,
+            Source = "account-legal-review",
+            CreatedAt = createdAt,
+        });
+    }
+
+    private ObjectResult StaleLegalPolicy(string detail) => Problem(
+        statusCode: StatusCodes.Status409Conflict,
+        title: "Legal document version changed",
+        detail: detail,
+        extensions: new Dictionary<string, object?>
+        {
+            ["code"] = "PXAAPI017",
+        });
+
+    private ObjectResult LegalPolicyUnavailable() => Problem(
+        statusCode: StatusCodes.Status503ServiceUnavailable,
+        title: "Legal documents are temporarily unavailable",
+        detail: "The current legal document versions could not be verified.");
 
     private ActionResult ValidationProblem(string detail) => Problem(
         statusCode: StatusCodes.Status400BadRequest,
@@ -365,11 +444,14 @@ public sealed record AccountProfileResponse(
     string? Country,
     IReadOnlyList<string> Roles,
     string? TermsAcceptedVersion,
+    Guid? CurrentTermsVersionId,
     string CurrentTermsVersion,
     bool RequiresTermsAcceptance,
     string? PrivacyAcknowledgedVersion,
+    Guid? CurrentPrivacyVersionId,
     string CurrentPrivacyVersion,
     bool RequiresPrivacyAcknowledgement,
+    bool LegalPolicyAvailable,
     bool MarketingConsent);
 
 public sealed record UpdateDisplayNameRequest([Required] string DisplayName);
@@ -385,6 +467,8 @@ public sealed record ChangePasswordRequest(
 public sealed record UpdateAccountConsentRequest(
     bool? AcceptTerms,
     bool? AcceptPrivacy,
-    bool MarketingConsent);
+    bool MarketingConsent,
+    Guid? TermsVersionId = null,
+    Guid? PrivacyVersionId = null);
 
 public sealed record AccountProfileActionAccepted(string Message);

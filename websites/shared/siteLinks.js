@@ -59,6 +59,10 @@ export function companyPage(path = '') {
     'contact',
     'terms',
     'privacy',
+    'cookie-storage',
+    'imprint',
+    'withdrawal',
+    'dpa',
     'license',
   ]);
   const pagePath = staticPages.has(cleanPath) ? `${cleanPath}.html` : cleanPath;

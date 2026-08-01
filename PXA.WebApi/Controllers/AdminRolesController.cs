@@ -44,6 +44,9 @@ public sealed class AdminRolesController : ControllerBase
             [PxaPermissions.AuditRead] = new("Operations", "Search and inspect tenant audit history."),
             [PxaPermissions.MailRead] = new("Operations", "View transactional mail delivery metadata."),
             [PxaPermissions.MailManage] = new("Operations", "Retry or cancel transactional mail delivery."),
+            [PxaPermissions.LegalRead] = new("Legal", "Read legal documents and publication history."),
+            [PxaPermissions.LegalAuthor] = new("Legal", "Create and edit legal document drafts."),
+            [PxaPermissions.LegalApprove] = new("Legal", "Review and publish legal document versions."),
         };
 
     private readonly PxaDbContext dbContext;

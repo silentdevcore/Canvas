@@ -1,0 +1,18 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "legal-document-governance",
+  "impact": "minor",
+  "components": [
+    "account",
+    "admin",
+    "api",
+    "company",
+    "demo",
+    "documentation",
+    "infrastructure"
+  ],
+  "category": "added",
+  "summary": "Versioned legal documents now include independent approval, resilient public snapshots, concurrency-safe registration and reacceptance evidence, Account legal-review gates, and audited minimized Admin exports.",
+  "featureIds": [],
+  "breaking": false
+}
