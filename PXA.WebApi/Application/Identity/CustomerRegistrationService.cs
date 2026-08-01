@@ -23,7 +23,8 @@ public sealed class CustomerRegistrationService(
     IPxaMailQueue mailQueue,
     IOptions<PxaMailOptions> mailOptions,
     IOptions<PxaRegistrationOptions> registrationOptions,
-    TrialActivationService trialActivation)
+    TrialActivationService trialActivation,
+    RegistrationLegalPolicyService legalPolicy)
 {
     private readonly PxaMailOptions mailOptions = mailOptions.Value;
     private readonly PxaRegistrationOptions registrationOptions = registrationOptions.Value;
@@ -38,6 +39,16 @@ public sealed class CustomerRegistrationService(
 
         if (await userManager.FindByEmailAsync(validation.Email) is not null)
             return CustomerRegistrationOutcome.Accepted();
+
+        var policy = await legalPolicy.ResolveAsync(validation.Locale, cancellationToken);
+        if (!policy.Available || policy.Terms is null || policy.Privacy is null)
+            return CustomerRegistrationOutcome.Unavailable();
+        if (policy.DatabaseBacked &&
+            (request.TermsVersionId != policy.Terms.Id ||
+             request.PrivacyVersionId != policy.Privacy.Id))
+        {
+            return CustomerRegistrationOutcome.PolicyMismatch();
+        }
 
         if (validation.RequestedSlug is not null && await dbContext.Organizations.AnyAsync(
                 value => value.Slug == validation.RequestedSlug, cancellationToken))
@@ -62,9 +73,9 @@ public sealed class CustomerRegistrationService(
             IsActive = true,
             Locale = validation.Locale,
             Country = validation.Country,
-            TermsAcceptedVersion = registrationOptions.TermsVersion,
+            TermsAcceptedVersion = policy.Terms.Version,
             TermsAcceptedAt = now,
-            PrivacyAcknowledgedVersion = registrationOptions.PrivacyVersion,
+            PrivacyAcknowledgedVersion = policy.Privacy.Version,
             PrivacyAcknowledgedAt = now,
             MarketingConsentGrantedAt = request.SubscribeToNewsletter == true ? now : null,
             MarketingConsentSource = request.SubscribeToNewsletter == true ? "registration" : null,
@@ -113,8 +124,8 @@ public sealed class CustomerRegistrationService(
 
         trialActivation.CreatePendingTrialForNewOrganization(organization, validation.AccountType, now);
         dbContext.UserConsentEvents.AddRange(
-            NewConsentEvent(user.Id, "terms", "accepted", registrationOptions.TermsVersion, "registration", now),
-            NewConsentEvent(user.Id, "privacy", "acknowledged", registrationOptions.PrivacyVersion, "registration", now),
+            NewConsentEvent(user.Id, "terms", "accepted", policy.Terms.Version, "registration", now),
+            NewConsentEvent(user.Id, "privacy", "acknowledged", policy.Privacy.Version, "registration", now),
             NewConsentEvent(
                 user.Id,
                 "marketing",
@@ -122,6 +133,14 @@ public sealed class CustomerRegistrationService(
                 null,
                 "registration",
                 now));
+        if (policy.DatabaseBacked)
+        {
+            dbContext.LegalAcceptanceEvents.AddRange(
+                NewLegalAcceptanceEvent(
+                    user.Id, organization.Id, policy.Terms, "terms", "accepted", now),
+                NewLegalAcceptanceEvent(
+                    user.Id, organization.Id, policy.Privacy, "privacy", "acknowledged", now));
+        }
 
         var issued = await actionTokens.IssueAsync(
             user.Id,
@@ -154,9 +173,13 @@ public sealed class CustomerRegistrationService(
                 AccountType = validation.AccountType,
                 validation.Country,
                 validation.Locale,
-                TermsVersion = registrationOptions.TermsVersion,
+                TermsVersion = policy.Terms.Version,
+                TermsVersionId = policy.Terms.Id,
+                TermsContentHash = policy.Terms.ContentHash,
                 TermsAcceptedAt = now,
-                PrivacyVersion = registrationOptions.PrivacyVersion,
+                PrivacyVersion = policy.Privacy.Version,
+                PrivacyVersionId = policy.Privacy.Id,
+                PrivacyContentHash = policy.Privacy.ContentHash,
                 PrivacyAcknowledgedAt = now,
                 NewsletterConsent = request.SubscribeToNewsletter ?? false,
                 NewsletterConsentSource = request.SubscribeToNewsletter == true ? "registration" : null,
@@ -314,6 +337,26 @@ public sealed class CustomerRegistrationService(
             Decision = decision,
             PolicyVersion = policyVersion,
             Source = source,
+            CreatedAt = createdAt,
+        };
+
+    private static LegalAcceptanceEvent NewLegalAcceptanceEvent(
+        Guid userId,
+        Guid organizationId,
+        RegistrationLegalPolicyDocument document,
+        string documentType,
+        string decision,
+        DateTimeOffset createdAt) =>
+        new()
+        {
+            UserId = userId,
+            OrganizationId = organizationId,
+            LegalDocumentVersionId = document.Id!.Value,
+            DocumentType = documentType,
+            Decision = decision,
+            ContentHash = document.ContentHash!,
+            Locale = document.Locale,
+            Source = "registration",
             CreatedAt = createdAt,
         };
 }

@@ -450,6 +450,85 @@
       ]
     },
     {
+      "title": "Governance",
+      "topics": [
+        {
+          "title": "Legal documents and version review",
+          "group": "Governance",
+          "permission": "System Administrator with legal.read, legal.author, or legal.approve",
+          "summary": "Create immutable legal versions and compare every successor with its recorded predecessor before independent approval and publication.",
+          "prerequisites": [
+            "Use an active, email-verified System Administrator account.",
+            "Confirm that qualified legal counsel has approved production wording.",
+            "Required access: legal.read to compare, legal.author to draft, and legal.approve to review or publish."
+          ],
+          "steps": [
+            "Open Legal documents and create the stable document identity or a successor draft.",
+            "Submit the draft for independent review.",
+            "Select Compare on the successor and inspect metadata, hashes, and every changed Markdown line against its recorded predecessor.",
+            "Approve or reject only after the required comparison is active.",
+            "Keep or reopen the exact predecessor comparison before publishing immediately or scheduling the approved version."
+          ],
+          "result": "The immutable successor is published only by an independent reviewer who identified its exact predecessor comparison.",
+          "failures": [
+            "The author cannot approve or publish their own version.",
+            "A comparison between different legal documents is rejected.",
+            "Review and publication return a conflict when the submitted predecessor ID does not match the recorded previous version."
+          ],
+          "audit": "Create, update, submit, review, publish, and retire mutations are audited; review and publication record the compared predecessor ID without copying document bodies.",
+          "endpoint": "GET /api/pxa/v1/admin/legal/versions/compare and /api/pxa/v1/admin/legal",
+          "screenshot": "audit.png",
+          "notes": [
+            "The comparison is line-based and shows unchanged, modified, added, and removed Markdown with both content hashes.",
+            "An initial version has no predecessor and therefore does not require an artificial comparison.",
+            "A comparison is review evidence, not legal approval; counsel approval and the four-eyes rule remain separate requirements."
+          ],
+          "references": [],
+          "apiExample": {
+            "request": "GET /api/pxa/v1/admin/legal/versions/compare?baseVersionId=synthetic-base-id&targetVersionId=synthetic-target-id\nAccept: application/json",
+            "response": "{\n  \"displayName\": \"Terms and Conditions\",\n  \"summary\": {\n    \"unchanged\": 42,\n    \"modified\": 3,\n    \"added\": 2,\n    \"removed\": 1\n  },\n  \"lines\": [\n    {\n      \"kind\": \"Modified\",\n      \"baseLineNumber\": 18,\n      \"targetLineNumber\": 18,\n      \"baseText\": \"Previous synthetic clause\",\n      \"targetText\": \"Updated synthetic clause\"\n    }\n  ]\n}"
+          }
+        },
+        {
+          "title": "Legal acceptance progress and evidence",
+          "group": "Governance",
+          "permission": "System Administrator with legal.read",
+          "summary": "Measure exact-version Terms acceptance or Privacy acknowledgement without exposing account names or email addresses.",
+          "prerequisites": [
+            "Use an active, email-verified System Administrator account.",
+            "Select a published or scheduled legal document version.",
+            "Confirm the intended audience and whether the version explicitly requires Terms reacceptance."
+          ],
+          "steps": [
+            "Open Legal documents and select Acceptance on the relevant version.",
+            "Review affected, completed, pending, and completion percentage values.",
+            "Filter by organization, account type, locale, or evidence timestamp when investigating a rollout.",
+            "Export CSV or JSON only when minimized evidence is required for an authorized review."
+          ],
+          "result": "The dashboard reports progress for the exact immutable version and the export contains evidence identifiers, organization, hash, decision, locale, source, and timestamp only.",
+          "failures": [
+            "An unknown version returns not found.",
+            "Invalid account types or date ranges are rejected.",
+            "Accounts outside the document audience are excluded from the denominator."
+          ],
+          "audit": "Acceptance itself is append-only evidence. Every export creates a legal.acceptance.exported audit event containing only the version, format, filters, and exported row count.",
+          "endpoint": "GET /api/pxa/v1/admin/legal/versions/{versionId}/acceptance and POST /api/pxa/v1/admin/legal/versions/{versionId}/acceptance/export",
+          "screenshot": "audit.png",
+          "notes": [
+            "Terms acceptance and Privacy acknowledgement are different legal actions.",
+            "The export intentionally excludes display names, email addresses, tokens, and document bodies.",
+            "The export is a CSRF-protected mutation because it creates an audit event.",
+            "Date filters apply to the evidence timestamp, while the audience determines affected accounts."
+          ],
+          "references": [],
+          "apiExample": {
+            "request": "GET /api/pxa/v1/admin/legal/versions/synthetic-version-id/acceptance?accountType=Company&locale=de\nAccept: application/json",
+            "response": "{\n  \"legalDocumentVersionId\": \"synthetic-version-id\",\n  \"version\": \"2026-08\",\n  \"affectedAccounts\": 120,\n  \"completed\": 96,\n  \"pending\": 24,\n  \"completionPercentage\": 80.0\n}"
+          }
+        }
+      ]
+    },
+    {
       "title": "Security",
       "topics": [
         {
@@ -608,6 +687,10 @@
     [
       "/audit",
       "Audit workspace"
+    ],
+    [
+      "/legal",
+      "Legal documents and version review"
     ],
     [
       "/system-status",

@@ -18,6 +18,9 @@ public static class PxaPermissions
     public const string AuditRead = "audit.read";
     public const string MailRead = "mail.read";
     public const string MailManage = "mail.manage";
+    public const string LegalRead = "legal.read";
+    public const string LegalAuthor = "legal.author";
+    public const string LegalApprove = "legal.approve";
 
     public static IReadOnlyList<string> All { get; } =
     [
@@ -37,5 +40,8 @@ public static class PxaPermissions
         AuditRead,
         MailRead,
         MailManage,
+        LegalRead,
+        LegalAuthor,
+        LegalApprove,
     ];
 }

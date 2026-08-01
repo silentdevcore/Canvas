@@ -4,6 +4,7 @@ import { renderPxaFooter } from '../../shared/footer.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import pxaReleaseManifest from '../../../product-metadata/pxa-releases.json';
 import designerFeatureManifest from '../../../product-metadata/designer-features.json';
+import { initializeStorageNotice } from '../../shared/storageNotice.js';
 
 initializeBrowserTelemetry({ application: 'documentation' });
 
@@ -3916,6 +3917,7 @@ document.querySelector('#app').innerHTML = `
     ${renderPxaFooter('PXA.Documentation')}
   </div>
 `;
+initializeStorageNotice();
 
 initDocumentationScrollSpy();
 initDocumentationSearch();

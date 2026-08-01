@@ -12,6 +12,8 @@ import {
   confirmPasswordReset,
   createDesignerHandoff,
   currentUser,
+  getRegistrationPolicy,
+  getAccountProfile,
   login,
   logout,
   register,
@@ -20,7 +22,7 @@ import {
   switchOrganization,
   verifyEmail,
 } from './api';
-import type { UserInfo } from './api';
+import type { AccountProfileResponse, RegistrationPolicyResponse, UserInfo } from './api';
 import { clearAccountContext, updateAccountContext } from './accountContext';
 import { accountPermissions, hasAccountPermission, type AccountPermission } from './permissions';
 import { bindShellEvents, closeAccountNavigation, navigation, renderShell } from './shell';
@@ -28,9 +30,11 @@ import { bindClosureEvents, closurePage } from './pages/closure';
 import { dashboardPage } from './pages/dashboard';
 import { bindDeveloperAccessEvents, developerAccessPage } from './pages/developerAccess';
 import { bindLicensesEvents, licensesPage } from './pages/licenses';
+import { bindLegalReviewEvents, legalReviewPage } from './pages/legalReview';
 import { bindOrganizationEvents, organizationPage } from './pages/organization';
 import { bindProfileEvents, profilePage } from './pages/profile';
 import { bindSecurityEvents, securityPage } from './pages/security';
+import { initializeStorageNotice } from '../../shared/storageNotice.js';
 import { subscriptionPage } from './pages/subscription';
 import { supportPage } from './pages/support';
 import { usagePage } from './pages/usage';
@@ -65,6 +69,7 @@ const portalPages: Record<string, PortalPage> = {
   '/closure': { render: closurePage, bind: bindClosureEvents, title: 'Account closure' },
 };
 const portalPaths = new Set([...navigation.map((item) => item.path), '/closure']);
+portalPaths.add('/legal-review');
 
 interface AccountState {
   user: UserInfo | null;
@@ -74,6 +79,12 @@ interface AccountState {
   verificationStarted: boolean;
   designerAuthorizationStarted: boolean;
   accessDenied: ApiError | null;
+  registrationPolicy: RegistrationPolicyResponse | null;
+  registrationPolicyLocale: string | null;
+  registrationPolicyLoading: boolean;
+  registrationPolicyError: string;
+  legalProfile: AccountProfileResponse | null;
+  pendingReturnUrl: string | null;
 }
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -87,6 +98,12 @@ const state: AccountState = {
   verificationStarted: false,
   designerAuthorizationStarted: false,
   accessDenied: null,
+  registrationPolicy: null,
+  registrationPolicyLocale: null,
+  registrationPolicyLoading: false,
+  registrationPolicyError: '',
+  legalProfile: null,
+  pendingReturnUrl: null,
 };
 
 async function handleLogout(): Promise<void> {
@@ -101,6 +118,7 @@ async function handleOrganizationSwitch(organizationId: string): Promise<void> {
     const response = await switchOrganization(organizationId);
     state.user = response!.user;
     updateAccountContext(state.user);
+    state.legalProfile = await getAccountProfile();
     state.accessDenied = null;
     navigate('/dashboard', true);
   } catch (error) {
@@ -126,6 +144,17 @@ function authPath(path: string, includeCampaign = false): string {
 
 function withSignedInSignal(url: string): string {
   return appendSignedInSignal(url, new URL(siteLinks.company).origin);
+}
+
+function completeLegalReview(profile: AccountProfileResponse): void {
+  state.legalProfile = profile;
+  const target = state.pendingReturnUrl;
+  state.pendingReturnUrl = null;
+  if (target) {
+    window.location.replace(withSignedInSignal(target));
+    return;
+  }
+  navigate('/dashboard', true);
 }
 
 function escapeHtml(value: unknown = ''): string {
@@ -210,6 +239,15 @@ function loginPage(): string {
 
 function registerPage(): string {
   const locale = accountLocale();
+  const policy = state.registrationPolicyLocale === locale ? state.registrationPolicy : null;
+  const policyReady = policy?.available === true && policy.terms !== null && policy.privacy !== null;
+  const policyMessage = state.registrationPolicyLoading
+    ? message('info', tr('legalPolicyLoading'))
+    : state.registrationPolicyError
+      ? message('error', state.registrationPolicyError)
+      : '';
+  const termsVersion = policyReady ? ` <small>${tr('legalVersion')} ${escapeHtml(policy.terms!.version)}</small>` : '';
+  const privacyVersion = policyReady ? ` <small>${tr('legalVersion')} ${escapeHtml(policy.privacy!.version)}</small>` : '';
   const languageNames: Record<string, string> = {
     en: 'English', de: 'Deutsch', fr: 'Français', es: 'Español', it: 'Italiano', ar: 'العربية',
   };
@@ -235,11 +273,12 @@ function registerPage(): string {
           `<option value="${value}" ${locale === value ? 'selected' : ''}>${languageNames[value]}</option>`).join('')}</select></label>
       </div>
       <label>${tr('password')}<input name="password" type="password" autocomplete="new-password" minlength="12" required><small>${tr('passwordHelp')}</small></label>
-      <label class="account-checkbox"><input name="acceptTerms" type="checkbox" required> <a href="${companyPage('terms')}" target="_blank">${tr('acceptTerms')}</a></label>
-      <label class="account-checkbox"><input name="acceptPrivacy" type="checkbox" required> <a href="${companyPage('privacy')}" target="_blank">${tr('acceptPrivacy')}</a></label>
+      <label class="account-checkbox"><input name="acceptTerms" type="checkbox" required ${policyReady ? '' : 'disabled'}> <a href="${companyPage('terms')}" target="_blank">${tr('acceptTerms')}</a>${termsVersion}</label>
+      <label class="account-checkbox"><input name="acceptPrivacy" type="checkbox" required ${policyReady ? '' : 'disabled'}> <a href="${companyPage('privacy')}" target="_blank">${tr('acceptPrivacy')}</a>${privacyVersion}</label>
       <label class="account-checkbox"><input name="subscribeToNewsletter" type="checkbox"> ${tr('marketing')}</label>
+      ${policyMessage}
       <div class="account-form-error" id="form-error" role="alert" hidden></div>
-      <button class="pxa-button pxa-button--primary" type="submit">${tr('startTrial')}</button>
+      <button class="pxa-button pxa-button--primary" type="submit" ${policyReady ? '' : 'disabled'}>${tr('startTrial')}</button>
     </form>
     <div class="account-form-links"><span>${tr('alreadyRegistered')} <a href="${escapeHtml(authPath('/login'))}">${tr('signIn')}</a></span></div>
   `, tr('registerTitle'), tr('registerDescription'));
@@ -412,17 +451,36 @@ function bindEvents(): void {
     fields.querySelector<HTMLInputElement>('input[name="companyName"]')!.required = company;
   }));
   document.querySelector<HTMLSelectElement>('select[name="locale"]')?.addEventListener('change', (event) => {
-    setAccountLocale((event.currentTarget as HTMLSelectElement).value);
+    const locale = (event.currentTarget as HTMLSelectElement).value;
+    setAccountLocale(locale);
+    state.registrationPolicy = null;
+    state.registrationPolicyLocale = null;
+    state.registrationPolicyError = '';
+    render();
   });
   bindForm('#login-form', async (data) => {
     const response = await login(formString(data, 'identifier'), formString(data, 'password'), data.get('rememberMe') === 'on');
     state.user = response!.user;
     updateAccountContext(state.user);
+    const legalProfile = await getAccountProfile();
+    if (!legalProfile)
+      throw new Error('PXA Account returned an empty legal profile.');
+    state.legalProfile = legalProfile;
     const target = consumeReturnUrl();
-    if (target) { window.location.href = withSignedInSignal(target); return; }
+    if (target &&
+        legalProfile.legalPolicyAvailable &&
+        !legalProfile.requiresTermsAcceptance &&
+        !legalProfile.requiresPrivacyAcknowledgement) {
+      window.location.href = withSignedInSignal(target);
+      return;
+    }
+    state.pendingReturnUrl = target;
     navigate('/dashboard', true);
   });
   bindForm('#register-form', async (data) => {
+    const policy = state.registrationPolicy;
+    if (!policy?.available || !policy.terms || !policy.privacy)
+      throw new Error(tr('legalPolicyUnavailable'));
     const response = await register({
       accountType: formString(data, 'accountType'),
       displayName: formString(data, 'displayName'),
@@ -437,6 +495,8 @@ function bindEvents(): void {
       subscribeToNewsletter: data.get('subscribeToNewsletter') === 'on',
       campaignContext: extractCampaignContext() as Record<string, string> | null,
       returnUrl: consumeReturnUrl(),
+      termsVersionId: policy.terms.id,
+      privacyVersionId: policy.privacy.id,
     });
     state.registrationEmail = formString(data, 'email');
     state.notice = response!.message;
@@ -473,6 +533,27 @@ function bindEvents(): void {
     await confirmPasswordReset(token, formString(data, 'password'));
     state.notice = tr('passwordUpdated'); navigate('/login', true);
   });
+}
+
+async function loadRegistrationPolicy(locale: string): Promise<void> {
+  if (state.registrationPolicyLoading) return;
+  state.registrationPolicyLoading = true;
+  state.registrationPolicyError = '';
+  render();
+  try {
+    const policy = await getRegistrationPolicy(locale);
+    if (accountLocale() !== locale) return;
+    state.registrationPolicy = policy;
+    state.registrationPolicyLocale = locale;
+  } catch (error) {
+    if (accountLocale() !== locale) return;
+    state.registrationPolicy = null;
+    state.registrationPolicyLocale = locale;
+    state.registrationPolicyError = (error as ApiError).message || tr('legalPolicyUnavailable');
+  } finally {
+    if (accountLocale() === locale) state.registrationPolicyLoading = false;
+    render();
+  }
 }
 
 async function runVerification(): Promise<void> {
@@ -537,6 +618,24 @@ async function runDesignerAuthorization(): Promise<void> {
 function render(): void {
   if (state.loading) { app.innerHTML = '<main class="account-loading"><span class="account-progress"></span><p>Loading your account</p></main>'; return; }
   const path = location.pathname;
+  const requiresLegalReview = state.user && state.legalProfile &&
+    (!state.legalProfile.legalPolicyAvailable ||
+      state.legalProfile.requiresTermsAcceptance ||
+      state.legalProfile.requiresPrivacyAcknowledgement);
+  if (requiresLegalReview && path !== '/legal-review') {
+    navigate('/legal-review', true);
+    return;
+  }
+  if (state.user && path === '/legal-review' && !requiresLegalReview) {
+    navigate('/dashboard', true);
+    return;
+  }
+  if (state.user && path === '/legal-review' && state.legalProfile) {
+    renderShell(app, legalReviewPage(state.legalProfile), 'Legal review', state.user);
+    bindShellEvents(handleLogout, handleOrganizationSwitch);
+    bindLegalReviewEvents(state.legalProfile, completeLegalReview);
+    return;
+  }
   if (state.user && ['/login', '/register', '/'].includes(path)) {
     const target = consumeReturnUrl();
     if (target) { window.location.href = withSignedInSignal(target); return; }
@@ -567,6 +666,12 @@ function render(): void {
           : path === '/reset-password' ? resetPasswordPage()
             : loginPage();
   bindEvents();
+  if (path === '/register' &&
+      !state.registrationPolicyLoading &&
+      state.registrationPolicyLocale !== accountLocale())
+  {
+    void loadRegistrationPolicy(accountLocale());
+  }
   if (path === '/verify-email') runVerification();
   if (path === '/confirm-email') runEmailChangeConfirmation();
   if (path === '/designer-authorize') runDesignerAuthorization();
@@ -600,6 +705,7 @@ async function initialize(): Promise<void> {
   try {
     state.user = await currentUser();
     updateAccountContext(state.user);
+    state.legalProfile = await getAccountProfile();
   }
   catch (error) { if ((error as ApiError).status !== 401) state.notice = 'PXA Account cannot reach the API.'; }
   state.loading = false;
@@ -607,3 +713,4 @@ async function initialize(): Promise<void> {
 }
 
 initialize();
+initializeStorageNotice();

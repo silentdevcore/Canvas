@@ -68,6 +68,16 @@ import {
   getAdminRoles,
   revokeAdminRoleMember,
   validateAdminLicense,
+  getAdminLegalDocuments,
+  compareAdminLegalVersions,
+  getAdminLegalAcceptance,
+  exportAdminLegalAcceptance,
+  createAdminLegalDocument,
+  createAdminLegalVersion,
+  submitAdminLegalVersion,
+  reviewAdminLegalVersion,
+  publishAdminLegalVersion,
+  retireAdminLegalVersion,
 } from './api.js';
 
 initializeBrowserTelemetry({ application: 'admin' });
@@ -86,6 +96,7 @@ const navigation = [
   { path: '/audit', label: 'Audit', group: 'Operations' },
   { path: '/system-status', label: 'System status', group: 'Operations', systemOnly: true },
   { path: '/settings', label: 'Settings', group: 'Operations' },
+  { path: '/legal', label: 'Legal documents', group: 'Governance', systemOnly: true },
   { path: '/release-notes', label: 'Release notes', group: 'Reference' },
   { path: '/documentation', label: 'Admin documentation', group: 'Reference' },
 ];
@@ -167,6 +178,26 @@ const state = {
   },
   systemHealth: {
     data: null, loading: false, loaded: false, error: null,
+  },
+  legal: {
+    documents: [],
+    versions: [],
+    loading: false,
+    loaded: false,
+    saving: false,
+    error: null,
+    notice: null,
+    previewId: null,
+    comparison: null,
+    comparisonDocumentId: null,
+    comparisonBaseId: null,
+    comparisonTargetId: null,
+    comparisonLoading: false,
+    acceptanceVersionId: null,
+    acceptance: null,
+    acceptanceFilters: { organizationId: '', accountType: '', locale: '', from: '', to: '' },
+    acceptanceLoading: false,
+    acceptanceExporting: false,
   },
 };
 
@@ -714,6 +745,468 @@ function documentationPage() {
       </article>
     </div>
   `;
+}
+
+const legalDocumentTypes = [
+  'TermsAndConditions',
+  'PrivacyNotice',
+  'CookieAndStoragePolicy',
+  'Imprint',
+  'ConsumerWithdrawal',
+  'DataProcessingAgreement',
+  'LicenseAgreement',
+  'SubprocessorList',
+  'ServiceLevelAgreement',
+];
+
+const legalAudiences = [
+  'All', 'IndividualDeveloper', 'Company', 'Consumer', 'Business', 'Cloud', 'OnPremise',
+];
+
+function legalStatusClass(status) {
+  if (status === 'Published') return 'admin-status--ready';
+  if (status === 'Scheduled' || status === 'Approved') return 'admin-status--active';
+  if (status === 'Retired') return 'admin-status--inactive';
+  return 'admin-status--planned';
+}
+
+function hasRequiredLegalComparison(version) {
+  if (!version.previousVersionId) return true;
+  const comparison = state.legal.comparison;
+  return comparison?.targetVersion.id === version.id &&
+    comparison?.baseVersion.id === version.previousVersionId;
+}
+
+function legalVersionOption(version) {
+  return `${escapeHtml(version.version)} · ${escapeHtml(version.locale)} · ${escapeHtml(version.audience)} · ${escapeHtml(version.status)}`;
+}
+
+function renderLegalComparison() {
+  const legal = state.legal;
+  const comparison = legal.comparison;
+  const comparableDocuments = legal.documents.filter((document) =>
+    legal.versions.filter((version) => version.legalDocumentId === document.id).length >= 2);
+  const selectedDocumentId = legal.comparisonDocumentId ||
+    comparableDocuments[0]?.id ||
+    '';
+  const versions = legal.versions.filter((version) =>
+    version.legalDocumentId === selectedDocumentId);
+  const baseId = legal.comparisonBaseId || versions[1]?.id || versions[0]?.id || '';
+  const targetId = legal.comparisonTargetId || versions[0]?.id || '';
+  const lineRows = comparison?.lines.map((line) => `
+    <tr class="admin-legal-diff-row admin-legal-diff-row--${line.kind.toLowerCase()}">
+      <td class="admin-legal-diff-number">${line.baseLineNumber ?? ''}</td>
+      <td><pre>${escapeHtml(line.baseText ?? '')}</pre></td>
+      <td class="admin-legal-diff-number">${line.targetLineNumber ?? ''}</td>
+      <td><pre>${escapeHtml(line.targetText ?? '')}</pre></td>
+    </tr>`).join('') || '';
+  return `
+    <section class="admin-section admin-legal-comparison" aria-busy="${legal.comparisonLoading}">
+      <div class="admin-section-heading">
+        <div>
+          <h2>Compare versions</h2>
+          <p>Review exact Markdown and metadata changes before approving or publishing a successor version.</p>
+        </div>
+        ${comparison ? '<button type="button" id="legal-comparison-close">Close comparison</button>' : ''}
+      </div>
+      <form id="legal-comparison-form" class="admin-legal-comparison-controls">
+        <label class="admin-field">
+          <span>Document</span>
+          <select name="documentId" ${comparableDocuments.length ? '' : 'disabled'}>
+            ${comparableDocuments.map((document) =>
+              `<option value="${document.id}" ${document.id === selectedDocumentId ? 'selected' : ''}>${escapeHtml(document.displayName)}</option>`).join('')}
+          </select>
+        </label>
+        <label class="admin-field">
+          <span>Base version</span>
+          <select name="baseVersionId" ${versions.length ? '' : 'disabled'}>
+            ${versions.map((version) =>
+              `<option value="${version.id}" ${version.id === baseId ? 'selected' : ''}>${legalVersionOption(version)}</option>`).join('')}
+          </select>
+        </label>
+        <label class="admin-field">
+          <span>Target version</span>
+          <select name="targetVersionId" ${versions.length ? '' : 'disabled'}>
+            ${versions.map((version) =>
+              `<option value="${version.id}" ${version.id === targetId ? 'selected' : ''}>${legalVersionOption(version)}</option>`).join('')}
+          </select>
+        </label>
+        <button class="pxa-button pxa-button--secondary" type="submit"
+          ${legal.comparisonLoading || versions.length < 2 ? 'disabled' : ''}>
+          ${legal.comparisonLoading ? 'Comparing...' : 'Compare'}
+        </button>
+      </form>
+      ${comparableDocuments.length ? '' : '<div class="admin-empty-state"><strong>No comparable versions</strong><p>Create a second version of a document to enable comparison.</p></div>'}
+      ${comparison ? `
+        <div class="admin-legal-diff-summary" aria-label="Comparison summary">
+          <article><span>Unchanged</span><strong>${comparison.summary.unchanged}</strong></article>
+          <article><span>Modified</span><strong>${comparison.summary.modified}</strong></article>
+          <article><span>Added</span><strong>${comparison.summary.added}</strong></article>
+          <article><span>Removed</span><strong>${comparison.summary.removed}</strong></article>
+        </div>
+        <div class="admin-legal-diff-metadata">
+          <article>
+            <span>Base</span>
+            <strong>${legalVersionOption(comparison.baseVersion)}</strong>
+            <small>Hash ${escapeHtml(comparison.baseVersion.contentHash)} · Created ${escapeHtml(formatDate(comparison.baseVersion.createdAt))}</small>
+          </article>
+          <article>
+            <span>Target</span>
+            <strong>${legalVersionOption(comparison.targetVersion)}</strong>
+            <small>Hash ${escapeHtml(comparison.targetVersion.contentHash)} · Created ${escapeHtml(formatDate(comparison.targetVersion.createdAt))}</small>
+          </article>
+        </div>
+        <div class="admin-legal-diff-scroll" tabindex="0" aria-label="Side-by-side Markdown comparison">
+          <table class="admin-legal-diff-table">
+            <thead><tr><th colspan="2">Base · ${escapeHtml(comparison.baseVersion.version)}</th><th colspan="2">Target · ${escapeHtml(comparison.targetVersion.version)}</th></tr></thead>
+            <tbody>${lineRows}</tbody>
+          </table>
+        </div>` : ''}
+    </section>`;
+}
+
+function legalPage() {
+  const legal = state.legal;
+  const documentById = new Map(legal.documents.map((item) => [item.id, item]));
+  const preview = legal.versions.find((item) => item.id === legal.previewId);
+  const rows = legal.versions.map((version) => {
+    const document = documentById.get(version.legalDocumentId);
+    const authoredByCurrentUser = version.createdByUserId === state.user.id;
+    const approvedByCurrentUser = version.approvedByUserId === state.user.id;
+    const canSubmit = version.status === 'Draft' && authoredByCurrentUser;
+    const canReview = version.status === 'InReview' && !authoredByCurrentUser;
+    const canPublish = version.status === 'Approved' && !authoredByCurrentUser && approvedByCurrentUser;
+    const canRetire = version.status === 'Published' || version.status === 'Scheduled';
+    const comparisonReady = hasRequiredLegalComparison(version);
+    const comparisonTitle = comparisonReady
+      ? ''
+      : 'Compare this version with its recorded predecessor first.';
+    return `
+      <tr>
+        <td><strong>${escapeHtml(document?.displayName || 'Unknown document')}</strong><small>${escapeHtml(document?.type || '')}</small></td>
+        <td>${escapeHtml(version.version)}<small>${escapeHtml(version.contentHash.slice(0, 12))}</small></td>
+        <td>${escapeHtml(version.locale)} · ${escapeHtml(version.audience)}</td>
+        <td><span class="admin-status ${legalStatusClass(version.status)}">${escapeHtml(version.status)}</span></td>
+        <td>${escapeHtml(formatDate(version.effectiveAt || version.createdAt))}</td>
+        <td>
+          <div class="admin-row-actions admin-legal-actions">
+            <button type="button" class="legal-preview" data-version-id="${version.id}">Preview</button>
+            ${(version.status === 'Published' || version.status === 'Scheduled') ? `<button type="button" class="legal-acceptance" data-version-id="${version.id}">Acceptance</button>` : ''}
+            ${version.previousVersionId ? `<button type="button" class="legal-compare" data-base-version-id="${version.previousVersionId}" data-target-version-id="${version.id}">Compare</button>` : ''}
+            ${canSubmit ? `<button type="button" class="legal-submit" data-version-id="${version.id}">Submit</button>` : ''}
+            ${canReview ? `<button type="button" class="legal-review" data-version-id="${version.id}" data-approve="true" ${comparisonReady ? '' : 'disabled'} title="${comparisonTitle}">Approve</button><button type="button" class="legal-review" data-version-id="${version.id}" data-approve="false" ${comparisonReady ? '' : 'disabled'} title="${comparisonTitle}">Reject</button>` : ''}
+            ${canPublish ? `<button type="button" class="legal-publish" data-version-id="${version.id}" ${comparisonReady ? '' : 'disabled'} title="${comparisonTitle}">Publish</button>` : ''}
+            ${canRetire ? `<button type="button" class="legal-retire" data-version-id="${version.id}">Retire</button>` : ''}
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+  return `
+    <header class="admin-page-header">
+      <div><p class="pxa-kicker">Governance</p><h1>Legal documents</h1><p>Author, independently review, schedule, and publish immutable legal document versions.</p></div>
+      <span class="admin-record-count">${legal.documents.length} documents · ${legal.versions.length} versions</span>
+    </header>
+    <div class="admin-alert admin-alert--warning admin-detail-alert">
+      Production publication requires verified operator details and approval by qualified German legal counsel.
+      Paid consumer checkout must remain disabled until its legal workflow is approved.
+    </div>
+    ${legal.error ? `<div class="admin-alert admin-alert--error admin-detail-alert" role="alert">${escapeHtml(legal.error)}</div>` : ''}
+    ${legal.notice ? `<div class="admin-alert admin-alert--success admin-detail-alert" role="status">${escapeHtml(legal.notice)}</div>` : ''}
+    <div class="admin-detail-grid admin-legal-create-grid">
+      <section class="admin-section">
+        <form id="legal-document-form" class="admin-form-stack">
+          <div class="admin-section-heading"><h2>Create document</h2><p>Create the stable identity before adding localized versions.</p></div>
+          <label class="admin-field"><span>Type</span><select name="type">${legalDocumentTypes.map((type) => `<option>${type}</option>`).join('')}</select></label>
+          <label class="admin-field"><span>Key</span><input name="key" required maxlength="80" placeholder="terms"></label>
+          <label class="admin-field"><span>Display name</span><input name="displayName" required maxlength="200"></label>
+          <button class="pxa-button pxa-button--primary" type="submit" ${legal.saving ? 'disabled' : ''}>Create document</button>
+        </form>
+      </section>
+      <section class="admin-section">
+        <form id="legal-version-form" class="admin-form-stack">
+          <div class="admin-section-heading"><h2>Create draft version</h2><p>German is authoritative; English is a convenience translation.</p></div>
+          <label class="admin-field"><span>Document</span><select name="documentId" required><option value="">Choose document</option>${legal.documents.map((item) => `<option value="${item.id}">${escapeHtml(item.displayName)}</option>`).join('')}</select></label>
+          <div class="admin-inline-form">
+            <label class="admin-field"><span>Version</span><input name="version" required maxlength="64" placeholder="2026-07"></label>
+            <label class="admin-field"><span>Locale</span><select name="locale"><option value="de">German</option><option value="en">English</option></select></label>
+            <label class="admin-field"><span>Audience</span><select name="audience">${legalAudiences.map((value) => `<option>${value}</option>`).join('')}</select></label>
+          </div>
+          <label class="admin-field"><span>Change summary</span><input name="changeSummary" maxlength="2000"></label>
+          <label class="admin-field"><span>Markdown content</span><textarea name="sourceMarkdown" rows="12" required placeholder="# Document title"></textarea></label>
+          <label class="admin-checkbox"><input type="checkbox" name="requiresAcceptance"> Require explicit acceptance</label>
+          <label class="admin-checkbox"><input type="checkbox" name="isAuthoritative" checked> Authoritative language</label>
+          <button class="pxa-button pxa-button--primary" type="submit" ${legal.saving || !legal.documents.length ? 'disabled' : ''}>Create draft</button>
+        </form>
+      </section>
+    </div>
+    ${renderLegalComparison()}
+    ${renderLegalAcceptance()}
+    <section class="admin-table-section" aria-busy="${legal.loading}">
+      <div class="admin-section-heading"><h2>Publication history</h2><p>Document bodies are immutable after publication or scheduling.</p></div>
+      ${legal.loading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Loading legal documents...</p></div>' : `
+        <div class="admin-table-scroll"><table><thead><tr><th>Document</th><th>Version</th><th>Scope</th><th>Status</th><th>Effective</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>
+        ${rows ? '' : '<div class="admin-empty-state"><strong>No legal documents</strong><p>Create a document and its first draft version.</p></div>'}
+      `}
+    </section>
+    ${preview ? `
+      <section class="admin-section admin-legal-preview">
+        <div class="admin-section-heading admin-section-heading--action">
+          <div><h2>Safe preview · ${escapeHtml(preview.version)}</h2><p>Hash ${escapeHtml(preview.contentHash)}</p></div>
+          <button type="button" id="legal-preview-close">Close</button>
+        </div>
+        <article>${preview.renderedHtml}</article>
+      </section>` : ''}
+  `;
+}
+
+function renderLegalAcceptance() {
+  const legal = state.legal;
+  if (!legal.acceptanceVersionId) return '';
+  const version = legal.versions.find((item) => item.id === legal.acceptanceVersionId);
+  const summary = legal.acceptance;
+  const filters = legal.acceptanceFilters;
+  const breakdownRows = (summary?.byLocale || []).map((item) => `
+    <tr><td>${escapeHtml(item.name || 'Unspecified')}</td><td>${item.completed}</td><td>${item.affectedAccounts - item.completed}</td><td>${item.affectedAccounts}</td></tr>`).join('');
+  return `
+    <section class="admin-section admin-legal-acceptance" aria-busy="${legal.acceptanceLoading || legal.acceptanceExporting}" aria-describedby="legal-acceptance-description">
+      <div class="admin-section-heading admin-section-heading--action">
+        <div>
+          <h2>Acceptance progress · ${escapeHtml(version?.version || '')}</h2>
+          <p id="legal-acceptance-description">Exact-version evidence only. Terms acceptance and Privacy acknowledgement remain distinct decisions.</p>
+        </div>
+        <button id="legal-acceptance-close" type="button">Close</button>
+      </div>
+      <form id="legal-acceptance-filter" class="admin-legal-acceptance-filters">
+        <label class="admin-field"><span>Organization ID</span><input name="organizationId" value="${escapeHtml(filters.organizationId)}" placeholder="All organizations"></label>
+        <label class="admin-field"><span>Account type</span><select name="accountType"><option value="">All account types</option><option value="IndividualDeveloper" ${filters.accountType === 'IndividualDeveloper' ? 'selected' : ''}>Individual Developer</option><option value="Company" ${filters.accountType === 'Company' ? 'selected' : ''}>Company</option></select></label>
+        <label class="admin-field"><span>Locale</span><select name="locale"><option value="">All locales</option><option value="de" ${filters.locale === 'de' ? 'selected' : ''}>German</option><option value="en" ${filters.locale === 'en' ? 'selected' : ''}>English</option></select></label>
+        <label class="admin-field"><span>Accepted from</span><input name="from" type="datetime-local" value="${escapeHtml(filters.from)}"></label>
+        <label class="admin-field"><span>Accepted to</span><input name="to" type="datetime-local" value="${escapeHtml(filters.to)}"></label>
+        <button type="submit" ${legal.acceptanceLoading ? 'disabled' : ''}>Apply</button>
+      </form>
+      ${legal.acceptanceLoading ? '<div class="admin-empty-state"><div class="admin-spinner"></div><p>Calculating acceptance progress...</p></div>' : summary ? `
+        <div class="admin-summary-grid">
+          <article><span>Affected accounts</span><strong>${summary.affectedAccounts}</strong></article>
+          <article><span>Completed</span><strong>${summary.completed}</strong></article>
+          <article><span>Pending</span><strong>${summary.pending}</strong></article>
+          <article><span>Completion</span><strong>${summary.completionPercentage}%</strong></article>
+        </div>
+        <progress class="admin-legal-acceptance-progress" max="100" value="${summary.completionPercentage}" aria-label="Acceptance completion">${summary.completionPercentage}%</progress>
+        ${summary.requiresAcceptance ? '' : '<div class="admin-alert admin-alert--warning">This version does not require explicit Terms reacceptance. Privacy versions are acknowledged rather than accepted.</div>'}
+        <div class="admin-legal-acceptance-detail">
+          <div class="admin-table-scroll"><table><thead><tr><th>Locale</th><th>Completed</th><th>Pending</th><th>Affected</th></tr></thead><tbody>${breakdownRows || '<tr><td colspan="4">No affected accounts</td></tr>'}</tbody></table></div>
+          <div class="admin-audit-export">
+            <div><strong>Export minimized evidence</strong><p>Exports exclude names, email addresses, tokens, and document contents.</p></div>
+            <div><button type="button" class="legal-acceptance-export" data-format="csv" ${legal.acceptanceExporting ? 'disabled' : ''}>${legal.acceptanceExporting ? 'Exporting...' : 'Export CSV'}</button><button type="button" class="legal-acceptance-export" data-format="json" ${legal.acceptanceExporting ? 'disabled' : ''}>${legal.acceptanceExporting ? 'Exporting...' : 'Export JSON'}</button></div>
+          </div>
+          <span class="visually-hidden" role="status" aria-live="polite">${legal.acceptanceExporting ? 'Preparing minimized legal evidence export.' : ''}</span>
+        </div>` : ''}
+    </section>`;
+}
+
+async function loadLegalDocuments() {
+  Object.assign(state.legal, { loading: true, error: null });
+  render();
+  try {
+    const response = await getAdminLegalDocuments();
+    Object.assign(state.legal, response, { loaded: true });
+  } catch (error) {
+    Object.assign(state.legal, { error: error.message, loaded: true });
+  } finally {
+    state.legal.loading = false;
+    render();
+  }
+}
+
+async function runLegalMutation(operation, message) {
+  Object.assign(state.legal, { saving: true, error: null, notice: null });
+  render();
+  try {
+    await operation();
+    state.legal.loaded = false;
+    state.legal.saving = false;
+    state.legal.notice = message;
+    await loadLegalDocuments();
+  } catch (error) {
+    Object.assign(state.legal, { saving: false, error: error.message });
+    render();
+  }
+}
+
+async function loadLegalComparison(baseVersionId, targetVersionId) {
+  Object.assign(state.legal, {
+    comparisonLoading: true,
+    comparisonBaseId: baseVersionId,
+    comparisonTargetId: targetVersionId,
+    comparison: null,
+    error: null,
+  });
+  const target = state.legal.versions.find((version) => version.id === targetVersionId);
+  state.legal.comparisonDocumentId = target?.legalDocumentId || null;
+  render();
+  try {
+    state.legal.comparison = await compareAdminLegalVersions(baseVersionId, targetVersionId);
+  } catch (error) {
+    state.legal.error = error.message;
+  } finally {
+    state.legal.comparisonLoading = false;
+    render();
+  }
+}
+
+async function loadLegalAcceptance(versionId = state.legal.acceptanceVersionId) {
+  if (!versionId) return;
+  Object.assign(state.legal, {
+    acceptanceVersionId: versionId,
+    acceptanceLoading: true,
+    acceptance: null,
+    error: null,
+  });
+  render();
+  try {
+    state.legal.acceptance = await getAdminLegalAcceptance(
+      versionId, state.legal.acceptanceFilters);
+  } catch (error) {
+    state.legal.error = error.message;
+  } finally {
+    state.legal.acceptanceLoading = false;
+    render();
+  }
+}
+
+async function downloadLegalAcceptance(format) {
+  const legal = state.legal;
+  if (!legal.acceptanceVersionId) return;
+  legal.acceptanceExporting = true;
+  legal.error = null;
+  render();
+  try {
+    const result = await exportAdminLegalAcceptance(
+      legal.acceptanceVersionId, format, legal.acceptanceFilters);
+    const url = URL.createObjectURL(result.blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = result.filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    legal.error = error.message;
+  } finally {
+    legal.acceptanceExporting = false;
+    render();
+  }
+}
+
+function bindLegalEvents() {
+  document.querySelector('#legal-document-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runLegalMutation(() => createAdminLegalDocument({
+      type: data.get('type'), key: data.get('key'), displayName: data.get('displayName'),
+    }), 'Legal document created.');
+  });
+  document.querySelector('#legal-version-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    runLegalMutation(() => createAdminLegalVersion(data.get('documentId'), {
+      version: data.get('version'), locale: data.get('locale'), audience: data.get('audience'),
+      sourceMarkdown: data.get('sourceMarkdown'), changeSummary: data.get('changeSummary') || null,
+      requiresAcceptance: data.get('requiresAcceptance') === 'on',
+      isAuthoritative: data.get('isAuthoritative') === 'on',
+    }), 'Draft version created.');
+  });
+  document.querySelectorAll('.legal-preview').forEach((button) => button.addEventListener('click', () => {
+    state.legal.previewId = button.dataset.versionId;
+    render();
+  }));
+  document.querySelectorAll('.legal-acceptance').forEach((button) => button.addEventListener('click', () =>
+    loadLegalAcceptance(button.dataset.versionId)));
+  document.querySelector('#legal-acceptance-close')?.addEventListener('click', () => {
+    Object.assign(state.legal, { acceptanceVersionId: null, acceptance: null });
+    render();
+  });
+  document.querySelector('#legal-acceptance-filter')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    state.legal.acceptanceFilters = {
+      organizationId: data.get('organizationId')?.trim() || '',
+      accountType: data.get('accountType') || '',
+      locale: data.get('locale') || '',
+      from: data.get('from') ? new Date(data.get('from')).toISOString() : '',
+      to: data.get('to') ? new Date(data.get('to')).toISOString() : '',
+    };
+    loadLegalAcceptance();
+  });
+  document.querySelectorAll('.legal-acceptance-export').forEach((button) =>
+    button.addEventListener('click', () => downloadLegalAcceptance(button.dataset.format)));
+  document.querySelector('#legal-preview-close')?.addEventListener('click', () => {
+    state.legal.previewId = null;
+    render();
+  });
+  document.querySelector('#legal-comparison-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    if (data.get('baseVersionId') === data.get('targetVersionId')) {
+      state.legal.error = 'Choose two different versions to compare.';
+      render();
+      return;
+    }
+    loadLegalComparison(data.get('baseVersionId'), data.get('targetVersionId'));
+  });
+  document.querySelector('#legal-comparison-form select[name="documentId"]')?.addEventListener('change', (event) => {
+    Object.assign(state.legal, {
+      comparisonDocumentId: event.currentTarget.value,
+      comparisonBaseId: null,
+      comparisonTargetId: null,
+      comparison: null,
+      error: null,
+    });
+    render();
+  });
+  document.querySelectorAll('.legal-compare').forEach((button) => button.addEventListener('click', () =>
+    loadLegalComparison(button.dataset.baseVersionId, button.dataset.targetVersionId)));
+  document.querySelector('#legal-comparison-close')?.addEventListener('click', () => {
+    state.legal.comparison = null;
+    render();
+  });
+  document.querySelectorAll('.legal-submit').forEach((button) => button.addEventListener('click', () =>
+    runLegalMutation(() => submitAdminLegalVersion(button.dataset.versionId), 'Draft submitted for independent review.')));
+  document.querySelectorAll('.legal-review').forEach((button) => button.addEventListener('click', () => {
+    const approve = button.dataset.approve === 'true';
+    const version = state.legal.versions.find((item) => item.id === button.dataset.versionId);
+    const comparedToVersionId = version?.previousVersionId
+      ? state.legal.comparison?.baseVersion.id
+      : null;
+    const comment = window.prompt(`${approve ? 'Approval' : 'Rejection'} comment (optional):`) || null;
+    runLegalMutation(
+      () => reviewAdminLegalVersion(
+        button.dataset.versionId, approve, comment, comparedToVersionId),
+      approve ? 'Version approved.' : 'Version returned to draft.');
+  }));
+  document.querySelectorAll('.legal-publish').forEach((button) => button.addEventListener('click', () => {
+    const value = window.prompt('Effective date/time in ISO format, or leave blank for now:')?.trim();
+    if (value && Number.isNaN(Date.parse(value))) {
+      state.legal.error = 'Enter a valid ISO date/time.';
+      render();
+      return;
+    }
+    runLegalMutation(
+      () => {
+        const version = state.legal.versions.find((item) => item.id === button.dataset.versionId);
+        const comparedToVersionId = version?.previousVersionId
+          ? state.legal.comparison?.baseVersion.id
+          : null;
+        return publishAdminLegalVersion(
+          button.dataset.versionId,
+          value ? new Date(value).toISOString() : null,
+          comparedToVersionId);
+      },
+      value ? 'Version scheduled.' : 'Version published.');
+  }));
+  document.querySelectorAll('.legal-retire').forEach((button) => button.addEventListener('click', () => {
+    if (window.confirm('Retire this legal document version?'))
+      runLegalMutation(() => retireAdminLegalVersion(button.dataset.versionId), 'Version retired.');
+  }));
 }
 
 function bindDocumentationEvents() {
@@ -2315,6 +2808,17 @@ function render() {
 
   if (location.pathname === '/release-notes') {
     renderShell(releaseNotesPage(), 'Release notes');
+    return;
+  }
+
+  if (location.pathname === '/legal') {
+    if (!isSystemAdministrator()) {
+      renderShell(forbiddenPage(), 'Access denied');
+      return;
+    }
+    renderShell(legalPage(), 'Legal documents');
+    bindLegalEvents();
+    if (!state.legal.loaded && !state.legal.loading) loadLegalDocuments();
     return;
   }
 

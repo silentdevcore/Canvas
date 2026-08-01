@@ -9,4 +9,5 @@ public sealed class PxaRegistrationOptions
     public string[] AllowedReturnOrigins { get; set; } = [];
     public bool RequireCurrentTermsAcceptance { get; set; }
     public bool RequireCurrentPrivacyAcknowledgement { get; set; }
+    public bool RequireDatabaseLegalDocuments { get; set; }
 }

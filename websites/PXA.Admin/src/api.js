@@ -6,6 +6,7 @@ const adminLicensesBase = '/api/pxa/v1/admin/licenses';
 const adminServiceAccountsBase = '/api/pxa/v1/admin/service-accounts';
 const adminAuditBase = '/api/pxa/v1/admin/audit';
 const adminRolesBase = '/api/pxa/v1/admin/roles';
+const adminLegalBase = '/api/pxa/v1/admin/legal';
 
 async function request(path, options = {}) {
   let response;
@@ -372,6 +373,92 @@ export async function getAdminSystemHealth() {
 
 export async function getAdminDocumentation() {
   return request('/api/pxa/v1/admin/documentation');
+}
+
+export async function getAdminLegalDocuments() {
+  return request(`${adminLegalBase}/documents`);
+}
+
+export async function compareAdminLegalVersions(baseVersionId, targetVersionId) {
+  const query = new URLSearchParams({ baseVersionId, targetVersionId });
+  return request(`${adminLegalBase}/versions/compare?${query}`);
+}
+
+function legalAcceptanceQuery(filters = {}) {
+  const query = new URLSearchParams();
+  for (const key of ['organizationId', 'accountType', 'locale', 'from', 'to']) {
+    if (filters[key]) query.set(key, filters[key]);
+  }
+  return query;
+}
+
+export async function getAdminLegalAcceptance(versionId, filters = {}) {
+  return request(
+    `${adminLegalBase}/versions/${encodeURIComponent(versionId)}/acceptance?${legalAcceptanceQuery(filters)}`);
+}
+
+export async function exportAdminLegalAcceptance(versionId, format, filters = {}) {
+  const { token } = await request(`${authBase}/csrf`);
+  const response = await fetch(
+    `${adminLegalBase}/versions/${encodeURIComponent(versionId)}/acceptance/export`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        Accept: 'application/octet-stream',
+        'Content-Type': 'application/json',
+        'X-PXA-CSRF': token,
+      },
+      body: JSON.stringify({ format, ...filters }),
+    });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    const error = new Error(body?.detail || body?.title || `Export failed with status ${response.status}.`);
+    error.status = response.status;
+    throw error;
+  }
+  const disposition = response.headers.get('content-disposition') || '';
+  const filename = disposition.match(/filename="?([^";]+)"?/i)?.[1] || `pxa-legal-acceptance.${format}`;
+  return { blob: await response.blob(), filename };
+}
+
+export async function createAdminLegalDocument(document) {
+  return adminMutation(`${adminLegalBase}/documents`, 'POST', document);
+}
+
+export async function createAdminLegalVersion(documentId, version) {
+  return adminMutation(`${adminLegalBase}/documents/${encodeURIComponent(documentId)}/versions`, 'POST', version);
+}
+
+export async function updateAdminLegalDraft(versionId, version) {
+  return adminMutation(`${adminLegalBase}/versions/${encodeURIComponent(versionId)}`, 'PUT', version);
+}
+
+export async function submitAdminLegalVersion(versionId) {
+  return adminMutation(`${adminLegalBase}/versions/${encodeURIComponent(versionId)}/submit`, 'POST');
+}
+
+export async function reviewAdminLegalVersion(
+  versionId,
+  approve,
+  comment = null,
+  comparedToVersionId = null) {
+  return adminMutation(`${adminLegalBase}/versions/${encodeURIComponent(versionId)}/review`, 'POST', {
+    approve, comment, comparedToVersionId,
+  });
+}
+
+export async function publishAdminLegalVersion(
+  versionId,
+  effectiveAt = null,
+  comparedToVersionId = null) {
+  return adminMutation(`${adminLegalBase}/versions/${encodeURIComponent(versionId)}/publish`, 'POST', {
+    effectiveAt, comparedToVersionId,
+  });
+}
+
+export async function retireAdminLegalVersion(versionId) {
+  return adminMutation(`${adminLegalBase}/versions/${encodeURIComponent(versionId)}/retire`, 'POST');
 }
 
 export async function retryAdminMail(messageId) {
