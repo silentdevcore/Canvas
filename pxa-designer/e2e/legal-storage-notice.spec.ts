@@ -36,7 +36,7 @@ test('necessary-storage notice is keyboard accessible and remembered on every pu
     await page.keyboard.press('Enter');
     await expect(notice).toBeHidden();
     await expect.poll(async () => (await context.cookies()).some((cookie) =>
-      cookie.name === 'PXA.StorageNotice' && cookie.value === '2026-07')).toBe(true);
+      cookie.name === 'PXA.StorageNotice' && cookie.value === '2026-08')).toBe(true);
 
     await page.reload();
     await expect(notice).toHaveCount(0);
@@ -50,7 +50,7 @@ test('Company footer can reopen storage settings without creating optional conse
 }) => {
   await page.context().addCookies([{
     name: 'PXA.StorageNotice',
-    value: '2026-07',
+    value: '2026-08',
     url: 'http://localhost:5173',
   }]);
   await page.goto('http://localhost:5173/');

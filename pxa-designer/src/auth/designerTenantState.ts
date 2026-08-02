@@ -1,10 +1,7 @@
 const localTenantKeys = [
   'editor-storage',
   'pxa-spreadsheet',
-  'canvas-spreadsheet',
-  'pxa_last_template',
   'pxa-code-editor-draft-v2',
-  'canvas-code-editor-draft-v2',
 ];
 
 const sessionTenantKeys = [

@@ -227,8 +227,27 @@ public sealed class PxaJobProcessorTests
             var retention = new PxaJobRetentionService(
                 context,
                 storedObjects,
+                new PXA.WebApi.Application.Retention.PxaRetentionLegalHoldService(context),
                 Options.Create(new PxaJobOptions { CleanupBatchSize = 10 }));
 
+            var hold = new RetentionLegalHold
+            {
+                Category = "background-document-jobs",
+                OrganizationId = organizationId,
+                Reason = "Preserve the completed result during the integration test.",
+                CreatedByUserId = userId,
+            };
+            context.RetentionLegalHolds.Add(hold);
+            await context.SaveChangesAsync();
+            Assert.Equal(0, await retention.CleanupAsync(CancellationToken.None));
+            Assert.Equal(
+                PxaBackgroundJobStatus.Completed,
+                (await context.BackgroundJobs.SingleAsync(value => value.Id == jobId)).Status);
+
+            hold.ReleasedAt = DateTimeOffset.UtcNow;
+            hold.ReleasedByUserId = userId;
+            hold.ReleaseReason = "The integration-test preservation window has ended.";
+            await context.SaveChangesAsync();
             Assert.Equal(1, await retention.CleanupAsync(CancellationToken.None));
             context.ChangeTracker.Clear();
             var expired = await context.BackgroundJobs.SingleAsync(value => value.Id == jobId);

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.WebApi.Application.Retention;
 using PXA.WebApi.Observability;
 using PXA.WebApi.Services.Storage;
 
@@ -10,6 +11,7 @@ namespace PXA.WebApi.Services.Jobs;
 public sealed class PxaJobRetentionService(
     PxaDbContext dbContext,
     PxaStoredObjectService storedObjects,
+    PxaRetentionLegalHoldService legalHolds,
     IOptions<PxaJobOptions> options)
 {
     private readonly PxaJobOptions settings = options.Value;
@@ -17,9 +19,19 @@ public sealed class PxaJobRetentionService(
     public async Task<int> CleanupAsync(CancellationToken cancellationToken)
     {
         var now = DateTimeOffset.UtcNow;
+        var holdScope = await legalHolds.GetActiveScopeAsync(
+            "background-document-jobs",
+            cancellationToken);
+        if (holdScope.Global)
+        {
+            PxaTelemetry.RecordJobRetention("held", 0);
+            return 0;
+        }
+        var heldOrganizationIds = holdScope.OrganizationIds.ToArray();
         var jobs = await dbContext.BackgroundJobs
             .Where(value =>
                 value.ExpiresAt <= now &&
+                !heldOrganizationIds.Contains(value.OrganizationId) &&
                 (value.Status == PxaBackgroundJobStatus.Completed ||
                  value.Status == PxaBackgroundJobStatus.Cancelled ||
                  value.Status == PxaBackgroundJobStatus.DeadLetter))

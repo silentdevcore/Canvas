@@ -8,11 +8,13 @@
     "api",
     "company",
     "demo",
+    "designer",
     "documentation",
-    "infrastructure"
+    "infrastructure",
+    "spreadsheet"
   ],
   "category": "added",
-  "summary": "Versioned legal documents now include independent approval, resilient public snapshots, concurrency-safe registration and reacceptance evidence, Account legal-review gates, and audited minimized Admin exports.",
+  "summary": "Legal governance now includes approval, resilient snapshots and recovery, Account review gates, audited evidence exports, enforced technical inventories, production retention gates, safe dry runs, and auditable Legal Holds.",
   "featureIds": [],
   "breaking": false
 }

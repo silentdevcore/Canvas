@@ -26,7 +26,7 @@ export function appendSignedInSignal(url, companyOrigin) {
  * Pure counterpart consumed by PXA.Company: given a location.search string,
  * returns null when no signal is present, or `{ signedIn: true, cleanedSearch }`
  * with the signal parameter stripped (and every other query parameter
- * preserved) so the caller can apply localStorage/history side effects.
+ * preserved) so the caller can apply in-memory presentation and history side effects.
  */
 export function consumeSignedInSignal(search) {
   const params = new URLSearchParams(search);

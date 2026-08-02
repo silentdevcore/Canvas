@@ -1468,6 +1468,64 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.ToTable("stored_objects", "administration");
                 });
 
+            modelBuilder.Entity("PXA.Domain.Entities.RetentionLegalHold", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("OrganizationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ReleaseReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset?>("ReleasedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ReleasedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category")
+                        .IsUnique()
+                        .HasDatabaseName("UX_retention_legal_holds_category_global_active")
+                        .HasFilter("\"OrganizationId\" IS NULL AND \"ReleasedAt\" IS NULL");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("ReleasedByUserId");
+
+                    b.HasIndex("Category", "OrganizationId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_retention_legal_holds_category_org_active")
+                        .HasFilter("\"OrganizationId\" IS NOT NULL AND \"ReleasedAt\" IS NULL");
+
+                    b.ToTable("retention_legal_holds", "administration");
+                });
+
             modelBuilder.Entity("PXA.Domain.Entities.ServiceAccount", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2346,6 +2404,25 @@ namespace PXA.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("PXA.Domain.Entities.RetentionLegalHold", b =>
+                {
+                    b.HasOne("PXA.Infrastructure.Persistence.Identity.PxaIdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PXA.Domain.Entities.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("PXA.Infrastructure.Persistence.Identity.PxaIdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("ReleasedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("PXA.Domain.Entities.ServiceAccount", b =>

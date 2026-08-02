@@ -49,7 +49,6 @@ const GROUPS = ['Documents', 'Data', 'Images', 'Text'];
 type ExportState = 'idle' | 'loading' | 'done' | 'error';
 
 const LAST_FORMAT_KEY = 'pxa_export_format';
-const LEGACY_LAST_FORMAT_KEY = 'canvas_export_format';
 
 const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSettings, onClose }) => {
   const { t } = useTranslation('editor');
@@ -57,7 +56,7 @@ const ExportModal: React.FC<Props> = ({ template, pages, sharedElements, pageSet
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [progress, setProgress] = useState<Record<string, string>>({});
   const [lastUsed, setLastUsed] = useState<string>(
-    () => { try { return localStorage.getItem(LAST_FORMAT_KEY) ?? localStorage.getItem(LEGACY_LAST_FORMAT_KEY) ?? ''; } catch { return ''; } }
+    () => { try { return localStorage.getItem(LAST_FORMAT_KEY) ?? ''; } catch { return ''; } }
   );
   const [signOpen, setSignOpen] = useState(false);
 

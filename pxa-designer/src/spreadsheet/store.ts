@@ -169,10 +169,8 @@ export function parseInput(raw: string): { type: CellType; value?: Cell['value']
 
 const MAX_HISTORY = 50;
 
-// `pxa-spreadsheet` is the current key; `canvas-spreadsheet` is read as a
-// fallback so a draft saved before this rename isn't lost.
 const spreadsheetStorage: StateStorage = {
-  getItem: (name) => localStorage.getItem(name) ?? localStorage.getItem('canvas-spreadsheet'),
+  getItem: (name) => localStorage.getItem(name),
   setItem: (name, value) => localStorage.setItem(name, value),
   removeItem: (name) => localStorage.removeItem(name),
 };

@@ -45,6 +45,7 @@ public sealed class PxaDbContext
     public DbSet<LegalDocumentVersion> LegalDocumentVersions => Set<LegalDocumentVersion>();
     public DbSet<LegalPublicationApproval> LegalPublicationApprovals => Set<LegalPublicationApproval>();
     public DbSet<LegalAcceptanceEvent> LegalAcceptanceEvents => Set<LegalAcceptanceEvent>();
+    public DbSet<RetentionLegalHold> RetentionLegalHolds => Set<RetentionLegalHold>();
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {

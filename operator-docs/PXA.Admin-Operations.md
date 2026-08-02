@@ -87,6 +87,13 @@ This guide prepares a separately protected operator documentation deployment. It
 
 ## Storage, Retention, And TLS
 
+- Review retention governance in PXA.Admin System status before enabling a production deployment.
+  Production startup fails closed while the inventory or any category remains unapproved.
+- Use `POST /api/pxa/v1/admin/system/retention/dry-run` to inspect candidates and Legal Hold
+  effects. A dry run never changes records and Admin intentionally exposes no cleanup execution endpoint.
+- Create a global or organization-scoped Legal Hold only for an authorized preservation requirement.
+  Record the authority in the reason, verify the audit event, and require a separate documented reason
+  before release. Active holds override background-job and transactional-mail cleanup.
 - Use deployment-owned values based on `deploy/observability/onprem.env.example`; size resource
   limits and storage from measured load.
 - Keep Prometheus, Alertmanager, Loki, Tempo, and Grafana data on durable named volumes or explicit
@@ -117,6 +124,10 @@ This guide prepares a separately protected operator documentation deployment. It
 - Never enable `Observability__EnableOcrFailureInjection` outside Development or Testing. PXA
   rejects such a configuration at startup.
 - Verify document operations independently with the unavailable-OTLP integration test.
+- Follow `PXA.Legal-Backup-Restore-And-Recovery.md` for full-database Legal continuity,
+  explicit empty-target restore, domain verification, snapshot regeneration, and recovery drills.
+- Keep the concrete restore commands in the separately protected operator publication; PXA.Admin
+  exposes only safe continuity status, transaction blocking, and escalation guidance.
 
 ## Publication Boundary
 

@@ -30,6 +30,11 @@ import {
   getAdminMail,
   getAdminMailStatus,
   getAdminSystemHealth,
+  getAdminRetentionStatus,
+  runAdminRetentionDryRun,
+  getAdminRetentionLegalHolds,
+  createAdminRetentionLegalHold,
+  releaseAdminRetentionLegalHold,
   getAdminUser,
   getAdminUserSessions,
   getAdminUsers,
@@ -178,6 +183,10 @@ const state = {
   },
   systemHealth: {
     data: null, loading: false, loaded: false, error: null,
+  },
+  retention: {
+    data: null, dryRun: null, holds: [], loading: false, loaded: false,
+    running: false, saving: false, error: null, notice: null,
   },
   legal: {
     documents: [],
@@ -527,6 +536,79 @@ function formatSystemAge(seconds) {
   return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
 }
 
+function retentionGovernanceSection() {
+  const retention = state.retention;
+  if (retention.loading && !retention.data) {
+    return '<section class="admin-section"><div class="admin-section-heading"><h2>Retention governance</h2><p>Loading protected retention policy status...</p></div></section>';
+  }
+  if (retention.error && !retention.data) {
+    return `<section class="admin-section"><div class="admin-section-heading"><h2>Retention governance</h2><p>${escapeHtml(retention.error)}</p></div><div class="admin-form-actions"><button class="pxa-button pxa-button--secondary" id="retention-retry" type="button">Retry</button></div></section>`;
+  }
+  if (!retention.data) return '';
+
+  const data = retention.data;
+  const policies = data.policies.map((policy) => `
+    <tr>
+      <td><strong>${escapeHtml(policy.name)}</strong><small>${escapeHtml(policy.id)}</small></td>
+      <td><span class="admin-status ${policy.approvalStatus === 'approved' ? 'admin-status--ready' : 'admin-status--planned'}">${escapeHtml(policy.approvalStatus)}</span></td>
+      <td>${escapeHtml(policy.rule)}</td>
+      <td>${policy.effectiveConfiguration.length
+        ? policy.effectiveConfiguration.map((item) => `<small><strong>${escapeHtml(item.key)}</strong>: ${escapeHtml(item.value)}</small>`).join('')
+        : '<small>Catalog policy</small>'}</td>
+    </tr>
+  `).join('');
+  const decisions = retention.dryRun?.decisions.map((decision) => `
+    <div>
+      <strong>${escapeHtml(decision.name)}</strong>
+      <span class="admin-status admin-status--neutral">${escapeHtml(decision.action)}</span>
+      <p>${decision.candidateCount == null ? 'Policy only' : `${decision.actionableCount} actionable, ${decision.heldCount} held, ${decision.candidateCount} candidates`}. ${escapeHtml(decision.explanation)}</p>
+    </div>
+  `).join('') || '';
+  const holds = retention.holds.map((hold) => `
+    <div>
+      <strong>${escapeHtml(hold.category)}</strong>
+      <span class="admin-status admin-status--planned">${hold.organizationId ? 'Organization' : 'Global'}</span>
+      <p>${escapeHtml(hold.reason)} Created ${escapeHtml(new Date(hold.createdAt).toLocaleString())}${hold.organizationId ? ` for ${escapeHtml(hold.organizationId)}` : ''}.</p>
+      <form class="admin-inline-form retention-release-form" data-hold-id="${escapeHtml(hold.id)}">
+        <label class="admin-field">Release reason<input name="reason" minlength="10" maxlength="2000" required placeholder="Document why preservation may end"></label>
+        <button class="pxa-button pxa-button--secondary" type="submit" ${retention.saving ? 'disabled' : ''}>Release hold</button>
+      </form>
+    </div>
+  `).join('') || '<div><strong>No active legal holds</strong><p>Cleanup follows approved policies where destructive processing is enabled.</p></div>';
+
+  return `
+    ${retention.notice ? `<div class="admin-alert admin-alert--success admin-detail-alert">${escapeHtml(retention.notice)}</div>` : ''}
+    ${retention.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(retention.error)}</div>` : ''}
+    <section class="admin-summary-grid" aria-label="Retention governance summary">
+      <article><span>Production gate</span><strong><span class="admin-status ${data.productionReady ? 'admin-status--ready' : 'admin-status--inactive'}">${data.productionReady ? 'Ready' : 'Blocked'}</span></strong></article>
+      <article><span>Pending approvals</span><strong>${data.pendingApprovalCount}</strong></article>
+      <article><span>Active legal holds</span><strong>${data.activeLegalHoldCount}</strong></article>
+      <article><span>Inventory reviewed</span><strong>${escapeHtml(data.reviewedAt)}</strong></article>
+    </section>
+    <section class="admin-table-section">
+      <div class="admin-section-heading"><h2>Retention policies</h2><p>Production remains blocked until every category is legally approved. This workspace never exposes a direct cleanup action.</p></div>
+      <div class="admin-table-scroll"><table class="admin-table"><thead><tr><th>Processing category</th><th>Approval</th><th>Rule</th><th>Effective configuration</th></tr></thead><tbody>${policies}</tbody></table></div>
+      <div class="admin-form-actions"><button class="pxa-button pxa-button--primary" id="retention-dry-run" type="button" ${retention.running ? 'disabled' : ''}>${retention.running ? 'Evaluating...' : 'Run safe dry run'}</button></div>
+    </section>
+    ${retention.dryRun ? `<section class="admin-section"><div class="admin-section-heading"><h2>Dry-run decisions</h2><p>Evaluated ${escapeHtml(new Date(retention.dryRun.evaluatedAt).toLocaleString())}. No records were changed.</p></div><div class="admin-status-list">${decisions}</div></section>` : ''}
+    <section class="admin-detail-grid">
+      <article class="admin-section">
+        <div class="admin-section-heading"><h2>Active legal holds</h2><p>Holds override cleanup for a complete category or one organization.</p></div>
+        <div class="admin-status-list">${holds}</div>
+      </article>
+      <article class="admin-section">
+        <div class="admin-section-heading"><h2>Create legal hold</h2><p>Use only for an authorized preservation requirement. Every change is audited.</p></div>
+        <form class="admin-form-stack" id="retention-hold-form">
+          <label class="admin-field">Processing category<select name="category" required>${data.policies.map((policy) => `<option value="${escapeHtml(policy.id)}">${escapeHtml(policy.name)}</option>`).join('')}</select></label>
+          <label class="admin-field">Organization ID (optional)<input name="organizationId" type="text" inputmode="text" placeholder="Blank creates a global hold"></label>
+          <label class="admin-field">Reason<textarea name="reason" minlength="10" maxlength="2000" required placeholder="Document the authority and preservation purpose"></textarea></label>
+          <button class="pxa-button pxa-button--primary" type="submit" ${retention.saving ? 'disabled' : ''}>Create hold</button>
+        </form>
+      </article>
+    </section>
+  `;
+}
+
 function systemStatusPage() {
   const health = state.systemHealth;
   if (health.loading && !health.data) {
@@ -573,12 +655,21 @@ function systemStatusPage() {
       <div class="admin-section-heading"><h2>Components</h2><p>Descriptions are intentionally coarse. Raw logs, traces, identifiers, and configuration secrets are never returned here.</p></div>
       <div class="admin-status-list">${componentRows}</div>
     </section>
+    ${retentionGovernanceSection()}
   `;
 }
 
 function bindSystemStatusEvents() {
-  document.querySelector('#system-health-refresh')?.addEventListener('click', () => loadSystemHealth());
+  document.querySelector('#system-health-refresh')?.addEventListener('click', () => {
+    loadSystemHealth();
+    loadRetentionGovernance();
+  });
   document.querySelector('#system-health-retry')?.addEventListener('click', () => loadSystemHealth());
+  document.querySelector('#retention-retry')?.addEventListener('click', () => loadRetentionGovernance());
+  document.querySelector('#retention-dry-run')?.addEventListener('click', () => runRetentionDryRun());
+  document.querySelector('#retention-hold-form')?.addEventListener('submit', createRetentionHold);
+  document.querySelectorAll('.retention-release-form').forEach((form) =>
+    form.addEventListener('submit', releaseRetentionHold));
 }
 
 async function loadSystemHealth() {
@@ -592,6 +683,83 @@ async function loadSystemHealth() {
     state.systemHealth.error = error.message;
   } finally {
     state.systemHealth.loading = false;
+    render();
+  }
+}
+
+async function loadRetentionGovernance() {
+  state.retention.loading = true;
+  state.retention.error = null;
+  render();
+  try {
+    const [data, holds] = await Promise.all([
+      getAdminRetentionStatus(),
+      getAdminRetentionLegalHolds(),
+    ]);
+    state.retention.data = data;
+    state.retention.holds = holds;
+    state.retention.loaded = true;
+  } catch (error) {
+    state.retention.error = error.message;
+  } finally {
+    state.retention.loading = false;
+    render();
+  }
+}
+
+async function runRetentionDryRun() {
+  state.retention.running = true;
+  state.retention.error = null;
+  state.retention.notice = null;
+  render();
+  try {
+    state.retention.dryRun = await runAdminRetentionDryRun();
+    state.retention.notice = 'Dry run completed. No records were changed.';
+  } catch (error) {
+    state.retention.error = error.message;
+  } finally {
+    state.retention.running = false;
+    render();
+  }
+}
+
+async function createRetentionHold(event) {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  state.retention.saving = true;
+  state.retention.error = null;
+  state.retention.notice = null;
+  render();
+  try {
+    await createAdminRetentionLegalHold(
+      form.get('category'),
+      String(form.get('organizationId') || '').trim(),
+      form.get('reason'));
+    state.retention.notice = 'Legal hold created and recorded in the audit trail.';
+    await loadRetentionGovernance();
+  } catch (error) {
+    state.retention.error = error.message;
+  } finally {
+    state.retention.saving = false;
+    render();
+  }
+}
+
+async function releaseRetentionHold(event) {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  state.retention.saving = true;
+  state.retention.error = null;
+  state.retention.notice = null;
+  render();
+  try {
+    await releaseAdminRetentionLegalHold(event.currentTarget.dataset.holdId, form.get('reason'));
+    state.retention.notice = 'Legal hold released and recorded in the audit trail.';
+    await loadRetentionGovernance();
+  } catch (error) {
+    state.retention.error = error.message;
+  } finally {
+    state.retention.saving = false;
     render();
   }
 }
@@ -2803,6 +2971,7 @@ function render() {
     renderShell(systemStatusPage(), 'System status');
     bindSystemStatusEvents();
     if (!state.systemHealth.loaded && !state.systemHealth.loading) loadSystemHealth();
+    if (!state.retention.loaded && !state.retention.loading) loadRetentionGovernance();
     return;
   }
 

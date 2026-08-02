@@ -6,17 +6,6 @@ import type { TemplateDefinition } from '@/data/templates';
 import type { SimpleElement } from '@/types';
 import ExportService from '@/services/ExportService';
 
-// `pxa_docs_opened`/`pxa_last_template` are the current keys; `canvas_*` are
-// read as a fallback so a count/name saved before this rename isn't lost.
-function recordDocOpened(name: string): void {
-  const prev = parseInt(
-    localStorage.getItem('pxa_docs_opened') ?? localStorage.getItem('canvas_docs_opened') ?? '0',
-    10,
-  );
-  localStorage.setItem('pxa_docs_opened', String(prev + 1));
-  localStorage.setItem('pxa_last_template', name);
-}
-
 function createStarterElements(template: TemplateDefinition): SimpleElement[] {
   const now = Date.now();
   const isFormTemplate = ['invoice', 'receipt', 'certificate', 'letter'].includes(template.category);
@@ -123,7 +112,6 @@ export function useTemplateLoader() {
     } else if (def.pageWidth && def.pageHeight) {
       updatePageSettings({ width: def.pageWidth, height: def.pageHeight });
     }
-    recordDocOpened(def.name);
     navigate('/pdf/create');
   };
 
@@ -137,7 +125,6 @@ export function useTemplateLoader() {
       sharedElements: [],
       data: {}
     });
-    recordDocOpened('Blank document');
     navigate(mode === 'code' ? '/pdf/create?mode=code' : '/pdf/create');
   };
 

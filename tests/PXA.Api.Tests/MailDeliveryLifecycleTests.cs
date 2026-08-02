@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
+using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Services.Mail;
 using Testcontainers.PostgreSql;
 
@@ -123,6 +124,15 @@ public sealed class MailDeliveryLifecycleTests
         await using (var retentionScope = factory.Services.CreateAsyncScope())
         {
             var dbContext = retentionScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var retentionActor = new PxaIdentityUser
+            {
+                UserName = "retention-operator",
+                NormalizedUserName = "RETENTION-OPERATOR",
+                Email = "retention-operator@pxa.test",
+                NormalizedEmail = "RETENTION-OPERATOR@PXA.TEST",
+                DisplayName = "Retention Operator",
+            };
+            dbContext.Users.Add(retentionActor);
             SeedMessage(dbContext, MailDeliveryStatus.Delivered, now.AddDays(-31), "expired-delivered");
             SeedMessage(dbContext, MailDeliveryStatus.Suppressed, now.AddDays(-31), "expired-suppressed");
             SeedMessage(dbContext, MailDeliveryStatus.Cancelled, now.AddDays(-15), "expired-cancelled");
@@ -137,8 +147,21 @@ public sealed class MailDeliveryLifecycleTests
                 MailDeliveryStatus.Pending,
                 now.AddDays(-365),
                 "old-pending").Id;
+            var hold = new RetentionLegalHold
+            {
+                Category = "transactional-mail",
+                Reason = "Preserve terminal mail metadata during an authorized review.",
+                CreatedByUserId = retentionActor.Id,
+            };
+            dbContext.RetentionLegalHolds.Add(hold);
             await dbContext.SaveChangesAsync();
 
+            Assert.Equal(0, await retentionScope.ServiceProvider.GetRequiredService<PxaMailRetentionService>()
+                .DeleteExpiredAsync(now, CancellationToken.None));
+            hold.ReleasedAt = now;
+            hold.ReleasedByUserId = retentionActor.Id;
+            hold.ReleaseReason = "The authorized metadata review has concluded.";
+            await dbContext.SaveChangesAsync();
             var deleted = await retentionScope.ServiceProvider.GetRequiredService<PxaMailRetentionService>()
                 .DeleteExpiredAsync(now, CancellationToken.None);
             Assert.Equal(4, deleted);

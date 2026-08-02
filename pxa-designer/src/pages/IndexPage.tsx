@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
-  FiActivity,
   FiCheckCircle,
   FiChevronRight,
   FiCode,
@@ -326,39 +325,8 @@ const IndexPage: React.FC = () => {
           </button>
         </section>
 
-        {/* Usage strip */}
-        <UsageStrip />
       </main>
     </div>
-  );
-};
-
-const UsageStrip: React.FC = () => {
-  const { t } = useTranslation('home');
-  // `pxa_*` are the current keys; `canvas_*` are read as a fallback so a
-  // count/name saved before the rename isn't lost.
-  const count = parseInt(
-    localStorage.getItem('pxa_docs_opened') ?? localStorage.getItem('canvas_docs_opened') ?? '0',
-    10,
-  );
-  const lastName = localStorage.getItem('pxa_last_template') ?? localStorage.getItem('canvas_last_template');
-
-  if (count === 0) return null;
-
-  return (
-    <section className="pdf-usage-strip">
-      <FiActivity />
-      <div className="pdf-usage-stat">
-        <strong>{count}</strong>
-        <span>{count === 1 ? t('usage.documentSingular') : t('usage.documentPlural')} {t('usage.openedThisSession')}</span>
-      </div>
-      {lastName && (
-        <div className="pdf-usage-stat">
-          <strong>{lastName}</strong>
-          <span>{t('usage.lastOpenedTemplate')}</span>
-        </div>
-      )}
-    </section>
   );
 };
 

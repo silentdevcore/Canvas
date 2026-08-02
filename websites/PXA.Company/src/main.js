@@ -9,12 +9,12 @@ import { loadPublishedLegalDocument } from './legalSnapshot.js';
 
 initializeBrowserTelemetry({ application: 'company' });
 
-const SIGNED_IN_STORAGE_KEY = 'pxa_signed_in';
+let signedInForCurrentNavigation = false;
 
 function captureSignedInSignal() {
   const result = consumeSignedInSignal(window.location.search);
   if (!result) return;
-  sessionStorage.setItem(SIGNED_IN_STORAGE_KEY, '1');
+  signedInForCurrentNavigation = true;
   const query = result.cleanedSearch;
   history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
 }
@@ -22,7 +22,7 @@ function captureSignedInSignal() {
 captureSignedInSignal();
 
 function isSignedIn() {
-  return sessionStorage.getItem(SIGNED_IN_STORAGE_KEY) === '1';
+  return signedInForCurrentNavigation;
 }
 
 const companyRoutes = {
@@ -350,24 +350,36 @@ const legalPages = {
   },
   privacy: {
     kicker: 'Privacy',
-    title: 'Privacy information for PXA web properties',
+    title: 'How PXA currently processes personal and customer data',
     text:
-      'This draft privacy page outlines the kind of information the PXA websites may handle once public contact forms, analytics, demos, or support flows are connected.',
+      'This technical draft reflects the processing currently implemented across PXA websites, Account, Admin, Designer, API, workers, mail, storage, and observability. It is not the final counsel-approved Privacy Notice.',
     sections: [
       {
-        title: 'Information visitors provide',
-        text: 'Contact requests may include name, company, email, project context, provider stack, and migration or evaluation notes.',
+        title: 'Accounts and organizations',
+        text: 'PXA processes identity, contact, authentication, session, organization, membership, role, subscription, entitlement, usage, and license data to provide and secure customer workspaces.',
       },
       {
-        title: 'Technical and usage data',
-        text: 'The websites may later collect basic analytics, diagnostics, browser information, and demo usage signals to improve product content.',
+        title: 'Customer documents and templates',
+        text: 'Documents, source code, images, OCR text, templates, spreadsheet data, and generated results are processed to perform operations requested by the customer. Synchronous content is transient; queued input and result objects expire after seven days by default.',
       },
       {
-        title: 'Use of information',
-        text: 'Information should be used for responding to inquiries, planning evaluations, supporting migrations, and improving documentation or demos.',
+        title: 'Mail, Legal, and administration',
+        text: 'Transactional mail metadata supports verification, invitations, recovery, and security notices. Legal publication, acceptance evidence, and minimized administrative audit events support account and compliance workflows.',
+      },
+      {
+        title: 'Operational telemetry',
+        text: 'PXA records minimized route groups, outcomes, timings, service health, traces, and browser Web Vitals for reliability and security. Browser telemetry does not include user identifiers or document bodies, and no optional marketing storage is enabled.',
+      },
+      {
+        title: 'Providers, regions, and transfers',
+        text: 'PostgreSQL, object storage, OCR, and the default observability stack run in the selected PXA Server region. SMTP, external OTLP, S3-compatible observability storage, and backup destinations remain deployment choices and require provider, region, contract, and transfer review before production activation.',
+      },
+      {
+        title: 'Retention and user rights',
+        text: 'Technical deletion exists for jobs, mail, temporary files, browser state, and observability data. Final periods for accounts, organizations, billing, templates, audit, legal evidence, and backups remain production blockers pending legal approval. The final Privacy Notice will state applicable rights and contact details.',
       },
     ],
-    notice: 'Draft notice: align this page with the final analytics, CRM, hosting, and data retention decisions.',
+    notice: 'Launch blocker: verified operator details, legal bases, provider contracts, regions, transfers, retention periods, and data-subject procedures require counsel approval.',
   },
   license: {
     kicker: 'License',
@@ -397,12 +409,28 @@ const legalPages = {
       'PXA currently uses only first-party storage required for security, sessions, language, and application preferences explicitly requested by the user.',
     sections: [
       {
-        title: 'Security and sessions',
-        text: 'Host-only, HttpOnly cookies protect authenticated sessions and anti-forgery requests. Application code cannot read their contents.',
+        title: 'Storage notice acknowledgement',
+        text: 'The first-party PXA.StorageNotice cookie stores only the notice version for 180 days. It contains no user or device identifier.',
       },
       {
-        title: 'Preferences and workflow state',
-        text: 'Language, interface preferences, and temporary workflow state may be stored locally so requested application behavior remains usable.',
+        title: 'Security and authenticated sessions',
+        text: 'Host-only PXA session, Designer session, and anti-forgery cookies protect authenticated requests. They are HttpOnly, unavailable to application JavaScript, and retained for the browser session or up to eight hours with sliding renewal.',
+      },
+      {
+        title: 'Language and interface preferences',
+        text: 'Local keys pxa_locale, editor-storage, pxa-code-editor-lang-v2, pxa_export_format, and the PDF and Spreadsheet sidebar keys retain only choices explicitly made in the interface. They remain until changed, cleared, or removed during a tenant-state reset where applicable.',
+      },
+      {
+        title: 'Temporary tab handoffs',
+        text: 'Session keys pxa.designer.auth-transaction, pxa_migration_designer_handoff, and pdf_viewer_handoff transfer authentication or document workflow state. They are consumed by the target flow or removed when the browser tab closes.',
+      },
+      {
+        title: 'Local document working copies',
+        text: 'Keys pxa-code-editor-draft-v2 and pxa-spreadsheet keep a local working copy to recover from a refresh. These copies may contain customer-entered content and remain until replaced, cleared, or removed at sign-out or organization switch.',
+      },
+      {
+        title: 'Retention and control',
+        text: 'Users can remove local data through sign-out, organization switching, or browser site-data controls. PXA does not use the browser-storage inventory for cross-site tracking.',
       },
       {
         title: 'No optional tracking at launch',
@@ -1090,6 +1118,7 @@ async function hydratePublishedLegalDocument(kind) {
     const content = document.querySelector('[data-legal-content]');
     if (!content) return;
     content.className = 'pxa-company-legal-document';
+    content.dataset.legalSource = result.source;
     content.innerHTML = legalDocument.renderedHtml;
     const notice = document.querySelector('.pxa-company-legal-notice strong');
     if (notice) {
@@ -1099,7 +1128,20 @@ async function hydratePublishedLegalDocument(kind) {
         : `${version} · Archived copy from ${new Date(result.generatedAt).toLocaleString()}${result.stale ? ' · Snapshot older than 30 days' : ''}. The Legal API is unavailable; transactions requiring current-version verification remain disabled.`;
     }
   } catch {
-    // Draft launch-blocker copy remains visible only when neither verified source is available.
+    const content = document.querySelector('[data-legal-content]');
+    if (content) {
+      content.className = 'pxa-company-legal-document pxa-company-legal-document--unavailable';
+      content.dataset.legalSource = 'unavailable';
+      content.innerHTML = `
+        <section role="status" aria-live="polite">
+          <h2>Verified legal content is temporarily unavailable</h2>
+          <p>Neither the Legal API nor its last-known-good published snapshot could be verified. Please try again later.</p>
+        </section>
+      `;
+    }
+    const notice = document.querySelector('.pxa-company-legal-notice strong');
+    if (notice)
+      notice.textContent = 'Registration and other transactions requiring current legal versions remain disabled.';
   }
 }
 

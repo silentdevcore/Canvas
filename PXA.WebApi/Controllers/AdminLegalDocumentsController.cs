@@ -190,6 +190,7 @@ public sealed class AdminLegalDocumentsController(
     [HttpPost("versions/{versionId:guid}/acceptance/export")]
     [Authorize(Policy = PxaPermissions.LegalRead)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("legal.acceptance.exported")]
     public async Task<IActionResult> ExportAcceptanceEvidence(
         Guid versionId,
         AdminLegalAcceptanceExportRequest request,
@@ -283,6 +284,7 @@ public sealed class AdminLegalDocumentsController(
     [HttpPost("documents")]
     [Authorize(Policy = PxaPermissions.LegalAuthor)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("legal.document.created")]
     public async Task<ActionResult<AdminLegalDocumentResponse>> CreateDocument(
         CreateLegalDocumentRequest request,
         CancellationToken cancellationToken)
@@ -322,6 +324,7 @@ public sealed class AdminLegalDocumentsController(
     [HttpPost("documents/{documentId:guid}/versions")]
     [Authorize(Policy = PxaPermissions.LegalAuthor)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("legal.version.created")]
     public async Task<ActionResult<AdminLegalVersionResponse>> CreateVersion(
         Guid documentId,
         CreateLegalVersionRequest request,
@@ -381,6 +384,7 @@ public sealed class AdminLegalDocumentsController(
     [HttpPut("versions/{versionId:guid}")]
     [Authorize(Policy = PxaPermissions.LegalAuthor)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("legal.version.updated")]
     public async Task<ActionResult<AdminLegalVersionResponse>> UpdateDraft(
         Guid versionId,
         UpdateLegalVersionRequest request,
@@ -414,6 +418,7 @@ public sealed class AdminLegalDocumentsController(
     [HttpPost("versions/{versionId:guid}/submit")]
     [Authorize(Policy = PxaPermissions.LegalAuthor)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("legal.version.submitted")]
     public Task<ActionResult<AdminLegalVersionResponse>> Submit(
         Guid versionId,
         CancellationToken cancellationToken) =>
@@ -423,6 +428,7 @@ public sealed class AdminLegalDocumentsController(
     [HttpPost("versions/{versionId:guid}/review")]
     [Authorize(Policy = PxaPermissions.LegalApprove)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("legal.version.approved|legal.version.rejected")]
     public async Task<ActionResult<AdminLegalVersionResponse>> Review(
         Guid versionId,
         ReviewLegalVersionRequest request,
@@ -478,6 +484,7 @@ public sealed class AdminLegalDocumentsController(
     [HttpPost("versions/{versionId:guid}/publish")]
     [Authorize(Policy = PxaPermissions.LegalApprove)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("legal.version.published")]
     public async Task<ActionResult<AdminLegalVersionResponse>> Publish(
         Guid versionId,
         PublishLegalVersionRequest request,
@@ -521,6 +528,7 @@ public sealed class AdminLegalDocumentsController(
     [HttpPost("versions/{versionId:guid}/retire")]
     [Authorize(Policy = PxaPermissions.LegalApprove)]
     [PxaValidateAntiforgery]
+    [PxaAuditedMutation("legal.version.retired")]
     public async Task<ActionResult<AdminLegalVersionResponse>> Retire(
         Guid versionId,
         CancellationToken cancellationToken)
