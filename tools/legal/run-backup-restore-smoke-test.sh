@@ -90,9 +90,13 @@ if docker run --rm --network "$network" \
 fi
 
 corrupt_backup="$backup.corrupt"
-cp "$backup" "$corrupt_backup"
-cp "$backup.sha256" "$corrupt_backup.sha256"
-printf 'corrupt' >> "$corrupt_backup"
+docker run --rm -v "$backup_directory:/backup" \
+  -e PXA_BACKUP_NAME="$(basename "$backup")" \
+  "$image" /bin/sh -c '
+    cp "/backup/$PXA_BACKUP_NAME" "/backup/$PXA_BACKUP_NAME.corrupt"
+    cp "/backup/$PXA_BACKUP_NAME.sha256" "/backup/$PXA_BACKUP_NAME.corrupt.sha256"
+    printf corrupt >> "/backup/$PXA_BACKUP_NAME.corrupt"
+  '
 if docker run --rm --network "$network" \
   -v "$repository_root:/workspace:ro" -v "$backup_directory:/backup:ro" \
   -e PXA_DATABASE_URL="postgresql://pxa:$password@$target_container:5432/pxa" \
