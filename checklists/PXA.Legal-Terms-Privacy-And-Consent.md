@@ -10,6 +10,15 @@ accepted or privacy notice acknowledged by a user.
 > Final German wording, retention periods, company details, consumer checkout,
 > and production publication require approval by qualified German legal counsel.
 
+## Scope Boundary And Related Compliance
+
+- [x] Keep this workflow limited to legal documents, notices, acknowledgements, and consents governing the relationship between PXA and its customers or users.
+- [x] Keep third-party software license decisions in the dependency-compliance workflow rather than publishing them as customer Legal documents.
+- [x] Never store an NPOI EULA approval or another supplier-license decision in `legal_acceptance_events`; those events represent customer or user actions only.
+- [x] Share qualified Legal ownership and review standards across customer Legal content and third-party license compliance without combining their records, permissions, or approval states.
+- [x] Reference `PXA.Dependency-Security-And-Compliance.md` and `PXA.NPOI-License-Decision.md` as separate production-gate records.
+- [ ] Define a protected Admin navigation relationship between Legal documents and Dependency Compliance while retaining separate APIs, data models, permissions, and audit event types.
+
 ## Priorities
 
 - [x] P0: Define legal document types, lifecycle states, audiences, languages, and immutable published versions.
@@ -151,3 +160,4 @@ accepted or privacy notice acknowledged by a user.
 - [x] Necessary storage is explained without pretending that consent is required.
 - [ ] Counsel-approved German documents and complete operator data replace all launch-blocking placeholders.
 - [ ] Paid B2C checkout remains unavailable until every consumer-law task above is approved and tested.
+- [x] Customer Legal acceptance cannot approve, clear, or otherwise mutate a third-party dependency-license decision.

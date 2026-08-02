@@ -34,6 +34,7 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 
 - [ ] Security owns vulnerability policy and exception approval.
 - [ ] Legal owns license interpretation and approval, including the NPOI OSMF EULA.
+- [x] Keep third-party license approvals separate from customer Terms, Privacy acknowledgements, and optional consent evidence defined in `PXA.Legal-Terms-Privacy-And-Consent.md`.
 - [ ] Engineering owns dependency updates, SBOM generation, and deterministic validation.
 - [ ] Release Management verifies that required gates pass before publishing.
 - [ ] Operations retains SBOM and scan artifacts according to the approved retention policy.
@@ -67,3 +68,4 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 ## Related Decision Record
 
 - [x] Record the NPOI usage inventory, replacement matrix, recommendation, and approval evidence requirements in `PXA.NPOI-License-Decision.md`.
+- [x] Record the boundary to customer-facing Legal documents and consent evidence in `PXA.Legal-Terms-Privacy-And-Consent.md`.
