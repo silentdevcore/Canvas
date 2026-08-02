@@ -10,7 +10,7 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 - [x] Scan direct and transitive NuGet dependencies for known vulnerabilities in CI.
 - [x] Audit production npm dependencies for Designer, Admin, and MCP packages in CI.
 - [x] Configure Dependabot for NuGet, npm, Docker, and GitHub Actions against `develop`.
-- [x] Generate SPDX 2.2 SBOMs for the WebApi publish output, Designer build, and WebApi container filesystem.
+- [x] Generate SPDX JSON SBOMs for the WebApi publish output, Designer build, and WebApi container image.
 - [x] Upload generated SBOMs as immutable CI artifacts.
 - [x] Expose a sanitized dependency-compliance status to System Administrators.
 - [x] Add API and Admin UI contract tests for the protected status.

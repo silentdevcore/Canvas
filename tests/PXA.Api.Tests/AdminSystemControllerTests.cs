@@ -139,7 +139,8 @@ public sealed class AdminSystemControllerTests
         Assert.Contains("no-store", complianceResponse.Headers.CacheControl?.ToString());
         var compliance = await complianceResponse.Content.ReadFromJsonAsync<JsonElement>();
         Assert.False(compliance.GetProperty("productionReady").GetBoolean());
-        Assert.Equal("SPDX-2.2", compliance.GetProperty("sbom").GetProperty("format").GetString());
+        Assert.Equal("SPDX-JSON", compliance.GetProperty("sbom").GetProperty("format").GetString());
+        Assert.Equal("2.2-or-later", compliance.GetProperty("sbom").GetProperty("version").GetString());
         Assert.Equal(3, compliance.GetProperty("sbom").GetProperty("artifacts").GetArrayLength());
         var licenseDecision = Assert.Single(
             compliance.GetProperty("licenseDecisions").EnumerateArray());

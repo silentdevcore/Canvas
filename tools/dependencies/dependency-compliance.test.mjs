@@ -19,5 +19,6 @@ test('SBOM coverage includes every shipped execution surface', async () => {
     new Set(catalog.sbom.artifacts),
     new Set(['webapi', 'designer', 'webapi-container']),
   );
-  assert.equal(catalog.sbom.format, 'SPDX-2.2');
+  assert.equal(catalog.sbom.format, 'SPDX-JSON');
+  assert.equal(catalog.sbom.version, '2.2-or-later');
 });
