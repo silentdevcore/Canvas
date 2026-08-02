@@ -1,0 +1,15 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dependency-security-hardening",
+  "impact": "patch",
+  "components": [
+    "api",
+    "generator",
+    "infrastructure",
+    "spreadsheet"
+  ],
+  "category": "security",
+  "summary": "OpenAPI parsing and XML cryptography dependencies now use patched releases without known high-severity package advisories.",
+  "featureIds": [],
+  "breaking": false
+}
