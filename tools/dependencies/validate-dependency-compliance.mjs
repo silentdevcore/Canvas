@@ -49,14 +49,19 @@ for (const source of projectSources) {
   }
 }
 
-const [webApi, spreadsheet, converters, word, dependabot, ci] = await Promise.all([
+const [webApi, spreadsheet, converters, word, dependabot, ci, mcpIgnore, mcpLock] = await Promise.all([
   read('PXA.WebApi/PXA.WebApi.csproj'),
   read('src/Infrastructure/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj'),
   read('src/Infrastructure/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj'),
   read('src/Infrastructure/PXA.Infrastructure.Word/PXA.Infrastructure.Word.csproj'),
   read('.github/dependabot.yml'),
   read('.github/workflows/ci.yml'),
+  read('tools/PXA.Mcp/.gitignore'),
+  read('tools/PXA.Mcp/package-lock.json'),
 ]);
+if (mcpIgnore.split(/\r?\n/u).includes('package-lock.json') || !mcpLock.includes('"lockfileVersion"')) {
+  fail('MCP must commit a valid package lock for reproducible audits');
+}
 if (!webApi.includes('Include="Microsoft.OpenApi" Version="2.7.5"')) {
   fail('Microsoft.OpenApi security pin is missing');
 }
