@@ -4,6 +4,13 @@
 
 Resolve the production blocker created by the NPOI 2.8.0 binary-package EULA while preserving a deliberate product decision for legacy Excel `.xls` support. This checklist records engineering evidence; qualified Legal counsel must approve the final licensing decision.
 
+## Scope Boundary
+
+- [x] Treat this as a supplier and dependency-license decision between PXA and NPOI, not as Terms, Privacy, Cookie, or customer-consent content.
+- [x] Keep approval evidence in the dependency-compliance record and its protected audit trail, never in customer `legal_acceptance_events`.
+- [x] Use the same qualified Legal function required by `PXA.Legal-Terms-Privacy-And-Consent.md`, while keeping permissions, records, and publication workflows separate.
+- [x] Ensure that accepting PXA Terms or acknowledging the Privacy Notice cannot clear this production blocker.
+
 ## Current Usage Inventory
 
 - [x] Confirm that `PXA.Infrastructure.Spreadsheet` is the only project that directly requires NPOI at runtime.
