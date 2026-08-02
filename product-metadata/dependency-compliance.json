@@ -14,7 +14,8 @@
     }
   },
   "sbom": {
-    "format": "SPDX-2.2",
+    "format": "SPDX-JSON",
+    "version": "2.2-or-later",
     "ciGate": true,
     "artifacts": [
       "webapi",

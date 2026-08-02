@@ -22,6 +22,9 @@ if (catalog.vulnerabilityPolicy?.npm?.maximumAllowedSeverity !== 'moderate') {
 }
 
 const artifacts = new Set(catalog.sbom?.artifacts ?? []);
+if (catalog.sbom?.format !== 'SPDX-JSON' || catalog.sbom?.version !== '2.2-or-later') {
+  fail('SBOM policy must require SPDX JSON 2.2 or later');
+}
 for (const artifact of ['webapi', 'designer', 'webapi-container']) {
   if (!artifacts.has(artifact)) fail(`missing SBOM artifact ${artifact}`);
 }
@@ -79,6 +82,7 @@ for (const marker of [
   'check-nuget-vulnerabilities.mjs',
   'audit --omit=dev --audit-level=high',
   'Microsoft.Sbom.DotNetTool',
+  'anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610',
   'webapi-container',
 ]) {
   if (!ci.includes(marker)) fail(`CI marker is missing: ${marker}`);

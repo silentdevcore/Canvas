@@ -688,7 +688,7 @@ function dependencyComplianceSection() {
       <article><span>Production approval</span><strong><span class="admin-status ${data.productionReady ? 'admin-status--ready' : 'admin-status--inactive'}">${data.productionReady ? 'Ready' : 'Blocked'}</span></strong></article>
       <article><span>NuGet gate</span><strong>${data.vulnerabilityPolicy.nuget.ciGate ? 'Enabled' : 'Disabled'}</strong></article>
       <article><span>npm gate</span><strong>${data.vulnerabilityPolicy.npm.ciGate ? 'Enabled' : 'Disabled'}</strong></article>
-      <article><span>SBOM format</span><strong>${escapeHtml(data.sbom.format)}</strong></article>
+      <article><span>SBOM format</span><strong>${escapeHtml(data.sbom.format)} ${escapeHtml(data.sbom.version)}</strong></article>
       <article><span>SBOM artifacts</span><strong>${data.sbom.artifacts.length}</strong></article>
       <article><span>Open decisions</span><strong>${data.licenseDecisions.filter((decision) => !decision.productionApproved).length}</strong></article>
     </section>

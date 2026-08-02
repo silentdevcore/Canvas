@@ -54,6 +54,7 @@ public sealed record PxaPackageVulnerabilityPolicy(
 
 public sealed record PxaSbomPolicy(
     string Format,
+    string Version,
     bool CiGate,
     IReadOnlyList<string> Artifacts);
 

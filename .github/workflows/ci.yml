@@ -230,26 +230,30 @@ jobs:
           dotnet publish PXA.WebApi/PXA.WebApi.csproj --configuration Release --no-restore --output artifacts/webapi -p:SkipOcrWorkerPackaging=true
           npm --prefix pxa-designer ci
           npm --prefix pxa-designer run build
-      - name: Build and extract WebApi container
+      - name: Build WebApi container
         run: |
           VERSION="$(cat VERSION)"
           docker build --file PXA.WebApi/Dockerfile --tag pxa-webapi:sbom --build-arg PXA_VERSION="$VERSION" --build-arg PXA_COMMIT="$GITHUB_SHA" .
-          CONTAINER_ID="$(docker create pxa-webapi:sbom)"
-          mkdir -p artifacts/webapi-container
-          docker export "$CONTAINER_ID" | tar -C artifacts/webapi-container -xf -
-          docker rm "$CONTAINER_ID"
-      - name: Generate SPDX 2.2 SBOMs
+      - name: Generate WebApi and Designer SPDX SBOMs
         run: |
           VERSION="$(cat VERSION)"
           .tools/sbom-tool generate -b artifacts/webapi -bc . -pn PXA.WebApi -pv "$VERSION" -ps PowerDox -nsb "https://powerdoxautomation.com/sbom/PXA.WebApi/$VERSION"
           .tools/sbom-tool generate -b pxa-designer/dist -bc pxa-designer -pn PXA.Designer -pv "$VERSION" -ps PowerDox -nsb "https://powerdoxautomation.com/sbom/PXA.Designer/$VERSION"
-          .tools/sbom-tool generate -b artifacts/webapi-container -bc . -pn PXA.WebApi.Container -pv "$VERSION" -ps PowerDox -nsb "https://powerdoxautomation.com/sbom/PXA.WebApi.Container/$VERSION"
+      - name: Prepare container SBOM output
+        run: mkdir -p artifacts/sbom/webapi-container
+      - name: Generate container SPDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          image: pxa-webapi:sbom
+          format: spdx-json
+          output-file: artifacts/sbom/webapi-container/manifest.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
       - name: Collect SBOM artifacts
         run: |
-          mkdir -p artifacts/sbom/webapi artifacts/sbom/designer artifacts/sbom/webapi-container
+          mkdir -p artifacts/sbom/webapi artifacts/sbom/designer
           cp -R artifacts/webapi/_manifest/. artifacts/sbom/webapi/
           cp -R pxa-designer/dist/_manifest/. artifacts/sbom/designer/
-          cp -R artifacts/webapi-container/_manifest/. artifacts/sbom/webapi-container/
       - uses: actions/upload-artifact@v4
         with:
           name: pxa-sbom-${{ github.run_number }}-${{ github.sha }}
