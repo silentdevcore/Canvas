@@ -30,6 +30,7 @@ import {
   getAdminMail,
   getAdminMailStatus,
   getAdminSystemHealth,
+  getAdminDependencyCompliance,
   getAdminRetentionStatus,
   runAdminRetentionDryRun,
   getAdminRetentionLegalHolds,
@@ -182,6 +183,9 @@ const state = {
     groups: [], routeCoverage: [], loading: false, loaded: false, error: null,
   },
   systemHealth: {
+    data: null, loading: false, loaded: false, error: null,
+  },
+  dependencyCompliance: {
     data: null, loading: false, loaded: false, error: null,
   },
   retention: {
@@ -655,16 +659,54 @@ function systemStatusPage() {
       <div class="admin-section-heading"><h2>Components</h2><p>Descriptions are intentionally coarse. Raw logs, traces, identifiers, and configuration secrets are never returned here.</p></div>
       <div class="admin-status-list">${componentRows}</div>
     </section>
+    ${dependencyComplianceSection()}
     ${retentionGovernanceSection()}
+  `;
+}
+
+function dependencyComplianceSection() {
+  const compliance = state.dependencyCompliance;
+  if (compliance.loading && !compliance.data) {
+    return '<section class="admin-section"><div class="admin-section-heading"><h2>Dependency security and compliance</h2><p>Loading protected supply-chain status...</p></div></section>';
+  }
+  if (compliance.error && !compliance.data) {
+    return `<section class="admin-section"><div class="admin-section-heading"><h2>Dependency security and compliance</h2><p>${escapeHtml(compliance.error)}</p></div><div class="admin-form-actions"><button class="pxa-button pxa-button--secondary" id="dependency-compliance-retry" type="button">Retry</button></div></section>`;
+  }
+  if (!compliance.data) return '';
+
+  const data = compliance.data;
+  const decisions = data.licenseDecisions.map((decision) => `
+    <div>
+      <strong>${escapeHtml(decision.package)} ${escapeHtml(decision.version)}</strong>
+      <span class="admin-status ${decision.productionApproved ? 'admin-status--ready' : 'admin-status--inactive'}">${decision.productionApproved ? 'Approved' : 'Production blocker'}</span>
+      <p>${escapeHtml(decision.license)}: ${escapeHtml(decision.requiredAction)}</p>
+    </div>
+  `).join('');
+  return `
+    ${compliance.error ? `<div class="admin-alert admin-alert--error admin-detail-alert">${escapeHtml(compliance.error)} Showing the last successful compliance result.</div>` : ''}
+    <section class="admin-summary-grid" aria-label="Dependency compliance summary">
+      <article><span>Production approval</span><strong><span class="admin-status ${data.productionReady ? 'admin-status--ready' : 'admin-status--inactive'}">${data.productionReady ? 'Ready' : 'Blocked'}</span></strong></article>
+      <article><span>NuGet gate</span><strong>${data.vulnerabilityPolicy.nuget.ciGate ? 'Enabled' : 'Disabled'}</strong></article>
+      <article><span>npm gate</span><strong>${data.vulnerabilityPolicy.npm.ciGate ? 'Enabled' : 'Disabled'}</strong></article>
+      <article><span>SBOM format</span><strong>${escapeHtml(data.sbom.format)}</strong></article>
+      <article><span>SBOM artifacts</span><strong>${data.sbom.artifacts.length}</strong></article>
+      <article><span>Open decisions</span><strong>${data.licenseDecisions.filter((decision) => !decision.productionApproved).length}</strong></article>
+    </section>
+    <section class="admin-section">
+      <div class="admin-section-heading"><h2>Dependency security and compliance</h2><p>CI scans direct and transitive dependencies. Generated SBOMs provide the complete inventory; only decisions requiring operator attention appear here.</p></div>
+      <div class="admin-status-list">${decisions || '<div><strong>No open license decisions</strong><p>All recorded dependency decisions are approved.</p></div>'}</div>
+    </section>
   `;
 }
 
 function bindSystemStatusEvents() {
   document.querySelector('#system-health-refresh')?.addEventListener('click', () => {
     loadSystemHealth();
+    loadDependencyCompliance();
     loadRetentionGovernance();
   });
   document.querySelector('#system-health-retry')?.addEventListener('click', () => loadSystemHealth());
+  document.querySelector('#dependency-compliance-retry')?.addEventListener('click', () => loadDependencyCompliance());
   document.querySelector('#retention-retry')?.addEventListener('click', () => loadRetentionGovernance());
   document.querySelector('#retention-dry-run')?.addEventListener('click', () => runRetentionDryRun());
   document.querySelector('#retention-hold-form')?.addEventListener('submit', createRetentionHold);
@@ -683,6 +725,21 @@ async function loadSystemHealth() {
     state.systemHealth.error = error.message;
   } finally {
     state.systemHealth.loading = false;
+    render();
+  }
+}
+
+async function loadDependencyCompliance() {
+  state.dependencyCompliance.loading = true;
+  state.dependencyCompliance.error = null;
+  render();
+  try {
+    state.dependencyCompliance.data = await getAdminDependencyCompliance();
+    state.dependencyCompliance.loaded = true;
+  } catch (error) {
+    state.dependencyCompliance.error = error.message;
+  } finally {
+    state.dependencyCompliance.loading = false;
     render();
   }
 }
@@ -2971,6 +3028,7 @@ function render() {
     renderShell(systemStatusPage(), 'System status');
     bindSystemStatusEvents();
     if (!state.systemHealth.loaded && !state.systemHealth.loading) loadSystemHealth();
+    if (!state.dependencyCompliance.loaded && !state.dependencyCompliance.loading) loadDependencyCompliance();
     if (!state.retention.loaded && !state.retention.loading) loadRetentionGovernance();
     return;
   }

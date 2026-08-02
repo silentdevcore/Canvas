@@ -25,6 +25,8 @@
                       LogicalName="PXA.ProductMetadata.pxa-releases.json" />
     <EmbeddedResource Include="../product-metadata/data-processing-inventory.json"
                       LogicalName="PXA.ProductMetadata.data-processing-inventory.json" />
+    <EmbeddedResource Include="../product-metadata/dependency-compliance.json"
+                      LogicalName="PXA.ProductMetadata.dependency-compliance.json" />
   </ItemGroup>
 
   <ItemGroup>

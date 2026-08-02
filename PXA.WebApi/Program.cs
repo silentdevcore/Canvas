@@ -17,6 +17,7 @@ using PXA.WebApi.Application.Designer;
 using PXA.WebApi.Application.Organizations;
 using PXA.WebApi.Application.Subscriptions;
 using PXA.WebApi.Application.Legal;
+using PXA.WebApi.Application.Compliance;
 using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Observability;
 using PXA.WebApi.Security;
@@ -355,6 +356,7 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<PxaDbContext>("pxa-database", tags: ["ready"])
     .AddCheck<PxaMailHealthCheck>("pxa-mail", tags: ["ready"], timeout: TimeSpan.FromSeconds(5));
 builder.Services.AddScoped<PxaSystemHealthService>();
+builder.Services.AddSingleton<PxaDependencyComplianceCatalog>();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>

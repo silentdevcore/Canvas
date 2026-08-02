@@ -1,0 +1,43 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "npm"
+    directory: "/pxa-designer"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+  - package-ecosystem: "npm"
+    directory: "/websites/PXA.Admin"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
+  - package-ecosystem: "npm"
+    directory: "/tools/PXA.Mcp"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
+  - package-ecosystem: "docker"
+    directory: "/PXA.WebApi"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"

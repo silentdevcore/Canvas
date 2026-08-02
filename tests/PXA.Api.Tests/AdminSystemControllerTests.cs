@@ -44,6 +44,9 @@ public sealed class AdminSystemControllerTests
         Assert.Equal(
             HttpStatusCode.Unauthorized,
             (await client.GetAsync("/api/pxa/v1/admin/system/retention")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await client.GetAsync("/api/pxa/v1/admin/system/dependency-compliance")).StatusCode);
     }
 
     [Fact]
@@ -93,6 +96,10 @@ public sealed class AdminSystemControllerTests
         Assert.Equal(
             HttpStatusCode.Forbidden,
             (await organizationClient.GetAsync("/api/pxa/v1/admin/system/retention")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            (await organizationClient.GetAsync(
+                "/api/pxa/v1/admin/system/dependency-compliance")).StatusCode);
 
         using var systemClient = CreateClient(factory);
         await LoginAsync(
@@ -125,6 +132,23 @@ public sealed class AdminSystemControllerTests
         Assert.DoesNotContain("Host=", body, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("trace", body, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("exception", body, StringComparison.OrdinalIgnoreCase);
+
+        using var complianceResponse = await systemClient.GetAsync(
+            "/api/pxa/v1/admin/system/dependency-compliance");
+        Assert.Equal(HttpStatusCode.OK, complianceResponse.StatusCode);
+        Assert.Contains("no-store", complianceResponse.Headers.CacheControl?.ToString());
+        var compliance = await complianceResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.False(compliance.GetProperty("productionReady").GetBoolean());
+        Assert.Equal("SPDX-2.2", compliance.GetProperty("sbom").GetProperty("format").GetString());
+        Assert.Equal(3, compliance.GetProperty("sbom").GetProperty("artifacts").GetArrayLength());
+        var licenseDecision = Assert.Single(
+            compliance.GetProperty("licenseDecisions").EnumerateArray());
+        Assert.Equal("npoi-osmf-eula", licenseDecision.GetProperty("id").GetString());
+        Assert.Equal("pending-legal-review", licenseDecision.GetProperty("status").GetString());
+        Assert.False(licenseDecision.GetProperty("productionApproved").GetBoolean());
+        var complianceBody = await complianceResponse.Content.ReadAsStringAsync();
+        Assert.DoesNotContain("Password=", complianceBody, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Host=", complianceBody, StringComparison.OrdinalIgnoreCase);
 
         using var retentionResponse = await systemClient.GetAsync(
             "/api/pxa/v1/admin/system/retention");

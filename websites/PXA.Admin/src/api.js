@@ -396,6 +396,10 @@ export async function getAdminSystemHealth() {
   return request('/api/pxa/v1/admin/system/health');
 }
 
+export async function getAdminDependencyCompliance() {
+  return request('/api/pxa/v1/admin/system/dependency-compliance');
+}
+
 export async function getAdminDocumentation() {
   return request('/api/pxa/v1/admin/documentation');
 }
