@@ -1,0 +1,14 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "dependency-compliance-controls",
+  "impact": "minor",
+  "components": [
+    "admin",
+    "api",
+    "infrastructure"
+  ],
+  "category": "security",
+  "summary": "PXA now enforces dependency vulnerability gates, generates SPDX software inventories, and shows unresolved license decisions to authorized system administrators.",
+  "featureIds": [],
+  "breaking": false
+}

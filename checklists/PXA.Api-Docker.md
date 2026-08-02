@@ -68,6 +68,7 @@ Deliver `PXA.WebApi` as a secure, observable, and offline-capable Linux containe
 - [ ] Verify temporary-file cleanup and graceful shutdown during active work.
 - [ ] Verify that the container runs without root privileges.
 - [ ] Scan the final image for known vulnerabilities and generate an SBOM.
+- [x] Generate an SPDX SBOM from the final container filesystem in CI.
 - [ ] Test online and fully offline license scenarios.
 
 ## Acceptance Criteria
