@@ -94,7 +94,7 @@ public sealed class WebhookRelayTests
     [Fact]
     public async Task Relay_sends_a_sanitized_signed_request_to_the_fixed_destination()
     {
-        var secret = RandomNumberGenerator.GetBytes(32);
+        var secret = Encoding.UTF8.GetBytes("pxa-test-webhook-signing-secret-value-2026");
         var secretFile = Path.GetTempFileName();
         await File.WriteAllBytesAsync(secretFile, secret);
         var capture = new CaptureHandler();
