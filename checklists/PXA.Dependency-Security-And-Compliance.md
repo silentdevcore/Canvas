@@ -46,7 +46,7 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 - [x] Verify Dependabot coverage for every managed package ecosystem and directory.
 - [x] Verify API authorization, no-store caching, and sanitized output.
 - [x] Verify Admin loading, failure, refresh, and production-blocker presentation.
-- [ ] Exercise SBOM generation in CI for API, Designer, and container outputs.
+- [x] Exercise SBOM generation in CI for API, Designer, and container outputs.
 - [ ] Verify that published SBOMs match the exact release version and commit.
 
 ## Acceptance Criteria
