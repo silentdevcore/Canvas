@@ -14,6 +14,7 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 - [x] Upload generated SBOMs as immutable CI artifacts.
 - [x] Expose a sanitized dependency-compliance status to System Administrators.
 - [x] Add API and Admin UI contract tests for the protected status.
+- [x] Inventory NPOI production usage, remove its unused converter dependency, and document the legal and technical decision options.
 - [ ] Obtain written legal approval for the NPOI 2.8.0 OSMF EULA and explicitly accept it in the build, or replace NPOI.
 - [ ] Keep production release approval blocked while any required license decision is pending.
 - [ ] Migrate Designer routing to React Router 7 after compatibility testing to remove the remaining moderate advisories without a forced major update.
@@ -62,3 +63,7 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 - [ ] Choose the long-term license scanning and policy engine.
 - [ ] Decide whether signed SBOM attestations are public or customer-authenticated.
 - [ ] Define the final vulnerability exception SLA and emergency release procedure.
+
+## Related Decision Record
+
+- [x] Record the NPOI usage inventory, replacement matrix, recommendation, and approval evidence requirements in `PXA.NPOI-License-Decision.md`.

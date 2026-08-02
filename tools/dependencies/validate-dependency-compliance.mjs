@@ -39,17 +39,21 @@ if (!npoi || npoi.version !== '2.8.0' || npoi.status !== 'pending-legal-review')
   fail('NPOI 2.8.0 must remain an explicit pending legal decision');
 }
 
-const projectSources = await Promise.all([
-  read('src/Infrastructure/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj'),
-  read('src/Infrastructure/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj'),
-]);
-for (const source of projectSources) {
-  if (!source.includes('Include="NPOI" Version="2.8.0"')) {
-    fail('NPOI project version and compliance decision differ');
-  }
-  if (source.includes('AcceptNPOIOSMFLicense')) {
-    fail('NPOI EULA cannot be accepted before the legal decision is approved');
-  }
+const spreadsheetProject = await read(
+  'src/Infrastructure/PXA.Infrastructure.Spreadsheet/PXA.Infrastructure.Spreadsheet.csproj',
+);
+if (!spreadsheetProject.includes('Include="NPOI" Version="2.8.0"')) {
+  fail('NPOI project version and compliance decision differ');
+}
+if (spreadsheetProject.includes('AcceptNPOIOSMFLicense')) {
+  fail('NPOI EULA cannot be accepted before the legal decision is approved');
+}
+
+const converterProject = await read(
+  'src/Infrastructure/PXA.Infrastructure.Converters/PXA.Infrastructure.Converters.csproj',
+);
+if (converterProject.includes('Include="NPOI"')) {
+  fail('the converter project must not carry the NPOI runtime dependency');
 }
 
 const [webApi, spreadsheet, converters, word, dependabot, ci, mcpIgnore, mcpLock] = await Promise.all([
