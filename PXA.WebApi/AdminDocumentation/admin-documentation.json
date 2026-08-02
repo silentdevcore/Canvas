@@ -330,6 +330,10 @@
           ],
           "steps": [
             "Open System status in PXA.Admin and review the coarse component and queue states.",
+            "Review the retention production gate, pending category approvals, effective configuration, and active Legal Hold count.",
+            "Run the safe retention dry run to inspect candidates and hold effects without changing data.",
+            "Create a global or organization-scoped Legal Hold only for an authorized preservation requirement, and document the authority in its reason.",
+            "Release a Legal Hold only after the preservation requirement ends, using a separate documented release reason.",
             "Select Open dashboards to enter the protected operator gateway.",
             "Use Platform Overview first, then open the infrastructure, operations, document, or browser dashboard for the affected surface.",
             "Use Grafana Explore only when dashboard evidence requires a correlated metric, sanitized log, or Tempo trace.",
@@ -339,16 +343,21 @@
           "failures": [
             "Anonymous access receives 401 and Organization Administrators receive 403 from the operator gateway.",
             "A healthy Admin status page does not replace liveness, readiness, or alert evidence.",
-            "Mailpit, Collector health, and container health URLs are local evaluation endpoints and must not be exposed publicly."
+            "Mailpit, Collector health, and container health URLs are local evaluation endpoints and must not be exposed publicly.",
+            "Production startup is intentionally blocked while the retention inventory or any processing category lacks legal approval.",
+            "A retention dry run always reports executed as false; PXA.Admin exposes no manual cleanup execution action.",
+            "An active Legal Hold overrides matching background-job and transactional-mail cleanup until its audited release."
           ],
-          "audit": "Opening telemetry is a protected read. Remediation performed through Admin or deployment tooling remains separately auditable.",
-          "endpoint": "GET /api/pxa/v1/admin/system/health, /health/live, and /health/ready",
+          "audit": "Opening telemetry is a protected read. Retention dry runs and every Legal Hold creation or release are audited without recording customer content.",
+          "endpoint": "GET /api/pxa/v1/admin/system/health; GET /api/pxa/v1/admin/system/retention; POST /api/pxa/v1/admin/system/retention/dry-run; GET or POST /api/pxa/v1/admin/system/retention/legal-holds; POST /api/pxa/v1/admin/system/retention/legal-holds/{id}/release; /health/live; /health/ready",
           "screenshot": "dashboard.png",
           "notes": [
             "PXA.Admin exposes only sanitized status. Raw Grafana data remains behind the System Administrator operator gateway.",
             "Prometheus, Loki, Tempo, Alertmanager, cAdvisor, and PostgreSQL Exporter have no direct public host ports.",
             "Use local links only for Rancher Desktop evaluation. Production links require TLS and the deployment operator allowlist.",
-            "Never paste customer documents, credentials, mail payloads, license material, or arbitrary query attributes into telemetry tools."
+            "Never paste customer documents, credentials, mail payloads, license material, or arbitrary query attributes into telemetry tools.",
+            "A Legal Hold reason must identify the authorized preservation purpose without embedding secrets or document content.",
+            "Policy approval and Legal Hold management are governance controls, not a substitute for counsel approval of concrete retention periods."
           ],
           "references": [
             {
@@ -525,6 +534,49 @@
             "request": "GET /api/pxa/v1/admin/legal/versions/synthetic-version-id/acceptance?accountType=Company&locale=de\nAccept: application/json",
             "response": "{\n  \"legalDocumentVersionId\": \"synthetic-version-id\",\n  \"version\": \"2026-08\",\n  \"affectedAccounts\": 120,\n  \"completed\": 96,\n  \"pending\": 24,\n  \"completionPercentage\": 80.0\n}"
           }
+        },
+        {
+          "title": "Legal continuity and recovery escalation",
+          "group": "Governance",
+          "permission": "System Administrator",
+          "summary": "Keep published Legal pages readable while blocking version-sensitive transactions and escalating database recovery through the protected operator process.",
+          "prerequisites": [
+            "Use an active, email-verified System Administrator account.",
+            "Confirm the Legal API, registration-policy endpoint, and system readiness state.",
+            "Required access: System Administrator; database restoration requires separately authorized deployment-operator access."
+          ],
+          "steps": [
+            "Open System status and record the UTC time, trace ID, API readiness, and affected Legal endpoints.",
+            "Confirm that the public Legal page uses a visibly identified validated snapshot when the Legal API is unavailable.",
+            "Confirm that registration, checkout, reacceptance, and publication remain disabled when current database-backed versions cannot be verified.",
+            "Escalate through the protected operator recovery process without attaching database contents, credentials, or acceptance evidence.",
+            "After recovery, verify current Terms and Privacy through the live API before resuming version-sensitive transactions."
+          ],
+          "result": "Published Legal information remains readable from a verified availability artifact while transactional use stays fail-closed until the recovered database is independently validated.",
+          "failures": [
+            "A missing or corrupt snapshot displays an unavailable state and must not expose draft copy as published content.",
+            "A stale snapshot remains visibly marked and cannot authorize a transaction.",
+            "Unavailable current Terms or Privacy keep registration and checkout disabled."
+          ],
+          "audit": "Status reads do not create mutation events. Incident declaration, restore approval, traffic switch, and privileged corrective actions belong to the protected operational record; existing Legal acceptance evidence remains immutable.",
+          "endpoint": "GET /api/pxa/v1/legal/snapshot, GET /api/pxa/v1/auth/registration-policy, and GET /health/ready",
+          "screenshot": "dashboard.png",
+          "notes": [
+            "The static snapshot is an availability artifact, not a backup and not a source for registration or checkout authorization.",
+            "Restore commands, database locations, credentials, encryption keys, and emergency procedures are deliberately excluded from the Admin handbook payload.",
+            "Database recovery restores the complete relational consistency boundary rather than selected Legal tables."
+          ],
+          "references": [
+            {
+              "label": "Protected operator runbooks",
+              "href": "https://operator.powerdoxautomation.com/documentation/"
+            },
+            {
+              "label": "Local protected operator runbooks",
+              "href": "http://localhost:3001/documentation/"
+            }
+          ],
+          "apiExample": null
         }
       ]
     },

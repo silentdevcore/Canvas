@@ -1,6 +1,6 @@
 import { companyPage } from './siteLinks.js';
 
-const NOTICE_VERSION = '2026-07';
+const NOTICE_VERSION = '2026-08';
 const COOKIE_NAME = 'PXA.StorageNotice';
 
 function readCookie(name) {

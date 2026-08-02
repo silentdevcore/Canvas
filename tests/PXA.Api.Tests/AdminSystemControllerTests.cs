@@ -38,6 +38,12 @@ public sealed class AdminSystemControllerTests
         Assert.Equal(
             HttpStatusCode.Unauthorized,
             (await client.GetAsync("/api/pxa/v1/admin/operator/access")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await client.GetAsync("/api/pxa/v1/admin/operator/documentation")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await client.GetAsync("/api/pxa/v1/admin/system/retention")).StatusCode);
     }
 
     [Fact]
@@ -46,7 +52,9 @@ public sealed class AdminSystemControllerTests
         foreach (var controllerType in new[]
                  {
                      typeof(AdminSystemController),
+                     typeof(AdminRetentionController),
                      typeof(AdminOperatorAccessController),
+                     typeof(OperatorDocumentationController),
                  })
         {
             var authorize = controllerType.GetCustomAttribute<AuthorizeAttribute>();
@@ -79,6 +87,12 @@ public sealed class AdminSystemControllerTests
         Assert.Equal(
             HttpStatusCode.Forbidden,
             (await organizationClient.GetAsync("/api/pxa/v1/admin/operator/access")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            (await organizationClient.GetAsync("/api/pxa/v1/admin/operator/documentation")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            (await organizationClient.GetAsync("/api/pxa/v1/admin/system/retention")).StatusCode);
 
         using var systemClient = CreateClient(factory);
         await LoginAsync(
@@ -112,12 +126,88 @@ public sealed class AdminSystemControllerTests
         Assert.DoesNotContain("trace", body, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("exception", body, StringComparison.OrdinalIgnoreCase);
 
+        using var retentionResponse = await systemClient.GetAsync(
+            "/api/pxa/v1/admin/system/retention");
+        Assert.Equal(HttpStatusCode.OK, retentionResponse.StatusCode);
+        Assert.Contains("no-store", retentionResponse.Headers.CacheControl?.ToString());
+        var retention = await retentionResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.False(retention.GetProperty("productionReady").GetBoolean());
+        Assert.Equal(12, retention.GetProperty("pendingApprovalCount").GetInt32());
+        Assert.Equal(13, retention.GetProperty("policies").GetArrayLength());
+
+        using var dryRunResponse = await SendMutationAsync(
+            systemClient,
+            HttpMethod.Post,
+            "/api/pxa/v1/admin/system/retention/dry-run");
+        Assert.Equal(HttpStatusCode.OK, dryRunResponse.StatusCode);
+        var dryRun = await dryRunResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.False(dryRun.GetProperty("executed").GetBoolean());
+        Assert.Equal(13, dryRun.GetProperty("decisions").GetArrayLength());
+
+        using var createHoldResponse = await SendMutationAsync(
+            systemClient,
+            HttpMethod.Post,
+            "/api/pxa/v1/admin/system/retention/legal-holds",
+            new
+            {
+                category = "background-document-jobs",
+                organizationId = (Guid?)null,
+                reason = "Preserve evidence for an authorized investigation.",
+            });
+        Assert.Equal(HttpStatusCode.Created, createHoldResponse.StatusCode);
+        var createdHold = await createHoldResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var holdId = createdHold.GetProperty("id").GetGuid();
+
+        var activeHolds = await systemClient.GetFromJsonAsync<JsonElement>(
+            "/api/pxa/v1/admin/system/retention/legal-holds");
+        Assert.Contains(activeHolds.EnumerateArray(), value => value.GetProperty("id").GetGuid() == holdId);
+
+        using var releaseHoldResponse = await SendMutationAsync(
+            systemClient,
+            HttpMethod.Post,
+            $"/api/pxa/v1/admin/system/retention/legal-holds/{holdId}/release",
+            new { reason = "The authorized investigation has concluded." });
+        Assert.Equal(HttpStatusCode.OK, releaseHoldResponse.StatusCode);
+        var releasedHold = await releaseHoldResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.NotEqual(JsonValueKind.Null, releasedHold.GetProperty("releasedAt").ValueKind);
+
         using var operatorAccess = await systemClient.GetAsync(
             "/api/pxa/v1/admin/operator/access");
         Assert.Equal(HttpStatusCode.NoContent, operatorAccess.StatusCode);
         var operatorName = Assert.Single(operatorAccess.Headers.GetValues("X-PXA-Operator"));
         Assert.Matches("^pxa-[a-f0-9]{24}$", operatorName);
         Assert.DoesNotContain("system-admin", operatorName, StringComparison.OrdinalIgnoreCase);
+
+        using var catalogResponse = await systemClient.GetAsync(
+            "/api/pxa/v1/admin/operator/documentation");
+        Assert.Equal(HttpStatusCode.OK, catalogResponse.StatusCode);
+        Assert.Contains("no-store", catalogResponse.Headers.CacheControl?.ToString());
+        var catalog = await catalogResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(2, catalog.GetProperty("documents").GetArrayLength());
+
+        using var runbookResponse = await systemClient.GetAsync(
+            "/api/pxa/v1/admin/operator/documentation/legal-backup-restore-recovery");
+        Assert.Equal(HttpStatusCode.OK, runbookResponse.StatusCode);
+        var runbook = await runbookResponse.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Contains(
+            "RESTORE PXA DATABASE",
+            runbook.GetProperty("markdown").GetString(),
+            StringComparison.Ordinal);
+        Assert.Equal(
+            HttpStatusCode.NotFound,
+            (await systemClient.GetAsync(
+                "/api/pxa/v1/admin/operator/documentation/not-registered")).StatusCode);
+
+        await using var auditScope = factory.Services.CreateAsyncScope();
+        var auditDbContext = auditScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var documentationAudit = await auditDbContext.AuditEvents.SingleAsync(value =>
+            value.Action == "operator.documentation.read");
+        Assert.Equal("legal-backup-restore-recovery", documentationAudit.TargetId);
+        Assert.Equal("succeeded", documentationAudit.Outcome);
+        Assert.Equal(2, await auditDbContext.AuditEvents.CountAsync(value =>
+            value.TargetType == "retention_legal_hold" &&
+            (value.Action == "retention.legal-hold.created" ||
+             value.Action == "retention.legal-hold.released")));
     }
 
     private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>
@@ -262,6 +352,20 @@ public sealed class AdminSystemControllerTests
         };
         request.Headers.Add("X-PXA-CSRF", csrf.GetProperty("token").GetString());
         Assert.Equal(HttpStatusCode.OK, (await client.SendAsync(request)).StatusCode);
+    }
+
+    private static async Task<HttpResponseMessage> SendMutationAsync(
+        HttpClient client,
+        HttpMethod method,
+        string path,
+        object? body = null)
+    {
+        var csrf = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/auth/csrf");
+        var request = new HttpRequestMessage(method, path);
+        if (body is not null)
+            request.Content = JsonContent.Create(body);
+        request.Headers.Add("X-PXA-CSRF", csrf.GetProperty("token").GetString());
+        return await client.SendAsync(request);
     }
 
     private static string Describe(IdentityResult result) =>

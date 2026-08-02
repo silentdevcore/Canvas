@@ -9,6 +9,7 @@ public sealed class FileImporterRegistryTests
         yield return [FileImporterKeys.Doc, typeof(DocFileImporter)];
         yield return [FileImporterKeys.Docx, typeof(DocxFileImporter)];
         yield return [FileImporterKeys.Image, typeof(ImageFileImporter)];
+        yield return [FileImporterKeys.Markdown, typeof(MarkdownFileImporter)];
         yield return [FileImporterKeys.Odt, typeof(OdtFileImporter)];
         yield return [FileImporterKeys.Pdf, typeof(PdfFileImporter)];
         yield return [FileImporterKeys.Pptx, typeof(PptxFileImporter)];
@@ -32,6 +33,7 @@ public sealed class FileImporterRegistryTests
                 FileImporterKeys.Doc,
                 FileImporterKeys.Docx,
                 FileImporterKeys.Image,
+                FileImporterKeys.Markdown,
                 FileImporterKeys.Odt,
                 FileImporterKeys.Pdf,
                 FileImporterKeys.Pptx,

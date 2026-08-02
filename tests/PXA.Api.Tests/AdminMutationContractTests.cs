@@ -33,7 +33,7 @@ public sealed partial class AdminMutationContractTests
             .ThenBy(value => value.Method.Name, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(32, mutations.Length);
+        Assert.Equal(43, mutations.Length);
         foreach (var mutation in mutations)
         {
             var displayName = $"{mutation.Controller.Name}.{mutation.Method.Name}";
@@ -44,7 +44,13 @@ public sealed partial class AdminMutationContractTests
                 mutation.Method.GetCustomAttributes<PxaValidateAntiforgeryAttribute>(true).Any(),
                 $"{displayName} must validate CSRF tokens.");
 
-            var audit = Assert.Single(mutation.Method.GetCustomAttributes<PxaAuditedMutationAttribute>(true));
+            var auditAttributes = mutation.Method
+                .GetCustomAttributes<PxaAuditedMutationAttribute>(true)
+                .ToArray();
+            Assert.True(
+                auditAttributes.Length == 1,
+                $"{displayName} must declare exactly one audited mutation action; found {auditAttributes.Length}.");
+            var audit = auditAttributes[0];
             Assert.All(audit.Action.Split('|'), action =>
                 Assert.Matches(AuditActionPattern(), action));
         }

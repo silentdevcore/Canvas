@@ -7,6 +7,7 @@ const adminServiceAccountsBase = '/api/pxa/v1/admin/service-accounts';
 const adminAuditBase = '/api/pxa/v1/admin/audit';
 const adminRolesBase = '/api/pxa/v1/admin/roles';
 const adminLegalBase = '/api/pxa/v1/admin/legal';
+const adminRetentionBase = '/api/pxa/v1/admin/system/retention';
 
 async function request(path, options = {}) {
   let response;
@@ -77,6 +78,30 @@ export async function logout() {
       'X-PXA-CSRF': token,
     },
   });
+}
+
+export async function getAdminRetentionStatus() {
+  return request(adminRetentionBase);
+}
+
+export async function runAdminRetentionDryRun() {
+  return adminMutation(`${adminRetentionBase}/dry-run`, 'POST');
+}
+
+export async function getAdminRetentionLegalHolds(includeReleased = false) {
+  return request(`${adminRetentionBase}/legal-holds?includeReleased=${includeReleased}`);
+}
+
+export async function createAdminRetentionLegalHold(category, organizationId, reason) {
+  return adminMutation(`${adminRetentionBase}/legal-holds`, 'POST', {
+    category,
+    organizationId: organizationId || null,
+    reason,
+  });
+}
+
+export async function releaseAdminRetentionLegalHold(holdId, reason) {
+  return adminMutation(`${adminRetentionBase}/legal-holds/${encodeURIComponent(holdId)}/release`, 'POST', { reason });
 }
 
 export async function getAdminUsers({ search = '', status = '', page = 1, pageSize = 25 } = {}) {

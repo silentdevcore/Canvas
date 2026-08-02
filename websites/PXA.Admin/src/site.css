@@ -534,13 +534,15 @@ input:disabled {
   margin-bottom: var(--pxa-space-8);
 }
 
+.admin-page-header > div { min-width: 0; }
+
 .admin-page-header h1 {
   margin: 0;
   color: var(--pxa-color-ink);
   font-size: var(--pxa-text-3xl);
 }
 
-.admin-page-header p:not(.pxa-kicker) { max-width: 720px; margin: var(--pxa-space-2) 0 0; color: var(--pxa-color-muted); }
+.admin-page-header p:not(.pxa-kicker) { max-width: 720px; margin: var(--pxa-space-2) 0 0; color: var(--pxa-color-muted); overflow-wrap: anywhere; }
 
 .admin-status {
   display: inline-flex;
@@ -1227,7 +1229,7 @@ tbody tr:hover { background: #f8fafc; }
   .admin-inline-form .pxa-button { grid-column: auto; }
   .admin-invitation-form { grid-template-columns: 1fr; }
   .admin-invitation-form .pxa-button { grid-column: auto; }
-  .admin-header-actions { align-items: flex-start; flex-direction: column; }
+  .admin-header-actions { width: 100%; align-items: flex-start; flex-direction: column; }
   .admin-summary-grid { grid-template-columns: 1fr; }
   .admin-subscription-fields, .admin-capability-options { grid-template-columns: 1fr; }
   .admin-compact-action { grid-template-columns: 1fr; }

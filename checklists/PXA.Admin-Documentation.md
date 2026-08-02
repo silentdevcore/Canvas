@@ -22,6 +22,7 @@ Deliver complete English-language administration documentation for customer admi
 - [x] Document mail delivery, retries, cancellation, failure states, and protected metadata.
 - [x] Document audit search, detail, filtering, export limits, and tenant boundaries.
 - [x] Document common UI states, diagnostics, troubleshooting, and safe support escalation.
+- [x] Document retention approval status, safe dry runs, global and organization Legal Holds, audit effects, and the absence of manual cleanup execution.
 
 ## Technical Reference
 
@@ -37,7 +38,8 @@ Deliver complete English-language administration documentation for customer admi
 - [x] Classify the operator guide as a restricted operational guideline/runbook.
 - [x] Create a separate operator guide outside both public Documentation and the PXA.Admin bundle.
 - [x] Cover bootstrap boundaries, operator allowlist, hosting, reverse proxy, migrations, readiness, recovery, and emergency access principles.
-- [ ] Add authenticated operator-documentation deployment and access control.
+- [x] Add a restricted Legal backup, restore, verification, rollback, and disaster-recovery runbook outside the Admin and public Documentation bundles.
+- [x] Add an authenticated operator-documentation deployment with gateway and API enforcement for allowlisted System Administrators.
 - [ ] Add deployment-specific runbooks after Cloud and Docker hosting are implemented.
 
 ## Presentation And Validation

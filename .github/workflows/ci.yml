@@ -65,8 +65,19 @@ jobs:
           dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj
           --configuration Release
           --no-build
-          --filter "FullyQualifiedName~PXA.Api.Tests.VersionControllerTests.|FullyQualifiedName~PXA.Api.Tests.DesignerProductExperienceTests."
+          --filter "FullyQualifiedName~PXA.Api.Tests.VersionControllerTests.|FullyQualifiedName~PXA.Api.Tests.DesignerProductExperienceTests.|FullyQualifiedName~PXA.Api.Tests.OperatorDocumentationContractTests."
           -p:SkipOcrWorkerPackaging=true
+      - name: Test PostgreSQL legal deployment contract
+        env:
+          PXA_RUN_POSTGRES_TESTS: "1"
+        run: >
+          dotnet test tests/PXA.Api.Tests/PXA.Api.Tests.csproj
+          --configuration Release
+          --no-build
+          --filter "FullyQualifiedName~AccountRegistrationControllerTests.Registration_requires_current_legal_versions_and_records_exact_acceptances|FullyQualifiedName~AdminSystemControllerTests"
+          -p:SkipOcrWorkerPackaging=true
+      - name: Test isolated Legal backup and restore
+        run: tools/legal/run-backup-restore-smoke-test.sh
 
   frontend:
     runs-on: ubuntu-latest
@@ -97,6 +108,8 @@ jobs:
           npm run build
       - name: Test Account, Company, and Documentation
         run: |
+          node tools/legal/validate-browser-storage.mjs
+          node tools/legal/validate-data-processing-inventory.mjs
           npm --prefix websites/PXA.Account test
           npm --prefix websites/PXA.Account run type-check
           npm --prefix websites/PXA.Company test

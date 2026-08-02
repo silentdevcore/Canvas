@@ -37,9 +37,21 @@ public sealed class AccountRegistrationControllerTests
         Assert.Equal(policyIds.Terms, policy.GetProperty("terms").GetProperty("id").GetGuid());
         Assert.Equal(policyIds.Privacy, policy.GetProperty("privacy").GetProperty("id").GetGuid());
 
-        object Payload(Guid? termsVersionId, Guid? privacyVersionId) => new
+        var snapshot = await client.GetFromJsonAsync<JsonElement>(
+            "/api/pxa/v1/legal/snapshot?locale=de&audience=All");
+        Assert.Equal(1, snapshot.GetProperty("schemaVersion").GetInt32());
+        Assert.Equal(
+            ["privacy", "terms"],
+            snapshot.GetProperty("documents").EnumerateArray()
+                .Select(value => value.GetProperty("key").GetString()!)
+                .ToArray());
+
+        object Payload(
+            Guid? termsVersionId,
+            Guid? privacyVersionId,
+            string email = "legal-registration@customer.test") => new
         {
-            email = "legal-registration@customer.test",
+            email,
             displayName = "Legal Registration",
             password = "Pxa-Customer-Password-42!",
             accountType = "IndividualDeveloper",
@@ -95,6 +107,32 @@ public sealed class AccountRegistrationControllerTests
             Assert.Equal(64, value.ContentHash.Length);
             Assert.NotNull(value.OrganizationId);
         });
+
+        Assert.Contains(
+            await dbContext.Database.GetAppliedMigrationsAsync(),
+            migration => migration.EndsWith("_AddLegalDocumentGovernance", StringComparison.Ordinal));
+
+        foreach (var version in await dbContext.LegalDocumentVersions.ToListAsync())
+        {
+            version.Status = LegalDocumentStatus.Retired;
+            version.RetiredAt = DateTimeOffset.UtcNow;
+        }
+        await dbContext.SaveChangesAsync();
+
+        var unavailablePolicy = await client.GetAsync(
+            "/api/pxa/v1/auth/registration-policy?locale=de");
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, unavailablePolicy.StatusCode);
+
+        const string unavailableEmail = "legal-unavailable@customer.test";
+        using var unavailableRegistration = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/register",
+            await GetCsrfAsync(client),
+            Payload(policyIds.Terms, policyIds.Privacy, unavailableEmail));
+        Assert.Equal(
+            HttpStatusCode.ServiceUnavailable,
+            (await client.SendAsync(unavailableRegistration)).StatusCode);
+        Assert.False(await dbContext.Users.AnyAsync(value => value.Email == unavailableEmail));
     }
 
     [PostgreSqlFact]

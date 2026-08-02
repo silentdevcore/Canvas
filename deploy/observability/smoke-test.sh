@@ -31,6 +31,24 @@ if [[ "${anonymous_status}" != "401" ]]; then
   exit 1
 fi
 
+anonymous_documentation_status="$(
+  curl --silent --output /dev/null --write-out '%{http_code}' --max-time 10 \
+    "${operator_url}/documentation/"
+)"
+if [[ "${anonymous_documentation_status}" != "401" ]]; then
+  echo "Expected anonymous operator documentation access to return 401, got ${anonymous_documentation_status}." >&2
+  exit 1
+fi
+
+anonymous_documentation_root_status="$(
+  curl --silent --output /dev/null --write-out '%{http_code}' --max-time 10 \
+    "${operator_url}/documentation"
+)"
+if [[ "${anonymous_documentation_root_status}" != "401" ]]; then
+  echo "Expected anonymous operator documentation root to return 401, got ${anonymous_documentation_root_status}." >&2
+  exit 1
+fi
+
 if [[ -z "${operator_identifier}" || -z "${operator_password}" ]]; then
   echo "Set PXA_OPERATOR_IDENTIFIER and PXA_OPERATOR_PASSWORD to run authenticated smoke checks." >&2
   exit 1
@@ -62,6 +80,30 @@ operator_access_status="$(
 )"
 if [[ "${operator_access_status}" != "204" ]]; then
   echo "Expected authenticated operator access to return 204, got ${operator_access_status}." >&2
+  exit 1
+fi
+
+curl --fail --silent --show-error --max-time 10 \
+  --cookie "${cookie_jar}" "${operator_url}/documentation/" | \
+  grep -q "Operator Documentation"
+operator_documents="$(
+  curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
+    "${operator_url}/api/pxa/v1/admin/operator/documentation"
+)"
+if [[ "$(jq '.documents | length' <<<"${operator_documents}")" -lt 2 ]]; then
+  echo "Expected protected operator runbooks to be available." >&2
+  exit 1
+fi
+curl --fail --silent --show-error --max-time 10 --cookie "${cookie_jar}" \
+  "${operator_url}/api/pxa/v1/admin/operator/documentation/legal-backup-restore-recovery" | \
+  jq -e '.markdown | contains("RESTORE PXA DATABASE")' >/dev/null
+
+direct_runbook_status="$(
+  curl --silent --output /dev/null --write-out '%{http_code}' --max-time 10 \
+    --cookie "${cookie_jar}" "${operator_url}/operator-docs/PXA.Admin-Operations.md"
+)"
+if [[ "${direct_runbook_status}" != "404" ]]; then
+  echo "Expected direct runbook paths to return 404, got ${direct_runbook_status}." >&2
   exit 1
 fi
 
