@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Net;
@@ -62,7 +63,7 @@ public sealed class PxaObservabilityTests
     [Fact]
     public void Job_and_dependency_metrics_use_only_bounded_operational_tags()
     {
-        var measurements = new List<Measurement>();
+        var measurements = new ConcurrentQueue<Measurement>();
         using var listener = new MeterListener();
         listener.InstrumentPublished = (instrument, meterListener) =>
         {
@@ -70,9 +71,9 @@ public sealed class PxaObservabilityTests
                 meterListener.EnableMeasurementEvents(instrument);
         };
         listener.SetMeasurementEventCallback<long>((instrument, value, tags, _) =>
-            measurements.Add(new Measurement(instrument.Name, value, tags.ToArray())));
+            measurements.Enqueue(new Measurement(instrument.Name, value, tags.ToArray())));
         listener.SetMeasurementEventCallback<double>((instrument, value, tags, _) =>
-            measurements.Add(new Measurement(instrument.Name, value, tags.ToArray())));
+            measurements.Enqueue(new Measurement(instrument.Name, value, tags.ToArray())));
         listener.Start();
 
         PxaTelemetry.RecordJobEnqueued("document.import");
@@ -117,39 +118,40 @@ public sealed class PxaObservabilityTests
             "lcp",
             1200);
 
-        Assert.Contains(measurements, value => value.Name == "pxa.jobs.enqueued");
-        Assert.Contains(measurements, value => value.Name == "pxa.jobs.queue.duration");
-        Assert.Contains(measurements, value => value.Name == "pxa.jobs.processed");
-        Assert.Contains(measurements, value => value.Name == "pxa.jobs.duration");
-        Assert.Contains(measurements, value => value.Name == "pxa.dependencies.health");
-        Assert.Contains(measurements, value => value.Name == "pxa.dependencies.healthcheck.duration");
+        var recordedMeasurements = measurements.ToArray();
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.jobs.enqueued");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.jobs.queue.duration");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.jobs.processed");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.jobs.duration");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.dependencies.health");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.dependencies.healthcheck.duration");
         Assert.Contains(
-            measurements,
+            recordedMeasurements,
             value => value.Name == "pxa.service.heartbeat" &&
                      value.Value == 1_750_000_000);
-        Assert.Contains(measurements, value => value.Name == "pxa.mail.queue.depth");
-        Assert.Contains(measurements, value => value.Name == "pxa.mail.queue.oldest.age");
-        Assert.Contains(measurements, value => value.Name == "pxa.mail.deliveries");
-        Assert.Contains(measurements, value => value.Name == "pxa.mail.delivery.duration");
-        Assert.Contains(measurements, value => value.Name == "pxa.ocr.operations");
-        Assert.Contains(measurements, value => value.Name == "pxa.ocr.duration");
-        Assert.Contains(measurements, value => value.Name == "pxa.ocr.timeouts");
-        Assert.Contains(measurements, value => value.Name == "pxa.ocr.worker.terminations");
-        Assert.Contains(measurements, value => value.Name == "pxa.document.operations");
-        Assert.Contains(measurements, value => value.Name == "pxa.document.operation.duration");
-        Assert.Contains(measurements, value => value.Name == "pxa.api.failures");
-        Assert.Contains(measurements, value => value.Name == "pxa.jobs.queue.depth");
-        Assert.Contains(measurements, value => value.Name == "pxa.jobs.queue.oldest.age");
-        Assert.Contains(measurements, value => value.Name == "pxa.jobs.lease.recoveries");
-        Assert.Contains(measurements, value => value.Name == "pxa.jobs.retention");
-        Assert.Contains(measurements, value => value.Name == "pxa.storage.operations");
-        Assert.Contains(measurements, value => value.Name == "pxa.storage.operation.duration");
-        Assert.Contains(measurements, value => value.Name == "pxa.storage.bytes");
-        Assert.Contains(measurements, value => value.Name == "pxa.licensing.operations");
-        Assert.Contains(measurements, value => value.Name == "pxa.licensing.operation.duration");
-        Assert.Contains(measurements, value => value.Name == "pxa.licensing.licenses");
-        Assert.Contains(measurements, value => value.Name == "pxa.browser.events");
-        Assert.Contains(measurements, value => value.Name == "pxa.browser.web_vital");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.mail.queue.depth");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.mail.queue.oldest.age");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.mail.deliveries");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.mail.delivery.duration");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.ocr.operations");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.ocr.duration");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.ocr.timeouts");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.ocr.worker.terminations");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.document.operations");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.document.operation.duration");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.api.failures");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.jobs.queue.depth");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.jobs.queue.oldest.age");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.jobs.lease.recoveries");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.jobs.retention");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.storage.operations");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.storage.operation.duration");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.storage.bytes");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.licensing.operations");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.licensing.operation.duration");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.licensing.licenses");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.browser.events");
+        Assert.Contains(recordedMeasurements, value => value.Name == "pxa.browser.web_vital");
 
         var allowedTags = new[]
         {
@@ -162,10 +164,10 @@ public sealed class PxaObservabilityTests
             "browser.route", "browser.vital",
         };
         Assert.All(
-            measurements.SelectMany(value => value.Tags),
+            recordedMeasurements.SelectMany(value => value.Tags),
             tag => Assert.Contains(tag.Key, allowedTags));
         Assert.DoesNotContain(
-            measurements.SelectMany(value => value.Tags),
+            recordedMeasurements.SelectMany(value => value.Tags),
             tag => tag.Key.Contains("user", StringComparison.OrdinalIgnoreCase) ||
                    tag.Key.Contains("tenant", StringComparison.OrdinalIgnoreCase) ||
                    tag.Key.Contains("file", StringComparison.OrdinalIgnoreCase) ||
