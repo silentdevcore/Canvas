@@ -121,6 +121,7 @@ jobs:
           cache-dependency-path: |
             pxa-designer/package-lock.json
             websites/PXA.Admin/package-lock.json
+            tools/PXA.Mcp/package-lock.json
       - name: Install Designer dependencies
         working-directory: pxa-designer
         run: npm ci
@@ -173,7 +174,7 @@ jobs:
       - name: Install and type-check MCP tool
         working-directory: tools/PXA.Mcp
         run: |
-          npm install
+          npm ci
           npm run typecheck
 
   snapshot:
