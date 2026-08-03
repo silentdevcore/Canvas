@@ -13,10 +13,10 @@ jobs:
   version-policy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
       - name: Test version tooling
@@ -46,8 +46,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: version-policy
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.x
       - name: Restore
@@ -83,11 +83,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: version-policy
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.x
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: npm
@@ -113,8 +113,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: version-policy
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: npm
@@ -164,7 +164,7 @@ jobs:
           for site in PXA.Account PXA.Admin PXA.Company PXA.Demo PXA.Documentation; do
             cp -R "websites/$site/dist" "artifacts/frontends/$site"
           done
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
         with:
           name: pxa-frontends-${{ github.run_number }}-${{ github.sha }}
@@ -182,8 +182,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [dotnet, frontend]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.x
       - name: Build traceable snapshot
@@ -200,7 +200,7 @@ jobs:
             -p:SkipOcrWorkerPackaging=true \
             -p:PxaBuildMetadata="develop.${{ github.run_number }}.${GITHUB_SHA::12}"
           printf '%s\n' "$VERSION-develop.${{ github.run_number }}-${GITHUB_SHA::12}" > artifacts/SNAPSHOT
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pxa-${{ github.run_number }}-${{ github.sha }}
           path: artifacts
@@ -211,13 +211,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [dotnet, frontend, dependency-security]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: |
             8.0.x
             10.0.x
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
           cache: npm
@@ -254,7 +254,7 @@ jobs:
           mkdir -p artifacts/sbom/webapi artifacts/sbom/designer
           cp -R artifacts/webapi/_manifest/. artifacts/sbom/webapi/
           cp -R pxa-designer/dist/_manifest/. artifacts/sbom/designer/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pxa-sbom-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/sbom

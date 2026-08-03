@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const root = new URL('../../', import.meta.url);
@@ -21,4 +21,18 @@ test('SBOM coverage includes every shipped execution surface', async () => {
   );
   assert.equal(catalog.sbom.format, 'SPDX-JSON');
   assert.equal(catalog.sbom.version, '2.2-or-later');
+});
+
+test('external GitHub Actions use immutable commit pins', async () => {
+  const workflowDirectory = new URL('.github/workflows/', root);
+  const workflowFiles = (await readdir(workflowDirectory)).filter((name) => name.endsWith('.yml'));
+
+  for (const name of workflowFiles) {
+    const source = await read(`.github/workflows/${name}`);
+    const uses = source.matchAll(/^\s*(?:-\s*)?uses:\s*([^@\s]+)@([^\s#]+)/gmu);
+    for (const [, action, reference] of uses) {
+      if (action.startsWith('./')) continue;
+      assert.match(reference, /^[a-f0-9]{40}$/u, `${name}: ${action} is not SHA-pinned`);
+    }
+  }
 });
