@@ -10,6 +10,7 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 - [x] Scan direct and transitive NuGet dependencies for known vulnerabilities in CI.
 - [x] Audit production npm dependencies for Designer, Admin, and MCP packages in CI.
 - [x] Configure Dependabot for NuGet, npm, Docker, and GitHub Actions against `develop`.
+- [x] Upgrade GitHub and Docker workflow actions to Node.js 24-compatible releases and pin every external action to an immutable commit SHA.
 - [x] Generate SPDX JSON SBOMs for the WebApi publish output, Designer build, and WebApi container image.
 - [x] Upload generated SBOMs as immutable CI artifacts.
 - [x] Expose a sanitized dependency-compliance status to System Administrators.
@@ -46,6 +47,7 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 - [x] Reject known vulnerable direct or transitive NuGet packages.
 - [x] Reject high or critical production npm vulnerabilities.
 - [x] Verify Dependabot coverage for every managed package ecosystem and directory.
+- [x] Reject workflow changes that introduce a moving external Action tag or an unapproved Node.js 20 Action release.
 - [x] Verify API authorization, no-store caching, and sanitized output.
 - [x] Verify Admin loading, failure, refresh, and production-blocker presentation.
 - [x] Exercise SBOM generation in CI for API, Designer, and container outputs.
@@ -57,6 +59,7 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 - [ ] Every shipped API, Designer, and container artifact has a matching SPDX SBOM.
 - [ ] System Administrators can identify pending compliance decisions without seeing secrets or raw scanner output.
 - [ ] Every exceptional license decision has a recorded owner, decision, evidence, and review date.
+- [x] Every external GitHub Action is reproducibly pinned and the core workflow actions use Node.js 24 runtimes.
 - [ ] The NPOI OSMF EULA is either explicitly approved or NPOI is absent from production artifacts.
 
 ## Deferred Decisions
