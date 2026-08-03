@@ -18,7 +18,7 @@ RUN dotnet publish src/Importing/PXA.FileImporter.ImageOcr.Worker/PXA.FileImport
     /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
-ARG PXA_VERSION=1.0.0
+ARG PXA_VERSION=1.1.0
 ARG PXA_COMMIT=unknown
 ARG PXA_BUILD_TIME=unknown
 
