@@ -22,6 +22,10 @@ Create one accurate release fragment for the current logical change.
    - `minor`: backward-compatible capability or meaningful user-facing
      improvement.
    - `major`: incompatible API, data, configuration, SDK, or workflow change.
+   Use `references/release-author-evals.v1.json` as calibration for fixes,
+   features, breaking changes, internal refactors, migrations, documentation,
+   and reviewed security changes. Apply its decision principles to the current
+   diff; do not copy fixture wording or IDs.
 5. Create or update one JSON file in
    `product-metadata/release-fragments/`. Use a stable lowercase ID.
 6. Write the summary in concise customer-facing English. State the result, not
@@ -38,6 +42,7 @@ Create one accurate release fragment for the current logical change.
    node tools/versioning/pxa-version.mjs check
    node tools/versioning/pxa-version.mjs fragments
    node --test tools/versioning/pxa-version.test.mjs
+   node --test tools/versioning/pxa-release-author.test.mjs
    ```
 
 9. Report the selected impact, affected components, fragment path, and any
