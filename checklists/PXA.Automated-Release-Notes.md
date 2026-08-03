@@ -125,6 +125,16 @@
 - [ ] Designer, Admin, Documentation, GitHub Releases, and deployed artifacts show consistent release information.
 - [ ] Deployment retries and rollbacks never create artificial product versions.
 
+## Deferred Rollout
+
+- [x] Record pull request `#24` as closed without merge and superseded by the release-automation changes subsequently merged into `develop`.
+- [x] Synchronize release validation with `develop` commit `30929c01c963b792db34fc9134c4fc5c35f7aed5`.
+- [x] Run the GitHub `PXA Release Dry Run` workflow from `develop` ([run `30802436710`](https://github.com/silentdevcore/Canvas/actions/runs/30802436710)).
+- [x] Verify proposed version `1.1.0`, Minor impact, five fragments, ten components, customer summaries, JSON output, and Markdown output.
+- [x] Confirm that the GitHub dry run leaves `VERSION` at `1.0.0`, `develop` unchanged, `v1.0.0` as the latest tag, and creates no GitHub Release or deployment.
+- [ ] Do not run `Prepare PXA Release` until the first stable release is explicitly approved.
+- [ ] Implement production deployment approvals, audit records, retry behavior, and rollback validation in a later phase.
+
 ## Later Work
 
 - [ ] Add scheduled release-candidate preparation after the manual workflow is proven.

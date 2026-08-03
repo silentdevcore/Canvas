@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "release-dry-run-validation",
+  "impact": "none",
+  "components": [
+    "documentation"
+  ],
+  "category": "improved",
+  "summary": "Release automation validation records now reflect the verified PXA 1.1.0 preview.",
+  "breaking": false,
+  "reason": "This change records internal release-process validation and does not change shipped product behavior."
+}

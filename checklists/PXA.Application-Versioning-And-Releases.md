@@ -61,6 +61,7 @@ deployment controls are tracked in
 - [x] Type-check, test, and build PXA Designer.
 - [x] Test and build all PXA websites.
 - [x] Verify the `develop` snapshot workflow and uploaded artifacts.
+- [x] Run a non-mutating `develop` release preview for proposed version `1.1.0` and verify its JSON and Markdown artifacts.
 - [ ] Dry-run the stable-release workflow with the first prepared version increase.
 - [x] Verify branch settings and required GitHub checks.
 
