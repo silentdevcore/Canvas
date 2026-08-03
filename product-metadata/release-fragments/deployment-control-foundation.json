@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "deployment-control-foundation",
+  "impact": "none",
+  "components": [
+    "infrastructure"
+  ],
+  "category": "improved",
+  "summary": "Release operations now have immutable deployment validation and protected environment evidence controls.",
+  "breaking": false,
+  "reason": "This change adds internal release operations controls without changing shipped product behavior."
+}

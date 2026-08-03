@@ -94,7 +94,7 @@
 ## Security and Reliability
 
 - [x] Grant release workflows only the minimum GitHub permissions they require.
-- [ ] Protect release environments with approval rules and concurrency controls.
+- [x] Protect release environments with approval rules and concurrency controls.
 - [x] Never expose repository, package, deployment, or signing secrets to the release-authoring agent.
 - [x] Sanitize generated Markdown and validate all public links.
 - [x] Make published versions and tags immutable.
@@ -146,6 +146,20 @@
 - [x] Verify stable workflow [run `30822928671`](https://github.com/silentdevcore/Canvas/actions/runs/30822928671), seven release assets, container publication, and immutable tag placement.
 - [x] Confirm that release publication does not claim or perform a protected production-environment deployment.
 - [ ] Validate deployment approval, audit, retry, and rollback behavior in the later deployment phase.
+
+## Deployment Control Foundation
+
+- [x] Add protected `pxa-staging` and approval-gated `pxa-production` GitHub Environments.
+- [x] Serialize deployment validation independently for each environment.
+- [x] Require explicit operator confirmation and validate deploy, retry, and rollback inputs before downloading artifacts.
+- [x] Resolve only an existing immutable stable `vX.Y.Z` tag without changing `VERSION` or release notes.
+- [x] Verify the exact tag commit, shared release metadata, seven release archives, SHA-256 digests, and published container tags.
+- [x] Produce machine-readable validation evidence with version, environment, operation, commit, actor, workflow run, source run, artifacts, and container digests.
+- [x] Keep evidence status at `validated` and state that no target adapter executed.
+- [x] Test successful, failed, retry, and rollback evidence without additional version changes.
+- [ ] Select and implement the first Cloud or On-Premise target adapter.
+- [ ] Add target health checks and record final `succeeded` or `failed` deployment status.
+- [ ] Validate real deployment retry and rollback against the selected target.
 
 ## Later Work
 
