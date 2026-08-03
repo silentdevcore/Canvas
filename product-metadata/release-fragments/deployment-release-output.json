@@ -1,0 +1,13 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "deployment-release-output",
+  "impact": "none",
+  "components": [
+    "infrastructure"
+  ],
+  "category": "fixed",
+  "summary": "Deployment validation now forwards verified release metadata through a shell-safe workflow output.",
+  "featureIds": [],
+  "breaking": false,
+  "reason": "This corrects internal release operations without changing shipped product behavior."
+}
