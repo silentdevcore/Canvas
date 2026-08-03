@@ -132,6 +132,7 @@ accepted or privacy notice acknowledged by a user.
 - [x] Keep published legal pages readable from a validated static snapshot during Legal API outages.
 - [x] Mark snapshot content and age visibly without allowing it to authorize registration or checkout.
 - [x] Add a legal-document backup, restore, and disaster-recovery runbook with checksum validation, empty-target restore, domain verification, snapshot regeneration, and an isolated recovery drill.
+- [x] Make the isolated recovery drill wait for the `pxa` database, fail with bounded diagnostics, and test delayed PostgreSQL initialization in CI.
 - [x] Protect separately deployed restricted operator legal guidance behind the operator gateway, System Administrator role, explicit production allowlist, no-store delivery, fixed runbook registration, and audited reads.
 - [x] Require an explicit, auditable Legal Hold release reason before an approved cleanup can resume for the affected scope.
 
@@ -147,6 +148,7 @@ accepted or privacy notice acknowledged by a user.
 - [x] Add Account and Admin accessibility contract tests for legal review, progress, and export states.
 - [x] Add Playwright browser accessibility and keyboard tests for the Storage Notice, Account legal review, and Admin Legal workflow on desktop and mobile.
 - [x] Add automated outage, stale-snapshot, invalid-snapshot, and API-recovery coverage.
+- [x] Add recovery-contract coverage for database-level readiness, timeout diagnostics, and delayed startup.
 - [x] Run a development safety scan confirming no tracked secrets, customer data, obsolete ODR links, or legacy Canvas branding in the Legal implementation; remaining draft copy and operator details are explicit launch blockers.
 - [x] Add deployed-environment smoke tests for PostgreSQL migration, published snapshot generation, fail-closed registration, last-known-good fallback, stale snapshots, corrupt snapshots, and Legal API outages.
 - [ ] Repeat the legal-content scan after counsel-approved copy and operator details are installed and before production launch.

@@ -39,6 +39,17 @@ test('recovery drill is isolated, synthetic, and always cleans up', () => {
   assert.match(drill, /verify-legal-recovery\.sh/);
 });
 
+test('recovery drill waits for the configured database and diagnoses timeouts', () => {
+  assert.match(drill, /PXA_POSTGRES_READY_ATTEMPTS/);
+  assert.match(drill, /PXA_POSTGRES_READY_DELAY_SECONDS/);
+  assert.match(drill, /PXA_POSTGRES_STARTUP_DELAY_SECONDS/);
+  assert.match(drill, /psql -U pxa -d pxa[\s\S]*SELECT 1/);
+  assert.doesNotMatch(drill, /pg_isready/);
+  assert.match(drill, /docker inspect --format=/);
+  assert.match(drill, /docker logs --tail 100/);
+  assert.match(drill, /sleep \$startup_delay; exec docker-entrypoint\.sh postgres/);
+});
+
 test('operator recovery details remain outside public Documentation', () => {
   assert.match(runbook, /Restricted operator runbook/);
   assert.match(runbook, /restore-postgres\.sh/);
