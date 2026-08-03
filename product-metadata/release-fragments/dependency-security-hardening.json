@@ -11,5 +11,6 @@
   "category": "security",
   "summary": "OpenAPI parsing and XML cryptography dependencies now use patched releases without known high-severity package advisories.",
   "featureIds": [],
-  "breaking": false
+  "breaking": false,
+  "securityReviewed": true
 }

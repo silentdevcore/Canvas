@@ -44,7 +44,8 @@
         ],
         "deprecated": [],
         "breaking": []
-      }
+      },
+      "securityReviewed": true
     }
   ]
 }
