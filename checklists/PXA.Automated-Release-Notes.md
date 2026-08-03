@@ -11,7 +11,7 @@
 - [x] Keep root `VERSION` as the authoritative PXA product version.
 - [x] Keep `product-metadata/pxa-releases.json` as the shared published-release source.
 - [x] Preserve the existing `develop` integration and `main` stable-release branch policy.
-- [ ] Treat deployment as consumption of an immutable release; retries and rollbacks must not increase the version.
+- [x] Treat deployment as consumption of an immutable release; retries and rollbacks must not increase the version.
 - [x] Keep API contract versions independent from the PXA product version.
 - [x] Require human approval before any stable release is merged to `main`.
 
@@ -59,7 +59,7 @@
 - [x] Add release impact, customer-visible summary, and Documentation fields to the pull request template.
 - [x] Validate release fragments for every pull request targeting `develop`.
 - [x] Report missing or invalid fragments as an actionable CI failure.
-- [ ] Optionally synchronize `impact:none`, `impact:patch`, `impact:minor`, and `impact:major` labels from validated fragment data.
+- [x] Synchronize exactly one `impact:none`, `impact:patch`, `impact:minor`, or `impact:major` label from validated fragment data without executing pull-request code with a write token.
 - [x] Keep `release:patch`, `release:minor`, and `release:major` labels reserved for stable pull requests to `main`.
 - [x] Prevent commit messages from becoming the authoritative release-note source.
 - [x] Prevent internal ticket IDs, secrets, customer data, and unreviewed security details from entering public release notes.
@@ -86,7 +86,7 @@
 - [x] Build all release artifacts and containers from the tagged commit.
 - [x] Publish versioned container tags before updating stable aliases.
 - [x] Display the same release entry in Designer, authenticated Admin, and public Documentation.
-- [ ] Keep release announcements available in the Designer notification center after they are read.
+- [x] Keep release announcements available in the Designer notification center after they are read.
 - [ ] Deploy only successfully built and validated release artifacts.
 - [ ] Allow deployment retries and rollbacks without changing `VERSION`, tags, or release notes.
 - [ ] Record the deployed version, environment, commit, workflow run, and deployment result.
@@ -157,12 +157,16 @@
 - [x] Produce machine-readable validation evidence with version, environment, operation, commit, actor, workflow run, source run, artifacts, and container digests.
 - [x] Keep evidence status at `validated` and state that no target adapter executed.
 - [x] Test successful, failed, retry, and rollback evidence without additional version changes.
+- [x] Complete validation-only staging run [`30848453307`](https://github.com/silentdevcore/Canvas/actions/runs/30848453307) for immutable release `v1.1.0`.
+- [x] Verify all seven release archives and both versioned container digests in the staging preflight.
+- [x] Retain protected staging evidence with status `validated`, adapter `unconfigured`, and no target mutation.
 - [ ] Select and implement the first Cloud or On-Premise target adapter.
 - [ ] Add target health checks and record final `succeeded` or `failed` deployment status.
 - [ ] Validate real deployment retry and rollback against the selected target.
 
 ## Later Work
 
+- [ ] Complete target deployment, final health status, retry, rollback, and production audit after selecting the first deployment adapter.
 - [ ] Add scheduled release-candidate preparation after the manual workflow is proven.
 - [ ] Add Alpha and Beta fragment aggregation for prereleases from `develop`.
 - [ ] Add localized release-note content with English fallback.

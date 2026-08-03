@@ -284,6 +284,52 @@ export function validateChangedReleaseFragment(changedFiles) {
   return fragmentChanges;
 }
 
+export function releaseFragmentImpact(fragments) {
+  if (!Array.isArray(fragments) || fragments.length === 0)
+    throw new Error('At least one changed release fragment is required.');
+  return fragments.reduce((highest, fragment) => {
+    const current = validateReleaseFragment(fragment).impact;
+    return RELEASE_IMPACTS.indexOf(current) > RELEASE_IMPACTS.indexOf(highest)
+      ? current
+      : highest;
+  }, 'none');
+}
+
+export async function changedReleaseFragmentImpactFromGit(repoRoot, baseRef, headRef) {
+  for (const [name, value] of [['base-ref', baseRef], ['head-ref', headRef]]) {
+    if (typeof value !== 'string' || !/^[0-9a-f]{40}$/i.test(value))
+      throw new Error(`Release fragment label synchronization requires an exact ${name} commit SHA.`);
+  }
+  const { stdout } = await execFileAsync(
+    'git',
+    ['diff', '--name-only', `${baseRef}...${headRef}`],
+    { cwd: repoRoot },
+  );
+  const paths = validateChangedReleaseFragment(
+    stdout.split(/\r?\n/).map(value => value.trim()).filter(Boolean),
+  );
+  const fragments = [];
+  for (const path of paths.toSorted()) {
+    let source;
+    try {
+      ({ stdout: source } = await execFileAsync('git', ['show', `${headRef}:${path}`], {
+        cwd: repoRoot,
+        maxBuffer: 1024 * 1024,
+      }));
+    } catch {
+      throw new Error(`Changed release fragment '${path}' must exist at the pull request head.`);
+    }
+    let value;
+    try {
+      value = JSON.parse(source);
+    } catch {
+      throw new Error(`Changed release fragment '${path}' must contain valid JSON.`);
+    }
+    fragments.push(validateReleaseFragment(value, path));
+  }
+  return releaseFragmentImpact(fragments);
+}
+
 export async function readCurrentVersion(repoRoot = scriptRoot) {
   return (await readFile(resolve(repoRoot, 'VERSION'), 'utf8')).trim();
 }
@@ -633,6 +679,15 @@ async function main() {
     console.log(`Validated ${changedFragments.length} changed release fragment file(s).`);
     return;
   }
+  if (command === 'change-impact') {
+    const repoRoot = resolve(option(args, '--repo-root') ?? scriptRoot);
+    console.log(await changedReleaseFragmentImpactFromGit(
+      repoRoot,
+      option(args, '--base-ref'),
+      option(args, '--head-ref'),
+    ));
+    return;
+  }
   if (command === 'prepare-fragments') {
     const options = {
       summary: option(args, '--summary'),
@@ -681,6 +736,7 @@ async function main() {
   }
   throw new Error(
     'Usage: pxa-version.mjs current|sync|check|fragments|validate-change --base-ref <ref>|' +
+    'change-impact --repo-root <path> --base-ref <sha> --head-ref <sha>|' +
     'prepare <major|minor|patch>|prepare-fragments --summary <text> ' +
     '[--dry-run --format json|markdown] [--confirm-major]|' +
     'validate-pr|validate-next|release-impact --base <version>|notes [version]',

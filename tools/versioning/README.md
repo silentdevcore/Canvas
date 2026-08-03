@@ -26,6 +26,12 @@ impact, affected components, change category, customer-facing summary, and
 optional feature or Documentation references. Use the `pxa-release-author`
 skill to review a change and draft the fragment.
 
+The `Synchronize PXA Release Impact Label` workflow validates the changed
+fragment with tooling checked out from the protected base commit and applies
+exactly one `impact:none`, `impact:patch`, `impact:minor`, or `impact:major`
+label. Pull-request source is inspected as Git data and is never executed with
+the workflow's write-capable token.
+
 Public release text must not contain internal ticket references, credentials,
 customer email or network identifiers, UUIDs, markup, or placeholders. A
 `security` fragment additionally requires the explicit
