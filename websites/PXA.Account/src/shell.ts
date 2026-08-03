@@ -1,4 +1,5 @@
 import { siteLinks } from '../../shared/siteLinks.js';
+import { pxaCommit, pxaVersion } from '../../shared/buildInfo.js';
 import type { UserInfo } from './api';
 import { accountPermissions, hasAccountPermission, type AccountPermission } from './permissions';
 
@@ -60,6 +61,7 @@ export function renderShell(app: HTMLElement, content: string, title: string, us
           ` : ''}
           <a class="account-header-company-link" href="${siteLinks.company}">Back to Company site</a>
           <button class="pxa-button pxa-button--secondary" id="logout-button" type="button">Sign out</button>
+          <small title="Commit ${escapeHtml(pxaCommit)}">PXA ${escapeHtml(pxaVersion)}</small>
         </div>
       </aside>
       <div class="account-workspace">

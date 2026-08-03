@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <title>Operator Documentation | Power Dox Automation</title>
+    <link rel="stylesheet" href="/documentation/styles.css" />
+  </head>
+  <body>
+    <header class="operator-header">
+      <a class="operator-brand" href="/">PXA <span>Operator</span></a>
+      <nav aria-label="Operator navigation">
+        <a href="/system-status">System status</a>
+        <a href="/operator/grafana/">Dashboards</a>
+      </nav>
+    </header>
+    <main class="operator-layout">
+      <aside class="operator-sidebar" aria-label="Runbooks">
+        <p class="operator-kicker">Restricted operations</p>
+        <h1>Runbooks</h1>
+        <p>Deployment and recovery guidance for explicitly authorized system operators.</p>
+        <div id="runbook-navigation" class="operator-navigation" aria-live="polite"></div>
+      </aside>
+      <article id="runbook-content" class="operator-content" tabindex="-1">
+        <p class="operator-status" role="status">Loading protected documentation...</p>
+      </article>
+    </main>
+    <script type="module" src="/documentation/app.js"></script>
+  </body>
+</html>

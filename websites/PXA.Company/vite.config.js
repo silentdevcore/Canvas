@@ -1,9 +1,17 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  pxaBuildInfoPlugin,
+  pxaVersionDefines,
+  readPxaBuildInfo,
+} from '../shared/vitePxaVersion.js';
 
 const rootDir = dirname(fileURLToPath(import.meta.url));
+const buildInfo = readPxaBuildInfo();
 
 export default {
+  define: pxaVersionDefines(buildInfo),
+  plugins: [pxaBuildInfoPlugin(buildInfo)],
   server: {
     proxy: {
       '/api': {
@@ -33,6 +41,10 @@ export default {
         terms: resolve(rootDir, 'terms.html'),
         privacy: resolve(rootDir, 'privacy.html'),
         license: resolve(rootDir, 'license.html'),
+        cookieStorage: resolve(rootDir, 'cookie-storage.html'),
+        imprint: resolve(rootDir, 'imprint.html'),
+        withdrawal: resolve(rootDir, 'withdrawal.html'),
+        dpa: resolve(rootDir, 'dpa.html'),
       },
     },
   },

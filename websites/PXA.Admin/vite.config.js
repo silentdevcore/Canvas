@@ -1,4 +1,14 @@
+import {
+  pxaBuildInfoPlugin,
+  pxaVersionDefines,
+  readPxaBuildInfo,
+} from '../shared/vitePxaVersion.js';
+
+const buildInfo = readPxaBuildInfo();
+
 export default {
+  define: pxaVersionDefines(buildInfo),
+  plugins: [pxaBuildInfoPlugin(buildInfo)],
   server: {
     port: 5177,
     strictPort: true,
@@ -9,7 +19,7 @@ export default {
       },
     },
     fs: {
-      allow: ['..'],
+      allow: ['../..'],
     },
   },
 };

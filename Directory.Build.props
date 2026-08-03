@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <PxaVersion>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)VERSION').Trim())</PxaVersion>
+    <Version>$(PxaVersion)</Version>
+    <VersionPrefix>$(PxaVersion)</VersionPrefix>
+    <PackageVersion>$(PxaVersion)</PackageVersion>
+    <AssemblyVersion>$(PxaVersion)</AssemblyVersion>
+    <FileVersion>$(PxaVersion)</FileVersion>
+    <InformationalVersion Condition="'$(PxaBuildMetadata)' == ''">$(PxaVersion)</InformationalVersion>
+    <InformationalVersion Condition="'$(PxaBuildMetadata)' != ''">$(PxaVersion)+$(PxaBuildMetadata)</InformationalVersion>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>

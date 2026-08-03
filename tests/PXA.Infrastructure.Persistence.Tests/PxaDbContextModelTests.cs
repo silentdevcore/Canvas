@@ -106,6 +106,44 @@ public sealed class PxaDbContextModelTests
                 ]));
     }
 
+    [Fact]
+    public void Model_persists_legal_governance_and_evidence_in_the_expected_schemas()
+    {
+        using var context = CreateContext();
+        var document = context.Model.FindEntityType(typeof(LegalDocument));
+        var version = context.Model.FindEntityType(typeof(LegalDocumentVersion));
+        var approval = context.Model.FindEntityType(typeof(LegalPublicationApproval));
+        var acceptance = context.Model.FindEntityType(typeof(LegalAcceptanceEvent));
+
+        Assert.Equal(DatabaseSchemas.Administration, document?.GetSchema());
+        Assert.Equal("legal_documents", document?.GetTableName());
+        Assert.Equal(DatabaseSchemas.Administration, version?.GetSchema());
+        Assert.Equal("legal_document_versions", version?.GetTableName());
+        Assert.Equal(DatabaseSchemas.Administration, approval?.GetSchema());
+        Assert.Equal("legal_publication_approvals", approval?.GetTableName());
+        Assert.Equal(DatabaseSchemas.Identity, acceptance?.GetSchema());
+        Assert.Equal("legal_acceptance_events", acceptance?.GetTableName());
+        Assert.Contains(document!.GetIndexes(), index =>
+            index.IsUnique && index.Properties.Single().Name == nameof(LegalDocument.Key));
+        Assert.Contains(document.GetIndexes(), index =>
+            index.IsUnique && index.Properties.Single().Name == nameof(LegalDocument.Type));
+        Assert.Contains(version!.GetIndexes(), index =>
+            index.IsUnique && index.Properties.Select(property => property.Name).SequenceEqual([
+                nameof(LegalDocumentVersion.LegalDocumentId),
+                nameof(LegalDocumentVersion.Locale),
+                nameof(LegalDocumentVersion.Audience),
+                nameof(LegalDocumentVersion.Version),
+            ]));
+        Assert.Contains(acceptance!.GetIndexes(), index =>
+            index.IsUnique &&
+            index.GetDatabaseName() == "UX_legal_acceptance_events_user_org_version" &&
+            index.GetFilter() == "\"OrganizationId\" IS NOT NULL");
+        Assert.Contains(acceptance.GetIndexes(), index =>
+            index.IsUnique &&
+            index.GetDatabaseName() == "UX_legal_acceptance_events_user_global_version" &&
+            index.GetFilter() == "\"OrganizationId\" IS NULL");
+    }
+
     private static PxaDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<PxaDbContext>()

@@ -1,5 +1,5 @@
 import featureManifest from '../../../product-metadata/designer-features.json';
-import releaseManifest from '../../../product-metadata/designer-releases.json';
+import releaseManifest from '../../../product-metadata/pxa-releases.json';
 
 export type FeatureMaturity = 'alpha' | 'beta' | 'stable';
 export type ReleaseChannel = 'alpha' | 'beta' | 'stable';
@@ -32,18 +32,19 @@ export interface DesignerReleaseDefinition {
   title: string;
   summary: string;
   documentationPath: string;
+  components: string[];
   featureIds: string[];
   changes: Record<ReleaseChangeCategory, string[]>;
 }
 
 export const designerVersion =
-  typeof __PXA_DESIGNER_VERSION__ === 'undefined' ? '1.0.0' : __PXA_DESIGNER_VERSION__;
+  typeof __PXA_VERSION__ === 'undefined' ? '1.0.0' : __PXA_VERSION__;
 export const designerCommit =
-  typeof __PXA_DESIGNER_COMMIT__ === 'undefined' ? 'test' : __PXA_DESIGNER_COMMIT__;
+  typeof __PXA_BUILD_COMMIT__ === 'undefined' ? 'test' : __PXA_BUILD_COMMIT__;
 export const designerBuildTime =
-  typeof __PXA_DESIGNER_BUILD_TIME__ === 'undefined'
+  typeof __PXA_BUILD_TIME__ === 'undefined'
     ? '2026-07-28T00:00:00.000Z'
-    : __PXA_DESIGNER_BUILD_TIME__;
+    : __PXA_BUILD_TIME__;
 export const designerDocumentationUrl =
   typeof __PXA_DOCUMENTATION_URL__ === 'undefined'
     ? 'http://localhost:5174'
@@ -103,5 +104,5 @@ export const isFeatureNew = (
   );
 
 if (!designerReleases.some(release => release.version === designerVersion)) {
-  throw new Error(`Designer release metadata is missing version ${designerVersion}.`);
+  throw new Error(`PXA release metadata is missing version ${designerVersion}.`);
 }

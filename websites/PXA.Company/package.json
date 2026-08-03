@@ -1,12 +1,15 @@
 {
   "name": "pxa-company",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "private": true,
   "description": "PXA.Company marketing and sales website",
   "type": "module",
   "scripts": {
     "dev": "../../pxa-designer/node_modules/.bin/vite --host localhost --port 5173",
+    "snapshot:legal": "node ../../tools/legal/export-legal-snapshot.mjs",
+    "test": "node --test src/*.test.js ../../tools/legal/*.test.mjs",
     "build": "../../pxa-designer/node_modules/.bin/vite build",
+    "build:deployment": "npm run snapshot:legal && npm run build",
     "preview": "../../pxa-designer/node_modules/.bin/vite preview --host localhost --port 4173"
   }
 }

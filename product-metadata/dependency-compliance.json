@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "productionReady": false,
+  "vulnerabilityPolicy": {
+    "nuget": {
+      "scope": "direct-and-transitive",
+      "maximumAllowedSeverity": "none",
+      "ciGate": true
+    },
+    "npm": {
+      "scope": "production",
+      "maximumAllowedSeverity": "moderate",
+      "ciGate": true
+    }
+  },
+  "sbom": {
+    "format": "SPDX-JSON",
+    "version": "2.2-or-later",
+    "ciGate": true,
+    "artifacts": [
+      "webapi",
+      "designer",
+      "webapi-container"
+    ]
+  },
+  "licenseDecisions": [
+    {
+      "id": "npoi-osmf-eula",
+      "package": "NPOI",
+      "version": "2.8.0",
+      "usage": "Legacy Excel .xls import and export",
+      "license": "OSMF EULA",
+      "status": "pending-legal-review",
+      "productionApproved": false,
+      "requiredAction": "Obtain written legal approval and explicitly accept the EULA, or replace NPOI."
+    }
+  ]
+}

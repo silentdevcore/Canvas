@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://powerdoxautomation.com/schemas/release-fragment.schema.json",
+  "title": "PXA release fragment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "impact",
+    "components",
+    "category",
+    "summary",
+    "breaking"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$"
+    },
+    "impact": {
+      "enum": [
+        "none",
+        "patch",
+        "minor",
+        "major"
+      ]
+    },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "account",
+          "admin",
+          "api",
+          "company",
+          "demo",
+          "designer",
+          "documentation",
+          "generator",
+          "importer",
+          "infrastructure",
+          "migration",
+          "observability",
+          "sdk",
+          "spreadsheet"
+        ]
+      }
+    },
+    "category": {
+      "enum": [
+        "added",
+        "improved",
+        "fixed",
+        "security",
+        "deprecated",
+        "breaking"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 12,
+      "maxLength": 300
+    },
+    "featureIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$"
+      }
+    },
+    "documentation": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^/(?!/)(?!.*\\.\\.)(?!.*\\s).*$"
+      }
+    },
+    "breaking": {
+      "type": "boolean"
+    },
+    "securityReviewed": {
+      "type": "boolean"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 12
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "impact": {
+            "const": "none"
+          }
+        },
+        "required": [
+          "impact"
+        ]
+      },
+      "then": {
+        "required": [
+          "reason"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "reason"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "properties": {
+              "breaking": {
+                "const": true
+              }
+            },
+            "required": [
+              "breaking"
+            ]
+          },
+          {
+            "properties": {
+              "category": {
+                "const": "breaking"
+              }
+            },
+            "required": [
+              "category"
+            ]
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "impact": {
+            "const": "major"
+          },
+          "category": {
+            "const": "breaking"
+          },
+          "breaking": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "category": {
+            "const": "security"
+          }
+        },
+        "required": [
+          "category"
+        ]
+      },
+      "then": {
+        "required": [
+          "securityReviewed"
+        ],
+        "properties": {
+          "securityReviewed": {
+            "const": true
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "required": [
+            "securityReviewed"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -14,10 +14,20 @@ test('System status is visible and routable only for System Administrators', () 
   assert.match(source, /if \(!isSystemAdministrator\(\)\)/);
 });
 
-test('System status uses only the protected coarse health endpoint', () => {
+test('System status uses protected health, compliance, and retention-governance endpoints', () => {
   assert.match(apiSource, /request\('\/api\/pxa\/v1\/admin\/system\/health'\)/);
+  assert.match(apiSource, /request\('\/api\/pxa\/v1\/admin\/system\/dependency-compliance'\)/);
+  assert.match(apiSource, /adminRetentionBase = '\/api\/pxa\/v1\/admin\/system\/retention'/);
+  assert.match(apiSource, /adminRetentionBase}\/dry-run/);
+  assert.match(apiSource, /adminRetentionBase}\/legal-holds/);
   assert.match(source, /Raw logs, traces, identifiers, and configuration secrets are never returned here/);
   assert.match(source, /siteLinks\.operator}operator\/grafana\//);
+  assert.match(source, /Run safe dry run/);
+  assert.match(source, /This workspace never exposes a direct cleanup action/);
+  assert.match(source, /Create legal hold/);
+  assert.match(source, /Generated SBOMs provide the complete inventory/);
+  assert.match(source, /Production blocker/);
+  assert.doesNotMatch(apiSource, /retention\/cleanup|retention\/execute/);
   assert.doesNotMatch(source, /connection string|password=/i);
 });
 
@@ -26,4 +36,8 @@ test('System status includes explicit loading, failure, stale, and refresh state
   assert.match(source, /System status unavailable/);
   assert.match(source, /Showing the last successful result/);
   assert.match(source, /id="system-health-refresh"/);
+  assert.match(source, /Loading protected retention policy status/);
+  assert.match(source, /id="retention-retry"/);
+  assert.match(source, /Loading protected supply-chain status/);
+  assert.match(source, /id="dependency-compliance-retry"/);
 });

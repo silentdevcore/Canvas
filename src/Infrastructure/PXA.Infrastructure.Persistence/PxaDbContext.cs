@@ -41,6 +41,11 @@ public sealed class PxaDbContext
     public DbSet<DesignerReleaseRead> DesignerReleaseReads => Set<DesignerReleaseRead>();
     public DbSet<DesignerNotification> DesignerNotifications => Set<DesignerNotification>();
     public DbSet<DesignerNotificationState> DesignerNotificationStates => Set<DesignerNotificationState>();
+    public DbSet<LegalDocument> LegalDocuments => Set<LegalDocument>();
+    public DbSet<LegalDocumentVersion> LegalDocumentVersions => Set<LegalDocumentVersion>();
+    public DbSet<LegalPublicationApproval> LegalPublicationApprovals => Set<LegalPublicationApproval>();
+    public DbSet<LegalAcceptanceEvent> LegalAcceptanceEvents => Set<LegalAcceptanceEvent>();
+    public DbSet<RetentionLegalHold> RetentionLegalHolds => Set<RetentionLegalHold>();
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
@@ -101,6 +106,37 @@ public sealed class PxaDbContext
         {
             throw new InvalidOperationException(
                 "Audit events are append-only and cannot be modified or deleted.");
+        }
+
+        if (ChangeTracker.Entries<LegalAcceptanceEvent>().Any(entry =>
+                entry.State is EntityState.Modified or EntityState.Deleted) ||
+            ChangeTracker.Entries<LegalPublicationApproval>().Any(entry =>
+                entry.State is EntityState.Modified or EntityState.Deleted))
+        {
+            throw new InvalidOperationException(
+                "Legal acceptance and publication approval evidence is append-only.");
+        }
+
+        foreach (var entry in ChangeTracker.Entries<LegalDocumentVersion>().Where(entry =>
+                     entry.State is EntityState.Modified or EntityState.Deleted))
+        {
+            var original = entry.Property(value => value.Status).OriginalValue;
+            if (entry.State == EntityState.Modified &&
+                (original == LegalDocumentStatus.Published ||
+                 original == LegalDocumentStatus.Scheduled) &&
+                entry.Entity.Status == LegalDocumentStatus.Retired &&
+                entry.Properties.Where(property => property.Metadata.Name != nameof(LegalDocumentVersion.Status) &&
+                                                   property.Metadata.Name != nameof(LegalDocumentVersion.RetiredAt))
+                    .All(property => !property.IsModified))
+            {
+                continue;
+            }
+
+            if (original is LegalDocumentStatus.Published or LegalDocumentStatus.Scheduled or LegalDocumentStatus.Retired)
+            {
+                throw new InvalidOperationException(
+                    "Published, scheduled, and retired legal document versions are immutable.");
+            }
         }
     }
 }

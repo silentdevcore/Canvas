@@ -316,6 +316,7 @@ services:
       - "127.0.0.1:3001:8080"
     volumes:
       - ./deploy/observability/operator-gateway/templates:/etc/nginx/templates:ro
+      - ./deploy/observability/operator-gateway/site:/usr/share/nginx/html/documentation:ro
     networks:
       pxa-observability-ingress:
         ipv4_address: 172.30.50.10

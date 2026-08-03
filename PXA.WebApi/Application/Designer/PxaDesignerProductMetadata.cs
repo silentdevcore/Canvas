@@ -17,7 +17,7 @@ public sealed class PxaDesignerProductMetadata
     public PxaDesignerProductMetadata()
     {
         Features = Read<DesignerFeatureManifest>("PXA.ProductMetadata.designer-features.json");
-        Releases = Read<DesignerReleaseManifest>("PXA.ProductMetadata.designer-releases.json");
+        Releases = Read<DesignerReleaseManifest>("PXA.ProductMetadata.pxa-releases.json");
         Validate();
     }
 
@@ -60,6 +60,8 @@ public sealed class PxaDesignerProductMetadata
         if (Releases.Releases.Any(value =>
                 value.Channel is not ("alpha" or "beta" or "stable")))
             throw new InvalidOperationException("Designer release channel must be Alpha, Beta, or Stable.");
+        if (Releases.Releases.Any(value => value.Components.Count == 0))
+            throw new InvalidOperationException("Every PXA release must identify its affected components.");
         if (Releases.Releases.Zip(Releases.Releases.Skip(1))
             .Any(pair => pair.First.PublishedAt < pair.Second.PublishedAt))
             throw new InvalidOperationException("Designer releases must be ordered newest first.");
@@ -101,6 +103,7 @@ public sealed record DesignerReleaseDefinition(
     string Title,
     string Summary,
     string DocumentationPath,
+    IReadOnlyList<string> Components,
     IReadOnlyList<string> FeatureIds,
     DesignerReleaseChanges Changes);
 

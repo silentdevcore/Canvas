@@ -15,14 +15,23 @@
     <Content Include="AdminDocumentation/**/*"
              CopyToOutputDirectory="PreserveNewest"
              CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../operator-docs/*.md"
+             Link="OperatorDocumentation/%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
     <EmbeddedResource Include="../product-metadata/designer-features.json"
                       LogicalName="PXA.ProductMetadata.designer-features.json" />
-    <EmbeddedResource Include="../product-metadata/designer-releases.json"
-                      LogicalName="PXA.ProductMetadata.designer-releases.json" />
+    <EmbeddedResource Include="../product-metadata/pxa-releases.json"
+                      LogicalName="PXA.ProductMetadata.pxa-releases.json" />
+    <EmbeddedResource Include="../product-metadata/data-processing-inventory.json"
+                      LogicalName="PXA.ProductMetadata.data-processing-inventory.json" />
+    <EmbeddedResource Include="../product-metadata/dependency-compliance.json"
+                      LogicalName="PXA.ProductMetadata.dependency-compliance.json" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
       <PrivateAssets>all</PrivateAssets>

@@ -22,6 +22,120 @@ namespace PXA.Api.Tests;
 public sealed class AccountRegistrationControllerTests
 {
     [PostgreSqlFact]
+    public async Task Registration_requires_current_legal_versions_and_records_exact_acceptances()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString(), requireDatabaseLegalDocuments: true);
+        await SeedRolesAsync(factory.Services);
+        var policyIds = await SeedPublishedRegistrationPolicyAsync(factory.Services);
+        using var client = CreateClient(factory);
+
+        var policy = await client.GetFromJsonAsync<JsonElement>(
+            "/api/pxa/v1/auth/registration-policy?locale=de");
+        Assert.True(policy.GetProperty("databaseBacked").GetBoolean());
+        Assert.Equal(policyIds.Terms, policy.GetProperty("terms").GetProperty("id").GetGuid());
+        Assert.Equal(policyIds.Privacy, policy.GetProperty("privacy").GetProperty("id").GetGuid());
+
+        var snapshot = await client.GetFromJsonAsync<JsonElement>(
+            "/api/pxa/v1/legal/snapshot?locale=de&audience=All");
+        Assert.Equal(1, snapshot.GetProperty("schemaVersion").GetInt32());
+        Assert.Equal(
+            ["privacy", "terms"],
+            snapshot.GetProperty("documents").EnumerateArray()
+                .Select(value => value.GetProperty("key").GetString()!)
+                .ToArray());
+
+        object Payload(
+            Guid? termsVersionId,
+            Guid? privacyVersionId,
+            string email = "legal-registration@customer.test") => new
+        {
+            email,
+            displayName = "Legal Registration",
+            password = "Pxa-Customer-Password-42!",
+            accountType = "IndividualDeveloper",
+            locale = "de",
+            acceptTerms = true,
+            acceptPrivacy = true,
+            termsVersionId,
+            privacyVersionId,
+        };
+
+        using (var stale = CreateCsrfRequest(
+                   HttpMethod.Post,
+                   "/api/pxa/v1/auth/register",
+                   await GetCsrfAsync(client),
+                   Payload(null, null)))
+        {
+            var response = await client.SendAsync(stale);
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(
+                PxaApiProblems.PolicyAcceptanceRequired,
+                problem.GetProperty("code").GetString());
+        }
+
+        using var current = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/register",
+            await GetCsrfAsync(client),
+            Payload(policyIds.Terms, policyIds.Privacy));
+        Assert.Equal(HttpStatusCode.Accepted, (await client.SendAsync(current)).StatusCode);
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var registeredUser = await dbContext.Users.SingleAsync(
+            value => value.Email == "legal-registration@customer.test");
+        var acceptances = await dbContext.LegalAcceptanceEvents
+            .Where(value => value.UserId == registeredUser.Id)
+            .OrderBy(value => value.DocumentType)
+            .ToListAsync();
+        Assert.Equal(2, acceptances.Count);
+        Assert.Contains(acceptances, value =>
+            value.DocumentType == "terms" &&
+            value.LegalDocumentVersionId == policyIds.Terms &&
+            value.Decision == "accepted");
+        Assert.Contains(acceptances, value =>
+            value.DocumentType == "privacy" &&
+            value.LegalDocumentVersionId == policyIds.Privacy &&
+            value.Decision == "acknowledged");
+        Assert.All(acceptances, value =>
+        {
+            Assert.Equal("registration", value.Source);
+            Assert.Equal("de", value.Locale);
+            Assert.Equal(64, value.ContentHash.Length);
+            Assert.NotNull(value.OrganizationId);
+        });
+
+        Assert.Contains(
+            await dbContext.Database.GetAppliedMigrationsAsync(),
+            migration => migration.EndsWith("_AddLegalDocumentGovernance", StringComparison.Ordinal));
+
+        foreach (var version in await dbContext.LegalDocumentVersions.ToListAsync())
+        {
+            version.Status = LegalDocumentStatus.Retired;
+            version.RetiredAt = DateTimeOffset.UtcNow;
+        }
+        await dbContext.SaveChangesAsync();
+
+        var unavailablePolicy = await client.GetAsync(
+            "/api/pxa/v1/auth/registration-policy?locale=de");
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, unavailablePolicy.StatusCode);
+
+        const string unavailableEmail = "legal-unavailable@customer.test";
+        using var unavailableRegistration = CreateCsrfRequest(
+            HttpMethod.Post,
+            "/api/pxa/v1/auth/register",
+            await GetCsrfAsync(client),
+            Payload(policyIds.Terms, policyIds.Privacy, unavailableEmail));
+        Assert.Equal(
+            HttpStatusCode.ServiceUnavailable,
+            (await client.SendAsync(unavailableRegistration)).StatusCode);
+        Assert.False(await dbContext.Users.AnyAsync(value => value.Email == unavailableEmail));
+    }
+
+    [PostgreSqlFact]
     public async Task Company_registration_creates_verified_trial_workspace_and_customer_session()
     {
         await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
@@ -315,7 +429,9 @@ public sealed class AccountRegistrationControllerTests
         Assert.DoesNotContain("email", keys);
     }
 
-    private static WebApplicationFactory<Program> CreateFactory(string connectionString) =>
+    private static WebApplicationFactory<Program> CreateFactory(
+        string connectionString,
+        bool requireDatabaseLegalDocuments = false) =>
         new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Testing");
@@ -328,6 +444,8 @@ public sealed class AccountRegistrationControllerTests
                     ["Mail:AccountBaseUrl"] = "https://account.pxa.test",
                     ["Registration:TermsVersion"] = "terms-test-v2",
                     ["Registration:PrivacyVersion"] = "privacy-test-v3",
+                    ["Registration:RequireDatabaseLegalDocuments"] =
+                        requireDatabaseLegalDocuments.ToString(),
                 }));
             builder.ConfigureServices(services =>
             {
@@ -336,6 +454,60 @@ public sealed class AccountRegistrationControllerTests
                 services.AddDbContext<PxaDbContext>(options => options.UseNpgsql(connectionString));
             });
         });
+
+    private static async Task<(Guid Terms, Guid Privacy)> SeedPublishedRegistrationPolicyAsync(
+        IServiceProvider services)
+    {
+        await using var scope = services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var author = new PxaIdentityUser
+        {
+            UserName = "legal-author@pxa.test",
+            NormalizedUserName = "LEGAL-AUTHOR@PXA.TEST",
+            Email = "legal-author@pxa.test",
+            NormalizedEmail = "LEGAL-AUTHOR@PXA.TEST",
+            EmailConfirmed = true,
+            DisplayName = "Legal Author",
+        };
+        dbContext.Users.Add(author);
+        var termsDocument = new LegalDocument
+        {
+            Type = LegalDocumentType.TermsAndConditions,
+            Key = "terms",
+            DisplayName = "Terms and Conditions",
+            CreatedByUserId = author.Id,
+        };
+        var privacyDocument = new LegalDocument
+        {
+            Type = LegalDocumentType.PrivacyNotice,
+            Key = "privacy",
+            DisplayName = "Privacy Notice",
+            CreatedByUserId = author.Id,
+        };
+        var now = DateTimeOffset.UtcNow.AddMinutes(-1);
+        LegalDocumentVersion Version(LegalDocument document, string version, string source) => new()
+        {
+            LegalDocumentId = document.Id,
+            Version = version,
+            Locale = "de",
+            Audience = LegalDocumentAudience.All,
+            Status = LegalDocumentStatus.Published,
+            SourceMarkdown = source,
+            RenderedHtml = PXA.WebApi.Application.Legal.PxaLegalDocumentService.RenderSafeHtml(source),
+            ContentHash = PXA.WebApi.Application.Legal.PxaLegalDocumentService.ComputeHash(source),
+            RequiresAcceptance = true,
+            IsAuthoritative = true,
+            CreatedByUserId = author.Id,
+            PublishedByUserId = author.Id,
+            PublishedAt = now,
+            EffectiveAt = now,
+        };
+        var terms = Version(termsDocument, "terms-2026-07", "# Terms");
+        var privacy = Version(privacyDocument, "privacy-2026-07", "# Privacy");
+        dbContext.AddRange(termsDocument, privacyDocument, terms, privacy);
+        await dbContext.SaveChangesAsync();
+        return (terms.Id, privacy.Id);
+    }
 
     private static HttpClient CreateClient(WebApplicationFactory<Program> factory) =>
         factory.CreateClient(new WebApplicationFactoryClientOptions

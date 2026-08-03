@@ -16,6 +16,8 @@ using PXA.WebApi.Application.Identity;
 using PXA.WebApi.Application.Designer;
 using PXA.WebApi.Application.Organizations;
 using PXA.WebApi.Application.Subscriptions;
+using PXA.WebApi.Application.Legal;
+using PXA.WebApi.Application.Compliance;
 using PXA.WebApi.Infrastructure;
 using PXA.WebApi.Observability;
 using PXA.WebApi.Security;
@@ -289,10 +291,17 @@ builder.Services.AddOptions<PxaMailOptions>()
     .ValidateOnStart();
 builder.Services.AddScoped<IdentityActionTokenService>();
 builder.Services.AddScoped<TrialActivationService>();
+builder.Services.AddScoped<RegistrationLegalPolicyService>();
 builder.Services.AddScoped<CustomerRegistrationService>();
 builder.Services.AddScoped<DesignerAuthorizationCodeService>();
 builder.Services.AddScoped<OrganizationMembershipService>();
 builder.Services.AddScoped<SubscriptionQueryService>();
+builder.Services.AddScoped<PxaLegalDocumentService>();
+builder.Services.AddScoped<AccountLegalObligationService>();
+builder.Services.AddSingleton<PXA.WebApi.Application.Retention.PxaRetentionPolicyCatalog>();
+builder.Services.AddScoped<PXA.WebApi.Application.Retention.PxaRetentionLegalHoldService>();
+builder.Services.AddScoped<PXA.WebApi.Application.Retention.PxaRetentionGovernanceService>();
+builder.Services.AddHostedService<PXA.WebApi.Application.Retention.PxaRetentionStartupGate>();
 builder.Services.AddScoped<IPxaMailQueue, PxaMailQueue>();
 builder.Services.AddScoped<PxaMailProcessor>();
 builder.Services.AddScoped<PxaMailRetentionService>();
@@ -347,6 +356,7 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<PxaDbContext>("pxa-database", tags: ["ready"])
     .AddCheck<PxaMailHealthCheck>("pxa-mail", tags: ["ready"], timeout: TimeSpan.FromSeconds(5));
 builder.Services.AddScoped<PxaSystemHealthService>();
+builder.Services.AddSingleton<PxaDependencyComplianceCatalog>();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>

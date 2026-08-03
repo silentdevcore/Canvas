@@ -111,3 +111,5 @@ appsettings.Local.json
 secrets.json
 deploy/observability/secrets/
 deploy/api/secrets/
+# Deployment-generated immutable legal snapshots.
+websites/PXA.Company/public/legal-snapshots/*.json

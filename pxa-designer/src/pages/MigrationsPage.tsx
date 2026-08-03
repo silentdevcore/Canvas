@@ -1145,7 +1145,6 @@ const MigrationsPage: React.FC<{ mode: MigrationMode; codeKind?: 'pdf' | 'spread
     }));
     setCurrentTemplate(template);
     updatePageSettings(pageSettings);
-    localStorage.setItem('pxa_last_template', template.name);
     navigate('/create?source=migration');
   };
 

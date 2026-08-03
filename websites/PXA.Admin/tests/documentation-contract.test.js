@@ -55,6 +55,14 @@ test('all protected handbook topics have complete workflow contracts', () => {
   }
 });
 
+test('Admin handbook exposes safe Legal recovery escalation without restore secrets', () => {
+  const recovery = topics.find((topic) => topic.title === 'Legal continuity and recovery escalation');
+  assert.ok(recovery);
+  assert.equal(recovery.permission, 'System Administrator');
+  assert.match(recovery.result, /fail-closed/i);
+  assert.doesNotMatch(JSON.stringify(recovery), /restore-postgres|PXA_RESTORE_CONFIRM|database_url/i);
+});
+
 test('protected handbook covers every Admin workspace', () => {
   assert.deepEqual(adminRouteCoverage.map(([route]) => route), [
     '/dashboard',
@@ -66,6 +74,7 @@ test('protected handbook covers every Admin workspace', () => {
     '/service-accounts',
     '/mail',
     '/audit',
+    '/legal',
     '/system-status',
     '/settings',
   ]);

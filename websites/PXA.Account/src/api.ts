@@ -54,6 +54,23 @@ export interface RegisterAccountValues {
   subscribeToNewsletter: boolean;
   campaignContext: Record<string, string> | null;
   returnUrl: string | null;
+  termsVersionId: string | null;
+  privacyVersionId: string | null;
+}
+
+export interface RegistrationPolicyDocument {
+  id: string | null;
+  version: string;
+  locale: string;
+  contentHash: string | null;
+  effectiveAt: string | null;
+}
+
+export interface RegistrationPolicyResponse {
+  available: boolean;
+  databaseBacked: boolean;
+  terms: RegistrationPolicyDocument | null;
+  privacy: RegistrationPolicyDocument | null;
 }
 
 export interface AccountProfileResponse {
@@ -65,11 +82,14 @@ export interface AccountProfileResponse {
   country: string | null;
   roles: string[];
   termsAcceptedVersion: string | null;
+  currentTermsVersionId: string | null;
   currentTermsVersion: string;
   requiresTermsAcceptance: boolean;
   privacyAcknowledgedVersion: string | null;
+  currentPrivacyVersionId: string | null;
   currentPrivacyVersion: string;
   requiresPrivacyAcknowledgement: boolean;
+  legalPolicyAvailable: boolean;
   marketingConsent: boolean;
 }
 
@@ -283,6 +303,9 @@ export const switchOrganization = (organizationId: string) =>
   mutation<LoginResponse>(`${authBase}/switch-organization`, { organizationId });
 export const register = (values: RegisterAccountValues) =>
   mutation<RegistrationAcceptedResponse>(`${authBase}/register`, values);
+export const getRegistrationPolicy = (locale: string) =>
+  request<RegistrationPolicyResponse>(
+    `${authBase}/registration-policy?locale=${encodeURIComponent(locale)}`);
 export const verifyEmail = (token: string) => mutation(`${authBase}/verify-email`, { token });
 export const resendVerification = (email: string, returnUrl: string | null = null) =>
   mutation<RegistrationAcceptedResponse>(`${authBase}/resend-verification`, { email, returnUrl });
@@ -310,9 +333,11 @@ export const updateAccountConsent = (
   acceptTerms: boolean | null,
   acceptPrivacy: boolean | null,
   marketingConsent: boolean,
+  termsVersionId: string | null = null,
+  privacyVersionId: string | null = null,
 ) => mutation<AccountProfileResponse>(
   `${accountProfileBase}/consent`,
-  { acceptTerms, acceptPrivacy, marketingConsent },
+  { acceptTerms, acceptPrivacy, marketingConsent, termsVersionId, privacyVersionId },
   'PATCH',
 );
 

@@ -166,7 +166,7 @@ const DesignerUserMenu: React.FC<DesignerUserMenuProps> = ({ mobile = false, onN
 
       {error && <p className="designer-user-error" role="alert">{error}</p>}
       <div className="designer-version-info" title={`Commit ${designerCommit}`}>
-        PXA Designer {designerVersion}
+        PXA {designerVersion}
       </div>
       <button className="designer-signout-button" type="button" onClick={() => void signOut()}>
         <FiLogOut aria-hidden="true" />

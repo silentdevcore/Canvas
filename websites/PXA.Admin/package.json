@@ -1,6 +1,6 @@
 {
   "name": "pxa-admin",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Power Dox Automation administration application",
   "type": "module",

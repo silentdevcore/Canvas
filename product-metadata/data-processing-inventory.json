@@ -1,0 +1,380 @@
+{
+  "$schema": "./data-processing-inventory.schema.json",
+  "schemaVersion": 1,
+  "reviewedAt": "2026-08-01",
+  "productionApproved": false,
+  "controllerIdentity": "Pending verified operator details",
+  "defaultRegionPolicy": "Deployment controlled; no Cloud production region has been selected.",
+  "coverage": {
+    "identity": true,
+    "billing": true,
+    "documents": true,
+    "workers": true,
+    "mail": true,
+    "telemetry": true,
+    "logs": true,
+    "browserStorage": true,
+    "providers": true,
+    "regions": true,
+    "transfers": true,
+    "retention": true
+  },
+  "activities": [
+    {
+      "id": "identity-and-authentication",
+      "name": "Account identity, authentication, and sessions",
+      "role": "controller",
+      "purposes": ["Create and secure accounts", "Authenticate browser and API access", "Verify email and recover access"],
+      "dataSubjects": ["registered users", "invited users", "service-account administrators"],
+      "dataCategories": ["name", "email", "locale and country", "password hash", "security state", "session metadata", "hashed action tokens", "API-key metadata"],
+      "systems": ["PostgreSQL", "ASP.NET Core Identity", "host-only security cookies"],
+      "entities": ["IdentityActionToken", "UserSession", "DesignerAuthorizationCode", "ServiceAccount", "ApiKey", "UserConsentEvent"],
+      "providerIds": ["postgresql"],
+      "region": "PXA Server deployment region",
+      "transfer": "none-by-default",
+      "retention": {
+        "status": "legal-review-required",
+        "approvalStatus": "pending-legal",
+        "rule": "Session and action-token expiry is enforced, but final account, credential-metadata, and consent-evidence deletion periods are not approved.",
+        "legalApprovalRequired": true
+      },
+      "sources": ["PXA.WebApi/Program.cs", "PXA.WebApi/Security/PxaSessionService.cs", "src/Infrastructure/PXA.Infrastructure.Persistence/PxaDbContext.cs"]
+    },
+    {
+      "id": "organizations-and-access",
+      "name": "Organizations, memberships, roles, and permissions",
+      "role": "controller",
+      "purposes": ["Provide tenant workspaces", "Authorize organization operations", "Administer users and seats"],
+      "dataSubjects": ["organization members", "organization administrators"],
+      "dataCategories": ["organization identity", "membership status", "role and permission assignments", "administrative timestamps"],
+      "systems": ["PostgreSQL", "PXA Account", "PXA Admin"],
+      "entities": ["Organization", "OrganizationMembership", "OrganizationMembershipRole"],
+      "providerIds": ["postgresql"],
+      "region": "PXA Server deployment region",
+      "transfer": "none-by-default",
+      "retention": {
+        "status": "legal-review-required",
+        "approvalStatus": "pending-legal",
+        "rule": "Closed organizations are retained; deletion, anonymization, and legal-hold periods require approval.",
+        "legalApprovalRequired": true
+      },
+      "sources": ["PXA.WebApi/Application/Organizations/OrganizationMembershipService.cs", "src/Infrastructure/PXA.Infrastructure.Persistence/PxaDbContext.cs"]
+    },
+    {
+      "id": "subscriptions-usage-and-licensing",
+      "name": "Subscriptions, entitlements, usage, seats, and offline licenses",
+      "role": "controller",
+      "purposes": ["Deliver subscribed products", "Enforce quotas and seats", "Manage Trial and license lifecycle", "Prepare future billing integration"],
+      "dataSubjects": ["subscribers", "organization members", "billing contacts"],
+      "dataCategories": ["subscription edition and state", "seat assignment", "product entitlements", "aggregated usage events", "license identifiers and validity", "lifecycle history"],
+      "systems": ["PostgreSQL", "PXA API", "PXA Admin"],
+      "entities": ["OrganizationSubscription", "SubscriptionEntitlement", "SubscriptionSeatAssignment", "SubscriptionLifecycleEvent", "SubscriptionUsageEvent", "OfflineLicense"],
+      "providerIds": ["postgresql"],
+      "region": "PXA Server deployment region",
+      "transfer": "none-by-default; a future payment provider requires a reviewed processor entry before activation",
+      "retention": {
+        "status": "legal-review-required",
+        "approvalStatus": "pending-legal",
+        "rule": "Commercial and tax retention periods are not yet approved; no payment-card data is currently processed by PXA.",
+        "legalApprovalRequired": true
+      },
+      "sources": ["PXA.WebApi/Services/Entitlements/PxaUsageService.cs", "PXA.WebApi/Application/Subscriptions/SubscriptionQueryService.cs", "src/Infrastructure/PXA.Infrastructure.Persistence/PxaDbContext.cs"]
+    },
+    {
+      "id": "designer-content",
+      "name": "Designer templates, versions, preferences, releases, and notifications",
+      "role": "processor-for-customer-content",
+      "purposes": ["Create and save document templates", "Publish immutable template versions", "Apply feature preferences", "Deliver product notifications"],
+      "dataSubjects": ["template authors", "document subjects whose data users place in templates"],
+      "dataCategories": ["template metadata", "design JSON", "customer-entered document content", "feature preferences", "release read state", "notification state"],
+      "systems": ["PostgreSQL", "PXA Designer"],
+      "entities": ["DesignerTemplate", "DesignerTemplateVersion", "DesignerFeaturePreference", "DesignerFeaturePolicy", "DesignerReleaseRead", "DesignerNotification", "DesignerNotificationState"],
+      "providerIds": ["postgresql", "browser-storage"],
+      "region": "PXA Server deployment region and the user's browser for disclosed local working state",
+      "transfer": "none-by-default",
+      "retention": {
+        "status": "legal-review-required",
+        "approvalStatus": "pending-legal",
+        "rule": "Templates support soft deletion and tenant-state clearing, but archive, purge, and account-closure periods require approval.",
+        "legalApprovalRequired": true
+      },
+      "sources": ["PXA.WebApi/Controllers/DesignerTemplatesController.cs", "src/Infrastructure/PXA.Infrastructure.Persistence/PxaDbContext.cs", "product-metadata/browser-storage.json"]
+    },
+    {
+      "id": "synchronous-document-processing",
+      "name": "Synchronous generation, conversion, migration, import, export, OCR, and analysis",
+      "role": "processor-for-customer-content",
+      "purposes": ["Perform the document operation requested by the customer", "Return generated or transformed output", "Diagnose operation failures without logging document bodies"],
+      "dataSubjects": ["API users", "persons represented in customer documents"],
+      "dataCategories": ["uploaded documents", "source code", "template JSON", "images", "OCR text", "generated outputs", "operation metadata"],
+      "systems": ["PXA WebApi process memory", "local temporary files", "in-process PXA and third-party document libraries", "local OCR worker"],
+      "entities": [],
+      "providerIds": ["local-ocr", "embedded-document-libraries"],
+      "region": "PXA Server execution region",
+      "transfer": "none-by-default; document libraries execute locally and are not configured as network recipients",
+      "retention": {
+        "status": "transient",
+        "approvalStatus": "approved",
+        "rule": "Request content and temporary files are processed for the operation and released or deleted when it completes; application logs must not contain document bodies.",
+        "legalApprovalRequired": false
+      },
+      "sources": ["PXA.WebApi/Controllers/DocumentOpsController.cs", "PXA.WebApi/Controllers/ExportController.cs", "PXA.WebApi/Controllers/MigrationController.cs", "PXA.WebApi/Services/Storage/PxaStoredObjectService.cs"]
+    },
+    {
+      "id": "background-document-jobs",
+      "name": "Queued document operations and stored input or result objects",
+      "role": "processor-for-customer-content",
+      "purposes": ["Execute long-running document operations", "Permit status polling and result download", "Retry bounded failures"],
+      "dataSubjects": ["API users", "persons represented in customer documents"],
+      "dataCategories": ["job metadata", "organization and creator identifiers", "uploaded input objects", "generated result objects", "trace correlation", "failure summary"],
+      "systems": ["PostgreSQL", "configured object storage", "PXA background workers"],
+      "entities": ["PxaBackgroundJob", "PxaStoredObject"],
+      "providerIds": ["postgresql", "filesystem-object-storage"],
+      "region": "PXA Server and object-storage deployment region",
+      "transfer": "none-by-default",
+      "retention": {
+        "status": "partially-enforced",
+        "approvalStatus": "pending-legal",
+        "rule": "Input and result objects expire seven days after terminal completion by default. Expired job metadata remains and needs an approved purge or minimization period.",
+        "configuration": ["Jobs:ResultRetentionDays", "Jobs:CleanupIntervalMinutes"],
+        "legalApprovalRequired": true
+      },
+      "sources": ["PXA.WebApi/Services/Jobs/PxaJobOptions.cs", "PXA.WebApi/Services/Jobs/PxaJobRetentionService.cs", "PXA.WebApi/Services/Storage/PxaStoredObjectService.cs"]
+    },
+    {
+      "id": "transactional-mail",
+      "name": "Transactional email queue and delivery",
+      "role": "controller",
+      "purposes": ["Verify email", "Invite users", "Reset credentials", "Send security, Trial, subscription, and license notices"],
+      "dataSubjects": ["registered users", "invited users", "organization administrators"],
+      "dataCategories": ["recipient email", "localized template key", "non-secret template data", "delivery status", "provider message identifier", "failure reason"],
+      "systems": ["PostgreSQL mail outbox", "disabled, development, or SMTP transport"],
+      "entities": ["MailOutboxMessage"],
+      "providerIds": ["postgresql", "smtp-transport"],
+      "region": "PXA Server region and the configured SMTP provider region",
+      "transfer": "conditional-on-smtp-configuration",
+      "retention": {
+        "status": "enforced",
+        "approvalStatus": "pending-legal",
+        "rule": "Delivered and suppressed metadata is retained 30 days, cancelled metadata 14 days, and dead-letter metadata 90 days by default.",
+        "configuration": ["Mail:DeliveredRetentionDays", "Mail:CancelledRetentionDays", "Mail:DeadLetterRetentionDays"],
+        "legalApprovalRequired": true
+      },
+      "sources": ["PXA.WebApi/Services/Mail/PxaMailOptions.cs", "PXA.WebApi/Services/Mail/PxaMailRetentionService.cs", "PXA.WebApi/Services/Mail/SmtpMailTransport.cs"]
+    },
+    {
+      "id": "legal-governance-and-evidence",
+      "name": "Legal document publication and acceptance evidence",
+      "role": "controller",
+      "purposes": ["Publish binding legal documents", "Prove the exact version accepted or acknowledged", "Apply required reacceptance"],
+      "dataSubjects": ["registered users", "legal authors and approvers"],
+      "dataCategories": ["legal content and hashes", "author and approver identifiers", "acceptance decision", "locale", "organization", "source and timestamp"],
+      "systems": ["PostgreSQL", "verified public snapshot"],
+      "entities": ["LegalDocument", "LegalDocumentVersion", "LegalPublicationApproval", "LegalAcceptanceEvent", "RetentionLegalHold"],
+      "providerIds": ["postgresql", "filesystem-object-storage"],
+      "region": "PXA Server deployment region",
+      "transfer": "none-by-default",
+      "retention": {
+        "status": "legal-review-required",
+        "approvalStatus": "pending-legal",
+        "rule": "Publication and acceptance evidence is append-only. Pseudonymization, legal holds, and final evidence retention need approval.",
+        "legalApprovalRequired": true
+      },
+      "sources": ["PXA.WebApi/Application/Legal/PxaLegalDocumentService.cs", "PXA.WebApi/Application/Retention/PxaRetentionLegalHoldService.cs", "src/Infrastructure/PXA.Infrastructure.Persistence/PxaDbContext.cs", "tools/legal/README.md"]
+    },
+    {
+      "id": "administrative-audit",
+      "name": "Administrative and security audit events",
+      "role": "controller",
+      "purposes": ["Investigate privileged changes", "Demonstrate tenant and authorization controls", "Support security incident response"],
+      "dataSubjects": ["administrators", "organization members affected by changes"],
+      "dataCategories": ["actor and organization identifiers", "action", "target type and identifier", "outcome", "minimized metadata", "timestamp"],
+      "systems": ["PostgreSQL", "PXA Admin"],
+      "entities": ["AuditEvent"],
+      "providerIds": ["postgresql"],
+      "region": "PXA Server deployment region",
+      "transfer": "none-by-default",
+      "retention": {
+        "status": "legal-review-required",
+        "approvalStatus": "pending-legal",
+        "rule": "Audit events are append-only; an approved retention, legal-hold, and pseudonymization policy is not yet implemented.",
+        "legalApprovalRequired": true
+      },
+      "sources": ["PXA.WebApi/Controllers/AdminAuditController.cs", "src/Infrastructure/PXA.Infrastructure.Persistence/Configurations/AuditEventConfiguration.cs"]
+    },
+    {
+      "id": "product-observability",
+      "name": "Operational logs, metrics, traces, alerts, and minimized browser telemetry",
+      "role": "controller",
+      "purposes": ["Operate and secure PXA", "Measure reliability and capacity", "Diagnose failures", "Alert operators"],
+      "dataSubjects": ["API users", "administrators", "public-site visitors in aggregate"],
+      "dataCategories": ["route groups", "operation and outcome labels", "timings", "trace identifiers", "service health", "minimized error metadata", "browser Web Vitals without user identifiers"],
+      "systems": ["OpenTelemetry Collector", "Prometheus", "Loki", "Tempo", "Alertmanager", "Grafana"],
+      "entities": [],
+      "providerIds": ["observability-stack", "otlp-export", "s3-compatible-observability"],
+      "region": "Deployment controlled; local stack by default",
+      "transfer": "conditional-on-otlp-or-s3-configuration",
+      "retention": {
+        "status": "enforced",
+        "approvalStatus": "pending-legal",
+        "rule": "Defaults are 90 days for metrics, 30 days for logs, 14 days for traces, and 5 days for Alertmanager state; production approval remains required.",
+        "configuration": ["PXA_METRIC_RETENTION", "PXA_LOG_RETENTION", "PXA_TRACE_RETENTION", "PXA_ALERT_RETENTION"],
+        "legalApprovalRequired": true
+      },
+      "sources": ["PXA.WebApi/Controllers/BrowserTelemetryController.cs", "PXA.WebApi/Observability/PxaTelemetry.cs", "docker-compose.yml", "deploy/observability/README.md"]
+    },
+    {
+      "id": "browser-storage",
+      "name": "Necessary cookies and requested browser application state",
+      "role": "controller-and-local-customer-state",
+      "purposes": ["Secure sessions and requests", "Remember requested language and interface state", "Transfer one-time workflows", "Recover local editing state"],
+      "dataSubjects": ["public visitors", "registered users", "document authors"],
+      "dataCategories": ["session tickets", "anti-forgery tokens", "preferences", "one-time handoff state", "local code and spreadsheet working copies"],
+      "systems": ["browser cookies", "Local Storage", "Session Storage"],
+      "entities": [],
+      "providerIds": ["browser-storage"],
+      "region": "User device",
+      "transfer": "none",
+      "retention": {
+        "status": "documented",
+        "approvalStatus": "pending-legal",
+        "rule": "Per-key lifetimes and removal events are defined in the browser-storage inventory; optional analytics and marketing storage are disabled.",
+        "legalApprovalRequired": true
+      },
+      "sources": ["product-metadata/browser-storage.json", "tools/legal/validate-browser-storage.mjs"]
+    },
+    {
+      "id": "account-closure",
+      "name": "Account closure request and delayed closure",
+      "role": "controller",
+      "purposes": ["Allow cancellation of an accidental closure", "Revoke sessions and access", "Close the personal organization safely"],
+      "dataSubjects": ["users requesting account closure"],
+      "dataCategories": ["user and organization identifiers", "request, cancellation, and processing timestamps", "closure status"],
+      "systems": ["PostgreSQL", "PXA Account"],
+      "entities": ["AccountClosureRequest"],
+      "providerIds": ["postgresql"],
+      "region": "PXA Server deployment region",
+      "transfer": "none-by-default",
+      "retention": {
+        "status": "partially-enforced",
+        "approvalStatus": "pending-legal",
+        "rule": "A 30-day closure delay is configured. Downstream erasure, pseudonymization, evidence preservation, and request-record retention require approval.",
+        "configuration": ["AccountClosure:RetentionPeriod"],
+        "legalApprovalRequired": true
+      },
+      "sources": ["PXA.WebApi/Controllers/AccountClosureController.cs", "PXA.WebApi/Security/PxaAccountClosureOptions.cs"]
+    },
+    {
+      "id": "backup-and-recovery",
+      "name": "PostgreSQL and legal snapshot backup and recovery",
+      "role": "controller-and-processor-continuity",
+      "purposes": ["Restore service after data loss", "Preserve verified legal publication state", "Test disaster recovery"],
+      "dataSubjects": ["all data subjects represented in the backed-up database"],
+      "dataCategories": ["encrypted or access-controlled database backup", "legal snapshot content and hashes", "backup checksums and metadata"],
+      "systems": ["PostgreSQL dump", "operator-controlled backup target", "Company legal snapshot"],
+      "entities": [],
+      "providerIds": ["postgresql", "operator-backup-storage"],
+      "region": "Operator-selected backup region",
+      "transfer": "conditional-on-operator-backup-location",
+      "retention": {
+        "status": "legal-review-required",
+        "approvalStatus": "pending-legal",
+        "rule": "Backup rotation, deletion, restore access, and geographic limits must be approved before production deployment.",
+        "legalApprovalRequired": true
+      },
+      "sources": ["tools/legal/backup-postgres.sh", "tools/legal/restore-postgres.sh", "operator-docs/PXA.Legal-Backup-Restore-And-Recovery.md"]
+    }
+  ],
+  "providers": [
+    {
+      "id": "postgresql",
+      "type": "database",
+      "deployment": "self-hosted-or-customer-managed",
+      "receivesCustomerContent": true,
+      "region": "deployment-controlled",
+      "transferRisk": "none-by-default",
+      "approval": "production-host-and-region-pending"
+    },
+    {
+      "id": "filesystem-object-storage",
+      "type": "object-storage",
+      "deployment": "local-filesystem",
+      "receivesCustomerContent": true,
+      "region": "PXA Server region",
+      "transferRisk": "none-by-default",
+      "approval": "implemented"
+    },
+    {
+      "id": "smtp-transport",
+      "type": "mail-delivery",
+      "deployment": "disabled-by-default-or-customer-configured",
+      "receivesCustomerContent": false,
+      "region": "provider-dependent",
+      "transferRisk": "conditional",
+      "approval": "DPA-region-and-transfer-review-required-before-production"
+    },
+    {
+      "id": "observability-stack",
+      "type": "logs-metrics-traces",
+      "deployment": "self-hosted-compose",
+      "receivesCustomerContent": false,
+      "region": "deployment-controlled",
+      "transferRisk": "none-by-default",
+      "approval": "implemented-with-production-retention-review"
+    },
+    {
+      "id": "otlp-export",
+      "type": "telemetry-export",
+      "deployment": "optional-configured-endpoint",
+      "receivesCustomerContent": false,
+      "region": "provider-dependent",
+      "transferRisk": "conditional",
+      "approval": "disabled-until-provider-review"
+    },
+    {
+      "id": "s3-compatible-observability",
+      "type": "observability-object-storage",
+      "deployment": "optional-configured-endpoint",
+      "receivesCustomerContent": false,
+      "region": "provider-dependent",
+      "transferRisk": "conditional",
+      "approval": "disabled-until-provider-review"
+    },
+    {
+      "id": "local-ocr",
+      "type": "OCR-worker",
+      "deployment": "bundled-local-worker",
+      "receivesCustomerContent": true,
+      "region": "PXA Server region",
+      "transferRisk": "none",
+      "approval": "implemented"
+    },
+    {
+      "id": "embedded-document-libraries",
+      "type": "in-process-document-processing",
+      "deployment": "bundled-or-licensed-local-libraries",
+      "receivesCustomerContent": true,
+      "region": "PXA Server region",
+      "transferRisk": "none-by-default",
+      "approval": "network-egress-must-remain-disabled-or-be-inventoried"
+    },
+    {
+      "id": "browser-storage",
+      "type": "user-device-storage",
+      "deployment": "user-browser",
+      "receivesCustomerContent": true,
+      "region": "user-device",
+      "transferRisk": "none",
+      "approval": "documented-in-browser-storage-inventory"
+    },
+    {
+      "id": "operator-backup-storage",
+      "type": "backup-storage",
+      "deployment": "operator-selected",
+      "receivesCustomerContent": true,
+      "region": "operator-selected",
+      "transferRisk": "conditional",
+      "approval": "retention-region-encryption-and-access-review-required"
+    }
+  ]
+}

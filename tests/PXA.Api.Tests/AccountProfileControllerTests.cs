@@ -3,14 +3,17 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
+using PXA.WebApi.Controllers;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 using Testcontainers.PostgreSql;
@@ -151,6 +154,142 @@ public sealed class AccountProfileControllerTests
         Assert.NotNull(finalUser.MarketingConsentGrantedAt);
         Assert.NotNull(finalUser.MarketingConsentWithdrawnAt);
         Assert.Equal("account-profile", finalUser.MarketingConsentSource);
+    }
+
+    [PostgreSqlFact]
+    public async Task Legal_review_rejects_stale_ids_and_records_exact_database_versions()
+    {
+        await using var postgres = new PostgreSqlBuilder("postgres:17-alpine").Build();
+        await postgres.StartAsync();
+        using var factory = CreateFactory(postgres.GetConnectionString());
+        await SeedRolesAsync(factory.Services);
+        using var client = CreateClient(factory);
+        await RegisterVerifiedCompanyAsync(factory, client, "owner@legal-review.test", "Legal Review Owner");
+
+        Guid termsId;
+        Guid privacyId;
+        await using (var policyScope = factory.Services.CreateAsyncScope())
+        {
+            var dbContext = policyScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+            var author = await dbContext.Users.SingleAsync();
+            var termsDocument = new LegalDocument
+            {
+                Type = LegalDocumentType.TermsAndConditions,
+                Key = "terms",
+                DisplayName = "Terms and Conditions",
+                CreatedByUserId = author.Id,
+            };
+            var privacyDocument = new LegalDocument
+            {
+                Type = LegalDocumentType.PrivacyNotice,
+                Key = "privacy",
+                DisplayName = "Privacy Notice",
+                CreatedByUserId = author.Id,
+            };
+            var effectiveAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+            LegalDocumentVersion Version(LegalDocument document, string version, string markdown) => new()
+            {
+                LegalDocumentId = document.Id,
+                Version = version,
+                Locale = "en",
+                Audience = LegalDocumentAudience.All,
+                Status = LegalDocumentStatus.Published,
+                SourceMarkdown = markdown,
+                RenderedHtml = PXA.WebApi.Application.Legal.PxaLegalDocumentService.RenderSafeHtml(markdown),
+                ContentHash = PXA.WebApi.Application.Legal.PxaLegalDocumentService.ComputeHash(markdown),
+                RequiresAcceptance = true,
+                IsAuthoritative = true,
+                CreatedByUserId = author.Id,
+                PublishedByUserId = author.Id,
+                PublishedAt = effectiveAt,
+                EffectiveAt = effectiveAt,
+            };
+            var terms = Version(termsDocument, "terms-2026-08", "# Terms");
+            var privacy = Version(privacyDocument, "privacy-2026-08", "# Privacy");
+            termsId = terms.Id;
+            privacyId = privacy.Id;
+            dbContext.AddRange(termsDocument, privacyDocument, terms, privacy);
+            await dbContext.SaveChangesAsync();
+        }
+
+        await LoginAsync(
+            client, "owner@legal-review.test", "Pxa-Customer-Password-42!", HttpStatusCode.OK);
+        var profile = await client.GetFromJsonAsync<JsonElement>("/api/pxa/v1/account/profile");
+        Assert.Equal(termsId, profile.GetProperty("currentTermsVersionId").GetGuid());
+        Assert.Equal(privacyId, profile.GetProperty("currentPrivacyVersionId").GetGuid());
+        Assert.True(profile.GetProperty("requiresTermsAcceptance").GetBoolean());
+        Assert.True(profile.GetProperty("requiresPrivacyAcknowledgement").GetBoolean());
+
+        using var stale = CreateCsrfRequest(
+            HttpMethod.Patch,
+            "/api/pxa/v1/account/profile/consent",
+            await GetCsrfAsync(client),
+            new
+            {
+                acceptTerms = true,
+                acceptPrivacy = true,
+                marketingConsent = false,
+                termsVersionId = Guid.NewGuid(),
+                privacyVersionId = privacyId,
+            });
+        var staleResponse = await client.SendAsync(stale);
+        Assert.Equal(HttpStatusCode.Conflict, staleResponse.StatusCode);
+        Assert.Equal(
+            "PXAAPI017",
+            (await staleResponse.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("code").GetString());
+
+        var currentPayload = new
+        {
+            acceptTerms = true,
+            acceptPrivacy = true,
+            marketingConsent = false,
+            termsVersionId = termsId,
+            privacyVersionId = privacyId,
+        };
+        var currentCsrf = await GetCsrfAsync(client);
+        using var current = CreateCsrfRequest(
+            HttpMethod.Patch,
+            "/api/pxa/v1/account/profile/consent",
+            currentCsrf,
+            currentPayload);
+        using var duplicate = CreateCsrfRequest(
+            HttpMethod.Patch,
+            "/api/pxa/v1/account/profile/consent",
+            currentCsrf,
+            currentPayload);
+        var concurrentResponses = await Task.WhenAll(
+            client.SendAsync(current),
+            client.SendAsync(duplicate));
+        Assert.All(concurrentResponses, response =>
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode));
+
+        await using var evidenceScope = factory.Services.CreateAsyncScope();
+        var evidenceContext = evidenceScope.ServiceProvider.GetRequiredService<PxaDbContext>();
+        var evidence = await evidenceContext.LegalAcceptanceEvents
+            .OrderBy(value => value.DocumentType)
+            .ToListAsync();
+        Assert.Equal(2, evidence.Count);
+        Assert.Contains(evidence, value =>
+            value.LegalDocumentVersionId == termsId && value.Decision == "accepted");
+        Assert.Contains(evidence, value =>
+            value.LegalDocumentVersionId == privacyId && value.Decision == "acknowledged");
+        Assert.All(evidence, value => Assert.NotEqual(Guid.Empty, value.OrganizationId));
+
+        var acceptedUser = await evidenceContext.Users.SingleAsync();
+        var organizationId = await evidenceContext.OrganizationMemberships
+            .Where(value => value.UserId == acceptedUser.Id)
+            .Select(value => value.OrganizationId)
+            .SingleAsync();
+        var adminController = new AdminLegalDocumentsController(
+            evidenceContext,
+            new TestTenantContext(acceptedUser.Id, organizationId));
+        var summaryResult = await adminController.GetAcceptanceSummary(
+            termsId, null, "Company", "en", null, null, CancellationToken.None);
+        var summary = Assert.IsType<AdminLegalAcceptanceSummaryResponse>(
+            Assert.IsType<OkObjectResult>(summaryResult.Result).Value);
+        Assert.Equal(1, summary.AffectedAccounts);
+        Assert.Equal(1, summary.Completed);
     }
 
     [PostgreSqlFact]
@@ -357,5 +496,11 @@ public sealed class AccountProfileControllerTests
         var start = body.IndexOf(marker, StringComparison.Ordinal);
         Assert.True(start >= 0);
         return Uri.UnescapeDataString(body[(start + marker.Length)..].Trim());
+    }
+
+    private sealed class TestTenantContext(Guid userId, Guid organizationId) : IPxaTenantContext
+    {
+        public Guid? UserId { get; } = userId;
+        public Guid? OrganizationId { get; } = organizationId;
     }
 }

@@ -1,0 +1,86 @@
+name: Prepare PXA Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      summary:
+        description: Customer-facing release summary
+        required: true
+        type: string
+      title:
+        description: Optional release title
+        required: false
+        type: string
+      confirm_major:
+        description: Explicitly approve preparation of a Major release
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pxa-release-preparation
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: develop
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Validate release tooling and pending fragments
+        run: |
+          node --test tools/versioning/pxa-version.test.mjs
+          node tools/versioning/pxa-version.mjs check
+          node tools/versioning/pxa-version.mjs fragments
+          STABLE_VERSION="$(git tag --list 'v[0-9]*' --sort=-v:refname | head -1 | sed 's/^v//')"
+          if [ -z "$STABLE_VERSION" ] || [ "$(cat VERSION)" != "$STABLE_VERSION" ]; then
+            echo "develop VERSION must match the latest stable tag before release preparation."
+            exit 1
+          fi
+      - name: Prepare synchronized release metadata
+        env:
+          RELEASE_SUMMARY: ${{ inputs.summary }}
+          RELEASE_TITLE: ${{ inputs.title }}
+          CONFIRM_MAJOR: ${{ inputs.confirm_major }}
+        run: |
+          ARGS=(prepare-fragments --summary "$RELEASE_SUMMARY")
+          if [ -n "$RELEASE_TITLE" ]; then
+            ARGS+=(--title "$RELEASE_TITLE")
+          fi
+          if [ "$CONFIRM_MAJOR" = "true" ]; then
+            ARGS+=(--confirm-major)
+          fi
+          node tools/versioning/pxa-version.mjs "${ARGS[@]}"
+          node tools/versioning/pxa-version.mjs check
+      - name: Open release-preparation pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(cat VERSION)"
+          BRANCH="release/prepare-v$VERSION-${GITHUB_RUN_NUMBER}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add --all
+          git commit -m "Prepare PXA $VERSION"
+          git push origin "$BRANCH"
+          node tools/versioning/pxa-version.mjs notes > /tmp/pxa-release-notes.md
+          {
+            printf 'This pull request prepares the immutable PXA %s release.\n\n' "$VERSION"
+            cat /tmp/pxa-release-notes.md
+            printf '\n\nAfter approval and merge, automation will open the stable `develop` to `main` pull request.\n'
+          } > /tmp/pxa-release-pr.md
+          gh pr create \
+            --base develop \
+            --head "$BRANCH" \
+            --title "Prepare PXA $VERSION" \
+            --body-file /tmp/pxa-release-pr.md

@@ -101,7 +101,7 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
           <span className="pxa-product-panel-icon" aria-hidden="true">
             {panel === 'releases' ? <FiFlag /> : <FiBell />}
           </span>
-          <div><small>PXA Designer {designerVersion}</small><h2>{title}</h2></div>
+          <div><small>PXA {designerVersion}</small><h2>{title}</h2></div>
           <button type="button" onClick={closePanel} aria-label={t('productExperience.close')}>
             <FiX />
           </button>

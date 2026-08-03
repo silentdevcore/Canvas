@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "product": "PXA",
+  "releases": [
+    {
+      "version": "1.1.0",
+      "publishedAt": "2026-08-03",
+      "channel": "stable",
+      "title": "Legal governance and release integrity",
+      "summary": "PXA 1.1 strengthens legal document governance, release automation, dependency security, and consistent version information across applications and deployment artifacts.",
+      "documentationPath": "/#release-notes-1-1-0",
+      "components": [
+        "account",
+        "admin",
+        "api",
+        "company",
+        "demo",
+        "designer",
+        "documentation",
+        "generator",
+        "infrastructure",
+        "spreadsheet"
+      ],
+      "featureIds": [],
+      "changes": {
+        "added": [
+          "Structured change fragments, safe previews, and agent-assisted authoring prepare consistent PXA release notes.",
+          "Legal governance now includes approval, resilient snapshots and recovery, Account review gates, audited evidence exports, enforced technical inventories, production retention gates, safe dry runs, and auditable Legal Holds."
+        ],
+        "improved": [
+          "PXA applications, downloadable artifacts, and containers now expose validated matching product version information."
+        ],
+        "fixed": [],
+        "security": [
+          "PXA now enforces dependency vulnerability gates, generates SPDX software inventories, and shows unresolved license decisions to authorized system administrators.",
+          "OpenAPI parsing and XML cryptography dependencies now use patched releases without known high-severity package advisories.",
+          "PXA release workflows now use immutable Node.js 24 action pins for reproducible CI, artifact generation, and container publishing.",
+          "Public PXA release notes now reject sensitive data and require explicit review of security entries."
+        ],
+        "deprecated": [],
+        "breaking": []
+      },
+      "securityReviewed": true
+    },
+    {
+      "version": "1.0.0",
+      "publishedAt": "2026-07-28",
+      "channel": "stable",
+      "title": "PXA 1.0.0",
+      "summary": "The first versioned Power Dox Automation release combines authenticated document design, persistent templates, PDF and spreadsheet workflows, migration tooling, administration, localization, and production observability.",
+      "documentationPath": "/#release-notes-1-0-0",
+      "components": [
+        "account",
+        "admin",
+        "api",
+        "company",
+        "demo",
+        "designer",
+        "documentation",
+        "observability"
+      ],
+      "featureIds": [
+        "designer.release-notes",
+        "designer.notifications",
+        "designer.experimental-features",
+        "designer.pdf-viewer",
+        "designer.spreadsheet"
+      ],
+      "changes": {
+        "added": [
+          "Versioned product release notes and build information.",
+          "Central feature maturity metadata for Alpha, Beta, and Stable capabilities.",
+          "A notification center for releases and important account or system events.",
+          "Production logging, metrics, tracing, dashboards, and alerting foundations."
+        ],
+        "improved": [
+          "Designer navigation, authentication, template persistence, localization, and scrollable editing workflows.",
+          "Account, administration, licensing, mail, documentation, and deployment workflows."
+        ],
+        "fixed": [],
+        "security": [
+          "Feature preferences and notifications are evaluated in the authenticated user and organization context.",
+          "Operational telemetry applies tenant-safe privacy and sanitization boundaries."
+        ],
+        "deprecated": [],
+        "breaking": []
+      },
+      "securityReviewed": true
+    }
+  ]
+}

@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const source = await readFile(new URL('../src/main.js', import.meta.url), 'utf8');
 const releases = JSON.parse(await readFile(
-  new URL('../../../product-metadata/designer-releases.json', import.meta.url),
+  new URL('../../../product-metadata/pxa-releases.json', import.meta.url),
   'utf8',
 ));
 const features = JSON.parse(await readFile(
@@ -13,7 +13,7 @@ const features = JSON.parse(await readFile(
 ));
 
 test('release notes use shared manifests and searchable navigation', () => {
-  assert.match(source, /designerReleaseManifest/);
+  assert.match(source, /pxaReleaseManifest/);
   assert.match(source, /designerFeatureManifest/);
   assert.match(source, /<summary>Release Notes<\/summary>/);
   assert.match(source, /href="#designer-feature-status"/);

@@ -2,7 +2,9 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Security;
 
 namespace PXA.WebApi.Controllers;
@@ -11,12 +13,18 @@ namespace PXA.WebApi.Controllers;
 [Authorize(Roles = PxaRoles.SystemAdministrator)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [Route("api/pxa/v1/admin/operator")]
-public sealed class AdminOperatorAccessController : ControllerBase
+public sealed class AdminOperatorAccessController(
+    UserManager<PxaIdentityUser> userManager,
+    PxaSystemOperatorAccess operatorAccess) : ControllerBase
 {
     [HttpGet("access")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public IActionResult GetAccess()
+    public async Task<IActionResult> GetAccess()
     {
+        var user = await userManager.GetUserAsync(User);
+        if (user is null || !operatorAccess.IsAuthorized(user))
+            return Forbid();
+
         var subject = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(subject))
             return Forbid();
