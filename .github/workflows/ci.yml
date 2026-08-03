@@ -20,7 +20,9 @@ jobs:
         with:
           node-version: 22
       - name: Test version tooling
-        run: node --test tools/versioning/pxa-version.test.mjs
+        run: |
+          node --test tools/versioning/pxa-version.test.mjs
+          node --test tools/versioning/pxa-release-author.test.mjs
       - name: Check synchronized version metadata
         run: node tools/versioning/pxa-version.mjs check
       - name: Require a release fragment for develop pull requests

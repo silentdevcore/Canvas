@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "skill": "pxa-release-author",
+  "scenarios": [
+    {
+      "kind": "fix",
+      "prompt": "Create the release fragment for a compatible PDF text-layout correction that prevents clipped glyphs.",
+      "changedFiles": [
+        "src/Generation/PXA.Pdf/Content/PdfTextLayout.cs",
+        "tests/PXA.Pdf.Tests/PdfTextLayoutTests.cs"
+      ],
+      "expectedFragment": {
+        "$schema": "../release-fragment.schema.json",
+        "id": "pdf-text-layout-fix",
+        "impact": "patch",
+        "components": [
+          "generator"
+        ],
+        "category": "fixed",
+        "summary": "PDF text layout now preserves complete glyph bounds when content approaches a page edge.",
+        "featureIds": [],
+        "documentation": [],
+        "breaking": false
+      }
+    },
+    {
+      "kind": "feature",
+      "prompt": "Create the release fragment for a new Designer release-notes drawer with corresponding public documentation.",
+      "changedFiles": [
+        "pxa-designer/src/components/Releases/ReleaseNotesDrawer.tsx",
+        "websites/PXA.Documentation/src/data/releaseNotes.ts"
+      ],
+      "expectedFragment": {
+        "$schema": "../release-fragment.schema.json",
+        "id": "designer-release-notes-drawer",
+        "impact": "minor",
+        "components": [
+          "designer",
+          "documentation"
+        ],
+        "category": "added",
+        "summary": "Designer users can review current and previous PXA release notes without leaving their workspace.",
+        "featureIds": [],
+        "documentation": [
+          "/#release-notes"
+        ],
+        "breaking": false
+      }
+    },
+    {
+      "kind": "breaking",
+      "prompt": "Create the release fragment for an incompatible template API and persistence schema change that requires migration guidance.",
+      "changedFiles": [
+        "PXA.WebApi/Controllers/DesignerTemplatesController.cs",
+        "src/Infrastructure/PXA.Infrastructure.Persistence/Migrations/ReplaceTemplateIdentity.cs",
+        "websites/PXA.Documentation/src/data/templateMigration.ts"
+      ],
+      "expectedFragment": {
+        "$schema": "../release-fragment.schema.json",
+        "id": "template-identity-contract",
+        "impact": "major",
+        "components": [
+          "api",
+          "infrastructure",
+          "documentation"
+        ],
+        "category": "breaking",
+        "summary": "Template identifiers now use the organization-scoped contract and require existing integrations to migrate.",
+        "featureIds": [],
+        "documentation": [
+          "/#template-api-migration"
+        ],
+        "breaking": true
+      }
+    },
+    {
+      "kind": "refactor",
+      "prompt": "Create the release fragment for an internal version-tool refactor with unchanged commands and release output.",
+      "changedFiles": [
+        "tools/versioning/pxa-version.mjs",
+        "tools/versioning/pxa-version.test.mjs"
+      ],
+      "expectedFragment": {
+        "$schema": "../release-fragment.schema.json",
+        "id": "version-tool-refactor",
+        "impact": "none",
+        "components": [
+          "infrastructure"
+        ],
+        "category": "improved",
+        "summary": "Release tooling internals now use shared validation helpers while preserving existing behavior.",
+        "featureIds": [],
+        "documentation": [],
+        "breaking": false,
+        "reason": "This refactor changes internal implementation only and preserves all shipped behavior and release commands."
+      }
+    },
+    {
+      "kind": "migration",
+      "prompt": "Create the release fragment for backward-compatible RDL chart migration support and its migration guide.",
+      "changedFiles": [
+        "src/Migrations/Report/PXA.Migration.Report.Rdl/RdlChartConverter.cs",
+        "tests/PXA.Migration.Report.Rdl.Tests/RdlChartConverterTests.cs",
+        "checklists/Code-Migration-SyncfusionRdl.md"
+      ],
+      "expectedFragment": {
+        "$schema": "../release-fragment.schema.json",
+        "id": "rdl-chart-migration",
+        "impact": "minor",
+        "components": [
+          "migration",
+          "documentation"
+        ],
+        "category": "added",
+        "summary": "RDL report migrations now convert supported chart series into editable PXA chart elements.",
+        "featureIds": [],
+        "documentation": [
+          "/#report-designer-migration"
+        ],
+        "breaking": false
+      }
+    },
+    {
+      "kind": "documentation",
+      "prompt": "Create the release fragment for a corrected Spreadsheet SDK example with no runtime code changes.",
+      "changedFiles": [
+        "websites/PXA.Documentation/src/data/spreadsheetSdk.ts"
+      ],
+      "expectedFragment": {
+        "$schema": "../release-fragment.schema.json",
+        "id": "spreadsheet-sdk-example-fix",
+        "impact": "patch",
+        "components": [
+          "documentation"
+        ],
+        "category": "fixed",
+        "summary": "The Spreadsheet SDK guide now uses the correct workbook calculation sequence in its example.",
+        "featureIds": [],
+        "documentation": [
+          "/#spreadsheet-sdk"
+        ],
+        "breaking": false
+      }
+    },
+    {
+      "kind": "security",
+      "prompt": "Create the reviewed release fragment for a compatible API authorization correction without exposing exploit details.",
+      "changedFiles": [
+        "PXA.WebApi/Authorization/OrganizationAccessHandler.cs",
+        "tests/PXA.Api.Tests/OrganizationAccessTests.cs"
+      ],
+      "expectedFragment": {
+        "$schema": "../release-fragment.schema.json",
+        "id": "organization-access-validation",
+        "impact": "patch",
+        "components": [
+          "api"
+        ],
+        "category": "security",
+        "summary": "Organization access validation now consistently enforces the authenticated tenant boundary.",
+        "featureIds": [],
+        "documentation": [],
+        "breaking": false,
+        "securityReviewed": true
+      }
+    }
+  ],
+  "rejections": [
+    {
+      "kind": "internal-ticket",
+      "summary": "Resolved internal ticket PXA-431 before publication.",
+      "errorPattern": "internal ticket reference"
+    },
+    {
+      "kind": "customer-email",
+      "summary": "Improved document delivery for jane.doe@example.com workflows.",
+      "errorPattern": "customer email address"
+    },
+    {
+      "kind": "assigned-secret",
+      "summary": "Rotated client_secret=not-a-real-secret before deployment.",
+      "errorPattern": "assigned credential"
+    },
+    {
+      "kind": "unreviewed-security",
+      "summary": "Authentication validation now consistently rejects unauthorized requests.",
+      "category": "security",
+      "errorPattern": "securityReviewed true"
+    }
+  ]
+}

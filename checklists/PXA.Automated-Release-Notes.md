@@ -110,7 +110,7 @@
 - [x] Test Major-release confirmation and mismatched stable-release labels.
 - [x] Test that new pending fragments block an already prepared stable release.
 - [x] Test deterministic output by aggregating the same fragments repeatedly.
-- [ ] Test the skill against representative fixes, features, breaking API changes, migrations, and internal refactoring.
+- [x] Test the skill against representative fixes, features, breaking API changes, migrations, documentation changes, and internal refactoring.
 - [ ] Test that Designer, Admin, Documentation, GitHub Release, artifacts, containers, and the version endpoint report the same version.
 - [x] Dry-run Patch, Minor, and Major releases without publishing.
 - [ ] Test successful deployment, failed deployment, retry, and rollback without an additional version increase.
