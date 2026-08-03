@@ -24,6 +24,7 @@ jobs:
           node --test tools/versioning/pxa-version.test.mjs
           node --test tools/versioning/pxa-release-author.test.mjs
           node --test tools/versioning/pxa-build-consistency.test.mjs
+          node --test tools/deployment/pxa-deployment.test.mjs
       - name: Check synchronized version metadata
         run: node tools/versioning/pxa-version.mjs check
       - name: Require a release fragment for develop pull requests

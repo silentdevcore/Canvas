@@ -1,0 +1,185 @@
+name: PXA Deployment Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Existing stable PXA version without the v prefix
+        required: true
+        type: string
+      environment:
+        description: Protected target environment
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+      operation:
+        description: Intended immutable deployment operation
+        required: true
+        default: deploy
+        type: choice
+        options:
+          - deploy
+          - retry
+          - rollback
+      source_run_id:
+        description: Required source workflow run ID for retry or rollback
+        required: false
+        type: string
+      confirm:
+        description: Confirm validation against the protected environment
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  packages: read
+  deployments: write
+
+concurrency:
+  group: pxa-deployment-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      release_url: ${{ steps.release.outputs.release_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Require protected control branch
+        run: test "$GITHUB_REF" = refs/heads/develop
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Validate confirmed deployment request
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          OPERATION: ${{ inputs.operation }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [ "$CONFIRM" != "true" ]; then
+            echo "Deployment validation requires explicit confirmation."
+            exit 1
+          fi
+          node tools/deployment/pxa-deployment.mjs request \
+            --version "$VERSION" \
+            --environment "$ENVIRONMENT" \
+            --operation "$OPERATION" \
+            --source-run-id "$SOURCE_RUN_ID"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: v${{ inputs.version }}
+          path: release-source
+          fetch-depth: 0
+      - name: Validate immutable GitHub Release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          mkdir -p artifacts/deployment
+          gh release view "v$VERSION" \
+            --json tagName,name,isDraft,isPrerelease,publishedAt,url,assets \
+            > artifacts/deployment/github-release.json
+          node tools/deployment/pxa-deployment.mjs verify \
+            --version "$VERSION" \
+            --release-root release-source \
+            --metadata artifacts/deployment/github-release.json \
+            --output artifacts/deployment/verified-release.json
+          echo "release_url=$(node -p \"require('./artifacts/deployment/verified-release.json').releaseUrl\")" \
+            >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Verify immutable container tags
+        env:
+          OWNER: ${{ github.repository_owner }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          OWNER="$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')"
+          WEBAPI="ghcr.io/$OWNER/pxa-webapi:$VERSION"
+          RELAY="ghcr.io/$OWNER/pxa-observability-webhook-relay:$VERSION"
+          docker buildx imagetools inspect "$WEBAPI" > artifacts/deployment/webapi-image.txt
+          docker buildx imagetools inspect "$RELAY" > artifacts/deployment/relay-image.txt
+          WEBAPI_DIGEST="$(awk '/^Digest:/ {print $2; exit}' artifacts/deployment/webapi-image.txt)"
+          RELAY_DIGEST="$(awk '/^Digest:/ {print $2; exit}' artifacts/deployment/relay-image.txt)"
+          test -n "$WEBAPI_DIGEST"
+          test -n "$RELAY_DIGEST"
+          node -e '
+            const fs = require("node:fs");
+            const [webapi, webapiDigest, relay, relayDigest] = process.argv.slice(1);
+            fs.writeFileSync("artifacts/deployment/containers.json", JSON.stringify([
+              { image: webapi, digest: webapiDigest },
+              { image: relay, digest: relayDigest }
+            ], null, 2) + "\n");
+          ' "$WEBAPI" "$WEBAPI_DIGEST" "$RELAY" "$RELAY_DIGEST"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.6.2
+        with:
+          name: pxa-deployment-preflight-${{ github.run_id }}
+          path: artifacts/deployment
+          if-no-files-found: error
+          retention-days: 30
+
+  validate-environment:
+    needs: preflight
+    runs-on: ubuntu-latest
+    environment:
+      name: pxa-${{ inputs.environment }}
+      url: ${{ needs.preflight.outputs.release_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: pxa-deployment-preflight-${{ github.run_id }}
+          path: artifacts/deployment
+      - name: Record protected validation evidence
+        env:
+          ACTOR: ${{ github.actor }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          OPERATION: ${{ inputs.operation }}
+          REPOSITORY: ${{ github.repository }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          STARTED_AT="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          node tools/deployment/pxa-deployment.mjs record \
+            --release artifacts/deployment/verified-release.json \
+            --containers artifacts/deployment/containers.json \
+            --environment "$ENVIRONMENT" \
+            --operation "$OPERATION" \
+            --source-run-id "$SOURCE_RUN_ID" \
+            --workflow-run-id "$GITHUB_RUN_ID" \
+            --workflow-run-url "$GITHUB_SERVER_URL/$REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --actor "$ACTOR" \
+            --repository "$REPOSITORY" \
+            --status validated \
+            --started-at "$STARTED_AT" \
+            --completed-at "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+            --output artifacts/deployment/deployment-evidence.json
+          {
+            printf '## PXA deployment validation\n\n'
+            printf -- '- Version: `%s`\n' "${{ inputs.version }}"
+            printf -- '- Environment: `%s`\n' "$ENVIRONMENT"
+            printf -- '- Operation: `%s`\n' "$OPERATION"
+            printf -- '- Status: `validated`\n'
+            printf -- '- No target adapter executed.\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.6.2
+        with:
+          name: pxa-deployment-evidence-${{ inputs.environment }}-${{ github.run_id }}
+          path: artifacts/deployment/deployment-evidence.json
+          if-no-files-found: error
+          retention-days: 90
