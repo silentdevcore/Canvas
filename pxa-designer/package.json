@@ -1,6 +1,6 @@
 {
   "name": "pxa-designer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Power Dox Automation - user-friendly document automation designer",
   "main": "src/main.tsx",
   "scripts": {

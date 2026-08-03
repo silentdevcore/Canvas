@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: PXA.WebApi/Dockerfile
       args:
-        PXA_VERSION: ${PXA_VERSION:-1.0.0}
+        PXA_VERSION: ${PXA_VERSION:-1.1.0}
         PXA_COMMIT: ${PXA_COMMIT:-unknown}
         PXA_BUILD_TIME: ${PXA_BUILD_TIME:-unknown}
     environment:

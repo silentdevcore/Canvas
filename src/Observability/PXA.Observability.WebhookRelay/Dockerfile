@@ -13,7 +13,7 @@ RUN dotnet publish PXA.Observability.WebhookRelay.csproj \
     /p:PxaBuildMetadata=$PXA_COMMIT
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
-ARG PXA_VERSION=1.0.0
+ARG PXA_VERSION=1.1.0
 ARG PXA_COMMIT=unknown
 ARG PXA_BUILD_TIME=unknown
 
