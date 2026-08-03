@@ -23,6 +23,13 @@ impact, affected components, change category, customer-facing summary, and
 optional feature or Documentation references. Use the `pxa-release-author`
 skill to review a change and draft the fragment.
 
+Public release text must not contain internal ticket references, credentials,
+customer email or network identifiers, UUIDs, markup, or placeholders. A
+`security` fragment additionally requires the explicit
+`"securityReviewed": true` attestation after a human has checked that its text
+does not expose operational or exploit details. The same content checks apply
+to prepared summaries and published release-manifest entries.
+
 `prepare-fragments` calculates the highest pending impact, creates the complete
 shared release entry, synchronizes all version files, and consumes the pending
 fragments. A Major release additionally requires `--confirm-major`.

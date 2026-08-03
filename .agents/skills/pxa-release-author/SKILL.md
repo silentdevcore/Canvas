@@ -26,6 +26,10 @@ Create one accurate release fragment for the current logical change.
    `product-metadata/release-fragments/`. Use a stable lowercase ID.
 6. Write the summary in concise customer-facing English. State the result, not
    implementation mechanics. Do not claim behavior that the diff does not prove.
+   Remove internal ticket references, credentials, customer identifiers, email
+   addresses, network addresses, and unreviewed security details.
+   For a `security` fragment, set `securityReviewed` to `true` only after this
+   review has been completed.
 7. Add known feature IDs and root-relative Documentation links. Never add
    internal tickets, credentials, customer data, exploit details, or secrets.
 8. Run:

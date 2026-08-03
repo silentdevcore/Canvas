@@ -85,6 +85,9 @@
     "breaking": {
       "type": "boolean"
     },
+    "securityReviewed": {
+      "type": "boolean"
+    },
     "reason": {
       "type": "string",
       "minLength": 12
@@ -151,6 +154,35 @@
           "breaking": {
             "const": true
           }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "category": {
+            "const": "security"
+          }
+        },
+        "required": [
+          "category"
+        ]
+      },
+      "then": {
+        "required": [
+          "securityReviewed"
+        ],
+        "properties": {
+          "securityReviewed": {
+            "const": true
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "required": [
+            "securityReviewed"
+          ]
         }
       }
     }

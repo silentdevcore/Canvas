@@ -8,5 +8,6 @@
   "category": "security",
   "summary": "PXA release workflows now use immutable Node.js 24 action pins for reproducible CI, artifact generation, and container publishing.",
   "featureIds": [],
-  "breaking": false
+  "breaking": false,
+  "securityReviewed": true
 }

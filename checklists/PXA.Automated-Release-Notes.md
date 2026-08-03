@@ -62,7 +62,7 @@
 - [ ] Optionally synchronize `impact:none`, `impact:patch`, `impact:minor`, and `impact:major` labels from validated fragment data.
 - [x] Keep `release:patch`, `release:minor`, and `release:major` labels reserved for stable pull requests to `main`.
 - [x] Prevent commit messages from becoming the authoritative release-note source.
-- [ ] Prevent internal ticket IDs, secrets, customer data, and unreviewed security details from entering public release notes.
+- [x] Prevent internal ticket IDs, secrets, customer data, and unreviewed security details from entering public release notes.
 
 ## P1 - Release Preparation
 
@@ -105,6 +105,7 @@
 
 - [x] Test valid `none`, `patch`, `minor`, and `major` fragments.
 - [x] Test invalid schemas, duplicate IDs, unknown components, placeholders, unsafe links, and missing reasons.
+- [x] Test internal ticket, credential, customer-data, and security-review rejection across fragments and published releases.
 - [x] Test highest-impact aggregation across multiple components and categories.
 - [x] Test Major-release confirmation and mismatched stable-release labels.
 - [x] Test that new pending fragments block an already prepared stable release.

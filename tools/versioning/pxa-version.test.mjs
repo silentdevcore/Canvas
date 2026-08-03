@@ -133,7 +133,7 @@ test('prepares the exact next version and requires curated release content', asy
   const root = await fixture();
   await synchronizeVersions(root, '1.0.0');
   assert.equal(await prepareRelease(root, 'minor', '2026-08-01'), '1.1.0');
-  await assert.rejects(checkRepository(root), /TODO content/);
+  await assert.rejects(checkRepository(root), /public safety rule for placeholder or markup/);
 });
 
 test('validates one matching release label and allowed source branch', async () => {
@@ -178,6 +178,10 @@ test('accepts only one forward stable release step', async () => {
 
 test('validates release fragment structure and safety boundaries', () => {
   assert.equal(validateReleaseFragment(fragment()).impact, 'minor');
+  assert.equal(validateReleaseFragment(fragment({
+    category: 'security',
+    securityReviewed: true,
+  })).securityReviewed, true);
   assert.throws(
     () => validateReleaseFragment(fragment({ impact: 'none' })),
     /meaningful reason/,
@@ -200,12 +204,58 @@ test('validates release fragment structure and safety boundaries', () => {
   );
   assert.throws(
     () => validateReleaseFragment(fragment({ summary: 'TODO: document this later.' })),
-    /placeholder, markup, or sensitive content/,
+    /public safety rule for placeholder or markup/,
   );
   assert.throws(
     () => validateReleaseFragment(fragment({ summary: 'Use [this link](javascript:alert(1)) now.' })),
-    /placeholder, markup, or sensitive content/,
+    /public safety rule for placeholder or markup/,
   );
+  assert.throws(
+    () => validateReleaseFragment(fragment({ category: 'security' })),
+    /securityReviewed true/,
+  );
+  assert.throws(
+    () => validateReleaseFragment(fragment({ securityReviewed: true })),
+    /only allowed for security changes/,
+  );
+  for (const [name, summary] of [
+    ['internal ticket reference', 'Resolved internal ticket PXA-431 before publication.'],
+    ['customer email address', 'Improved delivery for jane.doe@example.com workflows.'],
+    ['customer IP address', 'Improved connectivity for host 203.0.113.42 in production.'],
+    ['customer identifier', 'Corrected tenant 550e8400-e29b-41d4-a716-446655440000 processing.'],
+    ['assigned credential', 'Rotated client_secret=not-a-real-secret before deployment.'],
+    ['GitHub token', 'Removed token ghp_abcdefghijklmnopqrstuvwxyz123456 from output.'],
+    ['JSON Web Token', 'Removed eyJabcdefghijk.abcdefghijklmnop.abcdefghijklmnop from output.'],
+  ]) {
+    assert.throws(
+      () => validateReleaseFragment(fragment({ summary })),
+      new RegExp(`public safety rule for ${name}`),
+    );
+  }
+  assert.equal(
+    validateReleaseFragment(fragment({
+      summary: 'API key rotation now supports tenant-safe administrative workflows.',
+    })).impact,
+    'minor',
+  );
+});
+
+test('rejects unsafe text and unreviewed security details in published releases', async () => {
+  const unsafeTextRoot = await fixture();
+  await synchronizeVersions(unsafeTextRoot, '1.0.0');
+  const unsafeManifestPath = join(unsafeTextRoot, 'product-metadata/pxa-releases.json');
+  const unsafeManifest = JSON.parse(await readFile(unsafeManifestPath, 'utf8'));
+  unsafeManifest.releases[0].summary = 'Prepared for customer@example.com without public review.';
+  await writeFile(unsafeManifestPath, JSON.stringify(unsafeManifest));
+  await assert.rejects(checkRepository(unsafeTextRoot), /customer email address/);
+
+  const securityRoot = await fixture();
+  await synchronizeVersions(securityRoot, '1.0.0');
+  const securityManifestPath = join(securityRoot, 'product-metadata/pxa-releases.json');
+  const securityManifest = JSON.parse(await readFile(securityManifestPath, 'utf8'));
+  securityManifest.releases[0].changes.security = ['Authentication validation now rejects unsafe credentials.'];
+  await writeFile(securityManifestPath, JSON.stringify(securityManifest));
+  await assert.rejects(checkRepository(securityRoot), /securityReviewed true/);
 });
 
 test('aggregates fragments deterministically using the highest impact', () => {

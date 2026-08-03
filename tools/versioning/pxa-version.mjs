@@ -45,6 +45,20 @@ const RELEASE_COMPONENTS = [
   'spreadsheet',
 ];
 const RELEASE_FRAGMENT_DIRECTORY = 'product-metadata/release-fragments';
+const PUBLIC_TEXT_RULES = [
+  { name: 'placeholder or markup', pattern: /\b(?:TODO|FIXME)\b|[\r\n<>\[\]`]/i },
+  { name: 'customer email address', pattern: /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i },
+  { name: 'customer IP address', pattern: /\b(?:\d{1,3}\.){3}\d{1,3}\b/ },
+  { name: 'customer identifier', pattern: /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i },
+  { name: 'internal ticket reference', pattern: /\b[A-Z][A-Z0-9]{1,9}-\d+\b/ },
+  { name: 'internal ticket reference', pattern: /\b(?:ticket|issue|case|pull request|PR)\s*#?\d+\b/i },
+  { name: 'assigned credential', pattern: /\b(?:password|passwd|pwd|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|connection[_ -]?string)\s*[:=]\s*\S+/i },
+  { name: 'authorization credential', pattern: /\bbearer\s+[a-z0-9._-]+/i },
+  { name: 'cloud access key', pattern: /\b(?:AKIA|ASIA)[A-Z0-9]{16}\b/ },
+  { name: 'GitHub token', pattern: /\bgh[pousr]_[A-Za-z0-9_]{20,}\b/ },
+  { name: 'JSON Web Token', pattern: /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/ },
+  { name: 'private key material', pattern: /private key|-----BEGIN [A-Z ]+-----/i },
+];
 const execFileAsync = promisify(execFile);
 const scriptRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -106,8 +120,9 @@ function validatePublicText(value, field, source, minimum, maximum) {
   const text = requireString(value, field, source);
   if (text.length < minimum || text.length > maximum)
     throw new Error(`${source}: '${field}' must contain ${minimum} to ${maximum} characters.`);
-  if (/TODO|FIXME|[\r\n<>\[\]`]|password\s*=|api[_ -]?key\s*=|bearer\s+[a-z0-9._-]+|private key|internal ticket/i.test(text))
-    throw new Error(`${source}: '${field}' contains placeholder, markup, or sensitive content.`);
+  const violation = PUBLIC_TEXT_RULES.find(rule => rule.pattern.test(text));
+  if (violation)
+    throw new Error(`${source}: '${field}' violates the public safety rule for ${violation.name}.`);
   return text;
 }
 
@@ -125,6 +140,7 @@ export function validateReleaseFragment(fragment, source = 'release fragment') {
     'featureIds',
     'documentation',
     'breaking',
+    'securityReviewed',
     'reason',
   ]);
   const unknownFields = Object.keys(fragment).filter(field => !allowedFields.has(field));
@@ -156,6 +172,11 @@ export function validateReleaseFragment(fragment, source = 'release fragment') {
       !(fragment.breaking && category === 'breaking' && impact === 'major'))
     throw new Error(`${source}: breaking changes require impact 'major', category 'breaking', and breaking true.`);
 
+  if (category === 'security' && fragment.securityReviewed !== true)
+    throw new Error(`${source}: security changes require securityReviewed true.`);
+  if (category !== 'security' && fragment.securityReviewed !== undefined)
+    throw new Error(`${source}: 'securityReviewed' is only allowed for security changes.`);
+
   const featureIds = fragment.featureIds ?? [];
   if (!Array.isArray(featureIds) || featureIds.some(value => typeof value !== 'string' ||
       !/^[a-z0-9]+(?:[.-][a-z0-9]+)*$/.test(value)))
@@ -186,6 +207,7 @@ export function validateReleaseFragment(fragment, source = 'release fragment') {
     featureIds,
     documentation,
     breaking: fragment.breaking,
+    ...(category === 'security' ? { securityReviewed: true } : {}),
     ...(reason ? { reason } : {}),
   };
 }
@@ -319,16 +341,20 @@ function validateReleaseManifest(manifest, currentVersion) {
       throw new Error(`Release ${release.version} has an invalid publication date.`);
     if (!['stable', 'beta', 'alpha'].includes(release.channel))
       throw new Error(`Release ${release.version} has an invalid channel.`);
-    if (!release.title?.trim() || !release.summary?.trim())
-      throw new Error(`Release ${release.version} needs a title and summary.`);
-    if (/TODO/i.test(`${release.title} ${release.summary}`))
-      throw new Error(`Release ${release.version} still contains TODO content.`);
+    validatePublicText(release.title, 'title', `Release ${release.version}`, 3, 120);
+    validatePublicText(release.summary, 'summary', `Release ${release.version}`, 12, 500);
     if (!Array.isArray(release.components) || release.components.length === 0)
       throw new Error(`Release ${release.version} must list affected components.`);
     if (!release.changes || CHANGE_CATEGORIES.some(category => !Array.isArray(release.changes[category])))
       throw new Error(`Release ${release.version} must define every change category.`);
     if (!CHANGE_CATEGORIES.some(category => release.changes[category].length > 0))
       throw new Error(`Release ${release.version} must contain at least one change.`);
+    for (const category of CHANGE_CATEGORIES) {
+      release.changes[category].forEach((change, index) =>
+        validatePublicText(change, `changes.${category}[${index}]`, `Release ${release.version}`, 3, 300));
+    }
+    if (release.changes.security.length > 0 && release.securityReviewed !== true)
+      throw new Error(`Release ${release.version} security changes require securityReviewed true.`);
   }
   if (!versions.has(currentVersion))
     throw new Error(`Release manifest has no entry for current version ${currentVersion}.`);
@@ -436,6 +462,7 @@ export async function previewReleaseFromFragments(repoRoot = scriptRoot, {
     components: aggregate.components,
     featureIds: aggregate.featureIds,
     changes: aggregate.changes,
+    ...(aggregate.changes.security.length > 0 ? { securityReviewed: true } : {}),
   };
 
   return {
