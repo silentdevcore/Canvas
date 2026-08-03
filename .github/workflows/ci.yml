@@ -27,7 +27,10 @@ jobs:
       - name: Check synchronized version metadata
         run: node tools/versioning/pxa-version.mjs check
       - name: Require a release fragment for develop pull requests
-        if: github.event_name == 'pull_request' && github.base_ref == 'develop'
+        if: >
+          github.event_name == 'pull_request' &&
+          github.base_ref == 'develop' &&
+          !startsWith(github.head_ref, 'release/prepare-v')
         run: node tools/versioning/pxa-version.mjs validate-change --base-ref origin/develop
       - name: Validate stable release pull request
         if: github.event_name == 'pull_request' && github.base_ref == 'main'
@@ -35,7 +38,14 @@ jobs:
           RELEASE_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
           HEAD_REF: ${{ github.head_ref }}
         run: |
-          BASE_VERSION="$(git show origin/main:VERSION)"
+          BASE_VERSION="$(git show origin/main:VERSION 2>/dev/null || true)"
+          if [ -z "$BASE_VERSION" ]; then
+            BASE_VERSION="$(git tag --merged origin/main --list 'v[0-9]*' --sort=-v:refname | head -1 | sed 's/^v//')"
+          fi
+          if [ -z "$BASE_VERSION" ]; then
+            echo "No stable PXA version exists on main."
+            exit 1
+          fi
           node tools/versioning/pxa-version.mjs validate-pr \
             --base "$BASE_VERSION" \
             --labels "$RELEASE_LABELS" \
