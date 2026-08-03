@@ -1,0 +1,15 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "mcp-network-validation-security",
+  "impact": "patch",
+  "components": [
+    "sdk",
+    "infrastructure"
+  ],
+  "category": "security",
+  "summary": "MCP network-address validation now uses a patched dependency release.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "securityReviewed": true
+}
