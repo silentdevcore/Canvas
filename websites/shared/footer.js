@@ -1,4 +1,5 @@
 import { companyPage, siteLinks } from './siteLinks.js';
+import { pxaCommit, pxaVersion } from './buildInfo.js';
 
 const footerGroups = [
   {
@@ -80,6 +81,7 @@ export function renderPxaFooter(siteName) {
         <div class="pxa-footer-bottom">
           <span>Copyright © ${currentYear} Power Dox Automation. All rights reserved.</span>
           <span>
+            <span title="Commit ${pxaCommit}">PXA ${pxaVersion}</span> ·
             <a href="${companyPage('terms')}">Terms</a> ·
             <a href="${companyPage('privacy')}">Privacy</a> ·
             <button type="button" class="pxa-footer-link-button" data-pxa-storage-settings>Storage settings</button>

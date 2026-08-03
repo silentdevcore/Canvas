@@ -15,6 +15,9 @@ node tools/versioning/pxa-version.mjs prepare-fragments --dry-run \
   --format markdown
 node tools/versioning/pxa-version.mjs prepare-fragments \
   --summary "Customer-facing release summary."
+node tools/versioning/pxa-build-consistency.mjs write artifacts/webapi
+node tools/versioning/pxa-build-consistency.mjs verify artifacts/webapi pxa-designer/dist
+node tools/versioning/pxa-build-consistency.mjs verify-container pxa-webapi:local
 ```
 
 Every pull request to `develop` adds or updates one structured JSON file in
@@ -44,3 +47,9 @@ exactly one matching `release:patch`, `release:minor` or `release:major` label.
 Stable tags and GitHub Releases are created by CI after the PR is merged.
 Feature branches target `develop`. Hotfix branches start from `main`, release
 at least a patch version and must then be merged back into `develop`.
+
+Every shipped frontend and WebApi archive contains `pxa-build-info.json` with
+the product version, source commit, and build time. CI validates these manifests
+against root `VERSION` before uploading artifacts. Container builds are checked
+against the same version through the immutable
+`org.opencontainers.image.version` OCI label.

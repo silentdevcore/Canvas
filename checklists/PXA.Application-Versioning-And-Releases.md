@@ -51,6 +51,7 @@ deployment controls are tracked in
 - [x] Show authenticated release notes in PXA Admin from the shared release manifest.
 - [x] Generate Documentation release pages from the shared release manifest.
 - [x] Add version and source-revision OCI labels to first-party containers.
+- [x] Emit and validate machine-readable build information for WebApi and every shipped frontend.
 
 ## Validation
 
@@ -61,6 +62,7 @@ deployment controls are tracked in
 - [x] Type-check, test, and build PXA Designer.
 - [x] Test and build all PXA websites.
 - [x] Verify the `develop` snapshot workflow and uploaded artifacts.
+- [x] Verify frontend, WebApi, container, release-workflow, and public version-endpoint consistency against `VERSION`.
 - [x] Run a non-mutating `develop` release preview for proposed version `1.1.0` and verify its JSON and Markdown artifacts.
 - [ ] Dry-run the stable-release workflow with the first prepared version increase.
 - [x] Verify branch settings and required GitHub checks.

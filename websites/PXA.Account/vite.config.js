@@ -1,7 +1,14 @@
-import { pxaVersionDefines } from '../shared/vitePxaVersion.js';
+import {
+  pxaBuildInfoPlugin,
+  pxaVersionDefines,
+  readPxaBuildInfo,
+} from '../shared/vitePxaVersion.js';
+
+const buildInfo = readPxaBuildInfo();
 
 export default {
-  define: pxaVersionDefines(),
+  define: pxaVersionDefines(buildInfo),
+  plugins: [pxaBuildInfoPlugin(buildInfo)],
   server: {
     port: 5178,
     strictPort: true,

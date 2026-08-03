@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
+import { pxaBuildInfoPlugin } from '../websites/shared/vitePxaVersion.js'
 
 const version = readFileSync(path.resolve(__dirname, '../VERSION'), 'utf8').trim()
 
@@ -17,14 +18,20 @@ const commit = (() => {
   }
 })()
 const buildTime = new Date().toISOString()
+const buildInfo = {
+  product: 'PXA',
+  productVersion: version,
+  commitId: process.env.PXA_BUILD_COMMIT ?? commit,
+  buildTime: process.env.PXA_BUILD_TIME ?? buildTime,
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), pxaBuildInfoPlugin(buildInfo)],
   define: {
     __PXA_VERSION__: JSON.stringify(version),
-    __PXA_BUILD_COMMIT__: JSON.stringify(process.env.PXA_BUILD_COMMIT ?? commit),
-    __PXA_BUILD_TIME__: JSON.stringify(process.env.PXA_BUILD_TIME ?? buildTime),
+    __PXA_BUILD_COMMIT__: JSON.stringify(buildInfo.commitId),
+    __PXA_BUILD_TIME__: JSON.stringify(buildInfo.buildTime),
     __PXA_DOCUMENTATION_URL__: JSON.stringify(
       process.env.VITE_PXA_DOCUMENTATION_URL ?? 'http://localhost:5174',
     ),

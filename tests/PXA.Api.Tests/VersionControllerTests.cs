@@ -12,8 +12,10 @@ public sealed class VersionControllerTests
 
         var response = Assert.IsType<VersionResponse>(
             Assert.IsType<OkObjectResult>(result.Result).Value);
+        var assemblyVersion = typeof(VersionController).Assembly.GetName().Version;
+        var expectedProductVersion = $"{assemblyVersion!.Major}.{assemblyVersion.Minor}.{assemblyVersion.Build}";
         Assert.Equal("PXA", response.Product);
-        Assert.Equal("1.0.0", response.ProductVersion);
+        Assert.Equal(expectedProductVersion, response.ProductVersion);
         Assert.Equal("v1", response.ApiContractVersion);
         Assert.False(string.IsNullOrWhiteSpace(response.InformationalVersion));
     }
