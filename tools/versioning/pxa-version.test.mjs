@@ -1,17 +1,21 @@
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
 import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
+import { promisify } from 'node:util';
 import {
   aggregateReleaseFragments,
   bumpVersion,
+  changedReleaseFragmentImpactFromGit,
   checkRepository,
   compareVersions,
   prepareRelease,
   prepareReleaseFromFragments,
   previewReleaseFromFragments,
   readReleaseFragments,
+  releaseFragmentImpact,
   releaseImpact,
   renderReleaseDryRun,
   renderReleaseNotes,
@@ -21,6 +25,8 @@ import {
   validateReleaseFragment,
   validateReleasePullRequest,
 } from './pxa-version.mjs';
+
+const execFileAsync = promisify(execFile);
 
 const packagePaths = [
   'pxa-designer/package.json',
@@ -416,6 +422,45 @@ test('requires a changed release fragment for develop pull requests', () => {
     () => validateChangedReleaseFragment(['pxa-designer/src/App.tsx']),
     /must change a JSON file/,
   );
+});
+
+test('calculates pull request impact from trusted Git objects', async () => {
+  assert.equal(releaseFragmentImpact([
+    fragment({ impact: 'none', reason: 'This change only updates internal release automation.' }),
+    fragment({ id: 'api-fix', impact: 'patch', category: 'fixed', featureIds: [], documentation: [] }),
+  ]), 'patch');
+
+  const root = await mkdtemp(join(tmpdir(), 'pxa-impact-label-'));
+  await execFileAsync('git', ['init'], { cwd: root });
+  await execFileAsync('git', ['config', 'user.email', 'release-test@example.test'], { cwd: root });
+  await execFileAsync('git', ['config', 'user.name', 'PXA Release Test'], { cwd: root });
+  await writeFile(join(root, 'README.md'), 'base\n');
+  await execFileAsync('git', ['add', '.'], { cwd: root });
+  await execFileAsync('git', ['commit', '-m', 'Base'], { cwd: root });
+  const { stdout: baseOutput } = await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: root });
+  await writeFragment(root, 'designer-page-navigation', fragment());
+  await execFileAsync('git', ['add', '.'], { cwd: root });
+  await execFileAsync('git', ['commit', '-m', 'Add fragment'], { cwd: root });
+  const { stdout: headOutput } = await execFileAsync('git', ['rev-parse', 'HEAD'], { cwd: root });
+
+  assert.equal(await changedReleaseFragmentImpactFromGit(
+    root,
+    baseOutput.trim(),
+    headOutput.trim(),
+  ), 'minor');
+  await assert.rejects(
+    changedReleaseFragmentImpactFromGit(root, 'HEAD', headOutput.trim()),
+    /exact base-ref commit SHA/,
+  );
+});
+
+test('impact label workflow executes only trusted base tooling', async () => {
+  const workflow = await readFile(join(process.cwd(), '.github/workflows/sync-impact-label.yml'), 'utf8');
+  assert.match(workflow, /pull_request_target:/);
+  assert.match(workflow, /node control-source\/tools\/versioning\/pxa-version\.mjs change-impact/);
+  assert.match(workflow, /ref: refs\/pull\/\$\{\{ github\.event\.pull_request\.number \}\}\/head/);
+  assert.match(workflow, /pull-requests: write/);
+  assert.doesNotMatch(workflow, /node change-source|npm --prefix change-source|run:.*change-source\//);
 });
 
 test('rejects duplicate fragment IDs and unknown feature references', async () => {

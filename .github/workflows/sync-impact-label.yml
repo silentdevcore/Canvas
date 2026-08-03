@@ -1,0 +1,58 @@
+name: Synchronize PXA Release Impact Label
+
+on:
+  pull_request_target:
+    branches: [develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  synchronize:
+    if: >
+      !startsWith(github.event.pull_request.head.ref, 'release/prepare-v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: control-source
+          fetch-depth: 0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          path: change-source
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Calculate validated release impact
+        id: impact
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          IMPACT="$(node control-source/tools/versioning/pxa-version.mjs change-impact \
+            --repo-root change-source \
+            --base-ref "$BASE_SHA" \
+            --head-ref "$HEAD_SHA")"
+          case "$IMPACT" in none|patch|minor|major) ;; *) exit 1 ;; esac
+          echo "impact=$IMPACT" >> "$GITHUB_OUTPUT"
+      - name: Apply the single impact label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          IMPACT: ${{ steps.impact.outputs.impact }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh label create "impact:none" --color "6e7781" --description "No shipped product version impact" --force
+          gh label create "impact:patch" --color "0e8a16" --description "Backward-compatible product fix" --force
+          gh label create "impact:minor" --color "1d76db" --description "Backward-compatible product feature" --force
+          gh label create "impact:major" --color "b60205" --description "Breaking product change" --force
+          for LABEL in impact:none impact:patch impact:minor impact:major; do
+            gh pr edit "$PR_NUMBER" --remove-label "$LABEL" 2>/dev/null || true
+          done
+          gh pr edit "$PR_NUMBER" --add-label "impact:$IMPACT"

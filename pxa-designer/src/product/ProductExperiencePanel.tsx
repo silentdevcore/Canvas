@@ -188,8 +188,11 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
                 <FiCheck /> {t('productExperience.markAllRead')}
               </button>
             </div>
-            {releases.filter(item => !readVersions.has(item.version)).map(item => (
-              <article className="pxa-notification-item is-unread" key={`release-${item.version}`}>
+            {releases.map(item => (
+              <article
+                className={`pxa-notification-item${readVersions.has(item.version) ? '' : ' is-unread'}`}
+                key={`release-${item.version}`}
+              >
                 <span className="is-release"><FiFlag /></span>
                 <div>
                   <small>Release</small>
@@ -227,7 +230,7 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
                 </div>
               </article>
             ))}
-            {notifications.length === 0 && releases.every(item => readVersions.has(item.version)) && (
+            {notifications.length === 0 && releases.length === 0 && (
               <div className="pxa-notification-empty">
                 <FiCheck />
                 <h3>{t('productExperience.allCaughtUp')}</h3>

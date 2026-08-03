@@ -1,0 +1,16 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-release-history",
+  "impact": "patch",
+  "components": [
+    "designer"
+  ],
+  "category": "fixed",
+  "summary": "Read release announcements remain available in Designer and can be opened again from the notification center.",
+  "featureIds": [
+    "designer.release-notes",
+    "designer.notifications"
+  ],
+  "documentation": [],
+  "breaking": false
+}

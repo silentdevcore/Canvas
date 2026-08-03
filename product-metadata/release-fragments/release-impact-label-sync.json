@@ -1,0 +1,14 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "release-impact-label-sync",
+  "impact": "none",
+  "components": [
+    "infrastructure"
+  ],
+  "category": "improved",
+  "summary": "Release impact labels are synchronized from validated change fragments.",
+  "featureIds": [],
+  "documentation": [],
+  "breaking": false,
+  "reason": "This change improves internal pull request and release automation controls."
+}
