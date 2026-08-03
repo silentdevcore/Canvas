@@ -10,6 +10,28 @@ target_container="pxa-legal-target-$suffix"
 backup_directory=$(mktemp -d "${TMPDIR:-/tmp}/pxa-legal-backup.XXXXXX")
 image=${PXA_POSTGRES_IMAGE:-postgres:17-alpine}
 password='synthetic-recovery-password'
+ready_attempts=${PXA_POSTGRES_READY_ATTEMPTS:-60}
+ready_delay=${PXA_POSTGRES_READY_DELAY_SECONDS:-1}
+startup_delay=${PXA_POSTGRES_STARTUP_DELAY_SECONDS:-0}
+
+require_non_negative_integer() {
+  name=$1
+  value=$2
+  case "$value" in
+    ''|*[!0-9]*)
+      printf '%s must be a non-negative integer.\n' "$name" >&2
+      exit 2
+      ;;
+  esac
+}
+
+require_non_negative_integer PXA_POSTGRES_READY_ATTEMPTS "$ready_attempts"
+require_non_negative_integer PXA_POSTGRES_READY_DELAY_SECONDS "$ready_delay"
+require_non_negative_integer PXA_POSTGRES_STARTUP_DELAY_SECONDS "$startup_delay"
+if [ "$ready_attempts" -eq 0 ]; then
+  printf '%s\n' 'PXA_POSTGRES_READY_ATTEMPTS must be greater than zero.' >&2
+  exit 2
+fi
 
 cleanup() {
   docker rm -f "$source_container" "$target_container" >/dev/null 2>&1 || true
@@ -20,20 +42,36 @@ trap cleanup EXIT INT TERM
 
 docker network create "$network" >/dev/null
 for container in "$source_container" "$target_container"; do
-  docker run -d --name "$container" --network "$network" \
-    -e POSTGRES_DB=pxa -e POSTGRES_USER=pxa -e POSTGRES_PASSWORD="$password" \
-    "$image" >/dev/null
+  if [ "$startup_delay" -gt 0 ]; then
+    docker run -d --name "$container" --network "$network" \
+      -e POSTGRES_DB=pxa -e POSTGRES_USER=pxa -e POSTGRES_PASSWORD="$password" \
+      "$image" /bin/sh -c \
+      "sleep $startup_delay; exec docker-entrypoint.sh postgres" >/dev/null
+  else
+    docker run -d --name "$container" --network "$network" \
+      -e POSTGRES_DB=pxa -e POSTGRES_USER=pxa -e POSTGRES_PASSWORD="$password" \
+      "$image" >/dev/null
+  fi
 done
+
+database_is_ready() {
+  docker exec "$1" psql -U pxa -d pxa -X -qAt -v ON_ERROR_STOP=1 \
+    -c 'SELECT 1' 2>/dev/null | grep -qx '1'
+}
 
 for container in "$source_container" "$target_container"; do
   attempts=0
-  until docker exec "$container" pg_isready -U pxa -d pxa >/dev/null 2>&1; do
+  until database_is_ready "$container"; do
     attempts=$((attempts + 1))
-    if [ "$attempts" -ge 60 ]; then
-      printf 'PostgreSQL container did not become ready: %s\n' "$container" >&2
+    if [ "$attempts" -ge "$ready_attempts" ]; then
+      printf 'PostgreSQL database pxa did not become ready after %s attempts: %s\n' \
+        "$attempts" "$container" >&2
+      docker inspect --format='state={{.State.Status}} exit={{.State.ExitCode}}' \
+        "$container" >&2 || true
+      docker logs --tail 100 "$container" >&2 || true
       exit 1
     fi
-    sleep 1
+    sleep "$ready_delay"
   done
 done
 

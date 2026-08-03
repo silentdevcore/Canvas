@@ -90,6 +90,9 @@ jobs:
           --filter "FullyQualifiedName~AccountRegistrationControllerTests.Registration_requires_current_legal_versions_and_records_exact_acceptances|FullyQualifiedName~AdminSystemControllerTests"
           -p:SkipOcrWorkerPackaging=true
       - name: Test isolated Legal backup and restore
+        env:
+          PXA_POSTGRES_STARTUP_DELAY_SECONDS: "2"
+          PXA_POSTGRES_READY_ATTEMPTS: "90"
         run: tools/legal/run-backup-restore-smoke-test.sh
 
   dependency-security:

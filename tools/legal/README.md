@@ -121,3 +121,9 @@ The isolated recovery drill uses synthetic records only:
 ```bash
 tools/legal/run-backup-restore-smoke-test.sh
 ```
+
+The drill waits for a successful query against the configured `pxa` database,
+not only for the PostgreSQL server socket. Readiness is bounded by
+`PXA_POSTGRES_READY_ATTEMPTS` and `PXA_POSTGRES_READY_DELAY_SECONDS`; a timeout
+prints container state and recent PostgreSQL logs. CI sets
+`PXA_POSTGRES_STARTUP_DELAY_SECONDS` to exercise delayed database creation.

@@ -1,0 +1,12 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "legal-backup-database-readiness",
+  "impact": "patch",
+  "components": [
+    "infrastructure"
+  ],
+  "category": "fixed",
+  "summary": "Legal recovery validation now waits for the PXA database and reports actionable PostgreSQL startup diagnostics.",
+  "featureIds": [],
+  "breaking": false
+}
