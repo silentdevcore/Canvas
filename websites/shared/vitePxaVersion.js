@@ -18,14 +18,33 @@ function readCommit() {
   }
 }
 
-export function pxaVersionDefines() {
+export function readPxaBuildInfo() {
   return {
-    __PXA_VERSION__: JSON.stringify(
-      readFileSync(resolve(repositoryRoot, 'VERSION'), 'utf8').trim(),
-    ),
-    __PXA_BUILD_COMMIT__: JSON.stringify(readCommit()),
-    __PXA_BUILD_TIME__: JSON.stringify(
-      process.env.PXA_BUILD_TIME ?? new Date().toISOString(),
-    ),
+    product: 'PXA',
+    productVersion: readFileSync(resolve(repositoryRoot, 'VERSION'), 'utf8').trim(),
+    commitId: readCommit(),
+    buildTime: process.env.PXA_BUILD_TIME ?? new Date().toISOString(),
+  };
+}
+
+export function pxaVersionDefines(buildInfo = readPxaBuildInfo()) {
+  return {
+    __PXA_VERSION__: JSON.stringify(buildInfo.productVersion),
+    __PXA_BUILD_COMMIT__: JSON.stringify(buildInfo.commitId),
+    __PXA_BUILD_TIME__: JSON.stringify(buildInfo.buildTime),
+  };
+}
+
+export function pxaBuildInfoPlugin(buildInfo = readPxaBuildInfo()) {
+  return {
+    name: 'pxa-build-info',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'pxa-build-info.json',
+        source: `${JSON.stringify(buildInfo, null, 2)}\n`,
+      });
+    },
   };
 }

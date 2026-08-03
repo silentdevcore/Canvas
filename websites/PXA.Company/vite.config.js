@@ -1,11 +1,17 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { pxaVersionDefines } from '../shared/vitePxaVersion.js';
+import {
+  pxaBuildInfoPlugin,
+  pxaVersionDefines,
+  readPxaBuildInfo,
+} from '../shared/vitePxaVersion.js';
 
 const rootDir = dirname(fileURLToPath(import.meta.url));
+const buildInfo = readPxaBuildInfo();
 
 export default {
-  define: pxaVersionDefines(),
+  define: pxaVersionDefines(buildInfo),
+  plugins: [pxaBuildInfoPlugin(buildInfo)],
   server: {
     proxy: {
       '/api': {

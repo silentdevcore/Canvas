@@ -1,0 +1,22 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "application-version-consistency",
+  "impact": "patch",
+  "components": [
+    "account",
+    "admin",
+    "api",
+    "company",
+    "demo",
+    "designer",
+    "documentation",
+    "infrastructure"
+  ],
+  "category": "improved",
+  "summary": "PXA applications, downloadable artifacts, and containers now expose validated matching product version information.",
+  "featureIds": [],
+  "documentation": [
+    "/#release-notes"
+  ],
+  "breaking": false
+}
