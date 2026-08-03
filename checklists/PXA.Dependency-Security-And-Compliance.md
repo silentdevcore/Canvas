@@ -17,7 +17,7 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 - [x] Inventory NPOI production usage, remove its unused converter dependency, and document the legal and technical decision options.
 - [ ] Obtain written legal approval for the NPOI 2.8.0 OSMF EULA and explicitly accept it in the build, or replace NPOI.
 - [ ] Keep production release approval blocked while any required license decision is pending.
-- [ ] Migrate Designer routing to React Router 7 after compatibility testing to remove the remaining moderate advisories without a forced major update.
+- [ ] Migrate Designer routing to a patched React Router release after compatibility testing; blocked upstream because all stable v7 releases currently resolve to either older High advisories or the new RSC CSRF advisory affecting `>=7.12.0 <8.3.0`.
 
 ## P1 - Release and Operations Integration
 
@@ -61,6 +61,8 @@ Track the controls that keep third-party dependencies secure, traceable, and leg
 
 ## Deferred Decisions
 
+- [x] Test the React Router 7 migration against the current npm advisory database and retain v6 when the proposed upgrade increases production severity from Moderate to High.
+- [ ] Re-evaluate React Router when a stable release exists outside all published affected ranges; do not bypass the High-severity CI gate for optional RSC functionality.
 - [ ] Choose the long-term license scanning and policy engine.
 - [ ] Decide whether signed SBOM attestations are public or customer-authenticated.
 - [ ] Define the final vulnerability exception SLA and emergency release procedure.
