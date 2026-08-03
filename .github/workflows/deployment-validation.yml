@@ -94,8 +94,11 @@ jobs:
             --release-root release-source \
             --metadata artifacts/deployment/github-release.json \
             --output artifacts/deployment/verified-release.json
-          echo "release_url=$(node -p \"require('./artifacts/deployment/verified-release.json').releaseUrl\")" \
-            >> "$GITHUB_OUTPUT"
+          node -e '
+            const fs = require("node:fs");
+            const release = require("./artifacts/deployment/verified-release.json");
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `release_url=${release.releaseUrl}\n`);
+          '
       - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:

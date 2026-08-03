@@ -190,5 +190,7 @@ test('workflow binds immutable tags to protected serialized environments without
   assert.match(workflow, /pxa-deployment\.mjs request/);
   assert.match(workflow, /status validated/);
   assert.match(workflow, /No target adapter executed/);
+  assert.match(workflow, /appendFileSync\(process\.env\.GITHUB_OUTPUT/);
+  assert.doesNotMatch(workflow, /release_url=\$\(node/);
   assert.doesNotMatch(workflow, /kubectl apply|docker compose up|ssh /);
 });
