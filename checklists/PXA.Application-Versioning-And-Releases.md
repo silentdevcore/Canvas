@@ -64,8 +64,23 @@ deployment controls are tracked in
 - [x] Verify the `develop` snapshot workflow and uploaded artifacts.
 - [x] Verify frontend, WebApi, container, release-workflow, and public version-endpoint consistency against `VERSION`.
 - [x] Run a non-mutating `develop` release preview for proposed version `1.1.0` and verify its JSON and Markdown artifacts.
-- [ ] Dry-run the stable-release workflow with the first prepared version increase.
+- [x] Complete the stable-release workflow with the first prepared version increase.
 - [x] Verify branch settings and required GitHub checks.
+
+## PXA 1.1.0 Verification Record
+
+- [x] Prepare `1.1.0` from nine reviewed release fragments through pull request [#52](https://github.com/silentdevcore/Canvas/pull/52).
+- [x] Resolve the historical `v1.0.0` bootstrap through the latest stable tag when `main` does not yet contain `VERSION`.
+- [x] Validate the bootstrap correction through pull request [#53](https://github.com/silentdevcore/Canvas/pull/53) and all required CI checks.
+- [x] Open the stable pull request [#54](https://github.com/silentdevcore/Canvas/pull/54) automatically with `release:minor`.
+- [x] Require human approval before merging the stable release to `main`.
+- [x] Publish immutable tag [`v1.1.0`](https://github.com/silentdevcore/Canvas/releases/tag/v1.1.0) on merge commit `30de5ea7d55d009dfc32a378e5bcc08d1f3ae8d1`.
+- [x] Complete stable release workflow [run `30822928671`](https://github.com/silentdevcore/Canvas/actions/runs/30822928671).
+- [x] Publish seven versioned application archives with SHA-256 digests.
+- [x] Build and publish the WebApi and Observability Relay containers and verify the WebApi container version.
+- [x] Preserve shared `develop` and `main` history through merge commits for stable releases.
+- [x] Keep required reviews, status checks, admin enforcement, and force-push and deletion protection on `main`; disable linear-history enforcement only to permit release merge commits.
+- [ ] Deploy `v1.1.0` into a protected production environment and record the deployment result.
 
 ## Later Work
 

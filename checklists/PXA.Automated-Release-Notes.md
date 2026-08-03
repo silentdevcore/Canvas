@@ -118,7 +118,7 @@
 
 ## Acceptance Criteria
 
-- [ ] Every customer-relevant change has a reviewed structured release fragment.
+- [x] Every customer-relevant change has a reviewed structured release fragment.
 - [x] CI can calculate the required version impact without interpreting free-form commit messages.
 - [x] AI-generated text cannot independently publish, tag, merge, or deploy a release.
 - [x] A stable release cannot omit pending customer-relevant changes.
@@ -133,8 +133,19 @@
 - [x] Run the GitHub `PXA Release Dry Run` workflow from `develop` ([run `30802436710`](https://github.com/silentdevcore/Canvas/actions/runs/30802436710)).
 - [x] Verify proposed version `1.1.0`, Minor impact, five fragments, ten components, customer summaries, JSON output, and Markdown output.
 - [x] Confirm that the GitHub dry run leaves `VERSION` at `1.0.0`, `develop` unchanged, `v1.0.0` as the latest tag, and creates no GitHub Release or deployment.
-- [ ] Do not run `Prepare PXA Release` until the first stable release is explicitly approved.
+- [x] Run `Prepare PXA Release` only after explicit approval and complete the reviewed `v1.1.0` stable release.
 - [ ] Implement production deployment approvals, audit records, retry behavior, and rollback validation in a later phase.
+
+## PXA 1.1.0 Verification Record
+
+- [x] Aggregate nine pending fragments into one deterministic Minor release.
+- [x] Review and merge release preparation pull request [#52](https://github.com/silentdevcore/Canvas/pull/52).
+- [x] Correct and verify first-release bootstrap handling through pull request [#53](https://github.com/silentdevcore/Canvas/pull/53).
+- [x] Automatically create stable release pull request [#54](https://github.com/silentdevcore/Canvas/pull/54) with the matching `release:minor` label.
+- [x] Publish [`v1.1.0`](https://github.com/silentdevcore/Canvas/releases/tag/v1.1.0) from the exact `main` merge commit after human approval.
+- [x] Verify stable workflow [run `30822928671`](https://github.com/silentdevcore/Canvas/actions/runs/30822928671), seven release assets, container publication, and immutable tag placement.
+- [x] Confirm that release publication does not claim or perform a protected production-environment deployment.
+- [ ] Validate deployment approval, audit, retry, and rollback behavior in the later deployment phase.
 
 ## Later Work
 
