@@ -164,7 +164,7 @@ jobs:
           for site in PXA.Account PXA.Admin PXA.Company PXA.Demo PXA.Documentation; do
             cp -R "websites/$site/dist" "artifacts/frontends/$site"
           done
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
         with:
           name: pxa-frontends-${{ github.run_number }}-${{ github.sha }}
@@ -200,7 +200,7 @@ jobs:
             -p:SkipOcrWorkerPackaging=true \
             -p:PxaBuildMetadata="develop.${{ github.run_number }}.${GITHUB_SHA::12}"
           printf '%s\n' "$VERSION-develop.${{ github.run_number }}-${GITHUB_SHA::12}" > artifacts/SNAPSHOT
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: pxa-${{ github.run_number }}-${{ github.sha }}
           path: artifacts
@@ -254,7 +254,7 @@ jobs:
           mkdir -p artifacts/sbom/webapi artifacts/sbom/designer
           cp -R artifacts/webapi/_manifest/. artifacts/sbom/webapi/
           cp -R pxa-designer/dist/_manifest/. artifacts/sbom/designer/
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: pxa-sbom-${{ github.run_number }}-${{ github.sha }}
           path: artifacts/sbom
