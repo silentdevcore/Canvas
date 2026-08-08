@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PXA.WebApi.Application.Legal;
 using PXA.WebApi.Application.Subscriptions;
 using PXA.WebApi.Security;
 
@@ -12,11 +13,16 @@ public sealed class AccountSubscriptionController : ControllerBase
 {
     private readonly IPxaTenantContext tenantContext;
     private readonly SubscriptionQueryService queryService;
+    private readonly PxaConsumerCheckoutLegalGate checkoutLegalGate;
 
-    public AccountSubscriptionController(IPxaTenantContext tenantContext, SubscriptionQueryService queryService)
+    public AccountSubscriptionController(
+        IPxaTenantContext tenantContext,
+        SubscriptionQueryService queryService,
+        PxaConsumerCheckoutLegalGate checkoutLegalGate)
     {
         this.tenantContext = tenantContext;
         this.queryService = queryService;
+        this.checkoutLegalGate = checkoutLegalGate;
     }
 
     [HttpGet]
@@ -70,6 +76,16 @@ public sealed class AccountSubscriptionController : ControllerBase
             usage.Items.Select(item => new AccountSubscriptionUsageItem(
                 item.Capability, item.Operation, item.Quantity, item.EventCount, item.LastOccurredAt)).ToArray()));
     }
+
+    [HttpGet("checkout-readiness")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<ActionResult<PxaConsumerCheckoutReadiness>> GetCheckoutReadiness(
+        [FromQuery] string locale = "de",
+        CancellationToken cancellationToken = default) =>
+        Ok(await checkoutLegalGate.EvaluateAsync(
+            locale,
+            DateTimeOffset.UtcNow,
+            cancellationToken));
 
     private async Task<Guid?> ResolveSubscriptionIdAsync(CancellationToken cancellationToken)
     {

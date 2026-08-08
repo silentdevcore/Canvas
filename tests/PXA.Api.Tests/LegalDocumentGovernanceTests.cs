@@ -173,6 +173,103 @@ public sealed class LegalDocumentGovernanceTests
     }
 
     [Fact]
+    public async Task Consumer_checkout_fails_closed_without_every_required_effective_document()
+    {
+        await using var context = CreateContext();
+        var actorId = Guid.NewGuid();
+        var terms = NewDocument(actorId);
+        var termsVersion = NewVersion(
+            terms.Id,
+            "consumer-terms-1",
+            LegalDocumentStatus.Published,
+            DateTimeOffset.UtcNow.AddMinutes(-1));
+        termsVersion.Audience = LegalDocumentAudience.Consumer;
+        context.AddRange(terms, termsVersion);
+        await context.SaveChangesAsync();
+        var gate = new PxaConsumerCheckoutLegalGate(
+            new PxaLegalDocumentService(context),
+            Options.Create(new PxaConsumerCheckoutOptions { Enabled = true }));
+
+        var readiness = await gate.EvaluateAsync(
+            "de", DateTimeOffset.UtcNow, CancellationToken.None);
+
+        Assert.False(readiness.Available);
+        Assert.True(readiness.CommerciallyEnabled);
+        Assert.False(readiness.LegalDocumentsReady);
+        Assert.Equal("required-legal-documents-unavailable", readiness.Reason);
+        Assert.Collection(
+            readiness.Documents,
+            document => Assert.True(document.Available),
+            document => Assert.False(document.Available),
+            document => Assert.False(document.Available));
+    }
+
+    [Fact]
+    public async Task Consumer_checkout_requires_both_commercial_enablement_and_legal_readiness()
+    {
+        await using var context = CreateContext();
+        var actorId = Guid.NewGuid();
+        foreach (var (type, key) in new[]
+                 {
+                     (LegalDocumentType.TermsAndConditions, "terms"),
+                     (LegalDocumentType.PrivacyNotice, "privacy"),
+                     (LegalDocumentType.ConsumerWithdrawal, "withdrawal"),
+                 })
+        {
+            var document = new LegalDocument
+            {
+                Type = type,
+                Key = key,
+                DisplayName = key,
+                CreatedByUserId = actorId,
+            };
+            var version = NewVersion(
+                document.Id,
+                $"{key}-1",
+                LegalDocumentStatus.Published,
+                DateTimeOffset.UtcNow.AddMinutes(-1));
+            version.Audience = LegalDocumentAudience.Consumer;
+            context.AddRange(document, version);
+        }
+        await context.SaveChangesAsync();
+        var legalDocuments = new PxaLegalDocumentService(context);
+
+        var disabled = await new PxaConsumerCheckoutLegalGate(
+                legalDocuments,
+                Options.Create(new PxaConsumerCheckoutOptions()))
+            .EvaluateAsync("de", DateTimeOffset.UtcNow, CancellationToken.None);
+        var enabled = await new PxaConsumerCheckoutLegalGate(
+                legalDocuments,
+                Options.Create(new PxaConsumerCheckoutOptions { Enabled = true }))
+            .EvaluateAsync("de", DateTimeOffset.UtcNow, CancellationToken.None);
+
+        Assert.False(disabled.Available);
+        Assert.True(disabled.LegalDocumentsReady);
+        Assert.Equal("consumer-checkout-disabled", disabled.Reason);
+        Assert.True(enabled.Available);
+        Assert.True(enabled.LegalDocumentsReady);
+        Assert.Null(enabled.Reason);
+        Assert.All(enabled.Documents, document =>
+        {
+            Assert.NotNull(document.VersionId);
+            Assert.NotNull(document.ContentHash);
+        });
+    }
+
+    [Fact]
+    public void Legal_acceptance_evidence_does_not_store_network_addresses()
+    {
+        var propertyNames = typeof(LegalAcceptanceEvent)
+            .GetProperties()
+            .Select(property => property.Name)
+            .ToArray();
+
+        Assert.DoesNotContain(propertyNames, name =>
+            name.Contains("Ip", StringComparison.OrdinalIgnoreCase) ||
+            name.Contains("Address", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public async Task Four_eyes_rule_blocks_author_and_allows_independent_reviewer()
     {
         await using var context = CreateContext();

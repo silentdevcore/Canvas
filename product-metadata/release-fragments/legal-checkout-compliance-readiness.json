@@ -1,0 +1,16 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "legal-checkout-compliance-readiness",
+  "impact": "minor",
+  "components": [
+    "admin",
+    "api"
+  ],
+  "category": "added",
+  "summary": "Consumer checkout readiness now fails closed on legal prerequisites, with dependency compliance available in a separate protected Admin workspace.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.Legal-Terms-Privacy-And-Consent.md"
+  ],
+  "breaking": false
+}
