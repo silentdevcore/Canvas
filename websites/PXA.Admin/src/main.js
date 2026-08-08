@@ -103,6 +103,7 @@ const navigation = [
   { path: '/system-status', label: 'System status', group: 'Operations', systemOnly: true },
   { path: '/settings', label: 'Settings', group: 'Operations' },
   { path: '/legal', label: 'Legal documents', group: 'Governance', systemOnly: true },
+  { path: '/dependency-compliance', label: 'Dependency compliance', group: 'Governance', systemOnly: true },
   { path: '/release-notes', label: 'Release notes', group: 'Reference' },
   { path: '/documentation', label: 'Admin documentation', group: 'Reference' },
 ];
@@ -659,8 +660,23 @@ function systemStatusPage() {
       <div class="admin-section-heading"><h2>Components</h2><p>Descriptions are intentionally coarse. Raw logs, traces, identifiers, and configuration secrets are never returned here.</p></div>
       <div class="admin-status-list">${componentRows}</div>
     </section>
-    ${dependencyComplianceSection()}
     ${retentionGovernanceSection()}
+  `;
+}
+
+function dependencyCompliancePage() {
+  return `
+    <header class="admin-page-header">
+      <div><p class="pxa-kicker">Governance</p><h1>Dependency compliance</h1><p>Review supply-chain security gates, SBOM coverage, and third-party license decisions independently from customer Legal documents.</p></div>
+      <div class="admin-header-actions">
+        <a class="pxa-button pxa-button--secondary" href="/legal">Open Legal documents</a>
+        <button class="pxa-button pxa-button--primary" id="dependency-compliance-refresh" type="button" ${state.dependencyCompliance.loading ? 'disabled' : ''}>${state.dependencyCompliance.loading ? 'Checking...' : 'Refresh'}</button>
+      </div>
+    </header>
+    <div class="admin-alert admin-alert--warning admin-detail-alert">
+      Supplier-license decisions use separate APIs, records, permissions, and audit events. They never create or modify customer Legal acceptance evidence.
+    </div>
+    ${dependencyComplianceSection()}
   `;
 }
 
@@ -702,16 +718,21 @@ function dependencyComplianceSection() {
 function bindSystemStatusEvents() {
   document.querySelector('#system-health-refresh')?.addEventListener('click', () => {
     loadSystemHealth();
-    loadDependencyCompliance();
     loadRetentionGovernance();
   });
   document.querySelector('#system-health-retry')?.addEventListener('click', () => loadSystemHealth());
-  document.querySelector('#dependency-compliance-retry')?.addEventListener('click', () => loadDependencyCompliance());
   document.querySelector('#retention-retry')?.addEventListener('click', () => loadRetentionGovernance());
   document.querySelector('#retention-dry-run')?.addEventListener('click', () => runRetentionDryRun());
   document.querySelector('#retention-hold-form')?.addEventListener('submit', createRetentionHold);
   document.querySelectorAll('.retention-release-form').forEach((form) =>
     form.addEventListener('submit', releaseRetentionHold));
+}
+
+function bindDependencyComplianceEvents() {
+  document.querySelector('#dependency-compliance-refresh')?.addEventListener(
+    'click', () => loadDependencyCompliance());
+  document.querySelector('#dependency-compliance-retry')?.addEventListener(
+    'click', () => loadDependencyCompliance());
 }
 
 async function loadSystemHealth() {
@@ -1129,7 +1150,10 @@ function legalPage() {
   return `
     <header class="admin-page-header">
       <div><p class="pxa-kicker">Governance</p><h1>Legal documents</h1><p>Author, independently review, schedule, and publish immutable legal document versions.</p></div>
-      <span class="admin-record-count">${legal.documents.length} documents · ${legal.versions.length} versions</span>
+      <div class="admin-header-actions">
+        <a class="pxa-button pxa-button--secondary" href="/dependency-compliance">Dependency compliance</a>
+        <span class="admin-record-count">${legal.documents.length} documents · ${legal.versions.length} versions</span>
+      </div>
     </header>
     <div class="admin-alert admin-alert--warning admin-detail-alert">
       Production publication requires verified operator details and approval by qualified German legal counsel.
@@ -3028,8 +3052,18 @@ function render() {
     renderShell(systemStatusPage(), 'System status');
     bindSystemStatusEvents();
     if (!state.systemHealth.loaded && !state.systemHealth.loading) loadSystemHealth();
-    if (!state.dependencyCompliance.loaded && !state.dependencyCompliance.loading) loadDependencyCompliance();
     if (!state.retention.loaded && !state.retention.loading) loadRetentionGovernance();
+    return;
+  }
+
+  if (location.pathname === '/dependency-compliance') {
+    if (!isSystemAdministrator()) {
+      renderShell(forbiddenPage(), 'Access denied');
+      return;
+    }
+    renderShell(dependencyCompliancePage(), 'Dependency compliance');
+    bindDependencyComplianceEvents();
+    if (!state.dependencyCompliance.loaded && !state.dependencyCompliance.loading) loadDependencyCompliance();
     return;
   }
 

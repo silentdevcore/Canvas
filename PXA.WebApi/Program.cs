@@ -298,6 +298,9 @@ builder.Services.AddScoped<OrganizationMembershipService>();
 builder.Services.AddScoped<SubscriptionQueryService>();
 builder.Services.AddScoped<PxaLegalDocumentService>();
 builder.Services.AddScoped<AccountLegalObligationService>();
+builder.Services.Configure<PxaConsumerCheckoutOptions>(
+    builder.Configuration.GetSection(PxaConsumerCheckoutOptions.SectionName));
+builder.Services.AddScoped<PxaConsumerCheckoutLegalGate>();
 builder.Services.AddSingleton<PXA.WebApi.Application.Retention.PxaRetentionPolicyCatalog>();
 builder.Services.AddScoped<PXA.WebApi.Application.Retention.PxaRetentionLegalHoldService>();
 builder.Services.AddScoped<PXA.WebApi.Application.Retention.PxaRetentionGovernanceService>();
