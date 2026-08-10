@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />
     <ProjectReference Include="../../Common/PXA.Migration.Abstractions/PXA.Migration.Abstractions.csproj" />
     <ProjectReference Include="../../../Core/PXA.Core/PXA.Core.csproj" />
   </ItemGroup>
