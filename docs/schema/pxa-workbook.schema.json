@@ -33,7 +33,8 @@
         "pageSetup": { "$ref": "#/$defs/pageSetup" },
         "protection": { "$ref": "#/$defs/protection" },
         "conditionalFormats": { "type": "array", "items": { "$ref": "#/$defs/conditionalFormat" } },
-        "dataValidations": { "type": "array", "items": { "$ref": "#/$defs/dataValidation" } }
+        "dataValidations": { "type": "array", "items": { "$ref": "#/$defs/dataValidation" } },
+        "images": { "type": "array", "description": "Images anchored to worksheet cells. Persisted workbooks use assetId; data is transient import/export content.", "items": { "$ref": "#/$defs/image" } }
       },
       "additionalProperties": true
     },
@@ -63,6 +64,23 @@
         "textAlign": { "type": "string", "enum": ["left", "center", "right"] },
         "fontFamily": { "type": "string" },
         "fontSize": { "type": "number" }
+      },
+      "additionalProperties": true
+    },
+    "image": {
+      "type": "object",
+      "required": ["id", "row", "col", "width", "height"],
+      "properties": {
+        "id": { "type": "string" },
+        "assetId": { "type": "string", "format": "uuid", "description": "Organization-owned Designer asset identifier." },
+        "fileName": { "type": "string" },
+        "contentType": { "type": "string", "enum": ["image/png", "image/jpeg"] },
+        "data": { "type": "string", "description": "Transient data URL used only at the XLSX import/export boundary." },
+        "row": { "type": "integer", "minimum": 0 },
+        "col": { "type": "integer", "minimum": 0 },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "altText": { "type": "string" }
       },
       "additionalProperties": true
     },

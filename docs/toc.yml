@@ -4,6 +4,10 @@
   href: csharp-cookbook.md
 - name: API Reference
   href: api/
+- name: Architecture
+  items:
+  - name: Designer Image Assets
+    href: architecture/designer-assets.md
 - name: Operations
   items:
   - name: Mail Service

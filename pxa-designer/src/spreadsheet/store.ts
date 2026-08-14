@@ -3,7 +3,7 @@ import { persist, createJSONStorage, type StateStorage } from 'zustand/middlewar
 import {
   SheetState, Cell, CellType, CellStyle, cellKey, emptySheet,
   Workbook, workbookFromWire, workbookToWire, toA1Range, parseA1Range,
-  ConditionalFormat, DataValidation,
+  ConditionalFormat, DataValidation, SpreadsheetImage,
 } from './types';
 import { sheetEngine } from './formulaEngine';
 
@@ -64,6 +64,8 @@ interface SpreadsheetState {
   removeConditionalFormat: (index: number) => void;
   addDataValidation: (rule: DataValidation) => void;
   removeDataValidation: (index: number) => void;
+  addImage: (image: SpreadsheetImage) => void;
+  removeImage: (id: string) => void;
   addSheet: () => void;
   renameSheet: (index: number, name: string) => void;
   deleteSheet: (index: number) => void;
@@ -91,6 +93,16 @@ function shiftCellsForRowCol(sheet: SheetState, axis: 'row' | 'col', at: number,
     cells[cellKey(row, col)] = { ...cell, row, col };
   }
   sheet.cells = cells;
+  sheet.images = sheet.images.flatMap(image => {
+    const index = axis === 'row' ? image.row : image.col;
+    if (!insert && index === at) return [];
+    if (index < at) return [image];
+    return [{
+      ...image,
+      row: axis === 'row' ? image.row + (insert ? 1 : -1) : image.row,
+      col: axis === 'col' ? image.col + (insert ? 1 : -1) : image.col,
+    }];
+  });
 
   if (axis === 'col') {
     const widths: Record<number, number> = {};
@@ -396,6 +408,18 @@ export const useSpreadsheetStore = create<SpreadsheetState>()(
         const next = clone(get().sheets);
         const sheet = next[get().active];
         sheet.dataValidations = (sheet.dataValidations ?? []).filter((_, i) => i !== index);
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+      },
+      addImage: (image) => {
+        const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
+        const next = clone(get().sheets);
+        next[get().active].images.push(image);
+        set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
+      },
+      removeImage: (id) => {
+        const snapshot: Snapshot = { name: get().name, sheets: clone(get().sheets) };
+        const next = clone(get().sheets);
+        next[get().active].images = next[get().active].images.filter(image => image.id !== id);
         set({ sheets: next, past: [...get().past, snapshot].slice(-MAX_HISTORY), future: [] });
       },
 

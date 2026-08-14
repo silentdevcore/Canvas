@@ -145,7 +145,9 @@ builder.Services.AddOptions<PxaStorageOptions>()
     .Validate(options =>
             string.Equals(options.Provider, "FileSystem", StringComparison.OrdinalIgnoreCase) &&
             !string.IsNullOrWhiteSpace(options.RootPath) &&
-            options.MaximumObjectBytes is >= 1024 and <= 5L * 1024 * 1024 * 1024,
+            options.MaximumObjectBytes is >= 1024 and <= 5L * 1024 * 1024 * 1024 &&
+            options.MaximumDesignerAssetBytes is >= 1024 and <= 100L * 1024 * 1024 &&
+            options.MaximumDesignerAssetBytes <= options.MaximumObjectBytes,
         "Storage provider, root path, or object-size limit is invalid.")
     .ValidateOnStart();
 builder.Services.AddOptions<PxaJobOptions>()

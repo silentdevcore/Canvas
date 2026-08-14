@@ -5,6 +5,7 @@ namespace PXA.Infrastructure.Spreadsheet.Tests;
 
 public sealed class SpreadsheetInfrastructureFacadeTests
 {
+    private const string TinyPng = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
     [Fact]
     public void PxaWorkbook_BuildsPxaWorkbookContract()
     {
@@ -37,6 +38,46 @@ public sealed class SpreadsheetInfrastructureFacadeTests
         Assert.Equal("budget", imported.Name);
         Assert.Equal("Data", imported.Sheets[0].Name);
         Assert.Contains(imported.Sheets[0].Cells, cell => cell.Type == "text" && cell.Value?.ToString() == "Amount");
+    }
+
+    [Fact]
+    public void ExcelWorkbookExporterImporter_RoundTripsAnchoredImage()
+    {
+        var workbook = new SpreadsheetDto
+        {
+            Name = "Images",
+            Sheets =
+            [
+                new SheetDto
+                {
+                    Name = "Sheet1",
+                    Images =
+                    [
+                        new SpreadsheetImageDto
+                        {
+                            Id = "logo",
+                            FileName = "logo.png",
+                            ContentType = "image/png",
+                            Data = $"data:image/png;base64,{TinyPng}",
+                            Row = 2,
+                            Col = 3,
+                            Width = 120,
+                            Height = 60,
+                        },
+                    ],
+                },
+            ],
+        };
+
+        var bytes = new ExcelWorkbookExporter().Export(workbook);
+        using var stream = new MemoryStream(bytes);
+        var image = Assert.Single(new ExcelWorkbookImporter().Import(stream, "images.xlsx").Sheets[0].Images);
+
+        Assert.Equal(2, image.Row);
+        Assert.Equal(3, image.Col);
+        Assert.Equal(120, image.Width);
+        Assert.Equal(60, image.Height);
+        Assert.StartsWith("data:image/png;base64,", image.Data);
     }
 
     [Fact]

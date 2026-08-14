@@ -1178,6 +1178,8 @@
     "image": {
       "dropHere": "Bild hier ablegen oder",
       "browse": "Durchsuchen",
+      "uploaded": "Bild wurde sicher gespeichert",
+      "uploadFailed": "Bild-Upload fehlgeschlagen",
       "sourceUrl": "Quell-URL",
       "fitMode": "Anpassungsmodus",
       "fitContain": "Einpassen",

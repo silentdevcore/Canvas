@@ -98,6 +98,7 @@ import { LanguageTabBar } from './LanguageTabBar';
 import { LocalizedPropertiesPanel } from './LocalizedPropertiesPanel';
 import type { AutosaveState } from '@/hooks/useDesignerTemplateAutosave';
 import { notify } from '@/notifications/toast';
+import { uploadDesignerImage } from '@/services/designerAssetApi';
 
 
 interface SimplePxaSurfaceProps {
@@ -7172,13 +7173,17 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                   <div
                     className="editor-image-dropzone"
                     onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
+                    onDrop={async (e) => {
                       e.preventDefault();
                       const file = e.dataTransfer.files[0];
                       if (!file || !file.type.startsWith('image/')) return;
-                      const reader = new FileReader();
-                      reader.onload = (ev) => updateSelectedElement({ content: ev.target?.result as string });
-                      reader.readAsDataURL(file);
+                      try {
+                        const asset = await uploadDesignerImage(file);
+                        updateSelectedElement({ assetId: asset.id, content: asset.contentUrl });
+                        notify.success(t('elementInspector.image.uploaded'));
+                      } catch (error) {
+                        notify.error(error instanceof Error ? error.message : t('elementInspector.image.uploadFailed'));
+                      }
                     }}
                   >
                     <span>{t('elementInspector.image.dropHere')}</span>
@@ -7186,14 +7191,20 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                       {t('elementInspector.image.browse')}
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/png,image/jpeg"
                         style={{ display: 'none' }}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          const reader = new FileReader();
-                          reader.onload = (ev) => updateSelectedElement({ content: ev.target?.result as string });
-                          reader.readAsDataURL(file);
+                          try {
+                            const asset = await uploadDesignerImage(file);
+                            updateSelectedElement({ assetId: asset.id, content: asset.contentUrl });
+                            notify.success(t('elementInspector.image.uploaded'));
+                          } catch (error) {
+                            notify.error(error instanceof Error ? error.message : t('elementInspector.image.uploadFailed'));
+                          } finally {
+                            e.target.value = '';
+                          }
                         }}
                       />
                     </label>
@@ -7203,7 +7214,7 @@ const SimplePxaSurface: React.FC<SimplePxaSurfaceProps> = ({
                     <input
                       type="text"
                       value={selectedElement.content || ''}
-                      onChange={(event) => updateSelectedElement({ content: event.target.value })}
+                      onChange={(event) => updateSelectedElement({ assetId: undefined, content: event.target.value })}
                     />
                   </label>
                   <label>

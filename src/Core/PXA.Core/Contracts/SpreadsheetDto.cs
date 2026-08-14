@@ -48,6 +48,24 @@ public sealed class SheetDto
     public ProtectionDto? Protection { get; set; }
     public List<ConditionalFormatDto> ConditionalFormats { get; set; } = [];
     public List<DataValidationDto> DataValidations { get; set; } = [];
+    /// <summary>Images anchored to worksheet cells. Persisted documents use <see cref="SpreadsheetImageDto.AssetId"/>;</summary>
+    public List<SpreadsheetImageDto> Images { get; set; } = [];
+}
+
+public sealed class SpreadsheetImageDto
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("n");
+    public Guid? AssetId { get; set; }
+    public string? FileName { get; set; }
+    public string? ContentType { get; set; }
+    /// <summary>Transient import/export payload. Designer persistence replaces this with <see cref="AssetId"/>.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Data { get; set; }
+    public int Row { get; set; }
+    public int Col { get; set; }
+    public int Width { get; set; } = 160;
+    public int Height { get; set; } = 90;
+    public string? AltText { get; set; }
 }
 
 public sealed class SheetColumnDto

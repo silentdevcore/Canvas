@@ -10,7 +10,8 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 - [x] P0: Persist mutable drafts with optimistic concurrency and autosave.
 - [x] P0: Protect every template query and mutation by active organization.
 - [x] P1: Add immutable named versions, publication, archive, and restore.
-- [ ] P1: Add scalable previews and asset storage through an object-storage abstraction.
+- [x] P1: Add shared image asset storage through the object-storage abstraction for PDF and Spreadsheet Designer.
+- [ ] P1: Add scalable generated template previews through the object-storage abstraction.
 - [ ] P2: Add collaboration, branching, review, and advanced retention.
 
 ## Dependencies
@@ -19,7 +20,8 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 - [x] Use PostgreSQL and EF Core through `PXA.Infrastructure.Persistence`.
 - [x] Align schema and migration operations with `PXA.Database.md`.
 - [x] Keep gallery examples as static product assets rather than customer database records.
-- [ ] Define object-storage integration before storing large previews, imports, or attachments.
+- [x] Define object-storage integration for Designer image assets.
+- [ ] Extend the integration to large generated previews, source documents, and attachments.
 
 ## Ownership Model
 
@@ -116,10 +118,11 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 
 - [x] Establish tenant-owned stored-object metadata and an object-storage abstraction with an atomic filesystem adapter.
 - [x] Store asynchronous template-render results outside PostgreSQL and expose them through tenant-filtered job downloads.
-- [ ] Keep large previews, source documents, images, and attachments outside PostgreSQL.
-- [ ] Store only tenant-safe object keys, content type, size, checksum, timestamps, and lifecycle state in PostgreSQL.
+- [x] Keep Designer image bytes outside PostgreSQL template and workbook JSON.
+- [ ] Keep large previews, source documents, and attachments outside PostgreSQL.
+- [x] Store only tenant-safe object keys, content type, size, checksum, timestamps, and lifecycle state in PostgreSQL for images.
 - [ ] Use Cloud object storage or customer-configured filesystem/S3-compatible storage through one abstraction.
-- [ ] Validate object ownership on every access.
+- [x] Validate active-organization ownership on every Designer asset access.
 - [ ] Define orphan cleanup and database/object-store reconciliation before enabling assets.
 
 ## Tests
@@ -148,7 +151,8 @@ Replace volatile Designer template storage with PostgreSQL-backed, organization-
 - [x] Autosave preserves changes without generating immutable versions.
 - [x] Concurrent edits cannot silently overwrite newer drafts.
 - [x] Explicit versions remain immutable and auditable.
-- [ ] Large binary assets are not stored in PostgreSQL template JSON.
+- [x] Designer image assets are not stored in PostgreSQL template JSON.
+- [ ] Generated previews, source documents, and attachments are not stored in PostgreSQL template JSON.
 
 ## Deferred Work
 

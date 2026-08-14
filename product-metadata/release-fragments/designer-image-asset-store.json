@@ -1,0 +1,18 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "designer-image-asset-store",
+  "impact": "minor",
+  "components": [
+    "api",
+    "designer",
+    "documentation",
+    "infrastructure",
+    "spreadsheet"
+  ],
+  "category": "added",
+  "summary": "PDF and Spreadsheet Designer now store organization-owned PNG and JPEG images securely and preserve spreadsheet images through XLSX import and export.",
+  "documentation": [
+    "/docs/architecture/designer-assets.md"
+  ],
+  "breaking": false
+}

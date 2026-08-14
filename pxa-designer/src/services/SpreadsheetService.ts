@@ -1,4 +1,5 @@
 import type { Workbook } from '../spreadsheet/types';
+import { designerAssetContentUrl, uploadDesignerImage } from './designerAssetApi';
 
 export interface ValidationIssue { severity: string; path: string; message: string; }
 export interface ValidationResult {
@@ -25,10 +26,11 @@ export class SpreadsheetService {
 
   /** Export a workbook to .xlsx and trigger a download. */
   static async exportXlsx(workbook: Workbook, fileName?: string): Promise<void> {
+    const hydrated = await this.hydrateImages(workbook);
     const res = await fetch(`${this.API_BASE_URL}/spreadsheet/export`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(workbook),
+      body: JSON.stringify(hydrated),
     });
     if (!res.ok) throw new Error(`Export failed (${res.status})`);
     const blob = await res.blob();
@@ -48,6 +50,46 @@ export class SpreadsheetService {
     fd.append('file', file);
     const res = await fetch(`${this.API_BASE_URL}/spreadsheet/import`, { method: 'POST', body: fd });
     if (!res.ok) throw new Error(`Import failed (${res.status})`);
-    return res.json();
+    return this.storeEmbeddedImages(await res.json() as Workbook);
+  }
+
+  /** Migrates legacy/imported data URLs into organization-owned assets before the workbook enters the store. */
+  static async storeEmbeddedImages(workbook: Workbook): Promise<Workbook> {
+    for (const sheet of workbook.sheets) {
+      for (const image of sheet.images ?? []) {
+        if (!image.data) continue;
+        const blob = await (await fetch(image.data)).blob();
+        const asset = await uploadDesignerImage(new File(
+          [blob],
+          image.fileName || `spreadsheet-image.${assetExtension(blob.type)}`,
+          { type: blob.type },
+        ));
+        image.assetId = asset.id;
+        image.contentUrl = asset.contentUrl;
+        image.contentType = asset.contentType;
+        delete image.data;
+      }
+    }
+    return workbook;
+  }
+
+  private static async hydrateImages(workbook: Workbook): Promise<Workbook> {
+    const copy = structuredClone(workbook);
+    await Promise.all(copy.sheets.flatMap(sheet => (sheet.images ?? []).map(async image => {
+      if (!image.assetId) return;
+      const response = await fetch(designerAssetContentUrl(image.assetId));
+      if (!response.ok) throw new Error(`Spreadsheet image could not be loaded (${response.status}).`);
+      image.data = await blobToDataUrl(await response.blob());
+    })));
+    return copy;
   }
 }
+
+const assetExtension = (contentType: string) => contentType === 'image/jpeg' ? 'jpg' : 'png';
+
+const blobToDataUrl = (blob: Blob): Promise<string> => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(String(reader.result));
+  reader.onerror = () => reject(reader.error ?? new Error('Spreadsheet image could not be read.'));
+  reader.readAsDataURL(blob);
+});

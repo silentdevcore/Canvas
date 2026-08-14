@@ -14,6 +14,31 @@ let _formatsCache: FormatInfo[] | null = null;
 export class ExportService {
   private static readonly API_BASE_URL = '/api';
 
+  private static async assetDataUrl(assetId: string): Promise<string> {
+    const response = await fetch(`/api/pxa/v1/designer/assets/${encodeURIComponent(assetId)}/content`);
+    if (!response.ok) throw new Error(`Image asset could not be loaded (${response.status}).`);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error ?? new Error('Image asset could not be read.'));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  private static async hydrateAssetElements(elements: SimpleElement[]): Promise<SimpleElement[]> {
+    return Promise.all(elements.map(async element => element.type === 'image' && element.assetId
+      ? { ...element, content: await this.assetDataUrl(element.assetId) }
+      : element));
+  }
+
+  private static async hydrateAssetPages(pages: Page[]): Promise<Page[]> {
+    return Promise.all(pages.map(async page => ({
+      ...page,
+      elements: await this.hydrateAssetElements(page.elements),
+    })));
+  }
+
   static convertElementsToTemplate(pages: Page[], template: Template, sharedElements: SimpleElement[] = [], pageSettings?: PageSettings) {
     return {
       id: template.id,
@@ -203,6 +228,7 @@ export class ExportService {
       case 'image':
         return {
           ...base,
+          assetId: element.assetId ?? null,
           src: element.content || '',
           fitMode: element.fitMode || 'contain',
           focalX: element.focalX ?? 50,
@@ -540,13 +566,16 @@ export class ExportService {
   ): Promise<void> {
     onProgress?.(`Preparing ${format.toUpperCase()} export…`);
 
+    const hydratedPages = await this.hydrateAssetPages(pages);
+    const hydratedSharedElements = await this.hydrateAssetElements(sharedElements);
+
     const payload = {
       id: template.id,
       name: template.name,
       category: template.category,
       description: template.description,
-      pages: pages.map(p => ({ id: p.id, elements: p.elements })),
-      sharedElements,
+      pages: hydratedPages.map(p => ({ id: p.id, elements: p.elements })),
+      sharedElements: hydratedSharedElements,
       pageSettings: pageSettings
         ? {
             width: pageSettings.width,
@@ -619,13 +648,15 @@ export class ExportService {
     sharedElements: SimpleElement[] = [],
     pageSettings?: PageSettings,
   ): Promise<void> {
+    const hydratedPages = await this.hydrateAssetPages(pages);
+    const hydratedSharedElements = await this.hydrateAssetElements(sharedElements);
     const payload = {
       id: template.id,
       name: template.name,
       category: template.category,
       description: template.description,
-      pages: pages.map(p => ({ id: p.id, elements: p.elements })),
-      sharedElements,
+      pages: hydratedPages.map(p => ({ id: p.id, elements: p.elements })),
+      sharedElements: hydratedSharedElements,
       pageSettings: pageSettings
         ? {
             width: pageSettings.width,
@@ -704,13 +735,16 @@ export class ExportService {
   ): Promise<Blob> {
     onProgress?.('Connecting to PDF service…');
 
+    const hydratedPages = await this.hydrateAssetPages(pages);
+    const hydratedSharedElements = await this.hydrateAssetElements(sharedElements);
+
     const payload = {
       id: template.id,
       name: template.name,
       category: template.category,
       description: template.description,
-      pages: pages.map(p => ({ id: p.id, elements: p.elements })),
-      sharedElements,
+      pages: hydratedPages.map(p => ({ id: p.id, elements: p.elements })),
+      sharedElements: hydratedSharedElements,
       pageSettings: pageSettings
         ? {
             width: pageSettings.width,

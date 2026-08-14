@@ -123,6 +123,7 @@ export interface SimpleElement {
   numberCurrency?: string;
   numberLocale?: string;
   // Image
+  assetId?: string;
   fitMode?: 'contain' | 'cover' | 'fill' | 'none';
   cropX?: number;
   cropY?: number;

@@ -88,8 +88,46 @@ public sealed class ExcelWorkbookImporter
         try { if (ws.AutoFilter is { IsEnabled: true } af) sheet.AutoFilterRange = af.Range.RangeAddress.ToStringRelative(); } catch { }
         try { if (ws.IsProtected) sheet.Protection = new ProtectionDto { Protected = true }; } catch { }
         sheet.PageSetup = ReadPageSetup(ws);
+        ReadImages(ws, sheet);
 
         return sheet;
+    }
+
+    private static void ReadImages(IXLWorksheet ws, SheetDto sheet)
+    {
+        foreach (var picture in ws.Pictures)
+        {
+            try
+            {
+                using var content = new MemoryStream();
+                if (picture.ImageStream.CanSeek)
+                    picture.ImageStream.Position = 0;
+                picture.ImageStream.CopyTo(content);
+                var contentType = picture.Format switch
+                {
+                    ClosedXML.Excel.Drawings.XLPictureFormat.Jpeg => "image/jpeg",
+                    ClosedXML.Excel.Drawings.XLPictureFormat.Png => "image/png",
+                    _ => null,
+                };
+                if (contentType is null)
+                    continue;
+                sheet.Images.Add(new SpreadsheetImageDto
+                {
+                    Id = Guid.NewGuid().ToString("n"),
+                    FileName = picture.Name,
+                    ContentType = contentType,
+                    Data = $"data:{contentType};base64,{Convert.ToBase64String(content.ToArray())}",
+                    Row = Math.Max(0, picture.TopLeftCell.Address.RowNumber - 1),
+                    Col = Math.Max(0, picture.TopLeftCell.Address.ColumnNumber - 1),
+                    Width = picture.Width,
+                    Height = picture.Height,
+                });
+            }
+            catch
+            {
+                // A malformed drawing must not prevent the remaining workbook from importing.
+            }
+        }
     }
 
     private static PageSetupDto? ReadPageSetup(IXLWorksheet ws)

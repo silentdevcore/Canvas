@@ -80,8 +80,28 @@ public sealed class ExcelWorkbookExporter
         ApplyPageSetup(ws, sheet.PageSetup);
         foreach (var dv in sheet.DataValidations) ApplyDataValidation(ws, dv);
         foreach (var cf in sheet.ConditionalFormats) ApplyConditionalFormat(ws, cf);
+        foreach (var image in sheet.Images) ApplyImage(ws, image);
         if (sheet.Protection is { Protected: true } p)
             try { if (p.Password is { Length: > 0 } pw) ws.Protect(pw); else ws.Protect(); } catch { }
+    }
+
+    private static void ApplyImage(IXLWorksheet ws, SpreadsheetImageDto image)
+    {
+        if (string.IsNullOrWhiteSpace(image.Data) || !image.Data.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
+            return;
+        try
+        {
+            var separator = image.Data.IndexOf(',');
+            if (separator < 0) return;
+            using var content = new MemoryStream(Convert.FromBase64String(image.Data[(separator + 1)..]));
+            var picture = ws.AddPicture(content, image.FileName ?? $"Image-{image.Id}")
+                .MoveTo(ws.Cell(image.Row + 1, image.Col + 1));
+            picture.WithSize(Math.Max(1, image.Width), Math.Max(1, image.Height));
+        }
+        catch
+        {
+            // Invalid transient image data is ignored; workbook data remains exportable.
+        }
     }
 
     private static void ApplyPageSetup(IXLWorksheet ws, PageSetupDto? ps)

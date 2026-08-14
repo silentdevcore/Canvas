@@ -1178,6 +1178,8 @@
     "image": {
       "dropHere": "أسقط الصورة هنا أو",
       "browse": "استعراض",
+      "uploaded": "تم تخزين الصورة بأمان",
+      "uploadFailed": "فشل تحميل الصورة",
       "sourceUrl": "رابط المصدر",
       "fitMode": "وضع الملاءمة",
       "fitContain": "احتواء",

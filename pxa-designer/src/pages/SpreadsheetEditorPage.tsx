@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   FiBold, FiItalic, FiAlignLeft, FiAlignCenter, FiAlignRight,
   FiRotateCcw, FiRotateCw, FiUpload, FiDownload, FiPlus, FiX,
+  FiImage,
 } from 'react-icons/fi';
 import { SpreadsheetGrid, colName } from '../spreadsheet/SpreadsheetGrid';
 import { useSpreadsheetStore } from '../spreadsheet/store';
@@ -10,6 +11,7 @@ import { SpreadsheetService, type ValidationResult } from '../services/Spreadshe
 import { workbookToWire, toA1, toA1Range } from '../spreadsheet/types';
 import { sheetToCsv, csvToSheet, workbookToJson, jsonToWorkbook, downloadText } from '../spreadsheet/io';
 import { notify } from '@/notifications/toast';
+import { uploadDesignerImage } from '@/services/designerAssetApi';
 import '../styles/spreadsheet.css';
 
 const NUMBER_FORMAT_DEFS: { key: string; value: string | undefined }[] = [
@@ -60,10 +62,13 @@ const SpreadsheetEditorPage: React.FC = () => {
   const removeConditionalFormat = useSpreadsheetStore((s) => s.removeConditionalFormat);
   const addDataValidation = useSpreadsheetStore((s) => s.addDataValidation);
   const removeDataValidation = useSpreadsheetStore((s) => s.removeDataValidation);
+  const addImage = useSpreadsheetStore((s) => s.addImage);
+  const removeImage = useSpreadsheetStore((s) => s.removeImage);
   const undo = useSpreadsheetStore((s) => s.undo);
   const redo = useSpreadsheetStore((s) => s.redo);
 
   const fileInput = useRef<HTMLInputElement>(null);
+  const imageInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [exportMenu, setExportMenu] = useState(false);
   const [cellMenu, setCellMenu] = useState(false);
@@ -89,6 +94,33 @@ const SpreadsheetEditorPage: React.FC = () => {
     setEditing(null);
   };
 
+  const onImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setBusy(t('editor.uploadingImage'));
+    try {
+      const asset = await uploadDesignerImage(file);
+      addImage({
+        id: crypto.randomUUID(),
+        assetId: asset.id,
+        fileName: asset.fileName ?? file.name,
+        contentType: asset.contentType,
+        contentUrl: asset.contentUrl,
+        row,
+        col,
+        width: Math.min(asset.width ?? 160, 320),
+        height: Math.min(asset.height ?? 90, 180),
+        altText: asset.fileName ?? file.name,
+      });
+      notify.success(t('editor.imageStored'));
+    } catch (error) {
+      notify.error(error instanceof Error ? error.message : t('editor.imageUploadFailed'));
+    } finally {
+      setBusy(null);
+      event.target.value = '';
+    }
+  };
+
   const safeName = (name || 'workbook').replace(/[\\/:*?"<>|]/g, '_');
 
   const onImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,7 +135,7 @@ const SpreadsheetEditorPage: React.FC = () => {
         const sheet = csvToSheet(await file.text(), 'Sheet1');
         loadWorkbook(workbookToWire(file.name.replace(/\.csv$/i, ''), [sheet]));
       } else if (ext === 'json') {
-        loadWorkbook(jsonToWorkbook(await file.text()));
+        loadWorkbook(await SpreadsheetService.storeEmbeddedImages(jsonToWorkbook(await file.text())));
       } else {
         notify.warning(t('editor.unsupportedFile'));
       }
@@ -299,6 +331,12 @@ const SpreadsheetEditorPage: React.FC = () => {
         <span className="ss-spacer" />
         {busy && <span className="ss-busy">{busy}</span>}
         <button className="ss-tool ss-tool--text" title={t('editor.validateTitle')} onClick={validate}>{t('editor.validate')}</button>
+        <button className="ss-tool ss-tool--text" title={t('editor.insertImageTitle')} onClick={() => imageInput.current?.click()}><FiImage /> {t('editor.insertImage')}</button>
+        {sheet?.images.some(image => image.row === row && image.col === col) && (
+          <button className="ss-tool ss-tool--text" title={t('editor.removeImageTitle')} onClick={() => {
+            sheet.images.filter(image => image.row === row && image.col === col).forEach(image => removeImage(image.id));
+          }}><FiX /> {t('editor.removeImage')}</button>
+        )}
         <button className="ss-tool ss-tool--text" onClick={() => fileInput.current?.click()}><FiUpload /> {t('editor.import')}</button>
         <div className="ss-export">
           <button className="ss-tool ss-tool--text ss-tool--primary" onClick={() => setExportMenu((v) => !v)}><FiDownload /> {t('editor.export')}</button>
@@ -311,6 +349,7 @@ const SpreadsheetEditorPage: React.FC = () => {
           )}
         </div>
         <input ref={fileInput} type="file" accept=".xlsx,.csv,.json" hidden onChange={onImport} />
+        <input ref={imageInput} type="file" accept="image/png,image/jpeg" hidden onChange={onImageUpload} />
       </div>
 
       {validation && (

@@ -1178,6 +1178,8 @@
     "image": {
       "dropHere": "Drop image here or",
       "browse": "Browse",
+      "uploaded": "Image stored securely",
+      "uploadFailed": "Image upload failed",
       "sourceUrl": "Source URL",
       "fitMode": "Fit Mode",
       "fitContain": "Contain",

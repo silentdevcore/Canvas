@@ -163,6 +163,31 @@ public sealed class PxaStoredObjectService(
         }
     }
 
+    public Task<PxaStoredObject?> GetMetadataAsync(
+        Guid id,
+        Guid organizationId,
+        string purpose,
+        CancellationToken cancellationToken) =>
+        dbContext.StoredObjects.AsNoTracking().SingleOrDefaultAsync(
+            value => value.Id == id &&
+                     value.OrganizationId == organizationId &&
+                     value.Purpose == purpose &&
+                     value.Status == PxaStoredObjectStatus.Available,
+            cancellationToken);
+
+    public async Task<(PxaStoredObject Metadata, Stream Content)?> OpenAsync(
+        Guid id,
+        Guid organizationId,
+        string purpose,
+        CancellationToken cancellationToken)
+    {
+        var metadata = await GetMetadataAsync(id, organizationId, purpose, cancellationToken);
+        if (metadata is null)
+            return null;
+        var content = await storage.OpenReadAsync(metadata.ObjectKey, cancellationToken);
+        return (metadata, content);
+    }
+
     public async Task DeleteAsync(Guid id, Guid organizationId, CancellationToken cancellationToken)
     {
         using var activity = PxaTelemetry.StartStorageOperation("delete");

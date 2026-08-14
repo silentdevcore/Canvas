@@ -60,6 +60,18 @@ export const SpreadsheetGrid: React.FC = () => {
     const cr = merged ? merged.or : row;
     const cc = merged ? merged.oc : col;   // a merged cell renders its origin's content
     const cell = sheet.cells[cellKey(cr, cc)];
+    const image = sheet.images.find(candidate => candidate.row === cr && candidate.col === cc);
+    if (image) {
+      const source = image.contentUrl ?? image.data;
+      if (source) {
+        return {
+          kind: GridCellKind.Image,
+          data: [source],
+          displayData: [image.altText ?? image.fileName ?? 'Image'],
+          allowOverlay: false,
+        };
+      }
+    }
     const value = computed(cr, cc);
     const display = formatCellValue(value, cell?.numberFormat); // number-format-aware display
     // On edit the overlay shows the formula source (or the raw value); the grid shows the formatted result.

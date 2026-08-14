@@ -41,6 +41,19 @@ export interface ConditionalFormat { range: string; type: string; operator?: str
 export interface DataValidation { range: string; type: string; operator?: string; value1?: string; value2?: string; listSource?: string; }
 
 export interface DefinedName { name: string; refersTo: string; }
+export interface SpreadsheetImage {
+  id: string;
+  assetId?: string;
+  fileName?: string;
+  contentType?: string;
+  data?: string;
+  contentUrl?: string;
+  row: number;
+  col: number;
+  width: number;
+  height: number;
+  altText?: string;
+}
 
 /** Wire sheet (sparse cells array) — what the backend import/export uses. */
 export interface SheetWire {
@@ -59,6 +72,7 @@ export interface SheetWire {
   protection?: Protection;
   conditionalFormats?: ConditionalFormat[];
   dataValidations?: DataValidation[];
+  images?: SpreadsheetImage[];
 }
 
 export interface Workbook {
@@ -115,12 +129,13 @@ export interface SheetState {
   protection?: Protection;
   conditionalFormats?: ConditionalFormat[];
   dataValidations?: DataValidation[];
+  images: SpreadsheetImage[];
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 export function emptySheet(name = 'Sheet1'): SheetState {
-  return { id: uid(), name, rowCount: 100, colCount: 26, colWidths: {}, cells: {}, merges: [], frozenRows: 0, frozenCols: 0 };
+  return { id: uid(), name, rowCount: 100, colCount: 26, colWidths: {}, cells: {}, merges: [], frozenRows: 0, frozenCols: 0, images: [] };
 }
 
 export function sheetFromWire(w: SheetWire): SheetState {
@@ -145,6 +160,7 @@ export function sheetFromWire(w: SheetWire): SheetState {
     protection: w.protection,
     conditionalFormats: w.conditionalFormats,
     dataValidations: w.dataValidations,
+    images: w.images ?? [],
   };
 }
 
@@ -172,6 +188,7 @@ export function sheetToWire(s: SheetState): SheetWire {
     protection: s.protection,
     conditionalFormats: s.conditionalFormats,
     dataValidations: s.dataValidations,
+    images: s.images,
   };
 }
 
