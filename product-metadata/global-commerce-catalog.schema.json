@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://powerdoxautomation.com/schemas/global-commerce-catalog.schema.json",
+  "title": "PXA global commerce catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "reviewedAt", "status", "productionApproved",
+    "publicPricingEnabled", "consumerCheckoutEnabled", "merchantOfRecord",
+    "launchRecommendation",
+    "operationMetric", "plans", "priceBooks", "marketGroups",
+    "restrictionPolicy", "approvalOwners"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "reviewedAt": { "type": "string", "format": "date" },
+    "status": { "enum": ["proposed", "in-review", "approved", "retired"] },
+    "productionApproved": { "type": "boolean" },
+    "publicPricingEnabled": { "type": "boolean" },
+    "consumerCheckoutEnabled": { "type": "boolean" },
+    "merchantOfRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "recommendedCandidate", "candidates"],
+      "properties": {
+        "status": { "enum": ["pending-selection", "contract-review", "approved"] },
+        "recommendedCandidate": { "type": "string", "minLength": 2 },
+        "candidates": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 2 } }
+      }
+    },
+    "launchRecommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "salesMode", "firstOperatorCountry", "firstSalesRegion", "automaticTrialConversion"],
+      "properties": {
+        "status": { "enum": ["proposed", "approved"] },
+        "salesMode": { "enum": ["b2b-first", "b2b-and-b2c"] },
+        "firstOperatorCountry": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "firstSalesRegion": { "type": "string", "minLength": 2 },
+        "automaticTrialConversion": { "type": "boolean" }
+      }
+    },
+    "operationMetric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "standardPageLimit", "failedPlatformOperationsBillable", "retryIdempotencyRequired", "advancedMultipliersApproved"],
+      "properties": {
+        "status": { "enum": ["proposed", "approved"] },
+        "standardPageLimit": { "type": "integer", "minimum": 1 },
+        "failedPlatformOperationsBillable": { "type": "boolean" },
+        "retryIdempotencyRequired": { "type": "boolean" },
+        "advancedMultipliersApproved": { "type": "boolean" }
+      }
+    },
+    "plans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "edition", "accountType", "visibility", "includedSeats", "includedMonthlyOperations"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "edition": { "enum": ["Free", "Trial", "Premium", "Enterprise"] },
+          "accountType": { "enum": ["IndividualDeveloper", "Company"] },
+          "visibility": { "enum": ["proposed-public", "public", "internal-qualification"] },
+          "includedSeats": { "type": ["integer", "null"], "minimum": 1 },
+          "includedMonthlyOperations": { "type": ["integer", "null"], "minimum": 0 },
+          "trialDays": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "priceBooks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "currency", "status", "effectiveAt", "prices"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+          "status": { "enum": ["proposed", "approved", "retired"] },
+          "effectiveAt": { "type": ["string", "null"], "format": "date-time" },
+          "prices": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["planId"],
+              "properties": {
+                "planId": { "type": "string" },
+                "monthlyAmountMinor": { "type": "integer", "minimum": 0 },
+                "annualAmountMinor": { "type": "integer", "minimum": 0 },
+                "annualQualificationFloorMinor": { "type": "integer", "minimum": 0 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "marketGroups": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "countryCodes", "selfServiceStatus", "b2bStatus", "b2cStatus"],
+        "properties": {
+          "id": { "type": "string" },
+          "countryCodes": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[A-Z]{2}$" } },
+          "selfServiceStatus": { "enum": ["review-required", "approved", "blocked"] },
+          "b2bStatus": { "enum": ["review-required", "approved", "blocked"] },
+          "b2cStatus": { "enum": ["review-required", "approved", "blocked"] }
+        }
+      }
+    },
+    "restrictionPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "countryAllowlistRequired", "sanctionsScreeningRequired", "exportControlReviewRequired"],
+      "properties": {
+        "status": { "enum": ["provider-and-legal-review-required", "approved"] },
+        "countryAllowlistRequired": { "type": "boolean" },
+        "sanctionsScreeningRequired": { "type": "boolean" },
+        "exportControlReviewRequired": { "type": "boolean" }
+      }
+    },
+    "approvalOwners": { "type": "array", "minItems": 4, "uniqueItems": true, "items": { "enum": ["Product", "Finance", "Tax", "Legal"] } }
+  }
+}

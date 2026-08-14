@@ -31,13 +31,13 @@ public sealed class PxaLegalDocumentService(PxaDbContext dbContext)
             where document.Type == type &&
                   version.Audience == audience
             orderby version.Locale == normalizedLocale descending,
-                version.Locale == "de" descending,
+                version.Locale == "en" descending,
                 version.EffectiveAt descending,
                 version.PublishedAt descending
             select version;
 
         return await query.FirstOrDefaultAsync(value =>
-                value.Locale == normalizedLocale || value.Locale == "de",
+                value.Locale == normalizedLocale || value.Locale == "en",
             cancellationToken);
     }
 
@@ -124,8 +124,8 @@ public sealed class PxaLegalDocumentService(PxaDbContext dbContext)
     public static string NormalizeLocale(string? locale)
     {
         if (string.IsNullOrWhiteSpace(locale))
-            return "de";
+            return "en";
         var normalized = locale.Trim().ToLowerInvariant().Split('-', '_')[0];
-        return normalized is "de" or "en" ? normalized : "de";
+        return normalized is "de" or "en" ? normalized : "en";
     }
 }

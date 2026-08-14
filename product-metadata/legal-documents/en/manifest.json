@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "authoritativeLocale": "en",
+  "governingLaw": "Switzerland",
+  "operatorProfile": {
+    "legalName": "[PXA LEGAL ENTITY NAME]",
+    "legalForm": "[LEGAL FORM]",
+    "registeredAddress": "[STREET, POSTCODE, CITY, CANTON, SWITZERLAND]",
+    "commercialRegister": "[COMMERCIAL REGISTER CANTON AND NUMBER]",
+    "uidVatNumber": "[SWISS UID / VAT NUMBER]",
+    "authorizedRepresentative": "[AUTHORIZED REPRESENTATIVE]",
+    "legalEmail": "[LEGAL EMAIL ADDRESS]",
+    "privacyEmail": "[PRIVACY EMAIL ADDRESS]",
+    "supportEmail": "[SUPPORT EMAIL ADDRESS]"
+  },
+  "documents": [
+    { "key": "terms", "type": "TermsAndConditions", "displayName": "Terms and Conditions", "file": "terms.md", "audience": "All", "version": "1.0", "requiresAcceptance": true },
+    { "key": "privacy", "type": "PrivacyNotice", "displayName": "Privacy Notice", "file": "privacy.md", "audience": "All", "version": "1.0", "requiresAcceptance": false },
+    { "key": "cookie-storage", "type": "CookieAndStoragePolicy", "displayName": "Cookie and Storage Policy", "file": "cookie-storage.md", "audience": "All", "version": "1.0", "requiresAcceptance": false },
+    { "key": "imprint", "type": "Imprint", "displayName": "Legal Notice and Imprint", "file": "imprint.md", "audience": "All", "version": "1.0", "requiresAcceptance": false },
+    { "key": "withdrawal", "type": "ConsumerWithdrawal", "displayName": "Consumer Withdrawal Information", "file": "withdrawal.md", "audience": "Consumer", "version": "1.0", "requiresAcceptance": false },
+    { "key": "dpa", "type": "DataProcessingAgreement", "displayName": "Data Processing Agreement", "file": "dpa.md", "audience": "Business", "version": "1.0", "requiresAcceptance": true },
+    { "key": "license", "type": "LicenseAgreement", "displayName": "Software and Service License Agreement", "file": "license.md", "audience": "All", "version": "1.0", "requiresAcceptance": true }
+  ]
+}

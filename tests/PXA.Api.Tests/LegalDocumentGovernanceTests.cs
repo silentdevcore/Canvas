@@ -129,6 +129,79 @@ public sealed class LegalDocumentGovernanceTests
     }
 
     [Fact]
+    public async Task Public_version_history_exposes_only_effective_public_versions()
+    {
+        await using var context = CreateContext();
+        var document = NewDocument(Guid.NewGuid());
+        var retired = NewVersion(
+            document.Id,
+            "1.0",
+            LegalDocumentStatus.Retired,
+            DateTimeOffset.UtcNow.AddMonths(-2));
+        retired.RetiredAt = DateTimeOffset.UtcNow.AddMonths(-1);
+        retired.ChangeSummary = "Initial published terms.";
+        var current = NewVersion(
+            document.Id,
+            "1.1",
+            LegalDocumentStatus.Published,
+            DateTimeOffset.UtcNow.AddDays(-1));
+        current.ChangeSummary = "Clarified account responsibilities.";
+        var future = NewVersion(
+            document.Id,
+            "1.2",
+            LegalDocumentStatus.Scheduled,
+            DateTimeOffset.UtcNow.AddDays(1));
+        var draft = NewVersion(document.Id, "2.0", LegalDocumentStatus.Draft, null);
+        context.AddRange(document, retired, current, future, draft);
+        await context.SaveChangesAsync();
+        var controller = new LegalDocumentsController(
+            context,
+            new PxaLegalDocumentService(context))
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
+        };
+
+        var response = await controller.GetVersions(
+            "terms", "de", LegalDocumentAudience.All, CancellationToken.None);
+
+        var body = Assert.IsType<PublicLegalDocumentHistoryResponse>(
+            Assert.IsType<OkObjectResult>(response.Result).Value);
+        Assert.Equal("1.1", body.CurrentVersion);
+        Assert.Equal(["1.1", "1.0"], body.Versions.Select(value => value.Version));
+        Assert.Equal("Clarified account responsibilities.", body.Versions[0].ChangeSummary);
+        Assert.Equal(retired.RetiredAt, body.Versions[1].RetiredAt);
+        Assert.DoesNotContain(body.Versions, value => value.Version is "1.2" or "2.0");
+    }
+
+    [Fact]
+    public async Task Public_version_endpoint_keeps_retired_public_content_readable()
+    {
+        await using var context = CreateContext();
+        var document = NewDocument(Guid.NewGuid());
+        var retired = NewVersion(
+            document.Id,
+            "1.0",
+            LegalDocumentStatus.Retired,
+            DateTimeOffset.UtcNow.AddMonths(-2));
+        retired.RetiredAt = DateTimeOffset.UtcNow.AddMonths(-1);
+        context.AddRange(document, retired);
+        await context.SaveChangesAsync();
+        var controller = new LegalDocumentsController(
+            context,
+            new PxaLegalDocumentService(context))
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
+        };
+
+        var response = await controller.GetVersion(
+            "terms", "1.0", "de", LegalDocumentAudience.All, CancellationToken.None);
+
+        var body = Assert.IsType<PublicLegalDocumentResponse>(
+            Assert.IsType<OkObjectResult>(response.Result).Value);
+        Assert.Equal("1.0", body.Version);
+    }
+
+    [Fact]
     public async Task Registration_policy_uses_configured_fallback_outside_strict_mode()
     {
         await using var context = CreateContext();
@@ -257,6 +330,36 @@ public sealed class LegalDocumentGovernanceTests
     }
 
     [Fact]
+    public async Task Paid_checkout_gate_combines_commerce_country_and_legal_readiness_fail_closed()
+    {
+        await using var context = CreateContext();
+        var commerce = new PxaCommerceReadinessCatalog();
+        var consumerLegal = new PxaConsumerCheckoutLegalGate(
+            new PxaLegalDocumentService(context),
+            Options.Create(new PxaConsumerCheckoutOptions { Enabled = true }));
+        var gate = new PxaPaidCheckoutReadinessGate(commerce, consumerLegal);
+
+        var business = await gate.EvaluateAsync(
+            "de", PxaCheckoutCustomerType.Business, "de", DateTimeOffset.UtcNow, CancellationToken.None);
+        var consumer = await gate.EvaluateAsync(
+            "de", PxaCheckoutCustomerType.Consumer, "de", DateTimeOffset.UtcNow, CancellationToken.None);
+        var unsupported = await gate.EvaluateAsync(
+            "zz", PxaCheckoutCustomerType.Business, "de", DateTimeOffset.UtcNow, CancellationToken.None);
+
+        Assert.False(business.Available);
+        Assert.Equal("catalog-not-ready", business.Reason);
+        Assert.Equal("eu-27", business.Market.Region);
+        Assert.Equal("EUR", business.Market.Currency);
+        Assert.Null(business.ConsumerLegal);
+        Assert.False(consumer.Available);
+        Assert.NotNull(consumer.ConsumerLegal);
+        Assert.False(consumer.ConsumerLegal!.LegalDocumentsReady);
+        Assert.False(unsupported.Market.Checks["country"]);
+        await Assert.ThrowsAsync<PxaPaidCheckoutNotReadyException>(() => gate.RequireAsync(
+            "de", PxaCheckoutCustomerType.Business, "de", DateTimeOffset.UtcNow, CancellationToken.None));
+    }
+
+    [Fact]
     public void Legal_acceptance_evidence_does_not_store_network_addresses()
     {
         var propertyNames = typeof(LegalAcceptanceEvent)
@@ -312,6 +415,15 @@ public sealed class LegalDocumentGovernanceTests
         Assert.Single(await context.LegalPublicationApprovals.ToListAsync());
         Assert.Contains(await context.AuditEvents.Select(value => value.Action).ToListAsync(),
             value => value == "legal.version.published");
+        var notification = await context.DesignerNotifications.SingleAsync();
+        Assert.Equal(version.Id, notification.Id);
+        Assert.Equal(DesignerNotificationCategory.Legal, notification.Category);
+        Assert.Equal(DesignerNotificationSeverity.Warning, notification.Severity);
+        Assert.Equal("/legal-updates?document=terms", notification.ActionUrl);
+        Assert.Contains("Acceptance is required", notification.Message, StringComparison.Ordinal);
+        Assert.Equal(
+            (await context.LegalDocumentVersions.SingleAsync(value => value.Id == version.Id)).EffectiveAt,
+            notification.CreatedAt);
     }
 
     [Fact]
@@ -383,6 +495,39 @@ public sealed class LegalDocumentGovernanceTests
             LegalDocumentStatus.Published.ToString(),
             Assert.IsType<AdminLegalVersionResponse>(
                 Assert.IsType<OkObjectResult>(publication.Result).Value).Status);
+    }
+
+    [Fact]
+    public async Task Retiring_a_scheduled_legal_version_removes_its_pending_notification()
+    {
+        await using var context = CreateContext();
+        var authorId = Guid.NewGuid();
+        var reviewerId = Guid.NewGuid();
+        var document = NewDocument(authorId);
+        var version = NewVersion(document.Id, "future", LegalDocumentStatus.Approved, null);
+        version.CreatedByUserId = authorId;
+        version.ApprovedByUserId = reviewerId;
+        context.AddRange(document, version);
+        await context.SaveChangesAsync();
+        var reviewer = CreateAdminController(context, reviewerId);
+
+        var published = await reviewer.Publish(
+            version.Id,
+            new PublishLegalVersionRequest(DateTimeOffset.UtcNow.AddDays(7)),
+            CancellationToken.None);
+        Assert.Equal(
+            LegalDocumentStatus.Scheduled.ToString(),
+            Assert.IsType<AdminLegalVersionResponse>(
+                Assert.IsType<OkObjectResult>(published.Result).Value).Status);
+        Assert.True(await context.DesignerNotifications.AnyAsync(value => value.Id == version.Id));
+
+        var retired = await reviewer.Retire(version.Id, CancellationToken.None);
+
+        Assert.Equal(
+            LegalDocumentStatus.Retired.ToString(),
+            Assert.IsType<AdminLegalVersionResponse>(
+                Assert.IsType<OkObjectResult>(retired.Result).Value).Status);
+        Assert.False(await context.DesignerNotifications.AnyAsync(value => value.Id == version.Id));
     }
 
     [Fact]
@@ -545,8 +690,39 @@ public sealed class LegalDocumentGovernanceTests
         Assert.Equal(expected, actual);
     }
 
+    [Fact]
+    public async Task English_Swiss_candidates_import_as_idempotent_drafts_only()
+    {
+        await using var context = CreateContext();
+        var controller = CreateAdminController(context, Guid.NewGuid());
+
+        var firstResult = await controller.ImportCandidates(CancellationToken.None);
+        var first = Assert.IsType<AdminLegalCandidateImportResponse>(
+            Assert.IsType<OkObjectResult>(firstResult.Result).Value);
+
+        Assert.Equal(7, first.ImportedDocuments);
+        Assert.Equal(7, first.ImportedVersions);
+        Assert.Equal(0, first.SkippedVersions);
+        Assert.Equal(7, await context.LegalDocuments.CountAsync());
+        var versions = await context.LegalDocumentVersions.ToListAsync();
+        Assert.All(versions, version =>
+        {
+            Assert.Equal("en", version.Locale);
+            Assert.True(version.IsAuthoritative);
+            Assert.Equal(LegalDocumentStatus.Draft, version.Status);
+            Assert.Null(version.PublishedAt);
+        });
+
+        var secondResult = await controller.ImportCandidates(CancellationToken.None);
+        var second = Assert.IsType<AdminLegalCandidateImportResponse>(
+            Assert.IsType<OkObjectResult>(secondResult.Result).Value);
+        Assert.Equal(0, second.ImportedDocuments);
+        Assert.Equal(0, second.ImportedVersions);
+        Assert.Equal(7, second.SkippedVersions);
+    }
+
     private static AdminLegalDocumentsController CreateAdminController(PxaDbContext context, Guid userId) =>
-        new(context, new StubTenantContext(userId))
+        new(context, new StubTenantContext(userId), new PxaLegalContentCatalog())
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
         };

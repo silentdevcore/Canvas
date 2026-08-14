@@ -97,7 +97,8 @@ public class TemplatesController : ControllerBase
     [ProducesResponseType(400)]
     public async Task<IActionResult> RenderTemplateAsync(
         [FromBody] TemplateRenderRequest request,
-        CancellationToken cancellationToken)
+        [FromQuery] PxaJobRetentionMode retentionMode = PxaJobRetentionMode.Transient,
+        CancellationToken cancellationToken = default)
     {
         if (request == null)
         {
@@ -110,12 +111,15 @@ public class TemplatesController : ControllerBase
                 request.TemplateId,
                 request.Payload,
                 request.TemplateVersion,
-                cancellationToken);
+                cancellationToken,
+                retentionMode);
             var statusUrl = $"/api/pxa/v1/jobs/{job.Id}";
             return Accepted(statusUrl, new RenderJobResponse
             {
                 JobId = job.Id.ToString(),
                 Status = job.Status.ToString(),
+                RetentionMode = job.RetentionMode.ToString(),
+                ContentExpiresAt = job.ExpiresAt,
                 CreatedAt = job.CreatedAt.UtcDateTime,
             });
         }
@@ -718,5 +722,7 @@ public class RenderJobResponse
     public required string JobId { get; set; }
     public required string Status { get; set; }
     public DateTime CreatedAt { get; set; }
+    public required string RetentionMode { get; set; }
+    public DateTimeOffset ContentExpiresAt { get; set; }
     public string? DownloadUrl { get; set; }
 }

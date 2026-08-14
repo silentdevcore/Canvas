@@ -31,6 +31,7 @@ import { dashboardPage } from './pages/dashboard';
 import { bindDeveloperAccessEvents, developerAccessPage } from './pages/developerAccess';
 import { bindLicensesEvents, licensesPage } from './pages/licenses';
 import { bindLegalReviewEvents, legalReviewPage } from './pages/legalReview';
+import { legalUpdatesPage } from './pages/legalUpdates';
 import { bindOrganizationEvents, organizationPage } from './pages/organization';
 import { bindProfileEvents, profilePage } from './pages/profile';
 import { bindSecurityEvents, securityPage } from './pages/security';
@@ -62,6 +63,12 @@ const portalPages: Record<string, PortalPage> = {
   '/licenses': { render: licensesPage, bind: bindLicensesEvents, title: 'Licenses', permission: accountPermissions.licensesRead },
   '/developer-access': { render: developerAccessPage, bind: bindDeveloperAccessEvents, title: 'Developer access', permission: accountPermissions.serviceAccountsRead },
   '/security': { render: securityPage, bind: bindSecurityEvents, title: 'Security', permission: accountPermissions.sessionsManage },
+  '/legal-updates': {
+    render: () => state.legalProfile
+      ? legalUpdatesPage(state.legalProfile)
+      : '<p role="alert">Legal publication status is temporarily unavailable.</p>',
+    title: 'Legal updates',
+  },
   '/support': { render: supportPage, title: 'Support' },
   // Not in the primary nav (reached via a link on /support) but still a
   // full portal route: shell-rendered when authenticated, login-redirected

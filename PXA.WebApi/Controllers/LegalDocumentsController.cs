@@ -16,7 +16,7 @@ public sealed class LegalDocumentsController(
 {
     [HttpGet("documents")]
     public async Task<ActionResult<LegalDocumentCatalogResponse>> GetDocuments(
-        [FromQuery] string locale = "de",
+        [FromQuery] string locale = "en",
         [FromQuery] LegalDocumentAudience audience = LegalDocumentAudience.All,
         CancellationToken cancellationToken = default)
     {
@@ -27,7 +27,7 @@ public sealed class LegalDocumentsController(
 
     [HttpGet("snapshot")]
     public async Task<ActionResult<LegalDocumentSnapshotResponse>> GetSnapshot(
-        [FromQuery] string locale = "de",
+        [FromQuery] string locale = "en",
         [FromQuery] LegalDocumentAudience audience = LegalDocumentAudience.All,
         CancellationToken cancellationToken = default)
     {
@@ -47,7 +47,7 @@ public sealed class LegalDocumentsController(
     [HttpGet("documents/{type}/current")]
     public async Task<ActionResult<PublicLegalDocumentResponse>> GetCurrent(
         string type,
-        [FromQuery] string locale = "de",
+        [FromQuery] string locale = "en",
         [FromQuery] LegalDocumentAudience audience = LegalDocumentAudience.All,
         CancellationToken cancellationToken = default)
     {
@@ -65,11 +65,63 @@ public sealed class LegalDocumentsController(
         return Ok(ToPublic(document, version));
     }
 
+    [HttpGet("documents/{type}/versions")]
+    public async Task<ActionResult<PublicLegalDocumentHistoryResponse>> GetVersions(
+        string type,
+        [FromQuery] string locale = "en",
+        [FromQuery] LegalDocumentAudience audience = LegalDocumentAudience.All,
+        CancellationToken cancellationToken = default)
+    {
+        if (!TryParseType(type, out var documentType))
+            return NotFound();
+
+        var normalizedLocale = PxaLegalDocumentService.NormalizeLocale(locale);
+        var now = DateTimeOffset.UtcNow;
+        var document = await dbContext.LegalDocuments.AsNoTracking()
+            .SingleOrDefaultAsync(value => value.Type == documentType, cancellationToken);
+        if (document is null)
+            return NotFound();
+
+        var versions = await dbContext.LegalDocumentVersions.AsNoTracking()
+            .Where(value => value.LegalDocumentId == document.Id &&
+                            value.Locale == normalizedLocale &&
+                            value.Audience == audience &&
+                            (value.Status == LegalDocumentStatus.Published ||
+                             value.Status == LegalDocumentStatus.Retired ||
+                             value.Status == LegalDocumentStatus.Scheduled) &&
+                            value.EffectiveAt <= now)
+            .OrderByDescending(value => value.EffectiveAt)
+            .ThenByDescending(value => value.CreatedAt)
+            .Select(value => new PublicLegalDocumentVersionResponse(
+                value.Version,
+                value.Locale,
+                value.Audience.ToString(),
+                value.ContentHash,
+                value.IsAuthoritative,
+                value.RequiresAcceptance,
+                value.EffectiveAt!.Value,
+                value.RetiredAt,
+                value.ChangeSummary))
+            .ToListAsync(cancellationToken);
+        if (versions.Count == 0)
+            return NotFound();
+
+        var current = await legalDocuments.FindCurrentAsync(
+            documentType, normalizedLocale, audience, now, cancellationToken);
+        Response.Headers.CacheControl = "public,max-age=300";
+        return Ok(new PublicLegalDocumentHistoryResponse(
+            document.Type.ToString(),
+            document.Key,
+            document.DisplayName,
+            current?.Version,
+            versions));
+    }
+
     [HttpGet("documents/{type}/versions/{version}")]
     public async Task<ActionResult<PublicLegalDocumentResponse>> GetVersion(
         string type,
         string version,
-        [FromQuery] string locale = "de",
+        [FromQuery] string locale = "en",
         [FromQuery] LegalDocumentAudience audience = LegalDocumentAudience.All,
         CancellationToken cancellationToken = default)
     {
@@ -86,6 +138,7 @@ public sealed class LegalDocumentsController(
                       legalVersion.Locale == normalizedLocale &&
                       legalVersion.Audience == audience &&
                       (legalVersion.Status == LegalDocumentStatus.Published ||
+                       legalVersion.Status == LegalDocumentStatus.Retired ||
                        legalVersion.Status == LegalDocumentStatus.Scheduled) &&
                       legalVersion.EffectiveAt <= now
                 select new { Document = document, Version = legalVersion })
@@ -98,7 +151,7 @@ public sealed class LegalDocumentsController(
 
     [HttpGet("storage-policy")]
     public Task<ActionResult<PublicLegalDocumentResponse>> GetStoragePolicy(
-        [FromQuery] string locale = "de",
+        [FromQuery] string locale = "en",
         CancellationToken cancellationToken = default) =>
         GetCurrent("cookie-storage", locale, LegalDocumentAudience.All, cancellationToken);
 
@@ -180,6 +233,24 @@ public sealed class LegalDocumentsController(
 }
 
 public sealed record LegalDocumentCatalogResponse(IReadOnlyList<PublicLegalDocumentResponse> Documents);
+
+public sealed record PublicLegalDocumentHistoryResponse(
+    string Type,
+    string Key,
+    string DisplayName,
+    string? CurrentVersion,
+    IReadOnlyList<PublicLegalDocumentVersionResponse> Versions);
+
+public sealed record PublicLegalDocumentVersionResponse(
+    string Version,
+    string Locale,
+    string Audience,
+    string ContentHash,
+    bool IsAuthoritative,
+    bool RequiresAcceptance,
+    DateTimeOffset EffectiveAt,
+    DateTimeOffset? RetiredAt,
+    string? ChangeSummary);
 
 public sealed record LegalDocumentSnapshotResponse(
     int SchemaVersion,

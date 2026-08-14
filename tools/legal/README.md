@@ -1,5 +1,24 @@
 # PXA Legal Operations
 
+## English Swiss-law candidate documents
+
+`product-metadata/legal-documents/en/` contains the seven initial authoritative
+English Legal candidates for a Swiss PXA operator serving international markets.
+They preserve mandatory local rights and use controlled placeholders for operator
+details that have not yet been verified.
+
+Validate the catalog and content contract with:
+
+```bash
+node tools/legal/validate-legal-content.mjs
+```
+
+System Administrators with `legal.author` can import the catalog from PXA.Admin.
+Import creates missing documents and Draft versions only. It never overwrites a
+different version, submits, approves, schedules, or publishes Legal content. A
+second authorized user and qualified Swiss counsel must complete review before
+publication.
+
 ## Browser storage inventory
 
 `product-metadata/browser-storage.json` is the reviewed technical inventory for every PXA-owned cookie, Local Storage key, and Session Storage key. Each entry records its applications, owner, purpose, data, lifetime, category, and implementation sources. Optional analytics and marketing storage remain disabled.
@@ -23,6 +42,32 @@ node tools/legal/validate-data-processing-inventory.mjs
 ```
 
 The validator requires coverage of every Legal inventory area and every `PxaDbContext` entity. It also rejects unknown providers, missing source evidence, duplicate entity ownership, and conditional transfers without an explicit review gate.
+
+## Legal launch readiness
+
+`checklists/PXA.Legal-Benchmark-And-Decision-Register.md` records the researched
+market patterns and PXA decision proposals for operator identity, document set,
+retention, consumer checkout, optional tracking, and final publication review.
+It is a decision aid, not approved Legal wording.
+
+Run the development report while preparing Legal content:
+
+```bash
+node tools/legal/validate-legal-launch-readiness.mjs
+```
+
+Development reports known blockers without preventing local work. Production
+validation fails closed until those blockers are resolved:
+
+```bash
+node tools/legal/validate-legal-launch-readiness.mjs --production
+```
+
+The report checks the verified operator identity, processing and retention
+approval, draft Company Legal copy, Imprint placeholders, obsolete EU ODR URLs,
+optional browser storage, global commerce approval, Country Readiness, and
+explicit Consumer-checkout activation. A passing report supports but never
+replaces Legal and company-owner sign-off.
 
 ## Retention governance
 
@@ -61,8 +106,9 @@ document keys, and non-empty published-document collection. It writes
 into the Company deployment. Generated JSON snapshots are deployment artifacts
 and are intentionally ignored by Git.
 
-Generate German and English snapshots separately when both sites or locale
-routes are deployed. A failed export must stop the deployment; do not reuse an
+Generate English snapshots for the authoritative site. Generate localized
+snapshots separately only when a target market requires an approved translation.
+A failed export must stop the deployment; do not reuse an
 unverified file from a build workspace.
 
 For a one-off export, the script also accepts `--api`, `--locale`, `--audience`,

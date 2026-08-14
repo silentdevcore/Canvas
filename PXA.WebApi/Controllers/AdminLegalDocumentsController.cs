@@ -17,7 +17,8 @@ namespace PXA.WebApi.Controllers;
 [Route("api/pxa/v1/admin/legal")]
 public sealed class AdminLegalDocumentsController(
     PxaDbContext dbContext,
-    IPxaTenantContext tenantContext) : ControllerBase
+    IPxaTenantContext tenantContext,
+    PxaLegalContentCatalog legalContentCatalog) : ControllerBase
 {
     [HttpGet("documents")]
     [Authorize(Policy = PxaPermissions.LegalRead)]
@@ -321,6 +322,103 @@ public sealed class AdminLegalDocumentsController(
                 document.CreatedAt, 0));
     }
 
+    [HttpPost("candidates/import")]
+    [Authorize(Policy = PxaPermissions.LegalAuthor)]
+    [PxaValidateAntiforgery]
+    [PxaAuditedMutation("legal.candidates.imported")]
+    public async Task<ActionResult<AdminLegalCandidateImportResponse>> ImportCandidates(
+        CancellationToken cancellationToken)
+    {
+        var actor = RequireActor();
+        if (actor is null)
+            return Forbid();
+
+        var importedDocuments = 0;
+        var importedVersions = 0;
+        var skippedVersions = 0;
+        foreach (var candidate in legalContentCatalog.Current.Documents)
+        {
+            if (!Enum.TryParse<LegalDocumentType>(candidate.Type, true, out var type) ||
+                !Enum.TryParse<LegalDocumentAudience>(candidate.Audience, true, out var audience))
+            {
+                throw new InvalidOperationException(
+                    $"The embedded Legal candidate '{candidate.Key}' has invalid metadata.");
+            }
+
+            var document = await dbContext.LegalDocuments.SingleOrDefaultAsync(value =>
+                value.Key == candidate.Key || value.Type == type, cancellationToken);
+            if (document is not null && (document.Key != candidate.Key || document.Type != type))
+                return ConflictProblem($"The Legal candidate '{candidate.Key}' conflicts with an existing document.");
+            if (document is null)
+            {
+                document = new LegalDocument
+                {
+                    Type = type,
+                    Key = candidate.Key,
+                    DisplayName = candidate.DisplayName,
+                    CreatedByUserId = actor.Value,
+                };
+                dbContext.LegalDocuments.Add(document);
+                importedDocuments++;
+            }
+
+            var source = PxaLegalDocumentService.NormalizeMarkdown(candidate.SourceMarkdown);
+            var existing = await dbContext.LegalDocumentVersions.SingleOrDefaultAsync(value =>
+                value.LegalDocumentId == document.Id &&
+                value.Locale == candidate.Locale &&
+                value.Audience == audience &&
+                value.Version == candidate.Version,
+                cancellationToken);
+            if (existing is not null)
+            {
+                if (existing.ContentHash != PxaLegalDocumentService.ComputeHash(source))
+                    return ConflictProblem(
+                        $"Version {candidate.Version} of '{candidate.Key}' already exists with different content.");
+                skippedVersions++;
+                continue;
+            }
+
+            var previousId = await dbContext.LegalDocumentVersions.AsNoTracking()
+                .Where(value => value.LegalDocumentId == document.Id &&
+                                value.Locale == candidate.Locale &&
+                                value.Audience == audience)
+                .OrderByDescending(value => value.CreatedAt)
+                .Select(value => (Guid?)value.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+            var version = new LegalDocumentVersion
+            {
+                LegalDocumentId = document.Id,
+                Version = candidate.Version,
+                Locale = candidate.Locale,
+                Audience = audience,
+                SourceMarkdown = source,
+                RenderedHtml = PxaLegalDocumentService.RenderSafeHtml(source),
+                ContentHash = PxaLegalDocumentService.ComputeHash(source),
+                ChangeSummary = "Initial English Swiss-law candidate for independent Legal review.",
+                RequiresAcceptance = candidate.RequiresAcceptance,
+                IsAuthoritative = true,
+                CreatedByUserId = actor.Value,
+                PreviousVersionId = previousId,
+            };
+            dbContext.LegalDocumentVersions.Add(version);
+            importedVersions++;
+        }
+
+        AddAudit(actor.Value, "legal.candidates.imported", "legal_candidate_catalog", Guid.Empty,
+            new
+            {
+                legalContentCatalog.Current.SchemaVersion,
+                legalContentCatalog.Current.AuthoritativeLocale,
+                legalContentCatalog.Current.GoverningLaw,
+                ImportedDocuments = importedDocuments,
+                ImportedVersions = importedVersions,
+                SkippedVersions = skippedVersions,
+            });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Ok(new AdminLegalCandidateImportResponse(
+            importedDocuments, importedVersions, skippedVersions));
+    }
+
     [HttpPost("documents/{documentId:guid}/versions")]
     [Authorize(Policy = PxaPermissions.LegalAuthor)]
     [PxaValidateAntiforgery]
@@ -513,6 +611,13 @@ public sealed class AdminLegalDocumentsController(
         version.PublishedAt = now;
         version.PublishedByUserId = actor;
         version.Status = effectiveAt > now ? LegalDocumentStatus.Scheduled : LegalDocumentStatus.Published;
+        var document = await dbContext.LegalDocuments.AsNoTracking()
+            .SingleAsync(value => value.Id == version.LegalDocumentId, cancellationToken);
+        if (!await dbContext.DesignerNotifications.AnyAsync(
+                value => value.Id == version.Id, cancellationToken))
+        {
+            dbContext.DesignerNotifications.Add(CreateLegalNotification(document, version));
+        }
         AddAudit(actor.Value, "legal.version.published", "legal_document_version", version.Id,
             new
             {
@@ -523,6 +628,46 @@ public sealed class AdminLegalDocumentsController(
             });
         await dbContext.SaveChangesAsync(cancellationToken);
         return Ok(ToVersionResponse(version));
+    }
+
+    private static DesignerNotification CreateLegalNotification(
+        LegalDocument document,
+        LegalDocumentVersion version)
+    {
+        var action = document.Type switch
+        {
+            LegalDocumentType.TermsAndConditions when version.RequiresAcceptance =>
+                "Acceptance is required in PXA Account.",
+            LegalDocumentType.PrivacyNotice =>
+                "Review and acknowledgement are available in PXA Account.",
+            _ => "Review the publication details in PXA Account.",
+        };
+        var summary = string.IsNullOrWhiteSpace(version.ChangeSummary)
+            ? "No public change summary was provided."
+            : version.ChangeSummary.Trim();
+        var message = $"Version {version.Version} is effective " +
+                      $"{version.EffectiveAt:yyyy-MM-dd}. {action} {summary}";
+        if (message.Length > 2000)
+            message = message[..1997] + "...";
+        var title = $"{document.DisplayName} updated";
+        if (title.Length > 200)
+            title = title[..197] + "...";
+
+        return new DesignerNotification
+        {
+            Id = version.Id,
+            Category = DesignerNotificationCategory.Legal,
+            Severity = document.Type is LegalDocumentType.TermsAndConditions or
+                LegalDocumentType.PrivacyNotice
+                ? DesignerNotificationSeverity.Warning
+                : DesignerNotificationSeverity.Info,
+            Title = title,
+            Message = message,
+            ActionLabel = "Review legal update",
+            ActionUrl = $"/legal-updates?document={Uri.EscapeDataString(document.Key)}",
+            Dismissible = true,
+            CreatedAt = version.EffectiveAt!.Value,
+        };
     }
 
     [HttpPost("versions/{versionId:guid}/retire")]
@@ -543,7 +688,13 @@ public sealed class AdminLegalDocumentsController(
         if (version.Status is not (LegalDocumentStatus.Published or LegalDocumentStatus.Scheduled))
             return ConflictProblem("Only published or scheduled versions can be retired.");
         version.Status = LegalDocumentStatus.Retired;
-        version.RetiredAt = DateTimeOffset.UtcNow;
+        var now = DateTimeOffset.UtcNow;
+        version.RetiredAt = now;
+        var pendingNotification = await dbContext.DesignerNotifications.SingleOrDefaultAsync(
+            value => value.Id == version.Id && value.CreatedAt > now,
+            cancellationToken);
+        if (pendingNotification is not null)
+            dbContext.DesignerNotifications.Remove(pendingNotification);
         AddAudit(actor.Value, "legal.version.retired", "legal_document_version", version.Id,
             new { version.ContentHash });
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -779,6 +930,10 @@ public sealed record PublishLegalVersionRequest(
 public sealed record AdminLegalCatalogResponse(
     IReadOnlyList<AdminLegalDocumentResponse> Documents,
     IReadOnlyList<AdminLegalVersionResponse> Versions);
+public sealed record AdminLegalCandidateImportResponse(
+    int ImportedDocuments,
+    int ImportedVersions,
+    int SkippedVersions);
 public sealed record AdminLegalDocumentResponse(
     Guid Id,
     string Type,

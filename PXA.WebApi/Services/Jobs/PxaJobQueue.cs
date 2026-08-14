@@ -13,12 +13,14 @@ public interface IPxaJobQueue
         string templateId,
         object payload,
         string? templateVersion,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        PxaJobRetentionMode retentionMode = PxaJobRetentionMode.Transient);
     Task<PxaBackgroundJob> EnqueueDocumentJobAsync(
         string type,
         Guid inputObjectId,
         object payload,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        PxaJobRetentionMode retentionMode = PxaJobRetentionMode.Transient);
 }
 
 public sealed class PxaJobQueue(
@@ -42,7 +44,8 @@ public sealed class PxaJobQueue(
         string templateId,
         object payload,
         string? templateVersion,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        PxaJobRetentionMode retentionMode = PxaJobRetentionMode.Transient)
     {
         var organizationId = tenantContext.OrganizationId ??
             throw new UnauthorizedAccessException("An active organization is required.");
@@ -62,7 +65,9 @@ public sealed class PxaJobQueue(
             TraceParent = traceContext.TraceParent,
             TraceState = traceContext.TraceState,
             MaximumAttempts = options.Value.MaximumAttempts,
-            ExpiresAt = DateTimeOffset.UtcNow.AddDays(options.Value.ResultRetentionDays),
+            RetentionMode = retentionMode,
+            ExpiresAt = GetContentExpiry(retentionMode, DateTimeOffset.UtcNow),
+            MetadataExpiresAt = DateTimeOffset.UtcNow.AddDays(options.Value.TerminalMetadataRetentionDays),
         };
         dbContext.BackgroundJobs.Add(job);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -74,7 +79,8 @@ public sealed class PxaJobQueue(
         string type,
         Guid inputObjectId,
         object payload,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        PxaJobRetentionMode retentionMode = PxaJobRetentionMode.Transient)
     {
         if (type is not (DocumentImportType or DocumentExportType or CodeMigrationType))
             throw new ArgumentException("The document job type is unsupported.", nameof(type));
@@ -102,13 +108,20 @@ public sealed class PxaJobQueue(
             TraceParent = traceContext.TraceParent,
             TraceState = traceContext.TraceState,
             MaximumAttempts = options.Value.MaximumAttempts,
-            ExpiresAt = DateTimeOffset.UtcNow.AddDays(options.Value.ResultRetentionDays),
+            RetentionMode = retentionMode,
+            ExpiresAt = GetContentExpiry(retentionMode, DateTimeOffset.UtcNow),
+            MetadataExpiresAt = DateTimeOffset.UtcNow.AddDays(options.Value.TerminalMetadataRetentionDays),
         };
         dbContext.BackgroundJobs.Add(job);
         await dbContext.SaveChangesAsync(cancellationToken);
         PxaTelemetry.RecordJobEnqueued(job.Type);
         return job;
     }
+
+    private DateTimeOffset GetContentExpiry(PxaJobRetentionMode retentionMode, DateTimeOffset now) =>
+        retentionMode == PxaJobRetentionMode.Transient
+            ? now.AddHours(options.Value.TransientRetentionHours)
+            : now.AddDays(options.Value.ResultRetentionDays);
 }
 
 public sealed record TemplateRenderJobPayload(

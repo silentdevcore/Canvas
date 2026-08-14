@@ -93,5 +93,5 @@
 - [ ] Add external release publishing automation.
 - [ ] Localize release notes, notification content, feature descriptions, and related fallback states in all six Designer languages.
 - [ ] Align the release drawer, notification center, feature badges, and toast presentation more closely with the established PXA Designer visual design.
-- [ ] Keep notifications clickable after they are read so users can reopen and review their complete content multiple times.
+- [x] Keep notifications clickable after they are read so users can reopen and review their complete content multiple times.
 - [ ] Add release authoring and notification publishing tools to PXA Admin.

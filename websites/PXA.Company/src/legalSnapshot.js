@@ -8,8 +8,24 @@ const apiTypes = Object.freeze({
   dpa: 'dpa',
 });
 
+const apiAudiences = Object.freeze({
+  withdrawal: 'Consumer',
+  dpa: 'Business',
+});
+
 function validTimestamp(value) {
   return typeof value === 'string' && Number.isFinite(Date.parse(value));
+}
+
+function resolveDocumentRequest(kind, locale) {
+  const expectedKey = apiTypes[kind];
+  const audience = apiAudiences[kind] ?? 'All';
+  if (!expectedKey)
+    throw new Error(`Unsupported legal document kind "${kind}".`);
+  return {
+    expectedKey,
+    query: `locale=${encodeURIComponent(locale)}&audience=${encodeURIComponent(audience)}`,
+  };
 }
 
 export function validatePublicLegalDocument(document, expectedKey) {
@@ -48,13 +64,11 @@ export async function loadPublishedLegalDocument({
   fetchImpl = fetch,
   now = new Date(),
 }) {
-  const expectedKey = apiTypes[kind];
-  if (!expectedKey)
-    throw new Error(`Unsupported legal document kind "${kind}".`);
+  const { expectedKey, query } = resolveDocumentRequest(kind, locale);
 
   try {
     const liveResponse = await fetchImpl(
-      `/api/pxa/v1/legal/documents/${expectedKey}/current?locale=${encodeURIComponent(locale)}`,
+      `/api/pxa/v1/legal/documents/${expectedKey}/current?${query}`,
       { headers: { Accept: 'application/json' }, cache: 'no-store' });
     if (!liveResponse.ok)
       throw new Error(`Legal API returned HTTP ${liveResponse.status}.`);
@@ -81,4 +95,54 @@ export async function loadPublishedLegalDocument({
         `Neither the Legal API nor its last-known-good snapshot could provide "${expectedKey}".`);
     }
   }
+}
+
+export async function loadPublishedLegalVersion({
+  kind,
+  version,
+  locale = 'en',
+  fetchImpl = fetch,
+}) {
+  const { expectedKey, query } = resolveDocumentRequest(kind, locale);
+  if (typeof version !== 'string' || !version.trim())
+    throw new Error('A legal document version is required.');
+  const response = await fetchImpl(
+    `/api/pxa/v1/legal/documents/${expectedKey}/versions/${encodeURIComponent(version)}?${query}`,
+    { headers: { Accept: 'application/json' }, cache: 'no-store' });
+  if (!response.ok)
+    throw new Error(`Legal API returned HTTP ${response.status}.`);
+  return {
+    source: 'live',
+    document: validatePublicLegalDocument(await response.json(), expectedKey),
+    generatedAt: null,
+    stale: false,
+    archived: true,
+  };
+}
+
+export function validatePublicLegalHistory(history, expectedKey) {
+  if (!history || history.key !== expectedKey || !Array.isArray(history.versions))
+    throw new Error(`Legal history for "${expectedKey}" is invalid.`);
+  const versions = history.versions.map((version) => {
+    if (typeof version?.version !== 'string' || !version.version)
+      throw new Error(`Legal history for "${expectedKey}" contains an invalid version.`);
+    if (!/^[a-f0-9]{64}$/.test(version.contentHash ?? '') || !validTimestamp(version.effectiveAt))
+      throw new Error(`Legal history version "${version.version}" is invalid.`);
+    return version;
+  });
+  return { ...history, versions };
+}
+
+export async function loadPublishedLegalHistory({
+  kind,
+  locale = 'en',
+  fetchImpl = fetch,
+}) {
+  const { expectedKey, query } = resolveDocumentRequest(kind, locale);
+  const response = await fetchImpl(
+    `/api/pxa/v1/legal/documents/${expectedKey}/versions?${query}`,
+    { headers: { Accept: 'application/json' }, cache: 'no-store' });
+  if (!response.ok)
+    throw new Error(`Legal history API returned HTTP ${response.status}.`);
+  return validatePublicLegalHistory(await response.json(), expectedKey);
 }

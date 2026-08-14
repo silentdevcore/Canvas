@@ -1317,6 +1317,9 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("ContentPurgedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1345,6 +1348,9 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.Property<int>("MaximumAttempts")
                         .HasColumnType("integer");
 
+                    b.Property<DateTimeOffset>("MetadataExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
@@ -1355,8 +1361,16 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.Property<int>("ProgressPercent")
                         .HasColumnType("integer");
 
+                    b.Property<DateTimeOffset?>("ResultDownloadedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid?>("ResultObjectId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("RetentionMode")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
 
                     b.Property<DateTimeOffset>("ScheduledAt")
                         .HasColumnType("timestamp with time zone");
@@ -1394,6 +1408,8 @@ namespace PXA.Infrastructure.Persistence.Migrations
                     b.HasIndex("InputObjectId");
 
                     b.HasIndex("LeaseExpiresAt");
+
+                    b.HasIndex("MetadataExpiresAt");
 
                     b.HasIndex("ResultObjectId");
 

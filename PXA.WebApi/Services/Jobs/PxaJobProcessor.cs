@@ -56,6 +56,7 @@ public sealed class PxaJobProcessor(
             job.ProgressPercent = 100;
             job.Status = PxaBackgroundJobStatus.Completed;
             job.CompletedAt = DateTimeOffset.UtcNow;
+            ApplyTerminalRetention(job, job.CompletedAt.Value);
             job.LeaseId = null;
             job.LeaseExpiresAt = null;
             job.FailureReason = null;
@@ -74,6 +75,7 @@ public sealed class PxaJobProcessor(
             {
                 job.Status = PxaBackgroundJobStatus.DeadLetter;
                 job.CompletedAt = DateTimeOffset.UtcNow;
+                ApplyTerminalRetention(job, job.CompletedAt.Value);
                 outcome = "dead_letter";
             }
             else
@@ -328,6 +330,14 @@ public sealed class PxaJobProcessor(
 
     private static string Truncate(string value, int maximumLength) =>
         value.Length <= maximumLength ? value : value[..maximumLength];
+
+    private void ApplyTerminalRetention(PxaBackgroundJob job, DateTimeOffset completedAt)
+    {
+        job.ExpiresAt = job.RetentionMode == PxaJobRetentionMode.Transient
+            ? completedAt.AddHours(settings.TransientRetentionHours)
+            : completedAt.AddDays(settings.ResultRetentionDays);
+        job.MetadataExpiresAt = completedAt.AddDays(settings.TerminalMetadataRetentionDays);
+    }
 
     private static string ClassifyDocumentOperation(string jobType) =>
         jobType switch

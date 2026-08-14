@@ -408,6 +408,10 @@ export async function getAdminLegalDocuments() {
   return request(`${adminLegalBase}/documents`);
 }
 
+export async function importAdminLegalCandidates() {
+  return adminMutation(`${adminLegalBase}/candidates/import`, 'POST');
+}
+
 export async function compareAdminLegalVersions(baseVersionId, targetVersionId) {
   const query = new URLSearchParams({ baseVersionId, targetVersionId });
   return request(`${adminLegalBase}/versions/compare?${query}`);

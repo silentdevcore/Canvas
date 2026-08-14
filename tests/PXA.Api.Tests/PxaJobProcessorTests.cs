@@ -21,6 +21,59 @@ namespace PXA.Api.Tests;
 
 public sealed class PxaJobProcessorTests
 {
+    [Fact]
+    public async Task Queue_defaults_to_transient_and_requires_explicit_retained_mode()
+    {
+        var organizationId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var inputId = Guid.NewGuid();
+        var options = new DbContextOptionsBuilder<PxaDbContext>()
+            .UseInMemoryDatabase($"job-retention-{Guid.NewGuid():N}")
+            .Options;
+        await using var context = new PxaDbContext(options);
+        context.StoredObjects.Add(new PxaStoredObject
+        {
+            Id = inputId,
+            OrganizationId = organizationId,
+            CreatedByUserId = userId,
+            ObjectKey = "test/input",
+            Purpose = "job-input",
+            ContentType = "application/json",
+            Length = 2,
+            Checksum = new string('a', 64),
+        });
+        await context.SaveChangesAsync();
+        var settings = Options.Create(new PxaJobOptions
+        {
+            TransientRetentionHours = 24,
+            ResultRetentionDays = 7,
+            TerminalMetadataRetentionDays = 30,
+        });
+        var queue = new PxaJobQueue(
+            context,
+            new TestTenantContext(userId, organizationId),
+            settings);
+        var before = DateTimeOffset.UtcNow;
+
+        var transient = await queue.EnqueueDocumentJobAsync(
+            PxaJobQueue.DocumentExportType,
+            inputId,
+            new DocumentExportJobPayload("pdf", null, null),
+            CancellationToken.None);
+        var retained = await queue.EnqueueDocumentJobAsync(
+            PxaJobQueue.DocumentExportType,
+            inputId,
+            new DocumentExportJobPayload("pdf", null, null),
+            CancellationToken.None,
+            PxaJobRetentionMode.Retained);
+
+        Assert.Equal(PxaJobRetentionMode.Transient, transient.RetentionMode);
+        Assert.InRange(transient.ExpiresAt, before.AddHours(24), DateTimeOffset.UtcNow.AddHours(24));
+        Assert.Equal(PxaJobRetentionMode.Retained, retained.RetentionMode);
+        Assert.InRange(retained.ExpiresAt, before.AddDays(7), DateTimeOffset.UtcNow.AddDays(7));
+        Assert.InRange(transient.MetadataExpiresAt, before.AddDays(30), DateTimeOffset.UtcNow.AddDays(30));
+    }
+
     [PostgreSqlFact]
     public async Task Processes_a_tenant_template_render_into_external_result_storage()
     {
@@ -99,6 +152,7 @@ public sealed class PxaJobProcessorTests
                 Type = PxaJobQueue.TemplateRenderType,
                 TraceParent = traceParent,
                 TraceState = "pxa=integration-test",
+                RetentionMode = PxaJobRetentionMode.Retained,
                 PayloadJson = JsonSerializer.Serialize(new TemplateRenderJobPayload(
                     templateId.ToString(),
                     JsonSerializer.SerializeToElement(new { invoiceNumber = "PXA-1" }),
@@ -254,7 +308,49 @@ public sealed class PxaJobProcessorTests
             var deletedResult = await context.StoredObjects.SingleAsync();
             Assert.Equal(PxaBackgroundJobStatus.Expired, expired.Status);
             Assert.Null(expired.ResultObjectId);
+            Assert.NotNull(expired.ContentPurgedAt);
+            Assert.Equal("{}", expired.PayloadJson);
             Assert.Equal(PxaStoredObjectStatus.Deleted, deletedResult.Status);
+
+            await using var transientContent = new MemoryStream("transient-result"u8.ToArray(), writable: false);
+            var transientObject = await storedObjects.StoreAsync(
+                organizationId,
+                userId,
+                "job-result",
+                "application/octet-stream",
+                "transient.bin",
+                transientContent,
+                CancellationToken.None);
+            var transientJob = new PxaBackgroundJob
+            {
+                OrganizationId = organizationId,
+                CreatedByUserId = userId,
+                Type = PxaJobQueue.DocumentExportType,
+                PayloadJson = "{\"sensitive\":true}",
+                Status = PxaBackgroundJobStatus.Completed,
+                RetentionMode = PxaJobRetentionMode.Transient,
+                ResultObjectId = transientObject.Id,
+                CompletedAt = DateTimeOffset.UtcNow,
+                ExpiresAt = DateTimeOffset.UtcNow.AddHours(24),
+                MetadataExpiresAt = DateTimeOffset.UtcNow.AddDays(30),
+            };
+            context.BackgroundJobs.Add(transientJob);
+            await context.SaveChangesAsync();
+
+            Assert.True(await retention.PurgeTransientContentAfterDownloadAsync(
+                transientJob.Id,
+                organizationId,
+                CancellationToken.None));
+            context.ChangeTracker.Clear();
+            var downloaded = await context.BackgroundJobs.SingleAsync(value => value.Id == transientJob.Id);
+            Assert.Equal(PxaBackgroundJobStatus.Completed, downloaded.Status);
+            Assert.NotNull(downloaded.ResultDownloadedAt);
+            Assert.NotNull(downloaded.ContentPurgedAt);
+            Assert.Null(downloaded.ResultObjectId);
+            Assert.Equal("{}", downloaded.PayloadJson);
+            Assert.Equal(
+                PxaStoredObjectStatus.Deleted,
+                (await context.StoredObjects.SingleAsync(value => value.Id == transientObject.Id)).Status);
             Assert.Contains(
                 queueMeasurements,
                 value => value.Name == "pxa.storage.operations");
@@ -281,6 +377,13 @@ public sealed class PxaJobProcessorTests
         ActivitySpanId SpanId,
         ActivitySpanId ParentSpanId,
         KeyValuePair<string, object?>[] Tags);
+
+    private sealed record TestTenantContext(Guid CurrentUserId, Guid CurrentOrganizationId)
+        : PXA.WebApi.Security.IPxaTenantContext
+    {
+        public Guid? UserId => CurrentUserId;
+        public Guid? OrganizationId => CurrentOrganizationId;
+    }
 
     private sealed class TestWebHostEnvironment : IWebHostEnvironment
     {

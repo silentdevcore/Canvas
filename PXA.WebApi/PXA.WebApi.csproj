@@ -27,6 +27,12 @@
                       LogicalName="PXA.ProductMetadata.data-processing-inventory.json" />
     <EmbeddedResource Include="../product-metadata/dependency-compliance.json"
                       LogicalName="PXA.ProductMetadata.dependency-compliance.json" />
+    <EmbeddedResource Include="../product-metadata/global-commerce-catalog.json"
+                      LogicalName="PXA.ProductMetadata.global-commerce-catalog.json" />
+    <EmbeddedResource Include="../product-metadata/country-readiness.json"
+                      LogicalName="PXA.ProductMetadata.country-readiness.json" />
+    <EmbeddedResource Include="../product-metadata/legal-documents/en/*"
+                      LogicalName="PXA.LegalContent.%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>

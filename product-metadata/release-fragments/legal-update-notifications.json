@@ -1,0 +1,16 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "legal-update-notifications",
+  "impact": "minor",
+  "components": [
+    "account",
+    "api",
+    "designer"
+  ],
+  "category": "added",
+  "summary": "Published Legal updates now remain reviewable through persistent Designer notifications and a dedicated PXA Account publication history.",
+  "documentation": [
+    "/checklists/PXA.Legal-Terms-Privacy-And-Consent.md"
+  ],
+  "breaking": false
+}

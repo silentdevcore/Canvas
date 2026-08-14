@@ -64,6 +64,7 @@ public sealed class DesignerNotificationsController(
         var now = DateTimeOffset.UtcNow;
         var visible = dbContext.DesignerNotifications.AsNoTracking()
             .Where(value =>
+                value.CreatedAt <= now &&
                 (value.ExpiresAt == null || value.ExpiresAt > now) &&
                 (value.UserId == userId ||
                  (value.UserId == null &&
@@ -110,6 +111,7 @@ public sealed class DesignerNotificationsController(
         var now = DateTimeOffset.UtcNow;
         var persistent = await dbContext.DesignerNotifications.AsNoTracking()
             .Where(value =>
+                value.CreatedAt <= now &&
                 (value.ExpiresAt == null || value.ExpiresAt > now) &&
                 (value.UserId == userId ||
                  (value.UserId == null &&
@@ -144,6 +146,7 @@ public sealed class DesignerNotificationsController(
         var now = DateTimeOffset.UtcNow;
         var ids = await dbContext.DesignerNotifications
             .Where(value =>
+                value.CreatedAt <= now &&
                 (value.ExpiresAt == null || value.ExpiresAt > now) &&
                 (value.UserId == userId ||
                  (value.UserId == null &&

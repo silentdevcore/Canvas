@@ -84,10 +84,14 @@ export interface AccountProfileResponse {
   termsAcceptedVersion: string | null;
   currentTermsVersionId: string | null;
   currentTermsVersion: string;
+  currentTermsChangeSummary: string | null;
+  previousTermsVersion: string | null;
   requiresTermsAcceptance: boolean;
   privacyAcknowledgedVersion: string | null;
   currentPrivacyVersionId: string | null;
   currentPrivacyVersion: string;
+  currentPrivacyChangeSummary: string | null;
+  previousPrivacyVersion: string | null;
   requiresPrivacyAcknowledgement: boolean;
   legalPolicyAvailable: boolean;
   marketingConsent: boolean;

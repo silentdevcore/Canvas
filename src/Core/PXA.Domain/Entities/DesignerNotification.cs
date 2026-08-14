@@ -22,6 +22,7 @@ public enum DesignerNotificationCategory
     Security,
     Subscription,
     ActionRequired,
+    Legal,
 }
 
 public enum DesignerNotificationSeverity

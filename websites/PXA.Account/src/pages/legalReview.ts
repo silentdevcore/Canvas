@@ -3,6 +3,16 @@ import type { AccountProfileResponse, ApiError } from '../api';
 import { updateAccountConsent } from '../api';
 import { escapeHtml } from '../shell';
 
+function versionedLegalUrl(kind: 'terms' | 'privacy', version: string): string {
+  return `${companyPage(kind)}?version=${encodeURIComponent(version)}`;
+}
+
+function previousVersionLink(kind: 'terms' | 'privacy', version: string | null): string {
+  return version
+    ? `<a href="${versionedLegalUrl(kind, version)}" target="_blank" rel="noopener">Compare with version ${escapeHtml(version)}</a>`
+    : '<span class="account-legal-first-version">This is the first recorded publication.</span>';
+}
+
 export function legalReviewPage(profile: AccountProfileResponse): string {
   if (!profile.legalPolicyAvailable) {
     return `
@@ -30,8 +40,11 @@ export function legalReviewPage(profile: AccountProfileResponse): string {
       ${profile.requiresTermsAcceptance ? `
         <section>
           <h2>Terms and Conditions ${escapeHtml(profile.currentTermsVersion)}</h2>
-          <p>The Terms governing your use of PXA have changed.</p>
-          <a href="${companyPage('terms')}" target="_blank" rel="noopener">Read the current Terms</a>
+          <p>${escapeHtml(profile.currentTermsChangeSummary || 'The Terms governing your use of PXA have changed.')}</p>
+          <div class="account-legal-links">
+            <a href="${companyPage('terms')}" target="_blank" rel="noopener">Read the current Terms</a>
+            ${previousVersionLink('terms', profile.previousTermsVersion)}
+          </div>
           <label class="account-checkbox">
             <input name="acceptTerms" type="checkbox" required>
             I accept the current Terms and Conditions.
@@ -40,8 +53,11 @@ export function legalReviewPage(profile: AccountProfileResponse): string {
       ${profile.requiresPrivacyAcknowledgement ? `
         <section>
           <h2>Privacy Notice ${escapeHtml(profile.currentPrivacyVersion)}</h2>
-          <p>The Privacy Notice has changed. This acknowledgement is not consent to marketing.</p>
-          <a href="${companyPage('privacy')}" target="_blank" rel="noopener">Read the current Privacy Notice</a>
+          <p>${escapeHtml(profile.currentPrivacyChangeSummary || 'The Privacy Notice has changed.')} This acknowledgement is not consent to marketing.</p>
+          <div class="account-legal-links">
+            <a href="${companyPage('privacy')}" target="_blank" rel="noopener">Read the current Privacy Notice</a>
+            ${previousVersionLink('privacy', profile.previousPrivacyVersion)}
+          </div>
           <label class="account-checkbox">
             <input name="acceptPrivacy" type="checkbox" required>
             I acknowledge that I have received the current Privacy Notice.

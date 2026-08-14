@@ -20,11 +20,13 @@ internal sealed class PxaBackgroundJobConfiguration : IEntityTypeConfiguration<P
         builder.Property(value => value.TraceParent).HasMaxLength(128);
         builder.Property(value => value.TraceState).HasMaxLength(512);
         builder.Property(value => value.Status).HasConversion<string>().HasMaxLength(24).IsRequired();
+        builder.Property(value => value.RetentionMode).HasConversion<string>().HasMaxLength(24).IsRequired();
         builder.Property(value => value.DiagnosticsJson).HasColumnType("jsonb");
         builder.Property(value => value.FailureReason).HasMaxLength(2000);
         builder.HasIndex(value => new { value.Status, value.ScheduledAt });
         builder.HasIndex(value => new { value.OrganizationId, value.CreatedAt });
         builder.HasIndex(value => value.LeaseExpiresAt);
         builder.HasIndex(value => value.ExpiresAt);
+        builder.HasIndex(value => value.MetadataExpiresAt);
     }
 }

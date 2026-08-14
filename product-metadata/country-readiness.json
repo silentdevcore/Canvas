@@ -1,0 +1,352 @@
+{
+  "$schema": "./country-readiness.schema.json",
+  "schemaVersion": 1,
+  "reviewedAt": "2026-08-09",
+  "productionApproved": false,
+  "requirements": [
+    {
+      "id": "ch-vat-and-invoicing",
+      "area": "tax",
+      "summary": "Approve Swiss VAT liability, place of supply, invoice requirements, UID treatment, and cross-border service treatment.",
+      "source": "https://www.estv.admin.ch/en/vat-tax-liability"
+    },
+    {
+      "id": "ch-fadp-and-transfers",
+      "area": "privacy",
+      "summary": "Apply the Swiss FADP, transparent privacy information, processor controls, and safeguards for cross-border personal-data transfers.",
+      "source": "https://www.edoeb.admin.ch/en/cross-border-transfer-of-personal-data"
+    },
+    {
+      "id": "ch-online-contracts",
+      "area": "consumer",
+      "summary": "Provide clear operator identity, contracting steps, input correction, immediate order confirmation, and accurate withdrawal information.",
+      "source": "https://www.seco.admin.ch/de/onlinehandel"
+    },
+    {
+      "id": "eu-vat-oss",
+      "area": "tax",
+      "summary": "Apply destination VAT for qualifying EU consumer services and use an approved OSS or Merchant-of-Record model.",
+      "source": "https://europa.eu/youreurope/business/finance-and-tax/vat/one-stop-shop/index_en.htm"
+    },
+    {
+      "id": "eu-vies-reverse-charge",
+      "area": "tax",
+      "summary": "Validate business status and VAT IDs and preserve evidence for applicable cross-border reverse-charge treatment.",
+      "source": "https://europa.eu/youreurope/business/finance-and-tax/vat/index_en.htm"
+    },
+    {
+      "id": "eu-gdpr-transfers",
+      "area": "privacy",
+      "summary": "Complete controller and processor disclosures, Article 28 terms, transfer safeguards, rights workflows, and regional provider review.",
+      "source": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679"
+    },
+    {
+      "id": "eu-consumer-digital-services",
+      "area": "consumer",
+      "summary": "Review pre-contract information, withdrawal, digital-service performance, renewal, cancellation, refunds, and national implementation rules.",
+      "source": "https://europa.eu/youreurope/citizens/consumers/index_en.htm"
+    },
+    {
+      "id": "eu-electronic-withdrawal",
+      "area": "consumer",
+      "summary": "Provide the electronic withdrawal function required by applicable national implementation of EU distance-contract rules.",
+      "source": "https://www.gesetze-im-internet.de/bgb/__356a.html"
+    },
+    {
+      "id": "eea-local-vat",
+      "area": "tax",
+      "summary": "Approve local VAT or Merchant-of-Record treatment because non-EU EEA countries are outside EU OSS.",
+      "source": "https://www.oecd.org/en/publications/international-vat-gst-guidelines_9789264271401-en.html"
+    },
+    {
+      "id": "uk-vat-digital-services",
+      "area": "tax",
+      "summary": "Determine UK place of supply, customer status, VAT registration, evidence, and Merchant-of-Record treatment for digital services.",
+      "source": "https://www.gov.uk/guidance/the-vat-rules-if-you-supply-digital-services-to-private-consumers"
+    },
+    {
+      "id": "uk-gdpr-transfers",
+      "area": "privacy",
+      "summary": "Apply UK GDPR transparency and assess restricted transfers using adequacy, the IDTA, UK Addendum, and transfer risk requirements.",
+      "source": "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/international-transfers/"
+    },
+    {
+      "id": "uk-subscription-contracts",
+      "area": "consumer",
+      "summary": "Track commencement and implementation of DMCCA subscription disclosures, reminders, cooling-off, cancellation, and refund rules.",
+      "source": "https://www.gov.uk/government/consultations/consultation-on-the-implementation-of-the-new-subscription-contracts-regime/consultation-on-the-implementation-of-the-new-subscription-contracts-regime-web-accessible-version"
+    },
+    {
+      "id": "us-sales-tax-nexus",
+      "area": "tax",
+      "summary": "Determine SaaS and software taxability, economic nexus, registration, exemption certificates, and filing obligations by state and locality.",
+      "source": "https://www.streamlinedsalestax.org/"
+    },
+    {
+      "id": "us-state-privacy",
+      "area": "privacy",
+      "summary": "Maintain a current state-law applicability matrix for notices, consumer rights, sensitive data, contracts, and opt-out mechanisms.",
+      "source": "https://oag.ca.gov/privacy/ccpa"
+    },
+    {
+      "id": "us-recurring-subscriptions",
+      "area": "consumer",
+      "summary": "Review federal and state negative-option, free-to-paid Trial, renewal notice, consent, and cancellation requirements before B2C launch.",
+      "source": "https://www.ftc.gov/legal-library/browse/rules/negative-option-rule"
+    },
+    {
+      "id": "us-export-and-sanctions",
+      "area": "trade",
+      "summary": "Classify relevant software and encryption, screen restricted parties, and enforce current BIS and OFAC restrictions.",
+      "source": "https://www.trade.gov/us-export-controls"
+    },
+    {
+      "id": "global-merchant-of-record",
+      "area": "payments",
+      "summary": "Select and contract a Merchant of Record with verified country, currency, tax, refund, invoice, and webhook coverage.",
+      "source": "https://www.paddle.com/paddle-101"
+    },
+    {
+      "id": "au-gst-digital-services",
+      "area": "tax",
+      "summary": "Assess Australian GST registration, consumer status, ABN evidence, and Merchant-of-Record responsibility for imported digital services.",
+      "source": "https://softwaredevelopers.ato.gov.au/GSTintangibles"
+    },
+    {
+      "id": "au-privacy-cross-border",
+      "area": "privacy",
+      "summary": "Assess Australian Privacy Act applicability, APP notices, overseas disclosure accountability, provider contracts, and rights operations.",
+      "source": "https://www.oaic.gov.au/privacy/australian-privacy-principles/australian-privacy-principles-guidelines/chapter-8-app-8-cross-border-disclosure-of-personal-information"
+    },
+    {
+      "id": "au-consumer-subscriptions",
+      "area": "consumer",
+      "summary": "Review Australian Consumer Law guarantees, transparent pricing, unfair standard terms, renewal, cancellation, and small-business protections.",
+      "source": "https://www.accc.gov.au/business/selling-products-and-services/contracts"
+    },
+    {
+      "id": "ca-gst-hst-digital-services",
+      "area": "tax",
+      "summary": "Assess Canadian GST/HST registration, consumer location, monthly subscription supplies, provincial tax, business evidence, and platform responsibility.",
+      "source": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/digital-economy-gsthst/charge-collect/cross-border.html"
+    },
+    {
+      "id": "ca-privacy-federal-provincial",
+      "area": "privacy",
+      "summary": "Map PIPEDA and substantially similar provincial privacy laws, cross-border processing accountability, notices, contracts, and rights workflows.",
+      "source": "https://www.priv.gc.ca/en/privacy-topics/airports-and-borders/gl_dab_090127/"
+    },
+    {
+      "id": "ca-consumer-subscriptions",
+      "area": "consumer",
+      "summary": "Review online-contract, pricing, renewal, cancellation, language, and disclosure requirements separately for each supported province and territory.",
+      "source": "https://www.ontario.ca/page/your-rights-when-signing-or-cancelling-contract"
+    },
+    {
+      "id": "nz-gst-remote-services",
+      "area": "tax",
+      "summary": "Assess New Zealand GST registration, customer evidence, business treatment, quarterly filing, and marketplace responsibility for remote services.",
+      "source": "https://www.ird.govt.nz/gst-on-remote-services"
+    },
+    {
+      "id": "nz-privacy-cross-border",
+      "area": "privacy",
+      "summary": "Assess Privacy Act 2020 applicability, Principle 12 overseas disclosure safeguards, provider agency roles, notices, and rights workflows.",
+      "source": "https://www.privacy.org.nz/privacy-principles/12/"
+    },
+    {
+      "id": "nz-consumer-subscriptions",
+      "area": "consumer",
+      "summary": "Review Fair Trading Act and Consumer Guarantees Act duties for informed subscription consent, renewals, cancellation, refunds, and unfair terms.",
+      "source": "https://www.comcom.govt.nz/business/your-obligations-as-a-business/unfair-contract-terms/"
+    }
+  ],
+  "regions": [
+    {
+      "id": "switzerland",
+      "countryCodes": ["CH"],
+      "priceBookCurrency": "CHF",
+      "b2bStatus": "review-required",
+      "b2cStatus": "review-required",
+      "taxStatus": "review-required",
+      "privacyStatus": "review-required",
+      "localizationStatus": "ready-for-review",
+      "processingRegions": ["CH", "EU"],
+      "requirementIds": [
+        "ch-vat-and-invoicing", "ch-fadp-and-transfers", "ch-online-contracts",
+        "global-merchant-of-record"
+      ],
+      "blockers": [
+        "Verified Swiss operator, UID, VAT, register, address, and representative details are missing.",
+        "Qualified Swiss counsel has not approved the authoritative English Legal set.",
+        "Swiss VAT, invoicing, payment-provider, and B2C commercial decisions are not approved.",
+        "English-only consumer contracting requires a market and comprehensibility review for Switzerland."
+      ]
+    },
+    {
+      "id": "eu-27",
+      "countryCodes": [
+        "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR",
+        "GR", "HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL",
+        "PT", "RO", "SE", "SI", "SK"
+      ],
+      "priceBookCurrency": "EUR",
+      "b2bStatus": "review-required",
+      "b2cStatus": "review-required",
+      "taxStatus": "review-required",
+      "privacyStatus": "review-required",
+      "localizationStatus": "insufficient",
+      "processingRegions": ["EU"],
+      "requirementIds": [
+        "eu-vat-oss", "eu-vies-reverse-charge", "eu-gdpr-transfers",
+        "eu-consumer-digital-services", "eu-electronic-withdrawal",
+        "global-merchant-of-record"
+      ],
+      "blockers": [
+        "Merchant of Record or OSS model is not approved.",
+        "Country VAT rates, invoice rules, and B2B evidence are not configured.",
+        "Country-specific consumer and contract review is incomplete.",
+        "English is authoritative; country-specific language and accessibility requirements remain unreviewed."
+      ]
+    },
+    {
+      "id": "eea-non-eu",
+      "countryCodes": ["IS", "LI", "NO"],
+      "priceBookCurrency": "EUR",
+      "b2bStatus": "review-required",
+      "b2cStatus": "review-required",
+      "taxStatus": "review-required",
+      "privacyStatus": "review-required",
+      "localizationStatus": "insufficient",
+      "processingRegions": ["EU"],
+      "requirementIds": [
+        "eea-local-vat", "eu-gdpr-transfers", "eu-consumer-digital-services",
+        "global-merchant-of-record"
+      ],
+      "blockers": [
+        "EU OSS must not be assumed for non-EU EEA sales.",
+        "Local VAT, consumer, contract, and language requirements are not approved.",
+        "EEA transfer and representative implications require counsel review."
+      ]
+    },
+    {
+      "id": "united-kingdom",
+      "countryCodes": ["GB"],
+      "priceBookCurrency": "GBP",
+      "b2bStatus": "review-required",
+      "b2cStatus": "review-required",
+      "taxStatus": "review-required",
+      "privacyStatus": "review-required",
+      "localizationStatus": "ready-for-review",
+      "processingRegions": ["EU", "UK-future"],
+      "requirementIds": [
+        "uk-vat-digital-services", "uk-gdpr-transfers",
+        "uk-subscription-contracts", "global-merchant-of-record"
+      ],
+      "blockers": [
+        "UK VAT registration or Merchant-of-Record responsibility is not approved.",
+        "UK privacy role, representative, transfer, and rights workflows are not approved.",
+        "DMCCA subscription commencement and final implementation must be rechecked at launch."
+      ]
+    },
+    {
+      "id": "united-states",
+      "countryCodes": ["US"],
+      "priceBookCurrency": "USD",
+      "b2bStatus": "review-required",
+      "b2cStatus": "review-required",
+      "taxStatus": "review-required",
+      "privacyStatus": "review-required",
+      "localizationStatus": "ready-for-review",
+      "processingRegions": ["US-future", "EU"],
+      "requirementIds": [
+        "us-sales-tax-nexus", "us-state-privacy", "us-recurring-subscriptions",
+        "us-export-and-sanctions", "global-merchant-of-record"
+      ],
+      "blockers": [
+        "SaaS taxability, nexus, exemptions, and filings require a state matrix.",
+        "State privacy applicability and rights operations require a state matrix.",
+        "Federal and state auto-renewal rules require current counsel review.",
+        "US processing-region and transfer disclosures are not approved.",
+        "Export classification and restricted-party screening are not operational."
+      ]
+    },
+    {
+      "id": "australia",
+      "countryCodes": ["AU"],
+      "priceBookCurrency": "USD",
+      "b2bStatus": "review-required",
+      "b2cStatus": "review-required",
+      "taxStatus": "review-required",
+      "privacyStatus": "review-required",
+      "localizationStatus": "ready-for-review",
+      "processingRegions": ["EU", "US-future"],
+      "requirementIds": [
+        "au-gst-digital-services", "au-privacy-cross-border",
+        "au-consumer-subscriptions", "global-merchant-of-record"
+      ],
+      "blockers": [
+        "Australian GST registration or Merchant-of-Record responsibility is not approved; the current A$75,000 threshold must be rechecked at launch.",
+        "ABN and GST business-use evidence validation is not implemented.",
+        "Australian Privacy Act applicability and APP 8 overseas disclosure controls are not approved.",
+        "Consumer guarantees, unfair terms, renewal, cancellation, and small-business contract terms require counsel review.",
+        "An AUD price book and Australian data-region position are not approved."
+      ]
+    },
+    {
+      "id": "canada",
+      "countryCodes": ["CA"],
+      "priceBookCurrency": "USD",
+      "b2bStatus": "review-required",
+      "b2cStatus": "review-required",
+      "taxStatus": "review-required",
+      "privacyStatus": "review-required",
+      "localizationStatus": "insufficient",
+      "processingRegions": ["EU", "US-future"],
+      "requirementIds": [
+        "ca-gst-hst-digital-services", "ca-privacy-federal-provincial",
+        "ca-consumer-subscriptions", "global-merchant-of-record"
+      ],
+      "blockers": [
+        "GST/HST, provincial sales tax, customer location, and Merchant-of-Record responsibility are not approved.",
+        "PIPEDA and substantially similar provincial privacy-law applicability require a province matrix.",
+        "Online-contract, auto-renewal, cancellation, and disclosure rules require a province and territory matrix.",
+        "French Legal and checkout content, including Quebec-specific review, is incomplete.",
+        "A CAD price book and Canadian data-region position are not approved."
+      ]
+    },
+    {
+      "id": "new-zealand",
+      "countryCodes": ["NZ"],
+      "priceBookCurrency": "USD",
+      "b2bStatus": "review-required",
+      "b2cStatus": "review-required",
+      "taxStatus": "review-required",
+      "privacyStatus": "review-required",
+      "localizationStatus": "ready-for-review",
+      "processingRegions": ["EU", "US-future"],
+      "requirementIds": [
+        "nz-gst-remote-services", "nz-privacy-cross-border",
+        "nz-consumer-subscriptions", "global-merchant-of-record"
+      ],
+      "blockers": [
+        "New Zealand GST registration or Merchant-of-Record responsibility is not approved; the current NZ$60,000 threshold must be rechecked at launch.",
+        "Two-item consumer-location evidence and GST business-status handling are not implemented.",
+        "Privacy Act 2020 and Principle 12 overseas disclosure safeguards are not approved.",
+        "Fair Trading Act, Consumer Guarantees Act, renewal, cancellation, and refund terms require counsel review.",
+        "An NZD price book and New Zealand data-region position are not approved."
+      ]
+    }
+  ],
+  "countryOverrides": [
+    {
+      "countryCode": "DE",
+      "status": "review-required",
+      "requirementIds": ["eu-electronic-withdrawal"],
+      "blockers": [
+        "Verified Swiss operator details and counsel-approved authoritative English Legal documents are missing.",
+        "BGB electronic withdrawal, DDG provider information, VSBG statement, and German checkout review are incomplete."
+      ]
+    }
+  ]
+}

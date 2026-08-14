@@ -54,6 +54,13 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
         Assert.False(checkout.GetProperty("legalDocumentsReady").GetBoolean());
         Assert.Equal("consumer-checkout-disabled", checkout.GetProperty("reason").GetString());
         Assert.Equal(3, checkout.GetProperty("documents").GetArrayLength());
+
+        var paidCheckout = await client.GetFromJsonAsync<JsonElement>(
+            "/api/pxa/v1/account/subscription/paid-checkout-readiness?country=DE&customerType=Business&locale=de");
+        Assert.False(paidCheckout.GetProperty("available").GetBoolean());
+        Assert.Equal("catalog-not-ready", paidCheckout.GetProperty("reason").GetString());
+        Assert.Equal("eu-27", paidCheckout.GetProperty("market").GetProperty("region").GetString());
+        Assert.Equal("EUR", paidCheckout.GetProperty("market").GetProperty("currency").GetString());
     }
 
     [PostgreSqlFact]
@@ -69,6 +76,9 @@ public sealed class AccountSubscriptionAndLicensesControllerTests
         Assert.Equal(
             HttpStatusCode.Unauthorized,
             (await client.GetAsync("/api/pxa/v1/account/subscription/checkout-readiness")).StatusCode);
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            (await client.GetAsync("/api/pxa/v1/account/subscription/paid-checkout-readiness?country=DE")).StatusCode);
     }
 
     [PostgreSqlFact]

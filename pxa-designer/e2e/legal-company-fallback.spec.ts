@@ -6,10 +6,33 @@ const hash = 'a'.repeat(64);
 const legalDocument = {
   key: 'terms',
   version: '2026-08',
+  locale: 'en',
   contentHash: hash,
   renderedHtml: '<h1>Synthetic deployed terms</h1><p>Published legal content.</p>',
   effectiveAt: '2026-07-01T00:00:00Z',
   isAuthoritative: false,
+  changeSummary: 'Clarified the synthetic publication.',
+};
+
+const legalHistory = {
+  key: 'terms',
+  currentVersion: '2026-08',
+  versions: [
+    {
+      version: '2026-08',
+      locale: 'en',
+      contentHash: hash,
+      effectiveAt: '2026-07-01T00:00:00Z',
+      changeSummary: 'Clarified the synthetic publication.',
+    },
+    {
+      version: '2026-07',
+      locale: 'en',
+      contentHash: hash,
+      effectiveAt: '2026-06-01T00:00:00Z',
+      changeSummary: 'Initial synthetic publication.',
+    },
+  ],
 };
 
 function snapshot(generatedAt: string) {
@@ -25,6 +48,8 @@ function snapshot(generatedAt: string) {
 async function failLegalApi(page: Page) {
   await page.route('**/api/pxa/v1/legal/documents/terms/current?*', (route) =>
     route.fulfill({ status: 503, contentType: 'application/problem+json', body: '{}' }));
+  await page.route('**/api/pxa/v1/legal/documents/terms/versions?*', (route) =>
+    route.fulfill({ status: 503, contentType: 'application/problem+json', body: '{}' }));
 }
 
 async function assertNoHorizontalOverflow(page: Page) {
@@ -39,13 +64,56 @@ test('Company prefers current Legal API content', async ({ page }) => {
       contentType: 'application/json',
       body: JSON.stringify(legalDocument),
     }));
+  await page.route('**/api/pxa/v1/legal/documents/terms/versions?*', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(legalHistory),
+    }));
 
   await page.goto(`${companyUrl}/terms.html`);
 
   const content = page.locator('[data-legal-content]');
   await expect(content).toHaveAttribute('data-legal-source', 'live');
-  await expect(content.getByRole('heading', { name: 'Synthetic deployed terms' })).toBeVisible();
-  await expect(page.getByText(/Archived copy from/)).toHaveCount(0);
+  await expect(content.getByText('Published legal content.')).toBeVisible();
+  await expect(page.getByText('Current publication')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Version 2026-07' })).toBeVisible();
+  await assertNoHorizontalOverflow(page);
+});
+
+test('Company opens an immutable archived publication and preserves current navigation', async ({
+  page,
+}) => {
+  await page.route('**/api/pxa/v1/legal/documents/terms/versions/2026-07?*', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ...legalDocument,
+        version: '2026-07',
+        renderedHtml: '<h1>Archived synthetic terms</h1><p>Prior publication.</p>',
+        changeSummary: 'Initial synthetic publication.',
+      }),
+    }));
+  await page.route('**/api/pxa/v1/legal/documents/terms/versions?*', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(legalHistory),
+    }));
+
+  await page.goto(`${companyUrl}/terms.html?version=2026-07`);
+
+  await expect(page.getByText('Archived publication')).toBeVisible();
+  await expect(page.getByText('Prior publication.')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Version 2026-08' })).toHaveAttribute(
+    'href',
+    '/terms.html',
+  );
+  await expect(page.getByRole('link', { name: 'Version 2026-07' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
   await assertNoHorizontalOverflow(page);
 });
 
@@ -61,9 +129,9 @@ test('Company remains readable through a valid last-known-good snapshot', async 
 
   const content = page.locator('[data-legal-content]');
   await expect(content).toHaveAttribute('data-legal-source', 'snapshot');
-  await expect(content.getByRole('heading', { name: 'Synthetic deployed terms' })).toBeVisible();
-  await expect(page.getByText(/Archived copy from/)).toBeVisible();
-  await expect(page.getByText(/transactions requiring current-version verification remain disabled/)).toBeVisible();
+  await expect(content.getByText('Published legal content.')).toBeVisible();
+  await expect(page.getByText('Verified snapshot', { exact: true })).toBeVisible();
+  await expect(page.getByText(/transactions requiring current-version verification remain disabled/i)).toBeVisible();
   await assertNoHorizontalOverflow(page);
 });
 
@@ -81,7 +149,7 @@ test('Company visibly identifies a stale but valid snapshot', async ({ page }) =
     'data-legal-source',
     'snapshot',
   );
-  await expect(page.getByText(/Snapshot older than 30 days/)).toBeVisible();
+  await expect(page.getByText(/older than 30 days/)).toBeVisible();
 });
 
 test('Company rejects a corrupt snapshot instead of presenting draft copy as published', async ({

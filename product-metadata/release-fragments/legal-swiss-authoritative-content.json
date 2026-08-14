@@ -1,0 +1,17 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "legal-swiss-authoritative-content",
+  "impact": "minor",
+  "components": [
+    "admin",
+    "api",
+    "company"
+  ],
+  "category": "added",
+  "summary": "PXA now provides seven English authoritative Legal candidates for a Swiss operator and lets authorized administrators import them as independently reviewed draft versions.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.Legal-Terms-Privacy-And-Consent.md"
+  ],
+  "breaking": false
+}

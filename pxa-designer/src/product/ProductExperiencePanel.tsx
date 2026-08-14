@@ -9,6 +9,7 @@ import {
 } from './productMetadata';
 import FeatureBadge from './FeatureBadge';
 import { useProductExperience, type ProductPanel } from './ProductExperienceProvider';
+import { accountPageUrl } from '@/auth/designerAuth';
 
 interface ProductExperiencePanelProps {
   panel: ProductPanel;
@@ -203,7 +204,11 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
                 </div>
               </article>
             ))}
-            {notifications.map(item => (
+            {notifications.map(item => {
+              const actionUrl = item.actionUrl && item.category === 'Legal'
+                ? accountPageUrl(item.actionUrl)
+                : item.actionUrl;
+              return (
               <article className={`pxa-notification-item${item.read ? '' : ' is-unread'}`} key={item.id}>
                 <span className={`is-${item.severity.toLowerCase()}`}><FiBell /></span>
                 <div>
@@ -213,8 +218,8 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
                   </button>
                   <p>{item.message}</p>
                   <div className="pxa-notification-item-actions">
-                    {item.actionUrl && item.actionLabel && (
-                      <a href={item.actionUrl}>{item.actionLabel}</a>
+                    {actionUrl && item.actionLabel && (
+                      <a href={actionUrl}>{item.actionLabel}</a>
                     )}
                     {!item.read && (
                       <button type="button" onClick={() => void markNotificationRead(item.id)}>
@@ -229,7 +234,8 @@ const ProductExperiencePanel: React.FC<ProductExperiencePanelProps> = ({
                   </div>
                 </div>
               </article>
-            ))}
+              );
+            })}
             {notifications.length === 0 && releases.length === 0 && (
               <div className="pxa-notification-empty">
                 <FiCheck />

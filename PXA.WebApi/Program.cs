@@ -155,6 +155,8 @@ builder.Services.AddOptions<PxaJobOptions>()
             options.LeaseMinutes is >= 1 and <= 1440 &&
             options.MaximumAttempts is >= 1 and <= 20 &&
             options.ResultRetentionDays is >= 1 and <= 3650 &&
+            options.TransientRetentionHours is >= 1 and <= 24 &&
+            options.TerminalMetadataRetentionDays is >= 1 and <= 3650 &&
             options.CleanupIntervalMinutes is >= 1 and <= 1440 &&
             options.CleanupBatchSize is >= 1 and <= 10000 &&
             options.MetricsIntervalSeconds is >= 5 and <= 300,
@@ -297,10 +299,13 @@ builder.Services.AddScoped<DesignerAuthorizationCodeService>();
 builder.Services.AddScoped<OrganizationMembershipService>();
 builder.Services.AddScoped<SubscriptionQueryService>();
 builder.Services.AddScoped<PxaLegalDocumentService>();
+builder.Services.AddSingleton<PxaLegalContentCatalog>();
 builder.Services.AddScoped<AccountLegalObligationService>();
 builder.Services.Configure<PxaConsumerCheckoutOptions>(
     builder.Configuration.GetSection(PxaConsumerCheckoutOptions.SectionName));
 builder.Services.AddScoped<PxaConsumerCheckoutLegalGate>();
+builder.Services.AddSingleton<PxaCommerceReadinessCatalog>();
+builder.Services.AddScoped<PxaPaidCheckoutReadinessGate>();
 builder.Services.AddSingleton<PXA.WebApi.Application.Retention.PxaRetentionPolicyCatalog>();
 builder.Services.AddScoped<PXA.WebApi.Application.Retention.PxaRetentionLegalHoldService>();
 builder.Services.AddScoped<PXA.WebApi.Application.Retention.PxaRetentionGovernanceService>();

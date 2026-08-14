@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const [main, page, api] = await Promise.all([
+const [main, page, updates, api] = await Promise.all([
   readFile(new URL('../src/main.ts', import.meta.url), 'utf8'),
   readFile(new URL('../src/pages/legalReview.ts', import.meta.url), 'utf8'),
+  readFile(new URL('../src/pages/legalUpdates.ts', import.meta.url), 'utf8'),
   readFile(new URL('../src/api.ts', import.meta.url), 'utf8'),
 ]);
 
@@ -20,6 +21,22 @@ test('Terms acceptance and Privacy acknowledgement use distinct language', () =>
   assert.match(page, /I accept the current Terms and Conditions/);
   assert.match(page, /I acknowledge that I have received the current Privacy Notice/);
   assert.match(page, /This acknowledgement is not consent to marketing/);
+});
+
+test('current and previous Legal publications remain available after review', () => {
+  assert.match(main, /'\/legal-updates'/);
+  assert.match(updates, /All Legal publications/);
+  assert.match(updates, /Data Processing Agreement/);
+  assert.match(updates, /License Agreement/);
+  assert.match(updates, /URLSearchParams\(window\.location\.search\)/);
+  assert.match(updates, /Acceptance and acknowledgement are different/);
+  assert.match(updates, /currentTermsChangeSummary/);
+  assert.match(updates, /previousTermsVersion/);
+  assert.match(updates, /currentPrivacyChangeSummary/);
+  assert.match(updates, /previousPrivacyVersion/);
+  assert.match(updates, /Read current version/);
+  assert.match(updates, /Read previous version/);
+  assert.match(page, /Compare with version/);
 });
 
 test('unavailable or changed policies fail closed', () => {

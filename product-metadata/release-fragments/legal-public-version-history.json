@@ -1,0 +1,15 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "legal-public-version-history",
+  "impact": "minor",
+  "components": [
+    "api",
+    "company"
+  ],
+  "category": "added",
+  "summary": "Customers can review Legal publication details, change summaries, and immutable prior versions from the PXA Company Legal pages.",
+  "documentation": [
+    "/checklists/PXA.Legal-Terms-Privacy-And-Consent.md"
+  ],
+  "breaking": false
+}

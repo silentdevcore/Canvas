@@ -12,6 +12,7 @@ const openPanel = jest.fn();
 const closePanel = jest.fn();
 const markAllRead = jest.fn();
 const markReleaseRead = jest.fn().mockResolvedValue(undefined);
+const mockNotifications: Array<Record<string, unknown>> = [];
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -32,7 +33,7 @@ jest.mock('@/product/ProductExperienceProvider', () => ({
     markAllRead,
     markNotificationRead: jest.fn(),
     markReleaseRead,
-    notifications: [],
+    notifications: mockNotifications,
     openPanel,
     readVersions: new Set(['1.1.0']),
     releases: [{
@@ -58,7 +59,10 @@ jest.mock('@/product/ProductExperienceProvider', () => ({
 }));
 
 describe('ProductExperiencePanel release history', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockNotifications.splice(0);
+  });
 
   test('keeps a read release visible and allows it to be reopened', async () => {
     const container = document.createElement('div');
@@ -80,6 +84,42 @@ describe('ProductExperiencePanel release history', () => {
 
     await act(async () => release?.click());
     expect(openPanel).toHaveBeenCalledWith('releases', '1.1.0');
+
+    await act(async () => root.unmount());
+    container.remove();
+  });
+
+  test('keeps Legal notifications reopenable and links them to PXA Account', async () => {
+    mockNotifications.push({
+      id: 'a62dd01e-17ce-442c-805a-a67bfde06671',
+      category: 'Legal',
+      severity: 'Warning',
+      title: 'Terms and Conditions updated',
+      message: 'Version 1.2 requires acceptance in PXA Account.',
+      actionLabel: 'Review legal update',
+      actionUrl: '/legal-updates?document=terms',
+      dismissible: true,
+      createdAt: '2026-08-14T00:00:00Z',
+      expiresAt: null,
+      read: true,
+    });
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(
+        <ProductExperiencePanel
+          panel="notifications"
+          onSelectVersion={jest.fn()}
+        />,
+      );
+    });
+
+    const action = [...container.querySelectorAll('a')]
+      .find(link => link.textContent === 'Review legal update');
+    expect(action?.href).toBe('http://localhost:5178/legal-updates?document=terms');
+    expect(action?.closest('article')?.classList.contains('is-unread')).toBe(false);
 
     await act(async () => root.unmount());
     container.remove();

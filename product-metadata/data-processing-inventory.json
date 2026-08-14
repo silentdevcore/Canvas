@@ -133,13 +133,13 @@
       "region": "PXA Server and object-storage deployment region",
       "transfer": "none-by-default",
       "retention": {
-        "status": "partially-enforced",
+        "status": "enforced",
         "approvalStatus": "pending-legal",
-        "rule": "Input and result objects expire seven days after terminal completion by default. Expired job metadata remains and needs an approved purge or minimization period.",
-        "configuration": ["Jobs:ResultRetentionDays", "Jobs:CleanupIntervalMinutes"],
+        "rule": "Transient jobs are the default: input and result content is purged after successful result download or no later than 24 hours after terminal completion. Explicit Retained jobs keep content for seven days. Payloads and diagnostics are scrubbed with content, and minimized terminal job metadata expires after 30 days. Active Legal Holds suspend both cleanup stages.",
+        "configuration": ["Jobs:TransientRetentionHours", "Jobs:ResultRetentionDays", "Jobs:TerminalMetadataRetentionDays", "Jobs:CleanupIntervalMinutes"],
         "legalApprovalRequired": true
       },
-      "sources": ["PXA.WebApi/Services/Jobs/PxaJobOptions.cs", "PXA.WebApi/Services/Jobs/PxaJobRetentionService.cs", "PXA.WebApi/Services/Storage/PxaStoredObjectService.cs"]
+      "sources": ["PXA.WebApi/Controllers/DocumentJobsController.cs", "PXA.WebApi/Controllers/JobsController.cs", "PXA.WebApi/Services/Jobs/PxaJobOptions.cs", "PXA.WebApi/Services/Jobs/PxaJobRetentionService.cs", "PXA.WebApi/Services/Storage/PxaStoredObjectService.cs"]
     },
     {
       "id": "transactional-mail",

@@ -75,6 +75,7 @@ import {
   revokeAdminRoleMember,
   validateAdminLicense,
   getAdminLegalDocuments,
+  importAdminLegalCandidates,
   compareAdminLegalVersions,
   getAdminLegalAcceptance,
   exportAdminLegalAcceptance,
@@ -1151,12 +1152,13 @@ function legalPage() {
     <header class="admin-page-header">
       <div><p class="pxa-kicker">Governance</p><h1>Legal documents</h1><p>Author, independently review, schedule, and publish immutable legal document versions.</p></div>
       <div class="admin-header-actions">
+        <button class="pxa-button pxa-button--primary" id="legal-import-candidates" type="button" ${legal.saving ? 'disabled' : ''}>Import English candidates</button>
         <a class="pxa-button pxa-button--secondary" href="/dependency-compliance">Dependency compliance</a>
         <span class="admin-record-count">${legal.documents.length} documents · ${legal.versions.length} versions</span>
       </div>
     </header>
     <div class="admin-alert admin-alert--warning admin-detail-alert">
-      Production publication requires verified operator details and approval by qualified German legal counsel.
+      English is the authoritative language and Swiss law is the baseline. Production publication requires verified operator details and approval by qualified Swiss counsel with international-market expertise.
       Paid consumer checkout must remain disabled until its legal workflow is approved.
     </div>
     ${legal.error ? `<div class="admin-alert admin-alert--error admin-detail-alert" role="alert">${escapeHtml(legal.error)}</div>` : ''}
@@ -1173,11 +1175,11 @@ function legalPage() {
       </section>
       <section class="admin-section">
         <form id="legal-version-form" class="admin-form-stack">
-          <div class="admin-section-heading"><h2>Create draft version</h2><p>German is authoritative; English is a convenience translation.</p></div>
+          <div class="admin-section-heading"><h2>Create draft version</h2><p>English is authoritative. Add localized notices later only where a target market requires them.</p></div>
           <label class="admin-field"><span>Document</span><select name="documentId" required><option value="">Choose document</option>${legal.documents.map((item) => `<option value="${item.id}">${escapeHtml(item.displayName)}</option>`).join('')}</select></label>
           <div class="admin-inline-form">
             <label class="admin-field"><span>Version</span><input name="version" required maxlength="64" placeholder="2026-07"></label>
-            <label class="admin-field"><span>Locale</span><select name="locale"><option value="de">German</option><option value="en">English</option></select></label>
+            <label class="admin-field"><span>Locale</span><select name="locale"><option value="en">English</option><option value="de">German translation</option></select></label>
             <label class="admin-field"><span>Audience</span><select name="audience">${legalAudiences.map((value) => `<option>${value}</option>`).join('')}</select></label>
           </div>
           <label class="admin-field"><span>Change summary</span><input name="changeSummary" maxlength="2000"></label>
@@ -1347,6 +1349,10 @@ async function downloadLegalAcceptance(format) {
 }
 
 function bindLegalEvents() {
+  document.querySelector('#legal-import-candidates')?.addEventListener('click', () =>
+    runLegalMutation(
+      () => importAdminLegalCandidates(),
+      'English Swiss-law candidates imported as drafts for independent review.'));
   document.querySelector('#legal-document-form')?.addEventListener('submit', (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);

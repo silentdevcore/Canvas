@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://powerdoxautomation.com/schemas/country-readiness.schema.json",
+  "title": "PXA country readiness matrix",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "reviewedAt", "productionApproved", "requirements", "regions", "countryOverrides"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "reviewedAt": { "type": "string", "format": "date" },
+    "productionApproved": { "type": "boolean" },
+    "requirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "area", "summary", "source"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "area": { "enum": ["tax", "privacy", "consumer", "trade", "payments"] },
+          "summary": { "type": "string", "minLength": 20 },
+          "source": { "type": "string", "pattern": "^https://" }
+        }
+      }
+    },
+    "regions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "countryCodes", "priceBookCurrency", "b2bStatus", "b2cStatus", "taxStatus", "privacyStatus", "localizationStatus", "processingRegions", "requirementIds", "blockers"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "countryCodes": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[A-Z]{2}$" } },
+          "priceBookCurrency": { "enum": ["USD", "EUR", "GBP", "CHF"] },
+          "b2bStatus": { "$ref": "#/$defs/readinessStatus" },
+          "b2cStatus": { "$ref": "#/$defs/readinessStatus" },
+          "taxStatus": { "$ref": "#/$defs/readinessStatus" },
+          "privacyStatus": { "$ref": "#/$defs/readinessStatus" },
+          "localizationStatus": { "enum": ["insufficient", "ready-for-review", "approved"] },
+          "processingRegions": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+          "requirementIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+          "blockers": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 12 } }
+        }
+      }
+    },
+    "countryOverrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["countryCode", "status", "requirementIds", "blockers"],
+        "properties": {
+          "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+          "status": { "$ref": "#/$defs/readinessStatus" },
+          "requirementIds": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+          "blockers": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 12 } }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "readinessStatus": { "enum": ["research-required", "review-required", "approved", "blocked"] }
+  }
+}

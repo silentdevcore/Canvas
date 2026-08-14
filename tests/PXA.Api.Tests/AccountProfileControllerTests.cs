@@ -14,6 +14,7 @@ using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.Infrastructure.Persistence.Identity;
 using PXA.WebApi.Controllers;
+using PXA.WebApi.Application.Legal;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Mail;
 using Testcontainers.PostgreSql;
@@ -283,7 +284,8 @@ public sealed class AccountProfileControllerTests
             .SingleAsync();
         var adminController = new AdminLegalDocumentsController(
             evidenceContext,
-            new TestTenantContext(acceptedUser.Id, organizationId));
+            new TestTenantContext(acceptedUser.Id, organizationId),
+            new PxaLegalContentCatalog());
         var summaryResult = await adminController.GetAcceptanceSummary(
             termsId, null, "Company", "en", null, null, CancellationToken.None);
         var summary = Assert.IsType<AdminLegalAcceptanceSummaryResponse>(

@@ -147,7 +147,10 @@ public sealed class DesignerProductExperienceTests
         var second = Notification(organizationId, null, "Second");
         second.CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-1);
         second.Dismissible = false;
-        dbContext.DesignerNotifications.AddRange(expired, first, second);
+        var future = Notification(null, null, "Scheduled Legal update");
+        future.Category = DesignerNotificationCategory.Legal;
+        future.CreatedAt = DateTimeOffset.UtcNow.AddDays(1);
+        dbContext.DesignerNotifications.AddRange(expired, first, second, future);
         await dbContext.SaveChangesAsync();
         var controller = CreateNotificationController(dbContext, organizationId, userId);
 
@@ -170,6 +173,10 @@ public sealed class DesignerProductExperienceTests
             Assert.IsType<OkObjectResult>(afterDismiss.Result).Value);
         Assert.Single(afterDismissPage.Items);
         Assert.Equal("Second", afterDismissPage.Items[0].Title);
+        await controller.MarkAllRead(CancellationToken.None);
+        Assert.DoesNotContain(
+            await dbContext.DesignerNotificationStates.ToListAsync(),
+            state => state.NotificationId == future.Id);
     }
 
     [Fact]

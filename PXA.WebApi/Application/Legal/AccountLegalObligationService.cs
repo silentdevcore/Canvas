@@ -35,6 +35,14 @@ public sealed class AccountLegalObligationService(
 
         if (terms is not null && privacy is not null)
         {
+            var predecessorIds = new[] { terms.PreviousVersionId, privacy.PreviousVersionId }
+                .Where(value => value.HasValue)
+                .Select(value => value!.Value)
+                .Distinct()
+                .ToArray();
+            var predecessorVersions = await dbContext.LegalDocumentVersions.AsNoTracking()
+                .Where(value => predecessorIds.Contains(value.Id))
+                .ToDictionaryAsync(value => value.Id, value => value.Version, cancellationToken);
             var acceptedVersionIds = await dbContext.LegalAcceptanceEvents.AsNoTracking()
                 .Where(value =>
                     value.UserId == user.Id &&
@@ -48,10 +56,12 @@ public sealed class AccountLegalObligationService(
                 true,
                 ToDocument(
                     terms,
-                    terms.RequiresAcceptance && !acceptedVersionIds.Contains(terms.Id)),
+                    terms.RequiresAcceptance && !acceptedVersionIds.Contains(terms.Id),
+                    FindPredecessorVersion(terms, predecessorVersions)),
                 ToDocument(
                     privacy,
-                    !acceptedVersionIds.Contains(privacy.Id)));
+                    !acceptedVersionIds.Contains(privacy.Id),
+                    FindPredecessorVersion(privacy, predecessorVersions)));
         }
 
         if (options.RequireDatabaseLegalDocuments)
@@ -64,6 +74,8 @@ public sealed class AccountLegalObligationService(
                 options.TermsVersion,
                 PxaLegalDocumentService.NormalizeLocale(user.Locale),
                 null,
+                null,
+                null,
                 options.RequireCurrentTermsAcceptance &&
                 !string.Equals(
                     user.TermsAcceptedVersion,
@@ -74,6 +86,8 @@ public sealed class AccountLegalObligationService(
                 options.PrivacyVersion,
                 PxaLegalDocumentService.NormalizeLocale(user.Locale),
                 null,
+                null,
+                null,
                 options.RequireCurrentPrivacyAcknowledgement &&
                 !string.Equals(
                     user.PrivacyAcknowledgedVersion,
@@ -83,13 +97,23 @@ public sealed class AccountLegalObligationService(
 
     private static AccountLegalObligationDocument ToDocument(
         LegalDocumentVersion version,
-        bool actionRequired) =>
+        bool actionRequired,
+        string? previousVersion) =>
         new(
             version.Id,
             version.Version,
             version.Locale,
             version.ContentHash,
+            version.ChangeSummary,
+            previousVersion,
             actionRequired);
+
+    private static string? FindPredecessorVersion(
+        LegalDocumentVersion version,
+        IReadOnlyDictionary<Guid, string> predecessors) =>
+        version.PreviousVersionId is { } id && predecessors.TryGetValue(id, out var predecessor)
+            ? predecessor
+            : null;
 }
 
 public sealed record AccountLegalObligationDocument(
@@ -97,6 +121,8 @@ public sealed record AccountLegalObligationDocument(
     string Version,
     string Locale,
     string? ContentHash,
+    string? ChangeSummary,
+    string? PreviousVersion,
     bool ActionRequired);
 
 public sealed record AccountLegalObligations(

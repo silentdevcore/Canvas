@@ -14,15 +14,18 @@ public sealed class AccountSubscriptionController : ControllerBase
     private readonly IPxaTenantContext tenantContext;
     private readonly SubscriptionQueryService queryService;
     private readonly PxaConsumerCheckoutLegalGate checkoutLegalGate;
+    private readonly PxaPaidCheckoutReadinessGate paidCheckoutReadinessGate;
 
     public AccountSubscriptionController(
         IPxaTenantContext tenantContext,
         SubscriptionQueryService queryService,
-        PxaConsumerCheckoutLegalGate checkoutLegalGate)
+        PxaConsumerCheckoutLegalGate checkoutLegalGate,
+        PxaPaidCheckoutReadinessGate paidCheckoutReadinessGate)
     {
         this.tenantContext = tenantContext;
         this.queryService = queryService;
         this.checkoutLegalGate = checkoutLegalGate;
+        this.paidCheckoutReadinessGate = paidCheckoutReadinessGate;
     }
 
     [HttpGet]
@@ -83,6 +86,20 @@ public sealed class AccountSubscriptionController : ControllerBase
         [FromQuery] string locale = "de",
         CancellationToken cancellationToken = default) =>
         Ok(await checkoutLegalGate.EvaluateAsync(
+            locale,
+            DateTimeOffset.UtcNow,
+            cancellationToken));
+
+    [HttpGet("paid-checkout-readiness")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<ActionResult<PxaPaidCheckoutReadiness>> GetPaidCheckoutReadiness(
+        [FromQuery] string country,
+        [FromQuery] PxaCheckoutCustomerType customerType = PxaCheckoutCustomerType.Business,
+        [FromQuery] string locale = "de",
+        CancellationToken cancellationToken = default) =>
+        Ok(await paidCheckoutReadinessGate.EvaluateAsync(
+            country,
+            customerType,
             locale,
             DateTimeOffset.UtcNow,
             cancellationToken));

@@ -22,9 +22,19 @@ public sealed class PxaBackgroundJob
     public int ProgressPercent { get; set; }
     public string? DiagnosticsJson { get; set; }
     public string? FailureReason { get; set; }
+    public PxaJobRetentionMode RetentionMode { get; set; } = PxaJobRetentionMode.Transient;
     public DateTimeOffset ExpiresAt { get; set; } = DateTimeOffset.UtcNow.AddDays(7);
+    public DateTimeOffset MetadataExpiresAt { get; set; } = DateTimeOffset.UtcNow.AddDays(30);
+    public DateTimeOffset? ResultDownloadedAt { get; set; }
+    public DateTimeOffset? ContentPurgedAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+}
+
+public enum PxaJobRetentionMode
+{
+    Transient,
+    Retained,
 }
 
 public enum PxaBackgroundJobStatus

@@ -1,0 +1,20 @@
+{
+  "$schema": "../release-fragment.schema.json",
+  "id": "legal-benchmark-launch-readiness",
+  "impact": "none",
+  "components": [
+    "company",
+    "infrastructure"
+  ],
+  "category": "improved",
+  "summary": "Legal launch controls now include country-aware paid-checkout gating, transient document jobs with bounded retention, and repeatable fail-closed Production readiness reports.",
+  "featureIds": [],
+  "documentation": [
+    "/checklists/PXA.Legal-Benchmark-And-Decision-Register.md",
+    "/checklists/PXA.Legal-Terms-Privacy-And-Consent.md",
+    "/checklists/PXA.Global-Commerce-And-Pricing.md",
+    "/checklists/PXA.Commercial-Launch-Decision-Packet.md"
+  ],
+  "breaking": false,
+  "reason": "This change adds internal compliance research and validation tooling without changing shipped customer behavior."
+}

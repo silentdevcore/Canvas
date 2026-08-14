@@ -17,6 +17,10 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 - [ ] Align offline deployment and license mounting with `PXA.Api-Docker.md`.
 - [ ] Align SDK entitlement behavior with `PXA.SDK-Roadmap.md`.
 - [ ] Define exact prices and numeric usage limits before enabling paid checkout.
+- [x] Record the researched worldwide price proposal and commerce model in `PXA.Global-Commerce-And-Pricing.md`.
+- [x] Keep the proposal in a versioned, machine-validated catalog with public pricing and Consumer checkout disabled.
+- [x] Consolidate the required commercial approvals in `PXA.Commercial-Launch-Decision-Packet.md`.
+- [ ] Approve or revise the proposed price book with Product, Finance, Tax, and Legal owners before implementing billing.
 
 ## Subscription Dimensions
 
@@ -92,6 +96,7 @@ Define a consistent subscription and entitlement model for PXA Cloud, PXA Server
 - [x] Show customers their edition, renewal or expiry date, seats, entitlements, limits, usage, and a Pricing or Sales upgrade path.
 - [x] Send implemented subscription lifecycle, seat, and offline-license notifications through `PXA.Mail-Service.md`.
 - [ ] Update PXA.Company pricing and license content after commercial decisions are approved.
+- [ ] Publish only country-supported currencies, taxes, quotas, and prices from an approved versioned price book.
 - [ ] Keep billing-provider integration behind an application abstraction.
 
 ## Tests

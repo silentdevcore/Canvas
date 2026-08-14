@@ -18,6 +18,7 @@ export const navigation: NavigationItem[] = [
   { path: '/licenses', label: 'Licenses', permission: accountPermissions.licensesRead },
   { path: '/developer-access', label: 'Developer access', permission: accountPermissions.serviceAccountsRead },
   { path: '/security', label: 'Security', permission: accountPermissions.sessionsManage },
+  { path: '/legal-updates', label: 'Legal updates' },
   { path: '/support', label: 'Support' },
 ];
 

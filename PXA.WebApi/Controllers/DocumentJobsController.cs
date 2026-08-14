@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PXA.Core.Contracts;
+using PXA.Domain.Entities;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Jobs;
 using PXA.WebApi.Services.Storage;
@@ -21,7 +22,8 @@ public sealed class DocumentJobsController(
     [Consumes("multipart/form-data")]
     public async Task<ActionResult<PxaJobAcceptedResponse>> Import(
         IFormFile? file,
-        CancellationToken cancellationToken)
+        [FromQuery] PxaJobRetentionMode retentionMode = PxaJobRetentionMode.Transient,
+        CancellationToken cancellationToken = default)
     {
         if (file is null || file.Length == 0)
             return BadRequest(new ProblemDetails { Detail = "A non-empty source file is required." });
@@ -36,6 +38,7 @@ public sealed class DocumentJobsController(
             file.FileName,
             PxaJobQueue.DocumentImportType,
             new DocumentImportJobPayload(extension, Path.GetFileNameWithoutExtension(file.FileName)),
+            retentionMode,
             cancellationToken);
     }
 
@@ -45,7 +48,8 @@ public sealed class DocumentJobsController(
         [FromQuery] float? dpi,
         [FromQuery] int? quality,
         [FromBody] DesignExportDto design,
-        CancellationToken cancellationToken)
+        [FromQuery] PxaJobRetentionMode retentionMode = PxaJobRetentionMode.Transient,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(format))
             return BadRequest(new ProblemDetails { Detail = "The export format is required." });
@@ -56,13 +60,15 @@ public sealed class DocumentJobsController(
             $"{design.Name}.pxa.json",
             PxaJobQueue.DocumentExportType,
             new DocumentExportJobPayload(format.Trim(), dpi, quality),
+            retentionMode,
             cancellationToken);
     }
 
     [HttpPost("code-migration")]
     public async Task<ActionResult<PxaJobAcceptedResponse>> CodeMigration(
         CodeMigrationJobRequest request,
-        CancellationToken cancellationToken)
+        [FromQuery] PxaJobRetentionMode retentionMode = PxaJobRetentionMode.Transient,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.Framework) || string.IsNullOrWhiteSpace(request.SourceCode))
             return BadRequest(new ProblemDetails { Detail = "Framework and sourceCode are required." });
@@ -73,6 +79,7 @@ public sealed class DocumentJobsController(
             $"{request.Framework}.source.cs",
             PxaJobQueue.CodeMigrationType,
             new CodeMigrationJobPayload(request.Framework.Trim()),
+            retentionMode,
             cancellationToken);
     }
 
@@ -82,6 +89,7 @@ public sealed class DocumentJobsController(
         string fileName,
         string jobType,
         object payload,
+        PxaJobRetentionMode retentionMode,
         CancellationToken cancellationToken)
     {
         if (tenantContext.OrganizationId is not { } organizationId ||
@@ -102,9 +110,11 @@ public sealed class DocumentJobsController(
                 jobType,
                 input.Id,
                 payload,
-                cancellationToken);
+                cancellationToken,
+                retentionMode);
             var statusUrl = $"/api/pxa/v1/jobs/{job.Id}";
-            return Accepted(statusUrl, new PxaJobAcceptedResponse(job.Id, job.Status.ToString(), statusUrl));
+            return Accepted(statusUrl, new PxaJobAcceptedResponse(
+                job.Id, job.Status.ToString(), job.RetentionMode.ToString(), job.ExpiresAt, statusUrl));
         }
         catch
         {
@@ -115,4 +125,9 @@ public sealed class DocumentJobsController(
 }
 
 public sealed record CodeMigrationJobRequest(string Framework, string SourceCode);
-public sealed record PxaJobAcceptedResponse(Guid JobId, string Status, string StatusUrl);
+public sealed record PxaJobAcceptedResponse(
+    Guid JobId,
+    string Status,
+    string RetentionMode,
+    DateTimeOffset ContentExpiresAt,
+    string StatusUrl);

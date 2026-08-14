@@ -5,7 +5,11 @@ import { renderPxaFooter } from '../../shared/footer.js';
 import { companyPage, siteLinks } from '../../shared/siteLinks.js';
 import { consumeSignedInSignal } from '../../shared/signedInSignal.js';
 import { initializeStorageNotice } from '../../shared/storageNotice.js';
-import { loadPublishedLegalDocument } from './legalSnapshot.js';
+import {
+  loadPublishedLegalDocument,
+  loadPublishedLegalHistory,
+  loadPublishedLegalVersion,
+} from './legalSnapshot.js';
 
 initializeBrowserTelemetry({ application: 'company' });
 
@@ -84,17 +88,17 @@ const companyRoutes = {
   '/terms.html': {
     section: 'terms',
     title: 'Terms | Power Dox Automation',
-    description: 'Review placeholder terms for evaluating and using Power Dox Automation.',
+    description: 'Review the Terms and Conditions for Power Dox Automation.',
   },
   '/privacy.html': {
     section: 'privacy',
     title: 'Privacy | Power Dox Automation',
-    description: 'Review placeholder privacy information for Power Dox Automation.',
+    description: 'Learn how Power Dox Automation processes and protects personal data.',
   },
   '/license.html': {
     section: 'license',
     title: 'License | Power Dox Automation',
-    description: 'Review placeholder license information for Power Dox Automation.',
+    description: 'Review software, service, SDK, and On-Premise license rights for Power Dox Automation.',
   },
   '/cookie-storage.html': {
     section: 'cookie-storage',
@@ -329,30 +333,30 @@ const contactPaths = [
 const legalPages = {
   terms: {
     kicker: 'Terms',
-    title: 'Terms for using PXA websites, demos, and evaluation materials',
+    title: 'Terms and Conditions for Power Dox Automation',
     text:
-      'These draft terms describe the intended structure for using Power Dox Automation web properties, documentation, demos, and evaluation materials. They are product-facing placeholders and should be reviewed before public launch.',
+      'The Terms govern PXA websites, Cloud, APIs, SDK-backed services, Designer, document operations, downloadable software, and On-Premise deployments under Swiss law, while preserving mandatory local rights.',
     sections: [
       {
-        title: 'Website and demo use',
-        text: 'Visitors may use public product pages, demos, and documentation to evaluate PXA capabilities and migration fit.',
+        title: 'Accounts, plans, and services',
+        text: 'The binding version defines account responsibilities, Free, Trial, Premium and Enterprise plans, ordering, payment, service changes, and termination.',
       },
       {
-        title: 'No production commitment from demos',
-        text: 'Demo behavior is informational and may not represent final product, licensing, hosting, or support commitments.',
+        title: 'Customer content and acceptable use',
+        text: 'Customers retain their content and grant only the processing rights required to provide the service. Lawful content, authorization, and output review remain customer responsibilities.',
       },
       {
-        title: 'Commercial terms',
-        text: 'Pricing, licensing, support, and enterprise rollout terms should be agreed through a direct sales or evaluation process.',
+        title: 'Rights, warranties, and disputes',
+        text: 'The Terms preserve non-excludable liability and consumer rights, distinguish business limitations, and use Switzerland as the contractual-law baseline.',
       },
     ],
-    notice: 'Draft notice: replace this page with reviewed legal terms before using the site publicly.',
+    notice: 'The verified published database version and its effective date control.',
   },
   privacy: {
     kicker: 'Privacy',
     title: 'How PXA currently processes personal and customer data',
     text:
-      'This technical draft reflects the processing currently implemented across PXA websites, Account, Admin, Designer, API, workers, mail, storage, and observability. It is not the final counsel-approved Privacy Notice.',
+      'This Notice explains PXA processing as a Swiss controller for account and service data and as a processor for Customer Content, with additional mandatory privacy laws applying by market.',
     sections: [
       {
         title: 'Accounts and organizations',
@@ -360,7 +364,7 @@ const legalPages = {
       },
       {
         title: 'Customer documents and templates',
-        text: 'Documents, source code, images, OCR text, templates, spreadsheet data, and generated results are processed to perform operations requested by the customer. Synchronous content is transient; queued input and result objects expire after seven days by default.',
+        text: 'Documents, source code, images, OCR text, templates, spreadsheet data, and generated results are processed for customer-requested operations. Transient queued content is deleted after download or within 24 hours; explicit retained mode currently lasts seven days.',
       },
       {
         title: 'Mail, Legal, and administration',
@@ -379,13 +383,13 @@ const legalPages = {
         text: 'Technical deletion exists for jobs, mail, temporary files, browser state, and observability data. Final periods for accounts, organizations, billing, templates, audit, legal evidence, and backups remain production blockers pending legal approval. The final Privacy Notice will state applicable rights and contact details.',
       },
     ],
-    notice: 'Launch blocker: verified operator details, legal bases, provider contracts, regions, transfers, retention periods, and data-subject procedures require counsel approval.',
+    notice: 'The verified published database version and its effective date control.',
   },
   license: {
     kicker: 'License',
-    title: 'License and evaluation model',
+    title: 'Software and Service License Agreement',
     text:
-      'This draft license page explains the intended evaluation paths for PXA while final product packaging and commercial terms are still being defined.',
+      'The License defines permitted use of PXA software, On-Premise components, CLI tools, SDK clients, examples, documentation, and signed offline licenses.',
     sections: [
       {
         title: 'Evaluation',
@@ -400,7 +404,7 @@ const legalPages = {
         text: 'Migration-heavy adoption should include provider assessment, parity planning, conversion expectations, and support boundaries.',
       },
     ],
-    notice: 'Draft notice: final license language should be reviewed before external distribution.',
+    notice: 'The verified published database version and applicable order form control.',
   },
   'cookie-storage': {
     kicker: 'Cookie and storage policy',
@@ -437,7 +441,7 @@ const legalPages = {
         text: 'PXA does not load optional analytics or marketing storage. A consent center will be introduced before that changes.',
       },
     ],
-    notice: 'This operational inventory requires final review before production launch.',
+    notice: 'The verified published database version and machine-readable storage inventory control.',
   },
   imprint: {
     kicker: 'Imprint',
@@ -453,26 +457,36 @@ const legalPages = {
   withdrawal: {
     kicker: 'Consumer withdrawal',
     title: 'Withdrawal information for consumers',
-    text: 'Paid consumer checkout remains unavailable until the withdrawal process and durable confirmation have been approved.',
+    text: 'Swiss law has no general withdrawal right for ordinary online purchases. Mandatory withdrawal rights in an enabled consumer market remain unaffected and are disclosed at checkout.',
     sections: [
-      { title: 'Withdrawal right', text: 'The final period, conditions, and exercise instructions require counsel-approved wording.' },
-      { title: 'Digital performance', text: 'Any request to begin digital performance early must be captured separately and explicitly.' },
-      { title: 'Model form', text: 'A counsel-approved model withdrawal form will be provided before consumer sales begin.' },
+      { title: 'Applicable right', text: 'The checkout and confirmation identify the period, method, consequences, and exceptions required at the consumer\'s habitual residence.' },
+      { title: 'Digital performance', text: 'Where required, early digital performance is requested separately from acceptance of the Terms.' },
+      { title: 'Model form', text: 'Consumers may use the published model form or any other unambiguous withdrawal statement where a right applies.' },
     ],
-    notice: 'No paid B2C contract may be concluded from this draft page.',
+    notice: 'Paid B2C checkout remains disabled until the relevant market workflow and published version are approved.',
   },
   dpa: {
     kicker: 'Data Processing Agreement',
-    title: 'Processing customer documents on behalf of organizations',
-    text: 'PXA will provide an Article 28 agreement for business customers before production document processing.',
+    title: 'Processing Customer Content on behalf of organizations',
+    text: 'The DPA covers the Swiss FADP and, where applicable, GDPR, UK GDPR, and mandatory local data-protection requirements.',
     sections: [
-      { title: 'Processing scope', text: 'Products, data categories, purposes, duration, and controller instructions will be documented.' },
-      { title: 'Security measures', text: 'Approved technical and organizational measures will accompany the agreement.' },
-      { title: 'Subprocessors and transfers', text: 'Approved providers, processing regions, and transfer safeguards will be listed transparently.' },
+      { title: 'Processing scope', text: 'The agreement defines roles, instructions, products, purposes, data categories, data subjects, duration, return, and deletion.' },
+      { title: 'Security and assistance', text: 'PXA commits to confidentiality, risk-appropriate measures, incident notice, rights assistance, compliance support, and controlled audits.' },
+      { title: 'Subprocessors and transfers', text: 'Production providers, processing locations, notice, objections, and lawful international-transfer safeguards are deployment-specific.' },
     ],
     notice: 'The DPA, security measures, and subprocessor list require legal and operational approval.',
   },
 };
+
+const legalDocumentNavigation = [
+  { kind: 'terms', label: 'Terms and Conditions', href: '/terms.html' },
+  { kind: 'privacy', label: 'Privacy Notice', href: '/privacy.html' },
+  { kind: 'cookie-storage', label: 'Cookie and Storage', href: '/cookie-storage.html' },
+  { kind: 'imprint', label: 'Imprint', href: '/imprint.html' },
+  { kind: 'withdrawal', label: 'Consumer Withdrawal', href: '/withdrawal.html' },
+  { kind: 'dpa', label: 'Data Processing Agreement', href: '/dpa.html' },
+  { kind: 'license', label: 'License Agreement', href: '/license.html' },
+];
 
 const roadmap = [
   {
@@ -1043,11 +1057,36 @@ function renderLegalPage(kind) {
           <h1 class="pxa-heading">${page.title}</h1>
           <p class="pxa-lede">${page.text}</p>
         </div>
-        <div class="pxa-company-legal-grid" data-legal-content>
-          ${renderLegalSections(page.sections)}
-        </div>
-        <div class="pxa-card pxa-company-legal-notice">
-          <strong>${page.notice}</strong>
+        <div class="pxa-company-legal-layout">
+          <aside class="pxa-company-legal-sidebar" aria-label="Legal document navigation">
+            <h2>Legal documents</h2>
+            <nav>
+              ${legalDocumentNavigation.map((item) => `
+                <a href="${item.href}"${item.kind === kind ? ' aria-current="page"' : ''}>${item.label}</a>
+              `).join('')}
+            </nav>
+          </aside>
+          <div class="pxa-company-legal-main">
+            <section class="pxa-company-legal-metadata" data-legal-metadata aria-label="Document status">
+              <p role="status">Loading verified publication details...</p>
+            </section>
+            <article class="pxa-company-legal-grid" data-legal-content>
+              ${renderLegalSections(page.sections)}
+            </article>
+            <div class="pxa-company-legal-notice" role="note">
+              <strong>${page.notice}</strong>
+            </div>
+            <section class="pxa-company-legal-history" aria-labelledby="legal-history-title">
+              <div>
+                <p class="pxa-kicker">Change transparency</p>
+                <h2 id="legal-history-title">Version history</h2>
+                <p>Published versions remain available as an immutable public record.</p>
+              </div>
+              <div data-legal-history aria-live="polite">
+                <p>Loading published versions...</p>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </section>
@@ -1110,22 +1149,119 @@ document.querySelector('#app').innerHTML = `
   </div>
 `;
 
+function formatLegalDate(value, includeTime = false) {
+  return new Intl.DateTimeFormat('en', {
+    dateStyle: 'long',
+    ...(includeTime ? { timeStyle: 'short' } : {}),
+  }).format(new Date(value));
+}
+
+function appendLegalMetadata(container, label, value, code = false) {
+  const group = document.createElement('div');
+  const term = document.createElement('dt');
+  const description = document.createElement('dd');
+  term.textContent = label;
+  if (code) {
+    const codeElement = document.createElement('code');
+    codeElement.textContent = value;
+    description.append(codeElement);
+  } else {
+    description.textContent = value;
+  }
+  group.append(term, description);
+  container.append(group);
+}
+
+function renderLegalMetadata(result, requestedVersion) {
+  const container = document.querySelector('[data-legal-metadata]');
+  if (!container) return;
+  const legalDocument = result.document;
+  const status = document.createElement('div');
+  status.className = 'pxa-company-legal-publication-status';
+  const badge = document.createElement('span');
+  badge.className = `pxa-status ${result.source === 'live' ? 'pxa-status--ready' : 'pxa-status--planned'}`;
+  badge.textContent = requestedVersion ? 'Archived publication' : result.source === 'live' ? 'Current publication' : 'Verified snapshot';
+  const statusText = document.createElement('span');
+  statusText.textContent = result.source === 'live'
+    ? 'Loaded from the public Legal API.'
+    : `API unavailable. Snapshot generated ${formatLegalDate(result.generatedAt, true)}${result.stale ? ' and older than 30 days.' : '.'}`;
+  status.append(badge, statusText);
+
+  const details = document.createElement('dl');
+  appendLegalMetadata(details, 'Version', legalDocument.version);
+  appendLegalMetadata(details, 'Effective', formatLegalDate(legalDocument.effectiveAt));
+  appendLegalMetadata(details, 'Language', `${legalDocument.locale.toUpperCase()} · ${legalDocument.isAuthoritative ? 'Authoritative' : 'Convenience translation'}`);
+  appendLegalMetadata(details, 'Content hash', legalDocument.contentHash, true);
+
+  const summary = document.createElement('p');
+  summary.className = 'pxa-company-legal-change-summary';
+  const summaryLabel = document.createElement('strong');
+  summaryLabel.textContent = 'Change summary: ';
+  summary.append(summaryLabel, legalDocument.changeSummary || 'No public change summary was provided for this version.');
+  container.replaceChildren(status, details, summary);
+}
+
+function renderLegalHistory(kind, history, selectedVersion) {
+  const container = document.querySelector('[data-legal-history]');
+  if (!container) return;
+  const list = document.createElement('ol');
+  list.className = 'pxa-company-legal-version-list';
+  for (const version of history.versions) {
+    const item = document.createElement('li');
+    const heading = document.createElement('div');
+    const link = document.createElement('a');
+    const isCurrent = version.version === history.currentVersion;
+    const isSelected = version.version === (selectedVersion || history.currentVersion);
+    link.href = isCurrent
+      ? window.location.pathname
+      : `${window.location.pathname}?version=${encodeURIComponent(version.version)}`;
+    link.textContent = `Version ${version.version}`;
+    if (isSelected) link.setAttribute('aria-current', 'page');
+    const badge = document.createElement('span');
+    badge.className = `pxa-status ${isCurrent ? 'pxa-status--ready' : 'pxa-status--planned'}`;
+    badge.textContent = isCurrent ? 'Current' : 'Archived';
+    heading.append(link, badge);
+
+    const effective = document.createElement('p');
+    effective.textContent = `Effective ${formatLegalDate(version.effectiveAt)}`;
+    const summary = document.createElement('p');
+    summary.textContent = version.changeSummary || 'No public change summary was provided.';
+    item.append(heading, effective, summary);
+    list.append(item);
+  }
+  container.replaceChildren(list);
+}
+
 async function hydratePublishedLegalDocument(kind) {
   if (!legalPages[kind]) return;
+  const requestedVersion = new URLSearchParams(window.location.search).get('version');
   try {
-    const result = await loadPublishedLegalDocument({ kind, locale: 'en' });
+    const result = requestedVersion
+      ? await loadPublishedLegalVersion({ kind, version: requestedVersion, locale: 'en' })
+      : await loadPublishedLegalDocument({ kind, locale: 'en' });
     const legalDocument = result.document;
     const content = document.querySelector('[data-legal-content]');
     if (!content) return;
     content.className = 'pxa-company-legal-document';
     content.dataset.legalSource = result.source;
     content.innerHTML = legalDocument.renderedHtml;
+    renderLegalMetadata(result, requestedVersion);
     const notice = document.querySelector('.pxa-company-legal-notice strong');
     if (notice) {
-      const version = `Version ${legalDocument.version} · Effective ${new Date(legalDocument.effectiveAt).toLocaleDateString()}${legalDocument.isAuthoritative ? ' · Authoritative' : ' · Convenience translation'}`;
-      notice.textContent = result.source === 'live'
-        ? version
-        : `${version} · Archived copy from ${new Date(result.generatedAt).toLocaleString()}${result.stale ? ' · Snapshot older than 30 days' : ''}. The Legal API is unavailable; transactions requiring current-version verification remain disabled.`;
+      notice.textContent = requestedVersion
+        ? `You are reading an archived version. Version ${legalDocument.version} is preserved for reference and does not replace the current publication.`
+        : result.source === 'live'
+          ? 'This is the current verified publication.'
+          : 'This verified snapshot remains readable during the API outage. Transactions requiring current-version verification remain disabled.';
+    }
+
+    try {
+      const history = await loadPublishedLegalHistory({ kind, locale: 'en' });
+      renderLegalHistory(kind, history, requestedVersion);
+    } catch {
+      const historyContainer = document.querySelector('[data-legal-history]');
+      if (historyContainer)
+        historyContainer.innerHTML = '<p>Version history is temporarily unavailable while the Legal API cannot be reached.</p>';
     }
   } catch {
     const content = document.querySelector('[data-legal-content]');
@@ -1142,6 +1278,12 @@ async function hydratePublishedLegalDocument(kind) {
     const notice = document.querySelector('.pxa-company-legal-notice strong');
     if (notice)
       notice.textContent = 'Registration and other transactions requiring current legal versions remain disabled.';
+    const metadata = document.querySelector('[data-legal-metadata]');
+    if (metadata)
+      metadata.innerHTML = '<p role="alert">Publication details could not be verified.</p>';
+    const history = document.querySelector('[data-legal-history]');
+    if (history)
+      history.innerHTML = '<p>Version history is temporarily unavailable.</p>';
   }
 }
 

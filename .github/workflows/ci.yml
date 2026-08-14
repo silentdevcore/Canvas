@@ -158,6 +158,10 @@ jobs:
         run: |
           node tools/legal/validate-browser-storage.mjs
           node tools/legal/validate-data-processing-inventory.mjs
+          node tools/legal/validate-legal-launch-readiness.mjs
+          node tools/commerce/validate-global-commerce-catalog.mjs
+          node tools/commerce/validate-country-readiness.mjs
+          node --test tools/commerce/*.test.mjs
           npm --prefix websites/PXA.Account test
           npm --prefix websites/PXA.Account run type-check
           npm --prefix websites/PXA.Company test

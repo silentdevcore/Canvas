@@ -5,7 +5,9 @@ using PXA.Domain.Entities;
 using PXA.Infrastructure.Persistence;
 using PXA.WebApi.Security;
 using PXA.WebApi.Services.Storage;
+using PXA.WebApi.Services.Jobs;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 
 namespace PXA.WebApi.Controllers;
 
@@ -15,7 +17,9 @@ namespace PXA.WebApi.Controllers;
 public sealed class JobsController(
     PxaDbContext dbContext,
     IPxaTenantContext tenantContext,
-    PxaStoredObjectService storedObjects) : ControllerBase
+    PxaStoredObjectService storedObjects,
+    IServiceScopeFactory scopeFactory,
+    IOptions<PxaJobOptions> jobOptions) : ControllerBase
 {
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PxaJobResponse>> Get(Guid id, CancellationToken cancellationToken)
@@ -42,6 +46,10 @@ public sealed class JobsController(
         {
             job.Status = PxaBackgroundJobStatus.Cancelled;
             job.CompletedAt = DateTimeOffset.UtcNow;
+            job.ExpiresAt = job.RetentionMode == PxaJobRetentionMode.Transient
+                ? job.CompletedAt.Value.AddHours(jobOptions.Value.TransientRetentionHours)
+                : job.CompletedAt.Value.AddDays(jobOptions.Value.ResultRetentionDays);
+            job.MetadataExpiresAt = job.CompletedAt.Value.AddDays(jobOptions.Value.TerminalMetadataRetentionDays);
             job.UpdatedAt = DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -63,6 +71,22 @@ public sealed class JobsController(
         if (resultId is not { } objectId)
             return NotFound();
         var result = await storedObjects.OpenAsync(objectId, organizationId, cancellationToken);
+        if (result is not null)
+        {
+            var retentionMode = await dbContext.BackgroundJobs.AsNoTracking()
+                .Where(value => value.Id == id && value.OrganizationId == organizationId)
+                .Select(value => value.RetentionMode)
+                .SingleAsync(cancellationToken);
+            if (retentionMode == PxaJobRetentionMode.Transient)
+            {
+                Response.OnCompleted(async () =>
+                {
+                    await using var scope = scopeFactory.CreateAsyncScope();
+                    await scope.ServiceProvider.GetRequiredService<PxaJobRetentionService>()
+                        .PurgeTransientContentAfterDownloadAsync(id, organizationId, CancellationToken.None);
+                });
+            }
+        }
         return result is null
             ? NotFound()
             : File(result.Value.Content, result.Value.Metadata.ContentType, result.Value.Metadata.FileName);
@@ -78,7 +102,9 @@ public sealed class JobsController(
         job.StartedAt,
         job.CompletedAt,
         job.ExpiresAt,
-        job.Status == PxaBackgroundJobStatus.Completed
+        job.RetentionMode.ToString(),
+        job.ContentPurgedAt,
+        job.Status == PxaBackgroundJobStatus.Completed && job.ResultObjectId is not null
             ? $"/api/pxa/v1/jobs/{job.Id}/result"
             : null,
         ParseDiagnostics(job.DiagnosticsJson),
@@ -100,6 +126,8 @@ public sealed record PxaJobResponse(
     DateTimeOffset? StartedAt,
     DateTimeOffset? CompletedAt,
     DateTimeOffset ExpiresAt,
+    string RetentionMode,
+    DateTimeOffset? ContentPurgedAt,
     string? DownloadUrl,
     JsonElement? Diagnostics,
     string? FailureReason);

@@ -18,7 +18,7 @@ export interface DesignerReleaseFeed {
 
 export interface DesignerNotification {
   id: string;
-  category: 'System' | 'Security' | 'Subscription' | 'ActionRequired';
+  category: 'System' | 'Security' | 'Subscription' | 'ActionRequired' | 'Legal';
   severity: 'Info' | 'Success' | 'Warning' | 'Error';
   title: string;
   message: string;

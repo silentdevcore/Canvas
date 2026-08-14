@@ -16,6 +16,30 @@ public sealed class PxaJobRetentionService(
 {
     private readonly PxaJobOptions settings = options.Value;
 
+    public async Task<bool> PurgeTransientContentAfterDownloadAsync(
+        Guid jobId,
+        Guid organizationId,
+        CancellationToken cancellationToken)
+    {
+        var job = await dbContext.BackgroundJobs.SingleOrDefaultAsync(value =>
+            value.Id == jobId &&
+            value.OrganizationId == organizationId &&
+            value.RetentionMode == PxaJobRetentionMode.Transient &&
+            value.Status == PxaBackgroundJobStatus.Completed,
+            cancellationToken);
+        if (job is null)
+            return false;
+
+        var holdScope = await legalHolds.GetActiveScopeAsync(
+            "background-document-jobs",
+            cancellationToken);
+        if (holdScope.Holds(organizationId))
+            return false;
+
+        await PurgeContentAsync(job, DateTimeOffset.UtcNow, downloaded: true, cancellationToken);
+        return true;
+    }
+
     public async Task<int> CleanupAsync(CancellationToken cancellationToken)
     {
         var now = DateTimeOffset.UtcNow;
@@ -40,19 +64,18 @@ public sealed class PxaJobRetentionService(
             .ToArrayAsync(cancellationToken);
 
         foreach (var job in jobs)
-        {
-            var objectIds = new[] { job.InputObjectId, job.ResultObjectId }
-                .OfType<Guid>()
-                .Distinct()
-                .ToArray();
-            job.InputObjectId = null;
-            job.ResultObjectId = null;
-            job.Status = PxaBackgroundJobStatus.Expired;
-            job.UpdatedAt = now;
-            await dbContext.SaveChangesAsync(cancellationToken);
-            foreach (var objectId in objectIds)
-                await storedObjects.DeleteAsync(objectId, job.OrganizationId, cancellationToken);
-        }
+            await PurgeContentAsync(job, now, downloaded: false, cancellationToken);
+
+        var expiredMetadata = await dbContext.BackgroundJobs
+            .Where(value =>
+                value.MetadataExpiresAt <= now &&
+                value.ContentPurgedAt != null &&
+                !heldOrganizationIds.Contains(value.OrganizationId))
+            .OrderBy(value => value.MetadataExpiresAt)
+            .Take(settings.CleanupBatchSize)
+            .ToArrayAsync(cancellationToken);
+        dbContext.BackgroundJobs.RemoveRange(expiredMetadata);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         var missing = await storedObjects.ReconcileMissingAsync(
             settings.CleanupBatchSize,
@@ -60,6 +83,31 @@ public sealed class PxaJobRetentionService(
         PxaTelemetry.RecordJobRetention("expired", jobs.Length);
         PxaTelemetry.RecordJobRetention("storage_missing", missing);
         return jobs.Length;
+    }
+
+    private async Task PurgeContentAsync(
+        PxaBackgroundJob job,
+        DateTimeOffset now,
+        bool downloaded,
+        CancellationToken cancellationToken)
+    {
+        var objectIds = new[] { job.InputObjectId, job.ResultObjectId }
+            .OfType<Guid>()
+            .Distinct()
+            .ToArray();
+        foreach (var objectId in objectIds)
+            await storedObjects.DeleteAsync(objectId, job.OrganizationId, cancellationToken);
+        job.InputObjectId = null;
+        job.ResultObjectId = null;
+        job.PayloadJson = "{}";
+        job.DiagnosticsJson = null;
+        job.FailureReason = null;
+        job.ContentPurgedAt = now;
+        job.ResultDownloadedAt = downloaded ? now : job.ResultDownloadedAt;
+        if (!downloaded)
+            job.Status = PxaBackgroundJobStatus.Expired;
+        job.UpdatedAt = now;
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }
 
